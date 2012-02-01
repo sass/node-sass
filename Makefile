@@ -5,10 +5,9 @@ BIN=bin/
 BUILD=build/
 SRC=src/
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-
-libsass: libsass.o
-	$(CC) -o $(BIN)main libsass.o
+sassc: sassc.o
+	$(CC) -o $(BIN)sassc libsass.o
+sassc.o:
+	$(CC) -c -g $(SRC)sassc.c
 libsass.o:
 	$(CC) -c -g $(SRC)libsass.c
