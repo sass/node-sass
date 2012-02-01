@@ -20,5 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-Files in the spec were taken from the original Ruby Sass project which
-is copyright Hampton Catlin, Nathan Weizenbaum, and Chris Eppstein
+The following files in the spec were taken from the original Ruby Sass project which
+is copyright Hampton Catlin, Nathan Weizenbaum, and Chris Eppstein and under
+the same license.
