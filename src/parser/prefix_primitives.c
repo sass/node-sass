@@ -37,6 +37,5 @@ DEFINE_DELIMITED_MATCHER(interpolant, "#{", "}", 0);
 
 int prefix_is_string_constant(char *src) {
   int len = prefix_is_dqstring(src);
-  len = len ? len : prefix_is_sqstring(src);
-  return len;
+  return len ? len : prefix_is_sqstring(src);
 }
