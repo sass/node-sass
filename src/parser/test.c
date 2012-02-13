@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 #include "text_prefix_matchers.h"
@@ -14,5 +15,8 @@ int main() {
     }
     putchar('\n');
   }
+  
+  unsigned char x;
+  for (x = '\0'; x < 128; x++) if (ispunct(x)) printf("%c", x);
   return 0;
 }
