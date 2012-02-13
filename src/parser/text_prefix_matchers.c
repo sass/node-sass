@@ -15,6 +15,10 @@ size_t text_starts_with_ ## type ## s(char *src) { \
   return p; \
 }
 
+#define DEF_DELIMITED_PREFIX_MATCHER(name, begin, end, escapable) \
+size_t text_starts_with_ ## name(char *src) { \
+  return text_has_delimited_prefix(src, begin, end, escapable); \
+}
 
 size_t text_has_exact_prefix(char *src, char* pre) {
   int p = 0;
@@ -38,6 +42,10 @@ size_t text_has_delimited_prefix(char *src, char *beg, char *end, int esc) {
   }
 }
 
+/*
+These macro calls expand into function definitions. Their corresponding
+signatures are in the comments.
+*/
 DEF_CTYPE_SEQUENCE_PREFIX_MATCHER(space);  /* size_t text_starts_with_spaces(char *)  */
 DEF_CTYPE_SEQUENCE_PREFIX_MATCHER(alpha);  /* size_t text_starts_with_alphas(char *)  */
 DEF_CTYPE_SEQUENCE_PREFIX_MATCHER(digit);  /* size_t text_starts_with_digits(char *)  */
@@ -60,9 +68,11 @@ size_t text_starts_with_line_comment(char *src) {
   return p;
 }
 
+DEF_DELIMITED_PREFIX_MATCHER(dqstring, "\"", "\"", 1);
+DEF_DELIMITED_PREFIX_MATCHER(sqstring, "'", "'", 1);
+
 size_t text_starts_with_string_constant(char *src) {
-  return text_has_delimited_prefix(src, "\"", "\"", 1)
-      || text_has_delimited_prefix(src, "'", "'", 1);
+  return text_starts_with_dqstring(src) || text_starts_with_sqstring(src);
 }
 
 size_t text_starts_with_interpolant(char *src) {

@@ -17,6 +17,8 @@ int main() {
   }
   
   unsigned char x;
+  printf("By the way, punctuation symbols are:\n");
   for (x = '\0'; x < 128; x++) if (ispunct(x)) printf("%c", x);
+  putchar('\n');
   return 0;
 }
