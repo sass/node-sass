@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include "prefix_primitives.h"
 
 int prefix_is_exactly(char *src, char* pre) {
@@ -33,6 +34,12 @@ int prefix_is_delimited_by(char *src, char *beg, char *end, int esc) {
   }
 }
 
+int prefix_try_alternatives(char *src, int (*m[])(char *)) {
+  int p = 0;
+  while (m && !(p = (*m)(src))) m++;
+  return p;
+}
+
 DEFINE_SINGLE_CTYPE_MATCHER(space);
 DEFINE_SINGLE_CTYPE_MATCHER(alpha);
 DEFINE_SINGLE_CTYPE_MATCHER(digit);
@@ -52,8 +59,12 @@ DEFINE_DELIMITED_MATCHER(single_quoted_string, "'", "'", 1);
 DEFINE_DELIMITED_MATCHER(interpolant, "#{", "}", 0);
 
 int prefix_is_string(char *src) {
-  int len = prefix_is_double_quoted_string(src);
-  return len ? len : prefix_is_single_quoted_string(src);
+  int (*ms[])(char *) = {
+    prefix_is_double_quoted_string,
+    prefix_is_single_quoted_string,
+    NULL
+  };
+  return prefix_try_alternatives(src, ms);
 }
 
 DEFINE_EXACT_MATCHER(lparen, "(");

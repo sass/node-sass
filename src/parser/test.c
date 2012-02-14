@@ -16,14 +16,16 @@ void printn(char *s, int n) {
 
 int main() {
   char *s = "'this \\'is\\' a \"string\" now' blah blah blah";
-  char *t = "/* this is a c comment \\x */ blah blah";
-  char *u = "#{ this is an interpolant \\x } blah blah";
+  char *t = "/* this is a c comment \\*/ blah blah";
+  char *u = "#{ this is an interpolant \\} blah blah";
   char *v = "hello my name is aaron";
+  
+  int (*funcs[])(char *) = { prefix_is_string, prefix_is_block_comment, NULL };
 
-  printn(s, prefix_is_string(s));
+  printn(s, funcs[0](s));
   printn(s, prefix_is_one_of(s, "abcde+'"));
   printn(s, prefix_is_some_of(s, "'abcdefghijklmnopqrstuvwxyz "));
-  printn(t, prefix_is_block_comment(t));
+  printn(t, funcs[1](t));
   printn(u, prefix_is_interpolant(u));
   printn(v, prefix_is_alphas(v));
   printn(v, prefix_is_one_alpha(v));
