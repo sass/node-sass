@@ -66,29 +66,3 @@ DEFINE_EXACT_MATCHER(lbrack, "[");
 DEFINE_EXACT_MATCHER(rbrack, "]");
 DEFINE_EXACT_MATCHER(lbrace, "{");
 DEFINE_EXACT_MATCHER(rbrace, "}");
-DEFINE_EXACT_MATCHER(asterisk, "*");
-
-/* not sure I'm gonna' need these
-DEFINE_EXACT_MATCHER(exclamation, "!");
-DEFINE_EXACT_MATCHER(pound, "#");
-DEFINE_EXACT_MATCHER(hash, "#");
-DEFINE_EXACT_MATCHER(dollar, "$");
-DEFINE_EXACT_MATCHER(percent, "%");
-DEFINE_EXACT_MATCHER(ampersand, "&");
-DEFINE_EXACT_MATCHER(lparen, "(");
-DEFINE_EXACT_MATCHER(rparen, ")");
-DEFINE_EXACT_MATCHER(times, "*");
-DEFINE_EXACT_MATCHER(comma, ",");
-DEFINE_EXACT_MATCHER(hyphen, "-");
-DEFINE_EXACT_MATCHER(minus, "-");
-DEFINE_EXACT_MATCHER(period, ".");
-DEFINE_EXACT_MATCHER(dot, ".");
-DEFINE_EXACT_MATCHER(slash, "/");
-DEFINE_EXACT_MATCHER(divide, "/");
-DEFINE_EXACT_MATCHER(colon, ":");
-DEFINE_EXACT_MATCHER(semicolon, ";");
-DEFINE_EXACT_MATCHER(lt, "<");
-DEFINE_EXACT_MATCHER(lte, "<=");
-DEFINE_EXACT_MATCHER(gt, ">");
-DEFINE_EXACT_MATCHER(gte, ">=");
-*/

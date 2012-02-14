@@ -1,4 +1,4 @@
-enum sss_type {
+enum prefix_pattern_type {
   ATOM,
   SEQUENCE,
   CHOICE,
@@ -13,12 +13,12 @@ enum sss_type {
   
 
 typedef struct {
-  sss_type tag;
+  prefix_pattern_type tag;
   int (*matcher)(char *);
-} sss_component;
+} prefix_pattern_component;
 
 typedef struct {
   int length;
-  sss_component *body;
-} sss_pattern;
+  prefix_pattern_component *body;
+} prefix_pattern;
 
