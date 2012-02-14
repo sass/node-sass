@@ -4,26 +4,31 @@
 #include <stdlib.h>
 #include "prefix_primitives.h"
 
-int main() {
-  char *s = "'this is a \"string\" now' blah blah blah";
-  int l = prefix_is_string_constant(s);
-  if (l) {
-    printf("matched a string literal of length %d:\n", l);
-    int i;
-    for (i = 0; i < l; i++) {
-      putchar(s[i]);
-    }
-    putchar('\n');
+
+void printn(char *s, int n) {
+  int i;
+  printf("matched %d characters:\t", n);
+  for (i = 0; i < n; i++) {
+    putchar(s[i]);
   }
-  else {
-    printf("matched %d characters\n", l);
-  }
-  
-  unsigned char x;
-  printf("By the way, punctuation symbols are:\n");
-  for (x = '\0'; x < 128; x++) if (ispunct(x)) printf("%c", x);
   putchar('\n');
-  printf("By the way, 0 || 24 is: %d\n", 0 || 24);
-  printf("And 24 || 0 is: %d\n", 24 || 0);
+}
+
+int main() {
+  char *s = "'this \\'is\\' a \"string\" now' blah blah blah";
+  char *t = "/* this is a c comment \\x */ blah blah";
+  char *u = "#{ this is an interpolant \\x } blah blah";
+  char *v = "hello my name is aaron";
+
+  printn(s, prefix_is_string(s));
+  printn(s, prefix_is_one_of(s, "abcde+'"));
+  printn(s, prefix_is_some_of(s, "'abcdefghijklmnopqrstuvwxyz "));
+  printn(t, prefix_is_block_comment(t));
+  printn(u, prefix_is_interpolant(u));
+  printn(v, prefix_is_alphas(v));
+  printn(v, prefix_is_one_alpha(v));
+  printn(v, prefix_is_exactly(v, "hello"));
+  
+  
   return 0;
 }
