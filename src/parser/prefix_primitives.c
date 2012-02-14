@@ -4,18 +4,15 @@
 #include "prefix_primitives.h"
 
 int prefix_is_exactly(char *src, char* pre) {
-  int p = 0;
-  while (1) {
-    if (pre[p] == '\0') return p;
-    if (pre[p] != src[p]) return 0;
-    p++;
-  }
+  int p;
+  for (p = 0; pre[p] && src[p] == pre[p]; p++) ;
+  return pre[p] ? 0 : p;
 }
 
 int prefix_is_one_of(char *src, char *class) {
   int i;
-  for (i = 0; class[i]; i++) if (class[i] == src[0]) return 1;
-  return 0;
+  for (i = 0; class[i] && src[0] != class[i]; i++) ;
+  return class[i] ? 1 : 0;
 }
 
 int prefix_is_some_of(char *src, char *class) {
@@ -25,10 +22,9 @@ int prefix_is_some_of(char *src, char *class) {
 }
 
 int prefix_is_delimited_by(char *src, char *beg, char *end, int esc) {
-  int p = 0;
-  int len = prefix_is_exactly(src, beg);
+  int p, len  = prefix_is_exactly(src, beg);
   if (!len) return 0;
-  p += len;
+  p = len;
   while (1) {
     if (src[p] == '\0') return 0;
     len = prefix_is_exactly(src+p, end);
