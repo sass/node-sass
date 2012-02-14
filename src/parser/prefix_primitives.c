@@ -34,9 +34,12 @@ int prefix_is_delimited_by(char *src, char *beg, char *end, int esc) {
   }
 }
 
-int prefix_try_alternatives(char *src, int (*m[])(char *)) {
+int prefix_try_alternatives(char *src, ...) {
   int p = 0;
-  while (m && !(p = (*m)(src))) m++;
+  va_list ap;
+  va_start(ap, src);
+  prefix_matcher m = va_arg(ap, prefix_matcher);  
+  while (m && !(p = (*m)(src))) m = va_arg(ap, prefix_matcher);
   return p;
 }
 
@@ -59,12 +62,9 @@ DEFINE_DELIMITED_MATCHER(single_quoted_string, "'", "'", 1);
 DEFINE_DELIMITED_MATCHER(interpolant, "#{", "}", 0);
 
 int prefix_is_string(char *src) {
-  int (*ms[])(char *) = {
-    prefix_is_double_quoted_string,
-    prefix_is_single_quoted_string,
-    NULL
-  };
-  return prefix_try_alternatives(src, ms);
+  return prefix_try_alternatives(src,
+                                 prefix_is_double_quoted_string,
+                                 prefix_is_single_quoted_string);
 }
 
 DEFINE_EXACT_MATCHER(lparen, "(");

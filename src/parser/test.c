@@ -31,6 +31,12 @@ int main() {
   printn(v, prefix_is_one_alpha(v));
   printn(v, prefix_is_exactly(v, "hello"));
   
+  {
+    int hidden = 42;
+    printf("%d\n", hidden);
+  }
+  
+  printf("%s", "Did this run?\n");
   
   return 0;
 }

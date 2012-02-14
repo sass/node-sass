@@ -1,3 +1,5 @@
+typedef int(*prefix_matcher)(char *);
+
 int prefix_is_exactly(char *, char*);
 int prefix_is_one_of(char *, char *);
 int prefix_is_some_of(char *, char *);
@@ -34,6 +36,9 @@ int prefix_is_ ## name(char *src) { \
   while (src[p] && src[p] != '\n') p++; \
   return p; \
 }
+
+#define prefix_list(...) { __VA_ARGS__, NULL }
+  
 
 DECLARE_MATCHER(one_space);
 DECLARE_MATCHER(one_alpha);
