@@ -1,3 +1,5 @@
+#include "prefix_primitives.h"
+
 int prefix_starts_with_identifier(char *src) {
   int p = prefix_is_alphas(src) || prefix_is_exactly(src, "_");
   if (!p++) return 0;
@@ -18,8 +20,7 @@ DEFINE_EXACT_MATCHER(hash, "#");
 DEFINE_EXACT_MATCHER(adjacent_to, "+");
 DEFINE_EXACT_MATCHER(precedes, "~");
 DEFINE_EXACT_MATCHER(parent_of, ">");
-int (*prefix_starts_with_ancestor_of)(char *src) = prefix_starts_with_spaces;
-
+prefix_matcher prefix_starts_with_ancestor_of = prefix_starts_with_spaces;
 DEFINE_EXACT_MATCHER(exclamation, "!");
 DEFINE_EXACT_MATCHER(dollar, "$");
 DEFINE_EXACT_MATCHER(percent, "%");

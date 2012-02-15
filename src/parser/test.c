@@ -19,6 +19,9 @@ int main() {
   char *t = "/* this is a c comment \\*/ blah blah";
   char *u = "#{ this is an interpolant \\} blah blah";
   char *v = "hello my name is aaron";
+  char *w = "_identifier123";
+  char *x = "12nonidentifier_";
+  char *y = "-blah-blah_blah";
   
   int (*funcs[])(char *) = { prefix_is_string, prefix_is_block_comment, NULL };
 
