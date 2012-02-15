@@ -23,23 +23,17 @@ int main() {
   char *x = "12nonidentifier_";
   char *y = "-blah-blah_blah";
   
-  int (*funcs[])(char *) = { prefix_is_string, prefix_is_block_comment, NULL };
-
-  printn(s, funcs[0](s));
+  printn(s, prefix_is_string(s));
   printn(s, prefix_is_one_of(s, "abcde+'"));
   printn(s, prefix_is_some_of(s, "'abcdefghijklmnopqrstuvwxyz "));
-  printn(t, funcs[1](t));
+  printn(t, prefix_is_block_comment(t));
   printn(u, prefix_is_interpolant(u));
   printn(v, prefix_is_alphas(v));
-  printn(v, prefix_is_one_alpha(v));
+  printn(v, prefix_is_alpha(v));
   printn(v, prefix_is_exactly(v, "hello"));
-  
-  {
-    int hidden = 42;
-    printf("%d\n", hidden);
-  }
-  
-  printf("%s", "Did this run?\n");
-  
+  printn(x, prefix_sequence(x, prefix_is_digits, prefix_is_alnums));
+  printn(x, prefix_alternatives(x, prefix_is_hyphen, prefix_is_alphas, prefix_is_puncts, prefix_is_digits));
+  //printn(y, prefix_is_word(y));
+  printf("blah");
   return 0;
 }

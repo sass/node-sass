@@ -34,7 +34,7 @@ int prefix_is_delimited_by(char *src, char *beg, char *end, int esc) {
   }
 }
 
-int prefix_alternatives(char *src, ...) {
+int _prefix_alternatives(char *src, ...) {
   int p = 0;
   va_list ap;
   va_start(ap, src);
@@ -44,7 +44,7 @@ int prefix_alternatives(char *src, ...) {
   return p;
 }
 
-int prefix_sequence(char *src, ...) {
+int _prefix_sequence(char *src, ...) {
   int p = 0, p_sum = 0;
   va_list ap;
   va_start(ap, src);
@@ -76,11 +76,8 @@ DEFINE_DELIMITED_MATCHER(block_comment, "/*", "*/", 0);
 DEFINE_DELIMITED_MATCHER(double_quoted_string, "\"", "\"", 1);
 DEFINE_DELIMITED_MATCHER(single_quoted_string, "'", "'", 1);
 DEFINE_DELIMITED_MATCHER(interpolant, "#{", "}", 0);
-
-int prefix_is_string(char *src) {
-  return prefix_alternatives(src, prefix_is_double_quoted_string,
-                                      prefix_is_single_quoted_string);
-}
+DEFINE_ALTERNATIVES_MATCHER(string, prefix_is_double_quoted_string,
+                                    prefix_is_single_quoted_string);
 
 DEFINE_EXACT_MATCHER(lparen,      "(");
 DEFINE_EXACT_MATCHER(rparen,      ")");
@@ -129,7 +126,7 @@ DEFINE_ALTERNATIVES_MATCHER(identifier_initial, prefix_is_alphas, prefix_is_unde
 DEFINE_ALTERNATIVES_MATCHER(identifier_trailing, prefix_is_alnums, prefix_is_underscore);
 DEFINE_FIRST_REST_MATCHER(identifier, prefix_is_identifier_initial, prefix_is_identifier_trailing);
 
-// DEFINE_ALTERNATIVES_MATCHER(
-// DEFINE_ALTERNATIVES_MATCHER(word_initial, prefix_is_identifier, prefix_is_hyphen_);
-DEFINE_ALTERNATIVES_MATCHER(word_trailing, prefix_is_alnums, prefix_is_underscore, prefix_is_hyphen);
+DEFINE_SEQUENCE_MATCHER(hyphen_and_alpha, prefix_is_hyphen, prefix_is_alpha);
+DEFINE_ALTERNATIVES_MATCHER(word_initial, prefix_is_identifier, prefix_is_hyphen_and_alpha);
+DEFINE_ALTERNATIVES_MATCHER(word_trailing, prefix_is_alnums, prefix_is_hyphen, prefix_is_underscore);
 DEFINE_FIRST_REST_MATCHER(word, prefix_is_word_initial, prefix_is_word_trailing);

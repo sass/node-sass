@@ -4,8 +4,10 @@ int prefix_is_exactly(char *, char*);
 int prefix_is_one_of(char *, char *);
 int prefix_is_some_of(char *, char *);
 int prefix_is_delimited_by(char *, char *, char *, int);
-int prefix_alternatives(char *, ...);
-int prefix_sequence(char *, ...);
+int _prefix_alternatives(char *, ...);
+int _prefix_sequence(char *, ...);
+#define prefix_alternatives(src, ...) _prefix_alternatives(src, __VA_ARGS__, NULL)
+#define prefix_sequence(src, ...) _prefix_sequence(src, __VA_ARGS__, NULL)
 int prefix_optional(char *, prefix_matcher);
 
 #define DECLARE_MATCHER(name) \
@@ -82,8 +84,8 @@ DECLARE_MATCHER(line_comment);
 DECLARE_MATCHER(block_comment);
 DECLARE_MATCHER(double_quoted_string);
 DECLARE_MATCHER(single_quoted_string);
-DECLARE_MATCHER(interpolant);
 DECLARE_MATCHER(string);
+DECLARE_MATCHER(interpolant);
 DECLARE_MATCHER(lparen);
 DECLARE_MATCHER(rparen);
 DECLARE_MATCHER(lbrack);
