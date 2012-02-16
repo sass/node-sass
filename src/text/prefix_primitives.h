@@ -42,6 +42,9 @@ char *_prefix_alternatives(char *src, ...);
 #define prefix_alternatives(src, ...) _prefix_alternatives(src, __VA_ARGS__, NULL)
 char *_prefix_sequence(char *src, ...);
 #define prefix_sequence(src, ...) _prefix_sequence(src, __VA_ARGS__, NULL)
+char *prefix_optional(char *src, prefix_matcher m);
+char *prefix_zero_plus(char *src, prefix_matcher m);
+char *prefix_one_plus(char *src, prefix_matcher m);
 
 DECLARE_MATCHER(space);
 DECLARE_MATCHER(alpha);

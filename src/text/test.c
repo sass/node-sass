@@ -4,91 +4,75 @@
 #include <stdlib.h>
 #include "prefix_primitives.h"
 
-#define test1(name, v1) t1(#name, name, v1)
-#define test2(name, v1, v2) t2(#name, name, v1, v2)
-
 void print_slice(char *s, char *t) {
   if (t) {
-    printf("matched %ld characters:\t", t - s);
+    printf("succeeded with %ld characters:\t", t - s);
     while (s < t) putchar(*s++);
     putchar('\n');
   }
   else {
-    printf("matched nothing\n");
+    printf("failed\n");
   }
 }
 
-void t1(char *name, char *(*matcher)(char *), char *src) {
-  printf("testing %s(\"%s\")\n", name, src);
-  print_slice(src, matcher(src));
-  putchar('\n');
-}
+#define test1(matcher, src) \
+(printf("testing << %s >>\n", #matcher), print_slice(src, matcher(src)))
 
-void t2(char *name, char *(*matcher)(char *, char *), char *src, char *pre) {
-  printf("testing %s(\"%s\", \"%s\")\n", name, src, pre);
-  print_slice(src, matcher(src, pre));
-  putchar('\n');
-}
+#define testn(matcher, src, ...) \
+(printf("testing << %s >>\n", #matcher), print_slice(src, matcher(src, __VA_ARGS__)))
 
 int main() {
-  char *r = "\"blah blah \\\" blah\"";
-  char *s = "'this \\'is\\' a \"string\" now' blah blah blah";
-  char *t = "/* this is a c comment \\*/ blah blah";
-  char *u = "#{ this is an interpolant \\} blah blah";
-  char *v = "hello my name is aaron";
-  char *w = "_identifier123";
-  char *x = "12non_ident_ifier_";
-  char *y = "-blah-blah_blah";
-  char *z = "#foo > :first-child { color: #abcdef; }";
-  char *line_comment = "// blah blah blah // end\n blah blah";
-  char *stuff = "badec4669264hello";
+  char *dqstring = "\"blah blah \\\" blah\"";
+  char *sqstring = "'this \\'is\\' a \"string\" now' blah blah blah";
+  char *bcomment = "/* this is a c comment \\*/ blah blah";
+  char *noncomment = "/* blah blah";
+  char *interpolant = "#{ this is an interpolant \\} blah blah";
+  char *words = "hello my name is aaron";
+  char *id1 = "_identifier123";
+  char *non_id = "12non_ident_ifier_";
+  char *word2 = "-blah-blah_blah";
+  char *selector = "#foo > :first-child { color: #abcdef; }";
+  char *lcomment = "// blah blah blah // end\n blah blah";
+  char *id2 = "badec4669264hello";
   
-  // test2(prefix_is_char, v, 'h');
-  // test2(prefix_is_char, v, 'a');
+  testn(prefix_is_char, words, 'h');
+  testn(prefix_is_char, words, 'a');
   
-  print_slice(v, prefix_is_char(v, 'h'));
-  print_slice(v, prefix_is_char(v, 'a'));
-  putchar('\n');
+  testn(prefix_is_chars, words, "hello");
+  testn(prefix_is_chars, words, "hello world");
   
-  test2(prefix_is_chars, v, "hello");
-  test2(prefix_is_chars, v, "hello world");
+  testn(prefix_is_one_of, words, "abcdefgh");
+  testn(prefix_is_one_of, words, "ijklmnop");
+  
+  testn(prefix_is_some_of, id1, "_deint");
+  testn(prefix_is_some_of, id1, "abcd");
 
-  test2(prefix_is_one_of, v, "abcdefgh");
-  test2(prefix_is_one_of, v, "ijklmnop");
+  test1(prefix_is_block_comment, bcomment);
+  test1(prefix_is_block_comment, noncomment);
   
-  test2(prefix_is_some_of, w, "_deint");
-  test2(prefix_is_some_of, w, "abcd");
-  
-  test1(prefix_is_block_comment, t);
-  test1(prefix_is_block_comment, line_comment);
-  
-  test1(prefix_is_double_quoted_string, r);
-  test1(prefix_is_double_quoted_string, s);
-  
-  test1(prefix_is_single_quoted_string, s);
-  test1(prefix_is_single_quoted_string, r);
+  test1(prefix_is_double_quoted_string, dqstring);
+  test1(prefix_is_double_quoted_string, sqstring);
 
-  test1(prefix_is_interpolant, u);
-  test1(prefix_is_interpolant, z);
+  test1(prefix_is_single_quoted_string, sqstring);
+  test1(prefix_is_single_quoted_string, dqstring);
+
+  test1(prefix_is_interpolant, interpolant);
+  test1(prefix_is_interpolant, lcomment);
   
-  test1(prefix_is_line_comment, line_comment);
-  test1(prefix_is_line_comment, t);
+  test1(prefix_is_line_comment, lcomment);
+  test1(prefix_is_line_comment, noncomment);
   
-  char *p = prefix_sequence(stuff, prefix_is_alphas, prefix_is_digits);
+  testn(prefix_sequence, id2, prefix_is_alphas, prefix_is_digits);
+  testn(prefix_sequence, id2, prefix_is_alphas, prefix_is_puncts);
   
-  print_slice(stuff, _prefix_sequence(stuff, prefix_is_alphas, prefix_is_digits, NULL));
-  print_slice(stuff, prefix_sequence(stuff, prefix_is_alphas, prefix_is_puncts));
+  testn(prefix_optional, non_id, prefix_is_digits);
+  testn(prefix_optional, words, prefix_is_digits);
   
-  // printn(s, prefix_is_string(s));
-  // printn(s, prefix_is_one_of(s, "abcde+'"));
-  // printn(s, prefix_is_some_of(s, "'abcdefghijklmnopqrstuvwxyz "));
-  // printn(t, prefix_is_block_comment(t));
-  // printn(u, prefix_is_interpolant(u));
-  // printn(v, prefix_is_alphas(v));
-  // printn(v, prefix_is_alpha(v));
-  // printn(v, prefix_is_exactly(v, "hello"));
-  // printn(x, prefix_sequence(x, prefix_is_digits, prefix_is_alphas));
-  // printn(x, prefix_alternatives(x, prefix_is_hyphen, prefix_is_alphas, prefix_is_puncts, prefix_is_digits));
+  testn(prefix_zero_plus, words, prefix_is_alphas);
+  testn(prefix_zero_plus, non_id, prefix_is_alphas);
+  
+  testn(prefix_one_plus, words, prefix_is_alphas);
+  testn(prefix_one_plus, non_id, prefix_is_alphas);
 
   return 0;
 }

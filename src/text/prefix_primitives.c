@@ -54,6 +54,24 @@ char *_prefix_sequence(char *src, ...) {
   return src;
 }
 
+char *prefix_optional(char *src, prefix_matcher m) {
+  char *p = m(src);
+  return p ? p : src;
+}
+
+char *prefix_zero_plus(char *src, prefix_matcher m) {
+  char *p = m(src);
+  while(p) src = p, p = m(src);
+  return src;
+}
+
+char *prefix_one_plus(char *src, prefix_matcher m) {
+  char *p = m(src);
+  if (!p) return NULL;
+  while(p) src = p, p = m(src);
+  return src;
+}
+
 DEFINE_SINGLE_CTYPE_MATCHER(space);
 DEFINE_SINGLE_CTYPE_MATCHER(alpha);
 DEFINE_SINGLE_CTYPE_MATCHER(digit);
