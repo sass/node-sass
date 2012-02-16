@@ -86,8 +86,9 @@ DEFINE_CTYPE_SEQUENCE_MATCHER(xdigit);
 DEFINE_CTYPE_SEQUENCE_MATCHER(alnum);
 DEFINE_CTYPE_SEQUENCE_MATCHER(punct);
 
-DEFINE_TO_EOL_MATCHER(line_comment, "//");
-DEFINE_DELIMITED_MATCHER(block_comment, "/*", "*/", 0);
+DEFINE_TO_EOL_MATCHER(shell_comment, "#");
+DEFINE_TO_EOL_MATCHER(c_line_comment, "//");
+DEFINE_DELIMITED_MATCHER(c_block_comment, "/*", "*/", 0);
 DEFINE_DELIMITED_MATCHER(double_quoted_string, "\"", "\"", 1);
 DEFINE_DELIMITED_MATCHER(single_quoted_string, "\'", "\'", 1);
 DEFINE_DELIMITED_MATCHER(interpolant, "#{", "}", 0);
@@ -138,3 +139,4 @@ DEFINE_CHARS_MATCHER(equal,       "==");
 static DEFINE_ALTERNATIVES_MATCHER(identifier_initial, prefix_is_alphas, prefix_is_underscore);
 static DEFINE_ALTERNATIVES_MATCHER(identifier_trailer, prefix_is_alnums, prefix_is_underscore);
 DEFINE_FIRST_REST_MATCHER(identifier, prefix_is_identifier_initial, prefix_is_identifier_trailer);
+

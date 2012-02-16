@@ -78,6 +78,7 @@ DECLARE_MATCHER(digit);
 DECLARE_MATCHER(xdigit);
 DECLARE_MATCHER(alnum);
 DECLARE_MATCHER(punct);
+
 DECLARE_MATCHER(spaces);
 DECLARE_MATCHER(alphas);
 DECLARE_MATCHER(digits);
@@ -85,8 +86,9 @@ DECLARE_MATCHER(xdigits);
 DECLARE_MATCHER(alnums);
 DECLARE_MATCHER(puncts);
 
-DECLARE_MATCHER(line_comment);
-DECLARE_MATCHER(block_comment);
+DECLARE_MATCHER(shell_comment);
+DECLARE_MATCHER(c_line_comment);
+DECLARE_MATCHER(c_block_comment);
 DECLARE_MATCHER(double_quoted_string);
 DECLARE_MATCHER(single_quoted_string);
 DECLARE_MATCHER(interpolant);

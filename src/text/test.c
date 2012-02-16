@@ -22,8 +22,10 @@ void print_slice(char *s, char *t) {
 (printf("testing << %s >>\n", #matcher), print_slice(src, matcher(src, __VA_ARGS__)))
 
 int main() {
+  char *spaces = "  \t \t \v \r\n  \n\nhello world";
   char *dqstring = "\"blah blah \\\" blah\"";
   char *sqstring = "'this \\'is\\' a \"string\" now' blah blah blah";
+  char *scomment = "# a shell-style comment";
   char *bcomment = "/* this is a c comment \\*/ blah blah";
   char *noncomment = "/* blah blah";
   char *interpolant = "#{ this is an interpolant \\} blah blah";
@@ -34,6 +36,9 @@ int main() {
   char *selector = "#foo > :first-child { color: #abcdef; }";
   char *lcomment = "// blah blah blah // end\n blah blah";
   char *id2 = "badec4669264hello";
+  
+  test1(prefix_is_spaces, spaces);
+  test1(prefix_is_spaces, words);
   
   testn(prefix_is_char, words, 'h');
   testn(prefix_is_char, words, 'a');
@@ -46,9 +51,12 @@ int main() {
   
   testn(prefix_is_some_of, id1, "_deint");
   testn(prefix_is_some_of, id1, "abcd");
+  
+  test1(prefix_is_shell_comment, scomment);
+  test1(prefix_is_shell_comment, lcomment);
 
-  test1(prefix_is_block_comment, bcomment);
-  test1(prefix_is_block_comment, noncomment);
+  test1(prefix_is_c_block_comment, bcomment);
+  test1(prefix_is_c_block_comment, noncomment);
   
   test1(prefix_is_double_quoted_string, dqstring);
   test1(prefix_is_double_quoted_string, sqstring);
@@ -59,8 +67,8 @@ int main() {
   test1(prefix_is_interpolant, interpolant);
   test1(prefix_is_interpolant, lcomment);
   
-  test1(prefix_is_line_comment, lcomment);
-  test1(prefix_is_line_comment, noncomment);
+  test1(prefix_is_c_line_comment, lcomment);
+  test1(prefix_is_c_line_comment, noncomment);
   
   testn(prefix_sequence, id2, prefix_is_alphas, prefix_is_digits);
   testn(prefix_sequence, id2, prefix_is_alphas, prefix_is_puncts);
