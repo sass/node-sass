@@ -28,7 +28,7 @@ int main() {
   char *noncomment = "/* blah blah";
   char *interpolant = "#{ this is an interpolant \\} blah blah";
   char *words = "hello my name is aaron";
-  char *id1 = "_identifier123";
+  char *id1 = "_identifier123{blah bloo}";
   char *non_id = "12non_ident_ifier_";
   char *word2 = "-blah-blah_blah";
   char *selector = "#foo > :first-child { color: #abcdef; }";
@@ -73,6 +73,9 @@ int main() {
   
   testn(prefix_one_plus, words, prefix_is_alphas);
   testn(prefix_one_plus, non_id, prefix_is_alphas);
+  
+  test1(prefix_is_identifier, id1);
+  test1(prefix_is_identifier, non_id);
 
   return 0;
 }
