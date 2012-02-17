@@ -2,8 +2,8 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
-#include "prefix_primitives.h"
-// #include "lexical_patterns.h"
+// #include "prefix_primitives.h"
+#include "lexical_patterns.h"
 
 void print_slice(char *s, char *t) {
   if (t) {
@@ -33,7 +33,7 @@ int main() {
   char *words = "hello my name is aaron";
   char *id1 = "_identifier123{blah bloo}";
   char *non_id = "12non_ident_ifier_";
-  char *word2 = "-blah-blah_bl12-34:foo";
+  char *word2 = "-blah-bl+ah_bl12-34+1:foo";
   char *non_word = "-12blah-bloo";
   char *selector = "#foo > :first-child { color: #abcdef; }";
   char *lcomment = "// blah blah blah // end\n blah blah";
@@ -100,8 +100,8 @@ int main() {
   test1(prefix_is_integer, integer3);
   test1(prefix_is_integer, word2);
   
-  // test1(prefix_is_word, word2);
-  //   test1(prefix_is_word, non_word);
+  test1(prefix_is_word, word2);
+  test1(prefix_is_word, integer3);
 
   return 0;
 }

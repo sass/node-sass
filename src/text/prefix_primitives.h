@@ -14,12 +14,12 @@ char *prefix_is_ ## name(char *src) { \
 }
 
 #define CLASS_CHAR_MATCHER(name, class) \
-char *prefix_is ## name(char *src) { \
+char *prefix_is_ ## name(char *src) { \
   return prefix_is_one_of(src, class); \
 }
 
 #define CLASS_CHARS_MATCHER(name, class) \
-char *prefix_is ## name(char *src) { \
+char *prefix_is_ ## name(char *src) { \
   return prefix_is_some_of(src, class); \
 }
 
@@ -148,7 +148,6 @@ DECLARE(eq);
 DECLARE(assign);
 DECLARE(equal);
 
-char *prefix_is_sign(char *);
 DECLARE(sign);
 DECLARE(delimiter);
 
