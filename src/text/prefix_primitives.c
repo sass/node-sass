@@ -143,9 +143,12 @@ CHAR_MATCHER (eq,          '=');
 CHAR_MATCHER (assign,      '=');
 CHARS_MATCHER(equal,       "==");
 
+CLASS_CHAR_MATCHER(sign,   "+-");
+CLASS_CHAR_MATCHER(delimiter, "()[]{}");
+
 static ALTERNATIVES_MATCHER(identifier_initial, prefix_is_alphas, prefix_is_underscore);
 static ALTERNATIVES_MATCHER(identifier_trailer, prefix_is_alnums, prefix_is_underscore);
 FIRST_REST_MATCHER(identifier, prefix_is_identifier_initial, prefix_is_identifier_trailer);
 
-static ALTERNATIVES_MATCHER(optional_sign, prefix_is_plus, prefix_is_minus, prefix_epsilon);
+static OPTIONAL_MATCHER(optional_sign, prefix_is_sign);
 SEQUENCE_MATCHER(integer, prefix_is_optional_sign, prefix_is_digits);

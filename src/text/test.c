@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "prefix_primitives.h"
-#include "lexical_patterns.h"
+// #include "lexical_patterns.h"
 
 void print_slice(char *s, char *t) {
   if (t) {
@@ -100,8 +100,8 @@ int main() {
   test1(prefix_is_integer, integer3);
   test1(prefix_is_integer, word2);
   
-  test1(prefix_is_word, word2);
-  test1(prefix_is_word, non_word);
+  // test1(prefix_is_word, word2);
+  //   test1(prefix_is_word, non_word);
 
   return 0;
 }
