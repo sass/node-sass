@@ -1,7 +1,6 @@
 #include <ctype.h>
-#include <string.h>
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include "prefix_primitives.h"
 
 char *prefix_is_char(char *src, char pre) {
