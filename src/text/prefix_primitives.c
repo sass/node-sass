@@ -36,6 +36,10 @@ char *prefix_is_delimited_by(char *src, char *beg, char *end, int esc) {
   }
 }
 
+char *prefix_epsilon(char *src) {
+  return src;
+}
+
 char *_prefix_alternatives(char *src, ...) {
   va_list ap;
   va_start(ap, src);
@@ -72,71 +76,73 @@ char *prefix_one_plus(char *src, prefix_matcher m) {
   return src;
 }
 
-DEFINE_SINGLE_CTYPE_MATCHER(space);
-DEFINE_SINGLE_CTYPE_MATCHER(alpha);
-DEFINE_SINGLE_CTYPE_MATCHER(digit);
-DEFINE_SINGLE_CTYPE_MATCHER(xdigit);
-DEFINE_SINGLE_CTYPE_MATCHER(alnum);
-DEFINE_SINGLE_CTYPE_MATCHER(punct);
+SINGLE_CTYPE_MATCHER(space);
+SINGLE_CTYPE_MATCHER(alpha);
+SINGLE_CTYPE_MATCHER(digit);
+SINGLE_CTYPE_MATCHER(xdigit);
+SINGLE_CTYPE_MATCHER(alnum);
+SINGLE_CTYPE_MATCHER(punct);
 
-DEFINE_CTYPE_SEQUENCE_MATCHER(space);
-DEFINE_CTYPE_SEQUENCE_MATCHER(alpha);
-DEFINE_CTYPE_SEQUENCE_MATCHER(digit);
-DEFINE_CTYPE_SEQUENCE_MATCHER(xdigit);
-DEFINE_CTYPE_SEQUENCE_MATCHER(alnum);
-DEFINE_CTYPE_SEQUENCE_MATCHER(punct);
+CTYPE_SEQUENCE_MATCHER(space);
+CTYPE_SEQUENCE_MATCHER(alpha);
+CTYPE_SEQUENCE_MATCHER(digit);
+CTYPE_SEQUENCE_MATCHER(xdigit);
+CTYPE_SEQUENCE_MATCHER(alnum);
+CTYPE_SEQUENCE_MATCHER(punct);
 
-DEFINE_TO_EOL_MATCHER(shell_comment, "#");
-DEFINE_TO_EOL_MATCHER(c_line_comment, "//");
-DEFINE_DELIMITED_MATCHER(c_block_comment, "/*", "*/", 0);
-DEFINE_DELIMITED_MATCHER(double_quoted_string, "\"", "\"", 1);
-DEFINE_DELIMITED_MATCHER(single_quoted_string, "\'", "\'", 1);
-DEFINE_DELIMITED_MATCHER(interpolant, "#{", "}", 0);
+TO_EOL_MATCHER(shell_comment, "#");
+TO_EOL_MATCHER(c_line_comment, "//");
+DELIMITED_MATCHER(c_block_comment, "/*", "*/", 0);
+DELIMITED_MATCHER(double_quoted_string, "\"", "\"", 1);
+DELIMITED_MATCHER(single_quoted_string, "\'", "\'", 1);
+DELIMITED_MATCHER(interpolant, "#{", "}", 0);
 
-DEFINE_CHAR_MATCHER (lparen,      '(');
-DEFINE_CHAR_MATCHER (rparen,      ')');
-DEFINE_CHAR_MATCHER (lbrack,      '[');
-DEFINE_CHAR_MATCHER (rbrack,      ']');
-DEFINE_CHAR_MATCHER (lbrace,      '{');
-DEFINE_CHAR_MATCHER (rbrace,      '}');
+CHAR_MATCHER (lparen,      '(');
+CHAR_MATCHER (rparen,      ')');
+CHAR_MATCHER (lbrack,      '[');
+CHAR_MATCHER (rbrack,      ']');
+CHAR_MATCHER (lbrace,      '{');
+CHAR_MATCHER (rbrace,      '}');
 
-DEFINE_CHAR_MATCHER (underscore,  '_');
-DEFINE_CHAR_MATCHER (hyphen,      '-');
-DEFINE_CHAR_MATCHER (semicolon,   ';');
-DEFINE_CHAR_MATCHER (colon,       ':');
-DEFINE_CHAR_MATCHER (period,      '.');
-DEFINE_CHAR_MATCHER (question,    '?');
-DEFINE_CHAR_MATCHER (exclamation, '!');
-DEFINE_CHAR_MATCHER (tilde,       '~');
-DEFINE_CHAR_MATCHER (backquote,   '`');
-DEFINE_CHAR_MATCHER (quote,       '\"');
-DEFINE_CHAR_MATCHER (apostrophe,  '\'');
-DEFINE_CHAR_MATCHER (ampersand,   '&');
-DEFINE_CHAR_MATCHER (caret,       '^');
-DEFINE_CHAR_MATCHER (pipe,        '|');
-DEFINE_CHAR_MATCHER (slash,       '/');
-DEFINE_CHAR_MATCHER (backslash,   '\\');
-DEFINE_CHAR_MATCHER (asterisk,    '*');
-DEFINE_CHAR_MATCHER (pound,       '#');
-DEFINE_CHAR_MATCHER (hash,        '#');
+CHAR_MATCHER (underscore,  '_');
+CHAR_MATCHER (hyphen,      '-');
+CHAR_MATCHER (semicolon,   ';');
+CHAR_MATCHER (colon,       ':');
+CHAR_MATCHER (period,      '.');
+CHAR_MATCHER (question,    '?');
+CHAR_MATCHER (exclamation, '!');
+CHAR_MATCHER (tilde,       '~');
+CHAR_MATCHER (backquote,   '`');
+CHAR_MATCHER (quote,       '\"');
+CHAR_MATCHER (apostrophe,  '\'');
+CHAR_MATCHER (ampersand,   '&');
+CHAR_MATCHER (caret,       '^');
+CHAR_MATCHER (pipe,        '|');
+CHAR_MATCHER (slash,       '/');
+CHAR_MATCHER (backslash,   '\\');
+CHAR_MATCHER (asterisk,    '*');
+CHAR_MATCHER (pound,       '#');
+CHAR_MATCHER (hash,        '#');
 
-DEFINE_CHAR_MATCHER (plus,        '+');
-DEFINE_CHAR_MATCHER (minus,       '-');
-DEFINE_CHAR_MATCHER (times,       '*');
-DEFINE_CHAR_MATCHER (divide,      '/');
+CHAR_MATCHER (plus,        '+');
+CHAR_MATCHER (minus,       '-');
+CHAR_MATCHER (times,       '*');
+CHAR_MATCHER (divide,      '/');
 
-DEFINE_CHAR_MATCHER (percent,     '%');
-DEFINE_CHAR_MATCHER (dollar,      '$');
+CHAR_MATCHER (percent,     '%');
+CHAR_MATCHER (dollar,      '$');
 
-DEFINE_CHAR_MATCHER (gt,          '>');
-DEFINE_CHARS_MATCHER(gte,         ">=");
-DEFINE_CHAR_MATCHER (lt,          '<');
-DEFINE_CHARS_MATCHER(lte,         "<=");
-DEFINE_CHAR_MATCHER (eq,          '=');
-DEFINE_CHAR_MATCHER (assign,      '=');
-DEFINE_CHARS_MATCHER(equal,       "==");
+CHAR_MATCHER (gt,          '>');
+CHARS_MATCHER(gte,         ">=");
+CHAR_MATCHER (lt,          '<');
+CHARS_MATCHER(lte,         "<=");
+CHAR_MATCHER (eq,          '=');
+CHAR_MATCHER (assign,      '=');
+CHARS_MATCHER(equal,       "==");
 
-static DEFINE_ALTERNATIVES_MATCHER(identifier_initial, prefix_is_alphas, prefix_is_underscore);
-static DEFINE_ALTERNATIVES_MATCHER(identifier_trailer, prefix_is_alnums, prefix_is_underscore);
-DEFINE_FIRST_REST_MATCHER(identifier, prefix_is_identifier_initial, prefix_is_identifier_trailer);
+static ALTERNATIVES_MATCHER(identifier_initial, prefix_is_alphas, prefix_is_underscore);
+static ALTERNATIVES_MATCHER(identifier_trailer, prefix_is_alnums, prefix_is_underscore);
+FIRST_REST_MATCHER(identifier, prefix_is_identifier_initial, prefix_is_identifier_trailer);
 
+static ALTERNATIVES_MATCHER(optional_sign, prefix_is_plus, prefix_is_minus, prefix_epsilon);
+SEQUENCE_MATCHER(integer, prefix_is_optional_sign, prefix_is_digits);
