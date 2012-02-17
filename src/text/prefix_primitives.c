@@ -39,6 +39,10 @@ char *prefix_epsilon(char *src) {
   return src;
 }
 
+char *prefix_not(char *src, prefix_matcher m) {
+  return m(src) ? NULL : src;
+}
+
 char *_prefix_alternatives(char *src, ...) {
   va_list ap;
   va_start(ap, src);

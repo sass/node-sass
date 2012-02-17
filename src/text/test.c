@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "prefix_primitives.h"
+#include "lexical_patterns.h"
 
 void print_slice(char *s, char *t) {
   if (t) {
@@ -74,6 +75,11 @@ int main() {
   test1(prefix_is_c_line_comment, lcomment);
   test1(prefix_is_c_line_comment, non_comment);
   
+  test1(prefix_epsilon, words);
+  
+  testn(prefix_not, words, prefix_is_puncts);
+  testn(prefix_not, words, prefix_is_alphas);
+  
   testn(prefix_sequence, id2, prefix_is_alphas, prefix_is_digits);
   testn(prefix_sequence, id2, prefix_is_alphas, prefix_is_puncts);
   
@@ -93,6 +99,9 @@ int main() {
   test1(prefix_is_integer, integer2);
   test1(prefix_is_integer, integer3);
   test1(prefix_is_integer, word2);
+  
+  test1(prefix_is_word, word2);
+  test1(prefix_is_word, non_word);
 
   return 0;
 }

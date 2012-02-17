@@ -75,6 +75,7 @@ char *prefix_is_some_of(char *src, char *class);
 char *prefix_is_delimited_by(char *src, char *beg, char *end, int esc);
 
 char *prefix_epsilon(char *src);
+char *prefix_not(char *src, prefix_matcher m);
 char *_prefix_alternatives(char *src, ...);
 #define prefix_alternatives(src, ...) _prefix_alternatives(src, __VA_ARGS__, NULL)
 char *_prefix_sequence(char *src, ...);
