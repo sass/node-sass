@@ -79,6 +79,11 @@ char *prefix_one_plus(char *src, prefix_matcher m) {
   return src;
 }
 
+char *prefix_find_first(char *src, prefix_matcher m) {
+  while (*src && !m(src)) src++;
+  return *src ? src : NULL;
+}
+
 SINGLE_CTYPE_MATCHER(space);
 SINGLE_CTYPE_MATCHER(alpha);
 SINGLE_CTYPE_MATCHER(digit);
@@ -112,6 +117,7 @@ CHAR_MATCHER (hyphen,      '-');
 CHAR_MATCHER (semicolon,   ';');
 CHAR_MATCHER (colon,       ':');
 CHAR_MATCHER (period,      '.');
+CHAR_MATCHER (dot,         '.');
 CHAR_MATCHER (question,    '?');
 CHAR_MATCHER (exclamation, '!');
 CHAR_MATCHER (tilde,       '~');
@@ -124,6 +130,7 @@ CHAR_MATCHER (pipe,        '|');
 CHAR_MATCHER (slash,       '/');
 CHAR_MATCHER (backslash,   '\\');
 CHAR_MATCHER (asterisk,    '*');
+CHAR_MATCHER (star,        '*');
 CHAR_MATCHER (pound,       '#');
 CHAR_MATCHER (hash,        '#');
 
@@ -143,8 +150,8 @@ CHAR_MATCHER (eq,          '=');
 CHAR_MATCHER (assign,      '=');
 CHARS_MATCHER(equal,       "==");
 
-CLASS_CHAR_MATCHER(sign,   "+-");
-CLASS_CHAR_MATCHER(delimiter, "()[]{}");
+CHAR_CLASS_MATCHER(sign,   "+-");
+CHAR_CLASS_MATCHER(delimiter, "()[]{}");
 
 static ALTERNATIVES_MATCHER(identifier_initial, prefix_is_alphas, prefix_is_underscore);
 static ALTERNATIVES_MATCHER(identifier_trailer, prefix_is_alnums, prefix_is_underscore);

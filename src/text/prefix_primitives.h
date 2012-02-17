@@ -13,12 +13,12 @@ char *prefix_is_ ## name(char *src) { \
   return prefix_is_chars(src, prefix); \
 }
 
-#define CLASS_CHAR_MATCHER(name, class) \
+#define CHAR_CLASS_MATCHER(name, class) \
 char *prefix_is_ ## name(char *src) { \
   return prefix_is_one_of(src, class); \
 }
 
-#define CLASS_CHARS_MATCHER(name, class) \
+#define CHARS_CLASS_MATCHER(name, class) \
 char *prefix_is_ ## name(char *src) { \
   return prefix_is_some_of(src, class); \
 }
@@ -83,6 +83,7 @@ char *_prefix_sequence(char *src, ...);
 char *prefix_optional(char *src, prefix_matcher m);
 char *prefix_zero_plus(char *src, prefix_matcher m);
 char *prefix_one_plus(char *src, prefix_matcher m);
+char *prefix_find_first(char *src, prefix_matcher m);
 
 DECLARE(space);
 DECLARE(alpha);
@@ -117,6 +118,7 @@ DECLARE(hyphen);
 DECLARE(semicolon);
 DECLARE(colon);
 DECLARE(period);
+DECLARE(dot);
 DECLARE(question);
 DECLARE(exclamation);
 DECLARE(tilde);
@@ -129,6 +131,7 @@ DECLARE(pipe);
 DECLARE(slash);
 DECLARE(backslash);
 DECLARE(asterisk);
+DECLARE(star);
 DECLARE(pound);
 DECLARE(hash);
                                   

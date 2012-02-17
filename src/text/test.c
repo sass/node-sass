@@ -33,7 +33,7 @@ int main() {
   char *words = "hello my name is aaron";
   char *id1 = "_identifier123{blah bloo}";
   char *non_id = "12non_ident_ifier_";
-  char *word2 = "-blah-bl+ah_bl12-34+1:foo";
+  char *word2 = "-blah-bl+ah_bl12-34+1:foobar;";
   char *non_word = "-12blah-bloo";
   char *selector = "#foo > :first-child { color: #abcdef; }";
   char *lcomment = "// blah blah blah // end\n blah blah";
@@ -41,6 +41,8 @@ int main() {
   char *integer1 = "3837483+3";
   char *integer2 = "+294739-4";
   char *integer3 = "-294729+1";
+  char *class = ".blah-blah_bloo112-blah+blee4 hello";
+  char *id = "#foo_bar-baz123-hux blee";
   
   test1(prefix_is_spaces, spaces);
   test1(prefix_is_spaces, words);
@@ -102,6 +104,14 @@ int main() {
   
   test1(prefix_is_word, word2);
   test1(prefix_is_word, integer3);
+  
+  test1(prefix_is_class, class);
+  test1(prefix_is_class, words);
+  
+  test1(prefix_is_id, id);
+  test1(prefix_is_id, class);
+  
+  testn(prefix_find_first, word2, prefix_is_semicolon_or_lbrack);
 
   return 0;
 }
