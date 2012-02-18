@@ -6,7 +6,7 @@ char *sass_read_file(char *path) {
   FILE *f;
   f = fopen(path, "rb");
   if (!f) {
-    printf("Couldn't open file %s", path);
+    printf("ERROR: could not open file %s", path);
     abort();
   }
   fseek(f, 0L, SEEK_END);
@@ -15,5 +15,6 @@ char *sass_read_file(char *path) {
   char *buf = (char *)malloc(len * sizeof(char) + 1);
   fread(buf, sizeof(char), len, f);
   buf[len] = '\0';
+  fclose(f);
   return buf;
 }
