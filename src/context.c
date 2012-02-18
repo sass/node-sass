@@ -11,5 +11,11 @@ sass_context *make_sass_context_from_file(char *path) {
   }
   ctx->path = path;
   ctx->src = sass_read_file(path);
+  ctx->pos = src;
   return ctx;
+}
+
+void *free_sass_context(sass_context *ctx) {
+  free(ctx->src);
+  free(ctx);
 }
