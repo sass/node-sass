@@ -50,7 +50,7 @@ sass_context *sass_make_context_from_string(char *src) {
   return ctx;
 } 
 
-void *free_sass_context(sass_context *ctx) {
+void *sass_free_context(sass_context *ctx) {
   free(ctx->src);
   free(ctx);
 }
