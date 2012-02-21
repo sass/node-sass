@@ -3,8 +3,11 @@ typedef char *(*sass_prefix_matcher)(char *);
 #define DECLARE(name) \
 char *sass_prefix_is_ ## name(char *)
 
+#define DECLARE_ALIAS(name) \
+sass_prefix_matcher sass_prefix_is_ ## name
+
 #define ALIAS_MATCHERS(orig, new) \
-char *(*new)(char *) = orig
+sass_prefix_matcher sass_prefix_is_ ## new = &orig
 
 #define CHAR_MATCHER(name, prefix) \
 char *sass_prefix_is_ ## name(char *src) { \
@@ -174,6 +177,8 @@ DECLARE(substringmatch);
 DECLARE(name);
 DECLARE(identifier);
 
+DECLARE(variable);
+
 DECLARE(number);
 DECLARE(string);
 
@@ -184,4 +189,5 @@ DECLARE(functional);
 DECLARE(adjacent_to);
 DECLARE(parent_of);
 DECLARE(precedes);
-DECLARE(ancestor_of);
+DECLARE_ALIAS(ancestor_of);
+

@@ -42,6 +42,8 @@ int main() {
   char *integer3 = "-294729+1";
   char *class = ".blah-blah_bloo112-blah+blee4 hello";
   char *id = "#foo_bar-baz123-hux blee";
+  char *var = "$blah123-blah";
+  char *non_var = "$ hux";
   
   test1(sass_prefix_is_spaces, spaces);
   test1(sass_prefix_is_spaces, words);
@@ -95,6 +97,9 @@ int main() {
   
   test1(sass_prefix_is_idname, id);
   test1(sass_prefix_is_idname, class);
+  
+  test1(sass_prefix_is_variable, var);
+  test1(sass_prefix_is_variable, non_var);
 
 
   return 0;

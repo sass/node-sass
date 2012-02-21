@@ -163,6 +163,8 @@ static SEQUENCE_MATCHER(identstart, sass_prefix_is_optional_hyphen, sass_prefix_
 ONE_PLUS_MATCHER(name, sass_prefix_is_nmchar);
 FIRST_REST_MATCHER(identifier, sass_prefix_is_identstart, sass_prefix_is_nmchar);
 
+SEQUENCE_MATCHER(variable, sass_prefix_is_dollar, sass_prefix_is_identifier);
+
 static OPTIONAL_MATCHER(optional_digits, sass_prefix_is_digits);
 static SEQUENCE_MATCHER(realnum, sass_prefix_is_optional_digits, sass_prefix_is_dot, sass_prefix_is_digits);
 ALTERNATIVES_MATCHER(number, sass_prefix_is_digits, sass_prefix_is_realnum);
@@ -176,8 +178,4 @@ static OPTIONAL_MATCHER(optional_spaces, sass_prefix_is_spaces);
 SEQUENCE_MATCHER(adjacent_to, sass_prefix_is_optional_spaces, sass_prefix_is_plus);
 SEQUENCE_MATCHER(precedes, sass_prefix_is_optional_spaces, sass_prefix_is_tilde);
 SEQUENCE_MATCHER(parent_of, sass_prefix_is_optional_spaces, sass_prefix_is_gt);
-char *sass_prefix_is_ancestor_of(char *src) {
-  char *p = src;
-  while (isspace(*p)) p++;
-  return p == src ? NULL : p;
-}
+ALIAS_MATCHERS(sass_prefix_is_spaces, ancestor_of);
