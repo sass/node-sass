@@ -1,7 +1,7 @@
-#include <stdio.h>
+#include "libsass.h"
 
 int main()
 {
-    printf("I love Sass!\n");
+    sass_string_compile("I love Sass!\n", 0);
     return 0;
 }
