@@ -1,3 +1,4 @@
+sassc
 build/*
 *.o
 a.out
