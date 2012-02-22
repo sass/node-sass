@@ -1,10 +1,10 @@
 CC=gcc
-CFLAGS=-I.
+CFLAGS=-I. -Wall -g
 
 BIN=bin/
 
 sassc: sassc.o 
-	$(CC) -o $(BIN)sassc sassc.o libsass.o
+	$(CC) $(CFLAGS) -o $(BIN)sassc sassc.o libsass.o
 
 sassc.o: libsass.o
 libsass.o: bstr
@@ -20,7 +20,7 @@ exception.o:
 
 
 test_context: context.o test_context.o
-	$(CC) -o $(BIN)test_context test_context.o context.o
+	$(CC) $(CFLAGS) -o $(BIN)test_context test_context.o context.o
 	./$(BIN)test_context
 test_context.o: 
 
