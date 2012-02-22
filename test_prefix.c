@@ -100,6 +100,10 @@ int main() {
   
   test1(sass_prefix_is_variable, var);
   test1(sass_prefix_is_variable, non_var);
+  
+  printf("sizeof char is %ld\n", sizeof(char));
+  printf("sizeof ptr is %ld\n", sizeof(void *));
+  printf("sizeof int is %ld\n", sizeof(int));
 
 
   return 0;

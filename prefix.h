@@ -174,8 +174,7 @@ DECLARE(prefixmatch);
 DECLARE(suffixmatch);
 DECLARE(substringmatch);
 
-DECLARE(name);
-DECLARE(identifier);
+DECLARE(ident);
 
 DECLARE(variable);
 
