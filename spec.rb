@@ -27,7 +27,7 @@ puts("\n\n#{worked}/#{spec_count} Specs Passed!")
 
 if messages.length > 0 
   puts("\n================================\nTEST FAILURES!\n\n")
-  puts(messages.join("-----------\n"))
+  puts(messages.join("\n-----------\n"))
   puts("\n")
   exit(1)
 else
