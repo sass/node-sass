@@ -132,6 +132,7 @@ CHAR_MATCHER (asterisk,    '*');
 CHAR_MATCHER (star,        '*');
 CHAR_MATCHER (pound,       '#');
 CHAR_MATCHER (hash,        '#');
+CHAR_MATCHER (at,          '@');
 
 CHAR_MATCHER (plus,        '+');
 CHAR_MATCHER (minus,       '-');
@@ -149,33 +150,53 @@ CHAR_MATCHER (eq,          '=');
 CHAR_MATCHER (assign,      '=');
 CHARS_MATCHER(equal,       "==");
 
-CHAR_MATCHER (exactmatch,     '=');
-CHARS_MATCHER(includes,       "~=");
-CHARS_MATCHER(dashmatch,      "|=");
-CHARS_MATCHER(prefixmatch,    "^=");
-CHARS_MATCHER(suffixmatch,    "$=");
-CHARS_MATCHER(substringmatch, "*=");
-
-static OPTIONAL_MATCHER(optional_hyphen, sass_prefix_is_hyphen);
-static ALTERNATIVES_MATCHER(nmchar, sass_prefix_is_alnums, sass_prefix_is_underscore, sass_prefix_is_hyphen);
-static ALTERNATIVES_MATCHER(nmstart, sass_prefix_is_alphas, sass_prefix_is_underscore);
-static SEQUENCE_MATCHER(identstart, sass_prefix_is_optional_hyphen, sass_prefix_is_nmstart);
-ONE_PLUS_MATCHER(name, sass_prefix_is_nmchar);
-FIRST_REST_MATCHER(identifier, sass_prefix_is_identstart, sass_prefix_is_nmchar);
-
-SEQUENCE_MATCHER(variable, sass_prefix_is_dollar, sass_prefix_is_identifier);
-
-static OPTIONAL_MATCHER(optional_digits, sass_prefix_is_digits);
-static SEQUENCE_MATCHER(realnum, sass_prefix_is_optional_digits, sass_prefix_is_dot, sass_prefix_is_digits);
-ALTERNATIVES_MATCHER(number, sass_prefix_is_digits, sass_prefix_is_realnum);
-ALTERNATIVES_MATCHER(string, sass_prefix_is_double_quoted_string, sass_prefix_is_single_quoted_string);
-
-SEQUENCE_MATCHER(idname, sass_prefix_is_hash, sass_prefix_is_name);
-SEQUENCE_MATCHER(classname, sass_prefix_is_dot, sass_prefix_is_identifier);
-SEQUENCE_MATCHER(function, sass_prefix_is_identifier, sass_prefix_is_lparen);
+/* *** */
 
 static OPTIONAL_MATCHER(optional_spaces, sass_prefix_is_spaces);
 SEQUENCE_MATCHER(adjacent_to, sass_prefix_is_optional_spaces, sass_prefix_is_plus);
 SEQUENCE_MATCHER(precedes, sass_prefix_is_optional_spaces, sass_prefix_is_tilde);
 SEQUENCE_MATCHER(parent_of, sass_prefix_is_optional_spaces, sass_prefix_is_gt);
 ALIAS_MATCHERS(sass_prefix_is_spaces, ancestor_of);
+
+/* CSS identifiers */
+static OPTIONAL_MATCHER(optional_hyphen, sass_prefix_is_hyphen);
+static ALTERNATIVES_MATCHER(nmstart, sass_prefix_is_alphas, sass_prefix_is_underscore);
+static ALTERNATIVES_MATCHER(nmchar, sass_prefix_is_alnums, sass_prefix_is_underscore, sass_prefix_is_hyphen);
+static ZERO_PLUS_MATCHER(nmchars, sass_prefix_is_nmchar);
+SEQUENCE_MATCHER(ident, sass_prefix_is_optional_hyphen, sass_prefix_is_nmstart, sass_prefix_is_nmchars);
+
+/* CSS numbers */
+static CHAR_CLASS_MATCHER(sign, "-+");
+static OPTIONAL_MATCHER(optional_sign, sass_prefix_is_sign);
+static OPTIONAL_MATCHER(optional_digits, sass_prefix_is_digits);
+static SEQUENCE_MATCHER(realnum, sass_prefix_is_optional_digits, sass_prefix_is_dot, sass_prefix_is_digits);
+static ALTERNATIVES_MATCHER(signless_num, sass_prefix_is_realnum, sass_prefix_is_digits);
+SEQUENCE_MATCHER(num, sass_prefix_is_optional_sign, sass_prefix_is_signless_num);
+
+/* CSS strings (double and single quoted) */
+ALTERNATIVES_MATCHER(string, sass_prefix_is_double_quoted_string, sass_prefix_is_single_quoted_string);
+
+SEQUENCE_MATCHER(atkeyword, sass_prefix_is_at, sass_prefix_is_ident);
+
+static ONE_PLUS_MATCHER(name, sass_prefix_is_nmchar);
+SEQUENCE_MATCHER(idname, sass_prefix_is_hash, sass_prefix_is_name);
+SEQUENCE_MATCHER(classname, sass_prefix_is_dot, sass_prefix_is_name);
+
+SEQUENCE_MATCHER(percentage, sass_prefix_is_num, sass_prefix_is_percent);
+SEQUENCE_MATCHER(dimension, sass_prefix_is_num, sass_prefix_is_ident);
+
+static CHARS_MATCHER(url_call, "url(");
+SEQUENCE_MATCHER(uri, sass_prefix_is_url_call,
+                      sass_prefix_is_optional_spaces,
+                      sass_prefix_is_string,
+                      sass_prefix_is_optional_spaces,
+                      sass_prefix_is_rparen);
+SEQUENCE_MATCHER(function, sass_prefix_is_ident, sass_prefix_is_lparen);
+
+CHAR_MATCHER (exactmatch,     '=');
+CHARS_MATCHER(includes,       "~=");
+CHARS_MATCHER(dashmatch,      "|=");
+CHARS_MATCHER(prefixmatch,    "^=");
+CHARS_MATCHER(suffixmatch,    "$=");
+CHARS_MATCHER(substringmatch, "*=");
+SEQUENCE_MATCHER(variable, sass_prefix_is_dollar, sass_prefix_is_ident);
