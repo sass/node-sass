@@ -4,10 +4,10 @@ CFLAGS=-I. -Wall -g
 BIN=bin/
 
 sassc: sassc.o 
-	$(CC) $(CFLAGS) -o $(BIN)sassc sassc.o libsass.o
+	$(CC) $(CFLAGS) -o $(BIN)sassc sassc.o libsass.o context.o
 
 sassc.o: libsass.o
-libsass.o: bstr
+libsass.o: context.o
 
 bstr: bstr/bsafe.o
 bstr/bsafe.o:

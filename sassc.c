@@ -1,7 +1,10 @@
 #include "libsass.h"
+#include <stdio.h>
 
-int main()
+int main(int argc, char **argv)
 {
-    sass_string_compile("I love Sass!\n", 0);
-    return 0;
+	char *filename = argv[1];
+	char *output = sass_file_compile(filename, 0);
+	printf("%s", output);
+	return 0;
 }
