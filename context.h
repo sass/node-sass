@@ -1,11 +1,19 @@
 #include <setjmp.h>
+#include <stdlib.h>
+#include "tree.h"
+
+#define CONTEXT_HEADER
+
 
 typedef struct {
-  char *path;  /* the full directory+filename of the source file */
-  char *src;   /* the text of the entire source file */
-  char *pos;   /* keeps track of the parser/scanner's current position */
-  size_t line; /* the number of the line currently being parsed/scanned */
-  jmp_buf env; /* the top of the exception-handling stack */
+  char *path;              /* the full directory+filename of the source file */
+  char *src;               /* the text of the entire source file */
+  char *result;            /* the final result, after all compiling */
+  char *pos;               /* keeps track of the parser's current position */
+  size_t line;             /* the number of the line currently being parsed */
+  jmp_buf env;             /* the top of the exception-handling stack */
+  sass_document *doc;      /* the primary AST tree */
+  sass_document **imports; /* all imported files */
   /* more to come */
 } sass_context;
 

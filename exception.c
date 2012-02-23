@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "exceptions.h"
+#include "exception.h"
 
 raise(int code) {
   printf("Aborted with error code %d.", code);
