@@ -4,6 +4,11 @@
 
 #define CONTEXT_HEADER
 
+/*
+Probably gonna' need to stratify this a bit more. A context object will store
+the symbol table and any other necessary project-wide info. Each sass_document
+struct will store src strings, line counts, etc.
+*/
 
 typedef struct {
   char *path;              /* the full directory+filename of the source file */
