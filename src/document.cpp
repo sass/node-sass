@@ -2,6 +2,8 @@
 #include "document.hpp"
 
 namespace Sass {
+  using namespace Prelexer;
+
   Document::Document(char* _path, char* _source) {
     path = _path;
     if (!_source) {
@@ -28,4 +30,6 @@ namespace Sass {
   Document::~Document() {
     delete [] source;
   }
+
+    
 }

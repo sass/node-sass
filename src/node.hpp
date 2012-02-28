@@ -14,7 +14,9 @@ namespace Sass {
       simple_selector_sequence,
       simple_selector,
       property,
-      value
+      value,
+      lookahead_sequence,
+      lookahead_token
     };
     
     Node_Type type;
