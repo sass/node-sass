@@ -1,7 +1,10 @@
 #include <cstdio>
+#include <iostream>
 #include "prelexer.hpp"
 
 using namespace Sass::Prelexer;
+using std::cout;
+using std::endl;
 
 void print_slice(const char *s, const char *t) {
   if (t) {
@@ -39,6 +42,10 @@ char dash1[]    = "|='bar'] { ... }";
 char pre1[]     = "^='hux'] { ... }";
 char suf1[]     = "$='baz'] { ... }";
 char sub1[]     = "*='bum'] { ... }";
+char ws1[]      = "  /* hello */\t\n//blah\n  /*blah*/ significant";
+
+extern const char slash_star[] = "/*";
+
 
 int main() {
   
@@ -60,6 +67,11 @@ int main() {
   check_twice(prefix_match, pre1, dash1);
   check_twice(suffix_match, suf1, pre1);
   check_twice(substring_match, sub1, suf1);
+  check_twice(spaces_and_comments, ws1, num1);
+  cout << count_interval<'\n'>(ws1, spaces_and_comments(ws1)) << endl;
+  cout << count_interval<'*'>(ws1, spaces_and_comments(ws1)) << endl;
+  cout << count_interval<exactly<slash_star> >(ws1, spaces_and_comments(ws1)) << endl;
+  putchar(*(find_first<'{'>(pre1))), putchar('\n');
 
   return 0;
 }

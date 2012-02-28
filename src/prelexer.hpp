@@ -201,12 +201,19 @@ namespace Sass {
     char* line_comment(char* src);
     // Match a block comment.
     char* block_comment(char* src);
+    // Match either.
+    char* comment(char* src);
     // Match double- and single-quoted strings.
     char* double_quoted_string(char* src);
     char* single_quoted_string(char* src);
     char* string_constant(char* src);
     // Match interpolants.
     char* interpolant(char* src);
+
+    // Whitespace handling.
+    char* optional_spaces(char* src);
+    char* optional_comment(char* src);
+    char* spaces_and_comments(char* src);
 
     // Match a CSS identifier.
     char* identifier(char* src);
@@ -232,5 +239,47 @@ namespace Sass {
     char* prefix_match(char* src);
     char* suffix_match(char* src);
     char* substring_match(char* src);
+    // Match CSS combinators.
+    char* adjacent_to(char* src);
+    char* precedes(char* src);
+    char* parent_of(char* src);
+    char* ancestor_of(char* src);
+    
+    // Utility functions for finding and counting characters in a string.
+    template<char c>
+    char* find_first(char* src) {
+      while (*src && *src != c) ++src;
+      return *src ? src : 0;
+    }
+    template<prelexer mx>
+    char* find_first(char* src) {
+      while (*src && !mx(src)) ++src;
+      return *src ? src : 0;
+    }
+    template <char c>
+    unsigned int count_interval(char* beg, char* end) {
+      unsigned int counter = 0;
+      while (beg < end && *beg) {
+        if (*beg == c) ++counter;
+        ++beg;
+      }
+      return counter;
+    }
+    template <prelexer mx>
+    unsigned int count_interval(char* beg, char* end) {
+      unsigned int counter = 0;
+      while (beg < end && *beg) {
+        char* p;
+        if (p = mx(beg)) {
+          ++counter;
+          beg = p;
+        }
+        else {
+          ++beg;
+        }
+      }
+      return counter;
+    }
+    
   }
 }

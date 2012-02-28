@@ -27,7 +27,7 @@ namespace Sass {
     char* xdigits(char* src) { return one_plus<xdigit>(src); }
     char* alnums(char* src) { return one_plus<alnum>(src); }
     char* puncts(char* src) { return one_plus<punct>(src); }
-    
+        
     // Match a line comment.
     extern const char slash_slash[] = "//";
     char* line_comment(char* src) { return to_endl<slash_slash>(src); }
@@ -36,6 +36,10 @@ namespace Sass {
     extern const char star_slash[] = "*/";
     char* block_comment(char* src) {
       return delimited_by<slash_star, star_slash, false>(src);
+    }
+    // Match either comment.
+    char* comment(char* src) {
+      return alternatives<block_comment, line_comment>(src);
     }
     // Match double- and single-quoted strings.
     char* double_quoted_string(char* src) {
@@ -52,6 +56,13 @@ namespace Sass {
     extern const char rbrace[] = "}";
     char* interpolant(char* src) {
       return delimited_by<hash_lbrace, rbrace, false>(src);
+    }
+    
+    // Whitespace handling.
+    char* optional_spaces(char* src) { return optional<spaces>(src); }
+    char* optional_comment(char* src) { return optional<comment>(src); }
+    char* spaces_and_comments(char* src) {
+      return zero_plus< alternatives<spaces, comment> >(src);
     }
     
     // Match CSS identifiers.
@@ -121,5 +132,19 @@ namespace Sass {
     char* prefix_match(char* src) { return exactly<caret_equal>(src); }
     char* suffix_match(char* src) { return exactly<dollar_equal>(src); }
     char* substring_match(char* src) { return exactly<star_equal>(src); }
+    // Match CSS combinators.
+    char* adjacent_to(char* src) {
+      return sequence< optional_spaces, exactly<'+'> >(src);
+    }
+    char* precedes(char* src) {
+      return sequence< optional_spaces, exactly<'~'> >(src);
+    }
+    char* parent_of(char* src) {
+      return sequence< optional_spaces, exactly<'>'> >(src);
+    }
+    char* ancestor_of(char* src) {
+      return spaces(src);
+    }
+
   }
 }
