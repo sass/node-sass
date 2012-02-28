@@ -8,14 +8,12 @@ namespace Sass {
     path = _path;
     if (!_source) {
       std::FILE *f;
+      // TO DO: CHECK f AGAINST NULL/0
       f = std::fopen(path, "rb");
-      // if (!f) {
-      //   printf("ERROR: could not open file %s", path);
-      //   abort();
-      // }
       std::fseek(f, 0, SEEK_END);
       int len = std::ftell(f);
       std::rewind(f);
+      // TO DO: WRAP THE new[] IN A TRY/CATCH BLOCK
       source = new char[len + 1];
       std::fread(source, sizeof(char), len, f);
       source[len] = '\0';
