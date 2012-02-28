@@ -11,6 +11,7 @@ namespace Sass {
     unsigned int line_number;
     vector<Node> statements;
     Token top;
+    bool last_munch_succeeded;
     
     Document(char* _path, char* _source = 0);
     ~Document();
@@ -24,9 +25,13 @@ namespace Sass {
       if (after_token) {
         top = Token(mx, after_whitespace, after_token, line_number);
         position = after_token;
+        last_munch_succeeded = true;
         return true;
       }
-      else return false;
+      else {
+        last_munch_succeeded = false;
+        return false;
+      }
     }
       
   };

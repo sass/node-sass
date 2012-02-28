@@ -28,6 +28,8 @@ int main(int argc, char* argv[]) {
     print_slice(doc.top.begin, doc.top.end);
     doc.try_munching<Prelexer::identifier>();
     print_slice(doc.top.begin, doc.top.end);
+    doc.try_munching<Prelexer::dash_match>();
+    print_slice(doc.top.begin, doc.top.end);
   }
   
   return 0;

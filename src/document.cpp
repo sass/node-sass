@@ -26,6 +26,7 @@ namespace Sass {
     }
     position = source;
     line_number = 1;
+    last_munch_succeeded = false;
   }
   Document::~Document() {
     delete [] source;
