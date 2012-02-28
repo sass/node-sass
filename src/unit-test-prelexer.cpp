@@ -46,8 +46,22 @@ char ws1[]      = "  /* hello */\t\n//blah\n  /*blah*/ significant";
 
 extern const char slash_star[] = "/*";
 
+prelexer ptr = 0;
+template <prelexer mx>
+void try_and_set(char* src) {
+  char* p = mx(src);
+  if (p) ptr = mx;
+}
+
 
 int main() {
+  
+  prelexer p = exactly<'x'>;
+  prelexer q = exactly<'x'>;
+  
+  if (p == q) {
+    cout << "Hey, we can compare instantiated functions! And these are the same!" << endl;
+  }
   
   check_twice(identifier, ident1, num1);
   check_twice(interpolant, interp1, idnm1);
@@ -72,6 +86,14 @@ int main() {
   cout << count_interval<'*'>(ws1, spaces_and_comments(ws1)) << endl;
   cout << count_interval<exactly<slash_star> >(ws1, spaces_and_comments(ws1)) << endl;
   putchar(*(find_first<'{'>(pre1))), putchar('\n');
+  
+  try_and_set<exactly<'-'> >(ident1);
+  prelexer ptr1 = ptr;
+  try_and_set<exactly<'@'> >(atkwd1);
+  prelexer ptr2 = ptr;
+  cout << ptr << endl;
+  if (ptr1 == ptr2) cout << "This shouldn't be the case!" << endl;
+  else cout << "The prelexer pointers are different!" << endl;
 
   return 0;
 }
