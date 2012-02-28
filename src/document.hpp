@@ -1,4 +1,3 @@
-#include <vector>
 #include "node.hpp"
 
 namespace Sass {
@@ -12,5 +11,6 @@ namespace Sass {
     vector<Node> statements;
     
     Document(char* _path, char* _source = 0);
+    ~Document();
   };
 }
