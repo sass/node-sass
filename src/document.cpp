@@ -22,6 +22,8 @@ namespace Sass {
     else {
       source = _source;
     }
+    position = source;
+    line_number = 1;
   }
   Document::~Document() {
     delete [] source;
