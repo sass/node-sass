@@ -30,5 +30,4 @@ namespace Sass {
     delete [] source;
   }
 
-    
 }
