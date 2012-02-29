@@ -150,6 +150,11 @@ namespace Sass {
     char* ancestor_of(char* src) {
       return spaces(src);
     }
+    
+    // Match SCSS variable names.
+    char* variable(char* src) {
+      return sequence<exactly<'$'>, name>(src);
+    }
 
   }
 }

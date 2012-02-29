@@ -246,6 +246,9 @@ namespace Sass {
     char* parent_of(char* src);
     char* ancestor_of(char* src);
     
+    // Match SCSS variable names.
+    char* variable(char* src);
+    
     // Utility functions for finding and counting characters in a string.
     template<char c>
     char* find_first(char* src) {

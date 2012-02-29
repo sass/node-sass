@@ -46,7 +46,9 @@ char ws1[]      = "  /* hello */\t\n//blah\n  /*blah*/ significant";
 char hex1[]     = "#1a2b3c#f1ab";
 char hex2[]     = "#abc-zippo";
 char nonhex1[]  = "#ab blah";
-char nonhex2[]     = "#abc123blah";
+char nonhex2[]  = "#abc123blah";
+char var1[]     = "$hello blah";
+char nonvar1[]  = "$ hello";
 
 extern const char slash_star[] = "/*";
 
@@ -88,6 +90,7 @@ int main() {
   check_twice(spaces_and_comments, ws1, num1);
   check_twice(hex, hex1, nonhex1);
   check_twice(hex, hex2, nonhex2);
+  check_twice(variable, var1, nonvar1);
   cout << count_interval<'\n'>(ws1, spaces_and_comments(ws1)) << endl;
   cout << count_interval<'*'>(ws1, spaces_and_comments(ws1)) << endl;
   cout << count_interval<exactly<slash_star> >(ws1, spaces_and_comments(ws1)) << endl;
