@@ -1,5 +1,6 @@
+/* top level comment -- should preserved */
 div {
-  /* a comment that should be preserved */
+  /* another comment that should be preserved */
   color: red;
   background: blue;
   span {
@@ -8,8 +9,13 @@ div {
       text-decoration: none;
       color: green;
     }
-    /* second comment that should be preserved */
+    /* yet another comment that should be preserved */
     display: inline-block;
+  }
+  p {
+    padding: 10px 8%;
   }
   margin: 10px 5px;
 }
+/* last comment, top level again --
+   compare the indentation! */

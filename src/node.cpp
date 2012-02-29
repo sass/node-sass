@@ -68,13 +68,15 @@ namespace Sass {
     }
   }
   
-  void Node::emit_expanded_css(stringstream& buf, string prefix) {
+  void Node::emit_expanded_css(stringstream& buf, const string& prefix) {
     switch (type) {
     case value:
     case selector:
+      if (!prefix.empty()) buf << " ";
       buf << string(token);
       break;
     case comment:
+      if (!prefix.empty()) buf << "  ";
       buf << string(token) << endl;
       break;
     case property:
@@ -99,9 +101,10 @@ namespace Sass {
         opt_children[i].emit_expanded_css(buf, prefix);
       break;
     case ruleset:
-      buf << prefix << " ";
+      buf << prefix;
       children[0].emit_expanded_css(buf, prefix);
-      children[1].emit_expanded_css(buf, prefix + string(children[0].token));
+      string newprefix(prefix.empty() ? prefix : prefix + " ");
+      children[1].emit_expanded_css(buf, newprefix + string(children[0].token));
       break;
     }
   }
