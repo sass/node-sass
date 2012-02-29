@@ -55,7 +55,7 @@ namespace Sass {
       }
     }
     
-    void parse_stylesheet();
+    void parse_scss();
     Node parse_statement();
     Node parse_ruleset();
     Node parse_selector();

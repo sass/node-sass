@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     doc.position = doc.source;
     std::cout << doc.position << std::endl;
     if (*(doc.position)) std::cout << "position has content!" << std::endl;
-    doc.parse_stylesheet();
+    doc.parse_scss();
     
     int i;
     int j = doc.statements.size();

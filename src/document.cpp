@@ -30,7 +30,7 @@ namespace Sass {
     delete [] source;
   }
   
-  void Document::parse_stylesheet() {
+  void Document::parse_scss() {
     try_munching<optional_spaces>();
     while (*position) {
       statements.push_back(parse_statement());
