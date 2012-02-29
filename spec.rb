@@ -8,7 +8,7 @@ spec_count = 0
 
 puts("Running tests in #{searchpath}..\n\n")
 
-Dir[File.join(searchpath + "**/input.*")].each do |input_file|
+Dir[File.join(searchpath + "***/input.*")].each do |input_file|
   spec_count += 1
   spec_dir = File.dirname(input_file)
   cmd = "./bin/sassc #{input_file}"
