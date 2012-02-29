@@ -9,7 +9,7 @@ namespace Sass {
       null,
       comment,
       ruleset,
-      declarations,
+      clauses,
       selector_group,
       selector,
       simple_selector_sequence,

@@ -1,7 +1,9 @@
+#include <map>
 #include "node.hpp"
 
 namespace Sass {
   using std::vector;
+  using std::map;
   using namespace Prelexer;
 
   struct Document {
@@ -9,6 +11,10 @@ namespace Sass {
     char* source;
     char* position;
     unsigned int line_number;
+    
+    // TO DO: move the environment up into the context class when it's ready
+    map<string, Node> environment;
+    
     vector<Node> statements;
     Token top;
     bool last_munch_succeeded;
@@ -57,9 +63,10 @@ namespace Sass {
     
     void parse_scss();
     Node parse_statement();
+    Node parse_var_def();
     Node parse_ruleset();
     Node parse_selector();
-    Node parse_declarations();
+    Node parse_clauses();
     Node parse_values();
       
   };

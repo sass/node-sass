@@ -48,7 +48,7 @@ namespace Sass {
       children[1].dump(depth);
       cout << ";" << endl;
       break;
-    case declarations:
+    case clauses:
       cout << " {" << endl;
       for (int i = 0; i < children.size(); ++i) {
         children[i].dump(depth + 1);
@@ -92,7 +92,7 @@ namespace Sass {
       children[1].emit_expanded_css(buf, prefix);
       buf << ";" << endl;
       break;
-    case declarations:
+    case clauses:
       buf << " {" << endl;
       for (int i = 0; i < children.size(); ++i)
         children[i].emit_expanded_css(buf, prefix);

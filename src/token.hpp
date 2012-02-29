@@ -16,6 +16,11 @@ namespace Sass {
           unsigned int _line_number);
     Token(const Token& t);
     inline bool is_null() { return begin == 0 || end == 0; }
-    inline operator string() { return string(begin, end - begin); }
+    inline operator string() const { return string(begin, end - begin); }
+    inline bool operator<(const Token& rhs) const {
+      return (begin < rhs.begin) ||
+             (begin == rhs.begin && end < rhs.end);
+    }
+             
   };
 }

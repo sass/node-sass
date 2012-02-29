@@ -1,19 +1,24 @@
+$blah: bloo;
+
 /* top level comment -- should preserved */
 div {
   /* another comment that should be preserved */
   color: red;
   background: blue;
+  $blux: hux;
   span {
     font-weight: bold;
     a {
       text-decoration: none;
       color: green;
+      border: 1px $blah red;
     }
     /* yet another comment that should be preserved */
     display: inline-block;
   }
   p {
     padding: 10px 8%;
+    -webkit-box-sizing: $blux;
   }
   margin: 10px 5px;
 }
