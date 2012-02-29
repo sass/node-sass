@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <iostream>
+#include <sstream>
 #include "document.hpp"
 
 using namespace Sass;
@@ -50,10 +51,14 @@ int main(int argc, char* argv[]) {
     
     int i;
     int j = doc.statements.size();
-    printf("%d\n", j);
+    std::stringstream output;
     for (i = 0; i < j; ++i) {
-      doc.statements[i].dump();
+      doc.statements[i].emit_expanded_css(output, "");
     }
+    
+    std::cout << output.str();
+    
+    
   }
   
   return 0;

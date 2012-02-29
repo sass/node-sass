@@ -1,4 +1,5 @@
 #include <vector>
+#include <sstream>
 #include "token.hpp"
 
 namespace Sass {
@@ -32,5 +33,6 @@ namespace Sass {
     void push_child(const Node& node);
     void push_opt_child(const Node& node);
     void dump(unsigned int depth = 0);
+    void emit_expanded_css(std::stringstream& buf, string prefix);
   };
 }

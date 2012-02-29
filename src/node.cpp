@@ -1,8 +1,9 @@
 #include <iostream>
-#include "node.hpp"
 #include <string>
+#include "node.hpp"
 
 using std::string;
+using std::stringstream;
 using std::cout;
 using std::endl;
 
@@ -29,8 +30,8 @@ namespace Sass {
       cout << string(token) << endl;
       break;
     case selector:
-    cout << string(token);
-    break;
+      cout << string(token);
+      break;
     case value:
       cout << string(token);
       break;
@@ -66,4 +67,43 @@ namespace Sass {
     default: cout << "HUH?"; break;
     }
   }
+  
+  void Node::emit_expanded_css(stringstream& buf, string prefix) {
+    switch (type) {
+    case value:
+    case selector:
+      buf << string(token);
+      break;
+    case comment:
+      buf << string(token) << endl;
+      break;
+    case property:
+      buf << string(token) << ":";
+      break;
+    case values:
+      for (int i = 0; i < children.size(); ++i)
+        buf << " " << string(children[i].token);
+      break;
+    case rule:
+      buf << "  ";
+      children[0].emit_expanded_css(buf, prefix);
+      children[1].emit_expanded_css(buf, prefix);
+      buf << ";" << endl;
+      break;
+    case declarations:
+      buf << " {" << endl;
+      for (int i = 0; i < children.size(); ++i)
+        children[i].emit_expanded_css(buf, prefix);
+      buf << "}" << endl;
+      for (int i = 0; i < opt_children.size(); ++i)
+        opt_children[i].emit_expanded_css(buf, prefix);
+      break;
+    case ruleset:
+      buf << prefix << " ";
+      children[0].emit_expanded_css(buf, prefix);
+      children[1].emit_expanded_css(buf, prefix + string(children[0].token));
+      break;
+    }
+  }
+
 }

@@ -4,6 +4,11 @@ div {
   background: blue;
   span {
     font-weight: bold;
+    a {
+      text-decoration: none;
+      color: green;
+    }
+    /* second comment that should be preserved */
     display: inline-block;
   }
   margin: 10px 5px;
