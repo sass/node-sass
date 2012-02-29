@@ -14,7 +14,11 @@ Dir[File.join(searchpath + "***/input.*")].each do |input_file|
   cmd = "./bin/sassc #{input_file}"
   #puts cmd
   output = `#{cmd}`
+  sass_output = `sass #{input_file}`
   expected_output = File.read(File.join(spec_dir, "output.css"))
+  if expected_output.strip != sass_output.strip 
+    puts "Problem with Ruby compat in #{input_file}"
+  end
   if output.strip != expected_output.strip
     print "F"
     messages << "Failed test #{spec_dir}"
