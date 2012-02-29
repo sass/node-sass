@@ -107,6 +107,11 @@ namespace Sass {
     char* dimension(char* src) {
       return sequence<number, identifier>(src);
     }
+    char* hex(char* src) {
+      char* p = sequence< exactly<'#'>, one_plus<xdigit> >(src);
+      int len = p - src;
+      return (len != 4 && len != 7) ? 0 : p;
+    }
     // Match CSS uri specifiers.
     extern const char url_call[] = "url(";
     char* uri(char* src) {

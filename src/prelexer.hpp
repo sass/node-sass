@@ -228,6 +228,7 @@ namespace Sass {
     char* number(char* src);
     char* percentage(char* src);
     char* dimension(char* src);
+    char* hex(char* src);
     // Match CSS uri specifiers.
     char* uri(char* src);
     // Match CSS function call openers.
