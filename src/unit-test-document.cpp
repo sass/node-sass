@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
     int j = doc.statements.size();
     printf("%d\n", j);
     for (i = 0; i < j; ++i) {
-      doc.statements[i].dump(0);
+      doc.statements[i].dump();
     }
   }
   
