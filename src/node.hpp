@@ -7,12 +7,13 @@ namespace Sass {
     enum Node_Type {
       null,
       comment,
-      rule_set,
-      declaration,
+      ruleset,
+      declarations,
       selector_group,
       selector,
       simple_selector_sequence,
       simple_selector,
+      rule,
       property,
       value,
       lookahead_sequence,
@@ -25,8 +26,9 @@ namespace Sass {
     vector<Node> opt_children;
     
     Node();
+    Node(Node_Type _type);
     Node(Node_Type _type, Token& _token);
-    void push_child(Node& node);
-    void push_opt_child(Node& node);
+    void push_child(const Node& node);
+    void push_opt_child(const Node& node);
   };
 }

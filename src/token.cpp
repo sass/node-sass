@@ -15,5 +15,11 @@ namespace Sass {
     else begin = _begin, end = _end;
     line_number = _line_number;
   }
+  Token::Token(const Token& t) {
+    type = t.type;
+    begin = t.begin;
+    end = t.end;
+    line_number = t.line_number;
+  }
 
 }

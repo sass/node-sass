@@ -31,10 +31,8 @@ namespace Sass {
   }
   
   void Document::parse_stylesheet() {
-    printf("ABOUT TO MUNCH LEADING SPACES\n");
     try_munching<optional_spaces>();
     while (*position) {
-      printf("LOOPING OVER STATEMENTS\n");
       statements.push_back(parse_statement());
       try_munching<optional_spaces>();
     }
@@ -42,10 +40,34 @@ namespace Sass {
   
   Node Document::parse_statement() {
     if (try_munching<block_comment>()) {
-      printf("MUNCHING A COMMENT\n");
       return Node(Node::comment, top);
     }
-    else return Node();
+    else return parse_ruleset();
   }
-    
+  
+  Node Document::parse_ruleset() {
+    Node ruleset(Node::ruleset);
+    ruleset.push_child(parse_selector());
+    ruleset.push_child(parse_declarations());
+    return ruleset;
+  }
+  
+  Node Document::parse_selector() {
+    try_munching<identifier>();
+    return Node(Node::selector, top);
+  }
+  
+  Node Document::parse_declarations() {
+    try_munching<exactly<'{'> >();
+    while(!try_munching<exactly<'}'> >()) {
+      try_munching<identifier>();
+      Token id = top;
+      if (try_munching<exactly<':'> >()) {
+        Node rule(Node::rule);
+        rule.push_child(Node(Node::property, id));
+        rule.push_child(Node(Node::value, parse_value()));
+        return rule;
+      }
+    }
+  }
 }
