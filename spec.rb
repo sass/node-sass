@@ -15,7 +15,7 @@ Dir[File.join(searchpath + "***/input.*")].each do |input_file|
   #puts cmd
   output = `#{cmd}`
   expected_output = File.read(File.join(spec_dir, "output.css"))
-  if output != expected_output
+  if output.strip != expected_output.strip
     print "F"
     messages << "Failed test #{spec_dir}"
   else
