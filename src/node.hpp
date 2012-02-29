@@ -15,6 +15,7 @@ namespace Sass {
       simple_selector,
       rule,
       property,
+      values,
       value,
       lookahead_sequence,
       lookahead_token
@@ -30,5 +31,6 @@ namespace Sass {
     Node(Node_Type _type, Token& _token);
     void push_child(const Node& node);
     void push_opt_child(const Node& node);
+    void dump(unsigned int depth);
   };
 }

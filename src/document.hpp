@@ -59,6 +59,7 @@ namespace Sass {
     Node parse_ruleset();
     Node parse_selector();
     Node parse_declarations();
+    Node parse_values();
       
   };
 }

@@ -35,6 +35,7 @@ int main(int argc, char* argv[]) {
     print_slice(doc.top.begin, doc.top.end);
     
     printf("sizeof char is %ld\n", sizeof(char));
+    printf("sizeof int is %ld\n", sizeof(int));
     printf("sizeof document object is %ld\n", sizeof(doc));
     printf("sizeof node object is %ld\n", sizeof(Node));
     printf("sizeof Node vector object is %ld\n", sizeof(std::vector<Node>));
@@ -51,7 +52,7 @@ int main(int argc, char* argv[]) {
     int j = doc.statements.size();
     printf("%d\n", j);
     for (i = 0; i < j; ++i) {
-      print_slice(doc.statements[i].token.begin, doc.statements[i].token.end);
+      doc.statements[i].dump(0);
     }
   }
   

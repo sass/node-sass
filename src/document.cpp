@@ -59,15 +59,38 @@ namespace Sass {
   
   Node Document::parse_declarations() {
     try_munching<exactly<'{'> >();
+    Node decls(Node::declarations);
     while(!try_munching<exactly<'}'> >()) {
+      if (try_munching<block_comment>()) {
+        decls.push_child(Node(Node::comment, top));
+        continue;
+      }
       try_munching<identifier>();
       Token id = top;
       if (try_munching<exactly<':'> >()) {
         Node rule(Node::rule);
         rule.push_child(Node(Node::property, id));
-        rule.push_child(Node(Node::value, parse_value()));
-        return rule;
+        rule.push_child(parse_values());
+        decls.push_child(rule);
+        try_munching<exactly<';'> >();
+      }
+      else {
+        Node ruleset(Node::ruleset);
+        ruleset.push_child(Node(Node::selector, id));
+        ruleset.push_child(parse_declarations());
+        decls.push_opt_child(ruleset);
       }
     }
+    return decls;
   }
+  
+  Node Document::parse_values() {
+    Node values(Node::values);
+    while(try_munching<identifier>() || try_munching<dimension>()  ||
+          try_munching<percentage>() || try_munching<number>()) {
+      values.push_child(Node(Node::value, top));
+    }
+    return values;      
+  }
+
 }
