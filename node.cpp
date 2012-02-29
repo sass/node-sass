@@ -93,16 +93,19 @@ namespace Sass {
       buf << ";" << endl;
       break;
     case clauses:
-      buf << " {" << endl;
-      for (int i = 0; i < children.size(); ++i)
-        children[i].emit_expanded_css(buf, prefix);
-      buf << "}" << endl;
+      if (children.size() > 0) {
+        buf << " {" << endl;
+        for (int i = 0; i < children.size(); ++i)
+          children[i].emit_expanded_css(buf, prefix);
+        buf << "}" << endl;
+      }
       for (int i = 0; i < opt_children.size(); ++i)
         opt_children[i].emit_expanded_css(buf, prefix);
       break;
     case ruleset:
       buf << prefix;
-      children[0].emit_expanded_css(buf, prefix);
+      if (children[1].children.size() > 0)
+        children[0].emit_expanded_css(buf, prefix);
       string newprefix(prefix.empty() ? prefix : prefix + " ");
       children[1].emit_expanded_css(buf, newprefix + string(children[0].token));
       break;
