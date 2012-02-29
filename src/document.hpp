@@ -36,6 +36,9 @@ namespace Sass {
           return last_munch_succeeded = false;
         }
       }
+      else if (mx == optional_spaces) {
+        after_whitespace = optional_spaces(position);
+      }
       else {
         after_whitespace = spaces_and_comments(position);
       }
@@ -49,7 +52,10 @@ namespace Sass {
       else {
         return last_munch_succeeded = false;
       }
-    } 
+    }
+    
+    void parse_stylesheet();
+    Node parse_statement();
       
   };
 }

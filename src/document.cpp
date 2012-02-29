@@ -29,5 +29,23 @@ namespace Sass {
   Document::~Document() {
     delete [] source;
   }
-
+  
+  void Document::parse_stylesheet() {
+    printf("ABOUT TO MUNCH LEADING SPACES\n");
+    try_munching<optional_spaces>();
+    while (*position) {
+      printf("LOOPING OVER STATEMENTS\n");
+      statements.push_back(parse_statement());
+      try_munching<optional_spaces>();
+    }
+  }
+  
+  Node Document::parse_statement() {
+    if (try_munching<block_comment>()) {
+      printf("MUNCHING A COMMENT\n");
+      return Node(Node::comment, top);
+    }
+    else return Node();
+  }
+    
 }

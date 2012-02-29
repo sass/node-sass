@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <iostream>
 #include "document.hpp"
 
 using namespace Sass;
@@ -38,6 +39,20 @@ int main(int argc, char* argv[]) {
     printf("sizeof node object is %ld\n", sizeof(Node));
     printf("sizeof Node vector object is %ld\n", sizeof(std::vector<Node>));
     printf("sizeof pointer to Node vector is %ld\n", sizeof(std::vector<Node>*));
+
+    printf("GOING TO TRY PARSING NOW\n");
+
+    doc.position = doc.source;
+    std::cout << doc.position << std::endl;
+    if (*(doc.position)) std::cout << "position has content!" << std::endl;
+    doc.parse_stylesheet();
+    
+    int i;
+    int j = doc.statements.size();
+    printf("%d\n", j);
+    for (i = 0; i < j; ++i) {
+      print_slice(doc.statements[i].token.begin, doc.statements[i].token.end);
+    }
   }
   
   return 0;
