@@ -11,8 +11,9 @@ namespace Sass {
                const char* _end,
                unsigned int _line_number) {
     type = _type;
-    begin = _begin;
-    end = _end;
+    if (_begin > _end) begin = end = 0;
+    else begin = _begin, end = _end;
     line_number = _line_number;
   }
+
 }

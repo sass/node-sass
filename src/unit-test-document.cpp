@@ -26,10 +26,18 @@ int main(int argc, char* argv[]) {
     print_slice(doc.top.begin, doc.top.end);
     doc.try_munching<Prelexer::exactly<'{'> >();
     print_slice(doc.top.begin, doc.top.end);
+    doc.try_munching<Prelexer::block_comment>();
+    print_slice(doc.top.begin, doc.top.end);
     doc.try_munching<Prelexer::identifier>();
     print_slice(doc.top.begin, doc.top.end);
     doc.try_munching<Prelexer::dash_match>();
     print_slice(doc.top.begin, doc.top.end);
+    
+    printf("sizeof char is %ld\n", sizeof(char));
+    printf("sizeof document object is %ld\n", sizeof(doc));
+    printf("sizeof node object is %ld\n", sizeof(Node));
+    printf("sizeof Node vector object is %ld\n", sizeof(std::vector<Node>));
+    printf("sizeof pointer to Node vector is %ld\n", sizeof(std::vector<Node>*));
   }
   
   return 0;

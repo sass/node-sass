@@ -94,6 +94,8 @@ int main() {
   cout << ptr << endl;
   if (ptr1 == ptr2) cout << "This shouldn't be the case!" << endl;
   else cout << "The prelexer pointers are different!" << endl;
+  
+  //ptr == prelexer(exactly<'x'>);
 
   return 0;
 }
