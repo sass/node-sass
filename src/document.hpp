@@ -22,7 +22,8 @@ namespace Sass {
     bool try_munching() {
       char* after_whitespace;
       if (mx == block_comment) {
-        after_whitespace = optional_spaces(position);
+        after_whitespace =
+          zero_plus< alternatives<spaces, line_comment> >(position);
       }
       else if (mx == spaces || mx == ancestor_of) {
         after_whitespace = spaces(position);
