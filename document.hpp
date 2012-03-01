@@ -34,7 +34,7 @@ namespace Sass {
       else if (mx == spaces || mx == ancestor_of) {
         after_whitespace = spaces(position);
         if (after_whitespace) {
-          top = Token(mx, position, after_whitespace, line_number);
+          top = Token(position, after_whitespace);
           line_number += count_interval<'\n'>(position, after_whitespace);
           position = after_whitespace;
           return last_munch_succeeded = true;
@@ -52,7 +52,7 @@ namespace Sass {
       line_number += count_interval<'\n'>(position, after_whitespace);
       char* after_token = mx(after_whitespace);
       if (after_token) {
-        top = Token(mx, after_whitespace, after_token, line_number);
+        top = Token(after_whitespace, after_token);
         position = after_token;
         return last_munch_succeeded = true;
       }

@@ -105,7 +105,8 @@ namespace Sass {
     Node values(Node::values);
     while(try_munching<identifier>() || try_munching<dimension>()  ||
           try_munching<percentage>() || try_munching<number>() ||
-          try_munching<hex>()        || try_munching<variable>()) {
+          try_munching<hex>()        || try_munching<string_constant>() ||
+          try_munching<variable>()) {
       if (top.begin[0] == '$') {
         Node stuff(environment[string(top)]);
         for (int i = 0; i < stuff.children.size(); ++i) {
