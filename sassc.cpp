@@ -1,5 +1,5 @@
 #include <iostream>
-#include <sstream>
+#include <string>
 #include "document.hpp"
 
 using namespace Sass;
@@ -13,12 +13,8 @@ int main(int argc, char* argv[]) {
 
   Document doc(argv[1], 0);
   doc.parse_scss();
-    
-  stringstream output;
-  for (int i = 0; i < doc.statements.size(); ++i) {
-    doc.statements[i].emit_expanded_css(output, "");
-  }    
-  cout << output.str();
+  string output = doc.emit_css(doc.expanded);
+  cout << output;
 
   return 0;
 }

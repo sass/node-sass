@@ -7,6 +7,8 @@ namespace Sass {
   using namespace Prelexer;
 
   struct Document {
+    enum CSS_Style { nested, expanded, compact, compressed };
+    
     char* path;
     char* source;
     char* position;
@@ -68,6 +70,7 @@ namespace Sass {
     Node parse_selector();
     Node parse_clauses();
     Node parse_values();
-      
+    
+    string emit_css(CSS_Style style);
   };
 }
