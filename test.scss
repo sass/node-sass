@@ -12,6 +12,7 @@ div {
     a {
       text-decoration: none;
       color: green;
+      content: "▲";
       border: 1px $blah red;
     }
     /* yet another comment that should be preserved */

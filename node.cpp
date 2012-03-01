@@ -84,8 +84,8 @@ namespace Sass {
       break;
     case values:
       for (int i = 0; i < children.size(); ++i) {
-        buf << " ";
-        children[i].token.stream_unquoted(buf);
+        buf << " " << string(children[i].token);
+        // children[i].token.stream_unquoted(buf);
       }
       break;
     case rule:
