@@ -151,9 +151,11 @@ namespace Sass {
         opt_children[i].emit_expanded_css(buf, prefix);
       break;
     case ruleset:
-      buf << prefix;
-      if (children[1].children.size() > 0)
-        children[0].emit_expanded_css(buf, prefix);
+      // buf << prefix;
+      if (children[1].children.size() > 0) {
+        buf << prefix << (prefix.empty() ? "" : " ");
+        children[0].emit_expanded_css(buf, "");
+      }
       string newprefix(prefix.empty() ? prefix : prefix + " ");
       children[1].emit_expanded_css(buf, newprefix + string(children[0].token));
       break;

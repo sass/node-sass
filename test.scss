@@ -36,3 +36,12 @@ div {
 }
 /* last comment, top level again --
    compare the indentation! */
+   
+div {
+  f: g;
+  empty {
+    span {
+      a: b;
+    }
+  }
+}
