@@ -1,12 +1,12 @@
 $blah: bloo blee;
 $blip: "a 'red' and \"blue\" value";
 
-/* top level comment -- should preserved */
+/* top level comment -- should be preserved */
 div {
   /* another comment that should be preserved */
   color: red;
   background: blue;
-  $blux: hux;
+  $blux: hux; // gone!
   span {
     font-weight: bold;
     a {
@@ -17,6 +17,13 @@ div {
     }
     /* yet another comment that should be preserved */
     display: inline-block;
+  }  // gone!
+  /* the next selector should be indented two spaces */
+  empty {
+    not_empty {
+      blah: blah; // gone!
+      bloo: bloo;
+    }
   }
   p {
     padding: 10px 8%;

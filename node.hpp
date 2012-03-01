@@ -4,6 +4,8 @@
 
 namespace Sass {
   using std::vector;
+  using std::stringstream;
+  
   struct Node {
     enum Node_Type {
       null,
@@ -33,6 +35,7 @@ namespace Sass {
     void push_child(const Node& node);
     void push_opt_child(const Node& node);
     void dump(unsigned int depth = 0);
-    void emit_expanded_css(std::stringstream& buf, const string& prefix);
+    void emit_nested_css(stringstream& buf, const string& prefix, size_t depth);
+    void emit_expanded_css(stringstream& buf, const string& prefix);
   };
 }

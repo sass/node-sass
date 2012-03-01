@@ -68,9 +68,56 @@ namespace Sass {
     }
   }
   
+  void Node::emit_nested_css(stringstream& buf,
+                             const string& prefix,
+                             size_t depth) {
+    switch(type) {
+    case selector:
+      if (!prefix.empty()) buf << " ";
+      buf << string(token);
+      break;
+    case comment:
+      buf << string(2 * depth, ' ') << string(token);
+      if (depth == 0) buf << endl;
+      break;
+    case property:
+      buf << string(token) << ":";
+      break;
+    case values:
+      for (int i = 0; i < children.size(); ++i) {
+        buf << " " << string(children[i].token);
+      }
+      break;
+    case rule:
+      buf << string(2 * depth, ' ');
+      children[0].emit_nested_css(buf, prefix, depth);
+      children[1].emit_nested_css(buf, prefix, depth);
+      buf << ";";
+      break;
+    case clauses:
+      if (!children.empty()) {
+        buf << " {";
+        for (int i = 0; i < children.size() && children[i].type != Node::null; ++i) {
+          buf << endl;
+          children[i].emit_nested_css(buf, prefix, depth + 1);
+        }
+        buf << " }" << endl;
+      }
+      for (int i = 0; i < opt_children.size(); ++i)
+        opt_children[i].emit_nested_css(buf, prefix, depth + (children.empty() ? 0 : 1));
+      break;
+    case ruleset:
+      buf << string(2 * depth, ' ') << prefix;
+      if (!(children[1].children.empty()))
+        children[0].emit_nested_css(buf, prefix, depth);
+      string newprefix(prefix.empty() ? prefix : prefix + " ");
+      children[1].emit_nested_css(buf, newprefix + string(children[0].token), depth);
+      break;
+    }
+  }
+  
   void Node::emit_expanded_css(stringstream& buf, const string& prefix) {
     switch (type) {
-    case value:
     case selector:
       if (!prefix.empty()) buf << " ";
       buf << string(token);
@@ -85,7 +132,6 @@ namespace Sass {
     case values:
       for (int i = 0; i < children.size(); ++i) {
         buf << " " << string(children[i].token);
-        // children[i].token.stream_unquoted(buf);
       }
       break;
     case rule:

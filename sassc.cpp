@@ -13,7 +13,10 @@ int main(int argc, char* argv[]) {
 
   Document doc(argv[1], 0);
   doc.parse_scss();
-  string output = doc.emit_css(doc.expanded);
+  // string output = doc.emit_css(doc.expanded);
+  // cout << output;
+  // cout << endl;
+  string output = doc.emit_css(doc.nested);
   cout << output;
 
   return 0;
