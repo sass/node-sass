@@ -1,4 +1,5 @@
 #include <string>
+#include <sstream>
 #include "prelexer.hpp"
 
 namespace Sass {
@@ -11,7 +12,14 @@ namespace Sass {
     Token();
     Token(const char* _begin, const char* _end);
 
-    inline bool is_null() { return begin == 0 || end == 0; }
-    inline operator string() const { return string(begin, end - begin); }
+    inline bool is_null() const {
+      return begin == 0 || end == 0 || begin >= end;
+    }
+    inline operator string() const {
+      return string(begin, end - begin);
+    }
+
+    void stream_unquoted(std::stringstream& buf) const;
+    
   };
 }

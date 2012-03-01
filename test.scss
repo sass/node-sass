@@ -1,4 +1,5 @@
 $blah: bloo blee;
+$blip: "a 'red' and \"blue\" value";
 
 /* top level comment -- should preserved */
 div {
@@ -21,6 +22,9 @@ div {
     -webkit-box-sizing: $blux;
   }
   margin: 10px 5px;
+  h1 {
+    color: $blip;
+  }
 }
 /* last comment, top level again --
    compare the indentation! */
