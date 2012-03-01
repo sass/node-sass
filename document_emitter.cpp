@@ -17,7 +17,9 @@ namespace Sass {
         break;
       }
     }
-    return output.str();
+    string retval(output.str());
+    if (!retval.empty()) retval.resize(retval.size()-1);
+    return retval;
   }
   
 }
