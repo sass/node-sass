@@ -25,7 +25,7 @@ namespace Sass {
     try_munching<exactly<':'> >();
     environment[string(key)] = parse_values();
     try_munching<exactly<';'> >();
-    return Node(Node::null);
+    return Node(Node::nil);
   }
 
   Node Document::parse_ruleset() {
@@ -79,8 +79,8 @@ namespace Sass {
           try_munching<variable>()) {
       if (top.begin[0] == '$') {
         Node stuff(environment[string(top)]);
-        for (int i = 0; i < stuff.children.size(); ++i) {
-          values.push_child(stuff.children[i]);
+        for (int i = 0; i < stuff.children->size(); ++i) {
+          values.push_child((*(stuff.children))[i]);
         }
       }
       else

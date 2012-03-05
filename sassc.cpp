@@ -30,6 +30,9 @@ int main(int argc, char* argv[]) {
   doc.parse_scss();
   string output = doc.emit_css(style);
   cout << output;
+  
+  cerr << "Fresh nodes:\t" << Node::fresh << endl;
+  cerr << "Copied nodes:\t" << Node::copied << endl;
 
   return 0;
 }
