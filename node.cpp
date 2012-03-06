@@ -92,31 +92,35 @@ namespace Sass {
     string indentation(2 * depth, ' ');
     bool has_rules, has_nested_rulesets;
     if (type == ruleset) {
-      has_rules = !((*children)[1].children->empty());
-      has_nested_rulesets = !((*children)[1].opt_children->empty());
+      // has_rules = !((*children)[1].children->empty());
+      has_rules = !(children->at(1).children->empty());
+      // has_nested_rulesets = !((*children)[1].opt_children->empty());
+      has_nested_rulesets = !(children->at(1).opt_children->empty());
     }
     switch (type) {
     case ruleset:
       if (has_rules) {
         buf << indentation;
-        (*children)[0].emit_nested_css(buf, prefix, depth); // selector
+        // (*children)[0].emit_nested_css(buf, prefix, depth); // selector
+        children->at(0).emit_nested_css(buf, prefix, depth); // selector
         buf << " {";
         for (int i = 0; i < (*children)[1].children->size(); ++i) {
-          (*(*children)[1].children)[i].emit_nested_css(buf, "", depth + 1); // rules
+          // (*(*children)[1].children)[i].emit_nested_css(buf, "", depth + 1); // rules
+          children->at(1).children->at(i).emit_nested_css(buf, "", depth + 1); // rules
         }
         buf << " }" << endl;
       }
       if (has_nested_rulesets) {
-        for (int i = 0; i < (*children)[1].opt_children->size(); ++i) { // do each nested ruleset
-          (*(*children)[1].opt_children)[i].emit_nested_css(buf, prefix + (prefix.empty() ? "" : " ") + string((*children)[0].token), depth + (has_rules ? 1 : 0));
+        for (int i = 0; i < children->at(1).opt_children->size(); ++i) { // do each nested ruleset
+          children->at(1).opt_children->at(i).emit_nested_css(buf, prefix + (prefix.empty() ? "" : " ") + string((*children)[0].token), depth + (has_rules ? 1 : 0));
         }
       }
       if (depth == 0 && prefix.empty()) buf << endl;
       break;
     case rule:
       buf << endl << indentation;
-      (*children)[0].emit_nested_css(buf, "", depth); // property
-      (*children)[1].emit_nested_css(buf, "", depth); // values
+      children->at(0).emit_nested_css(buf, "", depth); // property
+      children->at(1).emit_nested_css(buf, "", depth); // values
       buf << ";";
       break;
     case property:
