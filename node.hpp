@@ -42,25 +42,25 @@ namespace Sass {
     void emit_expanded_css(stringstream& buf, const string& prefix);
   };
   
-  struct Node {
-    enum Type {
-      nil,
-      comment,
-      ruleset,
-      selector_group,
-      selector,
-      simple_selector_sequence,
-      type_selector,
-      class_selector,
-      id_selector,
-      attribute_selector,
-      clauses,
-      rule,
-      property,
-      values,
-      value
-    };
-    
+  // struct Node {
+  //   enum Type {
+  //     nil,
+  //     comment,
+  //     ruleset,
+  //     selector_group,
+  //     selector,
+  //     simple_selector_sequence,
+  //     type_selector,
+  //     class_selector,
+  //     id_selector,
+  //     attribute_selector,
+  //     clauses,
+  //     rule,
+  //     property,
+  //     values,
+  //     value
+  //   };
+  //   
   //   size_t line_number;
   //   mutable vector<Node>* children;
   //   Token token;
