@@ -5,43 +5,44 @@
 using std::string;
 using std::stringstream;
 using std::cout;
+using std::cerr;
 using std::endl;
 
 namespace Sass {
-  unsigned int Node::fresh = 0;
-  unsigned int Node::copied = 0;
-  Node::Node() { ++fresh; children = 0; opt_children = 0; }
-  Node::Node(Node_Type _type) {
-    type = _type;
-    children = new vector<Node>;
-    opt_children = new vector<Node>;
-    ++fresh;
-  }
-  Node::Node(Node_Type _type, Token& _token) {
-    type = _type;
-    token = _token;
-    children = 0;
-    opt_children = 0;
-    ++fresh;
-  }
-  Node::Node(const Node& n) {
-    type = n.type;
-    token = n.token;
-    children = n.children;
-    opt_children = n.opt_children;
-    ++copied;
-  }
+  size_t Node::fresh = 0;
+  size_t Node::copied = 0;
+  // Node::Node() { ++fresh; children = 0; opt_children = 0; }
+  // Node::Node(Node_Type _type) {
+  //   type = _type;
+  //   children = new vector<Node>;
+  //   opt_children = new vector<Node>;
+  //   ++fresh;
+  // }
+  // Node::Node(Node_Type _type, Token& _token) {
+  //   type = _type;
+  //   token = _token;
+  //   children = 0;
+  //   opt_children = 0;
+  //   ++fresh;
+  // }
+  // Node::Node(const Node& n) {
+  //   type = n.type;
+  //   token = n.token;
+  //   children = n.children;
+  //   opt_children = n.opt_children;
+  //   ++copied;
+  // }
+  // 
+  // void Node::push_child(const Node& node) {
+  //   if (!children) children = new vector<Node>;
+  //   children->push_back(node);
+  // }
+  // void Node::push_opt_child(const Node& node) {
+  //   if (!opt_children) opt_children = new vector<Node>;
+  //   opt_children->push_back(node);
+  // }
   
-  void Node::push_child(const Node& node) {
-    if (!children) children = new vector<Node>;
-    children->push_back(node);
-  }
-  void Node::push_opt_child(const Node& node) {
-    if (!opt_children) opt_children = new vector<Node>;
-    opt_children->push_back(node);
-  }
-  
-  void Node::dump(unsigned int depth) {
+  // void Node::dump(unsigned int depth) {
     // switch (type) {
     // case comment:
     //   for (int i = depth; i > 0; --i) cout << "  ";
@@ -84,35 +85,32 @@ namespace Sass {
     //   break;
     // default: cout << "HUH?"; break;
     // }
-  }
+  // }
   
   void Node::emit_nested_css(stringstream& buf,
                              const string& prefix,
                              size_t depth) {
     string indentation(2 * depth, ' ');
-    bool has_rules, has_nested_rulesets;
+    vector<Node>* nodes;
     if (type == ruleset) {
-      // has_rules = !((*children)[1].children->empty());
-      has_rules = !(children->at(1).children->empty());
-      // has_nested_rulesets = !((*children)[1].opt_children->empty());
-      has_nested_rulesets = !(children->at(1).opt_children->empty());
+      nodes = children->at(1).children;
+      has_rules = children->at(1).has_rules;
+      has_rulesets = children->at(1).has_rulesets;
     }
     switch (type) {
     case ruleset:
       if (has_rules) {
         buf << indentation;
-        // (*children)[0].emit_nested_css(buf, prefix, depth); // selector
         children->at(0).emit_nested_css(buf, prefix, depth); // selector
         buf << " {";
-        for (int i = 0; i < (*children)[1].children->size(); ++i) {
-          // (*(*children)[1].children)[i].emit_nested_css(buf, "", depth + 1); // rules
-          children->at(1).children->at(i).emit_nested_css(buf, "", depth + 1); // rules
+        for (int i = 0; i < nodes->size(); ++i) {
+          if (nodes->at(i).type == rule) nodes->at(i).emit_nested_css(buf, "", depth + 1); // rules
         }
         buf << " }" << endl;
       }
-      if (has_nested_rulesets) {
-        for (int i = 0; i < children->at(1).opt_children->size(); ++i) { // do each nested ruleset
-          children->at(1).opt_children->at(i).emit_nested_css(buf, prefix + (prefix.empty() ? "" : " ") + string((*children)[0].token), depth + (has_rules ? 1 : 0));
+      if (has_rulesets) {
+        for (int i = 0; i < nodes->size(); ++i) { // do each nested ruleset
+          if (nodes->at(i).type == ruleset) nodes->at(i).emit_nested_css(buf, prefix + (prefix.empty() ? "" : " ") + string((*children)[0].token), depth + (has_rules ? 1 : 0));
         }
       }
       if (depth == 0 && prefix.empty()) buf << endl;

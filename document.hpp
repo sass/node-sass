@@ -12,10 +12,10 @@ namespace Sass {
     char* path;
     char* source;
     char* position;
-    unsigned int line_number;
+    size_t line_number;
     
     // TO DO: move the environment up into the context class when it's ready
-    map<string, Node> environment;
+    map<Token, Node> environment;
     
     vector<Node> statements;
     Token top;
@@ -24,7 +24,8 @@ namespace Sass {
     Document(char* _path, char* _source = 0);
     ~Document();
     
-    inline Token& peek() { return top; }
+    template <prelexer mx>
+    char* peek() { return mx(position); }
 
     template <prelexer mx>
     bool try_munching() {
@@ -68,7 +69,7 @@ namespace Sass {
     Node parse_var_def();
     Node parse_ruleset();
     Node parse_selector();
-    Node parse_clauses();
+    Node parse_block();
     Node parse_values();
     
     string emit_css(CSS_Style style);

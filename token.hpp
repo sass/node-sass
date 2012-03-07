@@ -21,5 +21,7 @@ namespace Sass {
 
     void stream_unquoted(std::stringstream& buf) const;
     
+    bool operator<(const Token& rhs) const;
+    
   };
 }
