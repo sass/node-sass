@@ -4,7 +4,7 @@ $blip: "a 'red' and \"blue\" value";
 /* top level comment -- should be preserved */
 div {
   /* another comment that should be preserved */
-  color: red;
+  color: gray;
   background: blue;
   $blux: hux; // gone!
   span {
@@ -21,7 +21,7 @@ div {
   empty {
     not_empty {
       blah: blah; // gone!
-      bloo: bloo;
+      bloo: bloo  // the last rule in a block may omit the semicolon
     }
   }
   p {

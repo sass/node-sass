@@ -7,7 +7,7 @@ namespace Sass {
   using namespace Prelexer;
 
   struct Document {
-    enum CSS_Style { nested, expanded, compact, compressed };
+    enum CSS_Style { nested, expanded, compact, compressed, echo };
     
     char* path;
     char* source;
@@ -130,8 +130,8 @@ namespace Sass {
     // }
     
     void parse_scss();
-    Node parse_statement();
-    Node parse_var_def();
+    // Node parse_statement();
+    void parse_var_def();
     Node parse_ruleset();
     Node parse_selector_group();
     Node parse_selector();

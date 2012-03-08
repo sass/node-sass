@@ -9,6 +9,9 @@ namespace Sass {
     stringstream output;
     for (int i = 0; i < statements.size(); ++i) {
       switch (style) {
+      case echo:
+        statements[i].echo();
+        break;
       case nested:
         statements[i].emit_nested_css(output, "", 0);
         break;

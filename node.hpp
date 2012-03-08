@@ -69,8 +69,7 @@ namespace Sass {
     mutable vector<Node>* children;
     Token token;
     Type type;
-    bool has_comments;
-    bool has_rules;
+    bool has_rules_or_comments;
     bool has_rulesets;
     bool has_propsets;
     
@@ -81,7 +80,7 @@ namespace Sass {
       children(n.children),
       token(n.token),
       type(n.type),
-      has_rules(n.has_rules),
+      has_rules_or_comments(n.has_rules_or_comments),
       has_rulesets(n.has_rulesets),
       has_propsets(n.has_propsets)
     { /*n.release();*/ ++copied; } // No joint custody.
@@ -91,7 +90,7 @@ namespace Sass {
       children(new vector<Node>),
       token(Token()),
       type(type),
-      has_rules(false),
+      has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false)
     { children->reserve(length); ++fresh; }
@@ -101,7 +100,7 @@ namespace Sass {
       children(new vector<Node>(1, n)),
       token(Token()),
       type(type),
-      has_rules(false),
+      has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false)
     { ++fresh; }
@@ -111,7 +110,7 @@ namespace Sass {
       children(new vector<Node>),
       token(Token()),
       type(type),
-      has_rules(false),
+      has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false)
     {
@@ -126,7 +125,7 @@ namespace Sass {
       children(0),
       token(token),
       type(type),
-      has_rules(false),
+      has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false)
     { ++fresh; }
@@ -140,7 +139,7 @@ namespace Sass {
       // n.release();
       token = n.token;
       type = n.type;
-      has_rules = n.has_rules;
+      has_rules_or_comments = n.has_rules_or_comments;
       has_rulesets = n.has_rulesets;
       has_propsets = n.has_propsets;
       ++copied;
@@ -156,6 +155,7 @@ namespace Sass {
     
     void release() const { children = 0; }
     
+    void echo(size_t depth = 0);
     void emit_nested_css(stringstream& buf, const string& prefix, size_t depth);
     void emit_expanded_css(stringstream& buf, const string& prefix);
   };

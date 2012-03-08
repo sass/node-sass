@@ -20,6 +20,7 @@ int main(int argc, char* argv[]) {
       string style_name(argv[++i]);
       if (style_name == "nested") style = Document::nested;
       else if (style_name == "expanded") style = Document::expanded;
+      else if (style_name == "echo") style = Document::echo;
     }
     else {
       path = argv[i];
