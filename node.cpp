@@ -94,23 +94,24 @@ namespace Sass {
     vector<Node>* nodes;
     if (type == ruleset) {
       nodes = children->at(1).children;
+      has_comments = children->at(1).has_comments;
       has_rules = children->at(1).has_rules;
       has_rulesets = children->at(1).has_rulesets;
     }
     switch (type) {
     case ruleset:
-      if (has_rules) {
+      if (has_comments || has_rules) {
         buf << indentation;
-        children->at(0).emit_nested_css(buf, prefix, depth); // selector
+        children->at(0).emit_nested_css(buf, prefix, depth); // selector group
         buf << " {";
         for (int i = 0; i < nodes->size(); ++i) {
-          if (nodes->at(i).type == rule) nodes->at(i).emit_nested_css(buf, "", depth + 1); // rules
+          if (nodes->at(i).type == comment || nodes->at(i).type == rule) nodes->at(i).emit_nested_css(buf, "", depth + 1); // rules
         }
         buf << " }" << endl;
       }
       if (has_rulesets) {
         for (int i = 0; i < nodes->size(); ++i) { // do each nested ruleset
-          if (nodes->at(i).type == ruleset) nodes->at(i).emit_nested_css(buf, prefix + (prefix.empty() ? "" : " ") + string((*children)[0].token), depth + (has_rules ? 1 : 0));
+          if (nodes->at(i).type == ruleset) nodes->at(i).emit_nested_css(buf, prefix + (prefix.empty() ? "" : " ") + string((*children)[0].token), depth + (has_comments || has_rules ? 1 : 0));
         }
       }
       if (depth == 0 && prefix.empty()) buf << endl;
@@ -128,6 +129,10 @@ namespace Sass {
       for (int i = 0; i < children->size(); ++i) {
         buf << " " << string((*children)[i].token);
       }
+      break;
+    case selector_group:
+    // UNFINISHED
+      children->at(0).emit_nested_css(buf, prefix, depth);
       break;
     case selector:
       buf << prefix << (prefix.empty() ? "" : " ") << string(token);

@@ -69,11 +69,12 @@ namespace Sass {
     mutable vector<Node>* children;
     Token token;
     Type type;
+    bool has_comments;
     bool has_rules;
     bool has_rulesets;
     bool has_propsets;
     
-    Node() { ++fresh; }
+    Node() : type(nil), children(0) { ++fresh; }
   
     Node(const Node& n)
     : line_number(n.line_number),

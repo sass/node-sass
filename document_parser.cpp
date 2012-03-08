@@ -2,13 +2,8 @@
 
 namespace Sass {
 
-  void Document::parse_scss() {
-    // try_munching<optional_spaces>();
-    // while (*position) {
-    //   statements.push_back(parse_statement());
-    //   try_munching<optional_spaces>();
-    // }
-    
+  void Document::parse_scss()
+  {
     lex<optional_spaces>();
     while(*position) {
       statements.push_back(parse_statement());
@@ -16,15 +11,8 @@ namespace Sass {
     }
   }
 
-  Node Document::parse_statement() {
-    // if (try_munching<block_comment>()) {
-    //   return Node(line_number, Node::comment, top);
-    // }
-    // else if (try_munching<variable>()) {
-    //   return parse_var_def();
-    // }
-    // else return parse_ruleset();
-    
+  Node Document::parse_statement()
+  {
     if (lex<block_comment>()) {
       return Node(line_number, Node::comment, lexed);
     }
@@ -34,13 +22,8 @@ namespace Sass {
     else return parse_ruleset();
   }
 
-  Node Document::parse_var_def() {
-    // const Token key(top);
-    // try_munching<exactly<':'> >();
-    // environment[key] = parse_values();
-    // try_munching<exactly<';'> >();
-    // return Node(line_number, Node::nil, top);
-    
+  Node Document::parse_var_def()
+  {
     const Token key(lexed);
     lex< exactly<':'> >();
     environment[key] = parse_values();
@@ -48,69 +31,124 @@ namespace Sass {
     return Node();
   }
 
-  Node Document::parse_ruleset() {
+  Node Document::parse_ruleset()
+  {
     Node ruleset(line_number, Node::ruleset, 2);
-    ruleset << parse_selector();
+    ruleset << parse_selector_group();
     ruleset << parse_block();
     return ruleset;
   }
-
-  Node Document::parse_selector() {
-    try_munching<identifier>();
-    return Node(line_number, Node::selector, top);
+  
+  Node Document::parse_selector_group()
+  {
+    Node group(line_number, Node::selector_group, 1);
+    group << parse_selector();
+    while (lex< exactly<','> >()) group << parse_selector();
+    return group;
   }
 
-  Node Document::parse_block() {
-    try_munching<exactly<'{'> >();
-    Node decls(line_number, Node::block);
-    while(!try_munching<exactly<'}'> >()) {
-      if (try_munching<block_comment>()) {
-        decls << Node(line_number, Node::comment, top);
+  Node Document::parse_selector()
+  {
+    lex<identifier>();
+    return Node(line_number, Node::selector, lexed);
+  }
+
+  Node Document::parse_block()
+  {
+    lex< exactly<'{'> >();
+    Node block(line_number, Node::block);
+    while (!lex< exactly<'}'> >()) {
+      if (lex< block_comment >()) {
+        block << Node(line_number, Node::comment, lexed);
+        block.has_comments = true;
         continue;
       }
-      else if (try_munching<variable>()) {
-        decls << parse_var_def();
+      else if (lex< variable >()) {
+        block << parse_var_def();
         continue;
       }
-      try_munching<identifier>();
-      Token id = top;
-      if (try_munching<exactly<':'> >()) {
-        Node rule(line_number, Node::rule, 2);
-        rule << Node(line_number, Node::property, id);
-        rule << parse_values();
-        decls << rule;
-        decls.has_rules = true;
-        try_munching<exactly<';'> >();
+      else if (look_for_rule()) {
+        block << parse_rule();
+        block.has_rules = true;
+        continue;
       }
       else {
-        Node ruleset(line_number, Node::ruleset, 2);
-        ruleset << Node(line_number, Node::selector, id);
-        ruleset << parse_block();
-        decls << ruleset;
-        decls.has_rulesets = true;
+        block << parse_ruleset();
+        block.has_rulesets = true;
+        continue;
       }
     }
-    return decls;
+    return block;
+    //   lex< identifier >();
+    //   // Token id(lexed);
+    //   if (peek< exactly<':'> >()) {
+    //     Node rule(line_number, Node::rule, 2);
+    //     rule << Node(line_number, Node::property, lexed);
+    //     lex< exactly<':'> >();
+    //     rule << parse_values();
+    //     block << rule;
+    //     block.has_rules = true;
+    //     lex< exactly<';'> >();
+    //   }
+    //   else {
+    //     Node ruleset(line_number, Node::ruleset, 2);
+    //     ruleset << Node(line_number, Node::selector, lexed);
+    //     ruleset << parse_block();
+    //     block << ruleset;
+    //     block.has_rulesets = true;
+    //   }
+    // }
+    // return block;   
+  }
+  
+  Node Document::parse_rule() {
+    Node rule(line_number, Node::rule, 2);
+    lex< identifier >();
+    rule << Node(line_number, Node::property, lexed);
+    lex< exactly<':'> >();
+    rule << parse_values();
+    return rule;
   }
 
-  Node Document::parse_values() {
+  Node Document::parse_values()
+  {
     Node values(line_number, Node::values);
-    while(try_munching<identifier>() || try_munching<dimension>()  ||
-          try_munching<percentage>() || try_munching<number>() ||
-          try_munching<hex>()        || try_munching<string_constant>() ||
-          try_munching<variable>()) {
-      if (top.begin[0] == '$') {
-        Node stuff(environment[top]);
-        for (int i = 0; i < stuff.children->size(); ++i) {
-          values << stuff.children->at(i);
+    while (lex< identifier >() || lex < dimension >()       ||
+           lex< percentage >() || lex < number >()          ||
+           lex< hex >()        || lex < string_constant >() ||
+           lex< variable >()) {
+      if (lexed.begin[0] == '$') {
+        Node fetched(environment[lexed]);
+        for (int i = 0; i < fetched.children->size(); ++i) {
+          values << fetched.children->at(i);
         }
       }
-      else
-      {
-        values << Node(line_number, Node::value, top);
+      else {
+        values << Node(line_number, Node::value, lexed);
       }
     }
-    return values;      
+    return values;
   }
-
+  
+  char* Document::look_for_rule(char* start)
+  {
+    char* p = start ? start : position;
+    (p = peek< identifier >(p))   &&
+    (p = peek< exactly<':'> >(p)) &&
+    (p = look_for_values(p))      &&
+    (p = peek< alternatives< exactly<';'>, exactly<'}'> > >(p));
+    return p;
+  }
+  
+  char* Document::look_for_values(char* start)
+  {
+    char* p = start ? start : position;
+    char* q;
+    while ((q = peek< identifier >(p)) || (q = peek< dimension >(p))       ||
+           (q = peek< percentage >(p)) || (q = peek< number >(p))          ||
+           (q = peek< hex >(p))        || (q = peek< string_constant >(p)) ||
+           (q = peek< variable >(p)))
+    { p = q; }
+    return p == start ? 0 : p;
+  }
 }
