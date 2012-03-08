@@ -73,7 +73,7 @@ namespace Sass {
     lex< exactly<'{'> >();
     bool semicolon = false;
     Node block(line_number, Node::block);
-    while (!lex < exactly<'}'> >()) {
+    while (!lex< exactly<'}'> >()) {
       if (semicolon) {
         lex< exactly<';'> >(); // enforce terminal ';' here
         semicolon = false;
@@ -84,23 +84,20 @@ namespace Sass {
         block << Node(line_number, Node::comment, lexed);
         block.has_rules_or_comments = true;
         semicolon = true;
-        continue;
       }
       else if (lex< variable >()) {
         parse_var_def();
-        continue;
       }
       else if (look_for_rule(position)) {
         block << parse_rule();
         block.has_rules_or_comments = true;
         semicolon = true;
-        continue;
       }
-      else {
+      else if (!peek< exactly<';'> >()) {
         block << parse_ruleset();
         block.has_rulesets = true;
-        continue;
       }
+      else lex< exactly<';'> >();
     }
     return block;
     //   lex< identifier >();

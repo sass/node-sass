@@ -13,7 +13,7 @@ div {
       text-decoration: none; /* where will this comment go? */
       color: green;
       /* what about this comment? */ border: 1px $blah red;
-    }
+    };;
     /* yet another comment that should be preserved */
     display: inline-block;
   }  // gone!
@@ -26,7 +26,8 @@ div {
   }
   p {
     padding: 10px 8%;
-    -webkit-box-sizing: $blux;
+    -webkit-box-sizing: $blux; ; ;
+    ; ; ;;;
   }
   margin: 10px 5px;
   h1 {
