@@ -13,7 +13,7 @@ namespace Sass {
         statements[i].echo();
         break;
       case nested:
-        statements[i].emit_nested_css(output, "", 0);
+        statements[i].emit_nested_css(output, 0, vector<string>());
         break;
       case expanded:
         statements[i].emit_expanded_css(output, "");
