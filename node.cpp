@@ -111,7 +111,8 @@ namespace Sass {
       if (depth == 0 && prefixes.empty()) buf << endl;
     } break;
     default:
-      break;  
+      emit_nested_css(buf, depth); // pass it along to the simpler version
+      break;
     }
   }
   
