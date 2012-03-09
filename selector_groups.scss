@@ -1,0 +1,22 @@
+a, b {
+  color: red;
+  background: blue;
+}
+
+c, d {
+  color: gray;
+  e, f {
+    background: blue;
+    padding: 10px 5px;
+  }
+  g, h {
+    blah: blah;
+    bloo: bloo;
+  }
+  i, j {
+    foo: goo;
+    k, l {
+      hoo: boo;
+    }
+  }
+}
