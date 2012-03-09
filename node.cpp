@@ -107,6 +107,7 @@ namespace Sass {
           }
         }
       }
+      if (block.has_rules_or_comments) --depth;
       if (depth == 0 && prefixes.empty()) buf << endl;
     } break;
     default:
