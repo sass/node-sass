@@ -12,47 +12,47 @@ namespace Sass {
   size_t Node::fresh = 0;
   size_t Node::copied = 0;
   
-  void Node::echo(size_t depth) {
+  void Node::echo(stringstream& buf, size_t depth) {
     string indentation(2*depth, ' ');
     switch (type) {
     case comment:
-      cout << indentation << string(token) << endl;
+      buf << indentation << string(token) << endl;
       break;
     case ruleset:
-      cout << indentation;
-      children->at(0).echo(depth);
-      children->at(1).echo(depth);
+      buf << indentation;
+      children->at(0).echo(buf, depth);
+      children->at(1).echo(buf, depth);
       break;
     case selector_group:
-      children->at(0).echo(depth);
+      children->at(0).echo(buf, depth);
       for (int i = 1; i < children->size(); ++i) {
-        cout << ", ";
-        children->at(i).echo(depth);
+        buf << ", ";
+        children->at(i).echo(buf, depth);
       }
       break;
     case selector:
-      cout << string(token);
+      buf << string(token);
       break;
     case block:
-      cout << " {" << endl;
-      for (int i = 0; i < children->size(); children->at(i++).echo(depth+1)) ;
-      cout << indentation << "}" << endl;
+      buf << " {" << endl;
+      for (int i = 0; i < children->size(); children->at(i++).echo(buf, depth+1)) ;
+      buf << indentation << "}" << endl;
       break;
     case rule:
-      cout << indentation;
-      children->at(0).echo(depth);
-      cout << ':';
-      children->at(1).echo(depth);
-      cout << ';' << endl;
+      buf << indentation;
+      children->at(0).echo(buf, depth);
+      buf << ':';
+      children->at(1).echo(buf, depth);
+      buf << ';' << endl;
       break;
     case property:
-      cout << string(token);
+      buf << string(token);
       break;
     case values:
-      for (int i = 0; i < children->size(); children->at(i++).echo(depth)) ;
+      for (int i = 0; i < children->size(); children->at(i++).echo(buf, depth)) ;
       break;
     case value:
-      cout << ' ' << string(token);
+      buf << ' ' << string(token);
       break;
     }
   }

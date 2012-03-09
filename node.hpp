@@ -155,7 +155,7 @@ namespace Sass {
     
     void release() const { children = 0; }
     
-    void echo(size_t depth = 0);
+    void echo(stringstream& buf, size_t depth = 0);
     void emit_nested_css(stringstream& buf,
                          size_t depth,
                          const vector<string>& prefixes);

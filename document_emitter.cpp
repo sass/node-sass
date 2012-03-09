@@ -10,7 +10,7 @@ namespace Sass {
     for (int i = 0; i < statements.size(); ++i) {
       switch (style) {
       case echo:
-        statements[i].echo();
+        statements[i].echo(output);
         break;
       case nested:
         statements[i].emit_nested_css(output, 0, vector<string>());
