@@ -47,8 +47,22 @@ namespace Sass {
 
   Node Document::parse_selector()
   {
+    Node selector(line_number, Node::selector, 1);
+    selector << parse_simple_selector_sequence();
+    while (lex< adjacent_to >() ||
+           lex< precedes >()    ||
+           lex< parent_of >()   ||
+           lex< sequence< ancestor_of, negate< exactly<'{'> > >()) {
+      selector << Node(line_number, Node::selector_combinator, lexed);
+      selector << parse_simple_selector_sequence();
+    }
+    return selector;
+  }
+  
+  Node Document::parse_simple_selector_sequence()
+  {
     lex<identifier>();
-    return Node(line_number, Node::selector, lexed);
+    return Node(line_number, Node::simple_selector_sequence, lexed);
   }
 
   Node Document::parse_block()

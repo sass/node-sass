@@ -56,13 +56,11 @@ namespace Sass {
       break;
     }
   }
-  
-  
+
   void Node::emit_nested_css(stringstream& buf,
                              size_t depth,
                              const vector<string>& prefixes)
   {
-    string indentation(2*depth, ' ');
     switch (type) {  
     case ruleset: {
       Node sel_group(children->at(0));
@@ -142,70 +140,7 @@ namespace Sass {
       break;
     }
   }
-        
-        
-  
-  
-  // void Node::emit_nested_css(stringstream& buf,
-  //                            const string& prefix,
-  //                            size_t depth) {
-  //   string indentation(2 * depth, ' ');
-  //   vector<Node>* contents;
-  //   if (type == ruleset) {
-  //     Node block(children->at(1));
-  //     contents              = block.children;
-  //     has_rules_or_comments = block.has_rules_or_comments;
-  //     has_rulesets          = block.has_rulesets;
-  //   }
-  //   switch (type) {
-  //   case ruleset:
-  //     if (has_rules_or_comments) {
-  //       buf << indentation;
-  //       children->at(0).emit_nested_css(buf, prefix, depth); // selector group
-  //       buf << " {";
-  //       for (int i = 0; i < contents->size(); ++i) {
-  //         if (contents->at(i).type == comment || contents->at(i).type == rule) contents->at(i).emit_nested_css(buf, "", depth + 1); // rules
-  //       }
-  //       buf << " }" << endl;
-  //     }
-  //     if (has_rulesets) {
-  //       for (int i = 0; i < contents->size(); ++i) { // do each nested ruleset
-  //         if (contents->at(i).type == ruleset) contents->at(i).emit_nested_css(buf, prefix + (prefix.empty() ? "" : " ") + string((*children)[0].token), depth + (has_rules_or_comments ? 1 : 0));
-  //       }
-  //     }
-  //     if (depth == 0 && prefix.empty()) buf << endl;
-  //     break;
-  //   case rule:
-  //     buf << endl << indentation;
-  //     children->at(0).emit_nested_css(buf, "", depth); // property
-  //     children->at(1).emit_nested_css(buf, "", depth); // values
-  //     buf << ";";
-  //     break;
-  //   case property:
-  //     buf << string(token) << ":";
-  //     break;
-  //   case values:
-  //     for (int i = 0; i < children->size(); ++i) {
-  //       buf << " " << string((*children)[i].token);
-  //     }
-  //     break;
-  //   case selector_group:
-  //     children->at(0).emit_nested_css(buf, prefix, depth);
-  //     for (int i = 1; i < children->size(); ++i) {
-  //       children->at(i).emit_nested_css(buf, prefix, depth);
-  //     }
-  //     break;
-  //   case selector:
-  //     buf << prefix << (prefix.empty() ? "" : " ") << string(token);
-  //     break;
-  //   case comment:
-  //   if (depth != 0) buf << endl;
-  //     buf << indentation << string(token);
-  //     if (depth == 0) buf << endl;
-  //     break;
-  //   }
-  // }
-  
+
   void Node::emit_expanded_css(stringstream& buf, const string& prefix) {
     // switch (type) {
     // case selector:

@@ -5,43 +5,7 @@
 namespace Sass {
   using std::vector;
   using std::stringstream;
-  
-  // struct Node {
-  //   enum Node_Type {
-  //     nil,
-  //     comment,
-  //     ruleset,
-  //     clauses,
-  //     selector_group,
-  //     selector,
-  //     simple_selector_sequence,
-  //     simple_selector,
-  //     rule,
-  //     property,
-  //     values,
-  //     value
-  //   };
-  //   
-  //   static unsigned int fresh;
-  //   static unsigned int copied;
-  //   
-  //   Node_Type type;
-  //   Token token;
-  //   vector<Node>* children;
-  //   vector<Node>* opt_children;
-  //   
-  //   Node();
-  //   Node(Node_Type _type);
-  //   Node(Node_Type _type, Token& _token);
-  //   Node(const Node& n);
-  //   
-  //   void push_child(const Node& node);
-  //   void push_opt_child(const Node& node);
-  //   void dump(unsigned int depth = 0);
-  //   void emit_nested_css(stringstream& buf, const string& prefix, size_t depth);
-  //   void emit_expanded_css(stringstream& buf, const string& prefix);
-  // };
-  
+
   struct Node {
     enum Type {
       nil,
@@ -50,6 +14,7 @@ namespace Sass {
       propset,
       selector_group,
       selector,
+      selector_combinator,
       simple_selector_sequence,
       type_selector,
       class_selector,
