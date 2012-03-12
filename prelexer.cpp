@@ -148,7 +148,7 @@ namespace Sass {
       return sequence< optional_spaces, exactly<'>'> >(src);
     }
     char* ancestor_of(char* src) {
-      return spaces(src);
+      return sequence< spaces, negate< exactly<'{'> > >(src);
     }
     
     // Match SCSS variable names.

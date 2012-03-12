@@ -49,10 +49,10 @@ namespace Sass {
   {
     Node selector(line_number, Node::selector, 1);
     selector << parse_simple_selector_sequence();
-    while (lex< adjacent_to >() ||
-           lex< precedes >()    ||
-           lex< parent_of >()   ||
-           lex< sequence< ancestor_of, negate< exactly<'{'> > >()) {
+    while (lex< exactly<'+'> >() ||
+           lex< exactly<'~'> >() ||
+           lex< exactly<'>'> >() ||
+           lex< ancestor_of >()) {
       selector << Node(line_number, Node::selector_combinator, lexed);
       selector << parse_simple_selector_sequence();
     }

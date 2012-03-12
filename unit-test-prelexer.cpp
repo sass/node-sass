@@ -49,6 +49,8 @@ char nonhex1[]  = "#ab blah";
 char nonhex2[]  = "#abc123blah";
 char var1[]     = "$hello blah";
 char nonvar1[]  = "$ hello";
+char anc1[]     = "  div {";
+char nonanc1[]  = "  { blah";
 
 extern const char slash_star[] = "/*";
 
@@ -58,6 +60,8 @@ void try_and_set(char* src) {
   char* p = mx(src);
   if (p) ptr = mx;
 }
+
+prelexer ancestor = sequence< ancestor_of, negate< exactly<'{'> > >;
 
 
 int main() {
@@ -91,6 +95,7 @@ int main() {
   check_twice(hex, hex1, nonhex1);
   check_twice(hex, hex2, nonhex2);
   check_twice(variable, var1, nonvar1);
+  check_twice(ancestor_of, anc1, nonanc1);
   cout << count_interval<'\n'>(ws1, spaces_and_comments(ws1)) << endl;
   cout << count_interval<'*'>(ws1, spaces_and_comments(ws1)) << endl;
   cout << count_interval<exactly<slash_star> >(ws1, spaces_and_comments(ws1)) << endl;

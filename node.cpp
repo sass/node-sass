@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <cctype>
 #include "node.hpp"
 
 using std::string;
@@ -31,6 +32,15 @@ namespace Sass {
       }
       break;
     case selector:
+      for (int i = 0; i < children->size(); ++i) {
+        children->at(i).echo(buf, depth);
+      }
+      break;
+    case selector_combinator:
+      if (std::isspace(token.begin[0])) buf << ' ';
+      else buf << ' ' << string(token) << ' ';
+      break;
+    case simple_selector_sequence:
       buf << string(token);
       break;
     case block:

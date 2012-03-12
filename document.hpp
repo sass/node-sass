@@ -64,7 +64,10 @@ namespace Sass {
         after_whitespace =
           zero_plus< alternatives<spaces, line_comment> >(position);
       }
-      else if (mx == spaces || mx == ancestor_of) {
+      else if (mx == ancestor_of) {
+        after_whitespace = position;
+      }
+      else if (mx == spaces) {
         after_whitespace = spaces(position);
         if (after_whitespace) {
           line_number += count_interval<'\n'>(position, after_whitespace);
@@ -91,50 +94,13 @@ namespace Sass {
         return 0;
       }
     }
-
-    // template <prelexer mx>
-    // bool lex() {
-    //   char* after_whitespace;
-    //   if (mx == block_comment) {
-    //     after_whitespace =
-    //       zero_plus< alternatives<spaces, line_comment> >(position);
-    //   }
-    //   else if (mx == spaces || mx == ancestor_of) {
-    //     after_whitespace = spaces(position);
-    //     if (after_whitespace) {
-    //       lexed = Token(position, after_whitespace);
-    //       line_number += count_interval<'\n'>(position, after_whitespace);
-    //       position = after_whitespace;
-    //       return true;
-    //     }
-    //     else {
-    //       return false;
-    //     }
-    //   }
-    //   else if (mx == optional_spaces) {
-    //     after_whitespace = optional_spaces(position);
-    //   }
-    //   else {
-    //     after_whitespace = spaces_and_comments(position);
-    //   }
-    //   line_number += count_interval<'\n'>(position, after_whitespace);
-    //   char* after_token = mx(after_whitespace);
-    //   if (after_token) {
-    //     lexed = Token(after_whitespace, after_token);
-    //     position = after_token;
-    //     return true;
-    //   }
-    //   else {
-    //     return false;
-    //   }
-    // }
     
     void parse_scss();
-    // Node parse_statement();
     void parse_var_def();
     Node parse_ruleset();
     Node parse_selector_group();
     Node parse_selector();
+    Node parse_simple_selector_sequence();
     Node parse_block();
     Node parse_rule();
     Node parse_values();

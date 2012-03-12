@@ -3,6 +3,7 @@
 #include "token.hpp"
 
 namespace Sass {
+  using std::string;
   using std::vector;
   using std::stringstream;
 
