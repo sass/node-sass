@@ -48,6 +48,11 @@ namespace Sass {
   Node Document::parse_selector()
   {
     Node selector(line_number, Node::selector, 1);
+    if (lex< exactly<'+'> >() ||
+        lex< exactly<'~'> >() ||
+        lex< exactly<'>'> >()) {
+      selector << Node(line_number, Node::selector_combinator, lexed);
+    }
     selector << parse_simple_selector_sequence();
     while (lex< exactly<'+'> >() ||
            lex< exactly<'~'> >() ||

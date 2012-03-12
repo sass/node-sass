@@ -121,7 +121,13 @@ namespace Sass {
     
     operator string() {
       if (type == selector) {
-        string result(string(children->at(0)));
+        string result;
+        if (children->at(0).type == selector_combinator) {
+          result += string(children->at(0).token) + ' ';
+        }
+        else {
+          result += string(children->at(0));
+        }
         for (int i = 1; i < children->size(); ++i) {
           result += string(children->at(i));
         }
@@ -131,6 +137,9 @@ namespace Sass {
         if (std::isspace(token.begin[0])) return string(" ");
         else return string(" ") += string(token) += string(" ");
       }
+      // else if (type == simple_selector_sequence) {
+      //   return string(" ") += string(token);
+      // }
       else {
         return string(token);
       }
