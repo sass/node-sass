@@ -80,7 +80,8 @@ namespace Sass {
       if (prefixes.empty()) {
         new_prefixes.reserve(sel_group.children->size());
         for (int i = 0; i < sel_group.children->size(); ++i) {
-          new_prefixes.push_back(string(sel_group.children->at(i).token));
+          // new_prefixes.push_back(string(sel_group.children->at(i).token));
+          new_prefixes.push_back(string(sel_group.children->at(i)));
         }
       }
       else {
@@ -89,7 +90,7 @@ namespace Sass {
           for (int j = 0; j < sel_group.children->size(); ++j) {
             new_prefixes.push_back(prefixes[i] +
                                    ' ' +
-                                   string(sel_group.children->at(j).token));
+                                   string(sel_group.children->at(j)));
           }
         }
       }

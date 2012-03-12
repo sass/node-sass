@@ -119,6 +119,23 @@ namespace Sass {
       return *this;
     }
     
+    operator string() {
+      if (type == selector) {
+        string result(string(children->at(0)));
+        for (int i = 1; i < children->size(); ++i) {
+          result += string(children->at(i));
+        }
+        return result;
+      }
+      else if (type == selector_combinator) {
+        if (std::isspace(token.begin[0])) return string(" ");
+        else return string(" ") += string(token) += string(" ");
+      }
+      else {
+        return string(token);
+      }
+    }
+    
     void release() const { children = 0; }
     
     void echo(stringstream& buf, size_t depth = 0);
