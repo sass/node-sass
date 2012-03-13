@@ -32,7 +32,10 @@ namespace Sass {
         after_whitespace =
           zero_plus< alternatives<spaces, line_comment> >(start);
       }
-      else if (mx == spaces || mx == ancestor_of) {
+      else if (mx == ancestor_of || mx == no_spaces) {
+        after_whitespace = position;
+      }
+      else if (mx == spaces) {
         after_whitespace = spaces(start);
         if (after_whitespace) {
           return after_whitespace;
@@ -64,7 +67,7 @@ namespace Sass {
         after_whitespace =
           zero_plus< alternatives<spaces, line_comment> >(position);
       }
-      else if (mx == ancestor_of) {
+      else if (mx == ancestor_of || mx == no_spaces) {
         after_whitespace = position;
       }
       else if (mx == spaces) {
@@ -101,6 +104,7 @@ namespace Sass {
     Node parse_selector_group();
     Node parse_selector();
     Node parse_simple_selector_sequence();
+    Node parse_simple_selector();
     Node parse_block();
     Node parse_rule();
     Node parse_values();

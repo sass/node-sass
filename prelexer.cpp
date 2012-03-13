@@ -64,6 +64,9 @@ namespace Sass {
     char* spaces_and_comments(char* src) {
       return zero_plus< alternatives<spaces, comment> >(src);
     }
+    char* no_spaces(char *src) {
+      return negate< spaces >(src);
+    }
     
     // Match CSS identifiers.
     char* identifier(char* src) {
@@ -81,6 +84,17 @@ namespace Sass {
       return one_plus< alternatives< alnum,
                                      exactly<'-'>,
                                      exactly<'_'> > >(src);
+    }
+    // Match CSS type selectors
+    char* namespace_prefix(char* src) {
+      return sequence< optional< alternatives< identifier, exactly<'*'> > >,
+                       exactly<'|'> >(src);
+    }
+    char* type_selector(char* src) {
+      return sequence< optional<namespace_prefix>, identifier>(src);
+    }
+    char* universal(char* src) {
+      return sequence< optional<namespace_prefix>, exactly<'*'> >(src);
     }
     // Match CSS id names.
     char* id_name(char* src) {

@@ -36,7 +36,7 @@ namespace Sass {
     ruleset << parse_block();
     return ruleset;
   }
-  
+
   Node Document::parse_selector_group()
   {
     Node group(line_number, Node::selector_group, 1);
@@ -63,11 +63,32 @@ namespace Sass {
     }
     return selector;
   }
-  
+
   Node Document::parse_simple_selector_sequence()
   {
-    lex<identifier>();
-    return Node(line_number, Node::simple_selector_sequence, lexed);
+    Node sequence(line_number, Node::simple_selector_sequence, 1);
+    if (lex< alternatives < type_selector, universal > >()) {
+      sequence << Node(line_number, Node::simple_selector, lexed);
+    }
+    else {
+      sequence << parse_simple_selector();
+    }
+    while (!peek< spaces >(position) &&
+           !(peek < exactly<'+'> >(position) ||
+             peek < exactly<'~'> >(position) ||
+             peek < exactly<'>'> >(position) ||
+             peek < exactly<','> >(position) ||
+             peek < exactly<'{'> >(position))) {
+      sequence << parse_simple_selector();
+    }
+    return sequence; 
+  }
+  
+  Node Document::parse_simple_selector()
+  {
+    lex< id_name >() || lex< class_name >() /*|| lex< attribute >() ||
+    lex< pseudo >()  || lex< negation >()*/ ;
+    return Node(line_number, Node::simple_selector, lexed);
   }
 
   Node Document::parse_block()
@@ -103,7 +124,7 @@ namespace Sass {
     }
     return block;
   }
-  
+
   Node Document::parse_rule() {
     Node rule(line_number, Node::rule, 2);
     lex< identifier >();
@@ -132,7 +153,7 @@ namespace Sass {
     }
     return values;
   }
-  
+
   char* Document::look_for_rule(char* start)
   {
     char* p = start ? start : position;
@@ -142,7 +163,7 @@ namespace Sass {
     (p = peek< alternatives< exactly<';'>, exactly<'}'> > >(p));
     return p;
   }
-  
+
   char* Document::look_for_values(char* start)
   {
     char* p = start ? start : position;

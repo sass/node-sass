@@ -214,11 +214,16 @@ namespace Sass {
     char* optional_spaces(char* src);
     char* optional_comment(char* src);
     char* spaces_and_comments(char* src);
+    char* no_spaces(char *src);
 
     // Match a CSS identifier.
     char* identifier(char* src);
     // Match CSS '@' keywords.
     char* at_keyword(char* src);
+    // Match CSS type selectors
+    char* namespace_prefix(char* src);
+    char* type_selector(char* src);
+    char* universal(char* src);
     // Match CSS id names.
     char* id_name(char* src);
     // Match CSS class names.

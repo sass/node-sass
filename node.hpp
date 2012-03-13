@@ -17,6 +17,7 @@ namespace Sass {
       selector,
       selector_combinator,
       simple_selector_sequence,
+      simple_selector,
       type_selector,
       class_selector,
       id_selector,
@@ -112,7 +113,6 @@ namespace Sass {
       return *this;
     }
       
-    // Node& operator+=(const Node& node);
     Node& operator<<(const Node& n)
     {
       children->push_back(n);
@@ -137,9 +137,13 @@ namespace Sass {
         if (std::isspace(token.begin[0])) return string(" ");
         else return string(" ") += string(token) += string(" ");
       }
-      // else if (type == simple_selector_sequence) {
-      //   return string(" ") += string(token);
-      // }
+      else if (type == simple_selector_sequence) {
+        string result;
+        for (int i = 0; i < children->size(); ++i) {
+          result += string(children->at(i));
+        }
+        return result;
+      }
       else {
         return string(token);
       }

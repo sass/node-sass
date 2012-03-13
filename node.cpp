@@ -41,6 +41,11 @@ namespace Sass {
       else buf << ' ' << string(token) << ' ';
       break;
     case simple_selector_sequence:
+      for (int i = 0; i < children->size(); ++i) {
+        buf << string(children->at(i));
+      }
+      break;
+    case simple_selector:
       buf << string(token);
       break;
     case block:
@@ -80,7 +85,6 @@ namespace Sass {
       if (prefixes.empty()) {
         new_prefixes.reserve(sel_group.children->size());
         for (int i = 0; i < sel_group.children->size(); ++i) {
-          // new_prefixes.push_back(string(sel_group.children->at(i).token));
           new_prefixes.push_back(string(sel_group.children->at(i)));
         }
       }
