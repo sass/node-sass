@@ -144,6 +144,14 @@ namespace Sass {
         }
         return result;
       }
+      else if (type == attribute_selector) {
+        string result("[");
+        result += string(children->at(0));
+        result += string(children->at(1));
+        result += string(children->at(2));
+        result += ']';
+        return result;
+      }
       else {
         return string(token);
       }
