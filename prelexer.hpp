@@ -121,6 +121,26 @@ namespace Sass {
       return rslt;
     }
     
+    // Same as above, but with 5 arguments.
+    template <prelexer mx1, prelexer mx2, prelexer mx3,
+              prelexer mx4, prelexer mx5>
+    char* alternatives(char* src) {
+      char* rslt;
+      (rslt = mx1(src)) || (rslt = mx2(src)) || (rslt = mx3(src)) ||
+      (rslt = mx4(src)) || (rslt = mx5(src));
+      return rslt;
+    }
+    
+    // Same as above, but with 6 arguments.
+    template <prelexer mx1, prelexer mx2, prelexer mx3,
+              prelexer mx4, prelexer mx5, prelexer mx6>
+    char* alternatives(char* src) {
+      char* rslt;
+      (rslt = mx1(src)) || (rslt = mx2(src)) || (rslt = mx3(src)) ||
+      (rslt = mx4(src)) || (rslt = mx5(src)) || (rslt = mx6(src));
+      return rslt;
+    }
+    
     // Tries the matchers in sequence and succeeds if they all succeed.
     template <prelexer mx1, prelexer mx2>
     char* sequence(char* src) {

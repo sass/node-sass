@@ -86,9 +86,27 @@ namespace Sass {
   
   Node Document::parse_simple_selector()
   {
-    lex< id_name >() || lex< class_name >() /*|| lex< attribute >() ||
-    lex< pseudo >()  || lex< negation >()*/ ;
-    return Node(line_number, Node::simple_selector, lexed);
+    if (lex< id_name >() || lex< class_name >()) {
+      return Node(line_number, Node::simple_selector, lexed);
+    }
+    else if (peek< exactly<'['> >(position)) {
+      return parse_attribute_selector();
+    }
+  }
+  
+  Node Document::parse_attribute_selector()
+  {
+    Node attr_sel(line_number, Node::attribute_selector, 3);
+    lex< exactly<'['> >();
+    lex< type_selector >();
+    attr_sel << Node(line_number, Node::value, lexed);
+    lex< alternatives< exact_match, class_match, dash_match,
+                       prefix_match, suffix_match, substring_match > >();
+    attr_sel << Node(line_number, Node::value, lexed);
+    lex< string_constant >();
+    attr_sel << Node(line_number, Node::value, lexed);
+    lex< exactly<']'> >();
+    return attr_sel;
   }
 
   Node Document::parse_block()

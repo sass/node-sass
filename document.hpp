@@ -105,6 +105,7 @@ namespace Sass {
     Node parse_selector();
     Node parse_simple_selector_sequence();
     Node parse_simple_selector();
+    Node parse_attribute_selector();
     Node parse_block();
     Node parse_rule();
     Node parse_values();
