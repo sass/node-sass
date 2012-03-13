@@ -89,8 +89,44 @@ namespace Sass {
     if (lex< id_name >() || lex< class_name >()) {
       return Node(line_number, Node::simple_selector, lexed);
     }
+    else if (peek< exactly<':'> >(position)) {
+      return parse_pseudo();
+    }
     else if (peek< exactly<'['> >(position)) {
       return parse_attribute_selector();
+    }
+  }
+  
+  Node Document::parse_pseudo() {
+    if (lex< sequence< pseudo_prefix, functional > >()) {
+      Node pseudo(line_number, Node::functional_pseudo, 2);
+      pseudo << Node(line_number, Node::value, lexed);
+      if (lex< alternatives< even, odd > >()) {
+        pseudo << Node(line_number, Node::value, lexed);
+      }
+      else if (peek< binomial >(position)) {
+        lex< coefficient >();
+        pseudo << Node(line_number, Node::value, lexed);
+        lex< exactly<'n'> >();
+        pseudo << Node(line_number, Node::value, lexed);
+        lex< sign >();
+        pseudo << Node(line_number, Node::value, lexed);
+        lex< digits >();
+        pseudo << Node(line_number, Node::value, lexed);
+      }
+      else if (lex< sequence< optional<sign>,
+                              optional<digits>,
+                              exactly<'n'> > >()) {
+        pseudo << Node(line_number, Node::value, lexed);
+      }
+      else if (lex< sequence< optional<sign>, digits > >()) {
+        pseudo << Node(line_number, Node::value, lexed);
+      }
+      lex< exactly<')'> >();
+      return pseudo;
+    }
+    else if (lex < sequence< pseudo_prefix, identifier > >()) {
+      return Node(line_number, Node::pseudo, lexed);
     }
   }
   

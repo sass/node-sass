@@ -21,6 +21,8 @@ namespace Sass {
       type_selector,
       class_selector,
       id_selector,
+      pseudo,
+      functional_pseudo,
       attribute_selector,
       block,
       rule,
@@ -142,6 +144,14 @@ namespace Sass {
         for (int i = 0; i < children->size(); ++i) {
           result += string(children->at(i));
         }
+        return result;
+      }
+      else if (type == functional_pseudo) {
+        string result(string(children->at(0)));
+        for (int i = 1; i < children->size(); ++i) {
+          result += string(children->at(i));
+        }
+        result += ')';
         return result;
       }
       else if (type == attribute_selector) {

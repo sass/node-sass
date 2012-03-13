@@ -1,0 +1,9 @@
+a b {
+  color: red; }
+  a b :first-child, a b :nth-of-type(-2n+1) {
+    blah: bloo; }
+    a b :first-child .foo#bar:nth-child(even), a b :nth-of-type(-2n+1) .foo#bar:nth-child(even) {
+      hoo: goo; }
+    a b :first-child ::after, a b :nth-of-type(-2n+1) ::after {
+      content: "glux";
+      color: green; }

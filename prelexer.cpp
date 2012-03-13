@@ -105,7 +105,10 @@ namespace Sass {
       return sequence<exactly<'.'>, identifier>(src);
     }
     // Match CSS numeric constants.
-    extern const char sign[] = "-+";
+    extern const char sign_chars[] = "-+";
+    char* sign(char* src) {
+      return class_char<sign_chars>(src);
+    }
     char* unsigned_number(char* src) {
       return alternatives<sequence< zero_plus<digits>,
                                     exactly<'.'>,
@@ -113,7 +116,18 @@ namespace Sass {
                           digits>(src);
     }
     char* number(char* src) {
-      return sequence< optional< class_char<sign> >, unsigned_number>(src);
+      return sequence< optional<sign>, unsigned_number>(src);
+    }
+    char* coefficient(char* src) {
+      return alternatives< sequence< optional<sign>, digits >,
+                           sign >(src);
+    }
+    char* binomial(char* src) {
+      return sequence< optional<sign>,
+                       optional<digits>,
+                       exactly<'n'>, optional_spaces,
+                       sign, optional_spaces,
+                       digits >(src);
     }
     char* percentage(char* src) {
       return sequence< number, exactly<'%'> >(src);
@@ -135,9 +149,22 @@ namespace Sass {
                        optional<spaces>,
                        exactly<')'> >(src);
     }
+    // Match CSS pseudo-class/element prefixes.
+    char* pseudo_prefix(char* src) {
+      return sequence< exactly<':'>, optional< exactly<':'> > >(src);
+    }
     // Match CSS function call openers.
-    char* function(char* src) {
+    char* functional(char* src) {
       return sequence< identifier, exactly<'('> >(src);
+    }
+    // Match CSS 'odd' and 'even' keywords for functional pseudo-classes.
+    extern const char even_chars[] = "even";
+    extern const char odd_chars[]  = "odd";
+    char* even(char* src) {
+      return exactly<even_chars>(src);
+    }
+    char* odd(char* src) {
+      return exactly<odd_chars>(src);
     }
     // Match CSS attribute-matching operators.
     extern const char tilde_equal[]  = "~=";

@@ -178,6 +178,32 @@ namespace Sass {
       return rslt;
     }
     
+    // Same as above, but with 6 arguments.
+    template <prelexer mx1, prelexer mx2,
+              prelexer mx3, prelexer mx4,
+              prelexer mx5, prelexer mx6>
+    char* sequence(char* src) {
+      char* rslt = src;
+      (rslt = mx1(rslt)) && (rslt = mx2(rslt)) &&
+      (rslt = mx3(rslt)) && (rslt = mx4(rslt)) &&
+      (rslt = mx5(rslt)) && (rslt = mx6(rslt));
+      return rslt;
+    }
+    
+    // Same as above, but with 7 arguments.
+    template <prelexer mx1, prelexer mx2,
+              prelexer mx3, prelexer mx4,
+              prelexer mx5, prelexer mx6,
+              prelexer mx7>
+    char* sequence(char* src) {
+      char* rslt = src;
+      (rslt = mx1(rslt)) && (rslt = mx2(rslt)) &&
+      (rslt = mx3(rslt)) && (rslt = mx4(rslt)) &&
+      (rslt = mx5(rslt)) && (rslt = mx6(rslt)) &&
+      (rslt = mx7(rslt));
+      return rslt;
+    }
+    
     // Match a pattern or not. Always succeeds.
     template <prelexer mx>
     char* optional(char* src) {
@@ -249,15 +275,23 @@ namespace Sass {
     // Match CSS class names.
     char* class_name(char* src);
     // Match CSS numeric constants.
+    char* sign(char* src);
     char* unsigned_number(char* src);
     char* number(char* src);
+    char* coefficient(char* src);
+    char* binomial(char* src);
     char* percentage(char* src);
     char* dimension(char* src);
     char* hex(char* src);
     // Match CSS uri specifiers.
     char* uri(char* src);
+    // Match CSS pseudo-class/element prefixes
+    char* pseudo_prefix(char* src);
     // Match CSS function call openers.
-    char* function(char* src);
+    char* functional(char* src);
+    // Match CSS 'odd' and 'even' keywords for functional pseudo-classes.
+    char* even(char* src);
+    char* odd(char* src);
     // Match CSS attribute-matching operators.
     char* exact_match(char* src);
     char* class_match(char* src);

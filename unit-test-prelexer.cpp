@@ -51,6 +51,9 @@ char var1[]     = "$hello blah";
 char nonvar1[]  = "$ hello";
 char anc1[]     = "  div {";
 char nonanc1[]  = "  { blah";
+char bi1[]      = "+2n + 42";
+char bi2[]      = "23n+1";
+char nonbi1[]   = "- n+2";
 
 extern const char slash_star[] = "/*";
 
@@ -84,7 +87,7 @@ int main() {
   check_twice(percentage, percent1, dim1);
   check_twice(dimension, dim1, percent1);
   check_twice(uri, uri1, ident2);
-  check_twice(function, func1, ident2);
+  check_twice(functional, func1, ident2);
   check_twice(exact_match, exact1, inc1);
   check_twice(class_match, inc1, pre1);
   check_twice(dash_match, dash1, suf1);
@@ -96,6 +99,8 @@ int main() {
   check_twice(hex, hex2, nonhex2);
   check_twice(variable, var1, nonvar1);
   check_twice(ancestor_of, anc1, nonanc1);
+  check_twice(binomial, bi1, nonbi1);
+  check_twice(binomial, bi2, nonbi1);
   cout << count_interval<'\n'>(ws1, spaces_and_comments(ws1)) << endl;
   cout << count_interval<'*'>(ws1, spaces_and_comments(ws1)) << endl;
   cout << count_interval<exactly<slash_star> >(ws1, spaces_and_comments(ws1)) << endl;
