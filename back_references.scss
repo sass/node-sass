@@ -1,0 +1,16 @@
+/*hey, ho {
+  & > boo, foo &.goo {
+    bloo: bloo;
+  }
+  blah: blah;
+}
+*/
+div {
+  a: a;
+  p {
+    b: b;
+    &* {
+      c: c;
+    }
+  }
+}

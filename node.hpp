@@ -17,6 +17,7 @@ namespace Sass {
       selector,
       selector_combinator,
       simple_selector_sequence,
+      backref,
       simple_selector,
       type_selector,
       class_selector,
@@ -41,6 +42,8 @@ namespace Sass {
     bool has_rules_or_comments;
     bool has_rulesets;
     bool has_propsets;
+    bool has_backref;
+    bool terminal_backref;
     
     Node() : type(nil), children(0) { ++fresh; }
   
@@ -51,7 +54,9 @@ namespace Sass {
       type(n.type),
       has_rules_or_comments(n.has_rules_or_comments),
       has_rulesets(n.has_rulesets),
-      has_propsets(n.has_propsets)
+      has_propsets(n.has_propsets),
+      has_backref(n.has_backref),
+      terminal_backref(n.terminal_backref)
     { /*n.release();*/ ++copied; } // No joint custody.
   
     Node(size_t line_number, Type type, size_t length = 0)
@@ -61,7 +66,9 @@ namespace Sass {
       type(type),
       has_rules_or_comments(false),
       has_rulesets(false),
-      has_propsets(false)
+      has_propsets(false),
+      has_backref(false),
+      terminal_backref(false)
     { children->reserve(length); ++fresh; }
     
     Node(size_t line_number, Type type, const Node& n)
@@ -71,7 +78,9 @@ namespace Sass {
       type(type),
       has_rules_or_comments(false),
       has_rulesets(false),
-      has_propsets(false)
+      has_propsets(false),
+      has_backref(false),
+      terminal_backref(false)
     { ++fresh; }
     
     Node(size_t line_number, Type type, const Node& n, const Node& m)
@@ -81,7 +90,9 @@ namespace Sass {
       type(type),
       has_rules_or_comments(false),
       has_rulesets(false),
-      has_propsets(false)
+      has_propsets(false),
+      has_backref(false),
+      terminal_backref(false)
     {
       children->reserve(2);
       children->push_back(n);
@@ -96,7 +107,9 @@ namespace Sass {
       type(type),
       has_rules_or_comments(false),
       has_rulesets(false),
-      has_propsets(false)
+      has_propsets(false),
+      has_backref(false),
+      terminal_backref(false)
     { ++fresh; }
     
     //~Node() { delete children; }
@@ -111,6 +124,8 @@ namespace Sass {
       has_rules_or_comments = n.has_rules_or_comments;
       has_rulesets = n.has_rulesets;
       has_propsets = n.has_propsets;
+      has_backref = n.has_backref;
+      terminal_backref = n.terminal_backref;
       ++copied;
       return *this;
     }

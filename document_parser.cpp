@@ -53,25 +53,59 @@ namespace Sass {
         lex< exactly<'>'> >()) {
       selector << Node(line_number, Node::selector_combinator, lexed);
     }
-    selector << parse_simple_selector_sequence();
+    Node s(parse_simple_selector_sequence());
+    if (s.has_backref) selector.has_backref = true;
+    selector << s;
+    // if (s.terminal_backref) return selector;
     while (lex< exactly<'+'> >() ||
            lex< exactly<'~'> >() ||
            lex< exactly<'>'> >() ||
-           lex< ancestor_of >()) {
+           lex< ancestor_of >() ||
+           s.terminal_backref && lex< no_spaces >()) {
       selector << Node(line_number, Node::selector_combinator, lexed);
-      selector << parse_simple_selector_sequence();
+      s = parse_simple_selector_sequence();
+      if (s.has_backref) selector.has_backref = true;
+      selector << s;
+      // if (s.terminal_backref) break;
     }
+    
+    // while (1) {
+    //   if (lex< exactly<'+'> >() || lex< exactly<'~'> >() ||
+    //       lex< exactly<'>'> >() || lex< ancestor_of >()) {
+    //     selector << Node(line_number, Node::selector_combinator, lexed);
+    //     Node s(parse_simple_selector_sequence());
+    //     if (s.has_backref) selector.has_backref = true;
+    //     selector << s;
+    //   }
+    //   else if (selector.children->back().has_backref &&
+    //            selector.children->back().children->size() == 1 &&
+    //            lex< alternatives < type_selector, universal > >()) {
+    //     Node s(parse_simple_selector_sequence());
+    //     if (s.has_backref) selector.has_backref = true;
+    //     selector << s;
+    //   }
+    //   else break;
+    // }
     return selector;
   }
 
   Node Document::parse_simple_selector_sequence()
   {
-    Node sequence(line_number, Node::simple_selector_sequence, 1);
+    Node seq(line_number, Node::simple_selector_sequence, 1);
     if (lex< alternatives < type_selector, universal > >()) {
-      sequence << Node(line_number, Node::simple_selector, lexed);
+      seq << Node(line_number, Node::simple_selector, lexed);
+    }
+    else if (lex< exactly<'&'> >()) {
+      seq << Node(line_number, Node::backref, lexed);
+      seq.has_backref = true;
+      if (peek< sequence< no_spaces, alternatives< type_selector, universal > > >(position)) {
+        cerr << "Terminal backref!" << endl;
+        seq.terminal_backref = true;
+        return seq;
+      }
     }
     else {
-      sequence << parse_simple_selector();
+      seq << parse_simple_selector();
     }
     while (!peek< spaces >(position) &&
            !(peek < exactly<'+'> >(position) ||
@@ -79,9 +113,9 @@ namespace Sass {
              peek < exactly<'>'> >(position) ||
              peek < exactly<','> >(position) ||
              peek < exactly<'{'> >(position))) {
-      sequence << parse_simple_selector();
+      seq << parse_simple_selector();
     }
-    return sequence; 
+    return seq; 
   }
   
   Node Document::parse_simple_selector()
