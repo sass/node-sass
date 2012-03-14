@@ -140,9 +140,13 @@ namespace Sass {
     {
       if (type == selector) {
         string result;
-        if (!has_backref && !prefix.empty()) result += prefix + ' ';
+        if (!has_backref && !prefix.empty()) {
+          result += prefix;
+          result += ' ';
+        }
         if (children->at(0).type == selector_combinator) {
-          result += string(children->at(0).token) + ' ';
+          result += string(children->at(0).token);
+          result += ' ';
         }
         else {
           result += children->at(0).to_string(prefix);
@@ -186,52 +190,6 @@ namespace Sass {
         return string(token);
       }
     }
-    
-    // operator string() {
-    //   if (type == selector) {
-    //     string result;
-    //     if (children->at(0).type == selector_combinator) {
-    //       result += string(children->at(0).token) + ' ';
-    //     }
-    //     else {
-    //       result += string(children->at(0));
-    //     }
-    //     for (int i = 1; i < children->size(); ++i) {
-    //       result += string(children->at(i));
-    //     }
-    //     return result;
-    //   }
-    //   else if (type == selector_combinator) {
-    //     if (std::isspace(token.begin[0])) return string(" ");
-    //     else return string(" ") += string(token) += string(" ");
-    //   }
-    //   else if (type == simple_selector_sequence) {
-    //     string result;
-    //     for (int i = 0; i < children->size(); ++i) {
-    //       result += string(children->at(i));
-    //     }
-    //     return result;
-    //   }
-    //   else if (type == functional_pseudo) {
-    //     string result(string(children->at(0)));
-    //     for (int i = 1; i < children->size(); ++i) {
-    //       result += string(children->at(i));
-    //     }
-    //     result += ')';
-    //     return result;
-    //   }
-    //   else if (type == attribute_selector) {
-    //     string result("[");
-    //     result += string(children->at(0));
-    //     result += string(children->at(1));
-    //     result += string(children->at(2));
-    //     result += ']';
-    //     return result;
-    //   }
-    //   else {
-    //     return string(token);
-    //   }
-    // }
     
     void release() const { children = 0; }
     
