@@ -56,36 +56,16 @@ namespace Sass {
     Node s(parse_simple_selector_sequence());
     if (s.has_backref) selector.has_backref = true;
     selector << s;
-    // if (s.terminal_backref) return selector;
     while (lex< exactly<'+'> >() ||
            lex< exactly<'~'> >() ||
            lex< exactly<'>'> >() ||
-           lex< ancestor_of >() ||
-           s.terminal_backref && lex< no_spaces >()) {
+           lex< ancestor_of >() /*||
+           s.terminal_backref && lex< no_spaces >()*/) {
       selector << Node(line_number, Node::selector_combinator, lexed);
       s = parse_simple_selector_sequence();
       if (s.has_backref) selector.has_backref = true;
       selector << s;
-      // if (s.terminal_backref) break;
     }
-    
-    // while (1) {
-    //   if (lex< exactly<'+'> >() || lex< exactly<'~'> >() ||
-    //       lex< exactly<'>'> >() || lex< ancestor_of >()) {
-    //     selector << Node(line_number, Node::selector_combinator, lexed);
-    //     Node s(parse_simple_selector_sequence());
-    //     if (s.has_backref) selector.has_backref = true;
-    //     selector << s;
-    //   }
-    //   else if (selector.children->back().has_backref &&
-    //            selector.children->back().children->size() == 1 &&
-    //            lex< alternatives < type_selector, universal > >()) {
-    //     Node s(parse_simple_selector_sequence());
-    //     if (s.has_backref) selector.has_backref = true;
-    //     selector << s;
-    //   }
-    //   else break;
-    // }
     return selector;
   }
 
@@ -98,11 +78,10 @@ namespace Sass {
     else if (lex< exactly<'&'> >()) {
       seq << Node(line_number, Node::backref, lexed);
       seq.has_backref = true;
-      if (peek< sequence< no_spaces, alternatives< type_selector, universal > > >(position)) {
-        cerr << "Terminal backref!" << endl;
-        seq.terminal_backref = true;
-        return seq;
-      }
+      // if (peek< sequence< no_spaces, alternatives< type_selector, universal > > >(position)) {
+      //   seq.terminal_backref = true;
+      //   return seq;
+      // }
     }
     else {
       seq << parse_simple_selector();

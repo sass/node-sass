@@ -42,7 +42,7 @@ namespace Sass {
       break;
     case simple_selector_sequence:
       for (int i = 0; i < children->size(); ++i) {
-        buf << string(children->at(i));
+        buf << children->at(i).to_string(string());
       }
       break;
     case simple_selector:
@@ -85,16 +85,17 @@ namespace Sass {
       if (prefixes.empty()) {
         new_prefixes.reserve(sel_group.children->size());
         for (int i = 0; i < sel_group.children->size(); ++i) {
-          new_prefixes.push_back(string(sel_group.children->at(i)));
+          new_prefixes.push_back(sel_group.children->at(i).to_string(string()));
         }
       }
       else {
         new_prefixes.reserve(prefixes.size() * sel_group.children->size());
         for (int i = 0; i < prefixes.size(); ++i) {
           for (int j = 0; j < sel_group.children->size(); ++j) {
-            new_prefixes.push_back(prefixes[i] +
-                                   ' ' +
-                                   string(sel_group.children->at(j)));
+            new_prefixes.push_back(sel_group.children->at(j).to_string(prefixes[i]));
+            // new_prefixes.push_back(prefixes[i] +
+            //                        ' ' +
+            //                        string(sel_group.children->at(j)));
           }
         }
       }
@@ -143,7 +144,7 @@ namespace Sass {
       break;
     case values:
       for (int i = 0; i < children->size(); ++i) {
-        buf << " " << string((*children)[i].token);
+        buf << " " << string(children->at(i).token);
       }
       break;
     case comment:
