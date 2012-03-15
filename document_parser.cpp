@@ -11,7 +11,7 @@ namespace Sass {
       if (lex< block_comment >()) {
         statements.push_back(Node(line_number, Node::comment, lexed));
       }
-      else if (lex< variable >()) {
+      else if (peek< variable >(position)) {
         parse_var_def();
         lex< exactly<';'> >();
       }
@@ -24,9 +24,10 @@ namespace Sass {
 
   void Document::parse_var_def()
   {
+    lex< variable >();
     const Token key(lexed);
     lex< exactly<':'> >();
-    environment[key] = parse_values();
+    context.environment[key] = parse_values();
   }
 
   Node Document::parse_ruleset()
@@ -209,7 +210,7 @@ namespace Sass {
            lex< hex >()        || lex < string_constant >() ||
            lex< variable >()) {
       if (lexed.begin[0] == '$') {
-        Node fetched(environment[lexed]);
+        Node fetched(context.environment[lexed]);
         for (int i = 0; i < fetched.children->size(); ++i) {
           values << fetched.children->at(i);
         }

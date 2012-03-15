@@ -1,5 +1,6 @@
 #include <map>
 #include "node.hpp"
+#include "context.hpp"
 
 namespace Sass {
   using std::vector;
@@ -13,14 +14,18 @@ namespace Sass {
     char* source;
     char* position;
     size_t line_number;
+    bool own_source;
     
     // TO DO: move the environment up into the context class when it's ready
-    map<Token, Node> environment;
+    // map<Token, Node> environment;
+    
+    Context& context;
     
     vector<Node> statements;
     Token lexed;
     
-    Document(char* _path, char* _source = 0);
+    Document(char* path, char* source = 0);
+    // Document(char* path, Context& context);
     ~Document();
     
     template <prelexer mx>

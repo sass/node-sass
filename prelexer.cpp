@@ -13,6 +13,9 @@ namespace Sass {
       return *src ? 0 : src;
     }
     
+    // Match any single character.
+    char *any_char(char* src) { return *src ? src++ : src; }
+    
     // Match a single character satisfying the ctype predicates.
     char* space(char* src) { return std::isspace(*src) ? src+1 : 0; }
     char* alpha(char* src) { return std::isalpha(*src) ? src+1 : 0; }
@@ -195,6 +198,12 @@ namespace Sass {
     // Match SCSS variable names.
     char* variable(char* src) {
       return sequence<exactly<'$'>, name>(src);
+    }
+    
+    // Path matching functions.
+    char* folder(char* src) {
+      return sequence< zero_plus< negate< exactly<'/'> > >,
+                       exactly<'/'> >(src);
     }
 
   }

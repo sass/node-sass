@@ -54,6 +54,9 @@ char nonanc1[]  = "  { blah";
 char bi1[]      = "+2n + 42";
 char bi2[]      = "23n+1";
 char nonbi1[]   = "- n+2";
+char fld1[]     = "blah/bloo/foo.txt";
+char fld2[]     = "/bloo/blee";
+char nonfld1[]  = "blah.txt";
 
 extern const char slash_star[] = "/*";
 
@@ -101,6 +104,8 @@ int main() {
   check_twice(ancestor_of, anc1, nonanc1);
   check_twice(binomial, bi1, nonbi1);
   check_twice(binomial, bi2, nonbi1);
+  check_twice(folder, fld1, nonfld1);
+  check_twice(folder, fld2, nonfld1);
   cout << count_interval<'\n'>(ws1, spaces_and_comments(ws1)) << endl;
   cout << count_interval<'*'>(ws1, spaces_and_comments(ws1)) << endl;
   cout << count_interval<exactly<slash_star> >(ws1, spaces_and_comments(ws1)) << endl;

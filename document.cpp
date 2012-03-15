@@ -3,9 +3,14 @@
 
 namespace Sass {
 
-  Document::Document(char* _path, char* _source) {
-    path = _path;
-    if (!_source) {
+  Document::Document(char* path, char* source)
+  : path(path), source(source),
+    line_number(1), own_source(false),
+    context(*(new Context())),
+    statements(vector<Node>()),
+    lexed(Token())
+  {
+    if (!source) {
       std::FILE *f;
       // TO DO: CHECK f AGAINST NULL/0
       f = std::fopen(path, "rb");
@@ -17,16 +22,15 @@ namespace Sass {
       std::fread(source, sizeof(char), len, f);
       source[len] = '\0';
       std::fclose(f);
-    }
-    else {
-      source = _source;
+      own_source = true;
     }
     position = source;
-    line_number = 1;
+    // printf("INPUT FILE:\n%s", source);
   }
 
   Document::~Document() {
-    delete [] source;
+    if (own_source) delete [] source;
+    delete &context;
   }
   
 }
