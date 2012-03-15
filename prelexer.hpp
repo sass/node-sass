@@ -85,7 +85,12 @@ namespace Sass {
     }
     
     // Match any single character.
-    char *any_char(char* src);
+    char* any_char(char* src);
+    // Match any single character except the supplied one.
+    template <char c>
+    char* any_char_except(char* src) {
+      return (*src && *src != c) ? src+1 : 0;
+    }
     
     // Matches zero characters (always succeeds without consuming input).
     char* epsilon(char*);
@@ -313,6 +318,7 @@ namespace Sass {
     
     // Path matching functions.
     char* folder(char* src);
+    char* folders(char* src);
     
     // Utility functions for finding and counting characters in a string.
     template<char c>

@@ -106,6 +106,8 @@ int main() {
   check_twice(binomial, bi2, nonbi1);
   check_twice(folder, fld1, nonfld1);
   check_twice(folder, fld2, nonfld1);
+  check_twice(folders, fld1, nonfld1);
+  check_twice(folders, fld2, nonfld1);
   cout << count_interval<'\n'>(ws1, spaces_and_comments(ws1)) << endl;
   cout << count_interval<'*'>(ws1, spaces_and_comments(ws1)) << endl;
   cout << count_interval<exactly<slash_star> >(ws1, spaces_and_comments(ws1)) << endl;

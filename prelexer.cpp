@@ -202,9 +202,11 @@ namespace Sass {
     
     // Path matching functions.
     char* folder(char* src) {
-      return sequence< zero_plus< negate< exactly<'/'> > >,
+      return sequence< zero_plus< any_char_except<'/'> >,
                        exactly<'/'> >(src);
     }
-
+    char* folders(char* src) {
+      return zero_plus< folder >(src);
+    }
   }
 }
