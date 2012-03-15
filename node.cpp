@@ -76,7 +76,12 @@ namespace Sass {
                              size_t depth,
                              const vector<string>& prefixes)
   {
-    switch (type) {  
+    switch (type) {
+    case root:
+      for (int i = 0; i < children->size(); ++i) {
+        children->at(i).emit_nested_css(buf, depth, prefixes);
+      }
+      break;
     case ruleset: {
       Node sel_group(children->at(0));
       Node block(children->at(1));
@@ -93,9 +98,6 @@ namespace Sass {
         for (int i = 0; i < prefixes.size(); ++i) {
           for (int j = 0; j < sel_group.children->size(); ++j) {
             new_prefixes.push_back(sel_group.children->at(j).to_string(prefixes[i]));
-            // new_prefixes.push_back(prefixes[i] +
-            //                        ' ' +
-            //                        string(sel_group.children->at(j)));
           }
         }
       }

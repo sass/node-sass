@@ -7,16 +7,30 @@ namespace Sass {
   void Document::parse_scss()
   {
     lex<optional_spaces>();
+    // while(*position) {
+    //   if (lex< block_comment >()) {
+    //     statements.push_back(Node(line_number, Node::comment, lexed));
+    //   }
+    //   else if (peek< variable >(position)) {
+    //     parse_var_def();
+    //     lex< exactly<';'> >();
+    //   }
+    //   else {
+    //     statements.push_back(parse_ruleset());
+    //   }
+    //   lex<optional_spaces>();
+    // }
+    
     while(*position) {
       if (lex< block_comment >()) {
-        statements.push_back(Node(line_number, Node::comment, lexed));
+        root << Node(line_number, Node::comment, lexed);
       }
       else if (peek< variable >(position)) {
         parse_var_def();
         lex< exactly<';'> >();
       }
       else {
-        statements.push_back(parse_ruleset());
+        root << parse_ruleset();
       }
       lex<optional_spaces>();
     }

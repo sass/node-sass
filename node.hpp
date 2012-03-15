@@ -10,6 +10,7 @@ namespace Sass {
   struct Node {
     enum Type {
       nil,
+      root,
       comment,
       ruleset,
       propset,

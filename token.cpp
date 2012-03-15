@@ -2,8 +2,8 @@
 
 namespace Sass {
   Token::Token() : begin(0), end(0) { }
-  Token::Token(const char* _begin, const char* _end)
-  : begin(_begin), end(_end) { }
+  Token::Token(const char* begin, const char* end)
+  : begin(begin), end(end) { }
   
   void Token::stream_unquoted(std::stringstream& buf) const {
     const char* p = begin;

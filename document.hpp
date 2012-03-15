@@ -3,6 +3,7 @@
 #include "context.hpp"
 
 namespace Sass {
+  using std::string;
   using std::vector;
   using std::map;
   using namespace Prelexer;
@@ -10,7 +11,7 @@ namespace Sass {
   struct Document {
     enum CSS_Style { nested, expanded, compact, compressed, echo };
     
-    char* path;
+    string path;
     char* source;
     char* position;
     size_t line_number;
@@ -21,11 +22,12 @@ namespace Sass {
     
     Context& context;
     
-    vector<Node> statements;
+    Node root;
+    // vector<Node> statements;
     Token lexed;
     
-    Document(char* path, char* source = 0);
-    // Document(char* path, Context& context);
+    Document(string path, char* source = 0);
+    Document(string path, Context& context);
     ~Document();
     
     template <prelexer mx>
@@ -120,5 +122,6 @@ namespace Sass {
     char* look_for_values(char* start = 0);
     
     string emit_css(CSS_Style style);
+
   };
 }

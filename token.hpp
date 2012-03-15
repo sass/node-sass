@@ -10,7 +10,7 @@ namespace Sass {
     const char* end;
 
     Token();
-    Token(const char* _begin, const char* _end);
+    Token(const char* begin, const char* end);
 
     inline operator string() const
     { return string(begin, end - begin); }
