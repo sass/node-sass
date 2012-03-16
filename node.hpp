@@ -137,6 +137,14 @@ namespace Sass {
       return *this;
     }
     
+    Node& operator+=(const Node& n)
+    {
+      for (int i = 0; i < n.children->size(); ++i) {
+        children->push_back(n.children->at(i));
+      }
+      return *this;
+    }
+    
     string to_string(const string& prefix)
     {
       if (type == selector) {

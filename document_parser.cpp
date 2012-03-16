@@ -7,23 +7,13 @@ namespace Sass {
   void Document::parse_scss()
   {
     lex<optional_spaces>();
-    // while(*position) {
-    //   if (lex< block_comment >()) {
-    //     statements.push_back(Node(line_number, Node::comment, lexed));
-    //   }
-    //   else if (peek< variable >(position)) {
-    //     parse_var_def();
-    //     lex< exactly<';'> >();
-    //   }
-    //   else {
-    //     statements.push_back(parse_ruleset());
-    //   }
-    //   lex<optional_spaces>();
-    // }
-    
     while(*position) {
       if (lex< block_comment >()) {
         root << Node(line_number, Node::comment, lexed);
+      }
+      else if (peek< import >(position)) {
+        root += parse_import();
+        lex< exactly<';'> >();
       }
       else if (peek< variable >(position)) {
         parse_var_def();
@@ -34,6 +24,21 @@ namespace Sass {
       }
       lex<optional_spaces>();
     }
+  }
+  
+  Node Document::parse_import()
+  {
+    lex< import >();
+    lex< string_constant >();
+    string import_path(lexed.unquote());
+    const char* curr_path_start = path.c_str();
+    const char* curr_path_end   = folders(curr_path_start);
+    string current_path(curr_path_start, curr_path_end - curr_path_start);
+    cerr << "importing " << current_path + import_path << endl;
+    Document importee(current_path + import_path, context);
+    importee.parse_scss();
+    source_refs.push_back(importee.source);
+    return importee.root;
   }
 
   void Document::parse_var_def()
@@ -189,6 +194,20 @@ namespace Sass {
         block.has_rules_or_comments = true;
         semicolon = true;
       }
+      else if (peek< import >(position)) {
+        Node imported_tree(parse_import());
+        for (int i = 0; i < imported_tree.children->size(); ++i) {
+          if (imported_tree.children->at(i).type == Node::comment ||
+              imported_tree.children->at(i).type == Node::rule) {
+            block.has_rules_or_comments = true;
+          }
+          else if (imported_tree.children->at(i).type == Node::ruleset) {
+            block.has_rulesets = true;
+          }
+          block << imported_tree.children->at(i);
+        }
+        semicolon = true;
+      }
       else if (lex< variable >()) {
         parse_var_def();
         semicolon = true;
@@ -224,6 +243,7 @@ namespace Sass {
            lex< hex >()        || lex < string_constant >() ||
            lex< variable >()) {
       if (lexed.begin[0] == '$') {
+        cerr << "about to fetch variable: " << string(lexed) << endl;
         Node fetched(context.environment[lexed]);
         for (int i = 0; i < fetched.children->size(); ++i) {
           values << fetched.children->at(i);
@@ -236,9 +256,9 @@ namespace Sass {
     return values;
   }
 
-  char* Document::look_for_rule(char* start)
+  const char* Document::look_for_rule(const char* start)
   {
-    char* p = start ? start : position;
+    const char* p = start ? start : position;
     (p = peek< identifier >(p))   &&
     (p = peek< exactly<':'> >(p)) &&
     (p = look_for_values(p))      &&
@@ -246,10 +266,10 @@ namespace Sass {
     return p;
   }
 
-  char* Document::look_for_values(char* start)
+  const char* Document::look_for_values(const char* start)
   {
-    char* p = start ? start : position;
-    char* q;
+    const char* p = start ? start : position;
+    const char* q;
     while ((q = peek< identifier >(p)) || (q = peek< dimension >(p))       ||
            (q = peek< percentage >(p)) || (q = peek< number >(p))          ||
            (q = peek< hex >(p))        || (q = peek< string_constant >(p)) ||

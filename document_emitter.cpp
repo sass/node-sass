@@ -7,19 +7,6 @@ namespace Sass {
   
   string Document::emit_css(CSS_Style style) {
     stringstream output;
-    // for (int i = 0; i < statements.size(); ++i) {
-    //   switch (style) {
-    //   case echo:
-    //     statements[i].echo(output);
-    //     break;
-    //   case nested:
-    //     statements[i].emit_nested_css(output, 0, vector<string>());
-    //     break;
-    //   case expanded:
-    //     statements[i].emit_expanded_css(output, "");
-    //     break;
-    //   }
-    // }
     switch (style) {
     case echo:
       root.echo(output);

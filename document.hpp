@@ -13,7 +13,8 @@ namespace Sass {
     
     string path;
     char* source;
-    char* position;
+    vector<char*> source_refs;
+    const char* position;
     size_t line_number;
     bool own_source;
     
@@ -31,10 +32,10 @@ namespace Sass {
     ~Document();
     
     template <prelexer mx>
-    char* peek(char* start = 0)
+    const char* peek(const char* start = 0)
     {
       if (!start) start = position;
-      char* after_whitespace;
+      const char* after_whitespace;
       if (mx == block_comment) {
         after_whitespace =
           zero_plus< alternatives<spaces, line_comment> >(start);
@@ -57,7 +58,7 @@ namespace Sass {
       else {
         after_whitespace = spaces_and_comments(start);
       }
-      char* after_token = mx(after_whitespace);
+      const char* after_token = mx(after_whitespace);
       if (after_token) {
         return after_token;
       }
@@ -67,9 +68,9 @@ namespace Sass {
     }
     
     template <prelexer mx>
-    char* lex()
+    const char* lex()
     {
-      char* after_whitespace;
+      const char* after_whitespace;
       if (mx == block_comment) {
         after_whitespace =
           zero_plus< alternatives<spaces, line_comment> >(position);
@@ -94,7 +95,7 @@ namespace Sass {
       else {
         after_whitespace = spaces_and_comments(position);
       }
-      char* after_token = mx(after_whitespace);
+      const char* after_token = mx(after_whitespace);
       if (after_token) {
         line_number += count_interval<'\n'>(position, after_token);
         lexed = Token(after_whitespace, after_token);
@@ -106,6 +107,7 @@ namespace Sass {
     }
     
     void parse_scss();
+    Node parse_import();
     void parse_var_def();
     Node parse_ruleset();
     Node parse_selector_group();
@@ -118,8 +120,8 @@ namespace Sass {
     Node parse_rule();
     Node parse_values();
     
-    char* look_for_rule(char* start = 0);
-    char* look_for_values(char* start = 0);
+    const char* look_for_rule(const char* start = 0);
+    const char* look_for_values(const char* start = 0);
     
     string emit_css(CSS_Style style);
 
