@@ -5,7 +5,44 @@ namespace Sass {
   Token::Token(const char* begin, const char* end)
   : begin(begin), end(end) { }
   
-  void Token::stream_unquoted(std::stringstream& buf) const {
+  string Token::unquote() const {
+    string result;
+    const char* p = begin;
+    if (*begin == '\'' || *begin == '"') {
+      ++p;
+      while (p < end) {
+        if (*p == '\\') {
+          switch (*(++p)) {
+            case 'n':  result += '\n'; break;
+            case 't':  result += '\t'; break;
+            case 'b':  result += '\b'; break;
+            case 'r':  result += '\r'; break;
+            case 'f':  result += '\f'; break;
+            case 'v':  result += '\v'; break;
+            case 'a':  result += '\a'; break;
+            case '\\': result += '\\'; break;
+            default: result += *p; break;
+          }
+        }
+        else if (p == end - 1) {
+          return result;
+        }
+        else {
+          result += *p;
+        }
+        ++p;
+      }
+      return result;
+    }
+    else {
+      while (p < end) {
+        result += *(p++);
+      }
+      return result;
+    }
+  }
+  
+  void Token::unquote_to_stream(std::stringstream& buf) const {
     const char* p = begin;
     if (*begin == '\'' || *begin == '"') {
       ++p;

@@ -2,17 +2,17 @@ namespace Sass {
   namespace Prelexer {
 
     typedef int (*ctype_predicate)(int);
-    typedef char* (*prelexer)(char*);
+    typedef const char* (*prelexer)(const char*);
 
     // Match a single character literal.
     template <char pre>
-    char* exactly(char* src) {
+    const char* exactly(const char* src) {
       return *src == pre ? src + 1 : 0;
     }
   
     // Match a string constant.
     template <const char* prefix>
-    char* exactly(char* src) {
+    const char* exactly(const char* src) {
       const char* pre = prefix;
       while (*pre && *src == *pre) ++src, ++pre;
       return *pre ? 0 : src;
@@ -20,13 +20,13 @@ namespace Sass {
 
     // Match a single character that satifies the supplied ctype predicate.
     template <ctype_predicate pred>
-    char* class_char(char* src) {
+    const char* class_char(const char* src) {
       return pred(*src) ? src + 1 : 0;
     }
 
     // Match a single character that is a member of the supplied class.
     template <const char* char_class>
-    char* class_char(char* src) {
+    const char* class_char(const char* src) {
       const char* cc = char_class;
       while (*cc && *src != *cc) ++cc;
       return *cc ? src + 1 : 0;
@@ -34,23 +34,23 @@ namespace Sass {
 
     // Match a sequence of characters that all satisfy the supplied ctype predicate.
     template <ctype_predicate pred>
-    char* class_chars(char* src) {
-      char* p = src;
+    const char* class_chars(const char* src) {
+      const char* p = src;
       while (pred(*p)) ++p;
       return p == src ? 0 : p;
     }
 
     // Match a sequence of characters that are all members of the supplied class.
     template <const char* char_class>
-    char* class_chars(char* src) {
-      char* p = src;
+    const char* class_chars(const char* src) {
+      const char* p = src;
       while (class_char<char_class>(p)) ++p;
       return p == src ? 0 : p;
     }
     
     // Match a sequence of characters up to the next newline.
     template <const char* prefix>
-    char* to_endl(char* src) {
+    const char* to_endl(const char* src) {
       if (!(src = exactly<prefix>(src))) return 0;
       while (*src && *src != '\n') ++src;
       return src;
@@ -58,10 +58,10 @@ namespace Sass {
     
     // Match a sequence of characters delimited by the supplied chars.
     template <char beg, char end, bool esc>
-    char* delimited_by(char* src) {
+    const char* delimited_by(const char* src) {
       src = exactly<beg>(src);
       if (!src) return 0;
-      char* stop;
+      const char* stop;
       while (1) {
         if (!*src) return 0;
         stop = exactly<end>(src);
@@ -72,10 +72,10 @@ namespace Sass {
     
     // Match a sequence of characters delimited by the supplied strings.
     template <const char* beg, const char* end, bool esc>
-    char* delimited_by(char* src) {
+    const char* delimited_by(const char* src) {
       src = exactly<beg>(src);
       if (!src) return 0;
-      char* stop;
+      const char* stop;
       while (1) {
         if (!*src) return 0;
         stop = exactly<end>(src);
@@ -85,45 +85,45 @@ namespace Sass {
     }
     
     // Match any single character.
-    char* any_char(char* src);
+    const char* any_char(const char* src);
     // Match any single character except the supplied one.
     template <char c>
-    char* any_char_except(char* src) {
+    const char* any_char_except(const char* src) {
       return (*src && *src != c) ? src+1 : 0;
     }
     
     // Matches zero characters (always succeeds without consuming input).
-    char* epsilon(char*);
+    const char* epsilon(const char*);
     
     // Matches the empty string.
-    char* empty(char*);
+    const char* empty(const char*);
     
     // Succeeds of the supplied matcher fails, and vice versa.
     template <prelexer mx>
-    char* negate(char* src) {
+    const char* negate(const char* src) {
       return mx(src) ? 0 : src;
     }
     
     // Tries the matchers in sequence and returns the first match (or none)
     template <prelexer mx1, prelexer mx2>
-    char* alternatives(char* src) {
-      char* rslt;
+    const char* alternatives(const char* src) {
+      const char* rslt;
       (rslt = mx1(src)) || (rslt = mx2(src));
       return rslt;
     }
     
     // Same as above, but with 3 arguments.
     template <prelexer mx1, prelexer mx2, prelexer mx3>
-    char* alternatives(char* src) {
-      char* rslt;
+    const char* alternatives(const char* src) {
+      const char* rslt;
       (rslt = mx1(src)) || (rslt = mx2(src)) || (rslt = mx3(src));
       return rslt;
     }
     
     // Same as above, but with 4 arguments.
     template <prelexer mx1, prelexer mx2, prelexer mx3, prelexer mx4>
-    char* alternatives(char* src) {
-      char* rslt;
+    const char* alternatives(const char* src) {
+      const char* rslt;
       (rslt = mx1(src)) || (rslt = mx2(src)) ||
       (rslt = mx3(src)) || (rslt = mx4(src));
       return rslt;
@@ -132,8 +132,8 @@ namespace Sass {
     // Same as above, but with 5 arguments.
     template <prelexer mx1, prelexer mx2, prelexer mx3,
               prelexer mx4, prelexer mx5>
-    char* alternatives(char* src) {
-      char* rslt;
+    const char* alternatives(const char* src) {
+      const char* rslt;
       (rslt = mx1(src)) || (rslt = mx2(src)) || (rslt = mx3(src)) ||
       (rslt = mx4(src)) || (rslt = mx5(src));
       return rslt;
@@ -142,8 +142,8 @@ namespace Sass {
     // Same as above, but with 6 arguments.
     template <prelexer mx1, prelexer mx2, prelexer mx3,
               prelexer mx4, prelexer mx5, prelexer mx6>
-    char* alternatives(char* src) {
-      char* rslt;
+    const char* alternatives(const char* src) {
+      const char* rslt;
       (rslt = mx1(src)) || (rslt = mx2(src)) || (rslt = mx3(src)) ||
       (rslt = mx4(src)) || (rslt = mx5(src)) || (rslt = mx6(src));
       return rslt;
@@ -151,24 +151,24 @@ namespace Sass {
     
     // Tries the matchers in sequence and succeeds if they all succeed.
     template <prelexer mx1, prelexer mx2>
-    char* sequence(char* src) {
-      char* rslt = src;
+    const char* sequence(const char* src) {
+      const char* rslt = src;
       (rslt = mx1(rslt)) && (rslt = mx2(rslt));
       return rslt;
     }
     
     // Same as above, but with 3 arguments.
     template <prelexer mx1, prelexer mx2, prelexer mx3>
-    char* sequence(char* src) {
-      char* rslt = src;
+    const char* sequence(const char* src) {
+      const char* rslt = src;
       (rslt = mx1(rslt)) && (rslt = mx2(rslt)) && (rslt = mx3(rslt));
       return rslt;
     }
     
     // Same as above, but with 4 arguments.
     template <prelexer mx1, prelexer mx2, prelexer mx3, prelexer mx4>
-    char* sequence(char* src) {
-      char* rslt = src;
+    const char* sequence(const char* src) {
+      const char* rslt = src;
       (rslt = mx1(rslt)) && (rslt = mx2(rslt)) &&
       (rslt = mx3(rslt)) && (rslt = mx4(rslt));
       return rslt;
@@ -178,8 +178,8 @@ namespace Sass {
     template <prelexer mx1, prelexer mx2,
               prelexer mx3, prelexer mx4,
               prelexer mx5>
-    char* sequence(char* src) {
-      char* rslt = src;
+    const char* sequence(const char* src) {
+      const char* rslt = src;
       (rslt = mx1(rslt)) && (rslt = mx2(rslt)) &&
       (rslt = mx3(rslt)) && (rslt = mx4(rslt)) &&
       (rslt = mx5(rslt));
@@ -190,8 +190,8 @@ namespace Sass {
     template <prelexer mx1, prelexer mx2,
               prelexer mx3, prelexer mx4,
               prelexer mx5, prelexer mx6>
-    char* sequence(char* src) {
-      char* rslt = src;
+    const char* sequence(const char* src) {
+      const char* rslt = src;
       (rslt = mx1(rslt)) && (rslt = mx2(rslt)) &&
       (rslt = mx3(rslt)) && (rslt = mx4(rslt)) &&
       (rslt = mx5(rslt)) && (rslt = mx6(rslt));
@@ -203,8 +203,8 @@ namespace Sass {
               prelexer mx3, prelexer mx4,
               prelexer mx5, prelexer mx6,
               prelexer mx7>
-    char* sequence(char* src) {
-      char* rslt = src;
+    const char* sequence(const char* src) {
+      const char* rslt = src;
       (rslt = mx1(rslt)) && (rslt = mx2(rslt)) &&
       (rslt = mx3(rslt)) && (rslt = mx4(rslt)) &&
       (rslt = mx5(rslt)) && (rslt = mx6(rslt)) &&
@@ -214,125 +214,126 @@ namespace Sass {
     
     // Match a pattern or not. Always succeeds.
     template <prelexer mx>
-    char* optional(char* src) {
-      char* p = mx(src);
+    const char* optional(const char* src) {
+      const char* p = mx(src);
       return p ? p : src;
     }
     
     // Match zero or more of the supplied pattern
     template <prelexer mx>
-    char* zero_plus(char* src) {
-      char* p = mx(src);
+    const char* zero_plus(const char* src) {
+      const char* p = mx(src);
       while (p) src = p, p = mx(src);
       return src;
     }
     
     // Match one or more of the supplied pattern
     template <prelexer mx>
-    char* one_plus(char* src) {
-      char* p = mx(src);
+    const char* one_plus(const char* src) {
+      const char* p = mx(src);
       if (!p) return 0;
       while (p) src = p, p = mx(src);
       return src;
     }
     
     // Match a single character satisfying the ctype predicates.
-    char *space(char *src);
-    char *alpha(char *src);
-    char *digit(char *src);
-    char *xdigit(char *src);
-    char *alnum(char *src);
-    char *punct(char *src);
+    const char* space(const char* src);
+    const char* alpha(const char* src);
+    const char* digit(const char* src);
+    const char* xdigit(const char* src);
+    const char* alnum(const char* src);
+    const char* punct(const char* src);
     // Match multiple ctype characters.
-    char* spaces(char* src);
-    char* alphas(char* src);
-    char* digits(char* src);
-    char* xdigits(char* src);
-    char* alnums(char* src);
-    char* puncts(char* src);
+    const char* spaces(const char* src);
+    const char* alphas(const char* src);
+    const char* digits(const char* src);
+    const char* xdigits(const char* src);
+    const char* alnums(const char* src);
+    const char* puncts(const char* src);
     
     // Match a line comment.
-    char* line_comment(char* src);
+    const char* line_comment(const char* src);
     // Match a block comment.
-    char* block_comment(char* src);
+    const char* block_comment(const char* src);
     // Match either.
-    char* comment(char* src);
+    const char* comment(const char* src);
     // Match double- and single-quoted strings.
-    char* double_quoted_string(char* src);
-    char* single_quoted_string(char* src);
-    char* string_constant(char* src);
+    const char* double_quoted_string(const char* src);
+    const char* single_quoted_string(const char* src);
+    const char* string_constant(const char* src);
     // Match interpolants.
-    char* interpolant(char* src);
+    const char* interpolant(const char* src);
 
     // Whitespace handling.
-    char* optional_spaces(char* src);
-    char* optional_comment(char* src);
-    char* spaces_and_comments(char* src);
-    char* no_spaces(char *src);
+    const char* optional_spaces(const char* src);
+    const char* optional_comment(const char* src);
+    const char* spaces_and_comments(const char* src);
+    const char* no_spaces(const char* src);
 
     // Match a CSS identifier.
-    char* identifier(char* src);
+    const char* identifier(const char* src);
     // Match CSS '@' keywords.
-    char* at_keyword(char* src);
+    const char* at_keyword(const char* src);
+    const char* import(const char* src);
     // Match CSS type selectors
-    char* namespace_prefix(char* src);
-    char* type_selector(char* src);
-    char* universal(char* src);
+    const char* namespace_prefix(const char* src);
+    const char* type_selector(const char* src);
+    const char* universal(const char* src);
     // Match CSS id names.
-    char* id_name(char* src);
+    const char* id_name(const char* src);
     // Match CSS class names.
-    char* class_name(char* src);
+    const char* class_name(const char* src);
     // Match CSS numeric constants.
-    char* sign(char* src);
-    char* unsigned_number(char* src);
-    char* number(char* src);
-    char* coefficient(char* src);
-    char* binomial(char* src);
-    char* percentage(char* src);
-    char* dimension(char* src);
-    char* hex(char* src);
+    const char* sign(const char* src);
+    const char* unsigned_number(const char* src);
+    const char* number(const char* src);
+    const char* coefficient(const char* src);
+    const char* binomial(const char* src);
+    const char* percentage(const char* src);
+    const char* dimension(const char* src);
+    const char* hex(const char* src);
     // Match CSS uri specifiers.
-    char* uri(char* src);
+    const char* uri(const char* src);
     // Match CSS pseudo-class/element prefixes
-    char* pseudo_prefix(char* src);
+    const char* pseudo_prefix(const char* src);
     // Match CSS function call openers.
-    char* functional(char* src);
+    const char* functional(const char* src);
     // Match CSS 'odd' and 'even' keywords for functional pseudo-classes.
-    char* even(char* src);
-    char* odd(char* src);
+    const char* even(const char* src);
+    const char* odd(const char* src);
     // Match CSS attribute-matching operators.
-    char* exact_match(char* src);
-    char* class_match(char* src);
-    char* dash_match(char* src);
-    char* prefix_match(char* src);
-    char* suffix_match(char* src);
-    char* substring_match(char* src);
+    const char* exact_match(const char* src);
+    const char* class_match(const char* src);
+    const char* dash_match(const char* src);
+    const char* prefix_match(const char* src);
+    const char* suffix_match(const char* src);
+    const char* substring_match(const char* src);
     // Match CSS combinators.
-    char* adjacent_to(char* src);
-    char* precedes(char* src);
-    char* parent_of(char* src);
-    char* ancestor_of(char* src);
+    const char* adjacent_to(const char* src);
+    const char* precedes(const char* src);
+    const char* parent_of(const char* src);
+    const char* ancestor_of(const char* src);
     
     // Match SCSS variable names.
-    char* variable(char* src);
+    const char* variable(const char* src);
     
     // Path matching functions.
-    char* folder(char* src);
-    char* folders(char* src);
+    const char* folder(const char* src);
+    const char* folders(const char* src);
     
     // Utility functions for finding and counting characters in a string.
     template<char c>
-    char* find_first(char* src) {
+    const char* find_first(const char* src) {
       while (*src && *src != c) ++src;
       return *src ? src : 0;
     }
     template<prelexer mx>
-    char* find_first(char* src) {
+    const char* find_first(const char* src) {
       while (*src && !mx(src)) ++src;
       return *src ? src : 0;
     }
     template <char c>
-    unsigned int count_interval(char* beg, char* end) {
+    unsigned int count_interval(const char* beg, const char* end) {
       unsigned int counter = 0;
       while (beg < end && *beg) {
         if (*beg == c) ++counter;
@@ -341,10 +342,10 @@ namespace Sass {
       return counter;
     }
     template <prelexer mx>
-    unsigned int count_interval(char* beg, char* end) {
+    unsigned int count_interval(const char* beg, const char* end) {
       unsigned int counter = 0;
       while (beg < end && *beg) {
-        char* p;
+        const char* p;
         if (p = mx(beg)) {
           ++counter;
           beg = p;

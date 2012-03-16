@@ -15,7 +15,8 @@ namespace Sass {
     inline operator string() const
     { return string(begin, end - begin); }
 
-    void stream_unquoted(std::stringstream& buf) const;
+    string unquote() const;
+    void unquote_to_stream(std::stringstream& buf) const;
     
     bool operator<(const Token& rhs) const;
     
