@@ -13,7 +13,6 @@ namespace Sass {
     
     string path;
     char* source;
-    vector<char*> source_refs;
     const char* position;
     size_t line_number;
     bool own_source;

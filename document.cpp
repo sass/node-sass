@@ -5,7 +5,7 @@
 namespace Sass {
 
   Document::Document(string path, char* source)
-  : path(path), source(source), source_refs(vector<char*>()),
+  : path(path), source(source), //source_refs(vector<char*>()),
     line_number(1), own_source(false),
     context(*(new Context())),
     root(Node(1, Node::root)),
@@ -28,10 +28,12 @@ namespace Sass {
       own_source = true;
     }
     position = source;
+    context.source_refs.push_back(source);
+    ++context.ref_count;
   }
   
   Document::Document(string path, Context& context)
-  : path(path), source(0), source_refs(vector<char*>()),
+  : path(path), source(0), //source_refs(vector<char*>()),
     line_number(1), own_source(false),
     context(context),
     root(Node(1, Node::root)),
@@ -50,16 +52,17 @@ namespace Sass {
     source[len] = '\0';
     std::fclose(f);
     position = source;
+    context.source_refs.push_back(source);
     ++context.ref_count;
   }
 
   Document::~Document() {
-    if (own_source) delete [] source;
+    // if (own_source) delete [] source;
     --context.ref_count;
     if (context.ref_count == 0) delete &context;
-    for (int i = 0; i < source_refs.size(); ++i) {
-      delete [] source_refs[i];
-    }
+    // for (int i = 0; i < source_refs.size(); ++i) {
+    //   delete [] source_refs[i];
+    // }
   }
   
 }

@@ -34,10 +34,9 @@ namespace Sass {
     const char* curr_path_start = path.c_str();
     const char* curr_path_end   = folders(curr_path_start);
     string current_path(curr_path_start, curr_path_end - curr_path_start);
-    cerr << "importing " << current_path + import_path << endl;
     Document importee(current_path + import_path, context);
     importee.parse_scss();
-    source_refs.push_back(importee.source);
+    // source_refs.push_back(importee.source);
     return importee.root;
   }
 
@@ -243,7 +242,6 @@ namespace Sass {
            lex< hex >()        || lex < string_constant >() ||
            lex< variable >()) {
       if (lexed.begin[0] == '$') {
-        cerr << "about to fetch variable: " << string(lexed) << endl;
         Node fetched(context.environment[lexed]);
         for (int i = 0; i < fetched.children->size(); ++i) {
           values << fetched.children->at(i);
