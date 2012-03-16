@@ -298,6 +298,7 @@ namespace Sass {
     const char* pseudo_prefix(const char* src);
     // Match CSS function call openers.
     const char* functional(const char* src);
+    const char* pseudo_not(const char* src);
     // Match CSS 'odd' and 'even' keywords for functional pseudo-classes.
     const char* even(const char* src);
     const char* odd(const char* src);

@@ -130,7 +130,14 @@ namespace Sass {
   }
   
   Node Document::parse_pseudo() {
-    if (lex< sequence< pseudo_prefix, functional > >()) {
+    if (lex< pseudo_not >()) {
+      Node ps_not(line_number, Node::functional_pseudo, 2);
+      ps_not << Node(line_number, Node::value, lexed);
+      ps_not << parse_simple_selector();
+      lex< exactly<')'> >();
+      return ps_not;
+    }
+    else if (lex< sequence< pseudo_prefix, functional > >()) {
       Node pseudo(line_number, Node::functional_pseudo, 2);
       pseudo << Node(line_number, Node::value, lexed);
       if (lex< alternatives< even, odd > >()) {

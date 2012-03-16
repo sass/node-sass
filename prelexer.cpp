@@ -165,6 +165,11 @@ namespace Sass {
     const char* functional(const char* src) {
       return sequence< identifier, exactly<'('> >(src);
     }
+    // Match the CSS negation pseudo-class.
+    extern const char not_kwd[] = ":not(";
+    const char* pseudo_not(const char* src) {
+      return exactly< not_kwd >(src);
+    }
     // Match CSS 'odd' and 'even' keywords for functional pseudo-classes.
     extern const char even_chars[] = "even";
     extern const char odd_chars[]  = "odd";

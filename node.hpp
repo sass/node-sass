@@ -24,6 +24,7 @@ namespace Sass {
       class_selector,
       id_selector,
       pseudo,
+      pseudo_negation,
       functional_pseudo,
       attribute_selector,
       block,
