@@ -282,4 +282,79 @@ namespace Sass {
     { p = q; }
     return p == start ? 0 : p;
   }
+  
+  // NEW LOOKAHEAD FUNCTIONS. THIS ESSENTIALLY IMPLEMENTS A BACKTRACKING
+  // PARSER, BECAUSE NEITHER SELECTORS NOR VALUES ARE EXPRESSIBLE IN A
+  // REGULAR LANGUAGE.
+  const char* Document::look_for_selector_group(const char* start)
+  {
+    const char* p = start ? start : position;
+    const char* q = look_for_selector(p);
+
+    if (!q) { return 0; }
+    else    { p = q; }
+
+    while ((q = peek< exactly<','> >(p)) && (q = look_for_selector(q)))
+    { p = q; }
+
+    return p;
+  }
+  
+  const char* look_for_selector(const char* start)
+  {
+    const char* p = start ? start : position;
+    const char* q;
+
+    if ((q = peek< exactly<'+'> >(p)) ||
+        (q = peek< exactly<'~'> >(p)) ||
+        (q = peek< exactly<'>'> >(p)))
+    { p = q; }
+    
+    q = look_for_simple_selector_sequence(p);
+    
+    if (!q) { return 0; }
+    else    { p = q; }
+    
+    while (((q = peek< exactly<'+'> >(p)) ||
+            (q = peek< exactly<'~'> >(p)) ||
+            (q = peek< exactly<'>'> >(p)) ||
+            (q = peek< ancestor_of >(p))) &&
+           (q = look_for_simple_selector_sequence(q)))
+    { p = q; }
+    
+    return p;
+  }
+  
+  const char* look_for_simple_selector_sequence(const char* start)
+  {
+    const char* p = start ? start : position;
+    const char* q;
+    
+    if ((q = peek< type_selector >(p)) ||
+        (q = peek< universal >(p))     ||
+        (q = peek< exactly <'&'> >(p)) ||
+        (q = look_for_simple_selector(p)))
+    { p = q; }
+    else
+    { return 0; }
+    
+    while (!peek< spaces >(p) &&
+           !(peek < exactly<'+'> >(p) ||
+             peek < exactly<'~'> >(p) ||
+             peek < exactly<'>'> >(p) ||
+             peek < exactly<','> >(p) ||
+             peek < exactly<'{'> >(p)) &&
+           (q = look_for_simple_selector(p)))
+    { p = q; }
+    
+    return p;
+  }
+  
+  
+
+  
+
+
+
+
 }
