@@ -118,6 +118,13 @@ namespace Sass {
     Node parse_block();
     Node parse_rule();
     Node parse_values();
+    Node parse_list();
+    Node parse_comma_list();
+    Node parse_space_list();
+    Node parse_expression();
+    Node parse_term();
+    Node parse_factor();
+    Node parse_value();
     
     const char* look_for_rule(const char* start = 0);
     const char* look_for_values(const char* start = 0);

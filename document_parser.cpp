@@ -45,7 +45,8 @@ namespace Sass {
     lex< variable >();
     const Token key(lexed);
     lex< exactly<':'> >();
-    context.environment[key] = parse_values();
+    // context.environment[key] = parse_values();
+    context.environment[key] = parse_list();
   }
 
   Node Document::parse_ruleset()
@@ -247,7 +248,8 @@ namespace Sass {
     lex< identifier >();
     rule << Node(line_number, Node::property, lexed);
     lex< exactly<':'> >();
-    rule << parse_values();
+    // rule << parse_values();
+    rule << parse_list();
     return rule;
   }
 
@@ -270,6 +272,133 @@ namespace Sass {
     }
     return values;
   }
+  
+  Node Document::parse_list()
+  {
+    if (peek< exactly<';'> >(position) ||
+        peek< exactly<'}'> >(position) ||
+        peek< exactly<')'> >(position))
+    { return Node(line_number, Node::nil); }
+    else
+    { return parse_comma_list(); }
+  }
+  
+  Node Document::parse_comma_list()
+  {
+    Node list1(parse_space_list());
+    // if it's a singleton, return it directly; don't wrap it
+    if (!peek< exactly<','> >(position)) return list1;
+    
+    Node comma_list(line_number, Node::comma_list, 2);
+    comma_list << list1;
+    
+    while (lex< exactly<','> >())
+    { comma_list << parse_space_list(); }
+    
+    return comma_list;
+  }
+  
+  Node Document::parse_space_list()
+  {
+    Node expr1(parse_expression());
+    // if it's a singleton, return it directly; don't wrap it
+    if (peek< exactly<';'> >(position) ||
+        peek< exactly<'}'> >(position) ||
+        peek< exactly<')'> >(position))
+    { return expr1; }
+    
+    Node space_list(line_number, Node::space_list, 2);
+    space_list << expr1;
+    
+    while (!(peek< exactly<';'> >(position) ||
+             peek< exactly<'}'> >(position) ||
+             peek< exactly<')'> >(position)))
+    { space_list << parse_expression(); }
+    
+    return space_list;
+  }
+  
+  Node Document::parse_expression()
+  {
+    Node term1(parse_term());
+    // if it's a singleton, return it directly; don't wrap it
+    if (!(peek< exactly<'+'> >(position) ||
+          peek< exactly<'-'> >(position)))
+    { return term1; }
+    
+    Node expression(line_number, Node::expression, 2);
+    expression << term1;
+    
+    while (lex< exactly<'+'> >() || lex< exactly<'-'> >()) {
+      if (lexed.begin[0] == '+') {
+        expression << Node(line_number, Node::add, lexed);
+      }
+      else {
+        expression << Node(line_number, Node::sub, lexed);
+      }
+      expression << parse_term();
+    }
+    
+    return expression;
+  }
+  
+  Node Document::parse_term()
+  {
+    Node fact1(parse_factor());
+    // if it's a singleton, return it directly; don't wrap it
+    if (!(peek< exactly<'*'> >(position) ||
+          peek< exactly<'/'> >(position)))
+    { return fact1; }
+
+    Node term(line_number, Node::term, 2);
+    term << fact1;
+
+    while (lex< exactly<'*'> >() || lex< exactly<'/'> >()) {
+      if (lexed.begin[0] == '*') {
+        term << Node(line_number, Node::mul, lexed);
+      }
+      else {
+        term << Node(line_number, Node::div, lexed);
+      }
+      term << parse_factor();
+    }
+
+    return term;
+  }
+  
+  Node Document::parse_factor()
+  {
+    if (lex< exactly<'('> >()) {
+      Node value(parse_list());
+      value.parenthesized = true;
+      return value;
+    }
+    else {
+      return parse_value();
+    }
+  }
+  
+  Node Document::parse_value()
+  {
+    lex< identifier >() || lex < dimension >()       ||
+    lex< percentage >() || lex < number >()          ||
+    lex< hex >()        || lex < string_constant >() ||
+    lex< variable >();
+
+    if (lexed.begin[0] == '$') {
+      return context.environment[lexed];
+    }
+    else {
+      return Node(line_number, Node::value, lexed);
+    }
+  }
+
+    
+
+    
+  
+  
+    
 
   // const char* Document::look_for_rule(const char* start)
   // {

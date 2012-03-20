@@ -30,6 +30,15 @@ namespace Sass {
       block,
       rule,
       property,
+      comma_list,
+      space_list,
+      expression,
+      add,
+      sub,
+      term,
+      mul,
+      div,
+      factor,
       values,
       value
     };
@@ -45,7 +54,7 @@ namespace Sass {
     bool has_rulesets;
     bool has_propsets;
     bool has_backref;
-    bool terminal_backref;
+    bool parenthesized;
     
     Node() : type(nil), children(0) { ++fresh; }
   
@@ -58,7 +67,7 @@ namespace Sass {
       has_rulesets(n.has_rulesets),
       has_propsets(n.has_propsets),
       has_backref(n.has_backref),
-      terminal_backref(n.terminal_backref)
+      parenthesized(n.parenthesized)
     { /*n.release();*/ ++copied; } // No joint custody.
   
     Node(size_t line_number, Type type, size_t length = 0)
@@ -70,7 +79,7 @@ namespace Sass {
       has_rulesets(false),
       has_propsets(false),
       has_backref(false),
-      terminal_backref(false)
+      parenthesized(false)
     { children->reserve(length); ++fresh; }
     
     Node(size_t line_number, Type type, const Node& n)
@@ -82,7 +91,7 @@ namespace Sass {
       has_rulesets(false),
       has_propsets(false),
       has_backref(false),
-      terminal_backref(false)
+      parenthesized(false)
     { ++fresh; }
     
     Node(size_t line_number, Type type, const Node& n, const Node& m)
@@ -94,7 +103,7 @@ namespace Sass {
       has_rulesets(false),
       has_propsets(false),
       has_backref(false),
-      terminal_backref(false)
+      parenthesized(false)
     {
       children->reserve(2);
       children->push_back(n);
@@ -111,7 +120,7 @@ namespace Sass {
       has_rulesets(false),
       has_propsets(false),
       has_backref(false),
-      terminal_backref(false)
+      parenthesized(false)
     { ++fresh; }
     
     //~Node() { delete children; }
@@ -127,7 +136,7 @@ namespace Sass {
       has_rulesets = n.has_rulesets;
       has_propsets = n.has_propsets;
       has_backref = n.has_backref;
-      terminal_backref = n.terminal_backref;
+      parenthesized = n.parenthesized;
       ++copied;
       return *this;
     }
