@@ -39,11 +39,11 @@ namespace Sass {
         after_whitespace =
           zero_plus< alternatives<spaces, line_comment> >(start);
       }
-      else if (mx == ancestor_of || mx == no_spaces) {
+      else if (/*mx == ancestor_of ||*/ mx == no_spaces) {
         after_whitespace = position;
       }
-      else if (mx == spaces) {
-        after_whitespace = spaces(start);
+      else if (mx == spaces || mx == ancestor_of) {
+        after_whitespace = mx(start);
         if (after_whitespace) {
           return after_whitespace;
         }
@@ -121,6 +121,13 @@ namespace Sass {
     
     const char* look_for_rule(const char* start = 0);
     const char* look_for_values(const char* start = 0);
+    
+    const char* look_for_selector_group(const char* start = 0);
+    const char* look_for_selector(const char* start = 0);
+    const char* look_for_simple_selector_sequence(const char* start = 0);
+    const char* look_for_simple_selector(const char* start = 0);
+    const char* look_for_pseudo(const char* start = 0);
+    const char* look_for_attrib(const char* start = 0);
     
     string emit_css(CSS_Style style);
 

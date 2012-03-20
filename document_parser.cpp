@@ -218,14 +218,23 @@ namespace Sass {
         parse_var_def();
         semicolon = true;
       }
-      else if (look_for_rule(position)) {
+      // else if (look_for_rule(position)) {
+      //   block << parse_rule();
+      //   block.has_rules_or_comments = true;
+      //   semicolon = true;
+      // }
+      // else if (!peek< exactly<';'> >()) {
+      //   block << parse_ruleset();
+      //   block.has_rulesets = true;
+      // }
+      else if (look_for_selector_group(position)) {
+        block << parse_ruleset();
+        block.has_rulesets = true;
+      }
+      else if (!peek< exactly<';'> >()) {
         block << parse_rule();
         block.has_rules_or_comments = true;
         semicolon = true;
-      }
-      else if (!peek< exactly<';'> >()) {
-        block << parse_ruleset();
-        block.has_rulesets = true;
       }
       else lex< exactly<';'> >();
     }
@@ -284,7 +293,7 @@ namespace Sass {
   }
   
   // NEW LOOKAHEAD FUNCTIONS. THIS ESSENTIALLY IMPLEMENTS A BACKTRACKING
-  // PARSER, BECAUSE NEITHER SELECTORS NOR VALUES ARE EXPRESSIBLE IN A
+  // PARSER, BECAUSE SELECTORS AND VALUES ARE NOT EXPRESSIBLE IN A
   // REGULAR LANGUAGE.
   const char* Document::look_for_selector_group(const char* start)
   {
@@ -296,11 +305,11 @@ namespace Sass {
 
     while ((q = peek< exactly<','> >(p)) && (q = look_for_selector(q)))
     { p = q; }
-
-    return p;
+    
+    return peek< exactly<'{'> >(p) ? p : 0;
   }
   
-  const char* look_for_selector(const char* start)
+  const char* Document::look_for_selector(const char* start)
   {
     const char* p = start ? start : position;
     const char* q;
@@ -310,22 +319,21 @@ namespace Sass {
         (q = peek< exactly<'>'> >(p)))
     { p = q; }
     
-    q = look_for_simple_selector_sequence(p);
+    p = look_for_simple_selector_sequence(p);
     
-    if (!q) { return 0; }
-    else    { p = q; }
+    if (!p) return 0;
     
     while (((q = peek< exactly<'+'> >(p)) ||
             (q = peek< exactly<'~'> >(p)) ||
             (q = peek< exactly<'>'> >(p)) ||
-            (q = peek< ancestor_of >(p))) &&
+            (q = peek< ancestor_of > (p))) &&
            (q = look_for_simple_selector_sequence(q)))
     { p = q; }
-    
+  
     return p;
   }
   
-  const char* look_for_simple_selector_sequence(const char* start)
+  const char* Document::look_for_simple_selector_sequence(const char* start)
   {
     const char* p = start ? start : position;
     const char* q;
@@ -350,11 +358,59 @@ namespace Sass {
     return p;
   }
   
+  const char* Document::look_for_simple_selector(const char* start)
+  {
+    const char* p = start ? start : position;
+    const char* q;
+    (q = peek< id_name >(p)) || (q = peek< class_name >(p)) ||
+    (q = look_for_pseudo(p)) || (q = look_for_attrib(p));
+    // cerr << "looking for simple selector; found:" << endl;
+    // cerr << (q ? string(Token(q,q+8)) : "nothing") << endl;
+    return q;
+  }
   
-
-  
-
-
-
-
+  const char* Document::look_for_pseudo(const char* start)
+  {
+    const char* p = start ? start : position;
+    const char* q;
+    
+    if (q = peek< pseudo_not >(p)) {
+      (q = look_for_simple_selector(q)) && (q = peek< exactly<')'> >(q));
+    }
+    else if (q = peek< sequence< pseudo_prefix, functional > >(p)) {
+      p = q;
+      (q = peek< alternatives< even, odd > >(p)) ||
+      (q = peek< binomial >(p))                  ||
+      (q = peek< sequence< optional<sign>,
+                           optional<digits>,
+                           exactly<'n'> > >(p))  ||
+      (q = peek< sequence< optional<sign>,
+                           digits > >(p));
+      p = q;
+      q = peek< exactly<')'> >(p);
+    }
+    else {
+      q = peek< sequence< pseudo_prefix, identifier > >(p);
+    }
+    // cerr << "looked for a pseudo-thingie" << endl;
+    return q ? q : 0;
+  }
+    
+  const char* Document::look_for_attrib(const char* start)
+  {
+    const char* p = start ? start : position;
+    
+    (p = peek< exactly<'['> >(p))                  &&
+    (p = peek< type_selector >(p))                 &&
+    (p = peek< alternatives<exact_match,
+                            class_match,
+                            dash_match,
+                            prefix_match,
+                            suffix_match,
+                            substring_match> >(p)) &&
+    (p = peek< string_constant >(p))               &&
+    (p = peek< exactly<']'> >(p));
+    
+    return p;
+  }
 }
