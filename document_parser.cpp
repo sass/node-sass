@@ -110,6 +110,7 @@ namespace Sass {
              peek < exactly<'~'> >(position) ||
              peek < exactly<'>'> >(position) ||
              peek < exactly<','> >(position) ||
+             peek < exactly<')'> >(position) ||
              peek < exactly<'{'> >(position))) {
       seq << parse_simple_selector();
     }
@@ -131,9 +132,9 @@ namespace Sass {
   
   Node Document::parse_pseudo() {
     if (lex< pseudo_not >()) {
-      Node ps_not(line_number, Node::functional_pseudo, 2);
+      Node ps_not(line_number, Node::pseudo_negation, 2);
       ps_not << Node(line_number, Node::value, lexed);
-      ps_not << parse_simple_selector();
+      ps_not << parse_selector_group();
       lex< exactly<')'> >();
       return ps_not;
     }
@@ -227,7 +228,7 @@ namespace Sass {
       //   block << parse_ruleset();
       //   block.has_rulesets = true;
       // }
-      else if (look_for_selector_group(position)) {
+      else if (const char* p = look_for_selector_group(position)) {
         block << parse_ruleset();
         block.has_rulesets = true;
       }
@@ -270,27 +271,27 @@ namespace Sass {
     return values;
   }
 
-  const char* Document::look_for_rule(const char* start)
-  {
-    const char* p = start ? start : position;
-    (p = peek< identifier >(p))   &&
-    (p = peek< exactly<':'> >(p)) &&
-    (p = look_for_values(p))      &&
-    (p = peek< alternatives< exactly<';'>, exactly<'}'> > >(p));
-    return p;
-  }
-
-  const char* Document::look_for_values(const char* start)
-  {
-    const char* p = start ? start : position;
-    const char* q;
-    while ((q = peek< identifier >(p)) || (q = peek< dimension >(p))       ||
-           (q = peek< percentage >(p)) || (q = peek< number >(p))          ||
-           (q = peek< hex >(p))        || (q = peek< string_constant >(p)) ||
-           (q = peek< variable >(p)))
-    { p = q; }
-    return p == start ? 0 : p;
-  }
+  // const char* Document::look_for_rule(const char* start)
+  // {
+  //   const char* p = start ? start : position;
+  //   (p = peek< identifier >(p))   &&
+  //   (p = peek< exactly<':'> >(p)) &&
+  //   (p = look_for_values(p))      &&
+  //   (p = peek< alternatives< exactly<';'>, exactly<'}'> > >(p));
+  //   return p;
+  // }
+  // 
+  // const char* Document::look_for_values(const char* start)
+  // {
+  //   const char* p = start ? start : position;
+  //   const char* q;
+  //   while ((q = peek< identifier >(p)) || (q = peek< dimension >(p))       ||
+  //          (q = peek< percentage >(p)) || (q = peek< number >(p))          ||
+  //          (q = peek< hex >(p))        || (q = peek< string_constant >(p)) ||
+  //          (q = peek< variable >(p)))
+  //   { p = q; }
+  //   return p == start ? 0 : p;
+  // }
   
   // NEW LOOKAHEAD FUNCTIONS. THIS ESSENTIALLY IMPLEMENTS A BACKTRACKING
   // PARSER, BECAUSE SELECTORS AND VALUES ARE NOT EXPRESSIBLE IN A
@@ -306,7 +307,8 @@ namespace Sass {
     while ((q = peek< exactly<','> >(p)) && (q = look_for_selector(q)))
     { p = q; }
     
-    return peek< exactly<'{'> >(p) ? p : 0;
+    // return peek< exactly<'{'> >(p) ? p : 0;
+    return peek< alternatives< exactly<'{'>, exactly<')'> > >(p) ? p : 0;
   }
   
   const char* Document::look_for_selector(const char* start)
@@ -351,6 +353,7 @@ namespace Sass {
              peek < exactly<'~'> >(p) ||
              peek < exactly<'>'> >(p) ||
              peek < exactly<','> >(p) ||
+             peek < exactly<')'> >(p) ||
              peek < exactly<'{'> >(p)) &&
            (q = look_for_simple_selector(p)))
     { p = q; }
@@ -375,7 +378,8 @@ namespace Sass {
     const char* q;
     
     if (q = peek< pseudo_not >(p)) {
-      (q = look_for_simple_selector(q)) && (q = peek< exactly<')'> >(q));
+      // (q = look_for_simple_selector(q)) && (q = peek< exactly<')'> >(q));
+      (q = look_for_selector_group(q)) && (q = peek< exactly<')'> >(q));
     }
     else if (q = peek< sequence< pseudo_prefix, functional > >(p)) {
       p = q;
@@ -392,7 +396,6 @@ namespace Sass {
     else {
       q = peek< sequence< pseudo_prefix, identifier > >(p);
     }
-    // cerr << "looked for a pseudo-thingie" << endl;
     return q ? q : 0;
   }
     

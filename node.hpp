@@ -148,7 +148,15 @@ namespace Sass {
     
     string to_string(const string& prefix)
     {
-      if (type == selector) {
+      if (type == selector_group) { // really only needed for arg to :not
+        string result(children->at(0).to_string(""));
+        for (int i = 1; i < children->size(); ++i) {
+          result += ", ";
+          result += children->at(i).to_string("");
+        }
+        return result;
+      }
+      else if (type == selector) {
         string result;
         if (!has_backref && !prefix.empty()) {
           result += prefix;
@@ -175,6 +183,15 @@ namespace Sass {
         for (int i = 0; i < children->size(); ++i) {
           result += children->at(i).to_string(prefix);
         }
+        return result;
+      }
+      else if (type == pseudo_negation) {
+        string result(children->at(0).to_string(prefix));
+        result += children->at(1).to_string(prefix);
+        // for (int i = 1; i < children->size(); ++i) {
+        //   result += children->at(i).to_string("");
+        // }
+        result += ')';
         return result;
       }
       else if (type == functional_pseudo) {
