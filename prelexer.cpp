@@ -140,6 +140,24 @@ namespace Sass {
     const char* percentage(const char* src) {
       return sequence< number, exactly<'%'> >(src);
     }
+    extern const char em_kwd[] = "em";
+    extern const char ex_kwd[] = "ex";
+    extern const char px_kwd[] = "px";
+    extern const char cm_kwd[] = "cm";
+    extern const char mm_kwd[] = "mm";
+    extern const char in_kwd[] = "in";
+    extern const char pt_kwd[] = "pt";
+    extern const char pc_kwd[] = "pc";
+    extern const char deg_kwd[] = "deg";
+    extern const char rad_kwd[] = "rad";
+    extern const char grad_kwd[] = "grad";
+    extern const char ms_kwd[] = "ms";
+    extern const char s_kwd[] = "s";
+    extern const char Hz_kwd[] = "Hz";
+    extern const char kHz_kwd[] = "kHz";
+    const char* em(const char* src) {
+      return sequence< number, exactly<em_kwd> >(src);
+    }
     const char* dimension(const char* src) {
       return sequence<number, identifier>(src);
     }
@@ -156,6 +174,13 @@ namespace Sass {
                        string_constant,
                        optional<spaces>,
                        exactly<')'> >(src);
+    }
+    // Match CSS "!important" keyword.
+    extern const char important_kwd[] = "important";
+    const char* important(const char* src) {
+      return sequence< exactly<'!'>,
+                       spaces_and_comments,
+                       exactly<important_kwd> >(src);
     }
     // Match CSS pseudo-class/element prefixes.
     const char* pseudo_prefix(const char* src) {

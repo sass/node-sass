@@ -57,13 +57,15 @@ char nonbi1[]   = "- n+2";
 char fld1[]     = "blah/bloo/foo.txt";
 char fld2[]     = "/bloo/blee";
 char nonfld1[]  = "blah.txt";
+char imp1[]     = "! /*hey*/ important;";
+char nonimp1[]  = "!imblah";
 
 extern const char slash_star[] = "/*";
 
 prelexer ptr = 0;
 template <prelexer mx>
 void try_and_set(char* src) {
-  char* p = mx(src);
+  const char* p = mx(src);
   if (p) ptr = mx;
 }
 
@@ -108,6 +110,7 @@ int main() {
   check_twice(folder, fld2, nonfld1);
   check_twice(folders, fld1, nonfld1);
   check_twice(folders, fld2, nonfld1);
+  check_twice(important, imp1, nonimp1);
   cout << count_interval<'\n'>(ws1, spaces_and_comments(ws1)) << endl;
   cout << count_interval<'*'>(ws1, spaces_and_comments(ws1)) << endl;
   cout << count_interval<exactly<slash_star> >(ws1, spaces_and_comments(ws1)) << endl;

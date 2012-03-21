@@ -373,6 +373,7 @@ namespace Sass {
     if (lex< exactly<'('> >()) {
       Node value(parse_list());
       value.parenthesized = true;
+      lex< exactly<')'> >();
       return value;
     }
     else {

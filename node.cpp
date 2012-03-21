@@ -110,7 +110,7 @@ namespace Sass {
       } break;
 
       default: {
-        // return string(token);
+        return string(token);
       } break;
     }
   }
