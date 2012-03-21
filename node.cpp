@@ -13,6 +13,108 @@ namespace Sass {
   size_t Node::fresh = 0;
   size_t Node::copied = 0;
   
+  string Node::to_string(const string& prefix)
+  {
+    switch (type)
+    {
+      case selector_group: { // really only needed for arg to :not
+        string result(children->at(0).to_string(""));
+        for (int i = 1; i < children->size(); ++i) {
+          result += ", ";
+          result += children->at(i).to_string("");
+        }
+        return result;
+      } break;
+
+      case selector: {
+        string result;
+        if (!has_backref && !prefix.empty()) {
+          result += prefix;
+          result += ' ';
+        }
+        if (children->at(0).type == selector_combinator) {
+          result += string(children->at(0).token);
+          result += ' ';
+        }
+        else {
+          result += children->at(0).to_string(prefix);
+        }
+        for (int i = 1; i < children->size(); ++i) {
+          result += children->at(i).to_string(prefix);
+        }
+        return result;
+      }  break;
+
+      case selector_combinator: {
+        if (std::isspace(token.begin[0])) return string(" ");
+        else return string(" ") += string(token) += string(" ");
+      } break;
+
+      case simple_selector_sequence: {
+        string result;
+        for (int i = 0; i < children->size(); ++i) {
+          result += children->at(i).to_string(prefix);
+        }
+        return result;
+      }  break;
+
+      case pseudo_negation: {
+        string result(children->at(0).to_string(prefix));
+        result += children->at(1).to_string(prefix);
+        result += ')';
+        return result;
+      } break;
+
+      case functional_pseudo: {
+        string result(children->at(0).to_string(prefix));
+        for (int i = 1; i < children->size(); ++i) {
+          result += children->at(i).to_string(prefix);
+        }
+        result += ')';
+        return result;
+      } break;
+
+      case attribute_selector: {
+        string result("[");
+        result += children->at(0).to_string(prefix);
+        result += children->at(1).to_string(prefix);
+        result += children->at(2).to_string(prefix);
+        result += ']';
+        return result;
+      } break;
+
+      case backref: {
+        return prefix;
+      } break;
+      
+      case comma_list: {
+        string result(children->at(0).to_string(prefix));
+        for (int i = 1; i < children->size(); ++i) {
+          result += ", ";
+          result += children->at(i).to_string(prefix);
+        }
+        return result;
+      } break;
+      
+      case space_list: {
+        string result(children->at(0).to_string(prefix));
+        for (int i = 1; i < children->size(); ++i) {
+          result += " ";
+          result += children->at(i).to_string(prefix);
+        }
+        return result;
+      } break;
+      
+      case value: {
+        return string(token);
+      } break;
+
+      default: {
+        // return string(token);
+      } break;
+    }
+  }
+  
   void Node::echo(stringstream& buf, size_t depth) {
     string indentation(2*depth, ' ');
     switch (type) {
@@ -56,7 +158,7 @@ namespace Sass {
     case rule:
       buf << indentation;
       children->at(0).echo(buf, depth);
-      buf << ':';
+      buf << ": ";
       children->at(1).echo(buf, depth);
       buf << ';' << endl;
       break;
@@ -142,7 +244,7 @@ namespace Sass {
       buf << ";";
       break;
     case property:
-      buf << string(token) << ":";
+      buf << string(token) << ": ";
       break;
     case values:
       for (int i = 0; i < children->size(); ++i) {
@@ -155,6 +257,7 @@ namespace Sass {
       if (depth == 0) buf << endl;
       break;
     default:
+      buf << to_string("");
       break;
     }
   }

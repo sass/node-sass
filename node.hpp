@@ -155,77 +155,7 @@ namespace Sass {
       return *this;
     }
     
-    string to_string(const string& prefix)
-    {
-      if (type == selector_group) { // really only needed for arg to :not
-        string result(children->at(0).to_string(""));
-        for (int i = 1; i < children->size(); ++i) {
-          result += ", ";
-          result += children->at(i).to_string("");
-        }
-        return result;
-      }
-      else if (type == selector) {
-        string result;
-        if (!has_backref && !prefix.empty()) {
-          result += prefix;
-          result += ' ';
-        }
-        if (children->at(0).type == selector_combinator) {
-          result += string(children->at(0).token);
-          result += ' ';
-        }
-        else {
-          result += children->at(0).to_string(prefix);
-        }
-        for (int i = 1; i < children->size(); ++i) {
-          result += children->at(i).to_string(prefix);
-        }
-        return result;
-      }
-      else if (type == selector_combinator) {
-        if (std::isspace(token.begin[0])) return string(" ");
-        else return string(" ") += string(token) += string(" ");
-      }
-      else if (type == simple_selector_sequence) {
-        string result;
-        for (int i = 0; i < children->size(); ++i) {
-          result += children->at(i).to_string(prefix);
-        }
-        return result;
-      }
-      else if (type == pseudo_negation) {
-        string result(children->at(0).to_string(prefix));
-        result += children->at(1).to_string(prefix);
-        // for (int i = 1; i < children->size(); ++i) {
-        //   result += children->at(i).to_string("");
-        // }
-        result += ')';
-        return result;
-      }
-      else if (type == functional_pseudo) {
-        string result(children->at(0).to_string(prefix));
-        for (int i = 1; i < children->size(); ++i) {
-          result += children->at(i).to_string(prefix);
-        }
-        result += ')';
-        return result;
-      }
-      else if (type == attribute_selector) {
-        string result("[");
-        result += children->at(0).to_string(prefix);
-        result += children->at(1).to_string(prefix);
-        result += children->at(2).to_string(prefix);
-        result += ']';
-        return result;
-      }
-      else if (type == backref) {
-        return prefix;
-      }
-      else {
-        return string(token);
-      }
-    }
+    string to_string(const string& prefix);
     
     void release() const { children = 0; }
     

@@ -304,7 +304,8 @@ namespace Sass {
     // if it's a singleton, return it directly; don't wrap it
     if (peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
-        peek< exactly<')'> >(position))
+        peek< exactly<')'> >(position) ||
+        peek< exactly<','> >(position))
     { return expr1; }
     
     Node space_list(line_number, Node::space_list, 2);
@@ -312,7 +313,8 @@ namespace Sass {
     
     while (!(peek< exactly<';'> >(position) ||
              peek< exactly<'}'> >(position) ||
-             peek< exactly<')'> >(position)))
+             peek< exactly<')'> >(position) ||
+             peek< exactly<','> >(position)))
     { space_list << parse_expression(); }
     
     return space_list;
@@ -392,13 +394,6 @@ namespace Sass {
       return Node(line_number, Node::value, lexed);
     }
   }
-
-    
-
-    
-  
-  
-    
 
   // const char* Document::look_for_rule(const char* start)
   // {
