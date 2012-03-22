@@ -46,7 +46,12 @@ namespace Sass {
     const Token key(lexed);
     lex< exactly<':'> >();
     // context.environment[key] = parse_values();
-    context.environment[key] = parse_list();
+    Node val(parse_list());
+    val.from_variable = true;
+    val.eval_me = true;
+    
+    // context.environment[key] = eval(val);
+    context.environment[key] = val;
   }
 
   Node Document::parse_ruleset()
@@ -315,7 +320,8 @@ namespace Sass {
              peek< exactly<'}'> >(position) ||
              peek< exactly<')'> >(position) ||
              peek< exactly<','> >(position)))
-    { space_list << parse_expression(); }
+    // { space_list << eval(parse_expression());
+    {  space_list << parse_expression(); }
     
     return space_list;
   }
@@ -328,7 +334,8 @@ namespace Sass {
           peek< exactly<'-'> >(position)))
     { return term1; }
     
-    Node expression(line_number, Node::expression, 2);
+    Node expression(line_number, Node::expression, 3);
+    term1.eval_me = true;
     expression << term1;
     
     while (lex< exactly<'+'> >() || lex< exactly<'-'> >()) {
@@ -338,7 +345,9 @@ namespace Sass {
       else {
         expression << Node(line_number, Node::sub, lexed);
       }
-      expression << parse_term();
+      Node term(parse_term());
+      term.eval_me = true;
+      expression << term;
     }
     
     return expression;
@@ -352,17 +361,21 @@ namespace Sass {
           peek< exactly<'/'> >(position)))
     { return fact1; }
 
-    Node term(line_number, Node::term, 2);
+    Node term(line_number, Node::term, 3);
     term << fact1;
+    if (fact1.from_variable || fact1.eval_me) term.eval_me = true;
 
     while (lex< exactly<'*'> >() || lex< exactly<'/'> >()) {
       if (lexed.begin[0] == '*') {
         term << Node(line_number, Node::mul, lexed);
+        term.eval_me = true;
       }
       else {
         term << Node(line_number, Node::div, lexed);
       }
-      term << parse_factor();
+      Node fact(parse_factor());
+      if (fact.from_variable || fact.eval_me) term.eval_me = true;
+      term << fact;
     }
 
     return term;
@@ -372,7 +385,7 @@ namespace Sass {
   {
     if (lex< exactly<'('> >()) {
       Node value(parse_list());
-      value.parenthesized = true;
+      value.eval_me = true;
       lex< exactly<')'> >();
       return value;
     }

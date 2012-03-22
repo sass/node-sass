@@ -78,7 +78,6 @@ namespace Sass {
     }
   }
   
-  using std::lexicographical_compare;
   bool Token::operator<(const Token& rhs) const
   {
     const char* first1 = begin;
@@ -93,4 +92,19 @@ namespace Sass {
     }
     return (first2!=last2);
   }
+  
+  bool Token::operator==(const Token& rhs) const
+  {
+    if (length() != rhs.length()) return false;
+    
+    if ((begin[0]     == '"' || begin[0]     == '\'') &&
+        (rhs.begin[0] == '"' || rhs.begin[0] == '\''))
+    { return unquote() == rhs.unquote(); }
+    
+    const char* p = begin;
+    const char* q = rhs.begin;
+    for (; p < end; ++p, ++q) if (*p != *q) return false;
+    return true;
+  }
+    
 }

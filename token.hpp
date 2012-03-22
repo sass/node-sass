@@ -11,6 +11,9 @@ namespace Sass {
 
     Token();
     Token(const char* begin, const char* end);
+    
+    size_t length() const
+    { return end - begin; }
 
     inline operator string() const
     { return string(begin, end - begin); }
@@ -19,6 +22,7 @@ namespace Sass {
     void unquote_to_stream(std::stringstream& buf) const;
     
     bool operator<(const Token& rhs) const;
+    bool operator==(const Token& rhs) const;
     
     operator bool()
     { return begin && end && begin >= end; }

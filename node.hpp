@@ -9,11 +9,10 @@ namespace Sass {
 
   struct Node {
     enum Type {
-      nil,
       root,
-      comment,
       ruleset,
       propset,
+
       selector_group,
       selector,
       selector_combinator,
@@ -27,20 +26,31 @@ namespace Sass {
       pseudo_negation,
       functional_pseudo,
       attribute_selector,
+
       block,
       rule,
       property,
+
+      nil,
       comma_list,
       space_list,
+
       expression,
       add,
       sub,
+
       term,
       mul,
       div,
+
       factor,
       values,
-      value
+      value,
+      dimension,
+      numeric_dimension,
+      number,
+      
+      comment
     };
     
     static size_t fresh;
@@ -49,12 +59,14 @@ namespace Sass {
     size_t line_number;
     mutable vector<Node>* children;
     Token token;
+    double numeric_value;
     Type type;
     bool has_rules_or_comments;
     bool has_rulesets;
     bool has_propsets;
     bool has_backref;
-    bool parenthesized;
+    bool from_variable;
+    bool eval_me;
     
     Node() : type(nil), children(0) { ++fresh; }
   
@@ -62,48 +74,56 @@ namespace Sass {
     : line_number(n.line_number),
       children(n.children),
       token(n.token),
+      numeric_value(n.numeric_value),
       type(n.type),
       has_rules_or_comments(n.has_rules_or_comments),
       has_rulesets(n.has_rulesets),
       has_propsets(n.has_propsets),
       has_backref(n.has_backref),
-      parenthesized(n.parenthesized)
+      from_variable(n.from_variable),
+      eval_me(n.eval_me)
     { /*n.release();*/ ++copied; } // No joint custody.
   
     Node(size_t line_number, Type type, size_t length = 0)
     : line_number(line_number),
       children(new vector<Node>),
       token(Token()),
+      numeric_value(0),
       type(type),
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
       has_backref(false),
-      parenthesized(false)
+      from_variable(false),
+      eval_me(false)
     { children->reserve(length); ++fresh; }
     
     Node(size_t line_number, Type type, const Node& n)
     : line_number(line_number),
       children(new vector<Node>(1, n)),
       token(Token()),
+      numeric_value(0),
       type(type),
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
       has_backref(false),
-      parenthesized(false)
+      from_variable(false),
+      eval_me(false)
     { ++fresh; }
     
     Node(size_t line_number, Type type, const Node& n, const Node& m)
     : line_number(line_number),
       children(new vector<Node>),
       token(Token()),
+      numeric_value(0),
       type(type),
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
       has_backref(false),
-      parenthesized(false)
+      from_variable(false),
+      eval_me(false)
     {
       children->reserve(2);
       children->push_back(n);
@@ -115,12 +135,42 @@ namespace Sass {
     : line_number(line_number),
       children(0),
       token(token),
+      numeric_value(0),
       type(type),
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
       has_backref(false),
-      parenthesized(false)
+      from_variable(false),
+      eval_me(false)
+    { ++fresh; }
+    
+    Node(size_t line_number, double d)
+    : line_number(line_number),
+      children(0),
+      token(Token()),
+      numeric_value(d),
+      type(number),
+      has_rules_or_comments(false),
+      has_rulesets(false),
+      has_propsets(false),
+      has_backref(false),
+      from_variable(false),
+      eval_me(false)
+    { ++fresh; }
+    
+    Node(size_t line_number, double d, Token& token)
+    : line_number(line_number),
+      children(0),
+      token(token),
+      numeric_value(d),
+      type(numeric_dimension),
+      has_rules_or_comments(false),
+      has_rulesets(false),
+      has_propsets(false),
+      has_backref(false),
+      from_variable(false),
+      eval_me(false)
     { ++fresh; }
     
     //~Node() { delete children; }
@@ -131,12 +181,14 @@ namespace Sass {
       children = n.children;
       // n.release();
       token = n.token;
+      numeric_value = n.numeric_value;
       type = n.type;
       has_rules_or_comments = n.has_rules_or_comments;
       has_rulesets = n.has_rulesets;
       has_propsets = n.has_propsets;
       has_backref = n.has_backref;
-      parenthesized = n.parenthesized;
+      from_variable = n.from_variable;
+      eval_me = n.eval_me;
       ++copied;
       return *this;
     }

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <cctype>
+#include <cstdlib>
 #include "node.hpp"
 
 using std::string;
@@ -105,8 +106,26 @@ namespace Sass {
         return result;
       } break;
       
-      case value: {
-        return string(token);
+      case expression:
+      case term: {
+        string result(children->at(0).to_string(prefix));
+        for (int i = 2; i < children->size(); i += 2) {
+          // result += " ";
+          result += children->at(i).to_string(prefix);
+        }
+        return result;
+      } break;
+      
+      case numeric_dimension: {
+        stringstream ss;
+        ss << numeric_value << string(token);
+        return ss.str();
+      } break;
+      
+      case number: {
+        stringstream ss;
+        ss << numeric_value;
+        return ss.str();
       } break;
 
       default: {
