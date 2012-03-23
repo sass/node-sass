@@ -1,3 +1,5 @@
+#define SASS_NODE_INCLUDED
+
 #include <vector>
 #include <sstream>
 #include "token.hpp"
@@ -46,10 +48,17 @@ namespace Sass {
       factor,
       values,
       value,
-      dimension,
+      identifier,
+      uri,
+      textual_percentage,
+      textual_dimension,
+      textual_number,
+      textual_hex,
+      string_constant,
+      numeric_percentage,
       numeric_dimension,
       number,
-      
+
       comment
     };
     
@@ -67,6 +76,7 @@ namespace Sass {
     bool has_backref;
     bool from_variable;
     bool eval_me;
+    bool is_hex;
     
     Node() : type(nil), children(0) { ++fresh; }
   
@@ -81,7 +91,8 @@ namespace Sass {
       has_propsets(n.has_propsets),
       has_backref(n.has_backref),
       from_variable(n.from_variable),
-      eval_me(n.eval_me)
+      eval_me(n.eval_me),
+      is_hex(n.is_hex)
     { /*n.release();*/ ++copied; } // No joint custody.
   
     Node(size_t line_number, Type type, size_t length = 0)
@@ -95,7 +106,8 @@ namespace Sass {
       has_propsets(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false)
+      eval_me(false),
+      is_hex(false)
     { children->reserve(length); ++fresh; }
     
     Node(size_t line_number, Type type, const Node& n)
@@ -109,7 +121,8 @@ namespace Sass {
       has_propsets(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false)
+      eval_me(false),
+      is_hex(false)
     { ++fresh; }
     
     Node(size_t line_number, Type type, const Node& n, const Node& m)
@@ -123,7 +136,8 @@ namespace Sass {
       has_propsets(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false)
+      eval_me(false),
+      is_hex(false)
     {
       children->reserve(2);
       children->push_back(n);
@@ -142,7 +156,8 @@ namespace Sass {
       has_propsets(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false)
+      eval_me(false),
+      is_hex(false)
     { ++fresh; }
     
     Node(size_t line_number, double d)
@@ -156,7 +171,8 @@ namespace Sass {
       has_propsets(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false)
+      eval_me(false),
+      is_hex(false)
     { ++fresh; }
     
     Node(size_t line_number, double d, Token& token)
@@ -170,7 +186,8 @@ namespace Sass {
       has_propsets(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false)
+      eval_me(false),
+      is_hex(false)
     { ++fresh; }
     
     //~Node() { delete children; }
@@ -189,6 +206,7 @@ namespace Sass {
       has_backref = n.has_backref;
       from_variable = n.from_variable;
       eval_me = n.eval_me;
+      is_hex = n.is_hex;
       ++copied;
       return *this;
     }
@@ -207,7 +225,7 @@ namespace Sass {
       return *this;
     }
     
-    string to_string(const string& prefix);
+    string to_string(const string& prefix) const;
     
     void release() const { children = 0; }
     

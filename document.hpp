@@ -1,5 +1,9 @@
 #include <map>
+
+#ifndef SASS_NODE_INCLUDED
 #include "node.hpp"
+#endif
+
 #include "context.hpp"
 
 namespace Sass {

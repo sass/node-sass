@@ -1,4 +1,5 @@
 #include "document.hpp"
+#include "evaluator.hpp"
 #include <iostream>
 
 namespace Sass {
@@ -50,8 +51,8 @@ namespace Sass {
     val.from_variable = true;
     val.eval_me = true;
     
-    // context.environment[key] = eval(val);
-    context.environment[key] = val;
+    context.environment[key] = eval(val);
+    // context.environment[key] = val;
   }
 
   Node Document::parse_ruleset()
@@ -311,17 +312,19 @@ namespace Sass {
         peek< exactly<'}'> >(position) ||
         peek< exactly<')'> >(position) ||
         peek< exactly<','> >(position))
-    { return expr1; }
+    { return expr1.eval_me ? eval(expr1) : expr1; }
     
     Node space_list(line_number, Node::space_list, 2);
-    space_list << expr1;
+    // space_list << expr1;
+    space_list << (expr1.eval_me ? eval(expr1) : expr1);
     
     while (!(peek< exactly<';'> >(position) ||
              peek< exactly<'}'> >(position) ||
              peek< exactly<')'> >(position) ||
              peek< exactly<','> >(position)))
-    // { space_list << eval(parse_expression());
-    {  space_list << parse_expression(); }
+    { Node expr(parse_expression());
+      space_list << (expr.eval_me ? eval(expr) : expr); }
+    // {  space_list << parse_expression(); }
     
     return space_list;
   }
@@ -336,6 +339,7 @@ namespace Sass {
     
     Node expression(line_number, Node::expression, 3);
     term1.eval_me = true;
+    cerr << "Parsed an initial term: " << term1.to_string("") << endl;
     expression << term1;
     
     while (lex< exactly<'+'> >() || lex< exactly<'-'> >()) {
@@ -350,6 +354,8 @@ namespace Sass {
       expression << term;
     }
     
+    expression.eval_me = true;
+    cerr << "parsed an expression: " << expression.to_string("") << endl;
     return expression;
   }
   
@@ -378,6 +384,11 @@ namespace Sass {
       term << fact;
     }
 
+    // if (term.eval_me) {
+    //   for (int i = 0; i < term.children->size(); i += 2) {
+    //     term.children->at(i).eval_me = true;
+    //   }
+    // }
     return term;
   }
   
@@ -386,6 +397,9 @@ namespace Sass {
     if (lex< exactly<'('> >()) {
       Node value(parse_list());
       value.eval_me = true;
+      if (value.type == Node::comma_list || value.type == Node::space_list) {
+        value.children->front().eval_me = true;
+      }
       lex< exactly<')'> >();
       return value;
     }
@@ -396,17 +410,26 @@ namespace Sass {
   
   Node Document::parse_value()
   {
-    lex< identifier >() || lex < dimension >()       ||
-    lex< percentage >() || lex < number >()          ||
-    lex< hex >()        || lex < string_constant >() ||
-    lex< variable >();
+    if (lex< identifier >())
+    { return Node(line_number, Node::identifier, lexed); }
 
-    if (lexed.begin[0] == '$') {
-      return context.environment[lexed];
-    }
-    else {
-      return Node(line_number, Node::value, lexed);
-    }
+    if (lex< percentage >())
+    { return Node(line_number, Node::textual_percentage, lexed); }
+
+    if (lex< dimension >())
+    { return Node(line_number, Node::textual_dimension, lexed); }
+
+    if (lex< number >())
+    { return Node(line_number, Node::textual_number, lexed); }
+
+    if (lex< hex >())
+    { return Node(line_number, Node::textual_hex, lexed); }
+
+    if (lex< string_constant >())
+    { return Node(line_number, Node::string_constant, lexed); }
+
+    if (lex< variable >())
+    { return context.environment[lexed]; }
   }
 
   // const char* Document::look_for_rule(const char* start)

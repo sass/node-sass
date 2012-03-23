@@ -14,7 +14,7 @@ namespace Sass {
   size_t Node::fresh = 0;
   size_t Node::copied = 0;
   
-  string Node::to_string(const string& prefix)
+  string Node::to_string(const string& prefix) const
   {
     switch (type)
     {
@@ -109,21 +109,32 @@ namespace Sass {
       case expression:
       case term: {
         string result(children->at(0).to_string(prefix));
-        for (int i = 2; i < children->size(); i += 2) {
-          // result += " ";
-          result += children->at(i).to_string(prefix);
+        // for (int i = 2; i < children->size(); i += 2) {
+        //   // result += " ";
+        //   result += children->at(i).to_string(prefix);
+        // }
+        for (int i = 1; i < children->size(); ++i) {
+          if (!(children->at(i).type == add ||
+                children->at(i).type == sub ||
+                children->at(i).type == mul)) {
+            result += children->at(i).to_string(prefix);
+          }
         }
         return result;
       } break;
       
       case numeric_dimension: {
         stringstream ss;
+        // ss.setf(std::ios::fixed, std::ios::floatfield);
+        // ss.precision(3);
         ss << numeric_value << string(token);
         return ss.str();
       } break;
       
       case number: {
         stringstream ss;
+        // ss.setf(std::ios::fixed, std::ios::floatfield);
+        // ss.precision(3);
         ss << numeric_value;
         return ss.str();
       } break;
