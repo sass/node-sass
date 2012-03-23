@@ -152,19 +152,19 @@ namespace Sass {
         double a = children->at(0).numeric_value;
         double b = children->at(1).numeric_value;
         double c = children->at(2).numeric_value;
-        if (a > 0xff && b > 0xff && c > 0xff)
+        if (a >= 0xff && b >= 0xff && c >= 0xff)
         { return "white"; }
-        else if (a > 0xff && b > 0xff && c == 0)
+        else if (a >= 0xff && b >= 0xff && c == 0)
         { return "yellow"; }
-        else if (a == 0 && b > 0xff && c > 0xff)
+        else if (a == 0 && b >= 0xff && c >= 0xff)
         { return "aqua"; } 
-        else if (a > 0xff && b == 0 && c > 0xff)
+        else if (a >= 0xff && b == 0 && c >= 0xff)
         { return "fuchsia"; }
-        else if (a > 0xff && b == 0 && c == 0)
+        else if (a >= 0xff && b == 0 && c == 0)
         { return "red"; }
-        else if (a == 0 && b > 0xff && c == 0)
-        { return "green"; }
-        else if (a == 0 && b == 0 && c > 0xff)
+        else if (a == 0 && b >= 0xff && c == 0)
+        { return "lime"; }
+        else if (a == 0 && b == 0 && c >= 0xff)
         { return "blue"; }
         else if (a <= 0 && b <= 0 && c <= 0)
         { return "black"; }

@@ -166,10 +166,17 @@ namespace Sass {
       int len = p - src;
       return (len != 4 && len != 7) ? 0 : p;
     }
+    extern const char rgb_kwd[] = "rgb(";
+    const char* rgb_prefix(const char* src) {
+      return exactly<rgb_kwd>(src);
+    }
     // Match CSS uri specifiers.
-    extern const char url_call[] = "url(";
+    extern const char url_kwd[] = "url(";
+    const char* uri_prefix(const char* src) {
+      return exactly<url_kwd>(src);
+    }
     const char* uri(const char* src) {
-      return sequence< exactly<url_call>,
+      return sequence< exactly<url_kwd>,
                        optional<spaces>,
                        string_constant,
                        optional<spaces>,

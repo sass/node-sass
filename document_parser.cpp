@@ -246,7 +246,7 @@ namespace Sass {
       else if (!peek< exactly<';'> >()) {
         block << parse_rule();
         block.has_rules_or_comments = true;
-        semicolon = true;
+        semicolon = true;        
       }
       else lex< exactly<';'> >();
     }
@@ -438,6 +438,29 @@ namespace Sass {
   
   Node Document::parse_value()
   {
+    if (lex< uri_prefix >())
+    {
+      lex< string_constant >();
+      Node result(line_number, Node::uri, lexed);
+      lex< exactly<')'> >();
+      return result;
+    }
+    
+    if (lex< rgb_prefix >())
+    {
+      Node result(line_number, Node::hex_triple, 3);
+      lex< number >();
+      result << Node(line_number, std::atof(lexed.begin));
+      lex< exactly<','> >();
+      lex< number >();
+      result << Node(line_number, std::atof(lexed.begin));
+      lex< exactly<','> >();
+      lex< number >();
+      result << Node(line_number, std::atof(lexed.begin));
+      lex< exactly<')'> >();
+      return result;
+    }
+
     if (lex< identifier >())
     { return Node(line_number, Node::identifier, lexed); }
 
