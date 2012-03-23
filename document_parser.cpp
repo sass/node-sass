@@ -357,7 +357,6 @@ namespace Sass {
     
     Node expression(line_number, Node::expression, 3);
     term1.eval_me = true;
-    cerr << "Parsed an initial term: " << term1.to_string("") << endl;
     expression << term1;
     
     while (lex< exactly<'+'> >() || lex< exactly<'-'> >()) {
@@ -373,7 +372,17 @@ namespace Sass {
     }
     
     expression.eval_me = true;
-    cerr << "parsed an expression: " << expression.to_string("") << endl;
+    // for (int i = 0; i < expression.children->size(); ++i) {
+    //   Node::Type t = expression.children->at(i).type;
+    //   if (t == Node::string_constant ||
+    //       t == Node::uri             ||
+    //       t == Node::identifier      ||
+    //       t == Node::comma_list      ||
+    //       t == Node::space_list      ||
+    //       t == Node::nil             ||
+    //       t == Node::expression && !expression.children->at(i).eval_me)
+    //   { expression.eval_me = false; }
+    // }
     return expression;
   }
   

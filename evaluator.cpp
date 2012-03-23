@@ -7,7 +7,6 @@ namespace Sass {
 
   Node eval(const Node& expr)
   {
-    cerr << "evaluating type " << expr.type << ": " << expr.to_string("") << endl;
     switch (expr.type)
     {
       case Node::comma_list:
@@ -22,7 +21,6 @@ namespace Sass {
         Node acc(expr.line_number, Node::expression, eval(expr.children->at(0)));
         Node rhs(eval(expr.children->at(2)));
         accumulate(expr.children->at(1).type, acc, rhs);
-        cerr << "blah" << endl;
         for (int i = 3; i < expr.children->size(); i += 2) {
           Node rhs(eval(expr.children->at(i+1)));
           accumulate(expr.children->at(i).type, acc, rhs);
@@ -78,17 +76,13 @@ namespace Sass {
     double lnum = lhs.numeric_value;
     double rnum = rhs.numeric_value;
     
-    // cerr << "accumulate's args: " << lhs.to_string("") << "\t" << rhs.to_string("") << endl;
-    // cerr << "accumulate's arg types: " << lhs.type << "\t" << rhs.type << endl;
-    // cerr << endl;
-    
     if (lhs.type == Node::number && rhs.type == Node::number) {
       Node result(acc.line_number, operate(op, lnum, rnum));
-      // cerr << "accumulate just made a node: " << result.to_string("") << "\t" << result.type << endl;
       acc.children->pop_back();
       acc.children->push_back(result);
     }
     else if (lhs.type == Node::number && rhs.type == Node::numeric_dimension) {
+      // TO DO: disallow division
       Node result(acc.line_number, operate(op, lnum, rnum), rhs.token);
       acc.children->pop_back();
       acc.children->push_back(result);
@@ -99,13 +93,17 @@ namespace Sass {
       acc.children->push_back(result);
     }
     else if (lhs.type == Node::numeric_dimension && rhs.type == Node::numeric_dimension) {
-    // TO DO: CHECK FOR MISMATCHED UNITS HERE
-      Node result(acc.line_number, operate(op, lnum, rnum), lhs.token);
+      // TO DO: CHECK FOR MISMATCHED UNITS HERE
+      Node result;
+      if (op == Node::div)
+      { result = Node(acc.line_number, operate(op, lnum, rnum)); }
+      else
+      { result = Node(acc.line_number, operate(op, lnum, rnum), lhs.token); }
       acc.children->pop_back();
       acc.children->push_back(result);
     }
     else {
-      // cerr << "accumulate: didn't do anything" << endl;
+      // TO DO: disallow division and multiplication on lists
       acc.children->push_back(rhs);
     }
 
@@ -114,6 +112,7 @@ namespace Sass {
 
   double operate(const Node::Type op, double lhs, double rhs)
   {
+    // TO DO: check for division by zero
     switch (op)
     {
       case Node::add: return lhs + rhs; break;
