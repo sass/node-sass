@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <cctype>
 #include <cstdlib>
@@ -136,6 +137,15 @@ namespace Sass {
         // ss.setf(std::ios::fixed, std::ios::floatfield);
         // ss.precision(3);
         ss << numeric_value;
+        return ss.str();
+      } break;
+      
+      case hex_triple: {
+        stringstream ss;
+        ss << '#' << std::setw(2) << std::setfill('0');
+        for (int i = 0; i < 3; ++i) {
+          ss  << std::hex << std::setw(2) << static_cast<long>(children->at(i).numeric_value);
+        }
         return ss.str();
       } break;
 

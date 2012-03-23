@@ -57,10 +57,29 @@ namespace Sass {
       } break;
 
       case Node::textual_hex: {
-        long numval = std::strtol(expr.token.begin + 1, NULL, 16);
-        Node result(expr.line_number, numval);
-        result.is_hex = true;
-        return result;
+        // long numval = std::strtol(expr.token.begin + 1, NULL, 16);
+        // Node result(expr.line_number, numval);
+        // result.is_hex = true;
+        // return result;
+        
+        Node triple(expr.line_number, Node::hex_triple, 3);
+        Token hext(expr.token.begin+1, expr.token.end);
+        
+        if (hext.length() == 6) {
+          for (int i = 0; i < 6; i += 2) {
+            Node thing(expr.line_number, static_cast<double>(std::strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
+            cerr << "evaled a hex triplet: " << thing.to_string("") << endl;
+            triple << Node(expr.line_number, static_cast<double>(std::strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
+          }
+        }
+        else {
+          for (int i = 0; i < 3; ++i) {
+            triple << Node(expr.line_number, static_cast<double>(std::strtol(string(2, hext.begin[i]).c_str(), NULL, 16)));
+          }
+        }
+        
+        return triple;
+        
       } break;
       
       default: {

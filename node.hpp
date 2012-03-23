@@ -58,6 +58,7 @@ namespace Sass {
       numeric_percentage,
       numeric_dimension,
       number,
+      hex_triple,
 
       comment
     };
