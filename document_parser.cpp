@@ -51,7 +51,11 @@ namespace Sass {
     val.from_variable = true;
     val.eval_me = true;
     
-    context.environment[key] = eval(val);
+    Node evaled(eval(val));
+    evaled.from_variable = true;
+    val.eval_me = true;
+    
+    context.environment[key] = evaled;
     // context.environment[key] = val;
   }
 
@@ -281,16 +285,29 @@ namespace Sass {
   
   Node Document::parse_list()
   {
-    if (peek< exactly<';'> >(position) ||
-        peek< exactly<'}'> >(position) ||
-        peek< exactly<')'> >(position))
-    { return Node(line_number, Node::nil); }
-    else
-    { return parse_comma_list(); }
+
+    Node val(parse_comma_list());
+    if (val.type != Node::comma_list && val.type != Node::space_list && val.eval_me) {
+      return eval(val);
+    }
+    else if (val.type == Node::comma_list || val.type == Node::space_list) {
+      for (int i = 0; i < val.children->size(); ++i) {
+        if (val.children->at(i).eval_me) {
+          val.children->at(i) = eval(val.children->at(i));
+        }
+      }
+    }
+    return val;
+      // return parse_comma_list();
   }
   
   Node Document::parse_comma_list()
   {
+    if (peek< exactly<';'> >(position) ||
+        peek< exactly<'}'> >(position) ||
+        peek< exactly<')'> >(position)) {
+      return Node(line_number, Node::nil);
+    }
     Node list1(parse_space_list());
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< exactly<','> >(position)) return list1;
@@ -312,19 +329,20 @@ namespace Sass {
         peek< exactly<'}'> >(position) ||
         peek< exactly<')'> >(position) ||
         peek< exactly<','> >(position))
-    { return expr1.eval_me ? eval(expr1) : expr1; }
+    // { return expr1.eval_me ? eval(expr1) : expr1; }
+    { return expr1; }
     
     Node space_list(line_number, Node::space_list, 2);
-    // space_list << expr1;
-    space_list << (expr1.eval_me ? eval(expr1) : expr1);
+    space_list << expr1;
+    // space_list << (expr1.eval_me ? eval(expr1) : expr1);
     
     while (!(peek< exactly<';'> >(position) ||
              peek< exactly<'}'> >(position) ||
              peek< exactly<')'> >(position) ||
              peek< exactly<','> >(position)))
-    { Node expr(parse_expression());
-      space_list << (expr.eval_me ? eval(expr) : expr); }
-    // {  space_list << parse_expression(); }
+    // { Node expr(parse_expression());
+    //       space_list << (expr.eval_me ? eval(expr) : expr); }
+    {  space_list << parse_expression(); }
     
     return space_list;
   }
@@ -395,7 +413,8 @@ namespace Sass {
   Node Document::parse_factor()
   {
     if (lex< exactly<'('> >()) {
-      Node value(parse_list());
+      // Node value(parse_list());
+      Node value(parse_comma_list());
       value.eval_me = true;
       if (value.type == Node::comma_list || value.type == Node::space_list) {
         value.children->front().eval_me = true;

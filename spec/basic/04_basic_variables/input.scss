@@ -6,3 +6,17 @@ a {
   color: $color;
   background: $background;
 }
+
+$y: before;
+
+$x: 1 2 $y;
+
+foo {
+  a: $x;
+}
+
+$y: after;
+
+foo {
+  a: $x;
+}
