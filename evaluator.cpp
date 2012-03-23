@@ -56,19 +56,12 @@ namespace Sass {
         return Node(expr.line_number, numval);
       } break;
 
-      case Node::textual_hex: {
-        // long numval = std::strtol(expr.token.begin + 1, NULL, 16);
-        // Node result(expr.line_number, numval);
-        // result.is_hex = true;
-        // return result;
-        
+      case Node::textual_hex: {        
         Node triple(expr.line_number, Node::hex_triple, 3);
         Token hext(expr.token.begin+1, expr.token.end);
-        
         if (hext.length() == 6) {
           for (int i = 0; i < 6; i += 2) {
             Node thing(expr.line_number, static_cast<double>(std::strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
-            cerr << "evaled a hex triplet: " << thing.to_string("") << endl;
             triple << Node(expr.line_number, static_cast<double>(std::strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
           }
         }
@@ -77,9 +70,7 @@ namespace Sass {
             triple << Node(expr.line_number, static_cast<double>(std::strtol(string(2, hext.begin[i]).c_str(), NULL, 16)));
           }
         }
-        
-        return triple;
-        
+        return triple;       
       } break;
       
       default: {
@@ -87,7 +78,6 @@ namespace Sass {
       }
     }
   }
-
 
   Node accumulate(const Node::Type op, Node& acc, Node& rhs)
   {
@@ -100,6 +90,7 @@ namespace Sass {
       acc.children->pop_back();
       acc.children->push_back(result);
     }
+    // TO DO: find a way to merge the following two clauses
     else if (lhs.type == Node::number && rhs.type == Node::numeric_dimension) {
       // TO DO: disallow division
       Node result(acc.line_number, operate(op, lnum, rnum), rhs.token);
@@ -120,6 +111,42 @@ namespace Sass {
       { result = Node(acc.line_number, operate(op, lnum, rnum), lhs.token); }
       acc.children->pop_back();
       acc.children->push_back(result);
+    }
+    // TO DO: find a way to merge the following two clauses
+    else if (lhs.type == Node::number && rhs.type == Node::hex_triple) {
+      if (op != Node::sub && op != Node::div) {
+        double h1 = operate(op, lhs.numeric_value, rhs.children->at(0).numeric_value);
+        double h2 = operate(op, lhs.numeric_value, rhs.children->at(1).numeric_value);
+        double h3 = operate(op, lhs.numeric_value, rhs.children->at(2).numeric_value);
+        acc.children->pop_back();
+        acc << Node(acc.line_number, h1, h2, h3);
+      }
+      // trying to handle weird edge cases ... not sure if it's worth it
+      else if (op == Node::div) {
+        acc << Node(acc.line_number, Node::div);
+        acc << rhs;
+      }
+      else if (op == Node::sub) {
+        acc << Node(acc.line_number, Node::sub);
+        acc << rhs;
+      }
+      else {
+        acc << rhs;
+      }
+    }
+    else if (lhs.type == Node::hex_triple && rhs.type == Node::number) {
+      double h1 = operate(op, lhs.children->at(0).numeric_value, rhs.numeric_value);
+      double h2 = operate(op, lhs.children->at(1).numeric_value, rhs.numeric_value);
+      double h3 = operate(op, lhs.children->at(2).numeric_value, rhs.numeric_value);
+      acc.children->pop_back();
+      acc << Node(acc.line_number, h1, h2, h3);
+    }
+    else if (lhs.type == Node::hex_triple && rhs.type == Node::hex_triple) {
+      double h1 = operate(op, lhs.children->at(0).numeric_value, rhs.children->at(0).numeric_value);
+      double h2 = operate(op, lhs.children->at(1).numeric_value, rhs.children->at(1).numeric_value);
+      double h3 = operate(op, lhs.children->at(2).numeric_value, rhs.children->at(2).numeric_value);
+      acc.children->pop_back();
+      acc << Node(acc.line_number, h1, h2, h3);
     }
     else {
       // TO DO: disallow division and multiplication on lists

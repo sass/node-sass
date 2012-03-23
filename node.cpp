@@ -78,9 +78,8 @@ namespace Sass {
 
       case attribute_selector: {
         string result("[");
-        result += children->at(0).to_string(prefix);
-        result += children->at(1).to_string(prefix);
-        result += children->at(2).to_string(prefix);
+        for (int i = 0; i < 3; ++i)
+        { result += children->at(i).to_string(prefix); }
         result += ']';
         return result;
       } break;
@@ -116,12 +115,21 @@ namespace Sass {
         // }
         for (int i = 1; i < children->size(); ++i) {
           if (!(children->at(i).type == add ||
-                children->at(i).type == sub ||
+                // children->at(i).type == sub ||  // another edge case -- consider uncommenting
                 children->at(i).type == mul)) {
             result += children->at(i).to_string(prefix);
           }
         }
         return result;
+      } break;
+      
+      //edge case
+      case sub: {
+        return "-";
+      } break;
+      
+      case div: {
+        return "/";
       } break;
       
       case numeric_dimension: {
@@ -141,12 +149,37 @@ namespace Sass {
       } break;
       
       case hex_triple: {
-        stringstream ss;
-        ss << '#' << std::setw(2) << std::setfill('0');
-        for (int i = 0; i < 3; ++i) {
-          ss  << std::hex << std::setw(2) << static_cast<long>(children->at(i).numeric_value);
+        double a = children->at(0).numeric_value;
+        double b = children->at(1).numeric_value;
+        double c = children->at(2).numeric_value;
+        if (a > 0xff && b > 0xff && c > 0xff)
+        { return "white"; }
+        else if (a > 0xff && b > 0xff && c == 0)
+        { return "yellow"; }
+        else if (a == 0 && b > 0xff && c > 0xff)
+        { return "aqua"; } 
+        else if (a > 0xff && b == 0 && c > 0xff)
+        { return "fuchsia"; }
+        else if (a > 0xff && b == 0 && c == 0)
+        { return "red"; }
+        else if (a == 0 && b > 0xff && c == 0)
+        { return "green"; }
+        else if (a == 0 && b == 0 && c > 0xff)
+        { return "blue"; }
+        else if (a <= 0 && b <= 0 && c <= 0)
+        { return "black"; }
+        else
+        {
+          stringstream ss;
+          ss << '#' << std::setw(2) << std::setfill('0') << std::hex;
+          for (int i = 0; i < 3; ++i) {
+            double x = children->at(i).numeric_value;
+            if (x > 0xff) x = 0xff;
+            else if (x < 0) x = 0;
+            ss  << std::hex << std::setw(2) << static_cast<unsigned long>(x);
+          }
+          return ss.str();
         }
-        return ss.str();
       } break;
 
       default: {
@@ -218,12 +251,14 @@ namespace Sass {
                              size_t depth,
                              const vector<string>& prefixes)
   {
-    switch (type) {
+    switch (type)
+    {
     case root:
       for (int i = 0; i < children->size(); ++i) {
         children->at(i).emit_nested_css(buf, depth, prefixes);
       }
       break;
+
     case ruleset: {
       Node sel_group(children->at(0));
       Node block(children->at(1));
@@ -268,6 +303,7 @@ namespace Sass {
       if (block.has_rules_or_comments) --depth;
       if (depth == 0 && prefixes.empty()) buf << endl;
     } break;
+
     default:
       emit_nested_css(buf, depth); // pass it along to the simpler version
       break;
@@ -276,26 +312,31 @@ namespace Sass {
   
   void Node::emit_nested_css(stringstream& buf, size_t depth)
   {
-    switch (type) {
+    switch (type)
+    {
     case rule:
       buf << endl << string(2*depth, ' ');
       children->at(0).emit_nested_css(buf, depth); // property
       children->at(1).emit_nested_css(buf, depth); // values
       buf << ";";
       break;
+
     case property:
       buf << string(token) << ": ";
       break;
+
     case values:
       for (int i = 0; i < children->size(); ++i) {
         buf << " " << string(children->at(i).token);
       }
       break;
+
     case comment:
       if (depth != 0) buf << endl;
       buf << string(2*depth, ' ') << string(token);
       if (depth == 0) buf << endl;
       break;
+
     default:
       buf << to_string("");
       break;

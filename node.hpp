@@ -191,6 +191,27 @@ namespace Sass {
       is_hex(false)
     { ++fresh; }
     
+    Node(size_t line_number, double a, double b, double c)
+    : line_number(line_number),
+      children(new vector<Node>()),
+      token(Token()),
+      numeric_value(0),
+      type(hex_triple),
+      has_rules_or_comments(false),
+      has_rulesets(false),
+      has_propsets(false),
+      has_backref(false),
+      from_variable(false),
+      eval_me(false),
+      is_hex(true)
+    {
+      children->reserve(3);
+      children->push_back(Node(line_number, a));
+      children->push_back(Node(line_number, b));
+      children->push_back(Node(line_number, c));
+      ++fresh;
+    }
+    
     //~Node() { delete children; }
     
     Node& operator=(const Node& n)
