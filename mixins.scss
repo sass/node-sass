@@ -1,0 +1,33 @@
+$x: global-x;
+$y: global-y;
+$z: global-z;
+
+@mixin foo($x, $y) {
+  margin: $x $y;
+}
+
+@mixin foogoo($x, $y, $z) {
+  margin: $x $y $z;
+}
+
+@mixin hux($y) {
+  color: $y;
+  @include foo(called-from-hux);
+}
+
+div {
+  @include foo(1, 2);
+  @include foo(1);
+  @include foogoo(1, 2);
+  @include foogoo($y: kwd-y, $z: kwd-z);
+}
+
+div {
+  @include hux();
+}
+
+$y: different-global-y;
+
+div {
+  @include hux(calling-hux-again);
+}
