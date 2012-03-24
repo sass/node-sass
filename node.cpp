@@ -181,6 +181,13 @@ namespace Sass {
           return ss.str();
         }
       } break;
+      
+      case uri: {
+        string result("url(");
+        result += string(token);
+        result += ")";
+        return result;
+      } break;
 
       default: {
         return string(token);
