@@ -16,6 +16,14 @@ namespace Sass {
         root += parse_import();
         lex< exactly<';'> >();
       }
+      else if (peek< include >(position)) {
+        Node to_include(parse_include());
+        root += to_include;
+        root.has_rules_or_comments |= to_include.has_rules_or_comments;
+        root.has_rulesets |= to_include.has_rulesets;
+        root.has_propsets |= to_include.has_propsets;
+        lex< exactly<';'> >();
+      }
       else if (peek< mixin >(position)) {
         parse_mixin_def();
       }
@@ -44,7 +52,36 @@ namespace Sass {
     return importee.root;
   }
   
-  void Document::parse_mixin_def() {
+  Node Document::parse_include(bool delay)
+  {
+    lex< include >();
+    lex< identifier >();
+    Node name(line_number, Node::identifier, lexed);
+    Node args(line_number, Node::arguments, parse_arguments(delay));
+    Node call(line_number, Node::mixin_call, 2);
+    call << name  << args;
+    if (!delay) {
+      cerr << "including " << string(name.token) << endl;
+      // expand the mixin
+      return name;
+    }
+    else {
+      return call;
+    }
+  }
+  
+  Node Document::parse_arguments(bool delay)
+  {
+    lex< exactly<'('> >();
+    
+    if (lex< sequence < variable, spaces_and_comments, exactly<':'> > >()) { // check for keyword arg
+      
+    
+    lex< exactly<')'> )();
+  }  
+  
+  void Document::parse_mixin_def()
+  {
     lex< mixin >();
     lex< identifier >();
     Node name(line_number, Node::identifier, lexed);
@@ -65,11 +102,21 @@ namespace Sass {
     cerr << ")" << endl;
   }
   
-  Node Document::parse_mixin_params() {
+  Node Document::parse_mixin_params()
+  {
     Node params(line_number, Node::parameters);
     lex< exactly<'('> >();
     if (lex< variable >()) {
-      params << Node(line_number, Node::variable, lexed);
+      Node var(line_number, Node::variable, lexed);
+      if (lex< exactly<':'> >()) { // default value
+        Node val(parse_space_list(true));
+        Node par_val(line_number, Node::assignment, 2);
+        par_val << var << val;
+        params << par_val;
+      }
+      else {
+        params << var;
+      }
       while (lex< exactly<','> >()) {
         lex< variable >();
         params << Node(line_number, Node::variable, lexed);
@@ -79,21 +126,28 @@ namespace Sass {
     return params;
   }
 
-  void Document::parse_var_def()
+  Node Document::parse_var_def(bool delay)
   {
     lex< variable >();
     const Token key(lexed);
     lex< exactly<':'> >();
     // context.environment[key] = parse_values();
-    Node val(parse_list());
+    Node val(parse_list(delay));
     val.from_variable = true;
     val.eval_me = true;
     
-    Node evaled(eval(val));
-    evaled.from_variable = true;
-    val.eval_me = true;
-    
-    context.environment[key] = evaled;
+    if (delay) {
+      Node def(line_number, Node::assignment, 2);
+      def << Node(line_number, Node::variable, key) << val;
+      return def;
+    }
+    else {
+      Node evaled(eval(val));
+      evaled.from_variable = true;
+      val.eval_me = true;
+      context.environment[key] = evaled;
+      return Node();
+    }
     // context.environment[key] = val;
   }
 
@@ -252,15 +306,28 @@ namespace Sass {
       }
       else if (peek< import >(position)) {
         Node imported_tree(parse_import());
-        for (int i = 0; i < imported_tree.children->size(); ++i) {
-          if (imported_tree.children->at(i).type == Node::comment ||
-              imported_tree.children->at(i).type == Node::rule) {
+        for (int i = 0; i < imported_tree.size(); ++i) {
+          if (imported_tree[i].type == Node::comment ||
+              imported_tree[i].type == Node::rule) {
             block.has_rules_or_comments = true;
           }
-          else if (imported_tree.children->at(i).type == Node::ruleset) {
+          else if (imported_tree[i].type == Node::ruleset) {
             block.has_rulesets = true;
           }
-          block << imported_tree.children->at(i);
+          block << imported_tree[i];
+        }
+        semicolon = true;
+      }
+      else if (peek< include >(position)) {
+        Node to_include(parse_include(delay));
+        if (!delay) {
+          block += to_include;
+          block.has_rules_or_comments |= to_include.has_rules_or_comments;
+          block.has_rulesets          |= to_include.has_rulesets;
+          block.has_propsets          |= to_include.has_propsets;
+        }
+        else {
+          block << to_include;
         }
         semicolon = true;
       }
@@ -527,7 +594,7 @@ namespace Sass {
 
     if (lex< variable >()) {
       if (delay) {
-        return Node(line_number, Node::var_ref, lexed);
+        return Node(line_number, Node::variable, lexed);
       }
       else {
         return context.environment[lexed];

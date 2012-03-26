@@ -111,6 +111,7 @@ namespace Sass {
     
     void parse_scss();
     Node parse_import();
+    Node parse_include(bool delay = false);
     void parse_mixin_def();
     Node parse_mixin_params();
     void parse_var_def();

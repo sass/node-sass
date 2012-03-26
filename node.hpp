@@ -65,8 +65,8 @@ namespace Sass {
       mixin,
       parameters,
       variable,
-      var_ref,
-      include
+      assignment,
+      mixin_call
     };
     
     static size_t fresh;
@@ -220,10 +220,13 @@ namespace Sass {
     
     //~Node() { delete children; }
     
-    size_t size()
+    size_t size() const
     { return children->size(); }
     
-    Node& operator[](const size_t i)
+    Node& operator[](const size_t i) const
+    { return children->at(i); }
+    
+    Node& at(const size_t i) const
     { return children->at(i); }
     
     Node& operator=(const Node& n)

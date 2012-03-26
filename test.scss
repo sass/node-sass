@@ -1,8 +1,8 @@
 $blah: bloo blee;
 $blip: "a 'red' and \"blue\" value";
 
-@mixin foo($arg) {
-  whatever: $arg;
+@mixin foo($arg, $blarg) {
+  whatever: $blarg $arg;
 }
 
 /* top level comment -- should be preserved */

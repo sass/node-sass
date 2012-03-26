@@ -26,7 +26,7 @@ div {
   @include foo(1, 2);
   @include foo(1);
   @include foogoo(1, 2);
-  @include foogoo($y: kwd-y, $z: kwd-z);
+  @include foogoo($y /* blah */ : kwd-y, $z: kwd-z);
 }
 
 div {
@@ -63,4 +63,23 @@ div {
 div {
   @include foo(arg1, arg2, $x: kwdarg1, $y: kwdarg2);
   @include foo($x: kwdarg1, $y: kwdarg2, arg1, arg2);
+}
+
+@mixin ruleset() {
+  hoo {
+    color: boo;
+  }
+}
+
+@include ruleset();
+
+$da: default argument;
+
+@mixin default_args($x, $y: $da) {
+  blah: $x $y;
+}
+$da: some other default;
+
+div {
+  @include default_args(boogoo);
 }

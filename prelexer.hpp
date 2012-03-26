@@ -276,6 +276,7 @@ namespace Sass {
     const char* at_keyword(const char* src);
     const char* import(const char* src);
     const char* mixin(const char* src);
+    const char* include(const char* src);
     // Match CSS type selectors
     const char* namespace_prefix(const char* src);
     const char* type_selector(const char* src);

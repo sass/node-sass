@@ -91,6 +91,10 @@ namespace Sass {
     const char* mixin(const char* src) {
       return exactly<mixin_kwd>(src);
     }
+    extern const char include_kwd[] = "@include";
+    const char* include(const char* src) {
+      return exactly<include_kwd>(src);
+    }
     
     const char* name(const char* src) {
       return one_plus< alternatives< alnum,
