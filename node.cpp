@@ -20,10 +20,10 @@ namespace Sass {
     switch (type)
     {
       case selector_group: { // really only needed for arg to :not
-        string result(children->at(0).to_string(""));
-        for (int i = 1; i < children->size(); ++i) {
+        string result(at(0).to_string(""));
+        for (int i = 1; i < size(); ++i) {
           result += ", ";
-          result += children->at(i).to_string("");
+          result += at(i).to_string("");
         }
         return result;
       } break;
