@@ -1,6 +1,10 @@
 $blah: bloo blee;
 $blip: "a 'red' and \"blue\" value";
 
+@mixin foo($arg) {
+  whatever: $arg;
+}
+
 /* top level comment -- should be preserved */
 div {
   /* another comment that should be preserved */

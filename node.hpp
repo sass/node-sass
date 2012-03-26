@@ -60,7 +60,13 @@ namespace Sass {
       number,
       hex_triple,
 
-      comment
+      comment,
+      
+      mixin,
+      parameters,
+      variable,
+      var_ref,
+      include
     };
     
     static size_t fresh;
@@ -213,6 +219,12 @@ namespace Sass {
     }
     
     //~Node() { delete children; }
+    
+    size_t size()
+    { return children->size(); }
+    
+    Node& operator[](const size_t i)
+    { return children->at(i); }
     
     Node& operator=(const Node& n)
     {

@@ -111,6 +111,8 @@ namespace Sass {
     
     void parse_scss();
     Node parse_import();
+    void parse_mixin_def();
+    Node parse_mixin_params();
     void parse_var_def();
     Node parse_ruleset();
     Node parse_selector_group();
@@ -119,16 +121,16 @@ namespace Sass {
     Node parse_simple_selector();
     Node parse_pseudo();
     Node parse_attribute_selector();
-    Node parse_block();
-    Node parse_rule();
+    Node parse_block(bool delay = false);
+    Node parse_rule(bool delay = false);
     Node parse_values();
-    Node parse_list();
-    Node parse_comma_list();
-    Node parse_space_list();
-    Node parse_expression();
-    Node parse_term();
-    Node parse_factor();
-    Node parse_value();
+    Node parse_list(bool delay = false);
+    Node parse_comma_list(bool delay = false);
+    Node parse_space_list(bool delay = false);
+    Node parse_expression(bool delay = false);
+    Node parse_term(bool delay = false);
+    Node parse_factor(bool delay = false);
+    Node parse_value(bool delay = false);
     
     const char* look_for_rule(const char* start = 0);
     const char* look_for_values(const char* start = 0);

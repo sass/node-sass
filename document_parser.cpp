@@ -16,6 +16,9 @@ namespace Sass {
         root += parse_import();
         lex< exactly<';'> >();
       }
+      else if (peek< mixin >(position)) {
+        parse_mixin_def();
+      }
       else if (peek< variable >(position)) {
         parse_var_def();
         lex< exactly<';'> >();
@@ -39,6 +42,41 @@ namespace Sass {
     importee.parse_scss();
     // source_refs.push_back(importee.source);
     return importee.root;
+  }
+  
+  void Document::parse_mixin_def() {
+    lex< mixin >();
+    lex< identifier >();
+    Node name(line_number, Node::identifier, lexed);
+    Node params(parse_mixin_params());
+    Node body(parse_block(true));
+    Node mixin(line_number, Node::mixin, 3);
+    mixin << name << params << body;
+    context.mixins[name.token] = mixin;
+
+    cerr << "parsing mixin definition: ";
+    cerr << string(mixin[0].token) << "(";
+    if (params.size() > 0) {
+      cerr << string(params[0].token);
+      for (int i = 1; i < params.size(); ++i) {
+        cerr << " ," << string(params[i].token);
+      }
+    }
+    cerr << ")" << endl;
+  }
+  
+  Node Document::parse_mixin_params() {
+    Node params(line_number, Node::parameters);
+    lex< exactly<'('> >();
+    if (lex< variable >()) {
+      params << Node(line_number, Node::variable, lexed);
+      while (lex< exactly<','> >()) {
+        lex< variable >();
+        params << Node(line_number, Node::variable, lexed);
+      }
+    }
+    lex< exactly<')'> >();
+    return params;
   }
 
   void Document::parse_var_def()
@@ -196,7 +234,7 @@ namespace Sass {
     return attr_sel;
   }
 
-  Node Document::parse_block()
+  Node Document::parse_block(bool delay)
   {
     lex< exactly<'{'> >();
     bool semicolon = false;
@@ -244,7 +282,7 @@ namespace Sass {
         block.has_rulesets = true;
       }
       else if (!peek< exactly<';'> >()) {
-        block << parse_rule();
+        block << parse_rule(delay);
         block.has_rules_or_comments = true;
         semicolon = true;        
       }
@@ -253,13 +291,13 @@ namespace Sass {
     return block;
   }
 
-  Node Document::parse_rule() {
+  Node Document::parse_rule(bool delay) {
     Node rule(line_number, Node::rule, 2);
     lex< identifier >();
     rule << Node(line_number, Node::property, lexed);
     lex< exactly<':'> >();
     // rule << parse_values();
-    rule << parse_list();
+    rule << parse_list(delay);
     return rule;
   }
 
@@ -283,32 +321,40 @@ namespace Sass {
     return values;
   }
   
-  Node Document::parse_list()
+  Node Document::parse_list(bool delay)
   {
 
-    Node val(parse_comma_list());
-    if (val.type != Node::comma_list && val.type != Node::space_list && val.eval_me) {
-      return eval(val);
-    }
-    else if (val.type == Node::comma_list || val.type == Node::space_list) {
-      for (int i = 0; i < val.children->size(); ++i) {
-        if (val.children->at(i).eval_me) {
-          val.children->at(i) = eval(val.children->at(i));
+    Node val(parse_comma_list(delay));
+    if (!delay) {
+      if (val.type != Node::comma_list && val.type != Node::space_list && val.eval_me) {
+        return eval(val);
+      }
+      else if (val.type == Node::comma_list || val.type == Node::space_list) {
+        for (int i = 0; i < val.children->size(); ++i) {
+          if (val.children->at(i).eval_me) {
+            val.children->at(i) = eval(val.children->at(i));
+          }
         }
+        return val;
+      }
+      else {
+        return val;
       }
     }
-    return val;
+    else {
+      return val;
+    }
       // return parse_comma_list();
   }
   
-  Node Document::parse_comma_list()
+  Node Document::parse_comma_list(bool delay)
   {
     if (peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
         peek< exactly<')'> >(position)) {
       return Node(line_number, Node::nil);
     }
-    Node list1(parse_space_list());
+    Node list1(parse_space_list(delay));
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< exactly<','> >(position)) return list1;
     
@@ -316,14 +362,14 @@ namespace Sass {
     comma_list << list1;
     
     while (lex< exactly<','> >())
-    { comma_list << parse_space_list(); }
+    { comma_list << parse_space_list(delay); }
     
     return comma_list;
   }
   
-  Node Document::parse_space_list()
+  Node Document::parse_space_list(bool delay)
   {
-    Node expr1(parse_expression());
+    Node expr1(parse_expression(delay));
     // if it's a singleton, return it directly; don't wrap it
     if (peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
@@ -342,14 +388,14 @@ namespace Sass {
              peek< exactly<','> >(position)))
     // { Node expr(parse_expression());
     //       space_list << (expr.eval_me ? eval(expr) : expr); }
-    {  space_list << parse_expression(); }
+    {  space_list << parse_expression(delay); }
     
     return space_list;
   }
   
-  Node Document::parse_expression()
+  Node Document::parse_expression(bool delay)
   {
-    Node term1(parse_term());
+    Node term1(parse_term(delay));
     // if it's a singleton, return it directly; don't wrap it
     if (!(peek< exactly<'+'> >(position) ||
           peek< exactly<'-'> >(position)))
@@ -366,7 +412,7 @@ namespace Sass {
       else {
         expression << Node(line_number, Node::sub, lexed);
       }
-      Node term(parse_term());
+      Node term(parse_term(delay));
       term.eval_me = true;
       expression << term;
     }
@@ -386,9 +432,9 @@ namespace Sass {
     return expression;
   }
   
-  Node Document::parse_term()
+  Node Document::parse_term(bool delay)
   {
-    Node fact1(parse_factor());
+    Node fact1(parse_factor(delay));
     // if it's a singleton, return it directly; don't wrap it
     if (!(peek< exactly<'*'> >(position) ||
           peek< exactly<'/'> >(position)))
@@ -406,7 +452,7 @@ namespace Sass {
       else {
         term << Node(line_number, Node::div, lexed);
       }
-      Node fact(parse_factor());
+      Node fact(parse_factor(delay));
       if (fact.from_variable || fact.eval_me) term.eval_me = true;
       term << fact;
     }
@@ -419,11 +465,11 @@ namespace Sass {
     return term;
   }
   
-  Node Document::parse_factor()
+  Node Document::parse_factor(bool delay)
   {
     if (lex< exactly<'('> >()) {
       // Node value(parse_list());
-      Node value(parse_comma_list());
+      Node value(parse_comma_list(delay));
       value.eval_me = true;
       if (value.type == Node::comma_list || value.type == Node::space_list) {
         value.children->front().eval_me = true;
@@ -432,11 +478,11 @@ namespace Sass {
       return value;
     }
     else {
-      return parse_value();
+      return parse_value(delay);
     }
   }
   
-  Node Document::parse_value()
+  Node Document::parse_value(bool delay)
   {
     if (lex< uri_prefix >())
     {
@@ -479,8 +525,14 @@ namespace Sass {
     if (lex< string_constant >())
     { return Node(line_number, Node::string_constant, lexed); }
 
-    if (lex< variable >())
-    { return context.environment[lexed]; }
+    if (lex< variable >()) {
+      if (delay) {
+        return Node(line_number, Node::var_ref, lexed);
+      }
+      else {
+        return context.environment[lexed];
+      }
+    }
   }
 
   // const char* Document::look_for_rule(const char* start)

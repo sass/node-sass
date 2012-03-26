@@ -38,7 +38,7 @@ namespace Sass {
     extern const char slash_star[] = "/*";
     extern const char star_slash[] = "*/";
     const char* block_comment(const char* src) {
-      return delimited_by<slash_star, star_slash, false>(src);
+      return sequence< optional_spaces, delimited_by<slash_star, star_slash, false> >(src);
     }
     // Match either comment.
     const char* comment(const char* src) {
@@ -86,6 +86,10 @@ namespace Sass {
     extern const char import_kwd[] = "@import";
     const char* import(const char* src) {
       return exactly<import_kwd>(src);
+    }
+    extern const char mixin_kwd[] = "@mixin";
+    const char* mixin(const char* src) {
+      return exactly<mixin_kwd>(src);
     }
     
     const char* name(const char* src) {
