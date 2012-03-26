@@ -3,7 +3,9 @@ $y: global-y;
 $z: global-z;
 
 @mixin foo($x, $y) {
+  /* begin foo */
   margin: $x $y;
+  /* end foo */
 }
 
 @mixin foogoo($x, $y, $z) {
@@ -11,8 +13,10 @@ $z: global-z;
 }
 
 @mixin hux($y) {
+  /* begin hux */
   color: $y;
   @include foo(called-from-hux);
+  /* end hux */
 }
 
 div {
@@ -30,4 +34,25 @@ $y: different-global-y;
 
 div {
   @include hux(calling-hux-again);
+}
+
+@mixin bung() {
+  blah: original-bung;
+}
+
+div {
+  @include bung();
+}
+
+@mixin bung() {
+  blah: redefined-bung;
+}
+
+div {
+  @include bung();
+}
+
+div {
+  /* calls to nullary mixins may omit the empty argument list */
+  @include bung;
 }
