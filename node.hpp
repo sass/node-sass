@@ -98,7 +98,7 @@ namespace Sass {
       has_backref(n.has_backref),
       from_variable(n.from_variable),
       eval_me(n.eval_me)
-    { /*n.release();*/ ++copied; } // No joint custody.
+    { ++copied; }
   
     Node(size_t line_number, Type type, size_t length = 0)
     : line_number(line_number),
@@ -224,7 +224,6 @@ namespace Sass {
     {
       line_number = n.line_number;
       children = n.children;
-      // n.release();
       token = n.token;
       numeric_value = n.numeric_value;
       type = n.type;

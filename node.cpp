@@ -28,7 +28,6 @@ namespace Sass {
     n.has_backref = has_backref;
     n.from_variable = from_variable;
     n.eval_me = eval_me;
-    n.is_hex = is_hex;
     if (children) {
       n.children = new vector<Node>();
       n.children->reserve(size());
