@@ -83,7 +83,6 @@ namespace Sass {
     bool has_backref;
     bool from_variable;
     bool eval_me;
-    bool is_hex;
     
     Node() : type(nil), children(0) { ++fresh; }
   
@@ -98,8 +97,7 @@ namespace Sass {
       has_propsets(n.has_propsets),
       has_backref(n.has_backref),
       from_variable(n.from_variable),
-      eval_me(n.eval_me),
-      is_hex(n.is_hex)
+      eval_me(n.eval_me)
     { /*n.release();*/ ++copied; } // No joint custody.
   
     Node(size_t line_number, Type type, size_t length = 0)
@@ -113,8 +111,7 @@ namespace Sass {
       has_propsets(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false),
-      is_hex(false)
+      eval_me(false)
     { children->reserve(length); ++fresh; }
     
     Node(size_t line_number, Type type, const Node& n)
@@ -128,8 +125,7 @@ namespace Sass {
       has_propsets(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false),
-      is_hex(false)
+      eval_me(false)
     { ++fresh; }
     
     Node(size_t line_number, Type type, const Node& n, const Node& m)
@@ -143,8 +139,7 @@ namespace Sass {
       has_propsets(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false),
-      is_hex(false)
+      eval_me(false)
     {
       children->reserve(2);
       children->push_back(n);
@@ -163,8 +158,7 @@ namespace Sass {
       has_propsets(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false),
-      is_hex(false)
+      eval_me(false)
     { ++fresh; }
     
     Node(size_t line_number, double d)
@@ -178,8 +172,7 @@ namespace Sass {
       has_propsets(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false),
-      is_hex(false)
+      eval_me(false)
     { ++fresh; }
     
     Node(size_t line_number, double d, Token& token)
@@ -193,8 +186,7 @@ namespace Sass {
       has_propsets(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false),
-      is_hex(false)
+      eval_me(false)
     { ++fresh; }
     
     Node(size_t line_number, double a, double b, double c)
@@ -208,8 +200,7 @@ namespace Sass {
       has_propsets(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false),
-      is_hex(true)
+      eval_me(false)
     {
       children->reserve(3);
       children->push_back(Node(line_number, a));
@@ -243,7 +234,6 @@ namespace Sass {
       has_backref = n.has_backref;
       from_variable = n.from_variable;
       eval_me = n.eval_me;
-      is_hex = n.is_hex;
       ++copied;
       return *this;
     }
