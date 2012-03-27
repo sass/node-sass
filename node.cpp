@@ -15,6 +15,31 @@ namespace Sass {
   size_t Node::fresh = 0;
   size_t Node::copied = 0;
   
+  Node Node::clone() const
+  {
+    Node n;
+    n.line_number = line_number;
+    n.token = token;
+    n.numeric_value = numeric_value;
+    n.type = type;
+    n.has_rules_or_comments = has_rules_or_comments;
+    n.has_rulesets = has_rulesets;
+    n.has_propsets = has_propsets;
+    n.has_backref = has_backref;
+    n.from_variable = from_variable;
+    n.eval_me = eval_me;
+    n.is_hex = is_hex;
+    if (children) {
+      n.children = new vector<Node>();
+      n.children->reserve(size());
+      for (int i = 0; i < size(); ++i) {
+        n << at(i);
+      }
+    }
+    ++fresh;
+    return n;
+  }
+  
   string Node::to_string(const string& prefix) const
   {
     switch (type)
