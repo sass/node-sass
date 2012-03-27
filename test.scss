@@ -1,10 +1,6 @@
 $blah: bloo blee;
 $blip: "a 'red' and \"blue\" value";
 
-@mixin foo($arg, $blarg) {
-  whatever: $blarg $arg;
-}
-
 /* top level comment -- should be preserved */
 div {
   /* another comment that should be preserved */
@@ -30,6 +26,8 @@ div {
   }
   p {
     padding: 10px 8%;
+    arithmetic: 1 + 2 * 3 / 4;
+    hex-arithmetic: #abcdef + 1;
     -webkit-box-sizing: $blux; ; ;
     ; ; ;;;
   }
