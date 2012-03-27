@@ -5,7 +5,7 @@
 namespace Sass {
   using namespace std;
 
-  void Document::parse_scss()
+  void Document::parse_scss(bool definition)
   {
     lex<optional_spaces>();
     while(*position) {
@@ -13,32 +13,41 @@ namespace Sass {
         root << Node(line_number, Node::comment, lexed);
       }
       else if (peek< import >(position)) {
-        root += parse_import();
+        root += parse_import(definition);
         lex< exactly<';'> >();
       }
-      // else if (peek< include >(position)) {
-      //   Node to_include(parse_include());
-      //   root += to_include;
-      //   root.has_rules_or_comments |= to_include.has_rules_or_comments;
-      //   root.has_rulesets |= to_include.has_rulesets;
-      //   root.has_propsets |= to_include.has_propsets;
-      //   lex< exactly<';'> >();
-      // }
-      // else if (peek< mixin >(position)) {
-      //   parse_mixin_def();
-      // }
-      else if (peek< variable >(position)) {
-        context.pending.push_back(parse_assignment());
+      else if (peek< mixin >(position)) {
+        // TO DO: check to see if we're already inside a definition in order
+        // to disallow definitions that are sneakily nested via imports.
+        if (!definition) context.pending.push_back(parse_mixin_definition());
+      }
+      else if (peek< include >(position)) {
+        Node call(parse_mixin_call());
+        root << call;
+        root.has_rules_or_comments |= call.has_rules_or_comments;
+        root.has_rulesets          |= call.has_rulesets;
+        root.has_propsets          |= call.has_propsets;
         lex< exactly<';'> >();
+        if (!definition) context.pending.push_back(call);
+      }
+      else if (peek< variable >(position)) {
+        Node assn(parse_assignment());
+        lex< exactly<';'> >();
+        if (!definition) {
+          context.pending.push_back(assn);
+        }
+        else {
+          root << assn;
+        }
       }
       else {
-        root << parse_ruleset();
+        root << parse_ruleset(definition);
       }
       lex<optional_spaces>();
     }
   }
-  
-  Node Document::parse_import()
+
+  Node Document::parse_import(bool definition)
   {
     lex< import >();
     lex< string_constant >();
@@ -47,86 +56,102 @@ namespace Sass {
     const char* curr_path_end   = folders(curr_path_start);
     string current_path(curr_path_start, curr_path_end - curr_path_start);
     Document importee(current_path + import_path, context);
-    importee.parse_scss();
+    importee.parse_scss(definition);
     return importee.root;
   }
+
+  Node Document::parse_mixin_definition()
+  {
+    lex< mixin >();
+    lex< identifier >();
+    Node name(line_number, Node::identifier, lexed);
+    Node params(parse_mixin_parameters());
+    Node body(parse_block(true));
+    Node mixin(line_number, Node::mixin, 3);
+    mixin << name << params << body;
+    // 
+    // cerr << "parsed mixin definition: ";
+    // cerr << string(mixin[0].token) << "(";
+    // if (params.size() > 0) {
+    //   cerr << string(params[0].token);
+    //   for (int i = 1; i < params.size(); ++i) {
+    //     cerr << ", " << string(params[i].token);
+    //   }
+    // }
+    // cerr << ")" << endl;
+    // 
+    return mixin;
+  }
+
+  Node Document::parse_mixin_parameters()
+  {
+    Node params(line_number, Node::parameters);
+    lex< exactly<'('> >();
+    if (peek< variable >()) {
+      params << parse_parameter();
+      while (lex< exactly<','> >()) {
+        params << parse_parameter();
+      }
+    }
+    lex< exactly<')'> >();
+    return params;
+  }
+
+  Node Document::parse_parameter() {
+    lex< variable >();
+    Node var(line_number, Node::variable, lexed);
+    if (lex< exactly<':'> >()) { // default value
+      Node val(parse_space_list());
+      Node par_and_val(line_number, Node::assignment, 2);
+      par_and_val << var << val;
+      return par_and_val;
+    }
+    else {
+      return var;
+    }
+  }
+
+  Node Document::parse_mixin_call()
+  {
+    lex< include >();
+    lex< identifier >();
+    Node name(line_number, Node::identifier, lexed);
+    Node args(parse_mixin_arguments());
+    Node call(line_number, Node::mixin_expansion, 2);
+    call << name << args;
+    return call;
+  }
   
-  // Node Document::parse_include(bool delay)
-  // {
-  //   lex< include >();
-  //   lex< identifier >();
-  //   Node name(line_number, Node::identifier, lexed);
-  //   Node args(line_number, Node::parameters, parse_arguments(delay));
-  //   Node call(line_number, Node::mixin_call, 2);
-  //   call << name  << args;
-  //   if (!delay) {
-  //     cerr << "including " << string(name.token) << endl;
-  //     // expand the mixin
-  //     return name;
-  //   }
-  //   else {
-  //     return call;
-  //   }
-  // }
-  // 
-  // Node Document::parse_arguments(bool delay)
-  // {
-  //   lex< exactly<'('> >();
-  //   
-  //   
-  //   
-  //   lex< exactly<')'> >();
-  // }  
+  Node Document::parse_mixin_arguments()
+  {
+    Node args(line_number, Node::arguments);
+    lex< exactly<'('> >();
+    if (!peek< exactly<')'> >(position)) {
+      args << parse_argument();
+      while (lex< exactly<','> >()) {
+        args << parse_argument();
+      }
+    }
+    lex< exactly<')'> >();
+    return args;
+  }
   
-  // void Document::parse_mixin_def()
-  // {
-  //   lex< mixin >();
-  //   lex< identifier >();
-  //   Node name(line_number, Node::identifier, lexed);
-  //   Node params(parse_mixin_params());
-  //   Node body(parse_block(true));
-  //   Node mixin(line_number, Node::mixin, 3);
-  //   mixin << name << params << body;
-  //   context.mixins[name.token] = mixin;
-  // 
-  //   cerr << "parsed mixin definition: ";
-  //   cerr << string(mixin[0].token) << "(";
-  //   if (params.size() > 0) {
-  //     cerr << string(params[0].token);
-  //     for (int i = 1; i < params.size(); ++i) {
-  //       cerr << " ," << string(params[i].token);
-  //     }
-  //   }
-  //   cerr << ")" << endl;
-  // }
-  
-  // Node Document::parse_mixin_params()
-  // {
-  //   Node params(line_number, Node::parameters);
-  //   lex< exactly<'('> >();
-  //   if (peek< variable >()) {
-  //     params << parse_parameter();
-  //     while (lex< exactly<','> >()) {
-  //       params << parse_parameter();
-  //     }
-  //   }
-  //   lex< exactly<')'> >();
-  //   return params;
-  // }
-  // 
-  // Node Document::parse_parameter() {
-  //   lex< variable >();
-  //   Node var(line_number, Node::variable, lexed);
-  //   if (lex< exactly<':'> >()) { // default value
-  //     Node val(parse_space_list(true));
-  //     Node par_and_val(line_number, Node::assignment, 2);
-  //     par_and_val << var << val;
-  //     return par_and_val;
-  //   }
-  //   else {
-  //     return var;
-  //   }
-  // }
+  Node Document::parse_argument()
+  {
+
+    if (peek< sequence < variable, spaces_and_comments, exactly<':'> > >()) {
+      lex< variable >();
+      Node var(line_number, Node::variable, lexed);
+      lex< exactly<':'> >();
+      Node val(parse_space_list());
+      Node assn(line_number, Node::assignment, 2);
+      assn << var << val;
+      return assn;
+    }
+    else {
+      return parse_space_list();
+    }
+  }
 
   Node Document::parse_assignment()
   {
@@ -146,11 +171,11 @@ namespace Sass {
     // context.environment[key] = evaled;
   }
 
-  Node Document::parse_ruleset()
+  Node Document::parse_ruleset(bool definition)
   {
     Node ruleset(line_number, Node::ruleset, 2);
     ruleset << parse_selector_group();
-    ruleset << parse_block();
+    ruleset << parse_block(definition);
     return ruleset;
   }
 
@@ -283,7 +308,7 @@ namespace Sass {
     return attr_sel;
   }
 
-  Node Document::parse_block()
+  Node Document::parse_block(bool definition)
   {
     lex< exactly<'{'> >();
     bool semicolon = false;
@@ -313,22 +338,19 @@ namespace Sass {
         }
         semicolon = true;
       }
-      // else if (peek< include >(position)) {
-      //   Node to_include(parse_include(delay));
-      //   if (!delay) {
-      //     block += to_include;
-      //     block.has_rules_or_comments |= to_include.has_rules_or_comments;
-      //     block.has_rulesets          |= to_include.has_rulesets;
-      //     block.has_propsets          |= to_include.has_propsets;
-      //   }
-      //   else {
-      //     block << to_include;
-      //   }
-      //   semicolon = true;
-      // }
-      else if (lex< variable >()) {
-        context.pending.push_back(parse_assignment());
+      else if (peek< include >(position)) {
+        Node call(parse_mixin_call());
+        root << call;
+        root.has_rules_or_comments |= call.has_rules_or_comments;
+        root.has_rulesets          |= call.has_rulesets;
+        root.has_propsets          |= call.has_propsets;
         semicolon = true;
+        if (!definition) context.pending.push_back(call);
+      }
+      else if (lex< variable >()) {
+        Node assn(parse_assignment());
+        semicolon = true;
+        if (!definition) context.pending.push_back(assn);
       }
       // else if (look_for_rule(position)) {
       //   block << parse_rule();
@@ -340,13 +362,15 @@ namespace Sass {
       //   block.has_rulesets = true;
       // }
       else if (const char* p = look_for_selector_group(position)) {
-        block << parse_ruleset();
+        block << parse_ruleset(definition);
         block.has_rulesets = true;
       }
       else if (!peek< exactly<';'> >()) {
-        block << parse_rule();
+        Node rule(parse_rule());
+        block << rule;
         block.has_rules_or_comments = true;
         semicolon = true;        
+        if (!definition && rule[1].eval_me) context.pending.push_back(rule);
       }
       else lex< exactly<';'> >();
     }
@@ -360,7 +384,6 @@ namespace Sass {
     lex< exactly<':'> >();
     // rule << parse_values();
     rule << parse_list();
-    if (rule[1].eval_me) context.pending.push_back(rule);
     return rule;
   }
   
@@ -570,6 +593,16 @@ namespace Sass {
       var.eval_me = true;
       return var;
     }
+  }
+  
+  Node Document::parse_identifier() {
+    lex< identifier >();
+    return Node(line_number, Node::identifier, lexed);
+  }
+  
+  Node Document::parse_variable() {
+    lex< variable >();
+    return Node(line_number, Node::variable, lexed);
   }
 
   // const char* Document::look_for_rule(const char* start)

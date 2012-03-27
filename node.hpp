@@ -64,9 +64,11 @@ namespace Sass {
       
       mixin,
       parameters,
+      mixin_expansion,
+      arguments,
+      
       variable,
-      assignment,
-      mixin_call
+      assignment
     };
     
     static size_t fresh;

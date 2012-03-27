@@ -109,22 +109,24 @@ namespace Sass {
       }
     }
     
-    void parse_scss();
-    Node parse_import();
+    void parse_scss(bool definition = false);
+    Node parse_import(bool definition = false);
     Node parse_include();
-    Node parse_mixin_def();
+    Node parse_mixin_definition();
+    Node parse_mixin_parameters();
     Node parse_parameter();
-    Node parse_arguments();
-    Node parse_mixin_params();
+    Node parse_mixin_call();
+    Node parse_mixin_arguments();
+    Node parse_argument();
     Node parse_assignment();
-    Node parse_ruleset();
+    Node parse_ruleset(bool definition = false);
     Node parse_selector_group();
     Node parse_selector();
     Node parse_simple_selector_sequence();
     Node parse_simple_selector();
     Node parse_pseudo();
     Node parse_attribute_selector();
-    Node parse_block();
+    Node parse_block(bool definition = false);
     Node parse_rule();
     Node parse_values();
     Node parse_list();
@@ -134,6 +136,8 @@ namespace Sass {
     Node parse_term();
     Node parse_factor();
     Node parse_value();
+    Node parse_identifier();
+    Node parse_variable();
     
     const char* look_for_rule(const char* start = 0);
     const char* look_for_values(const char* start = 0);
