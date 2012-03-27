@@ -74,8 +74,7 @@ namespace Sass {
   {
     lex< exactly<'('> >();
     
-    if (lex< sequence < variable, spaces_and_comments, exactly<':'> > >()) { // check for keyword arg
-      
+    
     
     lex< exactly<')'> )();
   }  
@@ -106,24 +105,28 @@ namespace Sass {
   {
     Node params(line_number, Node::parameters);
     lex< exactly<'('> >();
-    if (lex< variable >()) {
-      Node var(line_number, Node::variable, lexed);
-      if (lex< exactly<':'> >()) { // default value
-        Node val(parse_space_list(true));
-        Node par_val(line_number, Node::assignment, 2);
-        par_val << var << val;
-        params << par_val;
-      }
-      else {
-        params << var;
-      }
+    if (peek< variable >()) {
+      params << parse_parameter();
       while (lex< exactly<','> >()) {
-        lex< variable >();
-        params << Node(line_number, Node::variable, lexed);
+        params << parse_parameter();
       }
     }
     lex< exactly<')'> >();
     return params;
+  }
+  
+  Node Document::parse_parameter() {
+    lex< variable >();
+    Node var(line_number, Node::variable, lexed);
+    if (lex< exactly<':'> >()) { // default value
+      Node val(parse_space_list(true));
+      Node par_and_val(line_number, Node::assignment, 2);
+      par_and_val << var << val;
+      return par_and_val;
+    }
+    else {
+      return var;
+    }
   }
 
   Node Document::parse_var_def(bool delay)
