@@ -57,7 +57,7 @@ namespace Sass {
     lex< include >();
     lex< identifier >();
     Node name(line_number, Node::identifier, lexed);
-    Node args(line_number, Node::arguments, parse_arguments(delay));
+    Node args(line_number, Node::parameters, parse_arguments(delay));
     Node call(line_number, Node::mixin_call, 2);
     call << name  << args;
     if (!delay) {
@@ -76,7 +76,7 @@ namespace Sass {
     
     
     
-    lex< exactly<')'> )();
+    lex< exactly<')'> >();
   }  
   
   void Document::parse_mixin_def()
@@ -90,7 +90,7 @@ namespace Sass {
     mixin << name << params << body;
     context.mixins[name.token] = mixin;
 
-    cerr << "parsing mixin definition: ";
+    cerr << "parsed mixin definition: ";
     cerr << string(mixin[0].token) << "(";
     if (params.size() > 0) {
       cerr << string(params[0].token);
@@ -132,7 +132,7 @@ namespace Sass {
   Node Document::parse_var_def(bool delay)
   {
     lex< variable >();
-    const Token key(lexed);
+    Token key(lexed);
     lex< exactly<':'> >();
     // context.environment[key] = parse_values();
     Node val(parse_list(delay));
