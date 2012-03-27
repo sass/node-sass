@@ -83,3 +83,32 @@ $da: some other default;
 div {
   @include default_args(boogoo);
 }
+
+@mixin original() {
+  value: original;
+}
+
+div {
+  @include original();
+}
+
+@mixin original() {
+  value: no longer original;
+}
+
+div {
+  @include original();
+}
+
+@mixin set-x($x) {
+  $x: changed local x;
+  arg: $x;
+  $y: changed global y;
+  blarg: $y;
+}
+
+div {
+  @include set-x(blah);
+  a: $x;
+  b: $y;
+}
