@@ -212,6 +212,11 @@ namespace Sass {
         result += ")";
         return result;
       } break;
+      
+      case mixin_expansion: {
+        string result("MIXIN: ");
+        return result;
+      } break;
 
       default: {
         return string(token);
@@ -315,10 +320,16 @@ namespace Sass {
           buf << ", " << new_prefixes[i];
         }
         buf << " {";
-        for (int i = 0; i < block.children->size(); ++i) {
-          Type stm_type = block.children->at(i).type;
+        for (int i = 0; i < block.size(); ++i) {
+          Type stm_type = block[i].type;
           if (stm_type == comment || stm_type == rule) {
-            block.children->at(i).emit_nested_css(buf, depth+1); // NEED OVERLOADED VERSION FOR COMMENTS AND RULES
+            block[i].emit_nested_css(buf, depth+1); // NEED OVERLOADED VERSION FOR COMMENTS AND RULES
+          }
+          else if (stm_type == mixin_expansion) {
+            buf << endl << string(2*(depth+1), ' ') << block[i].to_string(""); // TEMPORARY
+            for (int j = 0; j < block[i].size(); ++j) {
+              block[i][j].emit_nested_css(buf, depth+1);
+            }
           }
         }
         buf << " }" << endl;

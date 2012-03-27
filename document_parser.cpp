@@ -340,10 +340,10 @@ namespace Sass {
       }
       else if (peek< include >(position)) {
         Node call(parse_mixin_call());
-        root << call;
-        root.has_rules_or_comments |= call.has_rules_or_comments;
-        root.has_rulesets          |= call.has_rulesets;
-        root.has_propsets          |= call.has_propsets;
+        block << call;
+        block.has_rules_or_comments |= call.has_rules_or_comments;
+        block.has_rulesets          |= call.has_rulesets;
+        block.has_propsets          |= call.has_propsets;
         semicolon = true;
         if (!definition) context.pending.push_back(call);
       }
