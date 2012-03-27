@@ -33,7 +33,7 @@ namespace Sass {
       n.children = new vector<Node>();
       n.children->reserve(size());
       for (int i = 0; i < size(); ++i) {
-        n << at(i);
+        n << at(i).clone();
       }
     }
     ++fresh;
