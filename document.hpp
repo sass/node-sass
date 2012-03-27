@@ -112,11 +112,11 @@ namespace Sass {
     void parse_scss();
     Node parse_import();
     Node parse_include();
-    void parse_mixin_def();
+    Node parse_mixin_def();
     Node parse_parameter();
     Node parse_arguments();
     Node parse_mixin_params();
-    void parse_assignment();
+    Node parse_assignment();
     Node parse_ruleset();
     Node parse_selector_group();
     Node parse_selector();
@@ -145,6 +145,7 @@ namespace Sass {
     const char* look_for_pseudo(const char* start = 0);
     const char* look_for_attrib(const char* start = 0);
     
+    void eval_pending();
     string emit_css(CSS_Style style);
 
   };

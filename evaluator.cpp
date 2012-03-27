@@ -5,39 +5,40 @@
 namespace Sass {
   using std::cerr; using std::endl;
 
-  Node eval(const Node& expr)
+  Node eval(const Node& expr, map<Token, Node>& g_env)
   {
     switch (expr.type)
     {
       case Node::comma_list:
       case Node::space_list: {
         if (expr.eval_me) {
-          *(expr.children->begin()) = eval(expr.children->front());
+          // *(expr.children->begin()) = eval(expr[0], g_env);
+          expr[0] = eval(expr[0], g_env);
         }
         return expr;
       } break;
 
       case Node::expression: {
-        Node acc(expr.line_number, Node::expression, eval(expr.children->at(0)));
-        Node rhs(eval(expr.children->at(2)));
-        accumulate(expr.children->at(1).type, acc, rhs);
-        for (int i = 3; i < expr.children->size(); i += 2) {
-          Node rhs(eval(expr.children->at(i+1)));
-          accumulate(expr.children->at(i).type, acc, rhs);
+        Node acc(expr.line_number, Node::expression, eval(expr[0], g_env));
+        Node rhs(eval(expr[2], g_env));
+        accumulate(expr[1].type, acc, rhs);
+        for (int i = 3; i < expr.size(); i += 2) {
+          Node rhs(eval(expr[i+1], g_env));
+          accumulate(expr[i].type, acc, rhs);
         }
-        return acc.children->size() == 1 ? acc.children->front() : acc;
+        return acc.size() == 1 ? acc[0] : acc;
       } break;
 
       case Node::term: {
         if (expr.eval_me) {
-          Node acc(expr.line_number, Node::expression, eval(expr.children->at(0)));
-          Node rhs(eval(expr.children->at(2)));
-          accumulate(expr.children->at(1).type, acc, rhs);
-          for (int i = 3; i < expr.children->size(); i += 2) {
-            Node rhs(eval(expr.children->at(i+1)));
-            accumulate(expr.children->at(i).type, acc, rhs);
+          Node acc(expr.line_number, Node::expression, eval(expr[0], g_env));
+          Node rhs(eval(expr[2], g_env));
+          accumulate(expr[1].type, acc, rhs);
+          for (int i = 3; i < expr.size(); i += 2) {
+            Node rhs(eval(expr[i+1], g_env));
+            accumulate(expr[i].type, acc, rhs);
           }
-          return acc.children->size() == 1 ? acc.children->front() : acc;
+          return acc.size() == 1 ? acc[0] : acc;
         }
         else {
           return expr;
@@ -71,6 +72,10 @@ namespace Sass {
           }
         }
         return triple;       
+      } break;
+      
+      case Node::variable: {
+        return g_env[expr.token];
       } break;
       
       default: {

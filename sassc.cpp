@@ -30,6 +30,7 @@ int main(int argc, char* argv[]) {
   Document doc(path, 0);
   doc.parse_scss();
   cerr << "successfully parsed document" << endl;
+  doc.eval_pending();
   string output = doc.emit_css(style);
   cout << output;
   
