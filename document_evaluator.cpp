@@ -35,8 +35,15 @@ namespace Sass {
           }
         } break;
         
+        case Node::mixin: {
+          context.environment[n[0].token] = n;
+        } break;
+        
         case Node::expansion: {
-          
+          Node body(context.environment[n[0].token][2].clone());
+          n.children->pop_back();
+          n.children->pop_back();
+          n += body;
         } break;
       }
     }
