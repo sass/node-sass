@@ -131,7 +131,6 @@ namespace Sass {
   
   Node Document::parse_argument()
   {
-
     if (peek< sequence < variable, spaces_and_comments, exactly<':'> > >()) {
       lex< variable >();
       Node var(line_number, Node::variable, lexed);
