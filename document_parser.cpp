@@ -1,5 +1,4 @@
 #include "document.hpp"
-#include "evaluator.hpp"
 #include <iostream>
 
 namespace Sass {

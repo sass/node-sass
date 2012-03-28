@@ -1,5 +1,5 @@
 #include "document.hpp"
-#include "evaluator.hpp"
+#include "eval_apply.hpp"
 
 namespace Sass {
   void Document::eval_pending()
