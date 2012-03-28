@@ -1,10 +1,33 @@
 namespace Sass {
   using std::map;
   
+  struct Environment {
+    map<Token, Node> frame;
+    Environment* parent;
+    
+    Environment() : frame(map<Token, Node>()), parent(0)
+    { }
+    Environment(Environment* env) : frame(map<Token, Node>()), parent(env)
+    { }
+    
+    bool query(const Token& key) const
+    {
+      if (frame.count(key)) return true;
+      else if (parent)      return parent->query(key);
+      else                  return false;
+    }
+    
+    Node& operator[](const Token& key)
+    {
+      if (frame.count(key)) return frame[key];
+      else if (parent)      return (*parent)[key];
+      else                  return frame[key];
+    }
+  };
+
   struct Context {
     map<Token, Node> environment;
-    // Environment environment;
-    // map<Token, Node> mixins;
+    Environment global_env;
     vector<Node> pending;
     vector<char*> source_refs;
     size_t ref_count;
@@ -24,21 +47,5 @@ namespace Sass {
       }
     }
   };
-  
-  struct Environment {
-    vector< map<Token, Node> > stack;
-    
-    Environment()
-    : stack(vector< map<Token, Node> >())
-    {
-      stack.reserve(2);
-      stack.push_back(map<Token, Node>());
-    }
-    
-    void extend()
-    {
-      stack.push_back(map<Token, Node>());
-    }
-    
-  };
+
 }

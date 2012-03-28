@@ -59,8 +59,6 @@ namespace Sass {
       numeric_dimension,
       number,
       hex_triple,
-
-      comment,
       
       mixin,
       parameters,
@@ -68,7 +66,10 @@ namespace Sass {
       arguments,
       
       variable,
-      assignment
+      assignment,
+      
+      comment,
+      none
     };
     
     static size_t fresh;
@@ -86,7 +87,7 @@ namespace Sass {
     bool from_variable;
     bool eval_me;
     
-    Node() : type(nil), children(0) { ++fresh; }
+    Node() : type(none), children(0) { ++fresh; }
   
     Node(const Node& n)
     : line_number(n.line_number),
