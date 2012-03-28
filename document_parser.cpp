@@ -5,7 +5,7 @@
 namespace Sass {
   using namespace std;
 
-  void Document::parse_scss(bool definition)
+  void Document::parse_scss()
   {
     lex<optional_spaces>();
     while(*position) {
@@ -13,13 +13,11 @@ namespace Sass {
         root << Node(line_number, Node::comment, lexed);
       }
       else if (peek< import >(position)) {
-        root += parse_import(definition);
+        root += parse_import();
         lex< exactly<';'> >();
       }
       else if (peek< mixin >(position)) {
-        // TO DO: check to see if we're already inside a definition in order
-        // to disallow definitions that are sneakily nested via imports.
-        if (!definition) context.pending.push_back(parse_mixin_definition());
+        context.pending.push_back(parse_mixin_definition());
       }
       else if (peek< include >(position)) {
         Node call(parse_mixin_call());
@@ -28,26 +26,21 @@ namespace Sass {
         root.has_rulesets          |= call.has_rulesets;
         root.has_propsets          |= call.has_propsets;
         lex< exactly<';'> >();
-        if (!definition) context.pending.push_back(call);
+        context.pending.push_back(call);
       }
       else if (peek< variable >(position)) {
         Node assn(parse_assignment());
         lex< exactly<';'> >();
-        if (!definition) {
-          context.pending.push_back(assn);
-        }
-        else {
-          root << assn;
-        }
+        context.pending.push_back(assn);
       }
       else {
-        root << parse_ruleset(definition);
+        root << parse_ruleset();
       }
       lex<optional_spaces>();
     }
   }
 
-  Node Document::parse_import(bool definition)
+  Node Document::parse_import()
   {
     lex< import >();
     lex< string_constant >();
@@ -56,7 +49,7 @@ namespace Sass {
     const char* curr_path_end   = folders(curr_path_start);
     string current_path(curr_path_start, curr_path_end - curr_path_start);
     Document importee(current_path + import_path, context);
-    importee.parse_scss(definition);
+    importee.parse_scss();
     return importee.root;
   }
 
@@ -117,7 +110,7 @@ namespace Sass {
     lex< identifier >();
     Node name(line_number, Node::identifier, lexed);
     Node args(parse_mixin_arguments());
-    Node call(line_number, Node::mixin_expansion, 2);
+    Node call(line_number, Node::expansion, 2);
     call << name << args;
     return call;
   }
@@ -325,6 +318,7 @@ namespace Sass {
         semicolon = true;
       }
       else if (peek< import >(position)) {
+        // TO DO: disallow imports inside of definitions
         Node imported_tree(parse_import());
         for (int i = 0; i < imported_tree.size(); ++i) {
           if (imported_tree[i].type == Node::comment ||

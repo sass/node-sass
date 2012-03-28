@@ -34,6 +34,10 @@ namespace Sass {
             n[1] = eval(n[1], context.environment);
           }
         } break;
+        
+        case Node::expansion: {
+          
+        } break;
       }
     }
   }

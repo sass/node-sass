@@ -109,8 +109,8 @@ namespace Sass {
       }
     }
     
-    void parse_scss(bool definition = false);
-    Node parse_import(bool definition = false);
+    void parse_scss();
+    Node parse_import();
     Node parse_include();
     Node parse_mixin_definition();
     Node parse_mixin_parameters();

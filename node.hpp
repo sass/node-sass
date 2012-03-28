@@ -64,7 +64,7 @@ namespace Sass {
       
       mixin,
       parameters,
-      mixin_expansion,
+      expansion,
       arguments,
       
       variable,

@@ -213,8 +213,8 @@ namespace Sass {
         return result;
       } break;
       
-      case mixin_expansion: {
-        string result("MIXIN: ");
+      case expansion: {
+        string result("MIXIN CALL: ");
         return result;
       } break;
 
@@ -325,7 +325,7 @@ namespace Sass {
           if (stm_type == comment || stm_type == rule) {
             block[i].emit_nested_css(buf, depth+1); // NEED OVERLOADED VERSION FOR COMMENTS AND RULES
           }
-          else if (stm_type == mixin_expansion) {
+          else if (stm_type == expansion) {
             buf << endl << string(2*(depth+1), ' ') << block[i].to_string(""); // TEMPORARY
             for (int j = 0; j < block[i].size(); ++j) {
               block[i][j].emit_nested_css(buf, depth+1);
