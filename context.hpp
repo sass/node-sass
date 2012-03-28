@@ -12,6 +12,9 @@ namespace Sass {
     Environment(Environment* env) : frame(map<Token, Node>()), parent(env)
     { }
     
+    void link(Environment& env)
+    { parent = &env; }
+    
     bool query(const Token& key) const
     {
       if (frame.count(key)) return true;

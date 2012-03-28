@@ -42,13 +42,34 @@ namespace Sass {
         case Node::expansion: {
           Token name(n[0].token);
           Node args(n[1]);
-
           Node mixin(context.global_env[name]);
           Node params(mixin[1]);
           Node body(mixin[2].clone());
+
+          n.children->pop_back();
+          n.children->pop_back();
+
+          Environment m_env;
+          for (int i = 0, j = 0; i < args.size(); ++i) {
+            if (args[i].type == Node::assignment) {
+              Node arg(args[i]);
+              Token key(arg[0].token);
+              if (!m_env.query(key)) {
+                m_env[key] = eval(arg[1], context.global_env);
+              }
+            }
+            else {
+              // TO DO: ensure (j < params.size())
+              m_env[params[j].token] = eval(args[i], context.global_env);
+              ++j;
+            }
+          }
+          m_env.link(context.global_env);
           
-          n.children->pop_back();
-          n.children->pop_back();
+          for (int i = 0; i < body.size(); ++i) {
+            body[i] = eval(body[i], m_env);
+          }
+          
           n += body;
         } break;
       }

@@ -9,6 +9,19 @@ namespace Sass {
   {
     switch (expr.type)
     {
+      case Node::rule: {
+        Node rhs(expr[1]);
+        if (rhs.type == Node::comma_list || rhs.type == Node::space_list) {
+          for (int i = 0; i < rhs.size(); ++i) {
+            if (rhs[i].eval_me) rhs[i] = eval(rhs[i], env);
+          }
+        }
+        else {
+          expr[1] = eval(rhs, env);
+        }
+        return expr;
+      } break;
+
       case Node::comma_list:
       case Node::space_list: {
         if (expr.eval_me) {
