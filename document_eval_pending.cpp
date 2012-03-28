@@ -2,7 +2,6 @@
 #include "evaluator.hpp"
 
 namespace Sass {
-  
   void Document::eval_pending()
   {
     for (int i = 0; i < context.pending.size(); ++i) {
@@ -50,18 +49,31 @@ namespace Sass {
           n.children->pop_back();
 
           Environment m_env;
+          // bind arguments
           for (int i = 0, j = 0; i < args.size(); ++i) {
             if (args[i].type == Node::assignment) {
               Node arg(args[i]);
-              Token key(arg[0].token);
-              if (!m_env.query(key)) {
-                m_env[key] = eval(arg[1], context.global_env);
+              Token name(arg[0].token);
+              if (!m_env.query(name)) {
+                m_env[name] = eval(arg[1], context.global_env);
               }
             }
             else {
               // TO DO: ensure (j < params.size())
-              m_env[params[j].token] = eval(args[i], context.global_env);
+              Node param(params[j]);
+              Token name(param.type == Node::variable ? param.token : param[0].token);
+              m_env[name] = eval(args[i], context.global_env);
               ++j;
+            }
+          }
+          // plug the holes with default arguments if any
+          for (int i = 0; i < params.size(); ++i) {
+            if (params[i].type == Node::assignment) {
+              Node param(params[i]);
+              Token name(param[0].token);
+              if (!m_env.query(name)) {
+                m_env[name] = eval(param[1], context.global_env);
+              }
             }
           }
           m_env.link(context.global_env);
@@ -71,6 +83,7 @@ namespace Sass {
           }
           
           n += body;
+          // ideally say: n += apply(mixin, args, context.global_env);
         } break;
       }
     }

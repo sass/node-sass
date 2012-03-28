@@ -17,6 +17,8 @@ a {
   @include foo($y: kwd-y, $x: kwd-x);
   goo: boo hoo;
   @include hux;
+  @include bar(pug);
+  @include bar(pug, mug);
 }
 
 
