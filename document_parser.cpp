@@ -118,14 +118,15 @@ namespace Sass {
   Node Document::parse_mixin_arguments()
   {
     Node args(line_number, Node::arguments);
-    lex< exactly<'('> >();
-    if (!peek< exactly<')'> >(position)) {
-      args << parse_argument();
-      while (lex< exactly<','> >()) {
+    if (lex< exactly<'('> >()) {
+      if (!peek< exactly<')'> >(position)) {
         args << parse_argument();
+        while (lex< exactly<','> >()) {
+          args << parse_argument();
+        }
       }
+      lex< exactly<')'> >();
     }
-    lex< exactly<')'> >();
     return args;
   }
   
