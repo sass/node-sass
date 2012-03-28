@@ -29,13 +29,15 @@ int main(int argc, char* argv[]) {
     
   Document doc(path, 0);
   doc.parse_scss();
-  cerr << "successfully parsed document" << endl;
+  cerr << "SUCCESSFULLY PARSED DOCUMENT" << endl;
   doc.eval_pending();
+  cerr << "SUCCESSFULLY EVALED DOCUMENT" << endl;
   string output = doc.emit_css(style);
-  cout << output;
   
   cerr << "Fresh nodes:\t" << Node::fresh << endl;
   cerr << "Copied nodes:\t" << Node::copied << endl;
+  
+  cout << output;
 
   return 0;
 }
