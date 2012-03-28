@@ -161,7 +161,7 @@ namespace Sass {
     // Node evaled(eval(val));
     // evaled.from_variable = true;
     // val.eval_me = true;
-    // context.environment[key] = evaled;
+    // context.global_env[key] = evaled;
   }
 
   Node Document::parse_ruleset(bool definition)

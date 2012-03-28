@@ -5,25 +5,25 @@
 namespace Sass {
   using std::cerr; using std::endl;
 
-  Node eval(const Node& expr, map<Token, Node>& g_env)
+  Node eval(const Node& expr, Environment& env)
   {
     switch (expr.type)
     {
       case Node::comma_list:
       case Node::space_list: {
         if (expr.eval_me) {
-          // *(expr.children->begin()) = eval(expr[0], g_env);
-          expr[0] = eval(expr[0], g_env);
+          // *(expr.children->begin()) = eval(expr[0], env);
+          expr[0] = eval(expr[0], env);
         }
         return expr;
       } break;
 
       case Node::expression: {
-        Node acc(expr.line_number, Node::expression, eval(expr[0], g_env));
-        Node rhs(eval(expr[2], g_env));
+        Node acc(expr.line_number, Node::expression, eval(expr[0], env));
+        Node rhs(eval(expr[2], env));
         accumulate(expr[1].type, acc, rhs);
         for (int i = 3; i < expr.size(); i += 2) {
-          Node rhs(eval(expr[i+1], g_env));
+          Node rhs(eval(expr[i+1], env));
           accumulate(expr[i].type, acc, rhs);
         }
         return acc.size() == 1 ? acc[0] : acc;
@@ -31,11 +31,11 @@ namespace Sass {
 
       case Node::term: {
         if (expr.eval_me) {
-          Node acc(expr.line_number, Node::expression, eval(expr[0], g_env));
-          Node rhs(eval(expr[2], g_env));
+          Node acc(expr.line_number, Node::expression, eval(expr[0], env));
+          Node rhs(eval(expr[2], env));
           accumulate(expr[1].type, acc, rhs);
           for (int i = 3; i < expr.size(); i += 2) {
-            Node rhs(eval(expr[i+1], g_env));
+            Node rhs(eval(expr[i+1], env));
             accumulate(expr[i].type, acc, rhs);
           }
           return acc.size() == 1 ? acc[0] : acc;
@@ -75,7 +75,7 @@ namespace Sass {
       } break;
       
       case Node::variable: {
-        return g_env[expr.token];
+        return env[expr.token];
       } break;
       
       default: {

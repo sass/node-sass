@@ -13,13 +13,13 @@ namespace Sass {
           Node val(n[1]);
           if (val.type == Node::comma_list || val.type == Node::space_list) {
             for (int i = 0; i < val.size(); ++i) {
-              if (val[i].eval_me) val[i] = eval(val[i], context.environment);
+              if (val[i].eval_me) val[i] = eval(val[i], context.global_env);
             }
           }
           else {
-            val = eval(val, context.environment);
+            val = eval(val, context.global_env);
           }
-          context.environment[n[0].token] = val;
+          context.global_env[n[0].token] = val;
         } break;
 
         case Node::rule: {
@@ -27,20 +27,20 @@ namespace Sass {
           Node rhs(n[1]);
           if (rhs.type == Node::comma_list || rhs.type == Node::space_list) {
             for (int i = 0; i < rhs.size(); ++i) {
-              if (rhs[i].eval_me) rhs[i] = eval(rhs[i], context.environment);
+              if (rhs[i].eval_me) rhs[i] = eval(rhs[i], context.global_env);
             }
           }
           else {
-            n[1] = eval(n[1], context.environment);
+            n[1] = eval(n[1], context.global_env);
           }
         } break;
         
         case Node::mixin: {
-          context.environment[n[0].token] = n;
+          context.global_env[n[0].token] = n;
         } break;
         
         case Node::expansion: {
-          Node body(context.environment[n[0].token][2].clone());
+          Node body(context.global_env[n[0].token][2].clone());
           n.children->pop_back();
           n.children->pop_back();
           n += body;

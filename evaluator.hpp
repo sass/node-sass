@@ -4,10 +4,14 @@
 #include "node.hpp"
 #endif
 
+#ifndef SASS_CONTEXT_INCLUDED
+#include "context.hpp"
+#endif
+
 namespace Sass {
   using std::map;
   
-  Node eval(const Node& expr, map<Token, Node>& g_env);
+  Node eval(const Node& expr, Environment& env);
   Node accumulate(const Node::Type op, Node& acc, Node& rhs);
   double operate(const Node::Type op, double lhs, double rhs);
 }

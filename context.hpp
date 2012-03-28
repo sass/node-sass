@@ -1,3 +1,5 @@
+#define SASS_CONTEXT_INCLUDED
+
 namespace Sass {
   using std::map;
   
