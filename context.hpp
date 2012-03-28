@@ -3,7 +3,7 @@ namespace Sass {
   
   struct Context {
     map<Token, Node> environment;
-    Environment environment;
+    // Environment environment;
     // map<Token, Node> mixins;
     vector<Node> pending;
     vector<char*> source_refs;
@@ -25,13 +25,20 @@ namespace Sass {
     }
   };
   
-  // struct Environment {
-  //   vector< map<Token, Node> > stack;
-  //   
-  //   Environment()
-  //   : stack(vector< map<Token, Node> >(1, ))
-  //   {
-  //     stack.reserve
-  //   
-  // };
+  struct Environment {
+    vector< map<Token, Node> > stack;
+    
+    Environment()
+    : stack(vector< map<Token, Node> >())
+    {
+      stack.reserve(2);
+      stack.push_back(map<Token, Node>());
+    }
+    
+    void extend()
+    {
+      stack.push_back(map<Token, Node>());
+    }
+    
+  };
 }
