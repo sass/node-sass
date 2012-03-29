@@ -5,10 +5,39 @@
 namespace Sass {
   using std::cerr; using std::endl;
 
-  Node eval(const Node& expr, Environment& env)
+  Node eval(Node& expr, Environment& env)
   {
     switch (expr.type)
     {
+      case Node::mixin: {
+        env[expr[0].token] = expr;
+        return expr;
+      } break;
+      
+      case Node::expansion: {
+        Token name(expr[0].token);
+        Node args(expr[1]);
+        Node mixin(env[name]);
+        expr.children->pop_back();
+        expr.children->pop_back();
+        expr += apply(mixin, args, env);
+        return expr;
+      } break;
+      
+      case Node::assignment: {
+        Node val(expr[1]);
+        if (val.type == Node::comma_list || val.type == Node::space_list) {
+          for (int i = 0; i < val.size(); ++i) {
+            if (val[i].eval_me) val[i] = eval(val[i], env);
+          }
+        }
+        else {
+          val = eval(val, env);
+        }
+        env[expr[0].token] = val;
+        return expr;
+      } break;
+
       case Node::rule: {
         Node rhs(expr[1]);
         if (rhs.type == Node::comma_list || rhs.type == Node::space_list) {
@@ -97,7 +126,7 @@ namespace Sass {
     }
   }
 
-  Node accumulate(const Node::Type op, Node& acc, Node& rhs)
+  Node accumulate(Node::Type op, Node& acc, Node& rhs)
   {
     Node lhs(acc.children->back());
     double lnum = lhs.numeric_value;
@@ -174,7 +203,7 @@ namespace Sass {
     return acc;
   }
 
-  double operate(const Node::Type op, double lhs, double rhs)
+  double operate(Node::Type op, double lhs, double rhs)
   {
     // TO DO: check for division by zero
     switch (op)
@@ -187,7 +216,7 @@ namespace Sass {
     }
   }
   
-  Node apply(const Node& mixin, const Node& args, Environment& env)
+  Node apply(Node& mixin, const Node& args, Environment& env)
   {
     Node params(mixin[1]);
     Node body(mixin[2].clone());
