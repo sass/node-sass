@@ -17,10 +17,16 @@ namespace Sass {
       case Node::expansion: {
         Token name(expr[0].token);
         Node args(expr[1]);
+        Node parent(expr[2]);
         Node mixin(env[name]);
+        Node expansion(apply(mixin, args, env));
+        parent.has_rules_or_comments |= expansion.has_rules_or_comments;
+        parent.has_rulesets          |= expansion.has_rulesets;
+        parent.has_propsets          |= expansion.has_propsets;
         expr.children->pop_back();
         expr.children->pop_back();
-        expr += apply(mixin, args, env);
+        expr.children->pop_back();
+        expr += expansion;
         return expr;
       } break;
       
