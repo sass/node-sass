@@ -25,6 +25,7 @@ namespace Sass {
     n.has_rules_or_comments = has_rules_or_comments;
     n.has_rulesets = has_rulesets;
     n.has_propsets = has_propsets;
+    n.has_expansions = has_expansions;
     n.has_backref = has_backref;
     n.from_variable = from_variable;
     n.eval_me = eval_me;
@@ -436,9 +437,11 @@ namespace Sass {
   
   void Node::flatten()
   {
+    cerr << "FLATTENING A BLOCK" << endl;
     if (type != block && type != expansion) return;
     for (int i = 0; i < size(); ++i) {
       if (at(i).type == expansion) {
+        cerr << "FLATTEN: found an expansion node" << endl;
         Node expn = at(i);
         if (expn.has_expansions) expn.flatten();
         at(i).type = none;
