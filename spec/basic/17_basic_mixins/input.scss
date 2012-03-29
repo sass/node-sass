@@ -8,6 +8,14 @@
 
 @mixin hux() {
   no: parameters here;
+  div, span {
+    some: nested stuff;
+    foo, bar {
+      more: stuff and so forth;
+      blah: blah;
+    }
+  }
+  /* end of hux */
 }
 
 a {
