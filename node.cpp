@@ -292,7 +292,6 @@ namespace Sass {
     {
     case root:
       if (at(0).has_expansions) {
-        cerr << "FLATTENING ROOT NODE" << endl;
         flatten();
       }
       for (int i = 0; i < children->size(); ++i) {
@@ -441,11 +440,9 @@ namespace Sass {
   
   void Node::flatten()
   {
-    cerr << "FLATTENING A BLOCK" << endl;
     if (type != block && type != expansion && type != root) return;
     for (int i = 0; i < size(); ++i) {
       if (at(i).type == expansion) {
-        cerr << "FLATTEN: found an expansion node" << endl;
         Node expn = at(i);
         if (expn[0].has_expansions) expn.flatten();
         at(0).has_rules_or_comments |= expn[0].has_rules_or_comments;

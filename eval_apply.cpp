@@ -245,7 +245,6 @@ namespace Sass {
   {
     // cerr << "APPLYING MIXIN: " << string(mixin[0].token) << endl;
     Node params(mixin[1]);
-    if (mixin[2][0].has_expansions) cerr << "ORIGINAL BODY FOR " << string(mixin[0].token) << " HAS EXPANSIONS" << endl;
     Node body(mixin[2].clone());
     Environment m_env;
     // cerr << "CLONED BODY" << endl;
@@ -283,7 +282,6 @@ namespace Sass {
     for (int i = 0; i < body.size(); ++i) {
       body[i] = eval(body[i], m_env);
     }
-    if (body[0].has_expansions) cerr << "APPLYING MIXIN CONTAINING EXPANSIONS" << endl;
     return body;
   }
 }
