@@ -11,22 +11,24 @@ namespace Sass {
     {
       case Node::mixin: {
         env[expr[0].token] = expr;
+        // cerr << "DEFINED MIXIN: " << string(expr[0].token) << endl << endl;
         return expr;
       } break;
       
       case Node::expansion: {
         Token name(expr[0].token);
+        // cerr << "EVALUATING EXPANSION: " << string(name) << endl;
         Node args(expr[1]);
-        Node parent(expr[2]);
+        // Node parent(expr[2]);
         Node mixin(env[name]);
-        Node expansion(apply(mixin, args, env));
-        parent.has_rules_or_comments |= expansion.has_rules_or_comments;
-        parent.has_rulesets          |= expansion.has_rulesets;
-        parent.has_propsets          |= expansion.has_propsets;
+        // Node expansion(apply(mixin, args, env));
+        // parent.has_rules_or_comments |= expansion.has_rules_or_comments;
+        // parent.has_rulesets          |= expansion.has_rulesets;
+        // parent.has_propsets          |= expansion.has_propsets;
         expr.children->pop_back();
         expr.children->pop_back();
-        expr.children->pop_back();
-        expr += expansion;
+        // expr.children->pop_back();
+        expr += Node(apply(mixin, args, env));
         return expr;
       } break;
       
@@ -224,9 +226,11 @@ namespace Sass {
   
   Node apply(Node& mixin, const Node& args, Environment& env)
   {
+    // cerr << "APPLYING MIXIN: " << string(mixin[0].token) << endl;
     Node params(mixin[1]);
     Node body(mixin[2].clone());
     Environment m_env;
+    // cerr << "CLONED BODY" << endl;
     // bind arguments
     for (int i = 0, j = 0; i < args.size(); ++i) {
       if (args[i].type == Node::assignment) {
@@ -244,6 +248,7 @@ namespace Sass {
         ++j;
       }
     }
+    // cerr << "BOUND ARGS FOR " << string(mixin[0].token) << endl;
     // plug the holes with default arguments if any
     for (int i = 0; i < params.size(); ++i) {
       if (params[i].type == Node::assignment) {
@@ -254,8 +259,9 @@ namespace Sass {
         }
       }
     }
-    m_env.link(env);
-
+    // cerr << "BOUND DEFAULT ARGS FOR " << string(mixin[0].token) << endl;
+    m_env.link(env.parent ? *env.parent : env);
+    // cerr << "LINKED ENVIRONMENT FOR " << string(mixin[0].token) << endl << endl;
     for (int i = 0; i < body.size(); ++i) {
       body[i] = eval(body[i], m_env);
     }

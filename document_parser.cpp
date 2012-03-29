@@ -20,7 +20,7 @@ namespace Sass {
       }
       else if (peek< include >(position)) {
         Node call(parse_mixin_call());
-        call << root;
+        // call << root;
         root << call;
         lex< exactly<';'> >();
         context.pending.push_back(call);
@@ -331,13 +331,14 @@ namespace Sass {
       }
       else if (peek< include >(position)) {
         Node call(parse_mixin_call());
-        call << block;
+        // call << block;
         block << call;
         if (!definition) context.pending.push_back(call);
       }
       else if (lex< variable >()) {
         Node assn(parse_assignment());
         semicolon = true;
+        block << assn;
         if (!definition) context.pending.push_back(assn);
       }
       // else if (look_for_rule(position)) {
