@@ -22,6 +22,7 @@ namespace Sass {
         Node call(parse_mixin_call());
         // call << root;
         root << call;
+        root.has_expansions = true;
         lex< exactly<';'> >();
         context.pending.push_back(call);
       }
@@ -333,6 +334,7 @@ namespace Sass {
         Node call(parse_mixin_call());
         // call << block;
         block << call;
+        block.has_expansions = true;
         if (!definition) context.pending.push_back(call);
       }
       else if (lex< variable >()) {

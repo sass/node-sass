@@ -19,16 +19,15 @@ namespace Sass {
         Token name(expr[0].token);
         // cerr << "EVALUATING EXPANSION: " << string(name) << endl;
         Node args(expr[1]);
-        // Node parent(expr[2]);
         Node mixin(env[name]);
-        // Node expansion(apply(mixin, args, env));
-        // parent.has_rules_or_comments |= expansion.has_rules_or_comments;
-        // parent.has_rulesets          |= expansion.has_rulesets;
-        // parent.has_propsets          |= expansion.has_propsets;
+        Node expansion(apply(mixin, args, env));
         expr.children->pop_back();
         expr.children->pop_back();
-        // expr.children->pop_back();
-        expr += Node(apply(mixin, args, env));
+        expr += expansion;
+        expr.has_rules_or_comments |= expansion.has_rules_or_comments;
+        expr.has_rulesets          |= expansion.has_rulesets;
+        expr.has_propsets          |= expansion.has_propsets;
+        expr.has_expansions        |= expansion.has_expansions;
         return expr;
       } break;
       

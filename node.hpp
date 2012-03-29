@@ -83,6 +83,7 @@ namespace Sass {
     bool has_rules_or_comments;
     bool has_rulesets;
     bool has_propsets;
+    bool has_expansions;
     bool has_backref;
     bool from_variable;
     bool eval_me;
@@ -98,6 +99,7 @@ namespace Sass {
       has_rules_or_comments(n.has_rules_or_comments),
       has_rulesets(n.has_rulesets),
       has_propsets(n.has_propsets),
+      has_expansions(n.has_expansions),
       has_backref(n.has_backref),
       from_variable(n.from_variable),
       eval_me(n.eval_me)
@@ -112,6 +114,7 @@ namespace Sass {
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
+      has_expansions(false),
       has_backref(false),
       from_variable(false),
       eval_me(false)
@@ -126,6 +129,7 @@ namespace Sass {
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
+      has_expansions(false),
       has_backref(false),
       from_variable(false),
       eval_me(false)
@@ -140,6 +144,7 @@ namespace Sass {
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
+      has_expansions(false),
       has_backref(false),
       from_variable(false),
       eval_me(false)
@@ -159,6 +164,7 @@ namespace Sass {
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
+      has_expansions(false),
       has_backref(false),
       from_variable(false),
       eval_me(false)
@@ -173,6 +179,7 @@ namespace Sass {
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
+      has_expansions(false),
       has_backref(false),
       from_variable(false),
       eval_me(false)
@@ -187,6 +194,7 @@ namespace Sass {
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
+      has_expansions(false),
       has_backref(false),
       from_variable(false),
       eval_me(false)
@@ -201,6 +209,7 @@ namespace Sass {
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
+      has_expansions(false),
       has_backref(false),
       from_variable(false),
       eval_me(false)
@@ -266,5 +275,7 @@ namespace Sass {
                          const vector<string>& prefixes);
     void emit_nested_css(stringstream& buf, size_t depth);
     void emit_expanded_css(stringstream& buf, const string& prefix);
+    
+    void flatten();
   };
 }

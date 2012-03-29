@@ -314,6 +314,7 @@ namespace Sass {
           }
         }
       }
+      if (block.has_expansions) block.flatten();
       if (block.has_rules_or_comments) {
         buf << string(2*depth, ' ') << new_prefixes[0];
         for (int i = 1; i < new_prefixes.size(); ++i) {
@@ -325,12 +326,12 @@ namespace Sass {
           if (stm_type == comment || stm_type == rule) {
             block[i].emit_nested_css(buf, depth+1); // NEED OVERLOADED VERSION FOR COMMENTS AND RULES
           }
-          else if (stm_type == expansion) {
-            // buf << string(2*(depth+1), ' ') << block[i].to_string(""); // TEMPORARY
-            for (int j = 0; j < block[i].size(); ++j) {
-              block[i][j].emit_nested_css(buf, depth+1);
-            }
-          }
+          // else if (stm_type == expansion) {
+          //   // buf << string(2*(depth+1), ' ') << block[i].to_string(""); // TEMPORARY
+          //   for (int j = 0; j < block[i].size(); ++j) {
+          //     block[i][j].emit_nested_css(buf, depth+1);
+          //   }
+          // }
         }
         buf << " }" << endl;
         ++depth; // if we printed content at this level, we need to indent any nested rulesets
@@ -432,5 +433,31 @@ namespace Sass {
     // }
     
   }
+  
+  void Node::flatten()
+  {
+    if (type != block && type != expansion) return;
+    for (int i = 0; i < size(); ++i) {
+      if (at(i).type == expansion) {
+        Node expn = at(i);
+        if (expn.has_expansions) expn.flatten();
+        at(i).type = none;
+        children->insert(children->begin() + i, expn.children->begin(), expn.children->end());
+      }
+    }
+  }
+  // 
+  // void flatten_block(Node& block)
+  // {
+  //   
+  //   for (int i = 0; i < block.size(); ++i) {
+  //     
+  //     if (block[i].type == Node::expansion
+  //     
+  //   }
+  //   
+  //   
+  //   
+  // }
 
 }
