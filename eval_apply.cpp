@@ -187,4 +187,43 @@ namespace Sass {
     }
   }
   
+  Node apply(const Node& mixin, const Node& args, Environment& env)
+  {
+    Node params(mixin[1]);
+    Node body(mixin[2].clone());
+    Environment m_env;
+    // bind arguments
+    for (int i = 0, j = 0; i < args.size(); ++i) {
+      if (args[i].type == Node::assignment) {
+        Node arg(args[i]);
+        Token name(arg[0].token);
+        if (!m_env.query(name)) {
+          m_env[name] = eval(arg[1], env);
+        }
+      }
+      else {
+        // TO DO: ensure (j < params.size())
+        Node param(params[j]);
+        Token name(param.type == Node::variable ? param.token : param[0].token);
+        m_env[name] = eval(args[i], env);
+        ++j;
+      }
+    }
+    // plug the holes with default arguments if any
+    for (int i = 0; i < params.size(); ++i) {
+      if (params[i].type == Node::assignment) {
+        Node param(params[i]);
+        Token name(param[0].token);
+        if (!m_env.query(name)) {
+          m_env[name] = eval(param[1], env);
+        }
+      }
+    }
+    m_env.link(env);
+
+    for (int i = 0; i < body.size(); ++i) {
+      body[i] = eval(body[i], m_env);
+    }
+    return body;
+  }
 }
