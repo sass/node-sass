@@ -42,11 +42,12 @@ namespace Sass {
         else {
           val = eval(val, env);
         }
-        if (env.query(expr[0].token)) {
-          env[expr[0].token] = val;
+        Node var(expr[0]);
+        if (env.query(var.token)) {
+          env[var.token] = val;
         }
         else {
-          env.current_frame[expr[0].token] = val;
+          env.current_frame[var.token] = val;
         }
         return expr;
       } break;
