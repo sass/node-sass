@@ -23,15 +23,17 @@ namespace Sass {
 
         case Node::rule: {
           // treat top-level lists differently from nested ones
-          Node rhs(n[1]);
-          if (rhs.type == Node::comma_list || rhs.type == Node::space_list) {
-            for (int i = 0; i < rhs.size(); ++i) {
-              if (rhs[i].eval_me) rhs[i] = eval(rhs[i], context.global_env);
-            }
-          }
-          else {
-            n[1] = eval(n[1], context.global_env);
-          }
+          // Node rhs(n[1]);
+          // if (rhs.type == Node::comma_list || rhs.type == Node::space_list) {
+          //   for (int i = 0; i < rhs.size(); ++i) {
+          //     if (rhs[i].eval_me) rhs[i] = eval(rhs[i], context.global_env);
+          //   }
+          // }
+          // else {
+          //   n[1] = eval(n[1], context.global_env);
+          // }
+          
+          eval(n, context.global_env);
         } break;
         
         case Node::mixin: {
