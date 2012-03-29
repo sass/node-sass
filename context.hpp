@@ -4,12 +4,15 @@ namespace Sass {
   using std::map;
   
   struct Environment {
-    map<Token, Node> frame;
+    map<Token, Node> current_frame;
     Environment* parent;
     
-    Environment() : frame(map<Token, Node>()), parent(0)
+    Environment()
+    : current_frame(map<Token, Node>()), parent(0)
     { }
-    Environment(Environment* env) : frame(map<Token, Node>()), parent(env)
+    Environment(Environment* env)
+    : current_frame(map<Token, Node>()),
+      parent(env)
     { }
     
     void link(Environment& env)
@@ -17,16 +20,16 @@ namespace Sass {
     
     bool query(const Token& key) const
     {
-      if (frame.count(key)) return true;
-      else if (parent)      return parent->query(key);
-      else                  return false;
+      if (current_frame.count(key)) return true;
+      else if (parent)              return parent->query(key);
+      else                          return false;
     }
     
     Node& operator[](const Token& key)
     {
-      if (frame.count(key)) return frame[key];
-      else if (parent)      return (*parent)[key];
-      else                  return frame[key];
+      if (current_frame.count(key)) return current_frame[key];
+      else if (parent)              return (*parent)[key];
+      else                          return current_frame[key];
     }
   };
 

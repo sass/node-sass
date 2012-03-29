@@ -46,7 +46,7 @@ namespace Sass {
           env[expr[0].token] = val;
         }
         else {
-          env.frame[expr[0].token] = val;
+          env.current_frame[expr[0].token] = val;
         }
         return expr;
       } break;
