@@ -24,10 +24,22 @@ namespace Sass {
         expr.children->pop_back();
         expr.children->pop_back();
         expr += expansion;
-        expr.has_rules_or_comments |= expansion.has_rules_or_comments;
-        expr.has_rulesets          |= expansion.has_rulesets;
-        expr.has_propsets          |= expansion.has_propsets;
-        expr.has_expansions        |= expansion.has_expansions;
+        // expr[0].has_rules_or_comments |= expansion[0].has_rules_or_comments;
+        // expr[0].has_rulesets          |= expansion[0].has_rulesets;
+        // expr[0].has_propsets          |= expansion[0].has_propsets;
+        // expr[0].has_expansions        |= expansion[0].has_expansions;
+        return expr;
+      } break;
+      
+      case Node::ruleset: {
+        eval(expr[1], env);
+        return expr;
+      } break;
+      
+      case Node::block: {
+        for (int i = 0; i < expr.size(); ++i) {
+          eval(expr[i], env);
+        }
         return expr;
       } break;
       
@@ -233,7 +245,7 @@ namespace Sass {
   {
     // cerr << "APPLYING MIXIN: " << string(mixin[0].token) << endl;
     Node params(mixin[1]);
-    if (mixin[2].has_expansions) cerr << "ORIGINAL BODY FOR " << string(mixin[0].token) << " HAS EXPANSIONS" << endl;
+    if (mixin[2][0].has_expansions) cerr << "ORIGINAL BODY FOR " << string(mixin[0].token) << " HAS EXPANSIONS" << endl;
     Node body(mixin[2].clone());
     Environment m_env;
     // cerr << "CLONED BODY" << endl;
@@ -271,7 +283,7 @@ namespace Sass {
     for (int i = 0; i < body.size(); ++i) {
       body[i] = eval(body[i], m_env);
     }
-    if (body.has_expansions) cerr << "APPLYING MIXIN CONTAINING EXPANSIONS" << endl;
+    if (body[0].has_expansions) cerr << "APPLYING MIXIN CONTAINING EXPANSIONS" << endl;
     return body;
   }
 }

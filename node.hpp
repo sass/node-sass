@@ -69,7 +69,8 @@ namespace Sass {
       assignment,
       
       comment,
-      none
+      none,
+      flags
     };
     
     static size_t fresh;
@@ -89,6 +90,15 @@ namespace Sass {
     bool eval_me;
     
     Node() : type(none), children(0) { ++fresh; }
+    
+    Node(Node::Type type)
+    : type(type),
+      children(0),
+      has_rules_or_comments(false),
+      has_rulesets(false),
+      has_propsets(false),
+      has_expansions(false)
+    { ++fresh; }
   
     Node(const Node& n)
     : line_number(n.line_number),

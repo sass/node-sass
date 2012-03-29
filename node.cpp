@@ -291,32 +291,36 @@ namespace Sass {
     switch (type)
     {
     case root:
+      if (at(0).has_expansions) {
+        cerr << "FLATTENING ROOT NODE" << endl;
+        flatten();
+      }
       for (int i = 0; i < children->size(); ++i) {
         children->at(i).emit_nested_css(buf, depth, prefixes);
       }
       break;
 
     case ruleset: {
-      Node sel_group(children->at(0));
-      Node block(children->at(1));
+      Node sel_group(at(0));
+      Node block(at(1));
       vector<string> new_prefixes;
       
       if (prefixes.empty()) {
-        new_prefixes.reserve(sel_group.children->size());
-        for (int i = 0; i < sel_group.children->size(); ++i) {
-          new_prefixes.push_back(sel_group.children->at(i).to_string(string()));
+        new_prefixes.reserve(sel_group.size());
+        for (int i = 0; i < sel_group.size(); ++i) {
+          new_prefixes.push_back(sel_group[i].to_string(string()));
         }
       }
       else {
-        new_prefixes.reserve(prefixes.size() * sel_group.children->size());
+        new_prefixes.reserve(prefixes.size() * sel_group.size());
         for (int i = 0; i < prefixes.size(); ++i) {
-          for (int j = 0; j < sel_group.children->size(); ++j) {
-            new_prefixes.push_back(sel_group.children->at(j).to_string(prefixes[i]));
+          for (int j = 0; j < sel_group.size(); ++j) {
+            new_prefixes.push_back(sel_group[j].to_string(prefixes[i]));
           }
         }
       }
-      if (block.has_expansions) block.flatten();
-      if (block.has_rules_or_comments) {
+      if (block[0].has_expansions) block.flatten();
+      if (block[0].has_rules_or_comments) {
         buf << string(2*depth, ' ') << new_prefixes[0];
         for (int i = 1; i < new_prefixes.size(); ++i) {
           buf << ", " << new_prefixes[i];
@@ -337,14 +341,14 @@ namespace Sass {
         buf << " }" << endl;
         ++depth; // if we printed content at this level, we need to indent any nested rulesets
       }
-      if (block.has_rulesets) {
-        for (int i = 0; i < block.children->size(); ++i) {
-          if (block.children->at(i).type == ruleset) {
-            block.children->at(i).emit_nested_css(buf, depth, new_prefixes);
+      if (block[0].has_rulesets) {
+        for (int i = 0; i < block.size(); ++i) {
+          if (block[i].type == ruleset) {
+            block[i].emit_nested_css(buf, depth, new_prefixes);
           }
         }
       }
-      if (block.has_rules_or_comments) --depth;
+      if (block[0].has_rules_or_comments) --depth;
       if (depth == 0 && prefixes.empty()) buf << endl;
     } break;
 
@@ -438,12 +442,16 @@ namespace Sass {
   void Node::flatten()
   {
     cerr << "FLATTENING A BLOCK" << endl;
-    if (type != block && type != expansion) return;
+    if (type != block && type != expansion && type != root) return;
     for (int i = 0; i < size(); ++i) {
       if (at(i).type == expansion) {
         cerr << "FLATTEN: found an expansion node" << endl;
         Node expn = at(i);
-        if (expn.has_expansions) expn.flatten();
+        if (expn[0].has_expansions) expn.flatten();
+        at(0).has_rules_or_comments |= expn[0].has_rules_or_comments;
+        at(0).has_rulesets          |= expn[0].has_rulesets;
+        at(0).has_propsets          |= expn[0].has_propsets;
+        at(0).has_expansions        |= expn[0].has_expansions;
         at(i).type = none;
         children->insert(children->begin() + i, expn.children->begin(), expn.children->end());
       }

@@ -7,6 +7,7 @@ namespace Sass {
   void Document::parse_scss()
   {
     lex<optional_spaces>();
+    root << Node(Node::flags);
     while(*position) {
       if (lex< block_comment >()) {
         root << Node(line_number, Node::comment, lexed);
@@ -22,7 +23,7 @@ namespace Sass {
         Node call(parse_mixin_call());
         // call << root;
         root << call;
-        root.has_expansions = true;
+        root[0].has_expansions = true;
         lex< exactly<';'> >();
         context.pending.push_back(call);
       }
@@ -303,7 +304,8 @@ namespace Sass {
   {
     lex< exactly<'{'> >();
     bool semicolon = false;
-    Node block(line_number, Node::block);
+    Node block(line_number, Node::block, 1);
+    block << Node(Node::flags);
     while (!lex< exactly<'}'> >()) {
       if (semicolon) {
         lex< exactly<';'> >(); // enforce terminal ';' here
@@ -312,7 +314,8 @@ namespace Sass {
       }
       if (lex< block_comment >()) {
         block << Node(line_number, Node::comment, lexed);
-        block.has_rules_or_comments = true;
+        // block.has_rules_or_comments = true;
+        block[0].has_rules_or_comments = true;
         semicolon = true;
       }
       else if (peek< import >(position)) {
@@ -321,10 +324,12 @@ namespace Sass {
         for (int i = 0; i < imported_tree.size(); ++i) {
           if (imported_tree[i].type == Node::comment ||
               imported_tree[i].type == Node::rule) {
-            block.has_rules_or_comments = true;
+            // block.has_rules_or_comments = true;
+            block[0].has_rules_or_comments = true;
           }
           else if (imported_tree[i].type == Node::ruleset) {
-            block.has_rulesets = true;
+            // block.has_rulesets = true;
+            block[0].has_rulesets = true;
           }
           block << imported_tree[i];
         }
@@ -334,7 +339,8 @@ namespace Sass {
         Node call(parse_mixin_call());
         // call << block;
         block << call;
-        block.has_expansions = true;
+        // block.has_expansions = true;
+        block[0].has_expansions = true;
         if (!definition) context.pending.push_back(call);
       }
       else if (lex< variable >()) {
@@ -354,16 +360,18 @@ namespace Sass {
       // }
       else if (const char* p = look_for_selector_group(position)) {
         block << parse_ruleset(definition);
-        block.has_rulesets = true;
+        block[0].has_rulesets = true;
       }
       else if (!peek< exactly<';'> >()) {
         Node rule(parse_rule());
         block << rule;
-        block.has_rules_or_comments = true;
+        // block.has_rules_or_comments = true;
+        block[0].has_rules_or_comments = true;
         semicolon = true;        
         if (!definition && rule[1].eval_me) context.pending.push_back(rule);
       }
       else lex< exactly<';'> >();
+      while (lex< block_comment >()) block << Node(line_number, Node::comment, lexed);
     }
     return block;
   }
