@@ -6,8 +6,10 @@ $y: global y;
   f-b: $y;
   $x: local x changed by foo;
   $y: global y changed by foo;
+  $z: new local z;
   f-a: $x;
   f-b: $y;
+  f-c: $z;
 }
 
 div {

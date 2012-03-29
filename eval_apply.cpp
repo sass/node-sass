@@ -42,7 +42,12 @@ namespace Sass {
         else {
           val = eval(val, env);
         }
-        env[expr[0].token] = val;
+        if (env.query(expr[0].token)) {
+          env[expr[0].token] = val;
+        }
+        else {
+          env.frame[expr[0].token] = val;
+        }
         return expr;
       } break;
 
