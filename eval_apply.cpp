@@ -175,9 +175,9 @@ namespace Sass {
     // TO DO: find a way to merge the following two clauses
     else if (lhs.type == Node::number && rhs.type == Node::hex_triple) {
       if (op != Node::sub && op != Node::div) {
-        double h1 = operate(op, lhs.numeric_value, rhs.children->at(0).numeric_value);
-        double h2 = operate(op, lhs.numeric_value, rhs.children->at(1).numeric_value);
-        double h3 = operate(op, lhs.numeric_value, rhs.children->at(2).numeric_value);
+        double h1 = operate(op, lhs.numeric_value, rhs[0].numeric_value);
+        double h2 = operate(op, lhs.numeric_value, rhs[1].numeric_value);
+        double h3 = operate(op, lhs.numeric_value, rhs[2].numeric_value);
         acc.children->pop_back();
         acc << Node(acc.line_number, h1, h2, h3);
       }
@@ -195,16 +195,16 @@ namespace Sass {
       }
     }
     else if (lhs.type == Node::hex_triple && rhs.type == Node::number) {
-      double h1 = operate(op, lhs.children->at(0).numeric_value, rhs.numeric_value);
-      double h2 = operate(op, lhs.children->at(1).numeric_value, rhs.numeric_value);
-      double h3 = operate(op, lhs.children->at(2).numeric_value, rhs.numeric_value);
+      double h1 = operate(op, lhs[0].numeric_value, rhs.numeric_value);
+      double h2 = operate(op, lhs[1].numeric_value, rhs.numeric_value);
+      double h3 = operate(op, lhs[2].numeric_value, rhs.numeric_value);
       acc.children->pop_back();
       acc << Node(acc.line_number, h1, h2, h3);
     }
     else if (lhs.type == Node::hex_triple && rhs.type == Node::hex_triple) {
-      double h1 = operate(op, lhs.children->at(0).numeric_value, rhs.children->at(0).numeric_value);
-      double h2 = operate(op, lhs.children->at(1).numeric_value, rhs.children->at(1).numeric_value);
-      double h3 = operate(op, lhs.children->at(2).numeric_value, rhs.children->at(2).numeric_value);
+      double h1 = operate(op, lhs[0].numeric_value, rhs[0].numeric_value);
+      double h2 = operate(op, lhs[1].numeric_value, rhs[1].numeric_value);
+      double h3 = operate(op, lhs[2].numeric_value, rhs[2].numeric_value);
       acc.children->pop_back();
       acc << Node(acc.line_number, h1, h2, h3);
     }
