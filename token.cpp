@@ -81,9 +81,9 @@ namespace Sass {
   bool Token::operator<(const Token& rhs) const
   {
     const char* first1 = begin;
-    const char* last1 = end;
+    const char* last1  = end;
     const char* first2 = rhs.begin;
-    const char* last2 = rhs.end;
+    const char* last2  = rhs.end;
     while (first1!=last1)
     {
       if (first2==last2 || *first2<*first1) return false;
