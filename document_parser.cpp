@@ -367,11 +367,16 @@ namespace Sass {
         block << rule;
         // block.has_rules_or_comments = true;
         block[0].has_rules_or_comments = true;
-        semicolon = true;        
+        semicolon = true;
+        lex< exactly<';'> >(); // ???
         if (!definition && rule[1].eval_me) context.pending.push_back(rule);
       }
       else lex< exactly<';'> >();
-      while (lex< block_comment >()) block << Node(line_number, Node::comment, lexed);
+      while (lex< block_comment >()) {
+        block << Node(line_number, Node::comment, lexed);
+        block[0].has_rules_or_comments = true;
+        cerr << "Parsing a terminal comment: " << string(lexed) << endl;
+      }
     }
     return block;
   }
