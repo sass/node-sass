@@ -14,6 +14,7 @@ using std::endl;
 namespace Sass {
   size_t Node::fresh = 0;
   size_t Node::copied = 0;
+  size_t Node::allocations = 0;
   
   Node Node::clone() const
   {

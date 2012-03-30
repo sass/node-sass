@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
   
   cerr << "Fresh nodes:\t" << Node::fresh << endl;
   cerr << "Copied nodes:\t" << Node::copied << endl;
-  
+  cerr << "Allocations:\t" << Node::allocations << endl;
   cout << output;
 
   return 0;

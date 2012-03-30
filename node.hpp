@@ -75,6 +75,7 @@ namespace Sass {
     
     static size_t fresh;
     static size_t copied;
+    static size_t allocations;
     
     size_t line_number;
     mutable vector<Node>* children;
@@ -128,7 +129,7 @@ namespace Sass {
       has_backref(false),
       from_variable(false),
       eval_me(false)
-    { children->reserve(length); ++fresh; }
+    { children->reserve(length); ++fresh; ++allocations; }
     
     Node(size_t line_number, Type type, const Node& n)
     : line_number(line_number),
@@ -143,7 +144,7 @@ namespace Sass {
       has_backref(false),
       from_variable(false),
       eval_me(false)
-    { ++fresh; }
+    { ++fresh; ++allocations; }
     
     Node(size_t line_number, Type type, const Node& n, const Node& m)
     : line_number(line_number),
@@ -163,6 +164,7 @@ namespace Sass {
       children->push_back(n);
       children->push_back(m);
       ++fresh;
+      ++allocations;
     }
   
     Node(size_t line_number, Type type, Token& token)
@@ -229,6 +231,7 @@ namespace Sass {
       children->push_back(Node(line_number, b));
       children->push_back(Node(line_number, c));
       ++fresh;
+      ++allocations;
     }
     
     //~Node() { delete children; }
