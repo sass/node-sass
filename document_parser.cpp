@@ -459,14 +459,14 @@ namespace Sass {
     Node term1(parse_term());
     // if it's a singleton, return it directly; don't wrap it
     if (!(peek< exactly<'+'> >(position) ||
-          peek< exactly<'-'> >(position)))
+          peek< sequence< negate< number >, exactly<'-'> > >(position)))
     { return term1; }
     
     Node expression(line_number, Node::expression, 3);
     term1.eval_me = true;
     expression << term1;
     
-    while (lex< exactly<'+'> >() || lex< exactly<'-'> >()) {
+    while (lex< exactly<'+'> >() || lex< sequence< negate< number >, exactly<'-'> > >()) {
       if (lexed.begin[0] == '+') {
         expression << Node(line_number, Node::add, lexed);
       }
