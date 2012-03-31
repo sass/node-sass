@@ -17,11 +17,12 @@ namespace Sass {
         lex< exactly<';'> >();
       }
       else if (peek< mixin >(position)) {
-        context.pending.push_back(parse_mixin_definition());
+        Node mixin(parse_mixin_definition());
+        context.pending.push_back(mixin);
+        root << mixin;
       }
       else if (peek< include >(position)) {
         Node call(parse_mixin_call());
-        // call << root;
         root << call;
         root[0].has_expansions = true;
         lex< exactly<';'> >();
@@ -31,6 +32,7 @@ namespace Sass {
         Node assn(parse_assignment());
         lex< exactly<';'> >();
         context.pending.push_back(assn);
+        root << assn;
       }
       else {
         root << parse_ruleset();
@@ -337,7 +339,6 @@ namespace Sass {
       }
       else if (peek< include >(position)) {
         Node call(parse_mixin_call());
-        // call << block;
         block << call;
         // block.has_expansions = true;
         block[0].has_expansions = true;
@@ -375,7 +376,6 @@ namespace Sass {
       while (lex< block_comment >()) {
         block << Node(line_number, Node::comment, lexed);
         block[0].has_rules_or_comments = true;
-        cerr << "Parsing a terminal comment: " << string(lexed) << endl;
       }
     }
     return block;

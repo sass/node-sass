@@ -36,9 +36,18 @@ namespace Sass {
         return expr;
       } break;
       
-      case Node::block: {
+      case Node::root: {
         for (int i = 0; i < expr.size(); ++i) {
           eval(expr[i], env);
+        }
+        return expr;
+      } break;
+      
+      case Node::block: {
+        Environment current;
+        current.link(env);
+        for (int i = 0; i < expr.size(); ++i) {
+          eval(expr[i], current);
         }
         return expr;
       } break;
@@ -71,7 +80,7 @@ namespace Sass {
           }
         }
         else {
-          expr[1] = eval(rhs, env);
+          if (rhs.eval_me) expr[1] = eval(rhs, env);
         }
         return expr;
       } break;

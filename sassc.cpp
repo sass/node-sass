@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include "document.hpp"
+#include "eval_apply.hpp"
 
 using namespace Sass;
 using namespace std;
@@ -30,7 +31,8 @@ int main(int argc, char* argv[]) {
   Document doc(path, 0);
   doc.parse_scss();
   cerr << "SUCCESSFULLY PARSED DOCUMENT" << endl;
-  doc.eval_pending();
+  // doc.eval_pending();
+  eval(doc.root, doc.context.global_env);
   cerr << "SUCCESSFULLY EVALED DOCUMENT" << endl;
   string output = doc.emit_css(style);
   
