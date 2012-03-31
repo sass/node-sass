@@ -1,5 +1,6 @@
 #include <cstdio>
 #include "document.hpp"
+#include "eval_apply.hpp"
 #include <iostream>
 
 namespace Sass {
@@ -58,4 +59,32 @@ namespace Sass {
     if (context.ref_count == 0) delete &context;
   }
   
+  void Document::eval_pending()
+  {
+    for (int i = 0; i < context.pending.size(); ++i) {
+      eval(context.pending[i], context.global_env);
+    }
+  }
+  
+  using std::string;
+  using std::stringstream;
+  using std::endl;
+  
+  string Document::emit_css(CSS_Style style) {
+    stringstream output;
+    switch (style) {
+    case echo:
+      root.echo(output);
+      break;
+    case nested:
+      root.emit_nested_css(output, 0, vector<string>());
+      break;
+    case expanded:
+      root.emit_expanded_css(output, "");
+      break;
+    }
+    string retval(output.str());
+    if (!retval.empty()) retval.resize(retval.size()-1);
+    return retval;
+  }
 }

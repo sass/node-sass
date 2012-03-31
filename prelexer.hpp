@@ -275,6 +275,8 @@ namespace Sass {
     // Match CSS '@' keywords.
     const char* at_keyword(const char* src);
     const char* import(const char* src);
+    const char* mixin(const char* src);
+    const char* include(const char* src);
     // Match CSS type selectors
     const char* namespace_prefix(const char* src);
     const char* type_selector(const char* src);
@@ -292,7 +294,9 @@ namespace Sass {
     const char* percentage(const char* src);
     const char* dimension(const char* src);
     const char* hex(const char* src);
+    const char* rgb_prefix(const char* src);
     // Match CSS uri specifiers.
+    const char* uri_prefix(const char* src);
     const char* uri(const char* src);
     // Match CSS "!important" keyword.
     const char* important(const char* src);

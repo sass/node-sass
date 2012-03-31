@@ -1,7 +1,7 @@
 
 
 build: sassc.cpp document.cpp node.cpp token.cpp prelexer.cpp
-	g++ -o bin/sassc sassc.cpp document.cpp document_parser.cpp evaluator.cpp document_emitter.cpp node.cpp token.cpp prelexer.cpp
+	g++ -o bin/sassc sassc.cpp document.cpp document_parser.cpp eval_apply.cpp node.cpp token.cpp prelexer.cpp
 
 test: build
 	ruby spec.rb spec/basic/

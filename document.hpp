@@ -40,7 +40,7 @@ namespace Sass {
       if (!start) start = position;
       const char* after_whitespace;
       if (mx == block_comment) {
-        after_whitespace =
+        after_whitespace = // start;
           zero_plus< alternatives<spaces, line_comment> >(start);
       }
       else if (/*mx == ancestor_of ||*/ mx == no_spaces) {
@@ -75,7 +75,7 @@ namespace Sass {
     {
       const char* after_whitespace;
       if (mx == block_comment) {
-        after_whitespace =
+        after_whitespace = // position;
           zero_plus< alternatives<spaces, line_comment> >(position);
       }
       else if (mx == ancestor_of || mx == no_spaces) {
@@ -111,15 +111,22 @@ namespace Sass {
     
     void parse_scss();
     Node parse_import();
-    void parse_var_def();
-    Node parse_ruleset();
+    Node parse_include();
+    Node parse_mixin_definition();
+    Node parse_mixin_parameters();
+    Node parse_parameter();
+    Node parse_mixin_call();
+    Node parse_mixin_arguments();
+    Node parse_argument();
+    Node parse_assignment();
+    Node parse_ruleset(bool definition = false);
     Node parse_selector_group();
     Node parse_selector();
     Node parse_simple_selector_sequence();
     Node parse_simple_selector();
     Node parse_pseudo();
     Node parse_attribute_selector();
-    Node parse_block();
+    Node parse_block(bool definition = false);
     Node parse_rule();
     Node parse_values();
     Node parse_list();
@@ -129,6 +136,8 @@ namespace Sass {
     Node parse_term();
     Node parse_factor();
     Node parse_value();
+    Node parse_identifier();
+    Node parse_variable();
     
     const char* look_for_rule(const char* start = 0);
     const char* look_for_values(const char* start = 0);
@@ -140,6 +149,7 @@ namespace Sass {
     const char* look_for_pseudo(const char* start = 0);
     const char* look_for_attrib(const char* start = 0);
     
+    void eval_pending();
     string emit_css(CSS_Style style);
 
   };

@@ -58,12 +58,24 @@ namespace Sass {
       numeric_percentage,
       numeric_dimension,
       number,
-
-      comment
+      hex_triple,
+      
+      mixin,
+      parameters,
+      expansion,
+      arguments,
+      
+      variable,
+      assignment,
+      
+      comment,
+      none,
+      flags
     };
     
     static size_t fresh;
     static size_t copied;
+    static size_t allocations;
     
     size_t line_number;
     mutable vector<Node>* children;
@@ -73,12 +85,21 @@ namespace Sass {
     bool has_rules_or_comments;
     bool has_rulesets;
     bool has_propsets;
+    bool has_expansions;
     bool has_backref;
     bool from_variable;
     bool eval_me;
-    bool is_hex;
     
-    Node() : type(nil), children(0) { ++fresh; }
+    Node() : type(none), children(0) { ++fresh; }
+    
+    Node(Node::Type type)
+    : type(type),
+      children(0),
+      has_rules_or_comments(false),
+      has_rulesets(false),
+      has_propsets(false),
+      has_expansions(false)
+    { ++fresh; }
   
     Node(const Node& n)
     : line_number(n.line_number),
@@ -89,11 +110,11 @@ namespace Sass {
       has_rules_or_comments(n.has_rules_or_comments),
       has_rulesets(n.has_rulesets),
       has_propsets(n.has_propsets),
+      has_expansions(n.has_expansions),
       has_backref(n.has_backref),
       from_variable(n.from_variable),
-      eval_me(n.eval_me),
-      is_hex(n.is_hex)
-    { /*n.release();*/ ++copied; } // No joint custody.
+      eval_me(n.eval_me)
+    { ++copied; }
   
     Node(size_t line_number, Type type, size_t length = 0)
     : line_number(line_number),
@@ -104,11 +125,11 @@ namespace Sass {
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
+      has_expansions(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false),
-      is_hex(false)
-    { children->reserve(length); ++fresh; }
+      eval_me(false)
+    { children->reserve(length); ++fresh; ++allocations; }
     
     Node(size_t line_number, Type type, const Node& n)
     : line_number(line_number),
@@ -119,11 +140,11 @@ namespace Sass {
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
+      has_expansions(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false),
-      is_hex(false)
-    { ++fresh; }
+      eval_me(false)
+    { ++fresh; ++allocations; }
     
     Node(size_t line_number, Type type, const Node& n, const Node& m)
     : line_number(line_number),
@@ -134,15 +155,16 @@ namespace Sass {
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
+      has_expansions(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false),
-      is_hex(false)
+      eval_me(false)
     {
       children->reserve(2);
       children->push_back(n);
       children->push_back(m);
       ++fresh;
+      ++allocations;
     }
   
     Node(size_t line_number, Type type, Token& token)
@@ -154,10 +176,10 @@ namespace Sass {
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
+      has_expansions(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false),
-      is_hex(false)
+      eval_me(false)
     { ++fresh; }
     
     Node(size_t line_number, double d)
@@ -169,10 +191,10 @@ namespace Sass {
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
+      has_expansions(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false),
-      is_hex(false)
+      eval_me(false)
     { ++fresh; }
     
     Node(size_t line_number, double d, Token& token)
@@ -184,19 +206,49 @@ namespace Sass {
       has_rules_or_comments(false),
       has_rulesets(false),
       has_propsets(false),
+      has_expansions(false),
       has_backref(false),
       from_variable(false),
-      eval_me(false),
-      is_hex(false)
+      eval_me(false)
     { ++fresh; }
     
+    Node(size_t line_number, double a, double b, double c)
+    : line_number(line_number),
+      children(new vector<Node>()),
+      token(Token()),
+      numeric_value(0),
+      type(hex_triple),
+      has_rules_or_comments(false),
+      has_rulesets(false),
+      has_propsets(false),
+      has_expansions(false),
+      has_backref(false),
+      from_variable(false),
+      eval_me(false)
+    {
+      children->reserve(3);
+      children->push_back(Node(line_number, a));
+      children->push_back(Node(line_number, b));
+      children->push_back(Node(line_number, c));
+      ++fresh;
+      ++allocations;
+    }
+    
     //~Node() { delete children; }
+    
+    size_t size() const
+    { return children->size(); }
+    
+    Node& operator[](const size_t i) const
+    { return children->at(i); }
+    
+    Node& at(const size_t i) const
+    { return children->at(i); }
     
     Node& operator=(const Node& n)
     {
       line_number = n.line_number;
       children = n.children;
-      // n.release();
       token = n.token;
       numeric_value = n.numeric_value;
       type = n.type;
@@ -206,7 +258,6 @@ namespace Sass {
       has_backref = n.has_backref;
       from_variable = n.from_variable;
       eval_me = n.eval_me;
-      is_hex = n.is_hex;
       ++copied;
       return *this;
     }
@@ -229,11 +280,15 @@ namespace Sass {
     
     void release() const { children = 0; }
     
+    Node clone() const;
+    
     void echo(stringstream& buf, size_t depth = 0);
     void emit_nested_css(stringstream& buf,
                          size_t depth,
                          const vector<string>& prefixes);
-                       void emit_nested_css(stringstream& buf, size_t depth);
+    void emit_nested_css(stringstream& buf, size_t depth);
     void emit_expanded_css(stringstream& buf, const string& prefix);
+    
+    void flatten();
   };
 }

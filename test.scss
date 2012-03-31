@@ -26,6 +26,8 @@ div {
   }
   p {
     padding: 10px 8%;
+    arithmetic: 1 + 2 * 3 / 4;
+    hex-arithmetic: #abcdef + 1;
     -webkit-box-sizing: $blux; ; ;
     ; ; ;;;
   }

@@ -38,7 +38,7 @@ namespace Sass {
     extern const char slash_star[] = "/*";
     extern const char star_slash[] = "*/";
     const char* block_comment(const char* src) {
-      return delimited_by<slash_star, star_slash, false>(src);
+      return sequence< optional_spaces, delimited_by<slash_star, star_slash, false> >(src);
     }
     // Match either comment.
     const char* comment(const char* src) {
@@ -86,6 +86,14 @@ namespace Sass {
     extern const char import_kwd[] = "@import";
     const char* import(const char* src) {
       return exactly<import_kwd>(src);
+    }
+    extern const char mixin_kwd[] = "@mixin";
+    const char* mixin(const char* src) {
+      return exactly<mixin_kwd>(src);
+    }
+    extern const char include_kwd[] = "@include";
+    const char* include(const char* src) {
+      return exactly<include_kwd>(src);
     }
     
     const char* name(const char* src) {
@@ -166,10 +174,17 @@ namespace Sass {
       int len = p - src;
       return (len != 4 && len != 7) ? 0 : p;
     }
+    extern const char rgb_kwd[] = "rgb(";
+    const char* rgb_prefix(const char* src) {
+      return exactly<rgb_kwd>(src);
+    }
     // Match CSS uri specifiers.
-    extern const char url_call[] = "url(";
+    extern const char url_kwd[] = "url(";
+    const char* uri_prefix(const char* src) {
+      return exactly<url_kwd>(src);
+    }
     const char* uri(const char* src) {
-      return sequence< exactly<url_call>,
+      return sequence< exactly<url_kwd>,
                        optional<spaces>,
                        string_constant,
                        optional<spaces>,
