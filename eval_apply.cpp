@@ -277,7 +277,7 @@ namespace Sass {
       }
     }
     // cerr << "BOUND DEFAULT ARGS FOR " << string(mixin[0].token) << endl;
-    m_env.link(env.parent ? *env.parent : env);
+    m_env.link(env.global ? *env.global : env);
     // cerr << "LINKED ENVIRONMENT FOR " << string(mixin[0].token) << endl << endl;
     for (int i = 0; i < body.size(); ++i) {
       body[i] = eval(body[i], m_env);

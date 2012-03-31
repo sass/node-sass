@@ -6,17 +6,17 @@ namespace Sass {
   struct Environment {
     map<Token, Node> current_frame;
     Environment* parent;
+    Environment* global;
     
     Environment()
-    : current_frame(map<Token, Node>()), parent(0)
-    { }
-    Environment(Environment* env)
-    : current_frame(map<Token, Node>()),
-      parent(env)
+    : current_frame(map<Token, Node>()), parent(0), global(0)
     { }
     
     void link(Environment& env)
-    { parent = &env; }
+    {
+      parent = &env;
+      global = parent->global ? parent->global : parent;
+    }
     
     bool query(const Token& key) const
     {
