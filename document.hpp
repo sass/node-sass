@@ -40,7 +40,7 @@ namespace Sass {
       if (!start) start = position;
       const char* after_whitespace;
       if (mx == block_comment) {
-        after_whitespace =
+        after_whitespace = // start;
           zero_plus< alternatives<spaces, line_comment> >(start);
       }
       else if (/*mx == ancestor_of ||*/ mx == no_spaces) {
@@ -75,7 +75,7 @@ namespace Sass {
     {
       const char* after_whitespace;
       if (mx == block_comment) {
-        after_whitespace =
+        after_whitespace = // position;
           zero_plus< alternatives<spaces, line_comment> >(position);
       }
       else if (mx == ancestor_of || mx == no_spaces) {
