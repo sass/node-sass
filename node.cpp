@@ -12,32 +12,19 @@ using std::cerr;
 using std::endl;
 
 namespace Sass {
-  size_t Node::fresh = 0;
-  size_t Node::copied = 0;
   size_t Node::allocations = 0;
   
   Node Node::clone() const
   {
-    Node n;
-    n.line_number = line_number;
-    n.token = token;
-    n.numeric_value = numeric_value;
-    n.type = type;
-    n.has_rules_or_comments = has_rules_or_comments;
-    n.has_rulesets = has_rulesets;
-    n.has_propsets = has_propsets;
-    n.has_expansions = has_expansions;
-    n.has_backref = has_backref;
-    n.from_variable = from_variable;
-    n.eval_me = eval_me;
-    if (children) {
-      n.children = new vector<Node>();
-      n.children->reserve(size());
+    Node n(*this);
+    if (has_children) {
+      n.contents.children = new vector<Node>;
+      ++allocations;
+      n.contents.children->reserve(size());
       for (int i = 0; i < size(); ++i) {
         n << at(i).clone();
       }
     }
-    ++fresh;
     return n;
   }
   
@@ -60,43 +47,43 @@ namespace Sass {
           result += prefix;
           result += ' ';
         }
-        if (children->at(0).type == selector_combinator) {
-          result += string(children->at(0).token);
+        if (at(0).type == selector_combinator) {
+          result += string(at(0).content.token);
           result += ' ';
         }
         else {
-          result += children->at(0).to_string(prefix);
+          result += at(0).to_string(prefix);
         }
-        for (int i = 1; i < children->size(); ++i) {
-          result += children->at(i).to_string(prefix);
+        for (int i = 1; i < size(); ++i) {
+          result += at(i).to_string(prefix);
         }
         return result;
       }  break;
 
       case selector_combinator: {
-        if (std::isspace(token.begin[0])) return string(" ");
-        else return string(" ") += string(token) += string(" ");
+        if (std::isspace(content.token.begin[0])) return string(" ");
+        else return string(" ") += string(content.token) += string(" ");
       } break;
 
       case simple_selector_sequence: {
         string result;
-        for (int i = 0; i < children->size(); ++i) {
-          result += children->at(i).to_string(prefix);
+        for (int i = 0; i < size(); ++i) {
+          result += at(i).to_string(prefix);
         }
         return result;
       }  break;
 
       case pseudo_negation: {
-        string result(children->at(0).to_string(prefix));
-        result += children->at(1).to_string(prefix);
+        string result(at(0).to_string(prefix));
+        result += at(1).to_string(prefix);
         result += ')';
         return result;
       } break;
 
       case functional_pseudo: {
-        string result(children->at(0).to_string(prefix));
-        for (int i = 1; i < children->size(); ++i) {
-          result += children->at(i).to_string(prefix);
+        string result(at(0).to_string(prefix));
+        for (int i = 1; i < size(); ++i) {
+          result += at(i).to_string(prefix);
         }
         result += ')';
         return result;
@@ -105,7 +92,7 @@ namespace Sass {
       case attribute_selector: {
         string result("[");
         for (int i = 0; i < 3; ++i)
-        { result += children->at(i).to_string(prefix); }
+        { result += at(i).to_string(prefix); }
         result += ']';
         return result;
       } break;
@@ -115,35 +102,35 @@ namespace Sass {
       } break;
       
       case comma_list: {
-        string result(children->at(0).to_string(prefix));
-        for (int i = 1; i < children->size(); ++i) {
+        string result(at(0).to_string(prefix));
+        for (int i = 1; i < size(); ++i) {
           result += ", ";
-          result += children->at(i).to_string(prefix);
+          result += at(i).to_string(prefix);
         }
         return result;
       } break;
       
       case space_list: {
-        string result(children->at(0).to_string(prefix));
-        for (int i = 1; i < children->size(); ++i) {
+        string result(at(0).to_string(prefix));
+        for (int i = 1; i < size(); ++i) {
           result += " ";
-          result += children->at(i).to_string(prefix);
+          result += at(i).to_string(prefix);
         }
         return result;
       } break;
       
       case expression:
       case term: {
-        string result(children->at(0).to_string(prefix));
-        // for (int i = 2; i < children->size(); i += 2) {
+        string result(at(0).to_string(prefix));
+        // for (int i = 2; i < size(); i += 2) {
         //   // result += " ";
-        //   result += children->at(i).to_string(prefix);
+        //   result += at(i).to_string(prefix);
         // }
-        for (int i = 1; i < children->size(); ++i) {
-          if (!(children->at(i).type == add ||
-                // children->at(i).type == sub ||  // another edge case -- consider uncommenting
-                children->at(i).type == mul)) {
-            result += children->at(i).to_string(prefix);
+        for (int i = 1; i < size(); ++i) {
+          if (!(at(i).type == add ||
+                // at(i).type == sub ||  // another edge case -- consider uncommenting
+                at(i).type == mul)) {
+            result += at(i).to_string(prefix);
           }
         }
         return result;
@@ -162,7 +149,8 @@ namespace Sass {
         stringstream ss;
         // ss.setf(std::ios::fixed, std::ios::floatfield);
         // ss.precision(3);
-        ss << numeric_value << string(token);
+        ss << content.dimension.numeric_value
+           << string(Token(content.dimension.unit, identifier(content.dimension.unit)));
         return ss.str();
       } break;
       
@@ -170,14 +158,14 @@ namespace Sass {
         stringstream ss;
         // ss.setf(std::ios::fixed, std::ios::floatfield);
         // ss.precision(3);
-        ss << numeric_value;
+        ss << content.numeric_value;
         return ss.str();
       } break;
       
-      case hex_triple: {
-        double a = children->at(0).numeric_value;
-        double b = children->at(1).numeric_value;
-        double c = children->at(2).numeric_value;
+      case numeric_color: {
+        double a = at(0).content.numeric_value;
+        double b = at(1).content.numeric_value;
+        double c = at(2).content.numeric_value;
         if (a >= 0xff && b >= 0xff && c >= 0xff)
         { return "white"; }
         else if (a >= 0xff && b >= 0xff && c == 0)
@@ -199,7 +187,7 @@ namespace Sass {
           stringstream ss;
           ss << '#' << std::setw(2) << std::setfill('0') << std::hex;
           for (int i = 0; i < 3; ++i) {
-            double x = children->at(i).numeric_value;
+            double x = at(i).content.numeric_value;
             if (x > 0xff) x = 0xff;
             else if (x < 0) x = 0;
             ss  << std::hex << std::setw(2) << static_cast<unsigned long>(x);
@@ -210,7 +198,7 @@ namespace Sass {
       
       case uri: {
         string result("url(");
-        result += string(token);
+        result += string(content.token);
         result += ")";
         return result;
       } break;
@@ -221,7 +209,7 @@ namespace Sass {
       // } break;
 
       default: {
-        return string(token);
+        return string(content.token);
       } break;
     }
   }
@@ -234,19 +222,19 @@ namespace Sass {
       break;
     case ruleset:
       buf << indentation;
-      children->at(0).echo(buf, depth);
-      children->at(1).echo(buf, depth);
+      at(0).echo(buf, depth);
+      at(1).echo(buf, depth);
       break;
     case selector_group:
-      children->at(0).echo(buf, depth);
-      for (int i = 1; i < children->size(); ++i) {
+      at(0).echo(buf, depth);
+      for (int i = 1; i < size(); ++i) {
         buf << ", ";
-        children->at(i).echo(buf, depth);
+        at(i).echo(buf, depth);
       }
       break;
     case selector:
-      for (int i = 0; i < children->size(); ++i) {
-        children->at(i).echo(buf, depth);
+      for (int i = 0; i < size(); ++i) {
+        at(i).echo(buf, depth);
       }
       break;
     case selector_combinator:
@@ -254,8 +242,8 @@ namespace Sass {
       else buf << ' ' << string(token) << ' ';
       break;
     case simple_selector_sequence:
-      for (int i = 0; i < children->size(); ++i) {
-        buf << children->at(i).to_string(string());
+      for (int i = 0; i < size(); ++i) {
+        buf << at(i).to_string(string());
       }
       break;
     case simple_selector:
@@ -263,21 +251,21 @@ namespace Sass {
       break;
     case block:
       buf << " {" << endl;
-      for (int i = 0; i < children->size(); children->at(i++).echo(buf, depth+1)) ;
+      for (int i = 0; i < size(); at(i++).echo(buf, depth+1)) ;
       buf << indentation << "}" << endl;
       break;
     case rule:
       buf << indentation;
-      children->at(0).echo(buf, depth);
+      at(0).echo(buf, depth);
       buf << ": ";
-      children->at(1).echo(buf, depth);
+      at(1).echo(buf, depth);
       buf << ';' << endl;
       break;
     case property:
       buf << string(token);
       break;
     case values:
-      for (int i = 0; i < children->size(); children->at(i++).echo(buf, depth)) ;
+      for (int i = 0; i < size(); at(i++).echo(buf, depth)) ;
       break;
     case value:
       buf << ' ' << string(token);
@@ -295,8 +283,8 @@ namespace Sass {
       if (at(0).has_expansions) {
         flatten();
       }
-      for (int i = 0; i < children->size(); ++i) {
-        children->at(i).emit_nested_css(buf, depth, prefixes);
+      for (int i = 0; i < size(); ++i) {
+        at(i).emit_nested_css(buf, depth, prefixes);
       }
       break;
 
@@ -320,7 +308,7 @@ namespace Sass {
         }
       }
       if (block[0].has_expansions) block.flatten();
-      if (block[0].has_rules_or_comments) {
+      if (block[0].has_statements) {
         buf << string(2*depth, ' ') << new_prefixes[0];
         for (int i = 1; i < new_prefixes.size(); ++i) {
           buf << ", " << new_prefixes[i];
@@ -341,14 +329,14 @@ namespace Sass {
         buf << " }" << endl;
         ++depth; // if we printed content at this level, we need to indent any nested rulesets
       }
-      if (block[0].has_rulesets) {
+      if (block[0].has_blocks) {
         for (int i = 0; i < block.size(); ++i) {
           if (block[i].type == ruleset) {
             block[i].emit_nested_css(buf, depth, new_prefixes);
           }
         }
       }
-      if (block[0].has_rules_or_comments) --depth;
+      if (block[0].has_statements) --depth;
       if (depth == 0 && prefixes.empty()) buf << endl;
     } break;
 
@@ -364,24 +352,24 @@ namespace Sass {
     {
     case rule:
       buf << endl << string(2*depth, ' ');
-      children->at(0).emit_nested_css(buf, depth); // property
-      children->at(1).emit_nested_css(buf, depth); // values
+      at(0).emit_nested_css(buf, depth); // property
+      at(1).emit_nested_css(buf, depth); // values
       buf << ";";
       break;
 
     case property:
-      buf << string(token) << ": ";
+      buf << string(content.token) << ": ";
       break;
 
     case values:
-      for (int i = 0; i < children->size(); ++i) {
-        buf << " " << string(children->at(i).token);
+      for (int i = 0; i < size(); ++i) {
+        buf << " " << string(at(i).content.token);
       }
       break;
 
     case comment:
       if (depth != 0) buf << endl;
-      buf << string(2*depth, ' ') << string(token);
+      buf << string(2*depth, ' ') << string(content.token);
       if (depth == 0) buf << endl;
       break;
 
@@ -451,7 +439,8 @@ namespace Sass {
         at(0).has_propsets          |= expn[0].has_propsets;
         at(0).has_expansions        |= expn[0].has_expansions;
         at(i).type = none;
-        children->insert(children->begin() + i, expn.children->begin(), expn.children->end());
+        children->insert(children->begin() + i,
+                         expn.children->begin(), expn.children->end());
       }
     }
   }

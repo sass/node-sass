@@ -25,7 +25,11 @@ namespace Sass {
     bool operator==(const Token& rhs) const;
     
     operator bool()
-    { return begin && end && begin >= end; }
-    
+    { return begin && end && begin >= end; }  
+  };
+  
+  struct Dimension {
+    const double numeric_value;
+    const char* unit;
   };
 }
