@@ -9,8 +9,8 @@ namespace Sass {
     const char* begin;
     const char* end;
 
-    Token();
-    Token(const char* begin, const char* end);
+    // Token();
+    // Token(const char* begin, const char* end);
     
     size_t length() const
     { return end - begin; }
@@ -29,7 +29,7 @@ namespace Sass {
   };
   
   struct Dimension {
-    const double numeric_value;
+    double numeric_value;
     const char* unit;
   };
 }

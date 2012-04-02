@@ -18,9 +18,9 @@ namespace Sass {
   {
     Node n(*this);
     if (has_children) {
-      n.contents.children = new vector<Node>;
+      n.content.children = new vector<Node>;
       ++allocations;
-      n.contents.children->reserve(size());
+      n.content.children->reserve(size());
       for (int i = 0; i < size(); ++i) {
         n << at(i).clone();
       }
@@ -149,8 +149,12 @@ namespace Sass {
         stringstream ss;
         // ss.setf(std::ios::fixed, std::ios::floatfield);
         // ss.precision(3);
-        ss << content.dimension.numeric_value
-           << string(Token(content.dimension.unit, identifier(content.dimension.unit)));
+        ss << content.dimension.numeric_value;
+        Token unit;
+        unit.begin = content.dimension.unit;
+        unit.end   = Prelexer::identifier(content.dimension.unit);
+        ss << string(unit);
+           // << string(Token(content.dimension.unit, Prelexer::identifier(content.dimension.unit)));
         return ss.str();
       } break;
       
@@ -218,7 +222,7 @@ namespace Sass {
     string indentation(2*depth, ' ');
     switch (type) {
     case comment:
-      buf << indentation << string(token) << endl;
+      buf << indentation << string(content.token) << endl;
       break;
     case ruleset:
       buf << indentation;
@@ -238,8 +242,8 @@ namespace Sass {
       }
       break;
     case selector_combinator:
-      if (std::isspace(token.begin[0])) buf << ' ';
-      else buf << ' ' << string(token) << ' ';
+      if (std::isspace(content.token.begin[0])) buf << ' ';
+      else buf << ' ' << string(content.token) << ' ';
       break;
     case simple_selector_sequence:
       for (int i = 0; i < size(); ++i) {
@@ -247,7 +251,7 @@ namespace Sass {
       }
       break;
     case simple_selector:
-      buf << string(token);
+      buf << string(content.token);
       break;
     case block:
       buf << " {" << endl;
@@ -262,13 +266,13 @@ namespace Sass {
       buf << ';' << endl;
       break;
     case property:
-      buf << string(token);
+      buf << string(content.token);
       break;
     case values:
       for (int i = 0; i < size(); at(i++).echo(buf, depth)) ;
       break;
     case value:
-      buf << ' ' << string(token);
+      buf << ' ' << string(content.token);
       break;
     }
   }
@@ -434,13 +438,13 @@ namespace Sass {
       if (at(i).type == expansion) {
         Node expn = at(i);
         if (expn[0].has_expansions) expn.flatten();
-        at(0).has_rules_or_comments |= expn[0].has_rules_or_comments;
-        at(0).has_rulesets          |= expn[0].has_rulesets;
-        at(0).has_propsets          |= expn[0].has_propsets;
-        at(0).has_expansions        |= expn[0].has_expansions;
+        at(0).has_statements |= expn[0].has_statements;
+        at(0).has_blocks     |= expn[0].has_blocks;
+        at(0).has_expansions |= expn[0].has_expansions;
         at(i).type = none;
-        children->insert(children->begin() + i,
-                         expn.children->begin(), expn.children->end());
+        content.children->insert(content.children->begin() + i,
+                                 expn.content.children->begin(),
+                                 expn.content.children->end());
       }
     }
   }

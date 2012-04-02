@@ -35,7 +35,6 @@ namespace Sass {
 
   struct Context {
     Environment global_env;
-    vector<Node> pending;
     vector<char*> source_refs;
     size_t ref_count;
 

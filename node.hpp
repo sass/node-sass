@@ -54,7 +54,7 @@ namespace Sass {
       textual_dimension,
       textual_number,
       textual_hex,
-      color_name;
+      color_name,
       string_constant,
       numeric_percentage,
       numeric_dimension,
