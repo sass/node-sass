@@ -11,9 +11,10 @@
 namespace Sass {
   using std::map;
   
-  Node eval(Node& expr, Environment& env);
+  Node eval(Node& expr, Environment& env, map<string, Function>& f_env);
   Node accumulate(Node::Type op, Node& acc, Node& rhs);
   double operate(Node::Type op, double lhs, double rhs);
   
-  Node apply(Node& mixin, const Node& args, Environment& env);
+  Node apply_mixin(Node& mixin, const Node& args, Environment& env, map<string, Function>& f_env);
+  Node apply_function(const Function& f, const Node& args, Environment& env, map<string, Function>& f_env);
 }

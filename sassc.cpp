@@ -29,12 +29,14 @@ int main(int argc, char* argv[]) {
   }
     
   Document doc(path, 0);
-  cerr << "PREPARING TO PARSE DOCUMENT" << endl;
+  cerr << "INITIALIZED DOCUMENT OBJECT" << endl;
+
   doc.parse_scss();
-  cerr << "SUCCESSFULLY PARSED DOCUMENT" << endl;
-  // doc.eval_pending();
-  eval(doc.root, doc.context.global_env);
-  cerr << "SUCCESSFULLY EVALED DOCUMENT" << endl;
+  cerr << "PARSED DOCUMENT" << endl;
+
+  eval(doc.root, doc.context.global_env, doc.context.function_env);
+  cerr << "EVALUATED DOCUMENT" << endl;
+
   string output = doc.emit_css(style);
   
   // cerr << "Fresh nodes:\t" << Node::fresh << endl;

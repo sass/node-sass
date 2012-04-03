@@ -1,5 +1,7 @@
 #define SASS_CONTEXT_INCLUDED
 
+#include "functions.hpp"
+
 namespace Sass {
   using std::map;
   
@@ -35,6 +37,7 @@ namespace Sass {
 
   struct Context {
     Environment global_env;
+    map<string, Function> function_env;
     vector<char*> source_refs;
     size_t ref_count;
 

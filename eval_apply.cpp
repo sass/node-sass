@@ -5,7 +5,7 @@
 namespace Sass {
   using std::cerr; using std::endl;
 
-  Node eval(Node& expr, Environment& env)
+  Node eval(Node& expr, Environment& env, map<string, Function>& f_env)
   {
     switch (expr.type)
     {
@@ -16,28 +16,23 @@ namespace Sass {
       
       case Node::expansion: {
         Token name(expr[0].content.token);
-        // cerr << "EVALUATING EXPANSION: " << string(name) << endl;
         Node args(expr[1]);
         Node mixin(env[name]);
-        Node expansion(apply(mixin, args, env));
+        Node expansion(apply_mixin(mixin, args, env, f_env));
         expr.content.children->pop_back();
         expr.content.children->pop_back();
         expr += expansion;
-        // expr[0].has_rules_or_comments |= expansion[0].has_rules_or_comments;
-        // expr[0].has_rulesets          |= expansion[0].has_rulesets;
-        // expr[0].has_propsets          |= expansion[0].has_propsets;
-        // expr[0].has_expansions        |= expansion[0].has_expansions;
         return expr;
       } break;
       
       case Node::ruleset: {
-        eval(expr[1], env);
+        eval(expr[1], env, f_env);
         return expr;
       } break;
       
       case Node::root: {
         for (int i = 0; i < expr.size(); ++i) {
-          eval(expr[i], env);
+          eval(expr[i], env, f_env);
         }
         return expr;
       } break;
@@ -46,7 +41,7 @@ namespace Sass {
         Environment current;
         current.link(env);
         for (int i = 0; i < expr.size(); ++i) {
-          eval(expr[i], current);
+          eval(expr[i], current, f_env);
         }
         return expr;
       } break;
@@ -55,11 +50,11 @@ namespace Sass {
         Node val(expr[1]);
         if (val.type == Node::comma_list || val.type == Node::space_list) {
           for (int i = 0; i < val.size(); ++i) {
-            if (val[i].eval_me) val[i] = eval(val[i], env);
+            if (val[i].eval_me) val[i] = eval(val[i], env, f_env);
           }
         }
         else {
-          val = eval(val, env);
+          val = eval(val, env, f_env);
         }
         Node var(expr[0]);
         if (env.query(var.content.token)) {
@@ -75,31 +70,28 @@ namespace Sass {
         Node rhs(expr[1]);
         if (rhs.type == Node::comma_list || rhs.type == Node::space_list) {
           for (int i = 0; i < rhs.size(); ++i) {
-            if (rhs[i].eval_me) rhs[i] = eval(rhs[i], env);
+            if (rhs[i].eval_me) rhs[i] = eval(rhs[i], env, f_env);
           }
         }
         else {
-          if (rhs.eval_me) expr[1] = eval(rhs, env);
+          if (rhs.eval_me) expr[1] = eval(rhs, env, f_env);
         }
         return expr;
       } break;
 
       case Node::comma_list:
       case Node::space_list: {
-        if (expr.eval_me) {
-          // *(expr.children->begin()) = eval(expr[0], env);
-          expr[0] = eval(expr[0], env);
-        }
+        if (expr.eval_me) expr[0] = eval(expr[0], env, f_env);
         return expr;
       } break;
 
       case Node::expression: {
         Node acc(Node::expression, expr.line_number, 1);
-        acc << eval(expr[0], env);
-        Node rhs(eval(expr[2], env));
+        acc << eval(expr[0], env, f_env);
+        Node rhs(eval(expr[2], env, f_env));
         accumulate(expr[1].type, acc, rhs);
         for (int i = 3; i < expr.size(); i += 2) {
-          Node rhs(eval(expr[i+1], env));
+          Node rhs(eval(expr[i+1], env, f_env));
           accumulate(expr[i].type, acc, rhs);
         }
         return acc.size() == 1 ? acc[0] : acc;
@@ -108,11 +100,11 @@ namespace Sass {
       case Node::term: {
         if (expr.eval_me) {
           Node acc(Node::expression, expr.line_number, 1);
-          acc << eval(expr[0], env);
-          Node rhs(eval(expr[2], env));
+          acc << eval(expr[0], env, f_env);
+          Node rhs(eval(expr[2], env, f_env));
           accumulate(expr[1].type, acc, rhs);
           for (int i = 3; i < expr.size(); i += 2) {
-            Node rhs(eval(expr[i+1], env));
+            Node rhs(eval(expr[i+1], env, f_env));
             accumulate(expr[i].type, acc, rhs);
           }
           return acc.size() == 1 ? acc[0] : acc;
@@ -139,7 +131,6 @@ namespace Sass {
         Token hext(Token::make(expr.content.token.begin+1, expr.content.token.end));
         if (hext.length() == 6) {
           for (int i = 0; i < 6; i += 2) {
-            // Node thing(expr.line_number, static_cast<double>(std::strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
             triple << Node(expr.line_number, static_cast<double>(std::strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
           }
         }
@@ -153,6 +144,11 @@ namespace Sass {
       
       case Node::variable: {
         return env[expr.content.token];
+      } break;
+      
+      case Node::function_call: {
+        // TO DO: default-constructed Function should be a generic callback
+        return apply_function(f_env[expr[0].content.token.to_string()], expr[1], env, f_env);
       } break;
       
       default: {
@@ -251,46 +247,66 @@ namespace Sass {
     }
   }
   
-  Node apply(Node& mixin, const Node& args, Environment& env)
+  Node apply_mixin(Node& mixin, const Node& args, Environment& env, map<string, Function>& f_env)
   {
-    // cerr << "APPLYING MIXIN: " << string(mixin[0].token) << endl;
     Node params(mixin[1]);
     Node body(mixin[2].clone());
-    Environment m_env;
+    Environment bindings;
     // bind arguments
     for (int i = 0, j = 0; i < args.size(); ++i) {
       if (args[i].type == Node::assignment) {
         Node arg(args[i]);
         Token name(arg[0].content.token);
-        if (!m_env.query(name)) {
-          m_env[name] = eval(arg[1], env);
+        if (!bindings.query(name)) {
+          bindings[name] = eval(arg[1], env, f_env);
         }
       }
       else {
         // TO DO: ensure (j < params.size())
         Node param(params[j]);
         Token name(param.type == Node::variable ? param.content.token : param[0].content.token);
-        m_env[name] = eval(args[i], env);
+        bindings[name] = eval(args[i], env, f_env);
         ++j;
       }
     }
-    // cerr << "BOUND ARGS FOR " << string(mixin[0].token) << endl;
     // plug the holes with default arguments if any
     for (int i = 0; i < params.size(); ++i) {
       if (params[i].type == Node::assignment) {
         Node param(params[i]);
         Token name(param[0].content.token);
-        if (!m_env.query(name)) {
-          m_env[name] = eval(param[1], env);
+        if (!bindings.query(name)) {
+          bindings[name] = eval(param[1], env, f_env);
         }
       }
     }
-    // cerr << "BOUND DEFAULT ARGS FOR " << string(mixin[0].token) << endl;
-    m_env.link(env.global ? *env.global : env);
-    // cerr << "LINKED ENVIRONMENT FOR " << string(mixin[0].token) << endl << endl;
+    // lexically link the new environment and eval the mixin's body
+    bindings.link(env.global ? *env.global : env);
     for (int i = 0; i < body.size(); ++i) {
-      body[i] = eval(body[i], m_env);
+      body[i] = eval(body[i], bindings, f_env);
     }
     return body;
   }
+  
+  Node apply_function(const Function& f, const Node& args, Environment& env, map<string, Function>& f_env)
+  {
+    Node params(f.parameters);
+    Environment bindings;
+    // bind arguments
+    for (int i = 0, j = 0; i < args.size(); ++i) {
+      if (args[i].type == Node::assignment) {
+        Node arg(args[i]);
+        Token name(arg[0].content.token);
+        bindings[name] = eval(arg[1], env, f_env);
+      }
+      else {
+        // TO DO: ensure (j < params.size())
+        Node param(params[j]);
+        Token name(param.type == Node::variable ? param.content.token : param[0].content.token);
+        bindings[name] = eval(args[i], env, f_env);
+        ++j;
+      }
+    }
+    return f(bindings);
+  }
+
 }
