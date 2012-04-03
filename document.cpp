@@ -9,8 +9,8 @@ namespace Sass {
   : path(path), source(source),
     line_number(1), own_source(false),
     context(*(new Context())),
-    root(Node(1, Node::root)),
-    lexed(Token())
+    root(Node(Node::root, 1)),
+    lexed(Token::make())
   {
     if (!source) {
       std::FILE *f;
@@ -35,8 +35,8 @@ namespace Sass {
   : path(path), source(0),
     line_number(1), own_source(false),
     context(context),
-    root(Node(1, Node::root)),
-    lexed(Token())
+    root(Node(Node::root, 1)),
+    lexed(Token::make())
   {
     std::FILE *f;
     // TO DO: CHECK f AGAINST NULL/0
@@ -59,12 +59,12 @@ namespace Sass {
     if (context.ref_count == 0) delete &context;
   }
   
-  void Document::eval_pending()
-  {
-    for (int i = 0; i < context.pending.size(); ++i) {
-      eval(context.pending[i], context.global_env);
-    }
-  }
+  // void Document::eval_pending()
+  // {
+  //   for (int i = 0; i < context.pending.size(); ++i) {
+  //     eval(context.pending[i], context.global_env);
+  //   }
+  // }
   
   using std::string;
   using std::stringstream;

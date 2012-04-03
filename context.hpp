@@ -39,8 +39,7 @@ namespace Sass {
     size_t ref_count;
 
     Context()
-    : pending(vector<Node>()),
-      source_refs(vector<char*>()),
+    : source_refs(vector<char*>()),
       ref_count(0)
     { }
     

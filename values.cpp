@@ -1,9 +1,9 @@
-#include "token.hpp"
+#include "values.hpp"
 
 namespace Sass {
-  Token::Token() : begin(0), end(0) { }
-  Token::Token(const char* begin, const char* end)
-  : begin(begin), end(end) { }
+  // Token::Token() : begin(0), end(0) { }
+  // Token::Token(const char* begin, const char* end)
+  // : begin(begin), end(end) { }
   
   string Token::unquote() const {
     string result;

@@ -3,11 +3,13 @@
 #include <vector>
 #include <sstream>
 #include "values.hpp"
+#include <iostream>
 
 namespace Sass {
   using std::string;
   using std::vector;
   using std::stringstream;
+  using std::cerr; using std::endl;
 
   struct Node {
     enum Type {
@@ -96,7 +98,7 @@ namespace Sass {
     
     void clear()
     {
-      type           = none;  line_number   = 0;
+      type           = none;  line_number   = 0;     has_children   = false;
       has_statements = false; has_blocks    = false; has_expansions = false;
       has_backref    = false; from_variable = false; eval_me        = false;
     }
@@ -174,6 +176,7 @@ namespace Sass {
       clear();
       type = numeric_dimension;
       line_number = ln;
+      content.dimension = Dimension();
       content.dimension.numeric_value = val;
       content.dimension.unit = tok.begin;
     }
@@ -191,87 +194,5 @@ namespace Sass {
       has_children = true;
       ++allocations;
     }
-  };
-
-
-  struct Orig_Node {
-    enum Type {
-      root,
-      ruleset,
-      propset,
-
-      selector_group,
-      selector,
-      selector_combinator,
-      simple_selector_sequence,
-      backref,
-      simple_selector,
-      type_selector,
-      class_selector,
-      id_selector,
-      pseudo,
-      pseudo_negation,
-      functional_pseudo,
-      attribute_selector,
-
-      block,
-      rule,
-      property,
-
-      nil,
-      comma_list,
-      space_list,
-
-      expression,
-      add,
-      sub,
-
-      term,
-      mul,
-      div,
-
-      factor,
-      values,
-      value,
-      identifier,
-      uri,
-      textual_percentage,
-      textual_dimension,
-      textual_number,
-      textual_hex,
-      string_constant,
-      numeric_percentage,
-      numeric_dimension,
-      number,
-      hex_triple,
-      
-      mixin,
-      parameters,
-      expansion,
-      arguments,
-      
-      variable,
-      assignment,
-      
-      comment,
-      none,
-      flags
-    };
- 
-      
-
-    
-    string to_string(const string& prefix) const;
-    
-    Node clone() const;
-    
-    void echo(stringstream& buf, size_t depth = 0);
-    void emit_nested_css(stringstream& buf,
-                         size_t depth,
-                         const vector<string>& prefixes);
-    void emit_nested_css(stringstream& buf, size_t depth);
-    void emit_expanded_css(stringstream& buf, const string& prefix);
-    
-    void flatten();
   };
 }

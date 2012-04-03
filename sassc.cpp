@@ -29,6 +29,7 @@ int main(int argc, char* argv[]) {
   }
     
   Document doc(path, 0);
+  cerr << "PREPARING TO PARSE DOCUMENT" << endl;
   doc.parse_scss();
   cerr << "SUCCESSFULLY PARSED DOCUMENT" << endl;
   // doc.eval_pending();
@@ -36,8 +37,8 @@ int main(int argc, char* argv[]) {
   cerr << "SUCCESSFULLY EVALED DOCUMENT" << endl;
   string output = doc.emit_css(style);
   
-  cerr << "Fresh nodes:\t" << Node::fresh << endl;
-  cerr << "Copied nodes:\t" << Node::copied << endl;
+  // cerr << "Fresh nodes:\t" << Node::fresh << endl;
+  // cerr << "Copied nodes:\t" << Node::copied << endl;
   cerr << "Allocations:\t" << Node::allocations << endl;
   cout << output;
 

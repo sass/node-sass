@@ -10,19 +10,18 @@ namespace Sass {
     switch (expr.type)
     {
       case Node::mixin: {
-        env[expr[0].token] = expr;
-        // cerr << "DEFINED MIXIN: " << string(expr[0].token) << endl << endl;
+        env[expr[0].content.token] = expr;
         return expr;
       } break;
       
       case Node::expansion: {
-        Token name(expr[0].token);
+        Token name(expr[0].content.token);
         // cerr << "EVALUATING EXPANSION: " << string(name) << endl;
         Node args(expr[1]);
         Node mixin(env[name]);
         Node expansion(apply(mixin, args, env));
-        expr.children->pop_back();
-        expr.children->pop_back();
+        expr.content.children->pop_back();
+        expr.content.children->pop_back();
         expr += expansion;
         // expr[0].has_rules_or_comments |= expansion[0].has_rules_or_comments;
         // expr[0].has_rulesets          |= expansion[0].has_rulesets;
@@ -63,11 +62,11 @@ namespace Sass {
           val = eval(val, env);
         }
         Node var(expr[0]);
-        if (env.query(var.token)) {
-          env[var.token] = val;
+        if (env.query(var.content.token)) {
+          env[var.content.token] = val;
         }
         else {
-          env.current_frame[var.token] = val;
+          env.current_frame[var.content.token] = val;
         }
         return expr;
       } break;
@@ -95,7 +94,8 @@ namespace Sass {
       } break;
 
       case Node::expression: {
-        Node acc(expr.line_number, Node::expression, eval(expr[0], env));
+        Node acc(Node::expression, expr.line_number, 1);
+        acc << eval(expr[0], env);
         Node rhs(eval(expr[2], env));
         accumulate(expr[1].type, acc, rhs);
         for (int i = 3; i < expr.size(); i += 2) {
@@ -107,7 +107,8 @@ namespace Sass {
 
       case Node::term: {
         if (expr.eval_me) {
-          Node acc(expr.line_number, Node::expression, eval(expr[0], env));
+          Node acc(Node::expression, expr.line_number, 1);
+          acc << eval(expr[0], env);
           Node rhs(eval(expr[2], env));
           accumulate(expr[1].type, acc, rhs);
           for (int i = 3; i < expr.size(); i += 2) {
@@ -123,22 +124,22 @@ namespace Sass {
 
       case Node::textual_percentage:
       case Node::textual_dimension: {
-        double numval = std::atof(expr.token.begin);
-        Token unit(Prelexer::number(expr.token.begin), expr.token.end);
-        return Node(expr.line_number, numval, unit);
+        return Node(expr.line_number,
+                    std::atof(expr.content.token.begin),
+                    Token::make(Prelexer::number(expr.content.token.begin),
+                                expr.content.token.end));
       } break;
       
       case Node::textual_number: {
-        double numval = std::atof(expr.token.begin);
-        return Node(expr.line_number, numval);
+        return Node(expr.line_number, std::atof(expr.content.token.begin));
       } break;
 
       case Node::textual_hex: {        
-        Node triple(expr.line_number, Node::hex_triple, 3);
-        Token hext(expr.token.begin+1, expr.token.end);
+        Node triple(Node::numeric_color, expr.line_number, 3);
+        Token hext(Token::make(expr.content.token.begin+1, expr.content.token.end));
         if (hext.length() == 6) {
           for (int i = 0; i < 6; i += 2) {
-            Node thing(expr.line_number, static_cast<double>(std::strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
+            // Node thing(expr.line_number, static_cast<double>(std::strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
             triple << Node(expr.line_number, static_cast<double>(std::strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
           }
         }
@@ -151,7 +152,7 @@ namespace Sass {
       } break;
       
       case Node::variable: {
-        return env[expr.token];
+        return env[expr.content.token];
       } break;
       
       default: {
@@ -162,26 +163,26 @@ namespace Sass {
 
   Node accumulate(Node::Type op, Node& acc, Node& rhs)
   {
-    Node lhs(acc.children->back());
-    double lnum = lhs.numeric_value;
-    double rnum = rhs.numeric_value;
+    Node lhs(acc.content.children->back());
+    double lnum = lhs.content.numeric_value;
+    double rnum = rhs.content.numeric_value;
     
     if (lhs.type == Node::number && rhs.type == Node::number) {
       Node result(acc.line_number, operate(op, lnum, rnum));
-      acc.children->pop_back();
-      acc.children->push_back(result);
+      acc.content.children->pop_back();
+      acc.content.children->push_back(result);
     }
     // TO DO: find a way to merge the following two clauses
     else if (lhs.type == Node::number && rhs.type == Node::numeric_dimension) {
       // TO DO: disallow division
-      Node result(acc.line_number, operate(op, lnum, rnum), rhs.token);
-      acc.children->pop_back();
-      acc.children->push_back(result);
+      Node result(acc.line_number, operate(op, lnum, rnum), Token::make(rhs.content.dimension.unit, Prelexer::identifier(rhs.content.dimension.unit)));
+      acc.content.children->pop_back();
+      acc.content.children->push_back(result);
     }
     else if (lhs.type == Node::numeric_dimension && rhs.type == Node::number) {
-      Node result(acc.line_number, operate(op, lnum, rnum), lhs.token);
-      acc.children->pop_back();
-      acc.children->push_back(result);
+      Node result(acc.line_number, operate(op, lnum, rnum), Token::make(lhs.content.dimension.unit, Prelexer::identifier(rhs.content.dimension.unit)));
+      acc.content.children->pop_back();
+      acc.content.children->push_back(result);
     }
     else if (lhs.type == Node::numeric_dimension && rhs.type == Node::numeric_dimension) {
       // TO DO: CHECK FOR MISMATCHED UNITS HERE
@@ -189,49 +190,49 @@ namespace Sass {
       if (op == Node::div)
       { result = Node(acc.line_number, operate(op, lnum, rnum)); }
       else
-      { result = Node(acc.line_number, operate(op, lnum, rnum), lhs.token); }
-      acc.children->pop_back();
-      acc.children->push_back(result);
+      { result = Node(acc.line_number, operate(op, lnum, rnum), Token::make(lhs.content.dimension.unit, Prelexer::identifier(rhs.content.dimension.unit))); }
+      acc.content.children->pop_back();
+      acc.content.children->push_back(result);
     }
     // TO DO: find a way to merge the following two clauses
-    else if (lhs.type == Node::number && rhs.type == Node::hex_triple) {
+    else if (lhs.type == Node::number && rhs.type == Node::numeric_color) {
       if (op != Node::sub && op != Node::div) {
-        double h1 = operate(op, lhs.numeric_value, rhs[0].numeric_value);
-        double h2 = operate(op, lhs.numeric_value, rhs[1].numeric_value);
-        double h3 = operate(op, lhs.numeric_value, rhs[2].numeric_value);
-        acc.children->pop_back();
+        double h1 = operate(op, lhs.content.numeric_value, rhs[0].content.numeric_value);
+        double h2 = operate(op, lhs.content.numeric_value, rhs[1].content.numeric_value);
+        double h3 = operate(op, lhs.content.numeric_value, rhs[2].content.numeric_value);
+        acc.content.children->pop_back();
         acc << Node(acc.line_number, h1, h2, h3);
       }
       // trying to handle weird edge cases ... not sure if it's worth it
       else if (op == Node::div) {
-        acc << Node(acc.line_number, Node::div);
+        acc << Node(Node::div);
         acc << rhs;
       }
       else if (op == Node::sub) {
-        acc << Node(acc.line_number, Node::sub);
+        acc << Node(Node::sub);
         acc << rhs;
       }
       else {
         acc << rhs;
       }
     }
-    else if (lhs.type == Node::hex_triple && rhs.type == Node::number) {
-      double h1 = operate(op, lhs[0].numeric_value, rhs.numeric_value);
-      double h2 = operate(op, lhs[1].numeric_value, rhs.numeric_value);
-      double h3 = operate(op, lhs[2].numeric_value, rhs.numeric_value);
-      acc.children->pop_back();
+    else if (lhs.type == Node::numeric_color && rhs.type == Node::number) {
+      double h1 = operate(op, lhs[0].content.numeric_value, rhs.content.numeric_value);
+      double h2 = operate(op, lhs[1].content.numeric_value, rhs.content.numeric_value);
+      double h3 = operate(op, lhs[2].content.numeric_value, rhs.content.numeric_value);
+      acc.content.children->pop_back();
       acc << Node(acc.line_number, h1, h2, h3);
     }
-    else if (lhs.type == Node::hex_triple && rhs.type == Node::hex_triple) {
-      double h1 = operate(op, lhs[0].numeric_value, rhs[0].numeric_value);
-      double h2 = operate(op, lhs[1].numeric_value, rhs[1].numeric_value);
-      double h3 = operate(op, lhs[2].numeric_value, rhs[2].numeric_value);
-      acc.children->pop_back();
+    else if (lhs.type == Node::numeric_color && rhs.type == Node::numeric_color) {
+      double h1 = operate(op, lhs[0].content.numeric_value, rhs[0].content.numeric_value);
+      double h2 = operate(op, lhs[1].content.numeric_value, rhs[1].content.numeric_value);
+      double h3 = operate(op, lhs[2].content.numeric_value, rhs[2].content.numeric_value);
+      acc.content.children->pop_back();
       acc << Node(acc.line_number, h1, h2, h3);
     }
     else {
       // TO DO: disallow division and multiplication on lists
-      acc.children->push_back(rhs);
+      acc.content.children->push_back(rhs);
     }
 
     return acc;
@@ -256,12 +257,11 @@ namespace Sass {
     Node params(mixin[1]);
     Node body(mixin[2].clone());
     Environment m_env;
-    // cerr << "CLONED BODY" << endl;
     // bind arguments
     for (int i = 0, j = 0; i < args.size(); ++i) {
       if (args[i].type == Node::assignment) {
         Node arg(args[i]);
-        Token name(arg[0].token);
+        Token name(arg[0].content.token);
         if (!m_env.query(name)) {
           m_env[name] = eval(arg[1], env);
         }
@@ -269,7 +269,7 @@ namespace Sass {
       else {
         // TO DO: ensure (j < params.size())
         Node param(params[j]);
-        Token name(param.type == Node::variable ? param.token : param[0].token);
+        Token name(param.type == Node::variable ? param.content.token : param[0].content.token);
         m_env[name] = eval(args[i], env);
         ++j;
       }
@@ -279,7 +279,7 @@ namespace Sass {
     for (int i = 0; i < params.size(); ++i) {
       if (params[i].type == Node::assignment) {
         Node param(params[i]);
-        Token name(param[0].token);
+        Token name(param[0].content.token);
         if (!m_env.query(name)) {
           m_env[name] = eval(param[1], env);
         }

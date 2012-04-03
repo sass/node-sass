@@ -40,7 +40,7 @@ namespace Sass {
         }
         return result;
       } break;
-
+      
       case selector: {
         string result;
         if (!has_backref && !prefix.empty()) {
@@ -48,7 +48,7 @@ namespace Sass {
           result += ' ';
         }
         if (at(0).type == selector_combinator) {
-          result += string(at(0).content.token);
+          result += at(0).content.token.to_string();
           result += ' ';
         }
         else {
@@ -59,12 +59,12 @@ namespace Sass {
         }
         return result;
       }  break;
-
+      
       case selector_combinator: {
         if (std::isspace(content.token.begin[0])) return string(" ");
         else return string(" ") += string(content.token) += string(" ");
       } break;
-
+      
       case simple_selector_sequence: {
         string result;
         for (int i = 0; i < size(); ++i) {
@@ -72,14 +72,14 @@ namespace Sass {
         }
         return result;
       }  break;
-
+      
       case pseudo_negation: {
         string result(at(0).to_string(prefix));
         result += at(1).to_string(prefix);
         result += ')';
         return result;
       } break;
-
+      
       case functional_pseudo: {
         string result(at(0).to_string(prefix));
         for (int i = 1; i < size(); ++i) {
@@ -88,7 +88,7 @@ namespace Sass {
         result += ')';
         return result;
       } break;
-
+      
       case attribute_selector: {
         string result("[");
         for (int i = 0; i < 3; ++i)
@@ -96,7 +96,7 @@ namespace Sass {
         result += ']';
         return result;
       } break;
-
+      
       case backref: {
         return prefix;
       } break;
@@ -122,10 +122,6 @@ namespace Sass {
       case expression:
       case term: {
         string result(at(0).to_string(prefix));
-        // for (int i = 2; i < size(); i += 2) {
-        //   // result += " ";
-        //   result += at(i).to_string(prefix);
-        // }
         for (int i = 1; i < size(); ++i) {
           if (!(at(i).type == add ||
                 // at(i).type == sub ||  // another edge case -- consider uncommenting
@@ -147,21 +143,16 @@ namespace Sass {
       
       case numeric_dimension: {
         stringstream ss;
-        // ss.setf(std::ios::fixed, std::ios::floatfield);
-        // ss.precision(3);
         ss << content.dimension.numeric_value;
-        Token unit;
-        unit.begin = content.dimension.unit;
-        unit.end   = Prelexer::identifier(content.dimension.unit);
-        ss << string(unit);
-           // << string(Token(content.dimension.unit, Prelexer::identifier(content.dimension.unit)));
+        ss << string(content.dimension.unit, 2);
+           // << string(content.dimension.unit, Prelexer::identifier(content.dimension.unit) - content.dimension.unit);
+         // cerr << Token::make(content.dimension.unit, content.dimension.unit + 2).to_string();
+           // << Token::make(content.dimension.unit, Prelexer::identifier(content.dimension.unit)).to_string();
         return ss.str();
       } break;
       
       case number: {
         stringstream ss;
-        // ss.setf(std::ios::fixed, std::ios::floatfield);
-        // ss.precision(3);
         ss << content.numeric_value;
         return ss.str();
       } break;
@@ -213,7 +204,9 @@ namespace Sass {
       // } break;
 
       default: {
-        return string(content.token);
+        // return content.token.to_string();
+        if (!has_children && type != flags) return content.token.to_string();
+        else return "";
       } break;
     }
   }

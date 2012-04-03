@@ -26,8 +26,8 @@ namespace Sass {
         lex< exactly<';'> >();
       }
       else if (peek< variable >(position)) {
-        lex< exactly<';'> >();
         root << parse_assignment();
+        lex< exactly<';'> >();
       }
       else {
         root << parse_ruleset();
@@ -152,7 +152,7 @@ namespace Sass {
 
   Node Document::parse_selector_group()
   {
-    Node group(line_number, Node::selector_group, 1);
+    Node group(Node::selector_group, line_number, 1);
     group << parse_selector();
     while (lex< exactly<','> >()) group << parse_selector();
     return group;
@@ -266,7 +266,7 @@ namespace Sass {
   
   Node Document::parse_attribute_selector()
   {
-    Node attr_sel(line_number, Node::attribute_selector, 3);
+    Node attr_sel(Node::attribute_selector, line_number, 3);
     lex< exactly<'['> >();
     lex< type_selector >();
     attr_sel << Node(Node::value, line_number, lexed);
@@ -316,8 +316,8 @@ namespace Sass {
         block[0].has_expansions = true;
       }
       else if (lex< variable >()) {
-        semicolon = true;
         block << parse_assignment();
+        semicolon = true;
       }
       // else if (look_for_rule(position)) {
       //   block << parse_rule();
@@ -498,7 +498,7 @@ namespace Sass {
     
     if (lex< rgb_prefix >())
     {
-      Node result(Node::color, line_number, 3);
+      Node result(Node::numeric_color, line_number, 3);
       lex< number >();
       result << Node(line_number, std::atof(lexed.begin));
       lex< exactly<','> >();
@@ -644,7 +644,7 @@ namespace Sass {
     (q = peek< id_name >(p)) || (q = peek< class_name >(p)) ||
     (q = look_for_pseudo(p)) || (q = look_for_attrib(p));
     // cerr << "looking for simple selector; found:" << endl;
-    // cerr << (q ? string(Token(q,q+8)) : "nothing") << endl;
+    // cerr << (q ? string(Token::make(q,q+8)) : "nothing") << endl;
     return q;
   }
   
