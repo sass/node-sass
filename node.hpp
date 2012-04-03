@@ -62,7 +62,8 @@ namespace Sass {
       numeric_dimension,
       number,
       numeric_color,
-
+      
+      function_call,
       mixin,
       parameters,
       expansion,

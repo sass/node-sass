@@ -94,13 +94,13 @@ namespace Sass {
     lex< include >();
     lex< identifier >();
     Node name(Node::identifier, line_number, lexed);
-    Node args(parse_mixin_arguments());
+    Node args(parse_arguments());
     Node call(Node::expansion, line_number, 3);
     call << name << args;
     return call;
   }
   
-  Node Document::parse_mixin_arguments()
+  Node Document::parse_arguments()
   {
     Node args(Node::arguments, line_number);
     if (lex< exactly<'('> >()) {
@@ -538,6 +538,9 @@ namespace Sass {
       lex< exactly<')'> >();
       return result;
     }
+    
+    if (peek< functional >())
+    { return parse_function_call(); }
 
     if (lex< identifier >())
     { return Node(Node::identifier, line_number, lexed); }
@@ -563,6 +566,16 @@ namespace Sass {
       var.eval_me = true;
       return var;
     }
+  }
+  
+  Node Document::parse_function_call()
+  {
+    lex< identifier >();
+    Node name(Node::identifier, line_number, lexed);
+    Node args(parse_arguments());
+    Node call(Node::function_call, line_number, 2);
+    call << name << args;
+    return call;
   }
   
   Node Document::parse_identifier() {

@@ -112,7 +112,7 @@ namespace Sass {
     Node parse_mixin_parameters();
     Node parse_parameter();
     Node parse_mixin_call();
-    Node parse_mixin_arguments();
+    Node parse_arguments();
     Node parse_argument();
     Node parse_assignment();
     Node parse_ruleset(bool definition = false);
@@ -135,6 +135,7 @@ namespace Sass {
     Node parse_value();
     Node parse_identifier();
     Node parse_variable();
+    Node parse_function_call();
     
     const char* look_for_rule(const char* start = 0);
     const char* look_for_values(const char* start = 0);
