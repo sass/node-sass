@@ -20,14 +20,10 @@ namespace Sass {
     const char* position;
     size_t line_number;
     bool own_source;
-    
-    // TO DO: move the environment up into the context class when it's ready
-    // map<Token, Node> environment;
-    
+
     Context& context;
     
     Node root;
-    // vector<Node> statements;
     Token lexed;
     
     Document(string path, char* source = 0);
@@ -122,6 +118,7 @@ namespace Sass {
     Node parse_ruleset(bool definition = false);
     Node parse_selector_group();
     Node parse_selector();
+    Node parse_selector_combinator();
     Node parse_simple_selector_sequence();
     Node parse_simple_selector();
     Node parse_pseudo();
