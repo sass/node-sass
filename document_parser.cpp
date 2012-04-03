@@ -152,32 +152,53 @@ namespace Sass {
 
   Node Document::parse_selector_group()
   {
-    Node group(Node::selector_group, line_number, 1);
-    group << parse_selector();
+    // Node group(Node::selector_group, line_number, 1);
+    // group << parse_selector();
+    // while (lex< exactly<','> >()) group << parse_selector();
+    // return group;
+    
+    Node sel1(parse_selector());
+    if (!lex< exactly<','> >()) return sel1;
+    
+    Node group(Node::selector_group, line_number, 2);
+    group << sel1;
     while (lex< exactly<','> >()) group << parse_selector();
     return group;
   }
 
   Node Document::parse_selector()
   {
-    Node selector(Node::selector, line_number, 1);
-    if (lex< exactly<'+'> >() ||
-        lex< exactly<'~'> >() ||
-        lex< exactly<'>'> >()) {
-      selector << Node(Node::selector_combinator, line_number, lexed);
-    }
-    Node s(parse_simple_selector_sequence());
-    if (s.has_backref) selector.has_backref = true;
-    selector << s;
-    while (lex< exactly<'+'> >() ||
-           lex< exactly<'~'> >() ||
-           lex< exactly<'>'> >() ||
-           lex< ancestor_of >() /*||
-           s.terminal_backref && lex< no_spaces >()*/) {
-      selector << Node(Node::selector_combinator, line_number, lexed);
-      s = parse_simple_selector_sequence();
-      if (s.has_backref) selector.has_backref = true;
-      selector << s;
+    // Node selector(Node::selector, line_number, 1);
+    // if (lex< exactly<'+'> >() ||
+    //     lex< exactly<'~'> >() ||
+    //     lex< exactly<'>'> >()) {
+    //   selector << Node(Node::selector_combinator, line_number, lexed);
+    // }
+    // Node s(parse_simple_selector_sequence());
+    // if (s.has_backref) selector.has_backref = true;
+    // selector << s;
+    // while (lex< exactly<'+'> >() ||
+    //        lex< exactly<'~'> >() ||
+    //        lex< exactly<'>'> >() ||
+    //        lex< ancestor_of >() /*||
+    //        s.terminal_backref && lex< no_spaces >()*/) {
+    //   selector << Node(Node::selector_combinator, line_number, lexed);
+    //   s = parse_simple_selector_sequence();
+    //   if (s.has_backref) selector.has_backref = true;
+    //   selector << s;
+    // }
+    // return selector;
+    
+    Node seq1(parse_simple_selector_sequence());
+    if (!lex< exactly<','> >()) return seq1;
+    
+    Node selector(Node::selector, line_number, 2);
+    if (seq1.has_backref) selector.has_backref = true;
+    selector << seq1;
+    while (lex< exactly<','> >()) {
+      Node seq(parse_simple_selector_sequence());
+      if (seq.has_backref) selector.has_backref = true;
+      selector << seq;
     }
     return selector;
   }
