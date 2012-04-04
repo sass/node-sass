@@ -48,6 +48,9 @@ namespace Sass {
 
     extern Function_Descriptor rgba_descriptor;
     Node rgba(const vector<Token>& parameters, map<Token, Node>& bindings);
+    
+    extern Function_Descriptor curse_descriptor;
+    Node curse(const vector<Token>& parameters, map<Token, Node>& bindings);
   }
   
 }

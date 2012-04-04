@@ -21,17 +21,14 @@ namespace Sass {
   }
   
   inline void Context::register_function(Function_Descriptor d, Implementation ip)
-  {
-    function_env[d[0]] = Function(d, ip);
-    cerr << "Registered function: " << d[0] << endl;
-    cerr << "Verifying " << function_env[string(d[0])].name << endl;
-  }
+  { function_env[d[0]] = Function(d, ip); }
   
   void Context::register_functions()
   {
     using namespace Functions;
     register_function(rgb_descriptor,  rgb);
     register_function(rgba_descriptor, rgba);
+    register_function(curse_descriptor, curse);
   }
   
 }

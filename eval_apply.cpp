@@ -148,7 +148,6 @@ namespace Sass {
       
       case Node::function_call: {
         // TO DO: default-constructed Function should be a generic callback
-        cerr << "about to apply " << expr[0].content.token.to_string() << endl;
         return apply_function(f_env[expr[0].content.token.to_string()], expr[1], env, f_env);
       } break;
       

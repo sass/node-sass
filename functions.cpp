@@ -1,16 +1,16 @@
 #include "functions.hpp"
 #include <iostream>
+#
 using std::cerr; using std::endl;
 
 namespace Sass {
   namespace Functions {
 
-  // TO DO: functions need to check the types of their arguments
+    // TO DO: functions need to check the types of their arguments
 
     Function_Descriptor rgb_descriptor = 
     { "rgb", "$red", "$green", "$blue", 0 };
     Node rgb(const vector<Token>& parameters, map<Token, Node>& bindings) {
-      cerr << "rgb arg count: " << bindings.size() << endl;
       Node color(Node::numeric_color, 0, 3);
       color << bindings[parameters[0]]
             << bindings[parameters[1]]
@@ -28,6 +28,11 @@ namespace Sass {
             << bindings[parameters[3]];
       return color;
     }
-
+    
+    extern const char* the_curse = "Damn!";
+    Function_Descriptor curse_descriptor = { "curse", 0 };
+    Node curse(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      return Node(Node::identifier, 0, Token::make(the_curse, the_curse + std::strlen(the_curse)));
+    }
   }
 }
