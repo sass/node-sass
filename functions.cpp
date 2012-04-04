@@ -1,39 +1,33 @@
 #include "functions.hpp"
-#include "node.hpp"
+#include <iostream>
+using std::cerr; using std::endl;
 
 namespace Sass {
   namespace Functions {
-  
-  extern const char* rgb_metadata[] = {
-    "rgb",
-    "$red",
-    "$green",
-    "$blue",
-    0
-  };
-  Node rgb(const vector<Token>& param_names, const Environment& bindings) {
-    Node color(Node::numeric_color, 0, 3);
-    color << bindings[param_names[0]]
-          << bindings[param_names[1]]
-          << bindings[param_names[2]];
-    return color;
+
+  // TO DO: functions need to check the types of their arguments
+
+    Function_Descriptor rgb_descriptor = 
+    { "rgb", "$red", "$green", "$blue", 0 };
+    Node rgb(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      cerr << "rgb arg count: " << bindings.size() << endl;
+      Node color(Node::numeric_color, 0, 3);
+      color << bindings[parameters[0]]
+            << bindings[parameters[1]]
+            << bindings[parameters[2]];
+      return color;
+    }
+
+    Function_Descriptor rgba_descriptor = 
+    { "rgba", "$red", "$green", "$blue", "$alpha", 0 };
+    Node rgba(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node color(Node::numeric_color, 0, 4);
+      color << bindings[parameters[0]]
+            << bindings[parameters[1]]
+            << bindings[parameters[2]]
+            << bindings[parameters[3]];
+      return color;
+    }
+
   }
-  
-  extern const char* rgba_metadata[] = {
-    "rgba",
-    "$red",
-    "$green",
-    "$blue",
-    "$alpha",
-    0
-  };
-  Node rgba(const vector<Token>& param_names, const Environment& bindings) {
-    Node color(Node::numeric_color, 0, 3);
-    color << bindings[param_names[0]]
-          << bindings[param_names[1]]
-          << bindings[param_names[2]]
-          << bindings[param_names[3]];
-    return color;
-  }
-  
 }

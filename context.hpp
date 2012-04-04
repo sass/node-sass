@@ -1,5 +1,6 @@
 #define SASS_CONTEXT_INCLUDED
 
+#include <map>
 #include "functions.hpp"
 
 namespace Sass {
@@ -40,18 +41,12 @@ namespace Sass {
     map<string, Function> function_env;
     vector<char*> source_refs;
     size_t ref_count;
-
-    Context()
-    : source_refs(vector<char*>()),
-      ref_count(0)
-    { }
     
-    ~Context()
-    {
-      for (int i = 0; i < source_refs.size(); ++i) {
-        delete[] source_refs[i];
-      }
-    }
+    Context();
+    ~Context();
+    
+    void register_function(Function_Descriptor d, Implementation ip);
+    void register_functions();
   };
 
 }

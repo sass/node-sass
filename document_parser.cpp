@@ -524,20 +524,20 @@ namespace Sass {
       return result;
     }
     
-    if (lex< rgb_prefix >())
-    {
-      Node result(Node::numeric_color, line_number, 3);
-      lex< number >();
-      result << Node(line_number, std::atof(lexed.begin));
-      lex< exactly<','> >();
-      lex< number >();
-      result << Node(line_number, std::atof(lexed.begin));
-      lex< exactly<','> >();
-      lex< number >();
-      result << Node(line_number, std::atof(lexed.begin));
-      lex< exactly<')'> >();
-      return result;
-    }
+    // if (lex< rgb_prefix >())
+    // {
+    //   Node result(Node::numeric_color, line_number, 3);
+    //   lex< number >();
+    //   result << Node(line_number, std::atof(lexed.begin));
+    //   lex< exactly<','> >();
+    //   lex< number >();
+    //   result << Node(line_number, std::atof(lexed.begin));
+    //   lex< exactly<','> >();
+    //   lex< number >();
+    //   result << Node(line_number, std::atof(lexed.begin));
+    //   lex< exactly<')'> >();
+    //   return result;
+    // }
     
     if (peek< functional >())
     { return parse_function_call(); }
@@ -575,6 +575,7 @@ namespace Sass {
     Node args(parse_arguments());
     Node call(Node::function_call, line_number, 2);
     call << name << args;
+    call.eval_me = true;
     return call;
   }
   

@@ -148,6 +148,7 @@ namespace Sass {
       
       case Node::function_call: {
         // TO DO: default-constructed Function should be a generic callback
+        cerr << "about to apply " << expr[0].content.token.to_string() << endl;
         return apply_function(f_env[expr[0].content.token.to_string()], expr[1], env, f_env);
       } break;
       
@@ -289,8 +290,7 @@ namespace Sass {
   
   Node apply_function(const Function& f, const Node& args, Environment& env, map<string, Function>& f_env)
   {
-    Node params(f.parameters);
-    Environment bindings;
+    map<Token, Node> bindings;
     // bind arguments
     for (int i = 0, j = 0; i < args.size(); ++i) {
       if (args[i].type == Node::assignment) {
@@ -299,10 +299,8 @@ namespace Sass {
         bindings[name] = eval(arg[1], env, f_env);
       }
       else {
-        // TO DO: ensure (j < params.size())
-        Node param(params[j]);
-        Token name(param.type == Node::variable ? param.content.token : param[0].content.token);
-        bindings[name] = eval(args[i], env, f_env);
+        // TO DO: ensure (j < f.parameters.size())
+        bindings[f.parameters[j]] = eval(args[i], env, f_env);
         ++j;
       }
     }
