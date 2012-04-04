@@ -8,6 +8,7 @@ namespace Sass {
     
     string name;
     Node parameters;
+    vector<Token> param_names;
     Primitive primitive;
     
     Function()
