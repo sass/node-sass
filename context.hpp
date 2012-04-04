@@ -1,9 +1,11 @@
 #define SASS_CONTEXT_INCLUDED
 
+#include <utility>
 #include <map>
 #include "functions.hpp"
 
 namespace Sass {
+  using std::pair;
   using std::map;
   
   struct Environment {
@@ -38,7 +40,7 @@ namespace Sass {
 
   struct Context {
     Environment global_env;
-    map<string, Function> function_env;
+    map<pair<string, size_t>, Function> function_env;
     vector<char*> source_refs;
     size_t ref_count;
     

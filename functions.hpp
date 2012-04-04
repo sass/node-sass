@@ -46,8 +46,11 @@ namespace Sass {
     extern Function_Descriptor rgb_descriptor;
     Node rgb(const vector<Token>& parameters, map<Token, Node>& bindings);
 
-    extern Function_Descriptor rgba_descriptor;
-    Node rgba(const vector<Token>& parameters, map<Token, Node>& bindings);
+    extern Function_Descriptor rgba_4_descriptor;
+    Node rgba_4(const vector<Token>& parameters, map<Token, Node>& bindings);
+    
+    extern Function_Descriptor rgba_2_descriptor;
+    Node rgba_2(const vector<Token>& parameters, map<Token, Node>& bindings);
     
     extern Function_Descriptor curse_descriptor;
     Node curse(const vector<Token>& parameters, map<Token, Node>& bindings);

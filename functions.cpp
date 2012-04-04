@@ -18,15 +18,21 @@ namespace Sass {
       return color;
     }
 
-    Function_Descriptor rgba_descriptor = 
+    Function_Descriptor rgba_4_descriptor = 
     { "rgba", "$red", "$green", "$blue", "$alpha", 0 };
-    Node rgba(const vector<Token>& parameters, map<Token, Node>& bindings) {
+    Node rgba_4(const vector<Token>& parameters, map<Token, Node>& bindings) {
       Node color(Node::numeric_color, 0, 4);
       color << bindings[parameters[0]]
             << bindings[parameters[1]]
             << bindings[parameters[2]]
             << bindings[parameters[3]];
       return color;
+    }
+    
+    Function_Descriptor rgba_2_descriptor = 
+    { "rgba", "$color", "$alpha", 0 };
+    Node rgba_2(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      return bindings[parameters[0]] << bindings[parameters[1]];
     }
     
     extern const char* the_curse = "Damn!";

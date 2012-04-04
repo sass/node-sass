@@ -5,7 +5,7 @@
 namespace Sass {
   using std::cerr; using std::endl;
 
-  Node eval(Node& expr, Environment& env, map<string, Function>& f_env)
+  Node eval(Node& expr, Environment& env, map<pair<string, size_t>, Function>& f_env)
   {
     switch (expr.type)
     {
@@ -148,7 +148,8 @@ namespace Sass {
       
       case Node::function_call: {
         // TO DO: default-constructed Function should be a generic callback
-        return apply_function(f_env[expr[0].content.token.to_string()], expr[1], env, f_env);
+        pair<string, size_t> sig(expr[0].content.token.to_string(), expr[1].size());
+        return apply_function(f_env[sig], expr[1], env, f_env);
       } break;
       
       default: {
@@ -247,7 +248,7 @@ namespace Sass {
     }
   }
   
-  Node apply_mixin(Node& mixin, const Node& args, Environment& env, map<string, Function>& f_env)
+  Node apply_mixin(Node& mixin, const Node& args, Environment& env, map<pair<string, size_t>, Function>& f_env)
   {
     Node params(mixin[1]);
     Node body(mixin[2].clone());
@@ -287,7 +288,7 @@ namespace Sass {
     return body;
   }
   
-  Node apply_function(const Function& f, const Node& args, Environment& env, map<string, Function>& f_env)
+  Node apply_function(const Function& f, const Node& args, Environment& env, map<pair<string, size_t>, Function>& f_env)
   {
     map<Token, Node> bindings;
     // bind arguments
