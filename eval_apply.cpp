@@ -114,7 +114,12 @@ namespace Sass {
         }
       } break;
 
-      case Node::textual_percentage:
+      case Node::textual_percentage: {
+        Node pct(expr.line_number, std::atof(expr.content.token.begin));
+        pct.type = Node::numeric_percentage;
+        return pct;
+      } break;
+
       case Node::textual_dimension: {
         return Node(expr.line_number,
                     std::atof(expr.content.token.begin),

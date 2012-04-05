@@ -16,4 +16,8 @@ div {
   hoo: red($x);
   moo: green($x);
   poo: blue($x);
+  
+  roo: mix(#f00, #00f);
+  doo: mix(#f00, #00f, 25%);
+  goo: mix(rgba(255, 0, 0, 0.5), #00f);
 }

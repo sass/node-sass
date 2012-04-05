@@ -60,6 +60,12 @@ namespace Sass {
     
     extern Function_Descriptor blue_descriptor;
     Node blue(const vector<Token>& parameters, map<Token, Node>& bindings);
+    
+    extern Function_Descriptor mix_2_descriptor;
+    Node mix_2(const vector<Token>& parameters, map<Token, Node>& bindings);
+    
+    extern Function_Descriptor mix_3_descriptor;
+    Node mix_3(const vector<Token>& parameters, map<Token, Node>& bindings);
   }
   
 }

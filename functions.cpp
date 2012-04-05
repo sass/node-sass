@@ -10,10 +10,11 @@ namespace Sass {
     Function_Descriptor rgb_descriptor = 
     { "rgb", "$red", "$green", "$blue", 0 };
     Node rgb(const vector<Token>& parameters, map<Token, Node>& bindings) {
-      Node color(Node::numeric_color, 0, 3);
+      Node color(Node::numeric_color, 0, 4);
       color << bindings[parameters[0]]
             << bindings[parameters[1]]
-            << bindings[parameters[2]];
+            << bindings[parameters[2]]
+            << Node(0, 1.0);
       return color;
     }
 
@@ -31,7 +32,9 @@ namespace Sass {
     Function_Descriptor rgba_2_descriptor = 
     { "rgba", "$color", "$alpha", 0 };
     Node rgba_2(const vector<Token>& parameters, map<Token, Node>& bindings) {
-      return bindings[parameters[0]].clone() << bindings[parameters[1]];
+      Node color(bindings[parameters[0]].clone());
+      color[3] = bindings[parameters[1]];
+      return color;
     }
     
     Function_Descriptor red_descriptor =
@@ -52,5 +55,38 @@ namespace Sass {
       return bindings[parameters[0]][2];
     }
     
+    Node mix_impl(Node color1, Node color2, double weight) {
+      double p = weight/100;
+      double w = 2*p - 1;
+      double a = color1[3].content.numeric_value - color2[3].content.numeric_value;
+      
+      double w1 = (((w * a == -1) ? w : (w + a)/(1 + w*a)) + 1)/2.0;
+      double w2 = 1 - w1;
+      
+      Node mixed(Node::numeric_color, color1.line_number, 4);
+      for (int i = 0; i < 3; ++i) {
+        mixed << Node(mixed.line_number, w1*color1[i].content.numeric_value +
+                                         w2*color2[i].content.numeric_value);
+      }
+      double alpha = color1[3].content.numeric_value*p + color2[3].content.numeric_value*(1-p);
+      mixed << Node(mixed.line_number, alpha);
+      return mixed;
+    }
+    
+    Function_Descriptor mix_2_descriptor =
+    { "mix", "$color1", "$color2", 0 };
+    Node mix_2(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      return mix_impl(bindings[parameters[0]],
+                      bindings[parameters[1]],
+                      50);
+    }
+    
+    Function_Descriptor mix_3_descriptor =
+    { "mix", "$color1", "$color2", "$weight", 0 };
+    Node mix_3(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      return mix_impl(bindings[parameters[0]],
+                      bindings[parameters[1]],
+                      bindings[parameters[2]].content.numeric_value);
+    }
   }
 }

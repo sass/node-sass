@@ -141,6 +141,13 @@ namespace Sass {
         return "/";
       } break;
       
+      case numeric_percentage: {
+        stringstream ss;
+        ss << content.dimension.numeric_value;
+        ss << '%';
+        return ss.str();
+      }
+      
       case numeric_dimension: {
         stringstream ss;
         ss << content.dimension.numeric_value;
@@ -193,11 +200,11 @@ namespace Sass {
         }
         else {
           stringstream ss;
-          ss << "rgba(" << at(0).content.numeric_value;
-          for (int i = 1; i < 4; ++i) {
-            ss << ", " << at(i).content.numeric_value;
+          ss << "rgba(" << static_cast<unsigned long>(at(0).content.numeric_value);
+          for (int i = 1; i < 3; ++i) {
+            ss << ", " << static_cast<unsigned long>(at(i).content.numeric_value);
           }
-          ss << ')';
+          ss << ", " << at(3).content.numeric_value << ')';
           return ss.str();
         }
       } break;

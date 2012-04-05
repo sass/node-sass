@@ -36,6 +36,8 @@ namespace Sass {
     register_function(red_descriptor, red);
     register_function(green_descriptor, green);
     register_function(blue_descriptor, blue);
+    register_function(mix_2_descriptor, mix_2);
+    register_function(mix_3_descriptor, mix_3);
   }
   
 }
