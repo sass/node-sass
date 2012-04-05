@@ -30,6 +30,7 @@ namespace Sass {
   void Context::register_functions()
   {
     using namespace Functions;
+    // RGB Functions
     register_function(rgb_descriptor,  rgb);
     register_function(rgba_4_descriptor, rgba_4);
     register_function(rgba_2_descriptor, rgba_2);
@@ -38,6 +39,8 @@ namespace Sass {
     register_function(blue_descriptor, blue);
     register_function(mix_2_descriptor, mix_2);
     register_function(mix_3_descriptor, mix_3);
+    // HSL Functions
+    register_function(invert_descriptor, invert);
   }
   
 }

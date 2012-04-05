@@ -7,6 +7,8 @@ namespace Sass {
 
     // TO DO: functions need to check the types of their arguments
 
+    // RGB Functions ///////////////////////////////////////////////////////
+
     Function_Descriptor rgb_descriptor = 
     { "rgb", "$red", "$green", "$blue", 0 };
     Node rgb(const vector<Token>& parameters, map<Token, Node>& bindings) {
@@ -55,7 +57,7 @@ namespace Sass {
       return bindings[parameters[0]][2];
     }
     
-    Node mix_impl(Node color1, Node color2, double weight) {
+    Node mix_impl(Node color1, Node color2, double weight = 50) {
       double p = weight/100;
       double w = 2*p - 1;
       double a = color1[3].content.numeric_value - color2[3].content.numeric_value;
@@ -76,9 +78,7 @@ namespace Sass {
     Function_Descriptor mix_2_descriptor =
     { "mix", "$color1", "$color2", 0 };
     Node mix_2(const vector<Token>& parameters, map<Token, Node>& bindings) {
-      return mix_impl(bindings[parameters[0]],
-                      bindings[parameters[1]],
-                      50);
+      return mix_impl(bindings[parameters[0]], bindings[parameters[1]]);
     }
     
     Function_Descriptor mix_3_descriptor =
@@ -88,5 +88,57 @@ namespace Sass {
                       bindings[parameters[1]],
                       bindings[parameters[2]].content.numeric_value);
     }
+    
+    // HSL Functions ///////////////////////////////////////////////////////
+    
+    Function_Descriptor invert_descriptor =
+    { "invert", "$color", 0 };
+    Node invert(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node orig(bindings[parameters[0]]);
+      return Node(orig.line_number,
+                  255 - orig[0].content.numeric_value,
+                  255 - orig[1].content.numeric_value,
+                  255 - orig[2].content.numeric_value,
+                  orig[3].content.numeric_value);
+    }
+      
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
   }
 }
