@@ -33,6 +33,9 @@ namespace Sass {
     register_function(rgb_descriptor,  rgb);
     register_function(rgba_4_descriptor, rgba_4);
     register_function(rgba_2_descriptor, rgba_2);
+    register_function(red_descriptor, red);
+    register_function(green_descriptor, green);
+    register_function(blue_descriptor, blue);
   }
   
 }

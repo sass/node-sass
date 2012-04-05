@@ -10,4 +10,10 @@ div {
   floo: $x;
   bloo: rgba($x, 0.7);
   groo: $x;
+  
+  $x: rgb(123, 45, 6);
+  
+  hoo: red($x);
+  moo: green($x);
+  poo: blue($x);
 }

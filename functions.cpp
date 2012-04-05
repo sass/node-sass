@@ -1,6 +1,5 @@
 #include "functions.hpp"
 #include <iostream>
-#
 using std::cerr; using std::endl;
 
 namespace Sass {
@@ -35,6 +34,23 @@ namespace Sass {
       return bindings[parameters[0]].clone() << bindings[parameters[1]];
     }
     
+    Function_Descriptor red_descriptor =
+    { "red", "$color", 0 };
+    Node red(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      return bindings[parameters[0]][0];
+    }
+    
+    Function_Descriptor green_descriptor =
+    { "green", "$color", 0 };
+    Node green(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      return bindings[parameters[0]][1];
+    }
+    
+    Function_Descriptor blue_descriptor =
+    { "blue", "$color", 0 };
+    Node blue(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      return bindings[parameters[0]][2];
+    }
     
   }
 }
