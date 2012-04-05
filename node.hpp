@@ -87,6 +87,7 @@ namespace Sass {
     bool has_backref;
     bool from_variable;
     bool eval_me;
+    bool unquoted;
 
     union {
       Token token;
@@ -102,6 +103,7 @@ namespace Sass {
       type           = none;  line_number   = 0;     has_children   = false;
       has_statements = false; has_blocks    = false; has_expansions = false;
       has_backref    = false; from_variable = false; eval_me        = false;
+      unquoted       = false;
     }
     
     size_t size() const

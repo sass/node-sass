@@ -102,10 +102,25 @@ namespace Sass {
                   orig[3].content.numeric_value);
     }
       
+    // String Functions ////////////////////////////////////////////////////
     
+    Function_Descriptor unquote_descriptor =
+    { "unquote", "$string", 0 };
+    Node unquote(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node cpy(bindings[parameters[0]].clone());
+      cpy.unquoted = true;
+      return cpy;
+    }
     
-    
-    
+    Function_Descriptor quote_descriptor =
+    { "quote", "$string", 0 };
+    Node quote(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node cpy(bindings[parameters[0]].clone());
+      // check the types -- will probably be an identifier
+      cpy.type = Node::string_constant;
+      cpy.unquoted = false;
+      return cpy;
+    }
     
     
     

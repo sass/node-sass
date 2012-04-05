@@ -43,6 +43,7 @@ namespace Sass {
   };
   
   namespace Functions {
+    // RGB Functions ///////////////////////////////////////////////////////
     extern Function_Descriptor rgb_descriptor;
     Node rgb(const vector<Token>& parameters, map<Token, Node>& bindings);
 
@@ -67,8 +68,16 @@ namespace Sass {
     extern Function_Descriptor mix_3_descriptor;
     Node mix_3(const vector<Token>& parameters, map<Token, Node>& bindings);
     
+    // HSL Functions ///////////////////////////////////////////////////////
     extern Function_Descriptor invert_descriptor;
     Node invert(const vector<Token>& parameters, map<Token, Node>& bindings);
+    
+    // String Functions ////////////////////////////////////////////////////
+    extern Function_Descriptor unquote_descriptor;
+    Node unquote(const vector<Token>& parameters, map<Token, Node>& bindings);
+    
+    extern Function_Descriptor quote_descriptor;
+    Node quote(const vector<Token>& parameters, map<Token, Node>& bindings);
   }
   
 }

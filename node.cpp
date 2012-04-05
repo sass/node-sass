@@ -220,7 +220,16 @@ namespace Sass {
       //   string result("MIXIN CALL: ");
       //   return result;
       // } break;
-
+      
+      case string_constant: {
+        if (unquoted) return content.token.unquote();
+        else {
+          string result(content.token.to_string());
+          if (result[0] != '"' && result[0] != '\'') return "\"" + result + "\"";
+          else                                       return result;
+        }
+      } break;
+      
       default: {
         // return content.token.to_string();
         if (!has_children && type != flags) return content.token.to_string();
