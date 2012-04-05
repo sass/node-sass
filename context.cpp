@@ -44,6 +44,10 @@ namespace Sass {
     // Opacity Functions
     register_function(alpha_descriptor, alpha);
     register_function(opacity_descriptor, alpha);
+    register_function(opacify_descriptor, opacify);
+    register_function(fade_in_descriptor, opacify);
+    register_function(transparentize_descriptor, transparentize);
+    register_function(fade_out_descriptor, transparentize);
     // String Functions
     register_function(unquote_descriptor, unquote);
     register_function(quote_descriptor, quote);

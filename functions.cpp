@@ -1,5 +1,6 @@
 #include "functions.hpp"
 #include <iostream>
+#include <cmath>
 using std::cerr; using std::endl;
 
 namespace Sass {
@@ -110,6 +111,28 @@ namespace Sass {
     { "opacity", "$color", 0 };
     Node alpha(const vector<Token>& parameters, map<Token, Node>& bindings) {
       return bindings[parameters[0]][3];
+    }
+    
+    Function_Descriptor opacify_descriptor =
+    { "opacify", "$color", "$amount", 0 };
+    Function_Descriptor fade_in_descriptor =
+    { "fade_in", "$color", "$amount", 0 };
+    Node opacify(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node cpy(bindings[parameters[0]].clone());
+      cpy[3].content.numeric_value += bindings[parameters[1]].content.numeric_value;
+      if (cpy[3].content.numeric_value >= 1) cpy[3].content.numeric_value = 1;
+      return cpy;
+    }
+    
+    Function_Descriptor transparentize_descriptor =
+    { "transparentize", "$color", "$amount", 0 };
+    Function_Descriptor fade_out_descriptor =
+    { "fade_out", "$color", "$amount", 0 };
+    Node transparentize(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node cpy(bindings[parameters[0]].clone());
+      cpy[3].content.numeric_value -= bindings[parameters[1]].content.numeric_value;
+      if (cpy[3].content.numeric_value <= 0) cpy[3].content.numeric_value = 0;
+      return cpy;
     }
       
     // String Functions ////////////////////////////////////////////////////

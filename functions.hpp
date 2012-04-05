@@ -77,6 +77,14 @@ namespace Sass {
     extern Function_Descriptor opacity_descriptor;
     Node alpha(const vector<Token>& parameters, map<Token, Node>& bindings);
     
+    extern Function_Descriptor opacify_descriptor;
+    extern Function_Descriptor fade_in_descriptor;
+    Node opacify(const vector<Token>& parameters, map<Token, Node>& bindings);
+    
+    extern Function_Descriptor transparentize_descriptor;
+    extern Function_Descriptor fade_out_descriptor;
+    Node transparentize(const vector<Token>& parameters, map<Token, Node>& bindings);
+    
     // String Functions ////////////////////////////////////////////////////
     extern Function_Descriptor unquote_descriptor;
     Node unquote(const vector<Token>& parameters, map<Token, Node>& bindings);
