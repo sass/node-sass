@@ -32,13 +32,9 @@ namespace Sass {
     Function_Descriptor rgba_2_descriptor = 
     { "rgba", "$color", "$alpha", 0 };
     Node rgba_2(const vector<Token>& parameters, map<Token, Node>& bindings) {
-      return bindings[parameters[0]] << bindings[parameters[1]];
+      return bindings[parameters[0]].clone() << bindings[parameters[1]];
     }
     
-    extern const char* the_curse = "Damn!";
-    Function_Descriptor curse_descriptor = { "curse", 0 };
-    Node curse(const vector<Token>& parameters, map<Token, Node>& bindings) {
-      return Node(Node::identifier, 0, Token::make(the_curse, the_curse + std::strlen(the_curse)));
-    }
+    
   }
 }

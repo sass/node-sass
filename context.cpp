@@ -33,7 +33,6 @@ namespace Sass {
     register_function(rgb_descriptor,  rgb);
     register_function(rgba_4_descriptor, rgba_4);
     register_function(rgba_2_descriptor, rgba_2);
-    register_function(curse_descriptor, curse);
   }
   
 }
