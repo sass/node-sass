@@ -1,5 +1,6 @@
 #include <string>
 #include <sstream>
+#include <cstring>
 #include "prelexer.hpp"
 
 namespace Sass {
@@ -30,21 +31,31 @@ namespace Sass {
     operator bool()
     { return begin && end && begin >= end; }
     
-    // static Token make()
-    // {
-    //   Token t;
-    //   t.begin = 0;
-    //   t.end = 0;
-    //   return t;
-    // }
-    // 
-    static Token make(const char* b = 0, const char* e = 0)
+    static Token make()
+    {
+      Token t;
+      t.begin = 0;
+      t.end = 0;
+      return t;
+    }
+    
+    static Token make(const char* s)
+    {
+      Token t;
+      t.begin = s;
+      t.end = s + std::strlen(s);
+      return t;
+    }
+    
+    static Token make(const char* b, const char* e)
     {
       Token t;
       t.begin = b;
       t.end = e;
       return t;
     }
+    
+    
   };
   
   struct Dimension {
