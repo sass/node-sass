@@ -1,7 +1,13 @@
+$x: rgb(0, 255, 255);
+
 div {
   color: rgb(255, $blue: 0, $green: 255);
   background: rgb(123, 45, 6);
   flah: rgba(0, 0, 0, 1) + #111;
-  grah: rgba(#fff, .5);
+  grah: rgba($alpha: .5, #f0e);
   blah: rgba(1,2,3,.6);
+  
+  floo: $x;
+  bloo: rgba($x, 0.7);
+  groo: $x;
 }
