@@ -127,7 +127,7 @@ namespace Sass {
       } break;
 
       case Node::textual_hex: {        
-        Node triple(Node::numeric_color, expr.line_number, 3);
+        Node triple(Node::numeric_color, expr.line_number, 4);
         Token hext(Token::make(expr.content.token.begin+1, expr.content.token.end));
         if (hext.length() == 6) {
           for (int i = 0; i < 6; i += 2) {
@@ -139,7 +139,8 @@ namespace Sass {
             triple << Node(expr.line_number, static_cast<double>(std::strtol(string(2, hext.begin[i]).c_str(), NULL, 16)));
           }
         }
-        return triple;       
+        triple << Node(expr.line_number, 1.0);
+        return triple;
       } break;
       
       case Node::variable: {
@@ -194,11 +195,12 @@ namespace Sass {
     // TO DO: find a way to merge the following two clauses
     else if (lhs.type == Node::number && rhs.type == Node::numeric_color) {
       if (op != Node::sub && op != Node::div) {
-        double h1 = operate(op, lhs.content.numeric_value, rhs[0].content.numeric_value);
-        double h2 = operate(op, lhs.content.numeric_value, rhs[1].content.numeric_value);
-        double h3 = operate(op, lhs.content.numeric_value, rhs[2].content.numeric_value);
+        // TO DO: check that alphas match
+        double r = operate(op, lhs.content.numeric_value, rhs[0].content.numeric_value);
+        double g = operate(op, lhs.content.numeric_value, rhs[1].content.numeric_value);
+        double b = operate(op, lhs.content.numeric_value, rhs[2].content.numeric_value);
         acc.content.children->pop_back();
-        acc << Node(acc.line_number, h1, h2, h3);
+        acc << Node(acc.line_number, r, g, b);
       }
       // trying to handle weird edge cases ... not sure if it's worth it
       else if (op == Node::div) {
@@ -214,18 +216,18 @@ namespace Sass {
       }
     }
     else if (lhs.type == Node::numeric_color && rhs.type == Node::number) {
-      double h1 = operate(op, lhs[0].content.numeric_value, rhs.content.numeric_value);
-      double h2 = operate(op, lhs[1].content.numeric_value, rhs.content.numeric_value);
-      double h3 = operate(op, lhs[2].content.numeric_value, rhs.content.numeric_value);
+      double r = operate(op, lhs[0].content.numeric_value, rhs.content.numeric_value);
+      double g = operate(op, lhs[1].content.numeric_value, rhs.content.numeric_value);
+      double b = operate(op, lhs[2].content.numeric_value, rhs.content.numeric_value);
       acc.content.children->pop_back();
-      acc << Node(acc.line_number, h1, h2, h3);
+      acc << Node(acc.line_number, r, g, b);
     }
     else if (lhs.type == Node::numeric_color && rhs.type == Node::numeric_color) {
-      double h1 = operate(op, lhs[0].content.numeric_value, rhs[0].content.numeric_value);
-      double h2 = operate(op, lhs[1].content.numeric_value, rhs[1].content.numeric_value);
-      double h3 = operate(op, lhs[2].content.numeric_value, rhs[2].content.numeric_value);
+      double r = operate(op, lhs[0].content.numeric_value, rhs[0].content.numeric_value);
+      double g = operate(op, lhs[1].content.numeric_value, rhs[1].content.numeric_value);
+      double b = operate(op, lhs[2].content.numeric_value, rhs[2].content.numeric_value);
       acc.content.children->pop_back();
-      acc << Node(acc.line_number, h1, h2, h3);
+      acc << Node(acc.line_number, r, g, b);
     }
     else {
       // TO DO: disallow division and multiplication on lists

@@ -182,16 +182,17 @@ namespace Sass {
       content.dimension.unit = tok.begin;
     }
     
-    Node(unsigned int ln, double r, double g, double b) // colors
+    Node(unsigned int ln, double r, double g, double b, double a = 1.0) // colors
     {
       clear();
       type = numeric_color;
       line_number = ln;
       content.children = new vector<Node>;
-      content.children->reserve(3);
+      content.children->reserve(4);
       content.children->push_back(Node(ln, r));
       content.children->push_back(Node(ln, g));
       content.children->push_back(Node(ln, b));
+      content.children->push_back(Node(ln, a));
       has_children = true;
       ++allocations;
     }

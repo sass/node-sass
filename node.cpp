@@ -158,7 +158,7 @@ namespace Sass {
       } break;
       
       case numeric_color: {
-        if (size() == 3 || (size() == 4 && at(3).content.numeric_value >= 0xff)) {
+        if (at(3).content.numeric_value >= 1.0) {
           double a = at(0).content.numeric_value;
           double b = at(1).content.numeric_value;
           double c = at(2).content.numeric_value;
