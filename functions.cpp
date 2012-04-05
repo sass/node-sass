@@ -101,6 +101,16 @@ namespace Sass {
                   255 - orig[2].content.numeric_value,
                   orig[3].content.numeric_value);
     }
+    
+    // Opacity Functions ///////////////////////////////////////////////////
+    
+    Function_Descriptor alpha_descriptor =
+    { "alpha", "$color", 0 };
+    Function_Descriptor opacity_descriptor =
+    { "opacity", "$color", 0 };
+    Node alpha(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      return bindings[parameters[0]][3];
+    }
       
     // String Functions ////////////////////////////////////////////////////
     

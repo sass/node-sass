@@ -41,6 +41,9 @@ namespace Sass {
     register_function(mix_3_descriptor, mix_3);
     // HSL Functions
     register_function(invert_descriptor, invert);
+    // Opacity Functions
+    register_function(alpha_descriptor, alpha);
+    register_function(opacity_descriptor, alpha);
     // String Functions
     register_function(unquote_descriptor, unquote);
     register_function(quote_descriptor, quote);

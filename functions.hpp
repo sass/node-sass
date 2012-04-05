@@ -72,6 +72,11 @@ namespace Sass {
     extern Function_Descriptor invert_descriptor;
     Node invert(const vector<Token>& parameters, map<Token, Node>& bindings);
     
+    // Opacity Functions ///////////////////////////////////////////////////
+    extern Function_Descriptor alpha_descriptor;
+    extern Function_Descriptor opacity_descriptor;
+    Node alpha(const vector<Token>& parameters, map<Token, Node>& bindings);
+    
     // String Functions ////////////////////////////////////////////////////
     extern Function_Descriptor unquote_descriptor;
     Node unquote(const vector<Token>& parameters, map<Token, Node>& bindings);
