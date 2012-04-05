@@ -158,35 +158,46 @@ namespace Sass {
       } break;
       
       case numeric_color: {
-        double a = at(0).content.numeric_value;
-        double b = at(1).content.numeric_value;
-        double c = at(2).content.numeric_value;
-        if (a >= 0xff && b >= 0xff && c >= 0xff)
-        { return "white"; }
-        else if (a >= 0xff && b >= 0xff && c == 0)
-        { return "yellow"; }
-        else if (a == 0 && b >= 0xff && c >= 0xff)
-        { return "aqua"; } 
-        else if (a >= 0xff && b == 0 && c >= 0xff)
-        { return "fuchsia"; }
-        else if (a >= 0xff && b == 0 && c == 0)
-        { return "red"; }
-        else if (a == 0 && b >= 0xff && c == 0)
-        { return "lime"; }
-        else if (a == 0 && b == 0 && c >= 0xff)
-        { return "blue"; }
-        else if (a <= 0 && b <= 0 && c <= 0)
-        { return "black"; }
-        else
-        {
-          stringstream ss;
-          ss << '#' << std::setw(2) << std::setfill('0') << std::hex;
-          for (int i = 0; i < 3; ++i) {
-            double x = at(i).content.numeric_value;
-            if (x > 0xff) x = 0xff;
-            else if (x < 0) x = 0;
-            ss  << std::hex << std::setw(2) << static_cast<unsigned long>(x);
+        if (size() == 3 || (size() == 4 && at(3).content.numeric_value >= 0xff)) {
+          double a = at(0).content.numeric_value;
+          double b = at(1).content.numeric_value;
+          double c = at(2).content.numeric_value;
+          if (a >= 0xff && b >= 0xff && c >= 0xff)
+          { return "white"; }
+          else if (a >= 0xff && b >= 0xff && c == 0)
+          { return "yellow"; }
+          else if (a == 0 && b >= 0xff && c >= 0xff)
+          { return "aqua"; } 
+          else if (a >= 0xff && b == 0 && c >= 0xff)
+          { return "fuchsia"; }
+          else if (a >= 0xff && b == 0 && c == 0)
+          { return "red"; }
+          else if (a == 0 && b >= 0xff && c == 0)
+          { return "lime"; }
+          else if (a == 0 && b == 0 && c >= 0xff)
+          { return "blue"; }
+          else if (a <= 0 && b <= 0 && c <= 0)
+          { return "black"; }
+          else
+          {
+            stringstream ss;
+            ss << '#' << std::setw(2) << std::setfill('0') << std::hex;
+            for (int i = 0; i < 3; ++i) {
+              double x = at(i).content.numeric_value;
+              if (x > 0xff) x = 0xff;
+              else if (x < 0) x = 0;
+              ss  << std::hex << std::setw(2) << static_cast<unsigned long>(x);
+            }
+            return ss.str();
           }
+        }
+        else {
+          stringstream ss;
+          ss << "rgba(" << at(0).content.numeric_value;
+          for (int i = 1; i < 4; ++i) {
+            ss << ", " << at(i).content.numeric_value;
+          }
+          ss << ')';
           return ss.str();
         }
       } break;
