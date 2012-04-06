@@ -219,16 +219,77 @@ namespace Sass {
       return cpy;
     }
     
+    // List Functions //////////////////////////////////////////////////////
+    Function_Descriptor length_descriptor =
+    { "length", "$list", 0 };
+    Node length(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node arg(bindings[parameters[0]]);
+      if (arg.type == Node::space_list || arg.type == Node::comma_list) {
+        return Node(arg.line_number, arg.size());
+      }
+      else if (arg.type == Node::nil) {
+        return Node(arg.line_number, 0);
+      }
+      else {
+        return Node(arg.line_number, 1);
+      }
+    }
     
+    Function_Descriptor nth_descriptor =
+    { "nth", "$list", "$n", 0 };
+    Node nth(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node l(bindings[parameters[0]]);
+      // TO DO: check for empty list
+      if (l.type != Node::space_list && l.type != Node::comma_list) {
+        l = Node(Node::space_list, l.line_number, 1) << l;
+      }
+      return l[bindings[parameters[1]].content.numeric_value - 1];
+    }
     
+    extern const char separator_kwd[] = "$separator";
+    Node join_impl(const vector<Token>& parameters, map<Token, Node>& bindings, bool has_sep = false) {
+      Node l1(bindings[parameters[0]]);
+      if (l1.type != Node::space_list && l1.type != Node::comma_list && l1.type != Node::nil) {
+        l1 = Node(Node::space_list, l1.line_number, 1) << l1;
+        cerr << "listified singleton" << endl;
+      }
+      Node l2(bindings[parameters[1]]);
+      if (l2.type != Node::space_list && l2.type != Node::comma_list && l2.type != Node::nil) {
+        l2 = Node(Node::space_list, l2.line_number, 1) << l2;
+        cerr << "listified singleton" << endl;
+      }
+      
+      if (l1.type == Node::nil && l2.type == Node::nil) return Node(Node::nil, l1.line_number);
+
+      size_t size = 0;
+      if (l1.type != Node::nil) size += l1.size();
+      if (l2.type != Node::nil) size += l2.size();
+      
+      Node lr(Node::space_list, l1.line_number, size);
+      if (has_sep) {
+        string sep(bindings[parameters[2]].content.token.unquote());
+        if (sep == "comma") lr.type = Node::comma_list;
+        // TO DO: check for "space" or "auto"
+      }
+      else if (l1.type != Node::nil) lr.type = l1.type;
+      else if (l2.type != Node::nil) lr.type = l2.type;
+      
+      if (l1.type != Node::nil) lr += l1;
+      if (l2.type != Node::nil) lr += l2;
+      return lr;
+    }
     
+    Function_Descriptor join_2_descriptor =
+    { "join", "$list1", "$list2", 0 };
+    Node join_2(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      return join_impl(parameters, bindings);
+    }
     
-    
-    
-    
-    
-    
-    
+    Function_Descriptor join_3_descriptor =
+    { "join", "$list1", "$list2", "$separator", 0 };
+    Node join_3(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      return join_impl(parameters, bindings, true);
+    }
     
     
     

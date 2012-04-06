@@ -104,6 +104,7 @@ namespace Sass {
       case comma_list: {
         string result(at(0).to_string(prefix));
         for (int i = 1; i < size(); ++i) {
+          if (at(i).type == nil) continue;
           result += ", ";
           result += at(i).to_string(prefix);
         }
@@ -113,6 +114,7 @@ namespace Sass {
       case space_list: {
         string result(at(0).to_string(prefix));
         for (int i = 1; i < size(); ++i) {
+          if (at(i).type == nil) continue;
           result += " ";
           result += at(i).to_string(prefix);
         }

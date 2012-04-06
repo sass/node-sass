@@ -46,4 +46,21 @@ div {
   f: ceil(10.4px);
   g: ceil(10.6px);
   h: abs(-23em);
+  
+  a: length(10px);
+  b: length(10px 20 30em);
+  c: length(());
+  
+  a: nth(3px, 1);
+  b: nth((a, b, c), 2);
+  c: nth(foo bar hux, 3);
+  
+  a: join(a b c, d e f, "comma");
+  b: length(join(a b c, d e f, comma));
+  c: join(10px 20px, 30px 40px);
+  d: join((), 1 2 3);
+  e: join(1 2 3, (), comma);
+  f: join((1,2,3), ());
+  g: join((), (1,2,3));
+  h: hello join((),(), auto);
 }

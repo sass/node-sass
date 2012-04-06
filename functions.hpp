@@ -113,6 +113,20 @@ namespace Sass {
 
     extern Function_Descriptor abs_descriptor;    
     Node abs(const vector<Token>& parameters, map<Token, Node>& bindings);
+    
+    // List Functions //////////////////////////////////////////////////////
+    
+    extern Function_Descriptor length_descriptor;
+    Node length(const vector<Token>& parameters, map<Token, Node>& bindings);
+
+    extern Function_Descriptor nth_descriptor;
+    Node nth(const vector<Token>& parameters, map<Token, Node>& bindings);
+
+    extern Function_Descriptor join_2_descriptor;    
+    Node join_2(const vector<Token>& parameters, map<Token, Node>& bindings);
+    
+    extern Function_Descriptor join_3_descriptor;    
+    Node join_3(const vector<Token>& parameters, map<Token, Node>& bindings);
 
   }
   

@@ -57,6 +57,11 @@ namespace Sass {
     register_function(ceil_descriptor, ceil);
     register_function(floor_descriptor, floor);
     register_function(abs_descriptor, abs);
+    // List Functions
+    register_function(length_descriptor, length);
+    register_function(nth_descriptor, nth);
+    register_function(join_2_descriptor, join_2);
+    register_function(join_3_descriptor, join_3);
   }
   
 }
