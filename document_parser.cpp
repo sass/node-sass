@@ -106,8 +106,10 @@ namespace Sass {
     if (lex< exactly<'('> >()) {
       if (!peek< exactly<')'> >(position)) {
         args << parse_argument();
+        args.content.children->back().eval_me = true;
         while (lex< exactly<','> >()) {
           args << parse_argument();
+          args.content.children->back().eval_me = true;
         }
       }
       lex< exactly<')'> >();

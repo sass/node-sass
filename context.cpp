@@ -51,6 +51,12 @@ namespace Sass {
     // String Functions
     register_function(unquote_descriptor, unquote);
     register_function(quote_descriptor, quote);
+    // Number Functions
+    register_function(percentage_descriptor, percentage);
+    register_function(round_descriptor, round);
+    register_function(ceil_descriptor, ceil);
+    register_function(floor_descriptor, floor);
+    register_function(abs_descriptor, abs);
   }
   
 }

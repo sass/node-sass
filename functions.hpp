@@ -43,7 +43,9 @@ namespace Sass {
   };
   
   namespace Functions {
+
     // RGB Functions ///////////////////////////////////////////////////////
+
     extern Function_Descriptor rgb_descriptor;
     Node rgb(const vector<Token>& parameters, map<Token, Node>& bindings);
 
@@ -69,10 +71,12 @@ namespace Sass {
     Node mix_3(const vector<Token>& parameters, map<Token, Node>& bindings);
     
     // HSL Functions ///////////////////////////////////////////////////////
+
     extern Function_Descriptor invert_descriptor;
     Node invert(const vector<Token>& parameters, map<Token, Node>& bindings);
     
     // Opacity Functions ///////////////////////////////////////////////////
+
     extern Function_Descriptor alpha_descriptor;
     extern Function_Descriptor opacity_descriptor;
     Node alpha(const vector<Token>& parameters, map<Token, Node>& bindings);
@@ -86,11 +90,30 @@ namespace Sass {
     Node transparentize(const vector<Token>& parameters, map<Token, Node>& bindings);
     
     // String Functions ////////////////////////////////////////////////////
+
     extern Function_Descriptor unquote_descriptor;
     Node unquote(const vector<Token>& parameters, map<Token, Node>& bindings);
     
     extern Function_Descriptor quote_descriptor;
     Node quote(const vector<Token>& parameters, map<Token, Node>& bindings);
+    
+    // Number Functions ////////////////////////////////////////////////////
+
+    extern Function_Descriptor percentage_descriptor;
+    Node percentage(const vector<Token>& parameters, map<Token, Node>& bindings);
+
+    extern Function_Descriptor round_descriptor;
+    Node round(const vector<Token>& parameters, map<Token, Node>& bindings);
+
+    extern Function_Descriptor ceil_descriptor;
+    Node ceil(const vector<Token>& parameters, map<Token, Node>& bindings);
+
+    extern Function_Descriptor floor_descriptor;
+    Node floor(const vector<Token>& parameters, map<Token, Node>& bindings);
+
+    extern Function_Descriptor abs_descriptor;    
+    Node abs(const vector<Token>& parameters, map<Token, Node>& bindings);
+
   }
   
 }

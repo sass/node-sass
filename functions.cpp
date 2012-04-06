@@ -155,10 +155,69 @@ namespace Sass {
       return cpy;
     }
     
+    // Number Functions ////////////////////////////////////////////////////
     
-    
-    
-    
+    Function_Descriptor percentage_descriptor =
+    { "percentage", "$value", 0 };
+    Node percentage(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node cpy(bindings[parameters[0]].clone());
+      // TO DO: make sure it's not already a percentage
+      cpy.content.numeric_value = cpy.content.numeric_value * 100;
+      cpy.type = Node::numeric_percentage;
+      return cpy;
+    }
+
+    Function_Descriptor round_descriptor =
+    { "round", "$value", 0 };
+    Node round(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node cpy(bindings[parameters[0]].clone());
+      if (cpy.type == Node::numeric_dimension) {
+        cpy.content.dimension.numeric_value = std::floor(cpy.content.dimension.numeric_value + 0.5);
+      }
+      else {
+        cpy.content.numeric_value = std::floor(cpy.content.numeric_value + 0.5);
+      }
+      return cpy;
+    }
+
+    Function_Descriptor ceil_descriptor =
+    { "ceil", "$value", 0 };
+    Node ceil(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node cpy(bindings[parameters[0]].clone());
+      if (cpy.type == Node::numeric_dimension) {
+        cpy.content.dimension.numeric_value = std::ceil(cpy.content.dimension.numeric_value);
+      }
+      else {
+        cpy.content.numeric_value = std::ceil(cpy.content.numeric_value);
+      }
+      return cpy;
+    }
+
+    Function_Descriptor floor_descriptor =
+    { "floor", "$value", 0 };
+    Node floor(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node cpy(bindings[parameters[0]].clone());
+      if (cpy.type == Node::numeric_dimension) {
+        cpy.content.dimension.numeric_value = std::floor(cpy.content.dimension.numeric_value);
+      }
+      else {
+        cpy.content.numeric_value = std::floor(cpy.content.numeric_value);
+      }
+      return cpy;
+    }
+
+    Function_Descriptor abs_descriptor =
+    { "abs", "$value", 0 };
+    Node abs(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node cpy(bindings[parameters[0]].clone());
+      if (cpy.type == Node::numeric_dimension) {
+        cpy.content.dimension.numeric_value = std::fabs(cpy.content.dimension.numeric_value);
+      }
+      else {
+        cpy.content.numeric_value = std::fabs(cpy.content.numeric_value);
+      }
+      return cpy;
+    }
     
     
     
