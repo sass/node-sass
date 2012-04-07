@@ -1,3 +1,6 @@
+#ifndef SASS_PRELEXER_INCLUDED
+#include "prelexer.hpp"
+#endif
 #include "functions.hpp"
 #include <iostream>
 #include <cmath>
@@ -339,7 +342,32 @@ namespace Sass {
       return type;
     }
     
+    extern const char empty_str[] = "";
+    extern const char percent_str[] = "%";
     
+    Function_Descriptor unit_descriptor =
+    { "unit", "$value", 0 };
+    Node unit(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node val(bindings[parameters[0]]);
+      Node u(Node::string_constant, val.line_number, Token::make());
+      switch (val.type)
+      {
+        case Node::number:
+          u.content.token = Token::make(empty_str);
+          break;
+        case Node::numeric_percentage:
+          u.content.token = Token::make(percent_str);
+          break;
+        case Node::numeric_dimension:
+          u.content.token = Token::make(val.content.dimension.unit, Prelexer::identifier(val.content.dimension.unit));
+          break;
+        default: // TO DO: throw an exception
+          u.content.token = Token::make(empty_str);
+          break;
+      }
+      return u;
+    }
+      
     
     
     

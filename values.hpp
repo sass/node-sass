@@ -1,7 +1,10 @@
 #include <string>
 #include <sstream>
 #include <cstring>
+
+#ifndef SASS_PRELEXER_INCLUDED
 #include "prelexer.hpp"
+#endif
 
 namespace Sass {
   using std::string;

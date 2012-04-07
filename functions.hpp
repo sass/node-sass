@@ -133,8 +133,8 @@ namespace Sass {
     extern Function_Descriptor type_of_descriptor;
     Node type_of(const vector<Token>& parameters, map<Token, Node>& bindings);
 
-    // extern Function_Descriptor unit_descriptor;
-    // Node unit(const vector<Token>& parameters, map<Token, Node>& bindings);
+    extern Function_Descriptor unit_descriptor;
+    Node unit(const vector<Token>& parameters, map<Token, Node>& bindings);
     // 
     // extern Function_Descriptor unitless_descriptor;    
     // Node unitless(const vector<Token>& parameters, map<Token, Node>& bindings);

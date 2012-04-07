@@ -1,3 +1,5 @@
+#define SASS_PRELEXER_INCLUDED
+
 namespace Sass {
   namespace Prelexer {
 

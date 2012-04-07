@@ -67,4 +67,8 @@ div {
   a: type-of(false);
   b: type-of("true");
   c: type-of(a b c);
+  
+  a: unit(10);
+  b: unit(10%);
+  c: unit(10boo);
 }
