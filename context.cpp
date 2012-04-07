@@ -62,6 +62,11 @@ namespace Sass {
     register_function(nth_descriptor, nth);
     register_function(join_2_descriptor, join_2);
     register_function(join_3_descriptor, join_3);
+    // Introspection Functions
+    register_function(type_of_descriptor, type_of);
+    // register_function(unit_descriptor, unit);
+    // register_function(unitless_descriptor, unitless);
+    // register_function(comparable_descriptor, comparable);
   }
   
 }

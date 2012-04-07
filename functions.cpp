@@ -220,6 +220,7 @@ namespace Sass {
     }
     
     // List Functions //////////////////////////////////////////////////////
+
     Function_Descriptor length_descriptor =
     { "length", "$list", 0 };
     Node length(const vector<Token>& parameters, map<Token, Node>& bindings) {
@@ -291,13 +292,52 @@ namespace Sass {
       return join_impl(parameters, bindings, true);
     }
     
+    // Introspection Functions /////////////////////////////////////////////
     
+    extern const char number_name[] = "number";
+    extern const char string_name[] = "string";
+    extern const char bool_name[]   = "bool";
+    extern const char color_name[]  = "color";
+    extern const char list_name[]   = "list";
     
-    
-    
-    
-    
-    
+    Function_Descriptor type_of_descriptor =
+    { "type-of", "$value", 0 };
+    Node type_of(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node val(bindings[parameters[0]]);
+      Node type(Node::string_constant, val.line_number, Token::make());
+      type.unquoted = true;
+      switch (val.type)
+      {
+        case Node::number:
+        case Node::numeric_dimension:
+        case Node::numeric_percentage:
+          type.content.token = Token::make(number_name);
+          break;
+        case Node::identifier: {
+          string text(val.content.token.to_string());
+          if (text == "true" || text == "false") {
+            type.content.token = Token::make(bool_name);
+          }
+          else {
+            type.content.token = Token::make(string_name);
+          }
+        } break;
+        case Node::string_constant:
+          type.content.token = Token::make(string_name);
+          break;
+        case Node::numeric_color:
+          type.content.token = Token::make(color_name);
+          break;
+        case Node::comma_list:
+        case Node::space_list:
+        case Node::nil:
+          type.content.token = Token::make(list_name);
+          break;
+        default:
+          type.content.token = Token::make(string_name);
+      }
+      return type;
+    }
     
     
     

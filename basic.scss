@@ -63,4 +63,8 @@ div {
   f: join((1,2,3), ());
   g: join((), (1,2,3));
   h: hello join((),(), auto);
+  
+  a: type-of(false);
+  b: type-of("true");
+  c: type-of(a b c);
 }
