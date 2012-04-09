@@ -121,6 +121,21 @@ namespace Sass {
       return *this;
     }
     
+    double numeric_value()
+    {
+      switch (type)
+      {
+        case number:
+        case numeric_percentage:
+          return content.numeric_value;
+        case numeric_dimension:
+          return content.dimension.numeric_value;
+        default:
+          break;
+          // throw an exception?
+      }
+    }
+    
     Node& operator+=(const Node& n)
     {
       for (int i = 0; i < n.size(); ++i) {

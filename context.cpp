@@ -27,6 +27,12 @@ namespace Sass {
     function_env[pair<string, size_t>(f.name, f.parameters.size())] = f;
   }
   
+  inline void Context::register_function(Function_Descriptor d, Implementation ip, size_t arity)
+  {
+    Function f(d, ip);
+    function_env[pair<string, size_t>(f.name, arity)] = f;
+  }
+  
   void Context::register_functions()
   {
     using namespace Functions;
@@ -40,6 +46,8 @@ namespace Sass {
     register_function(mix_2_descriptor, mix_2);
     register_function(mix_3_descriptor, mix_3);
     // HSL Functions
+    register_function(hsla_descriptor, hsla);
+    register_function(hsl_descriptor, hsl);
     register_function(invert_descriptor, invert);
     // Opacity Functions
     register_function(alpha_descriptor, alpha);

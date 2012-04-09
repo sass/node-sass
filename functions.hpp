@@ -71,6 +71,12 @@ namespace Sass {
     Node mix_3(const vector<Token>& parameters, map<Token, Node>& bindings);
     
     // HSL Functions ///////////////////////////////////////////////////////
+    
+    extern Function_Descriptor hsla_descriptor;
+    Node hsla(const vector<Token>& parameters, map<Token, Node>& bindings);
+    
+    extern Function_Descriptor hsl_descriptor;
+    Node hsl(const vector<Token>& parameters, map<Token, Node>& bindings);
 
     extern Function_Descriptor invert_descriptor;
     Node invert(const vector<Token>& parameters, map<Token, Node>& bindings);

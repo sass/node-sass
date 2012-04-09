@@ -95,6 +95,53 @@ namespace Sass {
     
     // HSL Functions ///////////////////////////////////////////////////////
     
+    double h_to_rgb(double m1, double m2, double h) {
+      if (h < 0) ++h;
+      if (h > 1) --h;
+      if (h*6 < 1) return m1 + (m2 - m1)*h*6;
+      if (h*2 < 1) return m2;
+      if (h*3 < 2) return m1 + (m2 - m1) * (2/3 - h)*6;
+      return m1;
+    }
+
+    Node hsla_impl(double h, double s, double l, double a = 1) {
+      h = (((static_cast<int>(h) % 360) + 360) % 360) / 360;
+      s = s / 100;
+      l = l / 100;
+
+      double m2;
+      if (l <= 0.5) m2 = l*(s+1);
+      else m2 = l+s-l*s;
+      double m1 = l*2-m2;
+      double r = h_to_rgb(m1, m2, h+1/3);
+      double g = h_to_rgb(m1, m2, h);
+      double b = h_to_rgb(m1, m2, h-1/3);
+      return Node(0, r, g, b, a);
+    }
+
+    Function_Descriptor hsla_descriptor =
+    { "hsla", "$hue", "$saturation", "$lightness", "$alpha", 0 };
+    Node hsla(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      double h = bindings[parameters[0]].numeric_value();
+      double s = bindings[parameters[1]].numeric_value();
+      double l = bindings[parameters[2]].numeric_value();
+      double a = bindings[parameters[3]].numeric_value();
+      Node color(hsla_impl(h, s, l, a));
+      color.line_number = bindings[parameters[0]].line_number;
+      return color;
+    }
+    
+    Function_Descriptor hsl_descriptor =
+    { "hsl", "$hue", "$saturation", "$lightness", 0 };
+    Node hsl(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      double h = bindings[parameters[0]].numeric_value();
+      double s = bindings[parameters[1]].numeric_value();
+      double l = bindings[parameters[2]].numeric_value();
+      Node color(hsla_impl(h, s, l));
+      color.line_number = bindings[parameters[0]].line_number;
+      return color;
+    }
+    
     Function_Descriptor invert_descriptor =
     { "invert", "$color", 0 };
     Node invert(const vector<Token>& parameters, map<Token, Node>& bindings) {

@@ -48,6 +48,7 @@ namespace Sass {
     ~Context();
     
     void register_function(Function_Descriptor d, Implementation ip);
+    void register_function(Function_Descriptor d, Implementation ip, size_t arity);
     void register_functions();
   };
 
