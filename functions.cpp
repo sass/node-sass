@@ -394,7 +394,7 @@ namespace Sass {
     extern const char percent_str[] = "%";
     
     Function_Descriptor unit_descriptor =
-    { "unit", "$value", 0 };
+    { "unit", "$number", 0 };
     Node unit(const vector<Token>& parameters, map<Token, Node>& bindings) {
       Node val(bindings[parameters[0]]);
       Node u(Node::string_constant, val.line_number, Token::make());
@@ -420,7 +420,7 @@ namespace Sass {
     extern const char false_str[] = "false";
 
     Function_Descriptor unitless_descriptor =
-    { "unitless", "$value", 0 };
+    { "unitless", "$number", 0 };
     Node unitless(const vector<Token>& parameters, map<Token, Node>& bindings) {
       Node val(bindings[parameters[0]]);
       Node result(Node::string_constant, val.line_number, Token::make());
@@ -441,9 +441,36 @@ namespace Sass {
       return result;
     }
     
-    
-    
-    
+    Function_Descriptor comparable_descriptor =
+    { "comparable", "$number_1", "$number_2", 0 };
+    Node comparable(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node n1(bindings[parameters[0]]);
+      Node n2(bindings[parameters[1]]);
+      Node::Type t1 = n1.type;
+      Node::Type t2 = n2.type;
+      if (t1 == Node::number || t2 == Node::number) {
+        return Node(Node::identifier, n1.line_number, Token::make(true_str));
+      }
+      else if (t1 == Node::numeric_percentage && t2 == Node::numeric_percentage) {
+        return Node(Node::identifier, n1.line_number, Token::make(true_str));
+      }
+      else if (t1 == Node::numeric_dimension && t2 == Node::numeric_dimension) {
+        string u1(Token::make(n1.content.dimension.unit, Prelexer::identifier(n1.content.dimension.unit)).to_string());
+        string u2(Token::make(n2.content.dimension.unit, Prelexer::identifier(n2.content.dimension.unit)).to_string());
+        if (u1 == "ex" && u2 == "ex" ||
+            u1 == "em" && u2 == "em" ||
+            (u1 == "in" || u1 == "cm" || u1 == "mm" || u1 == "pt" || u1 == "pc") &&
+            (u2 == "in" || u2 == "cm" || u2 == "mm" || u2 == "pt" || u2 == "pc")) {
+          return Node(Node::identifier, n1.line_number, Token::make(true_str));
+        }
+        else {
+          return Node(Node::identifier, n1.line_number, Token::make(false_str));
+        }
+      }
+      else {
+        return Node(Node::identifier, n1.line_number, Token::make(false_str));
+      }    
+    }
     
     
     

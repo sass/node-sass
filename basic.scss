@@ -73,7 +73,17 @@ div {
   c: unit(10boo);
   d: unitless(20%);
   e: unitless(123);
-  
+  /* comparable  tests */
+  a: comparable(123em, 123cm);
+  b: comparable(123pt, 123in);
+  c: comparable(120, 12pt);
+  d: comparable(10px, 12pt);
+  e: comparable(10pc, 12%);
+  f: comparable(2em, 50%);
+  g: comparable(1.5em, 3ex);
+  h: comparable(2em, 24pt);
+  i: comparable(16pt, .5cm);
+  /* hsl tests */
   a: hsl(23, 100%, 50%);
   b: hsl(120, 100%, 50%);
 }
