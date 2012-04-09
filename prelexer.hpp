@@ -326,6 +326,19 @@ namespace Sass {
     // Match SCSS variable names.
     const char* variable(const char* src);
     
+    // Match Sass boolean keywords.
+    const char* true_kwd(const char* src);
+    const char* false_kwd(const char* src);
+    const char* and_kwd(const char* src);
+    const char* or_kwd(const char* src);
+    const char* not_kwd(const char* src);
+    const char* eq_op(const char* src);
+    const char* neq_op(const char* src);
+    const char* gt_op(const char* src);
+    const char* gte_op(const char* src);
+    const char* lt_op(const char* src);
+    const char* lte_op(const char* src);
+    
     // Path matching functions.
     const char* folder(const char* src);
     const char* folders(const char* src);

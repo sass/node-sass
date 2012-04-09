@@ -86,4 +86,14 @@ div {
   /* hsl tests */
   a: hsl(23, 100%, 50%);
   b: hsl(120, 100%, 50%);
+  /* logical relations */
+  a: not(false);
+  b: not(true);
+  c: not(hello);
+  d: not("");
+/*  a: 1 < 2;
+  b: 1 > 2;
+  c: 1 > 2 or 3 < 4;
+  d: 1 > 3 and unit(10px);
+  e: not (false);*/
 }

@@ -56,13 +56,17 @@ namespace Sass {
     ++context.ref_count;
   }
   
-  Document::Document(Token t, Context& context)
-  : context(context)
-  {
-    
-    
-    
-  }
+  Document::Document(size_t line_number, Token t, Context& context)
+  : path(string()),
+    source(const_cast<char*>(t.begin)),
+    position(t.begin),
+    end(t.end),
+    line_number(line_number),
+    own_source(false),
+    context(context),
+    root(Node(Node::root, 1)),
+    lexed(Token::make())
+  { }
 
   Document::~Document() {
     --context.ref_count;

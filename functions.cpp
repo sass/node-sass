@@ -364,15 +364,9 @@ namespace Sass {
         case Node::numeric_percentage:
           type.content.token = Token::make(number_name);
           break;
-        case Node::identifier: {
-          string text(val.content.token.to_string());
-          if (text == "true" || text == "false") {
-            type.content.token = Token::make(bool_name);
-          }
-          else {
-            type.content.token = Token::make(string_name);
-          }
-        } break;
+        case Node::boolean:
+          type.content.token = Token::make(bool_name);
+          break;
         case Node::string_constant:
           type.content.token = Token::make(string_name);
           break;
@@ -427,13 +421,19 @@ namespace Sass {
       result.unquoted = true;
       switch (val.type)
       {
-        case Node::number:
-          result.content.token = Token::make(true_str);
-          break;
+        case Node::number: {
+          Node T(Node::boolean);
+          T.line_number = val.line_number;
+          T.content.boolean_value = true;
+          return T;
+          } break;
         case Node::numeric_percentage:
-        case Node::numeric_dimension:
-          result.content.token = Token::make(false_str);
-          break;
+        case Node::numeric_dimension: {
+          Node F(Node::boolean);
+          F.line_number = val.line_number;
+          F.content.boolean_value = false;
+          return F;
+          } break;
         default:
           // TO DO: throw an exception;
           break;
@@ -449,10 +449,16 @@ namespace Sass {
       Node::Type t1 = n1.type;
       Node::Type t2 = n2.type;
       if (t1 == Node::number || t2 == Node::number) {
-        return Node(Node::identifier, n1.line_number, Token::make(true_str));
+        Node T(Node::boolean);
+        T.line_number = n1.line_number;
+        T.content.boolean_value = true;
+        return T;
       }
       else if (t1 == Node::numeric_percentage && t2 == Node::numeric_percentage) {
-        return Node(Node::identifier, n1.line_number, Token::make(true_str));
+        Node T(Node::boolean);
+        T.line_number = n1.line_number;
+        T.content.boolean_value = true;
+        return T;
       }
       else if (t1 == Node::numeric_dimension && t2 == Node::numeric_dimension) {
         string u1(Token::make(n1.content.dimension.unit, Prelexer::identifier(n1.content.dimension.unit)).to_string());
@@ -461,17 +467,44 @@ namespace Sass {
             u1 == "em" && u2 == "em" ||
             (u1 == "in" || u1 == "cm" || u1 == "mm" || u1 == "pt" || u1 == "pc") &&
             (u2 == "in" || u2 == "cm" || u2 == "mm" || u2 == "pt" || u2 == "pc")) {
-          return Node(Node::identifier, n1.line_number, Token::make(true_str));
+          Node T(Node::boolean);
+          T.line_number = n1.line_number;
+          T.content.boolean_value = true;
+          return T;
         }
         else {
-          return Node(Node::identifier, n1.line_number, Token::make(false_str));
+          Node F(Node::boolean);
+          F.line_number = n1.line_number;
+          F.content.boolean_value = false;
+          return F;
         }
       }
       else {
-        return Node(Node::identifier, n1.line_number, Token::make(false_str));
+        Node F(Node::boolean);
+        F.line_number = n1.line_number;
+        F.content.boolean_value = false;
+        return F;
       }    
     }
     
+    // Boolean Functions ///////////////////////////////////////////////////
+    Function_Descriptor not_descriptor =
+    { "not", "value", 0 };
+    Node not_impl(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node val(bindings[parameters[0]]);
+      if (val.type == Node::boolean && val.content.boolean_value == false) {
+        Node T(Node::boolean);
+        T.line_number = val.line_number;
+        T.content.boolean_value = true;
+        return T;
+      }
+      else {
+        Node F(Node::boolean);
+        F.line_number = val.line_number;
+        F.content.boolean_value = false;
+        return F;
+      }
+    }
     
     
   }

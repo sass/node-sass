@@ -75,6 +75,8 @@ namespace Sass {
     register_function(unit_descriptor, unit);
     register_function(unitless_descriptor, unitless);
     register_function(comparable_descriptor, comparable);
+    // Boolean Functions
+    register_function(not_descriptor, not_impl);
   }
   
 }

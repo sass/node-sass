@@ -38,6 +38,9 @@ namespace Sass {
       nil,
       comma_list,
       space_list,
+      
+      disjunction,
+      conjunction,
 
       expression,
       add,
@@ -62,6 +65,7 @@ namespace Sass {
       numeric_dimension,
       number,
       numeric_color,
+      boolean,
       
       function_call,
       mixin,
@@ -94,6 +98,7 @@ namespace Sass {
       mutable vector<Node>* children;
       Dimension dimension;
       double numeric_value;
+      bool boolean_value;
     } content;
     
     static size_t allocations;
@@ -159,7 +164,7 @@ namespace Sass {
     Node()
     { clear(); }
 
-    Node(Type t) // flags
+    Node(Type t) // flags or booleans
     { clear(); type = t; }
 
     Node(Type t, unsigned int ln, size_t s = 0) // nodes with children

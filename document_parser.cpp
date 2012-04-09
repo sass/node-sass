@@ -526,20 +526,21 @@ namespace Sass {
       return result;
     }
     
-    // if (lex< rgb_prefix >())
-    // {
-    //   Node result(Node::numeric_color, line_number, 3);
-    //   lex< number >();
-    //   result << Node(line_number, std::atof(lexed.begin));
-    //   lex< exactly<','> >();
-    //   lex< number >();
-    //   result << Node(line_number, std::atof(lexed.begin));
-    //   lex< exactly<','> >();
-    //   lex< number >();
-    //   result << Node(line_number, std::atof(lexed.begin));
-    //   lex< exactly<')'> >();
-    //   return result;
-    // }
+    if (lex< true_kwd >())
+    {
+      Node T(Node::boolean);
+      T.line_number = line_number;
+      T.content.boolean_value = true;
+      return T;
+    }
+    
+    if (lex< false_kwd >())
+    {
+      Node F(Node::boolean);
+      F.line_number = line_number;
+      F.content.boolean_value = false;
+      return F;
+    }
     
     if (peek< functional >())
     { return parse_function_call(); }

@@ -233,6 +233,11 @@ namespace Sass {
         }
       } break;
       
+      case boolean: {
+        if (content.boolean_value) return "true";
+        else return "false";
+      } break;
+      
       default: {
         // return content.token.to_string();
         if (!has_children && type != flags) return content.token.to_string();

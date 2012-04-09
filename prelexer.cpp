@@ -206,9 +206,9 @@ namespace Sass {
       return sequence< identifier, exactly<'('> >(src);
     }
     // Match the CSS negation pseudo-class.
-    extern const char not_kwd[] = ":not(";
+    extern const char pseudo_not_chars[] = ":not(";
     const char* pseudo_not(const char* src) {
-      return exactly< not_kwd >(src);
+      return exactly< pseudo_not_chars >(src);
     }
     // Match CSS 'odd' and 'even' keywords for functional pseudo-classes.
     extern const char even_chars[] = "even";
@@ -248,6 +248,53 @@ namespace Sass {
     // Match SCSS variable names.
     const char* variable(const char* src) {
       return sequence<exactly<'$'>, name>(src);
+    }
+    
+    // Match Sass boolean keywords.
+    extern const char and_chars[]   = "and";
+    extern const char or_chars[]    = "or";
+    extern const char not_chars[]   = "not";
+    extern const char gt_chars[]    = ">";
+    extern const char gte_chars[]   = ">=";
+    extern const char lt_chars[]    = "<";
+    extern const char lte_chars[]   = "<=";
+    extern const char eq_chars[]    = "==";
+    extern const char neq_chars[]   = "!=";
+    extern const char true_chars[]  = "true";
+    extern const char false_chars[] = "false";
+
+    const char* true_kwd(const char* src) {
+      return exactly<true_chars>(src);
+    }
+    const char* false_kwd(const char* src) {
+      return exactly<false_chars>(src);
+    }
+    const char* and_kwd(const char* src) {
+      return exactly<and_chars>(src);
+    }
+    const char* or_kwd(const char* src) {
+      return exactly<or_chars>(src);
+    }
+    const char* not_kwd(const char* src) {
+      return exactly<not_chars>(src);
+    }
+    const char* eq_op(const char* src) {
+      return exactly<eq_chars>(src);
+    }
+    const char* neq_op(const char* src) {
+      return exactly<neq_chars>(src);
+    }
+    const char* gt_op(const char* src) {
+      return exactly<gt_chars>(src);
+    }
+    const char* gte_op(const char* src) {
+      return exactly<gte_chars>(src);
+    }
+    const char* lt_op(const char* src) {
+      return exactly<lt_chars>(src);
+    }
+    const char* lte_op(const char* src) {
+      return exactly<lte_chars>(src);
     }
     
     // Path matching functions.

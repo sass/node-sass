@@ -147,6 +147,11 @@ namespace Sass {
     
     extern Function_Descriptor comparable_descriptor;    
     Node comparable(const vector<Token>& parameters, map<Token, Node>& bindings);
+    
+    // Boolean Functions ///////////////////////////////////////////////////
+    
+    extern Function_Descriptor not_descriptor;
+    Node not_impl(const vector<Token>& parameters, map<Token, Node>& bindings);
 
   }
   
