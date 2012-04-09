@@ -71,6 +71,8 @@ div {
   a: unit(10);
   b: unit(10%);
   c: unit(10boo);
+  d: unitless(20%);
+  e: unitless(123);
   
   a: hsl(23, 100%, 50%);
   b: hsl(120, 100%, 50%);

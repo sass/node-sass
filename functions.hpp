@@ -141,10 +141,10 @@ namespace Sass {
 
     extern Function_Descriptor unit_descriptor;
     Node unit(const vector<Token>& parameters, map<Token, Node>& bindings);
-    // 
-    // extern Function_Descriptor unitless_descriptor;    
-    // Node unitless(const vector<Token>& parameters, map<Token, Node>& bindings);
-    // 
+    
+    extern Function_Descriptor unitless_descriptor;    
+    Node unitless(const vector<Token>& parameters, map<Token, Node>& bindings);
+    
     // extern Function_Descriptor comparable_descriptor;    
     // Node comparable(const vector<Token>& parameters, map<Token, Node>& bindings);
 

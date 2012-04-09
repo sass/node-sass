@@ -415,8 +415,31 @@ namespace Sass {
       }
       return u;
     }
-      
-    
+
+    extern const char true_str[]  = "true";
+    extern const char false_str[] = "false";
+
+    Function_Descriptor unitless_descriptor =
+    { "unitless", "$value", 0 };
+    Node unitless(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node val(bindings[parameters[0]]);
+      Node result(Node::string_constant, val.line_number, Token::make());
+      result.unquoted = true;
+      switch (val.type)
+      {
+        case Node::number:
+          result.content.token = Token::make(true_str);
+          break;
+        case Node::numeric_percentage:
+        case Node::numeric_dimension:
+          result.content.token = Token::make(false_str);
+          break;
+        default:
+          // TO DO: throw an exception;
+          break;
+      }
+      return result;
+    }
     
     
     
