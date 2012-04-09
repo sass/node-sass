@@ -3,6 +3,7 @@
 #include <string>
 #include <cctype>
 #include <cstdlib>
+#include <cmath>
 #include "node.hpp"
 
 using std::string;
@@ -195,7 +196,7 @@ namespace Sass {
               double x = at(i).content.numeric_value;
               if (x > 0xff) x = 0xff;
               else if (x < 0) x = 0;
-              ss  << std::hex << std::setw(2) << static_cast<unsigned long>(x);
+              ss  << std::hex << std::setw(2) << static_cast<unsigned long>(std::floor(x+0.5));
             }
             return ss.str();
           }

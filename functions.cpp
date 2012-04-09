@@ -98,24 +98,25 @@ namespace Sass {
     double h_to_rgb(double m1, double m2, double h) {
       if (h < 0) ++h;
       if (h > 1) --h;
-      if (h*6 < 1) return m1 + (m2 - m1)*h*6;
-      if (h*2 < 1) return m2;
-      if (h*3 < 2) return m1 + (m2 - m1) * (2/3 - h)*6;
+      if (h*6.0 < 1) return m1 + (m2 - m1)*h*6;
+      if (h*2.0 < 1) return m2;
+      if (h*3.0 < 2) return m1 + (m2 - m1) * (2.0/3.0 - h)*6;
       return m1;
     }
 
     Node hsla_impl(double h, double s, double l, double a = 1) {
-      h = (((static_cast<int>(h) % 360) + 360) % 360) / 360;
-      s = s / 100;
-      l = l / 100;
+      h = static_cast<double>(((static_cast<int>(h) % 360) + 360) % 360) / 360.0;
+      s = s / 100.0;
+      l = l / 100.0;
 
       double m2;
-      if (l <= 0.5) m2 = l*(s+1);
+      if (l <= 0.5) m2 = l*(s+1.0);
       else m2 = l+s-l*s;
       double m1 = l*2-m2;
-      double r = h_to_rgb(m1, m2, h+1/3);
-      double g = h_to_rgb(m1, m2, h);
-      double b = h_to_rgb(m1, m2, h-1/3);
+      double r = h_to_rgb(m1, m2, h+1.0/3.0) * 255.0;
+      double g = h_to_rgb(m1, m2, h) * 255.0;
+      double b = h_to_rgb(m1, m2, h-1.0/3.0) * 255.0;
+      
       return Node(0, r, g, b, a);
     }
 
