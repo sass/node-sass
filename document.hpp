@@ -18,6 +18,7 @@ namespace Sass {
     string path;
     char* source;
     const char* position;
+    const char* end;
     size_t line_number;
     bool own_source;
 
@@ -28,6 +29,7 @@ namespace Sass {
     
     Document(string path, char* source = 0);
     Document(string path, Context& context);
+    Document(Token t, Context& context);
     ~Document();
     
     template <prelexer mx>

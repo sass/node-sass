@@ -23,6 +23,7 @@ namespace Sass {
       source = new char[len + 1];
       std::fread(source, sizeof(char), len, f);
       source[len] = '\0';
+      end = source + len;
       std::fclose(f);
       own_source = true;
     }
@@ -48,10 +49,19 @@ namespace Sass {
     source = new char[len + 1];
     std::fread(source, sizeof(char), len, f);
     source[len] = '\0';
+    end = source + len;
     std::fclose(f);
     position = source;
     context.source_refs.push_back(source);
     ++context.ref_count;
+  }
+  
+  Document::Document(Token t, Context& context)
+  : context(context)
+  {
+    
+    
+    
   }
 
   Document::~Document() {

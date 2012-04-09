@@ -8,7 +8,7 @@ namespace Sass {
   {
     lex<optional_spaces>();
     root << Node(Node::flags);
-    while(*position) {
+    while(position < end) {
       if (lex< block_comment >()) {
         root << Node(Node::comment, line_number, lexed);
       }
