@@ -85,6 +85,27 @@ namespace Sass {
         return expr;
       } break;
       
+      case Node::disjunction: {
+        Node result;
+        for (int i = 0; i < expr.size(); ++i) {
+          // if (expr[i].type == Node::relation ||
+          //     expr[i].type == Node::function_call && expr[0].content.token.to_string() == "not") {
+          result = eval(expr[i], env, f_env);
+          if (result.type == Node::boolean && result.content.boolean_value == false) continue;
+          else return result;
+        }
+        return result;
+      } break;
+      
+      case Node::conjunction: {
+        Node result;
+        for (int i = 0; i < expr.size(); ++i) {
+          result = eval(expr[i], env, f_env);
+          if (result.type == Node::boolean && result.content.boolean_value == false) return result;
+        }
+        return result;
+      } break;
+      
       case Node::relation: {
         
         Node lhs(eval(expr[0], env, f_env));

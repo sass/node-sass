@@ -419,29 +419,56 @@ namespace Sass {
   
   Node Document::parse_space_list()
   {
-    Node rel1(parse_relation());
+    Node disj1(parse_disjunction());
     // if it's a singleton, return it directly; don't wrap it
     if (peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
         peek< exactly<')'> >(position) ||
         peek< exactly<','> >(position))
-    { return rel1; }
+    { return disj1; }
     
     Node space_list(Node::space_list, line_number, 2);
-    space_list << rel1;
-    space_list.eval_me |= rel1.eval_me;
+    space_list << disj1;
+    space_list.eval_me |= disj1.eval_me;
     
     while (!(peek< exactly<';'> >(position) ||
              peek< exactly<'}'> >(position) ||
              peek< exactly<')'> >(position) ||
              peek< exactly<','> >(position)))
     {
-      Node rel(parse_relation());
-      space_list << rel;
-      space_list.eval_me |= rel.eval_me;
+      Node disj(parse_disjunction());
+      space_list << disj;
+      space_list.eval_me |= disj.eval_me;
     }
     
     return space_list;
+  }
+  
+  Node Document::parse_disjunction()
+  {
+    Node conj1(parse_conjunction());
+    // if it's a singleton, return it directly; don't wrap it
+    if (!peek< or_kwd >()) return conj1;
+    
+    Node disjunction(Node::disjunction, line_number, 2);
+    disjunction << conj1;
+    while (lex< or_kwd >()) disjunction << parse_conjunction();
+    disjunction.eval_me = true;
+    
+    return disjunction;
+  }
+  
+  Node Document::parse_conjunction()
+  {
+    Node rel1(parse_relation());
+    // if it's a singleton, return it directly; don't wrap it
+    if (!peek< and_kwd >()) return rel1;
+    
+    Node conjunction(Node::conjunction, line_number, 2);
+    conjunction << rel1;
+    while (lex< and_kwd >()) conjunction << parse_relation();
+    conjunction.eval_me = true;
+    return conjunction;
   }
   
   Node Document::parse_relation()
@@ -456,14 +483,14 @@ namespace Sass {
           peek< lte_op >(position)))
     { return expr1; }
     
-    Node relation(Node::relation, line_number, 2);
+    Node relation(Node::relation, line_number, 3);
     expr1.eval_me = true;
     relation << expr1;
         
     if (lex< eq_op >()) relation << Node(Node::eq, line_number, lexed);
-    else if (lex< neq_op>()) relation << Node(Node::neq, line_number, lexed);
-    else if (lex< gte_op>()) relation << Node(Node::gte, line_number, lexed);
-    else if (lex< lte_op>()) relation << Node(Node::lte, line_number, lexed);
+    else if (lex< neq_op >()) relation << Node(Node::neq, line_number, lexed);
+    else if (lex< gte_op >()) relation << Node(Node::gte, line_number, lexed);
+    else if (lex< lte_op >()) relation << Node(Node::lte, line_number, lexed);
     else if (lex< gt_op >()) relation << Node(Node::gt, line_number, lexed);
     else if (lex< lt_op >()) relation << Node(Node::lt, line_number, lexed);
         

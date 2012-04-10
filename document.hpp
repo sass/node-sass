@@ -131,6 +131,8 @@ namespace Sass {
     Node parse_list();
     Node parse_comma_list();
     Node parse_space_list();
+    Node parse_disjunction();
+    Node parse_conjunction();
     Node parse_relation();
     Node parse_expression();
     Node parse_term();
