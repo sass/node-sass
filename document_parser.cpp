@@ -459,14 +459,14 @@ namespace Sass {
     Node relation(Node::relation, line_number, 2);
     expr1.eval_me = true;
     relation << expr1;
-    
+        
     if (lex< eq_op >()) relation << Node(Node::eq, line_number, lexed);
     else if (lex< neq_op>()) relation << Node(Node::neq, line_number, lexed);
-    else if (lex< gt_op >()) relation << Node(Node::gt, line_number, lexed);
     else if (lex< gte_op>()) relation << Node(Node::gte, line_number, lexed);
-    else if (lex< lt_op >()) relation << Node(Node::lt, line_number, lexed);
     else if (lex< lte_op>()) relation << Node(Node::lte, line_number, lexed);
-    
+    else if (lex< gt_op >()) relation << Node(Node::gt, line_number, lexed);
+    else if (lex< lt_op >()) relation << Node(Node::lt, line_number, lexed);
+        
     Node expr2(parse_expression());
     expr2.eval_me = true;
     relation << expr2;
