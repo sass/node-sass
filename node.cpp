@@ -238,6 +238,10 @@ namespace Sass {
         else return "false";
       } break;
       
+      case important: {
+        return "!important";
+      } break;
+      
       default: {
         // return content.token.to_string();
         if (!has_children && type != flags) return content.token.to_string();

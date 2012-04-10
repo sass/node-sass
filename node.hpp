@@ -74,6 +74,7 @@ namespace Sass {
       number,
       numeric_color,
       boolean,
+      important,
       
       function_call,
       mixin,

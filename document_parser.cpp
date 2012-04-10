@@ -602,6 +602,9 @@ namespace Sass {
     
     if (peek< functional >())
     { return parse_function_call(); }
+    
+    if (lex< important >())
+    { return Node(Node::important, line_number, lexed); }
 
     if (lex< identifier >())
     { return Node(Node::identifier, line_number, lexed); }
