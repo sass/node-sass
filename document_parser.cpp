@@ -448,11 +448,11 @@ namespace Sass {
   {
     Node conj1(parse_conjunction());
     // if it's a singleton, return it directly; don't wrap it
-    if (!peek< or_kwd >()) return conj1;
+    if (!peek< sequence< or_kwd, negate< identifier > > >()) return conj1;
     
     Node disjunction(Node::disjunction, line_number, 2);
     disjunction << conj1;
-    while (lex< or_kwd >()) disjunction << parse_conjunction();
+    while (lex< sequence< or_kwd, negate< identifier > > >()) disjunction << parse_conjunction();
     disjunction.eval_me = true;
     
     return disjunction;
@@ -462,11 +462,11 @@ namespace Sass {
   {
     Node rel1(parse_relation());
     // if it's a singleton, return it directly; don't wrap it
-    if (!peek< and_kwd >()) return rel1;
+    if (!peek< sequence< and_kwd, negate< identifier > > >()) return rel1;
     
     Node conjunction(Node::conjunction, line_number, 2);
     conjunction << rel1;
-    while (lex< and_kwd >()) conjunction << parse_relation();
+    while (lex< sequence< and_kwd, negate< identifier > > >()) conjunction << parse_relation();
     conjunction.eval_me = true;
     return conjunction;
   }
