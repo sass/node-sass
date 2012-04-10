@@ -84,6 +84,28 @@ namespace Sass {
         if (expr.eval_me) expr[0] = eval(expr[0], env, f_env);
         return expr;
       } break;
+      
+      case Node::relation: {
+        
+        Node lhs(eval(expr[0], env, f_env));
+        Node op(expr[1]);
+        Node rhs(eval(expr[2], env, f_env));
+        
+        Node T(Node::boolean);
+        T.line_number = lhs.line_number;
+        T.content.boolean_value = true;
+        Node F(T);
+        F.content.boolean_value = false;
+        
+        switch (op.type) {
+          case Node::eq:  return (lhs == rhs) ? T : F;
+          case Node::neq: return (lhs != rhs) ? T : F;
+          case Node::gt:  return (lhs > rhs)  ? T : F;
+          case Node::gte: return (lhs >= rhs) ? T : F;
+          case Node::lt:  return (lhs < rhs)  ? T : F;
+          case Node::lte: return (lhs <= rhs) ? T : F;
+        }
+      } break;
 
       case Node::expression: {
         Node acc(Node::expression, expr.line_number, 1);

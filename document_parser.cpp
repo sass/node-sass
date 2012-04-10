@@ -419,29 +419,60 @@ namespace Sass {
   
   Node Document::parse_space_list()
   {
-    Node expr1(parse_expression());
+    Node rel1(parse_relation());
     // if it's a singleton, return it directly; don't wrap it
     if (peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
         peek< exactly<')'> >(position) ||
         peek< exactly<','> >(position))
-    { return expr1; }
+    { return rel1; }
     
     Node space_list(Node::space_list, line_number, 2);
-    space_list << expr1;
-    space_list.eval_me |= expr1.eval_me;
+    space_list << rel1;
+    space_list.eval_me |= rel1.eval_me;
     
     while (!(peek< exactly<';'> >(position) ||
              peek< exactly<'}'> >(position) ||
              peek< exactly<')'> >(position) ||
              peek< exactly<','> >(position)))
     {
-      Node expr(parse_expression());
-      space_list << expr;
-      space_list.eval_me |= expr.eval_me;
+      Node rel(parse_relation());
+      space_list << rel;
+      space_list.eval_me |= rel.eval_me;
     }
     
     return space_list;
+  }
+  
+  Node Document::parse_relation()
+  {
+    Node expr1(parse_expression());
+    // if it's a singleton, return it directly; don't wrap it
+    if (!(peek< eq_op >(position)  ||
+          peek< neq_op >(position) ||
+          peek< gt_op >(position)  ||
+          peek< gte_op >(position) ||
+          peek< lt_op >(position)  ||
+          peek< lte_op >(position)))
+    { return expr1; }
+    
+    Node relation(Node::relation, line_number, 2);
+    expr1.eval_me = true;
+    relation << expr1;
+    
+    if (lex< eq_op >()) relation << Node(Node::eq, line_number, lexed);
+    else if (lex< neq_op>()) relation << Node(Node::neq, line_number, lexed);
+    else if (lex< gt_op >()) relation << Node(Node::gt, line_number, lexed);
+    else if (lex< gte_op>()) relation << Node(Node::gte, line_number, lexed);
+    else if (lex< lt_op >()) relation << Node(Node::lt, line_number, lexed);
+    else if (lex< lte_op>()) relation << Node(Node::lte, line_number, lexed);
+    
+    Node expr2(parse_expression());
+    expr2.eval_me = true;
+    relation << expr2;
+    
+    relation.eval_me = true;
+    return relation;
   }
   
   Node Document::parse_expression()

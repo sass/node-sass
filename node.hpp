@@ -41,6 +41,14 @@ namespace Sass {
       
       disjunction,
       conjunction,
+      
+      relation,
+      eq,
+      neq,
+      gt,
+      gte,
+      lt,
+      lte,
 
       expression,
       add,
@@ -126,7 +134,7 @@ namespace Sass {
       return *this;
     }
     
-    double numeric_value()
+    double numeric_value() const
     {
       switch (type)
       {
@@ -148,6 +156,13 @@ namespace Sass {
       }
       return *this;
     }
+    
+    bool operator==(const Node& rhs) const;
+    bool operator!=(const Node& rhs) const;
+    bool operator<(const Node& rhs) const;
+    bool operator<=(const Node& rhs) const;
+    bool operator>(const Node& rhs) const;
+    bool operator>=(const Node& rhs) const;
     
     string to_string(const string& prefix) const;
         

@@ -1,7 +1,7 @@
 
 
 build: sassc.cpp document.cpp node.cpp values.cpp prelexer.cpp
-	g++ -o bin/sassc sassc.cpp context.cpp functions.cpp document.cpp document_parser.cpp eval_apply.cpp node.cpp values.cpp prelexer.cpp
+	g++ -o bin/sassc sassc.cpp context.cpp functions.cpp document.cpp document_parser.cpp eval_apply.cpp node.cpp node_comparisons.cpp values.cpp prelexer.cpp
 
 test: build
 	ruby spec.rb spec/basic/
