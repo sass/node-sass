@@ -9,4 +9,15 @@ div {
   b: hey orelse ho andalso hoo;
   c: hoogoo ! important blah;
   d: boogoo !important;
+  > span {
+    foo: bar;
+    hux: blux;
+  }
+}
+
+a {
+  blah: blah;
+  f &.b {
+    blee: blee;
+  }
 }

@@ -48,50 +48,78 @@ namespace Sass {
           result += prefix;
           result += ' ';
         }
-        if (at(0).type == selector_combinator) {
-          result += at(0).content.token.to_string();
-          result += ' ';
-        }
-        else {
-          result += at(0).to_string(prefix);
-        }
+
+        // if (at(0).type == selector_combinator) {
+        //   result += at(0).content.token.to_string();
+        //   result += ' ';
+        // }
+        // else {
+        //   Node::Type t = at(0).type;
+        //   result += at(0).to_string(t == backref ? prefix : "");
+        // }
+        
+        Node::Type t = at(0).type;
+        result += at(0).to_string(at(0).has_backref ? prefix : "");
+
         for (int i = 1; i < size(); ++i) {
-          result += at(i).to_string(prefix);
+          Node::Type t = at(i).type;
+          result += " ";
+          result += at(i).to_string(at(0).has_backref ? prefix : "");
         }
         return result;
       }  break;
       
       case selector_combinator: {
-        if (std::isspace(content.token.begin[0])) return string(" ");
-        else return string(" ") += string(content.token) += string(" ");
+        return content.token.to_string();
+        // if (std::isspace(content.token.begin[0])) return string(" ");
+        // else return string(content.token);
       } break;
       
       case simple_selector_sequence: {
         string result;
+        if (!has_backref && !prefix.empty()) {
+          result += prefix;
+          result += " ";
+        }
         for (int i = 0; i < size(); ++i) {
-          result += at(i).to_string(prefix);
+          Node::Type t = at(i).type;
+          result += at(i).to_string(t == backref ? prefix : "");
         }
         return result;
       }  break;
       
+      case pseudo:
+      case simple_selector: {
+        string result(prefix);
+        if (!prefix.empty()) result += " ";
+        result += content.token.to_string();
+        return result;
+      } break;
+      
       case pseudo_negation: {
-        string result(at(0).to_string(prefix));
-        result += at(1).to_string(prefix);
+        string result(prefix);
+        if (!prefix.empty()) result += " ";
+        result += at(0).to_string("");
+        result += at(1).to_string("");
         result += ')';
         return result;
       } break;
       
       case functional_pseudo: {
-        string result(at(0).to_string(prefix));
+        string result(prefix);
+        if (!prefix.empty()) result += " ";
+        result += at(0).to_string("");
         for (int i = 1; i < size(); ++i) {
-          result += at(i).to_string(prefix);
+          result += at(i).to_string("");
         }
         result += ')';
         return result;
       } break;
       
       case attribute_selector: {
-        string result("[");
+        string result(prefix);
+        if (!prefix.empty()) result += " ";
+        result += "[";
         for (int i = 0; i < 3; ++i)
         { result += at(i).to_string(prefix); }
         result += ']';
@@ -326,23 +354,24 @@ namespace Sass {
 
     case ruleset: {
       Node sel_group(at(0));
+      size_t sel_group_size = (sel_group.type == selector_group) ? sel_group.size() : 1; // parser ensures no singletons
       Node block(at(1));
       vector<string> new_prefixes;
-      
       if (prefixes.empty()) {
-        new_prefixes.reserve(sel_group.size());
-        for (int i = 0; i < sel_group.size(); ++i) {
-          new_prefixes.push_back(sel_group[i].to_string(string()));
+        new_prefixes.reserve(sel_group_size);
+        for (int i = 0; i < sel_group_size; ++i) {
+          new_prefixes.push_back(sel_group_size > 1 ? sel_group[i].to_string(string()) : sel_group.to_string(string()));
         }
       }
       else {
-        new_prefixes.reserve(prefixes.size() * sel_group.size());
+        new_prefixes.reserve(prefixes.size() * sel_group_size);
         for (int i = 0; i < prefixes.size(); ++i) {
-          for (int j = 0; j < sel_group.size(); ++j) {
-            new_prefixes.push_back(sel_group[j].to_string(prefixes[i]));
+          for (int j = 0; j < sel_group_size; ++j) {
+            new_prefixes.push_back(sel_group_size > 1 ? sel_group[j].to_string(prefixes[i]) : sel_group.to_string(prefixes[i]));
           }
         }
       }
+
       if (block[0].has_expansions) block.flatten();
       if (block[0].has_statements) {
         buf << string(2*depth, ' ') << new_prefixes[0];
@@ -355,12 +384,6 @@ namespace Sass {
           if (stm_type == comment || stm_type == rule) {
             block[i].emit_nested_css(buf, depth+1); // NEED OVERLOADED VERSION FOR COMMENTS AND RULES
           }
-          // else if (stm_type == expansion) {
-          //   // buf << string(2*(depth+1), ' ') << block[i].to_string(""); // TEMPORARY
-          //   for (int j = 0; j < block[i].size(); ++j) {
-          //     block[i][j].emit_nested_css(buf, depth+1);
-          //   }
-          // }
         }
         buf << " }" << endl;
         ++depth; // if we printed content at this level, we need to indent any nested rulesets
@@ -372,7 +395,7 @@ namespace Sass {
           }
         }
       }
-      if (block[0].has_statements) --depth;
+      if (block[0].has_statements) --depth; // see previous comment
       if (depth == 0 && prefixes.empty()) buf << endl;
     } break;
 
