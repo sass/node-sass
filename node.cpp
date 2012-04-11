@@ -43,6 +43,7 @@ namespace Sass {
       } break;
       
       case selector: {
+        cerr << "emitting selector with " << size() << " children" << endl;
         string result;
         if (!has_backref && !prefix.empty()) {
           result += prefix;
@@ -64,7 +65,7 @@ namespace Sass {
         for (int i = 1; i < size(); ++i) {
           Node::Type t = at(i).type;
           result += " ";
-          result += at(i).to_string(at(0).has_backref ? prefix : "");
+          result += at(i).to_string(at(i).has_backref ? prefix : "");
         }
         return result;
       }  break;
