@@ -3,5 +3,6 @@
 sassc
 build/*
 *.o
+*.a
 a.out
 bin/*
