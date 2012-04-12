@@ -39,9 +39,12 @@ namespace Sass {
   };
 
   struct Context {
+    string sass_path;
+    string css_path;
+    vector<string> include_paths;
     Environment global_env;
     map<pair<string, size_t>, Function> function_env;
-    vector<char*> source_refs;
+    vector<char*> source_refs; // all the source c-strings
     size_t ref_count;
     
     Context();

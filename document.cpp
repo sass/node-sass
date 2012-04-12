@@ -1,9 +1,48 @@
 #include <cstdio>
+#include <cstring>
 #include "document.hpp"
 #include "eval_apply.hpp"
 #include <iostream>
 
 namespace Sass {
+  
+  Document::Document(char* path_str, char* source_str, Context& ctx)
+  : path(string()),
+    source(source_str),
+    line_number(1),
+    context(ctx),
+    root(Node(Node::root, 1)),
+    lexed(Token::make())
+  {
+    if (source_str) {
+      own_source = false;
+      position = source;
+      end = position + std::strlen(source);
+    }
+    else if (path_str) {
+      path = string(path_str);
+      std::FILE *f;
+      // TO DO: CHECK f AGAINST NULL/0
+      f = std::fopen(path.c_str(), "rb");
+      std::fseek(f, 0, SEEK_END);
+      int len = std::ftell(f);
+      std::rewind(f);
+      // TO DO: WRAP THE new[] IN A TRY/CATCH BLOCK
+      source = new char[len + 1];
+      std::fread(source, sizeof(char), len, f);
+      source[len] = '\0';
+      end = source + len;
+      std::fclose(f);
+      own_source = true;
+      position = source;
+      context.source_refs.push_back(source);
+    }
+    else {
+      // report an error
+    }
+    ++context.ref_count;
+  }
+      
 
   Document::Document(string path, char* source)
   : path(path), source(source),

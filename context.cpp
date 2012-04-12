@@ -9,6 +9,7 @@ namespace Sass {
   : global_env(Environment()),
     function_env(map<pair<string, size_t>, Function>()),
     source_refs(vector<char*>()),
+    include_paths(vector<string>()),
     ref_count(0)
   {
     register_functions();

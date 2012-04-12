@@ -27,6 +27,7 @@ namespace Sass {
     Node root;
     Token lexed;
     
+    Document(char* path_str, char* source_str, Context& ctx);
     Document(string path, char* source = 0);
     Document(string path, Context& context);
     Document(size_t line_number, Token t, Context& context);
