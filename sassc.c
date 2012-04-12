@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 	struct sass_context* ctx = sass_new_context();
 	ctx->sass_path = NULL;
 	ctx->css_path = NULL;
-	ctx->include_paths = NULL;
+	ctx->include_paths = "::/blah/bloo/fuzz:/slub/flub/chub::/Users/Aaron/dev/libsass/::::/huzz/buzz:::";
 	ctx->output_style = 0;
 	ctx->input_file = argv[1];
 	ctx->input_string = NULL;

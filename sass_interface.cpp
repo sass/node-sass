@@ -23,18 +23,30 @@ extern "C" char* sass_compile(sass_context* c_ctx)
   const size_t wd_len = 1024;
   char wd[wd_len];
   cpp_ctx.include_paths.push_back(getcwd(wd, wd_len));
+  if (*cpp_ctx.include_paths.back().rbegin() != '/') cpp_ctx.include_paths.back() += '/';
 
   if (c_ctx->include_paths) {
     const char* beg = c_ctx->include_paths;
     const char* end = Prelexer::find_first<':'>(beg);
   
     while (end) {
-      cpp_ctx.include_paths.push_back(string(beg, end - beg));
+      string path(beg, end - beg);
+      if (!path.empty()) {
+        if (*path.rbegin() != '/') path += '/';
+        cpp_ctx.include_paths.push_back(path);
+      }
       beg = end + 1;
       end = Prelexer::find_first<':'>(beg);
     }
     
-    cpp_ctx.include_paths.push_back(beg);
+    string path(beg);
+    if (!path.empty()) {
+      if (*path.rbegin() != '/') path += '/';
+      cpp_ctx.include_paths.push_back(path);
+    }
+    for (int i = 0; i < cpp_ctx.include_paths.size(); ++i) {
+      cerr << cpp_ctx.include_paths[i] << endl;
+    }
   }
   
   Document doc(c_ctx->input_file, c_ctx->input_string, cpp_ctx);
