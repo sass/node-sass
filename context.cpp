@@ -5,7 +5,40 @@ using std::cerr; using std::endl;
 namespace Sass {
   using std::pair;
   
-  Context::Context()
+  void Context::collect_include_paths(const char* paths_str)
+  {
+    const size_t wd_len = 1024;
+    char wd[wd_len];
+    include_paths.push_back(getcwd(wd, wd_len));
+    if (*include_paths.back().rbegin() != '/') include_paths.back() += '/';
+
+    if (paths_str) {
+      const char* beg = paths_str;
+      const char* end = Prelexer::find_first<':'>(beg);
+
+      while (end) {
+        string path(beg, end - beg);
+        if (!path.empty()) {
+          if (*path.rbegin() != '/') path += '/';
+          include_paths.push_back(path);
+        }
+        beg = end + 1;
+        end = Prelexer::find_first<':'>(beg);
+      }
+
+      string path(beg);
+      if (!path.empty()) {
+        if (*path.rbegin() != '/') path += '/';
+        include_paths.push_back(path);
+      }
+    }
+
+    for (int i = 0; i < include_paths.size(); ++i) {
+      cerr << include_paths[i] << endl;
+    }
+  }
+  
+  Context::Context(const char* paths_str)
   : global_env(Environment()),
     function_env(map<pair<string, size_t>, Function>()),
     source_refs(vector<char*>()),
@@ -13,6 +46,7 @@ namespace Sass {
     ref_count(0)
   {
     register_functions();
+    collect_include_paths(paths_str);
   }
   
   Context::~Context()

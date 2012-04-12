@@ -27,17 +27,15 @@ int main(int argc, char** argv)
 		return 0;
 	}
 	
-	struct sass_context* ctx = sass_new_context();
-	ctx->sass_path = NULL;
-	ctx->css_path = NULL;
-	ctx->include_paths = "::/blah/bloo/fuzz:/slub/flub/chub::/Users/Aaron/dev/libsass/::::/huzz/buzz:::";
-	ctx->output_style = SASS_STYLE_NESTED;
-	ctx->input_file = argv[1];
-	ctx->input_string = NULL;
+	struct sass_file_context* ctx = sass_new_file_context();
+	ctx->options.include_paths = "::/blah/bloo/fuzz:/slub/flub/chub::/Users/Aaron/dev/libsass/::::/huzz/buzz:::";
+	ctx->options.output_style = SASS_STYLE_NESTED;
+	ctx->input_path = argv[1];
 		
-	char* output = sass_compile(ctx);
+	sass_compile_file(ctx);
 	
-	printf("%s", output);
+	printf("%s", ctx->output_string);
 	
+  sass_free_file_context(ctx);
 	return 0;
 }

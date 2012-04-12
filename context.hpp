@@ -47,7 +47,8 @@ namespace Sass {
     vector<char*> source_refs; // all the source c-strings
     size_t ref_count;
     
-    Context();
+    void collect_include_paths(const char* paths_str);
+    Context(const char* paths_str = 0);
     ~Context();
     
     void register_function(Function_Descriptor d, Implementation ip);
