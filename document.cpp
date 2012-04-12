@@ -109,7 +109,7 @@ namespace Sass {
 
   Document::~Document() {
     --context.ref_count;
-    if (context.ref_count == 0) delete &context;
+    // if (context.ref_count == 0) delete &context;
   }
   
   // void Document::eval_pending()

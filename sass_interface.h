@@ -11,9 +11,9 @@ struct sass_context {
   unsigned int output_style;
 };
 
-sass_context* sass_new_context();
+struct sass_context* sass_new_context();
 
-char* sass_compile(sass_context* c_ctx);
+char* sass_compile(struct sass_context*);
 
 #ifdef __cplusplus
 }
