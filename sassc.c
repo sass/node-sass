@@ -31,7 +31,7 @@ int main(int argc, char** argv)
 	ctx->sass_path = NULL;
 	ctx->css_path = NULL;
 	ctx->include_paths = "::/blah/bloo/fuzz:/slub/flub/chub::/Users/Aaron/dev/libsass/::::/huzz/buzz:::";
-	ctx->output_style = 0;
+	ctx->output_style = SASS_STYLE_NESTED;
 	ctx->input_file = argv[1];
 	ctx->input_string = NULL;
 		
