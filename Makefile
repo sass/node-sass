@@ -1,7 +1,7 @@
 
 
 sasscpp: sasscpp.cpp context.cpp functions.cpp document.cpp document_parser.cpp eval_apply.cpp node.cpp node_comparisons.cpp values.cpp prelexer.cpp
-	g++ -o bin/sasscpp sassc.cpp context.cpp functions.cpp document.cpp document_parser.cpp eval_apply.cpp node.cpp node_comparisons.cpp values.cpp prelexer.cpp
+	g++ -o bin/sasscpp sasscpp.cpp context.cpp functions.cpp document.cpp document_parser.cpp eval_apply.cpp node.cpp node_comparisons.cpp values.cpp prelexer.cpp
 
 sassc: sassc.o libsass
 	gcc -o bin/sassc sassc.o libsass.a -lstdc++
