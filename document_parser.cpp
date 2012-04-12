@@ -226,7 +226,6 @@ namespace Sass {
       simp1 = Node(Node::backref, line_number, lexed);
       simp1.has_backref = true;
       saw_backref = true;
-      cerr << "parsed a backref" << endl;
     }
     else if (lex< alternatives< type_selector, universal > >()) {
       simp1 = Node(Node::simple_selector, line_number, lexed);

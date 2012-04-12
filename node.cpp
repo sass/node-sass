@@ -43,7 +43,6 @@ namespace Sass {
       } break;
       
       case selector: {
-        cerr << "emitting selector with " << size() << " children" << endl;
         string result;
         if (!has_backref && !prefix.empty()) {
           result += prefix;
