@@ -15,10 +15,10 @@ libsass: sass_interface.o context.o functions.o document.o document_parser.o eva
 libsass_objs: sass_interface.cpp context.cpp functions.cpp document.cpp document_parser.cpp eval_apply.cpp node.cpp node_comparisons.cpp values.cpp prelexer.cpp
 	g++ -c sass_interface.cpp context.cpp functions.cpp document.cpp document_parser.cpp eval_apply.cpp node.cpp node_comparisons.cpp values.cpp prelexer.cpp
 
-test: build
+test: sassc
 	ruby spec.rb spec/basic/
 
-test_all: build
+test_all: sassc
 	ruby spec.rb spec/
 
 clean:

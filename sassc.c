@@ -21,10 +21,7 @@
 #include "sass_interface.h"
 
 int main(int argc, char** argv)
-{
-	// blah, nothing yet
-	printf("Hey, does this work?\n");
-	
+{	
 	if (argc < 2) {
 		printf("Hey, I need an input file!\n");
 		return 0;
@@ -37,9 +34,7 @@ int main(int argc, char** argv)
 	ctx->output_style = 0;
 	ctx->input_file = argv[1];
 	ctx->input_string = NULL;
-	
-	
-	printf("Still working?\n");
+		
 	char* output = sass_compile(ctx);
 	
 	printf("%s", output);
