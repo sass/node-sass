@@ -17,8 +17,8 @@ extern "C" char* sass_compile(sass_context* c_ctx)
   // TO DO: CATCH ALL EXCEPTIONS
   Context cpp_ctx;
   
-  cpp_ctx.sass_path = string(c_ctx->sass_path);
-  cpp_ctx.css_path  = string(c_ctx->css_path);
+  cpp_ctx.sass_path = string(c_ctx->sass_path ? c_ctx->sass_path : "");
+  cpp_ctx.css_path  = string(c_ctx->css_path  ? c_ctx->css_path  : "");
 
   const size_t wd_len = 1024;
   char wd[wd_len];

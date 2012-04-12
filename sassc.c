@@ -28,9 +28,9 @@ int main(int argc, char** argv)
 	}
 	
 	struct sass_context* ctx = sass_new_context();
-	ctx->sass_path = "";
-	ctx->css_path = "";
-	ctx->include_paths = "";
+	ctx->sass_path = NULL;
+	ctx->css_path = NULL;
+	ctx->include_paths = NULL;
 	ctx->output_style = 0;
 	ctx->input_file = argv[1];
 	ctx->input_string = NULL;
