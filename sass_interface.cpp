@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <cstdlib>
 #include <unistd.h>
@@ -53,13 +54,28 @@ extern "C" {
       Context cpp_ctx(c_ctx->options.include_paths);
       Document doc(0, c_ctx->input_string, cpp_ctx);
       c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
+      c_ctx->error_message = 0;
+      c_ctx->error_status = 0;
     }
     catch (Error& e) {
-      cerr << "ERROR -- " << e.file_name << ", line " << e.line_number << ": " << e.message << endl;
+      stringstream msg_stream;
+      msg_stream << "ERROR -- " << e.file_name << ", line " << e.line_number << ": " << e.message << endl;
+      string msg(msg_stream.str());
+      char* msg_str = (char*) malloc(msg.size() + 1);
+      strcpy(msg_str, msg.c_str());
+      c_ctx->error_status = 1;
       c_ctx->output_string = 0;
+      c_ctx->error_message = msg_str;
     }
     catch(bad_alloc& ba) {
-      cerr << "ERROR -- unable to allocate memory: " << ba.what() << endl;
+      stringstream msg_stream;
+      msg_stream << "ERROR -- unable to allocate memory: " << ba.what() << endl;
+      string msg(msg_stream.str());
+      char* msg_str = (char*) malloc(msg.size() + 1);
+      strcpy(msg_str, msg.c_str());
+      c_ctx->error_status = 1;
+      c_ctx->output_string = 0;
+      c_ctx->error_message = msg_str;
     }
     // TO DO: CATCH EVERYTHING ELSE
     return 0;
@@ -72,13 +88,28 @@ extern "C" {
       Context cpp_ctx(c_ctx->options.include_paths);
       Document doc(c_ctx->input_path, 0, cpp_ctx);
       c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
+      c_ctx->error_message = 0;
+      c_ctx->error_status = 0;
     }
     catch (Error& e) {
-      cerr << "ERROR -- " << e.file_name << ", line " << e.line_number << ": " << e.message << endl;
+      stringstream msg_stream;
+      msg_stream << "ERROR -- " << e.file_name << ", line " << e.line_number << ": " << e.message << endl;
+      string msg(msg_stream.str());
+      char* msg_str = (char*) malloc(msg.size() + 1);
+      strcpy(msg_str, msg.c_str());
+      c_ctx->error_status = 1;
       c_ctx->output_string = 0;
+      c_ctx->error_message = msg_str;
     }
     catch(bad_alloc& ba) {
-      cerr << "ERROR -- unable to allocate memory: " << ba.what() << endl;
+      stringstream msg_stream;
+      msg_stream << "ERROR -- unable to allocate memory: " << ba.what() << endl;
+      string msg(msg_stream.str());
+      char* msg_str = (char*) malloc(msg.size() + 1);
+      strcpy(msg_str, msg.c_str());
+      c_ctx->error_status = 1;
+      c_ctx->output_string = 0;
+      c_ctx->error_message = msg_str;
     }
     // TO DO: CATCH EVERYTHING ELSE
     return 0;

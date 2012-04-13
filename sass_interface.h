@@ -16,18 +16,24 @@ struct sass_context {
   char* input_string;
   char* output_string;
   struct sass_options options;
+  int error_status;
+  char* error_message;
 };
 
 struct sass_folder_context {
   char* search_path;
   char* output_path;
   struct sass_options options;
+  int error_status;
+  char* error_message;
 };
 
 struct sass_file_context {
   char* input_path;
   char* output_string;
   struct sass_options options;
+  int error_status;
+  char* error_message;
 };
 
 struct sass_context*        sass_new_context        ();

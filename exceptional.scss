@@ -21,5 +21,6 @@ div[hux ~= "hello"] {
   foo: boo;
   @include moogoo;
   dux: mux;
-  @import "foogoo";
+  @import bugaboo "foogoo"
+  blah: blah;
 }
