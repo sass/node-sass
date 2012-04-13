@@ -21,5 +21,5 @@ div[hux ~= "hello"] {
   foo: boo;
   @include moogoo;
   dux: mux;
-  color: foo($x: );
+  @import "foogoo";
 }

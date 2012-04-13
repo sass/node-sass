@@ -54,17 +54,19 @@ namespace Sass {
   {
     if (!source) {
       std::FILE *f;
-      // TO DO: CHECK f AGAINST NULL/0
       f = std::fopen(path.c_str(), "rb");
-      std::fseek(f, 0, SEEK_END);
+      if (!f) throw path;
+      if (std::fseek(f, 0, SEEK_END)) throw path;
       int len = std::ftell(f);
+      if (len < 0) throw path;
       std::rewind(f);
-      // TO DO: WRAP THE new[] IN A TRY/CATCH BLOCK
+      // TO DO: CATCH THE POTENTIAL badalloc EXCEPTION
       source = new char[len + 1];
       std::fread(source, sizeof(char), len, f);
+      if (std::ferror(f)) throw path;
       source[len] = '\0';
       end = source + len;
-      std::fclose(f);
+      if (std::fclose(f)) throw path;
       own_source = true;
     }
     position = source;
@@ -80,17 +82,19 @@ namespace Sass {
     lexed(Token::make())
   {
     std::FILE *f;
-    // TO DO: CHECK f AGAINST NULL/0
     f = std::fopen(path.c_str(), "rb");
-    std::fseek(f, 0, SEEK_END);
+    if (!f) throw path;
+    if (std::fseek(f, 0, SEEK_END)) throw path;
     int len = std::ftell(f);
+    if (len < 0) throw path;
     std::rewind(f);
-    // TO DO: WRAP THE new[] IN A TRY/CATCH BLOCK
+    // TO DO: CATCH THE POTENTIAL badalloc EXCEPTION
     source = new char[len + 1];
     std::fread(source, sizeof(char), len, f);
+    if (std::ferror(f)) throw path;
     source[len] = '\0';
     end = source + len;
-    std::fclose(f);
+    if (std::fclose(f)) throw path;
     position = source;
     context.source_refs.push_back(source);
     ++context.ref_count;
@@ -115,6 +119,9 @@ namespace Sass {
   
   void Document::syntax_error(string message, size_t ln)
   { throw Error(Error::syntax, ln ? ln : line_number, path, message); }
+  
+  void Document::read_error(string message, size_t ln)
+  { throw Error(Error::read, ln ? ln : line_number, path, message); }
   
   using std::string;
   using std::stringstream;

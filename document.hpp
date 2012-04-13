@@ -154,6 +154,7 @@ namespace Sass {
     const char* look_for_attrib(const char* start = 0);
     
     void syntax_error(string message, size_t ln = 0);
+    void read_error(string message, size_t ln = 0);
     
     string emit_css(CSS_Style style);
 

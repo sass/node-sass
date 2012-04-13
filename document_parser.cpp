@@ -46,9 +46,14 @@ namespace Sass {
     const char* curr_path_start = path.c_str();
     const char* curr_path_end   = folders(curr_path_start);
     string current_path(curr_path_start, curr_path_end - curr_path_start);
-    Document importee(current_path + import_path, context);
-    importee.parse_scss();
-    return importee.root;
+    try {
+      Document importee(current_path + import_path, context);
+      importee.parse_scss();
+      return importee.root;
+    }
+    catch (string path) {
+      read_error("error reading file \"" + path + "\"");
+    }
   }
 
   Node Document::parse_mixin_definition()
