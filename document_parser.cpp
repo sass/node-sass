@@ -459,10 +459,9 @@ namespace Sass {
 
   Node Document::parse_rule() {
     Node rule(Node::rule, line_number, 2);
-    lex< identifier >();
+    if (!lex< identifier >()) syntax_error("invalid property name");
     rule << Node(Node::property, line_number, lexed);
-    lex< exactly<':'> >();
-    // rule << parse_values();
+    if (!lex< exactly<':'> >()) syntax_error("property \"" + lexed.to_string() + "\" must be followed by a ':'");
     rule << parse_list();
     return rule;
   }
@@ -477,9 +476,8 @@ namespace Sass {
     if (peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
         peek< exactly<'{'> >(position) ||
-        peek< exactly<')'> >(position)) {
-      return Node(Node::nil, line_number);  // TO DO: maybe use Node::none?
-    }
+        peek< exactly<')'> >(position))
+    { return Node(Node::nil, line_number); }
     Node list1(parse_space_list());
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< exactly<','> >(position)) return list1;
@@ -649,7 +647,7 @@ namespace Sass {
       if (value.type == Node::comma_list || value.type == Node::space_list) {
         value[0].eval_me = true;
       }
-      lex< exactly<')'> >();
+      if (!lex< exactly<')'> >()) syntax_error("unclosed parenthesis");
       return value;
     }
     else {
