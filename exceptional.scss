@@ -1,5 +1,14 @@
+$x:  1 2 3;
+
 bobo + mogo {
   hey: hoo;
+}
+
+@mixin moogoo() {
+  hey: ho;
+  div {
+    blah: blah;
+  }
 }
 
 
@@ -7,6 +16,9 @@ bobo + mogo {
   foo: bar;
 }
 
-div[hux ~= "hello" {
-  foo: bar;
+div[hux ~= "hello"] {
+  hux: blux;
+  foo: boo;
+  @include moogoo;
+  dux: mux
 }

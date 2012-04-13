@@ -28,7 +28,7 @@ namespace Sass {
       }
       else if (peek< variable >(position)) {
         root << parse_assignment();
-        // missing semicolon will be caught further down
+        if (!lex< exactly<';'> >()) syntax_error("top-level variable binding must be terminated by ';'");
       }
       else {
         root << parse_ruleset();
@@ -158,7 +158,7 @@ namespace Sass {
     ruleset << parse_selector_group();
     // if (ruleset[0].type == Node::selector) cerr << "ruleset starts with selector" << endl;
     // if (ruleset[0].type == Node::selector_group) cerr << "ruleset starts with selector_group" << endl;
-    
+    if (!peek< exactly<'{'> >()) syntax_error("expected a '{' after the selector");
     ruleset << parse_block(definition);
     return ruleset;
   }
@@ -389,17 +389,20 @@ namespace Sass {
     block << Node(Node::flags);
     while (!lex< exactly<'}'> >()) {
       if (semicolon) {
-        lex< exactly<';'> >(); // enforce terminal ';' here
+        if (!lex< exactly<';'> >()) syntax_error("non-terminal statement or declaration must end with ';'");
         semicolon = false;
-        if (lex< exactly<'}'> >()) break;
+        // if (lex< exactly<'}'> >()) break;
       }
       if (lex< block_comment >()) {
         block << Node(Node::comment, line_number, lexed);
         block[0].has_statements = true;
-        semicolon = true;
+        //semicolon = true;
       }
       else if (peek< import >(position)) {
-        // TO DO: disallow imports inside of definitions
+        if (definition) {
+          lex< import >(); // to adjust the line number
+          syntax_error("@import directive not allowed inside mixin definition");
+        }
         Node imported_tree(parse_import());
         for (int i = 0; i < imported_tree.size(); ++i) {
           if (imported_tree[i].type == Node::comment ||
@@ -416,6 +419,7 @@ namespace Sass {
       else if (peek< include >(position)) {
         block << parse_mixin_call();
         block[0].has_expansions = true;
+        semicolon = true;
       }
       else if (lex< variable >()) {
         block << parse_assignment();
@@ -438,7 +442,7 @@ namespace Sass {
         block << parse_rule();
         block[0].has_statements = true;
         semicolon = true;
-        lex< exactly<';'> >(); // TO DO: clean up the semicolon handling stuff
+        //lex< exactly<';'> >(); // TO DO: clean up the semicolon handling stuff
       }
       else lex< exactly<';'> >();
       while (lex< block_comment >()) {
