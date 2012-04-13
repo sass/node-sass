@@ -1,11 +1,12 @@
-@mixin mux($x, $y) {
-  bar: bar;
-  bux: $x $y;
+bobo + mogo {
+  hey: hoo;
 }
 
 
-div {
-  @include mux(a, b;
-  color: red;
-  width: 10px;
+:nth-of-type(2) {
+  foo: bar;
+}
+
+div[hux ~= "hello" {
+  foo: bar;
 }

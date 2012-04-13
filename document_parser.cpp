@@ -120,7 +120,7 @@ namespace Sass {
           args.content.children->back().eval_me = true;
         }
       }
-      if (!lex< exactly<')'> >()) syntax_error("argument list for " + name.to_string() + " requires a ')'");
+      if (!lex< exactly<')'> >()) syntax_error("improperly terminated argument list for " + name.to_string());
     }
     return args;
   }
@@ -145,7 +145,7 @@ namespace Sass {
   {
     lex< variable >();
     Node var(Node::variable, line_number, lexed);
-    lex< exactly<':'> >();
+    if (!lex< exactly<':'> >()) syntax_error("expected ':' after " + lexed.to_string() + " in assignment statement");
     Node val(parse_list());
     Node assn(Node::assignment, line_number, 2);
     assn << var << val;
@@ -311,6 +311,9 @@ namespace Sass {
     else if (peek< exactly<'['> >(position)) {
       return parse_attribute_selector();
     }
+    else {
+      syntax_error("invalid selector after " + lexed.to_string());
+    }
   }
   
   Node Document::parse_pseudo() {
@@ -323,7 +326,8 @@ namespace Sass {
     }
     else if (lex< sequence< pseudo_prefix, functional > >()) {
       Node pseudo(Node::functional_pseudo, line_number, 2);
-      pseudo << Node(Node::value, line_number, lexed);
+      Token name(lexed);
+      pseudo << Node(Node::value, line_number, name);
       if (lex< alternatives< even, odd > >()) {
         pseudo << Node(Node::value, line_number, lexed);
       }
@@ -345,11 +349,17 @@ namespace Sass {
       else if (lex< sequence< optional<sign>, digits > >()) {
         pseudo << Node(Node::value, line_number, lexed);
       }
-      lex< exactly<')'> >();
+      else {
+        syntax_error("invalid argument to " + name.to_string() + "...)");
+      }
+      if (!lex< exactly<')'> >()) syntax_error("unterminated argument to " + name.to_string() + "...)");
       return pseudo;
     }
     else if (lex < sequence< pseudo_prefix, identifier > >()) {
       return Node(Node::pseudo, line_number, lexed);
+    }
+    else {
+      syntax_error("unrecognized pseudo-class or pseudo-element");
     }
   }
   
@@ -357,14 +367,17 @@ namespace Sass {
   {
     Node attr_sel(Node::attribute_selector, line_number, 3);
     lex< exactly<'['> >();
-    lex< type_selector >();
+    if (!lex< type_selector >()) syntax_error("invalid attribute name in attribute selector");
+    Token name(lexed);
     attr_sel << Node(Node::value, line_number, lexed);
-    lex< alternatives< exact_match, class_match, dash_match,
-                       prefix_match, suffix_match, substring_match > >();
+    if (!lex< alternatives< exact_match, class_match, dash_match,
+                            prefix_match, suffix_match, substring_match > >()) {
+      syntax_error("invalid operator in attribute selector for " + name.to_string());
+    }
     attr_sel << Node(Node::value, line_number, lexed);
-    lex< string_constant >();
+    if (!lex< string_constant >()) syntax_error("expected a quoted string constant in attribute selector for " + name.to_string());
     attr_sel << Node(Node::value, line_number, lexed);
-    lex< exactly<']'> >();
+    if (!lex< exactly<']'> >()) syntax_error("unterminated attribute selector for " + name.to_string());
     return attr_sel;
   }
 
@@ -693,7 +706,7 @@ namespace Sass {
       return var;
     }
     
-    syntax_error("expected to find more values after " + lexed.to_string());
+    syntax_error("error reading values after " + lexed.to_string());
   }
   
   Node Document::parse_function_call()
