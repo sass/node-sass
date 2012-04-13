@@ -33,9 +33,9 @@ namespace Sass {
       }
     }
 
-    for (int i = 0; i < include_paths.size(); ++i) {
-      cerr << include_paths[i] << endl;
-    }
+    // for (int i = 0; i < include_paths.size(); ++i) {
+    //   cerr << include_paths[i] << endl;
+    // }
   }
   
   Context::Context(const char* paths_str)

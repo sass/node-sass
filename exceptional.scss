@@ -1,0 +1,8 @@
+@mixin mux($x, $y) {
+  bar: bar;
+  bux: $x $y;
+}
+
+div {
+  @include mux(hey, ho);
+}

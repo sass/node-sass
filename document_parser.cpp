@@ -16,7 +16,7 @@ namespace Sass {
       else if (peek< import >(position)) {
         // TO DO: don't splice in place at parse-time -- use an expansion node
         root += parse_import();
-        if (!lex< exactly<';'> >()) syntax_error("top-level @import directive must be terminated by a semicolon");
+        if (!lex< exactly<';'> >()) syntax_error("top-level @import directive must be terminated by ';'");
       }
       else if (peek< mixin >(position)) {
         root << parse_mixin_definition();
@@ -24,11 +24,11 @@ namespace Sass {
       else if (peek< include >(position)) {
         root << parse_mixin_call();
         root[0].has_expansions = true;
-        if (!lex< exactly<';'> >()) syntax_error("top-level @include directive must be terminated by a semicolon");
+        if (!lex< exactly<';'> >()) syntax_error("top-level @include directive must be terminated by ';'");
       }
       else if (peek< variable >(position)) {
         root << parse_assignment();
-        if (!lex< exactly<';'> >()) syntax_error("top-level variable binding must be terminated by a semicolon");
+        // missing semicolon will be caught further down
       }
       else {
         root << parse_ruleset();
@@ -40,7 +40,8 @@ namespace Sass {
   Node Document::parse_import()
   {
     lex< import >();
-    lex< string_constant >();
+    if (!lex< string_constant >()) syntax_error("@import directive requires a quoted path");
+    // TO DO: BETTER PATH HANDLING
     string import_path(lexed.unquote());
     const char* curr_path_start = path.c_str();
     const char* curr_path_end   = folders(curr_path_start);
@@ -53,9 +54,10 @@ namespace Sass {
   Node Document::parse_mixin_definition()
   {
     lex< mixin >();
-    lex< identifier >();
+    if (!lex< identifier >()) syntax_error("invalid name for @mixin directive");
     Node name(Node::identifier, line_number, lexed);
     Node params(parse_mixin_parameters());
+    if (!peek< exactly<'{'> >()) syntax_error("body for mixin " + name.content.token.to_string() + " must begin with a '{'");
     Node body(parse_block(true));
     Node mixin(Node::mixin, line_number, 3);
     mixin << name << params << body;
@@ -65,14 +67,18 @@ namespace Sass {
   Node Document::parse_mixin_parameters()
   {
     Node params(Node::parameters, line_number);
-    lex< exactly<'('> >();
-    if (peek< variable >()) {
-      params << parse_parameter();
-      while (lex< exactly<','> >()) {
+    Token name(lexed);
+    if (lex< exactly<'('> >()) {
+      if (peek< variable >()) {
         params << parse_parameter();
+        while (lex< exactly<','> >()) {
+          if (!peek< variable >()) syntax_error("expected a variable name (e.g. $x) for the parameter list for " + name.to_string());
+          params << parse_parameter();
+        }
+        if (!lex< exactly<')'> >()) syntax_error("parameter list for " + name.to_string() + " requires a ')'");
       }
+      else if (!lex< exactly<')'> >()) syntax_error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name.to_string());
     }
-    lex< exactly<')'> >();
     return params;
   }
 
@@ -448,6 +454,7 @@ namespace Sass {
   {
     if (peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
+        peek< exactly<'{'> >(position) ||
         peek< exactly<')'> >(position)) {
       return Node(Node::nil, line_number);  // TO DO: maybe use Node::none?
     }
@@ -475,6 +482,7 @@ namespace Sass {
     // if it's a singleton, return it directly; don't wrap it
     if (peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
+        peek< exactly<'{'> >(position) ||
         peek< exactly<')'> >(position) ||
         peek< exactly<','> >(position))
     { return disj1; }
@@ -485,6 +493,7 @@ namespace Sass {
     
     while (!(peek< exactly<';'> >(position) ||
              peek< exactly<'}'> >(position) ||
+             peek< exactly<'{'> >(position) ||
              peek< exactly<')'> >(position) ||
              peek< exactly<','> >(position)))
     {
@@ -682,6 +691,8 @@ namespace Sass {
       var.eval_me = true;
       return var;
     }
+    
+    syntax_error("expected to find more values after " + lexed.to_string());
   }
   
   Node Document::parse_function_call()
