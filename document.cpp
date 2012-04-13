@@ -2,6 +2,7 @@
 #include <cstring>
 #include "document.hpp"
 #include "eval_apply.hpp"
+#include "error.hpp"
 #include <iostream>
 
 namespace Sass {
@@ -112,12 +113,8 @@ namespace Sass {
     // if (context.ref_count == 0) delete &context;
   }
   
-  // void Document::eval_pending()
-  // {
-  //   for (int i = 0; i < context.pending.size(); ++i) {
-  //     eval(context.pending[i], context.global_env);
-  //   }
-  // }
+  void Document::syntax_error(string message, size_t ln)
+  { throw Error(Error::syntax, ln ? ln : line_number, path, message); }
   
   using std::string;
   using std::stringstream;

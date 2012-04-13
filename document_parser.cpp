@@ -1,4 +1,5 @@
 #include "document.hpp"
+#include "error.hpp"
 #include <iostream>
 
 namespace Sass {
@@ -15,7 +16,7 @@ namespace Sass {
       else if (peek< import >(position)) {
         // TO DO: don't splice in place at parse-time -- use an expansion node
         root += parse_import();
-        lex< exactly<';'> >();
+        if (!lex< exactly<';'> >()) syntax_error("top-level @import directive must be terminated by a semicolon");
       }
       else if (peek< mixin >(position)) {
         root << parse_mixin_definition();
@@ -23,11 +24,11 @@ namespace Sass {
       else if (peek< include >(position)) {
         root << parse_mixin_call();
         root[0].has_expansions = true;
-        lex< exactly<';'> >();
+        if (!lex< exactly<';'> >()) syntax_error("top-level @include directive must be terminated by a semicolon");
       }
       else if (peek< variable >(position)) {
         root << parse_assignment();
-        lex< exactly<';'> >();
+        if (!lex< exactly<';'> >()) syntax_error("top-level variable binding must be terminated by a semicolon");
       }
       else {
         root << parse_ruleset();

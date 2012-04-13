@@ -2,8 +2,10 @@
 #include <string>
 #include <cstdlib>
 #include <unistd.h>
+#include <iostream>
 #include "document.hpp"
 #include "eval_apply.hpp"
+#include "error.hpp"
 #include "sass_interface.h"
 
 extern "C" {
@@ -47,22 +49,32 @@ extern "C" {
   int sass_compile(sass_context* c_ctx)
   {
     using namespace Sass;
-    // TO DO: CATCH ALL EXCEPTIONS
-    Context cpp_ctx(c_ctx->options.include_paths);
-    
-    Document doc(0, c_ctx->input_string, cpp_ctx);
-    c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
+    try {
+      Context cpp_ctx(c_ctx->options.include_paths);
+      Document doc(0, c_ctx->input_string, cpp_ctx);
+      c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
+    }
+    catch (Error e) {
+      cerr << "ERROR -- " << e.file_name << ", line " << e.line_number << ": " << e.message << endl;
+      c_ctx->output_string = 0;
+    }
+    // TO DO: CATCH EVERYTHING ELSE
     return 0;
   }
   
   int sass_compile_file(sass_file_context* c_ctx)
   {
     using namespace Sass;
-    // TO DO: CATCH ALL EXCEPTIONS
-    Context cpp_ctx(c_ctx->options.include_paths);
-    
-    Document doc(c_ctx->input_path, 0, cpp_ctx);
-    c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
+    try {
+      Context cpp_ctx(c_ctx->options.include_paths);
+      Document doc(c_ctx->input_path, 0, cpp_ctx);
+      c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
+    }
+    catch (Error e) {
+      cerr << "ERROR -- " << e.file_name << ", line " << e.line_number << ": " << e.message << endl;
+      c_ctx->output_string = 0;
+    }
+    // TO DO: CATCH EVERYTHING ELSE
     return 0;
   }
 

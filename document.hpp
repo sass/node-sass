@@ -153,7 +153,8 @@ namespace Sass {
     const char* look_for_pseudo(const char* start = 0);
     const char* look_for_attrib(const char* start = 0);
     
-    void eval_pending();
+    void syntax_error(string message, size_t ln = 0);
+    
     string emit_css(CSS_Style style);
 
   };

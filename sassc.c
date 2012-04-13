@@ -34,7 +34,7 @@ int main(int argc, char** argv)
 		
 	sass_compile_file(ctx);
 	
-	printf("%s", ctx->output_string);
+	if (ctx->output_string) printf("%s", ctx->output_string);
 	
   sass_free_file_context(ctx);
 	return 0;
