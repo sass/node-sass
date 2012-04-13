@@ -3,6 +3,9 @@
   bux: $x $y;
 }
 
+
 div {
-  @include mux(hey, ho);
+  @include mux(a, b;
+  color: red;
+  width: 10px;
 }

@@ -54,7 +54,7 @@ namespace Sass {
   Node Document::parse_mixin_definition()
   {
     lex< mixin >();
-    if (!lex< identifier >()) syntax_error("invalid name for @mixin directive");
+    if (!lex< identifier >()) syntax_error("invalid name in @mixin directive");
     Node name(Node::identifier, line_number, lexed);
     Node params(parse_mixin_parameters());
     if (!peek< exactly<'{'> >()) syntax_error("body for mixin " + name.content.token.to_string() + " must begin with a '{'");
@@ -99,7 +99,7 @@ namespace Sass {
   Node Document::parse_mixin_call()
   {
     lex< include >();
-    lex< identifier >();
+    if (!lex< identifier >()) syntax_error("invalid name in @include directive");
     Node name(Node::identifier, line_number, lexed);
     Node args(parse_arguments());
     Node call(Node::expansion, line_number, 3);
@@ -109,6 +109,7 @@ namespace Sass {
   
   Node Document::parse_arguments()
   {
+    Token name(lexed);
     Node args(Node::arguments, line_number);
     if (lex< exactly<'('> >()) {
       if (!peek< exactly<')'> >(position)) {
@@ -119,7 +120,7 @@ namespace Sass {
           args.content.children->back().eval_me = true;
         }
       }
-      lex< exactly<')'> >();
+      if (!lex< exactly<')'> >()) syntax_error("argument list for " + name.to_string() + " requires a ')'");
     }
     return args;
   }
