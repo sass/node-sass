@@ -391,7 +391,11 @@ namespace Sass {
       if (semicolon) {
         if (!lex< exactly<';'> >()) syntax_error("non-terminal statement or declaration must end with ';'");
         semicolon = false;
-        // if (lex< exactly<'}'> >()) break;
+        while (lex< block_comment >()) {
+          block << Node(Node::comment, line_number, lexed);
+          block[0].has_statements = true;
+        }
+        if (lex< exactly<'}'> >()) break;
       }
       if (lex< block_comment >()) {
         block << Node(Node::comment, line_number, lexed);
