@@ -51,7 +51,7 @@ namespace Sass {
       importee.parse_scss();
       return importee.root;
     }
-    catch (string path) {
+    catch (string& path) {
       read_error("error reading file \"" + path + "\"");
     }
   }

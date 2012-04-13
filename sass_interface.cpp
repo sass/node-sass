@@ -54,9 +54,12 @@ extern "C" {
       Document doc(0, c_ctx->input_string, cpp_ctx);
       c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
     }
-    catch (Error e) {
+    catch (Error& e) {
       cerr << "ERROR -- " << e.file_name << ", line " << e.line_number << ": " << e.message << endl;
       c_ctx->output_string = 0;
+    }
+    catch(bad_alloc& ba) {
+      cerr << "ERROR -- unable to allocate memory: " << ba.what() << endl;
     }
     // TO DO: CATCH EVERYTHING ELSE
     return 0;
@@ -70,9 +73,12 @@ extern "C" {
       Document doc(c_ctx->input_path, 0, cpp_ctx);
       c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
     }
-    catch (Error e) {
+    catch (Error& e) {
       cerr << "ERROR -- " << e.file_name << ", line " << e.line_number << ": " << e.message << endl;
       c_ctx->output_string = 0;
+    }
+    catch(bad_alloc& ba) {
+      cerr << "ERROR -- unable to allocate memory: " << ba.what() << endl;
     }
     // TO DO: CATCH EVERYTHING ELSE
     return 0;
