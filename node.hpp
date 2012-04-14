@@ -110,14 +110,16 @@ namespace Sass {
       bool boolean_value;
     } content;
     
+    const char* file_name;
+    
     static size_t allocations;
     
     void clear()
     {
-      type           = none;  line_number   = 0;     has_children   = false;
-      has_statements = false; has_blocks    = false; has_expansions = false;
-      has_backref    = false; from_variable = false; eval_me        = false;
-      unquoted       = false;
+      type           = none;  line_number    = 0;     file_name     = 0;
+      has_children   = false; has_statements = false; has_blocks    = false;
+      has_expansions = false; has_backref    = false; from_variable = false;
+      eval_me        = false; unquoted       = false;
     }
     
     size_t size() const

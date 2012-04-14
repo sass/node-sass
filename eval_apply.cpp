@@ -1,9 +1,21 @@
 #include "eval_apply.hpp"
+#include "error.hpp"
 #include <iostream>
 #include <cstdlib>
 
 namespace Sass {
   using std::cerr; using std::endl;
+  
+  void eval_error(string message, size_t line_number, const char* file_name)
+  {
+    string fn;
+    if (file_name) {
+      const char* end = Prelexer::string_constant(file_name);
+      if (end) fn = string(file_name, end - file_name);
+      else fn = string(file_name);
+    }
+    throw Error(Error::evaluation, line_number, fn, message);
+  }
 
   Node eval(Node& expr, Environment& env, map<pair<string, size_t>, Function>& f_env)
   {
@@ -17,6 +29,7 @@ namespace Sass {
       case Node::expansion: {
         Token name(expr[0].content.token);
         Node args(expr[1]);
+        if (!env.query(name)) eval_error("mixin " + name.to_string() + " is undefined", expr.line_number, expr.file_name);
         Node mixin(env[name]);
         Node expansion(apply_mixin(mixin, args, env, f_env));
         expr.content.children->pop_back();
@@ -277,6 +290,15 @@ namespace Sass {
       acc.content.children->pop_back();
       acc << Node(acc.line_number, r, g, b);
     }
+    // else if (lhs.type == Node::concatenation) {
+    //   lhs << rhs;
+    // }
+    // else if (lhs.type == Node::string_constant || rhs.type == Node::string_constant) {
+    //   acc.content.children->pop_back();
+    //   Node cat(Node::concatenation, lhs.line_number, 2);
+    //   cat << lhs << rhs;
+    //   acc << cat;
+    // }
     else {
       // TO DO: disallow division and multiplication on lists
       acc.content.children->push_back(rhs);

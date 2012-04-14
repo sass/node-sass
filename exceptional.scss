@@ -8,6 +8,7 @@ bobo + mogo {
   hey: ho;
   div {
     blah: blah;
+    bloo: (1/0) + 5;
   }
 }
 
@@ -19,8 +20,8 @@ bobo + mogo {
 div[hux ~= "hello"] {
   hux: blux;
   foo: boo;
-  @include moogoo;
-  dux: mux;
-  @import bugaboo "foogoo"
+  dux: "hello" + "goodbye";
+  shux: "hello" + 12;
+  frux: 12 + "hello";
   blah: blah;
 }
