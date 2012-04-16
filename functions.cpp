@@ -214,8 +214,14 @@ namespace Sass {
     { "fade_in", "$color", "$amount", 0 };
     Node opacify(const vector<Token>& parameters, map<Token, Node>& bindings) {
       Node cpy(bindings[parameters[0]].clone());
-      cpy[3].content.numeric_value += bindings[parameters[1]].content.numeric_value;
-      if (cpy[3].content.numeric_value >= 1) cpy[3].content.numeric_value = 1;
+      if (cpy.type != Node::numeric_color || !bindings[parameters[1]].is_numeric()) {
+        eval_error("arguments to opacify/fade_in must be a color and a numeric value", cpy.line_number, cpy.file_name);
+      }
+      Node delta(bindings[parameters[1]]);
+      if (delta.numeric_value() < 0 || delta.numeric_value() > 1) eval_error("amount must be between 0 and 1 for opacify/fade-in", delta.line_number, delta.file_name); 
+      cpy[3].content.numeric_value += delta.numeric_value();
+      if (cpy[3].numeric_value() > 1) cpy[3].content.numeric_value = 1;
+      if (cpy[3].numeric_value() < 0) cpy[3].content.numeric_value = 0;
       return cpy;
     }
     
@@ -225,8 +231,14 @@ namespace Sass {
     { "fade_out", "$color", "$amount", 0 };
     Node transparentize(const vector<Token>& parameters, map<Token, Node>& bindings) {
       Node cpy(bindings[parameters[0]].clone());
-      cpy[3].content.numeric_value -= bindings[parameters[1]].content.numeric_value;
-      if (cpy[3].content.numeric_value <= 0) cpy[3].content.numeric_value = 0;
+      if (cpy.type != Node::numeric_color || !bindings[parameters[1]].is_numeric()) {
+        eval_error("arguments to transparentize/fade_out must be a color and a numeric value", cpy.line_number, cpy.file_name);
+      }
+      Node delta(bindings[parameters[1]]);
+      if (delta.numeric_value() < 0 || delta.numeric_value() > 1) eval_error("amount must be between 0 and 1 for transparentize/fade-out", delta.line_number, delta.file_name); 
+      cpy[3].content.numeric_value -= delta.numeric_value();
+      if (cpy[3].numeric_value() > 1) cpy[3].content.numeric_value = 1;
+      if (cpy[3].numeric_value() < 0) cpy[3].content.numeric_value = 0;
       return cpy;
     }
       
@@ -236,6 +248,9 @@ namespace Sass {
     { "unquote", "$string", 0 };
     Node unquote(const vector<Token>& parameters, map<Token, Node>& bindings) {
       Node cpy(bindings[parameters[0]].clone());
+      // if (cpy.type != Node::string_constant /* && cpy.type != Node::concatenation */) {
+      //   eval_error("argument to unquote must be a string", cpy.line_number, cpy.file_name);
+      // }
       cpy.unquoted = true;
       return cpy;
     }
@@ -244,7 +259,9 @@ namespace Sass {
     { "quote", "$string", 0 };
     Node quote(const vector<Token>& parameters, map<Token, Node>& bindings) {
       Node cpy(bindings[parameters[0]].clone());
-      // check the types -- will probably be an identifier
+      if (cpy.type != Node::string_constant && cpy.type != Node::identifier) {
+        eval_error("argument to quote must be a string or identifier", cpy.line_number, cpy.file_name);
+      }
       cpy.type = Node::string_constant;
       cpy.unquoted = false;
       return cpy;
