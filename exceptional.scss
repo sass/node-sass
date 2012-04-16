@@ -25,5 +25,7 @@ div[hux ~= "hello"] {
   frux: 12 + 'hello';
   blah: blah;
   hoo: blah == 12;
-  boo: 12px >= 3em;
+  //moo: rgba(0,0,0,.5) + rgba(0,0,0,.6);
+  moo: rgba(0,0,0,.5) + 3;
+  
 }

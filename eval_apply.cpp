@@ -233,7 +233,6 @@ namespace Sass {
     }
     // TO DO: find a way to merge the following two clauses
     else if (lhs.type == Node::number && rhs.type == Node::numeric_dimension) {
-      // TO DO: disallow division
       Node result(acc.line_number, operate(op, lnum, rnum), Token::make(rhs.content.dimension.unit, Prelexer::identifier(rhs.content.dimension.unit)));
       acc.content.children->pop_back();
       acc.content.children->push_back(result);
@@ -256,12 +255,12 @@ namespace Sass {
     // TO DO: find a way to merge the following two clauses
     else if (lhs.type == Node::number && rhs.type == Node::numeric_color) {
       if (op != Node::sub && op != Node::div) {
-        // TO DO: check that alphas match
         double r = operate(op, lhs.content.numeric_value, rhs[0].content.numeric_value);
         double g = operate(op, lhs.content.numeric_value, rhs[1].content.numeric_value);
         double b = operate(op, lhs.content.numeric_value, rhs[2].content.numeric_value);
+        double a = rhs[3].content.numeric_value;
         acc.content.children->pop_back();
-        acc << Node(acc.line_number, r, g, b);
+        acc << Node(acc.line_number, r, g, b, a);
       }
       // trying to handle weird edge cases ... not sure if it's worth it
       else if (op == Node::div) {
@@ -280,15 +279,18 @@ namespace Sass {
       double r = operate(op, lhs[0].content.numeric_value, rhs.content.numeric_value);
       double g = operate(op, lhs[1].content.numeric_value, rhs.content.numeric_value);
       double b = operate(op, lhs[2].content.numeric_value, rhs.content.numeric_value);
+      double a = lhs[3].content.numeric_value;
       acc.content.children->pop_back();
-      acc << Node(acc.line_number, r, g, b);
+      acc << Node(acc.line_number, r, g, b, a);
     }
     else if (lhs.type == Node::numeric_color && rhs.type == Node::numeric_color) {
+      if (lhs[3].content.numeric_value != rhs[3].content.numeric_value) eval_error("alpha channels must be equal for " + lhs.to_string("") + " + " + rhs.to_string(""), lhs.line_number, lhs.file_name);
       double r = operate(op, lhs[0].content.numeric_value, rhs[0].content.numeric_value);
       double g = operate(op, lhs[1].content.numeric_value, rhs[1].content.numeric_value);
       double b = operate(op, lhs[2].content.numeric_value, rhs[2].content.numeric_value);
+      double a = lhs[3].content.numeric_value;
       acc.content.children->pop_back();
-      acc << Node(acc.line_number, r, g, b);
+      acc << Node(acc.line_number, r, g, b, a);
     }
     // else if (lhs.type == Node::concatenation) {
     //   lhs << rhs;
