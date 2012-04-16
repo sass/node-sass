@@ -137,6 +137,20 @@ namespace Sass {
       return *this;
     }
     
+    bool is_numeric() const
+    {
+      switch (type)
+      {
+        case number:
+        case numeric_percentage:
+        case numeric_dimension:
+          return true;
+          break;
+        default:
+          return false;
+      }
+    }
+    
     double numeric_value() const
     {
       switch (type)

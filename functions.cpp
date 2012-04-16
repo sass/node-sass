@@ -2,36 +2,53 @@
 #include "prelexer.hpp"
 #endif
 #include "functions.hpp"
+#include "error.hpp"
 #include <iostream>
 #include <cmath>
 using std::cerr; using std::endl;
 
 namespace Sass {
   namespace Functions {
-
-    // TO DO: functions need to check the types of their arguments
+    
+    static void eval_error(string message, size_t line_number, const char* file_name)
+    {
+      string fn;
+      if (file_name) {
+        const char* end = Prelexer::string_constant(file_name);
+        if (end) fn = string(file_name, end - file_name);
+        else fn = string(file_name);
+      }
+      throw Error(Error::evaluation, line_number, fn, message);
+    }
 
     // RGB Functions ///////////////////////////////////////////////////////
 
     Function_Descriptor rgb_descriptor = 
     { "rgb", "$red", "$green", "$blue", 0 };
     Node rgb(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node r(bindings[parameters[0]]);
+      Node g(bindings[parameters[1]]);
+      Node b(bindings[parameters[2]]);
+      if (!(r.type == Node::number && g.type == Node::number && b.type == Node::number)) {
+        eval_error("arguments for rgb must be numbers", r.line_number, r.file_name);
+      }
       Node color(Node::numeric_color, 0, 4);
-      color << bindings[parameters[0]]
-            << bindings[parameters[1]]
-            << bindings[parameters[2]]
-            << Node(0, 1.0);
+      color << r << g << b << Node(0, 1.0);
       return color;
     }
 
     Function_Descriptor rgba_4_descriptor = 
     { "rgba", "$red", "$green", "$blue", "$alpha", 0 };
     Node rgba_4(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node r(bindings[parameters[0]]);
+      Node g(bindings[parameters[1]]);
+      Node b(bindings[parameters[2]]);
+      Node a(bindings[parameters[3]]);
+      if (!(r.type == Node::number && g.type == Node::number && b.type == Node::number && a.type == Node::number)) {
+        eval_error("arguments for rgba must be numbers", r.line_number, r.file_name);
+      }
       Node color(Node::numeric_color, 0, 4);
-      color << bindings[parameters[0]]
-            << bindings[parameters[1]]
-            << bindings[parameters[2]]
-            << bindings[parameters[3]];
+      color << r << g << b << a;
       return color;
     }
     
@@ -46,22 +63,31 @@ namespace Sass {
     Function_Descriptor red_descriptor =
     { "red", "$color", 0 };
     Node red(const vector<Token>& parameters, map<Token, Node>& bindings) {
-      return bindings[parameters[0]][0];
+      Node color(bindings[parameters[0]]);
+      if (color.type != Node::numeric_color) eval_error("argument to red must be a color", color.line_number, color.file_name);
+      return color[0];
     }
     
     Function_Descriptor green_descriptor =
     { "green", "$color", 0 };
     Node green(const vector<Token>& parameters, map<Token, Node>& bindings) {
-      return bindings[parameters[0]][1];
+      Node color(bindings[parameters[0]]);
+      if (color.type != Node::numeric_color) eval_error("argument to green must be a color", color.line_number, color.file_name);
+      return color[1];
     }
     
     Function_Descriptor blue_descriptor =
     { "blue", "$color", 0 };
     Node blue(const vector<Token>& parameters, map<Token, Node>& bindings) {
-      return bindings[parameters[0]][2];
+      Node color(bindings[parameters[0]]);
+      if (color.type != Node::numeric_color) eval_error("argument to blue must be a color", color.line_number, color.file_name);
+      return color[2];
     }
     
     Node mix_impl(Node color1, Node color2, double weight = 50) {
+      if (!(color1.type == Node::numeric_color && color2.type == Node::numeric_color)) {
+        eval_error("first two arguments to mix must be colors", color1.line_number, color1.file_name);
+      }
       double p = weight/100;
       double w = 2*p - 1;
       double a = color1[3].content.numeric_value - color2[3].content.numeric_value;
@@ -88,9 +114,13 @@ namespace Sass {
     Function_Descriptor mix_3_descriptor =
     { "mix", "$color1", "$color2", "$weight", 0 };
     Node mix_3(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      Node percentage(bindings[parameters[2]]);
+      if (!(percentage.type == Node::number || percentage.type == Node::numeric_percentage || percentage.type == Node::numeric_dimension)) {
+        eval_error("third argument to mix must be numeric", percentage.line_number, percentage.file_name);
+      }
       return mix_impl(bindings[parameters[0]],
                       bindings[parameters[1]],
-                      bindings[parameters[2]].content.numeric_value);
+                      percentage.numeric_value());
     }
     
     // HSL Functions ///////////////////////////////////////////////////////
@@ -123,6 +153,12 @@ namespace Sass {
     Function_Descriptor hsla_descriptor =
     { "hsla", "$hue", "$saturation", "$lightness", "$alpha", 0 };
     Node hsla(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      if (!(bindings[parameters[0]].is_numeric() &&
+            bindings[parameters[1]].is_numeric() &&
+            bindings[parameters[2]].is_numeric() &&
+            bindings[parameters[3]].is_numeric())) {
+        eval_error("arguments to hsla must be numeric", bindings[parameters[0]].line_number, bindings[parameters[0]].file_name);
+      }  
       double h = bindings[parameters[0]].numeric_value();
       double s = bindings[parameters[1]].numeric_value();
       double l = bindings[parameters[2]].numeric_value();
@@ -135,6 +171,11 @@ namespace Sass {
     Function_Descriptor hsl_descriptor =
     { "hsl", "$hue", "$saturation", "$lightness", 0 };
     Node hsl(const vector<Token>& parameters, map<Token, Node>& bindings) {
+      if (!(bindings[parameters[0]].is_numeric() &&
+            bindings[parameters[1]].is_numeric() &&
+            bindings[parameters[2]].is_numeric())) {
+        eval_error("arguments to hsl must be numeric", bindings[parameters[0]].line_number, bindings[parameters[0]].file_name);
+      }  
       double h = bindings[parameters[0]].numeric_value();
       double s = bindings[parameters[1]].numeric_value();
       double l = bindings[parameters[2]].numeric_value();
@@ -147,6 +188,7 @@ namespace Sass {
     { "invert", "$color", 0 };
     Node invert(const vector<Token>& parameters, map<Token, Node>& bindings) {
       Node orig(bindings[parameters[0]]);
+      if (orig.type != Node::numeric_color) eval_error("argument to invert must be a color", orig.line_number, orig.file_name);
       return Node(orig.line_number,
                   255 - orig[0].content.numeric_value,
                   255 - orig[1].content.numeric_value,
@@ -161,7 +203,9 @@ namespace Sass {
     Function_Descriptor opacity_descriptor =
     { "opacity", "$color", 0 };
     Node alpha(const vector<Token>& parameters, map<Token, Node>& bindings) {
-      return bindings[parameters[0]][3];
+      Node color(bindings[parameters[0]]);
+      if (color.type != Node::numeric_color) eval_error("argument to alpha must be a color", color.line_number, color.file_name);
+      return color[3];
     }
     
     Function_Descriptor opacify_descriptor =

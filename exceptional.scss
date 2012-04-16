@@ -30,7 +30,7 @@ div[hux ~= "hello"] {
   
 }
 
-//$y: hey;
+$y: hey;
 
 @mixin foo($x) {
   foofoo: $x $y;
@@ -38,4 +38,6 @@ div[hux ~= "hello"] {
 
 div {
   @include foo();
+  hoo: rgba(1, 3, 3, .4);
+  blah: alpha(boo);
 }
