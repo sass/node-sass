@@ -29,3 +29,13 @@ div[hux ~= "hello"] {
   moo: rgba(0,0,0,.5) + 3;
   
 }
+
+$y: hey;
+
+@mixin foo($x) {
+  foofoo: $x $y;
+}
+
+div {
+  @include foo($x: ho, goo, hey, boo);
+}

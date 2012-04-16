@@ -32,6 +32,7 @@ namespace Sass {
         return true;
       } break;
       
+      case variable:
       case identifier:
       case uri:
       case textual_percentage:

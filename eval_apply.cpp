@@ -311,7 +311,6 @@ namespace Sass {
 
   double operate(Node::Type op, double lhs, double rhs)
   {
-    // TO DO: check for division by zero
     switch (op)
     {
       case Node::add: return lhs + rhs; break;
@@ -332,6 +331,17 @@ namespace Sass {
       if (args[i].type == Node::assignment) {
         Node arg(args[i]);
         Token name(arg[0].content.token);
+        // check that the keyword arg actually names a formal parameter
+        bool valid_param = false;
+        for (int k = 0; k < params.size(); ++k) {
+          Node param_k = params[k];
+          if (param_k.type == Node::assignment) param_k = param_k[0];
+          if (arg[0] == param_k) {
+            valid_param = true;
+            break;
+          }
+        }
+        if (!valid_param) eval_error("mixin " + mixin[0].to_string("") + " has no parameter named " + name.to_string(), arg.line_number, arg.file_name);
         if (!bindings.query(name)) {
           bindings[name] = eval(arg[1], env, f_env);
         }
