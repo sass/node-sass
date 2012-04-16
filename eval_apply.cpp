@@ -205,6 +205,7 @@ namespace Sass {
       } break;
       
       case Node::variable: {
+        if (!env.query(expr.content.token)) eval_error("reference to unbound variable " + expr.content.token.to_string(), expr.line_number, expr.file_name);
         return env[expr.content.token];
       } break;
       
