@@ -347,7 +347,12 @@ namespace Sass {
         }
       }
       else {
-        // TO DO: ensure (j < params.size())
+        // ensure that the number of ordinal args < params.size()
+        if (j >= params.size()) {
+          stringstream ss;
+          ss << "mixin " << mixin[0].to_string("") << " only takes " << params.size() << ((params.size() == 1) ? " argument" : " arguments");
+          eval_error(ss.str(), args[i].line_number, args[i].file_name);
+        }
         Node param(params[j]);
         Token name(param.type == Node::variable ? param.content.token : param[0].content.token);
         bindings[name] = eval(args[i], env, f_env);

@@ -37,5 +37,5 @@ $y: hey;
 }
 
 div {
-  @include foo($x: ho, goo, hey, boo);
+  @include foo(blah, $x: ho, goo);
 }
