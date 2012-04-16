@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cmath>
 #include "node.hpp"
+#include "error.hpp"
 
 using std::string;
 using std::stringstream;
@@ -82,11 +83,11 @@ namespace Sass {
         return numeric_value() < rhs.numeric_value();
       }
       else {
-        // TO DO: throw an exception ("units don't match")
+        throw Error(Error::evaluation, line_number, "", "incompatible units");
       }
     }
     else {
-      // TO DO: throw an exception ("incomparable types")
+      throw Error(Error::evaluation, line_number, "", "incomparable types");
     }
   }
   

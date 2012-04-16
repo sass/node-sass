@@ -21,7 +21,9 @@ div[hux ~= "hello"] {
   hux: blux;
   foo: boo;
   dux: "hello" + "goodbye";
-  shux: "hello" + 12;
-  frux: 12 + "hello";
+  shux: 'hello' + 12;
+  frux: 12 + 'hello';
   blah: blah;
+  hoo: blah == 12;
+  boo: 12px >= 3em;
 }
