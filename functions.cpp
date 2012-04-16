@@ -274,6 +274,7 @@ namespace Sass {
     Node percentage(const vector<Token>& parameters, map<Token, Node>& bindings) {
       Node cpy(bindings[parameters[0]].clone());
       // TO DO: make sure it's not already a percentage
+      if (cpy.type != Node::number) eval_error("argument to percentage must be a unitless number", cpy.line_number, cpy.file_name);
       cpy.content.numeric_value = cpy.content.numeric_value * 100;
       cpy.type = Node::numeric_percentage;
       return cpy;
@@ -286,8 +287,11 @@ namespace Sass {
       if (cpy.type == Node::numeric_dimension) {
         cpy.content.dimension.numeric_value = std::floor(cpy.content.dimension.numeric_value + 0.5);
       }
-      else {
+      else if (cpy.type == Node::number || cpy.type == Node::numeric_percentage) {
         cpy.content.numeric_value = std::floor(cpy.content.numeric_value + 0.5);
+      }
+      else {
+        eval_error("argument to round must be numeric", cpy.line_number, cpy.file_name);
       }
       return cpy;
     }
@@ -299,8 +303,11 @@ namespace Sass {
       if (cpy.type == Node::numeric_dimension) {
         cpy.content.dimension.numeric_value = std::ceil(cpy.content.dimension.numeric_value);
       }
-      else {
+      else if (cpy.type == Node::number || cpy.type == Node::numeric_percentage){
         cpy.content.numeric_value = std::ceil(cpy.content.numeric_value);
+      }
+      else {
+        eval_error("argument to ceil must be numeric", cpy.line_number, cpy.file_name);
       }
       return cpy;
     }
@@ -312,8 +319,11 @@ namespace Sass {
       if (cpy.type == Node::numeric_dimension) {
         cpy.content.dimension.numeric_value = std::floor(cpy.content.dimension.numeric_value);
       }
-      else {
+      else if (cpy.type == Node::number || cpy.type == Node::numeric_percentage){
         cpy.content.numeric_value = std::floor(cpy.content.numeric_value);
+      }
+      else {
+        eval_error("argument to floor must be numeric", cpy.line_number, cpy.file_name);
       }
       return cpy;
     }
@@ -325,8 +335,11 @@ namespace Sass {
       if (cpy.type == Node::numeric_dimension) {
         cpy.content.dimension.numeric_value = std::fabs(cpy.content.dimension.numeric_value);
       }
+      else if (cpy.type == Node::number || cpy.type == Node::numeric_percentage){
+        cpy.content.numeric_value = std::abs(cpy.content.numeric_value);
+      }
       else {
-        cpy.content.numeric_value = std::fabs(cpy.content.numeric_value);
+        eval_error("argument to abs must be numeric", cpy.line_number, cpy.file_name);
       }
       return cpy;
     }
