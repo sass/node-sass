@@ -356,6 +356,7 @@ namespace Sass {
       else if (arg.type == Node::nil) {
         return Node(arg.line_number, 0);
       }
+      // single objects should be reported as lists of length 1
       else {
         return Node(arg.line_number, 1);
       }
@@ -366,36 +367,44 @@ namespace Sass {
     Node nth(const vector<Token>& parameters, map<Token, Node>& bindings) {
       Node l(bindings[parameters[0]]);
       // TO DO: check for empty list
+      if (l.type == Node::nil) eval_error("cannot index into an empty list", l.line_number, l.file_name);
       if (l.type != Node::space_list && l.type != Node::comma_list) {
         l = Node(Node::space_list, l.line_number, 1) << l;
       }
+      Node n(bindings[parameters[1]]);
+      if (n.type != Node::number) eval_error("second argument to nth must be a number", n.line_number, n.file_name);
+      if (n.numeric_value() < 1 || n.numeric_value() > l.size()) eval_error("out of range index for nth", n.line_number, n.file_name);
       return l[bindings[parameters[1]].content.numeric_value - 1];
     }
     
     extern const char separator_kwd[] = "$separator";
     Node join_impl(const vector<Token>& parameters, map<Token, Node>& bindings, bool has_sep = false) {
+      // if the args aren't lists, turn them into singleton lists
       Node l1(bindings[parameters[0]]);
       if (l1.type != Node::space_list && l1.type != Node::comma_list && l1.type != Node::nil) {
         l1 = Node(Node::space_list, l1.line_number, 1) << l1;
-        cerr << "listified singleton" << endl;
       }
       Node l2(bindings[parameters[1]]);
       if (l2.type != Node::space_list && l2.type != Node::comma_list && l2.type != Node::nil) {
         l2 = Node(Node::space_list, l2.line_number, 1) << l2;
-        cerr << "listified singleton" << endl;
       }
-      
+      // nil and nil is nil
       if (l1.type == Node::nil && l2.type == Node::nil) return Node(Node::nil, l1.line_number);
-
+      // figure out the combined size in advance
       size_t size = 0;
       if (l1.type != Node::nil) size += l1.size();
       if (l2.type != Node::nil) size += l2.size();
       
-      Node lr(Node::space_list, l1.line_number, size);
+      // accumulate the result
+      Node lr(l1.type, l1.line_number, size);
       if (has_sep) {
         string sep(bindings[parameters[2]].content.token.unquote());
         if (sep == "comma") lr.type = Node::comma_list;
-        // TO DO: check for "space" or "auto"
+        else if (sep == "space") lr.type = Node::space_list;
+        else if (sep == "auto") ; // leave it alone
+        else {
+          eval_error("third argument to join must be 'space', 'comma', or 'auto'", l2.line_number, l2.file_name);
+        }
       }
       else if (l1.type != Node::nil) lr.type = l1.type;
       else if (l2.type != Node::nil) lr.type = l2.type;
@@ -477,8 +486,8 @@ namespace Sass {
         case Node::numeric_dimension:
           u.content.token = Token::make(val.content.dimension.unit, Prelexer::identifier(val.content.dimension.unit));
           break;
-        default: // TO DO: throw an exception
-          u.content.token = Token::make(empty_str);
+        default:
+          eval_error("argument to unit must be numeric", val.line_number, val.file_name);
           break;
       }
       return u;
@@ -509,7 +518,7 @@ namespace Sass {
           return F;
           } break;
         default:
-          // TO DO: throw an exception;
+          eval_error("argument to unitless must be numeric", val.line_number, val.file_name);
           break;
       }
       return result;
@@ -522,7 +531,8 @@ namespace Sass {
       Node n2(bindings[parameters[1]]);
       Node::Type t1 = n1.type;
       Node::Type t2 = n2.type;
-      if (t1 == Node::number || t2 == Node::number) {
+      if (t1 == Node::number && n2.is_numeric() ||
+          n1.is_numeric() && t2 == Node::number) {
         Node T(Node::boolean);
         T.line_number = n1.line_number;
         T.content.boolean_value = true;
@@ -554,11 +564,8 @@ namespace Sass {
         }
       }
       else {
-        Node F(Node::boolean);
-        F.line_number = n1.line_number;
-        F.content.boolean_value = false;
-        return F;
-      }    
+        eval_error("arguments to comparable must be numeric", n1.line_number, n1.file_name);
+      }
     }
     
     // Boolean Functions ///////////////////////////////////////////////////
