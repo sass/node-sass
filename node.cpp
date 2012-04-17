@@ -15,7 +15,7 @@ using std::endl;
 namespace Sass {
   size_t Node::allocations = 0;
   
-  Node Node::clone() const
+  Node Node::clone(vector<vector<Node>*>& registry) const
   {
     Node n(*this);
     if (has_children) {
@@ -25,6 +25,7 @@ namespace Sass {
       for (int i = 0; i < size(); ++i) {
         n << at(i).clone();
       }
+      registry.push_back(n.content.children);
     }
     return n;
   }

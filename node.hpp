@@ -199,12 +199,13 @@ namespace Sass {
     Node(Type t) // flags or booleans
     { clear(); type = t; }
 
-    Node(Type t, unsigned int ln, size_t s = 0) // nodes with children
+    Node(Type t, vector<vector<Node>*>& registry, unsigned int ln, size_t s = 0) // nodes with children
     {
       clear();
       type = t;
       line_number = ln;
       content.children = new vector<Node>;
+      registry.push_back(content.children);
       content.children->reserve(s);
       has_children = true;
       ++allocations;
@@ -236,12 +237,13 @@ namespace Sass {
       content.dimension.unit = tok.begin;
     }
     
-    Node(unsigned int ln, double r, double g, double b, double a = 1.0) // colors
+    Node(vector<vector<Node>*>& registry, unsigned int ln, double r, double g, double b, double a = 1.0) // colors
     {
       clear();
       type = numeric_color;
       line_number = ln;
       content.children = new vector<Node>;
+      registry.push_back(content.children);
       content.children->reserve(4);
       content.children->push_back(Node(ln, r));
       content.children->push_back(Node(ln, g));
