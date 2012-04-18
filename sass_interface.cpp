@@ -37,10 +37,21 @@ extern "C" {
   static char* process_document(Sass::Document& doc, int style)
   {
     using namespace Sass;
-    
     doc.parse_scss();
-    eval(doc.root, doc.context.global_env, doc.context.function_env);
+    cerr << "PARSED" << endl;
+    eval(doc.root, doc.context.global_env, doc.context.function_env, doc.context.registry);
+    cerr << "EVALUATED" << endl;
     string output(doc.emit_css(static_cast<Document::CSS_Style>(style)));
+    cerr << "EMITTED" << endl;
+    
+    cerr << "Allocations:\t" << Node::allocations << endl;
+    cerr << "Registry size:\t" << doc.context.registry.size() << endl;
+    
+    int i;
+    for (i = 0; i < doc.context.registry.size(); ++i) {
+      delete doc.context.registry[i];
+    }
+    cerr << "Deallocations:\t" << i << endl;
     
     char* c_output = (char*) malloc(output.size() + 1);
     strcpy(c_output, output.c_str());
@@ -87,6 +98,8 @@ extern "C" {
     try {
       Context cpp_ctx(c_ctx->options.include_paths);
       Document doc(c_ctx->input_path, 0, cpp_ctx);
+      cerr << "MADE A DOC AND CONTEXT OBJ" << endl;
+      cerr << "REGISTRY: " << doc.context.registry.size() << endl;
       c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;

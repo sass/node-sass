@@ -12,7 +12,7 @@ namespace Sass {
     source(source_str),
     line_number(1),
     context(ctx),
-    root(Node(Node::root, 1)),
+    root(Node(Node::root, context.registry, 1)),
     lexed(Token::make())
   {
     if (source_str) {
@@ -49,7 +49,7 @@ namespace Sass {
   : path(path), source(source),
     line_number(1), own_source(false),
     context(*(new Context())),
-    root(Node(Node::root, 1)),
+    root(Node(Node::root, context.registry, 1)),
     lexed(Token::make())
   {
     if (!source) {
@@ -78,7 +78,7 @@ namespace Sass {
   : path(path), source(0),
     line_number(1), own_source(false),
     context(context),
-    root(Node(Node::root, 1)),
+    root(Node(Node::root, context.registry, 1)),
     lexed(Token::make())
   {
     std::FILE *f;
@@ -108,7 +108,7 @@ namespace Sass {
     line_number(line_number),
     own_source(false),
     context(context),
-    root(Node(Node::root, 1)),
+    root(Node(Node::root, context.registry, 1)),
     lexed(Token::make())
   { }
 

@@ -26,7 +26,7 @@ namespace Sass {
         root[0].has_expansions = true;
         if (!lex< exactly<';'> >()) syntax_error("top-level @include directive must be terminated by ';'");
       }
-      else if (peek< variable >(position)) {
+      else if (peek< variable >(position)) {        
         root << parse_assignment();
         if (!lex< exactly<';'> >()) syntax_error("top-level variable binding must be terminated by ';'");
       }
@@ -64,14 +64,14 @@ namespace Sass {
     Node params(parse_mixin_parameters());
     if (!peek< exactly<'{'> >()) syntax_error("body for mixin " + name.content.token.to_string() + " must begin with a '{'");
     Node body(parse_block(true));
-    Node mixin(Node::mixin, line_number, 3);
+    Node mixin(Node::mixin, context.registry, line_number, 3);
     mixin << name << params << body;
     return mixin;
   }
 
   Node Document::parse_mixin_parameters()
   {
-    Node params(Node::parameters, line_number);
+    Node params(Node::parameters, context.registry, line_number);
     Token name(lexed);
     if (lex< exactly<'('> >()) {
       if (peek< variable >()) {
@@ -92,7 +92,7 @@ namespace Sass {
     Node var(Node::variable, line_number, lexed);
     if (lex< exactly<':'> >()) { // default value
       Node val(parse_space_list());
-      Node par_and_val(Node::assignment, line_number, 2);
+      Node par_and_val(Node::assignment, context.registry, line_number, 2);
       par_and_val << var << val;
       return par_and_val;
     }
@@ -107,7 +107,7 @@ namespace Sass {
     if (!lex< identifier >()) syntax_error("invalid name in @include directive");
     Node name(Node::identifier, line_number, lexed);
     Node args(parse_arguments());
-    Node call(Node::expansion, line_number, 3);
+    Node call(Node::expansion, context.registry, line_number, 3);
     call << name << args;
     return call;
   }
@@ -115,7 +115,7 @@ namespace Sass {
   Node Document::parse_arguments()
   {
     Token name(lexed);
-    Node args(Node::arguments, line_number);
+    Node args(Node::arguments, context.registry, line_number);
     if (lex< exactly<'('> >()) {
       if (!peek< exactly<')'> >(position)) {
         args << parse_argument();
@@ -137,7 +137,7 @@ namespace Sass {
       Node var(Node::variable, line_number, lexed);
       lex< exactly<':'> >();
       Node val(parse_space_list());
-      Node assn(Node::assignment, line_number, 2);
+      Node assn(Node::assignment, context.registry, line_number, 2);
       assn << var << val;
       return assn;
     }
@@ -152,14 +152,14 @@ namespace Sass {
     Node var(Node::variable, line_number, lexed);
     if (!lex< exactly<':'> >()) syntax_error("expected ':' after " + lexed.to_string() + " in assignment statement");
     Node val(parse_list());
-    Node assn(Node::assignment, line_number, 2);
+    Node assn(Node::assignment, context.registry, line_number, 2);
     assn << var << val;
     return assn;
   }
 
   Node Document::parse_ruleset(bool definition)
   {
-    Node ruleset(Node::ruleset, line_number, 2);
+    Node ruleset(Node::ruleset, context.registry, line_number, 2);
     ruleset << parse_selector_group();
     // if (ruleset[0].type == Node::selector) cerr << "ruleset starts with selector" << endl;
     // if (ruleset[0].type == Node::selector_group) cerr << "ruleset starts with selector_group" << endl;
@@ -178,7 +178,7 @@ namespace Sass {
     Node sel1(parse_selector());
     if (!peek< exactly<','> >()) return sel1;
     
-    Node group(Node::selector_group, line_number, 2);
+    Node group(Node::selector_group, context.registry, line_number, 2);
     group << sel1;
     while (lex< exactly<','> >()) group << parse_selector();
     return group;
@@ -212,7 +212,7 @@ namespace Sass {
         peek< exactly<')'> >() ||
         peek< exactly<'{'> >()) return seq1;
     
-    Node selector(Node::selector, line_number, 2);
+    Node selector(Node::selector, context.registry, line_number, 2);
     if (seq1.has_backref) selector.has_backref = true;
     selector << seq1;
 
@@ -255,7 +255,7 @@ namespace Sass {
     { return simp1; }
 
     // now we know we have a sequence of simple selectors
-    Node seq(Node::simple_selector_sequence, line_number, 2);
+    Node seq(Node::simple_selector_sequence, context.registry, line_number, 2);
     seq << simp1;
     seq.has_backref = saw_backref;
     
@@ -323,14 +323,14 @@ namespace Sass {
   
   Node Document::parse_pseudo() {
     if (lex< pseudo_not >()) {
-      Node ps_not(Node::pseudo_negation, line_number, 2);
+      Node ps_not(Node::pseudo_negation, context.registry, line_number, 2);
       ps_not << Node(Node::value, line_number, lexed);
       ps_not << parse_selector_group();
       lex< exactly<')'> >();
       return ps_not;
     }
     else if (lex< sequence< pseudo_prefix, functional > >()) {
-      Node pseudo(Node::functional_pseudo, line_number, 2);
+      Node pseudo(Node::functional_pseudo, context.registry, line_number, 2);
       Token name(lexed);
       pseudo << Node(Node::value, line_number, name);
       if (lex< alternatives< even, odd > >()) {
@@ -370,7 +370,7 @@ namespace Sass {
   
   Node Document::parse_attribute_selector()
   {
-    Node attr_sel(Node::attribute_selector, line_number, 3);
+    Node attr_sel(Node::attribute_selector, context.registry, line_number, 3);
     lex< exactly<'['> >();
     if (!lex< type_selector >()) syntax_error("invalid attribute name in attribute selector");
     Token name(lexed);
@@ -390,7 +390,7 @@ namespace Sass {
   {
     lex< exactly<'{'> >();
     bool semicolon = false;
-    Node block(Node::block, line_number, 1);
+    Node block(Node::block, context.registry, line_number, 1);
     block << Node(Node::flags);
     while (!lex< exactly<'}'> >()) {
       if (semicolon) {
@@ -463,7 +463,7 @@ namespace Sass {
   }
 
   Node Document::parse_rule() {
-    Node rule(Node::rule, line_number, 2);
+    Node rule(Node::rule, context.registry, line_number, 2);
     if (!lex< identifier >()) syntax_error("invalid property name");
     rule << Node(Node::property, line_number, lexed);
     if (!lex< exactly<':'> >()) syntax_error("property \"" + lexed.to_string() + "\" must be followed by a ':'");
@@ -482,12 +482,12 @@ namespace Sass {
         peek< exactly<'}'> >(position) ||
         peek< exactly<'{'> >(position) ||
         peek< exactly<')'> >(position))
-    { return Node(Node::nil, line_number); }
+    { return Node(Node::nil, context.registry, line_number); }
     Node list1(parse_space_list());
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< exactly<','> >(position)) return list1;
     
-    Node comma_list(Node::comma_list, line_number, 2);
+    Node comma_list(Node::comma_list, context.registry, line_number, 2);
     comma_list << list1;
     comma_list.eval_me |= list1.eval_me;
     
@@ -512,7 +512,7 @@ namespace Sass {
         peek< exactly<','> >(position))
     { return disj1; }
     
-    Node space_list(Node::space_list, line_number, 2);
+    Node space_list(Node::space_list, context.registry, line_number, 2);
     space_list << disj1;
     space_list.eval_me |= disj1.eval_me;
     
@@ -536,7 +536,7 @@ namespace Sass {
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< sequence< or_kwd, negate< identifier > > >()) return conj1;
     
-    Node disjunction(Node::disjunction, line_number, 2);
+    Node disjunction(Node::disjunction, context.registry, line_number, 2);
     disjunction << conj1;
     while (lex< sequence< or_kwd, negate< identifier > > >()) disjunction << parse_conjunction();
     disjunction.eval_me = true;
@@ -550,7 +550,7 @@ namespace Sass {
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< sequence< and_kwd, negate< identifier > > >()) return rel1;
     
-    Node conjunction(Node::conjunction, line_number, 2);
+    Node conjunction(Node::conjunction, context.registry, line_number, 2);
     conjunction << rel1;
     while (lex< sequence< and_kwd, negate< identifier > > >()) conjunction << parse_relation();
     conjunction.eval_me = true;
@@ -569,7 +569,7 @@ namespace Sass {
           peek< lte_op >(position)))
     { return expr1; }
     
-    Node relation(Node::relation, line_number, 3);
+    Node relation(Node::relation, context.registry, line_number, 3);
     expr1.eval_me = true;
     relation << expr1;
         
@@ -596,7 +596,7 @@ namespace Sass {
           peek< sequence< negate< number >, exactly<'-'> > >(position)))
     { return term1; }
     
-    Node expression(Node::expression, line_number, 3);
+    Node expression(Node::expression, context.registry, line_number, 3);
     term1.eval_me = true;
     expression << term1;
     
@@ -624,7 +624,7 @@ namespace Sass {
           peek< exactly<'/'> >(position)))
     { return fact1; }
 
-    Node term(Node::term, line_number, 3);
+    Node term(Node::term, context.registry, line_number, 3);
     term << fact1;
     if (fact1.eval_me) term.eval_me = true;
 
@@ -725,7 +725,7 @@ namespace Sass {
     lex< identifier >();
     Node name(Node::identifier, line_number, lexed);
     Node args(parse_arguments());
-    Node call(Node::function_call, line_number, 2);
+    Node call(Node::function_call, context.registry, line_number, 2);
     call << name << args;
     call.eval_me = true;
     return call;

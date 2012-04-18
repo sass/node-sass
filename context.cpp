@@ -42,6 +42,7 @@ namespace Sass {
   : global_env(Environment()),
     function_env(map<pair<string, size_t>, Function>()),
     source_refs(vector<char*>()),
+    registry(vector<vector<Node>*>()),
     include_paths(vector<string>()),
     ref_count(0)
   {
@@ -51,9 +52,11 @@ namespace Sass {
   
   Context::~Context()
   {
-    for (int i = 0; i < source_refs.size(); ++i) {
+    int i;
+    for (i = 0; i < source_refs.size(); ++i) {
       delete[] source_refs[i];
     }
+    cerr << "Deallocated " << i << " source string(s)." << endl;
   }
   
   inline void Context::register_function(Function_Descriptor d, Implementation ip)

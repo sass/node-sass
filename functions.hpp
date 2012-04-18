@@ -8,7 +8,7 @@
 namespace Sass {
   using std::map;
   
-  typedef Node (*Implementation)(const vector<Token>&, map<Token, Node>&);
+  typedef Node (*Implementation)(const vector<Token>&, map<Token, Node>&, vector<vector<Node>*>& registry);
   typedef const char* str;
   typedef str Function_Descriptor[];
   
@@ -37,8 +37,8 @@ namespace Sass {
       }
     }
     
-    Node operator()(map<Token, Node>& bindings) const
-    { return implementation(parameters, bindings); }
+    Node operator()(map<Token, Node>& bindings, vector<vector<Node>*>& registry) const
+    { return implementation(parameters, bindings, registry); }
 
   };
   
@@ -47,111 +47,111 @@ namespace Sass {
     // RGB Functions ///////////////////////////////////////////////////////
 
     extern Function_Descriptor rgb_descriptor;
-    Node rgb(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node rgb(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
 
     extern Function_Descriptor rgba_4_descriptor;
-    Node rgba_4(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node rgba_4(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     extern Function_Descriptor rgba_2_descriptor;
-    Node rgba_2(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node rgba_2(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     extern Function_Descriptor red_descriptor;
-    Node red(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node red(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     extern Function_Descriptor green_descriptor;
-    Node green(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node green(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     extern Function_Descriptor blue_descriptor;
-    Node blue(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node blue(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     extern Function_Descriptor mix_2_descriptor;
-    Node mix_2(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node mix_2(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     extern Function_Descriptor mix_3_descriptor;
-    Node mix_3(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node mix_3(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     // HSL Functions ///////////////////////////////////////////////////////
     
     extern Function_Descriptor hsla_descriptor;
-    Node hsla(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node hsla(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     extern Function_Descriptor hsl_descriptor;
-    Node hsl(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node hsl(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
 
     extern Function_Descriptor invert_descriptor;
-    Node invert(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node invert(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     // Opacity Functions ///////////////////////////////////////////////////
 
     extern Function_Descriptor alpha_descriptor;
     extern Function_Descriptor opacity_descriptor;
-    Node alpha(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node alpha(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     extern Function_Descriptor opacify_descriptor;
     extern Function_Descriptor fade_in_descriptor;
-    Node opacify(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node opacify(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     extern Function_Descriptor transparentize_descriptor;
     extern Function_Descriptor fade_out_descriptor;
-    Node transparentize(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node transparentize(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     // String Functions ////////////////////////////////////////////////////
 
     extern Function_Descriptor unquote_descriptor;
-    Node unquote(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node unquote(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     extern Function_Descriptor quote_descriptor;
-    Node quote(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node quote(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     // Number Functions ////////////////////////////////////////////////////
 
     extern Function_Descriptor percentage_descriptor;
-    Node percentage(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node percentage(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
 
     extern Function_Descriptor round_descriptor;
-    Node round(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node round(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
 
     extern Function_Descriptor ceil_descriptor;
-    Node ceil(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node ceil(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
 
     extern Function_Descriptor floor_descriptor;
-    Node floor(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node floor(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
 
     extern Function_Descriptor abs_descriptor;    
-    Node abs(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node abs(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     // List Functions //////////////////////////////////////////////////////
     
     extern Function_Descriptor length_descriptor;
-    Node length(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node length(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
 
     extern Function_Descriptor nth_descriptor;
-    Node nth(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node nth(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
 
     extern Function_Descriptor join_2_descriptor;    
-    Node join_2(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node join_2(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     extern Function_Descriptor join_3_descriptor;    
-    Node join_3(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node join_3(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     // Introspection Functions /////////////////////////////////////////////
     
     extern Function_Descriptor type_of_descriptor;
-    Node type_of(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node type_of(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
 
     extern Function_Descriptor unit_descriptor;
-    Node unit(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node unit(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     extern Function_Descriptor unitless_descriptor;    
-    Node unitless(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node unitless(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     extern Function_Descriptor comparable_descriptor;    
-    Node comparable(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node comparable(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
     
     // Boolean Functions ///////////////////////////////////////////////////
     
     extern Function_Descriptor not_descriptor;
-    Node not_impl(const vector<Token>& parameters, map<Token, Node>& bindings);
+    Node not_impl(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
 
   }
   
