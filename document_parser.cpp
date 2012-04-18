@@ -717,6 +717,13 @@ namespace Sass {
       return var;
     }
     
+    if (lex< interpolant >())
+    {
+      Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
+      Document interp(line_number, insides, context);
+      return interp.parse_list();
+    }
+    
     syntax_error("error reading values after " + lexed.to_string());
   }
   
