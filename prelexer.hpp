@@ -274,6 +274,8 @@ namespace Sass {
 
     // Match a CSS identifier.
     const char* identifier(const char* src);
+    // Match interpolant schemas
+    const char* value_schema(const char* src);
     // Match CSS '@' keywords.
     const char* at_keyword(const char* src);
     const char* import(const char* src);

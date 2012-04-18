@@ -670,7 +670,13 @@ namespace Sass {
       return result;
     }
     
-    if (lex< true_kwd >())
+    if (lex< value_schema >())
+    {
+      // TO DO: handle value schemas!
+      return Node(Node::identifier, line_number, lexed);
+    }
+    
+    if (lex< sequence< true_kwd, negate< identifier > > >())
     {
       Node T(Node::boolean);
       T.line_number = line_number;
@@ -678,7 +684,7 @@ namespace Sass {
       return T;
     }
     
-    if (lex< false_kwd >())
+    if (lex< sequence< false_kwd, negate< identifier > > >())
     {
       Node F(Node::boolean);
       F.line_number = line_number;

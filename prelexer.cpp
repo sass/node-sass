@@ -79,6 +79,15 @@ namespace Sass {
                                                 exactly<'-'>,
                                                 exactly<'_'> > > >(src);
     }
+    
+    // Match interpolant schemas
+    const char* value_schema(const char* src) {
+      // follows this pattern: ([xyz]*i[xyz]*)+
+      return one_plus< sequence< zero_plus< alternatives< identifier, number > >,
+                                 interpolant,
+                                 zero_plus< alternatives< identifier, number > > > >(src);
+    }
+    
     // Match CSS '@' keywords.
     const char* at_keyword(const char* src) {
       return sequence<exactly<'@'>, identifier>(src);
