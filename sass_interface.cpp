@@ -12,9 +12,8 @@
 extern "C" {
 
   using namespace std;
-
   sass_context* sass_new_context()
-  { return (sass_context*) malloc(sizeof(sass_context)); }
+    { return (sass_context*) malloc(sizeof(sass_context)); }
   
   void sass_free_context(sass_context* ctx)
   { 
@@ -23,7 +22,7 @@ extern "C" {
   }
 
   sass_file_context* sass_new_file_context()
-  { return (sass_file_context*) malloc(sizeof(sass_file_context)); }
+    { return (sass_file_context*) malloc(sizeof(sass_file_context)); }
   
   void sass_free_file_context(sass_file_context* ctx)
   { 
@@ -32,7 +31,7 @@ extern "C" {
   }
   
   sass_folder_context* sass_new_folder_context()
-  { return (sass_folder_context*) malloc(sizeof(sass_folder_context)); }
+    { return (sass_folder_context*) malloc(sizeof(sass_folder_context)); }
   
   static char* process_document(Sass::Document& doc, int style)
   {
