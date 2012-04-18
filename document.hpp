@@ -30,7 +30,7 @@ namespace Sass {
     Document(char* path_str, char* source_str, Context& ctx);
     Document(string path, char* source = 0);
     Document(string path, Context& context);
-    Document(size_t line_number, Token t, Context& context);
+    Document(const string& path, size_t line_number, Token t, Context& context);
     ~Document();
     
     template <prelexer mx>

@@ -100,8 +100,8 @@ namespace Sass {
     ++context.ref_count;
   }
   
-  Document::Document(size_t line_number, Token t, Context& context)
-  : path(string()),
+  Document::Document(const string& path, size_t line_number, Token t, Context& context)
+  : path(path),
     source(const_cast<char*>(t.begin)),
     position(t.begin),
     end(t.end),
