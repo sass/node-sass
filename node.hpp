@@ -113,6 +113,7 @@ namespace Sass {
     const char* file_name;
     
     static size_t allocations;
+    static size_t destructed;
     
     void clear()
     {
@@ -252,5 +253,7 @@ namespace Sass {
       has_children = true;
       ++allocations;
     }
+    
+    ~Node() { ++destructed; }
   };
 }

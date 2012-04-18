@@ -2,5 +2,5 @@ $x: bar;
 
 div {
   a: blah foo#{$x};
-  b: 1 + 123#{4 + 5};
+  b: 1 + 123#{a b @fuzzle};
 }

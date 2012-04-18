@@ -14,6 +14,7 @@ using std::endl;
 
 namespace Sass {
   size_t Node::allocations = 0;
+  size_t Node::destructed  = 0;
   
   Node Node::clone(vector<vector<Node>*>& registry) const
   {

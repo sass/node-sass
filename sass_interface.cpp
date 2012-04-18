@@ -45,6 +45,7 @@ extern "C" {
     cerr << "EMITTED" << endl;
     
     cerr << "Allocations:\t" << Node::allocations << endl;
+    cerr << "Destructions:\t" << Node::destructed << endl;
     cerr << "Registry size:\t" << doc.context.registry.size() << endl;
     
     int i;
