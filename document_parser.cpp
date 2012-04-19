@@ -670,10 +670,11 @@ namespace Sass {
       return result;
     }
     
-    if (lex< value_schema >())
+    if (peek< value_schema >())
     {
       // TO DO: handle value schemas!
       return Node(Node::identifier, line_number, lexed);
+      return parse_value_schema();
     }
     
     if (lex< sequence< true_kwd, negate< identifier > > >())
@@ -732,6 +733,31 @@ namespace Sass {
     
     syntax_error("error reading values after " + lexed.to_string());
   }
+  
+  // Node Document::parse_value_schema()
+  // {
+  //   // just an interpolant
+  //   if (lex< interpolant >()) {
+  //     Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
+  //     Document interp_doc(path, line_number, insides, context);
+  //     Node interp_node(interp_doc.parse_list());
+  //     if (peek< alternatives< spaces, block_comment, line_comment
+  //                             exactly<';'>, exactly<','>,
+  //                             exactly<'('>, exactly<')'> > >()) {
+  //       return interp_node;
+  //     }
+  //     
+  //   
+  //   Node schema(Node::value_schema, context.registry, 2);
+  //   
+  //   while (true) {
+  //     if (lex< interpolant
+  //   
+  //     
+  //   
+  //   
+  //   
+  // }
   
   Node Document::parse_function_call()
   {
