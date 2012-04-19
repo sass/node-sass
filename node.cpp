@@ -14,8 +14,9 @@ using std::endl;
 
 namespace Sass {
   size_t Node::allocations = 0;
+  size_t Node::destructed  = 0;
   
-  Node Node::clone() const
+  Node Node::clone(vector<vector<Node>*>& registry) const
   {
     Node n(*this);
     if (has_children) {
@@ -23,8 +24,9 @@ namespace Sass {
       ++allocations;
       n.content.children->reserve(size());
       for (int i = 0; i < size(); ++i) {
-        n << at(i).clone();
+        n << at(i).clone(registry);
       }
+      registry.push_back(n.content.children);
     }
     return n;
   }
@@ -268,6 +270,12 @@ namespace Sass {
       
       case important: {
         return "!important";
+      } break;
+      
+      case value_schema: {
+        string result;
+        for (int i = 0; i < size(); ++i) result += at(i).to_string("");
+        return result;
       } break;
       
       default: {

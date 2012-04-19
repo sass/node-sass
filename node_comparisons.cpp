@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cmath>
 #include "node.hpp"
+#include "error.hpp"
 
 using std::string;
 using std::stringstream;
@@ -31,6 +32,7 @@ namespace Sass {
         return true;
       } break;
       
+      case variable:
       case identifier:
       case uri:
       case textual_percentage:
@@ -82,11 +84,11 @@ namespace Sass {
         return numeric_value() < rhs.numeric_value();
       }
       else {
-        // TO DO: throw an exception ("units don't match")
+        throw Error(Error::evaluation, line_number, file_name, "incompatible units");
       }
     }
     else {
-      // TO DO: throw an exception ("incomparable types")
+      throw Error(Error::evaluation, line_number, file_name, "incomparable types");
     }
   }
   

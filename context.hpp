@@ -45,6 +45,7 @@ namespace Sass {
     Environment global_env;
     map<pair<string, size_t>, Function> function_env;
     vector<char*> source_refs; // all the source c-strings
+    vector<vector<Node>*> registry; // all the child vectors
     size_t ref_count;
     
     void collect_include_paths(const char* paths_str);

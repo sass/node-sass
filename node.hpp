@@ -76,6 +76,8 @@ namespace Sass {
       boolean,
       important,
       
+      value_schema,
+      
       function_call,
       mixin,
       parameters,
@@ -110,14 +112,17 @@ namespace Sass {
       bool boolean_value;
     } content;
     
+    const char* file_name;
+    
     static size_t allocations;
+    static size_t destructed;
     
     void clear()
     {
-      type           = none;  line_number   = 0;     has_children   = false;
-      has_statements = false; has_blocks    = false; has_expansions = false;
-      has_backref    = false; from_variable = false; eval_me        = false;
-      unquoted       = false;
+      type           = none;  line_number    = 0;     file_name     = 0;
+      has_children   = false; has_statements = false; has_blocks    = false;
+      has_expansions = false; has_backref    = false; from_variable = false;
+      eval_me        = false; unquoted       = false;
     }
     
     size_t size() const
@@ -133,6 +138,20 @@ namespace Sass {
     {
       content.children->push_back(n);
       return *this;
+    }
+    
+    bool is_numeric() const
+    {
+      switch (type)
+      {
+        case number:
+        case numeric_percentage:
+        case numeric_dimension:
+          return true;
+          break;
+        default:
+          return false;
+      }
     }
     
     double numeric_value() const
@@ -174,7 +193,7 @@ namespace Sass {
     void emit_nested_css(stringstream& buf, size_t depth);
     void emit_expanded_css(stringstream& buf, const string& prefix);
     
-    Node clone() const;
+    Node clone(vector<vector<Node>*>& registry) const;
     void flatten();
     
     Node()
@@ -183,12 +202,13 @@ namespace Sass {
     Node(Type t) // flags or booleans
     { clear(); type = t; }
 
-    Node(Type t, unsigned int ln, size_t s = 0) // nodes with children
+    Node(Type t, vector<vector<Node>*>& registry, unsigned int ln, size_t s = 0) // nodes with children
     {
       clear();
       type = t;
       line_number = ln;
       content.children = new vector<Node>;
+      registry.push_back(content.children);
       content.children->reserve(s);
       has_children = true;
       ++allocations;
@@ -220,12 +240,13 @@ namespace Sass {
       content.dimension.unit = tok.begin;
     }
     
-    Node(unsigned int ln, double r, double g, double b, double a = 1.0) // colors
+    Node(vector<vector<Node>*>& registry, unsigned int ln, double r, double g, double b, double a = 1.0) // colors
     {
       clear();
       type = numeric_color;
       line_number = ln;
       content.children = new vector<Node>;
+      registry.push_back(content.children);
       content.children->reserve(4);
       content.children->push_back(Node(ln, r));
       content.children->push_back(Node(ln, g));
@@ -234,5 +255,7 @@ namespace Sass {
       has_children = true;
       ++allocations;
     }
+    
+    ~Node() { ++destructed; }
   };
 }

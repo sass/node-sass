@@ -30,7 +30,7 @@ namespace Sass {
     Document(char* path_str, char* source_str, Context& ctx);
     Document(string path, char* source = 0);
     Document(string path, Context& context);
-    Document(size_t line_number, Token t, Context& context);
+    Document(const string& path, size_t line_number, Token t, Context& context);
     ~Document();
     
     template <prelexer mx>
@@ -142,6 +142,7 @@ namespace Sass {
     Node parse_identifier();
     Node parse_variable();
     Node parse_function_call();
+    Node parse_value_schema();
     
     const char* look_for_rule(const char* start = 0);
     const char* look_for_values(const char* start = 0);
@@ -153,7 +154,9 @@ namespace Sass {
     const char* look_for_pseudo(const char* start = 0);
     const char* look_for_attrib(const char* start = 0);
     
-    void eval_pending();
+    void syntax_error(string message, size_t ln = 0);
+    void read_error(string message, size_t ln = 0);
+    
     string emit_css(CSS_Style style);
 
   };

@@ -1,0 +1,48 @@
+$x:  1 2 3;
+
+bobo + mogo {
+  hey: hoo;
+}
+
+@mixin moogoo() {
+  hey: ho;
+  div {
+    blah: blah;
+    bloo: (1/0) + 5;
+  }
+}
+
+
+:nth-of-type(2) {
+  foo: bar;
+}
+
+div[hux ~= "hello"] {
+  hux: blux;
+  foo: boo;
+  dux: "hello" + "goodbye";
+  shux: 'hello' + 12;
+  frux: 12 + 'hello';
+  blah: blah;
+  hoo: blah == 12;
+  //moo: rgba(0,0,0,.5) + rgba(0,0,0,.6);
+  moo: rgba(0,0,0,.5) + 3;
+  
+}
+
+$y: hey;
+
+@mixin foo($x) {
+  foofoo: $x $y;
+}
+
+div {
+  @include foo();
+  hoo: rgba(1, 3, 3, .4);
+  blah: fade_out(#123, 1px);
+  flah: unquote("hello");
+  grah: quote(hello);
+  hrah: quote(mukluk);
+  mwah: join((), 2, "comma");
+  gwah: comparable(foo, bar);
+}

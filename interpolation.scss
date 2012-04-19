@@ -1,0 +1,16 @@
+$x: bar;
+$blux: inside blux;
+
+div {
+  a: blah foo#{$x};
+  b: (1#{2+3}) + 4;
+  b: (1 (2+3)) + 4;
+  c: 1#{2 + 3} + 4;
+  d: type-of(false);
+  e: type-of(fa#{lse});
+  e: 12fa#{lse}345;
+  f: 12+#{3}, 12(#{3});
+  g: (12)34, 12(34);
+  h: #fff#{f};
+  j: $bl#{ux};
+}

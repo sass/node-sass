@@ -2,6 +2,7 @@
 #include <cstring>
 #include "document.hpp"
 #include "eval_apply.hpp"
+#include "error.hpp"
 #include <iostream>
 
 namespace Sass {
@@ -11,7 +12,7 @@ namespace Sass {
     source(source_str),
     line_number(1),
     context(ctx),
-    root(Node(Node::root, 1)),
+    root(Node(Node::root, context.registry, 1)),
     lexed(Token::make())
   {
     if (source_str) {
@@ -48,22 +49,24 @@ namespace Sass {
   : path(path), source(source),
     line_number(1), own_source(false),
     context(*(new Context())),
-    root(Node(Node::root, 1)),
+    root(Node(Node::root, context.registry, 1)),
     lexed(Token::make())
   {
     if (!source) {
       std::FILE *f;
-      // TO DO: CHECK f AGAINST NULL/0
       f = std::fopen(path.c_str(), "rb");
-      std::fseek(f, 0, SEEK_END);
+      if (!f) throw path;
+      if (std::fseek(f, 0, SEEK_END)) throw path;
       int len = std::ftell(f);
+      if (len < 0) throw path;
       std::rewind(f);
-      // TO DO: WRAP THE new[] IN A TRY/CATCH BLOCK
+      // TO DO: CATCH THE POTENTIAL badalloc EXCEPTION
       source = new char[len + 1];
       std::fread(source, sizeof(char), len, f);
+      if (std::ferror(f)) throw path;
       source[len] = '\0';
       end = source + len;
-      std::fclose(f);
+      if (std::fclose(f)) throw path;
       own_source = true;
     }
     position = source;
@@ -75,35 +78,37 @@ namespace Sass {
   : path(path), source(0),
     line_number(1), own_source(false),
     context(context),
-    root(Node(Node::root, 1)),
+    root(Node(Node::root, context.registry, 1)),
     lexed(Token::make())
   {
     std::FILE *f;
-    // TO DO: CHECK f AGAINST NULL/0
     f = std::fopen(path.c_str(), "rb");
-    std::fseek(f, 0, SEEK_END);
+    if (!f) throw path;
+    if (std::fseek(f, 0, SEEK_END)) throw path;
     int len = std::ftell(f);
+    if (len < 0) throw path;
     std::rewind(f);
-    // TO DO: WRAP THE new[] IN A TRY/CATCH BLOCK
+    // TO DO: CATCH THE POTENTIAL badalloc EXCEPTION
     source = new char[len + 1];
     std::fread(source, sizeof(char), len, f);
+    if (std::ferror(f)) throw path;
     source[len] = '\0';
     end = source + len;
-    std::fclose(f);
+    if (std::fclose(f)) throw path;
     position = source;
     context.source_refs.push_back(source);
     ++context.ref_count;
   }
   
-  Document::Document(size_t line_number, Token t, Context& context)
-  : path(string()),
+  Document::Document(const string& path, size_t line_number, Token t, Context& context)
+  : path(path),
     source(const_cast<char*>(t.begin)),
     position(t.begin),
     end(t.end),
     line_number(line_number),
     own_source(false),
     context(context),
-    root(Node(Node::root, 1)),
+    root(Node(Node::root, context.registry, 1)),
     lexed(Token::make())
   { }
 
@@ -112,12 +117,11 @@ namespace Sass {
     // if (context.ref_count == 0) delete &context;
   }
   
-  // void Document::eval_pending()
-  // {
-  //   for (int i = 0; i < context.pending.size(); ++i) {
-  //     eval(context.pending[i], context.global_env);
-  //   }
-  // }
+  void Document::syntax_error(string message, size_t ln)
+  { throw Error(Error::syntax, ln ? ln : line_number, path, message); }
+  
+  void Document::read_error(string message, size_t ln)
+  { throw Error(Error::read, ln ? ln : line_number, path, message); }
   
   using std::string;
   using std::stringstream;

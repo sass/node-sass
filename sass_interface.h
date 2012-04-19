@@ -16,27 +16,39 @@ struct sass_context {
   char* input_string;
   char* output_string;
   struct sass_options options;
+  int error_status;
+  char* error_message;
 };
 
 struct sass_folder_context {
   char* search_path;
   char* output_path;
   struct sass_options options;
+  int error_status;
+  char* error_message;
 };
 
 struct sass_file_context {
   char* input_path;
   char* output_string;
   struct sass_options options;
+  int error_status;
+  char* error_message;
 };
 
 struct sass_context*        sass_new_context        ();
 struct sass_folder_context* sass_new_folder_context ();
 struct sass_file_context*   sass_new_file_context   ();
 
-int sass_compile        (struct sass_context*);
-// int sass_folder_compile (struct sass_folder_context*);
-int sass_file_compile   (struct sass_file_context*);
+void sass_free_context        (struct sass_context* ctx);
+void sass_free_folder_context (struct sass_folder_context* ctx);
+void sass_free_file_context   (struct sass_file_context* ctx);
+
+
+int sass_compile            (struct sass_context*);
+//int sass_compile_folder     (struct sass_folder_context*);
+int sass_compile_file       (struct sass_file_context*);
+void sass_free_file_context (struct sass_file_context* ctx);
 
 #ifdef __cplusplus
 }
