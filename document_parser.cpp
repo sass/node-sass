@@ -734,30 +734,65 @@ namespace Sass {
     syntax_error("error reading values after " + lexed.to_string());
   }
   
-  // Node Document::parse_value_schema()
-  // {
-  //   // just an interpolant
-  //   if (lex< interpolant >()) {
-  //     Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
-  //     Document interp_doc(path, line_number, insides, context);
-  //     Node interp_node(interp_doc.parse_list());
-  //     if (peek< alternatives< spaces, block_comment, line_comment
-  //                             exactly<';'>, exactly<','>,
-  //                             exactly<'('>, exactly<')'> > >()) {
-  //       return interp_node;
-  //     }
-  //     
-  //   
-  //   Node schema(Node::value_schema, context.registry, 2);
-  //   
-  //   while (true) {
-  //     if (lex< interpolant
-  //   
-  //     
-  //   
-  //   
-  //   
-  // }
+  Node Document::parse_value_schema()
+  {
+    Node schema;
+    // just an interpolant
+    if (lex< interpolant >()) {
+      Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
+      Document interp_doc(path, line_number, insides, context);
+      Node interp_node(interp_doc.parse_list());
+      if (peek< alternatives< spaces, comment,
+                              exactly<';'>, exactly<','>,
+                              exactly<'('>, exactly<')'> > >()) {
+        return interp_node;
+      }
+      // interpolant with stuff immediately behind it
+      else {
+        schema = Node(Node::value_schema, context.registry, line_number, 2);
+        schema << interp_node;
+      }
+    }
+    
+    while (true) {
+      if (lex< interpolant >()) {
+        Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
+        Document interp_doc(path, line_number, insides, context);
+        Node interp_node(interp_doc.parse_list());
+        schema << interp_node;
+      }
+      else if (lex< identifier >()) {
+        schema << Node(Node::identifier, line_number, lexed);
+      }
+      else if (lex< percentage >()) {
+        schema << Node(Node::textual_percentage, line_number, lexed);
+      }
+      else if (lex< dimension >()) {
+        schema << Node(Node::textual_dimension, line_number, lexed);
+      }
+      else if (lex< number >()) {
+        schema << Node(Node::textual_number, line_number, lexed);
+      }
+      else if (lex< hex >()) {
+        schema << Node(Node::textual_hex, line_number, lexed);
+      }
+      else if (lex< string_constant >()) {
+        schema << Node(Node::string_constant, line_number, lexed);
+      }
+      else if (lex< variable >()) {
+        schema << Node(Node::variable, line_number, lexed);
+      }
+      else {
+        syntax_error("error parsing interpolated value");
+      }
+      if (peek< alternatives< spaces, comment,
+                              exactly<';'>, exactly<','>,
+                              exactly<'('>, exactly<')'> > >()) {
+        break;
+      }
+    }
+    return schema;
+  }
   
   Node Document::parse_function_call()
   {

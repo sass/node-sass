@@ -220,6 +220,13 @@ namespace Sass {
         return apply_function(f_env[sig], expr[1], env, f_env, registry);
       } break;
       
+      case Node::value_schema: {
+        for (int i = 0; i < expr.size(); ++i) {
+          expr[i] = eval(expr[i], env, f_env, registry);
+        }
+        return expr;
+      } break;
+      
       default: {
         return expr;
       }

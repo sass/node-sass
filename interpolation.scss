@@ -1,4 +1,5 @@
 $x: bar;
+$blux: inside blux;
 
 div {
   a: blah foo#{$x};
@@ -10,4 +11,6 @@ div {
   e: 12fa#{lse}345;
   f: 12+#{3}, 12(#{3});
   g: (12)34, 12(34);
+  h: #fff#{f};
+  j: $bl#{ux};
 }

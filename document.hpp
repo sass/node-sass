@@ -142,6 +142,7 @@ namespace Sass {
     Node parse_identifier();
     Node parse_variable();
     Node parse_function_call();
+    Node parse_value_schema();
     
     const char* look_for_rule(const char* start = 0);
     const char* look_for_values(const char* start = 0);
