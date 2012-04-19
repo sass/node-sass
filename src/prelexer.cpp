@@ -83,9 +83,9 @@ namespace Sass {
     // Match interpolant schemas
     const char* value_schema(const char* src) {
       // follows this pattern: ([xyz]*i[xyz]*)+
-      return one_plus< sequence< zero_plus< alternatives< identifier, number > >,
+      return one_plus< sequence< zero_plus< alternatives< identifier, percentage, dimension, hex, number, string_constant > >,
                                  interpolant,
-                                 zero_plus< alternatives< identifier, number > > > >(src);
+                                 zero_plus< alternatives< identifier, percentage, dimension, hex, number, string_constant > > > >(src);
     }
     
     // Match CSS '@' keywords.

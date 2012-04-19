@@ -670,11 +670,12 @@ namespace Sass {
       return result;
     }
     
-    if (peek< value_schema >())
+    if (lex< value_schema >())
     {
-      // TO DO: handle value schemas!
-      return Node(Node::identifier, line_number, lexed);
-      return parse_value_schema();
+      cerr << "parsing value schema: " << lexed.to_string() << endl;
+      
+      Document schema_doc(path, line_number, lexed, context);
+      return schema_doc.parse_value_schema();
     }
     
     if (lex< sequence< true_kwd, negate< identifier > > >())
@@ -724,37 +725,31 @@ namespace Sass {
       return var;
     }
     
-    if (lex< interpolant >())
-    {
-      Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
-      Document interp(path, line_number, insides, context);
-      return interp.parse_list();
-    }
-    
     syntax_error("error reading values after " + lexed.to_string());
   }
   
   Node Document::parse_value_schema()
   {
-    Node schema;
-    // just an interpolant
-    if (lex< interpolant >()) {
-      Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
-      Document interp_doc(path, line_number, insides, context);
-      Node interp_node(interp_doc.parse_list());
-      if (peek< alternatives< spaces, comment,
-                              exactly<';'>, exactly<','>,
-                              exactly<'('>, exactly<')'> > >()) {
-        return interp_node;
-      }
-      // interpolant with stuff immediately behind it
-      else {
-        schema = Node(Node::value_schema, context.registry, line_number, 2);
-        schema << interp_node;
-      }
-    }
+    // Node schema;
+    // if (lex< interpolant >()) {
+    //   Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
+    //   Document interp_doc(path, line_number, insides, context);
+    //   Node interp_node(interp_doc.parse_list());
+    //   if (position >= end) {
+    //     return interp_node;
+    //   }
+    //   else {
+    //     schema = Node(Node::value_schema, context.registry, line_number, 2);
+    //     schema << interp_node;
+    //   }
+    // }
+    // else {
+    //   schema =  Node(Node::value_schema, context.registry, line_number, 2);
+    // }
     
-    while (true) {
+    Node schema(Node::value_schema, context.registry, line_number, 1);
+    
+    while (position < end) {
       if (lex< interpolant >()) {
         Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
         Document interp_doc(path, line_number, insides, context);
@@ -785,12 +780,8 @@ namespace Sass {
       else {
         syntax_error("error parsing interpolated value");
       }
-      if (peek< alternatives< spaces, comment,
-                              exactly<';'>, exactly<','>,
-                              exactly<'('>, exactly<')'> > >()) {
-        break;
-      }
     }
+    schema.eval_me = true;
     return schema;
   }
   

@@ -86,6 +86,9 @@ namespace Sass {
             if (rhs[i].eval_me) rhs[i] = eval(rhs[i], env, f_env, registry);
           }
         }
+        else if (rhs.type == Node::value_schema) {
+          eval(rhs, env, f_env, registry);
+        }
         else {
           if (rhs.eval_me) expr[1] = eval(rhs, env, f_env, registry);
         }
@@ -221,6 +224,7 @@ namespace Sass {
       } break;
       
       case Node::value_schema: {
+        cerr << "evaluating schema of size " << expr.size() << endl;
         for (int i = 0; i < expr.size(); ++i) {
           expr[i] = eval(expr[i], env, f_env, registry);
         }

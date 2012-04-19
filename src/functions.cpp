@@ -452,6 +452,7 @@ namespace Sass {
           type.content.token = Token::make(bool_name);
           break;
         case Node::string_constant:
+        case Node::value_schema:
           type.content.token = Token::make(string_name);
           break;
         case Node::numeric_color:

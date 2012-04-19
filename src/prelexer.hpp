@@ -151,6 +151,34 @@ namespace Sass {
       return rslt;
     }
     
+    // Same as above, but with 7 arguments.
+    template <prelexer mx1, prelexer mx2,
+              prelexer mx3, prelexer mx4,
+              prelexer mx5, prelexer mx6,
+              prelexer mx7>
+    const char* alternatives(const char* src) {
+      const char* rslt = src;
+      (rslt = mx1(rslt)) || (rslt = mx2(rslt)) ||
+      (rslt = mx3(rslt)) || (rslt = mx4(rslt)) ||
+      (rslt = mx5(rslt)) || (rslt = mx6(rslt)) ||
+      (rslt = mx7(rslt));
+      return rslt;
+    }
+    
+    // Same as above, but with 8 arguments.
+    template <prelexer mx1, prelexer mx2,
+              prelexer mx3, prelexer mx4,
+              prelexer mx5, prelexer mx6,
+              prelexer mx7, prelexer mx8>
+    const char* alternatives(const char* src) {
+      const char* rslt = src;
+      (rslt = mx1(rslt)) || (rslt = mx2(rslt)) ||
+      (rslt = mx3(rslt)) || (rslt = mx4(rslt)) ||
+      (rslt = mx5(rslt)) || (rslt = mx6(rslt)) ||
+      (rslt = mx7(rslt)) || (rslt = mx8(rslt));
+      return rslt;
+    }
+    
     // Tries the matchers in sequence and succeeds if they all succeed.
     template <prelexer mx1, prelexer mx2>
     const char* sequence(const char* src) {
