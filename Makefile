@@ -15,7 +15,8 @@ CPP_FILES = \
 sassc: sassc_obj libsass
 	gcc -o $(BIN_DIR)/sassc $(BUILD_DIR)/sassc.o libsass.a -lstdc++
 
-sassc_obj: build_dir $(SRC_DIR)/sassc.c
+sassc_obj: build_dir sassc.c
+	gcc -c sassc.c
 	mv *.o $(BUILD_DIR)
 
 libsass: libsass_objs
