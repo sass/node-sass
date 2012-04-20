@@ -278,6 +278,12 @@ namespace Sass {
         return result;
       } break;
       
+      case string_schema: {
+        string result;
+        for (int i = 0; i < size(); ++i) result += at(i).to_string("");
+        return result;
+      } break;
+      
       default: {
         // return content.token.to_string();
         if (!has_children && type != flags) return content.token.to_string();

@@ -77,6 +77,7 @@ namespace Sass {
       important,
       
       value_schema,
+      string_schema,
       
       function_call,
       mixin,

@@ -716,8 +716,8 @@ namespace Sass {
     { return Node(Node::textual_hex, line_number, lexed); }
 
     if (peek< string_constant >())
-    { return Node(Node::string_constant, line_number, lexed); }
-    // { return parse_string(); } 
+    // { return Node(Node::string_constant, line_number, lexed); }
+    { return parse_string(); } 
 
     if (lex< variable >())
     {
@@ -729,49 +729,48 @@ namespace Sass {
     syntax_error("error reading values after " + lexed.to_string());
   }
   
-  // Node Document::parse_string()
-  // {
-  //   lex< string_constant >();
-  //   Token str(lexed);
-  //   const char* i = str.begin;
-  //   while (i < str.end) {
-  //     i = find_first< hash_lbrace >(str.begin);
-  //     if (*(--i) == '\\') {
-  //       i += 2;
-  //       continue;
-  //     }
-  //     const char* j = find_first< rbrace >(i);
-  //     if (j) {
-  //       Document interp_doc(path, line_number, Token::make(i,j+1), context);
-  //       schema << interp_doc.parse_list();
-  //       i = j + 1;
-  //     }
-  //     else {
-  //       syntax_error("unterminated interpolant inside string constant " + str.to_string());
-  //     }
-  //   
-  //   
-  // }
+  extern const char hash_lbrace[] = "#{";
+  extern const char rbrace[] = "}";
+  
+  Node Document::parse_string()
+  {    
+    lex< string_constant >();
+    Token str(lexed);
+    const char* i = str.begin;
+    // see if there any interpolants
+    const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(str.begin, str.end);
+    if (!p) {
+      return Node(Node::string_constant, line_number, str);
+    }
+    
+    Node schema(Node::string_schema, context.registry, line_number, 1);
+    while (i < str.end) {
+      if (p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, str.end)) {
+        if (i < p) schema << Node(Node::identifier, line_number, Token::make(i, p)); // accumulate the preceding segment if it's nonempty
+        const char* j = find_first_in_interval< exactly<rbrace> >(p, str.end); // find the closing brace
+        if (j) {
+          // parse the interpolant and accumulate it
+          Document interp_doc(path, line_number, Token::make(p+2,j-1), context);
+          Node interp_node(interp_doc.parse_list());
+          interp_node.eval_me = true;
+          schema << interp_node;
+          i = j + 1;
+        }
+        else {
+          // throw an error if the interpolant is unterminated
+          syntax_error("unterminated interpolant inside string constant " + str.to_string());
+        }
+      }
+      else { // no interpolants left; add the last segment if nonempty
+        if (i < str.end) schema << Node(Node::identifier, line_number, Token::make(i, str.end));
+        break;
+      }
+    }
+    return schema;
+  }
   
   Node Document::parse_value_schema()
-  {
-    // Node schema;
-    // if (lex< interpolant >()) {
-    //   Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
-    //   Document interp_doc(path, line_number, insides, context);
-    //   Node interp_node(interp_doc.parse_list());
-    //   if (position >= end) {
-    //     return interp_node;
-    //   }
-    //   else {
-    //     schema = Node(Node::value_schema, context.registry, line_number, 2);
-    //     schema << interp_node;
-    //   }
-    // }
-    // else {
-    //   schema =  Node(Node::value_schema, context.registry, line_number, 2);
-    // }
-    
+  {    
     Node schema(Node::value_schema, context.registry, line_number, 1);
     
     while (position < end) {

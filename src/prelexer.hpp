@@ -384,6 +384,15 @@ namespace Sass {
       while (*src && !mx(src)) ++src;
       return *src ? src : 0;
     }
+    template<prelexer mx>
+    const char* find_first_in_interval(const char* beg, const char* end) {
+      while ((beg < end) && *beg) {
+        const char* p;
+        if (p = mx(beg)) return p;
+        ++beg;
+      }
+      return 0;
+    }
     template <char c>
     unsigned int count_interval(const char* beg, const char* end) {
       unsigned int counter = 0;
