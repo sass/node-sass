@@ -715,8 +715,9 @@ namespace Sass {
     if (lex< hex >())
     { return Node(Node::textual_hex, line_number, lexed); }
 
-    if (lex< string_constant >())
+    if (peek< string_constant >())
     { return Node(Node::string_constant, line_number, lexed); }
+    // { return parse_string(); } 
 
     if (lex< variable >())
     {
@@ -727,6 +728,30 @@ namespace Sass {
     
     syntax_error("error reading values after " + lexed.to_string());
   }
+  
+  // Node Document::parse_string()
+  // {
+  //   lex< string_constant >();
+  //   Token str(lexed);
+  //   const char* i = str.begin;
+  //   while (i < str.end) {
+  //     i = find_first< hash_lbrace >(str.begin);
+  //     if (*(--i) == '\\') {
+  //       i += 2;
+  //       continue;
+  //     }
+  //     const char* j = find_first< rbrace >(i);
+  //     if (j) {
+  //       Document interp_doc(path, line_number, Token::make(i,j+1), context);
+  //       schema << interp_doc.parse_list();
+  //       i = j + 1;
+  //     }
+  //     else {
+  //       syntax_error("unterminated interpolant inside string constant " + str.to_string());
+  //     }
+  //   
+  //   
+  // }
   
   Node Document::parse_value_schema()
   {
