@@ -174,6 +174,15 @@ namespace Sass {
         return "/";
       } break;
       
+      case css_import: {
+        stringstream ss;
+        ss << "@import url(";
+        ss << content.token.to_string();
+        cerr << content.token.to_string() << endl;
+        ss << ")";
+        return ss.str();
+      }
+      
       case function_call: {
         stringstream ss;
         ss << at(0).to_string("");
@@ -398,6 +407,7 @@ namespace Sass {
       }
       for (int i = 0; i < size(); ++i) {
         at(i).emit_nested_css(buf, depth, prefixes);
+        if (at(i).type == css_import) buf << endl;
       }
       break;
 
@@ -430,7 +440,7 @@ namespace Sass {
         buf << " {";
         for (int i = 0; i < block.size(); ++i) {
           Type stm_type = block[i].type;
-          if (stm_type == comment || stm_type == rule) {
+          if (stm_type == comment || stm_type == rule || stm_type == css_import) {
             block[i].emit_nested_css(buf, depth+1); // NEED OVERLOADED VERSION FOR COMMENTS AND RULES
           }
         }
@@ -462,6 +472,12 @@ namespace Sass {
       buf << endl << string(2*depth, ' ');
       at(0).emit_nested_css(buf, depth); // property
       at(1).emit_nested_css(buf, depth); // values
+      buf << ";";
+      break;
+      
+    case css_import:
+      buf << endl << string(2*depth, ' ');
+      buf << to_string("");
       buf << ";";
       break;
 

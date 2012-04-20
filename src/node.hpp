@@ -81,6 +81,7 @@ namespace Sass {
       value_schema,
       string_schema,
       
+      css_import,
       function_call,
       mixin,
       parameters,

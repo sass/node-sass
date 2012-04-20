@@ -15,7 +15,13 @@ namespace Sass {
       }
       else if (peek< import >(position)) {
         // TO DO: don't splice in place at parse-time -- use an expansion node
-        root += parse_import();
+        Node import(parse_import());
+        if (import.type == Node::css_import) {
+          root << import;
+        }
+        else {
+          root += import;
+        }
         if (!lex< exactly<';'> >()) syntax_error("top-level @import directive must be terminated by ';'");
       }
       else if (peek< mixin >(position)) {
@@ -40,7 +46,16 @@ namespace Sass {
   Node Document::parse_import()
   {
     lex< import >();
-    if (!lex< string_constant >()) syntax_error("@import directive requires a quoted path");
+    if (lex< uri_prefix >())
+    {
+      const char* beg = position;
+      const char* end = find_first< exactly<')'> >(position);
+      Node result(Node::css_import, line_number, Token::make(beg, end));
+      position = end;
+      lex< exactly<')'> >();
+      return result;
+    }
+    if (!lex< string_constant >()) syntax_error("@import directive requires a url or quoted path");
     // TO DO: BETTER PATH HANDLING
     string import_path(lexed.unquote());
     const char* curr_path_start = path.c_str();
@@ -413,17 +428,24 @@ namespace Sass {
           syntax_error("@import directive not allowed inside mixin definition");
         }
         Node imported_tree(parse_import());
-        for (int i = 0; i < imported_tree.size(); ++i) {
-          if (imported_tree[i].type == Node::comment ||
-              imported_tree[i].type == Node::rule) {
-            block[0].has_statements = true;
-          }
-          else if (imported_tree[i].type == Node::ruleset) {
-            block[0].has_blocks = true;
-          }
-          block << imported_tree[i];
+        if (imported_tree.type == Node::css_import) {
+          cerr << "css import inside block" << endl;
+          block << imported_tree;
+          block.has_statements = true;
         }
-        semicolon = true;
+        else {
+          for (int i = 0; i < imported_tree.size(); ++i) {
+            if (imported_tree[i].type == Node::comment ||
+                imported_tree[i].type == Node::rule) {
+              block[0].has_statements = true;
+            }
+            else if (imported_tree[i].type == Node::ruleset) {
+              block[0].has_blocks = true;
+            }
+            block << imported_tree[i];
+          }
+          semicolon = true;
+        }
       }
       else if (peek< include >(position)) {
         block << parse_mixin_call();
