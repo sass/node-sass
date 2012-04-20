@@ -223,6 +223,26 @@ namespace Sass {
         return apply_function(f_env[sig], expr[1], env, f_env, registry);
       } break;
       
+      case Node::unary_plus: {
+        Node arg(eval(expr[0], env, f_env, registry));
+        if (arg.is_numeric()) return arg;
+        else {
+          expr[0] = arg;
+          return expr;
+        }
+      } break;
+      
+      case Node::unary_minus: {
+        Node arg(eval(expr[0], env, f_env, registry));
+        if (arg.is_numeric()) {
+          arg.set_numeric_value(-arg.numeric_value());
+        }
+        else {
+          expr[0] = arg;
+          return expr;
+        }
+      } break;
+      
       case Node::string_schema:
       case Node::value_schema: {
         cerr << "evaluating schema of size " << expr.size() << endl;

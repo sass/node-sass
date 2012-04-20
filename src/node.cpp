@@ -174,6 +174,20 @@ namespace Sass {
         return "/";
       } break;
       
+      case unary_plus: {
+        stringstream ss;
+        ss << "+";
+        ss << at(0).to_string("");
+        return ss.str();
+      }
+      
+      case unary_minus: {
+        stringstream ss;
+        ss << "-";
+        ss << at(0).to_string("");
+        return ss.str();
+      }
+      
       case numeric_percentage: {
         stringstream ss;
         ss << content.dimension.numeric_value;

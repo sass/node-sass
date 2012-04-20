@@ -59,6 +59,8 @@ namespace Sass {
       div,
 
       factor,
+      unary_plus,
+      unary_minus,
       values,
       value,
       identifier,
@@ -169,6 +171,21 @@ namespace Sass {
           // throw an exception?
       }
     }
+    
+    void set_numeric_value(double v)
+    {
+        switch (type)
+        {
+          case number:
+          case numeric_percentage:
+            content.numeric_value = v;
+          case numeric_dimension:
+            content.dimension.numeric_value = v;
+          default:
+            break;
+            // throw an exception?
+        }
+      }
     
     Node& operator+=(const Node& n)
     {
