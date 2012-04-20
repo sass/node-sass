@@ -655,13 +655,13 @@ namespace Sass {
       if (!lex< exactly<')'> >()) syntax_error("unclosed parenthesis");
       return value;
     }
-    else if (lex< exactly<'+'> >()) {
+    else if (lex< sequence< exactly<'+'>, negate< number > > >()) {
       Node plus(Node::unary_plus, context.registry, line_number, 1);
       plus << parse_factor();
       plus.eval_me = true;
       return plus;
     }
-    else if (lex< exactly<'-'> >()) {
+    else if (lex< sequence< exactly<'-'>, negate< number> > >()) {
       Node minus(Node::unary_minus, context.registry, line_number, 1);
       minus << parse_factor();
       minus.eval_me = true;

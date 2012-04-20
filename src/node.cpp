@@ -174,6 +174,27 @@ namespace Sass {
         return "/";
       } break;
       
+      case function_call: {
+        stringstream ss;
+        ss << at(0).to_string("");
+        ss << "(";
+        ss << at(1).to_string("");
+        ss << ")";
+        return ss.str();
+      }
+      
+      case arguments: {
+        stringstream ss;
+        if (size() > 0) {
+          ss << at(0).to_string("");
+          for (int i = 1; i < size(); ++i) {
+            ss << ", ";
+            ss << at(i).to_string("");
+          }
+        }
+        return ss.str();
+      }
+      
       case unary_plus: {
         stringstream ss;
         ss << "+";

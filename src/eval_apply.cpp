@@ -216,9 +216,10 @@ namespace Sass {
         // TO DO: default-constructed Function should be a generic callback
         pair<string, size_t> sig(expr[0].content.token.to_string(), expr[1].size());
         if (!f_env.count(sig)) {
-          stringstream ss;
-          ss << "no function named " << expr[0].content.token.to_string() << " taking " << expr[1].size() << " arguments has been defined";
-          eval_error(ss.str(), expr.line_number, expr.file_name);
+          // stringstream ss;
+          // ss << "no function named " << expr[0].content.token.to_string() << " taking " << expr[1].size() << " arguments has been defined";
+          // eval_error(ss.str(), expr.line_number, expr.file_name);
+          return expr;
         }
         return apply_function(f_env[sig], expr[1], env, f_env, registry);
       } break;
