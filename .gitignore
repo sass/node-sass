@@ -7,3 +7,4 @@ build/*
 *.a
 a.out
 bin/*
+*.gem
