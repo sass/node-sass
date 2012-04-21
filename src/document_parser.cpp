@@ -5,6 +5,8 @@
 namespace Sass {
   using namespace std;
 
+  extern const char plus_equal[] = "+=";
+
   void Document::parse_scss()
   {
     lex<optional_spaces>();
@@ -24,7 +26,7 @@ namespace Sass {
         }
         if (!lex< exactly<';'> >()) syntax_error("top-level @import directive must be terminated by ';'");
       }
-      else if (peek< mixin >(position)) {
+      else if (peek< mixin >(position) || peek< exactly<'='> >(position)) {
         root << parse_mixin_definition();
       }
       else if (peek< include >(position)) {
@@ -36,8 +38,13 @@ namespace Sass {
         root << parse_assignment();
         if (!lex< exactly<';'> >()) syntax_error("top-level variable binding must be terminated by ';'");
       }
-      else {
+      else if (look_for_selector_group(position)) {
         root << parse_ruleset();
+      }
+      else if (peek< exactly<'+'> >()) {
+        root << parse_mixin_call();
+        root[0].has_expansions = true;
+        if (!lex< exactly<';'> >()) syntax_error("top-level @include directive must be terminated by ';'");
       }
       lex<optional_spaces>();
     }
@@ -73,7 +80,7 @@ namespace Sass {
 
   Node Document::parse_mixin_definition()
   {
-    lex< mixin >();
+    lex< mixin >() || lex< exactly<'='> >();
     if (!lex< identifier >()) syntax_error("invalid name in @mixin directive");
     Node name(Node::identifier, line_number, lexed);
     Node params(parse_mixin_parameters());
@@ -118,7 +125,7 @@ namespace Sass {
 
   Node Document::parse_mixin_call()
   {
-    lex< include >();
+    lex< include >() || lex< exactly<'+'> >();
     if (!lex< identifier >()) syntax_error("invalid name in @include directive");
     Node name(Node::identifier, line_number, lexed);
     Node args(parse_arguments());
@@ -468,6 +475,11 @@ namespace Sass {
       else if (const char* p = look_for_selector_group(position)) {
         block << parse_ruleset(definition);
         block[0].has_blocks = true;
+      }
+      else if (peek< exactly<'+'> >()) {
+        block << parse_mixin_call();
+        block[0].has_expansions = true;
+        semicolon = true;
       }
       else if (!peek< exactly<';'> >()) {
         block << parse_rule();
