@@ -1,3 +1,4 @@
+src/Makefile
 .DS_Store
 .sass-cache
 sassc
