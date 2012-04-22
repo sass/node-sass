@@ -45,9 +45,9 @@ void sass_free_folder_context (struct sass_folder_context* ctx);
 void sass_free_file_context   (struct sass_file_context* ctx);
 
 
-int sass_compile            (struct sass_context*);
+int sass_compile            (struct sass_context* ctx);
 //int sass_compile_folder     (struct sass_folder_context*);
-int sass_compile_file       (struct sass_file_context*);
+int sass_compile_file       (struct sass_file_context* ctx);
 void sass_free_file_context (struct sass_file_context* ctx);
 
 #ifdef __cplusplus
