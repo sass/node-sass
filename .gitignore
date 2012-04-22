@@ -1,5 +1,6 @@
 src/Makefile
 .DS_Store
+tmp/
 .sass-cache
 sassc
 build/*

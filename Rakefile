@@ -15,3 +15,12 @@ Rake::ExtensionTask.new do |ext|
   ext.gem_spec = $gemspec                     # optionally indicate which gem specification
                                           # will be used.
 end
+
+task :run do
+  require File.expand_path('../lib/sassc', __FILE__)
+  ptr = SassC::Lib.sass_new_context()
+  ctx = SassC::Lib::Context.new(ptr)
+  ctx[:input_string] = SassC::Lib.to_char("hi { width: 30px; }")
+  SassC::Lib.sass_compile(ctx)
+  #puts ctx[:output_string]
+end

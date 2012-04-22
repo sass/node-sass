@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path('../lib/sassc', __FILE__)
+#require File.expand_path('../lib/sassc', __FILE__)
 
-Gem::Specification.new do |gem|
+$gemspec = Gem::Specification.new do |gem|
   gem.authors       = ["Hampton Catlin", "Aaron Leung"]
   gem.email         = ["hcatlin@gmail.com"]
   gem.description   = %q{A native implementation of the Sass language}
@@ -14,5 +14,8 @@ Gem::Specification.new do |gem|
   gem.name          = "sassc"
   gem.extensions    = ["src/extconf.rb"]
   gem.require_paths = ["lib", "src"]
-  gem.version       = SassC::VERSION
+  gem.version       = "0.1"#SassC::VERSION
+  
+  gem.add_dependency('ffi')
+  gem.add_dependency('rake-compiler')
 end
