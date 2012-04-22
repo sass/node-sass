@@ -23,7 +23,7 @@
 int main(int argc, char** argv)
 {	
 	if (argc < 2) {
-		printf("Hey, I need an input file!\n");
+		printf("Usage: sassc [INPUT FILE]\n");
 		return 0;
 	}
 	
