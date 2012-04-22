@@ -12,6 +12,44 @@ Libsass is a C/C++ port of the Sass CSS precompiler. The original version was wr
 
 This library strives to be light, simple, and easy to build and integrate with a variety of platforms and languages.
 
+Usage
+-----
+
+While libsass is primarily implemented in C++, it provides a simple
+C interface that is defined in [sass_inteface.h]. Its usage is pretty
+straight forward.
+
+First, you create a sass context struct. We use these objects to define
+different execution parameters for the library. There are three 
+different context types. 
+
+    sass_context        //string-in-string-out compilation
+    sass_file_context   //file-based compilation
+    sass_folder_context //full-folder multi-file 
+
+Each of the context's have slightly different behavior and are
+implemented seperately. This does add extra work to implementing
+a wrapper library, but we felt that a mixed-use context object
+provides for too much implicit logic. What if you set "input_string"
+AND "input_file"... what do we do? This would introduce bugs into
+wrapper libraries that would be difficult to debug. 
+
+We anticipate that most adapters in most languages will define
+their own logic for how to separate these use cases based on the
+language. For instance, the original Ruby interface has a combined
+interface, but is backed by three different processes.
+
+To generate a context, use one of the following methods.
+
+    new_sass_context()
+    new_sass_file_context()
+    new_sass_folder_context()
+
+Again, please see the sass_interface.h for more information.
+
+And, to get even more information, then please see the implementations
+in SassC and SassC-Ruby.
+
 About Sass
 ----------
 
