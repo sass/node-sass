@@ -436,7 +436,7 @@ namespace Sass {
         }
         Node imported_tree(parse_import());
         if (imported_tree.type == Node::css_import) {
-          cerr << "css import inside block" << endl;
+          // cerr << "css import inside block" << endl;
           block << imported_tree;
           block.has_statements = true;
         }
@@ -710,15 +710,20 @@ namespace Sass {
   {
     if (lex< uri_prefix >())
     {
-      lex< string_constant >();
-      Node result(Node::uri, line_number, lexed);
+      const char* value = position;
+      const char* rparen = find_first< exactly<')'> >(position);
+      if (!rparen) syntax_error("URI is missing ')'");
+      Token contents(Token::make(value, rparen));
+      // lex< string_constant >();
+      Node result(Node::uri, line_number, contents);
+      position = rparen;
       lex< exactly<')'> >();
       return result;
     }
     
     if (lex< value_schema >())
     {
-      cerr << "parsing value schema: " << lexed.to_string() << endl;
+      // cerr << "parsing value schema: " << lexed.to_string() << endl;
       
       Document schema_doc(path, line_number, lexed, context);
       return schema_doc.parse_value_schema();
