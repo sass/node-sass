@@ -498,7 +498,7 @@ namespace Sass {
 
   Node Document::parse_rule() {
     Node rule(Node::rule, context.registry, line_number, 2);
-    if (!lex< identifier >()) syntax_error("invalid property name");
+    if (!lex< sequence< optional< exactly<'*'> >, identifier > >()) syntax_error("invalid property name");
     rule << Node(Node::property, line_number, lexed);
     if (!lex< exactly<':'> >()) syntax_error("property \"" + lexed.to_string() + "\" must be followed by a ':'");
     rule << parse_list();
