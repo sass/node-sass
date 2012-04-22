@@ -1,0 +1,113 @@
+list        ->  comma_list
+            ->  <nothing>
+
+comma_list  ->  space_list [',' space_list]*
+
+space_list  ->  expression expression*
+
+expression  ->  term [['+' | '-'] term]*
+
+term        ->  factor [['*' | '/'] factor]*
+
+factor      ->  percentage | dimension | number | hex |
+                string_constant | identifier | variable
+            ->  '(' list ')'
+
+
+
+a b c d
+
+comma_list
+  space_list
+    value
+    value
+    value
+    value
+
+
+a (b, c) d
+
+comma_list
+  space_list
+    value
+    value
+      list
+        comma_list
+          space_list
+            value
+          space_list
+            value
+    value
+
+
+a b, c d
+
+comma_list
+  space_list
+    value
+    value
+  space_list
+    value
+    value
+
+
+a/b c
+
+list
+comma_list
+  space_list
+    value
+      term
+        division
+          value
+          value
+    value
+
+
+(a/b)
+
+list
+  comma_list
+    space_list
+      value
+        list
+          comma_list
+            space_list
+              value
+                term
+                  division
+                    value
+                    value
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
