@@ -1,7 +1,7 @@
 Libsass
 =======
 
-Written by Hampton Catlin (@hcatlin) and Aaron Leung
+by Aaron Leung and Hampton Catlin (@hcatlin)
 
 About
 -----
@@ -15,3 +15,7 @@ Contribution Agreement
 ----------------------
 
 Any contribution to the project are seen as copyright assigned to Hampton Catlin. Your contribution warrants that you have the right to assign copyright on your work. This is to ensure that the project remains free and open -- similar to the Apache Foundation.
+
+Our license is designed to be as simple as possible.
+
+
