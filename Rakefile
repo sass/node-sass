@@ -21,6 +21,6 @@ task :run do
   ptr = SassC::Lib.sass_new_context()
   ctx = SassC::Lib::Context.new(ptr)
   ctx[:input_string] = SassC::Lib.to_char("hi { width: 30px; }")
-  SassC::Lib.sass_compile(ctx)
+  puts "!!!" + SassC::Lib.sass_compile(ctx.to_ptr).to_s
   #puts ctx[:output_string]
 end
