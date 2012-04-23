@@ -379,6 +379,9 @@ namespace Sass {
       else if (lex< sequence< optional<sign>, digits > >()) {
         pseudo << Node(Node::value, line_number, lexed);
       }
+      else if (lex< string_constant >()) {
+        pseudo << Node(Node::string_constant, line_number, lexed);
+      }
       else {
         syntax_error("invalid argument to " + name.to_string() + "...)");
       }
