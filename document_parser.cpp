@@ -64,6 +64,7 @@ namespace Sass {
     }
     if (!lex< string_constant >()) syntax_error("@import directive requires a url or quoted path");
     // TO DO: BETTER PATH HANDLING
+    // cerr << "Importing " << lexed.to_string() << endl;
     string import_path(lexed.unquote());
     const char* curr_path_start = path.c_str();
     const char* curr_path_end   = folders(curr_path_start);
@@ -71,6 +72,7 @@ namespace Sass {
     try {
       Document importee(current_path + import_path, context);
       importee.parse_scss();
+      // cerr << "Finished parsing import " << lexed.to_string() << endl;
       return importee.root;
     }
     catch (string& path) {

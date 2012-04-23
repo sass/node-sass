@@ -56,7 +56,7 @@ namespace Sass {
     for (i = 0; i < source_refs.size(); ++i) {
       delete[] source_refs[i];
     }
-    cerr << "Deallocated " << i << " source string(s)." << endl;
+    // cerr << "Deallocated " << i << " source string(s)." << endl;
   }
   
   inline void Context::register_function(Function_Descriptor d, Implementation ip)
