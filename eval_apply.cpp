@@ -246,7 +246,7 @@ namespace Sass {
       
       case Node::string_schema:
       case Node::value_schema: {
-        cerr << "evaluating schema of size " << expr.size() << endl;
+        // cerr << "evaluating schema of size " << expr.size() << endl;
         for (int i = 0; i < expr.size(); ++i) {
           expr[i] = eval(expr[i], env, f_env, registry);
         }
