@@ -127,5 +127,10 @@ extern "C" {
     // TO DO: CATCH EVERYTHING ELSE
     return 0;
   }
+  
+  int sass_compile_folder(sass_folder_context* c_ctx)
+  {
+    return 1;
+  }
 
 }
