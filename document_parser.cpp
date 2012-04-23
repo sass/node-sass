@@ -38,7 +38,8 @@ namespace Sass {
         root << parse_assignment();
         if (!lex< exactly<';'> >()) syntax_error("top-level variable binding must be terminated by ';'");
       }
-      else if (look_for_selector_group(position)) {
+      // else if (look_for_selector_group(position)) {
+      else if (lookahead_for_selector(position)) {
         root << parse_ruleset();
       }
       else if (peek< exactly<'+'> >()) {
@@ -474,7 +475,8 @@ namespace Sass {
       //   block << parse_ruleset();
       //   block.has_blocks = true;
       // }
-      else if (const char* p = look_for_selector_group(position)) {
+      //else if (const char* p = look_for_selector_group(position)) {
+      else if (const char* p = lookahead_for_selector(position)) {
         block << parse_ruleset(definition);
         block[0].has_blocks = true;
       }
@@ -904,6 +906,44 @@ namespace Sass {
   //   { p = q; }
   //   return p == start ? 0 : p;
   // }
+  
+  const char* Document::lookahead_for_selector(const char* start)
+  {
+    const char* p = start ? start : position;
+    const char* q;
+
+    while ((q = peek< identifier >(p))                            ||
+           (q = peek< id_name >(p))                               ||
+           (q = peek< class_name >(p))                            ||
+           (q = peek< sequence< pseudo_prefix, identifier > >(p)) ||
+           (q = peek< string_constant >(p))                       ||
+           (q = peek< exactly<'*'> >(p))                          ||
+           (q = peek< exactly<'('> >(p))                          ||
+           (q = peek< exactly<')'> >(p))                          ||
+           (q = peek< exactly<'['> >(p))                          ||
+           (q = peek< exactly<']'> >(p))                          ||
+           (q = peek< exactly<'+'> >(p))                          ||
+           (q = peek< exactly<'~'> >(p))                          ||
+           (q = peek< exactly<'>'> >(p))                          ||
+           (q = peek< exactly<','> >(p))                          ||
+           (q = peek< binomial >(p))                              ||
+           (q = peek< sequence< optional<sign>,
+                                optional<digits>,
+                                exactly<'n'> > >(p))              ||
+           (q = peek< sequence< optional<sign>,
+                                digits > >(p))                    ||
+           (q = peek< number >(p))                                ||
+           (q = peek< exactly<'&'> >(p))                          ||
+           (q = peek< alternatives<exact_match,
+                                   class_match,
+                                   dash_match,
+                                   prefix_match,
+                                   suffix_match,
+                                   substring_match> >(p))) { p = q; }
+
+    if (peek< exactly<'{'> >(p)) return p;
+    else return 0;
+  }
   
   // NEW LOOKAHEAD FUNCTIONS. THIS ESSENTIALLY IMPLEMENTS A BACKTRACKING
   // PARSER, BECAUSE SELECTORS AND VALUES ARE NOT EXPRESSIBLE IN A

@@ -145,6 +145,8 @@ namespace Sass {
     Node parse_string();
     Node parse_value_schema();
     
+    const char* lookahead_for_selector(const char* start = 0);
+    
     const char* look_for_rule(const char* start = 0);
     const char* look_for_values(const char* start = 0);
     

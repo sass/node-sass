@@ -72,7 +72,10 @@ namespace Sass {
       }  break;
       
       case selector_combinator: {
-        return content.token.to_string();
+        string result(prefix.empty() ? "" : prefix + " ");
+        result += content.token.to_string();
+        return result;
+        // return content.token.to_string();
         // if (std::isspace(content.token.begin[0])) return string(" ");
         // else return string(content.token);
       } break;
