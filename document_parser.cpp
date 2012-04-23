@@ -38,6 +38,9 @@ namespace Sass {
         root << parse_assignment();
         if (!lex< exactly<';'> >()) syntax_error("top-level variable binding must be terminated by ';'");
       }
+      // else if (peek< sequence< identifier, optional_spaces, exactly<':'> > >(position)) {
+      //   root << parse_propset();
+      // }
       // else if (look_for_selector_group(position)) {
       else if (lookahead_for_selector(position)) {
         root << parse_ruleset();
@@ -470,6 +473,9 @@ namespace Sass {
         block << parse_assignment();
         semicolon = true;
       }
+      // else if (peek< sequence< identifier, optional_spaces, exactly<':'> > >(position)) {
+      //   block << parse_propset();
+      // }
       // else if (look_for_rule(position)) {
       //   block << parse_rule();
       //   block.has_statements = true;
@@ -888,28 +894,6 @@ namespace Sass {
     lex< variable >();
     return Node(Node::variable, line_number, lexed);
   }
-
-  // const char* Document::look_for_rule(const char* start)
-  // {
-  //   const char* p = start ? start : position;
-  //   (p = peek< identifier >(p))   &&
-  //   (p = peek< exactly<':'> >(p)) &&
-  //   (p = look_for_values(p))      &&
-  //   (p = peek< alternatives< exactly<';'>, exactly<'}'> > >(p));
-  //   return p;
-  // }
-  // 
-  // const char* Document::look_for_values(const char* start)
-  // {
-  //   const char* p = start ? start : position;
-  //   const char* q;
-  //   while ((q = peek< identifier >(p)) || (q = peek< dimension >(p))       ||
-  //          (q = peek< percentage >(p)) || (q = peek< number >(p))          ||
-  //          (q = peek< hex >(p))        || (q = peek< string_constant >(p)) ||
-  //          (q = peek< variable >(p)))
-  //   { p = q; }
-  //   return p == start ? 0 : p;
-  // }
   
   const char* Document::lookahead_for_selector(const char* start)
   {
@@ -949,127 +933,151 @@ namespace Sass {
     else return 0;
   }
   
-  // NEW LOOKAHEAD FUNCTIONS. THIS ESSENTIALLY IMPLEMENTS A BACKTRACKING
-  // PARSER, BECAUSE SELECTORS AND VALUES ARE NOT EXPRESSIBLE IN A
-  // REGULAR LANGUAGE.
-  const char* Document::look_for_selector_group(const char* start)
-  {
-    const char* p = start ? start : position;
-    const char* q = look_for_selector(p);
-
-    if (!q) { return 0; }
-    else    { p = q; }
-
-    while ((q = peek< exactly<','> >(p)) && (q = look_for_selector(q)))
-    { p = q; }
-    
-    // return peek< exactly<'{'> >(p) ? p : 0;
-    return peek< alternatives< exactly<'{'>, exactly<')'> > >(p) ? p : 0;
-  }
-  
-  const char* Document::look_for_selector(const char* start)
-  {
-    const char* p = start ? start : position;
-    const char* q;
-
-    if ((q = peek< exactly<'+'> >(p)) ||
-        (q = peek< exactly<'~'> >(p)) ||
-        (q = peek< exactly<'>'> >(p)))
-    { p = q; }
-    
-    p = look_for_simple_selector_sequence(p);
-    
-    if (!p) return 0;
-    
-    while (((q = peek< exactly<'+'> >(p)) ||
-            (q = peek< exactly<'~'> >(p)) ||
-            (q = peek< exactly<'>'> >(p)) ||
-            (q = peek< ancestor_of > (p))) &&
-           (q = look_for_simple_selector_sequence(q)))
-    { p = q; }
-  
-    return p;
-  }
-  
-  const char* Document::look_for_simple_selector_sequence(const char* start)
-  {
-    const char* p = start ? start : position;
-    const char* q;
-    
-    if ((q = peek< type_selector >(p)) ||
-        (q = peek< universal >(p))     ||
-        (q = peek< exactly <'&'> >(p)) ||
-        (q = look_for_simple_selector(p)))
-    { p = q; }
-    else
-    { return 0; }
-    
-    while (!peek< spaces >(p) &&
-           !(peek < exactly<'+'> >(p) ||
-             peek < exactly<'~'> >(p) ||
-             peek < exactly<'>'> >(p) ||
-             peek < exactly<','> >(p) ||
-             peek < exactly<')'> >(p) ||
-             peek < exactly<'{'> >(p)) &&
-           (q = look_for_simple_selector(p)))
-    { p = q; }
-    
-    return p;
-  }
-  
-  const char* Document::look_for_simple_selector(const char* start)
-  {
-    const char* p = start ? start : position;
-    const char* q;
-    (q = peek< id_name >(p)) || (q = peek< class_name >(p)) ||
-    (q = look_for_pseudo(p)) || (q = look_for_attrib(p));
-    // cerr << "looking for simple selector; found:" << endl;
-    // cerr << (q ? string(Token::make(q,q+8)) : "nothing") << endl;
-    return q;
-  }
-  
-  const char* Document::look_for_pseudo(const char* start)
-  {
-    const char* p = start ? start : position;
-    const char* q;
-    
-    if (q = peek< pseudo_not >(p)) {
-      // (q = look_for_simple_selector(q)) && (q = peek< exactly<')'> >(q));
-      (q = look_for_selector_group(q)) && (q = peek< exactly<')'> >(q));
-    }
-    else if (q = peek< sequence< pseudo_prefix, functional > >(p)) {
-      p = q;
-      (q = peek< alternatives< even, odd > >(p)) ||
-      (q = peek< binomial >(p))                  ||
-      (q = peek< sequence< optional<sign>,
-                           optional<digits>,
-                           exactly<'n'> > >(p))  ||
-      (q = peek< sequence< optional<sign>,
-                           digits > >(p));
-      p = q;
-      q = peek< exactly<')'> >(p);
-    }
-    else {
-      q = peek< sequence< pseudo_prefix, identifier > >(p);
-    }
-    return q ? q : 0;
-  }
-    
-  const char* Document::look_for_attrib(const char* start)
-  {
-    const char* p = start ? start : position;
-    
-    (p = peek< exactly<'['> >(p))                  &&
-    (p = peek< type_selector >(p))                 &&
-    (p = peek< alternatives<exact_match,
-                            class_match,
-                            dash_match,
-                            prefix_match,
-                            suffix_match,
-                            substring_match> >(p)) &&
-    (p = peek< string_constant >(p))               &&
-    (p = peek< exactly<']'> >(p));
-    
-    return p;
-  }
 }
+
+  // const char* Document::look_for_rule(const char* start)
+  // {
+  //   const char* p = start ? start : position;
+  //   (p = peek< identifier >(p))   &&
+  //   (p = peek< exactly<':'> >(p)) &&
+  //   (p = look_for_values(p))      &&
+  //   (p = peek< alternatives< exactly<';'>, exactly<'}'> > >(p));
+  //   return p;
+  // }
+  // 
+  // const char* Document::look_for_values(const char* start)
+  // {
+  //   const char* p = start ? start : position;
+  //   const char* q;
+  //   while ((q = peek< identifier >(p)) || (q = peek< dimension >(p))       ||
+  //          (q = peek< percentage >(p)) || (q = peek< number >(p))          ||
+  //          (q = peek< hex >(p))        || (q = peek< string_constant >(p)) ||
+  //          (q = peek< variable >(p)))
+  //   { p = q; }
+  //   return p == start ? 0 : p;
+  // }
+  
+//   // NEW LOOKAHEAD FUNCTIONS. THIS ESSENTIALLY IMPLEMENTS A BACKTRACKING
+//   // PARSER, BECAUSE SELECTORS AND VALUES ARE NOT EXPRESSIBLE IN A
+//   // REGULAR LANGUAGE.
+//   const char* Document::look_for_selector_group(const char* start)
+//   {
+//     const char* p = start ? start : position;
+//     const char* q = look_for_selector(p);
+// 
+//     if (!q) { return 0; }
+//     else    { p = q; }
+// 
+//     while ((q = peek< exactly<','> >(p)) && (q = look_for_selector(q)))
+//     { p = q; }
+//     
+//     // return peek< exactly<'{'> >(p) ? p : 0;
+//     return peek< alternatives< exactly<'{'>, exactly<')'> > >(p) ? p : 0;
+//   }
+//   
+//   const char* Document::look_for_selector(const char* start)
+//   {
+//     const char* p = start ? start : position;
+//     const char* q;
+// 
+//     if ((q = peek< exactly<'+'> >(p)) ||
+//         (q = peek< exactly<'~'> >(p)) ||
+//         (q = peek< exactly<'>'> >(p)))
+//     { p = q; }
+//     
+//     p = look_for_simple_selector_sequence(p);
+//     
+//     if (!p) return 0;
+//     
+//     while (((q = peek< exactly<'+'> >(p)) ||
+//             (q = peek< exactly<'~'> >(p)) ||
+//             (q = peek< exactly<'>'> >(p)) ||
+//             (q = peek< ancestor_of > (p))) &&
+//            (q = look_for_simple_selector_sequence(q)))
+//     { p = q; }
+//   
+//     return p;
+//   }
+//   
+//   const char* Document::look_for_simple_selector_sequence(const char* start)
+//   {
+//     const char* p = start ? start : position;
+//     const char* q;
+//     
+//     if ((q = peek< type_selector >(p)) ||
+//         (q = peek< universal >(p))     ||
+//         (q = peek< exactly <'&'> >(p)) ||
+//         (q = look_for_simple_selector(p)))
+//     { p = q; }
+//     else
+//     { return 0; }
+//     
+//     while (!peek< spaces >(p) &&
+//            !(peek < exactly<'+'> >(p) ||
+//              peek < exactly<'~'> >(p) ||
+//              peek < exactly<'>'> >(p) ||
+//              peek < exactly<','> >(p) ||
+//              peek < exactly<')'> >(p) ||
+//              peek < exactly<'{'> >(p)) &&
+//            (q = look_for_simple_selector(p)))
+//     { p = q; }
+//     
+//     return p;
+//   }
+//   
+//   const char* Document::look_for_simple_selector(const char* start)
+//   {
+//     const char* p = start ? start : position;
+//     const char* q;
+//     (q = peek< id_name >(p)) || (q = peek< class_name >(p)) ||
+//     (q = look_for_pseudo(p)) || (q = look_for_attrib(p));
+//     // cerr << "looking for simple selector; found:" << endl;
+//     // cerr << (q ? string(Token::make(q,q+8)) : "nothing") << endl;
+//     return q;
+//   }
+//   
+//   const char* Document::look_for_pseudo(const char* start)
+//   {
+//     const char* p = start ? start : position;
+//     const char* q;
+//     
+//     if (q = peek< pseudo_not >(p)) {
+//       // (q = look_for_simple_selector(q)) && (q = peek< exactly<')'> >(q));
+//       (q = look_for_selector_group(q)) && (q = peek< exactly<')'> >(q));
+//     }
+//     else if (q = peek< sequence< pseudo_prefix, functional > >(p)) {
+//       p = q;
+//       (q = peek< alternatives< even, odd > >(p)) ||
+//       (q = peek< binomial >(p))                  ||
+//       (q = peek< sequence< optional<sign>,
+//                            optional<digits>,
+//                            exactly<'n'> > >(p))  ||
+//       (q = peek< sequence< optional<sign>,
+//                            digits > >(p));
+//       p = q;
+//       q = peek< exactly<')'> >(p);
+//     }
+//     else {
+//       q = peek< sequence< pseudo_prefix, identifier > >(p);
+//     }
+//     return q ? q : 0;
+//   }
+//     
+//   const char* Document::look_for_attrib(const char* start)
+//   {
+//     const char* p = start ? start : position;
+//     
+//     (p = peek< exactly<'['> >(p))                  &&
+//     (p = peek< type_selector >(p))                 &&
+//     (p = peek< alternatives<exact_match,
+//                             class_match,
+//                             dash_match,
+//                             prefix_match,
+//                             suffix_match,
+//                             substring_match> >(p)) &&
+//     (p = peek< string_constant >(p))               &&
+//     (p = peek< exactly<']'> >(p));
+//     
+//     return p;
+//   }
+// }

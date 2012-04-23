@@ -262,8 +262,8 @@ namespace Sass {
   Node accumulate(Node::Type op, Node& acc, Node& rhs, vector<vector<Node>*>& registry)
   {
     Node lhs(acc.content.children->back());
-    double lnum = lhs.content.numeric_value;
-    double rnum = rhs.content.numeric_value;
+    double lnum = lhs.numeric_value();
+    double rnum = rhs.numeric_value();
     
     if (lhs.type == Node::number && rhs.type == Node::number) {
       Node result(acc.line_number, operate(op, lnum, rnum));
