@@ -5,6 +5,11 @@ by Aaron Leung and Hampton Catlin (@hcatlin)
 
 http://github.com/hcatlin/libsass
 
+Libsass is just a library, but if you want to RUN libsass,
+then go to http://github.com/hcatlin/sassc or
+http://github.com/hcatlin/sassruby or find your local 
+implementer.
+
 About
 -----
 
