@@ -399,7 +399,8 @@ namespace Sass {
     lex< exactly<'['> >();
     if (!lex< type_selector >()) syntax_error("invalid attribute name in attribute selector");
     Token name(lexed);
-    attr_sel << Node(Node::value, line_number, lexed);
+    attr_sel << Node(Node::value, line_number, name);
+    if (lex< exactly<']'> >()) return attr_sel;
     if (!lex< alternatives< exact_match, class_match, dash_match,
                             prefix_match, suffix_match, substring_match > >()) {
       syntax_error("invalid operator in attribute selector for " + name.to_string());

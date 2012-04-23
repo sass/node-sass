@@ -125,7 +125,7 @@ namespace Sass {
         string result(prefix);
         if (!prefix.empty()) result += " ";
         result += "[";
-        for (int i = 0; i < 3; ++i)
+        for (int i = 0; i < size(); ++i)
         { result += at(i).to_string(prefix); }
         result += ']';
         return result;
