@@ -1,0 +1,11 @@
+src/Makefile
+.DS_Store
+tmp/
+.sass-cache
+sassc
+build/*
+*.o
+*.a
+a.out
+bin/*
+*.gem
