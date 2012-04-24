@@ -8,11 +8,12 @@ Node bindings to libsass
 
     CXX=clang node-waf configure && node-waf build
 
-    sass = require('./sass');
-    sass.render('scss string')
+    var sass = require('./sass');
+    sass.render('scss string');
 
 ## TODO
 
+* fix build script
 * express middleware
 * file context
 * folder context
