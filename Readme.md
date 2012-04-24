@@ -67,7 +67,7 @@ Hampton Catlin (@hcatlin). The extension and continuing evolution
 of the language has all been the result of years of work by Nathan
 Weizenbaum (@nex3) and Chris Eppstein (@chriseppstein). 
 
-For more information about Sass itself, please visit http://sass-lang.org
+For more information about Sass itself, please visit http://sass-lang.com
 
 Contribution Agreement
 ----------------------
