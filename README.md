@@ -9,4 +9,10 @@ Node bindings to libsass
     CXX=clang node-waf configure && node-waf build
 
     sass = require('./sass');
-    sass.render('path/to/file.scss')
+    sass.render('scss string')
+
+## TODO
+
+express middleware
+file context
+folder context
