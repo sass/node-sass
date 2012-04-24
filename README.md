@@ -13,6 +13,6 @@ Node bindings to libsass
 
 ## TODO
 
-express middleware
-file context
-folder context
+* express middleware
+* file context
+* folder context
