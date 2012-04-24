@@ -13,3 +13,6 @@ results
 
 node_modules
 npm-debug.log
+
+build
+.lock-wscript

@@ -1,0 +1,17 @@
+{
+  "author": "Andrew Nesbitt <andrewnez@gmail.com> (http://andrew.github.com)",
+  "name": "sass",
+  "description": "wrapper around libsass",
+  "version": "0.0.0",
+  "homepage": "http://github.com/andrew/node-sass",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/andrew/node-sass.git"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}
