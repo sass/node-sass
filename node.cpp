@@ -443,9 +443,12 @@ namespace Sass {
         buf << " {";
         for (int i = 0; i < block.size(); ++i) {
           Type stm_type = block[i].type;
-          if (stm_type == comment || stm_type == rule || stm_type == css_import) {
+          if (stm_type == comment || stm_type == rule || stm_type == css_import || stm_type == propset) {
             block[i].emit_nested_css(buf, depth+1); // NEED OVERLOADED VERSION FOR COMMENTS AND RULES
           }
+          // else if (stm_type == propset) {
+          //   block[i].emit_nested_css(buf, depth, new_prefixes);
+          // }
         }
         buf << " }" << endl;
         ++depth; // if we printed content at this level, we need to indent any nested rulesets
@@ -471,6 +474,23 @@ namespace Sass {
   {
     switch (type)
     {
+    case propset: {
+      emit_propset(buf, depth, "");
+      // string prefix(string(2*depth, ' ') + at(0).content.token.to_string() + "-");
+      // Node rules(at(1));
+      // for (int i = 0; i < rules.size(); ++i) {
+      //   buf << prefix;
+      //   if (rules[i].type == propset) {
+      //     rules[i].emit_nested_css(buf, depth+1);
+      //   }
+      //   else {
+      //     rules[i][0].emit_nested_css(buf, depth);
+      //     rules[i][1].emit_nested_css(buf, depth);
+      //     buf << ';';
+      //   }
+      // } 
+    } break;
+      
     case rule:
       buf << endl << string(2*depth, ' ');
       at(0).emit_nested_css(buf, depth); // property
@@ -504,6 +524,26 @@ namespace Sass {
       buf << to_string("");
       break;
     }
+  }
+  
+  void Node::emit_propset(stringstream& buf, size_t depth, const string& prefix) {
+    string new_prefix(prefix);
+    if (new_prefix.empty()) new_prefix += "\n";
+    else new_prefix += "-";
+    new_prefix += at(0).content.token.to_string();
+    Node rules(at(1));
+    for (int i = 0; i < rules.size(); ++i) {
+      buf << new_prefix;
+      if (rules[i].type == propset) {
+        rules[i].emit_propset(buf, depth+1, new_prefix);
+      }
+      else {
+        rules[i][0].emit_nested_css(buf, depth);
+        rules[i][1].emit_nested_css(buf, depth);
+        buf << ';';
+      }
+    }
+    
   }
 
   void Node::emit_expanded_css(stringstream& buf, const string& prefix) {

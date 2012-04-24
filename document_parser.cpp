@@ -38,10 +38,9 @@ namespace Sass {
         root << parse_assignment();
         if (!lex< exactly<';'> >()) syntax_error("top-level variable binding must be terminated by ';'");
       }
-      // else if (peek< sequence< identifier, optional_spaces, exactly<':'> > >(position)) {
-      //   root << parse_propset();
-      // }
-      // else if (look_for_selector_group(position)) {
+      else if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
+        root << parse_propset();
+      }
       else if (lookahead_for_selector(position)) {
         root << parse_ruleset();
       }
@@ -183,6 +182,29 @@ namespace Sass {
     Node assn(Node::assignment, context.registry, line_number, 2);
     assn << var << val;
     return assn;
+  }
+  
+  Node Document::parse_propset()
+  {
+    lex< identifier >();
+    Node property_segment(Node::identifier, line_number, lexed);
+    lex< exactly<':'> >();
+    lex< exactly<'{'> >();
+    Node block(Node::block, context.registry, line_number, 1);
+    while (!lex< exactly<'}'> >()) {
+      if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
+        block << parse_propset();
+      }
+      else {
+        block << parse_rule();
+        lex< exactly<';'> >();
+      }
+    }
+    if (block.size() == 0) syntax_error("namespaced property cannot be empty");
+    Node propset(Node::propset, context.registry, line_number, 2);
+    propset << property_segment;
+    propset << block;
+    return propset;
   }
 
   Node Document::parse_ruleset(bool definition)
@@ -473,9 +495,10 @@ namespace Sass {
         block << parse_assignment();
         semicolon = true;
       }
-      // else if (peek< sequence< identifier, optional_spaces, exactly<':'> > >(position)) {
-      //   block << parse_propset();
-      // }
+      else if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
+        block << parse_propset();
+        block[0].has_statements = true;
+      }
       // else if (look_for_rule(position)) {
       //   block << parse_rule();
       //   block.has_statements = true;
@@ -485,7 +508,6 @@ namespace Sass {
       //   block << parse_ruleset();
       //   block.has_blocks = true;
       // }
-      //else if (const char* p = look_for_selector_group(position)) {
       else if (const char* p = lookahead_for_selector(position)) {
         block << parse_ruleset(definition);
         block[0].has_blocks = true;

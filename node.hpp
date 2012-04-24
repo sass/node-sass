@@ -210,6 +210,7 @@ namespace Sass {
                          size_t depth,
                          const vector<string>& prefixes);
     void emit_nested_css(stringstream& buf, size_t depth);
+    void emit_propset(stringstream& buf, size_t depth, const string& prefix);
     void emit_expanded_css(stringstream& buf, const string& prefix);
     
     Node clone(vector<vector<Node>*>& registry) const;
