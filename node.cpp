@@ -476,19 +476,6 @@ namespace Sass {
     {
     case propset: {
       emit_propset(buf, depth, "");
-      // string prefix(string(2*depth, ' ') + at(0).content.token.to_string() + "-");
-      // Node rules(at(1));
-      // for (int i = 0; i < rules.size(); ++i) {
-      //   buf << prefix;
-      //   if (rules[i].type == propset) {
-      //     rules[i].emit_nested_css(buf, depth+1);
-      //   }
-      //   else {
-      //     rules[i][0].emit_nested_css(buf, depth);
-      //     rules[i][1].emit_nested_css(buf, depth);
-      //     buf << ';';
-      //   }
-      // } 
     } break;
       
     case rule:
@@ -528,16 +515,25 @@ namespace Sass {
   
   void Node::emit_propset(stringstream& buf, size_t depth, const string& prefix) {
     string new_prefix(prefix);
-    if (new_prefix.empty()) new_prefix += "\n";
-    else new_prefix += "-";
-    new_prefix += at(0).content.token.to_string();
+    bool has_prefix = false;
+    if (new_prefix.empty()) {
+      new_prefix += "\n";
+      new_prefix += string(2*depth, ' ');
+      new_prefix += at(0).content.token.to_string();
+    }
+    else {
+      new_prefix += "-";
+      new_prefix += at(0).content.token.to_string();
+      has_prefix = true;
+    }
     Node rules(at(1));
     for (int i = 0; i < rules.size(); ++i) {
-      buf << new_prefix;
       if (rules[i].type == propset) {
         rules[i].emit_propset(buf, depth+1, new_prefix);
       }
       else {
+        buf << new_prefix;
+        if (rules[i][0].content.token.to_string() != "") buf << '-';
         rules[i][0].emit_nested_css(buf, depth);
         rules[i][1].emit_nested_css(buf, depth);
         buf << ';';
