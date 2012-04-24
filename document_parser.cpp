@@ -49,6 +49,10 @@ namespace Sass {
         root[0].has_expansions = true;
         if (!lex< exactly<';'> >()) syntax_error("top-level @include directive must be terminated by ';'");
       }
+      else {
+        lex< spaces_and_comments >();
+        syntax_error("invalid top-level expression");
+      }
       lex<optional_spaces>();
     }
   }
