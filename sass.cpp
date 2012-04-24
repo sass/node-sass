@@ -9,7 +9,10 @@ Handle<Value> Render(const Arguments& args) {
 
     struct sass_context* ctx = sass_new_context();
 
-    ctx->input_string = args[0]->ToString();
+    String::AsciiValue  astr(args[0]); 
+    char * cs = *astr;
+
+    ctx->input_string = cs;
     ctx->options.output_style = SASS_STYLE_NESTED;
 
     sass_compile(ctx);
