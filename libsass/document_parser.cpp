@@ -49,6 +49,10 @@ namespace Sass {
         root[0].has_expansions = true;
         if (!lex< exactly<';'> >()) syntax_error("top-level @include directive must be terminated by ';'");
       }
+      else {
+        lex< spaces_and_comments >();
+        syntax_error("invalid top-level expression");
+      }
       lex<optional_spaces>();
     }
   }
@@ -518,10 +522,23 @@ namespace Sass {
         semicolon = true;
       }
       else if (!peek< exactly<';'> >()) {
-        block << parse_rule();
+        Node rule(parse_rule());
+        // check for lbrace; if it's there, we have a namespace property with a value
+        if (peek< exactly<'{'> >()) {
+          Node inner(parse_block());
+          Node propset(Node::propset, context.registry, line_number, 2);
+          propset << rule[0];
+          rule[0] = Node(Node::property, line_number, Token::make());
+          inner[0] = rule;
+          propset << inner;
+          block << propset;
+          // cerr << block[block.size()-1][0].content.token.to_string() << endl;
+        }
+        else {
+          block << rule;
+          semicolon = true;
+        }
         block[0].has_statements = true;
-        semicolon = true;
-        //lex< exactly<';'> >(); // TO DO: clean up the semicolon handling stuff
       }
       else lex< exactly<';'> >();
       while (lex< block_comment >()) {
@@ -534,7 +551,10 @@ namespace Sass {
 
   Node Document::parse_rule() {
     Node rule(Node::rule, context.registry, line_number, 2);
-    if (!lex< sequence< optional< exactly<'*'> >, identifier > >()) syntax_error("invalid property name");
+    if (!lex< sequence< optional< exactly<'*'> >, identifier > >()) {
+      lex< spaces_and_comments >(); // get the line number right
+      syntax_error("invalid property name");
+    }
     rule << Node(Node::property, line_number, lexed);
     if (!lex< exactly<':'> >()) syntax_error("property \"" + lexed.to_string() + "\" must be followed by a ':'");
     rule << parse_list();

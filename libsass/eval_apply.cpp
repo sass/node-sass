@@ -38,6 +38,7 @@ namespace Sass {
         return expr;
       } break;
       
+      case Node::propset:
       case Node::ruleset: {
         eval(expr[1], env, f_env, registry);
         return expr;
