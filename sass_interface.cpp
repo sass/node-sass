@@ -47,8 +47,7 @@ extern "C" {
     // cerr << "Destructions:\t" << Node::destructed << endl;
     // cerr << "Registry size:\t" << doc.context.registry.size() << endl;
     
-    int i;
-    for (i = 0; i < doc.context.registry.size(); ++i) {
+    for (size_t i = 0; i < doc.context.registry.size(); ++i) {
       delete doc.context.registry[i];
     }
     // cerr << "Deallocations:\t" << i << endl;

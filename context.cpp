@@ -52,8 +52,7 @@ namespace Sass {
   
   Context::~Context()
   {
-    int i;
-    for (i = 0; i < source_refs.size(); ++i) {
+    for (size_t i = 0; i < source_refs.size(); ++i) {
       delete[] source_refs[i];
     }
     // cerr << "Deallocated " << i << " source string(s)." << endl;
