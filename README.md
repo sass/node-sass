@@ -6,7 +6,7 @@ Node bindings to libsass
 
 ## Usage
 
-    CXX=clang node-waf configure && node-waf build
+    node-gyp configure && node-gyp build
 
     var sass = require('./sass');
     sass.render('scss string');
