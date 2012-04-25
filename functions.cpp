@@ -568,12 +568,11 @@ namespace Sass {
       else if (!n1.is_numeric() && !n2.is_numeric()) {
         eval_error("arguments to comparable must be numeric", n1.line_number, n1.file_name);
       }
-      else {
-        Node F(Node::boolean);
-        F.line_number = n1.line_number;
-        F.content.boolean_value = false;
-        return F;
-      }
+      
+      Node F(Node::boolean);
+      F.line_number = n1.line_number;
+      F.content.boolean_value = false;
+      return F;
     }
     
     // Boolean Functions ///////////////////////////////////////////////////

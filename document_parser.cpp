@@ -85,6 +85,8 @@ namespace Sass {
     catch (string& path) {
       read_error("error reading file \"" + path + "\"");
     }
+    // unreached statement
+    return Node(Node::none); 
   }
 
   Node Document::parse_mixin_definition()
@@ -370,10 +372,9 @@ namespace Sass {
     else if (peek< exactly<'['> >(position)) {
       return parse_attribute_selector();
     }
-    else {
-      syntax_error("invalid selector after " + lexed.to_string());
-    }
-  }
+    syntax_error("invalid selector after " + lexed.to_string());
+    // unreached statement
+    return Node(Node::none);}
   
   Node Document::parse_pseudo() {
     if (lex< pseudo_not >()) {
@@ -420,9 +421,9 @@ namespace Sass {
     else if (lex < sequence< pseudo_prefix, identifier > >()) {
       return Node(Node::pseudo, line_number, lexed);
     }
-    else {
-      syntax_error("unrecognized pseudo-class or pseudo-element");
-    }
+    syntax_error("unrecognized pseudo-class or pseudo-element");
+    // unreached statement
+    return Node(Node::none);
   }
   
   Node Document::parse_attribute_selector()
@@ -834,6 +835,8 @@ namespace Sass {
     }
     
     syntax_error("error reading values after " + lexed.to_string());
+    // unreached statement
+    return Node(Node::none);
   }
   
   extern const char hash_lbrace[] = "#{";

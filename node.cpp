@@ -393,6 +393,8 @@ namespace Sass {
     case value:
       buf << ' ' << string(content.token);
       break;
+    default:
+      break;
     }
   }
 
