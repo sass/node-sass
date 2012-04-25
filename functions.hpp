@@ -30,7 +30,7 @@ namespace Sass {
       while (d[len+1]) ++len;
       
       parameters.reserve(len);
-      for (int i = 0; i < len; ++i) {
+      for (size_t i = 0; i < len; ++i) {
         const char* p = d[i+1];
         Token name(Token::make(p, p + std::strlen(p)));
         parameters.push_back(name);
