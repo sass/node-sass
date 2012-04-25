@@ -400,7 +400,7 @@ namespace Sass {
       }
     }
     // plug the holes with default arguments if any
-    for (int i = 0; i < params.size(); ++i) {
+    for (size_t i = 0; i < params.size(); ++i) {
       if (params[i].type == Node::assignment) {
         Node param(params[i]);
         Token name(param[0].content.token);
@@ -411,7 +411,7 @@ namespace Sass {
     }
     // lexically link the new environment and eval the mixin's body
     bindings.link(env.global ? *env.global : env);
-    for (int i = 0; i < body.size(); ++i) {
+    for (size_t i = 0; i < body.size(); ++i) {
       body[i] = eval(body[i], bindings, f_env, registry);
     }
     return body;

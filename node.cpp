@@ -60,11 +60,9 @@ namespace Sass {
         //   result += at(0).to_string(t == backref ? prefix : "");
         // }
         
-        Node::Type t = at(0).type;
         result += at(0).to_string(at(0).has_backref ? prefix : "");
 
         for (size_t i = 1; i < size(); ++i) {
-          Node::Type t = at(i).type;
           result += " ";
           result += at(i).to_string(at(i).has_backref ? prefix : "");
         }
