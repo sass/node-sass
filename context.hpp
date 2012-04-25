@@ -40,14 +40,14 @@ namespace Sass {
   };
 
   struct Context {
-    string sass_path;
-    string css_path;
-    vector<string> include_paths;
     Environment global_env;
     map<pair<string, size_t>, Function> function_env;
     vector<char*> source_refs; // all the source c-strings
     vector<vector<Node>*> registry; // all the child vectors
+    vector<string> include_paths;
     size_t ref_count;
+    string sass_path;
+    string css_path;
     
     void collect_include_paths(const char* paths_str);
     Context(const char* paths_str = 0);
