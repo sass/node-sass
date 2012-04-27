@@ -503,15 +503,6 @@ namespace Sass {
         block << parse_propset();
         block[0].has_statements = true;
       }
-      // else if (look_for_rule(position)) {
-      //   block << parse_rule();
-      //   block.has_statements = true;
-      //   semicolon = true;
-      // }
-      // else if (!peek< exactly<';'> >()) {
-      //   block << parse_ruleset();
-      //   block.has_blocks = true;
-      // }
       else if (const char* p = lookahead_for_selector(position)) {
         block << parse_ruleset(definition);
         block[0].has_blocks = true;
