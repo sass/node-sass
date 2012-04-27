@@ -11,7 +11,7 @@ CPP_FILES = \
 	prelexer.cpp
 
 libsass: libsass_objs
-	ar rvs libsass.a \
+	ar rs libsass.a \
 			sass_interface.o \
 			context.o \
 			functions.o \

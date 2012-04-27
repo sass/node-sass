@@ -6,13 +6,12 @@ using namespace v8;
 
 Handle<Value> Render(const Arguments& args) {
     HandleScope scope;
-
     struct sass_context* ctx = sass_new_context();
-
     String::AsciiValue  astr(args[0]); 
     char * cs = *astr;
 
     ctx->input_string = cs;
+    ctx->options.include_paths = 0;
     ctx->options.output_style = SASS_STYLE_NESTED;
 
     sass_compile(ctx);

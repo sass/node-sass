@@ -12,9 +12,12 @@ def set_options(opt):
 def configure(conf):
     conf.check_tool("compiler_cxx")
     conf.check_tool("node_addon")
+    conf.check(staticlib='sass',  uselib_store='LIB_SASS', cpppath='./libsass/')
 
 def build(bld):
     obj = bld.new_task_gen("cxx", "shlib", "node_addon")
     obj.uselib = "sass"
     obj.target = "binding"
     obj.source = "binding.cpp "
+    obj.use = ['LIB_SASS']
+    obj.add_obj_file("./libsass/libsass.a")
