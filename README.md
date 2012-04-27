@@ -4,16 +4,18 @@ Node bindings to libsass
 
 *work in progress*
 
+## Install
+
+    node-waf configure && node-waf build
+
 ## Usage
 
-    node-gyp configure && node-gyp build
-
     var sass = require('./sass');
-    sass.render('scss string');
+    sass.render('body{background:blue; a{color:black;}}');
 
 ## TODO
 
-* fix build script
+* error handling
 * express middleware
 * file context
 * folder context
