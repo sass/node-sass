@@ -1,3 +1,8 @@
 var binding = require('./build/Release/binding')
 
-exports.render = binding.render;
+var render = function(str, cb){
+  cb(binding.render(str))
+}
+
+exports.render = render
+exports.middleware = require('./lib/middleware');

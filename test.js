@@ -1,5 +1,6 @@
 var sass = require('./sass');
-console.log(sass.render('#navbar {\
+
+var scssStr = '#navbar {\
   width: 80%;\
   height: 23px; }\
   #navbar ul {\
@@ -7,4 +8,9 @@ console.log(sass.render('#navbar {\
   #navbar li {\
     float: left;\
     a {\
-      font-weight: bold; }}'))
+      font-weight: bold; }}';
+
+sass.render(scssStr, function(css){
+  console.log(css)
+})
+
