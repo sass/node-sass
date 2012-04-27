@@ -85,6 +85,8 @@ namespace Sass {
     catch (string& path) {
       read_error("error reading file \"" + path + "\"");
     }
+    // unreached statement
+    return Node(Node::none); 
   }
 
   Node Document::parse_mixin_definition()
@@ -370,10 +372,9 @@ namespace Sass {
     else if (peek< exactly<'['> >(position)) {
       return parse_attribute_selector();
     }
-    else {
-      syntax_error("invalid selector after " + lexed.to_string());
-    }
-  }
+    syntax_error("invalid selector after " + lexed.to_string());
+    // unreached statement
+    return Node(Node::none);}
   
   Node Document::parse_pseudo() {
     if (lex< pseudo_not >()) {
@@ -420,9 +421,9 @@ namespace Sass {
     else if (lex < sequence< pseudo_prefix, identifier > >()) {
       return Node(Node::pseudo, line_number, lexed);
     }
-    else {
-      syntax_error("unrecognized pseudo-class or pseudo-element");
-    }
+    syntax_error("unrecognized pseudo-class or pseudo-element");
+    // unreached statement
+    return Node(Node::none);
   }
   
   Node Document::parse_attribute_selector()
@@ -477,7 +478,7 @@ namespace Sass {
           block.has_statements = true;
         }
         else {
-          for (int i = 0; i < imported_tree.size(); ++i) {
+          for (size_t i = 0; i < imported_tree.size(); ++i) {
             if (imported_tree[i].type == Node::comment ||
                 imported_tree[i].type == Node::rule) {
               block[0].has_statements = true;
@@ -503,16 +504,7 @@ namespace Sass {
         block << parse_propset();
         block[0].has_statements = true;
       }
-      // else if (look_for_rule(position)) {
-      //   block << parse_rule();
-      //   block.has_statements = true;
-      //   semicolon = true;
-      // }
-      // else if (!peek< exactly<';'> >()) {
-      //   block << parse_ruleset();
-      //   block.has_blocks = true;
-      // }
-      else if (const char* p = lookahead_for_selector(position)) {
+      else if (lookahead_for_selector(position)) {
         block << parse_ruleset(definition);
         block[0].has_blocks = true;
       }
@@ -834,6 +826,8 @@ namespace Sass {
     }
     
     syntax_error("error reading values after " + lexed.to_string());
+    // unreached statement
+    return Node(Node::none);
   }
   
   extern const char hash_lbrace[] = "#{";
@@ -852,7 +846,8 @@ namespace Sass {
     
     Node schema(Node::string_schema, context.registry, line_number, 1);
     while (i < str.end) {
-      if (p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, str.end)) {
+      p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, str.end);
+      if (p) {
         if (i < p) schema << Node(Node::identifier, line_number, Token::make(i, p)); // accumulate the preceding segment if it's nonempty
         const char* j = find_first_in_interval< exactly<rbrace> >(p, str.end); // find the closing brace
         if (j) {

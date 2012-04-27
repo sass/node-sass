@@ -190,7 +190,7 @@ namespace Sass {
     
     Node& operator+=(const Node& n)
     {
-      for (int i = 0; i < n.size(); ++i) {
+      for (size_t i = 0; i < n.size(); ++i) {
         content.children->push_back(n[i]);
       }
       return *this;

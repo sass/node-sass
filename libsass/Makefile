@@ -11,7 +11,7 @@ CPP_FILES = \
 	prelexer.cpp
 
 libsass: libsass_objs
-	ar rs libsass.a \
+	ar rvs libsass.a \
 			sass_interface.o \
 			context.o \
 			functions.o \
@@ -24,7 +24,7 @@ libsass: libsass_objs
 			prelexer.o
 
 libsass_objs: sass_interface.cpp $(CPP_FILES)
-	g++ -O2 -c -combine sass_interface.cpp $(CPP_FILES)
+	g++ -O2 -Wall -c -combine sass_interface.cpp $(CPP_FILES)
 
 clean:
 	rm -rf *.o *.a

@@ -13,26 +13,28 @@ extern "C" {
 
   using namespace std;
   sass_context* sass_new_context()
-    { return (sass_context*) malloc(sizeof(sass_context)); }
+    { return (sass_context*) calloc(1, sizeof(sass_context)); }
   
   void sass_free_context(sass_context* ctx)
   { 
-    free(ctx->output_string);
+    if (ctx->output_string)
+      free(ctx->output_string);
     free(ctx);
   }
 
   sass_file_context* sass_new_file_context()
-    { return (sass_file_context*) malloc(sizeof(sass_file_context)); }
+    { return (sass_file_context*) calloc(1, sizeof(sass_file_context)); }
   
   void sass_free_file_context(sass_file_context* ctx)
   { 
-    free(ctx->output_string);
+    if (ctx->output_string)
+      free(ctx->output_string);
     free(ctx);
   }
   
   sass_folder_context* sass_new_folder_context()
-    { return (sass_folder_context*) malloc(sizeof(sass_folder_context)); }
-  
+    { return (sass_folder_context*) calloc(1, sizeof(sass_folder_context)); }
+
   static char* process_document(Sass::Document& doc, int style)
   {
     using namespace Sass;
@@ -47,8 +49,7 @@ extern "C" {
     // cerr << "Destructions:\t" << Node::destructed << endl;
     // cerr << "Registry size:\t" << doc.context.registry.size() << endl;
     
-    int i;
-    for (i = 0; i < doc.context.registry.size(); ++i) {
+    for (size_t i = 0; i < doc.context.registry.size(); ++i) {
       delete doc.context.registry[i];
     }
     // cerr << "Deallocations:\t" << i << endl;
