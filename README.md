@@ -35,6 +35,9 @@ Heavily inspired by <https://github.com/LearnBoost/stylus>
 
 * async cpp
 * error handling
+* build libsass using node-waf
+* sass compression options
+* publish npm
+* use node-gyp for builds
 * file context
 * folder context
-* sass compression options
