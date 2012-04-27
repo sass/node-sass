@@ -142,6 +142,9 @@ namespace Sass {
           case Node::gte: return (lhs >= rhs) ? T : F;
           case Node::lt:  return (lhs < rhs)  ? T : F;
           case Node::lte: return (lhs <= rhs) ? T : F;
+          default:
+            eval_error("unknown comparison operator " + expr.content.token.to_string(), expr.line_number, expr.file_name);
+            return Node(Node::none);
         }
       } break;
 
@@ -150,7 +153,7 @@ namespace Sass {
         acc << eval(expr[0], env, f_env, registry);
         Node rhs(eval(expr[2], env, f_env, registry));
         accumulate(expr[1].type, acc, rhs, registry);
-        for (int i = 3; i < expr.size(); i += 2) {
+        for (size_t i = 3; i < expr.size(); i += 2) {
           Node rhs(eval(expr[i+1], env, f_env, registry));
           accumulate(expr[i].type, acc, rhs, registry);
         }
@@ -163,7 +166,7 @@ namespace Sass {
           acc << eval(expr[0], env, f_env, registry);
           Node rhs(eval(expr[2], env, f_env, registry));
           accumulate(expr[1].type, acc, rhs, registry);
-          for (int i = 3; i < expr.size(); i += 2) {
+          for (size_t i = 3; i < expr.size(); i += 2) {
             Node rhs(eval(expr[i+1], env, f_env, registry));
             accumulate(expr[i].type, acc, rhs, registry);
           }
@@ -248,7 +251,7 @@ namespace Sass {
       case Node::string_schema:
       case Node::value_schema: {
         // cerr << "evaluating schema of size " << expr.size() << endl;
-        for (int i = 0; i < expr.size(); ++i) {
+        for (size_t i = 0; i < expr.size(); ++i) {
           expr[i] = eval(expr[i], env, f_env, registry);
         }
         return expr;
@@ -258,6 +261,8 @@ namespace Sass {
         return expr;
       }
     }
+
+    return expr;
   }
 
   Node accumulate(Node::Type op, Node& acc, Node& rhs, vector<vector<Node>*>& registry)
@@ -400,7 +405,7 @@ namespace Sass {
       }
     }
     // plug the holes with default arguments if any
-    for (int i = 0; i < params.size(); ++i) {
+    for (size_t i = 0; i < params.size(); ++i) {
       if (params[i].type == Node::assignment) {
         Node param(params[i]);
         Token name(param[0].content.token);
@@ -411,7 +416,7 @@ namespace Sass {
     }
     // lexically link the new environment and eval the mixin's body
     bindings.link(env.global ? *env.global : env);
-    for (int i = 0; i < body.size(); ++i) {
+    for (size_t i = 0; i < body.size(); ++i) {
       body[i] = eval(body[i], bindings, f_env, registry);
     }
     return body;
