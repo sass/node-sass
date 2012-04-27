@@ -8,7 +8,9 @@
     "type": "git",
     "url": "git://github.com/andrew/node-sass.git"
   },
-  "dependencies": {},
+  "dependencies": {
+    "mkdirp": "0.3.x"
+  },
   "devDependencies": {},
   "optionalDependencies": {},
   "engines": {
