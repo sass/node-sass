@@ -24,4 +24,4 @@ void RegisterModule(v8::Handle<v8::Object> target) {
     NODE_SET_METHOD(target, "render", Render);
 }
 
-NODE_MODULE(sass, RegisterModule);
+NODE_MODULE(binding, RegisterModule);

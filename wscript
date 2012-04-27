@@ -1,3 +1,7 @@
+import Options
+from os import unlink, symlink, popen
+from os.path import exists
+
 srcdir = "."
 blddir = "build"
 VERSION = "0.0.1"
@@ -11,5 +15,6 @@ def configure(conf):
 
 def build(bld):
     obj = bld.new_task_gen("cxx", "shlib", "node_addon")
-    obj.target = "sass"
-    obj.source = "sass.cpp"
+    obj.uselib = "sass"
+    obj.target = "binding"
+    obj.source = "binding.cpp "

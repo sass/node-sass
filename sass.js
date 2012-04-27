@@ -1,3 +1,3 @@
-var binding = require('./build/Release/sass')
+var binding = require('./build/Release/binding')
 
 exports.render = binding.render;
