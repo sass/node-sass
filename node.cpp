@@ -325,7 +325,15 @@ namespace Sass {
       
       case string_schema: {
         string result;
-        for (size_t i = 0; i < size(); ++i) result += at(i).to_string("");
+        for (size_t i = 0; i < size(); ++i) {
+          string chunk(at(i).to_string(""));
+          if (at(i).type == string_constant) {
+            result += chunk.substr(1, chunk.size()-2);
+          }
+          else {
+            result += chunk;
+          }
+        }
         return result;
       } break;
       

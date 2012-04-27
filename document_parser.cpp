@@ -848,15 +848,19 @@ namespace Sass {
     while (i < str.end) {
       p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, str.end);
       if (p) {
-        if (i < p) schema << Node(Node::identifier, line_number, Token::make(i, p)); // accumulate the preceding segment if it's nonempty
+        if (i < p) {
+          schema << Node(Node::identifier, line_number, Token::make(i, p-2)); // accumulate the preceding segment if it's nonempty
+          // cerr << '[' << Token::make(i,p-2).to_string() << ']' << endl;
+        }
         const char* j = find_first_in_interval< exactly<rbrace> >(p, str.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
-          Document interp_doc(path, line_number, Token::make(p+2,j-1), context);
+          // cerr << '[' << Token::make(p, j-1).to_string() << ']' << endl;
+          Document interp_doc(path, line_number, Token::make(p,j-1), context);
           Node interp_node(interp_doc.parse_list());
           interp_node.eval_me = true;
           schema << interp_node;
-          i = j + 1;
+          i = j;
         }
         else {
           // throw an error if the interpolant is unterminated
