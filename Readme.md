@@ -3,6 +3,8 @@ Libsass
 
 by Aaron Leung and Hampton Catlin (@hcatlin)
 
+[![Build Status](https://secure.travis-ci.org/hcatlin/sassc.png?branch=master)](http://travis-ci.org/hcatlin/sassc)
+
 http://github.com/hcatlin/libsass
 
 Libsass is just a library, but if you want to RUN libsass,
@@ -16,6 +18,20 @@ About
 Libsass is a C/C++ port of the Sass CSS precompiler. The original version was written in Ruby, but this version is meant for efficiency and portability.
 
 This library strives to be light, simple, and easy to build and integrate with a variety of platforms and languages.
+
+Developing
+----------
+
+As you may have noticed, the libsass repo itself has 
+no executables and no tests. Oh noes! How can you develop???
+
+Well, luckily, SassC is the official binary wrapper for 
+libsass and is *always* kept in sync. SassC uses a git submodule
+to include libsass. When developing libsass, its best to actually
+check out SassC and develop in that directory with the SassC spec
+and tests there.
+
+We even run Travis tests for SassC!
 
 Usage
 -----
