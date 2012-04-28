@@ -257,6 +257,11 @@ namespace Sass {
         return expr;
       } break;
       
+      case Node::css_import: {
+        expr[0] = eval(expr[0], env, f_env, registry);
+        return expr;
+      } break;      
+
       default: {
         return expr;
       }

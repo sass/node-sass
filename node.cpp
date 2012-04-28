@@ -178,7 +178,7 @@ namespace Sass {
       case css_import: {
         stringstream ss;
         ss << "@import url(";
-        ss << content.token.to_string();
+        ss << at(0).to_string("");
         // cerr << content.token.to_string() << endl;
         ss << ")";
         return ss.str();
@@ -418,7 +418,7 @@ namespace Sass {
       }
       for (size_t i = 0; i < size(); ++i) {
         at(i).emit_nested_css(buf, depth, prefixes);
-        if (at(i).type == css_import) buf << endl;
+        //if (at(i).type == css_import) buf << endl;
       }
       break;
 
@@ -494,9 +494,9 @@ namespace Sass {
       break;
       
     case css_import:
-      buf << endl << string(2*depth, ' ');
+      buf << string(2*depth, ' ');
       buf << to_string("");
-      buf << ";";
+      buf << ";" << endl;
       break;
 
     case property:

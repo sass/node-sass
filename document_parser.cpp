@@ -62,12 +62,24 @@ namespace Sass {
     lex< import >();
     if (lex< uri_prefix >())
     {
-      const char* beg = position;
-      const char* end = find_first< exactly<')'> >(position);
-      Node result(Node::css_import, line_number, Token::make(beg, end));
-      position = end;
-      lex< exactly<')'> >();
-      return result;
+      if (peek< string_constant >()) {
+        Node schema(parse_string());
+        Node import(Node::css_import, context.registry, line_number, 1);
+        import << schema;
+        if (!lex< exactly<')'> >()) syntax_error("unterminated url in @import directive");
+        return import;
+      }
+      else {
+        const char* beg = position;
+        const char* end = find_first< exactly<')'> >(position);
+        if (!end) syntax_error("unterminated url in @import directive");
+        Node path(Node::identifier, line_number, Token::make(beg, end));
+        Node import(Node::css_import, context.registry, line_number, 1);
+        import << path;
+        position = end;
+        lex< exactly<')'> >();
+        return import;
+      }
     }
     if (!lex< string_constant >()) syntax_error("@import directive requires a url or quoted path");
     // TO DO: BETTER PATH HANDLING
