@@ -1,30 +1,18 @@
+CC=g++
+CFLAGS=-c -Wall -O2
+LDFLAGS=
+SOURCES = \
+	context.cpp functions.cpp document.cpp \
+	document_parser.cpp eval_apply.cpp node.cpp \
+	node_comparisons.cpp values.cpp prelexer.cpp \
+	sass_interface.cpp
+OBJECTS = $(SOURCES:.cpp=.o)
 
-CPP_FILES = \
-	context.cpp \
-	functions.cpp \
-	document.cpp \
-	document_parser.cpp \
-	eval_apply.cpp \
-	node.cpp \
-	node_comparisons.cpp \
-	values.cpp \
-	prelexer.cpp
+all: $(OBJECTS)
+	ar rvs libsass.a $(OBJECTS)
 
-libsass: libsass_objs
-	ar rvs libsass.a \
-			sass_interface.o \
-			context.o \
-			functions.o \
-			document.o \
-			document_parser.o \
-			eval_apply.o \
-			node.o \
-			node_comparisons.o \
-			values.o \
-			prelexer.o
-
-libsass_objs: sass_interface.cpp $(CPP_FILES)
-	g++ -O2 -Wall -c -combine sass_interface.cpp $(CPP_FILES)
+.cpp.o:
+	$(CC) $(CFLAGS) $< -o $@
 
 clean:
 	rm -rf *.o *.a
