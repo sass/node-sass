@@ -34,7 +34,7 @@ namespace Sass {
   };
   
   struct Dimension {
-    double numeric_value;
+    double numeric;
     Token unit;
   };
   

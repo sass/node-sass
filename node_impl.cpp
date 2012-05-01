@@ -152,7 +152,7 @@ namespace Sass {
   // ------------------------------------------------------------------------
 
   inline bool Node_Impl::is_numeric()
-  { return type >= number && type <= numeric_color; }
+  { return type >= number && type <= numeric_dimension; }
 
   inline size_t Node_Impl::size()
   { return children.size(); }
@@ -180,7 +180,7 @@ namespace Sass {
       case numeric_percentage:
         return value.numeric;
       case numeric_dimension:
-        return value.dimension.numeric_value;
+        return value.dimension.numeric;
       default:
         break;
         // throw an exception?

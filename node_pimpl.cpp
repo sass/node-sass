@@ -6,6 +6,8 @@
 
 namespace Sass {
   using namespace std;
+  
+  inline Node::Node(Node_Impl* ip) : ip_(ip) { }
 
   inline Node_Type Node::type()           { return ip_->type; }
   

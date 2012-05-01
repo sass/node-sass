@@ -12,11 +12,11 @@ namespace Sass {
   class Node_Impl; // forward declaration
   
   class Node {
-
-  private:
     Node_Impl* ip_;
+    Node(Node_Impl* ip);
+    friend class Node_Factory;    
     
-  public:
+  public:    
     Node_Type type();
     
     bool has_children();
