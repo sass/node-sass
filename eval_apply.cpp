@@ -288,7 +288,7 @@ namespace Sass {
       acc.content.children->push_back(result);
     }
     else if (lhs.type == Node::numeric_dimension && rhs.type == Node::number) {
-      Node result(acc.line_number, operate(op, lnum, rnum), Token::make(lhs.content.dimension.unit, Prelexer::identifier(rhs.content.dimension.unit)));
+      Node result(acc.line_number, operate(op, lnum, rnum), Token::make(lhs.content.dimension.unit, Prelexer::identifier(lhs.content.dimension.unit)));
       acc.content.children->pop_back();
       acc.content.children->push_back(result);
     }
