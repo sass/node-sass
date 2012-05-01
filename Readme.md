@@ -44,9 +44,9 @@ First, you create a sass context struct. We use these objects to define
 different execution parameters for the library. There are three 
 different context types. 
 
-    sass_context        //string-in-string-out compilation
-    sass_file_context   //file-based compilation
-    sass_folder_context //full-folder multi-file 
+    sass_context        // string-in-string-out compilation
+    sass_file_context   // file-based compilation
+    sass_folder_context // full-folder multi-file 
 
 Each of the context's have slightly different behavior and are
 implemented seperately. This does add extra work to implementing
