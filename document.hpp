@@ -118,6 +118,7 @@ namespace Sass {
     Node parse_arguments();
     Node parse_argument();
     Node parse_assignment();
+    Node parse_propset();
     Node parse_ruleset(bool definition = false);
     Node parse_selector_group();
     Node parse_selector();

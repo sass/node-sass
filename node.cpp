@@ -23,7 +23,7 @@ namespace Sass {
       n.content.children = new vector<Node>;
       ++allocations;
       n.content.children->reserve(size());
-      for (int i = 0; i < size(); ++i) {
+      for (size_t i = 0; i < size(); ++i) {
         n << at(i).clone(registry);
       }
       registry.push_back(n.content.children);
@@ -37,7 +37,7 @@ namespace Sass {
     {
       case selector_group: { // really only needed for arg to :not
         string result(at(0).to_string(""));
-        for (int i = 1; i < size(); ++i) {
+        for (size_t i = 1; i < size(); ++i) {
           result += ", ";
           result += at(i).to_string("");
         }
@@ -60,11 +60,9 @@ namespace Sass {
         //   result += at(0).to_string(t == backref ? prefix : "");
         // }
         
-        Node::Type t = at(0).type;
         result += at(0).to_string(at(0).has_backref ? prefix : "");
 
-        for (int i = 1; i < size(); ++i) {
-          Node::Type t = at(i).type;
+        for (size_t i = 1; i < size(); ++i) {
           result += " ";
           result += at(i).to_string(at(i).has_backref ? prefix : "");
         }
@@ -86,7 +84,7 @@ namespace Sass {
           result += prefix;
           result += " ";
         }
-        for (int i = 0; i < size(); ++i) {
+        for (size_t i = 0; i < size(); ++i) {
           Node::Type t = at(i).type;
           result += at(i).to_string(t == backref ? prefix : "");
         }
@@ -114,7 +112,7 @@ namespace Sass {
         string result(prefix);
         if (!prefix.empty()) result += " ";
         result += at(0).to_string("");
-        for (int i = 1; i < size(); ++i) {
+        for (size_t i = 1; i < size(); ++i) {
           result += at(i).to_string("");
         }
         result += ')';
@@ -125,7 +123,7 @@ namespace Sass {
         string result(prefix);
         if (!prefix.empty()) result += " ";
         result += "[";
-        for (int i = 0; i < size(); ++i)
+        for (size_t i = 0; i < size(); ++i)
         { result += at(i).to_string(prefix); }
         result += ']';
         return result;
@@ -137,7 +135,7 @@ namespace Sass {
       
       case comma_list: {
         string result(at(0).to_string(prefix));
-        for (int i = 1; i < size(); ++i) {
+        for (size_t i = 1; i < size(); ++i) {
           if (at(i).type == nil) continue;
           result += ", ";
           result += at(i).to_string(prefix);
@@ -147,7 +145,7 @@ namespace Sass {
       
       case space_list: {
         string result(at(0).to_string(prefix));
-        for (int i = 1; i < size(); ++i) {
+        for (size_t i = 1; i < size(); ++i) {
           if (at(i).type == nil) continue;
           result += " ";
           result += at(i).to_string(prefix);
@@ -158,7 +156,7 @@ namespace Sass {
       case expression:
       case term: {
         string result(at(0).to_string(prefix));
-        for (int i = 1; i < size(); ++i) {
+        for (size_t i = 1; i < size(); ++i) {
           if (!(at(i).type == add ||
                 // at(i).type == sub ||  // another edge case -- consider uncommenting
                 at(i).type == mul)) {
@@ -180,7 +178,7 @@ namespace Sass {
       case css_import: {
         stringstream ss;
         ss << "@import url(";
-        ss << content.token.to_string();
+        ss << at(0).to_string("");
         // cerr << content.token.to_string() << endl;
         ss << ")";
         return ss.str();
@@ -199,7 +197,7 @@ namespace Sass {
         stringstream ss;
         if (size() > 0) {
           ss << at(0).to_string("");
-          for (int i = 1; i < size(); ++i) {
+          for (size_t i = 1; i < size(); ++i) {
             ss << ", ";
             ss << at(i).to_string("");
           }
@@ -269,7 +267,7 @@ namespace Sass {
           {
             stringstream ss;
             ss << '#' << std::setw(2) << std::setfill('0') << std::hex;
-            for (int i = 0; i < 3; ++i) {
+            for (size_t i = 0; i < 3; ++i) {
               double x = at(i).content.numeric_value;
               if (x > 0xff) x = 0xff;
               else if (x < 0) x = 0;
@@ -281,7 +279,7 @@ namespace Sass {
         else {
           stringstream ss;
           ss << "rgba(" << static_cast<unsigned long>(at(0).content.numeric_value);
-          for (int i = 1; i < 3; ++i) {
+          for (size_t i = 1; i < 3; ++i) {
             ss << ", " << static_cast<unsigned long>(at(i).content.numeric_value);
           }
           ss << ", " << at(3).content.numeric_value << ')';
@@ -321,13 +319,21 @@ namespace Sass {
       
       case value_schema: {
         string result;
-        for (int i = 0; i < size(); ++i) result += at(i).to_string("");
+        for (size_t i = 0; i < size(); ++i) result += at(i).to_string("");
         return result;
       } break;
       
       case string_schema: {
         string result;
-        for (int i = 0; i < size(); ++i) result += at(i).to_string("");
+        for (size_t i = 0; i < size(); ++i) {
+          string chunk(at(i).to_string(""));
+          if (at(i).type == string_constant) {
+            result += chunk.substr(1, chunk.size()-2);
+          }
+          else {
+            result += chunk;
+          }
+        }
         return result;
       } break;
       
@@ -352,13 +358,13 @@ namespace Sass {
       break;
     case selector_group:
       at(0).echo(buf, depth);
-      for (int i = 1; i < size(); ++i) {
+      for (size_t i = 1; i < size(); ++i) {
         buf << ", ";
         at(i).echo(buf, depth);
       }
       break;
     case selector:
-      for (int i = 0; i < size(); ++i) {
+      for (size_t i = 0; i < size(); ++i) {
         at(i).echo(buf, depth);
       }
       break;
@@ -367,7 +373,7 @@ namespace Sass {
       else buf << ' ' << string(content.token) << ' ';
       break;
     case simple_selector_sequence:
-      for (int i = 0; i < size(); ++i) {
+      for (size_t i = 0; i < size(); ++i) {
         buf << at(i).to_string(string());
       }
       break;
@@ -376,7 +382,7 @@ namespace Sass {
       break;
     case block:
       buf << " {" << endl;
-      for (int i = 0; i < size(); at(i++).echo(buf, depth+1)) ;
+      for (size_t i = 0; i < size(); at(i++).echo(buf, depth+1)) ;
       buf << indentation << "}" << endl;
       break;
     case rule:
@@ -390,10 +396,12 @@ namespace Sass {
       buf << string(content.token);
       break;
     case values:
-      for (int i = 0; i < size(); at(i++).echo(buf, depth)) ;
+      for (size_t i = 0; i < size(); at(i++).echo(buf, depth)) ;
       break;
     case value:
       buf << ' ' << string(content.token);
+      break;
+    default:
       break;
     }
   }
@@ -408,9 +416,9 @@ namespace Sass {
       if (at(0).has_expansions) {
         flatten();
       }
-      for (int i = 0; i < size(); ++i) {
+      for (size_t i = 0; i < size(); ++i) {
         at(i).emit_nested_css(buf, depth, prefixes);
-        if (at(i).type == css_import) buf << endl;
+        //if (at(i).type == css_import) buf << endl;
       }
       break;
 
@@ -421,14 +429,14 @@ namespace Sass {
       vector<string> new_prefixes;
       if (prefixes.empty()) {
         new_prefixes.reserve(sel_group_size);
-        for (int i = 0; i < sel_group_size; ++i) {
+        for (size_t i = 0; i < sel_group_size; ++i) {
           new_prefixes.push_back(sel_group_size > 1 ? sel_group[i].to_string(string()) : sel_group.to_string(string()));
         }
       }
       else {
         new_prefixes.reserve(prefixes.size() * sel_group_size);
-        for (int i = 0; i < prefixes.size(); ++i) {
-          for (int j = 0; j < sel_group_size; ++j) {
+        for (size_t i = 0; i < prefixes.size(); ++i) {
+          for (size_t j = 0; j < sel_group_size; ++j) {
             new_prefixes.push_back(sel_group_size > 1 ? sel_group[j].to_string(prefixes[i]) : sel_group.to_string(prefixes[i]));
           }
         }
@@ -437,21 +445,24 @@ namespace Sass {
       if (block[0].has_expansions) block.flatten();
       if (block[0].has_statements) {
         buf << string(2*depth, ' ') << new_prefixes[0];
-        for (int i = 1; i < new_prefixes.size(); ++i) {
+        for (size_t i = 1; i < new_prefixes.size(); ++i) {
           buf << ", " << new_prefixes[i];
         }
         buf << " {";
-        for (int i = 0; i < block.size(); ++i) {
+        for (size_t i = 0; i < block.size(); ++i) {
           Type stm_type = block[i].type;
-          if (stm_type == comment || stm_type == rule || stm_type == css_import) {
+          if (stm_type == comment || stm_type == rule || stm_type == css_import || stm_type == propset) {
             block[i].emit_nested_css(buf, depth+1); // NEED OVERLOADED VERSION FOR COMMENTS AND RULES
           }
+          // else if (stm_type == propset) {
+          //   block[i].emit_nested_css(buf, depth, new_prefixes);
+          // }
         }
         buf << " }" << endl;
         ++depth; // if we printed content at this level, we need to indent any nested rulesets
       }
       if (block[0].has_blocks) {
-        for (int i = 0; i < block.size(); ++i) {
+        for (size_t i = 0; i < block.size(); ++i) {
           if (block[i].type == ruleset) {
             block[i].emit_nested_css(buf, depth, new_prefixes);
           }
@@ -471,6 +482,10 @@ namespace Sass {
   {
     switch (type)
     {
+    case propset: {
+      emit_propset(buf, depth, "");
+    } break;
+      
     case rule:
       buf << endl << string(2*depth, ' ');
       at(0).emit_nested_css(buf, depth); // property
@@ -479,9 +494,9 @@ namespace Sass {
       break;
       
     case css_import:
-      buf << endl << string(2*depth, ' ');
+      buf << string(2*depth, ' ');
       buf << to_string("");
-      buf << ";";
+      buf << ";" << endl;
       break;
 
     case property:
@@ -489,7 +504,7 @@ namespace Sass {
       break;
 
     case values:
-      for (int i = 0; i < size(); ++i) {
+      for (size_t i = 0; i < size(); ++i) {
         buf << " " << string(at(i).content.token);
       }
       break;
@@ -504,6 +519,35 @@ namespace Sass {
       buf << to_string("");
       break;
     }
+  }
+  
+  void Node::emit_propset(stringstream& buf, size_t depth, const string& prefix) {
+    string new_prefix(prefix);
+    bool has_prefix = false;
+    if (new_prefix.empty()) {
+      new_prefix += "\n";
+      new_prefix += string(2*depth, ' ');
+      new_prefix += at(0).content.token.to_string();
+    }
+    else {
+      new_prefix += "-";
+      new_prefix += at(0).content.token.to_string();
+      has_prefix = true;
+    }
+    Node rules(at(1));
+    for (size_t i = 0; i < rules.size(); ++i) {
+      if (rules[i].type == propset) {
+        rules[i].emit_propset(buf, depth+1, new_prefix);
+      }
+      else {
+        buf << new_prefix;
+        if (rules[i][0].content.token.to_string() != "") buf << '-';
+        rules[i][0].emit_nested_css(buf, depth);
+        rules[i][1].emit_nested_css(buf, depth);
+        buf << ';';
+      }
+    }
+    
   }
 
   void Node::emit_expanded_css(stringstream& buf, const string& prefix) {
@@ -520,7 +564,7 @@ namespace Sass {
     //   buf << string(token) << ":";
     //   break;
     // case values:
-    //   for (int i = 0; i < children.size(); ++i) {
+    //   for (size_t i = 0; i < children.size(); ++i) {
     //     buf << " " << string(children[i].token);
     //   }
     //   break;
@@ -533,11 +577,11 @@ namespace Sass {
     // case clauses:
     //   if (children.size() > 0) {
     //     buf << " {" << endl;
-    //     for (int i = 0; i < children.size(); ++i)
+    //     for (size_t i = 0; i < children.size(); ++i)
     //       children[i].emit_expanded_css(buf, prefix);
     //     buf << "}" << endl;
     //   }
-    //   for (int i = 0; i < opt_children.size(); ++i)
+    //   for (size_t i = 0; i < opt_children.size(); ++i)
     //     opt_children[i].emit_expanded_css(buf, prefix);
     //   break;
     // case ruleset:
@@ -557,7 +601,7 @@ namespace Sass {
   void Node::flatten()
   {
     if (type != block && type != expansion && type != root) return;
-    for (int i = 0; i < size(); ++i) {
+    for (size_t i = 0; i < size(); ++i) {
       if (at(i).type == expansion) {
         Node expn = at(i);
         if (expn[0].has_expansions) expn.flatten();
@@ -575,7 +619,7 @@ namespace Sass {
   // void flatten_block(Node& block)
   // {
   //   
-  //   for (int i = 0; i < block.size(); ++i) {
+  //   for (size_t i = 0; i < block.size(); ++i) {
   //     
   //     if (block[i].type == Node::expansion
   //     

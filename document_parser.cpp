@@ -38,7 +38,9 @@ namespace Sass {
         root << parse_assignment();
         if (!lex< exactly<';'> >()) syntax_error("top-level variable binding must be terminated by ';'");
       }
-      // else if (look_for_selector_group(position)) {
+      else if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
+        root << parse_propset();
+      }
       else if (lookahead_for_selector(position)) {
         root << parse_ruleset();
       }
@@ -46,6 +48,10 @@ namespace Sass {
         root << parse_mixin_call();
         root[0].has_expansions = true;
         if (!lex< exactly<';'> >()) syntax_error("top-level @include directive must be terminated by ';'");
+      }
+      else {
+        lex< spaces_and_comments >();
+        syntax_error("invalid top-level expression");
       }
       lex<optional_spaces>();
     }
@@ -56,12 +62,24 @@ namespace Sass {
     lex< import >();
     if (lex< uri_prefix >())
     {
-      const char* beg = position;
-      const char* end = find_first< exactly<')'> >(position);
-      Node result(Node::css_import, line_number, Token::make(beg, end));
-      position = end;
-      lex< exactly<')'> >();
-      return result;
+      if (peek< string_constant >()) {
+        Node schema(parse_string());
+        Node import(Node::css_import, context.registry, line_number, 1);
+        import << schema;
+        if (!lex< exactly<')'> >()) syntax_error("unterminated url in @import directive");
+        return import;
+      }
+      else {
+        const char* beg = position;
+        const char* end = find_first< exactly<')'> >(position);
+        if (!end) syntax_error("unterminated url in @import directive");
+        Node path(Node::identifier, line_number, Token::make(beg, end));
+        Node import(Node::css_import, context.registry, line_number, 1);
+        import << path;
+        position = end;
+        lex< exactly<')'> >();
+        return import;
+      }
     }
     if (!lex< string_constant >()) syntax_error("@import directive requires a url or quoted path");
     // TO DO: BETTER PATH HANDLING
@@ -79,6 +97,8 @@ namespace Sass {
     catch (string& path) {
       read_error("error reading file \"" + path + "\"");
     }
+    // unreached statement
+    return Node(Node::none); 
   }
 
   Node Document::parse_mixin_definition()
@@ -180,6 +200,29 @@ namespace Sass {
     Node assn(Node::assignment, context.registry, line_number, 2);
     assn << var << val;
     return assn;
+  }
+  
+  Node Document::parse_propset()
+  {
+    lex< identifier >();
+    Node property_segment(Node::identifier, line_number, lexed);
+    lex< exactly<':'> >();
+    lex< exactly<'{'> >();
+    Node block(Node::block, context.registry, line_number, 1);
+    while (!lex< exactly<'}'> >()) {
+      if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
+        block << parse_propset();
+      }
+      else {
+        block << parse_rule();
+        lex< exactly<';'> >();
+      }
+    }
+    if (block.size() == 0) syntax_error("namespaced property cannot be empty");
+    Node propset(Node::propset, context.registry, line_number, 2);
+    propset << property_segment;
+    propset << block;
+    return propset;
   }
 
   Node Document::parse_ruleset(bool definition)
@@ -341,10 +384,9 @@ namespace Sass {
     else if (peek< exactly<'['> >(position)) {
       return parse_attribute_selector();
     }
-    else {
-      syntax_error("invalid selector after " + lexed.to_string());
-    }
-  }
+    syntax_error("invalid selector after " + lexed.to_string());
+    // unreached statement
+    return Node(Node::none);}
   
   Node Document::parse_pseudo() {
     if (lex< pseudo_not >()) {
@@ -391,9 +433,9 @@ namespace Sass {
     else if (lex < sequence< pseudo_prefix, identifier > >()) {
       return Node(Node::pseudo, line_number, lexed);
     }
-    else {
-      syntax_error("unrecognized pseudo-class or pseudo-element");
-    }
+    syntax_error("unrecognized pseudo-class or pseudo-element");
+    // unreached statement
+    return Node(Node::none);
   }
   
   Node Document::parse_attribute_selector()
@@ -448,7 +490,7 @@ namespace Sass {
           block.has_statements = true;
         }
         else {
-          for (int i = 0; i < imported_tree.size(); ++i) {
+          for (size_t i = 0; i < imported_tree.size(); ++i) {
             if (imported_tree[i].type == Node::comment ||
                 imported_tree[i].type == Node::rule) {
               block[0].has_statements = true;
@@ -470,17 +512,11 @@ namespace Sass {
         block << parse_assignment();
         semicolon = true;
       }
-      // else if (look_for_rule(position)) {
-      //   block << parse_rule();
-      //   block.has_statements = true;
-      //   semicolon = true;
-      // }
-      // else if (!peek< exactly<';'> >()) {
-      //   block << parse_ruleset();
-      //   block.has_blocks = true;
-      // }
-      //else if (const char* p = look_for_selector_group(position)) {
-      else if (const char* p = lookahead_for_selector(position)) {
+      else if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
+        block << parse_propset();
+        block[0].has_statements = true;
+      }
+      else if (lookahead_for_selector(position)) {
         block << parse_ruleset(definition);
         block[0].has_blocks = true;
       }
@@ -490,10 +526,23 @@ namespace Sass {
         semicolon = true;
       }
       else if (!peek< exactly<';'> >()) {
-        block << parse_rule();
+        Node rule(parse_rule());
+        // check for lbrace; if it's there, we have a namespace property with a value
+        if (peek< exactly<'{'> >()) {
+          Node inner(parse_block());
+          Node propset(Node::propset, context.registry, line_number, 2);
+          propset << rule[0];
+          rule[0] = Node(Node::property, line_number, Token::make());
+          inner[0] = rule;
+          propset << inner;
+          block << propset;
+          // cerr << block[block.size()-1][0].content.token.to_string() << endl;
+        }
+        else {
+          block << rule;
+          semicolon = true;
+        }
         block[0].has_statements = true;
-        semicolon = true;
-        //lex< exactly<';'> >(); // TO DO: clean up the semicolon handling stuff
       }
       else lex< exactly<';'> >();
       while (lex< block_comment >()) {
@@ -506,7 +555,10 @@ namespace Sass {
 
   Node Document::parse_rule() {
     Node rule(Node::rule, context.registry, line_number, 2);
-    if (!lex< sequence< optional< exactly<'*'> >, identifier > >()) syntax_error("invalid property name");
+    if (!lex< sequence< optional< exactly<'*'> >, identifier > >()) {
+      lex< spaces_and_comments >(); // get the line number right
+      syntax_error("invalid property name");
+    }
     rule << Node(Node::property, line_number, lexed);
     if (!lex< exactly<':'> >()) syntax_error("property \"" + lexed.to_string() + "\" must be followed by a ':'");
     rule << parse_list();
@@ -786,6 +838,8 @@ namespace Sass {
     }
     
     syntax_error("error reading values after " + lexed.to_string());
+    // unreached statement
+    return Node(Node::none);
   }
   
   extern const char hash_lbrace[] = "#{";
@@ -804,16 +858,21 @@ namespace Sass {
     
     Node schema(Node::string_schema, context.registry, line_number, 1);
     while (i < str.end) {
-      if (p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, str.end)) {
-        if (i < p) schema << Node(Node::identifier, line_number, Token::make(i, p)); // accumulate the preceding segment if it's nonempty
+      p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, str.end);
+      if (p) {
+        if (i < p) {
+          schema << Node(Node::identifier, line_number, Token::make(i, p-2)); // accumulate the preceding segment if it's nonempty
+          // cerr << '[' << Token::make(i,p-2).to_string() << ']' << endl;
+        }
         const char* j = find_first_in_interval< exactly<rbrace> >(p, str.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
-          Document interp_doc(path, line_number, Token::make(p+2,j-1), context);
+          // cerr << '[' << Token::make(p, j-1).to_string() << ']' << endl;
+          Document interp_doc(path, line_number, Token::make(p,j-1), context);
           Node interp_node(interp_doc.parse_list());
           interp_node.eval_me = true;
           schema << interp_node;
-          i = j + 1;
+          i = j;
         }
         else {
           // throw an error if the interpolant is unterminated
@@ -888,28 +947,6 @@ namespace Sass {
     lex< variable >();
     return Node(Node::variable, line_number, lexed);
   }
-
-  // const char* Document::look_for_rule(const char* start)
-  // {
-  //   const char* p = start ? start : position;
-  //   (p = peek< identifier >(p))   &&
-  //   (p = peek< exactly<':'> >(p)) &&
-  //   (p = look_for_values(p))      &&
-  //   (p = peek< alternatives< exactly<';'>, exactly<'}'> > >(p));
-  //   return p;
-  // }
-  // 
-  // const char* Document::look_for_values(const char* start)
-  // {
-  //   const char* p = start ? start : position;
-  //   const char* q;
-  //   while ((q = peek< identifier >(p)) || (q = peek< dimension >(p))       ||
-  //          (q = peek< percentage >(p)) || (q = peek< number >(p))          ||
-  //          (q = peek< hex >(p))        || (q = peek< string_constant >(p)) ||
-  //          (q = peek< variable >(p)))
-  //   { p = q; }
-  //   return p == start ? 0 : p;
-  // }
   
   const char* Document::lookahead_for_selector(const char* start)
   {
@@ -949,127 +986,151 @@ namespace Sass {
     else return 0;
   }
   
-  // NEW LOOKAHEAD FUNCTIONS. THIS ESSENTIALLY IMPLEMENTS A BACKTRACKING
-  // PARSER, BECAUSE SELECTORS AND VALUES ARE NOT EXPRESSIBLE IN A
-  // REGULAR LANGUAGE.
-  const char* Document::look_for_selector_group(const char* start)
-  {
-    const char* p = start ? start : position;
-    const char* q = look_for_selector(p);
-
-    if (!q) { return 0; }
-    else    { p = q; }
-
-    while ((q = peek< exactly<','> >(p)) && (q = look_for_selector(q)))
-    { p = q; }
-    
-    // return peek< exactly<'{'> >(p) ? p : 0;
-    return peek< alternatives< exactly<'{'>, exactly<')'> > >(p) ? p : 0;
-  }
-  
-  const char* Document::look_for_selector(const char* start)
-  {
-    const char* p = start ? start : position;
-    const char* q;
-
-    if ((q = peek< exactly<'+'> >(p)) ||
-        (q = peek< exactly<'~'> >(p)) ||
-        (q = peek< exactly<'>'> >(p)))
-    { p = q; }
-    
-    p = look_for_simple_selector_sequence(p);
-    
-    if (!p) return 0;
-    
-    while (((q = peek< exactly<'+'> >(p)) ||
-            (q = peek< exactly<'~'> >(p)) ||
-            (q = peek< exactly<'>'> >(p)) ||
-            (q = peek< ancestor_of > (p))) &&
-           (q = look_for_simple_selector_sequence(q)))
-    { p = q; }
-  
-    return p;
-  }
-  
-  const char* Document::look_for_simple_selector_sequence(const char* start)
-  {
-    const char* p = start ? start : position;
-    const char* q;
-    
-    if ((q = peek< type_selector >(p)) ||
-        (q = peek< universal >(p))     ||
-        (q = peek< exactly <'&'> >(p)) ||
-        (q = look_for_simple_selector(p)))
-    { p = q; }
-    else
-    { return 0; }
-    
-    while (!peek< spaces >(p) &&
-           !(peek < exactly<'+'> >(p) ||
-             peek < exactly<'~'> >(p) ||
-             peek < exactly<'>'> >(p) ||
-             peek < exactly<','> >(p) ||
-             peek < exactly<')'> >(p) ||
-             peek < exactly<'{'> >(p)) &&
-           (q = look_for_simple_selector(p)))
-    { p = q; }
-    
-    return p;
-  }
-  
-  const char* Document::look_for_simple_selector(const char* start)
-  {
-    const char* p = start ? start : position;
-    const char* q;
-    (q = peek< id_name >(p)) || (q = peek< class_name >(p)) ||
-    (q = look_for_pseudo(p)) || (q = look_for_attrib(p));
-    // cerr << "looking for simple selector; found:" << endl;
-    // cerr << (q ? string(Token::make(q,q+8)) : "nothing") << endl;
-    return q;
-  }
-  
-  const char* Document::look_for_pseudo(const char* start)
-  {
-    const char* p = start ? start : position;
-    const char* q;
-    
-    if (q = peek< pseudo_not >(p)) {
-      // (q = look_for_simple_selector(q)) && (q = peek< exactly<')'> >(q));
-      (q = look_for_selector_group(q)) && (q = peek< exactly<')'> >(q));
-    }
-    else if (q = peek< sequence< pseudo_prefix, functional > >(p)) {
-      p = q;
-      (q = peek< alternatives< even, odd > >(p)) ||
-      (q = peek< binomial >(p))                  ||
-      (q = peek< sequence< optional<sign>,
-                           optional<digits>,
-                           exactly<'n'> > >(p))  ||
-      (q = peek< sequence< optional<sign>,
-                           digits > >(p));
-      p = q;
-      q = peek< exactly<')'> >(p);
-    }
-    else {
-      q = peek< sequence< pseudo_prefix, identifier > >(p);
-    }
-    return q ? q : 0;
-  }
-    
-  const char* Document::look_for_attrib(const char* start)
-  {
-    const char* p = start ? start : position;
-    
-    (p = peek< exactly<'['> >(p))                  &&
-    (p = peek< type_selector >(p))                 &&
-    (p = peek< alternatives<exact_match,
-                            class_match,
-                            dash_match,
-                            prefix_match,
-                            suffix_match,
-                            substring_match> >(p)) &&
-    (p = peek< string_constant >(p))               &&
-    (p = peek< exactly<']'> >(p));
-    
-    return p;
-  }
 }
+
+  // const char* Document::look_for_rule(const char* start)
+  // {
+  //   const char* p = start ? start : position;
+  //   (p = peek< identifier >(p))   &&
+  //   (p = peek< exactly<':'> >(p)) &&
+  //   (p = look_for_values(p))      &&
+  //   (p = peek< alternatives< exactly<';'>, exactly<'}'> > >(p));
+  //   return p;
+  // }
+  // 
+  // const char* Document::look_for_values(const char* start)
+  // {
+  //   const char* p = start ? start : position;
+  //   const char* q;
+  //   while ((q = peek< identifier >(p)) || (q = peek< dimension >(p))       ||
+  //          (q = peek< percentage >(p)) || (q = peek< number >(p))          ||
+  //          (q = peek< hex >(p))        || (q = peek< string_constant >(p)) ||
+  //          (q = peek< variable >(p)))
+  //   { p = q; }
+  //   return p == start ? 0 : p;
+  // }
+  
+//   // NEW LOOKAHEAD FUNCTIONS. THIS ESSENTIALLY IMPLEMENTS A BACKTRACKING
+//   // PARSER, BECAUSE SELECTORS AND VALUES ARE NOT EXPRESSIBLE IN A
+//   // REGULAR LANGUAGE.
+//   const char* Document::look_for_selector_group(const char* start)
+//   {
+//     const char* p = start ? start : position;
+//     const char* q = look_for_selector(p);
+// 
+//     if (!q) { return 0; }
+//     else    { p = q; }
+// 
+//     while ((q = peek< exactly<','> >(p)) && (q = look_for_selector(q)))
+//     { p = q; }
+//     
+//     // return peek< exactly<'{'> >(p) ? p : 0;
+//     return peek< alternatives< exactly<'{'>, exactly<')'> > >(p) ? p : 0;
+//   }
+//   
+//   const char* Document::look_for_selector(const char* start)
+//   {
+//     const char* p = start ? start : position;
+//     const char* q;
+// 
+//     if ((q = peek< exactly<'+'> >(p)) ||
+//         (q = peek< exactly<'~'> >(p)) ||
+//         (q = peek< exactly<'>'> >(p)))
+//     { p = q; }
+//     
+//     p = look_for_simple_selector_sequence(p);
+//     
+//     if (!p) return 0;
+//     
+//     while (((q = peek< exactly<'+'> >(p)) ||
+//             (q = peek< exactly<'~'> >(p)) ||
+//             (q = peek< exactly<'>'> >(p)) ||
+//             (q = peek< ancestor_of > (p))) &&
+//            (q = look_for_simple_selector_sequence(q)))
+//     { p = q; }
+//   
+//     return p;
+//   }
+//   
+//   const char* Document::look_for_simple_selector_sequence(const char* start)
+//   {
+//     const char* p = start ? start : position;
+//     const char* q;
+//     
+//     if ((q = peek< type_selector >(p)) ||
+//         (q = peek< universal >(p))     ||
+//         (q = peek< exactly <'&'> >(p)) ||
+//         (q = look_for_simple_selector(p)))
+//     { p = q; }
+//     else
+//     { return 0; }
+//     
+//     while (!peek< spaces >(p) &&
+//            !(peek < exactly<'+'> >(p) ||
+//              peek < exactly<'~'> >(p) ||
+//              peek < exactly<'>'> >(p) ||
+//              peek < exactly<','> >(p) ||
+//              peek < exactly<')'> >(p) ||
+//              peek < exactly<'{'> >(p)) &&
+//            (q = look_for_simple_selector(p)))
+//     { p = q; }
+//     
+//     return p;
+//   }
+//   
+//   const char* Document::look_for_simple_selector(const char* start)
+//   {
+//     const char* p = start ? start : position;
+//     const char* q;
+//     (q = peek< id_name >(p)) || (q = peek< class_name >(p)) ||
+//     (q = look_for_pseudo(p)) || (q = look_for_attrib(p));
+//     // cerr << "looking for simple selector; found:" << endl;
+//     // cerr << (q ? string(Token::make(q,q+8)) : "nothing") << endl;
+//     return q;
+//   }
+//   
+//   const char* Document::look_for_pseudo(const char* start)
+//   {
+//     const char* p = start ? start : position;
+//     const char* q;
+//     
+//     if (q = peek< pseudo_not >(p)) {
+//       // (q = look_for_simple_selector(q)) && (q = peek< exactly<')'> >(q));
+//       (q = look_for_selector_group(q)) && (q = peek< exactly<')'> >(q));
+//     }
+//     else if (q = peek< sequence< pseudo_prefix, functional > >(p)) {
+//       p = q;
+//       (q = peek< alternatives< even, odd > >(p)) ||
+//       (q = peek< binomial >(p))                  ||
+//       (q = peek< sequence< optional<sign>,
+//                            optional<digits>,
+//                            exactly<'n'> > >(p))  ||
+//       (q = peek< sequence< optional<sign>,
+//                            digits > >(p));
+//       p = q;
+//       q = peek< exactly<')'> >(p);
+//     }
+//     else {
+//       q = peek< sequence< pseudo_prefix, identifier > >(p);
+//     }
+//     return q ? q : 0;
+//   }
+//     
+//   const char* Document::look_for_attrib(const char* start)
+//   {
+//     const char* p = start ? start : position;
+//     
+//     (p = peek< exactly<'['> >(p))                  &&
+//     (p = peek< type_selector >(p))                 &&
+//     (p = peek< alternatives<exact_match,
+//                             class_match,
+//                             dash_match,
+//                             prefix_match,
+//                             suffix_match,
+//                             substring_match> >(p)) &&
+//     (p = peek< string_constant >(p))               &&
+//     (p = peek< exactly<']'> >(p));
+//     
+//     return p;
+//   }
+// }

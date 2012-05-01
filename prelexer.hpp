@@ -303,6 +303,7 @@ namespace Sass {
     // Match a CSS identifier.
     const char* identifier(const char* src);
     // Match interpolant schemas
+    const char* identifier_schema(const char* src);
     const char* value_schema(const char* src);
     // Match CSS '@' keywords.
     const char* at_keyword(const char* src);
@@ -387,8 +388,8 @@ namespace Sass {
     template<prelexer mx>
     const char* find_first_in_interval(const char* beg, const char* end) {
       while ((beg < end) && *beg) {
-        const char* p;
-        if (p = mx(beg)) return p;
+        const char* p = mx(beg);
+        if (p) return p;
         ++beg;
       }
       return 0;

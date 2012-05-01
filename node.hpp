@@ -171,6 +171,7 @@ namespace Sass {
           break;
           // throw an exception?
       }
+      return 0;
     }
     
     void set_numeric_value(double v)
@@ -190,7 +191,7 @@ namespace Sass {
     
     Node& operator+=(const Node& n)
     {
-      for (int i = 0; i < n.size(); ++i) {
+      for (size_t i = 0; i < n.size(); ++i) {
         content.children->push_back(n[i]);
       }
       return *this;
@@ -210,6 +211,7 @@ namespace Sass {
                          size_t depth,
                          const vector<string>& prefixes);
     void emit_nested_css(stringstream& buf, size_t depth);
+    void emit_propset(stringstream& buf, size_t depth, const string& prefix);
     void emit_expanded_css(stringstream& buf, const string& prefix);
     
     Node clone(vector<vector<Node>*>& registry) const;

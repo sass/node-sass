@@ -2,10 +2,10 @@
 extern "C" {
 #endif
 
-#define SASS_STYLE_NESTED     0;
-#define SASS_STYLE_EXPANDED   1;
-#define SASS_STYLE_COMPACT    2;
-#define SASS_STYLE_COMPRESSED 3;
+#define SASS_STYLE_NESTED     0
+#define SASS_STYLE_EXPANDED   1
+#define SASS_STYLE_COMPACT    2
+#define SASS_STYLE_COMPRESSED 3
 
 struct sass_options {
   int output_style;
@@ -36,9 +36,9 @@ struct sass_folder_context {
   char* error_message;
 };
 
-struct sass_context*        sass_new_context        ();
-struct sass_file_context*   sass_new_file_context   ();
-struct sass_folder_context* sass_new_folder_context ();
+struct sass_context*        sass_new_context        (void);
+struct sass_file_context*   sass_new_file_context   (void);
+struct sass_folder_context* sass_new_folder_context (void);
 
 void sass_free_context        (struct sass_context* ctx);
 void sass_free_file_context   (struct sass_file_context* ctx);

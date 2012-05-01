@@ -139,6 +139,8 @@ namespace Sass {
     case expanded:
       root.emit_expanded_css(output, "");
       break;
+    default:
+      break;
     }
     string retval(output.str());
     if (!retval.empty()) retval.resize(retval.size()-1);
