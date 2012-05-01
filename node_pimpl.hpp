@@ -1,7 +1,15 @@
+#define SASS_NODE_INCLUDED
+
 #include <string>
+
+#ifndef SASS_NODE_TYPE_INCLUDED
+#include "node_type.hpp"
+#endif
 
 namespace Sass {
   using namespace std;
+
+  class Node_Impl; // forward declaration
   
   class Node {
 
@@ -9,6 +17,8 @@ namespace Sass {
     Node_Impl* ip_;
     
   public:
+    Node_Type type();
+    
     bool has_children();
     bool has_statements();
     bool has_blocks();
@@ -21,11 +31,16 @@ namespace Sass {
     
     string file_name() const;
     size_t line_number() const;
+
     size_t size() const;
+    Node& at(size_t i) const;
+    Node& operator[](size_t i) const;
+    Node& pop_back();
+    Node& push_back(Node n);
+    Node& operator<<(Node n);
+    Node& operator+=(Node n);
     
-    Node_Impl& at(size_t i) const;
-    Node_Impl& operator[](size_t i) const;
-    Node_Impl& push_back(Node n);
-    Node_Impl& operator<<(Node n);
+    double numeric_value();
+    bool   boolean_value();
   };
 }
