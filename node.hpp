@@ -171,6 +171,7 @@ namespace Sass {
           break;
           // throw an exception?
       }
+      return 0;
     }
     
     void set_numeric_value(double v)
