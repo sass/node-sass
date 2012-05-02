@@ -16,7 +16,7 @@ int main()
   
   Node_Factory make = Node_Factory();
   
-  Node interior(make.node(block, 0, 0, 3));
+  Node interior(make.node(Node::block, 0, 0, 3));
   
   cout << interior.size() << endl;
   cout << interior.has_children() << endl;

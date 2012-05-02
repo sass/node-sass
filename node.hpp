@@ -6,90 +6,6 @@
 namespace Sass {
   using namespace std;
   
-  enum Node_Type {
-    none,
-    flags,
-    comment,
-
-    root,
-    ruleset,
-    propset,
-
-    selector_group,
-    selector,
-    selector_combinator,
-    simple_selector_sequence,
-    backref,
-    simple_selector,
-    type_selector,
-    class_selector,
-    id_selector,
-    pseudo,
-    pseudo_negation,
-    functional_pseudo,
-    attribute_selector,
-
-    block,
-    rule,
-    property,
-
-    nil,
-    comma_list,
-    space_list,
-
-    disjunction,
-    conjunction,
-
-    relation,
-    eq,
-    neq,
-    gt,
-    gte,
-    lt,
-    lte,
-
-    expression,
-    add,
-    sub,
-
-    term,
-    mul,
-    div,
-
-    factor,
-    unary_plus,
-    unary_minus,
-    values,
-    value,
-    identifier,
-    uri,
-    textual_percentage,
-    textual_dimension,
-    textual_number,
-    textual_hex,
-    color_name,
-    string_constant,
-    number,
-    numeric_percentage,
-    numeric_dimension,
-    numeric_color,
-    boolean,
-    important,
-
-    value_schema,
-    string_schema,
-
-    css_import,
-    function_call,
-    mixin,
-    parameters,
-    expansion,
-    arguments,
-
-    variable,
-    assignment
-  };
-  
   struct Node_Impl;
 
   class Node {
@@ -100,8 +16,92 @@ namespace Sass {
     Node();
     Node(Node_Impl* ip); // : ip_(ip) { }
 
-  public:    
-    Node_Type type();           // { return ip_->type; }
+  public:
+    enum Type {
+      none,
+      flags,
+      comment,
+
+      root,
+      ruleset,
+      propset,
+
+      selector_group,
+      selector,
+      selector_combinator,
+      simple_selector_sequence,
+      backref,
+      simple_selector,
+      type_selector,
+      class_selector,
+      id_selector,
+      pseudo,
+      pseudo_negation,
+      functional_pseudo,
+      attribute_selector,
+
+      block,
+      rule,
+      property,
+
+      nil,
+      comma_list,
+      space_list,
+
+      disjunction,
+      conjunction,
+
+      relation,
+      eq,
+      neq,
+      gt,
+      gte,
+      lt,
+      lte,
+
+      expression,
+      add,
+      sub,
+
+      term,
+      mul,
+      div,
+
+      factor,
+      unary_plus,
+      unary_minus,
+      values,
+      value,
+      identifier,
+      uri,
+      textual_percentage,
+      textual_dimension,
+      textual_number,
+      textual_hex,
+      color_name,
+      string_constant,
+      number,
+      numeric_percentage,
+      numeric_dimension,
+      numeric_color,
+      boolean,
+      important,
+
+      value_schema,
+      string_schema,
+
+      css_import,
+      function_call,
+      mixin,
+      parameters,
+      expansion,
+      arguments,
+
+      variable,
+      assignment
+    };
+
+    Type type();           // { return ip_->type; }
 
     bool has_children();        // { return ip_->has_children; }
     bool has_statements();      // { return ip_->has_statements; }
@@ -197,7 +197,7 @@ namespace Sass {
     string* file_name;
     size_t line_number;
 
-    Node_Type type;
+    Node::Type type;
 
     bool has_children;
     bool has_statements;
@@ -219,7 +219,7 @@ namespace Sass {
     // bool boolean_value();
     
     bool is_numeric()
-    { return type >= number && type <= numeric_dimension; }
+    { return type >= Node::number && type <= Node::numeric_dimension; }
 
     size_t size()
     { return children.size(); }
@@ -252,7 +252,7 @@ namespace Sass {
   
   inline Node::Node(Node_Impl* ip) : ip_(ip) { }
   
-  inline Node_Type Node::type()           { return ip_->type; }
+  inline Node::Type Node::type()          { return ip_->type; }
   
   inline bool Node::has_children()        { return ip_->has_children; }
   inline bool Node::has_statements()      { return ip_->has_statements; }

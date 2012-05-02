@@ -177,10 +177,10 @@ namespace Sass {
   {
     switch (type)
     {
-      case number:
-      case numeric_percentage:
+      case Node::number:
+      case Node::numeric_percentage:
         return value.numeric;
-      case numeric_dimension:
+      case Node::numeric_dimension:
         return value.dimension.numeric;
       default:
         break;
@@ -193,11 +193,11 @@ namespace Sass {
   {
     switch (type)
     {
-      case numeric_percentage: {
+      case Node::numeric_percentage: {
         return "\"%\"";
       } break;
   
-      case numeric_dimension: {
+      case Node::numeric_dimension: {
         string result("\"");
         result += value.dimension.unit.to_string();
         result += "\"";
