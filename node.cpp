@@ -20,7 +20,8 @@ namespace Sass {
       case expression:
       case term:
       case numeric_color: {
-        for (size_t i = 0; i < size(); ++i) {
+        if (size() != rhs.size()) return false;
+        for (size_t i = 0, L = size(); i < L; ++i) {
           if (at(i) == rhs[i]) continue;
           else return false;
         }
