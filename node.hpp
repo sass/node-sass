@@ -233,7 +233,7 @@ namespace Sass {
     void push_back(const Node& n)
     { children.push_back(n); }
 
-    Node& pop_back()
+    void pop_back()
     { children.pop_back(); }
 
     bool boolean_value()
