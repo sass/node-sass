@@ -20,7 +20,7 @@ int main()
   
   cout << interior.size() << endl;
   cout << interior.has_children() << endl;
-  cout << interior.eval_me() << endl << endl;
+  cout << interior.should_eval() << endl << endl;
   
   Node num(make.node(0, 0, 255, 123, 32));
   

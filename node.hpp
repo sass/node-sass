@@ -109,7 +109,7 @@ namespace Sass {
     bool has_expansions();      // { return ip_->has_expansions; }
     bool has_backref();         // { return ip_->has_backref; }
     bool from_variable();       // { return ip_->from_variable; }
-    bool eval_me();             // { return ip_->eval_me; }
+    bool should_eval();         // { return ip_->should_eval; }
     bool is_unquoted();         // { return ip_->is_unquoted; }
     bool is_numeric();          // { return ip_->is_numeric(); }
 
@@ -205,7 +205,7 @@ namespace Sass {
     bool has_expansions;
     bool has_backref;
     bool from_variable;
-    bool eval_me;
+    bool should_eval;
     bool is_unquoted;
 
     // bool is_numeric();
@@ -260,7 +260,7 @@ namespace Sass {
   inline bool Node::has_expansions()      { return ip_->has_expansions; }
   inline bool Node::has_backref()         { return ip_->has_backref; }
   inline bool Node::from_variable()       { return ip_->from_variable; }
-  inline bool Node::eval_me()             { return ip_->eval_me; }
+  inline bool Node::should_eval()         { return ip_->should_eval; }
   inline bool Node::is_unquoted()         { return ip_->is_unquoted; }
   inline bool Node::is_numeric()          { return ip_->is_numeric(); }
   
