@@ -1,5 +1,4 @@
 #include "node_factory.hpp"
-#include "node_impl.hpp"
 
 namespace Sass {
   

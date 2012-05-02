@@ -5,9 +5,7 @@
 #include "node_type.hpp"
 #endif
 
-#ifndef SASS_NODE_INCLUDED
-#include "node_pimpl.hpp"
-#endif
+#include "node.hpp"
 
 namespace Sass {
   using namespace std;

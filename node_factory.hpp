@@ -1,7 +1,7 @@
 #include <vector>
 
 #ifndef SASS_NODE_INCLUDED
-#include "node_pimpl.hpp"
+#include "node.hpp"
 #endif
 
 namespace Sass {
