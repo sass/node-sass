@@ -70,7 +70,6 @@ namespace Sass {
   public:
     enum Type {
       none,
-      flags,
       comment,
 
       root,
