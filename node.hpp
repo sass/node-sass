@@ -245,7 +245,9 @@ namespace Sass {
 
 
   // ------------------------------------------------------------------------
-  // Node method implementations -- in the header so they can be inlined
+  // Node method implementations
+  // -- in the header so they can be easily declared inline
+  // -- outside of their class definition to get the right declaration order
   // ------------------------------------------------------------------------
   
   inline Node::Node(Node_Impl* ip) : ip_(ip) { }
