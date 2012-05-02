@@ -3,41 +3,64 @@
 
 namespace Sass {
   using namespace std;
-  
-  // Node::Node(Node_Impl* ip) : ip_(ip) { }
-  // 
-  // inline Node_Type Node::type()           { return ip_->type; }
-  // 
-  // inline bool Node::has_children()        { return ip_->has_children; }
-  // inline bool Node::has_statements()      { return ip_->has_statements; }
-  // inline bool Node::has_blocks()          { return ip_->has_blocks; }
-  // inline bool Node::has_expansions()      { return ip_->has_expansions; }
-  // inline bool Node::has_backref()         { return ip_->has_backref; }
-  // inline bool Node::from_variable()       { return ip_->from_variable; }
-  // inline bool Node::eval_me()             { return ip_->eval_me; }
-  // inline bool Node::is_unquoted()         { return ip_->is_unquoted; }
-  // inline bool Node::is_numeric()          { return ip_->is_numeric(); }
-  // 
-  // inline string Node::file_name() const   { return *(ip_->file_name); }
-  // inline size_t Node::line_number() const { return ip_->line_number; }
-  // inline size_t Node::size() const        { return ip_->size(); }
-  // 
-  // inline Node& Node::at(size_t i) const         { return ip_->at(i); }
-  // inline Node& Node::operator[](size_t i) const { return at(i); }
-  // inline Node& Node::pop_back()            { return ip_->pop_back(); }
-  // inline Node& Node::push_back(Node n)
-  // {
-  //   ip_->push_back(n);
-  //   return *this;
-  // }
-  // inline Node& Node::operator<<(Node n)    { return push_back(n); }
-  // inline Node& Node::operator+=(Node n)
-  // {
-  //   for (size_t i = 0, L = n.size(); i < L; ++i) push_back(n[i]);
-  //   return *this;
-  // }
-  // inline bool   Node::boolean_value()     { return ip_->boolean_value(); }
-  // inline double Node::numeric_value()     { return ip_->numeric_value(); }
+
+  // ------------------------------------------------------------------------
+  // Node method implementations
+  // ------------------------------------------------------------------------
+
+  bool Node::operator==(Node rhs) const
+  {
+    Type t = type();
+    if (t != rhs.type()) return false;
+
+    switch (t)
+    {
+      case comma_list:
+      case space_list:
+      case expression:
+      case term:
+      case numeric_color: {
+        for (size_t i = 0; i < size(); ++i) {
+          if (at(i) == rhs[i]) continue;
+          else return false;
+        }
+        return true;
+      } break;
+      
+      case variable:
+      case identifier:
+      case uri:
+      case textual_percentage:
+      case textual_dimension:
+      case textual_number:
+      case textual_hex:
+      case string_constant: {
+        return token().unquote() == rhs.token().unquote();
+      } break;
+      
+      case number:
+      case numeric_percentage: {
+        return numeric_value() == rhs.numeric_value();
+      } break;
+      
+      case numeric_dimension: {
+        if (unit() == rhs.unit()) {
+          return numeric_value() == rhs.numeric_value();
+        }
+        else {
+          return false;
+        }
+      } break;
+      
+      case boolean: {
+        return boolean_value() == rhs.boolean_value();
+      } break;
+      
+      default: {
+        return true;
+      } break;
+    }
+  }
   
   // ------------------------------------------------------------------------
   // Token method implementations
@@ -152,27 +175,6 @@ namespace Sass {
   // Node_Impl method implementations
   // ------------------------------------------------------------------------
 
-  // inline bool Node_Impl::is_numeric()
-  // { return type >= number && type <= numeric_dimension; }
-  // 
-  // inline size_t Node_Impl::size()
-  // { return children.size(); }
-  // 
-  // inline Node& Node_Impl::at(size_t i)
-  // { return children.at(i); }
-  // 
-  // inline Node& Node_Impl::back()
-  // { return children.back(); }
-  // 
-  // inline void Node_Impl::push_back(const Node& n)
-  // { children.push_back(n); }
-  // 
-  // inline Node& Node_Impl::pop_back()
-  // { children.pop_back(); }
-  // 
-  // inline bool Node_Impl::boolean_value()
-  // { return value.boolean; }
-  // 
   double Node_Impl::numeric_value()
   {
     switch (type)
@@ -189,24 +191,23 @@ namespace Sass {
     return 0;
   }
   
-  string Node_Impl::unit()
+  extern const char percent_str[] = "%";
+  extern const char empty_str[]   = "";
+  Token Node_Impl::unit()
   {
     switch (type)
     {
       case Node::numeric_percentage: {
-        return "\"%\"";
+        return Token::make(percent_str);
       } break;
   
       case Node::numeric_dimension: {
-        string result("\"");
-        result += value.dimension.unit.to_string();
-        result += "\"";
-        return result;
+        return value.dimension.unit;
       } break;
       
       default: break;
     }
-    return "\"\"";
+    return Token::make(empty_str);
   }
 
 }

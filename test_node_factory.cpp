@@ -23,6 +23,8 @@ int main()
   cout << interior.should_eval() << endl << endl;
   
   Node num(make.node(0, 0, 255, 123, 32));
+  Node num2(make.node(0, 0, 255, 123, 32));
+  Node num3(make.node(0, 0, 255, 122, 20, .75));
   
   cout << num.size() << endl;
   cout << num.has_children() << endl;
@@ -30,6 +32,9 @@ int main()
   
   cout << num[1].is_numeric() << endl;
   cout << num[1].numeric_value() << endl << endl;
+  
+  cout << (num == num2) << endl;
+  cout << (num == num3) << endl << endl;
   
   return 0;
 }

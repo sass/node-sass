@@ -5,6 +5,57 @@
 
 namespace Sass {
   using namespace std;
+
+  struct Token {
+    const char* begin;
+    const char* end;
+
+    // Need Token::make(...) because tokens are union members, and hence they
+    // can't have non-trivial constructors.
+    static Token make()
+    {
+      Token t;
+      t.begin = 0;
+      t.end = 0;
+      return t;
+    }
+
+    static Token make(const char* s)
+    {
+      Token t;
+      t.begin = s;
+      t.end = s + std::strlen(s);
+      return t;
+    }
+
+    static Token make(const char* b, const char* e)
+    {
+      Token t;
+      t.begin = b;
+      t.end = e;
+      return t;
+    }
+
+    size_t length() const
+    { return end - begin; }
+
+    string to_string() const
+    { return string(begin, end - begin); }
+
+    string unquote() const;
+    void   unquote_to_stream(std::stringstream& buf) const;
+    
+    operator bool()
+    { return begin && end && begin >= end; }
+
+    bool operator<(const Token& rhs) const;
+    bool operator==(const Token& rhs) const;
+  };
+
+  struct Dimension {
+    double numeric;
+    Token unit;
+  };
   
   struct Node_Impl;
 
@@ -14,7 +65,7 @@ namespace Sass {
     Node_Impl* ip_;
     // private constructors; must use a Node_Factory
     Node();
-    Node(Node_Impl* ip); // : ip_(ip) { }
+    Node(Node_Impl* ip);
 
   public:
     enum Type {
@@ -101,87 +152,35 @@ namespace Sass {
       assignment
     };
 
-    Type type();           // { return ip_->type; }
+    Type type() const;
 
-    bool has_children();        // { return ip_->has_children; }
-    bool has_statements();      // { return ip_->has_statements; }
-    bool has_blocks();          // { return ip_->has_blocks; }
-    bool has_expansions();      // { return ip_->has_expansions; }
-    bool has_backref();         // { return ip_->has_backref; }
-    bool from_variable();       // { return ip_->from_variable; }
-    bool should_eval();         // { return ip_->should_eval; }
-    bool is_unquoted();         // { return ip_->is_unquoted; }
-    bool is_numeric();          // { return ip_->is_numeric(); }
+    bool has_children() const;
+    bool has_statements() const;
+    bool has_blocks() const;
+    bool has_expansions() const;
+    bool has_backref() const;
+    bool from_variable() const;
+    bool should_eval() const;
+    bool is_unquoted() const;
+    bool is_numeric() const;
 
-    string file_name() const;   // { return *(ip_->file_name); }
-    size_t line_number() const; // { return ip_->line_number; }
-    size_t size() const;        // { return ip_->size(); }
+    string file_name() const;
+    size_t line_number() const;
+    size_t size() const;
 
-    Node& at(size_t i) const;         // { return ip_->at(i); }
-    Node& operator[](size_t i) const; // { return at(i); }
-    void  pop_back();                 // { return ip_->pop_back(); }
+    Node& at(size_t i) const;
+    Node& operator[](size_t i) const;
+    void  pop_back();
     Node& push_back(Node n);
-    // { ip_->push_back(n); return *this; }
     Node& operator<<(Node n);
-    // { return push_back(n); }
     Node& operator+=(Node n);
-    // {
-    //       for (size_t i = 0, L = n.size(); i < L; ++i) push_back(n[i]);
-    //       return *this;
-    // }
-    bool   boolean_value();     // { return ip_->boolean_value(); }
-    double numeric_value();     // { return ip_->numeric_value(); }
-  };
-  
-  struct Token {
-    const char* begin;
-    const char* end;
 
-    // Need Token::make(...) because tokens are union members, and hence they
-    // can't have non-trivial constructors.
-    static Token make()
-    {
-      Token t;
-      t.begin = 0;
-      t.end = 0;
-      return t;
-    }
-
-    static Token make(const char* s)
-    {
-      Token t;
-      t.begin = s;
-      t.end = s + std::strlen(s);
-      return t;
-    }
-
-    static Token make(const char* b, const char* e)
-    {
-      Token t;
-      t.begin = b;
-      t.end = e;
-      return t;
-    }
-
-    size_t length() const
-    { return end - begin; }
-
-    string to_string() const
-    { return string(begin, end - begin); }
-
-    string unquote() const;
-    void   unquote_to_stream(std::stringstream& buf) const;
+    bool   boolean_value() const;
+    double numeric_value() const;
+    Token  token() const;
+    Token  unit() const;
     
-    operator bool()
-    { return begin && end && begin >= end; }
-
-    bool operator<(const Token& rhs) const;
-    bool operator==(const Token& rhs) const;
-  };
-  
-  struct Dimension {
-    double numeric;
-    Token unit;
+    bool operator==(Node rhs) const;
   };
   
   struct Node_Impl {
@@ -207,16 +206,6 @@ namespace Sass {
     bool from_variable;
     bool should_eval;
     bool is_unquoted;
-
-    // bool is_numeric();
-    // 
-    // size_t size();
-    // Node& at(size_t i);
-    // Node& back();
-    // Node& pop_back();
-    // void push_back(const Node& n);
-    // 
-    // bool boolean_value();
     
     bool is_numeric()
     { return type >= Node::number && type <= Node::numeric_dimension; }
@@ -240,7 +229,7 @@ namespace Sass {
     { return value.boolean; }
     
     double numeric_value();
-    string unit();
+    Token  unit();
   };
 
 
@@ -252,17 +241,17 @@ namespace Sass {
   
   inline Node::Node(Node_Impl* ip) : ip_(ip) { }
   
-  inline Node::Type Node::type()          { return ip_->type; }
+  inline Node::Type Node::type() const    { return ip_->type; }
   
-  inline bool Node::has_children()        { return ip_->has_children; }
-  inline bool Node::has_statements()      { return ip_->has_statements; }
-  inline bool Node::has_blocks()          { return ip_->has_blocks; }
-  inline bool Node::has_expansions()      { return ip_->has_expansions; }
-  inline bool Node::has_backref()         { return ip_->has_backref; }
-  inline bool Node::from_variable()       { return ip_->from_variable; }
-  inline bool Node::should_eval()         { return ip_->should_eval; }
-  inline bool Node::is_unquoted()         { return ip_->is_unquoted; }
-  inline bool Node::is_numeric()          { return ip_->is_numeric(); }
+  inline bool Node::has_children() const   { return ip_->has_children; }
+  inline bool Node::has_statements() const { return ip_->has_statements; }
+  inline bool Node::has_blocks() const     { return ip_->has_blocks; }
+  inline bool Node::has_expansions() const { return ip_->has_expansions; }
+  inline bool Node::has_backref() const    { return ip_->has_backref; }
+  inline bool Node::from_variable() const  { return ip_->from_variable; }
+  inline bool Node::should_eval() const    { return ip_->should_eval; }
+  inline bool Node::is_unquoted() const    { return ip_->is_unquoted; }
+  inline bool Node::is_numeric() const     { return ip_->is_numeric(); }
   
   inline string Node::file_name() const   { return *(ip_->file_name); }
   inline size_t Node::line_number() const { return ip_->line_number; }
@@ -276,13 +265,15 @@ namespace Sass {
     ip_->push_back(n);
     return *this;
   }
-  inline Node& Node::operator<<(Node n)    { return push_back(n); }
+  inline Node& Node::operator<<(Node n)         { return push_back(n); }
   inline Node& Node::operator+=(Node n)
   {
     for (size_t i = 0, L = n.size(); i < L; ++i) push_back(n[i]);
     return *this;
   }
-  inline bool   Node::boolean_value()     { return ip_->boolean_value(); }
-  inline double Node::numeric_value()     { return ip_->numeric_value(); }
+  inline bool   Node::boolean_value() const { return ip_->boolean_value(); }
+  inline double Node::numeric_value() const { return ip_->numeric_value(); }
+  inline Token  Node::token() const         { return ip_->value.token; }
+  inline Token  Node::unit() const          { return ip_->unit(); }
 
 }
