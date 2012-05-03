@@ -65,6 +65,9 @@ namespace Sass {
     return false;
   }
   
+  bool Node::operator!=(Node rhs) const
+  { return !(*this == rhs); }
+  
   bool Node::operator<(Node rhs) const
   {
     Type lhs_type = type();
@@ -86,6 +89,15 @@ namespace Sass {
       throw Error(Error::evaluation, line_number(), file_name(), "incomparable types");
     }
   }
+  
+  bool Node::operator<=(Node rhs) const
+  { return *this < rhs || *this == rhs; }
+  
+  bool Node::operator>(Node rhs) const
+  { return !(*this <= rhs); }
+  
+  bool Node::operator>=(Node rhs) const
+  { return !(*this < rhs); }
 
 
   // ------------------------------------------------------------------------

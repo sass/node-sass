@@ -39,5 +39,8 @@ int main()
   cout << (num3[2] < num2[2]) << endl;
   cout << (num2[3] < num3[3]) << endl << endl;
   
+  cout << (num2[2] >= num3[2]) << endl;
+  cout << (num2[3] != num3[3]) << endl << endl;
+  
   return 0;
 }

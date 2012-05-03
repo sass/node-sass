@@ -180,7 +180,11 @@ namespace Sass {
     Token  unit() const;
     
     bool operator==(Node rhs) const;
+    bool operator!=(Node rhs) const;
     bool operator<(Node rhs) const;
+    bool operator<=(Node rhs) const;
+    bool operator>(Node rhs) const;
+    bool operator>=(Node rhs) const;
   };
   
   struct Node_Impl {
