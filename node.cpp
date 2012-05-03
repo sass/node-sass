@@ -1,5 +1,6 @@
 #include <sstream>
 #include "node.hpp"
+#include "error.hpp"
 
 namespace Sass {
   using namespace std;
@@ -61,8 +62,32 @@ namespace Sass {
         return true;
       } break;
     }
+    return false;
   }
   
+  bool Node::operator<(Node rhs) const
+  {
+    Type lhs_type = type();
+    Type rhs_type = rhs.type();
+    
+    if (lhs_type == number && rhs_type == number ||
+        lhs_type == numeric_percentage && rhs_type == numeric_percentage) {
+      return numeric_value() < rhs.numeric_value();
+    }
+    else if (lhs_type == numeric_dimension && rhs_type == numeric_dimension) {
+      if (unit() == rhs.unit()) {
+        return numeric_value() < rhs.numeric_value();
+      }
+      else {
+        throw Error(Error::evaluation, line_number(), file_name(), "incompatible units");
+      }
+    }
+    else {
+      throw Error(Error::evaluation, line_number(), file_name(), "incomparable types");
+    }
+  }
+
+
   // ------------------------------------------------------------------------
   // Token method implementations
   // ------------------------------------------------------------------------
@@ -150,11 +175,11 @@ namespace Sass {
     const char* last2  = rhs.end;
     while (first1!=last1)
     {
-      if (first2==last2 || *first2<*first1) return false;
-      else if (*first1<*first2) return true;
-      first1++; first2++;
+      if (first2 == last2 || *first2 < *first1) return false;
+      else if (*first1 < *first2) return true;
+      ++first1; ++first2;
     }
-    return (first2!=last2);
+    return (first2 != last2);
   }
   
   bool Token::operator==(const Token& rhs) const

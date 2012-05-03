@@ -36,5 +36,8 @@ int main()
   cout << (num == num2) << endl;
   cout << (num == num3) << endl << endl;
   
+  cout << (num3[2] < num2[2]) << endl;
+  cout << (num2[3] < num3[3]) << endl << endl;
+  
   return 0;
 }
