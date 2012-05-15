@@ -1,5 +1,6 @@
 #define SASS_NODE_INCLUDED
 
+#include <cstring>
 #include <string>
 #include <vector>
 
