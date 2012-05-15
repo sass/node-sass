@@ -198,7 +198,7 @@ namespace Sass {
     vector<Node> children;
 
     string* file_name;
-    size_t line_number;
+    size_t  line_number;
 
     Node::Type type;
 
@@ -216,6 +216,9 @@ namespace Sass {
 
     size_t size()
     { return children.size(); }
+    
+    bool empty()
+    { return children.empty(); }
 
     Node& at(size_t i)
     { return children.at(i); }
@@ -224,10 +227,10 @@ namespace Sass {
     { return children.back(); }
 
     void push_back(const Node& n)
-    { children.push_back(n); }
+    { children.push_back(n); has_children = true; }
 
     void pop_back()
-    { children.pop_back(); }
+    { children.pop_back(); if (empty()) has_children = false; }
 
     bool boolean_value()
     { return value.boolean; }
@@ -239,7 +242,7 @@ namespace Sass {
 
   // ------------------------------------------------------------------------
   // Node method implementations
-  // -- in the header so they can be easily declared inline
+  // -- in the header file so they can easily be declared inline
   // -- outside of their class definition to get the right declaration order
   // ------------------------------------------------------------------------
   

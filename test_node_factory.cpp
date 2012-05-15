@@ -11,20 +11,21 @@ int main()
   using namespace Sass;
   using namespace std;
   
+  cout << sizeof(Node_Impl*) << endl;
   cout << sizeof(Node) << endl;
   cout << sizeof(Node_Impl) << endl << endl;
   
-  Node_Factory make = Node_Factory();
+  Node_Factory new_Node = Node_Factory();
   
-  Node interior(make.node(Node::block, 0, 0, 3));
+  Node interior(new_Node(Node::block, 0, 0, 3));
   
   cout << interior.size() << endl;
   cout << interior.has_children() << endl;
   cout << interior.should_eval() << endl << endl;
   
-  Node num(make.node(0, 0, 255, 123, 32));
-  Node num2(make.node(0, 0, 255, 123, 32));
-  Node num3(make.node(0, 0, 255, 122, 20, .75));
+  Node num(new_Node(0, 0, 255, 123, 32));
+  Node num2(new_Node(0, 0, 255, 123, 32));
+  Node num3(new_Node(0, 0, 255, 122, 20, .75));
   
   cout << num.size() << endl;
   cout << num.has_children() << endl;
