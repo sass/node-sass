@@ -196,7 +196,8 @@ namespace Sass {
       Dimension    dimension;
     } value;
 
-    vector<Node> children;
+    // TO DO: look into using a custom allocator in the Node_Factory class
+    vector<Node> children; // Can't be in the union because it has non-trivial constructors!
 
     string* file_name;
     size_t  line_number;
@@ -228,10 +229,23 @@ namespace Sass {
     { return children.back(); }
 
     void push_back(const Node& n)
-    { children.push_back(n); has_children = true; }
+    {
+      children.push_back(n);
+      has_children = true;
+      switch (type)
+      {
+        case comment:
+        case css_import:
+        case rule:
+        case propsest:  has_statements = true; break;
+        case ruleset:   has_blocks     = true; break;
+        case expansion: has_expansions = true; break;
+        default:                               break;
+      }
+    }
 
     void pop_back()
-    { children.pop_back(); if (empty()) has_children = false; }
+    { children.pop_back(); }
 
     bool boolean_value()
     { return value.boolean; }
