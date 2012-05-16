@@ -234,12 +234,12 @@ namespace Sass {
       has_children = true;
       switch (type)
       {
-        case comment:
-        case css_import:
-        case rule:
-        case propsest:  has_statements = true; break;
-        case ruleset:   has_blocks     = true; break;
-        case expansion: has_expansions = true; break;
+        case Node::comment:
+        case Node::css_import:
+        case Node::rule:
+        case Node::propset:  has_statements = true; break;
+        case Node::ruleset:   has_blocks     = true; break;
+        case Node::expansion: has_expansions = true; break;
         default:                               break;
       }
     }
