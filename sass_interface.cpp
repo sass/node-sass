@@ -10,8 +10,8 @@
 #include "sass_interface.h"
 
 extern "C" {
-
   using namespace std;
+
   sass_context* sass_new_context()
     { return (sass_context*) calloc(1, sizeof(sass_context)); }
   
@@ -64,7 +64,8 @@ extern "C" {
     using namespace Sass;
     try {
       Context cpp_ctx(c_ctx->options.include_paths);
-      Document doc(0, c_ctx->input_string, cpp_ctx);
+      // Document doc(0, c_ctx->input_string, cpp_ctx);
+      Document doc(Document::make_from_source_chars(cpp_ctx, c_ctx->source_string));
       c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
@@ -98,7 +99,8 @@ extern "C" {
     using namespace Sass;
     try {
       Context cpp_ctx(c_ctx->options.include_paths);
-      Document doc(c_ctx->input_path, 0, cpp_ctx);
+      // Document doc(c_ctx->input_path, 0, cpp_ctx);
+      Document doc(Document::make_from_file(cpp_ctx, string(c_ctx->input_path));
       // cerr << "MADE A DOC AND CONTEXT OBJ" << endl;
       // cerr << "REGISTRY: " << doc.context.registry.size() << endl;
       c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
