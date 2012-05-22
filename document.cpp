@@ -66,7 +66,6 @@ namespace Sass {
     doc.source = src;
     doc.end = src + std::strlen(src);
     doc.position = doc.end;
-    // doc.context.source_refs.push_back(src); // we don't own src
 
     return doc;
   }
