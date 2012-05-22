@@ -164,7 +164,7 @@ namespace Sass {
     bool is_unquoted() const;
     bool is_numeric() const;
 
-    string file_name() const;
+    string& file_name() const;
     size_t line_number() const;
     size_t size() const;
 
@@ -199,8 +199,8 @@ namespace Sass {
     // TO DO: look into using a custom allocator in the Node_Factory class
     vector<Node> children; // Can't be in the union because it has non-trivial constructors!
 
-    string* file_name;
-    size_t  line_number;
+    string file_name;
+    size_t line_number;
 
     Node::Type type;
 
@@ -237,7 +237,7 @@ namespace Sass {
         case Node::comment:
         case Node::css_import:
         case Node::rule:
-        case Node::propset:  has_statements = true; break;
+        case Node::propset:   has_statements = true; break;
         case Node::ruleset:   has_blocks     = true; break;
         case Node::expansion: has_expansions = true; break;
         default:                               break;
@@ -275,9 +275,9 @@ namespace Sass {
   inline bool Node::is_unquoted() const    { return ip_->is_unquoted; }
   inline bool Node::is_numeric() const     { return ip_->is_numeric(); }
   
-  inline string Node::file_name() const   { return *(ip_->file_name); }
-  inline size_t Node::line_number() const { return ip_->line_number; }
-  inline size_t Node::size() const        { return ip_->size(); }
+  inline string& Node::file_name() const   { return ip_->file_name; }
+  inline size_t  Node::line_number() const { return ip_->line_number; }
+  inline size_t  Node::size() const        { return ip_->size(); }
   
   inline Node& Node::at(size_t i) const         { return ip_->at(i); }
   inline Node& Node::operator[](size_t i) const { return at(i); }
