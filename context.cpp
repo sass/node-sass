@@ -44,6 +44,7 @@ namespace Sass {
     source_refs(vector<char*>()),
     registry(vector<vector<Node>*>()),
     include_paths(vector<string>()),
+    new_Node(Node_Factory()),
     ref_count(0)
   {
     register_functions();
@@ -55,6 +56,8 @@ namespace Sass {
     for (size_t i = 0; i < source_refs.size(); ++i) {
       delete[] source_refs[i];
     }
+
+    new_Node.free();
     // cerr << "Deallocated " << i << " source string(s)." << endl;
   }
   
