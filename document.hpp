@@ -26,13 +26,17 @@ namespace Sass {
     
     Node root;
     Token lexed;
-    
-    Document(char* path_str, char* source_str, Context& ctx);
-    Document(string path, char* source = 0);
-    Document(string path, Context& context);
-    Document(const string& path, size_t line_number, Token t, Context& context);
+
+  private:
+    // force the use of the "make_from_..." factory funtions
+    Document(Context& ctx);
     ~Document();
-    
+  public:
+
+    static Document make_from_file(Context& ctx, string path);
+    static Document make_from_source_chars(Context& ctx, char* src, string path = "");
+    static Document make_from_token(Context& ctx, Token t, string path = "", size_t line_number = 1);
+
     template <prelexer mx>
     const char* peek(const char* start = 0)
     {
