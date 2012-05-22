@@ -16,10 +16,12 @@ namespace Sass {
   Node_Impl* Node_Factory::alloc_Node_Impl(Node_Impl* ip)
   {
     Node_Impl* ip_cpy = new Node_Impl(*ip);
+    pool_.push_back(ip_cpy);
     if (ip_cpy->has_children) {
       for (size_t i = 0, S = ip_cpy->size(); i < S; ++i) {
         Node n(ip_cpy->at(i));
-        n.ip_ = alloc_Node_Impl(n.ip_);
+        // n.ip_ = alloc_Node_Impl(n.ip_);
+        ip_cpy->at(i) = (*this)(n);
       }
     }
     return ip_cpy;

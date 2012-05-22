@@ -48,7 +48,19 @@ int main()
   cout << num4[3].numeric_value() << endl;
   num4[3] = new_Node("", 0, 0.4567);
   cout << num3[3].numeric_value() << endl;
-  cout << num4[3].numeric_value() << endl;
+  cout << num4[3].numeric_value() << endl << endl;
+
+  Node block1(new_Node(Node::block, "block", 1, 2));
+  block1 << num2 << num4;
+
+  Node block2(new_Node(block1));
+
+  cout << (block1 == block2) << endl;
+  cout << block1[1][3].numeric_value() << endl;
+  cout << block2[1][3].numeric_value() << endl;
+  block2[1][3] = new_Node("", 0, .9876);
+  cout << block1[1][3].numeric_value() << endl;
+  cout << block2[1][3].numeric_value() << endl;
 
   new_Node.free();
   
