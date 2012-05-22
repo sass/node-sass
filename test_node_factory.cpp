@@ -17,15 +17,15 @@ int main()
   
   Node_Factory new_Node = Node_Factory();
   
-  Node interior(new_Node(Node::block, 0, 0, 3));
+  Node interior(new_Node(Node::block, "", 0, 3));
   
   cout << interior.size() << endl;
   cout << interior.has_children() << endl;
   cout << interior.should_eval() << endl << endl;
   
-  Node num(new_Node(0, 0, 255, 123, 32));
-  Node num2(new_Node(0, 0, 255, 123, 32));
-  Node num3(new_Node(0, 0, 255, 122, 20, .75));
+  Node num(new_Node("", 0, 255, 123, 32));
+  Node num2(new_Node("", 0, 255, 123, 32));
+  Node num3(new_Node("", 0, 255, 122, 20, .75));
   
   cout << num.size() << endl;
   cout << num.has_children() << endl;
@@ -42,6 +42,15 @@ int main()
   
   cout << (num2[2] >= num3[2]) << endl;
   cout << (num2[3] != num3[3]) << endl << endl;
+
+  Node num4(new_Node(num3));
+  cout << num3[3].numeric_value() << endl;
+  cout << num4[3].numeric_value() << endl;
+  num4[3] = new_Node("", 0, 0.4567);
+  cout << num3[3].numeric_value() << endl;
+  cout << num4[3].numeric_value() << endl;
+
+  new_Node.free();
   
   return 0;
 }
