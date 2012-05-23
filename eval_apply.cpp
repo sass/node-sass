@@ -11,10 +11,18 @@ namespace Sass {
     string fn;
     if (path) {
       const char* end = Prelexer::string_constant(path);
-      if (end) fn = string(path, end - path);
-      else fn = string(path);
+      if (end) fn = path.substr(1, path.size() - 1);
+      else     fn = path;
     }
     throw Error(Error::evaluation, line, fn, message);
+  }
+
+  static void throw_eval_error(string message, string path, size_t line)
+  {
+    if (!path.empty() && Prelexer::string_constant(path.c_str()))
+      path = path.substr(1, path.size() - 1);
+
+    throw Error(Error::evaluation, path, line, message);
   }
 
   Node eval(Node& expr, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node)

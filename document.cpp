@@ -87,10 +87,10 @@ namespace Sass {
   }
   
   void Document::throw_syntax_error(string message, size_t ln)
-  { throw Error(Error::syntax, ln ? ln : line, path, message); }
+  { throw Error(Error::syntax, path, ln ? ln : line, message); }
   
   void Document::throw_read_error(string message, size_t ln)
-  { throw Error(Error::read, ln ? ln : line, path, message); }
+  { throw Error(Error::read, path, ln ? ln : line, message); }
   
   using std::string;
   using std::stringstream;
