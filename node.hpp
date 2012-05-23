@@ -176,7 +176,7 @@ namespace Sass {
     Node& operator<<(Node n);
     Node& operator+=(Node n);
 
-    bool   boolean_value() const;
+    bool&  boolean_value() const;
     double numeric_value() const;
     Token  token() const;
     Token  unit() const;
@@ -268,7 +268,7 @@ namespace Sass {
     void pop_back()
     { children.pop_back(); }
 
-    bool boolean_value()
+    bool& boolean_value()
     { return value.boolean; }
     
     double numeric_value();
@@ -320,7 +320,7 @@ namespace Sass {
     for (size_t i = 0, L = n.size(); i < L; ++i) push_back(n[i]);
     return *this;
   }
-  inline bool   Node::boolean_value() const { return ip_->boolean_value(); }
+  inline bool&  Node::boolean_value() const { return ip_->boolean_value(); }
   inline double Node::numeric_value() const { return ip_->numeric_value(); }
   inline Token  Node::token() const         { return ip_->value.token; }
   inline Token  Node::unit() const          { return ip_->unit(); }

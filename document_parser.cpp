@@ -39,7 +39,7 @@ namespace Sass {
       }
       else {
         lex< spaces_and_comments >();
-        syntax_error("invalid top-level expression");
+        throw_syntax_error("invalid top-level expression");
       }
       lex< optional_spaces >();
     }
@@ -61,9 +61,9 @@ namespace Sass {
         const char* beg = position;
         const char* end = find_first< exactly<')'> >(position);
         if (!end) throw_syntax_error("unterminated url in @import directive");
-        Node path(context.new_Node(Node::identifier, path, line_number, Token::make(beg, end)));
-        Node importee(context.new_Node(Node::css_import, path, line_number, 1);
-        importee << path;
+        Node path_node(context.new_Node(Node::identifier, path, line_number, Token::make(beg, end)));
+        Node importee(context.new_Node(Node::css_import, path, line_number, 1));
+        importee << path_node;
         position = end;
         lex< exactly<')'> >();
         return importee;
@@ -98,14 +98,14 @@ namespace Sass {
     Node params(parse_mixin_parameters());
     if (!peek< exactly<'{'> >()) throw_syntax_error("body for mixin " + name.token().to_string() + " must begin with a '{'");
     Node body(parse_block(true));
-    Node the_mixin(context.new_Node(Node::mixin, path, line_number, 3);
+    Node the_mixin(context.new_Node(Node::mixin, path, line_number, 3));
     the_mixin << name << params << body;
-    return mixin;
+    return the_mixin;
   }
 
   Node Document::parse_mixin_parameters()
   {
-    Node params(context.new_Node(Node::parameters, path, line_number, 0);
+    Node params(context.new_Node(Node::parameters, path, line_number, 0));
     Token name(lexed);
     if (lex< exactly<'('> >()) {
       if (peek< variable >()) {
@@ -151,7 +151,7 @@ namespace Sass {
   Node Document::parse_arguments()
   {
     Token name(lexed);
-    Node args(context.new_Node(Node::arguments, path, line_number, 0);
+    Node args(context.new_Node(Node::arguments, path, line_number, 0));
     if (lex< exactly<'('> >()) {
       if (!peek< exactly<')'> >(position)) {
         Node arg(parse_argument());
@@ -212,7 +212,7 @@ namespace Sass {
       }
     }
     if (block.empty()) throw_syntax_error("namespaced property cannot be empty");
-    Node propset(context.new_Node(Node::propset, path, line_number, 2);
+    Node propset(context.new_Node(Node::propset, path, line_number, 2));
     propset << property_segment;
     propset << block;
     return propset;
@@ -359,7 +359,7 @@ namespace Sass {
         pseudo << context.new_Node(Node::string_constant, path, line_number, lexed);
       }
       else {
-        syntax_error("invalid argument to " + name.to_string() + "...)");
+        throw_syntax_error("invalid argument to " + name.to_string() + "...)");
       }
       if (!lex< exactly<')'> >()) throw_syntax_error("unterminated argument to " + name.to_string() + "...)");
       return pseudo;
@@ -700,62 +700,49 @@ namespace Sass {
     }
     
     if (lex< value_schema >())
-    {
-      // cerr << "parsing value schema: " << lexed.to_string() << endl;      
-      return Document::make_from_token(context, lexed, path, line_number).parse_value_schema();
-    }
+    { return Document::make_from_token(context, lexed, path, line_number).parse_value_schema(); }
     
     if (lex< sequence< true_kwd, negate< identifier > > >())
-    {
-      Node T(Node::boolean);
-      T.line_number = line_number;
-      T.content.boolean_value = true;
-      return T;
-    }
+    { return context.new_Node(Node::boolean, path, line_number, true); }
     
     if (lex< sequence< false_kwd, negate< identifier > > >())
-    {
-      Node F(Node::boolean);
-      F.line_number = line_number;
-      F.content.boolean_value = false;
-      return F;
-    }
+    { return context.new_Node(Node::boolean, path, line_number, false); }
     
     if (peek< functional >())
     { return parse_function_call(); }
     
     if (lex< important >())
-    { return Node(Node::important, line_number, lexed); }
+    { return context.new_Node(Node::important, path, line_number, lexed); }
 
     if (lex< identifier >())
-    { return Node(Node::identifier, line_number, lexed); }
+    { return context.new_Node(Node::identifier, path, line_number, lexed); }
 
     if (lex< percentage >())
-    { return Node(Node::textual_percentage, line_number, lexed); }
+    { return context.new_Node(Node::textual_percentage, path, line_number, lexed); }
 
     if (lex< dimension >())
-    { return Node(Node::textual_dimension, line_number, lexed); }
+    { return context.new_Node(Node::textual_dimension, path, line_number, lexed); }
 
     if (lex< number >())
-    { return Node(Node::textual_number, line_number, lexed); }
+    { return context.new_Node(Node::textual_number, path, line_number, lexed); }
 
     if (lex< hex >())
-    { return Node(Node::textual_hex, line_number, lexed); }
+    { return context.new_Node(Node::textual_hex, path, line_number, lexed); }
 
     if (peek< string_constant >())
-    // { return Node(Node::string_constant, line_number, lexed); }
     { return parse_string(); } 
 
     if (lex< variable >())
     {
-      Node var(Node::variable, line_number, lexed);
+      Node var(context.new_Node(Node::variable, path, line_number, lexed));
       var.should_eval() = true;
       return var;
     }
     
-    syntax_error("error reading values after " + lexed.to_string());
-    // unreached statement
-    return Node(Node::none);
+    throw_syntax_error("error reading values after " + lexed.to_string());
+
+    // unreachable statement
+    return Node();
   }
   
   extern const char hash_lbrace[] = "#{";
@@ -769,34 +756,35 @@ namespace Sass {
     // see if there any interpolants
     const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(str.begin, str.end);
     if (!p) {
-      return Node(Node::string_constant, line_number, str);
+      return context.new_Node(Node::string_constant, path, line_number, str);
     }
     
-    Node schema(Node::string_schema, path, line_number, 1);
+    Node schema(context.new_Node(Node::string_schema, path, line_number, 1));
     while (i < str.end) {
       p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, str.end);
       if (p) {
         if (i < p) {
-          schema << Node(Node::identifier, line_number, Token::make(i, p-2)); // accumulate the preceding segment if it's nonempty
+          schema << context.new_Node(Node::identifier, path, line_number, Token::make(i, p-2)); // accumulate the preceding segment if it's nonempty
           // cerr << '[' << Token::make(i,p-2).to_string() << ']' << endl;
         }
         const char* j = find_first_in_interval< exactly<rbrace> >(p, str.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
           // cerr << '[' << Token::make(p, j-1).to_string() << ']' << endl;
-          Document interp_doc(path, line_number, Token::make(p,j-1), context);
-          Node interp_node(interp_doc.parse_list());
+          // Document interp_doc(path, line_number, Token::make(p,j-1), context);
+          Node interp_node(Document::make_from_token(context, Token::make(p, j-1), path, line_number).parse_list());
+          // Node interp_node(interp_doc.parse_list());
           interp_node.should_eval() = true;
           schema << interp_node;
           i = j;
         }
         else {
           // throw an error if the interpolant is unterminated
-          syntax_error("unterminated interpolant inside string constant " + str.to_string());
+          throw_syntax_error("unterminated interpolant inside string constant " + str.to_string());
         }
       }
       else { // no interpolants left; add the last segment if nonempty
-        if (i < str.end) schema << Node(Node::identifier, line_number, Token::make(i, str.end));
+        if (i < str.end) schema << context.new_Node(Node::identifier, path, line_number, Token::make(i, str.end));
         break;
       }
     }
@@ -805,38 +793,39 @@ namespace Sass {
   
   Node Document::parse_value_schema()
   {    
-    Node schema(Node::value_schema, path, line_number, 1);
+    Node schema(context.new_Node(Node::value_schema, path, line_number, 1));
     
     while (position < end) {
       if (lex< interpolant >()) {
         Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
-        Document interp_doc(path, line_number, insides, context);
-        Node interp_node(interp_doc.parse_list());
+        // Document interp_doc(path, line_number, insides, context);
+        // Node interp_node(interp_doc.parse_list());
+        Node interp_node(Document::make_from_token(context, insides, path, line_number).parse_list());
         schema << interp_node;
       }
       else if (lex< identifier >()) {
-        schema << Node(Node::identifier, line_number, lexed);
+        schema << context.new_Node(Node::identifier, path, line_number, lexed);
       }
       else if (lex< percentage >()) {
-        schema << Node(Node::textual_percentage, line_number, lexed);
+        schema << context.new_Node(Node::textual_percentage, path, line_number, lexed);
       }
       else if (lex< dimension >()) {
-        schema << Node(Node::textual_dimension, line_number, lexed);
+        schema << context.new_Node(Node::textual_dimension, path, line_number, lexed);
       }
       else if (lex< number >()) {
-        schema << Node(Node::textual_number, line_number, lexed);
+        schema << context.new_Node(Node::textual_number, path, line_number, lexed);
       }
       else if (lex< hex >()) {
-        schema << Node(Node::textual_hex, line_number, lexed);
+        schema << context.new_Node(Node::textual_hex, path, line_number, lexed);
       }
       else if (lex< string_constant >()) {
-        schema << Node(Node::string_constant, line_number, lexed);
+        schema << context.new_Node(Node::string_constant, path, line_number, lexed);
       }
       else if (lex< variable >()) {
-        schema << Node(Node::variable, line_number, lexed);
+        schema << context.new_Node(Node::variable, path, line_number, lexed);
       }
       else {
-        syntax_error("error parsing interpolated value");
+        throw_syntax_error("error parsing interpolated value");
       }
     }
     schema.should_eval() = true;
@@ -846,22 +835,12 @@ namespace Sass {
   Node Document::parse_function_call()
   {
     lex< identifier >();
-    Node name(Node::identifier, line_number, lexed);
+    Node name(context.new_Node(Node::identifier, path, line_number, lexed));
     Node args(parse_arguments());
-    Node call(Node::function_call, path, line_number, 2);
+    Node call(context.new_Node(Node::function_call, path, line_number, 2));
     call << name << args;
     call.should_eval() = true;
     return call;
-  }
-  
-  Node Document::parse_identifier() {
-    lex< identifier >();
-    return Node(Node::identifier, line_number, lexed);
-  }
-  
-  Node Document::parse_variable() {
-    lex< variable >();
-    return Node(Node::variable, line_number, lexed);
   }
   
   const char* Document::lookahead_for_selector(const char* start)
@@ -903,150 +882,3 @@ namespace Sass {
   }
   
 }
-
-  // const char* Document::look_for_rule(const char* start)
-  // {
-  //   const char* p = start ? start : position;
-  //   (p = peek< identifier >(p))   &&
-  //   (p = peek< exactly<':'> >(p)) &&
-  //   (p = look_for_values(p))      &&
-  //   (p = peek< alternatives< exactly<';'>, exactly<'}'> > >(p));
-  //   return p;
-  // }
-  // 
-  // const char* Document::look_for_values(const char* start)
-  // {
-  //   const char* p = start ? start : position;
-  //   const char* q;
-  //   while ((q = peek< identifier >(p)) || (q = peek< dimension >(p))       ||
-  //          (q = peek< percentage >(p)) || (q = peek< number >(p))          ||
-  //          (q = peek< hex >(p))        || (q = peek< string_constant >(p)) ||
-  //          (q = peek< variable >(p)))
-  //   { p = q; }
-  //   return p == start ? 0 : p;
-  // }
-  
-//   // NEW LOOKAHEAD FUNCTIONS. THIS ESSENTIALLY IMPLEMENTS A BACKTRACKING
-//   // PARSER, BECAUSE SELECTORS AND VALUES ARE NOT EXPRESSIBLE IN A
-//   // REGULAR LANGUAGE.
-//   const char* Document::look_for_selector_group(const char* start)
-//   {
-//     const char* p = start ? start : position;
-//     const char* q = look_for_selector(p);
-// 
-//     if (!q) { return 0; }
-//     else    { p = q; }
-// 
-//     while ((q = peek< exactly<','> >(p)) && (q = look_for_selector(q)))
-//     { p = q; }
-//     
-//     // return peek< exactly<'{'> >(p) ? p : 0;
-//     return peek< alternatives< exactly<'{'>, exactly<')'> > >(p) ? p : 0;
-//   }
-//   
-//   const char* Document::look_for_selector(const char* start)
-//   {
-//     const char* p = start ? start : position;
-//     const char* q;
-// 
-//     if ((q = peek< exactly<'+'> >(p)) ||
-//         (q = peek< exactly<'~'> >(p)) ||
-//         (q = peek< exactly<'>'> >(p)))
-//     { p = q; }
-//     
-//     p = look_for_simple_selector_sequence(p);
-//     
-//     if (!p) return 0;
-//     
-//     while (((q = peek< exactly<'+'> >(p)) ||
-//             (q = peek< exactly<'~'> >(p)) ||
-//             (q = peek< exactly<'>'> >(p)) ||
-//             (q = peek< ancestor_of > (p))) &&
-//            (q = look_for_simple_selector_sequence(q)))
-//     { p = q; }
-//   
-//     return p;
-//   }
-//   
-//   const char* Document::look_for_simple_selector_sequence(const char* start)
-//   {
-//     const char* p = start ? start : position;
-//     const char* q;
-//     
-//     if ((q = peek< type_selector >(p)) ||
-//         (q = peek< universal >(p))     ||
-//         (q = peek< exactly <'&'> >(p)) ||
-//         (q = look_for_simple_selector(p)))
-//     { p = q; }
-//     else
-//     { return 0; }
-//     
-//     while (!peek< spaces >(p) &&
-//            !(peek < exactly<'+'> >(p) ||
-//              peek < exactly<'~'> >(p) ||
-//              peek < exactly<'>'> >(p) ||
-//              peek < exactly<','> >(p) ||
-//              peek < exactly<')'> >(p) ||
-//              peek < exactly<'{'> >(p)) &&
-//            (q = look_for_simple_selector(p)))
-//     { p = q; }
-//     
-//     return p;
-//   }
-//   
-//   const char* Document::look_for_simple_selector(const char* start)
-//   {
-//     const char* p = start ? start : position;
-//     const char* q;
-//     (q = peek< id_name >(p)) || (q = peek< class_name >(p)) ||
-//     (q = look_for_pseudo(p)) || (q = look_for_attrib(p));
-//     // cerr << "looking for simple selector; found:" << endl;
-//     // cerr << (q ? string(Token::make(q,q+8)) : "nothing") << endl;
-//     return q;
-//   }
-//   
-//   const char* Document::look_for_pseudo(const char* start)
-//   {
-//     const char* p = start ? start : position;
-//     const char* q;
-//     
-//     if (q = peek< pseudo_not >(p)) {
-//       // (q = look_for_simple_selector(q)) && (q = peek< exactly<')'> >(q));
-//       (q = look_for_selector_group(q)) && (q = peek< exactly<')'> >(q));
-//     }
-//     else if (q = peek< sequence< pseudo_prefix, functional > >(p)) {
-//       p = q;
-//       (q = peek< alternatives< even, odd > >(p)) ||
-//       (q = peek< binomial >(p))                  ||
-//       (q = peek< sequence< optional<sign>,
-//                            optional<digits>,
-//                            exactly<'n'> > >(p))  ||
-//       (q = peek< sequence< optional<sign>,
-//                            digits > >(p));
-//       p = q;
-//       q = peek< exactly<')'> >(p);
-//     }
-//     else {
-//       q = peek< sequence< pseudo_prefix, identifier > >(p);
-//     }
-//     return q ? q : 0;
-//   }
-//     
-//   const char* Document::look_for_attrib(const char* start)
-//   {
-//     const char* p = start ? start : position;
-//     
-//     (p = peek< exactly<'['> >(p))                  &&
-//     (p = peek< type_selector >(p))                 &&
-//     (p = peek< alternatives<exact_match,
-//                             class_match,
-//                             dash_match,
-//                             prefix_match,
-//                             suffix_match,
-//                             substring_match> >(p)) &&
-//     (p = peek< string_constant >(p))               &&
-//     (p = peek< exactly<']'> >(p));
-//     
-//     return p;
-//   }
-// }

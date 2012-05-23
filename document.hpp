@@ -4,6 +4,7 @@
 #include "node.hpp"
 #endif
 
+#include "prelexer.hpp"
 #include "context.hpp"
 
 namespace Sass {
@@ -32,6 +33,7 @@ namespace Sass {
     Document(Context& ctx);
     ~Document();
   public:
+    Document(const Document& doc);
 
     static Document make_from_file(Context& ctx, string path);
     static Document make_from_source_chars(Context& ctx, char* src, string path = "");
@@ -144,26 +146,14 @@ namespace Sass {
     Node parse_term();
     Node parse_factor();
     Node parse_value();
-    Node parse_identifier();
-    Node parse_variable();
     Node parse_function_call();
     Node parse_string();
     Node parse_value_schema();
     
     const char* lookahead_for_selector(const char* start = 0);
     
-    const char* look_for_rule(const char* start = 0);
-    const char* look_for_values(const char* start = 0);
-    
-    const char* look_for_selector_group(const char* start = 0);
-    const char* look_for_selector(const char* start = 0);
-    const char* look_for_simple_selector_sequence(const char* start = 0);
-    const char* look_for_simple_selector(const char* start = 0);
-    const char* look_for_pseudo(const char* start = 0);
-    const char* look_for_attrib(const char* start = 0);
-    
-    void syntax_error(string message, size_t ln = 0);
-    void read_error(string message, size_t ln = 0);
+    void throw_syntax_error(string message, size_t ln = 0);
+    void throw_read_error(string message, size_t ln = 0);
     
     string emit_css(CSS_Style style);
 

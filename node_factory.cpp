@@ -35,20 +35,30 @@ namespace Sass {
   }
 
   // for making leaf nodes out of terminals/tokens
-  Node Node_Factory::operator()(Node::Type type, string file, size_t line, const Token& t)
+  Node Node_Factory::operator()(Node::Type type, string file, size_t line, Token& t)
   {
     Node_Impl* ip = alloc_Node_Impl(type, file, line);
     ip->value.token = t;
     return Node(ip);
   }
 
-  // for making interior nodes that have children
+  // for making boolean values or interior nodes that have children
   Node Node_Factory::operator()(Node::Type type, string file, size_t line, size_t size)
   {
     Node_Impl* ip = alloc_Node_Impl(type, file, line);
-    ip->children.reserve(size);
+
+    if (type == Node::boolean) ip->value.boolean = size;
+    else                       ip->children.reserve(size);
+
     return Node(ip);
   }
+
+  // Node Node_Factory::operator()(Node::Type type, string file, size_t line, bool b)
+  // {
+  //   Node_Impl* ip = alloc_Node_Impl(type, file, line);
+  //   ip->content.boolean_value = b;
+  //   return Node(ip);
+  // }
 
   // for making nodes representing numbers
   Node Node_Factory::operator()(string file, size_t line, double v)

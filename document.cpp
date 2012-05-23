@@ -4,6 +4,7 @@
 #include "eval_apply.hpp"
 #include "error.hpp"
 #include <iostream>
+#include <sstream>
 
 namespace Sass {
 
@@ -25,7 +26,7 @@ namespace Sass {
   Document::~Document()
   { --context.ref_count; }
 
-  static Document Document::make_from_file(Context& ctx, string path)
+  Document Document::make_from_file(Context& ctx, string path)
   {
     std::FILE *f;
     f = std::fopen(path.c_str(), "rb");
@@ -55,7 +56,7 @@ namespace Sass {
     return doc;
   }
 
-  static Document Document::make_from_source_chars(Context& ctx, char* src, string path)
+  Document Document::make_from_source_chars(Context& ctx, char* src, string path)
   {
     Document doc(ctx);
     doc.path = path;
@@ -70,7 +71,7 @@ namespace Sass {
     return doc;
   }
 
-  static Document Document::make_from_token(Context& ctx, Token t, string path, size_t line_number)
+  Document Document::make_from_token(Context& ctx, Token t, string path, size_t line_number)
   {
     Document doc(ctx);
     doc.path = path;

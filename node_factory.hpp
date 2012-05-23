@@ -19,9 +19,11 @@ namespace Sass {
     // for cloning nodes
     Node operator()(const Node& n1);
     // for making leaf nodes out of terminals/tokens
-    Node operator()(Node::Type type, string file, size_t line, const Token& t);
-    // for making interior nodes that have children
+    Node operator()(Node::Type type, string file, size_t line, Token& t);
+    // for making boolean values or interior nodes that have children
     Node operator()(Node::Type type, string file, size_t line, size_t size);
+    // // for making nodes representing boolean values
+    // Node operator()(Node::Type type, string file, size_t line, bool b);
     // for making nodes representing numbers
     Node operator()(string file, size_t line, double v);
     // for making nodes representing numeric dimensions (e.g. 5px, 3em)
