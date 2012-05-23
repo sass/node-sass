@@ -172,6 +172,7 @@ namespace Sass {
     Node& operator[](size_t i) const;
     void  pop_back();
     Node& push_back(Node n);
+    Node& push_front(Node n);
     Node& operator<<(Node n);
     Node& operator+=(Node n);
 
@@ -246,6 +247,24 @@ namespace Sass {
       if (n.has_backref()) has_backref = true;
     }
 
+    void push_front(const Node& n)
+    {
+      children.insert(children.begin(), n);
+      has_children = true;
+      switch (n.type())
+      {
+        case Node::comment:
+        case Node::css_import:
+        case Node::rule:
+        case Node::propset:   has_statements = true; break;
+        case Node::ruleset:   has_blocks     = true; break;
+        case Node::expansion: has_expansions = true; break;
+        case Node::backref:   has_backref    = true; break;
+        default:                                     break;
+      }
+      if (n.has_backref()) has_backref = true;
+    }
+
     void pop_back()
     { children.pop_back(); }
 
@@ -288,6 +307,11 @@ namespace Sass {
   inline Node& Node::push_back(Node n)
   {
     ip_->push_back(n);
+    return *this;
+  }
+  inline Node& Node::push_front(Node n)
+  {
+    ip_->push_front(n);
     return *this;
   }
   inline Node& Node::operator<<(Node n)         { return push_back(n); }
