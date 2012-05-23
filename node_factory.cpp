@@ -6,6 +6,7 @@ namespace Sass {
   {
     Node_Impl* ip = new Node_Impl();
     ip->type = type;
+    if (type == Node::backref) ip->has_backref = true;
     ip->file_name = file;
     ip->line_number = line;
     pool_.push_back(ip);
@@ -20,7 +21,6 @@ namespace Sass {
     if (ip_cpy->has_children) {
       for (size_t i = 0, S = ip_cpy->size(); i < S; ++i) {
         Node n(ip_cpy->at(i));
-        // n.ip_ = alloc_Node_Impl(n.ip_);
         ip_cpy->at(i) = (*this)(n);
       }
     }
