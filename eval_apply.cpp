@@ -6,30 +6,30 @@
 namespace Sass {
   using std::cerr; using std::endl;
   
-  static void throw_eval_error(string message, size_t line_number, const char* file_name)
+  static void throw_eval_error(string message, size_t line, const char* path)
   {
     string fn;
-    if (file_name) {
-      const char* end = Prelexer::string_constant(file_name);
-      if (end) fn = string(file_name, end - file_name);
-      else fn = string(file_name);
+    if (path) {
+      const char* end = Prelexer::string_constant(path);
+      if (end) fn = string(path, end - path);
+      else fn = string(path);
     }
-    throw Error(Error::evaluation, line_number, fn, message);
+    throw Error(Error::evaluation, line, fn, message);
   }
 
-  Node eval(Node& expr, Environment& env, map<pair<string, size_t>, Function>& f_env, vector<vector<Node>*>& registry)
+  Node eval(Node& expr, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node)
   {
     switch (expr.type)
     {
       case Node::mixin: {
-        env[expr[0].content.token] = expr;
+        env[expr[0].token()] = expr;
         return expr;
       } break;
       
       case Node::expansion: {
-        Token name(expr[0].content.token);
+        Token name(expr[0].token());
         Node args(expr[1]);
-        if (!env.query(name)) eval_error("mixin " + name.to_string() + " is undefined", expr.line_number, expr.file_name);
+        if (!env.query(name)) throw_eval_error("mixin " + name.to_string() + " is undefined", expr.line(), expr.path());
         Node mixin(env[name]);
         Node expansion(apply_mixin(mixin, args, env, f_env, registry));
         expr.content.children->pop_back();
@@ -71,11 +71,11 @@ namespace Sass {
           val = eval(val, env, f_env, registry);
         }
         Node var(expr[0]);
-        if (env.query(var.content.token)) {
-          env[var.content.token] = val;
+        if (env.query(var.token())) {
+          env[var.token()] = val;
         }
         else {
-          env.current_frame[var.content.token] = val;
+          env.current_frame[var.token()] = val;
         }
         return expr;
       } break;
@@ -106,7 +106,7 @@ namespace Sass {
         Node result;
         for (size_t i = 0; i < expr.size(); ++i) {
           // if (expr[i].type == Node::relation ||
-          //     expr[i].type == Node::function_call && expr[0].content.token.to_string() == "not") {
+          //     expr[i].type == Node::function_call && expr[0].token().to_string() == "not") {
           result = eval(expr[i], env, f_env, registry);
           if (result.type == Node::boolean && result.content.boolean_value == false) continue;
           else return result;
@@ -130,7 +130,7 @@ namespace Sass {
         Node rhs(eval(expr[2], env, f_env, registry));
         
         Node T(Node::boolean);
-        T.line_number = lhs.line_number;
+        T.line() = lhs.line();
         T.content.boolean_value = true;
         Node F(T);
         F.content.boolean_value = false;
@@ -143,13 +143,13 @@ namespace Sass {
           case Node::lt:  return (lhs < rhs)  ? T : F;
           case Node::lte: return (lhs <= rhs) ? T : F;
           default:
-            eval_error("unknown comparison operator " + expr.content.token.to_string(), expr.line_number, expr.file_name);
+            eval_error("unknown comparison operator " + expr.token().to_string(), expr.line(), expr.path());
             return Node(Node::none);
         }
       } break;
 
       case Node::expression: {
-        Node acc(Node::expression, registry, expr.line_number, 1);
+        Node acc(Node::expression, registry, expr.line(), 1);
         acc << eval(expr[0], env, f_env, registry);
         Node rhs(eval(expr[2], env, f_env, registry));
         accumulate(expr[1].type, acc, rhs, registry);
@@ -162,7 +162,7 @@ namespace Sass {
 
       case Node::term: {
         if (expr.eval_me) {
-          Node acc(Node::expression, registry, expr.line_number, 1);
+          Node acc(Node::expression, registry, expr.line(), 1);
           acc << eval(expr[0], env, f_env, registry);
           Node rhs(eval(expr[2], env, f_env, registry));
           accumulate(expr[1].type, acc, rhs, registry);
@@ -178,51 +178,51 @@ namespace Sass {
       } break;
 
       case Node::textual_percentage: {
-        Node pct(expr.line_number, std::atof(expr.content.token.begin));
+        Node pct(expr.line(), std::atof(expr.token().begin));
         pct.type = Node::numeric_percentage;
         return pct;
       } break;
 
       case Node::textual_dimension: {
-        return Node(expr.line_number,
-                    std::atof(expr.content.token.begin),
-                    Token::make(Prelexer::number(expr.content.token.begin),
-                                expr.content.token.end));
+        return Node(expr.line(),
+                    std::atof(expr.token().begin),
+                    Token::make(Prelexer::number(expr.token().begin),
+                                expr.token().end));
       } break;
       
       case Node::textual_number: {
-        return Node(expr.line_number, std::atof(expr.content.token.begin));
+        return Node(expr.line(), std::atof(expr.token().begin));
       } break;
 
       case Node::textual_hex: {        
-        Node triple(Node::numeric_color, registry, expr.line_number, 4);
-        Token hext(Token::make(expr.content.token.begin+1, expr.content.token.end));
+        Node triple(Node::numeric_color, registry, expr.line(), 4);
+        Token hext(Token::make(expr.token().begin+1, expr.token().end));
         if (hext.length() == 6) {
           for (int i = 0; i < 6; i += 2) {
-            triple << Node(expr.line_number, static_cast<double>(std::strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
+            triple << Node(expr.line(), static_cast<double>(std::strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
           }
         }
         else {
           for (int i = 0; i < 3; ++i) {
-            triple << Node(expr.line_number, static_cast<double>(std::strtol(string(2, hext.begin[i]).c_str(), NULL, 16)));
+            triple << Node(expr.line(), static_cast<double>(std::strtol(string(2, hext.begin[i]).c_str(), NULL, 16)));
           }
         }
-        triple << Node(expr.line_number, 1.0);
+        triple << Node(expr.line(), 1.0);
         return triple;
       } break;
       
       case Node::variable: {
-        if (!env.query(expr.content.token)) eval_error("reference to unbound variable " + expr.content.token.to_string(), expr.line_number, expr.file_name);
-        return env[expr.content.token];
+        if (!env.query(expr.token())) eval_error("reference to unbound variable " + expr.token().to_string(), expr.line(), expr.path());
+        return env[expr.token()];
       } break;
       
       case Node::function_call: {
         // TO DO: default-constructed Function should be a generic callback
-        pair<string, size_t> sig(expr[0].content.token.to_string(), expr[1].size());
+        pair<string, size_t> sig(expr[0].token().to_string(), expr[1].size());
         if (!f_env.count(sig)) {
           // stringstream ss;
-          // ss << "no function named " << expr[0].content.token.to_string() << " taking " << expr[1].size() << " arguments has been defined";
-          // eval_error(ss.str(), expr.line_number, expr.file_name);
+          // ss << "no function named " << expr[0].token().to_string() << " taking " << expr[1].size() << " arguments has been defined";
+          // eval_error(ss.str(), expr.line(), expr.path());
           return expr;
         }
         return apply_function(f_env[sig], expr[1], env, f_env, registry);
@@ -270,25 +270,25 @@ namespace Sass {
     return expr;
   }
 
-  Node accumulate(Node::Type op, Node& acc, Node& rhs, vector<vector<Node>*>& registry)
+  Node accumulate(Node::Type op, Node& acc, Node& rhs, Node_Factory& new_Node)
   {
     Node lhs(acc.content.children->back());
     double lnum = lhs.numeric_value();
     double rnum = rhs.numeric_value();
     
     if (lhs.type == Node::number && rhs.type == Node::number) {
-      Node result(acc.line_number, operate(op, lnum, rnum));
+      Node result(acc.line(), operate(op, lnum, rnum));
       acc.content.children->pop_back();
       acc.content.children->push_back(result);
     }
     // TO DO: find a way to merge the following two clauses
     else if (lhs.type == Node::number && rhs.type == Node::numeric_dimension) {
-      Node result(acc.line_number, operate(op, lnum, rnum), Token::make(rhs.content.dimension.unit, Prelexer::identifier(rhs.content.dimension.unit)));
+      Node result(acc.line(), operate(op, lnum, rnum), Token::make(rhs.content.dimension.unit, Prelexer::identifier(rhs.content.dimension.unit)));
       acc.content.children->pop_back();
       acc.content.children->push_back(result);
     }
     else if (lhs.type == Node::numeric_dimension && rhs.type == Node::number) {
-      Node result(acc.line_number, operate(op, lnum, rnum), Token::make(lhs.content.dimension.unit, Prelexer::identifier(rhs.content.dimension.unit)));
+      Node result(acc.line(), operate(op, lnum, rnum), Token::make(lhs.content.dimension.unit, Prelexer::identifier(rhs.content.dimension.unit)));
       acc.content.children->pop_back();
       acc.content.children->push_back(result);
     }
@@ -296,9 +296,9 @@ namespace Sass {
       // TO DO: CHECK FOR MISMATCHED UNITS HERE
       Node result;
       if (op == Node::div)
-      { result = Node(acc.line_number, operate(op, lnum, rnum)); }
+      { result = Node(acc.line(), operate(op, lnum, rnum)); }
       else
-      { result = Node(acc.line_number, operate(op, lnum, rnum), Token::make(lhs.content.dimension.unit, Prelexer::identifier(rhs.content.dimension.unit))); }
+      { result = Node(acc.line(), operate(op, lnum, rnum), Token::make(lhs.content.dimension.unit, Prelexer::identifier(rhs.content.dimension.unit))); }
       acc.content.children->pop_back();
       acc.content.children->push_back(result);
     }
@@ -310,7 +310,7 @@ namespace Sass {
         double b = operate(op, lhs.content.numeric_value, rhs[2].content.numeric_value);
         double a = rhs[3].content.numeric_value;
         acc.content.children->pop_back();
-        acc << Node(registry, acc.line_number, r, g, b, a);
+        acc << Node(registry, acc.line(), r, g, b, a);
       }
       // trying to handle weird edge cases ... not sure if it's worth it
       else if (op == Node::div) {
@@ -331,23 +331,23 @@ namespace Sass {
       double b = operate(op, lhs[2].content.numeric_value, rhs.content.numeric_value);
       double a = lhs[3].content.numeric_value;
       acc.content.children->pop_back();
-      acc << Node(registry, acc.line_number, r, g, b, a);
+      acc << Node(registry, acc.line(), r, g, b, a);
     }
     else if (lhs.type == Node::numeric_color && rhs.type == Node::numeric_color) {
-      if (lhs[3].content.numeric_value != rhs[3].content.numeric_value) eval_error("alpha channels must be equal for " + lhs.to_string("") + " + " + rhs.to_string(""), lhs.line_number, lhs.file_name);
+      if (lhs[3].content.numeric_value != rhs[3].content.numeric_value) eval_error("alpha channels must be equal for " + lhs.to_string("") + " + " + rhs.to_string(""), lhs.line(), lhs.path());
       double r = operate(op, lhs[0].content.numeric_value, rhs[0].content.numeric_value);
       double g = operate(op, lhs[1].content.numeric_value, rhs[1].content.numeric_value);
       double b = operate(op, lhs[2].content.numeric_value, rhs[2].content.numeric_value);
       double a = lhs[3].content.numeric_value;
       acc.content.children->pop_back();
-      acc << Node(registry, acc.line_number, r, g, b, a);
+      acc << Node(registry, acc.line(), r, g, b, a);
     }
     // else if (lhs.type == Node::concatenation) {
     //   lhs << rhs;
     // }
     // else if (lhs.type == Node::string_constant || rhs.type == Node::string_constant) {
     //   acc.content.children->pop_back();
-    //   Node cat(Node::concatenation, lhs.line_number, 2);
+    //   Node cat(Node::concatenation, lhs.line(), 2);
     //   cat << lhs << rhs;
     //   acc << cat;
     // }
@@ -371,7 +371,7 @@ namespace Sass {
     }
   }
   
-  Node apply_mixin(Node& mixin, const Node& args, Environment& env, map<pair<string, size_t>, Function>& f_env, vector<vector<Node>*>& registry)
+  Node apply_mixin(Node& mixin, const Node& args, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node)
   {
     Node params(mixin[1]);
     Node body(mixin[2].clone(registry));
@@ -380,7 +380,7 @@ namespace Sass {
     for (size_t i = 0, j = 0; i < args.size(); ++i) {
       if (args[i].type == Node::assignment) {
         Node arg(args[i]);
-        Token name(arg[0].content.token);
+        Token name(arg[0].token());
         // check that the keyword arg actually names a formal parameter
         bool valid_param = false;
         for (size_t k = 0; k < params.size(); ++k) {
@@ -391,7 +391,7 @@ namespace Sass {
             break;
           }
         }
-        if (!valid_param) eval_error("mixin " + mixin[0].to_string("") + " has no parameter named " + name.to_string(), arg.line_number, arg.file_name);
+        if (!valid_param) eval_error("mixin " + mixin[0].to_string("") + " has no parameter named " + name.to_string(), arg.line(), arg.path());
         if (!bindings.query(name)) {
           bindings[name] = eval(arg[1], env, f_env, registry);
         }
@@ -401,10 +401,10 @@ namespace Sass {
         if (j >= params.size()) {
           stringstream ss;
           ss << "mixin " << mixin[0].to_string("") << " only takes " << params.size() << ((params.size() == 1) ? " argument" : " arguments");
-          eval_error(ss.str(), args[i].line_number, args[i].file_name);
+          eval_error(ss.str(), args[i].line(), args[i].path());
         }
         Node param(params[j]);
-        Token name(param.type == Node::variable ? param.content.token : param[0].content.token);
+        Token name(param.type == Node::variable ? param.token() : param[0].token());
         bindings[name] = eval(args[i], env, f_env, registry);
         ++j;
       }
@@ -413,7 +413,7 @@ namespace Sass {
     for (size_t i = 0; i < params.size(); ++i) {
       if (params[i].type == Node::assignment) {
         Node param(params[i]);
-        Token name(param[0].content.token);
+        Token name(param[0].token());
         if (!bindings.query(name)) {
           bindings[name] = eval(param[1], env, f_env, registry);
         }
@@ -427,14 +427,14 @@ namespace Sass {
     return body;
   }
   
-  Node apply_function(const Function& f, const Node& args, Environment& env, map<pair<string, size_t>, Function>& f_env, vector<vector<Node>*>& registry)
+  Node apply_function(const Function& f, const Node& args, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node)
   {
     map<Token, Node> bindings;
     // bind arguments
     for (size_t i = 0, j = 0; i < args.size(); ++i) {
       if (args[i].type == Node::assignment) {
         Node arg(args[i]);
-        Token name(arg[0].content.token);
+        Token name(arg[0].token());
         bindings[name] = eval(arg[1], env, f_env, registry);
       }
       else {
