@@ -40,7 +40,7 @@ extern "C" {
     using namespace Sass;
     doc.parse_scss();
     // cerr << "PARSED" << endl;
-    eval(doc.root, doc.context.global_env, doc.context.function_env, doc.context.registry);
+    eval(doc.root, doc.context.global_env, doc.context.function_env, doc.context.new_Node);
     // cerr << "EVALUATED" << endl;
     string output(doc.emit_css(static_cast<Document::CSS_Style>(style)));
     // cerr << "EMITTED" << endl;

@@ -6,7 +6,7 @@
 namespace Sass {
   using std::cerr; using std::endl;
   
-  static void eval_error(string message, size_t line_number, const char* file_name)
+  static void throw_eval_error(string message, size_t line_number, const char* file_name)
   {
     string fn;
     if (file_name) {

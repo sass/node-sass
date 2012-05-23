@@ -16,7 +16,7 @@ namespace Sass {
     source(doc.source),
     position(doc.position),
     end(doc.end),
-    line_number(doc.line_number),
+    line(doc.line),
     own_source(doc.own_source),
     context(doc.context),
     root(doc.root),
@@ -44,7 +44,7 @@ namespace Sass {
 
     Document doc(ctx);
     doc.path        = path;
-    doc.line_number = 1;
+    doc.line = 1;
     doc.root        = ctx.new_Node(Node::root, path, 1, 0);
     doc.lexed       = Token::make();
     doc.own_source  = true;
@@ -60,7 +60,7 @@ namespace Sass {
   {
     Document doc(ctx);
     doc.path = path;
-    doc.line_number = 1;
+    doc.line = 1;
     doc.root = ctx.new_Node(Node::root, path, 1, 0);
     doc.lexed = Token::make();
     doc.own_source = false;
@@ -75,7 +75,7 @@ namespace Sass {
   {
     Document doc(ctx);
     doc.path = path;
-    doc.line_number = line_number;
+    doc.line = line_number;
     doc.root = ctx.new_Node(Node::root, path, 1, 0);
     doc.lexed = Token::make();
     doc.own_source = false;
@@ -87,10 +87,10 @@ namespace Sass {
   }
   
   void Document::throw_syntax_error(string message, size_t ln)
-  { throw Error(Error::syntax, ln ? ln : line_number, path, message); }
+  { throw Error(Error::syntax, ln ? ln : line, path, message); }
   
   void Document::throw_read_error(string message, size_t ln)
-  { throw Error(Error::read, ln ? ln : line_number, path, message); }
+  { throw Error(Error::read, ln ? ln : line, path, message); }
   
   using std::string;
   using std::stringstream;

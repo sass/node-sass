@@ -20,7 +20,7 @@ namespace Sass {
     char* source;
     const char* position;
     const char* end;
-    size_t line_number;
+    size_t line;
     bool own_source;
 
     Context& context;
@@ -89,7 +89,7 @@ namespace Sass {
       else if (mx == spaces) {
         after_whitespace = spaces(position);
         if (after_whitespace) {
-          line_number += count_interval<'\n'>(position, after_whitespace);
+          line += count_interval<'\n'>(position, after_whitespace);
           lexed = Token::make(position, after_whitespace);
           return position = after_whitespace;
         }
@@ -105,7 +105,7 @@ namespace Sass {
       }
       const char* after_token = mx(after_whitespace);
       if (after_token) {
-        line_number += count_interval<'\n'>(position, after_token);
+        line += count_interval<'\n'>(position, after_token);
         lexed = Token::make(after_whitespace, after_token);
         return position = after_token;
       }

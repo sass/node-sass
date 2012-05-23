@@ -2,13 +2,13 @@
 
 namespace Sass {
   
-  Node_Impl* Node_Factory::alloc_Node_Impl(Node::Type type, string file, size_t line)
+  Node_Impl* Node_Factory::alloc_Node_Impl(Node::Type type, string path, size_t line)
   {
     Node_Impl* ip = new Node_Impl();
     ip->type = type;
     if (type == Node::backref) ip->has_backref = true;
-    ip->file_name = file;
-    ip->line_number = line;
+    ip->path = path;
+    ip->line = line;
     pool_.push_back(ip);
     return ip;
   }
@@ -35,17 +35,17 @@ namespace Sass {
   }
 
   // for making leaf nodes out of terminals/tokens
-  Node Node_Factory::operator()(Node::Type type, string file, size_t line, Token& t)
+  Node Node_Factory::operator()(Node::Type type, string path, size_t line, Token& t)
   {
-    Node_Impl* ip = alloc_Node_Impl(type, file, line);
+    Node_Impl* ip = alloc_Node_Impl(type, path, line);
     ip->value.token = t;
     return Node(ip);
   }
 
   // for making boolean values or interior nodes that have children
-  Node Node_Factory::operator()(Node::Type type, string file, size_t line, size_t size)
+  Node Node_Factory::operator()(Node::Type type, string path, size_t line, size_t size)
   {
-    Node_Impl* ip = alloc_Node_Impl(type, file, line);
+    Node_Impl* ip = alloc_Node_Impl(type, path, line);
 
     if (type == Node::boolean) ip->value.boolean = size;
     else                       ip->children.reserve(size);
@@ -53,38 +53,38 @@ namespace Sass {
     return Node(ip);
   }
 
-  // Node Node_Factory::operator()(Node::Type type, string file, size_t line, bool b)
+  // Node Node_Factory::operator()(Node::Type type, string path, size_t line, bool b)
   // {
-  //   Node_Impl* ip = alloc_Node_Impl(type, file, line);
+  //   Node_Impl* ip = alloc_Node_Impl(type, path, line);
   //   ip->content.boolean_value = b;
   //   return Node(ip);
   // }
 
   // for making nodes representing numbers
-  Node Node_Factory::operator()(string file, size_t line, double v)
+  Node Node_Factory::operator()(string path, size_t line, double v)
   {
-    Node_Impl* ip = alloc_Node_Impl(Node::number, file, line);
+    Node_Impl* ip = alloc_Node_Impl(Node::number, path, line);
     ip->value.numeric = v;
     return Node(ip);
   }
 
   // for making nodes representing numeric dimensions (e.g. 5px, 3em)
-  Node Node_Factory::operator()(string file, size_t line, double v, const Token& t)
+  Node Node_Factory::operator()(string path, size_t line, double v, const Token& t)
   {
-    Node_Impl* ip = alloc_Node_Impl(Node::numeric_dimension, file, line);
+    Node_Impl* ip = alloc_Node_Impl(Node::numeric_dimension, path, line);
     ip->value.dimension.numeric = v;
     ip->value.dimension.unit = t;
     return Node(ip);
   }
   
   // for making nodes representing rgba color quads
-  Node Node_Factory::operator()(string file, size_t line, double r, double g, double b, double a)
+  Node Node_Factory::operator()(string path, size_t line, double r, double g, double b, double a)
   {
-    Node color((*this)(Node::numeric_color, file, line, 4));
-    color << (*this)(file, line, r)
-          << (*this)(file, line, g)
-          << (*this)(file, line, b)
-          << (*this)(file, line, a);
+    Node color((*this)(Node::numeric_color, path, line, 4));
+    color << (*this)(path, line, r)
+          << (*this)(path, line, g)
+          << (*this)(path, line, b)
+          << (*this)(path, line, a);
     return color;
   }
 

@@ -82,11 +82,11 @@ namespace Sass {
         return numeric_value() < rhs.numeric_value();
       }
       else {
-        throw Error(Error::evaluation, line_number(), file_name(), "incompatible units");
+        throw Error(Error::evaluation, line(), path(), "incompatible units");
       }
     }
     else {
-      throw Error(Error::evaluation, line_number(), file_name(), "incomparable types");
+      throw Error(Error::evaluation, line(), path(), "incomparable types");
     }
   }
   
