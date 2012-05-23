@@ -61,9 +61,9 @@ namespace Sass {
   // }
 
   // for making nodes representing numbers
-  Node Node_Factory::operator()(string path, size_t line, double v)
+  Node Node_Factory::operator()(string path, size_t line, double v, Node::Type type)
   {
-    Node_Impl* ip = alloc_Node_Impl(Node::number, path, line);
+    Node_Impl* ip = alloc_Node_Impl(type, path, line);
     ip->value.numeric = v;
     return Node(ip);
   }

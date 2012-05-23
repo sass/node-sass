@@ -169,6 +169,7 @@ namespace Sass {
     bool empty() const;
 
     Node& at(size_t i) const;
+    Node& back() const;
     Node& operator[](size_t i) const;
     void  pop_back();
     Node& push_back(Node n);
@@ -302,6 +303,7 @@ namespace Sass {
   inline bool    Node::empty() const       { return ip_->empty(); }
   
   inline Node& Node::at(size_t i) const         { return ip_->at(i); }
+  inline Node& Node::back() const               { return ip_->back(); }
   inline Node& Node::operator[](size_t i) const { return at(i); }
   inline void  Node::pop_back()                 { ip_->pop_back(); }
   inline Node& Node::push_back(Node n)

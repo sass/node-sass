@@ -25,7 +25,7 @@ namespace Sass {
     // // for making nodes representing boolean values
     // Node operator()(Node::Type type, string file, size_t line, bool b);
     // for making nodes representing numbers
-    Node operator()(string file, size_t line, double v);
+    Node operator()(string file, size_t line, double v, Node::Type type = Node::number);
     // for making nodes representing numeric dimensions (e.g. 5px, 3em)
     Node operator()(string file, size_t line, double v, const Token& t);
     // for making nodes representing rgba color quads
