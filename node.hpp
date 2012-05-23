@@ -64,12 +64,9 @@ namespace Sass {
   private:
     friend class Node_Factory;
     Node_Impl* ip_;
-    // private constructors; must use a Node_Factory
-    Node();
-    Node(Node_Impl* ip);
 
   public:
-    enum Type {
+   enum Type {
       none,
       comment,
 
@@ -152,6 +149,8 @@ namespace Sass {
       assignment
     };
 
+    Node(Node_Impl* ip = 0);
+
     Type type() const;
 
     bool has_children() const;
@@ -160,13 +159,14 @@ namespace Sass {
     bool has_expansions() const;
     bool has_backref() const;
     bool from_variable() const;
-    bool should_eval() const;
+    bool& should_eval() const;
     bool is_unquoted() const;
     bool is_numeric() const;
 
     string& file_name() const;
     size_t line_number() const;
     size_t size() const;
+    bool empty() const;
 
     Node& at(size_t i) const;
     Node& operator[](size_t i) const;
@@ -232,7 +232,7 @@ namespace Sass {
     {
       children.push_back(n);
       has_children = true;
-      switch (type)
+      switch (n.type())
       {
         case Node::comment:
         case Node::css_import:
@@ -240,8 +240,10 @@ namespace Sass {
         case Node::propset:   has_statements = true; break;
         case Node::ruleset:   has_blocks     = true; break;
         case Node::expansion: has_expansions = true; break;
-        default:                               break;
+        case Node::backref:   has_backref    = true; break;
+        default:                                     break;
       }
+      if (n.has_backref()) has_backref = true;
     }
 
     void pop_back()
@@ -271,13 +273,14 @@ namespace Sass {
   inline bool Node::has_expansions() const { return ip_->has_expansions; }
   inline bool Node::has_backref() const    { return ip_->has_backref; }
   inline bool Node::from_variable() const  { return ip_->from_variable; }
-  inline bool Node::should_eval() const    { return ip_->should_eval; }
+  inline bool& Node::should_eval() const    { return ip_->should_eval; }
   inline bool Node::is_unquoted() const    { return ip_->is_unquoted; }
   inline bool Node::is_numeric() const     { return ip_->is_numeric(); }
   
   inline string& Node::file_name() const   { return ip_->file_name; }
   inline size_t  Node::line_number() const { return ip_->line_number; }
   inline size_t  Node::size() const        { return ip_->size(); }
+  inline bool    Node::empty() const       { return ip_->empty(); }
   
   inline Node& Node::at(size_t i) const         { return ip_->at(i); }
   inline Node& Node::operator[](size_t i) const { return at(i); }
