@@ -1,5 +1,7 @@
 #include "context.hpp"
 #include <iostream>
+#include <unistd.h>
+#include "prelexer.hpp"
 using std::cerr; using std::endl;
 
 namespace Sass {

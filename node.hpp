@@ -177,10 +177,18 @@ namespace Sass {
     Node& operator<<(Node n);
     Node& operator+=(Node n);
 
+    vector<Node>::iterator begin();
+    vector<Node>::iterator end();
+    void insert(vector<Node>::iterator position,
+                vector<Node>::iterator first,
+                vector<Node>::iterator last);
+
     bool&  boolean_value() const;
     double numeric_value() const;
     Token  token() const;
     Token  unit() const;
+
+    void flatten();
     
     bool operator==(Node rhs) const;
     bool operator!=(Node rhs) const;
@@ -322,6 +330,16 @@ namespace Sass {
     for (size_t i = 0, L = n.size(); i < L; ++i) push_back(n[i]);
     return *this;
   }
+
+  inline vector<Node>::iterator Node::begin()
+  { return ip_->children.begin(); }
+  inline vector<Node>::iterator Node::end()
+  { return ip_->children.end(); }
+  inline void Node::insert(vector<Node>::iterator position,
+                           vector<Node>::iterator first,
+                           vector<Node>::iterator last)
+  { ip_->children.insert(position, first, last); }
+
   inline bool&   Node::boolean_value() const { return ip_->boolean_value(); }
   inline double Node::numeric_value() const { return ip_->numeric_value(); }
   inline Token   Node::token() const         { return ip_->value.token; }

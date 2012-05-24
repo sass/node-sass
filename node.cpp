@@ -9,6 +9,23 @@ namespace Sass {
   // Node method implementations
   // ------------------------------------------------------------------------
 
+
+  void Node::flatten()
+  {
+    if (type() != block && type() != expansion && type() != root) return;
+    for (size_t i = 0, S = size(); i < S; ++i) {
+      if (at(i).type() == expansion) {
+        Node expn(at(i));
+        if (expn.has_expansions()) expn.flatten();
+        ip_->has_statements |= expn.has_statements();
+        ip_->has_blocks     |= expn.has_blocks();
+        ip_->has_expansions |= expn.has_expansions();
+        // leave the expansion node here and skip it during emission
+        insert(begin() + i, expn.begin(), expn.end());
+      }
+    }
+  }
+
   bool Node::operator==(Node rhs) const
   {
     Type t = type();

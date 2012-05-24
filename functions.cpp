@@ -644,7 +644,6 @@ namespace Sass {
         return new_Node(Node::boolean, val.path(), val.line(), false);
       }
     }
-    
-    
+
   }
 }
