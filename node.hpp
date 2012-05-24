@@ -160,7 +160,7 @@ namespace Sass {
     bool has_backref() const;
     bool from_variable() const;
     bool& should_eval() const;
-    bool is_unquoted() const;
+    bool& is_unquoted() const;
     bool is_numeric() const;
 
     string& path() const;
@@ -178,7 +178,7 @@ namespace Sass {
     Node& operator+=(Node n);
 
     bool&  boolean_value() const;
-    double numeric_value() const;
+    double& numeric_value() const;
     Token  token() const;
     Token  unit() const;
     
@@ -272,7 +272,7 @@ namespace Sass {
     bool& boolean_value()
     { return value.boolean; }
     
-    double numeric_value();
+    double& numeric_value();
     Token  unit();
   };
 
@@ -294,7 +294,7 @@ namespace Sass {
   inline bool Node::has_backref() const    { return ip_->has_backref; }
   inline bool Node::from_variable() const  { return ip_->from_variable; }
   inline bool& Node::should_eval() const    { return ip_->should_eval; }
-  inline bool Node::is_unquoted() const    { return ip_->is_unquoted; }
+  inline bool& Node::is_unquoted() const    { return ip_->is_unquoted; }
   inline bool Node::is_numeric() const     { return ip_->is_numeric(); }
   
   inline string& Node::path() const        { return ip_->path; }
@@ -322,9 +322,9 @@ namespace Sass {
     for (size_t i = 0, L = n.size(); i < L; ++i) push_back(n[i]);
     return *this;
   }
-  inline bool&  Node::boolean_value() const { return ip_->boolean_value(); }
-  inline double Node::numeric_value() const { return ip_->numeric_value(); }
-  inline Token  Node::token() const         { return ip_->value.token; }
-  inline Token  Node::unit() const          { return ip_->unit(); }
+  inline bool&   Node::boolean_value() const { return ip_->boolean_value(); }
+  inline double& Node::numeric_value() const { return ip_->numeric_value(); }
+  inline Token   Node::token() const         { return ip_->value.token; }
+  inline Token   Node::unit() const          { return ip_->unit(); }
 
 }

@@ -213,7 +213,7 @@ namespace Sass {
   // Node_Impl method implementations
   // ------------------------------------------------------------------------
 
-  double Node_Impl::numeric_value()
+  double& Node_Impl::numeric_value()
   {
     switch (type)
     {
@@ -226,7 +226,6 @@ namespace Sass {
         break;
         // throw an exception?
     }
-    return 0;
   }
   
   extern const char percent_str[] = "%";
