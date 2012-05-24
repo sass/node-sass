@@ -187,11 +187,11 @@ namespace Sass {
     Node invert(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       Node orig(bindings[parameters[0]]);
       if (orig.type() != Node::numeric_color) throw_eval_error("argument to invert must be a color", orig.line_number, orig.file_name);
-      return Node(new_Node, orig.line_number,
-                  255 - orig[0].numeric_value(),
-                  255 - orig[1].numeric_value(),
-                  255 - orig[2].numeric_value(),
-                  orig[3].numeric_value());
+      return new_Node(orig.path(), orig.line(),
+                      255 - orig[0].numeric_value(),
+                      255 - orig[1].numeric_value(),
+                      255 - orig[2].numeric_value(),
+                      orig[3].numeric_value());
     }
     
     // Opacity Functions ///////////////////////////////////////////////////
@@ -211,16 +211,19 @@ namespace Sass {
     Function_Descriptor fade_in_descriptor =
     { "fade_in", "$color", "$amount", 0 };
     Node opacify(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
-      Node cpy(new_Node(bindings[parameters[0]]));
-      if (cpy.type() != Node::numeric_color || !bindings[parameters[1]].is_numeric()) {
-        throw_eval_error("arguments to opacify/fade_in must be a color and a numeric value", cpy.path(), cpy.line());
-      }
+      Node color(bindings[parameters[0]]);
       Node delta(bindings[parameters[1]]);
-      if (delta.numeric_value() < 0 || delta.numeric_value() > 1) throw_eval_error("amount must be between 0 and 1 for opacify/fade-in", delta.path(), delta.line()); 
-      cpy[3].numeric_value() += delta.numeric_value();
-      if (cpy[3].numeric_value() > 1) cpy[3].numeric_value() = 1;
-      if (cpy[3].numeric_value() < 0) cpy[3].numeric_value() = 0;
-      return cpy;
+      if (color.type() != Node::numeric_color || !delta.is_numeric()) {
+        throw_eval_error("arguments to opacify/fade_in must be a color and a numeric value", color.path(), color.line());
+      }
+      if (delta.numeric_value() < 0 || delta.numeric_value() > 1) {
+        throw_eval_error("amount must be between 0 and 1 for opacify/fade-in", delta.path(), delta.line());
+      }
+      double alpha = orig[3].numeric_value() + delta.numeric_value();
+      if (alpha > 1) alpha = 1;
+      else if (alpha < 0) alpha = 0;
+      return new_Node(orig.path(), orig.line(),
+                      orig[0].numeric_value(), orig[1].numeric_value(), orig[2].numeric_value(), alpha);
     }
     
     Function_Descriptor transparentize_descriptor =
@@ -228,16 +231,19 @@ namespace Sass {
     Function_Descriptor fade_out_descriptor =
     { "fade_out", "$color", "$amount", 0 };
     Node transparentize(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
-      Node cpy(new_Node(bindings[parameters[0]]));
-      if (cpy.type() != Node::numeric_color || !bindings[parameters[1]].is_numeric()) {
-        throw_eval_error("arguments to transparentize/fade_out must be a color and a numeric value", cpy.path(), cpy.line());
-      }
+      Node color(bindings[parameters[0]]);
       Node delta(bindings[parameters[1]]);
-      if (delta.numeric_value() < 0 || delta.numeric_value() > 1) throw_eval_error("amount must be between 0 and 1 for transparentize/fade-out", delta.path(), delta.line()); 
-      cpy[3].numeric_value() -= delta.numeric_value();
-      if (cpy[3].numeric_value() > 1) cpy[3].numeric_value() = 1;
-      if (cpy[3].numeric_value() < 0) cpy[3].numeric_value() = 0;
-      return cpy;
+      if (color.type() != Node::numeric_color || !delta.is_numeric()) {
+        throw_eval_error("arguments to transparentize/fade_out must be a color and a numeric value", orig.path(), orig.line());
+      }
+      if (delta.numeric_value() < 0 || delta.numeric_value() > 1) {
+        throw_eval_error("amount must be between 0 and 1 for transparentize/fade-out", delta.path(), delta.line());
+      }
+      double alpha = orig[3].numeric_value() - delta.numeric_value();
+      if (alpha > 1) alpha = 1;
+      else if (alpha < 0) alpha = 0;
+      return new_Node(orig.path(), orig.line(),
+                      orig[0].numeric_value(), orig[1].numeric_value(), orig[2].numeric_value(), alpha);
     }
       
     // String Functions ////////////////////////////////////////////////////

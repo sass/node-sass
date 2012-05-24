@@ -213,7 +213,7 @@ namespace Sass {
   // Node_Impl method implementations
   // ------------------------------------------------------------------------
 
-  double& Node_Impl::numeric_value()
+  double Node_Impl::numeric_value()
   {
     switch (type)
     {
