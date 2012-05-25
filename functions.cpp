@@ -606,7 +606,8 @@ namespace Sass {
       Node n2(bindings[parameters[1]]);
       Node::Type t1 = n1.type();
       Node::Type t2 = n2.type();
-      if (t1 == Node::number && n2.is_numeric() || n1.is_numeric() && t2 == Node::number) {
+      if ((t1 == Node::number && n2.is_numeric()) ||
+          (n1.is_numeric() && t2 == Node::number)) {
         return new_Node(Node::boolean, n1.path(), n1.line(), true);
       }
       else if (t1 == Node::numeric_percentage && t2 == Node::numeric_percentage) {
@@ -615,10 +616,10 @@ namespace Sass {
       else if (t1 == Node::numeric_dimension && t2 == Node::numeric_dimension) {
         string u1(n1.unit().to_string());
         string u2(n2.unit().to_string());
-        if (u1 == "ex" && u2 == "ex" ||
-            u1 == "em" && u2 == "em" ||
-            (u1 == "in" || u1 == "cm" || u1 == "mm" || u1 == "pt" || u1 == "pc") &&
-            (u2 == "in" || u2 == "cm" || u2 == "mm" || u2 == "pt" || u2 == "pc")) {
+        if ((u1 == "ex" && u2 == "ex") ||
+            (u1 == "em" && u2 == "em") ||
+            ((u1 == "in" || u1 == "cm" || u1 == "mm" || u1 == "pt" || u1 == "pc") &&
+             (u2 == "in" || u2 == "cm" || u2 == "mm" || u2 == "pt" || u2 == "pc"))) {
           return new_Node(Node::boolean, n1.path(), n1.line(), true);
         }
         else {
