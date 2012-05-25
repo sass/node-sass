@@ -5,8 +5,6 @@
 namespace Sass {
   using namespace std;
 
-  // extern const char plus_equal[] = "+=";
-
   void Document::parse_scss()
   {
     lex< optional_spaces >();
@@ -71,16 +69,13 @@ namespace Sass {
     }
     if (!lex< string_constant >()) throw_syntax_error("@import directive requires a url or quoted path");
     // TO DO: BETTER PATH HANDLING
-    // cerr << "Importing " << lexed.to_string() << endl;
     string import_path(lexed.unquote());
     const char* curr_path_start = path.c_str();
     const char* curr_path_end   = folders(curr_path_start);
     string current_path(curr_path_start, curr_path_end - curr_path_start);
     try {
-      // Document importee(current_path + import_path, context);
       Document importee(Document::make_from_file(context, current_path + import_path));
       importee.parse_scss();
-      // cerr << "Finished parsing import " << lexed.to_string() << endl;
       return importee.root;
     }
     catch (string& path) {
@@ -452,11 +447,9 @@ namespace Sass {
           Node propset(context.new_Node(Node::propset, path, line, 2));
           propset << rule[0];
           rule[0] = context.new_Node(Node::property, path, line, Token::make());
-          // inner[0] = rule;
           inner.push_front(rule);
           propset << inner;
           block << propset;
-          // cerr << block[block.size()-1][0].content.token.to_string() << endl;
         }
         else {
           block << rule;
@@ -794,8 +787,6 @@ namespace Sass {
     while (position < end) {
       if (lex< interpolant >()) {
         Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
-        // Document interp_doc(path, line, insides, context);
-        // Node interp_node(interp_doc.parse_list());
         Node interp_node(Document::make_from_token(context, insides, path, line).parse_list());
         schema << interp_node;
       }
