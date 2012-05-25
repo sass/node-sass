@@ -765,15 +765,11 @@ namespace Sass {
       if (p) {
         if (i < p) {
           schema << context.new_Node(Node::identifier, path, line, Token::make(i, p-2)); // accumulate the preceding segment if it's nonempty
-          // cerr << '[' << Token::make(i,p-2).to_string() << ']' << endl;
         }
         const char* j = find_first_in_interval< exactly<rbrace> >(p, str.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
-          // cerr << '[' << Token::make(p, j-1).to_string() << ']' << endl;
-          // Document interp_doc(path, line, Token::make(p,j-1), context);
           Node interp_node(Document::make_from_token(context, Token::make(p, j-1), path, line).parse_list());
-          // Node interp_node(interp_doc.parse_list());
           interp_node.should_eval() = true;
           schema << interp_node;
           i = j;

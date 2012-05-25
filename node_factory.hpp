@@ -19,7 +19,7 @@ namespace Sass {
     // for cloning nodes
     Node operator()(const Node& n1);
     // for making leaf nodes out of terminals/tokens
-    Node operator()(Node::Type type, string file, size_t line, Token& t);
+    Node operator()(Node::Type type, string file, size_t line, Token t);
     // for making boolean values or interior nodes that have children
     Node operator()(Node::Type type, string file, size_t line, size_t size);
     // // for making nodes representing boolean values

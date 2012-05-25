@@ -35,7 +35,7 @@ namespace Sass {
   }
 
   // for making leaf nodes out of terminals/tokens
-  Node Node_Factory::operator()(Node::Type type, string path, size_t line, Token& t)
+  Node Node_Factory::operator()(Node::Type type, string path, size_t line, Token t)
   {
     Node_Impl* ip = alloc_Node_Impl(type, path, line);
     ip->value.token = t;
@@ -52,13 +52,6 @@ namespace Sass {
 
     return Node(ip);
   }
-
-  // Node Node_Factory::operator()(Node::Type type, string path, size_t line, bool b)
-  // {
-  //   Node_Impl* ip = alloc_Node_Impl(type, path, line);
-  //   ip->content.boolean_value = b;
-  //   return Node(ip);
-  // }
 
   // for making nodes representing numbers
   Node Node_Factory::operator()(string path, size_t line, double v, Node::Type type)
