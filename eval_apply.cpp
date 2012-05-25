@@ -328,7 +328,7 @@ namespace Sass {
       acc << new_Node(acc.path(), acc.line(), r, g, b, a);
     }
     else if (lhs.type() == Node::numeric_color && rhs.type() == Node::numeric_color) {
-      if (lhs[3].numeric_value() != rhs[3].numeric_value()) throw_eval_error("alpha channels must be equal for " + lhs.to_string("") + " + " + rhs.to_string(""), lhs.line(), lhs.path());
+      if (lhs[3].numeric_value() != rhs[3].numeric_value()) throw_eval_error("alpha channels must be equal for " + lhs.to_string("") + " + " + rhs.to_string(""), lhs.path(), lhs.line());
       double r = operate(op, lhs[0].numeric_value(), rhs[0].numeric_value());
       double g = operate(op, lhs[1].numeric_value(), rhs[1].numeric_value());
       double b = operate(op, lhs[2].numeric_value(), rhs[2].numeric_value());
@@ -376,7 +376,7 @@ namespace Sass {
             break;
           }
         }
-        if (!valid_param) throw_eval_error("mixin " + mixin[0].to_string("") + " has no parameter named " + name.to_string(), arg.line(), arg.path());
+        if (!valid_param) throw_eval_error("mixin " + mixin[0].to_string("") + " has no parameter named " + name.to_string(), arg.path(), arg.line());
         if (!bindings.query(name)) {
           bindings[name] = eval(arg[1], env, f_env, new_Node);
         }

@@ -434,7 +434,7 @@ namespace Sass {
   
   void Node::emit_propset(stringstream& buf, size_t depth, const string& prefix) {
     string new_prefix(prefix);
-    bool has_prefix = false;
+    // bool has_prefix = false;
     if (new_prefix.empty()) {
       new_prefix += "\n";
       new_prefix += string(2*depth, ' ');
@@ -443,7 +443,7 @@ namespace Sass {
     else {
       new_prefix += "-";
       new_prefix += at(0).token().to_string();
-      has_prefix = true;
+      // has_prefix = true;
     }
     Node rules(at(1));
     for (size_t i = 0, S = rules.size(); i < S; ++i) {
@@ -459,6 +459,9 @@ namespace Sass {
       }
     }
   }
+
+  void Node::echo(stringstream& buf, size_t depth) { }
+  void Node::emit_expanded_css(stringstream& buf, const string& prefix) { }
 
 
 }

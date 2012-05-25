@@ -203,6 +203,9 @@ namespace Sass {
                          const vector<string>& prefixes);
     void emit_nested_css(stringstream& buf, size_t depth);
     void emit_propset(stringstream& buf, size_t depth, const string& prefix);
+    void echo(stringstream& buf, size_t depth = 0);
+    void emit_expanded_css(stringstream& buf, const string& prefix);
+
   };
   
   struct Node_Impl {
