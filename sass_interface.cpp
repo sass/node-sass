@@ -49,9 +49,9 @@ extern "C" {
     // cerr << "Destructions:\t" << Node::destructed << endl;
     // cerr << "Registry size:\t" << doc.context.registry.size() << endl;
     
-    for (size_t i = 0; i < doc.context.registry.size(); ++i) {
-      delete doc.context.registry[i];
-    }
+    // for (size_t i = 0; i < doc.context.registry.size(); ++i) {
+    //   delete doc.context.registry[i];
+    // }
     // cerr << "Deallocations:\t" << i << endl;
     
     char* c_output = (char*) malloc(output.size() + 1);

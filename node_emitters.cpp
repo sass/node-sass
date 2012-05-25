@@ -323,9 +323,7 @@ namespace Sass {
     switch (type())
     {
     case root:
-      if (has_expansions()) {
-        flatten();
-      }
+      if (has_expansions()) flatten();
       for (size_t i = 0, S = size(); i < S; ++i) {
         at(i).emit_nested_css(buf, depth, prefixes);
       }

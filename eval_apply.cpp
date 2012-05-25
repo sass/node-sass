@@ -30,11 +30,26 @@ namespace Sass {
         Node args(expr[1]);
         if (!env.query(name)) throw_eval_error("mixin " + name.to_string() + " is undefined", expr.path(), expr.line());
         Node mixin(env[name]);
+
         Node expansion(apply_mixin(mixin, args, env, f_env, new_Node));
+        for (size_t i = 0, S = expansion.size(); i < S; ++i) {
+          // cerr << expansion[i][0].to_string("") << expansion[i][1].to_string("") << endl;
+        }
         expr.pop_back();
         expr.pop_back();
         expr += expansion;
+
+        for (size_t i = 0, S = expr.size(); i < S; ++i) {
+          // cerr << expr[i][0].to_string("") << expr[i][1].to_string("") << endl;
+        }
+
         return expr;
+
+        // Node evaluated_body(apply_mixin(mixin, args, env, f_env, new_Node));
+        // Node expansion(new_Node(Node::expansion, expr.path(), expr.line(), evaluated_body.size()));
+        // expansion += evaluated_body;
+        // return expansion;
+
       } break;
       
       case Node::propset:
@@ -47,6 +62,11 @@ namespace Sass {
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
           eval(expr[i], env, f_env, new_Node);
         }
+        // for (size_t i = 0; i < expr.size(); ++i) {
+        //   if (expr[i].type() == Node::expansion) {
+        //     expr.insert(expr.begin() + i + 1, expr[i].begin(), expr[i].end());
+        //   }
+        // }
         return expr;
       } break;
       
@@ -56,6 +76,12 @@ namespace Sass {
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
           eval(expr[i], new_frame, f_env, new_Node);
         }
+        // for (size_t i = 0; i < expr.size(); ++i) {
+        //   if (expr[i].type() == Node::expansion) {
+        //     expr.insert(expr.begin() + i + 1, expr[i].begin(), expr[i].end());
+        //   }
+        // }
+        // cerr << "EVALED?" << expr[1][0][1].to_string("") << endl;
         return expr;
       } break;
       
@@ -244,7 +270,7 @@ namespace Sass {
       
       case Node::string_schema:
       case Node::value_schema: {
-        // cerr << "evaluating schema of size " << expr.size() << endl;
+        // // cerr << "evaluating schema of size " << expr.size() << endl;
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
           expr[i] = eval(expr[i], env, f_env, new_Node);
         }
@@ -358,6 +384,12 @@ namespace Sass {
   
   Node apply_mixin(Node& mixin, const Node& args, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node)
   {
+    // cerr << "applying mixin: " << mixin[0].token().to_string() << endl;
+    // cerr << "arguments:";
+    for (int i = 0, S = args.size(); i < S; ++i) {
+      // cerr << " " << args[i].token().to_string();
+    }
+    // cerr << endl;
     Node params(mixin[1]);
     Node body(new_Node(mixin[2])); // clone the body
     Environment bindings;
@@ -391,6 +423,7 @@ namespace Sass {
         Node param(params[j]);
         Token name(param.type() == Node::variable ? param.token() : param[0].token());
         bindings[name] = eval(args[i], env, f_env, new_Node);
+        // cerr << "param " << name.to_string() << ": " << bindings[name].to_string("") << endl;
         ++j;
       }
     }
@@ -408,6 +441,7 @@ namespace Sass {
     bindings.link(env.global ? *env.global : env);
     for (size_t i = 0, S = body.size(); i < S; ++i) {
       body[i] = eval(body[i], bindings, f_env, new_Node);
+      // cerr << "evaluated rule: " << body[i][0].to_string("") << ": " << body[i][1].to_string("") << endl;
     }
     return body;
   }
