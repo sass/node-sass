@@ -31,9 +31,9 @@ namespace Sass {
   private:
     // force the use of the "make_from_..." factory funtions
     Document(Context& ctx);
-    ~Document();
   public:
     Document(const Document& doc);
+    ~Document();
 
     static Document make_from_file(Context& ctx, string path);
     static Document make_from_source_chars(Context& ctx, char* src, string path = "");

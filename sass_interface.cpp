@@ -72,7 +72,7 @@ extern "C" {
     }
     catch (Error& e) {
       stringstream msg_stream;
-      msg_stream << "ERROR -- " << e.file_name << ", line " << e.line_number << ": " << e.message << endl;
+      msg_stream << "ERROR -- " << e.path << ", line " << e.line << ": " << e.message << endl;
       string msg(msg_stream.str());
       char* msg_str = (char*) malloc(msg.size() + 1);
       strcpy(msg_str, msg.c_str());
@@ -100,7 +100,7 @@ extern "C" {
     try {
       Context cpp_ctx(c_ctx->options.include_paths);
       // Document doc(c_ctx->input_path, 0, cpp_ctx);
-      Document doc(Document::make_from_file(cpp_ctx, string(c_ctx->input_path));
+      Document doc(Document::make_from_file(cpp_ctx, string(c_ctx->input_path)));
       // cerr << "MADE A DOC AND CONTEXT OBJ" << endl;
       // cerr << "REGISTRY: " << doc.context.registry.size() << endl;
       c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
@@ -109,7 +109,7 @@ extern "C" {
     }
     catch (Error& e) {
       stringstream msg_stream;
-      msg_stream << "ERROR -- " << e.file_name << ", line " << e.line_number << ": " << e.message << endl;
+      msg_stream << "ERROR -- " << e.path << ", line " << e.line << ": " << e.message << endl;
       string msg(msg_stream.str());
       char* msg_str = (char*) malloc(msg.size() + 1);
       strcpy(msg_str, msg.c_str());
