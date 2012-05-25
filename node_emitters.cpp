@@ -202,7 +202,8 @@ namespace Sass {
       case numeric_dimension: {
         stringstream ss;
         ss << numeric_value();
-        ss << string(unit(), 2);
+        // ss << string(unit(), 2);
+        ss << unit().to_string();
            // << string(content.dimension.unit, Prelexer::identifier(content.dimension.unit) - content.dimension.unit);
          // cerr << Token::make(content.dimension.unit, content.dimension.unit + 2).to_string();
            // << Token::make(content.dimension.unit, Prelexer::identifier(content.dimension.unit)).to_string();
