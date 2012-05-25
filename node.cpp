@@ -90,8 +90,8 @@ namespace Sass {
     Type lhs_type = type();
     Type rhs_type = rhs.type();
     
-    if (lhs_type == number && rhs_type == number ||
-        lhs_type == numeric_percentage && rhs_type == numeric_percentage) {
+    if ((lhs_type == number             && rhs_type == number) ||
+        (lhs_type == numeric_percentage && rhs_type == numeric_percentage)) {
       return numeric_value() < rhs.numeric_value();
     }
     else if (lhs_type == numeric_dimension && rhs_type == numeric_dimension) {
@@ -243,6 +243,8 @@ namespace Sass {
         break;
         // throw an exception?
     }
+    // if you reach this point, you've got a logic error somewhere
+    return 0;
   }
   
   extern const char percent_str[] = "%";

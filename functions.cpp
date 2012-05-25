@@ -472,7 +472,7 @@ namespace Sass {
       if (l1.type() != Node::nil) size += l1.size();
       if (l2.type() != Node::nil) size += l2.size();
       // figure out the result type in advance
-      Node::Type rtype;
+      Node::Type rtype = Node::space_list;
       if (has_sep) {
         string sep(bindings[parameters[2]].token().unquote());
         if (sep == "comma")      rtype = Node::comma_list;

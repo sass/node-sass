@@ -32,11 +32,15 @@ namespace Sass {
     f = std::fopen(path.c_str(), "rb");
     if (!f) throw path;
     if (std::fseek(f, 0, SEEK_END)) throw path;
-    int len = std::ftell(f);
-    if (len < 0) throw path;
+    int status = std::ftell(f);
+    if (status < 0) throw path;
+    size_t len = status;
     std::rewind(f);
     char* source = new char[len + 1];
-    std::fread(source, sizeof(char), len, f);
+    size_t bytes_read = std::fread(source, sizeof(char), len, f);
+    if (bytes_read != len) {
+      std::cerr << "Warning: possible error reading from " << path << std::endl;
+    }
     if (std::ferror(f)) throw path;
     source[len] = '\0';
     char* end = source + len;
