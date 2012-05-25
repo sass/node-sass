@@ -183,7 +183,7 @@ namespace Sass {
                 vector<Node>::iterator first,
                 vector<Node>::iterator last);
 
-    bool&  boolean_value() const;
+    bool   boolean_value() const;
     double numeric_value() const;
     Token  token() const;
     Token  unit() const;
@@ -196,6 +196,13 @@ namespace Sass {
     bool operator<=(Node rhs) const;
     bool operator>(Node rhs) const;
     bool operator>=(Node rhs) const;
+
+    string to_string(const string& prefix) const;
+    void emit_nested_css(stringstream& buf,
+                         size_t depth,
+                         const vector<string>& prefixes);
+    void emit_nested_css(stringstream& buf, size_t depth);
+    void emit_propset(stringstream& buf, size_t depth, const string& prefix);
   };
   
   struct Node_Impl {
@@ -340,9 +347,9 @@ namespace Sass {
                            vector<Node>::iterator last)
   { ip_->children.insert(position, first, last); }
 
-  inline bool&   Node::boolean_value() const { return ip_->boolean_value(); }
+  inline bool   Node::boolean_value() const { return ip_->boolean_value(); }
   inline double Node::numeric_value() const { return ip_->numeric_value(); }
-  inline Token   Node::token() const         { return ip_->value.token; }
-  inline Token   Node::unit() const          { return ip_->unit(); }
+  inline Token   Node::token() const        { return ip_->value.token; }
+  inline Token   Node::unit() const         { return ip_->unit(); }
 
 }
