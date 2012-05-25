@@ -12,6 +12,7 @@ namespace Sass {
   void Node::flatten()
   {
     if (type() != block && type() != expansion && type() != root) return;
+    // size can change during flattening, so we need to call size() on each pass
     for (size_t i = 0; i < size(); ++i) {
       if (at(i).type() == expansion) {
         Node expn(at(i));
