@@ -20,8 +20,9 @@ namespace Sass {
         ip_->has_statements |= expn.has_statements();
         ip_->has_blocks     |= expn.has_blocks();
         ip_->has_expansions |= expn.has_expansions();
-        // leave the expansion node here and skip it during emission
-        insert(begin() + i + 1, expn.begin(), expn.end());
+        // TO DO: make this more efficient -- replace with a dummy node instead of erasing
+        ip_->children.erase(begin() + i);
+        insert(begin() + i, expn.begin(), expn.end());
       }
     }
   }
