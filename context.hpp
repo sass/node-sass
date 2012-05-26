@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <map>
+#include "node_factory.hpp"
 #include "functions.hpp"
 
 namespace Sass {
@@ -45,10 +46,11 @@ namespace Sass {
     vector<char*> source_refs; // all the source c-strings
     vector<vector<Node>*> registry; // all the child vectors
     vector<string> include_paths;
+    Node_Factory new_Node;
     size_t ref_count;
     string sass_path;
     string css_path;
-    
+
     void collect_include_paths(const char* paths_str);
     Context(const char* paths_str = 0);
     ~Context();

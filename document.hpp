@@ -4,6 +4,7 @@
 #include "node.hpp"
 #endif
 
+#include "prelexer.hpp"
 #include "context.hpp"
 
 namespace Sass {
@@ -19,20 +20,25 @@ namespace Sass {
     char* source;
     const char* position;
     const char* end;
-    size_t line_number;
+    size_t line;
     bool own_source;
 
     Context& context;
     
     Node root;
     Token lexed;
-    
-    Document(char* path_str, char* source_str, Context& ctx);
-    Document(string path, char* source = 0);
-    Document(string path, Context& context);
-    Document(const string& path, size_t line_number, Token t, Context& context);
+
+  private:
+    // force the use of the "make_from_..." factory funtions
+    Document(Context& ctx);
+  public:
+    Document(const Document& doc);
     ~Document();
-    
+
+    static Document make_from_file(Context& ctx, string path);
+    static Document make_from_source_chars(Context& ctx, char* src, string path = "");
+    static Document make_from_token(Context& ctx, Token t, string path = "", size_t line_number = 1);
+
     template <prelexer mx>
     const char* peek(const char* start = 0)
     {
@@ -83,7 +89,7 @@ namespace Sass {
       else if (mx == spaces) {
         after_whitespace = spaces(position);
         if (after_whitespace) {
-          line_number += count_interval<'\n'>(position, after_whitespace);
+          line += count_interval<'\n'>(position, after_whitespace);
           lexed = Token::make(position, after_whitespace);
           return position = after_whitespace;
         }
@@ -99,7 +105,7 @@ namespace Sass {
       }
       const char* after_token = mx(after_whitespace);
       if (after_token) {
-        line_number += count_interval<'\n'>(position, after_token);
+        line += count_interval<'\n'>(position, after_token);
         lexed = Token::make(after_whitespace, after_token);
         return position = after_token;
       }
@@ -140,26 +146,14 @@ namespace Sass {
     Node parse_term();
     Node parse_factor();
     Node parse_value();
-    Node parse_identifier();
-    Node parse_variable();
     Node parse_function_call();
     Node parse_string();
     Node parse_value_schema();
     
     const char* lookahead_for_selector(const char* start = 0);
     
-    const char* look_for_rule(const char* start = 0);
-    const char* look_for_values(const char* start = 0);
-    
-    const char* look_for_selector_group(const char* start = 0);
-    const char* look_for_selector(const char* start = 0);
-    const char* look_for_simple_selector_sequence(const char* start = 0);
-    const char* look_for_simple_selector(const char* start = 0);
-    const char* look_for_pseudo(const char* start = 0);
-    const char* look_for_attrib(const char* start = 0);
-    
-    void syntax_error(string message, size_t ln = 0);
-    void read_error(string message, size_t ln = 0);
+    void throw_syntax_error(string message, size_t ln = 0);
+    void throw_read_error(string message, size_t ln = 0);
     
     string emit_css(CSS_Style style);
 

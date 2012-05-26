@@ -4,124 +4,97 @@
 #include "eval_apply.hpp"
 #include "error.hpp"
 #include <iostream>
+#include <sstream>
 
 namespace Sass {
-  
-  Document::Document(char* path_str, char* source_str, Context& ctx)
-  : path(string()),
-    source(source_str),
-    line_number(1),
-    context(ctx),
-    root(Node(Node::root, context.registry, 1)),
-    lexed(Token::make())
-  {
-    if (source_str) {
-      own_source = false;
-      position = source;
-      end = position + std::strlen(source);
-    }
-    else if (path_str) {
-      path = string(path_str);
-      std::FILE *f;
-      // TO DO: CHECK f AGAINST NULL/0
-      f = std::fopen(path.c_str(), "rb");
-      std::fseek(f, 0, SEEK_END);
-      int len = std::ftell(f);
-      std::rewind(f);
-      // TO DO: WRAP THE new[] IN A TRY/CATCH BLOCK
-      source = new char[len + 1];
-      std::fread(source, sizeof(char), len, f);
-      source[len] = '\0';
-      end = source + len;
-      std::fclose(f);
-      own_source = true;
-      position = source;
-      context.source_refs.push_back(source);
-    }
-    else {
-      // report an error
-    }
-    ++context.ref_count;
-  }
-      
 
-  Document::Document(string path, char* source)
-  : path(path), source(source),
-    line_number(1), own_source(false),
-    context(*(new Context())),
-    root(Node(Node::root, context.registry, 1)),
-    lexed(Token::make())
-  {
-    if (!source) {
-      std::FILE *f;
-      f = std::fopen(path.c_str(), "rb");
-      if (!f) throw path;
-      if (std::fseek(f, 0, SEEK_END)) throw path;
-      int len = std::ftell(f);
-      if (len < 0) throw path;
-      std::rewind(f);
-      // TO DO: CATCH THE POTENTIAL badalloc EXCEPTION
-      source = new char[len + 1];
-      std::fread(source, sizeof(char), len, f);
-      if (std::ferror(f)) throw path;
-      source[len] = '\0';
-      end = source + len;
-      if (std::fclose(f)) throw path;
-      own_source = true;
-    }
-    position = source;
-    context.source_refs.push_back(source);
-    ++context.ref_count;
-  }
-  
-  Document::Document(string path, Context& context)
-  : path(path), source(0),
-    line_number(1), own_source(false),
-    context(context),
-    root(Node(Node::root, context.registry, 1)),
-    lexed(Token::make())
+  Document::Document(Context& ctx) : context(ctx)
+  { ++context.ref_count; }
+
+  Document::Document(const Document& doc)
+  : path(doc.path),
+    source(doc.source),
+    position(doc.position),
+    end(doc.end),
+    line(doc.line),
+    own_source(doc.own_source),
+    context(doc.context),
+    root(doc.root),
+    lexed(doc.lexed)
+  { ++doc.context.ref_count; }
+
+  Document::~Document()
+  { --context.ref_count; }
+
+  Document Document::make_from_file(Context& ctx, string path)
   {
     std::FILE *f;
     f = std::fopen(path.c_str(), "rb");
     if (!f) throw path;
     if (std::fseek(f, 0, SEEK_END)) throw path;
-    int len = std::ftell(f);
-    if (len < 0) throw path;
+    int status = std::ftell(f);
+    if (status < 0) throw path;
+    size_t len = status;
     std::rewind(f);
-    // TO DO: CATCH THE POTENTIAL badalloc EXCEPTION
-    source = new char[len + 1];
-    std::fread(source, sizeof(char), len, f);
+    char* source = new char[len + 1];
+    size_t bytes_read = std::fread(source, sizeof(char), len, f);
+    if (bytes_read != len) {
+      std::cerr << "Warning: possible error reading from " << path << std::endl;
+    }
     if (std::ferror(f)) throw path;
     source[len] = '\0';
-    end = source + len;
+    char* end = source + len;
     if (std::fclose(f)) throw path;
-    position = source;
-    context.source_refs.push_back(source);
-    ++context.ref_count;
-  }
-  
-  Document::Document(const string& path, size_t line_number, Token t, Context& context)
-  : path(path),
-    source(const_cast<char*>(t.begin)),
-    position(t.begin),
-    end(t.end),
-    line_number(line_number),
-    own_source(false),
-    context(context),
-    root(Node(Node::root, context.registry, 1)),
-    lexed(Token::make())
-  { }
 
-  Document::~Document() {
-    --context.ref_count;
-    // if (context.ref_count == 0) delete &context;
+    Document doc(ctx);
+    doc.path        = path;
+    doc.line = 1;
+    doc.root        = ctx.new_Node(Node::root, path, 1, 0);
+    doc.lexed       = Token::make();
+    doc.own_source  = true;
+    doc.source      = source;
+    doc.end         = end;
+    doc.position    = source;
+    doc.context.source_refs.push_back(source);
+
+    return doc;
+  }
+
+  Document Document::make_from_source_chars(Context& ctx, char* src, string path)
+  {
+    Document doc(ctx);
+    doc.path = path;
+    doc.line = 1;
+    doc.root = ctx.new_Node(Node::root, path, 1, 0);
+    doc.lexed = Token::make();
+    doc.own_source = false;
+    doc.source = src;
+    doc.end = src + std::strlen(src);
+    doc.position = doc.end;
+
+    return doc;
+  }
+
+  Document Document::make_from_token(Context& ctx, Token t, string path, size_t line_number)
+  {
+    Document doc(ctx);
+    doc.path = path;
+    doc.line = line_number;
+    doc.root = ctx.new_Node(Node::root, path, 1, 0);
+    doc.lexed = Token::make();
+    doc.own_source = false;
+    doc.source = const_cast<char*>(t.begin);
+    doc.end = t.end;
+    doc.position = doc.source;
+
+    return doc;
   }
   
-  void Document::syntax_error(string message, size_t ln)
-  { throw Error(Error::syntax, ln ? ln : line_number, path, message); }
+  void Document::throw_syntax_error(string message, size_t ln)
+  { throw Error(Error::syntax, path, ln ? ln : line, message); }
   
-  void Document::read_error(string message, size_t ln)
-  { throw Error(Error::read, ln ? ln : line_number, path, message); }
+  void Document::throw_read_error(string message, size_t ln)
+  { throw Error(Error::read, path, ln ? ln : line, message); }
   
   using std::string;
   using std::stringstream;

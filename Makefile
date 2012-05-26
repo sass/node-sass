@@ -4,7 +4,7 @@ LDFLAGS=
 SOURCES = \
 	context.cpp functions.cpp document.cpp \
 	document_parser.cpp eval_apply.cpp node.cpp \
-	node_comparisons.cpp values.cpp prelexer.cpp \
+	node_factory.cpp node_emitters.cpp prelexer.cpp \
 	sass_interface.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 
