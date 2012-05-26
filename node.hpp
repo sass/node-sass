@@ -209,7 +209,7 @@ namespace Sass {
   };
   
   struct Node_Impl {
-    union {
+    union value_t {
       bool         boolean;
       double       numeric;
       Token        token;
@@ -232,6 +232,22 @@ namespace Sass {
     bool from_variable;
     bool should_eval;
     bool is_unquoted;
+
+    Node_Impl()
+    : /* value(value_t()),
+      children(vector<Node>()),
+      path(string()),
+      line(0),
+      type(Node::none), */
+      has_children(false),
+      has_statements(false),
+      has_blocks(false),
+      has_expansions(false),
+      has_backref(false),
+      from_variable(false),
+      should_eval(false),
+      is_unquoted(false)
+    { }
     
     bool is_numeric()
     { return type >= Node::number && type <= Node::numeric_dimension; }
