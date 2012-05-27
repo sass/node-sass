@@ -39,21 +39,8 @@ extern "C" {
   {
     using namespace Sass;
     doc.parse_scss();
-    // cerr << "PARSED" << endl;
-    eval(doc.root, doc.context.global_env, doc.context.function_env, doc.context.new_Node);
-    // cerr << "EVALUATED" << endl;
+    eval(doc.root, doc.context.global_env, doc.context.function_env, doc.context.new_Node, doc.context);
     string output(doc.emit_css(static_cast<Document::CSS_Style>(style)));
-    // cerr << "EMITTED" << endl;
-    
-    // cerr << "Allocations:\t" << Node::allocations << endl;
-    // cerr << "Destructions:\t" << Node::destructed << endl;
-    // cerr << "Registry size:\t" << doc.context.registry.size() << endl;
-    
-    // for (size_t i = 0; i < doc.context.registry.size(); ++i) {
-    //   delete doc.context.registry[i];
-    // }
-    // cerr << "Deallocations:\t" << i << endl;
-    
     char* c_output = (char*) malloc(output.size() + 1);
     strcpy(c_output, output.c_str());
     return c_output;

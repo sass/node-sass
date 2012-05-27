@@ -1,11 +1,16 @@
 #include <map>
 
+#ifndef SASS_PRELEXER_INCLUDED
+#include "prelexer.hpp"
+#endif
+
 #ifndef SASS_NODE_INCLUDED
 #include "node.hpp"
 #endif
 
-#include "prelexer.hpp"
+#ifndef SASS_CONTEXT_INCLUDED
 #include "context.hpp"
+#endif
 
 struct Selector_Lookahead {
   const char* found;
@@ -41,7 +46,7 @@ namespace Sass {
     ~Document();
 
     static Document make_from_file(Context& ctx, string path);
-    static Document make_from_source_chars(Context& ctx, char* src, string path = "");
+    static Document make_from_source_chars(Context& ctx, char* src, string path = "", bool own_source = false);
     static Document make_from_token(Context& ctx, Token t, string path = "", size_t line_number = 1);
 
     template <prelexer mx>

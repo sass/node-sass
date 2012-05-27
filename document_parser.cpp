@@ -870,34 +870,38 @@ namespace Sass {
     const char* q;
     bool saw_interpolant = false;
 
-    while ((q = peek< identifier >(p))                            ||
-           (q = peek< id_name >(p))                               ||
-           (q = peek< class_name >(p))                            ||
-           (q = peek< sequence< pseudo_prefix, identifier > >(p)) ||
-           (q = peek< string_constant >(p))                       ||
-           (q = peek< exactly<'*'> >(p))                          ||
-           (q = peek< exactly<'('> >(p))                          ||
-           (q = peek< exactly<')'> >(p))                          ||
-           (q = peek< exactly<'['> >(p))                          ||
-           (q = peek< exactly<']'> >(p))                          ||
-           (q = peek< exactly<'+'> >(p))                          ||
-           (q = peek< exactly<'~'> >(p))                          ||
-           (q = peek< exactly<'>'> >(p))                          ||
-           (q = peek< exactly<','> >(p))                          ||
-           (q = peek< binomial >(p))                              ||
+    while ((q = peek< identifier >(p))                             ||
+           (q = peek< id_name >(p))                                ||
+           (q = peek< class_name >(p))                             ||
+           (q = peek< sequence< pseudo_prefix, identifier > >(p))  ||
+           (q = peek< string_constant >(p))                        ||
+           (q = peek< exactly<'*'> >(p))                           ||
+           (q = peek< exactly<'('> >(p))                           ||
+           (q = peek< exactly<')'> >(p))                           ||
+           (q = peek< exactly<'['> >(p))                           ||
+           (q = peek< exactly<']'> >(p))                           ||
+           (q = peek< exactly<'+'> >(p))                           ||
+           (q = peek< exactly<'~'> >(p))                           ||
+           (q = peek< exactly<'>'> >(p))                           ||
+           (q = peek< exactly<','> >(p))                           ||
+           (q = peek< binomial >(p))                               ||
            (q = peek< sequence< optional<sign>,
                                 optional<digits>,
-                                exactly<'n'> > >(p))              ||
+                                exactly<'n'> > >(p))               ||
            (q = peek< sequence< optional<sign>,
-                                digits > >(p))                    ||
-           (q = peek< number >(p))                                ||
-           (q = peek< exactly<'&'> >(p))                          ||
+                                digits > >(p))                     ||
+           (q = peek< number >(p))                                 ||
+           (q = peek< exactly<'&'> >(p))                           ||
            (q = peek< alternatives<exact_match,
                                    class_match,
                                    dash_match,
                                    prefix_match,
                                    suffix_match,
-                                   substring_match> >(p))         ||
+                                   substring_match> >(p))          ||
+           (q = peek< sequence< exactly<'.'>, interpolant > >(p))  ||
+           (q = peek< sequence< exactly<'#'>, interpolant > >(p))  ||
+           (q = peek< sequence< exactly<'-'>, interpolant > >(p))  ||
+           (q = peek< sequence< pseudo_prefix, interpolant > >(p)) ||
            (q = peek< interpolant >(p))) {
       p = q;
       if (*(p - 1) == '}') saw_interpolant = true;

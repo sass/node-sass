@@ -60,17 +60,18 @@ namespace Sass {
     return doc;
   }
 
-  Document Document::make_from_source_chars(Context& ctx, char* src, string path)
+  Document Document::make_from_source_chars(Context& ctx, char* src, string path, bool own_source)
   {
     Document doc(ctx);
     doc.path = path;
     doc.line = 1;
     doc.root = ctx.new_Node(Node::root, path, 1, 0);
     doc.lexed = Token::make();
-    doc.own_source = false;
+    doc.own_source = own_source;
     doc.source = src;
     doc.end = src + std::strlen(src);
-    doc.position = doc.end;
+    doc.position = src;
+    if (own_source) doc.context.source_refs.push_back(src);
 
     return doc;
   }
