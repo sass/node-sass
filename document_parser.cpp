@@ -417,7 +417,7 @@ namespace Sass {
       throw_syntax_error("invalid operator in attribute selector for " + name.to_string());
     }
     attr_sel << context.new_Node(Node::value, path, line, lexed);
-    if (!lex< string_constant >()) throw_syntax_error("expected a quoted string constant in attribute selector for " + name.to_string());
+    if (!lex< string_constant >() && !lex< identifier >()) throw_syntax_error("expected a string constant or identifier in attribute selector for " + name.to_string());
     attr_sel << context.new_Node(Node::value, path, line, lexed);
     if (!lex< exactly<']'> >()) throw_syntax_error("unterminated attribute selector for " + name.to_string());
     return attr_sel;
