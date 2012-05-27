@@ -30,7 +30,7 @@ namespace Sass {
         root << parse_propset();
       }
       else if ((lookahead_result = lookahead_for_selector(position)).found) {
-        root << parse_ruleset();
+        root << parse_ruleset(lookahead_result);
       }
       else if (peek< include >() || peek< exactly<'+'> >()) {
         root << parse_mixin_call();
@@ -214,13 +214,47 @@ namespace Sass {
     return propset;
   }
 
-  Node Document::parse_ruleset(bool definition)
+  Node Document::parse_ruleset(Selector_Lookahead lookahead, bool in_definition)
   {
     Node ruleset(context.new_Node(Node::ruleset, path, line, 2));
-    ruleset << parse_selector_group();
+    if (lookahead.has_interpolants) {
+      ruleset << parse_selector_schema(lookahead.found);
+    }
+    else {
+      ruleset << parse_selector_group();
+    }
     if (!peek< exactly<'{'> >()) throw_syntax_error("expected a '{' after the selector");
-    ruleset << parse_block(definition);
+    ruleset << parse_block(in_definition);
     return ruleset;
+  }
+
+  extern const char hash_lbrace[] = "#{";
+  extern const char rbrace[] = "}";
+  Node Document::parse_selector_schema(const char* end_of_selector)
+  {    
+    const char* i = position;
+    const char* p;
+    Node schema(context.new_Node(Node::selector_schema, path, line, 1));
+
+    while (i < end_of_selector) {
+      p = find_first_in_interval< exactly<hash_lbrace> >(i, end_of_selector);
+      if (p) {
+        // accumulate the preceding segment if there is one
+        if (i < p) schema << context.new_Node(Node::identifier, path, line, Token::make(i, p));
+        // find the end of the interpolant and parse it
+        const char* j = find_first_in_interval< exactly<rbrace> >(p, end_of_selector);
+        Node interp_node(Document::make_from_token(context, Token::make(p+2, j), path, line).parse_list());
+        interp_node.should_eval() = true;
+        schema << interp_node;
+        i = j + 1;
+      }
+      else { // no interpolants left; add the last segment if there is one
+        if (i < end_of_selector) schema << context.new_Node(Node::identifier, path, line, Token::make(i, end_of_selector));
+        break;
+      }
+    }
+    position = end_of_selector;
+    return schema;
   }
 
   Node Document::parse_selector_group()
@@ -389,7 +423,7 @@ namespace Sass {
     return attr_sel;
   }
 
-  Node Document::parse_block(bool definition)
+  Node Document::parse_block(bool in_definition)
   {
     lex< exactly<'{'> >();
     bool semicolon = false;
@@ -408,7 +442,7 @@ namespace Sass {
         block << context.new_Node(Node::comment, path, line, lexed);
       }
       else if (peek< import >(position)) {
-        if (definition) {
+        if (in_definition) {
           lex< import >(); // to adjust the line number
           throw_syntax_error("@import directive not allowed inside mixin definition");
         }
@@ -435,7 +469,7 @@ namespace Sass {
         block << parse_propset();
       }
       else if ((lookahead_result = lookahead_for_selector(position)).found) {
-        block << parse_ruleset(definition);
+        block << parse_ruleset(lookahead_result, in_definition);
       }
       else if (peek< exactly<'+'> >()) {
         block << parse_mixin_call();
@@ -740,9 +774,6 @@ namespace Sass {
     return Node();
   }
   
-  extern const char hash_lbrace[] = "#{";
-  extern const char rbrace[] = "}";
-  
   Node Document::parse_string()
   {    
     lex< string_constant >();
@@ -759,15 +790,15 @@ namespace Sass {
       p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, str.end);
       if (p) {
         if (i < p) {
-          schema << context.new_Node(Node::identifier, path, line, Token::make(i, p-2)); // accumulate the preceding segment if it's nonempty
+          schema << context.new_Node(Node::identifier, path, line, Token::make(i, p)); // accumulate the preceding segment if it's nonempty
         }
         const char* j = find_first_in_interval< exactly<rbrace> >(p, str.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
-          Node interp_node(Document::make_from_token(context, Token::make(p, j-1), path, line).parse_list());
+          Node interp_node(Document::make_from_token(context, Token::make(p+2, j), path, line).parse_list());
           interp_node.should_eval() = true;
           schema << interp_node;
-          i = j;
+          i = j+1;
         }
         else {
           // throw an error if the interpolant is unterminated

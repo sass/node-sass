@@ -104,6 +104,16 @@ namespace Sass {
       case backref: {
         return prefix;
       } break;
+
+      case selector_schema: {
+        string result(prefix);
+        if (!result.empty()) result += " ";
+        for (size_t i = 0, S = size(); i < S; ++i) {
+          if (at(i).type() == identifier) result += at(i).to_string("");
+          else result += "[INTERPOLANT]";
+        }
+        return result;
+      } break;
       
       case comma_list: {
         string result(at(0).to_string(prefix));

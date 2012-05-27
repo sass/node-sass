@@ -87,6 +87,7 @@ namespace Sass {
       pseudo_negation,
       functional_pseudo,
       attribute_selector,
+      selector_schema,
 
       block,
       rule,

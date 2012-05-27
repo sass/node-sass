@@ -130,7 +130,8 @@ namespace Sass {
     Node parse_argument();
     Node parse_assignment();
     Node parse_propset();
-    Node parse_ruleset(bool definition = false);
+    Node parse_ruleset(Selector_Lookahead lookahead, bool in_definition = false);
+    Node parse_selector_schema(const char* end_of_selector);
     Node parse_selector_group();
     Node parse_selector();
     Node parse_selector_combinator();
@@ -138,7 +139,7 @@ namespace Sass {
     Node parse_simple_selector();
     Node parse_pseudo();
     Node parse_attribute_selector();
-    Node parse_block(bool definition = false);
+    Node parse_block(bool in_definition = false);
     Node parse_rule();
     Node parse_values();
     Node parse_list();

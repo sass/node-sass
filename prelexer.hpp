@@ -388,10 +388,10 @@ namespace Sass {
     template<prelexer mx>
     const char* find_first_in_interval(const char* beg, const char* end) {
       while ((beg < end) && *beg) {
-        const char* p = mx(beg);
-        if (p) return p;
+        if (mx(beg)) return beg;
         ++beg;
       }
+
       return 0;
     }
     template <char c>
