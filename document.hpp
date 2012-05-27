@@ -7,6 +7,11 @@
 #include "prelexer.hpp"
 #include "context.hpp"
 
+struct Selector_Lookahead {
+  const char* found;
+  bool has_interpolants;
+};
+
 namespace Sass {
   using std::string;
   using std::vector;
@@ -150,7 +155,7 @@ namespace Sass {
     Node parse_string();
     Node parse_value_schema();
     
-    const char* lookahead_for_selector(const char* start = 0);
+    Selector_Lookahead lookahead_for_selector(const char* start = 0);
     
     void throw_syntax_error(string message, size_t ln = 0);
     void throw_read_error(string message, size_t ln = 0);

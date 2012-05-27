@@ -8,6 +8,7 @@ namespace Sass {
   void Document::parse_scss()
   {
     lex< optional_spaces >();
+    Selector_Lookahead lookahead_result;
     while (position < end) {
       if (lex< block_comment >()) {
         root << context.new_Node(Node::comment, path, line, lexed);
@@ -28,7 +29,7 @@ namespace Sass {
       else if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         root << parse_propset();
       }
-      else if (lookahead_for_selector(position)) {
+      else if ((lookahead_result = lookahead_for_selector(position)).found) {
         root << parse_ruleset();
       }
       else if (peek< include >() || peek< exactly<'+'> >()) {
@@ -392,6 +393,7 @@ namespace Sass {
   {
     lex< exactly<'{'> >();
     bool semicolon = false;
+    Selector_Lookahead lookahead_result;
     Node block(context.new_Node(Node::block, path, line, 0));
     while (!lex< exactly<'}'> >()) {
       if (semicolon) {
@@ -432,7 +434,7 @@ namespace Sass {
       else if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         block << parse_propset();
       }
-      else if (lookahead_for_selector(position)) {
+      else if ((lookahead_result = lookahead_for_selector(position)).found) {
         block << parse_ruleset(definition);
       }
       else if (peek< exactly<'+'> >()) {
@@ -830,10 +832,12 @@ namespace Sass {
     return call;
   }
   
-  const char* Document::lookahead_for_selector(const char* start)
+  // const char* Document::lookahead_for_selector(const char* start)
+  Selector_Lookahead Document::lookahead_for_selector(const char* start)
   {
     const char* p = start ? start : position;
     const char* q;
+    bool saw_interpolant = false;
 
     while ((q = peek< identifier >(p))                            ||
            (q = peek< id_name >(p))                               ||
@@ -862,10 +866,17 @@ namespace Sass {
                                    dash_match,
                                    prefix_match,
                                    suffix_match,
-                                   substring_match> >(p))) { p = q; }
+                                   substring_match> >(p))         ||
+           (q = peek< interpolant >(p))) {
+      p = q;
+      if (*(p - 1) == '}') saw_interpolant = true;
+    }
 
-    if (peek< exactly<'{'> >(p)) return p;
-    else return 0;
+    Selector_Lookahead result;
+    result.found            = peek< exactly<'{'> >(p) ? p : 0;
+    result.has_interpolants = saw_interpolant;
+
+    return result;
   }
   
 }
