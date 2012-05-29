@@ -19,4 +19,5 @@ namespace Sass {
   Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& src_refs);
   Node expand_selector(Node sel, Node pre, Node_Factory& new_Node);
   Node expand_backref(Node sel, Node pre);
+  void extend_selectors(vector<pair<Node, Node> >&, Node_Factory&);
 }

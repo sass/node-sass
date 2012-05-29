@@ -45,6 +45,7 @@ extern "C" {
          doc.context.function_env,
          doc.context.new_Node,
          doc.context);
+    extend_selectors(doc.context.pending_extensions, doc.context.new_Node);
     string output(doc.emit_css(static_cast<Document::CSS_Style>(style)));
     for (size_t i = 0; i < doc.context.pending_extensions.size(); ++i) {
       cerr << "EXTENDING " << doc.context.pending_extensions[i].first[2].to_string()

@@ -595,4 +595,30 @@ namespace Sass {
     return Node();
   }
 
+  // Resolve selector extensions.
+
+  void extend_selectors(vector<pair<Node, Node> >& pending, Node_Factory& new_Node)
+  {
+    for (size_t i = 0, S = pending.size(); i < S; ++i) {
+      Node extender(pending[i].second[2]);
+      Node ruleset_to_extend(pending[i].first);
+      Node selector_to_extend(ruleset_to_extend[2]);
+      if (extender.type() == Node::simple_selector) {
+        cerr << "EXTENDING " << selector_to_extend.to_string() << " WITH " << extender.to_string() << endl;
+        if (selector_to_extend.type() == Node::selector_group) {
+          selector_to_extend << extender;
+        }
+        else {
+          Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
+          new_group << selector_to_extend << extender;
+          ruleset_to_extend[2] = new_group;
+        }
+      }
+      else {
+        // handle the other cases later
+      }
+    }
+
+  }
+
 }
