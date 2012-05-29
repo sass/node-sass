@@ -1,4 +1,7 @@
 #include <iostream>
+#include <string>
+#include <tr1/unordered_map>
+#include <map>
 
 #ifndef SASS_NODE_INCLUDED
 #include "node.hpp"
@@ -60,9 +63,21 @@ int main()
   cout << block2[1][3].numeric_value() << endl;
   block2[1][3] = new_Node("", 0, .9876);
   cout << block1[1][3].numeric_value() << endl;
-  cout << block2[1][3].numeric_value() << endl;
+  cout << block2[1][3].numeric_value() << endl << endl;
+
+  map<Node, string> dict;
+
+  Node n(new_Node("", 0, 42));
+  Node m(new_Node("", 0, 41));
+
+  dict[n] = "hello";
+  dict[m] = "goodbye";
+
+  cout << dict[m] << " " << dict[n] << endl;
+
+
+
 
   new_Node.free();
-  
   return 0;
 }

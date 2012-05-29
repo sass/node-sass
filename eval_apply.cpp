@@ -17,7 +17,7 @@ namespace Sass {
     throw Error(Error::evaluation, path, line, message);
   }
 
-  Node eval(Node expr, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
+  Node eval(Node expr, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
     switch (expr.type())
     {
@@ -31,7 +31,7 @@ namespace Sass {
         Node args(expr[1]);
         if (!env.query(name)) throw_eval_error("mixin " + name.to_string() + " is undefined", expr.path(), expr.line());
         Node mixin(env[name]);
-        Node expansion(apply_mixin(mixin, args, env, f_env, new_Node, ctx));
+        Node expansion(apply_mixin(mixin, args, prefix, env, f_env, new_Node, ctx));
         expr.pop_back();
         expr.pop_back();
         expr += expansion;
@@ -39,25 +39,27 @@ namespace Sass {
       } break;
       
       case Node::propset: {
-        eval(expr[1], env, f_env, new_Node, ctx);
+        eval(expr[1], prefix, env, f_env, new_Node, ctx);
         return expr;
       } break;
 
       case Node::ruleset: {
+        // if the selector contains interpolants, eval it and re-parse
         if (expr[0].type() == Node::selector_schema) {
-          expr[0] = eval(expr[0], env, f_env, new_Node, ctx);
+          expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
         }
-        // expand the selector right here and stick it in expr[2]
-
-
-        eval(expr[1], env, f_env, new_Node, ctx);
+        // expand the selector with the prefix and save it in expr[2]
+        expr << expand_selector(expr[0], prefix, new_Node);
+        // cerr << "EXPANDED SELECTOR: " << expr.back().to_string("") << endl;
+        // eval the body with the current selector as the prefix
+        eval(expr[1], expr[0], env, f_env, new_Node, ctx);
         return expr;
       } break;
 
       case Node::selector_schema: {
         string expansion;
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          expr[i] = eval(expr[i], env, f_env, new_Node, ctx);
+          expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
           if (expr[i].type() == Node::string_constant) {
             expansion += expr[i].token().unquote();
           }
@@ -76,7 +78,7 @@ namespace Sass {
       
       case Node::root: {
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          eval(expr[i], env, f_env, new_Node, ctx);
+          eval(expr[i], prefix, env, f_env, new_Node, ctx);
         }
         return expr;
       } break;
@@ -85,7 +87,7 @@ namespace Sass {
         Environment new_frame;
         new_frame.link(env);
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          eval(expr[i], new_frame, f_env, new_Node, ctx);
+          eval(expr[i], prefix, new_frame, f_env, new_Node, ctx);
         }
         return expr;
       } break;
@@ -94,11 +96,11 @@ namespace Sass {
         Node val(expr[1]);
         if (val.type() == Node::comma_list || val.type() == Node::space_list) {
           for (size_t i = 0, S = val.size(); i < S; ++i) {
-            if (val[i].should_eval()) val[i] = eval(val[i], env, f_env, new_Node, ctx);
+            if (val[i].should_eval()) val[i] = eval(val[i], prefix, env, f_env, new_Node, ctx);
           }
         }
         else {
-          val = eval(val, env, f_env, new_Node, ctx);
+          val = eval(val, prefix, env, f_env, new_Node, ctx);
         }
         Node var(expr[0]);
         if (env.query(var.token())) {
@@ -114,28 +116,28 @@ namespace Sass {
         Node rhs(expr[1]);
         if (rhs.type() == Node::comma_list || rhs.type() == Node::space_list) {
           for (size_t i = 0, S = rhs.size(); i < S; ++i) {
-            if (rhs[i].should_eval()) rhs[i] = eval(rhs[i], env, f_env, new_Node, ctx);
+            if (rhs[i].should_eval()) rhs[i] = eval(rhs[i], prefix, env, f_env, new_Node, ctx);
           }
         }
         else if (rhs.type() == Node::value_schema || rhs.type() == Node::string_schema) {
-          eval(rhs, env, f_env, new_Node, ctx);
+          eval(rhs, prefix, env, f_env, new_Node, ctx);
         }
         else {
-          if (rhs.should_eval()) expr[1] = eval(rhs, env, f_env, new_Node, ctx);
+          if (rhs.should_eval()) expr[1] = eval(rhs, prefix, env, f_env, new_Node, ctx);
         }
         return expr;
       } break;
 
       case Node::comma_list:
       case Node::space_list: {
-        if (expr.should_eval()) expr[0] = eval(expr[0], env, f_env, new_Node, ctx);
+        if (expr.should_eval()) expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
         return expr;
       } break;
       
       case Node::disjunction: {
         Node result;
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          result = eval(expr[i], env, f_env, new_Node, ctx);
+          result = eval(expr[i], prefix, env, f_env, new_Node, ctx);
           if (result.type() == Node::boolean && result.boolean_value() == false) continue;
           else return result;
         }
@@ -145,7 +147,7 @@ namespace Sass {
       case Node::conjunction: {
         Node result;
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          result = eval(expr[i], env, f_env, new_Node, ctx);
+          result = eval(expr[i], prefix, env, f_env, new_Node, ctx);
           if (result.type() == Node::boolean && result.boolean_value() == false) return result;
         }
         return result;
@@ -153,9 +155,9 @@ namespace Sass {
       
       case Node::relation: {
         
-        Node lhs(eval(expr[0], env, f_env, new_Node, ctx));
+        Node lhs(eval(expr[0], prefix, env, f_env, new_Node, ctx));
         Node op(expr[1]);
-        Node rhs(eval(expr[2], env, f_env, new_Node, ctx));
+        Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
         
         Node T(new_Node(Node::boolean, lhs.path(), lhs.line(), true));
         Node F(new_Node(Node::boolean, lhs.path(), lhs.line(), false));
@@ -175,11 +177,11 @@ namespace Sass {
 
       case Node::expression: {
         Node acc(new_Node(Node::expression, expr.path(), expr.line(), 1));
-        acc << eval(expr[0], env, f_env, new_Node, ctx);
-        Node rhs(eval(expr[2], env, f_env, new_Node, ctx));
+        acc << eval(expr[0], prefix, env, f_env, new_Node, ctx);
+        Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
         accumulate(expr[1].type(), acc, rhs, new_Node);
         for (size_t i = 3, S = expr.size(); i < S; i += 2) {
-          Node rhs(eval(expr[i+1], env, f_env, new_Node, ctx));
+          Node rhs(eval(expr[i+1], prefix, env, f_env, new_Node, ctx));
           accumulate(expr[i].type(), acc, rhs, new_Node);
         }
         return acc.size() == 1 ? acc[0] : acc;
@@ -188,11 +190,11 @@ namespace Sass {
       case Node::term: {
         if (expr.should_eval()) {
           Node acc(new_Node(Node::expression, expr.path(), expr.line(), 1));
-          acc << eval(expr[0], env, f_env, new_Node, ctx);
-          Node rhs(eval(expr[2], env, f_env, new_Node, ctx));
+          acc << eval(expr[0], prefix, env, f_env, new_Node, ctx);
+          Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
           accumulate(expr[1].type(), acc, rhs, new_Node);
           for (size_t i = 3, S = expr.size(); i < S; i += 2) {
-            Node rhs(eval(expr[i+1], env, f_env, new_Node, ctx));
+            Node rhs(eval(expr[i+1], prefix, env, f_env, new_Node, ctx));
             accumulate(expr[i].type(), acc, rhs, new_Node);
           }
           return acc.size() == 1 ? acc[0] : acc;
@@ -243,11 +245,11 @@ namespace Sass {
         // TO DO: default-constructed Function should be a generic callback (maybe)
         pair<string, size_t> sig(expr[0].token().to_string(), expr[1].size());
         if (!f_env.count(sig)) return expr;
-        return apply_function(f_env[sig], expr[1], env, f_env, new_Node, ctx);
+        return apply_function(f_env[sig], expr[1], prefix, env, f_env, new_Node, ctx);
       } break;
       
       case Node::unary_plus: {
-        Node arg(eval(expr[0], env, f_env, new_Node, ctx));
+        Node arg(eval(expr[0], prefix, env, f_env, new_Node, ctx));
         if (arg.is_numeric()) {
           return arg;
         }
@@ -258,7 +260,7 @@ namespace Sass {
       } break;
       
       case Node::unary_minus: {
-        Node arg(eval(expr[0], env, f_env, new_Node, ctx));
+        Node arg(eval(expr[0], prefix, env, f_env, new_Node, ctx));
         if (arg.is_numeric()) {
           return new_Node(expr.path(), expr.line(), -arg.numeric_value());
         }
@@ -271,13 +273,13 @@ namespace Sass {
       case Node::string_schema:
       case Node::value_schema: {
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          expr[i] = eval(expr[i], env, f_env, new_Node, ctx);
+          expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
         }
         return expr;
       } break;
       
       case Node::css_import: {
-        expr[0] = eval(expr[0], env, f_env, new_Node, ctx);
+        expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
         return expr;
       } break;     
 
@@ -381,7 +383,7 @@ namespace Sass {
     }
   }
   
-  Node apply_mixin(Node mixin, const Node args, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
+  Node apply_mixin(Node mixin, const Node args, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
     Node params(mixin[1]);
     Node body(new_Node(mixin[2])); // clone the body
@@ -403,7 +405,7 @@ namespace Sass {
         }
         if (!valid_param) throw_eval_error("mixin " + mixin[0].to_string("") + " has no parameter named " + name.to_string(), arg.path(), arg.line());
         if (!bindings.query(name)) {
-          bindings[name] = eval(arg[1], env, f_env, new_Node, ctx);
+          bindings[name] = eval(arg[1], prefix, env, f_env, new_Node, ctx);
         }
       }
       else {
@@ -415,7 +417,7 @@ namespace Sass {
         }
         Node param(params[j]);
         Token name(param.type() == Node::variable ? param.token() : param[0].token());
-        bindings[name] = eval(args[i], env, f_env, new_Node, ctx);
+        bindings[name] = eval(args[i], prefix, env, f_env, new_Node, ctx);
         ++j;
       }
     }
@@ -425,19 +427,19 @@ namespace Sass {
         Node param(params[i]);
         Token name(param[0].token());
         if (!bindings.query(name)) {
-          bindings[name] = eval(param[1], env, f_env, new_Node, ctx);
+          bindings[name] = eval(param[1], prefix, env, f_env, new_Node, ctx);
         }
       }
     }
     // lexically link the new environment and eval the mixin's body
     bindings.link(env.global ? *env.global : env);
     for (size_t i = 0, S = body.size(); i < S; ++i) {
-      body[i] = eval(body[i], bindings, f_env, new_Node, ctx);
+      body[i] = eval(body[i], prefix, bindings, f_env, new_Node, ctx);
     }
     return body;
   }
   
-  Node apply_function(const Function& f, const Node args, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
+  Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
     map<Token, Node> bindings;
     // bind arguments
@@ -445,15 +447,122 @@ namespace Sass {
       if (args[i].type() == Node::assignment) {
         Node arg(args[i]);
         Token name(arg[0].token());
-        bindings[name] = eval(arg[1], env, f_env, new_Node, ctx);
+        bindings[name] = eval(arg[1], prefix, env, f_env, new_Node, ctx);
       }
       else {
         // TO DO: ensure (j < f.parameters.size())
-        bindings[f.parameters[j]] = eval(args[i], env, f_env, new_Node, ctx);
+        bindings[f.parameters[j]] = eval(args[i], prefix, env, f_env, new_Node, ctx);
         ++j;
       }
     }
     return f(bindings, new_Node);
+  }
+
+  Node expand_selector(Node sel, Node pre, Node_Factory& new_Node)
+  {
+    if (pre.type() == Node::none) return sel;
+
+    if (sel.has_backref()) {
+      if ((pre.type() == Node::selector_group) && (sel.type() == Node::selector_group)) {
+        Node group(new_Node(Node::selector_group, sel.path(), sel.line(), pre.size() * sel.size()));
+        for (size_t i = 0, S = pre.size(); i < S; ++i) {
+          for (size_t j = 0, T = sel.size(); j < T; ++j) {
+            group << expand_backref(new_Node(sel[j]), pre[i]);
+          }
+        }
+        return group;
+      }
+      else if ((pre.type() == Node::selector_group) && (sel.type() != Node::selector_group)) {
+        Node group(new_Node(Node::selector_group, sel.path(), sel.line(), pre.size()));
+        for (size_t i = 0, S = pre.size(); i < S; ++i) {
+          group << expand_backref(new_Node(sel), pre[i]);
+        }
+        return group;
+      }
+      else if ((pre.type() != Node::selector_group) && (sel.type() == Node::selector_group)) {
+        Node group(new_Node(Node::selector_group, sel.path(), sel.line(), sel.size()));
+        for (size_t i = 0, S = sel.size(); i < S; ++i) {
+          group << expand_backref(new_Node(sel[i]), pre);
+        }
+        return group;
+      }
+      else {
+        return expand_backref(new_Node(sel), pre);
+      }
+    }
+
+    if ((pre.type() == Node::selector_group) && (sel.type() == Node::selector_group)) {
+      Node group(new_Node(Node::selector_group, sel.path(), sel.line(), pre.size() * sel.size()));
+      for (size_t i = 0, S = pre.size(); i < S; ++i) {
+        for (size_t j = 0, T = sel.size(); j < T; ++j) {
+          Node new_sel(new_Node(Node::selector, sel.path(), sel.line(), 2));
+          if (pre[i].type() == Node::selector) new_sel += pre;
+          else                                 new_sel << pre;
+          if (sel[j].type() == Node::selector) new_sel += sel[j];
+          else                                 new_sel << sel[j];
+          group << new_sel;
+        }
+      }
+      return group;
+    }
+    else if ((pre.type() == Node::selector_group) && (sel.type() != Node::selector_group)) {
+      Node group(new_Node(Node::selector_group, sel.path(), sel.line(), pre.size()));
+      for (size_t i = 0, S = pre.size(); i < S; ++i) {
+        Node new_sel(new_Node(Node::selector, sel.path(), sel.line(), 2));
+        if (pre[i].type() == Node::selector) new_sel += pre;
+        else                                 new_sel << pre;
+        if (sel.type() == Node::selector)    new_sel += sel;
+        else                                 new_sel << sel;
+        group << new_sel;
+      }
+      return group;
+    }
+    else if ((pre.type() != Node::selector_group) && (sel.type() == Node::selector_group)) {
+      Node group(new_Node(Node::selector_group, sel.path(), sel.line(), sel.size()));
+      for (size_t i = 0, S = sel.size(); i < S; ++i) {
+        Node new_sel(new_Node(Node::selector, sel.path(), sel.line(), 2));
+        if (pre.type() == Node::selector)    new_sel += pre;
+        else                                 new_sel << pre;
+        if (sel[i].type() == Node::selector) new_sel += sel[i];
+        else                                 new_sel << sel[i];
+        group << new_sel;
+      }
+      return group;
+    }
+    else {
+      Node new_sel(new_Node(Node::selector, sel.path(), sel.line(), 2));
+      if (pre.type() == Node::selector) new_sel += pre;
+      else                              new_sel << pre;
+      if (sel.type() == Node::selector) new_sel += sel;
+      else                              new_sel << sel;
+      return new_sel;
+    }
+    // unreachable statement
+    return Node();
+  }
+
+  Node expand_backref(Node sel, Node pre)
+  {
+    switch (sel.type())
+    {
+      case Node::backref: {
+        return pre;
+      } break;
+
+      case Node::simple_selector_sequence:
+      case Node::selector: {
+        for (size_t i = 0, S = sel.size(); i < S; ++i) {
+          sel[i] = expand_backref(sel[i], pre);
+        }
+        return sel;
+      } break;
+
+      default: {
+        return sel;
+      } break;
+    }
+    // unreachable statement
+    return Node();
   }
 
 }
