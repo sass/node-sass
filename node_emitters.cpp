@@ -374,49 +374,6 @@ namespace Sass {
     }
   }
   
-  // void Node::emit_nested_css(stringstream& buf, size_t depth)
-  // {
-  //   switch (type())
-  //   {
-  //   case propset: {
-  //     emit_propset(buf, depth, "");
-  //   } break;
-      
-  //   case rule:
-  //     buf << endl << string(2*depth, ' ');
-  //     at(0).emit_nested_css(buf, depth); // property
-  //     at(1).emit_nested_css(buf, depth); // values
-  //     buf << ";";
-  //     break;
-      
-  //   case css_import:
-  //     buf << string(2*depth, ' ');
-  //     buf << to_string("");
-  //     buf << ";" << endl;
-  //     break;
-
-  //   case property:
-  //     buf << token().to_string() << ": ";
-  //     break;
-
-  //   case values:
-  //     for (size_t i = 0, S = size(); i < S; ++i) {
-  //       buf << " " << at(i).token().to_string();
-  //     }
-  //     break;
-
-  //   case comment:
-  //     if (depth != 0) buf << endl;
-  //     buf << string(2*depth, ' ') << token().to_string();
-  //     if (depth == 0) buf << endl;
-  //     break;
-
-  //   default:
-  //     buf << to_string("");
-  //     break;
-  //   }
-  // }
-  
   void Node::emit_propset(stringstream& buf, size_t depth, const string& prefix)
   {
     string new_prefix(prefix);
@@ -448,6 +405,4 @@ namespace Sass {
 
   void Node::echo(stringstream& buf, size_t depth) { }
   void Node::emit_expanded_css(stringstream& buf, const string& prefix) { }
-
-
 }
