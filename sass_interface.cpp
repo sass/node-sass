@@ -47,10 +47,6 @@ extern "C" {
          doc.context);
     extend_selectors(doc.context.pending_extensions, doc.context.new_Node);
     string output(doc.emit_css(static_cast<Document::CSS_Style>(style)));
-    for (size_t i = 0; i < doc.context.pending_extensions.size(); ++i) {
-      cerr << "EXTENDING " << doc.context.pending_extensions[i].first[2].to_string()
-           << " WITH " << doc.context.pending_extensions[i].second[2].to_string() << endl;
-    }
     char* c_output = (char*) malloc(output.size() + 1);
     strcpy(c_output, output.c_str());
     return c_output;

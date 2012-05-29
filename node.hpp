@@ -325,14 +325,14 @@ namespace Sass {
   inline bool Node::has_expansions() const { return ip_->has_expansions; }
   inline bool Node::has_backref() const    { return ip_->has_backref; }
   inline bool Node::from_variable() const  { return ip_->from_variable; }
-  inline bool& Node::should_eval() const    { return ip_->should_eval; }
-  inline bool& Node::is_unquoted() const    { return ip_->is_unquoted; }
+  inline bool& Node::should_eval() const   { return ip_->should_eval; }
+  inline bool& Node::is_unquoted() const   { return ip_->is_unquoted; }
   inline bool Node::is_numeric() const     { return ip_->is_numeric(); }
   
-  inline string& Node::path() const        { return ip_->path; }
-  inline size_t  Node::line() const { return ip_->line; }
-  inline size_t  Node::size() const        { return ip_->size(); }
-  inline bool    Node::empty() const       { return ip_->empty(); }
+  inline string& Node::path() const  { return ip_->path; }
+  inline size_t  Node::line() const  { return ip_->line; }
+  inline size_t  Node::size() const  { return ip_->size(); }
+  inline bool    Node::empty() const { return ip_->empty(); }
   
   inline Node& Node::at(size_t i) const         { return ip_->at(i); }
   inline Node& Node::back() const               { return ip_->back(); }
@@ -366,7 +366,7 @@ namespace Sass {
 
   inline bool   Node::boolean_value() const { return ip_->boolean_value(); }
   inline double Node::numeric_value() const { return ip_->numeric_value(); }
-  inline Token   Node::token() const        { return ip_->value.token; }
-  inline Token   Node::unit() const         { return ip_->unit(); }
+  inline Token  Node::token() const         { return ip_->value.token; }
+  inline Token  Node::unit() const          { return ip_->unit(); }
 
 }

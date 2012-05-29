@@ -603,22 +603,75 @@ namespace Sass {
       Node extender(pending[i].second[2]);
       Node ruleset_to_extend(pending[i].first);
       Node selector_to_extend(ruleset_to_extend[2]);
-      if (extender.type() == Node::simple_selector) {
-        cerr << "EXTENDING " << selector_to_extend.to_string() << " WITH " << extender.to_string() << endl;
-        if (selector_to_extend.type() == Node::selector_group) {
-          selector_to_extend << extender;
-        }
-        else {
-          Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
-          new_group << selector_to_extend << extender;
-          ruleset_to_extend[2] = new_group;
-        }
-      }
-      else {
+      switch (extender.type())
+      {
+        case Node::simple_selector:
+        case Node::simple_selector_sequence:
+        case Node::selector: {
+          cerr << "EXTENDING " << selector_to_extend.to_string() << " WITH " << extender.to_string() << endl;
+          if (selector_to_extend.type() == Node::selector_group) {
+            selector_to_extend << extender;
+          }
+          else {
+            Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
+            new_group << selector_to_extend << extender;
+            ruleset_to_extend[2] = new_group;
+          }
+        } break;
+
+        // case Node::selector: {
+        //   cerr << "EXTENDING " << selector_to_extend.to_string() << " WITH " << extender.to_string() << endl;
+        //   if (selector_to_extend.type() == Node::selector_group) {
+        //     selector_to_extend << selector_base(extender);
+        //   }
+        //   else {
+        //     Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
+        //     new_group << selector_to_extend << selector_base(extender);
+        //     ruleset_to_extend[2] = new_group; 
+        //   }
+        // } break;
+
+        default: {
         // handle the other cases later
+        }
       }
     }
+  }
 
+  // Helper for extracting the prefix/context of a selector.
+
+  Node selector_prefix(Node sel, Node_Factory& new_Node)
+  {
+    switch (sel.type())
+    {
+      case Node::selector: {
+        Node pre(new_Node(Node::selector, sel.path(), sel.line(), sel.size() - 1));
+        for (size_t i = 0, S = sel.size() - 1; i < S; ++i) {
+          pre << sel[i];
+        }
+        return pre;
+      } break;
+
+      default: {
+        return new_Node(Node::selector, sel.path(), sel.line(), 0);
+      } break;
+    }
+  }
+
+  // Helper for extracting the base (i.e., rightmost component) of a selector.
+
+  Node selector_base(Node sel)
+  {
+    switch (sel.type())
+    {
+      case Node::selector: {
+        return sel.back();
+      } break;
+
+      default: {
+        return sel;
+      } break;
+    }
   }
 
 }
