@@ -103,6 +103,23 @@ namespace Sass {
         throw Error(Error::evaluation, path(), line(), "incompatible units");
       }
     }
+    else if ((type() >= selector_group && type() <=selector_schema) &&
+             (rhs.type() >= selector_group && rhs.type() <=selector_schema)) {
+      if (type() != rhs.type()) {
+        return type() < rhs.type();
+      }
+      switch (type())
+      {
+        case simple_selector: {
+          return token() < rhs.token();
+        } break;
+
+        default: {
+          return false;
+        } break;
+
+      }
+    }
     else {
       throw Error(Error::evaluation, path(), line(), "incomparable types");
     }

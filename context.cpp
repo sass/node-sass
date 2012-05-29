@@ -43,11 +43,13 @@ namespace Sass {
   Context::Context(const char* paths_str)
   : global_env(Environment()),
     function_env(map<pair<string, size_t>, Function>()),
+    extensions(map<Node, Node>()),
+    pending_extensions(vector<pair<Node, Node> >()),
     source_refs(vector<char*>()),
-    registry(vector<vector<Node>*>()),
     include_paths(vector<string>()),
     new_Node(Node_Factory()),
-    ref_count(0)
+    ref_count(0),
+    has_extensions(false)
   {
     register_functions();
     collect_include_paths(paths_str);

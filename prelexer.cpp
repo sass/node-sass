@@ -111,6 +111,10 @@ namespace Sass {
     const char* include(const char* src) {
       return exactly<include_kwd>(src);
     }
+    extern const char extend_kwd[] = "@extend";
+    const char* extend(const char* src) {
+      return exactly<extend_kwd>(src);
+    }
     
     const char* name(const char* src) {
       return one_plus< alternatives< alnum,

@@ -93,7 +93,7 @@ namespace Sass {
     Node name(context.new_Node(Node::identifier, path, line, lexed));
     Node params(parse_mixin_parameters());
     if (!peek< exactly<'{'> >()) throw_syntax_error("body for mixin " + name.token().to_string() + " must begin with a '{'");
-    Node body(parse_block(true));
+    Node body(parse_block(Node(), true));
     Node the_mixin(context.new_Node(Node::mixin, path, line, 3));
     the_mixin << name << params << body;
     return the_mixin;
@@ -224,7 +224,7 @@ namespace Sass {
       ruleset << parse_selector_group();
     }
     if (!peek< exactly<'{'> >()) throw_syntax_error("expected a '{' after the selector");
-    ruleset << parse_block(in_definition);
+    ruleset << parse_block(ruleset, in_definition);
     return ruleset;
   }
 
@@ -308,7 +308,7 @@ namespace Sass {
     if (peek< spaces >()       || peek< exactly<'>'> >() ||
         peek< exactly<'+'> >() || peek< exactly<'~'> >() ||
         peek< exactly<','> >() || peek< exactly<')'> >() ||
-        peek< exactly<'{'> >())
+        peek< exactly<'{'> >() || peek< exactly<';'> >())
     { return simp1; }
 
     // otherwise, we have a sequence of simple selectors
@@ -321,7 +321,8 @@ namespace Sass {
              peek < exactly<'>'> >(position) ||
              peek < exactly<','> >(position) ||
              peek < exactly<')'> >(position) ||
-             peek < exactly<'{'> >(position))) {
+             peek < exactly<'{'> >(position) ||
+             peek < exactly<';'> >(position))) {
       seq << parse_simple_selector();
     }
     return seq;
@@ -423,7 +424,7 @@ namespace Sass {
     return attr_sel;
   }
 
-  Node Document::parse_block(bool in_definition)
+  Node Document::parse_block(Node surrounding_ruleset, bool in_definition)
   {
     lex< exactly<'{'> >();
     bool semicolon = false;
@@ -475,11 +476,17 @@ namespace Sass {
         block << parse_mixin_call();
         semicolon = true;
       }
+      else if (lex< extend >()) {
+        Node extendee(parse_simple_selector_sequence());
+        context.extensions[extendee] = surrounding_ruleset;
+        context.has_extensions = true;
+        semicolon = true;
+      }
       else if (!peek< exactly<';'> >()) {
         Node rule(parse_rule());
         // check for lbrace; if it's there, we have a namespace property with a value
         if (peek< exactly<'{'> >()) {
-          Node inner(parse_block());
+          Node inner(parse_block(Node()));
           Node propset(context.new_Node(Node::propset, path, line, 2));
           propset << rule[0];
           rule[0] = context.new_Node(Node::property, path, line, Token::make());

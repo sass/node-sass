@@ -49,9 +49,15 @@ namespace Sass {
           expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
         }
         // expand the selector with the prefix and save it in expr[2]
-        // cerr << "ABOUT TO EXPAND " << expr[0].to_string() << " WITH " << prefix.to_string() << endl;
         expr << expand_selector(expr[0], prefix, new_Node);
-        // cerr << "EXPANDED SELECTOR: " << expr.back().to_string() << endl;
+        // gather selector extensions into a pending queue
+        if (ctx.has_extensions) {
+          Node sel(expr.back());
+          if (sel.type() == Node::selector) sel = sel.back();
+          if (ctx.extensions.count(sel)) {
+            ctx.pending_extensions.push_back(pair<Node, Node>(expr, ctx.extensions[sel]));
+          }
+        }
         // eval the body with the current selector as the prefix
         eval(expr[1], expr.back(), env, f_env, new_Node, ctx);
         return expr;
