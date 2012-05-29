@@ -17,7 +17,7 @@ namespace Sass {
     throw Error(Error::evaluation, path, line, message);
   }
 
-  Node eval(Node& expr, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
+  Node eval(Node expr, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
     switch (expr.type())
     {
@@ -47,6 +47,9 @@ namespace Sass {
         if (expr[0].type() == Node::selector_schema) {
           expr[0] = eval(expr[0], env, f_env, new_Node, ctx);
         }
+        // expand the selector right here and stick it in expr[2]
+
+
         eval(expr[1], env, f_env, new_Node, ctx);
         return expr;
       } break;
@@ -286,7 +289,7 @@ namespace Sass {
     return expr;
   }
 
-  Node accumulate(Node::Type op, Node& acc, Node& rhs, Node_Factory& new_Node)
+  Node accumulate(Node::Type op, Node acc, Node rhs, Node_Factory& new_Node)
   {
     Node lhs(acc.back());
     double lnum = lhs.numeric_value();
@@ -378,7 +381,7 @@ namespace Sass {
     }
   }
   
-  Node apply_mixin(Node& mixin, const Node& args, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
+  Node apply_mixin(Node mixin, const Node args, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
     Node params(mixin[1]);
     Node body(new_Node(mixin[2])); // clone the body
@@ -434,7 +437,7 @@ namespace Sass {
     return body;
   }
   
-  Node apply_function(const Function& f, const Node& args, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
+  Node apply_function(const Function& f, const Node args, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
     map<Token, Node> bindings;
     // bind arguments
