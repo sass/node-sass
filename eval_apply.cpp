@@ -57,6 +57,7 @@ namespace Sass {
           Node sel(expr.back());
           if (sel.type() == Node::selector) sel = sel.back();
           if (ctx.extensions.count(sel)) {
+            cerr << "HEY: " << sel.to_string() << endl;
             ctx.pending_extensions.push_back(pair<Node, Node>(expr, ctx.extensions[sel]));
           }
         }
@@ -606,6 +607,7 @@ namespace Sass {
       switch (extender.type())
       {
         case Node::simple_selector:
+        case Node::attribute_selector:
         case Node::simple_selector_sequence:
         case Node::selector: {
           cerr << "EXTENDING " << selector_to_extend.to_string() << " WITH " << extender.to_string() << endl;

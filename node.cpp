@@ -134,6 +134,7 @@ namespace Sass {
           return token() < rhs.token();
         } break;
 
+        case selector:
         case attribute_selector: {
           return lexicographical_compare(begin(), end(), rhs.begin(), rhs.end());
         } break;
