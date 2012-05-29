@@ -478,7 +478,9 @@ namespace Sass {
       }
       else if (lex< extend >()) {
         Node extendee(parse_simple_selector_sequence());
-        context.extensions[extendee] = surrounding_ruleset;
+        // context.extensions[extendee] = surrounding_ruleset;
+        context.extensions.insert(pair<Node, Node>(extendee, surrounding_ruleset));
+        cerr << "PARSED EXTENSION REQUEST: " << surrounding_ruleset[0].to_string() << " EXTENDS " << extendee.to_string() << endl;
         context.has_extensions = true;
         semicolon = true;
       }

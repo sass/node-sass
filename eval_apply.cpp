@@ -46,21 +46,28 @@ namespace Sass {
       } break;
 
       case Node::ruleset: {
+
         // if the selector contains interpolants, eval it and re-parse
         if (expr[0].type() == Node::selector_schema) {
           expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
         }
+
         // expand the selector with the prefix and save it in expr[2]
         expr << expand_selector(expr[0], prefix, new_Node);
+
         // gather selector extensions into a pending queue
         if (ctx.has_extensions) {
-          Node sel(expr.back());
-          if (sel.type() == Node::selector) sel = sel.back();
+          Node sel(selector_base(expr.back()));
+          // if (sel.type() == Node::selector) sel = sel.back();
           if (ctx.extensions.count(sel)) {
-            cerr << "HEY: " << sel.to_string() << endl;
-            ctx.pending_extensions.push_back(pair<Node, Node>(expr, ctx.extensions[sel]));
+            cerr << ctx.extensions.count(sel) << endl;
+            for (multimap<Node, Node>::iterator i = ctx.extensions.lower_bound(sel); i != ctx.extensions.upper_bound(sel); ++i) {
+              cerr << "HEY: " << sel.to_string() << endl;
+              ctx.pending_extensions.push_back(pair<Node, Node>(expr, i->second));
+            }
           }
         }
+
         // eval the body with the current selector as the prefix
         eval(expr[1], expr.back(), env, f_env, new_Node, ctx);
         return expr;
