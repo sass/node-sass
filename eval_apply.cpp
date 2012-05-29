@@ -49,10 +49,11 @@ namespace Sass {
           expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
         }
         // expand the selector with the prefix and save it in expr[2]
+        // cerr << "ABOUT TO EXPAND " << expr[0].to_string() << " WITH " << prefix.to_string() << endl;
         expr << expand_selector(expr[0], prefix, new_Node);
-        // cerr << "EXPANDED SELECTOR: " << expr.back().to_string("") << endl;
+        // cerr << "EXPANDED SELECTOR: " << expr.back().to_string() << endl;
         // eval the body with the current selector as the prefix
-        eval(expr[1], expr[0], env, f_env, new_Node, ctx);
+        eval(expr[1], expr.back(), env, f_env, new_Node, ctx);
         return expr;
       } break;
 
@@ -64,7 +65,7 @@ namespace Sass {
             expansion += expr[i].token().unquote();
           }
           else {
-            expansion += expr[i].to_string("");
+            expansion += expr[i].to_string();
           }
         }
         expansion += " {"; // the parser looks for an lbrace to end a selector
@@ -355,7 +356,7 @@ namespace Sass {
       acc << new_Node(acc.path(), acc.line(), r, g, b, a);
     }
     else if (lhs.type() == Node::numeric_color && rhs.type() == Node::numeric_color) {
-      if (lhs[3].numeric_value() != rhs[3].numeric_value()) throw_eval_error("alpha channels must be equal for " + lhs.to_string("") + " + " + rhs.to_string(""), lhs.path(), lhs.line());
+      if (lhs[3].numeric_value() != rhs[3].numeric_value()) throw_eval_error("alpha channels must be equal for " + lhs.to_string() + " + " + rhs.to_string(), lhs.path(), lhs.line());
       double r = operate(op, lhs[0].numeric_value(), rhs[0].numeric_value());
       double g = operate(op, lhs[1].numeric_value(), rhs[1].numeric_value());
       double b = operate(op, lhs[2].numeric_value(), rhs[2].numeric_value());
@@ -403,7 +404,7 @@ namespace Sass {
             break;
           }
         }
-        if (!valid_param) throw_eval_error("mixin " + mixin[0].to_string("") + " has no parameter named " + name.to_string(), arg.path(), arg.line());
+        if (!valid_param) throw_eval_error("mixin " + mixin[0].to_string() + " has no parameter named " + name.to_string(), arg.path(), arg.line());
         if (!bindings.query(name)) {
           bindings[name] = eval(arg[1], prefix, env, f_env, new_Node, ctx);
         }
@@ -412,7 +413,7 @@ namespace Sass {
         // ensure that the number of ordinal args < params.size()
         if (j >= params.size()) {
           stringstream ss;
-          ss << "mixin " << mixin[0].to_string("") << " only takes " << params.size() << ((params.size() == 1) ? " argument" : " arguments");
+          ss << "mixin " << mixin[0].to_string() << " only takes " << params.size() << ((params.size() == 1) ? " argument" : " arguments");
           throw_eval_error(ss.str(), args[i].path(), args[i].line());
         }
         Node param(params[j]);
@@ -496,8 +497,8 @@ namespace Sass {
       for (size_t i = 0, S = pre.size(); i < S; ++i) {
         for (size_t j = 0, T = sel.size(); j < T; ++j) {
           Node new_sel(new_Node(Node::selector, sel.path(), sel.line(), 2));
-          if (pre[i].type() == Node::selector) new_sel += pre;
-          else                                 new_sel << pre;
+          if (pre[i].type() == Node::selector) new_sel += pre[i];
+          else                                 new_sel << pre[i];
           if (sel[j].type() == Node::selector) new_sel += sel[j];
           else                                 new_sel << sel[j];
           group << new_sel;
@@ -509,8 +510,8 @@ namespace Sass {
       Node group(new_Node(Node::selector_group, sel.path(), sel.line(), pre.size()));
       for (size_t i = 0, S = pre.size(); i < S; ++i) {
         Node new_sel(new_Node(Node::selector, sel.path(), sel.line(), 2));
-        if (pre[i].type() == Node::selector) new_sel += pre;
-        else                                 new_sel << pre;
+        if (pre[i].type() == Node::selector) new_sel += pre[i];
+        else                                 new_sel << pre[i];
         if (sel.type() == Node::selector)    new_sel += sel;
         else                                 new_sel << sel;
         group << new_sel;

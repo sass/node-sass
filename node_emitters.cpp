@@ -15,134 +15,103 @@ using std::endl;
 
 namespace Sass {
 
-  string Node::to_string(const string& prefix) const
+  string Node::to_string() const
   {
     switch (type())
     {
       case selector_group: { // really only needed for arg to :not
-        string result(at(0).to_string(""));
+        string result(at(0).to_string());
         for (size_t i = 1, S = size(); i < S; ++i) {
           result += ", ";
-          result += at(i).to_string("");
+          result += at(i).to_string();
         }
         return result;
       } break;
       
       case selector: {
         string result;
-        if (!has_backref() && !prefix.empty()) {
-          result += prefix;
-          result += ' ';
-        }
         
-        result += at(0).to_string(at(0).has_backref() ? prefix : "");
-
+        result += at(0).to_string();
         for (size_t i = 1, S = size(); i < S; ++i) {
           result += " ";
-          result += at(i).to_string(at(i).has_backref() ? prefix : "");
+          result += at(i).to_string();
         }
         return result;
       }  break;
       
       case selector_combinator: {
-        string result(prefix.empty() ? "" : prefix + " ");
-        result += token().to_string();
-        return result;
+        return token().to_string();
       } break;
       
       case simple_selector_sequence: {
         string result;
-        if (!has_backref() && !prefix.empty()) {
-          result += prefix;
-          result += " ";
-        }
         for (size_t i = 0, S = size(); i < S; ++i) {
-          Node::Type t = at(i).type();
-          result += at(i).to_string(t == backref ? prefix : "");
+          result += at(i).to_string();
         }
         return result;
       }  break;
       
       case pseudo:
       case simple_selector: {
-        string result(prefix);
-        if (!prefix.empty()) result += " ";
-        result += token().to_string();
-        return result;
+        return token().to_string();
       } break;
       
       case pseudo_negation: {
-        string result(prefix);
-        if (!prefix.empty()) result += " ";
-        result += at(0).to_string("");
-        result += at(1).to_string("");
+        string result;
+        result += at(0).to_string();
+        result += at(1).to_string();
         result += ')';
         return result;
       } break;
       
       case functional_pseudo: {
-        string result(prefix);
-        if (!prefix.empty()) result += " ";
-        result += at(0).to_string("");
+        string result;
+        result += at(0).to_string();
         for (size_t i = 1, S = size(); i < S; ++i) {
-          result += at(i).to_string("");
+          result += at(i).to_string();
         }
         result += ')';
         return result;
       } break;
       
       case attribute_selector: {
-        string result(prefix);
-        if (!prefix.empty()) result += " ";
+        string result;
         result += "[";
-        for (size_t i = 0, S = size(); i < S; ++i)
-        { result += at(i).to_string(prefix); }
+        for (size_t i = 0, S = size(); i < S; ++i) {
+          result += at(i).to_string();
+        }
         result += ']';
         return result;
       } break;
-      
-      case backref: {
-        return prefix;
-      } break;
 
-      case selector_schema: {
-        string result(prefix);
-        if (!result.empty()) result += " ";
-        for (size_t i = 0, S = size(); i < S; ++i) {
-          if (at(i).type() == identifier) result += at(i).to_string("");
-          else result += "[INTERPOLANT]";
-        }
-        return result;
-      } break;
-      
       case comma_list: {
-        string result(at(0).to_string(prefix));
+        string result(at(0).to_string());
         for (size_t i = 1, S = size(); i < S; ++i) {
           if (at(i).type() == nil) continue;
           result += ", ";
-          result += at(i).to_string(prefix);
+          result += at(i).to_string();
         }
         return result;
       } break;
       
       case space_list: {
-        string result(at(0).to_string(prefix));
+        string result(at(0).to_string());
         for (size_t i = 1, S = size(); i < S; ++i) {
           if (at(i).type() == nil) continue;
           result += " ";
-          result += at(i).to_string(prefix);
+          result += at(i).to_string();
         }
         return result;
       } break;
       
       case expression:
       case term: {
-        string result(at(0).to_string(prefix));
+        string result(at(0).to_string());
         for (size_t i = 1, S = size(); i < S; ++i) {
           if (!(at(i).type() == add ||
                 // at(i).type == sub ||  // another edge case -- consider uncommenting
                 at(i).type() == mul)) {
-            result += at(i).to_string(prefix);
+            result += at(i).to_string();
           }
         }
         return result;
@@ -160,7 +129,7 @@ namespace Sass {
       case css_import: {
         stringstream ss;
         ss << "@import url(";
-        ss << at(0).to_string("");
+        ss << at(0).to_string();
         // cerr << content.token.to_string() << endl;
         ss << ")";
         return ss.str();
@@ -168,9 +137,9 @@ namespace Sass {
       
       case function_call: {
         stringstream ss;
-        ss << at(0).to_string("");
+        ss << at(0).to_string();
         ss << "(";
-        ss << at(1).to_string("");
+        ss << at(1).to_string();
         ss << ")";
         return ss.str();
       }
@@ -179,10 +148,10 @@ namespace Sass {
         stringstream ss;
         size_t S = size();
         if (S > 0) {
-          ss << at(0).to_string("");
+          ss << at(0).to_string();
           for (size_t i = 1; i < S; ++i) {
             ss << ", ";
-            ss << at(i).to_string("");
+            ss << at(i).to_string();
           }
         }
         return ss.str();
@@ -191,14 +160,14 @@ namespace Sass {
       case unary_plus: {
         stringstream ss;
         ss << "+";
-        ss << at(0).to_string("");
+        ss << at(0).to_string();
         return ss.str();
       }
       
       case unary_minus: {
         stringstream ss;
         ss << "-";
-        ss << at(0).to_string("");
+        ss << at(0).to_string();
         return ss.str();
       }
       
@@ -300,14 +269,14 @@ namespace Sass {
       
       case value_schema: {
         string result;
-        for (size_t i = 0, S = size(); i < S; ++i) result += at(i).to_string("");
+        for (size_t i = 0, S = size(); i < S; ++i) result += at(i).to_string();
         return result;
       } break;
       
       case string_schema: {
         string result;
         for (size_t i = 0, S = size(); i < S; ++i) {
-          string chunk(at(i).to_string(""));
+          string chunk(at(i).to_string());
           if (at(i).type() == string_constant) {
             result += chunk.substr(1, chunk.size()-2);
           }
@@ -326,117 +295,130 @@ namespace Sass {
     }
   }
 
-  void Node::emit_nested_css(stringstream& buf,
-                             size_t depth,
-                             const vector<string>& prefixes)
-  {
-    switch (type())
-    {
-    case root:
-      if (has_expansions()) flatten();
-      for (size_t i = 0, S = size(); i < S; ++i) {
-        at(i).emit_nested_css(buf, depth, prefixes);
-      }
-      break;
-
-    case ruleset: {
-      Node sel_group(at(0));
-      size_t sel_group_size = (sel_group.type() == selector_group) ? sel_group.size() : 1; // parser ensures no singletons
-      Node block(at(1));
-      vector<string> new_prefixes;
-      if (prefixes.empty()) {
-        new_prefixes.reserve(sel_group_size);
-        for (size_t i = 0; i < sel_group_size; ++i) {
-          new_prefixes.push_back(sel_group_size > 1 ? sel_group[i].to_string("") : sel_group.to_string(""));
-        }
-      }
-      else {
-        size_t PS = prefixes.size();
-        new_prefixes.reserve(PS * sel_group_size);
-        for (size_t i = 0; i < PS; ++i) {
-          for (size_t j = 0; j < sel_group_size; ++j) {
-            new_prefixes.push_back(sel_group_size > 1 ? sel_group[j].to_string(prefixes[i]) : sel_group.to_string(prefixes[i]));
-          }
-        }
-      }
-
-      if (block.has_expansions()) block.flatten();
-      if (block.has_statements()) {
-        buf << string(2*depth, ' ') << new_prefixes[0];
-        for (size_t i = 1, S = new_prefixes.size(); i < S; ++i) {
-          buf << ", " << new_prefixes[i];
-        }
-        buf << " {";
-        for (size_t i = 0, S = block.size(); i < S; ++i) {
-          Type stm_type = block[i].type();
-          if (stm_type == comment || stm_type == rule || stm_type == css_import || stm_type == propset) {
-            block[i].emit_nested_css(buf, depth+1); // USE OVERLOADED VERSION FOR COMMENTS AND RULES
-          }
-        }
-        buf << " }" << endl;
-        ++depth; // if we printed content at this level, we need to indent any nested rulesets
-      }
-      if (block.has_blocks()) {
-        for (size_t i = 0, S = block.size(); i < S; ++i) {
-          if (block[i].type() == ruleset) {
-            block[i].emit_nested_css(buf, depth, new_prefixes);
-          }
-        }
-      }
-      if (block.has_statements()) --depth; // see previous comment
-      if (depth == 0 && prefixes.empty()) buf << endl;
-    } break;
-
-    default:
-      emit_nested_css(buf, depth); // pass it along to the simpler version
-      break;
-    }
-  }
-  
   void Node::emit_nested_css(stringstream& buf, size_t depth)
   {
     switch (type())
     {
-    case propset: {
-      emit_propset(buf, depth, "");
-    } break;
-      
-    case rule:
-      buf << endl << string(2*depth, ' ');
-      at(0).emit_nested_css(buf, depth); // property
-      at(1).emit_nested_css(buf, depth); // values
-      buf << ";";
-      break;
-      
-    case css_import:
-      buf << string(2*depth, ' ');
-      buf << to_string("");
-      buf << ";" << endl;
-      break;
+      case root:
+        if (has_expansions()) flatten();
+        for (size_t i = 0, S = size(); i < S; ++i) {
+          at(i).emit_nested_css(buf, depth);
+        }
+        break;
 
-    case property:
-      buf << token().to_string() << ": ";
-      break;
+      case ruleset: {
+        Node sel_group(at(2));
+        Node block(at(1));
 
-    case values:
-      for (size_t i = 0, S = size(); i < S; ++i) {
-        buf << " " << at(i).token().to_string();
-      }
-      break;
+        if (block.has_expansions()) block.flatten();
+        if (block.has_statements()) {
+          buf << string(2*depth, ' ');
+          buf << sel_group.to_string();
+          buf << " {";
+          for (size_t i = 0, S = block.size(); i < S; ++i) {
+            Type stm_type = block[i].type();
+            if (stm_type == comment || stm_type == rule || stm_type == css_import || stm_type == propset) {
+              block[i].emit_nested_css(buf, depth+1);
+            }
+          }
+          buf << " }" << endl;
+          ++depth; // if we printed content at this level, we need to indent any nested rulesets
+        }
+        if (block.has_blocks()) {
+          for (size_t i = 0, S = block.size(); i < S; ++i) {
+            if (block[i].type() == ruleset) {
+              block[i].emit_nested_css(buf, depth);
+            }
+          }
+        }
+        if (block.has_statements()) --depth; // see previous comment
+        if (depth == 0) buf << endl;
+      } break;
 
-    case comment:
-      if (depth != 0) buf << endl;
-      buf << string(2*depth, ' ') << token().to_string();
-      if (depth == 0) buf << endl;
-      break;
+      case propset: {
+        emit_propset(buf, depth, "");
+      } break;
+        
+      case rule: {
+        buf << endl << string(2*depth, ' ');
+        at(0).emit_nested_css(buf, depth); // property
+        at(1).emit_nested_css(buf, depth); // values
+        buf << ";";
+      } break;
+        
+      case css_import: {
+        buf << string(2*depth, ' ');
+        buf << to_string();
+        buf << ";" << endl;
+      } break;
 
-    default:
-      buf << to_string("");
-      break;
+      case property: {
+        buf << token().to_string() << ": ";
+      } break;
+
+      case values: {
+        for (size_t i = 0, S = size(); i < S; ++i) {
+          buf << " " << at(i).token().to_string();
+        }
+      } break;
+
+      case comment: {
+        if (depth != 0) buf << endl;
+        buf << string(2*depth, ' ') << token().to_string();
+        if (depth == 0) buf << endl;
+      } break;
+
+      default: {
+        buf << to_string();
+      } break;
     }
   }
   
-  void Node::emit_propset(stringstream& buf, size_t depth, const string& prefix) {
+  // void Node::emit_nested_css(stringstream& buf, size_t depth)
+  // {
+  //   switch (type())
+  //   {
+  //   case propset: {
+  //     emit_propset(buf, depth, "");
+  //   } break;
+      
+  //   case rule:
+  //     buf << endl << string(2*depth, ' ');
+  //     at(0).emit_nested_css(buf, depth); // property
+  //     at(1).emit_nested_css(buf, depth); // values
+  //     buf << ";";
+  //     break;
+      
+  //   case css_import:
+  //     buf << string(2*depth, ' ');
+  //     buf << to_string("");
+  //     buf << ";" << endl;
+  //     break;
+
+  //   case property:
+  //     buf << token().to_string() << ": ";
+  //     break;
+
+  //   case values:
+  //     for (size_t i = 0, S = size(); i < S; ++i) {
+  //       buf << " " << at(i).token().to_string();
+  //     }
+  //     break;
+
+  //   case comment:
+  //     if (depth != 0) buf << endl;
+  //     buf << string(2*depth, ' ') << token().to_string();
+  //     if (depth == 0) buf << endl;
+  //     break;
+
+  //   default:
+  //     buf << to_string("");
+  //     break;
+  //   }
+  // }
+  
+  void Node::emit_propset(stringstream& buf, size_t depth, const string& prefix)
+  {
     string new_prefix(prefix);
     // bool has_prefix = false;
     if (new_prefix.empty()) {
