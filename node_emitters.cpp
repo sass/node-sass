@@ -295,14 +295,14 @@ namespace Sass {
     }
   }
 
-  void Node::emit_nested_css(stringstream& buf, size_t depth)
+  void Node::emit_nested_css(stringstream& buf, size_t depth, bool at_toplevel)
   {
     switch (type())
     {
       case root:
         if (has_expansions()) flatten();
         for (size_t i = 0, S = size(); i < S; ++i) {
-          at(i).emit_nested_css(buf, depth);
+          at(i).emit_nested_css(buf, depth, true);
         }
         break;
 
@@ -332,7 +332,7 @@ namespace Sass {
           }
         }
         if (block.has_statements()) --depth; // see previous comment
-        if (depth == 0) buf << endl;
+        if ((depth == 0) && at_toplevel) buf << endl;
       } break;
 
       case propset: {

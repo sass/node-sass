@@ -199,7 +199,7 @@ namespace Sass {
     bool operator>=(Node rhs) const;
 
     string to_string() const;
-    void emit_nested_css(stringstream& buf, size_t depth);
+    void emit_nested_css(stringstream& buf, size_t depth, bool at_toplevel = false);
     void emit_propset(stringstream& buf, size_t depth, const string& prefix);
     void echo(stringstream& buf, size_t depth = 0);
     void emit_expanded_css(stringstream& buf, const string& prefix);

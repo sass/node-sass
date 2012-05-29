@@ -108,7 +108,7 @@ namespace Sass {
       root.echo(output);
       break;
     case nested:
-      root.emit_nested_css(output, 0);
+      root.emit_nested_css(output, 0, true);
       break;
     case expanded:
       root.emit_expanded_css(output, "");
