@@ -2,6 +2,7 @@
 #include <string>
 #include <tr1/unordered_map>
 #include <map>
+#include <algorithm>
 
 #ifndef SASS_NODE_INCLUDED
 #include "node.hpp"
@@ -74,6 +75,17 @@ int main()
   dict[m] = "goodbye";
 
   cout << dict[m] << " " << dict[n] << endl;
+
+  cout << "Lexicographical comparison: " << endl;
+  cout << lexicographical_compare(num2.begin(), num2.end(),
+                                  num3.begin(), num3.end())
+       << endl;
+  cout << lexicographical_compare(num.begin(), num.end(),
+                                  num2.begin(), num2.end())
+       << endl;
+  cout << lexicographical_compare(num3.begin(), num3.end(),
+                                  num.begin(), num.end())
+       << endl << endl;
 
 
 

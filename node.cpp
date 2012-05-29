@@ -1,4 +1,5 @@
 #include <sstream>
+#include <algorithm>
 #include "node.hpp"
 #include "error.hpp"
 
@@ -91,10 +92,13 @@ namespace Sass {
     Type lhs_type = type();
     Type rhs_type = rhs.type();
     
+    // comparing atomic numbers
     if ((lhs_type == number             && rhs_type == number) ||
         (lhs_type == numeric_percentage && rhs_type == numeric_percentage)) {
       return numeric_value() < rhs.numeric_value();
     }
+
+    // comparing numbers with units
     else if (lhs_type == numeric_dimension && rhs_type == numeric_dimension) {
       if (unit() == rhs.unit()) {
         return numeric_value() < rhs.numeric_value();
@@ -103,16 +107,38 @@ namespace Sass {
         throw Error(Error::evaluation, path(), line(), "incompatible units");
       }
     }
-    else if ((type() >= selector_group && type() <=selector_schema) &&
+
+    // comparing colors
+    else if (lhs_type == numeric_color && rhs_type == numeric_color) {
+      return lexicographical_compare(begin(), end(), rhs.begin(), rhs.end());
+    }
+
+    // comparing identifiers and strings (treat them as comparable)
+    else if ((lhs_type == identifier || lhs_type == string_constant || lhs_type == value) &&
+             (rhs_type == identifier || lhs_type == string_constant || rhs_type == value)) {
+      return token().unquote() < rhs.token().unquote();
+    }
+
+    // COMPARING SELECTORS -- IMPORTANT FOR INHERITANCE
+    else if ((type()     >= selector_group && type()     <=selector_schema) &&
              (rhs.type() >= selector_group && rhs.type() <=selector_schema)) {
-      if (type() != rhs.type()) {
-        return type() < rhs.type();
-      }
+
+      // if they're not the same kind, just compare type tags
+      if (type() != rhs.type()) return type() < rhs.type();
+
+      // otherwise we have to do more work
       switch (type())
       {
-        case simple_selector: {
+        case simple_selector:
+        case pseudo: {
           return token() < rhs.token();
         } break;
+
+        case attribute_selector: {
+          return lexicographical_compare(begin(), end(), rhs.begin(), rhs.end());
+        } break;
+
+
 
         default: {
           return false;
@@ -120,6 +146,9 @@ namespace Sass {
 
       }
     }
+    // END OF SELECTOR COMPARISON
+
+    // catch-all
     else {
       throw Error(Error::evaluation, path(), line(), "incomparable types");
     }

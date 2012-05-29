@@ -178,8 +178,8 @@ namespace Sass {
     Node& operator<<(Node n);
     Node& operator+=(Node n);
 
-    vector<Node>::iterator begin();
-    vector<Node>::iterator end();
+    vector<Node>::iterator begin() const;
+    vector<Node>::iterator end() const;
     void insert(vector<Node>::iterator position,
                 vector<Node>::iterator first,
                 vector<Node>::iterator last);
@@ -355,9 +355,9 @@ namespace Sass {
     return *this;
   }
 
-  inline vector<Node>::iterator Node::begin()
+  inline vector<Node>::iterator Node::begin() const
   { return ip_->children.begin(); }
-  inline vector<Node>::iterator Node::end()
+  inline vector<Node>::iterator Node::end() const
   { return ip_->children.end(); }
   inline void Node::insert(vector<Node>::iterator position,
                            vector<Node>::iterator first,
