@@ -17,6 +17,8 @@ namespace Sass {
     throw Error(Error::evaluation, path, line, message);
   }
 
+  // Evaluate the parse tree in-place (mostly). Most nodes will be left alone.
+
   Node eval(Node expr, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
     switch (expr.type())
@@ -298,6 +300,10 @@ namespace Sass {
     return expr;
   }
 
+  // Accumulate arithmetic operations. It's done this way because arithmetic
+  // expressions are stored as vectors of operands with operators interspersed,
+  // rather than as the usual binary tree.
+
   Node accumulate(Node::Type op, Node acc, Node rhs, Node_Factory& new_Node)
   {
     Node lhs(acc.back());
@@ -378,6 +384,8 @@ namespace Sass {
     return acc;
   }
 
+  // Helper for doing the actual arithmetic.
+
   double operate(Node::Type op, double lhs, double rhs)
   {
     switch (op)
@@ -389,6 +397,10 @@ namespace Sass {
       default:        return 0;         break;
     }
   }
+
+  // Apply a mixin -- bind the arguments in a new environment, link the new
+  // environment to the current one, then copy the body and eval in the new
+  // environment.
   
   Node apply_mixin(Node mixin, const Node args, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
@@ -445,6 +457,9 @@ namespace Sass {
     }
     return body;
   }
+
+  // Apply a function -- bind the arguments and pass them to the underlying
+  // primitive function implementation, then return its value.
   
   Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
@@ -464,6 +479,12 @@ namespace Sass {
     }
     return f(bindings, new_Node);
   }
+
+  // Expand a selector with respect to its prefix/context. Two separate cases:
+  // when the selector has backrefs, substitute the prefix for each occurrence
+  // of a backref. When the selector doesn't have backrefs, just prepend the
+  // prefix. This function needs multiple subsidiary cases in order to properly
+  // combine the various kinds of selectors.
 
   Node expand_selector(Node sel, Node pre, Node_Factory& new_Node)
   {
@@ -547,6 +568,8 @@ namespace Sass {
     // unreachable statement
     return Node();
   }
+
+  // Helper for expanding selectors with backrefs.
 
   Node expand_backref(Node sel, Node pre)
   {
