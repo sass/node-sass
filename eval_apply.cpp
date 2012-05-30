@@ -94,7 +94,7 @@ namespace Sass {
       
       case Node::root: {
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          eval(expr[i], prefix, env, f_env, new_Node, ctx);
+          expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
         }
         return expr;
       } break;
@@ -103,7 +103,7 @@ namespace Sass {
         Environment new_frame;
         new_frame.link(env);
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          eval(expr[i], prefix, new_frame, f_env, new_Node, ctx);
+          expr[i] = eval(expr[i], prefix, new_frame, f_env, new_Node, ctx);
         }
         return expr;
       } break;
@@ -297,7 +297,24 @@ namespace Sass {
       case Node::css_import: {
         expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
         return expr;
-      } break;     
+      } break;
+
+      case Node::if_directive: {
+        for (size_t i = 0, S = expr.size(); i < S; i += 2) {
+          if (expr[i].type() != Node::block) {
+            // cerr << "EVALUATING PREDICATE " << (i/2+1) << endl;
+            Node predicate_val(eval(expr[i], prefix, env, f_env, new_Node, ctx));
+            if ((predicate_val.type() != Node::boolean) || predicate_val.boolean_value()) {
+              // cerr << "EVALUATING CONSEQUENT " << (i/2+1) << endl;
+              return eval(expr[i+1], prefix, env, f_env, new_Node, ctx);
+            }
+          }
+          else {
+            // cerr << "EVALUATING ALTERNATIVE" << endl;
+            return eval(expr[i], prefix, env, f_env, new_Node, ctx);
+          }
+        }
+      } break;
 
       default: {
         return expr;

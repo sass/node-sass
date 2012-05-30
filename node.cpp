@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "node.hpp"
 #include "error.hpp"
+#include <iostream>
 
 namespace Sass {
   using namespace std;
@@ -15,7 +16,7 @@ namespace Sass {
     if (type() != block && type() != expansion && type() != root) return;
     // size can change during flattening, so we need to call size() on each pass
     for (size_t i = 0; i < size(); ++i) {
-      if (at(i).type() == expansion) {
+      if ((at(i).type() == expansion) || (at(i).type() == block)) {
         Node expn(at(i));
         if (expn.has_expansions()) expn.flatten();
         ip_->has_statements |= expn.has_statements();

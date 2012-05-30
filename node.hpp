@@ -3,6 +3,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace Sass {
   using namespace std;
@@ -146,6 +147,11 @@ namespace Sass {
       expansion,
       arguments,
 
+      if_directive,
+      for_directive,
+      each_directive,
+      while_directive,
+
       variable,
       assignment
     };
@@ -188,6 +194,8 @@ namespace Sass {
     double numeric_value() const;
     Token  token() const;
     Token  unit() const;
+
+    bool is_null_ptr() const;
 
     void flatten();
     
@@ -273,6 +281,7 @@ namespace Sass {
         case Node::rule:
         case Node::propset:   has_statements = true; break;
         case Node::ruleset:   has_blocks     = true; break;
+        case Node::if_directive:
         case Node::expansion: has_expansions = true; break;
         case Node::backref:   has_backref    = true; break;
         default:                                     break;
@@ -368,5 +377,7 @@ namespace Sass {
   inline double Node::numeric_value() const { return ip_->numeric_value(); }
   inline Token  Node::token() const         { return ip_->value.token; }
   inline Token  Node::unit() const          { return ip_->unit(); }
+
+  inline bool Node::is_null_ptr() const { return !ip_; }
 
 }
