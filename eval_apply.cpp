@@ -62,7 +62,6 @@ namespace Sass {
           if (ctx.extensions.count(sel)) {
             cerr << ctx.extensions.count(sel) << endl;
             for (multimap<Node, Node>::iterator i = ctx.extensions.lower_bound(sel); i != ctx.extensions.upper_bound(sel); ++i) {
-              cerr << "HEY: " << sel.to_string() << endl;
               ctx.pending_extensions.push_back(pair<Node, Node>(expr, i->second));
             }
           }
@@ -611,43 +610,55 @@ namespace Sass {
       Node extender(pending[i].second[2]);
       Node ruleset_to_extend(pending[i].first);
       Node selector_to_extend(ruleset_to_extend[2]);
-      switch (extender.type())
-      {
-        case Node::simple_selector:
-        case Node::attribute_selector:
-        case Node::simple_selector_sequence:
-        case Node::selector: {
-          cerr << "EXTENDING " << selector_to_extend.to_string() << " WITH " << extender.to_string() << endl;
-          if (selector_to_extend.type() == Node::selector_group) {
-            selector_to_extend << extender;
+      if (selector_to_extend.type() != Node::selector) {
+        switch (extender.type())
+        {
+          case Node::simple_selector:
+          case Node::attribute_selector:
+          case Node::simple_selector_sequence:
+          case Node::selector: {
+            cerr << "EXTENDING " << selector_to_extend.to_string() << " WITH " << extender.to_string() << endl;
+            if (selector_to_extend.type() == Node::selector_group) {
+              selector_to_extend << extender;
+            }
+            else {
+              Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
+              new_group << selector_to_extend << extender;
+              ruleset_to_extend[2] = new_group;
+            }
+          } break;
+          default: {
+          // handle the other cases later
           }
-          else {
-            Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
-            new_group << selector_to_extend << extender;
-            ruleset_to_extend[2] = new_group;
-          }
-        } break;
+        }
+      }
+      else {
+        switch (extender.type())
+        {
+          case Node::simple_selector:
+          case Node::attribute_selector:
+          case Node::simple_selector_sequence: {
+            Node new_ext(new_Node(selector_to_extend));
+            new_ext.back() = extender;
+            if (selector_to_extend.type() == Node::selector_group) {
+              selector_to_extend << new_ext;
+            }
+            else {
+              Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
+              new_group << selector_to_extend << new_ext;
+              ruleset_to_extend[2] = new_group;
+            }
+          } break;
 
-        // case Node::selector: {
-        //   cerr << "EXTENDING " << selector_to_extend.to_string() << " WITH " << extender.to_string() << endl;
-        //   if (selector_to_extend.type() == Node::selector_group) {
-        //     selector_to_extend << selector_base(extender);
-        //   }
-        //   else {
-        //     Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
-        //     new_group << selector_to_extend << selector_base(extender);
-        //     ruleset_to_extend[2] = new_group; 
-        //   }
-        // } break;
-
-        default: {
-        // handle the other cases later
+          default: {
+            // something
+          } break;
         }
       }
     }
   }
 
-  // Helper for extracting the prefix/context of a selector.
+  // Helpers for extracting subsets of selectors
 
   Node selector_prefix(Node sel, Node_Factory& new_Node)
   {
@@ -667,8 +678,6 @@ namespace Sass {
     }
   }
 
-  // Helper for extracting the base (i.e., rightmost component) of a selector.
-
   Node selector_base(Node sel)
   {
     switch (sel.type())
@@ -682,5 +691,29 @@ namespace Sass {
       } break;
     }
   }
+
+  static Node selector_but(Node sel, Node_Factory& new_Node, size_t start, size_t from_end)
+  {
+    switch (sel.type())
+    {
+      case Node::selector: {
+        Node bf(new_Node(Node::selector, sel.path(), sel.line(), sel.size() - 1));
+        for (size_t i = start, S = sel.size() - from_end; i < S; ++i) {
+          bf << sel[i];
+        }
+        return bf;
+      } break;
+
+      default: {
+        return new_Node(Node::selector, sel.path(), sel.line(), 0);
+      } break;
+    }
+  }
+
+  Node selector_butfirst(Node sel, Node_Factory& new_Node)
+  { return selector_but(sel, new_Node, 1, 0); }
+
+  Node selector_butlast(Node sel, Node_Factory& new_Node)
+  { return selector_but(sel, new_Node, 0, 1); }
 
 }
