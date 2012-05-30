@@ -650,6 +650,24 @@ namespace Sass {
             }
           } break;
 
+          case Node::selector: {
+            Node new_ext1(new_Node(Node::selector, selector_to_extend.path(), selector_to_extend.line(), selector_to_extend.size() + extender.size() - 1));
+            Node new_ext2(new_Node(Node::selector, selector_to_extend.path(), selector_to_extend.line(), selector_to_extend.size() + extender.size() - 1));
+            new_ext1 += selector_prefix(selector_to_extend, new_Node);
+            new_ext1 += extender;
+            new_ext2 += selector_prefix(extender, new_Node);
+            new_ext2 += selector_prefix(selector_to_extend, new_Node);
+            new_ext2 << extender.back();
+            if (selector_to_extend.type() == Node::selector_group) {
+              selector_to_extend << new_ext1 << new_ext2;
+            }
+            else {
+              Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
+              new_group << selector_to_extend << new_ext1 << new_ext2;
+              ruleset_to_extend[2] = new_group;
+            }
+          } break;
+
           default: {
             // something
           } break;
