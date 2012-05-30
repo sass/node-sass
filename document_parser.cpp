@@ -36,6 +36,9 @@ namespace Sass {
         root << parse_mixin_call();
         if (!lex< exactly<';'> >()) throw_syntax_error("top-level @include directive must be terminated by ';'");
       }
+      else if (peek< if_directive >()) {
+        root << parse_if_directive(Node());
+      }
       else {
         lex< spaces_and_comments >();
         throw_syntax_error("invalid top-level expression");
@@ -477,12 +480,15 @@ namespace Sass {
         semicolon = true;
       }
       else if (lex< extend >()) {
+        if (surrounding_ruleset.is_null_ptr()) throw_syntax_error("@extend directive may only be used within rules");
         Node extendee(parse_simple_selector_sequence());
-        // context.extensions[extendee] = surrounding_ruleset;
         context.extensions.insert(pair<Node, Node>(extendee, surrounding_ruleset));
         cerr << "PARSED EXTENSION REQUEST: " << surrounding_ruleset[0].to_string() << " EXTENDS " << extendee.to_string() << endl;
         context.has_extensions = true;
         semicolon = true;
+      }
+      else if (peek< if_directive >()) {
+        block << parse_if_directive(surrounding_ruleset);
       }
       else if (!peek< exactly<';'> >()) {
         Node rule(parse_rule());
@@ -871,8 +877,28 @@ namespace Sass {
     call.should_eval() = true;
     return call;
   }
+
+  Node Document::parse_if_directive(Node surrounding_ruleset)
+  {
+    lex< if_directive >();
+    Node conditional(context.new_Node(Node::if_directive, path, line, 2));
+    conditional << parse_list(); // the predicate
+    if (!lex< exactly<'{'> >()) throw_syntax_error("expected '{' after the predicate for @if");
+    conditional << parse_block(surrounding_ruleset); // the consequent
+    // collect all "@else if"s
+    while (lex< elseif_directive >()) {
+      conditional << parse_list(); // the next predicate
+      if (!lex< exactly<'{'> >()) throw_syntax_error("expected '{' after the predicate for @else if");
+      conditional << parse_block(surrounding_ruleset); // the next consequent
+    }
+    // parse the "@else" if present
+    if (lex< else_directive >()) {
+      if (!lex< exactly<'{'> >()) throw_syntax_error("expected '{' after @else");
+      conditional << parse_block(surrounding_ruleset); // the alternative
+    }
+    return conditional;
+  }
   
-  // const char* Document::lookahead_for_selector(const char* start)
   Selector_Lookahead Document::lookahead_for_selector(const char* start)
   {
     const char* p = start ? start : position;

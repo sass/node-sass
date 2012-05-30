@@ -160,6 +160,8 @@ namespace Sass {
     Node parse_function_call();
     Node parse_string();
     Node parse_value_schema();
+    Node parse_if_directive(Node surrounding_ruleset);
+
     
     Selector_Lookahead lookahead_for_selector(const char* start = 0);
     
