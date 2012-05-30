@@ -311,6 +311,14 @@ namespace Sass {
     const char* mixin(const char* src);
     const char* include(const char* src);
     const char* extend(const char* src);
+
+    const char* if_directive(const char* src);
+    const char* else_directive(const char* src);
+    const char* elseif_directive(const char* src);
+    const char* for_directive(const char* src);
+    const char* each_directive(const char* src);
+    const char* while_directive(const char* src);
+
     // Match CSS type selectors
     const char* namespace_prefix(const char* src);
     const char* type_selector(const char* src);

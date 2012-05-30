@@ -115,6 +115,32 @@ namespace Sass {
     const char* extend(const char* src) {
       return exactly<extend_kwd>(src);
     }
+    extern const char if_kwd[] = "@if";
+    extern const char if_chars[] = "if";
+    const char* if_directive(const char* src) {
+      return exactly<if_kwd>(src);
+    }
+    extern const char else_kwd[] = "@else";
+    const char* else_directive(const char* src) {
+      return exactly<else_kwd>(src);
+    }
+    const char* elseif_directive(const char* src) {
+      return sequence< else_directive,
+                       spaces_and_comments,
+                       exactly< if_chars > >(src);
+    }
+    extern const char for_kwd[] = "@for";
+    const char* for_directive(const char* src) {
+      return exactly<for_kwd>(src);
+    }
+    extern const char each_kwd[] = "@each";
+    const char* each_directive(const char* src) {
+      return exactly<each_kwd>(src);
+    }
+    extern const char while_kwd[] = "@while";
+    const char* while_directive(const char* src) {
+      return exactly<while_kwd>(src);
+    }
     
     const char* name(const char* src) {
       return one_plus< alternatives< alnum,
