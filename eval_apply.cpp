@@ -338,7 +338,7 @@ namespace Sass {
           Node i_node(new_Node(expr.path(), expr.line(), i));
           Node fake_arg(new_Node(Node::arguments, expr.path(), expr.line(), 1));
           fake_arg << i_node;
-          expr += apply_mixin(fake_mixin, fake_arg, prefix, env, f_env, new_Node, ctx);
+          expr += apply_mixin(fake_mixin, fake_arg, prefix, env, f_env, new_Node, ctx, true);
         }
       } break;
 
@@ -357,7 +357,7 @@ namespace Sass {
         for (size_t i = 0, S = list.size(); i < S; ++i) {
           Node fake_arg(new_Node(Node::arguments, expr.path(), expr.line(), 1));
           fake_arg << eval(list[i], prefix, env, f_env, new_Node, ctx);
-          expr += apply_mixin(fake_mixin, fake_arg, prefix, env, f_env, new_Node, ctx);
+          expr += apply_mixin(fake_mixin, fake_arg, prefix, env, f_env, new_Node, ctx, true);
         }
       } break;
 
@@ -371,7 +371,7 @@ namespace Sass {
         expr.pop_back();
         Node ev_pred(eval(pred, prefix, env, f_env, new_Node, ctx));
         while ((ev_pred.type() != Node::boolean) || ev_pred.boolean_value()) {
-          expr += apply_mixin(fake_mixin, fake_arg, prefix, env, f_env, new_Node, ctx);
+          expr += apply_mixin(fake_mixin, fake_arg, prefix, env, f_env, new_Node, ctx, true);
           ev_pred = eval(pred, prefix, env, f_env, new_Node, ctx);
         }
       } break;
@@ -486,7 +486,7 @@ namespace Sass {
   // environment to the current one, then copy the body and eval in the new
   // environment.
   
-  Node apply_mixin(Node mixin, const Node args, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
+  Node apply_mixin(Node mixin, const Node args, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool dynamic_scope)
   {
     Node params(mixin[1]);
     Node body(new_Node(mixin[2])); // clone the body
@@ -534,8 +534,13 @@ namespace Sass {
         }
       }
     }
-    // lexically link the new environment and eval the mixin's body
-    bindings.link(env.global ? *env.global : env);
+    // link the new environment and eval the mixin's body
+    if (dynamic_scope) {
+      bindings.link(env);
+    }
+    else {
+      bindings.link(env.global ? *env.global : env);
+    }
     for (size_t i = 0, S = body.size(); i < S; ++i) {
       body[i] = eval(body[i], prefix, bindings, f_env, new_Node, ctx);
     }
