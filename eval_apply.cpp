@@ -174,11 +174,12 @@ namespace Sass {
         Node lhs(eval(expr[0], prefix, env, f_env, new_Node, ctx));
         Node op(expr[1]);
         Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
-        
+        // TO DO: don't allocate both T and F
         Node T(new_Node(Node::boolean, lhs.path(), lhs.line(), true));
         Node F(new_Node(Node::boolean, lhs.path(), lhs.line(), false));
         
-        switch (op.type()) {
+        switch (op.type())
+        {
           case Node::eq:  return (lhs == rhs) ? T : F;
           case Node::neq: return (lhs != rhs) ? T : F;
           case Node::gt:  return (lhs > rhs)  ? T : F;
