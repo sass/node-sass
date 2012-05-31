@@ -719,6 +719,59 @@ namespace Sass {
     }
   }
 
+  // Helper for generating selector extensions; called for each extendee in a
+  // selector group.
+
+  pair<Node, Node> generate_extension(Node extendee, Node extender, Node_Factory& new_Node)
+  {
+    if (extendee.type() != Node::selector) {
+      switch (extender.type())
+      {
+        case Node::simple_selector:
+        case Node::attribute_selector:
+        case Node::simple_selector_sequence:
+        case Node::selector: {
+          cerr << "EXTENDING " << extendee.to_string() << " WITH " << extender.to_string() << endl;
+          return pair<Node, Node>(extender, Node());
+        } break;
+        default: {
+        // handle the other cases later
+        }
+      }
+    }
+    else {
+      switch (extender.type())
+      {
+        case Node::simple_selector:
+        case Node::attribute_selector:
+        case Node::simple_selector_sequence: {
+          Node new_ext(new_Node(Node::selector, extendee.path(), extendee.line(), extendee.size()));
+          for (size_t i = 0, S = extendee.size() - 1; i < S; ++i) {
+            new_ext << extendee[i];
+          }
+          new_ext << extender;
+          return pair<Node, Node>(new_ext, Node());
+        } break;
+
+        case Node::selector: {
+          Node new_ext1(new_Node(Node::selector, extendee.path(), extendee.line(), extendee.size() + extender.size() - 1));
+          Node new_ext2(new_Node(Node::selector, extendee.path(), extendee.line(), extendee.size() + extender.size() - 1));
+          new_ext1 += selector_prefix(extendee, new_Node);
+          new_ext1 += extender;
+          new_ext2 += selector_prefix(extender, new_Node);
+          new_ext2 += selector_prefix(extendee, new_Node);
+          new_ext2 << extender.back();
+          return pair<Node, Node>(new_ext1, new_ext2);
+        } break;
+
+        default: {
+          // something
+        } break;
+      }
+    }
+    return pair<Node, Node>(Node(), Node());
+  }
+
   // Helpers for extracting subsets of selectors
 
   Node selector_prefix(Node sel, Node_Factory& new_Node)

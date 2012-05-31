@@ -20,6 +20,7 @@ namespace Sass {
   Node expand_selector(Node sel, Node pre, Node_Factory& new_Node);
   Node expand_backref(Node sel, Node pre);
   void extend_selectors(vector<pair<Node, Node> >&, Node_Factory&);
+  pair<Node, Node> generate_extension(Node extendee, Node extender, Node_Factory& new_Node);
 
   Node selector_prefix(Node sel, Node_Factory& new_Node);
   Node selector_base(Node sel);
