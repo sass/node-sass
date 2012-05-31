@@ -45,6 +45,9 @@ namespace Sass {
       else if (peek< each_directive >()) {
         root << parse_each_directive(Node());
       }
+      else if (peek< while_directive >()) {
+        root << parse_while_directive(Node());
+      }
       else {
         lex< spaces_and_comments >();
         throw_syntax_error("invalid top-level expression");
@@ -502,6 +505,9 @@ namespace Sass {
       else if (peek< each_directive >()) {
         block << parse_each_directive(surrounding_ruleset);
       }
+      else if (peek < while_directive >()) {
+        block << parse_while_directive(surrounding_ruleset);
+      }
       else if (!peek< exactly<';'> >()) {
         Node rule(parse_rule());
         // check for lbrace; if it's there, we have a namespace property with a value
@@ -944,6 +950,17 @@ namespace Sass {
     Node each(context.new_Node(Node::each_directive, path, each_line, 3));
     each << var << list << body;
     return each;
+  }
+
+  Node Document::parse_while_directive(Node surrounding_ruleset)
+  {
+    lex< while_directive >();
+    size_t while_line = line;
+    Node predicate(parse_list());
+    Node body(parse_block(surrounding_ruleset));
+    Node loop(context.new_Node(Node::while_directive, path, while_line, 2));
+    loop << predicate << body;
+    return loop;
   }
   
   Selector_Lookahead Document::lookahead_for_selector(const char* start)

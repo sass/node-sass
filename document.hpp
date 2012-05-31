@@ -163,7 +163,8 @@ namespace Sass {
     Node parse_if_directive(Node surrounding_ruleset);
     Node parse_for_directive(Node surrounding_ruleset);
     Node parse_each_directive(Node surrounding_ruleset);
-    
+    Node parse_while_directive(Node surrounding_ruleset);
+
     Selector_Lookahead lookahead_for_selector(const char* start = 0);
     
     void throw_syntax_error(string message, size_t ln = 0);

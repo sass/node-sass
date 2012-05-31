@@ -347,6 +347,10 @@ namespace Sass {
         Node fake_param(new_Node(Node::parameters, expr.path(), expr.line(), 1));
         fake_mixin << new_Node(Node::none, "", 0, 0) << (fake_param << expr[0]) << expr[2];
         Node list(expr[1]);
+        // If the list isn't really a list, make a singleton out of it.
+        if (list.type() != Node::space_list && list.type() != Node::comma_list) {
+          list = (new_Node(Node::space_list, list.path(), list.line(), 1) << list);
+        }
         expr.pop_back();
         expr.pop_back();
         expr.pop_back();
@@ -354,6 +358,21 @@ namespace Sass {
           Node fake_arg(new_Node(Node::arguments, expr.path(), expr.line(), 1));
           fake_arg << eval(list[i], prefix, env, f_env, new_Node, ctx);
           expr += apply_mixin(fake_mixin, fake_arg, prefix, env, f_env, new_Node, ctx);
+        }
+      } break;
+
+      case Node::while_directive: {
+        Node fake_mixin(new_Node(Node::mixin, expr.path(), expr.line(), 3));
+        Node fake_param(new_Node(Node::parameters, expr.path(), expr.line(), 0));
+        Node fake_arg(new_Node(Node::arguments, expr.path(), expr.line(), 0));
+        fake_mixin << new_Node(Node::none, "", 0, 0) << fake_param << expr[1];
+        Node pred(expr[0]);
+        expr.pop_back();
+        expr.pop_back();
+        Node ev_pred(eval(pred, prefix, env, f_env, new_Node, ctx));
+        while ((ev_pred.type() != Node::boolean) || ev_pred.boolean_value()) {
+          expr += apply_mixin(fake_mixin, fake_arg, prefix, env, f_env, new_Node, ctx);
+          ev_pred = eval(pred, prefix, env, f_env, new_Node, ctx);
         }
       } break;
 
