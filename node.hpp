@@ -148,7 +148,8 @@ namespace Sass {
       arguments,
 
       if_directive,
-      for_directive,
+      for_through_directive,
+      for_to_directive,
       each_directive,
       while_directive,
 
@@ -280,10 +281,18 @@ namespace Sass {
         case Node::css_import:
         case Node::rule:
         case Node::propset:   has_statements = true; break;
+
         case Node::ruleset:   has_blocks     = true; break;
+
         case Node::if_directive:
+        case Node::for_through_directive:
+        case Node::for_to_directive:
+        case Node::each_directive:
+        case Node::while_directive:
         case Node::expansion: has_expansions = true; break;
+
         case Node::backref:   has_backref    = true; break;
+
         default:                                     break;
       }
       if (n.has_backref()) has_backref = true;

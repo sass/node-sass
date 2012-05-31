@@ -13,10 +13,11 @@ namespace Sass {
 
   void Node::flatten()
   {
-    if (type() != block && type() != expansion && type() != root) return;
+    if (type() != block && type() != expansion && type() != root && type() != for_through_directive && type() != for_to_directive) return;
     // size can change during flattening, so we need to call size() on each pass
     for (size_t i = 0; i < size(); ++i) {
-      if ((at(i).type() == expansion) || (at(i).type() == block)) {
+      Type i_type = at(i).type();
+      if ((i_type == expansion) || (i_type == block) || (i_type == for_through_directive) || (i_type == for_to_directive)) {
         Node expn(at(i));
         if (expn.has_expansions()) expn.flatten();
         ip_->has_statements |= expn.has_statements();
@@ -25,6 +26,8 @@ namespace Sass {
         // TO DO: make this more efficient -- replace with a dummy node instead of erasing
         ip_->children.erase(begin() + i);
         insert(begin() + i, expn.begin(), expn.end());
+        // skip over what we just spliced in
+        i += expn.size() - 1;
       }
     }
   }

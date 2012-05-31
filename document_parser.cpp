@@ -39,6 +39,9 @@ namespace Sass {
       else if (peek< if_directive >()) {
         root << parse_if_directive(Node());
       }
+      else if (peek< for_directive >()) {
+        root << parse_for_directive(Node());
+      }
       else {
         lex< spaces_and_comments >();
         throw_syntax_error("invalid top-level expression");
@@ -490,6 +493,9 @@ namespace Sass {
       else if (peek< if_directive >()) {
         block << parse_if_directive(surrounding_ruleset);
       }
+      else if (peek< for_directive >()) {
+        block << parse_for_directive(surrounding_ruleset);
+      }
       else if (!peek< exactly<';'> >()) {
         Node rule(parse_rule());
         // check for lbrace; if it's there, we have a namespace property with a value
@@ -897,6 +903,26 @@ namespace Sass {
       conditional << parse_block(surrounding_ruleset); // the alternative
     }
     return conditional;
+  }
+
+  Node Document::parse_for_directive(Node surrounding_ruleset)
+  {
+    lex< for_directive >();
+    size_t for_line = line;
+    if (!lex< variable >()) throw_syntax_error("@for directive requires an iteration variable");
+    Node var(context.new_Node(Node::variable, path, line, lexed));
+    if (!lex< from >()) throw_syntax_error("expected 'from' keyword in @for directive");
+    Node lower_bound(parse_expression());
+    Node::Type for_type = Node::for_through_directive;
+    if (lex< through >()) for_type = Node::for_through_directive;
+    else if (lex< to >()) for_type = Node::for_to_directive;
+    else                  throw_syntax_error("expected 'through' or 'to' keywod in @for directive");
+    Node upper_bound(parse_expression());
+    if (!peek< exactly<'{'> >()) throw_syntax_error("expected '{' after the upper bound in @for directive");
+    Node body(parse_block(surrounding_ruleset));
+    Node loop(context.new_Node(for_type, path, for_line, 3));
+    loop << var << lower_bound << upper_bound << body;
+    return loop;
   }
   
   Selector_Lookahead Document::lookahead_for_selector(const char* start)

@@ -316,6 +316,31 @@ namespace Sass {
         }
       } break;
 
+      case Node::for_through_directive:
+      case Node::for_to_directive: {
+        Node fake_mixin(new_Node(Node::mixin, expr.path(), expr.line(), 3));
+        Node fake_param(new_Node(Node::parameters, expr.path(), expr.line(), 1));
+        fake_mixin << new_Node(Node::none, "", 0, 0) << (fake_param << expr[0]) << expr[3];
+        Node lower_bound(eval(expr[1], prefix, env, f_env, new_Node, ctx));
+        Node upper_bound(eval(expr[2], prefix, env, f_env, new_Node, ctx));
+        if (!(lower_bound.is_numeric() && upper_bound.is_numeric())) {
+          throw_eval_error("bounds of @for directive must be numeric", expr.path(), expr.line());
+        }
+        expr.pop_back();
+        expr.pop_back();
+        expr.pop_back();
+        expr.pop_back();
+        for (double i = lower_bound.numeric_value(),
+                    U = upper_bound.numeric_value() + ((expr.type() == Node::for_to_directive) ? 0 : 1);
+             i < U;
+             ++i) {
+          Node i_node(new_Node(expr.path(), expr.line(), i));
+          Node fake_arg(new_Node(Node::arguments, expr.path(), expr.line(), 1));
+          fake_arg << i_node;
+          expr += apply_mixin(fake_mixin, fake_arg, prefix, env, f_env, new_Node, ctx);
+        }
+      } break;
+
       default: {
         return expr;
       } break;

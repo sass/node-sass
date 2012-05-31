@@ -315,8 +315,14 @@ namespace Sass {
     const char* if_directive(const char* src);
     const char* else_directive(const char* src);
     const char* elseif_directive(const char* src);
+
     const char* for_directive(const char* src);
+    const char* from(const char* src);
+    const char* to(const char* src);
+    const char* through(const char* src);
+
     const char* each_directive(const char* src);
+
     const char* while_directive(const char* src);
 
     // Match CSS type selectors

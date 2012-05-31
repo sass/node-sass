@@ -115,6 +115,7 @@ namespace Sass {
     const char* extend(const char* src) {
       return exactly<extend_kwd>(src);
     }
+
     extern const char if_kwd[] = "@if";
     extern const char if_chars[] = "if";
     const char* if_directive(const char* src) {
@@ -129,10 +130,24 @@ namespace Sass {
                        spaces_and_comments,
                        exactly< if_chars > >(src);
     }
+
     extern const char for_kwd[] = "@for";
     const char* for_directive(const char* src) {
       return exactly<for_kwd>(src);
     }
+    extern const char from_kwd[] = "from";
+    const char* from(const char* src) {
+      return exactly<from_kwd>(src);
+    }
+    extern const char to_kwd[] = "to";
+    const char* to(const char* src) {
+      return exactly<to_kwd>(src);
+    }
+    extern const char through_kwd[] = "through";
+    const char* through(const char* src) {
+      return exactly<through_kwd>(src);
+    }
+
     extern const char each_kwd[] = "@each";
     const char* each_directive(const char* src) {
       return exactly<each_kwd>(src);
