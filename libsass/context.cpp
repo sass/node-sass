@@ -1,5 +1,7 @@
 #include "context.hpp"
 #include <iostream>
+#include <unistd.h>
+#include "prelexer.hpp"
 using std::cerr; using std::endl;
 
 namespace Sass {
@@ -41,10 +43,13 @@ namespace Sass {
   Context::Context(const char* paths_str)
   : global_env(Environment()),
     function_env(map<pair<string, size_t>, Function>()),
+    extensions(multimap<Node, Node>()),
+    pending_extensions(vector<pair<Node, Node> >()),
     source_refs(vector<char*>()),
-    registry(vector<vector<Node>*>()),
     include_paths(vector<string>()),
-    ref_count(0)
+    new_Node(Node_Factory()),
+    ref_count(0),
+    has_extensions(false)
   {
     register_functions();
     collect_include_paths(paths_str);
@@ -55,6 +60,8 @@ namespace Sass {
     for (size_t i = 0; i < source_refs.size(); ++i) {
       delete[] source_refs[i];
     }
+
+    new_Node.free();
     // cerr << "Deallocated " << i << " source string(s)." << endl;
   }
   

@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <map>
+#include "node_factory.hpp"
 #include "functions.hpp"
 
 namespace Sass {
@@ -42,13 +43,16 @@ namespace Sass {
   struct Context {
     Environment global_env;
     map<pair<string, size_t>, Function> function_env;
+    multimap<Node, Node> extensions;
+    vector<pair<Node, Node> > pending_extensions;
     vector<char*> source_refs; // all the source c-strings
-    vector<vector<Node>*> registry; // all the child vectors
     vector<string> include_paths;
+    Node_Factory new_Node;
     size_t ref_count;
     string sass_path;
     string css_path;
-    
+    bool has_extensions;
+
     void collect_include_paths(const char* paths_str);
     Context(const char* paths_str = 0);
     ~Context();

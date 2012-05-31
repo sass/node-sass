@@ -310,6 +310,21 @@ namespace Sass {
     const char* import(const char* src);
     const char* mixin(const char* src);
     const char* include(const char* src);
+    const char* extend(const char* src);
+
+    const char* if_directive(const char* src);
+    const char* else_directive(const char* src);
+    const char* elseif_directive(const char* src);
+
+    const char* for_directive(const char* src);
+    const char* from(const char* src);
+    const char* to(const char* src);
+    const char* through(const char* src);
+
+    const char* each_directive(const char* src);
+
+    const char* while_directive(const char* src);
+
     // Match CSS type selectors
     const char* namespace_prefix(const char* src);
     const char* type_selector(const char* src);
@@ -388,10 +403,10 @@ namespace Sass {
     template<prelexer mx>
     const char* find_first_in_interval(const char* beg, const char* end) {
       while ((beg < end) && *beg) {
-        const char* p = mx(beg);
-        if (p) return p;
+        if (mx(beg)) return beg;
         ++beg;
       }
+
       return 0;
     }
     template <char c>

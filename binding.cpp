@@ -10,7 +10,7 @@ Handle<Value> Render(const Arguments& args) {
     String::AsciiValue  astr(args[0]); 
     char * cs = *astr;
 
-    ctx->input_string = cs;
+    ctx->source_string = cs;
     ctx->options.include_paths = 0;
     ctx->options.output_style = SASS_STYLE_NESTED;
 

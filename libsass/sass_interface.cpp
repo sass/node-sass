@@ -10,8 +10,8 @@
 #include "sass_interface.h"
 
 extern "C" {
-
   using namespace std;
+
   sass_context* sass_new_context()
     { return (sass_context*) calloc(1, sizeof(sass_context)); }
   
@@ -39,21 +39,14 @@ extern "C" {
   {
     using namespace Sass;
     doc.parse_scss();
-    // cerr << "PARSED" << endl;
-    eval(doc.root, doc.context.global_env, doc.context.function_env, doc.context.registry);
-    // cerr << "EVALUATED" << endl;
+    eval(doc.root,
+         doc.context.new_Node(Node::none, doc.path, doc.line, 0),
+         doc.context.global_env,
+         doc.context.function_env,
+         doc.context.new_Node,
+         doc.context);
+    extend_selectors(doc.context.pending_extensions, doc.context.new_Node);
     string output(doc.emit_css(static_cast<Document::CSS_Style>(style)));
-    // cerr << "EMITTED" << endl;
-    
-    // cerr << "Allocations:\t" << Node::allocations << endl;
-    // cerr << "Destructions:\t" << Node::destructed << endl;
-    // cerr << "Registry size:\t" << doc.context.registry.size() << endl;
-    
-    for (size_t i = 0; i < doc.context.registry.size(); ++i) {
-      delete doc.context.registry[i];
-    }
-    // cerr << "Deallocations:\t" << i << endl;
-    
     char* c_output = (char*) malloc(output.size() + 1);
     strcpy(c_output, output.c_str());
     return c_output;
@@ -64,14 +57,15 @@ extern "C" {
     using namespace Sass;
     try {
       Context cpp_ctx(c_ctx->options.include_paths);
-      Document doc(0, c_ctx->input_string, cpp_ctx);
+      // Document doc(0, c_ctx->input_string, cpp_ctx);
+      Document doc(Document::make_from_source_chars(cpp_ctx, c_ctx->source_string));
       c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
     }
     catch (Error& e) {
       stringstream msg_stream;
-      msg_stream << "ERROR -- " << e.file_name << ", line " << e.line_number << ": " << e.message << endl;
+      msg_stream << "ERROR -- " << e.path << ", line " << e.line << ": " << e.message << endl;
       string msg(msg_stream.str());
       char* msg_str = (char*) malloc(msg.size() + 1);
       strcpy(msg_str, msg.c_str());
@@ -98,7 +92,8 @@ extern "C" {
     using namespace Sass;
     try {
       Context cpp_ctx(c_ctx->options.include_paths);
-      Document doc(c_ctx->input_path, 0, cpp_ctx);
+      // Document doc(c_ctx->input_path, 0, cpp_ctx);
+      Document doc(Document::make_from_file(cpp_ctx, string(c_ctx->input_path)));
       // cerr << "MADE A DOC AND CONTEXT OBJ" << endl;
       // cerr << "REGISTRY: " << doc.context.registry.size() << endl;
       c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
@@ -107,7 +102,7 @@ extern "C" {
     }
     catch (Error& e) {
       stringstream msg_stream;
-      msg_stream << "ERROR -- " << e.file_name << ", line " << e.line_number << ": " << e.message << endl;
+      msg_stream << "ERROR -- " << e.path << ", line " << e.line << ": " << e.message << endl;
       string msg(msg_stream.str());
       char* msg_str = (char*) malloc(msg.size() + 1);
       strcpy(msg_str, msg.c_str());

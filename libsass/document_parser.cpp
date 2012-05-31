@@ -5,55 +5,48 @@
 namespace Sass {
   using namespace std;
 
-  extern const char plus_equal[] = "+=";
-
   void Document::parse_scss()
   {
-    lex<optional_spaces>();
-    root << Node(Node::flags);
-    while(position < end) {
+    lex< optional_spaces >();
+    Selector_Lookahead lookahead_result;
+    while (position < end) {
       if (lex< block_comment >()) {
-        root << Node(Node::comment, line_number, lexed);
+        root << context.new_Node(Node::comment, path, line, lexed);
       }
-      else if (peek< import >(position)) {
-        // TO DO: don't splice in place at parse-time -- use an expansion node
-        Node import(parse_import());
-        if (import.type == Node::css_import) {
-          root << import;
-        }
-        else {
-          root += import;
-        }
-        if (!lex< exactly<';'> >()) syntax_error("top-level @import directive must be terminated by ';'");
+      else if (peek< import >()) {
+        Node importee(parse_import());
+        if (importee.type() == Node::css_import) root << importee;
+        else                                     root += importee;
+        if (!lex< exactly<';'> >()) throw_syntax_error("top-level @import directive must be terminated by ';'");
       }
-      else if (peek< mixin >(position) || peek< exactly<'='> >(position)) {
+      else if (peek< mixin >() || peek< exactly<'='> >()) {
         root << parse_mixin_definition();
       }
-      else if (peek< include >(position)) {
-        root << parse_mixin_call();
-        root[0].has_expansions = true;
-        if (!lex< exactly<';'> >()) syntax_error("top-level @include directive must be terminated by ';'");
-      }
-      else if (peek< variable >(position)) {        
+      else if (peek< variable >()) {
         root << parse_assignment();
-        if (!lex< exactly<';'> >()) syntax_error("top-level variable binding must be terminated by ';'");
+        if (!lex< exactly<';'> >()) throw_syntax_error("top-level variable binding must be terminated by ';'");
       }
       else if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         root << parse_propset();
       }
-      else if (lookahead_for_selector(position)) {
-        root << parse_ruleset();
+      else if ((lookahead_result = lookahead_for_selector(position)).found) {
+        root << parse_ruleset(lookahead_result);
       }
-      else if (peek< exactly<'+'> >()) {
+      else if (peek< include >() || peek< exactly<'+'> >()) {
         root << parse_mixin_call();
-        root[0].has_expansions = true;
-        if (!lex< exactly<';'> >()) syntax_error("top-level @include directive must be terminated by ';'");
+        if (!lex< exactly<';'> >()) throw_syntax_error("top-level @include directive must be terminated by ';'");
+      }
+      else if (peek< if_directive >()) {
+        root << parse_if_directive(Node());
+      }
+      else if (peek< for_directive >()) {
+        root << parse_for_directive(Node());
       }
       else {
         lex< spaces_and_comments >();
-        syntax_error("invalid top-level expression");
+        throw_syntax_error("invalid top-level expression");
       }
-      lex<optional_spaces>();
+      lex< optional_spaces >();
     }
   }
 
@@ -62,103 +55,117 @@ namespace Sass {
     lex< import >();
     if (lex< uri_prefix >())
     {
-      const char* beg = position;
-      const char* end = find_first< exactly<')'> >(position);
-      Node result(Node::css_import, line_number, Token::make(beg, end));
-      position = end;
-      lex< exactly<')'> >();
-      return result;
+      if (peek< string_constant >()) {
+        Node schema(parse_string());
+        Node importee(context.new_Node(Node::css_import, path, line, 1));
+        importee << schema;
+        if (!lex< exactly<')'> >()) throw_syntax_error("unterminated url in @import directive");
+        return importee;
+      }
+      else {
+        const char* beg = position;
+        const char* end = find_first< exactly<')'> >(position);
+        if (!end) throw_syntax_error("unterminated url in @import directive");
+        Node path_node(context.new_Node(Node::identifier, path, line, Token::make(beg, end)));
+        Node importee(context.new_Node(Node::css_import, path, line, 1));
+        importee << path_node;
+        position = end;
+        lex< exactly<')'> >();
+        return importee;
+      }
     }
-    if (!lex< string_constant >()) syntax_error("@import directive requires a url or quoted path");
+    if (!lex< string_constant >()) throw_syntax_error("@import directive requires a url or quoted path");
     // TO DO: BETTER PATH HANDLING
-    // cerr << "Importing " << lexed.to_string() << endl;
     string import_path(lexed.unquote());
     const char* curr_path_start = path.c_str();
     const char* curr_path_end   = folders(curr_path_start);
     string current_path(curr_path_start, curr_path_end - curr_path_start);
     try {
-      Document importee(current_path + import_path, context);
+      Document importee(Document::make_from_file(context, current_path + import_path));
       importee.parse_scss();
-      // cerr << "Finished parsing import " << lexed.to_string() << endl;
       return importee.root;
     }
     catch (string& path) {
-      read_error("error reading file \"" + path + "\"");
+      throw_read_error("error reading file \"" + path + "\"");
     }
     // unreached statement
-    return Node(Node::none); 
+    return Node();
   }
 
   Node Document::parse_mixin_definition()
   {
     lex< mixin >() || lex< exactly<'='> >();
-    if (!lex< identifier >()) syntax_error("invalid name in @mixin directive");
-    Node name(Node::identifier, line_number, lexed);
+    if (!lex< identifier >()) throw_syntax_error("invalid name in @mixin directive");
+    Node name(context.new_Node(Node::identifier, path, line, lexed));
     Node params(parse_mixin_parameters());
-    if (!peek< exactly<'{'> >()) syntax_error("body for mixin " + name.content.token.to_string() + " must begin with a '{'");
-    Node body(parse_block(true));
-    Node mixin(Node::mixin, context.registry, line_number, 3);
-    mixin << name << params << body;
-    return mixin;
+    if (!peek< exactly<'{'> >()) throw_syntax_error("body for mixin " + name.token().to_string() + " must begin with a '{'");
+    Node body(parse_block(Node(), true));
+    Node the_mixin(context.new_Node(Node::mixin, path, line, 3));
+    the_mixin << name << params << body;
+    return the_mixin;
   }
 
   Node Document::parse_mixin_parameters()
   {
-    Node params(Node::parameters, context.registry, line_number);
+    Node params(context.new_Node(Node::parameters, path, line, 0));
     Token name(lexed);
     if (lex< exactly<'('> >()) {
       if (peek< variable >()) {
         params << parse_parameter();
         while (lex< exactly<','> >()) {
-          if (!peek< variable >()) syntax_error("expected a variable name (e.g. $x) for the parameter list for " + name.to_string());
+          if (!peek< variable >()) throw_syntax_error("expected a variable name (e.g. $x) for the parameter list for " + name.to_string());
           params << parse_parameter();
         }
-        if (!lex< exactly<')'> >()) syntax_error("parameter list for " + name.to_string() + " requires a ')'");
+        if (!lex< exactly<')'> >()) throw_syntax_error("parameter list for " + name.to_string() + " requires a ')'");
       }
-      else if (!lex< exactly<')'> >()) syntax_error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name.to_string());
+      else if (!lex< exactly<')'> >()) throw_syntax_error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name.to_string());
     }
     return params;
   }
 
   Node Document::parse_parameter() {
     lex< variable >();
-    Node var(Node::variable, line_number, lexed);
+    Node var(context.new_Node(Node::variable, path, line, lexed));
     if (lex< exactly<':'> >()) { // default value
       Node val(parse_space_list());
-      Node par_and_val(Node::assignment, context.registry, line_number, 2);
+      Node par_and_val(context.new_Node(Node::assignment, path, line, 2));
       par_and_val << var << val;
       return par_and_val;
     }
     else {
       return var;
     }
+    // unreachable statement
+    return Node();
   }
 
   Node Document::parse_mixin_call()
   {
     lex< include >() || lex< exactly<'+'> >();
-    if (!lex< identifier >()) syntax_error("invalid name in @include directive");
-    Node name(Node::identifier, line_number, lexed);
+    if (!lex< identifier >()) throw_syntax_error("invalid name in @include directive");
+    Node name(context.new_Node(Node::identifier, path, line, lexed));
     Node args(parse_arguments());
-    Node call(Node::expansion, context.registry, line_number, 3);
-    call << name << args;
-    return call;
+    Node the_call(context.new_Node(Node::expansion, path, line, 2));
+    the_call << name << args;
+    return the_call;
   }
   
   Node Document::parse_arguments()
   {
     Token name(lexed);
-    Node args(Node::arguments, context.registry, line_number);
+    Node args(context.new_Node(Node::arguments, path, line, 0));
     if (lex< exactly<'('> >()) {
       if (!peek< exactly<')'> >(position)) {
-        args << parse_argument();
-        args.content.children->back().eval_me = true;
+        Node arg(parse_argument());
+        arg.should_eval() = true;
+        args << arg;
         while (lex< exactly<','> >()) {
-          args << parse_argument();
-          args.content.children->back().eval_me = true;
+          Node arg(parse_argument());
+          arg.should_eval() = true;
+          args << arg;
         }
       }
-      if (!lex< exactly<')'> >()) syntax_error("improperly terminated argument list for " + name.to_string());
+      if (!lex< exactly<')'> >()) throw_syntax_error("improperly terminated argument list for " + name.to_string());
     }
     return args;
   }
@@ -167,10 +174,10 @@ namespace Sass {
   {
     if (peek< sequence < variable, spaces_and_comments, exactly<':'> > >()) {
       lex< variable >();
-      Node var(Node::variable, line_number, lexed);
+      Node var(context.new_Node(Node::variable, path, line, lexed));
       lex< exactly<':'> >();
       Node val(parse_space_list());
-      Node assn(Node::assignment, context.registry, line_number, 2);
+      Node assn(context.new_Node(Node::assignment, path, line, 2));
       assn << var << val;
       return assn;
     }
@@ -182,10 +189,10 @@ namespace Sass {
   Node Document::parse_assignment()
   {
     lex< variable >();
-    Node var(Node::variable, line_number, lexed);
-    if (!lex< exactly<':'> >()) syntax_error("expected ':' after " + lexed.to_string() + " in assignment statement");
+    Node var(context.new_Node(Node::variable, path, line, lexed));
+    if (!lex< exactly<':'> >()) throw_syntax_error("expected ':' after " + lexed.to_string() + " in assignment statement");
     Node val(parse_list());
-    Node assn(Node::assignment, context.registry, line_number, 2);
+    Node assn(context.new_Node(Node::assignment, path, line, 2));
     assn << var << val;
     return assn;
   }
@@ -193,10 +200,10 @@ namespace Sass {
   Node Document::parse_propset()
   {
     lex< identifier >();
-    Node property_segment(Node::identifier, line_number, lexed);
+    Node property_segment(context.new_Node(Node::identifier, path, line, lexed));
     lex< exactly<':'> >();
     lex< exactly<'{'> >();
-    Node block(Node::block, context.registry, line_number, 1);
+    Node block(context.new_Node(Node::block, path, line, 1));
     while (!lex< exactly<'}'> >()) {
       if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         block << parse_propset();
@@ -206,35 +213,62 @@ namespace Sass {
         lex< exactly<';'> >();
       }
     }
-    if (block.size() == 0) syntax_error("namespaced property cannot be empty");
-    Node propset(Node::propset, context.registry, line_number, 2);
+    if (block.empty()) throw_syntax_error("namespaced property cannot be empty");
+    Node propset(context.new_Node(Node::propset, path, line, 2));
     propset << property_segment;
     propset << block;
     return propset;
   }
 
-  Node Document::parse_ruleset(bool definition)
+  Node Document::parse_ruleset(Selector_Lookahead lookahead, bool in_definition)
   {
-    Node ruleset(Node::ruleset, context.registry, line_number, 2);
-    ruleset << parse_selector_group();
-    // if (ruleset[0].type == Node::selector) cerr << "ruleset starts with selector" << endl;
-    // if (ruleset[0].type == Node::selector_group) cerr << "ruleset starts with selector_group" << endl;
-    if (!peek< exactly<'{'> >()) syntax_error("expected a '{' after the selector");
-    ruleset << parse_block(definition);
+    Node ruleset(context.new_Node(Node::ruleset, path, line, 2));
+    if (lookahead.has_interpolants) {
+      ruleset << parse_selector_schema(lookahead.found);
+    }
+    else {
+      ruleset << parse_selector_group();
+    }
+    if (!peek< exactly<'{'> >()) throw_syntax_error("expected a '{' after the selector");
+    ruleset << parse_block(ruleset, in_definition);
     return ruleset;
+  }
+
+  extern const char hash_lbrace[] = "#{";
+  extern const char rbrace[] = "}";
+  Node Document::parse_selector_schema(const char* end_of_selector)
+  {    
+    const char* i = position;
+    const char* p;
+    Node schema(context.new_Node(Node::selector_schema, path, line, 1));
+
+    while (i < end_of_selector) {
+      p = find_first_in_interval< exactly<hash_lbrace> >(i, end_of_selector);
+      if (p) {
+        // accumulate the preceding segment if there is one
+        if (i < p) schema << context.new_Node(Node::identifier, path, line, Token::make(i, p));
+        // find the end of the interpolant and parse it
+        const char* j = find_first_in_interval< exactly<rbrace> >(p, end_of_selector);
+        Node interp_node(Document::make_from_token(context, Token::make(p+2, j), path, line).parse_list());
+        interp_node.should_eval() = true;
+        schema << interp_node;
+        i = j + 1;
+      }
+      else { // no interpolants left; add the last segment if there is one
+        if (i < end_of_selector) schema << context.new_Node(Node::identifier, path, line, Token::make(i, end_of_selector));
+        break;
+      }
+    }
+    position = end_of_selector;
+    return schema;
   }
 
   Node Document::parse_selector_group()
   {
-    // Node group(Node::selector_group, line_number, 1);
-    // group << parse_selector();
-    // while (lex< exactly<','> >()) group << parse_selector();
-    // return group;
-    
     Node sel1(parse_selector());
     if (!peek< exactly<','> >()) return sel1;
     
-    Node group(Node::selector_group, context.registry, line_number, 2);
+    Node group(context.new_Node(Node::selector_group, path, line, 2));
     group << sel1;
     while (lex< exactly<','> >()) group << parse_selector();
     return group;
@@ -242,40 +276,16 @@ namespace Sass {
 
   Node Document::parse_selector()
   {
-    // Node selector(Node::selector, line_number, 1);
-    // if (lex< exactly<'+'> >() ||
-    //     lex< exactly<'~'> >() ||
-    //     lex< exactly<'>'> >()) {
-    //   selector << Node(Node::selector_combinator, line_number, lexed);
-    // }
-    // Node s(parse_simple_selector_sequence());
-    // if (s.has_backref) selector.has_backref = true;
-    // selector << s;
-    // while (lex< exactly<'+'> >() ||
-    //        lex< exactly<'~'> >() ||
-    //        lex< exactly<'>'> >() ||
-    //        lex< ancestor_of >() /*||
-    //        s.terminal_backref && lex< no_spaces >()*/) {
-    //   selector << Node(Node::selector_combinator, line_number, lexed);
-    //   s = parse_simple_selector_sequence();
-    //   if (s.has_backref) selector.has_backref = true;
-    //   selector << s;
-    // }
-    // return selector;
-
     Node seq1(parse_simple_selector_sequence());
     if (peek< exactly<','> >() ||
         peek< exactly<')'> >() ||
         peek< exactly<'{'> >()) return seq1;
     
-    Node selector(Node::selector, context.registry, line_number, 2);
-    if (seq1.has_backref) selector.has_backref = true;
+    Node selector(context.new_Node(Node::selector, path, line, 2));
     selector << seq1;
 
     while (!peek< exactly<'{'> >() && !peek< exactly<','> >()) {
-      Node seq(parse_simple_selector_sequence());
-      if (seq.has_backref) selector.has_backref = true;
-      selector << seq;
+      selector << parse_simple_selector_sequence();
     }
     return selector;
   }
@@ -286,34 +296,30 @@ namespace Sass {
     if (lex< exactly<'+'> >() ||
         lex< exactly<'~'> >() ||
         lex< exactly<'>'> >())
-    { return Node(Node::selector_combinator, line_number, lexed); }
+    { return context.new_Node(Node::selector_combinator, path, line, lexed); }
     
     // check for backref or type selector, which are only allowed at the front
     Node simp1;
-    bool saw_backref = false;
     if (lex< exactly<'&'> >()) {
-      simp1 = Node(Node::backref, line_number, lexed);
-      simp1.has_backref = true;
-      saw_backref = true;
+      simp1 = context.new_Node(Node::backref, path, line, lexed);
     }
     else if (lex< alternatives< type_selector, universal > >()) {
-      simp1 = Node(Node::simple_selector, line_number, lexed);
+      simp1 = context.new_Node(Node::simple_selector, path, line, lexed);
     }
     else {
       simp1 = parse_simple_selector();
     }
     
-    // now we have one simple/atomic selector -- see if there are more
+    // now we have one simple/atomic selector -- see if that's all
     if (peek< spaces >()       || peek< exactly<'>'> >() ||
         peek< exactly<'+'> >() || peek< exactly<'~'> >() ||
         peek< exactly<','> >() || peek< exactly<')'> >() ||
-        peek< exactly<'{'> >())
+        peek< exactly<'{'> >() || peek< exactly<';'> >())
     { return simp1; }
 
-    // now we know we have a sequence of simple selectors
-    Node seq(Node::simple_selector_sequence, context.registry, line_number, 2);
+    // otherwise, we have a sequence of simple selectors
+    Node seq(context.new_Node(Node::simple_selector_sequence, path, line, 2));
     seq << simp1;
-    seq.has_backref = saw_backref;
     
     while (!peek< spaces >(position) &&
            !(peek < exactly<'+'> >(position) ||
@@ -321,50 +327,24 @@ namespace Sass {
              peek < exactly<'>'> >(position) ||
              peek < exactly<','> >(position) ||
              peek < exactly<')'> >(position) ||
-             peek < exactly<'{'> >(position))) {
+             peek < exactly<'{'> >(position) ||
+             peek < exactly<';'> >(position))) {
       seq << parse_simple_selector();
     }
     return seq;
-    
-    // 
-    // Node seq(Node::simple_selector_sequence, line_number, 1);
-    // if (lex< alternatives < type_selector, universal > >()) {
-    //   seq << Node(Node::simple_selector, line_number, lexed);
-    // }
-    // else if (lex< exactly<'&'> >()) {
-    //   seq << Node(Node::backref, line_number, lexed);
-    //   seq.has_backref = true;
-    //   // if (peek< sequence< no_spaces, alternatives< type_selector, universal > > >(position)) {
-    //   //   seq.terminal_backref = true;
-    //   //   return seq;
-    //   // }
-    // }
-    // else {
-    //   seq << parse_simple_selector();
-    // }
-    // while (!peek< spaces >(position) &&
-    //        !(peek < exactly<'+'> >(position) ||
-    //          peek < exactly<'~'> >(position) ||
-    //          peek < exactly<'>'> >(position) ||
-    //          peek < exactly<','> >(position) ||
-    //          peek < exactly<')'> >(position) ||
-    //          peek < exactly<'{'> >(position))) {
-    //   seq << parse_simple_selector();
-    // }
-    // return seq; 
   }
   
   Node Document::parse_selector_combinator()
   {
     lex< exactly<'+'> >() || lex< exactly<'~'> >() ||
     lex< exactly<'>'> >() || lex< ancestor_of >();
-    return Node(Node::selector_combinator, line_number, lexed);
+    return context.new_Node(Node::selector_combinator, path, line, lexed);
   }
   
   Node Document::parse_simple_selector()
   {
     if (lex< id_name >() || lex< class_name >()) {
-      return Node(Node::simple_selector, line_number, lexed);
+      return context.new_Node(Node::simple_selector, path, line, lexed);
     }
     else if (peek< exactly<':'> >(position)) {
       return parse_pseudo();
@@ -372,120 +352,113 @@ namespace Sass {
     else if (peek< exactly<'['> >(position)) {
       return parse_attribute_selector();
     }
-    syntax_error("invalid selector after " + lexed.to_string());
-    // unreached statement
-    return Node(Node::none);}
+    else {
+      throw_syntax_error("invalid selector after " + lexed.to_string());
+    }
+    // unreachable statement
+    return Node();
+  }
   
   Node Document::parse_pseudo() {
     if (lex< pseudo_not >()) {
-      Node ps_not(Node::pseudo_negation, context.registry, line_number, 2);
-      ps_not << Node(Node::value, line_number, lexed);
+      Node ps_not(context.new_Node(Node::pseudo_negation, path, line, 2));
+      ps_not << context.new_Node(Node::value, path, line, lexed);
       ps_not << parse_selector_group();
       lex< exactly<')'> >();
       return ps_not;
     }
     else if (lex< sequence< pseudo_prefix, functional > >()) {
-      Node pseudo(Node::functional_pseudo, context.registry, line_number, 2);
+      Node pseudo(context.new_Node(Node::functional_pseudo, path, line, 2));
       Token name(lexed);
-      pseudo << Node(Node::value, line_number, name);
+      pseudo << context.new_Node(Node::value, path, line, name);
       if (lex< alternatives< even, odd > >()) {
-        pseudo << Node(Node::value, line_number, lexed);
+        pseudo << context.new_Node(Node::value, path, line, lexed);
       }
       else if (peek< binomial >(position)) {
         lex< coefficient >();
-        pseudo << Node(Node::value, line_number, lexed);
+        pseudo << context.new_Node(Node::value, path, line, lexed);
         lex< exactly<'n'> >();
-        pseudo << Node(Node::value, line_number, lexed);
+        pseudo << context.new_Node(Node::value, path, line, lexed);
         lex< sign >();
-        pseudo << Node(Node::value, line_number, lexed);
+        pseudo << context.new_Node(Node::value, path, line, lexed);
         lex< digits >();
-        pseudo << Node(Node::value, line_number, lexed);
+        pseudo << context.new_Node(Node::value, path, line, lexed);
       }
       else if (lex< sequence< optional<sign>,
                               optional<digits>,
                               exactly<'n'> > >()) {
-        pseudo << Node(Node::value, line_number, lexed);
+        pseudo << context.new_Node(Node::value, path, line, lexed);
       }
       else if (lex< sequence< optional<sign>, digits > >()) {
-        pseudo << Node(Node::value, line_number, lexed);
+        pseudo << context.new_Node(Node::value, path, line, lexed);
       }
       else if (lex< string_constant >()) {
-        pseudo << Node(Node::string_constant, line_number, lexed);
+        pseudo << context.new_Node(Node::string_constant, path, line, lexed);
       }
       else {
-        syntax_error("invalid argument to " + name.to_string() + "...)");
+        throw_syntax_error("invalid argument to " + name.to_string() + "...)");
       }
-      if (!lex< exactly<')'> >()) syntax_error("unterminated argument to " + name.to_string() + "...)");
+      if (!lex< exactly<')'> >()) throw_syntax_error("unterminated argument to " + name.to_string() + "...)");
       return pseudo;
     }
     else if (lex < sequence< pseudo_prefix, identifier > >()) {
-      return Node(Node::pseudo, line_number, lexed);
+      return context.new_Node(Node::pseudo, path, line, lexed);
     }
-    syntax_error("unrecognized pseudo-class or pseudo-element");
-    // unreached statement
-    return Node(Node::none);
+    else {
+      throw_syntax_error("unrecognized pseudo-class or pseudo-element");
+    }
+    // unreachable statement
+    return Node();
   }
   
   Node Document::parse_attribute_selector()
   {
-    Node attr_sel(Node::attribute_selector, context.registry, line_number, 3);
+    Node attr_sel(context.new_Node(Node::attribute_selector, path, line, 3));
     lex< exactly<'['> >();
-    if (!lex< type_selector >()) syntax_error("invalid attribute name in attribute selector");
+    if (!lex< type_selector >()) throw_syntax_error("invalid attribute name in attribute selector");
     Token name(lexed);
-    attr_sel << Node(Node::value, line_number, name);
+    attr_sel << context.new_Node(Node::value, path, line, name);
     if (lex< exactly<']'> >()) return attr_sel;
     if (!lex< alternatives< exact_match, class_match, dash_match,
                             prefix_match, suffix_match, substring_match > >()) {
-      syntax_error("invalid operator in attribute selector for " + name.to_string());
+      throw_syntax_error("invalid operator in attribute selector for " + name.to_string());
     }
-    attr_sel << Node(Node::value, line_number, lexed);
-    if (!lex< string_constant >()) syntax_error("expected a quoted string constant in attribute selector for " + name.to_string());
-    attr_sel << Node(Node::value, line_number, lexed);
-    if (!lex< exactly<']'> >()) syntax_error("unterminated attribute selector for " + name.to_string());
+    attr_sel << context.new_Node(Node::value, path, line, lexed);
+    if (!lex< string_constant >() && !lex< identifier >()) throw_syntax_error("expected a string constant or identifier in attribute selector for " + name.to_string());
+    attr_sel << context.new_Node(Node::value, path, line, lexed);
+    if (!lex< exactly<']'> >()) throw_syntax_error("unterminated attribute selector for " + name.to_string());
     return attr_sel;
   }
 
-  Node Document::parse_block(bool definition)
+  Node Document::parse_block(Node surrounding_ruleset, bool in_definition)
   {
     lex< exactly<'{'> >();
     bool semicolon = false;
-    Node block(Node::block, context.registry, line_number, 1);
-    block << Node(Node::flags);
+    Selector_Lookahead lookahead_result;
+    Node block(context.new_Node(Node::block, path, line, 0));
     while (!lex< exactly<'}'> >()) {
       if (semicolon) {
-        if (!lex< exactly<';'> >()) syntax_error("non-terminal statement or declaration must end with ';'");
+        if (!lex< exactly<';'> >()) throw_syntax_error("non-terminal statement or declaration must end with ';'");
         semicolon = false;
         while (lex< block_comment >()) {
-          block << Node(Node::comment, line_number, lexed);
-          block[0].has_statements = true;
+          block << context.new_Node(Node::comment, path, line, lexed);
         }
         if (lex< exactly<'}'> >()) break;
       }
       if (lex< block_comment >()) {
-        block << Node(Node::comment, line_number, lexed);
-        block[0].has_statements = true;
-        //semicolon = true;
+        block << context.new_Node(Node::comment, path, line, lexed);
       }
       else if (peek< import >(position)) {
-        if (definition) {
+        if (in_definition) {
           lex< import >(); // to adjust the line number
-          syntax_error("@import directive not allowed inside mixin definition");
+          throw_syntax_error("@import directive not allowed inside mixin definition");
         }
         Node imported_tree(parse_import());
-        if (imported_tree.type == Node::css_import) {
-          // cerr << "css import inside block" << endl;
+        if (imported_tree.type() == Node::css_import) {
           block << imported_tree;
-          block.has_statements = true;
         }
         else {
-          for (size_t i = 0; i < imported_tree.size(); ++i) {
-            if (imported_tree[i].type == Node::comment ||
-                imported_tree[i].type == Node::rule) {
-              block[0].has_statements = true;
-            }
-            else if (imported_tree[i].type == Node::ruleset) {
-              block[0].has_blocks = true;
-            }
+          for (size_t i = 0, S = imported_tree.size(); i < S; ++i) {
             block << imported_tree[i];
           }
           semicolon = true;
@@ -493,7 +466,6 @@ namespace Sass {
       }
       else if (peek< include >(position)) {
         block << parse_mixin_call();
-        block[0].has_expansions = true;
         semicolon = true;
       }
       else if (lex< variable >()) {
@@ -502,53 +474,61 @@ namespace Sass {
       }
       else if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         block << parse_propset();
-        block[0].has_statements = true;
       }
-      else if (lookahead_for_selector(position)) {
-        block << parse_ruleset(definition);
-        block[0].has_blocks = true;
+      else if ((lookahead_result = lookahead_for_selector(position)).found) {
+        block << parse_ruleset(lookahead_result, in_definition);
       }
       else if (peek< exactly<'+'> >()) {
         block << parse_mixin_call();
-        block[0].has_expansions = true;
         semicolon = true;
+      }
+      else if (lex< extend >()) {
+        if (surrounding_ruleset.is_null_ptr()) throw_syntax_error("@extend directive may only be used within rules");
+        Node extendee(parse_simple_selector_sequence());
+        context.extensions.insert(pair<Node, Node>(extendee, surrounding_ruleset));
+        cerr << "PARSED EXTENSION REQUEST: " << surrounding_ruleset[0].to_string() << " EXTENDS " << extendee.to_string() << endl;
+        context.has_extensions = true;
+        semicolon = true;
+      }
+      else if (peek< if_directive >()) {
+        block << parse_if_directive(surrounding_ruleset);
+      }
+      else if (peek< for_directive >()) {
+        block << parse_for_directive(surrounding_ruleset);
       }
       else if (!peek< exactly<';'> >()) {
         Node rule(parse_rule());
         // check for lbrace; if it's there, we have a namespace property with a value
         if (peek< exactly<'{'> >()) {
-          Node inner(parse_block());
-          Node propset(Node::propset, context.registry, line_number, 2);
+          Node inner(parse_block(Node()));
+          Node propset(context.new_Node(Node::propset, path, line, 2));
           propset << rule[0];
-          rule[0] = Node(Node::property, line_number, Token::make());
-          inner[0] = rule;
+          rule[0] = context.new_Node(Node::property, path, line, Token::make());
+          inner.push_front(rule);
           propset << inner;
           block << propset;
-          // cerr << block[block.size()-1][0].content.token.to_string() << endl;
         }
         else {
           block << rule;
           semicolon = true;
         }
-        block[0].has_statements = true;
       }
       else lex< exactly<';'> >();
       while (lex< block_comment >()) {
-        block << Node(Node::comment, line_number, lexed);
-        block[0].has_statements = true;
+        block << context.new_Node(Node::comment, path, line, lexed);
       }
     }
     return block;
   }
 
   Node Document::parse_rule() {
-    Node rule(Node::rule, context.registry, line_number, 2);
+    Node rule(context.new_Node(Node::rule, path, line, 2));
     if (!lex< sequence< optional< exactly<'*'> >, identifier > >()) {
       lex< spaces_and_comments >(); // get the line number right
-      syntax_error("invalid property name");
+      throw_syntax_error("invalid property name");
     }
-    rule << Node(Node::property, line_number, lexed);
-    if (!lex< exactly<':'> >()) syntax_error("property \"" + lexed.to_string() + "\" must be followed by a ':'");
+    rule << context.new_Node(Node::property, path, line, lexed);
+    if (!lex< exactly<':'> >()) throw_syntax_error("property \"" + lexed.to_string() + "\" must be followed by a ':'");
     rule << parse_list();
     return rule;
   }
@@ -564,20 +544,20 @@ namespace Sass {
         peek< exactly<'}'> >(position) ||
         peek< exactly<'{'> >(position) ||
         peek< exactly<')'> >(position))
-    { return Node(Node::nil, context.registry, line_number); }
+    { return context.new_Node(Node::nil, path, line, 0); }
     Node list1(parse_space_list());
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< exactly<','> >(position)) return list1;
     
-    Node comma_list(Node::comma_list, context.registry, line_number, 2);
+    Node comma_list(context.new_Node(Node::comma_list, path, line, 2));
     comma_list << list1;
-    comma_list.eval_me |= list1.eval_me;
+    comma_list.should_eval() |= list1.should_eval();
     
     while (lex< exactly<','> >())
     {
       Node list(parse_space_list());
       comma_list << list;
-      comma_list.eval_me |= list.eval_me;
+      comma_list.should_eval() |= list.should_eval();
     }
     
     return comma_list;
@@ -594,9 +574,9 @@ namespace Sass {
         peek< exactly<','> >(position))
     { return disj1; }
     
-    Node space_list(Node::space_list, context.registry, line_number, 2);
+    Node space_list(context.new_Node(Node::space_list, path, line, 2));
     space_list << disj1;
-    space_list.eval_me |= disj1.eval_me;
+    space_list.should_eval() |= disj1.should_eval();
     
     while (!(peek< exactly<';'> >(position) ||
              peek< exactly<'}'> >(position) ||
@@ -606,7 +586,7 @@ namespace Sass {
     {
       Node disj(parse_disjunction());
       space_list << disj;
-      space_list.eval_me |= disj.eval_me;
+      space_list.should_eval() |= disj.should_eval();
     }
     
     return space_list;
@@ -618,10 +598,10 @@ namespace Sass {
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< sequence< or_kwd, negate< identifier > > >()) return conj1;
     
-    Node disjunction(Node::disjunction, context.registry, line_number, 2);
+    Node disjunction(context.new_Node(Node::disjunction, path, line, 2));
     disjunction << conj1;
     while (lex< sequence< or_kwd, negate< identifier > > >()) disjunction << parse_conjunction();
-    disjunction.eval_me = true;
+    disjunction.should_eval() = true;
     
     return disjunction;
   }
@@ -632,10 +612,10 @@ namespace Sass {
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< sequence< and_kwd, negate< identifier > > >()) return rel1;
     
-    Node conjunction(Node::conjunction, context.registry, line_number, 2);
+    Node conjunction(context.new_Node(Node::conjunction, path, line, 2));
     conjunction << rel1;
     while (lex< sequence< and_kwd, negate< identifier > > >()) conjunction << parse_relation();
-    conjunction.eval_me = true;
+    conjunction.should_eval() = true;
     return conjunction;
   }
   
@@ -651,22 +631,22 @@ namespace Sass {
           peek< lte_op >(position)))
     { return expr1; }
     
-    Node relation(Node::relation, context.registry, line_number, 3);
-    expr1.eval_me = true;
+    Node relation(context.new_Node(Node::relation, path, line, 3));
+    expr1.should_eval() = true;
     relation << expr1;
         
-    if (lex< eq_op >()) relation << Node(Node::eq, line_number, lexed);
-    else if (lex< neq_op >()) relation << Node(Node::neq, line_number, lexed);
-    else if (lex< gte_op >()) relation << Node(Node::gte, line_number, lexed);
-    else if (lex< lte_op >()) relation << Node(Node::lte, line_number, lexed);
-    else if (lex< gt_op >()) relation << Node(Node::gt, line_number, lexed);
-    else if (lex< lt_op >()) relation << Node(Node::lt, line_number, lexed);
+    if (lex< eq_op >()) relation << context.new_Node(Node::eq, path, line, lexed);
+    else if (lex< neq_op >()) relation << context.new_Node(Node::neq, path, line, lexed);
+    else if (lex< gte_op >()) relation << context.new_Node(Node::gte, path, line, lexed);
+    else if (lex< lte_op >()) relation << context.new_Node(Node::lte, path, line, lexed);
+    else if (lex< gt_op >()) relation << context.new_Node(Node::gt, path, line, lexed);
+    else if (lex< lt_op >()) relation << context.new_Node(Node::lt, path, line, lexed);
         
     Node expr2(parse_expression());
-    expr2.eval_me = true;
+    expr2.should_eval() = true;
     relation << expr2;
     
-    relation.eval_me = true;
+    relation.should_eval() = true;
     return relation;
   }
   
@@ -678,22 +658,22 @@ namespace Sass {
           peek< sequence< negate< number >, exactly<'-'> > >(position)))
     { return term1; }
     
-    Node expression(Node::expression, context.registry, line_number, 3);
-    term1.eval_me = true;
+    Node expression(context.new_Node(Node::expression, path, line, 3));
+    term1.should_eval() = true;
     expression << term1;
     
     while (lex< exactly<'+'> >() || lex< sequence< negate< number >, exactly<'-'> > >()) {
       if (lexed.begin[0] == '+') {
-        expression << Node(Node::add, line_number, lexed);
+        expression << context.new_Node(Node::add, path, line, lexed);
       }
       else {
-        expression << Node(Node::sub, line_number, lexed);
+        expression << context.new_Node(Node::sub, path, line, lexed);
       }
       Node term(parse_term());
-      term.eval_me = true;
+      term.should_eval() = true;
       expression << term;
     }
-    expression.eval_me = true;
+    expression.should_eval() = true;
 
     return expression;
   }
@@ -706,20 +686,20 @@ namespace Sass {
           peek< exactly<'/'> >(position)))
     { return fact1; }
 
-    Node term(Node::term, context.registry, line_number, 3);
+    Node term(context.new_Node(Node::term, path, line, 3));
     term << fact1;
-    if (fact1.eval_me) term.eval_me = true;
+    if (fact1.should_eval()) term.should_eval() = true;
 
     while (lex< exactly<'*'> >() || lex< exactly<'/'> >()) {
       if (lexed.begin[0] == '*') {
-        term << Node(Node::mul, line_number, lexed);
-        term.eval_me = true;
+        term << context.new_Node(Node::mul, path, line, lexed);
+        term.should_eval() = true;
       }
       else {
-        term << Node(Node::div, line_number, lexed);
+        term << context.new_Node(Node::div, path, line, lexed);
       }
       Node fact(parse_factor());
-      if (fact.eval_me) term.eval_me = true;
+      term.should_eval() |= fact.should_eval();
       term << fact;
     }
 
@@ -730,23 +710,23 @@ namespace Sass {
   {
     if (lex< exactly<'('> >()) {
       Node value(parse_comma_list());
-      value.eval_me = true;
-      if (value.type == Node::comma_list || value.type == Node::space_list) {
-        value[0].eval_me = true;
+      value.should_eval() = true;
+      if (value.type() == Node::comma_list || value.type() == Node::space_list) {
+        value[0].should_eval() = true;
       }
-      if (!lex< exactly<')'> >()) syntax_error("unclosed parenthesis");
+      if (!lex< exactly<')'> >()) throw_syntax_error("unclosed parenthesis");
       return value;
     }
     else if (lex< sequence< exactly<'+'>, negate< number > > >()) {
-      Node plus(Node::unary_plus, context.registry, line_number, 1);
+      Node plus(context.new_Node(Node::unary_plus, path, line, 1));
       plus << parse_factor();
-      plus.eval_me = true;
+      plus.should_eval() = true;
       return plus;
     }
     else if (lex< sequence< exactly<'-'>, negate< number> > >()) {
-      Node minus(Node::unary_minus, context.registry, line_number, 1);
+      Node minus(context.new_Node(Node::unary_minus, path, line, 1));
       minus << parse_factor();
-      minus.eval_me = true;
+      minus.should_eval() = true;
       return minus;
     }
     else {
@@ -760,78 +740,60 @@ namespace Sass {
     {
       const char* value = position;
       const char* rparen = find_first< exactly<')'> >(position);
-      if (!rparen) syntax_error("URI is missing ')'");
+      if (!rparen) throw_syntax_error("URI is missing ')'");
       Token contents(Token::make(value, rparen));
       // lex< string_constant >();
-      Node result(Node::uri, line_number, contents);
+      Node result(context.new_Node(Node::uri, path, line, contents));
       position = rparen;
       lex< exactly<')'> >();
       return result;
     }
     
     if (lex< value_schema >())
-    {
-      // cerr << "parsing value schema: " << lexed.to_string() << endl;
-      
-      Document schema_doc(path, line_number, lexed, context);
-      return schema_doc.parse_value_schema();
-    }
+    { return Document::make_from_token(context, lexed, path, line).parse_value_schema(); }
     
     if (lex< sequence< true_kwd, negate< identifier > > >())
-    {
-      Node T(Node::boolean);
-      T.line_number = line_number;
-      T.content.boolean_value = true;
-      return T;
-    }
+    { return context.new_Node(Node::boolean, path, line, true); }
     
     if (lex< sequence< false_kwd, negate< identifier > > >())
-    {
-      Node F(Node::boolean);
-      F.line_number = line_number;
-      F.content.boolean_value = false;
-      return F;
-    }
+    { return context.new_Node(Node::boolean, path, line, false); }
     
     if (peek< functional >())
     { return parse_function_call(); }
     
     if (lex< important >())
-    { return Node(Node::important, line_number, lexed); }
+    { return context.new_Node(Node::important, path, line, lexed); }
 
     if (lex< identifier >())
-    { return Node(Node::identifier, line_number, lexed); }
+    { return context.new_Node(Node::identifier, path, line, lexed); }
 
     if (lex< percentage >())
-    { return Node(Node::textual_percentage, line_number, lexed); }
+    { return context.new_Node(Node::textual_percentage, path, line, lexed); }
 
     if (lex< dimension >())
-    { return Node(Node::textual_dimension, line_number, lexed); }
+    { return context.new_Node(Node::textual_dimension, path, line, lexed); }
 
     if (lex< number >())
-    { return Node(Node::textual_number, line_number, lexed); }
+    { return context.new_Node(Node::textual_number, path, line, lexed); }
 
     if (lex< hex >())
-    { return Node(Node::textual_hex, line_number, lexed); }
+    { return context.new_Node(Node::textual_hex, path, line, lexed); }
 
     if (peek< string_constant >())
-    // { return Node(Node::string_constant, line_number, lexed); }
     { return parse_string(); } 
 
     if (lex< variable >())
     {
-      Node var(Node::variable, line_number, lexed);
-      var.eval_me = true;
+      Node var(context.new_Node(Node::variable, path, line, lexed));
+      var.should_eval() = true;
       return var;
     }
     
-    syntax_error("error reading values after " + lexed.to_string());
-    // unreached statement
-    return Node(Node::none);
+    throw_syntax_error("error reading values after " + lexed.to_string());
+
+    // unreachable statement
+    return Node();
   }
-  
-  extern const char hash_lbrace[] = "#{";
-  extern const char rbrace[] = "}";
   
   Node Document::parse_string()
   {    
@@ -841,30 +803,31 @@ namespace Sass {
     // see if there any interpolants
     const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(str.begin, str.end);
     if (!p) {
-      return Node(Node::string_constant, line_number, str);
+      return context.new_Node(Node::string_constant, path, line, str);
     }
     
-    Node schema(Node::string_schema, context.registry, line_number, 1);
+    Node schema(context.new_Node(Node::string_schema, path, line, 1));
     while (i < str.end) {
       p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, str.end);
       if (p) {
-        if (i < p) schema << Node(Node::identifier, line_number, Token::make(i, p)); // accumulate the preceding segment if it's nonempty
+        if (i < p) {
+          schema << context.new_Node(Node::identifier, path, line, Token::make(i, p)); // accumulate the preceding segment if it's nonempty
+        }
         const char* j = find_first_in_interval< exactly<rbrace> >(p, str.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
-          Document interp_doc(path, line_number, Token::make(p+2,j-1), context);
-          Node interp_node(interp_doc.parse_list());
-          interp_node.eval_me = true;
+          Node interp_node(Document::make_from_token(context, Token::make(p+2, j), path, line).parse_list());
+          interp_node.should_eval() = true;
           schema << interp_node;
-          i = j + 1;
+          i = j+1;
         }
         else {
           // throw an error if the interpolant is unterminated
-          syntax_error("unterminated interpolant inside string constant " + str.to_string());
+          throw_syntax_error("unterminated interpolant inside string constant " + str.to_string());
         }
       }
       else { // no interpolants left; add the last segment if nonempty
-        if (i < str.end) schema << Node(Node::identifier, line_number, Token::make(i, str.end));
+        if (i < str.end) schema << context.new_Node(Node::identifier, path, line, Token::make(i, str.end));
         break;
       }
     }
@@ -873,248 +836,143 @@ namespace Sass {
   
   Node Document::parse_value_schema()
   {    
-    Node schema(Node::value_schema, context.registry, line_number, 1);
+    Node schema(context.new_Node(Node::value_schema, path, line, 1));
     
     while (position < end) {
       if (lex< interpolant >()) {
         Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
-        Document interp_doc(path, line_number, insides, context);
-        Node interp_node(interp_doc.parse_list());
+        Node interp_node(Document::make_from_token(context, insides, path, line).parse_list());
         schema << interp_node;
       }
       else if (lex< identifier >()) {
-        schema << Node(Node::identifier, line_number, lexed);
+        schema << context.new_Node(Node::identifier, path, line, lexed);
       }
       else if (lex< percentage >()) {
-        schema << Node(Node::textual_percentage, line_number, lexed);
+        schema << context.new_Node(Node::textual_percentage, path, line, lexed);
       }
       else if (lex< dimension >()) {
-        schema << Node(Node::textual_dimension, line_number, lexed);
+        schema << context.new_Node(Node::textual_dimension, path, line, lexed);
       }
       else if (lex< number >()) {
-        schema << Node(Node::textual_number, line_number, lexed);
+        schema << context.new_Node(Node::textual_number, path, line, lexed);
       }
       else if (lex< hex >()) {
-        schema << Node(Node::textual_hex, line_number, lexed);
+        schema << context.new_Node(Node::textual_hex, path, line, lexed);
       }
       else if (lex< string_constant >()) {
-        schema << Node(Node::string_constant, line_number, lexed);
+        schema << context.new_Node(Node::string_constant, path, line, lexed);
       }
       else if (lex< variable >()) {
-        schema << Node(Node::variable, line_number, lexed);
+        schema << context.new_Node(Node::variable, path, line, lexed);
       }
       else {
-        syntax_error("error parsing interpolated value");
+        throw_syntax_error("error parsing interpolated value");
       }
     }
-    schema.eval_me = true;
+    schema.should_eval() = true;
     return schema;
   }
   
   Node Document::parse_function_call()
   {
     lex< identifier >();
-    Node name(Node::identifier, line_number, lexed);
+    Node name(context.new_Node(Node::identifier, path, line, lexed));
     Node args(parse_arguments());
-    Node call(Node::function_call, context.registry, line_number, 2);
+    Node call(context.new_Node(Node::function_call, path, line, 2));
     call << name << args;
-    call.eval_me = true;
+    call.should_eval() = true;
     return call;
   }
-  
-  Node Document::parse_identifier() {
-    lex< identifier >();
-    return Node(Node::identifier, line_number, lexed);
+
+  Node Document::parse_if_directive(Node surrounding_ruleset)
+  {
+    lex< if_directive >();
+    Node conditional(context.new_Node(Node::if_directive, path, line, 2));
+    conditional << parse_list(); // the predicate
+    if (!lex< exactly<'{'> >()) throw_syntax_error("expected '{' after the predicate for @if");
+    conditional << parse_block(surrounding_ruleset); // the consequent
+    // collect all "@else if"s
+    while (lex< elseif_directive >()) {
+      conditional << parse_list(); // the next predicate
+      if (!lex< exactly<'{'> >()) throw_syntax_error("expected '{' after the predicate for @else if");
+      conditional << parse_block(surrounding_ruleset); // the next consequent
+    }
+    // parse the "@else" if present
+    if (lex< else_directive >()) {
+      if (!lex< exactly<'{'> >()) throw_syntax_error("expected '{' after @else");
+      conditional << parse_block(surrounding_ruleset); // the alternative
+    }
+    return conditional;
+  }
+
+  Node Document::parse_for_directive(Node surrounding_ruleset)
+  {
+    lex< for_directive >();
+    size_t for_line = line;
+    if (!lex< variable >()) throw_syntax_error("@for directive requires an iteration variable");
+    Node var(context.new_Node(Node::variable, path, line, lexed));
+    if (!lex< from >()) throw_syntax_error("expected 'from' keyword in @for directive");
+    Node lower_bound(parse_expression());
+    Node::Type for_type = Node::for_through_directive;
+    if (lex< through >()) for_type = Node::for_through_directive;
+    else if (lex< to >()) for_type = Node::for_to_directive;
+    else                  throw_syntax_error("expected 'through' or 'to' keywod in @for directive");
+    Node upper_bound(parse_expression());
+    if (!peek< exactly<'{'> >()) throw_syntax_error("expected '{' after the upper bound in @for directive");
+    Node body(parse_block(surrounding_ruleset));
+    Node loop(context.new_Node(for_type, path, for_line, 3));
+    loop << var << lower_bound << upper_bound << body;
+    return loop;
   }
   
-  Node Document::parse_variable() {
-    lex< variable >();
-    return Node(Node::variable, line_number, lexed);
-  }
-  
-  const char* Document::lookahead_for_selector(const char* start)
+  Selector_Lookahead Document::lookahead_for_selector(const char* start)
   {
     const char* p = start ? start : position;
     const char* q;
+    bool saw_interpolant = false;
 
-    while ((q = peek< identifier >(p))                            ||
-           (q = peek< id_name >(p))                               ||
-           (q = peek< class_name >(p))                            ||
-           (q = peek< sequence< pseudo_prefix, identifier > >(p)) ||
-           (q = peek< string_constant >(p))                       ||
-           (q = peek< exactly<'*'> >(p))                          ||
-           (q = peek< exactly<'('> >(p))                          ||
-           (q = peek< exactly<')'> >(p))                          ||
-           (q = peek< exactly<'['> >(p))                          ||
-           (q = peek< exactly<']'> >(p))                          ||
-           (q = peek< exactly<'+'> >(p))                          ||
-           (q = peek< exactly<'~'> >(p))                          ||
-           (q = peek< exactly<'>'> >(p))                          ||
-           (q = peek< exactly<','> >(p))                          ||
-           (q = peek< binomial >(p))                              ||
+    while ((q = peek< identifier >(p))                             ||
+           (q = peek< id_name >(p))                                ||
+           (q = peek< class_name >(p))                             ||
+           (q = peek< sequence< pseudo_prefix, identifier > >(p))  ||
+           (q = peek< string_constant >(p))                        ||
+           (q = peek< exactly<'*'> >(p))                           ||
+           (q = peek< exactly<'('> >(p))                           ||
+           (q = peek< exactly<')'> >(p))                           ||
+           (q = peek< exactly<'['> >(p))                           ||
+           (q = peek< exactly<']'> >(p))                           ||
+           (q = peek< exactly<'+'> >(p))                           ||
+           (q = peek< exactly<'~'> >(p))                           ||
+           (q = peek< exactly<'>'> >(p))                           ||
+           (q = peek< exactly<','> >(p))                           ||
+           (q = peek< binomial >(p))                               ||
            (q = peek< sequence< optional<sign>,
                                 optional<digits>,
-                                exactly<'n'> > >(p))              ||
+                                exactly<'n'> > >(p))               ||
            (q = peek< sequence< optional<sign>,
-                                digits > >(p))                    ||
-           (q = peek< number >(p))                                ||
-           (q = peek< exactly<'&'> >(p))                          ||
+                                digits > >(p))                     ||
+           (q = peek< number >(p))                                 ||
+           (q = peek< exactly<'&'> >(p))                           ||
            (q = peek< alternatives<exact_match,
                                    class_match,
                                    dash_match,
                                    prefix_match,
                                    suffix_match,
-                                   substring_match> >(p))) { p = q; }
+                                   substring_match> >(p))          ||
+           (q = peek< sequence< exactly<'.'>, interpolant > >(p))  ||
+           (q = peek< sequence< exactly<'#'>, interpolant > >(p))  ||
+           (q = peek< sequence< exactly<'-'>, interpolant > >(p))  ||
+           (q = peek< sequence< pseudo_prefix, interpolant > >(p)) ||
+           (q = peek< interpolant >(p))) {
+      p = q;
+      if (*(p - 1) == '}') saw_interpolant = true;
+    }
 
-    if (peek< exactly<'{'> >(p)) return p;
-    else return 0;
+    Selector_Lookahead result;
+    result.found            = peek< exactly<'{'> >(p) ? p : 0;
+    result.has_interpolants = saw_interpolant;
+
+    return result;
   }
   
 }
-
-  // const char* Document::look_for_rule(const char* start)
-  // {
-  //   const char* p = start ? start : position;
-  //   (p = peek< identifier >(p))   &&
-  //   (p = peek< exactly<':'> >(p)) &&
-  //   (p = look_for_values(p))      &&
-  //   (p = peek< alternatives< exactly<';'>, exactly<'}'> > >(p));
-  //   return p;
-  // }
-  // 
-  // const char* Document::look_for_values(const char* start)
-  // {
-  //   const char* p = start ? start : position;
-  //   const char* q;
-  //   while ((q = peek< identifier >(p)) || (q = peek< dimension >(p))       ||
-  //          (q = peek< percentage >(p)) || (q = peek< number >(p))          ||
-  //          (q = peek< hex >(p))        || (q = peek< string_constant >(p)) ||
-  //          (q = peek< variable >(p)))
-  //   { p = q; }
-  //   return p == start ? 0 : p;
-  // }
-  
-//   // NEW LOOKAHEAD FUNCTIONS. THIS ESSENTIALLY IMPLEMENTS A BACKTRACKING
-//   // PARSER, BECAUSE SELECTORS AND VALUES ARE NOT EXPRESSIBLE IN A
-//   // REGULAR LANGUAGE.
-//   const char* Document::look_for_selector_group(const char* start)
-//   {
-//     const char* p = start ? start : position;
-//     const char* q = look_for_selector(p);
-// 
-//     if (!q) { return 0; }
-//     else    { p = q; }
-// 
-//     while ((q = peek< exactly<','> >(p)) && (q = look_for_selector(q)))
-//     { p = q; }
-//     
-//     // return peek< exactly<'{'> >(p) ? p : 0;
-//     return peek< alternatives< exactly<'{'>, exactly<')'> > >(p) ? p : 0;
-//   }
-//   
-//   const char* Document::look_for_selector(const char* start)
-//   {
-//     const char* p = start ? start : position;
-//     const char* q;
-// 
-//     if ((q = peek< exactly<'+'> >(p)) ||
-//         (q = peek< exactly<'~'> >(p)) ||
-//         (q = peek< exactly<'>'> >(p)))
-//     { p = q; }
-//     
-//     p = look_for_simple_selector_sequence(p);
-//     
-//     if (!p) return 0;
-//     
-//     while (((q = peek< exactly<'+'> >(p)) ||
-//             (q = peek< exactly<'~'> >(p)) ||
-//             (q = peek< exactly<'>'> >(p)) ||
-//             (q = peek< ancestor_of > (p))) &&
-//            (q = look_for_simple_selector_sequence(q)))
-//     { p = q; }
-//   
-//     return p;
-//   }
-//   
-//   const char* Document::look_for_simple_selector_sequence(const char* start)
-//   {
-//     const char* p = start ? start : position;
-//     const char* q;
-//     
-//     if ((q = peek< type_selector >(p)) ||
-//         (q = peek< universal >(p))     ||
-//         (q = peek< exactly <'&'> >(p)) ||
-//         (q = look_for_simple_selector(p)))
-//     { p = q; }
-//     else
-//     { return 0; }
-//     
-//     while (!peek< spaces >(p) &&
-//            !(peek < exactly<'+'> >(p) ||
-//              peek < exactly<'~'> >(p) ||
-//              peek < exactly<'>'> >(p) ||
-//              peek < exactly<','> >(p) ||
-//              peek < exactly<')'> >(p) ||
-//              peek < exactly<'{'> >(p)) &&
-//            (q = look_for_simple_selector(p)))
-//     { p = q; }
-//     
-//     return p;
-//   }
-//   
-//   const char* Document::look_for_simple_selector(const char* start)
-//   {
-//     const char* p = start ? start : position;
-//     const char* q;
-//     (q = peek< id_name >(p)) || (q = peek< class_name >(p)) ||
-//     (q = look_for_pseudo(p)) || (q = look_for_attrib(p));
-//     // cerr << "looking for simple selector; found:" << endl;
-//     // cerr << (q ? string(Token::make(q,q+8)) : "nothing") << endl;
-//     return q;
-//   }
-//   
-//   const char* Document::look_for_pseudo(const char* start)
-//   {
-//     const char* p = start ? start : position;
-//     const char* q;
-//     
-//     if (q = peek< pseudo_not >(p)) {
-//       // (q = look_for_simple_selector(q)) && (q = peek< exactly<')'> >(q));
-//       (q = look_for_selector_group(q)) && (q = peek< exactly<')'> >(q));
-//     }
-//     else if (q = peek< sequence< pseudo_prefix, functional > >(p)) {
-//       p = q;
-//       (q = peek< alternatives< even, odd > >(p)) ||
-//       (q = peek< binomial >(p))                  ||
-//       (q = peek< sequence< optional<sign>,
-//                            optional<digits>,
-//                            exactly<'n'> > >(p))  ||
-//       (q = peek< sequence< optional<sign>,
-//                            digits > >(p));
-//       p = q;
-//       q = peek< exactly<')'> >(p);
-//     }
-//     else {
-//       q = peek< sequence< pseudo_prefix, identifier > >(p);
-//     }
-//     return q ? q : 0;
-//   }
-//     
-//   const char* Document::look_for_attrib(const char* start)
-//   {
-//     const char* p = start ? start : position;
-//     
-//     (p = peek< exactly<'['> >(p))                  &&
-//     (p = peek< type_selector >(p))                 &&
-//     (p = peek< alternatives<exact_match,
-//                             class_match,
-//                             dash_match,
-//                             prefix_match,
-//                             suffix_match,
-//                             substring_match> >(p)) &&
-//     (p = peek< string_constant >(p))               &&
-//     (p = peek< exactly<']'> >(p));
-//     
-//     return p;
-//   }
-// }

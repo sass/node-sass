@@ -1,10 +1,21 @@
 #include <map>
 
+#ifndef SASS_PRELEXER_INCLUDED
+#include "prelexer.hpp"
+#endif
+
 #ifndef SASS_NODE_INCLUDED
 #include "node.hpp"
 #endif
 
+#ifndef SASS_CONTEXT_INCLUDED
 #include "context.hpp"
+#endif
+
+struct Selector_Lookahead {
+  const char* found;
+  bool has_interpolants;
+};
 
 namespace Sass {
   using std::string;
@@ -19,20 +30,25 @@ namespace Sass {
     char* source;
     const char* position;
     const char* end;
-    size_t line_number;
+    size_t line;
     bool own_source;
 
     Context& context;
     
     Node root;
     Token lexed;
-    
-    Document(char* path_str, char* source_str, Context& ctx);
-    Document(string path, char* source = 0);
-    Document(string path, Context& context);
-    Document(const string& path, size_t line_number, Token t, Context& context);
+
+  private:
+    // force the use of the "make_from_..." factory funtions
+    Document(Context& ctx);
+  public:
+    Document(const Document& doc);
     ~Document();
-    
+
+    static Document make_from_file(Context& ctx, string path);
+    static Document make_from_source_chars(Context& ctx, char* src, string path = "", bool own_source = false);
+    static Document make_from_token(Context& ctx, Token t, string path = "", size_t line_number = 1);
+
     template <prelexer mx>
     const char* peek(const char* start = 0)
     {
@@ -83,7 +99,7 @@ namespace Sass {
       else if (mx == spaces) {
         after_whitespace = spaces(position);
         if (after_whitespace) {
-          line_number += count_interval<'\n'>(position, after_whitespace);
+          line += count_interval<'\n'>(position, after_whitespace);
           lexed = Token::make(position, after_whitespace);
           return position = after_whitespace;
         }
@@ -99,7 +115,7 @@ namespace Sass {
       }
       const char* after_token = mx(after_whitespace);
       if (after_token) {
-        line_number += count_interval<'\n'>(position, after_token);
+        line += count_interval<'\n'>(position, after_token);
         lexed = Token::make(after_whitespace, after_token);
         return position = after_token;
       }
@@ -119,7 +135,8 @@ namespace Sass {
     Node parse_argument();
     Node parse_assignment();
     Node parse_propset();
-    Node parse_ruleset(bool definition = false);
+    Node parse_ruleset(Selector_Lookahead lookahead, bool in_definition = false);
+    Node parse_selector_schema(const char* end_of_selector);
     Node parse_selector_group();
     Node parse_selector();
     Node parse_selector_combinator();
@@ -127,7 +144,7 @@ namespace Sass {
     Node parse_simple_selector();
     Node parse_pseudo();
     Node parse_attribute_selector();
-    Node parse_block(bool definition = false);
+    Node parse_block(Node surrounding_rulesetbool, bool in_definition = false);
     Node parse_rule();
     Node parse_values();
     Node parse_list();
@@ -140,26 +157,17 @@ namespace Sass {
     Node parse_term();
     Node parse_factor();
     Node parse_value();
-    Node parse_identifier();
-    Node parse_variable();
     Node parse_function_call();
     Node parse_string();
     Node parse_value_schema();
+    Node parse_if_directive(Node surrounding_ruleset);
+    Node parse_for_directive(Node surrounding_ruleset);
+
     
-    const char* lookahead_for_selector(const char* start = 0);
+    Selector_Lookahead lookahead_for_selector(const char* start = 0);
     
-    const char* look_for_rule(const char* start = 0);
-    const char* look_for_values(const char* start = 0);
-    
-    const char* look_for_selector_group(const char* start = 0);
-    const char* look_for_selector(const char* start = 0);
-    const char* look_for_simple_selector_sequence(const char* start = 0);
-    const char* look_for_simple_selector(const char* start = 0);
-    const char* look_for_pseudo(const char* start = 0);
-    const char* look_for_attrib(const char* start = 0);
-    
-    void syntax_error(string message, size_t ln = 0);
-    void read_error(string message, size_t ln = 0);
+    void throw_syntax_error(string message, size_t ln = 0);
+    void throw_read_error(string message, size_t ln = 0);
     
     string emit_css(CSS_Style style);
 
