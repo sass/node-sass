@@ -4,6 +4,7 @@
   "description": "wrapper around libsass",
   "version": "0.0.0",
   "homepage": "http://github.com/andrew/node-sass",
+  "main": "./sass.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/andrew/node-sass.git"
