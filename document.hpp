@@ -161,10 +161,10 @@ namespace Sass {
     Node parse_function_call();
     Node parse_string();
     Node parse_value_schema();
-    Node parse_if_directive(Node surrounding_ruleset, Node::Type inside_of);
-    Node parse_for_directive(Node surrounding_ruleset, Node::Type inside_of);
-    Node parse_each_directive(Node surrounding_ruleset, Node::Type inside_of);
-    Node parse_while_directive(Node surrounding_ruleset, Node::Type inside_of);
+    Node parse_if_directive(Node surrounding_ruleset, Node::Type inside_of = Node::none);
+    Node parse_for_directive(Node surrounding_ruleset, Node::Type inside_of = Node::none);
+    Node parse_each_directive(Node surrounding_ruleset, Node::Type inside_of = Node::none);
+    Node parse_while_directive(Node surrounding_ruleset, Node::Type inside_of = Node::none);
 
     Selector_Lookahead lookahead_for_selector(const char* start = 0);
     
