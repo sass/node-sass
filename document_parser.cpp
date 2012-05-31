@@ -42,6 +42,9 @@ namespace Sass {
       else if (peek< for_directive >()) {
         root << parse_for_directive(Node());
       }
+      else if (peek< each_directive >()) {
+        root << parse_each_directive(Node());
+      }
       else {
         lex< spaces_and_comments >();
         throw_syntax_error("invalid top-level expression");
@@ -496,6 +499,9 @@ namespace Sass {
       else if (peek< for_directive >()) {
         block << parse_for_directive(surrounding_ruleset);
       }
+      else if (peek< each_directive >()) {
+        block << parse_each_directive(surrounding_ruleset);
+      }
       else if (!peek< exactly<';'> >()) {
         Node rule(parse_rule());
         // check for lbrace; if it's there, we have a namespace property with a value
@@ -920,9 +926,24 @@ namespace Sass {
     Node upper_bound(parse_expression());
     if (!peek< exactly<'{'> >()) throw_syntax_error("expected '{' after the upper bound in @for directive");
     Node body(parse_block(surrounding_ruleset));
-    Node loop(context.new_Node(for_type, path, for_line, 3));
+    Node loop(context.new_Node(for_type, path, for_line, 4));
     loop << var << lower_bound << upper_bound << body;
     return loop;
+  }
+
+  Node Document::parse_each_directive(Node surrounding_ruleset)
+  {
+    lex < each_directive >();
+    size_t each_line = line;
+    if (!lex< variable >()) throw_syntax_error("@each directive requires an iteration variable");
+    Node var(context.new_Node(Node::variable, path, line, lexed));
+    if (!lex< in >()) throw_syntax_error("expected 'in' keyword in @each directive");
+    Node list(parse_list());
+    if (!peek< exactly<'{'> >()) throw_syntax_error("expected '{' after the upper bound in @each directive");
+    Node body(parse_block(surrounding_ruleset));
+    Node each(context.new_Node(Node::each_directive, path, each_line, 3));
+    each << var << list << body;
+    return each;
   }
   
   Selector_Lookahead Document::lookahead_for_selector(const char* start)

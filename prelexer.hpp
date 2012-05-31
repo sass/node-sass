@@ -322,6 +322,7 @@ namespace Sass {
     const char* through(const char* src);
 
     const char* each_directive(const char* src);
+    const char* in(const char* src);
 
     const char* while_directive(const char* src);
 

@@ -152,6 +152,11 @@ namespace Sass {
     const char* each_directive(const char* src) {
       return exactly<each_kwd>(src);
     }
+    extern const char in_kwd[] = "in";
+    const char* in(const char* src) {
+      return exactly<in_kwd>(src);
+    }
+
     extern const char while_kwd[] = "@while";
     const char* while_directive(const char* src) {
       return exactly<while_kwd>(src);
@@ -214,7 +219,7 @@ namespace Sass {
     extern const char px_kwd[] = "px";
     extern const char cm_kwd[] = "cm";
     extern const char mm_kwd[] = "mm";
-    extern const char in_kwd[] = "in";
+    // extern const char in_kwd[] = "in";
     extern const char pt_kwd[] = "pt";
     extern const char pc_kwd[] = "pc";
     extern const char deg_kwd[] = "deg";

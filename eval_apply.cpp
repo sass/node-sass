@@ -342,6 +342,21 @@ namespace Sass {
         }
       } break;
 
+      case Node::each_directive: {
+        Node fake_mixin(new_Node(Node::mixin, expr.path(), expr.line(), 3));
+        Node fake_param(new_Node(Node::parameters, expr.path(), expr.line(), 1));
+        fake_mixin << new_Node(Node::none, "", 0, 0) << (fake_param << expr[0]) << expr[2];
+        Node list(expr[1]);
+        expr.pop_back();
+        expr.pop_back();
+        expr.pop_back();
+        for (size_t i = 0, S = list.size(); i < S; ++i) {
+          Node fake_arg(new_Node(Node::arguments, expr.path(), expr.line(), 1));
+          fake_arg << eval(list[i], prefix, env, f_env, new_Node, ctx);
+          expr += apply_mixin(fake_mixin, fake_arg, prefix, env, f_env, new_Node, ctx);
+        }
+      } break;
+
       default: {
         return expr;
       } break;
