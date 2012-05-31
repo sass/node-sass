@@ -647,12 +647,12 @@ namespace Sass {
 
   // Resolve selector extensions.
 
-  void extend_selectors(vector<pair<Node, Node> >& pending, multimap<Node, Node> extensions, Node_Factory& new_Node)
+  void extend_selectors(vector<pair<Node, Node> >& pending, Node_Factory& new_Node)
   {
     for (size_t i = 0, S = pending.size(); i < S; ++i) {
       Node extender(pending[i].second[2]);
       Node ruleset_to_extend(pending[i].first);
-      Node selectors_to_extend(ruleset_to_extend[2]);
+      Node selector_to_extend(ruleset_to_extend[2]);
 
       // if (selectors_to_extend.type() != Node::selector_group) {
       //   Node ext(generate_extension(selectors_to_extend, extender, new_Node));
@@ -793,7 +793,7 @@ namespace Sass {
         } break;
       }
     }
-    return pair<Node, Node>(Node(), Node());
+    return Node();
   }
 
   // Helpers for extracting subsets of selectors
