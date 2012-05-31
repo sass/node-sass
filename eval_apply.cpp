@@ -647,12 +647,32 @@ namespace Sass {
 
   // Resolve selector extensions.
 
-  void extend_selectors(vector<pair<Node, Node> >& pending, Node_Factory& new_Node)
+  void extend_selectors(vector<pair<Node, Node> >& pending, multimap<Node, Node> extensions, Node_Factory& new_Node)
   {
     for (size_t i = 0, S = pending.size(); i < S; ++i) {
       Node extender(pending[i].second[2]);
       Node ruleset_to_extend(pending[i].first);
-      Node selector_to_extend(ruleset_to_extend[2]);
+      Node selectors_to_extend(ruleset_to_extend[2]);
+
+      // if (selectors_to_extend.type() != Node::selector_group) {
+      //   Node ext(generate_extension(selectors_to_extend, extender, new_Node));
+      //   ext.push_front(selectors_to_extend);
+      //   ruleset_to_extend[2] = ext;
+      // }
+      // else {
+      //   Node new_group(new_Node(Node::selector_group,
+      //                  selectors_to_extend.path(),
+      //                  selectors_to_extend.line(),
+      //                  selectors_to_extend.size()));
+      //   for (size_t i = 0, S = selectors_to_extend.size(); i < S; ++i) {
+      //     Node sel_i(selectors_to_extend[i]);
+      //     if (extensions.count(sel_i)) {
+      //       new_group << sel_i;
+      //       Node ext(generate_extension(sel_i, extender, new_Node));
+      //       new_group += ext;
+      //     }
+
+
       if (selector_to_extend.type() != Node::selector) {
         switch (extender.type())
         {
@@ -722,8 +742,9 @@ namespace Sass {
   // Helper for generating selector extensions; called for each extendee in a
   // selector group.
 
-  pair<Node, Node> generate_extension(Node extendee, Node extender, Node_Factory& new_Node)
+  Node generate_extension(Node extendee, Node extender, Node_Factory& new_Node)
   {
+    Node new_group(new_Node(Node::selector_group, extendee.path(), extendee.line(), 1));
     if (extendee.type() != Node::selector) {
       switch (extender.type())
       {
@@ -732,7 +753,8 @@ namespace Sass {
         case Node::simple_selector_sequence:
         case Node::selector: {
           cerr << "EXTENDING " << extendee.to_string() << " WITH " << extender.to_string() << endl;
-          return pair<Node, Node>(extender, Node());
+          new_group << extender;
+          return new_group;
         } break;
         default: {
         // handle the other cases later
@@ -750,7 +772,8 @@ namespace Sass {
             new_ext << extendee[i];
           }
           new_ext << extender;
-          return pair<Node, Node>(new_ext, Node());
+          new_group << new_ext;
+          return new_group;
         } break;
 
         case Node::selector: {
@@ -761,7 +784,8 @@ namespace Sass {
           new_ext2 += selector_prefix(extender, new_Node);
           new_ext2 += selector_prefix(extendee, new_Node);
           new_ext2 << extender.back();
-          return pair<Node, Node>(new_ext1, new_ext2);
+          new_group << new_ext1 << new_ext2;
+          return new_group;
         } break;
 
         default: {
