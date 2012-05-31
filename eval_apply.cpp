@@ -27,6 +27,11 @@ namespace Sass {
         env[expr[0].token()] = expr;
         return expr;
       } break;
+
+      case Node::function: {
+        f_env[pair<string, size_t>(expr[0].to_string(), expr[1].size())] = Function(expr);
+        return expr;
+      } break;
       
       case Node::expansion: {
         Token name(expr[0].token());

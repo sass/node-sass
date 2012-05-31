@@ -128,14 +128,15 @@ namespace Sass {
     Node parse_import();
     Node parse_include();
     Node parse_mixin_definition();
-    Node parse_mixin_parameters();
+    Node parse_function_definition();
+    Node parse_parameters();
     Node parse_parameter();
     Node parse_mixin_call();
     Node parse_arguments();
     Node parse_argument();
     Node parse_assignment();
     Node parse_propset();
-    Node parse_ruleset(Selector_Lookahead lookahead, bool in_definition = false);
+    Node parse_ruleset(Selector_Lookahead lookahead, Node::Type inside_of = Node::none);
     Node parse_selector_schema(const char* end_of_selector);
     Node parse_selector_group();
     Node parse_selector();
@@ -144,7 +145,7 @@ namespace Sass {
     Node parse_simple_selector();
     Node parse_pseudo();
     Node parse_attribute_selector();
-    Node parse_block(Node surrounding_rulesetbool, bool in_definition = false);
+    Node parse_block(Node surrounding_rulesetbool, Node::Type inside_of = Node::none);
     Node parse_rule();
     Node parse_values();
     Node parse_list();
@@ -160,10 +161,10 @@ namespace Sass {
     Node parse_function_call();
     Node parse_string();
     Node parse_value_schema();
-    Node parse_if_directive(Node surrounding_ruleset);
-    Node parse_for_directive(Node surrounding_ruleset);
-    Node parse_each_directive(Node surrounding_ruleset);
-    Node parse_while_directive(Node surrounding_ruleset);
+    Node parse_if_directive(Node surrounding_ruleset, Node::Type inside_of);
+    Node parse_for_directive(Node surrounding_ruleset, Node::Type inside_of);
+    Node parse_each_directive(Node surrounding_ruleset, Node::Type inside_of);
+    Node parse_while_directive(Node surrounding_ruleset, Node::Type inside_of);
 
     Selector_Lookahead lookahead_for_selector(const char* start = 0);
     

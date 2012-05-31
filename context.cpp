@@ -65,13 +65,13 @@ namespace Sass {
     // cerr << "Deallocated " << i << " source string(s)." << endl;
   }
   
-  inline void Context::register_function(Function_Descriptor d, Implementation ip)
+  inline void Context::register_function(Function_Descriptor d, Primitive ip)
   {
     Function f(d, ip);
     function_env[pair<string, size_t>(f.name, f.parameters.size())] = f;
   }
   
-  inline void Context::register_function(Function_Descriptor d, Implementation ip, size_t arity)
+  inline void Context::register_function(Function_Descriptor d, Primitive ip, size_t arity)
   {
     Function f(d, ip);
     function_env[pair<string, size_t>(f.name, arity)] = f;

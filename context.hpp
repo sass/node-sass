@@ -57,8 +57,8 @@ namespace Sass {
     Context(const char* paths_str = 0);
     ~Context();
     
-    void register_function(Function_Descriptor d, Implementation ip);
-    void register_function(Function_Descriptor d, Implementation ip, size_t arity);
+    void register_function(Function_Descriptor d, Primitive ip);
+    void register_function(Function_Descriptor d, Primitive ip, size_t arity);
     void register_functions();
   };
 

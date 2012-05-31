@@ -22,6 +22,9 @@ namespace Sass {
       else if (peek< mixin >() || peek< exactly<'='> >()) {
         root << parse_mixin_definition();
       }
+      else if (peek< function >()) {
+        root << parse_function_definition();
+      }
       else if (peek< variable >()) {
         root << parse_assignment();
         if (!lex< exactly<';'> >()) throw_syntax_error("top-level variable binding must be terminated by ';'");
@@ -37,16 +40,16 @@ namespace Sass {
         if (!lex< exactly<';'> >()) throw_syntax_error("top-level @include directive must be terminated by ';'");
       }
       else if (peek< if_directive >()) {
-        root << parse_if_directive(Node());
+        root << parse_if_directive(Node(), Node::none);
       }
       else if (peek< for_directive >()) {
-        root << parse_for_directive(Node());
+        root << parse_for_directive(Node(), Node::none);
       }
       else if (peek< each_directive >()) {
-        root << parse_each_directive(Node());
+        root << parse_each_directive(Node(), Node::none);
       }
       else if (peek< while_directive >()) {
-        root << parse_while_directive(Node());
+        root << parse_while_directive(Node(), Node::none);
       }
       else {
         lex< spaces_and_comments >();
@@ -103,15 +106,30 @@ namespace Sass {
     lex< mixin >() || lex< exactly<'='> >();
     if (!lex< identifier >()) throw_syntax_error("invalid name in @mixin directive");
     Node name(context.new_Node(Node::identifier, path, line, lexed));
-    Node params(parse_mixin_parameters());
+    Node params(parse_parameters());
     if (!peek< exactly<'{'> >()) throw_syntax_error("body for mixin " + name.token().to_string() + " must begin with a '{'");
-    Node body(parse_block(Node(), true));
+    Node body(parse_block(Node(), Node::mixin));
     Node the_mixin(context.new_Node(Node::mixin, path, line, 3));
     the_mixin << name << params << body;
     return the_mixin;
   }
 
-  Node Document::parse_mixin_parameters()
+  Node Document::parse_function_definition()
+  {
+
+    lex< function >();
+    size_t func_line = line;
+    if (!lex< identifier >()) throw_syntax_error("name required for function definition");
+    Node name(context.new_Node(Node::identifier, path, line, lexed));
+    Node params(parse_parameters());
+    if (!peek< exactly<'{'> >()) throw_syntax_error("body for function " + name.to_string() + " must begin with a '{'");
+    Node body(parse_block(Node(), Node::function));
+    Node func(context.new_Node(Node::function, path, func_line, 3));
+    func << name << params << body;
+    return func;
+  }
+
+  Node Document::parse_parameters()
   {
     Node params(context.new_Node(Node::parameters, path, line, 0));
     Token name(lexed);
@@ -226,7 +244,7 @@ namespace Sass {
     return propset;
   }
 
-  Node Document::parse_ruleset(Selector_Lookahead lookahead, bool in_definition)
+  Node Document::parse_ruleset(Selector_Lookahead lookahead, Node::Type inside_of)
   {
     Node ruleset(context.new_Node(Node::ruleset, path, line, 2));
     if (lookahead.has_interpolants) {
@@ -236,7 +254,7 @@ namespace Sass {
       ruleset << parse_selector_group();
     }
     if (!peek< exactly<'{'> >()) throw_syntax_error("expected a '{' after the selector");
-    ruleset << parse_block(ruleset, in_definition);
+    ruleset << parse_block(ruleset, inside_of);
     return ruleset;
   }
 
@@ -436,7 +454,7 @@ namespace Sass {
     return attr_sel;
   }
 
-  Node Document::parse_block(Node surrounding_ruleset, bool in_definition)
+  Node Document::parse_block(Node surrounding_ruleset, Node::Type inside_of)
   {
     lex< exactly<'{'> >();
     bool semicolon = false;
@@ -455,9 +473,9 @@ namespace Sass {
         block << context.new_Node(Node::comment, path, line, lexed);
       }
       else if (peek< import >(position)) {
-        if (in_definition) {
+        if (inside_of == Node::mixin || inside_of == Node::function) {
           lex< import >(); // to adjust the line number
-          throw_syntax_error("@import directive not allowed inside mixin definition");
+          throw_syntax_error("@import directive not allowed inside definition of mixin or function");
         }
         Node imported_tree(parse_import());
         if (imported_tree.type() == Node::css_import) {
@@ -470,19 +488,34 @@ namespace Sass {
           semicolon = true;
         }
       }
-      else if (peek< include >(position)) {
-        block << parse_mixin_call();
-        semicolon = true;
-      }
       else if (lex< variable >()) {
         block << parse_assignment();
+        semicolon = true;
+      }
+      else if (peek< if_directive >()) {
+        block << parse_if_directive(surrounding_ruleset, inside_of);
+      }
+      else if (peek< for_directive >()) {
+        block << parse_for_directive(surrounding_ruleset, inside_of);
+      }
+      else if (peek< each_directive >()) {
+        block << parse_each_directive(surrounding_ruleset, inside_of);
+      }
+      else if (peek < while_directive >()) {
+        block << parse_while_directive(surrounding_ruleset, inside_of);
+      }
+      else if (inside_of == Node::function) {
+        throw_syntax_error("only variable declarations and control directives are allowed inside functions");
+      }
+      else if (peek< include >(position)) {
+        block << parse_mixin_call();
         semicolon = true;
       }
       else if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         block << parse_propset();
       }
       else if ((lookahead_result = lookahead_for_selector(position)).found) {
-        block << parse_ruleset(lookahead_result, in_definition);
+        block << parse_ruleset(lookahead_result, inside_of);
       }
       else if (peek< exactly<'+'> >()) {
         block << parse_mixin_call();
@@ -492,21 +525,8 @@ namespace Sass {
         if (surrounding_ruleset.is_null_ptr()) throw_syntax_error("@extend directive may only be used within rules");
         Node extendee(parse_simple_selector_sequence());
         context.extensions.insert(pair<Node, Node>(extendee, surrounding_ruleset));
-        cerr << "PARSED EXTENSION REQUEST: " << surrounding_ruleset[0].to_string() << " EXTENDS " << extendee.to_string() << endl;
         context.has_extensions = true;
         semicolon = true;
-      }
-      else if (peek< if_directive >()) {
-        block << parse_if_directive(surrounding_ruleset);
-      }
-      else if (peek< for_directive >()) {
-        block << parse_for_directive(surrounding_ruleset);
-      }
-      else if (peek< each_directive >()) {
-        block << parse_each_directive(surrounding_ruleset);
-      }
-      else if (peek < while_directive >()) {
-        block << parse_while_directive(surrounding_ruleset);
       }
       else if (!peek< exactly<';'> >()) {
         Node rule(parse_rule());
@@ -896,28 +916,28 @@ namespace Sass {
     return call;
   }
 
-  Node Document::parse_if_directive(Node surrounding_ruleset)
+  Node Document::parse_if_directive(Node surrounding_ruleset, Node::Type inside_of)
   {
     lex< if_directive >();
     Node conditional(context.new_Node(Node::if_directive, path, line, 2));
     conditional << parse_list(); // the predicate
     if (!lex< exactly<'{'> >()) throw_syntax_error("expected '{' after the predicate for @if");
-    conditional << parse_block(surrounding_ruleset); // the consequent
+    conditional << parse_block(surrounding_ruleset, inside_of); // the consequent
     // collect all "@else if"s
     while (lex< elseif_directive >()) {
       conditional << parse_list(); // the next predicate
       if (!lex< exactly<'{'> >()) throw_syntax_error("expected '{' after the predicate for @else if");
-      conditional << parse_block(surrounding_ruleset); // the next consequent
+      conditional << parse_block(surrounding_ruleset, inside_of); // the next consequent
     }
     // parse the "@else" if present
     if (lex< else_directive >()) {
       if (!lex< exactly<'{'> >()) throw_syntax_error("expected '{' after @else");
-      conditional << parse_block(surrounding_ruleset); // the alternative
+      conditional << parse_block(surrounding_ruleset, inside_of); // the alternative
     }
     return conditional;
   }
 
-  Node Document::parse_for_directive(Node surrounding_ruleset)
+  Node Document::parse_for_directive(Node surrounding_ruleset, Node::Type inside_of)
   {
     lex< for_directive >();
     size_t for_line = line;
@@ -931,13 +951,13 @@ namespace Sass {
     else                  throw_syntax_error("expected 'through' or 'to' keywod in @for directive");
     Node upper_bound(parse_expression());
     if (!peek< exactly<'{'> >()) throw_syntax_error("expected '{' after the upper bound in @for directive");
-    Node body(parse_block(surrounding_ruleset));
+    Node body(parse_block(surrounding_ruleset, inside_of));
     Node loop(context.new_Node(for_type, path, for_line, 4));
     loop << var << lower_bound << upper_bound << body;
     return loop;
   }
 
-  Node Document::parse_each_directive(Node surrounding_ruleset)
+  Node Document::parse_each_directive(Node surrounding_ruleset, Node::Type inside_of)
   {
     lex < each_directive >();
     size_t each_line = line;
@@ -946,18 +966,18 @@ namespace Sass {
     if (!lex< in >()) throw_syntax_error("expected 'in' keyword in @each directive");
     Node list(parse_list());
     if (!peek< exactly<'{'> >()) throw_syntax_error("expected '{' after the upper bound in @each directive");
-    Node body(parse_block(surrounding_ruleset));
+    Node body(parse_block(surrounding_ruleset, inside_of));
     Node each(context.new_Node(Node::each_directive, path, each_line, 3));
     each << var << list << body;
     return each;
   }
 
-  Node Document::parse_while_directive(Node surrounding_ruleset)
+  Node Document::parse_while_directive(Node surrounding_ruleset, Node::Type inside_of)
   {
     lex< while_directive >();
     size_t while_line = line;
     Node predicate(parse_list());
-    Node body(parse_block(surrounding_ruleset));
+    Node body(parse_block(surrounding_ruleset, inside_of));
     Node loop(context.new_Node(Node::while_directive, path, while_line, 2));
     loop << predicate << body;
     return loop;

@@ -8,7 +8,7 @@
 namespace Sass {
   using std::map;
   
-  typedef Node (*Implementation)(const vector<Token>&, map<Token, Node>&, Node_Factory& new_Node);
+  typedef Node (*Primitive)(const vector<Token>&, map<Token, Node>&, Node_Factory& new_Node);
   typedef const char* str;
   typedef str Function_Descriptor[];
   
@@ -16,15 +16,24 @@ namespace Sass {
     
     string name;
     vector<Token> parameters;
-    Implementation implementation;
+    Node definition;
+    Primitive primitive;
     
     Function()
     { /* TO DO: set up the generic callback here */ }
+
+    Function(Node def)
+    : name(def[0].to_string()),
+      parameters(vector<Token>()),
+      definition(def),
+      primitive(0)
+    { }
     
-    Function(Function_Descriptor d, Implementation ip)
+    Function(Function_Descriptor d, Primitive ip)
     : name(d[0]),
       parameters(vector<Token>()),
-      implementation(ip)
+      definition(Node()),
+      primitive(ip)
     {
       size_t len = 0;
       while (d[len+1]) ++len;
@@ -38,7 +47,10 @@ namespace Sass {
     }
     
     Node operator()(map<Token, Node>& bindings, Node_Factory& new_Node) const
-    { return implementation(parameters, bindings, new_Node); }
+    {
+      if (primitive) return primitive(parameters, bindings, new_Node);
+      else           return Node();
+    }
 
   };
   

@@ -107,6 +107,14 @@ namespace Sass {
     const char* mixin(const char* src) {
       return exactly<mixin_kwd>(src);
     }
+    extern const char function_kwd[] = "@function";
+    const char* function(const char* src) {
+      return exactly<function_kwd>(src);
+    }
+    extern const char return_kwd[] = "@return";
+    const char* ret(const char* src) {
+      return exactly<return_kwd>(src);
+    }
     extern const char include_kwd[] = "@include";
     const char* include(const char* src) {
       return exactly<include_kwd>(src);

@@ -143,6 +143,7 @@ namespace Sass {
       css_import,
       function_call,
       mixin,
+      function,
       parameters,
       expansion,
       arguments,
