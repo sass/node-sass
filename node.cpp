@@ -13,7 +13,20 @@ namespace Sass {
 
   void Node::flatten()
   {
-    if (type() != block && type() != expansion && type() != root && type() != for_through_directive && type() != for_to_directive) return;
+    switch (type())
+    {
+      case block:
+      case expansion:
+      case root:
+      case for_through_directive:
+      case for_to_directive:
+      case each_directive:
+      case while_directive:
+        break;
+
+      default:
+        return;
+    }
     // size can change during flattening, so we need to call size() on each pass
     for (size_t i = 0; i < size(); ++i) {
       switch (at(i).type())
