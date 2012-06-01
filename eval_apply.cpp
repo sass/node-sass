@@ -267,7 +267,7 @@ namespace Sass {
         // TO DO: default-constructed Function should be a generic callback (maybe)
         pair<string, size_t> sig(expr[0].token().to_string(), expr[1].size());
         if (!f_env.count(sig)) return expr;
-        return apply_function(f_env[sig], expr[1], prefix, env, f_env, new_Node, ctx);
+        else                   return apply_function(f_env[sig], expr[1], prefix, env, f_env, new_Node, ctx);
       } break;
       
       case Node::unary_plus: {
