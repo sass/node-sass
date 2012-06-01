@@ -310,7 +310,7 @@ namespace Sass {
     const char* import(const char* src);
     const char* mixin(const char* src);
     const char* function(const char* src);
-    const char* ret(const char* src);
+    const char* return_directive(const char* src);
     const char* include(const char* src);
     const char* extend(const char* src);
 
@@ -409,7 +409,6 @@ namespace Sass {
         if (mx(beg)) return beg;
         ++beg;
       }
-
       return 0;
     }
     template <char c>

@@ -124,6 +124,8 @@ namespace Sass {
           val = eval(val, prefix, env, f_env, new_Node, ctx);
         }
         Node var(expr[0]);
+        // If a binding exists (possible upframe), then update it.
+        // Otherwise, make a new on in the current frame.
         if (env.query(var.token())) {
           env[var.token()] = val;
         }
@@ -496,6 +498,7 @@ namespace Sass {
     Node params(mixin[1]);
     Node body(new_Node(mixin[2])); // clone the body
     Environment bindings;
+    // TO DO: REFACTOR THE ARG-BINDER
     // bind arguments
     for (size_t i = 0, j = 0, S = args.size(); i < S; ++i) {
       if (args[i].type() == Node::assignment) {
@@ -539,11 +542,14 @@ namespace Sass {
         }
       }
     }
+    // END ARG-BINDER
     // link the new environment and eval the mixin's body
     if (dynamic_scope) {
       bindings.link(env);
     }
     else {
+      // C-style scope for now (current/global, nothing in between). May need
+      // to implement full lexical scope someday.
       bindings.link(env.global ? *env.global : env);
     }
     for (size_t i = 0, S = body.size(); i < S; ++i) {
@@ -557,21 +563,137 @@ namespace Sass {
   
   Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
-    map<Token, Node> bindings;
-    // bind arguments
-    for (size_t i = 0, j = 0, S = args.size(); i < S; ++i) {
-      if (args[i].type() == Node::assignment) {
-        Node arg(args[i]);
-        Token name(arg[0].token());
-        bindings[name] = eval(arg[1], prefix, env, f_env, new_Node, ctx);
+    if (f.primitive) {
+      map<Token, Node> bindings;
+      // bind arguments
+      for (size_t i = 0, j = 0, S = args.size(); i < S; ++i) {
+        if (args[i].type() == Node::assignment) {
+          Node arg(args[i]);
+          Token name(arg[0].token());
+          bindings[name] = eval(arg[1], prefix, env, f_env, new_Node, ctx);
+        }
+        else {
+          // TO DO: ensure (j < f.parameters.size())
+          bindings[f.parameters[j]] = eval(args[i], prefix, env, f_env, new_Node, ctx);
+          ++j;
+        }
       }
-      else {
-        // TO DO: ensure (j < f.parameters.size())
-        bindings[f.parameters[j]] = eval(args[i], prefix, env, f_env, new_Node, ctx);
-        ++j;
+      return f(bindings, new_Node);
+    }
+    else {
+      cerr << "applying pure-Sass function" << endl;
+      Node params(f.definition[1]);
+      Node body(new_Node(f.definition[2]));
+      Environment bindings;
+      // TO DO: REFACTOR THE ARG-BINDER
+      // bind arguments
+      for (size_t i = 0, j = 0, S = args.size(); i < S; ++i) {
+        if (args[i].type() == Node::assignment) {
+          Node arg(args[i]);
+          Token name(arg[0].token());
+          // check that the keyword arg actually names a formal parameter
+          bool valid_param = false;
+          for (size_t k = 0, S = params.size(); k < S; ++k) {
+            Node param_k = params[k];
+            if (param_k.type() == Node::assignment) param_k = param_k[0];
+            if (arg[0] == param_k) {
+              valid_param = true;
+              break;
+            }
+          }
+          if (!valid_param) throw_eval_error("mixin " + f.name + " has no parameter named " + name.to_string(), arg.path(), arg.line());
+          if (!bindings.query(name)) {
+            bindings[name] = eval(arg[1], prefix, env, f_env, new_Node, ctx);
+          }
+        }
+        else {
+          // ensure that the number of ordinal args < params.size()
+          if (j >= params.size()) {
+            stringstream ss;
+            ss << "mixin " << f.name << " only takes " << params.size() << ((params.size() == 1) ? " argument" : " arguments");
+            throw_eval_error(ss.str(), args[i].path(), args[i].line());
+          }
+          Node param(params[j]);
+          Token name(param.type() == Node::variable ? param.token() : param[0].token());
+          bindings[name] = eval(args[i], prefix, env, f_env, new_Node, ctx);
+          ++j;
+        }
+      }
+      // plug the holes with default arguments if any
+      for (size_t i = 0, S = params.size(); i < S; ++i) {
+        if (params[i].type() == Node::assignment) {
+          Node param(params[i]);
+          Token name(param[0].token());
+          if (!bindings.query(name)) {
+            bindings[name] = eval(param[1], prefix, env, f_env, new_Node, ctx);
+          }
+        }
+      }
+      // END ARG-BINDER
+      bindings.link(env.global ? *env.global : env);
+      return function_eval(body, bindings, new_Node, ctx);
+    }
+  }
+
+  // Special function for evaluating pure Sass functions. The evaluation
+  // algorithm is different in this case because the body needs to be
+  // executed and a single value needs to be returned directly, rather than
+  // styles being expanded and spliced in place.
+
+  Node function_eval(Node body, Environment& bindings, Node_Factory& new_Node, Context& ctx)
+  {
+    for (size_t i = 0, S = body.size(); i < S; ++i) {
+      Node stm(body[i]);
+      switch (stm.type())
+      {
+        case Node::assignment: {
+          Node val(stm[1]);
+          if (val.type() == Node::comma_list || val.type() == Node::space_list) {
+            for (size_t i = 0, S = val.size(); i < S; ++i) {
+              if (val[i].should_eval()) val[i] = eval(val[i], Node(), bindings, ctx.function_env, new_Node, ctx);
+            }
+          }
+          else {
+            val = eval(val, Node(), bindings, ctx.function_env, new_Node, ctx);
+          }
+          Node var(stm[0]);
+          // If a binding exists (possible upframe), then update it.
+          // Otherwise, make a new on in the current frame.
+          if (bindings.query(var.token())) {
+            bindings[var.token()] = val;
+          }
+          else {
+            bindings.current_frame[var.token()] = val;
+          }
+        } break;
+
+        case Node::if_directive: {
+
+        } break;
+
+        case Node::for_through_directive:
+        case Node::for_to_directive: {
+
+        } break;
+
+        case Node::each_directive: {
+
+        } break;
+
+        case Node::while_directive: {
+
+        } break;
+
+        case Node::return_directive: {
+
+        } break;
+
+        default: {
+
+        } break;
       }
     }
-    return f(bindings, new_Node);
+    return new_Node(Node::none, "", 0, 0);
   }
 
   // Expand a selector with respect to its prefix/context. Two separate cases:

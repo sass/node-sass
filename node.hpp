@@ -153,6 +153,8 @@ namespace Sass {
       for_to_directive,
       each_directive,
       while_directive,
+      return_directive,
+      content_directive,
 
       variable,
       assignment

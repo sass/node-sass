@@ -112,7 +112,7 @@ namespace Sass {
       return exactly<function_kwd>(src);
     }
     extern const char return_kwd[] = "@return";
-    const char* ret(const char* src) {
+    const char* return_directive(const char* src) {
       return exactly<return_kwd>(src);
     }
     extern const char include_kwd[] = "@include";

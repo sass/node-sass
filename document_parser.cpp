@@ -504,6 +504,12 @@ namespace Sass {
       else if (peek < while_directive >()) {
         block << parse_while_directive(surrounding_ruleset, inside_of);
       }
+      else if (lex < return_directive >()) {
+        Node ret_expr(context.new_Node(Node::return_directive, path, line, 1));
+        ret_expr << parse_list();
+        block << ret_expr;
+        semicolon = true;
+      }
       else if (inside_of == Node::function) {
         throw_syntax_error("only variable declarations and control directives are allowed inside functions");
       }
