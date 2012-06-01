@@ -268,7 +268,7 @@ namespace Sass {
       case Node::function_call: {
         // TO DO: default-constructed Function should be a generic callback (maybe)
         pair<string, size_t> sig(expr[0].token().to_string(), expr[1].size());
-        if (!f_env.count(sig)) return expr;
+        if (!f_env.count(sig)) return expr; // TO DO: EVAL THE ARGUMENTS
         else                   return apply_function(f_env[sig], expr[1], prefix, env, f_env, new_Node, ctx);
       } break;
       
@@ -631,7 +631,7 @@ namespace Sass {
       }
       // END ARG-BINDER
       bindings.link(env.global ? *env.global : env);
-      return function_eval(body, bindings, new_Node, ctx);
+      return function_eval(body, bindings, new_Node, ctx, true);
     }
   }
 
@@ -640,8 +640,9 @@ namespace Sass {
   // executed and a single value needs to be returned directly, rather than
   // styles being expanded and spliced in place.
 
-  Node function_eval(Node body, Environment& bindings, Node_Factory& new_Node, Context& ctx)
+  Node function_eval(Node body, Environment& bindings, Node_Factory& new_Node, Context& ctx, bool toplevel)
   {
+    cerr << "function eval" << endl;
     for (size_t i = 0, S = body.size(); i < S; ++i) {
       Node stm(body[i]);
       switch (stm.type())
@@ -668,7 +669,23 @@ namespace Sass {
         } break;
 
         case Node::if_directive: {
-
+          for (size_t j = 0, S = stm.size(); j < S; j += 2) {
+            if (stm[j].type() != Node::block) {
+              cerr << "consequent " << j+1 << endl;
+              Node predicate_val(eval(stm[j], Node(), bindings, ctx.function_env, new_Node, ctx));
+              if ((predicate_val.type() != Node::boolean) || predicate_val.boolean_value()) {
+                Node v(function_eval(stm[j+1], bindings, new_Node, ctx));
+                if (v.is_null_ptr()) break;
+                else                 return v;
+              }
+            }
+            else {
+              cerr << "alternative" << endl;
+              Node v(function_eval(stm[j], bindings, new_Node, ctx));
+              if (v.is_null_ptr()) break;
+              else                 return v;
+            }
+          }
         } break;
 
         case Node::for_through_directive:
@@ -685,7 +702,8 @@ namespace Sass {
         } break;
 
         case Node::return_directive: {
-
+          cerr << "blah" << endl;
+          return eval(stm[0], Node(), bindings, ctx.function_env, new_Node, ctx);
         } break;
 
         default: {
@@ -693,7 +711,8 @@ namespace Sass {
         } break;
       }
     }
-    return new_Node(Node::none, "", 0, 0);
+    if (toplevel) throw_eval_error("function finished without @return", body.path(), body.line());
+    return Node();
   }
 
   // Expand a selector with respect to its prefix/context. Two separate cases:
