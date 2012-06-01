@@ -581,7 +581,6 @@ namespace Sass {
       return f(bindings, new_Node);
     }
     else {
-      cerr << "applying pure-Sass function" << endl;
       Node params(f.definition[1]);
       Node body(new_Node(f.definition[2]));
       Environment bindings;
@@ -631,7 +630,7 @@ namespace Sass {
       }
       // END ARG-BINDER
       bindings.link(env.global ? *env.global : env);
-      return function_eval(body, bindings, new_Node, ctx, true);
+      return function_eval(f.name, body, bindings, new_Node, ctx, true);
     }
   }
 
@@ -640,7 +639,7 @@ namespace Sass {
   // executed and a single value needs to be returned directly, rather than
   // styles being expanded and spliced in place.
 
-  Node function_eval(Node body, Environment& bindings, Node_Factory& new_Node, Context& ctx, bool toplevel)
+  Node function_eval(string name, Node body, Environment& bindings, Node_Factory& new_Node, Context& ctx, bool at_toplevel)
   {
     cerr << "function eval" << endl;
     for (size_t i = 0, S = body.size(); i < S; ++i) {
@@ -674,14 +673,14 @@ namespace Sass {
               cerr << "consequent " << j+1 << endl;
               Node predicate_val(eval(stm[j], Node(), bindings, ctx.function_env, new_Node, ctx));
               if ((predicate_val.type() != Node::boolean) || predicate_val.boolean_value()) {
-                Node v(function_eval(stm[j+1], bindings, new_Node, ctx));
+                Node v(function_eval(name, stm[j+1], bindings, new_Node, ctx));
                 if (v.is_null_ptr()) break;
                 else                 return v;
               }
             }
             else {
               cerr << "alternative" << endl;
-              Node v(function_eval(stm[j], bindings, new_Node, ctx));
+              Node v(function_eval(name, stm[j], bindings, new_Node, ctx));
               if (v.is_null_ptr()) break;
               else                 return v;
             }
@@ -690,7 +689,21 @@ namespace Sass {
 
         case Node::for_through_directive:
         case Node::for_to_directive: {
-
+          Node::Type for_type = stm.type();
+          Node iter_var(stm[0]);
+          Node lower_bound(eval(stm[1], Node(), bindings, ctx.function_env, new_Node, ctx));
+          Node upper_bound(eval(stm[2], Node(), bindings, ctx.function_env, new_Node, ctx));
+          Node for_body(stm[3]);
+          Environment for_env; // need to re-use this env for each iteration
+          for_env.link(bindings);
+          for (double j = lower_bound.numeric_value(), T = upper_bound.numeric_value() + ((for_type == Node::for_to_directive) ? 0 : 1);
+               j < T;
+               j += 1) {
+            for_env.current_frame[iter_var.token()] = new_Node(lower_bound.path(), lower_bound.line(), j);
+            Node v(function_eval(name, for_body, for_env, new_Node, ctx));
+            if (v.is_null_ptr()) continue;
+            else                 return v;
+          }
         } break;
 
         case Node::each_directive: {
@@ -711,7 +724,7 @@ namespace Sass {
         } break;
       }
     }
-    if (toplevel) throw_eval_error("function finished without @return", body.path(), body.line());
+    if (at_toplevel) throw_eval_error("function finished without @return", body.path(), body.line());
     return Node();
   }
 
