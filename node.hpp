@@ -173,6 +173,7 @@ namespace Sass {
     bool& should_eval() const;
     bool& is_unquoted() const;
     bool is_numeric() const;
+    bool is_guarded() const;
 
     string& path() const;
     size_t line() const;
@@ -349,6 +350,7 @@ namespace Sass {
   inline bool& Node::should_eval() const   { return ip_->should_eval; }
   inline bool& Node::is_unquoted() const   { return ip_->is_unquoted; }
   inline bool Node::is_numeric() const     { return ip_->is_numeric(); }
+  inline bool Node::is_guarded() const     { return (type() == assignment) && (size() == 3); }
   
   inline string& Node::path() const  { return ip_->path; }
   inline size_t  Node::line() const  { return ip_->line; }

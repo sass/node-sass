@@ -271,6 +271,13 @@ namespace Sass {
                        spaces_and_comments,
                        exactly<important_kwd> >(src);
     }
+    // Match Sass "!default" keyword.
+    extern const char default_kwd[] = "default";
+    const char* default_flag(const char* src) {
+      return sequence< exactly<'!'>,
+                       spaces_and_comments,
+                       exactly<default_kwd> >(src);
+    }
     // Match CSS pseudo-class/element prefixes.
     const char* pseudo_prefix(const char* src) {
       return sequence< exactly<':'>, optional< exactly<':'> > >(src);

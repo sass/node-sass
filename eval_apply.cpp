@@ -124,6 +124,7 @@ namespace Sass {
           val = eval(val, prefix, env, f_env, new_Node, ctx);
         }
         Node var(expr[0]);
+        if (expr.is_guarded() && env.query(var.token())) return expr;
         // If a binding exists (possible upframe), then update it.
         // Otherwise, make a new on in the current frame.
         if (env.query(var.token())) {
@@ -657,6 +658,7 @@ namespace Sass {
             val = eval(val, Node(), bindings, ctx.function_env, new_Node, ctx);
           }
           Node var(stm[0]);
+          if (stm.is_guarded() && bindings.query(var.token())) continue;
           // If a binding exists (possible upframe), then update it.
           // Otherwise, make a new on in the current frame.
           if (bindings.query(var.token())) {

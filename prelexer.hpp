@@ -351,6 +351,8 @@ namespace Sass {
     const char* uri(const char* src);
     // Match CSS "!important" keyword.
     const char* important(const char* src);
+    // Match Sass "!default" keyword.
+    const char* default_flag(const char* src);
     // Match CSS pseudo-class/element prefixes
     const char* pseudo_prefix(const char* src);
     // Match CSS function call openers.

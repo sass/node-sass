@@ -218,6 +218,7 @@ namespace Sass {
     Node val(parse_list());
     Node assn(context.new_Node(Node::assignment, path, line, 2));
     assn << var << val;
+    if (lex< default_flag >()) assn << context.new_Node(Node::none, path, line, 0);
     return assn;
   }
   
@@ -609,7 +610,8 @@ namespace Sass {
         peek< exactly<'}'> >(position) ||
         peek< exactly<'{'> >(position) ||
         peek< exactly<')'> >(position) ||
-        peek< exactly<','> >(position))
+        peek< exactly<','> >(position) ||
+        peek< default_flag >(position))
     { return disj1; }
     
     Node space_list(context.new_Node(Node::space_list, path, line, 2));
@@ -620,7 +622,8 @@ namespace Sass {
              peek< exactly<'}'> >(position) ||
              peek< exactly<'{'> >(position) ||
              peek< exactly<')'> >(position) ||
-             peek< exactly<','> >(position)))
+             peek< exactly<','> >(position) ||
+             peek< default_flag >(position)))
     {
       Node disj(parse_disjunction());
       space_list << disj;
