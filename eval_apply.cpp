@@ -642,7 +642,6 @@ namespace Sass {
 
   Node function_eval(string name, Node body, Environment& bindings, Node_Factory& new_Node, Context& ctx, bool at_toplevel)
   {
-    cerr << "function eval" << endl;
     for (size_t i = 0, S = body.size(); i < S; ++i) {
       Node stm(body[i]);
       switch (stm.type())
@@ -672,7 +671,6 @@ namespace Sass {
         case Node::if_directive: {
           for (size_t j = 0, S = stm.size(); j < S; j += 2) {
             if (stm[j].type() != Node::block) {
-              cerr << "consequent " << j+1 << endl;
               Node predicate_val(eval(stm[j], Node(), bindings, ctx.function_env, new_Node, ctx));
               if ((predicate_val.type() != Node::boolean) || predicate_val.boolean_value()) {
                 Node v(function_eval(name, stm[j+1], bindings, new_Node, ctx));
@@ -681,7 +679,6 @@ namespace Sass {
               }
             }
             else {
-              cerr << "alternative" << endl;
               Node v(function_eval(name, stm[j], bindings, new_Node, ctx));
               if (v.is_null_ptr()) break;
               else                 return v;
@@ -696,7 +693,7 @@ namespace Sass {
           Node lower_bound(eval(stm[1], Node(), bindings, ctx.function_env, new_Node, ctx));
           Node upper_bound(eval(stm[2], Node(), bindings, ctx.function_env, new_Node, ctx));
           Node for_body(stm[3]);
-          Environment for_env; // need to re-use this env for each iteration
+          Environment for_env; // re-use this env for each iteration
           for_env.link(bindings);
           for (double j = lower_bound.numeric_value(), T = upper_bound.numeric_value() + ((for_type == Node::for_to_directive) ? 0 : 1);
                j < T;
@@ -709,7 +706,17 @@ namespace Sass {
         } break;
 
         case Node::each_directive: {
-
+          Node iter_var(stm[0]);
+          Node list(stm[1]);
+          Node each_body(stm[2]);
+          Environment each_env; // re-use this env for each iteration
+          each_env.link(bindings);
+          for (size_t j = 0, T = list.size(); j < T; ++j) {
+            each_env.current_frame[iter_var.token()] = eval(list[j], Node(), bindings, ctx.function_env, new_Node, ctx);
+            Node v(function_eval(name, each_body, each_env, new_Node, ctx));
+            if (v.is_null_ptr()) continue;
+            else return v;
+          }
         } break;
 
         case Node::while_directive: {
