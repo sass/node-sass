@@ -247,7 +247,7 @@ namespace Sass {
 
   Node Document::parse_ruleset(Selector_Lookahead lookahead, Node::Type inside_of)
   {
-    Node ruleset(context.new_Node(Node::ruleset, path, line, 2));
+    Node ruleset(context.new_Node(Node::ruleset, path, line, 3));
     if (lookahead.has_interpolants) {
       ruleset << parse_selector_schema(lookahead.found);
     }
