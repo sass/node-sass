@@ -145,7 +145,7 @@ namespace Sass {
     Node parse_simple_selector();
     Node parse_pseudo();
     Node parse_attribute_selector();
-    Node parse_block(Node surrounding_rulesetbool, Node::Type inside_of = Node::none);
+    Node parse_block(Node surrounding_ruleset, Node::Type inside_of = Node::none);
     Node parse_rule();
     Node parse_values();
     Node parse_list();
@@ -165,6 +165,8 @@ namespace Sass {
     Node parse_for_directive(Node surrounding_ruleset, Node::Type inside_of = Node::none);
     Node parse_each_directive(Node surrounding_ruleset, Node::Type inside_of = Node::none);
     Node parse_while_directive(Node surrounding_ruleset, Node::Type inside_of = Node::none);
+    Node parse_media_query(Node::Type inside_of = Node::none);
+    Node parse_media_expression();
 
     Selector_Lookahead lookahead_for_selector(const char* start = 0);
     

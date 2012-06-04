@@ -103,6 +103,10 @@ namespace Sass {
     const char* import(const char* src) {
       return exactly<import_kwd>(src);
     }
+    extern const char media_kwd[] = "@media";
+    const char* media(const char* src) {
+      return exactly<media_kwd>(src);
+    }
     extern const char mixin_kwd[] = "@mixin";
     const char* mixin(const char* src) {
       return exactly<mixin_kwd>(src);

@@ -308,6 +308,7 @@ namespace Sass {
     // Match CSS '@' keywords.
     const char* at_keyword(const char* src);
     const char* import(const char* src);
+    const char* media(const char* src);
     const char* mixin(const char* src);
     const char* function(const char* src);
     const char* return_directive(const char* src);

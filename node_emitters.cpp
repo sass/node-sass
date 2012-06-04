@@ -19,11 +19,36 @@ namespace Sass {
   {
     switch (type())
     {
-      case selector_group: { // really only needed for arg to :not
+      case selector_group:
+      case media_expression_group: { // really only needed for arg to :not
         string result(at(0).to_string());
         for (size_t i = 1, S = size(); i < S; ++i) {
           result += ", ";
           result += at(i).to_string();
+        }
+        return result;
+      } break;
+
+      case media_expression: {
+        string result;
+        if (at(0).type() == rule) {
+          result += "(";
+          result += at(0).to_string();
+          result += ")";
+        }
+        else {
+          result += at(0).to_string();
+        }
+        for (size_t i = 1, S = size(); i < S; ++i) {
+          result += " ";
+          if (at(i).type() == rule) {
+            result += "(";
+            result += at(i).to_string();
+            result += ")";
+          }
+          else {
+            result += at(i).to_string();
+          }
         }
         return result;
       } break;
@@ -81,6 +106,13 @@ namespace Sass {
           result += at(i).to_string();
         }
         result += ']';
+        return result;
+      } break;
+
+      case rule: {
+        string result(at(0).to_string());
+        result += ": ";
+        result += at(1).to_string();
         return result;
       } break;
 
@@ -295,16 +327,16 @@ namespace Sass {
     }
   }
 
-  void Node::emit_nested_css(stringstream& buf, size_t depth, bool at_toplevel)
+  void Node::emit_nested_css(stringstream& buf, size_t depth, bool at_toplevel, bool in_media_query)
   {
     switch (type())
     {
-      case root:
+      case root: {
         if (has_expansions()) flatten();
         for (size_t i = 0, S = size(); i < S; ++i) {
           at(i).emit_nested_css(buf, depth, true);
         }
-        break;
+      } break;
 
       case ruleset: {
         Node sel_group(at(2));
@@ -321,18 +353,26 @@ namespace Sass {
               block[i].emit_nested_css(buf, depth+1);
             }
           }
-          buf << " }" << endl;
+          buf << " }";
+          if (!in_media_query || (in_media_query && block.has_blocks())) buf << endl;
           ++depth; // if we printed content at this level, we need to indent any nested rulesets
         }
         if (block.has_blocks()) {
           for (size_t i = 0, S = block.size(); i < S; ++i) {
-            if (block[i].type() == ruleset) {
-              block[i].emit_nested_css(buf, depth);
+            if (block[i].type() == ruleset || block[i].type() == media_query) {
+              block[i].emit_nested_css(buf, depth, false, in_media_query);
             }
           }
         }
         if (block.has_statements()) --depth; // see previous comment
-        if ((depth == 0) && at_toplevel) buf << endl;
+        if ((depth == 0) && at_toplevel && !in_media_query) buf << endl;
+      } break;
+
+      case media_query: {
+        buf << string(2*depth, ' ');
+        buf << "@media " << at(0).to_string() << " {" << endl;
+        at(1).emit_nested_css(buf, depth+1, false, true);
+        buf << " }" << endl;
       } break;
 
       case propset: {

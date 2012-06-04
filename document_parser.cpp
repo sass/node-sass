@@ -51,6 +51,9 @@ namespace Sass {
       else if (peek< while_directive >()) {
         root << parse_while_directive(Node(), Node::none);
       }
+      else if (peek< media >()) {
+        root << parse_media_query(Node::none);
+      }
       else {
         lex< spaces_and_comments >();
         throw_syntax_error("invalid top-level expression");
@@ -535,6 +538,9 @@ namespace Sass {
         context.has_extensions = true;
         semicolon = true;
       }
+      else if (peek< media >()) {
+        block << parse_media_query(inside_of);
+      }
       else if (!peek< exactly<';'> >()) {
         Node rule(parse_rule());
         // check for lbrace; if it's there, we have a namespace property with a value
@@ -991,7 +997,62 @@ namespace Sass {
     loop << predicate << body;
     return loop;
   }
-  
+
+  Node Document::parse_media_query(Node::Type inside_of)
+  {
+    lex< media >();
+    Node media_query(context.new_Node(Node::media_query, path, line, 2));
+    Node media_expr(parse_media_expression());
+    if (peek< exactly<'{'> >()) {
+      media_query << media_expr;
+    }
+    else if (peek< exactly<','> >()) {
+      Node media_expr_group(context.new_Node(Node::media_expression_group, path, line, 2));
+      media_expr_group << media_expr;
+      while (lex< exactly<','> >()) {
+        media_expr_group << parse_media_expression();
+      }
+      media_query << media_expr_group;
+    }
+    else {
+      throw_syntax_error("expected '{' in media query");
+    }
+    media_query << parse_block(Node(), inside_of);
+    return media_query;
+  }
+
+  // extern const char not_kwd[] = "not";
+  extern const char only_kwd[] = "only";
+  Node Document::parse_media_expression()
+  {
+    Node media_expr(context.new_Node(Node::media_expression, path, line, 1));
+    // if the query begins with 'not' or 'only', then a media type is required
+    if (lex< not_kwd >() || lex< exactly<only_kwd> >()) {
+      media_expr << context.new_Node(Node::identifier, path, line, lexed);
+      if (!lex< identifier >()) throw_syntax_error("media type expected in media query");
+      media_expr << context.new_Node(Node::identifier, path, line, lexed);
+    }
+    // otherwise, the media type is optional
+    else if (lex< identifier >()) {
+      media_expr << context.new_Node(Node::identifier, path, line, lexed);
+    }
+    // if no media type was present, then require a parenthesized property
+    if (media_expr.empty()) {
+      if (!lex< exactly<'('> >()) throw_syntax_error("invalid media query");
+      media_expr << parse_rule();
+      if (!lex< exactly<')'> >()) throw_syntax_error("unclosed parenthesis");
+    }
+    // parse the rest of the properties for this disjunct
+    while (!peek< exactly<','> >() && !peek< exactly<'{'> >()) {
+      if (!lex< and_kwd >()) throw_syntax_error("invalid media query");
+      media_expr << context.new_Node(Node::identifier, path, line, lexed);
+      if (!lex< exactly<'('> >()) throw_syntax_error("invalid media query");
+      media_expr << parse_rule();
+      if (!lex< exactly<')'> >()) throw_syntax_error("unclosed parenthesis");
+    }
+    return media_expr;
+  }
+ 
   Selector_Lookahead Document::lookahead_for_selector(const char* start)
   {
     const char* p = start ? start : position;

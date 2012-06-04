@@ -74,6 +74,7 @@ namespace Sass {
       root,
       ruleset,
       propset,
+      media_query,
 
       selector_group,
       selector,
@@ -89,6 +90,9 @@ namespace Sass {
       functional_pseudo,
       attribute_selector,
       selector_schema,
+
+      media_expression_group,
+      media_expression,
 
       block,
       rule,
@@ -212,7 +216,7 @@ namespace Sass {
     bool operator>=(Node rhs) const;
 
     string to_string() const;
-    void emit_nested_css(stringstream& buf, size_t depth, bool at_toplevel = false);
+    void emit_nested_css(stringstream& buf, size_t depth, bool at_toplevel = false, bool in_media_query = false);
     void emit_propset(stringstream& buf, size_t depth, const string& prefix);
     void echo(stringstream& buf, size_t depth = 0);
     void emit_expanded_css(stringstream& buf, const string& prefix);
@@ -286,6 +290,7 @@ namespace Sass {
         case Node::rule:
         case Node::propset:   has_statements = true; break;
 
+        case Node::media_query:
         case Node::ruleset:   has_blocks     = true; break;
 
         case Node::if_directive:
@@ -312,9 +317,19 @@ namespace Sass {
         case Node::css_import:
         case Node::rule:
         case Node::propset:   has_statements = true; break;
+
+        case Node::media_query:
         case Node::ruleset:   has_blocks     = true; break;
+
+        case Node::if_directive:
+        case Node::for_through_directive:
+        case Node::for_to_directive:
+        case Node::each_directive:
+        case Node::while_directive:
         case Node::expansion: has_expansions = true; break;
+
         case Node::backref:   has_backref    = true; break;
+
         default:                                     break;
       }
       if (n.has_backref()) has_backref = true;

@@ -51,7 +51,6 @@ namespace Sass {
       } break;
 
       case Node::ruleset: {
-
         // if the selector contains interpolants, eval it and re-parse
         if (expr[0].type() == Node::selector_schema) {
           expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
@@ -59,7 +58,6 @@ namespace Sass {
 
         // expand the selector with the prefix and save it in expr[2]
         expr << expand_selector(expr[0], prefix, new_Node);
-
         // gather selector extensions into a pending queue
         if (ctx.has_extensions) {
           Node sel(selector_base(expr.back()));
@@ -74,6 +72,14 @@ namespace Sass {
 
         // eval the body with the current selector as the prefix
         eval(expr[1], expr.back(), env, f_env, new_Node, ctx);
+        return expr;
+      } break;
+
+      case Node::media_query: {
+        Node block(expr[1]);
+        Node new_ruleset(new_Node(Node::ruleset, expr.path(), expr.line(), 3));
+        new_ruleset << prefix << block << prefix;
+        expr[1] = eval(new_ruleset, new_Node(Node::none, expr.path(), expr.line(), 0), env, f_env, new_Node, ctx);
         return expr;
       } break;
 
