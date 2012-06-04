@@ -20,7 +20,7 @@ namespace Sass {
   Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx);
   Node expand_selector(Node sel, Node pre, Node_Factory& new_Node);
   Node expand_backref(Node sel, Node pre);
-  void extend_selectors(vector<pair<Node, Node> >&, Node_Factory&);
+  void extend_selectors(vector<pair<Node, Node> >&, multimap<Node, Node>&, Node_Factory&);
   Node generate_extension(Node extendee, Node extender, Node_Factory& new_Node);
 
   Node selector_prefix(Node sel, Node_Factory& new_Node);

@@ -204,7 +204,8 @@ namespace Sass {
     Token  token() const;
     Token  unit() const;
 
-    bool is_null_ptr() const;
+    bool is_null_ptr() const { return !ip_; }
+    bool is(Node n) const { return ip_ == n.ip_; }
 
     void flatten();
     
@@ -406,7 +407,5 @@ namespace Sass {
   inline double Node::numeric_value() const { return ip_->numeric_value(); }
   inline Token  Node::token() const         { return ip_->value.token; }
   inline Token  Node::unit() const          { return ip_->unit(); }
-
-  inline bool Node::is_null_ptr() const { return !ip_; }
 
 }

@@ -58,14 +58,28 @@ namespace Sass {
 
         // expand the selector with the prefix and save it in expr[2]
         expr << expand_selector(expr[0], prefix, new_Node);
+
         // gather selector extensions into a pending queue
         if (ctx.has_extensions) {
-          Node sel(selector_base(expr.back()));
-          // if (sel.type() == Node::selector) sel = sel.back();
-          if (ctx.extensions.count(sel)) {
-            cerr << ctx.extensions.count(sel) << endl;
-            for (multimap<Node, Node>::iterator i = ctx.extensions.lower_bound(sel); i != ctx.extensions.upper_bound(sel); ++i) {
-              ctx.pending_extensions.push_back(pair<Node, Node>(expr, i->second));
+          // check single selector
+          if (expr.back().type() != Node::selector_group) {
+            Node sel(selector_base(expr.back()));
+            if (ctx.extensions.count(sel)) {
+              for (multimap<Node, Node>::iterator i = ctx.extensions.lower_bound(sel); i != ctx.extensions.upper_bound(sel); ++i) {
+                ctx.pending_extensions.push_back(pair<Node, Node>(expr, i->second));
+              }
+            }
+          }
+          // individually check each selector in a group
+          else {
+            Node group(expr.back());
+            for (size_t i = 0, S = group.size(); i < S; ++i) {
+              Node sel(selector_base(group[i]));
+              if (ctx.extensions.count(sel)) {
+                for (multimap<Node, Node>::iterator j = ctx.extensions.lower_bound(sel); j != ctx.extensions.upper_bound(sel); ++j) {
+                  ctx.pending_extensions.push_back(pair<Node, Node>(expr, j->second));
+                }
+              }
             }
           }
         }
@@ -871,100 +885,135 @@ namespace Sass {
 
   // Resolve selector extensions.
 
-  void extend_selectors(vector<pair<Node, Node> >& pending, Node_Factory& new_Node)
+  void extend_selectors(vector<pair<Node, Node> >& pending, multimap<Node, Node>& extension_table, Node_Factory& new_Node)
   {
     for (size_t i = 0, S = pending.size(); i < S; ++i) {
       Node extender(pending[i].second[2]);
+      Node original_extender(pending[i].second[0]);
       Node ruleset_to_extend(pending[i].first);
-      Node selector_to_extend(ruleset_to_extend[2]);
+      Node extendee(ruleset_to_extend[2]);
+      cerr << "extending!" << endl;
 
-      // if (selectors_to_extend.type() != Node::selector_group) {
-      //   Node ext(generate_extension(selectors_to_extend, extender, new_Node));
-      //   ext.push_front(selectors_to_extend);
+      if (extendee.type() != Node::selector_group && extender.type() != Node::selector_group) {
+        Node ext(generate_extension(extendee, extender, new_Node));
+        ext.push_front(extendee);
+        ruleset_to_extend[2] = ext;
+      }
+      else if (extendee.type() == Node::selector_group && extender.type() != Node::selector_group) {
+        cerr << "extending a group with a singleton!" << endl;
+        Node new_group(new_Node(Node::selector_group, extendee.path(), extendee.line(), extendee.size()));
+        for (size_t i = 0, S = extendee.size(); i < S; ++i) {
+          new_group << extendee[i];
+          if (extension_table.count(extendee[i])) {
+            new_group << generate_extension(extendee[i], extender, new_Node);
+          }
+        }
+        ruleset_to_extend[2] = new_group;
+      }
+      else if (extendee.type() != Node::selector_group && extender.type() == Node::selector_group) {
+        cerr << "extending a singleton with a group!" << endl;
+      }
+      else {
+        cerr << "skipping this for now!" << endl;
+      }
+
+      // if (selector_to_extend.type() != Node::selector_group) {
+      //   Node ext(generate_extension(selector_to_extend, extender, new_Node));
+      //   ext.push_front(selector_to_extend);
       //   ruleset_to_extend[2] = ext;
       // }
       // else {
+      //   cerr << "possibly extending a selector in a group: " << selector_to_extend.to_string() << endl;
       //   Node new_group(new_Node(Node::selector_group,
-      //                  selectors_to_extend.path(),
-      //                  selectors_to_extend.line(),
-      //                  selectors_to_extend.size()));
-      //   for (size_t i = 0, S = selectors_to_extend.size(); i < S; ++i) {
-      //     Node sel_i(selectors_to_extend[i]);
-      //     if (extensions.count(sel_i)) {
-      //       new_group << sel_i;
-      //       Node ext(generate_extension(sel_i, extender, new_Node));
-      //       new_group += ext;
+      //                  selector_to_extend.path(),
+      //                  selector_to_extend.line(),
+      //                  selector_to_extend.size()));
+      //   for (size_t i = 0, S = selector_to_extend.size(); i < S; ++i) {
+      //     Node sel_i(selector_to_extend[i]);
+      //     Node sel_ib(selector_base(sel_i));
+      //     if (extension_table.count(sel_ib)) {
+      //       for (multimap<Node, Node>::iterator i = extension_table.lower_bound(sel_ib); i != extension_table.upper_bound(sel_ib); ++i) {
+      //         if (i->second.is(original_extender)) {
+      //           new_group << sel_i;
+      //           new_group += generate_extension(sel_i, extender, new_Node);
+      //         }
+      //         else {
+      //           cerr << "not what you think is happening!" << endl;
+      //         }
+      //       }
       //     }
+      //   }
+      //   ruleset_to_extend[2] = new_group;
+      // }
 
+      // if (selector_to_extend.type() != Node::selector) {
+      //   switch (extender.type())
+      //   {
+      //     case Node::simple_selector:
+      //     case Node::attribute_selector:
+      //     case Node::simple_selector_sequence:
+      //     case Node::selector: {
+      //       cerr << "EXTENDING " << selector_to_extend.to_string() << " WITH " << extender.to_string() << endl;
+      //       if (selector_to_extend.type() == Node::selector_group) {
+      //         selector_to_extend << extender;
+      //       }
+      //       else {
+      //         Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
+      //         new_group << selector_to_extend << extender;
+      //         ruleset_to_extend[2] = new_group;
+      //       }
+      //     } break;
+      //     default: {
+      //     // handle the other cases later
+      //     }
+      //   }
+      // }
+      // else {
+      //   switch (extender.type())
+      //   {
+      //     case Node::simple_selector:
+      //     case Node::attribute_selector:
+      //     case Node::simple_selector_sequence: {
+      //       Node new_ext(new_Node(selector_to_extend));
+      //       new_ext.back() = extender;
+      //       if (selector_to_extend.type() == Node::selector_group) {
+      //         selector_to_extend << new_ext;
+      //       }
+      //       else {
+      //         Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
+      //         new_group << selector_to_extend << new_ext;
+      //         ruleset_to_extend[2] = new_group;
+      //       }
+      //     } break;
 
-      if (selector_to_extend.type() != Node::selector) {
-        switch (extender.type())
-        {
-          case Node::simple_selector:
-          case Node::attribute_selector:
-          case Node::simple_selector_sequence:
-          case Node::selector: {
-            cerr << "EXTENDING " << selector_to_extend.to_string() << " WITH " << extender.to_string() << endl;
-            if (selector_to_extend.type() == Node::selector_group) {
-              selector_to_extend << extender;
-            }
-            else {
-              Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
-              new_group << selector_to_extend << extender;
-              ruleset_to_extend[2] = new_group;
-            }
-          } break;
-          default: {
-          // handle the other cases later
-          }
-        }
-      }
-      else {
-        switch (extender.type())
-        {
-          case Node::simple_selector:
-          case Node::attribute_selector:
-          case Node::simple_selector_sequence: {
-            Node new_ext(new_Node(selector_to_extend));
-            new_ext.back() = extender;
-            if (selector_to_extend.type() == Node::selector_group) {
-              selector_to_extend << new_ext;
-            }
-            else {
-              Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
-              new_group << selector_to_extend << new_ext;
-              ruleset_to_extend[2] = new_group;
-            }
-          } break;
+      //     case Node::selector: {
+      //       Node new_ext1(new_Node(Node::selector, selector_to_extend.path(), selector_to_extend.line(), selector_to_extend.size() + extender.size() - 1));
+      //       Node new_ext2(new_Node(Node::selector, selector_to_extend.path(), selector_to_extend.line(), selector_to_extend.size() + extender.size() - 1));
+      //       new_ext1 += selector_prefix(selector_to_extend, new_Node);
+      //       new_ext1 += extender;
+      //       new_ext2 += selector_prefix(extender, new_Node);
+      //       new_ext2 += selector_prefix(selector_to_extend, new_Node);
+      //       new_ext2 << extender.back();
+      //       if (selector_to_extend.type() == Node::selector_group) {
+      //         selector_to_extend << new_ext1 << new_ext2;
+      //       }
+      //       else {
+      //         Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
+      //         new_group << selector_to_extend << new_ext1 << new_ext2;
+      //         ruleset_to_extend[2] = new_group;
+      //       }
+      //     } break;
 
-          case Node::selector: {
-            Node new_ext1(new_Node(Node::selector, selector_to_extend.path(), selector_to_extend.line(), selector_to_extend.size() + extender.size() - 1));
-            Node new_ext2(new_Node(Node::selector, selector_to_extend.path(), selector_to_extend.line(), selector_to_extend.size() + extender.size() - 1));
-            new_ext1 += selector_prefix(selector_to_extend, new_Node);
-            new_ext1 += extender;
-            new_ext2 += selector_prefix(extender, new_Node);
-            new_ext2 += selector_prefix(selector_to_extend, new_Node);
-            new_ext2 << extender.back();
-            if (selector_to_extend.type() == Node::selector_group) {
-              selector_to_extend << new_ext1 << new_ext2;
-            }
-            else {
-              Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
-              new_group << selector_to_extend << new_ext1 << new_ext2;
-              ruleset_to_extend[2] = new_group;
-            }
-          } break;
-
-          default: {
-            // something
-          } break;
-        }
-      }
+      //     default: {
+      //       // something
+      //     } break;
+      //   }
+      // }
     }
   }
 
-  // Helper for generating selector extensions; called for each extendee in a
-  // selector group.
+  // Helper for generating selector extensions; called for each extendee and
+  // extender in a pair of selector groups.
 
   Node generate_extension(Node extendee, Node extender, Node_Factory& new_Node)
   {
