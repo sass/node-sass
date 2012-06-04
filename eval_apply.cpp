@@ -894,22 +894,40 @@ namespace Sass {
       Node extendee(ruleset_to_extend[2]);
       cerr << "extending!" << endl;
 
-      if (extendee.type() != Node::selector_group && extender.type() != Node::selector_group) {
-        Node ext(generate_extension(extendee, extender, new_Node));
-        ext.push_front(extendee);
-        ruleset_to_extend[2] = ext;
-      }
-      else if (extendee.type() == Node::selector_group && extender.type() != Node::selector_group) {
-        cerr << "extending a group with a singleton!" << endl;
-        Node new_group(new_Node(Node::selector_group, extendee.path(), extendee.line(), extendee.size()));
-        for (size_t i = 0, S = extendee.size(); i < S; ++i) {
-          new_group << extendee[i];
-          if (extension_table.count(extendee[i])) {
-            new_group << generate_extension(extendee[i], extender, new_Node);
-          }
+      if (extendee.type() != Node::selector_group) {
+        Node extendee_base(selector_base(extendee));
+        Node extender_group(new_Node(Node::selector_group, extendee.path(), extendee.line(), 1));
+        for (multimap<Node, Node>::iterator i = extension_table.lower_bound(extendee_base), E = extension_table.upper_bound(extendee_base);
+             i != E;
+             ++i) {
+          if (i->second[2].type() == Node::selector_group) extender_group += i->second[2];
+          else                                          extender_group << i->second[2];
         }
-        ruleset_to_extend[2] = new_group;
+        cerr << "EXTENDER GROUP: " << extender_group.to_string() << endl;
+        Node extended_group(new_Node(Node::selector_group, extendee.path(), extendee.line(), extender_group.size() + 1));
+        extended_group << extendee;
+        for (size_t i = 0, S = extender_group.size(); i < S; ++i) {
+          extended_group << generate_extension(extendee, extender_group[i], new_Node);
+        }
+        ruleset_to_extend[2] = extended_group;
       }
+
+      // if (extendee.type() != Node::selector_group && extender.type() != Node::selector_group) {
+      //   Node ext(generate_extension(extendee, extender, new_Node));
+      //   ext.push_front(extendee);
+      //   ruleset_to_extend[2] = ext;
+      // }
+      // else if (extendee.type() == Node::selector_group && extender.type() != Node::selector_group) {
+      //   cerr << "extending a group with a singleton!" << endl;
+      //   Node new_group(new_Node(Node::selector_group, extendee.path(), extendee.line(), extendee.size()));
+      //   for (size_t i = 0, S = extendee.size(); i < S; ++i) {
+      //     new_group << extendee[i];
+      //     if (extension_table.count(extendee[i])) {
+      //       new_group << generate_extension(extendee[i], extender, new_Node);
+      //     }
+      //   }
+      //   ruleset_to_extend[2] = new_group;
+      // }
       else if (extendee.type() != Node::selector_group && extender.type() == Node::selector_group) {
         cerr << "extending a singleton with a group!" << endl;
       }
