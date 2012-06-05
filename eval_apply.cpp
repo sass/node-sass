@@ -157,6 +157,8 @@ namespace Sass {
       } break;
 
       case Node::rule: {
+        Node lhs(expr[0]);
+        if (lhs.should_eval()) eval(lhs, prefix, env, f_env, new_Node, ctx);
         Node rhs(expr[1]);
         if (rhs.type() == Node::comma_list || rhs.type() == Node::space_list) {
           for (size_t i = 0, S = rhs.size(); i < S; ++i) {
@@ -316,7 +318,8 @@ namespace Sass {
       } break;
       
       case Node::string_schema:
-      case Node::value_schema: {
+      case Node::value_schema:
+      case Node::identifier_schema: {
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
           expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
         }
