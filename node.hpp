@@ -143,6 +143,7 @@ namespace Sass {
 
       value_schema,
       string_schema,
+      identifier_schema,
 
       css_import,
       function_call,
