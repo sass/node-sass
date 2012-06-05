@@ -568,16 +568,20 @@ namespace Sass {
 
   Node Document::parse_rule() {
     Node rule(context.new_Node(Node::rule, path, line, 2));
-    if (!lex< sequence< optional< exactly<'*'> >, identifier > >()) {
-      lex< spaces_and_comments >(); // get the line number right
+    if (lex< sequence< optional< exactly<'*'> >, identifier > >()) {
+      rule << context.new_Node(node::property, path, line, lexed);
+    }
+    else if (peek< sequence< optional< exactly<'*'> >, identifier_schema > >()) {
+      rule << parse_identifier_schema();
+    }
+    else {
       throw_syntax_error("invalid property name");
     }
-    rule << context.new_Node(Node::property, path, line, lexed);
     if (!lex< exactly<':'> >()) throw_syntax_error("property \"" + lexed.to_string() + "\" must be followed by a ':'");
     rule << parse_list();
     return rule;
   }
-  
+
   Node Document::parse_list()
   {
     return parse_comma_list();
@@ -915,6 +919,19 @@ namespace Sass {
       else {
         throw_syntax_error("error parsing interpolated value");
       }
+    }
+    schema.should_eval() = true;
+    return schema;
+  }
+
+  Node Document::parse_identifier_schema()
+  {
+    Node schema(context.new_Node(Node::identifier_schema, path, line, 1));
+    Token stok(lexed);
+    while (position < stok.end) {
+
+
+
     }
     schema.should_eval() = true;
     return schema;
