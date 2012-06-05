@@ -952,7 +952,7 @@ namespace Sass {
         }
         else {
           // throw an error if the interpolant is unterminated
-          throw_syntax_error("unterminated interpolant inside string constant " + id.to_string());
+          throw_syntax_error("unterminated interpolant inside interpolated identifier " + id.to_string());
         }
       }
       else { // no interpolants left; add the last segment if nonempty
@@ -960,6 +960,7 @@ namespace Sass {
         break;
       }
     }
+    schema.should_eval() = true;
     return schema;
   }
   

@@ -84,7 +84,7 @@ namespace Sass {
     // Match interpolant schemas
     const char* identifier_schema(const char* src) {
       // follows this pattern: (x*ix*)+ ... well, not quite
-      return one_plus< sequence< zero_plus< identifier >,
+      return one_plus< sequence< zero_plus< alternatives< identifier, exactly<'-'> > >,
                                  interpolant,
                                  zero_plus< alternatives< identifier, number, exactly<'-'> > > > >(src);
     }
