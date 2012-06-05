@@ -178,6 +178,7 @@ namespace Sass {
     bool& is_unquoted() const;
     bool is_numeric() const;
     bool is_guarded() const;
+    bool& has_been_extended() const;
 
     string& path() const;
     size_t line() const;
@@ -248,6 +249,7 @@ namespace Sass {
     bool from_variable;
     bool should_eval;
     bool is_unquoted;
+    bool has_been_extended;
 
     Node_Impl()
     : /* value(value_t()),
@@ -367,6 +369,7 @@ namespace Sass {
   inline bool& Node::is_unquoted() const   { return ip_->is_unquoted; }
   inline bool Node::is_numeric() const     { return ip_->is_numeric(); }
   inline bool Node::is_guarded() const     { return (type() == assignment) && (size() == 3); }
+  inline bool& Node::has_been_extended() const { return ip_->has_been_extended; }
   
   inline string& Node::path() const  { return ip_->path; }
   inline size_t  Node::line() const  { return ip_->line; }

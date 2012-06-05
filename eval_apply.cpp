@@ -888,26 +888,51 @@ namespace Sass {
   void extend_selectors(vector<pair<Node, Node> >& pending, multimap<Node, Node>& extension_table, Node_Factory& new_Node)
   {
     for (size_t i = 0, S = pending.size(); i < S; ++i) {
-      Node extender(pending[i].second[2]);
-      Node original_extender(pending[i].second[0]);
+      // Node extender(pending[i].second[2]);
+      // Node original_extender(pending[i].second[0]);
       Node ruleset_to_extend(pending[i].first);
       Node extendee(ruleset_to_extend[2]);
-      cerr << "extending!" << endl;
 
-      if (extendee.type() != Node::selector_group) {
+      if (extendee.type() != Node::selector_group && !extendee.has_been_extended()) {
         Node extendee_base(selector_base(extendee));
         Node extender_group(new_Node(Node::selector_group, extendee.path(), extendee.line(), 1));
         for (multimap<Node, Node>::iterator i = extension_table.lower_bound(extendee_base), E = extension_table.upper_bound(extendee_base);
              i != E;
              ++i) {
-          if (i->second[2].type() == Node::selector_group) extender_group += i->second[2];
-          else                                          extender_group << i->second[2];
+          if (i->second[2].type() == Node::selector_group)
+            extender_group += i->second[2];
+          else
+            extender_group << i->second[2];
         }
-        cerr << "EXTENDER GROUP: " << extender_group.to_string() << endl;
         Node extended_group(new_Node(Node::selector_group, extendee.path(), extendee.line(), extender_group.size() + 1));
+        extendee.has_been_extended() = true;
         extended_group << extendee;
         for (size_t i = 0, S = extender_group.size(); i < S; ++i) {
           extended_group << generate_extension(extendee, extender_group[i], new_Node);
+        }
+        ruleset_to_extend[2] = extended_group;
+      }
+      else {
+        Node extended_group(new_Node(Node::selector_group, extendee.path(), extendee.line(), extendee.size() + 1));
+        for (size_t i = 0, S = extendee.size(); i < S; ++i) {
+          Node extendee_i(extendee[i]);
+          Node extendee_i_base(selector_base(extendee_i));
+          extended_group << extendee_i;
+          if (!extendee_i.has_been_extended() && extension_table.count(extendee_i_base)) {
+            Node extender_group(new_Node(Node::selector_group, extendee.path(), extendee.line(), 1));
+            for (multimap<Node, Node>::iterator i = extension_table.lower_bound(extendee_i_base), E = extension_table.upper_bound(extendee_i_base);
+                 i != E;
+                 ++i) {
+              if (i->second[2].type() == Node::selector_group)
+                extender_group += i->second[2];
+              else
+                extender_group << i->second[2];
+            }
+            for (size_t j = 0, S = extender_group.size(); j < S; ++j) {
+              extended_group << generate_extension(extendee_i, extender_group[j], new_Node);
+            }
+            extendee_i.has_been_extended() = true;
+          }
         }
         ruleset_to_extend[2] = extended_group;
       }
@@ -928,12 +953,12 @@ namespace Sass {
       //   }
       //   ruleset_to_extend[2] = new_group;
       // }
-      else if (extendee.type() != Node::selector_group && extender.type() == Node::selector_group) {
-        cerr << "extending a singleton with a group!" << endl;
-      }
-      else {
-        cerr << "skipping this for now!" << endl;
-      }
+      // else if (extendee.type() != Node::selector_group && extender.type() == Node::selector_group) {
+      //   cerr << "extending a singleton with a group!" << endl;
+      // }
+      // else {
+      //   cerr << "skipping this for now!" << endl;
+      // }
 
       // if (selector_to_extend.type() != Node::selector_group) {
       //   Node ext(generate_extension(selector_to_extend, extender, new_Node));
@@ -1043,13 +1068,13 @@ namespace Sass {
         case Node::attribute_selector:
         case Node::simple_selector_sequence:
         case Node::selector: {
-          cerr << "EXTENDING " << extendee.to_string() << " WITH " << extender.to_string() << endl;
           new_group << extender;
           return new_group;
         } break;
         default: {
-        // handle the other cases later
-        }
+          // not sure why selectors sometimes get wrapped in a singleton group
+          return generate_extension(extendee, extender[0], new_Node);
+        } break;
       }
     }
     else {
@@ -1081,9 +1106,11 @@ namespace Sass {
 
         default: {
           // something
+          cerr << "pux!" << endl;
         } break;
       }
     }
+    cerr << "blux!" << endl;
     return Node();
   }
 
