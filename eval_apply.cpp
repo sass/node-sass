@@ -320,7 +320,6 @@ namespace Sass {
       case Node::string_schema:
       case Node::value_schema:
       case Node::identifier_schema: {
-        cerr << "evaluating a string schema: " << expr.to_string() << endl;
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
           expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
         }
