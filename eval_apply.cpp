@@ -493,6 +493,7 @@ namespace Sass {
     }
     else {
       // TO DO: disallow division and multiplication on lists
+      if (op == Node::sub) acc << new_Node(Node::sub, acc.path(), acc.line(), Token::make());
       acc.push_back(rhs);
     }
 

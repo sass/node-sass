@@ -140,9 +140,7 @@ namespace Sass {
       case term: {
         string result(at(0).to_string());
         for (size_t i = 1, S = size(); i < S; ++i) {
-          if (!(at(i).type() == add ||
-                // at(i).type == sub ||  // another edge case -- consider uncommenting
-                at(i).type() == mul)) {
+          if (at(i).type() != add && at(i).type() != mul) {
             result += at(i).to_string();
           }
         }
@@ -162,7 +160,6 @@ namespace Sass {
         stringstream ss;
         ss << "@import url(";
         ss << at(0).to_string();
-        // cerr << content.token.to_string() << endl;
         ss << ")";
         return ss.str();
       }
