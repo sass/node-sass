@@ -377,7 +377,7 @@ namespace Sass {
         Node fake_mixin(new_Node(Node::mixin, expr.path(), expr.line(), 3));
         Node fake_param(new_Node(Node::parameters, expr.path(), expr.line(), 1));
         fake_mixin << new_Node(Node::none, "", 0, 0) << (fake_param << expr[0]) << expr[2];
-        Node list(expr[1]);
+        Node list(eval(expr[1], prefix, env, f_env, new_Node, ctx));
         // If the list isn't really a list, make a singleton out of it.
         if (list.type() != Node::space_list && list.type() != Node::comma_list) {
           list = (new_Node(Node::space_list, list.path(), list.line(), 1) << list);
@@ -730,7 +730,10 @@ namespace Sass {
 
         case Node::each_directive: {
           Node iter_var(stm[0]);
-          Node list(stm[1]);
+          Node list(eval(stm[1], Node(), bindings, ctx.function_env, new_Node, ctx));
+          if (list.type() != Node::comma_list && list.type() != Node::space_list) {
+            list = (new_Node(Node::space_list, list.path(), list.line(), 1) << list);
+          }
           Node each_body(stm[2]);
           Environment each_env; // re-use this env for each iteration
           each_env.link(bindings);
