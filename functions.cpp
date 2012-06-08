@@ -479,7 +479,7 @@ namespace Sass {
         else if (sep == "space") rtype = Node::space_list;
         else if (sep == "auto")  rtype = l1.type();
         else {
-          throw_eval_error("third argument to join must be 'space', 'comma', or 'auto'", l2.path(), l2.line());
+          throw_eval_error("third argument to append/join must be 'space', 'comma', or 'auto'", l2.path(), l2.line());
         }
       }
       else if (l1.type() != Node::nil) rtype = l1.type();
@@ -502,6 +502,15 @@ namespace Sass {
     Node join_3(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       return join_impl(parameters, bindings, true, new_Node);
     }
+
+    // Node append_impl(const vector<Token>& parameters, map<Token, Node>& bindings, bool has_sep, Node_Factory& new_Node) {
+    // }
+
+    Function_Descriptor append_2_descriptor =
+    { "append", "$list", "$val", 0 };
+
+    Function_Descriptor append_3_descriptor =
+    { "append", "$list", "$val", "$separator", 0 };
     
     // Introspection Functions /////////////////////////////////////////////
     

@@ -145,6 +145,9 @@ namespace Sass {
     
     extern Function_Descriptor join_3_descriptor;    
     Node join_3(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+
+    extern Function_Descriptor append_2_descriptor;
+    extern Function_Descriptor append_3_descriptor;
     
     // Introspection Functions /////////////////////////////////////////////
     
