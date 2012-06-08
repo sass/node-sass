@@ -151,6 +151,18 @@ namespace Sass {
 
     extern Function_Descriptor append_3_descriptor;
     Node append_3(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+
+    extern Function_Descriptor compact_1_descriptor;
+    extern Function_Descriptor compact_2_descriptor;
+    extern Function_Descriptor compact_3_descriptor;
+    extern Function_Descriptor compact_4_descriptor;
+    extern Function_Descriptor compact_5_descriptor;
+    extern Function_Descriptor compact_6_descriptor;
+    extern Function_Descriptor compact_7_descriptor;
+    extern Function_Descriptor compact_8_descriptor;
+    extern Function_Descriptor compact_9_descriptor;
+    extern Function_Descriptor compact_10_descriptor;
+    Node compact(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
     
     // Introspection Functions /////////////////////////////////////////////
     
