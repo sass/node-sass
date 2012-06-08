@@ -134,6 +134,7 @@ namespace Sass {
       textual_hex,
       color_name,
       string_constant,
+      concatenation,
       number,
       numeric_percentage,
       numeric_dimension,

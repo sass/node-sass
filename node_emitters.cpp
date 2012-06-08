@@ -332,11 +332,10 @@ namespace Sass {
         if (contents.type() == string_constant || contents.type() == string_schema) {
           result = result.substr(1, result.size()-2); // unquote if it's a single string
         }
-        stringstream ss;
-        ss << prefix << result << endl;
-        ss << indent << "on line " << at(0).line() << " of " << at(0).path();
-        ss << endl << endl;
-        cerr << ss.str();
+        // These cerrs aren't log lines! They're supposed to be here!
+        cerr << prefix << result << endl;
+        cerr << indent << "on line " << at(0).line() << " of " << at(0).path();
+        cerr << endl << endl;
         return "";
       } break;
       
