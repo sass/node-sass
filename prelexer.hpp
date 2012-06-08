@@ -329,6 +329,8 @@ namespace Sass {
 
     const char* while_directive(const char* src);
 
+    const char* warn(const char* src);
+
     // Match CSS type selectors
     const char* namespace_prefix(const char* src);
     const char* type_selector(const char* src);

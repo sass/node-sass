@@ -54,6 +54,10 @@ namespace Sass {
       else if (peek< media >()) {
         root << parse_media_query(Node::none);
       }
+      else if (peek< warn >()) {
+        root << parse_warning();
+        if (!lex< exactly<';'> >()) throw_syntax_error("top-level @warn directive must be terminated by ';'");
+      }
       else {
         lex< spaces_and_comments >();
         throw_syntax_error("invalid top-level expression");
@@ -514,6 +518,10 @@ namespace Sass {
         block << ret_expr;
         semicolon = true;
       }
+      else if (peek< warn >()) {
+        block << parse_warning();
+        semicolon = true;
+      }
       else if (inside_of == Node::function) {
         throw_syntax_error("only variable declarations and control directives are allowed inside functions");
       }
@@ -882,6 +890,7 @@ namespace Sass {
         break;
       }
     }
+    schema.should_eval() = true;
     return schema;
   }
   
@@ -1095,6 +1104,15 @@ namespace Sass {
       if (!lex< exactly<')'> >()) throw_syntax_error("unclosed parenthesis");
     }
     return media_expr;
+  }
+
+  Node Document::parse_warning()
+  {
+    lex< warn >();
+    Node warning(context.new_Node(Node::warning, path, line, 1));
+    warning << parse_list();
+    warning[0].should_eval() = true;
+    return warning;
   }
  
   Selector_Lookahead Document::lookahead_for_selector(const char* start)

@@ -168,6 +168,7 @@ namespace Sass {
     Node parse_while_directive(Node surrounding_ruleset, Node::Type inside_of = Node::none);
     Node parse_media_query(Node::Type inside_of = Node::none);
     Node parse_media_expression();
+    Node parse_warning();
 
     Selector_Lookahead lookahead_for_selector(const char* start = 0);
     

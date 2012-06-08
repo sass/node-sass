@@ -179,6 +179,12 @@ namespace Sass {
                                      exactly<'-'>,
                                      exactly<'_'> > >(src);
     }
+
+    extern const char warn_kwd[] = "@warn";
+    const char* warn(const char* src) {
+      return exactly<warn_kwd>(src);
+    }
+
     // Match CSS type selectors
     const char* namespace_prefix(const char* src) {
       return sequence< optional< alternatives< identifier, exactly<'*'> > >,

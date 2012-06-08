@@ -320,6 +320,7 @@ namespace Sass {
       case Node::string_schema:
       case Node::value_schema:
       case Node::identifier_schema: {
+        cerr << "evaluating a string schema: " << expr.to_string() << endl;
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
           expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
         }
@@ -405,6 +406,11 @@ namespace Sass {
           expr += apply_mixin(fake_mixin, fake_arg, prefix, env, f_env, new_Node, ctx, true);
           ev_pred = eval(pred, prefix, env, f_env, new_Node, ctx);
         }
+      } break;
+
+      case Node::warning: {
+        expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
+        return expr;
       } break;
 
       default: {

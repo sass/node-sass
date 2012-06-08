@@ -161,6 +161,8 @@ namespace Sass {
       return_directive,
       content_directive,
 
+      warning,
+
       variable,
       assignment
     };
@@ -293,7 +295,8 @@ namespace Sass {
         case Node::comment:
         case Node::css_import:
         case Node::rule:
-        case Node::propset:   has_statements = true; break;
+        case Node::propset:
+        case Node::warning:   has_statements = true; break;
 
         case Node::media_query:
         case Node::ruleset:   has_blocks     = true; break;

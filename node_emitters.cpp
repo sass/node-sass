@@ -323,6 +323,22 @@ namespace Sass {
         }
         return result;
       } break;
+
+      case warning: {
+        string prefix("WARNING: ");
+        string indent("         ");
+        Node contents(at(0));
+        string result(contents.to_string());
+        if (contents.type() == string_constant || contents.type() == string_schema) {
+          result = result.substr(1, result.size()-2); // unquote if it's a single string
+        }
+        stringstream ss;
+        ss << prefix << result << endl;
+        ss << indent << "on line " << at(0).line() << " of " << at(0).path();
+        ss << endl << endl;
+        cerr << ss.str();
+        return "";
+      } break;
       
       default: {
         // return content.token.to_string();
@@ -354,7 +370,7 @@ namespace Sass {
           buf << " {";
           for (size_t i = 0, S = block.size(); i < S; ++i) {
             Type stm_type = block[i].type();
-            if (stm_type == comment || stm_type == rule || stm_type == css_import || stm_type == propset) {
+            if (stm_type == comment || stm_type == rule || stm_type == css_import || stm_type == propset || stm_type == warning) {
               block[i].emit_nested_css(buf, depth+1);
             }
           }
