@@ -479,7 +479,7 @@ namespace Sass {
         else if (sep == "space") rtype = Node::space_list;
         else if (sep == "auto")  rtype = l1.type();
         else {
-          throw_eval_error("third argument to append/join must be 'space', 'comma', or 'auto'", l2.path(), l2.line());
+          throw_eval_error("third argument to join must be 'space', 'comma', or 'auto'", l2.path(), l2.line());
         }
       }
       else if (l1.type() != Node::nil) rtype = l1.type();
@@ -503,14 +503,37 @@ namespace Sass {
       return join_impl(parameters, bindings, true, new_Node);
     }
 
-    // Node append_impl(const vector<Token>& parameters, map<Token, Node>& bindings, bool has_sep, Node_Factory& new_Node) {
-    // }
+    Node append_impl(const vector<Token>& parameters, map<Token, Node>& bindings, bool has_sep, Node_Factory& new_Node) {
+      Node list(bindings[parameters[0]]);
+      if (list.type() != Node::space_list && list.type() != Node::comma_list) {
+        list = (new_Node(Node::space_list, list.path(), list.line(), 1) << list);
+      }
+      Node::Type sep_type = list.type();
+      if (has_sep) {
+        string sep_string = bindings[parameters[2]].token().unquote();
+        if (sep_string == "comma")      sep_type = Node::comma_list;
+        else if (sep_string == "space") sep_type = Node::space_list;
+        else if (sep_string == "auto")  sep_type = list.type();
+        else throw_eval_error("third argument to append must be 'space', 'comma', or 'auto'", list.path(), list.line());
+      }
+      Node new_list(new_Node(sep_type, list.path(), list.line(), list.size() + 1));
+      new_list += list;
+      new_list << bindings[parameters[1]];
+      return new_list;
+    }
 
     Function_Descriptor append_2_descriptor =
     { "append", "$list", "$val", 0 };
+    Node append_2(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
+      return append_impl(parameters, bindings, false, new_Node);
+    }
 
     Function_Descriptor append_3_descriptor =
     { "append", "$list", "$val", "$separator", 0 };
+    Node append_3(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
+      return append_impl(parameters, bindings, true, new_Node);
+    }
+
     
     // Introspection Functions /////////////////////////////////////////////
     

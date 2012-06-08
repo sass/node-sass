@@ -147,7 +147,10 @@ namespace Sass {
     Node join_3(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
 
     extern Function_Descriptor append_2_descriptor;
+    Node append_2(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+
     extern Function_Descriptor append_3_descriptor;
+    Node append_3(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
     
     // Introspection Functions /////////////////////////////////////////////
     
