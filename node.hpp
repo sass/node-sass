@@ -265,7 +265,8 @@ namespace Sass {
       has_backref(false),
       from_variable(false),
       should_eval(false),
-      is_unquoted(false)
+      is_unquoted(false),
+      has_been_extended(false)
     { }
     
     bool is_numeric()
