@@ -505,8 +505,17 @@ namespace Sass {
 
     Node append_impl(const vector<Token>& parameters, map<Token, Node>& bindings, bool has_sep, Node_Factory& new_Node) {
       Node list(bindings[parameters[0]]);
-      if (list.type() != Node::space_list && list.type() != Node::comma_list) {
-        list = (new_Node(Node::space_list, list.path(), list.line(), 1) << list);
+      switch (list.type())
+      {
+        case Node::space_list:
+        case Node::comma_list:
+        case Node::nil: {
+          // do nothing
+        } break;
+        // if the first arg isn't a list, wrap it in a singleton
+        default: {
+          list = (new_Node(Node::space_list, list.path(), list.line(), 1) << list);
+        } break;
       }
       Node::Type sep_type = list.type();
       if (has_sep) {
@@ -533,7 +542,6 @@ namespace Sass {
     Node append_3(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       return append_impl(parameters, bindings, true, new_Node);
     }
-
     
     // Introspection Functions /////////////////////////////////////////////
     
