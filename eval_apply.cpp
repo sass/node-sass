@@ -496,6 +496,49 @@ namespace Sass {
       acc.pop_back();
       acc << new_Node(acc.path(), acc.line(), r, g, b, a);
     }
+    else if (lhs.type() == Node::concatenation && rhs.type() == Node::concatenation) {
+      if (op == Node::add) {
+        lhs += rhs;
+      }
+      else {
+        acc << new_Node(op, acc.path(), acc.line(), Token::make());
+        acc << rhs;
+      }
+    }
+    else if (lhs.type() == Node::concatenation && rhs.type() == Node::string_constant) {
+      if (op == Node::add) {
+        lhs << rhs;
+      }
+      else {
+        acc << new_Node(op, acc.path(), acc.line(), Token::make());
+        acc << rhs;
+      }
+    }
+    else if (lhs.type() == Node::string_constant && rhs.type() == Node::concatenation) {
+      if (op == Node::add) {
+        Node new_cat(new_Node(Node::concatenation, lhs.path(), lhs.line(), 1 + rhs.size()));
+        new_cat << lhs;
+        new_cat += rhs;
+        acc.pop_back();
+        acc << new_cat;
+      }
+      else {
+        acc << new_Node(op, acc.path(), acc.line(), Token::make());
+        acc << rhs;
+      }
+    }
+    else if (lhs.type() == Node::string_constant && rhs.type() == Node::string_constant) {
+      if (op == Node::add) {
+        Node new_cat(new_Node(Node::concatenation, lhs.path(), lhs.line(), 2));
+        new_cat << lhs << rhs;
+        acc.pop_back();
+        acc << new_cat;
+      }
+      else {
+        acc << new_Node(op, acc.path(), acc.line(), Token::make());
+        acc << rhs;
+      }
+    }
     else {
       // TO DO: disallow division and multiplication on lists
       if (op == Node::sub) acc << new_Node(Node::sub, acc.path(), acc.line(), Token::make());

@@ -324,6 +324,14 @@ namespace Sass {
         return result;
       } break;
 
+      case concatenation: {
+        string result;
+        for (size_t i = 0, S = size(); i < S; ++i) {
+          result += at(i).token().unquote();
+        }
+        return "\"" + result + "\"";
+      } break;
+
       case warning: {
         string prefix("WARNING: ");
         string indent("         ");
