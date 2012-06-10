@@ -327,7 +327,7 @@ namespace Sass {
       case concatenation: {
         string result;
         for (size_t i = 0, S = size(); i < S; ++i) {
-          result += at(i).token().unquote();
+          result += at(i).to_string().substr(1, at(i).token().length()-2);
         }
         return "\"" + result + "\"";
       } break;
