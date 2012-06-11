@@ -6,13 +6,12 @@ Node bindings to libsass
 
 ## Install
 
-    cd libsass && make && cd ..
-    node-waf configure && node-waf build
+    npm install
 
 ## Usage
 
     var sass = require('./sass');
-    sass.render('body{background:blue; a{color:black;}}', function(css){
+    sass.render('body{background:blue; a{color:black;}}', function(err, css){
       console.log(css)
     });
 

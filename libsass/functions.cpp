@@ -21,7 +21,7 @@ namespace Sass {
 
     // RGB Functions ///////////////////////////////////////////////////////
 
-    Function_Descriptor rgb_descriptor = 
+    Function_Descriptor rgb_descriptor =
     { "rgb", "$red", "$green", "$blue", 0 };
     Node rgb(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       Node r(bindings[parameters[0]]);
@@ -33,7 +33,7 @@ namespace Sass {
       return new_Node(r.path(), r.line(), r.numeric_value(), g.numeric_value(), b.numeric_value(), 1.0);
     }
 
-    Function_Descriptor rgba_4_descriptor = 
+    Function_Descriptor rgba_4_descriptor =
     { "rgba", "$red", "$green", "$blue", "$alpha", 0 };
     Node rgba_4(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       Node r(bindings[parameters[0]]);
@@ -45,8 +45,8 @@ namespace Sass {
       }
       return new_Node(r.path(), r.line(), r.numeric_value(), g.numeric_value(), b.numeric_value(), a.numeric_value());
     }
-    
-    Function_Descriptor rgba_2_descriptor = 
+
+    Function_Descriptor rgba_2_descriptor =
     { "rgba", "$color", "$alpha", 0 };
     Node rgba_2(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       Node color(bindings[parameters[0]]);
@@ -57,7 +57,7 @@ namespace Sass {
       if (color.type() != Node::numeric_color || a.type() != Node::number) throw_eval_error("arguments to rgba must be a color and a number", color.path(), color.line());
       return new_Node(color.path(), color.line(), r.numeric_value(), g.numeric_value(), b.numeric_value(), a.numeric_value());
     }
-    
+
     Function_Descriptor red_descriptor =
     { "red", "$color", 0 };
     Node red(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
@@ -65,7 +65,7 @@ namespace Sass {
       if (color.type() != Node::numeric_color) throw_eval_error("argument to red must be a color", color.path(), color.line());
       return color[0];
     }
-    
+
     Function_Descriptor green_descriptor =
     { "green", "$color", 0 };
     Node green(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
@@ -73,7 +73,7 @@ namespace Sass {
       if (color.type() != Node::numeric_color) throw_eval_error("argument to green must be a color", color.path(), color.line());
       return color[1];
     }
-    
+
     Function_Descriptor blue_descriptor =
     { "blue", "$color", 0 };
     Node blue(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
@@ -81,7 +81,7 @@ namespace Sass {
       if (color.type() != Node::numeric_color) throw_eval_error("argument to blue must be a color", color.path(), color.line());
       return color[2];
     }
-    
+
     Node mix_impl(Node color1, Node color2, double weight, Node_Factory& new_Node) {
       if (!(color1.type() == Node::numeric_color && color2.type() == Node::numeric_color)) {
         throw_eval_error("first two arguments to mix must be colors", color1.path(), color1.line());
@@ -89,10 +89,10 @@ namespace Sass {
       double p = weight/100;
       double w = 2*p - 1;
       double a = color1[3].numeric_value() - color2[3].numeric_value();
-      
+
       double w1 = (((w * a == -1) ? w : (w + a)/(1 + w*a)) + 1)/2.0;
       double w2 = 1 - w1;
-      
+
       Node mixed(new_Node(Node::numeric_color, color1.path(), color1.line(), 4));
       for (int i = 0; i < 3; ++i) {
         mixed << new_Node(mixed.path(), mixed.line(),
@@ -102,13 +102,13 @@ namespace Sass {
       mixed << new_Node(mixed.path(), mixed.line(), alpha);
       return mixed;
     }
-    
+
     Function_Descriptor mix_2_descriptor =
     { "mix", "$color1", "$color2", 0 };
     Node mix_2(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       return mix_impl(bindings[parameters[0]], bindings[parameters[1]], 50, new_Node);
     }
-    
+
     Function_Descriptor mix_3_descriptor =
     { "mix", "$color1", "$color2", "$weight", 0 };
     Node mix_3(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
@@ -121,9 +121,9 @@ namespace Sass {
                       percentage.numeric_value(),
                       new_Node);
     }
-    
+
     // HSL Functions ///////////////////////////////////////////////////////
-    
+
     double h_to_rgb(double m1, double m2, double h) {
       if (h < 0) ++h;
       if (h > 1) --h;
@@ -145,7 +145,7 @@ namespace Sass {
       double r = h_to_rgb(m1, m2, h+1.0/3.0) * 255.0;
       double g = h_to_rgb(m1, m2, h) * 255.0;
       double b = h_to_rgb(m1, m2, h-1.0/3.0) * 255.0;
-      
+
       return new_Node("", 0, r, g, b, a);
     }
 
@@ -157,7 +157,7 @@ namespace Sass {
             bindings[parameters[2]].is_numeric() &&
             bindings[parameters[3]].is_numeric())) {
         throw_eval_error("arguments to hsla must be numeric", bindings[parameters[0]].path(), bindings[parameters[0]].line());
-      }  
+      }
       double h = bindings[parameters[0]].numeric_value();
       double s = bindings[parameters[1]].numeric_value();
       double l = bindings[parameters[2]].numeric_value();
@@ -166,7 +166,7 @@ namespace Sass {
       // color.line() = bindings[parameters[0]].line();
       return color;
     }
-    
+
     Function_Descriptor hsl_descriptor =
     { "hsl", "$hue", "$saturation", "$lightness", 0 };
     Node hsl(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
@@ -174,7 +174,7 @@ namespace Sass {
             bindings[parameters[1]].is_numeric() &&
             bindings[parameters[2]].is_numeric())) {
         throw_eval_error("arguments to hsl must be numeric", bindings[parameters[0]].path(), bindings[parameters[0]].line());
-      }  
+      }
       double h = bindings[parameters[0]].numeric_value();
       double s = bindings[parameters[1]].numeric_value();
       double l = bindings[parameters[2]].numeric_value();
@@ -182,7 +182,7 @@ namespace Sass {
       // color.line() = bindings[parameters[0]].line();
       return color;
     }
-    
+
     Function_Descriptor invert_descriptor =
     { "invert", "$color", 0 };
     Node invert(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
@@ -194,9 +194,9 @@ namespace Sass {
                       255 - orig[2].numeric_value(),
                       orig[3].numeric_value());
     }
-    
+
     // Opacity Functions ///////////////////////////////////////////////////
-    
+
     Function_Descriptor alpha_descriptor =
     { "alpha", "$color", 0 };
     Function_Descriptor opacity_descriptor =
@@ -206,7 +206,7 @@ namespace Sass {
       if (color.type() != Node::numeric_color) throw_eval_error("argument to alpha must be a color", color.path(), color.line());
       return color[3];
     }
-    
+
     Function_Descriptor opacify_descriptor =
     { "opacify", "$color", "$amount", 0 };
     Function_Descriptor fade_in_descriptor =
@@ -226,7 +226,7 @@ namespace Sass {
       return new_Node(color.path(), color.line(),
                       color[0].numeric_value(), color[1].numeric_value(), color[2].numeric_value(), alpha);
     }
-    
+
     Function_Descriptor transparentize_descriptor =
     { "transparentize", "$color", "$amount", 0 };
     Function_Descriptor fade_out_descriptor =
@@ -246,9 +246,9 @@ namespace Sass {
       return new_Node(color.path(), color.line(),
                       color[0].numeric_value(), color[1].numeric_value(), color[2].numeric_value(), alpha);
     }
-      
+
     // String Functions ////////////////////////////////////////////////////
-    
+
     Function_Descriptor unquote_descriptor =
     { "unquote", "$string", 0 };
     Node unquote(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
@@ -259,7 +259,7 @@ namespace Sass {
       cpy.is_unquoted() = true;
       return cpy;
     }
-    
+
     Function_Descriptor quote_descriptor =
     { "quote", "$string", 0 };
     Node quote(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
@@ -271,9 +271,9 @@ namespace Sass {
       cpy.is_unquoted() = false;
       return cpy;
     }
-    
+
     // Number Functions ////////////////////////////////////////////////////
-    
+
     Function_Descriptor percentage_descriptor =
     { "percentage", "$value", 0 };
     Node percentage(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
@@ -403,7 +403,7 @@ namespace Sass {
       // unreachable statement
       return Node();
     }
-    
+
     // List Functions //////////////////////////////////////////////////////
 
     Function_Descriptor length_descriptor =
@@ -429,7 +429,7 @@ namespace Sass {
       // unreachable statement
       return Node();
     }
-    
+
     Function_Descriptor nth_descriptor =
     { "nth", "$list", "$n", 0 };
     Node nth(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
@@ -451,7 +451,7 @@ namespace Sass {
       }
       return l[n_prim - 1];
     }
-    
+
     extern const char separator_kwd[] = "$separator";
     Node join_impl(const vector<Token>& parameters, map<Token, Node>& bindings, bool has_sep, Node_Factory& new_Node) {
       // if the args aren't lists, turn them into singleton lists
@@ -490,27 +490,27 @@ namespace Sass {
       if (l2.type() != Node::nil) lr += l2;
       return lr;
     }
-    
+
     Function_Descriptor join_2_descriptor =
     { "join", "$list1", "$list2", 0 };
     Node join_2(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       return join_impl(parameters, bindings, false, new_Node);
     }
-    
+
     Function_Descriptor join_3_descriptor =
     { "join", "$list1", "$list2", "$separator", 0 };
     Node join_3(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       return join_impl(parameters, bindings, true, new_Node);
     }
-    
+
     // Introspection Functions /////////////////////////////////////////////
-    
+
     extern const char number_name[] = "number";
     extern const char string_name[] = "string";
     extern const char bool_name[]   = "bool";
     extern const char color_name[]  = "color";
     extern const char list_name[]   = "list";
-    
+
     Function_Descriptor type_of_descriptor =
     { "type-of", "$value", 0 };
     Node type_of(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
@@ -546,10 +546,10 @@ namespace Sass {
       type.is_unquoted() = true;
       return type;
     }
-    
+
     extern const char empty_str[] = "";
     extern const char percent_str[] = "%";
-    
+
     Function_Descriptor unit_descriptor =
     { "unit", "$number", 0 };
     Node unit(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
@@ -598,7 +598,7 @@ namespace Sass {
       // unreachable statement
       return Node();
     }
-    
+
     Function_Descriptor comparable_descriptor =
     { "comparable", "$number_1", "$number_2", 0 };
     Node comparable(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
@@ -632,7 +632,7 @@ namespace Sass {
       // default to false if we missed anything
       return new_Node(Node::boolean, n1.path(), n1.line(), false);
     }
-    
+
     // Boolean Functions ///////////////////////////////////////////////////
     Function_Descriptor not_descriptor =
     { "not", "value", 0 };
@@ -648,3 +648,4 @@ namespace Sass {
 
   }
 }
+

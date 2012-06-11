@@ -27,10 +27,10 @@ namespace Sass {
         }
         return result;
       } break;
-      
+
       case selector: {
         string result;
-        
+
         result += at(0).to_string();
         for (size_t i = 1, S = size(); i < S; ++i) {
           result += " ";
@@ -38,11 +38,11 @@ namespace Sass {
         }
         return result;
       }  break;
-      
+
       case selector_combinator: {
         return token().to_string();
       } break;
-      
+
       case simple_selector_sequence: {
         string result;
         for (size_t i = 0, S = size(); i < S; ++i) {
@@ -50,12 +50,12 @@ namespace Sass {
         }
         return result;
       }  break;
-      
+
       case pseudo:
       case simple_selector: {
         return token().to_string();
       } break;
-      
+
       case pseudo_negation: {
         string result;
         result += at(0).to_string();
@@ -63,7 +63,7 @@ namespace Sass {
         result += ')';
         return result;
       } break;
-      
+
       case functional_pseudo: {
         string result;
         result += at(0).to_string();
@@ -73,7 +73,7 @@ namespace Sass {
         result += ')';
         return result;
       } break;
-      
+
       case attribute_selector: {
         string result;
         result += "[";
@@ -93,7 +93,7 @@ namespace Sass {
         }
         return result;
       } break;
-      
+
       case space_list: {
         string result(at(0).to_string());
         for (size_t i = 1, S = size(); i < S; ++i) {
@@ -103,7 +103,7 @@ namespace Sass {
         }
         return result;
       } break;
-      
+
       case expression:
       case term: {
         string result(at(0).to_string());
@@ -116,16 +116,16 @@ namespace Sass {
         }
         return result;
       } break;
-      
+
       //edge case
       case sub: {
         return "-";
       } break;
-      
+
       case div: {
         return "/";
       } break;
-      
+
       case css_import: {
         stringstream ss;
         ss << "@import url(";
@@ -134,7 +134,7 @@ namespace Sass {
         ss << ")";
         return ss.str();
       }
-      
+
       case function_call: {
         stringstream ss;
         ss << at(0).to_string();
@@ -143,7 +143,7 @@ namespace Sass {
         ss << ")";
         return ss.str();
       }
-      
+
       case arguments: {
         stringstream ss;
         size_t S = size();
@@ -156,40 +156,40 @@ namespace Sass {
         }
         return ss.str();
       }
-      
+
       case unary_plus: {
         stringstream ss;
         ss << "+";
         ss << at(0).to_string();
         return ss.str();
       }
-      
+
       case unary_minus: {
         stringstream ss;
         ss << "-";
         ss << at(0).to_string();
         return ss.str();
       }
-      
+
       case numeric_percentage: {
         stringstream ss;
         ss << numeric_value();
         ss << '%';
         return ss.str();
       }
-      
+
       case numeric_dimension: {
         stringstream ss;
         ss << numeric_value() << unit().to_string();
         return ss.str();
       } break;
-      
+
       case number: {
         stringstream ss;
         ss << numeric_value();
         return ss.str();
       } break;
-      
+
       case numeric_color: {
         if (at(3).numeric_value() >= 1.0)
         {
@@ -201,7 +201,7 @@ namespace Sass {
           else if (a >= 0xff && b >= 0xff && c == 0)
           { return "yellow"; }
           else if (a == 0 && b >= 0xff && c >= 0xff)
-          { return "aqua"; } 
+          { return "aqua"; }
           else if (a >= 0xff && b == 0 && c >= 0xff)
           { return "fuchsia"; }
           else if (a >= 0xff && b == 0 && c == 0)
@@ -236,7 +236,7 @@ namespace Sass {
           return ss.str();
         }
       } break;
-      
+
       case uri: {
         string result("url(");
         result += token().to_string();
@@ -248,7 +248,7 @@ namespace Sass {
         // ignore it
         return "";
       } break;
-      
+
       case string_constant: {
         if (is_unquoted()) return token().unquote();
         else {
@@ -257,22 +257,22 @@ namespace Sass {
           else                                       return result;
         }
       } break;
-      
+
       case boolean: {
         if (boolean_value()) return "true";
         else return "false";
       } break;
-      
+
       case important: {
         return "!important";
       } break;
-      
+
       case value_schema: {
         string result;
         for (size_t i = 0, S = size(); i < S; ++i) result += at(i).to_string();
         return result;
       } break;
-      
+
       case string_schema: {
         string result;
         for (size_t i = 0, S = size(); i < S; ++i) {
@@ -286,7 +286,7 @@ namespace Sass {
         }
         return result;
       } break;
-      
+
       default: {
         // return content.token.to_string();
         if (!has_children()) return token().to_string();
@@ -338,14 +338,14 @@ namespace Sass {
       case propset: {
         emit_propset(buf, depth, "");
       } break;
-        
+
       case rule: {
         buf << endl << string(2*depth, ' ');
         at(0).emit_nested_css(buf, depth); // property
         at(1).emit_nested_css(buf, depth); // values
         buf << ";";
       } break;
-        
+
       case css_import: {
         buf << string(2*depth, ' ');
         buf << to_string();
@@ -373,7 +373,7 @@ namespace Sass {
       } break;
     }
   }
-  
+
   void Node::emit_propset(stringstream& buf, size_t depth, const string& prefix)
   {
     string new_prefix(prefix);
@@ -406,3 +406,4 @@ namespace Sass {
   void Node::echo(stringstream& buf, size_t depth) { }
   void Node::emit_expanded_css(stringstream& buf, const string& prefix) { }
 }
+
