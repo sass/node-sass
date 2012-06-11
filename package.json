@@ -9,6 +9,12 @@
     "type": "git",
     "url": "git://github.com/andrew/node-sass.git"
   },
+  "scripts": {
+    "install": "node-gyp rebuild"
+  },
+  "engines": {
+    "node": ">=0.6.4"
+  },
   "dependencies": {
     "mkdirp": "0.3.x"
   },
