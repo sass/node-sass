@@ -90,17 +90,17 @@ namespace Sass {
 
     return doc;
   }
-  
+
   void Document::throw_syntax_error(string message, size_t ln)
   { throw Error(Error::syntax, path, ln ? ln : line, message); }
-  
+
   void Document::throw_read_error(string message, size_t ln)
   { throw Error(Error::read, path, ln ? ln : line, message); }
-  
+
   using std::string;
   using std::stringstream;
   using std::endl;
-  
+
   string Document::emit_css(CSS_Style style) {
     stringstream output;
     switch (style) {
@@ -121,3 +121,4 @@ namespace Sass {
     return retval;
   }
 }
+

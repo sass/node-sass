@@ -51,7 +51,7 @@ namespace Sass {
         }
         return true;
       } break;
-      
+
       case variable:
       case identifier:
       case uri:
@@ -62,12 +62,12 @@ namespace Sass {
       case string_constant: {
         return token().unquote() == rhs.token().unquote();
       } break;
-      
+
       case number:
       case numeric_percentage: {
         return numeric_value() == rhs.numeric_value();
       } break;
-      
+
       case numeric_dimension: {
         if (unit() == rhs.unit()) {
           return numeric_value() == rhs.numeric_value();
@@ -76,26 +76,26 @@ namespace Sass {
           return false;
         }
       } break;
-      
+
       case boolean: {
         return boolean_value() == rhs.boolean_value();
       } break;
-      
+
       default: {
         return true;
       } break;
     }
     return false;
   }
-  
+
   bool Node::operator!=(Node rhs) const
   { return !(*this == rhs); }
-  
+
   bool Node::operator<(Node rhs) const
   {
     Type lhs_type = type();
     Type rhs_type = rhs.type();
-    
+
     // comparing atomic numbers
     if ((lhs_type == number             && rhs_type == number) ||
         (lhs_type == numeric_percentage && rhs_type == numeric_percentage)) {
@@ -158,13 +158,13 @@ namespace Sass {
       throw Error(Error::evaluation, path(), line(), "incomparable types");
     }
   }
-  
+
   bool Node::operator<=(Node rhs) const
   { return *this < rhs || *this == rhs; }
-  
+
   bool Node::operator>(Node rhs) const
   { return !(*this <= rhs); }
-  
+
   bool Node::operator>=(Node rhs) const
   { return !(*this < rhs); }
 
@@ -172,7 +172,7 @@ namespace Sass {
   // ------------------------------------------------------------------------
   // Token method implementations
   // ------------------------------------------------------------------------
-  
+
   string Token::unquote() const
   {
     string result;
@@ -210,7 +210,7 @@ namespace Sass {
       return result;
     }
   }
-  
+
   void Token::unquote_to_stream(std::stringstream& buf) const
   {
     const char* p = begin;
@@ -247,7 +247,7 @@ namespace Sass {
       return;
     }
   }
-  
+
   bool Token::operator<(const Token& rhs) const
   {
     const char* first1 = begin;
@@ -262,15 +262,15 @@ namespace Sass {
     }
     return (first2 != last2);
   }
-  
+
   bool Token::operator==(const Token& rhs) const
   {
     if (length() != rhs.length()) return false;
-    
+
     if ((begin[0]     == '"' || begin[0]     == '\'') &&
         (rhs.begin[0] == '"' || rhs.begin[0] == '\''))
     { return unquote() == rhs.unquote(); }
-    
+
     const char* p = begin;
     const char* q = rhs.begin;
     for (; p < end; ++p, ++q) if (*p != *q) return false;
@@ -298,7 +298,7 @@ namespace Sass {
     // if you reach this point, you've got a logic error somewhere
     return 0;
   }
-  
+
   extern const char percent_str[] = "%";
   extern const char empty_str[]   = "";
   Token Node_Impl::unit()
@@ -308,14 +308,15 @@ namespace Sass {
       case Node::numeric_percentage: {
         return Token::make(percent_str);
       } break;
-  
+
       case Node::numeric_dimension: {
         return value.dimension.unit;
       } break;
-      
+
       default: break;
     }
     return Token::make(empty_str);
   }
 
 }
+
