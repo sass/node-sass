@@ -27,7 +27,7 @@ namespace Sass {
         env[expr[0].token()] = expr;
         return expr;
       } break;
-      
+
       case Node::expansion: {
         Token name(expr[0].token());
         Node args(expr[1]);
@@ -39,7 +39,7 @@ namespace Sass {
         expr += expansion;
         return expr;
       } break;
-      
+
       case Node::propset: {
         eval(expr[1], prefix, env, f_env, new_Node, ctx);
         return expr;
@@ -91,14 +91,14 @@ namespace Sass {
         Node sel(needs_reparsing.parse_selector_group());
         return sel;
       } break;
-      
+
       case Node::root: {
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
           expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
         }
         return expr;
       } break;
-      
+
       case Node::block: {
         Environment new_frame;
         new_frame.link(env);
@@ -107,7 +107,7 @@ namespace Sass {
         }
         return expr;
       } break;
-      
+
       case Node::assignment: {
         Node val(expr[1]);
         if (val.type() == Node::comma_list || val.type() == Node::space_list) {
@@ -149,7 +149,7 @@ namespace Sass {
         if (expr.should_eval()) expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
         return expr;
       } break;
-      
+
       case Node::disjunction: {
         Node result;
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
@@ -159,7 +159,7 @@ namespace Sass {
         }
         return result;
       } break;
-      
+
       case Node::conjunction: {
         Node result;
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
@@ -168,16 +168,16 @@ namespace Sass {
         }
         return result;
       } break;
-      
+
       case Node::relation: {
-        
+
         Node lhs(eval(expr[0], prefix, env, f_env, new_Node, ctx));
         Node op(expr[1]);
         Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
         // TO DO: don't allocate both T and F
         Node T(new_Node(Node::boolean, lhs.path(), lhs.line(), true));
         Node F(new_Node(Node::boolean, lhs.path(), lhs.line(), false));
-        
+
         switch (op.type())
         {
           case Node::eq:  return (lhs == rhs) ? T : F;
@@ -231,12 +231,12 @@ namespace Sass {
                         Token::make(Prelexer::number(expr.token().begin),
                                     expr.token().end));
       } break;
-      
+
       case Node::textual_number: {
         return new_Node(expr.path(), expr.line(), std::atof(expr.token().begin));
       } break;
 
-      case Node::textual_hex: {        
+      case Node::textual_hex: {
         Node triple(new_Node(Node::numeric_color, expr.path(), expr.line(), 4));
         Token hext(Token::make(expr.token().begin+1, expr.token().end));
         if (hext.length() == 6) {
@@ -252,19 +252,19 @@ namespace Sass {
         triple << new_Node(expr.path(), expr.line(), 1.0);
         return triple;
       } break;
-      
+
       case Node::variable: {
         if (!env.query(expr.token())) throw_eval_error("reference to unbound variable " + expr.token().to_string(), expr.path(), expr.line());
         return env[expr.token()];
       } break;
-      
+
       case Node::function_call: {
         // TO DO: default-constructed Function should be a generic callback (maybe)
         pair<string, size_t> sig(expr[0].token().to_string(), expr[1].size());
         if (!f_env.count(sig)) return expr;
         return apply_function(f_env[sig], expr[1], prefix, env, f_env, new_Node, ctx);
       } break;
-      
+
       case Node::unary_plus: {
         Node arg(eval(expr[0], prefix, env, f_env, new_Node, ctx));
         if (arg.is_numeric()) {
@@ -275,7 +275,7 @@ namespace Sass {
           return expr;
         }
       } break;
-      
+
       case Node::unary_minus: {
         Node arg(eval(expr[0], prefix, env, f_env, new_Node, ctx));
         if (arg.is_numeric()) {
@@ -286,7 +286,7 @@ namespace Sass {
           return expr;
         }
       } break;
-      
+
       case Node::string_schema:
       case Node::value_schema: {
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
@@ -294,7 +294,7 @@ namespace Sass {
         }
         return expr;
       } break;
-      
+
       case Node::css_import: {
         expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
         return expr;
@@ -359,7 +359,7 @@ namespace Sass {
     Node lhs(acc.back());
     double lnum = lhs.numeric_value();
     double rnum = rhs.numeric_value();
-    
+
     if (lhs.type() == Node::number && rhs.type() == Node::number) {
       Node result(new_Node(acc.path(), acc.line(), operate(op, lnum, rnum)));
       acc.pop_back();
@@ -451,7 +451,7 @@ namespace Sass {
   // Apply a mixin -- bind the arguments in a new environment, link the new
   // environment to the current one, then copy the body and eval in the new
   // environment.
-  
+
   Node apply_mixin(Node mixin, const Node args, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
     Node params(mixin[1]);
@@ -510,7 +510,7 @@ namespace Sass {
 
   // Apply a function -- bind the arguments and pass them to the underlying
   // primitive function implementation, then return its value.
-  
+
   Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
     map<Token, Node> bindings;
@@ -855,3 +855,4 @@ namespace Sass {
   { return selector_but(sel, new_Node, 0, 1); }
 
 }
+

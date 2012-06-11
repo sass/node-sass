@@ -1,7 +1,7 @@
 #include "node_factory.hpp"
 
 namespace Sass {
-  
+
   Node_Impl* Node_Factory::alloc_Node_Impl(Node::Type type, string path, size_t line)
   {
     Node_Impl* ip = new Node_Impl();
@@ -69,7 +69,7 @@ namespace Sass {
     ip->value.dimension.unit = t;
     return Node(ip);
   }
-  
+
   // for making nodes representing rgba color quads
   Node Node_Factory::operator()(string path, size_t line, double r, double g, double b, double a)
   {
@@ -85,3 +85,4 @@ namespace Sass {
   { for (size_t i = 0, S = pool_.size(); i < S; ++i) delete pool_[i]; }
 
 }
+

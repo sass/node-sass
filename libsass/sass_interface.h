@@ -1,3 +1,5 @@
+#include <node.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,6 +20,8 @@ struct sass_context {
   struct sass_options options;
   int error_status;
   char* error_message;
+  uv_work_t request;
+  v8::Persistent<v8::Function> callback;
 };
 
 struct sass_file_context {
@@ -51,3 +55,4 @@ int sass_compile_folder     (struct sass_folder_context* ctx);
 #ifdef __cplusplus
 }
 #endif
+

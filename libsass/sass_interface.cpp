@@ -14,9 +14,9 @@ extern "C" {
 
   sass_context* sass_new_context()
     { return (sass_context*) calloc(1, sizeof(sass_context)); }
-  
+
   void sass_free_context(sass_context* ctx)
-  { 
+  {
     if (ctx->output_string)
       free(ctx->output_string);
     free(ctx);
@@ -24,14 +24,14 @@ extern "C" {
 
   sass_file_context* sass_new_file_context()
     { return (sass_file_context*) calloc(1, sizeof(sass_file_context)); }
-  
+
   void sass_free_file_context(sass_file_context* ctx)
-  { 
+  {
     if (ctx->output_string)
       free(ctx->output_string);
     free(ctx);
   }
-  
+
   sass_folder_context* sass_new_folder_context()
     { return (sass_folder_context*) calloc(1, sizeof(sass_folder_context)); }
 
@@ -86,7 +86,7 @@ extern "C" {
     // TO DO: CATCH EVERYTHING ELSE
     return 0;
   }
-  
+
   int sass_compile_file(sass_file_context* c_ctx)
   {
     using namespace Sass;
@@ -123,10 +123,11 @@ extern "C" {
     // TO DO: CATCH EVERYTHING ELSE
     return 0;
   }
-  
+
   int sass_compile_folder(sass_folder_context* c_ctx)
   {
     return 1;
   }
 
 }
+

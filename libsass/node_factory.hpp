@@ -9,7 +9,7 @@ namespace Sass {
 
   struct Token;
   struct Node_Impl;
-  
+
   class Node_Factory {
     vector<Node_Impl*> pool_;
     Node_Impl* alloc_Node_Impl(Node::Type type, string file, size_t line);
@@ -33,5 +33,6 @@ namespace Sass {
 
     void free();
   };
-  
+
 }
+

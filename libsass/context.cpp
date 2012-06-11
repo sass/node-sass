@@ -6,7 +6,7 @@ using std::cerr; using std::endl;
 
 namespace Sass {
   using std::pair;
-  
+
   void Context::collect_include_paths(const char* paths_str)
   {
     const size_t wd_len = 1024;
@@ -39,7 +39,7 @@ namespace Sass {
     //   cerr << include_paths[i] << endl;
     // }
   }
-  
+
   Context::Context(const char* paths_str)
   : global_env(Environment()),
     function_env(map<pair<string, size_t>, Function>()),
@@ -54,7 +54,7 @@ namespace Sass {
     register_functions();
     collect_include_paths(paths_str);
   }
-  
+
   Context::~Context()
   {
     for (size_t i = 0; i < source_refs.size(); ++i) {
@@ -64,19 +64,19 @@ namespace Sass {
     new_Node.free();
     // cerr << "Deallocated " << i << " source string(s)." << endl;
   }
-  
+
   inline void Context::register_function(Function_Descriptor d, Implementation ip)
   {
     Function f(d, ip);
     function_env[pair<string, size_t>(f.name, f.parameters.size())] = f;
   }
-  
+
   inline void Context::register_function(Function_Descriptor d, Implementation ip, size_t arity)
   {
     Function f(d, ip);
     function_env[pair<string, size_t>(f.name, arity)] = f;
   }
-  
+
   void Context::register_functions()
   {
     using namespace Functions;
@@ -122,5 +122,6 @@ namespace Sass {
     // Boolean Functions
     register_function(not_descriptor, not_impl);
   }
-  
+
 }
+

@@ -25,7 +25,7 @@ namespace Sass {
 
   struct Document {
     enum CSS_Style { nested, expanded, compact, compressed, echo };
-    
+
     string path;
     char* source;
     const char* position;
@@ -34,7 +34,7 @@ namespace Sass {
     bool own_source;
 
     Context& context;
-    
+
     Node root;
     Token lexed;
 
@@ -84,7 +84,7 @@ namespace Sass {
         return 0;
       }
     }
-    
+
     template <prelexer mx>
     const char* lex()
     {
@@ -123,7 +123,7 @@ namespace Sass {
         return 0;
       }
     }
-    
+
     void parse_scss();
     Node parse_import();
     Node parse_include();
@@ -163,13 +163,14 @@ namespace Sass {
     Node parse_if_directive(Node surrounding_ruleset);
     Node parse_for_directive(Node surrounding_ruleset);
 
-    
+
     Selector_Lookahead lookahead_for_selector(const char* start = 0);
-    
+
     void throw_syntax_error(string message, size_t ln = 0);
     void throw_read_error(string message, size_t ln = 0);
-    
+
     string emit_css(CSS_Style style);
 
   };
 }
+
