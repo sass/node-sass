@@ -13,14 +13,11 @@
     "install": "node-gyp rebuild"
   },
   "engines": {
-    "node": ">=0.6.4"
+    "node": ">=0.6.0"
   },
   "dependencies": {
     "mkdirp": "0.3.x"
   },
   "devDependencies": {},
-  "optionalDependencies": {},
-  "engines": {
-    "node": "*"
-  }
+  "optionalDependencies": {}
 }
