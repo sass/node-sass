@@ -15,7 +15,7 @@ using std::endl;
 
 namespace Sass {
 
-  string Node::to_string() const
+  string Node::to_string(Type inside_of) const
   {
     switch (type())
     {
@@ -110,7 +110,7 @@ namespace Sass {
       } break;
 
       case rule: {
-        string result(at(0).to_string());
+        string result(at(0).to_string(property));
         result += ": ";
         result += at(1).to_string();
         return result;
@@ -304,7 +304,7 @@ namespace Sass {
             result += at(i).token().unquote();
           }
           else {
-            result += at(i).to_string();
+            result += at(i).to_string(identifier_schema);
           }
         }
         return result;
@@ -329,7 +329,8 @@ namespace Sass {
         for (size_t i = 0, S = size(); i < S; ++i) {
           result += at(i).to_string().substr(1, at(i).token().length()-2);
         }
-        return "\"" + result + "\"";
+        if (inside_of == identifier_schema || inside_of == property) return result;
+        else               return "\"" + result + "\"";
       } break;
 
       case warning: {

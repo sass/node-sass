@@ -221,7 +221,7 @@ namespace Sass {
     bool operator>(Node rhs) const;
     bool operator>=(Node rhs) const;
 
-    string to_string() const;
+    string to_string(Type inside_of = none) const;
     void emit_nested_css(stringstream& buf, size_t depth, bool at_toplevel = false, bool in_media_query = false);
     void emit_propset(stringstream& buf, size_t depth, const string& prefix);
     void echo(stringstream& buf, size_t depth = 0);
