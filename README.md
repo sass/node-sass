@@ -2,6 +2,8 @@
 
 Node bindings to libsass
 
+Find it on npm: <http://search.npmjs.org/#/node-sass>
+
 ## Install
 
     npm install

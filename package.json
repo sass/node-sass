@@ -1,6 +1,6 @@
 {
   "author": "Andrew Nesbitt <andrewnez@gmail.com> (http://andrew.github.com)",
-  "name": "sass",
+  "name": "node-sass",
   "description": "wrapper around libsass",
   "version": "0.2.0",
   "homepage": "http://github.com/andrew/node-sass",
