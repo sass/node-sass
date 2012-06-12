@@ -1,6 +1,7 @@
 #include <v8.h>
 #include <node.h>
 #include <string>
+#include <cstring>
 #include <cstdlib>
 #include "libsass/sass_interface.h"
 

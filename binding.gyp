@@ -21,6 +21,11 @@
           'xcode_settings': {
             'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
           }
+         }],
+        ['OS=="linux"', {
+          'cflags_cc': [
+            '-fexceptions'
+          ]
          }]
       ]
     }
