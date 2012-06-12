@@ -2,7 +2,7 @@
 
 Node bindings to libsass
 
-*work in progress*
+Find it on npm: <http://search.npmjs.org/#/node-sass>
 
 ## Install
 
@@ -10,7 +10,7 @@ Node bindings to libsass
 
 ## Usage
 
-    var sass = require('./sass');
+    var sass = require('sass');
     sass.render('body{background:blue; a{color:black;}}', function(err, css){
       console.log(css)
     });
@@ -34,5 +34,5 @@ Heavily inspired by <https://github.com/LearnBoost/stylus>
 
 * sass compression options
 * publish npm
-* file context
-* folder context
+* file context?
+* folder context?
