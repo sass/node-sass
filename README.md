@@ -10,7 +10,7 @@ Find it on npm: <http://search.npmjs.org/#/node-sass>
 
 ## Usage
 
-    var sass = require('sass');
+    var sass = require('node-sass');
     sass.render('body{background:blue; a{color:black;}}', function(err, css){
       console.log(css)
     });
