@@ -37,6 +37,7 @@ void MakeCallback(uv_work_t* req) {
     if (try_catch.HasCaught()) {
         node::FatalException(try_catch);
     }
+    sass_free_context(ctx);
 }
 
 Handle<Value> Render(const Arguments& args) {
