@@ -32,11 +32,20 @@ namespace Sass {
     const char* path_str = path.c_str();
     f = std::fopen(path_str, "rb");
     if (!f) {
-      const char* file_name_str = Prelexer::folders(path_str);
-      f = std::fopen((Token::make(path_str, file_name_str).to_string() +
-                      "_" +
-                      Token::make(file_name_str).to_string()).c_str(), "rb");
-      if (!f) throw path;
+      string path_with_extension(path + ".scss");
+      f = std::fopen(path_with_extension.c_str(), "rb");
+      if (!f) {
+        const char* file_name_str = Prelexer::folders(path_str);
+        string path_with_underscore(Token::make(path_str, file_name_str).to_string() +
+                                    "_" +
+                                    Token::make(file_name_str).to_string());
+        f = std::fopen(path_with_underscore.c_str(), "rb");
+        if (!f) {
+          string path_with_underscore_and_extension(path_with_underscore + ".scss");
+          f = std::fopen(path_with_underscore_and_extension.c_str(), "rb");
+          if (!f) throw path;
+        }
+      }
     }
     if (std::fseek(f, 0, SEEK_END)) throw path;
     int status = std::ftell(f);
