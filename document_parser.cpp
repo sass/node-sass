@@ -58,11 +58,12 @@ namespace Sass {
         root << parse_warning();
         if (!lex< exactly<';'> >()) throw_syntax_error("top-level @warn directive must be terminated by ';'");
       }
-      else if (lex< spaces_and_comments >()) {
+      else if (peek< spaces >() || peek< block_comment >() || peek< line_comment >()) {
+        lex< spaces_and_comments >();
         continue;
       }
       else {
-        while (peek< spaces_and_comments >()) lex< spaces_and_comments >();
+        lex< spaces_and_comments >();
         throw_syntax_error("invalid top-level expression");
       }
       lex< optional_spaces >();
