@@ -29,8 +29,15 @@ namespace Sass {
   Document Document::make_from_file(Context& ctx, string path)
   {
     std::FILE *f;
-    f = std::fopen(path.c_str(), "rb");
-    if (!f) throw path;
+    const char* path_str = path.c_str();
+    f = std::fopen(path_str, "rb");
+    if (!f) {
+      const char* file_name_str = Prelexer::folders(path_str);
+      f = std::fopen((Token::make(path_str, file_name_str).to_string() +
+                      "_" +
+                      Token::make(file_name_str).to_string()).c_str(), "rb");
+      if (!f) throw path;
+    }
     if (std::fseek(f, 0, SEEK_END)) throw path;
     int status = std::ftell(f);
     if (status < 0) throw path;
