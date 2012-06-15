@@ -378,8 +378,18 @@ namespace Sass {
           buf << " {";
           for (size_t i = 0, S = block.size(); i < S; ++i) {
             Type stm_type = block[i].type();
-            if (stm_type == comment || stm_type == rule || stm_type == css_import || stm_type == propset || stm_type == warning) {
-              block[i].emit_nested_css(buf, depth+1);
+            switch (stm_type)
+            {
+              case comment:
+              case rule:
+              case css_import:
+              case propset:
+              case block_directive:
+              case blockless_directive:
+              case warning: {
+                block[i].emit_nested_css(buf, depth+1);
+              } break;
+              default: break;
             }
           }
           buf << " }";
@@ -401,6 +411,19 @@ namespace Sass {
         buf << string(2*depth, ' ');
         buf << "@media " << at(0).to_string() << " {" << endl;
         at(1).emit_nested_css(buf, depth+1, false, true);
+        buf << " }" << endl;
+      } break;
+
+      case blockless_directive: {
+        buf << endl << string(2*depth, ' ');
+        buf << to_string();
+        buf << ";";
+      } break;
+
+      case block_directive: {
+        buf << string(2*depth, ' ');
+        buf << at(0).to_string() << " {" << endl;
+        at(1).emit_nested_css(buf, depth+1, false, false);
         buf << " }" << endl;
       } break;
 
