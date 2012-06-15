@@ -407,6 +407,12 @@ namespace Sass {
         }
       } break;
 
+      case Node::block_directive: {
+        // TO DO: eval the directive name for interpolants
+        eval(expr[1], new_Node(Node::none, expr.path(), expr.line(), 0), env, f_env, new_Node, ctx);
+        return expr;
+      } break;
+
       case Node::warning: {
         expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
         return expr;

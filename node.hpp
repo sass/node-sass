@@ -164,6 +164,9 @@ namespace Sass {
 
       warning,
 
+      block_directive,
+      blockless_directive,
+
       variable,
       assignment
     };
@@ -297,21 +300,31 @@ namespace Sass {
         case Node::css_import:
         case Node::rule:
         case Node::propset:
-        case Node::warning:   has_statements = true; break;
+        case Node::warning:
+        case Node::block_directive:
+        case Node::blockless_directive: {
+          has_statements = true;
+        } break;
 
         case Node::media_query:
-        case Node::ruleset:   has_blocks     = true; break;
+        case Node::ruleset: {
+          has_blocks = true;
+        } break;
 
         case Node::if_directive:
         case Node::for_through_directive:
         case Node::for_to_directive:
         case Node::each_directive:
         case Node::while_directive:
-        case Node::expansion: has_expansions = true; break;
+        case Node::expansion: {
+          has_expansions = true;
+        } break;
 
-        case Node::backref:   has_backref    = true; break;
+        case Node::backref: {
+          has_backref = true;
+        } break;
 
-        default:                                     break;
+        default: break;
       }
       if (n.has_backref()) has_backref = true;
     }

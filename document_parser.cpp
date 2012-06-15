@@ -58,6 +58,13 @@ namespace Sass {
         root << parse_warning();
         if (!lex< exactly<';'> >()) throw_syntax_error("top-level @warn directive must be terminated by ';'");
       }
+      else if (peek< directive >()) {
+        Node dir(parse_directive(Node(), Node::none));
+        if (dir.type() == Node::blockless_directive) {
+          if (!lex< exactly<';'> >()) throw_syntax_error("top-level blockless directive must be terminated by ';'");
+        }
+        root << dir;
+      }
       else if (peek< spaces >() || peek< block_comment >() || peek< line_comment >()) {
         lex< spaces_and_comments >();
         continue;
@@ -552,6 +559,11 @@ namespace Sass {
       }
       else if (peek< media >()) {
         block << parse_media_query(inside_of);
+      }
+      else if (peek< directive >()) {
+        Node dir(parse_directive(surrounding_ruleset, inside_of));
+        if (dir.type() == Node::blockless_directive) semicolon = true;
+        block << dir;
       }
       else if (!peek< exactly<';'> >()) {
         Node rule(parse_rule());
@@ -1053,6 +1065,17 @@ namespace Sass {
     Node loop(context.new_Node(Node::while_directive, path, while_line, 2));
     loop << predicate << body;
     return loop;
+  }
+
+  Node Document::parse_directive(Node surrounding_ruleset, Node::Type inside_of)
+  {
+    lex< directive >();
+    Node dir_name(context.new_Node(Node::blockless_directive, path, line, lexed));
+    if (!peek< exactly<'{'> >()) return dir_name;
+    Node block(parse_block(surrounding_ruleset, inside_of));
+    Node dir(context.new_Node(Node::block_directive, path, line, 2));
+    dir << dir_name << block;
+    return dir;
   }
 
   Node Document::parse_media_query(Node::Type inside_of)

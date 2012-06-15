@@ -185,6 +185,10 @@ namespace Sass {
       return exactly<warn_kwd>(src);
     }
 
+    const char* directive(const char* src) {
+      return sequence< exactly<'@'>, identifier >(src);
+    }
+
     // Match CSS type selectors
     const char* namespace_prefix(const char* src) {
       return sequence< optional< alternatives< identifier, exactly<'*'> > >,
