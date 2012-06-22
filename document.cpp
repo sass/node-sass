@@ -133,7 +133,21 @@ namespace Sass {
       break;
     }
     string retval(output.str());
-    if (!retval.empty()) retval.resize(retval.size()-1);
+    // trim trailing whitespace
+    if (!retval.empty()) {
+      size_t newlines = 0;
+      for (size_t i = retval.length() - 1; i >= 0; --i) {
+        if (retval[i] == '\n') {
+          ++newlines;
+          continue;
+        }
+        else {
+          break;
+        }
+      }
+      retval.resize(retval.length() - newlines);
+      retval += "\n";
+    }
     return retval;
   }
 }
