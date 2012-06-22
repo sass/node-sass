@@ -367,9 +367,8 @@ namespace Sass {
         }
       } break;
 
-      case ruleset:
-      case block_directive: {
-        Node sel_group(at(type() == ruleset ? 2 : 0));
+      case ruleset: {
+        Node sel_group(at(2));
         Node block(at(1));
 
         if (block.has_expansions()) block.flatten();
@@ -379,6 +378,7 @@ namespace Sass {
           buf << " {";
           for (size_t i = 0, S = block.size(); i < S; ++i) {
             Type stm_type = block[i].type();
+            if (stm_type == block_directive) buf << endl;
             switch (stm_type)
             {
               case comment:
@@ -421,12 +421,29 @@ namespace Sass {
         buf << ";";
       } break;
 
-      // case block_directive: {
-      //   buf << string(2*depth, ' ');
-      //   buf << at(0).to_string() << " {" << endl;
-      //   at(1).emit_nested_css(buf, depth+1, false, false);
-      //   buf << " }" << endl << endl;
-      // } break;
+      case block_directive: {
+        Node header(at(0));
+        Node block(at(1));
+        if (block.has_expansions()) block.flatten();
+        buf << string(2*depth, ' ');
+        buf << header.to_string();
+        buf << " {";
+        for (size_t i = 0, S = block.size(); i < S; ++i) {
+          switch (block[i].type())
+          {
+            case ruleset:
+            case media_query:
+            case block_directive:
+              buf << endl;
+              break;
+            default:
+              break;
+          }
+          block[i].emit_nested_css(buf, depth+1, false, in_media_query);
+        }
+        buf << " }" << endl;
+        if ((depth == 0) && at_toplevel && !in_media_query) buf << endl;
+      } break;
 
       case propset: {
         emit_propset(buf, depth, "");
