@@ -367,8 +367,9 @@ namespace Sass {
         }
       } break;
 
-      case ruleset: {
-        Node sel_group(at(2));
+      case ruleset:
+      case block_directive: {
+        Node sel_group(at(type() == ruleset ? 2 : 0));
         Node block(at(1));
 
         if (block.has_expansions()) block.flatten();
@@ -420,12 +421,12 @@ namespace Sass {
         buf << ";";
       } break;
 
-      case block_directive: {
-        buf << string(2*depth, ' ');
-        buf << at(0).to_string() << " {" << endl;
-        at(1).emit_nested_css(buf, depth+1, false, false);
-        buf << " }" << endl;
-      } break;
+      // case block_directive: {
+      //   buf << string(2*depth, ' ');
+      //   buf << at(0).to_string() << " {" << endl;
+      //   at(1).emit_nested_css(buf, depth+1, false, false);
+      //   buf << " }" << endl << endl;
+      // } break;
 
       case propset: {
         emit_propset(buf, depth, "");
