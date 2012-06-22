@@ -65,12 +65,9 @@ namespace Sass {
         }
         root << dir;
       }
-      else if (peek< spaces >() || peek< block_comment >() || peek< line_comment >()) {
-        lex< spaces_and_comments >();
-        continue;
-      }
       else {
         lex< spaces_and_comments >();
+        if (position >= end) break;
         throw_syntax_error("invalid top-level expression");
       }
       lex< optional_spaces >();
