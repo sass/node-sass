@@ -313,6 +313,7 @@ namespace Sass {
             result += at(i).to_string(identifier_schema);
           }
         }
+        if (is_quoted()) result = "\"" + result + "\"";
         return result;
       } break;
       
@@ -327,6 +328,7 @@ namespace Sass {
             result += chunk;
           }
         }
+        if (is_unquoted()) result = result.substr(1, result.length() - 2);
         return result;
       } break;
 
@@ -335,8 +337,12 @@ namespace Sass {
         for (size_t i = 0, S = size(); i < S; ++i) {
           result += at(i).to_string().substr(1, at(i).token().length()-2);
         }
-        if (inside_of == identifier_schema || inside_of == property) return result;
-        else               return "\"" + result + "\"";
+        // if (inside_of == identifier_schema || inside_of == property) return result;
+        // else                                                         return "\"" + result + "\"";
+        if (!(inside_of == identifier_schema || inside_of == property) && !is_unquoted()) {
+          result = "\"" + result + "\"";
+        }
+        return result;
       } break;
 
       case warning: {
