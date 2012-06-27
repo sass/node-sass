@@ -820,7 +820,10 @@ namespace Sass {
       lex< exactly<')'> >();
       return result;
     }
-    
+
+    if (peek< functional >())
+    { return parse_function_call(); }
+
     if (lex< value_schema >())
     { return Document::make_from_token(context, lexed, path, line).parse_value_schema(); }
     
@@ -829,10 +832,7 @@ namespace Sass {
     
     if (lex< sequence< false_kwd, negate< identifier > > >())
     { return context.new_Node(Node::boolean, path, line, false); }
-    
-    if (peek< functional >())
-    { return parse_function_call(); }
-    
+        
     if (lex< important >())
     { return context.new_Node(Node::important, path, line, lexed); }
 
@@ -947,7 +947,7 @@ namespace Sass {
   }
 
   Node Document::parse_identifier_schema()
-  {    
+  {
     lex< sequence< optional< exactly<'*'> >, identifier_schema > >();
     Token id(lexed);
     const char* i = id.begin;
@@ -988,8 +988,15 @@ namespace Sass {
   
   Node Document::parse_function_call()
   {
-    lex< identifier >();
-    Node name(context.new_Node(Node::identifier, path, line, lexed));
+    Node name;
+    if (lex< identifier_schema >()) {
+      name = parse_identifier_schema();
+    }
+    else {
+      lex< identifier >();
+      name = context.new_Node(Node::identifier, path, line, lexed);
+    }
+
     Node args(parse_arguments());
     Node call(context.new_Node(Node::function_call, path, line, 2));
     call << name << args;

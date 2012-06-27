@@ -290,7 +290,9 @@ namespace Sass {
       
       case Node::function_call: {
         // TO DO: default-constructed Function should be a generic callback (maybe)
-        pair<string, size_t> sig(expr[0].token().to_string(), expr[1].size());
+        // eval the function name in case it's interpolated
+        expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
+        pair<string, size_t> sig(expr[0].to_string(), expr[1].size());
         if (!f_env.count(sig)) {
           Node args(expr[1]);
           for (size_t i = 0, S = args.size(); i < S; ++i) {

@@ -298,7 +298,7 @@ namespace Sass {
     }
     // Match CSS function call openers.
     const char* functional(const char* src) {
-      return sequence< identifier, exactly<'('> >(src);
+      return sequence< alternatives< identifier_schema, identifier >, exactly<'('> >(src);
     }
     // Match the CSS negation pseudo-class.
     extern const char pseudo_not_chars[] = ":not(";
