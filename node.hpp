@@ -311,6 +311,7 @@ namespace Sass {
           has_blocks = true;
         } break;
 
+        case Node::block:
         case Node::if_directive:
         case Node::for_through_directive:
         case Node::for_to_directive:
