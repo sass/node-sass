@@ -257,6 +257,7 @@ namespace Sass {
       //   throw_eval_error("argument to unquote must be a string", cpy.path(), cpy.line());
       // }
       cpy.is_unquoted() = true;
+      cpy.is_quoted() = false;
       return cpy;
     }
     
@@ -264,12 +265,24 @@ namespace Sass {
     { "quote", "$string", 0 };
     Node quote(const vector<Token>& parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       Node orig(bindings[parameters[0]]);
-      if (orig.type() != Node::string_constant && orig.type() != Node::identifier) {
-        throw_eval_error("argument to quote must be a string or identifier", orig.path(), orig.line());
+      switch (orig.type())
+      {
+        default: {
+          throw_eval_error("argument to quote must be a string or identifier", orig.path(), orig.line());
+        } break;
+
+        case Node::string_constant:
+        case Node::string_schema:
+        case Node::identifier:
+        case Node::identifier_schema:
+        case Node::concatenation: {
+          Node cpy(new_Node(orig));
+          cpy.is_unquoted() = false;
+          cpy.is_quoted() = true;
+          return cpy;
+        } break;
       }
-      Node cpy(new_Node(orig));
-      cpy.is_unquoted() = false;
-      return cpy;
+      return orig;
     }
     
     // Number Functions ////////////////////////////////////////////////////

@@ -183,6 +183,7 @@ namespace Sass {
     bool from_variable() const;
     bool& should_eval() const;
     bool& is_unquoted() const;
+    bool& is_quoted() const;
     bool is_numeric() const;
     bool is_guarded() const;
     bool& has_been_extended() const;
@@ -216,6 +217,8 @@ namespace Sass {
     bool is(Node n) const { return ip_ == n.ip_; }
 
     void flatten();
+
+    string unquote() const;
     
     bool operator==(Node rhs) const;
     bool operator!=(Node rhs) const;
@@ -256,6 +259,7 @@ namespace Sass {
     bool from_variable;
     bool should_eval;
     bool is_unquoted;
+    bool is_quoted;
     bool has_been_extended;
 
     Node_Impl()
@@ -271,7 +275,8 @@ namespace Sass {
       has_backref(false),
       from_variable(false),
       should_eval(false),
-      is_unquoted(false),
+      is_unquoted(false), // for strings
+      is_quoted(false),  // for identifiers -- yeah, it's hacky for now
       has_been_extended(false)
     { }
     
@@ -387,6 +392,7 @@ namespace Sass {
   inline bool Node::from_variable() const  { return ip_->from_variable; }
   inline bool& Node::should_eval() const   { return ip_->should_eval; }
   inline bool& Node::is_unquoted() const   { return ip_->is_unquoted; }
+  inline bool& Node::is_quoted() const     { return ip_->is_quoted; }
   inline bool Node::is_numeric() const     { return ip_->is_numeric(); }
   inline bool Node::is_guarded() const     { return (type() == assignment) && (size() == 3); }
   inline bool& Node::has_been_extended() const { return ip_->has_been_extended; }

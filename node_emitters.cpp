@@ -286,6 +286,12 @@ namespace Sass {
           else                                       return result;
         }
       } break;
+
+      case identifier: {
+        string result(token().to_string());
+        if (is_quoted()) return "\"" + result + "\"";
+        else             return result;
+      } break;
       
       case boolean: {
         if (boolean_value()) return "true";
