@@ -523,6 +523,7 @@ namespace Sass {
       else if (lex < return_directive >()) {
         Node ret_expr(context.new_Node(Node::return_directive, path, line, 1));
         ret_expr << parse_list();
+        ret_expr.should_eval() = true;
         block << ret_expr;
         semicolon = true;
       }

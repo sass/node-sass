@@ -176,6 +176,7 @@ namespace Sass {
 
       case Node::comma_list:
       case Node::space_list: {
+        cerr << "evaluating list: " << expr.to_string() << endl;
         if (expr.should_eval()) expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
         return expr;
       } break;
