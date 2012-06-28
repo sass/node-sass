@@ -42,7 +42,7 @@ namespace Sass {
   
   Context::Context(const char* paths_str)
   : global_env(Environment()),
-    function_env(map<pair<string, size_t>, Function>()),
+    function_env(map<string, Function>()),
     extensions(multimap<Node, Node>()),
     pending_extensions(vector<pair<Node, Node> >()),
     source_refs(vector<char*>()),
@@ -67,14 +67,16 @@ namespace Sass {
   
   inline void Context::register_function(Function_Descriptor d, Primitive ip)
   {
-    Function f(d, ip);
-    function_env[pair<string, size_t>(f.name, f.parameters.size())] = f;
+    Function f(d, ip, new_Node);
+    // function_env[pair<string, size_t>(f.name, f.parameters.size())] = f;
+    function_env[f.name] = f;
   }
   
   inline void Context::register_function(Function_Descriptor d, Primitive ip, size_t arity)
   {
-    Function f(d, ip);
-    function_env[pair<string, size_t>(f.name, arity)] = f;
+    Function f(d, ip, new_Node);
+    // function_env[pair<string, size_t>(f.name, arity)] = f;
+    function_env[f.name] = f;
   }
   
   void Context::register_functions()

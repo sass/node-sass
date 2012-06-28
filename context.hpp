@@ -42,7 +42,7 @@ namespace Sass {
 
   struct Context {
     Environment global_env;
-    map<pair<string, size_t>, Function> function_env;
+    map<string, Function> function_env;
     multimap<Node, Node> extensions;
     vector<pair<Node, Node> > pending_extensions;
     vector<char*> source_refs; // all the source c-strings

@@ -19,7 +19,7 @@ namespace Sass {
 
   // Evaluate the parse tree in-place (mostly). Most nodes will be left alone.
 
-  Node eval(Node expr, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
+  Node eval(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
     switch (expr.type())
     {
@@ -29,7 +29,7 @@ namespace Sass {
       } break;
 
       case Node::function: {
-        f_env[pair<string, size_t>(expr[0].to_string(), expr[1].size())] = Function(expr);
+        f_env[expr[0].to_string()] = Function(expr);
         return expr;
       } break;
       
@@ -292,8 +292,8 @@ namespace Sass {
         // TO DO: default-constructed Function should be a generic callback (maybe)
         // eval the function name in case it's interpolated
         expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
-        pair<string, size_t> sig(expr[0].to_string(), expr[1].size());
-        if (!f_env.count(sig)) {
+        string name(expr[0].to_string());
+        if (!f_env.count(name)) {
           Node args(expr[1]);
           for (size_t i = 0, S = args.size(); i < S; ++i) {
             args[i] = eval(args[i], prefix, env, f_env, new_Node, ctx);
@@ -301,7 +301,7 @@ namespace Sass {
           return expr;
         }
         else {
-          return apply_function(f_env[sig], expr[1], prefix, env, f_env, new_Node, ctx);
+          return apply_function(f_env[name], expr[1], prefix, env, f_env, new_Node, ctx);
         }
       } break;
       
@@ -582,7 +582,7 @@ namespace Sass {
   // environment to the current one, then copy the body and eval in the new
   // environment.
   
-  Node apply_mixin(Node mixin, const Node args, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool dynamic_scope)
+  Node apply_mixin(Node mixin, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool dynamic_scope)
   {
     Node params(mixin[1]);
     Node body(new_Node(mixin[2])); // clone the body
@@ -650,7 +650,7 @@ namespace Sass {
   // Apply a function -- bind the arguments and pass them to the underlying
   // primitive function implementation, then return its value.
   
-  Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
+  Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
     if (f.primitive) {
       map<Token, Node> bindings;
@@ -663,7 +663,7 @@ namespace Sass {
         }
         else {
           // TO DO: ensure (j < f.parameters.size())
-          bindings[f.parameters[j]] = eval(args[i], prefix, env, f_env, new_Node, ctx);
+          bindings[f.parameters[j].token()] = eval(args[i], prefix, env, f_env, new_Node, ctx);
           ++j;
         }
       }
