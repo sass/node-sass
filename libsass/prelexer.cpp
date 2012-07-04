@@ -185,6 +185,10 @@ namespace Sass {
       return exactly<warn_kwd>(src);
     }
 
+    const char* directive(const char* src) {
+      return sequence< exactly<'@'>, identifier >(src);
+    }
+
     // Match CSS type selectors
     const char* namespace_prefix(const char* src) {
       return sequence< optional< alternatives< identifier, exactly<'*'> > >,
@@ -294,7 +298,7 @@ namespace Sass {
     }
     // Match CSS function call openers.
     const char* functional(const char* src) {
-      return sequence< identifier, exactly<'('> >(src);
+      return sequence< alternatives< identifier_schema, identifier >, exactly<'('> >(src);
     }
     // Match the CSS negation pseudo-class.
     extern const char pseudo_not_chars[] = ":not(";

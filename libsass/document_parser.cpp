@@ -58,8 +58,16 @@ namespace Sass {
         root << parse_warning();
         if (!lex< exactly<';'> >()) throw_syntax_error("top-level @warn directive must be terminated by ';'");
       }
+      else if (peek< directive >()) {
+        Node dir(parse_directive(Node(), Node::none));
+        if (dir.type() == Node::blockless_directive) {
+          if (!lex< exactly<';'> >()) throw_syntax_error("top-level blockless directive must be terminated by ';'");
+        }
+        root << dir;
+      }
       else {
         lex< spaces_and_comments >();
+        if (position >= end) break;
         throw_syntax_error("invalid top-level expression");
       }
       lex< optional_spaces >();
@@ -549,6 +557,11 @@ namespace Sass {
       else if (peek< media >()) {
         block << parse_media_query(inside_of);
       }
+      else if (peek< directive >()) {
+        Node dir(parse_directive(surrounding_ruleset, inside_of));
+        if (dir.type() == Node::blockless_directive) semicolon = true;
+        block << dir;
+      }
       else if (!peek< exactly<';'> >()) {
         Node rule(parse_rule());
         // check for lbrace; if it's there, we have a namespace property with a value
@@ -807,7 +820,10 @@ namespace Sass {
       lex< exactly<')'> >();
       return result;
     }
-    
+
+    if (peek< functional >())
+    { return parse_function_call(); }
+
     if (lex< value_schema >())
     { return Document::make_from_token(context, lexed, path, line).parse_value_schema(); }
     
@@ -816,10 +832,7 @@ namespace Sass {
     
     if (lex< sequence< false_kwd, negate< identifier > > >())
     { return context.new_Node(Node::boolean, path, line, false); }
-    
-    if (peek< functional >())
-    { return parse_function_call(); }
-    
+        
     if (lex< important >())
     { return context.new_Node(Node::important, path, line, lexed); }
 
@@ -934,7 +947,7 @@ namespace Sass {
   }
 
   Node Document::parse_identifier_schema()
-  {    
+  {
     lex< sequence< optional< exactly<'*'> >, identifier_schema > >();
     Token id(lexed);
     const char* i = id.begin;
@@ -975,8 +988,15 @@ namespace Sass {
   
   Node Document::parse_function_call()
   {
-    lex< identifier >();
-    Node name(context.new_Node(Node::identifier, path, line, lexed));
+    Node name;
+    if (lex< identifier_schema >()) {
+      name = parse_identifier_schema();
+    }
+    else {
+      lex< identifier >();
+      name = context.new_Node(Node::identifier, path, line, lexed);
+    }
+
     Node args(parse_arguments());
     Node call(context.new_Node(Node::function_call, path, line, 2));
     call << name << args;
@@ -1049,6 +1069,17 @@ namespace Sass {
     Node loop(context.new_Node(Node::while_directive, path, while_line, 2));
     loop << predicate << body;
     return loop;
+  }
+
+  Node Document::parse_directive(Node surrounding_ruleset, Node::Type inside_of)
+  {
+    lex< directive >();
+    Node dir_name(context.new_Node(Node::blockless_directive, path, line, lexed));
+    if (!peek< exactly<'{'> >()) return dir_name;
+    Node block(parse_block(surrounding_ruleset, inside_of));
+    Node dir(context.new_Node(Node::block_directive, path, line, 2));
+    dir << dir_name << block;
+    return dir;
   }
 
   Node Document::parse_media_query(Node::Type inside_of)

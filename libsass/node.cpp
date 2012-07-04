@@ -55,10 +55,28 @@ namespace Sass {
     }
   }
 
+  string Node::unquote() const
+  {
+    string intermediate(to_string());
+    if (!intermediate.empty() && (intermediate[0] == '"' || intermediate[0] == '\'')) {
+      return intermediate.substr(1, intermediate.length() - 2);
+    }
+    else {
+      return intermediate;
+    }
+  }
+
   bool Node::operator==(Node rhs) const
   {
-    Type t = type();
-    if (t != rhs.type()) return false;
+    Type t = type(), u = rhs.type();
+
+    if ((t == identifier || t == string_constant || t == string_schema || t == concatenation) &&
+        (u == identifier || u == string_constant || u == string_schema || u == concatenation)) {
+      return unquote() == rhs.unquote();
+    }
+    else if (t != u) {
+      return false;
+    }
 
     switch (t)
     {
