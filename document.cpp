@@ -136,7 +136,8 @@ namespace Sass {
     // trim trailing whitespace
     if (!retval.empty()) {
       size_t newlines = 0;
-      for (size_t i = retval.length() - 1; i >= 0; --i) {
+	  size_t i = retval.length();
+      while (i --> 0) {
         if (retval[i] == '\n') {
           ++newlines;
           continue;
