@@ -137,7 +137,7 @@ namespace Sass {
     if (!retval.empty()) {
       size_t newlines = 0;
       size_t i = retval.length();
-      while (i --> 0) {
+      while (i--) {
         if (retval[i] == '\n') {
           ++newlines;
           continue;
