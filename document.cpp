@@ -5,6 +5,7 @@
 #include "error.hpp"
 #include <iostream>
 #include <sstream>
+#include <sys/stat.h>
 
 namespace Sass {
 
@@ -30,28 +31,24 @@ namespace Sass {
   {
     std::FILE *f;
     const char* path_str = path.c_str();
-    f = std::fopen(path_str, "rb");
-    if (!f) {
-      string path_with_extension(path + ".scss");
-      f = std::fopen(path_with_extension.c_str(), "rb");
-      if (!f) {
-        const char* file_name_str = Prelexer::folders(path_str);
-        string path_with_underscore(Token::make(path_str, file_name_str).to_string() +
-                                    "_" +
-                                    Token::make(file_name_str).to_string());
-        f = std::fopen(path_with_underscore.c_str(), "rb");
-        if (!f) {
-          string path_with_underscore_and_extension(path_with_underscore + ".scss");
-          f = std::fopen(path_with_underscore_and_extension.c_str(), "rb");
-          if (!f) throw path;
+    struct stat st;
+    if (stat(path_str, &st) == -1 || S_ISDIR(st.st_mode)) {
+        path_str = (path + ".scss").c_str();
+        if (stat(path_str, &st) == -1 || S_ISDIR(st.st_mode)) {
+            const char *full_path_str = path.c_str();
+            const char *file_name_str = Prelexer::folders(full_path_str);
+            path_str = (Token::make(full_path_str, file_name_str).to_string() +
+                        "_" +
+                        string(file_name_str)).c_str();
+            if (stat(path_str, &st) == -1 || S_ISDIR(st.st_mode)) {
+                path_str = (string(path_str) + ".scss").c_str();
+                if (stat(path_str, &st) == -1 || S_ISDIR(st.st_mode))
+                    throw path;
+            }
         }
-      }
     }
-    if (std::fseek(f, 0, SEEK_END)) throw path;
-    int status = std::ftell(f);
-    if (status < 0) throw path;
-    size_t len = status;
-    std::rewind(f);
+    f = std::fopen(path_str, "rb");
+    size_t len = st.st_size;
     char* source = new char[len + 1];
     size_t bytes_read = std::fread(source, sizeof(char), len, f);
     if (bytes_read != len) {
