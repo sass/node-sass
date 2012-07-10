@@ -176,7 +176,6 @@ namespace Sass {
 
       case Node::comma_list:
       case Node::space_list: {
-        cerr << "evaluating list: " << expr.to_string() << endl;
         if (expr.should_eval()) expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
         return expr;
       } break;
@@ -828,7 +827,13 @@ namespace Sass {
         } break;
 
         case Node::return_directive: {
-          return eval(stm[0], Node(), bindings, ctx.function_env, new_Node, ctx);
+          Node retval(eval(stm[0], Node(), bindings, ctx.function_env, new_Node, ctx));
+          if (retval.type() == Node::comma_list || retval.type() == Node::space_list) {
+            for (size_t i = 0, S = retval.size(); i < S; ++i) {
+              retval[i] = eval(retval[i], Node(), bindings, ctx.function_env, new_Node, ctx);
+            }
+          }
+          return retval;
         } break;
 
         default: {
@@ -1178,11 +1183,9 @@ namespace Sass {
 
         default: {
           // something
-          cerr << "pux!" << endl;
         } break;
       }
     }
-    cerr << "blux!" << endl;
     return Node();
   }
 
