@@ -101,17 +101,16 @@ namespace Sass {
     if (!lex< string_constant >()) throw_syntax_error("@import directive requires a url or quoted path");
     // TO DO: BETTER PATH HANDLING
     string import_path(lexed.unquote());
-    const char* curr_path_start = path.c_str();
-    const char* curr_path_end   = folders(curr_path_start);
-    string current_path(curr_path_start, curr_path_end - curr_path_start);
-    try {
-      Document importee(Document::make_from_file(context, current_path + import_path));
-      importee.parse_scss();
-      return importee.root;
+    for (vector<string>::iterator path = context.include_paths.begin(); path < context.include_paths.end(); ++path) {
+      try {
+        Document importee(Document::make_from_file(context, *path + import_path));
+        importee.parse_scss();
+        return importee.root;
+      }
+      catch (string& path) {
+      }
     }
-    catch (string& path) {
-      throw_read_error("error reading file \"" + path + "\"");
-    }
+    throw_read_error("error reading file \"" + import_path + "\"");
     // unreached statement
     return Node();
   }
