@@ -138,6 +138,8 @@ namespace Sass {
     register_function(compact_8_descriptor, compact);
     register_function(compact_9_descriptor, compact);
     register_function(compact_10_descriptor, compact);
+    register_function(compact_11_descriptor, compact);
+    register_function(compact_12_descriptor, compact);
     // Introspection Functions
     register_function(type_of_descriptor, type_of);
     register_function(unit_descriptor, unit);

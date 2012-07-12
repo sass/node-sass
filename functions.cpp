@@ -594,19 +594,26 @@ namespace Sass {
     { "compact 5", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 0 };
     Function_Descriptor compact_6_descriptor =
     { "compact 6", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 
-                 "$arg6", 0 };
+                   "$arg6", 0 };
     Function_Descriptor compact_7_descriptor =
     { "compact 7", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 
-                 "$arg6", "$arg7", 0 };
+                   "$arg6", "$arg7", 0 };
     Function_Descriptor compact_8_descriptor =
     { "compact 8", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 
-                 "$arg6", "$arg7", "$arg8", 0 };
+                   "$arg6", "$arg7", "$arg8", 0 };
     Function_Descriptor compact_9_descriptor =
     { "compact 9", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 
-                 "$arg6", "$arg7", "$arg8", "$arg9", 0 };
+                   "$arg6", "$arg7", "$arg8", "$arg9", 0 };
     Function_Descriptor compact_10_descriptor =
     { "compact 10", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 
-                 "$arg6", "$arg7", "$arg8", "$arg9", "$arg10", 0 };
+                    "$arg6", "$arg7", "$arg8", "$arg9", "$arg10", 0 };
+    Function_Descriptor compact_11_descriptor =
+    { "compact 11", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", "$arg6",
+                    "$arg7", "$arg8", "$arg9", "$arg10", "$arg11", 0 };
+    Function_Descriptor compact_12_descriptor =
+    { "compact 12", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", "arg6", 
+                    "$arg7", "$arg8", "$arg9", "$arg10", "$arg11", "$arg12", 0 };
+
 
     
     // Introspection Functions /////////////////////////////////////////////

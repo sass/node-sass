@@ -173,6 +173,8 @@ namespace Sass {
     extern Function_Descriptor compact_8_descriptor;
     extern Function_Descriptor compact_9_descriptor;
     extern Function_Descriptor compact_10_descriptor;
+    extern Function_Descriptor compact_11_descriptor;
+    extern Function_Descriptor compact_12_descriptor;
     Node compact(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
     
     // Introspection Functions /////////////////////////////////////////////
