@@ -58,6 +58,8 @@ namespace Sass {
     source[len] = '\0';
     char* end = source + len;
     if (std::fclose(f)) throw path;
+    const char *file_name_str = Prelexer::folders(path_str);
+    string include_path(path_str, file_name_str - path_str);
 
     Document doc(ctx);
     doc.path        = path;
@@ -69,6 +71,9 @@ namespace Sass {
     doc.end         = end;
     doc.position    = source;
     doc.context.source_refs.push_back(source);
+    if (!include_path.empty()) {
+      doc.context.include_paths.push_back(include_path);
+    }
 
     return doc;
   }
