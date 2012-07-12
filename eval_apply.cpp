@@ -290,10 +290,12 @@ namespace Sass {
       
       case Node::function_call: {
         // TO DO: default-constructed Function should be a generic callback (maybe)
+
         // eval the function name in case it's interpolated
         expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
         string name(expr[0].to_string());
         if (!f_env.count(name)) {
+          // no definition available; just pass it through (with evaluated args)
           Node args(expr[1]);
           for (size_t i = 0, S = args.size(); i < S; ++i) {
             args[i] = eval(args[i], prefix, env, f_env, new_Node, ctx);
@@ -301,7 +303,16 @@ namespace Sass {
           return expr;
         }
         else {
-          return apply_function(f_env[name], expr[1], prefix, env, f_env, new_Node, ctx);
+          // check to see if the function is primitive/built-in
+          Function f(f_env[name]);
+          if (f.primitive && f.overloaded) {
+            stringstream s;
+            s << name << " " << expr[1].size();
+            f = f_env[s.str()];
+            cerr << "applying overloaded primitive [" << s.str() << "]" << endl;
+          }
+          cerr << "about to apply function " << f.name << endl;
+          return apply_function(f, expr[1], prefix, env, f_env, new_Node, ctx);
         }
       } break;
       

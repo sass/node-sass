@@ -19,6 +19,7 @@ namespace Sass {
     Node parameters;
     Node definition;
     Primitive primitive;
+    bool overloaded;
     
     Function()
     { /* TO DO: set up the generic callback here */ }
@@ -27,14 +28,16 @@ namespace Sass {
     : name(def[0].to_string()),
       parameters(def[1]),
       definition(def),
-      primitive(0)
+      primitive(0),
+      overloaded(false)
     { }
     
-    Function(Function_Descriptor d, Primitive ip, Node_Factory& new_Node)
+    Function(Function_Descriptor d, Primitive ip, Node_Factory& new_Node, bool overloaded = false)
     : name(d[0]),
       parameters(new_Node(Node::parameters, "[PRIMITIVE FUNCTIONS]", 0, 0)),
       definition(Node()),
-      primitive(ip)
+      primitive(ip),
+      overloaded(overloaded)
     {
       size_t len = 0;
       while (d[len+1]) ++len;
