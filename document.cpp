@@ -32,16 +32,20 @@ namespace Sass {
     std::FILE *f;
     const char* path_str = path.c_str();
     struct stat st;
+    string tmp;
     if (stat(path_str, &st) == -1 || S_ISDIR(st.st_mode)) {
-        path_str = (path + ".scss").c_str();
+        tmp = path + ".scss";
+        path_str = tmp.c_str();
         if (stat(path_str, &st) == -1 || S_ISDIR(st.st_mode)) {
             const char *full_path_str = path.c_str();
             const char *file_name_str = Prelexer::folders(full_path_str);
-            path_str = (Token::make(full_path_str, file_name_str).to_string() +
-                        "_" +
-                        string(file_name_str)).c_str();
+            tmp = Token::make(full_path_str, file_name_str).to_string() +
+                  "_" +
+                  string(file_name_str);
+            path_str = tmp.c_str();
             if (stat(path_str, &st) == -1 || S_ISDIR(st.st_mode)) {
-                path_str = (string(path_str) + ".scss").c_str();
+                tmp = tmp + ".scss";
+                path_str = tmp.c_str();
                 if (stat(path_str, &st) == -1 || S_ISDIR(st.st_mode))
                     throw path;
             }
