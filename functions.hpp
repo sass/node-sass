@@ -31,13 +31,22 @@ namespace Sass {
       primitive(0),
       overloaded(false)
     { }
+
+    // Stub for overloaded primitives
+    Function(string name, bool overloaded = true)
+    : name(name),
+      parameters(Node()),
+      definition(Node()),
+      primitive(0),
+      overloaded(overloaded)
+    { }
     
-    Function(Function_Descriptor d, Primitive ip, Node_Factory& new_Node, bool overloaded = false)
+    Function(Function_Descriptor d, Primitive ip, Node_Factory& new_Node)
     : name(d[0]),
       parameters(new_Node(Node::parameters, "[PRIMITIVE FUNCTIONS]", 0, 0)),
       definition(Node()),
       primitive(ip),
-      overloaded(overloaded)
+      overloaded(false)
     {
       size_t len = 0;
       while (d[len+1]) ++len;

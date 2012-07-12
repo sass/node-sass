@@ -59,6 +59,7 @@ namespace Sass {
     
     void register_function(Function_Descriptor d, Primitive ip);
     void register_function(Function_Descriptor d, Primitive ip, size_t arity);
+    void register_overload_stub(string name);
     void register_functions();
   };
 

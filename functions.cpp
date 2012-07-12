@@ -34,7 +34,7 @@ namespace Sass {
     }
 
     Function_Descriptor rgba_4_descriptor = 
-    { "rgba", "$red", "$green", "$blue", "$alpha", 0 };
+    { "rgba 4", "$red", "$green", "$blue", "$alpha", 0 };
     Node rgba_4(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       Node r(bindings[parameters[0].token()]);
       Node g(bindings[parameters[1].token()]);
@@ -47,7 +47,7 @@ namespace Sass {
     }
     
     Function_Descriptor rgba_2_descriptor = 
-    { "rgba", "$color", "$alpha", 0 };
+    { "rgba 2", "$color", "$alpha", 0 };
     Node rgba_2(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       Node color(bindings[parameters[0].token()]);
       Node r(color[0]);
@@ -104,13 +104,13 @@ namespace Sass {
     }
     
     Function_Descriptor mix_2_descriptor =
-    { "mix", "$color1", "$color2", 0 };
+    { "mix 2", "$color1", "$color2", 0 };
     Node mix_2(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       return mix_impl(bindings[parameters[0].token()], bindings[parameters[1].token()], 50, new_Node);
     }
     
     Function_Descriptor mix_3_descriptor =
-    { "mix", "$color1", "$color2", "$weight", 0 };
+    { "mix 3", "$color1", "$color2", "$weight", 0 };
     Node mix_3(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       Node percentage(bindings[parameters[2].token()]);
       if (!(percentage.type() == Node::number || percentage.type() == Node::numeric_percentage || percentage.type() == Node::numeric_dimension)) {
@@ -505,13 +505,13 @@ namespace Sass {
     }
     
     Function_Descriptor join_2_descriptor =
-    { "join", "$list1", "$list2", 0 };
+    { "join 2", "$list1", "$list2", 0 };
     Node join_2(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       return join_impl(parameters, bindings, false, new_Node);
     }
     
     Function_Descriptor join_3_descriptor =
-    { "join", "$list1", "$list2", "$separator", 0 };
+    { "join 3", "$list1", "$list2", "$separator", 0 };
     Node join_3(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       return join_impl(parameters, bindings, true, new_Node);
     }
@@ -545,13 +545,13 @@ namespace Sass {
     }
 
     Function_Descriptor append_2_descriptor =
-    { "append", "$list", "$val", 0 };
+    { "append 2", "$list", "$val", 0 };
     Node append_2(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       return append_impl(parameters, bindings, false, new_Node);
     }
 
     Function_Descriptor append_3_descriptor =
-    { "append", "$list", "$val", "$separator", 0 };
+    { "append 3", "$list", "$val", "$separator", 0 };
     Node append_3(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       return append_impl(parameters, bindings, true, new_Node);
     }
@@ -583,29 +583,29 @@ namespace Sass {
     }
 
     Function_Descriptor compact_1_descriptor =
-    { "compact", "$arg1", 0 };
+    { "compact 1", "$arg1", 0 };
     Function_Descriptor compact_2_descriptor =
-    { "compact", "$arg1", "$arg2", 0 };
+    { "compact 2", "$arg1", "$arg2", 0 };
     Function_Descriptor compact_3_descriptor =
-    { "compact", "$arg1", "$arg2", "$arg3", 0 };
+    { "compact 3", "$arg1", "$arg2", "$arg3", 0 };
     Function_Descriptor compact_4_descriptor =
-    { "compact", "$arg1", "$arg2", "$arg3", "$arg4", 0 };
+    { "compact 4", "$arg1", "$arg2", "$arg3", "$arg4", 0 };
     Function_Descriptor compact_5_descriptor =
-    { "compact", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 0 };
+    { "compact 5", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 0 };
     Function_Descriptor compact_6_descriptor =
-    { "compact", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 
+    { "compact 6", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 
                  "$arg6", 0 };
     Function_Descriptor compact_7_descriptor =
-    { "compact", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 
+    { "compact 7", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 
                  "$arg6", "$arg7", 0 };
     Function_Descriptor compact_8_descriptor =
-    { "compact", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 
+    { "compact 8", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 
                  "$arg6", "$arg7", "$arg8", 0 };
     Function_Descriptor compact_9_descriptor =
-    { "compact", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 
+    { "compact 9", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 
                  "$arg6", "$arg7", "$arg8", "$arg9", 0 };
     Function_Descriptor compact_10_descriptor =
-    { "compact", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 
+    { "compact 10", "$arg1", "$arg2", "$arg3", "$arg4", "$arg5", 
                  "$arg6", "$arg7", "$arg8", "$arg9", "$arg10", 0 };
 
     

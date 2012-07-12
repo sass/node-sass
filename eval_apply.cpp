@@ -305,13 +305,13 @@ namespace Sass {
         else {
           // check to see if the function is primitive/built-in
           Function f(f_env[name]);
-          if (f.primitive && f.overloaded) {
+          if (f.overloaded) {
             stringstream s;
             s << name << " " << expr[1].size();
-            f = f_env[s.str()];
-            cerr << "applying overloaded primitive [" << s.str() << "]" << endl;
+            string resolved_name(s.str());
+            if (!f_env.count(resolved_name)) throw_eval_error("wrong number of arguments to " + name, expr.path(), expr.line());
+            f = f_env[resolved_name];
           }
-          cerr << "about to apply function " << f.name << endl;
           return apply_function(f, expr[1], prefix, env, f_env, new_Node, ctx);
         }
       } break;

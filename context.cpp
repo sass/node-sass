@@ -78,17 +78,24 @@ namespace Sass {
     // function_env[pair<string, size_t>(f.name, arity)] = f;
     function_env[f.name] = f;
   }
+
+  inline void Context::register_overload_stub(string name)
+  {
+    function_env[name] = Function(name, true);
+  }
   
   void Context::register_functions()
   {
     using namespace Functions;
     // RGB Functions
     register_function(rgb_descriptor,  rgb);
+    register_overload_stub("rgba");
     register_function(rgba_4_descriptor, rgba_4);
     register_function(rgba_2_descriptor, rgba_2);
     register_function(red_descriptor, red);
     register_function(green_descriptor, green);
     register_function(blue_descriptor, blue);
+    register_overload_stub("mix");
     register_function(mix_2_descriptor, mix_2);
     register_function(mix_3_descriptor, mix_3);
     // HSL Functions
@@ -114,10 +121,13 @@ namespace Sass {
     // List Functions
     register_function(length_descriptor, length);
     register_function(nth_descriptor, nth);
+    register_overload_stub("join");
     register_function(join_2_descriptor, join_2);
     register_function(join_3_descriptor, join_3);
+    register_overload_stub("append");
     register_function(append_2_descriptor, append_2);
     register_function(append_3_descriptor, append_3);
+    register_overload_stub("compact");
     register_function(compact_1_descriptor, compact);
     register_function(compact_2_descriptor, compact);
     register_function(compact_3_descriptor, compact);
