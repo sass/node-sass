@@ -2,6 +2,7 @@
 #include <iostream>
 #include <unistd.h>
 #include "prelexer.hpp"
+#include "color_names.hpp"
 using std::cerr; using std::endl;
 
 namespace Sass {
@@ -47,12 +48,15 @@ namespace Sass {
     pending_extensions(vector<pair<Node, Node> >()),
     source_refs(vector<char*>()),
     include_paths(vector<string>()),
+    color_names_to_values(map<string, Node>()),
+    color_values_to_names(map<Node, string>()),
     new_Node(Node_Factory()),
     ref_count(0),
     has_extensions(false)
   {
     register_functions();
     collect_include_paths(paths_str);
+    setup_color_map();
   }
   
   Context::~Context()
@@ -60,7 +64,6 @@ namespace Sass {
     for (size_t i = 0; i < source_refs.size(); ++i) {
       delete[] source_refs[i];
     }
-
     new_Node.free();
     // cerr << "Deallocated " << i << " source string(s)." << endl;
   }
@@ -147,6 +150,22 @@ namespace Sass {
     register_function(comparable_descriptor, comparable);
     // Boolean Functions
     register_function(not_descriptor, not_impl);
+  }
+
+  void Context::setup_color_map()
+  {
+    size_t i = 0;
+    while (color_names[i] != 0) {
+      string name(color_names[i]);
+      Node value(new_Node("[COLOR TABLE]", 0,
+                          color_values[i*3],
+                          color_values[i*3+1],
+                          color_values[i*3+2],
+                          1));
+      color_names_to_values[name] = value;
+      color_values_to_names[value] = name;
+      ++i;
+    }
   }
   
 }
