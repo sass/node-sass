@@ -51,6 +51,7 @@ namespace Sass {
     color_names_to_values(map<string, Node>()),
     color_values_to_names(map<Node, string>()),
     new_Node(Node_Factory()),
+    image_path(""),
     ref_count(0),
     has_extensions(false)
   {

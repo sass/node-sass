@@ -288,6 +288,11 @@ namespace Sass {
         if (!env.query(expr.token())) throw_eval_error("reference to unbound variable " + expr.token().to_string(), expr.path(), expr.line());
         return env[expr.token()];
       } break;
+
+      case Node::image_url: {
+        expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
+        return expr;
+      } break;
       
       case Node::function_call: {
         // TO DO: default-constructed Function should be a generic callback (maybe)

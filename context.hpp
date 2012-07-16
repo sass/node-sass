@@ -50,9 +50,10 @@ namespace Sass {
     map<string, Node> color_names_to_values;
     map<Node, string> color_values_to_names;
     Node_Factory new_Node;
+    string image_path;
     size_t ref_count;
-    string sass_path;
-    string css_path;
+    // string sass_path;
+    // string css_path;
     bool has_extensions;
 
     void collect_include_paths(const char* paths_str);
