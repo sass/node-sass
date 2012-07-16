@@ -337,6 +337,16 @@ namespace Sass {
           return expr;
         }
       } break;
+
+      case Node::identifier: {
+        string id_str(expr.to_string());
+        if (ctx.color_names_to_values.count(id_str)) {
+          return ctx.color_names_to_values[id_str];
+        }
+        else {
+          return expr;
+        }
+      } break;
       
       case Node::string_schema:
       case Node::value_schema:
