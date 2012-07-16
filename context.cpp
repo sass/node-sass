@@ -155,7 +155,7 @@ namespace Sass {
   void Context::setup_color_map()
   {
     size_t i = 0;
-    while (color_names[i] != 0) {
+    while (color_names[i]) {
       string name(color_names[i]);
       Node value(new_Node("[COLOR TABLE]", 0,
                           color_values[i*3],
