@@ -59,6 +59,7 @@ extern "C" {
     using namespace Sass;
     try {
       Context cpp_ctx(c_ctx->options.include_paths);
+      cpp_ctx.image_path = c_ctx->options.image_path;
       // Document doc(0, c_ctx->input_string, cpp_ctx);
       Document doc(Document::make_from_source_chars(cpp_ctx, c_ctx->source_string));
       c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
@@ -95,6 +96,7 @@ extern "C" {
     try {
       Context cpp_ctx(c_ctx->options.include_paths);
       // Document doc(c_ctx->input_path, 0, cpp_ctx);
+      cpp_ctx.image_path = c_ctx->options.image_path;
       Document doc(Document::make_from_file(cpp_ctx, string(c_ctx->input_path)));
       // cerr << "MADE A DOC AND CONTEXT OBJ" << endl;
       // cerr << "REGISTRY: " << doc.context.registry.size() << endl;

@@ -827,6 +827,7 @@ namespace Sass {
       if (!lex< exactly<')'> >()) throw_syntax_error("call to image-url is missing ')'");
       Node the_call(context.new_Node(Node::image_url, path, line, 1));
       the_call << url;
+      the_call.should_eval() = true;
       return the_call;
     }
 
