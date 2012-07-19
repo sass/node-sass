@@ -7,7 +7,8 @@ try {
   }
 } catch (e) {
   // default to a precompiled binary if no build exists
-  binding = require(__dirname + '/precompiled/'+process.platform+'/binding');
+  var platform_full = process.platform+'-'+process.arch;
+  binding = require(__dirname + '/precompiled/'+platform_full+'/binding');
 }
 if (binding === null) {
   throw new Error('Cannot find appropriate binary library for node-sass');
