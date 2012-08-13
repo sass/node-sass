@@ -268,7 +268,8 @@ namespace Sass {
       
       case uri: {
         string result("url(");
-        result += token().to_string();
+        // result += token().to_string();
+        result += at(0).to_string();
         result += ")";
         return result;
       } break;

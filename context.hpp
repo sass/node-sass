@@ -57,7 +57,7 @@ namespace Sass {
     bool has_extensions;
 
     void collect_include_paths(const char* paths_str);
-    Context(const char* paths_str = 0);
+    Context(const char* paths_str = 0, const char* img_path_str = 0);
     ~Context();
     
     void register_function(Function_Descriptor d, Primitive ip);

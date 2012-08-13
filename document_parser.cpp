@@ -813,9 +813,11 @@ namespace Sass {
       const char* value = position;
       const char* rparen = find_first< exactly<')'> >(position);
       if (!rparen) throw_syntax_error("URI is missing ')'");
-      Token contents(Token::make(value, rparen));
+      Token content_tok(Token::make(value, rparen));
+      Node content_node(context.new_Node(Node::string_constant, path, line, content_tok));
       // lex< string_constant >();
-      Node result(context.new_Node(Node::uri, path, line, contents));
+      Node result(context.new_Node(Node::uri, path, line, 1));
+      result << content_node;
       position = rparen;
       lex< exactly<')'> >();
       return result;

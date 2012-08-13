@@ -13,7 +13,7 @@ extern "C" {
   using namespace std;
 
   sass_context* sass_new_context()
-    { return (sass_context*) calloc(1, sizeof(sass_context)); }
+  { return (sass_context*) calloc(1, sizeof(sass_context)); }
   
   void sass_free_context(sass_context* ctx)
   { 
@@ -24,7 +24,7 @@ extern "C" {
   }
 
   sass_file_context* sass_new_file_context()
-    { return (sass_file_context*) calloc(1, sizeof(sass_file_context)); }
+  { return (sass_file_context*) calloc(1, sizeof(sass_file_context)); }
   
   void sass_free_file_context(sass_file_context* ctx)
   { 
@@ -58,8 +58,8 @@ extern "C" {
   {
     using namespace Sass;
     try {
-      Context cpp_ctx(c_ctx->options.include_paths);
-      cpp_ctx.image_path = c_ctx->options.image_path;
+      Context cpp_ctx(c_ctx->options.include_paths, c_ctx->options.image_path);
+      // cpp_ctx.image_path = c_ctx->options.image_path;
       // Document doc(0, c_ctx->input_string, cpp_ctx);
       Document doc(Document::make_from_source_chars(cpp_ctx, c_ctx->source_string));
       c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
@@ -94,9 +94,11 @@ extern "C" {
   {
     using namespace Sass;
     try {
-      Context cpp_ctx(c_ctx->options.include_paths);
+      Context cpp_ctx(c_ctx->options.include_paths, c_ctx->options.image_path);
       // Document doc(c_ctx->input_path, 0, cpp_ctx);
-      cpp_ctx.image_path = c_ctx->options.image_path;
+      // string path_string(c_ctx->options.image_path);
+      // path_string = "'" + path_string + "/";
+      // cpp_ctx.image_path = c_ctx->options.image_path;
       Document doc(Document::make_from_file(cpp_ctx, string(c_ctx->input_path)));
       // cerr << "MADE A DOC AND CONTEXT OBJ" << endl;
       // cerr << "REGISTRY: " << doc.context.registry.size() << endl;
