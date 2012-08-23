@@ -183,8 +183,8 @@ namespace Sass {
     bool has_backref() const;
     bool from_variable() const;
     bool& should_eval() const;
-    bool& is_unquoted() const;
-    bool& is_quoted() const;
+    bool& is_unquoted() const; // for strings
+    bool& is_quoted() const;   // for identifiers
     bool is_numeric() const;
     bool is_guarded() const;
     bool& has_been_extended() const;
