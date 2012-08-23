@@ -128,6 +128,7 @@ namespace Sass {
       value,
       identifier,
       uri,
+      image_url,
       textual_percentage,
       textual_dimension,
       textual_number,

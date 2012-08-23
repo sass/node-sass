@@ -2,6 +2,7 @@
 #include "eval_apply.hpp"
 #include "document.hpp"
 #include "error.hpp"
+#include <cctype>
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
@@ -19,7 +20,7 @@ namespace Sass {
 
   // Evaluate the parse tree in-place (mostly). Most nodes will be left alone.
 
-  Node eval(Node expr, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
+  Node eval(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool function_name)
   {
     switch (expr.type())
     {
@@ -29,7 +30,7 @@ namespace Sass {
       } break;
 
       case Node::function: {
-        f_env[pair<string, size_t>(expr[0].to_string(), expr[1].size())] = Function(expr);
+        f_env[expr[0].to_string()] = Function(expr);
         return expr;
       } break;
       
@@ -287,13 +288,25 @@ namespace Sass {
         if (!env.query(expr.token())) throw_eval_error("reference to unbound variable " + expr.token().to_string(), expr.path(), expr.line());
         return env[expr.token()];
       } break;
+
+      case Node::image_url: {
+        Node base(eval(expr[0], prefix, env, f_env, new_Node, ctx));
+        Node prefix(new_Node(Node::identifier, base.path(), base.line(), Token::make(ctx.image_path)));
+        Node fullpath(new_Node(Node::concatenation, base.path(), base.line(), 2));
+        Node url(new_Node(Node::uri, base.path(), base.line(), 1));
+        fullpath << prefix << base;
+        url << fullpath;
+        return url;
+      } break;
       
       case Node::function_call: {
         // TO DO: default-constructed Function should be a generic callback (maybe)
+
         // eval the function name in case it's interpolated
-        expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
-        pair<string, size_t> sig(expr[0].to_string(), expr[1].size());
-        if (!f_env.count(sig)) {
+        expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx, true);
+        string name(expr[0].to_string());
+        if (!f_env.count(name)) {
+          // no definition available; just pass it through (with evaluated args)
           Node args(expr[1]);
           for (size_t i = 0, S = args.size(); i < S; ++i) {
             args[i] = eval(args[i], prefix, env, f_env, new_Node, ctx);
@@ -301,7 +314,16 @@ namespace Sass {
           return expr;
         }
         else {
-          return apply_function(f_env[sig], expr[1], prefix, env, f_env, new_Node, ctx);
+          // check to see if the function is primitive/built-in
+          Function f(f_env[name]);
+          if (f.overloaded) {
+            stringstream s;
+            s << name << " " << expr[1].size();
+            string resolved_name(s.str());
+            if (!f_env.count(resolved_name)) throw_eval_error("wrong number of arguments to " + name, expr.path(), expr.line());
+            f = f_env[resolved_name];
+          }
+          return apply_function(f, expr[1], prefix, env, f_env, new_Node, ctx);
         }
       } break;
       
@@ -323,6 +345,17 @@ namespace Sass {
         }
         else {
           expr[0] = arg;
+          return expr;
+        }
+      } break;
+
+      case Node::identifier: {
+        string id_str(expr.to_string());
+        to_lowercase(id_str);
+        if (!function_name && ctx.color_names_to_values.count(id_str)) {
+          return ctx.color_names_to_values[id_str];
+        }
+        else {
           return expr;
         }
       } break;
@@ -582,7 +615,7 @@ namespace Sass {
   // environment to the current one, then copy the body and eval in the new
   // environment.
   
-  Node apply_mixin(Node mixin, const Node args, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool dynamic_scope)
+  Node apply_mixin(Node mixin, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool dynamic_scope)
   {
     Node params(mixin[1]);
     Node body(new_Node(mixin[2])); // clone the body
@@ -650,7 +683,7 @@ namespace Sass {
   // Apply a function -- bind the arguments and pass them to the underlying
   // primitive function implementation, then return its value.
   
-  Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<pair<string, size_t>, Function>& f_env, Node_Factory& new_Node, Context& ctx)
+  Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
     if (f.primitive) {
       map<Token, Node> bindings;
@@ -663,7 +696,7 @@ namespace Sass {
         }
         else {
           // TO DO: ensure (j < f.parameters.size())
-          bindings[f.parameters[j]] = eval(args[i], prefix, env, f_env, new_Node, ctx);
+          bindings[f.parameters[j].token()] = eval(args[i], prefix, env, f_env, new_Node, ctx);
           ++j;
         }
       }
@@ -827,7 +860,13 @@ namespace Sass {
         } break;
 
         case Node::return_directive: {
-          return eval(stm[0], Node(), bindings, ctx.function_env, new_Node, ctx);
+          Node retval(eval(stm[0], Node(), bindings, ctx.function_env, new_Node, ctx));
+          if (retval.type() == Node::comma_list || retval.type() == Node::space_list) {
+            for (size_t i = 0, S = retval.size(); i < S; ++i) {
+              retval[i] = eval(retval[i], Node(), bindings, ctx.function_env, new_Node, ctx);
+            }
+          }
+          return retval;
         } break;
 
         default: {
@@ -1177,11 +1216,9 @@ namespace Sass {
 
         default: {
           // something
-          cerr << "pux!" << endl;
         } break;
       }
     }
-    cerr << "blux!" << endl;
     return Node();
   }
 
@@ -1242,5 +1279,8 @@ namespace Sass {
 
   Node selector_butlast(Node sel, Node_Factory& new_Node)
   { return selector_but(sel, new_Node, 0, 1); }
+
+  void to_lowercase(string& s)
+  { for (size_t i = 0, L = s.length(); i < L; ++i) s[i] = tolower(s[i]); }
 
 }

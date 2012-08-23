@@ -12,6 +12,7 @@ extern "C" {
 struct sass_options {
   int output_style;
   char* include_paths;
+  char* image_path;
 };
 
 struct sass_context {

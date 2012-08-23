@@ -278,6 +278,11 @@ namespace Sass {
                        optional<spaces>,
                        exactly<')'> >(src);
     }
+    // Match SCSS image-url function
+    extern const char image_url_kwd[] = "image-url(";
+    const char* image_url_prefix(const char* src) {
+      return exactly<image_url_kwd>(src);
+    }
     // Match CSS "!important" keyword.
     extern const char important_kwd[] = "important";
     const char* important(const char* src) {
