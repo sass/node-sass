@@ -158,6 +158,7 @@ namespace Sass {
     register_function(comparable_descriptor, comparable);
     // Boolean Functions
     register_function(not_descriptor, not_impl);
+    register_function(if_descriptor, if_impl);
   }
 
   void Context::setup_color_map()

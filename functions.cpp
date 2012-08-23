@@ -748,7 +748,7 @@ namespace Sass {
     
     // Boolean Functions ///////////////////////////////////////////////////
     Function_Descriptor not_descriptor =
-    { "not", "value", 0 };
+    { "not", "$value", 0 };
     Node not_impl(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       Node val(bindings[parameters[0].token()]);
       if (val.type() == Node::boolean && val.boolean_value() == false) {
@@ -757,6 +757,17 @@ namespace Sass {
       else {
         return new_Node(Node::boolean, val.path(), val.line(), false);
       }
+    }
+
+    Function_Descriptor if_descriptor =
+    { "if", "$predicate", "$consequent", "$alternative", 0 };
+    Node if_impl(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
+      Node predicate(bindings[parameters[0].token()]);
+      Node consequent(bindings[parameters[1].token()]);
+      Node alternative(bindings[parameters[2].token()]);
+
+      if (predicate.type() == Node::boolean && predicate.boolean_value() == false) return alternative;
+      return consequent;
     }
 
   }
