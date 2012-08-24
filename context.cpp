@@ -60,7 +60,7 @@ namespace Sass {
     collect_include_paths(paths_str);
     setup_color_map();
 
-    string path_string(img_path_str);
+    string path_string(img_path_str ? img_path_str : "");
     path_string = "'" + path_string + "/'";
     image_path = new char[path_string.length() + 1];
     std::strcpy(image_path, path_string.c_str());
