@@ -67,7 +67,7 @@ namespace Sass {
 
     Document doc(ctx);
     doc.path        = path;
-    doc.line = 1;
+    doc.line        = 1;
     doc.root        = ctx.new_Node(Node::root, path, 1, 0);
     doc.lexed       = Token::make();
     doc.own_source  = true;
