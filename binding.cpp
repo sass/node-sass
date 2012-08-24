@@ -2,12 +2,15 @@
 #include <node.h>
 #include <string>
 #include <cstring>
+#include <iostream>
 #include <cstdlib>
 #include "libsass/sass_interface.h"
 
 using namespace v8;
+using namespace std;
 
 void WorkOnContext(uv_work_t* req) {
+    cout << "WorkOnContext" << endl;
     sass_context* ctx = static_cast<sass_context*>(req->data);
     sass_compile(ctx);
 }
@@ -16,6 +19,8 @@ void MakeCallback(uv_work_t* req) {
     HandleScope scope;
     TryCatch try_catch;
     sass_context* ctx = static_cast<sass_context*>(req->data);
+
+    cout << "MakeCallback" << endl;
 
     if (ctx->error_status == 0) {
         // if no error, do callback(null, result)
@@ -53,6 +58,8 @@ Handle<Value> Render(const Arguments& args) {
     ctx->options.output_style = SASS_STYLE_NESTED;
     ctx->callback = Persistent<Function>::New(callback);
     ctx->request.data = ctx;
+
+    cout << "uv_queue_work" << endl;
 
     int status = uv_queue_work(uv_default_loop(), &ctx->request, WorkOnContext, MakeCallback);
     assert(status == 0);
