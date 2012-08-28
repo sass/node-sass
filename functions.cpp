@@ -155,7 +155,7 @@ namespace Sass {
       else             h = (r == m ? 3.0 + g2 : 5.0 - r2);
 
       h /= 6.0;
-      return new_Node("", 0, h, s, l);
+      return new_Node("", 0, static_cast<int>(h*360)%360, s*100, l*100);
     }
 
     // Function_Descriptor adjust_color_descriptor =
