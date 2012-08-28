@@ -101,6 +101,9 @@ namespace Sass {
     extern Function_Descriptor hsl_descriptor;
     Node hsl(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
 
+    extern Function_Descriptor adjust_hue_descriptor;
+    Node adjust_hue(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+
     extern Function_Descriptor invert_descriptor;
     Node invert(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
     

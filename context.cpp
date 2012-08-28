@@ -101,6 +101,7 @@ namespace Sass {
     // HSL Functions
     register_function(hsla_descriptor, hsla);
     register_function(hsl_descriptor, hsl);
+    register_function(adjust_hue_descriptor, adjust_hue);
     register_function(invert_descriptor, invert);
     // Opacity Functions
     register_function(alpha_descriptor, alpha);

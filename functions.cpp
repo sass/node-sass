@@ -131,33 +131,40 @@ namespace Sass {
       b = b/255.0;
       double v, m, vm, r2, g2, b2;
       double h = 0, s = 0, l = 0;
+
       v = r > g ? r : g;
       v = v > b ? v : b;
       m = r < g ? r : g;
       m = m < b ? m : b;
       l = (m + v)/2.0;
+
       if (l <= 0.0) return new_Node("", 0, h, s, l);
+
       vm = v - m;
       s = vm;
+
       if (s > 0.0) s /= (l <= 0.5) ? (v + m) : (2.0 - v - m);
       else         return new_Node("", 0, h, s, l);
+
       r2 = (v - r)/vm;
       g2 = (v - g)/vm;
       b2 = (v - b)/vm;
+
       if (r == v)      h = (g == m ? 5.0 + b2 : 1.0 - g2);
       else if (g == v) h = (b == m ? 1.0 + r2 : 3.0 - b2);
       else             h = (r == m ? 3.0 + g2 : 5.0 - r2);
+
       h /= 6.0;
       return new_Node("", 0, h, s, l);
     }
 
-    Function_Descriptor adjust_color_descriptor =
-    { "adjust_color 1", "$color", 0 }
-    Function_Descriptor adjust_color_2_descriptor =
-    { "adjust_color 2", "$color", "2")
-    Node adjust_color_impl(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
-      blah;
-    }
+    // Function_Descriptor adjust_color_descriptor =
+    // { "adjust_color 1", "$color", 0 }
+    // Function_Descriptor adjust_color_2_descriptor =
+    // { "adjust_color 2", "$color", "2")
+    // Node adjust_color_impl(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
+    //   blah;
+    // }
     
     double h_to_rgb(double m1, double m2, double h) {
       if (h < 0) ++h;
@@ -217,7 +224,25 @@ namespace Sass {
       // color.line() = bindings[parameters[0].token()].line();
       return color;
     }
-    
+
+    Function_Descriptor adjust_hue_descriptor =
+    { "adjust-hue", "$color", "$degrees", 0 };
+    Node adjust_hue(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
+      Node rgb_col(bindings[parameters[0].token()]);
+      Node degrees(bindings[parameters[1].token()]);
+      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to adjust-hue must be a color", rgb_col.path(), rgb_col.line());
+      if (!degrees.is_numeric()) throw_eval_error("second argument to adjust-hue must be numeric", degrees.path(), degrees.line());
+      Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
+                              rgb_col[1].numeric_value(),
+                              rgb_col[2].numeric_value(),
+                              new_Node));
+      return hsla_impl(hsl_col[0].numeric_value() + degrees.numeric_value(),
+                       hsl_col[1].numeric_value(),
+                       hsl_col[2].numeric_value(),
+                       rgb_col[3].numeric_value(),
+                       new_Node);
+    }
+
     Function_Descriptor invert_descriptor =
     { "invert", "$color", 0 };
     Node invert(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
