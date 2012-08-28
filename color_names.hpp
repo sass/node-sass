@@ -153,7 +153,7 @@ namespace Sass {
 		"yellowgreen",
 		// sentinel value
 		0
-	}
+	};
 
 	const double color_values[] =
 	{
@@ -306,6 +306,6 @@ namespace Sass {
 		0x9a, 0xcd, 0x32,
 		// sentinel value
 		0xfff
-	}
+	};
 
 }

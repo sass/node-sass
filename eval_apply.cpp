@@ -2,6 +2,7 @@
 #include "eval_apply.hpp"
 #include "document.hpp"
 #include "error.hpp"
+#include <cctype>
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
@@ -19,7 +20,7 @@ namespace Sass {
 
   // Evaluate the parse tree in-place (mostly). Most nodes will be left alone.
 
-  Node eval(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx)
+  Node eval(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool function_name)
   {
     switch (expr.type())
     {
@@ -287,12 +288,22 @@ namespace Sass {
         if (!env.query(expr.token())) throw_eval_error("reference to unbound variable " + expr.token().to_string(), expr.path(), expr.line());
         return env[expr.token()];
       } break;
+
+      case Node::image_url: {
+        Node base(eval(expr[0], prefix, env, f_env, new_Node, ctx));
+        Node prefix(new_Node(Node::identifier, base.path(), base.line(), Token::make(ctx.image_path)));
+        Node fullpath(new_Node(Node::concatenation, base.path(), base.line(), 2));
+        Node url(new_Node(Node::uri, base.path(), base.line(), 1));
+        fullpath << prefix << base;
+        url << fullpath;
+        return url;
+      } break;
       
       case Node::function_call: {
         // TO DO: default-constructed Function should be a generic callback (maybe)
 
         // eval the function name in case it's interpolated
-        expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
+        expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx, true);
         string name(expr[0].to_string());
         if (!f_env.count(name)) {
           // no definition available; just pass it through (with evaluated args)
@@ -334,6 +345,17 @@ namespace Sass {
         }
         else {
           expr[0] = arg;
+          return expr;
+        }
+      } break;
+
+      case Node::identifier: {
+        string id_str(expr.to_string());
+        to_lowercase(id_str);
+        if (!function_name && ctx.color_names_to_values.count(id_str)) {
+          return ctx.color_names_to_values[id_str];
+        }
+        else {
           return expr;
         }
       } break;
@@ -1257,5 +1279,8 @@ namespace Sass {
 
   Node selector_butlast(Node sel, Node_Factory& new_Node)
   { return selector_but(sel, new_Node, 0, 1); }
+
+  void to_lowercase(string& s)
+  { for (size_t i = 0, L = s.length(); i < L; ++i) s[i] = tolower(s[i]); }
 
 }

@@ -1,7 +1,9 @@
 #include "context.hpp"
+#include <cstring>
 #include <iostream>
 #include <unistd.h>
 #include "prelexer.hpp"
+#include "color_names.hpp"
 using std::cerr; using std::endl;
 
 namespace Sass {
@@ -40,19 +42,28 @@ namespace Sass {
     // }
   }
   
-  Context::Context(const char* paths_str)
+  Context::Context(const char* paths_str, const char* img_path_str)
   : global_env(Environment()),
     function_env(map<string, Function>()),
     extensions(multimap<Node, Node>()),
     pending_extensions(vector<pair<Node, Node> >()),
     source_refs(vector<char*>()),
     include_paths(vector<string>()),
+    color_names_to_values(map<string, Node>()),
+    color_values_to_names(map<Node, string>()),
     new_Node(Node_Factory()),
+    image_path(0),
     ref_count(0),
     has_extensions(false)
   {
     register_functions();
     collect_include_paths(paths_str);
+    setup_color_map();
+
+    string path_string(img_path_str ? img_path_str : "");
+    path_string = "'" + path_string + "/'";
+    image_path = new char[path_string.length() + 1];
+    std::strcpy(image_path, path_string.c_str());
   }
   
   Context::~Context()
@@ -60,7 +71,7 @@ namespace Sass {
     for (size_t i = 0; i < source_refs.size(); ++i) {
       delete[] source_refs[i];
     }
-
+    delete[] image_path;
     new_Node.free();
     // cerr << "Deallocated " << i << " source string(s)." << endl;
   }
@@ -148,6 +159,23 @@ namespace Sass {
     register_function(comparable_descriptor, comparable);
     // Boolean Functions
     register_function(not_descriptor, not_impl);
+    register_function(if_descriptor, if_impl);
+  }
+
+  void Context::setup_color_map()
+  {
+    size_t i = 0;
+    while (color_names[i]) {
+      string name(color_names[i]);
+      Node value(new_Node("[COLOR TABLE]", 0,
+                          color_values[i*3],
+                          color_values[i*3+1],
+                          color_values[i*3+2],
+                          1));
+      color_names_to_values[name] = value;
+      color_values_to_names[value] = name;
+      ++i;
+    }
   }
   
 }
