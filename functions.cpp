@@ -123,6 +123,41 @@ namespace Sass {
     }
     
     // HSL Functions ///////////////////////////////////////////////////////
+
+    // Utility rgb to hsl function so we can do hsl operations
+    Node rgb_to_hsl(double r, double g, double b, Node_Factory& new_Node) {
+      r = r/255.0;
+      g = g/255.0;
+      b = b/255.0;
+      double v, m, vm, r2, g2, b2;
+      double h = 0, s = 0, l = 0;
+      v = r > g ? r : g;
+      v = v > b ? v : b;
+      m = r < g ? r : g;
+      m = m < b ? m : b;
+      l = (m + v)/2.0;
+      if (l <= 0.0) return new_Node("", 0, h, s, l);
+      vm = v - m;
+      s = vm;
+      if (s > 0.0) s /= (l <= 0.5) ? (v + m) : (2.0 - v - m);
+      else         return new_Node("", 0, h, s, l);
+      r2 = (v - r)/vm;
+      g2 = (v - g)/vm;
+      b2 = (v - b)/vm;
+      if (r == v)      h = (g == m ? 5.0 + b2 : 1.0 - g2);
+      else if (g == v) h = (b == m ? 1.0 + r2 : 3.0 - b2);
+      else             h = (r == m ? 3.0 + g2 : 5.0 - r2);
+      h /= 6.0;
+      return new_Node("", 0, h, s, l);
+    }
+
+    Function_Descriptor adjust_color_descriptor =
+    { "adjust_color 1", "$color", 0 }
+    Function_Descriptor adjust_color_2_descriptor =
+    { "adjust_color 2", "$color", "2")
+    Node adjust_color_impl(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
+      blah;
+    }
     
     double h_to_rgb(double m1, double m2, double h) {
       if (h < 0) ++h;
@@ -748,7 +783,7 @@ namespace Sass {
     
     // Boolean Functions ///////////////////////////////////////////////////
     Function_Descriptor not_descriptor =
-    { "not", "value", 0 };
+    { "not", "$value", 0 };
     Node not_impl(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
       Node val(bindings[parameters[0].token()]);
       if (val.type() == Node::boolean && val.boolean_value() == false) {
@@ -757,6 +792,17 @@ namespace Sass {
       else {
         return new_Node(Node::boolean, val.path(), val.line(), false);
       }
+    }
+
+    Function_Descriptor if_descriptor =
+    { "if", "$predicate", "$consequent", "$alternative", 0 };
+    Node if_impl(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node) {
+      Node predicate(bindings[parameters[0].token()]);
+      Node consequent(bindings[parameters[1].token()]);
+      Node alternative(bindings[parameters[2].token()]);
+
+      if (predicate.type() == Node::boolean && predicate.boolean_value() == false) return alternative;
+      return consequent;
     }
 
   }
