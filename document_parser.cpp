@@ -147,12 +147,17 @@ namespace Sass {
   {
     Node params(context.new_Node(Node::parameters, path, line, 0));
     Token name(lexed);
+    Node::Type param_type = Node::none;
     if (lex< exactly<'('> >()) {
       if (peek< variable >()) {
-        params << parse_parameter();
+        Node param(parse_parameter(param_type));
+        if (param.type() == Node::assignment) param_type = Node::assignment;
+        params << param;
         while (lex< exactly<','> >()) {
           if (!peek< variable >()) throw_syntax_error("expected a variable name (e.g. $x) for the parameter list for " + name.to_string());
-          params << parse_parameter();
+          Node param(parse_parameter(param_type));
+          if (param.type() == Node::assignment) param_type = Node::assignment;
+          params << param;
         }
         if (!lex< exactly<')'> >()) throw_syntax_error("parameter list for " + name.to_string() + " requires a ')'");
       }
@@ -161,20 +166,27 @@ namespace Sass {
     return params;
   }
 
-  Node Document::parse_parameter() {
+  Node Document::parse_parameter(Node::Type param_type) {
     lex< variable >();
     Node var(context.new_Node(Node::variable, path, line, lexed));
-    if (lex< exactly<':'> >()) { // default value
+    if (param_type == Node::assignment) {
+      if (lex< exactly<':'> >()) { // default value
+        Node val(parse_space_list());
+        Node par_and_val(context.new_Node(Node::assignment, path, line, 2));
+        par_and_val << var << val;
+        return par_and_val;
+      }
+      else {
+        throw_syntax_error("required parameter " + var.token().to_string() + " must precede all optional parameters");
+      }
+    }
+    else if (lex< exactly<':'> >()) { // default value
       Node val(parse_space_list());
       Node par_and_val(context.new_Node(Node::assignment, path, line, 2));
       par_and_val << var << val;
       return par_and_val;
     }
-    else {
-      return var;
-    }
-    // unreachable statement
-    return Node();
+    return var;
   }
 
   Node Document::parse_mixin_call()
