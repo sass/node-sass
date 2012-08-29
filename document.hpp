@@ -133,7 +133,7 @@ namespace Sass {
     Node parse_parameter();
     Node parse_mixin_call();
     Node parse_arguments();
-    Node parse_argument();
+    Node parse_argument(Node::Type);
     Node parse_assignment();
     Node parse_propset();
     Node parse_ruleset(Selector_Lookahead lookahead, Node::Type inside_of = Node::none);

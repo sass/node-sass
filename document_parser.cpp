@@ -192,15 +192,18 @@ namespace Sass {
   {
     Token name(lexed);
     Node args(context.new_Node(Node::arguments, path, line, 0));
+    Node::Type arg_type = Node::none;
     if (lex< exactly<'('> >()) {
       if (!peek< exactly<')'> >(position)) {
-        Node arg(parse_argument());
+        Node arg(parse_argument(Node::none));
         arg.should_eval() = true;
         args << arg;
+        if (arg.type() == Node::assignment) arg_type = Node::assignment;
         while (lex< exactly<','> >()) {
-          Node arg(parse_argument());
+          Node arg(parse_argument(arg_type));
           arg.should_eval() = true;
           args << arg;
+          if (arg.type() == Node::assignment) arg_type = Node::assignment;
         }
       }
       if (!lex< exactly<')'> >()) throw_syntax_error("improperly terminated argument list for " + name.to_string());
@@ -208,9 +211,26 @@ namespace Sass {
     return args;
   }
   
-  Node Document::parse_argument()
+  Node Document::parse_argument(Node::Type arg_type)
   {
-    if (peek< sequence < variable, spaces_and_comments, exactly<':'> > >()) {
+    // if arg_type is assignment, only accept keyword args from here onwards
+    if (arg_type == Node::assignment) {
+      if (peek< sequence < variable, spaces_and_comments, exactly<':'> > >()) {
+        lex< variable >();
+        Node var(context.new_Node(Node::variable, path, line, lexed));
+        lex< exactly<':'> >();
+        Node val(parse_space_list());
+        Node assn(context.new_Node(Node::assignment, path, line, 2));
+        assn << var << val;
+        return assn;
+      }
+      else {
+        throw_syntax_error("ordinal arguments must precede keyword arguments");
+      }
+    }
+    // otherwise accept either, and let the caller set the arg_type flag
+    if (arg_type == Node::none &&
+        peek< sequence < variable, spaces_and_comments, exactly<':'> > >()) {
       lex< variable >();
       Node var(context.new_Node(Node::variable, path, line, lexed));
       lex< exactly<':'> >();
@@ -219,9 +239,19 @@ namespace Sass {
       assn << var << val;
       return assn;
     }
-    else {
-      return parse_space_list();
-    }
+    return parse_space_list();
+    // if (peek< sequence < variable, spaces_and_comments, exactly<':'> > >()) {
+    //   lex< variable >();
+    //   Node var(context.new_Node(Node::variable, path, line, lexed));
+    //   lex< exactly<':'> >();
+    //   Node val(parse_space_list());
+    //   Node assn(context.new_Node(Node::assignment, path, line, 2));
+    //   assn << var << val;
+    //   return assn;
+    // }
+    // else {
+    //   return parse_space_list();
+    // }
   }
 
   Node Document::parse_assignment()
