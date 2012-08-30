@@ -611,6 +611,25 @@ namespace Sass {
     }
   }
 
+  bind_parameters(Environment& bindings, const Node params, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx)
+  {
+    size_t p_count = params.size();
+    size_t a_count = args.size();
+    // if (p_count != a_count) {
+    //   stringstream msg;
+    //   msg << "expected " << p_count << " arguments; invoked with " << a_count;
+    //   throw msg;
+    // }
+    for (size_t i = 0, S = args.size(); i < S; ++i) {
+      Node param(params[i]);
+      Node arg(args[i]);
+      if (param.type() == Node::variable &&
+          arg.type() != Node::assignment) {
+        bindings
+
+    }
+  }
+
   // Apply a mixin -- bind the arguments in a new environment, link the new
   // environment to the current one, then copy the body and eval in the new
   // environment.
