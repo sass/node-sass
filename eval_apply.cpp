@@ -1009,6 +1009,7 @@ namespace Sass {
         for (multimap<Node, Node>::iterator i = extension_table.lower_bound(extendee_base), E = extension_table.upper_bound(extendee_base);
              i != E;
              ++i) {
+          if (i->second.size() <= 2) continue; // TODO: UN-HACKIFY THIS
           if (i->second[2].type() == Node::selector_group)
             extender_group += i->second[2];
           else
@@ -1033,6 +1034,7 @@ namespace Sass {
             for (multimap<Node, Node>::iterator i = extension_table.lower_bound(extendee_i_base), E = extension_table.upper_bound(extendee_i_base);
                  i != E;
                  ++i) {
+              if (i->second.size() <= 2) continue; // TODO: UN-HACKIFY THIS
               if (i->second[2].type() == Node::selector_group)
                 extender_group += i->second[2];
               else
