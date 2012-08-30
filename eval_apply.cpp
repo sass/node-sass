@@ -611,29 +611,59 @@ namespace Sass {
     }
   }
 
-  bind_parameters(Environment& bindings, const Node params, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx)
+  // Helper function for binding arguments in function and mixin calls.
+  // Needs the environment containing the bindings to be passed in by the
+  // caller. Also expects the caller to have pre-evaluated the arguments.
+  void bind_arguments(string callee_name, const Node params, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
-    size_t p_count = params.size();
-    size_t a_count = args.size();
-    // if (p_count != a_count) {
-    //   stringstream msg;
-    //   msg << "expected " << p_count << " arguments; invoked with " << a_count;
-    //   throw msg;
-    // }
-    for (size_t i = 0, S = args.size(); i < S; ++i) {
+    // populate the env with the names of the parameters so we can check for
+    // correctness further down
+    for (size_t i = 0, S = params.size(); i < S; ++i) {
       Node param(params[i]);
-      Node arg(args[i]);
-      if (param.type() == Node::variable &&
-          arg.type() != Node::assignment) {
-        bindings
+      env[param.type() == Node::variable ? param.token() : param[0].token()] = Node();
+    }
 
+    // now do the actual binding
+    size_t args_bound = 0;
+    for (size_t i = 0, j = 0, S = args.size(); i < S; ++i) {
+      Node arg(args[i]), param(params[j]);
+      // ordinal argument; just bind and keep going
+      if (arg.type() != Node::assignment) {
+        env[param.type() == Node::variable ? param.token() : param[0].token()] = arg;
+        ++j;
+      }
+      // keyword argument -- need to check for correctness
+      else {
+        Token arg_name(arg[0].token());
+        Node arg_value(arg[1]);
+        if (!env.query(arg_name)) {
+          throw_eval_error(callee_name + " has no parameter named " + arg_name.to_string(), arg.path(), arg.line());
+        }
+        if (!env[arg_name].is_stub()) {
+          throw_eval_error(callee_name + " was passed argument " + arg_name.to_string() + " both by position and by name", arg.path(), arg.line());
+        }
+        env[arg_name] = arg_value;
+        ++args_bound;
+      }
+    }
+    // TODO: check for superfluous arguments
+    // now plug in the holes with default values, if any
+    for (size_t i = 0, S = params.size(); i < S; ++i) {
+      Node param(params[i]);
+      Token param_name((param.type() == Node::assignment ? param[0] : param).token());
+      if (env[param_name].is_stub()) {
+        if (param.type() != Node::assignment) {
+          throw_eval_error(callee_name + " is missing argument " + param_name.to_string(), args.path(), args.line());
+        }
+        // eval default values in an environment where the previous vals have already been evaluated
+        env[param_name] = eval(param[1], prefix, env, f_env, new_Node, ctx);
+      }
     }
   }
 
   // Apply a mixin -- bind the arguments in a new environment, link the new
   // environment to the current one, then copy the body and eval in the new
   // environment.
-  
   Node apply_mixin(Node mixin, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool dynamic_scope)
   {
     Node params(mixin[1]);
