@@ -620,12 +620,17 @@ namespace Sass {
     // correctness further down
     for (size_t i = 0, S = params.size(); i < S; ++i) {
       Node param(params[i]);
-      env[param.type() == Node::variable ? param.token() : param[0].token()] = Node();
+      env.current_frame[param.type() == Node::variable ? param.token() : param[0].token()] = Node();
     }
 
     // now do the actual binding
-    size_t args_bound = 0;
+    size_t args_bound = 0, num_params = params.size();
     for (size_t i = 0, j = 0, S = args.size(); i < S; ++i) {
+      if (j >= num_params) {
+        stringstream msg;
+        msg << callee_name << " only takes " << num_params << " arguments";
+        throw_eval_error(msg.str(), args.path(), args.line());
+      }
       Node arg(args[i]), param(params[j]);
       // ordinal argument; just bind and keep going
       if (arg.type() != Node::assignment) {
@@ -646,7 +651,6 @@ namespace Sass {
         ++args_bound;
       }
     }
-    // TODO: check for superfluous arguments
     // now plug in the holes with default values, if any
     for (size_t i = 0, S = params.size(); i < S; ++i) {
       Node param(params[i]);
@@ -671,6 +675,7 @@ namespace Sass {
     Environment bindings;
     // TO DO: REFACTOR THE ARG-BINDER
     // bind arguments
+    /*
     for (size_t i = 0, j = 0, S = args.size(); i < S; ++i) {
       if (args[i].type() == Node::assignment) {
         Node arg(args[i]);
@@ -713,8 +718,20 @@ namespace Sass {
         }
       }
     }
+    */
     // END ARG-BINDER
     // link the new environment and eval the mixin's body
+
+    // evaluate arguments in the current environment
+    for (size_t i = 0, S = args.size(); i < S; ++i) {
+      if (args[i].type() != Node::assignment) {
+        args[i] = eval(args[i], prefix, env, f_env, new_Node, ctx);
+      }
+      else {
+        args[i][1] = eval(args[i][1], prefix, env, f_env, new_Node, ctx);
+      }
+    }
+    // link the mixin's new environment
     if (dynamic_scope) {
       bindings.link(env);
     }
@@ -723,6 +740,9 @@ namespace Sass {
       // to implement full lexical scope someday.
       bindings.link(env.global ? *env.global : env);
     }
+    // bind arguments in the extended environment
+    bind_arguments("mixin " + mixin[0].to_string(), params, args, prefix, bindings, f_env, new_Node, ctx);
+    // evaluate the mixin's body
     for (size_t i = 0, S = body.size(); i < S; ++i) {
       body[i] = eval(body[i], prefix, bindings, f_env, new_Node, ctx);
     }
