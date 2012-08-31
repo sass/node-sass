@@ -1,3 +1,5 @@
+#define SASS_ERROR
+
 namespace Sass {
   
   struct Error {

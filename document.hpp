@@ -1,3 +1,5 @@
+#define SASS_DOCUMENT
+
 #include <map>
 
 #ifndef SASS_PRELEXER

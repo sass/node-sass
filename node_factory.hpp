@@ -1,3 +1,5 @@
+#define SASS_NODE_FACTORY
+
 #include <vector>
 
 #ifndef SASS_NODE

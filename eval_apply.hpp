@@ -1,3 +1,5 @@
+#define SASS_EVAL_APPLY
+
 #include <map>
 
 #ifndef SASS_NODE

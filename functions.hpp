@@ -1,3 +1,5 @@
+#define SASS_FUNCTIONS
+
 #include <cstring>
 #include <map>
 
@@ -26,6 +28,7 @@ namespace Sass {
     Function()
     { /* TO DO: set up the generic callback here */ }
 
+    // for user-defined functions
     Function(Node def)
     : name(def[0].to_string()),
       parameters(def[1]),
@@ -42,6 +45,8 @@ namespace Sass {
       primitive(0),
       overloaded(overloaded)
     { }
+
+    Function(const char* signature, Primitive ip, Node_Factory& new_Node);
     
     Function(Function_Descriptor d, Primitive ip, Node_Factory& new_Node)
     : name(d[0]),

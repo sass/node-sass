@@ -1,14 +1,25 @@
 #ifndef SASS_PRELEXER
 #include "prelexer.hpp"
 #endif
+
 #include "node_factory.hpp"
 #include "functions.hpp"
+#include "context.hpp"
 #include "error.hpp"
+
 #include <iostream>
 #include <cmath>
+
 using std::cerr; using std::endl;
 
 namespace Sass {
+
+  Function::Function(const char* signature, Primitive ip, Node_Factory& new_Node)
+  {
+    //Document sig_doc(Document::make_from_source_chars(
+  }
+
+
   namespace Functions {
 
     static void throw_eval_error(string message, string path, size_t line)
@@ -17,6 +28,11 @@ namespace Sass {
         path = path.substr(1, path.length() - 1);
 
       throw Error(Error::evaluation, path, line, message);
+    }
+
+    extern const char foo_sig[] = "foo($x, $y, $z: hey hey)";
+    Node foo(const Node parameters, Environment& bindings, Node_Factory& new_Node) {
+      return Node();
     }
 
     // RGB Functions ///////////////////////////////////////////////////////
