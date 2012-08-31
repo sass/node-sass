@@ -1,6 +1,6 @@
 #include <vector>
 
-#ifndef SASS_NODE_INCLUDED
+#ifndef SASS_NODE
 #include "node.hpp"
 #endif
 

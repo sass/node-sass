@@ -1,14 +1,14 @@
 #include <map>
 
-#ifndef SASS_PRELEXER_INCLUDED
+#ifndef SASS_PRELEXER
 #include "prelexer.hpp"
 #endif
 
-#ifndef SASS_NODE_INCLUDED
+#ifndef SASS_NODE
 #include "node.hpp"
 #endif
 
-#ifndef SASS_CONTEXT_INCLUDED
+#ifndef SASS_CONTEXT
 #include "context.hpp"
 #endif
 

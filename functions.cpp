@@ -1,4 +1,4 @@
-#ifndef SASS_PRELEXER_INCLUDED
+#ifndef SASS_PRELEXER
 #include "prelexer.hpp"
 #endif
 #include "node_factory.hpp"

@@ -1,7 +1,7 @@
 #include <cstring>
 #include <map>
 
-#ifndef SASS_NODE_INCLUDED
+#ifndef SASS_NODE
 #include "node.hpp"
 #endif
 
@@ -11,6 +11,8 @@ namespace Sass {
   typedef Node (*Primitive)(const Node, map<Token, Node>&, Node_Factory& new_Node);
   typedef const char* str;
   typedef str Function_Descriptor[];
+
+  struct Environment;
   
   struct Function {
     
@@ -56,7 +58,7 @@ namespace Sass {
         parameters.push_back(new_Node(Node::variable, "[PRIMITIVE FUNCTIONS]", 0, Token::make(p, p + std::strlen(p))));
       }
     }
-    
+
     Node operator()(map<Token, Node>& bindings, Node_Factory& new_Node) const
     {
       if (primitive) return primitive(parameters, bindings, new_Node);

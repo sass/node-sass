@@ -1,4 +1,4 @@
-#define SASS_COLOR_NAMES_INCLUDED
+#define SASS_COLOR_NAMES
 
 namespace Sass {
 

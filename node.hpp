@@ -1,4 +1,4 @@
-#define SASS_NODE_INCLUDED
+#define SASS_NODE
 
 #include <cstring>
 #include <string>

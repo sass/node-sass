@@ -1,4 +1,4 @@
-#define SASS_CONTEXT_INCLUDED
+#define SASS_CONTEXT
 
 
 #include <utility>
