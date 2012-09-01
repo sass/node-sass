@@ -5,6 +5,8 @@
 #include "node_factory.hpp"
 #include "functions.hpp"
 #include "context.hpp"
+#include "document.hpp"
+#include "eval_apply.hpp"
 #include "error.hpp"
 
 #include <iostream>
@@ -14,9 +16,27 @@ using std::cerr; using std::endl;
 
 namespace Sass {
 
-  Function::Function(const char* signature, Primitive ip, Node_Factory& new_Node)
+  // this constructor needs context.hpp, so it can't be defined in functions.hpp
+  Function::Function(char* signature, Primitive_2 ip, Context& ctx)
+  : primitive_2(ip),
+    overloaded(false)
   {
-    //Document sig_doc(Document::make_from_source_chars(
+    Document sig_doc(Document::make_from_source_chars(ctx, signature));
+    sig_doc.lex<Prelexer::identifier>();
+    name = sig_doc.lexed.to_string();
+    parameters = sig_doc.parse_parameters();
+    parameter_names = ctx.new_Node(Node::parameters, "[PRIMITIVE FUNCTIONS]", 0, parameters.size());
+    for (size_t i = 0, S = parameters.size(); i < S; ++i) {
+      Node param(parameters[i]);
+      if (param.type() == Node::variable) {
+        parameter_names << param;
+      }
+      else {
+        parameter_names << param[0];
+        // assuming default args for primitives can be evaluated only once at init
+        param[1] = eval(param[1], Node(), ctx.global_env, ctx.function_env, ctx.new_Node, ctx);
+      }
+    }
   }
 
 
@@ -30,9 +50,15 @@ namespace Sass {
       throw Error(Error::evaluation, path, line, message);
     }
 
-    extern const char foo_sig[] = "foo($x, $y, $z: hey hey)";
-    Node foo(const Node parameters, Environment& bindings, Node_Factory& new_Node) {
-      return Node();
+    extern const char foo_sig[] = "foo($x, $y, $z: \"hey\")";
+    Node foo(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node arg1(bindings[parameter_names[0].token()]);
+      Node arg2(bindings[parameter_names[1].token()]);
+      Node arg3(bindings[parameter_names[2].token()]);
+
+      Node cat(new_Node(Node::concatenation, arg1.path(), arg1.line(), 3));
+      cat << arg3 << arg2 << arg1;
+      return cat;
     }
 
     // RGB Functions ///////////////////////////////////////////////////////

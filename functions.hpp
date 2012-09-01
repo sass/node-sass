@@ -8,21 +8,25 @@
 #endif
 
 namespace Sass {
+  struct Environment;
+  struct Context;
+
   using std::map;
   
   typedef Node (*Primitive)(const Node, map<Token, Node>&, Node_Factory& new_Node);
+  typedef Node (*Primitive_2)(const Node, Environment&, Node_Factory&);
   typedef const char* str;
   typedef str Function_Descriptor[];
 
-  struct Environment;
-  
   struct Function {
     
     string name;
     // vector<Token> parameters;
     Node parameters;
+    Node parameter_names;
     Node definition;
     Primitive primitive;
+    Primitive_2 primitive_2;
     bool overloaded;
     
     Function()
@@ -34,6 +38,7 @@ namespace Sass {
       parameters(def[1]),
       definition(def),
       primitive(0),
+      primitive_2(0),
       overloaded(false)
     { }
 
@@ -43,16 +48,18 @@ namespace Sass {
       parameters(Node()),
       definition(Node()),
       primitive(0),
+      primitive_2(0),
       overloaded(overloaded)
     { }
 
-    Function(const char* signature, Primitive ip, Node_Factory& new_Node);
+    Function(char* signature, Primitive_2 ip, Context& ctx);
     
     Function(Function_Descriptor d, Primitive ip, Node_Factory& new_Node)
     : name(d[0]),
       parameters(new_Node(Node::parameters, "[PRIMITIVE FUNCTIONS]", 0, 0)),
       definition(Node()),
       primitive(ip),
+      primitive_2(0),
       overloaded(false)
     {
       size_t len = 0;
@@ -73,6 +80,9 @@ namespace Sass {
   };
   
   namespace Functions {
+
+    extern const char foo_sig[];
+    Node foo(const Node parameters, Environment& bindings, Node_Factory& new_Node);
 
     // RGB Functions ///////////////////////////////////////////////////////
 

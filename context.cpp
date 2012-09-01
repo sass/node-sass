@@ -90,6 +90,12 @@ namespace Sass {
     function_env[f.name] = f;
   }
 
+  inline void Context::register_function_2(const char* sig, Primitive_2 ip)
+  {
+    Function f(const_cast<char*>(sig), ip, *this);
+    function_env[f.name] = f;
+  }
+
   inline void Context::register_overload_stub(string name)
   {
     function_env[name] = Function(name, true);
@@ -98,6 +104,8 @@ namespace Sass {
   void Context::register_functions()
   {
     using namespace Functions;
+
+    register_function_2(foo_sig, foo);
     // RGB Functions
     register_function(rgb_descriptor,  rgb);
     register_overload_stub("rgba");

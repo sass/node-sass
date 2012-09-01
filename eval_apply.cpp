@@ -706,7 +706,23 @@ namespace Sass {
   // primitive function implementation, then return its value.
   Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx)
   {
-    if (f.primitive) {
+    if (f.primitive_2) {
+      // evaluate arguments in the current environment
+      for (size_t i = 0, S = args.size(); i < S; ++i) {
+        if (args[i].type() != Node::assignment) {
+          args[i] = eval(args[i], prefix, env, f_env, new_Node, ctx);
+        }
+        else {
+          args[i][1] = eval(args[i][1], prefix, env, f_env, new_Node, ctx);
+        }
+      }
+      // bind arguments
+      Environment bindings;
+      bindings.link(env.global ? *env.global : env);
+      bind_arguments("function " + f.name, f.parameters, args, prefix, bindings, f_env, new_Node, ctx);
+      return f.primitive_2(f.parameter_names, bindings, new_Node);
+    }
+    else if (f.primitive) {
       map<Token, Node> bindings;
       // bind arguments
       for (size_t i = 0, j = 0, S = args.size(); i < S; ++i) {
