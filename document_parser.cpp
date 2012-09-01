@@ -473,6 +473,9 @@ namespace Sass {
       else if (lex< sequence< optional<sign>, digits > >()) {
         pseudo << context.new_Node(Node::value, path, line, lexed);
       }
+      else if (lex< identifier >()) {
+        pseudo << context.new_Node(Node::identifier, path, line, lexed);
+      }
       else if (lex< string_constant >()) {
         pseudo << context.new_Node(Node::string_constant, path, line, lexed);
       }
