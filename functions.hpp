@@ -13,20 +13,16 @@ namespace Sass {
 
   using std::map;
   
-  // typedef Node (*Primitive)(const Node, map<Token, Node>&, Node_Factory& new_Node);
   typedef Node (*Primitive)(const Node, Environment&, Node_Factory&);
-  typedef const char* str;
   typedef const char Signature[];
 
   struct Function {
     
     string name;
-    // vector<Token> parameters;
     Node parameters;
     Node parameter_names;
     Node definition;
     Primitive primitive;
-    // Primitive_2 primitive_2;
     bool overloaded;
     
     Function()
@@ -51,22 +47,6 @@ namespace Sass {
     { }
 
     Function(char* signature, Primitive ip, Context& ctx);
-    
-    // Function(Function_Descriptor d, Primitive ip, Node_Factory& new_Node)
-    // : name(d[0]),
-    //   parameters(new_Node(Node::parameters, "[PRIMITIVE FUNCTIONS]", 0, 0)),
-    //   definition(Node()),
-    //   primitive(ip),
-    //   overloaded(false)
-    // {
-    //   size_t len = 0;
-    //   while (d[len+1]) ++len;
-      
-    //   for (size_t i = 0; i < len; ++i) {
-    //     const char* p = d[i+1];
-    //     parameters.push_back(new_Node(Node::variable, "[PRIMITIVE FUNCTIONS]", 0, Token::make(p, p + std::strlen(p))));
-    //   }
-    // }
 
     Node operator()(Environment& bindings, Node_Factory& new_Node) const
     {

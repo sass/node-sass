@@ -722,23 +722,6 @@ namespace Sass {
       bind_arguments("function " + f.name, f.parameters, args, prefix, bindings, f_env, new_Node, ctx);
       return f.primitive(f.parameter_names, bindings, new_Node);
     }
-    // else if (f.primitive) {
-    //   map<Token, Node> bindings;
-    //   // bind arguments
-    //   for (size_t i = 0, j = 0, S = args.size(); i < S; ++i) {
-    //     if (args[i].type() == Node::assignment) {
-    //       Node arg(args[i]);
-    //       Token name(arg[0].token());
-    //       bindings[name] = eval(arg[1], prefix, env, f_env, new_Node, ctx);
-    //     }
-    //     else {
-    //       // TO DO: ensure (j < f.parameters.size())
-    //       bindings[f.parameters[j].token()] = eval(args[i], prefix, env, f_env, new_Node, ctx);
-    //       ++j;
-    //     }
-    //   }
-    //   return f(bindings, new_Node);
-    // }
     else {
       Node params(f.definition[1]);
       Node body(new_Node(f.definition[2]));
