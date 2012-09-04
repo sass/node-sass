@@ -1,6 +1,7 @@
 #include "context.hpp"
 #include <cstring>
 #include <iostream>
+#include <sstream>
 #include <unistd.h>
 #include "prelexer.hpp"
 #include "color_names.hpp"
@@ -73,27 +74,20 @@ namespace Sass {
     }
     delete[] image_path;
     new_Node.free();
-    // cerr << "Deallocated " << i << " source string(s)." << endl;
   }
   
-  inline void Context::register_function(Function_Descriptor d, Primitive ip)
-  {
-    Function f(d, ip, new_Node);
-    // function_env[pair<string, size_t>(f.name, f.parameters.size())] = f;
-    function_env[f.name] = f;
-  }
-  
-  inline void Context::register_function(Function_Descriptor d, Primitive ip, size_t arity)
-  {
-    Function f(d, ip, new_Node);
-    // function_env[pair<string, size_t>(f.name, arity)] = f;
-    function_env[f.name] = f;
-  }
-
-  inline void Context::register_function_2(const char* sig, Primitive_2 ip)
+  inline void Context::register_function(Signature sig, Primitive ip)
   {
     Function f(const_cast<char*>(sig), ip, *this);
     function_env[f.name] = f;
+  }
+  
+  inline void Context::register_function(Signature sig, Primitive ip, size_t arity)
+  {
+    Function f(const_cast<char*>(sig), ip, *this);
+    std::stringstream stub;
+    stub << f.name << " " << arity;
+    function_env[stub.str()] = f;
   }
 
   inline void Context::register_overload_stub(string name)
@@ -105,69 +99,50 @@ namespace Sass {
   {
     using namespace Functions;
 
-    register_function_2(foo_sig, foo);
     // RGB Functions
-    register_function(rgb_descriptor,  rgb);
+    register_function(rgb_sig,  rgb);
     register_overload_stub("rgba");
-    register_function(rgba_4_descriptor, rgba_4);
-    register_function(rgba_2_descriptor, rgba_2);
-    register_function(red_descriptor, red);
-    register_function(green_descriptor, green);
-    register_function(blue_descriptor, blue);
-    register_overload_stub("mix");
-    register_function(mix_2_descriptor, mix_2);
-    register_function(mix_3_descriptor, mix_3);
+    register_function(rgba_4_sig, rgba_4, 4);
+    register_function(rgba_2_sig, rgba_2, 2);
+    register_function(red_sig, red);
+    register_function(green_sig, green);
+    register_function(blue_sig, blue);
+    register_function(mix_sig, mix);
     // HSL Functions
-    register_function(hsla_descriptor, hsla);
-    register_function(hsl_descriptor, hsl);
-    register_function(adjust_hue_descriptor, adjust_hue);
-    register_function(invert_descriptor, invert);
+    register_function(hsla_sig, hsla);
+    register_function(hsl_sig, hsl);
+    register_function(adjust_hue_sig, adjust_hue);
+    register_function(invert_sig, invert);
     // Opacity Functions
-    register_function(alpha_descriptor, alpha);
-    register_function(opacity_descriptor, alpha);
-    register_function(opacify_descriptor, opacify);
-    register_function(fade_in_descriptor, opacify);
-    register_function(transparentize_descriptor, transparentize);
-    register_function(fade_out_descriptor, transparentize);
+    register_function(alpha_sig, alpha);
+    register_function(opacity_sig, alpha);
+    register_function(opacify_sig, opacify);
+    register_function(fade_in_sig, opacify);
+    register_function(transparentize_sig, transparentize);
+    register_function(fade_out_sig, transparentize);
     // String Functions
-    register_function(unquote_descriptor, unquote);
-    register_function(quote_descriptor, quote);
+    register_function(unquote_sig, unquote);
+    register_function(quote_sig, quote);
     // Number Functions
-    register_function(percentage_descriptor, percentage);
-    register_function(round_descriptor, round);
-    register_function(ceil_descriptor, ceil);
-    register_function(floor_descriptor, floor);
-    register_function(abs_descriptor, abs);
+    register_function(percentage_sig, percentage);
+    register_function(round_sig, round);
+    register_function(ceil_sig, ceil);
+    register_function(floor_sig, floor);
+    register_function(abs_sig, abs);
     // List Functions
-    register_function(length_descriptor, length);
-    register_function(nth_descriptor, nth);
-    register_overload_stub("join");
-    register_function(join_2_descriptor, join_2);
-    register_function(join_3_descriptor, join_3);
-    register_overload_stub("append");
-    register_function(append_2_descriptor, append_2);
-    register_function(append_3_descriptor, append_3);
-    register_overload_stub("compact");
-    register_function(compact_1_descriptor, compact);
-    register_function(compact_2_descriptor, compact);
-    register_function(compact_3_descriptor, compact);
-    register_function(compact_4_descriptor, compact);
-    register_function(compact_5_descriptor, compact);
-    register_function(compact_6_descriptor, compact);
-    register_function(compact_7_descriptor, compact);
-    register_function(compact_8_descriptor, compact);
-    register_function(compact_9_descriptor, compact);
-    register_function(compact_10_descriptor, compact);
-    register_function(compact_11_descriptor, compact);
-    register_function(compact_12_descriptor, compact);
+    register_function(length_sig, length);
+    register_function(nth_sig, nth);
+    register_function(join_sig, join);
+    register_function(append_sig, append);
+    register_function(compact_sig, compact);
     // Introspection Functions
-    register_function(type_of_descriptor, type_of);
-    register_function(unit_descriptor, unit);
-    register_function(unitless_descriptor, unitless);
-    register_function(comparable_descriptor, comparable);
+    register_function(type_of_sig, type_of);
+    register_function(unit_sig, unit);
+    register_function(unitless_sig, unitless);
+    register_function(comparable_sig, comparable);
     // Boolean Functions
-    register_function(not_descriptor, not_impl);
-    register_function(if_descriptor, if_impl);
+    register_function(not_sig, not_impl);
+    register_function(if_sig, if_impl);
   }
 
   void Context::setup_color_map()

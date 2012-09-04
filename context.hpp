@@ -38,9 +38,8 @@ namespace Sass {
     Context(const char* paths_str = 0, const char* img_path_str = 0);
     ~Context();
 
-    void register_function_2(const char* sig, Primitive_2 ip);
-    void register_function(Function_Descriptor d, Primitive ip);
-    void register_function(Function_Descriptor d, Primitive ip, size_t arity);
+    void register_function(Signature sig, Primitive ip);
+    void register_function(Signature sig, Primitive ip, size_t arity);
     void register_overload_stub(string name);
     void register_functions();
     void setup_color_map();

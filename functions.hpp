@@ -13,10 +13,10 @@ namespace Sass {
 
   using std::map;
   
-  typedef Node (*Primitive)(const Node, map<Token, Node>&, Node_Factory& new_Node);
-  typedef Node (*Primitive_2)(const Node, Environment&, Node_Factory&);
+  // typedef Node (*Primitive)(const Node, map<Token, Node>&, Node_Factory& new_Node);
+  typedef Node (*Primitive)(const Node, Environment&, Node_Factory&);
   typedef const char* str;
-  typedef str Function_Descriptor[];
+  typedef const char Signature[];
 
   struct Function {
     
@@ -26,7 +26,7 @@ namespace Sass {
     Node parameter_names;
     Node definition;
     Primitive primitive;
-    Primitive_2 primitive_2;
+    // Primitive_2 primitive_2;
     bool overloaded;
     
     Function()
@@ -38,7 +38,6 @@ namespace Sass {
       parameters(def[1]),
       definition(def),
       primitive(0),
-      primitive_2(0),
       overloaded(false)
     { }
 
@@ -48,30 +47,28 @@ namespace Sass {
       parameters(Node()),
       definition(Node()),
       primitive(0),
-      primitive_2(0),
       overloaded(overloaded)
     { }
 
-    Function(char* signature, Primitive_2 ip, Context& ctx);
+    Function(char* signature, Primitive ip, Context& ctx);
     
-    Function(Function_Descriptor d, Primitive ip, Node_Factory& new_Node)
-    : name(d[0]),
-      parameters(new_Node(Node::parameters, "[PRIMITIVE FUNCTIONS]", 0, 0)),
-      definition(Node()),
-      primitive(ip),
-      primitive_2(0),
-      overloaded(false)
-    {
-      size_t len = 0;
-      while (d[len+1]) ++len;
+    // Function(Function_Descriptor d, Primitive ip, Node_Factory& new_Node)
+    // : name(d[0]),
+    //   parameters(new_Node(Node::parameters, "[PRIMITIVE FUNCTIONS]", 0, 0)),
+    //   definition(Node()),
+    //   primitive(ip),
+    //   overloaded(false)
+    // {
+    //   size_t len = 0;
+    //   while (d[len+1]) ++len;
       
-      for (size_t i = 0; i < len; ++i) {
-        const char* p = d[i+1];
-        parameters.push_back(new_Node(Node::variable, "[PRIMITIVE FUNCTIONS]", 0, Token::make(p, p + std::strlen(p))));
-      }
-    }
+    //   for (size_t i = 0; i < len; ++i) {
+    //     const char* p = d[i+1];
+    //     parameters.push_back(new_Node(Node::variable, "[PRIMITIVE FUNCTIONS]", 0, Token::make(p, p + std::strlen(p))));
+    //   }
+    // }
 
-    Node operator()(map<Token, Node>& bindings, Node_Factory& new_Node) const
+    Node operator()(Environment& bindings, Node_Factory& new_Node) const
     {
       if (primitive) return primitive(parameters, bindings, new_Node);
       else           return Node();
@@ -86,138 +83,118 @@ namespace Sass {
 
     // RGB Functions ///////////////////////////////////////////////////////
 
-    extern Function_Descriptor rgb_descriptor;
-    Node rgb(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature rgb_sig;
+    Node rgb(const Node, Environment&, Node_Factory&);
 
-    extern Function_Descriptor rgba_4_descriptor;
-    Node rgba_4(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature rgba_4_sig;
+    Node rgba_4(const Node, Environment&, Node_Factory&);
     
-    extern Function_Descriptor rgba_2_descriptor;
-    Node rgba_2(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature rgba_2_sig;
+    Node rgba_2(const Node, Environment&, Node_Factory&);
     
-    extern Function_Descriptor red_descriptor;
-    Node red(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature red_sig;
+    Node red(const Node, Environment&, Node_Factory&);
     
-    extern Function_Descriptor green_descriptor;
-    Node green(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature green_sig;
+    Node green(const Node, Environment&, Node_Factory&);
     
-    extern Function_Descriptor blue_descriptor;
-    Node blue(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature blue_sig;
+    Node blue(const Node, Environment&, Node_Factory&);
     
-    extern Function_Descriptor mix_2_descriptor;
-    Node mix_2(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
-    
-    extern Function_Descriptor mix_3_descriptor;
-    Node mix_3(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature mix_sig;
+    Node mix(const Node, Environment&, Node_Factory&);
     
     // HSL Functions ///////////////////////////////////////////////////////
     
-    extern Function_Descriptor hsla_descriptor;
-    Node hsla(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature hsla_sig;
+    Node hsla(const Node, Environment&, Node_Factory&);
     
-    extern Function_Descriptor hsl_descriptor;
-    Node hsl(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature hsl_sig;
+    Node hsl(const Node, Environment&, Node_Factory&);
 
-    extern Function_Descriptor adjust_hue_descriptor;
-    Node adjust_hue(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature adjust_hue_sig;
+    Node adjust_hue(const Node, Environment&, Node_Factory&);
 
-    extern Function_Descriptor invert_descriptor;
-    Node invert(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature invert_sig;
+    Node invert(const Node, Environment&, Node_Factory&);
     
     // Opacity Functions ///////////////////////////////////////////////////
 
-    extern Function_Descriptor alpha_descriptor;
-    extern Function_Descriptor opacity_descriptor;
-    Node alpha(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature alpha_sig;
+    extern Signature opacity_sig;
+    Node alpha(const Node, Environment&, Node_Factory&);
     
-    extern Function_Descriptor opacify_descriptor;
-    extern Function_Descriptor fade_in_descriptor;
-    Node opacify(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature opacify_sig;
+    extern Signature fade_in_sig;
+    Node opacify(const Node, Environment&, Node_Factory&);
     
-    extern Function_Descriptor transparentize_descriptor;
-    extern Function_Descriptor fade_out_descriptor;
-    Node transparentize(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature transparentize_sig;
+    extern Signature fade_out_sig;
+    Node transparentize(const Node, Environment&, Node_Factory&);
     
     // String Functions ////////////////////////////////////////////////////
 
-    extern Function_Descriptor unquote_descriptor;
-    Node unquote(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature unquote_sig;
+    Node unquote(const Node, Environment&, Node_Factory&);
     
-    extern Function_Descriptor quote_descriptor;
-    Node quote(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature quote_sig;
+    Node quote(const Node, Environment&, Node_Factory&);
     
     // Number Functions ////////////////////////////////////////////////////
 
-    extern Function_Descriptor percentage_descriptor;
-    Node percentage(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature percentage_sig;
+    Node percentage(const Node, Environment&, Node_Factory&);
 
-    extern Function_Descriptor round_descriptor;
-    Node round(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature round_sig;
+    Node round(const Node, Environment&, Node_Factory&);
 
-    extern Function_Descriptor ceil_descriptor;
-    Node ceil(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature ceil_sig;
+    Node ceil(const Node, Environment&, Node_Factory&);
 
-    extern Function_Descriptor floor_descriptor;
-    Node floor(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature floor_sig;
+    Node floor(const Node, Environment&, Node_Factory&);
 
-    extern Function_Descriptor abs_descriptor;    
-    Node abs(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature abs_sig;    
+    Node abs(const Node, Environment&, Node_Factory&);
     
     // List Functions //////////////////////////////////////////////////////
     
-    extern Function_Descriptor length_descriptor;
-    Node length(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature length_sig;
+    Node length(const Node, Environment&, Node_Factory&);
 
-    extern Function_Descriptor nth_descriptor;
-    Node nth(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature nth_sig;
+    Node nth(const Node, Environment&, Node_Factory&);
 
-    extern Function_Descriptor join_2_descriptor;    
-    Node join_2(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
-    
-    extern Function_Descriptor join_3_descriptor;    
-    Node join_3(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature join_sig;    
+    Node join(const Node, Environment&, Node_Factory&);
 
-    extern Function_Descriptor append_2_descriptor;
-    Node append_2(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature append_sig;
+    Node append(const Node, Environment&, Node_Factory&);
 
-    extern Function_Descriptor append_3_descriptor;
-    Node append_3(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
-
-    extern Function_Descriptor compact_1_descriptor;
-    extern Function_Descriptor compact_2_descriptor;
-    extern Function_Descriptor compact_3_descriptor;
-    extern Function_Descriptor compact_4_descriptor;
-    extern Function_Descriptor compact_5_descriptor;
-    extern Function_Descriptor compact_6_descriptor;
-    extern Function_Descriptor compact_7_descriptor;
-    extern Function_Descriptor compact_8_descriptor;
-    extern Function_Descriptor compact_9_descriptor;
-    extern Function_Descriptor compact_10_descriptor;
-    extern Function_Descriptor compact_11_descriptor;
-    extern Function_Descriptor compact_12_descriptor;
-    Node compact(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature compact_sig;
+    Node compact(const Node, Environment&, Node_Factory&);
     
     // Introspection Functions /////////////////////////////////////////////
     
-    extern Function_Descriptor type_of_descriptor;
-    Node type_of(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature type_of_sig;
+    Node type_of(const Node, Environment&, Node_Factory&);
 
-    extern Function_Descriptor unit_descriptor;
-    Node unit(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature unit_sig;
+    Node unit(const Node, Environment&, Node_Factory&);
     
-    extern Function_Descriptor unitless_descriptor;    
-    Node unitless(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature unitless_sig;    
+    Node unitless(const Node, Environment&, Node_Factory&);
     
-    extern Function_Descriptor comparable_descriptor;    
-    Node comparable(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature comparable_sig;    
+    Node comparable(const Node, Environment&, Node_Factory&);
     
     // Boolean Functions ///////////////////////////////////////////////////
     
-    extern Function_Descriptor not_descriptor;
-    Node not_impl(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature not_sig;
+    Node not_impl(const Node, Environment&, Node_Factory&);
 
-    extern Function_Descriptor if_descriptor;
-    Node if_impl(const Node parameters, map<Token, Node>& bindings, Node_Factory& new_Node);
+    extern Signature if_sig;
+    Node if_impl(const Node, Environment&, Node_Factory&);
 
   }
   
