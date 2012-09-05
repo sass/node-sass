@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 
 using std::cerr; using std::endl;
 
@@ -150,36 +151,56 @@ namespace Sass {
 
     // Utility rgb to hsl function so we can do hsl operations
     Node rgb_to_hsl(double r, double g, double b, Node_Factory& new_Node) {
-      r = r/255.0;
-      g = g/255.0;
-      b = b/255.0;
-      double v, m, vm, r2, g2, b2;
-      double h = 0, s = 0, l = 0;
+      r /= 255.0; g /= 255.0; b /= 255.0;
 
-      v = r > g ? r : g;
-      v = v > b ? v : b;
-      m = r < g ? r : g;
-      m = m < b ? m : b;
-      l = (m + v)/2.0;
+      double max = std::max(r, std::max(g, b));
+      double min = std::min(r, std::min(g, b));
 
-      if (l <= 0.0) return new_Node("", 0, h, s, l);
+      double h = (max + min)/2;
+      double s = h;
+      double l = s;
 
-      vm = v - m;
-      s = vm;
-
-      if (s > 0.0) s /= (l <= 0.5) ? (v + m) : (2.0 - v - m);
-      else         return new_Node("", 0, h, s, l);
-
-      r2 = (v - r)/vm;
-      g2 = (v - g)/vm;
-      b2 = (v - b)/vm;
-
-      if (r == v)      h = (g == m ? 5.0 + b2 : 1.0 - g2);
-      else if (g == v) h = (b == m ? 1.0 + r2 : 3.0 - b2);
-      else             h = (r == m ? 3.0 + g2 : 5.0 - r2);
-
-      h /= 6.0;
+      if (max == min) {
+        cerr << "achromatic!" << endl;
+        h = s = 0; // achromatic
+      }
+      else {
+        double delta = max - min;
+        s = (l > 0.5) ? (2 - max - min) : (delta / (max + min));
+        if (max == r)      h = (g - b) / delta + (g < b ? 6 : 0);
+        else if (max == g) h = (b - r) / delta + 2;
+        else if (max == b) h = (r - g) / delta + 4;
+        h /= 6;
+      }
       return new_Node("", 0, static_cast<int>(h*360)%360, s*100, l*100);
+
+      // double v, m, vm, r2, g2, b2;
+      // double h = 0, s = 0, l = 0;
+
+      // v = r > g ? r : g;
+      // v = v > b ? v : b;
+      // m = r < g ? r : g;
+      // m = m < b ? m : b;
+      // l = (m + v)/2.0;
+
+      // if (l <= 0.0) return new_Node("", 0, h, s, l);
+
+      // vm = v - m;
+      // s = vm;
+
+      // if (s > 0.0) s /= (l <= 0.5) ? (v + m) : (2.0 - v - m);
+      // else         return new_Node("", 0, h, s, l);
+
+      // r2 = (v - r)/vm;
+      // g2 = (v - g)/vm;
+      // b2 = (v - b)/vm;
+
+      // if (r == v)      h = (g == m ? 5.0 + b2 : 1.0 - g2);
+      // else if (g == v) h = (b == m ? 1.0 + r2 : 3.0 - b2);
+      // else             h = (r == m ? 3.0 + g2 : 5.0 - r2);
+
+      // h /= 6.0;
+      // return new_Node("", 0, static_cast<int>(h*360)%360, s*100, l*100);
     }
 
     double h_to_rgb(double m1, double m2, double h) {
@@ -193,8 +214,8 @@ namespace Sass {
 
     Node hsla_impl(double h, double s, double l, double a, Node_Factory& new_Node) {
       h = static_cast<double>(((static_cast<int>(h) % 360) + 360) % 360) / 360.0;
-      s = s / 100.0;
-      l = l / 100.0;
+      s = (s < 0) ? 0 : (s / 100.0);
+      l = (l < 0) ? 0 : (l / 100.0);
 
       double m2;
       if (l <= 0.5) m2 = l*(s+1.0);
@@ -203,7 +224,7 @@ namespace Sass {
       double r = h_to_rgb(m1, m2, h+1.0/3.0) * 255.0;
       double g = h_to_rgb(m1, m2, h) * 255.0;
       double b = h_to_rgb(m1, m2, h-1.0/3.0) * 255.0;
-      
+
       return new_Node("", 0, r, g, b, a);
     }
 
@@ -254,17 +275,53 @@ namespace Sass {
                        new_Node);
     }
 
-    extern Signature adjust_color_sig = "adjust-color($color, $red: false, $blue: false, $green: false, $hue: false, $saturation: false, $lightness: false, $alpha: false)";
+    extern Signature adjust_color_sig = "adjust-color($color, $red: false, $green: false, $blue: false, $hue: false, $saturation: false, $lightness: false, $alpha: false)";
     Node adjust_color(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node color(bindings[parameter_names[0].token()]);
-      Node r(bindings[parameter_names[0].token()]);
-      Node g(bindings[parameter_names[1].token()]);
-      Node b(bindings[parameter_names[2].token()]);
-      Node h(bindings[parameter_names[3].token()]);
-      Node s(bindings[parameter_names[4].token()]);
-      Node l(bindings[parameter_names[5].token()]);
-      Node a(bindings[parameter_names[6].token()]);
-      
+      Node r(bindings[parameter_names[1].token()]);
+      Node g(bindings[parameter_names[2].token()]);
+      Node b(bindings[parameter_names[3].token()]);
+      Node h(bindings[parameter_names[4].token()]);
+      Node s(bindings[parameter_names[5].token()]);
+      Node l(bindings[parameter_names[6].token()]);
+      Node a(bindings[parameter_names[7].token()]);
+
+      bool no_rgb = r.is_false() && g.is_false() && b.is_false();
+      bool no_hsl = h.is_false() && s.is_false() && l.is_false();
+
+      if (!no_rgb && !no_hsl) {
+        throw_eval_error("cannot specify RGB and HSL values for a color at the same time for 'adjust-color'", r.path(), r.line());
+      }
+      else if (!no_rgb) {
+        double new_r = color[0].numeric_value() + (r.is_false() ? 0 : r.numeric_value());
+        double new_g = color[1].numeric_value() + (g.is_false() ? 0 : g.numeric_value());
+        double new_b = color[2].numeric_value() + (b.is_false() ? 0 : b.numeric_value());
+        double new_a = color[3].numeric_value() + (a.is_false() ? 0 : a.numeric_value());
+        return new_Node("", 0, new_r, new_g, new_b, new_a);
+      }
+      else if (!no_hsl) {
+        Node hsl_node(rgb_to_hsl(color[0].numeric_value(),
+                                 color[1].numeric_value(),
+                                 color[2].numeric_value(),
+                                 new_Node));
+        double new_h = (h.is_false() ? 0 : h.numeric_value()) + hsl_node[0].numeric_value();
+        double new_s = (s.is_false() ? 0 : s.numeric_value()) + hsl_node[1].numeric_value();
+        double new_l = (l.is_false() ? 0 : l.numeric_value()) + hsl_node[2].numeric_value();
+        double new_a = (a.is_false() ? 0 : a.numeric_value()) + color[3].numeric_value();
+        return hsla_impl(new_h, new_s, new_l, new_a, new_Node);
+      }
+      else if (!a.is_false()) {
+        return new_Node("", 0,
+                        color[0].numeric_value(),
+                        color[1].numeric_value(),
+                        color[2].numeric_value(),
+                        color[3].numeric_value() + a.numeric_value());
+      }
+      else {
+        throw_eval_error("not enough arguments for 'adjust-color'", color.path(), color.line());
+      }
+      // unreachable statement
+      return Node();
     }
 
     extern Signature invert_sig = "invert($color)";
