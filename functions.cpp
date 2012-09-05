@@ -254,6 +254,19 @@ namespace Sass {
                        new_Node);
     }
 
+    extern Signature adjust_color_sig = "adjust-color($color, $red: false, $blue: false, $green: false, $hue: false, $saturation: false, $lightness: false, $alpha: false)";
+    Node adjust_color(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node color(bindings[parameter_names[0].token()]);
+      Node r(bindings[parameter_names[0].token()]);
+      Node g(bindings[parameter_names[1].token()]);
+      Node b(bindings[parameter_names[2].token()]);
+      Node h(bindings[parameter_names[3].token()]);
+      Node s(bindings[parameter_names[4].token()]);
+      Node l(bindings[parameter_names[5].token()]);
+      Node a(bindings[parameter_names[6].token()]);
+      
+    }
+
     extern Signature invert_sig = "invert($color)";
     Node invert(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node orig(bindings[parameter_names[0].token()]);
