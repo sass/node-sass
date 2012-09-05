@@ -161,7 +161,6 @@ namespace Sass {
       double l = s;
 
       if (max == min) {
-        cerr << "achromatic!" << endl;
         h = s = 0; // achromatic
       }
       else {
@@ -173,34 +172,6 @@ namespace Sass {
         h /= 6;
       }
       return new_Node("", 0, static_cast<int>(h*360)%360, s*100, l*100);
-
-      // double v, m, vm, r2, g2, b2;
-      // double h = 0, s = 0, l = 0;
-
-      // v = r > g ? r : g;
-      // v = v > b ? v : b;
-      // m = r < g ? r : g;
-      // m = m < b ? m : b;
-      // l = (m + v)/2.0;
-
-      // if (l <= 0.0) return new_Node("", 0, h, s, l);
-
-      // vm = v - m;
-      // s = vm;
-
-      // if (s > 0.0) s /= (l <= 0.5) ? (v + m) : (2.0 - v - m);
-      // else         return new_Node("", 0, h, s, l);
-
-      // r2 = (v - r)/vm;
-      // g2 = (v - g)/vm;
-      // b2 = (v - b)/vm;
-
-      // if (r == v)      h = (g == m ? 5.0 + b2 : 1.0 - g2);
-      // else if (g == v) h = (b == m ? 1.0 + r2 : 3.0 - b2);
-      // else             h = (r == m ? 3.0 + g2 : 5.0 - r2);
-
-      // h /= 6.0;
-      // return new_Node("", 0, static_cast<int>(h*360)%360, s*100, l*100);
     }
 
     double h_to_rgb(double m1, double m2, double h) {
