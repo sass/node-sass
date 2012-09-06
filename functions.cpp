@@ -151,7 +151,7 @@ namespace Sass {
 
     // Utility rgb to hsl function so we can do hsl operations
     Node rgb_to_hsl(double r, double g, double b, Node_Factory& new_Node) {
-      cerr << "rgb to hsl: " << r << " " << g << " " << b << endl;
+      // cerr << "rgb to hsl: " << r << " " << g << " " << b << endl;
       r /= 255.0; g /= 255.0; b /= 255.0;
 
       double max = std::max(r, std::max(g, b));
@@ -336,12 +336,12 @@ namespace Sass {
         return new_Node("", 0, new_r, new_g, new_b, new_a);
       }
       else if (!no_hsl) {
-        cerr << color.to_string() << endl;
+        // cerr << color.to_string() << endl;
         Node hsl_node(rgb_to_hsl(color[0].numeric_value(),
                                  color[1].numeric_value(),
                                  color[2].numeric_value(),
                                  new_Node));
-        cerr << hsl_node.to_string() << endl;
+        // cerr << hsl_node.to_string() << endl;
         double new_h = (h.is_false() ? hsl_node[0].numeric_value() : h.numeric_value());
         double new_s = (s.is_false() ? hsl_node[1].numeric_value() : s.numeric_value());
         double new_l = (l.is_false() ? hsl_node[2].numeric_value() : l.numeric_value());
