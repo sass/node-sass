@@ -223,6 +223,20 @@ namespace Sass {
       return new_Node("", 0, r, g, b, a);
     }
 
+    extern Signature hsl_sig = "hsl($hue, $saturation, $lightness)";
+    Node hsl(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      if (!(bindings[parameter_names[0].token()].is_numeric() &&
+            bindings[parameter_names[1].token()].is_numeric() &&
+            bindings[parameter_names[2].token()].is_numeric())) {
+        throw_eval_error("arguments to hsl must be numeric", bindings[parameter_names[0].token()].path(), bindings[parameter_names[0].token()].line());
+      }  
+      double h = bindings[parameter_names[0].token()].numeric_value();
+      double s = bindings[parameter_names[1].token()].numeric_value();
+      double l = bindings[parameter_names[2].token()].numeric_value();
+      Node color(hsla_impl(h, s, l, 1, new_Node));
+      return color;
+    }
+
     extern Signature hsla_sig = "hsla($hue, $saturation, $lightness, $alpha)";
     Node hsla(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       if (!(bindings[parameter_names[0].token()].is_numeric() &&
@@ -239,20 +253,6 @@ namespace Sass {
       return color;
     }
     
-    extern Signature hsl_sig = "hsl($hue, $saturation, $lightness)";
-    Node hsl(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
-      if (!(bindings[parameter_names[0].token()].is_numeric() &&
-            bindings[parameter_names[1].token()].is_numeric() &&
-            bindings[parameter_names[2].token()].is_numeric())) {
-        throw_eval_error("arguments to hsl must be numeric", bindings[parameter_names[0].token()].path(), bindings[parameter_names[0].token()].line());
-      }  
-      double h = bindings[parameter_names[0].token()].numeric_value();
-      double s = bindings[parameter_names[1].token()].numeric_value();
-      double l = bindings[parameter_names[2].token()].numeric_value();
-      Node color(hsla_impl(h, s, l, 1, new_Node));
-      return color;
-    }
-
     extern Signature hue_sig = "hue($color)";
     Node hue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node rgb_color(bindings[parameter_names[0].token()]);
@@ -303,6 +303,133 @@ namespace Sass {
                        new_Node);
     }
 
+    extern Signature lighten_sig = "lighten($color, $amount)";
+    Node lighten(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node rgb_col(bindings[parameter_names[0].token()]);
+      Node amount(bindings[parameter_names[1].token()]);
+      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to lighten must be a color", rgb_col.path(), rgb_col.line());
+      if (!amount.is_numeric()) throw_eval_error("second argument to lighten must be numeric", amount.path(), amount.line());
+      Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
+                              rgb_col[1].numeric_value(),
+                              rgb_col[2].numeric_value(),
+                              new_Node));
+      return hsla_impl(hsl_col[0].numeric_value(),
+                       hsl_col[1].numeric_value(),
+                       hsl_col[2].numeric_value() + amount.numeric_value(),
+                       rgb_col[3].numeric_value(),
+                       new_Node);
+    }
+
+    extern Signature darken_sig = "darken($color, $amount)";
+    Node darken(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node rgb_col(bindings[parameter_names[0].token()]);
+      Node amount(bindings[parameter_names[1].token()]);
+      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to darken must be a color", rgb_col.path(), rgb_col.line());
+      if (!amount.is_numeric()) throw_eval_error("second argument to darken must be numeric", amount.path(), amount.line());
+      Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
+                              rgb_col[1].numeric_value(),
+                              rgb_col[2].numeric_value(),
+                              new_Node));
+      return hsla_impl(hsl_col[0].numeric_value(),
+                       hsl_col[1].numeric_value(),
+                       hsl_col[2].numeric_value() - amount.numeric_value(),
+                       rgb_col[3].numeric_value(),
+                       new_Node);
+    }
+
+    extern Signature saturate_sig = "saturate($color, $amount)";
+    Node saturate(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node rgb_col(bindings[parameter_names[0].token()]);
+      Node amount(bindings[parameter_names[1].token()]);
+      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to saturate must be a color", rgb_col.path(), rgb_col.line());
+      if (!amount.is_numeric()) throw_eval_error("second argument to saturate must be numeric", amount.path(), amount.line());
+      Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
+                              rgb_col[1].numeric_value(),
+                              rgb_col[2].numeric_value(),
+                              new_Node));
+      return hsla_impl(hsl_col[0].numeric_value(),
+                       hsl_col[1].numeric_value() + amount.numeric_value(),
+                       hsl_col[2].numeric_value(),
+                       rgb_col[3].numeric_value(),
+                       new_Node);
+    }
+
+    extern Signature desaturate_sig = "desaturate($color, $amount)";
+    Node desaturate(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node rgb_col(bindings[parameter_names[0].token()]);
+      Node amount(bindings[parameter_names[1].token()]);
+      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to desaturate must be a color", rgb_col.path(), rgb_col.line());
+      if (!amount.is_numeric()) throw_eval_error("second argument to desaturate must be numeric", amount.path(), amount.line());
+      Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
+                              rgb_col[1].numeric_value(),
+                              rgb_col[2].numeric_value(),
+                              new_Node));
+      return hsla_impl(hsl_col[0].numeric_value(),
+                       hsl_col[1].numeric_value() - amount.numeric_value(),
+                       hsl_col[2].numeric_value(),
+                       rgb_col[3].numeric_value(),
+                       new_Node);
+    }
+
+    extern Signature invert_sig = "invert($color)";
+    Node invert(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node orig(bindings[parameter_names[0].token()]);
+      if (orig.type() != Node::numeric_color) throw_eval_error("argument to invert must be a color", orig.path(), orig.line());
+      return new_Node(orig.path(), orig.line(),
+                      255 - orig[0].numeric_value(),
+                      255 - orig[1].numeric_value(),
+                      255 - orig[2].numeric_value(),
+                      orig[3].numeric_value());
+    }
+    
+    // Opacity Functions ///////////////////////////////////////////////////
+    
+    extern Signature alpha_sig   = "alpha($color)";
+    extern Signature opacity_sig = "opacity($color)";
+    Node alpha(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node color(bindings[parameter_names[0].token()]);
+      if (color.type() != Node::numeric_color) throw_eval_error("argument to alpha/opacity must be a color", color.path(), color.line());
+      return color[3];
+    }
+    
+    extern Signature opacify_sig = "opacify($color, $amount)";
+    extern Signature fade_in_sig = "fade-in($color, $amount)";
+    Node opacify(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node color(bindings[parameter_names[0].token()]);
+      Node delta(bindings[parameter_names[1].token()]);
+      if (color.type() != Node::numeric_color || !delta.is_numeric()) {
+        throw_eval_error("arguments to opacify/fade_in must be a color and a numeric value", color.path(), color.line());
+      }
+      if (delta.numeric_value() < 0 || delta.numeric_value() > 1) {
+        throw_eval_error("amount must be between 0 and 1 for opacify/fade-in", delta.path(), delta.line());
+      }
+      double alpha = color[3].numeric_value() + delta.numeric_value();
+      if (alpha > 1) alpha = 1;
+      else if (alpha < 0) alpha = 0;
+      return new_Node(color.path(), color.line(),
+                      color[0].numeric_value(), color[1].numeric_value(), color[2].numeric_value(), alpha);
+    }
+    
+    extern Signature transparentize_sig = "transparentize($color, $amount)";
+    extern Signature fade_out_sig       = "fade-out($color, $amount)";
+    Node transparentize(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node color(bindings[parameter_names[0].token()]);
+      Node delta(bindings[parameter_names[1].token()]);
+      if (color.type() != Node::numeric_color || !delta.is_numeric()) {
+        throw_eval_error("arguments to transparentize/fade_out must be a color and a numeric value", color.path(), color.line());
+      }
+      if (delta.numeric_value() < 0 || delta.numeric_value() > 1) {
+        throw_eval_error("amount must be between 0 and 1 for transparentize/fade-out", delta.path(), delta.line());
+      }
+      double alpha = color[3].numeric_value() - delta.numeric_value();
+      if (alpha > 1) alpha = 1;
+      else if (alpha < 0) alpha = 0;
+      return new_Node(color.path(), color.line(),
+                      color[0].numeric_value(), color[1].numeric_value(), color[2].numeric_value(), alpha);
+    }
+
+    // Other Color Functions ///////////////////////////////////////////////
+      
     extern Signature adjust_color_sig = "adjust-color($color, $red: false, $green: false, $blue: false, $hue: false, $saturation: false, $lightness: false, $alpha: false)";
     Node adjust_color(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node color(bindings[parameter_names[0].token()]);
@@ -425,63 +552,6 @@ namespace Sass {
       return Node();
     }
 
-    extern Signature invert_sig = "invert($color)";
-    Node invert(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
-      Node orig(bindings[parameter_names[0].token()]);
-      if (orig.type() != Node::numeric_color) throw_eval_error("argument to invert must be a color", orig.path(), orig.line());
-      return new_Node(orig.path(), orig.line(),
-                      255 - orig[0].numeric_value(),
-                      255 - orig[1].numeric_value(),
-                      255 - orig[2].numeric_value(),
-                      orig[3].numeric_value());
-    }
-    
-    // Opacity Functions ///////////////////////////////////////////////////
-    
-    extern Signature alpha_sig   = "alpha($color)";
-    extern Signature opacity_sig = "opacity($color)";
-    Node alpha(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
-      Node color(bindings[parameter_names[0].token()]);
-      if (color.type() != Node::numeric_color) throw_eval_error("argument to alpha/opacity must be a color", color.path(), color.line());
-      return color[3];
-    }
-    
-    extern Signature opacify_sig = "opacify($color, $amount)";
-    extern Signature fade_in_sig = "fade-in($color, $amount)";
-    Node opacify(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
-      Node color(bindings[parameter_names[0].token()]);
-      Node delta(bindings[parameter_names[1].token()]);
-      if (color.type() != Node::numeric_color || !delta.is_numeric()) {
-        throw_eval_error("arguments to opacify/fade_in must be a color and a numeric value", color.path(), color.line());
-      }
-      if (delta.numeric_value() < 0 || delta.numeric_value() > 1) {
-        throw_eval_error("amount must be between 0 and 1 for opacify/fade-in", delta.path(), delta.line());
-      }
-      double alpha = color[3].numeric_value() + delta.numeric_value();
-      if (alpha > 1) alpha = 1;
-      else if (alpha < 0) alpha = 0;
-      return new_Node(color.path(), color.line(),
-                      color[0].numeric_value(), color[1].numeric_value(), color[2].numeric_value(), alpha);
-    }
-    
-    extern Signature transparentize_sig = "transparentize($color, $amount)";
-    extern Signature fade_out_sig       = "fade-out($color, $amount)";
-    Node transparentize(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
-      Node color(bindings[parameter_names[0].token()]);
-      Node delta(bindings[parameter_names[1].token()]);
-      if (color.type() != Node::numeric_color || !delta.is_numeric()) {
-        throw_eval_error("arguments to transparentize/fade_out must be a color and a numeric value", color.path(), color.line());
-      }
-      if (delta.numeric_value() < 0 || delta.numeric_value() > 1) {
-        throw_eval_error("amount must be between 0 and 1 for transparentize/fade-out", delta.path(), delta.line());
-      }
-      double alpha = color[3].numeric_value() - delta.numeric_value();
-      if (alpha > 1) alpha = 1;
-      else if (alpha < 0) alpha = 0;
-      return new_Node(color.path(), color.line(),
-                      color[0].numeric_value(), color[1].numeric_value(), color[2].numeric_value(), alpha);
-    }
-      
     // String Functions ////////////////////////////////////////////////////
     
     extern Signature unquote_sig = "unquote($string)";

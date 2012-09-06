@@ -109,12 +109,16 @@ namespace Sass {
     register_function(blue_sig, blue);
     register_function(mix_sig, mix);
     // HSL Functions
-    register_function(hsla_sig, hsla);
     register_function(hsl_sig, hsl);
+    register_function(hsla_sig, hsla);
     register_function(hue_sig, hue);
     register_function(saturation_sig, saturation);
     register_function(lightness_sig, lightness);
     register_function(adjust_hue_sig, adjust_hue);
+    register_function(lighten_sig, lighten);
+    register_function(darken_sig, darken);
+    register_function(saturate_sig, saturate);
+    register_function(desaturate_sig, desaturate);
     register_function(adjust_color_sig, adjust_color);
     register_function(change_color_sig, change_color);
     register_function(invert_sig, invert);

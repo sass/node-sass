@@ -86,12 +86,12 @@ namespace Sass {
     
     // HSL Functions ///////////////////////////////////////////////////////
     
-    extern Signature hsla_sig;
-    Node hsla(const Node, Environment&, Node_Factory&);
-    
     extern Signature hsl_sig;
     Node hsl(const Node, Environment&, Node_Factory&);
 
+    extern Signature hsla_sig;
+    Node hsla(const Node, Environment&, Node_Factory&);
+    
     extern Signature hue_sig;
     Node hue(const Node, Environment&, Node_Factory&);
 
@@ -104,11 +104,17 @@ namespace Sass {
     extern Signature adjust_hue_sig;
     Node adjust_hue(const Node, Environment&, Node_Factory&);
 
-    extern Signature adjust_color_sig;
-    Node adjust_color(const Node, Environment&, Node_Factory&);
+    extern Signature lighten_sig;
+    Node lighten(const Node, Environment&, Node_Factory&);
 
-    extern Signature change_color_sig;
-    Node change_color(const Node, Environment&, Node_Factory&);
+    extern Signature darken_sig;
+    Node darken(const Node, Environment&, Node_Factory&);
+
+    extern Signature saturate_sig;
+    Node saturate(const Node, Environment&, Node_Factory&);
+
+    extern Signature desaturate_sig;
+    Node desaturate(const Node, Environment&, Node_Factory&);
 
     extern Signature invert_sig;
     Node invert(const Node, Environment&, Node_Factory&);
@@ -126,7 +132,15 @@ namespace Sass {
     extern Signature transparentize_sig;
     extern Signature fade_out_sig;
     Node transparentize(const Node, Environment&, Node_Factory&);
+
+    // Other Color Functions ///////////////////////////////////////////////
     
+    extern Signature adjust_color_sig;
+    Node adjust_color(const Node, Environment&, Node_Factory&);
+
+    extern Signature change_color_sig;
+    Node change_color(const Node, Environment&, Node_Factory&);
+
     // String Functions ////////////////////////////////////////////////////
 
     extern Signature unquote_sig;
