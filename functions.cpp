@@ -151,25 +151,41 @@ namespace Sass {
 
     // Utility rgb to hsl function so we can do hsl operations
     Node rgb_to_hsl(double r, double g, double b, Node_Factory& new_Node) {
+      cerr << "rgb to hsl: " << r << " " << g << " " << b << endl;
       r /= 255.0; g /= 255.0; b /= 255.0;
 
       double max = std::max(r, std::max(g, b));
       double min = std::min(r, std::min(g, b));
+      double del = max - min;
 
-      double h = (max + min)/2;
-      double s = h;
-      double l = s;
+      double h = 0, s = 0, l = (max + min)/2;
 
       if (max == min) {
         h = s = 0; // achromatic
       }
       else {
+        /*
         double delta = max - min;
         s = (l > 0.5) ? (2 - max - min) : (delta / (max + min));
         if (max == r)      h = (g - b) / delta + (g < b ? 6 : 0);
         else if (max == g) h = (b - r) / delta + 2;
         else if (max == b) h = (r - g) / delta + 4;
         h /= 6;
+        */
+
+        if (l < 0.5) s = del / (max + min);
+        else         s = del / (2.0 - max - min);
+
+        double dr = (((max - r)/6.0) + (del/2.0))/del;
+        double dg = (((max - g)/6.0) + (del/2.0))/del;
+        double db = (((max - b)/6.0) + (del/2.0))/del;
+
+        if      (r == max) h = db - dg;
+        else if (g == max) h = (1.0/3.0) + dr - db;
+        else if (b == max) h = (2.0/3.0) + dg - dr;
+
+        if      (h < 0) h += 1;
+        else if (h > 1) h -= 1;
       }
       return new_Node("", 0, static_cast<int>(h*360)%360, s*100, l*100);
     }
@@ -290,6 +306,57 @@ namespace Sass {
       }
       else {
         throw_eval_error("not enough arguments for 'adjust-color'", color.path(), color.line());
+      }
+      // unreachable statement
+      return Node();
+    }
+
+    extern Signature change_color_sig = "change-color($color, $red: false, $green: false, $blue: false, $hue: false, $saturation: false, $lightness: false, $alpha: false)";
+    Node change_color(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node color(bindings[parameter_names[0].token()]);
+      Node r(bindings[parameter_names[1].token()]);
+      Node g(bindings[parameter_names[2].token()]);
+      Node b(bindings[parameter_names[3].token()]);
+      Node h(bindings[parameter_names[4].token()]);
+      Node s(bindings[parameter_names[5].token()]);
+      Node l(bindings[parameter_names[6].token()]);
+      Node a(bindings[parameter_names[7].token()]);
+
+      bool no_rgb = r.is_false() && g.is_false() && b.is_false();
+      bool no_hsl = h.is_false() && s.is_false() && l.is_false();
+
+      if (!no_rgb && !no_hsl) {
+        throw_eval_error("cannot specify RGB and HSL values for a color at the same time for 'change-color'", r.path(), r.line());
+      }
+      else if (!no_rgb) {
+        double new_r = (r.is_false() ? color[0] : r).numeric_value();
+        double new_g = (g.is_false() ? color[1] : g).numeric_value();
+        double new_b = (b.is_false() ? color[2] : b).numeric_value();
+        double new_a = (a.is_false() ? color[3] : a).numeric_value();
+        return new_Node("", 0, new_r, new_g, new_b, new_a);
+      }
+      else if (!no_hsl) {
+        cerr << color.to_string() << endl;
+        Node hsl_node(rgb_to_hsl(color[0].numeric_value(),
+                                 color[1].numeric_value(),
+                                 color[2].numeric_value(),
+                                 new_Node));
+        cerr << hsl_node.to_string() << endl;
+        double new_h = (h.is_false() ? hsl_node[0].numeric_value() : h.numeric_value());
+        double new_s = (s.is_false() ? hsl_node[1].numeric_value() : s.numeric_value());
+        double new_l = (l.is_false() ? hsl_node[2].numeric_value() : l.numeric_value());
+        double new_a = (a.is_false() ? color[3].numeric_value() : a.numeric_value());
+        return hsla_impl(new_h, new_s, new_l, new_a, new_Node);
+      }
+      else if (!a.is_false()) {
+        return new_Node("", 0,
+                        color[0].numeric_value(),
+                        color[1].numeric_value(),
+                        color[2].numeric_value(),
+                        a.numeric_value());
+      }
+      else {
+        throw_eval_error("not enough arguments for 'change-color'", color.path(), color.line());
       }
       // unreachable statement
       return Node();
