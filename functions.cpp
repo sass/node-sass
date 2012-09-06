@@ -110,7 +110,8 @@ namespace Sass {
       Node g(color[1]);
       Node b(color[2]);
       Node a(bindings[parameter_names[1].token()]);
-      if (color.type() != Node::numeric_color || a.type() != Node::number) throw_eval_error("arguments to rgba must be a color and a number", color.path(), color.line());
+      if (color.type() != Node::numeric_color) throw_eval_error("first argument to rgba must be a color", color.path(), color.line());
+      if (a.type() != Node::number) throw_eval_error("second argument to rgba must be a number", a.path(), a.line());
       return new_Node(color.path(), color.line(), r.numeric_value(), g.numeric_value(), b.numeric_value(), a.numeric_value());
     }
     
