@@ -8,6 +8,7 @@
 namespace Sass {
   using namespace std;
 
+  // Token type for representing lexed chunks of text
   struct Token {
     const char* begin;
     const char* end;
@@ -61,6 +62,7 @@ namespace Sass {
   
   struct Node_Impl;
 
+  // Node type for representing SCSS expression nodes. Really just a handle.
   class Node {
   private:
     friend class Node_Factory;
@@ -189,6 +191,7 @@ namespace Sass {
     bool is_numeric() const;
     bool is_guarded() const;
     bool& has_been_extended() const;
+    bool is_false() const;
 
     string& path() const;
     size_t line() const;
@@ -237,6 +240,7 @@ namespace Sass {
 
   };
   
+  // The actual implementation object for Nodes; Node handles point at these.
   struct Node_Impl {
     union value_t {
       bool         boolean;
@@ -399,6 +403,7 @@ namespace Sass {
   inline bool Node::is_numeric() const     { return ip_->is_numeric(); }
   inline bool Node::is_guarded() const     { return (type() == assignment) && (size() == 3); }
   inline bool& Node::has_been_extended() const { return ip_->has_been_extended; }
+  inline bool Node::is_false() const       { return (type() == boolean) && (boolean_value() == false); }
   
   inline string& Node::path() const  { return ip_->path; }
   inline size_t  Node::line() const  { return ip_->line; }
