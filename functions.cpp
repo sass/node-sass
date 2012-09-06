@@ -149,9 +149,9 @@ namespace Sass {
  
     // HSL Functions ///////////////////////////////////////////////////////
 
-    // Utility rgb to hsl function so we can do hsl operations
+    // RGB to HSL helper function so we can do hsl operations.
+    // (taken from http://www.easyrgb.com)
     Node rgb_to_hsl(double r, double g, double b, Node_Factory& new_Node) {
-      // cerr << "rgb to hsl: " << r << " " << g << " " << b << endl;
       r /= 255.0; g /= 255.0; b /= 255.0;
 
       double max = std::max(r, std::max(g, b));
@@ -164,15 +164,6 @@ namespace Sass {
         h = s = 0; // achromatic
       }
       else {
-        /*
-        double delta = max - min;
-        s = (l > 0.5) ? (2 - max - min) : (delta / (max + min));
-        if (max == r)      h = (g - b) / delta + (g < b ? 6 : 0);
-        else if (max == g) h = (b - r) / delta + 2;
-        else if (max == b) h = (r - g) / delta + 4;
-        h /= 6;
-        */
-
         if (l < 0.5) s = del / (max + min);
         else         s = del / (2.0 - max - min);
 
@@ -190,6 +181,7 @@ namespace Sass {
       return new_Node("", 0, static_cast<int>(h*360)%360, s*100, l*100);
     }
 
+    // Hue to RGB helper function
     double h_to_rgb(double m1, double m2, double h) {
       if (h < 0) ++h;
       if (h > 1) --h;
@@ -208,9 +200,10 @@ namespace Sass {
       if (l <= 0.5) m2 = l*(s+1.0);
       else m2 = l+s-l*s;
       double m1 = l*2-m2;
-      double r = h_to_rgb(m1, m2, h+1.0/3.0) * 255.0;
-      double g = h_to_rgb(m1, m2, h) * 255.0;
-      double b = h_to_rgb(m1, m2, h-1.0/3.0) * 255.0;
+      // round the results -- consider moving this into the Node constructors
+      double r = std::floor(h_to_rgb(m1, m2, h+1.0/3.0) * 255.0 + 0.5);
+      double g = std::floor(h_to_rgb(m1, m2, h) * 255.0 + 0.5);
+      double b = std::floor(h_to_rgb(m1, m2, h-1.0/3.0) * 255.0 + 0.5);
 
       return new_Node("", 0, r, g, b, a);
     }
@@ -336,12 +329,16 @@ namespace Sass {
         return new_Node("", 0, new_r, new_g, new_b, new_a);
       }
       else if (!no_hsl) {
-        // cerr << color.to_string() << endl;
+
+        cerr << "before rgb to hsl" << endl;
+        cerr << color[0].numeric_value() << " "
+             << color[1].numeric_value() << " "
+             << color[2].numeric_value() << endl << endl;
+
         Node hsl_node(rgb_to_hsl(color[0].numeric_value(),
                                  color[1].numeric_value(),
                                  color[2].numeric_value(),
                                  new_Node));
-        // cerr << hsl_node.to_string() << endl;
         double new_h = (h.is_false() ? hsl_node[0].numeric_value() : h.numeric_value());
         double new_s = (s.is_false() ? hsl_node[1].numeric_value() : s.numeric_value());
         double new_l = (l.is_false() ? hsl_node[2].numeric_value() : l.numeric_value());
