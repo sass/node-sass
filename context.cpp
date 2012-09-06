@@ -111,6 +111,9 @@ namespace Sass {
     // HSL Functions
     register_function(hsla_sig, hsla);
     register_function(hsl_sig, hsl);
+    register_function(hue_sig, hue);
+    register_function(saturation_sig, saturation);
+    register_function(lightness_sig, lightness);
     register_function(adjust_hue_sig, adjust_hue);
     register_function(adjust_color_sig, adjust_color);
     register_function(change_color_sig, change_color);

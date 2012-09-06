@@ -44,6 +44,19 @@ namespace Sass {
 
   namespace Functions {
 
+    extern const char true_str[]  = "true";
+    extern const char false_str[] = "false";
+
+    extern const char empty_str[]   = "";
+    extern const char percent_str[] = "%";
+    extern const char deg_str[]     = "deg";
+
+    extern const char number_name[] = "number";
+    extern const char string_name[] = "string";
+    extern const char bool_name[]   = "bool";
+    extern const char color_name[]  = "color";
+    extern const char list_name[]   = "list";
+    
     static void throw_eval_error(string message, string path, size_t line)
     {
       if (!path.empty() && Prelexer::string_constant(path.c_str()))
@@ -236,6 +249,36 @@ namespace Sass {
       double l = bindings[parameter_names[2].token()].numeric_value();
       Node color(hsla_impl(h, s, l, 1, new_Node));
       return color;
+    }
+
+    extern Signature hue_sig = "hue($color)";
+    Node hue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node rgb_color(bindings[parameter_names[0].token()]);
+      Node hsl_color(rgb_to_hsl(rgb_color[0].numeric_value(),
+                                rgb_color[1].numeric_value(),
+                                rgb_color[2].numeric_value(),
+                                new_Node));
+      return new_Node("", 0, hsl_color[0].numeric_value(), Token::make(deg_str));
+    }
+
+    extern Signature saturation_sig = "saturation($color)";
+    Node saturation(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node rgb_color(bindings[parameter_names[0].token()]);
+      Node hsl_color(rgb_to_hsl(rgb_color[0].numeric_value(),
+                                rgb_color[1].numeric_value(),
+                                rgb_color[2].numeric_value(),
+                                new_Node));
+      return new_Node("", 0, hsl_color[1].numeric_value(), Token::make(percent_str));
+    }
+
+    extern Signature lightness_sig = "lightness($color)";
+    Node lightness(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node rgb_color(bindings[parameter_names[0].token()]);
+      Node hsl_color(rgb_to_hsl(rgb_color[0].numeric_value(),
+                                rgb_color[1].numeric_value(),
+                                rgb_color[2].numeric_value(),
+                                new_Node));
+      return new_Node("", 0, hsl_color[2].numeric_value(), Token::make(percent_str));
     }
 
     extern Signature adjust_hue_sig = "adjust-hue($color, $degrees)";
@@ -714,12 +757,6 @@ namespace Sass {
 
     // Introspection Functions /////////////////////////////////////////////
     
-    extern const char number_name[] = "number";
-    extern const char string_name[] = "string";
-    extern const char bool_name[]   = "bool";
-    extern const char color_name[]  = "color";
-    extern const char list_name[]   = "list";
-    
     extern Signature type_of_sig = "type-of($value)";
     Node type_of(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node val(bindings[parameter_names[0].token()]);
@@ -754,10 +791,7 @@ namespace Sass {
       type.is_unquoted() = true;
       return type;
     }
-    
-    extern const char empty_str[] = "";
-    extern const char percent_str[] = "%";
-    
+
     extern Signature unit_sig = "unit($number)";
     Node unit(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node val(bindings[parameter_names[0].token()]);
@@ -779,9 +813,6 @@ namespace Sass {
       // unreachable statement
       return Node();
     }
-
-    extern const char true_str[]  = "true";
-    extern const char false_str[] = "false";
 
     extern Signature unitless_sig = "unitless($number)";
     Node unitless(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {

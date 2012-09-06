@@ -92,6 +92,15 @@ namespace Sass {
     extern Signature hsl_sig;
     Node hsl(const Node, Environment&, Node_Factory&);
 
+    extern Signature hue_sig;
+    Node hue(const Node, Environment&, Node_Factory&);
+
+    extern Signature saturation_sig;
+    Node saturation(const Node, Environment&, Node_Factory&);
+
+    extern Signature lightness_sig;
+    Node lightness(const Node, Environment&, Node_Factory&);
+
     extern Signature adjust_hue_sig;
     Node adjust_hue(const Node, Environment&, Node_Factory&);
 
