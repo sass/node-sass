@@ -329,12 +329,6 @@ namespace Sass {
         return new_Node("", 0, new_r, new_g, new_b, new_a);
       }
       else if (!no_hsl) {
-
-        cerr << "before rgb to hsl" << endl;
-        cerr << color[0].numeric_value() << " "
-             << color[1].numeric_value() << " "
-             << color[2].numeric_value() << endl << endl;
-
         Node hsl_node(rgb_to_hsl(color[0].numeric_value(),
                                  color[1].numeric_value(),
                                  color[2].numeric_value(),
