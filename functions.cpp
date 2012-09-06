@@ -10,10 +10,11 @@
 #include "error.hpp"
 
 #include <iostream>
+#include <sstream>
 #include <cmath>
 #include <algorithm>
 
-using std::cerr; using std::endl;
+using std::cerr; using std::endl; using std::stringstream;
 
 namespace Sass {
 
@@ -312,10 +313,17 @@ namespace Sass {
       bool no_rgb = r.is_false() && g.is_false() && b.is_false();
       bool no_hsl = h.is_false() && s.is_false() && l.is_false();
 
-      if (!no_rgb && !no_hsl) {
+      if (color.type() != Node::numeric_color) {
+        throw_eval_error("first argument to 'adjust-color' must be a color", color.path(), color.line());
+      }
+      else if (!no_rgb && !no_hsl) {
         throw_eval_error("cannot specify RGB and HSL values for a color at the same time for 'adjust-color'", r.path(), r.line());
       }
       else if (!no_rgb) {
+        if (!r.is_false() && !r.is_numeric()) throw_eval_error("argument $red of 'adjust-color' must be numeric", r.path(), r.line());
+        if (!g.is_false() && !g.is_numeric()) throw_eval_error("argument $green of 'adjust-color' must be numeric", g.path(), g.line());
+        if (!b.is_false() && !b.is_numeric()) throw_eval_error("argument $blue of 'adjust-color' must be numeric", b.path(), b.line());
+        if (!a.is_false() && !a.is_numeric()) throw_eval_error("argument $alpha of 'adjust-color' must be numeric", a.path(), a.line());
         double new_r = color[0].numeric_value() + (r.is_false() ? 0 : r.numeric_value());
         double new_g = color[1].numeric_value() + (g.is_false() ? 0 : g.numeric_value());
         double new_b = color[2].numeric_value() + (b.is_false() ? 0 : b.numeric_value());
@@ -327,6 +335,10 @@ namespace Sass {
                                  color[1].numeric_value(),
                                  color[2].numeric_value(),
                                  new_Node));
+        if (!h.is_false() && !h.is_numeric()) throw_eval_error("argument $hue of 'adjust-color' must be numeric", h.path(), h.line());
+        if (!s.is_false() && !s.is_numeric()) throw_eval_error("argument $saturation of 'adjust-color' must be numeric", s.path(), s.line());
+        if (!l.is_false() && !l.is_numeric()) throw_eval_error("argument $lightness of 'adjust-color' must be numeric", l.path(), l.line());
+        if (!a.is_false() && !a.is_numeric()) throw_eval_error("argument $alpha of 'adjust-color' must be numeric", a.path(), a.line());
         double new_h = (h.is_false() ? 0 : h.numeric_value()) + hsl_node[0].numeric_value();
         double new_s = (s.is_false() ? 0 : s.numeric_value()) + hsl_node[1].numeric_value();
         double new_l = (l.is_false() ? 0 : l.numeric_value()) + hsl_node[2].numeric_value();
@@ -334,6 +346,7 @@ namespace Sass {
         return hsla_impl(new_h, new_s, new_l, new_a, new_Node);
       }
       else if (!a.is_false()) {
+        if (!a.is_numeric()) throw_eval_error("argument $alpha of 'adjust-color' must be numeric", a.path(), a.line());
         return new_Node("", 0,
                         color[0].numeric_value(),
                         color[1].numeric_value(),
