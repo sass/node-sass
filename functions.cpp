@@ -229,10 +229,15 @@ namespace Sass {
             bindings[parameter_names[1].token()].is_numeric() &&
             bindings[parameter_names[2].token()].is_numeric())) {
         throw_eval_error("arguments to hsl must be numeric", bindings[parameter_names[0].token()].path(), bindings[parameter_names[0].token()].line());
-      }  
-      double h = bindings[parameter_names[0].token()].numeric_value();
-      double s = bindings[parameter_names[1].token()].numeric_value();
-      double l = bindings[parameter_names[2].token()].numeric_value();
+      }
+      Node hn(bindings[parameter_names[0].token()]);
+      Node sn(bindings[parameter_names[1].token()]);
+      Node ln(bindings[parameter_names[2].token()]);
+      double h = hn.numeric_value();
+      double s = sn.numeric_value();
+      double l = ln.numeric_value();
+      if (s < 0 || 100 < s) throw_eval_error("saturation must be between 0% and 100% for 'hsl'", sn.path(), sn.line());
+      if (l < 0 || 100 < l) throw_eval_error("lightness must be between 0% and 100% for 'hsl'", ln.path(), ln.line());
       Node color(hsla_impl(h, s, l, 1, new_Node));
       return color;
     }
