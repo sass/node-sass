@@ -122,16 +122,22 @@ namespace Sass {
     // Opacity Functions ///////////////////////////////////////////////////
 
     extern Signature alpha_sig;
-    extern Signature opacity_sig;
     Node alpha(const Node, Environment&, Node_Factory&);
+
+    extern Signature opacity_sig;
+    Node opacity(const Node, Environment&, Node_Factory&);    
     
     extern Signature opacify_sig;
-    extern Signature fade_in_sig;
     Node opacify(const Node, Environment&, Node_Factory&);
+
+    extern Signature fade_in_sig;
+    Node fade_in(const Node, Environment&, Node_Factory&);
     
     extern Signature transparentize_sig;
-    extern Signature fade_out_sig;
     Node transparentize(const Node, Environment&, Node_Factory&);
+
+    extern Signature fade_out_sig;
+    Node fade_out(const Node, Environment&, Node_Factory&);
 
     // Other Color Functions ///////////////////////////////////////////////
     

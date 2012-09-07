@@ -124,11 +124,11 @@ namespace Sass {
     register_function(invert_sig, invert);
     // Opacity Functions
     register_function(alpha_sig, alpha);
-    register_function(opacity_sig, alpha);
+    register_function(opacity_sig, opacity);
     register_function(opacify_sig, opacify);
-    register_function(fade_in_sig, opacify);
+    register_function(fade_in_sig, fade_in);
     register_function(transparentize_sig, transparentize);
-    register_function(fade_out_sig, transparentize);
+    register_function(fade_out_sig, fade_out);
     // String Functions
     register_function(unquote_sig, unquote);
     register_function(quote_sig, quote);

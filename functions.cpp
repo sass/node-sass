@@ -321,8 +321,8 @@ namespace Sass {
     Node adjust_hue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node rgb_col(bindings[parameter_names[0].token()]);
       Node degrees(bindings[parameter_names[1].token()]);
-      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to adjust-hue must be a color", rgb_col.path(), rgb_col.line());
-      if (!degrees.is_numeric()) throw_eval_error("second argument to adjust-hue must be numeric", degrees.path(), degrees.line());
+      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to 'adjust-hue' must be a color", rgb_col.path(), rgb_col.line());
+      if (!degrees.is_numeric()) throw_eval_error("second argument to 'adjust-hue' must be numeric", degrees.path(), degrees.line());
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
                               rgb_col[1].numeric_value(),
                               rgb_col[2].numeric_value(),
@@ -338,8 +338,8 @@ namespace Sass {
     Node lighten(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node rgb_col(bindings[parameter_names[0].token()]);
       Node amount(bindings[parameter_names[1].token()]);
-      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to lighten must be a color", rgb_col.path(), rgb_col.line());
-      if (!amount.is_numeric()) throw_eval_error("second argument to lighten must be numeric", amount.path(), amount.line());
+      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to 'lighten' must be a color", rgb_col.path(), rgb_col.line());
+      if (!amount.is_numeric()) throw_eval_error("second argument to 'lighten' must be numeric", amount.path(), amount.line());
       double amt = amount.numeric_value();
       if (amt < 0 || 100 < amt) throw_eval_error("amount must be between 0% and 100% for 'lighten'", amount.path(), amount.line());
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
@@ -357,8 +357,8 @@ namespace Sass {
     Node darken(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node rgb_col(bindings[parameter_names[0].token()]);
       Node amount(bindings[parameter_names[1].token()]);
-      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to darken must be a color", rgb_col.path(), rgb_col.line());
-      if (!amount.is_numeric()) throw_eval_error("second argument to darken must be numeric", amount.path(), amount.line());
+      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to 'darken' must be a color", rgb_col.path(), rgb_col.line());
+      if (!amount.is_numeric()) throw_eval_error("second argument to 'darken' must be numeric", amount.path(), amount.line());
       double amt = amount.numeric_value();
       if (amt < 0 || 100 < amt) throw_eval_error("amount must be between 0% and 100% for 'darken'", amount.path(), amount.line());
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
@@ -376,8 +376,8 @@ namespace Sass {
     Node saturate(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node rgb_col(bindings[parameter_names[0].token()]);
       Node amount(bindings[parameter_names[1].token()]);
-      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to saturate must be a color", rgb_col.path(), rgb_col.line());
-      if (!amount.is_numeric()) throw_eval_error("second argument to saturate must be numeric", amount.path(), amount.line());
+      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to 'saturate' must be a color", rgb_col.path(), rgb_col.line());
+      if (!amount.is_numeric()) throw_eval_error("second argument to 'saturate' must be numeric", amount.path(), amount.line());
       double amt = amount.numeric_value();
       if (amt < 0 || 100 < amt) throw_eval_error("amount must be between 0% and 100% for 'saturate'", amount.path(), amount.line());
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
@@ -395,8 +395,8 @@ namespace Sass {
     Node desaturate(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node rgb_col(bindings[parameter_names[0].token()]);
       Node amount(bindings[parameter_names[1].token()]);
-      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to desaturate must be a color", rgb_col.path(), rgb_col.line());
-      if (!amount.is_numeric()) throw_eval_error("second argument to desaturate must be numeric", amount.path(), amount.line());
+      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to 'desaturate' must be a color", rgb_col.path(), rgb_col.line());
+      if (!amount.is_numeric()) throw_eval_error("second argument to 'desaturate' must be numeric", amount.path(), amount.line());
       double amt = amount.numeric_value();
       if (amt < 0 || 100 < amt) throw_eval_error("amount must be between 0% and 100% for 'desaturate'", amount.path(), amount.line());
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
@@ -413,7 +413,7 @@ namespace Sass {
     extern Signature invert_sig = "invert($color)";
     Node invert(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node orig(bindings[parameter_names[0].token()]);
-      if (orig.type() != Node::numeric_color) throw_eval_error("argument to invert must be a color", orig.path(), orig.line());
+      if (orig.type() != Node::numeric_color) throw_eval_error("argument to 'invert' must be a color", orig.path(), orig.line());
       return new_Node(orig.path(), orig.line(),
                       255 - orig[0].numeric_value(),
                       255 - orig[1].numeric_value(),
@@ -423,48 +423,86 @@ namespace Sass {
     
     // Opacity Functions ///////////////////////////////////////////////////
     
-    extern Signature alpha_sig   = "alpha($color)";
-    extern Signature opacity_sig = "opacity($color)";
+    extern Signature alpha_sig = "alpha($color)";
     Node alpha(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node color(bindings[parameter_names[0].token()]);
-      if (color.type() != Node::numeric_color) throw_eval_error("argument to alpha/opacity must be a color", color.path(), color.line());
+      if (color.type() != Node::numeric_color) throw_eval_error("argument to 'alpha' must be a color", color.path(), color.line());
+      return color[3];
+    }
+
+    extern Signature opacity_sig = "opacity($color)";
+    Node opacity(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node color(bindings[parameter_names[0].token()]);
+      if (color.type() != Node::numeric_color) throw_eval_error("argument to 'opacity' must be a color", color.path(), color.line());
       return color[3];
     }
     
     extern Signature opacify_sig = "opacify($color, $amount)";
-    extern Signature fade_in_sig = "fade-in($color, $amount)";
     Node opacify(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node color(bindings[parameter_names[0].token()]);
       Node delta(bindings[parameter_names[1].token()]);
-      if (color.type() != Node::numeric_color || !delta.is_numeric()) {
-        throw_eval_error("arguments to opacify/fade_in must be a color and a numeric value", color.path(), color.line());
-      }
-      if (delta.numeric_value() < 0 || delta.numeric_value() > 1) {
-        throw_eval_error("amount must be between 0 and 1 for opacify/fade-in", delta.path(), delta.line());
-      }
-      double alpha = color[3].numeric_value() + delta.numeric_value();
-      if (alpha > 1) alpha = 1;
-      else if (alpha < 0) alpha = 0;
+      if (color.type() != Node::numeric_color) throw_eval_error("first argument to 'opacify' must be a color", color.path(), color.line());
+      if (!delta.is_numeric()) throw_eval_error("second argument to 'opacify' must be numeric", delta.path(), delta.line());
+      double dd = delta.numeric_value();
+      if (dd < 0 || 1 < dd) throw_eval_error("amount must be between 0 and 1 for 'opacify'", delta.path(), delta.line());
+      dd += color[3].numeric_value();
+      if (dd > 1) dd = 1;
       return new_Node(color.path(), color.line(),
-                      color[0].numeric_value(), color[1].numeric_value(), color[2].numeric_value(), alpha);
+                      color[0].numeric_value(),
+                      color[1].numeric_value(),
+                      color[2].numeric_value(),
+                      dd);
+    }
+
+    extern Signature fade_in_sig = "fade-in($color, $amount)";
+    Node fade_in(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node color(bindings[parameter_names[0].token()]);
+      Node delta(bindings[parameter_names[1].token()]);
+      if (color.type() != Node::numeric_color) throw_eval_error("first argument to 'fade-in' must be a color", color.path(), color.line());
+      if (!delta.is_numeric()) throw_eval_error("second argument to 'fade-in' must be numeric", delta.path(), delta.line());
+      double dd = delta.numeric_value();
+      if (dd < 0 || 1 < dd) throw_eval_error("amount must be between 0 and 1 for 'fade-in'", delta.path(), delta.line());
+      dd += color[3].numeric_value();
+      if (dd > 1) dd = 1;
+      return new_Node(color.path(), color.line(),
+                      color[0].numeric_value(),
+                      color[1].numeric_value(),
+                      color[2].numeric_value(),
+                      dd);
     }
     
     extern Signature transparentize_sig = "transparentize($color, $amount)";
-    extern Signature fade_out_sig       = "fade-out($color, $amount)";
     Node transparentize(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node color(bindings[parameter_names[0].token()]);
       Node delta(bindings[parameter_names[1].token()]);
-      if (color.type() != Node::numeric_color || !delta.is_numeric()) {
-        throw_eval_error("arguments to transparentize/fade_out must be a color and a numeric value", color.path(), color.line());
-      }
-      if (delta.numeric_value() < 0 || delta.numeric_value() > 1) {
-        throw_eval_error("amount must be between 0 and 1 for transparentize/fade-out", delta.path(), delta.line());
-      }
-      double alpha = color[3].numeric_value() - delta.numeric_value();
-      if (alpha > 1) alpha = 1;
-      else if (alpha < 0) alpha = 0;
+      if (color.type() != Node::numeric_color) throw_eval_error("first argument to 'transparentize' must be a color", color.path(), color.line());
+      if (!delta.is_numeric()) throw_eval_error("second argument to 'transparentize' must be numeric", delta.path(), delta.line());
+      double dd = delta.numeric_value();
+      if (dd < 0 || 1 < dd) throw_eval_error("amount must be between 0 and 1 for 'transparentize'", delta.path(), delta.line());
+      double alpha = color[3].numeric_value() - dd;
+      if (alpha < 0) alpha = 0;
       return new_Node(color.path(), color.line(),
-                      color[0].numeric_value(), color[1].numeric_value(), color[2].numeric_value(), alpha);
+                      color[0].numeric_value(),
+                      color[1].numeric_value(),
+                      color[2].numeric_value(),
+                      alpha);
+    }
+
+    extern Signature fade_out_sig = "fade-out($color, $amount)";
+    Node fade_out(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node color(bindings[parameter_names[0].token()]);
+      Node delta(bindings[parameter_names[1].token()]);
+      if (color.type() != Node::numeric_color) throw_eval_error("first argument to 'fade-out' must be a color", color.path(), color.line());
+      if (!delta.is_numeric()) throw_eval_error("second argument to 'fade-out' must be numeric", delta.path(), delta.line());
+      double dd = delta.numeric_value();
+      if (dd < 0 || 1 < dd) throw_eval_error("amount must be between 0 and 1 for 'fade-out'", delta.path(), delta.line());
+      double alpha = color[3].numeric_value() - dd;
+      if (alpha < 0) alpha = 0;
+      return new_Node(color.path(), color.line(),
+                      color[0].numeric_value(),
+                      color[1].numeric_value(),
+                      color[2].numeric_value(),
+                      alpha);
     }
 
     // Other Color Functions ///////////////////////////////////////////////
