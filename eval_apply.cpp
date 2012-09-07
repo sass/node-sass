@@ -353,7 +353,16 @@ namespace Sass {
         string id_str(expr.to_string());
         to_lowercase(id_str);
         if (!function_name && ctx.color_names_to_values.count(id_str)) {
-          return ctx.color_names_to_values[id_str];
+          Node color_orig(ctx.color_names_to_values[id_str]);
+          Node r(color_orig[0]);
+          Node g(color_orig[1]);
+          Node b(color_orig[2]);
+          Node a(color_orig[3]);
+          return new_Node(expr.path(), expr.line(),
+                          r.numeric_value(),
+                          g.numeric_value(),
+                          b.numeric_value(),
+                          a.numeric_value());
         }
         else {
           return expr;
