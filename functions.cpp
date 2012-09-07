@@ -215,8 +215,8 @@ namespace Sass {
 
     // Hue to RGB helper function
     double h_to_rgb(double m1, double m2, double h) {
-      if (h < 0) ++h;
-      if (h > 1) --h;
+      if (h < 0) h += 1;
+      if (h > 1) h -= 1;
       if (h*6.0 < 1) return m1 + (m2 - m1)*h*6;
       if (h*2.0 < 1) return m2;
       if (h*3.0 < 2) return m1 + (m2 - m1) * (2.0/3.0 - h)*6;
@@ -248,14 +248,12 @@ namespace Sass {
 
     extern Signature hsl_sig = "hsl($hue, $saturation, $lightness)";
     Node hsl(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
-      if (!(bindings[parameter_names[0].token()].is_numeric() &&
-            bindings[parameter_names[1].token()].is_numeric() &&
-            bindings[parameter_names[2].token()].is_numeric())) {
-        throw_eval_error("arguments to hsl must be numeric", bindings[parameter_names[0].token()].path(), bindings[parameter_names[0].token()].line());
-      }
       Node hn(bindings[parameter_names[0].token()]);
       Node sn(bindings[parameter_names[1].token()]);
       Node ln(bindings[parameter_names[2].token()]);
+      if (!hn.is_numeric()) throw_eval_error("first argument to 'hsl' must be numeric", hn.path(), hn.line());
+      if (!sn.is_numeric()) throw_eval_error("second argument to 'hsl' must be numeric", sn.path(), sn.line());
+      if (!ln.is_numeric()) throw_eval_error("third argument to 'hsl' must be numeric", ln.path(), ln.line());
       double h = hn.numeric_value();
       double s = sn.numeric_value();
       double l = ln.numeric_value();
@@ -267,16 +265,14 @@ namespace Sass {
 
     extern Signature hsla_sig = "hsla($hue, $saturation, $lightness, $alpha)";
     Node hsla(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
-      if (!(bindings[parameter_names[0].token()].is_numeric() &&
-            bindings[parameter_names[1].token()].is_numeric() &&
-            bindings[parameter_names[2].token()].is_numeric() &&
-            bindings[parameter_names[3].token()].is_numeric())) {
-        throw_eval_error("arguments to hsla must be numeric", bindings[parameter_names[0].token()].path(), bindings[parameter_names[0].token()].line());
-      }  
       Node hn(bindings[parameter_names[0].token()]);
       Node sn(bindings[parameter_names[1].token()]);
       Node ln(bindings[parameter_names[2].token()]);
       Node an(bindings[parameter_names[3].token()]);
+      if (!hn.is_numeric()) throw_eval_error("first argument to 'hsla' must be numeric", hn.path(), hn.line());
+      if (!sn.is_numeric()) throw_eval_error("second argument to 'hsla' must be numeric", sn.path(), sn.line());
+      if (!ln.is_numeric()) throw_eval_error("third argument to 'hsla' must be numeric", ln.path(), ln.line());
+      if (!an.is_numeric()) throw_eval_error("fourth argument to 'hsla' must be numeric", an.path(), an.line());
       double h = hn.numeric_value();
       double s = sn.numeric_value();
       double l = ln.numeric_value();
