@@ -321,6 +321,8 @@ namespace Sass {
       Node amount(bindings[parameter_names[1].token()]);
       if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to lighten must be a color", rgb_col.path(), rgb_col.line());
       if (!amount.is_numeric()) throw_eval_error("second argument to lighten must be numeric", amount.path(), amount.line());
+      double amt = amount.numeric_value();
+      if (amt < 0 || 100 < amt) throw_eval_error("amount must be between 0% and 100% for 'lighten'", amount.path(), amount.line());
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
                               rgb_col[1].numeric_value(),
                               rgb_col[2].numeric_value(),
@@ -338,6 +340,8 @@ namespace Sass {
       Node amount(bindings[parameter_names[1].token()]);
       if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to darken must be a color", rgb_col.path(), rgb_col.line());
       if (!amount.is_numeric()) throw_eval_error("second argument to darken must be numeric", amount.path(), amount.line());
+      double amt = amount.numeric_value();
+      if (amt < 0 || 100 < amt) throw_eval_error("amount must be between 0% and 100% for 'darken'", amount.path(), amount.line());
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
                               rgb_col[1].numeric_value(),
                               rgb_col[2].numeric_value(),
@@ -355,6 +359,8 @@ namespace Sass {
       Node amount(bindings[parameter_names[1].token()]);
       if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to saturate must be a color", rgb_col.path(), rgb_col.line());
       if (!amount.is_numeric()) throw_eval_error("second argument to saturate must be numeric", amount.path(), amount.line());
+      double amt = amount.numeric_value();
+      if (amt < 0 || 100 < amt) throw_eval_error("amount must be between 0% and 100% for 'saturate'", amount.path(), amount.line());
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
                               rgb_col[1].numeric_value(),
                               rgb_col[2].numeric_value(),
@@ -372,6 +378,8 @@ namespace Sass {
       Node amount(bindings[parameter_names[1].token()]);
       if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to desaturate must be a color", rgb_col.path(), rgb_col.line());
       if (!amount.is_numeric()) throw_eval_error("second argument to desaturate must be numeric", amount.path(), amount.line());
+      double amt = amount.numeric_value();
+      if (amt < 0 || 100 < amt) throw_eval_error("amount must be between 0% and 100% for 'desaturate'", amount.path(), amount.line());
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
                               rgb_col[1].numeric_value(),
                               rgb_col[2].numeric_value(),
