@@ -84,10 +84,16 @@ namespace Sass {
       Node r(bindings[parameter_names[0].token()]);
       Node g(bindings[parameter_names[1].token()]);
       Node b(bindings[parameter_names[2].token()]);
-      if (!(r.type() == Node::number && g.type() == Node::number && b.type() == Node::number)) {
-        throw_eval_error("arguments for rgb must be numbers", r.path(), r.line());
-      }
-      return new_Node(r.path(), r.line(), r.numeric_value(), g.numeric_value(), b.numeric_value(), 1.0);
+      if (!r.is_numeric()) throw_eval_error("first argument to 'rgb' must be numeric", r.path(), r.line());
+      if (!g.is_numeric()) throw_eval_error("second argument to 'rgb' must be numeric", g.path(), g.line());
+      if (!b.is_numeric()) throw_eval_error("third argument to 'rgb' must be numeric", b.path(), b.line());
+      double dr = r.numeric_value();
+      double dg = g.numeric_value();
+      double db = b.numeric_value();
+      if (dr < 0 || 255 < dr) throw_eval_error("first argument to 'rgb' must be between 0 and 255", r.path(), r.line());
+      if (dg < 0 || 255 < dg) throw_eval_error("second argument to 'rgb' must be between 0 and 255", g.path(), g.line());
+      if (db < 0 || 255 < db) throw_eval_error("third argument to 'rgb' must be between 0 and 255", b.path(), b.line());
+      return new_Node(r.path(), r.line(), std::floor(dr), std::floor(dg), std::floor(db), 1.0);
     }
 
     // TODO: SOMETHING SPECIAL FOR OVERLOADED FUNCTIONS
@@ -97,21 +103,32 @@ namespace Sass {
       Node g(bindings[parameter_names[1].token()]);
       Node b(bindings[parameter_names[2].token()]);
       Node a(bindings[parameter_names[3].token()]);
-      if (!(r.type() == Node::number && g.type() == Node::number && b.type() == Node::number && a.type() == Node::number)) {
-        throw_eval_error("arguments for rgba must be numbers", r.path(), r.line());
-      }
-      return new_Node(r.path(), r.line(), r.numeric_value(), g.numeric_value(), b.numeric_value(), a.numeric_value());
+      if (!r.is_numeric()) throw_eval_error("first argument to 'rgb' must be numeric", r.path(), r.line());
+      if (!g.is_numeric()) throw_eval_error("second argument to 'rgb' must be numeric", g.path(), g.line());
+      if (!b.is_numeric()) throw_eval_error("third argument to 'rgb' must be numeric", b.path(), b.line());
+      if (!a.is_numeric()) throw_eval_error("fourth argument to 'rgb' must be numeric", a.path(), a.line());
+      double dr = r.numeric_value();
+      double dg = g.numeric_value();
+      double db = b.numeric_value();
+      double da = a.numeric_value();
+      if (dr < 0 || 255 < dr) throw_eval_error("first argument to 'rgb' must be between 0 and 255", r.path(), r.line());
+      if (dg < 0 || 255 < dg) throw_eval_error("second argument to 'rgb' must be between 0 and 255", g.path(), g.line());
+      if (db < 0 || 255 < db) throw_eval_error("third argument to 'rgb' must be between 0 and 255", b.path(), b.line());
+      if (da < 0 || 1 < da)   throw_eval_error("fourth argument to 'rgb' must be between 0 and 1", a.path(), a.line());
+      return new_Node(r.path(), r.line(), std::floor(dr), std::floor(dg), std::floor(db), da);
     }
     
     extern Signature rgba_2_sig = "rgba($color, $alpha)";
     Node rgba_2(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node color(bindings[parameter_names[0].token()]);
+      if (color.type() != Node::numeric_color) throw_eval_error("first argument to 'rgba' must be a color", color.path(), color.line());
       Node r(color[0]);
       Node g(color[1]);
       Node b(color[2]);
       Node a(bindings[parameter_names[1].token()]);
-      if (color.type() != Node::numeric_color) throw_eval_error("first argument to rgba must be a color", color.path(), color.line());
-      if (a.type() != Node::number) throw_eval_error("second argument to rgba must be a number", a.path(), a.line());
+      if (!a.is_numeric()) throw_eval_error("second argument to 'rgba' must be numeric", a.path(), a.line());
+      double da = a.numeric_value();
+      if (da < 0 || 1 < da) throw_eval_error("second argument to 'rgba' must be between 0 and 1", a.path(), a.line());
       return new_Node(color.path(), color.line(), r.numeric_value(), g.numeric_value(), b.numeric_value(), a.numeric_value());
     }
     
