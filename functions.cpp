@@ -208,8 +208,14 @@ namespace Sass {
 
     Node hsla_impl(double h, double s, double l, double a, Node_Factory& new_Node) {
       h = static_cast<double>(((static_cast<int>(h) % 360) + 360) % 360) / 360.0;
-      s = (s < 0) ? 0 : (s / 100.0);
-      l = (l < 0) ? 0 : (l / 100.0);
+      s = (s < 0)   ? 0 :
+          (s > 100) ? 100 :
+          s;
+      l = (l < 0)   ? 0 :
+          (l > 100) ? 100 :
+          l;
+      s /= 100.0;
+      l /= 100.0;
 
       double m2;
       if (l <= 0.5) m2 = l*(s+1.0);
