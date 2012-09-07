@@ -410,6 +410,26 @@ namespace Sass {
                        new_Node);
     }
 
+    extern Signature grayscale_sig = "grayscale($color)";
+    Node grayscale(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node color(bindings[parameter_names[0].token()]);
+      if (color.type() != Node::numeric_color) throw_eval_error("argument to 'grayscale' must be a color", color.path(), color.line());
+      Node hsl_color(rgb_to_hsl(color[0].numeric_value(),
+                                color[1].numeric_value(),
+                                color[2].numeric_value(),
+                                new_Node));
+      Node result(hsla_impl(hsl_color[0].numeric_value(),
+                            0.0, // desaturate completely
+                            hsl_color[2].numeric_value(),
+                            color[3].numeric_value(),
+                            new_Node));
+      return new_Node(color.path(), color.line(),
+                      result[0].numeric_value(),
+                      result[1].numeric_value(),
+                      result[2].numeric_value(),
+                      result[3].numeric_value());
+    }
+
     extern Signature invert_sig = "invert($color)";
     Node invert(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node orig(bindings[parameter_names[0].token()]);

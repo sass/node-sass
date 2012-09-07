@@ -116,6 +116,9 @@ namespace Sass {
     extern Signature desaturate_sig;
     Node desaturate(const Node, Environment&, Node_Factory&);
 
+    extern Signature grayscale_sig;
+    Node grayscale(const Node, Environment&, Node_Factory&);    
+
     extern Signature invert_sig;
     Node invert(const Node, Environment&, Node_Factory&);
     

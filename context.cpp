@@ -119,8 +119,7 @@ namespace Sass {
     register_function(darken_sig, darken);
     register_function(saturate_sig, saturate);
     register_function(desaturate_sig, desaturate);
-    register_function(adjust_color_sig, adjust_color);
-    register_function(change_color_sig, change_color);
+    register_function(grayscale_sig, grayscale);
     register_function(invert_sig, invert);
     // Opacity Functions
     register_function(alpha_sig, alpha);
@@ -129,6 +128,9 @@ namespace Sass {
     register_function(fade_in_sig, fade_in);
     register_function(transparentize_sig, transparentize);
     register_function(fade_out_sig, fade_out);
+    // Other Color Functions
+    register_function(adjust_color_sig, adjust_color);
+    register_function(change_color_sig, change_color);    
     // String Functions
     register_function(unquote_sig, unquote);
     register_function(quote_sig, quote);
