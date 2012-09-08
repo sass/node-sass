@@ -120,6 +120,7 @@ namespace Sass {
     register_function(saturate_sig, saturate);
     register_function(desaturate_sig, desaturate);
     register_function(grayscale_sig, grayscale);
+    register_function(complement_sig, complement);
     register_function(invert_sig, invert);
     // Opacity Functions
     register_function(alpha_sig, alpha);

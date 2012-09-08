@@ -430,6 +430,26 @@ namespace Sass {
                       result[3].numeric_value());
     }
 
+    extern Signature complement_sig = "complement($color)";
+    Node complement(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+      Node color(bindings[parameter_names[0].token()]);
+      if (color.type() != Node::numeric_color) throw_eval_error("argument to 'complement' must be a color", color.path(), color.line());
+      Node hsl_color(rgb_to_hsl(color[0].numeric_value(),
+                                color[1].numeric_value(),
+                                color[2].numeric_value(),
+                                new_Node));
+      Node result(hsla_impl(hsl_color[0].numeric_value() - 180, // other side of the color wheel
+                            hsl_color[1].numeric_value(),
+                            hsl_color[2].numeric_value(),
+                            color[3].numeric_value(),
+                            new_Node));
+      return new_Node(color.path(), color.line(),
+                      result[0].numeric_value(),
+                      result[1].numeric_value(),
+                      result[2].numeric_value(),
+                      result[3].numeric_value());
+    }
+
     extern Signature invert_sig = "invert($color)";
     Node invert(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
       Node orig(bindings[parameter_names[0].token()]);
