@@ -1055,7 +1055,7 @@ namespace Sass {
     }
 
     Node args(parse_arguments());
-    Node call(context.new_Node(Node::function_call, path, line, 2));
+    Node call(context.new_Node(Node::function_call, name.path(), name.line(), 2));
     call << name << args;
     call.should_eval() = true;
     return call;
