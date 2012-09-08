@@ -13,7 +13,7 @@ namespace Sass {
 
   using std::map;
   
-  typedef Node (*Primitive)(const Node, Environment&, Node_Factory&);
+  typedef Node (*Primitive)(const Node, Environment&, Node_Factory&, string, size_t);
   typedef const char Signature[];
 
   struct Function {
@@ -48,9 +48,9 @@ namespace Sass {
 
     Function(char* signature, Primitive ip, Context& ctx);
 
-    Node operator()(Environment& bindings, Node_Factory& new_Node) const
+    Node operator()(Environment& bindings, Node_Factory& new_Node, string path, size_t line) const
     {
-      if (primitive) return primitive(parameters, bindings, new_Node);
+      if (primitive) return primitive(parameters, bindings, new_Node, path, line);
       else           return Node();
     }
 
@@ -61,158 +61,158 @@ namespace Sass {
     // RGB Functions ///////////////////////////////////////////////////////
 
     extern Signature rgb_sig;
-    Node rgb(const Node, Environment&, Node_Factory&);
+    Node rgb(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature rgba_4_sig;
-    Node rgba_4(const Node, Environment&, Node_Factory&);
+    Node rgba_4(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
     
     extern Signature rgba_2_sig;
-    Node rgba_2(const Node, Environment&, Node_Factory&);
+    Node rgba_2(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
     
     extern Signature red_sig;
-    Node red(const Node, Environment&, Node_Factory&);
+    Node red(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
     
     extern Signature green_sig;
-    Node green(const Node, Environment&, Node_Factory&);
+    Node green(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
     
     extern Signature blue_sig;
-    Node blue(const Node, Environment&, Node_Factory&);
+    Node blue(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
     
     extern Signature mix_sig;
-    Node mix(const Node, Environment&, Node_Factory&);
+    Node mix(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
     
     // HSL Functions ///////////////////////////////////////////////////////
     
     extern Signature hsl_sig;
-    Node hsl(const Node, Environment&, Node_Factory&);
+    Node hsl(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature hsla_sig;
-    Node hsla(const Node, Environment&, Node_Factory&);
+    Node hsla(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
     
     extern Signature hue_sig;
-    Node hue(const Node, Environment&, Node_Factory&);
+    Node hue(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature saturation_sig;
-    Node saturation(const Node, Environment&, Node_Factory&);
+    Node saturation(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature lightness_sig;
-    Node lightness(const Node, Environment&, Node_Factory&);
+    Node lightness(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature adjust_hue_sig;
-    Node adjust_hue(const Node, Environment&, Node_Factory&);
+    Node adjust_hue(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature lighten_sig;
-    Node lighten(const Node, Environment&, Node_Factory&);
+    Node lighten(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature darken_sig;
-    Node darken(const Node, Environment&, Node_Factory&);
+    Node darken(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature saturate_sig;
-    Node saturate(const Node, Environment&, Node_Factory&);
+    Node saturate(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature desaturate_sig;
-    Node desaturate(const Node, Environment&, Node_Factory&);
+    Node desaturate(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature grayscale_sig;
-    Node grayscale(const Node, Environment&, Node_Factory&);    
+    Node grayscale(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);    
 
     extern Signature complement_sig;
-    Node complement(const Node, Environment&, Node_Factory&);    
+    Node complement(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);    
 
     extern Signature invert_sig;
-    Node invert(const Node, Environment&, Node_Factory&);
+    Node invert(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
     
     // Opacity Functions ///////////////////////////////////////////////////
 
     extern Signature alpha_sig;
-    Node alpha(const Node, Environment&, Node_Factory&);
+    Node alpha(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature opacity_sig;
-    Node opacity(const Node, Environment&, Node_Factory&);    
+    Node opacity(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);    
     
     extern Signature opacify_sig;
-    Node opacify(const Node, Environment&, Node_Factory&);
+    Node opacify(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature fade_in_sig;
-    Node fade_in(const Node, Environment&, Node_Factory&);
+    Node fade_in(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
     
     extern Signature transparentize_sig;
-    Node transparentize(const Node, Environment&, Node_Factory&);
+    Node transparentize(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature fade_out_sig;
-    Node fade_out(const Node, Environment&, Node_Factory&);
+    Node fade_out(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     // Other Color Functions ///////////////////////////////////////////////
     
     extern Signature adjust_color_sig;
-    Node adjust_color(const Node, Environment&, Node_Factory&);
+    Node adjust_color(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature change_color_sig;
-    Node change_color(const Node, Environment&, Node_Factory&);
+    Node change_color(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     // String Functions ////////////////////////////////////////////////////
 
     extern Signature unquote_sig;
-    Node unquote(const Node, Environment&, Node_Factory&);
+    Node unquote(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
     
     extern Signature quote_sig;
-    Node quote(const Node, Environment&, Node_Factory&);
+    Node quote(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
     
     // Number Functions ////////////////////////////////////////////////////
 
     extern Signature percentage_sig;
-    Node percentage(const Node, Environment&, Node_Factory&);
+    Node percentage(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature round_sig;
-    Node round(const Node, Environment&, Node_Factory&);
+    Node round(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature ceil_sig;
-    Node ceil(const Node, Environment&, Node_Factory&);
+    Node ceil(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature floor_sig;
-    Node floor(const Node, Environment&, Node_Factory&);
+    Node floor(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature abs_sig;    
-    Node abs(const Node, Environment&, Node_Factory&);
+    Node abs(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
     
     // List Functions //////////////////////////////////////////////////////
     
     extern Signature length_sig;
-    Node length(const Node, Environment&, Node_Factory&);
+    Node length(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature nth_sig;
-    Node nth(const Node, Environment&, Node_Factory&);
+    Node nth(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature join_sig;    
-    Node join(const Node, Environment&, Node_Factory&);
+    Node join(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature append_sig;
-    Node append(const Node, Environment&, Node_Factory&);
+    Node append(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature compact_sig;
-    Node compact(const Node, Environment&, Node_Factory&);
+    Node compact(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
     
     // Introspection Functions /////////////////////////////////////////////
     
     extern Signature type_of_sig;
-    Node type_of(const Node, Environment&, Node_Factory&);
+    Node type_of(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature unit_sig;
-    Node unit(const Node, Environment&, Node_Factory&);
+    Node unit(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
     
     extern Signature unitless_sig;    
-    Node unitless(const Node, Environment&, Node_Factory&);
+    Node unitless(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
     
     extern Signature comparable_sig;    
-    Node comparable(const Node, Environment&, Node_Factory&);
+    Node comparable(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
     
     // Boolean Functions ///////////////////////////////////////////////////
     
     extern Signature not_sig;
-    Node not_impl(const Node, Environment&, Node_Factory&);
+    Node not_impl(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
     extern Signature if_sig;
-    Node if_impl(const Node, Environment&, Node_Factory&);
+    Node if_impl(const Node, Environment&, Node_Factory&, string path = "", size_t line = 0);
 
   }
   

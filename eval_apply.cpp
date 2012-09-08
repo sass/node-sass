@@ -713,7 +713,7 @@ namespace Sass {
 
   // Apply a function -- bind the arguments and pass them to the underlying
   // primitive function implementation, then return its value.
-  Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx)
+  Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, string path, size_t line)
   {
     if (f.primitive) {
       // evaluate arguments in the current environment
@@ -729,7 +729,7 @@ namespace Sass {
       Environment bindings;
       bindings.link(env.global ? *env.global : env);
       bind_arguments("function " + f.name, f.parameters, args, prefix, bindings, f_env, new_Node, ctx);
-      return f.primitive(f.parameter_names, bindings, new_Node);
+      return f.primitive(f.parameter_names, bindings, new_Node, path, line);
     }
     else {
       Node params(f.definition[1]);
@@ -778,8 +778,8 @@ namespace Sass {
           }
           Node var(stm[0]);
           if (stm.is_guarded() && bindings.query(var.token())) continue;
-          // If a binding exists (possible upframe), then update it.
-          // Otherwise, make a new on in the current frame.
+          // If a binding exists (possibly upframe), then update it.
+          // Otherwise, make a new one in the current frame.
           if (bindings.query(var.token())) {
             bindings[var.token()] = val;
           }

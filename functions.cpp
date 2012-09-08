@@ -69,7 +69,7 @@ namespace Sass {
     // RGB Functions ///////////////////////////////////////////////////////
 
     extern Signature rgb_sig = "rgb($red, $green, $blue)";
-    Node rgb(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node rgb(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node r(bindings[parameter_names[0].token()]);
       Node g(bindings[parameter_names[1].token()]);
       Node b(bindings[parameter_names[2].token()]);
@@ -87,7 +87,7 @@ namespace Sass {
 
     // TODO: SOMETHING SPECIAL FOR OVERLOADED FUNCTIONS
     extern Signature rgba_4_sig = "rgba($red, $green, $blue, $alpha)";
-    Node rgba_4(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node rgba_4(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node r(bindings[parameter_names[0].token()]);
       Node g(bindings[parameter_names[1].token()]);
       Node b(bindings[parameter_names[2].token()]);
@@ -108,7 +108,7 @@ namespace Sass {
     }
     
     extern Signature rgba_2_sig = "rgba($color, $alpha)";
-    Node rgba_2(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node rgba_2(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node color(bindings[parameter_names[0].token()]);
       if (color.type() != Node::numeric_color) throw_eval_error("first argument to 'rgba' must be a color", color.path(), color.line());
       Node r(color[0]);
@@ -122,28 +122,28 @@ namespace Sass {
     }
     
     extern Signature red_sig = "red($color)";
-    Node red(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node red(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node color(bindings[parameter_names[0].token()]);
       if (color.type() != Node::numeric_color) throw_eval_error("argument to red must be a color", color.path(), color.line());
       return color[0];
     }
     
     extern Signature green_sig = "green($color)";
-    Node green(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node green(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node color(bindings[parameter_names[0].token()]);
       if (color.type() != Node::numeric_color) throw_eval_error("argument to green must be a color", color.path(), color.line());
       return color[1];
     }
     
     extern Signature blue_sig = "blue($color)";
-    Node blue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node blue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node color(bindings[parameter_names[0].token()]);
       if (color.type() != Node::numeric_color) throw_eval_error("argument to blue must be a color", color.path(), color.line());
       return color[2];
     }
 
     extern Signature mix_sig = "mix($color-1, $color-2, $weight: 50%)";
-    Node mix(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node mix(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node color1(bindings[parameter_names[0].token()]);
       Node color2(bindings[parameter_names[1].token()]);
       Node weight(bindings[parameter_names[2].token()]);
@@ -236,7 +236,7 @@ namespace Sass {
     }
 
     extern Signature hsl_sig = "hsl($hue, $saturation, $lightness)";
-    Node hsl(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node hsl(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node hn(bindings[parameter_names[0].token()]);
       Node sn(bindings[parameter_names[1].token()]);
       Node ln(bindings[parameter_names[2].token()]);
@@ -253,7 +253,7 @@ namespace Sass {
     }
 
     extern Signature hsla_sig = "hsla($hue, $saturation, $lightness, $alpha)";
-    Node hsla(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node hsla(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node hn(bindings[parameter_names[0].token()]);
       Node sn(bindings[parameter_names[1].token()]);
       Node ln(bindings[parameter_names[2].token()]);
@@ -274,7 +274,7 @@ namespace Sass {
     }
     
     extern Signature hue_sig = "hue($color)";
-    Node hue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node hue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node rgb_color(bindings[parameter_names[0].token()]);
       if (rgb_color.type() != Node::numeric_color) throw_eval_error("argument to 'hue' must be a color", rgb_color.path(), rgb_color.line());
       Node hsl_color(rgb_to_hsl(rgb_color[0].numeric_value(),
@@ -285,7 +285,7 @@ namespace Sass {
     }
 
     extern Signature saturation_sig = "saturation($color)";
-    Node saturation(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node saturation(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node rgb_color(bindings[parameter_names[0].token()]);
       if (rgb_color.type() != Node::numeric_color) throw_eval_error("argument to 'saturation' must be a color", rgb_color.path(), rgb_color.line());
       Node hsl_color(rgb_to_hsl(rgb_color[0].numeric_value(),
@@ -296,7 +296,7 @@ namespace Sass {
     }
 
     extern Signature lightness_sig = "lightness($color)";
-    Node lightness(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node lightness(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node rgb_color(bindings[parameter_names[0].token()]);
       if (rgb_color.type() != Node::numeric_color) throw_eval_error("argument to 'lightness' must be a color", rgb_color.path(), rgb_color.line());
       Node hsl_color(rgb_to_hsl(rgb_color[0].numeric_value(),
@@ -307,7 +307,7 @@ namespace Sass {
     }
 
     extern Signature adjust_hue_sig = "adjust-hue($color, $degrees)";
-    Node adjust_hue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node adjust_hue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node rgb_col(bindings[parameter_names[0].token()]);
       Node degrees(bindings[parameter_names[1].token()]);
       if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to 'adjust-hue' must be a color", rgb_col.path(), rgb_col.line());
@@ -324,7 +324,7 @@ namespace Sass {
     }
 
     extern Signature lighten_sig = "lighten($color, $amount)";
-    Node lighten(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node lighten(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node rgb_col(bindings[parameter_names[0].token()]);
       Node amount(bindings[parameter_names[1].token()]);
       if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to 'lighten' must be a color", rgb_col.path(), rgb_col.line());
@@ -343,7 +343,7 @@ namespace Sass {
     }
 
     extern Signature darken_sig = "darken($color, $amount)";
-    Node darken(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node darken(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node rgb_col(bindings[parameter_names[0].token()]);
       Node amount(bindings[parameter_names[1].token()]);
       if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to 'darken' must be a color", rgb_col.path(), rgb_col.line());
@@ -362,7 +362,7 @@ namespace Sass {
     }
 
     extern Signature saturate_sig = "saturate($color, $amount)";
-    Node saturate(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node saturate(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node rgb_col(bindings[parameter_names[0].token()]);
       Node amount(bindings[parameter_names[1].token()]);
       if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to 'saturate' must be a color", rgb_col.path(), rgb_col.line());
@@ -381,7 +381,7 @@ namespace Sass {
     }
 
     extern Signature desaturate_sig = "desaturate($color, $amount)";
-    Node desaturate(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node desaturate(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node rgb_col(bindings[parameter_names[0].token()]);
       Node amount(bindings[parameter_names[1].token()]);
       if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to 'desaturate' must be a color", rgb_col.path(), rgb_col.line());
@@ -400,7 +400,7 @@ namespace Sass {
     }
 
     extern Signature grayscale_sig = "grayscale($color)";
-    Node grayscale(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node grayscale(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node color(bindings[parameter_names[0].token()]);
       if (color.type() != Node::numeric_color) throw_eval_error("argument to 'grayscale' must be a color", color.path(), color.line());
       Node hsl_color(rgb_to_hsl(color[0].numeric_value(),
@@ -420,7 +420,7 @@ namespace Sass {
     }
 
     extern Signature complement_sig = "complement($color)";
-    Node complement(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node complement(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node color(bindings[parameter_names[0].token()]);
       if (color.type() != Node::numeric_color) throw_eval_error("argument to 'complement' must be a color", color.path(), color.line());
       Node hsl_color(rgb_to_hsl(color[0].numeric_value(),
@@ -440,7 +440,7 @@ namespace Sass {
     }
 
     extern Signature invert_sig = "invert($color)";
-    Node invert(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node invert(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node orig(bindings[parameter_names[0].token()]);
       if (orig.type() != Node::numeric_color) throw_eval_error("argument to 'invert' must be a color", orig.path(), orig.line());
       return new_Node(orig.path(), orig.line(),
@@ -453,21 +453,21 @@ namespace Sass {
     // Opacity Functions ///////////////////////////////////////////////////
     
     extern Signature alpha_sig = "alpha($color)";
-    Node alpha(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node alpha(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node color(bindings[parameter_names[0].token()]);
       if (color.type() != Node::numeric_color) throw_eval_error("argument to 'alpha' must be a color", color.path(), color.line());
       return color[3];
     }
 
     extern Signature opacity_sig = "opacity($color)";
-    Node opacity(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node opacity(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node color(bindings[parameter_names[0].token()]);
       if (color.type() != Node::numeric_color) throw_eval_error("argument to 'opacity' must be a color", color.path(), color.line());
       return color[3];
     }
     
     extern Signature opacify_sig = "opacify($color, $amount)";
-    Node opacify(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node opacify(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node color(bindings[parameter_names[0].token()]);
       Node delta(bindings[parameter_names[1].token()]);
       if (color.type() != Node::numeric_color) throw_eval_error("first argument to 'opacify' must be a color", color.path(), color.line());
@@ -484,7 +484,7 @@ namespace Sass {
     }
 
     extern Signature fade_in_sig = "fade-in($color, $amount)";
-    Node fade_in(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node fade_in(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node color(bindings[parameter_names[0].token()]);
       Node delta(bindings[parameter_names[1].token()]);
       if (color.type() != Node::numeric_color) throw_eval_error("first argument to 'fade-in' must be a color", color.path(), color.line());
@@ -501,7 +501,7 @@ namespace Sass {
     }
     
     extern Signature transparentize_sig = "transparentize($color, $amount)";
-    Node transparentize(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node transparentize(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node color(bindings[parameter_names[0].token()]);
       Node delta(bindings[parameter_names[1].token()]);
       if (color.type() != Node::numeric_color) throw_eval_error("first argument to 'transparentize' must be a color", color.path(), color.line());
@@ -518,7 +518,7 @@ namespace Sass {
     }
 
     extern Signature fade_out_sig = "fade-out($color, $amount)";
-    Node fade_out(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node fade_out(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node color(bindings[parameter_names[0].token()]);
       Node delta(bindings[parameter_names[1].token()]);
       if (color.type() != Node::numeric_color) throw_eval_error("first argument to 'fade-out' must be a color", color.path(), color.line());
@@ -537,7 +537,7 @@ namespace Sass {
     // Other Color Functions ///////////////////////////////////////////////
       
     extern Signature adjust_color_sig = "adjust-color($color, $red: false, $green: false, $blue: false, $hue: false, $saturation: false, $lightness: false, $alpha: false)";
-    Node adjust_color(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node adjust_color(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node color(bindings[parameter_names[0].token()]);
       Node r(bindings[parameter_names[1].token()]);
       Node g(bindings[parameter_names[2].token()]);
@@ -598,7 +598,7 @@ namespace Sass {
     }
 
     extern Signature change_color_sig = "change-color($color, $red: false, $green: false, $blue: false, $hue: false, $saturation: false, $lightness: false, $alpha: false)";
-    Node change_color(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node change_color(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node color(bindings[parameter_names[0].token()]);
       Node r(bindings[parameter_names[1].token()]);
       Node g(bindings[parameter_names[2].token()]);
@@ -661,7 +661,7 @@ namespace Sass {
     // String Functions ////////////////////////////////////////////////////
     
     extern Signature unquote_sig = "unquote($string)";
-    Node unquote(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node unquote(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node cpy(new_Node(bindings[parameter_names[0].token()]));
       // if (cpy.type() != Node::string_constant /* && cpy.type() != Node::concatenation */) {
       //   throw_eval_error("argument to unquote must be a string", cpy.path(), cpy.line());
@@ -672,7 +672,7 @@ namespace Sass {
     }
     
     extern Signature quote_sig = "quote($string)";
-    Node quote(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node quote(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node orig(bindings[parameter_names[0].token()]);
       switch (orig.type())
       {
@@ -697,7 +697,7 @@ namespace Sass {
     // Number Functions ////////////////////////////////////////////////////
     
     extern Signature percentage_sig = "percentage($value)";
-    Node percentage(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node percentage(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node orig(bindings[parameter_names[0].token()]);
       if (orig.type() != Node::number) {
         throw_eval_error("argument to percentage must be a unitless number", orig.path(), orig.line());
@@ -706,7 +706,7 @@ namespace Sass {
     }
 
     extern Signature round_sig = "round($value)";
-    Node round(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node round(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node orig(bindings[parameter_names[0].token()]);
       switch (orig.type())
       {
@@ -735,7 +735,7 @@ namespace Sass {
     }
 
     extern Signature ceil_sig = "ceil($value)";
-    Node ceil(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node ceil(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node orig(bindings[parameter_names[0].token()]);
       switch (orig.type())
       {
@@ -764,7 +764,7 @@ namespace Sass {
     }
 
     extern Signature floor_sig = "floor($value)";
-    Node floor(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node floor(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node orig(bindings[parameter_names[0].token()]);
       switch (orig.type())
       {
@@ -793,7 +793,7 @@ namespace Sass {
     }
 
     extern Signature abs_sig = "abs($value)";
-    Node abs(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node abs(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node orig(bindings[parameter_names[0].token()]);
       switch (orig.type())
       {
@@ -824,7 +824,7 @@ namespace Sass {
     // List Functions //////////////////////////////////////////////////////
 
     extern Signature length_sig = "length($list)";
-    Node length(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node length(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node arg(bindings[parameter_names[0].token()]);
       switch (arg.type())
       {
@@ -847,7 +847,7 @@ namespace Sass {
     }
     
     extern Signature nth_sig = "nth($list, $n)";
-    Node nth(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node nth(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node l(bindings[parameter_names[0].token()]);
       Node n(bindings[parameter_names[1].token()]);
       if (n.type() != Node::number) {
@@ -868,7 +868,7 @@ namespace Sass {
     }
 
     extern Signature join_sig = "join($list1, $list2, $separator: auto)";
-    Node join(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node join(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       // if the args aren't lists, turn them into singleton lists
       Node l1(bindings[parameter_names[0].token()]);
       if (l1.type() != Node::space_list && l1.type() != Node::comma_list && l1.type() != Node::nil) {
@@ -905,7 +905,7 @@ namespace Sass {
     }
 
     extern Signature append_sig = "append($list1, $list2, $separator: auto)";
-    Node append(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node append(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node list(bindings[parameter_names[0].token()]);
       switch (list.type())
       {
@@ -934,7 +934,7 @@ namespace Sass {
     }
 
     extern Signature compact_sig = "compact($arg1: false, $arg2: false, $arg3: false, $arg4: false, $arg5: false, $arg6: false, $arg7: false, $arg8: false, $arg9: false, $arg10: false, $arg11: false, $arg12: false)";
-    Node compact(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node compact(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       size_t num_args     = bindings.current_frame.size();
       Node::Type sep_type = Node::comma_list;
       Node list;
@@ -963,7 +963,7 @@ namespace Sass {
     // Introspection Functions /////////////////////////////////////////////
     
     extern Signature type_of_sig = "type-of($value)";
-    Node type_of(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node type_of(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node val(bindings[parameter_names[0].token()]);
       Token type_name;
       switch (val.type())
@@ -998,7 +998,7 @@ namespace Sass {
     }
 
     extern Signature unit_sig = "unit($number)";
-    Node unit(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node unit(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node val(bindings[parameter_names[0].token()]);
       switch (val.type())
       {
@@ -1020,7 +1020,7 @@ namespace Sass {
     }
 
     extern Signature unitless_sig = "unitless($number)";
-    Node unitless(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node unitless(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node val(bindings[parameter_names[0].token()]);
       switch (val.type())
       {
@@ -1042,7 +1042,7 @@ namespace Sass {
     }
     
     extern Signature comparable_sig = "comparable($number-1, $number-2)";
-    Node comparable(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node comparable(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node n1(bindings[parameter_names[0].token()]);
       Node n2(bindings[parameter_names[1].token()]);
       Node::Type t1 = n1.type();
@@ -1076,7 +1076,7 @@ namespace Sass {
     
     // Boolean Functions ///////////////////////////////////////////////////
     extern Signature not_sig = "not($value)";
-    Node not_impl(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node not_impl(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node val(bindings[parameter_names[0].token()]);
       if (val.type() == Node::boolean && val.boolean_value() == false) {
         return new_Node(Node::boolean, val.path(), val.line(), true);
@@ -1087,7 +1087,7 @@ namespace Sass {
     }
 
     extern Signature if_sig = "if($condition, $if-true, $if-false)";
-    Node if_impl(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
+    Node if_impl(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string path, size_t line) {
       Node predicate(bindings[parameter_names[0].token()]);
       Node consequent(bindings[parameter_names[1].token()]);
       Node alternative(bindings[parameter_names[2].token()]);
