@@ -58,9 +58,6 @@ namespace Sass {
   
   namespace Functions {
 
-    extern const char foo_sig[];
-    Node foo(const Node parameters, Environment& bindings, Node_Factory& new_Node);
-
     // RGB Functions ///////////////////////////////////////////////////////
 
     extern Signature rgb_sig;

@@ -66,17 +66,6 @@ namespace Sass {
       throw Error(Error::evaluation, path, line, message);
     }
 
-    extern Signature foo_sig = "foo($x, $y, $z: \"hey\")";
-    Node foo(const Node parameter_names, Environment& bindings, Node_Factory& new_Node) {
-      Node arg1(bindings[parameter_names[0].token()]);
-      Node arg2(bindings[parameter_names[1].token()]);
-      Node arg3(bindings[parameter_names[2].token()]);
-
-      Node cat(new_Node(Node::concatenation, arg1.path(), arg1.line(), 3));
-      cat << arg3 << arg2 << arg1;
-      return cat;
-    }
-
     // RGB Functions ///////////////////////////////////////////////////////
 
     extern Signature rgb_sig = "rgb($red, $green, $blue)";
