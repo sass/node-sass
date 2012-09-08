@@ -172,7 +172,7 @@ namespace Sass {
 
       Node mixed(new_Node(Node::numeric_color, color1.path(), color1.line(), 4));
       for (int i = 0; i < 3; ++i) {
-        mixed << new_Node(mixed.path(), mixed.line(), w1*color1[i].numeric_value() + w2*color2[i].numeric_value());
+        mixed << new_Node(mixed.path(), mixed.line(), std::floor(w1*color1[i].numeric_value() + w2*color2[i].numeric_value()));
       }
       double alpha = color1[3].numeric_value()*p + color2[3].numeric_value()*(1-p);
       mixed << new_Node(mixed.path(), mixed.line(), alpha);
