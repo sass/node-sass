@@ -323,7 +323,7 @@ namespace Sass {
             if (!f_env.count(resolved_name)) throw_eval_error("wrong number of arguments to " + name, expr.path(), expr.line());
             f = f_env[resolved_name];
           }
-          return apply_function(f, expr[1], prefix, env, f_env, new_Node, ctx);
+          return apply_function(f, expr[1], prefix, env, f_env, new_Node, ctx, expr.path(), expr.line());
         }
       } break;
       
