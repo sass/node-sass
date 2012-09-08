@@ -19,7 +19,7 @@ namespace Sass {
   double operate(Node::Type op, double lhs, double rhs);
   
   Node apply_mixin(Node mixin, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool dynamic_scope = false);
-  Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, string path = "", size_t line = 0);
+  Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, string& path = "", size_t line = 0);
   Node expand_selector(Node sel, Node pre, Node_Factory& new_Node);
   Node expand_backref(Node sel, Node pre);
   void extend_selectors(vector<pair<Node, Node> >&, multimap<Node, Node>&, Node_Factory&);
