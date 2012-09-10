@@ -17,9 +17,11 @@ namespace Sass {
     Node_Impl* alloc_Node_Impl(Node::Type type, string file, size_t line);
     // returns a deep-copy of its argument
     Node_Impl* alloc_Node_Impl(Node_Impl* ip);
+    Node_Impl* alloc_Node_Impl(string& path, size_t line, Node_Impl* ip);
   public:
     // for cloning nodes
     Node operator()(const Node& n1);
+    Node operator()(string& path, size_t line, const Node& n1);
     // for making leaf nodes out of terminals/tokens
     Node operator()(Node::Type type, string file, size_t line, Token t);
     // for making boolean values or interior nodes that have children
