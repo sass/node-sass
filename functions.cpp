@@ -202,13 +202,9 @@ namespace Sass {
 
     extern Signature mix_sig = "mix($color-1, $color-2, $weight: 50%)";
     Node mix(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node color1(bindings[parameter_names[0].token()]);
-      Node color2(bindings[parameter_names[1].token()]);
-      Node weight(bindings[parameter_names[2].token()]);
-
-      if (color1.type() != Node::numeric_color) throw_eval_error("first argument to mix must be a color", color1.path(), color1.line());
-      if (color2.type() != Node::numeric_color) throw_eval_error("second argument to mix must be a color", color2.path(), color2.line());
-      if (!weight.is_numeric())                 throw_eval_error("third argument to mix must be numeric", weight.path(), weight.line());
+      Node color1(arg(mix_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
+      Node color2(arg(mix_sig, path, line, parameter_names, bindings, 1, Node::numeric_color));
+      Node weight(arg(mix_sig, path, line, parameter_names, bindings, 2, 0, 100));
 
       double p = weight.numeric_value()/100;
       double w = 2*p - 1;
@@ -232,7 +228,7 @@ namespace Sass {
 
     // RGB to HSL helper function so we can do hsl operations.
     // (taken from http://www.easyrgb.com)
-    Node rgb_to_hsl(double r, double g, double b, Node_Factory& new_Node) {
+    Node rgb_to_hsl(double r, double g, double b, Node_Factory& new_Node, string& path, size_t line) {
       r /= 255.0; g /= 255.0; b /= 255.0;
 
       double max = std::max(r, std::max(g, b));
@@ -259,7 +255,7 @@ namespace Sass {
         if      (h < 0) h += 1;
         else if (h > 1) h -= 1;
       }
-      return new_Node("", 0, static_cast<int>(h*360)%360, s*100, l*100);
+      return new_Node(path, line, static_cast<int>(h*360)%360, s*100, l*100);
     }
 
     // Hue to RGB helper function
@@ -272,7 +268,7 @@ namespace Sass {
       return m1;
     }
 
-    Node hsla_impl(double h, double s, double l, double a, Node_Factory& new_Node) {
+    Node hsla_impl(double h, double s, double l, double a, Node_Factory& new_Node, string& path, size_t line) {
       h = static_cast<double>(((static_cast<int>(h) % 360) + 360) % 360) / 360.0;
       s = (s < 0)   ? 0 :
           (s > 100) ? 100 :
@@ -292,45 +288,24 @@ namespace Sass {
       double g = std::floor(h_to_rgb(m1, m2, h) * 255.0 + 0.5);
       double b = std::floor(h_to_rgb(m1, m2, h-1.0/3.0) * 255.0 + 0.5);
 
-      return new_Node("", 0, r, g, b, a);
+      return new_Node(path, line, r, g, b, a);
     }
 
     extern Signature hsl_sig = "hsl($hue, $saturation, $lightness)";
     Node hsl(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node hn(bindings[parameter_names[0].token()]);
-      Node sn(bindings[parameter_names[1].token()]);
-      Node ln(bindings[parameter_names[2].token()]);
-      if (!hn.is_numeric()) throw_eval_error("first argument to 'hsl' must be numeric", hn.path(), hn.line());
-      if (!sn.is_numeric()) throw_eval_error("second argument to 'hsl' must be numeric", sn.path(), sn.line());
-      if (!ln.is_numeric()) throw_eval_error("third argument to 'hsl' must be numeric", ln.path(), ln.line());
-      double h = hn.numeric_value();
-      double s = sn.numeric_value();
-      double l = ln.numeric_value();
-      if (s < 0 || 100 < s) throw_eval_error("saturation must be between 0% and 100% for 'hsl'", sn.path(), sn.line());
-      if (l < 0 || 100 < l) throw_eval_error("lightness must be between 0% and 100% for 'hsl'", ln.path(), ln.line());
-      Node color(hsla_impl(h, s, l, 1, new_Node));
-      return color;
+      double h = arg(hsl_sig, path, line, parameter_names, bindings, 0, Node::numeric).numeric_value();
+      double s = arg(hsl_sig, path, line, parameter_names, bindings, 1, 0, 100).numeric_value();
+      double l = arg(hsl_sig, path, line, parameter_names, bindings, 2, 0, 100).numeric_value();
+      return hsla_impl(h, s, l, 1.0, new_Node, path, line);
     }
 
     extern Signature hsla_sig = "hsla($hue, $saturation, $lightness, $alpha)";
     Node hsla(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node hn(bindings[parameter_names[0].token()]);
-      Node sn(bindings[parameter_names[1].token()]);
-      Node ln(bindings[parameter_names[2].token()]);
-      Node an(bindings[parameter_names[3].token()]);
-      if (!hn.is_numeric()) throw_eval_error("first argument to 'hsla' must be numeric", hn.path(), hn.line());
-      if (!sn.is_numeric()) throw_eval_error("second argument to 'hsla' must be numeric", sn.path(), sn.line());
-      if (!ln.is_numeric()) throw_eval_error("third argument to 'hsla' must be numeric", ln.path(), ln.line());
-      if (!an.is_numeric()) throw_eval_error("fourth argument to 'hsla' must be numeric", an.path(), an.line());
-      double h = hn.numeric_value();
-      double s = sn.numeric_value();
-      double l = ln.numeric_value();
-      double a = an.numeric_value();
-      if (s < 0 || 100 < s) throw_eval_error("saturation must be between 0% and 100% for 'hsla'", sn.path(), sn.line());
-      if (l < 0 || 100 < l) throw_eval_error("lightness must be between 0% and 100% for 'hsla'", ln.path(), ln.line());
-      if (a < 0 || 1 < a) throw_eval_error("alpha must be between 0 and 1 for 'hsla'", an.path(), an.line());
-      Node color(hsla_impl(h, s, l, a, new_Node));
-      return color;
+      double h = arg(hsla_sig, path, line, parameter_names, bindings, 0, Node::numeric).numeric_value();
+      double s = arg(hsla_sig, path, line, parameter_names, bindings, 1, 0, 100).numeric_value();
+      double l = arg(hsla_sig, path, line, parameter_names, bindings, 2, 0, 100).numeric_value();
+      double a = arg(hsla_sig, path, line, parameter_names, bindings, 3, 0, 1).numeric_value();
+      return hsla_impl(h, s, l, a, new_Node, path, line);
     }
     
     extern Signature hue_sig = "hue($color)";
@@ -340,7 +315,7 @@ namespace Sass {
       Node hsl_color(rgb_to_hsl(rgb_color[0].numeric_value(),
                                 rgb_color[1].numeric_value(),
                                 rgb_color[2].numeric_value(),
-                                new_Node));
+                                new_Node, path, line));
       return new_Node(path, line, hsl_color[0].numeric_value(), Token::make(deg_str));
     }
 
@@ -351,7 +326,7 @@ namespace Sass {
       Node hsl_color(rgb_to_hsl(rgb_color[0].numeric_value(),
                                 rgb_color[1].numeric_value(),
                                 rgb_color[2].numeric_value(),
-                                new_Node));
+                                new_Node, path, line));
       return new_Node(path, line, hsl_color[1].numeric_value(), Token::make(percent_str));
     }
 
@@ -362,7 +337,7 @@ namespace Sass {
       Node hsl_color(rgb_to_hsl(rgb_color[0].numeric_value(),
                                 rgb_color[1].numeric_value(),
                                 rgb_color[2].numeric_value(),
-                                new_Node));
+                                new_Node, path, line));
       return new_Node(path, line, hsl_color[2].numeric_value(), Token::make(percent_str));
     }
 
@@ -375,12 +350,12 @@ namespace Sass {
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
                               rgb_col[1].numeric_value(),
                               rgb_col[2].numeric_value(),
-                              new_Node));
+                              new_Node, path, line));
       return hsla_impl(hsl_col[0].numeric_value() + degrees.numeric_value(),
                        hsl_col[1].numeric_value(),
                        hsl_col[2].numeric_value(),
                        rgb_col[3].numeric_value(),
-                       new_Node);
+                       new_Node, path, line);
     }
 
     extern Signature lighten_sig = "lighten($color, $amount)";
@@ -394,12 +369,12 @@ namespace Sass {
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
                               rgb_col[1].numeric_value(),
                               rgb_col[2].numeric_value(),
-                              new_Node));
+                              new_Node, path, line));
       return hsla_impl(hsl_col[0].numeric_value(),
                        hsl_col[1].numeric_value(),
                        hsl_col[2].numeric_value() + amount.numeric_value(),
                        rgb_col[3].numeric_value(),
-                       new_Node);
+                       new_Node, path, line);
     }
 
     extern Signature darken_sig = "darken($color, $amount)";
@@ -413,12 +388,12 @@ namespace Sass {
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
                               rgb_col[1].numeric_value(),
                               rgb_col[2].numeric_value(),
-                              new_Node));
+                              new_Node, path, line));
       return hsla_impl(hsl_col[0].numeric_value(),
                        hsl_col[1].numeric_value(),
                        hsl_col[2].numeric_value() - amount.numeric_value(),
                        rgb_col[3].numeric_value(),
-                       new_Node);
+                       new_Node, path, line);
     }
 
     extern Signature saturate_sig = "saturate($color, $amount)";
@@ -432,12 +407,12 @@ namespace Sass {
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
                               rgb_col[1].numeric_value(),
                               rgb_col[2].numeric_value(),
-                              new_Node));
+                              new_Node, path, line));
       return hsla_impl(hsl_col[0].numeric_value(),
                        hsl_col[1].numeric_value() + amount.numeric_value(),
                        hsl_col[2].numeric_value(),
                        rgb_col[3].numeric_value(),
-                       new_Node);
+                       new_Node, path, line);
     }
 
     extern Signature desaturate_sig = "desaturate($color, $amount)";
@@ -451,12 +426,12 @@ namespace Sass {
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
                               rgb_col[1].numeric_value(),
                               rgb_col[2].numeric_value(),
-                              new_Node));
+                              new_Node, path, line));
       return hsla_impl(hsl_col[0].numeric_value(),
                        hsl_col[1].numeric_value() - amount.numeric_value(),
                        hsl_col[2].numeric_value(),
                        rgb_col[3].numeric_value(),
-                       new_Node);
+                       new_Node, path, line);
     }
 
     extern Signature grayscale_sig = "grayscale($color)";
@@ -466,12 +441,12 @@ namespace Sass {
       Node hsl_color(rgb_to_hsl(color[0].numeric_value(),
                                 color[1].numeric_value(),
                                 color[2].numeric_value(),
-                                new_Node));
+                                new_Node, path, line));
       Node result(hsla_impl(hsl_color[0].numeric_value(),
                             0.0, // desaturate completely
                             hsl_color[2].numeric_value(),
                             color[3].numeric_value(),
-                            new_Node));
+                            new_Node, path, line));
       return new_Node(path, line,
                       result[0].numeric_value(),
                       result[1].numeric_value(),
@@ -486,12 +461,12 @@ namespace Sass {
       Node hsl_color(rgb_to_hsl(color[0].numeric_value(),
                                 color[1].numeric_value(),
                                 color[2].numeric_value(),
-                                new_Node));
+                                new_Node, path, line));
       Node result(hsla_impl(hsl_color[0].numeric_value() - 180, // other side of the color wheel
                             hsl_color[1].numeric_value(),
                             hsl_color[2].numeric_value(),
                             color[3].numeric_value(),
-                            new_Node));
+                            new_Node, path, line));
       return new_Node(path, line,
                       result[0].numeric_value(),
                       result[1].numeric_value(),
@@ -635,7 +610,7 @@ namespace Sass {
         Node hsl_node(rgb_to_hsl(color[0].numeric_value(),
                                  color[1].numeric_value(),
                                  color[2].numeric_value(),
-                                 new_Node));
+                                 new_Node, path, line));
         if (!h.is_false() && !h.is_numeric()) throw_eval_error("argument $hue of 'adjust-color' must be numeric", h.path(), h.line());
         if (!s.is_false() && !s.is_numeric()) throw_eval_error("argument $saturation of 'adjust-color' must be numeric", s.path(), s.line());
         if (!l.is_false() && !l.is_numeric()) throw_eval_error("argument $lightness of 'adjust-color' must be numeric", l.path(), l.line());
@@ -644,7 +619,7 @@ namespace Sass {
         double new_s = (s.is_false() ? 0 : s.numeric_value()) + hsl_node[1].numeric_value();
         double new_l = (l.is_false() ? 0 : l.numeric_value()) + hsl_node[2].numeric_value();
         double new_a = (a.is_false() ? 0 : a.numeric_value()) + color[3].numeric_value();
-        return hsla_impl(new_h, new_s, new_l, new_a, new_Node);
+        return hsla_impl(new_h, new_s, new_l, new_a, new_Node, path, line);
       }
       else if (!a.is_false()) {
         if (!a.is_numeric()) throw_eval_error("argument $alpha of 'adjust-color' must be numeric", a.path(), a.line());
@@ -696,7 +671,7 @@ namespace Sass {
         Node hsl_node(rgb_to_hsl(color[0].numeric_value(),
                                  color[1].numeric_value(),
                                  color[2].numeric_value(),
-                                 new_Node));
+                                 new_Node, path, line));
         if (!h.is_false() && !h.is_numeric()) throw_eval_error("argument $hue of 'change-color' must be numeric", h.path(), h.line());
         if (!s.is_false() && !s.is_numeric()) throw_eval_error("argument $saturation of 'change-color' must be numeric", s.path(), s.line());
         if (!l.is_false() && !l.is_numeric()) throw_eval_error("argument $lightness of 'change-color' must be numeric", l.path(), l.line());
@@ -705,7 +680,7 @@ namespace Sass {
         double new_s = (s.is_false() ? hsl_node[1].numeric_value() : s.numeric_value());
         double new_l = (l.is_false() ? hsl_node[2].numeric_value() : l.numeric_value());
         double new_a = (a.is_false() ? color[3].numeric_value() : a.numeric_value());
-        return hsla_impl(new_h, new_s, new_l, new_a, new_Node);
+        return hsla_impl(new_h, new_s, new_l, new_a, new_Node, path, line);
       }
       else if (!a.is_false()) {
         if (!a.is_numeric()) throw_eval_error("argument $alpha of 'change-color' must be numeric", a.path(), a.line());
