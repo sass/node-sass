@@ -110,6 +110,7 @@ namespace Sass {
       return empty_str;
     }
 
+    // Functions for fetching and checking arguments.
     static Node arg(Signature sig, string& path, size_t line, const Node parameter_names, Environment& bindings, size_t param_num, Node::Type param_type) {
       Node the_arg(bindings[parameter_names[param_num].token()]);
       Node::Type arg_type = the_arg.type();
@@ -183,23 +184,20 @@ namespace Sass {
     
     extern Signature red_sig = "red($color)";
     Node red(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node color(bindings[parameter_names[0].token()]);
-      if (color.type() != Node::numeric_color) throw_eval_error("argument to red must be a color", color.path(), color.line());
-      return color[0];
+      Node color(arg(red_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
+      return new_Node(path, line, color[0]);
     }
     
     extern Signature green_sig = "green($color)";
     Node green(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node color(bindings[parameter_names[0].token()]);
-      if (color.type() != Node::numeric_color) throw_eval_error("argument to green must be a color", color.path(), color.line());
-      return color[1];
+      Node color(arg(green_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
+      return new_Node(path, line, color[1]);
     }
     
     extern Signature blue_sig = "blue($color)";
     Node blue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node color(bindings[parameter_names[0].token()]);
-      if (color.type() != Node::numeric_color) throw_eval_error("argument to blue must be a color", color.path(), color.line());
-      return color[2];
+      Node color(arg(blue_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
+      return new_Node(path, line, color[2]);
     }
 
     extern Signature mix_sig = "mix($color-1, $color-2, $weight: 50%)";
