@@ -286,7 +286,7 @@ namespace Sass {
       
       case Node::variable: {
         if (!env.query(expr.token())) throw_eval_error("reference to unbound variable " + expr.token().to_string(), expr.path(), expr.line());
-        return new_Node(expr.path(), expr.line(), env[expr.token()]);
+        return env[expr.token()];
       } break;
 
       case Node::image_url: {
