@@ -82,7 +82,7 @@ namespace Sass {
       if (dr < 0 || 255 < dr) throw_eval_error("first argument to 'rgb' must be between 0 and 255", r.path(), r.line());
       if (dg < 0 || 255 < dg) throw_eval_error("second argument to 'rgb' must be between 0 and 255", g.path(), g.line());
       if (db < 0 || 255 < db) throw_eval_error("third argument to 'rgb' must be between 0 and 255", b.path(), b.line());
-      return new_Node(r.path(), r.line(), std::floor(dr), std::floor(dg), std::floor(db), 1.0);
+      return new_Node(path, line, std::floor(dr), std::floor(dg), std::floor(db), 1.0);
     }
 
     // TODO: SOMETHING SPECIAL FOR OVERLOADED FUNCTIONS
@@ -104,7 +104,7 @@ namespace Sass {
       if (dg < 0 || 255 < dg) throw_eval_error("second argument to 'rgb' must be between 0 and 255", g.path(), g.line());
       if (db < 0 || 255 < db) throw_eval_error("third argument to 'rgb' must be between 0 and 255", b.path(), b.line());
       if (da < 0 || 1 < da)   throw_eval_error("fourth argument to 'rgb' must be between 0 and 1", a.path(), a.line());
-      return new_Node(r.path(), r.line(), std::floor(dr), std::floor(dg), std::floor(db), da);
+      return new_Node(path, line, std::floor(dr), std::floor(dg), std::floor(db), da);
     }
     
     extern Signature rgba_2_sig = "rgba($color, $alpha)";
@@ -118,7 +118,7 @@ namespace Sass {
       if (!a.is_numeric()) throw_eval_error("second argument to 'rgba' must be numeric", a.path(), a.line());
       double da = a.numeric_value();
       if (da < 0 || 1 < da) throw_eval_error("second argument to 'rgba' must be between 0 and 1", a.path(), a.line());
-      return new_Node(color.path(), color.line(), r.numeric_value(), g.numeric_value(), b.numeric_value(), a.numeric_value());
+      return new_Node(path, line, r.numeric_value(), g.numeric_value(), b.numeric_value(), a.numeric_value());
     }
     
     extern Signature red_sig = "red($color)";
@@ -159,12 +159,12 @@ namespace Sass {
       double w1 = (((w * a == -1) ? w : (w + a)/(1 + w*a)) + 1)/2.0;
       double w2 = 1 - w1;
 
-      Node mixed(new_Node(Node::numeric_color, color1.path(), color1.line(), 4));
+      Node mixed(new_Node(Node::numeric_color, path, line, 4));
       for (int i = 0; i < 3; ++i) {
-        mixed << new_Node(mixed.path(), mixed.line(), std::floor(w1*color1[i].numeric_value() + w2*color2[i].numeric_value()));
+        mixed << new_Node(path, line, std::floor(w1*color1[i].numeric_value() + w2*color2[i].numeric_value()));
       }
       double alpha = color1[3].numeric_value()*p + color2[3].numeric_value()*(1-p);
-      mixed << new_Node(mixed.path(), mixed.line(), alpha);
+      mixed << new_Node(path, line, alpha);
       return mixed;
     }
  
@@ -281,7 +281,7 @@ namespace Sass {
                                 rgb_color[1].numeric_value(),
                                 rgb_color[2].numeric_value(),
                                 new_Node));
-      return new_Node("", 0, hsl_color[0].numeric_value(), Token::make(deg_str));
+      return new_Node(path, line, hsl_color[0].numeric_value(), Token::make(deg_str));
     }
 
     extern Signature saturation_sig = "saturation($color)";
@@ -292,7 +292,7 @@ namespace Sass {
                                 rgb_color[1].numeric_value(),
                                 rgb_color[2].numeric_value(),
                                 new_Node));
-      return new_Node("", 0, hsl_color[1].numeric_value(), Token::make(percent_str));
+      return new_Node(path, line, hsl_color[1].numeric_value(), Token::make(percent_str));
     }
 
     extern Signature lightness_sig = "lightness($color)";
@@ -303,7 +303,7 @@ namespace Sass {
                                 rgb_color[1].numeric_value(),
                                 rgb_color[2].numeric_value(),
                                 new_Node));
-      return new_Node("", 0, hsl_color[2].numeric_value(), Token::make(percent_str));
+      return new_Node(path, line, hsl_color[2].numeric_value(), Token::make(percent_str));
     }
 
     extern Signature adjust_hue_sig = "adjust-hue($color, $degrees)";
@@ -412,7 +412,7 @@ namespace Sass {
                             hsl_color[2].numeric_value(),
                             color[3].numeric_value(),
                             new_Node));
-      return new_Node(color.path(), color.line(),
+      return new_Node(path, line,
                       result[0].numeric_value(),
                       result[1].numeric_value(),
                       result[2].numeric_value(),
@@ -432,7 +432,7 @@ namespace Sass {
                             hsl_color[2].numeric_value(),
                             color[3].numeric_value(),
                             new_Node));
-      return new_Node(color.path(), color.line(),
+      return new_Node(path, line,
                       result[0].numeric_value(),
                       result[1].numeric_value(),
                       result[2].numeric_value(),
@@ -443,7 +443,7 @@ namespace Sass {
     Node invert(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
       Node orig(bindings[parameter_names[0].token()]);
       if (orig.type() != Node::numeric_color) throw_eval_error("argument to 'invert' must be a color", orig.path(), orig.line());
-      return new_Node(orig.path(), orig.line(),
+      return new_Node(path, line,
                       255 - orig[0].numeric_value(),
                       255 - orig[1].numeric_value(),
                       255 - orig[2].numeric_value(),
@@ -476,7 +476,7 @@ namespace Sass {
       if (dd < 0 || 1 < dd) throw_eval_error("amount must be between 0 and 1 for 'opacify'", delta.path(), delta.line());
       dd += color[3].numeric_value();
       if (dd > 1) dd = 1;
-      return new_Node(color.path(), color.line(),
+      return new_Node(path, line,
                       color[0].numeric_value(),
                       color[1].numeric_value(),
                       color[2].numeric_value(),
@@ -493,7 +493,7 @@ namespace Sass {
       if (dd < 0 || 1 < dd) throw_eval_error("amount must be between 0 and 1 for 'fade-in'", delta.path(), delta.line());
       dd += color[3].numeric_value();
       if (dd > 1) dd = 1;
-      return new_Node(color.path(), color.line(),
+      return new_Node(path, line,
                       color[0].numeric_value(),
                       color[1].numeric_value(),
                       color[2].numeric_value(),
@@ -510,7 +510,7 @@ namespace Sass {
       if (dd < 0 || 1 < dd) throw_eval_error("amount must be between 0 and 1 for 'transparentize'", delta.path(), delta.line());
       double alpha = color[3].numeric_value() - dd;
       if (alpha < 0) alpha = 0;
-      return new_Node(color.path(), color.line(),
+      return new_Node(path, line,
                       color[0].numeric_value(),
                       color[1].numeric_value(),
                       color[2].numeric_value(),
@@ -527,7 +527,7 @@ namespace Sass {
       if (dd < 0 || 1 < dd) throw_eval_error("amount must be between 0 and 1 for 'fade-out'", delta.path(), delta.line());
       double alpha = color[3].numeric_value() - dd;
       if (alpha < 0) alpha = 0;
-      return new_Node(color.path(), color.line(),
+      return new_Node(path, line,
                       color[0].numeric_value(),
                       color[1].numeric_value(),
                       color[2].numeric_value(),
@@ -565,7 +565,7 @@ namespace Sass {
         double new_g = color[1].numeric_value() + (g.is_false() ? 0 : g.numeric_value());
         double new_b = color[2].numeric_value() + (b.is_false() ? 0 : b.numeric_value());
         double new_a = color[3].numeric_value() + (a.is_false() ? 0 : a.numeric_value());
-        return new_Node("", 0, new_r, new_g, new_b, new_a);
+        return new_Node(path, line, new_r, new_g, new_b, new_a);
       }
       else if (!no_hsl) {
         Node hsl_node(rgb_to_hsl(color[0].numeric_value(),
@@ -584,7 +584,7 @@ namespace Sass {
       }
       else if (!a.is_false()) {
         if (!a.is_numeric()) throw_eval_error("argument $alpha of 'adjust-color' must be numeric", a.path(), a.line());
-        return new_Node("", 0,
+        return new_Node(path, line,
                         color[0].numeric_value(),
                         color[1].numeric_value(),
                         color[2].numeric_value(),
@@ -626,7 +626,7 @@ namespace Sass {
         double new_g = (g.is_false() ? color[1] : g).numeric_value();
         double new_b = (b.is_false() ? color[2] : b).numeric_value();
         double new_a = (a.is_false() ? color[3] : a).numeric_value();
-        return new_Node("", 0, new_r, new_g, new_b, new_a);
+        return new_Node(path, line, new_r, new_g, new_b, new_a);
       }
       else if (!no_hsl) {
         Node hsl_node(rgb_to_hsl(color[0].numeric_value(),
@@ -645,7 +645,7 @@ namespace Sass {
       }
       else if (!a.is_false()) {
         if (!a.is_numeric()) throw_eval_error("argument $alpha of 'change-color' must be numeric", a.path(), a.line());
-        return new_Node("", 0,
+        return new_Node(path, line,
                         color[0].numeric_value(),
                         color[1].numeric_value(),
                         color[2].numeric_value(),
@@ -702,7 +702,7 @@ namespace Sass {
       if (orig.type() != Node::number) {
         throw_eval_error("argument to percentage must be a unitless number", orig.path(), orig.line());
       }
-      return new_Node(orig.path(), orig.line(), orig.numeric_value() * 100, Node::numeric_percentage);
+      return new_Node(path, line, orig.numeric_value() * 100, Node::numeric_percentage);
     }
 
     extern Signature round_sig = "round($value)";
@@ -711,23 +711,23 @@ namespace Sass {
       switch (orig.type())
       {
         case Node::numeric_dimension: {
-          return new_Node(orig.path(), orig.line(),
+          return new_Node(path, line,
                           std::floor(orig.numeric_value() + 0.5), orig.unit());
         } break;
 
         case Node::number: {
-          return new_Node(orig.path(), orig.line(),
+          return new_Node(path, line,
                           std::floor(orig.numeric_value() + 0.5));
         } break;
 
         case Node::numeric_percentage: {
-          return new_Node(orig.path(), orig.line(),
+          return new_Node(path, line,
                           std::floor(orig.numeric_value() + 0.5),
                           Node::numeric_percentage);
         } break;
 
         default: {
-          throw_eval_error("argument to round must be numeric", orig.path(), orig.line());
+          throw_eval_error("argument to round must be numeric", path, line);
         } break;
       }
       // unreachable statement
@@ -740,23 +740,23 @@ namespace Sass {
       switch (orig.type())
       {
         case Node::numeric_dimension: {
-          return new_Node(orig.path(), orig.line(),
+          return new_Node(path, line,
                           std::ceil(orig.numeric_value()), orig.unit());
         } break;
 
         case Node::number: {
-          return new_Node(orig.path(), orig.line(),
+          return new_Node(path, line,
                           std::ceil(orig.numeric_value()));
         } break;
 
         case Node::numeric_percentage: {
-          return new_Node(orig.path(), orig.line(),
+          return new_Node(path, line,
                           std::ceil(orig.numeric_value()),
                           Node::numeric_percentage);
         } break;
 
         default: {
-          throw_eval_error("argument to ceil must be numeric", orig.path(), orig.line());
+          throw_eval_error("argument to ceil must be numeric", path, line);
         } break;
       }
       // unreachable statement
@@ -769,23 +769,23 @@ namespace Sass {
       switch (orig.type())
       {
         case Node::numeric_dimension: {
-          return new_Node(orig.path(), orig.line(),
+          return new_Node(path, line,
                           std::floor(orig.numeric_value()), orig.unit());
         } break;
 
         case Node::number: {
-          return new_Node(orig.path(), orig.line(),
+          return new_Node(path, line,
                           std::floor(orig.numeric_value()));
         } break;
 
         case Node::numeric_percentage: {
-          return new_Node(orig.path(), orig.line(),
+          return new_Node(path, line,
                           std::floor(orig.numeric_value()),
                           Node::numeric_percentage);
         } break;
 
         default: {
-          throw_eval_error("argument to floor must be numeric", orig.path(), orig.line());
+          throw_eval_error("argument to floor must be numeric", path, line);
         } break;
       }
       // unreachable statement
@@ -798,23 +798,23 @@ namespace Sass {
       switch (orig.type())
       {
         case Node::numeric_dimension: {
-          return new_Node(orig.path(), orig.line(),
+          return new_Node(path, line,
                           std::abs(orig.numeric_value()), orig.unit());
         } break;
 
         case Node::number: {
-          return new_Node(orig.path(), orig.line(),
+          return new_Node(path, line,
                           std::abs(orig.numeric_value()));
         } break;
 
         case Node::numeric_percentage: {
-          return new_Node(orig.path(), orig.line(),
+          return new_Node(path, line,
                           std::abs(orig.numeric_value()),
                           Node::numeric_percentage);
         } break;
 
         default: {
-          throw_eval_error("argument to abs must be numeric", orig.path(), orig.line());
+          throw_eval_error("argument to abs must be numeric", path, line);
         } break;
       }
       // unreachable statement
@@ -830,16 +830,16 @@ namespace Sass {
       {
         case Node::space_list:
         case Node::comma_list: {
-          return new_Node(arg.path(), arg.line(), arg.size());
+          return new_Node(path, line, arg.size());
         } break;
 
         case Node::nil: {
-          return new_Node(arg.path(), arg.line(), 0);
+          return new_Node(path, line, 0);
         } break;
 
         default: {
           // single objects should be reported as lists of length 1
-          return new_Node(arg.path(), arg.line(), 1);
+          return new_Node(path, line, 1);
         } break;
       }
       // unreachable statement
@@ -851,18 +851,18 @@ namespace Sass {
       Node l(bindings[parameter_names[0].token()]);
       Node n(bindings[parameter_names[1].token()]);
       if (n.type() != Node::number) {
-        throw_eval_error("second argument to nth must be a number", n.path(), n.line());
+        throw_eval_error("second argument to nth must be a number", path, line);
       }
       if (l.type() == Node::nil) {
-        throw_eval_error("cannot index into an empty list", l.path(), l.line());
+        throw_eval_error("cannot index into an empty list", path, line);
       }
       // wrap the first arg if it isn't a list
       if (l.type() != Node::space_list && l.type() != Node::comma_list) {
-        l = new_Node(Node::space_list, l.path(), l.line(), 1) << l;
+        l = new_Node(Node::space_list, path, line, 1) << l;
       }
       double n_prim = n.numeric_value();
       if (n_prim < 1 || n_prim > l.size()) {
-        throw_eval_error("out of range index for nth", n.path(), n.line());
+        throw_eval_error("out of range index for nth", path, line);
       }
       return l[n_prim - 1];
     }
@@ -872,7 +872,7 @@ namespace Sass {
       // if the args aren't lists, turn them into singleton lists
       Node l1(bindings[parameter_names[0].token()]);
       if (l1.type() != Node::space_list && l1.type() != Node::comma_list && l1.type() != Node::nil) {
-        l1 = new_Node(Node::space_list, l1.path(), l1.line(), 1) << l1;
+        l1 = new_Node(Node::space_list, path, line, 1) << l1;
       }
       Node l2(bindings[parameter_names[1].token()]);
       if (l2.type() != Node::space_list && l2.type() != Node::comma_list && l2.type() != Node::nil) {
@@ -880,7 +880,7 @@ namespace Sass {
       }
       // nil + nil = nil
       if (l1.type() == Node::nil && l2.type() == Node::nil) {
-        return new_Node(Node::nil, l1.path(), l1.line(), 0);
+        return new_Node(Node::nil, path, line, 0);
       }
       // figure out the combined size in advance
       size_t size = 0;
@@ -894,11 +894,11 @@ namespace Sass {
       else if (sep == "space") rtype = Node::space_list;
       else if (sep == "auto")  rtype = l1.type();
       else {
-        throw_eval_error("third argument to join must be 'space', 'comma', or 'auto'", l2.path(), l2.line());
+        throw_eval_error("third argument to join must be 'space', 'comma', or 'auto'", path, line);
       }
       if (rtype == Node::nil) rtype = l2.type();
       // accumulate the result
-      Node lr(new_Node(rtype, l1.path(), l1.line(), size));
+      Node lr(new_Node(rtype, path, line, size));
       if (l1.type() != Node::nil) lr += l1;
       if (l2.type() != Node::nil) lr += l2;
       return lr;
@@ -916,7 +916,7 @@ namespace Sass {
         } break;
         // if the first arg isn't a list, wrap it in a singleton
         default: {
-          list = (new_Node(Node::space_list, list.path(), list.line(), 1) << list);
+          list = (new_Node(Node::space_list, path, line, 1) << list);
         } break;
       }
 
@@ -925,9 +925,9 @@ namespace Sass {
       if (sep_string == "comma")      sep_type = Node::comma_list;
       else if (sep_string == "space") sep_type = Node::space_list;
       else if (sep_string == "auto")  sep_type = list.type();
-      else throw_eval_error("third argument to append must be 'space', 'comma', or 'auto'", list.path(), list.line());
+      else throw_eval_error("third argument to append must be 'space', 'comma', or 'auto'", path, line);
 
-      Node new_list(new_Node(sep_type, list.path(), list.line(), list.size() + 1));
+      Node new_list(new_Node(sep_type, path, line, list.size() + 1));
       new_list += list;
       new_list << bindings[parameter_names[1].token()];
       return new_list;
@@ -942,7 +942,7 @@ namespace Sass {
       if (num_args == 1 && (arg1.type() == Node::space_list ||
                             arg1.type() == Node::comma_list ||
                             arg1.type() == Node::nil)) {
-        list = new_Node(arg1.type(), arg1.path(), arg1.line(), arg1.size());
+        list = new_Node(arg1.type(), path, line, arg1.size());
         list += arg1;
       }
       else {
@@ -957,7 +957,7 @@ namespace Sass {
           new_list << list[i];
         }
       }
-      return new_list.size() ? new_list : new_Node(Node::nil, list.path(), list.line(), 0);
+      return new_list.size() ? new_list : new_Node(Node::nil, path, line, 0);
     }
 
     // Introspection Functions /////////////////////////////////////////////
@@ -992,7 +992,7 @@ namespace Sass {
           type_name = Token::make(string_name);
         } break;
       }
-      Node type(new_Node(Node::string_constant, val.path(), val.line(), type_name));
+      Node type(new_Node(Node::string_constant, path, line, type_name));
       type.is_unquoted() = true;
       return type;
     }
@@ -1003,16 +1003,16 @@ namespace Sass {
       switch (val.type())
       {
         case Node::number: {
-          return new_Node(Node::string_constant, val.path(), val.line(), Token::make(empty_str));
+          return new_Node(Node::string_constant, path, line, Token::make(empty_str));
         } break;
 
         case Node::numeric_dimension:
         case Node::numeric_percentage: {
-          return new_Node(Node::string_constant, val.path(), val.line(), val.unit());
+          return new_Node(Node::string_constant, path, line, val.unit());
         } break;
 
         default: {
-          throw_eval_error("argument to unit must be numeric", val.path(), val.line());
+          throw_eval_error("argument to unit must be numeric", path, line);
         } break;
       }
       // unreachable statement
@@ -1025,16 +1025,16 @@ namespace Sass {
       switch (val.type())
       {
         case Node::number: {
-          return new_Node(Node::boolean, val.path(), val.line(), true);
+          return new_Node(Node::boolean, path, line, true);
         } break;
 
         case Node::numeric_percentage:
         case Node::numeric_dimension: {
-          return new_Node(Node::boolean, val.path(), val.line(), false);
+          return new_Node(Node::boolean, path, line, false);
         } break;
 
         default: {
-          throw_eval_error("argument to unitless must be numeric", val.path(), val.line());
+          throw_eval_error("argument to unitless must be numeric", path, line);
         } break;
       }
       // unreachable statement
@@ -1049,10 +1049,10 @@ namespace Sass {
       Node::Type t2 = n2.type();
       if ((t1 == Node::number && n2.is_numeric()) ||
           (n1.is_numeric() && t2 == Node::number)) {
-        return new_Node(Node::boolean, n1.path(), n1.line(), true);
+        return new_Node(Node::boolean, path, line, true);
       }
       else if (t1 == Node::numeric_percentage && t2 == Node::numeric_percentage) {
-        return new_Node(Node::boolean, n1.path(), n1.line(), true);
+        return new_Node(Node::boolean, path, line, true);
       }
       else if (t1 == Node::numeric_dimension && t2 == Node::numeric_dimension) {
         string u1(n1.unit().to_string());
@@ -1061,17 +1061,17 @@ namespace Sass {
             (u1 == "em" && u2 == "em") ||
             ((u1 == "in" || u1 == "cm" || u1 == "mm" || u1 == "pt" || u1 == "pc") &&
              (u2 == "in" || u2 == "cm" || u2 == "mm" || u2 == "pt" || u2 == "pc"))) {
-          return new_Node(Node::boolean, n1.path(), n1.line(), true);
+          return new_Node(Node::boolean, path, line, true);
         }
         else {
-          return new_Node(Node::boolean, n1.path(), n1.line(), false);
+          return new_Node(Node::boolean, path, line, false);
         }
       }
       else if (!n1.is_numeric() && !n2.is_numeric()) {
-        throw_eval_error("arguments to comparable must be numeric", n1.path(), n1.line());
+        throw_eval_error("arguments to comparable must be numeric", path, line);
       }
       // default to false if we missed anything
-      return new_Node(Node::boolean, n1.path(), n1.line(), false);
+      return new_Node(Node::boolean, path, line, false);
     }
     
     // Boolean Functions ///////////////////////////////////////////////////
@@ -1079,10 +1079,10 @@ namespace Sass {
     Node not_impl(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
       Node val(bindings[parameter_names[0].token()]);
       if (val.type() == Node::boolean && val.boolean_value() == false) {
-        return new_Node(Node::boolean, val.path(), val.line(), true);
+        return new_Node(Node::boolean, path, line, true);
       }
       else {
-        return new_Node(Node::boolean, val.path(), val.line(), false);
+        return new_Node(Node::boolean, path, line, false);
       }
     }
 
