@@ -52,6 +52,7 @@ namespace Sass {
     extern const char percent_str[] = "%";
     extern const char deg_str[]     = "deg";
 
+    extern const char numeric_name[] = "numeric value";
     extern const char number_name[] = "number";
     extern const char string_name[] = "string";
     extern const char bool_name[]   = "bool";
@@ -66,53 +67,13 @@ namespace Sass {
       throw Error(Error::evaluation, path, line, message);
     }
 
-    // not meant to be used
-    template<typename T>
-    Node getarg(Signature sig, string& path, size_t line, size_t param_num, const Node parameter_names, Environment& bindings) {
-      return Node();
-    }
-
-    template<typename T>
-    Node getarg(Signature sig, string& path, size_t line, size_t param_num, const Node parameter_names, Environment& bindings, T hey, T ho) {
-      return Node();
-    }
-
-
-    template<Node::Type t>
-    Node getarg(Signature sig, string& path, size_t line, size_t param_num, const Node parameter_names, Environment& bindings) {
-      Node arg(bindings[parameter_names[param_num].token()]);
-      if (arg.type() != t) {
-        stringstream msg;
-        msg << "in function " << sig << ", argument " << param_num << " must be something something" ;
-        throw_eval_error(msg.str(), path, line);
-      }
-      return arg;
-    }
-
-    typedef double numeric;
-
-    template<>
-    Node getarg<numeric>(Signature sig, string& path, size_t line, size_t param_num, const Node parameter_names, Environment& bindings) {
-      Node arg(bindings[parameter_names[param_num].token()]);
-      if (!arg.is_numeric()) {
-        stringstream msg;
-        msg << "in function " << sig << ", argument " << param_num << " must be numeric";
-        throw_eval_error(msg.str(), path, line);
-      }
-      return arg;
-    }
-
-    template<>
-    Node getarg<numeric>(Signature sig, string& path, size_t line, size_t param_num, const Node parameter_names, Environment& bindings, double low, double high) {
-      Node arg(getarg<numeric>(sig, path, line, param_num, parameter_names, bindings));
-      double d = arg.numeric_value();
-      if (d < low || high < d) throw_eval_error("blah blah", path, line);
-      return arg;
-    }
-
-    const char* nameof(Node::Type t) {
+    static const char* nameof(Node::Type t) {
       switch (t)
       {
+        case Node::numeric: {
+          return numeric_name;
+        } break;
+
         case Node::number:
         case Node::numeric_percentage:
         case Node::numeric_dimension: {
@@ -120,6 +81,7 @@ namespace Sass {
         } break;
 
         case Node::identifier:
+        case Node::value_schema:
         case Node::identifier_schema:
         case Node::string_constant:
         case Node::string_schema:
@@ -147,61 +109,76 @@ namespace Sass {
       // unreachable statement
       return empty_str;
     }
-    
+
+    static Node arg(Signature sig, string& path, size_t line, const Node parameter_names, Environment& bindings, size_t param_num, Node::Type param_type) {
+      Node the_arg(bindings[parameter_names[param_num].token()]);
+      Node::Type arg_type = the_arg.type();
+      switch (param_type)
+      {
+        case Node::any: {
+          return the_arg;
+        } break;
+
+        case Node::numeric: {
+          if (the_arg.is_numeric()) return the_arg;
+        } break;
+
+        case Node::list: {
+          if (arg_type == Node::space_list || arg_type == Node::comma_list) return the_arg;
+        } break;
+
+        default: {
+          if (arg_type == param_type) return the_arg;
+        } break;
+      }
+      stringstream msg;
+      msg << nameof(param_type) << " required for argument " << param_num+1 << " in call to '" << sig << "'";
+      throw_eval_error(msg.str(), path, line);
+      // unreachable statement
+      return Node();
+    }
+
+    static Node arg(Signature sig, string& path, size_t line, const Node parameter_names, Environment& bindings, size_t param_num, double low, double high) {
+      Node the_arg(arg(sig, path, line, parameter_names, bindings, param_num, Node::numeric));
+      double val = the_arg.numeric_value();
+      if (val < low || high < val) {
+        stringstream msg;
+        msg << "argument " << param_num+1 << " must be between " << low << " and " << high << " in call to '" << sig << "'";
+        throw_eval_error(msg.str(), path, line);
+      }
+      return the_arg;
+    }
+
     ////////////////////////////////////////////////////////////////////////
     // RGB Functions ///////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////
 
     extern Signature rgb_sig = "rgb($red, $green, $blue)";
     Node rgb(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node r(bindings[parameter_names[0].token()]);
-      Node g(bindings[parameter_names[1].token()]);
-      Node b(bindings[parameter_names[2].token()]);
-      if (!r.is_numeric()) throw_eval_error("first argument to 'rgb' must be numeric", r.path(), r.line());
-      if (!g.is_numeric()) throw_eval_error("second argument to 'rgb' must be numeric", g.path(), g.line());
-      if (!b.is_numeric()) throw_eval_error("third argument to 'rgb' must be numeric", b.path(), b.line());
-      double dr = r.numeric_value();
-      double dg = g.numeric_value();
-      double db = b.numeric_value();
-      if (dr < 0 || 255 < dr) throw_eval_error("first argument to 'rgb' must be between 0 and 255", r.path(), r.line());
-      if (dg < 0 || 255 < dg) throw_eval_error("second argument to 'rgb' must be between 0 and 255", g.path(), g.line());
-      if (db < 0 || 255 < db) throw_eval_error("third argument to 'rgb' must be between 0 and 255", b.path(), b.line());
-      return new_Node(path, line, std::floor(dr), std::floor(dg), std::floor(db), 1.0);
+      double r = arg(rgb_sig, path, line, parameter_names, bindings, 0, 0, 255).numeric_value();
+      double g = arg(rgb_sig, path, line, parameter_names, bindings, 1, 0, 255).numeric_value();
+      double b = arg(rgb_sig, path, line, parameter_names, bindings, 2, 0, 255).numeric_value();
+      return new_Node(path, line, std::floor(r), std::floor(g), std::floor(b), 1.0);
     }
 
     extern Signature rgba_4_sig = "rgba($red, $green, $blue, $alpha)";
     Node rgba_4(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node r(bindings[parameter_names[0].token()]);
-      Node g(bindings[parameter_names[1].token()]);
-      Node b(bindings[parameter_names[2].token()]);
-      Node a(bindings[parameter_names[3].token()]);
-      if (!r.is_numeric()) throw_eval_error("first argument to 'rgb' must be numeric", r.path(), r.line());
-      if (!g.is_numeric()) throw_eval_error("second argument to 'rgb' must be numeric", g.path(), g.line());
-      if (!b.is_numeric()) throw_eval_error("third argument to 'rgb' must be numeric", b.path(), b.line());
-      if (!a.is_numeric()) throw_eval_error("fourth argument to 'rgb' must be numeric", a.path(), a.line());
-      double dr = r.numeric_value();
-      double dg = g.numeric_value();
-      double db = b.numeric_value();
-      double da = a.numeric_value();
-      if (dr < 0 || 255 < dr) throw_eval_error("first argument to 'rgb' must be between 0 and 255", r.path(), r.line());
-      if (dg < 0 || 255 < dg) throw_eval_error("second argument to 'rgb' must be between 0 and 255", g.path(), g.line());
-      if (db < 0 || 255 < db) throw_eval_error("third argument to 'rgb' must be between 0 and 255", b.path(), b.line());
-      if (da < 0 || 1 < da)   throw_eval_error("fourth argument to 'rgb' must be between 0 and 1", a.path(), a.line());
-      return new_Node(path, line, std::floor(dr), std::floor(dg), std::floor(db), da);
+      double r = arg(rgba_4_sig, path, line, parameter_names, bindings, 0, 0, 255).numeric_value();
+      double g = arg(rgba_4_sig, path, line, parameter_names, bindings, 1, 0, 255).numeric_value();
+      double b = arg(rgba_4_sig, path, line, parameter_names, bindings, 2, 0, 255).numeric_value();
+      double a = arg(rgba_4_sig, path, line, parameter_names, bindings, 3, 0, 1).numeric_value();
+      return new_Node(path, line, std::floor(r), std::floor(g), std::floor(b), a);
     }
-    
+
     extern Signature rgba_2_sig = "rgba($color, $alpha)";
     Node rgba_2(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node color(bindings[parameter_names[0].token()]);
-      if (color.type() != Node::numeric_color) throw_eval_error("first argument to 'rgba' must be a color", color.path(), color.line());
-      Node r(color[0]);
-      Node g(color[1]);
-      Node b(color[2]);
-      Node a(bindings[parameter_names[1].token()]);
-      if (!a.is_numeric()) throw_eval_error("second argument to 'rgba' must be numeric", a.path(), a.line());
-      double da = a.numeric_value();
-      if (da < 0 || 1 < da) throw_eval_error("second argument to 'rgba' must be between 0 and 1", a.path(), a.line());
-      return new_Node(path, line, r.numeric_value(), g.numeric_value(), b.numeric_value(), a.numeric_value());
+      Node color_arg(arg(rgba_2_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
+      Node alpha_arg(arg(rgba_2_sig, path, line, parameter_names, bindings, 1, 0, 1));
+      double r = color_arg[0].numeric_value();
+      double g = color_arg[1].numeric_value();
+      double b = color_arg[2].numeric_value();
+      double a = alpha_arg.numeric_value();
+      return new_Node(path, line, r, g, b, a);
     }
     
     extern Signature red_sig = "red($color)";

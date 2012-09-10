@@ -71,6 +71,9 @@ namespace Sass {
   public:
    enum Type {
       none,
+      any,
+      list,    // space_list or comma_list
+      numeric, // number, numeric_percentage, or numeric_dimension
       comment,
 
       root,
