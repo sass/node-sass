@@ -66,7 +66,9 @@ namespace Sass {
       throw Error(Error::evaluation, path, line, message);
     }
 
+    ////////////////////////////////////////////////////////////////////////
     // RGB Functions ///////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
 
     extern Signature rgb_sig = "rgb($red, $green, $blue)";
     Node rgb(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
@@ -168,7 +170,9 @@ namespace Sass {
       return mixed;
     }
  
+    ////////////////////////////////////////////////////////////////////////
     // HSL Functions ///////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
 
     // RGB to HSL helper function so we can do hsl operations.
     // (taken from http://www.easyrgb.com)
@@ -450,7 +454,9 @@ namespace Sass {
                       orig[3].numeric_value());
     }
     
+    ////////////////////////////////////////////////////////////////////////
     // Opacity Functions ///////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
     
     extern Signature alpha_sig = "alpha($color)";
     Node alpha(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
@@ -534,7 +540,9 @@ namespace Sass {
                       alpha);
     }
 
+    ////////////////////////////////////////////////////////////////////////
     // Other Color Functions ///////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
       
     extern Signature adjust_color_sig = "adjust-color($color, $red: false, $green: false, $blue: false, $hue: false, $saturation: false, $lightness: false, $alpha: false)";
     Node adjust_color(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
@@ -658,7 +666,9 @@ namespace Sass {
       return Node();
     }
 
+    ////////////////////////////////////////////////////////////////////////
     // String Functions ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
     
     extern Signature unquote_sig = "unquote($string)";
     Node unquote(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
@@ -694,7 +704,9 @@ namespace Sass {
       return orig;
     }
     
+    ////////////////////////////////////////////////////////////////////////
     // Number Functions ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
     
     extern Signature percentage_sig = "percentage($value)";
     Node percentage(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
@@ -821,7 +833,9 @@ namespace Sass {
       return Node();
     }
     
+    ////////////////////////////////////////////////////////////////////////
     // List Functions //////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
 
     extern Signature length_sig = "length($list)";
     Node length(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
@@ -960,7 +974,9 @@ namespace Sass {
       return new_list.size() ? new_list : new_Node(Node::nil, path, line, 0);
     }
 
+    ////////////////////////////////////////////////////////////////////////
     // Introspection Functions /////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
     
     extern Signature type_of_sig = "type-of($value)";
     Node type_of(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
@@ -1074,7 +1090,10 @@ namespace Sass {
       return new_Node(Node::boolean, path, line, false);
     }
     
+    ////////////////////////////////////////////////////////////////////////
     // Boolean Functions ///////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+
     extern Signature not_sig = "not($value)";
     Node not_impl(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
       Node val(bindings[parameter_names[0].token()]);
