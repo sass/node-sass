@@ -19,6 +19,7 @@ using std::cerr; using std::endl; using std::stringstream;
 namespace Sass {
 
   // this constructor needs context.hpp, so it can't be defined in functions.hpp
+  // because including context.hpp in functions.hpp would be circular
   Function::Function(char* signature, Primitive ip, Context& ctx)
   : definition(Node()),
     primitive(ip),
@@ -42,7 +43,6 @@ namespace Sass {
     }
   }
 
-
   namespace Functions {
 
     extern const char true_str[]  = "true";
@@ -57,7 +57,7 @@ namespace Sass {
     extern const char bool_name[]   = "bool";
     extern const char color_name[]  = "color";
     extern const char list_name[]   = "list";
-    
+
     static void throw_eval_error(string message, string& path, size_t line)
     {
       if (!path.empty() && Prelexer::string_constant(path.c_str()))
@@ -66,6 +66,88 @@ namespace Sass {
       throw Error(Error::evaluation, path, line, message);
     }
 
+    // not meant to be used
+    template<typename T>
+    Node getarg(Signature sig, string& path, size_t line, size_t param_num, const Node parameter_names, Environment& bindings) {
+      return Node();
+    }
+
+    template<typename T>
+    Node getarg(Signature sig, string& path, size_t line, size_t param_num, const Node parameter_names, Environment& bindings, T hey, T ho) {
+      return Node();
+    }
+
+
+    template<Node::Type t>
+    Node getarg(Signature sig, string& path, size_t line, size_t param_num, const Node parameter_names, Environment& bindings) {
+      Node arg(bindings[parameter_names[param_num].token()]);
+      if (arg.type() != t) {
+        stringstream msg;
+        msg << "in function " << sig << ", argument " << param_num << " must be something something" ;
+        throw_eval_error(msg.str(), path, line);
+      }
+      return arg;
+    }
+
+    typedef double numeric;
+
+    template<>
+    Node getarg<numeric>(Signature sig, string& path, size_t line, size_t param_num, const Node parameter_names, Environment& bindings) {
+      Node arg(bindings[parameter_names[param_num].token()]);
+      if (!arg.is_numeric()) {
+        stringstream msg;
+        msg << "in function " << sig << ", argument " << param_num << " must be numeric";
+        throw_eval_error(msg.str(), path, line);
+      }
+      return arg;
+    }
+
+    template<>
+    Node getarg<numeric>(Signature sig, string& path, size_t line, size_t param_num, const Node parameter_names, Environment& bindings, double low, double high) {
+      Node arg(getarg<numeric>(sig, path, line, param_num, parameter_names, bindings));
+      double d = arg.numeric_value();
+      if (d < low || high < d) throw_eval_error("blah blah", path, line);
+      return arg;
+    }
+
+    const char* nameof(Node::Type t) {
+      switch (t)
+      {
+        case Node::number:
+        case Node::numeric_percentage:
+        case Node::numeric_dimension: {
+          return number_name;
+        } break;
+
+        case Node::identifier:
+        case Node::identifier_schema:
+        case Node::string_constant:
+        case Node::string_schema:
+        case Node::concatenation: {
+          return string_name;
+        } break;
+
+        case Node::boolean: {
+          return bool_name;
+        } break;
+
+        case Node::numeric_color: {
+          return color_name;
+        } break;
+
+        case Node::space_list:
+        case Node::comma_list: {
+          return list_name;
+        } break;
+
+        default: {
+          return empty_str;
+        } break;
+      }
+      // unreachable statement
+      return empty_str;
+    }
+    
     // RGB Functions ///////////////////////////////////////////////////////
 
     extern Signature rgb_sig = "rgb($red, $green, $blue)";
@@ -85,7 +167,6 @@ namespace Sass {
       return new_Node(r.path(), r.line(), std::floor(dr), std::floor(dg), std::floor(db), 1.0);
     }
 
-    // TODO: SOMETHING SPECIAL FOR OVERLOADED FUNCTIONS
     extern Signature rgba_4_sig = "rgba($red, $green, $blue, $alpha)";
     Node rgba_4(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
       Node r(bindings[parameter_names[0].token()]);
