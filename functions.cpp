@@ -457,61 +457,47 @@ namespace Sass {
     
     extern Signature alpha_sig = "alpha($color)";
     Node alpha(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node color(bindings[parameter_names[0].token()]);
-      if (color.type() != Node::numeric_color) throw_eval_error("argument to 'alpha' must be a color", color.path(), color.line());
-      return color[3];
+      Node color(arg(alpha_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
+      return new_Node(path, line, color[3]);
     }
 
     extern Signature opacity_sig = "opacity($color)";
     Node opacity(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node color(bindings[parameter_names[0].token()]);
-      if (color.type() != Node::numeric_color) throw_eval_error("argument to 'opacity' must be a color", color.path(), color.line());
-      return color[3];
+      Node color(arg(opacity_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
+      return new_Node(path, line, color[3]);
     }
     
     extern Signature opacify_sig = "opacify($color, $amount)";
     Node opacify(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node color(bindings[parameter_names[0].token()]);
-      Node delta(bindings[parameter_names[1].token()]);
-      if (color.type() != Node::numeric_color) throw_eval_error("first argument to 'opacify' must be a color", color.path(), color.line());
-      if (!delta.is_numeric()) throw_eval_error("second argument to 'opacify' must be numeric", delta.path(), delta.line());
-      double dd = delta.numeric_value();
-      if (dd < 0 || 1 < dd) throw_eval_error("amount must be between 0 and 1 for 'opacify'", delta.path(), delta.line());
-      dd += color[3].numeric_value();
-      if (dd > 1) dd = 1;
+      Node color(arg(opacify_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
+      double delta = arg(opacify_sig, path, line, parameter_names, bindings, 1, 0, 1).numeric_value();
+      delta += color[3].numeric_value();
+      if (delta > 1) delta = 1;
       return new_Node(path, line,
                       color[0].numeric_value(),
                       color[1].numeric_value(),
                       color[2].numeric_value(),
-                      dd);
+                      delta);
     }
 
     extern Signature fade_in_sig = "fade-in($color, $amount)";
     Node fade_in(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node color(bindings[parameter_names[0].token()]);
-      Node delta(bindings[parameter_names[1].token()]);
-      if (color.type() != Node::numeric_color) throw_eval_error("first argument to 'fade-in' must be a color", color.path(), color.line());
-      if (!delta.is_numeric()) throw_eval_error("second argument to 'fade-in' must be numeric", delta.path(), delta.line());
-      double dd = delta.numeric_value();
-      if (dd < 0 || 1 < dd) throw_eval_error("amount must be between 0 and 1 for 'fade-in'", delta.path(), delta.line());
-      dd += color[3].numeric_value();
-      if (dd > 1) dd = 1;
+      Node color(arg(fade_in_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
+      double delta = arg(fade_in_sig, path, line, parameter_names, bindings, 1, 0, 1).numeric_value();
+      delta += color[3].numeric_value();
+      if (delta > 1) delta = 1;
       return new_Node(path, line,
                       color[0].numeric_value(),
                       color[1].numeric_value(),
                       color[2].numeric_value(),
-                      dd);
+                      delta);
     }
     
     extern Signature transparentize_sig = "transparentize($color, $amount)";
     Node transparentize(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node color(bindings[parameter_names[0].token()]);
-      Node delta(bindings[parameter_names[1].token()]);
-      if (color.type() != Node::numeric_color) throw_eval_error("first argument to 'transparentize' must be a color", color.path(), color.line());
-      if (!delta.is_numeric()) throw_eval_error("second argument to 'transparentize' must be numeric", delta.path(), delta.line());
-      double dd = delta.numeric_value();
-      if (dd < 0 || 1 < dd) throw_eval_error("amount must be between 0 and 1 for 'transparentize'", delta.path(), delta.line());
-      double alpha = color[3].numeric_value() - dd;
+      Node color(arg(transparentize_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
+      double delta = arg(transparentize_sig, path, line, parameter_names, bindings, 1, 0, 1).numeric_value();
+      double alpha = color[3].numeric_value() - delta;
       if (alpha < 0) alpha = 0;
       return new_Node(path, line,
                       color[0].numeric_value(),
@@ -522,13 +508,9 @@ namespace Sass {
 
     extern Signature fade_out_sig = "fade-out($color, $amount)";
     Node fade_out(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node color(bindings[parameter_names[0].token()]);
-      Node delta(bindings[parameter_names[1].token()]);
-      if (color.type() != Node::numeric_color) throw_eval_error("first argument to 'fade-out' must be a color", color.path(), color.line());
-      if (!delta.is_numeric()) throw_eval_error("second argument to 'fade-out' must be numeric", delta.path(), delta.line());
-      double dd = delta.numeric_value();
-      if (dd < 0 || 1 < dd) throw_eval_error("amount must be between 0 and 1 for 'fade-out'", delta.path(), delta.line());
-      double alpha = color[3].numeric_value() - dd;
+      Node color(arg(fade_out_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
+      double delta = arg(fade_out_sig, path, line, parameter_names, bindings, 1, 0, 1).numeric_value();
+      double alpha = color[3].numeric_value() - delta;
       if (alpha < 0) alpha = 0;
       return new_Node(path, line,
                       color[0].numeric_value(),
