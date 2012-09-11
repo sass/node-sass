@@ -689,21 +689,19 @@ namespace Sass {
     
     extern Signature percentage_sig = "percentage($value)";
     Node percentage(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node orig(bindings[parameter_names[0].token()]);
-      if (orig.type() != Node::number) {
-        throw_eval_error("argument to percentage must be a unitless number", orig.path(), orig.line());
-      }
+      Node orig(arg(percentage_sig, path, line, parameter_names, bindings, 0, Node::number));
       return new_Node(path, line, orig.numeric_value() * 100, Node::numeric_percentage);
     }
 
     extern Signature round_sig = "round($value)";
     Node round(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node orig(bindings[parameter_names[0].token()]);
+      Node orig(arg(round_sig, path, line, parameter_names, bindings, 0, Node::numeric));
       switch (orig.type())
       {
         case Node::numeric_dimension: {
           return new_Node(path, line,
-                          std::floor(orig.numeric_value() + 0.5), orig.unit());
+                          std::floor(orig.numeric_value() + 0.5),
+                          orig.unit());
         } break;
 
         case Node::number: {
@@ -718,6 +716,7 @@ namespace Sass {
         } break;
 
         default: {
+          // unreachable
           throw_eval_error("argument to round must be numeric", path, line);
         } break;
       }
@@ -727,12 +726,13 @@ namespace Sass {
 
     extern Signature ceil_sig = "ceil($value)";
     Node ceil(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node orig(bindings[parameter_names[0].token()]);
+      Node orig(arg(ceil_sig, path, line, parameter_names, bindings, 0, Node::numeric));
       switch (orig.type())
       {
         case Node::numeric_dimension: {
           return new_Node(path, line,
-                          std::ceil(orig.numeric_value()), orig.unit());
+                          std::ceil(orig.numeric_value()),
+                          orig.unit());
         } break;
 
         case Node::number: {
@@ -747,6 +747,7 @@ namespace Sass {
         } break;
 
         default: {
+          // unreachable
           throw_eval_error("argument to ceil must be numeric", path, line);
         } break;
       }
@@ -756,12 +757,13 @@ namespace Sass {
 
     extern Signature floor_sig = "floor($value)";
     Node floor(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node orig(bindings[parameter_names[0].token()]);
+      Node orig(arg(floor_sig, path, line, parameter_names, bindings, 0, Node::numeric));
       switch (orig.type())
       {
         case Node::numeric_dimension: {
           return new_Node(path, line,
-                          std::floor(orig.numeric_value()), orig.unit());
+                          std::floor(orig.numeric_value()),
+                          orig.unit());
         } break;
 
         case Node::number: {
@@ -776,6 +778,7 @@ namespace Sass {
         } break;
 
         default: {
+          // unreachable
           throw_eval_error("argument to floor must be numeric", path, line);
         } break;
       }
@@ -785,12 +788,13 @@ namespace Sass {
 
     extern Signature abs_sig = "abs($value)";
     Node abs(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node orig(bindings[parameter_names[0].token()]);
+      Node orig(arg(abs_sig, path, line, parameter_names, bindings, 0, Node::numeric));
       switch (orig.type())
       {
         case Node::numeric_dimension: {
           return new_Node(path, line,
-                          std::abs(orig.numeric_value()), orig.unit());
+                          std::abs(orig.numeric_value()),
+                          orig.unit());
         } break;
 
         case Node::number: {
@@ -805,6 +809,7 @@ namespace Sass {
         } break;
 
         default: {
+          // unreachable
           throw_eval_error("argument to abs must be numeric", path, line);
         } break;
       }
