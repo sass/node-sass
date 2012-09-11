@@ -72,8 +72,9 @@ namespace Sass {
    enum Type {
       none,
       any,
-      list,    // space_list or comma_list
-      numeric, // number, numeric_percentage, or numeric_dimension
+      numeric,  // number, numeric_percentage, or numeric_dimension
+      string_t, // string_constant, identifier, concatenation, schemata
+      list,     // space_list or comma_list
       comment,
 
       root,

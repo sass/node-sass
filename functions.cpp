@@ -80,6 +80,7 @@ namespace Sass {
           return number_name;
         } break;
 
+        case Node::string_t:
         case Node::identifier:
         case Node::value_schema:
         case Node::identifier_schema:
@@ -122,6 +123,21 @@ namespace Sass {
 
         case Node::numeric: {
           if (the_arg.is_numeric()) return the_arg;
+        } break;
+
+        case Node::string_t: {
+          switch (arg_type)
+          {
+            case Node::identifier:
+            case Node::value_schema:
+            case Node::identifier_schema:
+            case Node::string_constant:
+            case Node::string_schema:
+            case Node::concatenation: return the_arg;
+
+            default: break;
+
+          } break;
         } break;
 
         case Node::list: {
@@ -522,7 +538,8 @@ namespace Sass {
     ////////////////////////////////////////////////////////////////////////
     // Other Color Functions ///////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////
-      
+
+    // not worth using the arg(...) functions
     extern Signature adjust_color_sig = "adjust-color($color, $red: false, $green: false, $blue: false, $hue: false, $saturation: false, $lightness: false, $alpha: false)";
     Node adjust_color(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
       Node color(bindings[parameter_names[0].token()]);
@@ -651,36 +668,19 @@ namespace Sass {
     
     extern Signature unquote_sig = "unquote($string)";
     Node unquote(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node cpy(new_Node(bindings[parameter_names[0].token()]));
-      // if (cpy.type() != Node::string_constant /* && cpy.type() != Node::concatenation */) {
-      //   throw_eval_error("argument to unquote must be a string", cpy.path(), cpy.line());
-      // }
-      cpy.is_unquoted() = true;
-      cpy.is_quoted() = false;
+      Node cpy(new_Node(path, line, bindings[parameter_names[0].token()]));
+      cpy.is_unquoted() = true; // in case it happens to be a string
+      cpy.is_quoted() = false; // in case it happens to be an identifier
       return cpy;
     }
     
     extern Signature quote_sig = "quote($string)";
     Node quote(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node orig(bindings[parameter_names[0].token()]);
-      switch (orig.type())
-      {
-        default: {
-          throw_eval_error("argument to quote must be a string or identifier", orig.path(), orig.line());
-        } break;
-
-        case Node::string_constant:
-        case Node::string_schema:
-        case Node::identifier:
-        case Node::identifier_schema:
-        case Node::concatenation: {
-          Node cpy(new_Node(orig));
-          cpy.is_unquoted() = false;
-          cpy.is_quoted() = true;
-          return cpy;
-        } break;
-      }
-      return orig;
+      Node orig(arg(quote_sig, path, line, parameter_names, bindings, 0, Node::string_t));
+      Node copy(new_Node(path, line, orig));
+      copy.is_unquoted() = false; // in case it happens to be a string
+      copy.is_quoted() = true;  // in case it happens to be an identifier
+      return copy;
     }
     
     ////////////////////////////////////////////////////////////////////////
