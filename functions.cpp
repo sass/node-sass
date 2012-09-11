@@ -310,8 +310,7 @@ namespace Sass {
     
     extern Signature hue_sig = "hue($color)";
     Node hue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node rgb_color(bindings[parameter_names[0].token()]);
-      if (rgb_color.type() != Node::numeric_color) throw_eval_error("argument to 'hue' must be a color", rgb_color.path(), rgb_color.line());
+      Node rgb_color(arg(hue_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
       Node hsl_color(rgb_to_hsl(rgb_color[0].numeric_value(),
                                 rgb_color[1].numeric_value(),
                                 rgb_color[2].numeric_value(),
@@ -321,8 +320,7 @@ namespace Sass {
 
     extern Signature saturation_sig = "saturation($color)";
     Node saturation(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node rgb_color(bindings[parameter_names[0].token()]);
-      if (rgb_color.type() != Node::numeric_color) throw_eval_error("argument to 'saturation' must be a color", rgb_color.path(), rgb_color.line());
+      Node rgb_color(arg(saturation_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
       Node hsl_color(rgb_to_hsl(rgb_color[0].numeric_value(),
                                 rgb_color[1].numeric_value(),
                                 rgb_color[2].numeric_value(),
@@ -332,8 +330,7 @@ namespace Sass {
 
     extern Signature lightness_sig = "lightness($color)";
     Node lightness(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node rgb_color(bindings[parameter_names[0].token()]);
-      if (rgb_color.type() != Node::numeric_color) throw_eval_error("argument to 'lightness' must be a color", rgb_color.path(), rgb_color.line());
+      Node rgb_color(arg(lightness_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
       Node hsl_color(rgb_to_hsl(rgb_color[0].numeric_value(),
                                 rgb_color[1].numeric_value(),
                                 rgb_color[2].numeric_value(),
