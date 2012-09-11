@@ -340,10 +340,8 @@ namespace Sass {
 
     extern Signature adjust_hue_sig = "adjust-hue($color, $degrees)";
     Node adjust_hue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node rgb_col(bindings[parameter_names[0].token()]);
-      Node degrees(bindings[parameter_names[1].token()]);
-      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to 'adjust-hue' must be a color", rgb_col.path(), rgb_col.line());
-      if (!degrees.is_numeric()) throw_eval_error("second argument to 'adjust-hue' must be numeric", degrees.path(), degrees.line());
+      Node rgb_col(arg(adjust_hue_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
+      Node degrees(arg(adjust_hue_sig, path, line, parameter_names, bindings, 1, Node::numeric));
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
                               rgb_col[1].numeric_value(),
                               rgb_col[2].numeric_value(),
@@ -357,12 +355,8 @@ namespace Sass {
 
     extern Signature lighten_sig = "lighten($color, $amount)";
     Node lighten(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node rgb_col(bindings[parameter_names[0].token()]);
-      Node amount(bindings[parameter_names[1].token()]);
-      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to 'lighten' must be a color", rgb_col.path(), rgb_col.line());
-      if (!amount.is_numeric()) throw_eval_error("second argument to 'lighten' must be numeric", amount.path(), amount.line());
-      double amt = amount.numeric_value();
-      if (amt < 0 || 100 < amt) throw_eval_error("amount must be between 0% and 100% for 'lighten'", amount.path(), amount.line());
+      Node rgb_col(arg(lighten_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
+      Node amount(arg(lighten_sig, path, line, parameter_names, bindings, 1, 0, 100));
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
                               rgb_col[1].numeric_value(),
                               rgb_col[2].numeric_value(),
@@ -376,12 +370,8 @@ namespace Sass {
 
     extern Signature darken_sig = "darken($color, $amount)";
     Node darken(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node rgb_col(bindings[parameter_names[0].token()]);
-      Node amount(bindings[parameter_names[1].token()]);
-      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to 'darken' must be a color", rgb_col.path(), rgb_col.line());
-      if (!amount.is_numeric()) throw_eval_error("second argument to 'darken' must be numeric", amount.path(), amount.line());
-      double amt = amount.numeric_value();
-      if (amt < 0 || 100 < amt) throw_eval_error("amount must be between 0% and 100% for 'darken'", amount.path(), amount.line());
+      Node rgb_col(arg(darken_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
+      Node amount(arg(darken_sig, path, line, parameter_names, bindings, 1, 0, 100));
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
                               rgb_col[1].numeric_value(),
                               rgb_col[2].numeric_value(),
@@ -395,12 +385,8 @@ namespace Sass {
 
     extern Signature saturate_sig = "saturate($color, $amount)";
     Node saturate(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node rgb_col(bindings[parameter_names[0].token()]);
-      Node amount(bindings[parameter_names[1].token()]);
-      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to 'saturate' must be a color", rgb_col.path(), rgb_col.line());
-      if (!amount.is_numeric()) throw_eval_error("second argument to 'saturate' must be numeric", amount.path(), amount.line());
-      double amt = amount.numeric_value();
-      if (amt < 0 || 100 < amt) throw_eval_error("amount must be between 0% and 100% for 'saturate'", amount.path(), amount.line());
+      Node rgb_col(arg(saturate_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
+      Node amount(arg(saturate_sig, path, line, parameter_names, bindings, 1, 0, 100));
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
                               rgb_col[1].numeric_value(),
                               rgb_col[2].numeric_value(),
@@ -414,12 +400,8 @@ namespace Sass {
 
     extern Signature desaturate_sig = "desaturate($color, $amount)";
     Node desaturate(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node rgb_col(bindings[parameter_names[0].token()]);
-      Node amount(bindings[parameter_names[1].token()]);
-      if (rgb_col.type() != Node::numeric_color) throw_eval_error("first argument to 'desaturate' must be a color", rgb_col.path(), rgb_col.line());
-      if (!amount.is_numeric()) throw_eval_error("second argument to 'desaturate' must be numeric", amount.path(), amount.line());
-      double amt = amount.numeric_value();
-      if (amt < 0 || 100 < amt) throw_eval_error("amount must be between 0% and 100% for 'desaturate'", amount.path(), amount.line());
+      Node rgb_col(arg(desaturate_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
+      Node amount(arg(desaturate_sig, path, line, parameter_names, bindings, 1, 0, 100));
       Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
                               rgb_col[1].numeric_value(),
                               rgb_col[2].numeric_value(),
@@ -433,53 +415,40 @@ namespace Sass {
 
     extern Signature grayscale_sig = "grayscale($color)";
     Node grayscale(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node color(bindings[parameter_names[0].token()]);
-      if (color.type() != Node::numeric_color) throw_eval_error("argument to 'grayscale' must be a color", color.path(), color.line());
+      Node color(arg(grayscale_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
       Node hsl_color(rgb_to_hsl(color[0].numeric_value(),
                                 color[1].numeric_value(),
                                 color[2].numeric_value(),
                                 new_Node, path, line));
-      Node result(hsla_impl(hsl_color[0].numeric_value(),
-                            0.0, // desaturate completely
-                            hsl_color[2].numeric_value(),
-                            color[3].numeric_value(),
-                            new_Node, path, line));
-      return new_Node(path, line,
-                      result[0].numeric_value(),
-                      result[1].numeric_value(),
-                      result[2].numeric_value(),
-                      result[3].numeric_value());
+      return hsla_impl(hsl_color[0].numeric_value(),
+                       0.0, // desaturate completely
+                       hsl_color[2].numeric_value(),
+                       color[3].numeric_value(),
+                       new_Node, path, line);
     }
 
     extern Signature complement_sig = "complement($color)";
     Node complement(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node color(bindings[parameter_names[0].token()]);
-      if (color.type() != Node::numeric_color) throw_eval_error("argument to 'complement' must be a color", color.path(), color.line());
+      Node color(arg(complement_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
       Node hsl_color(rgb_to_hsl(color[0].numeric_value(),
                                 color[1].numeric_value(),
                                 color[2].numeric_value(),
                                 new_Node, path, line));
-      Node result(hsla_impl(hsl_color[0].numeric_value() - 180, // other side of the color wheel
-                            hsl_color[1].numeric_value(),
-                            hsl_color[2].numeric_value(),
-                            color[3].numeric_value(),
-                            new_Node, path, line));
-      return new_Node(path, line,
-                      result[0].numeric_value(),
-                      result[1].numeric_value(),
-                      result[2].numeric_value(),
-                      result[3].numeric_value());
+      return hsla_impl(hsl_color[0].numeric_value() - 180, // other side of the color wheel
+                       hsl_color[1].numeric_value(),
+                       hsl_color[2].numeric_value(),
+                       color[3].numeric_value(),
+                       new_Node, path, line);
     }
 
     extern Signature invert_sig = "invert($color)";
     Node invert(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node orig(bindings[parameter_names[0].token()]);
-      if (orig.type() != Node::numeric_color) throw_eval_error("argument to 'invert' must be a color", orig.path(), orig.line());
+      Node color(arg(invert_sig, path, line, parameter_names, bindings, 0, Node::numeric_color));
       return new_Node(path, line,
-                      255 - orig[0].numeric_value(),
-                      255 - orig[1].numeric_value(),
-                      255 - orig[2].numeric_value(),
-                      orig[3].numeric_value());
+                      255 - color[0].numeric_value(),
+                      255 - color[1].numeric_value(),
+                      255 - color[2].numeric_value(),
+                      color[3].numeric_value());
     }
     
     ////////////////////////////////////////////////////////////////////////
