@@ -703,7 +703,10 @@ namespace Sass {
       bindings.link(env.global ? *env.global : env);
     }
     // bind arguments in the extended environment
-    bind_arguments("mixin " + mixin[0].to_string(), params, args, prefix, bindings, f_env, new_Node, ctx);
+    stringstream mixin_name;
+    mixin_name << "mixin";
+    if (mixin[0].type() != Node::none) mixin_name << " " << mixin[0].to_string();
+    bind_arguments(mixin_name.str(), params, args, prefix, bindings, f_env, new_Node, ctx);
     // evaluate the mixin's body
     for (size_t i = 0, S = body.size(); i < S; ++i) {
       body[i] = eval(body[i], prefix, bindings, f_env, new_Node, ctx);
