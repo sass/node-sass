@@ -19,6 +19,10 @@ namespace Sass {
   {
     switch (type())
     {
+      case none: {
+        return "";
+      } break;
+
       case selector_group:
       case media_expression_group: { // really only needed for arg to :not
         string result(at(0).to_string());
