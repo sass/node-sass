@@ -933,29 +933,33 @@ namespace Sass {
 
     extern Signature compact_sig = "compact($arg1: false, $arg2: false, $arg3: false, $arg4: false, $arg5: false, $arg6: false, $arg7: false, $arg8: false, $arg9: false, $arg10: false, $arg11: false, $arg12: false)";
     Node compact(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      size_t num_args     = bindings.current_frame.size();
-      Node::Type sep_type = Node::comma_list;
-      Node list;
-      Node arg1(bindings[parameter_names[0].token()]);
-      if (num_args == 1 && (arg1.type() == Node::space_list ||
-                            arg1.type() == Node::comma_list ||
-                            arg1.type() == Node::nil)) {
-        list = new_Node(arg1.type(), path, line, arg1.size());
-        list += arg1;
+      Node first_arg(bindings[parameter_names[0].token()]);
+      Node rest_args(new_Node(Node::comma_list, path, line, 0));
+      for (size_t i = 1, S = bindings.current_frame.size(); i < S; ++i) {
+        Node the_arg(bindings[parameter_names[i].token()]);
+        if (!the_arg.is_false()) rest_args << new_Node(path, line, the_arg);
+      }
+      if (rest_args.size() > 0) {
+        Node result(new_Node(Node::comma_list, path, line, rest_args.size() + (first_arg.is_false() ? 0 : 1)));
+        if (!first_arg.is_false()) result << new_Node(path, line, first_arg);
+        result += rest_args;
+        return result;
       }
       else {
-        list = new_Node(sep_type, arg1.path(), arg1.line(), num_args);
-        for (size_t i = 0; i < num_args; ++i) {
-          list << bindings[parameter_names[i].token()];
+        Node::Type first_type = first_arg.type();
+        if (first_type == Node::space_list || first_type == Node::comma_list) {
+          Node result(new_Node(first_type, path, line, 0));
+          for (size_t i = 0, S = first_arg.size(); i < S; ++i) {
+            if (!first_arg[i].is_false()) result << new_Node(path, line, first_arg[i]);
+          }
+          return result;
+        }
+        else {
+          return new_Node(path, line, first_arg);
         }
       }
-      Node new_list(new_Node(list.type(), list.path(), list.line(), 0));
-      for (size_t i = 0, S = list.size(); i < S; ++i) {
-        if ((list[i].type() != Node::boolean) || list[i].boolean_value()) {
-          new_list << list[i];
-        }
-      }
-      return new_list.size() ? new_list : new_Node(Node::nil, path, line, 0);
+      // unreachable
+      return Node();
     }
 
     ////////////////////////////////////////////////////////////////////////
