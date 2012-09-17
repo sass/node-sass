@@ -289,6 +289,11 @@ namespace Sass {
         return env[expr.token()];
       } break;
 
+      case Node::uri: {
+        expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
+        return expr;
+      } break;
+
       case Node::image_url: {
         Node base(eval(expr[0], prefix, env, f_env, new_Node, ctx));
         Node prefix(new_Node(Node::identifier, base.path(), base.line(), Token::make(ctx.image_path)));

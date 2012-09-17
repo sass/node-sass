@@ -271,12 +271,19 @@ namespace Sass {
     const char* uri_prefix(const char* src) {
       return exactly<url_kwd>(src);
     }
+    // TODO: rename the following two functions
     const char* uri(const char* src) {
       return sequence< exactly<url_kwd>,
                        optional<spaces>,
                        string_constant,
                        optional<spaces>,
                        exactly<')'> >(src);
+    }
+    const char* url(const char* src) {
+      return sequence< optional< sequence< identifier, exactly<':'> > >, // optional protocol
+                       optional< exactly<':'> >, // extra slash
+                       one_plus< sequence< exactly<'/'>, value_schema > >, // one or more folders and/or trailing filename
+                       optional< exactly<'/'> > >(src); // optional trailing slash
     }
     // Match SCSS image-url function
     extern const char image_url_kwd[] = "image-url(";

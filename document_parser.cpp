@@ -855,16 +855,34 @@ namespace Sass {
   {
     if (lex< uri_prefix >())
     {
-      const char* value = position;
-      const char* rparen = find_first< exactly<')'> >(position);
-      if (!rparen) throw_syntax_error("URI is missing ')'");
-      Token content_tok(Token::make(value, rparen));
-      Node content_node(context.new_Node(Node::string_constant, path, line, content_tok));
-      // lex< string_constant >();
       Node result(context.new_Node(Node::uri, path, line, 1));
-      result << content_node;
-      position = rparen;
-      lex< exactly<')'> >();
+      if (lex< variable >()) {
+        result << context.new_Node(Node::variable, path, line, lexed);
+        if (!lex< exactly<')'> >()) throw_syntax_error("URI is missing ')'");
+        result.should_eval() = true;
+      }
+      else if (lex< string_constant >()) {
+        result << parse_string();
+        if (!lex< exactly<')'> >()) throw_syntax_error("URI is missing ')'");
+        result.should_eval() = true;
+      }
+      // else if (lex< value_schema >()) {
+      //   cerr << lexed.to_string() << endl;
+      //   result << Document::make_from_token(context, lexed, path, line).parse_value_schema();
+      //   if (!lex< exactly<')'> >()) throw_syntax_error("URI is missing ')'");
+      //   result.should_eval() = true;
+      // }
+      else {
+        const char* value = position;
+        const char* rparen = find_first< exactly<')'> >(position);
+        if (!rparen) throw_syntax_error("URI is missing ')'");
+        Token content_tok(Token::make(value, rparen));
+        Node content_node(context.new_Node(Node::identifier, path, line, content_tok));
+        // lex< string_constant >();
+        result << content_node;
+        position = rparen;
+        lex< exactly<')'> >();
+      }
       return result;
     }
 
