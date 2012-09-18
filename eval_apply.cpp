@@ -298,10 +298,10 @@ namespace Sass {
         Node base(eval(expr[0], prefix, env, f_env, new_Node, ctx));
         Node prefix(new_Node(Node::identifier, base.path(), base.line(), Token::make(ctx.image_path)));
         Node fullpath(new_Node(Node::concatenation, base.path(), base.line(), 2));
-        Node url(new_Node(Node::uri, base.path(), base.line(), 1));
         fullpath << prefix << base;
-        url << fullpath;
-        return url;
+        expr.pop_back();
+        expr << fullpath;
+        return expr;
       } break;
       
       case Node::function_call: {

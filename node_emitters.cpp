@@ -278,6 +278,15 @@ namespace Sass {
         return result;
       } break;
 
+      case image_url: {
+        Node fullpath(at(0));
+        string result("url(\"");
+        result += fullpath[0].unquote();
+        result += fullpath[1].unquote();
+        result += "\")";
+        return result;
+      } break;
+
       case expansion: {
         // ignore it
         return "";
