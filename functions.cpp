@@ -878,17 +878,18 @@ namespace Sass {
       size_t size = 0;
       if (l1.type() != Node::nil) size += l1.size();
       if (l2.type() != Node::nil) size += l2.size();
+ 
       // figure out the result type in advance
       Node::Type rtype = Node::space_list;
-
       string sep(bindings[parameter_names[2].token()].token().unquote());
       if (sep == "comma")      rtype = Node::comma_list;
       else if (sep == "space") rtype = Node::space_list;
       else if (sep == "auto")  rtype = l1.type();
       else {
-        throw_eval_error("third argument to join must be 'space', 'comma', or 'auto'", path, line);
+        throw_eval_error("third argument to 'join' must be 'space', 'comma', or 'auto'", path, line);
       }
       if (rtype == Node::nil) rtype = l2.type();
+ 
       // accumulate the result
       Node lr(new_Node(rtype, path, line, size));
       if (l1.type() != Node::nil) lr += l1;
@@ -917,7 +918,7 @@ namespace Sass {
       if (sep_string == "comma")      sep_type = Node::comma_list;
       else if (sep_string == "space") sep_type = Node::space_list;
       else if (sep_string == "auto")  sep_type = list.type();
-      else throw_eval_error("third argument to append must be 'space', 'comma', or 'auto'", path, line);
+      else throw_eval_error("third argument to 'append' must be 'space', 'comma', or 'auto'", path, line);
 
       Node new_list(new_Node(sep_type, path, line, list.size() + 1));
       new_list += list;
@@ -997,7 +998,7 @@ namespace Sass {
 
     extern Signature unit_sig = "unit($number)";
     Node unit(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node val(bindings[parameter_names[0].token()]);
+      Node val(arg(unit_sig, path, line, parameter_names, bindings, 0, Node::numeric));
       switch (val.type())
       {
         case Node::number: {
@@ -1009,6 +1010,7 @@ namespace Sass {
           return new_Node(Node::string_constant, path, line, val.unit());
         } break;
 
+        // unreachable
         default: {
           throw_eval_error("argument to unit must be numeric", path, line);
         } break;
