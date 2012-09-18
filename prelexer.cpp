@@ -1,9 +1,10 @@
 #include <cctype>
 #include "prelexer.hpp"
+#include <iostream>
 
 namespace Sass {
   namespace Prelexer {
-    
+    using std::cerr; using std::endl;
     // Matches zero characters (always succeeds without consuming input).
     const char* epsilon(char *src) {
       return src;
@@ -93,6 +94,15 @@ namespace Sass {
       return one_plus< sequence< zero_plus< alternatives< identifier, percentage, dimension, hex, number, string_constant > >,
                                  interpolant,
                                  zero_plus< alternatives< identifier, percentage, dimension, hex, number, string_constant > > > >(src);
+    }
+    const char* filename_schema(const char* src) {
+      return one_plus< sequence< zero_plus< alternatives< identifier, number, exactly<'.'>, exactly<'/'> > >,
+                                 interpolant,
+                                 zero_plus< alternatives< identifier, number, exactly<'.'>, exactly<'/'> > > > >(src);
+    }
+
+    const char* filename(const char* src) {
+      return one_plus< alternatives< identifier, number, exactly<'.'> > >(src);
     }
     
     // Match CSS '@' keywords.
@@ -279,11 +289,14 @@ namespace Sass {
                        optional<spaces>,
                        exactly<')'> >(src);
     }
-    const char* url(const char* src) {
+    const char* url_value(const char* src) {
       return sequence< optional< sequence< identifier, exactly<':'> > >, // optional protocol
-                       optional< exactly<':'> >, // extra slash
-                       one_plus< sequence< exactly<'/'>, value_schema > >, // one or more folders and/or trailing filename
-                       optional< exactly<'/'> > >(src); // optional trailing slash
+                       one_plus< sequence< zero_plus< exactly<'/'> >, filename > >, // one or more folders and/or trailing filename
+                       optional< exactly<'/'> > >(src);
+    }
+    const char* url_schema(const char* src) {
+      return sequence< optional< sequence< identifier, exactly<':'> > >, // optional protocol
+                       filename_schema >(src); // optional trailing slash
     }
     // Match SCSS image-url function
     extern const char image_url_kwd[] = "image-url(";

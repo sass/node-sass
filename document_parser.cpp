@@ -858,20 +858,19 @@ namespace Sass {
       Node result(context.new_Node(Node::uri, path, line, 1));
       if (lex< variable >()) {
         result << context.new_Node(Node::variable, path, line, lexed);
-        if (!lex< exactly<')'> >()) throw_syntax_error("URI is missing ')'");
         result.should_eval() = true;
       }
       else if (lex< string_constant >()) {
         result << parse_string();
-        if (!lex< exactly<')'> >()) throw_syntax_error("URI is missing ')'");
         result.should_eval() = true;
       }
-      // else if (lex< value_schema >()) {
-      //   cerr << lexed.to_string() << endl;
-      //   result << Document::make_from_token(context, lexed, path, line).parse_value_schema();
-      //   if (!lex< exactly<')'> >()) throw_syntax_error("URI is missing ')'");
-      //   result.should_eval() = true;
-      // }
+      else if (lex< url_schema >()) {
+        result << Document::make_from_token(context, lexed, path, line).parse_url_schema();
+        result.should_eval() = true;
+      }
+      else if (lex< url_value >()) {
+        result << context.new_Node(Node::identifier, path, line, lexed);
+      }
       else {
         const char* value = position;
         const char* rparen = find_first< exactly<')'> >(position);
@@ -881,8 +880,8 @@ namespace Sass {
         // lex< string_constant >();
         result << content_node;
         position = rparen;
-        lex< exactly<')'> >();
       }
+      if (!lex< exactly<')'> >()) throw_syntax_error("URI is missing ')'");
       return result;
     }
 
@@ -1015,6 +1014,35 @@ namespace Sass {
       }
       else {
         throw_syntax_error("error parsing interpolated value");
+      }
+    }
+    schema.should_eval() = true;
+    return schema;
+  }
+
+  Node Document::parse_url_schema()
+  {    
+    Node schema(context.new_Node(Node::value_schema, path, line, 1));
+    
+    while (position < end) {
+      if (position[0] == '/') {
+        lexed = Token::make(position, position+1);
+        schema << context.new_Node(Node::identifier, path, line, lexed);
+        ++position;
+      }
+      else if (lex< interpolant >()) {
+        Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
+        Node interp_node(Document::make_from_token(context, insides, path, line).parse_list());
+        schema << interp_node;
+      }
+      else if (lex< sequence< identifier, exactly<':'> > >()) {
+        schema << context.new_Node(Node::identifier, path, line, lexed);
+      }
+      else if (lex< filename >()) {
+        schema << context.new_Node(Node::identifier, path, line, lexed);
+      }
+      else {
+        throw_syntax_error("error parsing interpolated url");
       }
     }
     schema.should_eval() = true;
