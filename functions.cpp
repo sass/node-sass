@@ -847,10 +847,6 @@ namespace Sass {
     extern Signature nth_sig = "nth($list, $n)";
     Node nth(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
       Node l(bindings[parameter_names[0].token()]);
-      Node n(bindings[parameter_names[1].token()]);
-      if (n.type() != Node::number) {
-        throw_eval_error("second argument to nth must be a number", path, line);
-      }
       if (l.type() == Node::nil) {
         throw_eval_error("cannot index into an empty list", path, line);
       }
@@ -858,11 +854,9 @@ namespace Sass {
       if (l.type() != Node::space_list && l.type() != Node::comma_list) {
         l = new_Node(Node::space_list, path, line, 1) << l;
       }
-      double n_prim = n.numeric_value();
-      if (n_prim < 1 || n_prim > l.size()) {
-        throw_eval_error("out of range index for nth", path, line);
-      }
-      return l[n_prim - 1];
+      // just truncate the index if it's not an integer ... more permissive than Ruby Sass
+      size_t n = std::floor(arg(nth_sig, path, line, parameter_names, bindings, 1, 1, l.size()).numeric_value());
+      return l[n - 1];
     }
 
     extern Signature join_sig = "join($list1, $list2, $separator: auto)";
