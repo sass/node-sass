@@ -1079,12 +1079,8 @@ namespace Sass {
     extern Signature not_sig = "not($value)";
     Node not_impl(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
       Node val(bindings[parameter_names[0].token()]);
-      if (val.type() == Node::boolean && val.boolean_value() == false) {
-        return new_Node(Node::boolean, path, line, true);
-      }
-      else {
-        return new_Node(Node::boolean, path, line, false);
-      }
+      if (val.is_false()) return new_Node(Node::boolean, path, line, true);
+      return new_Node(Node::boolean, path, line, false);
     }
 
     extern Signature if_sig = "if($condition, $if-true, $if-false)";
@@ -1093,7 +1089,7 @@ namespace Sass {
       Node consequent(bindings[parameter_names[1].token()]);
       Node alternative(bindings[parameter_names[2].token()]);
 
-      if (predicate.type() == Node::boolean && predicate.boolean_value() == false) return alternative;
+      if (predicate.is_false()) return alternative;
       return consequent;
     }
 
