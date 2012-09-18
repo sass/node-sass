@@ -1012,7 +1012,7 @@ namespace Sass {
 
         // unreachable
         default: {
-          throw_eval_error("argument to unit must be numeric", path, line);
+          throw_eval_error("argument to 'unit' must be numeric", path, line);
         } break;
       }
       // unreachable statement
@@ -1021,7 +1021,7 @@ namespace Sass {
 
     extern Signature unitless_sig = "unitless($number)";
     Node unitless(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node val(bindings[parameter_names[0].token()]);
+      Node val(arg(unitless_sig, path, line, parameter_names, bindings, 0, Node::numeric));
       switch (val.type())
       {
         case Node::number: {
@@ -1033,8 +1033,9 @@ namespace Sass {
           return new_Node(Node::boolean, path, line, false);
         } break;
 
+        // unreachable
         default: {
-          throw_eval_error("argument to unitless must be numeric", path, line);
+          throw_eval_error("argument to 'unitless' must be numeric", path, line);
         } break;
       }
       // unreachable statement
@@ -1043,8 +1044,8 @@ namespace Sass {
     
     extern Signature comparable_sig = "comparable($number-1, $number-2)";
     Node comparable(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node n1(bindings[parameter_names[0].token()]);
-      Node n2(bindings[parameter_names[1].token()]);
+      Node n1(arg(comparable_sig, path, line, parameter_names, bindings, 0, Node::numeric));
+      Node n2(arg(comparable_sig, path, line, parameter_names, bindings, 1, Node::numeric));
       Node::Type t1 = n1.type();
       Node::Type t2 = n2.type();
       if ((t1 == Node::number && n2.is_numeric()) ||
@@ -1059,16 +1060,13 @@ namespace Sass {
         string u2(n2.unit().to_string());
         if ((u1 == "ex" && u2 == "ex") ||
             (u1 == "em" && u2 == "em") ||
-            ((u1 == "in" || u1 == "cm" || u1 == "mm" || u1 == "pt" || u1 == "pc") &&
-             (u2 == "in" || u2 == "cm" || u2 == "mm" || u2 == "pt" || u2 == "pc"))) {
+            ((u1 == "in" || u1 == "cm" || u1 == "mm" || u1 == "pt" || u1 == "pc" || u1 == "px") &&
+             (u2 == "in" || u2 == "cm" || u2 == "mm" || u2 == "pt" || u2 == "pc" || u2 == "px"))) {
           return new_Node(Node::boolean, path, line, true);
         }
         else {
           return new_Node(Node::boolean, path, line, false);
         }
-      }
-      else if (!n1.is_numeric() && !n2.is_numeric()) {
-        throw_eval_error("arguments to comparable must be numeric", path, line);
       }
       // default to false if we missed anything
       return new_Node(Node::boolean, path, line, false);
