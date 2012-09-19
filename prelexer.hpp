@@ -449,6 +449,11 @@ namespace Sass {
       }
       return counter;
     }
+
+    extern const char if_kwd[];
+    extern const char for_kwd[];
+    extern const char each_kwd[];
+    extern const char while_kwd[];
     
   }
 }
