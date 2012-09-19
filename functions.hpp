@@ -147,6 +147,9 @@ namespace Sass {
     extern Signature adjust_color_sig;
     Node adjust_color(const Node, Environment&, Node_Factory&, string& path, size_t line);
 
+    extern Signature scale_color_sig;
+    Node scale_color(const Node, Environment&, Node_Factory&, string& path, size_t line);
+
     extern Signature change_color_sig;
     Node change_color(const Node, Environment&, Node_Factory&, string& path, size_t line);
 
