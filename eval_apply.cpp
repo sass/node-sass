@@ -498,7 +498,7 @@ namespace Sass {
     Node op(list[head + 1]);
     Node::Type optype = op.type();
     if (acc.is_string()) {
-      acc = new_Node(Node::concatenation, list.path(), list.line(), 2);
+      acc = (new_Node(Node::concatenation, list.path(), list.line(), 2) << acc);
       if (optype == Node::sub || optype == Node::div || optype == Node::mul) {
         acc << op;
       }
@@ -525,9 +525,35 @@ namespace Sass {
       }
     }
     else if (ltype == Node::number && rtype == Node::numeric_color) {
-      
+      if (optype != Node::sub && optype != Node::div) {
+        double r = operate(optype, acc.numeric_value(), rhs[0].numeric_value());
+        double g = operate(optype, acc.numeric_value(), rhs[1].numeric_value());
+        double b = operate(optype, acc.numeric_value(), rhs[2].numeric_value());
+        double a = rhs[3].numeric_value();
+        acc = new_Node(list.path(), list.line(), r, g, b, a);
+      }
+      else (optype == Node::div || optype) {
+        acc = (new_Node(Node::concatenation, list.path(), list.line(), 3) << acc);
+        acc << op;
+        acc << rhs;        
+      }
     }
-
+    else if (ltype == Node::numeric_color && rtype == Node::number) {
+      double r = operate(optype, acc[0].numeric_value(), rhs.numeric_value());
+      double g = operate(optype, acc[1].numeric_value(), rhs.numeric_value());
+      double b = operate(optype, acc[2].numeric_value(), rhs.numeric_value());
+      double a = acc[3].numeric_value();
+      acc = new_Node(list.path(), list.line(), r, g, b, a);
+    }
+    else if (ltype == Node::numeric_color && rtype == Node::numeric_color) {
+      if (acc[3].numeric_value() != rhs[3].numeric_value()) throw_eval_error("alpha channels must be equal for " + acc.to_string() + " + " + rhs.to_string(), acc.path(), acc.line());
+      double r = operate(optype, acc[0].numeric_value(), rhs[0].numeric_value());
+      double g = operate(optype, acc[1].numeric_value(), rhs[1].numeric_value());
+      double b = operate(optype, acc[2].numeric_value(), rhs[2].numeric_value());
+      double a = acc[3].numeric_value();
+      acc = new_Node(list.path(), list.line(), r, g, b, a);
+    }
+    // NOT DONE YET!
     return reduce(list, head + 3, acc, new_Node);
   }
 
