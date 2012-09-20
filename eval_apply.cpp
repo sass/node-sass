@@ -512,10 +512,18 @@ namespace Sass {
       if (optype != Node::add) acc << op;
       acc << rhs;
     }
-    else if (acc.is_string()) {
+    else if (rtype == Node::concatenation) {
+      acc = (new_Node(Node::concatenation, list.path(), list.line(), 2) << acc);
+      acc += rhs;
+      acc.is_quoted() = acc[0].is_quoted();
+      acc.is_unquoted() = acc[0].is_unquoted();
+    }
+    else if (acc.is_string() || rhs.is_string()) {
       acc = (new_Node(Node::concatenation, list.path(), list.line(), 2) << acc);
       if (optype != Node::add) acc << op;
       acc << rhs;
+      acc.is_quoted() = acc[0].is_quoted();
+      acc.is_unquoted() = acc[0].is_unquoted();
     }
     else if (ltype == Node::number && rtype == Node::number) {
       acc = new_Node(list.path(), list.line(), operate(op, acc.numeric_value(), rhs.numeric_value()));
@@ -544,9 +552,11 @@ namespace Sass {
         acc = new_Node(list.path(), list.line(), r, g, b, a);
       }
       else {
-        acc = (new_Node(Node::concatenation, list.path(), list.line(), 3) << acc);
+        acc = (new_Node(Node::value_schema, list.path(), list.line(), 3) << acc);
         acc << op;
-        acc << rhs;        
+        acc << rhs;
+        acc.is_quoted() = false;
+        acc.is_unquoted() = true;
       }
     }
     else if (ltype == Node::numeric_color && rtype == Node::number) {
@@ -564,15 +574,27 @@ namespace Sass {
       double a = acc[3].numeric_value();
       acc = new_Node(list.path(), list.line(), r, g, b, a);
     }
-    else { // two lists
-      if (optype != Node::mul) {
+    else { // lists or schemas
+      if (acc.is_schema() && rhs.is_schema()) {
+        if (optype != Node::add) acc << op;
+        acc += rhs;
+      }
+      else if (acc.is_schema()) {
+        if (optype != Node::add) acc << op;
+        acc << rhs;
+      }
+      else if (rhs.is_schema()) {
+        acc = (new_Node(Node::value_schema, list.path(), list.line(), 2) << acc);
+        if (optype != Node::add) acc << op;
+        acc += rhs;
+      }
+      else {
         acc = (new_Node(Node::value_schema, list.path(), list.line(), 2) << acc);
         if (optype != Node::add) acc << op;
         acc << rhs;
       }
-      else {
-        throw_eval_error("cannot multiply lists", op.path(), op.line());
-      }
+      acc.is_quoted() = false;
+      acc.is_unquoted() = true;
     }
     return reduce(list, head + 2, acc, new_Node);
   }

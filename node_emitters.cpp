@@ -349,7 +349,15 @@ namespace Sass {
 
       case concatenation: {
         string result;
-        bool quoted = (at(0).type() == string_constant || at(0).type() == string_schema) ? true : false;
+        bool quoted /* = (at(0).type() == string_constant || at(0).type() == string_schema) ? true : false */;
+        if (at(0).type() == string_constant ||
+            at(0).type() == string_schema ||
+            (at(0).is_numeric() && (at(1).is_quoted() || !at(1).is_unquoted()))) {
+          quoted = true;
+        }
+        else {
+          quoted = false;
+        }
         for (size_t i = 0, S = size(); i < S; ++i) {
           // result += at(i).to_string().substr(1, at(i).token().length()-2);
           Node::Type itype = at(i).type();
