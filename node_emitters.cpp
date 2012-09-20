@@ -140,6 +140,7 @@ namespace Sass {
         return result;
       } break;
       
+      // still necessary for unevaluated expressions
       case expression:
       case term: {
         string result(at(0).to_string());
@@ -348,12 +349,20 @@ namespace Sass {
 
       case concatenation: {
         string result;
+        bool quoted = (at(0).type() == string_constant || at(0).type() == string_schema) ? true : false;
         for (size_t i = 0, S = size(); i < S; ++i) {
-          result += at(i).to_string().substr(1, at(i).token().length()-2);
+          // result += at(i).to_string().substr(1, at(i).token().length()-2);
+          Node::Type itype = at(i).type();
+          if (itype == Node::string_constant || itype == Node::string_schema) {
+            result += at(i).unquote();
+          }
+          else {
+            result += at(i).to_string();
+          }
         }
         // if (inside_of == identifier_schema || inside_of == property) return result;
         // else                                                         return "\"" + result + "\"";
-        if (!(inside_of == identifier_schema || inside_of == property) && !is_unquoted()) {
+        if (!(inside_of == identifier_schema || inside_of == property) && quoted && !is_unquoted()) {
           result = "\"" + result + "\"";
         }
         return result;

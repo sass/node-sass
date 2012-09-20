@@ -182,7 +182,7 @@ namespace Sass {
 
     Type type() const;
 
-    bool is_stub() const;
+    bool is_none() const;
     bool has_children() const;
     bool has_statements() const;
     bool has_blocks() const;
@@ -416,7 +416,7 @@ namespace Sass {
 
   inline Node::Type Node::type() const    { return ip_->type; }
 
-  inline bool Node::is_stub() const        { return !ip_; }
+  inline bool Node::is_none() const        { return !ip_; }
   inline bool Node::has_children() const   { return ip_->has_children; }
   inline bool Node::has_statements() const { return ip_->has_statements; }
   inline bool Node::has_blocks() const     { return ip_->has_blocks; }

@@ -227,7 +227,7 @@ namespace Sass {
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
           expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
         }
-        return reduce(expr, 0, Node(), new_Node);
+        return reduce(expr, 1, expr[0], new_Node);
         // Node acc(new_Node(Node::expression, expr.path(), expr.line(), 1));
         // acc << eval(expr[0], prefix, env, f_env, new_Node, ctx);
         // Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
@@ -241,15 +241,19 @@ namespace Sass {
 
       case Node::term: {
         if (expr.should_eval()) {
-          Node acc(new_Node(Node::expression, expr.path(), expr.line(), 1));
-          acc << eval(expr[0], prefix, env, f_env, new_Node, ctx);
-          Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
-          accumulate(expr[1].type(), acc, rhs, new_Node);
-          for (size_t i = 3, S = expr.size(); i < S; i += 2) {
-            Node rhs(eval(expr[i+1], prefix, env, f_env, new_Node, ctx));
-            accumulate(expr[i].type(), acc, rhs, new_Node);
+          for (size_t i = 0, S = expr.size(); i < S; ++i) {
+            expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
           }
-          return acc.size() == 1 ? acc[0] : acc;
+          return reduce(expr, 1, expr[0], new_Node);
+          // Node acc(new_Node(Node::expression, expr.path(), expr.line(), 1));
+          // acc << eval(expr[0], prefix, env, f_env, new_Node, ctx);
+          // Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
+          // accumulate(expr[1].type(), acc, rhs, new_Node);
+          // for (size_t i = 3, S = expr.size(); i < S; i += 2) {
+          //   Node rhs(eval(expr[i+1], prefix, env, f_env, new_Node, ctx));
+          //   accumulate(expr[i].type(), acc, rhs, new_Node);
+          // }
+          // return acc.size() == 1 ? acc[0] : acc;
         }
         else {
           return expr;
@@ -487,210 +491,229 @@ namespace Sass {
     return expr;
   }
 
-  // Accumulate arithmetic operations. It's done this way because arithmetic
+  // Reduce arithmetic operations. It's done this way because arithmetic
   // expressions are stored as vectors of operands with operators interspersed,
-  // rather than as the usual binary tree.
+  // rather than as the usual binary tree. (This function is essentially a
+  // left fold.)
 
   Node reduce(Node list, size_t head, Node acc, Node_Factory& new_Node)
   {
     if (head >= list.size()) return acc;
-    Node rhs(list[head]);
-    Node op(list[head + 1]);
+    Node op(list[head]);
+    Node rhs(list[head + 1]);
     Node::Type optype = op.type();
-    if (acc.is_string()) {
-      acc = (new_Node(Node::concatenation, list.path(), list.line(), 2) << acc);
-      if (optype == Node::sub || optype == Node::div || optype == Node::mul) {
-        acc << op;
-      }
-      acc << rhs;
-    }
     Node::Type ltype = acc.type();
     Node::Type rtype = rhs.type();
-    if (ltype == Node::number && rtype == Node::number) {
-      acc = new_Node(list.path(), list.line(), operate(optype, acc.numeric_value(), rhs.numeric_value()));
+    if (ltype == Node::concatenation && rtype == Node::concatenation) {
+      if (optype != Node::add) acc << op;
+      acc += rhs;
+    }
+    else if (ltype == Node::concatenation) {
+      if (optype != Node::add) acc << op;
+      acc << rhs;
+    }
+    else if (acc.is_string()) {
+      acc = (new_Node(Node::concatenation, list.path(), list.line(), 2) << acc);
+      if (optype != Node::add) acc << op;
+      acc << rhs;
+    }
+    else if (ltype == Node::number && rtype == Node::number) {
+      acc = new_Node(list.path(), list.line(), operate(op, acc.numeric_value(), rhs.numeric_value()));
     }
     else if (ltype == Node::number && rtype == Node::numeric_dimension) {
-      acc = new_Node(list.path(), list.line(), operate(optype, acc.numeric_value(), rhs.numeric_value()), rhs.unit());
+      acc = new_Node(list.path(), list.line(), operate(op, acc.numeric_value(), rhs.numeric_value()), rhs.unit());
     }
-    else if (ltype == Node::number && rtype == Node::numeric_dimension) {
-      acc = new_Node(list.path(), list.line(), operate(optype, acc.numeric_value(), rhs.numeric_value()), acc.unit());
+    else if (ltype == Node::numeric_dimension && rtype == Node::number) {
+      acc = new_Node(list.path(), list.line(), operate(op, acc.numeric_value(), rhs.numeric_value()), acc.unit());
     }
     else if (ltype == Node::numeric_dimension && rtype == Node::numeric_dimension) {
       // TO DO: TRUE UNIT ARITHMETIC
       if (optype == Node::div) {
-        acc = new_Node(list.path(), list.line(), operate(optype, acc.numeric_value(), rhs.numeric_value()));
+        acc = new_Node(list.path(), list.line(), operate(op, acc.numeric_value(), rhs.numeric_value()));
       }
       else {
-        acc = new_Node(list.path(), list.line(), operate(optype, acc.numeric_value(), rhs.numeric_value()), acc.unit());
+        acc = new_Node(list.path(), list.line(), operate(op, acc.numeric_value(), rhs.numeric_value()), acc.unit());
       }
     }
     else if (ltype == Node::number && rtype == Node::numeric_color) {
-      if (optype != Node::sub && optype != Node::div) {
-        double r = operate(optype, acc.numeric_value(), rhs[0].numeric_value());
-        double g = operate(optype, acc.numeric_value(), rhs[1].numeric_value());
-        double b = operate(optype, acc.numeric_value(), rhs[2].numeric_value());
+      if (optype == Node::add || optype == Node::mul) {
+        double r = operate(op, acc.numeric_value(), rhs[0].numeric_value());
+        double g = operate(op, acc.numeric_value(), rhs[1].numeric_value());
+        double b = operate(op, acc.numeric_value(), rhs[2].numeric_value());
         double a = rhs[3].numeric_value();
         acc = new_Node(list.path(), list.line(), r, g, b, a);
       }
-      else (optype == Node::div || optype) {
+      else {
         acc = (new_Node(Node::concatenation, list.path(), list.line(), 3) << acc);
         acc << op;
         acc << rhs;        
       }
     }
     else if (ltype == Node::numeric_color && rtype == Node::number) {
-      double r = operate(optype, acc[0].numeric_value(), rhs.numeric_value());
-      double g = operate(optype, acc[1].numeric_value(), rhs.numeric_value());
-      double b = operate(optype, acc[2].numeric_value(), rhs.numeric_value());
+      double r = operate(op, acc[0].numeric_value(), rhs.numeric_value());
+      double g = operate(op, acc[1].numeric_value(), rhs.numeric_value());
+      double b = operate(op, acc[2].numeric_value(), rhs.numeric_value());
       double a = acc[3].numeric_value();
       acc = new_Node(list.path(), list.line(), r, g, b, a);
     }
     else if (ltype == Node::numeric_color && rtype == Node::numeric_color) {
       if (acc[3].numeric_value() != rhs[3].numeric_value()) throw_eval_error("alpha channels must be equal for " + acc.to_string() + " + " + rhs.to_string(), acc.path(), acc.line());
-      double r = operate(optype, acc[0].numeric_value(), rhs[0].numeric_value());
-      double g = operate(optype, acc[1].numeric_value(), rhs[1].numeric_value());
-      double b = operate(optype, acc[2].numeric_value(), rhs[2].numeric_value());
+      double r = operate(op, acc[0].numeric_value(), rhs[0].numeric_value());
+      double g = operate(op, acc[1].numeric_value(), rhs[1].numeric_value());
+      double b = operate(op, acc[2].numeric_value(), rhs[2].numeric_value());
       double a = acc[3].numeric_value();
       acc = new_Node(list.path(), list.line(), r, g, b, a);
     }
-    // NOT DONE YET!
-    return reduce(list, head + 3, acc, new_Node);
+    else { // two lists
+      if (optype != Node::mul) {
+        acc = (new_Node(Node::value_schema, list.path(), list.line(), 2) << acc);
+        if (optype != Node::add) acc << op;
+        acc << rhs;
+      }
+      else {
+        throw_eval_error("cannot multiply lists", op.path(), op.line());
+      }
+    }
+    return reduce(list, head + 2, acc, new_Node);
   }
 
-  Node accumulate(Node::Type op, Node acc, Node rhs, Node_Factory& new_Node)
-  {
-    Node lhs(acc.back());
-    double lnum = lhs.numeric_value();
-    double rnum = rhs.numeric_value();
+  // Node accumulate(Node::Type op, Node acc, Node rhs, Node_Factory& new_Node)
+  // {
+  //   Node lhs(acc.back());
+  //   double lnum = lhs.numeric_value();
+  //   double rnum = rhs.numeric_value();
     
-    if (lhs.type() == Node::number && rhs.type() == Node::number) {
-      Node result(new_Node(acc.path(), acc.line(), operate(op, lnum, rnum)));
-      acc.pop_back();
-      acc.push_back(result);
-    }
-    // TO DO: find a way to merge the following two clauses
-    else if (lhs.type() == Node::number && rhs.type() == Node::numeric_dimension) {
-      Node result(new_Node(acc.path(), acc.line(), operate(op, lnum, rnum), rhs.unit()));
-      acc.pop_back();
-      acc.push_back(result);
-    }
-    else if (lhs.type() == Node::numeric_dimension && rhs.type() == Node::number) {
-      Node result(new_Node(acc.path(), acc.line(), operate(op, lnum, rnum), lhs.unit()));
-      acc.pop_back();
-      acc.push_back(result);
-    }
-    else if (lhs.type() == Node::numeric_dimension && rhs.type() == Node::numeric_dimension) {
-      // TO DO: CHECK FOR MISMATCHED UNITS HERE
-      Node result;
-      if (op == Node::div)
-      { result = new_Node(acc.path(), acc.line(), operate(op, lnum, rnum)); }
-      else
-      { result = new_Node(acc.path(), acc.line(), operate(op, lnum, rnum), lhs.unit()); }
-      acc.pop_back();
-      acc.push_back(result);
-    }
-    // TO DO: find a way to merge the following two clauses
-    else if (lhs.type() == Node::number && rhs.type() == Node::numeric_color) {
-      if (op != Node::sub && op != Node::div) {
-        double r = operate(op, lhs.numeric_value(), rhs[0].numeric_value());
-        double g = operate(op, lhs.numeric_value(), rhs[1].numeric_value());
-        double b = operate(op, lhs.numeric_value(), rhs[2].numeric_value());
-        double a = rhs[3].numeric_value();
-        acc.pop_back();
-        acc << new_Node(acc.path(), acc.line(), r, g, b, a);
-      }
-      // trying to handle weird edge cases ... not sure if it's worth it
-      else if (op == Node::div) {
-        acc << new_Node(Node::div, acc.path(), acc.line(), 0);
-        acc << rhs;
-      }
-      else if (op == Node::sub) {
-        acc << new_Node(Node::sub, acc.path(), acc.line(), 0);
-        acc << rhs;
-      }
-      else {
-        acc << rhs;
-      }
-    }
-    else if (lhs.type() == Node::numeric_color && rhs.type() == Node::number) {
-      double r = operate(op, lhs[0].numeric_value(), rhs.numeric_value());
-      double g = operate(op, lhs[1].numeric_value(), rhs.numeric_value());
-      double b = operate(op, lhs[2].numeric_value(), rhs.numeric_value());
-      double a = lhs[3].numeric_value();
-      acc.pop_back();
-      acc << new_Node(acc.path(), acc.line(), r, g, b, a);
-    }
-    else if (lhs.type() == Node::numeric_color && rhs.type() == Node::numeric_color) {
-      if (lhs[3].numeric_value() != rhs[3].numeric_value()) throw_eval_error("alpha channels must be equal for " + lhs.to_string() + " + " + rhs.to_string(), lhs.path(), lhs.line());
-      double r = operate(op, lhs[0].numeric_value(), rhs[0].numeric_value());
-      double g = operate(op, lhs[1].numeric_value(), rhs[1].numeric_value());
-      double b = operate(op, lhs[2].numeric_value(), rhs[2].numeric_value());
-      double a = lhs[3].numeric_value();
-      acc.pop_back();
-      acc << new_Node(acc.path(), acc.line(), r, g, b, a);
-    }
-    else if (lhs.type() == Node::concatenation && rhs.type() == Node::concatenation) {
-      if (op == Node::add) {
-        lhs += rhs;
-      }
-      else {
-        acc << new_Node(op, acc.path(), acc.line(), Token::make());
-        acc << rhs;
-      }
-    }
-    else if (lhs.type() == Node::concatenation && rhs.type() == Node::string_constant) {
-      if (op == Node::add) {
-        lhs << rhs;
-      }
-      else {
-        acc << new_Node(op, acc.path(), acc.line(), Token::make());
-        acc << rhs;
-      }
-    }
-    else if (lhs.type() == Node::string_constant && rhs.type() == Node::concatenation) {
-      if (op == Node::add) {
-        Node new_cat(new_Node(Node::concatenation, lhs.path(), lhs.line(), 1 + rhs.size()));
-        new_cat << lhs;
-        new_cat += rhs;
-        acc.pop_back();
-        acc << new_cat;
-      }
-      else {
-        acc << new_Node(op, acc.path(), acc.line(), Token::make());
-        acc << rhs;
-      }
-    }
-    else if (lhs.type() == Node::string_constant && rhs.type() == Node::string_constant) {
-      if (op == Node::add) {
-        Node new_cat(new_Node(Node::concatenation, lhs.path(), lhs.line(), 2));
-        new_cat << lhs << rhs;
-        acc.pop_back();
-        acc << new_cat;
-      }
-      else {
-        acc << new_Node(op, acc.path(), acc.line(), Token::make());
-        acc << rhs;
-      }
-    }
-    else {
-      // TO DO: disallow division and multiplication on lists
-      if (op == Node::sub) acc << new_Node(Node::sub, acc.path(), acc.line(), Token::make());
-      acc.push_back(rhs);
-    }
+  //   if (lhs.type() == Node::number && rhs.type() == Node::number) {
+  //     Node result(new_Node(acc.path(), acc.line(), operate(op, lnum, rnum)));
+  //     acc.pop_back();
+  //     acc.push_back(result);
+  //   }
+  //   // TO DO: find a way to merge the following two clauses
+  //   else if (lhs.type() == Node::number && rhs.type() == Node::numeric_dimension) {
+  //     Node result(new_Node(acc.path(), acc.line(), operate(op, lnum, rnum), rhs.unit()));
+  //     acc.pop_back();
+  //     acc.push_back(result);
+  //   }
+  //   else if (lhs.type() == Node::numeric_dimension && rhs.type() == Node::number) {
+  //     Node result(new_Node(acc.path(), acc.line(), operate(op, lnum, rnum), lhs.unit()));
+  //     acc.pop_back();
+  //     acc.push_back(result);
+  //   }
+  //   else if (lhs.type() == Node::numeric_dimension && rhs.type() == Node::numeric_dimension) {
+  //     // TO DO: CHECK FOR MISMATCHED UNITS HERE
+  //     Node result;
+  //     if (op == Node::div)
+  //     { result = new_Node(acc.path(), acc.line(), operate(op, lnum, rnum)); }
+  //     else
+  //     { result = new_Node(acc.path(), acc.line(), operate(op, lnum, rnum), lhs.unit()); }
+  //     acc.pop_back();
+  //     acc.push_back(result);
+  //   }
+  //   // TO DO: find a way to merge the following two clauses
+  //   else if (lhs.type() == Node::number && rhs.type() == Node::numeric_color) {
+  //     if (op != Node::sub && op != Node::div) {
+  //       double r = operate(op, lhs.numeric_value(), rhs[0].numeric_value());
+  //       double g = operate(op, lhs.numeric_value(), rhs[1].numeric_value());
+  //       double b = operate(op, lhs.numeric_value(), rhs[2].numeric_value());
+  //       double a = rhs[3].numeric_value();
+  //       acc.pop_back();
+  //       acc << new_Node(acc.path(), acc.line(), r, g, b, a);
+  //     }
+  //     // trying to handle weird edge cases ... not sure if it's worth it
+  //     else if (op == Node::div) {
+  //       acc << new_Node(Node::div, acc.path(), acc.line(), 0);
+  //       acc << rhs;
+  //     }
+  //     else if (op == Node::sub) {
+  //       acc << new_Node(Node::sub, acc.path(), acc.line(), 0);
+  //       acc << rhs;
+  //     }
+  //     else {
+  //       acc << rhs;
+  //     }
+  //   }
+  //   else if (lhs.type() == Node::numeric_color && rhs.type() == Node::number) {
+  //     double r = operate(op, lhs[0].numeric_value(), rhs.numeric_value());
+  //     double g = operate(op, lhs[1].numeric_value(), rhs.numeric_value());
+  //     double b = operate(op, lhs[2].numeric_value(), rhs.numeric_value());
+  //     double a = lhs[3].numeric_value();
+  //     acc.pop_back();
+  //     acc << new_Node(acc.path(), acc.line(), r, g, b, a);
+  //   }
+  //   else if (lhs.type() == Node::numeric_color && rhs.type() == Node::numeric_color) {
+  //     if (lhs[3].numeric_value() != rhs[3].numeric_value()) throw_eval_error("alpha channels must be equal for " + lhs.to_string() + " + " + rhs.to_string(), lhs.path(), lhs.line());
+  //     double r = operate(op, lhs[0].numeric_value(), rhs[0].numeric_value());
+  //     double g = operate(op, lhs[1].numeric_value(), rhs[1].numeric_value());
+  //     double b = operate(op, lhs[2].numeric_value(), rhs[2].numeric_value());
+  //     double a = lhs[3].numeric_value();
+  //     acc.pop_back();
+  //     acc << new_Node(acc.path(), acc.line(), r, g, b, a);
+  //   }
+  //   else if (lhs.type() == Node::concatenation && rhs.type() == Node::concatenation) {
+  //     if (op == Node::add) {
+  //       lhs += rhs;
+  //     }
+  //     else {
+  //       acc << new_Node(op, acc.path(), acc.line(), Token::make());
+  //       acc << rhs;
+  //     }
+  //   }
+  //   else if (lhs.type() == Node::concatenation && rhs.type() == Node::string_constant) {
+  //     if (op == Node::add) {
+  //       lhs << rhs;
+  //     }
+  //     else {
+  //       acc << new_Node(op, acc.path(), acc.line(), Token::make());
+  //       acc << rhs;
+  //     }
+  //   }
+  //   else if (lhs.type() == Node::string_constant && rhs.type() == Node::concatenation) {
+  //     if (op == Node::add) {
+  //       Node new_cat(new_Node(Node::concatenation, lhs.path(), lhs.line(), 1 + rhs.size()));
+  //       new_cat << lhs;
+  //       new_cat += rhs;
+  //       acc.pop_back();
+  //       acc << new_cat;
+  //     }
+  //     else {
+  //       acc << new_Node(op, acc.path(), acc.line(), Token::make());
+  //       acc << rhs;
+  //     }
+  //   }
+  //   else if (lhs.type() == Node::string_constant && rhs.type() == Node::string_constant) {
+  //     if (op == Node::add) {
+  //       Node new_cat(new_Node(Node::concatenation, lhs.path(), lhs.line(), 2));
+  //       new_cat << lhs << rhs;
+  //       acc.pop_back();
+  //       acc << new_cat;
+  //     }
+  //     else {
+  //       acc << new_Node(op, acc.path(), acc.line(), Token::make());
+  //       acc << rhs;
+  //     }
+  //   }
+  //   else {
+  //     // TO DO: disallow division and multiplication on lists
+  //     if (op == Node::sub) acc << new_Node(Node::sub, acc.path(), acc.line(), Token::make());
+  //     acc.push_back(rhs);
+  //   }
 
-    return acc;
-  }
+  //   return acc;
+  // }
 
   // Helper for doing the actual arithmetic.
 
-  double operate(Node::Type op, double lhs, double rhs)
+  double operate(Node op, double lhs, double rhs)
   {
-    switch (op)
+    switch (op.type())
     {
       case Node::add: return lhs + rhs; break;
       case Node::sub: return lhs - rhs; break;
       case Node::mul: return lhs * rhs; break;
-      case Node::div: return lhs / rhs; break;
+      case Node::div: {
+        if (rhs == 0) throw_eval_error("divide by zero", op.path(), op.line());
+        return lhs / rhs;
+      } break;
       default:        return 0;         break;
     }
   }
@@ -728,7 +751,7 @@ namespace Sass {
         if (!env.query(arg_name)) {
           throw_eval_error(callee_name + " has no parameter named " + arg_name.to_string(), arg.path(), arg.line());
         }
-        if (!env[arg_name].is_stub()) {
+        if (!env[arg_name].is_none()) {
           throw_eval_error(callee_name + " was passed argument " + arg_name.to_string() + " both by position and by name", arg.path(), arg.line());
         }
         env[arg_name] = arg_value;
@@ -739,7 +762,7 @@ namespace Sass {
     for (size_t i = 0, S = params.size(); i < S; ++i) {
       Node param(params[i]);
       Token param_name((param.type() == Node::assignment ? param[0] : param).token());
-      if (env[param_name].is_stub()) {
+      if (env[param_name].is_none()) {
         if (param.type() != Node::assignment) {
           throw_eval_error(callee_name + " is missing argument " + param_name.to_string(), args.path(), args.line());
         }
@@ -780,7 +803,7 @@ namespace Sass {
     // bind arguments in the extended environment
     stringstream mixin_name;
     mixin_name << "mixin";
-    if (mixin[0].type() != Node::none) mixin_name << " " << mixin[0].to_string();
+    if (!mixin[0].is_none()) mixin_name << " " << mixin[0].to_string();
     bind_arguments(mixin_name.str(), params, args, prefix, bindings, f_env, new_Node, ctx);
     // evaluate the mixin's body
     for (size_t i = 0, S = body.size(); i < S; ++i) {
