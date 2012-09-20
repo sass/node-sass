@@ -224,15 +224,19 @@ namespace Sass {
       } break;
 
       case Node::expression: {
-        Node acc(new_Node(Node::expression, expr.path(), expr.line(), 1));
-        acc << eval(expr[0], prefix, env, f_env, new_Node, ctx);
-        Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
-        accumulate(expr[1].type(), acc, rhs, new_Node);
-        for (size_t i = 3, S = expr.size(); i < S; i += 2) {
-          Node rhs(eval(expr[i+1], prefix, env, f_env, new_Node, ctx));
-          accumulate(expr[i].type(), acc, rhs, new_Node);
+        for (size_t i = 0, S = expr.size(); i < S; ++i) {
+          expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
         }
-        return acc.size() == 1 ? acc[0] : acc;
+        return reduce(expr, 0, Node(), new_Node);
+        // Node acc(new_Node(Node::expression, expr.path(), expr.line(), 1));
+        // acc << eval(expr[0], prefix, env, f_env, new_Node, ctx);
+        // Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
+        // accumulate(expr[1].type(), acc, rhs, new_Node);
+        // for (size_t i = 3, S = expr.size(); i < S; i += 2) {
+        //   Node rhs(eval(expr[i+1], prefix, env, f_env, new_Node, ctx));
+        //   accumulate(expr[i].type(), acc, rhs, new_Node);
+        // }
+        // return acc.size() == 1 ? acc[0] : acc;
       } break;
 
       case Node::term: {
@@ -486,6 +490,46 @@ namespace Sass {
   // Accumulate arithmetic operations. It's done this way because arithmetic
   // expressions are stored as vectors of operands with operators interspersed,
   // rather than as the usual binary tree.
+
+  Node reduce(Node list, size_t head, Node acc, Node_Factory& new_Node)
+  {
+    if (head >= list.size()) return acc;
+    Node rhs(list[head]);
+    Node op(list[head + 1]);
+    Node::Type optype = op.type();
+    if (acc.is_string()) {
+      acc = new_Node(Node::concatenation, list.path(), list.line(), 2);
+      if (optype == Node::sub || optype == Node::div || optype == Node::mul) {
+        acc << op;
+      }
+      acc << rhs;
+    }
+    Node::Type ltype = acc.type();
+    Node::Type rtype = rhs.type();
+    if (ltype == Node::number && rtype == Node::number) {
+      acc = new_Node(list.path(), list.line(), operate(optype, acc.numeric_value(), rhs.numeric_value()));
+    }
+    else if (ltype == Node::number && rtype == Node::numeric_dimension) {
+      acc = new_Node(list.path(), list.line(), operate(optype, acc.numeric_value(), rhs.numeric_value()), rhs.unit());
+    }
+    else if (ltype == Node::number && rtype == Node::numeric_dimension) {
+      acc = new_Node(list.path(), list.line(), operate(optype, acc.numeric_value(), rhs.numeric_value()), acc.unit());
+    }
+    else if (ltype == Node::numeric_dimension && rtype == Node::numeric_dimension) {
+      // TO DO: TRUE UNIT ARITHMETIC
+      if (optype == Node::div) {
+        acc = new_Node(list.path(), list.line(), operate(optype, acc.numeric_value(), rhs.numeric_value()));
+      }
+      else {
+        acc = new_Node(list.path(), list.line(), operate(optype, acc.numeric_value(), rhs.numeric_value()), acc.unit());
+      }
+    }
+    else if (ltype == Node::number && rtype == Node::numeric_color) {
+      
+    }
+
+    return reduce(list, head + 3, acc, new_Node);
+  }
 
   Node accumulate(Node::Type op, Node acc, Node rhs, Node_Factory& new_Node)
   {

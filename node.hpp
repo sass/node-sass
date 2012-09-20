@@ -193,6 +193,7 @@ namespace Sass {
     bool& is_unquoted() const; // for strings
     bool& is_quoted() const;   // for identifiers
     bool is_numeric() const;
+    bool is_string() const; // for all string-like types
     bool is_guarded() const;
     bool& has_been_extended() const;
     bool is_false() const;
@@ -292,6 +293,27 @@ namespace Sass {
     
     bool is_numeric()
     { return type >= Node::number && type <= Node::numeric_dimension; }
+
+    bool is_string()
+    {
+      switch (type)
+      {
+        case Node::string_t:
+        case Node::identifier:
+        case Node::value_schema:
+        case Node::identifier_schema:
+        case Node::string_constant:
+        case Node::string_schema:
+        case Node::concatenation: {
+          return true;
+        } break;
+
+        default: {
+          return false;
+        } break;
+      }
+      return false;
+    }
 
     size_t size()
     { return children.size(); }
@@ -405,6 +427,7 @@ namespace Sass {
   inline bool& Node::is_unquoted() const   { return ip_->is_unquoted; }
   inline bool& Node::is_quoted() const     { return ip_->is_quoted; }
   inline bool Node::is_numeric() const     { return ip_->is_numeric(); }
+  inline bool Node::is_string() const      { return ip_->is_string(); }
   inline bool Node::is_guarded() const     { return (type() == assignment) && (size() == 3); }
   inline bool& Node::has_been_extended() const { return ip_->has_been_extended; }
   inline bool Node::is_false() const       { return (type() == boolean) && (boolean_value() == false); }
