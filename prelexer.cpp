@@ -1,8 +1,12 @@
 #include <cctype>
-#include "prelexer.hpp"
 #include <iostream>
+#include "constants.hpp"
+#include "prelexer.hpp"
+
 
 namespace Sass {
+  using namespace Constants;
+
   namespace Prelexer {
     using std::cerr; using std::endl;
     // Matches zero characters (always succeeds without consuming input).
@@ -33,11 +37,11 @@ namespace Sass {
     const char* puncts(const char* src) { return one_plus<punct>(src); }
         
     // Match a line comment.
-    extern const char slash_slash[] = "//";
+
     const char* line_comment(const char* src) { return to_endl<slash_slash>(src); }
     // Match a block comment.
-    extern const char slash_star[] = "/*";
-    extern const char star_slash[] = "*/";
+
+
     const char* block_comment(const char* src) {
       return sequence< optional_spaces, delimited_by<slash_star, star_slash, false> >(src);
     }
@@ -56,8 +60,8 @@ namespace Sass {
       return alternatives<double_quoted_string, single_quoted_string>(src);
     }
     // Match interpolants.
-    extern const char hash_lbrace[] = "#{";
-    extern const char rbrace[] = "}";
+
+
     const char* interpolant(const char* src) {
       return delimited_by<hash_lbrace, rbrace, false>(src);
     }
@@ -109,77 +113,73 @@ namespace Sass {
     const char* at_keyword(const char* src) {
       return sequence<exactly<'@'>, identifier>(src);
     }
-    extern const char import_kwd[] = "@import";
+
     const char* import(const char* src) {
       return exactly<import_kwd>(src);
     }
-    extern const char media_kwd[] = "@media";
+
     const char* media(const char* src) {
       return exactly<media_kwd>(src);
     }
-    extern const char mixin_kwd[] = "@mixin";
+
     const char* mixin(const char* src) {
       return exactly<mixin_kwd>(src);
     }
-    extern const char function_kwd[] = "@function";
+
     const char* function(const char* src) {
       return exactly<function_kwd>(src);
     }
-    extern const char return_kwd[] = "@return";
+
     const char* return_directive(const char* src) {
       return exactly<return_kwd>(src);
     }
-    extern const char include_kwd[] = "@include";
+
     const char* include(const char* src) {
       return exactly<include_kwd>(src);
     }
-    extern const char extend_kwd[] = "@extend";
+
     const char* extend(const char* src) {
       return exactly<extend_kwd>(src);
     }
 
-    extern const char if_kwd[] = "@if";
-    extern const char if_chars[] = "if";
+
     const char* if_directive(const char* src) {
       return exactly<if_kwd>(src);
     }
-    extern const char else_kwd[] = "@else";
+
     const char* else_directive(const char* src) {
       return exactly<else_kwd>(src);
     }
     const char* elseif_directive(const char* src) {
       return sequence< else_directive,
                        spaces_and_comments,
-                       exactly< if_chars > >(src);
+                       exactly< if_after_else_kwd > >(src);
     }
 
-    extern const char for_kwd[] = "@for";
     const char* for_directive(const char* src) {
       return exactly<for_kwd>(src);
     }
-    extern const char from_kwd[] = "from";
+
     const char* from(const char* src) {
       return exactly<from_kwd>(src);
     }
-    extern const char to_kwd[] = "to";
+
     const char* to(const char* src) {
       return exactly<to_kwd>(src);
     }
-    extern const char through_kwd[] = "through";
+
     const char* through(const char* src) {
       return exactly<through_kwd>(src);
     }
 
-    extern const char each_kwd[] = "@each";
     const char* each_directive(const char* src) {
       return exactly<each_kwd>(src);
     }
-    extern const char in_kwd[] = "in";
+
     const char* in(const char* src) {
       return exactly<in_kwd>(src);
     }
 
-    extern const char while_kwd[] = "@while";
     const char* while_directive(const char* src) {
       return exactly<while_kwd>(src);
     }
@@ -190,7 +190,6 @@ namespace Sass {
                                      exactly<'_'> > >(src);
     }
 
-    extern const char warn_kwd[] = "@warn";
     const char* warn(const char* src) {
       return exactly<warn_kwd>(src);
     }
@@ -219,7 +218,7 @@ namespace Sass {
       return sequence<exactly<'.'>, identifier>(src);
     }
     // Match CSS numeric constants.
-    extern const char sign_chars[] = "-+";
+
     const char* sign(const char* src) {
       return class_char<sign_chars>(src);
     }
@@ -246,21 +245,7 @@ namespace Sass {
     const char* percentage(const char* src) {
       return sequence< number, exactly<'%'> >(src);
     }
-    extern const char em_kwd[] = "em";
-    extern const char ex_kwd[] = "ex";
-    extern const char px_kwd[] = "px";
-    extern const char cm_kwd[] = "cm";
-    extern const char mm_kwd[] = "mm";
-    // extern const char in_kwd[] = "in";
-    extern const char pt_kwd[] = "pt";
-    extern const char pc_kwd[] = "pc";
-    extern const char deg_kwd[] = "deg";
-    extern const char rad_kwd[] = "rad";
-    extern const char grad_kwd[] = "grad";
-    extern const char ms_kwd[] = "ms";
-    extern const char s_kwd[] = "s";
-    extern const char Hz_kwd[] = "Hz";
-    extern const char kHz_kwd[] = "kHz";
+
     const char* em(const char* src) {
       return sequence< number, exactly<em_kwd> >(src);
     }
@@ -272,12 +257,12 @@ namespace Sass {
       int len = p - src;
       return (len != 4 && len != 7) ? 0 : p;
     }
-    extern const char rgb_kwd[] = "rgb(";
+
     const char* rgb_prefix(const char* src) {
       return exactly<rgb_kwd>(src);
     }
     // Match CSS uri specifiers.
-    extern const char url_kwd[] = "url(";
+
     const char* uri_prefix(const char* src) {
       return exactly<url_kwd>(src);
     }
@@ -299,19 +284,16 @@ namespace Sass {
                        filename_schema >(src); // optional trailing slash
     }
     // Match SCSS image-url function
-    extern const char image_url_kwd[] = "image-url(";
     const char* image_url_prefix(const char* src) {
       return exactly<image_url_kwd>(src);
     }
     // Match CSS "!important" keyword.
-    extern const char important_kwd[] = "important";
     const char* important(const char* src) {
       return sequence< exactly<'!'>,
                        spaces_and_comments,
                        exactly<important_kwd> >(src);
     }
     // Match Sass "!default" keyword.
-    extern const char default_kwd[] = "default";
     const char* default_flag(const char* src) {
       return sequence< exactly<'!'>,
                        spaces_and_comments,
@@ -326,25 +308,17 @@ namespace Sass {
       return sequence< alternatives< identifier_schema, identifier >, exactly<'('> >(src);
     }
     // Match the CSS negation pseudo-class.
-    extern const char pseudo_not_chars[] = ":not(";
     const char* pseudo_not(const char* src) {
-      return exactly< pseudo_not_chars >(src);
+      return exactly< pseudo_not_kwd >(src);
     }
     // Match CSS 'odd' and 'even' keywords for functional pseudo-classes.
-    extern const char even_chars[] = "even";
-    extern const char odd_chars[]  = "odd";
     const char* even(const char* src) {
-      return exactly<even_chars>(src);
+      return exactly<even_kwd>(src);
     }
     const char* odd(const char* src) {
-      return exactly<odd_chars>(src);
+      return exactly<odd_kwd>(src);
     }
     // Match CSS attribute-matching operators.
-    extern const char tilde_equal[]  = "~=";
-    extern const char pipe_equal[]   = "|=";
-    extern const char caret_equal[]  = "^=";
-    extern const char dollar_equal[] = "$=";
-    extern const char star_equal[]   = "*=";
     const char* exact_match(const char* src) { return exactly<'='>(src); }
     const char* class_match(const char* src) { return exactly<tilde_equal>(src); }
     const char* dash_match(const char* src) { return exactly<pipe_equal>(src); }
@@ -371,50 +345,38 @@ namespace Sass {
     }
     
     // Match Sass boolean keywords.
-    extern const char and_chars[]   = "and";
-    extern const char or_chars[]    = "or";
-    extern const char not_chars[]   = "not";
-    extern const char gt_chars[]    = ">";
-    extern const char gte_chars[]   = ">=";
-    extern const char lt_chars[]    = "<";
-    extern const char lte_chars[]   = "<=";
-    extern const char eq_chars[]    = "==";
-    extern const char neq_chars[]   = "!=";
-    extern const char true_chars[]  = "true";
-    extern const char false_chars[] = "false";
-
-    const char* true_kwd(const char* src) {
-      return exactly<true_chars>(src);
+    const char* true_val(const char* src) {
+      return exactly<true_kwd>(src);
     }
-    const char* false_kwd(const char* src) {
-      return exactly<false_chars>(src);
+    const char* false_val(const char* src) {
+      return exactly<false_kwd>(src);
     }
-    const char* and_kwd(const char* src) {
-      return exactly<and_chars>(src);
+    const char* and_op(const char* src) {
+      return exactly<and_kwd>(src);
     }
-    const char* or_kwd(const char* src) {
-      return exactly<or_chars>(src);
+    const char* or_op(const char* src) {
+      return exactly<or_kwd>(src);
     }
-    const char* not_kwd(const char* src) {
-      return exactly<not_chars>(src);
+    const char* not_op(const char* src) {
+      return exactly<not_kwd>(src);
     }
     const char* eq_op(const char* src) {
-      return exactly<eq_chars>(src);
+      return exactly<eq>(src);
     }
     const char* neq_op(const char* src) {
-      return exactly<neq_chars>(src);
+      return exactly<neq>(src);
     }
     const char* gt_op(const char* src) {
-      return exactly<gt_chars>(src);
+      return exactly<gt>(src);
     }
     const char* gte_op(const char* src) {
-      return exactly<gte_chars>(src);
+      return exactly<gte>(src);
     }
     const char* lt_op(const char* src) {
-      return exactly<lt_chars>(src);
+      return exactly<lt>(src);
     }
     const char* lte_op(const char* src) {
-      return exactly<lte_chars>(src);
+      return exactly<lte>(src);
     }
     
     // Path matching functions.

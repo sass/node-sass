@@ -390,11 +390,11 @@ namespace Sass {
     const char* variable(const char* src);
     
     // Match Sass boolean keywords.
-    const char* true_kwd(const char* src);
-    const char* false_kwd(const char* src);
-    const char* and_kwd(const char* src);
-    const char* or_kwd(const char* src);
-    const char* not_kwd(const char* src);
+    const char* true_val(const char* src);
+    const char* false_val(const char* src);
+    const char* and_op(const char* src);
+    const char* or_op(const char* src);
+    const char* not_op(const char* src);
     const char* eq_op(const char* src);
     const char* neq_op(const char* src);
     const char* gt_op(const char* src);
@@ -449,11 +449,5 @@ namespace Sass {
       }
       return counter;
     }
-
-    extern const char if_kwd[];
-    extern const char for_kwd[];
-    extern const char each_kwd[];
-    extern const char while_kwd[];
-    
   }
 }

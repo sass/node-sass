@@ -1,5 +1,6 @@
-#include "prelexer.hpp"
 #include "eval_apply.hpp"
+#include "constants.hpp"
+#include "prelexer.hpp"
 #include "document.hpp"
 #include "error.hpp"
 #include <cctype>
@@ -8,6 +9,7 @@
 #include <cstdlib>
 
 namespace Sass {
+  using namespace Constants;
   using std::cerr; using std::endl;
 
   static void throw_eval_error(string message, string path, size_t line)
@@ -417,7 +419,7 @@ namespace Sass {
       case Node::for_to_directive: {
         Node fake_mixin(new_Node(Node::mixin, expr.path(), expr.line(), 3));
         Node fake_param(new_Node(Node::parameters, expr.path(), expr.line(), 1));
-        fake_mixin << new_Node(Node::identifier, "", 0, Token::make(Prelexer::for_kwd)) << (fake_param << expr[0]) << expr[3];
+        fake_mixin << new_Node(Node::identifier, "", 0, Token::make(for_kwd)) << (fake_param << expr[0]) << expr[3];
         Node lower_bound(eval(expr[1], prefix, env, f_env, new_Node, ctx));
         Node upper_bound(eval(expr[2], prefix, env, f_env, new_Node, ctx));
         if (!(lower_bound.is_numeric() && upper_bound.is_numeric())) {
@@ -441,7 +443,7 @@ namespace Sass {
       case Node::each_directive: {
         Node fake_mixin(new_Node(Node::mixin, expr.path(), expr.line(), 3));
         Node fake_param(new_Node(Node::parameters, expr.path(), expr.line(), 1));
-        fake_mixin << new_Node(Node::identifier, "", 0, Token::make(Prelexer::each_kwd)) << (fake_param << expr[0]) << expr[2];
+        fake_mixin << new_Node(Node::identifier, "", 0, Token::make(each_kwd)) << (fake_param << expr[0]) << expr[2];
         Node list(eval(expr[1], prefix, env, f_env, new_Node, ctx));
         // If the list isn't really a list, make a singleton out of it.
         if (list.type() != Node::space_list && list.type() != Node::comma_list) {
@@ -461,7 +463,7 @@ namespace Sass {
         Node fake_mixin(new_Node(Node::mixin, expr.path(), expr.line(), 3));
         Node fake_param(new_Node(Node::parameters, expr.path(), expr.line(), 0));
         Node fake_arg(new_Node(Node::arguments, expr.path(), expr.line(), 0));
-        fake_mixin << new_Node(Node::identifier, "", 0, Token::make(Prelexer::while_kwd)) << fake_param << expr[1];
+        fake_mixin << new_Node(Node::identifier, "", 0, Token::make(while_kwd)) << fake_param << expr[1];
         Node pred(expr[0]);
         expr.pop_back();
         expr.pop_back();
@@ -504,26 +506,13 @@ namespace Sass {
     Node::Type optype = op.type();
     Node::Type ltype = acc.type();
     Node::Type rtype = rhs.type();
-    if (ltype == Node::concatenation && rtype == Node::concatenation) {
-      if (optype != Node::add) acc << op;
-      acc += rhs;
-    }
-    else if (ltype == Node::concatenation) {
-      if (optype != Node::add) acc << op;
-      acc << rhs;
-    }
-    else if (rtype == Node::concatenation) {
-      acc = (new_Node(Node::concatenation, list.path(), list.line(), 2) << acc);
-      acc += rhs;
-      acc.is_quoted() = acc[0].is_quoted();
-      acc.is_unquoted() = acc[0].is_unquoted();
-    }
-    else if (acc.is_string() || rhs.is_string()) {
+    if (ltype == Node::number && rhs.is_string()) {
       acc = (new_Node(Node::concatenation, list.path(), list.line(), 2) << acc);
       if (optype != Node::add) acc << op;
-      acc << rhs;
-      acc.is_quoted() = acc[0].is_quoted();
-      acc.is_unquoted() = acc[0].is_unquoted();
+      if (rtype == Node::concatenation) acc += rhs;
+      else                              acc << rhs;
+      acc.is_quoted() = rhs.is_quoted();
+      acc.is_unquoted() = rhs.is_unquoted(); 
     }
     else if (ltype == Node::number && rtype == Node::number) {
       acc = new_Node(list.path(), list.line(), operate(op, acc.numeric_value(), rhs.numeric_value()));
@@ -573,6 +562,30 @@ namespace Sass {
       double b = operate(op, acc[2].numeric_value(), rhs[2].numeric_value());
       double a = acc[3].numeric_value();
       acc = new_Node(list.path(), list.line(), r, g, b, a);
+    }
+    else if (ltype == Node::concatenation && rtype == Node::concatenation) {
+      if (optype != Node::add) acc << op;
+      acc += rhs;
+    }
+    else if (ltype == Node::concatenation) {
+      if (optype != Node::add) acc << op;
+      acc << rhs;
+    }
+    else if (rtype == Node::concatenation) {
+      acc = (new_Node(Node::concatenation, list.path(), list.line(), 2) << acc);
+      if (optype != Node::add) acc << op;
+      acc += rhs;
+      acc.is_quoted() = acc[0].is_quoted();
+      acc.is_unquoted() = acc[0].is_unquoted();
+    }
+    else if (acc.is_string() || rhs.is_string()) {
+      acc = (new_Node(Node::concatenation, list.path(), list.line(), 2) << acc);
+      if (optype != Node::add) acc << op;
+      acc << rhs;
+      if (!acc[0].is_string()) {
+        acc.is_quoted() = false;
+        acc.is_unquoted() = true;
+      }
     }
     else { // lists or schemas
       if (acc.is_schema() && rhs.is_schema()) {

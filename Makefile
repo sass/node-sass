@@ -2,7 +2,7 @@ CC=g++
 CFLAGS=-c -Wall -O2 -fPIC
 LDFLAGS= -fPIC
 SOURCES = \
-	context.cpp functions.cpp document.cpp \
+	constants.cpp context.cpp functions.cpp document.cpp \
 	document_parser.cpp eval_apply.cpp node.cpp \
 	node_factory.cpp node_emitters.cpp prelexer.cpp \
 	sass_interface.cpp

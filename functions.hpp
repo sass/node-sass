@@ -10,6 +10,7 @@
 namespace Sass {
   struct Environment;
   struct Context;
+  struct Node_Factory;
 
   using std::map;
   

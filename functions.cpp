@@ -1,22 +1,24 @@
-#ifndef SASS_PRELEXER
-#include "prelexer.hpp"
-#endif
-
-#include "node_factory.hpp"
-#include "functions.hpp"
-#include "context.hpp"
-#include "document.hpp"
-#include "eval_apply.hpp"
-#include "error.hpp"
-
 #include <iostream>
 #include <sstream>
 #include <cmath>
 #include <algorithm>
 
+#include "functions.hpp"
+#include "constants.hpp"
+#include "node_factory.hpp"
+#include "context.hpp"
+#include "document.hpp"
+#include "eval_apply.hpp"
+#include "error.hpp"
+
+#ifndef SASS_PRELEXER
+#include "prelexer.hpp"
+#endif
+
 using std::cerr; using std::endl; using std::stringstream;
 
 namespace Sass {
+  using namespace Constants;
 
   // this constructor needs context.hpp, so it can't be defined in functions.hpp
   // because including context.hpp in functions.hpp would be circular
@@ -44,20 +46,6 @@ namespace Sass {
   }
 
   namespace Functions {
-
-    extern const char true_str[]  = "true";
-    extern const char false_str[] = "false";
-
-    extern const char empty_str[]   = "";
-    extern const char percent_str[] = "%";
-    extern const char deg_str[]     = "deg";
-
-    extern const char numeric_name[] = "numeric value";
-    extern const char number_name[] = "number";
-    extern const char string_name[] = "string";
-    extern const char bool_name[]   = "bool";
-    extern const char color_name[]  = "color";
-    extern const char list_name[]   = "list";
 
     static void throw_eval_error(string message, string& path, size_t line)
     {
@@ -336,7 +324,7 @@ namespace Sass {
                                 rgb_color[1].numeric_value(),
                                 rgb_color[2].numeric_value(),
                                 new_Node, path, line));
-      return new_Node(path, line, hsl_color[0].numeric_value(), Token::make(deg_str));
+      return new_Node(path, line, hsl_color[0].numeric_value(), Token::make(deg_kwd));
     }
 
     extern Signature saturation_sig = "saturation($color)";

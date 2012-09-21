@@ -1,9 +1,15 @@
-#include "document.hpp"
-#include "error.hpp"
 #include <iostream>
+#include "document.hpp"
+#include "constants.hpp"
+#include "error.hpp"
+
+#ifndef SASS_PRELEXER
+#include "prelexer.hpp"
+#endif
 
 namespace Sass {
   using namespace std;
+  using namespace Constants;
 
   void Document::parse_scss()
   {
@@ -315,8 +321,6 @@ namespace Sass {
     return ruleset;
   }
 
-  extern const char hash_lbrace[] = "#{";
-  extern const char rbrace[] = "}";
   Node Document::parse_selector_schema(const char* end_of_selector)
   {    
     const char* i = position;
@@ -713,11 +717,11 @@ namespace Sass {
   {
     Node conj1(parse_conjunction());
     // if it's a singleton, return it directly; don't wrap it
-    if (!peek< sequence< or_kwd, negate< identifier > > >()) return conj1;
+    if (!peek< sequence< or_op, negate< identifier > > >()) return conj1;
     
     Node disjunction(context.new_Node(Node::disjunction, path, line, 2));
     disjunction << conj1;
-    while (lex< sequence< or_kwd, negate< identifier > > >()) disjunction << parse_conjunction();
+    while (lex< sequence< or_op, negate< identifier > > >()) disjunction << parse_conjunction();
     disjunction.should_eval() = true;
     
     return disjunction;
@@ -727,11 +731,11 @@ namespace Sass {
   {
     Node rel1(parse_relation());
     // if it's a singleton, return it directly; don't wrap it
-    if (!peek< sequence< and_kwd, negate< identifier > > >()) return rel1;
+    if (!peek< sequence< and_op, negate< identifier > > >()) return rel1;
     
     Node conjunction(context.new_Node(Node::conjunction, path, line, 2));
     conjunction << rel1;
-    while (lex< sequence< and_kwd, negate< identifier > > >()) conjunction << parse_relation();
+    while (lex< sequence< and_op, negate< identifier > > >()) conjunction << parse_relation();
     conjunction.should_eval() = true;
     return conjunction;
   }
@@ -901,10 +905,10 @@ namespace Sass {
     if (lex< value_schema >())
     { return Document::make_from_token(context, lexed, path, line).parse_value_schema(); }
     
-    if (lex< sequence< true_kwd, negate< identifier > > >())
+    if (lex< sequence< true_val, negate< identifier > > >())
     { return context.new_Node(Node::boolean, path, line, true); }
     
-    if (lex< sequence< false_kwd, negate< identifier > > >())
+    if (lex< sequence< false_val, negate< identifier > > >())
     { return context.new_Node(Node::boolean, path, line, false); }
         
     if (lex< important >())
@@ -1208,13 +1212,11 @@ namespace Sass {
     return media_query;
   }
 
-  // extern const char not_kwd[] = "not";
-  extern const char only_kwd[] = "only";
   Node Document::parse_media_expression()
   {
     Node media_expr(context.new_Node(Node::media_expression, path, line, 1));
     // if the query begins with 'not' or 'only', then a media type is required
-    if (lex< not_kwd >() || lex< exactly<only_kwd> >()) {
+    if (lex< not_op >() || lex< exactly<only_kwd> >()) {
       media_expr << context.new_Node(Node::identifier, path, line, lexed);
       if (!lex< identifier >()) throw_syntax_error("media type expected in media query");
       media_expr << context.new_Node(Node::identifier, path, line, lexed);
@@ -1231,7 +1233,7 @@ namespace Sass {
     }
     // parse the rest of the properties for this disjunct
     while (!peek< exactly<','> >() && !peek< exactly<'{'> >()) {
-      if (!lex< and_kwd >()) throw_syntax_error("invalid media query");
+      if (!lex< and_op >()) throw_syntax_error("invalid media query");
       media_expr << context.new_Node(Node::identifier, path, line, lexed);
       if (!lex< exactly<'('> >()) throw_syntax_error("invalid media query");
       media_expr << parse_rule();

@@ -1,11 +1,13 @@
 #include <sstream>
 #include <algorithm>
-#include "node.hpp"
-#include "error.hpp"
 #include <iostream>
+#include "node.hpp"
+#include "constants.hpp"
+#include "error.hpp"
 
 namespace Sass {
   using namespace std;
+  using namespace Constants;
 
   // ------------------------------------------------------------------------
   // Node method implementations
@@ -340,8 +342,6 @@ namespace Sass {
     return 0;
   }
   
-  extern const char percent_str[] = "%";
-  extern const char empty_str[]   = "";
   Token Node_Impl::unit()
   {
     switch (type)

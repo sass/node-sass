@@ -1,15 +1,17 @@
-#include "context.hpp"
 #include <cstring>
 #include <iostream>
 #include <sstream>
 #include <unistd.h>
-#include "prelexer.hpp"
+#include "context.hpp"
+#include "constants.hpp"
 #include "color_names.hpp"
-using std::cerr; using std::endl;
+#include "prelexer.hpp"
+
 
 namespace Sass {
-  using std::pair;
-  
+  using namespace Constants;
+  using std::pair; using std::cerr; using std::endl;
+
   void Context::collect_include_paths(const char* paths_str)
   {
     const size_t wd_len = 1024;
@@ -65,6 +67,7 @@ namespace Sass {
     path_string = "'" + path_string + "/'";
     image_path = new char[path_string.length() + 1];
     std::strcpy(image_path, path_string.c_str());
+    global_env[Token::make(image_path_var)] = new_Node(Node::string_constant, "", 0, Token::make(image_path));
   }
   
   Context::~Context()
