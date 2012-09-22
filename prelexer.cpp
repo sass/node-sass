@@ -283,10 +283,6 @@ namespace Sass {
       return sequence< optional< sequence< identifier, exactly<':'> > >, // optional protocol
                        filename_schema >(src); // optional trailing slash
     }
-    // Match SCSS image-url function
-    const char* image_url_prefix(const char* src) {
-      return exactly<image_url_kwd>(src);
-    }
     // Match CSS "!important" keyword.
     const char* important(const char* src) {
       return sequence< exactly<'!'>,

@@ -62,10 +62,16 @@ namespace Sass {
           return numeric_name;
         } break;
 
-        case Node::number:
-        case Node::numeric_percentage:
-        case Node::numeric_dimension: {
+        case Node::number: {
           return number_name;
+        } break;
+
+        case Node::numeric_percentage: {
+          return percentage_name;
+        } break;
+
+        case Node::numeric_dimension: {
+          return dimension_name;
         } break;
 
         case Node::string_t:
@@ -1163,5 +1169,22 @@ namespace Sass {
       return consequent;
     }
 
+    ////////////////////////////////////////////////////////////////////////
+    // Path Functions //////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+
+    extern Signature image_url_sig = "image-url($path, $only-path: false, $cache-buster: false)";
+    Node image_url(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
+      Node base_path(bindings[parameter_names[0].token()]);
+      bool only_path = !bindings[parameter_names[1].token()].is_false();
+      Node image_path_val(bindings[Token::make(image_path_var)]);
+
+      Node result(new_Node(Node::concatenation, path, line, 2));
+      result << image_path_val;
+      result << base_path;
+      if (!only_path) result = (new_Node(Node::uri, path, line, 1) << result);
+
+      return result;
+    }
   }
 }

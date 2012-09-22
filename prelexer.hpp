@@ -359,8 +359,6 @@ namespace Sass {
     const char* uri_prefix(const char* src);
     const char* uri(const char* src);
     const char* url(const char* src);
-    // Match SCSS image-url function.
-    const char* image_url_prefix(const char* src);
     // Match CSS "!important" keyword.
     const char* important(const char* src);
     // Match Sass "!default" keyword.

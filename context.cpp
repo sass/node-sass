@@ -67,7 +67,9 @@ namespace Sass {
     path_string = "'" + path_string + "/'";
     image_path = new char[path_string.length() + 1];
     std::strcpy(image_path, path_string.c_str());
-    global_env[Token::make(image_path_var)] = new_Node(Node::string_constant, "", 0, Token::make(image_path));
+
+    // stash this hidden variable for the image-url built-in to use
+    global_env[Token::make(image_path_var)] = new_Node(Node::string_constant, "[IMAGE PATH]", 0, Token::make(image_path));
   }
   
   Context::~Context()
@@ -159,6 +161,8 @@ namespace Sass {
     // Boolean Functions
     register_function(not_sig, not_impl);
     register_function(if_sig, if_impl);
+    // Path Functions
+    register_function(image_url_sig, image_url);
   }
 
   void Context::setup_color_map()

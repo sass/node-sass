@@ -218,6 +218,9 @@ namespace Sass {
     extern Signature if_sig;
     Node if_impl(const Node, Environment&, Node_Factory&, string& path, size_t line);
 
+    // Path Functions //////////////////////////////////////////////////////
+
+    extern Signature image_url_sig;
+    Node image_url(const Node, Environment&, Node_Factory&, string& path, size_t line);
   }
-  
 }

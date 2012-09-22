@@ -81,15 +81,18 @@ namespace Sass {
     extern const char star_slash[]  = "*/";
     extern const char hash_lbrace[] = "#{";
     extern const char rbrace[]      = "}";
+    extern const char rparen[]      = ")";
     extern const char sign_chars[]  = "-+";
 
     // type names
-    extern const char numeric_name[] = "numeric value";
-    extern const char number_name[]  = "number";
-    extern const char string_name[]  = "string";
-    extern const char bool_name[]    = "bool";
-    extern const char color_name[]   = "color";
-    extern const char list_name[]    = "list";
+    extern const char numeric_name[]    = "numeric value";
+    extern const char number_name[]     = "number";
+    extern const char percentage_name[] = "percentage";
+    extern const char dimension_name[]  = "numeric dimension";
+    extern const char string_name[]     = "string";
+    extern const char bool_name[]       = "bool";
+    extern const char color_name[]      = "color";
+    extern const char list_name[]       = "list";
 
   }
 }
