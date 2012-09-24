@@ -193,9 +193,12 @@ namespace Sass {
     extern Signature append_sig;
     Node append(const Node, Environment&, Node_Factory&, string& path, size_t line);
 
-    extern Signature compact_sig;
-    Node compact(const Node, Environment&, Node_Factory&, string& path, size_t line);
-    
+    extern Signature compact_1_sig;
+    Node compact_1(const Node, Environment&, Node_Factory&, string& path, size_t line);
+
+    extern Signature compact_n_sig;
+    Node compact_n(const Node, Environment&, Node_Factory&, string& path, size_t line);
+
     // Introspection Functions /////////////////////////////////////////////
     
     extern Signature type_of_sig;

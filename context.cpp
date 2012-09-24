@@ -152,7 +152,20 @@ namespace Sass {
     register_function(nth_sig, nth);
     register_function(join_sig, join);
     register_function(append_sig, append);
-    register_function(compact_sig, compact);
+    register_overload_stub("compact");
+    register_function(compact_1_sig, compact_1, 1);
+    register_function(compact_n_sig, compact_n, 0);
+    register_function(compact_n_sig, compact_n, 2);
+    register_function(compact_n_sig, compact_n, 3);
+    register_function(compact_n_sig, compact_n, 4);
+    register_function(compact_n_sig, compact_n, 5);
+    register_function(compact_n_sig, compact_n, 6);
+    register_function(compact_n_sig, compact_n, 7);
+    register_function(compact_n_sig, compact_n, 8);
+    register_function(compact_n_sig, compact_n, 9);
+    register_function(compact_n_sig, compact_n, 10);
+    register_function(compact_n_sig, compact_n, 11);
+    register_function(compact_n_sig, compact_n, 12);
     // Introspection Functions
     register_function(type_of_sig, type_of);
     register_function(unit_sig, unit);

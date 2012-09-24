@@ -1002,35 +1002,31 @@ namespace Sass {
       return new_list;
     }
 
-    extern Signature compact_sig = "compact($arg1: false, $arg2: false, $arg3: false, $arg4: false, $arg5: false, $arg6: false, $arg7: false, $arg8: false, $arg9: false, $arg10: false, $arg11: false, $arg12: false)";
-    Node compact(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node first_arg(bindings[parameter_names[0].token()]);
-      Node rest_args(new_Node(Node::comma_list, path, line, 0));
-      for (size_t i = 1, S = bindings.current_frame.size(); i < S; ++i) {
+    extern Signature compact_1_sig = "compact($arg1)";
+    Node compact_1(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
+      Node the_arg(bindings[parameter_names[0].token()]);
+
+      if (the_arg.type() == Node::comma_list || the_arg.type() == Node::space_list) {
+        Node non_nils(new_Node(the_arg.type(), path, line, 0));
+        for (size_t i = 0, S = the_arg.size(); i < S; ++i) {
+          Node elt(the_arg[i]);
+          if (!elt.is_false()) non_nils << new_Node(path, line, elt);
+        }
+        return non_nils.size() > 0 ? non_nils : new_Node(Node::nil, path, line, 0);
+      }
+
+      return new_Node(path, line, the_arg);
+    }
+
+    extern Signature compact_n_sig = "compact($arg1: false, $arg2: false, $arg3: false, $arg4: false, $arg5: false, $arg6: false, $arg7: false, $arg8: false, $arg9: false, $arg10: false, $arg11: false, $arg12: false)";
+    Node compact_n(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
+      Node non_nils(new_Node(Node::comma_list, path, line, 0));
+      for (size_t i = 0, S = bindings.current_frame.size(); i < S; ++i) {
         Node the_arg(bindings[parameter_names[i].token()]);
-        if (!the_arg.is_false()) rest_args << new_Node(path, line, the_arg);
+        if (!the_arg.is_false()) non_nils << new_Node(path, line, the_arg);
       }
-      if (rest_args.size() > 0) {
-        Node result(new_Node(Node::comma_list, path, line, rest_args.size() + (first_arg.is_false() ? 0 : 1)));
-        if (!first_arg.is_false()) result << new_Node(path, line, first_arg);
-        result += rest_args;
-        return result;
-      }
-      else {
-        Node::Type first_type = first_arg.type();
-        if (first_type == Node::space_list || first_type == Node::comma_list) {
-          Node result(new_Node(first_type, path, line, 0));
-          for (size_t i = 0, S = first_arg.size(); i < S; ++i) {
-            if (!first_arg[i].is_false()) result << new_Node(path, line, first_arg[i]);
-          }
-          return result;
-        }
-        else {
-          return new_Node(path, line, first_arg);
-        }
-      }
-      // unreachable
-      return Node();
+
+      return non_nils.size() > 0 ? non_nils : new_Node(Node::nil, path, line, 0);
     }
 
     ////////////////////////////////////////////////////////////////////////
