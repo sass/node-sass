@@ -483,11 +483,9 @@ namespace Sass {
     return expr;
   }
 
-  // Reduce arithmetic operations. It's done this way because arithmetic
-  // expressions are stored as vectors of operands with operators interspersed,
-  // rather than as the usual binary tree. (This function is essentially a
-  // left fold.)
-
+  // Reduce arithmetic operations. Arithmetic expressions are stored as vectors
+  // of operands with operators interspersed, rather than as the usual binary
+  // tree. (This function is essentially a left fold.)
   Node reduce(Node list, size_t head, Node acc, Node_Factory& new_Node)
   {
     if (head >= list.size()) return acc;
@@ -602,132 +600,7 @@ namespace Sass {
     return reduce(list, head + 2, acc, new_Node);
   }
 
-  // Node accumulate(Node::Type op, Node acc, Node rhs, Node_Factory& new_Node)
-  // {
-  //   Node lhs(acc.back());
-  //   double lnum = lhs.numeric_value();
-  //   double rnum = rhs.numeric_value();
-    
-  //   if (lhs.type() == Node::number && rhs.type() == Node::number) {
-  //     Node result(new_Node(acc.path(), acc.line(), operate(op, lnum, rnum)));
-  //     acc.pop_back();
-  //     acc.push_back(result);
-  //   }
-  //   // TO DO: find a way to merge the following two clauses
-  //   else if (lhs.type() == Node::number && rhs.type() == Node::numeric_dimension) {
-  //     Node result(new_Node(acc.path(), acc.line(), operate(op, lnum, rnum), rhs.unit()));
-  //     acc.pop_back();
-  //     acc.push_back(result);
-  //   }
-  //   else if (lhs.type() == Node::numeric_dimension && rhs.type() == Node::number) {
-  //     Node result(new_Node(acc.path(), acc.line(), operate(op, lnum, rnum), lhs.unit()));
-  //     acc.pop_back();
-  //     acc.push_back(result);
-  //   }
-  //   else if (lhs.type() == Node::numeric_dimension && rhs.type() == Node::numeric_dimension) {
-  //     // TO DO: CHECK FOR MISMATCHED UNITS HERE
-  //     Node result;
-  //     if (op == Node::div)
-  //     { result = new_Node(acc.path(), acc.line(), operate(op, lnum, rnum)); }
-  //     else
-  //     { result = new_Node(acc.path(), acc.line(), operate(op, lnum, rnum), lhs.unit()); }
-  //     acc.pop_back();
-  //     acc.push_back(result);
-  //   }
-  //   // TO DO: find a way to merge the following two clauses
-  //   else if (lhs.type() == Node::number && rhs.type() == Node::numeric_color) {
-  //     if (op != Node::sub && op != Node::div) {
-  //       double r = operate(op, lhs.numeric_value(), rhs[0].numeric_value());
-  //       double g = operate(op, lhs.numeric_value(), rhs[1].numeric_value());
-  //       double b = operate(op, lhs.numeric_value(), rhs[2].numeric_value());
-  //       double a = rhs[3].numeric_value();
-  //       acc.pop_back();
-  //       acc << new_Node(acc.path(), acc.line(), r, g, b, a);
-  //     }
-  //     // trying to handle weird edge cases ... not sure if it's worth it
-  //     else if (op == Node::div) {
-  //       acc << new_Node(Node::div, acc.path(), acc.line(), 0);
-  //       acc << rhs;
-  //     }
-  //     else if (op == Node::sub) {
-  //       acc << new_Node(Node::sub, acc.path(), acc.line(), 0);
-  //       acc << rhs;
-  //     }
-  //     else {
-  //       acc << rhs;
-  //     }
-  //   }
-  //   else if (lhs.type() == Node::numeric_color && rhs.type() == Node::number) {
-  //     double r = operate(op, lhs[0].numeric_value(), rhs.numeric_value());
-  //     double g = operate(op, lhs[1].numeric_value(), rhs.numeric_value());
-  //     double b = operate(op, lhs[2].numeric_value(), rhs.numeric_value());
-  //     double a = lhs[3].numeric_value();
-  //     acc.pop_back();
-  //     acc << new_Node(acc.path(), acc.line(), r, g, b, a);
-  //   }
-  //   else if (lhs.type() == Node::numeric_color && rhs.type() == Node::numeric_color) {
-  //     if (lhs[3].numeric_value() != rhs[3].numeric_value()) throw_eval_error("alpha channels must be equal for " + lhs.to_string() + " + " + rhs.to_string(), lhs.path(), lhs.line());
-  //     double r = operate(op, lhs[0].numeric_value(), rhs[0].numeric_value());
-  //     double g = operate(op, lhs[1].numeric_value(), rhs[1].numeric_value());
-  //     double b = operate(op, lhs[2].numeric_value(), rhs[2].numeric_value());
-  //     double a = lhs[3].numeric_value();
-  //     acc.pop_back();
-  //     acc << new_Node(acc.path(), acc.line(), r, g, b, a);
-  //   }
-  //   else if (lhs.type() == Node::concatenation && rhs.type() == Node::concatenation) {
-  //     if (op == Node::add) {
-  //       lhs += rhs;
-  //     }
-  //     else {
-  //       acc << new_Node(op, acc.path(), acc.line(), Token::make());
-  //       acc << rhs;
-  //     }
-  //   }
-  //   else if (lhs.type() == Node::concatenation && rhs.type() == Node::string_constant) {
-  //     if (op == Node::add) {
-  //       lhs << rhs;
-  //     }
-  //     else {
-  //       acc << new_Node(op, acc.path(), acc.line(), Token::make());
-  //       acc << rhs;
-  //     }
-  //   }
-  //   else if (lhs.type() == Node::string_constant && rhs.type() == Node::concatenation) {
-  //     if (op == Node::add) {
-  //       Node new_cat(new_Node(Node::concatenation, lhs.path(), lhs.line(), 1 + rhs.size()));
-  //       new_cat << lhs;
-  //       new_cat += rhs;
-  //       acc.pop_back();
-  //       acc << new_cat;
-  //     }
-  //     else {
-  //       acc << new_Node(op, acc.path(), acc.line(), Token::make());
-  //       acc << rhs;
-  //     }
-  //   }
-  //   else if (lhs.type() == Node::string_constant && rhs.type() == Node::string_constant) {
-  //     if (op == Node::add) {
-  //       Node new_cat(new_Node(Node::concatenation, lhs.path(), lhs.line(), 2));
-  //       new_cat << lhs << rhs;
-  //       acc.pop_back();
-  //       acc << new_cat;
-  //     }
-  //     else {
-  //       acc << new_Node(op, acc.path(), acc.line(), Token::make());
-  //       acc << rhs;
-  //     }
-  //   }
-  //   else {
-  //     // TO DO: disallow division and multiplication on lists
-  //     if (op == Node::sub) acc << new_Node(Node::sub, acc.path(), acc.line(), Token::make());
-  //     acc.push_back(rhs);
-  //   }
-
-  //   return acc;
-  // }
-
   // Helper for doing the actual arithmetic.
-
   double operate(Node op, double lhs, double rhs)
   {
     switch (op.type())
