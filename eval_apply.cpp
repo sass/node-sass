@@ -230,15 +230,6 @@ namespace Sass {
           expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
         }
         return reduce(expr, 1, expr[0], new_Node);
-        // Node acc(new_Node(Node::expression, expr.path(), expr.line(), 1));
-        // acc << eval(expr[0], prefix, env, f_env, new_Node, ctx);
-        // Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
-        // accumulate(expr[1].type(), acc, rhs, new_Node);
-        // for (size_t i = 3, S = expr.size(); i < S; i += 2) {
-        //   Node rhs(eval(expr[i+1], prefix, env, f_env, new_Node, ctx));
-        //   accumulate(expr[i].type(), acc, rhs, new_Node);
-        // }
-        // return acc.size() == 1 ? acc[0] : acc;
       } break;
 
       case Node::term: {
@@ -247,15 +238,6 @@ namespace Sass {
             expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
           }
           return reduce(expr, 1, expr[0], new_Node);
-          // Node acc(new_Node(Node::expression, expr.path(), expr.line(), 1));
-          // acc << eval(expr[0], prefix, env, f_env, new_Node, ctx);
-          // Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
-          // accumulate(expr[1].type(), acc, rhs, new_Node);
-          // for (size_t i = 3, S = expr.size(); i < S; i += 2) {
-          //   Node rhs(eval(expr[i+1], prefix, env, f_env, new_Node, ctx));
-          //   accumulate(expr[i].type(), acc, rhs, new_Node);
-          // }
-          // return acc.size() == 1 ? acc[0] : acc;
         }
         else {
           return expr;

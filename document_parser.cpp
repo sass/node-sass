@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include "document.hpp"
 #include "constants.hpp"
@@ -907,17 +908,45 @@ namespace Sass {
     if (lex< identifier >())
     { return context.new_Node(Node::identifier, path, line, lexed); }
 
-    if (lex< percentage >())
-    { return context.new_Node(Node::textual_percentage, path, line, lexed); }
+    // if (lex< percentage >())
+    // { return context.new_Node(Node::textual_percentage, path, line, lexed); }
 
-    if (lex< dimension >())
-    { return context.new_Node(Node::textual_dimension, path, line, lexed); }
+    // if (lex< dimension >())
+    // { return context.new_Node(Node::textual_dimension, path, line, lexed); }
+
+    // if (lex< number >())
+    // { return context.new_Node(Node::textual_number, path, line, lexed); }
+
+    // if (lex< hex >())
+    // { return context.new_Node(Node::textual_hex, path, line, lexed); }
+
+    if (lex< percentage >())
+    { return context.new_Node(path, line, atof(lexed.begin), Node::numeric_percentage); }
+
+    if (lex< dimension >()) {
+      return context.new_Node(path, line, atof(lexed.begin),
+                              Token::make(Prelexer::number(lexed.begin), lexed.end));
+    }
 
     if (lex< number >())
-    { return context.new_Node(Node::textual_number, path, line, lexed); }
+    { return context.new_Node(path, line, atof(lexed.begin)); }
 
-    if (lex< hex >())
-    { return context.new_Node(Node::textual_hex, path, line, lexed); }
+    if (lex< hex >()) {
+      Node triple(context.new_Node(Node::numeric_color, path, line, 4));
+      Token hext(Token::make(lexed.begin+1, lexed.end));
+      if (hext.length() == 6) {
+        for (int i = 0; i < 6; i += 2) {
+          triple << context.new_Node(path, line, static_cast<double>(strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
+        }
+      }
+      else {
+        for (int i = 0; i < 3; ++i) {
+          triple << context.new_Node(path, line, static_cast<double>(strtol(string(2, hext.begin[i]).c_str(), NULL, 16)));
+        }
+      }
+      triple << context.new_Node(path, line, 1.0);
+      return triple;
+    }
 
     if (peek< string_constant >())
     { return parse_string(); } 
@@ -989,16 +1018,30 @@ namespace Sass {
         schema << context.new_Node(Node::identifier, path, line, lexed);
       }
       else if (lex< percentage >()) {
-        schema << context.new_Node(Node::textual_percentage, path, line, lexed);
+        schema << context.new_Node(path, line, atof(lexed.begin), Node::numeric_percentage);
       }
       else if (lex< dimension >()) {
-        schema << context.new_Node(Node::textual_dimension, path, line, lexed);
+        schema << context.new_Node(path, line, atof(lexed.begin),
+                                   Token::make(Prelexer::number(lexed.begin), lexed.end));
       }
       else if (lex< number >()) {
-        schema << context.new_Node(Node::textual_number, path, line, lexed);
+        schema << context.new_Node(path, line, atof(lexed.begin));
       }
       else if (lex< hex >()) {
-        schema << context.new_Node(Node::textual_hex, path, line, lexed);
+        Node triple(context.new_Node(Node::numeric_color, path, line, 4));
+        Token hext(Token::make(lexed.begin+1, lexed.end));
+        if (hext.length() == 6) {
+          for (int i = 0; i < 6; i += 2) {
+            triple << context.new_Node(path, line, static_cast<double>(strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
+          }
+        }
+        else {
+          for (int i = 0; i < 3; ++i) {
+            triple << context.new_Node(path, line, static_cast<double>(strtol(string(2, hext.begin[i]).c_str(), NULL, 16)));
+          }
+        }
+        triple << context.new_Node(path, line, 1.0);
+        schema << triple;
       }
       else if (lex< string_constant >()) {
         schema << context.new_Node(Node::string_constant, path, line, lexed);
