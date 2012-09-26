@@ -278,6 +278,14 @@ namespace Sass {
       
       case Node::variable: {
         if (!env.query(expr.token())) throw_eval_error("reference to unbound variable " + expr.token().to_string(), expr.path(), expr.line());
+
+        cerr << "ACCESSING VARIABLE " << expr.token().to_string() << endl;
+
+        cerr << endl << "*** ENV DUMP ***" << endl;
+        env.print();
+        cerr << "*** END ENV ***" << endl << endl;
+
+
         return env[expr.token()];
       } break;
 
@@ -454,6 +462,7 @@ namespace Sass {
 
       case Node::warning: {
         expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
+        cerr << "WARNING:" << expr.path() << ":" << expr.line() << " -- " << expr[0].to_string() << endl;
         return expr;
       } break;
 
@@ -759,10 +768,14 @@ namespace Sass {
             val = eval(val, Node(), bindings, ctx.function_env, new_Node, ctx);
           }
           Node var(stm[0]);
+          // cerr << "ASSIGNMENT IN FUNCTION: " << var.to_string() << ": " << val.to_string() << endl;
           if (stm.is_guarded() && bindings.query(var.token())) continue;
           // If a binding exists (possibly upframe), then update it.
           // Otherwise, make a new one in the current frame.
           if (bindings.query(var.token())) {
+            cerr << "MODIFYING EXISTING BINDING FOR " << var.token().to_string() << endl;
+            cerr << "CURRENT VALUE: " << bindings[var.token()].to_string() << endl;
+            cerr << "NEW VALUE: " << val.to_string() << endl;
             bindings[var.token()] = val;
           }
           else {
@@ -818,7 +831,11 @@ namespace Sass {
           each_env.link(bindings);
           for (size_t j = 0, T = list.size(); j < T; ++j) {
             each_env.current_frame[iter_var.token()] = eval(list[j], Node(), bindings, ctx.function_env, new_Node, ctx);
+            cerr << "EACH with " << iter_var.token().to_string() << ": " << each_env[iter_var.token()].to_string() << endl;
             Node v(function_eval(name, each_body, each_env, new_Node, ctx));
+            // cerr << endl << "*** ENV DUMP ***" << endl;
+            // each_env.print();
+            // cerr << "*** END ENV ***" << endl << endl;
             if (v.is_null_ptr()) continue;
             else return v;
           }
@@ -838,6 +855,11 @@ namespace Sass {
             }
             else return v;
           }
+        } break;
+
+        case Node::warning: {
+          stm[0] = eval(stm[0], Node(), bindings, ctx.function_env, new_Node, ctx);
+          cerr << "WARNING:" << stm.path() << ":" << stm.line() << " -- " << stm[0].to_string() << endl;
         } break;
 
         case Node::return_directive: {

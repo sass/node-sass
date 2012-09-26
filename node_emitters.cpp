@@ -368,17 +368,17 @@ namespace Sass {
       } break;
 
       case warning: {
-        string prefix("WARNING: ");
-        string indent("         ");
-        Node contents(at(0));
-        string result(contents.to_string());
-        if (contents.type() == string_constant || contents.type() == string_schema) {
-          result = result.substr(1, result.size()-2); // unquote if it's a single string
-        }
-        // These cerrs aren't log lines! They're supposed to be here!
-        cerr << prefix << result << endl;
-        cerr << indent << "on line " << at(0).line() << " of " << at(0).path();
-        cerr << endl << endl;
+        // string prefix("WARNING: ");
+        // string indent("         ");
+        // Node contents(at(0));
+        // string result(contents.to_string());
+        // if (contents.type() == string_constant || contents.type() == string_schema) {
+        //   result = result.substr(1, result.size()-2); // unquote if it's a single string
+        // }
+        // // These cerrs aren't log lines! They're supposed to be here!
+        // cerr << prefix << result << endl;
+        // cerr << indent << "on line " << at(0).line() << " of " << at(0).path();
+        // cerr << endl << endl;
         return "";
       } break;
       
