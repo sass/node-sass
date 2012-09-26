@@ -279,11 +279,11 @@ namespace Sass {
       case Node::variable: {
         if (!env.query(expr.token())) throw_eval_error("reference to unbound variable " + expr.token().to_string(), expr.path(), expr.line());
 
-        cerr << "ACCESSING VARIABLE " << expr.token().to_string() << endl;
+        // cerr << "ACCESSING VARIABLE " << expr.token().to_string() << endl;
 
-        cerr << endl << "*** ENV DUMP ***" << endl;
-        env.print();
-        cerr << "*** END ENV ***" << endl << endl;
+        // cerr << endl << "*** ENV DUMP ***" << endl;
+        // env.print();
+        // cerr << "*** END ENV ***" << endl << endl;
 
 
         return env[expr.token()];
@@ -742,6 +742,7 @@ namespace Sass {
       bindings.link(env.global ? *env.global : env);
       // bind the arguments
       bind_arguments("function " + f.name, params, args, prefix, bindings, f_env, new_Node, ctx);
+      // TO DO: consider cloning the function body
       return function_eval(f.name, body, bindings, new_Node, ctx, true);
     }
   }
@@ -758,7 +759,7 @@ namespace Sass {
       switch (stm.type())
       {
         case Node::assignment: {
-          Node val(stm[1]);
+          Node val(new_Node(stm[1])); // clone the value because it might get mutated in place
           if (val.type() == Node::comma_list || val.type() == Node::space_list) {
             for (size_t i = 0, S = val.size(); i < S; ++i) {
               if (val[i].should_eval()) val[i] = eval(val[i], Node(), bindings, ctx.function_env, new_Node, ctx);
@@ -773,9 +774,9 @@ namespace Sass {
           // If a binding exists (possibly upframe), then update it.
           // Otherwise, make a new one in the current frame.
           if (bindings.query(var.token())) {
-            cerr << "MODIFYING EXISTING BINDING FOR " << var.token().to_string() << endl;
-            cerr << "CURRENT VALUE: " << bindings[var.token()].to_string() << endl;
-            cerr << "NEW VALUE: " << val.to_string() << endl;
+            // cerr << "MODIFYING EXISTING BINDING FOR " << var.token().to_string() << endl;
+            // cerr << "CURRENT VALUE: " << bindings[var.token()].to_string() << endl;
+            // cerr << "NEW VALUE: " << val.to_string() << endl;
             bindings[var.token()] = val;
           }
           else {
@@ -831,7 +832,7 @@ namespace Sass {
           each_env.link(bindings);
           for (size_t j = 0, T = list.size(); j < T; ++j) {
             each_env.current_frame[iter_var.token()] = eval(list[j], Node(), bindings, ctx.function_env, new_Node, ctx);
-            cerr << "EACH with " << iter_var.token().to_string() << ": " << each_env[iter_var.token()].to_string() << endl;
+            // cerr << "EACH with " << iter_var.token().to_string() << ": " << each_env[iter_var.token()].to_string() << endl;
             Node v(function_eval(name, each_body, each_env, new_Node, ctx));
             // cerr << endl << "*** ENV DUMP ***" << endl;
             // each_env.print();
@@ -858,6 +859,7 @@ namespace Sass {
         } break;
 
         case Node::warning: {
+          stm = new_Node(stm);
           stm[0] = eval(stm[0], Node(), bindings, ctx.function_env, new_Node, ctx);
           cerr << "WARNING:" << stm.path() << ":" << stm.line() << " -- " << stm[0].to_string() << endl;
         } break;
