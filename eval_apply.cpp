@@ -461,8 +461,21 @@ namespace Sass {
       } break;
 
       case Node::warning: {
-        expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
-        cerr << "WARNING:" << expr.path() << ":" << expr.line() << " -- " << expr[0].to_string() << endl;
+        expr = new_Node(expr);
+        expr[0] = eval(expr[0], Node(), env, f_env, new_Node, ctx);
+
+        string prefix("WARNING: ");
+        string indent("         ");
+        Node contents(expr[0]);
+        string result(contents.to_string());
+        if (contents.type() == Node::string_constant || contents.type() == Node::string_schema) {
+          result = result.substr(1, result.size()-2); // unquote if it's a single string
+        }
+        // These cerrs aren't log lines! They're supposed to be here!
+        cerr << prefix << result << endl;
+        cerr << indent << "on line " << expr.line() << " of " << expr.path();
+        cerr << endl << endl;
+
         return expr;
       } break;
 
@@ -862,7 +875,18 @@ namespace Sass {
         case Node::warning: {
           stm = new_Node(stm);
           stm[0] = eval(stm[0], Node(), bindings, ctx.function_env, new_Node, ctx);
-          cerr << "WARNING:" << stm.path() << ":" << stm.line() << " -- " << stm[0].to_string() << endl;
+
+          string prefix("WARNING: ");
+          string indent("         ");
+          Node contents(stm[0]);
+          string result(contents.to_string());
+          if (contents.type() == Node::string_constant || contents.type() == Node::string_schema) {
+            result = result.substr(1, result.size()-2); // unquote if it's a single string
+          }
+          // These cerrs aren't log lines! They're supposed to be here!
+          cerr << prefix << result << endl;
+          cerr << indent << "on line " << stm.line() << " of " << stm.path();
+          cerr << endl << endl;
         } break;
 
         case Node::return_directive: {
