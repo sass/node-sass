@@ -787,7 +787,8 @@ namespace Sass {
         case Node::if_directive: {
           for (size_t j = 0, S = stm.size(); j < S; j += 2) {
             if (stm[j].type() != Node::block) {
-              Node predicate_val(eval(stm[j], Node(), bindings, ctx.function_env, new_Node, ctx));
+              Node pred(new_Node(stm[j]));
+              Node predicate_val(eval(pred, Node(), bindings, ctx.function_env, new_Node, ctx));
               if ((predicate_val.type() != Node::boolean) || predicate_val.boolean_value()) {
                 Node v(function_eval(name, stm[j+1], bindings, new_Node, ctx));
                 if (v.is_null_ptr()) break;
@@ -806,8 +807,8 @@ namespace Sass {
         case Node::for_to_directive: {
           Node::Type for_type = stm.type();
           Node iter_var(stm[0]);
-          Node lower_bound(eval(stm[1], Node(), bindings, ctx.function_env, new_Node, ctx));
-          Node upper_bound(eval(stm[2], Node(), bindings, ctx.function_env, new_Node, ctx));
+          Node lower_bound(eval(new_Node(stm[1]), Node(), bindings, ctx.function_env, new_Node, ctx));
+          Node upper_bound(eval(new_Node(stm[2]), Node(), bindings, ctx.function_env, new_Node, ctx));
           Node for_body(stm[3]);
           Environment for_env; // re-use this env for each iteration
           for_env.link(bindings);
@@ -823,7 +824,7 @@ namespace Sass {
 
         case Node::each_directive: {
           Node iter_var(stm[0]);
-          Node list(eval(stm[1], Node(), bindings, ctx.function_env, new_Node, ctx));
+          Node list(eval(new_Node(stm[1]), Node(), bindings, ctx.function_env, new_Node, ctx));
           if (list.type() != Node::comma_list && list.type() != Node::space_list) {
             list = (new_Node(Node::space_list, list.path(), list.line(), 1) << list);
           }
@@ -843,7 +844,7 @@ namespace Sass {
         } break;
 
         case Node::while_directive: {
-          Node pred_expr(stm[0]);
+          Node pred_expr(new_Node(stm[0]));
           Node while_body(stm[1]);
           Environment while_env; // re-use this env for each iteration
           while_env.link(bindings);
@@ -851,7 +852,7 @@ namespace Sass {
           while ((pred_val.type() != Node::boolean) || pred_val.boolean_value()) {
             Node v(function_eval(name, while_body, while_env, new_Node, ctx));
             if (v.is_null_ptr()) {
-              pred_val = eval(pred_expr, Node(), bindings, ctx.function_env, new_Node, ctx);
+              pred_val = eval(new_Node(stm[0]), Node(), bindings, ctx.function_env, new_Node, ctx);
               continue;
             }
             else return v;
