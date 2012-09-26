@@ -935,6 +935,25 @@ namespace Sass {
       return l[n - 1];
     }
 
+    extern Signature index_sig = "index($list, $value)";
+    Node index(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
+      Node lst(bindings[parameter_names[0].token()]);
+      Node val(bindings[parameter_names[1].token()]);
+      // if $list isn't a list, wrap it in a singleton list
+      Node::Type lst_type = lst.type();
+      if (lst_type != Node::space_list && lst_type != Node::comma_list && lst_type != Node::nil) {
+        lst = (new_Node(Node::space_list, path, line, 1) << lst);
+      }
+
+      if (lst_type == Node::nil) return new_Node(Node::boolean, path, line, false);
+
+      for (size_t i = 0, S = lst.size(); i < S; ++i) {
+        if (lst[i] == val) return new_Node(path, line, i + 1);
+      }
+
+      return new_Node(Node::boolean, path, line, false);
+    }
+
     extern Signature join_sig = "join($list1, $list2, $separator: auto)";
     Node join(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
       // if the args aren't lists, turn them into singleton lists

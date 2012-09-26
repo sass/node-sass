@@ -187,6 +187,9 @@ namespace Sass {
     extern Signature nth_sig;
     Node nth(const Node, Environment&, Node_Factory&, string& path, size_t line);
 
+    extern Signature index_sig;
+    Node index(const Node, Environment&, Node_Factory&, string& path, size_t line);
+
     extern Signature join_sig;    
     Node join(const Node, Environment&, Node_Factory&, string& path, size_t line);
 

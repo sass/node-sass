@@ -150,6 +150,7 @@ namespace Sass {
     // List Functions
     register_function(length_sig, length);
     register_function(nth_sig, nth);
+    register_function(index_sig, index);
     register_function(join_sig, join);
     register_function(append_sig, append);
     register_overload_stub("compact");
