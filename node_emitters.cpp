@@ -120,21 +120,12 @@ namespace Sass {
         return result;
       } break;
 
-      case comma_list: {
+      case list: {
+        if (size() == 0) return "";
         string result(at(0).to_string());
         for (size_t i = 1, S = size(); i < S; ++i) {
-          if (at(i).type() == nil) continue;
-          result += ", ";
-          result += at(i).to_string();
-        }
-        return result;
-      } break;
-      
-      case space_list: {
-        string result(at(0).to_string());
-        for (size_t i = 1, S = size(); i < S; ++i) {
-          if (at(i).type() == nil) continue;
-          result += " ";
+          if (at(i).type() == list && at(i).size() == 0) continue;
+          result += is_comma_separated() ? ", " : " ";
           result += at(i).to_string();
         }
         return result;

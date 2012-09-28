@@ -138,7 +138,7 @@ namespace Sass {
       
       case Node::assignment: {
         Node val(expr[1]);
-        if (val.type() == Node::comma_list || val.type() == Node::space_list) {
+        if (val.type() == Node::list) {
           for (size_t i = 0, S = val.size(); i < S; ++i) {
             if (val[i].should_eval()) val[i] = eval(val[i], prefix, env, f_env, new_Node, ctx);
           }
@@ -163,7 +163,7 @@ namespace Sass {
         Node lhs(expr[0]);
         if (lhs.should_eval()) eval(lhs, prefix, env, f_env, new_Node, ctx);
         Node rhs(expr[1]);
-        if (rhs.type() == Node::comma_list || rhs.type() == Node::space_list) {
+        if (rhs.type() == Node::list) {
           for (size_t i = 0, S = rhs.size(); i < S; ++i) {
             if (rhs[i].should_eval()) rhs[i] = eval(rhs[i], prefix, env, f_env, new_Node, ctx);
           }
@@ -177,8 +177,7 @@ namespace Sass {
         return expr;
       } break;
 
-      case Node::comma_list:
-      case Node::space_list: {
+      case Node::list: {
         if (expr.should_eval()) expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
         return expr;
       } break;
@@ -426,8 +425,8 @@ namespace Sass {
         fake_mixin << new_Node(Node::identifier, "", 0, Token::make(each_kwd)) << (fake_param << expr[0]) << expr[2];
         Node list(eval(expr[1], prefix, env, f_env, new_Node, ctx));
         // If the list isn't really a list, make a singleton out of it.
-        if (list.type() != Node::space_list && list.type() != Node::comma_list) {
-          list = (new_Node(Node::space_list, list.path(), list.line(), 1) << list);
+        if (list.type() != Node::list) {
+          list = (new_Node(Node::list, list.path(), list.line(), 1) << list);
         }
         expr.pop_back();
         expr.pop_back();
@@ -770,7 +769,7 @@ namespace Sass {
       {
         case Node::assignment: {
           Node val(new_Node(stm[1])); // clone the value because it might get mutated in place
-          if (val.type() == Node::comma_list || val.type() == Node::space_list) {
+          if (val.type() == Node::list) {
             for (size_t i = 0, S = val.size(); i < S; ++i) {
               if (val[i].should_eval()) val[i] = eval(val[i], Node(), bindings, ctx.function_env, new_Node, ctx);
             }
@@ -835,8 +834,8 @@ namespace Sass {
         case Node::each_directive: {
           Node iter_var(stm[0]);
           Node list(eval(new_Node(stm[1]), Node(), bindings, ctx.function_env, new_Node, ctx));
-          if (list.type() != Node::comma_list && list.type() != Node::space_list) {
-            list = (new_Node(Node::space_list, list.path(), list.line(), 1) << list);
+          if (list.type() != Node::list) {
+            list = (new_Node(Node::list, list.path(), list.line(), 1) << list);
           }
           Node each_body(stm[2]);
           Environment each_env; // re-use this env for each iteration
@@ -887,8 +886,8 @@ namespace Sass {
         } break;
 
         case Node::return_directive: {
-          Node retval(eval(stm[0], Node(), bindings, ctx.function_env, new_Node, ctx));
-          if (retval.type() == Node::comma_list || retval.type() == Node::space_list) {
+          Node retval(eval(new_Node(stm[0]), Node(), bindings, ctx.function_env, new_Node, ctx));
+          if (retval.type() == Node::list) {
             for (size_t i = 0, S = retval.size(); i < S; ++i) {
               retval[i] = eval(retval[i], Node(), bindings, ctx.function_env, new_Node, ctx);
             }

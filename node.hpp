@@ -74,7 +74,6 @@ namespace Sass {
       any,
       numeric,  // number, numeric_percentage, or numeric_dimension
       string_t, // string_constant, identifier, concatenation, schemata
-      list,     // space_list or comma_list
       comment,
 
       root,
@@ -104,9 +103,7 @@ namespace Sass {
       rule,
       property,
 
-      nil,
-      comma_list,
-      space_list,
+      list,
 
       disjunction,
       conjunction,
@@ -196,6 +193,7 @@ namespace Sass {
     bool is_guarded() const;
     bool& has_been_extended() const;
     bool is_false() const;
+    bool& is_comma_separated() const;
 
     string& path() const;
     size_t line() const;
@@ -270,6 +268,7 @@ namespace Sass {
     bool should_eval;
     bool is_quoted;
     bool has_been_extended;
+    bool is_comma_separated;
 
     Node_Impl()
     : /* value(value_t()),
@@ -285,7 +284,8 @@ namespace Sass {
       from_variable(false),
       should_eval(false),
       is_quoted(false),
-      has_been_extended(false)
+      has_been_extended(false),
+      is_comma_separated(false)
     { }
     
     bool is_numeric()
@@ -446,6 +446,7 @@ namespace Sass {
   inline bool Node::is_guarded() const     { return (type() == assignment) && (size() == 3); }
   inline bool& Node::has_been_extended() const { return ip_->has_been_extended; }
   inline bool Node::is_false() const       { return (type() == boolean) && (boolean_value() == false); }
+  inline bool& Node::is_comma_separated() const { return ip_->is_comma_separated; }
   
   inline string& Node::path() const  { return ip_->path; }
   inline size_t  Node::line() const  { return ip_->line; }

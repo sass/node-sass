@@ -82,12 +82,12 @@ namespace Sass {
 
     switch (t)
     {
-      case comma_list:
-      case space_list:
+      case list:
       case expression:
       case term:
       case numeric_color: {
         if (size() != rhs.size()) return false;
+        if ((t == list) && (is_comma_separated() != rhs.is_comma_separated())) return false;
         for (size_t i = 0, L = size(); i < L; ++i) {
           if (at(i) == rhs[i]) continue;
           else return false;

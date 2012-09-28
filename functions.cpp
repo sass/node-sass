@@ -92,8 +92,7 @@ namespace Sass {
           return color_name;
         } break;
 
-        case Node::space_list:
-        case Node::comma_list: {
+        case Node::list: {
           return list_name;
         } break;
 
@@ -132,10 +131,6 @@ namespace Sass {
             default: break;
 
           } break;
-        } break;
-
-        case Node::list: {
-          if (arg_type == Node::space_list || arg_type == Node::comma_list) return the_arg;
         } break;
 
         default: {
@@ -898,35 +893,18 @@ namespace Sass {
     extern Signature length_sig = "length($list)";
     Node length(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
       Node arg(bindings[parameter_names[0].token()]);
-      switch (arg.type())
-      {
-        case Node::space_list:
-        case Node::comma_list: {
-          return new_Node(path, line, arg.size());
-        } break;
-
-        case Node::nil: {
-          return new_Node(path, line, 0);
-        } break;
-
-        default: {
-          // single objects should be reported as lists of length 1
-          return new_Node(path, line, 1);
-        } break;
-      }
-      // unreachable statement
-      return Node();
+      return new_Node(path, line, arg.type() == Node::list ? arg.size() : 1);
     }
     
     extern Signature nth_sig = "nth($list, $n)";
     Node nth(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
       Node l(bindings[parameter_names[0].token()]);
-      if (l.type() == Node::nil) {
-        throw_eval_error("cannot index into an empty list", path, line);
-      }
       // wrap the first arg if it isn't a list
-      if (l.type() != Node::space_list && l.type() != Node::comma_list) {
-        l = new_Node(Node::space_list, path, line, 1) << l;
+      if (l.type() != Node::list) {
+        l = new_Node(Node::list, path, line, 1) << l;
+      }
+      if (l.size() == 0) {
+        throw_eval_error("cannot index into an empty list", path, line);
       }
       // just truncate the index if it's not an integer ... more permissive than Ruby Sass
       size_t n = std::floor(arg(nth_sig, path, line, parameter_names, bindings, 1, Node::numeric, 1, l.size()).numeric_value());
@@ -938,12 +916,7 @@ namespace Sass {
       Node lst(bindings[parameter_names[0].token()]);
       Node val(bindings[parameter_names[1].token()]);
       // if $list isn't a list, wrap it in a singleton list
-      Node::Type lst_type = lst.type();
-      if (lst_type != Node::space_list && lst_type != Node::comma_list && lst_type != Node::nil) {
-        lst = (new_Node(Node::space_list, path, line, 1) << lst);
-      }
-
-      if (lst_type == Node::nil) return new_Node(Node::boolean, path, line, false);
+      if (lst.type() != Node::list) lst = (new_Node(Node::list, path, line, 1) << lst);
 
       for (size_t i = 0, S = lst.size(); i < S; ++i) {
         if (lst[i] == val) return new_Node(path, line, i + 1);
@@ -956,66 +929,54 @@ namespace Sass {
     Node join(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
       // if the args aren't lists, turn them into singleton lists
       Node l1(bindings[parameter_names[0].token()]);
-      if (l1.type() != Node::space_list && l1.type() != Node::comma_list && l1.type() != Node::nil) {
-        l1 = new_Node(Node::space_list, path, line, 1) << l1;
+      if (l1.type() != Node::list) {
+        l1 = (new_Node(Node::list, path, line, 1) << l1);
       }
       Node l2(bindings[parameter_names[1].token()]);
-      if (l2.type() != Node::space_list && l2.type() != Node::comma_list && l2.type() != Node::nil) {
-        l2 = new_Node(Node::space_list, l2.path(), l2.line(), 1) << l2;
-      }
-      // nil + nil = nil
-      if (l1.type() == Node::nil && l2.type() == Node::nil) {
-        return new_Node(Node::nil, path, line, 0);
+      if (l2.type() != Node::list) {
+        l2 = (new_Node(Node::list, path, line, 1) << l2);
       }
       // figure out the combined size in advance
-      size_t size = 0;
-      if (l1.type() != Node::nil) size += l1.size();
-      if (l2.type() != Node::nil) size += l2.size();
+      size_t size = l1.size() + l2.size();
  
       // figure out the result type in advance
-      Node::Type rtype = Node::space_list;
+      bool comma_sep;
       string sep(bindings[parameter_names[2].token()].token().unquote());
-      if (sep == "comma")      rtype = Node::comma_list;
-      else if (sep == "space") rtype = Node::space_list;
-      else if (sep == "auto")  rtype = l1.type();
-      else {
-        throw_eval_error("third argument to 'join' must be 'space', 'comma', or 'auto'", path, line);
-      }
-      if (rtype == Node::nil) rtype = l2.type();
+
+      if      (sep == "comma") comma_sep = true;
+      else if (sep == "space") comma_sep = false;
+      else if (sep == "auto")  comma_sep = l1.is_comma_separated();
+      else                     throw_eval_error("third argument to 'join' must be 'space', 'comma', or 'auto'", path, line);
+
+      if (l1.size() == 0) comma_sep = l2.is_comma_separated();
  
       // accumulate the result
-      Node lr(new_Node(rtype, path, line, size));
-      if (l1.type() != Node::nil) lr += l1;
-      if (l2.type() != Node::nil) lr += l2;
+      Node lr(new_Node(Node::list, path, line, size));
+      lr += l1;
+      lr += l2;
+      lr.is_comma_separated() = comma_sep;
       return lr;
     }
 
     extern Signature append_sig = "append($list1, $list2, $separator: auto)";
     Node append(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
       Node list(bindings[parameter_names[0].token()]);
-      switch (list.type())
-      {
-        case Node::space_list:
-        case Node::comma_list:
-        case Node::nil: {
-          // do nothing
-        } break;
-        // if the first arg isn't a list, wrap it in a singleton
-        default: {
-          list = (new_Node(Node::space_list, path, line, 1) << list);
-        } break;
-      }
 
-      Node::Type sep_type;
-      string sep_string = bindings[parameter_names[2].token()].token().unquote();
-      if (sep_string == "comma")      sep_type = Node::comma_list;
-      else if (sep_string == "space") sep_type = Node::space_list;
-      else if (sep_string == "auto")  sep_type = list.type();
-      else throw_eval_error("third argument to 'append' must be 'space', 'comma', or 'auto'", path, line);
+      // if the first arg isn't a list, wrap it in a singleton
+      if (list.type() != Node::list) list = (new_Node(Node::list, path, line, 1) << list);
 
-      Node new_list(new_Node(sep_type, path, line, list.size() + 1));
+      bool comma_sep;
+      string sep(bindings[parameter_names[2].token()].token().unquote());
+
+      if      (sep == "comma") comma_sep = true;
+      else if (sep == "space") comma_sep = false;
+      else if (sep == "auto")  comma_sep = list.is_comma_separated();
+      else                     throw_eval_error("third argument to 'append' must be 'space', 'comma', or 'auto'", path, line);
+
+      Node new_list(new_Node(Node::list, path, line, list.size() + 1));
       new_list += list;
       new_list << bindings[parameter_names[1].token()];
+      new_list.is_comma_separated() = comma_sep;
       return new_list;
     }
 
@@ -1023,27 +984,29 @@ namespace Sass {
     Node compact_1(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
       Node the_arg(bindings[parameter_names[0].token()]);
 
-      if (the_arg.type() == Node::comma_list || the_arg.type() == Node::space_list) {
-        Node non_nils(new_Node(the_arg.type(), path, line, 0));
+      if (the_arg.type() == Node::list) {
+        Node non_nils(new_Node(Node::list, path, line, 0));
         for (size_t i = 0, S = the_arg.size(); i < S; ++i) {
           Node elt(the_arg[i]);
-          if (!elt.is_false()) non_nils << new_Node(path, line, elt);
+          if (!elt.is_false()) non_nils << elt;
         }
-        return non_nils.size() > 0 ? non_nils : new_Node(Node::nil, path, line, 0);
+        return non_nils;
       }
 
-      return new_Node(path, line, the_arg);
+      return new_Node(Node::list, path, line, 1) << the_arg;
     }
 
     extern Signature compact_n_sig = "compact($arg1: false, $arg2: false, $arg3: false, $arg4: false, $arg5: false, $arg6: false, $arg7: false, $arg8: false, $arg9: false, $arg10: false, $arg11: false, $arg12: false)";
     Node compact_n(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
-      Node non_nils(new_Node(Node::comma_list, path, line, 0));
+      Node non_nils(new_Node(Node::list, path, line, 0));
+      non_nils.is_comma_separated() = true;
+
       for (size_t i = 0, S = bindings.current_frame.size(); i < S; ++i) {
         Node the_arg(bindings[parameter_names[i].token()]);
-        if (!the_arg.is_false()) non_nils << new_Node(path, line, the_arg);
+        if (!the_arg.is_false()) non_nils << the_arg;
       }
 
-      return non_nils.size() > 0 ? non_nils : new_Node(Node::nil, path, line, 0);
+      return non_nils;
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -1071,9 +1034,7 @@ namespace Sass {
         case Node::numeric_color: {
           type_name = Token::make(color_name);
         } break;
-        case Node::comma_list:
-        case Node::space_list:
-        case Node::nil: {
+        case Node::list: {
           type_name = Token::make(list_name);
         } break;
         default: {

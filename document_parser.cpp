@@ -664,12 +664,13 @@ namespace Sass {
         peek< exactly<'}'> >(position) ||
         peek< exactly<'{'> >(position) ||
         peek< exactly<')'> >(position))
-    { return context.new_Node(Node::nil, path, line, 0); }
+    { return context.new_Node(Node::list, path, line, 0); }
     Node list1(parse_space_list());
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< exactly<','> >(position)) return list1;
     
-    Node comma_list(context.new_Node(Node::comma_list, path, line, 2));
+    Node comma_list(context.new_Node(Node::list, path, line, 2));
+    comma_list.is_comma_separated() = true;
     comma_list << list1;
     comma_list.should_eval() |= list1.should_eval();
     
@@ -695,7 +696,7 @@ namespace Sass {
         peek< default_flag >(position))
     { return disj1; }
     
-    Node space_list(context.new_Node(Node::space_list, path, line, 2));
+    Node space_list(context.new_Node(Node::list, path, line, 2));
     space_list << disj1;
     space_list.should_eval() |= disj1.should_eval();
     
@@ -833,7 +834,7 @@ namespace Sass {
     if (lex< exactly<'('> >()) {
       Node value(parse_comma_list());
       value.should_eval() = true;
-      if (value.type() == Node::comma_list || value.type() == Node::space_list) {
+      if (value.type() == Node::list && value.size() > 0) {
         value[0].should_eval() = true;
       }
       if (!lex< exactly<')'> >()) throw_syntax_error("unclosed parenthesis");
