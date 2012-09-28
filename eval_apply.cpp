@@ -498,15 +498,14 @@ namespace Sass {
     Node::Type optype = op.type();
     Node::Type ltype = acc.type();
     Node::Type rtype = rhs.type();
-    if (ltype == Node::number && rhs.is_string()) {
-      acc = (new_Node(Node::concatenation, list.path(), list.line(), 2) << acc);
-      if (optype != Node::add) acc << op;
-      if (rtype == Node::concatenation) acc += rhs;
-      else                              acc << rhs;
-      acc.is_quoted() = rhs.is_quoted();
-      acc.is_unquoted() = rhs.is_unquoted(); 
-    }
-    else if (ltype == Node::number && rtype == Node::number) {
+    // if (ltype == Node::number && rhs.is_string()) {
+    //   acc = (new_Node(Node::concatenation, list.path(), list.line(), 2) << acc);
+    //   if (optype != Node::add) acc << op;
+    //   if (rtype == Node::concatenation) acc += rhs;
+    //   else                              acc << rhs;
+    //   acc.is_quoted() = rhs.is_quoted();
+    // }
+    if (ltype == Node::number && rtype == Node::number) {
       acc = new_Node(list.path(), list.line(), operate(op, acc.numeric_value(), rhs.numeric_value()));
     }
     else if (ltype == Node::number && rtype == Node::numeric_dimension) {
@@ -536,8 +535,6 @@ namespace Sass {
         acc = (new_Node(Node::value_schema, list.path(), list.line(), 3) << acc);
         acc << op;
         acc << rhs;
-        acc.is_quoted() = false;
-        acc.is_unquoted() = true;
       }
     }
     else if (ltype == Node::numeric_color && rtype == Node::number) {
@@ -568,15 +565,16 @@ namespace Sass {
       if (optype != Node::add) acc << op;
       acc += rhs;
       acc.is_quoted() = acc[0].is_quoted();
-      acc.is_unquoted() = acc[0].is_unquoted();
     }
     else if (acc.is_string() || rhs.is_string()) {
       acc = (new_Node(Node::concatenation, list.path(), list.line(), 2) << acc);
       if (optype != Node::add) acc << op;
       acc << rhs;
-      if (!acc[0].is_string()) {
+      if (acc[0].is_quoted() || (ltype == Node::number && rhs.is_quoted())) {
+        acc.is_quoted() = true;
+      }
+      else {
         acc.is_quoted() = false;
-        acc.is_unquoted() = true;
       }
     }
     else { // lists or schemas
@@ -599,7 +597,6 @@ namespace Sass {
         acc << rhs;
       }
       acc.is_quoted() = false;
-      acc.is_unquoted() = true;
     }
     return reduce(list, head + 2, acc, new_Node);
   }

@@ -285,7 +285,7 @@ namespace Sass {
       } break;
       
       case string_constant: {
-        if (is_unquoted()) return token().unquote();
+        if (!is_quoted()) return token().unquote();
         else {
           string result(token().to_string());
           if (result[0] != '"' && result[0] != '\'') return "\"" + result + "\"";
@@ -334,51 +334,22 @@ namespace Sass {
             result += chunk;
           }
         }
-        if (is_unquoted()) result = result.substr(1, result.length() - 2);
+        if (!is_quoted()) result = result.substr(1, result.length() - 2);
         return result;
       } break;
 
       case concatenation: {
         string result;
-        bool quoted /* = (at(0).type() == string_constant || at(0).type() == string_schema) ? true : false */;
-        if (at(0).type() == string_constant ||
-            at(0).type() == string_schema ||
-            (at(0).is_numeric() && (at(1).is_quoted() || !at(1).is_unquoted()))) {
-          quoted = true;
-        }
-        else {
-          quoted = false;
-        }
         for (size_t i = 0, S = size(); i < S; ++i) {
-          // result += at(i).to_string().substr(1, at(i).token().length()-2);
-          Node::Type itype = at(i).type();
-          if (itype == Node::string_constant || itype == Node::string_schema) {
-            result += at(i).unquote();
-          }
-          else {
-            result += at(i).to_string();
-          }
+          result += at(i).unquote();
         }
-        // if (inside_of == identifier_schema || inside_of == property) return result;
-        // else                                                         return "\"" + result + "\"";
-        if (!(inside_of == identifier_schema || inside_of == property) && quoted && !is_unquoted()) {
+        if (!(inside_of == identifier_schema || inside_of == property) && is_quoted()) {
           result = "\"" + result + "\"";
         }
         return result;
       } break;
 
       case warning: {
-        // string prefix("WARNING: ");
-        // string indent("         ");
-        // Node contents(at(0));
-        // string result(contents.to_string());
-        // if (contents.type() == string_constant || contents.type() == string_schema) {
-        //   result = result.substr(1, result.size()-2); // unquote if it's a single string
-        // }
-        // // These cerrs aren't log lines! They're supposed to be here!
-        // cerr << prefix << result << endl;
-        // cerr << indent << "on line " << at(0).line() << " of " << at(0).path();
-        // cerr << endl << endl;
         return "";
       } break;
       

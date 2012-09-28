@@ -189,8 +189,7 @@ namespace Sass {
     bool has_backref() const;
     bool from_variable() const;
     bool& should_eval() const;
-    bool& is_unquoted() const; // for strings
-    bool& is_quoted() const;   // for identifiers
+    bool& is_quoted() const;
     bool is_numeric() const;
     bool is_string() const; // for all string-like types
     bool is_schema() const; // for all interpolated data
@@ -269,7 +268,6 @@ namespace Sass {
     bool has_backref;
     bool from_variable;
     bool should_eval;
-    bool is_unquoted;
     bool is_quoted;
     bool has_been_extended;
 
@@ -286,8 +284,7 @@ namespace Sass {
       has_backref(false),
       from_variable(false),
       should_eval(false),
-      is_unquoted(false), // for strings
-      is_quoted(false),  // for identifiers -- yeah, it's hacky for now
+      is_quoted(false),
       has_been_extended(false)
     { }
     
@@ -442,7 +439,6 @@ namespace Sass {
   inline bool Node::has_backref() const    { return ip_->has_backref; }
   inline bool Node::from_variable() const  { return ip_->from_variable; }
   inline bool& Node::should_eval() const   { return ip_->should_eval; }
-  inline bool& Node::is_unquoted() const   { return ip_->is_unquoted; }
   inline bool& Node::is_quoted() const     { return ip_->is_quoted; }
   inline bool Node::is_numeric() const     { return ip_->is_numeric(); }
   inline bool Node::is_string() const      { return ip_->is_string(); }

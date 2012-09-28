@@ -972,7 +972,9 @@ namespace Sass {
     // see if there any interpolants
     const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(str.begin, str.end);
     if (!p) {
-      return context.new_Node(Node::string_constant, path, line, str);
+      Node result(context.new_Node(Node::string_constant, path, line, str));
+      result.is_quoted() = true;
+      return result;
     }
     
     Node schema(context.new_Node(Node::string_schema, path, line, 1));
@@ -1000,6 +1002,7 @@ namespace Sass {
         break;
       }
     }
+    schema.is_quoted() = true;
     schema.should_eval() = true;
     return schema;
   }
@@ -1044,7 +1047,9 @@ namespace Sass {
         schema << triple;
       }
       else if (lex< string_constant >()) {
-        schema << context.new_Node(Node::string_constant, path, line, lexed);
+        Node str(context.new_Node(Node::string_constant, path, line, lexed));
+        str.is_quoted() = true;
+        schema << str;
       }
       else if (lex< variable >()) {
         schema << context.new_Node(Node::variable, path, line, lexed);

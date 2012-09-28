@@ -745,8 +745,7 @@ namespace Sass {
     extern Signature unquote_sig = "unquote($string)";
     Node unquote(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
       Node cpy(new_Node(path, line, bindings[parameter_names[0].token()]));
-      cpy.is_unquoted() = true; // in case it happens to be a string
-      cpy.is_quoted() = false; // in case it happens to be an identifier
+      cpy.is_quoted() = false;
       return cpy;
     }
     
@@ -754,8 +753,7 @@ namespace Sass {
     Node quote(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, string& path, size_t line) {
       Node orig(arg(quote_sig, path, line, parameter_names, bindings, 0, Node::string_t));
       Node copy(new_Node(path, line, orig));
-      copy.is_unquoted() = false; // in case it happens to be a string
-      copy.is_quoted() = true;  // in case it happens to be an identifier
+      copy.is_quoted() = true;
       return copy;
     }
     
@@ -1082,9 +1080,7 @@ namespace Sass {
           type_name = Token::make(string_name);
         } break;
       }
-      Node type(new_Node(Node::string_constant, path, line, type_name));
-      type.is_unquoted() = true;
-      return type;
+      return new_Node(Node::identifier, path, line, type_name);
     }
 
     extern Signature unit_sig = "unit($number)";
@@ -1093,12 +1089,16 @@ namespace Sass {
       switch (val.type())
       {
         case Node::number: {
-          return new_Node(Node::string_constant, path, line, Token::make(empty_str));
+          Node u(new_Node(Node::string_constant, path, line, Token::make(empty_str)));
+          u.is_quoted() = true;
+          return u;
         } break;
 
         case Node::numeric_dimension:
         case Node::numeric_percentage: {
-          return new_Node(Node::string_constant, path, line, val.unit());
+          Node u(new_Node(Node::string_constant, path, line, val.unit()));
+          u.is_quoted() = true;
+          return u;
         } break;
 
         // unreachable
@@ -1197,6 +1197,7 @@ namespace Sass {
       Node result(new_Node(Node::concatenation, path, line, 2));
       result << image_path_val;
       result << base_path;
+      result.is_quoted() = true;
       if (!only_path) result = (new_Node(Node::uri, path, line, 1) << result);
 
       return result;
