@@ -673,11 +673,11 @@ namespace Sass {
   // Apply a mixin -- bind the arguments in a new environment, link the new
   // environment to the current one, then copy the body and eval in the new
   // environment.
-  Node apply_mixin(Node mixin, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool dynamic_scope)
+  Node apply_mixin(Node mixin, const Node aargs, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool dynamic_scope)
   {
     Node params(mixin[1]);
     Node body(new_Node(mixin[2])); // clone the body
-
+    Node args = new_Node(aargs);
     // evaluate arguments in the current environment
     for (size_t i = 0, S = args.size(); i < S; ++i) {
       if (args[i].type() != Node::assignment) {
@@ -687,6 +687,17 @@ namespace Sass {
         args[i][1] = eval(args[i][1], prefix, env, f_env, new_Node, ctx);
       }
     }
+    // need to eval twice because some expressions get delayed
+    // for (size_t i = 0, S = args.size(); i < S; ++i) {
+    //   if (args[i].type() != Node::assignment) {
+    //     args[i].should_eval() = true;
+    //     args[i] = eval(args[i], prefix, env, f_env, new_Node, ctx);
+    //   }
+    //   else {
+    //     args[i][1].should_eval() = true;
+    //     args[i][1] = eval(args[i][1], prefix, env, f_env, new_Node, ctx);
+    //   }
+    // }
 
     // Create a new environment for the mixin and link it to the appropriate parent
     Environment bindings;
@@ -713,46 +724,42 @@ namespace Sass {
 
   // Apply a function -- bind the arguments and pass them to the underlying
   // primitive function implementation, then return its value.
-  Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, string& path, size_t line)
+  Node apply_function(const Function& f, const Node aargs, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, string& path, size_t line)
   {
-    if (f.primitive) {
-      // evaluate arguments in the current environment
-      for (size_t i = 0, S = args.size(); i < S; ++i) {
-        if (args[i].type() != Node::assignment) {
-          args[i] = eval(args[i], prefix, env, f_env, new_Node, ctx);
-        }
-        else {
-          args[i][1] = eval(args[i][1], prefix, env, f_env, new_Node, ctx);
-        }
+    Node args = new_Node(aargs);
+    // evaluate arguments in the current environment
+    for (size_t i = 0, S = args.size(); i < S; ++i) {
+      if (args[i].type() != Node::assignment) {
+        args[i] = eval(args[i], prefix, env, f_env, new_Node, ctx);
       }
-      // bind arguments
-      Environment bindings;
-      bindings.link(env.global ? *env.global : env);
-      bind_arguments("function " + f.name, f.parameters, args, prefix, bindings, f_env, new_Node, ctx);
+      else {
+        args[i][1] = eval(args[i][1], prefix, env, f_env, new_Node, ctx);
+      }
+    }
+    // need to eval twice because some expressions get delayed
+    // for (size_t i = 0, S = args.size(); i < S; ++i) {
+    //   if (args[i].type() != Node::assignment) {
+    //     args[i].should_eval() = true;
+    //     args[i] = eval(args[i], prefix, env, f_env, new_Node, ctx);
+    //   }
+    //   else {
+    //     args[i][1].should_eval() = true;
+    //     args[i][1] = eval(args[i][1], prefix, env, f_env, new_Node, ctx);
+    //   }
+    // }
+
+    // bind arguments
+    Environment bindings;
+    Node params(f.primitive ? f.parameters : f.definition[1]);
+    bindings.link(env.global ? *env.global : env);
+    bind_arguments("function " + f.name, params, args, prefix, bindings, f_env, new_Node, ctx);
+
+    if (f.primitive) {
       return f.primitive(f.parameter_names, bindings, new_Node, path, line);
     }
     else {
-      Node params(f.definition[1]);
-      Node body(new_Node(f.definition[2]));
-
-      // evaluate arguments in the current environment
-      for (size_t i = 0, S = args.size(); i < S; ++i) {
-        if (args[i].type() != Node::assignment) {
-          args[i] = eval(args[i], prefix, env, f_env, new_Node, ctx);
-        }
-        else {
-          args[i][1] = eval(args[i][1], prefix, env, f_env, new_Node, ctx);
-        }
-      }
-
-      // create a new environment for the function and link it to the global env
-      // (C-style scope -- no full-blown lexical scope yet)
-      Environment bindings;
-      bindings.link(env.global ? *env.global : env);
-      // bind the arguments
-      bind_arguments("function " + f.name, params, args, prefix, bindings, f_env, new_Node, ctx);
-      // TO DO: consider cloning the function body
-      return function_eval(f.name, body, bindings, new_Node, ctx, true);
+      // TO DO: consider cloning the function body?
+      return function_eval(f.name, f.definition[2], bindings, new_Node, ctx, true);
     }
   }
 
