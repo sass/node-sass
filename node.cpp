@@ -20,6 +20,7 @@ namespace Sass {
       case block:
       case expansion:
       case root:
+      case if_directive:
       case for_through_directive:
       case for_to_directive:
       case each_directive:
@@ -35,6 +36,7 @@ namespace Sass {
       {
         case expansion:
         case block:
+        case if_directive:
         case for_through_directive:
         case for_to_directive:
         case each_directive:

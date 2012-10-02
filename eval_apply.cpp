@@ -20,43 +20,62 @@ namespace Sass {
     throw Error(Error::evaluation, path, line, message);
   }
 
-  // Evaluate the parse tree in-place (mostly). Most nodes will be left alone.
-
-  Node eval(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool function_name)
+  // Expansion function for nodes in an expansion context.
+  void expand(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool function_name)
   {
     switch (expr.type())
     {
-      case Node::mixin: {
-        env[expr[0].token()] = expr;
-        return expr;
+      case Node::root: {
+        for (size_t i = 0, S = expr.size(); i < S; ++i) {
+          expand(expr[i], prefix, env, f_env, new_Node, ctx);
+        }
       } break;
 
-      case Node::function: {
-        f_env[expr[0].to_string()] = Function(expr);
-        return expr;
+      case Node::mixin: { // mixin definition
+        env[expr[0].token()] = expr;
       } break;
-      
-      case Node::expansion: {
+
+      case Node::function: { // function definition
+        f_env[expr[0].to_string()] = Function(expr);
+      } break;
+
+      case Node::expansion: { // mixin invocation
         Token name(expr[0].token());
         Node args(expr[1]);
         if (!env.query(name)) throw_eval_error("mixin " + name.to_string() + " is undefined", expr.path(), expr.line());
         Node mixin(env[name]);
         Node expansion(apply_mixin(mixin, args, prefix, env, f_env, new_Node, ctx));
-        expr.pop_back();
-        expr.pop_back();
-        expr += expansion;
-        return expr;
+        expr.pop_back();   // pop the mixin name
+        expr.pop_back();   // pop the mixin args
+        expr += expansion; // push the expansion
       } break;
-      
+
       case Node::propset: {
-        eval(expr[1], prefix, env, f_env, new_Node, ctx);
-        return expr;
+        // TO DO: perform the property expansion here, rather than in the emitter
+        expand(expr[1], prefix, env, f_env, new_Node, ctx);
       } break;
 
       case Node::ruleset: {
         // if the selector contains interpolants, eval it and re-parse
         if (expr[0].type() == Node::selector_schema) {
-          expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
+          // expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
+          Node schema(expr[0]);
+          string expansion;
+          for (size_t i = 0, S = schema.size(); i < S; ++i) {
+            schema[i] = eval(schema[i], prefix, env, f_env, new_Node, ctx);
+            if (schema[i].type() == Node::string_constant) {
+              expansion += schema[i].token().unquote();
+            }
+            else {
+              expansion += schema[i].to_string();
+            }
+          }
+          expansion += " {"; // the parser looks for an lbrace to end a selector
+          char* expn_src = new char[expansion.size() + 1];
+          strcpy(expn_src, expansion.c_str());
+          Document needs_reparsing(Document::make_from_source_chars(ctx, expn_src, schema.path(), true));
+          needs_reparsing.line = schema.line(); // set the line number to the original node's line
+          expr[0] = needs_reparsing.parse_selector_group();
         }
 
         // expand the selector with the prefix and save it in expr[2]
@@ -87,67 +106,39 @@ namespace Sass {
           }
         }
 
-        // eval the body with the current selector as the prefix
-        eval(expr[1], expr.back(), env, f_env, new_Node, ctx);
-        return expr;
+        // expand the body with the current selector as the prefix
+        expand(expr[1], expr.back(), env, f_env, new_Node, ctx);
       } break;
 
       case Node::media_query: {
         Node block(expr[1]);
         Node new_ruleset(new_Node(Node::ruleset, expr.path(), expr.line(), 3));
-        new_ruleset << prefix << block << prefix;
-        expr[1] = eval(new_ruleset, new_Node(Node::none, expr.path(), expr.line(), 0), env, f_env, new_Node, ctx);
-        return expr;
+        expr[1] = new_ruleset << prefix << block << prefix;
+        expand(expr[1], new_Node(Node::none, expr.path(), expr.line(), 0), env, f_env, new_Node, ctx);
       } break;
 
-      case Node::selector_schema: {
-        string expansion;
-        for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
-          if (expr[i].type() == Node::string_constant) {
-            expansion += expr[i].token().unquote();
-          }
-          else {
-            expansion += expr[i].to_string();
-          }
-        }
-        expansion += " {"; // the parser looks for an lbrace to end a selector
-        char* expn_src = new char[expansion.size() + 1];
-        strcpy(expn_src, expansion.c_str());
-        Document needs_reparsing(Document::make_from_source_chars(ctx, expn_src, expr.path(), true));
-        needs_reparsing.line = expr.line(); // set the line number to the original node's line
-        Node sel(needs_reparsing.parse_selector_group());
-        return sel;
-      } break;
-      
-      case Node::root: {
-        for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
-        }
-        return expr;
-      } break;
-      
       case Node::block: {
         Environment new_frame;
         new_frame.link(env);
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          expr[i] = eval(expr[i], prefix, new_frame, f_env, new_Node, ctx);
+          expand(expr[i], prefix, new_frame, f_env, new_Node, ctx);
         }
-        return expr;
       } break;
       
       case Node::assignment: {
-        Node val(expr[1]);
-        if (val.type() == Node::list) {
-          for (size_t i = 0, S = val.size(); i < S; ++i) {
-            if (val[i].should_eval()) val[i] = eval(val[i], prefix, env, f_env, new_Node, ctx);
-          }
-        }
-        else {
-          val = eval(val, prefix, env, f_env, new_Node, ctx);
-        }
         Node var(expr[0]);
-        if (expr.is_guarded() && env.query(var.token())) return expr;
+        if (expr.is_guarded() && env.query(var.token())) return;
+        Node val(expr[1]);
+        val = eval(val, prefix, env, f_env, new_Node, ctx);
+        // if (val.type() == Node::list) {
+        //   for (size_t i = 0, S = val.size(); i < S; ++i) {
+        //     if (val[i].should_eval()) val[i] = eval(val[i], prefix, env, f_env, new_Node, ctx);
+        //   }
+        // }
+        // else {
+        //   val = eval(val, prefix, env, f_env, new_Node, ctx);
+        // }
+
         // If a binding exists (possible upframe), then update it.
         // Otherwise, make a new on in the current frame.
         if (env.query(var.token())) {
@@ -156,258 +147,62 @@ namespace Sass {
         else {
           env.current_frame[var.token()] = val;
         }
-        return expr;
       } break;
 
       case Node::rule: {
         Node lhs(expr[0]);
-        if (lhs.should_eval()) eval(lhs, prefix, env, f_env, new_Node, ctx);
+        if (lhs.is_schema()) {
+          expr[0] = eval(lhs, prefix, env, f_env, new_Node, ctx);
+        }
         Node rhs(expr[1]);
-        if (rhs.type() == Node::list) {
-          for (size_t i = 0, S = rhs.size(); i < S; ++i) {
-            if (rhs[i].should_eval()) rhs[i] = eval(rhs[i], prefix, env, f_env, new_Node, ctx);
-          }
+        if (rhs.is_schema() || rhs.should_eval()) {
+          expr[1] = eval(rhs, prefix, env, f_env, new_Node, ctx);
         }
-        else if (rhs.type() == Node::value_schema || rhs.type() == Node::string_schema) {
-          eval(rhs, prefix, env, f_env, new_Node, ctx);
-        }
-        else {
-          if (rhs.should_eval()) expr[1] = eval(rhs, prefix, env, f_env, new_Node, ctx);
-        }
-        return expr;
-      } break;
-
-      case Node::list: {
-        if (expr.should_eval()) expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
-        return expr;
-      } break;
-      
-      case Node::disjunction: {
-        Node result;
-        for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          result = eval(expr[i], prefix, env, f_env, new_Node, ctx);
-          if (result.type() == Node::boolean && result.boolean_value() == false) continue;
-          else return result;
-        }
-        return result;
-      } break;
-      
-      case Node::conjunction: {
-        Node result;
-        for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          result = eval(expr[i], prefix, env, f_env, new_Node, ctx);
-          if (result.type() == Node::boolean && result.boolean_value() == false) return result;
-        }
-        return result;
-      } break;
-      
-      case Node::relation: {
-        
-        Node lhs(eval(expr[0], prefix, env, f_env, new_Node, ctx));
-        Node op(expr[1]);
-        Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
-        // TO DO: don't allocate both T and F
-        Node T(new_Node(Node::boolean, lhs.path(), lhs.line(), true));
-        Node F(new_Node(Node::boolean, lhs.path(), lhs.line(), false));
-        
-        switch (op.type())
-        {
-          case Node::eq:  return (lhs == rhs) ? T : F;
-          case Node::neq: return (lhs != rhs) ? T : F;
-          case Node::gt:  return (lhs > rhs)  ? T : F;
-          case Node::gte: return (lhs >= rhs) ? T : F;
-          case Node::lt:  return (lhs < rhs)  ? T : F;
-          case Node::lte: return (lhs <= rhs) ? T : F;
-          default:
-            throw_eval_error("unknown comparison operator " + expr.token().to_string(), expr.path(), expr.line());
-            return Node();
-        }
-      } break;
-
-      case Node::expression: {
-        for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
-        }
-        return reduce(expr, 1, expr[0], new_Node);
-      } break;
-
-      case Node::term: {
-        if (expr.should_eval()) {
-          for (size_t i = 0, S = expr.size(); i < S; ++i) {
-            expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
-          }
-          return reduce(expr, 1, expr[0], new_Node);
-        }
-        else {
-          return expr;
-        }
-      } break;
-
-      case Node::textual_percentage: {
-        return new_Node(expr.path(), expr.line(), std::atof(expr.token().begin), Node::numeric_percentage);
-      } break;
-
-      case Node::textual_dimension: {
-        return new_Node(expr.path(), expr.line(),
-                        std::atof(expr.token().begin),
-                        Token::make(Prelexer::number(expr.token().begin),
-                                    expr.token().end));
-      } break;
-      
-      case Node::textual_number: {
-        return new_Node(expr.path(), expr.line(), std::atof(expr.token().begin));
-      } break;
-
-      case Node::textual_hex: {        
-        Node triple(new_Node(Node::numeric_color, expr.path(), expr.line(), 4));
-        Token hext(Token::make(expr.token().begin+1, expr.token().end));
-        if (hext.length() == 6) {
-          for (int i = 0; i < 6; i += 2) {
-            triple << new_Node(expr.path(), expr.line(), static_cast<double>(std::strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
-          }
-        }
-        else {
-          for (int i = 0; i < 3; ++i) {
-            triple << new_Node(expr.path(), expr.line(), static_cast<double>(std::strtol(string(2, hext.begin[i]).c_str(), NULL, 16)));
-          }
-        }
-        triple << new_Node(expr.path(), expr.line(), 1.0);
-        return triple;
-      } break;
-      
-      case Node::variable: {
-        if (!env.query(expr.token())) throw_eval_error("reference to unbound variable " + expr.token().to_string(), expr.path(), expr.line());
-
-        // cerr << "ACCESSING VARIABLE " << expr.token().to_string() << endl;
-
-        // cerr << endl << "*** ENV DUMP ***" << endl;
-        // env.print();
-        // cerr << "*** END ENV ***" << endl << endl;
-
-
-        return env[expr.token()];
-      } break;
-
-      case Node::uri: {
-        expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
-        return expr;
-      } break;
-
-      case Node::function_call: {
-        // TO DO: default-constructed Function should be a generic callback (maybe)
-
-        // eval the function name in case it's interpolated
-        expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx, true);
-        string name(expr[0].to_string());
-        if (!f_env.count(name)) {
-          // no definition available; just pass it through (with evaluated args)
-          Node args(expr[1]);
-          for (size_t i = 0, S = args.size(); i < S; ++i) {
-            args[i] = eval(args[i], prefix, env, f_env, new_Node, ctx);
-          }
-          return expr;
-        }
-        else {
-          // check to see if the function is primitive/built-in
-          Function f(f_env[name]);
-          if (f.overloaded) {
-            stringstream s;
-            s << name << " " << expr[1].size();
-            string resolved_name(s.str());
-            if (!f_env.count(resolved_name)) throw_eval_error("wrong number of arguments to " + name, expr.path(), expr.line());
-            f = f_env[resolved_name];
-          }
-          return apply_function(f, expr[1], prefix, env, f_env, new_Node, ctx, expr.path(), expr.line());
-        }
-      } break;
-      
-      case Node::unary_plus: {
-        Node arg(eval(expr[0], prefix, env, f_env, new_Node, ctx));
-        if (arg.is_numeric()) {
-          return arg;
-        }
-        else {
-          expr[0] = arg;
-          return expr;
-        }
-      } break;
-      
-      case Node::unary_minus: {
-        Node arg(eval(expr[0], prefix, env, f_env, new_Node, ctx));
-        if (arg.is_numeric()) {
-          return new_Node(expr.path(), expr.line(), -arg.numeric_value());
-        }
-        else {
-          expr[0] = arg;
-          return expr;
-        }
-      } break;
-
-      case Node::identifier: {
-        string id_str(expr.to_string());
-        to_lowercase(id_str);
-        if (!function_name && ctx.color_names_to_values.count(id_str)) {
-          Node color_orig(ctx.color_names_to_values[id_str]);
-          Node r(color_orig[0]);
-          Node g(color_orig[1]);
-          Node b(color_orig[2]);
-          Node a(color_orig[3]);
-          return new_Node(expr.path(), expr.line(),
-                          r.numeric_value(),
-                          g.numeric_value(),
-                          b.numeric_value(),
-                          a.numeric_value());
-        }
-        else {
-          return expr;
-        }
-      } break;
-      
-      case Node::string_schema:
-      case Node::value_schema:
-      case Node::identifier_schema: {
-        for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
-        }
-        return expr;
-      } break;
-      
-      case Node::css_import: {
-        expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
-        return expr;
+        // if (rhs.type() == Node::list) {
+        //   for (size_t i = 0, S = rhs.size(); i < S; ++i) {
+        //     if (rhs[i].should_eval()) rhs[i] = eval(rhs[i], prefix, env, f_env, new_Node, ctx);
+        //   }
+        // }
+        // else if (rhs.type() == Node::value_schema || rhs.type() == Node::string_schema) {
+        //   eval(rhs, prefix, env, f_env, new_Node, ctx);
+        // }
+        // else {
+        //   if (rhs.should_eval()) expr[1] = eval(rhs, prefix, env, f_env, new_Node, ctx);
+        // }
       } break;
 
       case Node::if_directive: {
+        Node expansion = Node();
         for (size_t i = 0, S = expr.size(); i < S; i += 2) {
           if (expr[i].type() != Node::block) {
-            // cerr << "EVALUATING PREDICATE " << (i/2+1) << endl;
             Node predicate_val(eval(expr[i], prefix, env, f_env, new_Node, ctx));
             if ((predicate_val.type() != Node::boolean) || predicate_val.boolean_value()) {
-              // cerr << "EVALUATING CONSEQUENT " << (i/2+1) << endl;
-              return eval(expr[i+1], prefix, env, f_env, new_Node, ctx);
+              expand(expansion = expr[i+1], prefix, env, f_env, new_Node, ctx);
+              break;
             }
           }
           else {
-            // cerr << "EVALUATING ALTERNATIVE" << endl;
-            return eval(expr[i], prefix, env, f_env, new_Node, ctx);
+            expand(expansion = expr[i], prefix, env, f_env, new_Node, ctx);
+            break;
           }
         }
+        expr.pop_all();
+        if (!expansion.is_null()) expr += expansion;
       } break;
 
       case Node::for_through_directive:
       case Node::for_to_directive: {
         Node fake_mixin(new_Node(Node::mixin, expr.path(), expr.line(), 3));
         Node fake_param(new_Node(Node::parameters, expr.path(), expr.line(), 1));
-        fake_mixin << new_Node(Node::identifier, "", 0, Token::make(for_kwd)) << (fake_param << expr[0]) << expr[3];
+        fake_mixin << new_Node(Node::identifier, "", 0, Token::make(for_kwd)) // stub name for debugging
+                   << (fake_param << expr[0])                                 // iteration variable
+                   << expr[3];                                                // body
         Node lower_bound(eval(expr[1], prefix, env, f_env, new_Node, ctx));
         Node upper_bound(eval(expr[2], prefix, env, f_env, new_Node, ctx));
         if (!(lower_bound.is_numeric() && upper_bound.is_numeric())) {
           throw_eval_error("bounds of @for directive must be numeric", expr.path(), expr.line());
         }
-        expr.pop_back();
-        expr.pop_back();
-        expr.pop_back();
-        expr.pop_back();
+        expr.pop_all();
         for (double i = lower_bound.numeric_value(),
                     U = upper_bound.numeric_value() + ((expr.type() == Node::for_to_directive) ? 0 : 1);
              i < U;
@@ -422,15 +217,15 @@ namespace Sass {
       case Node::each_directive: {
         Node fake_mixin(new_Node(Node::mixin, expr.path(), expr.line(), 3));
         Node fake_param(new_Node(Node::parameters, expr.path(), expr.line(), 1));
-        fake_mixin << new_Node(Node::identifier, "", 0, Token::make(each_kwd)) << (fake_param << expr[0]) << expr[2];
+        fake_mixin << new_Node(Node::identifier, "", 0, Token::make(each_kwd)) // stub name for debugging
+                   << (fake_param << expr[0])                                  // iteration variable
+                   << expr[2];                                                 // body
         Node list(eval(expr[1], prefix, env, f_env, new_Node, ctx));
         // If the list isn't really a list, make a singleton out of it.
         if (list.type() != Node::list) {
           list = (new_Node(Node::list, list.path(), list.line(), 1) << list);
         }
-        expr.pop_back();
-        expr.pop_back();
-        expr.pop_back();
+        expr.pop_all();
         for (size_t i = 0, S = list.size(); i < S; ++i) {
           Node fake_arg(new_Node(Node::arguments, expr.path(), expr.line(), 1));
           fake_arg << eval(list[i], prefix, env, f_env, new_Node, ctx);
@@ -442,7 +237,9 @@ namespace Sass {
         Node fake_mixin(new_Node(Node::mixin, expr.path(), expr.line(), 3));
         Node fake_param(new_Node(Node::parameters, expr.path(), expr.line(), 0));
         Node fake_arg(new_Node(Node::arguments, expr.path(), expr.line(), 0));
-        fake_mixin << new_Node(Node::identifier, "", 0, Token::make(while_kwd)) << fake_param << expr[1];
+        fake_mixin << new_Node(Node::identifier, "", 0, Token::make(while_kwd))  // stub name for debugging
+                   << fake_param                                                 // no iteration variable
+                   << expr[1];                                                   // body
         Node pred(expr[0]);
         expr.pop_back();
         expr.pop_back();
@@ -455,17 +252,15 @@ namespace Sass {
 
       case Node::block_directive: {
         // TO DO: eval the directive name for interpolants
-        eval(expr[1], new_Node(Node::none, expr.path(), expr.line(), 0), env, f_env, new_Node, ctx);
-        return expr;
+        expand(expr[1], new_Node(Node::none, expr.path(), expr.line(), 0), env, f_env, new_Node, ctx);
       } break;
 
       case Node::warning: {
-        expr = new_Node(expr);
-        expr[0] = eval(expr[0], Node(), env, f_env, new_Node, ctx);
+        // expr = new_Node(expr);
+        Node contents(eval(expr[0], Node(), env, f_env, new_Node, ctx));
 
         string prefix("WARNING: ");
         string indent("         ");
-        Node contents(expr[0]);
         string result(contents.to_string());
         if (contents.type() == Node::string_constant || contents.type() == Node::string_schema) {
           result = result.substr(1, result.size()-2); // unquote if it's a single string
@@ -474,16 +269,234 @@ namespace Sass {
         cerr << prefix << result << endl;
         cerr << indent << "on line " << expr.line() << " of " << expr.path();
         cerr << endl << endl;
-
-        return expr;
       } break;
 
       default: {
-        return expr;
+        // do nothing
+      } break;
+
+    }
+  }
+
+  // Evaluation function for nodes in a value context.
+  Node eval(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool function_name)
+  {
+    Node result;
+    switch (expr.type())
+    {
+      // case Node::selector_schema: {
+      //   string expansion;
+      //   for (size_t i = 0, S = expr.size(); i < S; ++i) {
+      //     expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
+      //     if (expr[i].type() == Node::string_constant) {
+      //       expansion += expr[i].token().unquote();
+      //     }
+      //     else {
+      //       expansion += expr[i].to_string();
+      //     }
+      //   }
+      //   expansion += " {"; // the parser looks for an lbrace to end a selector
+      //   char* expn_src = new char[expansion.size() + 1];
+      //   strcpy(expn_src, expansion.c_str());
+      //   Document needs_reparsing(Document::make_from_source_chars(ctx, expn_src, expr.path(), true));
+      //   needs_reparsing.line = expr.line(); // set the line number to the original node's line
+      //   Node sel(needs_reparsing.parse_selector_group());
+      //   return sel;
+      // } break;
+
+      case Node::list: {
+        if (expr.should_eval()) {
+          result    = new_Node(expr);
+          result[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
+        }
+      } break;
+      
+      case Node::disjunction: {
+        Node result;
+        for (size_t i = 0, S = expr.size(); i < S; ++i) {
+          result = eval(expr[i], prefix, env, f_env, new_Node, ctx);
+          if (result.is_false()) continue;
+          else                   break;
+        }
+      } break;
+      
+      case Node::conjunction: {
+        Node result;
+        for (size_t i = 0, S = expr.size(); i < S; ++i) {
+          result = eval(expr[i], prefix, env, f_env, new_Node, ctx);
+          if (result.is_false()) break;
+        }
+      } break;
+      
+      case Node::relation: {
+        
+        Node lhs(eval(expr[0], prefix, env, f_env, new_Node, ctx));
+        Node op(expr[1]);
+        Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
+
+        Node T(new_Node(Node::boolean, lhs.path(), lhs.line(), true));
+        Node F(new_Node(Node::boolean, lhs.path(), lhs.line(), false));
+        
+        switch (op.type())
+        {
+          case Node::eq:  result = ((lhs == rhs) ? T : F);
+          case Node::neq: result = ((lhs != rhs) ? T : F);
+          case Node::gt:  result = ((lhs > rhs)  ? T : F);
+          case Node::gte: result = ((lhs >= rhs) ? T : F);
+          case Node::lt:  result = ((lhs < rhs)  ? T : F);
+          case Node::lte: result = ((lhs <= rhs) ? T : F);
+          default:
+            throw_eval_error("unknown comparison operator " + expr.token().to_string(), expr.path(), expr.line());
+        }
+      } break;
+
+      case Node::expression: {
+        Node list(new_Node(Node::expression, expr.path(), expr.line(), expr.size()));
+        for (size_t i = 0, S = expr.size(); i < S; ++i) {
+          list << eval(expr[i], prefix, env, f_env, new_Node, ctx);
+        }
+        result = reduce(list, 1, list[0], new_Node);
+      } break;
+
+      case Node::term: {
+        if (expr.should_eval()) {
+          Node list(new_Node(Node::term, expr.path(), expr.line(), expr.size()));
+          for (size_t i = 0, S = expr.size(); i < S; ++i) {
+            list << eval(expr[i], prefix, env, f_env, new_Node, ctx);
+          }
+          result = reduce(list, 1, list[0], new_Node);
+        }
+      } break;
+
+      // case Node::textual_percentage: {
+      //   result = new_Node(expr.path(), expr.line(), std::atof(expr.token().begin), Node::numeric_percentage);
+      // } break;
+
+      // case Node::textual_dimension: {
+      //   result = new_Node(expr.path(), expr.line(),
+      //                     std::atof(expr.token().begin),
+      //                     Token::make(Prelexer::number(expr.token().begin),
+      //                                 expr.token().end));
+      // } break;
+      
+      // case Node::textual_number: {
+      //   result = new_Node(expr.path(), expr.line(), std::atof(expr.token().begin));
+      // } break;
+
+      // case Node::textual_hex: {        
+      //   result = new_Node(Node::numeric_color, expr.path(), expr.line(), 4));
+      //   Token hext(Token::make(expr.token().begin+1, expr.token().end));
+      //   if (hext.length() == 6) {
+      //     for (int i = 0; i < 6; i += 2) {
+      //       result << new_Node(expr.path(), expr.line(), static_cast<double>(std::strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
+      //     }
+      //   }
+      //   else {
+      //     for (int i = 0; i < 3; ++i) {
+      //       result << new_Node(expr.path(), expr.line(), static_cast<double>(std::strtol(string(2, hext.begin[i]).c_str(), NULL, 16)));
+      //     }
+      //   }
+      //   result << new_Node(expr.path(), expr.line(), 1.0);
+      // } break;
+      
+      case Node::variable: {
+        if (!env.query(expr.token())) throw_eval_error("reference to unbound variable " + expr.token().to_string(), expr.path(), expr.line());
+        result = env[expr.token()];
+      } break;
+
+      case Node::uri: {
+        result = new_Node(Node::uri, expr.path(), expr.line(), 1);
+        result << eval(expr[0], prefix, env, f_env, new_Node, ctx);
+      } break;
+
+      case Node::function_call: {
+        // TO DO: default-constructed Function should be a generic callback (maybe)
+
+        // eval the function name in case it's interpolated
+        Node name_node(eval(expr[0], prefix, env, f_env, new_Node, ctx, true));
+        string name(name_node.to_string());
+        if (!f_env.count(name)) {
+          // no definition available; just pass it through (with evaluated args)
+          Node args(expr[1]);
+          Node evaluated_args(new_Node(Node::arguments, args.path(), args.line(), args.size()));
+          for (size_t i = 0, S = args.size(); i < S; ++i) {
+            evaluated_args << eval(args[i], prefix, env, f_env, new_Node, ctx);
+          }
+          result = new_Node(Node::function_call, expr.path(), expr.line(), 2);
+          result << name_node << evaluated_args;
+        }
+        else {
+          // check to see if the function is primitive/built-in
+          Function f(f_env[name]);
+          if (f.overloaded) {
+            stringstream s;
+            s << name << " " << expr[1].size();
+            string resolved_name(s.str());
+            if (!f_env.count(resolved_name)) throw_eval_error("wrong number of arguments to " + name, expr.path(), expr.line());
+            f = f_env[resolved_name];
+          }
+          result = apply_function(f, expr[1], prefix, env, f_env, new_Node, ctx, expr.path(), expr.line());
+        }
+      } break;
+      
+      case Node::unary_plus: {
+        Node arg(eval(expr[0], prefix, env, f_env, new_Node, ctx));
+        if (arg.is_numeric()) {
+          result = arg;
+        }
+        else {
+          result = new_Node(Node::unary_plus, expr.path(), expr.line(), 1);
+          result << arg;
+        }
+      } break;
+      
+      case Node::unary_minus: {
+        Node arg(eval(expr[0], prefix, env, f_env, new_Node, ctx));
+        if (arg.is_numeric()) {
+          result = new_Node(expr.path(), expr.line(), -arg.numeric_value());
+        }
+        else {
+          result = new_Node(Node::unary_minus, expr.path(), expr.line(), 1);
+          result << arg;
+        }
+      } break;
+
+      case Node::identifier: {
+        string id_str(expr.to_string());
+        to_lowercase(id_str);
+        if (!function_name && ctx.color_names_to_values.count(id_str)) {
+          Node color_orig(ctx.color_names_to_values[id_str]);
+          Node r(color_orig[0]);
+          Node g(color_orig[1]);
+          Node b(color_orig[2]);
+          Node a(color_orig[3]);
+          result = new_Node(expr.path(), expr.line(),
+                            r.numeric_value(),
+                            g.numeric_value(),
+                            b.numeric_value(),
+                            a.numeric_value());
+        }
+      } break;
+      
+      case Node::string_schema:
+      case Node::value_schema:
+      case Node::identifier_schema: {
+        result = new_Node(expr.type(), expr.path(), expr.line(), expr.size());
+        for (size_t i = 0, S = expr.size(); i < S; ++i) {
+          result << eval(expr[i], prefix, env, f_env, new_Node, ctx);
+        }
+      } break;
+      
+      case Node::css_import: {
+        result = new_Node(Node::css_import, expr.path(), expr.line(), 1);
+        result << eval(expr[0], prefix, env, f_env, new_Node, ctx);
+      } break;
+
+      default: {
+        result = expr;
       } break;
     }
-
-    return expr;
+    return result;
   }
 
   // Reduce arithmetic operations. Arithmetic expressions are stored as vectors
@@ -649,7 +662,7 @@ namespace Sass {
         if (!env.query(arg_name)) {
           throw_eval_error(callee_name + " has no parameter named " + arg_name.to_string(), arg.path(), arg.line());
         }
-        if (!env[arg_name].is_none()) {
+        if (!env[arg_name].is_null()) {
           throw_eval_error(callee_name + " was passed argument " + arg_name.to_string() + " both by position and by name", arg.path(), arg.line());
         }
         env[arg_name] = arg_value;
@@ -660,7 +673,7 @@ namespace Sass {
     for (size_t i = 0, S = params.size(); i < S; ++i) {
       Node param(params[i]);
       Token param_name((param.type() == Node::assignment ? param[0] : param).token());
-      if (env[param_name].is_none()) {
+      if (env[param_name].is_null()) {
         if (param.type() != Node::assignment) {
           throw_eval_error(callee_name + " is missing argument " + param_name.to_string(), args.path(), args.line());
         }
@@ -712,7 +725,7 @@ namespace Sass {
     // bind arguments in the extended environment
     stringstream mixin_name;
     mixin_name << "mixin";
-    if (!mixin[0].is_none()) mixin_name << " " << mixin[0].to_string();
+    if (!mixin[0].is_null()) mixin_name << " " << mixin[0].to_string();
     bind_arguments(mixin_name.str(), params, args, prefix, bindings, f_env, new_Node, ctx);
     // evaluate the mixin's body
     for (size_t i = 0, S = body.size(); i < S; ++i) {
@@ -807,13 +820,13 @@ namespace Sass {
               Node predicate_val(eval(pred, Node(), bindings, ctx.function_env, new_Node, ctx));
               if ((predicate_val.type() != Node::boolean) || predicate_val.boolean_value()) {
                 Node v(function_eval(name, stm[j+1], bindings, new_Node, ctx));
-                if (v.is_null_ptr()) break;
+                if (v.is_null()) break;
                 else                 return v;
               }
             }
             else {
               Node v(function_eval(name, stm[j], bindings, new_Node, ctx));
-              if (v.is_null_ptr()) break;
+              if (v.is_null()) break;
               else                 return v;
             }
           }
@@ -833,7 +846,7 @@ namespace Sass {
                j += 1) {
             for_env.current_frame[iter_var.token()] = new_Node(lower_bound.path(), lower_bound.line(), j);
             Node v(function_eval(name, for_body, for_env, new_Node, ctx));
-            if (v.is_null_ptr()) continue;
+            if (v.is_null()) continue;
             else                 return v;
           }
         } break;
@@ -854,7 +867,7 @@ namespace Sass {
             // cerr << endl << "*** ENV DUMP ***" << endl;
             // each_env.print();
             // cerr << "*** END ENV ***" << endl << endl;
-            if (v.is_null_ptr()) continue;
+            if (v.is_null()) continue;
             else return v;
           }
         } break;
@@ -867,7 +880,7 @@ namespace Sass {
           Node pred_val(eval(pred_expr, Node(), bindings, ctx.function_env, new_Node, ctx));
           while ((pred_val.type() != Node::boolean) || pred_val.boolean_value()) {
             Node v(function_eval(name, while_body, while_env, new_Node, ctx));
-            if (v.is_null_ptr()) {
+            if (v.is_null()) {
               pred_val = eval(new_Node(stm[0]), Node(), bindings, ctx.function_env, new_Node, ctx);
               continue;
             }

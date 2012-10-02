@@ -177,8 +177,8 @@ namespace Sass {
     Node(Node_Impl* ip = 0);
 
     Type type() const;
+    Type type(Type);
 
-    bool is_none() const;
     bool has_children() const;
     bool has_statements() const;
     bool has_blocks() const;
@@ -204,6 +204,7 @@ namespace Sass {
     Node& back() const;
     Node& operator[](size_t i) const;
     void  pop_back();
+    void  pop_all();
     Node& push_back(Node n);
     Node& push_front(Node n);
     Node& operator<<(Node n);
@@ -220,7 +221,7 @@ namespace Sass {
     Token  token() const;
     Token  unit() const;
 
-    bool is_null_ptr() const { return !ip_; }
+    bool is_null() const { return !ip_; }
     bool is(Node n) const { return ip_ == n.ip_; }
 
     void flatten();
@@ -413,6 +414,9 @@ namespace Sass {
     void pop_back()
     { children.pop_back(); }
 
+    void pop_all()
+    { for (size_t i = 0, S = size(); i < S; ++i) pop_back(); }
+
     bool& boolean_value()
     { return value.boolean; }
     
@@ -430,8 +434,8 @@ namespace Sass {
   inline Node::Node(Node_Impl* ip) : ip_(ip) { }
 
   inline Node::Type Node::type() const    { return ip_->type; }
+  inline Node::Type Node::type(Type t)    { return ip_->type = t; }
 
-  inline bool Node::is_none() const        { return !ip_; }
   inline bool Node::has_children() const   { return ip_->has_children; }
   inline bool Node::has_statements() const { return ip_->has_statements; }
   inline bool Node::has_blocks() const     { return ip_->has_blocks; }
@@ -457,6 +461,7 @@ namespace Sass {
   inline Node& Node::back() const               { return ip_->back(); }
   inline Node& Node::operator[](size_t i) const { return at(i); }
   inline void  Node::pop_back()                 { ip_->pop_back(); }
+  inline void  Node::pop_all()                  { ip_->pop_all(); }
   inline Node& Node::push_back(Node n)
   {
     ip_->push_back(n);

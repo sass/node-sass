@@ -598,7 +598,7 @@ namespace Sass {
         semicolon = true;
       }
       else if (lex< extend >()) {
-        if (surrounding_ruleset.is_null_ptr()) throw_syntax_error("@extend directive may only be used within rules");
+        if (surrounding_ruleset.is_null()) throw_syntax_error("@extend directive may only be used within rules");
         Node extendee(parse_simple_selector_sequence());
         context.extensions.insert(pair<Node, Node>(extendee, surrounding_ruleset));
         context.has_extensions = true;
