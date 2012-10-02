@@ -1016,6 +1016,7 @@ namespace Sass {
       if (lex< interpolant >()) {
         Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
         Node interp_node(Document::make_from_token(context, insides, path, line).parse_list());
+        interp_node.should_eval() = true;
         schema << interp_node;
       }
       else if (lex< identifier >()) {
@@ -1076,6 +1077,7 @@ namespace Sass {
       else if (lex< interpolant >()) {
         Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
         Node interp_node(Document::make_from_token(context, insides, path, line).parse_list());
+        interp_node.should_eval() = true;
         schema << interp_node;
       }
       else if (lex< sequence< identifier, exactly<':'> > >()) {

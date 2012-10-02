@@ -124,6 +124,7 @@ namespace Sass {
         if (size() == 0) return "";
         string result(at(0).to_string());
         for (size_t i = 1, S = size(); i < S; ++i) {
+          if (at(i).is_null()) continue;
           if (at(i).type() == list && at(i).size() == 0) continue;
           result += is_comma_separated() ? ", " : " ";
           result += at(i).to_string();
