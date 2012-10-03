@@ -178,7 +178,7 @@ namespace Sass {
       } break;
 
       case Node::list: {
-        if (expr.should_eval()) expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
+        if (expr.should_eval() && expr.size() > 0) expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx);
         return expr;
       } break;
       
