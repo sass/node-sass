@@ -301,7 +301,7 @@ namespace Sass {
       // } break;
 
       case Node::list: {
-        if (expr.should_eval()) {
+        if (expr.should_eval() && expr.size() > 0) {
           result = new_Node(Node::list, expr.path(), expr.line(), expr.size());
           result << eval(expr[0], prefix, env, f_env, new_Node, ctx);
           for (size_t i = 1, S = expr.size(); i < S; ++i) result << expr[i];
@@ -706,16 +706,16 @@ namespace Sass {
       }
     }
     // need to eval twice because some expressions get delayed
-    // for (size_t i = 0, S = args.size(); i < S; ++i) {
-    //   if (args[i].type() != Node::assignment) {
-    //     args[i].should_eval() = true;
-    //     args[i] = eval(args[i], prefix, env, f_env, new_Node, ctx);
-    //   }
-    //   else {
-    //     args[i][1].should_eval() = true;
-    //     args[i][1] = eval(args[i][1], prefix, env, f_env, new_Node, ctx);
-    //   }
-    // }
+    for (size_t i = 0, S = args.size(); i < S; ++i) {
+      if (args[i].type() != Node::assignment) {
+        args[i].should_eval() = true;
+        args[i] = eval(args[i], prefix, env, f_env, new_Node, ctx);
+      }
+      else {
+        args[i][1].should_eval() = true;
+        args[i][1] = eval(args[i][1], prefix, env, f_env, new_Node, ctx);
+      }
+    }
 
     // Create a new environment for the mixin and link it to the appropriate parent
     Environment bindings;
@@ -756,16 +756,16 @@ namespace Sass {
       }
     }
     // need to eval twice because some expressions get delayed
-    // for (size_t i = 0, S = args.size(); i < S; ++i) {
-    //   if (args[i].type() != Node::assignment) {
-    //     args[i].should_eval() = true;
-    //     args[i] = eval(args[i], prefix, env, f_env, new_Node, ctx);
-    //   }
-    //   else {
-    //     args[i][1].should_eval() = true;
-    //     args[i][1] = eval(args[i][1], prefix, env, f_env, new_Node, ctx);
-    //   }
-    // }
+    for (size_t i = 0, S = args.size(); i < S; ++i) {
+      if (args[i].type() != Node::assignment) {
+        args[i].should_eval() = true;
+        args[i] = eval(args[i], prefix, env, f_env, new_Node, ctx);
+      }
+      else {
+        args[i][1].should_eval() = true;
+        args[i][1] = eval(args[i][1], prefix, env, f_env, new_Node, ctx);
+      }
+    }
 
     // bind arguments
     Environment bindings;
