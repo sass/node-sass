@@ -271,7 +271,7 @@ namespace Sass {
         return result;
       } break;
 
-      case expansion: {
+      case mixin_call: {
         // ignore it
         return "";
       } break;

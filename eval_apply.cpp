@@ -39,7 +39,7 @@ namespace Sass {
         f_env[expr[0].to_string()] = Function(expr);
       } break;
 
-      case Node::expansion: { // mixin invocation
+      case Node::mixin_call: { // mixin invocation
         Token name(expr[0].token());
         Node args(expr[1]);
         if (!env.query(name)) throw_eval_error("mixin " + name.to_string() + " is undefined", expr.path(), expr.line());
@@ -766,42 +766,44 @@ namespace Sass {
       switch (stm.type())
       {
         case Node::assignment: {
-          Node val(new_Node(stm[1])); // clone the value because it might get mutated in place
+          Node val(stm[1]);
+          Node newval;
           if (val.type() == Node::list) {
+            newval = new_Node(Node::list, val.path(), val.line(), val.size());
             for (size_t i = 0, S = val.size(); i < S; ++i) {
-              if (val[i].should_eval()) val[i] = eval(val[i], Node(), bindings, ctx.function_env, new_Node, ctx);
+              if (val[i].should_eval()) newval << eval(val[i], Node(), bindings, ctx.function_env, new_Node, ctx);
+              else                      newval << val[i];
             }
           }
           else {
-            val = eval(val, Node(), bindings, ctx.function_env, new_Node, ctx);
+            newval = eval(val, Node(), bindings, ctx.function_env, new_Node, ctx);
           }
           Node var(stm[0]);
           if (stm.is_guarded() && bindings.query(var.token())) continue;
           // If a binding exists (possibly upframe), then update it.
           // Otherwise, make a new one in the current frame.
           if (bindings.query(var.token())) {
-            bindings[var.token()] = val;
+            bindings[var.token()] = newval;
           }
           else {
-            bindings.current_frame[var.token()] = val;
+            bindings.current_frame[var.token()] = newval;
           }
         } break;
 
         case Node::if_directive: {
           for (size_t j = 0, S = stm.size(); j < S; j += 2) {
             if (stm[j].type() != Node::block) {
-              Node pred(new_Node(stm[j]));
-              Node predicate_val(eval(pred, Node(), bindings, ctx.function_env, new_Node, ctx));
-              if ((predicate_val.type() != Node::boolean) || predicate_val.boolean_value()) {
+              Node predicate_val(eval(stm[j], Node(), bindings, ctx.function_env, new_Node, ctx));
+              if (!predicate_val.is_false()) {
                 Node v(eval_function(name, stm[j+1], bindings, new_Node, ctx));
                 if (v.is_null()) break;
-                else                 return v;
+                else             return v;
               }
             }
             else {
               Node v(eval_function(name, stm[j], bindings, new_Node, ctx));
               if (v.is_null()) break;
-              else                 return v;
+              else             return v;
             }
           }
         } break;
@@ -810,8 +812,8 @@ namespace Sass {
         case Node::for_to_directive: {
           Node::Type for_type = stm.type();
           Node iter_var(stm[0]);
-          Node lower_bound(eval(new_Node(stm[1]), Node(), bindings, ctx.function_env, new_Node, ctx));
-          Node upper_bound(eval(new_Node(stm[2]), Node(), bindings, ctx.function_env, new_Node, ctx));
+          Node lower_bound(eval(stm[1], Node(), bindings, ctx.function_env, new_Node, ctx));
+          Node upper_bound(eval(stm[2], Node(), bindings, ctx.function_env, new_Node, ctx));
           Node for_body(stm[3]);
           Environment for_env; // re-use this env for each iteration
           for_env.link(bindings);
@@ -821,13 +823,13 @@ namespace Sass {
             for_env.current_frame[iter_var.token()] = new_Node(lower_bound.path(), lower_bound.line(), j);
             Node v(eval_function(name, for_body, for_env, new_Node, ctx));
             if (v.is_null()) continue;
-            else                 return v;
+            else             return v;
           }
         } break;
 
         case Node::each_directive: {
           Node iter_var(stm[0]);
-          Node list(eval(new_Node(stm[1]), Node(), bindings, ctx.function_env, new_Node, ctx));
+          Node list(eval(stm[1], Node(), bindings, ctx.function_env, new_Node, ctx));
           if (list.type() != Node::list) {
             list = (new_Node(Node::list, list.path(), list.line(), 1) << list);
           }
@@ -839,20 +841,20 @@ namespace Sass {
             each_env.current_frame[iter_var.token()] = eval(list[j], Node(), bindings, ctx.function_env, new_Node, ctx);
             Node v(eval_function(name, each_body, each_env, new_Node, ctx));
             if (v.is_null()) continue;
-            else return v;
+            else             return v;
           }
         } break;
 
         case Node::while_directive: {
-          Node pred_expr(new_Node(stm[0]));
+          Node pred_expr(stm[0]);
           Node while_body(stm[1]);
           Environment while_env; // re-use this env for each iteration
           while_env.link(bindings);
           Node pred_val(eval(pred_expr, Node(), bindings, ctx.function_env, new_Node, ctx));
-          while ((pred_val.type() != Node::boolean) || pred_val.boolean_value()) {
+          while (!pred_val.is_false()) {
             Node v(eval_function(name, while_body, while_env, new_Node, ctx));
             if (v.is_null()) {
-              pred_val = eval(new_Node(stm[0]), Node(), bindings, ctx.function_env, new_Node, ctx);
+              pred_val = eval(pred_expr, Node(), bindings, ctx.function_env, new_Node, ctx);
               continue;
             }
             else return v;
@@ -860,12 +862,9 @@ namespace Sass {
         } break;
 
         case Node::warning: {
-          stm = new_Node(stm);
-          stm[0] = eval(stm[0], Node(), bindings, ctx.function_env, new_Node, ctx);
-
           string prefix("WARNING: ");
           string indent("         ");
-          Node contents(stm[0]);
+          Node contents(eval(stm[0], Node(), bindings, ctx.function_env, new_Node, ctx));
           string result(contents.to_string());
           if (contents.type() == Node::string_constant || contents.type() == Node::string_schema) {
             result = result.substr(1, result.size()-2); // unquote if it's a single string
@@ -877,11 +876,13 @@ namespace Sass {
         } break;
 
         case Node::return_directive: {
-          Node retval(eval(new_Node(stm[0]), Node(), bindings, ctx.function_env, new_Node, ctx));
+          Node retval(eval(stm[0], Node(), bindings, ctx.function_env, new_Node, ctx));
           if (retval.type() == Node::list) {
+            Node new_list(new_Node(Node::list, retval.path(), retval.line(), retval.size()));
             for (size_t i = 0, S = retval.size(); i < S; ++i) {
-              retval[i] = eval(retval[i], Node(), bindings, ctx.function_env, new_Node, ctx);
+              new_list << eval(retval[i], Node(), bindings, ctx.function_env, new_Node, ctx);
             }
+            retval = new_list;
           }
           return retval;
         } break;

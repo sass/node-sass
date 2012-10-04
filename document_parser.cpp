@@ -202,7 +202,7 @@ namespace Sass {
     if (!lex< identifier >()) throw_syntax_error("invalid name in @include directive");
     Node name(context.new_Node(Node::identifier, path, line, lexed));
     Node args(parse_arguments());
-    Node the_call(context.new_Node(Node::expansion, path, line, 2));
+    Node the_call(context.new_Node(Node::mixin_call, path, line, 2));
     the_call << name << args;
     return the_call;
   }

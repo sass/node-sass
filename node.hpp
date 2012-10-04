@@ -150,11 +150,11 @@ namespace Sass {
       identifier_schema,
 
       css_import,
+      function,
       function_call,
       mixin,
-      function,
+      mixin_call,
       parameters,
-      expansion,
       arguments,
 
       if_directive,
@@ -370,7 +370,7 @@ namespace Sass {
         case Node::for_to_directive:
         case Node::each_directive:
         case Node::while_directive:
-        case Node::expansion: {
+        case Node::mixin_call: {
           has_expansions = true;
         } break;
 
@@ -402,7 +402,7 @@ namespace Sass {
         case Node::for_to_directive:
         case Node::each_directive:
         case Node::while_directive:
-        case Node::expansion: has_expansions = true; break;
+        case Node::mixin_call: has_expansions = true; break;
 
         case Node::backref:   has_backref    = true; break;
 
