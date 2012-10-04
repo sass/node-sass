@@ -302,14 +302,25 @@ namespace Sass {
       } break;
       
       case Node::relation: {
-        Node lhs(eval(expr[0], prefix, env, f_env, new_Node, ctx));
-        Node op(expr[1]);
-        Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
+        // Node lhs(eval(expr[0], prefix, env, f_env, new_Node, ctx));
+        // Node op(expr[1]);
+        // Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
+
+        Node lhs(new_Node(Node::arguments, expr[0].path(), expr[0].line(), 1));
+        Node rhs(new_Node(Node::arguments, expr[2].path(), expr[2].line(), 1));
+        Node rel(expr[1]);
+
+        lhs << expr[0];
+        rhs << expr[2];
+        lhs = eval_arguments(lhs, prefix, env, f_env, new_Node, ctx);
+        rhs = eval_arguments(rhs, prefix, env, f_env, new_Node, ctx);
+        lhs = lhs[0];
+        rhs = rhs[0];
 
         Node T(new_Node(Node::boolean, lhs.path(), lhs.line(), true));
         Node F(new_Node(Node::boolean, lhs.path(), lhs.line(), false));
         
-        switch (op.type())
+        switch (rel.type())
         {
           case Node::eq:  result = ((lhs == rhs) ? T : F); break;
           case Node::neq: result = ((lhs != rhs) ? T : F); break;
