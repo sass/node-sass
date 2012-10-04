@@ -202,7 +202,7 @@ namespace Sass {
     if (!lex< identifier >()) throw_syntax_error("invalid name in @include directive");
     Node name(context.new_Node(Node::identifier, path, line, lexed));
     Node args(parse_arguments());
-    Node the_call(context.new_Node(Node::expansion, path, line, 2));
+    Node the_call(context.new_Node(Node::mixin_call, path, line, 2));
     the_call << name << args;
     return the_call;
   }
@@ -215,12 +215,10 @@ namespace Sass {
     if (lex< exactly<'('> >()) {
       if (!peek< exactly<')'> >(position)) {
         Node arg(parse_argument(Node::none));
-        arg.should_eval() = true;
         args << arg;
         if (arg.type() == Node::assignment) arg_type = Node::assignment;
         while (lex< exactly<','> >()) {
           Node arg(parse_argument(arg_type));
-          arg.should_eval() = true;
           args << arg;
           if (arg.type() == Node::assignment) arg_type = Node::assignment;
         }
@@ -239,6 +237,7 @@ namespace Sass {
         Node var(context.new_Node(Node::variable, path, line, lexed));
         lex< exactly<':'> >();
         Node val(parse_space_list());
+        val.should_eval() = true;
         Node assn(context.new_Node(Node::assignment, path, line, 2));
         assn << var << val;
         return assn;
@@ -254,23 +253,14 @@ namespace Sass {
       Node var(context.new_Node(Node::variable, path, line, lexed));
       lex< exactly<':'> >();
       Node val(parse_space_list());
+      val.should_eval() = true;
       Node assn(context.new_Node(Node::assignment, path, line, 2));
       assn << var << val;
       return assn;
     }
-    return parse_space_list();
-    // if (peek< sequence < variable, spaces_and_comments, exactly<':'> > >()) {
-    //   lex< variable >();
-    //   Node var(context.new_Node(Node::variable, path, line, lexed));
-    //   lex< exactly<':'> >();
-    //   Node val(parse_space_list());
-    //   Node assn(context.new_Node(Node::assignment, path, line, 2));
-    //   assn << var << val;
-    //   return assn;
-    // }
-    // else {
-    //   return parse_space_list();
-    // }
+    Node val(parse_space_list());
+    val.should_eval() = true;
+    return val;
   }
 
   Node Document::parse_assignment()
@@ -598,7 +588,7 @@ namespace Sass {
         semicolon = true;
       }
       else if (lex< extend >()) {
-        if (surrounding_ruleset.is_null_ptr()) throw_syntax_error("@extend directive may only be used within rules");
+        if (surrounding_ruleset.is_null()) throw_syntax_error("@extend directive may only be used within rules");
         Node extendee(parse_simple_selector_sequence());
         context.extensions.insert(pair<Node, Node>(extendee, surrounding_ruleset));
         context.has_extensions = true;
@@ -1016,6 +1006,7 @@ namespace Sass {
       if (lex< interpolant >()) {
         Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
         Node interp_node(Document::make_from_token(context, insides, path, line).parse_list());
+        interp_node.should_eval() = true;
         schema << interp_node;
       }
       else if (lex< identifier >()) {
@@ -1080,6 +1071,7 @@ namespace Sass {
       else if (lex< interpolant >()) {
         Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
         Node interp_node(Document::make_from_token(context, insides, path, line).parse_list());
+        interp_node.should_eval() = true;
         schema << interp_node;
       }
       else if (lex< sequence< identifier, exactly<':'> > >()) {

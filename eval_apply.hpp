@@ -12,9 +12,11 @@
 
 namespace Sass {
   using std::map;
-  
+
+  void expand(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool function_name = false);
   Node eval(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool function_name = false);
-  Node function_eval(string name, Node stm, Environment& bindings, Node_Factory& new_Node, Context& ctx, bool toplevel = false);
+  Node eval_arguments(Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx);
+  Node eval_function(string name, Node stm, Environment& bindings, Node_Factory& new_Node, Context& ctx, bool toplevel = false);
   Node reduce(Node list, size_t head, Node acc, Node_Factory& new_Node);
   Node accumulate(Node::Type op, Node acc, Node rhs, Node_Factory& new_Node);
   double operate(Node op, double lhs, double rhs);
