@@ -237,7 +237,7 @@ namespace Sass {
         Node var(context.new_Node(Node::variable, path, line, lexed));
         lex< exactly<':'> >();
         Node val(parse_space_list());
-        // val.should_eval() = true;
+        val.should_eval() = true;
         Node assn(context.new_Node(Node::assignment, path, line, 2));
         assn << var << val;
         return assn;
@@ -253,7 +253,7 @@ namespace Sass {
       Node var(context.new_Node(Node::variable, path, line, lexed));
       lex< exactly<':'> >();
       Node val(parse_space_list());
-      // val.should_eval() = true;
+      val.should_eval() = true;
       Node assn(context.new_Node(Node::assignment, path, line, 2));
       assn << var << val;
       return assn;

@@ -610,8 +610,10 @@ namespace Sass {
         evaluated_args << eval(args[i], prefix, env, f_env, new_Node, ctx);
         if (evaluated_args.back().type() == Node::list) {
           Node arg_list(evaluated_args.back());
+          Node new_arg_list(new_Node(Node::list, arg_list.path(), arg_list.line(), arg_list.size()));
           for (size_t j = 0, S = arg_list.size(); j < S; ++j) {
-            if (arg_list[j].should_eval()) arg_list[j] = eval(arg_list[j], prefix, env, f_env, new_Node, ctx);
+            if (arg_list[j].should_eval()) new_arg_list << eval(arg_list[j], prefix, env, f_env, new_Node, ctx);
+            else                           new_arg_list << arg_list[j];
           }
         }
       }
@@ -621,9 +623,12 @@ namespace Sass {
         kwdarg << eval(args[i][1], prefix, env, f_env, new_Node, ctx);
         if (kwdarg.back().type() == Node::list) {
           Node arg_list(kwdarg.back());
+          Node new_arg_list(new_Node(Node::list, arg_list.path(), arg_list.line(), arg_list.size()));
           for (size_t j = 0, S = arg_list.size(); j < S; ++j) {
-            if (arg_list[j].should_eval()) arg_list[j] = eval(arg_list[j], prefix, env, f_env, new_Node, ctx);
+            if (arg_list[j].should_eval()) new_arg_list << eval(arg_list[j], prefix, env, f_env, new_Node, ctx);
+            else                           new_arg_list << arg_list[j];
           }
+          kwdarg[1] = new_arg_list;
         }
         evaluated_args << kwdarg;
       }
@@ -631,6 +636,7 @@ namespace Sass {
     // eval twice because args may be delayed
     for (size_t i = 0, S = evaluated_args.size(); i < S; ++i) {
       if (evaluated_args[i].type() != Node::assignment) {
+        evaluated_args[i].should_eval() = true;
         evaluated_args[i] = eval(evaluated_args[i], prefix, env, f_env, new_Node, ctx);
         if (evaluated_args[i].type() == Node::list) {
           Node arg_list(evaluated_args[i]);
@@ -641,6 +647,7 @@ namespace Sass {
       }
       else {
         Node kwdarg(evaluated_args[i]);
+        kwdarg[1].should_eval() = true;
         kwdarg[1] = eval(kwdarg[1], prefix, env, f_env, new_Node, ctx);
         if (kwdarg[1].type() == Node::list) {
           Node arg_list(kwdarg[1]);
