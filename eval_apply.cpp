@@ -127,7 +127,6 @@ namespace Sass {
         Node var(expr[0]);
         if (expr.is_guarded() && env.query(var.token())) return;
         Node val(expr[1]);
-        // val = eval(val, prefix, env, f_env, new_Node, ctx);
         if (val.type() == Node::list) {
           for (size_t i = 0, S = val.size(); i < S; ++i) {
             if (val[i].should_eval()) val[i] = eval(val[i], prefix, env, f_env, new_Node, ctx);
@@ -251,7 +250,6 @@ namespace Sass {
       } break;
 
       case Node::warning: {
-        // expr = new_Node(expr);
         Node contents(eval(expr[0], Node(), env, f_env, new_Node, ctx));
 
         string prefix("WARNING: ");
@@ -279,26 +277,6 @@ namespace Sass {
     Node result = Node();
     switch (expr.type())
     {
-      // case Node::selector_schema: {
-      //   string expansion;
-      //   for (size_t i = 0, S = expr.size(); i < S; ++i) {
-      //     expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx);
-      //     if (expr[i].type() == Node::string_constant) {
-      //       expansion += expr[i].token().unquote();
-      //     }
-      //     else {
-      //       expansion += expr[i].to_string();
-      //     }
-      //   }
-      //   expansion += " {"; // the parser looks for an lbrace to end a selector
-      //   char* expn_src = new char[expansion.size() + 1];
-      //   strcpy(expn_src, expansion.c_str());
-      //   Document needs_reparsing(Document::make_from_source_chars(ctx, expn_src, expr.path(), true));
-      //   needs_reparsing.line = expr.line(); // set the line number to the original node's line
-      //   Node sel(needs_reparsing.parse_selector_group());
-      //   return sel;
-      // } break;
-
       case Node::list: {
         if (expr.should_eval() && expr.size() > 0) {
           result = new_Node(Node::list, expr.path(), expr.line(), expr.size());
@@ -323,7 +301,6 @@ namespace Sass {
       } break;
       
       case Node::relation: {
-        
         Node lhs(eval(expr[0], prefix, env, f_env, new_Node, ctx));
         Node op(expr[1]);
         Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
@@ -755,10 +732,6 @@ namespace Sass {
     bind_arguments(mixin_name.str(), params, evaluated_args, prefix, bindings, f_env, new_Node, ctx);
     // evaluate the mixin's body
     expand(body, prefix, bindings, f_env, new_Node, ctx);
-    // for (size_t i = 0, S = body.size(); i < S; ++i) {
-    //   expand(body[i], prefix, bindings, f_env, new_Node, ctx);
-    // }
-    // cerr << "expanded " << mixin_name.str() << endl;
     return body;
   }
 
@@ -778,7 +751,7 @@ namespace Sass {
     }
     else {
       // TO DO: consider cloning the function body?
-      return function_eval(f.name, f.definition[2], bindings, new_Node, ctx, true);
+      return eval_function(f.name, f.definition[2], bindings, new_Node, ctx, true);
     }
   }
 
@@ -786,7 +759,7 @@ namespace Sass {
   // algorithm is different in this case because the body needs to be
   // executed and a single value needs to be returned directly, rather than
   // styles being expanded and spliced in place.
-  Node function_eval(string name, Node body, Environment& bindings, Node_Factory& new_Node, Context& ctx, bool at_toplevel)
+  Node eval_function(string name, Node body, Environment& bindings, Node_Factory& new_Node, Context& ctx, bool at_toplevel)
   {
     for (size_t i = 0, S = body.size(); i < S; ++i) {
       Node stm(body[i]);
@@ -820,13 +793,13 @@ namespace Sass {
               Node pred(new_Node(stm[j]));
               Node predicate_val(eval(pred, Node(), bindings, ctx.function_env, new_Node, ctx));
               if ((predicate_val.type() != Node::boolean) || predicate_val.boolean_value()) {
-                Node v(function_eval(name, stm[j+1], bindings, new_Node, ctx));
+                Node v(eval_function(name, stm[j+1], bindings, new_Node, ctx));
                 if (v.is_null()) break;
                 else                 return v;
               }
             }
             else {
-              Node v(function_eval(name, stm[j], bindings, new_Node, ctx));
+              Node v(eval_function(name, stm[j], bindings, new_Node, ctx));
               if (v.is_null()) break;
               else                 return v;
             }
@@ -846,7 +819,7 @@ namespace Sass {
                j < T;
                j += 1) {
             for_env.current_frame[iter_var.token()] = new_Node(lower_bound.path(), lower_bound.line(), j);
-            Node v(function_eval(name, for_body, for_env, new_Node, ctx));
+            Node v(eval_function(name, for_body, for_env, new_Node, ctx));
             if (v.is_null()) continue;
             else                 return v;
           }
@@ -863,7 +836,7 @@ namespace Sass {
           each_env.link(bindings);
           for (size_t j = 0, T = list.size(); j < T; ++j) {
             each_env.current_frame[iter_var.token()] = eval(list[j], Node(), bindings, ctx.function_env, new_Node, ctx);
-            Node v(function_eval(name, each_body, each_env, new_Node, ctx));
+            Node v(eval_function(name, each_body, each_env, new_Node, ctx));
             if (v.is_null()) continue;
             else return v;
           }
@@ -876,7 +849,7 @@ namespace Sass {
           while_env.link(bindings);
           Node pred_val(eval(pred_expr, Node(), bindings, ctx.function_env, new_Node, ctx));
           while ((pred_val.type() != Node::boolean) || pred_val.boolean_value()) {
-            Node v(function_eval(name, while_body, while_env, new_Node, ctx));
+            Node v(eval_function(name, while_body, while_env, new_Node, ctx));
             if (v.is_null()) {
               pred_val = eval(new_Node(stm[0]), Node(), bindings, ctx.function_env, new_Node, ctx);
               continue;
