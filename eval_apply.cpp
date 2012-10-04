@@ -271,6 +271,13 @@ namespace Sass {
     }
   }
 
+  void expand_list(Node list, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx) {
+    for (size_t i = 0, S = list.size(); i < S; ++i) {
+      list[i].should_eval() = true;
+      list[i] = eval(list[i], prefix, env, f_env, new_Node, ctx);
+    }
+  }
+
   // Evaluation function for nodes in a value context.
   Node eval(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, bool function_name)
   {
@@ -302,10 +309,6 @@ namespace Sass {
       } break;
       
       case Node::relation: {
-        // Node lhs(eval(expr[0], prefix, env, f_env, new_Node, ctx));
-        // Node op(expr[1]);
-        // Node rhs(eval(expr[2], prefix, env, f_env, new_Node, ctx));
-
         Node lhs(new_Node(Node::arguments, expr[0].path(), expr[0].line(), 1));
         Node rhs(new_Node(Node::arguments, expr[2].path(), expr[2].line(), 1));
         Node rel(expr[1]);
@@ -316,6 +319,8 @@ namespace Sass {
         rhs = eval_arguments(rhs, prefix, env, f_env, new_Node, ctx);
         lhs = lhs[0];
         rhs = rhs[0];
+        if (lhs.type() == Node::list) expand_list(lhs, prefix, env, f_env, new_Node, ctx);
+        if (rhs.type() == Node::list) expand_list(rhs, prefix, env, f_env, new_Node, ctx);
 
         Node T(new_Node(Node::boolean, lhs.path(), lhs.line(), true));
         Node F(new_Node(Node::boolean, lhs.path(), lhs.line(), false));
