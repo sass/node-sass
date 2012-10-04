@@ -835,6 +835,7 @@ namespace Sass {
           Environment each_env; // re-use this env for each iteration
           each_env.link(bindings);
           for (size_t j = 0, T = list.size(); j < T; ++j) {
+            list[j].should_eval() = true;
             each_env.current_frame[iter_var.token()] = eval(list[j], Node(), bindings, ctx.function_env, new_Node, ctx);
             Node v(eval_function(name, each_body, each_env, new_Node, ctx));
             if (v.is_null()) continue;
