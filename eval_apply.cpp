@@ -280,6 +280,7 @@ namespace Sass {
       case Node::list: {
         if (expr.should_eval() && expr.size() > 0) {
           result = new_Node(Node::list, expr.path(), expr.line(), expr.size());
+          result.is_comma_separated() = expr.is_comma_separated();
           result << eval(expr[0], prefix, env, f_env, new_Node, ctx);
           for (size_t i = 1, S = expr.size(); i < S; ++i) result << expr[i];
         }
@@ -770,6 +771,7 @@ namespace Sass {
           Node newval;
           if (val.type() == Node::list) {
             newval = new_Node(Node::list, val.path(), val.line(), val.size());
+            newval.is_comma_separated() = val.is_comma_separated();
             for (size_t i = 0, S = val.size(); i < S; ++i) {
               if (val[i].should_eval()) newval << eval(val[i], Node(), bindings, ctx.function_env, new_Node, ctx);
               else                      newval << val[i];
@@ -879,6 +881,7 @@ namespace Sass {
           Node retval(eval(stm[0], Node(), bindings, ctx.function_env, new_Node, ctx));
           if (retval.type() == Node::list) {
             Node new_list(new_Node(Node::list, retval.path(), retval.line(), retval.size()));
+            new_list.is_comma_separated() = retval.is_comma_separated();
             for (size_t i = 0, S = retval.size(); i < S; ++i) {
               new_list << eval(retval[i], Node(), bindings, ctx.function_env, new_Node, ctx);
             }
