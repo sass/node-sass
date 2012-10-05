@@ -588,11 +588,14 @@ namespace Sass {
         semicolon = true;
       }
       else if (lex< extend >()) {
-        if (surrounding_ruleset.is_null()) throw_syntax_error("@extend directive may only be used within rules");
+        // if (surrounding_ruleset.is_null()) throw_syntax_error("@extend directive may only be used within rules");
         Node extendee(parse_simple_selector_sequence());
-        context.extensions.insert(pair<Node, Node>(extendee, surrounding_ruleset));
-        context.has_extensions = true;
+        // context.extensions.insert(pair<Node, Node>(extendee, surrounding_ruleset));
+        Node request(context.new_Node(Node::extend_directive, path, line, 1));
+        request << extendee;
+        // context.has_extensions = true;
         semicolon = true;
+        block << request;
       }
       else if (peek< media >()) {
         block << parse_media_query(inside_of);

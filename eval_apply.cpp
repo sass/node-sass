@@ -79,30 +79,30 @@ namespace Sass {
         // expand the selector with the prefix and save it in expr[2]
         expr << expand_selector(expr[0], prefix, new_Node);
 
-        // gather selector extensions into a pending queue
-        if (ctx.has_extensions) {
-          // check single selector
-          if (expr.back().type() != Node::selector_group) {
-            Node sel(selector_base(expr.back()));
-            if (ctx.extensions.count(sel)) {
-              for (multimap<Node, Node>::iterator i = ctx.extensions.lower_bound(sel); i != ctx.extensions.upper_bound(sel); ++i) {
-                ctx.pending_extensions.push_back(pair<Node, Node>(expr, i->second));
-              }
-            }
-          }
-          // individually check each selector in a group
-          else {
-            Node group(expr.back());
-            for (size_t i = 0, S = group.size(); i < S; ++i) {
-              Node sel(selector_base(group[i]));
-              if (ctx.extensions.count(sel)) {
-                for (multimap<Node, Node>::iterator j = ctx.extensions.lower_bound(sel); j != ctx.extensions.upper_bound(sel); ++j) {
-                  ctx.pending_extensions.push_back(pair<Node, Node>(expr, j->second));
-                }
-              }
-            }
-          }
-        }
+        // // gather selector extensions into a pending queue
+        // if (ctx.has_extensions) {
+        //   // check single selector
+        //   if (expr.back().type() != Node::selector_group) {
+        //     Node sel(selector_base(expr.back()));
+        //     if (ctx.extensions.count(sel)) {
+        //       for (multimap<Node, Node>::iterator i = ctx.extensions.lower_bound(sel); i != ctx.extensions.upper_bound(sel); ++i) {
+        //         ctx.pending_extensions.push_back(pair<Node, Node>(expr, i->second));
+        //       }
+        //     }
+        //   }
+        //   // individually check each selector in a group
+        //   else {
+        //     Node group(expr.back());
+        //     for (size_t i = 0, S = group.size(); i < S; ++i) {
+        //       Node sel(selector_base(group[i]));
+        //       if (ctx.extensions.count(sel)) {
+        //         for (multimap<Node, Node>::iterator j = ctx.extensions.lower_bound(sel); j != ctx.extensions.upper_bound(sel); ++j) {
+        //           ctx.pending_extensions.push_back(pair<Node, Node>(expr, j->second));
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
 
         // expand the body with the newly expanded selector as the prefix
         expand(expr[1], expr.back(), env, f_env, new_Node, ctx);
@@ -162,6 +162,12 @@ namespace Sass {
         else if (rhs.is_schema() || rhs.should_eval()) {
           expr[1] = eval(rhs, prefix, env, f_env, new_Node, ctx);
         }
+      } break;
+
+      case Node::extend_directive: {
+        if (prefix.is_null()) throw_eval_error("@extend directive may only be used within rules", expr.path(), expr.line());
+        ctx.extensions.insert(pair<Node, Node>(expr[0], prefix));
+        ctx.has_extensions = true;
       } break;
 
       case Node::if_directive: {

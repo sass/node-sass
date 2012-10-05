@@ -157,6 +157,8 @@ namespace Sass {
       parameters,
       arguments,
 
+      extend_directive,
+
       if_directive,
       for_through_directive,
       for_to_directive,
