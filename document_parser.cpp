@@ -355,12 +355,15 @@ namespace Sass {
     Node seq1(parse_simple_selector_sequence());
     if (peek< exactly<','> >() ||
         peek< exactly<')'> >() ||
-        peek< exactly<'{'> >()) return seq1;
+        peek< exactly<'{'> >() ||
+        peek< exactly<';'> >()) return seq1;
     
     Node selector(context.new_Node(Node::selector, path, line, 2));
     selector << seq1;
 
-    while (!peek< exactly<'{'> >() && !peek< exactly<','> >()) {
+    while (!peek< exactly<'{'> >() &&
+           !peek< exactly<','> >() &&
+           !peek< exactly<';'> >()) {
       selector << parse_simple_selector_sequence();
     }
     return selector;
@@ -588,12 +591,14 @@ namespace Sass {
         semicolon = true;
       }
       else if (lex< extend >()) {
-        // if (surrounding_ruleset.is_null()) throw_syntax_error("@extend directive may only be used within rules");
-        Node extendee(parse_simple_selector_sequence());
-        // context.extensions.insert(pair<Node, Node>(extendee, surrounding_ruleset));
         Node request(context.new_Node(Node::extend_directive, path, line, 1));
-        request << extendee;
-        // context.has_extensions = true;
+        Selector_Lookahead lookahead = lookahead_for_extension_target(position);
+
+        if (!lookahead.found) throw_syntax_error("invalid selector for @extend");
+
+        if (lookahead.has_interpolants) request << parse_selector_schema(lookahead.found);
+        else                            request << parse_selector_group();
+
         semicolon = true;
         block << request;
       }
@@ -1338,5 +1343,56 @@ namespace Sass {
 
     return result;
   }
+
+  Selector_Lookahead Document::lookahead_for_extension_target(const char* start)
+  {
+    const char* p = start ? start : position;
+    const char* q;
+    bool saw_interpolant = false;
+
+    while ((q = peek< identifier >(p))                             ||
+           (q = peek< id_name >(p))                                ||
+           (q = peek< class_name >(p))                             ||
+           (q = peek< sequence< pseudo_prefix, identifier > >(p))  ||
+           (q = peek< string_constant >(p))                        ||
+           (q = peek< exactly<'*'> >(p))                           ||
+           (q = peek< exactly<'('> >(p))                           ||
+           (q = peek< exactly<')'> >(p))                           ||
+           (q = peek< exactly<'['> >(p))                           ||
+           (q = peek< exactly<']'> >(p))                           ||
+           (q = peek< exactly<'+'> >(p))                           ||
+           (q = peek< exactly<'~'> >(p))                           ||
+           (q = peek< exactly<'>'> >(p))                           ||
+           (q = peek< exactly<','> >(p))                           ||
+           (q = peek< binomial >(p))                               ||
+           (q = peek< sequence< optional<sign>,
+                                optional<digits>,
+                                exactly<'n'> > >(p))               ||
+           (q = peek< sequence< optional<sign>,
+                                digits > >(p))                     ||
+           (q = peek< number >(p))                                 ||
+           (q = peek< exactly<'&'> >(p))                           ||
+           (q = peek< alternatives<exact_match,
+                                   class_match,
+                                   dash_match,
+                                   prefix_match,
+                                   suffix_match,
+                                   substring_match> >(p))          ||
+           (q = peek< sequence< exactly<'.'>, interpolant > >(p))  ||
+           (q = peek< sequence< exactly<'#'>, interpolant > >(p))  ||
+           (q = peek< sequence< exactly<'-'>, interpolant > >(p))  ||
+           (q = peek< sequence< pseudo_prefix, interpolant > >(p)) ||
+           (q = peek< interpolant >(p))) {
+      p = q;
+      if (*(p - 1) == '}') saw_interpolant = true;
+    }
+
+    Selector_Lookahead result;
+    result.found            = peek< alternatives< exactly<';'>, exactly<'}'> > >(p) ? p : 0;
+    result.has_interpolants = saw_interpolant;
+
+    return result;
+  }
+
   
 }

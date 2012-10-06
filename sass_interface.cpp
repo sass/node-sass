@@ -42,7 +42,7 @@ extern "C" {
     using namespace Sass;
     doc.parse_scss();
     expand(doc.root,
-           doc.context.new_Node(Node::none, doc.path, doc.line, 0),
+           Node(),
            doc.context.global_env,
            doc.context.function_env,
            doc.context.new_Node,

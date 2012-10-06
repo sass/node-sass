@@ -175,7 +175,8 @@ namespace Sass {
     Node parse_warning();
 
     Selector_Lookahead lookahead_for_selector(const char* start = 0);
-    
+    Selector_Lookahead lookahead_for_extension_target(const char* start = 0);
+
     void throw_syntax_error(string message, size_t ln = 0);
     void throw_read_error(string message, size_t ln = 0);
     

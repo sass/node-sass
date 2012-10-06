@@ -68,6 +68,7 @@ namespace Sass {
               expansion += schema[i].to_string();
             }
           }
+          // need to re-parse the selector because its structure may have changed
           expansion += " {"; // the parser looks for an lbrace to end a selector
           char* expn_src = new char[expansion.size() + 1];
           strcpy(expn_src, expansion.c_str());
@@ -166,6 +167,42 @@ namespace Sass {
 
       case Node::extend_directive: {
         if (prefix.is_null()) throw_eval_error("@extend directive may only be used within rules", expr.path(), expr.line());
+
+        // if the selector contains interpolants, eval it and re-parse
+        if (expr[0].type() == Node::selector_schema) {
+          Node schema(expr[0]);
+          string expansion;
+          for (size_t i = 0, S = schema.size(); i < S; ++i) {
+            schema[i] = eval(schema[i], prefix, env, f_env, new_Node, ctx);
+            if (schema[i].type() == Node::string_constant) {
+              expansion += schema[i].token().unquote();
+            }
+            else {
+              expansion += schema[i].to_string();
+            }
+          }
+          // need to re-parse the selector because its structure may have changed
+          expansion += " {"; // the parser looks for an lbrace to end a selector
+          char* expn_src = new char[expansion.size() + 1];
+          strcpy(expn_src, expansion.c_str());
+          Document needs_reparsing(Document::make_from_source_chars(ctx, expn_src, schema.path(), true));
+          needs_reparsing.line = schema.line(); // set the line number to the original node's line
+          expr[0] = needs_reparsing.parse_selector_group();
+        }
+
+        // only simple selector sequences may be extended
+        switch (expr[0].type())
+        {
+          case Node::selector_group:
+            throw_eval_error("selector groups may not be extended", expr[0].path(), expr[0].line());
+            break;
+          case Node::selector:
+            throw_eval_error("nested selectors may not be extended", expr[0].path(), expr[0].line());
+            break;
+          default:
+            break;
+        }
+
         ctx.extensions.insert(pair<Node, Node>(expr[0], prefix));
         ctx.has_extensions = true;
       } break;
@@ -277,7 +314,8 @@ namespace Sass {
     }
   }
 
-  void expand_list(Node list, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx) {
+  void expand_list(Node list, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx)
+  {
     for (size_t i = 0, S = list.size(); i < S; ++i) {
       list[i].should_eval() = true;
       list[i] = eval(list[i], prefix, env, f_env, new_Node, ctx);
@@ -935,7 +973,7 @@ namespace Sass {
   // combine the various kinds of selectors.
   Node expand_selector(Node sel, Node pre, Node_Factory& new_Node)
   {
-    if (pre.type() == Node::none) return sel;
+    if (pre.is_null()) return sel;
 
     if (sel.has_backref()) {
       if ((pre.type() == Node::selector_group) && (sel.type() == Node::selector_group)) {
@@ -1041,7 +1079,10 @@ namespace Sass {
     return Node();
   }
 
-  // Resolve selector extensions.
+  // Resolve selector extensions. Walk through the document tree and check each
+  // selector to see whether it's the base of an extension. Needs to be a
+  // separate pass after evaluation because extension requests may be located
+  // within mixins, and their targets may be interpolated.
   void extend_selectors(vector<pair<Node, Node> >& pending, multimap<Node, Node>& extension_table, Node_Factory& new_Node)
   {
     for (size_t i = 0, S = pending.size(); i < S; ++i) {
@@ -1095,122 +1136,6 @@ namespace Sass {
         }
         ruleset_to_extend[2] = extended_group;
       }
-
-      // if (extendee.type() != Node::selector_group && extender.type() != Node::selector_group) {
-      //   Node ext(generate_extension(extendee, extender, new_Node));
-      //   ext.push_front(extendee);
-      //   ruleset_to_extend[2] = ext;
-      // }
-      // else if (extendee.type() == Node::selector_group && extender.type() != Node::selector_group) {
-      //   cerr << "extending a group with a singleton!" << endl;
-      //   Node new_group(new_Node(Node::selector_group, extendee.path(), extendee.line(), extendee.size()));
-      //   for (size_t i = 0, S = extendee.size(); i < S; ++i) {
-      //     new_group << extendee[i];
-      //     if (extension_table.count(extendee[i])) {
-      //       new_group << generate_extension(extendee[i], extender, new_Node);
-      //     }
-      //   }
-      //   ruleset_to_extend[2] = new_group;
-      // }
-      // else if (extendee.type() != Node::selector_group && extender.type() == Node::selector_group) {
-      //   cerr << "extending a singleton with a group!" << endl;
-      // }
-      // else {
-      //   cerr << "skipping this for now!" << endl;
-      // }
-
-      // if (selector_to_extend.type() != Node::selector_group) {
-      //   Node ext(generate_extension(selector_to_extend, extender, new_Node));
-      //   ext.push_front(selector_to_extend);
-      //   ruleset_to_extend[2] = ext;
-      // }
-      // else {
-      //   cerr << "possibly extending a selector in a group: " << selector_to_extend.to_string() << endl;
-      //   Node new_group(new_Node(Node::selector_group,
-      //                  selector_to_extend.path(),
-      //                  selector_to_extend.line(),
-      //                  selector_to_extend.size()));
-      //   for (size_t i = 0, S = selector_to_extend.size(); i < S; ++i) {
-      //     Node sel_i(selector_to_extend[i]);
-      //     Node sel_ib(selector_base(sel_i));
-      //     if (extension_table.count(sel_ib)) {
-      //       for (multimap<Node, Node>::iterator i = extension_table.lower_bound(sel_ib); i != extension_table.upper_bound(sel_ib); ++i) {
-      //         if (i->second.is(original_extender)) {
-      //           new_group << sel_i;
-      //           new_group += generate_extension(sel_i, extender, new_Node);
-      //         }
-      //         else {
-      //           cerr << "not what you think is happening!" << endl;
-      //         }
-      //       }
-      //     }
-      //   }
-      //   ruleset_to_extend[2] = new_group;
-      // }
-
-      // if (selector_to_extend.type() != Node::selector) {
-      //   switch (extender.type())
-      //   {
-      //     case Node::simple_selector:
-      //     case Node::attribute_selector:
-      //     case Node::simple_selector_sequence:
-      //     case Node::selector: {
-      //       cerr << "EXTENDING " << selector_to_extend.to_string() << " WITH " << extender.to_string() << endl;
-      //       if (selector_to_extend.type() == Node::selector_group) {
-      //         selector_to_extend << extender;
-      //       }
-      //       else {
-      //         Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
-      //         new_group << selector_to_extend << extender;
-      //         ruleset_to_extend[2] = new_group;
-      //       }
-      //     } break;
-      //     default: {
-      //     // handle the other cases later
-      //     }
-      //   }
-      // }
-      // else {
-      //   switch (extender.type())
-      //   {
-      //     case Node::simple_selector:
-      //     case Node::attribute_selector:
-      //     case Node::simple_selector_sequence: {
-      //       Node new_ext(new_Node(selector_to_extend));
-      //       new_ext.back() = extender;
-      //       if (selector_to_extend.type() == Node::selector_group) {
-      //         selector_to_extend << new_ext;
-      //       }
-      //       else {
-      //         Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
-      //         new_group << selector_to_extend << new_ext;
-      //         ruleset_to_extend[2] = new_group;
-      //       }
-      //     } break;
-
-      //     case Node::selector: {
-      //       Node new_ext1(new_Node(Node::selector, selector_to_extend.path(), selector_to_extend.line(), selector_to_extend.size() + extender.size() - 1));
-      //       Node new_ext2(new_Node(Node::selector, selector_to_extend.path(), selector_to_extend.line(), selector_to_extend.size() + extender.size() - 1));
-      //       new_ext1 += selector_prefix(selector_to_extend, new_Node);
-      //       new_ext1 += extender;
-      //       new_ext2 += selector_prefix(extender, new_Node);
-      //       new_ext2 += selector_prefix(selector_to_extend, new_Node);
-      //       new_ext2 << extender.back();
-      //       if (selector_to_extend.type() == Node::selector_group) {
-      //         selector_to_extend << new_ext1 << new_ext2;
-      //       }
-      //       else {
-      //         Node new_group(new_Node(Node::selector_group, selector_to_extend.path(), selector_to_extend.line(), 2));
-      //         new_group << selector_to_extend << new_ext1 << new_ext2;
-      //         ruleset_to_extend[2] = new_group;
-      //       }
-      //     } break;
-
-      //     default: {
-      //       // something
-      //     } break;
-      //   }
-      // }
     }
   }
 
