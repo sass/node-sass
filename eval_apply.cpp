@@ -1107,12 +1107,12 @@ namespace Sass {
             size_t num_requests = extension_requests.count(sel);
             if (num_requests) {
               Node group(new_Node(Node::selector_group, sel.path(), sel.line(), 1 + num_requests));
-              group << sel;
+              group << expr[2];
               // for each of its extenders ...
               for (multimap<Node, Node>::iterator request = extension_requests.lower_bound(sel);
                    request != extension_requests.upper_bound(sel);
                    ++request) {
-                group << generate_extension(sel, request->second, new_Node);
+                group << generate_extension(expr[2], request->second, new_Node);
               }
               expr[2] = group;
             }
@@ -1129,7 +1129,7 @@ namespace Sass {
                 for (multimap<Node, Node>::iterator request = extension_requests.lower_bound(sel);
                      request != extension_requests.upper_bound(sel);
                      ++request) {
-                  group << generate_extension(sel, request->second, new_Node);
+                  group << generate_extension(group[i], request->second, new_Node);
                 }
               }
             }

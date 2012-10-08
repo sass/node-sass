@@ -48,7 +48,7 @@ extern "C" {
            doc.context.new_Node,
            doc.context);
     // extend_selectors(doc.context.pending_extensions, doc.context.extensions, doc.context.new_Node);
-    extend(doc.root, doc.context.extensions, doc.context.new_Node);
+    if (doc.context.has_extensions) extend(doc.root, doc.context.extensions, doc.context.new_Node);
     string output(doc.emit_css(static_cast<Document::CSS_Style>(style)));
     char* c_output = (char*) malloc(output.size() + 1);
     strcpy(c_output, output.c_str());
