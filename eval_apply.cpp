@@ -203,6 +203,7 @@ namespace Sass {
             break;
         }
 
+        // extendee -> { extenders }
         ctx.extensions.insert(pair<Node, Node>(expr[0], prefix));
         ctx.has_extensions = true;
       } break;
@@ -1083,6 +1084,56 @@ namespace Sass {
   // selector to see whether it's the base of an extension. Needs to be a
   // separate pass after evaluation because extension requests may be located
   // within mixins, and their targets may be interpolated.
+  void extend(Node expr, multimap<Node, Node>& extension_requests, Node_Factory& new_Node)
+  {
+    switch (expr.type())
+    {
+      case Node::ruleset: {
+        // check single selector
+        if (expr[2].type() != Node::selector_group) {
+          Node sel(selector_base(expr[2]));
+          if (extension_requests.count(sel)) {
+            for (multimap<Node, Node>::iterator i = extension_requests.lower_bound(sel); i != extension_requests.upper_bound(sel); ++i) {
+              // something!
+            }
+          }
+        }
+        // individually check each selector in a group
+        else {
+          Node group(expr[2]);
+          for (size_t i = 0, S = group.size(); i < S; ++i) {
+            Node sel(selector_base(group[i]));
+            if (extension_requests.count(sel)) {
+              for (multimap<Node, Node>::iterator j = extension_requests.lower_bound(sel); j != extension_requests.upper_bound(sel); ++j) {
+                // something!
+              }
+            }
+          }
+        }
+      } break;
+
+      case Node::root:
+      case Node::block: 
+      case Node::mixin_call:
+      case Node::if_directive:
+      case Node::for_through_directive:
+      case Node::for_to_directive:
+      case Node::each_directive:
+      case Node::while_directive: {
+        // at this point, all directives have been expanded into style blocks,
+        // so just recursively process their children
+        for (size_t i = 0, S < expr.size(); i < S; ++i) {
+          extend(expr[i], extension_requests, new_Node);
+        }
+      } break;
+
+      default: {
+        // do nothing
+      } break;
+    }
+    return;
+  }
+
   void extend_selectors(vector<pair<Node, Node> >& pending, multimap<Node, Node>& extension_table, Node_Factory& new_Node)
   {
     for (size_t i = 0, S = pending.size(); i < S; ++i) {
