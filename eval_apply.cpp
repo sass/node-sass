@@ -168,7 +168,7 @@ namespace Sass {
       case Node::extend_directive: {
         if (prefix.is_null()) throw_eval_error("@extend directive may only be used within rules", expr.path(), expr.line());
 
-        // if the selector contains interpolants, eval it and re-parse
+        // if the extendee contains interpolants, eval it and re-parse
         if (expr[0].type() == Node::selector_schema) {
           Node schema(expr[0]);
           string expansion;
@@ -203,8 +203,18 @@ namespace Sass {
             break;
         }
 
-        // extendee -> { extenders }
-        ctx.extensions.insert(pair<Node, Node>(expr[0], prefix));
+        // each extendee maps to a set of extenders: extendee -> { extenders }
+
+        // if it's a single selector, just add it to the set
+        if (prefix.type() != Node::selector_group) {
+          ctx.extensions.insert(pair<Node, Node>(expr[0], prefix));
+        }
+        // otherwise add each member of the selector group separately
+        else {
+          for (size_t i = 0, S = prefix.size(); i < S; ++i) {
+            ctx.extensions.insert(pair<Node, Node>(expr[0], prefix[i]));
+          }
+        }
         ctx.has_extensions = true;
       } break;
 
@@ -1089,27 +1099,43 @@ namespace Sass {
     switch (expr.type())
     {
       case Node::ruleset: {
-        // check single selector
-        if (expr[2].type() != Node::selector_group) {
-          Node sel(selector_base(expr[2]));
-          if (extension_requests.count(sel)) {
-            for (multimap<Node, Node>::iterator i = extension_requests.lower_bound(sel); i != extension_requests.upper_bound(sel); ++i) {
-              // something!
+        if (!expr[2].has_been_extended()) {
+          // check single selector
+          if (expr[2].type() != Node::selector_group) {
+            Node sel(selector_base(expr[2]));
+            // if this selector has extenders ...
+            size_t num_requests = extension_requests.count(sel);
+            if (num_requests) {
+              Node group(new_Node(Node::selector_group, sel.path(), sel.line(), 1 + num_requests));
+              group << sel;
+              // for each of its extenders ...
+              for (multimap<Node, Node>::iterator request = extension_requests.lower_bound(sel);
+                   request != extension_requests.upper_bound(sel);
+                   ++request) {
+                group << generate_extension(sel, request->second, new_Node);
+              }
+              expr[2] = group;
             }
           }
-        }
-        // individually check each selector in a group
-        else {
-          Node group(expr[2]);
-          for (size_t i = 0, S = group.size(); i < S; ++i) {
-            Node sel(selector_base(group[i]));
-            if (extension_requests.count(sel)) {
-              for (multimap<Node, Node>::iterator j = extension_requests.lower_bound(sel); j != extension_requests.upper_bound(sel); ++j) {
-                // something!
+          // individually check each selector in a group
+          else {
+            Node group(expr[2]);
+            // for each selector in the group ...
+            for (size_t i = 0, S = group.size(); i < S; ++i) {
+              Node sel(selector_base(group[i]));
+              // if it has extenders ...
+              if (extension_requests.count(sel)) {
+                // for each of its extenders ...
+                for (multimap<Node, Node>::iterator request = extension_requests.lower_bound(sel);
+                     request != extension_requests.upper_bound(sel);
+                     ++request) {
+                  group << generate_extension(sel, request->second, new_Node);
+                }
               }
             }
           }
         }
+        extend(expr[1], extension_requests, new_Node);
       } break;
 
       case Node::root:
@@ -1122,7 +1148,7 @@ namespace Sass {
       case Node::while_directive: {
         // at this point, all directives have been expanded into style blocks,
         // so just recursively process their children
-        for (size_t i = 0, S < expr.size(); i < S; ++i) {
+        for (size_t i = 0, S = expr.size(); i < S; ++i) {
           extend(expr[i], extension_requests, new_Node);
         }
       } break;
