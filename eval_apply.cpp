@@ -1114,24 +1114,33 @@ namespace Sass {
                    ++request) {
                 group << generate_extension(expr[2], request->second, new_Node);
               }
+              group.has_been_extended() = true;
               expr[2] = group;
             }
           }
           // individually check each selector in a group
           else {
             Node group(expr[2]);
+            Node new_group(new_Node(Node::selector_group, group.path(), group.line(), group.size()));
             // for each selector in the group ...
             for (size_t i = 0, S = group.size(); i < S; ++i) {
+              new_group << group[i];
               Node sel(selector_base(group[i]));
               // if it has extenders ...
-              if (extension_requests.count(sel)) {
+              if (!group[i].has_been_extended() && extension_requests.count(sel)) {
                 // for each of its extenders ...
                 for (multimap<Node, Node>::iterator request = extension_requests.lower_bound(sel);
                      request != extension_requests.upper_bound(sel);
                      ++request) {
-                  group << generate_extension(group[i], request->second, new_Node);
+                  new_group << generate_extension(group[i], request->second, new_Node);
                 }
+                group[i].has_been_extended() = true;
               }
+            }
+            if (new_group.size() > 0) {
+              group.has_been_extended() = true;
+              new_group.has_been_extended() = true;
+              expr[2] = new_group;
             }
           }
         }
