@@ -61,6 +61,19 @@ namespace Sass {
 
   string Node::unquote() const
   {
+    Type t = type();
+    switch (type())
+    {
+      case string_constant:
+      case identifier: {
+        return token().unquote();
+      } break;
+
+      default: {
+        // do nothing; fall though to the rest
+      } break;
+    }
+
     string intermediate(to_string());
     if (!intermediate.empty() && (intermediate[0] == '"' || intermediate[0] == '\'')) {
       return intermediate.substr(1, intermediate.length() - 2);
@@ -74,8 +87,11 @@ namespace Sass {
   {
     Type t = type(), u = rhs.type();
 
-    if ((t == identifier || t == string_constant || t == string_schema || t == concatenation) &&
-        (u == identifier || u == string_constant || u == string_schema || u == concatenation)) {
+    // if ((t == identifier || t == string_constant || t == string_schema || t == concatenation) &&
+    //     (u == identifier || u == string_constant || u == string_schema || u == concatenation)) {
+    //   return unquote() == rhs.unquote();
+    // }
+    if (is_string() && rhs.is_string()) {
       return unquote() == rhs.unquote();
     }
     else if (t != u) {
@@ -126,8 +142,25 @@ namespace Sass {
         return boolean_value() == rhs.boolean_value();
       } break;
       
+      case selector: {
+        if (has_children() && rhs.has_children() && (size() == rhs.size())) {
+          for (size_t i = 0, S = size(); i < S; ++i) {
+            if (at(i) == rhs[i]) continue;
+            else                 return false;
+          }
+          return true;
+        }
+        else {
+          return false;
+        }
+      } break;
+
+      case simple_selector: {
+        if (token() == rhs.token()) return true;
+      } break;
+
       default: {
-        return true;
+        return false;
       } break;
     }
     return false;
@@ -163,12 +196,16 @@ namespace Sass {
     }
 
     // comparing identifiers and strings (treat them as comparable)
-    else if ((lhs_type == identifier || lhs_type == string_constant || lhs_type == value) &&
-             (rhs_type == identifier || lhs_type == string_constant || rhs_type == value)) {
-      return token().unquote() < rhs.token().unquote();
+    else if (is_string() && rhs.is_string()) {
+      return unquote() < rhs.unquote();
     }
 
-    // COMPARING SELECTORS -- IMPORTANT FOR INHERITANCE
+    // else if ((lhs_type == identifier || lhs_type == string_constant || lhs_type == value) &&
+    //          (rhs_type == identifier || lhs_type == string_constant || rhs_type == value)) {
+    //   return token().unquote() < rhs.token().unquote();
+    // }
+
+    // COMPARING SELECTORS -- IMPORTANT FOR ORDERING AND NORMALIZING
     else if ((type()     >= selector_group && type()     <=selector_schema) &&
              (rhs.type() >= selector_group && rhs.type() <=selector_schema)) {
 
@@ -183,12 +220,14 @@ namespace Sass {
           return token() < rhs.token();
         } break;
 
+        // assumes selectors are normalized by the time they're compared
         case selector:
-        case attribute_selector: {
+        case simple_selector_sequence:
+        case attribute_selector:
+        case functional_pseudo:
+        case pseudo_not: {
           return lexicographical_compare(begin(), end(), rhs.begin(), rhs.end());
         } break;
-
-
 
         default: {
           return false;

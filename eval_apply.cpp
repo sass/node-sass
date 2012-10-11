@@ -1,4 +1,5 @@
 #include "eval_apply.hpp"
+#include "selector.hpp"
 #include "constants.hpp"
 #include "prelexer.hpp"
 #include "document.hpp"
@@ -106,6 +107,8 @@ namespace Sass {
         // }
 
         // expand the body with the newly expanded selector as the prefix
+        cerr << "ORIGINAL SELECTOR:\t" << expr[2].to_string() << endl;
+        cerr << "NORMALIZED SELECTOR:\t" << normalize_selector(expr[2], new_Node).to_string() << endl << endl;
         expand(expr[1], expr.back(), env, f_env, new_Node, ctx);
       } break;
 
@@ -1112,8 +1115,11 @@ namespace Sass {
               for (multimap<Node, Node>::iterator request = extension_requests.lower_bound(sel);
                    request != extension_requests.upper_bound(sel);
                    ++request) {
-                group << generate_extension(expr[2], request->second, new_Node);
+                Node ext(generate_extension(expr[2], request->second, new_Node));
+                if (ext.type() == Node::selector_group) group += ext;
+                else                                    group << ext;
               }
+              group = remove_duplicate_selectors(group, new_Node);
               group.has_been_extended() = true;
               expr[2] = group;
             }
@@ -1132,13 +1138,16 @@ namespace Sass {
                 for (multimap<Node, Node>::iterator request = extension_requests.lower_bound(sel);
                      request != extension_requests.upper_bound(sel);
                      ++request) {
-                  new_group << generate_extension(group[i], request->second, new_Node);
+                  Node ext(generate_extension(group[i], request->second, new_Node));
+                  if (ext.type() == Node::selector_group) new_group += ext;
+                  else                                    new_group << ext;
                 }
                 group[i].has_been_extended() = true;
               }
             }
             if (new_group.size() > 0) {
               group.has_been_extended() = true;
+              new_group = remove_duplicate_selectors(new_group, new_Node);
               new_group.has_been_extended() = true;
               expr[2] = new_group;
             }
