@@ -34,4 +34,4 @@ clean:
 	rm -f $(OBJECTS) *.a *.so
 
 
-.PHONY: static shared install install-static clean
+.PHONY: static shared install install-shared clean
