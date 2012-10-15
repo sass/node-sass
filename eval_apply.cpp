@@ -107,8 +107,8 @@ namespace Sass {
         // }
 
         // expand the body with the newly expanded selector as the prefix
-        cerr << "ORIGINAL SELECTOR:\t" << expr[2].to_string() << endl;
-        cerr << "NORMALIZED SELECTOR:\t" << normalize_selector(expr[2], new_Node).to_string() << endl << endl;
+        // cerr << "ORIGINAL SELECTOR:\t" << expr[2].to_string() << endl;
+        // cerr << "NORMALIZED SELECTOR:\t" << normalize_selector(expr[2], new_Node).to_string() << endl << endl;
         expand(expr[1], expr.back(), env, f_env, new_Node, ctx);
       } break;
 

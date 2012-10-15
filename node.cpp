@@ -61,7 +61,6 @@ namespace Sass {
 
   string Node::unquote() const
   {
-    Type t = type();
     switch (type())
     {
       case string_constant:
@@ -196,7 +195,8 @@ namespace Sass {
     }
 
     // comparing identifiers and strings (treat them as comparable)
-    else if (is_string() && rhs.is_string()) {
+    else if ((is_string() && rhs.is_string()) ||
+             (lhs_type == value && rhs_type == value)) {
       return unquote() < rhs.unquote();
     }
 
@@ -225,7 +225,7 @@ namespace Sass {
         case simple_selector_sequence:
         case attribute_selector:
         case functional_pseudo:
-        case pseudo_not: {
+        case pseudo_negation: {
           return lexicographical_compare(begin(), end(), rhs.begin(), rhs.end());
         } break;
 
