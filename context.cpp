@@ -1,5 +1,4 @@
 #ifdef _WIN32
-#include <io.h>
 #include <direct.h>
 #define getcwd _getcwd
 #else
