@@ -1,8 +1,13 @@
+#ifdef _WIN32
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
+
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <cstdlib>
-#include <unistd.h>
 #include <iostream>
 #include "document.hpp"
 #include "eval_apply.hpp"

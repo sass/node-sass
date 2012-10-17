@@ -1,7 +1,14 @@
+#ifdef _WIN32
+#include <io.h>
+#include <direct.h>
+#define getcwd _getcwd
+#else
+#include <unistd.h>
+#endif
+
 #include <cstring>
 #include <iostream>
 #include <sstream>
-#include <unistd.h>
 #include "context.hpp"
 #include "constants.hpp"
 #include "color_names.hpp"
