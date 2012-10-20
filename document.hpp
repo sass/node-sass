@@ -29,7 +29,7 @@ namespace Sass {
     enum CSS_Style { nested, expanded, compact, compressed, echo };
     
     string path;
-    char* source;
+    const char* source;
     const char* position;
     const char* end;
     size_t line;
@@ -48,7 +48,7 @@ namespace Sass {
     ~Document();
 
     static Document make_from_file(Context& ctx, string path);
-    static Document make_from_source_chars(Context& ctx, char* src, string path = "", bool own_source = false);
+    static Document make_from_source_chars(Context& ctx, const char* src, string path = "", bool own_source = false);
     static Document make_from_token(Context& ctx, Token t, string path = "", size_t line_number = 1);
 
     template <prelexer mx>
