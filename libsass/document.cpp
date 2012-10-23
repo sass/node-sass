@@ -1,3 +1,7 @@
+#ifdef _WIN32
+#define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
+#endif
+
 #include <cstdio>
 #include <cstring>
 #include "document.hpp"
