@@ -27,10 +27,34 @@ namespace Sass {
     return ip_cpy;
   }
 
+  // returns a deep-copy of its argument, but uses the path and line that are passed in
+  Node_Impl* Node_Factory::alloc_Node_Impl(string& path, size_t line, Node_Impl* ip)
+  {
+    Node_Impl* ip_cpy = new Node_Impl(*ip);
+    pool_.push_back(ip_cpy);
+    if (ip_cpy->has_children) {
+      for (size_t i = 0, S = ip_cpy->size(); i < S; ++i) {
+        Node n(ip_cpy->at(i));
+        ip_cpy->at(i) = (*this)(path, line, n);
+      }
+    }
+    return ip_cpy;
+  }
+
+
   // for cloning nodes
   Node Node_Factory::operator()(const Node& n1)
   {
     Node_Impl* ip_cpy = alloc_Node_Impl(n1.ip_); // deep-copy the implementation object
+    return Node(ip_cpy);
+  }
+
+  // for cloning nodes and resetting their path and line-number fields
+  Node Node_Factory::operator()(string& path, size_t line, const Node& n1)
+  {
+    Node_Impl* ip_cpy = alloc_Node_Impl(path, line, n1.ip_); // deep-copy the implementation object
+    ip_cpy->path = path;
+    ip_cpy->line = line;
     return Node(ip_cpy);
   }
 

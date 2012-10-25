@@ -5,6 +5,7 @@
       'type': '<(library)',
       'sources': [
         'binding.cpp',
+        'libsass/constants.cpp',
         'libsass/context.cpp',
         'libsass/document.cpp',
         'libsass/document_parser.cpp',
@@ -14,7 +15,8 @@
         'libsass/node_emitters.cpp',
         'libsass/node_factory.cpp',
         'libsass/prelexer.cpp',
-        'libsass/sass_interface.cpp'
+        'libsass/sass_interface.cpp',
+        'libsass/selector.cpp'
       ],
       'conditions': [
         ['OS=="mac"', {

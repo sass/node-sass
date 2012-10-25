@@ -85,8 +85,8 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libsass_la_LIBADD =
 am_libsass_la_OBJECTS = context.lo functions.lo document.lo \
-	document_parser.lo eval_apply.lo node.lo node_factory.lo \
-	node_emitters.lo prelexer.lo sass_interface.lo
+	constants.lo document_parser.lo eval_apply.lo node.lo node_factory.lo \
+	node_emitters.lo prelexer.lo selector.lo sass_interface.lo
 libsass_la_OBJECTS = $(am_libsass_la_OBJECTS)
 libsass_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -245,9 +245,9 @@ top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
 lib_LTLIBRARIES = libsass.la
 libsass_la_SOURCES = context.cpp functions.cpp document.cpp \
-	document_parser.cpp eval_apply.cpp node.cpp \
+	constants.cpp document_parser.cpp eval_apply.cpp node.cpp \
 	node_factory.cpp node_emitters.cpp prelexer.cpp \
-	sass_interface.cpp
+	selector.cpp sass_interface.cpp
 
 libsass_la_LDFLAGS = -no-undefined -version-info 0:0:0
 include_HEADERS = sass_interface.h
@@ -347,6 +347,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/context.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/document.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/constants.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/document_parser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eval_apply.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/functions.Plo@am__quote@
@@ -354,6 +355,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/node_emitters.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/node_factory.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prelexer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/selector.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sass_interface.Plo@am__quote@
 
 .cpp.o:

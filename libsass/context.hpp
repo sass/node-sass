@@ -1,45 +1,23 @@
-#define SASS_CONTEXT_INCLUDED
+#define SASS_CONTEXT
 
+//#ifndef SASS_ENVIRONMENT
+#include "environment.hpp"
+//#endif
 
 #include <utility>
-#include <map>
+
+#ifndef SASS_NODE_FACTORY
 #include "node_factory.hpp"
+#endif
+
+#ifndef SASS_FUNCTIONS
 #include "functions.hpp"
+#endif
 
 namespace Sass {
   using std::pair;
   using std::map;
   
-  struct Environment {
-    map<Token, Node> current_frame;
-    Environment* parent;
-    Environment* global;
-    
-    Environment()
-    : current_frame(map<Token, Node>()), parent(0), global(0)
-    { }
-    
-    void link(Environment& env)
-    {
-      parent = &env;
-      global = parent->global ? parent->global : parent;
-    }
-    
-    bool query(const Token& key) const
-    {
-      if (current_frame.count(key)) return true;
-      else if (parent)              return parent->query(key);
-      else                          return false;
-    }
-    
-    Node& operator[](const Token& key)
-    {
-      if (current_frame.count(key)) return current_frame[key];
-      else if (parent)              return (*parent)[key];
-      else                          return current_frame[key];
-    }
-  };
-
   struct Context {
     Environment global_env;
     map<string, Function> function_env;
@@ -59,9 +37,9 @@ namespace Sass {
     void collect_include_paths(const char* paths_str);
     Context(const char* paths_str = 0, const char* img_path_str = 0);
     ~Context();
-    
-    void register_function(Function_Descriptor d, Primitive ip);
-    void register_function(Function_Descriptor d, Primitive ip, size_t arity);
+
+    void register_function(Signature sig, Primitive ip);
+    void register_function(Signature sig, Primitive ip, size_t arity);
     void register_overload_stub(string name);
     void register_functions();
     void setup_color_map();
