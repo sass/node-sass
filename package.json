@@ -7,7 +7,7 @@
   "main": "./sass.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/gonghao/node-sass.git"
+    "url": "git://github.com/andrew/node-sass.git"
   },
   "scripts": {
     "install": "node rebuild.js"
