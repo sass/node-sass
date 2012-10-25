@@ -49,13 +49,13 @@ Handle<Value> Render(const Arguments& args) {
     String::AsciiValue astr(args[0]);
     Local<Function> callback = Local<Function>::Cast(args[1]);
     String::AsciiValue bstr(args[2]);
-    Integer* tint = Integer::Cast(*args[3]);
 
     ctx->source_string = new char[strlen(*astr)+1];
     strcpy(ctx->source_string, *astr);
     ctx->options.include_paths = new char[strlen(*bstr)+1];
     strcpy(ctx->options.include_paths, *bstr);
-    ctx->options.output_style = tint->Value();
+    // ctx->options.output_style = args[3]->Int32Value();
+    ctx->options.output_style = SASS_STYLE_NESTED;
     ctx->callback = Persistent<Function>::New(callback);
     ctx->request.data = ctx;
 
