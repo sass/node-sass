@@ -54,8 +54,8 @@ Handle<Value> Render(const Arguments& args) {
     strcpy(ctx->source_string, *astr);
     ctx->options.include_paths = new char[strlen(*bstr)+1];
     strcpy(ctx->options.include_paths, *bstr);
-    // ctx->options.output_style = args[3]->Int32Value();
-    ctx->options.output_style = SASS_STYLE_NESTED;
+    // ctx->options.output_style = SASS_STYLE_NESTED;
+    ctx->options.output_style = args[3]->Int32Value();
     ctx->callback = Persistent<Function>::New(callback);
     ctx->request.data = ctx;
 
