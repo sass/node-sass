@@ -19,6 +19,10 @@ namespace Sass {
   {
     switch (type())
     {
+      case none: {
+        return "";
+      } break;
+
       case selector_group:
       case media_expression_group: { // really only needed for arg to :not
         string result(at(0).to_string());
@@ -116,26 +120,19 @@ namespace Sass {
         return result;
       } break;
 
-      case comma_list: {
+      case list: {
+        if (size() == 0) return "";
         string result(at(0).to_string());
         for (size_t i = 1, S = size(); i < S; ++i) {
-          if (at(i).type() == nil) continue;
-          result += ", ";
+          if (at(i).is_null()) continue;
+          if (at(i).type() == list && at(i).size() == 0) continue;
+          result += is_comma_separated() ? ", " : " ";
           result += at(i).to_string();
         }
         return result;
       } break;
       
-      case space_list: {
-        string result(at(0).to_string());
-        for (size_t i = 1, S = size(); i < S; ++i) {
-          if (at(i).type() == nil) continue;
-          result += " ";
-          result += at(i).to_string();
-        }
-        return result;
-      } break;
-      
+      // still necessary for unevaluated expressions
       case expression:
       case term: {
         string result(at(0).to_string());
@@ -274,13 +271,13 @@ namespace Sass {
         return result;
       } break;
 
-      case expansion: {
+      case mixin_call: {
         // ignore it
         return "";
       } break;
       
       case string_constant: {
-        if (is_unquoted()) return token().unquote();
+        if (!is_quoted()) return token().unquote();
         else {
           string result(token().to_string());
           if (result[0] != '"' && result[0] != '\'') return "\"" + result + "\"";
@@ -329,35 +326,22 @@ namespace Sass {
             result += chunk;
           }
         }
-        if (is_unquoted()) result = result.substr(1, result.length() - 2);
+        if (!is_quoted()) result = result.substr(1, result.length() - 2);
         return result;
       } break;
 
       case concatenation: {
         string result;
         for (size_t i = 0, S = size(); i < S; ++i) {
-          result += at(i).to_string().substr(1, at(i).token().length()-2);
+          result += at(i).unquote();
         }
-        // if (inside_of == identifier_schema || inside_of == property) return result;
-        // else                                                         return "\"" + result + "\"";
-        if (!(inside_of == identifier_schema || inside_of == property) && !is_unquoted()) {
+        if (!(inside_of == identifier_schema || inside_of == property) && is_quoted()) {
           result = "\"" + result + "\"";
         }
         return result;
       } break;
 
       case warning: {
-        string prefix("WARNING: ");
-        string indent("         ");
-        Node contents(at(0));
-        string result(contents.to_string());
-        if (contents.type() == string_constant || contents.type() == string_schema) {
-          result = result.substr(1, result.size()-2); // unquote if it's a single string
-        }
-        // These cerrs aren't log lines! They're supposed to be here!
-        cerr << prefix << result << endl;
-        cerr << indent << "on line " << at(0).line() << " of " << at(0).path();
-        cerr << endl << endl;
         return "";
       } break;
       
