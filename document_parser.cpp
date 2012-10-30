@@ -454,8 +454,10 @@ namespace Sass {
         pseudo << context.new_Node(Node::value, path, line, lexed);
       }
       else if (peek< binomial >(position)) {
-        lex< coefficient >();
-        pseudo << context.new_Node(Node::value, path, line, lexed);
+        if (peek< coefficient >()) {
+          lex< coefficient >();
+          pseudo << context.new_Node(Node::value, path, line, lexed);
+        }
         lex< exactly<'n'> >();
         pseudo << context.new_Node(Node::value, path, line, lexed);
         lex< sign >();
