@@ -23,7 +23,7 @@ namespace Sass {
     map<string, Function> function_env;
     multimap<Node, Node> extensions;
     vector<pair<Node, Node> > pending_extensions;
-    vector<char*> source_refs; // all the source c-strings
+    vector<const char*> source_refs; // all the source c-strings
     vector<string> include_paths;
     map<string, Node> color_names_to_values;
     map<Node, string> color_values_to_names;

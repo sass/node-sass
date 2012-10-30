@@ -56,7 +56,7 @@ namespace Sass {
     function_env(map<string, Function>()),
     extensions(multimap<Node, Node>()),
     pending_extensions(vector<pair<Node, Node> >()),
-    source_refs(vector<char*>()),
+    source_refs(vector<const char*>()),
     include_paths(vector<string>()),
     color_names_to_values(map<string, Node>()),
     color_values_to_names(map<Node, string>()),

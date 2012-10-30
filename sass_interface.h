@@ -16,7 +16,7 @@ struct sass_options {
 };
 
 struct sass_context {
-  char* source_string;
+  const char* source_string;
   char* output_string;
   struct sass_options options;
   int error_status;
