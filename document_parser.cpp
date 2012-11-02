@@ -887,6 +887,7 @@ namespace Sass {
         result << content_node;
         position = rparen;
       }
+      cerr << "HEY" << endl;
       if (!lex< exactly<')'> >()) throw_syntax_error("URI is missing ')'");
       return result;
     }
