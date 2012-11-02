@@ -447,5 +447,7 @@ namespace Sass {
       }
       return counter;
     }
+
+    const char* chunk(const char* src);
   }
 }
