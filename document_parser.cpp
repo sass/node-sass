@@ -870,11 +870,13 @@ namespace Sass {
         result << parse_string();
         result.should_eval() = true;
       }
-      else if (lex< url_schema >()) {
+      else if (peek< sequence< url_schema, spaces_and_comments, exactly<')'> > >()) {
+        lex< url_schema >();
         result << Document::make_from_token(context, lexed, path, line).parse_url_schema();
         result.should_eval() = true;
       }
-      else if (lex< url_value >()) {
+      else if (peek< sequence< url_value, spaces_and_comments, exactly<')'> > >()) {
+        lex< url_value >();
         result << context.new_Node(Node::identifier, path, line, lexed);
       }
       else {
@@ -887,7 +889,6 @@ namespace Sass {
         result << content_node;
         position = rparen;
       }
-      cerr << "HEY" << endl;
       if (!lex< exactly<')'> >()) throw_syntax_error("URI is missing ')'");
       return result;
     }
