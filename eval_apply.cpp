@@ -57,7 +57,7 @@ namespace Sass {
 
       case Node::ruleset: {
         // if the selector contains interpolants, eval it and re-parse
-        if (expr[0].type() == Node::selector_schema) {
+        if (!expr[0].is_null() && expr[0].type() == Node::selector_schema) {
           Node schema(expr[0]);
           string expansion;
           for (size_t i = 0, S = schema.size(); i < S; ++i) {
@@ -987,7 +987,7 @@ namespace Sass {
   // combine the various kinds of selectors.
   Node expand_selector(Node sel, Node pre, Node_Factory& new_Node)
   {
-    if (pre.is_null()) return sel;
+    if (pre.is_null() || sel.is_null()) return sel;
 
     if (sel.has_backref()) {
       if ((pre.type() == Node::selector_group) && (sel.type() == Node::selector_group)) {
