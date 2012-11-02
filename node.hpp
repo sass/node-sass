@@ -349,6 +349,7 @@ namespace Sass {
     {
       children.push_back(n);
       has_children = true;
+      if (n.is_null()) return;
       switch (n.type())
       {
         case Node::comment:
