@@ -29,17 +29,18 @@ namespace Sass {
       stringstream ss;
       Backtrace* this_point = this;
 
-      do {
-        ss << "\tcalled from "
+      ss << endl << "Backtrace:" << endl;
+      // the first tracepoint (which is parentless) is an empty placeholder
+      while (this_point->parent) {
+        ss << "\t"
            << this_point->caller
-           << "in "
+           << " in "
            << this_point->path
            << ":"
            << this_point->line
            << endl;
         this_point = this_point->parent;
       }
-      while (this_point);
 
       return ss.str();
     }

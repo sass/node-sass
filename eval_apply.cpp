@@ -18,6 +18,8 @@ namespace Sass {
     if (!path.empty() && Prelexer::string_constant(path.c_str()))
       path = path.substr(1, path.size() - 1);
 
+    message += bt.to_string();
+
     throw Error(Error::evaluation, path, line, message);
   }
 
@@ -45,7 +47,8 @@ namespace Sass {
         Node args(expr[1]);
         if (!env.query(name)) throw_eval_error(bt, "mixin " + name.to_string() + " is undefined", expr.path(), expr.line());
         Node mixin(env[name]);
-        Node expansion(apply_mixin(mixin, args, prefix, env, f_env, new_Node, ctx, bt));
+        Backtrace here(&bt, expr.path(), expr.line(), "mixin '" + name.to_string() + "'");
+        Node expansion(apply_mixin(mixin, args, prefix, env, f_env, new_Node, ctx, here));
         expr.pop_all();   // pop the mixin metadata
         expr += expansion; // push the expansion
       } break;
@@ -478,7 +481,7 @@ namespace Sass {
           result << name_node << evaluated_args;
         }
         else {
-          // check to see if the function is primitive/built-in
+          // check to see if the function is an overloaded primitive
           Function f(f_env[name]);
           if (f.overloaded) {
             stringstream s;
@@ -487,7 +490,8 @@ namespace Sass {
             if (!f_env.count(resolved_name)) throw_eval_error(bt, "wrong number of arguments to " + name, expr.path(), expr.line());
             f = f_env[resolved_name];
           }
-          result = apply_function(f, expr[1], prefix, env, f_env, new_Node, ctx, bt, expr.path(), expr.line());
+          Backtrace here(&bt, expr.path(), expr.line(), "function '" + name + "'");
+          result = apply_function(f, expr[1], prefix, env, f_env, new_Node, ctx, here, expr.path(), expr.line());
         }
       } break;
       
