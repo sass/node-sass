@@ -29,16 +29,16 @@ namespace Sass {
       stringstream ss;
       Backtrace* this_point = this;
 
-      ss << endl << "Backtrace:" << endl;
+      ss << endl << "Backtrace:";
       // the first tracepoint (which is parentless) is an empty placeholder
       while (this_point->parent) {
-        ss << "\t"
+        ss << endl
+           << "\t"
            << this_point->caller
            << " in "
            << this_point->path
            << ":"
-           << this_point->line
-           << endl;
+           << this_point->line;
         this_point = this_point->parent;
       }
 
