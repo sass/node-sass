@@ -53,6 +53,7 @@ namespace Sass {
       if (!path.empty() && Prelexer::string_constant(path.c_str()))
         path = path.substr(1, path.length() - 1);
 
+      // Backtrace top(&bt, path, line, "");
       message += bt.to_string();
 
       throw Error(Error::evaluation, path, line, message);

@@ -30,15 +30,14 @@ namespace Sass {
       Backtrace* this_point = this;
 
       ss << endl << "Backtrace:";
-      // the first tracepoint (which is parentless) is an empty placeholder
+      // the first tracepoint (which is parent-less) is an empty placeholder
       while (this_point->parent) {
         ss << endl
            << "\t"
-           << this_point->caller
-           << " in "
            << this_point->path
            << ":"
-           << this_point->line;
+           << this_point->line
+           << this_point->parent->caller;
         this_point = this_point->parent;
       }
 
