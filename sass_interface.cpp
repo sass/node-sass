@@ -74,7 +74,7 @@ extern "C" {
     }
     catch (Error& e) {
       stringstream msg_stream;
-      msg_stream << "ERROR -- " << e.path << ", line " << e.line << ": " << e.message << endl;
+      msg_stream << "ERROR -- " << e.path << ":" << e.line << ": " << e.message << endl;
       string msg(msg_stream.str());
       char* msg_str = (char*) malloc(msg.size() + 1);
       strcpy(msg_str, msg.c_str());
@@ -114,7 +114,7 @@ extern "C" {
     }
     catch (Error& e) {
       stringstream msg_stream;
-      msg_stream << "ERROR -- " << e.path << ", line " << e.line << ": " << e.message << endl;
+      msg_stream << "ERROR -- " << e.path << ":" << e.line << ": " << e.message << endl;
       string msg(msg_stream.str());
       char* msg_str = (char*) malloc(msg.size() + 1);
       strcpy(msg_str, msg.c_str());
