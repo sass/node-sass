@@ -2,10 +2,6 @@
 
 #include <sstream>
 
-#ifndef SASS_NODE
-#define SASS_NODE
-#endif
-
 namespace Sass {
 
   using namespace std;
