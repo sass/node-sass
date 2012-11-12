@@ -70,7 +70,7 @@ namespace Sass {
     string include_path(path_str, file_name_str - path_str);
 
     Document doc(ctx);
-    doc.path        = path;
+    doc.path        = path_str;
     doc.line        = 1;
     doc.root        = ctx.new_Node(Node::root, path, 1, 0);
     doc.lexed       = Token::make();
