@@ -106,8 +106,20 @@ namespace Sass {
       }
     }
     if (!lex< string_constant >()) throw_syntax_error("@import directive requires a url or quoted path");
-    // TO DO: BETTER PATH HANDLING
     string import_path(lexed.unquote());
+    // Try the folder containing the current file first. If that fails, loop
+    // through the include-paths.
+    try {
+      const char* base_str = path.c_str();
+      string base_path(Token::make(base_str, Prelexer::folders(base_str)).to_string());
+      string resolved_path(base_path + import_path);
+      Document importee(Document::make_from_file(context, resolved_path));
+      importee.parse_scss();
+      return importee.root;
+    }
+    catch (string& path) {
+      // suppress the error and try the include paths
+    }
     for (vector<string>::iterator path = context.include_paths.begin(); path < context.include_paths.end(); ++path) {
       try {
         Document importee(Document::make_from_file(context, *path + import_path));
@@ -115,10 +127,12 @@ namespace Sass {
         return importee.root;
       }
       catch (string& path) {
+        // continue looping
       }
     }
+    // fail after we've tried all include-paths
     throw_read_error("error reading file \"" + import_path + "\"");
-    // unreached statement
+    // unreachable statement
     return Node();
   }
 

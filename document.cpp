@@ -79,9 +79,9 @@ namespace Sass {
     doc.end         = end;
     doc.position    = source;
     doc.context.source_refs.push_back(source);
-    if (!include_path.empty()) {
-      doc.context.include_paths.push_back(include_path);
-    }
+    // if (!include_path.empty()) {
+    //   doc.context.include_paths.push_back(include_path);
+    // }
 
     return doc;
   }
