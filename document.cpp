@@ -36,26 +36,9 @@ namespace Sass {
     std::FILE *f;
     const char* path_str = path.c_str();
     struct stat st;
-    // if (stat(path_str, &st) == -1 || S_ISDIR(st.st_mode)) {
-    //   tmp = path + ".scss";
-    //   path_str = tmp.c_str();
-    //   if (stat(path_str, &st) == -1 || S_ISDIR(st.st_mode)) {
-    //     const char *full_path_str = path.c_str();
-    //     const char *file_name_str = Prelexer::folders(full_path_str);
-    //     tmp = Token::make(full_path_str, file_name_str).to_string() +
-    //           "_" +
-    //           string(file_name_str);
-    //     path_str = tmp.c_str();
-    //     if (stat(path_str, &st) == -1 || S_ISDIR(st.st_mode)) {
-    //       tmp = tmp + ".scss";
-    //       path_str = tmp.c_str();
-    //       if (stat(path_str, &st) == -1 || S_ISDIR(st.st_mode))
-    //         throw path;
-    //     }
-    //   }
-    // }
+    string tmp;
 
-    // Resolution order:
+    // Resolution order for ambiguous imports:
     // (1) filename as given
     // (2) underscore + given
     // (3) underscore + given + extension
@@ -68,7 +51,7 @@ namespace Sass {
       const char *file_name_str = Prelexer::folders(full_path_str);
       string folder(Token::make(full_path_str, file_name_str).to_string());
       string partial_filename("_" + string(file_name_str));
-      string tmp(folder + partial_filename);
+      tmp = folder + partial_filename;
       path_str = tmp.c_str();
       // if "_" + given isn't found ...
       if (stat(path_str, &st) == -1 || S_ISDIR(st.st_mode)) {
@@ -87,7 +70,6 @@ namespace Sass {
         }
       }
     }
-    cerr << "opening " << path_str << endl;
     f = std::fopen(path_str, "rb");
     size_t len = st.st_size;
     char* source = new char[len + 1];
