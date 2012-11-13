@@ -510,7 +510,24 @@ namespace Sass {
       case Node::unary_minus: {
         Node arg(eval(expr[0], prefix, env, f_env, new_Node, ctx, bt));
         if (arg.is_numeric()) {
-          result = new_Node(expr.path(), expr.line(), -arg.numeric_value());
+          double neg_val = -arg.numeric_value();
+          Node::Type t = arg.type();
+          switch (t)
+          {
+            case Node::number:
+            case Node::numeric_percentage: {
+              result = new_Node(expr.path(), expr.line(), neg_val, t);
+            } break;
+
+            case Node::numeric_dimension: {
+              result = new_Node(expr.path(), expr.line(), neg_val, arg.unit());
+            } break;
+
+            default: {
+              // unreachable
+              result = arg;
+            } break;
+          }
         }
         else {
           result = new_Node(Node::unary_minus, expr.path(), expr.line(), 1);
