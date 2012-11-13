@@ -592,8 +592,14 @@ namespace Sass {
     else if (ltype == Node::number && rtype == Node::numeric_dimension) {
       acc = new_Node(list.path(), list.line(), operate(op, acc.numeric_value(), rhs.numeric_value(), bt), rhs.unit());
     }
+    else if (ltype == Node::number && rtype == Node::numeric_percentage) {
+      acc = new_Node(list.path(), list.line(), operate(op, acc.numeric_value(), rhs.numeric_value(), bt), Node::numeric_percentage);
+    }
     else if (ltype == Node::numeric_dimension && rtype == Node::number) {
       acc = new_Node(list.path(), list.line(), operate(op, acc.numeric_value(), rhs.numeric_value(), bt), acc.unit());
+    }
+    else if (ltype == Node::numeric_percentage && rtype == Node::number) {
+      acc = new_Node(list.path(), list.line(), operate(op, acc.numeric_value(), rhs.numeric_value(), bt), Node::numeric_percentage);
     }
     else if (ltype == Node::numeric_dimension && rtype == Node::numeric_dimension) {
       // TO DO: TRUE UNIT ARITHMETIC
@@ -602,6 +608,15 @@ namespace Sass {
       }
       else {
         acc = new_Node(list.path(), list.line(), operate(op, acc.numeric_value(), rhs.numeric_value(), bt), acc.unit());
+      }
+    }
+    else if (ltype == Node::numeric_percentage && rtype == Node::numeric_percentage) {
+      // TO DO: TRUE UNIT ARITHMETIC
+      if (optype == Node::div) {
+        acc = new_Node(list.path(), list.line(), operate(op, acc.numeric_value(), rhs.numeric_value(), bt));
+      }
+      else {
+        acc = new_Node(list.path(), list.line(), operate(op, acc.numeric_value(), rhs.numeric_value(), bt), Node::numeric_percentage);
       }
     }
     else if (ltype == Node::number && rtype == Node::numeric_color) {
