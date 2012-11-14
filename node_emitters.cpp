@@ -17,6 +17,7 @@ namespace Sass {
 
   string Node::to_string(Type inside_of) const
   {
+    if (is_null()) return "";
     switch (type())
     {
       case none: {
@@ -369,7 +370,7 @@ namespace Sass {
         Node block(at(1));
 
         if (block.has_expansions()) block.flatten();
-        if (block.has_statements()) {
+        if (block.has_statements() || block.has_comments()) {
           buf << string(2*depth, ' ');
           buf << sel_group.to_string();
           buf << " {";
@@ -397,19 +398,68 @@ namespace Sass {
         if (block.has_blocks()) {
           for (size_t i = 0, S = block.size(); i < S; ++i) {
             if (block[i].type() == ruleset || block[i].type() == media_query) {
-              block[i].emit_nested_css(buf, depth, false, in_media_query);
+              block[i].emit_nested_css(buf, depth, false, false); // last arg should be in_media_query?
             }
           }
         }
-        if (block.has_statements()) --depth; // see previous comment
+        if (block.has_statements() || block.has_comments()) --depth; // see previous comment
         if ((depth == 0) && at_toplevel && !in_media_query) buf << endl;
       } break;
 
       case media_query: {
         buf << string(2*depth, ' ');
-        buf << "@media " << at(0).to_string() << " {" << endl;
-        at(1).emit_nested_css(buf, depth+1, false, true);
+        buf << "@media " << at(0).to_string() << " {";
+        // at(1).emit_nested_css(buf, depth+1, false, true);
+
+        Node block(at(1));
+        if (block.has_expansions()) block.flatten();
+        bool has_comments = block.has_comments();
+        bool has_statements = block.has_statements();
+        if (has_comments && !has_statements) {
+          // just print out the comments without a block
+          for (size_t i = 0, S = block.size(); i < S; ++i) {
+            if (block[i].type() == comment)
+              block[i].emit_nested_css(buf, depth+1);
+          }
+        }
+        if (has_statements) {
+          ++depth;
+          buf << endl;
+          buf << string(2*depth, ' ');
+          buf << at(2).to_string();
+          buf << " {";
+          for (size_t i = 0, S = block.size(); i < S; ++i) {
+            Type stm_type = block[i].type();
+            if (stm_type == block_directive) buf << endl;
+            switch (stm_type)
+            {
+              case rule:
+              case css_import:
+              case propset:
+              case block_directive:
+              case blockless_directive:
+              case warning: {
+                // if (stm_type != comment) buf << endl;
+                block[i].emit_nested_css(buf, depth+1);
+              } break;
+
+              default: break;
+            }
+          }
+          buf << " }";
+        }
+        if (block.has_blocks()) {
+          for (size_t i = 0, S = block.size(); i < S; ++i) {
+            Type stm_type = block[i].type();
+            if (stm_type == ruleset || stm_type == media_query) {
+              buf << endl;
+              if (i > 0 && block[i-1].type() == ruleset) buf << endl;
+              block[i].emit_nested_css(buf, depth+1, false, true);
+            }
+          }
+        }
         buf << " }" << endl;
+        --depth;
       } break;
 
       case blockless_directive: {

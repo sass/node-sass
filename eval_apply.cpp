@@ -117,10 +117,12 @@ namespace Sass {
       } break;
 
       case Node::media_query: {
-        Node block(expr[1]);
-        Node new_ruleset(new_Node(Node::ruleset, expr.path(), expr.line(), 3));
-        expr[1] = new_ruleset << prefix << block << prefix;
-        expand(expr[1], new_Node(Node::none, expr.path(), expr.line(), 0), env, f_env, new_Node, ctx, bt);
+        // Node block(expr[1]);
+        // Node new_ruleset(new_Node(Node::ruleset, expr.path(), expr.line(), 3));
+        // expr[1] = new_ruleset << prefix << block << prefix;
+        // expand(expr[1], new_Node(Node::none, expr.path(), expr.line(), 0), env, f_env, new_Node, ctx, bt);
+        expand(expr[1], prefix, env, f_env, new_Node, ctx, bt);
+        expr << prefix;
       } break;
 
       case Node::block: {
