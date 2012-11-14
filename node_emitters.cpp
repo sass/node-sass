@@ -413,9 +413,10 @@ namespace Sass {
 
         Node block(at(1));
         if (block.has_expansions()) block.flatten();
-        bool has_comments = block.has_comments();
+        bool has_comments   = block.has_comments();
         bool has_statements = block.has_statements();
-        if (has_comments && !has_statements) {
+        bool has_blocks     = block.has_blocks();
+        if (has_comments && !has_statements && !has_blocks) {
           // just print out the comments without a block
           for (size_t i = 0, S = block.size(); i < S; ++i) {
             if (block[i].type() == comment)
@@ -433,6 +434,7 @@ namespace Sass {
             if (stm_type == block_directive) buf << endl;
             switch (stm_type)
             {
+              case comment:
               case rule:
               case css_import:
               case propset:
@@ -451,9 +453,16 @@ namespace Sass {
         if (block.has_blocks()) {
           for (size_t i = 0, S = block.size(); i < S; ++i) {
             Type stm_type = block[i].type();
+            if (stm_type == comment && !has_statements) {
+              if (i > 0 && block[i-1].type() == ruleset) buf << endl;
+              block[i].emit_nested_css(buf, depth+1, false, true);
+            }
             if (stm_type == ruleset || stm_type == media_query) {
               buf << endl;
-              if (i > 0 && block[i-1].type() == ruleset) buf << endl;
+              if (i > 0 &&
+                  block[i-1].type() == ruleset &&
+                  !block[i-1][1].has_blocks())
+              { buf << endl; }
               block[i].emit_nested_css(buf, depth+1, false, true);
             }
           }
