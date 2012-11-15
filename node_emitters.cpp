@@ -708,7 +708,7 @@ namespace Sass {
     Node rules(at(1));
     for (size_t i = 0, S = rules.size(); i < S; ++i) {
       if (rules[i].type() == propset) {
-        rules[i].emit_propset(buf, depth+1, new_prefix, true);
+        rules[i].emit_propset(buf, depth+1, new_prefix, compressed);
       }
       else {
         buf << new_prefix;
