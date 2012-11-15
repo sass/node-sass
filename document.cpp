@@ -151,6 +151,9 @@ namespace Sass {
     case expanded:
       root.emit_expanded_css(output, "");
       break;
+    case compressed:
+      root.emit_compressed_css(output);
+      break;
     default:
       break;
     }
