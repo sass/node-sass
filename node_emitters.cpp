@@ -65,7 +65,7 @@ namespace Sass {
 
         result += at(0).to_string(none, space);
         for (size_t i = 1, S = size(); i < S; ++i) {
-          if (at(i).type() == selector_combinator) {
+          if (at(i).type() == selector_combinator || at(i-1).type() == selector_combinator) {
             result += space;
           }
           else {
