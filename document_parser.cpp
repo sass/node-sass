@@ -26,7 +26,7 @@ namespace Sass {
         else                                     root += importee;
         if (!lex< exactly<';'> >()) throw_syntax_error("top-level @import directive must be terminated by ';'");
       }
-      else if (peek< mixin >() || peek< exactly<'='> >()) {
+      else if (peek< mixin >() /* || peek< exactly<'='> >() */) {
         root << parse_mixin_definition();
       }
       else if (peek< function >()) {
@@ -42,9 +42,10 @@ namespace Sass {
       else if ((lookahead_result = lookahead_for_selector(position)).found) {
         root << parse_ruleset(lookahead_result);
       }
-      else if (peek< include >() || peek< exactly<'+'> >()) {
-        root << parse_mixin_call();
-        if (!lex< exactly<';'> >()) throw_syntax_error("top-level @include directive must be terminated by ';'");
+      else if (peek< include >() /* || peek< exactly<'+'> >() */) {
+        Node mixin_call(parse_mixin_call());
+        root << mixin_call;
+        if (mixin_call.size() < 3 && !lex< exactly<';'> >()) throw_syntax_error("top-level @include directive must be terminated by ';'");
       }
       else if (peek< if_directive >()) {
         root << parse_if_directive(Node(), Node::none);
@@ -138,7 +139,7 @@ namespace Sass {
 
   Node Document::parse_mixin_definition()
   {
-    lex< mixin >() || lex< exactly<'='> >();
+    lex< mixin >() /* || lex< exactly<'='> >() */;
     if (!lex< identifier >()) throw_syntax_error("invalid name in @mixin directive");
     Node name(context.new_Node(Node::identifier, path, line, lexed));
     Node params(parse_parameters());
@@ -210,14 +211,21 @@ namespace Sass {
     return var;
   }
 
-  Node Document::parse_mixin_call()
+  Node Document::parse_mixin_call(Node::Type inside_of)
   {
-    lex< include >() || lex< exactly<'+'> >();
+    lex< include >() /* || lex< exactly<'+'> >() */;
     if (!lex< identifier >()) throw_syntax_error("invalid name in @include directive");
     Node name(context.new_Node(Node::identifier, path, line, lexed));
     Node args(parse_arguments());
-    Node the_call(context.new_Node(Node::mixin_call, path, line, 2));
+    Node content;
+    bool has_content = false;
+    if (peek< exactly<'{'> >()) {
+      content = parse_block(Node(), inside_of);
+      has_content = true;
+    }
+    Node the_call(context.new_Node(Node::mixin_call, path, line, has_content ? 3 : 2));
     the_call << name << args;
+    if (has_content) the_call << content;
     return the_call;
   }
   
@@ -596,16 +604,25 @@ namespace Sass {
         block << parse_mixin_call();
         semicolon = true;
       }
+      else if (peek< content >(position)) {
+        if (inside_of != Node::mixin) {
+          throw_syntax_error("@content may only be used within a mixin");
+        }
+        block << context.new_Node(Node::mixin_content, path, line, Token::make()); // just a stub
+        semicolon = true;
+      }
       else if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         block << parse_propset();
       }
       else if ((lookahead_result = lookahead_for_selector(position)).found) {
         block << parse_ruleset(lookahead_result, inside_of);
       }
+      /*
       else if (peek< exactly<'+'> >()) {
         block << parse_mixin_call();
         semicolon = true;
       }
+      */
       else if (lex< extend >()) {
         Node request(context.new_Node(Node::extend_directive, path, line, 1));
         Selector_Lookahead lookahead = lookahead_for_extension_target(position);

@@ -138,6 +138,10 @@ namespace Sass {
       return exactly<include_kwd>(src);
     }
 
+    const char* content(const char* src) {
+      return exactly<content_kwd>(src);
+    }
+
     const char* extend(const char* src) {
       return exactly<extend_kwd>(src);
     }

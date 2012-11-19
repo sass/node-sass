@@ -12,6 +12,7 @@ namespace Sass {
     extern const char function_kwd[];
     extern const char return_kwd[];
     extern const char include_kwd[];
+    extern const char content_kwd[];
     extern const char extend_kwd[];
     extern const char if_kwd[];
     extern const char else_kwd[];

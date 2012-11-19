@@ -133,7 +133,7 @@ namespace Sass {
     Node parse_function_definition();
     Node parse_parameters();
     Node parse_parameter(Node::Type);
-    Node parse_mixin_call();
+    Node parse_mixin_call(Node::Type inside_of = Node::none);
     Node parse_arguments();
     Node parse_argument(Node::Type);
     Node parse_assignment();

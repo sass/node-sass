@@ -154,6 +154,7 @@ namespace Sass {
       function_call,
       mixin,
       mixin_call,
+      mixin_content,
       parameters,
       arguments,
 

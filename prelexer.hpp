@@ -317,6 +317,7 @@ namespace Sass {
     const char* function(const char* src);
     const char* return_directive(const char* src);
     const char* include(const char* src);
+    const char* content(const char* src);
     const char* extend(const char* src);
 
     const char* if_directive(const char* src);
