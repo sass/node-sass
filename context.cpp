@@ -51,7 +51,7 @@ namespace Sass {
     // }
   }
   
-  Context::Context(const char* paths_str, const char* img_path_str)
+  Context::Context(const char* paths_str, const char* img_path_str, bool sc)
   : global_env(Environment()),
     function_env(map<string, Function>()),
     extensions(multimap<Node, Node>()),
@@ -63,7 +63,8 @@ namespace Sass {
     new_Node(Node_Factory()),
     image_path(0),
     ref_count(0),
-    has_extensions(false)
+    has_extensions(false),
+    source_comments(sc)
   {
     register_functions();
     collect_include_paths(paths_str);

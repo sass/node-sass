@@ -66,7 +66,7 @@ extern "C" {
   {
     using namespace Sass;
     try {
-      Context cpp_ctx(c_ctx->options.include_paths, c_ctx->options.image_path);
+      Context cpp_ctx(c_ctx->options.include_paths, c_ctx->options.image_path, c_ctx->options.source_comments);
       // cpp_ctx.image_path = c_ctx->options.image_path;
       // Document doc(0, c_ctx->input_string, cpp_ctx);
       Document doc(Document::make_from_source_chars(cpp_ctx, c_ctx->source_string));
@@ -102,7 +102,7 @@ extern "C" {
   {
     using namespace Sass;
     try {
-      Context cpp_ctx(c_ctx->options.include_paths, c_ctx->options.image_path);
+      Context cpp_ctx(c_ctx->options.include_paths, c_ctx->options.image_path, c_ctx->options.source_comments);
       // Document doc(c_ctx->input_path, 0, cpp_ctx);
       // string path_string(c_ctx->options.image_path);
       // path_string = "'" + path_string + "/";
