@@ -604,11 +604,11 @@ namespace Sass {
         block << parse_mixin_call();
         semicolon = true;
       }
-      else if (peek< content >(position)) {
+      else if (lex< content >()) {
         if (inside_of != Node::mixin) {
           throw_syntax_error("@content may only be used within a mixin");
         }
-        block << context.new_Node(Node::mixin_content, path, line, Token::make()); // just a stub
+        block << context.new_Node(Node::mixin_content, path, line, 0); // just an expansion stub
         semicolon = true;
       }
       else if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {

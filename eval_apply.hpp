@@ -17,14 +17,14 @@
 namespace Sass {
   using std::map;
 
-  void expand(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool function_name = false);
+  void expand(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool function_name = false, const Node content = Node());
   Node eval(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool function_name = false);
   Node eval_arguments(Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt);
   Node eval_function(string name, Node stm, Environment& bindings, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool toplevel = false);
   Node reduce(Node list, size_t head, Node acc, Node_Factory& new_Node, Backtrace& bt);
   double operate(Node op, double lhs, double rhs, Backtrace& bt);
   
-  Node apply_mixin(Node mixin, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool dynamic_scope = false);
+  Node apply_mixin(Node mixin, const Node args, const Node content, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool dynamic_scope = false);
   Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, string& path, size_t line);
   Node expand_selector(Node sel, Node pre, Node_Factory& new_Node);
   Node expand_backref(Node sel, Node pre);

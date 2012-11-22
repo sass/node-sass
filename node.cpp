@@ -19,6 +19,7 @@ namespace Sass {
     {
       case block:
       case mixin_call:
+      case mixin_content:
       case root:
       case if_directive:
       case for_through_directive:
@@ -35,6 +36,7 @@ namespace Sass {
       switch (at(i).type())
       {
         case mixin_call:
+        case mixin_content:
         case block:
         case if_directive:
         case for_through_directive:

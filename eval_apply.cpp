@@ -25,7 +25,7 @@ namespace Sass {
   }
 
   // Expansion function for nodes in an expansion context.
-  void expand(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool function_name)
+  void expand(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool function_name, const Node content)
   {
     switch (expr.type())
     {
@@ -46,12 +46,20 @@ namespace Sass {
       case Node::mixin_call: { // mixin invocation
         Token name(expr[0].token());
         Node args(expr[1]);
+        Node this_content = expr.size() == 3 ? expr[2] : Node();
+        if (!this_content.is_null()) expand(this_content, prefix, env, f_env, new_Node, ctx, bt);
         if (!env.query(name)) throw_eval_error(bt, "mixin " + name.to_string() + " is undefined", expr.path(), expr.line());
         Node mixin(env[name]);
         Backtrace here(&bt, expr.path(), expr.line(), ", in mixin '" + name.to_string() + "'");
-        Node expansion(apply_mixin(mixin, args, prefix, env, f_env, new_Node, ctx, here));
+        Node expansion(apply_mixin(mixin, args, this_content, prefix, env, f_env, new_Node, ctx, here));
         expr.pop_all();   // pop the mixin metadata
         expr += expansion; // push the expansion
+      } break;
+
+      case Node::mixin_content: {
+        cerr << "HEY" << endl;
+        expr += content;
+        cerr << "HO" << endl;
       } break;
 
       case Node::propset: {
@@ -266,7 +274,7 @@ namespace Sass {
           Node i_node(new_Node(expr.path(), expr.line(), i));
           Node fake_arg(new_Node(Node::arguments, expr.path(), expr.line(), 1));
           fake_arg << i_node;
-          expr += apply_mixin(fake_mixin, fake_arg, prefix, env, f_env, new_Node, ctx, bt, true);
+          expr += apply_mixin(fake_mixin, fake_arg, Node(), prefix, env, f_env, new_Node, ctx, bt, true);
         }
       } break;
 
@@ -286,7 +294,7 @@ namespace Sass {
           Node fake_arg(new_Node(Node::arguments, expr.path(), expr.line(), 1));
           list[i].should_eval() = true;
           fake_arg << eval(list[i], prefix, env, f_env, new_Node, ctx, bt);
-          expr += apply_mixin(fake_mixin, fake_arg, prefix, env, f_env, new_Node, ctx, bt, true);
+          expr += apply_mixin(fake_mixin, fake_arg, Node(), prefix, env, f_env, new_Node, ctx, bt, true);
         }
       } break;
 
@@ -302,7 +310,7 @@ namespace Sass {
         expr.pop_back();
         Node ev_pred(eval(pred, prefix, env, f_env, new_Node, ctx, bt));
         while (!ev_pred.is_false()) {
-          expr += apply_mixin(fake_mixin, fake_arg, prefix, env, f_env, new_Node, ctx, bt, true);
+          expr += apply_mixin(fake_mixin, fake_arg, Node(), prefix, env, f_env, new_Node, ctx, bt, true);
           ev_pred = eval(pred, prefix, env, f_env, new_Node, ctx, bt);
         }
       } break;
@@ -831,7 +839,7 @@ namespace Sass {
   // Apply a mixin -- bind the arguments in a new environment, link the new
   // environment to the current one, then copy the body and eval in the new
   // environment.
-  Node apply_mixin(Node mixin, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool dynamic_scope)
+  Node apply_mixin(Node mixin, const Node args, const Node content, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool dynamic_scope)
   {
     Node params(mixin[1]);
     Node body(new_Node(mixin[2])); // clone the body
@@ -852,7 +860,7 @@ namespace Sass {
     if (!mixin[0].is_null()) mixin_name << " " << mixin[0].to_string();
     bind_arguments(mixin_name.str(), params, evaluated_args, prefix, bindings, f_env, new_Node, ctx, bt);
     // evaluate the mixin's body
-    expand(body, prefix, bindings, f_env, new_Node, ctx, bt);
+    expand(body, prefix, bindings, f_env, new_Node, ctx, bt, false, content);
     return body;
   }
 

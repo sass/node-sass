@@ -381,7 +381,8 @@ namespace Sass {
         case Node::for_to_directive:
         case Node::each_directive:
         case Node::while_directive:
-        case Node::mixin_call: {
+        case Node::mixin_call:
+        case Node::mixin_content: {
           has_expansions = true;
         } break;
 
@@ -400,25 +401,26 @@ namespace Sass {
       has_children = true;
       switch (n.type())
       {
-        case Node::comment:   has_comments = true; break;
+        case Node::comment:       has_comments   = true; break;
 
         case Node::css_import:
         case Node::rule:
-        case Node::propset:   has_statements = true; break;
+        case Node::propset:       has_statements = true; break;
 
         case Node::media_query:
-        case Node::ruleset:   has_blocks     = true; break;
+        case Node::ruleset:       has_blocks     = true; break;
 
         case Node::if_directive:
         case Node::for_through_directive:
         case Node::for_to_directive:
         case Node::each_directive:
         case Node::while_directive:
-        case Node::mixin_call: has_expansions = true; break;
+        case Node::mixin_call:
+        case Node::mixin_content: has_expansions = true; break;
 
-        case Node::backref:   has_backref    = true; break;
+        case Node::backref:       has_backref    = true; break;
 
-        default:                                     break;
+        default:                                         break;
       }
       if (n.has_backref()) has_backref = true;
     }
