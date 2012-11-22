@@ -11,6 +11,7 @@ extern "C" {
 
 struct sass_options {
   int output_style;
+  int source_comments; // really want a bool, but C doesn't have them
   char* include_paths;
   char* image_path;
 };

@@ -146,7 +146,7 @@ namespace Sass {
       root.echo(output);
       break;
     case nested:
-      root.emit_nested_css(output, 0, true);
+      root.emit_nested_css(output, 0, true, false, context.source_comments);
       break;
     case expanded:
       root.emit_expanded_css(output, "");

@@ -369,14 +369,14 @@ namespace Sass {
     }
   }
 
-  void Node::emit_nested_css(stringstream& buf, size_t depth, bool at_toplevel, bool in_media_query)
+  void Node::emit_nested_css(stringstream& buf, size_t depth, bool at_toplevel, bool in_media_query, bool source_comments)
   {
     switch (type())
     {
       case root: {
         if (has_expansions()) flatten();
         for (size_t i = 0, S = size(); i < S; ++i) {
-          at(i).emit_nested_css(buf, depth, true);
+          at(i).emit_nested_css(buf, depth, true, false, source_comments);
         }
       } break;
 
@@ -386,6 +386,10 @@ namespace Sass {
 
         if (block.has_expansions()) block.flatten();
         if (block.has_statements() || block.has_comments()) {
+          if (source_comments) {
+            buf << string(2*depth, ' ');
+            buf << "/* line " << sel_group.line() << ", " << sel_group.path() << " */" << endl;
+          }
           buf << string(2*depth, ' ');
           buf << sel_group.to_string();
           buf << " {";
@@ -401,7 +405,7 @@ namespace Sass {
               case block_directive:
               case blockless_directive:
               case warning: {
-                block[i].emit_nested_css(buf, depth+1);
+                block[i].emit_nested_css(buf, depth+1, false, false, source_comments);
               } break;
               default: break;
             }
@@ -413,7 +417,7 @@ namespace Sass {
         if (block.has_blocks()) {
           for (size_t i = 0, S = block.size(); i < S; ++i) {
             if (block[i].type() == ruleset || block[i].type() == media_query) {
-              block[i].emit_nested_css(buf, depth, false, false); // last arg should be in_media_query?
+              block[i].emit_nested_css(buf, depth, false, false, source_comments); // last arg should be in_media_query?
             }
           }
         }
@@ -435,7 +439,7 @@ namespace Sass {
           // just print out the comments without a block
           for (size_t i = 0, S = block.size(); i < S; ++i) {
             if (block[i].type() == comment)
-              block[i].emit_nested_css(buf, depth+1);
+              block[i].emit_nested_css(buf, depth+1, false, false, source_comments);
           }
         }
         if (has_statements) {
@@ -457,7 +461,7 @@ namespace Sass {
               case blockless_directive:
               case warning: {
                 // if (stm_type != comment) buf << endl;
-                block[i].emit_nested_css(buf, depth+1);
+                block[i].emit_nested_css(buf, depth+1, false, false, source_comments);
               } break;
 
               default: break;
@@ -470,7 +474,7 @@ namespace Sass {
             Type stm_type = block[i].type();
             if (stm_type == comment && !has_statements) {
               if (i > 0 && block[i-1].type() == ruleset) buf << endl;
-              block[i].emit_nested_css(buf, depth+1, false, true);
+              block[i].emit_nested_css(buf, depth+1, false, true, source_comments);
             }
             if (stm_type == ruleset || stm_type == media_query) {
               buf << endl;
@@ -478,7 +482,7 @@ namespace Sass {
                   block[i-1].type() == ruleset &&
                   !block[i-1][1].has_blocks())
               { buf << endl; }
-              block[i].emit_nested_css(buf, depth+1, false, true);
+              block[i].emit_nested_css(buf, depth+1, false, true, source_comments);
             }
           }
         }
@@ -510,7 +514,7 @@ namespace Sass {
             default:
               break;
           }
-          block[i].emit_nested_css(buf, depth+1, false, in_media_query);
+          block[i].emit_nested_css(buf, depth+1, false, in_media_query, source_comments);
         }
         buf << " }" << endl;
         if ((depth == 0) && at_toplevel && !in_media_query) buf << endl;

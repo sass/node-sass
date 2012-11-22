@@ -33,9 +33,10 @@ namespace Sass {
     // string sass_path;
     // string css_path;
     bool has_extensions;
+    bool source_comments;
 
     void collect_include_paths(const char* paths_str);
-    Context(const char* paths_str = 0, const char* img_path_str = 0);
+    Context(const char* paths_str = 0, const char* img_path_str = 0, bool sc = false);
     ~Context();
 
     void register_function(Signature sig, Primitive ip);
