@@ -18,6 +18,7 @@ namespace Sass {
   using std::map;
 
   void expand(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool function_name = false, const Node content = Node());
+  void re_expand(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool function_name, const Node content);
   Node eval(Node expr, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool function_name = false);
   Node eval_arguments(Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt);
   Node eval_function(string name, Node stm, Environment& bindings, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool toplevel = false);
