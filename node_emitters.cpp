@@ -417,7 +417,7 @@ namespace Sass {
         if (block.has_blocks()) {
           for (size_t i = 0, S = block.size(); i < S; ++i) {
             if (block[i].type() == ruleset || block[i].type() == media_query) {
-              block[i].emit_nested_css(buf, depth, false, false, source_comments); // last arg should be in_media_query?
+              block[i].emit_nested_css(buf, depth, false, in_media_query, source_comments);
             }
           }
         }
