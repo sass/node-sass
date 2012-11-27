@@ -57,7 +57,7 @@ namespace Sass {
       } break;
 
       case Node::mixin_content: {
-        expr += content;
+        expr += new_Node(content);
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
           re_expand(expr[i], prefix, env, f_env, new_Node, ctx, bt, false, content);
         }
