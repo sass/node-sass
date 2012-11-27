@@ -320,7 +320,14 @@ namespace Sass {
         re_expand(expr[1], expr[2], env, f_env, new_Node, ctx, bt, false, content);
       } break;
 
-      case Node::block: {
+      case Node::block:
+      case Node::mixin_call:
+      case Node::mixin_content:
+      case Node::if_directive:
+      case Node::for_through_directive:
+      case Node::for_to_directive:
+      case Node::each_directive:
+      case Node::while_directive: {
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
           re_expand(expr[i], prefix, env, f_env, new_Node, ctx, bt, false, content);
         }
