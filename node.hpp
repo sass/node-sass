@@ -142,6 +142,7 @@ namespace Sass {
       numeric_percentage,
       numeric_dimension,
       numeric_color,
+      ie_hex_str,
       boolean,
       important,
 

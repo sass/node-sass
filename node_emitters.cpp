@@ -278,6 +278,25 @@ namespace Sass {
           return ss.str();
         }
       } break;
+
+      case ie_hex_str: {
+        stringstream ss;
+        ss << '#' << std::setw(2) << std::setfill('0') << std::hex;
+
+        double x = at(3).numeric_value() * 255;
+        if (x > 0xff) x = 0xff;
+        else if (x < 0) x = 0;
+        ss << std::hex << std::setw(2) << std::uppercase << static_cast<unsigned long>(std::floor(x+0.5));
+
+        for (size_t i = 0; i < 3; ++i) {
+          double x = at(i).numeric_value();
+          if (x > 0xff) x = 0xff;
+          else if (x < 0) x = 0;
+          ss << std::hex << std::setw(2) << std::uppercase << static_cast<unsigned long>(std::floor(x+0.5));
+        }
+
+        return ss.str();
+      } break;
       
       case uri: {
         string result("url(");

@@ -144,7 +144,8 @@ namespace Sass {
     // Other Color Functions
     register_function(adjust_color_sig, adjust_color);
     register_function(scale_color_sig, scale_color);
-    register_function(change_color_sig, change_color);    
+    register_function(change_color_sig, change_color);   
+    register_function(ie_hex_str_sig, ie_hex_str); 
     // String Functions
     register_function(unquote_sig, unquote);
     register_function(quote_sig, quote);
