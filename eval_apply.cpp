@@ -65,7 +65,26 @@ namespace Sass {
 
       case Node::propset: {
         // TO DO: perform the property expansion here, rather than in the emitter (also requires the parser to allow interpolants in the property names)
+        expr[0] = eval(expr[0], prefix, env, f_env, new_Node, ctx, bt);
         expand(expr[1], prefix, env, f_env, new_Node, ctx, bt, false, content);
+
+        // Node block(expr[1]);
+        // for (size_t i = 0, S = block.size(); i < S; ++i) {
+        //   Node stm(block[i]);
+        //   switch (stm.type())
+        //   {
+        //     case Node::propset:
+        //     case Node::mixin_call:
+        //     case Node::if_directive:
+        //     case Node::for_through_directive:
+        //     case Node::for_to_directive:
+        //     case Node::each_directive:
+        //     case Node::while_directive:
+        //     case Node::warning: {
+        //       expand(stm, prefix, env, f_env, new_Node, ctx, bt, false, content);
+        //     } break;
+        //   }
+        // }
       } break;
 
       case Node::ruleset: {

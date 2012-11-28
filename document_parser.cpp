@@ -36,7 +36,7 @@ namespace Sass {
         root << parse_assignment();
         if (!lex< exactly<';'> >()) throw_syntax_error("top-level variable binding must be terminated by ';'");
       }
-      else if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
+      else if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         root << parse_propset();
       }
       else if ((lookahead_result = lookahead_for_selector(position)).found) {
@@ -296,16 +296,22 @@ namespace Sass {
     if (lex< default_flag >()) assn << context.new_Node(Node::none, path, line, 0);
     return assn;
   }
-  
+
   Node Document::parse_propset()
   {
-    lex< identifier >();
-    Node property_segment(context.new_Node(Node::identifier, path, line, lexed));
+    Node property_segment;
+    if (peek< sequence< optional< exactly<'*'> >, identifier_schema > >()) {
+      property_segment = parse_identifier_schema();
+    }
+    else {
+      lex< sequence< optional< exactly<'*'> >, identifier > >();
+      property_segment = context.new_Node(Node::identifier, path, line, lexed);
+    }
     lex< exactly<':'> >();
     lex< exactly<'{'> >();
     Node block(context.new_Node(Node::block, path, line, 1));
     while (!lex< exactly<'}'> >()) {
-      if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
+      if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         block << parse_propset();
       }
       else {
@@ -611,7 +617,7 @@ namespace Sass {
         block << context.new_Node(Node::mixin_content, path, line, 0); // just an expansion stub
         semicolon = true;
       }
-      else if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
+      else if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         block << parse_propset();
       }
       else if ((lookahead_result = lookahead_for_selector(position)).found) {

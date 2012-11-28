@@ -721,11 +721,11 @@ namespace Sass {
         new_prefix += "\n";
         new_prefix += string(2*depth, ' ');
       }
-      new_prefix += at(0).token().to_string();
+      new_prefix += at(0).to_string();
     }
     else {
       new_prefix += "-";
-      new_prefix += at(0).token().to_string();
+      new_prefix += at(0).to_string();
       // has_prefix = true;
     }
     Node rules(at(1));
@@ -735,9 +735,11 @@ namespace Sass {
       }
       else {
         buf << new_prefix;
-        if (rules[i][0].token().to_string() != "") buf << '-';
+        if (rules[i][0].to_string() != "") buf << '-';
         if (!compressed) {
+          buf << "[hey]";
           rules[i][0].emit_nested_css(buf, depth);
+          buf << "[colon]";
           rules[i][1].emit_nested_css(buf, depth);
         }
         else {

@@ -84,6 +84,7 @@ namespace Sass {
     extern const char rbrace[];
     extern const char rparen[];
     extern const char sign_chars[];
+    extern const char hyphen[];
 
     // type names
     extern const char numeric_name[];
