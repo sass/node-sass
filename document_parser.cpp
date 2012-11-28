@@ -308,17 +308,18 @@ namespace Sass {
       property_segment = context.new_Node(Node::identifier, path, line, lexed);
     }
     lex< exactly<':'> >();
-    lex< exactly<'{'> >();
-    Node block(context.new_Node(Node::block, path, line, 1));
-    while (!lex< exactly<'}'> >()) {
-      if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
-        block << parse_propset();
-      }
-      else {
-        block << parse_rule();
-        lex< exactly<';'> >();
-      }
-    }
+    Node block(parse_block(Node()));
+    // lex< exactly<'{'> >();
+    // Node block(context.new_Node(Node::block, path, line, 1));
+    // while (!lex< exactly<'}'> >()) {
+    //   if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
+    //     block << parse_propset();
+    //   }
+    //   else {
+    //     block << parse_rule();
+    //     lex< exactly<';'> >();
+    //   }
+    // }
     if (block.empty()) throw_syntax_error("namespaced property cannot be empty");
     Node propset(context.new_Node(Node::propset, path, line, 2));
     propset << property_segment;

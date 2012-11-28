@@ -729,11 +729,12 @@ namespace Sass {
       // has_prefix = true;
     }
     Node rules(at(1));
+    rules.flatten();
     for (size_t i = 0, S = rules.size(); i < S; ++i) {
       if (rules[i].type() == propset) {
         rules[i].emit_propset(buf, depth+1, new_prefix, compressed);
       }
-      else {
+      else if (rules[i].type() == rule) {
         buf << new_prefix;
         if (rules[i][0].to_string() != "") buf << '-';
         if (!compressed) {
