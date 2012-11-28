@@ -737,13 +737,13 @@ namespace Sass {
         buf << new_prefix;
         if (rules[i][0].to_string() != "") buf << '-';
         if (!compressed) {
-          buf << "[hey]";
           rules[i][0].emit_nested_css(buf, depth);
-          buf << "[colon]";
+          if (rules[i][0].type() == identifier_schema) buf << ": ";
           rules[i][1].emit_nested_css(buf, depth);
         }
         else {
           rules[i][0].emit_compressed_css(buf);
+          if (rules[i][0].type() == identifier_schema) buf << ": ";
           rules[i][1].emit_compressed_css(buf);
         }
         buf << ';';
