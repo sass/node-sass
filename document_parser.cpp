@@ -410,7 +410,7 @@ namespace Sass {
     if (lex< exactly<'&'> >()) {
       simp1 = context.new_Node(Node::backref, path, line, lexed);
     }
-    else if (lex< alternatives< type_selector, universal > >()) {
+    else if (lex< alternatives< type_selector, universal, string_constant, number > >()) {
       simp1 = context.new_Node(Node::simple_selector, path, line, lexed);
     }
     else {
@@ -450,7 +450,7 @@ namespace Sass {
   
   Node Document::parse_simple_selector()
   {
-    if (lex< id_name >() || lex< class_name >()) {
+    if (lex< id_name >() || lex< class_name >() || lex< string_constant >() || lex< number >()) {
       return context.new_Node(Node::simple_selector, path, line, lexed);
     }
     else if (peek< exactly<':'> >(position)) {
