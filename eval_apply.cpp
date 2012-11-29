@@ -318,8 +318,10 @@ namespace Sass {
           result = result.substr(1, result.size()-2); // unquote if it's a single string
         }
         // These cerrs aren't log lines! They're supposed to be here!
-        cerr << prefix << result << endl;
-        cerr << indent << "on line " << expr.line() << " of " << expr.path();
+        cerr << prefix << result;
+        // cerr << indent << "on line " << expr.line() << " of " << expr.path();
+        Backtrace top(&bt, expr.path(), expr.line(), "");
+        cerr << top.to_string(true);
         cerr << endl << endl;
       } break;
 
@@ -1026,8 +1028,10 @@ namespace Sass {
             result = result.substr(1, result.size()-2); // unquote if it's a single string
           }
           // These cerrs aren't log lines! They're supposed to be here!
-          cerr << prefix << result << endl;
-          cerr << indent << "on line " << stm.line() << " of " << stm.path();
+          cerr << prefix << result;
+          // cerr << indent << "on line " << stm.line() << " of " << stm.path();
+          Backtrace top(&bt, stm.path(), stm.line(), "");
+          cerr << top.to_string(true);
           cerr << endl << endl;
         } break;
 

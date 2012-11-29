@@ -20,16 +20,17 @@ namespace Sass {
       caller(c)
     { }
 
-    string to_string()
+    string to_string(bool warning = false)
     {
       stringstream ss;
       Backtrace* this_point = this;
 
-      ss << endl << "Backtrace:";
+      if (!warning) ss << endl << "Backtrace:";
       // the first tracepoint (which is parent-less) is an empty placeholder
       while (this_point->parent) {
         ss << endl
            << "\t"
+           << (warning ? " " : "")
            << this_point->path
            << ":"
            << this_point->line
