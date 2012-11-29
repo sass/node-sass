@@ -158,6 +158,7 @@ namespace Sass {
       mixin_content,
       parameters,
       arguments,
+      rest,
 
       extend_directive,
 

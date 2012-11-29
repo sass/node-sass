@@ -172,16 +172,24 @@ namespace Sass {
     Node::Type param_type = Node::none;
     if (lex< exactly<'('> >()) {
       if (peek< variable >()) {
-        Node param(parse_parameter(param_type));
-        if (param.type() == Node::assignment) param_type = Node::assignment;
-        params << param;
-        while (lex< exactly<','> >()) {
+        do {
           if (!peek< variable >()) throw_syntax_error("expected a variable name (e.g. $x) for the parameter list for " + name.to_string());
           Node param(parse_parameter(param_type));
           if (param.type() == Node::assignment) param_type = Node::assignment;
           params << param;
+          if (param.type() == Node::rest) {
+            param_type = Node::rest;
+            break;
+          }
+        } while (lex< exactly<','> >());
+        if (!lex< exactly<')'> >()) {
+          if (params.back().type() == Node::rest && peek< exactly<','> >()) {
+            throw_syntax_error("variable-length parameter must appear last in a parameter list");
+          }
+          else {
+            throw_syntax_error("parameter list for " + name.to_string() + " requires a ')'");
+          }
         }
-        if (!lex< exactly<')'> >()) throw_syntax_error("parameter list for " + name.to_string() + " requires a ')'");
       }
       else if (!lex< exactly<')'> >()) throw_syntax_error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name.to_string());
     }
@@ -207,6 +215,9 @@ namespace Sass {
       Node par_and_val(context.new_Node(Node::assignment, path, line, 2));
       par_and_val << var << val;
       return par_and_val;
+    }
+    else if (lex< exactly< ellipsis > >()) {
+      return context.new_Node(Node::rest, var.path(), var.line(), var.token());
     }
     return var;
   }
