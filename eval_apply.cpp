@@ -168,6 +168,9 @@ namespace Sass {
         else if (rhs.is_schema() || rhs.should_eval()) {
           expr[1] = eval(rhs, prefix, env, f_env, new_Node, ctx, bt);
         }
+        if (expr[1].type() == Node::list && expr[1].empty()) {
+          throw_eval_error(bt, "the value of a style property may not be empty", expr[1].path(), expr[1].line());
+        }
       } break;
 
       case Node::extend_directive: {
