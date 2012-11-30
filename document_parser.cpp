@@ -66,6 +66,11 @@ namespace Sass {
         root << parse_warning();
         if (!lex< exactly<';'> >()) throw_syntax_error("top-level @warn directive must be terminated by ';'");
       }
+      // ignore the @charset directive for now
+      else if (lex< exactly< charset_kwd > >()) {
+        lex< string_constant >();
+        lex< exactly<';'> >();
+      }
       else if (peek< directive >()) {
         Node dir(parse_directive(Node(), Node::none));
         if (dir.type() == Node::blockless_directive) {
@@ -655,6 +660,11 @@ namespace Sass {
       }
       else if (peek< media >()) {
         block << parse_media_query(inside_of);
+      }
+      // ignore the @charset directive for now
+      else if (lex< exactly< charset_kwd > >()) {
+        lex< string_constant >();
+        lex< exactly<';'> >();
       }
       else if (peek< directive >()) {
         Node dir(parse_directive(surrounding_ruleset, inside_of));

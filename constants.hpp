@@ -44,6 +44,7 @@ namespace Sass {
     extern const char kHz_kwd[];
 
     // css functions and keywords
+    extern const char charset_kwd[];
     extern const char media_kwd[];
     extern const char only_kwd[];
     extern const char rgb_kwd[];
