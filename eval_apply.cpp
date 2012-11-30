@@ -820,27 +820,49 @@ namespace Sass {
   {
     // populate the env with the names of the parameters so we can check for
     // correctness further down
+    bool has_rest_params = false;
     for (size_t i = 0, S = params.size(); i < S; ++i) {
       Node param(params[i]);
-      env.current_frame[param.type() == Node::variable ? param.token() : param[0].token()] = Node();
+      // env.current_frame[param.type() == Node::assignment ? param[0].token() : param.token()] = Node();
+      if (param.type() == Node::variable) {
+        env.current_frame[param.token()] = Node();
+      }
+      else if (param.type() == Node::assignment) {
+        env.current_frame[param[0].token()] = Node();
+      }
+      else {
+        Node arglist(new_Node(Node::list, args.path(), args.line(), 0));
+        arglist.is_comma_separated() = true;
+        env.current_frame[param.token()] = arglist;
+        has_rest_params = true;
+      }
     }
 
     // now do the actual binding
     size_t args_bound = 0, num_params = params.size();
     for (size_t i = 0, j = 0, S = args.size(); i < S; ++i) {
-      if (j >= num_params) {
+      if (j == num_params-1 && has_rest_params) {
+        Node arglist(env[params[j].token()]);
+        // collect rest-args
+        for (size_t k = i; k < S; ++k) {
+          arglist << args[k];
+        }
+        break;
+      }
+      else if (j >= num_params) {
         stringstream msg;
         msg << callee_name << " only takes " << num_params << " arguments";
         throw_eval_error(bt, msg.str(), args.path(), args.line());
       }
-      Node arg(args[i]), param(params[j]);
-      // ordinal argument; just bind and keep going
-      if (arg.type() != Node::assignment) {
+      // ordinal argument; just bind it and keep going
+      else if (args[i].type() != Node::assignment) {
+        Node arg(args[i]), param(params[j]);
         env[param.type() == Node::variable ? param.token() : param[0].token()] = arg;
         ++j;
       }
       // keyword argument -- need to check for correctness
       else {
+        Node arg(args[i]), param(params[j]);
         Token arg_name(arg[0].token());
         Node arg_value(arg[1]);
         if (!env.query(arg_name)) {
