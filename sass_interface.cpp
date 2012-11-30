@@ -76,7 +76,7 @@ extern "C" {
     }
     catch (Error& e) {
       stringstream msg_stream;
-      msg_stream << "ERROR -- " << e.path << ":" << e.line << ": " << e.message << endl;
+      msg_stream << e.path << ":" << e.line << ": error: " << e.message << endl;
       string msg(msg_stream.str());
       char* msg_str = (char*) malloc(msg.size() + 1);
       strcpy(msg_str, msg.c_str());
@@ -86,7 +86,7 @@ extern "C" {
     }
     catch(bad_alloc& ba) {
       stringstream msg_stream;
-      msg_stream << "ERROR -- unable to allocate memory: " << ba.what() << endl;
+      msg_stream << "Unable to allocate memory: " << ba.what() << endl;
       string msg(msg_stream.str());
       char* msg_str = (char*) malloc(msg.size() + 1);
       strcpy(msg_str, msg.c_str());
@@ -116,7 +116,7 @@ extern "C" {
     }
     catch (Error& e) {
       stringstream msg_stream;
-      msg_stream << "ERROR -- " << e.path << ":" << e.line << ": " << e.message << endl;
+      msg_stream << e.path << ":" << e.line << ": error: " << e.message << endl;
       string msg(msg_stream.str());
       char* msg_str = (char*) malloc(msg.size() + 1);
       strcpy(msg_str, msg.c_str());
@@ -126,7 +126,7 @@ extern "C" {
     }
     catch(bad_alloc& ba) {
       stringstream msg_stream;
-      msg_stream << "ERROR -- unable to allocate memory: " << ba.what() << endl;
+      msg_stream << "Unable to allocate memory: " << ba.what() << endl;
       string msg(msg_stream.str());
       char* msg_str = (char*) malloc(msg.size() + 1);
       strcpy(msg_str, msg.c_str());
