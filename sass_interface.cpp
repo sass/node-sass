@@ -101,15 +101,9 @@ extern "C" {
   int sass_compile_file(sass_file_context* c_ctx)
   {
     using namespace Sass;
+    Context cpp_ctx(c_ctx->options.include_paths, c_ctx->options.image_path, c_ctx->options.source_comments);
     try {
-      Context cpp_ctx(c_ctx->options.include_paths, c_ctx->options.image_path, c_ctx->options.source_comments);
-      // Document doc(c_ctx->input_path, 0, cpp_ctx);
-      // string path_string(c_ctx->options.image_path);
-      // path_string = "'" + path_string + "/";
-      // cpp_ctx.image_path = c_ctx->options.image_path;
       Document doc(Document::make_from_file(cpp_ctx, string(c_ctx->input_path)));
-      // cerr << "MADE A DOC AND CONTEXT OBJ" << endl;
-      // cerr << "REGISTRY: " << doc.context.registry.size() << endl;
       c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
@@ -127,6 +121,29 @@ extern "C" {
     catch(bad_alloc& ba) {
       stringstream msg_stream;
       msg_stream << "Unable to allocate memory: " << ba.what() << endl;
+      string msg(msg_stream.str());
+      char* msg_str = (char*) malloc(msg.size() + 1);
+      strcpy(msg_str, msg.c_str());
+      c_ctx->error_status = 1;
+      c_ctx->output_string = 0;
+      c_ctx->error_message = msg_str;
+    }
+    catch(string& bad_path) {
+      for (vector<string>::iterator path = cpp_ctx.include_paths.begin(); path < cpp_ctx.include_paths.end(); ++path) {
+        try {
+          Document doc(Document::make_from_file(cpp_ctx, *path + string(c_ctx->input_path)));
+          c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
+          c_ctx->error_message = 0;
+          c_ctx->error_status = 0;
+          return 0;
+        }
+        catch (string& bad_path) {
+          // continue looping
+        }
+      }
+      // couldn't find the specified file in the include paths; report an error
+      stringstream msg_stream;
+      msg_stream << "error reading file \"" << bad_path << "\"" << endl;
       string msg(msg_stream.str());
       char* msg_str = (char*) malloc(msg.size() + 1);
       strcpy(msg_str, msg.c_str());

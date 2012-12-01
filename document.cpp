@@ -65,8 +65,9 @@ namespace Sass {
           tmp = folder + non_partial_filename;
           path_str = tmp.c_str();
           // if we still can't find the file, then throw an error
-          if (stat(path_str, &st) == -1 || S_ISDIR(st.st_mode))
+          if (stat(path_str, &st) == -1 || S_ISDIR(st.st_mode)) {
             throw path;
+          }
         }
       }
     }
