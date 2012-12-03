@@ -20,6 +20,8 @@
   "dependencies": {
     "mkdirp": "0.3.x"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "mocha": "1.7.x"
+  },
   "optionalDependencies": {}
 }
