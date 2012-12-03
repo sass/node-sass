@@ -22,9 +22,7 @@ SASS_OUTPUT_STYLE = {
 };
 exports.render = function(css, callback, options) {
     var paths, style;
-    if (toString.call(options) !== '[object Object]') {
-        options = {};
-    }
+    typeof options != "object" && (options = {});
     paths = options.include_paths || [];
     if (!((style = options.output_style) in SASS_OUTPUT_STYLE)) {
         style = 'nested';
