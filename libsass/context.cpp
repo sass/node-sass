@@ -1,8 +1,10 @@
 #ifdef _WIN32
 #include <direct.h>
 #define getcwd _getcwd
+#define PATH_SEP ';'
 #else
 #include <unistd.h>
+#define PATH_SEP ':'
 #endif
 
 #include <cstring>
@@ -27,7 +29,7 @@ namespace Sass {
 
     if (paths_str) {
       const char* beg = paths_str;
-      const char* end = Prelexer::find_first<':'>(beg);
+      const char* end = Prelexer::find_first<PATH_SEP>(beg);
 
       while (end) {
         string path(beg, end - beg);
@@ -36,7 +38,7 @@ namespace Sass {
           include_paths.push_back(path);
         }
         beg = end + 1;
-        end = Prelexer::find_first<':'>(beg);
+        end = Prelexer::find_first<PATH_SEP>(beg);
       }
 
       string path(beg);
@@ -51,19 +53,20 @@ namespace Sass {
     // }
   }
   
-  Context::Context(const char* paths_str, const char* img_path_str)
+  Context::Context(const char* paths_str, const char* img_path_str, bool sc)
   : global_env(Environment()),
     function_env(map<string, Function>()),
     extensions(multimap<Node, Node>()),
     pending_extensions(vector<pair<Node, Node> >()),
-    source_refs(vector<char*>()),
+    source_refs(vector<const char*>()),
     include_paths(vector<string>()),
     color_names_to_values(map<string, Node>()),
     color_values_to_names(map<Node, string>()),
     new_Node(Node_Factory()),
     image_path(0),
     ref_count(0),
-    has_extensions(false)
+    has_extensions(false),
+    source_comments(sc)
   {
     register_functions();
     collect_include_paths(paths_str);
@@ -143,7 +146,8 @@ namespace Sass {
     // Other Color Functions
     register_function(adjust_color_sig, adjust_color);
     register_function(scale_color_sig, scale_color);
-    register_function(change_color_sig, change_color);    
+    register_function(change_color_sig, change_color);   
+    register_function(ie_hex_str_sig, ie_hex_str); 
     // String Functions
     register_function(unquote_sig, unquote);
     register_function(quote_sig, quote);

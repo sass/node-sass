@@ -19,6 +19,7 @@ namespace Sass {
     {
       case block:
       case mixin_call:
+      case mixin_content:
       case root:
       case if_directive:
       case for_through_directive:
@@ -35,6 +36,7 @@ namespace Sass {
       switch (at(i).type())
       {
         case mixin_call:
+        case mixin_content:
         case block:
         case if_directive:
         case for_through_directive:
@@ -44,6 +46,7 @@ namespace Sass {
           Node expn(at(i));
           if (expn.has_expansions()) expn.flatten();
           ip_->has_statements |= expn.has_statements();
+          ip_->has_comments   |= expn.has_comments();
           ip_->has_blocks     |= expn.has_blocks();
           ip_->has_expansions |= expn.has_expansions();
           // TO DO: make this more efficient -- replace with a dummy node instead of erasing

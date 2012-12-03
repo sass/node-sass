@@ -23,7 +23,7 @@ namespace Sass {
     map<string, Function> function_env;
     multimap<Node, Node> extensions;
     vector<pair<Node, Node> > pending_extensions;
-    vector<char*> source_refs; // all the source c-strings
+    vector<const char*> source_refs; // all the source c-strings
     vector<string> include_paths;
     map<string, Node> color_names_to_values;
     map<Node, string> color_values_to_names;
@@ -33,9 +33,10 @@ namespace Sass {
     // string sass_path;
     // string css_path;
     bool has_extensions;
+    bool source_comments;
 
     void collect_include_paths(const char* paths_str);
-    Context(const char* paths_str = 0, const char* img_path_str = 0);
+    Context(const char* paths_str = 0, const char* img_path_str = 0, bool sc = false);
     ~Context();
 
     void register_function(Signature sig, Primitive ip);
