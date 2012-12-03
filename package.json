@@ -10,7 +10,8 @@
     "url": "git://github.com/andrew/node-sass.git"
   },
   "scripts": {
-    "install": "node rebuild.js"
+    "install": "node rebuild.js",
+    "test": "mocha test"
   },
   "gypfile": true,
   "engines": {
