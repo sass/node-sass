@@ -97,5 +97,6 @@ namespace Sass {
     extern const char bool_name[];
     extern const char color_name[];
     extern const char list_name[];
+    extern const char arglist_name[];
   }
 }

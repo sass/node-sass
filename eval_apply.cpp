@@ -759,6 +759,7 @@ namespace Sass {
     Node evaluated_args(new_Node(Node::arguments, args.path(), args.line(), args.size()));
     for (size_t i = 0, S = args.size(); i < S; ++i) {
       if (args[i].type() != Node::assignment) {
+        bool is_arglist = args[i].is_arglist();
         evaluated_args << eval(args[i], prefix, env, f_env, new_Node, ctx, bt);
         if (evaluated_args.back().type() == Node::list) {
           Node arg_list(evaluated_args.back());
@@ -768,6 +769,7 @@ namespace Sass {
             else                           new_arg_list << arg_list[j];
           }
         }
+        evaluated_args[i].is_arglist() = is_arglist;
       }
       else {
         Node kwdarg(new_Node(Node::assignment, args[i].path(), args[i].line(), 2));
@@ -788,6 +790,7 @@ namespace Sass {
     // eval twice because args may be delayed
     for (size_t i = 0, S = evaluated_args.size(); i < S; ++i) {
       if (evaluated_args[i].type() != Node::assignment) {
+        bool is_arglist = evaluated_args[i].is_arglist();
         evaluated_args[i].should_eval() = true;
         evaluated_args[i] = eval(evaluated_args[i], prefix, env, f_env, new_Node, ctx, bt);
         if (evaluated_args[i].type() == Node::list) {
@@ -796,6 +799,7 @@ namespace Sass {
             if (arg_list[j].should_eval()) arg_list[j] = eval(arg_list[j], prefix, env, f_env, new_Node, ctx, bt);
           }
         }
+        evaluated_args[i].is_arglist() = is_arglist;
       }
       else {
         Node kwdarg(evaluated_args[i]);
@@ -832,6 +836,7 @@ namespace Sass {
       }
       else {
         Node arglist(new_Node(Node::list, args.path(), args.line(), 0));
+        arglist.is_arglist() = true;
         arglist.is_comma_separated() = true;
         env.current_frame[param.token()] = arglist;
         has_rest_params = true;
@@ -856,9 +861,14 @@ namespace Sass {
       }
       // ordinal argument; just bind it and keep going
       else if (args[i].type() != Node::assignment) {
-        Node arg(args[i]), param(params[j]);
-        env[param.type() == Node::variable ? param.token() : param[0].token()] = arg;
-        ++j;
+        if (args[i].type() == Node::list && args[i].is_arglist()) {
+
+        }
+        else {
+          Node arg(args[i]), param(params[j]);
+          env[param.type() == Node::variable ? param.token() : param[0].token()] = arg;
+          ++j;
+        }
       }
       // keyword argument -- need to check for correctness
       else {

@@ -201,7 +201,8 @@ namespace Sass {
     return params;
   }
 
-  Node Document::parse_parameter(Node::Type param_type) {
+  Node Document::parse_parameter(Node::Type param_type)
+  {
     lex< variable >();
     Node var(context.new_Node(Node::variable, path, line, lexed));
     if (param_type == Node::assignment) {
@@ -252,16 +253,26 @@ namespace Sass {
     Node::Type arg_type = Node::none;
     if (lex< exactly<'('> >()) {
       if (!peek< exactly<')'> >(position)) {
-        Node arg(parse_argument(Node::none));
-        args << arg;
-        if (arg.type() == Node::assignment) arg_type = Node::assignment;
-        while (lex< exactly<','> >()) {
-          Node arg(parse_argument(arg_type));
+        do {
+          Node arg(parse_argument(arg_type))
           args << arg;
-          if (arg.type() == Node::assignment) arg_type = Node::assignment;
+          if (arg.type() == Node::assignment) {
+            arg_type = Node::assignment;
+          }
+          else if (arg.type() == Node::rest) {
+            arg_type = Node::rest;
+            break;
+          }
+        } while (lex< exactly<','> >());
+      }
+      if (!lex< exactly<')'> >()) {
+        if (args.back().is_arglist() && peek< exactly<','> >()) {
+          throw_syntax_error("variable-length argument must appear last in an argument list");
+        }
+        else {
+          throw_syntax_error("improperly terminated argument list for " + name.to_string());
         }
       }
-      if (!lex< exactly<')'> >()) throw_syntax_error("improperly terminated argument list for " + name.to_string());
     }
     return args;
   }
@@ -285,8 +296,8 @@ namespace Sass {
       }
     }
     // otherwise accept either, and let the caller set the arg_type flag
-    if (arg_type == Node::none &&
-        peek< sequence < variable, spaces_and_comments, exactly<':'> > >()) {
+    else if (arg_type == Node::none &&
+             peek< sequence < variable, spaces_and_comments, exactly<':'> > >()) {
       lex< variable >();
       Node var(context.new_Node(Node::variable, path, line, lexed));
       lex< exactly<':'> >();
@@ -296,8 +307,17 @@ namespace Sass {
       assn << var << val;
       return assn;
     }
+    // else if (arg_type == Node::none &&
+    //          peek< sequence < variable, spaces_and_comments, exactly< ellipsis > > >()) {
+    //   lex< variable >();
+    //   lex< exactly< ellipsis > >();
+    //   return context.new_Node(Node::rest, path, line, lexed);
+    // }
     Node val(parse_space_list());
     val.should_eval() = true;
+    if (lex< exactly< ellipsis > >()) {
+      val.is_arglist() = true;
+    }
     return val;
   }
 

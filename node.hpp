@@ -200,6 +200,7 @@ namespace Sass {
     bool& has_been_extended() const;
     bool is_false() const;
     bool& is_comma_separated() const;
+    bool& is_arglist() const;
 
     string& path() const;
     size_t line() const;
@@ -278,6 +279,7 @@ namespace Sass {
     bool is_quoted;
     bool has_been_extended;
     bool is_comma_separated;
+    bool is_arglist;
 
     Node_Impl()
     : /* value(value_t()),
@@ -295,7 +297,8 @@ namespace Sass {
       should_eval(false),
       is_quoted(false),
       has_been_extended(false),
-      is_comma_separated(false)
+      is_comma_separated(false),
+      is_arglist(false)
     { }
     
     bool is_numeric()
@@ -468,6 +471,7 @@ namespace Sass {
   inline bool& Node::has_been_extended() const { return ip_->has_been_extended; }
   inline bool Node::is_false() const       { return (type() == boolean) && (boolean_value() == false); }
   inline bool& Node::is_comma_separated() const { return ip_->is_comma_separated; }
+  inline bool& Node::is_arglist() const    { return ip_->is_arglist; }
   
   inline string& Node::path() const  { return ip_->path; }
   inline size_t  Node::line() const  { return ip_->line; }
