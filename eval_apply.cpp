@@ -849,8 +849,14 @@ namespace Sass {
       if (j == num_params-1 && has_rest_params) {
         Node arglist(env[params[j].token()]);
         // collect rest-args
-        for (size_t k = i; k < S; ++k) {
-          arglist << args[k];
+        if (args[i].type() == Node::list && args[i].is_arglist()) {
+          arglist += args[i];
+          arglist.is_comma_separated() = args[i].is_comma_separated();
+        }
+        else {
+          for (size_t k = i; k < S; ++k) {
+            arglist << args[k];
+          }
         }
         break;
       }
@@ -861,8 +867,34 @@ namespace Sass {
       }
       // ordinal argument; just bind it and keep going
       else if (args[i].type() != Node::assignment) {
+        // if it's a splat
         if (args[i].type() == Node::list && args[i].is_arglist()) {
-
+          // loop through the splatted list and bind each element to the remaining parameters
+          for (size_t rest_i = 0, rest_length = args[i].size(); rest_i < rest_length; ++rest_i) {
+            // if we're binding the last parameter
+            if (j == num_params-1) {
+              Node leftovers;
+              if (has_rest_params) {
+                leftovers = env[params[j].token()];
+                leftovers.is_comma_separated() = args[i].is_comma_separated();
+                for (; rest_i < rest_length; ++rest_i) {
+                  leftovers << args[i][rest_i];
+                }
+              }
+              else {
+                leftovers = args[i][rest_i];
+              }
+              Node param(params[j]);
+              env[param.type() != Node::assignment ? param.token() : param[0].token()] = leftovers;
+            }
+            // otherwise keep going normally
+            else {
+              Node param(params[j]);
+              Token name = ((param.type() == Node::variable) ? param.token() : param[0].token());
+              env[name] = args[i][rest_i];
+              ++j;
+            }
+          }
         }
         else {
           Node arg(args[i]), param(params[j]);
@@ -907,6 +939,8 @@ namespace Sass {
     Node params(mixin[1]);
     Node body(new_Node(mixin[2])); // clone the body
     Node evaluated_args(eval_arguments(args, prefix, env, f_env, new_Node, ctx, bt));
+    // cerr << evaluated_args.back().to_string() << endl;
+    // cerr << evaluated_args.back().is_arglist() << endl;
     // Create a new environment for the mixin and link it to the appropriate parent
     Environment bindings;
     if (dynamic_scope) {

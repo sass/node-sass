@@ -254,7 +254,7 @@ namespace Sass {
     if (lex< exactly<'('> >()) {
       if (!peek< exactly<')'> >(position)) {
         do {
-          Node arg(parse_argument(arg_type))
+          Node arg(parse_argument(arg_type));
           args << arg;
           if (arg.type() == Node::assignment) {
             arg_type = Node::assignment;
@@ -742,7 +742,8 @@ namespace Sass {
     if (peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
         peek< exactly<'{'> >(position) ||
-        peek< exactly<')'> >(position))
+        peek< exactly<')'> >(position) ||
+        peek< exactly<ellipsis> >(position))
     { return context.new_Node(Node::list, path, line, 0); }
     Node list1(parse_space_list());
     // if it's a singleton, return it directly; don't wrap it
@@ -772,6 +773,7 @@ namespace Sass {
         peek< exactly<'{'> >(position) ||
         peek< exactly<')'> >(position) ||
         peek< exactly<','> >(position) ||
+        peek< exactly<ellipsis> >(position) ||
         peek< default_flag >(position))
     { return disj1; }
     
@@ -784,6 +786,7 @@ namespace Sass {
              peek< exactly<'{'> >(position) ||
              peek< exactly<')'> >(position) ||
              peek< exactly<','> >(position) ||
+             peek< exactly<ellipsis> >(position) ||
              peek< default_flag >(position)))
     {
       Node disj(parse_disjunction());
