@@ -26,7 +26,7 @@ namespace Sass {
         else                                     root += importee;
         if (!lex< exactly<';'> >()) throw_syntax_error("top-level @import directive must be terminated by ';'");
       }
-      else if (peek< mixin >() || peek< exactly<'='> >()) {
+      else if (peek< mixin >() /* || peek< exactly<'='> >() */) {
         root << parse_mixin_definition();
       }
       else if (peek< function >()) {
@@ -36,15 +36,16 @@ namespace Sass {
         root << parse_assignment();
         if (!lex< exactly<';'> >()) throw_syntax_error("top-level variable binding must be terminated by ';'");
       }
-      else if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
+      else if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         root << parse_propset();
       }
       else if ((lookahead_result = lookahead_for_selector(position)).found) {
         root << parse_ruleset(lookahead_result);
       }
-      else if (peek< include >() || peek< exactly<'+'> >()) {
-        root << parse_mixin_call();
-        if (!lex< exactly<';'> >()) throw_syntax_error("top-level @include directive must be terminated by ';'");
+      else if (peek< include >() /* || peek< exactly<'+'> >() */) {
+        Node mixin_call(parse_mixin_call());
+        root << mixin_call;
+        if (mixin_call.size() < 3 && !lex< exactly<';'> >()) throw_syntax_error("top-level @include directive must be terminated by ';'");
       }
       else if (peek< if_directive >()) {
         root << parse_if_directive(Node(), Node::none);
@@ -64,6 +65,11 @@ namespace Sass {
       else if (peek< warn >()) {
         root << parse_warning();
         if (!lex< exactly<';'> >()) throw_syntax_error("top-level @warn directive must be terminated by ';'");
+      }
+      // ignore the @charset directive for now
+      else if (lex< exactly< charset_kwd > >()) {
+        lex< string_constant >();
+        lex< exactly<';'> >();
       }
       else if (peek< directive >()) {
         Node dir(parse_directive(Node(), Node::none));
@@ -106,8 +112,20 @@ namespace Sass {
       }
     }
     if (!lex< string_constant >()) throw_syntax_error("@import directive requires a url or quoted path");
-    // TO DO: BETTER PATH HANDLING
     string import_path(lexed.unquote());
+    // Try the folder containing the current file first. If that fails, loop
+    // through the include-paths.
+    try {
+      const char* base_str = path.c_str();
+      string base_path(Token::make(base_str, Prelexer::folders(base_str)).to_string());
+      string resolved_path(base_path + import_path);
+      Document importee(Document::make_from_file(context, resolved_path));
+      importee.parse_scss();
+      return importee.root;
+    }
+    catch (string& path) {
+      // suppress the error and try the include paths
+    }
     for (vector<string>::iterator path = context.include_paths.begin(); path < context.include_paths.end(); ++path) {
       try {
         Document importee(Document::make_from_file(context, *path + import_path));
@@ -115,16 +133,18 @@ namespace Sass {
         return importee.root;
       }
       catch (string& path) {
+        // continue looping
       }
     }
+    // fail after we've tried all include-paths
     throw_read_error("error reading file \"" + import_path + "\"");
-    // unreached statement
+    // unreachable statement
     return Node();
   }
 
   Node Document::parse_mixin_definition()
   {
-    lex< mixin >() || lex< exactly<'='> >();
+    lex< mixin >() /* || lex< exactly<'='> >() */;
     if (!lex< identifier >()) throw_syntax_error("invalid name in @mixin directive");
     Node name(context.new_Node(Node::identifier, path, line, lexed));
     Node params(parse_parameters());
@@ -196,14 +216,21 @@ namespace Sass {
     return var;
   }
 
-  Node Document::parse_mixin_call()
+  Node Document::parse_mixin_call(Node::Type inside_of)
   {
-    lex< include >() || lex< exactly<'+'> >();
+    lex< include >() /* || lex< exactly<'+'> >() */;
     if (!lex< identifier >()) throw_syntax_error("invalid name in @include directive");
     Node name(context.new_Node(Node::identifier, path, line, lexed));
     Node args(parse_arguments());
-    Node the_call(context.new_Node(Node::mixin_call, path, line, 2));
+    Node content;
+    bool has_content = false;
+    if (peek< exactly<'{'> >()) {
+      content = parse_block(Node(), inside_of);
+      has_content = true;
+    }
+    Node the_call(context.new_Node(Node::mixin_call, path, line, has_content ? 3 : 2));
     the_call << name << args;
+    if (has_content) the_call << content;
     return the_call;
   }
   
@@ -274,23 +301,30 @@ namespace Sass {
     if (lex< default_flag >()) assn << context.new_Node(Node::none, path, line, 0);
     return assn;
   }
-  
+
   Node Document::parse_propset()
   {
-    lex< identifier >();
-    Node property_segment(context.new_Node(Node::identifier, path, line, lexed));
-    lex< exactly<':'> >();
-    lex< exactly<'{'> >();
-    Node block(context.new_Node(Node::block, path, line, 1));
-    while (!lex< exactly<'}'> >()) {
-      if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
-        block << parse_propset();
-      }
-      else {
-        block << parse_rule();
-        lex< exactly<';'> >();
-      }
+    Node property_segment;
+    if (peek< sequence< optional< exactly<'*'> >, identifier_schema > >()) {
+      property_segment = parse_identifier_schema();
     }
+    else {
+      lex< sequence< optional< exactly<'*'> >, identifier > >();
+      property_segment = context.new_Node(Node::identifier, path, line, lexed);
+    }
+    lex< exactly<':'> >();
+    Node block(parse_block(Node()));
+    // lex< exactly<'{'> >();
+    // Node block(context.new_Node(Node::block, path, line, 1));
+    // while (!lex< exactly<'}'> >()) {
+    //   if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
+    //     block << parse_propset();
+    //   }
+    //   else {
+    //     block << parse_rule();
+    //     lex< exactly<';'> >();
+    //   }
+    // }
     if (block.empty()) throw_syntax_error("namespaced property cannot be empty");
     Node propset(context.new_Node(Node::propset, path, line, 2));
     propset << property_segment;
@@ -382,7 +416,7 @@ namespace Sass {
     if (lex< exactly<'&'> >()) {
       simp1 = context.new_Node(Node::backref, path, line, lexed);
     }
-    else if (lex< alternatives< type_selector, universal > >()) {
+    else if (lex< alternatives< type_selector, universal, string_constant, number > >()) {
       simp1 = context.new_Node(Node::simple_selector, path, line, lexed);
     }
     else {
@@ -422,7 +456,7 @@ namespace Sass {
   
   Node Document::parse_simple_selector()
   {
-    if (lex< id_name >() || lex< class_name >()) {
+    if (lex< id_name >() || lex< class_name >() || lex< string_constant >() || lex< number >()) {
       return context.new_Node(Node::simple_selector, path, line, lexed);
     }
     else if (peek< exactly<':'> >(position)) {
@@ -454,8 +488,10 @@ namespace Sass {
         pseudo << context.new_Node(Node::value, path, line, lexed);
       }
       else if (peek< binomial >(position)) {
-        lex< coefficient >();
-        pseudo << context.new_Node(Node::value, path, line, lexed);
+        if (peek< coefficient >()) {
+          lex< coefficient >();
+          pseudo << context.new_Node(Node::value, path, line, lexed);
+        }
         lex< exactly<'n'> >();
         pseudo << context.new_Node(Node::value, path, line, lexed);
         lex< sign >();
@@ -577,19 +613,28 @@ namespace Sass {
         throw_syntax_error("only variable declarations and control directives are allowed inside functions");
       }
       else if (peek< include >(position)) {
-        block << parse_mixin_call();
+        block << parse_mixin_call(inside_of);
         semicolon = true;
       }
-      else if (peek< sequence< identifier, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
+      else if (lex< content >()) {
+        if (inside_of != Node::mixin) {
+          throw_syntax_error("@content may only be used within a mixin");
+        }
+        block << context.new_Node(Node::mixin_content, path, line, 0); // just an expansion stub
+        semicolon = true;
+      }
+      else if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         block << parse_propset();
       }
       else if ((lookahead_result = lookahead_for_selector(position)).found) {
         block << parse_ruleset(lookahead_result, inside_of);
       }
+      /*
       else if (peek< exactly<'+'> >()) {
         block << parse_mixin_call();
         semicolon = true;
       }
+      */
       else if (lex< extend >()) {
         Node request(context.new_Node(Node::extend_directive, path, line, 1));
         Selector_Lookahead lookahead = lookahead_for_extension_target(position);
@@ -604,6 +649,11 @@ namespace Sass {
       }
       else if (peek< media >()) {
         block << parse_media_query(inside_of);
+      }
+      // ignore the @charset directive for now
+      else if (lex< exactly< charset_kwd > >()) {
+        lex< string_constant >();
+        lex< exactly<';'> >();
       }
       else if (peek< directive >()) {
         Node dir(parse_directive(surrounding_ruleset, inside_of));
@@ -868,11 +918,13 @@ namespace Sass {
         result << parse_string();
         result.should_eval() = true;
       }
-      else if (lex< url_schema >()) {
+      else if (peek< sequence< url_schema, spaces_and_comments, exactly<')'> > >()) {
+        lex< url_schema >();
         result << Document::make_from_token(context, lexed, path, line).parse_url_schema();
         result.should_eval() = true;
       }
-      else if (lex< url_value >()) {
+      else if (peek< sequence< url_value, spaces_and_comments, exactly<')'> > >()) {
+        lex< url_value >();
         result << context.new_Node(Node::identifier, path, line, lexed);
       }
       else {

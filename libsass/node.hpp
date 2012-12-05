@@ -142,6 +142,7 @@ namespace Sass {
       numeric_percentage,
       numeric_dimension,
       numeric_color,
+      ie_hex_str,
       boolean,
       important,
 
@@ -154,6 +155,7 @@ namespace Sass {
       function_call,
       mixin,
       mixin_call,
+      mixin_content,
       parameters,
       arguments,
 
@@ -183,6 +185,7 @@ namespace Sass {
 
     bool has_children() const;
     bool has_statements() const;
+    bool has_comments() const;
     bool has_blocks() const;
     bool has_expansions() const;
     bool has_backref() const;
@@ -237,11 +240,12 @@ namespace Sass {
     bool operator>(Node rhs) const;
     bool operator>=(Node rhs) const;
 
-    string to_string(Type inside_of = none) const;
-    void emit_nested_css(stringstream& buf, size_t depth, bool at_toplevel = false, bool in_media_query = false);
-    void emit_propset(stringstream& buf, size_t depth, const string& prefix);
+    string to_string(Type inside_of = none, const string space = " ") const;
+    void emit_nested_css(stringstream& buf, size_t depth, bool at_toplevel = false, bool in_media_query = false, bool source_comments = false);
+    void emit_propset(stringstream& buf, size_t depth, const string& prefix, const bool compressed = false);
     void echo(stringstream& buf, size_t depth = 0);
     void emit_expanded_css(stringstream& buf, const string& prefix);
+    void emit_compressed_css(stringstream& buf);
 
   };
   
@@ -264,6 +268,7 @@ namespace Sass {
 
     bool has_children;
     bool has_statements;
+    bool has_comments;
     bool has_blocks;
     bool has_expansions;
     bool has_backref;
@@ -281,6 +286,7 @@ namespace Sass {
       type(Node::none), */
       has_children(false),
       has_statements(false),
+      has_comments(false),
       has_blocks(false),
       has_expansions(false),
       has_backref(false),
@@ -349,9 +355,13 @@ namespace Sass {
     {
       children.push_back(n);
       has_children = true;
+      if (n.is_null()) return;
       switch (n.type())
       {
-        case Node::comment:
+        case Node::comment: {
+          has_comments = true;
+        } break;
+
         case Node::css_import:
         case Node::rule:
         case Node::propset:
@@ -372,7 +382,8 @@ namespace Sass {
         case Node::for_to_directive:
         case Node::each_directive:
         case Node::while_directive:
-        case Node::mixin_call: {
+        case Node::mixin_call:
+        case Node::mixin_content: {
           has_expansions = true;
         } break;
 
@@ -391,24 +402,26 @@ namespace Sass {
       has_children = true;
       switch (n.type())
       {
-        case Node::comment:
+        case Node::comment:       has_comments   = true; break;
+
         case Node::css_import:
         case Node::rule:
-        case Node::propset:   has_statements = true; break;
+        case Node::propset:       has_statements = true; break;
 
         case Node::media_query:
-        case Node::ruleset:   has_blocks     = true; break;
+        case Node::ruleset:       has_blocks     = true; break;
 
         case Node::if_directive:
         case Node::for_through_directive:
         case Node::for_to_directive:
         case Node::each_directive:
         case Node::while_directive:
-        case Node::mixin_call: has_expansions = true; break;
+        case Node::mixin_call:
+        case Node::mixin_content: has_expansions = true; break;
 
-        case Node::backref:   has_backref    = true; break;
+        case Node::backref:       has_backref    = true; break;
 
-        default:                                     break;
+        default:                                         break;
       }
       if (n.has_backref()) has_backref = true;
     }
@@ -440,6 +453,7 @@ namespace Sass {
 
   inline bool Node::has_children() const   { return ip_->has_children; }
   inline bool Node::has_statements() const { return ip_->has_statements; }
+  inline bool Node::has_comments() const   { return ip_->has_comments; }
   inline bool Node::has_blocks() const     { return ip_->has_blocks; }
   inline bool Node::has_expansions() const { return ip_->has_expansions; }
   inline bool Node::has_backref() const    { return ip_->has_backref; }

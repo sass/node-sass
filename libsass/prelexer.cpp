@@ -138,6 +138,10 @@ namespace Sass {
       return exactly<include_kwd>(src);
     }
 
+    const char* content(const char* src) {
+      return exactly<content_kwd>(src);
+    }
+
     const char* extend(const char* src) {
       return exactly<extend_kwd>(src);
     }
@@ -382,6 +386,33 @@ namespace Sass {
     }
     const char* folders(const char* src) {
       return zero_plus< folder >(src);
+    }
+
+    const char* chunk(const char* src) {
+      char inside_str = 0;
+      const char* p = src;
+      size_t depth = 0;
+      while (true) {
+        if (!*p) {
+          return 0;
+        }
+        else if (!inside_str && (*p == '"' || *p == '\'')) {
+          inside_str = *p;
+        }
+        else if (*p == inside_str && *(p-1) != '\\') {
+          inside_str = 0;
+        }
+        else if (*p == '(' && !inside_str) {
+          ++depth;
+        }
+        else if (*p == ')' && !inside_str) {
+          if (depth == 0) return p;
+          else            --depth;
+        }
+        ++p;
+      }
+      // unreachable
+      return 0;
     }
   }
 }
