@@ -1,0 +1,9 @@
+#h1 {
+  width: 100%;
+  span {
+    color: red;
+    &.active {
+      color: pink;
+    }
+  }
+}
