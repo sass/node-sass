@@ -3,6 +3,9 @@ var colors    = require('colors');
 var fs        = require('fs');
 var sass      = require('../sass');
 var fileName  = process.argv[2];
+var cssFileName = process.argv[3];
+
+console.log('Starting Render Process...'.green);
 
 if (fileName) {
   fs.readFile(fileName, "utf8", function(err, data) {
@@ -10,6 +13,7 @@ if (fileName) {
       console.log("** Error Opening File **".red);
       console.log(JSON.stringify(err, null, 4).yellow);
     } else {
+      console.log('File data read successfully, rendering css'.green);
       renderSASS(data);
     }
   });
@@ -23,7 +27,21 @@ function renderSASS(data) {
       console.log("** Error Rendering SASS **".red);
       console.log(JSON.stringify(err, null, 4).yellow);
     } else {
-      console.log(compiled);
+      console.log('Rendering Complete, saving .css file...'.green);
+
+      var outFile = (cssFileName) ? cssFileName : 'nodesass.css';
+      writeCssFile(outFile, compiled);
+
+    }
+  });
+}
+
+function writeCssFile(filename, data) {
+  fs.writeFile(filename, data, function(err){
+    if(err) {
+      console.log('Error: ' + err);
+    } else {
+      console.log('File saved! New .css file: ' + filename);
     }
   });
 }
