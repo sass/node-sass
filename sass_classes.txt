@@ -9,7 +9,7 @@ Node ( std::string, size_t, etc... )
 
 Statement
 
-    Block               ( Statement[] )
+    Block               ( Statement[], root? )
     Ruleset             ( Selector, Block )
     Propset             ( String, Block )
     Media_query         ( Value, Block )
