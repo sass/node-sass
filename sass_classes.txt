@@ -1,73 +1,74 @@
-node ( string, size_t, etc )
+Node ( std::string, size_t, etc... )
 
-    statement
-    value
-    selector
-    parameter
-    argument
-
-
-statement
-
-    block           ( statement[] )
-    ruleset         ( selector, block )
-    propset         ( identifier, block )
-    media_query     ( value, block )
-    directive       ( identifier, value )
-    block_directive ( identifier, selector, block )
-    
-    rule            ( identifier, value[] )
-    assignment      ( identifier, value, guarded? )
-    import          ( text )
-    warning         ( text )
-    comment         ( text )
-
-    if_directive    ( value[], block[] )
-    for_directive   ( identifier, value, value, block, inclusive? )
-    each_directive  ( identifier value, block )
-    while_directive ( value, block )
-
-    extend          ( selector )
-
-    mixin_def       ( mixin )
-    mixin_call      ( identifier, argument[], block )
-
-    function_def    ( function )
+    Statement
+    Value
+    Selector
+    Parameter
+    Argument
 
 
-value ( parenthesized? )
+Statement
 
-    list                ( value[], comma_separated? )
-    disjunction         ( value[] )
-    conjunction         ( value[] )
-    relation            ( rel_op, value, value )
-    expression          ( add_op, value, value )
-    term                ( mul_op, value, value )
-    textual_percentage  ( text )
-    textual_dimension   ( text )
-    textual_number      ( text )
-    textual_hex         ( text )
-    percentage          ( double )
-    dimension           ( double, text )
-    number              ( double )
-    color               ( double, double, double, double )
-    identifier          ( text[] )
-    string              ( text[] )
-    unary               ( un_op, value )
-    function_call       ( identifier, argument[] )
+    Block               ( Statement[] )
+    Ruleset             ( Selector, Block )
+    Propset             ( String, Block )
+    Media_query         ( Value, Block )
+    Directive           ( String, Value )
+    Block_directive     ( String, Selector, Block )
 
+    Rule                ( String, Value[] )
+    Assignment          ( String, Value, guarded? )
+    Import              ( String )
+    Warning             ( String )
+    Comment             ( String )
 
-selector
+    If                  ( Value[], Block[] )
+    For                 ( String, Value, Value, Block, inclusive? )
+    Each                ( String Value, Block )
+    While               ( Value, Block )
 
-    group       ( combination[] )
-    combination ( combinator, sequence, combination )
-    sequence    ( simple[] )
-    simple      ( text )
+    Extend              ( Selector )
+
+    Mixin_Def           ( Mixin )
+    Mixin_Call          ( String, Argument[], Block )
+
+    Function_Def        ( Function )
 
 
-parameter ( identifier, value, default_value?, rest? )
+Value ( delayed?, parenthesized? )
 
-argument ( value, identifier, keyword_argument?, rest? )
+    List                ( Value[], comma_separated? )
+    Disjunction         ( Value[] )
+    Conjunction         ( Value[] )
+    Relation            ( Rel_Op, Value, Value )
+    Expression          ( Add_Op, Value, Value )
+    Term                ( Mul_Op, Value, Value )
+    Unary               ( Un_Op, Value )
+    Function_call       ( String, Argument[] )
+    Textual_Percentage  ( String )
+    Textual_Dimension   ( String )
+    Textual_Number      ( String )
+    Textual_Hex         ( String )
+    Percentage          ( double )
+    Dimension           ( double, String )
+    Number              ( double )
+    Boolean             ( bool )
+    Color               ( double, double, double, double )
+    String              ( Value[], quoted?, interpolated? )
+    Token               ( std::string )
+
+
+Selector
+
+    Group               ( Combination[] )
+    Combination         ( Combinator, Sequence, Combination )
+    Sequence            ( Simple[] )
+    Simple              ( String )
+
+
+Parameter ( String, Value, default_value?, packed? )
+
+Argument ( Value, String, keyword_argument?, unpacked? )
 
 
 
