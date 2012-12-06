@@ -29,10 +29,10 @@ Statement
 
     Extend              ( Selector )
 
-    Mixin_Def           ( Mixin )
+    Mixin_Definition    ( Mixin )
     Mixin_Call          ( String, Argument[], Block )
 
-    Function_Def        ( Function )
+    Function_Definition ( Function )
 
 
 Value ( delayed?, parenthesized? )
@@ -51,7 +51,7 @@ Value ( delayed?, parenthesized? )
     Textual_Number      ( String )
     Textual_Hex         ( String )
     Percentage          ( double )
-    Dimension           ( double, String )
+    Dimension           ( double, Token[], Token[] )
     Number              ( double )
     Boolean             ( bool )
     Color               ( double, double, double, double )
