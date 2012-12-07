@@ -13,10 +13,9 @@ Statement
     Ruleset             ( Selector, Block )
     Propset             ( String, Block )
     Media_query         ( Value, Block )
-    Directive           ( String, Value )
-    Block_directive     ( String, Selector, Block )
+    At_Rule             ( String, Selector, Block )
 
-    Rule                ( String, Value[] )
+    Declaration         ( String, Value[] )
     Assignment          ( String, Value, guarded? )
     Import              ( String )
     Warning             ( String )
@@ -29,10 +28,9 @@ Statement
 
     Extend              ( Selector )
 
-    Mixin_Definition    ( Mixin )
+    Definition          ( String, Parameter[], Block, mixin? )
     Mixin_Call          ( String, Argument[], Block )
 
-    Function_Definition ( Function )
 
 
 Value ( delayed?, parenthesized? )
@@ -46,6 +44,7 @@ Value ( delayed?, parenthesized? )
     Term                ( Mul_Op, Value, Value )
     Unary               ( Un_Op, Value )
     Function_call       ( String, Argument[] )
+    Variable            ( String )
     Textual_Percentage  ( String )
     Textual_Dimension   ( String )
     Textual_Number      ( String )
