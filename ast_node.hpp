@@ -28,6 +28,9 @@ namespace Sass {
     string path(string p) { path_ = p; return path_; }
     size_t line(size_t l) { line_ = l; return line_; }
 
+    // for visitor objects
+    // virtual void accept(Visitor* v) { v(this); }
+
   };
 
 
@@ -214,26 +217,371 @@ namespace Sass {
 
 
   /////////////////////////////////
-  // Assignments -- name and value.
+  // Assignments -- variable and value.
   /////////////////////////////////
+  class Variable;
   class Assignment : public Statement {
 
-    String* name_;
-    Value*  value_;
+    Variable* variable_;
+    Value*    value_;
+    bool      guarded_;
 
   public:
 
-    Assignment(string p, size_t l, String* n, Value* v)
+    Assignment(string p, size_t l, Variable* var, Value* val, bool g)
     : Statement(p, l),
-      name_(n),
-      value_(v)
+      variable_(var),
+      value_(val),
+      guarded_(g)
     { }
 
-    String* name() const { return name_; }
-    Value*  value()      { return value_; }
+    Variable* variable() const   { return variable_; }
+    Value*    value() const      { return value_; }
+    bool      is_guarded() const { return guarded_; }
 
-    String* name(String* n) { return name_ = n; }
-    Value*  value(Value* v) { return value_ = v; }
+    Variable* name(Variable* var) { return variable_ = var; }
+    Value*    value(Value* val)   { return value_ = val; }
+    bool      is_guarded(bool g)  { return guarded_ = g; }
+
+  };
+
+
+  ////////////////////////
+  // CSS import directives
+  ////////////////////////
+  class Import : public Statement {
+
+    String* location_;
+
+  public:
+
+    Import(string p, size_t l, String* loc)
+    : Statement(p, l),
+      location_(loc)
+    { }
+
+    String* location() const    { return location_; }
+    String* location(String* l) { return location_ = l; }
+
+  };
+
+
+  //////////////////////////////
+  // The Sass `@warn` directive.
+  //////////////////////////////
+  class Warning : public Statement {
+
+    String* message_;
+
+  public:
+
+    Warning(string p, size_t l, String* m)
+    : Statement(p, l),
+      message_(m)
+    { }
+
+    String* message() const    { return message_; }
+    String* message(String* m) { return message_ = m; }
+
+  };
+
+
+  ///////////////////////////////////////////
+  // CSS comments. These may be interpolated.
+  ///////////////////////////////////////////
+  class Comment : public Statement {
+
+    String* content_;
+
+  public:
+
+    Comment(string p, size_t l, String* c)
+    : Statement(p, l),
+      content_(c)
+    { }
+
+    String* content() const    { return content_; }
+    String* content(String* c) { return content_ = c; }
+
+  };
+
+
+  ////////////////////////////////////
+  // The Sass `@if` control directive.
+  ////////////////////////////////////
+  class If : public Statement {
+
+    Value* predicate_;
+    Block* consequent_;
+    Block* alternative_;
+
+  public:
+
+    If(string p, size_t l, Value* pred, Block* con, Block* alt = 0)
+    : Statement(p, l),
+      consequent_(con),
+      alternative_(alt)
+    { }
+
+    Value* predicate() const   { return predicate_; }
+    Block* consequent() const  { return consequent_; }
+    Block* alternative() const { return alternative_; }
+
+    Value* predicate(Value* p)   { return predicate_ = p; }
+    Block* consequent(Block* c)  { return consequent_ = c; }
+    Block* alternative(Block* a) { return alternative_ = a; }
+
+  };
+
+
+  /////////////////////////////////////
+  // The Sass `@for` control directive.
+  /////////////////////////////////////
+  class For : public Has_Block {
+
+    Variable* variable_;
+    Value* lower_bound_;
+    Value* upper_bound_;
+    bool inclusive_;
+
+  public:
+
+    For(string p,
+        size_t l,
+        Variable* v,
+        Value* lo,
+        Value* hi,
+        Block* b,
+        bool i)
+    : Has_Block(p, l, b),
+      variable_(v),
+      lower_bound_(lo),
+      upper_bound_(hi),
+      inclusive_(i)
+    { }
+
+    Variable* variable() const    { return variable_; }
+    Value*    lower_bound() const { return lower_bound_; }
+    Value*    upper_bound() const { return upper_bound_; }
+    bool      inclusive() const   { return inclusive_; }
+
+    Variable* variable(Variable* v)   { return variable_ = v; }
+    Value*    lower_bound(Value* lo) { return lower_bound_ = lo; }
+    Value*    upper_bound(Value* hi) { return upper_bound_ = hi; }
+    bool      inclusive(bool i)      { return inclusive_ = i; }
+
+  };
+
+
+  //////////////////////////////////////
+  // The Sass `@each` control directive.
+  //////////////////////////////////////
+  class Each : public Has_Block {
+
+    Variable* variable_;
+    Value*    list_;
+
+  public:
+
+    Each(string p, size_t l, Variable* v, Value* list, Block* b)
+    : Has_Block(p, l, b),
+      variable_(v),
+      list_(list)
+    { }
+
+    Variable* variable() const { return variable_; }
+    Value*    list() const     { return list_; }
+
+    Variable* variable(Variable* v) { return variable_ = v; }
+    Value*    list(Value* l)        { return list_ = l; }
+
+  };
+
+
+  ///////////////////////////////////////
+  // The Sass `@while` control directive.
+  ///////////////////////////////////////
+  class While : public Has_Block {
+
+    Value* predicate_;
+
+  public:
+
+    While(string p, size_t l, Value* pred, Block* b)
+    : Has_Block(p, l, b),
+      predicate_(pred)
+    { }
+
+    Value* predicate() const   { return predicate_; }
+    Value* predicate(Value* p) { return predicate_ = p; }
+
+  };
+
+
+  ////////////////////////////////
+  // The Sass `@extend` directive.
+  ////////////////////////////////
+  class Extend : public Statement {
+
+    Selector* selector_;
+
+  public:
+
+    Extend(string p, size_t l, Selector* s)
+    : Statement(p, l),
+      selector_(s)
+    { }
+
+    Selector* selector() const      { return selector_; }
+    Selector* selector(Selector* s) { return selector_ = s; }
+
+  };
+
+
+  ///////////////////////////////////////////////////////////////////////
+  // Definitions for both mixins and functions (distinguished by a flag).
+  ///////////////////////////////////////////////////////////////////////
+  class Parameters;
+  class Definition : public Has_Block {
+
+    String* name_;
+    Parameters* parameters_;
+    bool mixin_;
+
+  public:
+
+    Definition(string p,
+               size_t l,
+               String* n,
+               Parameters* parms,
+               Block* b,
+               bool m)
+    : Has_Block(p, l, b),
+      name_(n),
+      parameters_(parms),
+      mixin_(m)
+    { }
+
+    String*     name() const       { return name_; }
+    Parameters* parameters() const { return parameters_; }
+    bool        is_mixin() const   { return mixin_; }
+
+    String*     name(String* n)           { return name_ = n; }
+    Parameters* parameters(Parameters* p) { return parameters_ = p; }
+    bool        is_mixin(bool m)          { return mixin_ = m; }
+
+  };
+
+
+  //////////////////////////////////////
+  // Mixin calls (i.e., `@include ...`).
+  //////////////////////////////////////
+  class Arguments;
+  class Mixin_Call : public Has_Block {
+
+    String* name_;
+    Arguments* arguments_;
+
+  public:
+
+    Mixin_Call(string p, size_t l, String* n, Arguments* a, Block* b)
+    : Has_Block(p, l, b),
+      name_(n),
+      arguments_(a)
+    { }
+
+    String*    name() const      { return name_; }
+    Arguments* arguments() const { return arguments_; }
+
+    String*    name(String* n)         { return name_ = n; }
+    Arguments* arguments(Arguments* p) { return arguments_ = p; }
+
+  };
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Abstract base class for values. This side of the AST hierarchy represents
+  // elements in value contexts, which exist primarily to be evaluated and
+  // returned.
+  ////////////////////////////////////////////////////////////////////////////
+  class Value : public AST_Node {
+  public:
+    Value(string p, size_t l) : AST_Node(p, l) { }
+    virtual ~Value() = 0;
+  };
+
+
+  ///////////////////////////////////////////////////////////////////////
+  // Lists of values, both comma- and space-separated (distinguished by a
+  // flag.) Also used to represent variable-length argument lists.
+  ///////////////////////////////////////////////////////////////////////
+  class List : public Value {
+
+    vector<Value*> values_;
+    bool           comma_separated_;
+    bool           arglist_;
+
+  public:
+
+    List(string p, size_t l, size_t s = 0, bool c = false, bool a = false)
+    : Value(p, l),
+      values_(vector<Value*>()),
+      comma_separated_(c),
+      arglist_(a)
+    { values_.reserve(s); }
+
+    bool is_comma_separated() const { return comma_separated_; }
+    bool is_arglist() const         { return arglist_; }
+
+    bool is_comma_separated(bool c) { return comma_separated_ = c; }
+    bool is_arglist(bool a)         { return arglist_ = a; }
+
+    size_t size() const
+    { return values_.size(); }
+
+    Value*& operator[](size_t i)
+    { return values_[i]; }
+
+    List& operator<<(Value* v)
+    {
+      values_.push_back(v);
+      return *this;
+    }
+
+    List& operator+=(List* l)
+    {
+      for (size_t i = 0, S = size(); i < S; ++i)
+        values_.push_back((*l)[i]);
+      return *this;
+    }
+
+  };
+
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Abstract base class for binary operations. Represents logical, relational,
+  // and arithmetic operations.
+  /////////////////////////////////////////////////////////////////////////////
+  class Binary_Operation : Value {
+
+    Value* left_;
+    Value* right_;
+
+  public:
+
+    Binary_Operation(string p, size_t l, Value* lhs, Value* rhs)
+    : Value(p, l),
+      left_(lhs),
+      right_(rhs)
+    { }
+
+    virtual ~Binary_Operation() = 0;
+
+    Value* left() const  { return left_; }
+    Value* right() const { return right_; }
+
+    Value* left(Value* lhs)  { return left_ = lhs; }
+    Value* right(Value* rhs) { return right_ = rhs; }
 
   };
 
