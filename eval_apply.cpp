@@ -495,7 +495,6 @@ namespace Sass {
       case Node::variable: {
         if (!env.query(expr.token())) throw_eval_error(bt, "reference to unbound variable " + expr.token().to_string(), expr.path(), expr.line());
         result = env[expr.token()];
-        cerr << "var " << expr.to_string() << ": " << result.to_string() << " " << result.is_arglist() << endl;
       } break;
 
       case Node::uri: {
@@ -536,7 +535,6 @@ namespace Sass {
             f = f_env[resolved_name];
           }
           Backtrace here(&bt, expr.path(), expr.line(), ", in function '" + name + "'");
-          cerr << "applying " << f.name << " " << expr[1].back().to_string() << ":" << expr[1].back().is_arglist() << endl;
           result = apply_function(f, expr[1], prefix, env, f_env, new_Node, ctx, here, expr.path(), expr.line());
         }
       } break;
@@ -818,7 +816,6 @@ namespace Sass {
         evaluated_args[i] = kwdarg;
       }
     }
-    cerr << "last evaluated arg: " << evaluated_args.back().to_string() << ": " << evaluated_args.back().is_arglist() << endl;
     return evaluated_args;
   }
 
@@ -891,6 +888,7 @@ namespace Sass {
               }
               Node param(params[j]);
               env[param.type() != Node::assignment ? param.token() : param[0].token()] = leftovers;
+              break;
             }
             // otherwise keep going normally
             else {
@@ -934,12 +932,6 @@ namespace Sass {
         env[param_name] = eval(param[1], prefix, env, f_env, new_Node, ctx, bt);
       }
     }
-    if (!params.empty() && params.back().type() != Node::assignment) {
-      cerr << callee_name << endl;
-      cerr << params.back().to_string() << endl;
-      cerr << env[params.back().token()].to_string() << endl;
-      cerr << env[params.back().token()].is_arglist() << endl << endl;
-    }
   }
 
   // Apply a mixin -- bind the arguments in a new environment, link the new
@@ -968,13 +960,7 @@ namespace Sass {
     if (!mixin[0].is_null()) mixin_name << " " << mixin[0].to_string();
     bind_arguments(mixin_name.str(), params, evaluated_args, prefix, bindings, f_env, new_Node, ctx, bt);
     // evaluate the mixin's body
-    cerr << params.back().to_string() << ": ";
-    cerr << bindings[params.back().token()].to_string() << endl;
-    cerr << bindings[params.back().token()].is_arglist() << endl;
     expand(body, prefix, bindings, f_env, new_Node, ctx, bt, false, content);
-    cerr << params.back().to_string() << ": ";
-    cerr << bindings[params.back().token()].to_string() << endl;
-    cerr << bindings[params.back().token()].is_arglist() << endl;
     return body;
   }
 
