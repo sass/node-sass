@@ -86,6 +86,7 @@ namespace Sass {
     extern const char rparen[]      = ")";
     extern const char sign_chars[]  = "-+";
     extern const char hyphen[]      = "-";
+    extern const char ellipsis[]    = "...";
 
     // type names
     extern const char numeric_name[]    = "numeric value";
@@ -96,6 +97,7 @@ namespace Sass {
     extern const char bool_name[]       = "bool";
     extern const char color_name[]      = "color";
     extern const char list_name[]       = "list";
+    extern const char arglist_name[]    = "arglist";
 
   }
 }
