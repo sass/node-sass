@@ -317,6 +317,7 @@ namespace Sass {
     val.should_eval() = true;
     if (lex< exactly< ellipsis > >()) {
       val.is_arglist() = true;
+      val.is_splat() = true;
     }
     return val;
   }
