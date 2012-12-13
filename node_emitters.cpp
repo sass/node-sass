@@ -15,7 +15,7 @@ using std::endl;
 
 namespace Sass {
 
-  string Node::to_string(Type inside_of, const string space) const
+  string Node::to_string(Type inside_of, const string space, const bool in_media_feature) const
   {
     if (is_null()) return "";
     switch (type())
@@ -39,22 +39,27 @@ namespace Sass {
         string result;
         if (at(0).type() == rule) {
           result += "(";
-          result += at(0).to_string(none, space);
+          result += at(0).to_string(none, space, true);
           result += ")";
         }
         else {
-          result += at(0).to_string(none, space);
+          string tmp = at(0).to_string(none, space);
+          result += tmp;
+          if (tmp == "and" && space == "") result += " ";
         }
         for (size_t i = 1, S = size(); i < S; ++i) {
           if (at(i).type() == rule) {
             result += space;
             result += "(";
-            result += at(i).to_string(none, space);
+            result += at(i).to_string(none, space, true);
             result += ")";
           }
           else {
             result += " ";
-            result += at(i).to_string(none, space);
+            // result += at(i).to_string(none, space);
+            string tmp = at(i).to_string(none, space);
+            result += tmp;
+            if (tmp == "and" && space == "") result += " ";
           }
         }
         return result;
@@ -125,6 +130,7 @@ namespace Sass {
         string result(at(0).to_string(property, space));
         result += ":";
         result += space;
+        if (space == "" && in_media_feature) result += " ";
         result += at(1).to_string(none, space);
         return result;
       } break;
