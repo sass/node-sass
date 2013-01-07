@@ -13,6 +13,9 @@
     "install": "node rebuild.js",
     "test": "mocha test"
   },
+  "bin": {
+    "node-sass" : "bin/node-sass"
+  },
   "gypfile": true,
   "engines": {
     "node": ">=0.6.18"
