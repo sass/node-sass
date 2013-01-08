@@ -2,7 +2,6 @@
   'targets': [
     {
       'target_name': 'binding',
-      'type': '<(library)',
       'sources': [
         'binding.cpp',
         'libsass/constants.cpp',
