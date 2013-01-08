@@ -1,4 +1,5 @@
 #define SASS_INTERFACE
+#include <node.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,11 +18,13 @@ struct sass_options {
 };
 
 struct sass_context {
-  const char* source_string;
+  char* source_string;
   char* output_string;
   struct sass_options options;
   int error_status;
   char* error_message;
+  uv_work_t request;
+  v8::Persistent<v8::Function> callback;
 };
 
 struct sass_file_context {
