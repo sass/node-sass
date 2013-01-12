@@ -48,10 +48,9 @@ Heavily inspired by <https://github.com/LearnBoost/stylus>
 
 ## TODO
 
-* sass compression options
-* publish npm
-* file context?
-* folder context?
+* better error handling
+* file context
+* folder context
 
 ### Note on Patches/Pull Requests
 
