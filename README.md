@@ -52,3 +52,15 @@ Heavily inspired by <https://github.com/LearnBoost/stylus>
 * publish npm
 * file context?
 * folder context?
+
+### Note on Patches/Pull Requests
+
+ * Fork the project.
+ * Make your feature addition or bug fix.
+ * Add documentation if necessary.
+ * Add tests for it. This is important so I don't break it in a future version unintentionally.
+ * Send a pull request. Bonus points for topic branches.
+
+## Copyright
+
+Copyright (c) 2013 Andrew Nesbitt. See [LICENSE](https://github.com/andrew/node-sass/blob/master/LICENSE) for details.
