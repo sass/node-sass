@@ -6,7 +6,7 @@ Node-sass is a library that provides binding for Node.js to libsass, the C versi
 
 It allows you to natively compile .scss files to css at incredible speed and automatically via a connect middleware.
 
-Find it on npm: <http://search.npmjs.org/#/node-sass>
+Find it on npm: <https://npmjs.org/package/node-sass>
 
 ## Install
 
