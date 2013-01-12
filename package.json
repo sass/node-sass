@@ -3,7 +3,16 @@
   "name": "node-sass",
   "description": "wrapper around libsass",
   "version": "0.2.6",
-  "homepage": "http://github.com/andrew/node-sass",
+  "homepage": "https://github.com/andrew/node-sass",
+  "keywords": ["sass", "css", "libsass"],
+  "bugs" :
+    { "url" : "https://github.com/andrew/node-sass/issues" },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/andrew/node-sass/blob/master/LICENSE"
+    }
+  ],
   "main": "./sass.js",
   "repository": {
     "type": "git",
@@ -26,6 +35,5 @@
   },
   "devDependencies": {
     "mocha": "1.7.x"
-  },
-  "optionalDependencies": {}
+  }
 }
