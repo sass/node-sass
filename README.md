@@ -10,7 +10,7 @@ Find it on npm: <https://npmjs.org/package/node-sass>
 
 ## Install
 
-    npm install
+    npm install node-sass
 
 ## Usage
 
