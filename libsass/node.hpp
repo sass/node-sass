@@ -158,6 +158,7 @@ namespace Sass {
       mixin_content,
       parameters,
       arguments,
+      rest,
 
       extend_directive,
 
@@ -199,6 +200,8 @@ namespace Sass {
     bool& has_been_extended() const;
     bool is_false() const;
     bool& is_comma_separated() const;
+    bool& is_arglist() const;
+    bool& is_splat() const;
 
     string& path() const;
     size_t line() const;
@@ -240,7 +243,7 @@ namespace Sass {
     bool operator>(Node rhs) const;
     bool operator>=(Node rhs) const;
 
-    string to_string(Type inside_of = none, const string space = " ") const;
+    string to_string(Type inside_of = none, const string space = " ", const bool in_media_feature = false) const;
     void emit_nested_css(stringstream& buf, size_t depth, bool at_toplevel = false, bool in_media_query = false, bool source_comments = false);
     void emit_propset(stringstream& buf, size_t depth, const string& prefix, const bool compressed = false);
     void echo(stringstream& buf, size_t depth = 0);
@@ -277,6 +280,8 @@ namespace Sass {
     bool is_quoted;
     bool has_been_extended;
     bool is_comma_separated;
+    bool is_arglist;
+    bool is_splat;
 
     Node_Impl()
     : /* value(value_t()),
@@ -294,7 +299,9 @@ namespace Sass {
       should_eval(false),
       is_quoted(false),
       has_been_extended(false),
-      is_comma_separated(false)
+      is_comma_separated(false),
+      is_arglist(false),
+      is_splat(false)
     { }
     
     bool is_numeric()
@@ -467,6 +474,8 @@ namespace Sass {
   inline bool& Node::has_been_extended() const { return ip_->has_been_extended; }
   inline bool Node::is_false() const       { return (type() == boolean) && (boolean_value() == false); }
   inline bool& Node::is_comma_separated() const { return ip_->is_comma_separated; }
+  inline bool& Node::is_arglist() const    { return ip_->is_arglist; }
+  inline bool& Node::is_splat() const      { return ip_->is_splat; }
   
   inline string& Node::path() const  { return ip_->path; }
   inline size_t  Node::line() const  { return ip_->line; }

@@ -57,9 +57,11 @@ namespace Sass {
       } break;
 
       case Node::mixin_content: {
-        expr += new_Node(content);
-        for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          re_expand(expr[i], prefix, env, f_env, new_Node, ctx, bt, false, content);
+        if (!content.is_null()) {
+          expr += new_Node(content);
+          for (size_t i = 0, S = expr.size(); i < S; ++i) {
+            re_expand(expr[i], prefix, env, f_env, new_Node, ctx, bt, false, content);
+          }
         }
       } break;
 
@@ -388,12 +390,19 @@ namespace Sass {
     switch (expr.type())
     {
       case Node::list: {
+        // cerr << string(bt.depth(), '\t') << "about to eval a list: " << expr.to_string() << "::" << expr.is_arglist() << endl;
+        bool is_arglist = expr.is_arglist();
+        bool is_splat = expr.is_splat();
         if (expr.should_eval() && expr.size() > 0) {
           result = new_Node(Node::list, expr.path(), expr.line(), expr.size());
           result.is_comma_separated() = expr.is_comma_separated();
           result << eval(expr[0], prefix, env, f_env, new_Node, ctx, bt);
           for (size_t i = 1, S = expr.size(); i < S; ++i) result << expr[i];
+          result.is_arglist() = is_arglist;
+          result.is_splat() = is_splat;
+          // cerr << string(bt.depth(), '\t') << "evaluated a list: " << result.to_string() << "::" << result.is_arglist() << endl;
         }
+        // else cerr << string(bt.depth(), '\t') << "evaluated a list (sort of): " << expr.to_string() << "::" << expr.is_arglist() << endl;
       } break;
       
       case Node::disjunction: {
@@ -493,6 +502,7 @@ namespace Sass {
       case Node::variable: {
         if (!env.query(expr.token())) throw_eval_error(bt, "reference to unbound variable " + expr.token().to_string(), expr.path(), expr.line());
         result = env[expr.token()];
+        // cerr << string(bt.depth(), '\t') << "evaluated a lookup: " << expr.to_string() << " -> " << result.to_string() << "::" << result.is_arglist() << endl;
       } break;
 
       case Node::uri: {
@@ -756,20 +766,31 @@ namespace Sass {
 
   Node eval_arguments(Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt)
   {
+    // cerr << string(bt.depth(), '\t') << "evaluating arguments" << endl;
     Node evaluated_args(new_Node(Node::arguments, args.path(), args.line(), args.size()));
     for (size_t i = 0, S = args.size(); i < S; ++i) {
       if (args[i].type() != Node::assignment) {
+        // bool is_arglist = args[i].is_arglist();
+        bool is_splat = args[i].is_splat();
         evaluated_args << eval(args[i], prefix, env, f_env, new_Node, ctx, bt);
-        if (evaluated_args.back().type() == Node::list) {
-          Node arg_list(evaluated_args.back());
-          Node new_arg_list(new_Node(Node::list, arg_list.path(), arg_list.line(), arg_list.size()));
-          for (size_t j = 0, S = arg_list.size(); j < S; ++j) {
-            if (arg_list[j].should_eval()) new_arg_list << eval(arg_list[j], prefix, env, f_env, new_Node, ctx, bt);
-            else                           new_arg_list << arg_list[j];
-          }
-        }
+        // cerr << string(bt.depth(), '\t') << "just pushed an evaluated arg: " << evaluated_args[i].to_string() << "::" << evaluated_args[i].is_arglist() << endl;
+        // if (evaluated_args[i].type() == Node::list) {
+        //   Node arg_list(evaluated_args[i]);
+        //   Node new_arg_list(new_Node(Node::list, arg_list.path(), arg_list.line(), arg_list.size()));
+        //   new_arg_list.is_arglist() = arg_list.is_arglist();
+        //   for (size_t j = 0, S = arg_list.size(); j < S; ++j) {
+        //     if (arg_list[j].should_eval()) new_arg_list << eval(arg_list[j], prefix, env, f_env, new_Node, ctx, bt);
+        //     else                           new_arg_list << arg_list[j];
+        //   }
+        //   evaluated_args[i] = new_arg_list;
+        // }
+        // evaluated_args[i].is_arglist() = is_arglist;
+        // evaluated_args[i].is_arglist() = is_arglist;
+        evaluated_args[i].is_splat() = is_splat;
+        // cerr << string(bt.depth(), '\t') << "after first arg evaluation: " << evaluated_args[i].to_string() << "::" << evaluated_args[i].is_arglist() << endl;
       }
       else {
+        // cerr << "shouldn't be taking this branch!" << endl;
         Node kwdarg(new_Node(Node::assignment, args[i].path(), args[i].line(), 2));
         kwdarg << args[i][0];
         kwdarg << eval(args[i][1], prefix, env, f_env, new_Node, ctx, bt);
@@ -785,9 +806,12 @@ namespace Sass {
         evaluated_args << kwdarg;
       }
     }
+    // cerr << string(bt.depth(), '\t') << "after first arg evaluation: " << evaluated_args.back().to_string() << "::" << evaluated_args.back().is_arglist() << endl;
     // eval twice because args may be delayed
     for (size_t i = 0, S = evaluated_args.size(); i < S; ++i) {
       if (evaluated_args[i].type() != Node::assignment) {
+        // bool is_arglist = evaluated_args[i].is_arglist();
+        bool is_splat = evaluated_args[i].is_splat();
         evaluated_args[i].should_eval() = true;
         evaluated_args[i] = eval(evaluated_args[i], prefix, env, f_env, new_Node, ctx, bt);
         if (evaluated_args[i].type() == Node::list) {
@@ -796,6 +820,8 @@ namespace Sass {
             if (arg_list[j].should_eval()) arg_list[j] = eval(arg_list[j], prefix, env, f_env, new_Node, ctx, bt);
           }
         }
+        // evaluated_args[i].is_arglist() = is_arglist;
+        evaluated_args[i].is_splat() = is_splat;
       }
       else {
         Node kwdarg(evaluated_args[i]);
@@ -810,6 +836,7 @@ namespace Sass {
         evaluated_args[i] = kwdarg;
       }
     }
+    // cerr << string(bt.depth(), '\t') << "after second arg evaluation: " << evaluated_args.back().to_string() << "::" << evaluated_args.back().is_arglist() << endl;
     return evaluated_args;
   }
 
@@ -820,27 +847,88 @@ namespace Sass {
   {
     // populate the env with the names of the parameters so we can check for
     // correctness further down
+    bool has_rest_params = false;
     for (size_t i = 0, S = params.size(); i < S; ++i) {
       Node param(params[i]);
-      env.current_frame[param.type() == Node::variable ? param.token() : param[0].token()] = Node();
+      // env.current_frame[param.type() == Node::assignment ? param[0].token() : param.token()] = Node();
+      if (param.type() == Node::variable) {
+        env.current_frame[param.token()] = Node();
+      }
+      else if (param.type() == Node::assignment) {
+        env.current_frame[param[0].token()] = Node();
+      }
+      else {
+        Node arglist(new_Node(Node::list, args.path(), args.line(), 0));
+        arglist.is_arglist() = true;
+        arglist.is_comma_separated() = true;
+        env.current_frame[param.token()] = arglist;
+        has_rest_params = true;
+      }
     }
 
     // now do the actual binding
     size_t args_bound = 0, num_params = params.size();
     for (size_t i = 0, j = 0, S = args.size(); i < S; ++i) {
-      if (j >= num_params) {
+      if (j == num_params-1 && has_rest_params) {
+        Node arglist(env[params[j].token()]);
+        // collect rest-args
+        if (args[i].type() == Node::list && args[i].is_splat()) {
+          arglist += args[i];
+          arglist.is_comma_separated() = args[i].is_comma_separated();
+        }
+        else {
+          for (size_t k = i; k < S; ++k) {
+            arglist << args[k];
+          }
+        }
+        break;
+      }
+      else if (j >= num_params) {
         stringstream msg;
         msg << callee_name << " only takes " << num_params << " arguments";
         throw_eval_error(bt, msg.str(), args.path(), args.line());
       }
-      Node arg(args[i]), param(params[j]);
-      // ordinal argument; just bind and keep going
-      if (arg.type() != Node::assignment) {
-        env[param.type() == Node::variable ? param.token() : param[0].token()] = arg;
-        ++j;
+      // ordinal argument; just bind it and keep going
+      else if (args[i].type() != Node::assignment) {
+        // if it's a splat
+        if (args[i].type() == Node::list && args[i].is_splat()) {
+          // loop through the splatted list and bind each element to the remaining parameters
+          for (size_t rest_i = 0, rest_length = args[i].size(); rest_i < rest_length; ++rest_i) {
+            // if we're binding the last parameter
+            if (j == num_params-1) {
+              Node leftovers;
+              if (has_rest_params) {
+                leftovers = env[params[j].token()];
+                leftovers.is_comma_separated() = args[i].is_comma_separated();
+                for (; rest_i < rest_length; ++rest_i) {
+                  leftovers << args[i][rest_i];
+                }
+              }
+              else {
+                leftovers = args[i][rest_i];
+              }
+              Node param(params[j]);
+              env[param.type() != Node::assignment ? param.token() : param[0].token()] = leftovers;
+              break;
+            }
+            // otherwise keep going normally
+            else {
+              Node param(params[j]);
+              Token name = ((param.type() == Node::variable) ? param.token() : param[0].token());
+              env[name] = args[i][rest_i];
+              ++j;
+            }
+          }
+        }
+        else {
+          Node arg(args[i]), param(params[j]);
+          env[param.type() == Node::variable ? param.token() : param[0].token()] = arg;
+          ++j;
+        }
       }
       // keyword argument -- need to check for correctness
       else {
+        Node arg(args[i]), param(params[j]);
         Token arg_name(arg[0].token());
         Node arg_value(arg[1]);
         if (!env.query(arg_name)) {
@@ -872,6 +960,10 @@ namespace Sass {
   // environment.
   Node apply_mixin(Node mixin, const Node args, const Node content, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool dynamic_scope)
   {
+    stringstream mixin_name;
+    mixin_name << "mixin";
+    if (!mixin[0].is_null()) mixin_name << " " << mixin[0].to_string();
+    // cerr << string(bt.depth(), '\t') << "applying " << mixin_name.str() << endl;
     Node params(mixin[1]);
     Node body(new_Node(mixin[2])); // clone the body
     Node evaluated_args(eval_arguments(args, prefix, env, f_env, new_Node, ctx, bt));
@@ -886,10 +978,11 @@ namespace Sass {
       bindings.link(env.global ? *env.global : env);
     }
     // bind arguments in the extended environment
-    stringstream mixin_name;
-    mixin_name << "mixin";
-    if (!mixin[0].is_null()) mixin_name << " " << mixin[0].to_string();
+    // stringstream mixin_name;
+    // mixin_name << "mixin";
+    // if (!mixin[0].is_null()) mixin_name << " " << mixin[0].to_string();
     bind_arguments(mixin_name.str(), params, evaluated_args, prefix, bindings, f_env, new_Node, ctx, bt);
+    // cerr << string(bt.depth(), '\t') << "last binding: " << params.back().to_string() << " -> " << bindings[params.back().token()].to_string() << "::" << bindings[params.back().token()].is_arglist() << endl;
     // evaluate the mixin's body
     expand(body, prefix, bindings, f_env, new_Node, ctx, bt, false, content);
     return body;
@@ -899,12 +992,17 @@ namespace Sass {
   // primitive function implementation, then return its value.
   Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, string& path, size_t line)
   {
+    // cerr << string(bt.depth(), '\t') << "applying " << f.name << endl;
+    // cerr << string(bt.depth(), '\t') << "last pre-evaluated arg: " << args.back().to_string() << endl;
     Node evaluated_args(eval_arguments(args, prefix, env, f_env, new_Node, ctx, bt));
+    // cerr << string(bt.depth(), '\t') << "last evaluated arg: " << evaluated_args.back().to_string() << "::" << evaluated_args.back().is_arglist() << endl;
     // bind arguments
     Environment bindings;
     Node params(f.primitive ? f.parameters : f.definition[1]);
     bindings.link(env.global ? *env.global : env);
     bind_arguments("function " + f.name, params, evaluated_args, prefix, bindings, f_env, new_Node, ctx, bt);
+
+    // cerr << string(bt.depth(), '\t') << "last binding: " << params.back().to_string() << " -> " << bindings[params.back().token()].to_string() << "::" << bindings[params.back().token()].is_arglist() << endl;
 
     if (f.primitive) {
       return f.primitive(f.parameter_names, bindings, new_Node, bt, path, line);

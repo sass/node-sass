@@ -41,6 +41,17 @@ namespace Sass {
       return ss.str();
     }
 
+    size_t depth()
+    {
+      size_t d = 0;
+      Backtrace* p = parent;
+      while (p) {
+        ++d;
+        p = p->parent;
+      }
+      return d-1;
+    }
+
   };
 
 }

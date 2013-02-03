@@ -1049,7 +1049,13 @@ namespace Sass {
           type_name = Token::make(color_name);
         } break;
         case Node::list: {
-          type_name = Token::make(list_name);
+          // cerr << val.to_string() << endl;
+          // cerr << val.is_arglist() << endl;
+          // throw (42);
+          if (val.is_arglist())
+            type_name = Token::make(arglist_name);
+          else
+            type_name = Token::make(list_name);
         } break;
         default: {
           type_name = Token::make(string_name);
