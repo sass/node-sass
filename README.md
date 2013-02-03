@@ -46,6 +46,24 @@ Recompile `.scss` files automatically for connect and express based http servers
 
 Heavily inspired by <https://github.com/LearnBoost/stylus>
 
+## Rebuilding binaries
+
+Node-sass includes pre-compiled binaries for popular platforms, to add a binary for your platform follow these steps:
+
+Check out the project:
+
+    git clone https://github.com/andrew/node-sass.git
+    cd node-sass
+    npm install
+
+Rebuild the binary:
+
+    node rebuild.js
+
+Replace the prebuild binary with your newly generated one
+
+    cp build/Release/binding.node precompiled/*your-platform*/binding.node
+
 ## TODO
 
 * better error handling
