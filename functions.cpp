@@ -339,7 +339,7 @@ namespace Sass {
                                 rgb_color[1].numeric_value(),
                                 rgb_color[2].numeric_value(),
                                 new_Node, path, line));
-      return new_Node(path, line, hsl_color[1].numeric_value(), Token::make(percent_str));
+      return new_Node(path, line, hsl_color[1].numeric_value(), Node::numeric_percentage);
     }
 
     extern Signature lightness_sig = "lightness($color)";
@@ -349,7 +349,7 @@ namespace Sass {
                                 rgb_color[1].numeric_value(),
                                 rgb_color[2].numeric_value(),
                                 new_Node, path, line));
-      return new_Node(path, line, hsl_color[2].numeric_value(), Token::make(percent_str));
+      return new_Node(path, line, hsl_color[2].numeric_value(), Node::numeric_percentage);
     }
 
     extern Signature adjust_hue_sig = "adjust-hue($color, $degrees)";
