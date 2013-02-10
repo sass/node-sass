@@ -14,8 +14,10 @@ Find it on npm: <https://npmjs.org/package/node-sass>
 
 ## Usage
 
-    var sass = require('node-sass');
-    sass.render(scss_content, callback [, options]);
+```javascript
+var sass = require('node-sass');
+sass.render(scss_content, callback [, options]);
+```
 
 Especially, the options argument is optional. It support two attribute: `include_paths` and `output_style`, both of them are optional.
 
@@ -26,23 +28,27 @@ Especially, the options argument is optional. It support two attribute: `include
 
 Here is an example:
 
-    var sass = require('node-sass');
-    sass.render('body{background:blue; a{color:black;}}', function(err, css){
-      console.log(css)
-    }/*, { include_paths: [ 'lib/', 'mod/' ], output_style: 'compressed' }*/);
+```javascript
+var sass = require('node-sass');
+sass.render('body{background:blue; a{color:black;}}', function(err, css){
+  console.log(css)
+}/*, { include_paths: [ 'lib/', 'mod/' ], output_style: 'compressed' }*/);
+```
 
 ## Connect/Express middleware
 
 Recompile `.scss` files automatically for connect and express based http servers
 
-    var server = connect.createServer(
-      sass.middleware({
-          src: __dirname
-        , dest: __dirname + '/public'
-        , debug: true
-      }),
-      connect.static(__dirname + '/public')
-    );
+```javascript
+var server = connect.createServer(
+  sass.middleware({
+      src: __dirname
+    , dest: __dirname + '/public'
+    , debug: true
+  }),
+  connect.static(__dirname + '/public')
+);
+```
 
 Heavily inspired by <https://github.com/LearnBoost/stylus>
 
