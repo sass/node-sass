@@ -1177,8 +1177,8 @@ namespace Sass {
             }
             else {
               Node new_sel(new_Node(Node::selector, sel.path(), sel.line(), 2));
-              if (pre.type() == Node::selector)    new_sel += pre;
-              else                                 new_sel << pre;
+              if (pre[i].type() == Node::selector) new_sel += pre[i];
+              else                                 new_sel << pre[i];
               if (sel[j].type() == Node::selector) new_sel += sel[j];
               else                                 new_sel << sel[j];
               group << new_sel;
