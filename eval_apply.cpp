@@ -1172,15 +1172,15 @@ namespace Sass {
         Node group(new_Node(Node::selector_group, sel.path(), sel.line(), pre.size() * sel.size()));
         for (size_t i = 0, S = pre.size(); i < S; ++i) {
           for (size_t j = 0, T = sel.size(); j < T; ++j) {
-            if (sel[i].has_backref()) {
+            if (sel[j].has_backref()) {
               group << expand_backref(new_Node(sel[j]), pre[i]);
             }
             else {
               Node new_sel(new_Node(Node::selector, sel.path(), sel.line(), 2));
               if (pre.type() == Node::selector)    new_sel += pre;
               else                                 new_sel << pre;
-              if (sel[i].type() == Node::selector) new_sel += sel[i];
-              else                                 new_sel << sel[i];
+              if (sel[j].type() == Node::selector) new_sel += sel[j];
+              else                                 new_sel << sel[j];
               group << new_sel;
             }
           }
