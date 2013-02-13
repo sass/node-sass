@@ -6,6 +6,7 @@
 #include <cmath>
 #include <sstream>
 #include "node.hpp"
+#include "sass_interface.h"
 
 using std::string;
 using std::stringstream;
@@ -394,7 +395,7 @@ namespace Sass {
     }
   }
 
-  void Node::emit_nested_css(stringstream& buf, size_t depth, bool at_toplevel, bool in_media_query, bool source_comments)
+  void Node::emit_nested_css(stringstream& buf, size_t depth, bool at_toplevel, bool in_media_query, int source_comments)
   {
     switch (type())
     {
@@ -413,7 +414,16 @@ namespace Sass {
         if (block.has_statements() || block.has_comments()) {
           if (source_comments) {
             buf << string(2*depth, ' ');
-            buf << "/* line " << sel_group.line() << ", " << sel_group.path() << " */" << endl;
+            switch (source_comments)
+            {
+              case SASS_SOURCE_COMMENTS_DEFAULT: {
+                buf << "/* line " << sel_group.line() << ", " << sel_group.path() << " */" << endl;
+              } break;
+              case SASS_SOURCE_COMMENTS_MAP: {
+                buf << "@media -sass-debug-info{filename{font-family:file:" << sel_group.debug_info_path() << "}line{font-family:\\00003" << sel_group.line() << "}}" << endl;
+              } break;
+              default: break;
+            }
           }
           buf << string(2*depth, ' ');
           buf << sel_group.to_string();

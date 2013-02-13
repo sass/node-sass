@@ -53,7 +53,7 @@ namespace Sass {
     // }
   }
   
-  Context::Context(const char* paths_str, const char* img_path_str, bool sc)
+  Context::Context(const char* paths_str, const char* img_path_str, int sc)
   : global_env(Environment()),
     function_env(map<string, Function>()),
     extensions(multimap<Node, Node>()),
