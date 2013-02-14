@@ -645,8 +645,10 @@ namespace Sass {
         throw_syntax_error("only variable declarations and control directives are allowed inside functions");
       }
       else if (peek< include >(position)) {
-        block << parse_mixin_call(inside_of);
-        semicolon = true;
+        Node the_call = parse_mixin_call(inside_of);
+        block << the_call;
+        // don't need a semicolon after a content block
+        semicolon = (the_call.size() == 3) ? false : true;
       }
       else if (lex< content >()) {
         if (inside_of != Node::mixin) {
