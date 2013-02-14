@@ -15,6 +15,17 @@ using std::endl;
 
 namespace Sass {
 
+  string frac_to_string(double f, size_t p) {
+    stringstream ss;
+    ss.setf(ios::fixed, ios::floatfield);
+    ss.precision(p);
+    ss << f;
+    size_t offset = f < 0 ? 2 : 1;
+    string result = ss.str().substr(offset, p+offset);
+    while (result[result.size()-1] == '0') result.erase(result.size()-1, 1);
+    return result;
+  }
+
   string Node::to_string(Type inside_of, const string space, const bool in_media_feature) const
   {
     if (is_null()) return "";
@@ -221,20 +232,33 @@ namespace Sass {
       
       case numeric_percentage: {
         stringstream ss;
-        ss << numeric_value();
+        double ipart;
+        double fpart = std::modf(numeric_value(), &ipart);
+        ss << ipart;
+        if (fpart != 0) ss << frac_to_string(fpart, 5);
+        // ss << numeric_value();
         ss << '%';
         return ss.str();
       }
       
       case numeric_dimension: {
         stringstream ss;
-        ss << numeric_value() << unit().to_string();
+        double ipart;
+        double fpart = std::modf(numeric_value(), &ipart);
+        ss << ipart;
+        if (fpart != 0) ss << frac_to_string(fpart, 5);
+        ss << unit().to_string();
+        // ss << numeric_value() << unit().to_string();
         return ss.str();
       } break;
       
       case number: {
         stringstream ss;
-        ss << numeric_value();
+        double ipart;
+        double fpart = std::modf(numeric_value(), &ipart);
+        ss << ipart;
+        if (fpart != 0) ss << frac_to_string(fpart, 5);
+        // ss << numeric_value();
         return ss.str();
       } break;
       
