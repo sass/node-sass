@@ -17,6 +17,8 @@
         'libsass/sass_interface.cpp',
         'libsass/selector.cpp'
       ],
+      'cflags!'   : [ '-fno-exceptions' ],
+      'cflags_cc!': [ '-fno-exceptions' ],
       'conditions': [
         ['OS=="mac"', {
           'xcode_settings': {
