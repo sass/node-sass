@@ -13,20 +13,20 @@ try {
 if (binding === null) {
   throw new Error('Cannot find appropriate binary library for node-sass');
 }
-var toString = Object.prototype.toString;
-SASS_OUTPUT_STYLE = {
+
+var SASS_OUTPUT_STYLE = {
     nested: 0,
     expanded: 1,
     compact: 2,
     compressed: 3
 };
+
 exports.render = function(css, callback, options) {
     var paths, style;
-    typeof options != "object" && (options = {});
-    paths = options.include_paths || [];
-    if (!((style = options.output_style) in SASS_OUTPUT_STYLE)) {
-        style = 'nested';
-    }
-    return binding.render(css, callback, paths.join(':'), SASS_OUTPUT_STYLE[style]);
+    options = typeof options !== 'object' ? {} : options;
+    paths = options.include_paths || options.includePaths || [];
+    style = SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0;
+    return binding.render(css, callback, paths.join(':'), style);
 };
+
 exports.middleware = require('./lib/middleware');
