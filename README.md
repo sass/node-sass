@@ -19,12 +19,12 @@ var sass = require('node-sass');
 sass.render(scss_content, callback [, options]);
 ```
 
-Especially, the options argument is optional. It support two attribute: `include_paths` and `output_style`, both of them are optional.
+Especially, the options argument is optional. It support two attribute: `includePaths` and `outputStyle`, both of them are optional.
 
-`include_paths` is an `Array`, you can add a sass import path.
+`includePaths` is an `Array`, you can add a sass import path.
 
-`output_style` is a `String`, its value should be one of `'nested', 'expanded', 'compact', 'compressed'`.
-[Important: currently the argument `output_style` has some problem which may cause the output css becomes nothing because of the libsass, so you should not use it now!]
+`outputStyle` is a `String`, its value should be one of `'nested', 'expanded', 'compact', 'compressed'`.
+[Important: currently the argument `outputStyle` has some problem which may cause the output css becomes nothing because of the libsass, so you should not use it now!]
 
 Here is an example:
 
@@ -32,7 +32,7 @@ Here is an example:
 var sass = require('node-sass');
 sass.render('body{background:blue; a{color:black;}}', function(err, css){
   console.log(css)
-}/*, { include_paths: [ 'lib/', 'mod/' ], output_style: 'compressed' }*/);
+}/*, { includePaths: [ 'lib/', 'mod/' ], outputStyle: 'compressed' }*/);
 ```
 
 ## Connect/Express middleware
