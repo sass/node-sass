@@ -170,6 +170,8 @@ namespace Sass {
     Node parse_each_directive(Node surrounding_ruleset, Node::Type inside_of = Node::none);
     Node parse_while_directive(Node surrounding_ruleset, Node::Type inside_of = Node::none);
     Node parse_directive(Node surrounding_ruleset, Node::Type inside_of = Node::none);
+    Node parse_keyframes(Node::Type inside_of = Node::none);
+    Node parse_keyframe(Node::Type inside_of = Node::none);
     Node parse_media_query(Node::Type inside_of = Node::none);
     Node parse_media_expression();
     Node parse_warning();
