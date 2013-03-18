@@ -2,6 +2,7 @@
 var colors    = require('colors');
 var fs        = require('fs');
 var sass      = require('../sass');
+var path      = require('path');
 var fileName  = process.argv[2];
 var cssFileName = process.argv[3];
 
@@ -28,6 +29,14 @@ function renderSASS(data) {
       console.log(JSON.stringify(err, null, 4).yellow);
     } else {
       console.log('Rendering Complete, saving .css file...'.green);
+
+      var outFile
+      if (cssFileName) {
+        outFile = cssFileName;
+      } else {
+        outFile = fileName.slice(fileName.lastIndexOf('/') + 1,
+                  fileName.lastIndexOf('.')) + '.css';
+      }
 
       var outFile = (cssFileName) ? cssFileName : 'nodesass.css';
       writeCssFile(outFile, compiled);
