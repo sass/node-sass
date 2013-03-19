@@ -66,7 +66,7 @@ Handle<Value> Render(const Arguments& args) {
     ctx_w->callback = Persistent<Function>::New(callback);
     ctx_w->request.data = ctx_w;
 
-    int status = uv_queue_work(uv_default_loop(), &ctx_w->request, WorkOnContext, MakeCallback);
+    int status = uv_queue_work(uv_default_loop(), &ctx_w->request, WorkOnContext, (uv_after_work_cb)MakeCallback);
     assert(status == 0);
 
     return Undefined();
