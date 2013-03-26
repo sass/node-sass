@@ -30,7 +30,7 @@ function renderSASS(data) {
     } else {
       console.log('Rendering Complete, saving .css file...'.green);
 
-      var outFile
+      var outFile;
       if (cssFileName) {
         outFile = cssFileName;
       } else {
@@ -38,8 +38,7 @@ function renderSASS(data) {
                   fileName.lastIndexOf('.')) + '.css';
       }
 
-      var outFile = (cssFileName) ? cssFileName : 'nodesass.css';
-      writeCssFile(outFile, compiled);
+      writeCssFile(outFile || 'nodesass.css', compiled);
 
     }
   });
