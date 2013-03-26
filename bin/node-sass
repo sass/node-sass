@@ -3,13 +3,17 @@ var colors    = require('colors');
 var fs        = require('fs');
 var sass      = require('../sass');
 var path      = require('path');
-var fileName  = process.argv[2];
-var cssFileName = process.argv[3];
+var argv      = require('optimist').argv;
+
+var fileName  = argv._[0];
+var cssFileName = argv._[1];
+var outputStyle = argv['output-style'];
+var cwd = argv.cwd || process.cwd();
 
 console.log('Starting Render Process...'.green);
 
 if (fileName) {
-  fs.readFile(fileName, "utf8", function(err, data) {
+  fs.readFile(path.join(cwd, fileName), "utf8", function(err, data) {
     if (err) {
       console.log("** Error Opening File **".red);
       console.log(JSON.stringify(err, null, 4).yellow);
@@ -41,11 +45,11 @@ function renderSASS(data) {
       writeCssFile(outFile || 'nodesass.css', compiled);
 
     }
-  });
+  }, {include_paths: [cwd], output_style: outputStyle});
 }
 
 function writeCssFile(filename, data) {
-  fs.writeFile(filename, data, function(err){
+  fs.writeFile(path.join(cwd, filename), data, function(err){
     if(err) {
       console.log('Error: ' + err);
     } else {
