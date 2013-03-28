@@ -62,9 +62,9 @@ Check out the project:
     cd node-sass
     npm install
 
-Rebuild the binary:
-
-    node rebuild.js
+    git submodule init
+    git submodule update
+    node-gyp rebuild
 
 Replace the prebuild binary with your newly generated one
 
