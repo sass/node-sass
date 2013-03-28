@@ -2,7 +2,7 @@
   "author": "Andrew Nesbitt <andrewnez@gmail.com> (http://andrew.github.com)",
   "name": "node-sass",
   "description": "wrapper around libsass",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "homepage": "https://github.com/andrew/node-sass",
   "keywords": ["sass", "css", "libsass"],
   "bugs" :
@@ -27,7 +27,7 @@
   },
   "gypfile": true,
   "engines": {
-    "node": ">=0.6.18"
+    "node": ">=0.10.0"
   },
   "dependencies": {
     "mkdirp": "0.3.x",
