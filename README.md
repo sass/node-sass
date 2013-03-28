@@ -61,7 +61,7 @@ Check out the project:
     git clone https://github.com/andrew/node-sass.git
     cd node-sass
     npm install
-
+    npm install -g node-gyp
     git submodule init
     git submodule update
     node-gyp rebuild
