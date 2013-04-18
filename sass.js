@@ -29,4 +29,12 @@ exports.render = function(css, callback, options) {
     return binding.render(css, callback, paths.join(':'), style);
 };
 
+exports.renderSync = function(css, options) {
+    var paths, style;
+    options = typeof options !== 'object' ? {} : options;
+    paths = options.include_paths || options.includePaths || [];
+    style = SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0;
+    return binding.renderSync(css, paths.join(':'), style);
+};
+
 exports.middleware = require('./lib/middleware');

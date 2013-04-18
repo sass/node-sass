@@ -17,9 +17,11 @@ Find it on npm: <https://npmjs.org/package/node-sass>
 ```javascript
 var sass = require('node-sass');
 sass.render(scss_content, callback [, options]);
+// OR
+var css = sass.renderSync(scss_content);
 ```
 
-Especially, the options argument is optional. It support two attribute: `includePaths` and `outputStyle`, both of them are optional.
+Especially, the options argument is optional. It support two attributes: `includePaths` and `outputStyle`, both of which are optional.
 
 `includePaths` is an `Array`, you can add a sass import path.
 
@@ -33,6 +35,8 @@ var sass = require('node-sass');
 sass.render('body{background:blue; a{color:black;}}', function(err, css){
   console.log(css)
 }/*, { includePaths: [ 'lib/', 'mod/' ], outputStyle: 'compressed' }*/);
+// OR
+console.log(sass.renderSync('body{background:blue; a{color:black;}}'));
 ```
 
 ## Connect/Express middleware
