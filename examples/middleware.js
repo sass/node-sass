@@ -7,7 +7,7 @@ var connect = require('connect')
   , sass = require('../sass');
 
 // Setup server
-// $ curl http://localhost:3000/functions.css
+// $ curl http://localhost:3000/test.css
 
 var server = connect.createServer(
   sass.middleware({
