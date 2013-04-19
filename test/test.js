@@ -30,13 +30,17 @@ var expectedRender = '#navbar {\n\
 
 
 describe("compile scss", function() {
-  it("should compile", function(done) {
+  it("should compile with render", function(done) {
     sass.render(scssStr, function(err, css) {
       done(err);
     });
   });
 
-  it("should match compiled string", function(done) {
+  it("should compile with renderSync", function(done) {
+    done(assert.ok(sass.renderSync(scssStr)));
+  });
+
+  it("should match compiled string with render", function(done) {
     sass.render(scssStr, function(err, css) {
       if (!err) {
         done(assert.equal(css, expectedRender));
@@ -46,22 +50,8 @@ describe("compile scss", function() {
     });
   });
 
-  it("should execute asynchronously", function(done) {
-    var inside, outside;
-    inside = outside = false;
-
-    sass.render(scssStr, function (err, css) {
-      inside = Date.now();
-    });
-    outside = Date.now();
-
-    done(assert.ok(!inside) && assert.notEqual(outside, false));
-  });
-
-  it("should execute synchronously", function(done) {
-    var output = sass.renderSync(scssStr);
-
-    done(assert.ok(output));
+  it("should match compiled string with renderSync", function(done) {
+    done(assert.equal(sass.renderSync(scssStr), expectedRender));
   });
 
   it("should throw an exception for bad input", function(done) {
