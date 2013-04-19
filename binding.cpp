@@ -69,11 +69,36 @@ Handle<Value> Render(const Arguments& args) {
     int status = uv_queue_work(uv_default_loop(), &ctx_w->request, WorkOnContext, (uv_after_work_cb)MakeCallback);
     assert(status == 0);
 
-    return Undefined();
+    return scope.Close(Undefined());
+}
+
+Handle<Value> RenderSync(const Arguments& args) {
+    HandleScope scope;
+    TryCatch try_catch;
+    sass_context* ctx = sass_new_context();
+    char *source;
+    String::AsciiValue astr(args[0]);
+    String::AsciiValue bstr(args[1]);
+
+    source = new char[strlen(*astr)+1];
+    strcpy(source, *astr);
+    ctx->source_string = source;
+    ctx->options.include_paths = new char[strlen(*bstr)+1];
+    strcpy(ctx->options.include_paths, *bstr);
+    ctx->options.output_style = args[2]->Int32Value();
+
+    sass_compile(ctx);
+    if (ctx->error_status == 0) {
+        return scope.Close(Local<Value>::New(String::New(ctx->output_string)));
+    } else {
+        ThrowException(Exception::Error(String::New("Input does not appear to be valid SCSS.")));
+    }
+    return scope.Close(Undefined());
 }
 
 void RegisterModule(v8::Handle<v8::Object> target) {
     NODE_SET_METHOD(target, "render", Render);
+    NODE_SET_METHOD(target, "renderSync", RenderSync);
 }
 
 NODE_MODULE(binding, RegisterModule);

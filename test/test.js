@@ -12,6 +12,10 @@ var scssStr = '#navbar {\
     a {\
       font-weight: bold; }}';
 
+// Note that the bad
+var badInput = '#navbar \n\
+  width: 80%';
+
 var expectedRender = '#navbar {\n\
   width: 80%;\n\
   height: 23px; }\n\
@@ -40,5 +44,29 @@ describe("compile scss", function() {
         done(err);
       }
     });
+  });
+
+  it("should execute asynchronously", function(done) {
+    var inside, outside;
+    inside = outside = false;
+
+    sass.render(scssStr, function (err, css) {
+      inside = Date.now();
+    });
+    outside = Date.now();
+
+    done(assert.ok(!inside) && assert.notEqual(outside, false));
+  });
+
+  it("should execute synchronously", function(done) {
+    var output = sass.renderSync(scssStr);
+
+    done(assert.ok(output));
+  });
+
+  it("should throw an exception for bad input", function(done) {
+    done(assert.throws(function() {
+      sass.renderSync(badInput);
+    }));
   });
 });
