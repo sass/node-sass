@@ -36,7 +36,7 @@ sass.render('body{background:blue; a{color:black;}}', function(err, css){
   console.log(css)
 }/*, { includePaths: [ 'lib/', 'mod/' ], outputStyle: 'compressed' }*/);
 // OR
-console.log(sass.renderSync('body{background:blue; a{color:black;}}'));
+console.log(sass.renderSync('body{background:blue; a{color:black;}}')/*, { includePaths: [ 'lib/', 'mod/' ], outputStyle: 'compressed' }*/);
 ```
 
 ## Connect/Express middleware
