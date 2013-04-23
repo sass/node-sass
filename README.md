@@ -18,7 +18,7 @@ Find it on npm: <https://npmjs.org/package/node-sass>
 var sass = require('node-sass');
 sass.render(scss_content, callback [, options]);
 // OR
-var css = sass.renderSync(scss_content);
+var css = sass.renderSync(scss_content [, options]);
 ```
 
 Especially, the options argument is optional. It support two attributes: `includePaths` and `outputStyle`, both of which are optional.
