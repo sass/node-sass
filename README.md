@@ -21,14 +21,18 @@ sass.render(scss_content, callback [, options]);
 var css = sass.renderSync(scss_content [, options]);
 ```
 
-Especially, the options argument is optional. It support two attributes: `includePaths` and `outputStyle`, both of which are optional.
+### Options
 
-`includePaths` is an `Array`, you can add a sass import path.
+The options argument is optional, though it's use is recommended. It support two attributes: `includePaths` and `outputStyle`.
 
-`outputStyle` is a `String`, its value should be one of `'nested', 'expanded', 'compact', 'compressed'`.
+#### includePaths
+`includePaths` is an `Array` of path `String`s to look for any `@import`ed files. It is recommended that you use this option if you have **any** `@import` directives, as otherwise libsass may not find your depended-on files.
+
+#### outputStyle
+`outputStyle` is a `String` to determine how the final CSS should be rendered. Its value should be one of `'nested', 'expanded', 'compact', 'compressed'`.
 [Important: currently the argument `outputStyle` has some problem which may cause the output css becomes nothing because of the libsass, so you should not use it now!]
 
-Here is an example:
+### Examples
 
 ```javascript
 var sass = require('node-sass');
