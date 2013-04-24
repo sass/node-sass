@@ -79,6 +79,14 @@ Replace the prebuild binary with your newly generated one
 
     cp build/Release/binding.node precompiled/*your-platform*/binding.node
 
+## Contributors
+Special thanks to the following people for submitting patches:
+
+Dean Mao
+Brett Wilkins
+litek
+gonghao
+
 ### Note on Patches/Pull Requests
 
  * Fork the project.
