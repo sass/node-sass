@@ -79,12 +79,6 @@ Replace the prebuild binary with your newly generated one
 
     cp build/Release/binding.node precompiled/*your-platform*/binding.node
 
-## TODO
-
-* better error handling
-* file context
-* folder context
-
 ### Note on Patches/Pull Requests
 
  * Fork the project.
