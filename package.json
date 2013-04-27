@@ -2,11 +2,16 @@
   "author": "Andrew Nesbitt <andrewnez@gmail.com> (http://andrew.github.com)",
   "name": "node-sass",
   "description": "wrapper around libsass",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "homepage": "https://github.com/andrew/node-sass",
-  "keywords": ["sass", "css", "libsass"],
-  "bugs" :
-    { "url" : "https://github.com/andrew/node-sass/issues" },
+  "keywords": [
+    "sass",
+    "css",
+    "libsass"
+  ],
+  "bugs": {
+    "url": "https://github.com/andrew/node-sass/issues"
+  },
   "licenses": [
     {
       "type": "MIT",
@@ -23,7 +28,7 @@
     "test": "mocha test"
   },
   "bin": {
-    "node-sass" : "bin/node-sass"
+    "node-sass": "bin/node-sass"
   },
   "gypfile": true,
   "engines": {
