@@ -61,6 +61,10 @@ var server = connect.createServer(
 
 Heavily inspired by <https://github.com/LearnBoost/stylus>
 
+## Example App
+
+There is also an example connect app here: <https://github.com/andrew/node-sass-example>
+
 ## Rebuilding binaries
 
 Node-sass includes pre-compiled binaries for popular platforms, to add a binary for your platform follow these steps:
