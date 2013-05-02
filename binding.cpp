@@ -74,7 +74,6 @@ Handle<Value> Render(const Arguments& args) {
 
 Handle<Value> RenderSync(const Arguments& args) {
     HandleScope scope;
-    TryCatch try_catch;
     sass_context* ctx = sass_new_context();
     char *source;
     String::AsciiValue astr(args[0]);
@@ -90,9 +89,9 @@ Handle<Value> RenderSync(const Arguments& args) {
     sass_compile(ctx);
     if (ctx->error_status == 0) {
         return scope.Close(Local<Value>::New(String::New(ctx->output_string)));
-    } else {
-        ThrowException(Exception::Error(String::New("Input does not appear to be valid SCSS.")));
     }
+
+    ThrowException(Exception::Error(String::New(ctx->error_message)));
     return scope.Close(Undefined());
 }
 
