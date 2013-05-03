@@ -27,7 +27,7 @@ namespace Sass {
 
   struct Document {
     enum CSS_Style { nested, expanded, compact, compressed, echo };
-    
+
     string path;
     const char* source;
     const char* position;
@@ -36,7 +36,7 @@ namespace Sass {
     bool own_source;
 
     Context& context;
-    
+
     Node root;
     Token lexed;
 
@@ -86,7 +86,7 @@ namespace Sass {
         return 0;
       }
     }
-    
+
     template <prelexer mx>
     const char* lex()
     {
@@ -125,7 +125,9 @@ namespace Sass {
         return 0;
       }
     }
-    
+
+    void read_bom();
+
     void parse_scss();
     Node parse_import();
     Node parse_include();
@@ -179,8 +181,10 @@ namespace Sass {
 
     void throw_syntax_error(string message, size_t ln = 0);
     void throw_read_error(string message, size_t ln = 0);
-    
+
     string emit_css(CSS_Style style);
 
   };
+
+  size_t check_bom_chars(const char* src, const unsigned char* bom, size_t len);
 }

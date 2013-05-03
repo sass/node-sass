@@ -98,5 +98,24 @@ namespace Sass {
     extern const char color_name[];
     extern const char list_name[];
     extern const char arglist_name[];
+
+    // byte order marks
+    // (taken from http://en.wikipedia.org/wiki/Byte_order_mark)
+    extern const unsigned char utf_8_bom[];
+    extern const unsigned char utf_16_bom_be[];
+    extern const unsigned char utf_16_bom_le[];
+    extern const unsigned char utf_32_bom_be[];
+    extern const unsigned char utf_32_bom_le[];
+    extern const unsigned char utf_7_bom_1[];
+    extern const unsigned char utf_7_bom_2[];
+    extern const unsigned char utf_7_bom_3[];
+    extern const unsigned char utf_7_bom_4[];
+    extern const unsigned char utf_7_bom_5[];
+    extern const unsigned char utf_1_bom[];
+    extern const unsigned char utf_ebcdic_bom[];
+    extern const unsigned char scsu_bom[];
+    extern const unsigned char bocu_1_bom[];
+    extern const unsigned char gb_18030_bom[];
+
   }
 }
