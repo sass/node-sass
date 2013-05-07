@@ -128,9 +128,9 @@ namespace Sass {
   };
 
 
-  //////////////////////////////////////////
+  /////////////////////////////////////////////////////////
   // Nested declaration sets (i.e., namespaced properties).
-  //////////////////////////////////////////
+  /////////////////////////////////////////////////////////
   class String;
   class Propset : public Has_Block {
 
@@ -216,9 +216,9 @@ namespace Sass {
   };
 
 
-  /////////////////////////////////
+  /////////////////////////////////////
   // Assignments -- variable and value.
-  /////////////////////////////////
+  /////////////////////////////////////
   class Variable;
   class Assignment : public Statement {
 
@@ -499,14 +499,20 @@ namespace Sass {
   };
 
 
-  ////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
   // Abstract base class for values. This side of the AST hierarchy represents
-  // elements in value contexts, which exist primarily to be evaluated and
+  // elements in evaluation contexts, which exist primarily to be evaluated and
   // returned.
-  ////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
   class Value : public AST_Node {
+    bool delayed_;
+    bool parenthesized_;
   public:
-    Value(string p, size_t l) : AST_Node(p, l) { }
+    Value(string p, size_t l) : AST_Node(p, l)
+    {
+      delayed_ = false;
+      parenthesized_ = false;
+    }
     virtual ~Value() = 0;
   };
 
@@ -562,7 +568,7 @@ namespace Sass {
   // Abstract base class for binary operations. Represents logical, relational,
   // and arithmetic operations.
   /////////////////////////////////////////////////////////////////////////////
-  class Binary_Operation : Value {
+  class Binary_Operation : public Value {
 
     Value* left_;
     Value* right_;
@@ -582,6 +588,16 @@ namespace Sass {
 
     Value* left(Value* lhs)  { return left_ = lhs; }
     Value* right(Value* rhs) { return right_ = rhs; }
+
+  };
+
+  class Logical_Expression : Binary_Operation {
+    enum Connective { CONJUNCTION, DISJUNCTION };
+    Connective connective_;
+  public:
+    Logical_Expression(string p, size_t l, Connective c, Value* lhs, Value* rhs)
+    : Binary_Operation(p, l, lhs, rhs), connective_(c)
+    { }
 
   };
 
