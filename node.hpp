@@ -81,6 +81,9 @@ namespace Sass {
       propset,
       media_query,
 
+      keyframes,
+      keyframe,
+
       selector_group,
       selector,
       selector_combinator,
@@ -373,12 +376,14 @@ namespace Sass {
         case Node::rule:
         case Node::propset:
         case Node::warning:
+        case Node::keyframe:
         case Node::block_directive:
         case Node::blockless_directive: {
           has_statements = true;
         } break;
 
         case Node::media_query:
+        case Node::keyframes:
         case Node::ruleset: {
           has_blocks = true;
         } break;
@@ -416,6 +421,7 @@ namespace Sass {
         case Node::propset:       has_statements = true; break;
 
         case Node::media_query:
+        case Node::keyframes:
         case Node::ruleset:       has_blocks     = true; break;
 
         case Node::if_directive:

@@ -31,7 +31,13 @@ namespace Sass {
     {
       case Node::root: {
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
+            if (i == 19) {
+                
           expand(expr[i], prefix, env, f_env, new_Node, ctx, bt, false, content);
+            }
+            else {
+          expand(expr[i], prefix, env, f_env, new_Node, ctx, bt, false, content);
+            }
         }
       } break;
 
@@ -123,11 +129,28 @@ namespace Sass {
         expr << prefix;
       } break;
 
+      case Node::keyframes: {
+        Node id(expr[1]);
+        if (id.is_schema() || id.should_eval()) {
+          expr[1] = eval(id, prefix, env, f_env, new_Node, ctx, bt);
+        }
+        expand(expr[2], prefix, env, f_env, new_Node, ctx, bt, false, content);
+      } break;
+
+      case Node::keyframe: {
+        expand(expr[0], prefix, env, f_env, new_Node, ctx, bt, false, content);
+        expand(expr[1], prefix, env, f_env, new_Node, ctx, bt, false, content);
+      } break;
+
       case Node::block: {
         Environment new_frame;
         new_frame.link(env);
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          expand(expr[i], prefix, new_frame, f_env, new_Node, ctx, bt, false, content);
+            if (i == 8) {
+                expand(expr[i], prefix, new_frame, f_env, new_Node, ctx, bt, false, content);
+            } else {
+                expand(expr[i], prefix, new_frame, f_env, new_Node, ctx, bt, false, content);
+            }
         }
       } break;
       
@@ -1172,7 +1195,17 @@ namespace Sass {
         Node group(new_Node(Node::selector_group, sel.path(), sel.line(), pre.size() * sel.size()));
         for (size_t i = 0, S = pre.size(); i < S; ++i) {
           for (size_t j = 0, T = sel.size(); j < T; ++j) {
-            group << expand_backref(new_Node(sel[j]), pre[i]);
+            if (sel[j].has_backref()) {
+              group << expand_backref(new_Node(sel[j]), pre[i]);
+            }
+            else {
+              Node new_sel(new_Node(Node::selector, sel.path(), sel.line(), 2));
+              if (pre[i].type() == Node::selector) new_sel += pre[i];
+              else                                 new_sel << pre[i];
+              if (sel[j].type() == Node::selector) new_sel += sel[j];
+              else                                 new_sel << sel[j];
+              group << new_sel;
+            }
           }
         }
         return group;
@@ -1187,7 +1220,17 @@ namespace Sass {
       else if ((pre.type() != Node::selector_group) && (sel.type() == Node::selector_group)) {
         Node group(new_Node(Node::selector_group, sel.path(), sel.line(), sel.size()));
         for (size_t i = 0, S = sel.size(); i < S; ++i) {
-          group << expand_backref(new_Node(sel[i]), pre);
+          if (sel[i].has_backref()) {
+            group << expand_backref(new_Node(sel[i]), pre);
+          }
+          else {
+            Node new_sel(new_Node(Node::selector, sel.path(), sel.line(), 2));
+            if (pre.type() == Node::selector)    new_sel += pre;
+            else                                 new_sel << pre;
+            if (sel[i].type() == Node::selector) new_sel += sel[i];
+            else                                 new_sel << sel[i];
+            group << new_sel;
+          }
         }
         return group;
       }

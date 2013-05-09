@@ -14,6 +14,7 @@ namespace Sass {
 
   void Document::parse_scss()
   {
+    read_bom();
     lex< optional_spaces >();
     Selector_Lookahead lookahead_result;
     while (position < end) {
@@ -61,6 +62,9 @@ namespace Sass {
       }
       else if (peek< media >()) {
         root << parse_media_query(Node::none);
+      }
+      else if (peek< keyframes >()) {
+        root << parse_keyframes(Node::none);
       }
       else if (peek< warn >()) {
         root << parse_warning();
@@ -245,7 +249,7 @@ namespace Sass {
     if (has_content) the_call << content;
     return the_call;
   }
-  
+
   Node Document::parse_arguments()
   {
     Token name(lexed);
@@ -276,7 +280,7 @@ namespace Sass {
     }
     return args;
   }
-  
+
   Node Document::parse_argument(Node::Type arg_type)
   {
     // if arg_type is assignment, only accept keyword args from here onwards
@@ -379,7 +383,7 @@ namespace Sass {
   }
 
   Node Document::parse_selector_schema(const char* end_of_selector)
-  {    
+  {
     const char* i = position;
     const char* p;
     Node schema(context.new_Node(Node::selector_schema, path, line, 1));
@@ -409,7 +413,7 @@ namespace Sass {
   {
     Node sel1(parse_selector());
     if (!peek< exactly<','> >()) return sel1;
-    
+
     Node group(context.new_Node(Node::selector_group, path, line, 2));
     group << sel1;
     while (lex< exactly<','> >()) group << parse_selector();
@@ -423,7 +427,7 @@ namespace Sass {
         peek< exactly<')'> >() ||
         peek< exactly<'{'> >() ||
         peek< exactly<';'> >()) return seq1;
-    
+
     Node selector(context.new_Node(Node::selector, path, line, 2));
     selector << seq1;
 
@@ -442,7 +446,7 @@ namespace Sass {
         lex< exactly<'~'> >() ||
         lex< exactly<'>'> >())
     { return context.new_Node(Node::selector_combinator, path, line, lexed); }
-    
+
     // check for backref or type selector, which are only allowed at the front
     Node simp1;
     if (lex< exactly<'&'> >()) {
@@ -454,7 +458,7 @@ namespace Sass {
     else {
       simp1 = parse_simple_selector();
     }
-    
+
     // now we have one simple/atomic selector -- see if that's all
     if (peek< spaces >()       || peek< exactly<'>'> >() ||
         peek< exactly<'+'> >() || peek< exactly<'~'> >() ||
@@ -465,7 +469,7 @@ namespace Sass {
     // otherwise, we have a sequence of simple selectors
     Node seq(context.new_Node(Node::simple_selector_sequence, path, line, 2));
     seq << simp1;
-    
+
     while (!peek< spaces >(position) &&
            !(peek < exactly<'+'> >(position) ||
              peek < exactly<'~'> >(position) ||
@@ -478,14 +482,14 @@ namespace Sass {
     }
     return seq;
   }
-  
+
   Node Document::parse_selector_combinator()
   {
     lex< exactly<'+'> >() || lex< exactly<'~'> >() ||
     lex< exactly<'>'> >() || lex< ancestor_of >();
     return context.new_Node(Node::selector_combinator, path, line, lexed);
   }
-  
+
   Node Document::parse_simple_selector()
   {
     if (lex< id_name >() || lex< class_name >() || lex< string_constant >() || lex< number >()) {
@@ -503,7 +507,7 @@ namespace Sass {
     // unreachable statement
     return Node();
   }
-  
+
   Node Document::parse_pseudo() {
     if (lex< pseudo_not >()) {
       Node ps_not(context.new_Node(Node::pseudo_negation, path, line, 2));
@@ -560,7 +564,7 @@ namespace Sass {
     // unreachable statement
     return Node();
   }
-  
+
   Node Document::parse_attribute_selector()
   {
     Node attr_sel(context.new_Node(Node::attribute_selector, path, line, 3));
@@ -645,8 +649,10 @@ namespace Sass {
         throw_syntax_error("only variable declarations and control directives are allowed inside functions");
       }
       else if (peek< include >(position)) {
-        block << parse_mixin_call(inside_of);
-        semicolon = true;
+        Node the_call = parse_mixin_call(inside_of);
+        block << the_call;
+        // don't need a semicolon after a content block
+        semicolon = (the_call.size() == 3) ? false : true;
       }
       else if (lex< content >()) {
         if (inside_of != Node::mixin) {
@@ -657,6 +663,12 @@ namespace Sass {
       }
       else if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         block << parse_propset();
+      }
+      else if (peek < keyframes >()) {
+        block << parse_keyframes(inside_of);
+      }
+      else if (peek< sequence< keyf, optional_spaces, exactly<'{'> > >()) {
+        block << parse_keyframe(inside_of);
       }
       else if ((lookahead_result = lookahead_for_selector(position)).found) {
         block << parse_ruleset(lookahead_result, inside_of);
@@ -691,6 +703,14 @@ namespace Sass {
         Node dir(parse_directive(surrounding_ruleset, inside_of));
         if (dir.type() == Node::blockless_directive) semicolon = true;
         block << dir;
+      }
+      else if (peek< percentage >() ){
+        lex< percentage >();
+        block << context.new_Node(path, line, atof(lexed.begin), Node::numeric_percentage);
+        if (peek< exactly<'{'> >()) {
+          Node inner(parse_block(Node()));
+          block << inner;
+        }
       }
       else if (!peek< exactly<';'> >()) {
         Node rule(parse_rule());
@@ -737,7 +757,7 @@ namespace Sass {
   {
     return parse_comma_list();
   }
-  
+
   Node Document::parse_comma_list()
   {
     if (peek< exactly<';'> >(position) ||
@@ -749,22 +769,22 @@ namespace Sass {
     Node list1(parse_space_list());
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< exactly<','> >(position)) return list1;
-    
+
     Node comma_list(context.new_Node(Node::list, path, line, 2));
     comma_list.is_comma_separated() = true;
     comma_list << list1;
     comma_list.should_eval() |= list1.should_eval();
-    
+
     while (lex< exactly<','> >())
     {
       Node list(parse_space_list());
       comma_list << list;
       comma_list.should_eval() |= list.should_eval();
     }
-    
+
     return comma_list;
   }
-  
+
   Node Document::parse_space_list()
   {
     Node disj1(parse_disjunction());
@@ -777,11 +797,11 @@ namespace Sass {
         peek< exactly<ellipsis> >(position) ||
         peek< default_flag >(position))
     { return disj1; }
-    
+
     Node space_list(context.new_Node(Node::list, path, line, 2));
     space_list << disj1;
     space_list.should_eval() |= disj1.should_eval();
-    
+
     while (!(peek< exactly<';'> >(position) ||
              peek< exactly<'}'> >(position) ||
              peek< exactly<'{'> >(position) ||
@@ -794,37 +814,37 @@ namespace Sass {
       space_list << disj;
       space_list.should_eval() |= disj.should_eval();
     }
-    
+
     return space_list;
   }
-  
+
   Node Document::parse_disjunction()
   {
     Node conj1(parse_conjunction());
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< sequence< or_op, negate< identifier > > >()) return conj1;
-    
+
     Node disjunction(context.new_Node(Node::disjunction, path, line, 2));
     disjunction << conj1;
     while (lex< sequence< or_op, negate< identifier > > >()) disjunction << parse_conjunction();
     disjunction.should_eval() = true;
-    
+
     return disjunction;
   }
-  
+
   Node Document::parse_conjunction()
   {
     Node rel1(parse_relation());
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< sequence< and_op, negate< identifier > > >()) return rel1;
-    
+
     Node conjunction(context.new_Node(Node::conjunction, path, line, 2));
     conjunction << rel1;
     while (lex< sequence< and_op, negate< identifier > > >()) conjunction << parse_relation();
     conjunction.should_eval() = true;
     return conjunction;
   }
-  
+
   Node Document::parse_relation()
   {
     Node expr1(parse_expression());
@@ -836,26 +856,26 @@ namespace Sass {
           peek< lt_op >(position)  ||
           peek< lte_op >(position)))
     { return expr1; }
-    
+
     Node relation(context.new_Node(Node::relation, path, line, 3));
     expr1.should_eval() = true;
     relation << expr1;
-        
+
     if (lex< eq_op >()) relation << context.new_Node(Node::eq, path, line, lexed);
     else if (lex< neq_op >()) relation << context.new_Node(Node::neq, path, line, lexed);
     else if (lex< gte_op >()) relation << context.new_Node(Node::gte, path, line, lexed);
     else if (lex< lte_op >()) relation << context.new_Node(Node::lte, path, line, lexed);
     else if (lex< gt_op >()) relation << context.new_Node(Node::gt, path, line, lexed);
     else if (lex< lt_op >()) relation << context.new_Node(Node::lt, path, line, lexed);
-        
+
     Node expr2(parse_expression());
     expr2.should_eval() = true;
     relation << expr2;
-    
+
     relation.should_eval() = true;
     return relation;
   }
-  
+
   Node Document::parse_expression()
   {
     Node term1(parse_term());
@@ -863,11 +883,11 @@ namespace Sass {
     if (!(peek< exactly<'+'> >(position) ||
           peek< sequence< negate< number >, exactly<'-'> > >(position)))
     { return term1; }
-    
+
     Node expression(context.new_Node(Node::expression, path, line, 3));
     term1.should_eval() = true;
     expression << term1;
-    
+
     while (lex< exactly<'+'> >() || lex< sequence< negate< number >, exactly<'-'> > >()) {
       if (lexed.begin[0] == '+') {
         expression << context.new_Node(Node::add, path, line, lexed);
@@ -883,7 +903,7 @@ namespace Sass {
 
     return expression;
   }
-  
+
   Node Document::parse_term()
   {
     Node fact1(parse_factor());
@@ -911,7 +931,7 @@ namespace Sass {
 
     return term;
   }
-  
+
   Node Document::parse_factor()
   {
     if (lex< exactly<'('> >()) {
@@ -939,7 +959,7 @@ namespace Sass {
       return parse_value();
     }
   }
-  
+
   Node Document::parse_value()
   {
     if (lex< uri_prefix >())
@@ -981,13 +1001,13 @@ namespace Sass {
 
     if (lex< value_schema >())
     { return Document::make_from_token(context, lexed, path, line).parse_value_schema(); }
-    
+
     if (lex< sequence< true_val, negate< identifier > > >())
     { return context.new_Node(Node::boolean, path, line, true); }
-    
+
     if (lex< sequence< false_val, negate< identifier > > >())
     { return context.new_Node(Node::boolean, path, line, false); }
-        
+
     if (lex< important >())
     { return context.new_Node(Node::important, path, line, lexed); }
 
@@ -1035,7 +1055,7 @@ namespace Sass {
     // }
 
     if (peek< string_constant >())
-    { return parse_string(); } 
+    { return parse_string(); }
 
     if (lex< variable >())
     {
@@ -1043,15 +1063,15 @@ namespace Sass {
       var.should_eval() = true;
       return var;
     }
-    
+
     throw_syntax_error("error reading values after " + lexed.to_string());
 
     // unreachable statement
     return Node();
   }
-  
+
   Node Document::parse_string()
-  {    
+  {
     lex< string_constant >();
     Token str(lexed);
     const char* i = str.begin;
@@ -1062,7 +1082,7 @@ namespace Sass {
       result.is_quoted() = true;
       return result;
     }
-    
+
     Node schema(context.new_Node(Node::string_schema, path, line, 1));
     while (i < str.end) {
       p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, str.end);
@@ -1092,11 +1112,11 @@ namespace Sass {
     schema.should_eval() = true;
     return schema;
   }
-  
+
   Node Document::parse_value_schema()
-  {    
+  {
     Node schema(context.new_Node(Node::value_schema, path, line, 1));
-    
+
     while (position < end) {
       if (lex< interpolant >()) {
         Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
@@ -1154,9 +1174,9 @@ namespace Sass {
   }
 
   Node Document::parse_url_schema()
-  {    
+  {
     Node schema(context.new_Node(Node::value_schema, path, line, 1));
-    
+
     while (position < end) {
       if (position[0] == '/') {
         lexed = Token::make(position, position+1);
@@ -1193,7 +1213,7 @@ namespace Sass {
     if (!p) {
       return context.new_Node(Node::string_constant, path, line, id);
     }
-    
+
     Node schema(context.new_Node(Node::identifier_schema, path, line, 1));
     while (i < id.end) {
       p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, id.end);
@@ -1222,7 +1242,7 @@ namespace Sass {
     schema.should_eval() = true;
     return schema;
   }
-  
+
   Node Document::parse_function_call()
   {
     Node name;
@@ -1372,6 +1392,30 @@ namespace Sass {
     return media_expr;
   }
 
+  Node Document::parse_keyframes(Node::Type inside_of)
+  {
+    lex< keyframes >();
+    Node keyframes(context.new_Node(Node::keyframes, path, line, 2));
+    Node keyword(context.new_Node(Node::identifier, path, line, lexed));
+    Node n(parse_expression());
+    keyframes << keyword;
+    keyframes << n;
+    keyframes << parse_block(Node(), inside_of);
+    return keyframes;
+  }
+
+  Node Document::parse_keyframe(Node::Type inside_of) {
+    Node keyframe(context.new_Node(Node::keyframe, path, line, 2));
+    lex< keyf >();
+    Node n = context.new_Node(Node::string_t, path, line, lexed);
+    keyframe << n;
+    if (peek< exactly<'{'> >()) {
+      Node inner(parse_block(Node(), inside_of));
+      keyframe << inner;
+    }
+    return keyframe;
+  }
+
   Node Document::parse_warning()
   {
     lex< warn >();
@@ -1380,7 +1424,7 @@ namespace Sass {
     warning[0].should_eval() = true;
     return warning;
   }
- 
+
   Selector_Lookahead Document::lookahead_for_selector(const char* start)
   {
     const char* p = start ? start : position;
@@ -1481,5 +1525,70 @@ namespace Sass {
     return result;
   }
 
-  
+  void Document::read_bom()
+  {
+    size_t skip = 0;
+    string encoding;
+    bool utf_8 = false;
+    switch ((unsigned char) source[0]) {
+    case 0xEF:
+      skip = check_bom_chars(source, utf_8_bom, 3);
+      encoding = "UTF-8";
+      utf_8 = true;
+      break;
+    case 0xFE:
+      skip = check_bom_chars(source, utf_16_bom_be, 2);
+      encoding = "UTF-16 (big endian)";
+      break;
+    case 0xFF:
+      skip = check_bom_chars(source, utf_16_bom_le, 2);
+      skip += (skip ? check_bom_chars(source, utf_32_bom_le, 4) : 0);
+      encoding = (skip == 2 ? "UTF-16 (little endian)" : "UTF-32 (little endian)");
+      break;
+    case 0x00:
+      skip = check_bom_chars(source, utf_32_bom_be, 4);
+      encoding = "UTF-32 (big endian)";
+      break;
+    case 0x2B:
+      skip = check_bom_chars(source, utf_7_bom_1, 4)
+           | check_bom_chars(source, utf_7_bom_2, 4)
+           | check_bom_chars(source, utf_7_bom_3, 4)
+           | check_bom_chars(source, utf_7_bom_4, 4)
+           | check_bom_chars(source, utf_7_bom_5, 5);
+      encoding = "UTF-7";
+      break;
+    case 0xF7:
+      skip = check_bom_chars(source, utf_1_bom, 3);
+      encoding = "UTF-1";
+      break;
+    case 0xDD:
+      skip = check_bom_chars(source, utf_ebcdic_bom, 4);
+      encoding = "UTF-EBCDIC";
+      break;
+    case 0x0E:
+      skip = check_bom_chars(source, scsu_bom, 3);
+      encoding = "SCSU";
+      break;
+    case 0xFB:
+      skip = check_bom_chars(source, bocu_1_bom, 3);
+      encoding = "BOCU-1";
+      break;
+    case 0x84:
+      skip = check_bom_chars(source, gb_18030_bom, 4);
+      encoding = "GB-18030";
+      break;
+    }
+    if (skip > 0 && !utf_8) throw_syntax_error("only UTF-8 documents are currently supported; your document appears to be " + encoding);
+    position += skip;
+  }
+
+  size_t check_bom_chars(const char* src, const unsigned char* bom, size_t len)
+  {
+    size_t skip = 0;
+    for (size_t i = 0; i < len; ++i, ++skip) {
+      if ((unsigned char) src[i] != bom[i]) return 0;
+    }
+    return skip;
+  }
+
 }

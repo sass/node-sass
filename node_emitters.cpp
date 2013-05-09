@@ -15,6 +15,17 @@ using std::endl;
 
 namespace Sass {
 
+  string frac_to_string(double f, size_t p) {
+    stringstream ss;
+    ss.setf(ios::fixed, ios::floatfield);
+    ss.precision(p);
+    ss << f;
+    size_t offset = f < 0 ? 2 : 1;
+    string result = ss.str().substr(offset, p+offset);
+    while (result[result.size()-1] == '0') result.erase(result.size()-1, 1);
+    return result;
+  }
+
   string Node::to_string(Type inside_of, const string space, const bool in_media_feature) const
   {
     if (is_null()) return "";
@@ -34,6 +45,7 @@ namespace Sass {
         }
         return result;
       } break;
+
 
       case media_expression: {
         string result;
@@ -221,20 +233,33 @@ namespace Sass {
       
       case numeric_percentage: {
         stringstream ss;
-        ss << numeric_value();
+        double ipart;
+        double fpart = std::modf(numeric_value(), &ipart);
+        ss << ipart;
+        if (fpart != 0) ss << frac_to_string(fpart, 5);
+        // ss << numeric_value();
         ss << '%';
         return ss.str();
       }
       
       case numeric_dimension: {
         stringstream ss;
-        ss << numeric_value() << unit().to_string();
+        double ipart;
+        double fpart = std::modf(numeric_value(), &ipart);
+        ss << ipart;
+        if (fpart != 0) ss << frac_to_string(fpart, 5);
+        ss << unit().to_string();
+        // ss << numeric_value() << unit().to_string();
         return ss.str();
       } break;
       
       case number: {
         stringstream ss;
-        ss << numeric_value();
+        double ipart;
+        double fpart = std::modf(numeric_value(), &ipart);
+        ss << ipart;
+        if (fpart != 0) ss << frac_to_string(fpart, 5);
+        // ss << numeric_value();
         return ss.str();
       } break;
       
@@ -429,6 +454,7 @@ namespace Sass {
               case propset:
               case block_directive:
               case blockless_directive:
+              case keyframes:
               case warning: {
                 block[i].emit_nested_css(buf, depth+1, false, false, source_comments);
               } break;
@@ -448,6 +474,44 @@ namespace Sass {
         }
         if (block.has_statements() || block.has_comments()) --depth; // see previous comment
         if ((depth == 0) && at_toplevel && !in_media_query) buf << endl;
+      } break;
+
+      case keyframe: {
+        buf << string(2*depth, ' ') << at(0).to_string() << " {";
+        Node block(at(1));
+        if (block.has_expansions()) block.flatten();
+        for (size_t i = 0, S = block.size(); i < S; ++i) {
+          block[i].emit_nested_css(buf, depth+1, false, in_media_query, source_comments);
+        }
+        buf << " }";
+      } break;
+
+      case keyframes: {
+        buf << string(2*depth, ' ') << at(0).to_string() << " " << at(1).to_string() << " {" << endl;
+        at(2).emit_nested_css(buf, depth+1, false, in_media_query, source_comments);
+        buf << " }" << endl << endl;
+      } break;
+
+      case block: {
+        if (has_expansions()) flatten();
+        for (size_t i = 0, S = size(); i < S; ++i) {
+          Type stm_type = at(i).type();
+          switch (stm_type)
+          {
+            case rule:
+            case css_import:
+            case propset:
+            case block_directive:
+            case keyframe:
+            case blockless_directive:
+            case warning: {
+              at(i).emit_nested_css(buf, depth, false, false, source_comments);
+              if (i != S - 1) buf << endl << endl;
+            } break;
+
+            default: break;
+          }
+        }
       } break;
 
       case media_query: {
@@ -627,6 +691,46 @@ namespace Sass {
             }
           }
         }
+      } break;
+
+      case block: {
+        if (has_expansions()) flatten();
+        buf << "{";
+        for (size_t i = 0, S = size(); i < S; ++i) {
+          Type stm_type = at(i).type();
+          switch (stm_type)
+          {
+            case rule:
+            case css_import:
+            case propset:
+            case block_directive:
+            case keyframe:
+            case blockless_directive:
+            case warning: {
+              at(i).emit_compressed_css(buf);
+            } break;
+
+            default: break;
+          }
+        }
+        buf << "}";
+      } break;
+
+      case keyframe: {
+        buf << at(0).to_string() << " {" << endl;
+        Node block(at(1));
+        if (block.has_expansions()) block.flatten();
+        for (size_t i = 0, S = block.size(); i < S; ++i) {
+          block[i].emit_compressed_css(buf);
+        }
+        buf << "}" << endl;
+      } break;
+
+      case keyframes: {
+        buf << at(0).to_string() << " "  << at(1).to_string(none, "");
+        Node block(at(2));
+        if (block.has_expansions()) block.flatten();
+        block.emit_compressed_css(buf);
       } break;
 
       case media_query: {

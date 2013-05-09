@@ -1136,6 +1136,9 @@ namespace Sass {
              (u2 == "in" || u2 == "cm" || u2 == "mm" || u2 == "pt" || u2 == "pc" || u2 == "px"))) {
           return new_Node(Node::boolean, path, line, true);
         }
+        else if (u1 == u2) {
+          return new_Node(Node::boolean, path, line, true);
+        }
         else {
           return new_Node(Node::boolean, path, line, false);
         }

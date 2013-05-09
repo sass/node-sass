@@ -122,6 +122,18 @@ namespace Sass {
       return exactly<media_kwd>(src);
     }
 
+    const char* keyframes(const char* src) {
+      return sequence< exactly<'@'>, optional< vendor_prefix >, exactly< keyframes_kwd > >(src);
+    }
+
+    const char* vendor_prefix(const char* src) {
+      return alternatives< exactly< vendor_opera_kwd >, exactly< vendor_webkit_kwd >, exactly< vendor_mozilla_kwd >, exactly< vendor_ms_kwd >, exactly< vendor_khtml_kwd > >(src);
+    }
+
+    const char* keyf(const char* src) {
+      return one_plus< alternatives< to, from, percentage > >(src);
+    }
+
     const char* mixin(const char* src) {
       return exactly<mixin_kwd>(src);
     }

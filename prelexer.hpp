@@ -309,10 +309,13 @@ namespace Sass {
     const char* filename_schema(const char* src);
     const char* url_schema(const char* src);
     const char* url_value(const char* src);
+    const char* vendor_prefix(const char* src);
     // Match CSS '@' keywords.
     const char* at_keyword(const char* src);
     const char* import(const char* src);
     const char* media(const char* src);
+    const char* keyframes(const char* src);
+    const char* keyf(const char* src);
     const char* mixin(const char* src);
     const char* function(const char* src);
     const char* return_directive(const char* src);
