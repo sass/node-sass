@@ -31,7 +31,13 @@ namespace Sass {
     {
       case Node::root: {
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
+            if (i == 19) {
+                
           expand(expr[i], prefix, env, f_env, new_Node, ctx, bt, false, content);
+            }
+            else {
+          expand(expr[i], prefix, env, f_env, new_Node, ctx, bt, false, content);
+            }
         }
       } break;
 
@@ -123,11 +129,28 @@ namespace Sass {
         expr << prefix;
       } break;
 
+      case Node::keyframes: {
+        Node id(expr[1]);
+        if (id.is_schema() || id.should_eval()) {
+          expr[1] = eval(id, prefix, env, f_env, new_Node, ctx, bt);
+        }
+        expand(expr[2], prefix, env, f_env, new_Node, ctx, bt, false, content);
+      } break;
+
+      case Node::keyframe: {
+        expand(expr[0], prefix, env, f_env, new_Node, ctx, bt, false, content);
+        expand(expr[1], prefix, env, f_env, new_Node, ctx, bt, false, content);
+      } break;
+
       case Node::block: {
         Environment new_frame;
         new_frame.link(env);
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
-          expand(expr[i], prefix, new_frame, f_env, new_Node, ctx, bt, false, content);
+            if (i == 8) {
+                expand(expr[i], prefix, new_frame, f_env, new_Node, ctx, bt, false, content);
+            } else {
+                expand(expr[i], prefix, new_frame, f_env, new_Node, ctx, bt, false, content);
+            }
         }
       } break;
       

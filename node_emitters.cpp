@@ -46,6 +46,7 @@ namespace Sass {
         return result;
       } break;
 
+
       case media_expression: {
         string result;
         if (at(0).type() == rule) {
@@ -453,6 +454,7 @@ namespace Sass {
               case propset:
               case block_directive:
               case blockless_directive:
+              case keyframes:
               case warning: {
                 block[i].emit_nested_css(buf, depth+1, false, false, source_comments);
               } break;
@@ -472,6 +474,44 @@ namespace Sass {
         }
         if (block.has_statements() || block.has_comments()) --depth; // see previous comment
         if ((depth == 0) && at_toplevel && !in_media_query) buf << endl;
+      } break;
+
+      case keyframe: {
+        buf << string(2*depth, ' ') << at(0).to_string() << " {";
+        Node block(at(1));
+        if (block.has_expansions()) block.flatten();
+        for (size_t i = 0, S = block.size(); i < S; ++i) {
+          block[i].emit_nested_css(buf, depth+1, false, in_media_query, source_comments);
+        }
+        buf << " }";
+      } break;
+
+      case keyframes: {
+        buf << string(2*depth, ' ') << at(0).to_string() << " " << at(1).to_string() << " {" << endl;
+        at(2).emit_nested_css(buf, depth+1, false, in_media_query, source_comments);
+        buf << " }" << endl << endl;
+      } break;
+
+      case block: {
+        if (has_expansions()) flatten();
+        for (size_t i = 0, S = size(); i < S; ++i) {
+          Type stm_type = at(i).type();
+          switch (stm_type)
+          {
+            case rule:
+            case css_import:
+            case propset:
+            case block_directive:
+            case keyframe:
+            case blockless_directive:
+            case warning: {
+              at(i).emit_nested_css(buf, depth, false, false, source_comments);
+              if (i != S - 1) buf << endl << endl;
+            } break;
+
+            default: break;
+          }
+        }
       } break;
 
       case media_query: {
@@ -651,6 +691,46 @@ namespace Sass {
             }
           }
         }
+      } break;
+
+      case block: {
+        if (has_expansions()) flatten();
+        buf << "{";
+        for (size_t i = 0, S = size(); i < S; ++i) {
+          Type stm_type = at(i).type();
+          switch (stm_type)
+          {
+            case rule:
+            case css_import:
+            case propset:
+            case block_directive:
+            case keyframe:
+            case blockless_directive:
+            case warning: {
+              at(i).emit_compressed_css(buf);
+            } break;
+
+            default: break;
+          }
+        }
+        buf << "}";
+      } break;
+
+      case keyframe: {
+        buf << at(0).to_string() << " {" << endl;
+        Node block(at(1));
+        if (block.has_expansions()) block.flatten();
+        for (size_t i = 0, S = block.size(); i < S; ++i) {
+          block[i].emit_compressed_css(buf);
+        }
+        buf << "}" << endl;
+      } break;
+
+      case keyframes: {
+        buf << at(0).to_string() << " "  << at(1).to_string(none, "");
+        Node block(at(2));
+        if (block.has_expansions()) block.flatten();
+        block.emit_compressed_css(buf);
       } break;
 
       case media_query: {

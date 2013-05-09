@@ -43,9 +43,17 @@ namespace Sass {
     extern const char Hz_kwd[]   = "Hz";
     extern const char kHz_kwd[]  = "kHz";
 
+    // vendor prefixes
+    extern const char vendor_opera_kwd[]    = "-o-";
+    extern const char vendor_webkit_kwd[]   = "-webkit-";
+    extern const char vendor_mozilla_kwd[]  = "-moz-";
+    extern const char vendor_ms_kwd[]       = "-ms-";
+    extern const char vendor_khtml_kwd[]    = "-khtml-";
+
     // css functions and keywords
     extern const char charset_kwd[]    = "@charset";
     extern const char media_kwd[]      = "@media";
+    extern const char keyframes_kwd[]  = "keyframes";
     extern const char only_kwd[]       = "only";
     extern const char rgb_kwd[]        = "rgb(";
     extern const char url_kwd[]        = "url(";

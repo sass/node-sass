@@ -63,6 +63,9 @@ namespace Sass {
       else if (peek< media >()) {
         root << parse_media_query(Node::none);
       }
+      else if (peek< keyframes >()) {
+        root << parse_keyframes(Node::none);
+      }
       else if (peek< warn >()) {
         root << parse_warning();
         if (!lex< exactly<';'> >()) throw_syntax_error("top-level @warn directive must be terminated by ';'");
@@ -661,6 +664,12 @@ namespace Sass {
       else if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         block << parse_propset();
       }
+      else if (peek < keyframes >()) {
+        block << parse_keyframes(inside_of);
+      }
+      else if (peek< sequence< keyf, optional_spaces, exactly<'{'> > >()) {
+        block << parse_keyframe(inside_of);
+      }
       else if ((lookahead_result = lookahead_for_selector(position)).found) {
         block << parse_ruleset(lookahead_result, inside_of);
       }
@@ -694,6 +703,14 @@ namespace Sass {
         Node dir(parse_directive(surrounding_ruleset, inside_of));
         if (dir.type() == Node::blockless_directive) semicolon = true;
         block << dir;
+      }
+      else if (peek< percentage >() ){
+        lex< percentage >();
+        block << context.new_Node(path, line, atof(lexed.begin), Node::numeric_percentage);
+        if (peek< exactly<'{'> >()) {
+          Node inner(parse_block(Node()));
+          block << inner;
+        }
       }
       else if (!peek< exactly<';'> >()) {
         Node rule(parse_rule());
@@ -1373,6 +1390,30 @@ namespace Sass {
       if (!lex< exactly<')'> >()) throw_syntax_error("unclosed parenthesis");
     }
     return media_expr;
+  }
+
+  Node Document::parse_keyframes(Node::Type inside_of)
+  {
+    lex< keyframes >();
+    Node keyframes(context.new_Node(Node::keyframes, path, line, 2));
+    Node keyword(context.new_Node(Node::identifier, path, line, lexed));
+    Node n(parse_expression());
+    keyframes << keyword;
+    keyframes << n;
+    keyframes << parse_block(Node(), inside_of);
+    return keyframes;
+  }
+
+  Node Document::parse_keyframe(Node::Type inside_of) {
+    Node keyframe(context.new_Node(Node::keyframe, path, line, 2));
+    lex< keyf >();
+    Node n = context.new_Node(Node::string_t, path, line, lexed);
+    keyframe << n;
+    if (peek< exactly<'{'> >()) {
+      Node inner(parse_block(Node(), inside_of));
+      keyframe << inner;
+    }
+    return keyframe;
   }
 
   Node Document::parse_warning()
