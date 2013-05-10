@@ -425,9 +425,96 @@ namespace Sass {
     { }
   };
 
+  ///////////////////////////////////////////////////////////////////////////
+  // Textual (i.e., unevaluated) numeric data. Distinguished with a type-tag.
+  ///////////////////////////////////////////////////////////////////////////
+  struct Textual_Numeric : public Value {
+    enum Type { number, percentage, dimension, hex };
+    Type type;
+
+    Textual_Numeric(string p, size_t l, Type t)
+    : Value(p, l), type(t)
+    { }
+  };
+
+  ////////////////////////////////////////////////
+  // Numbers, percentages, dimensions, and colors.
+  ////////////////////////////////////////////////
+  struct Number : public Value {
+    double value;
+    Number(string p, size_t l, double val) : Value(p, l), value(val) { }
+  };
+  struct Percentage : public Value {
+    double value;
+    Percentage(string p, size_t l, double val) : Value(p, l), value(val) { }
+  };
+  struct Token;
+  struct Dimension : public Value {
+    double value;
+    vector<Token*> numerator_units;
+    vector<Token*> denominator_units;
+    Dimension(string p, size_t l, double val, Token* unit)
+    : Value(p, l),
+      value(val),
+      numerator_units(vector<Token*>()),
+      denominator_units(vector<Token*>())
+    { numerator_units.push_back(unit); }
+  };
+  struct Color : public Value {
+    double r, g, b, a;
+    Color(string p, size_t l, double r, double g, double b, double a = 0)
+    : Value(p, l), r(r), g(g), b(b), a(a)
+    { }
+  };
+
+  ////////////
+  // Booleans.
+  ////////////
+  struct Boolean : public Value {
+    bool value;
+    Boolean(string p, size_t l, bool val) : Value(p, l), value(val) { }
+  };
+
   ////////////////////////////////////////////////////////////////////////
-  // Abstract base class representing textual (i.e., unevaluated) numbers.
+  // Sass strings -- includes quoted strings, as well as all other literal
+  // textual data (identifiers, interpolations, concatenations etc).
   ////////////////////////////////////////////////////////////////////////
-  struct Textual;
+  struct String : public Value {
+    vector<Value*> fragments;
+    bool is_quoted, is_interpolated;
+
+    String(string p, size_t l, size_t size = 0, bool q = false, bool i = false)
+    : Value(p, l),
+      fragments(vector<Value*>()), is_quoted(q), is_interpolated(i)
+    { fragments.reserve(size); }
+
+    size_t size() const
+    { return fragments.size(); }
+    Value*& at(size_t i)
+    { return fragments.at(i); }
+    String& push(Value* v)
+    {
+      fragments.push_back(v);
+      return *this;
+    }
+    String& append(String* l)
+    {
+      for (size_t i = 0, S = size(); i < S; ++i) push(l->at(i));
+      return *this;
+    }
+  };
+
+  ///////////////////////////////////////////////////////
+  // Sass tokens -- the lowest level of raw textual data.
+  ///////////////////////////////////////////////////////
+  struct Token : public Value {
+    string value;
+
+    Token(string p, size_t l, string val) : Value(p, l), value(val) { }
+    Token(string p, size_t l, const char* beg, const char* end)
+    : Value(p, l), value(string(beg, end-beg))
+    { }
+  };
+
 
 }
