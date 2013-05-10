@@ -116,6 +116,13 @@ Check out the project:
 Replace the prebuild binary with your newly generated one
 
     cp build/Release/binding.node precompiled/*your-platform*/binding.node
+    
+## Command Line Interface
+
+The interface for command-line usage is fairly simplistic at this stage, as seen in the following usage section.
+
+### Usage
+ `node-sass [input.scss] [output.css]`
 
 ## Contributors
 Special thanks to the following people for submitting patches:
