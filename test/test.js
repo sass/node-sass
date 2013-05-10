@@ -10,7 +10,12 @@ var scssStr = '#navbar {\
   #navbar li {\
     float: left;\
     a {\
-      font-weight: bold; }}';
+      font-weight: bold; }}\
+  @mixin keyAnimation($name, $attr, $value) {\
+    @-webkit-keyframes #{$name} {\
+      0%   { #{$attr}: $value; }\
+    }\
+  }';
 
 // Note that the bad
 var badInput = '#navbar \n\
