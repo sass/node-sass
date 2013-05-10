@@ -16,17 +16,36 @@ Find it on npm: <https://npmjs.org/package/node-sass>
 
 ```javascript
 var sass = require('node-sass');
-sass.render(scss_content, callback [, options]);
+sass.render({
+	file: scss_filename,
+	success: callback
+	[, options..]
+	});
 // OR
-var css = sass.renderSync(scss_content [, options]);
+var css = sass.renderSync({
+	data: scss_content
+	[, options..]
+});
 ```
 
 ### Options
 
-The options argument is optional, though it's use is recommended. It support two attributes: `includePaths` and `outputStyle`.
+The API for using node-sass has changed, so that now there is only one variable - an options hash. Some of these options are optional, and in some circumstances some are mandatory.
+
+#### file
+`file` is a `String` of the path to an `scss` file for libsass to render. One of this or `data` options are required, for both render and renderSync.
+
+#### data
+`data` is a `String` containing the scss to be rendered by libsass. One of this or `file` options are required, for both render and renderSync. It is recommended that you use the `includePaths` option in conjunction with this, as otherwise libsass may have trouble finding files imported via the `@import` directive.
+
+#### success
+`success` is a `Function` to be called upon successful rendering of the scss to css. This option is required but only for the render function. If provided to renderSync it will be ignored.
+
+#### error
+`error` is a `Function` to be called upon occurance of an error when rendering the scss to css. This option is optional, and only applies to the render function. If provided to renderSync it will be ignored.
 
 #### includePaths
-`includePaths` is an `Array` of path `String`s to look for any `@import`ed files. It is recommended that you use this option if you have **any** `@import` directives, as otherwise libsass may not find your depended-on files.
+`includePaths` is an `Array` of path `String`s to look for any `@import`ed files. It is recommended that you use this option if you are using the `data` option and have **any** `@import` directives, as otherwise libsass may not find your depended-on files.
 
 #### outputStyle
 `outputStyle` is a `String` to determine how the final CSS should be rendered. Its value should be one of `'nested', 'expanded', 'compact', 'compressed'`.
@@ -36,12 +55,27 @@ The options argument is optional, though it's use is recommended. It support two
 
 ```javascript
 var sass = require('node-sass');
-sass.render('body{background:blue; a{color:black;}}', function(err, css){
-  console.log(css)
-}/*, { includePaths: [ 'lib/', 'mod/' ], outputStyle: 'compressed' }*/);
+sass.render({
+	data: 'body{background:blue; a{color:black;}}',
+	success: function(css){
+  		console.log(css)
+	},
+	error: function(error) {
+		console.log(error);
+	},
+	includePaths: [ 'lib/', 'mod/' ],
+	outputStyle: 'compressed'
+});
 // OR
-console.log(sass.renderSync('body{background:blue; a{color:black;}}')/*, { includePaths: [ 'lib/', 'mod/' ], outputStyle: 'compressed' }*/);
+console.log(sass.renderSync({
+	data: 'body{background:blue; a{color:black;}}'),
+	outputStyle: 'compressed'
+});
 ```
+
+### Edge-case behaviours
+
+* In the case that both `file` and `data` options are set, node-sass will only attempt to honour the `file` directive.
 
 ## Connect/Express middleware
 

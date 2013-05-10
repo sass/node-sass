@@ -28,8 +28,11 @@ var expectedRender = '#navbar {\n\
   #navbar li a {\n\
     font-weight: bold; }\n';
 
+var badSampleFilename = 'sample.scss';
+var sampleFilename = require('path').resolve(__dirname, 'sample.scss');
 
-describe("compile scss", function() {
+
+describe("DEPRECATED: compile scss", function() {
   it("should compile with render", function(done) {
     sass.render(scssStr, function(err, css) {
       done(err);
@@ -57,6 +60,83 @@ describe("compile scss", function() {
   it("should throw an exception for bad input", function(done) {
     done(assert.throws(function() {
       sass.renderSync(badInput);
+    }));
+  });
+});
+
+describe("compile scss", function() {
+  it("should compile with render", function(done) {
+    sass.render({
+      data: scssStr,
+      success: function(css) {
+        done(assert.ok(css));
+      }
+    });
+  });
+
+  it("should compile with renderSync", function(done) {
+    done(assert.ok(sass.renderSync({data: scssStr})));
+  });
+
+  it("should match compiled string with render", function(done) {
+    sass.render({
+      data: scssStr,
+      success: function(css) {
+        done(assert.equal(css, expectedRender));
+      },
+      error: function(error) {
+        done(error);
+      }
+    });
+  });
+
+  it("should match compiled string with renderSync", function(done) {
+    done(assert.equal(sass.renderSync({data: scssStr}), expectedRender));
+  });
+
+  it("should throw an exception for bad input", function(done) {
+    done(assert.throws(function() {
+      sass.renderSync({data: badInput});
+    }));
+  });
+});
+
+describe("compile file", function() {
+  it("should compile with render", function(done) {
+    sass.render({
+      file: sampleFilename,
+      success: function (css) {
+        done(assert.ok(css));
+      },
+      error: function (error) {
+        done(error);
+      }
+    });
+  });
+
+    it("should compile with renderSync", function(done) {
+    done(assert.ok(sass.renderSync({file: sampleFilename})));
+  });
+
+  it("should match compiled string with render", function(done) {
+    sass.render({
+      file: sampleFilename,
+      success: function(css) {
+        done(assert.equal(css, expectedRender));
+      },
+      error: function(error) {
+        done(error);
+      }
+    });
+  });
+
+  it("should match compiled string with renderSync", function(done) {
+    done(assert.equal(sass.renderSync({file: sampleFilename}), expectedRender));
+  });
+
+  it("should throw an exception for bad input", function(done) {
+    done(assert.throws(function() {
+      sass.renderSync({file: badSampleFilename});
     }));
   });
 });
