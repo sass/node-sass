@@ -125,12 +125,12 @@ namespace Sass {
   /////////////////////////////////////
   struct Variable;
   struct Assignment : public Statement {
-    Variable* variable;
-    Value*    value;
-    bool      is_guarded;
+    string variable;
+    Value* value;
+    bool   is_guarded;
 
     Assignment(string p, size_t l,
-               Variable* var, Value* val, bool guarded = false)
+               string var, Value* val, bool guarded = false)
     : Statement(p, l), variable(var), value(val), is_guarded(guarded)
     { }
   };
@@ -185,13 +185,13 @@ namespace Sass {
   // The Sass `@for` control directive.
   /////////////////////////////////////
   struct For : public Has_Block {
-    Variable* variable;
-    Value*    lower_bound;
-    Value*    upper_bound;
-    bool      is_inclusive;
+    string variable;
+    Value* lower_bound;
+    Value* upper_bound;
+    bool   is_inclusive;
 
     For(string p, size_t l,
-        Variable* var, Value* lo, Value* hi, Block* b, bool inc)
+        string var, Value* lo, Value* hi, Block* b, bool inc)
     : Has_Block(p, l, b),
       variable(var), lower_bound(lo), upper_bound(hi), is_inclusive(inc)
     { }
@@ -201,10 +201,10 @@ namespace Sass {
   // The Sass `@each` control directive.
   //////////////////////////////////////
   struct Each : public Has_Block {
-    Variable* variable;
-    Value*    list;
+    string variable;
+    Value* list;
 
-    Each(string p, size_t l, Variable* var, Value* lst, Block* b)
+    Each(string p, size_t l, string var, Value* lst, Block* b)
     : Has_Block(p, l, b), variable(var), list(lst)
     { }
   };
@@ -237,12 +237,12 @@ namespace Sass {
   struct Parameters;
   struct Definition : public Has_Block {
     enum Type { mixin, function };
-    String*     name;
+    string      name;
     Parameters* parameters;
     Type        type;
 
     Definition(string p, size_t l,
-               String* n, Parameters* params, Block* b, Type t)
+               string n, Parameters* params, Block* b, Type t)
     : Has_Block(p, l, b), name(n), parameters(params), type(t)
     { }
   };
@@ -252,10 +252,10 @@ namespace Sass {
   //////////////////////////////////////
   struct Arguments;
   struct Mixin_Call : public Has_Block {
-    String* name;
+    string name;
     Arguments* arguments;
 
-    Mixin_Call(string p, size_t l, String* n, Arguments* args, Block* b = 0)
+    Mixin_Call(string p, size_t l, string n, Arguments* args, Block* b = 0)
     : Has_Block(p, l, b), name(n), arguments(args)
     { }
   };
@@ -418,9 +418,9 @@ namespace Sass {
   // Variable references.
   ///////////////////////
   struct Variable : public Value {
-    String* name;
+    string name;
 
-    Variable(string p, size_t l, String* n)
+    Variable(string p, size_t l, string n)
     : Value(p, l), name(n)
     { }
   };
@@ -430,10 +430,11 @@ namespace Sass {
   ///////////////////////////////////////////////////////////////////////////
   struct Textual_Numeric : public Value {
     enum Type { number, percentage, dimension, hex };
+    string value;
     Type type;
 
-    Textual_Numeric(string p, size_t l, Type t)
-    : Value(p, l), type(t)
+    Textual_Numeric(string p, size_t l, Type t, string val)
+    : Value(p, l), value(val), type(t)
     { }
   };
 
@@ -448,18 +449,21 @@ namespace Sass {
     double value;
     Percentage(string p, size_t l, double val) : Value(p, l), value(val) { }
   };
-  struct Token;
   struct Dimension : public Value {
     double value;
-    vector<Token*> numerator_units;
-    vector<Token*> denominator_units;
-    Dimension(string p, size_t l, double val, Token* unit)
+    vector<string> numerator_units;
+    vector<string> denominator_units;
+    Dimension(string p, size_t l, double val, string unit)
     : Value(p, l),
       value(val),
-      numerator_units(vector<Token*>()),
-      denominator_units(vector<Token*>())
+      numerator_units(vector<string>()),
+      denominator_units(vector<string>())
     { numerator_units.push_back(unit); }
   };
+
+  //////////
+  // Colors.
+  //////////
   struct Color : public Value {
     double r, g, b, a;
     Color(string p, size_t l, double r, double g, double b, double a = 0)
@@ -516,5 +520,78 @@ namespace Sass {
     { }
   };
 
+  /////////////////////////////////////////////////////////
+  // Individual parameter objects for mixins and functions.
+  /////////////////////////////////////////////////////////
+  struct Parameter : public AST_Node {
+    string name;
+    Value* default_value;
+    bool is_rest_parameter;
+
+    Parameter(string p, size_t l,
+              string n, Value* def = 0, bool rest = false)
+    : AST_Node(p, l), name(n), default_value(def), is_rest_parameter(rest)
+    { /* TO-DO: error if default_value && is_packed */ }
+  };
+
+  /////////////////////////////////////////////////////////////////////////
+  // Parameter lists -- in their own class to facilitate context-sensitive
+  // error checking (e.g., ensuring that all optional parameters follow all
+  // required parameters).
+  /////////////////////////////////////////////////////////////////////////
+  struct Parameters : public AST_Node {
+    vector<Parameter*> list;
+    bool has_optional_parameters, has_rest_parameter;
+
+    Parameters(string p, size_t l)
+    : AST_Node(p, l),
+      has_optional_parameters(false), has_rest_parameter(false)
+    { }
+
+    size_t size() { return list.size(); }
+    Parameter*& at(size_t i) { return list.at(i); }
+
+    Parameters*& push(Parameter* p)
+    {
+      if (p->default_value) {
+        if (has_rest_parameter)
+        { /* error */ }
+        has_optional_parameters = true;
+      }
+      else if (p->is_rest_parameter) {
+        if (has_rest_parameter)
+        { /* error */ }
+        if (has_optional_parameters)
+        { /* different error */ }
+        has_rest_parameter = true;
+      }
+      else {
+        if (has_rest_parameter)
+        { /* error */ }
+        if (has_optional_parameters)
+        { /* different error */ }
+      }
+      return push(p);
+    }
+  };
+
+  ////////////////////////////////////////////////////////////
+  // Individual argument objects for mixin and function calls.
+  ////////////////////////////////////////////////////////////
+  struct Argument : public AST_Node {
+    Value* value;
+    string name;
+    bool is_rest_argument;
+
+    Argument(string p, size_t l, Value* val, string n = "", bool rest = false)
+    : AST_Node(p, l), value(val), name(n), is_rest_argument(rest)
+    { if (name != "" && is_rest_argument) { /* error */ } }
+  };
+
+  ////////////////////////////////////////////////////////////////////////
+  // Argument lists -- in their own class to facilitate context-sensitive
+  // error checking (e.g., ensuring that ordinal arguments precede keyword
+  // arguments).
+  ////////////////////////////////////////////////////////////////////////
 
 }
