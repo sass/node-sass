@@ -2,7 +2,7 @@
 
 [![Build Status](https://secure.travis-ci.org/andrew/node-sass.png?branch=master)](https://travis-ci.org/andrew/node-sass)
 
-Node-sass is a library that provides binding for Node.js to libsass, the C version of the popular stylesheet preprocessor, Sass.
+Node-sass is a library that provides binding for Node.js to [libsass](https://github.com/hcatlin/libsass), the C version of the popular stylesheet preprocessor, Sass.
 
 It allows you to natively compile .scss files to css at incredible speed and automatically via a connect middleware.
 
