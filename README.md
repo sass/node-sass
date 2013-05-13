@@ -95,6 +95,10 @@ var server = connect.createServer(
 
 Heavily inspired by <https://github.com/LearnBoost/stylus>
 
+## Grunt extension
+
+[@sindresorhus](https://github.com/sindresorhus/) has created a set of grunt tasks based on node-sass: <https://github.com/sindresorhus/grunt-sass>
+
 ## Example App
 
 There is also an example connect app here: <https://github.com/andrew/node-sass-example>
