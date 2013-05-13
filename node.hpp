@@ -207,6 +207,7 @@ namespace Sass {
     bool& is_splat() const;
 
     string& path() const;
+    string debug_info_path() const;
     size_t line() const;
     size_t size() const;
     bool empty() const;
@@ -247,7 +248,7 @@ namespace Sass {
     bool operator>=(Node rhs) const;
 
     string to_string(Type inside_of = none, const string space = " ", const bool in_media_feature = false) const;
-    void emit_nested_css(stringstream& buf, size_t depth, bool at_toplevel = false, bool in_media_query = false, bool source_comments = false);
+    void emit_nested_css(stringstream& buf, size_t depth, bool at_toplevel = false, bool in_media_query = false, int source_comments = false);
     void emit_propset(stringstream& buf, size_t depth, const string& prefix, const bool compressed = false);
     void echo(stringstream& buf, size_t depth = 0);
     void emit_expanded_css(stringstream& buf, const string& prefix);
