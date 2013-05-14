@@ -38,18 +38,19 @@ namespace Sass {
     : Statement(p, l), statements(vector<Statement*>()), is_root(root)
     { statements.reserve(size); }
 
-    size_t size() const
+    size_t length() const
     { return statements.size(); }
-    Statement*& at(size_t i)
-    { return statements.at(i); }
-    Block& push(Statement* s)
+    Statement*& operator[](size_t i)
+    { return statements[i]; }
+    Block& operator<<(Statement* s)
     {
       statements.push_back(s);
       return *this;
     }
-    Block& append(Block* b)
+    Block& operator+=(Block* b)
     {
-      for (size_t i = 0, S = size(); i < S; ++i) push(b->at(i));
+      for (size_t i = 0, L = length(); i < L; ++i)
+        statements.push_back((*b)[i]);
       return *this;
     }
   };
@@ -231,19 +232,20 @@ namespace Sass {
     { }
   };
 
-  ///////////////////////////////////////////////////////////////////////////
-  // Definitions for both mixins and functions (distinguished by a type-tag).
-  ///////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
+  // Definitions for both mixins and functions. Templatized to avoid type-tags
+  // and unnecessary subclassing.
+  ////////////////////////////////////////////////////////////////////////////
   struct Parameters;
+  enum Definition_Type { MIXIN, FUNCTION };
+  template <Definition_Type t>
   struct Definition : public Has_Block {
-    enum Type { mixin, function };
     string      name;
     Parameters* parameters;
-    Type        type;
 
     Definition(string p, size_t l,
-               string n, Parameters* params, Block* b, Type t)
-    : Has_Block(p, l, b), name(n), parameters(params), type(t)
+               string n, Parameters* params, Block* b)
+    : Has_Block(p, l, b), name(n), parameters(params)
     { }
   };
 
@@ -291,104 +293,40 @@ namespace Sass {
       values(vector<Value*>()), separator(sep), is_arglist(argl)
     { values.reserve(size); }
 
-    size_t size() const
+    size_t length() const
     { return values.size(); }
-    Value*& at(size_t i)
-    { return values.at(i); }
-    List& push(Value* v)
+    Value*& operator[](size_t i)
+    { return values[i]; }
+    List& operator<<(Value* v)
     {
       values.push_back(v);
       return *this;
     }
-    List& append(List* l)
+    List& operator+=(List* l)
     {
-      for (size_t i = 0, S = size(); i < S; ++i) push(l->at(i));
+      for (size_t i = 0, L = length(); i < L; ++i)
+        values.push_back((*l)[i]);
       return *this;
     }
   };
 
   /////////////////////////////////////////////////////////////////////////////
   // Abstract base class for binary operations. Represents logical, relational,
-  // and arithmetic operations. Subclassed to avoid large switch statements.
+  // and arithmetic operations. Templatized to avoid large switch statements
+  // and repetitive subclassing.
   /////////////////////////////////////////////////////////////////////////////
-  struct Binary_Operation : public Value {
+  enum Binary_Operator {
+    AND, OR,                   // logical connectives
+    EQ, NEQ, GT, GTE, LT, LTE, // arithmetic relations
+    ADD, SUB, MUL, DIV         // arithmetic functions
+  };
+  template<Binary_Operator op>
+  struct Binary_Expression : public Value {
     Value* left;
     Value* right;
 
-    Binary_Operation(string p, size_t l, Value* lhs, Value* rhs)
+    Binary_Expression(string p, size_t l, Value* lhs, Value* rhs)
     : Value(p, l), left(lhs), right(rhs)
-    { }
-  };
-
-  /////////////////////////////////
-  // Conjunctions and disjunctions.
-  /////////////////////////////////
-  struct Conjunction : public Binary_Operation {
-    Conjunction(string p, size_t l, Value* lhs, Value* rhs)
-    : Binary_Operation(p, l, lhs, rhs)
-    { }
-  };
-  struct Disjunction : public Binary_Operation {
-    Disjunction(string p, size_t l, Value* lhs, Value* rhs)
-    : Binary_Operation(p, l, lhs, rhs)
-    { }
-  };
-
-  ////////////////////////////////
-  // Numeric relational operators.
-  ////////////////////////////////
-  struct Equal : public Binary_Operation {
-    Equal(string p, size_t l, Value* lhs, Value* rhs)
-    : Binary_Operation(p, l, lhs, rhs)
-    { }
-  };
-  struct Not_Equal : public Binary_Operation {
-    Not_Equal(string p, size_t l, Value* lhs, Value* rhs)
-    : Binary_Operation(p, l, lhs, rhs)
-    { }
-  };
-  struct Greater : public Binary_Operation {
-    Greater(string p, size_t l, Value* lhs, Value* rhs)
-    : Binary_Operation(p, l, lhs, rhs)
-    { }
-  };
-  struct Greater_Equal : public Binary_Operation {
-    Greater_Equal(string p, size_t l, Value* lhs, Value* rhs)
-    : Binary_Operation(p, l, lhs, rhs)
-    { }
-  };
-  struct Less : public Binary_Operation {
-    Less(string p, size_t l, Value* lhs, Value* rhs)
-    : Binary_Operation(p, l, lhs, rhs)
-    { }
-  };
-  struct Less_Equal : public Binary_Operation {
-    Less_Equal(string p, size_t l, Value* lhs, Value* rhs)
-    : Binary_Operation(p, l, lhs, rhs)
-    { }
-  };
-
-  ////////////////////////
-  // Arithmetic operators.
-  ////////////////////////
-  struct Addition : public Binary_Operation {
-    Addition(string p, size_t l, Value* lhs, Value* rhs)
-    : Binary_Operation(p, l, lhs, rhs)
-    { }
-  };
-  struct Subtraction : public Binary_Operation {
-    Subtraction(string p, size_t l, Value* lhs, Value* rhs)
-    : Binary_Operation(p, l, lhs, rhs)
-    { }
-  };
-  struct Multiplication : public Binary_Operation {
-    Multiplication(string p, size_t l, Value* lhs, Value* rhs)
-    : Binary_Operation(p, l, lhs, rhs)
-    { }
-  };
-  struct Division : public Binary_Operation {
-    Division(string p, size_t l, Value* lhs, Value* rhs)
-    : Binary_Operation(p, l, lhs, rhs)
     { }
   };
 
@@ -466,7 +404,7 @@ namespace Sass {
   //////////
   struct Color : public Value {
     double r, g, b, a;
-    Color(string p, size_t l, double r, double g, double b, double a = 0)
+    Color(string p, size_t l, double r, double g, double b, double a = 1)
     : Value(p, l), r(r), g(g), b(b), a(a)
     { }
   };
@@ -492,18 +430,19 @@ namespace Sass {
       fragments(vector<Value*>()), is_quoted(q), is_interpolated(i)
     { fragments.reserve(size); }
 
-    size_t size() const
+    size_t length() const
     { return fragments.size(); }
-    Value*& at(size_t i)
-    { return fragments.at(i); }
-    String& push(Value* v)
+    Value*& operator[](size_t i)
+    { return fragments[i]; }
+    String& operator<<(Value* v)
     {
       fragments.push_back(v);
       return *this;
     }
-    String& append(String* l)
+    String& operator+=(String* s)
     {
-      for (size_t i = 0, S = size(); i < S; ++i) push(l->at(i));
+      for (size_t i = 0, L = length(); i < L; ++i)
+        fragments.push_back((*s)[i]);
       return *this;
     }
   };
@@ -548,30 +487,31 @@ namespace Sass {
       has_optional_parameters(false), has_rest_parameter(false)
     { }
 
-    size_t size() { return list.size(); }
-    Parameter*& at(size_t i) { return list.at(i); }
+    size_t length() { return list.size(); }
+    Parameter*& operator[](size_t i) { return list[i]; }
 
-    Parameters*& push(Parameter* p)
+    Parameters& operator<<(Parameter* p)
     {
       if (p->default_value) {
         if (has_rest_parameter)
-        { /* error */ }
+          ; // error
         has_optional_parameters = true;
       }
       else if (p->is_rest_parameter) {
         if (has_rest_parameter)
-        { /* error */ }
+          ; // error
         if (has_optional_parameters)
-        { /* different error */ }
+          ; // different error
         has_rest_parameter = true;
       }
       else {
         if (has_rest_parameter)
-        { /* error */ }
+          ; // error
         if (has_optional_parameters)
-        { /* different error */ }
+          ; // different error
       }
-      return push(p);
+      list.push_back(p);
+      return *this;
     }
   };
 
@@ -590,8 +530,185 @@ namespace Sass {
 
   ////////////////////////////////////////////////////////////////////////
   // Argument lists -- in their own class to facilitate context-sensitive
-  // error checking (e.g., ensuring that ordinal arguments precede keyword
-  // arguments).
+  // error checking (e.g., ensuring that all ordinal arguments precede all
+  // named arguments).
   ////////////////////////////////////////////////////////////////////////
+  struct Arguments : public AST_Node {
+    vector<Argument*> list;
+    bool has_named_arguments, has_rest_argument;
+
+    Arguments(string p, size_t l)
+    : AST_Node(p, l),
+      has_named_arguments(false), has_rest_argument(false)
+    { }
+
+    size_t length() { return list.size(); }
+    Argument*& operator[](size_t i) { return list[i]; }
+
+    Arguments& operator<<(Argument* a)
+    {
+      if (!a->name.empty()) {
+        if (has_rest_argument)
+          ; // error
+        has_named_arguments = true;
+      }
+      else if (a->is_rest_argument) {
+        if (has_rest_argument)
+          ; // error
+        if (has_named_arguments)
+          ; // different error
+        has_rest_argument = true;
+      }
+      else {
+        if (has_rest_argument)
+          ; // error
+        if (has_named_arguments)
+          ; // error
+      }
+      list.push_back(a);
+      return *this;
+    }
+  };
+
+  /////////////////////////////////////////
+  // Abstract base class for CSS selectors.
+  /////////////////////////////////////////
+  struct Selector : public AST_Node {
+    Selector(string p, size_t l) : AST_Node(p, l) { }
+    virtual ~Selector() = 0;
+  };
+
+  /////////////////////////////////////////////////////////////////////////
+  // Interpolated selectors -- the interpolated String will be expanded and
+  // re-parsed into a normal selector structure.
+  /////////////////////////////////////////////////////////////////////////
+  struct Interpolated : Selector {
+    String* selector;
+
+    Interpolated(string p, size_t l, String* cont)
+    : Selector(p, l), selector(cont)
+    { }
+  };
+
+  ////////////////////////////////////////////
+  // Abstract base class for atomic selectors.
+  ////////////////////////////////////////////
+  struct Simple_Base : public Selector {
+    Simple_Base(string p, size_t l) : Selector(p, l) { }
+  };
+
+  //////////////////////////////////////////////////////////////////////
+  // Normal simple selectors (e.g., "div", ".foo", ":first-child", etc).
+  //////////////////////////////////////////////////////////////////////
+  struct Simple : Simple_Base {
+    string selector;
+
+    Simple(string p, size_t l, string cont)
+    : Simple_Base(p, l), selector(cont)
+    { }
+  };
+
+  /////////////////////////////////////
+  // Parent references (i.e., the "&").
+  /////////////////////////////////////
+  struct Reference : Simple_Base {
+    Reference(string p, size_t l) : Simple_Base(p, l) { }
+  };
+
+  /////////////////////////////////////////////////////////////////////////
+  // Placeholder selectors (e.g., "%foo") for use in extend-only selectors.
+  /////////////////////////////////////////////////////////////////////////
+  struct Placeholder : Simple_Base {
+    Placeholder(string p, size_t l) : Simple_Base(p, l) { }
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Simple selector sequences. Maintains flags indicating whether it contains
+  // any parent references or placeholders, to simplify expansion.
+  ////////////////////////////////////////////////////////////////////////////
+  struct Sequence : Selector {
+    vector<Simple*> selectors;
+    bool            has_reference;
+    bool            has_placeholder;
+
+    Sequence(string p, size_t l, size_t s)
+    : Selector(p, l),
+      selectors(vector<Simple*>()), has_reference(false), has_placeholder(false)
+    { selectors.reserve(s); }
+
+    size_t length()
+    { return selectors.size(); }
+    Simple*& operator[](size_t i)
+    { return selectors[i]; }
+    Sequence& operator<<(Simple* s)
+    {
+      selectors.push_back(s);
+      return *this;
+    }
+    Sequence& operator<<(Reference* s)
+    {
+      has_reference = true;
+      return (*this) << s;
+    }
+    Sequence& operator<<(Placeholder* p)
+    {
+      has_placeholder = true;
+      return (*this) << p;
+    }
+    Sequence& operator+=(Sequence* seq)
+    {
+      for (size_t i = 0, L = length(); i < L; ++i) (*this) << ((*seq)[i]);
+      return *this;
+    }
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  // General selectors -- i.e., simple sequences combined with one of the four
+  // CSS selector combinators (">", "+", "~", and whitespace). Isomorphic to a
+  // left-associative linked list.
+  ////////////////////////////////////////////////////////////////////////////
+  struct Combination : Selector {
+    enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO };
+    Combinator   combinator;
+    Combination* context;
+    Sequence*    selector;
+    bool         has_reference;
+    bool         has_placeholder;
+
+    Combination(string p, size_t l,
+                Combinator c, Combination* ctx, Sequence* sel)
+    : Selector(p, l),
+      combinator(c),
+      context(ctx),
+      selector(sel),
+      has_reference(ctx && ctx->has_reference ||
+                    sel && sel->has_reference),
+      has_placeholder(ctx && ctx->has_placeholder ||
+                      sel && sel->has_placeholder)
+    { }
+  };
+
+  // Probably gonna' have to scrap these, since everything else is geared
+  // towards pointer semantics.
+  Combination operator>(Combination c, Sequence s)
+  { return Combination(c.path, c.line, Combination::PARENT_OF, &c, &s); }
+  // No such thing as `operator[whitespace]`, so `>>` seems reasonable.
+  Combination operator>>(Combination c, Sequence s)
+  { return Combination(c.path, c.line, Combination::ANCESTOR_OF, &c, &s); }
+  // Can't use `operator~` because it's unary!
+  Combination operator*(Combination c, Sequence s)
+  { return Combination(c.path, c.line, Combination::PRECEDES, &c, &s); }
+  Combination operator+(Combination c, Sequence s)
+  { return Combination(c.path, c.line, Combination::ADJACENT_TO, &c, &s); }
+
+  ///////////////////////////////////
+  // Comma-separated selector groups.
+  ///////////////////////////////////
+  struct Group : Selector {
+    vector<Combination*> selectors;
+    bool                 has_reference;
+    bool                 has_placeholder;
+  };
+
 
 }
