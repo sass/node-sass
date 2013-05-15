@@ -1,7 +1,16 @@
 #define SASS_AST
 
+#define ATTACH_OPERATIONS() \
+virtual void perform(Operation<void>* op) { (*op)(this); } \
+virtual AST_Node* perform(Operation<AST_Node*>* op) { (*op)(this); }
+
 #include <string>
+#include <sstream>
 #include <vector>
+
+#ifndef SASS_OPERATION
+#include "operation.hpp"
+#endif
 
 namespace Sass {
   using namespace std;
@@ -15,7 +24,9 @@ namespace Sass {
 
     AST_Node(string p, size_t l) : path(p), line(l) { }
     virtual ~AST_Node() = 0;
+    ATTACH_OPERATIONS();
   };
+  inline AST_Node::~AST_Node() { }
 
   /////////////////////////////////////////////////////////////////////////
   // Abstract base class for statements. This side of the AST hierarchy
@@ -29,6 +40,7 @@ namespace Sass {
     : AST_Node(p, l), is_unnestable(false) { }
     virtual ~Statement() = 0;
   };
+  inline Statement::~Statement() { }
 
   ////////////////////////
   // Blocks of statements.
@@ -56,6 +68,7 @@ namespace Sass {
         statements.push_back((*b)[i]);
       return *this;
     }
+    ATTACH_OPERATIONS();
   };
 
   ////////////////////////////////////////////////////////////////////////
@@ -68,6 +81,7 @@ namespace Sass {
     { }
     virtual ~Has_Block() = 0;
   };
+  inline Has_Block::~Has_Block() { }
 
   /////////////////////////////////////////////////////////////////////////////
   // Rulesets (i.e., sets of styles headed by a selector and containing a block
@@ -80,6 +94,7 @@ namespace Sass {
     Ruleset(string p, size_t l, Selector* s, Block* b)
     : Has_Block(p, l, b), selector(s)
     { is_unnestable = true; }
+    ATTACH_OPERATIONS();
   };
 
   /////////////////////////////////////////////////////////
@@ -92,6 +107,7 @@ namespace Sass {
     Propset(string p, size_t l, String* pf, Block* b)
     : Has_Block(p, l, b), property_fragment(pf)
     { }
+    ATTACH_OPERATIONS();
   };
 
   /////////////////
@@ -104,6 +120,7 @@ namespace Sass {
     Media_Query(string p, size_t l, Value* q, Block* b)
     : Has_Block(p, l, b), query(q)
     { }
+    ATTACH_OPERATIONS();
   };
 
   /////////////////////////////////////////////////////////////////////////////
@@ -118,6 +135,7 @@ namespace Sass {
               string kwd, Selector* sel, Block* b)
     : Has_Block(p, l, b), keyword(kwd), selector(sel)
     { }
+    ATTACH_OPERATIONS();
   };
 
   ////////////////////////////////////////////////////////////////////////
@@ -131,6 +149,7 @@ namespace Sass {
     Declaration(string p, size_t l, String* prop, List* vals)
     : Statement(p, l), property(prop), values(vals)
     { }
+    ATTACH_OPERATIONS();
   };
 
   /////////////////////////////////////
@@ -146,6 +165,7 @@ namespace Sass {
                string var, Value* val, bool guarded = false)
     : Statement(p, l), variable(var), value(val), is_guarded(guarded)
     { }
+    ATTACH_OPERATIONS();
   };
 
   ////////////////////////
@@ -157,6 +177,7 @@ namespace Sass {
     Import(string p, size_t l, String* loc)
     : Statement(p, l), location(loc)
     { }
+    ATTACH_OPERATIONS();
   };
 
   //////////////////////////////
@@ -168,6 +189,7 @@ namespace Sass {
     Warning(string p, size_t l, String* msg)
     : Statement(p, l), message(msg)
     { }
+    ATTACH_OPERATIONS();
   };
 
   ///////////////////////////////////////////
@@ -179,6 +201,7 @@ namespace Sass {
     Comment(string p, size_t l, String* txt)
     : Statement(p, l), text(txt)
     { }
+    ATTACH_OPERATIONS();
   };
 
   ////////////////////////////////////
@@ -192,6 +215,7 @@ namespace Sass {
     If(string p, size_t l, Value* pred, Block* con, Block* alt = 0)
     : Statement(p, l), predicate(pred), consequent(con), alternative(alt)
     { }
+    ATTACH_OPERATIONS();
   };
 
   /////////////////////////////////////
@@ -208,6 +232,7 @@ namespace Sass {
     : Has_Block(p, l, b),
       variable(var), lower_bound(lo), upper_bound(hi), is_inclusive(inc)
     { }
+    ATTACH_OPERATIONS();
   };
 
   //////////////////////////////////////
@@ -220,6 +245,7 @@ namespace Sass {
     Each(string p, size_t l, string var, Value* lst, Block* b)
     : Has_Block(p, l, b), variable(var), list(lst)
     { }
+    ATTACH_OPERATIONS();
   };
 
   ///////////////////////////////////////
@@ -231,6 +257,7 @@ namespace Sass {
     While(string p, size_t l, Value* pred, Block* b)
     : Has_Block(p, l, b), predicate(pred)
     { }
+    ATTACH_OPERATIONS();
   };
 
   ////////////////////////////////
@@ -242,6 +269,7 @@ namespace Sass {
     Extend(string p, size_t l, Selector* s)
     : Statement(p, l), selector(s)
     { }
+    ATTACH_OPERATIONS();
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -259,6 +287,7 @@ namespace Sass {
                string n, Parameters* params, Block* b)
     : Has_Block(p, l, b), name(n), parameters(params)
     { }
+    ATTACH_OPERATIONS();
   };
 
   //////////////////////////////////////
@@ -272,6 +301,7 @@ namespace Sass {
     Mixin_Call(string p, size_t l, string n, Arguments* args, Block* b = 0)
     : Has_Block(p, l, b), name(n), arguments(args)
     { }
+    ATTACH_OPERATIONS();
   };
 
   /////////////////////////////////////////////////////////////////////////////
@@ -287,7 +317,9 @@ namespace Sass {
     : AST_Node(p, l), delayed(false), parenthesized(false)
     { }
     virtual ~Value() = 0;
+    virtual string type() { return ""; /* TODO: raise an error */ }
   };
+  inline Value::~Value() { }
 
   ///////////////////////////////////////////////////////////////////////
   // Lists of values, both comma- and space-separated (distinguished by a
@@ -320,6 +352,8 @@ namespace Sass {
         values.push_back((*l)[i]);
       return *this;
     }
+    string type() { return is_arglist ? "arglist" : "list"; }
+    ATTACH_OPERATIONS();
   };
 
   /////////////////////////////////////////////////////////////////////////////
@@ -332,7 +366,7 @@ namespace Sass {
     EQ, NEQ, GT, GTE, LT, LTE, // arithmetic relations
     ADD, SUB, MUL, DIV         // arithmetic functions
   };
-  template<Binary_Operator op>
+  template<Binary_Operator oper>
   struct Binary_Expression : public Value {
     Value* left;
     Value* right;
@@ -340,6 +374,7 @@ namespace Sass {
     Binary_Expression(string p, size_t l, Value* lhs, Value* rhs)
     : Value(p, l), left(lhs), right(rhs)
     { }
+    ATTACH_OPERATIONS();
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -350,6 +385,7 @@ namespace Sass {
     Negation(string p, size_t l, Value* o)
     : Value(p, l), operand(o)
     { }
+    ATTACH_OPERATIONS();
   };
 
   //////////////////
@@ -362,6 +398,7 @@ namespace Sass {
     Function_Call(string p, size_t l, String* n, Arguments* args)
     : Value(p, l), name(n), arguments(args)
     { }
+    ATTACH_OPERATIONS();
   };
 
   ///////////////////////
@@ -373,6 +410,7 @@ namespace Sass {
     Variable(string p, size_t l, string n)
     : Value(p, l), name(n)
     { }
+    ATTACH_OPERATIONS();
   };
 
   /////////////////////////////////////////////////////////////////////////////
@@ -387,29 +425,36 @@ namespace Sass {
     Textual(string p, size_t l, string val)
     : Value(p, l), value(val)
     { }
+    ATTACH_OPERATIONS();
   };
 
   ////////////////////////////////////////////////
   // Numbers, percentages, dimensions, and colors.
   ////////////////////////////////////////////////
-  struct Number : public Value {
+  struct Numeric : public Value {
     double value;
-    Number(string p, size_t l, double val) : Value(p, l), value(val) { }
+    Numeric(string p, size_t l, double val) : Value(p, l), value(val) { }
+    virtual ~Numeric() = 0;
+    string type() { return "number"; }
   };
-  struct Percentage : public Value {
-    double value;
-    Percentage(string p, size_t l, double val) : Value(p, l), value(val) { }
+  inline Numeric::~Numeric() { }
+  struct Number : public Numeric {
+    Number(string p, size_t l, double val) : Numeric(p, l, val) { }
+    ATTACH_OPERATIONS();
   };
-  struct Dimension : public Value {
-    double value;
+  struct Percentage : public Numeric {
+    Percentage(string p, size_t l, double val) : Numeric(p, l, val) { }
+    ATTACH_OPERATIONS();
+  };
+  struct Dimension : public Numeric {
     vector<string> numerator_units;
     vector<string> denominator_units;
     Dimension(string p, size_t l, double val, string unit)
-    : Value(p, l),
-      value(val),
+    : Numeric(p, l, val),
       numerator_units(vector<string>()),
       denominator_units(vector<string>())
     { numerator_units.push_back(unit); }
+    ATTACH_OPERATIONS();
   };
 
   //////////
@@ -420,6 +465,8 @@ namespace Sass {
     Color(string p, size_t l, double r, double g, double b, double a = 1)
     : Value(p, l), r(r), g(g), b(b), a(a)
     { }
+    string type() { return "color"; }
+    ATTACH_OPERATIONS();
   };
 
   ////////////
@@ -428,6 +475,8 @@ namespace Sass {
   struct Boolean : public Value {
     bool value;
     Boolean(string p, size_t l, bool val) : Value(p, l), value(val) { }
+    string type() { return "bool"; }
+    ATTACH_OPERATIONS();
   };
 
   ////////////////////////////////////////////////////////////////////////
@@ -458,6 +507,8 @@ namespace Sass {
         fragments.push_back((*s)[i]);
       return *this;
     }
+    string type() { return "string"; }
+    ATTACH_OPERATIONS();
   };
 
   ///////////////////////////////////////////////////////
@@ -470,6 +521,8 @@ namespace Sass {
     Token(string p, size_t l, const char* beg, const char* end)
     : Value(p, l), value(string(beg, end-beg))
     { }
+    string type() { return "string"; }
+    ATTACH_OPERATIONS();
   };
 
   /////////////////////////////////////////////////////////
@@ -484,6 +537,7 @@ namespace Sass {
               string n, Value* def = 0, bool rest = false)
     : AST_Node(p, l), name(n), default_value(def), is_rest_parameter(rest)
     { /* TO-DO: error if default_value && is_packed */ }
+    ATTACH_OPERATIONS();
   };
 
   /////////////////////////////////////////////////////////////////////////
@@ -526,6 +580,7 @@ namespace Sass {
       list.push_back(p);
       return *this;
     }
+    ATTACH_OPERATIONS();
   };
 
   ////////////////////////////////////////////////////////////
@@ -539,6 +594,7 @@ namespace Sass {
     Argument(string p, size_t l, Value* val, string n = "", bool rest = false)
     : AST_Node(p, l), value(val), name(n), is_rest_argument(rest)
     { if (name != "" && is_rest_argument) { /* error */ } }
+    ATTACH_OPERATIONS();
   };
 
   ////////////////////////////////////////////////////////////////////////
@@ -581,6 +637,7 @@ namespace Sass {
       list.push_back(a);
       return *this;
     }
+    ATTACH_OPERATIONS();
   };
 
   /////////////////////////////////////////
@@ -590,6 +647,7 @@ namespace Sass {
     Selector(string p, size_t l) : AST_Node(p, l) { }
     virtual ~Selector() = 0;
   };
+  inline Selector::~Selector() { }
 
   /////////////////////////////////////////////////////////////////////////
   // Interpolated selectors -- the interpolated String will be expanded and
@@ -601,6 +659,7 @@ namespace Sass {
     Interpolated(string p, size_t l, String* cont)
     : Selector(p, l), selector(cont)
     { }
+    ATTACH_OPERATIONS();
   };
 
   ////////////////////////////////////////////
@@ -608,7 +667,9 @@ namespace Sass {
   ////////////////////////////////////////////
   struct Simple_Base : public Selector {
     Simple_Base(string p, size_t l) : Selector(p, l) { }
+    virtual ~Simple_Base() = 0;
   };
+  inline Simple_Base::~Simple_Base() { }
 
   //////////////////////////////////////////////////////////////////////
   // Normal simple selectors (e.g., "div", ".foo", ":first-child", etc).
@@ -619,6 +680,7 @@ namespace Sass {
     Simple(string p, size_t l, string cont)
     : Simple_Base(p, l), selector(cont)
     { }
+    ATTACH_OPERATIONS();
   };
 
   /////////////////////////////////////
@@ -626,6 +688,7 @@ namespace Sass {
   /////////////////////////////////////
   struct Reference : Simple_Base {
     Reference(string p, size_t l) : Simple_Base(p, l) { }
+    ATTACH_OPERATIONS();
   };
 
   /////////////////////////////////////////////////////////////////////////
@@ -633,6 +696,7 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
   struct Placeholder : Simple_Base {
     Placeholder(string p, size_t l) : Simple_Base(p, l) { }
+    ATTACH_OPERATIONS();
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -673,6 +737,7 @@ namespace Sass {
       for (size_t i = 0, L = seq->length(); i < L; ++i) *this << (*seq)[i];
       return *this;
     }
+    ATTACH_OPERATIONS();
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -699,6 +764,7 @@ namespace Sass {
       has_placeholder(ctx && ctx->has_placeholder ||
                       sel && sel->has_placeholder)
     { }
+    ATTACH_OPERATIONS();
   };
 
   ///////////////////////////////////
@@ -732,5 +798,6 @@ namespace Sass {
       for (size_t i = 0, L = g->length(); i < L; ++i) *this << (*g)[i];
       return *this;
     }
+    ATTACH_OPERATIONS();
   };
 }
