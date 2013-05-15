@@ -23,7 +23,10 @@ namespace Sass {
   // rewritten and macro-expanded.
   /////////////////////////////////////////////////////////////////////////
   struct Statement : public AST_Node {
-    Statement(string p, size_t l) : AST_Node(p, l) { }
+    // needed for rearranging nested rulesets during CSS emission
+    bool is_unnestable;
+    Statement(string p, size_t l)
+    : AST_Node(p, l), is_unnestable(false) { }
     virtual ~Statement() = 0;
   };
 
@@ -49,7 +52,7 @@ namespace Sass {
     }
     Block& operator+=(Block* b)
     {
-      for (size_t i = 0, L = length(); i < L; ++i)
+      for (size_t i = 0, L = b->length(); i < L; ++i)
         statements.push_back((*b)[i]);
       return *this;
     }
@@ -76,7 +79,7 @@ namespace Sass {
 
     Ruleset(string p, size_t l, Selector* s, Block* b)
     : Has_Block(p, l, b), selector(s)
-    { }
+    { is_unnestable = true; }
   };
 
   /////////////////////////////////////////////////////////
@@ -103,10 +106,19 @@ namespace Sass {
     { }
   };
 
-  /////////////////////////////////////////////////////////////////////
-  // At-rules -- arbitrary directives with an optional statement block.
-  /////////////////////////////////////////////////////////////////////
-  // TBD
+  /////////////////////////////////////////////////////////////////////////////
+  // Directives -- arbitrary rules beginning with "@" that may have an optional
+  // statement block.
+  /////////////////////////////////////////////////////////////////////////////
+  struct Directive : public Has_Block {
+    string    keyword;
+    Selector* selector;
+
+    Directive(string p, size_t l,
+              string kwd, Selector* sel, Block* b)
+    : Has_Block(p, l, b), keyword(kwd), selector(sel)
+    { }
+  };
 
   ////////////////////////////////////////////////////////////////////////
   // Declarations -- style rules consisting of a property name and values.
@@ -304,7 +316,7 @@ namespace Sass {
     }
     List& operator+=(List* l)
     {
-      for (size_t i = 0, L = length(); i < L; ++i)
+      for (size_t i = 0, L = l->length(); i < L; ++i)
         values.push_back((*l)[i]);
       return *this;
     }
@@ -363,16 +375,17 @@ namespace Sass {
     { }
   };
 
-  ///////////////////////////////////////////////////////////////////////////
-  // Textual (i.e., unevaluated) numeric data. Distinguished with a type-tag.
-  ///////////////////////////////////////////////////////////////////////////
-  struct Textual_Numeric : public Value {
-    enum Type { number, percentage, dimension, hex };
+  /////////////////////////////////////////////////////////////////////////////
+  // Textual (i.e., unevaluated) numeric data. Templated to avoid type-tags and
+  // repetitive subclassing.
+  /////////////////////////////////////////////////////////////////////////////
+  enum Textual_Type { NUMBER, PERCENTAGE, DIMENSION, HEX };
+  template <Textual_Type t>
+  struct Textual : public Value {
     string value;
-    Type type;
 
-    Textual_Numeric(string p, size_t l, Type t, string val)
-    : Value(p, l), value(val), type(t)
+    Textual(string p, size_t l, string val)
+    : Value(p, l), value(val)
     { }
   };
 
@@ -441,7 +454,7 @@ namespace Sass {
     }
     String& operator+=(String* s)
     {
-      for (size_t i = 0, L = length(); i < L; ++i)
+      for (size_t i = 0, L = s->length(); i < L; ++i)
         fragments.push_back((*s)[i]);
       return *this;
     }
@@ -657,7 +670,7 @@ namespace Sass {
     }
     Sequence& operator+=(Sequence* seq)
     {
-      for (size_t i = 0, L = length(); i < L; ++i) (*this) << ((*seq)[i]);
+      for (size_t i = 0, L = seq->length(); i < L; ++i) *this << (*seq)[i];
       return *this;
     }
   };
@@ -688,19 +701,6 @@ namespace Sass {
     { }
   };
 
-  // Probably gonna' have to scrap these, since everything else is geared
-  // towards pointer semantics.
-  Combination operator>(Combination c, Sequence s)
-  { return Combination(c.path, c.line, Combination::PARENT_OF, &c, &s); }
-  // No such thing as `operator[whitespace]`, so `>>` seems reasonable.
-  Combination operator>>(Combination c, Sequence s)
-  { return Combination(c.path, c.line, Combination::ANCESTOR_OF, &c, &s); }
-  // Can't use `operator~` because it's unary!
-  Combination operator*(Combination c, Sequence s)
-  { return Combination(c.path, c.line, Combination::PRECEDES, &c, &s); }
-  Combination operator+(Combination c, Sequence s)
-  { return Combination(c.path, c.line, Combination::ADJACENT_TO, &c, &s); }
-
   ///////////////////////////////////
   // Comma-separated selector groups.
   ///////////////////////////////////
@@ -708,7 +708,29 @@ namespace Sass {
     vector<Combination*> selectors;
     bool                 has_reference;
     bool                 has_placeholder;
+
+    Group(string p, size_t l, size_t s = 0)
+    : Selector(p, l),
+      selectors(vector<Combination*>()),
+      has_reference(false),
+      has_placeholder(false)
+    { selectors.reserve(s); }
+
+    size_t length()
+    { return selectors.size(); }
+    Combination*& operator[](size_t i)
+    { return selectors[i]; }
+    Group& operator<<(Combination* c)
+    {
+      selectors.push_back(c);
+      has_reference   |= c->has_reference;
+      has_placeholder |= c->has_placeholder;
+      return *this;
+    }
+    Group& operator+=(Group* g)
+    {
+      for (size_t i = 0, L = g->length(); i < L; ++i) *this << (*g)[i];
+      return *this;
+    }
   };
-
-
 }
