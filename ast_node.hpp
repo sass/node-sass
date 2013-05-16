@@ -1,604 +1,856 @@
-#define SASS_AST_NODE
+#define SASS_AST
+
+#define ATTACH_OPERATION(type) \
+virtual type perform(Operation<type>* op) { return (*op)(this); }
+
+#define ADD_PROPERTY(type, name)\
+private:\
+  type name##_;\
+public:\
+  type name() const        { return name##_; }\
+  type name(type name##__) { return name##_ = name##__; }\
+private:
 
 #include <string>
+#include <sstream>
 #include <vector>
+
+#ifndef SASS_OPERATION
+#include "operation.hpp"
+#endif
 
 namespace Sass {
   using namespace std;
 
-
   //////////////////////////////////////////////////////////
   // Abstract base class for all abstract syntax tree nodes.
   //////////////////////////////////////////////////////////
-  class AST_Node {
+  struct AST_Node {
+    string path;
+    size_t line;
 
-    string path_;
-    size_t line_;
-
-  public:
-
-    AST_Node(string p, size_t l) : path_(p), line_(l) { }
+    AST_Node(string p, size_t l) : path(p), line(l) { }
     virtual ~AST_Node() = 0;
-
-    // accessors
-    string path() const { return path_; }
-    size_t line() const { return line_; }
-
-    // mutators
-    string path(string p) { path_ = p; return path_; }
-    size_t line(size_t l) { line_ = l; return line_; }
-
-    // for visitor objects
-    // virtual void accept(Visitor* v) { v(this); }
-
+    ATTACH_OPERATIONS();
   };
-
+  inline AST_Node::~AST_Node() { }
 
   /////////////////////////////////////////////////////////////////////////
   // Abstract base class for statements. This side of the AST hierarchy
   // represents elements in expansion contexts, which exist primarily to be
   // rewritten and macro-expanded.
   /////////////////////////////////////////////////////////////////////////
-  class Statement : public AST_Node {
-
-  public:
-
-    Statement(string p, size_t l) : AST_Node(p, l) { }
+  struct Statement : public AST_Node {
+    Statement(string p, size_t l)
+    : AST_Node(p, l) { }
     virtual ~Statement() = 0;
-
+    // needed for rearranging nested rulesets during CSS emission
+    virtual bool hoistable() { return false; }
   };
-
+  inline Statement::~Statement() { }
 
   ////////////////////////
   // Blocks of statements.
   ////////////////////////
-  class Block : public Statement {
+  struct Block : public Statement {
+    vector<Statement*> statements;
+    bool               is_root;
+    // needed for properly formatted CSS emission
+    bool               has_hoistable;
+    bool               has_non_hoistable;
 
-    vector<Statement*> statements_;
-    bool               root_;
+    Block(string p, size_t l, size_t size = 0, bool root = false)
+    : Statement(p, l), statements(vector<Statement*>()), is_root(root)
+    { statements.reserve(size); }
 
-  public:
-
-    Block(string p, size_t l, size_t s = 0, bool r = false)
-    : Statement(p, l),
-      statements_(vector<Statement*>()),
-      root_(r)
-    { statements_.reserve(s); }
-
-    bool is_root() const { return root_; }
-    bool is_root(bool r) { return root_ = r; }
-
-    size_t size() const
-    { return statements_.size(); }
-
+    size_t length() const
+    { return statements.size(); }
     Statement*& operator[](size_t i)
-    { return statements_[i]; }
-
+    { return statements[i]; }
     Block& operator<<(Statement* s)
     {
-      statements_.push_back(s);
+      statements.push_back(s);
+      if (s->hoistable()) has_hoistable     = true;
+      else                has_non_hoistable = true;
       return *this;
     }
-
     Block& operator+=(Block* b)
     {
-      for (size_t i = 0, S = size(); i < S; ++i)
-        statements_.push_back((*b)[i]);
+      for (size_t i = 0, L = b->length(); i < L; ++i) *this << (*b)[i];
       return *this;
     }
-
+    ATTACH_OPERATIONS();
   };
-
 
   ////////////////////////////////////////////////////////////////////////
   // Abstract base class for statements that contain blocks of statements.
   ////////////////////////////////////////////////////////////////////////
-  class Has_Block : public Statement {
-    Block* block_;
-  public:
+  struct Has_Block : public Statement {
+    Block* block;
     Has_Block(string p, size_t l, Block* b)
-    : Statement(p, l),
-      block_(b)
+    : Statement(p, l), block(b)
     { }
     virtual ~Has_Block() = 0;
-    Block* block() const   { return block_; }
-    Block* block(Block* b) { return block_ = b; }
   };
-
+  inline Has_Block::~Has_Block() { }
 
   /////////////////////////////////////////////////////////////////////////////
   // Rulesets (i.e., sets of styles headed by a selector and containing a block
   // of style declarations.
   /////////////////////////////////////////////////////////////////////////////
-  class Selector;
-  class Ruleset : public Has_Block {
-
-    Selector* selector_;
-
-  public:
+  struct Selector;
+  struct Ruleset : public Has_Block {
+    Selector* selector;
 
     Ruleset(string p, size_t l, Selector* s, Block* b)
-    : Has_Block(p, l, b),
-      selector_(s)
+    : Has_Block(p, l, b), selector(s)
     { }
-
-    Selector* selector() const      { return selector_; }
-    Selector* selector(Selector* s) { return selector_ = s; }
-
+    // nested rulesets need to be hoisted out of their enclosing blocks
+    bool hoistable() { return true; }
+    ATTACH_OPERATIONS();
   };
-
 
   /////////////////////////////////////////////////////////
   // Nested declaration sets (i.e., namespaced properties).
   /////////////////////////////////////////////////////////
-  class String;
-  class Propset : public Has_Block {
-
-    String* property_fragment_;
-
-  public:
+  struct String;
+  struct Propset : public Has_Block {
+    String* property_fragment;
 
     Propset(string p, size_t l, String* pf, Block* b)
-    : Has_Block(p, l, b),
-      property_fragment_(pf)
+    : Has_Block(p, l, b), property_fragment(pf)
     { }
-
-    String* property_fragment() const    { return property_fragment_; }
-    String* property_fragment(String* p) { return property_fragment_ = p; }
-
+    ATTACH_OPERATIONS();
   };
-
 
   /////////////////
   // Media queries.
   /////////////////
-  class Value;
-  class Media_Query : public Has_Block {
+  struct List;
+  struct Media_Query : public Has_Block {
+    List* query_list;
 
-    Value* query_;
-
-  public:
-
-    Media_Query(string p, size_t l, Value* q, Block* b)
-    : Has_Block(p, l, b),
-      query_(q)
+    Media_Query(string p, size_t l, List* q, Block* b)
+    : Has_Block(p, l, b), query_list(q)
     { }
-
-    Value* query() const   { return query_; }
-    Value* query(Value* q) { return query_ = q; }
-
+    ATTACH_OPERATIONS();
   };
 
+  /////////////////////////////////////////////////////////////////////////////
+  // Directives -- arbitrary rules beginning with "@" that may have an optional
+  // statement block.
+  /////////////////////////////////////////////////////////////////////////////
+  struct Directive : public Has_Block {
+    string    keyword;
+    Selector* selector;
 
-  /////////////////////////////////////////////////////////////////////
-  // At-rules -- arbitrary directives with an optional statement block.
-  /////////////////////////////////////////////////////////////////////
-  class At_Rule : public Ruleset {
-
-    String* keyword_;
-
-  public:
-
-    At_Rule(string p, size_t l, String* k, Selector* s, Block* b)
-    : Ruleset(p, l, s, b),
-      keyword_(k)
+    Directive(string p, size_t l,
+              string kwd, Selector* sel, Block* b)
+    : Has_Block(p, l, b), keyword(kwd), selector(sel)
     { }
-
-    String* keyword() const    { return keyword_; }
-    String* keyword(String* k) { return keyword_ = k; }
-
+    ATTACH_OPERATIONS();
   };
-
 
   ////////////////////////////////////////////////////////////////////////
   // Declarations -- style rules consisting of a property name and values.
   ////////////////////////////////////////////////////////////////////////
-  class List;
-  class Declaration : public Statement {
+  struct Declaration : public Statement {
+    String* property;
+    List*   values;
 
-    String* property_;
-    List*   values_;
-
-  public:
-
-    Declaration(string p, size_t l, String* prop, List* list)
-    : Statement(p, l),
-      property_(prop),
-      values_(list)
+    Declaration(string p, size_t l, String* prop, List* vals)
+    : Statement(p, l), property(prop), values(vals)
     { }
-
-    String* property() const { return property_; }
-    List*   values() const   { return values_; }
-
-    String* property(String* p) { return property_ = p; }
-    List*   values(List* l)     { return values_ = l; }
-
+    ATTACH_OPERATIONS();
   };
-
 
   /////////////////////////////////////
   // Assignments -- variable and value.
   /////////////////////////////////////
-  class Variable;
-  class Assignment : public Statement {
+  struct Variable;
+  struct Expression;
+  struct Assignment : public Statement {
+    string variable;
+    Expression* value;
+    bool   is_guarded;
 
-    Variable* variable_;
-    Value*    value_;
-    bool      guarded_;
-
-  public:
-
-    Assignment(string p, size_t l, Variable* var, Value* val, bool g)
-    : Statement(p, l),
-      variable_(var),
-      value_(val),
-      guarded_(g)
+    Assignment(string p, size_t l,
+               string var, Expression* val, bool guarded = false)
+    : Statement(p, l), variable(var), value(val), is_guarded(guarded)
     { }
-
-    Variable* variable() const   { return variable_; }
-    Value*    value() const      { return value_; }
-    bool      is_guarded() const { return guarded_; }
-
-    Variable* name(Variable* var) { return variable_ = var; }
-    Value*    value(Value* val)   { return value_ = val; }
-    bool      is_guarded(bool g)  { return guarded_ = g; }
-
+    ATTACH_OPERATIONS();
   };
 
+  /////////////////////////////////////////////////////////////////////////////
+  // CSS import directives. CSS url imports need to be distinguished from Sass
+  // file imports. T should be instantiated with Function_Call or String.
+  /////////////////////////////////////////////////////////////////////////////
+  template <typename T>
+  struct Import : public Statement {
+    T* location;
 
-  ////////////////////////
-  // CSS import directives
-  ////////////////////////
-  class Import : public Statement {
-
-    String* location_;
-
-  public:
-
-    Import(string p, size_t l, String* loc)
-    : Statement(p, l),
-      location_(loc)
+    Import(string p, size_t l, T* loc)
+    : Statement(p, l), location(loc)
     { }
-
-    String* location() const    { return location_; }
-    String* location(String* l) { return location_ = l; }
-
+    ATTACH_OPERATIONS();
   };
-
 
   //////////////////////////////
   // The Sass `@warn` directive.
   //////////////////////////////
-  class Warning : public Statement {
+  struct Warning : public Statement {
+    Expression* message;
 
-    String* message_;
-
-  public:
-
-    Warning(string p, size_t l, String* m)
-    : Statement(p, l),
-      message_(m)
+    Warning(string p, size_t l, Expression* msg)
+    : Statement(p, l), message(msg)
     { }
-
-    String* message() const    { return message_; }
-    String* message(String* m) { return message_ = m; }
-
+    ATTACH_OPERATIONS();
   };
-
 
   ///////////////////////////////////////////
   // CSS comments. These may be interpolated.
   ///////////////////////////////////////////
-  class Comment : public Statement {
+  struct Comment : public Statement {
+    String* text;
 
-    String* content_;
-
-  public:
-
-    Comment(string p, size_t l, String* c)
-    : Statement(p, l),
-      content_(c)
+    Comment(string p, size_t l, String* txt)
+    : Statement(p, l), text(txt)
     { }
-
-    String* content() const    { return content_; }
-    String* content(String* c) { return content_ = c; }
-
+    ATTACH_OPERATIONS();
   };
-
 
   ////////////////////////////////////
   // The Sass `@if` control directive.
   ////////////////////////////////////
-  class If : public Statement {
+  struct If : public Statement {
+    Expression* predicate;
+    Block* consequent;
+    Block* alternative;
 
-    Value* predicate_;
-    Block* consequent_;
-    Block* alternative_;
-
-  public:
-
-    If(string p, size_t l, Value* pred, Block* con, Block* alt = 0)
-    : Statement(p, l),
-      consequent_(con),
-      alternative_(alt)
+    If(string p, size_t l, Expression* pred, Block* con, Block* alt = 0)
+    : Statement(p, l), predicate(pred), consequent(con), alternative(alt)
     { }
-
-    Value* predicate() const   { return predicate_; }
-    Block* consequent() const  { return consequent_; }
-    Block* alternative() const { return alternative_; }
-
-    Value* predicate(Value* p)   { return predicate_ = p; }
-    Block* consequent(Block* c)  { return consequent_ = c; }
-    Block* alternative(Block* a) { return alternative_ = a; }
-
+    ATTACH_OPERATIONS();
   };
-
 
   /////////////////////////////////////
   // The Sass `@for` control directive.
   /////////////////////////////////////
-  class For : public Has_Block {
+  struct For : public Has_Block {
+    string variable;
+    Expression* lower_bound;
+    Expression* upper_bound;
+    bool   is_inclusive;
 
-    Variable* variable_;
-    Value* lower_bound_;
-    Value* upper_bound_;
-    bool inclusive_;
-
-  public:
-
-    For(string p,
-        size_t l,
-        Variable* v,
-        Value* lo,
-        Value* hi,
-        Block* b,
-        bool i)
+    For(string p, size_t l,
+        string var, Expression* lo, Expression* hi, Block* b, bool inc)
     : Has_Block(p, l, b),
-      variable_(v),
-      lower_bound_(lo),
-      upper_bound_(hi),
-      inclusive_(i)
+      variable(var), lower_bound(lo), upper_bound(hi), is_inclusive(inc)
     { }
-
-    Variable* variable() const    { return variable_; }
-    Value*    lower_bound() const { return lower_bound_; }
-    Value*    upper_bound() const { return upper_bound_; }
-    bool      inclusive() const   { return inclusive_; }
-
-    Variable* variable(Variable* v)   { return variable_ = v; }
-    Value*    lower_bound(Value* lo) { return lower_bound_ = lo; }
-    Value*    upper_bound(Value* hi) { return upper_bound_ = hi; }
-    bool      inclusive(bool i)      { return inclusive_ = i; }
-
+    ATTACH_OPERATIONS();
   };
-
 
   //////////////////////////////////////
   // The Sass `@each` control directive.
   //////////////////////////////////////
-  class Each : public Has_Block {
+  struct Each : public Has_Block {
+    string variable;
+    Expression* list;
 
-    Variable* variable_;
-    Value*    list_;
-
-  public:
-
-    Each(string p, size_t l, Variable* v, Value* list, Block* b)
-    : Has_Block(p, l, b),
-      variable_(v),
-      list_(list)
+    Each(string p, size_t l, string var, Expression* lst, Block* b)
+    : Has_Block(p, l, b), variable(var), list(lst)
     { }
-
-    Variable* variable() const { return variable_; }
-    Value*    list() const     { return list_; }
-
-    Variable* variable(Variable* v) { return variable_ = v; }
-    Value*    list(Value* l)        { return list_ = l; }
-
+    ATTACH_OPERATIONS();
   };
-
 
   ///////////////////////////////////////
   // The Sass `@while` control directive.
   ///////////////////////////////////////
-  class While : public Has_Block {
+  struct While : public Has_Block {
+    Expression* predicate;
 
-    Value* predicate_;
-
-  public:
-
-    While(string p, size_t l, Value* pred, Block* b)
-    : Has_Block(p, l, b),
-      predicate_(pred)
+    While(string p, size_t l, Expression* pred, Block* b)
+    : Has_Block(p, l, b), predicate(pred)
     { }
-
-    Value* predicate() const   { return predicate_; }
-    Value* predicate(Value* p) { return predicate_ = p; }
-
+    ATTACH_OPERATIONS();
   };
-
 
   ////////////////////////////////
   // The Sass `@extend` directive.
   ////////////////////////////////
-  class Extend : public Statement {
-
-    Selector* selector_;
-
-  public:
+  struct Extend : public Statement {
+    Selector* selector;
 
     Extend(string p, size_t l, Selector* s)
-    : Statement(p, l),
-      selector_(s)
+    : Statement(p, l), selector(s)
     { }
-
-    Selector* selector() const      { return selector_; }
-    Selector* selector(Selector* s) { return selector_ = s; }
-
+    ATTACH_OPERATIONS();
   };
 
+  ////////////////////////////////////////////////////////////////////////////
+  // Definitions for both mixins and functions. Templatized to avoid type-tags
+  // and unnecessary subclassing.
+  ////////////////////////////////////////////////////////////////////////////
+  struct Parameters;
+  enum Definition_Type { MIXIN, FUNCTION };
+  template <Definition_Type t>
+  struct Definition : public Has_Block {
+    string      name;
+    Parameters* parameters;
 
-  ///////////////////////////////////////////////////////////////////////
-  // Definitions for both mixins and functions (distinguished by a flag).
-  ///////////////////////////////////////////////////////////////////////
-  class Parameters;
-  class Definition : public Has_Block {
-
-    String* name_;
-    Parameters* parameters_;
-    bool mixin_;
-
-  public:
-
-    Definition(string p,
-               size_t l,
-               String* n,
-               Parameters* parms,
-               Block* b,
-               bool m)
-    : Has_Block(p, l, b),
-      name_(n),
-      parameters_(parms),
-      mixin_(m)
+    Definition(string p, size_t l,
+               string n, Parameters* params, Block* b)
+    : Has_Block(p, l, b), name(n), parameters(params)
     { }
-
-    String*     name() const       { return name_; }
-    Parameters* parameters() const { return parameters_; }
-    bool        is_mixin() const   { return mixin_; }
-
-    String*     name(String* n)           { return name_ = n; }
-    Parameters* parameters(Parameters* p) { return parameters_ = p; }
-    bool        is_mixin(bool m)          { return mixin_ = m; }
-
+    ATTACH_OPERATIONS();
   };
-
 
   //////////////////////////////////////
   // Mixin calls (i.e., `@include ...`).
   //////////////////////////////////////
-  class Arguments;
-  class Mixin_Call : public Has_Block {
+  struct Arguments;
+  struct Mixin_Call : public Has_Block {
+    string name;
+    Arguments* arguments;
 
-    String* name_;
-    Arguments* arguments_;
-
-  public:
-
-    Mixin_Call(string p, size_t l, String* n, Arguments* a, Block* b)
-    : Has_Block(p, l, b),
-      name_(n),
-      arguments_(a)
+    Mixin_Call(string p, size_t l, string n, Arguments* args, Block* b = 0)
+    : Has_Block(p, l, b), name(n), arguments(args)
     { }
-
-    String*    name() const      { return name_; }
-    Arguments* arguments() const { return arguments_; }
-
-    String*    name(String* n)         { return name_ = n; }
-    Arguments* arguments(Arguments* p) { return arguments_ = p; }
-
+    ATTACH_OPERATIONS();
   };
 
+  //////////////////////////////////////////////////////////////////////
+  // Abstract base class for expressions. This side of the AST hierarchy
+  // represents elements in value contexts, which exist primarily to be
+  // evaluated and returned.
+  //////////////////////////////////////////////////////////////////////
+  struct Expression : public AST_Node {
+    bool delayed;       // expressions in some contexts shouldn't be evaluated
+    bool parenthesized; // for media features, if I recall
 
-  /////////////////////////////////////////////////////////////////////////////
-  // Abstract base class for values. This side of the AST hierarchy represents
-  // elements in evaluation contexts, which exist primarily to be evaluated and
-  // returned.
-  /////////////////////////////////////////////////////////////////////////////
-  class Value : public AST_Node {
-    bool delayed_;
-    bool parenthesized_;
-  public:
-    Value(string p, size_t l) : AST_Node(p, l)
-    {
-      delayed_ = false;
-      parenthesized_ = false;
-    }
-    virtual ~Value() = 0;
+    Expression(string p, size_t l)
+    : AST_Node(p, l), delayed(false), parenthesized(false)
+    { }
+    virtual ~Expression() = 0;
+    virtual string type() { return ""; /* TODO: raise an error */ }
   };
-
+  inline Expression::~Expression() { }
 
   ///////////////////////////////////////////////////////////////////////
   // Lists of values, both comma- and space-separated (distinguished by a
-  // flag.) Also used to represent variable-length argument lists.
+  // type-tag.) Also used to represent variable-length argument lists.
   ///////////////////////////////////////////////////////////////////////
-  class List : public Value {
+  struct List : public Expression {
+    enum Separator { space, comma };
+    vector<Expression*> values;
+    Separator           separator;
+    bool                is_arglist;
 
-    vector<Value*> values_;
-    bool           comma_separated_;
-    bool           arglist_;
+    List(string p, size_t l,
+         size_t size = 0, Separator sep = space, bool argl = false)
+    : Expression(p, l),
+      values(vector<Expression*>()), separator(sep), is_arglist(argl)
+    { values.reserve(size); }
 
-  public:
-
-    List(string p, size_t l, size_t s = 0, bool c = false, bool a = false)
-    : Value(p, l),
-      values_(vector<Value*>()),
-      comma_separated_(c),
-      arglist_(a)
-    { values_.reserve(s); }
-
-    bool is_comma_separated() const { return comma_separated_; }
-    bool is_arglist() const         { return arglist_; }
-
-    bool is_comma_separated(bool c) { return comma_separated_ = c; }
-    bool is_arglist(bool a)         { return arglist_ = a; }
-
-    size_t size() const
-    { return values_.size(); }
-
-    Value*& operator[](size_t i)
-    { return values_[i]; }
-
-    List& operator<<(Value* v)
+    size_t length() const
+    { return values.size(); }
+    Expression*& operator[](size_t i)
+    { return values[i]; }
+    List& operator<<(Expression* v)
     {
-      values_.push_back(v);
+      values.push_back(v);
       return *this;
     }
-
     List& operator+=(List* l)
     {
-      for (size_t i = 0, S = size(); i < S; ++i)
-        values_.push_back((*l)[i]);
+      for (size_t i = 0, L = l->length(); i < L; ++i)
+        values.push_back((*l)[i]);
       return *this;
     }
-
+    string type() { return is_arglist ? "arglist" : "list"; }
+    ATTACH_OPERATIONS();
   };
 
+  //////////////////////////////////////////////////////////////////////////
+  // Binary expressions. Represents logical, relational, and arithmetic
+  // operations. Templatized to avoid large switch statements and repetitive
+  // subclassing.
+  //////////////////////////////////////////////////////////////////////////
+  enum Binary_Operator {
+    AND, OR,                   // logical connectives
+    EQ, NEQ, GT, GTE, LT, LTE, // arithmetic relations
+    ADD, SUB, MUL, DIV         // arithmetic functions
+  };
+  template<Binary_Operator oper>
+  struct Binary_Expression : public Expression {
+    Expression* left;
+    Expression* right;
+
+    Binary_Expression(string p, size_t l, Expression* lhs, Expression* rhs)
+    : Expression(p, l), left(lhs), right(rhs)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Arithmetic negation (logical negation is just an ordinary function call).
+  ////////////////////////////////////////////////////////////////////////////
+  struct Negation : public Expression {
+    Expression* operand;
+    Negation(string p, size_t l, Expression* o)
+    : Expression(p, l), operand(o)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
+  //////////////////
+  // Function calls.
+  //////////////////
+  struct Function_Call : public Expression {
+    String*    name;
+    Arguments* arguments;
+
+    Function_Call(string p, size_t l, String* n, Arguments* args)
+    : Expression(p, l), name(n), arguments(args)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
+  ///////////////////////
+  // Variable references.
+  ///////////////////////
+  struct Variable : public Expression {
+    string name;
+
+    Variable(string p, size_t l, string n)
+    : Expression(p, l), name(n)
+    { }
+    ATTACH_OPERATIONS();
+  };
 
   /////////////////////////////////////////////////////////////////////////////
-  // Abstract base class for binary operations. Represents logical, relational,
-  // and arithmetic operations.
+  // Textual (i.e., unevaluated) numeric data. Templated to avoid type-tags and
+  // repetitive subclassing.
   /////////////////////////////////////////////////////////////////////////////
-  class Binary_Operation : public Value {
+  enum Textual_Type { NUMBER, PERCENTAGE, DIMENSION, HEX };
+  template <Textual_Type t>
+  struct Textual : public Expression {
+    string value;
 
-    Value* left_;
-    Value* right_;
-
-  public:
-
-    Binary_Operation(string p, size_t l, Value* lhs, Value* rhs)
-    : Value(p, l),
-      left_(lhs),
-      right_(rhs)
+    Textual(string p, size_t l, string val)
+    : Expression(p, l), value(val)
     { }
-
-    virtual ~Binary_Operation() = 0;
-
-    Value* left() const  { return left_; }
-    Value* right() const { return right_; }
-
-    Value* left(Value* lhs)  { return left_ = lhs; }
-    Value* right(Value* rhs) { return right_ = rhs; }
-
+    ATTACH_OPERATIONS();
   };
 
-  class Logical_Expression : Binary_Operation {
-    enum Connective { CONJUNCTION, DISJUNCTION };
-    Connective connective_;
-  public:
-    Logical_Expression(string p, size_t l, Connective c, Value* lhs, Value* rhs)
-    : Binary_Operation(p, l, lhs, rhs), connective_(c)
-    { }
-
+  ////////////////////////////////////////////////
+  // Numbers, percentages, dimensions, and colors.
+  ////////////////////////////////////////////////
+  struct Numeric : public Expression {
+    double value;
+    Numeric(string p, size_t l, double val) : Expression(p, l), value(val) { }
+    virtual ~Numeric() = 0;
+    string type() { return "number"; }
+  };
+  inline Numeric::~Numeric() { }
+  struct Number : public Numeric {
+    Number(string p, size_t l, double val) : Numeric(p, l, val) { }
+    ATTACH_OPERATIONS();
+  };
+  struct Percentage : public Numeric {
+    Percentage(string p, size_t l, double val) : Numeric(p, l, val) { }
+    ATTACH_OPERATIONS();
+  };
+  struct Dimension : public Numeric {
+    vector<string> numerator_units;
+    vector<string> denominator_units;
+    Dimension(string p, size_t l, double val, string unit)
+    : Numeric(p, l, val),
+      numerator_units(vector<string>()),
+      denominator_units(vector<string>())
+    { numerator_units.push_back(unit); }
+    ATTACH_OPERATIONS();
   };
 
+  //////////
+  // Colors.
+  //////////
+  struct Color : public Expression {
+    double r, g, b, a;
+    Color(string p, size_t l, double r, double g, double b, double a = 1)
+    : Expression(p, l), r(r), g(g), b(b), a(a)
+    { }
+    string type() { return "color"; }
+    ATTACH_OPERATIONS();
+  };
+
+  ////////////
+  // Booleans.
+  ////////////
+  struct Boolean : public Expression {
+    bool value;
+    Boolean(string p, size_t l, bool val) : Expression(p, l), value(val) { }
+    string type() { return "bool"; }
+    ATTACH_OPERATIONS();
+  };
+
+  ////////////////////////////////////////////////////////////////////////
+  // Abstract base class for Sass string values. Includes interpolated and
+  // "flat" strings.
+  ////////////////////////////////////////////////////////////////////////
+  struct String : public Expression {
+    String(string p, size_t l) : Expression(p, l) { }
+    virtual ~String() = 0;
+  };
+  inline String::~String() { };
+
+  ///////////////////////////////////////////////////////////////////////
+  // Interpolated strings. Meant to be reduced to flat strings during the
+  // evaluation phase.
+  ///////////////////////////////////////////////////////////////////////
+  struct Interpolation : public String {
+    vector<Expression*> fragments;
+
+    Interpolation(string p, size_t l, size_t size = 0)
+    : String(p, l), fragments(vector<Expression*>())
+    { fragments.reserve(size); }
+
+    size_t length() const
+    { return fragments.size(); }
+    Expression*& operator[](size_t i)
+    { return fragments[i]; }
+    Interpolation& operator<<(Expression* v)
+    {
+      fragments.push_back(v);
+      return *this;
+    }
+    Interpolation& operator+=(Interpolation* s)
+    {
+      for (size_t i = 0, L = s->length(); i < L; ++i)
+        fragments.push_back((*s)[i]);
+      return *this;
+    }
+    string type() { return "string"; }
+    ATTACH_OPERATIONS();
+  };
+
+  ////////////////////////////////////////////////////////
+  // Flat strings -- the lowest level of raw textual data.
+  ////////////////////////////////////////////////////////
+  struct Flat_String : public String {
+    string value;
+
+    Flat_String(string p, size_t l, string val)
+    : String(p, l), value(val)
+    { }
+    Flat_String(string p, size_t l, const char* beg)
+    : String(p, l), value(string(beg))
+    { }
+    Flat_String(string p, size_t l, const char* beg, const char* end)
+    : String(p, l), value(string(beg, end-beg))
+    { }
+    string type() { return "string"; }
+    ATTACH_OPERATIONS();
+  };
+
+  /////////////////////////////////////////////////////////
+  // Individual parameter objects for mixins and functions.
+  /////////////////////////////////////////////////////////
+  struct Parameter : public AST_Node {
+    string name;
+    Expression* default_value;
+    bool is_rest_parameter;
+
+    Parameter(string p, size_t l,
+              string n, Expression* def = 0, bool rest = false)
+    : AST_Node(p, l), name(n), default_value(def), is_rest_parameter(rest)
+    { /* TO-DO: error if default_value && is_packed */ }
+    ATTACH_OPERATIONS();
+  };
+
+  /////////////////////////////////////////////////////////////////////////
+  // Parameter lists -- in their own class to facilitate context-sensitive
+  // error checking (e.g., ensuring that all optional parameters follow all
+  // required parameters).
+  /////////////////////////////////////////////////////////////////////////
+  struct Parameters : public AST_Node {
+    vector<Parameter*> list;
+    bool has_optional_parameters, has_rest_parameter;
+
+    Parameters(string p, size_t l)
+    : AST_Node(p, l),
+      has_optional_parameters(false), has_rest_parameter(false)
+    { }
+
+    size_t length() { return list.size(); }
+    Parameter*& operator[](size_t i) { return list[i]; }
+
+    Parameters& operator<<(Parameter* p)
+    {
+      if (p->default_value) {
+        if (has_rest_parameter)
+          ; // error
+        has_optional_parameters = true;
+      }
+      else if (p->is_rest_parameter) {
+        if (has_rest_parameter)
+          ; // error
+        if (has_optional_parameters)
+          ; // different error
+        has_rest_parameter = true;
+      }
+      else {
+        if (has_rest_parameter)
+          ; // error
+        if (has_optional_parameters)
+          ; // different error
+      }
+      list.push_back(p);
+      return *this;
+    }
+    ATTACH_OPERATIONS();
+  };
+
+  ////////////////////////////////////////////////////////////
+  // Individual argument objects for mixin and function calls.
+  ////////////////////////////////////////////////////////////
+  struct Argument : public AST_Node {
+    Expression* value;
+    string name;
+    bool is_rest_argument;
+
+    Argument(string p, size_t l, Expression* val, string n = "", bool rest = false)
+    : AST_Node(p, l), value(val), name(n), is_rest_argument(rest)
+    { if (name != "" && is_rest_argument) { /* error */ } }
+    ATTACH_OPERATIONS();
+  };
+
+  ////////////////////////////////////////////////////////////////////////
+  // Argument lists -- in their own class to facilitate context-sensitive
+  // error checking (e.g., ensuring that all ordinal arguments precede all
+  // named arguments).
+  ////////////////////////////////////////////////////////////////////////
+  struct Arguments : public AST_Node {
+    vector<Argument*> list;
+    bool has_named_arguments, has_rest_argument;
+
+    Arguments(string p, size_t l)
+    : AST_Node(p, l),
+      has_named_arguments(false), has_rest_argument(false)
+    { }
+
+    size_t length() { return list.size(); }
+    Argument*& operator[](size_t i) { return list[i]; }
+
+    Arguments& operator<<(Argument* a)
+    {
+      if (!a->name.empty()) {
+        if (has_rest_argument)
+          ; // error
+        has_named_arguments = true;
+      }
+      else if (a->is_rest_argument) {
+        if (has_rest_argument)
+          ; // error
+        if (has_named_arguments)
+          ; // different error
+        has_rest_argument = true;
+      }
+      else {
+        if (has_rest_argument)
+          ; // error
+        if (has_named_arguments)
+          ; // error
+      }
+      list.push_back(a);
+      return *this;
+    }
+    ATTACH_OPERATIONS();
+  };
+
+  /////////////////////////////////////////
+  // Abstract base class for CSS selectors.
+  /////////////////////////////////////////
+  struct Selector : public AST_Node {
+    Selector(string p, size_t l) : AST_Node(p, l) { }
+    virtual ~Selector() = 0;
+  };
+  inline Selector::~Selector() { }
+
+  /////////////////////////////////////////////////////////////////////////
+  // Interpolated selectors -- the interpolated String will be expanded and
+  // re-parsed into a normal selector structure.
+  /////////////////////////////////////////////////////////////////////////
+  struct Interpolated : Selector {
+    String* selector;
+
+    Interpolated(string p, size_t l, String* cont)
+    : Selector(p, l), selector(cont)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
+  ////////////////////////////////////////////
+  // Abstract base class for atomic selectors.
+  ////////////////////////////////////////////
+  struct Simple_Base : public Selector {
+    Simple_Base(string p, size_t l) : Selector(p, l) { }
+    virtual ~Simple_Base() = 0;
+  };
+  inline Simple_Base::~Simple_Base() { }
+
+  //////////////////////////////////////////////////////////////////////
+  // Normal simple selectors (e.g., "div", ".foo", ":first-child", etc).
+  //////////////////////////////////////////////////////////////////////
+  struct Simple : public Simple_Base {
+    string selector;
+
+    Simple(string p, size_t l, string cont)
+    : Simple_Base(p, l), selector(cont)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
+  /////////////////////////////////////
+  // Parent references (i.e., the "&").
+  /////////////////////////////////////
+  struct Reference : public Simple_Base {
+    Reference(string p, size_t l) : Simple_Base(p, l) { }
+    ATTACH_OPERATIONS();
+  };
+
+  /////////////////////////////////////////////////////////////////////////
+  // Placeholder selectors (e.g., "%foo") for use in extend-only selectors.
+  /////////////////////////////////////////////////////////////////////////
+  struct Placeholder : public Simple_Base {
+    Placeholder(string p, size_t l) : Simple_Base(p, l) { }
+    ATTACH_OPERATIONS();
+  };
+
+  //////////////////////////////////////////////////////////////////
+  // Pseudo selectors -- e.g., :first-child, :nth-of-type(...), etc.
+  //////////////////////////////////////////////////////////////////
+  struct Pseudo : public Simple_Base {
+    string name;
+    Expression* expression;
+    Pseudo(string p, size_t l, string n, Expression* expr = 0)
+    : Simple_Base(p, l), name(n), expression(expr)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
+  /////////////////////////////////////////////////
+  // Negated selector -- e.g., :not(:first-of-type)
+  /////////////////////////////////////////////////
+  struct Negated : public Simple_Base {
+    Simple_Base* selector;
+    Negated(string p, size_t l, Simple_Base* sel)
+    : Simple_Base(p, l), selector(sel)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Simple selector sequences. Maintains flags indicating whether it contains
+  // any parent references or placeholders, to simplify expansion.
+  ////////////////////////////////////////////////////////////////////////////
+  struct Sequence : Selector {
+    vector<Simple_Base*> selectors;
+    bool                 has_reference;
+    bool                 has_placeholder;
+
+    Sequence(string p, size_t l, size_t s)
+    : Selector(p, l),
+      selectors(vector<Simple_Base*>()),
+      has_reference(false),
+      has_placeholder(false)
+    { selectors.reserve(s); }
+
+    size_t length()
+    { return selectors.size(); }
+    Simple_Base*& operator[](size_t i)
+    { return selectors[i]; }
+    Sequence& operator<<(Simple_Base* s)
+    {
+      selectors.push_back(s);
+      return *this;
+    }
+    Sequence& operator<<(Reference* s)
+    {
+      has_reference = true;
+      return (*this) << s;
+    }
+    Sequence& operator<<(Placeholder* p)
+    {
+      has_placeholder = true;
+      return (*this) << p;
+    }
+    Sequence& operator+=(Sequence* seq)
+    {
+      for (size_t i = 0, L = seq->length(); i < L; ++i) *this << (*seq)[i];
+      return *this;
+    }
+    ATTACH_OPERATIONS();
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  // General selectors -- i.e., simple sequences combined with one of the four
+  // CSS selector combinators (">", "+", "~", and whitespace). Isomorphic to a
+  // left-associative linked list.
+  ////////////////////////////////////////////////////////////////////////////
+  struct Combination : Selector {
+    enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO };
+    Combinator   combinator;
+    Combination* context;
+    Sequence*    selector;
+    bool         has_reference;
+    bool         has_placeholder;
+
+    Combination(string p, size_t l,
+                Combinator c, Combination* ctx, Sequence* sel)
+    : Selector(p, l),
+      combinator(c),
+      context(ctx),
+      selector(sel),
+      has_reference(ctx && ctx->has_reference ||
+                    sel && sel->has_reference),
+      has_placeholder(ctx && ctx->has_placeholder ||
+                      sel && sel->has_placeholder)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
+  ///////////////////////////////////
+  // Comma-separated selector groups.
+  ///////////////////////////////////
+  struct Group : Selector {
+    vector<Combination*> selectors;
+    bool                 has_reference;
+    bool                 has_placeholder;
+
+    Group(string p, size_t l, size_t s = 0)
+    : Selector(p, l),
+      selectors(vector<Combination*>()),
+      has_reference(false),
+      has_placeholder(false)
+    { selectors.reserve(s); }
+
+    size_t length()
+    { return selectors.size(); }
+    Combination*& operator[](size_t i)
+    { return selectors[i]; }
+    Group& operator<<(Combination* c)
+    {
+      selectors.push_back(c);
+      has_reference   |= c->has_reference;
+      has_placeholder |= c->has_placeholder;
+      return *this;
+    }
+    Group& operator+=(Group* g)
+    {
+      for (size_t i = 0, L = g->length(); i < L; ++i) *this << (*g)[i];
+      return *this;
+    }
+    ATTACH_OPERATIONS();
+  };
 }
