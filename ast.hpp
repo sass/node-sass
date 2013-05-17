@@ -12,14 +12,6 @@ public:\
   type name(type name##__) { return name##_ = name##__; }\
 private:
 
-#define ADD_VECTOR_PROPERTY(type, name)\
-private:\
-  vector<type> name##_;\
-public:\
-  size_t length() const       { return name##_.size(); }\
-  type&  operator[](size_t i) { return name##_[i]; }\
-private:
-
 #include <string>
 #include <sstream>
 #include <vector>
@@ -30,6 +22,37 @@ private:
 
 namespace Sass {
   using namespace std;
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Mixin class for AST nodes that should behave like vectors. Uses the
+  // "Template Method" design pattern to allow subclasses to adjust their flags
+  // when certain objects are inserted.
+  /////////////////////////////////////////////////////////////////////////////
+  template <typename T>
+  class Vectorized {
+    vector<T> elements_;
+  protected:
+    virtual void adjust_after_pushing(T element) { }
+  public:
+    Vectorized(size_t s = 0) : elements_(vector<T>())
+    { elements_.reserve(s); }
+    virtual ~Vectorized() = 0;
+    size_t length() const   { return elements_.size(); }
+    T& operator[](size_t i) { return elements_[i]; }
+    Vectorized& operator<<(T element)
+    {
+      elements_.push_back(element);
+      adjust_after_pushing(element);
+      return *this;
+    }
+    Vectorized& operator+=(Vectorized* v)
+    {
+      for (size_t i = 0, L = v->length(); i < L; ++i) *this << (*v)[i];
+      return *this;
+    }
+  };
+  template <typename T>
+  inline Vectorized<T>::~Vectorized() { }
 
   //////////////////////////////////////////////////////////
   // Abstract base class for all abstract syntax tree nodes.
@@ -61,29 +84,23 @@ namespace Sass {
   ////////////////////////
   // Blocks of statements.
   ////////////////////////
-  class Block : public Statement {
-    ADD_VECTOR_PROPERTY(Statement*, statements);
+  class Block : public Statement, public Vectorized<Statement*> {
     ADD_PROPERTY(bool, is_root);
     // needed for properly formatted CSS emission
     ADD_PROPERTY(bool, has_hoistable);
     ADD_PROPERTY(bool, has_non_hoistable);
+  protected:
+    void adjust_after_pushing(Statement* s)
+    {
+      if (s->is_hoistable()) has_hoistable_     = true;
+      else                   has_non_hoistable_ = false;
+    };
   public:
     Block(string p, size_t l, size_t s = 0, bool r = false)
-    : Statement(p, l), statements_(vector<Statement*>()), is_root_(r)
-    { statements_.reserve(s); }
-
-    Block& operator<<(Statement* s)
-    {
-      statements_.push_back(s);
-      if (s->is_hoistable()) has_hoistable_     = true;
-      else                   has_non_hoistable_ = true;
-      return *this;
-    }
-    Block& operator+=(Block* b)
-    {
-      for (size_t i = 0, L = b->length(); i < L; ++i) *this << (*b)[i];
-      return *this;
-    }
+    : Statement(p, l),
+      Vectorized(s),
+      is_root_(r), has_hoistable_(false), has_non_hoistable_(false)
+    { }
     ATTACH_OPERATIONS();
   };
 
@@ -348,29 +365,17 @@ namespace Sass {
   // Lists of values, both comma- and space-separated (distinguished by a
   // type-tag.) Also used to represent variable-length argument lists.
   ///////////////////////////////////////////////////////////////////////
-  class List : public Expression {
+  class List : public Expression, public Vectorized<Expression*> {
     enum Separator { space, comma };
-    ADD_VECTOR_PROPERTY(Expression*, values);
     ADD_PROPERTY(Separator, separator);
     ADD_PROPERTY(bool, is_arglist);
   public:
     List(string p, size_t l,
          size_t size = 0, Separator sep = space, bool argl = false)
     : Expression(p, l),
-      values_(vector<Expression*>()), separator_(sep), is_arglist_(argl)
-    { values_.reserve(size); }
-
-    List& operator<<(Expression* v)
-    {
-      values_.push_back(v);
-      return *this;
-    }
-    List& operator+=(List* l)
-    {
-      for (size_t i = 0, L = l->length(); i < L; ++i)
-        values_.push_back((*l)[i]);
-      return *this;
-    }
+      Vectorized(size),
+      separator_(sep), is_arglist_(argl)
+    { }
     string type() { return is_arglist_ ? "arglist" : "list"; }
     ATTACH_OPERATIONS();
   };
@@ -523,24 +528,11 @@ namespace Sass {
   // Interpolated strings. Meant to be reduced to flat strings during the
   // evaluation phase.
   ///////////////////////////////////////////////////////////////////////
-  class Interpolation : public String {
-    ADD_VECTOR_PROPERTY(Expression*, fragments);
+  class Interpolation : public String, public Vectorized<Expression*> {
   public:
     Interpolation(string p, size_t l, size_t size = 0)
-    : String(p, l), fragments_(vector<Expression*>())
-    { fragments_.reserve(size); }
-
-    Interpolation& operator<<(Expression* v)
-    {
-      fragments_.push_back(v);
-      return *this;
-    }
-    Interpolation& operator+=(Interpolation* s)
-    {
-      for (size_t i = 0, L = s->length(); i < L; ++i)
-        fragments_.push_back((*s)[i]);
-      return *this;
-    }
+    : String(p, l), Vectorized(size)
+    { }
     string type() { return "string"; }
     ATTACH_OPERATIONS();
   };
@@ -564,6 +556,18 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
 
+  ////////////////////////////////////////////////////
+  // Media expressions (for use inside media queries).
+  ////////////////////////////////////////////////////
+  class Media_Expression : public Expression {
+    ADD_PROPERTY(String*, feature);
+    ADD_PROPERTY(Expression*, value);
+  public:
+    Media_Expression(string p, size_t l, String* f, Expression* v)
+    : Expression(p, l), feature_(f), value_(v)
+    { }
+  };
+
   /////////////////////////////////////////////////////////
   // Individual parameter objects for mixins and functions.
   /////////////////////////////////////////////////////////
@@ -584,19 +588,11 @@ namespace Sass {
   // error checking (e.g., ensuring that all optional parameters follow all
   // required parameters).
   /////////////////////////////////////////////////////////////////////////
-  class Parameters : public AST_Node {
-    ADD_VECTOR_PROPERTY(Parameter*, list);
+  class Parameters : public AST_Node, public Vectorized<Parameter*> {
     ADD_PROPERTY(bool, has_optional_parameters);
     ADD_PROPERTY(bool, has_rest_parameter);
-  public:
-    Parameters(string p, size_t l)
-    : AST_Node(p, l),
-      list_(vector<Parameter*>()),
-      has_optional_parameters_(false),
-      has_rest_parameter_(false)
-    { }
-
-    Parameters& operator<<(Parameter* p)
+  protected:
+    void adjust_after_pushing(Parameter* p)
     {
       if (p->default_value()) {
         if (has_rest_parameter_)
@@ -616,9 +612,14 @@ namespace Sass {
         if (has_optional_parameters_)
           ; // different error
       }
-      list_.push_back(p);
-      return *this;
     }
+  public:
+    Parameters(string p, size_t l)
+    : AST_Node(p, l),
+      Vectorized(),
+      has_optional_parameters_(false),
+      has_rest_parameter_(false)
+    { }
     ATTACH_OPERATIONS();
   };
 
@@ -641,19 +642,11 @@ namespace Sass {
   // error checking (e.g., ensuring that all ordinal arguments precede all
   // named arguments).
   ////////////////////////////////////////////////////////////////////////
-  class Arguments : public AST_Node {
-    ADD_VECTOR_PROPERTY(Argument*, list);
+  class Arguments : public AST_Node, Vectorized<Argument*> {
     ADD_PROPERTY(bool, has_named_arguments);
     ADD_PROPERTY(bool, has_rest_argument);
-  public:
-    Arguments(string p, size_t l)
-    : AST_Node(p, l),
-      list_(vector<Argument*>()),
-      has_named_arguments_(false),
-      has_rest_argument_(false)
-    { }
-
-    Arguments& operator<<(Argument* a)
+  protected:
+    void adjust_after_pushing(Argument* a)
     {
       if (!a->name().empty()) {
         if (has_rest_argument_)
@@ -673,9 +666,14 @@ namespace Sass {
         if (has_named_arguments_)
           ; // error
       }
-      list_.push_back(a);
-      return *this;
     }
+  public:
+    Arguments(string p, size_t l)
+    : AST_Node(p, l),
+      Vectorized(),
+      has_named_arguments_(false),
+      has_rest_argument_(false)
+    { }
     ATTACH_OPERATIONS();
   };
 
@@ -728,6 +726,7 @@ namespace Sass {
   // Parent references (i.e., the "&").
   /////////////////////////////////////
   class Reference : public Simple_Base {
+    ADD_PROPERTY(Selector*, selector);
   public:
     Reference(string p, size_t l) : Simple_Base(p, l) { }
     ATTACH_OPERATIONS();
@@ -737,8 +736,11 @@ namespace Sass {
   // Placeholder selectors (e.g., "%foo") for use in extend-only selectors.
   /////////////////////////////////////////////////////////////////////////
   class Placeholder : public Simple_Base {
+    ADD_PROPERTY(string, name);
   public:
-    Placeholder(string p, size_t l) : Simple_Base(p, l) { }
+    Placeholder(string p, size_t l, string n)
+    : Simple_Base(p, l), name_(n)
+    { }
     ATTACH_OPERATIONS();
   };
 
@@ -771,23 +773,16 @@ namespace Sass {
   // Simple selector sequences. Maintains flags indicating whether it contains
   // any parent references or placeholders, to simplify expansion.
   ////////////////////////////////////////////////////////////////////////////
-  class Sequence : Selector {
-    ADD_VECTOR_PROPERTY(Simple_Base*, simples);
+  class Sequence : public Selector, public Vectorized<Simple_Base*> {
     ADD_PROPERTY(bool, has_reference);
     ADD_PROPERTY(bool, has_placeholder);
   public:
     Sequence(string p, size_t l, size_t s)
     : Selector(p, l),
-      simples_(vector<Simple_Base*>()),
+      Vectorized(s),
       has_reference_(false),
       has_placeholder_(false)
-    { simples_.reserve(s); }
-
-    Sequence& operator<<(Simple_Base* s)
-    {
-      simples_.push_back(s);
-      return *this;
-    }
+    { }
     Sequence& operator<<(Reference* s)
     {
       has_reference_ = true;
@@ -798,11 +793,6 @@ namespace Sass {
       has_placeholder_ = true;
       return (*this) << p;
     }
-    Sequence& operator+=(Sequence* seq)
-    {
-      for (size_t i = 0, L = seq->length(); i < L; ++i) *this << (*seq)[i];
-      return *this;
-    }
     ATTACH_OPERATIONS();
   };
 
@@ -811,7 +801,7 @@ namespace Sass {
   // CSS selector combinators (">", "+", "~", and whitespace). Essentially a
   // left-associative linked list.
   ////////////////////////////////////////////////////////////////////////////
-  class Combination : Selector {
+  class Combination : public Selector {
     enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO };
     ADD_PROPERTY(Combinator, combinator);
     ADD_PROPERTY(Combination*, context);
@@ -836,30 +826,22 @@ namespace Sass {
   ///////////////////////////////////
   // Comma-separated selector groups.
   ///////////////////////////////////
-  class Group : Selector {
-    ADD_VECTOR_PROPERTY(Combination*, selectors);
+  class Group : public Selector, public Vectorized<Combination*> {
     ADD_PROPERTY(bool, has_reference);
     ADD_PROPERTY(bool, has_placeholder);
+  protected:
+    void adjust_after_pushing(Combination* c)
+    {
+      has_reference_   |= c->has_reference();
+      has_placeholder_ |= c->has_placeholder();
+    }
   public:
     Group(string p, size_t l, size_t s = 0)
     : Selector(p, l),
-      selectors_(vector<Combination*>()),
+      Vectorized(s),
       has_reference_(false),
       has_placeholder_(false)
-    { selectors_.reserve(s); }
-
-    Group& operator<<(Combination* c)
-    {
-      selectors_.push_back(c);
-      has_reference_   |= c->has_reference();
-      has_placeholder_ |= c->has_placeholder();
-      return *this;
-    }
-    Group& operator+=(Group* g)
-    {
-      for (size_t i = 0, L = g->length(); i < L; ++i) *this << (*g)[i];
-      return *this;
-    }
+    { }
     ATTACH_OPERATIONS();
   };
 }
