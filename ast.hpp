@@ -26,7 +26,7 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////////
   // Mixin class for AST nodes that should behave like vectors. Uses the
   // "Template Method" design pattern to allow subclasses to adjust their flags
-  // when certain objects are inserted.
+  // when certain objects are pushed.
   /////////////////////////////////////////////////////////////////////////////
   template <typename T>
   class Vectorized {
@@ -159,16 +159,15 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
 
-  /////////////////////////////////////////////////////////////////////////////
-  // Directives -- arbitrary rules beginning with "@" that may have an optional
-  // statement block.
-  /////////////////////////////////////////////////////////////////////////////
-  class Directive : public Has_Block {
+  ///////////////////////////////////////////////////////////////////////
+  // At-rules -- arbitrary directives beginning with "@" that may have an
+  // optional statement block.
+  ///////////////////////////////////////////////////////////////////////
+  class At_Rule : public Has_Block {
     ADD_PROPERTY(string, keyword);
     ADD_PROPERTY(Selector*, selector);
   public:
-    Directive(string p, size_t l,
-              string kwd, Selector* sel, Block* b)
+    At_Rule(string p, size_t l, string kwd, Selector* sel, Block* b)
     : Has_Block(p, l, b), keyword_(kwd), selector_(sel)
     { }
     ATTACH_OPERATIONS();
@@ -366,7 +365,9 @@ namespace Sass {
   // type-tag.) Also used to represent variable-length argument lists.
   ///////////////////////////////////////////////////////////////////////
   class List : public Expression, public Vectorized<Expression*> {
+  public:
     enum Separator { space, comma };
+  private:
     ADD_PROPERTY(Separator, separator);
     ADD_PROPERTY(bool, is_arglist);
   public:
@@ -691,10 +692,10 @@ namespace Sass {
   // Interpolated selectors -- the interpolated String will be expanded and
   // re-parsed into a normal selector classure.
   /////////////////////////////////////////////////////////////////////////
-  class Interpolated : Selector {
+  class Interpolated_Selector : Selector {
     ADD_PROPERTY(String*, contents);
   public:
-    Interpolated(string p, size_t l, String* c)
+    Interpolated_Selector(string p, size_t l, String* c)
     : Selector(p, l), contents_(c)
     { }
     ATTACH_OPERATIONS();
@@ -713,10 +714,10 @@ namespace Sass {
   //////////////////////////////////////////////////////////////////////
   // Normal simple selectors (e.g., "div", ".foo", ":first-child", etc).
   //////////////////////////////////////////////////////////////////////
-  class Simple : public Simple_Base {
+  class Simple_Selector : public Simple_Base {
     ADD_PROPERTY(string, contents);
   public:
-    Simple(string p, size_t l, string c)
+    Simple_Selector(string p, size_t l, string c)
     : Simple_Base(p, l), contents_(c)
     { }
     ATTACH_OPERATIONS();
@@ -725,20 +726,20 @@ namespace Sass {
   /////////////////////////////////////
   // Parent references (i.e., the "&").
   /////////////////////////////////////
-  class Reference : public Simple_Base {
+  class Reference_Selector : public Simple_Base {
     ADD_PROPERTY(Selector*, selector);
   public:
-    Reference(string p, size_t l) : Simple_Base(p, l) { }
+    Reference_Selector(string p, size_t l) : Simple_Base(p, l) { }
     ATTACH_OPERATIONS();
   };
 
   /////////////////////////////////////////////////////////////////////////
   // Placeholder selectors (e.g., "%foo") for use in extend-only selectors.
   /////////////////////////////////////////////////////////////////////////
-  class Placeholder : public Simple_Base {
+  class Placeholder_Selector : public Simple_Base {
     ADD_PROPERTY(string, name);
   public:
-    Placeholder(string p, size_t l, string n)
+    Placeholder_Selector(string p, size_t l, string n)
     : Simple_Base(p, l), name_(n)
     { }
     ATTACH_OPERATIONS();
@@ -747,11 +748,11 @@ namespace Sass {
   //////////////////////////////////////////////////////////////////
   // Pseudo selectors -- e.g., :first-child, :nth-of-type(...), etc.
   //////////////////////////////////////////////////////////////////
-  class Pseudo : public Simple_Base {
+  class Pseudo_Selector : public Simple_Base {
     ADD_PROPERTY(string, name);
     ADD_PROPERTY(Expression*, expression);
   public:
-    Pseudo(string p, size_t l, string n, Expression* expr = 0)
+    Pseudo_Selector(string p, size_t l, string n, Expression* expr = 0)
     : Simple_Base(p, l), name_(n), expression_(expr)
     { }
     ATTACH_OPERATIONS();
@@ -760,10 +761,10 @@ namespace Sass {
   /////////////////////////////////////////////////
   // Negated selector -- e.g., :not(:first-of-type)
   /////////////////////////////////////////////////
-  class Negated : public Simple_Base {
+  class Negated_Selector : public Simple_Base {
     ADD_PROPERTY(Simple_Base*, selector);
   public:
-    Negated(string p, size_t l, Simple_Base* sel)
+    Negated_Selector(string p, size_t l, Simple_Base* sel)
     : Simple_Base(p, l), selector_(sel)
     { }
     ATTACH_OPERATIONS();
@@ -773,22 +774,22 @@ namespace Sass {
   // Simple selector sequences. Maintains flags indicating whether it contains
   // any parent references or placeholders, to simplify expansion.
   ////////////////////////////////////////////////////////////////////////////
-  class Sequence : public Selector, public Vectorized<Simple_Base*> {
+  class Selector_Sequence : public Selector, public Vectorized<Simple_Base*> {
     ADD_PROPERTY(bool, has_reference);
     ADD_PROPERTY(bool, has_placeholder);
   public:
-    Sequence(string p, size_t l, size_t s)
+    Selector_Sequence(string p, size_t l, size_t s = 0)
     : Selector(p, l),
       Vectorized(s),
       has_reference_(false),
       has_placeholder_(false)
     { }
-    Sequence& operator<<(Reference* s)
+    Selector_Sequence& operator<<(Reference_Selector* s)
     {
       has_reference_ = true;
       return (*this) << s;
     }
-    Sequence& operator<<(Placeholder* p)
+    Selector_Sequence& operator<<(Placeholder_Selector* p)
     {
       has_placeholder_ = true;
       return (*this) << p;
@@ -801,16 +802,20 @@ namespace Sass {
   // CSS selector combinators (">", "+", "~", and whitespace). Essentially a
   // left-associative linked list.
   ////////////////////////////////////////////////////////////////////////////
-  class Combination : public Selector {
+  class Selector_Combination : public Selector {
+  public:
     enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO };
+  private:
     ADD_PROPERTY(Combinator, combinator);
-    ADD_PROPERTY(Combination*, context);
-    ADD_PROPERTY(Sequence*, base);
+    ADD_PROPERTY(Selector_Combination*, context);
+    ADD_PROPERTY(Selector_Sequence*, base);
     ADD_PROPERTY(bool, has_reference);
     ADD_PROPERTY(bool, has_placeholder);
   public:
-    Combination(string p, size_t l,
-                Combinator c, Combination* ctx, Sequence* sel)
+    Selector_Combination(string p, size_t l,
+                         Combinator c,
+                         Selector_Combination* ctx,
+                         Selector_Sequence* sel)
     : Selector(p, l),
       combinator_(c),
       context_(ctx),
@@ -826,17 +831,18 @@ namespace Sass {
   ///////////////////////////////////
   // Comma-separated selector groups.
   ///////////////////////////////////
-  class Group : public Selector, public Vectorized<Combination*> {
+  class Selector_Group
+      : public Selector, public Vectorized<Selector_Combination*> {
     ADD_PROPERTY(bool, has_reference);
     ADD_PROPERTY(bool, has_placeholder);
   protected:
-    void adjust_after_pushing(Combination* c)
+    void adjust_after_pushing(Selector_Combination* c)
     {
       has_reference_   |= c->has_reference();
       has_placeholder_ |= c->has_placeholder();
     }
   public:
-    Group(string p, size_t l, size_t s = 0)
+    Selector_Group(string p, size_t l, size_t s = 0)
     : Selector(p, l),
       Vectorized(s),
       has_reference_(false),
