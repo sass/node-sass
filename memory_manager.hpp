@@ -13,7 +13,7 @@ using namespace std;
 namespace Sass {
 	/////////////////////////////////////////////////////////////////////////////
 	// A class for tracking allocations of AST_Node objects. The intended usage
-	// is something like: Some_Node* n = mem_mgr(new Some_Node(...));
+	// is something like: Some_Node* n = new (mem_mgr) Some_Node(...);
 	// Then, at the end of the program, the memory manager will delete all of the
 	// allocated nodes that have been passed to it.
 	// In the future, this class may implement a custom allocator.
