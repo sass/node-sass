@@ -85,6 +85,14 @@ namespace Sass {
     }
   }
 
+  string Node::debug_info_path() const
+  {
+    char* c_abs_path = realpath( path().c_str(), NULL);
+    string abs_path(c_abs_path);
+    delete c_abs_path;
+    return abs_path;
+  }
+
   bool Node::operator==(Node rhs) const
   {
     Type t = type(), u = rhs.type();
