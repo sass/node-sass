@@ -909,20 +909,29 @@ namespace Sass {
     Node fact1(parse_factor());
     // if it's a singleton, return it directly; don't wrap it
     if (!(peek< exactly<'*'> >(position) ||
-          peek< exactly<'/'> >(position)))
+          peek< exactly<'/'> >(position) ||
+          peek< exactly<'%'> >(position)))
     { return fact1; }
 
     Node term(context.new_Node(Node::term, path, line, 3));
     term << fact1;
     if (fact1.should_eval()) term.should_eval() = true;
 
-    while (lex< exactly<'*'> >() || lex< exactly<'/'> >()) {
-      if (lexed.begin[0] == '*') {
-        term << context.new_Node(Node::mul, path, line, lexed);
-        term.should_eval() = true;
-      }
-      else {
-        term << context.new_Node(Node::div, path, line, lexed);
+    while (lex< exactly<'*'> >() ||
+           lex< exactly<'/'> >() ||
+           lex< exactly<'%'> >()) {
+      switch(lexed.begin[0]) {
+        case '*': {
+          term << context.new_Node(Node::mul, path, line, lexed);
+          term.should_eval() = true;
+        } break;
+        case '%': {
+          term << context.new_Node(Node::mod, path, line, lexed);
+          term.should_eval() = true;
+        } break;
+        default: {
+          term << context.new_Node(Node::div, path, line, lexed);
+        } break;
       }
       Node fact(parse_factor());
       term.should_eval() |= fact.should_eval();

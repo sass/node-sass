@@ -5,6 +5,7 @@
 #include "document.hpp"
 #include "error.hpp"
 #include <cctype>
+#include <cmath>
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
@@ -32,7 +33,7 @@ namespace Sass {
       case Node::root: {
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
             if (i == 19) {
-                
+
           expand(expr[i], prefix, env, f_env, new_Node, ctx, bt, false, content);
             }
             else {
@@ -153,7 +154,7 @@ namespace Sass {
             }
         }
       } break;
-      
+
       case Node::assignment: {
         Node var(expr[0]);
         if (expr.is_guarded() && env.query(var.token())) return;
@@ -427,7 +428,7 @@ namespace Sass {
         }
         // else cerr << string(bt.depth(), '\t') << "evaluated a list (sort of): " << expr.to_string() << "::" << expr.is_arglist() << endl;
       } break;
-      
+
       case Node::disjunction: {
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
           result = eval(expr[i], prefix, env, f_env, new_Node, ctx, bt);
@@ -435,14 +436,14 @@ namespace Sass {
           else                   break;
         }
       } break;
-      
+
       case Node::conjunction: {
         for (size_t i = 0, S = expr.size(); i < S; ++i) {
           result = eval(expr[i], prefix, env, f_env, new_Node, ctx, bt);
           if (result.is_false()) break;
         }
       } break;
-      
+
       case Node::relation: {
         Node lhs(new_Node(Node::arguments, expr[0].path(), expr[0].line(), 1));
         Node rhs(new_Node(Node::arguments, expr[2].path(), expr[2].line(), 1));
@@ -459,7 +460,7 @@ namespace Sass {
 
         Node T(new_Node(Node::boolean, lhs.path(), lhs.line(), true));
         Node F(new_Node(Node::boolean, lhs.path(), lhs.line(), false));
-        
+
         switch (rel.type())
         {
           case Node::eq:  result = ((lhs == rhs) ? T : F); break;
@@ -501,12 +502,12 @@ namespace Sass {
                           Token::make(Prelexer::number(expr.token().begin),
                                       expr.token().end));
       } break;
-      
+
       case Node::textual_number: {
         result = new_Node(expr.path(), expr.line(), std::atof(expr.token().begin));
       } break;
 
-      case Node::textual_hex: {        
+      case Node::textual_hex: {
         result = new_Node(Node::numeric_color, expr.path(), expr.line(), 4);
         Token hext(Token::make(expr.token().begin+1, expr.token().end));
         if (hext.length() == 6) {
@@ -521,7 +522,7 @@ namespace Sass {
         }
         result << new_Node(expr.path(), expr.line(), 1.0);
       } break;
-      
+
       case Node::variable: {
         if (!env.query(expr.token())) throw_eval_error(bt, "reference to unbound variable " + expr.token().to_string(), expr.path(), expr.line());
         result = env[expr.token()];
@@ -569,7 +570,7 @@ namespace Sass {
           result = apply_function(f, expr[1], prefix, env, f_env, new_Node, ctx, here, expr.path(), expr.line());
         }
       } break;
-      
+
       case Node::unary_plus: {
         Node arg(eval(expr[0], prefix, env, f_env, new_Node, ctx, bt));
         if (arg.is_numeric()) {
@@ -580,7 +581,7 @@ namespace Sass {
           result << arg;
         }
       } break;
-      
+
       case Node::unary_minus: {
         Node arg(eval(expr[0], prefix, env, f_env, new_Node, ctx, bt));
         if (arg.is_numeric()) {
@@ -625,7 +626,7 @@ namespace Sass {
                             a.numeric_value());
         }
       } break;
-      
+
       case Node::string_schema:
       case Node::value_schema:
       case Node::identifier_schema: {
@@ -635,7 +636,7 @@ namespace Sass {
         }
         result.is_quoted() = expr.is_quoted();
       } break;
-      
+
       case Node::css_import: {
         result = new_Node(Node::css_import, expr.path(), expr.line(), 1);
         result << eval(expr[0], prefix, env, f_env, new_Node, ctx, bt);
@@ -782,6 +783,10 @@ namespace Sass {
       case Node::div: {
         if (rhs == 0) throw_eval_error(bt, "divide by zero", op.path(), op.line());
         return lhs / rhs;
+      } break;
+      case Node::mod: {
+        if (rhs == 0) throw_eval_error(bt, "divide by zero", op.path(), op.line());
+        return std::fmod(lhs, rhs);
       } break;
       default:        return 0;         break;
     }
@@ -1378,7 +1383,7 @@ namespace Sass {
       } break;
 
       case Node::root:
-      case Node::block: 
+      case Node::block:
       case Node::mixin_call:
       case Node::if_directive:
       case Node::for_through_directive:

@@ -47,7 +47,7 @@ namespace Sass {
 
     string unquote() const;
     void   unquote_to_stream(std::stringstream& buf) const;
-    
+
     operator bool()
     { return begin && end && begin >= end; }
 
@@ -59,7 +59,7 @@ namespace Sass {
     double numeric;
     Token unit;
   };
-  
+
   struct Node_Impl;
 
   // Node type for representing SCSS expression nodes. Really just a handle.
@@ -126,6 +126,7 @@ namespace Sass {
       term,
       mul,
       div,
+      mod,
 
       factor,
       unary_plus,
@@ -239,7 +240,7 @@ namespace Sass {
     void flatten();
 
     string unquote() const;
-    
+
     bool operator==(Node rhs) const;
     bool operator!=(Node rhs) const;
     bool operator<(Node rhs) const;
@@ -255,7 +256,7 @@ namespace Sass {
     void emit_compressed_css(stringstream& buf);
 
   };
-  
+
   // The actual implementation object for Nodes; Node handles point at these.
   struct Node_Impl {
     union value_t {
@@ -307,7 +308,7 @@ namespace Sass {
       is_arglist(false),
       is_splat(false)
     { }
-    
+
     bool is_numeric()
     { return type >= Node::number && type <= Node::numeric_dimension; }
 
@@ -352,7 +353,7 @@ namespace Sass {
 
     size_t size()
     { return children.size(); }
-    
+
     bool empty()
     { return children.empty(); }
 
@@ -448,7 +449,7 @@ namespace Sass {
 
     bool& boolean_value()
     { return value.boolean; }
-    
+
     double numeric_value();
     Token  unit();
   };
@@ -459,7 +460,7 @@ namespace Sass {
   // -- in the header file so they can easily be declared inline
   // -- outside of their class definition to get the right declaration order
   // ------------------------------------------------------------------------
-  
+
   inline Node::Node(Node_Impl* ip) : ip_(ip) { }
 
   inline Node::Type Node::type() const    { return ip_->type; }
@@ -483,12 +484,12 @@ namespace Sass {
   inline bool& Node::is_comma_separated() const { return ip_->is_comma_separated; }
   inline bool& Node::is_arglist() const    { return ip_->is_arglist; }
   inline bool& Node::is_splat() const      { return ip_->is_splat; }
-  
+
   inline string& Node::path() const  { return ip_->path; }
   inline size_t  Node::line() const  { return ip_->line; }
   inline size_t  Node::size() const  { return ip_->size(); }
   inline bool    Node::empty() const { return ip_->empty(); }
-  
+
   inline Node& Node::at(size_t i) const         { return ip_->at(i); }
   inline Node& Node::back() const               { return ip_->back(); }
   inline Node& Node::operator[](size_t i) const { return at(i); }
