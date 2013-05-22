@@ -126,8 +126,26 @@ namespace Sass {
       } break;
 
       case Node::media_query: {
+        expand(expr[0], prefix, env, f_env, new_Node, ctx, bt, false, content);
         expand(expr[1], prefix, env, f_env, new_Node, ctx, bt, false, content);
         expr << prefix;
+      } break;
+
+      case Node::media_expression_group: {
+        for (size_t i = 0, S = expr.size(); i < S; ++i) {
+          expand(expr[i], prefix, env, f_env, new_Node, ctx, bt, false, content);
+        }
+      } break;
+
+      case Node::media_expression: {
+        for (size_t i = 0, S = expr.size(); i < S; ++i) {
+          if (expr[i].type() == Node::rule) {
+            expand(expr[i], prefix, env, f_env, new_Node, ctx, bt, false, content);
+          }
+          else {
+            expr[i] = eval(expr[i], prefix, env, f_env, new_Node, ctx, bt);
+          }
+        }
       } break;
 
       case Node::keyframes: {
