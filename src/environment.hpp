@@ -32,16 +32,5 @@ namespace Sass {
       else if (parent)               return (*parent)[key];
       else                           return current_frame_[key];
     }
-
-    // void print()
-    // {
-    //   for (map<string, T>::iterator i = current_frame.begin(); i != current_frame.end(); ++i) {
-    //     cerr << i->first.to_string() << ": " << i->second.to_string() << endl;
-    //   }
-    //   if (parent) {
-    //     cerr << "---" << endl;
-    //     parent->print();
-    //   }
-    // }
   };
 }
