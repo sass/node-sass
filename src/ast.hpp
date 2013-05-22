@@ -1,17 +1,5 @@
 #define SASS_AST
 
-#define ATTACH_OPERATIONS()\
-virtual void perform(Operation<void>* op)      { (*op)(this); }\
-virtual AST_Node* perform(Operation<AST_Node*>* op) { return (*op)(this); }
-
-#define ADD_PROPERTY(type, name)\
-private:\
-  type name##_;\
-public:\
-  type name() const        { return name##_; }\
-  type name(type name##__) { return name##_ = name##__; }\
-private:
-
 #include <string>
 #include <sstream>
 #include <vector>
@@ -19,6 +7,8 @@ private:
 #ifndef SASS_OPERATION
 #include "operation.hpp"
 #endif
+
+#include "boilerplate_macros.hpp"
 
 namespace Sass {
   using namespace std;
@@ -314,7 +304,6 @@ namespace Sass {
   // and unnecessary subclassing.
   ////////////////////////////////////////////////////////////////////////////
   class Parameters;
-  enum Definition_Type { MIXIN, FUNCTION };
   template <Definition_Type t>
   class Definition : public Has_Block {
     ADD_PROPERTY(string, name);
@@ -386,11 +375,6 @@ namespace Sass {
   // operations. Templatized to avoid large switch statements and repetitive
   // subclassing.
   //////////////////////////////////////////////////////////////////////////
-  enum Binary_Operator {
-    AND, OR,                   // logical connectives
-    EQ, NEQ, GT, GTE, LT, LTE, // arithmetic relations
-    ADD, SUB, MUL, DIV         // arithmetic functions
-  };
   template<Binary_Operator oper>
   class Binary_Expression : public Expression {
     ADD_PROPERTY(Expression*, left);
@@ -443,7 +427,6 @@ namespace Sass {
   // Textual (i.e., unevaluated) numeric data. Templated to avoid type-tags and
   // repetitive subclassing.
   /////////////////////////////////////////////////////////////////////////////
-  enum Textual_Type { NUMBER, PERCENTAGE, DIMENSION, HEX };
   template <Textual_Type t>
   class Textual : public Expression {
     ADD_PROPERTY(string, value);

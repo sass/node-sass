@@ -23,7 +23,7 @@ namespace Sass {
 		~Memory_Manager()
 		{
 			for (size_t i = 0, S = nodes.size(); i < S; ++i) {
-				cout << "deleting " << typeid(*nodes[i]).name() << endl;
+				// cout << "deleting " << typeid(*nodes[i]).name() << endl;
 				delete nodes[i];
 			}
 		}
@@ -31,7 +31,7 @@ namespace Sass {
 		T* operator()(T* np)
 		{
 			nodes.push_back(np);
-			cout << "registering " << typeid(*np).name() << endl;
+			// cout << "registering " << typeid(*np).name() << endl;
 			return np;
 		}
 	};
