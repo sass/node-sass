@@ -8,6 +8,10 @@
 #include "operation.hpp"
 #endif
 
+#ifndef SASS_TOKEN
+#include "token.hpp"
+#endif
+
 #include "boilerplate_macros.hpp"
 
 namespace Sass {
@@ -28,6 +32,7 @@ namespace Sass {
     { elements_.reserve(s); }
     virtual ~Vectorized() = 0;
     size_t length() const   { return elements_.size(); }
+    bool empty() const      { return elements_.empty(); }
     T& operator[](size_t i) { return elements_[i]; }
     Vectorized& operator<<(T element)
     {
@@ -536,6 +541,9 @@ namespace Sass {
     Flat_String(string p, size_t l, const char* beg, const char* end)
     : String(p, l), value_(string(beg, end-beg))
     { }
+    Flat_String(string p, size_t l, const Token& tok)
+    : String(p, l), value_(string(tok.begin, tok.end))
+    { }
     string type() { return "string"; }
     ATTACH_OPERATIONS();
   };
@@ -626,7 +634,7 @@ namespace Sass {
   // error checking (e.g., ensuring that all ordinal arguments precede all
   // named arguments).
   ////////////////////////////////////////////////////////////////////////
-  class Arguments : public AST_Node, Vectorized<Argument*> {
+  class Arguments : public AST_Node, public Vectorized<Argument*> {
     ADD_PROPERTY(bool, has_named_arguments);
     ADD_PROPERTY(bool, has_rest_argument);
   protected:
@@ -675,7 +683,7 @@ namespace Sass {
   // Interpolated selectors -- the interpolated String will be expanded and
   // re-parsed into a normal selector classure.
   /////////////////////////////////////////////////////////////////////////
-  class Interpolated_Selector : Selector {
+  class Interpolated_Selector : public Selector {
     ADD_PROPERTY(String*, contents);
   public:
     Interpolated_Selector(string p, size_t l, String* c)

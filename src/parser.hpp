@@ -1,6 +1,7 @@
 #define SASS_PARSER
 
-#include <unordered_map>
+#include <vector>
+#include <map>
 
 #ifndef SASS_PRELEXER
 #include "prelexer.hpp"
@@ -8,6 +9,14 @@
 
 #ifndef SASS_TOKEN
 #include "token.hpp"
+#endif
+
+#ifndef SASS_CONTEXT
+#include "context.hpp"
+#endif
+
+#ifndef SASS_AST
+#include "ast.hpp"
 #endif
 
 struct Selector_Lookahead {
@@ -22,6 +31,10 @@ namespace Sass {
   using namespace Prelexer;
 
   class Parser {
+    class AST_Node;
+
+    enum Syntactic_Context { nothing, mixin_def, function_def };
+    vector<Syntactic_Context> stack;
     string path;
     const char* source;
     const char* position;
@@ -29,9 +42,9 @@ namespace Sass {
     size_t line;
     bool own_source;
 
-    Context& context;
+    Context& ctx;
 
-    AST_Node* root;
+    Block* root;
     Token lexed;
 
   private:
@@ -123,54 +136,53 @@ namespace Sass {
     void read_bom();
 
     void parse_scss();
-    AST_Node* parse_import();
-    AST_Node* parse_include();
-    AST_Node* parse_mixin_definition();
-    AST_Node* parse_function_definition();
-    AST_Node* parse_parameters();
-    AST_Node* parse_parameter(AST_Node*::Type);
-    AST_Node* parse_mixin_call(AST_Node*::Type inside_of = AST_Node*::none);
-    AST_Node* parse_arguments();
-    AST_Node* parse_argument(AST_Node*::Type);
-    AST_Node* parse_assignment();
-    AST_Node* parse_propset();
-    AST_Node* parse_ruleset(Selector_Lookahead lookahead, AST_Node*::Type inside_of = AST_Node*::none);
-    AST_Node* parse_selector_schema(const char* end_of_selector);
-    AST_Node* parse_selector_group();
-    AST_Node* parse_selector();
+    Statement* parse_import();
+    Definition<MIXIN>* parse_mixin_definition();
+    Definition<FUNCTION>* parse_function_definition();
+    Parameters* parse_parameters();
+    Parameter* parse_parameter();
+    Mixin_Call* parse_mixin_call();
+    Arguments* parse_arguments();
+    Argument* parse_argument();
+    Assignment* parse_assignment();
+    Propset* parse_propset();
+    Ruleset* parse_ruleset(Selector_Lookahead lookahead);
+    Interpolated_Selector* parse_selector_schema(const char* end_of_selector);
+    Selector_Group* parse_selector_group();
+    Selector_Combination* parse_selector();
     AST_Node* parse_selector_combinator();
     AST_Node* parse_simple_selector_sequence();
     AST_Node* parse_simple_selector();
     AST_Node* parse_pseudo();
     AST_Node* parse_attribute_selector();
-    AST_Node* parse_block(AST_Node* surrounding_ruleset, AST_Node*::Type inside_of = AST_Node*::none);
-    AST_Node* parse_rule();
+    Block* parse_block();
+    Declaration* parse_rule();
     AST_Node* parse_values();
-    AST_Node* parse_list();
-    AST_Node* parse_comma_list();
-    AST_Node* parse_space_list();
-    AST_Node* parse_disjunction();
-    AST_Node* parse_conjunction();
+    List* parse_list();
+    List* parse_comma_list();
+    List* parse_space_list();
+    Binary_Expression<OR>* parse_disjunction();
+    Binary_Expression<AND>* parse_conjunction();
     AST_Node* parse_relation();
     AST_Node* parse_expression();
     AST_Node* parse_term();
     AST_Node* parse_factor();
     AST_Node* parse_value();
-    AST_Node* parse_function_call();
-    AST_Node* parse_string();
-    AST_Node* parse_value_schema();
-    AST_Node* parse_identifier_schema();
+    Function_Call* parse_function_call();
+    String* parse_string();
+    Interpolation* parse_value_schema();
+    Interpolation* parse_identifier_schema();
     AST_Node* parse_url_schema();
-    AST_Node* parse_if_directive(AST_Node* surrounding_ruleset, AST_Node*::Type inside_of = AST_Node*::none);
-    AST_Node* parse_for_directive(AST_Node* surrounding_ruleset, AST_Node*::Type inside_of = AST_Node*::none);
-    AST_Node* parse_each_directive(AST_Node* surrounding_ruleset, AST_Node*::Type inside_of = AST_Node*::none);
-    AST_Node* parse_while_directive(AST_Node* surrounding_ruleset, AST_Node*::Type inside_of = AST_Node*::none);
-    AST_Node* parse_directive(AST_Node* surrounding_ruleset, AST_Node*::Type inside_of = AST_Node*::none);
-    AST_Node* parse_keyframes(AST_Node*::Type inside_of = AST_Node*::none);
-    AST_Node* parse_keyframe(AST_Node*::Type inside_of = AST_Node*::none);
-    AST_Node* parse_media_query(AST_Node*::Type inside_of = AST_Node*::none);
-    AST_Node* parse_media_expression();
-    AST_Node* parse_warning();
+    If* parse_if_directive();
+    For* parse_for_directive();
+    Each* parse_each_directive();
+    While* parse_while_directive();
+    At_Rule* parse_directive();
+    AST_Node* parse_keyframes();
+    AST_Node* parse_keyframe();
+    Media_Query* parse_media_query();
+    Media_Expression* parse_media_expression();
+    Warning* parse_warning();
 
     Selector_Lookahead lookahead_for_selector(const char* start = 0);
     Selector_Lookahead lookahead_for_extension_target(const char* start = 0);

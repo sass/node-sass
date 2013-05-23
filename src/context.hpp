@@ -14,12 +14,15 @@ namespace Sass {
   struct Context {
     class AST_Node;
     Memory_Manager<AST_Node*>& mem;
+
     vector<const char*> source_strs; // c-strings containing Sass file contents
     vector<string> include_paths;
-    char* image_path; // for the image-url Sass function
+
+    string image_path; // for the image-url Sass function
 
     void collect_include_paths(const char* paths_str);
     void collect_include_paths(const char* paths_array[]);
+
     ~Context();
   };
 

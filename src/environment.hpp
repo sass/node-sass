@@ -19,18 +19,21 @@ namespace Sass {
     void link(Environment& env) { parent_ = &env; }
     void link(Environment* env) { parent_ = env; }
 
-    bool query(const string& key) const
+    bool has(const string& key) const
     {
-      if (current_frame_.count(key)) return true;
-      else if (parent)              return parent->query(key);
-      else                          return false;
+      if (current_frame_.count(key))  return true;
+      else if (parent_)               return parent_->has(key);
+      else                            return false;
     }
+
+    bool current_frame_has(const string& key) const
+    { return current_frame_.count(key); }
 
     T& operator[](const string& key)
     {
-      if (current_frame_.count(key)) return current_frame_[key];
-      else if (parent)               return (*parent)[key];
-      else                           return current_frame_[key];
+      if (current_frame_.count(key))  return current_frame_[key];
+      else if (parent_)               return (*parent_)[key];
+      else                            return current_frame_[key];
     }
   };
 }

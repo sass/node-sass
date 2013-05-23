@@ -12,13 +12,15 @@
 #include <sstream>
 #include "context.hpp"
 #include "constants.hpp"
-#include "color_names.hpp"
-#include "prelexer.hpp"
 
+#ifndef SASS_PRELEXER
+#include "prelexer.hpp"
+#endif
 
 namespace Sass {
   using namespace Constants;
-  using std::cerr; using std::endl;
+  using std::cerr;
+  using std::endl;
 
   void Context::collect_include_paths(const char* paths_str)
   {
@@ -69,9 +71,7 @@ namespace Sass {
 
   Context::~Context()
   {
-    for (size_t i = 0; i < source_refs.size(); ++i) {
-      delete[] source_refs[i];
-    }
-    delete[] image_path;
-    new_Node.free();
+    for (size_t i = 0; i < source_strs.size(); ++i) delete[] source_strs[i];
+    mem.~Memory_Manager();
   }
+}
