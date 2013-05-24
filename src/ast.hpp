@@ -198,17 +198,20 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
 
-  /////////////////////////////////////////////////////////////////////////////
-  // CSS import directives. CSS url imports need to be distinguished from Sass
-  // file imports. T should be instantiated with Function_Call or String.
-  /////////////////////////////////////////////////////////////////////////////
-  template <typename T>
+  ////////////////////////////////////////////////////////////////////////////
+  // Import directives. CSS and Sass import lists can be intermingled, so it's
+  // necessary to store a list of each in an Import node.
+  ////////////////////////////////////////////////////////////////////////////
   class Import : public Statement {
-    ADD_PROPERTY(T*, location);
+    vector<string>         strings_;
+    vector<Function_Call*> urls_;
   public:
-    Import(string p, size_t l, T* loc)
-    : Statement(p, l), location_(loc)
+    Import(string p, size_t l)
+    : Statement(p, l),
+      strings_(vector<string>()), urls_(vector<Function_Call*>())
     { }
+    vector<string>&         strings() { return strings_; }
+    vector<Function_Call*>& urls()    { return urls_; }
     ATTACH_OPERATIONS();
   };
 
@@ -304,19 +307,21 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
 
-  ////////////////////////////////////////////////////////////////////////////
-  // Definitions for both mixins and functions. Templatized to avoid type-tags
-  // and unnecessary subclassing.
-  ////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+  // Definitions for both mixins and functions. The two cases are distinguished
+  // by a type tag.
+  /////////////////////////////////////////////////////////////////////////////
   class Parameters;
-  template <Definition_Type t>
   class Definition : public Has_Block {
+  public:
+    enum Type { MIXIN, FUNCTION };
     ADD_PROPERTY(string, name);
     ADD_PROPERTY(Parameters*, parameters);
+    ADD_PROPERTY(Type, type);
   public:
     Definition(string p, size_t l,
-               string n, Parameters* params, Block* b)
-    : Has_Block(p, l, b), name_(n), parameters_(params)
+               string n, Parameters* params, Block* b, Type t)
+    : Has_Block(p, l, b), name_(n), parameters_(params), type_(t)
     { }
     ATTACH_OPERATIONS();
   };
@@ -517,9 +522,9 @@ namespace Sass {
   // Interpolated strings. Meant to be reduced to flat strings during the
   // evaluation phase.
   ///////////////////////////////////////////////////////////////////////
-  class Interpolation : public String, public Vectorized<Expression*> {
+  class String_Schema : public String, public Vectorized<Expression*> {
   public:
-    Interpolation(string p, size_t l, size_t size = 0)
+    String_Schema(string p, size_t l, size_t size = 0)
     : String(p, l), Vectorized(size)
     { }
     string type() { return "string"; }
@@ -529,19 +534,19 @@ namespace Sass {
   ////////////////////////////////////////////////////////
   // Flat strings -- the lowest level of raw textual data.
   ////////////////////////////////////////////////////////
-  class Flat_String : public String {
+  class String_Constant : public String {
     ADD_PROPERTY(string, value);
   public:
-    Flat_String(string p, size_t l, string val)
+    String_Constant(string p, size_t l, string val)
     : String(p, l), value_(val)
     { }
-    Flat_String(string p, size_t l, const char* beg)
+    String_Constant(string p, size_t l, const char* beg)
     : String(p, l), value_(string(beg))
     { }
-    Flat_String(string p, size_t l, const char* beg, const char* end)
+    String_Constant(string p, size_t l, const char* beg, const char* end)
     : String(p, l), value_(string(beg, end-beg))
     { }
-    Flat_String(string p, size_t l, const Token& tok)
+    String_Constant(string p, size_t l, const Token& tok)
     : String(p, l), value_(string(tok.begin, tok.end))
     { }
     string type() { return "string"; }
@@ -673,8 +678,12 @@ namespace Sass {
   // Abstract base class for CSS selectors.
   /////////////////////////////////////////
   class Selector : public AST_Node {
+    ADD_PROPERTY(bool, has_reference);
+    ADD_PROPERTY(bool, has_placeholder);
   public:
-    Selector(string p, size_t l) : AST_Node(p, l) { }
+    Selector(string p, size_t l, bool r = false, bool h = false)
+    : AST_Node(p, l), has_reference_(r), has_placeholder_(h)
+    { }
     virtual ~Selector() = 0;
   };
   inline Selector::~Selector() { }
@@ -683,10 +692,10 @@ namespace Sass {
   // Interpolated selectors -- the interpolated String will be expanded and
   // re-parsed into a normal selector classure.
   /////////////////////////////////////////////////////////////////////////
-  class Interpolated_Selector : public Selector {
+  class Selector_Schema : public Selector {
     ADD_PROPERTY(String*, contents);
   public:
-    Interpolated_Selector(string p, size_t l, String* c)
+    Selector_Schema(string p, size_t l, String* c)
     : Selector(p, l), contents_(c)
     { }
     ATTACH_OPERATIONS();
@@ -695,43 +704,73 @@ namespace Sass {
   ////////////////////////////////////////////
   // Abstract base class for simple selectors.
   ////////////////////////////////////////////
-  class Simple_Base : public Selector {
+  class Simple_Selector : public Selector {
   public:
-    Simple_Base(string p, size_t l) : Selector(p, l) { }
-    virtual ~Simple_Base() = 0;
-  };
-  inline Simple_Base::~Simple_Base() { }
-
-  //////////////////////////////////////////////////////////////////////
-  // Normal simple selectors (e.g., "div", ".foo", ":first-child", etc).
-  //////////////////////////////////////////////////////////////////////
-  class Simple_Selector : public Simple_Base {
-    ADD_PROPERTY(string, contents);
-  public:
-    Simple_Selector(string p, size_t l, string c)
-    : Simple_Base(p, l), contents_(c)
+    Simple_Selector(string p, size_t l)
+    : Selector(p, l)
     { }
-    ATTACH_OPERATIONS();
+    virtual ~Simple_Selector() = 0;
   };
+  inline Simple_Selector::~Simple_Selector() { }
 
   /////////////////////////////////////
   // Parent references (i.e., the "&").
   /////////////////////////////////////
-  class Reference_Selector : public Simple_Base {
+  class Selector_Reference : public Simple_Selector {
     ADD_PROPERTY(Selector*, selector);
   public:
-    Reference_Selector(string p, size_t l) : Simple_Base(p, l) { }
+    Selector_Reference(string p, size_t l)
+    : Simple_Selector(p, l)
+    { has_reference(true); }
     ATTACH_OPERATIONS();
   };
 
   /////////////////////////////////////////////////////////////////////////
   // Placeholder selectors (e.g., "%foo") for use in extend-only selectors.
   /////////////////////////////////////////////////////////////////////////
-  class Placeholder_Selector : public Simple_Base {
+  class Selector_Placeholder : public Simple_Selector {
     ADD_PROPERTY(string, name);
   public:
-    Placeholder_Selector(string p, size_t l, string n)
-    : Simple_Base(p, l), name_(n)
+    Selector_Placeholder(string p, size_t l, string n)
+    : Simple_Selector(p, l), name_(n)
+    { has_placeholder(true); }
+    ATTACH_OPERATIONS();
+  };
+
+  /////////////////////////////////////////////////////////////////////
+  // Type selectors (and the universal selector) -- e.g., div, span, *.
+  /////////////////////////////////////////////////////////////////////
+  class Type_Selector : public Simple_Selector {
+    ADD_PROPERTY(string, name);
+  public:
+    Type_Selector(string p, size_t l, string n)
+    : Simple_Selector(p, l), name_(n)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
+  ////////////////////////////////////////////////
+  // Selector qualifiers -- i.e., classes and ids.
+  ////////////////////////////////////////////////
+  class Selector_Qualifier : public Simple_Selector {
+    ADD_PROPERTY(string, name);
+  public:
+    Selector_Qualifier(string p, size_t l, string n)
+    : Simple_Selector(p, l), name_(n)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
+  ///////////////////////////////////////////////////
+  // Attribute selectors -- e.g., [src*=".jpg"], etc.
+  ///////////////////////////////////////////////////
+  class Attribute_Selector : public Simple_Selector {
+    ADD_PROPERTY(string, name);
+    ADD_PROPERTY(string, matcher);
+    ADD_PROPERTY(string, value);
+  public:
+    Attribute_Selector(string p, size_t l, string n, string m, string v)
+    : Simple_Selector(p, l), name_(n), matcher_(m), value_(v)
     { }
     ATTACH_OPERATIONS();
   };
@@ -739,12 +778,12 @@ namespace Sass {
   //////////////////////////////////////////////////////////////////
   // Pseudo selectors -- e.g., :first-child, :nth-of-type(...), etc.
   //////////////////////////////////////////////////////////////////
-  class Pseudo_Selector : public Simple_Base {
+  class Pseudo_Selector : public Simple_Selector {
     ADD_PROPERTY(string, name);
     ADD_PROPERTY(Expression*, expression);
   public:
     Pseudo_Selector(string p, size_t l, string n, Expression* expr = 0)
-    : Simple_Base(p, l), name_(n), expression_(expr)
+    : Simple_Selector(p, l), name_(n), expression_(expr)
     { }
     ATTACH_OPERATIONS();
   };
@@ -752,11 +791,11 @@ namespace Sass {
   /////////////////////////////////////////////////
   // Negated selector -- e.g., :not(:first-of-type)
   /////////////////////////////////////////////////
-  class Negated_Selector : public Simple_Base {
-    ADD_PROPERTY(Simple_Base*, selector);
+  class Negated_Selector : public Simple_Selector {
+    ADD_PROPERTY(Simple_Selector*, selector);
   public:
-    Negated_Selector(string p, size_t l, Simple_Base* sel)
-    : Simple_Base(p, l), selector_(sel)
+    Negated_Selector(string p, size_t l, Simple_Selector* sel)
+    : Simple_Selector(p, l), selector_(sel)
     { }
     ATTACH_OPERATIONS();
   };
@@ -765,56 +804,47 @@ namespace Sass {
   // Simple selector sequences. Maintains flags indicating whether it contains
   // any parent references or placeholders, to simplify expansion.
   ////////////////////////////////////////////////////////////////////////////
-  class Selector_Sequence : public Selector, public Vectorized<Simple_Base*> {
-    ADD_PROPERTY(bool, has_reference);
-    ADD_PROPERTY(bool, has_placeholder);
+  class Simple_Selector_Sequence : public Selector, public Vectorized<Simple_Selector*> {
+  protected:
+    void adjust_after_pushing(Simple_Selector* s)
+    {
+      has_reference(has_reference() || s->has_reference());
+      has_placeholder(has_placeholder() || s->has_placeholder());
+    }
   public:
-    Selector_Sequence(string p, size_t l, size_t s = 0)
+    Simple_Selector_Sequence(string p, size_t l, size_t s = 0)
     : Selector(p, l),
-      Vectorized(s),
-      has_reference_(false),
-      has_placeholder_(false)
+      Vectorized(s)
     { }
-    Selector_Sequence& operator<<(Reference_Selector* s)
-    {
-      has_reference_ = true;
-      return (*this) << s;
-    }
-    Selector_Sequence& operator<<(Placeholder_Selector* p)
-    {
-      has_placeholder_ = true;
-      return (*this) << p;
-    }
     ATTACH_OPERATIONS();
   };
 
   ////////////////////////////////////////////////////////////////////////////
   // General selectors -- i.e., simple sequences combined with one of the four
   // CSS selector combinators (">", "+", "~", and whitespace). Essentially a
-  // left-associative linked list.
+  // linked list.
   ////////////////////////////////////////////////////////////////////////////
   class Selector_Combination : public Selector {
   public:
     enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO };
   private:
     ADD_PROPERTY(Combinator, combinator);
-    ADD_PROPERTY(Selector_Combination*, context);
-    ADD_PROPERTY(Selector_Sequence*, base);
+    ADD_PROPERTY(Simple_Selector_Sequence*, head);
+    ADD_PROPERTY(Selector_Combination*, tail);
     ADD_PROPERTY(bool, has_reference);
     ADD_PROPERTY(bool, has_placeholder);
   public:
     Selector_Combination(string p, size_t l,
                          Combinator c,
-                         Selector_Combination* ctx,
-                         Selector_Sequence* sel)
-    : Selector(p, l),
+                         Simple_Selector_Sequence* h,
+                         Selector_Combination* t)
+    : Selector(p, l, h && h->has_reference() ||
+                     t && t->has_reference(),
+                     h && h->has_placeholder() ||
+                     t && t->has_placeholder()),
       combinator_(c),
-      context_(ctx),
-      base_(sel),
-      has_reference_(ctx && ctx->has_reference() ||
-                     sel && sel->has_reference()),
-      has_placeholder_(ctx && ctx->has_placeholder() ||
-                       sel && sel->has_placeholder())
+      head_(h),
+      tail_(t)
     { }
     ATTACH_OPERATIONS();
   };

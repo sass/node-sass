@@ -508,10 +508,10 @@ namespace Sass {
   // Interpolated strings. Meant to be reduced to flat strings during the
   // evaluation phase.
   ///////////////////////////////////////////////////////////////////////
-  struct Interpolation : public String {
+  struct String_Schema : public String {
     vector<Expression*> fragments;
 
-    Interpolation(string p, size_t l, size_t size = 0)
+    String_Schema(string p, size_t l, size_t size = 0)
     : String(p, l), fragments(vector<Expression*>())
     { fragments.reserve(size); }
 
@@ -519,12 +519,12 @@ namespace Sass {
     { return fragments.size(); }
     Expression*& operator[](size_t i)
     { return fragments[i]; }
-    Interpolation& operator<<(Expression* v)
+    String_Schema& operator<<(Expression* v)
     {
       fragments.push_back(v);
       return *this;
     }
-    Interpolation& operator+=(Interpolation* s)
+    String_Schema& operator+=(String_Schema* s)
     {
       for (size_t i = 0, L = s->length(); i < L; ++i)
         fragments.push_back((*s)[i]);
@@ -537,16 +537,16 @@ namespace Sass {
   ////////////////////////////////////////////////////////
   // Flat strings -- the lowest level of raw textual data.
   ////////////////////////////////////////////////////////
-  struct Flat_String : public String {
+  struct String_Constant : public String {
     string value;
 
-    Flat_String(string p, size_t l, string val)
+    String_Constant(string p, size_t l, string val)
     : String(p, l), value(val)
     { }
-    Flat_String(string p, size_t l, const char* beg)
+    String_Constant(string p, size_t l, const char* beg)
     : String(p, l), value(string(beg))
     { }
-    Flat_String(string p, size_t l, const char* beg, const char* end)
+    String_Constant(string p, size_t l, const char* beg, const char* end)
     : String(p, l), value(string(beg, end-beg))
     { }
     string type() { return "string"; }

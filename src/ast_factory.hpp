@@ -58,10 +58,10 @@ namespace Sass {
 		Dimension* new_Dimension(string p, size_t l, double val, string unit);
 		Color* new_Color(string p, size_t l, double r, double g, double b, double a = 1);
 		Boolean* new_Boolean(string p, size_t l, bool val);
-		Interpolation* new_Interpolation(string p, size_t l, size_t size = 0);
-		Flat_String* new_Flat_String(string p, size_t l, string val);
-		Flat_String* new_Flat_String(string p, size_t l, const char* beg);
-		Flat_String* new_Flat_String(string p, size_t l, const char* beg, const char* end);
+		String_Schema* new_String_Schema(string p, size_t l, size_t size = 0);
+		String_Constant* new_String_Constant(string p, size_t l, string val);
+		String_Constant* new_String_Constant(string p, size_t l, const char* beg);
+		String_Constant* new_String_Constant(string p, size_t l, const char* beg, const char* end);
 		Media_Expression* new_Media_Expression(string p, size_t l, String* f, Expression* v);
 		// parameters and arguments
 		Parameter* new_Parameter(string p, size_t l, string n, Expression* def = 0, bool rest = false);
@@ -69,14 +69,14 @@ namespace Sass {
 		Argument* new_Argument(string p, size_t l, Expression* val, string n = "", bool rest = false);
 		Arguments* new_Arguments(string p, size_t l);
 		// selectors
-		Interpolated_Selector* new_Interpolated_Selector(string p, size_t l, String* c);
+		Selector_Schema* new_Selector_Schema(string p, size_t l, String* c);
 		Simple_Selector* new_Simple_Selector(string p, size_t l, string c);
 		Reference_Selector* new_Reference_Selector(string p, size_t l);
 		Placeholder_Selector* new_Placeholder_Selector(string p, size_t l, string n);
 		Pseudo_Selector* new_Pseudo_Selector(string p, size_t l, string n, Expression* expr = 0);
 		Negated_Selector* new_Negated_Selector(string p, size_t l, Simple_Base* sel);
-		Selector_Sequence* new_Selector_Sequence(string p, size_t l, size_t s = 0);
-		Selector_Combination* new_Selector_Combination(string p, size_t l, Selector_Combination::Combinator c, Selector_Combination* ctx, Selector_Sequence* sel);
+		Simple_Selector_Sequence* new_Simple_Selector_Sequence(string p, size_t l, size_t s = 0);
+		Selector_Combination* new_Selector_Combination(string p, size_t l, Selector_Combination::Combinator c, Selector_Combination* ctx, Simple_Selector_Sequence* sel);
 		Selector_Group* new_Selector_Group(string p, size_t l, size_t s = 0);
 	};
 }

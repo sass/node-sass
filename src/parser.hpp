@@ -136,9 +136,8 @@ namespace Sass {
     void read_bom();
 
     void parse_scss();
-    Statement* parse_import();
-    Definition<MIXIN>* parse_mixin_definition();
-    Definition<FUNCTION>* parse_function_definition();
+    Import* parse_import();
+    Definition* parse_definition();
     Parameters* parse_parameters();
     Parameter* parse_parameter();
     Mixin_Call* parse_mixin_call();
@@ -147,12 +146,11 @@ namespace Sass {
     Assignment* parse_assignment();
     Propset* parse_propset();
     Ruleset* parse_ruleset(Selector_Lookahead lookahead);
-    Interpolated_Selector* parse_selector_schema(const char* end_of_selector);
+    Selector_Schema* parse_selector_schema(const char* end_of_selector);
     Selector_Group* parse_selector_group();
-    Selector_Combination* parse_selector();
-    AST_Node* parse_selector_combinator();
-    AST_Node* parse_simple_selector_sequence();
-    AST_Node* parse_simple_selector();
+    Selector_Combination* parse_selector_combination();
+    Simple_Selector_Sequence* parse_simple_selector_sequence();
+    Simple_Selector* parse_simple_selector();
     AST_Node* parse_pseudo();
     AST_Node* parse_attribute_selector();
     Block* parse_block();
@@ -170,8 +168,8 @@ namespace Sass {
     AST_Node* parse_value();
     Function_Call* parse_function_call();
     String* parse_string();
-    Interpolation* parse_value_schema();
-    Interpolation* parse_identifier_schema();
+    String_Schema* parse_value_schema();
+    String_Schema* parse_identifier_schema();
     AST_Node* parse_url_schema();
     If* parse_if_directive();
     For* parse_for_directive();

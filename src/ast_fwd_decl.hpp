@@ -3,7 +3,6 @@
 /////////////////////////////////////////////
 namespace Sass {
 
-  enum Definition_Type { MIXIN, FUNCTION };
   enum Binary_Operator {
     AND, OR,                   // logical connectives
     EQ, NEQ, GT, GTE, LT, LTE, // arithmetic relations
@@ -20,7 +19,7 @@ namespace Sass {
 	class At_Rule;
 	class Declaration;
 	class Assignment;
-	template <typename T> class Import;
+	class Import;
 	class Warning;
 	class Comment;
 	class If;
@@ -28,7 +27,7 @@ namespace Sass {
 	class Each;
 	class While;
 	class Extend;
-	template <Definition_Type T> class Definition;
+	class Definition;
 	class Mixin_Call;
 	// expressions
 	class List;
@@ -42,9 +41,9 @@ namespace Sass {
 	class Dimension;
 	class Color;
 	class Boolean;
-	class Interpolation;
+	class String_Schema;
 	class String;
-	class Flat_String;
+	class String_Constant;
 	class Media_Expression;
 	// parameters and arguments
 	class Parameter;
@@ -52,13 +51,15 @@ namespace Sass {
 	class Argument;
 	class Arguments;
 	// selectors
-	class Interpolated_Selector;
-	class Simple_Selector;
-	class Reference_Selector;
-	class Placeholder_Selector;
+	class Selector_Schema;
+	class Selector_Reference;
+	class Selector_Placeholder;
+	class Type_Selector;
+	class Selector_Qualifier;
+	class Attribute_Selector;
 	class Pseudo_Selector;
 	class Negated_Selector;
-	class Selector_Sequence;
+	class Simple_Selector_Sequence;
 	class Selector_Combination;
 	class Selector_Group;
 

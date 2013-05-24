@@ -19,22 +19,15 @@ namespace Sass {
     Selector_Lookahead lookahead_result;
     while (position < end) {
       if (lex< block_comment >()) {
-        Flat_String* contents = new (ctx.mem) Flat_String(path, line, lexed);
+        String_Constant* contents = new (ctx.mem) String_Constant(path, line, lexed);
         Comment*     comment  = new (ctx.mem) Comment(path, line, contents);
         (*root) << comment;
       }
       else if (peek< import >()) {
-        Statement* import = parse_import();
-        (*root) << import;
-        // if (importee.type() == AST_Node*::css_import) (*root) << importee;
-        // else                                     root += importee;
-        // if (!lex< exactly<';'> >()) throw_syntax_error("top-level @import directive must be terminated by ';'");
+        (*root) << parse_import();
       }
-      else if (peek< mixin >() /* || peek< exactly<'='> >() */) {
-        (*root) << parse_mixin_definition();
-      }
-      else if (peek< function >()) {
-        (*root) << parse_function_definition();
+      else if (peek< mixin >() || peek< function >()) {
+        (*root) << parse_definition();
       }
       else if (peek< variable >()) {
         (*root) << parse_assignment();
@@ -94,21 +87,24 @@ namespace Sass {
     }
   }
 
-  Statement* Parser::parse_import()
+  Import* Parser::parse_import()
   {
-    Statement* imp;
     lex< import >();
-    if (peek< uri_prefix >()) {
-      Function_Call* loc = parse_function_call();
-      imp = new (ctx.mem) Import<Function_Call>(path, line, loc);
-    }
-    else if (peek< string_constant >()) {
-      String* loc = parse_string();
-      imp = new (ctx.mem) Import<String>(path, line, loc);
-    }
-    else {
-      throw_syntax_error("@import directive requires a url or quoted path");
-    }
+    Import* imp = new (ctx.mem) Import(path, line);
+    bool first = true;
+    do {
+      if (lex< string_constant >()) {
+        imp->strings().push_back(string(lexed.begin, lexed.end));
+      }
+      else if (peek< uri_prefix >()) {
+        imp->urls().push_back(parse_function_call());
+      }
+      else {
+        if (first) throw_syntax_error("@import directive requires a url or quoted path");
+        else throw_syntax_error("expecting another url or quoted path in @import list");
+      }
+      first = false;
+    } while (lex< exactly<','> >());
     return imp;
     // if (lex< uri_prefix >())
     // {
@@ -161,34 +157,23 @@ namespace Sass {
     // return AST_Node*();
   }
 
-  Definition<MIXIN>* Parser::parse_mixin_definition()
+  Definition* Parser::parse_definition()
   {
-    lex< mixin >() /* || lex< exactly<'='> >() */;
-    if (!lex< identifier >()) throw_syntax_error("invalid name in @mixin directive");
+    Definition::Type which_type;
+    if      (lex< mixin >())    which_type = Definition::MIXIN;
+    else if (lex< function >()) which_type = Definition::FUNCTION;
+    string which_str(lexed.begin, lexed.end);
+    if (!lex< identifier >()) throw_syntax_error("invalid name in " + which_str + " definition");
     string name(lexed.begin, lexed.end);
-    size_t mixin_line = line;
+    size_t line_of_def = line;
     Parameters* params = parse_parameters();
-    if (!peek< exactly<'{'> >()) throw_syntax_error("body for mixin " + name + " must begin with a '{'");
-    stack.push_back(mixin_def);
+    if (!peek< exactly<'{'> >()) throw_syntax_error("body for " + which_str + " " + name + " must begin with a '{'");
+    if (which_type == Definition::MIXIN) stack.push_back(mixin_def);
+    else stack.push_back(function_def);
     Block* body = parse_block();
     stack.pop_back();
-    Definition<MIXIN>* the_mixin = new (ctx.mem) Definition<MIXIN>(path, mixin_line, name, params, body);
-    return the_mixin;
-  }
-
-  Definition<FUNCTION>* Parser::parse_function_definition()
-  {
-    lex< function >();
-    size_t func_line = line;
-    if (!lex< identifier >()) throw_syntax_error("name required for function definition");
-    string name(lexed.begin, lexed.end);
-    Parameters* params = parse_parameters();
-    if (!peek< exactly<'{'> >()) throw_syntax_error("body for function " + name + " must begin with a '{'");
-    stack.push_back(function_def);
-    Block* body = parse_block();
-    stack.pop_back();
-    Definition<FUNCTION>* the_function = new (ctx.mem) Definition<FUNCTION>(path, func_line, name, params, body);
-    return the_function;
+    Definition* def = new (ctx.mem) Definition(path, line_of_def, name, params, body, which_type);
+    return def;
   }
 
   Parameters* Parser::parse_parameters()
@@ -295,7 +280,7 @@ namespace Sass {
     }
     else {
       lex< sequence< optional< exactly<'*'> >, identifier > >();
-      property_segment = new (ctx.mem) Flat_String(path, line, lexed);
+      property_segment = new (ctx.mem) String_Constant(path, line, lexed);
     }
     lex< exactly<':'> >();
     Block* block = parse_block();
@@ -319,17 +304,17 @@ namespace Sass {
     return ruleset;
   }
 
-  Interpolated_Selector* Parser::parse_selector_schema(const char* end_of_selector)
+  Selector_Schema* Parser::parse_selector_schema(const char* end_of_selector)
   {
     const char* i = position;
     const char* p;
-    Interpolation* schema = new (ctx.mem) Interpolation(path, line);
+    String_Schema* schema = new (ctx.mem) String_Schema(path, line);
 
     while (i < end_of_selector) {
       p = find_first_in_interval< exactly<hash_lbrace> >(i, end_of_selector);
       if (p) {
         // accumulate the preceding segment if there is one
-        if (i < p) (*schema) << new (ctx.mem) Flat_String(path, line, Token(i, p));
+        if (i < p) (*schema) << new (ctx.mem) String_Constant(path, line, Token(i, p));
         // find the end of the interpolant and parse it
         const char* j = find_first_in_interval< exactly<rbrace> >(p, end_of_selector);
         Expression* interp_node = Parser::make_from_token(ctx, Token(p+2, j), path, line).parse_list();
@@ -337,71 +322,70 @@ namespace Sass {
         i = j + 1;
       }
       else { // no interpolants left; add the last segment if there is one
-        if (i < end_of_selector) (*schema) << new (ctx.mem) Flat_String(path, line, Token(i, end_of_selector));
+        if (i < end_of_selector) (*schema) << new (ctx.mem) String_Constant(path, line, Token(i, end_of_selector));
         break;
       }
     }
     position = end_of_selector;
-    return new (ctx.mem) Interpolated_Selector(path, line, schema);
+    return new (ctx.mem) Selector_Schema(path, line, schema);
   }
 
   Selector_Group* Parser::parse_selector_group()
   {
     Selector_Group* group = new Selector_Group(path, line);
-    do (*group) << parse_selector();
+    do (*group) << parse_selector_combination();
     while (lex< exactly<','> >());
     return group;
   }
 
-  Selector_Combination* Parser::parse_selector()
+  Selector_Combination* Parser::parse_selector_combination()
   {
-    AST_Node* seq1(parse_simple_selector_sequence());
+    Simple_Selector_Sequence* lhs;
+    if (peek< exactly<'+'> >() ||
+        peek< exactly<'~'> >() ||
+        peek< exactly<'>'> >()) {
+      // no selector before the combinator
+      lhs = 0;
+    }
+    else {
+      lhs = parse_simple_selector_sequence();
+    }
+    size_t sel_line = line;
+
+    Selector_Combination::Combinator cmb;
+    if      (lex< exactly<'+'> >()) cmb = Selector_Combination::ADJACENT_TO;
+    else if (lex< exactly<'~'> >()) cmb = Selector_Combination::PRECEDES;
+    else if (lex< exactly<'>'> >()) cmb = Selector_Combination::PARENT_OF;
+    else                            cmb = Selector_Combination::ANCESTOR_OF;
+
+    Selector_Combination* rhs;
     if (peek< exactly<','> >() ||
         peek< exactly<')'> >() ||
         peek< exactly<'{'> >() ||
-        peek< exactly<';'> >()) return seq1;
-
-    AST_Node* selector(ctx.new_AST_Node*(AST_Node*::selector, path, line, 2));
-    selector << seq1;
-
-    while (!peek< exactly<'{'> >() &&
-           !peek< exactly<','> >() &&
-           !peek< exactly<';'> >()) {
-      selector << parse_simple_selector_sequence();
-    }
-    return selector;
-  }
-
-  Simple_Sequence* Parser::parse_simple_selector_sequence()
-  {
-    // check for initial and trailing combinators
-    if (lex< exactly<'+'> >() ||
-        lex< exactly<'~'> >() ||
-        lex< exactly<'>'> >())
-    { return ctx.new_AST_Node*(AST_Node*::selector_combinator, path, line, lexed); }
-
-    // check for backref or type selector, which are only allowed at the front
-    AST_Node* simp1;
-    if (lex< exactly<'&'> >()) {
-      simp1 = ctx.new_AST_Node*(AST_Node*::backref, path, line, lexed);
-    }
-    else if (lex< alternatives< type_selector, universal, string_constant, number > >()) {
-      simp1 = ctx.new_AST_Node*(AST_Node*::simple_selector, path, line, lexed);
+        peek< exactly<';'> >()) {
+      // no selector after the combinator
+      rhs = 0;
     }
     else {
-      simp1 = parse_simple_selector();
+      rhs = parse_selector_combination();
     }
 
-    // now we have one simple/atomic selector -- see if that's all
-    if (peek< spaces >()       || peek< exactly<'>'> >() ||
-        peek< exactly<'+'> >() || peek< exactly<'~'> >() ||
-        peek< exactly<','> >() || peek< exactly<')'> >() ||
-        peek< exactly<'{'> >() || peek< exactly<';'> >())
-    { return simp1; }
+    return new (ctx.mem) Selector_Combination(path, sel_line, cmb, lhs, rhs);
+  }
 
-    // otherwise, we have a sequence of simple selectors
-    AST_Node* seq(ctx.new_AST_Node*(AST_Node*::simple_selector_sequence, path, line, 2));
-    seq << simp1;
+  Simple_Selector_Sequence* Parser::parse_simple_selector_sequence()
+  {
+    Simple_Selector_Sequence* seq = new (ctx.mem) Simple_Selector_Sequence(path, line);
+    // check for backref or type selector, which are only allowed at the front
+    if (lex< exactly<'&'> >()) {
+      (*seq) << new (ctx.mem) Selector_Reference(path, line);
+    }
+    else if (lex< alternatives< type_selector, universal, string_constant, dimension, percentage, number > >()) {
+      (*seq) << new (ctx.mem) Type_Selector(path, line, string(lexed.begin, lexed.end));
+    }
+    else {
+      (*seq) << parse_simple_selector();
+    }
 
     while (!peek< spaces >(position) &&
            !(peek < exactly<'+'> >(position) ||
@@ -411,19 +395,12 @@ namespace Sass {
              peek < exactly<')'> >(position) ||
              peek < exactly<'{'> >(position) ||
              peek < exactly<';'> >(position))) {
-      seq << parse_simple_selector();
+      (*seq) << parse_simple_selector();
     }
     return seq;
   }
 
-  AST_Node* Parser::parse_selector_combinator()
-  {
-    lex< exactly<'+'> >() || lex< exactly<'~'> >() ||
-    lex< exactly<'>'> >() || lex< ancestor_of >();
-    return ctx.new_AST_Node*(AST_Node*::selector_combinator, path, line, lexed);
-  }
-
-  AST_Node* Parser::parse_simple_selector()
+  Simple_Selector* Parser::parse_simple_selector()
   {
     if (lex< id_name >() || lex< class_name >() || lex< string_constant >() || lex< number >()) {
       return ctx.new_AST_Node*(AST_Node*::simple_selector, path, line, lexed);
