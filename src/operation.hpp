@@ -24,23 +24,14 @@ namespace Sass {
 		virtual T operator()(For*) = 0;
 		virtual T operator()(Each*) = 0;
 		virtual T operator()(While*) = 0;
+		virtual T operator()(Return*) = 0;
+		virtual T operator()(Content*) = 0;
 		virtual T operator()(Extend*) = 0;
 		virtual T operator()(Definition*) = 0;
 		virtual T operator()(Mixin_Call*) = 0;
 		// expressions
 		virtual T operator()(List*) = 0;
-		virtual T operator()(Binary_Expression<AND>*) = 0;
-		virtual T operator()(Binary_Expression<OR>*) = 0;
-		virtual T operator()(Binary_Expression<EQ>*) = 0;
-		virtual T operator()(Binary_Expression<NEQ>*) = 0;
-		virtual T operator()(Binary_Expression<GT>*) = 0;
-		virtual T operator()(Binary_Expression<GTE>*) = 0;
-		virtual T operator()(Binary_Expression<LT>*) = 0;
-		virtual T operator()(Binary_Expression<LTE>*) = 0;
-		virtual T operator()(Binary_Expression<ADD>*) = 0;
-		virtual T operator()(Binary_Expression<SUB>*) = 0;
-		virtual T operator()(Binary_Expression<MUL>*) = 0;
-		virtual T operator()(Binary_Expression<DIV>*) = 0;
+		virtual T operator()(Binary_Expression*) = 0;
 		virtual T operator()(Negation*) = 0;
 		virtual T operator()(Function_Call*) = 0;
 		virtual T operator()(Variable*) = 0;

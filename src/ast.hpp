@@ -295,6 +295,25 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
 
+  /////////////////////////////////////////////////////////////
+  // The @return directive for use inside SassScript functions.
+  /////////////////////////////////////////////////////////////
+  class Return : public Statement {
+    ADD_PROPERTY(Expression*, value);
+  public:
+    Return(string p, size_t l, Expression* val = 0)
+    : Statement(p, l), value_(val)
+    { }
+  };
+
+  ///////////////////////////////////////////////////
+  // The @content directive for mixin content blocks.
+  ///////////////////////////////////////////////////
+  class Content : public Statement {
+  public:
+    Content(string p, size_t l) : Statement(p, l) { }
+  };
+
   ////////////////////////////////
   // The Sass `@extend` directive.
   ////////////////////////////////
@@ -385,13 +404,21 @@ namespace Sass {
   // operations. Templatized to avoid large switch statements and repetitive
   // subclassing.
   //////////////////////////////////////////////////////////////////////////
-  template<Binary_Operator oper>
   class Binary_Expression : public Expression {
+  public:
+    enum Type {
+      AND, OR,                   // logical connectives
+      EQ, NEQ, GT, GTE, LT, LTE, // arithmetic relations
+      ADD, SUB, MUL, DIV         // arithmetic functions
+    };
+  private:
+    ADD_PROPERTY(Type, type);
     ADD_PROPERTY(Expression*, left);
     ADD_PROPERTY(Expression*, right);
   public:
-    Binary_Expression(string p, size_t l, Expression* lhs, Expression* rhs)
-    : Expression(p, l), left_(lhs), right_(rhs)
+    Binary_Expression(string p, size_t l,
+                      Type t, Expression* lhs, Expression* rhs)
+    : Expression(p, l), type_(t), left_(lhs), right_(rhs)
     { }
     ATTACH_OPERATIONS();
   };

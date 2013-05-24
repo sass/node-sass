@@ -3,11 +3,6 @@
 /////////////////////////////////////////////
 namespace Sass {
 
-  enum Binary_Operator {
-    AND, OR,                   // logical connectives
-    EQ, NEQ, GT, GTE, LT, LTE, // arithmetic relations
-    ADD, SUB, MUL, DIV         // arithmetic functions
-  };
   enum Textual_Type { NUMBER, PERCENTAGE, DIMENSION, HEX };
 
 	class AST_Node;
@@ -26,12 +21,14 @@ namespace Sass {
 	class For;
 	class Each;
 	class While;
+	class Return;
+	class Content;
 	class Extend;
 	class Definition;
 	class Mixin_Call;
 	// expressions
 	class List;
-	template <Binary_Operator op> class Binary_Expression;
+	class Binary_Expression;
 	class Negation;
 	class Function_Call;
 	class Variable;

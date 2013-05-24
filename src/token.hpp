@@ -23,6 +23,7 @@ namespace Sass {
     void   unquote_to_stream(stringstream& buf) const;
 
     operator bool() { return begin && end && begin >= end; }
+    operator string() { return string(begin, end); }
 
     bool operator<(const Token& rhs) const;
     bool operator==(const Token& rhs) const;

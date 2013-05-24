@@ -94,7 +94,7 @@ namespace Sass {
     bool first = true;
     do {
       if (lex< string_constant >()) {
-        imp->strings().push_back(string(lexed.begin, lexed.end));
+        imp->strings().push_back(lexed);
       }
       else if (peek< uri_prefix >()) {
         imp->urls().push_back(parse_function_call());
@@ -132,7 +132,7 @@ namespace Sass {
     // // through the include-paths.
     // try {
     //   const char* base_str = path.c_str();
-    //   string base_path(Token::make(base_str, Prelexer::folders(base_str)).to_string());
+    //   string base_path(Token::make(base_str, Prelexer::folders(base_str)));
     //   string resolved_path(base_path + import_path);
     //   Parser importee(Parser::make_from_file(ctx, resolved_path));
     //   importee.parse_scss();
@@ -162,9 +162,9 @@ namespace Sass {
     Definition::Type which_type;
     if      (lex< mixin >())    which_type = Definition::MIXIN;
     else if (lex< function >()) which_type = Definition::FUNCTION;
-    string which_str(lexed.begin, lexed.end);
+    string which_str(lexed);
     if (!lex< identifier >()) throw_syntax_error("invalid name in " + which_str + " definition");
-    string name(lexed.begin, lexed.end);
+    string name(lexed);
     size_t line_of_def = line;
     Parameters* params = parse_parameters();
     if (!peek< exactly<'{'> >()) throw_syntax_error("body for " + which_str + " " + name + " must begin with a '{'");
@@ -178,7 +178,7 @@ namespace Sass {
 
   Parameters* Parser::parse_parameters()
   {
-    string name(lexed.begin, lexed.end); // for the error message
+    string name(lexed); // for the error message
     Parameters* params = new (ctx.mem) Parameters(path, line);
     if (lex< exactly<'('> >()) {
       // if there's anything there at all
@@ -194,7 +194,7 @@ namespace Sass {
   Parameter* Parser::parse_parameter()
   {
     lex< variable >();
-    string name(lexed.begin, lexed.end);
+    string name(lexed);
     Expression* val = 0;
     bool is_rest = false;
     if (lex< exactly<':'> >()) { // there's a default value
@@ -212,7 +212,7 @@ namespace Sass {
     lex< include >() /* || lex< exactly<'+'> >() */;
     if (!lex< identifier >()) throw_syntax_error("invalid name in @include directive");
     size_t line_of_call = line;
-    string name(lexed.begin, lexed.end);
+    string name(lexed);
     Arguments* args = parse_arguments();
     Block* content = 0;
     if (peek< exactly<'{'> >()) {
@@ -224,7 +224,7 @@ namespace Sass {
 
   Arguments* Parser::parse_arguments()
   {
-    string name(lexed.begin, lexed.end);
+    string name(lexed);
     Arguments* args = new (ctx.mem) Arguments(path, line);
 
     if (lex< exactly<'('> >()) {
@@ -243,7 +243,7 @@ namespace Sass {
   {
     if (peek< sequence < variable, spaces_and_comments, exactly<':'> > >()) {
       lex< variable >();
-      string name(lexed.begin, lexed.end);
+      string name(lexed);
       lex< exactly<':'> >();
       Expression* val = parse_space_list();
       Argument* arg = new (ctx.mem) Argument(path, line, val, name);
@@ -263,9 +263,9 @@ namespace Sass {
   Assignment* Parser::parse_assignment()
   {
     lex< variable >();
-    string name(lexed.begin, lexed.end);
+    string name(lexed);
     size_t var_line = line;
-    if (!lex< exactly<':'> >()) throw_syntax_error("expected ':' after " + lexed.to_string() + " in assignment statement");
+    if (!lex< exactly<':'> >()) throw_syntax_error("expected ':' after " + name + " in assignment statement");
     Expression* val = parse_list();
     bool is_guarded = lex< default_flag >();
     Assignment* var = new (ctx.mem) Assignment(path, var_line, name, val, is_guarded);
@@ -381,7 +381,7 @@ namespace Sass {
       (*seq) << new (ctx.mem) Selector_Reference(path, line);
     }
     else if (lex< alternatives< type_selector, universal, string_constant, dimension, percentage, number > >()) {
-      (*seq) << new (ctx.mem) Type_Selector(path, line, string(lexed.begin, lexed.end));
+      (*seq) << new (ctx.mem) Type_Selector(path, line, lexed);
     }
     else {
       (*seq) << parse_simple_selector();
@@ -402,207 +402,196 @@ namespace Sass {
 
   Simple_Selector* Parser::parse_simple_selector()
   {
-    if (lex< id_name >() || lex< class_name >() || lex< string_constant >() || lex< number >()) {
-      return ctx.new_AST_Node*(AST_Node*::simple_selector, path, line, lexed);
+    if (lex< id_name >() || lex< class_name >()) {
+      return new (ctx.mem) Selector_Qualifier(path, line, lexed);
+    }
+
+    if (lex< string_constant >() || lex< number >()) {
+      return new (ctx.mem) Type_Selector(path, line, lexed);
+    }
+    else if (peek< pseudo_not >()) {
+      return parse_negated_selector();
     }
     else if (peek< exactly<':'> >(position)) {
-      return parse_pseudo();
+      return parse_pseudo_selector();
     }
     else if (peek< exactly<'['> >(position)) {
       return parse_attribute_selector();
     }
     else {
-      throw_syntax_error("invalid selector after " + lexed.to_string());
+      throw_syntax_error("invalid selector after " + lexed);
     }
     // unreachable statement
-    return AST_Node*();
+    return 0;
   }
 
-  AST_Node* Parser::parse_pseudo() {
-    if (lex< pseudo_not >()) {
-      AST_Node* ps_not(ctx.new_AST_Node*(AST_Node*::pseudo_negation, path, line, 2));
-      ps_not << ctx.new_AST_Node*(AST_Node*::value, path, line, lexed);
-      ps_not << parse_selector_group();
-      lex< exactly<')'> >();
-      return ps_not;
-    }
-    else if (lex< sequence< pseudo_prefix, functional > >()) {
-      AST_Node* pseudo(ctx.new_AST_Node*(AST_Node*::functional_pseudo, path, line, 2));
-      Token name(lexed);
-      pseudo << ctx.new_AST_Node*(AST_Node*::value, path, line, name);
+  Negated_Selector* Parser::parse_negated_selector()
+  {
+    return 0;
+  }
+
+  Pseudo_Selector* Parser::parse_pseudo_selector() {
+    if (lex< sequence< pseudo_prefix, functional > >()) {
+      string name(lexed);
+      Expression* expr;
       if (lex< alternatives< even, odd > >()) {
-        pseudo << ctx.new_AST_Node*(AST_Node*::value, path, line, lexed);
+        expr = new (ctx.mem) String_Constant(path, line, lexed);
       }
       else if (peek< binomial >(position)) {
-        if (peek< coefficient >()) {
-          lex< coefficient >();
-          pseudo << ctx.new_AST_Node*(AST_Node*::value, path, line, lexed);
-        }
-        lex< exactly<'n'> >();
-        pseudo << ctx.new_AST_Node*(AST_Node*::value, path, line, lexed);
+        lex< sequence< optional< coefficient >, exactly<'n'> > >();
+        String_Constant* var_coef = new (ctx.mem) String_Constant(path, line, lexed);
         lex< sign >();
-        pseudo << ctx.new_AST_Node*(AST_Node*::value, path, line, lexed);
+        Binary_Expression::Type op = (lexed == "+" ? Binary_Expression::ADD : Binary_Expression::SUB);
         lex< digits >();
-        pseudo << ctx.new_AST_Node*(AST_Node*::value, path, line, lexed);
+        String_Constant* constant = new (ctx.mem) String_Constant(path, line, lexed);
+        expr = new (ctx.mem) Binary_Expression(path, line, op, var_coef, constant);
       }
       else if (lex< sequence< optional<sign>,
                               optional<digits>,
                               exactly<'n'> > >()) {
-        pseudo << ctx.new_AST_Node*(AST_Node*::value, path, line, lexed);
+        expr = new (ctx.mem) String_Constant(path, line, lexed);
       }
       else if (lex< sequence< optional<sign>, digits > >()) {
-        pseudo << ctx.new_AST_Node*(AST_Node*::value, path, line, lexed);
+        expr = new (ctx.mem) String_Constant(path, line, lexed);
       }
       else if (lex< identifier >()) {
-        pseudo << ctx.new_AST_Node*(AST_Node*::identifier, path, line, lexed);
+        expr = new (ctx.mem) String_Constant(path, line, lexed);
       }
       else if (lex< string_constant >()) {
-        pseudo << ctx.new_AST_Node*(AST_Node*::string_constant, path, line, lexed);
+        expr = new (ctx.mem) String_Constant(path, line, lexed);
       }
       else {
-        throw_syntax_error("invalid argument to " + name.to_string() + "...)");
+        throw_syntax_error("invalid argument to " + name + "...)");
       }
-      if (!lex< exactly<')'> >()) throw_syntax_error("unterminated argument to " + name.to_string() + "...)");
-      return pseudo;
+      if (!lex< exactly<')'> >()) throw_syntax_error("unterminated argument to " + name + "...)");
+      return new (ctx.mem) Pseudo_Selector(path, line, name, expr);
     }
     else if (lex < sequence< pseudo_prefix, identifier > >()) {
-      return ctx.new_AST_Node*(AST_Node*::pseudo, path, line, lexed);
+      return new (ctx.mem) Pseudo_Selector(path, line, lexed);
     }
     else {
       throw_syntax_error("unrecognized pseudo-class or pseudo-element");
     }
     // unreachable statement
-    return AST_Node*();
+    return 0;
   }
 
-  AST_Node* Parser::parse_attribute_selector()
+  Attribute_Selector* Parser::parse_attribute_selector()
   {
-    AST_Node* attr_sel(ctx.new_AST_Node*(AST_Node*::attribute_selector, path, line, 3));
     lex< exactly<'['> >();
     if (!lex< type_selector >()) throw_syntax_error("invalid attribute name in attribute selector");
-    Token name(lexed);
-    attr_sel << ctx.new_AST_Node*(AST_Node*::value, path, line, name);
-    if (lex< exactly<']'> >()) return attr_sel;
+    string name(lexed);
+    if (lex< exactly<']'> >()) return new (ctx.mem) Attribute_Selector(path, line, name, "", "");
     if (!lex< alternatives< exact_match, class_match, dash_match,
                             prefix_match, suffix_match, substring_match > >()) {
-      throw_syntax_error("invalid operator in attribute selector for " + name.to_string());
+      throw_syntax_error("invalid operator in attribute selector for " + name);
     }
-    attr_sel << ctx.new_AST_Node*(AST_Node*::value, path, line, lexed);
-    if (!lex< string_constant >() && !lex< identifier >()) throw_syntax_error("expected a string constant or identifier in attribute selector for " + name.to_string());
-    attr_sel << ctx.new_AST_Node*(AST_Node*::value, path, line, lexed);
-    if (!lex< exactly<']'> >()) throw_syntax_error("unterminated attribute selector for " + name.to_string());
-    return attr_sel;
+    string matcher(lexed);
+    if (!lex< string_constant >() && !lex< identifier >()) throw_syntax_error("expected a string constant or identifier in attribute selector for " + name);
+    string value(lexed);
+    if (!lex< exactly<']'> >()) throw_syntax_error("unterminated attribute selector for " + name);
+    return new (ctx.mem) Attribute_Selector(path, line, name, matcher, value);
   }
 
-  AST_Node* Parser::parse_block(AST_Node* surrounding_ruleset, AST_Node*::Type inside_of)
+  Block* Parser::parse_block()
   {
     lex< exactly<'{'> >();
     bool semicolon = false;
     Selector_Lookahead lookahead_result;
-    AST_Node* block(ctx.new_AST_Node*(AST_Node*::block, path, line, 0));
+    Block* block = new (ctx.mem) Block(path, line);
     while (!lex< exactly<'}'> >()) {
       if (semicolon) {
         if (!lex< exactly<';'> >()) throw_syntax_error("non-terminal statement or declaration must end with ';'");
         semicolon = false;
         while (lex< block_comment >()) {
-          block << ctx.new_AST_Node*(AST_Node*::comment, path, line, lexed);
+          String_Constant* contents = new (ctx.mem) String_Constant(path, line, lexed);
+          Comment*         comment  = new (ctx.mem) Comment(path, line, contents);
+          (*block) << comment;
         }
         if (lex< exactly<'}'> >()) break;
       }
       if (lex< block_comment >()) {
-        block << ctx.new_AST_Node*(AST_Node*::comment, path, line, lexed);
+        String_Constant* contents = new (ctx.mem) String_Constant(path, line, lexed);
+        Comment*         comment  = new (ctx.mem) Comment(path, line, contents);
+        (*block) << comment;
       }
       else if (peek< import >(position)) {
-        if (inside_of == AST_Node*::mixin || inside_of == AST_Node*::function) {
+        if (stack.back() == mixin_def || stack.back() == function_def) {
           lex< import >(); // to adjust the line number
           throw_syntax_error("@import directive not allowed inside definition of mixin or function");
         }
-        AST_Node* imported_tree(parse_import());
-        if (imported_tree.type() == AST_Node*::css_import) {
-          block << imported_tree;
-        }
-        else {
-          for (size_t i = 0, S = imported_tree.size(); i < S; ++i) {
-            block << imported_tree[i];
-          }
-          semicolon = true;
-        }
+        (*block) << parse_import();
+        // semicolon = true?
       }
       else if (lex< variable >()) {
-        block << parse_assignment();
+        (*block) << parse_assignment();
         semicolon = true;
       }
       else if (peek< if_directive >()) {
-        block << parse_if_directive(surrounding_ruleset, inside_of);
+        (*block) << parse_if_directive();
       }
       else if (peek< for_directive >()) {
-        block << parse_for_directive(surrounding_ruleset, inside_of);
+        (*block) << parse_for_directive();
       }
       else if (peek< each_directive >()) {
-        block << parse_each_directive(surrounding_ruleset, inside_of);
+        (*block) << parse_each_directive();
       }
       else if (peek < while_directive >()) {
-        block << parse_while_directive(surrounding_ruleset, inside_of);
+        (*block) << parse_while_directive();
       }
       else if (lex < return_directive >()) {
-        AST_Node* ret_expr(ctx.new_AST_Node*(AST_Node*::return_directive, path, line, 1));
-        ret_expr << parse_list();
-        ret_expr.should_eval() = true;
-        block << ret_expr;
+        (*block) << new (ctx.mem) Return(path, line, parse_list());
         semicolon = true;
       }
       else if (peek< warn >()) {
-        block << parse_warning();
+        (*block) << parse_warning();
         semicolon = true;
       }
-      else if (inside_of == AST_Node*::function) {
+      else if (stack.back() == function_def) {
         throw_syntax_error("only variable declarations and control directives are allowed inside functions");
       }
       else if (peek< include >(position)) {
-        AST_Node* the_call = parse_mixin_call(inside_of);
-        block << the_call;
+        Mixin_Call* the_call = parse_mixin_call();
+        (*block) << the_call;
         // don't need a semicolon after a content block
-        semicolon = (the_call.size() == 3) ? false : true;
+        semicolon = (the_call->block()) ? false : true;
       }
       else if (lex< content >()) {
-        if (inside_of != AST_Node*::mixin) {
+        if (stack.back() != mixin_def) {
           throw_syntax_error("@content may only be used within a mixin");
         }
-        block << ctx.new_AST_Node*(AST_Node*::mixin_content, path, line, 0); // just an expansion stub
+        (*block) << new (ctx.mem) Content(path, line);
         semicolon = true;
       }
       else if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
-        block << parse_propset();
+        (*block) << parse_propset();
       }
-      else if (peek < keyframes >()) {
-        block << parse_keyframes(inside_of);
-      }
-      else if (peek< sequence< keyf, optional_spaces, exactly<'{'> > >()) {
-        block << parse_keyframe(inside_of);
-      }
+      // else if (peek < keyframes >()) {
+      //   (*block) << parse_keyframes(inside_of);
+      // }
+      // else if (peek< sequence< keyf, optional_spaces, exactly<'{'> > >()) {
+      //   (*block) << parse_keyframe(inside_of);
+      // }
       else if ((lookahead_result = lookahead_for_selector(position)).found) {
-        block << parse_ruleset(lookahead_result, inside_of);
+        (*block) << parse_ruleset(lookahead_result);
       }
       /*
       else if (peek< exactly<'+'> >()) {
-        block << parse_mixin_call();
+        (*block) << parse_mixin_call();
         semicolon = true;
       }
       */
       else if (lex< extend >()) {
-        AST_Node* request(ctx.new_AST_Node*(AST_Node*::extend_directive, path, line, 1));
         Selector_Lookahead lookahead = lookahead_for_extension_target(position);
-
         if (!lookahead.found) throw_syntax_error("invalid selector for @extend");
-
-        if (lookahead.has_interpolants) request << parse_selector_schema(lookahead.found);
-        else                            request << parse_selector_group();
-
+        Selector* target;
+        if (lookahead.has_interpolants) target = parse_selector_schema(lookahead.found);
+        else                            target = parse_selector_group();
+        (*block) << new (ctx.mem) Extend(path, line, target);
         semicolon = true;
-        block << request;
       }
       else if (peek< media >()) {
-        block << parse_media_query(inside_of);
+        (*block) << parse_media_query();
       }
       // ignore the @charset directive for now
       else if (lex< exactly< charset_kwd > >()) {
@@ -610,38 +599,45 @@ namespace Sass {
         lex< exactly<';'> >();
       }
       else if (peek< directive >()) {
-        AST_Node* dir(parse_directive(surrounding_ruleset, inside_of));
-        if (dir.type() == AST_Node*::blockless_directive) semicolon = true;
-        block << dir;
-      }
-      else if (peek< percentage >() ){
-        lex< percentage >();
-        block << ctx.new_AST_Node*(path, line, atof(lexed.begin), AST_Node*::numeric_percentage);
-        if (peek< exactly<'{'> >()) {
-          AST_Node* inner(parse_block(AST_Node*()));
-          block << inner;
+        At_Rule* at_rule = parse_directive();
+        if (!at_rule->block()) {
+          semicolon = true;
         }
+        (*block) << at_rule;
       }
+      // // related to keyframe stuff
+      // else if (peek< percentage >() ){
+      //   lex< percentage >();
+      //   (*block) << ctx.new_AST_Node*(path, line, atof(lexed.begin), AST_Node*::numeric_percentage);
+      //   if (peek< exactly<'{'> >()) {
+      //     AST_Node* inner(parse_block(AST_Node*()));
+      //     (*block) << inner;
+      //   }
+      // }
       else if (!peek< exactly<';'> >()) {
-        AST_Node* rule(parse_rule());
-        // check for lbrace; if it's there, we have a namespace property with a value
-        if (peek< exactly<'{'> >()) {
-          AST_Node* inner(parse_block(AST_Node*()));
-          AST_Node* propset(ctx.new_AST_Node*(AST_Node*::propset, path, line, 2));
-          propset << rule[0];
-          rule[0] = ctx.new_AST_Node*(AST_Node*::property, path, line, Token::make());
-          inner.push_front(rule);
-          propset << inner;
-          block << propset;
-        }
+        Declaration* decl = parse_rule();
+        // FIX THIS UP
+        // // check for lbrace; if it's there, we have a namespace property with a value
+        // if (peek< exactly<'{'> >()) {
+        //   Block* inner = parse_block();
+        //   AST_Node* propset(ctx.new_AST_Node*(AST_Node*::propset, path, line, 2));
+        //   propset << rule[0];
+        //   rule[0] = ctx.new_AST_Node*(AST_Node*::property, path, line, Token::make());
+        //   inner.push_front(rule);
+        //   propset << inner;
+        //   (*block) << propset;
+        // }
+        if (false) { }
         else {
-          block << rule;
+          (*block) << decl;
           semicolon = true;
         }
       }
       else lex< exactly<';'> >();
       while (lex< block_comment >()) {
-        block << ctx.new_AST_Node*(AST_Node*::comment, path, line, lexed);
+        String_Constant* contents = new (ctx.mem) String_Constant(path, line, lexed);
+        Comment*         comment  = new (ctx.mem) Comment(path, line, contents);
+        (*block) << comment;
       }
     }
     return block;
@@ -658,7 +654,7 @@ namespace Sass {
     else {
       throw_syntax_error("invalid property name");
     }
-    if (!lex< exactly<':'> >()) throw_syntax_error("property \"" + lexed.to_string() + "\" must be followed by a ':'");
+    if (!lex< exactly<':'> >()) throw_syntax_error("property \"" + lexed + "\" must be followed by a ':'");
     rule << parse_list();
     return rule;
   }
@@ -974,7 +970,7 @@ namespace Sass {
       return var;
     }
 
-    throw_syntax_error("error reading values after " + lexed.to_string());
+    throw_syntax_error("error reading values after " + lexed);
 
     // unreachable statement
     return AST_Node*();
@@ -1010,7 +1006,7 @@ namespace Sass {
         }
         else {
           // throw an error if the interpolant is unterminated
-          throw_syntax_error("unterminated interpolant inside string constant " + str.to_string());
+          throw_syntax_error("unterminated interpolant inside string constant " + str);
         }
       }
       else { // no interpolants left; add the last segment if nonempty
@@ -1141,7 +1137,7 @@ namespace Sass {
         }
         else {
           // throw an error if the interpolant is unterminated
-          throw_syntax_error("unterminated interpolant inside interpolated identifier " + id.to_string());
+          throw_syntax_error("unterminated interpolant inside interpolated identifier " + id);
         }
       }
       else { // no interpolants left; add the last segment if nonempty
