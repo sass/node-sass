@@ -936,97 +936,72 @@ namespace Sass {
     return schema;
   }
 
-  AST_Node* Parser::parse_value_schema()
+  String_Schema* Parser::parse_value_schema()
   {
-    AST_Node* schema(ctx.new_AST_Node*(AST_Node*::value_schema, path, line, 1));
+    String_Schema* schema = new (ctx.mem) String_Schema(path, line);
 
     while (position < end) {
       if (lex< interpolant >()) {
-        Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
-        AST_Node* interp_node(Parser::make_from_token(ctx, insides, path, line).parse_list());
-        interp_node.should_eval() = true;
-        schema << interp_node;
+        Token insides(Token(lexed.begin + 2, lexed.end - 1));
+        Expression* interp_node = Parser::make_from_token(ctx, insides, path, line).parse_list();
+        (*schema) << interp_node;
       }
       else if (lex< identifier >()) {
-        schema << ctx.new_AST_Node*(AST_Node*::identifier, path, line, lexed);
+        (*schema) << new (ctx.mem) String_Constant(path, line, lexed);
       }
       else if (lex< percentage >()) {
-        schema << ctx.new_AST_Node*(AST_Node*::textual_percentage, path, line, lexed);
-        // schema << ctx.new_AST_Node*(path, line, atof(lexed.begin), AST_Node*::numeric_percentage);
+        (*schema) << new (ctx.mem) Textual(path, line, Textual::PERCENTAGE, lexed);
       }
       else if (lex< dimension >()) {
-        schema << ctx.new_AST_Node*(AST_Node*::textual_dimension, path, line, lexed);
-        // schema << ctx.new_AST_Node*(path, line, atof(lexed.begin),
-        //                            Token::make(Prelexer::number(lexed.begin), lexed.end));
+        (*schema) << new (ctx.mem) Textual(path, line, Textual::DIMENSION, lexed);
       }
       else if (lex< number >()) {
-        schema << ctx.new_AST_Node*(AST_Node*::textual_number, path, line, lexed);
-        // schema << ctx.new_AST_Node*(path, line, atof(lexed.begin));
+        (*schema) << new (ctx.mem) Textual(path, line, Textual::NUMBER, lexed);
       }
       else if (lex< hex >()) {
-        schema << ctx.new_AST_Node*(AST_Node*::textual_hex, path, line, lexed);
-        // AST_Node* triple(ctx.new_AST_Node*(AST_Node*::numeric_color, path, line, 4));
-        // Token hext(Token::make(lexed.begin+1, lexed.end));
-        // if (hext.length() == 6) {
-        //   for (int i = 0; i < 6; i += 2) {
-        //     triple << ctx.new_AST_Node*(path, line, static_cast<double>(strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
-        //   }
-        // }
-        // else {
-        //   for (int i = 0; i < 3; ++i) {
-        //     triple << ctx.new_AST_Node*(path, line, static_cast<double>(strtol(string(2, hext.begin[i]).c_str(), NULL, 16)));
-        //   }
-        // }
-        // triple << ctx.new_AST_Node*(path, line, 1.0);
-        // schema << triple;
+        (*schema) << new (ctx.mem) Textual(path, line, Textual::HEX, lexed);
       }
       else if (lex< string_constant >()) {
-        AST_Node* str(ctx.new_AST_Node*(AST_Node*::string_constant, path, line, lexed));
-        str.is_quoted() = true;
-        schema << str;
+        (*schema) << new (ctx.mem) String_Constant(path, line, lexed);
       }
       else if (lex< variable >()) {
-        schema << ctx.new_AST_Node*(AST_Node*::variable, path, line, lexed);
+        (*schema) << new (ctx.mem) Variable(path, line, lexed);
       }
       else {
         throw_syntax_error("error parsing interpolated value");
       }
     }
-    schema.should_eval() = true;
     return schema;
   }
 
-  AST_Node* Parser::parse_url_schema()
+  String_Schema* Parser::parse_url_schema()
   {
-    AST_Node* schema(ctx.new_AST_Node*(AST_Node*::value_schema, path, line, 1));
+    String_Schema* schema = new (ctx.mem) String_Schema(path, line);
 
     while (position < end) {
       if (position[0] == '/') {
-        lexed = Token::make(position, position+1);
-        schema << ctx.new_AST_Node*(AST_Node*::identifier, path, line, lexed);
+        lexed = Token(position, position+1);
+        (*schema) << new (ctx.mem) String_Constant(path, line, lexed);
         ++position;
       }
       else if (lex< interpolant >()) {
-        Token insides(Token::make(lexed.begin + 2, lexed.end - 1));
-        AST_Node* interp_node(Parser::make_from_token(ctx, insides, path, line).parse_list());
-        interp_node.should_eval() = true;
-        schema << interp_node;
+        Token insides(Token(lexed.begin + 2, lexed.end - 1));
+        (*schema) << Parser::make_from_token(ctx, insides, path, line).parse_list();
       }
       else if (lex< sequence< identifier, exactly<':'> > >()) {
-        schema << ctx.new_AST_Node*(AST_Node*::identifier, path, line, lexed);
+        (*schema) << new (ctx.mem) String_Constant(path, line, lexed);
       }
       else if (lex< filename >()) {
-        schema << ctx.new_AST_Node*(AST_Node*::identifier, path, line, lexed);
+        (*schema) << new (ctx.mem) String_Constant(path, line, lexed);
       }
       else {
         throw_syntax_error("error parsing interpolated url");
       }
     }
-    schema.should_eval() = true;
     return schema;
   }
 
-  AST_Node* Parser::parse_identifier_schema()
+  String* Parser::parse_identifier_schema()
   {
     lex< sequence< optional< exactly<'*'> >, identifier_schema > >();
     Token id(lexed);
@@ -1034,22 +1009,20 @@ namespace Sass {
     // see if there any interpolants
     const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(id.begin, id.end);
     if (!p) {
-      return ctx.new_AST_Node*(AST_Node*::string_constant, path, line, id);
+      return new (ctx.mem) String_Constant(path, line, id);
     }
 
-    AST_Node* schema(ctx.new_AST_Node*(AST_Node*::identifier_schema, path, line, 1));
+    String_Schema* schema = new (ctx.mem) String_Schema(path, line);
     while (i < id.end) {
       p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, id.end);
       if (p) {
         if (i < p) {
-          schema << ctx.new_AST_Node*(AST_Node*::identifier, path, line, Token::make(i, p)); // accumulate the preceding segment if it's nonempty
+          (*schema) << new (ctx.mem) String_Constant(path, line, Token(i, p)); // accumulate the preceding segment if it's nonempty
         }
         const char* j = find_first_in_interval< exactly<rbrace> >(p, id.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
-          AST_Node* interp_node(Parser::make_from_token(ctx, Token::make(p+2, j), path, line).parse_list());
-          interp_node.should_eval() = true;
-          schema << interp_node;
+          (*schema) << Parser::make_from_token(ctx, Token(p+2, j), path, line).parse_list();
           i = j+1;
         }
         else {
@@ -1058,131 +1031,129 @@ namespace Sass {
         }
       }
       else { // no interpolants left; add the last segment if nonempty
-        if (i < id.end) schema << ctx.new_AST_Node*(AST_Node*::identifier, path, line, Token::make(i, id.end));
+        if (i < id.end) (*schema) << new (ctx.mem) String_Constant(path, line, Token(i, id.end));
         break;
       }
     }
-    schema.should_eval() = true;
     return schema;
   }
 
   Function_Call* Parser::parse_function_call()
   {
-    AST_Node* name;
-    if (lex< identifier_schema >()) {
-      name = parse_identifier_schema();
-    }
-    else {
-      lex< identifier >();
-      name = ctx.new_AST_Node*(AST_Node*::identifier, path, line, lexed);
-    }
+    lex< identifier >();
+    string name(lexed);
+    size_t line_of_call;
 
-    AST_Node* args(parse_arguments());
-    AST_Node* call(ctx.new_AST_Node*(AST_Node*::function_call, name.path(), name.line(), 2));
-    call << name << args;
-    call.should_eval() = true;
-    return call;
+    Function_Call* the_call = new (ctx.mem) Function_Call(path, line_of_call, name, parse_arguments());
+    return the_call;
   }
 
-  If* Parser::parse_if_directive(AST_Node* surrounding_ruleset, AST_Node*::Type inside_of)
+  If* Parser::parse_if_directive(bool else_if)
   {
-    lex< if_directive >();
-    AST_Node* conditional(ctx.new_AST_Node*(AST_Node*::if_directive, path, line, 2));
-    conditional << parse_list(); // the predicate
-    if (!lex< exactly<'{'> >()) throw_syntax_error("expected '{' after the predicate for @if");
-    conditional << parse_block(surrounding_ruleset, inside_of); // the consequent
-    // collect all "@else if"s
-    while (lex< elseif_directive >()) {
-      conditional << parse_list(); // the next predicate
-      if (!lex< exactly<'{'> >()) throw_syntax_error("expected '{' after the predicate for @else if");
-      conditional << parse_block(surrounding_ruleset, inside_of); // the next consequent
-    }
-    // parse the "@else" if present
+    lex< if_directive >() || (else_if && lex< exactly<if_after_else_kwd> >());
+    size_t if_line = line;
+    Expression* predicate = parse_list();
+    if (!peek< exactly<'{'> >()) throw_syntax_error("expected '{' after the predicate for @if");
+    Block* consequent = parse_block();
+    Block* alternative = 0;
     if (lex< else_directive >()) {
-      if (!lex< exactly<'{'> >()) throw_syntax_error("expected '{' after @else");
-      conditional << parse_block(surrounding_ruleset, inside_of); // the alternative
+      if (peek< exactly<if_after_else_kwd> >()) {
+        alternative = new (ctx.mem) Block(path, line);
+        (*alternative) << parse_if_directive(true);
+      }
+      else if (!peek< exactly<'{'> >()) {
+        throw_syntax_error("expected '{' after @else");
+      }
+      else {
+        alternative = parse_block();
+      }
     }
-    return conditional;
+    return new (ctx.mem) If(path, if_line, predicate, consequent, alternative);
   }
 
-  For* Parser::parse_for_directive(AST_Node* surrounding_ruleset, AST_Node*::Type inside_of)
+  For* Parser::parse_for_directive()
   {
     lex< for_directive >();
     size_t for_line = line;
     if (!lex< variable >()) throw_syntax_error("@for directive requires an iteration variable");
-    AST_Node* var(ctx.new_AST_Node*(AST_Node*::variable, path, line, lexed));
+    string var(lexed);
     if (!lex< from >()) throw_syntax_error("expected 'from' keyword in @for directive");
-    AST_Node* lower_bound(parse_expression());
-    AST_Node*::Type for_type = AST_Node*::for_through_directive;
-    if (lex< through >()) for_type = AST_Node*::for_through_directive;
-    else if (lex< to >()) for_type = AST_Node*::for_to_directive;
+    Expression* lower_bound = parse_expression();
+    bool inclusive;
+    if (lex< through >()) inclusive = true;
+    else if (lex< to >()) inclusive = false;
     else                  throw_syntax_error("expected 'through' or 'to' keywod in @for directive");
-    AST_Node* upper_bound(parse_expression());
+    Expression* upper_bound = parse_expression();
     if (!peek< exactly<'{'> >()) throw_syntax_error("expected '{' after the upper bound in @for directive");
-    AST_Node* body(parse_block(surrounding_ruleset, inside_of));
-    AST_Node* loop(ctx.new_AST_Node*(for_type, path, for_line, 4));
-    loop << var << lower_bound << upper_bound << body;
-    return loop;
+    Block* body = parse_block();
+    return new (ctx.mem) For(path, for_line, var, lower_bound, upper_bound, body, inclusive);
   }
 
-  Each* Parser::parse_each_directive(AST_Node* surrounding_ruleset, AST_Node*::Type inside_of)
+  Each* Parser::parse_each_directive()
   {
     lex < each_directive >();
     size_t each_line = line;
     if (!lex< variable >()) throw_syntax_error("@each directive requires an iteration variable");
-    AST_Node* var(ctx.new_AST_Node*(AST_Node*::variable, path, line, lexed));
+    string var(lexed);
     if (!lex< in >()) throw_syntax_error("expected 'in' keyword in @each directive");
-    AST_Node* list(parse_list());
+    Expression* list = parse_list();
     if (!peek< exactly<'{'> >()) throw_syntax_error("expected '{' after the upper bound in @each directive");
-    AST_Node* body(parse_block(surrounding_ruleset, inside_of));
-    AST_Node* each(ctx.new_AST_Node*(AST_Node*::each_directive, path, each_line, 3));
-    each << var << list << body;
-    return each;
+    Block* body = parse_block();
+    return new (ctx.mem) Each(path, each_line, var, list, body);
   }
 
-  While* Parser::parse_while_directive(AST_Node* surrounding_ruleset, AST_Node*::Type inside_of)
+  While* Parser::parse_while_directive()
   {
     lex< while_directive >();
     size_t while_line = line;
-    AST_Node* predicate(parse_list());
-    AST_Node* body(parse_block(surrounding_ruleset, inside_of));
-    AST_Node* loop(ctx.new_AST_Node*(AST_Node*::while_directive, path, while_line, 2));
-    loop << predicate << body;
-    return loop;
+    Expression* predicate = parse_list();
+    Block* body = parse_block();
+    return new (ctx.mem) While(path, while_line, predicate, body);
   }
 
-  At_Rule* Parser::parse_directive(AST_Node* surrounding_ruleset, AST_Node*::Type inside_of)
+  At_Rule* Parser::parse_directive()
   {
     lex< directive >();
-    AST_Node* dir_name(ctx.new_AST_Node*(AST_Node*::blockless_directive, path, line, lexed));
-    if (!peek< exactly<'{'> >()) return dir_name;
-    AST_Node* block(parse_block(surrounding_ruleset, inside_of));
-    AST_Node* dir(ctx.new_AST_Node*(AST_Node*::block_directive, path, line, 2));
-    dir << dir_name << block;
-    return dir;
+    string kwd(lexed);
+    size_t dir_line = line;
+    Block* block = (peek< exactly<'{'> >() ? parse_block() : 0);
+    return new (ctx.mem) At_Rule(path, dir_line, kwd, 0, block);
   }
 
-  Media_Query* Parser::parse_media_query(AST_Node*::Type inside_of)
+  // Media_Query* Parser::parse_media_query(AST_Node*::Type inside_of)
+  // {
+  //   lex< media >();
+  //   AST_Node* media_query(ctx.new_AST_Node*(AST_Node*::media_query, path, line, 2));
+  //   AST_Node* media_expr(parse_media_expression());
+  //   if (peek< exactly<'{'> >()) {
+  //     media_query << media_expr;
+  //   }
+  //   else if (peek< exactly<','> >()) {
+  //     AST_Node* media_expr_group(ctx.new_AST_Node*(AST_Node*::media_expression_group, path, line, 2));
+  //     media_expr_group << media_expr;
+  //     while (lex< exactly<','> >()) {
+  //       media_expr_group << parse_media_expression();
+  //     }
+  //     media_query << media_expr_group;
+  //   }
+  //   else {
+  //     throw_syntax_error("expected '{' in media query");
+  //   }
+  //   media_query << parse_block(AST_Node*(), inside_of);
+  //   return media_query;
+  // }
+
+  Media_Query* Parser::parse_media_query()
   {
     lex< media >();
-    AST_Node* media_query(ctx.new_AST_Node*(AST_Node*::media_query, path, line, 2));
-    AST_Node* media_expr(parse_media_expression());
-    if (peek< exactly<'{'> >()) {
-      media_query << media_expr;
-    }
-    else if (peek< exactly<','> >()) {
-      AST_Node* media_expr_group(ctx.new_AST_Node*(AST_Node*::media_expression_group, path, line, 2));
-      media_expr_group << media_expr;
-      while (lex< exactly<','> >()) {
-        media_expr_group << parse_media_expression();
-      }
-      media_query << media_expr_group;
-    }
-    else {
-      throw_syntax_error("expected '{' in media query");
-    }
-    media_query << parse_block(AST_Node*(), inside_of);
-    return media_query;
+    size_t media_line = line;
+
+    List* media_list = (!peek< exactly<'{'> >() ? parse_media_list() : 0);
+
+    if (!peek< exactly<'{'> >()) throw_syntax_error("expected '{' in media query");
+    Block* block = parse_block();
+
+    return new (ctx.mem) Media_Query(path, media_line, media_list, block);
   }
 
   Media_Expression* Parser::parse_media_expression()

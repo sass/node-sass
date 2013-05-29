@@ -170,9 +170,9 @@ namespace Sass {
     Function_Call* parse_function_call();
     String* parse_string();
     String_Schema* parse_value_schema();
-    String_Schema* parse_identifier_schema();
+    String* parse_identifier_schema();
     String_Schema* parse_url_schema();
-    If* parse_if_directive();
+    If* parse_if_directive(bool else_if = false);
     For* parse_for_directive();
     Each* parse_each_directive();
     While* parse_while_directive();
@@ -180,6 +180,7 @@ namespace Sass {
     AST_Node* parse_keyframes();
     AST_Node* parse_keyframe();
     Media_Query* parse_media_query();
+    List* parse_media_list();
     Media_Expression* parse_media_expression();
     Warning* parse_warning();
 
