@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 
+union Sass_Value;
 namespace Sass {
   using namespace std;
 
@@ -255,6 +256,7 @@ namespace Sass {
     void emit_expanded_css(stringstream& buf, const string& prefix);
     void emit_compressed_css(stringstream& buf);
 
+    Sass_Value to_c_val();
   };
 
   // The actual implementation object for Nodes; Node handles point at these.

@@ -4,6 +4,7 @@
 #include "node.hpp"
 #include "constants.hpp"
 #include "error.hpp"
+#include "sass_values.h"
 
 namespace Sass {
   using namespace std;
@@ -122,7 +123,7 @@ namespace Sass {
         }
         return true;
       } break;
-      
+
       case variable:
       case identifier:
       case uri:
@@ -133,12 +134,12 @@ namespace Sass {
       case string_constant: {
         return token().unquote() == rhs.token().unquote();
       } break;
-      
+
       case number:
       case numeric_percentage: {
         return numeric_value() == rhs.numeric_value();
       } break;
-      
+
       case numeric_dimension: {
         if (unit() == rhs.unit()) {
           return numeric_value() == rhs.numeric_value();
@@ -147,11 +148,11 @@ namespace Sass {
           return false;
         }
       } break;
-      
+
       case boolean: {
         return boolean_value() == rhs.boolean_value();
       } break;
-      
+
       case selector: {
         if (has_children() && rhs.has_children() && (size() == rhs.size())) {
           for (size_t i = 0, S = size(); i < S; ++i) {
@@ -175,15 +176,15 @@ namespace Sass {
     }
     return false;
   }
-  
+
   bool Node::operator!=(Node rhs) const
   { return !(*this == rhs); }
-  
+
   bool Node::operator<(Node rhs) const
   {
     Type lhs_type = type();
     Type rhs_type = rhs.type();
-    
+
     // comparing atomic numbers
     if ((lhs_type == number             && rhs_type == number) ||
         (lhs_type == numeric_percentage && rhs_type == numeric_percentage)) {
@@ -253,21 +254,72 @@ namespace Sass {
       throw Error(Error::evaluation, path(), line(), "incomparable types");
     }
   }
-  
+
   bool Node::operator<=(Node rhs) const
   { return *this < rhs || *this == rhs; }
-  
+
   bool Node::operator>(Node rhs) const
   { return !(*this <= rhs); }
-  
+
   bool Node::operator>=(Node rhs) const
   { return !(*this < rhs); }
+
+
+  // Converting nodes to C-structs, for C callbacks. May allocate memory with
+  // malloc.
+  Sass_Value Node::to_c_val()
+  {
+    Sass_Value v;
+    switch (type())
+    {
+      case boolean: {
+        v.boolean.tag = SASS_BOOLEAN;
+        v.boolean.value = boolean_value();
+      } break;
+      case number: {
+        v.number.tag = SASS_NUMBER;
+        v.number.value = numeric_value();
+      } break;
+      case numeric_percentage: {
+        v.percentage.tag = SASS_PERCENTAGE;
+        v.percentage.value = numeric_value();
+      } break;
+      case numeric_dimension: {
+        v.dimension.tag = SASS_DIMENSION;
+        v.dimension.value = numeric_value();
+        v.dimension.unit = string(unit().begin, unit().end - unit().begin).c_str();
+      } break;
+      case numeric_color: {
+        v.color.tag = SASS_COLOR;
+        v.color.r = at(0).numeric_value();
+        v.color.g = at(1).numeric_value();
+        v.color.b = at(2).numeric_value();
+        v.color.a = at(3).numeric_value();
+      } break;
+      case list: {
+        v.list.tag = SASS_LIST;
+        v.list.separator = is_comma_separated() ? SASS_COMMA : SASS_SPACE;
+        size_t S = size();
+        v.list.length = S;
+        v.list.values = (Sass_Value*) malloc(sizeof(Sass_Value)*S);
+        Sass_Value* values = v.list.values;
+        for (size_t i = 0; i < S; ++i) {
+          values[i] = at(i).to_c_val();
+        }
+      } break;
+      default: { // should only be string-like things at this point
+        v.string.tag = SASS_STRING;
+        v.string.contents = to_string().c_str();
+      } break;
+    }
+    return v;
+  }
 
 
   // ------------------------------------------------------------------------
   // Token method implementations
   // ------------------------------------------------------------------------
-  
+
   string Token::unquote() const
   {
     string result;
@@ -305,7 +357,7 @@ namespace Sass {
       return result;
     }
   }
-  
+
   void Token::unquote_to_stream(std::stringstream& buf) const
   {
     const char* p = begin;
@@ -342,7 +394,7 @@ namespace Sass {
       return;
     }
   }
-  
+
   bool Token::operator<(const Token& rhs) const
   {
     const char* first1 = begin;
@@ -357,15 +409,15 @@ namespace Sass {
     }
     return (first2 != last2);
   }
-  
+
   bool Token::operator==(const Token& rhs) const
   {
     if (length() != rhs.length()) return false;
-    
+
     if ((begin[0]     == '"' || begin[0]     == '\'') &&
         (rhs.begin[0] == '"' || rhs.begin[0] == '\''))
     { return unquote() == rhs.unquote(); }
-    
+
     const char* p = begin;
     const char* q = rhs.begin;
     for (; p < end; ++p, ++q) if (*p != *q) return false;
@@ -393,7 +445,7 @@ namespace Sass {
     // if you reach this point, you've got a logic error somewhere
     return 0;
   }
-  
+
   Token Node_Impl::unit()
   {
     switch (type)
@@ -401,11 +453,11 @@ namespace Sass {
       case Node::numeric_percentage: {
         return Token::make(percent_str);
       } break;
-  
+
       case Node::numeric_dimension: {
         return value.dimension.unit;
       } break;
-      
+
       default: break;
     }
     return Token::make(empty_str);
