@@ -155,23 +155,23 @@ namespace Sass {
     Pseudo_Selector* parse_pseudo_selector();
     Attribute_Selector* parse_attribute_selector();
     Block* parse_block();
-    Declaration* parse_rule();
+    Declaration* parse_declaration();
     AST_Node* parse_values();
-    List* parse_list();
-    List* parse_comma_list();
-    List* parse_space_list();
-    Binary_Expression* parse_disjunction();
-    Binary_Expression* parse_conjunction();
-    AST_Node* parse_relation();
-    AST_Node* parse_expression();
-    AST_Node* parse_term();
-    AST_Node* parse_factor();
-    AST_Node* parse_value();
+    Expression* parse_list();
+    Expression* parse_comma_list();
+    Expression* parse_space_list();
+    Expression* parse_disjunction();
+    Expression* parse_conjunction();
+    Expression* parse_relation();
+    Expression* parse_expression();
+    Expression* parse_term();
+    Expression* parse_factor();
+    Expression* parse_value();
     Function_Call* parse_function_call();
     String* parse_string();
     String_Schema* parse_value_schema();
     String_Schema* parse_identifier_schema();
-    AST_Node* parse_url_schema();
+    String_Schema* parse_url_schema();
     If* parse_if_directive();
     For* parse_for_directive();
     Each* parse_each_directive();
@@ -185,6 +185,9 @@ namespace Sass {
 
     Selector_Lookahead lookahead_for_selector(const char* start = 0);
     Selector_Lookahead lookahead_for_extension_target(const char* start = 0);
+
+    Expression* fold_operands(Expression* base, vector<Expression*>& operands, Binary_Expression::Type op);
+    Expression* fold_operands(Expression* base, vector<Expression*>& operands, vector<Binary_Expression::Type>& ops);
 
     void throw_syntax_error(string message, size_t ln = 0);
     void throw_read_error(string message, size_t ln = 0);

@@ -615,21 +615,19 @@ namespace Sass {
       //   }
       // }
       else if (!peek< exactly<';'> >()) {
-        Declaration* decl = parse_rule();
-        // FIX THIS UP
-        // // check for lbrace; if it's there, we have a namespace property with a value
-        // if (peek< exactly<'{'> >()) {
-        //   Block* inner = parse_block();
-        //   AST_Node* propset(ctx.new_AST_Node*(AST_Node*::propset, path, line, 2));
-        //   propset << rule[0];
-        //   rule[0] = ctx.new_AST_Node*(AST_Node*::property, path, line, Token::make());
-        //   inner.push_front(rule);
-        //   propset << inner;
-        //   (*block) << propset;
-        // }
-        if (false) { }
+        if (peek< sequence< optional< exactly<'*'> >, identifier_schema, exactly<':'>, exactly<'{'> > >()) {
+          String* prop = parse_identifier_schema();
+          Block* inner = parse_block();
+          (*block) << new (ctx.mem) Propset(path, line, prop, block);
+        }
+        else if (peek< sequence< optional< exactly<'*'> >, identifier, exactly<':'>, exactly<'{'> > >()) {
+          lex< sequence< optional< exactly<'*'> >, identifier > >();
+          String* prop = new (ctx.mem) String_Constant(path, line, lexed);
+          Block* inner = parse_block();
+          (*block) << new (ctx.mem) Propset(path, line, prop, block);
+        }
         else {
-          (*block) << decl;
+          (*block) << parse_declaration();
           semicolon = true;
         }
       }
@@ -643,57 +641,54 @@ namespace Sass {
     return block;
   }
 
-  AST_Node* Parser::parse_rule() {
-    AST_Node* rule(ctx.new_AST_Node*(AST_Node*::rule, path, line, 2));
+  Declaration* Parser::parse_declaration() {
+    String* prop;
     if (peek< sequence< optional< exactly<'*'> >, identifier_schema > >()) {
-      rule << parse_identifier_schema();
+      prop = parse_identifier_schema();
     }
     else if (lex< sequence< optional< exactly<'*'> >, identifier > >()) {
-      rule << ctx.new_AST_Node*(AST_Node*::property, path, line, lexed);
+      prop = new (ctx.mem) String_Constant(path, line, lexed);
     }
     else {
       throw_syntax_error("invalid property name");
     }
-    if (!lex< exactly<':'> >()) throw_syntax_error("property \"" + lexed + "\" must be followed by a ':'");
-    rule << parse_list();
-    return rule;
+    if (!lex< exactly<':'> >()) throw_syntax_error("property \"" + string(lexed) + "\" must be followed by a ':'");
+    Expression* list = parse_list();
+    return new (ctx.mem) Declaration(path, prop->line(), prop, list, lex<important>());
   }
 
-  AST_Node* Parser::parse_list()
+  Expression* Parser::parse_list()
   {
     return parse_comma_list();
   }
 
-  AST_Node* Parser::parse_comma_list()
+  Expression* Parser::parse_comma_list()
   {
     if (peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
         peek< exactly<'{'> >(position) ||
         peek< exactly<')'> >(position) ||
         peek< exactly<ellipsis> >(position))
-    { return ctx.new_AST_Node*(AST_Node*::list, path, line, 0); }
-    AST_Node* list1(parse_space_list());
+    { return new (ctx.mem) List(path, line, 0); }
+    Expression* list1 = parse_space_list();
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< exactly<','> >(position)) return list1;
 
-    AST_Node* comma_list(ctx.new_AST_Node*(AST_Node*::list, path, line, 2));
-    comma_list.is_comma_separated() = true;
-    comma_list << list1;
-    comma_list.should_eval() |= list1.should_eval();
+    List* comma_list = new (ctx.mem) List(path, line, 2, List::comma);
+    (*comma_list) << list1;
 
     while (lex< exactly<','> >())
     {
-      AST_Node* list(parse_space_list());
-      comma_list << list;
-      comma_list.should_eval() |= list.should_eval();
+      Expression* list = parse_space_list();
+      (*comma_list) << list;
     }
 
     return comma_list;
   }
 
-  AST_Node* Parser::parse_space_list()
+  Expression* Parser::parse_space_list()
   {
-    AST_Node* disj1(parse_disjunction());
+    Expression* disj1 = parse_disjunction();
     // if it's a singleton, return it directly; don't wrap it
     if (peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
@@ -704,9 +699,8 @@ namespace Sass {
         peek< default_flag >(position))
     { return disj1; }
 
-    AST_Node* space_list(ctx.new_AST_Node*(AST_Node*::list, path, line, 2));
-    space_list << disj1;
-    space_list.should_eval() |= disj1.should_eval();
+    List* space_list = new (ctx.mem) List(path, line, 2, List::space);
+    (*space_list) << disj1;
 
     while (!(peek< exactly<';'> >(position) ||
              peek< exactly<'}'> >(position) ||
@@ -716,186 +710,150 @@ namespace Sass {
              peek< exactly<ellipsis> >(position) ||
              peek< default_flag >(position)))
     {
-      AST_Node* disj(parse_disjunction());
-      space_list << disj;
-      space_list.should_eval() |= disj.should_eval();
+      (*space_list) << parse_disjunction();
     }
 
     return space_list;
   }
 
-  AST_Node* Parser::parse_disjunction()
+  Expression* Parser::parse_disjunction()
   {
-    AST_Node* conj1(parse_conjunction());
+    Expression* conj1 = parse_conjunction();
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< sequence< or_op, negate< identifier > > >()) return conj1;
 
-    AST_Node* disjunction(ctx.new_AST_Node*(AST_Node*::disjunction, path, line, 2));
-    disjunction << conj1;
-    while (lex< sequence< or_op, negate< identifier > > >()) disjunction << parse_conjunction();
-    disjunction.should_eval() = true;
+    vector<Expression*> operands;
+    while (lex< sequence< or_op, negate< identifier > > >())
+      operands.push_back(parse_conjunction());
 
-    return disjunction;
+    return fold_operands(conj1, operands, Binary_Expression::OR);
   }
 
-  AST_Node* Parser::parse_conjunction()
+  Expression* Parser::parse_conjunction()
   {
-    AST_Node* rel1(parse_relation());
+    Expression* rel1 = parse_relation();
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< sequence< and_op, negate< identifier > > >()) return rel1;
 
-    AST_Node* conjunction(ctx.new_AST_Node*(AST_Node*::conjunction, path, line, 2));
-    conjunction << rel1;
-    while (lex< sequence< and_op, negate< identifier > > >()) conjunction << parse_relation();
-    conjunction.should_eval() = true;
-    return conjunction;
+    vector<Expression*> operands;
+    while (lex< sequence< and_op, negate< identifier > > >())
+      operands.push_back(parse_relation());
+
+    return fold_operands(rel1, operands, Binary_Expression::AND);
   }
 
-  AST_Node* Parser::parse_relation()
+  Expression* Parser::parse_relation()
   {
-    AST_Node* expr1(parse_expression());
+    Expression* expr1 = parse_expression();
     // if it's a singleton, return it directly; don't wrap it
     if (!(peek< eq_op >(position)  ||
           peek< neq_op >(position) ||
-          peek< gt_op >(position)  ||
           peek< gte_op >(position) ||
-          peek< lt_op >(position)  ||
-          peek< lte_op >(position)))
+          peek< gt_op >(position)  ||
+          peek< lte_op >(position) ||
+          peek< lt_op >(position)))
     { return expr1; }
 
-    AST_Node* relation(ctx.new_AST_Node*(AST_Node*::relation, path, line, 3));
-    expr1.should_eval() = true;
-    relation << expr1;
+    Binary_Expression::Type op
+    = lex<eq_op>()  ? Binary_Expression::EQ
+    : lex<neq_op>() ? Binary_Expression::NEQ
+    : lex<gte_op>() ? Binary_Expression::GTE
+    : lex<lte_op>() ? Binary_Expression::LTE
+    : lex<gt_op>()  ? Binary_Expression::GT
+    :                 Binary_Expression::LT;
 
-    if (lex< eq_op >()) relation << ctx.new_AST_Node*(AST_Node*::eq, path, line, lexed);
-    else if (lex< neq_op >()) relation << ctx.new_AST_Node*(AST_Node*::neq, path, line, lexed);
-    else if (lex< gte_op >()) relation << ctx.new_AST_Node*(AST_Node*::gte, path, line, lexed);
-    else if (lex< lte_op >()) relation << ctx.new_AST_Node*(AST_Node*::lte, path, line, lexed);
-    else if (lex< gt_op >()) relation << ctx.new_AST_Node*(AST_Node*::gt, path, line, lexed);
-    else if (lex< lt_op >()) relation << ctx.new_AST_Node*(AST_Node*::lt, path, line, lexed);
+    Expression* expr2 = parse_expression();
 
-    AST_Node* expr2(parse_expression());
-    expr2.should_eval() = true;
-    relation << expr2;
-
-    relation.should_eval() = true;
-    return relation;
+    return new (ctx.mem) Binary_Expression(path, expr1->line(), op, expr1, expr2);
   }
 
-  AST_Node* Parser::parse_expression()
+  Expression* Parser::parse_expression()
   {
-    AST_Node* term1(parse_term());
+    Expression* term1 = parse_term();
     // if it's a singleton, return it directly; don't wrap it
     if (!(peek< exactly<'+'> >(position) ||
           peek< sequence< negate< number >, exactly<'-'> > >(position)))
     { return term1; }
 
-    AST_Node* expression(ctx.new_AST_Node*(AST_Node*::expression, path, line, 3));
-    term1.should_eval() = true;
-    expression << term1;
-
+    vector<Expression*> operands;
+    vector<Binary_Expression::Type> operators;
     while (lex< exactly<'+'> >() || lex< sequence< negate< number >, exactly<'-'> > >()) {
-      if (lexed.begin[0] == '+') {
-        expression << ctx.new_AST_Node*(AST_Node*::add, path, line, lexed);
-      }
-      else {
-        expression << ctx.new_AST_Node*(AST_Node*::sub, path, line, lexed);
-      }
-      AST_Node* term(parse_term());
-      term.should_eval() = true;
-      expression << term;
+      operators.push_back(lexed == "+" ? Binary_Expression::ADD : Binary_Expression::SUB);
+      operands.push_back(parse_term());
     }
-    expression.should_eval() = true;
 
-    return expression;
+    return fold_operands(term1, operands, operators);
   }
 
-  AST_Node* Parser::parse_term()
+  Expression* Parser::parse_term()
   {
-    AST_Node* fact1(parse_factor());
+    Expression* fact1 = parse_factor();
     // if it's a singleton, return it directly; don't wrap it
     if (!(peek< exactly<'*'> >(position) ||
-          peek< exactly<'/'> >(position)))
+          peek< exactly<'/'> >(position) ||
+          peek< exactly<'%'> >(position)))
     { return fact1; }
 
-    AST_Node* term(ctx.new_AST_Node*(AST_Node*::term, path, line, 3));
-    term << fact1;
-    if (fact1.should_eval()) term.should_eval() = true;
-
-    while (lex< exactly<'*'> >() || lex< exactly<'/'> >()) {
-      if (lexed.begin[0] == '*') {
-        term << ctx.new_AST_Node*(AST_Node*::mul, path, line, lexed);
-        term.should_eval() = true;
-      }
-      else {
-        term << ctx.new_AST_Node*(AST_Node*::div, path, line, lexed);
-      }
-      AST_Node* fact(parse_factor());
-      term.should_eval() |= fact.should_eval();
-      term << fact;
+    vector<Expression*> operands;
+    vector<Binary_Expression::Type> operators;
+    while (lex< exactly<'*'> >() || lex< exactly<'/'> >() || lex< exactly<'%'> >()) {
+      if      (lexed == "*") operators.push_back(Binary_Expression::MUL);
+      else if (lexed == "/") operators.push_back(Binary_Expression::DIV);
+      else                   operators.push_back(Binary_Expression::MOD);
+      operands.push_back(parse_factor());
     }
 
-    return term;
+    return fold_operands(fact1, operands, operators);
   }
 
-  AST_Node* Parser::parse_factor()
+  Expression* Parser::parse_factor()
   {
     if (lex< exactly<'('> >()) {
-      AST_Node* value(parse_comma_list());
-      value.should_eval() = true;
-      if (value.type() == AST_Node*::list && value.size() > 0) {
-        value[0].should_eval() = true;
-      }
+      Expression* value = parse_comma_list();
       if (!lex< exactly<')'> >()) throw_syntax_error("unclosed parenthesis");
       return value;
     }
     else if (lex< sequence< exactly<'+'>, negate< number > > >()) {
-      AST_Node* plus(ctx.new_AST_Node*(AST_Node*::unary_plus, path, line, 1));
-      plus << parse_factor();
-      plus.should_eval() = true;
-      return plus;
+      return new (ctx.mem) Unary_Expression(path, line, Unary_Expression::PLUS, parse_factor());
     }
     else if (lex< sequence< exactly<'-'>, negate< number> > >()) {
-      AST_Node* minus(ctx.new_AST_Node*(AST_Node*::unary_minus, path, line, 1));
-      minus << parse_factor();
-      minus.should_eval() = true;
-      return minus;
+      return new (ctx.mem) Unary_Expression(path, line, Unary_Expression::MINUS, parse_factor());
     }
     else {
       return parse_value();
     }
   }
 
-  AST_Node* Parser::parse_value()
+  Expression* Parser::parse_value()
   {
-    if (lex< uri_prefix >())
-    {
-      AST_Node* result(ctx.new_AST_Node*(AST_Node*::uri, path, line, 1));
+    if (lex< uri_prefix >()) {
+      Arguments* args = new (ctx.mem) Arguments(path, line);
+      Function_Call* result = new (ctx.mem) Function_Call(path, line, "url", args);
       if (lex< variable >()) {
-        result << ctx.new_AST_Node*(AST_Node*::variable, path, line, lexed);
-        result.should_eval() = true;
+        Variable* var = new (ctx.mem) Variable(path, line, lexed);
+        (*args) << new (ctx.mem) Argument(path, line, var);
       }
-      else if (lex< string_constant >()) {
-        result << parse_string();
-        result.should_eval() = true;
+      else if (peek< string_constant >()) {
+        String* s = parse_string();
+        (*args) << new (ctx.mem) Argument(path, line, s);
       }
       else if (peek< sequence< url_schema, spaces_and_comments, exactly<')'> > >()) {
         lex< url_schema >();
-        result << Parser::make_from_token(ctx, lexed, path, line).parse_url_schema();
-        result.should_eval() = true;
+        String_Schema* the_url = Parser::make_from_token(ctx, lexed, path, line).parse_url_schema();
+        (*args) << new (ctx.mem) Argument(path, line, the_url);
       }
       else if (peek< sequence< url_value, spaces_and_comments, exactly<')'> > >()) {
         lex< url_value >();
-        result << ctx.new_AST_Node*(AST_Node*::identifier, path, line, lexed);
+        String_Constant* the_url = new (ctx.mem) String_Constant(path, line, lexed);
+        (*args) << new (ctx.mem) Argument(path, line, the_url);
       }
       else {
         const char* value = position;
         const char* rparen = find_first< exactly<')'> >(position);
         if (!rparen) throw_syntax_error("URI is missing ')'");
-        Token content_tok(Token::make(value, rparen));
-        AST_Node* content_node(ctx.new_AST_Node*(AST_Node*::identifier, path, line, content_tok));
-        // lex< string_constant >();
-        result << content_node;
+        Token content_tok(Token(value, rparen));
+        String_Constant* content_node = new (ctx.mem) String_Constant(path, line, content_tok);
+        (*args) << new (ctx.mem) Argument(path, line, content_node);
         position = rparen;
       }
       if (!lex< exactly<')'> >()) throw_syntax_error("URI is missing ')'");
@@ -909,71 +867,36 @@ namespace Sass {
     { return Parser::make_from_token(ctx, lexed, path, line).parse_value_schema(); }
 
     if (lex< sequence< true_val, negate< identifier > > >())
-    { return ctx.new_AST_Node*(AST_Node*::boolean, path, line, true); }
+    { return new (ctx.mem) Boolean(path, line, true); }
 
     if (lex< sequence< false_val, negate< identifier > > >())
-    { return ctx.new_AST_Node*(AST_Node*::boolean, path, line, false); }
-
-    if (lex< important >())
-    { return ctx.new_AST_Node*(AST_Node*::important, path, line, lexed); }
+    { return new (ctx.mem) Boolean(path, line, false); }
 
     if (lex< identifier >())
-    { return ctx.new_AST_Node*(AST_Node*::identifier, path, line, lexed); }
+    { return new (ctx.mem) String_Constant(path, line, lexed); }
 
     if (lex< percentage >())
-    { return ctx.new_AST_Node*(AST_Node*::textual_percentage, path, line, lexed); }
+    { return new (ctx.mem) Textual(path, line, Textual::PERCENTAGE, lexed); }
 
     if (lex< dimension >())
-    { return ctx.new_AST_Node*(AST_Node*::textual_dimension, path, line, lexed); }
+    { return new (ctx.mem) Textual(path, line, Textual::DIMENSION, lexed); }
 
     if (lex< number >())
-    { return ctx.new_AST_Node*(AST_Node*::textual_number, path, line, lexed); }
+    { return new (ctx.mem) Textual(path, line, Textual::NUMBER, lexed); }
 
     if (lex< hex >())
-    { return ctx.new_AST_Node*(AST_Node*::textual_hex, path, line, lexed); }
-
-    // if (lex< percentage >())
-    // { return ctx.new_AST_Node*(path, line, atof(lexed.begin), AST_Node*::numeric_percentage); }
-
-    // if (lex< dimension >()) {
-    //   return ctx.new_AST_Node*(path, line, atof(lexed.begin),
-    //                           Token::make(Prelexer::number(lexed.begin), lexed.end));
-    // }
-
-    // if (lex< number >())
-    // { return ctx.new_AST_Node*(path, line, atof(lexed.begin)); }
-
-    // if (lex< hex >()) {
-    //   AST_Node* triple(ctx.new_AST_Node*(AST_Node*::numeric_color, path, line, 4));
-    //   Token hext(Token::make(lexed.begin+1, lexed.end));
-    //   if (hext.length() == 6) {
-    //     for (int i = 0; i < 6; i += 2) {
-    //       triple << ctx.new_AST_Node*(path, line, static_cast<double>(strtol(string(hext.begin+i, 2).c_str(), NULL, 16)));
-    //     }
-    //   }
-    //   else {
-    //     for (int i = 0; i < 3; ++i) {
-    //       triple << ctx.new_AST_Node*(path, line, static_cast<double>(strtol(string(2, hext.begin[i]).c_str(), NULL, 16)));
-    //     }
-    //   }
-    //   triple << ctx.new_AST_Node*(path, line, 1.0);
-    //   return triple;
-    // }
+    { return new (ctx.mem) Textual(path, line, Textual::HEX, lexed); }
 
     if (peek< string_constant >())
     { return parse_string(); }
 
     if (lex< variable >())
-    {
-      AST_Node* var(ctx.new_AST_Node*(AST_Node*::variable, path, line, lexed));
-      var.should_eval() = true;
-      return var;
-    }
+    { return new (ctx.mem) Variable(path, line, lexed); }
 
     throw_syntax_error("error reading values after " + lexed);
 
     // unreachable statement
-    return AST_Node*();
+    return 0;
   }
 
   String* Parser::parse_string()
@@ -984,24 +907,20 @@ namespace Sass {
     // see if there any interpolants
     const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(str.begin, str.end);
     if (!p) {
-      AST_Node* result(ctx.new_AST_Node*(AST_Node*::string_constant, path, line, str));
-      result.is_quoted() = true;
-      return result;
+      return new (ctx.mem) String_Constant(path, line, str);
     }
 
-    AST_Node* schema(ctx.new_AST_Node*(AST_Node*::string_schema, path, line, 1));
+    String_Schema* schema = new (ctx.mem) String_Schema(path, line);
     while (i < str.end) {
       p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, str.end);
       if (p) {
         if (i < p) {
-          schema << ctx.new_AST_Node*(AST_Node*::identifier, path, line, Token::make(i, p)); // accumulate the preceding segment if it's nonempty
+          (*schema) << new (ctx.mem) String_Constant(path, line, Token(i, p)); // accumulate the preceding segment if it's nonempty
         }
         const char* j = find_first_in_interval< exactly<rbrace> >(p, str.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
-          AST_Node* interp_node(Parser::make_from_token(ctx, Token::make(p+2, j), path, line).parse_list());
-          interp_node.should_eval() = true;
-          schema << interp_node;
+          (*schema) << Parser::make_from_token(ctx, Token(p+2, j), path, line).parse_list();
           i = j+1;
         }
         else {
@@ -1010,12 +929,10 @@ namespace Sass {
         }
       }
       else { // no interpolants left; add the last segment if nonempty
-        if (i < str.end) schema << ctx.new_AST_Node*(AST_Node*::identifier, path, line, Token::make(i, str.end));
+        if (i < str.end) (*schema) << new (ctx.mem) String_Constant(path, line, Token(i, str.end));
         break;
       }
     }
-    schema.is_quoted() = true;
-    schema.should_eval() = true;
     return schema;
   }
 
@@ -1284,7 +1201,7 @@ namespace Sass {
     // if no media type was present, then require a parenthesized property
     if (media_expr.empty()) {
       if (!lex< exactly<'('> >()) throw_syntax_error("invalid media query");
-      media_expr << parse_rule();
+      media_expr << parse_declaration();
       if (!lex< exactly<')'> >()) throw_syntax_error("unclosed parenthesis");
     }
     // parse the rest of the properties for this disjunct
@@ -1292,7 +1209,7 @@ namespace Sass {
       if (!lex< and_op >()) throw_syntax_error("invalid media query");
       media_expr << ctx.new_AST_Node*(AST_Node*::identifier, path, line, lexed);
       if (!lex< exactly<'('> >()) throw_syntax_error("invalid media query");
-      media_expr << parse_rule();
+      media_expr << parse_declaration();
       if (!lex< exactly<')'> >()) throw_syntax_error("unclosed parenthesis");
     }
     return media_expr;

@@ -32,13 +32,10 @@ namespace Sass {
 		// expressions
 		virtual T operator()(List*) = 0;
 		virtual T operator()(Binary_Expression*) = 0;
-		virtual T operator()(Negation*) = 0;
+		virtual T operator()(Unary_Expression*) = 0;
 		virtual T operator()(Function_Call*) = 0;
 		virtual T operator()(Variable*) = 0;
-		virtual T operator()(Textual<NUMBER>*) = 0;
-		virtual T operator()(Textual<PERCENTAGE>*) = 0;
-		virtual T operator()(Textual<DIMENSION>*) = 0;
-		virtual T operator()(Textual<HEX>*) = 0;
+		virtual T operator()(Textual*) = 0;
 		virtual T operator()(Number*) = 0;
 		virtual T operator()(Percentage*) = 0;
 		virtual T operator()(Dimension*) = 0;

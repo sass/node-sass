@@ -173,10 +173,12 @@ namespace Sass {
   ////////////////////////////////////////////////////////////////////////
   class Declaration : public Statement {
     ADD_PROPERTY(String*, property);
-    ADD_PROPERTY(List*, values);
+    ADD_PROPERTY(Expression*, value);
+    ADD_PROPERTY(bool, is_important);
   public:
-    Declaration(string p, size_t l, String* prop, List* vals)
-    : Statement(p, l), property_(prop), values_(vals)
+    Declaration(string p, size_t l,
+                String* prop, Expression* val, bool i = false)
+    : Statement(p, l), property_(prop), value_(val), is_important_(i)
     { }
     ATTACH_OPERATIONS();
   };
@@ -409,7 +411,7 @@ namespace Sass {
     enum Type {
       AND, OR,                   // logical connectives
       EQ, NEQ, GT, GTE, LT, LTE, // arithmetic relations
-      ADD, SUB, MUL, DIV         // arithmetic functions
+      ADD, SUB, MUL, DIV, MOD    // arithmetic functions
     };
   private:
     ADD_PROPERTY(Type, type);
@@ -426,11 +428,15 @@ namespace Sass {
   ////////////////////////////////////////////////////////////////////////////
   // Arithmetic negation (logical negation is just an ordinary function call).
   ////////////////////////////////////////////////////////////////////////////
-  class Negation : public Expression {
+  class Unary_Expression : public Expression {
+  public:
+    enum Type { PLUS, MINUS };
+  private:
+    ADD_PROPERTY(Type, type);
     ADD_PROPERTY(Expression*, operand);
   public:
-    Negation(string p, size_t l, Expression* o)
-    : Expression(p, l), operand_(o)
+    Unary_Expression(string p, size_t l, Type t, Expression* o)
+    : Expression(p, l), type_(t), operand_(o)
     { }
     ATTACH_OPERATIONS();
   };
@@ -439,10 +445,10 @@ namespace Sass {
   // Function calls.
   //////////////////
   class Function_Call : public Expression {
-    ADD_PROPERTY(String*, name);
+    ADD_PROPERTY(string, name);
     ADD_PROPERTY(Arguments*, arguments);
   public:
-    Function_Call(string p, size_t l, String* n, Arguments* args)
+    Function_Call(string p, size_t l, string n, Arguments* args)
     : Expression(p, l), name_(n), arguments_(args)
     { }
     ATTACH_OPERATIONS();
@@ -460,16 +466,19 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
 
-  /////////////////////////////////////////////////////////////////////////////
-  // Textual (i.e., unevaluated) numeric data. Templated to avoid type-tags and
-  // repetitive subclassing.
-  /////////////////////////////////////////////////////////////////////////////
-  template <Textual_Type t>
+  ////////////////////////////////////////////////////////////////////////////
+  // Textual (i.e., unevaluated) numeric data. Variants are distinguished with
+  // a type tag.
+  ////////////////////////////////////////////////////////////////////////////
   class Textual : public Expression {
+  public:
+    enum Type { NUMBER, PERCENTAGE, DIMENSION, HEX };
+  private:
+    ADD_PROPERTY(Type, type);
     ADD_PROPERTY(string, value);
   public:
-    Textual(string p, size_t l, string val)
-    : Expression(p, l), value_(val)
+    Textual(string p, size_t l, Type t, string val)
+    : Expression(p, l), type_(t), value_(val)
     { }
     ATTACH_OPERATIONS();
   };

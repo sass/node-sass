@@ -3,8 +3,6 @@
 /////////////////////////////////////////////
 namespace Sass {
 
-  enum Textual_Type { NUMBER, PERCENTAGE, DIMENSION, HEX };
-
 	class AST_Node;
 	// statements
 	class Block;
@@ -27,12 +25,13 @@ namespace Sass {
 	class Definition;
 	class Mixin_Call;
 	// expressions
+	class Expression;
 	class List;
 	class Binary_Expression;
-	class Negation;
+	class Unary_Expression;
 	class Function_Call;
 	class Variable;
-	template <Textual_Type T> class Textual;
+	class Textual;
 	class Number;
 	class Percentage;
 	class Dimension;
