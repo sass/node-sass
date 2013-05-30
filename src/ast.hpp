@@ -145,11 +145,11 @@ namespace Sass {
   // Media queries.
   /////////////////
   class List;
-  class Media_Query : public Has_Block {
-    ADD_PROPERTY(List*, query_list);
+  class Media_Block : public Has_Block {
+    ADD_PROPERTY(List*, media_queries);
   public:
-    Media_Query(string p, size_t l, List* q, Block* b)
-    : Has_Block(p, l, b), query_list_(q)
+    Media_Block(string p, size_t l, List* mqs, Block* b)
+    : Has_Block(p, l, b), media_queries_(mqs)
     { }
     ATTACH_OPERATIONS();
   };
@@ -592,11 +592,11 @@ namespace Sass {
   ////////////////////////////////////////////////////
   // Media expressions (for use inside media queries).
   ////////////////////////////////////////////////////
-  class Media_Expression : public Expression {
+  class Media_Query_Expression : public Expression {
     ADD_PROPERTY(String*, feature);
     ADD_PROPERTY(Expression*, value);
   public:
-    Media_Expression(string p, size_t l, String* f, Expression* v)
+    Media_Query_Expression(string p, size_t l, String* f, Expression* v)
     : Expression(p, l), feature_(f), value_(v)
     { }
   };

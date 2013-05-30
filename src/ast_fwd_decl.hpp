@@ -40,7 +40,7 @@ namespace Sass {
 	class String_Schema;
 	class String;
 	class String_Constant;
-	class Media_Expression;
+	class Media_Query_Expression;
 	// parameters and arguments
 	class Parameter;
 	class Parameters;

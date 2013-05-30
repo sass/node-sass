@@ -179,9 +179,10 @@ namespace Sass {
     At_Rule* parse_directive();
     AST_Node* parse_keyframes();
     AST_Node* parse_keyframe();
-    Media_Query* parse_media_query();
-    List* parse_media_list();
-    Media_Expression* parse_media_expression();
+    Media_Block* parse_media_block();
+    List* parse_media_queries();
+    List* parse_media_query();
+    Media_Query_Expression* parse_media_expression();
     Warning* parse_warning();
 
     Selector_Lookahead lookahead_for_selector(const char* start = 0);

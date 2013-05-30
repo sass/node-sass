@@ -43,7 +43,7 @@ namespace Sass {
 		virtual T operator()(Boolean*) = 0;
 		virtual T operator()(String_Schema*) = 0;
 		virtual T operator()(String_Constant*) = 0;
-		virtual T operator()(Media_Expression*) = 0;
+		virtual T operator()(Media_Query_Expression*) = 0;
 		// parameters and arguments
 		virtual T operator()(Parameter*) = 0;
 		virtual T operator()(Parameters*) = 0;

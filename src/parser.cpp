@@ -57,7 +57,7 @@ namespace Sass {
         (*root) << parse_while_directive();
       }
       else if (peek< media >()) {
-        (*root) << parse_media_query();
+        (*root) << parse_media_block();
       }
       // else if (peek< keyframes >()) {
       //   (*root) << parse_keyframes();
@@ -591,7 +591,7 @@ namespace Sass {
         semicolon = true;
       }
       else if (peek< media >()) {
-        (*block) << parse_media_query();
+        (*block) << parse_media_block();
       }
       // ignore the @charset directive for now
       else if (lex< exactly< charset_kwd > >()) {
@@ -1120,103 +1120,92 @@ namespace Sass {
     return new (ctx.mem) At_Rule(path, dir_line, kwd, 0, block);
   }
 
-  // Media_Query* Parser::parse_media_query(AST_Node*::Type inside_of)
-  // {
-  //   lex< media >();
-  //   AST_Node* media_query(ctx.new_AST_Node*(AST_Node*::media_query, path, line, 2));
-  //   AST_Node* media_expr(parse_media_expression());
-  //   if (peek< exactly<'{'> >()) {
-  //     media_query << media_expr;
-  //   }
-  //   else if (peek< exactly<','> >()) {
-  //     AST_Node* media_expr_group(ctx.new_AST_Node*(AST_Node*::media_expression_group, path, line, 2));
-  //     media_expr_group << media_expr;
-  //     while (lex< exactly<','> >()) {
-  //       media_expr_group << parse_media_expression();
-  //     }
-  //     media_query << media_expr_group;
-  //   }
-  //   else {
-  //     throw_syntax_error("expected '{' in media query");
-  //   }
-  //   media_query << parse_block(AST_Node*(), inside_of);
-  //   return media_query;
-  // }
-
-  Media_Query* Parser::parse_media_query()
+  Media_Block* Parser::parse_media_block()
   {
     lex< media >();
     size_t media_line = line;
 
-    List* media_list = (!peek< exactly<'{'> >() ? parse_media_list() : 0);
+    List* media_queries = parse_media_queries();
 
     if (!peek< exactly<'{'> >()) throw_syntax_error("expected '{' in media query");
     Block* block = parse_block();
 
-    return new (ctx.mem) Media_Query(path, media_line, media_list, block);
+    return new (ctx.mem) Media_Block(path, media_line, media_queries, block);
   }
 
-  Media_Expression* Parser::parse_media_expression()
+  List* Parser::parse_media_queries()
   {
-    AST_Node* media_expr(ctx.new_AST_Node*(AST_Node*::media_expression, path, line, 1));
-    // if the query begins with 'not' or 'only', then a media type is required
-    if (lex< not_op >() || lex< exactly<only_kwd> >()) {
-      media_expr << ctx.new_AST_Node*(AST_Node*::identifier, path, line, lexed);
-      if (!lex< identifier >()) throw_syntax_error("media type expected in media query");
-      media_expr << ctx.new_AST_Node*(AST_Node*::identifier, path, line, lexed);
-    }
-    // otherwise, the media type is optional
-    else if (lex< identifier >()) {
-      media_expr << ctx.new_AST_Node*(AST_Node*::identifier, path, line, lexed);
-    }
-    // if no media type was present, then require a parenthesized property
-    if (media_expr.empty()) {
-      if (!lex< exactly<'('> >()) throw_syntax_error("invalid media query");
-      media_expr << parse_declaration();
-      if (!lex< exactly<')'> >()) throw_syntax_error("unclosed parenthesis");
-    }
-    // parse the rest of the properties for this disjunct
-    while (!peek< exactly<','> >() && !peek< exactly<'{'> >()) {
-      if (!lex< and_op >()) throw_syntax_error("invalid media query");
-      media_expr << ctx.new_AST_Node*(AST_Node*::identifier, path, line, lexed);
-      if (!lex< exactly<'('> >()) throw_syntax_error("invalid media query");
-      media_expr << parse_declaration();
-      if (!lex< exactly<')'> >()) throw_syntax_error("unclosed parenthesis");
-    }
-    return media_expr;
+    List* media_queries = new (ctx.mem) List(path, line);
+    if (!peek< exactly<'{'> >()) (*media_queries) << parse_media_query();
+    while (lex< exactly<','> >()) (*media_queries) << parse_media_query();
+    return media_queries;
   }
 
-  AST_Node* Parser::parse_keyframes(AST_Node*::Type inside_of)
+  List* Parser::parse_media_query()
   {
-    lex< keyframes >();
-    AST_Node* keyframes(ctx.new_AST_Node*(AST_Node*::keyframes, path, line, 2));
-    AST_Node* keyword(ctx.new_AST_Node*(AST_Node*::identifier, path, line, lexed));
-    AST_Node* n(parse_expression());
-    keyframes << keyword;
-    keyframes << n;
-    keyframes << parse_block(AST_Node*(), inside_of);
-    return keyframes;
+    List* media_query = new (ctx.mem) List(path, line);
+    if (peek< identifier_schema >()) {
+      (*media_query) << parse_identifier_schema();
+      if (peek< identifier_schema >()) {
+        (*media_query) << parse_identifier_schema();
+      }
+    }
+    else {
+      (*media_query) << parse_media_expression();
+    }
+    while (lex< exactly< and_kwd > >()) {
+      (*media_query) << parse_media_expression();
+    }
+    return media_query;
   }
 
-  AST_Node* Parser::parse_keyframe(AST_Node*::Type inside_of) {
-    AST_Node* keyframe(ctx.new_AST_Node*(AST_Node*::keyframe, path, line, 2));
-    lex< keyf >();
-    AST_Node* n = ctx.new_AST_Node*(AST_Node*::string_t, path, line, lexed);
-    keyframe << n;
-    if (peek< exactly<'{'> >()) {
-      AST_Node* inner(parse_block(AST_Node*(), inside_of));
-      keyframe << inner;
+  Media_Query_Expression* Parser::parse_media_expression()
+  {
+    if (!lex< exactly<'('> >()) {
+      throw_syntax_error("media query expression must begin with '('");
     }
-    return keyframe;
+    if (!peek< identifier_schema >()) {
+      throw_syntax_error("media feature required in media query expression");
+    }
+    String* first = parse_identifier_schema();
+    Expression* second = 0;
+    if (lex< exactly<':'> >()) {
+      second = parse_list();
+    }
+    if (!lex< exactly<')'> >()) {
+      throw_syntax_error("unclosed parenthesis in media query expression");
+    }
+    return new (ctx.mem) Media_Query_Expression(path, first->line(), first, second);
   }
+
+  // AST_Node* Parser::parse_keyframes(AST_Node*::Type inside_of)
+  // {
+  //   lex< keyframes >();
+  //   AST_Node* keyframes(ctx.new_AST_Node*(AST_Node*::keyframes, path, line, 2));
+  //   AST_Node* keyword(ctx.new_AST_Node*(AST_Node*::identifier, path, line, lexed));
+  //   AST_Node* n(parse_expression());
+  //   keyframes << keyword;
+  //   keyframes << n;
+  //   keyframes << parse_block(AST_Node*(), inside_of);
+  //   return keyframes;
+  // }
+
+  // AST_Node* Parser::parse_keyframe(AST_Node*::Type inside_of) {
+  //   AST_Node* keyframe(ctx.new_AST_Node*(AST_Node*::keyframe, path, line, 2));
+  //   lex< keyf >();
+  //   AST_Node* n = ctx.new_AST_Node*(AST_Node*::string_t, path, line, lexed);
+  //   keyframe << n;
+  //   if (peek< exactly<'{'> >()) {
+  //     AST_Node* inner(parse_block(AST_Node*(), inside_of));
+  //     keyframe << inner;
+  //   }
+  //   return keyframe;
+  // }
 
   Warning* Parser::parse_warning()
   {
     lex< warn >();
-    AST_Node* warning(ctx.new_AST_Node*(AST_Node*::warning, path, line, 1));
-    warning << parse_list();
-    warning[0].should_eval() = true;
-    return warning;
+    return new (ctx.mem) Warning(path, line, parse_list());
   }
 
   Selector_Lookahead Parser::lookahead_for_selector(const char* start)
