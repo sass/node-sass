@@ -15,6 +15,10 @@ enum Sass_Separator {
 
 union Sass_Value;
 
+struct Sass_Unknown {
+  enum Sass_Tag tag;
+};
+
 struct Sass_Boolean {
   enum Sass_Tag tag;
   int           value;
@@ -33,7 +37,7 @@ struct Sass_Percentage {
 struct Sass_Dimension {
   enum Sass_Tag tag;
   double        value;
-  const char*   unit;
+  char*         unit;
 };
 
 struct Sass_Color {
@@ -46,7 +50,7 @@ struct Sass_Color {
 
 struct Sass_String {
   enum Sass_Tag tag;
-  const char*   value;
+  char*         value;
 };
 
 struct Sass_List {
@@ -57,6 +61,7 @@ struct Sass_List {
 };
 
 union Sass_Value {
+  struct Sass_Unknown    whatever;
   struct Sass_Boolean    boolean;
   struct Sass_Number     number;
   struct Sass_Percentage percentage;
@@ -66,4 +71,4 @@ union Sass_Value {
   struct Sass_List       list;
 };
 
-void free_sass_value(Sass_Value v);
+void free_sass_value(union Sass_Value);
