@@ -12,8 +12,9 @@ namespace Sass {
   using namespace std;
   using namespace Constants;
 
-  void Parser::parse_scss()
+  Block* Parser::parse()
   {
+    Block* root = new (ctx.mem) Block(path, line);
     read_bom();
     lex< optional_spaces >();
     Selector_Lookahead lookahead_result;
@@ -85,6 +86,7 @@ namespace Sass {
       }
       lex< optional_spaces >();
     }
+    return root;
   }
 
   Import* Parser::parse_import()
@@ -135,7 +137,7 @@ namespace Sass {
     //   string base_path(Token::make(base_str, Prelexer::folders(base_str)));
     //   string resolved_path(base_path + import_path);
     //   Parser importee(Parser::make_from_file(ctx, resolved_path));
-    //   importee.parse_scss();
+    //   importee.parse();
     //   return importee.root;
     // }
     // catch (string& path) {
@@ -144,7 +146,7 @@ namespace Sass {
     // for (vector<string>::iterator path = ctx.include_paths.begin(); path < ctx.include_paths.end(); ++path) {
     //   try {
     //     Parser importee(Parser::make_from_file(ctx, *path + import_path));
-    //     importee.parse_scss();
+    //     importee.parse();
     //     return importee.root;
     //   }
     //   catch (string& path) {

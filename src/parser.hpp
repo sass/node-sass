@@ -44,7 +44,6 @@ namespace Sass {
 
     Context& ctx;
 
-    Block* root;
     Token lexed;
 
   private:
@@ -135,7 +134,7 @@ namespace Sass {
 
     void read_bom();
 
-    void parse_scss();
+    Block* parse();
     Import* parse_import();
     Definition* parse_definition();
     Parameters* parse_parameters();
@@ -156,7 +155,6 @@ namespace Sass {
     Attribute_Selector* parse_attribute_selector();
     Block* parse_block();
     Declaration* parse_declaration();
-    AST_Node* parse_values();
     Expression* parse_list();
     Expression* parse_comma_list();
     Expression* parse_space_list();
