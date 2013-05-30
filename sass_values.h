@@ -17,43 +17,43 @@ union Sass_Value;
 
 struct Sass_Boolean {
   enum Sass_Tag tag;
-  int value;
+  int           value;
 };
 
 struct Sass_Number {
   enum Sass_Tag tag;
-  double value;
+  double        value;
 };
 
 struct Sass_Percentage {
   enum Sass_Tag tag;
-  double value;
+  double        value;
 };
 
 struct Sass_Dimension {
   enum Sass_Tag tag;
-  double value;
-  const char* unit;
+  double        value;
+  const char*   unit;
 };
 
 struct Sass_Color {
   enum Sass_Tag tag;
-  double r;
-  double g;
-  double b;
-  double a;
+  double        r;
+  double        g;
+  double        b;
+  double        a;
 };
 
 struct Sass_String {
   enum Sass_Tag tag;
-  const char* contents;
+  const char*   value;
 };
 
 struct Sass_List {
-  enum Sass_Tag tag;
+  enum Sass_Tag       tag;
   enum Sass_Separator separator;
-  size_t length;
-  union Sass_Value* values;
+  size_t              length;
+  union Sass_Value*   values;
 };
 
 union Sass_Value {
@@ -65,3 +65,5 @@ union Sass_Value {
   struct Sass_String     string;
   struct Sass_List       list;
 };
+
+void free_sass_value(Sass_Value v);

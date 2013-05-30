@@ -297,7 +297,10 @@ namespace Sass {
       case numeric_dimension: {
         v.dimension.tag = SASS_DIMENSION;
         v.dimension.value = numeric_value();
-        v.dimension.unit = string(unit().begin, unit().end - unit().begin).c_str();
+        const char* orig = string(unit().begin, unit().end - unit().begin).c_str();
+        char* copy = (char*) malloc(sizeof(char)*(strlen(orig)+1));
+        strcpy(copy, orig);
+        v.dimension.unit = copy;
       } break;
       case numeric_color: {
         v.color.tag = SASS_COLOR;
@@ -322,6 +325,7 @@ namespace Sass {
         const char* orig = to_string().c_str();
         char* copy = (char*) malloc(sizeof(char)*(strlen(orig)+1));
         strcpy(copy, orig);
+        v.string.value = copy;
       } break;
     }
     return v;
