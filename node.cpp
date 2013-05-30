@@ -1,6 +1,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iostream>
+#include <cstring>
 #include "node.hpp"
 #include "constants.hpp"
 #include "error.hpp"
@@ -14,6 +15,8 @@
 namespace Sass {
   using namespace std;
   using namespace Constants;
+  using std::strlen;
+  using std::strcpy;
 
   // ------------------------------------------------------------------------
   // Node method implementations
@@ -270,8 +273,10 @@ namespace Sass {
   { return !(*this < rhs); }
 
 
-  // Converting nodes to C-structs, for C callbacks. May allocate memory with
-  // malloc.
+  // Converting nodes to C-structs, for C callbacks. Allocates memory with
+  // malloc in the case of strings and lists. (Strings don't strictly need to
+  // be malloc'ed at this point, but it's better to do it for consistency,
+  // because clients of the C-structs will need to malloc their own strings too.
   Sass_Value Node::to_c_val()
   {
     Sass_Value v;
@@ -314,7 +319,9 @@ namespace Sass {
       } break;
       default: { // should only be string-like things at this point
         v.string.tag = SASS_STRING;
-        v.string.contents = to_string().c_str();
+        const char* orig = to_string().c_str();
+        char* copy = (char*) malloc(sizeof(char)*(strlen(orig)+1));
+        strcpy(copy, orig);
       } break;
     }
     return v;
