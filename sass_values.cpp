@@ -97,5 +97,7 @@ void free_sass_value(union Sass_Value v)
 			free(v.error.message);
 			v.error.message = NULL;
 		} break;
+
+		default: break;
 	}
 }

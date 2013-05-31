@@ -1062,6 +1062,9 @@ namespace Sass {
         c_args.list.values[i] = bindings[f.parameter_names[i].token()].to_c_val();
       }
       union Sass_Value c_val = f.c_func(c_args);
+      if (c_val.unknown.tag == SASS_ERROR) {
+        throw_eval_error(bt, "error in C function " + f.name + ": " + c_val.error.message, path, line);
+      }
       Node val(c_val_to_node(c_val, ctx, bt, path, line));
       free_sass_value(c_val);
       return val;
