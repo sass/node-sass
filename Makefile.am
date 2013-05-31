@@ -7,4 +7,4 @@ libsass_la_SOURCES = context.cpp functions.cpp document.cpp \
 	selector.cpp sass_interface.cpp sass_values.cpp
 libsass_la_LDFLAGS = -no-undefined -version-info 0:0:0
 
-include_HEADERS = sass_interface.h
+include_HEADERS = sass_interface.h sass_values.h
