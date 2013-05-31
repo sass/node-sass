@@ -86,7 +86,7 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 libsass_la_LIBADD =
 am_libsass_la_OBJECTS = context.lo functions.lo document.lo \
 	constants.lo document_parser.lo eval_apply.lo node.lo node_factory.lo \
-	node_emitters.lo prelexer.lo selector.lo sass_interface.lo
+	node_emitters.lo prelexer.lo selector.lo sass_interface.lo sass_values.lo
 libsass_la_OBJECTS = $(am_libsass_la_OBJECTS)
 libsass_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
