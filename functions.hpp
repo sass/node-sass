@@ -195,6 +195,12 @@ namespace Sass {
     extern Signature abs_sig;
     Node abs(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
 
+    extern Signature min_sig;
+    Node min(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature max_sig;
+    Node max(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
     // List Functions //////////////////////////////////////////////////////
 
     extern Signature length_sig;

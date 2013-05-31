@@ -36,6 +36,8 @@ namespace Sass {
       Node param(parameters[i]);
       if (param.type() == Node::variable) {
         parameter_names << param;
+      } else if(param.type() == Node::rest) {
+        parameter_names << param;
       }
       else {
         parameter_names << param[0];
@@ -922,6 +924,30 @@ namespace Sass {
       }
       // unreachable statement
       return Node();
+    }
+
+    extern Signature min_sig = "min($values...)";
+    Node min(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node args(bindings[parameter_names[0].token()]);
+      Node minValue = args[0];
+      for (size_t i = 1, S = args.size(); i < S; ++i) {
+        minValue = minValue.numeric_value() < args[i].numeric_value() ? minValue : args[i];
+      }
+      return new_Node(path, line,
+                      minValue.numeric_value(),
+                      minValue.unit());
+    }
+
+    extern Signature max_sig = "max($values...)";
+    Node max(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node args(bindings[parameter_names[0].token()]);
+      Node maxValue = args[0];
+      for (size_t i = 1, S = args.size(); i < S; ++i) {
+        maxValue = maxValue.numeric_value() > args[i].numeric_value() ? maxValue : args[i];
+      }
+      return new_Node(path, line,
+                      maxValue.numeric_value(),
+                      maxValue.unit());
     }
 
     ////////////////////////////////////////////////////////////////////////

@@ -157,6 +157,8 @@ namespace Sass {
     register_function(ceil_sig, ceil);
     register_function(floor_sig, floor);
     register_function(abs_sig, abs);
+    register_function(min_sig, min);
+    register_function(max_sig, max);
     // List Functions
     register_function(length_sig, length);
     register_function(nth_sig, nth);
