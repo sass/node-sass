@@ -5,7 +5,8 @@ enum Sass_Tag {
   SASS_DIMENSION,
   SASS_COLOR,
   SASS_STRING,
-  SASS_LIST
+  SASS_LIST,
+  SASS_ERROR
 };
 
 enum Sass_Separator {
@@ -60,8 +61,13 @@ struct Sass_List {
   union Sass_Value*   values;
 };
 
+struct Sass_Error {
+  enum Sass_Tag tag;
+  char*         message;
+};
+
 union Sass_Value {
-  struct Sass_Unknown    whatever;
+  struct Sass_Unknown    unknown;
   struct Sass_Boolean    boolean;
   struct Sass_Number     number;
   struct Sass_Percentage percentage;
@@ -69,6 +75,16 @@ union Sass_Value {
   struct Sass_Color      color;
   struct Sass_String     string;
   struct Sass_List       list;
+  struct Sass_Error      error;
 };
+
+union Sass_Value make_sass_boolean(int val);
+union Sass_Value make_sass_number(double val);
+union Sass_Value make_sass_percentage(double val);
+union Sass_Value make_sass_dimension(double val, const char* unit);
+union Sass_Value make_sass_color(double r, double g, double b, double a);
+union Sass_Value make_sass_string(const char* val);
+union Sass_Value make_sass_list(size_t len, enum Sass_Separator sep);
+union Sass_Value make_sass_error(const char* msg);
 
 void free_sass_value(union Sass_Value);

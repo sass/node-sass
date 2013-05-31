@@ -4,11 +4,13 @@
 #include "prelexer.hpp"
 #include "document.hpp"
 #include "error.hpp"
+#include "sass_values.h"
 #include <cctype>
 #include <cmath>
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
+#include <cstring>
 
 namespace Sass {
   using namespace Constants;
@@ -1053,6 +1055,17 @@ namespace Sass {
     if (f.primitive) {
       return f.primitive(f.parameter_names, bindings, new_Node, bt, path, line);
     }
+    else if (f.c_func) {
+      size_t num_params = f.parameter_names.size();
+      union Sass_Value c_args = make_sass_list(num_params, SASS_COMMA);
+      for (size_t i = 0; i < num_params; ++i) {
+        c_args.list.values[i] = bindings[f.parameter_names[i].token()].to_c_val();
+      }
+      union Sass_Value c_val = f.c_func(c_args);
+      Node val(c_val_to_node(c_val, ctx, bt, path, line));
+      free_sass_value(c_val);
+      return val;
+    }
     else {
       // TO DO: consider cloning the function body?
       return eval_function(f.name, f.definition[2], bindings, new_Node, ctx, bt, true);
@@ -1593,5 +1606,49 @@ namespace Sass {
 
   void to_lowercase(string& s)
   { for (size_t i = 0, L = s.length(); i < L; ++i) s[i] = tolower(s[i]); }
+
+  Node c_val_to_node(Sass_Value v, Context& ctx, Backtrace& bt, string path = "", size_t line = 0)
+  {
+    using std::strlen;
+    using std::strcpy;
+    Node node;
+    switch (v.unknown.tag)
+    {
+      case SASS_BOOLEAN: {
+        node = ctx.new_Node(Node::boolean, path, line, v.boolean.value);
+      } break;
+      case SASS_NUMBER: {
+        node = ctx.new_Node(path, line, v.number.value, Node::number);
+      } break;
+      case SASS_PERCENTAGE: {
+        node = ctx.new_Node(path, line, v.percentage.value, Node::numeric_percentage);
+      } break;
+      case SASS_DIMENSION: {
+        char* copy = new char[strlen(v.dimension.unit)+1];
+        strcpy(copy, v.dimension.unit);
+        ctx.source_refs.push_back(copy);
+        node = ctx.new_Node(path, line, v.dimension.value, Token::make(copy));
+      } break;
+      case SASS_COLOR: {
+        node = ctx.new_Node(path, line, v.color.r, v.color.g, v.color.b, v.color.a);
+      } break;
+      case SASS_STRING: {
+        char* copy = new char[strlen(v.string.value)+1];
+        strcpy(copy, v.string.value);
+        ctx.source_refs.push_back(copy);
+        node = ctx.new_Node(Node::string_constant, path, line, Token::make(copy));
+      } break;
+      case SASS_LIST: {
+        Node list(ctx.new_Node(Node::list, path, line, v.list.length));
+        for (size_t i = 0; i < v.list.length; ++i) {
+          list << c_val_to_node(v.list.values[i], ctx, bt, path, line);
+        }
+      } break;
+      case SASS_ERROR: {
+        throw_eval_error(bt, "error in C function: " + string(v.error.message), path, line);
+      } break;
+    }
+    return node;
+  }
 
 }

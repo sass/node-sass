@@ -24,7 +24,7 @@ namespace Sass {
   Node eval_function(string name, Node stm, Environment& bindings, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool toplevel = false);
   Node reduce(Node list, size_t head, Node acc, Node_Factory& new_Node, Backtrace& bt);
   double operate(Node op, double lhs, double rhs, Backtrace& bt);
-  
+
   Node apply_mixin(Node mixin, const Node args, const Node content, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, bool dynamic_scope = false);
   Node apply_function(const Function& f, const Node args, Node prefix, Environment& env, map<string, Function>& f_env, Node_Factory& new_Node, Context& ctx, Backtrace& bt, string& path, size_t line);
   Node expand_selector(Node sel, Node pre, Node_Factory& new_Node);
@@ -40,4 +40,6 @@ namespace Sass {
   Node selector_butlast(Node sel, Node_Factory& new_Node);
 
   void to_lowercase(string& s);
+
+  Node c_val_to_node(union Sass_Value, Context&, Backtrace& bt, string, size_t);
 }

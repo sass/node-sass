@@ -46,6 +46,30 @@ namespace Sass {
     }
   }
 
+  Function::Function(char* signature, C_Function ip, Context& ctx)
+  : definition(Node()),
+    c_func(ip),
+    overloaded(false)
+  {
+    Document sig_doc(Document::make_from_source_chars(ctx, signature));
+    sig_doc.lex<Prelexer::identifier>();
+    name = sig_doc.lexed.to_string();
+    parameters = sig_doc.parse_parameters();
+    parameter_names = ctx.new_Node(Node::parameters, "[C FUNCTIONS]", 0, parameters.size());
+    for (size_t i = 0, S = parameters.size(); i < S; ++i) {
+      Node param(parameters[i]);
+      if (param.type() == Node::variable) {
+        parameter_names << param;
+      }
+      else {
+        parameter_names << param[0];
+        // assume it's safe to evaluate default args just once at initialization
+        Backtrace dummy_trace(0, signature, 0, "default argument");
+        param[1] = eval(param[1], Node(), ctx.global_env, ctx.function_env, ctx.new_Node, ctx, dummy_trace);
+      }
+    }
+  }
+
   namespace Functions {
 
     static void throw_eval_error(Backtrace& bt, string message, string& path, size_t line)
@@ -195,19 +219,19 @@ namespace Sass {
       double a = alpha_arg.numeric_value();
       return new_Node(path, line, r, g, b, a);
     }
-    
+
     extern Signature red_sig = "red($color)";
     Node red(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
       Node color(arg(red_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
       return new_Node(path, line, color[0]);
     }
-    
+
     extern Signature green_sig = "green($color)";
     Node green(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
       Node color(arg(green_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
       return new_Node(path, line, color[1]);
     }
-    
+
     extern Signature blue_sig = "blue($color)";
     Node blue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
       Node color(arg(blue_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
@@ -235,7 +259,7 @@ namespace Sass {
       mixed << new_Node(path, line, alpha);
       return mixed;
     }
- 
+
     ////////////////////////////////////////////////////////////////////////
     // HSL Functions ///////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////
@@ -321,7 +345,7 @@ namespace Sass {
       double a = arg(hsla_sig, path, line, parameter_names, bindings, 3, Node::numeric, 0, 1, bt).numeric_value();
       return hsla_impl(h, s, l, a, new_Node, path, line);
     }
-    
+
     extern Signature hue_sig = "hue($color)";
     Node hue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
       Node rgb_color(arg(hue_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
@@ -464,11 +488,11 @@ namespace Sass {
                       255 - color[2].numeric_value(),
                       color[3].numeric_value());
     }
-    
+
     ////////////////////////////////////////////////////////////////////////
     // Opacity Functions ///////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////
-    
+
     extern Signature alpha_sig = "alpha($color)";
     Node alpha(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
       Node color(arg(alpha_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
@@ -480,7 +504,7 @@ namespace Sass {
       Node color(arg(opacity_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
       return new_Node(path, line, color[3]);
     }
-    
+
     extern Signature opacify_sig = "opacify($color, $amount)";
     Node opacify(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
       Node color(arg(opacify_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
@@ -506,7 +530,7 @@ namespace Sass {
                       color[2].numeric_value(),
                       delta);
     }
-    
+
     extern Signature transparentize_sig = "transparentize($color, $amount)";
     Node transparentize(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
       Node color(arg(transparentize_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
@@ -750,14 +774,14 @@ namespace Sass {
     ////////////////////////////////////////////////////////////////////////
     // String Functions ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////
-    
+
     extern Signature unquote_sig = "unquote($string)";
     Node unquote(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
       Node cpy(new_Node(path, line, bindings[parameter_names[0].token()]));
       cpy.is_quoted() = false;
       return cpy;
     }
-    
+
     extern Signature quote_sig = "quote($string)";
     Node quote(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
       Node orig(arg(quote_sig, path, line, parameter_names, bindings, 0, Node::string_t, bt));
@@ -765,11 +789,11 @@ namespace Sass {
       copy.is_quoted() = true;
       return copy;
     }
-    
+
     ////////////////////////////////////////////////////////////////////////
     // Number Functions ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////
-    
+
     extern Signature percentage_sig = "percentage($value)";
     Node percentage(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
       Node orig(arg(percentage_sig, path, line, parameter_names, bindings, 0, Node::number, bt));
@@ -899,7 +923,7 @@ namespace Sass {
       // unreachable statement
       return Node();
     }
-    
+
     ////////////////////////////////////////////////////////////////////////
     // List Functions //////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////
@@ -909,7 +933,7 @@ namespace Sass {
       Node the_arg(bindings[parameter_names[0].token()]);
       return new_Node(path, line, the_arg.type() == Node::list ? the_arg.size() : 1);
     }
-    
+
     extern Signature nth_sig = "nth($list, $n)";
     Node nth(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
       Node l(bindings[parameter_names[0].token()]);
@@ -952,7 +976,7 @@ namespace Sass {
       }
       // figure out the combined size in advance
       size_t size = l1.size() + l2.size();
- 
+
       // figure out the result type in advance
       bool comma_sep;
       string sep(bindings[parameter_names[2].token()].token().unquote());
@@ -963,7 +987,7 @@ namespace Sass {
       else                     throw_eval_error(bt, "third argument to 'join' must be 'space', 'comma', or 'auto'", path, line);
 
       if (l1.size() == 0) comma_sep = l2.is_comma_separated();
- 
+
       // accumulate the result
       Node lr(new_Node(Node::list, path, line, size));
       lr += l1;
@@ -1026,7 +1050,7 @@ namespace Sass {
     ////////////////////////////////////////////////////////////////////////
     // Introspection Functions /////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////
-    
+
     extern Signature type_of_sig = "type-of($value)";
     Node type_of(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
       Node val(bindings[parameter_names[0].token()]);
@@ -1113,7 +1137,7 @@ namespace Sass {
       // unreachable statement
       return Node();
     }
-    
+
     extern Signature comparable_sig = "comparable($number-1, $number-2)";
     Node comparable(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
       Node n1(arg(comparable_sig, path, line, parameter_names, bindings, 0, Node::numeric, bt));
@@ -1146,7 +1170,7 @@ namespace Sass {
       // default to false if we missed anything
       return new_Node(Node::boolean, path, line, false);
     }
-    
+
     ////////////////////////////////////////////////////////////////////////
     // Boolean Functions ///////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////

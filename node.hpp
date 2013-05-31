@@ -527,5 +527,4 @@ namespace Sass {
   inline double Node::numeric_value() const { return ip_->numeric_value(); }
   inline Token  Node::token() const         { return ip_->value.token; }
   inline Token  Node::unit() const          { return ip_->unit(); }
-
 }

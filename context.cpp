@@ -52,7 +52,7 @@ namespace Sass {
     //   cerr << include_paths[i] << endl;
     // }
   }
-  
+
   Context::Context(const char* paths_str, const char* img_path_str, int sc)
   : global_env(Environment()),
     function_env(map<string, Function>()),
@@ -80,7 +80,7 @@ namespace Sass {
     // stash this hidden variable for the image-url built-in to use
     global_env[Token::make(image_path_var)] = new_Node(Node::string_constant, "[IMAGE PATH]", 0, Token::make(image_path));
   }
-  
+
   Context::~Context()
   {
     for (size_t i = 0; i < source_refs.size(); ++i) {
@@ -89,13 +89,13 @@ namespace Sass {
     delete[] image_path;
     new_Node.free();
   }
-  
+
   inline void Context::register_function(Signature sig, Primitive ip)
   {
     Function f(const_cast<char*>(sig), ip, *this);
     function_env[f.name] = f;
   }
-  
+
   inline void Context::register_function(Signature sig, Primitive ip, size_t arity)
   {
     Function f(const_cast<char*>(sig), ip, *this);
@@ -108,7 +108,7 @@ namespace Sass {
   {
     function_env[name] = Function(name, true);
   }
-  
+
   void Context::register_functions()
   {
     using namespace Functions;
@@ -146,8 +146,8 @@ namespace Sass {
     // Other Color Functions
     register_function(adjust_color_sig, adjust_color);
     register_function(scale_color_sig, scale_color);
-    register_function(change_color_sig, change_color);   
-    register_function(ie_hex_str_sig, ie_hex_str); 
+    register_function(change_color_sig, change_color);
+    register_function(ie_hex_str_sig, ie_hex_str);
     // String Functions
     register_function(unquote_sig, unquote);
     register_function(quote_sig, quote);
@@ -204,5 +204,5 @@ namespace Sass {
       ++i;
     }
   }
-  
+
 }
