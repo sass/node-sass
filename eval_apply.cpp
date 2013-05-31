@@ -440,8 +440,9 @@ namespace Sass {
         if (expr.should_eval() && expr.size() > 0) {
           result = new_Node(Node::list, expr.path(), expr.line(), expr.size());
           result.is_comma_separated() = expr.is_comma_separated();
-          result << eval(expr[0], prefix, env, f_env, new_Node, ctx, bt);
-          for (size_t i = 1, S = expr.size(); i < S; ++i) result << expr[i];
+          for(size_t i = 0, S = expr.size(); i < S; i++) {
+            result << eval(expr[i], prefix, env, f_env, new_Node, ctx, bt);
+          }
           result.is_arglist() = is_arglist;
           result.is_splat() = is_splat;
           // cerr << string(bt.depth(), '\t') << "evaluated a list: " << result.to_string() << "::" << result.is_arglist() << endl;
