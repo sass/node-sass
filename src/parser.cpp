@@ -60,6 +60,9 @@ namespace Sass {
       else if (peek< media >()) {
         (*root) << parse_media_block();
       }
+      else if (peek< at_keyword >()) {
+        (*root) << parse_at_rule();
+      }
       // else if (peek< keyframes >()) {
       //   (*root) << parse_keyframes();
       // }
@@ -1180,6 +1183,26 @@ namespace Sass {
     return new (ctx.mem) Media_Query_Expression(path, first->line(), first, second);
   }
 
+  At_Rule* Parser::parse_at_rule()
+  {
+    lex<at_keyword>();
+    string kwd(lexed);
+    size_t at_line = line;
+    Selector* sel = 0;
+    Selector_Lookahead lookahead = lookahead_for_selector(position);
+    if (lookahead.found) {
+      if (lookahead.has_interpolants) {
+        sel = parse_selector_schema(lookahead.found);
+      }
+      else {
+        sel = parse_selector_group();
+      }
+    }
+    Block* body = 0;
+    if (peek< exactly<'{'> >()) body = parse_block();
+    return new (ctx.mem) At_Rule(path, at_line, kwd, sel, body);
+  }
+
   // AST_Node* Parser::parse_keyframes(AST_Node*::Type inside_of)
   // {
   //   lex< keyframes >();
@@ -1374,6 +1397,23 @@ namespace Sass {
       if ((unsigned char) src[i] != bom[i]) return 0;
     }
     return skip;
+  }
+
+
+  Expression* Parser::fold_operands(Expression* base, vector<Expression*>& operands, Binary_Expression::Type op)
+  {
+    for (size_t i = 0, S = operands.size(); i < S; ++i) {
+      base = new (ctx.mem) Binary_Expression(path, line, op, base, operands[i]);
+    }
+    return base;
+  }
+
+  Expression* Parser::fold_operands(Expression* base, vector<Expression*>& operands, vector<Binary_Expression::Type>& ops)
+  {
+    for (size_t i = 0, S = operands.size(); i < S; ++i) {
+      base = new (ctx.mem) Binary_Expression(path, line, ops[i], base, operands[i]);
+    }
+    return base;
   }
 
 }

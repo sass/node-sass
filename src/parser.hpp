@@ -181,6 +181,7 @@ namespace Sass {
     List* parse_media_queries();
     List* parse_media_query();
     Media_Query_Expression* parse_media_expression();
+    At_Rule* parse_at_rule();
     Warning* parse_warning();
 
     Selector_Lookahead lookahead_for_selector(const char* start = 0);
