@@ -14,6 +14,7 @@
 #include "constants.hpp"
 #include "color_names.hpp"
 #include "prelexer.hpp"
+#include "sass_values.h"
 
 
 namespace Sass {
@@ -52,10 +53,11 @@ namespace Sass {
     //   cerr << include_paths[i] << endl;
     // }
   }
-  
+
   Context::Context(const char* paths_str, const char* img_path_str, int sc)
   : global_env(Environment()),
     function_env(map<string, Function>()),
+    c_function_list(vector<Sass_C_Function_Data>()),
     extensions(multimap<Node, Node>()),
     pending_extensions(vector<pair<Node, Node> >()),
     source_refs(vector<const char*>()),
@@ -69,6 +71,7 @@ namespace Sass {
     source_comments(sc)
   {
     register_functions();
+    register_c_functions();
     collect_include_paths(paths_str);
     setup_color_map();
 
@@ -80,7 +83,7 @@ namespace Sass {
     // stash this hidden variable for the image-url built-in to use
     global_env[Token::make(image_path_var)] = new_Node(Node::string_constant, "[IMAGE PATH]", 0, Token::make(image_path));
   }
-  
+
   Context::~Context()
   {
     for (size_t i = 0; i < source_refs.size(); ++i) {
@@ -89,14 +92,28 @@ namespace Sass {
     delete[] image_path;
     new_Node.free();
   }
-  
+
   inline void Context::register_function(Signature sig, Primitive ip)
   {
     Function f(const_cast<char*>(sig), ip, *this);
     function_env[f.name] = f;
   }
-  
+
   inline void Context::register_function(Signature sig, Primitive ip, size_t arity)
+  {
+    Function f(const_cast<char*>(sig), ip, *this);
+    std::stringstream stub;
+    stub << f.name << " " << arity;
+    function_env[stub.str()] = f;
+  }
+
+  inline void Context::register_c_function(Signature sig, C_Function ip)
+  {
+    Function f(const_cast<char*>(sig), ip, *this);
+    function_env[f.name] = f;
+  }
+
+  inline void Context::register_c_function(Signature sig, C_Function ip, size_t arity)
   {
     Function f(const_cast<char*>(sig), ip, *this);
     std::stringstream stub;
@@ -108,7 +125,7 @@ namespace Sass {
   {
     function_env[name] = Function(name, true);
   }
-  
+
   void Context::register_functions()
   {
     using namespace Functions;
@@ -146,8 +163,8 @@ namespace Sass {
     // Other Color Functions
     register_function(adjust_color_sig, adjust_color);
     register_function(scale_color_sig, scale_color);
-    register_function(change_color_sig, change_color);   
-    register_function(ie_hex_str_sig, ie_hex_str); 
+    register_function(change_color_sig, change_color);
+    register_function(ie_hex_str_sig, ie_hex_str);
     // String Functions
     register_function(unquote_sig, unquote);
     register_function(quote_sig, quote);
@@ -189,6 +206,14 @@ namespace Sass {
     register_function(image_url_sig, image_url);
   }
 
+  void Context::register_c_functions()
+  {
+    for (size_t i = 0, S = c_function_list.size(); i < S; ++i) {
+      Sass_C_Function_Data f_data = c_function_list[i];
+      register_c_function(f_data.signature, f_data.function);
+    }
+  }
+
   void Context::setup_color_map()
   {
     size_t i = 0;
@@ -204,5 +229,5 @@ namespace Sass {
       ++i;
     }
   }
-  
+
 }

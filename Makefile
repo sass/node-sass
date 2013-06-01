@@ -8,7 +8,7 @@ LIBDIR  = $(PREFIX)/lib
 SOURCES = constants.cpp context.cpp functions.cpp document.cpp \
           document_parser.cpp eval_apply.cpp node.cpp \
           node_factory.cpp node_emitters.cpp prelexer.cpp \
-          selector.cpp sass_interface.cpp
+          selector.cpp sass_interface.cpp sass_values.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)
 

@@ -86,7 +86,7 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 libsass_la_LIBADD =
 am_libsass_la_OBJECTS = context.lo functions.lo document.lo \
 	constants.lo document_parser.lo eval_apply.lo node.lo node_factory.lo \
-	node_emitters.lo prelexer.lo selector.lo sass_interface.lo
+	node_emitters.lo prelexer.lo selector.lo sass_interface.lo sass_values.lo
 libsass_la_OBJECTS = $(am_libsass_la_OBJECTS)
 libsass_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -247,7 +247,7 @@ lib_LTLIBRARIES = libsass.la
 libsass_la_SOURCES = context.cpp functions.cpp document.cpp \
 	constants.cpp document_parser.cpp eval_apply.cpp node.cpp \
 	node_factory.cpp node_emitters.cpp prelexer.cpp \
-	selector.cpp sass_interface.cpp
+	selector.cpp sass_interface.cpp sass_values.cpp
 
 libsass_la_LDFLAGS = -no-undefined -version-info 0:0:0
 include_HEADERS = sass_interface.h
@@ -298,7 +298,7 @@ config.h: stamp-h1
 stamp-h1: $(srcdir)/config.h.in $(top_builddir)/config.status
 	@rm -f stamp-h1
 	cd $(top_builddir) && $(SHELL) ./config.status config.h
-$(srcdir)/config.h.in:  $(am__configure_deps) 
+$(srcdir)/config.h.in:  $(am__configure_deps)
 	($(am__cd) $(top_srcdir) && $(AUTOHEADER))
 	rm -f stamp-h1
 	touch $@
@@ -336,7 +336,7 @@ clean-libLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-libsass.la: $(libsass_la_OBJECTS) $(libsass_la_DEPENDENCIES) $(EXTRA_libsass_la_DEPENDENCIES) 
+libsass.la: $(libsass_la_OBJECTS) $(libsass_la_DEPENDENCIES) $(EXTRA_libsass_la_DEPENDENCIES)
 	$(libsass_la_LINK) -rpath $(libdir) $(libsass_la_OBJECTS) $(libsass_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
@@ -357,6 +357,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prelexer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/selector.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sass_interface.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sass_values.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
