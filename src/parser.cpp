@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include "parser.hpp"
+#include "file.hpp"
 #include "constants.hpp"
 #include "error.hpp"
 
@@ -63,9 +64,6 @@ namespace Sass {
       else if (peek< at_keyword >()) {
         (*root) << parse_at_rule();
       }
-      // else if (peek< keyframes >()) {
-      //   (*root) << parse_keyframes();
-      // }
       else if (peek< warn >()) {
         (*root) << parse_warning();
         if (!lex< exactly<';'> >()) throw_syntax_error("top-level @warn directive must be terminated by ';'");
@@ -99,7 +97,14 @@ namespace Sass {
     bool first = true;
     do {
       if (lex< string_constant >()) {
-        imp->strings().push_back(lexed);
+        string loc(lexed);
+        size_t dot = loc.find_last_of('.');
+        if (dot != string::npos && loc.substr(dot) == ".css") {
+          imp->strings().push_back(loc);
+        }
+        else {
+          ctx.add_file(loc);
+        }
       }
       else if (peek< uri_prefix >()) {
         imp->urls().push_back(parse_function_call());
@@ -111,55 +116,6 @@ namespace Sass {
       first = false;
     } while (lex< exactly<','> >());
     return imp;
-    // if (lex< uri_prefix >())
-    // {
-    //   if (peek< string_constant >()) {
-    //     String* schema = parse_string();
-    //     Import<String*>* import = new (ctx.mem) Import<String*>(path, line, schema);
-    //     if (!lex< exactly<')'> >()) throw_syntax_error("unterminated url in @import directive");
-    //     return import;
-    //   }
-    //   else {
-    //     const char* beg = position;
-    //     const char* end = find_first< exactly<')'> >(position);
-    //     if (!end) throw_syntax_error("unterminated url in @import directive");
-    //     AST_Node* path_node(ctx.new_AST_Node*(AST_Node*::identifier, path, line, Token::make(beg, end)));
-    //     AST_Node* importee(ctx.new_AST_Node*(AST_Node*::css_import, path, line, 1));
-    //     importee << path_node;
-    //     position = end;
-    //     lex< exactly<')'> >();
-    //     return importee;
-    //   }
-    // }
-    // if (!lex< string_constant >()) throw_syntax_error("@import directive requires a url or quoted path");
-    // string import_path(lexed.unquote());
-    // // Try the folder containing the current file first. If that fails, loop
-    // // through the include-paths.
-    // try {
-    //   const char* base_str = path.c_str();
-    //   string base_path(Token::make(base_str, Prelexer::folders(base_str)));
-    //   string resolved_path(base_path + import_path);
-    //   Parser importee(Parser::make_from_file(ctx, resolved_path));
-    //   importee.parse();
-    //   return importee.root;
-    // }
-    // catch (string& path) {
-    //   // suppress the error and try the include paths
-    // }
-    // for (vector<string>::iterator path = ctx.include_paths.begin(); path < ctx.include_paths.end(); ++path) {
-    //   try {
-    //     Parser importee(Parser::make_from_file(ctx, *path + import_path));
-    //     importee.parse();
-    //     return importee.root;
-    //   }
-    //   catch (string& path) {
-    //     // continue looping
-    //   }
-    // }
-    // // fail after we've tried all include-paths
-    // throw_read_error("error reading file \"" + import_path + "\"");
-    // // unreachable statement
-    // return AST_Node*();
   }
 
   Definition* Parser::parse_definition()
@@ -322,7 +278,7 @@ namespace Sass {
         if (i < p) (*schema) << new (ctx.mem) String_Constant(path, line, Token(i, p));
         // find the end of the interpolant and parse it
         const char* j = find_first_in_interval< exactly<rbrace> >(p, end_of_selector);
-        Expression* interp_node = Parser::make_from_token(ctx, Token(p+2, j), path, line).parse_list();
+        Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, path, line).parse_list();
         (*schema) << interp_node;
         i = j + 1;
       }
@@ -571,12 +527,6 @@ namespace Sass {
       else if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         (*block) << parse_propset();
       }
-      // else if (peek < keyframes >()) {
-      //   (*block) << parse_keyframes(inside_of);
-      // }
-      // else if (peek< sequence< keyf, optional_spaces, exactly<'{'> > >()) {
-      //   (*block) << parse_keyframe(inside_of);
-      // }
       else if ((lookahead_result = lookahead_for_selector(position)).found) {
         (*block) << parse_ruleset(lookahead_result);
       }
@@ -610,15 +560,6 @@ namespace Sass {
         }
         (*block) << at_rule;
       }
-      // // related to keyframe stuff
-      // else if (peek< percentage >() ){
-      //   lex< percentage >();
-      //   (*block) << ctx.new_AST_Node*(path, line, atof(lexed.begin), AST_Node*::numeric_percentage);
-      //   if (peek< exactly<'{'> >()) {
-      //     AST_Node* inner(parse_block(AST_Node*()));
-      //     (*block) << inner;
-      //   }
-      // }
       else if (!peek< exactly<';'> >()) {
         if (peek< sequence< optional< exactly<'*'> >, identifier_schema, exactly<':'>, exactly<'{'> > >()) {
           String* prop = parse_identifier_schema();
@@ -844,7 +785,7 @@ namespace Sass {
       }
       else if (peek< sequence< url_schema, spaces_and_comments, exactly<')'> > >()) {
         lex< url_schema >();
-        String_Schema* the_url = Parser::make_from_token(ctx, lexed, path, line).parse_url_schema();
+        String_Schema* the_url = Parser::from_token(lexed, ctx, path, line).parse_url_schema();
         (*args) << new (ctx.mem) Argument(path, line, the_url);
       }
       else if (peek< sequence< url_value, spaces_and_comments, exactly<')'> > >()) {
@@ -869,7 +810,7 @@ namespace Sass {
     { return parse_function_call(); }
 
     if (lex< value_schema >())
-    { return Parser::make_from_token(ctx, lexed, path, line).parse_value_schema(); }
+    { return Parser::from_token(lexed, ctx, path, line).parse_value_schema(); }
 
     if (lex< sequence< true_val, negate< identifier > > >())
     { return new (ctx.mem) Boolean(path, line, true); }
@@ -925,7 +866,7 @@ namespace Sass {
         const char* j = find_first_in_interval< exactly<rbrace> >(p, str.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
-          (*schema) << Parser::make_from_token(ctx, Token(p+2, j), path, line).parse_list();
+          (*schema) << Parser::from_token(Token(p+2, j), ctx, path, line).parse_list();
           i = j+1;
         }
         else {
@@ -948,7 +889,7 @@ namespace Sass {
     while (position < end) {
       if (lex< interpolant >()) {
         Token insides(Token(lexed.begin + 2, lexed.end - 1));
-        Expression* interp_node = Parser::make_from_token(ctx, insides, path, line).parse_list();
+        Expression* interp_node = Parser::from_token(insides, ctx, path, line).parse_list();
         (*schema) << interp_node;
       }
       else if (lex< identifier >()) {
@@ -991,7 +932,7 @@ namespace Sass {
       }
       else if (lex< interpolant >()) {
         Token insides(Token(lexed.begin + 2, lexed.end - 1));
-        (*schema) << Parser::make_from_token(ctx, insides, path, line).parse_list();
+        (*schema) << Parser::from_token(insides, ctx, path, line).parse_list();
       }
       else if (lex< sequence< identifier, exactly<':'> > >()) {
         (*schema) << new (ctx.mem) String_Constant(path, line, lexed);
@@ -1027,7 +968,7 @@ namespace Sass {
         const char* j = find_first_in_interval< exactly<rbrace> >(p, id.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
-          (*schema) << Parser::make_from_token(ctx, Token(p+2, j), path, line).parse_list();
+          (*schema) << Parser::from_token(Token(p+2, j), ctx, path, line).parse_list();
           i = j+1;
         }
         else {
@@ -1202,30 +1143,6 @@ namespace Sass {
     if (peek< exactly<'{'> >()) body = parse_block();
     return new (ctx.mem) At_Rule(path, at_line, kwd, sel, body);
   }
-
-  // AST_Node* Parser::parse_keyframes(AST_Node*::Type inside_of)
-  // {
-  //   lex< keyframes >();
-  //   AST_Node* keyframes(ctx.new_AST_Node*(AST_Node*::keyframes, path, line, 2));
-  //   AST_Node* keyword(ctx.new_AST_Node*(AST_Node*::identifier, path, line, lexed));
-  //   AST_Node* n(parse_expression());
-  //   keyframes << keyword;
-  //   keyframes << n;
-  //   keyframes << parse_block(AST_Node*(), inside_of);
-  //   return keyframes;
-  // }
-
-  // AST_Node* Parser::parse_keyframe(AST_Node*::Type inside_of) {
-  //   AST_Node* keyframe(ctx.new_AST_Node*(AST_Node*::keyframe, path, line, 2));
-  //   lex< keyf >();
-  //   AST_Node* n = ctx.new_AST_Node*(AST_Node*::string_t, path, line, lexed);
-  //   keyframe << n;
-  //   if (peek< exactly<'{'> >()) {
-  //     AST_Node* inner(parse_block(AST_Node*(), inside_of));
-  //     keyframe << inner;
-  //   }
-  //   return keyframe;
-  // }
 
   Warning* Parser::parse_warning()
   {

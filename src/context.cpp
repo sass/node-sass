@@ -12,6 +12,7 @@
 #include <sstream>
 #include "context.hpp"
 #include "constants.hpp"
+#include "file.hpp"
 
 #ifndef SASS_PRELEXER
 #include "prelexer.hpp"
@@ -69,9 +70,26 @@ namespace Sass {
     }
   }
 
+  void Context::add_file(string path)
+  {
+    if (style_sheets.count(path)) return;
+    using namespace File;
+    char* contents = 0;
+    for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
+      string full_path(join_paths(include_paths[i], path));
+      contents = resolve_and_load(full_path);
+      if (contents) {
+        sources.push_back(contents);
+        queue.push_back(pair<string, char*>(path, contents));
+        style_sheets[path] = 0;
+        return;
+      }
+    }
+    // TODO: throw an error if we get here
+  }
+
   Context::~Context()
   {
-    for (size_t i = 0; i < source_strs.size(); ++i) delete[] source_strs[i];
-    mem.~Memory_Manager();
+    for (size_t i = 0; i < sources.size(); ++i) delete[] sources[i];
   }
 }
