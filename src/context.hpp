@@ -30,7 +30,7 @@ namespace Sass {
 
     void collect_include_paths(const char* paths_str);
     void collect_include_paths(const char* paths_array[]);
-    void add_file(string path);
+    bool add_file(string path);
 
     KWD_ARG_SET(Data) {
       KWD_ARG(Data, string,          entry_point);

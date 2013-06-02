@@ -97,13 +97,15 @@ namespace Sass {
     bool first = true;
     do {
       if (lex< string_constant >()) {
-        string loc(lexed);
-        size_t dot = loc.find_last_of('.');
-        if (dot != string::npos && loc.substr(dot) == ".css") {
-          imp->strings().push_back(loc);
+        string import_path(lexed);
+        size_t dot = import_path.find_last_of('.');
+        if (dot != string::npos && import_path.substr(dot) == ".css") {
+          imp->strings().push_back(import_path);
         }
         else {
-          ctx.add_file(loc);
+          string current_dir = File::dir_name(path);
+          bool loaded = ctx.add_file(File::join_paths(current_dir, import_path));
+          if (!loaded) throw_syntax_error("file to import not found or unreadable: " + import_path);
         }
       }
       else if (peek< uri_prefix >()) {

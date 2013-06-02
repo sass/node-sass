@@ -70,26 +70,32 @@ namespace Sass {
     }
   }
 
-  void Context::add_file(string path)
+  bool Context::add_file(string path)
   {
-    if (style_sheets.count(path)) return;
     using namespace File;
     char* contents = 0;
     for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
       string full_path(join_paths(include_paths[i], path));
+      if (style_sheets.count(full_path)) return true;
       contents = resolve_and_load(full_path);
       if (contents) {
         sources.push_back(contents);
-        queue.push_back(pair<string, char*>(path, contents));
-        style_sheets[path] = 0;
-        return;
+        queue.push_back(pair<string, char*>(full_path, contents));
+        style_sheets[full_path] = 0;
+        break;
       }
     }
-    // TODO: throw an error if we get here
+    return contents;
+  }
+
+  void go()
+  {
+    for (size_t i = 0; i < queue.size(); ++i) {
+      Parser p(Parser::from_c_str(queue[i].second(), *this, queue[i].first()));
+      style_sheets[full_path] = p.parse();
+    }
   }
 
   Context::~Context()
-  {
-    for (size_t i = 0; i < sources.size(); ++i) delete[] sources[i];
-  }
+  { for (size_t i = 0; i < sources.size(); ++i) delete[] sources[i]; }
 }
