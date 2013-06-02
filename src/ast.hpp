@@ -12,7 +12,7 @@
 #include "token.hpp"
 #endif
 
-#include "boilerplate_macros.hpp"
+#include "ast_def_macros.hpp"
 
 namespace Sass {
   using namespace std;

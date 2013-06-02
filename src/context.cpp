@@ -12,6 +12,7 @@
 #include <sstream>
 #include "context.hpp"
 #include "constants.hpp"
+#include "parser.hpp"
 #include "file.hpp"
 
 #ifndef SASS_PRELEXER
@@ -22,6 +23,25 @@ namespace Sass {
   using namespace Constants;
   using std::cerr;
   using std::endl;
+
+  Context::Context(Context::Data initializers)
+  : mem(Memory_Manager<AST_Node*>()),
+    sources         (vector<const char*>()),
+    include_paths   (initializers.include_paths()),
+    queue           (vector<pair<string, const char*> >()),
+    style_sheets    (map<string, Block*>()),
+    image_path      (initializers.image_path()),
+    source_comments (initializers.source_comments()),
+    source_maps     (initializers.source_maps()),
+    output_style    (initializers.output_style())
+  {
+    collect_include_paths(initializers.include_paths_c_str());
+    collect_include_paths(initializers.include_paths_array());
+    add_file             (initializers.entry_point());
+  }
+
+  Context::~Context()
+  { for (size_t i = 0; i < sources.size(); ++i) delete[] sources[i]; }
 
   void Context::collect_include_paths(const char* paths_str)
   {
@@ -88,14 +108,12 @@ namespace Sass {
     return contents;
   }
 
-  void go()
+  void Context::go()
   {
     for (size_t i = 0; i < queue.size(); ++i) {
-      Parser p(Parser::from_c_str(queue[i].second(), *this, queue[i].first()));
-      style_sheets[full_path] = p.parse();
+      Parser p(Parser::from_c_str(queue[i].second, *this, queue[i].first));
+      style_sheets[queue[i].first] = p.parse();
     }
   }
 
-  Context::~Context()
-  { for (size_t i = 0; i < sources.size(); ++i) delete[] sources[i]; }
 }

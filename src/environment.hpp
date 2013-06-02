@@ -2,7 +2,7 @@
 
 #include <string>
 #include <map>
-#include "boilerplate_macros.hpp"
+#include "ast_def_macros.hpp"
 
 namespace Sass {
   using std::string;
