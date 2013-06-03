@@ -88,14 +88,30 @@ namespace Sass {
     }
   }
 
-  void Formatted_Emitter::operator()(Import_Stub*)
+  void Formatted_Emitter::operator()(Import_Stub* import)
   {
-
+    buffer += "@import ";
+    buffer += import->file_name();
+    buffer += ';';
   }
 
-  // void Formatted_Emitter::operator()(Warning*)
-  // void Formatted_Emitter::operator()(Comment*)
-  // void Formatted_Emitter::operator()(If*)
+  void Formatted_Emitter::operator()(Warning* warning)
+  {
+    buffer += "@warn ";
+    buffer += warning->message()->perform(this);
+    buffer += ';';
+  }
+
+  void Formatted_Emitter::operator()(Comment* comment)
+  {
+    buffer += comment->text()->perform(this);
+  }
+
+  void Formatted_Emitter::operator()(If* cond)
+  {
+    buffer += "@if ";
+    cond->predicate()->perform(this);
+  }
   // void Formatted_Emitter::operator()(For*)
   // void Formatted_Emitter::operator()(Each*)
   // void Formatted_Emitter::operator()(While*)
