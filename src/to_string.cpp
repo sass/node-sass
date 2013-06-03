@@ -103,9 +103,15 @@ namespace Sass {
 		return ss.str();
 	}
 
-	// string To_String::operator()(Boolean*)
-	// string To_String::operator()(String_Constant*)
-	// string To_String::operator()(Media_Query_Expression*)
+	string To_String::operator()(Boolean* b)
+	{
+		return b->value() ? "true" : "false";
+	}
+
+	string To_String::operator()(String_Constant* s)
+	{
+		return s->value();
+	}
 
 	string To_String::operator()(Argument* a)
 	{
@@ -125,26 +131,99 @@ namespace Sass {
 	{
     string acc("(");
     if (!a->empty()) {
-      (*a)[0]->perform(this);
+      acc += (*a)[0]->perform(this);
       for (size_t i = 1, L = a->length(); i < L; ++i) {
         acc += ", ";
-        (*a)[i]->perform(this);
+        acc += (*a)[i]->perform(this);
       }
     }
     acc += ')';
 		return acc;
 	}
 
-	// string To_String::operator()(Selector_Schema*)
-	// string To_String::operator()(Selector_Reference*)
-	// string To_String::operator()(Selector_Placeholder*)
-	// string To_String::operator()(Type_Selector*)
-	// string To_String::operator()(Selector_Qualifier*)
-	// string To_String::operator()(Attribute_Selector*)
-	// string To_String::operator()(Pseudo_Selector*)
-	// string To_String::operator()(Negated_Selector*)
-	// string To_String::operator()(Simple_Selector_Sequence*)
-	// string To_String::operator()(Selector_Combination*)
-	// string To_String::operator()(Selector_Group*)
+	string To_String::operator()(Selector_Reference* ref)
+	{
+		if (ref->selector()) return ref->selector()->perform(this);
+		else                 return "&";
+	}
+
+	string To_String::operator()(Selector_Placeholder* p)
+	{
+		return p->name();
+	}
+
+	string To_String::operator()(Type_Selector* t)
+	{
+		return t->name();
+	}
+
+	string To_String::operator()(Selector_Qualifier* q)
+	{
+		return q->name();
+	}
+
+	string To_String::operator()(Attribute_Selector* attr)
+	{
+		string acc("[");
+		acc += attr->name();
+		if (!attr->matcher().empty()) {
+			acc += attr->matcher();
+			acc += attr->value();
+		}
+		acc += ']';
+	  return acc;
+	}
+
+	string To_String::operator()(Pseudo_Selector* ps)
+	{
+		string acc(ps->name());
+		if (ps->expression()) {
+			acc += ps->expression()->perform(this);
+			acc += ')'
+    }
+    return acc;
+	}
+
+	string To_String::operator()(Negated_Selector* ns)
+	{
+		string acc(":not(");
+		acc += ns->selector()->perform(this);
+		acc += ')';
+		return acc;
+	}
+
+	string To_String::operator()(Simple_Selector_Sequence* sss)
+	{
+		string acc;
+		for (size_t i = 0, L = sss->length(); i < L; ++i)
+			acc += (*sss)[i]->perform(this);
+		return acc;
+	}
+
+	string To_String::operator()(Selector_Combination* c)
+	{
+		string lhs(c->head() ? c->head()->perform(this) : "");
+		string rhs(c->tail() ? c->tail()->perform(this) : "");
+		if (!lhs.empty()) lhs += ' ';
+		switch (c->combinator()) {
+			case Selector_Combination::ANCESTOR_OF: lhs += ' '; break;
+			case Selector_Combination::PARENT_OF:   lhs += '>'; break;
+			case Selector_Combination::PRECEDES:    lhs += '~'; break;
+			case Selector_Combination::ADJACENT_TO: lhs += '+'; break;
+		}
+		if (!rhs.empty()) lhs += rhs;
+		return lhs;
+	}
+
+	string To_String::operator()(Selector_Group* g)
+	{
+		if (g->empty()) return string();
+		string acc((*g)[0]->perform(this));
+		for (size_t i = 1, L = g->length(); i < L; ++i) {
+			acc += ", ";
+			acc += (*g)[i]->perform(this);
+		}
+		return acc;
+	}
 
 }

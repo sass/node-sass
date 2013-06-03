@@ -252,7 +252,14 @@ namespace Sass {
   }
 
   // void Formatted_Emitter::operator()(String_Constant*)
-  // void Formatted_Emitter::operator()(Media_Query_Expression*)
+
+  void Formatted_Emitter::operator()(Media_Query_Expression* e)
+  {
+    buffer += '(';
+    e->feature()->perform(this);
+    if (e->value()) e->value()->perform(this);
+    buffer += ')';
+  }
 
   // parameters and arguments
   void Formatted_Emitter::operator()(Parameter* p)
@@ -290,8 +297,12 @@ namespace Sass {
     buffer += a->perform(to_string);
   }
 
-  // // selectors
-  // void Formatted_Emitter::operator()(Selector_Schema*)
+  // selectors
+  void Formatted_Emitter::operator()(Selector_Schema* s)
+  {
+    s->contents()->perform(this);
+  }
+
   // void Formatted_Emitter::operator()(Selector_Reference*)
   // void Formatted_Emitter::operator()(Selector_Placeholder*)
   // void Formatted_Emitter::operator()(Type_Selector*)

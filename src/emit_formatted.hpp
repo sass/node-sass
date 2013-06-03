@@ -53,14 +53,14 @@ namespace Sass {
 		// virtual void operator()(Boolean*);
 		virtual void operator()(String_Schema*);
 		// virtual void operator()(String_Constant*);
-		// virtual void operator()(Media_Query_Expression*);
+		virtual void operator()(Media_Query_Expression*);
 		// parameters and arguments
 		virtual void operator()(Parameter*);
 		virtual void operator()(Parameters*);
 		virtual void operator()(Argument*);
 		virtual void operator()(Arguments*);
 		// selectors
-		// virtual void operator()(Selector_Schema*);
+		virtual void operator()(Selector_Schema*);
 		// virtual void operator()(Selector_Reference*);
 		// virtual void operator()(Selector_Placeholder*);
 		// virtual void operator()(Type_Selector*);
