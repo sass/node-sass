@@ -14,7 +14,10 @@
 #include "functions.hpp"
 #endif
 
-struct Sass_C_Function_Data;
+#ifndef SASS_VALUES
+#include "sass_values.h"
+#endif
+// struct Sass_C_Function_Data;
 
 namespace Sass {
   using std::pair;

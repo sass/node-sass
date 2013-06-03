@@ -4,8 +4,6 @@
 extern "C" {
 #endif
 
-#include "sass_values.h"
-
 #define SASS_STYLE_NESTED     0
 #define SASS_STYLE_EXPANDED   1
 #define SASS_STYLE_COMPACT    2

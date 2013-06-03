@@ -14,8 +14,6 @@
 #include "constants.hpp"
 #include "color_names.hpp"
 #include "prelexer.hpp"
-#include "sass_values.h"
-
 
 namespace Sass {
   using namespace Constants;
