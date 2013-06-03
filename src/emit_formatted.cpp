@@ -98,28 +98,91 @@ namespace Sass {
   void Formatted_Emitter::operator()(Warning* warning)
   {
     buffer += "@warn ";
-    buffer += warning->message()->perform(this);
+    warning->message()->perform(this);
     buffer += ';';
   }
 
   void Formatted_Emitter::operator()(Comment* comment)
   {
-    buffer += comment->text()->perform(this);
+    comment->text()->perform(this);
   }
 
   void Formatted_Emitter::operator()(If* cond)
   {
     buffer += "@if ";
     cond->predicate()->perform(this);
+    buffer += ' ';
+    cond->consequent()->perform(this);
+    if (cond->alternative()) {
+      buffer += "\nelse ";
+      cond->alternative()->perform(this);
+    }
   }
-  // void Formatted_Emitter::operator()(For*)
-  // void Formatted_Emitter::operator()(Each*)
-  // void Formatted_Emitter::operator()(While*)
-  // void Formatted_Emitter::operator()(Return*)
-  // void Formatted_Emitter::operator()(Content*)
-  // void Formatted_Emitter::operator()(Extend*)
-  // void Formatted_Emitter::operator()(Definition*)
-  // void Formatted_Emitter::operator()(Mixin_Call*)
+
+  void Formatted_Emitter::operator()(For* loop)
+  {
+    buffer += string("@for ") += loop->variable() += " from ";
+    loop->lower_bound()->perform(this);
+    buffer += (loop->is_inclusive() ? " through " : " to ");
+    loop->upper_bound()->perform(this);
+    buffer += ' ';
+    loop->block()->perform(this);
+  }
+
+  void Formatted_Emitter::operator()(Each* loop)
+  {
+    buffer += string("@each ") += loop->variable() += " in ";
+    loop->list()->perform(this);
+    buffer += ' ';
+    loop->block()->perform(this);
+  }
+
+  void Formatted_Emitter::operator()(While* loop)
+  {
+    buffer += "@while ";
+    loop->predicate()->perform(this);
+    buffer += ' ';
+    loop->block()->perform(this);
+  }
+
+  void Formatted_Emitter::operator()(Return* ret)
+  {
+    buffer += "@return ";
+    ret->value()->perform(this);
+    buffer += ';';
+  }
+
+  void Formatted_Emitter::operator()(Content* content)
+  {
+    buffer += "@content;";
+  }
+
+  void Formatted_Emitter::operator()(Extend* extend)
+  {
+    buffer += "@extend ";
+    extend->selector()->perform(this);
+    buffer += ';';
+  }
+
+  void Formatted_Emitter::operator()(Definition* def)
+  {
+    if (def->type() == Definition::MIXIN) buffer += "@mixin ";
+    else                                  buffer += "@function ";
+    buffer += def->name();
+    def->parameters()->perform(this);
+    buffer += ' ';
+    def->block()->perform(this);
+  }
+
+  void Formatted_Emitter::operator()(Mixin_Call* call)
+  {
+    buffer += string("@include ") += call->name();
+    if (call->block()) {
+      buffer += ' ';
+      call->block()->perform(this);
+    }
+    if (!call->block()) buffer += ';';
+  }
   // // expressions
   // void Formatted_Emitter::operator()(List*)
   // void Formatted_Emitter::operator()(Binary_Expression*)
