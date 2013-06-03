@@ -16,6 +16,7 @@ namespace Sass {
   Block* Parser::parse()
   {
     Block* root = new (ctx.mem) Block(path, line);
+    root->is_root(true);
     read_bom();
     lex< optional_spaces >();
     Selector_Lookahead lookahead_result;
@@ -26,7 +27,13 @@ namespace Sass {
         (*root) << comment;
       }
       else if (peek< import >()) {
-        (*root) << parse_import();
+        Import* imp = parse_import();
+        (*root) << imp;
+        if (!imp->files().empty()) {
+          for (size_t i = 0, S = imp->files().size(); i < S; ++i) {
+            (*root) << new (ctx.mem) Import_Stub(path, line, imp->files()[i]);
+          }
+        }
       }
       else if (peek< mixin >() || peek< function >()) {
         (*root) << parse_definition();
@@ -100,12 +107,18 @@ namespace Sass {
         string import_path(lexed);
         size_t dot = import_path.find_last_of('.');
         if (dot != string::npos && import_path.substr(dot) == ".css") {
-          imp->strings().push_back(import_path);
+          String_Constant* loc = new (ctx.mem) String_Constant(path, line, import_path);
+          Argument* loc_arg = new (ctx.mem) Argument(path, line, loc);
+          Arguments* loc_args = new (ctx.mem) Arguments(path, line);
+          (*loc_args) << loc_arg;
+          Function_Call* new_url = new (ctx.mem) Function_Call(path, line, "url", loc_args);
+          imp->urls().push_back(new_url);
         }
         else {
           string current_dir = File::dir_name(path);
-          bool loaded = ctx.add_file(File::join_paths(current_dir, import_path));
-          if (!loaded) throw_syntax_error("file to import not found or unreadable: " + import_path);
+          string resolved(ctx.add_file(File::join_paths(current_dir, import_path)));
+          if (resolved.empty()) throw_syntax_error("file to import not found or unreadable: " + import_path);
+          imp->files().push_back(resolved);
         }
       }
       else if (peek< uri_prefix >()) {
@@ -483,7 +496,13 @@ namespace Sass {
           lex< import >(); // to adjust the line number
           throw_syntax_error("@import directives are not allowed inside mixins and functions");
         }
-        (*block) << parse_import();
+        Import* imp = parse_import();
+        (*block) << imp;
+        if (!imp->files().empty()) {
+          for (size_t i = 0, S = imp->files().size(); i < S; ++i) {
+            (*block) << new (ctx.mem) Import_Stub(path, line, imp->files()[i]);
+          }
+        }
         // semicolon = true?
       }
       else if (lex< variable >()) {

@@ -8,11 +8,12 @@ namespace Sass {
 	class Block;
 	class Ruleset;
 	class Propset;
-	class Media_Query;
+	class Media_Block;
 	class At_Rule;
 	class Declaration;
 	class Assignment;
 	class Import;
+	class Import_Stub;
 	class Warning;
 	class Comment;
 	class If;
@@ -40,6 +41,7 @@ namespace Sass {
 	class String_Schema;
 	class String;
 	class String_Constant;
+	class Media_Query;
 	class Media_Query_Expression;
 	// parameters and arguments
 	class Parameter;

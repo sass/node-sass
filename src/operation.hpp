@@ -13,11 +13,12 @@ namespace Sass {
 		virtual T operator()(Block*) = 0;
 		virtual T operator()(Ruleset*) = 0;
 		virtual T operator()(Propset*) = 0;
-		virtual T operator()(Media_Query*) = 0;
+		virtual T operator()(Media_Block*) = 0;
 		virtual T operator()(At_Rule*) = 0;
 		virtual T operator()(Declaration*) = 0;
 		virtual T operator()(Assignment*) = 0;
 		virtual T operator()(Import*) = 0;
+		virtual T operator()(Import_Stub*) = 0;
 		virtual T operator()(Warning*) = 0;
 		virtual T operator()(Comment*) = 0;
 		virtual T operator()(If*) = 0;

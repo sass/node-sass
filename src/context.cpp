@@ -93,22 +93,22 @@ namespace Sass {
     }
   }
 
-  bool Context::add_file(string path)
+  string Context::add_file(string path)
   {
     using namespace File;
     char* contents = 0;
     for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
       string full_path(join_paths(include_paths[i], path));
-      if (style_sheets.count(full_path)) return true;
+      if (style_sheets.count(full_path)) return full_path;
       contents = resolve_and_load(full_path);
       if (contents) {
         sources.push_back(contents);
         queue.push_back(pair<string, const char*>(full_path, contents));
         style_sheets[full_path] = 0;
-        break;
+        return full_path;
       }
     }
-    return contents;
+    return string();
   }
 
   void Context::compile_file()

@@ -4,6 +4,12 @@
 extern "C" {
 #endif
 
+#define SASS_OUTPUT_NESTED     0
+#define SASS_OUTPUT_EXPANDED   1
+#define SASS_OUTPUT_COMPACT    2
+#define SASS_OUTPUT_COMPRESSED 3
+#define SASS_OUTPUT_FORMATTED  4
+
 struct Sass_Context {
   const char*  input_path;
   const char*  input_string;

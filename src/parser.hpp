@@ -46,20 +46,10 @@ namespace Sass {
 
     Token lexed;
 
-  private:
-    // force the use of the "make_from_..." factory funtions
-    Parser(Context& ctx);
   public:
-    Parser(const Parser& p);
-    ~Parser();
-
     static Parser from_string(string src, Context& ctx, string path = "", size_t line = 0);
     static Parser from_c_str(const char* src, Context& ctx, string path = "", size_t line = 0);
     static Parser from_token(Token t, Context& ctx, string path = "", size_t line = 0);
-
-    // static Parser make_from_file(Context& ctx, string path);
-    // static Parser make_from_source_chars(Context& ctx, const char* src, string path = "", bool own_source = false);
-    // static Parser make_from_token(Context& ctx, Token t, string path = "", size_t line_number = 1);
 
     template <prelexer mx>
     const char* peek(const char* start = 0)

@@ -205,15 +205,24 @@ namespace Sass {
   // necessary to store a list of each in an Import node.
   ////////////////////////////////////////////////////////////////////////////
   class Import : public Statement {
-    vector<string>         strings_;
+    vector<string>         files_;
     vector<Function_Call*> urls_;
   public:
     Import(string p, size_t l)
     : Statement(p, l),
-      strings_(vector<string>()), urls_(vector<Function_Call*>())
+      files_(vector<string>()), urls_(vector<Function_Call*>())
     { }
-    vector<string>&         strings() { return strings_; }
+    vector<string>&         files()   { return files_; }
     vector<Function_Call*>& urls()    { return urls_; }
+    ATTACH_OPERATIONS();
+  };
+
+  class Import_Stub : public Statement {
+    ADD_PROPERTY(string, file_name);
+  public:
+    Import_Stub(string p, size_t l, string f)
+    : Statement(p, l), file_name_(f)
+    { }
     ATTACH_OPERATIONS();
   };
 

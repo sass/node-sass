@@ -14,7 +14,7 @@ namespace Sass {
   class AST_Node;
   class Block;
 
-  enum Output_Style { NESTED, EXPANDED, COMPACT, COMPRESSED };
+  enum Output_Style { NESTED, EXPANDED, COMPACT, COMPRESSED, FORMATTED };
 
   struct Context {
     Memory_Manager<AST_Node*> mem;
@@ -46,7 +46,7 @@ namespace Sass {
     ~Context();
     void collect_include_paths(const char* paths_str);
     void collect_include_paths(const char* paths_array[]);
-    bool add_file(string path);
+    string add_file(string path);
     void compile_string();
     void compile_file();
   };
