@@ -1,4 +1,4 @@
-#define SASS_ERRORS
+#define SASS_ERROR_HANDLING
 
 namespace Sass {
 
