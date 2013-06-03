@@ -395,13 +395,13 @@ namespace Sass {
   ///////////////////////////////////////////////////////////////////////
   class List : public Expression, public Vectorized<Expression*> {
   public:
-    enum Separator { space, comma };
+    enum Separator { SPACE, COMMA };
   private:
     ADD_PROPERTY(Separator, separator);
     ADD_PROPERTY(bool, is_arglist);
   public:
     List(string p, size_t l,
-         size_t size = 0, Separator sep = space, bool argl = false)
+         size_t size = 0, Separator sep = SPACE, bool argl = false)
     : Expression(p, l),
       Vectorized(size),
       separator_(sep), is_arglist_(argl)

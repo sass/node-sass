@@ -282,27 +282,12 @@ namespace Sass {
 
   void Formatted_Emitter::operator()(Argument* a)
   {
-    if (!a->name().empty()) {
-      buffer += a->name();
-      buffer += ": ";
-    }
-    a->value()->perform(this);
-    if (a->is_rest_argument()) {
-      buffer += "...";
-    }
+    buffer += a->perform(to_string);
   }
 
   void Formatted_Emitter::operator()(Arguments* a)
   {
-    buffer += '(';
-    if (!a->empty()) {
-      (*a)[0]->perform(this);
-      for (size_t i = 1, L = a->length(); i < L; ++i) {
-        buffer += ", ";
-        (*a)[i]->perform(this);
-      }
-    }
-    buffer += ')';
+    buffer += a->perform(to_string);
   }
 
   // // selectors
