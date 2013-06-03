@@ -36,7 +36,8 @@ namespace Sass {
       Node param(parameters[i]);
       if (param.type() == Node::variable) {
         parameter_names << param;
-      } else if(param.type() == Node::rest) {
+      }
+      else if(param.type() == Node::rest) {
         parameter_names << param;
       }
       else {
