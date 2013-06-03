@@ -74,12 +74,25 @@ namespace Sass {
     if (assn->is_guarded()) buffer += " !default";
     buffer += ';';
   }
+
   void Formatted_Emitter::operator()(Import* import)
+  {
+    if (!import->urls().empty()) {
+      buffer += "@import ";
+      import->urls().front()->perform(this);
+      for (size_t i = 1, S = import->urls().size(); i < S; ++i) {
+        buffer += ", ";
+        import->urls()[i]->perform(this);
+      }
+      buffer += ';';
+    }
+  }
+
+  void Formatted_Emitter::operator()(Import_Stub*)
   {
 
   }
 
-  // void Formatted_Emitter::operator()(Import_Stub*)
   // void Formatted_Emitter::operator()(Warning*)
   // void Formatted_Emitter::operator()(Comment*)
   // void Formatted_Emitter::operator()(If*)
