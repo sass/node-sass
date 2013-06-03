@@ -19,9 +19,9 @@ extern "C" {
 
   sass_context* sass_new_context()
   { return (sass_context*) calloc(1, sizeof(sass_context)); }
-  
+
   void sass_free_context(sass_context* ctx)
-  { 
+  {
     if (ctx->output_string) free(ctx->output_string);
     if (ctx->error_message) free(ctx->error_message);
 
@@ -30,15 +30,15 @@ extern "C" {
 
   sass_file_context* sass_new_file_context()
   { return (sass_file_context*) calloc(1, sizeof(sass_file_context)); }
-  
+
   void sass_free_file_context(sass_file_context* ctx)
-  { 
+  {
     if (ctx->output_string) free(ctx->output_string);
     if (ctx->error_message) free(ctx->error_message);
 
     free(ctx);
   }
-  
+
   sass_folder_context* sass_new_folder_context()
     { return (sass_folder_context*) calloc(1, sizeof(sass_folder_context)); }
 
@@ -67,8 +67,13 @@ extern "C" {
     using namespace Sass;
     try {
       Context cpp_ctx(c_ctx->options.include_paths, c_ctx->options.image_path, c_ctx->options.source_comments);
-      // cpp_ctx.image_path = c_ctx->options.image_path;
-      // Document doc(0, c_ctx->input_string, cpp_ctx);
+      if (c_ctx->c_functions) {
+        struct Sass_C_Function_Data* this_func_data = c_ctx->c_functions;
+        while (this_func_data->signature && this_func_data->function) {
+          cpp_ctx.c_function_list.push_back(*this_func_data);
+          ++this_func_data;
+        }
+      }
       Document doc(Document::make_from_source_chars(cpp_ctx, c_ctx->source_string));
       c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
       c_ctx->error_message = 0;
@@ -97,11 +102,19 @@ extern "C" {
     // TO DO: CATCH EVERYTHING ELSE
     return 0;
   }
-  
+
   int sass_compile_file(sass_file_context* c_ctx)
   {
     using namespace Sass;
     Context cpp_ctx(c_ctx->options.include_paths, c_ctx->options.image_path, c_ctx->options.source_comments);
+    if (c_ctx->c_functions) {
+      struct Sass_C_Function_Data* this_func_data = c_ctx->c_functions;
+      while (this_func_data->signature && this_func_data->function) {
+        cpp_ctx.c_function_list.push_back(*this_func_data);
+        ++this_func_data;
+      }
+    }
+    cpp_ctx.register_c_functions();
     try {
       Document doc(Document::make_from_file(cpp_ctx, string(c_ctx->input_path)));
       c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
@@ -154,7 +167,7 @@ extern "C" {
     // TO DO: CATCH EVERYTHING ELSE
     return 0;
   }
-  
+
   int sass_compile_folder(sass_folder_context* c_ctx)
   {
     return 1;

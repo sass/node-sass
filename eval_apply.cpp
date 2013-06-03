@@ -1047,7 +1047,7 @@ namespace Sass {
     // cerr << string(bt.depth(), '\t') << "last evaluated arg: " << evaluated_args.back().to_string() << "::" << evaluated_args.back().is_arglist() << endl;
     // bind arguments
     Environment bindings;
-    Node params(f.primitive ? f.parameters : f.definition[1]);
+    Node params(f.primitive || f.c_func ? f.parameters : f.definition[1]);
     bindings.link(env.global ? *env.global : env);
     bind_arguments("function " + f.name, params, evaluated_args, prefix, bindings, f_env, new_Node, ctx, bt);
 
@@ -1058,7 +1058,7 @@ namespace Sass {
     }
     else if (f.c_func) {
       size_t num_params = f.parameter_names.size();
-      union Sass_Value c_args = make_sass_list(num_params, SASS_COMMA);
+      union Sass_Value c_args = new_sass_c_list(num_params, SASS_COMMA);
       for (size_t i = 0; i < num_params; ++i) {
         c_args.list.values[i] = bindings[f.parameter_names[i].token()].to_c_val();
       }

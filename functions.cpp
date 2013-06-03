@@ -25,6 +25,7 @@ namespace Sass {
   Function::Function(char* signature, Primitive ip, Context& ctx)
   : definition(Node()),
     primitive(ip),
+    c_func(0),
     overloaded(false)
   {
     Document sig_doc(Document::make_from_source_chars(ctx, signature));
@@ -51,6 +52,7 @@ namespace Sass {
 
   Function::Function(char* signature, C_Function ip, Context& ctx)
   : definition(Node()),
+    primitive(0),
     c_func(ip),
     overloaded(false)
   {
