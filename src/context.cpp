@@ -27,6 +27,7 @@ namespace Sass {
   Context::Context(Context::Data initializers)
   : mem(Memory_Manager<AST_Node*>()),
     sources         (vector<const char*>()),
+    source_c_str    (initializers.source_c_str()),
     include_paths   (initializers.include_paths()),
     queue           (vector<pair<string, const char*> >()),
     style_sheets    (map<string, Block*>()),
@@ -37,7 +38,9 @@ namespace Sass {
   {
     collect_include_paths(initializers.include_paths_c_str());
     collect_include_paths(initializers.include_paths_array());
-    add_file             (initializers.entry_point());
+
+    string entry_point = initializers.entry_point();
+    if (!entry_point.empty()) add_file(entry_point);
   }
 
   Context::~Context()
@@ -100,7 +103,7 @@ namespace Sass {
       contents = resolve_and_load(full_path);
       if (contents) {
         sources.push_back(contents);
-        queue.push_back(pair<string, char*>(full_path, contents));
+        queue.push_back(pair<string, const char*>(full_path, contents));
         style_sheets[full_path] = 0;
         break;
       }
@@ -108,12 +111,23 @@ namespace Sass {
     return contents;
   }
 
-  void Context::go()
+  void Context::compile_file()
   {
+    Block* root;
     for (size_t i = 0; i < queue.size(); ++i) {
       Parser p(Parser::from_c_str(queue[i].second, *this, queue[i].first));
-      style_sheets[queue[i].first] = p.parse();
+      Block* ast = p.parse();
+      if (i == 0) root = ast;
+      style_sheets[queue[i].first] = ast;
     }
+    // eval the root, etc
   }
 
+  void Context::compile_string()
+  {
+    if (!source_c_str) return;
+    queue.clear();
+    queue.push_back(pair<string, const char*>("source string", source_c_str));
+    compile_file();
+  }
 }

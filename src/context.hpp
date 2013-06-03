@@ -19,6 +19,7 @@ namespace Sass {
   struct Context {
     Memory_Manager<AST_Node*> mem;
 
+    const char* source_c_str;
     vector<const char*> sources; // c-strs containing Sass file contents
     vector<string> include_paths;
     vector<pair<string, const char*> > queue; // queue of files to be parsed
@@ -29,13 +30,13 @@ namespace Sass {
     bool         source_maps;
     Output_Style output_style;
 
-
     KWD_ARG_SET(Data) {
+      KWD_ARG(Data, const char*,     source_c_str);
       KWD_ARG(Data, string,          entry_point);
       KWD_ARG(Data, string,          image_path);
       KWD_ARG(Data, const char*,     include_paths_c_str);
       KWD_ARG(Data, const char**,    include_paths_array);
-      KWD_ARG(Data, vector<string>&, include_paths);
+      KWD_ARG(Data, vector<string>,  include_paths);
       KWD_ARG(Data, bool,            source_comments);
       KWD_ARG(Data, bool,            source_maps);
       KWD_ARG(Data, Output_Style,    output_style);
@@ -46,7 +47,8 @@ namespace Sass {
     void collect_include_paths(const char* paths_str);
     void collect_include_paths(const char* paths_array[]);
     bool add_file(string path);
-    void go();
+    void compile_string();
+    void compile_file();
   };
 
 }

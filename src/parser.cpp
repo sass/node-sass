@@ -481,7 +481,7 @@ namespace Sass {
       else if (peek< import >(position)) {
         if (stack.back() == mixin_def || stack.back() == function_def) {
           lex< import >(); // to adjust the line number
-          throw_syntax_error("@import directive not allowed inside definition of mixin or function");
+          throw_syntax_error("@import directives are not allowed inside mixins and functions");
         }
         (*block) << parse_import();
         // semicolon = true?
