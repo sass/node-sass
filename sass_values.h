@@ -1,3 +1,5 @@
+#define SASS_VALUES
+
 enum Sass_Tag {
   SASS_BOOLEAN,
   SASS_NUMBER,
