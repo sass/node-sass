@@ -1,6 +1,7 @@
 #define ATTACH_OPERATIONS()\
-virtual void perform(Operation<void>* op)      { (*op)(this); }\
-virtual AST_Node* perform(Operation<AST_Node*>* op) { return (*op)(this); }
+virtual void perform(Operation<void>* op) { (*op)(this); }\
+virtual AST_Node* perform(Operation<AST_Node*>* op) { return (*op)(this); }\
+virtual string perform(Operation<string>* op) { return (*op)(this); }
 
 #define ADD_PROPERTY(type, name)\
 private:\

@@ -1,14 +1,16 @@
 #include "emit_formatted.hpp"
 #include "ast.hpp"
+#include "to_string.hpp"
 
 namespace Sass {
   using namespace std;
 
   Formatted_Emitter::Formatted_Emitter()
-  : buffer(""), indentation(0)
+  : to_string(new To_String()), buffer(""), indentation(0)
   { }
 
-  Formatted_Emitter::~Formatted_Emitter() { }
+  Formatted_Emitter::~Formatted_Emitter()
+  { delete to_string; }
 
   // statements
   void Formatted_Emitter::operator()(Block* block)
@@ -38,7 +40,8 @@ namespace Sass {
 
   void Formatted_Emitter::operator()(Propset* propset)
   {
-    propset->property_fragment()->perform(this); buffer += ": ";
+    propset->property_fragment()->perform(this);
+    buffer += ": ";
     propset->block()->perform(this);
   }
 
@@ -50,7 +53,8 @@ namespace Sass {
 
   void Formatted_Emitter::operator()(At_Rule* at_rule)
   {
-    buffer += at_rule->keyword() += ' ';
+    buffer += at_rule->keyword();
+    buffer += ' ';
     if (at_rule->selector()) {
       at_rule->selector()->perform(this);
       buffer += ' ';
@@ -69,7 +73,8 @@ namespace Sass {
 
   void Formatted_Emitter::operator()(Assignment* assn)
   {
-    buffer += assn->variable() += ": ";
+    buffer += assn->variable();
+    buffer += ": ";
     assn->value()->perform(this);
     if (assn->is_guarded()) buffer += " !default";
     buffer += ';';
@@ -121,7 +126,9 @@ namespace Sass {
 
   void Formatted_Emitter::operator()(For* loop)
   {
-    buffer += string("@for ") += loop->variable() += " from ";
+    buffer += string("@for ");
+    buffer += loop->variable();
+    buffer += " from ";
     loop->lower_bound()->perform(this);
     buffer += (loop->is_inclusive() ? " through " : " to ");
     loop->upper_bound()->perform(this);
@@ -131,7 +138,9 @@ namespace Sass {
 
   void Formatted_Emitter::operator()(Each* loop)
   {
-    buffer += string("@each ") += loop->variable() += " in ";
+    buffer += string("@each ");
+    buffer += loop->variable();
+    buffer += " in ";
     loop->list()->perform(this);
     buffer += ' ';
     loop->block()->perform(this);
@@ -177,32 +186,125 @@ namespace Sass {
   void Formatted_Emitter::operator()(Mixin_Call* call)
   {
     buffer += string("@include ") += call->name();
+    if (call->arguments()) {
+      call->arguments()->perform(this);
+    }
     if (call->block()) {
       buffer += ' ';
       call->block()->perform(this);
     }
     if (!call->block()) buffer += ';';
   }
-  // // expressions
+
+  // expressions
+  void Formatted_Emitter::operator()(Expression* expr)
+  {
+    buffer += expr->perform(to_string);
+  }
+
   // void Formatted_Emitter::operator()(List*)
-  // void Formatted_Emitter::operator()(Binary_Expression*)
-  // void Formatted_Emitter::operator()(Unary_Expression*)
+
+  void Formatted_Emitter::operator()(Binary_Expression* expr)
+  {
+    expr->left()->perform(this);
+    switch (expr->type()) {
+      case Binary_Expression::AND: buffer += " and "; break;
+      case Binary_Expression::OR:  buffer += " or ";  break;
+      case Binary_Expression::EQ:  buffer += " == ";  break;
+      case Binary_Expression::NEQ: buffer += " != ";  break;
+      case Binary_Expression::GT:  buffer += " > ";   break;
+      case Binary_Expression::GTE: buffer += " >= ";  break;
+      case Binary_Expression::LT:  buffer += " < ";   break;
+      case Binary_Expression::LTE: buffer += " <= ";  break;
+      case Binary_Expression::ADD: buffer += " + ";   break;
+      case Binary_Expression::SUB: buffer += " - ";   break;
+      case Binary_Expression::MUL: buffer += " * ";   break;
+      case Binary_Expression::DIV: buffer += " / ";   break;
+      case Binary_Expression::MOD: buffer += " % ";   break;
+    }
+    expr->right()->perform(this);
+  }
+
+  void Formatted_Emitter::operator()(Unary_Expression* expr)
+  {
+    if (expr->type() == Unary_Expression::PLUS) buffer += '+';
+    else                                        buffer += '-';
+    expr->operand()->perform(this);
+  }
+
   // void Formatted_Emitter::operator()(Function_Call*)
-  // void Formatted_Emitter::operator()(Variable*)
+
+  void Formatted_Emitter::operator()(Variable* var)
+  {
+    buffer += var->name();
+  }
+
   // void Formatted_Emitter::operator()(Textual*)
   // void Formatted_Emitter::operator()(Number*)
   // void Formatted_Emitter::operator()(Percentage*)
   // void Formatted_Emitter::operator()(Dimension*)
   // void Formatted_Emitter::operator()(Color*)
   // void Formatted_Emitter::operator()(Boolean*)
-  // void Formatted_Emitter::operator()(String_Schema*)
+
+  void Formatted_Emitter::operator()(String_Schema* ss)
+  {
+    for (size_t i = 0, L = ss->length(); i < L; ++i) (*ss)[i]->perform(this);
+  }
+
   // void Formatted_Emitter::operator()(String_Constant*)
   // void Formatted_Emitter::operator()(Media_Query_Expression*)
-  // // parameters and arguments
-  // void Formatted_Emitter::operator()(Parameter*)
-  // void Formatted_Emitter::operator()(Parameters*)
-  // void Formatted_Emitter::operator()(Argument*)
-  // void Formatted_Emitter::operator()(Arguments*)
+
+  // parameters and arguments
+  void Formatted_Emitter::operator()(Parameter* p)
+  {
+    buffer += p->name();
+    if (p->default_value()) {
+      buffer += ": ";
+      p->default_value()->perform(this);
+    }
+    else if (p->is_rest_parameter()) {
+      buffer += "...";
+    }
+  }
+
+  void Formatted_Emitter::operator()(Parameters* p)
+  {
+    buffer += '(';
+    if (!p->empty()) {
+      (*p)[0]->perform(this);
+      for (size_t i = 1, L = p->length(); i < L; ++i) {
+        buffer += ", ";
+        (*p)[i]->perform(this);
+      }
+    }
+    buffer += ')';
+  }
+
+  void Formatted_Emitter::operator()(Argument* a)
+  {
+    if (!a->name().empty()) {
+      buffer += a->name();
+      buffer += ": ";
+    }
+    a->value()->perform(this);
+    if (a->is_rest_argument()) {
+      buffer += "...";
+    }
+  }
+
+  void Formatted_Emitter::operator()(Arguments* a)
+  {
+    buffer += '(';
+    if (!a->empty()) {
+      (*a)[0]->perform(this);
+      for (size_t i = 1, L = a->length(); i < L; ++i) {
+        buffer += ", ";
+        (*a)[i]->perform(this);
+      }
+    }
+    buffer += ')';
+  }
+
   // // selectors
   // void Formatted_Emitter::operator()(Selector_Schema*)
   // void Formatted_Emitter::operator()(Selector_Reference*)
