@@ -9,6 +9,7 @@ namespace Sass {
 	class To_String;
 
 	class Formatted_Emitter : public Operation<void> {
+		using Operation<void>::operator();
 
 		To_String* to_string;
 		string buffer;
@@ -22,6 +23,8 @@ namespace Sass {
 
 		string get_buffer() { return buffer; }
 
+		// catch-all
+		virtual void operator()(AST_Node*);
 		// statements
 		virtual void operator()(Block*);
 		virtual void operator()(Ruleset*);
@@ -76,6 +79,8 @@ namespace Sass {
 		// virtual void operator()(Simple_Selector_Sequence*);
 		// virtual void operator()(Selector_Combination*);
 		// virtual void operator()(Selector_Group*);
+
+		virtual void fallback(AST_Node* n);
 	};
 
 }

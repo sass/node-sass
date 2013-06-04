@@ -4,7 +4,7 @@
 #include <sstream>
 #include "sass.h"
 #include "context.hpp"
-#include "error.hpp"
+#include "error_handling.hpp"
 
 extern "C" {
   using namespace std;

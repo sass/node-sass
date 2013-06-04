@@ -3,10 +3,6 @@
 #include "file.hpp"
 #include "context.hpp"
 
-#ifndef SASS_STYLE_SHEET
-#include "style_sheet.hpp"
-#endif
-
 namespace Sass {
 	namespace File {
 		using namespace std;

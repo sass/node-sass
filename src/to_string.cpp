@@ -3,6 +3,7 @@
 #include <iomanip>
 #include "to_string.hpp"
 #include "ast.hpp"
+#include <iostream>
 
 namespace Sass {
 	using namespace std;
@@ -179,7 +180,7 @@ namespace Sass {
 		string acc(ps->name());
 		if (ps->expression()) {
 			acc += ps->expression()->perform(this);
-			acc += ')'
+			acc += ')';
     }
     return acc;
 	}

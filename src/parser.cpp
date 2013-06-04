@@ -3,7 +3,7 @@
 #include "parser.hpp"
 #include "file.hpp"
 #include "constants.hpp"
-#include "error.hpp"
+#include "error_handling.hpp"
 
 #ifndef SASS_PRELEXER
 #include "prelexer.hpp"
@@ -12,6 +12,24 @@
 namespace Sass {
   using namespace std;
   using namespace Constants;
+
+  Parser Parser::from_c_str(const char* str, Context& ctx, string path, size_t line)
+  {
+    Parser p(ctx, path, line);
+    p.source   = str;
+    p.position = p.source;
+    p.end      = str + strlen(str);
+    return p;
+  }
+
+  Parser Parser::from_token(Token t, Context& ctx, string path, size_t line)
+  {
+    Parser p(ctx, path, line);
+    p.source   = t.begin;
+    p.position = p.source;
+    p.end      = t.end;
+    return p;
+  }
 
   Block* Parser::parse()
   {
@@ -40,7 +58,7 @@ namespace Sass {
       }
       else if (peek< variable >()) {
         (*root) << parse_assignment();
-        if (!lex< exactly<';'> >()) throw_syntax_error("top-level variable binding must be terminated by ';'");
+        if (!lex< exactly<';'> >()) error("top-level variable binding must be terminated by ';'");
       }
       else if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         (*root) << parse_propset();
@@ -51,7 +69,7 @@ namespace Sass {
       else if (peek< include >() /* || peek< exactly<'+'> >() */) {
         Mixin_Call* mixin_call = parse_mixin_call();
         (*root) << mixin_call;
-        if (!mixin_call->block() && !lex< exactly<';'> >()) throw_syntax_error("top-level @include directive must be terminated by ';'");
+        if (!mixin_call->block() && !lex< exactly<';'> >()) error("top-level @include directive must be terminated by ';'");
       }
       else if (peek< if_directive >()) {
         (*root) << parse_if_directive();
@@ -73,7 +91,7 @@ namespace Sass {
       }
       else if (peek< warn >()) {
         (*root) << parse_warning();
-        if (!lex< exactly<';'> >()) throw_syntax_error("top-level @warn directive must be terminated by ';'");
+        if (!lex< exactly<';'> >()) error("top-level @warn directive must be terminated by ';'");
       }
       // ignore the @charset directive for now
       else if (lex< exactly< charset_kwd > >()) {
@@ -83,14 +101,14 @@ namespace Sass {
       else if (peek< directive >()) {
         At_Rule* at_rule = parse_directive();
         if (!at_rule->block() && !lex< exactly<';'> >()) {
-          throw_syntax_error("top-level blockless directive must be terminated by ';'");
+          error("top-level blockless directive must be terminated by ';'");
         }
         (*root) << at_rule;
       }
       else {
         lex< spaces_and_comments >();
         if (position >= end) break;
-        throw_syntax_error("invalid top-level expression");
+        error("invalid top-level expression");
       }
       lex< optional_spaces >();
     }
@@ -117,7 +135,7 @@ namespace Sass {
         else {
           string current_dir = File::dir_name(path);
           string resolved(ctx.add_file(File::join_paths(current_dir, import_path)));
-          if (resolved.empty()) throw_syntax_error("file to import not found or unreadable: " + import_path);
+          if (resolved.empty()) error("file to import not found or unreadable: " + import_path);
           imp->files().push_back(resolved);
         }
       }
@@ -125,8 +143,8 @@ namespace Sass {
         imp->urls().push_back(parse_function_call());
       }
       else {
-        if (first) throw_syntax_error("@import directive requires a url or quoted path");
-        else throw_syntax_error("expecting another url or quoted path in @import list");
+        if (first) error("@import directive requires a url or quoted path");
+        else error("expecting another url or quoted path in @import list");
       }
       first = false;
     } while (lex< exactly<','> >());
@@ -139,11 +157,11 @@ namespace Sass {
     if      (lex< mixin >())    which_type = Definition::MIXIN;
     else if (lex< function >()) which_type = Definition::FUNCTION;
     string which_str(lexed);
-    if (!lex< identifier >()) throw_syntax_error("invalid name in " + which_str + " definition");
+    if (!lex< identifier >()) error("invalid name in " + which_str + " definition");
     string name(lexed);
     size_t line_of_def = line;
     Parameters* params = parse_parameters();
-    if (!peek< exactly<'{'> >()) throw_syntax_error("body for " + which_str + " " + name + " must begin with a '{'");
+    if (!peek< exactly<'{'> >()) error("body for " + which_str + " " + name + " must begin with a '{'");
     if (which_type == Definition::MIXIN) stack.push_back(mixin_def);
     else stack.push_back(function_def);
     Block* body = parse_block();
@@ -162,7 +180,7 @@ namespace Sass {
         do (*params) << parse_parameter();
         while (lex< exactly<','> >());
       }
-      if (!lex< exactly<')'> >()) throw_syntax_error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name);
+      if (!lex< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name);
     }
     return params;
   }
@@ -186,7 +204,7 @@ namespace Sass {
   Mixin_Call* Parser::parse_mixin_call()
   {
     lex< include >() /* || lex< exactly<'+'> >() */;
-    if (!lex< identifier >()) throw_syntax_error("invalid name in @include directive");
+    if (!lex< identifier >()) error("invalid name in @include directive");
     size_t line_of_call = line;
     string name(lexed);
     Arguments* args = parse_arguments();
@@ -209,7 +227,7 @@ namespace Sass {
         do (*args) << parse_argument();
         while (lex< exactly<','> >());
       }
-      if (!lex< exactly<')'> >()) throw_syntax_error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name);
+      if (!lex< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name);
     }
 
     return args;
@@ -241,7 +259,7 @@ namespace Sass {
     lex< variable >();
     string name(lexed);
     size_t var_line = line;
-    if (!lex< exactly<':'> >()) throw_syntax_error("expected ':' after " + name + " in assignment statement");
+    if (!lex< exactly<':'> >()) error("expected ':' after " + name + " in assignment statement");
     Expression* val = parse_list();
     bool is_guarded = lex< default_flag >();
     Assignment* var = new (ctx.mem) Assignment(path, var_line, name, val, is_guarded);
@@ -260,7 +278,7 @@ namespace Sass {
     }
     lex< exactly<':'> >();
     Block* block = parse_block();
-    if (block->empty()) throw_syntax_error("namespaced property cannot be empty");
+    if (block->empty()) error("namespaced property cannot be empty");
     Propset* propset = new (ctx.mem) Propset(path, line, property_segment, block);
     return propset;
   }
@@ -274,7 +292,7 @@ namespace Sass {
     else {
       sel = parse_selector_group();
     }
-    if (!peek< exactly<'{'> >()) throw_syntax_error("expected a '{' after the selector");
+    if (!peek< exactly<'{'> >()) error("expected a '{' after the selector");
     Block* block = parse_block();
     Ruleset* ruleset = new (ctx.mem) Ruleset(path, line, sel, block);
     return ruleset;
@@ -395,7 +413,7 @@ namespace Sass {
       return parse_attribute_selector();
     }
     else {
-      throw_syntax_error("invalid selector after " + lexed);
+      error("invalid selector after " + lexed);
     }
     // unreachable statement
     return 0;
@@ -437,16 +455,16 @@ namespace Sass {
         expr = new (ctx.mem) String_Constant(path, line, lexed);
       }
       else {
-        throw_syntax_error("invalid argument to " + name + "...)");
+        error("invalid argument to " + name + "...)");
       }
-      if (!lex< exactly<')'> >()) throw_syntax_error("unterminated argument to " + name + "...)");
+      if (!lex< exactly<')'> >()) error("unterminated argument to " + name + "...)");
       return new (ctx.mem) Pseudo_Selector(path, line, name, expr);
     }
     else if (lex < sequence< pseudo_prefix, identifier > >()) {
       return new (ctx.mem) Pseudo_Selector(path, line, lexed);
     }
     else {
-      throw_syntax_error("unrecognized pseudo-class or pseudo-element");
+      error("unrecognized pseudo-class or pseudo-element");
     }
     // unreachable statement
     return 0;
@@ -455,17 +473,17 @@ namespace Sass {
   Attribute_Selector* Parser::parse_attribute_selector()
   {
     lex< exactly<'['> >();
-    if (!lex< type_selector >()) throw_syntax_error("invalid attribute name in attribute selector");
+    if (!lex< type_selector >()) error("invalid attribute name in attribute selector");
     string name(lexed);
     if (lex< exactly<']'> >()) return new (ctx.mem) Attribute_Selector(path, line, name, "", "");
     if (!lex< alternatives< exact_match, class_match, dash_match,
                             prefix_match, suffix_match, substring_match > >()) {
-      throw_syntax_error("invalid operator in attribute selector for " + name);
+      error("invalid operator in attribute selector for " + name);
     }
     string matcher(lexed);
-    if (!lex< string_constant >() && !lex< identifier >()) throw_syntax_error("expected a string constant or identifier in attribute selector for " + name);
+    if (!lex< string_constant >() && !lex< identifier >()) error("expected a string constant or identifier in attribute selector for " + name);
     string value(lexed);
-    if (!lex< exactly<']'> >()) throw_syntax_error("unterminated attribute selector for " + name);
+    if (!lex< exactly<']'> >()) error("unterminated attribute selector for " + name);
     return new (ctx.mem) Attribute_Selector(path, line, name, matcher, value);
   }
 
@@ -477,7 +495,7 @@ namespace Sass {
     Block* block = new (ctx.mem) Block(path, line);
     while (!lex< exactly<'}'> >()) {
       if (semicolon) {
-        if (!lex< exactly<';'> >()) throw_syntax_error("non-terminal statement or declaration must end with ';'");
+        if (!lex< exactly<';'> >()) error("non-terminal statement or declaration must end with ';'");
         semicolon = false;
         while (lex< block_comment >()) {
           String_Constant* contents = new (ctx.mem) String_Constant(path, line, lexed);
@@ -494,7 +512,7 @@ namespace Sass {
       else if (peek< import >(position)) {
         if (stack.back() == mixin_def || stack.back() == function_def) {
           lex< import >(); // to adjust the line number
-          throw_syntax_error("@import directives are not allowed inside mixins and functions");
+          error("@import directives are not allowed inside mixins and functions");
         }
         Import* imp = parse_import();
         (*block) << imp;
@@ -530,7 +548,7 @@ namespace Sass {
         semicolon = true;
       }
       else if (stack.back() == function_def) {
-        throw_syntax_error("only variable declarations and control directives are allowed inside functions");
+        error("only variable declarations and control directives are allowed inside functions");
       }
       else if (peek< include >(position)) {
         Mixin_Call* the_call = parse_mixin_call();
@@ -540,7 +558,7 @@ namespace Sass {
       }
       else if (lex< content >()) {
         if (stack.back() != mixin_def) {
-          throw_syntax_error("@content may only be used within a mixin");
+          error("@content may only be used within a mixin");
         }
         (*block) << new (ctx.mem) Content(path, line);
         semicolon = true;
@@ -559,7 +577,7 @@ namespace Sass {
       */
       else if (lex< extend >()) {
         Selector_Lookahead lookahead = lookahead_for_extension_target(position);
-        if (!lookahead.found) throw_syntax_error("invalid selector for @extend");
+        if (!lookahead.found) error("invalid selector for @extend");
         Selector* target;
         if (lookahead.has_interpolants) target = parse_selector_schema(lookahead.found);
         else                            target = parse_selector_group();
@@ -617,9 +635,9 @@ namespace Sass {
       prop = new (ctx.mem) String_Constant(path, line, lexed);
     }
     else {
-      throw_syntax_error("invalid property name");
+      error("invalid property name");
     }
-    if (!lex< exactly<':'> >()) throw_syntax_error("property \"" + string(lexed) + "\" must be followed by a ':'");
+    if (!lex< exactly<':'> >()) error("property \"" + string(lexed) + "\" must be followed by a ':'");
     Expression* list = parse_list();
     return new (ctx.mem) Declaration(path, prop->line(), prop, list, lex<important>());
   }
@@ -641,7 +659,7 @@ namespace Sass {
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< exactly<','> >(position)) return list1;
 
-    List* comma_list = new (ctx.mem) List(path, line, 2, List::comma);
+    List* comma_list = new (ctx.mem) List(path, line, 2, List::COMMA);
     (*comma_list) << list1;
 
     while (lex< exactly<','> >())
@@ -666,7 +684,7 @@ namespace Sass {
         peek< default_flag >(position))
     { return disj1; }
 
-    List* space_list = new (ctx.mem) List(path, line, 2, List::space);
+    List* space_list = new (ctx.mem) List(path, line, 2, List::SPACE);
     (*space_list) << disj1;
 
     while (!(peek< exactly<';'> >(position) ||
@@ -777,7 +795,7 @@ namespace Sass {
   {
     if (lex< exactly<'('> >()) {
       Expression* value = parse_comma_list();
-      if (!lex< exactly<')'> >()) throw_syntax_error("unclosed parenthesis");
+      if (!lex< exactly<')'> >()) error("unclosed parenthesis");
       return value;
     }
     else if (lex< sequence< exactly<'+'>, negate< number > > >()) {
@@ -817,13 +835,13 @@ namespace Sass {
       else {
         const char* value = position;
         const char* rparen = find_first< exactly<')'> >(position);
-        if (!rparen) throw_syntax_error("URI is missing ')'");
+        if (!rparen) error("URI is missing ')'");
         Token content_tok(Token(value, rparen));
         String_Constant* content_node = new (ctx.mem) String_Constant(path, line, content_tok);
         (*args) << new (ctx.mem) Argument(path, line, content_node);
         position = rparen;
       }
-      if (!lex< exactly<')'> >()) throw_syntax_error("URI is missing ')'");
+      if (!lex< exactly<')'> >()) error("URI is missing ')'");
       return result;
     }
 
@@ -860,7 +878,7 @@ namespace Sass {
     if (lex< variable >())
     { return new (ctx.mem) Variable(path, line, lexed); }
 
-    throw_syntax_error("error reading values after " + lexed);
+    error("error reading values after " + lexed);
 
     // unreachable statement
     return 0;
@@ -892,7 +910,7 @@ namespace Sass {
         }
         else {
           // throw an error if the interpolant is unterminated
-          throw_syntax_error("unterminated interpolant inside string constant " + str);
+          error("unterminated interpolant inside string constant " + str);
         }
       }
       else { // no interpolants left; add the last segment if nonempty
@@ -935,7 +953,7 @@ namespace Sass {
         (*schema) << new (ctx.mem) Variable(path, line, lexed);
       }
       else {
-        throw_syntax_error("error parsing interpolated value");
+        error("error parsing interpolated value");
       }
     }
     return schema;
@@ -962,7 +980,7 @@ namespace Sass {
         (*schema) << new (ctx.mem) String_Constant(path, line, lexed);
       }
       else {
-        throw_syntax_error("error parsing interpolated url");
+        error("error parsing interpolated url");
       }
     }
     return schema;
@@ -994,7 +1012,7 @@ namespace Sass {
         }
         else {
           // throw an error if the interpolant is unterminated
-          throw_syntax_error("unterminated interpolant inside interpolated identifier " + id);
+          error("unterminated interpolant inside interpolated identifier " + id);
         }
       }
       else { // no interpolants left; add the last segment if nonempty
@@ -1020,7 +1038,7 @@ namespace Sass {
     lex< if_directive >() || (else_if && lex< exactly<if_after_else_kwd> >());
     size_t if_line = line;
     Expression* predicate = parse_list();
-    if (!peek< exactly<'{'> >()) throw_syntax_error("expected '{' after the predicate for @if");
+    if (!peek< exactly<'{'> >()) error("expected '{' after the predicate for @if");
     Block* consequent = parse_block();
     Block* alternative = 0;
     if (lex< else_directive >()) {
@@ -1029,7 +1047,7 @@ namespace Sass {
         (*alternative) << parse_if_directive(true);
       }
       else if (!peek< exactly<'{'> >()) {
-        throw_syntax_error("expected '{' after @else");
+        error("expected '{' after @else");
       }
       else {
         alternative = parse_block();
@@ -1042,16 +1060,16 @@ namespace Sass {
   {
     lex< for_directive >();
     size_t for_line = line;
-    if (!lex< variable >()) throw_syntax_error("@for directive requires an iteration variable");
+    if (!lex< variable >()) error("@for directive requires an iteration variable");
     string var(lexed);
-    if (!lex< from >()) throw_syntax_error("expected 'from' keyword in @for directive");
+    if (!lex< from >()) error("expected 'from' keyword in @for directive");
     Expression* lower_bound = parse_expression();
     bool inclusive;
     if (lex< through >()) inclusive = true;
     else if (lex< to >()) inclusive = false;
-    else                  throw_syntax_error("expected 'through' or 'to' keywod in @for directive");
+    else                  error("expected 'through' or 'to' keywod in @for directive");
     Expression* upper_bound = parse_expression();
-    if (!peek< exactly<'{'> >()) throw_syntax_error("expected '{' after the upper bound in @for directive");
+    if (!peek< exactly<'{'> >()) error("expected '{' after the upper bound in @for directive");
     Block* body = parse_block();
     return new (ctx.mem) For(path, for_line, var, lower_bound, upper_bound, body, inclusive);
   }
@@ -1060,11 +1078,11 @@ namespace Sass {
   {
     lex < each_directive >();
     size_t each_line = line;
-    if (!lex< variable >()) throw_syntax_error("@each directive requires an iteration variable");
+    if (!lex< variable >()) error("@each directive requires an iteration variable");
     string var(lexed);
-    if (!lex< in >()) throw_syntax_error("expected 'in' keyword in @each directive");
+    if (!lex< in >()) error("expected 'in' keyword in @each directive");
     Expression* list = parse_list();
-    if (!peek< exactly<'{'> >()) throw_syntax_error("expected '{' after the upper bound in @each directive");
+    if (!peek< exactly<'{'> >()) error("expected '{' after the upper bound in @each directive");
     Block* body = parse_block();
     return new (ctx.mem) Each(path, each_line, var, list, body);
   }
@@ -1094,7 +1112,7 @@ namespace Sass {
 
     List* media_queries = parse_media_queries();
 
-    if (!peek< exactly<'{'> >()) throw_syntax_error("expected '{' in media query");
+    if (!peek< exactly<'{'> >()) error("expected '{' in media query");
     Block* block = parse_block();
 
     return new (ctx.mem) Media_Block(path, media_line, media_queries, block);
@@ -1129,10 +1147,10 @@ namespace Sass {
   Media_Query_Expression* Parser::parse_media_expression()
   {
     if (!lex< exactly<'('> >()) {
-      throw_syntax_error("media query expression must begin with '('");
+      error("media query expression must begin with '('");
     }
     if (!peek< identifier_schema >()) {
-      throw_syntax_error("media feature required in media query expression");
+      error("media feature required in media query expression");
     }
     String* first = parse_identifier_schema();
     Expression* second = 0;
@@ -1140,7 +1158,7 @@ namespace Sass {
       second = parse_list();
     }
     if (!lex< exactly<')'> >()) {
-      throw_syntax_error("unclosed parenthesis in media query expression");
+      error("unclosed parenthesis in media query expression");
     }
     return new (ctx.mem) Media_Query_Expression(path, first->line(), first, second);
   }
@@ -1324,7 +1342,7 @@ namespace Sass {
       encoding = "GB-18030";
       break;
     }
-    if (skip > 0 && !utf_8) throw_syntax_error("only UTF-8 documents are currently supported; your document appears to be " + encoding);
+    if (skip > 0 && !utf_8) error("only UTF-8 documents are currently supported; your document appears to be " + encoding);
     position += skip;
   }
 
@@ -1352,6 +1370,11 @@ namespace Sass {
       base = new (ctx.mem) Binary_Expression(path, line, ops[i], base, operands[i]);
     }
     return base;
+  }
+
+  void Parser::error(string msg, size_t ln)
+  {
+    throw Error(Error::syntax, path, ln ? ln : line, msg);
   }
 
 }

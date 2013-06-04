@@ -34,17 +34,22 @@ namespace Sass {
     class AST_Node;
 
     enum Syntactic_Context { nothing, mixin_def, function_def };
+
+    Context& ctx;
     vector<Syntactic_Context> stack;
-    string path;
     const char* source;
     const char* position;
     const char* end;
+    string path;
     size_t line;
-    bool own_source;
 
-    Context& ctx;
 
     Token lexed;
+
+    Parser(Context& ctx, string path, size_t line)
+    : ctx(ctx), stack(vector<Syntactic_Context>()),
+      source(0), position(0), end(0), path(path), line(line)
+    { stack.push_back(nothing); }
 
   public:
     static Parser from_string(string src, Context& ctx, string path = "", size_t line = 0);
@@ -126,6 +131,7 @@ namespace Sass {
       }
     }
 
+    void error(string msg, size_t ln = 0);
     void read_bom();
 
     Block* parse();

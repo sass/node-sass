@@ -113,7 +113,7 @@ namespace Sass {
     return string();
   }
 
-  const char* Context::compile_file()
+  char* Context::compile_file()
   {
     Block* root;
     for (size_t i = 0; i < queue.size(); ++i) {
@@ -124,12 +124,12 @@ namespace Sass {
     }
     Formatted_Emitter* format = new Formatted_Emitter();
     root->perform(format);
-    const char* result = copy_c_str(format->get_buffer().c_str());
+    char* result = copy_c_str(format->get_buffer().c_str());
     delete format;
     return result;
   }
 
-  const char* Context::compile_string()
+  char* Context::compile_string()
   {
     if (!source_c_str) return 0;
     queue.clear();

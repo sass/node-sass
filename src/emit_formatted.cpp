@@ -12,21 +12,26 @@ namespace Sass {
   Formatted_Emitter::~Formatted_Emitter()
   { delete to_string; }
 
+  // catch-all
+  void Formatted_Emitter::operator()(AST_Node* n)
+  {
+    buffer += n->perform(to_string);
+  }
   // statements
   void Formatted_Emitter::operator()(Block* block)
   {
     if (!block->is_root()) {
       indent();
       buffer += "{\n";
+      ++indentation;
     }
-    ++indentation;
     for (size_t i = 0, L = block->length(); i < L; ++i) {
       indent();
       (*block)[i]->perform(this);
       buffer += '\n';
     }
-    --indentation;
     if (!block->is_root()) {
+      --indentation;
       indent();
       buffer += "}";
     }
@@ -313,6 +318,9 @@ namespace Sass {
   // void Formatted_Emitter::operator()(Simple_Selector_Sequence*)
   // void Formatted_Emitter::operator()(Selector_Combination*)
   // void Formatted_Emitter::operator()(Selector_Group*)
+
+  void Formatted_Emitter::fallback(AST_Node* n)
+  { buffer += n->perform(to_string); }
 
   void Formatted_Emitter::indent()
   { buffer += string(2*indentation, ' '); }
