@@ -4,6 +4,7 @@
 #include "file.hpp"
 #include "constants.hpp"
 #include "error_handling.hpp"
+#include "to_string.hpp"
 
 #ifndef SASS_PRELEXER
 #include "prelexer.hpp"
@@ -363,7 +364,6 @@ namespace Sass {
     else {
       rhs = parse_selector_combination();
     }
-
     return new (ctx.mem) Selector_Combination(path, sel_line, cmb, lhs, rhs);
   }
 
@@ -421,7 +421,11 @@ namespace Sass {
 
   Negated_Selector* Parser::parse_negated_selector()
   {
-    return 0;
+    lex< pseudo_not >();
+    size_t nline = line;
+    Simple_Selector* negated = parse_simple_selector();
+    if (!lex< exactly<')'> >()) error("negated selector is missing ')'");
+    return new (ctx.mem) Negated_Selector(path, nline, negated);
   }
 
   Pseudo_Selector* Parser::parse_pseudo_selector() {

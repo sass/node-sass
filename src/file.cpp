@@ -67,7 +67,7 @@ namespace Sass {
 				contents = new char[size + 1]; // extra byte for the null char
 				file.seekg(0, ios::beg);
 				file.read(contents, size);
-				contents[size + 1] = '\0';
+				contents[size] = '\0';
 				file.close();
 			}
 			return contents;

@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include "context.hpp"
+#include "error_handling.hpp"
 
 using namespace std;
 
@@ -19,11 +20,15 @@ int main(int argc, char** argv)
 	                       .output_style(Sass::FORMATTED)
 	);
 
-	char* result = ctx.compile_file();
-
-	if (result) {
-		cout << result;
-		free(result);
+	try {
+		char* result = ctx.compile_file();
+		if (result) {
+			cout << result;
+			free(result);
+		}
+	}
+	catch (Sass::Error& e) {
+		cout << e.path << ":" << e.line << ": " << e.message << endl;
 	}
 
 	return 0;

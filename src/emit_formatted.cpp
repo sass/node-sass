@@ -21,8 +21,7 @@ namespace Sass {
   void Formatted_Emitter::operator()(Block* block)
   {
     if (!block->is_root()) {
-      indent();
-      buffer += "{\n";
+      buffer += " {\n";
       ++indentation;
     }
     for (size_t i = 0, L = block->length(); i < L; ++i) {

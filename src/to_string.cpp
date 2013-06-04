@@ -205,14 +205,19 @@ namespace Sass {
 	{
 		string lhs(c->head() ? c->head()->perform(this) : "");
 		string rhs(c->tail() ? c->tail()->perform(this) : "");
-		if (!lhs.empty()) lhs += ' ';
+		if (!lhs.empty() && !rhs.empty()) lhs += ' ';
 		switch (c->combinator()) {
-			case Selector_Combination::ANCESTOR_OF: lhs += ' '; break;
+			case Selector_Combination::ANCESTOR_OF:             break;
 			case Selector_Combination::PARENT_OF:   lhs += '>'; break;
 			case Selector_Combination::PRECEDES:    lhs += '~'; break;
 			case Selector_Combination::ADJACENT_TO: lhs += '+'; break;
 		}
-		if (!rhs.empty()) lhs += rhs;
+		if (!rhs.empty() &&
+		    !lhs.empty() &&
+		    c->combinator() != Selector_Combination::ANCESTOR_OF) {
+			lhs += ' ';
+		}
+		lhs += rhs;
 		return lhs;
 	}
 
