@@ -120,10 +120,11 @@ namespace Sass {
   {
     buffer += "@if ";
     cond->predicate()->perform(this);
-    buffer += ' ';
     cond->consequent()->perform(this);
     if (cond->alternative()) {
-      buffer += "\nelse ";
+      buffer += '\n';
+      indent();
+      buffer += "else";
       cond->alternative()->perform(this);
     }
   }
@@ -136,7 +137,6 @@ namespace Sass {
     loop->lower_bound()->perform(this);
     buffer += (loop->is_inclusive() ? " through " : " to ");
     loop->upper_bound()->perform(this);
-    buffer += ' ';
     loop->block()->perform(this);
   }
 
@@ -146,7 +146,6 @@ namespace Sass {
     buffer += loop->variable();
     buffer += " in ";
     loop->list()->perform(this);
-    buffer += ' ';
     loop->block()->perform(this);
   }
 
@@ -154,7 +153,6 @@ namespace Sass {
   {
     buffer += "@while ";
     loop->predicate()->perform(this);
-    buffer += ' ';
     loop->block()->perform(this);
   }
 
