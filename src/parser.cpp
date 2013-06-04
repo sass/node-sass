@@ -64,9 +64,6 @@ namespace Sass {
       else if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         (*root) << parse_propset();
       }
-      else if ((lookahead_result = lookahead_for_selector(position)).found) {
-        (*root) << parse_ruleset(lookahead_result);
-      }
       else if (peek< include >() /* || peek< exactly<'+'> >() */) {
         Mixin_Call* mixin_call = parse_mixin_call();
         (*root) << mixin_call;
@@ -87,9 +84,6 @@ namespace Sass {
       else if (peek< media >()) {
         (*root) << parse_media_block();
       }
-      else if (peek< at_keyword >()) {
-        (*root) << parse_at_rule();
-      }
       else if (peek< warn >()) {
         (*root) << parse_warning();
         if (!lex< exactly<';'> >()) error("top-level @warn directive must be terminated by ';'");
@@ -99,12 +93,13 @@ namespace Sass {
         lex< string_constant >();
         lex< exactly<';'> >();
       }
-      else if (peek< directive >()) {
-        At_Rule* at_rule = parse_directive();
-        if (!at_rule->block() && !lex< exactly<';'> >()) {
-          error("top-level blockless directive must be terminated by ';'");
-        }
+      else if (peek< at_keyword >()) {
+        At_Rule* at_rule = parse_at_rule();
         (*root) << at_rule;
+        if (!at_rule->block() && !lex< exactly<';'> >()) error("top-level directive must be terminated by ';'");
+      }
+      else if ((lookahead_result = lookahead_for_selector(position)).found) {
+        (*root) << parse_ruleset(lookahead_result);
       }
       else {
         lex< spaces_and_comments >();
@@ -567,12 +562,6 @@ namespace Sass {
         (*block) << new (ctx.mem) Content(path, line);
         semicolon = true;
       }
-      else if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
-        (*block) << parse_propset();
-      }
-      else if ((lookahead_result = lookahead_for_selector(position)).found) {
-        (*block) << parse_ruleset(lookahead_result);
-      }
       /*
       else if (peek< exactly<'+'> >()) {
         (*block) << parse_mixin_call();
@@ -596,12 +585,16 @@ namespace Sass {
         lex< string_constant >();
         lex< exactly<';'> >();
       }
-      else if (peek< directive >()) {
-        At_Rule* at_rule = parse_directive();
-        if (!at_rule->block()) {
-          semicolon = true;
-        }
+      else if (peek< at_keyword >()) {
+        At_Rule* at_rule = parse_at_rule();
         (*block) << at_rule;
+        if (!at_rule->block()) semicolon = true;
+      }
+      else if ((lookahead_result = lookahead_for_selector(position)).found) {
+        (*block) << parse_ruleset(lookahead_result);
+      }
+      else if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
+        (*block) << parse_propset();
       }
       else if (!peek< exactly<';'> >()) {
         if (peek< sequence< optional< exactly<'*'> >, identifier_schema, exactly<':'>, exactly<'{'> > >()) {
@@ -1100,15 +1093,6 @@ namespace Sass {
     return new (ctx.mem) While(path, while_line, predicate, body);
   }
 
-  At_Rule* Parser::parse_directive()
-  {
-    lex< directive >();
-    string kwd(lexed);
-    size_t dir_line = line;
-    Block* block = (peek< exactly<'{'> >() ? parse_block() : 0);
-    return new (ctx.mem) At_Rule(path, dir_line, kwd, 0, block);
-  }
-
   Media_Block* Parser::parse_media_block()
   {
     lex< media >();
@@ -1173,7 +1157,7 @@ namespace Sass {
     string kwd(lexed);
     size_t at_line = line;
     Selector* sel = 0;
-    Selector_Lookahead lookahead = lookahead_for_selector(position);
+    Selector_Lookahead lookahead = lookahead_for_extension_target(position);
     if (lookahead.found) {
       if (lookahead.has_interpolants) {
         sel = parse_selector_schema(lookahead.found);
@@ -1203,6 +1187,8 @@ namespace Sass {
            (q = peek< id_name >(p))                                ||
            (q = peek< class_name >(p))                             ||
            (q = peek< sequence< pseudo_prefix, identifier > >(p))  ||
+           (q = peek< percentage >(p))                             ||
+           (q = peek< dimension >(p))                              ||
            (q = peek< string_constant >(p))                        ||
            (q = peek< exactly<'*'> >(p))                           ||
            (q = peek< exactly<'('> >(p))                           ||
@@ -1248,11 +1234,14 @@ namespace Sass {
     const char* p = start ? start : position;
     const char* q;
     bool saw_interpolant = false;
+    bool saw_stuff = false;
 
     while ((q = peek< identifier >(p))                             ||
            (q = peek< id_name >(p))                                ||
            (q = peek< class_name >(p))                             ||
            (q = peek< sequence< pseudo_prefix, identifier > >(p))  ||
+           (q = peek< percentage >(p))                             ||
+           (q = peek< dimension >(p))                              ||
            (q = peek< string_constant >(p))                        ||
            (q = peek< exactly<'*'> >(p))                           ||
            (q = peek< exactly<'('> >(p))                           ||
@@ -1284,10 +1273,11 @@ namespace Sass {
            (q = peek< interpolant >(p))) {
       p = q;
       if (*(p - 1) == '}') saw_interpolant = true;
+      saw_stuff = true;
     }
 
     Selector_Lookahead result;
-    result.found            = peek< alternatives< exactly<';'>, exactly<'}'> > >(p) ? p : 0;
+    result.found            = peek< alternatives< exactly<';'>, exactly<'}'>, exactly<'{'> > >(p) && saw_stuff ? p : 0;
     result.has_interpolants = saw_interpolant;
 
     return result;

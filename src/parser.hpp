@@ -174,9 +174,6 @@ namespace Sass {
     For* parse_for_directive();
     Each* parse_each_directive();
     While* parse_while_directive();
-    At_Rule* parse_directive();
-    AST_Node* parse_keyframes();
-    AST_Node* parse_keyframe();
     Media_Block* parse_media_block();
     List* parse_media_queries();
     List* parse_media_query();

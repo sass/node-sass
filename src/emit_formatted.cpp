@@ -58,12 +58,16 @@ namespace Sass {
   void Formatted_Emitter::operator()(At_Rule* at_rule)
   {
     buffer += at_rule->keyword();
-    buffer += ' ';
     if (at_rule->selector()) {
-      at_rule->selector()->perform(this);
       buffer += ' ';
+      at_rule->selector()->perform(this);
     }
-    at_rule->block()->perform(this);
+    if (at_rule->block()) {
+      at_rule->block()->perform(this);
+    }
+    else {
+      buffer += ';';
+    }
   }
 
   void Formatted_Emitter::operator()(Declaration* dec)
