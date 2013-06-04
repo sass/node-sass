@@ -8,6 +8,11 @@ namespace Sass {
 	using namespace std;
 
 	class To_String : public Operation<string> {
+		// import all the class-specific methods and override as desired
+		using Operation<string>::operator();
+		// override this to define a catch-all
+		virtual string fallback(AST_Node* n);
+
 	public:
 		virtual ~To_String() { }
 
@@ -19,6 +24,7 @@ namespace Sass {
 		virtual string operator()(Dimension*);
 		virtual string operator()(Color*);
 		virtual string operator()(Boolean*);
+		virtual string operator()(String_Schema*);
 		virtual string operator()(String_Constant*);
 		virtual string operator()(Argument*);
 		virtual string operator()(Arguments*);

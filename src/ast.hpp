@@ -378,11 +378,10 @@ namespace Sass {
   class Expression : public AST_Node {
     // expressions in some contexts shouldn't be evaluated
     ADD_PROPERTY(bool, is_delayed);
-    // for media features, if I recall
-    ADD_PROPERTY(bool, is_parenthesized);
+    ADD_PROPERTY(bool, is_interpolant);
   public:
-    Expression(string p, size_t l)
-    : AST_Node(p, l), is_delayed_(false), is_parenthesized_(false)
+    Expression(string p, size_t l, bool d = false, bool i = false)
+    : AST_Node(p, l), is_delayed_(d), is_interpolant_(i)
     { }
     virtual ~Expression() = 0;
     virtual string type() { return ""; /* TODO: raise an error */ }

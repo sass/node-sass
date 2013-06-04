@@ -9,7 +9,10 @@ namespace Sass {
 	class To_String;
 
 	class Formatted_Emitter : public Operation<void> {
+		// import all the class-specific methods and override as desired
 		using Operation<void>::operator();
+		// override this to define a catch-all
+		virtual void fallback(AST_Node* n);
 
 		To_String* to_string;
 		string buffer;
@@ -23,8 +26,6 @@ namespace Sass {
 
 		string get_buffer() { return buffer; }
 
-		// catch-all
-		virtual void operator()(AST_Node*);
 		// statements
 		virtual void operator()(Block*);
 		virtual void operator()(Ruleset*);
@@ -59,7 +60,7 @@ namespace Sass {
 		// virtual void operator()(Dimension*);
 		// virtual void operator()(Color*);
 		// virtual void operator()(Boolean*);
-		virtual void operator()(String_Schema*);
+		// virtual void operator()(String_Schema*);
 		// virtual void operator()(String_Constant*);
 		virtual void operator()(Media_Query_Expression*);
 		// parameters and arguments
@@ -79,8 +80,6 @@ namespace Sass {
 		// virtual void operator()(Simple_Selector_Sequence*);
 		// virtual void operator()(Selector_Combination*);
 		// virtual void operator()(Selector_Group*);
-
-		virtual void fallback(AST_Node* n);
 	};
 
 }

@@ -12,11 +12,6 @@ namespace Sass {
   Formatted_Emitter::~Formatted_Emitter()
   { delete to_string; }
 
-  // catch-all
-  void Formatted_Emitter::operator()(AST_Node* n)
-  {
-    buffer += n->perform(to_string);
-  }
   // statements
   void Formatted_Emitter::operator()(Block* block)
   {
@@ -27,6 +22,12 @@ namespace Sass {
     for (size_t i = 0, L = block->length(); i < L; ++i) {
       indent();
       (*block)[i]->perform(this);
+      // extra newline at the end of top-level blocks
+      if (block->is_root() &&
+          !buffer.empty()  &&
+          buffer[buffer.length()-1] == '}') {
+        buffer += '\n';
+      }
       buffer += '\n';
     }
     if (!block->is_root()) {
@@ -34,6 +35,10 @@ namespace Sass {
       indent();
       buffer += "}";
     }
+    // remove extra newline that gets added after the last block
+    size_t l = buffer.length();
+    if (l > 2 && buffer[l-1] == '\n' && buffer[l-2] == '\n')
+      buffer.erase(l-1);
   }
 
   void Formatted_Emitter::operator()(Ruleset* ruleset)
@@ -252,10 +257,12 @@ namespace Sass {
   // void Formatted_Emitter::operator()(Color*)
   // void Formatted_Emitter::operator()(Boolean*)
 
-  void Formatted_Emitter::operator()(String_Schema* ss)
-  {
-    for (size_t i = 0, L = ss->length(); i < L; ++i) (*ss)[i]->perform(this);
-  }
+  // void Formatted_Emitter::operator()(String_Schema* ss)
+  // {
+  //   buffer += "#{";
+  //   for (size_t i = 0, L = ss->length(); i < L; ++i) (*ss)[i]->perform(this);
+  //   buffer += '}';
+  // }
 
   // void Formatted_Emitter::operator()(String_Constant*)
 

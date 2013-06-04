@@ -308,6 +308,7 @@ namespace Sass {
         // find the end of the interpolant and parse it
         const char* j = find_first_in_interval< exactly<rbrace> >(p, end_of_selector);
         Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, path, line).parse_list();
+        interp_node->is_interpolant(true);
         (*schema) << interp_node;
         i = j + 1;
       }
@@ -902,7 +903,9 @@ namespace Sass {
         const char* j = find_first_in_interval< exactly<rbrace> >(p, str.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
-          (*schema) << Parser::from_token(Token(p+2, j), ctx, path, line).parse_list();
+          Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, path, line).parse_list();
+          interp_node->is_interpolant(true);
+          (*schema) << interp_node;
           i = j+1;
         }
         else {
@@ -926,6 +929,7 @@ namespace Sass {
       if (lex< interpolant >()) {
         Token insides(Token(lexed.begin + 2, lexed.end - 1));
         Expression* interp_node = Parser::from_token(insides, ctx, path, line).parse_list();
+        interp_node->is_interpolant(true);
         (*schema) << interp_node;
       }
       else if (lex< identifier >()) {
@@ -968,7 +972,9 @@ namespace Sass {
       }
       else if (lex< interpolant >()) {
         Token insides(Token(lexed.begin + 2, lexed.end - 1));
-        (*schema) << Parser::from_token(insides, ctx, path, line).parse_list();
+        Expression* interp_node = Parser::from_token(insides, ctx, path, line).parse_list();
+        interp_node->is_interpolant(true);
+        (*schema) << interp_node;
       }
       else if (lex< sequence< identifier, exactly<':'> > >()) {
         (*schema) << new (ctx.mem) String_Constant(path, line, lexed);
@@ -1004,7 +1010,9 @@ namespace Sass {
         const char* j = find_first_in_interval< exactly<rbrace> >(p, id.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
-          (*schema) << Parser::from_token(Token(p+2, j), ctx, path, line).parse_list();
+          Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, path, line).parse_list();
+          interp_node->is_interpolant(true);
+          (*schema) << interp_node;
           i = j+1;
         }
         else {
