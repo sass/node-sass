@@ -675,7 +675,7 @@ namespace Sass {
   public:
     Argument(string p, size_t l, Expression* val, string n = "", bool rest = false)
     : AST_Node(p, l), value_(val), name_(n), is_rest_argument_(rest)
-    { if (name_ != "" && is_rest_argument_) { /* error */ } }
+    { if (!name_.empty() && is_rest_argument_) { /* error */ } }
     ATTACH_OPERATIONS();
   };
 

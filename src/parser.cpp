@@ -231,13 +231,13 @@ namespace Sass {
 
   Argument* Parser::parse_argument()
   {
+    Argument* arg;
     if (peek< sequence < variable, spaces_and_comments, exactly<':'> > >()) {
       lex< variable >();
       string name(lexed);
       lex< exactly<':'> >();
       Expression* val = parse_space_list();
-      Argument* arg = new (ctx.mem) Argument(path, line, val, name);
-      return arg;
+      arg = new (ctx.mem) Argument(path, line, val, name);
     }
     else {
       bool is_arglist = false;
@@ -245,9 +245,9 @@ namespace Sass {
       if (lex< exactly< ellipsis > >()) {
         is_arglist = true;
       }
-      Argument* arg = new (ctx.mem) Argument(path, line, val, "", is_arglist);
+      arg = new (ctx.mem) Argument(path, line, val, "", is_arglist);
     }
-    return 0; // unreachable
+    return arg;
   }
 
   Assignment* Parser::parse_assignment()
