@@ -47,8 +47,8 @@ namespace Sass {
     void collect_include_paths(const char* paths_str);
     void collect_include_paths(const char* paths_array[]);
     string add_file(string path);
-    void compile_string();
-    void compile_file();
+    const char* compile_string();
+    const char* compile_file();
   };
 
 }

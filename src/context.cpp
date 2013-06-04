@@ -14,6 +14,8 @@
 #include "constants.hpp"
 #include "parser.hpp"
 #include "file.hpp"
+#include "emit_formatted.hpp"
+#include "copy_c_str.hpp"
 
 #ifndef SASS_PRELEXER
 #include "prelexer.hpp"
@@ -111,7 +113,7 @@ namespace Sass {
     return string();
   }
 
-  void Context::compile_file()
+  const char* Context::compile_file()
   {
     Block* root;
     for (size_t i = 0; i < queue.size(); ++i) {
@@ -120,14 +122,18 @@ namespace Sass {
       if (i == 0) root = ast;
       style_sheets[queue[i].first] = ast;
     }
-    // eval the root, etc
+    Formatted_Emitter* format = new Formatted_Emitter();
+    root->perform(format);
+    const char* result = copy_c_str(format->get_buffer().c_str());
+    delete format;
+    return result;
   }
 
-  void Context::compile_string()
+  const char* Context::compile_string()
   {
-    if (!source_c_str) return;
+    if (!source_c_str) return 0;
     queue.clear();
     queue.push_back(pair<string, const char*>("source string", source_c_str));
-    compile_file();
+    return compile_file();
   }
 }

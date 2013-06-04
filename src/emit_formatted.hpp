@@ -1,5 +1,8 @@
 #include <string>
+
+#ifndef SASS_OPERATION
 #include "operation.hpp"
+#endif
 
 namespace Sass {
 	using namespace std;
@@ -16,6 +19,8 @@ namespace Sass {
 
 		Formatted_Emitter();
 		virtual ~Formatted_Emitter();
+
+		string get_buffer() { return buffer; }
 
 		// statements
 		virtual void operator()(Block*);
