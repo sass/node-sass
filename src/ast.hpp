@@ -312,9 +312,10 @@ namespace Sass {
   class Return : public Statement {
     ADD_PROPERTY(Expression*, value);
   public:
-    Return(string p, size_t l, Expression* val = 0)
+    Return(string p, size_t l, Expression* val)
     : Statement(p, l), value_(val)
     { }
+    ATTACH_OPERATIONS();
   };
 
   ///////////////////////////////////////////////////
@@ -457,6 +458,19 @@ namespace Sass {
     ADD_PROPERTY(Arguments*, arguments);
   public:
     Function_Call(string p, size_t l, string n, Arguments* args)
+    : Expression(p, l), name_(n), arguments_(args)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
+  /////////////////////////
+  // Function call schemas.
+  /////////////////////////
+  class Function_Call_Schema : public Expression {
+    ADD_PROPERTY(String*, name);
+    ADD_PROPERTY(Arguments*, arguments);
+  public:
+    Function_Call_Schema(string p, size_t l, String* n, Arguments* args)
     : Expression(p, l), name_(n), arguments_(args)
     { }
     ATTACH_OPERATIONS();

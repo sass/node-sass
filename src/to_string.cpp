@@ -32,6 +32,13 @@ namespace Sass {
     return acc;
   }
 
+  string To_String::operator()(Function_Call_Schema* call)
+  {
+    string acc(call->name()->perform(this));
+    acc += call->arguments()->perform(this);
+    return acc;
+  }
+
   string To_String::operator()(Textual* txt)
   {
     return txt->value();
@@ -134,7 +141,7 @@ namespace Sass {
       acc += a->name();
       acc += ": ";
     }
-    a->value()->perform(this);
+    acc += a->value()->perform(this);
     if (a->is_rest_argument()) {
       acc += "...";
     }

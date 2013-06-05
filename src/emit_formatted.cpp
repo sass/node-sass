@@ -1,6 +1,7 @@
 #include "emit_formatted.hpp"
 #include "ast.hpp"
 #include "to_string.hpp"
+#include <iostream>
 
 namespace Sass {
   using namespace std;
@@ -190,7 +191,6 @@ namespace Sass {
     else                                  buffer += "@function ";
     buffer += def->name();
     def->parameters()->perform(this);
-    buffer += ' ';
     def->block()->perform(this);
   }
 
@@ -208,10 +208,10 @@ namespace Sass {
   }
 
   // expressions
-  void Formatted_Emitter::operator()(Expression* expr)
-  {
-    buffer += expr->perform(to_string);
-  }
+  // void Formatted_Emitter::operator()(Expression* expr)
+  // {
+  //   buffer += expr->perform(to_string);
+  // }
 
   // void Formatted_Emitter::operator()(List*)
 
@@ -300,15 +300,15 @@ namespace Sass {
     buffer += ')';
   }
 
-  void Formatted_Emitter::operator()(Argument* a)
-  {
-    buffer += a->perform(to_string);
-  }
+  // void Formatted_Emitter::operator()(Argument* a)
+  // {
+  //   buffer += a->perform(to_string);
+  // }
 
-  void Formatted_Emitter::operator()(Arguments* a)
-  {
-    buffer += a->perform(to_string);
-  }
+  // void Formatted_Emitter::operator()(Arguments* a)
+  // {
+  //   buffer += a->perform(to_string);
+  // }
 
   // selectors
   void Formatted_Emitter::operator()(Selector_Schema* s)

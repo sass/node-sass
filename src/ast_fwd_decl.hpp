@@ -31,6 +31,7 @@ namespace Sass {
 	class Binary_Expression;
 	class Unary_Expression;
 	class Function_Call;
+	class Function_Call_Schema;
 	class Variable;
 	class Textual;
 	class Number;

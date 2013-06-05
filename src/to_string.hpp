@@ -18,6 +18,7 @@ namespace Sass {
 
 		virtual string operator()(List*);
 		virtual string operator()(Function_Call*);
+		virtual string operator()(Function_Call_Schema*);
 		virtual string operator()(Textual*);
 		virtual string operator()(Number*);
 		virtual string operator()(Percentage*);

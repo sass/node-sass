@@ -48,7 +48,7 @@ namespace Sass {
 		virtual void operator()(Definition*);
 		virtual void operator()(Mixin_Call*);
 		// expressions
-		virtual void operator()(Expression*);
+		// virtual void operator()(Expression*);
 		// virtual void operator()(List*);
 		virtual void operator()(Binary_Expression*);
 		virtual void operator()(Unary_Expression*);
@@ -66,8 +66,8 @@ namespace Sass {
 		// parameters and arguments
 		virtual void operator()(Parameter*);
 		virtual void operator()(Parameters*);
-		virtual void operator()(Argument*);
-		virtual void operator()(Arguments*);
+		// virtual void operator()(Argument*);
+		// virtual void operator()(Arguments*);
 		// selectors
 		virtual void operator()(Selector_Schema*);
 		// virtual void operator()(Selector_Reference*);

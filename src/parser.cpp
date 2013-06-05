@@ -647,7 +647,8 @@ namespace Sass {
 
   Expression* Parser::parse_comma_list()
   {
-    if (peek< exactly<';'> >(position) ||
+    if (peek< exactly<'!'> >(position) ||
+        peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
         peek< exactly<'{'> >(position) ||
         peek< exactly<')'> >(position) ||
@@ -673,7 +674,8 @@ namespace Sass {
   {
     Expression* disj1 = parse_disjunction();
     // if it's a singleton, return it directly; don't wrap it
-    if (peek< exactly<';'> >(position) ||
+    if (peek< exactly<'!'> >(position) ||
+        peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
         peek< exactly<'{'> >(position) ||
         peek< exactly<')'> >(position) ||
@@ -685,7 +687,8 @@ namespace Sass {
     List* space_list = new (ctx.mem) List(path, line, 2, List::SPACE);
     (*space_list) << disj1;
 
-    while (!(peek< exactly<';'> >(position) ||
+    while (!(peek< exactly<'!'> >(position) ||
+             peek< exactly<';'> >(position) ||
              peek< exactly<'}'> >(position) ||
              peek< exactly<'{'> >(position) ||
              peek< exactly<')'> >(position) ||
@@ -743,7 +746,8 @@ namespace Sass {
     : lex<gte_op>() ? Binary_Expression::GTE
     : lex<lte_op>() ? Binary_Expression::LTE
     : lex<gt_op>()  ? Binary_Expression::GT
-    :                 Binary_Expression::LT;
+    : lex<lt_op>()  ? Binary_Expression::LT
+    :                 Binary_Expression::LT; // whatever
 
     Expression* expr2 = parse_expression();
 
@@ -842,6 +846,9 @@ namespace Sass {
       if (!lex< exactly<')'> >()) error("URI is missing ')'");
       return result;
     }
+
+    if (peek< functional_schema >())
+    { return parse_function_call_schema(); }
 
     if (peek< functional >())
     { return parse_function_call(); }
@@ -1032,9 +1039,18 @@ namespace Sass {
   {
     lex< identifier >();
     string name(lexed);
-    size_t line_of_call;
+    size_t line_of_call = line;
 
     Function_Call* the_call = new (ctx.mem) Function_Call(path, line_of_call, name, parse_arguments());
+    return the_call;
+  }
+
+  Function_Call_Schema* Parser::parse_function_call_schema()
+  {
+    String* name = parse_identifier_schema();
+    size_t line_of_call = line;
+
+    Function_Call_Schema* the_call = new (ctx.mem) Function_Call_Schema(path, line_of_call, name, parse_arguments());
     return the_call;
   }
 

@@ -316,8 +316,11 @@ namespace Sass {
       return sequence< exactly<':'>, optional< exactly<':'> > >(src);
     }
     // Match CSS function call openers.
+    const char* functional_schema(const char* src) {
+      return sequence< identifier_schema, exactly<'('> >(src);
+    }
     const char* functional(const char* src) {
-      return sequence< alternatives< identifier_schema, identifier >, exactly<'('> >(src);
+      return sequence< identifier, exactly<'('> >(src);
     }
     // Match the CSS negation pseudo-class.
     const char* pseudo_not(const char* src) {

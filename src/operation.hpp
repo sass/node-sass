@@ -35,6 +35,7 @@ namespace Sass {
 		virtual T operator()(Binary_Expression* x)        { return fallback(x); }
 		virtual T operator()(Unary_Expression* x)         { return fallback(x); }
 		virtual T operator()(Function_Call* x)            { return fallback(x); }
+		virtual T operator()(Function_Call_Schema* x)     { return fallback(x); }
 		virtual T operator()(Variable* x)                 { return fallback(x); }
 		virtual T operator()(Textual* x)                  { return fallback(x); }
 		virtual T operator()(Number* x)                   { return fallback(x); }
