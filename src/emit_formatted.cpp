@@ -23,12 +23,8 @@ namespace Sass {
     for (size_t i = 0, L = block->length(); i < L; ++i) {
       indent();
       (*block)[i]->perform(this);
-      // extra newline at the end of top-level blocks
-      if (block->is_root() &&
-          !buffer.empty()  &&
-          buffer[buffer.length()-1] == '}') {
-        buffer += '\n';
-      }
+      // extra newline at the end of top-level statements
+      if (block->is_root()) buffer += '\n';
       buffer += '\n';
     }
     if (!block->is_root()) {
@@ -36,10 +32,12 @@ namespace Sass {
       indent();
       buffer += "}";
     }
-    // remove extra newline that gets added after the last block
-    size_t l = buffer.length();
-    if (l > 2 && buffer[l-1] == '\n' && buffer[l-2] == '\n')
-      buffer.erase(l-1);
+    // remove extra newline that gets added after the last top-level block
+    if (block->is_root()) {
+      size_t l = buffer.length();
+      if (l > 2 && buffer[l-1] == '\n' && buffer[l-2] == '\n')
+        buffer.erase(l-1);
+    }
   }
 
   void Formatted_Emitter::operator()(Ruleset* ruleset)
@@ -51,7 +49,7 @@ namespace Sass {
   void Formatted_Emitter::operator()(Propset* propset)
   {
     propset->property_fragment()->perform(this);
-    buffer += ": ";
+    buffer += ":";
     propset->block()->perform(this);
   }
 
@@ -311,10 +309,10 @@ namespace Sass {
   // }
 
   // selectors
-  void Formatted_Emitter::operator()(Selector_Schema* s)
-  {
-    s->contents()->perform(this);
-  }
+  // void Formatted_Emitter::operator()(Selector_Schema* s)
+  // {
+  //   s->contents()->perform(this);
+  // }
 
   // void Formatted_Emitter::operator()(Selector_Reference*)
   // void Formatted_Emitter::operator()(Selector_Placeholder*)

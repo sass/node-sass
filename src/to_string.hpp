@@ -29,6 +29,7 @@ namespace Sass {
 		virtual string operator()(String_Constant*);
 		virtual string operator()(Argument*);
 		virtual string operator()(Arguments*);
+		virtual string operator()(Selector_Schema*);
 		virtual string operator()(Selector_Reference*);
 		virtual string operator()(Selector_Placeholder*);
 		virtual string operator()(Type_Selector*);

@@ -777,8 +777,8 @@ namespace Sass {
   class Selector_Reference : public Simple_Selector {
     ADD_PROPERTY(Selector*, selector);
   public:
-    Selector_Reference(string p, size_t l)
-    : Simple_Selector(p, l)
+    Selector_Reference(string p, size_t l, Selector* r = 0)
+    : Simple_Selector(p, l), selector_(r)
     { has_reference(true); }
     ATTACH_OPERATIONS();
   };

@@ -69,7 +69,7 @@ namespace Sass {
 		// virtual void operator()(Argument*);
 		// virtual void operator()(Arguments*);
 		// selectors
-		virtual void operator()(Selector_Schema*);
+		// virtual void operator()(Selector_Schema*);
 		// virtual void operator()(Selector_Reference*);
 		// virtual void operator()(Selector_Placeholder*);
 		// virtual void operator()(Type_Selector*);

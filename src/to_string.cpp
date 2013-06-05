@@ -12,7 +12,7 @@ namespace Sass {
   string To_String::operator()(List* list)
   {
     string sep(list->separator() == List::SPACE ? " " : ", ");
-    if (list->empty()) return string();
+    if (list->empty()) return "()";
     string first_item((*list)[0]->perform(this));
     string next_item;
     string acc(first_item);
@@ -160,6 +160,11 @@ namespace Sass {
     }
     acc += ')';
     return acc;
+  }
+
+  string To_String::operator()(Selector_Schema* ss)
+  {
+    return ss->contents()->perform(this);
   }
 
   string To_String::operator()(Selector_Reference* ref)
