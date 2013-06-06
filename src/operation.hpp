@@ -45,6 +45,7 @@ namespace Sass {
 		virtual T operator()(Boolean* x)                  { return fallback(x); }
 		virtual T operator()(String_Schema* x)            { return fallback(x); }
 		virtual T operator()(String_Constant* x)          { return fallback(x); }
+		virtual T operator()(Media_Query* x)              { return fallback(x); }
 		virtual T operator()(Media_Query_Expression* x)   { return fallback(x); }
 		// parameters and arguments
 		virtual T operator()(Parameter* x)                { return fallback(x); }
@@ -64,7 +65,8 @@ namespace Sass {
 		virtual T operator()(Selector_Combination* x)     { return fallback(x); }
 		virtual T operator()(Selector_Group* x)           { return fallback(x); }
 
-		virtual T fallback(AST_Node* x)                   { return T(); }
+		virtual T fallback(AST_Node* x)
+		{ /* TODO: throw an error */ return T(); }
 	};
 	template<typename T>
 	inline Operation<T>::~Operation() { }

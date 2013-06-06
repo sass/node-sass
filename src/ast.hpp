@@ -14,6 +14,8 @@
 
 #include "ast_def_macros.hpp"
 
+#include <iostream>
+
 namespace Sass {
   using namespace std;
 
@@ -324,6 +326,7 @@ namespace Sass {
   class Content : public Statement {
   public:
     Content(string p, size_t l) : Statement(p, l) { }
+    ATTACH_OPERATIONS();
   };
 
   ////////////////////////////////
@@ -611,6 +614,22 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
 
+  /////////////////
+  // Media queries.
+  /////////////////
+  class Media_Query : public Expression,
+                      public Vectorized<Media_Query_Expression*> {
+    ADD_PROPERTY(String*, media_type);
+    ADD_PROPERTY(bool, is_negated);
+    ADD_PROPERTY(bool, is_restricted);
+  public:
+    Media_Query(string p, size_t l)
+    : Expression(p, l), Vectorized(),
+      media_type_(0), is_negated_(false), is_restricted_(false)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
   ////////////////////////////////////////////////////
   // Media expressions (for use inside media queries).
   ////////////////////////////////////////////////////
@@ -621,6 +640,7 @@ namespace Sass {
     Media_Query_Expression(string p, size_t l, String* f, Expression* v)
     : Expression(p, l), feature_(f), value_(v)
     { }
+    ATTACH_OPERATIONS();
   };
 
   /////////////////////////////////////////////////////////
@@ -866,8 +886,8 @@ namespace Sass {
   protected:
     void adjust_after_pushing(Simple_Selector* s)
     {
-      has_reference(has_reference() || s->has_reference());
-      has_placeholder(has_placeholder() || s->has_placeholder());
+      if (s->has_reference())   has_reference(true);
+      if (s->has_placeholder()) has_placeholder(true);
     }
   public:
     Simple_Selector_Sequence(string p, size_t l, size_t s = 0)
@@ -896,14 +916,11 @@ namespace Sass {
                          Combinator c,
                          Simple_Selector_Sequence* h,
                          Selector_Combination* t)
-    : Selector(p, l, h && h->has_reference() ||
-                     t && t->has_reference(),
-                     h && h->has_placeholder() ||
-                     t && t->has_placeholder()),
-      combinator_(c),
-      head_(h),
-      tail_(t)
-    { }
+    : Selector(p, l), combinator_(c), head_(h), tail_(t)
+    {
+      if (h && h->has_reference()   || t && t->has_reference())   has_reference(true);
+      if (h && h->has_placeholder() || t && t->has_placeholder()) has_placeholder(true);
+    }
     ATTACH_OPERATIONS();
   };
 
@@ -912,20 +929,15 @@ namespace Sass {
   ///////////////////////////////////
   class Selector_Group
       : public Selector, public Vectorized<Selector_Combination*> {
-    ADD_PROPERTY(bool, has_reference);
-    ADD_PROPERTY(bool, has_placeholder);
   protected:
     void adjust_after_pushing(Selector_Combination* c)
     {
-      has_reference_   |= c->has_reference();
-      has_placeholder_ |= c->has_placeholder();
+      if (c->has_reference())   has_reference(true);
+      if (c->has_placeholder()) has_placeholder(true);
     }
   public:
     Selector_Group(string p, size_t l, size_t s = 0)
-    : Selector(p, l),
-      Vectorized(s),
-      has_reference_(false),
-      has_placeholder_(false)
+    : Selector(p, l), Vectorized(s)
     { }
     ATTACH_OPERATIONS();
   };

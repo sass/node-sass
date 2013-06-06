@@ -14,7 +14,7 @@
 #include "constants.hpp"
 #include "parser.hpp"
 #include "file.hpp"
-#include "emit_formatted.hpp"
+#include "inspector.hpp"
 #include "copy_c_str.hpp"
 
 #ifndef SASS_PRELEXER
@@ -122,10 +122,10 @@ namespace Sass {
       if (i == 0) root = ast;
       style_sheets[queue[i].first] = ast;
     }
-    Formatted_Emitter* format = new Formatted_Emitter();
-    root->perform(format);
-    char* result = copy_c_str(format->get_buffer().c_str());
-    delete format;
+    Inspector* inspect = new Inspector();
+    root->perform(inspect);
+    char* result = copy_c_str(inspect->get_buffer().c_str());
+    delete inspect;
     return result;
   }
 

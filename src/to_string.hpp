@@ -27,6 +27,8 @@ namespace Sass {
 		virtual string operator()(Boolean*);
 		virtual string operator()(String_Schema*);
 		virtual string operator()(String_Constant*);
+		virtual string operator()(Media_Query*);
+		virtual string operator()(Media_Query_Expression*);
 		virtual string operator()(Argument*);
 		virtual string operator()(Arguments*);
 		virtual string operator()(Selector_Schema*);

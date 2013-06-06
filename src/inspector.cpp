@@ -1,4 +1,4 @@
-#include "emit_formatted.hpp"
+#include "inspector.hpp"
 #include "ast.hpp"
 #include "to_string.hpp"
 #include <iostream>
@@ -6,15 +6,15 @@
 namespace Sass {
   using namespace std;
 
-  Formatted_Emitter::Formatted_Emitter()
+  Inspector::Inspector()
   : to_string(new To_String()), buffer(""), indentation(0)
   { }
 
-  Formatted_Emitter::~Formatted_Emitter()
+  Inspector::~Inspector()
   { delete to_string; }
 
   // statements
-  void Formatted_Emitter::operator()(Block* block)
+  void Inspector::operator()(Block* block)
   {
     if (!block->is_root()) {
       buffer += " {\n";
@@ -40,26 +40,27 @@ namespace Sass {
     }
   }
 
-  void Formatted_Emitter::operator()(Ruleset* ruleset)
+  void Inspector::operator()(Ruleset* ruleset)
   {
     ruleset->selector()->perform(this);
     ruleset->block()->perform(this);
   }
 
-  void Formatted_Emitter::operator()(Propset* propset)
+  void Inspector::operator()(Propset* propset)
   {
     propset->property_fragment()->perform(this);
     buffer += ":";
     propset->block()->perform(this);
   }
 
-  void Formatted_Emitter::operator()(Media_Block* media_block)
+  void Inspector::operator()(Media_Block* media_block)
   {
+    buffer += "@media ";
     media_block->media_queries()->perform(this);
     media_block->block()->perform(this);
   }
 
-  void Formatted_Emitter::operator()(At_Rule* at_rule)
+  void Inspector::operator()(At_Rule* at_rule)
   {
     buffer += at_rule->keyword();
     if (at_rule->selector()) {
@@ -74,7 +75,7 @@ namespace Sass {
     }
   }
 
-  void Formatted_Emitter::operator()(Declaration* dec)
+  void Inspector::operator()(Declaration* dec)
   {
     dec->property()->perform(this);
     buffer += ": ";
@@ -83,7 +84,7 @@ namespace Sass {
     buffer += ';';
   }
 
-  void Formatted_Emitter::operator()(Assignment* assn)
+  void Inspector::operator()(Assignment* assn)
   {
     buffer += assn->variable();
     buffer += ": ";
@@ -92,7 +93,7 @@ namespace Sass {
     buffer += ';';
   }
 
-  void Formatted_Emitter::operator()(Import* import)
+  void Inspector::operator()(Import* import)
   {
     if (!import->urls().empty()) {
       buffer += "@import ";
@@ -105,26 +106,26 @@ namespace Sass {
     }
   }
 
-  void Formatted_Emitter::operator()(Import_Stub* import)
+  void Inspector::operator()(Import_Stub* import)
   {
     buffer += "@import ";
     buffer += import->file_name();
     buffer += ';';
   }
 
-  void Formatted_Emitter::operator()(Warning* warning)
+  void Inspector::operator()(Warning* warning)
   {
     buffer += "@warn ";
     warning->message()->perform(this);
     buffer += ';';
   }
 
-  void Formatted_Emitter::operator()(Comment* comment)
+  void Inspector::operator()(Comment* comment)
   {
     comment->text()->perform(this);
   }
 
-  void Formatted_Emitter::operator()(If* cond)
+  void Inspector::operator()(If* cond)
   {
     buffer += "@if ";
     cond->predicate()->perform(this);
@@ -137,7 +138,7 @@ namespace Sass {
     }
   }
 
-  void Formatted_Emitter::operator()(For* loop)
+  void Inspector::operator()(For* loop)
   {
     buffer += string("@for ");
     buffer += loop->variable();
@@ -148,7 +149,7 @@ namespace Sass {
     loop->block()->perform(this);
   }
 
-  void Formatted_Emitter::operator()(Each* loop)
+  void Inspector::operator()(Each* loop)
   {
     buffer += string("@each ");
     buffer += loop->variable();
@@ -157,33 +158,33 @@ namespace Sass {
     loop->block()->perform(this);
   }
 
-  void Formatted_Emitter::operator()(While* loop)
+  void Inspector::operator()(While* loop)
   {
     buffer += "@while ";
     loop->predicate()->perform(this);
     loop->block()->perform(this);
   }
 
-  void Formatted_Emitter::operator()(Return* ret)
+  void Inspector::operator()(Return* ret)
   {
     buffer += "@return ";
     ret->value()->perform(this);
     buffer += ';';
   }
 
-  void Formatted_Emitter::operator()(Content* content)
+  void Inspector::operator()(Content* content)
   {
     buffer += "@content;";
   }
 
-  void Formatted_Emitter::operator()(Extend* extend)
+  void Inspector::operator()(Extend* extend)
   {
     buffer += "@extend ";
     extend->selector()->perform(this);
     buffer += ';';
   }
 
-  void Formatted_Emitter::operator()(Definition* def)
+  void Inspector::operator()(Definition* def)
   {
     if (def->type() == Definition::MIXIN) buffer += "@mixin ";
     else                                  buffer += "@function ";
@@ -192,7 +193,7 @@ namespace Sass {
     def->block()->perform(this);
   }
 
-  void Formatted_Emitter::operator()(Mixin_Call* call)
+  void Inspector::operator()(Mixin_Call* call)
   {
     buffer += string("@include ") += call->name();
     if (call->arguments()) {
@@ -206,14 +207,14 @@ namespace Sass {
   }
 
   // expressions
-  // void Formatted_Emitter::operator()(Expression* expr)
+  // void Inspector::operator()(Expression* expr)
   // {
   //   buffer += expr->perform(to_string);
   // }
 
-  // void Formatted_Emitter::operator()(List*)
+  // void Inspector::operator()(List*)
 
-  void Formatted_Emitter::operator()(Binary_Expression* expr)
+  void Inspector::operator()(Binary_Expression* expr)
   {
     expr->left()->perform(this);
     switch (expr->type()) {
@@ -234,46 +235,40 @@ namespace Sass {
     expr->right()->perform(this);
   }
 
-  void Formatted_Emitter::operator()(Unary_Expression* expr)
+  void Inspector::operator()(Unary_Expression* expr)
   {
     if (expr->type() == Unary_Expression::PLUS) buffer += '+';
     else                                        buffer += '-';
     expr->operand()->perform(this);
   }
 
-  // void Formatted_Emitter::operator()(Function_Call*)
+  // void Inspector::operator()(Function_Call*)
 
-  void Formatted_Emitter::operator()(Variable* var)
+  void Inspector::operator()(Variable* var)
   {
     buffer += var->name();
   }
 
-  // void Formatted_Emitter::operator()(Textual*)
-  // void Formatted_Emitter::operator()(Number*)
-  // void Formatted_Emitter::operator()(Percentage*)
-  // void Formatted_Emitter::operator()(Dimension*)
-  // void Formatted_Emitter::operator()(Color*)
-  // void Formatted_Emitter::operator()(Boolean*)
+  // void Inspector::operator()(Textual*)
+  // void Inspector::operator()(Number*)
+  // void Inspector::operator()(Percentage*)
+  // void Inspector::operator()(Dimension*)
+  // void Inspector::operator()(Color*)
+  // void Inspector::operator()(Boolean*)
 
-  // void Formatted_Emitter::operator()(String_Schema* ss)
+  // void Inspector::operator()(String_Schema* ss)
   // {
   //   buffer += "#{";
   //   for (size_t i = 0, L = ss->length(); i < L; ++i) (*ss)[i]->perform(this);
   //   buffer += '}';
   // }
 
-  // void Formatted_Emitter::operator()(String_Constant*)
-
-  void Formatted_Emitter::operator()(Media_Query_Expression* e)
-  {
-    buffer += '(';
-    e->feature()->perform(this);
-    if (e->value()) e->value()->perform(this);
-    buffer += ')';
-  }
+  // void Inspector::operator()(String_Constant*)
+  // void Inspector::operator()(Media_Query*)
+  // void Inspector::operator()(Media_Query_Expression*)
 
   // parameters and arguments
-  void Formatted_Emitter::operator()(Parameter* p)
+  void Inspector::operator()(Parameter* p)
   {
     buffer += p->name();
     if (p->default_value()) {
@@ -285,7 +280,7 @@ namespace Sass {
     }
   }
 
-  void Formatted_Emitter::operator()(Parameters* p)
+  void Inspector::operator()(Parameters* p)
   {
     buffer += '(';
     if (!p->empty()) {
@@ -298,37 +293,37 @@ namespace Sass {
     buffer += ')';
   }
 
-  // void Formatted_Emitter::operator()(Argument* a)
+  // void Inspector::operator()(Argument* a)
   // {
   //   buffer += a->perform(to_string);
   // }
 
-  // void Formatted_Emitter::operator()(Arguments* a)
+  // void Inspector::operator()(Arguments* a)
   // {
   //   buffer += a->perform(to_string);
   // }
 
   // selectors
-  // void Formatted_Emitter::operator()(Selector_Schema* s)
+  // void Inspector::operator()(Selector_Schema* s)
   // {
   //   s->contents()->perform(this);
   // }
 
-  // void Formatted_Emitter::operator()(Selector_Reference*)
-  // void Formatted_Emitter::operator()(Selector_Placeholder*)
-  // void Formatted_Emitter::operator()(Type_Selector*)
-  // void Formatted_Emitter::operator()(Selector_Qualifier*)
-  // void Formatted_Emitter::operator()(Attribute_Selector*)
-  // void Formatted_Emitter::operator()(Pseudo_Selector*)
-  // void Formatted_Emitter::operator()(Negated_Selector*)
-  // void Formatted_Emitter::operator()(Simple_Selector_Sequence*)
-  // void Formatted_Emitter::operator()(Selector_Combination*)
-  // void Formatted_Emitter::operator()(Selector_Group*)
+  // void Inspector::operator()(Selector_Reference*)
+  // void Inspector::operator()(Selector_Placeholder*)
+  // void Inspector::operator()(Type_Selector*)
+  // void Inspector::operator()(Selector_Qualifier*)
+  // void Inspector::operator()(Attribute_Selector*)
+  // void Inspector::operator()(Pseudo_Selector*)
+  // void Inspector::operator()(Negated_Selector*)
+  // void Inspector::operator()(Simple_Selector_Sequence*)
+  // void Inspector::operator()(Selector_Combination*)
+  // void Inspector::operator()(Selector_Group*)
 
-  void Formatted_Emitter::fallback(AST_Node* n)
+  void Inspector::fallback(AST_Node* n)
   { buffer += n->perform(to_string); }
 
-  void Formatted_Emitter::indent()
+  void Inspector::indent()
   { buffer += string(2*indentation, ' '); }
 
 }

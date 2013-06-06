@@ -323,14 +323,31 @@ namespace Sass {
 
   Selector_Group* Parser::parse_selector_group()
   {
-    Selector_Group* group = new Selector_Group(path, line);
-    do (*group) << parse_selector_combination();
+    Selector_Group* group = new (ctx.mem) Selector_Group(path, line);
+    do {
+      Selector_Combination* comb = parse_selector_combination();
+      if (!comb->has_reference()) {
+        size_t sel_line = line;
+        Selector_Reference* ref = new (ctx.mem) Selector_Reference(path, sel_line);
+        Simple_Selector_Sequence* ref_wrap = new (ctx.mem) Simple_Selector_Sequence(path, sel_line);
+        (*ref_wrap) << ref;
+        if (!comb->head()) {
+          comb->head(ref_wrap);
+          comb->has_reference(true);
+        }
+        else {
+          comb = new (ctx.mem) Selector_Combination(path, sel_line, Selector_Combination::ANCESTOR_OF, ref_wrap, comb);
+        }
+      }
+      (*group) << comb;
+    }
     while (lex< exactly<','> >());
     return group;
   }
 
   Selector_Combination* Parser::parse_selector_combination()
   {
+    size_t sel_line = 0;
     Simple_Selector_Sequence* lhs;
     if (peek< exactly<'+'> >() ||
         peek< exactly<'~'> >() ||
@@ -340,8 +357,8 @@ namespace Sass {
     }
     else {
       lhs = parse_simple_selector_sequence();
+      sel_line = line;
     }
-    size_t sel_line = line;
 
     Selector_Combination::Combinator cmb;
     if      (lex< exactly<'+'> >()) cmb = Selector_Combination::ADJACENT_TO;
@@ -359,7 +376,9 @@ namespace Sass {
     }
     else {
       rhs = parse_selector_combination();
+      sel_line = line;
     }
+    if (!sel_line) sel_line = line;
     return new (ctx.mem) Selector_Combination(path, sel_line, cmb, lhs, rhs);
   }
 
@@ -370,7 +389,7 @@ namespace Sass {
     if (lex< exactly<'&'> >()) {
       (*seq) << new (ctx.mem) Selector_Reference(path, line);
     }
-    else if (lex< alternatives< type_selector, universal, string_constant, dimension, percentage, number > >()) {
+    else if (lex< sequence< negate< functional >, alternatives< type_selector, universal, string_constant, dimension, percentage, number > > >()) {
       (*seq) << new (ctx.mem) Type_Selector(path, line, lexed);
     }
     else {
@@ -402,7 +421,7 @@ namespace Sass {
     else if (peek< pseudo_not >()) {
       return parse_negated_selector();
     }
-    else if (peek< exactly<':'> >(position)) {
+    else if (peek< exactly<':'> >(position) || peek< functional >()) {
       return parse_pseudo_selector();
     }
     else if (peek< exactly<'['> >(position)) {
@@ -425,7 +444,7 @@ namespace Sass {
   }
 
   Pseudo_Selector* Parser::parse_pseudo_selector() {
-    if (lex< sequence< pseudo_prefix, functional > >()) {
+    if (lex< sequence< pseudo_prefix, functional > >() || lex< functional >()) {
       string name(lexed);
       Expression* expr;
       if (lex< alternatives< even, odd > >()) {
@@ -453,6 +472,9 @@ namespace Sass {
       }
       else if (lex< string_constant >()) {
         expr = new (ctx.mem) String_Constant(path, line, lexed);
+      }
+      else if (peek< exactly<')'> >()) {
+        expr = new (ctx.mem) String_Constant(path, line, "");
       }
       else {
         error("invalid argument to " + name + "...)");
@@ -1124,7 +1146,10 @@ namespace Sass {
 
     List* media_queries = parse_media_queries();
 
-    if (!peek< exactly<'{'> >()) error("expected '{' in media query");
+    if (!peek< exactly<'{'> >()) {
+      cerr << string(position, 16) << endl;
+      error("expected '{' in media query");
+    }
     Block* block = parse_block();
 
     return new (ctx.mem) Media_Block(path, media_line, media_queries, block);
@@ -1132,27 +1157,25 @@ namespace Sass {
 
   List* Parser::parse_media_queries()
   {
-    List* media_queries = new (ctx.mem) List(path, line);
+    List* media_queries = new (ctx.mem) List(path, line, 0, List::COMMA);
     if (!peek< exactly<'{'> >()) (*media_queries) << parse_media_query();
     while (lex< exactly<','> >()) (*media_queries) << parse_media_query();
     return media_queries;
   }
 
-  List* Parser::parse_media_query()
+  Media_Query* Parser::parse_media_query()
   {
-    List* media_query = new (ctx.mem) List(path, line);
-    if (peek< identifier_schema >()) {
-      (*media_query) << parse_identifier_schema();
-      if (peek< identifier_schema >()) {
-        (*media_query) << parse_identifier_schema();
-      }
-    }
-    else {
-      (*media_query) << parse_media_expression();
-    }
-    while (lex< exactly< and_kwd > >()) {
-      (*media_query) << parse_media_expression();
-    }
+    Media_Query* media_query = new (ctx.mem) Media_Query(path, line);
+
+    if (lex< exactly< not_kwd > >()) media_query->is_negated(true);
+    else if (lex< exactly< only_kwd > >()) media_query->is_restricted(true);
+
+    if (peek< identifier_schema >()) media_query->media_type(parse_identifier_schema());
+    else if (lex< identifier >())    media_query->media_type(new (ctx.mem) String_Constant(path, line, lexed));
+    else                             (*media_query) << parse_media_expression();
+
+    while (lex< exactly< and_kwd > >()) (*media_query) << parse_media_expression();
+
     return media_query;
   }
 
@@ -1161,10 +1184,16 @@ namespace Sass {
     if (!lex< exactly<'('> >()) {
       error("media query expression must begin with '('");
     }
-    if (!peek< identifier_schema >()) {
+    String* first = 0;
+    if (peek< identifier_schema >()) {
+      first = parse_identifier_schema();
+    }
+    else if (lex< identifier >()) {
+      first = new (ctx.mem) String_Constant(path, line, lexed);
+    }
+    else {
       error("media feature required in media query expression");
     }
-    String* first = parse_identifier_schema();
     Expression* second = 0;
     if (lex< exactly<':'> >()) {
       second = parse_list();

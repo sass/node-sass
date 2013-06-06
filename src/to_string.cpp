@@ -2,7 +2,7 @@
 #include <sstream>
 #include <iomanip>
 #include "to_string.hpp"
-#include "emit_formatted.hpp"
+#include "inspector.hpp"
 #include "ast.hpp"
 #include <iostream>
 
@@ -134,6 +134,37 @@ namespace Sass {
     return s->value();
   }
 
+  string To_String::operator()(Media_Query* mq)
+  {
+    string acc;
+    size_t i = 0;
+    if (mq->media_type()) {
+      if      (mq->is_negated())    acc += "not ";
+      else if (mq->is_restricted()) acc += "only ";
+      acc += mq->media_type()->perform(this);
+    }
+    else {
+      acc += (*mq)[i++]->perform(this);
+    }
+    for (size_t L = mq->length(); i < L; ++i) {
+      acc += " and ";
+      acc += (*mq)[i]->perform(this);
+    }
+    return acc;
+  }
+
+  string To_String::operator()(Media_Query_Expression* mqe)
+  {
+    string acc("(");
+    acc += mqe->feature()->perform(this);
+    if (mqe->value()) {
+      acc += ": ";
+      acc += mqe->value()->perform(this);
+    }
+    acc += ')';
+    return acc;
+  }
+
   string To_String::operator()(Argument* a)
   {
     string acc;
@@ -260,9 +291,9 @@ namespace Sass {
   // will only be called on non-terminal interpolants
   string To_String::fallback(AST_Node* n)
   {
-    Formatted_Emitter e;
-    n->perform(&e);
-    return e.get_buffer();
+    Inspector i;
+    n->perform(&i);
+    return i.get_buffer();
   }
 
 }

@@ -8,7 +8,7 @@ namespace Sass {
 	using namespace std;
 	class To_String;
 
-	class Formatted_Emitter : public Operation<void> {
+	class Inspector : public Operation<void> {
 		// import all the class-specific methods and override as desired
 		using Operation<void>::operator();
 		// override this to define a catch-all
@@ -21,8 +21,8 @@ namespace Sass {
 
 	public:
 
-		Formatted_Emitter();
-		virtual ~Formatted_Emitter();
+		Inspector();
+		virtual ~Inspector();
 
 		string get_buffer() { return buffer; }
 
@@ -62,7 +62,8 @@ namespace Sass {
 		// virtual void operator()(Boolean*);
 		// virtual void operator()(String_Schema*);
 		// virtual void operator()(String_Constant*);
-		virtual void operator()(Media_Query_Expression*);
+		// virtual void operator()(Media_Query*);
+		// virtual void operator()(Media_Query_Expression*);
 		// parameters and arguments
 		virtual void operator()(Parameter*);
 		virtual void operator()(Parameters*);
