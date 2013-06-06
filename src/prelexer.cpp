@@ -19,7 +19,7 @@ namespace Sass {
     }
 
     // Match any single character.
-    const char* any_char(const char* src) { return *src ? src++ : src; }
+    const char* any_char(const char* src) { return *src ? src+1 : src; }
 
     // Match a single character satisfying the ctype predicates.
     const char* space(const char* src) { return std::isspace(*src) ? src+1 : 0; }
@@ -76,15 +76,30 @@ namespace Sass {
       return negate< spaces >(src);
     }
 
+    const char* backslash_something(const char* src) {
+      return sequence< exactly<'\\'>, any_char >(src);
+    }
+
     // Match CSS identifiers.
     const char* identifier(const char* src) {
       return sequence< optional< exactly<'-'> >,
-                       alternatives< alpha, exactly<'_'> >,
+                       alternatives< alpha, exactly<'_'>, backslash_something >,
                        zero_plus< alternatives< alnum,
                                                 exactly<'-'>,
-                                                exactly<'_'> > > >(src);
+                                                exactly<'_'>,
+                                                backslash_something > > >(src);
     }
 
+    // Match CSS selectors.
+    const char* sel_ident(const char* src) {
+      return sequence< optional< alternatives< exactly<'-'>, exactly<'|'> > >,
+                       alternatives< alpha, exactly<'_'>, backslash_something, exactly<'|'> >,
+                       zero_plus< alternatives< alnum,
+                                                exactly<'-'>,
+                                                exactly<'_'>,
+                                                exactly<'|'>,
+                                                backslash_something > > >(src);
+    }
 
     // Match interpolant schemas
     const char* identifier_schema(const char* src) {

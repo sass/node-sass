@@ -52,9 +52,9 @@ namespace Sass {
     { stack.push_back(nothing); }
 
   public:
-    static Parser from_string(string src, Context& ctx, string path = "", size_t line = 0);
-    static Parser from_c_str(const char* src, Context& ctx, string path = "", size_t line = 0);
-    static Parser from_token(Token t, Context& ctx, string path = "", size_t line = 0);
+    static Parser from_string(string src, Context& ctx, string path = "", size_t line = 1);
+    static Parser from_c_str(const char* src, Context& ctx, string path = "", size_t line = 1);
+    static Parser from_token(Token t, Context& ctx, string path = "", size_t line = 1);
 
     template <prelexer mx>
     const char* peek(const char* start = 0)

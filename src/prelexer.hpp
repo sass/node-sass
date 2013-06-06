@@ -300,8 +300,12 @@ namespace Sass {
     const char* spaces_and_comments(const char* src);
     const char* no_spaces(const char* src);
 
+    const char* backslash_something(const char* src);
+
     // Match a CSS identifier.
     const char* identifier(const char* src);
+    // Match selector names.
+    const char* sel_ident(const char* src);
     // Match interpolant schemas
     const char* identifier_schema(const char* src);
     const char* value_schema(const char* src);

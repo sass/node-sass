@@ -836,34 +836,36 @@ namespace Sass {
   Expression* Parser::parse_value()
   {
     if (lex< uri_prefix >()) {
+      // TODO: really need to clean up this chunk
       Arguments* args = new (ctx.mem) Arguments(path, line);
       Function_Call* result = new (ctx.mem) Function_Call(path, line, "url", args);
-      if (lex< variable >()) {
-        Variable* var = new (ctx.mem) Variable(path, line, lexed);
-        (*args) << new (ctx.mem) Argument(path, line, var);
+      // gah, gonna have to use exception handling to do backtracking ...
+      const char* here = position;
+      try {
+        Expression* expr = parse_list();
+        (*args) << new (ctx.mem) Argument(path, line, expr);
       }
-      else if (peek< string_constant >()) {
-        String* s = parse_string();
-        (*args) << new (ctx.mem) Argument(path, line, s);
-      }
-      else if (peek< sequence< url_schema, spaces_and_comments, exactly<')'> > >()) {
-        lex< url_schema >();
-        String_Schema* the_url = Parser::from_token(lexed, ctx, path, line).parse_url_schema();
-        (*args) << new (ctx.mem) Argument(path, line, the_url);
-      }
-      else if (peek< sequence< url_value, spaces_and_comments, exactly<')'> > >()) {
-        lex< url_value >();
-        String_Constant* the_url = new (ctx.mem) String_Constant(path, line, lexed);
-        (*args) << new (ctx.mem) Argument(path, line, the_url);
-      }
-      else {
-        const char* value = position;
-        const char* rparen = find_first< exactly<')'> >(position);
-        if (!rparen) error("URI is missing ')'");
-        Token content_tok(Token(value, rparen));
-        String_Constant* content_node = new (ctx.mem) String_Constant(path, line, content_tok);
-        (*args) << new (ctx.mem) Argument(path, line, content_node);
-        position = rparen;
+      catch (Error& e) {
+        position = here;
+        if (peek< sequence< url_schema, spaces_and_comments, exactly<')'> > >()) {
+          lex< url_schema >();
+          String_Schema* the_url = Parser::from_token(lexed, ctx, path, line).parse_url_schema();
+          (*args) << new (ctx.mem) Argument(path, line, the_url);
+        }
+        else if (peek< sequence< url_value, spaces_and_comments, exactly<')'> > >()) {
+          lex< url_value >();
+          String_Constant* the_url = new (ctx.mem) String_Constant(path, line, lexed);
+          (*args) << new (ctx.mem) Argument(path, line, the_url);
+        }
+        else {
+          const char* value = position;
+          const char* rparen = find_first< exactly<')'> >(position);
+          if (!rparen) error("URI is missing ')'");
+          Token content_tok(Token(value, rparen));
+          String_Constant* content_node = new (ctx.mem) String_Constant(path, line, content_tok);
+          (*args) << new (ctx.mem) Argument(path, line, content_node);
+          position = rparen;
+        }
       }
       if (!lex< exactly<')'> >()) error("URI is missing ')'");
       return result;
@@ -1237,6 +1239,7 @@ namespace Sass {
     bool saw_interpolant = false;
 
     while ((q = peek< identifier >(p))                             ||
+           (q = peek< type_selector >(p))                          ||
            (q = peek< id_name >(p))                                ||
            (q = peek< class_name >(p))                             ||
            (q = peek< sequence< pseudo_prefix, identifier > >(p))  ||
@@ -1290,6 +1293,7 @@ namespace Sass {
     bool saw_stuff = false;
 
     while ((q = peek< identifier >(p))                             ||
+           (q = peek< type_selector >(p))                          ||
            (q = peek< id_name >(p))                                ||
            (q = peek< class_name >(p))                             ||
            (q = peek< sequence< pseudo_prefix, identifier > >(p))  ||
