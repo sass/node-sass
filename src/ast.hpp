@@ -90,7 +90,7 @@ namespace Sass {
     void adjust_after_pushing(Statement* s)
     {
       if (s->is_hoistable()) has_hoistable_     = true;
-      else                   has_non_hoistable_ = false;
+      else                   has_non_hoistable_ = true;
     };
   public:
     Block(string p, size_t l, size_t s = 0, bool r = false)
@@ -164,7 +164,7 @@ namespace Sass {
     ADD_PROPERTY(string, keyword);
     ADD_PROPERTY(Selector*, selector);
   public:
-    At_Rule(string p, size_t l, string kwd, Selector* sel, Block* b)
+    At_Rule(string p, size_t l, string kwd, Selector* sel = 0, Block* b = 0)
     : Has_Block(p, l, b), keyword_(kwd), selector_(sel)
     { }
     ATTACH_OPERATIONS();
