@@ -4,7 +4,6 @@
 #include "file.hpp"
 #include "constants.hpp"
 #include "error_handling.hpp"
-#include "to_string.hpp"
 
 #ifndef SASS_PRELEXER
 #include "prelexer.hpp"

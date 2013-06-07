@@ -4,15 +4,18 @@
 #include "operation.hpp"
 #endif
 
+#ifndef SASS_TO_STRING
+#include "to_string.hpp"
+#endif
+
 namespace Sass {
 	using namespace std;
-	class To_String;
 
-	class Inspector : public Operation<void> {
+	class Inspector : public Operation_CRTP<void, Inspector> {
 		// import all the class-specific methods and override as desired
-		using Operation<void>::operator();
+		using Operation_CRTP<void, Inspector>::operator();
 		// override this to define a catch-all
-		virtual void fallback(AST_Node* n);
+		// virtual void fallback(AST_Node* n);
 
 		To_String* to_string;
 		string buffer;
@@ -20,6 +23,9 @@ namespace Sass {
 		void indent();
 
 	public:
+		template <typename U>
+		void fallback(U x)
+		{ buffer += x->perform(to_string); }
 
 		Inspector();
 		virtual ~Inspector();
@@ -61,7 +67,7 @@ namespace Sass {
 		// virtual void operator()(Color*);
 		// virtual void operator()(Boolean*);
 		// virtual void operator()(String_Schema*);
-		// virtual void operator()(String_Constant*);
+		// virtual void operator()(String_Constant* x) { fallback(x); }
 		// virtual void operator()(Media_Query*);
 		// virtual void operator()(Media_Query_Expression*);
 		// parameters and arguments

@@ -1,10 +1,13 @@
 #define ATTACH_OPERATIONS()\
 virtual void perform(Operation<void>* op) { (*op)(this); }\
 virtual AST_Node* perform(Operation<AST_Node*>* op) { return (*op)(this); }\
+virtual Statement* perform(Operation<Statement*>* op) { cerr << typeid(*this).name() << "::perform" << endl; return (*op)(this); }\
+virtual Expression* perform(Operation<Expression*>* op) { return (*op)(this); }\
+virtual Selector* perform(Operation<Selector*>* op) { return (*op)(this); }\
 virtual string perform(Operation<string>* op) { return (*op)(this); }
 
 #define ADD_PROPERTY(type, name)\
-private:\
+protected:\
   type name##_;\
 public:\
   type name() const        { return name##_; }\

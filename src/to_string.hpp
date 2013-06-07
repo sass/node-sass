@@ -1,3 +1,5 @@
+#define SASS_TO_STRING
+
 #include <string>
 
 #ifndef SASS_OPERATION

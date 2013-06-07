@@ -1,6 +1,6 @@
-#include "inspector.hpp"
+#include "inspect.hpp"
 #include "ast.hpp"
-#include "to_string.hpp"
+// #include "to_string.hpp"
 #include <iostream>
 
 namespace Sass {
@@ -320,8 +320,8 @@ namespace Sass {
   // void Inspector::operator()(Selector_Combination*)
   // void Inspector::operator()(Selector_Group*)
 
-  void Inspector::fallback(AST_Node* n)
-  { buffer += n->perform(to_string); }
+  // void Inspector::fallback(AST_Node* n)
+  // { buffer += n->perform(to_string); }
 
   void Inspector::indent()
   { buffer += string(2*indentation, ' '); }

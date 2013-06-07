@@ -14,7 +14,8 @@
 #include "constants.hpp"
 #include "parser.hpp"
 #include "file.hpp"
-#include "inspector.hpp"
+#include "inspect.hpp"
+#include "expand.hpp"
 #include "copy_c_str.hpp"
 
 #ifndef SASS_PRELEXER
@@ -105,7 +106,7 @@ namespace Sass {
       contents = resolve_and_load(full_path);
       if (contents) {
         sources.push_back(contents);
-        queue.push_back(pair<string, const char*>(full_path, contents));
+        queue.push_back(make_pair(full_path, contents));
         style_sheets[full_path] = 0;
         return full_path;
       }
@@ -122,7 +123,10 @@ namespace Sass {
       if (i == 0) root = ast;
       style_sheets[queue[i].first] = ast;
     }
+    Environment<AST_Node*> tge;
+    Expand* eval = new Expand(mem, tge);
     Inspector* inspect = new Inspector();
+    // root->perform(eval)->perform(inspect);
     root->perform(inspect);
     char* result = copy_c_str(inspect->get_buffer().c_str());
     delete inspect;
@@ -133,7 +137,7 @@ namespace Sass {
   {
     if (!source_c_str) return 0;
     queue.clear();
-    queue.push_back(pair<string, const char*>("source string", source_c_str));
+    queue.push_back(make_pair("source string", source_c_str));
     return compile_file();
   }
 }

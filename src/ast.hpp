@@ -15,6 +15,7 @@
 #include "ast_def_macros.hpp"
 
 #include <iostream>
+#include <typeinfo>
 
 namespace Sass {
   using namespace std;
@@ -54,6 +55,9 @@ namespace Sass {
   //////////////////////////////////////////////////////////
   // Abstract base class for all abstract syntax tree nodes.
   //////////////////////////////////////////////////////////
+  class Statement;
+  class Expression;
+  class Selector;
   class AST_Node {
     ADD_PROPERTY(string, path);
     ADD_PROPERTY(size_t, line);
@@ -69,12 +73,14 @@ namespace Sass {
   // represents elements in expansion contexts, which exist primarily to be
   // rewritten and macro-expanded.
   /////////////////////////////////////////////////////////////////////////
+  class Block;
   class Statement : public AST_Node {
   public:
     Statement(string p, size_t l) : AST_Node(p, l) { }
     virtual ~Statement() = 0;
     // needed for rearranging nested rulesets during CSS emission
-    virtual bool is_hoistable() { return false; }
+    virtual bool   is_hoistable() { return false; }
+    virtual Block* block()        { return 0; }
   };
   inline Statement::~Statement() { }
 
@@ -89,6 +95,7 @@ namespace Sass {
   protected:
     void adjust_after_pushing(Statement* s)
     {
+      if (!s) cerr << "null?!" << endl;
       if (s->is_hoistable()) has_hoistable_     = true;
       else                   has_non_hoistable_ = true;
     };
@@ -98,6 +105,7 @@ namespace Sass {
       Vectorized(s),
       is_root_(r), has_hoistable_(false), has_non_hoistable_(false)
     { }
+    Block* block() { return this; }
     ATTACH_OPERATIONS();
   };
 
@@ -392,6 +400,23 @@ namespace Sass {
   };
   inline Expression::~Expression() { }
 
+  /////////////////////////////////////////////////////////////////////
+  // Mixin class for concrete value types that can show up as final CSS
+  // values and be passed to operators. Being able to explicitly fetch
+  // these will make arithmetic less cumbersome to implement.
+  /////////////////////////////////////////////////////////////////////
+  class Value {
+  public:
+    enum Type { NUMBER, PERCENTAGE, DIMENSION, COLOR, STRING, BOOLEAN, LIST };
+  private:
+    ADD_PROPERTY(Type, type);
+  public:
+    Value(Type t) : type_(t) { }
+    virtual ~Value() = 0;
+    virtual string type_name() { return string(); }
+  };
+  inline Value::~Value() { }
+
   ///////////////////////////////////////////////////////////////////////
   // Lists of values, both comma- and space-separated (distinguished by a
   // type-tag.) Also used to represent variable-length argument lists.
@@ -520,10 +545,12 @@ namespace Sass {
   };
   inline Numeric::~Numeric() { }
   class Number : public Numeric {
+  public:
     Number(string p, size_t l, double val) : Numeric(p, l, val) { }
     ATTACH_OPERATIONS();
   };
   class Percentage : public Numeric {
+  public:
     Percentage(string p, size_t l, double val) : Numeric(p, l, val) { }
     ATTACH_OPERATIONS();
   };

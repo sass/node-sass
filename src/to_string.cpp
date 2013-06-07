@@ -1,8 +1,12 @@
 #include <cmath>
 #include <sstream>
 #include <iomanip>
+
+#ifndef SASS_TO_STRING
 #include "to_string.hpp"
-#include "inspector.hpp"
+#endif
+
+#include "inspect.hpp"
 #include "ast.hpp"
 #include <iostream>
 
