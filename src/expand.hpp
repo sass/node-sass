@@ -21,12 +21,13 @@ namespace Sass {
 	class To_String;
 	class Apply;
 	class Statement;
+	class String;
 	class Selector;
 
 	typedef Environment<AST_Node*> Env;
 	typedef Memory_Manager<AST_Node*> Mem;
 
-	class Expand : public Operation<Statement*> {
+	class Expand : public Operation_CRTP<Statement*, Expand> {
 
 		Mem&              mem;
 		// To_String&        to_string;
@@ -34,7 +35,10 @@ namespace Sass {
 		Env&              global_env;
 		vector<Env>       env_stack;
 		vector<Block*>    block_stack;
+		vector<String*>   property_stack;
 		vector<Selector*> selector_stack;
+
+		Statement* fallback_impl(AST_Node* n);
 
 	public:
 		Expand(Mem&, /*To_String&,*/ Env&);
@@ -42,10 +46,15 @@ namespace Sass {
 
 		using Operation<Statement*>::operator();
 
-		Statement* fallback(Statement* n) { cerr << "identity!" << endl; return n; } // TODO: implement this
+		Statement* operator()(Block*);
+		Statement* operator()(Ruleset*);
+		Statement* operator()(Propset*);
+		Statement* operator()(At_Rule*);
+		Statement* operator()(Declaration*);
+		Statement* operator()(Definition*);
 
-		Statement* operator()(Block* b);
-		// Statement* operator()(Definition* d) { return fallback(d); }
+		template <typename U>
+		Statement* fallback(U x) { return fallback_impl(x); }
 	};
 
 }

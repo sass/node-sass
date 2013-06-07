@@ -1,6 +1,6 @@
 #include "inspect.hpp"
 #include "ast.hpp"
-// #include "to_string.hpp"
+#include "to_string.hpp"
 #include <iostream>
 
 namespace Sass {
@@ -49,8 +49,20 @@ namespace Sass {
   void Inspector::operator()(Propset* propset)
   {
     propset->property_fragment()->perform(this);
-    buffer += ":";
-    propset->block()->perform(this);
+    buffer += ": {\n";
+    ++indentation;
+    for (size_t i = 0, S = propset->declarations().size(); i < S; ++i) {
+      indent();
+      propset->declarations()[i]->perform(this);
+      buffer += '\n';
+    }
+    for (size_t i = 0, S = propset->propsets().size(); i < S; ++i) {
+      indent();
+      propset->propsets()[i]->perform(this);
+      buffer += '\n';
+    }
+    --indentation;
+    buffer += "}";
   }
 
   void Inspector::operator()(Media_Block* media_block)
@@ -320,8 +332,8 @@ namespace Sass {
   // void Inspector::operator()(Selector_Combination*)
   // void Inspector::operator()(Selector_Group*)
 
-  // void Inspector::fallback(AST_Node* n)
-  // { buffer += n->perform(to_string); }
+  inline void Inspector::fallback_impl(AST_Node* n)
+  { buffer += n->perform(to_string); }
 
   void Inspector::indent()
   { buffer += string(2*indentation, ' '); }

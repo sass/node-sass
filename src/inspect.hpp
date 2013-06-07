@@ -4,12 +4,13 @@
 #include "operation.hpp"
 #endif
 
-#ifndef SASS_TO_STRING
-#include "to_string.hpp"
-#endif
+// #ifndef SASS_TO_STRING
+// #include "to_string.hpp"
+// #endif
 
 namespace Sass {
 	using namespace std;
+	class To_String;
 
 	class Inspector : public Operation_CRTP<void, Inspector> {
 		// import all the class-specific methods and override as desired
@@ -22,10 +23,9 @@ namespace Sass {
 		size_t indentation;
 		void indent();
 
+		void fallback_impl(AST_Node* n);
+
 	public:
-		template <typename U>
-		void fallback(U x)
-		{ buffer += x->perform(to_string); }
 
 		Inspector();
 		virtual ~Inspector();
@@ -87,6 +87,10 @@ namespace Sass {
 		// virtual void operator()(Simple_Selector_Sequence*);
 		// virtual void operator()(Selector_Combination*);
 		// virtual void operator()(Selector_Group*);
+
+		template <typename U>
+		void fallback(U x) { fallback_impl(x); }
+		// { buffer += x->perform(to_string); }
 	};
 
 }

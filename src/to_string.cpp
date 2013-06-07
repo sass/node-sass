@@ -293,7 +293,7 @@ namespace Sass {
   }
 
   // will only be called on non-terminal interpolants
-  string To_String::fallback(AST_Node* n)
+  inline string To_String::fallback_impl(AST_Node* n)
   {
     Inspector i;
     n->perform(&i);

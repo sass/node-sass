@@ -271,11 +271,35 @@ namespace Sass {
       lex< sequence< optional< exactly<'*'> >, identifier > >();
       property_segment = new (ctx.mem) String_Constant(path, line, lexed);
     }
+    Propset* propset = new (ctx.mem) Propset(path, line, property_segment);
     lex< exactly<':'> >();
-    Block* block = parse_block();
-    if (block->empty()) error("namespaced property cannot be empty");
-    Propset* propset = new (ctx.mem) Propset(path, line, property_segment, block);
+
+    if (!lex< exactly<'{'> >()) error("expected a '{' after namespaced property");
+
+    while (!lex< exactly<'}'> >()) {
+      if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
+        propset->propsets().push_back(parse_propset());
+      }
+      else {
+        propset->declarations().push_back(parse_declaration());
+        if (!peek< exactly<'}'> >()) {
+          if (!lex< exactly<';'> >()) {
+            error("non-terminal declaration must end with ';'");
+          }
+        }
+      }
+    }
+
+    if (propset->declarations().empty() && propset->propsets().empty()) {
+      error("namespaced property cannot be empty");
+    }
+
     return propset;
+
+    // Block* block = parse_block();
+    // if (block->empty()) error("namespaced property cannot be empty");
+    // Propset* propset = new (ctx.mem) Propset(path, line, property_segment, block);
+    // return propset;
   }
 
   Ruleset* Parser::parse_ruleset(Selector_Lookahead lookahead)
@@ -620,15 +644,17 @@ namespace Sass {
       }
       else if (!peek< exactly<';'> >()) {
         if (peek< sequence< optional< exactly<'*'> >, identifier_schema, exactly<':'>, exactly<'{'> > >()) {
-          String* prop = parse_identifier_schema();
-          Block* inner = parse_block();
-          (*block) << new (ctx.mem) Propset(path, line, prop, block);
+          (*block) << parse_propset();
+          // String* prop = parse_identifier_schema();
+          // Block* inner = parse_block();
+          // (*block) << new (ctx.mem) Propset(path, line, prop, block);
         }
         else if (peek< sequence< optional< exactly<'*'> >, identifier, exactly<':'>, exactly<'{'> > >()) {
-          lex< sequence< optional< exactly<'*'> >, identifier > >();
-          String* prop = new (ctx.mem) String_Constant(path, line, lexed);
-          Block* inner = parse_block();
-          (*block) << new (ctx.mem) Propset(path, line, prop, block);
+          (*block) << parse_propset();
+          // lex< sequence< optional< exactly<'*'> >, identifier > >();
+          // String* prop = new (ctx.mem) String_Constant(path, line, lexed);
+          // Block* inner = parse_block();
+          // (*block) << new (ctx.mem) Propset(path, line, prop, block);
         }
         else {
           (*block) << parse_declaration();
@@ -1148,7 +1174,6 @@ namespace Sass {
     List* media_queries = parse_media_queries();
 
     if (!peek< exactly<'{'> >()) {
-      cerr << string(position, 16) << endl;
       error("expected '{' in media query");
     }
     Block* block = parse_block();

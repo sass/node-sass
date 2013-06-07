@@ -124,10 +124,10 @@ namespace Sass {
       style_sheets[queue[i].first] = ast;
     }
     Environment<AST_Node*> tge;
-    Expand* eval = new Expand(mem, tge);
+    Expand* expand = new Expand(mem, tge);
     Inspector* inspect = new Inspector();
-    // root->perform(eval)->perform(inspect);
-    root->perform(inspect);
+    root->perform(expand)->perform(inspect);
+    // root->perform(inspect);
     char* result = copy_c_str(inspect->get_buffer().c_str());
     delete inspect;
     return result;
