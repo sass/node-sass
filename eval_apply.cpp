@@ -127,7 +127,12 @@ namespace Sass {
       } break;
 
       case Node::media_query: {
-        expand(expr[0], prefix, env, f_env, new_Node, ctx, bt, false, content);
+        Node id(expr[0]);
+        if( id.is_schema() || id.should_eval()) {
+          expr[0] = eval(id, prefix, env, f_env, new_Node, ctx, bt);
+        } else {
+          expand(expr[0], prefix, env, f_env, new_Node, ctx, bt, false, content);
+        }
         expand(expr[1], prefix, env, f_env, new_Node, ctx, bt, false, content);
         expr << prefix;
       } break;
