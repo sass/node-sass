@@ -595,6 +595,9 @@ namespace Sass {
       else if (stack.back() == function_def) {
         error("only variable declarations and control directives are allowed inside functions");
       }
+      else if (peek< mixin >() || peek< function >()) {
+        (*block) << parse_definition();
+      }
       else if (peek< include >(position)) {
         Mixin_Call* the_call = parse_mixin_call();
         (*block) << the_call;

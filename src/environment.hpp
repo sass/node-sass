@@ -17,6 +17,8 @@ namespace Sass {
   public:
     Environment() : current_frame_(map<string, T>()), parent_(0) { }
 
+    map<string, T>& current_frame() { return current_frame_; }
+
     void link(Environment& env) { parent_ = &env; }
     void link(Environment* env) { parent_ = env; }
 

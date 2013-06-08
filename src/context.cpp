@@ -124,7 +124,7 @@ namespace Sass {
       style_sheets[queue[i].first] = ast;
     }
     Environment<AST_Node*> tge;
-    Expand* expand = new Expand(mem, tge);
+    Expand* expand = new Expand(*this, &tge);
     Inspector* inspect = new Inspector();
     root->perform(expand)->perform(inspect);
     // root->perform(inspect);

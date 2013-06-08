@@ -55,6 +55,7 @@ namespace Sass {
   //////////////////////////////////////////////////////////
   // Abstract base class for all abstract syntax tree nodes.
   //////////////////////////////////////////////////////////
+  class Block;
   class Statement;
   class Expression;
   class Selector;
@@ -64,6 +65,7 @@ namespace Sass {
   public:
     AST_Node(string p, size_t l) : path_(p), line_(l) { }
     virtual ~AST_Node() = 0;
+    // virtual Block* block() { return 0; }
     ATTACH_OPERATIONS();
   };
   inline AST_Node::~AST_Node() { }
@@ -73,7 +75,6 @@ namespace Sass {
   // represents elements in expansion contexts, which exist primarily to be
   // rewritten and macro-expanded.
   /////////////////////////////////////////////////////////////////////////
-  class Block;
   class Statement : public AST_Node {
   public:
     Statement(string p, size_t l) : AST_Node(p, l) { }
@@ -335,15 +336,6 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
 
-  ///////////////////////////////////////////////////
-  // The @content directive for mixin content blocks.
-  ///////////////////////////////////////////////////
-  class Content : public Statement {
-  public:
-    Content(string p, size_t l) : Statement(p, l) { }
-    ATTACH_OPERATIONS();
-  };
-
   ////////////////////////////////
   // The Sass `@extend` directive.
   ////////////////////////////////
@@ -389,6 +381,15 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
 
+  ///////////////////////////////////////////////////
+  // The @content directive for mixin content blocks.
+  ///////////////////////////////////////////////////
+  class Content : public Statement {
+  public:
+    Content(string p, size_t l) : Statement(p, l) { }
+    ATTACH_OPERATIONS();
+  };
+
   //////////////////////////////////////////////////////////////////////
   // Abstract base class for expressions. This side of the AST hierarchy
   // represents elements in value contexts, which exist primarily to be
@@ -402,6 +403,7 @@ namespace Sass {
     Expression(string p, size_t l, bool d = false, bool i = false)
     : AST_Node(p, l), is_delayed_(d), is_interpolant_(i)
     { }
+    virtual operator bool() { return true; }
     virtual ~Expression() = 0;
     virtual string type() { return ""; /* TODO: raise an error */ }
   };
@@ -598,6 +600,7 @@ namespace Sass {
     ADD_PROPERTY(bool, value);
   public:
     Boolean(string p, size_t l, bool val) : Expression(p, l), value_(val) { }
+    virtual operator bool() { return value_; }
     string type() { return "bool"; }
     ATTACH_OPERATIONS();
   };

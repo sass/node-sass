@@ -184,11 +184,6 @@ namespace Sass {
     buffer += ';';
   }
 
-  void Inspector::operator()(Content* content)
-  {
-    buffer += "@content;";
-  }
-
   void Inspector::operator()(Extend* extend)
   {
     buffer += "@extend ";
@@ -216,6 +211,11 @@ namespace Sass {
       call->block()->perform(this);
     }
     if (!call->block()) buffer += ';';
+  }
+
+  void Inspector::operator()(Content* content)
+  {
+    buffer += "@content;";
   }
 
   // expressions
