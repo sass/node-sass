@@ -42,6 +42,11 @@ extern "C" {
   sass_folder_context* sass_new_folder_context()
     { return (sass_folder_context*) calloc(1, sizeof(sass_folder_context)); }
 
+  void sass_free_folder_context(sass_folder_context* ctx)
+  { 
+    free(ctx);
+  }
+
   static char* process_document(Sass::Document& doc, int style)
   {
     using namespace Sass;
