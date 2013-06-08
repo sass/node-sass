@@ -43,9 +43,7 @@ extern "C" {
     { return (sass_folder_context*) calloc(1, sizeof(sass_folder_context)); }
 
   void sass_free_folder_context(sass_folder_context* ctx)
-  { 
-    free(ctx);
-  }
+    { free(ctx); }
 
   static char* process_document(Sass::Document& doc, int style)
   {
