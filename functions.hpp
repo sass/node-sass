@@ -1,158 +1,254 @@
+#define SASS_FUNCTIONS
+
 #include <cstring>
 #include <map>
 
-#ifndef SASS_NODE_INCLUDED
+#ifndef SASS_NODE
 #include "node.hpp"
 #endif
 
+#ifndef SASS_BACKTRACE
+#include "backtrace.hpp"
+#endif
+
 namespace Sass {
+  struct Environment;
+  struct Context;
+  struct Node_Factory;
+
   using std::map;
-  
-  typedef Node (*Implementation)(const vector<Token>&, map<Token, Node>&, vector<vector<Node>*>& registry);
-  typedef const char* str;
-  typedef str Function_Descriptor[];
-  
+
+  typedef Node (*Primitive)(const Node, Environment&, Node_Factory&, Backtrace& bt, string&, size_t);
+  typedef Sass_Value (*C_Function)(Sass_Value);
+  typedef const char Signature[];
+
   struct Function {
-    
+
     string name;
-    vector<Token> parameters;
-    Implementation implementation;
-    
+    Node parameters;
+    Node parameter_names;
+    Node definition;
+    Primitive primitive;
+    C_Function c_func;
+    bool overloaded;
+
     Function()
     { /* TO DO: set up the generic callback here */ }
-    
-    Function(Function_Descriptor d, Implementation ip)
-    : name(d[0]),
-      parameters(vector<Token>()),
-      implementation(ip)
-    {
-      size_t len = 0;
-      while (d[len+1]) ++len;
-      
-      parameters.reserve(len);
-      for (size_t i = 0; i < len; ++i) {
-        const char* p = d[i+1];
-        Token name(Token::make(p, p + std::strlen(p)));
-        parameters.push_back(name);
-      }
-    }
-    
-    Node operator()(map<Token, Node>& bindings, vector<vector<Node>*>& registry) const
-    { return implementation(parameters, bindings, registry); }
+
+    // for user-defined functions
+    Function(Node def)
+    : name(def[0].to_string()),
+      parameters(def[1]),
+      definition(def),
+      primitive(0),
+      c_func(0),
+      overloaded(false)
+    { }
+
+    // Stub for overloaded primitives
+    Function(string name, bool overloaded = true)
+    : name(name),
+      parameters(Node()),
+      definition(Node()),
+      primitive(0),
+      c_func(0),
+      overloaded(overloaded)
+    { }
+
+    Function(char* signature, Primitive ip, Context& ctx);
+    Function(char* signature, C_Function ip, Context& ctx);
+
+    // Node operator()(Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) const
+    // {
+    //   if (primitive) {
+    //     return primitive(parameters, bindings, new_Node, bt, path, line);
+    //   }
+    //   else {
+    //     return Node();
+    //   }
+    // }
 
   };
-  
+
   namespace Functions {
 
     // RGB Functions ///////////////////////////////////////////////////////
 
-    extern Function_Descriptor rgb_descriptor;
-    Node rgb(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
+    extern Signature rgb_sig;
+    Node rgb(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
 
-    extern Function_Descriptor rgba_4_descriptor;
-    Node rgba_4(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
-    extern Function_Descriptor rgba_2_descriptor;
-    Node rgba_2(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
-    extern Function_Descriptor red_descriptor;
-    Node red(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
-    extern Function_Descriptor green_descriptor;
-    Node green(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
-    extern Function_Descriptor blue_descriptor;
-    Node blue(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
-    extern Function_Descriptor mix_2_descriptor;
-    Node mix_2(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
-    extern Function_Descriptor mix_3_descriptor;
-    Node mix_3(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
+    extern Signature rgba_4_sig;
+    Node rgba_4(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature rgba_2_sig;
+    Node rgba_2(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature red_sig;
+    Node red(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature green_sig;
+    Node green(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature blue_sig;
+    Node blue(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature mix_sig;
+    Node mix(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
     // HSL Functions ///////////////////////////////////////////////////////
-    
-    extern Function_Descriptor hsla_descriptor;
-    Node hsla(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
-    extern Function_Descriptor hsl_descriptor;
-    Node hsl(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
 
-    extern Function_Descriptor invert_descriptor;
-    Node invert(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
+    extern Signature hsl_sig;
+    Node hsl(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature hsla_sig;
+    Node hsla(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature hue_sig;
+    Node hue(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature saturation_sig;
+    Node saturation(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature lightness_sig;
+    Node lightness(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature adjust_hue_sig;
+    Node adjust_hue(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature lighten_sig;
+    Node lighten(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature darken_sig;
+    Node darken(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature saturate_sig;
+    Node saturate(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature desaturate_sig;
+    Node desaturate(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature grayscale_sig;
+    Node grayscale(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature complement_sig;
+    Node complement(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature invert_sig;
+    Node invert(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
     // Opacity Functions ///////////////////////////////////////////////////
 
-    extern Function_Descriptor alpha_descriptor;
-    extern Function_Descriptor opacity_descriptor;
-    Node alpha(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
-    extern Function_Descriptor opacify_descriptor;
-    extern Function_Descriptor fade_in_descriptor;
-    Node opacify(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
-    extern Function_Descriptor transparentize_descriptor;
-    extern Function_Descriptor fade_out_descriptor;
-    Node transparentize(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
+    extern Signature alpha_sig;
+    Node alpha(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature opacity_sig;
+    Node opacity(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature opacify_sig;
+    Node opacify(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature fade_in_sig;
+    Node fade_in(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature transparentize_sig;
+    Node transparentize(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature fade_out_sig;
+    Node fade_out(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    // Other Color Functions ///////////////////////////////////////////////
+
+    extern Signature adjust_color_sig;
+    Node adjust_color(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature scale_color_sig;
+    Node scale_color(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature change_color_sig;
+    Node change_color(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature ie_hex_str_sig;
+    Node ie_hex_str(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
     // String Functions ////////////////////////////////////////////////////
 
-    extern Function_Descriptor unquote_descriptor;
-    Node unquote(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
-    extern Function_Descriptor quote_descriptor;
-    Node quote(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
+    extern Signature unquote_sig;
+    Node unquote(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature quote_sig;
+    Node quote(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
     // Number Functions ////////////////////////////////////////////////////
 
-    extern Function_Descriptor percentage_descriptor;
-    Node percentage(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
+    extern Signature percentage_sig;
+    Node percentage(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
 
-    extern Function_Descriptor round_descriptor;
-    Node round(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
+    extern Signature round_sig;
+    Node round(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
 
-    extern Function_Descriptor ceil_descriptor;
-    Node ceil(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
+    extern Signature ceil_sig;
+    Node ceil(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
 
-    extern Function_Descriptor floor_descriptor;
-    Node floor(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
+    extern Signature floor_sig;
+    Node floor(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
 
-    extern Function_Descriptor abs_descriptor;    
-    Node abs(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
+    extern Signature abs_sig;
+    Node abs(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature min_sig;
+    Node min(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature max_sig;
+    Node max(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
     // List Functions //////////////////////////////////////////////////////
-    
-    extern Function_Descriptor length_descriptor;
-    Node length(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
 
-    extern Function_Descriptor nth_descriptor;
-    Node nth(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
+    extern Signature length_sig;
+    Node length(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
 
-    extern Function_Descriptor join_2_descriptor;    
-    Node join_2(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
-    extern Function_Descriptor join_3_descriptor;    
-    Node join_3(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
+    extern Signature nth_sig;
+    Node nth(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature index_sig;
+    Node index(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature join_sig;
+    Node join(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature append_sig;
+    Node append(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature compact_1_sig;
+    Node compact_1(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature compact_n_sig;
+    Node compact_n(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
     // Introspection Functions /////////////////////////////////////////////
-    
-    extern Function_Descriptor type_of_descriptor;
-    Node type_of(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
 
-    extern Function_Descriptor unit_descriptor;
-    Node unit(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
-    extern Function_Descriptor unitless_descriptor;    
-    Node unitless(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
-    extern Function_Descriptor comparable_descriptor;    
-    Node comparable(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
-    
+    extern Signature type_of_sig;
+    Node type_of(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature unit_sig;
+    Node unit(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature unitless_sig;
+    Node unitless(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature comparable_sig;
+    Node comparable(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
     // Boolean Functions ///////////////////////////////////////////////////
-    
-    extern Function_Descriptor not_descriptor;
-    Node not_impl(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry);
 
+    extern Signature not_sig;
+    Node not_impl(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature if_sig;
+    Node if_impl(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    // Path Functions //////////////////////////////////////////////////////
+
+    extern Signature image_url_sig;
+    Node image_url(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
   }
-  
 }

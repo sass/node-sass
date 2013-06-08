@@ -1,3 +1,5 @@
+#define SASS_INTERFACE
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -7,17 +9,24 @@ extern "C" {
 #define SASS_STYLE_COMPACT    2
 #define SASS_STYLE_COMPRESSED 3
 
+#define SASS_SOURCE_COMMENTS_NONE 0
+#define SASS_SOURCE_COMMENTS_DEFAULT 1
+#define SASS_SOURCE_COMMENTS_MAP 2
+
 struct sass_options {
   int output_style;
+  int source_comments; // really want a bool, but C doesn't have them
   char* include_paths;
+  char* image_path;
 };
 
 struct sass_context {
-  char* input_string;
+  const char* source_string;
   char* output_string;
   struct sass_options options;
   int error_status;
   char* error_message;
+  struct Sass_C_Function_Data* c_functions;
 };
 
 struct sass_file_context {
@@ -26,6 +35,7 @@ struct sass_file_context {
   struct sass_options options;
   int error_status;
   char* error_message;
+  struct Sass_C_Function_Data* c_functions;
 };
 
 struct sass_folder_context {
@@ -34,6 +44,7 @@ struct sass_folder_context {
   struct sass_options options;
   int error_status;
   char* error_message;
+  struct Sass_C_Function_Data* c_functions;
 };
 
 struct sass_context*        sass_new_context        (void);

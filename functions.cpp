@@ -1,599 +1,1243 @@
-#ifndef SASS_PRELEXER_INCLUDED
+#include <iostream>
+#include <sstream>
+#include <cmath>
+#include <algorithm>
+
+#include "functions.hpp"
+#include "constants.hpp"
+#include "node_factory.hpp"
+#include "context.hpp"
+#include "document.hpp"
+#include "eval_apply.hpp"
+#include "error.hpp"
+
+#ifndef SASS_PRELEXER
 #include "prelexer.hpp"
 #endif
-#include "functions.hpp"
-#include "error.hpp"
-#include <iostream>
-#include <cmath>
-using std::cerr; using std::endl;
+
+using std::cerr; using std::endl; using std::stringstream;
 
 namespace Sass {
+  using namespace Constants;
+
+  // this constructor needs context.hpp, so it can't be defined in functions.hpp
+  // because including context.hpp in functions.hpp would be circular
+  Function::Function(char* signature, Primitive ip, Context& ctx)
+  : definition(Node()),
+    primitive(ip),
+    c_func(0),
+    overloaded(false)
+  {
+    Document sig_doc(Document::make_from_source_chars(ctx, signature));
+    sig_doc.lex<Prelexer::identifier>();
+    name = sig_doc.lexed.to_string();
+    parameters = sig_doc.parse_parameters();
+    parameter_names = ctx.new_Node(Node::parameters, "[PRIMITIVE FUNCTIONS]", 0, parameters.size());
+    for (size_t i = 0, S = parameters.size(); i < S; ++i) {
+      Node param(parameters[i]);
+      if (param.type() == Node::variable) {
+        parameter_names << param;
+      }
+      else if(param.type() == Node::rest) {
+        parameter_names << param;
+      }
+      else {
+        parameter_names << param[0];
+        // assume it's safe to evaluate default args just once at initialization
+        Backtrace dummy_trace(0, signature, 0, "default argument");
+        param[1] = eval(param[1], Node(), ctx.global_env, ctx.function_env, ctx.new_Node, ctx, dummy_trace);
+      }
+    }
+  }
+
+  Function::Function(char* signature, C_Function ip, Context& ctx)
+  : definition(Node()),
+    primitive(0),
+    c_func(ip),
+    overloaded(false)
+  {
+    Document sig_doc(Document::make_from_source_chars(ctx, signature));
+    sig_doc.lex<Prelexer::identifier>();
+    name = sig_doc.lexed.to_string();
+    parameters = sig_doc.parse_parameters();
+    parameter_names = ctx.new_Node(Node::parameters, "[C FUNCTIONS]", 0, parameters.size());
+    for (size_t i = 0, S = parameters.size(); i < S; ++i) {
+      Node param(parameters[i]);
+      if (param.type() == Node::variable) {
+        parameter_names << param;
+      }
+      else {
+        parameter_names << param[0];
+        // assume it's safe to evaluate default args just once at initialization
+        Backtrace dummy_trace(0, signature, 0, "default argument");
+        param[1] = eval(param[1], Node(), ctx.global_env, ctx.function_env, ctx.new_Node, ctx, dummy_trace);
+      }
+    }
+  }
+
   namespace Functions {
-    
-    static void eval_error(string message, size_t line_number, const char* file_name)
+
+    static void throw_eval_error(Backtrace& bt, string message, string& path, size_t line)
     {
-      string fn;
-      if (file_name) {
-        const char* end = Prelexer::string_constant(file_name);
-        if (end) fn = string(file_name, end - file_name);
-        else fn = string(file_name);
-      }
-      throw Error(Error::evaluation, line_number, fn, message);
+      if (!path.empty() && Prelexer::string_constant(path.c_str()))
+        path = path.substr(1, path.length() - 1);
+
+      // Backtrace top(&bt, path, line, "");
+      message += bt.to_string();
+
+      throw Error(Error::evaluation, path, line, message);
     }
 
+    static const char* nameof(Node::Type t) {
+      switch (t)
+      {
+        case Node::numeric: {
+          return numeric_name;
+        } break;
+
+        case Node::number: {
+          return number_name;
+        } break;
+
+        case Node::numeric_percentage: {
+          return percentage_name;
+        } break;
+
+        case Node::numeric_dimension: {
+          return dimension_name;
+        } break;
+
+        case Node::string_t:
+        case Node::identifier:
+        case Node::value_schema:
+        case Node::identifier_schema:
+        case Node::string_constant:
+        case Node::string_schema:
+        case Node::concatenation: {
+          return string_name;
+        } break;
+
+        case Node::boolean: {
+          return bool_name;
+        } break;
+
+        case Node::numeric_color: {
+          return color_name;
+        } break;
+
+        case Node::list: {
+          return list_name;
+        } break;
+
+        default: {
+          return empty_str;
+        } break;
+      }
+      // unreachable statement
+      return empty_str;
+    }
+
+    // Functions for fetching and checking arguments.
+    static Node arg(Signature sig, string& path, size_t line, const Node parameter_names, Environment& bindings, size_t param_num, Node::Type param_type, Backtrace& bt) {
+      Node the_arg(bindings[parameter_names[param_num].token()]);
+      Node::Type arg_type = the_arg.type();
+      switch (param_type)
+      {
+        case Node::any: {
+          return the_arg;
+        } break;
+
+        case Node::numeric: {
+          if (the_arg.is_numeric()) return the_arg;
+        } break;
+
+        case Node::string_t: {
+          switch (arg_type)
+          {
+            case Node::identifier:
+            case Node::value_schema:
+            case Node::identifier_schema:
+            case Node::string_constant:
+            case Node::string_schema:
+            case Node::concatenation: return the_arg;
+
+            default: break;
+
+          } break;
+        } break;
+
+        default: {
+          if (arg_type == param_type) return the_arg;
+        } break;
+      }
+      stringstream msg;
+      msg << nameof(param_type) << " required for argument " << param_num+1 << " in call to '" << sig << "'";
+      throw_eval_error(bt, msg.str(), path, line);
+      // unreachable statement
+      return Node();
+    }
+
+    static Node arg(Signature sig, string& path, size_t line, const Node parameter_names, Environment& bindings, size_t param_num, Node::Type t, double low, double high, Backtrace& bt) {
+      Node the_arg(arg(sig, path, line, parameter_names, bindings, param_num, t, bt));
+      if (!the_arg.is_numeric()) {
+        stringstream msg;
+        msg << "numeric value required for argument " << param_num+1 << " in call to '" << sig << "'";
+        throw_eval_error(bt, msg.str(), path, line);
+      }
+      double val = the_arg.numeric_value();
+      if (val < low || high < val) {
+        stringstream msg;
+        msg << "argument " << param_num+1 << " must be between " << low << " and " << high << " in call to '" << sig << "'";
+        throw_eval_error(bt, msg.str(), path, line);
+      }
+      return the_arg;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
     // RGB Functions ///////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
 
-    Function_Descriptor rgb_descriptor = 
-    { "rgb", "$red", "$green", "$blue", 0 };
-    Node rgb(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node r(bindings[parameters[0]]);
-      Node g(bindings[parameters[1]]);
-      Node b(bindings[parameters[2]]);
-      if (!(r.type == Node::number && g.type == Node::number && b.type == Node::number)) {
-        eval_error("arguments for rgb must be numbers", r.line_number, r.file_name);
-      }
-      Node color(Node::numeric_color, registry, 0, 4);
-      color << r << g << b << Node(0, 1.0);
-      return color;
+    extern Signature rgb_sig = "rgb($red, $green, $blue)";
+    Node rgb(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      double r = arg(rgb_sig, path, line, parameter_names, bindings, 0, Node::numeric, 0, 255, bt).numeric_value();
+      double g = arg(rgb_sig, path, line, parameter_names, bindings, 1, Node::numeric, 0, 255, bt).numeric_value();
+      double b = arg(rgb_sig, path, line, parameter_names, bindings, 2, Node::numeric, 0, 255, bt).numeric_value();
+      return new_Node(path, line, std::floor(r), std::floor(g), std::floor(b), 1.0);
     }
 
-    Function_Descriptor rgba_4_descriptor = 
-    { "rgba", "$red", "$green", "$blue", "$alpha", 0 };
-    Node rgba_4(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node r(bindings[parameters[0]]);
-      Node g(bindings[parameters[1]]);
-      Node b(bindings[parameters[2]]);
-      Node a(bindings[parameters[3]]);
-      if (!(r.type == Node::number && g.type == Node::number && b.type == Node::number && a.type == Node::number)) {
-        eval_error("arguments for rgba must be numbers", r.line_number, r.file_name);
-      }
-      Node color(Node::numeric_color, registry, 0, 4);
-      color << r << g << b << a;
-      return color;
+    extern Signature rgba_4_sig = "rgba($red, $green, $blue, $alpha)";
+    Node rgba_4(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      double r = arg(rgba_4_sig, path, line, parameter_names, bindings, 0, Node::numeric, 0, 255, bt).numeric_value();
+      double g = arg(rgba_4_sig, path, line, parameter_names, bindings, 1, Node::numeric, 0, 255, bt).numeric_value();
+      double b = arg(rgba_4_sig, path, line, parameter_names, bindings, 2, Node::numeric, 0, 255, bt).numeric_value();
+      double a = arg(rgba_4_sig, path, line, parameter_names, bindings, 3, Node::numeric, 0, 1, bt).numeric_value();
+      return new_Node(path, line, std::floor(r), std::floor(g), std::floor(b), a);
     }
-    
-    Function_Descriptor rgba_2_descriptor = 
-    { "rgba", "$color", "$alpha", 0 };
-    Node rgba_2(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node color(bindings[parameters[0]].clone(registry));
-      color[3] = bindings[parameters[1]];
-      return color;
+
+    extern Signature rgba_2_sig = "rgba($color, $alpha)";
+    Node rgba_2(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color_arg(arg(rgba_2_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      Node alpha_arg(arg(rgba_2_sig, path, line, parameter_names, bindings, 1, Node::numeric, 0, 1, bt));
+      double r = color_arg[0].numeric_value();
+      double g = color_arg[1].numeric_value();
+      double b = color_arg[2].numeric_value();
+      double a = alpha_arg.numeric_value();
+      return new_Node(path, line, r, g, b, a);
     }
-    
-    Function_Descriptor red_descriptor =
-    { "red", "$color", 0 };
-    Node red(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node color(bindings[parameters[0]]);
-      if (color.type != Node::numeric_color) eval_error("argument to red must be a color", color.line_number, color.file_name);
-      return color[0];
+
+    extern Signature red_sig = "red($color)";
+    Node red(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color(arg(red_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      return new_Node(path, line, color[0]);
     }
-    
-    Function_Descriptor green_descriptor =
-    { "green", "$color", 0 };
-    Node green(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node color(bindings[parameters[0]]);
-      if (color.type != Node::numeric_color) eval_error("argument to green must be a color", color.line_number, color.file_name);
-      return color[1];
+
+    extern Signature green_sig = "green($color)";
+    Node green(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color(arg(green_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      return new_Node(path, line, color[1]);
     }
-    
-    Function_Descriptor blue_descriptor =
-    { "blue", "$color", 0 };
-    Node blue(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node color(bindings[parameters[0]]);
-      if (color.type != Node::numeric_color) eval_error("argument to blue must be a color", color.line_number, color.file_name);
-      return color[2];
+
+    extern Signature blue_sig = "blue($color)";
+    Node blue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color(arg(blue_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      return new_Node(path, line, color[2]);
     }
-    
-    Node mix_impl(Node color1, Node color2, double weight, vector<vector<Node>*>& registry) {
-      if (!(color1.type == Node::numeric_color && color2.type == Node::numeric_color)) {
-        eval_error("first two arguments to mix must be colors", color1.line_number, color1.file_name);
-      }
-      double p = weight/100;
+
+    extern Signature mix_sig = "mix($color-1, $color-2, $weight: 50%)";
+    Node mix(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color1(arg(mix_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      Node color2(arg(mix_sig, path, line, parameter_names, bindings, 1, Node::numeric_color, bt));
+      Node weight(arg(mix_sig, path, line, parameter_names, bindings, 2, Node::numeric, 0, 100, bt));
+
+      double p = weight.numeric_value()/100;
       double w = 2*p - 1;
-      double a = color1[3].content.numeric_value - color2[3].content.numeric_value;
-      
+      double a = color1[3].numeric_value() - color2[3].numeric_value();
+
       double w1 = (((w * a == -1) ? w : (w + a)/(1 + w*a)) + 1)/2.0;
       double w2 = 1 - w1;
-      
-      Node mixed(Node::numeric_color, registry, color1.line_number, 4);
+
+      Node mixed(new_Node(Node::numeric_color, path, line, 4));
       for (int i = 0; i < 3; ++i) {
-        mixed << Node(mixed.line_number, w1*color1[i].content.numeric_value +
-                                         w2*color2[i].content.numeric_value);
+        mixed << new_Node(path, line, std::floor(w1*color1[i].numeric_value() + w2*color2[i].numeric_value()));
       }
-      double alpha = color1[3].content.numeric_value*p + color2[3].content.numeric_value*(1-p);
-      mixed << Node(mixed.line_number, alpha);
+      double alpha = color1[3].numeric_value()*p + color2[3].numeric_value()*(1-p);
+      mixed << new_Node(path, line, alpha);
       return mixed;
     }
-    
-    Function_Descriptor mix_2_descriptor =
-    { "mix", "$color1", "$color2", 0 };
-    Node mix_2(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      return mix_impl(bindings[parameters[0]], bindings[parameters[1]], 50, registry);
-    }
-    
-    Function_Descriptor mix_3_descriptor =
-    { "mix", "$color1", "$color2", "$weight", 0 };
-    Node mix_3(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node percentage(bindings[parameters[2]]);
-      if (!(percentage.type == Node::number || percentage.type == Node::numeric_percentage || percentage.type == Node::numeric_dimension)) {
-        eval_error("third argument to mix must be numeric", percentage.line_number, percentage.file_name);
-      }
-      return mix_impl(bindings[parameters[0]],
-                      bindings[parameters[1]],
-                      percentage.numeric_value(),
-                      registry);
-    }
-    
+
+    ////////////////////////////////////////////////////////////////////////
     // HSL Functions ///////////////////////////////////////////////////////
-    
+    ////////////////////////////////////////////////////////////////////////
+
+    // RGB to HSL helper function so we can do hsl operations.
+    // (taken from http://www.easyrgb.com)
+    Node rgb_to_hsl(double r, double g, double b, Node_Factory& new_Node, string& path, size_t line) {
+      r /= 255.0; g /= 255.0; b /= 255.0;
+
+      double max = std::max(r, std::max(g, b));
+      double min = std::min(r, std::min(g, b));
+      double del = max - min;
+
+      double h = 0, s = 0, l = (max + min)/2;
+
+      if (max == min) {
+        h = s = 0; // achromatic
+      }
+      else {
+        if (l < 0.5) s = del / (max + min);
+        else         s = del / (2.0 - max - min);
+
+        double dr = (((max - r)/6.0) + (del/2.0))/del;
+        double dg = (((max - g)/6.0) + (del/2.0))/del;
+        double db = (((max - b)/6.0) + (del/2.0))/del;
+
+        if      (r == max) h = db - dg;
+        else if (g == max) h = (1.0/3.0) + dr - db;
+        else if (b == max) h = (2.0/3.0) + dg - dr;
+
+        if      (h < 0) h += 1;
+        else if (h > 1) h -= 1;
+      }
+      return new_Node(path, line, static_cast<int>(h*360)%360, s*100, l*100);
+    }
+
+    // Hue to RGB helper function
     double h_to_rgb(double m1, double m2, double h) {
-      if (h < 0) ++h;
-      if (h > 1) --h;
+      if (h < 0) h += 1;
+      if (h > 1) h -= 1;
       if (h*6.0 < 1) return m1 + (m2 - m1)*h*6;
       if (h*2.0 < 1) return m2;
       if (h*3.0 < 2) return m1 + (m2 - m1) * (2.0/3.0 - h)*6;
       return m1;
     }
 
-    Node hsla_impl(double h, double s, double l, double a, vector<vector<Node>*>& registry) {
+    Node hsla_impl(double h, double s, double l, double a, Node_Factory& new_Node, string& path, size_t line) {
       h = static_cast<double>(((static_cast<int>(h) % 360) + 360) % 360) / 360.0;
-      s = s / 100.0;
-      l = l / 100.0;
+      s = (s < 0)   ? 0 :
+          (s > 100) ? 100 :
+          s;
+      l = (l < 0)   ? 0 :
+          (l > 100) ? 100 :
+          l;
+      s /= 100.0;
+      l /= 100.0;
 
       double m2;
       if (l <= 0.5) m2 = l*(s+1.0);
       else m2 = l+s-l*s;
       double m1 = l*2-m2;
-      double r = h_to_rgb(m1, m2, h+1.0/3.0) * 255.0;
-      double g = h_to_rgb(m1, m2, h) * 255.0;
-      double b = h_to_rgb(m1, m2, h-1.0/3.0) * 255.0;
-      
-      return Node(registry, 0, r, g, b, a);
+      // round the results -- consider moving this into the Node constructors
+      double r = std::floor(h_to_rgb(m1, m2, h+1.0/3.0) * 255.0 + 0.5);
+      double g = std::floor(h_to_rgb(m1, m2, h) * 255.0 + 0.5);
+      double b = std::floor(h_to_rgb(m1, m2, h-1.0/3.0) * 255.0 + 0.5);
+
+      return new_Node(path, line, r, g, b, a);
     }
 
-    Function_Descriptor hsla_descriptor =
-    { "hsla", "$hue", "$saturation", "$lightness", "$alpha", 0 };
-    Node hsla(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      if (!(bindings[parameters[0]].is_numeric() &&
-            bindings[parameters[1]].is_numeric() &&
-            bindings[parameters[2]].is_numeric() &&
-            bindings[parameters[3]].is_numeric())) {
-        eval_error("arguments to hsla must be numeric", bindings[parameters[0]].line_number, bindings[parameters[0]].file_name);
-      }  
-      double h = bindings[parameters[0]].numeric_value();
-      double s = bindings[parameters[1]].numeric_value();
-      double l = bindings[parameters[2]].numeric_value();
-      double a = bindings[parameters[3]].numeric_value();
-      Node color(hsla_impl(h, s, l, a, registry));
-      color.line_number = bindings[parameters[0]].line_number;
-      return color;
+    extern Signature hsl_sig = "hsl($hue, $saturation, $lightness)";
+    Node hsl(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      double h = arg(hsl_sig, path, line, parameter_names, bindings, 0, Node::numeric, bt).numeric_value();
+      double s = arg(hsl_sig, path, line, parameter_names, bindings, 1, Node::numeric, 0, 100, bt).numeric_value();
+      double l = arg(hsl_sig, path, line, parameter_names, bindings, 2, Node::numeric, 0, 100, bt).numeric_value();
+      return hsla_impl(h, s, l, 1.0, new_Node, path, line);
     }
-    
-    Function_Descriptor hsl_descriptor =
-    { "hsl", "$hue", "$saturation", "$lightness", 0 };
-    Node hsl(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      if (!(bindings[parameters[0]].is_numeric() &&
-            bindings[parameters[1]].is_numeric() &&
-            bindings[parameters[2]].is_numeric())) {
-        eval_error("arguments to hsl must be numeric", bindings[parameters[0]].line_number, bindings[parameters[0]].file_name);
-      }  
-      double h = bindings[parameters[0]].numeric_value();
-      double s = bindings[parameters[1]].numeric_value();
-      double l = bindings[parameters[2]].numeric_value();
-      Node color(hsla_impl(h, s, l, 1, registry));
-      color.line_number = bindings[parameters[0]].line_number;
-      return color;
+
+    extern Signature hsla_sig = "hsla($hue, $saturation, $lightness, $alpha)";
+    Node hsla(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      double h = arg(hsla_sig, path, line, parameter_names, bindings, 0, Node::numeric, bt).numeric_value();
+      double s = arg(hsla_sig, path, line, parameter_names, bindings, 1, Node::numeric, 0, 100, bt).numeric_value();
+      double l = arg(hsla_sig, path, line, parameter_names, bindings, 2, Node::numeric, 0, 100, bt).numeric_value();
+      double a = arg(hsla_sig, path, line, parameter_names, bindings, 3, Node::numeric, 0, 1, bt).numeric_value();
+      return hsla_impl(h, s, l, a, new_Node, path, line);
     }
-    
-    Function_Descriptor invert_descriptor =
-    { "invert", "$color", 0 };
-    Node invert(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node orig(bindings[parameters[0]]);
-      if (orig.type != Node::numeric_color) eval_error("argument to invert must be a color", orig.line_number, orig.file_name);
-      return Node(registry, orig.line_number,
-                  255 - orig[0].content.numeric_value,
-                  255 - orig[1].content.numeric_value,
-                  255 - orig[2].content.numeric_value,
-                  orig[3].content.numeric_value);
+
+    extern Signature hue_sig = "hue($color)";
+    Node hue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node rgb_color(arg(hue_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      Node hsl_color(rgb_to_hsl(rgb_color[0].numeric_value(),
+                                rgb_color[1].numeric_value(),
+                                rgb_color[2].numeric_value(),
+                                new_Node, path, line));
+      return new_Node(path, line, hsl_color[0].numeric_value(), Token::make(deg_kwd));
     }
-    
+
+    extern Signature saturation_sig = "saturation($color)";
+    Node saturation(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node rgb_color(arg(saturation_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      Node hsl_color(rgb_to_hsl(rgb_color[0].numeric_value(),
+                                rgb_color[1].numeric_value(),
+                                rgb_color[2].numeric_value(),
+                                new_Node, path, line));
+      return new_Node(path, line, hsl_color[1].numeric_value(), Node::numeric_percentage);
+    }
+
+    extern Signature lightness_sig = "lightness($color)";
+    Node lightness(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node rgb_color(arg(lightness_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      Node hsl_color(rgb_to_hsl(rgb_color[0].numeric_value(),
+                                rgb_color[1].numeric_value(),
+                                rgb_color[2].numeric_value(),
+                                new_Node, path, line));
+      return new_Node(path, line, hsl_color[2].numeric_value(), Node::numeric_percentage);
+    }
+
+    extern Signature adjust_hue_sig = "adjust-hue($color, $degrees)";
+    Node adjust_hue(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node rgb_col(arg(adjust_hue_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      Node degrees(arg(adjust_hue_sig, path, line, parameter_names, bindings, 1, Node::numeric, bt));
+      Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
+                              rgb_col[1].numeric_value(),
+                              rgb_col[2].numeric_value(),
+                              new_Node, path, line));
+      return hsla_impl(hsl_col[0].numeric_value() + degrees.numeric_value(),
+                       hsl_col[1].numeric_value(),
+                       hsl_col[2].numeric_value(),
+                       rgb_col[3].numeric_value(),
+                       new_Node, path, line);
+    }
+
+    extern Signature lighten_sig = "lighten($color, $amount)";
+    Node lighten(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node rgb_col(arg(lighten_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      Node amount(arg(lighten_sig, path, line, parameter_names, bindings, 1, Node::numeric, 0, 100, bt));
+      Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
+                              rgb_col[1].numeric_value(),
+                              rgb_col[2].numeric_value(),
+                              new_Node, path, line));
+      return hsla_impl(hsl_col[0].numeric_value(),
+                       hsl_col[1].numeric_value(),
+                       hsl_col[2].numeric_value() + amount.numeric_value(),
+                       rgb_col[3].numeric_value(),
+                       new_Node, path, line);
+    }
+
+    extern Signature darken_sig = "darken($color, $amount)";
+    Node darken(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node rgb_col(arg(darken_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      Node amount(arg(darken_sig, path, line, parameter_names, bindings, 1, Node::numeric, 0, 100, bt));
+      Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
+                              rgb_col[1].numeric_value(),
+                              rgb_col[2].numeric_value(),
+                              new_Node, path, line));
+      return hsla_impl(hsl_col[0].numeric_value(),
+                       hsl_col[1].numeric_value(),
+                       hsl_col[2].numeric_value() - amount.numeric_value(),
+                       rgb_col[3].numeric_value(),
+                       new_Node, path, line);
+    }
+
+    extern Signature saturate_sig = "saturate($color, $amount)";
+    Node saturate(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node rgb_col(arg(saturate_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      Node amount(arg(saturate_sig, path, line, parameter_names, bindings, 1, Node::numeric, 0, 100, bt));
+      Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
+                              rgb_col[1].numeric_value(),
+                              rgb_col[2].numeric_value(),
+                              new_Node, path, line));
+      return hsla_impl(hsl_col[0].numeric_value(),
+                       hsl_col[1].numeric_value() + amount.numeric_value(),
+                       hsl_col[2].numeric_value(),
+                       rgb_col[3].numeric_value(),
+                       new_Node, path, line);
+    }
+
+    extern Signature desaturate_sig = "desaturate($color, $amount)";
+    Node desaturate(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node rgb_col(arg(desaturate_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      Node amount(arg(desaturate_sig, path, line, parameter_names, bindings, 1, Node::numeric, 0, 100, bt));
+      Node hsl_col(rgb_to_hsl(rgb_col[0].numeric_value(),
+                              rgb_col[1].numeric_value(),
+                              rgb_col[2].numeric_value(),
+                              new_Node, path, line));
+      return hsla_impl(hsl_col[0].numeric_value(),
+                       hsl_col[1].numeric_value() - amount.numeric_value(),
+                       hsl_col[2].numeric_value(),
+                       rgb_col[3].numeric_value(),
+                       new_Node, path, line);
+    }
+
+    extern Signature grayscale_sig = "grayscale($color)";
+    Node grayscale(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color(arg(grayscale_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      Node hsl_color(rgb_to_hsl(color[0].numeric_value(),
+                                color[1].numeric_value(),
+                                color[2].numeric_value(),
+                                new_Node, path, line));
+      return hsla_impl(hsl_color[0].numeric_value(),
+                       0.0, // desaturate completely
+                       hsl_color[2].numeric_value(),
+                       color[3].numeric_value(),
+                       new_Node, path, line);
+    }
+
+    extern Signature complement_sig = "complement($color)";
+    Node complement(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color(arg(complement_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      Node hsl_color(rgb_to_hsl(color[0].numeric_value(),
+                                color[1].numeric_value(),
+                                color[2].numeric_value(),
+                                new_Node, path, line));
+      return hsla_impl(hsl_color[0].numeric_value() - 180, // other side of the color wheel
+                       hsl_color[1].numeric_value(),
+                       hsl_color[2].numeric_value(),
+                       color[3].numeric_value(),
+                       new_Node, path, line);
+    }
+
+    extern Signature invert_sig = "invert($color)";
+    Node invert(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color(arg(invert_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      return new_Node(path, line,
+                      255 - color[0].numeric_value(),
+                      255 - color[1].numeric_value(),
+                      255 - color[2].numeric_value(),
+                      color[3].numeric_value());
+    }
+
+    ////////////////////////////////////////////////////////////////////////
     // Opacity Functions ///////////////////////////////////////////////////
-    
-    Function_Descriptor alpha_descriptor =
-    { "alpha", "$color", 0 };
-    Function_Descriptor opacity_descriptor =
-    { "opacity", "$color", 0 };
-    Node alpha(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node color(bindings[parameters[0]]);
-      if (color.type != Node::numeric_color) eval_error("argument to alpha must be a color", color.line_number, color.file_name);
-      return color[3];
-    }
-    
-    Function_Descriptor opacify_descriptor =
-    { "opacify", "$color", "$amount", 0 };
-    Function_Descriptor fade_in_descriptor =
-    { "fade_in", "$color", "$amount", 0 };
-    Node opacify(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node cpy(bindings[parameters[0]].clone(registry));
-      if (cpy.type != Node::numeric_color || !bindings[parameters[1]].is_numeric()) {
-        eval_error("arguments to opacify/fade_in must be a color and a numeric value", cpy.line_number, cpy.file_name);
-      }
-      Node delta(bindings[parameters[1]]);
-      if (delta.numeric_value() < 0 || delta.numeric_value() > 1) eval_error("amount must be between 0 and 1 for opacify/fade-in", delta.line_number, delta.file_name); 
-      cpy[3].content.numeric_value += delta.numeric_value();
-      if (cpy[3].numeric_value() > 1) cpy[3].content.numeric_value = 1;
-      if (cpy[3].numeric_value() < 0) cpy[3].content.numeric_value = 0;
-      return cpy;
-    }
-    
-    Function_Descriptor transparentize_descriptor =
-    { "transparentize", "$color", "$amount", 0 };
-    Function_Descriptor fade_out_descriptor =
-    { "fade_out", "$color", "$amount", 0 };
-    Node transparentize(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node cpy(bindings[parameters[0]].clone(registry));
-      if (cpy.type != Node::numeric_color || !bindings[parameters[1]].is_numeric()) {
-        eval_error("arguments to transparentize/fade_out must be a color and a numeric value", cpy.line_number, cpy.file_name);
-      }
-      Node delta(bindings[parameters[1]]);
-      if (delta.numeric_value() < 0 || delta.numeric_value() > 1) eval_error("amount must be between 0 and 1 for transparentize/fade-out", delta.line_number, delta.file_name); 
-      cpy[3].content.numeric_value -= delta.numeric_value();
-      if (cpy[3].numeric_value() > 1) cpy[3].content.numeric_value = 1;
-      if (cpy[3].numeric_value() < 0) cpy[3].content.numeric_value = 0;
-      return cpy;
-    }
-      
-    // String Functions ////////////////////////////////////////////////////
-    
-    Function_Descriptor unquote_descriptor =
-    { "unquote", "$string", 0 };
-    Node unquote(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node cpy(bindings[parameters[0]].clone(registry));
-      // if (cpy.type != Node::string_constant /* && cpy.type != Node::concatenation */) {
-      //   eval_error("argument to unquote must be a string", cpy.line_number, cpy.file_name);
-      // }
-      cpy.unquoted = true;
-      return cpy;
-    }
-    
-    Function_Descriptor quote_descriptor =
-    { "quote", "$string", 0 };
-    Node quote(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node cpy(bindings[parameters[0]].clone(registry));
-      if (cpy.type != Node::string_constant && cpy.type != Node::identifier) {
-        eval_error("argument to quote must be a string or identifier", cpy.line_number, cpy.file_name);
-      }
-      cpy.type = Node::string_constant;
-      cpy.unquoted = false;
-      return cpy;
-    }
-    
-    // Number Functions ////////////////////////////////////////////////////
-    
-    Function_Descriptor percentage_descriptor =
-    { "percentage", "$value", 0 };
-    Node percentage(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node cpy(bindings[parameters[0]].clone(registry));
-      // TO DO: make sure it's not already a percentage
-      if (cpy.type != Node::number) eval_error("argument to percentage must be a unitless number", cpy.line_number, cpy.file_name);
-      cpy.content.numeric_value = cpy.content.numeric_value * 100;
-      cpy.type = Node::numeric_percentage;
-      return cpy;
+    ////////////////////////////////////////////////////////////////////////
+
+    extern Signature alpha_sig = "alpha($color)";
+    Node alpha(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color(arg(alpha_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      return new_Node(path, line, color[3]);
     }
 
-    Function_Descriptor round_descriptor =
-    { "round", "$value", 0 };
-    Node round(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node cpy(bindings[parameters[0]].clone(registry));
-      if (cpy.type == Node::numeric_dimension) {
-        cpy.content.dimension.numeric_value = std::floor(cpy.content.dimension.numeric_value + 0.5);
-      }
-      else if (cpy.type == Node::number || cpy.type == Node::numeric_percentage) {
-        cpy.content.numeric_value = std::floor(cpy.content.numeric_value + 0.5);
-      }
-      else {
-        eval_error("argument to round must be numeric", cpy.line_number, cpy.file_name);
-      }
-      return cpy;
+    extern Signature opacity_sig = "opacity($color)";
+    Node opacity(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color(arg(opacity_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      return new_Node(path, line, color[3]);
     }
 
-    Function_Descriptor ceil_descriptor =
-    { "ceil", "$value", 0 };
-    Node ceil(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node cpy(bindings[parameters[0]].clone(registry));
-      if (cpy.type == Node::numeric_dimension) {
-        cpy.content.dimension.numeric_value = std::ceil(cpy.content.dimension.numeric_value);
-      }
-      else if (cpy.type == Node::number || cpy.type == Node::numeric_percentage){
-        cpy.content.numeric_value = std::ceil(cpy.content.numeric_value);
-      }
-      else {
-        eval_error("argument to ceil must be numeric", cpy.line_number, cpy.file_name);
-      }
-      return cpy;
+    extern Signature opacify_sig = "opacify($color, $amount)";
+    Node opacify(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color(arg(opacify_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      double delta = arg(opacify_sig, path, line, parameter_names, bindings, 1, Node::numeric, 0, 1, bt).numeric_value();
+      delta += color[3].numeric_value();
+      if (delta > 1) delta = 1;
+      return new_Node(path, line,
+                      color[0].numeric_value(),
+                      color[1].numeric_value(),
+                      color[2].numeric_value(),
+                      delta);
     }
 
-    Function_Descriptor floor_descriptor =
-    { "floor", "$value", 0 };
-    Node floor(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node cpy(bindings[parameters[0]].clone(registry));
-      if (cpy.type == Node::numeric_dimension) {
-        cpy.content.dimension.numeric_value = std::floor(cpy.content.dimension.numeric_value);
-      }
-      else if (cpy.type == Node::number || cpy.type == Node::numeric_percentage){
-        cpy.content.numeric_value = std::floor(cpy.content.numeric_value);
-      }
-      else {
-        eval_error("argument to floor must be numeric", cpy.line_number, cpy.file_name);
-      }
-      return cpy;
+    extern Signature fade_in_sig = "fade-in($color, $amount)";
+    Node fade_in(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color(arg(fade_in_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      double delta = arg(fade_in_sig, path, line, parameter_names, bindings, 1, Node::numeric, 0, 1, bt).numeric_value();
+      delta += color[3].numeric_value();
+      if (delta > 1) delta = 1;
+      return new_Node(path, line,
+                      color[0].numeric_value(),
+                      color[1].numeric_value(),
+                      color[2].numeric_value(),
+                      delta);
     }
 
-    Function_Descriptor abs_descriptor =
-    { "abs", "$value", 0 };
-    Node abs(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node cpy(bindings[parameters[0]].clone(registry));
-      if (cpy.type == Node::numeric_dimension) {
-        cpy.content.dimension.numeric_value = std::fabs(cpy.content.dimension.numeric_value);
-      }
-      else if (cpy.type == Node::number || cpy.type == Node::numeric_percentage){
-        cpy.content.numeric_value = std::abs(cpy.content.numeric_value);
-      }
-      else {
-        eval_error("argument to abs must be numeric", cpy.line_number, cpy.file_name);
-      }
-      return cpy;
+    extern Signature transparentize_sig = "transparentize($color, $amount)";
+    Node transparentize(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color(arg(transparentize_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      double delta = arg(transparentize_sig, path, line, parameter_names, bindings, 1, Node::numeric, 0, 1, bt).numeric_value();
+      double alpha = color[3].numeric_value() - delta;
+      if (alpha < 0) alpha = 0;
+      return new_Node(path, line,
+                      color[0].numeric_value(),
+                      color[1].numeric_value(),
+                      color[2].numeric_value(),
+                      alpha);
     }
-    
-    // List Functions //////////////////////////////////////////////////////
 
-    Function_Descriptor length_descriptor =
-    { "length", "$list", 0 };
-    Node length(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node arg(bindings[parameters[0]]);
-      if (arg.type == Node::space_list || arg.type == Node::comma_list) {
-        return Node(arg.line_number, arg.size());
+    extern Signature fade_out_sig = "fade-out($color, $amount)";
+    Node fade_out(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color(arg(fade_out_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      double delta = arg(fade_out_sig, path, line, parameter_names, bindings, 1, Node::numeric, 0, 1, bt).numeric_value();
+      double alpha = color[3].numeric_value() - delta;
+      if (alpha < 0) alpha = 0;
+      return new_Node(path, line,
+                      color[0].numeric_value(),
+                      color[1].numeric_value(),
+                      color[2].numeric_value(),
+                      alpha);
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // Other Color Functions ///////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+
+    // not worth using the arg(...) functions
+    extern Signature adjust_color_sig = "adjust-color($color, $red: false, $green: false, $blue: false, $hue: false, $saturation: false, $lightness: false, $alpha: false)";
+    Node adjust_color(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color(bindings[parameter_names[0].token()]);
+      Node r(bindings[parameter_names[1].token()]);
+      Node g(bindings[parameter_names[2].token()]);
+      Node b(bindings[parameter_names[3].token()]);
+      Node h(bindings[parameter_names[4].token()]);
+      Node s(bindings[parameter_names[5].token()]);
+      Node l(bindings[parameter_names[6].token()]);
+      Node a(bindings[parameter_names[7].token()]);
+
+      bool no_rgb = r.is_false() && g.is_false() && b.is_false();
+      bool no_hsl = h.is_false() && s.is_false() && l.is_false();
+
+      if (color.type() != Node::numeric_color) {
+        throw_eval_error(bt, "first argument to 'adjust-color' must be a color", color.path(), color.line());
       }
-      else if (arg.type == Node::nil) {
-        return Node(arg.line_number, 0);
+      else if (!no_rgb && !no_hsl) {
+        throw_eval_error(bt, "cannot specify RGB and HSL values for a color at the same time for 'adjust-color'", r.path(), r.line());
       }
-      // single objects should be reported as lists of length 1
+      else if (!no_rgb) {
+        if (!r.is_false() && !r.is_numeric()) throw_eval_error(bt, "argument $red of 'adjust-color' must be numeric", r.path(), r.line());
+        if (!g.is_false() && !g.is_numeric()) throw_eval_error(bt, "argument $green of 'adjust-color' must be numeric", g.path(), g.line());
+        if (!b.is_false() && !b.is_numeric()) throw_eval_error(bt, "argument $blue of 'adjust-color' must be numeric", b.path(), b.line());
+        if (!a.is_false() && !a.is_numeric()) throw_eval_error(bt, "argument $alpha of 'adjust-color' must be numeric", a.path(), a.line());
+        double new_r = color[0].numeric_value() + (r.is_false() ? 0 : r.numeric_value());
+        double new_g = color[1].numeric_value() + (g.is_false() ? 0 : g.numeric_value());
+        double new_b = color[2].numeric_value() + (b.is_false() ? 0 : b.numeric_value());
+        double new_a = color[3].numeric_value() + (a.is_false() ? 0 : a.numeric_value());
+        return new_Node(path, line, new_r, new_g, new_b, new_a);
+      }
+      else if (!no_hsl) {
+        Node hsl_node(rgb_to_hsl(color[0].numeric_value(),
+                                 color[1].numeric_value(),
+                                 color[2].numeric_value(),
+                                 new_Node, path, line));
+        if (!h.is_false() && !h.is_numeric()) throw_eval_error(bt, "argument $hue of 'adjust-color' must be numeric", h.path(), h.line());
+        if (!s.is_false() && !s.is_numeric()) throw_eval_error(bt, "argument $saturation of 'adjust-color' must be numeric", s.path(), s.line());
+        if (!l.is_false() && !l.is_numeric()) throw_eval_error(bt, "argument $lightness of 'adjust-color' must be numeric", l.path(), l.line());
+        if (!a.is_false() && !a.is_numeric()) throw_eval_error(bt, "argument $alpha of 'adjust-color' must be numeric", a.path(), a.line());
+        double new_h = (h.is_false() ? 0 : h.numeric_value()) + hsl_node[0].numeric_value();
+        double new_s = (s.is_false() ? 0 : s.numeric_value()) + hsl_node[1].numeric_value();
+        double new_l = (l.is_false() ? 0 : l.numeric_value()) + hsl_node[2].numeric_value();
+        double new_a = (a.is_false() ? 0 : a.numeric_value()) + color[3].numeric_value();
+        return hsla_impl(new_h, new_s, new_l, new_a, new_Node, path, line);
+      }
+      else if (!a.is_false()) {
+        if (!a.is_numeric()) throw_eval_error(bt, "argument $alpha of 'adjust-color' must be numeric", a.path(), a.line());
+        return new_Node(path, line,
+                        color[0].numeric_value(),
+                        color[1].numeric_value(),
+                        color[2].numeric_value(),
+                        color[3].numeric_value() + a.numeric_value());
+      }
       else {
-        return Node(arg.line_number, 1);
+        throw_eval_error(bt, "not enough arguments for 'adjust-color'", color.path(), color.line());
       }
+      // unreachable statement
+      return Node();
     }
-    
-    Function_Descriptor nth_descriptor =
-    { "nth", "$list", "$n", 0 };
-    Node nth(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node l(bindings[parameters[0]]);
-      // TO DO: check for empty list
-      if (l.type == Node::nil) eval_error("cannot index into an empty list", l.line_number, l.file_name);
-      if (l.type != Node::space_list && l.type != Node::comma_list) {
-        l = Node(Node::space_list, registry, l.line_number, 1) << l;
+
+    extern Signature scale_color_sig = "scale-color($color, $red: false, $green: false, $blue: false, $hue: false, $saturation: false, $lightness: false, $alpha: false)";
+    Node scale_color(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color(bindings[parameter_names[0].token()]);
+      Node r(bindings[parameter_names[1].token()]);
+      Node g(bindings[parameter_names[2].token()]);
+      Node b(bindings[parameter_names[3].token()]);
+      Node h(bindings[parameter_names[4].token()]);
+      Node s(bindings[parameter_names[5].token()]);
+      Node l(bindings[parameter_names[6].token()]);
+      Node a(bindings[parameter_names[7].token()]);
+
+      bool no_rgb = r.is_false() && g.is_false() && b.is_false();
+      bool no_hsl = h.is_false() && s.is_false() && l.is_false();
+      size_t low, high;
+      bool is_hsl = false;
+
+      if (color.type() != Node::numeric_color) {
+        throw_eval_error(bt, "first argument to 'scale-color' must be a color", path, line);
       }
-      Node n(bindings[parameters[1]]);
-      if (n.type != Node::number) eval_error("second argument to nth must be a number", n.line_number, n.file_name);
-      if (n.numeric_value() < 1 || n.numeric_value() > l.size()) eval_error("out of range index for nth", n.line_number, n.file_name);
-      return l[bindings[parameters[1]].content.numeric_value - 1];
-    }
-    
-    extern const char separator_kwd[] = "$separator";
-    Node join_impl(const vector<Token>& parameters, map<Token, Node>& bindings, bool has_sep, vector<vector<Node>*>& registry) {
-      // if the args aren't lists, turn them into singleton lists
-      Node l1(bindings[parameters[0]]);
-      if (l1.type != Node::space_list && l1.type != Node::comma_list && l1.type != Node::nil) {
-        l1 = Node(Node::space_list, registry, l1.line_number, 1) << l1;
+      if (!no_rgb && !no_hsl) {
+        throw_eval_error(bt, "cannot specify RGB and HSL values for a color at the same time for 'scale-color'", path, line);
       }
-      Node l2(bindings[parameters[1]]);
-      if (l2.type != Node::space_list && l2.type != Node::comma_list && l2.type != Node::nil) {
-        l2 = Node(Node::space_list, registry, l2.line_number, 1) << l2;
+      else if (!no_rgb) {
+        low = 1; high = 4;
       }
-      // nil and nil is nil
-      if (l1.type == Node::nil && l2.type == Node::nil) return Node(Node::nil, registry, l1.line_number);
-      // figure out the combined size in advance
-      size_t size = 0;
-      if (l1.type != Node::nil) size += l1.size();
-      if (l2.type != Node::nil) size += l2.size();
-      
-      // accumulate the result
-      Node lr(l1.type, registry, l1.line_number, size);
-      if (has_sep) {
-        string sep(bindings[parameters[2]].content.token.unquote());
-        if (sep == "comma") lr.type = Node::comma_list;
-        else if (sep == "space") lr.type = Node::space_list;
-        else if (sep == "auto") ; // leave it alone
+      else if (!no_hsl) {
+        is_hsl = true;
+        low = 4; high = 7;
+        Node alpha(color[3]);
+        color = rgb_to_hsl(color[0].numeric_value(), color[1].numeric_value(), color[2].numeric_value(), new_Node, path, line);
+        color << alpha;
+      }
+      else if (!a.is_false()) {
+        Node result(new_Node(Node::numeric_color, path, line, 4));
+        for (size_t i = 0; i < 3; ++i) {
+          result << new_Node(path, line, color[i].numeric_value());
+        }
+        double current = color[3].numeric_value();
+        double scale = arg(scale_color_sig, path, line, parameter_names, bindings, 7, Node::numeric_percentage, -100, 100, bt).numeric_value() / 100;
+        double diff = scale > 0 ? 1 - current : current;
+        result << new_Node(path, line, current + diff*scale);
+        return result;
+      }
+      else {
+        throw_eval_error(bt, "not enough arguments for 'scale-color'", color.path(), color.line());
+      }
+      Node result(new_Node(Node::numeric_color, path, line, 4));
+      for (size_t i = low, j = 0; i < high; ++i, ++j) {
+        double current = color[j].numeric_value();
+        if (!bindings[parameter_names[i].token()].is_false()) {
+          double scale = arg(scale_color_sig, path, line, parameter_names, bindings, i, Node::numeric_percentage, -100, 100, bt).numeric_value() / 100;
+          double diff = scale > 0 ? (is_hsl ? 100 : 255) - current : current;
+          result << new_Node(path, line, current + diff*scale);
+        }
         else {
-          eval_error("third argument to join must be 'space', 'comma', or 'auto'", l2.line_number, l2.file_name);
+          result << new_Node(path, line, current);
         }
       }
-      else if (l1.type != Node::nil) lr.type = l1.type;
-      else if (l2.type != Node::nil) lr.type = l2.type;
-      
-      if (l1.type != Node::nil) lr += l1;
-      if (l2.type != Node::nil) lr += l2;
-      return lr;
-    }
-    
-    Function_Descriptor join_2_descriptor =
-    { "join", "$list1", "$list2", 0 };
-    Node join_2(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      return join_impl(parameters, bindings, false, registry);
-    }
-    
-    Function_Descriptor join_3_descriptor =
-    { "join", "$list1", "$list2", "$separator", 0 };
-    Node join_3(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      return join_impl(parameters, bindings, true, registry);
-    }
-    
-    // Introspection Functions /////////////////////////////////////////////
-    
-    extern const char number_name[] = "number";
-    extern const char string_name[] = "string";
-    extern const char bool_name[]   = "bool";
-    extern const char color_name[]  = "color";
-    extern const char list_name[]   = "list";
-    
-    Function_Descriptor type_of_descriptor =
-    { "type-of", "$value", 0 };
-    Node type_of(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node val(bindings[parameters[0]]);
-      Node type(Node::string_constant, val.line_number, Token::make());
-      type.unquoted = true;
-      switch (val.type)
-      {
-        case Node::number:
-        case Node::numeric_dimension:
-        case Node::numeric_percentage:
-          type.content.token = Token::make(number_name);
-          break;
-        case Node::boolean:
-          type.content.token = Token::make(bool_name);
-          break;
-        case Node::string_constant:
-        case Node::value_schema:
-          type.content.token = Token::make(string_name);
-          break;
-        case Node::numeric_color:
-          type.content.token = Token::make(color_name);
-          break;
-        case Node::comma_list:
-        case Node::space_list:
-        case Node::nil:
-          type.content.token = Token::make(list_name);
-          break;
-        default:
-          type.content.token = Token::make(string_name);
+      if (!a.is_false()) {
+        double current = color[3].numeric_value();
+        double scale = arg(scale_color_sig, path, line, parameter_names, bindings, 7, Node::numeric_percentage, -100, 100, bt).numeric_value() / 100;
+        double diff = scale > 0 ? 1 - current : current;
+        result << new_Node(path, line, current + diff*scale);
       }
-      return type;
-    }
-    
-    extern const char empty_str[] = "";
-    extern const char percent_str[] = "%";
-    
-    Function_Descriptor unit_descriptor =
-    { "unit", "$number", 0 };
-    Node unit(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node val(bindings[parameters[0]]);
-      Node u(Node::string_constant, val.line_number, Token::make());
-      switch (val.type)
-      {
-        case Node::number:
-          u.content.token = Token::make(empty_str);
-          break;
-        case Node::numeric_percentage:
-          u.content.token = Token::make(percent_str);
-          break;
-        case Node::numeric_dimension:
-          u.content.token = Token::make(val.content.dimension.unit, Prelexer::identifier(val.content.dimension.unit));
-          break;
-        default:
-          eval_error("argument to unit must be numeric", val.line_number, val.file_name);
-          break;
+      else {
+        result << new_Node(path, line, color[3].numeric_value());
       }
-      return u;
-    }
-
-    extern const char true_str[]  = "true";
-    extern const char false_str[] = "false";
-
-    Function_Descriptor unitless_descriptor =
-    { "unitless", "$number", 0 };
-    Node unitless(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node val(bindings[parameters[0]]);
-      Node result(Node::string_constant, val.line_number, Token::make());
-      result.unquoted = true;
-      switch (val.type)
-      {
-        case Node::number: {
-          Node T(Node::boolean);
-          T.line_number = val.line_number;
-          T.content.boolean_value = true;
-          return T;
-          } break;
-        case Node::numeric_percentage:
-        case Node::numeric_dimension: {
-          Node F(Node::boolean);
-          F.line_number = val.line_number;
-          F.content.boolean_value = false;
-          return F;
-          } break;
-        default:
-          eval_error("argument to unitless must be numeric", val.line_number, val.file_name);
-          break;
+      if (is_hsl) {
+        result = hsla_impl(result[0].numeric_value(),
+                           result[1].numeric_value(),
+                           result[2].numeric_value(),
+                           result[3].numeric_value(),
+                           new_Node, path, line);
       }
       return result;
     }
-    
-    Function_Descriptor comparable_descriptor =
-    { "comparable", "$number_1", "$number_2", 0 };
-    Node comparable(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node n1(bindings[parameters[0]]);
-      Node n2(bindings[parameters[1]]);
-      Node::Type t1 = n1.type;
-      Node::Type t2 = n2.type;
-      if (t1 == Node::number && n2.is_numeric() ||
-          n1.is_numeric() && t2 == Node::number) {
-        Node T(Node::boolean);
-        T.line_number = n1.line_number;
-        T.content.boolean_value = true;
-        return T;
+
+    extern Signature change_color_sig = "change-color($color, $red: false, $green: false, $blue: false, $hue: false, $saturation: false, $lightness: false, $alpha: false)";
+    Node change_color(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color(bindings[parameter_names[0].token()]);
+      Node r(bindings[parameter_names[1].token()]);
+      Node g(bindings[parameter_names[2].token()]);
+      Node b(bindings[parameter_names[3].token()]);
+      Node h(bindings[parameter_names[4].token()]);
+      Node s(bindings[parameter_names[5].token()]);
+      Node l(bindings[parameter_names[6].token()]);
+      Node a(bindings[parameter_names[7].token()]);
+
+      bool no_rgb = r.is_false() && g.is_false() && b.is_false();
+      bool no_hsl = h.is_false() && s.is_false() && l.is_false();
+
+      if (color.type() != Node::numeric_color) {
+        throw_eval_error(bt, "first argument to 'change-color' must be a color", color.path(), color.line());
       }
-      else if (t1 == Node::numeric_percentage && t2 == Node::numeric_percentage) {
-        Node T(Node::boolean);
-        T.line_number = n1.line_number;
-        T.content.boolean_value = true;
-        return T;
+      if (!no_rgb && !no_hsl) {
+        throw_eval_error(bt, "cannot specify RGB and HSL values for a color at the same time for 'change-color'", r.path(), r.line());
       }
-      else if (t1 == Node::numeric_dimension && t2 == Node::numeric_dimension) {
-        string u1(Token::make(n1.content.dimension.unit, Prelexer::identifier(n1.content.dimension.unit)).to_string());
-        string u2(Token::make(n2.content.dimension.unit, Prelexer::identifier(n2.content.dimension.unit)).to_string());
-        if (u1 == "ex" && u2 == "ex" ||
-            u1 == "em" && u2 == "em" ||
-            (u1 == "in" || u1 == "cm" || u1 == "mm" || u1 == "pt" || u1 == "pc") &&
-            (u2 == "in" || u2 == "cm" || u2 == "mm" || u2 == "pt" || u2 == "pc")) {
-          Node T(Node::boolean);
-          T.line_number = n1.line_number;
-          T.content.boolean_value = true;
-          return T;
-        }
-        else {
-          Node F(Node::boolean);
-          F.line_number = n1.line_number;
-          F.content.boolean_value = false;
-          return F;
-        }
+      else if (!no_rgb) {
+        if (!r.is_false() && !r.is_numeric()) throw_eval_error(bt, "argument $red of 'change-color' must be numeric", r.path(), r.line());
+        if (!g.is_false() && !g.is_numeric()) throw_eval_error(bt, "argument $green of 'change-color' must be numeric", g.path(), g.line());
+        if (!b.is_false() && !b.is_numeric()) throw_eval_error(bt, "argument $blue of 'change-color' must be numeric", b.path(), b.line());
+        if (!a.is_false() && !a.is_numeric()) throw_eval_error(bt, "argument $alpha of 'change-color' must be numeric", a.path(), a.line());
+        double new_r = (r.is_false() ? color[0] : r).numeric_value();
+        double new_g = (g.is_false() ? color[1] : g).numeric_value();
+        double new_b = (b.is_false() ? color[2] : b).numeric_value();
+        double new_a = (a.is_false() ? color[3] : a).numeric_value();
+        return new_Node(path, line, new_r, new_g, new_b, new_a);
       }
-      else if (!n1.is_numeric() && !n2.is_numeric()) {
-        eval_error("arguments to comparable must be numeric", n1.line_number, n1.file_name);
+      else if (!no_hsl) {
+        Node hsl_node(rgb_to_hsl(color[0].numeric_value(),
+                                 color[1].numeric_value(),
+                                 color[2].numeric_value(),
+                                 new_Node, path, line));
+        if (!h.is_false() && !h.is_numeric()) throw_eval_error(bt, "argument $hue of 'change-color' must be numeric", h.path(), h.line());
+        if (!s.is_false() && !s.is_numeric()) throw_eval_error(bt, "argument $saturation of 'change-color' must be numeric", s.path(), s.line());
+        if (!l.is_false() && !l.is_numeric()) throw_eval_error(bt, "argument $lightness of 'change-color' must be numeric", l.path(), l.line());
+        if (!a.is_false() && !a.is_numeric()) throw_eval_error(bt, "argument $alpha of 'change-color' must be numeric", a.path(), a.line());
+        double new_h = (h.is_false() ? hsl_node[0].numeric_value() : h.numeric_value());
+        double new_s = (s.is_false() ? hsl_node[1].numeric_value() : s.numeric_value());
+        double new_l = (l.is_false() ? hsl_node[2].numeric_value() : l.numeric_value());
+        double new_a = (a.is_false() ? color[3].numeric_value() : a.numeric_value());
+        return hsla_impl(new_h, new_s, new_l, new_a, new_Node, path, line);
       }
-      
-      Node F(Node::boolean);
-      F.line_number = n1.line_number;
-      F.content.boolean_value = false;
-      return F;
-    }
-    
-    // Boolean Functions ///////////////////////////////////////////////////
-    Function_Descriptor not_descriptor =
-    { "not", "value", 0 };
-    Node not_impl(const vector<Token>& parameters, map<Token, Node>& bindings, vector<vector<Node>*>& registry) {
-      Node val(bindings[parameters[0]]);
-      if (val.type == Node::boolean && val.content.boolean_value == false) {
-        Node T(Node::boolean);
-        T.line_number = val.line_number;
-        T.content.boolean_value = true;
-        return T;
+      else if (!a.is_false()) {
+        if (!a.is_numeric()) throw_eval_error(bt, "argument $alpha of 'change-color' must be numeric", a.path(), a.line());
+        return new_Node(path, line,
+                        color[0].numeric_value(),
+                        color[1].numeric_value(),
+                        color[2].numeric_value(),
+                        a.numeric_value());
       }
       else {
-        Node F(Node::boolean);
-        F.line_number = val.line_number;
-        F.content.boolean_value = false;
-        return F;
+        throw_eval_error(bt, "not enough arguments for 'change-color'", color.path(), color.line());
       }
+      // unreachable statement
+      return Node();
     }
-    
-    
+
+    extern Signature ie_hex_str_sig = "ie-hex-str($color)";
+    Node ie_hex_str(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node color(arg(ie_hex_str_sig, path, line, parameter_names, bindings, 0, Node::numeric_color, bt));
+      Node result(new_Node(Node::ie_hex_str, color.path(), color.line(), 4));
+      result << color[0] << color[1] << color[2] << color[3];
+      Node wrapped_result(new_Node(Node::concatenation, color.path(), color.line(), 1));
+      wrapped_result << result;
+      return wrapped_result;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // String Functions ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+
+    extern Signature unquote_sig = "unquote($string)";
+    Node unquote(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node cpy(new_Node(path, line, bindings[parameter_names[0].token()]));
+      cpy.is_quoted() = false;
+      return cpy;
+    }
+
+    extern Signature quote_sig = "quote($string)";
+    Node quote(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node orig(arg(quote_sig, path, line, parameter_names, bindings, 0, Node::string_t, bt));
+      Node copy(new_Node(path, line, orig));
+      copy.is_quoted() = true;
+      return copy;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // Number Functions ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+
+    extern Signature percentage_sig = "percentage($value)";
+    Node percentage(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node orig(arg(percentage_sig, path, line, parameter_names, bindings, 0, Node::number, bt));
+      return new_Node(path, line, orig.numeric_value() * 100, Node::numeric_percentage);
+    }
+
+    extern Signature round_sig = "round($value)";
+    Node round(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node orig(arg(round_sig, path, line, parameter_names, bindings, 0, Node::numeric, bt));
+      switch (orig.type())
+      {
+        case Node::numeric_dimension: {
+          return new_Node(path, line,
+                          std::floor(orig.numeric_value() + 0.5),
+                          orig.unit());
+        } break;
+
+        case Node::number: {
+          return new_Node(path, line,
+                          std::floor(orig.numeric_value() + 0.5));
+        } break;
+
+        case Node::numeric_percentage: {
+          return new_Node(path, line,
+                          std::floor(orig.numeric_value() + 0.5),
+                          Node::numeric_percentage);
+        } break;
+
+        default: {
+          // unreachable
+          throw_eval_error(bt, "argument to round must be numeric", path, line);
+        } break;
+      }
+      // unreachable statement
+      return Node();
+    }
+
+    extern Signature ceil_sig = "ceil($value)";
+    Node ceil(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node orig(arg(ceil_sig, path, line, parameter_names, bindings, 0, Node::numeric, bt));
+      switch (orig.type())
+      {
+        case Node::numeric_dimension: {
+          return new_Node(path, line,
+                          std::ceil(orig.numeric_value()),
+                          orig.unit());
+        } break;
+
+        case Node::number: {
+          return new_Node(path, line,
+                          std::ceil(orig.numeric_value()));
+        } break;
+
+        case Node::numeric_percentage: {
+          return new_Node(path, line,
+                          std::ceil(orig.numeric_value()),
+                          Node::numeric_percentage);
+        } break;
+
+        default: {
+          // unreachable
+          throw_eval_error(bt, "argument to ceil must be numeric", path, line);
+        } break;
+      }
+      // unreachable statement
+      return Node();
+    }
+
+    extern Signature floor_sig = "floor($value)";
+    Node floor(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node orig(arg(floor_sig, path, line, parameter_names, bindings, 0, Node::numeric, bt));
+      switch (orig.type())
+      {
+        case Node::numeric_dimension: {
+          return new_Node(path, line,
+                          std::floor(orig.numeric_value()),
+                          orig.unit());
+        } break;
+
+        case Node::number: {
+          return new_Node(path, line,
+                          std::floor(orig.numeric_value()));
+        } break;
+
+        case Node::numeric_percentage: {
+          return new_Node(path, line,
+                          std::floor(orig.numeric_value()),
+                          Node::numeric_percentage);
+        } break;
+
+        default: {
+          // unreachable
+          throw_eval_error(bt, "argument to floor must be numeric", path, line);
+        } break;
+      }
+      // unreachable statement
+      return Node();
+    }
+
+    extern Signature abs_sig = "abs($value)";
+    Node abs(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node orig(arg(abs_sig, path, line, parameter_names, bindings, 0, Node::numeric, bt));
+      switch (orig.type())
+      {
+        case Node::numeric_dimension: {
+          return new_Node(path, line,
+                          std::abs(orig.numeric_value()),
+                          orig.unit());
+        } break;
+
+        case Node::number: {
+          return new_Node(path, line,
+                          std::abs(orig.numeric_value()));
+        } break;
+
+        case Node::numeric_percentage: {
+          return new_Node(path, line,
+                          std::abs(orig.numeric_value()),
+                          Node::numeric_percentage);
+        } break;
+
+        default: {
+          // unreachable
+          throw_eval_error(bt, "argument to abs must be numeric", path, line);
+        } break;
+      }
+      // unreachable statement
+      return Node();
+    }
+
+    extern Signature min_sig = "min($values...)";
+    Node min(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node args(bindings[parameter_names[0].token()]);
+      Node minValue = args[0];
+      for (size_t i = 1, S = args.size(); i < S; ++i) {
+        minValue = minValue.numeric_value() < args[i].numeric_value() ? minValue : args[i];
+      }
+      return new_Node(path, line,
+                      minValue.numeric_value(),
+                      minValue.unit());
+    }
+
+    extern Signature max_sig = "max($values...)";
+    Node max(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node args(bindings[parameter_names[0].token()]);
+      Node maxValue = args[0];
+      for (size_t i = 1, S = args.size(); i < S; ++i) {
+        maxValue = maxValue.numeric_value() > args[i].numeric_value() ? maxValue : args[i];
+      }
+      return new_Node(path, line,
+                      maxValue.numeric_value(),
+                      maxValue.unit());
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // List Functions //////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+
+    extern Signature length_sig = "length($list)";
+    Node length(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node the_arg(bindings[parameter_names[0].token()]);
+      return new_Node(path, line, the_arg.type() == Node::list ? the_arg.size() : 1);
+    }
+
+    extern Signature nth_sig = "nth($list, $n)";
+    Node nth(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node l(bindings[parameter_names[0].token()]);
+      // wrap the first arg if it isn't a list
+      if (l.type() != Node::list) {
+        l = new_Node(Node::list, path, line, 1) << l;
+      }
+      if (l.size() == 0) {
+        throw_eval_error(bt, "cannot index into an empty list", path, line);
+      }
+      // just truncate the index if it's not an integer ... more permissive than Ruby Sass
+      size_t n = std::floor(arg(nth_sig, path, line, parameter_names, bindings, 1, Node::numeric, 1, l.size(), bt).numeric_value());
+      return l[n - 1];
+    }
+
+    extern Signature index_sig = "index($list, $value)";
+    Node index(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node lst(bindings[parameter_names[0].token()]);
+      Node val(bindings[parameter_names[1].token()]);
+      // if $list isn't a list, wrap it in a singleton list
+      if (lst.type() != Node::list) lst = (new_Node(Node::list, path, line, 1) << lst);
+
+      for (size_t i = 0, S = lst.size(); i < S; ++i) {
+        if (lst[i] == val) return new_Node(path, line, i + 1);
+      }
+
+      return new_Node(Node::boolean, path, line, false);
+    }
+
+    extern Signature join_sig = "join($list1, $list2, $separator: auto)";
+    Node join(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      // if the args aren't lists, turn them into singleton lists
+      Node l1(bindings[parameter_names[0].token()]);
+      if (l1.type() != Node::list) {
+        l1 = (new_Node(Node::list, path, line, 1) << l1);
+      }
+      Node l2(bindings[parameter_names[1].token()]);
+      if (l2.type() != Node::list) {
+        l2 = (new_Node(Node::list, path, line, 1) << l2);
+      }
+      // figure out the combined size in advance
+      size_t size = l1.size() + l2.size();
+
+      // figure out the result type in advance
+      bool comma_sep;
+      string sep(bindings[parameter_names[2].token()].token().unquote());
+
+      if      (sep == "comma") comma_sep = true;
+      else if (sep == "space") comma_sep = false;
+      else if (sep == "auto")  comma_sep = l1.is_comma_separated();
+      else                     throw_eval_error(bt, "third argument to 'join' must be 'space', 'comma', or 'auto'", path, line);
+
+      if (l1.size() == 0) comma_sep = l2.is_comma_separated();
+
+      // accumulate the result
+      Node lr(new_Node(Node::list, path, line, size));
+      lr += l1;
+      lr += l2;
+      lr.is_comma_separated() = comma_sep;
+      return lr;
+    }
+
+    extern Signature append_sig = "append($list1, $list2, $separator: auto)";
+    Node append(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node list(bindings[parameter_names[0].token()]);
+
+      // if the first arg isn't a list, wrap it in a singleton
+      if (list.type() != Node::list) list = (new_Node(Node::list, path, line, 1) << list);
+
+      bool comma_sep;
+      string sep(bindings[parameter_names[2].token()].token().unquote());
+
+      if      (sep == "comma") comma_sep = true;
+      else if (sep == "space") comma_sep = false;
+      else if (sep == "auto")  comma_sep = list.is_comma_separated();
+      else                     throw_eval_error(bt, "third argument to 'append' must be 'space', 'comma', or 'auto'", path, line);
+
+      Node new_list(new_Node(Node::list, path, line, list.size() + 1));
+      new_list += list;
+      new_list << bindings[parameter_names[1].token()];
+      new_list.is_comma_separated() = comma_sep;
+      return new_list;
+    }
+
+    extern Signature compact_1_sig = "compact($arg1)";
+    Node compact_1(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node the_arg(bindings[parameter_names[0].token()]);
+
+      if (the_arg.type() == Node::list) {
+        Node non_nils(new_Node(Node::list, path, line, 0));
+        for (size_t i = 0, S = the_arg.size(); i < S; ++i) {
+          Node elt(the_arg[i]);
+          if (!elt.is_false()) non_nils << elt;
+        }
+        return non_nils;
+      }
+
+      return new_Node(Node::list, path, line, 1) << the_arg;
+    }
+
+    extern Signature compact_n_sig = "compact($arg1: false, $arg2: false, $arg3: false, $arg4: false, $arg5: false, $arg6: false, $arg7: false, $arg8: false, $arg9: false, $arg10: false, $arg11: false, $arg12: false)";
+    Node compact_n(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node non_nils(new_Node(Node::list, path, line, 0));
+      non_nils.is_comma_separated() = true;
+
+      for (size_t i = 0, S = bindings.current_frame.size(); i < S; ++i) {
+        Node the_arg(bindings[parameter_names[i].token()]);
+        if (!the_arg.is_false()) non_nils << the_arg;
+      }
+
+      return non_nils;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // Introspection Functions /////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+
+    extern Signature type_of_sig = "type-of($value)";
+    Node type_of(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node val(bindings[parameter_names[0].token()]);
+      Token type_name;
+      switch (val.type())
+      {
+        case Node::number:
+        case Node::numeric_dimension:
+        case Node::numeric_percentage: {
+          type_name = Token::make(number_name);
+        } break;
+        case Node::boolean: {
+          type_name = Token::make(bool_name);
+        } break;
+        case Node::string_constant:
+        case Node::value_schema: {
+          type_name = Token::make(string_name);
+        } break;
+        case Node::numeric_color: {
+          type_name = Token::make(color_name);
+        } break;
+        case Node::list: {
+          // cerr << val.to_string() << endl;
+          // cerr << val.is_arglist() << endl;
+          // throw (42);
+          if (val.is_arglist())
+            type_name = Token::make(arglist_name);
+          else
+            type_name = Token::make(list_name);
+        } break;
+        default: {
+          type_name = Token::make(string_name);
+        } break;
+      }
+      return new_Node(Node::identifier, path, line, type_name);
+    }
+
+    extern Signature unit_sig = "unit($number)";
+    Node unit(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node val(arg(unit_sig, path, line, parameter_names, bindings, 0, Node::numeric, bt));
+      switch (val.type())
+      {
+        case Node::number: {
+          Node u(new_Node(Node::string_constant, path, line, Token::make(empty_str)));
+          u.is_quoted() = true;
+          return u;
+        } break;
+
+        case Node::numeric_dimension:
+        case Node::numeric_percentage: {
+          Node u(new_Node(Node::string_constant, path, line, val.unit()));
+          u.is_quoted() = true;
+          return u;
+        } break;
+
+        // unreachable
+        default: {
+          throw_eval_error(bt, "argument to 'unit' must be numeric", path, line);
+        } break;
+      }
+      // unreachable statement
+      return Node();
+    }
+
+    extern Signature unitless_sig = "unitless($number)";
+    Node unitless(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node val(arg(unitless_sig, path, line, parameter_names, bindings, 0, Node::numeric, bt));
+      switch (val.type())
+      {
+        case Node::number: {
+          return new_Node(Node::boolean, path, line, true);
+        } break;
+
+        case Node::numeric_percentage:
+        case Node::numeric_dimension: {
+          return new_Node(Node::boolean, path, line, false);
+        } break;
+
+        // unreachable
+        default: {
+          throw_eval_error(bt, "argument to 'unitless' must be numeric", path, line);
+        } break;
+      }
+      // unreachable statement
+      return Node();
+    }
+
+    extern Signature comparable_sig = "comparable($number-1, $number-2)";
+    Node comparable(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node n1(arg(comparable_sig, path, line, parameter_names, bindings, 0, Node::numeric, bt));
+      Node n2(arg(comparable_sig, path, line, parameter_names, bindings, 1, Node::numeric, bt));
+      Node::Type t1 = n1.type();
+      Node::Type t2 = n2.type();
+      if ((t1 == Node::number && n2.is_numeric()) ||
+          (n1.is_numeric() && t2 == Node::number)) {
+        return new_Node(Node::boolean, path, line, true);
+      }
+      else if (t1 == Node::numeric_percentage && t2 == Node::numeric_percentage) {
+        return new_Node(Node::boolean, path, line, true);
+      }
+      else if (t1 == Node::numeric_dimension && t2 == Node::numeric_dimension) {
+        string u1(n1.unit().to_string());
+        string u2(n2.unit().to_string());
+        if ((u1 == "ex" && u2 == "ex") ||
+            (u1 == "em" && u2 == "em") ||
+            ((u1 == "in" || u1 == "cm" || u1 == "mm" || u1 == "pt" || u1 == "pc" || u1 == "px") &&
+             (u2 == "in" || u2 == "cm" || u2 == "mm" || u2 == "pt" || u2 == "pc" || u2 == "px"))) {
+          return new_Node(Node::boolean, path, line, true);
+        }
+        else if (u1 == u2) {
+          return new_Node(Node::boolean, path, line, true);
+        }
+        else {
+          return new_Node(Node::boolean, path, line, false);
+        }
+      }
+      // default to false if we missed anything
+      return new_Node(Node::boolean, path, line, false);
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // Boolean Functions ///////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+
+    extern Signature not_sig = "not($value)";
+    Node not_impl(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node val(bindings[parameter_names[0].token()]);
+      if (val.is_false()) return new_Node(Node::boolean, path, line, true);
+      return new_Node(Node::boolean, path, line, false);
+    }
+
+    extern Signature if_sig = "if($condition, $if-true, $if-false)";
+    Node if_impl(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node predicate(bindings[parameter_names[0].token()]);
+      Node consequent(bindings[parameter_names[1].token()]);
+      Node alternative(bindings[parameter_names[2].token()]);
+
+      if (predicate.is_false()) return alternative;
+      return consequent;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // Path Functions //////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+
+    extern Signature image_url_sig = "image-url($path, $only-path: false, $cache-buster: false)";
+    Node image_url(const Node parameter_names, Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) {
+      Node base_path(bindings[parameter_names[0].token()]);
+      bool only_path = !bindings[parameter_names[1].token()].is_false();
+      Node image_path_val(bindings[Token::make(image_path_var)]);
+
+      Node result(new_Node(Node::concatenation, path, line, 2));
+      result << image_path_val;
+      result << base_path;
+      result.is_quoted() = true;
+      if (!only_path) result = (new_Node(Node::uri, path, line, 1) << result);
+
+      return result;
+    }
   }
 }

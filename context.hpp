@@ -1,61 +1,58 @@
-#define SASS_CONTEXT_INCLUDED
+#define SASS_CONTEXT
 
+//#ifndef SASS_ENVIRONMENT
+#include "environment.hpp"
+//#endif
 
 #include <utility>
-#include <map>
+
+#ifndef SASS_NODE_FACTORY
+#include "node_factory.hpp"
+#endif
+
+#ifndef SASS_FUNCTIONS
 #include "functions.hpp"
+#endif
+
+#ifndef SASS_VALUES
+#include "sass_values.h"
+#endif
+// struct Sass_C_Function_Data;
 
 namespace Sass {
   using std::pair;
   using std::map;
-  
-  struct Environment {
-    map<Token, Node> current_frame;
-    Environment* parent;
-    Environment* global;
-    
-    Environment()
-    : current_frame(map<Token, Node>()), parent(0), global(0)
-    { }
-    
-    void link(Environment& env)
-    {
-      parent = &env;
-      global = parent->global ? parent->global : parent;
-    }
-    
-    bool query(const Token& key) const
-    {
-      if (current_frame.count(key)) return true;
-      else if (parent)              return parent->query(key);
-      else                          return false;
-    }
-    
-    Node& operator[](const Token& key)
-    {
-      if (current_frame.count(key)) return current_frame[key];
-      else if (parent)              return (*parent)[key];
-      else                          return current_frame[key];
-    }
-  };
 
   struct Context {
     Environment global_env;
-    map<pair<string, size_t>, Function> function_env;
-    vector<char*> source_refs; // all the source c-strings
-    vector<vector<Node>*> registry; // all the child vectors
+    map<string, Function> function_env;
+    vector<Sass_C_Function_Data> c_function_list;
+    multimap<Node, Node> extensions;
+    vector<pair<Node, Node> > pending_extensions;
+    vector<const char*> source_refs; // all the source c-strings
     vector<string> include_paths;
+    map<string, Node> color_names_to_values;
+    map<Node, string> color_values_to_names;
+    Node_Factory new_Node;
+    char* image_path;
     size_t ref_count;
-    string sass_path;
-    string css_path;
-    
+    // string sass_path;
+    // string css_path;
+    bool has_extensions;
+    int source_comments;
+
     void collect_include_paths(const char* paths_str);
-    Context(const char* paths_str = 0);
+    Context(const char* paths_str = 0, const char* img_path_str = 0, int sc = 0);
     ~Context();
-    
-    void register_function(Function_Descriptor d, Implementation ip);
-    void register_function(Function_Descriptor d, Implementation ip, size_t arity);
+
+    void register_function(Signature sig, Primitive ip);
+    void register_function(Signature sig, Primitive ip, size_t arity);
+    void register_c_function(Signature sig, C_Function ip);
+    void register_c_function(Signature sig, C_Function ip, size_t arity);
+    void register_overload_stub(string name);
     void register_functions();
+    void register_c_functions();
+    void setup_color_map();
   };
 
 }

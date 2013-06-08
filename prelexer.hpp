@@ -1,4 +1,4 @@
-#define SASS_PRELEXER_INCLUDED
+#define SASS_PRELEXER
 
 namespace Sass {
   namespace Prelexer {
@@ -305,11 +305,42 @@ namespace Sass {
     // Match interpolant schemas
     const char* identifier_schema(const char* src);
     const char* value_schema(const char* src);
+    const char* filename(const char* src);
+    const char* filename_schema(const char* src);
+    const char* url_schema(const char* src);
+    const char* url_value(const char* src);
+    const char* vendor_prefix(const char* src);
     // Match CSS '@' keywords.
     const char* at_keyword(const char* src);
     const char* import(const char* src);
+    const char* media(const char* src);
+    const char* keyframes(const char* src);
+    const char* keyf(const char* src);
     const char* mixin(const char* src);
+    const char* function(const char* src);
+    const char* return_directive(const char* src);
     const char* include(const char* src);
+    const char* content(const char* src);
+    const char* extend(const char* src);
+
+    const char* if_directive(const char* src);
+    const char* else_directive(const char* src);
+    const char* elseif_directive(const char* src);
+
+    const char* for_directive(const char* src);
+    const char* from(const char* src);
+    const char* to(const char* src);
+    const char* through(const char* src);
+
+    const char* each_directive(const char* src);
+    const char* in(const char* src);
+
+    const char* while_directive(const char* src);
+
+    const char* warn(const char* src);
+
+    const char* directive(const char* src);
+
     // Match CSS type selectors
     const char* namespace_prefix(const char* src);
     const char* type_selector(const char* src);
@@ -331,8 +362,11 @@ namespace Sass {
     // Match CSS uri specifiers.
     const char* uri_prefix(const char* src);
     const char* uri(const char* src);
+    const char* url(const char* src);
     // Match CSS "!important" keyword.
     const char* important(const char* src);
+    // Match Sass "!default" keyword.
+    const char* default_flag(const char* src);
     // Match CSS pseudo-class/element prefixes
     const char* pseudo_prefix(const char* src);
     // Match CSS function call openers.
@@ -358,11 +392,11 @@ namespace Sass {
     const char* variable(const char* src);
     
     // Match Sass boolean keywords.
-    const char* true_kwd(const char* src);
-    const char* false_kwd(const char* src);
-    const char* and_kwd(const char* src);
-    const char* or_kwd(const char* src);
-    const char* not_kwd(const char* src);
+    const char* true_val(const char* src);
+    const char* false_val(const char* src);
+    const char* and_op(const char* src);
+    const char* or_op(const char* src);
+    const char* not_op(const char* src);
     const char* eq_op(const char* src);
     const char* neq_op(const char* src);
     const char* gt_op(const char* src);
@@ -388,8 +422,7 @@ namespace Sass {
     template<prelexer mx>
     const char* find_first_in_interval(const char* beg, const char* end) {
       while ((beg < end) && *beg) {
-        const char* p = mx(beg);
-        if (p) return p;
+        if (mx(beg)) return beg;
         ++beg;
       }
       return 0;
@@ -418,6 +451,7 @@ namespace Sass {
       }
       return counter;
     }
-    
+
+    const char* chunk(const char* src);
   }
 }
