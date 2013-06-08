@@ -52,6 +52,7 @@ namespace Sass {
             (*root) << new (ctx.mem) Import_Stub(path, line, imp->files()[i]);
           }
         }
+        if (!lex< exactly<';'> >()) error("top-level @import directive must be terminated by ';'");
       }
       else if (peek< mixin >() || peek< function >()) {
         (*root) << parse_definition();
@@ -119,7 +120,7 @@ namespace Sass {
       if (lex< string_constant >()) {
         string import_path(lexed);
         size_t dot = import_path.find_last_of('.');
-        if (dot != string::npos && import_path.substr(dot) == ".css") {
+        if (dot != string::npos && import_path.substr(dot, 4) == ".css") {
           String_Constant* loc = new (ctx.mem) String_Constant(path, line, import_path);
           Argument* loc_arg = new (ctx.mem) Argument(path, line, loc);
           Arguments* loc_args = new (ctx.mem) Arguments(path, line);
@@ -566,7 +567,7 @@ namespace Sass {
             (*block) << new (ctx.mem) Import_Stub(path, line, imp->files()[i]);
           }
         }
-        // semicolon = true?
+        semicolon = true;
       }
       else if (lex< variable >()) {
         (*block) << parse_assignment();
