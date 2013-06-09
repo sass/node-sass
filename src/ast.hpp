@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 #ifndef SASS_OPERATION
 #include "operation.hpp"
@@ -615,6 +616,26 @@ namespace Sass {
         u << denominator_units_[i];
       }
       return u.str();
+    }
+    void mul_unit(string numer)
+    {
+      vector<string>::iterator denom = find(denominator_units_.begin(),
+                                            denominator_units_.end(),
+                                            numer);
+      if (denom != denominator_units_.end())
+        denominator_units_.erase(denom);
+      else
+        numerator_units_.push_back(numer);
+    }
+    void div_unit(string denom)
+    {
+      vector<string>::iterator numer = find(numerator_units_.begin(),
+                                            numerator_units_.end(),
+                                            denom);
+      if (numer != numerator_units_.end())
+        numerator_units_.erase(numer);
+      else
+        denominator_units_.push_back(denom);
     }
     ATTACH_OPERATIONS();
   };
