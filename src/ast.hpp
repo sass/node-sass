@@ -408,6 +408,7 @@ namespace Sass {
     virtual operator bool() { return true; }
     virtual ~Expression() = 0;
     virtual string type() { return ""; /* TODO: raise an error? */ }
+    virtual bool is_invisible() { return false; }
   };
   inline Expression::~Expression() { }
 
@@ -446,6 +447,7 @@ namespace Sass {
       separator_(sep), is_arglist_(argl)
     { }
     string type() { return is_arglist_ ? "arglist" : "list"; }
+    bool is_invisible() { return !length(); }
     ATTACH_OPERATIONS();
   };
 

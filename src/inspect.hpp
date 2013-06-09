@@ -10,7 +10,7 @@
 
 namespace Sass {
 	using namespace std;
-	class To_String;
+	// class To_String;
 
 	class Inspect : public Operation_CRTP<void, Inspect> {
 		// import all the class-specific methods and override as desired
@@ -18,7 +18,7 @@ namespace Sass {
 		// override this to define a catch-all
 		// virtual void fallback(AST_Node* n);
 
-		To_String* to_string;
+		// To_String* to_string;
 		string buffer;
 		size_t indentation;
 		void indent();
@@ -55,42 +55,42 @@ namespace Sass {
 		virtual void operator()(Content*);
 		// expressions
 		// virtual void operator()(Expression*);
-		// virtual void operator()(List*);
+		virtual void operator()(List*);
 		virtual void operator()(Binary_Expression*);
 		virtual void operator()(Unary_Expression*);
-		// virtual void operator()(Function_Call*);
+		virtual void operator()(Function_Call*);
+		virtual void operator()(Function_Call_Schema*);
 		virtual void operator()(Variable*);
-		// virtual void operator()(Textual*);
-		// virtual void operator()(Number*);
-		// virtual void operator()(Percentage*);
-		// virtual void operator()(Dimension*);
-		// virtual void operator()(Color*);
-		// virtual void operator()(Boolean*);
-		// virtual void operator()(String_Schema*);
-		// virtual void operator()(String_Constant* x) { fallback(x); }
-		// virtual void operator()(Media_Query*);
-		// virtual void operator()(Media_Query_Expression*);
+		virtual void operator()(Textual*);
+		virtual void operator()(Number*);
+		virtual void operator()(Percentage*);
+		virtual void operator()(Dimension*);
+		virtual void operator()(Color*);
+		virtual void operator()(Boolean*);
+		virtual void operator()(String_Schema*);
+		virtual void operator()(String_Constant* x);
+		virtual void operator()(Media_Query*);
+		virtual void operator()(Media_Query_Expression*);
 		// parameters and arguments
 		virtual void operator()(Parameter*);
 		virtual void operator()(Parameters*);
-		// virtual void operator()(Argument*);
-		// virtual void operator()(Arguments*);
+		virtual void operator()(Argument*);
+		virtual void operator()(Arguments*);
 		// selectors
-		// virtual void operator()(Selector_Schema*);
-		// virtual void operator()(Selector_Reference*);
-		// virtual void operator()(Selector_Placeholder*);
-		// virtual void operator()(Type_Selector*);
-		// virtual void operator()(Selector_Qualifier*);
-		// virtual void operator()(Attribute_Selector*);
-		// virtual void operator()(Pseudo_Selector*);
-		// virtual void operator()(Negated_Selector*);
-		// virtual void operator()(Simple_Selector_Sequence*);
-		// virtual void operator()(Selector_Combination*);
-		// virtual void operator()(Selector_Group*);
+		virtual void operator()(Selector_Schema*);
+		virtual void operator()(Selector_Reference*);
+		virtual void operator()(Selector_Placeholder*);
+		virtual void operator()(Type_Selector*);
+		virtual void operator()(Selector_Qualifier*);
+		virtual void operator()(Attribute_Selector*);
+		virtual void operator()(Pseudo_Selector*);
+		virtual void operator()(Negated_Selector*);
+		virtual void operator()(Simple_Selector_Sequence*);
+		virtual void operator()(Selector_Combination*);
+		virtual void operator()(Selector_Group*);
 
 		template <typename U>
 		void fallback(U x) { fallback_impl(x); }
-		// { buffer += x->perform(to_string); }
 	};
 
 }

@@ -1,17 +1,14 @@
 #include "inspect.hpp"
 #include "ast.hpp"
-#include "to_string.hpp"
+#include <cmath>
 #include <iostream>
+#include <iomanip>
 
 namespace Sass {
   using namespace std;
 
-  Inspect::Inspect()
-  : to_string(new To_String()), buffer(""), indentation(0)
-  { }
-
-  Inspect::~Inspect()
-  { delete to_string; }
+  Inspect::Inspect() : buffer(""), indentation(0) { }
+  Inspect::~Inspect() { }
 
   // statements
   void Inspect::operator()(Block* block)
@@ -226,6 +223,23 @@ namespace Sass {
 
   // void Inspect::operator()(List*)
 
+  void Inspect::operator()(List* list)
+  {
+    string sep(list->separator() == List::SPACE ? " " : ", ");
+    if (list->empty()) return;
+    size_t prev = buffer.length();
+    Expression* first = (*list)[0];
+    bool first_invisible = first->is_invisible();
+    if (!first_invisible) first->perform(this);
+    for (size_t i = 1, L = list->length(); i < L; ++i) {
+      Expression* next = (*list)[i];
+      bool next_invisible = next->is_invisible();
+      if (i == 1 && !first_invisible && !next_invisible) buffer += sep;
+      else if (!next_invisible)                          buffer += sep;
+      next->perform(this);
+    }
+  }
+
   void Inspect::operator()(Binary_Expression* expr)
   {
     expr->left()->perform(this);
@@ -254,30 +268,144 @@ namespace Sass {
     expr->operand()->perform(this);
   }
 
-  // void Inspect::operator()(Function_Call*)
+  void Inspect::operator()(Function_Call* call)
+  {
+    buffer += call->name();
+    call->arguments()->perform(this);
+  }
+
+  void Inspect::operator()(Function_Call_Schema* call)
+  {
+    call->name()->perform(this);
+    call->arguments()->perform(this);
+  }
 
   void Inspect::operator()(Variable* var)
   {
     buffer += var->name();
   }
 
-  // void Inspect::operator()(Textual*)
-  // void Inspect::operator()(Number*)
-  // void Inspect::operator()(Percentage*)
-  // void Inspect::operator()(Dimension*)
-  // void Inspect::operator()(Color*)
-  // void Inspect::operator()(Boolean*)
+  void Inspect::operator()(Textual* txt)
+  {
+    buffer += txt->value();
+  }
 
-  // void Inspect::operator()(String_Schema* ss)
-  // {
-  //   buffer += "#{";
-  //   for (size_t i = 0, L = ss->length(); i < L; ++i) (*ss)[i]->perform(this);
-  //   buffer += '}';
-  // }
+  // helper functions for serializing numbers
+  static string frac_to_string(double f, size_t p) {
+    stringstream ss;
+    ss.setf(ios::fixed, ios::floatfield);
+    ss.precision(p);
+    ss << f;
+    string result(ss.str().substr(f < 0 ? 2 : 1));
+    size_t i = result.size() - 1;
+    while (result[i] == '0') --i;
+    result = result.substr(0, i+1);
+    return result;
+  }
+  static string double_to_string(double d, size_t p) {
+    stringstream ss;
+    double ipart;
+    double fpart = std::modf(d, &ipart);
+    ss << ipart;
+    if (fpart != 0) ss << frac_to_string(fpart, 5);
+    return ss.str();
+  }
 
-  // void Inspect::operator()(String_Constant*)
-  // void Inspect::operator()(Media_Query*)
-  // void Inspect::operator()(Media_Query_Expression*)
+  void Inspect::operator()(Number* n)
+  {
+    buffer += double_to_string(n->value(), 5);
+  }
+
+  void Inspect::operator()(Percentage* p)
+  {
+    buffer += double_to_string(p->value(), 5);
+    buffer += '%';
+  }
+
+  void Inspect::operator()(Dimension* d)
+  {
+    // TODO: check for sane units
+    buffer += double_to_string(d->value(), 5);
+    buffer += (d->numerator_units().empty() ? "" : d->numerator_units()[0]);
+  }
+
+  // helper function for serializing colors
+  template <size_t range>
+  static double cap_channel(double c) {
+    if      (c > range) return range;
+    else if (c < 0)     return 0;
+    else                return c;
+  }
+
+  void Inspect::operator()(Color* c)
+  {
+    stringstream ss;
+    double r = cap_channel<0xff>(c->r());
+    double g = cap_channel<0xff>(c->g());
+    double b = cap_channel<0xff>(c->b());
+    double a = cap_channel<1>   (c->a());
+    if (a >= 1) {
+      ss << '#' << setw(2) << setfill('0');
+      ss << hex << setw(2) << static_cast<unsigned long>(floor(r+0.5));
+      ss << hex << setw(2) << static_cast<unsigned long>(floor(g+0.5));
+      ss << hex << setw(2) << static_cast<unsigned long>(floor(b+0.5));
+    }
+    else {
+      ss << "rgba(";
+      ss << static_cast<unsigned long>(r) << ", ";
+      ss << static_cast<unsigned long>(g) << ", ";
+      ss << static_cast<unsigned long>(b) << ", ";
+      ss << static_cast<unsigned long>(a) << ')';
+    }
+    buffer += ss.str();
+  }
+
+  void Inspect::operator()(Boolean* b)
+  {
+    buffer += (b->value() ? "true" : "false");
+  }
+
+  void Inspect::operator()(String_Schema* ss)
+  {
+    for (size_t i = 0, L = ss->length(); i < L; ++i) {
+      if ((*ss)[i]->is_interpolant()) buffer += "#{";
+      (*ss)[i]->perform(this);
+      if ((*ss)[i]->is_interpolant()) buffer += '}';
+    }
+  }
+
+  void Inspect::operator()(String_Constant* s)
+  {
+    buffer += s->value();
+  }
+
+  void Inspect::operator()(Media_Query* mq)
+  {
+    size_t i = 0;
+    if (mq->media_type()) {
+      if      (mq->is_negated())    buffer += "not ";
+      else if (mq->is_restricted()) buffer += "only ";
+      mq->media_type()->perform(this);
+    }
+    else {
+      (*mq)[i++]->perform(this);
+    }
+    for (size_t L = mq->length(); i < L; ++i) {
+      buffer += " and ";
+      (*mq)[i]->perform(this);
+    }
+  }
+
+  void Inspect::operator()(Media_Query_Expression* mqe)
+  {
+    buffer += "(";
+    mqe->feature()->perform(this);
+    if (mqe->value()) {
+      buffer += ": ";
+      mqe->value()->perform(this);
+    }
+    buffer += ')';
+  }
 
   // parameters and arguments
   void Inspect::operator()(Parameter* p)
@@ -305,35 +433,123 @@ namespace Sass {
     buffer += ')';
   }
 
-  // void Inspect::operator()(Argument* a)
-  // {
-  //   buffer += a->perform(to_string);
-  // }
+  void Inspect::operator()(Argument* a)
+  {
+    if (!a->name().empty()) {
+      buffer += a->name();
+      buffer += ": ";
+    }
+    a->value()->perform(this);
+    if (a->is_rest_argument()) {
+      buffer += "...";
+    }
+  }
 
-  // void Inspect::operator()(Arguments* a)
-  // {
-  //   buffer += a->perform(to_string);
-  // }
+  void Inspect::operator()(Arguments* a)
+  {
+    buffer += '(';
+    if (!a->empty()) {
+      (*a)[0]->perform(this);
+      for (size_t i = 1, L = a->length(); i < L; ++i) {
+        buffer += ", ";
+        (*a)[i]->perform(this);
+      }
+    }
+    buffer += ')';
+  }
 
   // selectors
-  // void Inspect::operator()(Selector_Schema* s)
-  // {
-  //   s->contents()->perform(this);
-  // }
+  void Inspect::operator()(Selector_Schema* s)
+  {
+    s->contents()->perform(this);
+  }
 
-  // void Inspect::operator()(Selector_Reference*)
-  // void Inspect::operator()(Selector_Placeholder*)
-  // void Inspect::operator()(Type_Selector*)
-  // void Inspect::operator()(Selector_Qualifier*)
-  // void Inspect::operator()(Attribute_Selector*)
-  // void Inspect::operator()(Pseudo_Selector*)
-  // void Inspect::operator()(Negated_Selector*)
-  // void Inspect::operator()(Simple_Selector_Sequence*)
-  // void Inspect::operator()(Selector_Combination*)
-  // void Inspect::operator()(Selector_Group*)
+  void Inspect::operator()(Selector_Reference* ref)
+  {
+    if (ref->selector()) ref->selector()->perform(this);
+    else                 buffer += '&';
+  }
+
+  void Inspect::operator()(Selector_Placeholder* s)
+  {
+    buffer += s->name();
+  }
+
+  void Inspect::operator()(Type_Selector* s)
+  {
+    buffer += s->name();
+  }
+
+  void Inspect::operator()(Selector_Qualifier* s)
+  {
+    buffer += s->name();
+  }
+
+  void Inspect::operator()(Attribute_Selector* s)
+  {
+    buffer += '[';
+    buffer += s->name();
+    if (!s->matcher().empty()) {
+      buffer += s->matcher();
+      buffer += s->value();
+    }
+    buffer += ']';
+  }
+
+  void Inspect::operator()(Pseudo_Selector* s)
+  {
+    buffer += s->name();
+    if (s->expression()) {
+      s->expression()->perform(this);
+      buffer += ')';
+    }
+  }
+
+  void Inspect::operator()(Negated_Selector* s)
+  {
+    buffer += ":not(";
+    s->selector()->perform(this);
+    buffer += ')';
+  }
+
+  void Inspect::operator()(Simple_Selector_Sequence* s)
+  {
+    for (size_t i = 0, L = s->length(); i < L; ++i) {
+      (*s)[i]->perform(this);
+    }
+  }
+
+  void Inspect::operator()(Selector_Combination* c)
+  {
+    Simple_Selector_Sequence*        head = c->head();
+    Selector_Combination*            tail = c->tail();
+    Selector_Combination::Combinator comb = c->combinator();
+    if (head) head->perform(this);
+    if (head && tail) buffer += ' ';
+    switch (comb) {
+      case Selector_Combination::ANCESTOR_OF:                break;
+      case Selector_Combination::PARENT_OF:   buffer += '>'; break;
+      case Selector_Combination::PRECEDES:    buffer += '~'; break;
+      case Selector_Combination::ADJACENT_TO: buffer += '+'; break;
+    }
+    if (head && tail && comb != Selector_Combination::ANCESTOR_OF) {
+      buffer += ' ';
+    }
+    if (tail) tail->perform(this);
+  }
+
+  void Inspect::operator()(Selector_Group* g)
+  {
+    if (g->empty()) return;
+    (*g)[0]->perform(this);
+    for (size_t i = 1, L = g->length(); i < L; ++i) {
+      buffer += ", ";
+      (*g)[i]->perform(this);
+    }
+  }
 
   inline void Inspect::fallback_impl(AST_Node* n)
-  { buffer += n->perform(to_string); }
+  { }
 
   void Inspect::indent()
   { buffer += string(2*indentation, ' '); }
