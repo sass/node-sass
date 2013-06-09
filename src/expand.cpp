@@ -262,7 +262,7 @@ namespace Sass {
 
   Statement* Expand::operator()(Content* c)
   {
-    if (content_stack.empty()) /* TODO: raise an error */ ;
+    if (content_stack.empty()) return 0;
     Block* current_block = block_stack.back();
     Block* content = content_stack.back();
     for (size_t i = 0, L = content->length(); i < L; ++i) {
