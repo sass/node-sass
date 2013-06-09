@@ -168,6 +168,30 @@ namespace Sass {
     return 0;
   }
 
+  Statement* Expand::operator()(Each* e)
+  {
+    string variable(e->variable());
+    Expression* expr = e->list()->perform(eval->with(env));
+    List* list = 0;
+    if (expr->concrete_type() != Expression::LIST) {
+      list = new (ctx.mem) List(expr->path(), expr->line(), 1, List::COMMA);
+      *list << expr;
+    }
+    else {
+      list = static_cast<List*>(expr);
+    }
+    Env new_env;
+    new_env[variable] = 0;
+    new_env.link(env);
+    env = &new_env;
+    for (size_t i = 0, L = list->length(); i < L; ++i) {
+      (*env)[variable] = (*list)[i];
+      append_block(e->block());
+    }
+    env = new_env.parent();
+    return 0;
+  }
+
   Statement* Expand::operator()(Definition* d)
   {
     env->current_frame()[d->name() +
