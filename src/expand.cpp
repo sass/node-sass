@@ -159,10 +159,11 @@ namespace Sass {
     new_env[variable] = new (ctx.mem) Number(low->path(), low->line(), lo);
     new_env.link(env);
     env = &new_env;
+    Block* body = f->block();
     for (size_t i = lo;
          i < hi;
          (*env)[variable] = new (ctx.mem) Number(low->path(), low->line(), ++i)) {
-      append_block(f->block());
+      append_block(body);
     }
     env = new_env.parent();
     return 0;
@@ -184,11 +185,22 @@ namespace Sass {
     new_env[variable] = 0;
     new_env.link(env);
     env = &new_env;
+    Block* body = e->block();
     for (size_t i = 0, L = list->length(); i < L; ++i) {
       (*env)[variable] = (*list)[i];
-      append_block(e->block());
+      append_block(body);
     }
     env = new_env.parent();
+    return 0;
+  }
+
+  Statement* Expand::operator()(While* w)
+  {
+    Expression* pred = w->predicate();
+    Block* body = w->block();
+    while (*pred->perform(eval->with(env))) {
+      append_block(body);
+    }
     return 0;
   }
 

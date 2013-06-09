@@ -49,7 +49,7 @@ namespace Sass {
 		Statement* operator()(If*);
 		Statement* operator()(For*);
 		Statement* operator()(Each*);
-		// Statement* operator()(While*);
+		Statement* operator()(While*);
 		// Statement* operator()(Return*);
 		// Statement* operator()(Extend*);
 		Statement* operator()(Definition*);
