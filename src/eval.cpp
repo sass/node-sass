@@ -6,7 +6,6 @@
 #include "prelexer.hpp"
 #include <cstdlib>
 
-#include <typeinfo>
 #include <iostream>
 
 namespace Sass {
@@ -33,8 +32,8 @@ namespace Sass {
     Arguments* args = static_cast<Arguments*>(c->arguments()->perform(this));
     string full_name(c->name() + "[f]");
 
+    // if it doesn't exist, just pass it through as a literal
     if (!env->has(full_name)) {
-      // just pass it through as a literal
       return new (ctx.mem) Function_Call(c->path(),
                                          c->line(),
                                          c->name(),
@@ -45,8 +44,8 @@ namespace Sass {
     Definition*     def    = static_cast<Definition*>((*env)[full_name]);
     Block*          body   = def->block();
     Native_Function func   = def->native_function();
-    // C_Function   c_func   = def->c_function();
 
+    // if it's user-defined, bind the args and eval the body
     if (body) {
       Parameters* params = def->parameters();
       Env new_env;
@@ -57,12 +56,11 @@ namespace Sass {
       Expression* result = body->perform(this);
       env = old_env;
     }
+    // if it's native, invoke the underlying CPP function
     else if (func) {
       // do stuff
     }
-    // else if (c_function) {
-    //   // do other stuff
-    // }
+
     return result;
   }
 
@@ -156,7 +154,7 @@ namespace Sass {
   Expression* Eval::operator()(Argument* a)
   {
     Expression* val = a->value()->perform(this);
-    if (a->is_rest_argument() && (typeid(*val) != typeid(List))) {
+    if (a->is_rest_argument() && (val->concrete_type() != Expression::LIST)) {
       List* wrapper = new (ctx.mem) List(val->path(),
                                          val->line(),
                                          0,

@@ -130,10 +130,16 @@ namespace Sass {
     return c;
   }
 
-  // Statement* Expand::operator()(If* i)
-  // {
-
-  // }
+  Statement* Expand::operator()(If* i)
+  {
+    if (*i->predicate()->perform(eval->with(env))) {
+      append_block(i->consequent());
+    }
+    else {
+      Block* alt = i->alternative();
+      if (alt) append_block(alt);
+    }
+  }
 
   Statement* Expand::operator()(Definition* d)
   {
