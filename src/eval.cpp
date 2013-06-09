@@ -134,6 +134,20 @@ namespace Sass {
     return ll;
   }
 
+  Expression* Eval::operator()(Warning* w)
+  {
+    Expression* message = w->message()->perform(this);
+    To_String to_string;
+    string prefix("WARNING: ");
+    string indent("         ");
+    string result(message->perform(&to_string));
+    cerr << prefix << result << endl;
+    cerr << indent << "on line " << w->line() << " of " << w->path() << endl;
+    cerr << endl;
+    // TODO: print out a backtrace
+    return 0;
+  }
+
   Expression* Eval::operator()(Unary_Expression* u)
   {
     Expression* operand = u->operand()->perform(this);

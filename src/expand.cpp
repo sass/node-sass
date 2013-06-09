@@ -128,15 +128,8 @@ namespace Sass {
 
   Statement* Expand::operator()(Warning* w)
   {
-    Expression* message = w->message()->perform(eval->with(env));
-    To_String to_string;
-    string prefix("WARNING: ");
-    string indent("         ");
-    string result(message->perform(&to_string));
-    cerr << prefix << result << endl;
-    cerr << indent << "on line " << w->line() << " of " << w->path() << endl;
-    cerr << endl;
-    // TODO: print out a backtrace
+    // eval handles this too, because warnings may occur in functions
+    w->perform(eval->with(env));
     return 0;
   }
 
