@@ -14,8 +14,10 @@
 #include "constants.hpp"
 #include "parser.hpp"
 #include "file.hpp"
+#include "environment.hpp"
 #include "inspect.hpp"
 #include "expand.hpp"
+#include "eval.hpp"
 #include "copy_c_str.hpp"
 
 #ifndef SASS_PRELEXER
@@ -123,13 +125,15 @@ namespace Sass {
       if (i == 0) root = ast;
       style_sheets[queue[i].first] = ast;
     }
+
     Environment<AST_Node*> tge;
-    Expand* expand = new Expand(*this, &tge);
-    Inspector* inspect = new Inspector();
-    root->perform(expand)->perform(inspect);
-    // root->perform(inspect);
-    char* result = copy_c_str(inspect->get_buffer().c_str());
-    delete inspect;
+    Eval eval(*this, &tge);
+    Expand expand(*this, &eval, &tge);
+    Inspector inspect;
+
+    root->perform(&expand)->perform(&inspect);
+
+    char* result = copy_c_str(inspect.get_buffer().c_str());
     return result;
   }
 

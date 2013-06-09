@@ -48,6 +48,7 @@ namespace Sass {
       for (size_t i = 0, L = v->length(); i < L; ++i) *this << (*v)[i];
       return *this;
     }
+    vector<T>& elements() { return elements_; }
   };
   template <typename T>
   inline Vectorized<T>::~Vectorized() { }
@@ -613,6 +614,7 @@ namespace Sass {
   public:
     String(string p, size_t l) : Expression(p, l) { }
     virtual ~String() = 0;
+    ATTACH_OPERATIONS();
   };
   inline String::~String() { };
 
@@ -738,13 +740,13 @@ namespace Sass {
   ////////////////////////////////////////////////////////////
   // Individual argument objects for mixin and function calls.
   ////////////////////////////////////////////////////////////
-  class Argument : public AST_Node {
+  class Argument : public Expression {
     ADD_PROPERTY(Expression*, value);
     ADD_PROPERTY(string, name);
     ADD_PROPERTY(bool, is_rest_argument);
   public:
     Argument(string p, size_t l, Expression* val, string n = "", bool rest = false)
-    : AST_Node(p, l), value_(val), name_(n), is_rest_argument_(rest)
+    : Expression(p, l), value_(val), name_(n), is_rest_argument_(rest)
     { if (!name_.empty() && is_rest_argument_) { /* error */ } }
     ATTACH_OPERATIONS();
   };
@@ -754,7 +756,7 @@ namespace Sass {
   // error checking (e.g., ensuring that all ordinal arguments precede all
   // named arguments).
   ////////////////////////////////////////////////////////////////////////
-  class Arguments : public AST_Node, public Vectorized<Argument*> {
+  class Arguments : public Expression, public Vectorized<Argument*> {
     ADD_PROPERTY(bool, has_named_arguments);
     ADD_PROPERTY(bool, has_rest_argument);
   protected:
@@ -781,7 +783,7 @@ namespace Sass {
     }
   public:
     Arguments(string p, size_t l)
-    : AST_Node(p, l),
+    : Expression(p, l),
       Vectorized(),
       has_named_arguments_(false),
       has_rest_argument_(false)

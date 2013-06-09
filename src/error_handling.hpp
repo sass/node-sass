@@ -16,4 +16,9 @@ namespace Sass {
 
   };
 
+  void error(string msg, string path, size_t line)
+  {
+    throw Error(Error::syntax, path, line, msg);
+  }
+
 }

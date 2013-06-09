@@ -1,10 +1,8 @@
 #include "expand.hpp"
 #include "ast.hpp"
+#include "bind.hpp"
+#include "eval.hpp"
 
-#ifndef SASS_TO_STRING
-#include "to_string.hpp"
-#endif
-// #include "apply.hpp"
 #include <iostream>
 #include <typeinfo>
 
@@ -14,10 +12,10 @@
 
 namespace Sass {
 
-  Expand::Expand(Context& ctx, /*To_String& ts,*/ Env* env)
-  : ctx(ctx), /*to_string(ts),*/
+  Expand::Expand(Context& ctx, Eval* eval, Env* env)
+  : ctx(ctx),
+    eval(eval),
     env(env),
-    env_stack(vector<Env>()),
     block_stack(vector<Block*>()),
     content_stack(vector<Block*>()),
     property_stack(vector<String*>()),
@@ -31,9 +29,6 @@ namespace Sass {
     env = &new_env;
     Block* bb = new (ctx.mem) Block(b->path(), b->line(), b->length(), b->is_root());
     block_stack.push_back(bb);
-    // for (size_t i = 0, L = b->length(); i < L; ++i) {
-    //  (*bb) << (*b)[i]->perform(this);
-    // }
     append_block(b);
     block_stack.pop_back();
     env = env->parent();
@@ -91,19 +86,20 @@ namespace Sass {
     Block* ab = a->block();
     Block* bb = ab ? ab->perform(this)->block() : 0;
     return new (ctx.mem) At_Rule(a->path(),
-                             a->line(),
-                             a->keyword(),
-                             a->selector(),
-                             bb);
+                                 a->line(),
+                                 a->keyword(),
+                                 a->selector(),
+                                 bb);
   }
 
   Statement* Expand::operator()(Declaration* d)
   {
-    // TODO: eval the property and value
+    String* old_p = d->property();
+    String* new_p = static_cast<String*>(old_p->perform(eval->with(env)));
     return new (ctx.mem) Declaration(d->path(),
                                      d->line(),
-                                     d->property(),
-                                     d->value());
+                                     new_p,
+                                     d->value()->perform(eval->with(env)));
   }
 
   Statement* Expand::operator()(Assignment* a)
@@ -144,6 +140,7 @@ namespace Sass {
     env->current_frame()[d->name() +
                         (d->type() == Definition::MIXIN ? "[m]" : "[f]")] = d;
     // TODO: set the static link of the definition to get lexical scoping
+    // TODO: also, eval the default args
     return 0;
   }
 
@@ -152,16 +149,20 @@ namespace Sass {
     string full_name(c->name() + "[m]");
     if (!env->has(full_name)) /* TODO: throw an error */ ;
     Definition* def = static_cast<Definition*>((*env)[full_name]);
-    // TODO: bind the arguments, etc -- all the hard work
     Block* body = def->block();
     if (c->block()) {
       content_stack.push_back(static_cast<Block*>(c->block()->perform(this)));
     }
     Block* current_block = block_stack.back();
-    // for (size_t i = 0, L = body->length(); i < L; ++i) {
-    //  *current_block << (*body)[i]->perform(this);
-    // }
+    Parameters* params = def->parameters();
+    Arguments* args = static_cast<Arguments*>(c->arguments()
+                                               ->perform(eval->with(env)));
+    Env new_env;
+    new_env.link(env);
+    env = &new_env;
+    bind(params, args, ctx, env);
     append_block(body);
+    env = env->parent();
     if (c->block()) {
       content_stack.pop_back();
     }

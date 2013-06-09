@@ -5,6 +5,7 @@ namespace Sass {
 
 	class AST_Node;
 	// statements
+	class Statement;
 	class Block;
 	class Ruleset;
 	class Propset;
@@ -50,6 +51,7 @@ namespace Sass {
 	class Argument;
 	class Arguments;
 	// selectors
+	class Selector;
 	class Selector_Schema;
 	class Selector_Reference;
 	class Selector_Placeholder;
