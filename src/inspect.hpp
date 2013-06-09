@@ -63,8 +63,8 @@ namespace Sass {
 		virtual void operator()(Variable*);
 		virtual void operator()(Textual*);
 		virtual void operator()(Number*);
-		virtual void operator()(Percentage*);
-		virtual void operator()(Dimension*);
+		// virtual void operator()(Percentage*);
+		// virtual void operator()(Dimension*);
 		virtual void operator()(Color*);
 		virtual void operator()(Boolean*);
 		virtual void operator()(String_Schema*);

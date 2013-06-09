@@ -1,4 +1,6 @@
 #include "eval.hpp"
+#include "bind.hpp"
+#include "to_string.hpp"
 #include "context.hpp"
 #include "ast.hpp"
 #include "prelexer.hpp"
@@ -26,6 +28,53 @@ namespace Sass {
     return ll;
   }
 
+  Expression* Eval::operator()(Function_Call* c)
+  {
+    Arguments* args = static_cast<Arguments*>(c->arguments()->perform(this));
+    string full_name(c->name() + "[f]");
+
+    if (!env->has(full_name)) {
+      // just pass it through as a literal
+      return new (ctx.mem) Function_Call(c->path(),
+                                         c->line(),
+                                         c->name(),
+                                         args);
+    }
+
+    Expression*     result = c;
+    Definition*     def    = static_cast<Definition*>((*env)[full_name]);
+    Block*          body   = def->block();
+    Native_Function func   = def->native_function();
+    // C_Function   c_func   = def->c_function();
+
+    if (body) {
+      Parameters* params = def->parameters();
+      Env new_env;
+      bind("function " + c->name(), params, args, ctx, &new_env);
+      new_env.link(def->environment());
+      Env* old_env = env;
+      env = &new_env;
+      Expression* result = body->perform(this);
+      env = old_env;
+    }
+    else if (func) {
+      // do stuff
+    }
+    // else if (c_function) {
+    //   // do other stuff
+    // }
+    return result;
+  }
+
+  Expression* Eval::operator()(Function_Call_Schema* s)
+  {
+    Expression* evaluated_name = s->name()->perform(this);
+    Expression* evaluated_args = s->arguments()->perform(this);
+    String_Schema* ss = new (ctx.mem) String_Schema(s->path(), s->line(), 2);
+    (*ss) << evaluated_name << evaluated_args;
+    return ss->perform(this);
+  }
+
   Expression* Eval::operator()(Variable* v)
   {
     string name(v->name());
@@ -45,15 +94,16 @@ namespace Sass {
                                       atof(t->value().c_str()));
         break;
       case Textual::PERCENTAGE:
-        result = new (ctx.mem) Percentage(t->path(),
-                                          t->line(),
-                                          atof(t->value().c_str()));
+        result = new (ctx.mem) Number(t->path(),
+                                      t->line(),
+                                      atof(t->value().c_str()),
+                                      "%");
         break;
       case Textual::DIMENSION:
-        result = new (ctx.mem) Dimension(t->path(),
-                                         t->line(),
-                                         atof(t->value().c_str()),
-                                         Token(number(t->value().c_str())));
+        result = new (ctx.mem) Number(t->path(),
+                                      t->line(),
+                                      atof(t->value().c_str()),
+                                      Token(number(t->value().c_str())));
         break;
       case Textual::HEX: {
         string hext(t->value().substr(1)); // chop off the '#'
@@ -76,9 +126,26 @@ namespace Sass {
     return result;
   }
 
+  Expression* Eval::operator()(Number* n)
+  {
+    return n;
+  }
+
+  Expression* Eval::operator()(Boolean* b)
+  {
+    return b;
+  }
+
   Expression* Eval::operator()(String_Schema* s)
   {
-
+    string acc;
+    To_String to_string;
+    for (size_t i = 0, L = s->length(); i < L; ++i) {
+      acc += (*s)[i]->perform(this)->perform(&to_string);
+    }
+    return new (ctx.mem) String_Constant(s->path(),
+                                         s->line(),
+                                         acc);
   }
 
   Expression* Eval::operator()(String_Constant* s)

@@ -36,8 +36,8 @@ namespace Sass {
 	class Variable;
 	class Textual;
 	class Number;
-	class Percentage;
-	class Dimension;
+	// class Percentage;
+	// class Dimension;
 	class Color;
 	class Boolean;
 	class String_Schema;

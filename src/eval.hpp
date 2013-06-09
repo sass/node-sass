@@ -36,14 +36,15 @@ namespace Sass {
     Expression* operator()(List*);
     // Expression* operator()(Binary_Expression*);
     // Expression* operator()(Unary_Expression*);
-    // Expression* operator()(Function_Call*);
+    Expression* operator()(Function_Call*);
+    Expression* operator()(Function_Call_Schema*);
     Expression* operator()(Variable*);
     Expression* operator()(Textual*);
-    // Expression* operator()(Number*);
+    Expression* operator()(Number*);
     // Expression* operator()(Percentage*);
     // Expression* operator()(Dimension*);
     // Expression* operator()(Color*);
-    // Expression* operator()(Boolean*);
+    Expression* operator()(Boolean*);
     Expression* operator()(String_Schema*);
     Expression* operator()(String_Constant*);
     // Expression* operator()(Media_Query*);

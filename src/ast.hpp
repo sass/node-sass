@@ -12,9 +12,14 @@
 #include "token.hpp"
 #endif
 
+#ifndef SASS_ENVIRONMENT
+#include "environment.hpp"
+#endif
+
 #include "error_handling.hpp"
 #include "ast_def_macros.hpp"
 
+#include <sstream>
 #include <iostream>
 #include <typeinfo>
 
@@ -354,17 +359,35 @@ namespace Sass {
   // Definitions for both mixins and functions. The two cases are distinguished
   // by a type tag.
   /////////////////////////////////////////////////////////////////////////////
+  class Context;
   class Parameters;
+  typedef Environment<AST_Node*> Env;
+  typedef Expression* (*Native_Function)(Context&, Env*, string, size_t);
   class Definition : public Has_Block {
   public:
     enum Type { MIXIN, FUNCTION };
     ADD_PROPERTY(string, name);
     ADD_PROPERTY(Parameters*, parameters);
+    ADD_PROPERTY(Env*, environment);
     ADD_PROPERTY(Type, type);
+    ADD_PROPERTY(Native_Function, native_function);
+    ADD_PROPERTY(bool, is_overload_stub);
   public:
-    Definition(string p, size_t l,
-               string n, Parameters* params, Block* b, Type t)
-    : Has_Block(p, l, b), name_(n), parameters_(params), type_(t)
+    Definition(string p,
+               size_t l,
+               string n,
+               Parameters* params,
+               Block* b,
+               Type t,
+               Native_Function func_ptr = 0,
+               bool overload_stub = false)
+    : Has_Block(p, l, b),
+      name_(n),
+      parameters_(params),
+      environment_(0),
+      type_(t),
+      native_function_(func_ptr),
+      is_overload_stub_(overload_stub)
     { }
     ATTACH_OPERATIONS();
   };
@@ -398,12 +421,25 @@ namespace Sass {
   // evaluated and returned.
   //////////////////////////////////////////////////////////////////////
   class Expression : public AST_Node {
+  public:
+    enum Concrete_Type {
+      NONE,
+      BOOLEAN,
+      NUMBER,
+      COLOR,
+      STRING,
+      LIST
+    };
+  private:
     // expressions in some contexts shouldn't be evaluated
     ADD_PROPERTY(bool, is_delayed);
     ADD_PROPERTY(bool, is_interpolant);
+    ADD_PROPERTY(Concrete_Type, concrete_type);
   public:
-    Expression(string p, size_t l, bool d = false, bool i = false)
-    : AST_Node(p, l), is_delayed_(d), is_interpolant_(i)
+    Expression(string p, size_t l,
+               bool d = false, bool i = false, Concrete_Type ct = NONE)
+    : AST_Node(p, l),
+      is_delayed_(d), is_interpolant_(i), concrete_type_(ct)
     { }
     virtual operator bool() { return true; }
     virtual ~Expression() = 0;
@@ -445,7 +481,7 @@ namespace Sass {
     : Expression(p, l),
       Vectorized(size),
       separator_(sep), is_arglist_(argl)
-    { }
+    { concrete_type(LIST); }
     string type() { return is_arglist_ ? "arglist" : "list"; }
     bool is_invisible() { return !length(); }
     ATTACH_OPERATIONS();
@@ -500,7 +536,7 @@ namespace Sass {
   public:
     Function_Call(string p, size_t l, string n, Arguments* args)
     : Expression(p, l), name_(n), arguments_(args)
-    { }
+    { concrete_type(STRING); }
     ATTACH_OPERATIONS();
   };
 
@@ -513,7 +549,7 @@ namespace Sass {
   public:
     Function_Call_Schema(string p, size_t l, String* n, Arguments* args)
     : Expression(p, l), name_(n), arguments_(args)
-    { }
+    { concrete_type(STRING); }
     ATTACH_OPERATIONS();
   };
 
@@ -549,37 +585,72 @@ namespace Sass {
   ////////////////////////////////////////////////
   // Numbers, percentages, dimensions, and colors.
   ////////////////////////////////////////////////
-  class Numeric : public Expression {
+  class Number : public Expression {
     ADD_PROPERTY(double, value);
-  public:
-    Numeric(string p, size_t l, double val) : Expression(p, l), value_(val) { }
-    virtual ~Numeric() = 0;
-    string type() { return "number"; }
-  };
-  inline Numeric::~Numeric() { }
-  class Number : public Numeric {
-  public:
-    Number(string p, size_t l, double val) : Numeric(p, l, val) { }
-    ATTACH_OPERATIONS();
-  };
-  class Percentage : public Numeric {
-  public:
-    Percentage(string p, size_t l, double val) : Numeric(p, l, val) { }
-    ATTACH_OPERATIONS();
-  };
-  class Dimension : public Numeric {
     vector<string> numerator_units_;
     vector<string> denominator_units_;
   public:
-    Dimension(string p, size_t l, double val, string unit)
-    : Numeric(p, l, val),
+    Number(string p, size_t l, double val, string u = "")
+    : Expression(p, l),
+      value_(val),
       numerator_units_(vector<string>()),
       denominator_units_(vector<string>())
-    { numerator_units_.push_back(unit); }
+    {
+      if (!u.empty()) numerator_units_.push_back(u);
+      concrete_type(NUMBER);
+    }
     vector<string>& numerator_units()   { return numerator_units_; }
     vector<string>& denominator_units() { return denominator_units_; }
+    string type() { return "number"; }
+    string unit()
+    {
+      stringstream u;
+      for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
+        if (i) u << '*';
+        u << numerator_units_[i];
+      }
+      if (!denominator_units_.empty()) u << '/';
+      for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
+        if (i) u << '*';
+        u << denominator_units_[i];
+      }
+      return u.str();
+    }
     ATTACH_OPERATIONS();
   };
+
+
+  // class Numeric : public Expression {
+  //   ADD_PROPERTY(double, value);
+  // public:
+  //   Numeric(string p, size_t l, double val) : Expression(p, l), value_(val) { }
+  //   virtual ~Numeric() = 0;
+  //   string type() { return "number"; }
+  // };
+  // inline Numeric::~Numeric() { }
+  // class Number : public Numeric {
+  // public:
+  //   Number(string p, size_t l, double val) : Numeric(p, l, val) { }
+  //   ATTACH_OPERATIONS();
+  // };
+  // class Percentage : public Numeric {
+  // public:
+  //   Percentage(string p, size_t l, double val) : Numeric(p, l, val) { }
+  //   ATTACH_OPERATIONS();
+  // };
+  // class Dimension : public Numeric {
+  //   vector<string> numerator_units_;
+  //   vector<string> denominator_units_;
+  // public:
+  //   Dimension(string p, size_t l, double val, string unit)
+  //   : Numeric(p, l, val),
+  //     numerator_units_(vector<string>()),
+  //     denominator_units_(vector<string>())
+  //   { numerator_units_.push_back(unit); }
+  //   vector<string>& numerator_units()   { return numerator_units_; }
+  //   vector<string>& denominator_units() { return denominator_units_; }
+  //   ATTACH_OPERATIONS();
+  // };
 
   //////////
   // Colors.
@@ -592,7 +663,7 @@ namespace Sass {
   public:
     Color(string p, size_t l, double r, double g, double b, double a = 1)
     : Expression(p, l), r_(r), g_(g), b_(b), a_(a)
-    { }
+    { concrete_type(COLOR); }
     string type() { return "color"; }
     ATTACH_OPERATIONS();
   };
@@ -603,7 +674,8 @@ namespace Sass {
   class Boolean : public Expression {
     ADD_PROPERTY(bool, value);
   public:
-    Boolean(string p, size_t l, bool val) : Expression(p, l), value_(val) { }
+    Boolean(string p, size_t l, bool val) : Expression(p, l), value_(val)
+    { concrete_type(BOOLEAN); }
     virtual operator bool() { return value_; }
     string type() { return "bool"; }
     ATTACH_OPERATIONS();
@@ -615,7 +687,7 @@ namespace Sass {
   ////////////////////////////////////////////////////////////////////////
   class String : public Expression {
   public:
-    String(string p, size_t l) : Expression(p, l) { }
+    String(string p, size_t l) : Expression(p, l) { concrete_type(STRING); }
     virtual ~String() = 0;
     ATTACH_OPERATIONS();
   };

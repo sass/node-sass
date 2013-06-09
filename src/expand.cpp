@@ -139,15 +139,24 @@ namespace Sass {
   {
     env->current_frame()[d->name() +
                         (d->type() == Definition::MIXIN ? "[m]" : "[f]")] = d;
-    // TODO: set the static link of the definition to get lexical scoping
-    // TODO: also, eval the default args
+    // evaluate the default args
+    Parameters* params = d->parameters();
+    for (size_t i = 0, L = params->length(); i < L; ++i) {
+      Parameter* param = (*params)[i];
+      Expression* dflt = param->default_value();
+      if (dflt) param->default_value(dflt->perform(eval->with(env)));
+    }
+    // set the static link so we can have lexical scoping
+    d->environment(env);
     return 0;
   }
 
   Statement* Expand::operator()(Mixin_Call* c)
   {
     string full_name(c->name() + "[m]");
-    if (!env->has(full_name)) /* TODO: throw an error */ ;
+    if (!env->has(full_name)) {
+      error("no mixin named " + c->name(), c->path(), c->line());
+    }
     Definition* def = static_cast<Definition*>((*env)[full_name]);
     Block* body = def->block();
     if (c->block()) {
@@ -159,10 +168,11 @@ namespace Sass {
                                                ->perform(eval->with(env)));
     Env new_env;
     bind("mixin " + c->name(), params, args, ctx, &new_env);
-    new_env.link(env);
+    new_env.link(def->environment());
+    Env* old_env = env;
     env = &new_env;
     append_block(body);
-    env = env->parent();
+    env = old_env;
     if (c->block()) {
       content_stack.pop_back();
     }

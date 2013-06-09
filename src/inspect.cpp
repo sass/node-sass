@@ -311,22 +311,22 @@ namespace Sass {
     return ss.str();
   }
 
+  // void Inspect::operator()(Number* n)
+  // {
+  //   buffer += double_to_string(n->value(), 5);
+  // }
+
+  // void Inspect::operator()(Percentage* p)
+  // {
+  //   buffer += double_to_string(p->value(), 5);
+  //   buffer += '%';
+  // }
+
   void Inspect::operator()(Number* n)
   {
-    buffer += double_to_string(n->value(), 5);
-  }
-
-  void Inspect::operator()(Percentage* p)
-  {
-    buffer += double_to_string(p->value(), 5);
-    buffer += '%';
-  }
-
-  void Inspect::operator()(Dimension* d)
-  {
     // TODO: check for sane units
-    buffer += double_to_string(d->value(), 5);
-    buffer += (d->numerator_units().empty() ? "" : d->numerator_units()[0]);
+    buffer += double_to_string(n->value(), 5);
+    buffer += n->unit();
   }
 
   // helper function for serializing colors

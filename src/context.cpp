@@ -14,7 +14,6 @@
 #include "constants.hpp"
 #include "parser.hpp"
 #include "file.hpp"
-#include "environment.hpp"
 #include "inspect.hpp"
 #include "expand.hpp"
 #include "eval.hpp"
