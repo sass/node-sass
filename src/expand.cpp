@@ -204,6 +204,18 @@ namespace Sass {
     return 0;
   }
 
+  Statement* Expand::operator()(Return* r)
+  {
+    error("@return may only be used within a function", r->path(), r->line());
+    return 0;
+  }
+
+  Statement* Expand::operator()(Extend* e)
+  {
+    // TODO: implement this, obviously
+    return 0;
+  }
+
   Statement* Expand::operator()(Definition* d)
   {
     env->current_frame()[d->name() +
@@ -262,9 +274,9 @@ namespace Sass {
 
   inline Statement* Expand::fallback_impl(AST_Node* n)
   {
+    error("internal error; please contact the LibSass maintainers", n->path(), n->line());
     String_Constant* msg = new (ctx.mem) String_Constant("", 0, string("`Expand` doesn't handle ") + typeid(*n).name());
     return new (ctx.mem) Warning("", 0, msg);
-    // TODO: fallback should call `eval` on Expression nodes
   }
 
   inline void Expand::append_block(Block* b)

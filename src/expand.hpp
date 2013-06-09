@@ -50,8 +50,8 @@ namespace Sass {
 		Statement* operator()(For*);
 		Statement* operator()(Each*);
 		Statement* operator()(While*);
-		// Statement* operator()(Return*);
-		// Statement* operator()(Extend*);
+		Statement* operator()(Return*);
+		Statement* operator()(Extend*);
 		Statement* operator()(Definition*);
 		Statement* operator()(Mixin_Call*);
 		Statement* operator()(Content*);
