@@ -106,10 +106,10 @@ namespace Sass {
   {
     string var(a->variable());
     if (env->has(var)) {
-      if(!a->is_guarded()) (*env)[var] = a->value(); // TODO: eval the value
+      if(!a->is_guarded()) (*env)[var] = a->value()->perform(eval->with(env));
     }
     else {
-      env->current_frame()[var] = a->value();
+      env->current_frame()[var] = a->value()->perform(eval->with(env));
     }
     return 0;
   }
@@ -139,6 +139,33 @@ namespace Sass {
       Block* alt = i->alternative();
       if (alt) append_block(alt);
     }
+  }
+
+  Statement* Expand::operator()(For* f)
+  {
+    string variable(f->variable());
+    Expression* low = f->lower_bound()->perform(eval->with(env));
+    if (low->concrete_type() != Expression::NUMBER) {
+      error("lower bound of `@for` directive must be numeric", low->path(), low->line());
+    }
+    Expression* high = f->upper_bound()->perform(eval->with(env));
+    if (high->concrete_type() != Expression::NUMBER) {
+      error("upper bound of `@for` directive must be numeric", high->path(), high->line());
+    }
+    double lo = static_cast<Number*>(low)->value();
+    double hi = static_cast<Number*>(high)->value();
+    if (f->is_inclusive()) ++hi;
+    Env new_env;
+    new_env[variable] = new (ctx.mem) Number(low->path(), low->line(), lo);
+    new_env.link(env);
+    env = &new_env;
+    for (size_t i = lo;
+         i < hi;
+         (*env)[variable] = new (ctx.mem) Number(low->path(), low->line(), ++i)) {
+      append_block(f->block());
+    }
+    env = new_env.parent();
+    return 0;
   }
 
   Statement* Expand::operator()(Definition* d)
