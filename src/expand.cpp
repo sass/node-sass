@@ -158,9 +158,9 @@ namespace Sass {
     Arguments* args = static_cast<Arguments*>(c->arguments()
                                                ->perform(eval->with(env)));
     Env new_env;
+    bind("mixin " + c->name(), params, args, ctx, &new_env);
     new_env.link(env);
     env = &new_env;
-    bind(params, args, ctx, env);
     append_block(body);
     env = env->parent();
     if (c->block()) {

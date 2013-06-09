@@ -1,14 +1,12 @@
 #include "bind.hpp"
 #include "ast.hpp"
 #include "context.hpp"
-#include "eval.hpp"
-#include "error_handling.hpp"
 #include <map>
 #include <sstream>
 
 namespace Sass {
 
-  void bind(string callee, Parameters* ps, Arguments* as, Context& ctx, Env* env, Eval* eval)
+  void bind(string callee, Parameters* ps, Arguments* as, Context& ctx, Env* env)
   {
     map<string, Parameter*> param_map;
 

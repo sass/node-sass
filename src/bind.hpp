@@ -4,6 +4,8 @@
 #include "environment.hpp"
 #endif
 
+#include <string>
+
 namespace Sass {
   class   AST_Node;
   class   Parameters;
@@ -12,5 +14,5 @@ namespace Sass {
   class   Eval;
   typedef Environment<AST_Node*> Env;
 
-  void bind(Parameters*, Arguments*, Context&, Env*);
+  void bind(string caller, Parameters*, Arguments*, Context&, Env*);
 }

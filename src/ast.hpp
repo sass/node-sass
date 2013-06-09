@@ -12,6 +12,7 @@
 #include "token.hpp"
 #endif
 
+#include "error_handling.hpp"
 #include "ast_def_macros.hpp"
 
 #include <iostream>
@@ -406,7 +407,7 @@ namespace Sass {
     { }
     virtual operator bool() { return true; }
     virtual ~Expression() = 0;
-    virtual string type() { return ""; /* TODO: raise an error */ }
+    virtual string type() { return ""; /* TODO: raise an error? */ }
   };
   inline Expression::~Expression() { }
 
@@ -693,7 +694,11 @@ namespace Sass {
     Parameter(string p, size_t l,
               string n, Expression* def = 0, bool rest = false)
     : AST_Node(p, l), name_(n), default_value_(def), is_rest_parameter_(rest)
-    { /* TO-DO: error if default_value && is_packed */ }
+    {
+      if (default_value_ && is_rest_parameter_) {
+        error("variable-length parameter may not have a default value", path(), line());
+      }
+    }
     ATTACH_OPERATIONS();
   };
 
@@ -709,22 +714,27 @@ namespace Sass {
     void adjust_after_pushing(Parameter* p)
     {
       if (p->default_value()) {
-        if (has_rest_parameter_)
-          ; // error
+        if (has_rest_parameter_) {
+          error("optional parameters may not be combined with variable-length parameters", p->path(), p->line());
+        }
         has_optional_parameters_ = true;
       }
       else if (p->is_rest_parameter()) {
-        if (has_rest_parameter_)
-          ; // error
-        if (has_optional_parameters_)
-          ; // different error
+        if (has_rest_parameter_) {
+          error("functions and mixins cannot have more than one variable-length parameter", p->path(), p->line());
+        }
+        if (has_optional_parameters_) {
+          error("optional parameters may not be combined with variable-length parameters", p->path(), p->line());
+        }
         has_rest_parameter_ = true;
       }
       else {
-        if (has_rest_parameter_)
-          ; // error
-        if (has_optional_parameters_)
-          ; // different error
+        if (has_rest_parameter_) {
+          error("required parameters must precede variable-length parameters", p->path(), p->line());
+        }
+        if (has_optional_parameters_) {
+          error("required parameters must precede optional parameters", p->path(), p->line());
+        }
       }
     }
   public:
@@ -747,7 +757,11 @@ namespace Sass {
   public:
     Argument(string p, size_t l, Expression* val, string n = "", bool rest = false)
     : Expression(p, l), value_(val), name_(n), is_rest_argument_(rest)
-    { if (!name_.empty() && is_rest_argument_) { /* error */ } }
+    {
+      if (!name_.empty() && is_rest_argument_) {
+        error("variable-length argument may not be passed by name", path(), line());
+      }
+    }
     ATTACH_OPERATIONS();
   };
 
@@ -763,22 +777,27 @@ namespace Sass {
     void adjust_after_pushing(Argument* a)
     {
       if (!a->name().empty()) {
-        if (has_rest_argument_)
-          ; // error
+        if (has_rest_argument_) {
+          error("named arguments must precede variable-length argument", a->path(), a->line());
+        }
         has_named_arguments_ = true;
       }
       else if (a->is_rest_argument()) {
-        if (has_rest_argument_)
-          ; // error
-        if (has_named_arguments_)
-          ; // different error
+        if (has_rest_argument_) {
+          error("functions and mixins may only be called with one variable-length argument", a->path(), a->line());
+        }
+        if (has_named_arguments_) {
+          error("functions and mixins may not be called with both named arguments and variable-length arguments", a->path(), a->line());
+        }
         has_rest_argument_ = true;
       }
       else {
-        if (has_rest_argument_)
-          ; // error
-        if (has_named_arguments_)
-          ; // error
+        if (has_rest_argument_) {
+          error("ordinal arguments must precede variable-length arguments", a->path(), a->line());
+        }
+        if (has_named_arguments_) {
+          error("ordinal arguments must precede named arguments", a->path(), a->line());
+        }
       }
     }
   public:

@@ -3,7 +3,6 @@
 #include "parser.hpp"
 #include "file.hpp"
 #include "constants.hpp"
-#include "error_handling.hpp"
 
 #ifndef SASS_PRELEXER
 #include "prelexer.hpp"
