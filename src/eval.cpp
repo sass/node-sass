@@ -5,6 +5,7 @@
 #include <cstdlib>
 
 #include <typeinfo>
+#include <iostream>
 
 namespace Sass {
   using namespace std;
@@ -35,7 +36,7 @@ namespace Sass {
   {
     string name(v->name());
     if (env->has(name)) return static_cast<Expression*>((*env)[name]);
-    else fallback_impl(v); // TODO: error
+    else error("unbound variable " + v->name(), v->path(), v->line());
   }
 
   Expression* Eval::operator()(Textual* t)
@@ -131,7 +132,6 @@ namespace Sass {
 
   inline Expression* Eval::fallback_impl(AST_Node* n)
   {
-    cerr << "Fallback invoked on " << typeid(*n).name() << endl;
-    return new (ctx.mem) String_Constant("", 0, "[tbd]");
+    return static_cast<Expression*>(n);
   }
 }

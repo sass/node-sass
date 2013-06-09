@@ -2,6 +2,7 @@
 #include "ast.hpp"
 #include "context.hpp"
 #include <map>
+#include <iostream>
 #include <sstream>
 
 namespace Sass {
@@ -41,7 +42,7 @@ namespace Sass {
         ++ia;
         ++ip;
       }
-      if (p->is_rest_parameter()) {
+      else if (p->is_rest_parameter()) {
         List* arglist = 0;
         if (!env->has(p->name())) {
           arglist = new (ctx.mem) List(p->path(),
@@ -58,7 +59,7 @@ namespace Sass {
         ++ia;
       }
       else if (a->is_rest_argument()) {
-        // normal param and rest arg; move one of the rest args into the param
+        // normal param and rest arg
         if (env->has(p->name())) {
           stringstream msg;
           msg << "parameter " << p->name()
@@ -66,8 +67,16 @@ namespace Sass {
           error(msg.str(), a->path(), a->line());
         }
         List* arglist = static_cast<List*>(a->value());
-        (*env)[p->name()] = (*arglist)[0];
-        arglist->elements().erase(arglist->elements().begin());
+        // if it's the last param, move the whole arglist into it
+        if (ip == LP-1) {
+          (*env)[p->name()] = arglist;
+          ++ia;
+        }
+        // otherwise move one of the rest args into the param and loop
+        else {
+          (*env)[p->name()] = (*arglist)[0];
+          arglist->elements().erase(arglist->elements().begin());
+        }
         ++ip;
       }
       else if (a->name().empty()) {
