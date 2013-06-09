@@ -33,6 +33,15 @@ namespace Sass {
     }
     using Operation<Expression*>::operator();
 
+    // for evaluating function bodies
+    Expression* operator()(Block*);
+    Expression* operator()(Assignment*);
+    Expression* operator()(If*);
+    Expression* operator()(For*);
+    Expression* operator()(Each*);
+    Expression* operator()(While*);
+    Expression* operator()(Return*);
+
     Expression* operator()(List*);
     // Expression* operator()(Binary_Expression*);
     // Expression* operator()(Unary_Expression*);
@@ -41,9 +50,6 @@ namespace Sass {
     Expression* operator()(Variable*);
     Expression* operator()(Textual*);
     Expression* operator()(Number*);
-    // Expression* operator()(Percentage*);
-    // Expression* operator()(Dimension*);
-    // Expression* operator()(Color*);
     Expression* operator()(Boolean*);
     Expression* operator()(String_Schema*);
     Expression* operator()(String_Constant*);

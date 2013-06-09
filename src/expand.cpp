@@ -139,6 +139,7 @@ namespace Sass {
       Block* alt = i->alternative();
       if (alt) append_block(alt);
     }
+    return 0;
   }
 
   Statement* Expand::operator()(For* f)

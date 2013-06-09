@@ -14,6 +14,113 @@ namespace Sass {
   Eval::Eval(Context& ctx, Env* env) : ctx(ctx), env(env) { }
   Eval::~Eval() { }
 
+  Expression* Eval::operator()(Block* b)
+  {
+    Expression* val = 0;
+    for (size_t i = 0, L = b->length(); i < L; ++i) {
+      val = (*b)[i]->perform(this);
+      if (val) return val;
+    }
+    return val;
+  }
+
+  Expression* Eval::operator()(Assignment* a)
+  {
+    string var(a->variable());
+    if (env->has(var)) {
+      if(!a->is_guarded()) (*env)[var] = a->value()->perform(this);
+    }
+    else {
+      env->current_frame()[var] = a->value()->perform(this);
+    }
+    return 0;
+  }
+
+  Expression* Eval::operator()(If* i)
+  {
+    if (*i->predicate()->perform(this)) {
+      return i->consequent()->perform(this);
+    }
+    else {
+      Block* alt = i->alternative();
+      if (alt) return alt->perform(this);
+    }
+    return 0;
+  }
+
+  Expression* Eval::operator()(For* f)
+  {
+    string variable(f->variable());
+    Expression* low = f->lower_bound()->perform(this);
+    if (low->concrete_type() != Expression::NUMBER) {
+      error("lower bound of `@for` directive must be numeric", low->path(), low->line());
+    }
+    Expression* high = f->upper_bound()->perform(this);
+    if (high->concrete_type() != Expression::NUMBER) {
+      error("upper bound of `@for` directive must be numeric", high->path(), high->line());
+    }
+    double lo = static_cast<Number*>(low)->value();
+    double hi = static_cast<Number*>(high)->value();
+    if (f->is_inclusive()) ++hi;
+    Env new_env;
+    new_env[variable] = new (ctx.mem) Number(low->path(), low->line(), lo);
+    new_env.link(env);
+    env = &new_env;
+    Block* body = f->block();
+    Expression* val = 0;
+    for (size_t i = lo;
+         i < hi;
+         (*env)[variable] = new (ctx.mem) Number(low->path(), low->line(), ++i)) {
+      val = body->perform(this);
+      if (val) break;
+    }
+    env = new_env.parent();
+    return val;
+  }
+
+  Expression* Eval::operator()(Each* e)
+  {
+    string variable(e->variable());
+    Expression* expr = e->list()->perform(this);
+    List* list = 0;
+    if (expr->concrete_type() != Expression::LIST) {
+      list = new (ctx.mem) List(expr->path(), expr->line(), 1, List::COMMA);
+      *list << expr;
+    }
+    else {
+      list = static_cast<List*>(expr);
+    }
+    Env new_env;
+    new_env[variable] = 0;
+    new_env.link(env);
+    env = &new_env;
+    Block* body = e->block();
+    Expression* val = 0;
+    for (size_t i = 0, L = list->length(); i < L; ++i) {
+      (*env)[variable] = (*list)[i];
+      val = body->perform(this);
+      if (val) break;
+    }
+    env = new_env.parent();
+    return val;
+  }
+
+  Expression* Eval::operator()(While* w)
+  {
+    Expression* pred = w->predicate();
+    Block* body = w->block();
+    while (*pred->perform(this)) {
+      Expression* val = body->perform(this);
+      if (val) return val;
+    }
+    return 0;
+  }
+
+  Expression* Eval::operator()(Return* r)
+  {
+    return r->value()->perform(this);
+  }
+
   Expression* Eval::operator()(List* l)
   {
     List* ll = new (ctx.mem) List(l->path(),
@@ -47,6 +154,7 @@ namespace Sass {
 
     // if it's user-defined, bind the args and eval the body
     if (body) {
+      cerr << "evaluating user-defined function " << c->name() << endl;
       Parameters* params = def->parameters();
       Env new_env;
       bind("function " + c->name(), params, args, ctx, &new_env);
@@ -54,7 +162,11 @@ namespace Sass {
       Env* old_env = env;
       env = &new_env;
       Expression* result = body->perform(this);
+      if (!result) {
+        error(string("function ") + c->name() + " did not return a value", c->path(), c->line());
+      }
       env = old_env;
+      return result;
     }
     // if it's native, invoke the underlying CPP function
     else if (func) {
@@ -178,16 +290,6 @@ namespace Sass {
     }
     return aa;
   }
-
-
-
-
-
-
-
-
-
-
 
   inline Expression* Eval::fallback_impl(AST_Node* n)
   {
