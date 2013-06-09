@@ -13,12 +13,6 @@ namespace Sass {
   Eval::Eval(Context& ctx, Env* env) : ctx(ctx), env(env) { }
   Eval::~Eval() { }
 
-  // inline Eval* Eval::with(Env* e)
-  // {
-  //   env = e;
-  //   return this;
-  // }
-
   Expression* Eval::operator()(List* l)
   {
     List* ll = new (ctx.mem) List(l->path(),

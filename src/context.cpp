@@ -129,7 +129,7 @@ namespace Sass {
     Environment<AST_Node*> tge;
     Eval eval(*this, &tge);
     Expand expand(*this, &eval, &tge);
-    Inspector inspect;
+    Inspect inspect;
 
     root->perform(&expand)->perform(&inspect);
 

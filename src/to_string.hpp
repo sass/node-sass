@@ -47,7 +47,7 @@ namespace Sass {
 
     template <typename U>
     string fallback(U n) { return fallback_impl(n); }
-    //   Inspector i;
+    //   Inspect i;
     //   n->perform(&i);
     //   return i.get_buffer();
     // }

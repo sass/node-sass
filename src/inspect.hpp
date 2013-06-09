@@ -12,9 +12,9 @@ namespace Sass {
 	using namespace std;
 	class To_String;
 
-	class Inspector : public Operation_CRTP<void, Inspector> {
+	class Inspect : public Operation_CRTP<void, Inspect> {
 		// import all the class-specific methods and override as desired
-		using Operation_CRTP<void, Inspector>::operator();
+		using Operation_CRTP<void, Inspect>::operator();
 		// override this to define a catch-all
 		// virtual void fallback(AST_Node* n);
 
@@ -27,8 +27,8 @@ namespace Sass {
 
 	public:
 
-		Inspector();
-		virtual ~Inspector();
+		Inspect();
+		virtual ~Inspect();
 
 		string get_buffer() { return buffer; }
 

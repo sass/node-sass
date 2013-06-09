@@ -6,15 +6,15 @@
 namespace Sass {
   using namespace std;
 
-  Inspector::Inspector()
+  Inspect::Inspect()
   : to_string(new To_String()), buffer(""), indentation(0)
   { }
 
-  Inspector::~Inspector()
+  Inspect::~Inspect()
   { delete to_string; }
 
   // statements
-  void Inspector::operator()(Block* block)
+  void Inspect::operator()(Block* block)
   {
     if (!block->is_root()) {
       buffer += " {\n";
@@ -40,13 +40,13 @@ namespace Sass {
     }
   }
 
-  void Inspector::operator()(Ruleset* ruleset)
+  void Inspect::operator()(Ruleset* ruleset)
   {
     ruleset->selector()->perform(this);
     ruleset->block()->perform(this);
   }
 
-  void Inspector::operator()(Propset* propset)
+  void Inspect::operator()(Propset* propset)
   {
     propset->property_fragment()->perform(this);
     buffer += ": {\n";
@@ -65,14 +65,14 @@ namespace Sass {
     buffer += "}";
   }
 
-  void Inspector::operator()(Media_Block* media_block)
+  void Inspect::operator()(Media_Block* media_block)
   {
     buffer += "@media ";
     media_block->media_queries()->perform(this);
     media_block->block()->perform(this);
   }
 
-  void Inspector::operator()(At_Rule* at_rule)
+  void Inspect::operator()(At_Rule* at_rule)
   {
     buffer += at_rule->keyword();
     if (at_rule->selector()) {
@@ -87,7 +87,7 @@ namespace Sass {
     }
   }
 
-  void Inspector::operator()(Declaration* dec)
+  void Inspect::operator()(Declaration* dec)
   {
     dec->property()->perform(this);
     buffer += ": ";
@@ -96,7 +96,7 @@ namespace Sass {
     buffer += ';';
   }
 
-  void Inspector::operator()(Assignment* assn)
+  void Inspect::operator()(Assignment* assn)
   {
     buffer += assn->variable();
     buffer += ": ";
@@ -105,7 +105,7 @@ namespace Sass {
     buffer += ';';
   }
 
-  void Inspector::operator()(Import* import)
+  void Inspect::operator()(Import* import)
   {
     if (!import->urls().empty()) {
       buffer += "@import ";
@@ -118,26 +118,26 @@ namespace Sass {
     }
   }
 
-  void Inspector::operator()(Import_Stub* import)
+  void Inspect::operator()(Import_Stub* import)
   {
     buffer += "@import ";
     buffer += import->file_name();
     buffer += ';';
   }
 
-  void Inspector::operator()(Warning* warning)
+  void Inspect::operator()(Warning* warning)
   {
     buffer += "@warn ";
     warning->message()->perform(this);
     buffer += ';';
   }
 
-  void Inspector::operator()(Comment* comment)
+  void Inspect::operator()(Comment* comment)
   {
     comment->text()->perform(this);
   }
 
-  void Inspector::operator()(If* cond)
+  void Inspect::operator()(If* cond)
   {
     buffer += "@if ";
     cond->predicate()->perform(this);
@@ -150,7 +150,7 @@ namespace Sass {
     }
   }
 
-  void Inspector::operator()(For* loop)
+  void Inspect::operator()(For* loop)
   {
     buffer += string("@for ");
     buffer += loop->variable();
@@ -161,7 +161,7 @@ namespace Sass {
     loop->block()->perform(this);
   }
 
-  void Inspector::operator()(Each* loop)
+  void Inspect::operator()(Each* loop)
   {
     buffer += string("@each ");
     buffer += loop->variable();
@@ -170,28 +170,28 @@ namespace Sass {
     loop->block()->perform(this);
   }
 
-  void Inspector::operator()(While* loop)
+  void Inspect::operator()(While* loop)
   {
     buffer += "@while ";
     loop->predicate()->perform(this);
     loop->block()->perform(this);
   }
 
-  void Inspector::operator()(Return* ret)
+  void Inspect::operator()(Return* ret)
   {
     buffer += "@return ";
     ret->value()->perform(this);
     buffer += ';';
   }
 
-  void Inspector::operator()(Extend* extend)
+  void Inspect::operator()(Extend* extend)
   {
     buffer += "@extend ";
     extend->selector()->perform(this);
     buffer += ';';
   }
 
-  void Inspector::operator()(Definition* def)
+  void Inspect::operator()(Definition* def)
   {
     if (def->type() == Definition::MIXIN) buffer += "@mixin ";
     else                                  buffer += "@function ";
@@ -200,7 +200,7 @@ namespace Sass {
     def->block()->perform(this);
   }
 
-  void Inspector::operator()(Mixin_Call* call)
+  void Inspect::operator()(Mixin_Call* call)
   {
     buffer += string("@include ") += call->name();
     if (call->arguments()) {
@@ -213,20 +213,20 @@ namespace Sass {
     if (!call->block()) buffer += ';';
   }
 
-  void Inspector::operator()(Content* content)
+  void Inspect::operator()(Content* content)
   {
     buffer += "@content;";
   }
 
   // expressions
-  // void Inspector::operator()(Expression* expr)
+  // void Inspect::operator()(Expression* expr)
   // {
   //   buffer += expr->perform(to_string);
   // }
 
-  // void Inspector::operator()(List*)
+  // void Inspect::operator()(List*)
 
-  void Inspector::operator()(Binary_Expression* expr)
+  void Inspect::operator()(Binary_Expression* expr)
   {
     expr->left()->perform(this);
     switch (expr->type()) {
@@ -247,40 +247,40 @@ namespace Sass {
     expr->right()->perform(this);
   }
 
-  void Inspector::operator()(Unary_Expression* expr)
+  void Inspect::operator()(Unary_Expression* expr)
   {
     if (expr->type() == Unary_Expression::PLUS) buffer += '+';
     else                                        buffer += '-';
     expr->operand()->perform(this);
   }
 
-  // void Inspector::operator()(Function_Call*)
+  // void Inspect::operator()(Function_Call*)
 
-  void Inspector::operator()(Variable* var)
+  void Inspect::operator()(Variable* var)
   {
     buffer += var->name();
   }
 
-  // void Inspector::operator()(Textual*)
-  // void Inspector::operator()(Number*)
-  // void Inspector::operator()(Percentage*)
-  // void Inspector::operator()(Dimension*)
-  // void Inspector::operator()(Color*)
-  // void Inspector::operator()(Boolean*)
+  // void Inspect::operator()(Textual*)
+  // void Inspect::operator()(Number*)
+  // void Inspect::operator()(Percentage*)
+  // void Inspect::operator()(Dimension*)
+  // void Inspect::operator()(Color*)
+  // void Inspect::operator()(Boolean*)
 
-  // void Inspector::operator()(String_Schema* ss)
+  // void Inspect::operator()(String_Schema* ss)
   // {
   //   buffer += "#{";
   //   for (size_t i = 0, L = ss->length(); i < L; ++i) (*ss)[i]->perform(this);
   //   buffer += '}';
   // }
 
-  // void Inspector::operator()(String_Constant*)
-  // void Inspector::operator()(Media_Query*)
-  // void Inspector::operator()(Media_Query_Expression*)
+  // void Inspect::operator()(String_Constant*)
+  // void Inspect::operator()(Media_Query*)
+  // void Inspect::operator()(Media_Query_Expression*)
 
   // parameters and arguments
-  void Inspector::operator()(Parameter* p)
+  void Inspect::operator()(Parameter* p)
   {
     buffer += p->name();
     if (p->default_value()) {
@@ -292,7 +292,7 @@ namespace Sass {
     }
   }
 
-  void Inspector::operator()(Parameters* p)
+  void Inspect::operator()(Parameters* p)
   {
     buffer += '(';
     if (!p->empty()) {
@@ -305,37 +305,37 @@ namespace Sass {
     buffer += ')';
   }
 
-  // void Inspector::operator()(Argument* a)
+  // void Inspect::operator()(Argument* a)
   // {
   //   buffer += a->perform(to_string);
   // }
 
-  // void Inspector::operator()(Arguments* a)
+  // void Inspect::operator()(Arguments* a)
   // {
   //   buffer += a->perform(to_string);
   // }
 
   // selectors
-  // void Inspector::operator()(Selector_Schema* s)
+  // void Inspect::operator()(Selector_Schema* s)
   // {
   //   s->contents()->perform(this);
   // }
 
-  // void Inspector::operator()(Selector_Reference*)
-  // void Inspector::operator()(Selector_Placeholder*)
-  // void Inspector::operator()(Type_Selector*)
-  // void Inspector::operator()(Selector_Qualifier*)
-  // void Inspector::operator()(Attribute_Selector*)
-  // void Inspector::operator()(Pseudo_Selector*)
-  // void Inspector::operator()(Negated_Selector*)
-  // void Inspector::operator()(Simple_Selector_Sequence*)
-  // void Inspector::operator()(Selector_Combination*)
-  // void Inspector::operator()(Selector_Group*)
+  // void Inspect::operator()(Selector_Reference*)
+  // void Inspect::operator()(Selector_Placeholder*)
+  // void Inspect::operator()(Type_Selector*)
+  // void Inspect::operator()(Selector_Qualifier*)
+  // void Inspect::operator()(Attribute_Selector*)
+  // void Inspect::operator()(Pseudo_Selector*)
+  // void Inspect::operator()(Negated_Selector*)
+  // void Inspect::operator()(Simple_Selector_Sequence*)
+  // void Inspect::operator()(Selector_Combination*)
+  // void Inspect::operator()(Selector_Group*)
 
-  inline void Inspector::fallback_impl(AST_Node* n)
+  inline void Inspect::fallback_impl(AST_Node* n)
   { buffer += n->perform(to_string); }
 
-  void Inspector::indent()
+  void Inspect::indent()
   { buffer += string(2*indentation, ' '); }
 
 }
