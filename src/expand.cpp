@@ -2,6 +2,7 @@
 #include "ast.hpp"
 #include "bind.hpp"
 #include "eval.hpp"
+#include "to_string.hpp"
 
 #include <iostream>
 #include <typeinfo>
@@ -61,7 +62,7 @@ namespace Sass {
       *final_prop += combined_prop;
       *final_prop << new (ctx.mem) String_Constant(dec->path(), dec->line(), "-");
       *final_prop << dec->property();
-      dec->property(final_prop);
+      dec->property(static_cast<String*>(final_prop->perform(eval->with(env))));
       *current_block << dec;
     }
     for (size_t i = 0, S = p->propsets().size(); i < S; ++i) {
@@ -69,7 +70,7 @@ namespace Sass {
       p->propsets()[i]->perform(this);
       property_stack.pop_back();
     }
-    return p;
+    return 0;
   }
 
   Statement* Expand::operator()(Media_Block* m)
@@ -122,6 +123,21 @@ namespace Sass {
   Statement* Expand::operator()(Import_Stub* i)
   {
     append_block(ctx.style_sheets[i->file_name()]);
+    return 0;
+  }
+
+  Statement* Expand::operator()(Warning* w)
+  {
+    Expression* message = w->message()->perform(eval->with(env));
+    To_String to_string;
+    string prefix("WARNING: ");
+    string indent("         ");
+    string result(message->perform(&to_string));
+    cerr << prefix << result << endl;
+    cerr << indent << "on line " << w->line() << " of " << w->path() << endl;
+    cerr << endl;
+    // TODO: print out a backtrace
+    return 0;
   }
 
   Statement* Expand::operator()(Comment* c)
