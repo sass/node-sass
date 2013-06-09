@@ -134,6 +134,27 @@ namespace Sass {
     return ll;
   }
 
+  Expression* Eval::operator()(Unary_Expression* u)
+  {
+    Expression* operand = u->operand()->perform(this);
+    if (operand->concrete_type() == Expression::NUMBER) {
+      Number* result = new (ctx.mem) Number(*static_cast<Number*>(operand));
+      result->value(u->type() == Unary_Expression::MINUS
+                    ? -result->value()
+                    :  result->value());
+      return result;
+    }
+    else {
+      Unary_Expression* result = new (ctx.mem) Unary_Expression(u->path(),
+                                                                u->line(),
+                                                                u->type(),
+                                                                operand);
+      return result;
+    }
+    // unreachable
+    return u;
+  }
+
   Expression* Eval::operator()(Function_Call* c)
   {
     Arguments* args = static_cast<Arguments*>(c->arguments()->perform(this));
@@ -154,7 +175,6 @@ namespace Sass {
 
     // if it's user-defined, bind the args and eval the body
     if (body) {
-      cerr << "evaluating user-defined function " << c->name() << endl;
       Parameters* params = def->parameters();
       Env new_env;
       bind("function " + c->name(), params, args, ctx, &new_env);
@@ -261,6 +281,34 @@ namespace Sass {
   Expression* Eval::operator()(String_Constant* s)
   {
     return s;
+  }
+
+  Expression* Eval::operator()(Media_Query* q)
+  {
+    String* t = q->media_type();
+    t = static_cast<String*>(t ? t->perform(this) : 0);
+    Media_Query* qq = new (ctx.mem) Media_Query(q->path(),
+                                                q->line(),
+                                                t,
+                                                q->length(),
+                                                q->is_negated(),
+                                                q->is_restricted());
+    for (size_t i = 0, L = q->length(); i < L; ++i) {
+      *qq << static_cast<Media_Query_Expression*>((*q)[i]->perform(this));
+    }
+    return qq;
+  }
+
+  Expression* Eval::operator()(Media_Query_Expression* e)
+  {
+    String* feature = e->feature();
+    feature = static_cast<String*>(feature ? feature->perform(this) : 0);
+    Expression* value = e->value();
+    value = (value ? value->perform(this) : 0);
+    return new (ctx.mem) Media_Query_Expression(e->path(),
+                                                e->line(),
+                                                feature,
+                                                value);
   }
 
   Expression* Eval::operator()(Argument* a)

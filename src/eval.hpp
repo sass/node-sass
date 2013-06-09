@@ -44,7 +44,7 @@ namespace Sass {
 
     Expression* operator()(List*);
     // Expression* operator()(Binary_Expression*);
-    // Expression* operator()(Unary_Expression*);
+    Expression* operator()(Unary_Expression*);
     Expression* operator()(Function_Call*);
     Expression* operator()(Function_Call_Schema*);
     Expression* operator()(Variable*);
@@ -53,8 +53,8 @@ namespace Sass {
     Expression* operator()(Boolean*);
     Expression* operator()(String_Schema*);
     Expression* operator()(String_Constant*);
-    // Expression* operator()(Media_Query*);
-    // Expression* operator()(Media_Query_Expression*);
+    Expression* operator()(Media_Query*);
+    Expression* operator()(Media_Query_Expression*);
     Expression* operator()(Argument*);
     Expression* operator()(Arguments*);
 

@@ -737,9 +737,10 @@ namespace Sass {
     ADD_PROPERTY(bool, is_negated);
     ADD_PROPERTY(bool, is_restricted);
   public:
-    Media_Query(string p, size_t l)
-    : Expression(p, l), Vectorized(),
-      media_type_(0), is_negated_(false), is_restricted_(false)
+    Media_Query(string p, size_t l,
+                String* t = 0, size_t s = 0, bool n = false, bool r = false)
+    : Expression(p, l), Vectorized(s),
+      media_type_(t), is_negated_(n), is_restricted_(r)
     { }
     ATTACH_OPERATIONS();
   };

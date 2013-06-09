@@ -295,11 +295,6 @@ namespace Sass {
     }
 
     return propset;
-
-    // Block* block = parse_block();
-    // if (block->empty()) error("namespaced property cannot be empty");
-    // Propset* propset = new (ctx.mem) Propset(path, line, property_segment, block);
-    // return propset;
   }
 
   Ruleset* Parser::parse_ruleset(Selector_Lookahead lookahead)
@@ -648,16 +643,9 @@ namespace Sass {
       else if (!peek< exactly<';'> >()) {
         if (peek< sequence< optional< exactly<'*'> >, identifier_schema, exactly<':'>, exactly<'{'> > >()) {
           (*block) << parse_propset();
-          // String* prop = parse_identifier_schema();
-          // Block* inner = parse_block();
-          // (*block) << new (ctx.mem) Propset(path, line, prop, block);
         }
         else if (peek< sequence< optional< exactly<'*'> >, identifier, exactly<':'>, exactly<'{'> > >()) {
           (*block) << parse_propset();
-          // lex< sequence< optional< exactly<'*'> >, identifier > >();
-          // String* prop = new (ctx.mem) String_Constant(path, line, lexed);
-          // Block* inner = parse_block();
-          // (*block) << new (ctx.mem) Propset(path, line, prop, block);
         }
         else {
           (*block) << parse_declaration();
@@ -850,10 +838,10 @@ namespace Sass {
       if (!lex< exactly<')'> >()) error("unclosed parenthesis");
       return value;
     }
-    else if (lex< sequence< exactly<'+'>, negate< number > > >()) {
+    else if (lex< sequence< exactly<'+'>, spaces_and_comments, negate< number > > >()) {
       return new (ctx.mem) Unary_Expression(path, line, Unary_Expression::PLUS, parse_factor());
     }
-    else if (lex< sequence< exactly<'-'>, negate< number> > >()) {
+    else if (lex< sequence< exactly<'-'>, spaces_and_comments, negate< number> > >()) {
       return new (ctx.mem) Unary_Expression(path, line, Unary_Expression::MINUS, parse_factor());
     }
     else {
