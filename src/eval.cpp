@@ -380,7 +380,8 @@ namespace Sass {
     return new (ctx.mem) Media_Query_Expression(e->path(),
                                                 e->line(),
                                                 feature,
-                                                value);
+                                                value,
+                                                e->is_interpolated());
   }
 
   Expression* Eval::operator()(Argument* a)

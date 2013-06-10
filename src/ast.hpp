@@ -642,39 +642,6 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
 
-
-  // class Numeric : public Expression {
-  //   ADD_PROPERTY(double, value);
-  // public:
-  //   Numeric(string p, size_t l, double val) : Expression(p, l), value_(val) { }
-  //   virtual ~Numeric() = 0;
-  //   string type() { return "number"; }
-  // };
-  // inline Numeric::~Numeric() { }
-  // class Number : public Numeric {
-  // public:
-  //   Number(string p, size_t l, double val) : Numeric(p, l, val) { }
-  //   ATTACH_OPERATIONS();
-  // };
-  // class Percentage : public Numeric {
-  // public:
-  //   Percentage(string p, size_t l, double val) : Numeric(p, l, val) { }
-  //   ATTACH_OPERATIONS();
-  // };
-  // class Dimension : public Numeric {
-  //   vector<string> numerator_units_;
-  //   vector<string> denominator_units_;
-  // public:
-  //   Dimension(string p, size_t l, double val, string unit)
-  //   : Numeric(p, l, val),
-  //     numerator_units_(vector<string>()),
-  //     denominator_units_(vector<string>())
-  //   { numerator_units_.push_back(unit); }
-  //   vector<string>& numerator_units()   { return numerator_units_; }
-  //   vector<string>& denominator_units() { return denominator_units_; }
-  //   ATTACH_OPERATIONS();
-  // };
-
   //////////
   // Colors.
   //////////
@@ -721,9 +688,10 @@ namespace Sass {
   // evaluation phase.
   ///////////////////////////////////////////////////////////////////////
   class String_Schema : public String, public Vectorized<Expression*> {
+    ADD_PROPERTY(bool, needs_unquoting);
   public:
-    String_Schema(string p, size_t l, size_t size = 0)
-    : String(p, l), Vectorized(size)
+    String_Schema(string p, size_t l, size_t size = 0, bool unq)
+    : String(p, l), Vectorized(size), needs_unquoting_(unq)
     { }
     string type() { return "string"; }
     ATTACH_OPERATIONS();
@@ -774,9 +742,11 @@ namespace Sass {
   class Media_Query_Expression : public Expression {
     ADD_PROPERTY(String*, feature);
     ADD_PROPERTY(Expression*, value);
+    ADD_PROPERTY(bool, is_interpolated);
   public:
-    Media_Query_Expression(string p, size_t l, String* f, Expression* v)
-    : Expression(p, l), feature_(f), value_(v)
+    Media_Query_Expression(string p, size_t l,
+                           String* f, Expression* v, bool i = false)
+    : Expression(p, l), feature_(f), value_(v), is_interpolated_(i)
     { }
     ATTACH_OPERATIONS();
   };

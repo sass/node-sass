@@ -1180,6 +1180,7 @@ namespace Sass {
     return media_queries;
   }
 
+  // Expression* Parser::parse_media_query()
   Media_Query* Parser::parse_media_query()
   {
     Media_Query* media_query = new (ctx.mem) Media_Query(path, line);
@@ -1198,6 +1199,10 @@ namespace Sass {
 
   Media_Query_Expression* Parser::parse_media_expression()
   {
+    if (peek< identifier_schema >()) {
+      String* ss = parse_identifier_schema();
+      return new (ctx.mem) Media_Query_Expression(path, line, ss, 0, true);
+    }
     if (!lex< exactly<'('> >()) {
       error("media query expression must begin with '('");
     }

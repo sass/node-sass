@@ -398,13 +398,18 @@ namespace Sass {
 
   void Inspect::operator()(Media_Query_Expression* mqe)
   {
-    buffer += "(";
-    mqe->feature()->perform(this);
-    if (mqe->value()) {
-      buffer += ": ";
-      mqe->value()->perform(this);
+    if (mqe->is_interpolated()) {
+      mqe->feature()->perform(this);
     }
-    buffer += ')';
+    else {
+      buffer += "(";
+      mqe->feature()->perform(this);
+      if (mqe->value()) {
+        buffer += ": ";
+        mqe->value()->perform(this);
+      }
+      buffer += ')';
+    }
   }
 
   // parameters and arguments
