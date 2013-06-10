@@ -17,7 +17,7 @@ namespace Sass {
   inline double mul(double x, double y) { return x * y; }
   inline double div(double x, double y) { return x / y; } // x/0 checked by caller
   typedef double (*bop)(double, double);
-  bop op_table[Binary_Expression::NUM_OPS] = {
+  bop ops[Binary_Expression::NUM_OPS] = {
     0, 0, // and, or
     0, 0, 0, 0, 0, 0, // eq, neq, gt, gte, lt, lte
     add, sub, mul, div, fmod
@@ -430,7 +430,7 @@ namespace Sass {
     }
 
     Number* v = new (ctx.mem) Number(*l);
-    v->value(op_table[op](v->value(), rv));
+    v->value(ops[op](v->value(), rv));
     if (op == Binary_Expression::MUL) {
       for (size_t i = 0, S = r->numerator_units().size(); i < S; ++i) {
         v->mul_unit(r->numerator_units()[i]);
@@ -460,9 +460,9 @@ namespace Sass {
       case Binary_Expression::MUL: {
         return new (ctx.mem) Color(l->path(),
                                    l->line(),
-                                   op_table[op](lv, r->r()),
-                                   op_table[op](lv, r->g()),
-                                   op_table[op](lv, r->b()),
+                                   ops[op](lv, r->r()),
+                                   ops[op](lv, r->g()),
+                                   ops[op](lv, r->b()),
                                    r->a());
       } break;
       case Binary_Expression::SUB:
@@ -491,9 +491,9 @@ namespace Sass {
     if (op == Binary_Expression::DIV && !rv) error("division by zero", r->path(), r->line());
     return new (ctx.mem) Color(l->path(),
                                l->line(),
-                               op_table[op](l->r(), rv),
-                               op_table[op](l->g(), rv),
-                               op_table[op](l->b(), rv),
+                               ops[op](l->r(), rv),
+                               ops[op](l->g(), rv),
+                               ops[op](l->b(), rv),
                                l->a());
   }
 
@@ -510,9 +510,9 @@ namespace Sass {
     }
     return new (ctx.mem) Color(l->path(),
                                l->line(),
-                               op_table[op](l->r(), r->r()),
-                               op_table[op](l->g(), r->g()),
-                               op_table[op](l->b(), r->b()),
+                               ops[op](l->r(), r->r()),
+                               ops[op](l->g(), r->g()),
+                               ops[op](l->b(), r->b()),
                                l->a());
   }
 
