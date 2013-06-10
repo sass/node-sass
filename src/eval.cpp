@@ -1,15 +1,27 @@
 #include "eval.hpp"
+#include "ast.hpp"
 #include "bind.hpp"
 #include "to_string.hpp"
 #include "context.hpp"
-#include "ast.hpp"
 #include "prelexer.hpp"
 #include <cstdlib>
+#include <cmath>
 
 #include <iostream>
 
 namespace Sass {
   using namespace std;
+
+  inline double add(double x, double y) { return x + y; }
+  inline double sub(double x, double y) { return x - y; }
+  inline double mul(double x, double y) { return x * y; }
+  inline double div(double x, double y) { return x / y; } // x/0 checked by caller
+  typedef double (*bop)(double, double);
+  bop op_table[Binary_Expression::NUM_OPS] = {
+    0, 0, // and, or
+    0, 0, 0, 0, 0, 0, // eq, neq, gt, gte, lt, lte
+    add, sub, mul, div, fmod
+  };
 
   Eval::Eval(Context& ctx, Env* env) : ctx(ctx), env(env) { }
   Eval::~Eval() { }
@@ -121,6 +133,20 @@ namespace Sass {
     return r->value()->perform(this);
   }
 
+  Expression* Eval::operator()(Warning* w)
+  {
+    Expression* message = w->message()->perform(this);
+    To_String to_string;
+    string prefix("WARNING: ");
+    string indent("         ");
+    string result(message->perform(&to_string));
+    cerr << prefix << result << endl;
+    cerr << indent << "on line " << w->line() << " of " << w->path() << endl;
+    cerr << endl;
+    // TODO: print out a backtrace
+    return 0;
+  }
+
   Expression* Eval::operator()(List* l)
   {
     List* ll = new (ctx.mem) List(l->path(),
@@ -134,18 +160,63 @@ namespace Sass {
     return ll;
   }
 
-  Expression* Eval::operator()(Warning* w)
+  // declare these for later use
+  Expression* op_numbers(Context&, Binary_Expression::Type, Expression*, Expression*);
+  Expression* op_number_color(Context&, Binary_Expression::Type, Expression*, Expression*);
+  Expression* op_color_number(Context&, Binary_Expression::Type, Expression*, Expression*);
+  Expression* op_colors(Context&, Binary_Expression::Type, Expression*, Expression*);
+  Expression* op_strings(Context&, Binary_Expression::Type, Expression*, Expression*);
+
+  Expression* Eval::operator()(Binary_Expression* b)
   {
-    Expression* message = w->message()->perform(this);
-    To_String to_string;
-    string prefix("WARNING: ");
-    string indent("         ");
-    string result(message->perform(&to_string));
-    cerr << prefix << result << endl;
-    cerr << indent << "on line " << w->line() << " of " << w->path() << endl;
-    cerr << endl;
-    // TODO: print out a backtrace
-    return 0;
+    // TODO: don't eval delayed expressions (the '/' when used as a separator)
+    Binary_Expression::Type op_type = b->type();
+    // the logical connectives need to short-circuit
+    Expression* lhs = b->left()->perform(this);
+    switch (op_type) {
+      case Binary_Expression::AND:
+        return *lhs ? b->right()->perform(this) : lhs;
+        break;
+
+      case Binary_Expression::OR:
+        return *lhs ? lhs : b->right()->perform(this);
+        break;
+
+      default:
+        break;
+    }
+    // not a logical connective, so go ahead and eval the rhs
+    Expression* rhs = b->right()->perform(this);
+
+    // if they're not concrete values yet, turn them into strings
+    // if (lhs->concrete_type() == Expression::NONE) {
+    //   To_String to_string;
+    //   lhs = new (ctx.mem) String_Constant(lhs->path(),
+    //                                       lhs->line(),
+    //                                       lhs->perform(&to_string));
+    // }
+    // if (rhs->concrete_type() == Expression::NONE) {
+    //   To_String to_string;
+    //   rhs = new (ctx.mem) String_Constant(rhs->path(),
+    //                                       rhs->line(),
+    //                                       rhs->perform(&to_string));
+    // }
+    Expression::Concrete_Type l_type = lhs->concrete_type();
+    Expression::Concrete_Type r_type = rhs->concrete_type();
+
+    if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
+      return op_numbers(ctx, op_type, lhs, rhs);
+    }
+    if (l_type == Expression::NUMBER && r_type == Expression::COLOR) {
+      return op_number_color(ctx, op_type, lhs, rhs);
+    }
+    if (l_type == Expression::COLOR && r_type == Expression::NUMBER) {
+      return op_color_number(ctx, op_type, lhs, rhs);
+    }
+    if (l_type == Expression::COLOR && r_type == Expression::COLOR) {
+      return op_colors(ctx, op_type, lhs, rhs);
+    }
+    return op_strings(ctx, op_type, lhs, rhs);
   }
 
   Expression* Eval::operator()(Unary_Expression* u)
@@ -357,4 +428,221 @@ namespace Sass {
   {
     return static_cast<Expression*>(n);
   }
+
+  Expression* op_numbers(Context& ctx, Binary_Expression::Type op, Expression* lhs, Expression* rhs)
+  {
+    // TODO: implement conversion factors for numbers with units
+    // maybe force the caller to cast, since he's closer to the args construction point
+    Number* l = static_cast<Number*>(lhs);
+    Number* r = static_cast<Number*>(rhs);
+    double rv = r->value();
+    if (op == Binary_Expression::DIV && !rv) {
+      return new (ctx.mem) String_Constant(l->path(), l->line(), "Infinity");
+    }
+    if (op == Binary_Expression::MOD && !rv) {
+      error("division by zero", r->path(), r->line());
+    }
+
+    Number* v = new (ctx.mem) Number(*l);
+    v->value(op_table[op](v->value(), rv));
+    if (op == Binary_Expression::MUL) {
+      for (size_t i = 0, S = r->numerator_units().size(); i < S; ++i) {
+        v->mul_unit(r->numerator_units()[i]);
+      }
+      for (size_t i = 0, S = r->denominator_units().size(); i < S; ++i) {
+        v->div_unit(r->denominator_units()[i]);
+      }
+    }
+    else if (op == Binary_Expression::DIV) {
+      for (size_t i = 0, S = r->numerator_units().size(); i < S; ++i) {
+        v->div_unit(r->numerator_units()[i]);
+      }
+      for (size_t i = 0, S = r->denominator_units().size(); i < S; ++i) {
+        v->mul_unit(r->denominator_units()[i]);
+      }
+    }
+    return v;
+    // switch (op) {
+
+    //   case Expression::ADD: {
+    //     v->value(v->value() + r->value());
+    //   } break;
+
+    //   case Expression::SUB: {
+    //     v->value(v->value() - r->value());
+    //   } break;
+
+    //   case Expression::MUL: {
+    //     v->value(v->value() * r->value());
+    //     for (size_t i = 0, S = r->numerator_units().size(); i < S; ++i) {
+    //       v->mul_unit(r->numerator_units()[i]);
+    //     }
+    //     for (size_t i = 0, S = r->denominator_units().size(); i < S; ++i) {
+    //       v->div_unit(r->denominator_units()[i]);
+    //     }
+    //   } break;
+
+    //   case Expression::DIV: {
+    //     if (!r->value()) return new (ctx.mem) String_Constant(l->path(),
+    //                                                           l->line(),
+    //                                                           "Infinity");
+    //     v->value(v->value() / r->value());
+    //     for (size_t i = 0, S = r->numerator_units().size(); i < S; ++i) {
+    //       v->div_unit(r->numerator_units()[i]);
+    //     }
+    //     for (size_t i = 0, S = r->denominator_units().size(); i < S; ++i) {
+    //       v->mul_unit(r->denominator_units()[i]);
+    //     }
+    //   } break;
+
+    //   case Expression::MOD: {
+    //     if (!r->value()) error("division by zero", r->path(), r->line());
+    //     if (!r->unit().empty()) error("cannot modulo by a number with units", r->path(), r->line());
+    //     v->value(fmod(v->value(), r->value()));
+    //   } break;
+    // }
+
+    // return v;
+  }
+
+  Expression* op_number_color(Context& ctx, Binary_Expression::Type op, Expression* lhs, Expression* rhs)
+  {
+    Number* l = static_cast<Number*>(lhs);
+    Color* r = static_cast<Color*>(rhs);
+    double lv = l->value();
+    switch (op) {
+      case Binary_Expression::ADD:
+      case Binary_Expression::MUL: {
+        return new (ctx.mem) Color(l->path(),
+                                   l->line(),
+                                   op_table[op](lv, r->r()),
+                                   op_table[op](lv, r->g()),
+                                   op_table[op](lv, r->b()),
+                                   r->a());
+      } break;
+      // case Expression::MUL: {
+      //   return new (ctx.mem) Color(l->path(),
+      //                              l->line(),
+      //                              lv * r->r(),
+      //                              lv * r->g(),
+      //                              lv * r->b(),
+      //                              r->a())
+      // } break;
+      case Binary_Expression::SUB:
+      case Binary_Expression::DIV: {
+        string sep(op == Binary_Expression::SUB ? "-" : "/");
+        To_String to_string;
+        return new (ctx.mem) String_Constant(l->path(),
+                                             l->line(),
+                                             l->perform(&to_string)
+                                             + sep
+                                             + r->perform(&to_string));
+      } break;
+      case Binary_Expression::MOD: {
+        error("cannot divide a number by a color", r->path(), r->line());
+      } break;
+    }
+    // unreachable
+    return l;
+  }
+
+  Expression* op_color_number(Context& ctx, Binary_Expression::Type op, Expression* lhs, Expression* rhs)
+  {
+    Color* l = static_cast<Color*>(lhs);
+    Number* r = static_cast<Number*>(rhs);
+    double rv = r->value();
+    if (op == Binary_Expression::DIV && !rv) error("division by zero", r->path(), r->line());
+    return new (ctx.mem) Color(l->path(),
+                               l->line(),
+                               op_table[op](l->r(), rv),
+                               op_table[op](l->g(), rv),
+                               op_table[op](l->b(), rv),
+                               l->a());
+  }
+
+  //   switch (op) {
+  //     case Expression::ADD: {
+  //       return new (ctx.mem) Color(l->path(),
+  //                                  l->line(),
+  //                                  l->r() + rv,
+  //                                  l->g() + rv,
+  //                                  l->b() + rv,
+  //                                  l->a());
+  //     } break;
+  //     case Expression::SUB: {
+  //       return new (ctx.mem) Color(l->path(),
+  //                                  l->line(),
+  //                                  l->r() - rv,
+  //                                  l->g() - rv,
+  //                                  l->b() - rv,
+  //                                  l->a());
+
+  //     } break;
+  //     case Expression::MUL: {
+  //       return new (ctx.mem) Color(l->path(),
+  //                                  l->line(),
+  //                                  l->r() * rv,
+  //                                  l->g() * rv,
+  //                                  l->b() * rv,
+  //                                  l->a());
+  //     } break;
+  //     case Expression::DIV: {
+  //       if (!rv) error("division by zero", r->path(), r->line());
+  //       return new (ctx.mem) Color(l->path(),
+  //                                  l->line(),
+  //                                  l->r() / rv,
+  //                                  l->g() / rv,
+  //                                  l->b() / rv,
+  //                                  l->a());
+  //     } break;
+  //     case Expression::MOD: {
+  //       return new (ctx.mem) Color(l->path(),
+  //                                  l->line(),
+  //                                  fmod(l->r(), rv),
+  //                                  fmod(l->g(), rv),
+  //                                  fmod(l->b(), rv),
+  //                                  l->a());
+  //     } break;
+  //   }
+  //   // unreachable
+  //   return l;
+  // }
+
+  Expression* op_colors(Context& ctx, Binary_Expression::Type op, Expression* lhs, Expression* rhs)
+  {
+    Color* l = static_cast<Color*>(lhs);
+    Color* r = static_cast<Color*>(rhs);
+    if (l->a() != r->a()) {
+      error("alpha channels must be equal when combining colors", r->path(), r->line());
+    }
+    if ((op == Binary_Expression::DIV || op == Binary_Expression::MOD) &&
+        (!r->r() || !r->g() ||!r->b())) {
+      error("division by zero", r->path(), r->line());
+    }
+    return new (ctx.mem) Color(l->path(),
+                               l->line(),
+                               op_table[op](l->r(), r->r()),
+                               op_table[op](l->g(), r->g()),
+                               op_table[op](l->b(), r->b()),
+                               l->a());
+  }
+
+  Expression* op_strings(Context& ctx, Binary_Expression::Type op, Expression* lhs, Expression*rhs)
+  {
+    if (op == Binary_Expression::MUL) error("invalid operands for multiplication", lhs->path(), lhs->line());
+    if (op == Binary_Expression::MOD) error("invalid operands for modulo", lhs->path(), lhs->line());
+    string sep;
+    switch (op) {
+      case Binary_Expression::SUB: sep = "-"; break;
+      case Binary_Expression::DIV: sep = "/"; break;
+      default:                         break;
+    }
+    To_String to_string;
+    return new String_Constant(lhs->path(),
+                               lhs->line(),
+                               lhs->perform(&to_string)
+                               + sep
+                               + rhs->perform(&to_string));
+  }
+
 }

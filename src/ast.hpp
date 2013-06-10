@@ -429,7 +429,8 @@ namespace Sass {
       NUMBER,
       COLOR,
       STRING,
-      LIST
+      LIST,
+      NUM_TYPES
     };
   private:
     // expressions in some contexts shouldn't be evaluated
@@ -454,17 +455,17 @@ namespace Sass {
   // values and be passed to operators. Being able to explicitly fetch
   // these will make arithmetic less cumbersome to implement.
   /////////////////////////////////////////////////////////////////////
-  class Value {
-  public:
-    enum Type { NUMBER, PERCENTAGE, DIMENSION, COLOR, STRING, BOOLEAN, LIST };
-  private:
-    ADD_PROPERTY(Type, type);
-  public:
-    Value(Type t) : type_(t) { }
-    virtual ~Value() = 0;
-    virtual string type_name() { return string(); }
-  };
-  inline Value::~Value() { }
+  // class Value {
+  // public:
+  //   enum Type { NUMBER, PERCENTAGE, DIMENSION, COLOR, STRING, BOOLEAN, LIST };
+  // private:
+  //   ADD_PROPERTY(Type, type);
+  // public:
+  //   Value(Type t) : type_(t) { }
+  //   virtual ~Value() = 0;
+  //   virtual string type_name() { return string(); }
+  // };
+  // inline Value::~Value() { }
 
   ///////////////////////////////////////////////////////////////////////
   // Lists of values, both comma- and space-separated (distinguished by a
@@ -498,7 +499,8 @@ namespace Sass {
     enum Type {
       AND, OR,                   // logical connectives
       EQ, NEQ, GT, GTE, LT, LTE, // arithmetic relations
-      ADD, SUB, MUL, DIV, MOD    // arithmetic functions
+      ADD, SUB, MUL, DIV, MOD,   // arithmetic functions
+      NUM_OPS                    // so we know how big to make the op table
     };
   private:
     ADD_PROPERTY(Type, type);

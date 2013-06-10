@@ -44,7 +44,7 @@ namespace Sass {
     Expression* operator()(Warning*);
 
     Expression* operator()(List*);
-    // Expression* operator()(Binary_Expression*);
+    Expression* operator()(Binary_Expression*);
     Expression* operator()(Unary_Expression*);
     Expression* operator()(Function_Call*);
     Expression* operator()(Function_Call_Schema*);
@@ -61,8 +61,6 @@ namespace Sass {
 
     template <typename U>
     Expression* fallback(U x) { return fallback_impl(x); }
-
-    void append_block(Block*);
   };
 
 }
