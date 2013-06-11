@@ -189,6 +189,18 @@ namespace Sass {
     // not a logical connective, so go ahead and eval the rhs
     Expression* rhs = b->right()->perform(this);
 
+    // see if it's a relational expression
+    switch(op_type) {
+      case Binary_Expression::EQ:  return eq(lhs, rhs);
+      case Binary_Expression::NEQ: return !eq(lhs, rhs);
+      case Binary_Expression::GT:  return !lt(lhs, rhs) && !eq(lhs, rhs);
+      case Binary_Expression::GTE: return !lt(lhs, rhs);
+      case Binary_Expression::LT:  return lt(lhs, rhs);
+      case Binary_Expression::LTE: return lt(lhs, rhs) || eq(lhs, rhs);
+
+      default:                     break;
+    }
+
     Expression::Concrete_Type l_type = lhs->concrete_type();
     Expression::Concrete_Type r_type = rhs->concrete_type();
 
