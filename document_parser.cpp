@@ -1373,6 +1373,10 @@ namespace Sass {
 
   Node Document::parse_media_expression()
   {
+    Node list1(parse_list());
+    // if it's a singleton, return it directly; don't wrap it
+    if (!peek< sequence< or_op, negate< identifier > > >()) return list1;
+
     Node media_expr(context.new_Node(Node::media_expression, path, line, 1));
     // if the query begins with 'not' or 'only', then a media type is required
     if (lex< not_op >() || lex< exactly<only_kwd> >()) {
