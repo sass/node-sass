@@ -367,6 +367,8 @@ namespace Sass {
 
   void Inspect::operator()(String_Schema* ss)
   {
+    // Evaluation should turn these into String_Constants, so this method is
+    // only for inspection purposes.
     for (size_t i = 0, L = ss->length(); i < L; ++i) {
       if ((*ss)[i]->is_interpolant()) buffer += "#{";
       (*ss)[i]->perform(this);
@@ -376,7 +378,7 @@ namespace Sass {
 
   void Inspect::operator()(String_Constant* s)
   {
-    buffer += s->value();
+    buffer += (s->needs_unquoting() ? unquote(s->value()) : s->value());
   }
 
   void Inspect::operator()(Media_Query* mq)
@@ -558,5 +560,35 @@ namespace Sass {
 
   void Inspect::indent()
   { buffer += string(2*indentation, ' '); }
+
+  string unquote(const string& s)
+  {
+    char q;
+    if      (*s.begin() == '"'  && *s.rbegin() == '"')  q = '"';
+    else if (*s.begin() == '\'' && *s.rbegin() == '\'') q = '\'';
+    else                                                return s;
+    string t;
+    t.reserve(s.length()-2);
+    for (size_t i = 1, L = s.length()-1; i < L; ++i) {
+      // if we see a quote, we need to remove the preceding backslash from u
+      if (s[i] == q) t.erase(t.length()-1);
+      t.push_back(s[i]);
+    }
+    return t;
+  }
+
+  string quote(const string& s, char q)
+  {
+    if (!q || s[0] == '"' || s[0] == '\'') return s;
+    string t;
+    t.reserve(s.length()+2);
+    t.push_back(q);
+    for (size_t i = 0, L = s.length(); i < L; ++i) {
+      if (s[i] == q) t.push_back('\\');
+      t.push_back(s[i]);
+    }
+    t.push_back(q);
+    return t;
+  }
 
 }

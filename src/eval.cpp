@@ -2,6 +2,7 @@
 #include "ast.hpp"
 #include "bind.hpp"
 #include "to_string.hpp"
+#include "inspect.hpp"
 #include "context.hpp"
 #include "prelexer.hpp"
 #include <cstdlib>
@@ -343,11 +344,11 @@ namespace Sass {
     string acc;
     To_String to_string;
     for (size_t i = 0, L = s->length(); i < L; ++i) {
-      acc += (*s)[i]->perform(this)->perform(&to_string);
+      acc += unquote((*s)[i]->perform(this)->perform(&to_string));
     }
     return new (ctx.mem) String_Constant(s->path(),
                                          s->line(),
-                                         acc);
+                                         quote(acc, s->quote_mark()));
   }
 
   Expression* Eval::operator()(String_Constant* s)
@@ -528,11 +529,14 @@ namespace Sass {
       default:                         break;
     }
     To_String to_string;
+    string lstr(lhs->perform(&to_string));
+    string rstr(rhs->perform(&to_string));
+    char q = '\0';
+    if (lstr[0] == '"' || lstr[0] == '\'') q = lstr[0];
+    else if (rstr[0] == '"' || rstr[0] == '\'') q = rstr[0];
     return new String_Constant(lhs->path(),
                                lhs->line(),
-                               lhs->perform(&to_string)
-                               + sep
-                               + rhs->perform(&to_string));
+                               quote(unquote(lstr) + sep + unquote(rstr), q));
   }
 
 }

@@ -93,4 +93,7 @@ namespace Sass {
 		void fallback(U x) { fallback_impl(x); }
 	};
 
+	string unquote(const string&);
+	string quote(const string&, char);
+
 }

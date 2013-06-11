@@ -676,8 +676,11 @@ namespace Sass {
   // "flat" strings.
   ////////////////////////////////////////////////////////////////////////
   class String : public Expression {
+    ADD_PROPERTY(bool, needs_unquoting);
   public:
-    String(string p, size_t l) : Expression(p, l) { concrete_type(STRING); }
+    String(string p, size_t l, bool unq = false)
+    : Expression(p, l), needs_unquoting_(unq)
+    { concrete_type(STRING); }
     virtual ~String() = 0;
     ATTACH_OPERATIONS();
   };
@@ -688,10 +691,10 @@ namespace Sass {
   // evaluation phase.
   ///////////////////////////////////////////////////////////////////////
   class String_Schema : public String, public Vectorized<Expression*> {
-    ADD_PROPERTY(bool, needs_unquoting);
+    ADD_PROPERTY(char, quote_mark);
   public:
-    String_Schema(string p, size_t l, size_t size = 0, bool unq)
-    : String(p, l), Vectorized(size), needs_unquoting_(unq)
+    String_Schema(string p, size_t l, size_t size = 0, bool unq = false, char qm = '\0')
+    : String(p, l, unq), Vectorized(size), quote_mark_(qm)
     { }
     string type() { return "string"; }
     ATTACH_OPERATIONS();
@@ -703,19 +706,21 @@ namespace Sass {
   class String_Constant : public String {
     ADD_PROPERTY(string, value);
   public:
-    String_Constant(string p, size_t l, string val)
-    : String(p, l), value_(val)
+    String_Constant(string p, size_t l, string val, bool unq = false)
+    : String(p, l, unq), value_(val)
     { }
-    String_Constant(string p, size_t l, const char* beg)
-    : String(p, l), value_(string(beg))
+    String_Constant(string p, size_t l, const char* beg, bool unq = false)
+    : String(p, l, unq), value_(string(beg))
     { }
-    String_Constant(string p, size_t l, const char* beg, const char* end)
-    : String(p, l), value_(string(beg, end-beg))
+    String_Constant(string p, size_t l, const char* beg, const char* end, bool unq = false)
+    : String(p, l, unq), value_(string(beg, end-beg))
     { }
-    String_Constant(string p, size_t l, const Token& tok)
-    : String(p, l), value_(string(tok.begin, tok.end))
+    String_Constant(string p, size_t l, const Token& tok, bool unq = false)
+    : String(p, l, unq), value_(string(tok.begin, tok.end))
     { }
     string type() { return "string"; }
+    bool is_quoted() { return value_[0] == '"' || value_[0] == '\''; }
+    char quote_mark() { return is_quoted() ? value_[0] : '\0'; }
     ATTACH_OPERATIONS();
   };
 
