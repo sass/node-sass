@@ -448,10 +448,53 @@ namespace Sass {
 
   bool eq(Expression* lhs, Expression* rhs)
   {
-    // Boolean* result = new Boolean(lhs->path(), lhs->line(), false);
-    // Expression::Concrete_Type ltype = lhs->concrete_type();
-    // Expression::Concrete_Type rtype = rhs->concrete_type();
-    // if (ltype != rtype) return result;
+    Boolean* result = new Boolean(lhs->path(), lhs->line(), false);
+    Expression::Concrete_Type ltype = lhs->concrete_type();
+    Expression::Concrete_Type rtype = rhs->concrete_type();
+    if (ltype != rtype) return false;
+    switch (ltype) {
+
+      case Expression::BOOLEAN: {
+        return static_cast<Boolean*>(lhs)->value() ==
+               static_cast<Boolean*>(rhs)->value();
+      } break;
+
+      case Expression::NUMBER: {
+        Number* l = static_cast<Number*>(lhs);
+        Number* r = static_cast<Number*>(rhs);
+        // rhs = convert_wrt(rhs, lhs);
+        return l->unit() == r->unit() && l->value() == r->value()
+               ? true
+               : false;
+      } break;
+
+      case Expression::COLOR: {
+        Color* l = static_cast<Color*>(lhs);
+        Color* r = static_cast<Color*>(rhs);
+        return l->r() == r->r() &&
+               l->g() == r->g() &&
+               l->b() == r->b() &&
+               l->a() == r->a();
+      } break;
+
+      case Expression::STRING: {
+        return static_cast<String_Constant*>(lhs)->value() ==
+               static_cast<String_Constant*>(rhs)->value();
+      } break;
+
+      case Expression::LIST: {
+        List* l = static_cast<List*>(lhs);
+        List* r = static_cast<List*>(rhs);
+        if (l->length() != r->length()) return false;
+        if (l->separator() != r->separator()) return false;
+        for (size_t i = 0, L = l->length(); i < L; ++i) {
+          if (!eq((*l)[i], (*r)[i])) return false;
+        }
+        return true;
+      } break;
+
+      default: break;
+    }
     return false;
   }
 
