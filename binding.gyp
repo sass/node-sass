@@ -16,6 +16,7 @@
         'libsass/node_factory.cpp',
         'libsass/prelexer.cpp',
         'libsass/sass_interface.cpp',
+        'libsass/sass_values.cpp',
         'libsass/selector.cpp'
       ],
       'cflags!'   : [ '-fno-exceptions' ],
