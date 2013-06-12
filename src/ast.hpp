@@ -658,17 +658,35 @@ namespace Sass {
       }
       return string();
     }
-    bool involves_unit(const string& u)
+    bool numerator_units_involve(const string& u)
     {
-      return find(numerator_units_.begin(),
-                  numerator_units_.end(),
-                  u) != numerator_units_.end() ||
-             find(denominator_units_.begin(),
-                  denominator_units_.end(),
-                  u) != denominator_units_.end();
+      return find(numerator_units_.begin(), numerator_units_.end(), u) !=
+                  numerator_units_.end();
     }
+    bool denominator_units_involve(const string& u)
+    {
+      return find(denominator_units_.begin(), denominator_units_.end(), u) !=
+                  denominator_units_.end();
+    }
+    bool involves_unit(const string& u)
+    { return numerator_units_involve(u) || denominator_units_involve(u); }
     bool has_basic_unit()
     { return numerator_units_.size() == 1 && denominator_units_.empty(); }
+    void convert_unit(const string& u)
+    {
+      for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
+        if (convertible(numerator_units_[i], u)) {
+          value_ = convert(value_, numerator_units_[i], u);
+          numerator_units_[i] = u;
+        }
+      }
+      for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
+        if (convertible(denominator_units_[i], u)) {
+          value_ = convert(value_, denominator_units_[i], u);
+          denominator_units_[i] = u;
+        }
+      }
+    }
     ATTACH_OPERATIONS();
   };
 

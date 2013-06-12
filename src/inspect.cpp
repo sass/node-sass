@@ -303,11 +303,14 @@ namespace Sass {
     return result;
   }
   static string double_to_string(double d, size_t p) {
+    cerr << "emitting " << d << endl;
     stringstream ss;
     double ipart;
     double fpart = std::modf(d, &ipart);
+    cerr << "ipart: " << ipart << ", fpart: " << fpart << endl;
     ss << ipart;
     if (fpart != 0) ss << frac_to_string(fpart, 5);
+    cerr << "actually emitted " << ipart << " and " << frac_to_string(fpart, 5) << endl;
     return ss.str();
   }
 
@@ -325,6 +328,7 @@ namespace Sass {
   void Inspect::operator()(Number* n)
   {
     // TODO: check for sane units
+    cerr << "about to emit " << n->value() << n->unit() << endl;
     buffer += double_to_string(n->value(), 5);
     buffer += n->unit();
   }

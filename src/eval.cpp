@@ -163,10 +163,11 @@ namespace Sass {
 
   // (Declare the following for use when evaluating binary operators.)
   // -- convert a number of one kind of unit to another
-  double convert(double n, const string& from, const string& to);
+  Number* convert_wrt(Number* from, Number* to, Context& ctx);
+
   // -- only need to define two comparisons, and the rest can be implemented in terms of them
-  bool eq(Expression*, Expression*);
-  bool lt(Expression*, Expression*);
+  bool eq(Expression*, Expression*, Context&);
+  bool lt(Expression*, Expression*, Context&);
   // -- arithmetic on the combinations that matter
   Expression* op_numbers(Context&, Binary_Expression::Type, Expression*, Expression*);
   Expression* op_number_color(Context&, Binary_Expression::Type, Expression*, Expression*);
@@ -197,12 +198,12 @@ namespace Sass {
 
     // see if it's a relational expression
     switch(op_type) {
-      case Binary_Expression::EQ:  return new (ctx.mem) Boolean(b->path(), b->line(), eq(lhs, rhs));
-      case Binary_Expression::NEQ: return new (ctx.mem) Boolean(b->path(), b->line(), !eq(lhs, rhs));
-      case Binary_Expression::GT:  return new (ctx.mem) Boolean(b->path(), b->line(), !lt(lhs, rhs) && !eq(lhs, rhs));
-      case Binary_Expression::GTE: return new (ctx.mem) Boolean(b->path(), b->line(), !lt(lhs, rhs));
-      case Binary_Expression::LT:  return new (ctx.mem) Boolean(b->path(), b->line(), lt(lhs, rhs));
-      case Binary_Expression::LTE: return new (ctx.mem) Boolean(b->path(), b->line(), lt(lhs, rhs) || eq(lhs, rhs));
+      case Binary_Expression::EQ:  return new (ctx.mem) Boolean(b->path(), b->line(), eq(lhs, rhs, ctx));
+      case Binary_Expression::NEQ: return new (ctx.mem) Boolean(b->path(), b->line(), !eq(lhs, rhs, ctx));
+      case Binary_Expression::GT:  return new (ctx.mem) Boolean(b->path(), b->line(), !lt(lhs, rhs, ctx) && !eq(lhs, rhs, ctx));
+      case Binary_Expression::GTE: return new (ctx.mem) Boolean(b->path(), b->line(), !lt(lhs, rhs, ctx));
+      case Binary_Expression::LT:  return new (ctx.mem) Boolean(b->path(), b->line(), lt(lhs, rhs, ctx));
+      case Binary_Expression::LTE: return new (ctx.mem) Boolean(b->path(), b->line(), lt(lhs, rhs, ctx) || eq(lhs, rhs, ctx));
 
       default:                     break;
     }
@@ -446,7 +447,7 @@ namespace Sass {
 
   // All the binary helpers.
 
-  bool eq(Expression* lhs, Expression* rhs)
+  bool eq(Expression* lhs, Expression* rhs, Context& ctx)
   {
     Boolean* result = new Boolean(lhs->path(), lhs->line(), false);
     Expression::Concrete_Type ltype = lhs->concrete_type();
@@ -462,7 +463,7 @@ namespace Sass {
       case Expression::NUMBER: {
         Number* l = static_cast<Number*>(lhs);
         Number* r = static_cast<Number*>(rhs);
-        // rhs = convert_wrt(rhs, lhs);
+        r = convert_wrt(r, l, ctx);
         return l->unit() == r->unit() && l->value() == r->value()
                ? true
                : false;
@@ -488,7 +489,7 @@ namespace Sass {
         if (l->length() != r->length()) return false;
         if (l->separator() != r->separator()) return false;
         for (size_t i = 0, L = l->length(); i < L; ++i) {
-          if (!eq((*l)[i], (*r)[i])) return false;
+          if (!eq((*l)[i], (*r)[i], ctx)) return false;
         }
         return true;
       } break;
@@ -498,7 +499,7 @@ namespace Sass {
     return false;
   }
 
-  bool lt(Expression* lhs, Expression* rhs)
+  bool lt(Expression* lhs, Expression* rhs, Context& ctx)
   {
     return false;
   }
@@ -634,6 +635,24 @@ namespace Sass {
     return new String_Constant(lhs->path(),
                                lhs->line(),
                                quote(unquote(lstr) + sep + unquote(rstr), q));
+  }
+
+  Number* convert_wrt(Number* from, Number* to, Context& ctx)
+  {
+    To_String to_string;
+    Number* result = new (ctx.mem) Number(*from);
+    for (size_t i = 0, S = to->numerator_units().size(); i < S; ++i) {
+      result->convert_unit(to->numerator_units()[i]);
+    }
+    // cerr << "intermediate result: " << result->perform(&to_string) << endl;
+    for (size_t i = 0, S = to->denominator_units().size(); i < S; ++i) {
+      result->convert_unit(to->denominator_units()[i]);
+    }
+    // cerr << "intermediate result: " << result->perform(&to_string) << endl;
+    cerr << "INSPECTING CONVERSION" << endl;
+    cerr << "converted from " << from->perform(&to_string) << " to " << result->perform(&to_string) << endl;
+    cerr << "actual result magnitude and unit: " << result->value() << result->unit() << endl;
+    return result;
   }
 
 }
