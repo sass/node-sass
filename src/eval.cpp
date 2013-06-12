@@ -161,7 +161,13 @@ namespace Sass {
     return ll;
   }
 
-  // declare these for later use
+  // (Declare the following for use when evaluating binary operators.)
+  // -- convert a number of one kind of unit to another
+  double convert(double n, const string& from, const string& to);
+  // -- only need to define two comparisons, and the rest can be implemented in terms of them
+  bool eq(Expression*, Expression*);
+  bool lt(Expression*, Expression*);
+  // -- arithmetic on the combinations that matter
   Expression* op_numbers(Context&, Binary_Expression::Type, Expression*, Expression*);
   Expression* op_number_color(Context&, Binary_Expression::Type, Expression*, Expression*);
   Expression* op_color_number(Context&, Binary_Expression::Type, Expression*, Expression*);
@@ -191,12 +197,12 @@ namespace Sass {
 
     // see if it's a relational expression
     switch(op_type) {
-      case Binary_Expression::EQ:  return eq(lhs, rhs);
-      case Binary_Expression::NEQ: return !eq(lhs, rhs);
-      case Binary_Expression::GT:  return !lt(lhs, rhs) && !eq(lhs, rhs);
-      case Binary_Expression::GTE: return !lt(lhs, rhs);
-      case Binary_Expression::LT:  return lt(lhs, rhs);
-      case Binary_Expression::LTE: return lt(lhs, rhs) || eq(lhs, rhs);
+      case Binary_Expression::EQ:  return new (ctx.mem) Boolean(b->path(), b->line(), eq(lhs, rhs));
+      case Binary_Expression::NEQ: return new (ctx.mem) Boolean(b->path(), b->line(), !eq(lhs, rhs));
+      case Binary_Expression::GT:  return new (ctx.mem) Boolean(b->path(), b->line(), !lt(lhs, rhs) && !eq(lhs, rhs));
+      case Binary_Expression::GTE: return new (ctx.mem) Boolean(b->path(), b->line(), !lt(lhs, rhs));
+      case Binary_Expression::LT:  return new (ctx.mem) Boolean(b->path(), b->line(), lt(lhs, rhs));
+      case Binary_Expression::LTE: return new (ctx.mem) Boolean(b->path(), b->line(), lt(lhs, rhs) || eq(lhs, rhs));
 
       default:                     break;
     }
@@ -230,10 +236,14 @@ namespace Sass {
       return result;
     }
     else {
-      Unary_Expression* result = new (ctx.mem) Unary_Expression(u->path(),
-                                                                u->line(),
-                                                                u->type(),
-                                                                operand);
+      Unary_Expression* inter = new (ctx.mem) Unary_Expression(u->path(),
+                                                               u->line(),
+                                                               u->type(),
+                                                               operand);
+      To_String to_string;
+      String_Constant* result = new (ctx.mem) String_Constant(u->path(),
+                                                              u->line(),
+                                                              inter->perform(&to_string));
       return result;
     }
     // unreachable
@@ -247,10 +257,14 @@ namespace Sass {
 
     // if it doesn't exist, just pass it through as a literal
     if (!env->has(full_name)) {
-      return new (ctx.mem) Function_Call(c->path(),
-                                         c->line(),
-                                         c->name(),
-                                         args);
+      Function_Call* lit = new (ctx.mem) Function_Call(c->path(),
+                                                       c->line(),
+                                                       c->name(),
+                                                       args);
+      To_String to_string;
+      return new (ctx.mem) String_Constant(c->path(),
+                                           c->line(),
+                                           lit->perform(&to_string));
     }
 
     Expression*     result = c;
@@ -430,6 +444,22 @@ namespace Sass {
     return static_cast<Expression*>(n);
   }
 
+  // All the binary helpers.
+
+  bool eq(Expression* lhs, Expression* rhs)
+  {
+    // Boolean* result = new Boolean(lhs->path(), lhs->line(), false);
+    // Expression::Concrete_Type ltype = lhs->concrete_type();
+    // Expression::Concrete_Type rtype = rhs->concrete_type();
+    // if (ltype != rtype) return result;
+    return false;
+  }
+
+  bool lt(Expression* lhs, Expression* rhs)
+  {
+    return false;
+  }
+
   Expression* op_numbers(Context& ctx, Binary_Expression::Type op, Expression* lhs, Expression* rhs)
   {
     // TODO: implement conversion factors for numbers with units
@@ -444,6 +474,18 @@ namespace Sass {
     }
 
     Number* v = new (ctx.mem) Number(*l);
+
+    // Convert the rhs to the same units as the lhs if possible. By doing this
+    // bottom-up, we'll ensure that units always stay consistent and minimal.
+    if (r->has_basic_unit()) {
+      string from(r->unit());
+      string to(l->compatible_with(from));
+      if (!to.empty()) {
+        rv = convert(rv, from, to);
+        rhs = r = new (ctx.mem) Number(r->path(), r->line(), rv, to);
+      }
+    }
+
     v->value(ops[op](v->value(), rv));
     if (op == Binary_Expression::MUL) {
       for (size_t i = 0, S = r->numerator_units().size(); i < S; ++i) {

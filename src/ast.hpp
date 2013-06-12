@@ -17,6 +17,7 @@
 #include "environment.hpp"
 #endif
 
+#include "units.hpp"
 #include "error_handling.hpp"
 #include "ast_def_macros.hpp"
 
@@ -619,26 +620,55 @@ namespace Sass {
       }
       return u.str();
     }
-    void mul_unit(string numer)
+    void mul_unit(const string& numer)
     {
       vector<string>::iterator denom = find(denominator_units_.begin(),
                                             denominator_units_.end(),
                                             numer);
       if (denom != denominator_units_.end())
         denominator_units_.erase(denom);
-      else
+      else {
         numerator_units_.push_back(numer);
+        sort(numerator_units_.begin(), numerator_units_.end()); // normalize
+      }
     }
-    void div_unit(string denom)
+    void div_unit(const string& denom)
     {
       vector<string>::iterator numer = find(numerator_units_.begin(),
                                             numerator_units_.end(),
                                             denom);
       if (numer != numerator_units_.end())
         numerator_units_.erase(numer);
-      else
+      else {
         denominator_units_.push_back(denom);
+        sort(denominator_units_.begin(), denominator_units_.end()); // normalize
+      }
     }
+    string compatible_with(const string& u)
+    {
+      for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
+        if (convertible(numerator_units_[i], u)) {
+          return numerator_units_[i];
+        }
+      }
+      for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
+        if (convertible(denominator_units_[i], u)) {
+          return denominator_units_[i];
+        }
+      }
+      return string();
+    }
+    bool involves_unit(const string& u)
+    {
+      return find(numerator_units_.begin(),
+                  numerator_units_.end(),
+                  u) != numerator_units_.end() ||
+             find(denominator_units_.begin(),
+                  denominator_units_.end(),
+                  u) != denominator_units_.end();
+    }
+    bool has_basic_unit()
+    { return numerator_units_.size() == 1 && denominator_units_.empty(); }
     ATTACH_OPERATIONS();
   };
 
