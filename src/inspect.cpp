@@ -329,7 +329,18 @@ namespace Sass {
   {
     // TODO: check for sane units
     // cerr << "about to emit " << n->value() << n->unit() << endl;
-    buffer += double_to_string(n->value(), 5);
+    // buffer += double_to_string(n->value(), 5);
+    // buffer += n->unit();
+
+    stringstream ss;
+    ss << n->value();
+    string d(ss.str());
+    size_t dot = d.find_last_of('.');
+    if (dot != string::npos) {
+      size_t max = dot + 6;
+      if (d.length() > max) d.resize(max);
+    }
+    buffer += d;
     buffer += n->unit();
   }
 
