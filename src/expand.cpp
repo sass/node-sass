@@ -92,12 +92,15 @@ namespace Sass {
   Statement* Expand::operator()(At_Rule* a)
   {
     Block* ab = a->block();
+    selector_stack.push_back(0);
     Block* bb = ab ? ab->perform(this)->block() : 0;
-    return new (ctx.mem) At_Rule(a->path(),
-                                 a->line(),
-                                 a->keyword(),
-                                 a->selector(),
-                                 bb);
+    At_Rule* aa = new (ctx.mem) At_Rule(a->path(),
+                                        a->line(),
+                                        a->keyword(),
+                                        a->selector(),
+                                        bb);
+    selector_stack.pop_back();
+    return aa;
   }
 
   Statement* Expand::operator()(Declaration* d)
