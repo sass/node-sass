@@ -303,35 +303,18 @@ namespace Sass {
     return result;
   }
   string double_to_string(double d, size_t p) {
-    // cerr << "emitting " << d << endl;
     stringstream ss;
     double ipart;
     double fpart = std::modf(d, &ipart);
-    // cerr << "ipart: " << ipart << ", fpart: " << fpart << endl;
     ss << ipart;
     if (fpart != 0) ss << frac_to_string(fpart, 5);
-    // cerr << "actually emitted " << ipart << " and " << frac_to_string(fpart, 5) << endl;
     return ss.str();
   }
 
-  // void Inspect::operator()(Number* n)
-  // {
-  //   buffer += double_to_string(n->value(), 5);
-  // }
-
-  // void Inspect::operator()(Percentage* p)
-  // {
-  //   buffer += double_to_string(p->value(), 5);
-  //   buffer += '%';
-  // }
-
   void Inspect::operator()(Number* n)
   {
-    // TODO: check for sane units
-    // cerr << "about to emit " << n->value() << n->unit() << endl;
     // buffer += double_to_string(n->value(), 5);
     // buffer += n->unit();
-
     stringstream ss;
     ss << n->value();
     string d(ss.str());
@@ -339,6 +322,9 @@ namespace Sass {
     if (dot != string::npos) {
       size_t max = dot + 6;
       if (d.length() > max) d.resize(max);
+    }
+    if (n->numerator_units().size() > 1 || n->denominator_units().size() > 0) {
+      error(d + n->unit() + " is not a valid CSS value", n->path(), n->line());
     }
     buffer += d;
     buffer += n->unit();
