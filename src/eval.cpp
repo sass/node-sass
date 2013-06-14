@@ -480,8 +480,8 @@ namespace Sass {
       } break;
 
       case Expression::STRING: {
-        return static_cast<String_Constant*>(lhs)->value() ==
-               static_cast<String_Constant*>(rhs)->value();
+        return unquote(static_cast<String_Constant*>(lhs)->value()) ==
+               unquote(static_cast<String_Constant*>(rhs)->value());
       } break;
 
       case Expression::LIST: {
@@ -506,7 +506,9 @@ namespace Sass {
     Number* r = static_cast<Number*>(rhs);
     Number tmp_r(*r);
     tmp_r.normalize(l->find_convertible_unit());
-    if (l->unit() != tmp_r.unit()) {
+    string l_unit(l->unit());
+    string r_unit(tmp_r.unit());
+    if (!l_unit.empty() && !r_unit.empty() && l->unit() != tmp_r.unit()) {
       error("cannot compare numbers with incompatible units", l->path(), l->line());
     }
     return l->value() < tmp_r.value();
