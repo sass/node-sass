@@ -620,72 +620,80 @@ namespace Sass {
       }
       return u.str();
     }
-    void mul_unit(const string& numer)
+    void normalize(string to = "")
     {
-      vector<string>::iterator denom = find(denominator_units_.begin(),
-                                            denominator_units_.end(),
-                                            numer);
-      if (denom != denominator_units_.end())
-        denominator_units_.erase(denom);
-      else {
-        numerator_units_.push_back(numer);
-        sort(numerator_units_.begin(), numerator_units_.end()); // normalize
-      }
-    }
-    void div_unit(const string& denom)
-    {
-      vector<string>::iterator numer = find(numerator_units_.begin(),
-                                            numerator_units_.end(),
-                                            denom);
-      if (numer != numerator_units_.end())
-        numerator_units_.erase(numer);
-      else {
-        denominator_units_.push_back(denom);
-        sort(denominator_units_.begin(), denominator_units_.end()); // normalize
-      }
-    }
-    string compatible_with(const string& u)
-    {
-      for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
-        if (convertible(numerator_units_[i], u)) {
-          return numerator_units_[i];
+      // (multiple passes because I'm too tired to think up something clever)
+      // Find a unit to convert everything to, if one isn't provided.
+      if (to.empty()) {
+        for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
+          string u(numerator_units_[i]);
+          if (string_to_unit(u) == INCOMMENSURABLE) {
+            continue;
+          }
+          else {
+            to = u;
+            break;
+          }
         }
+      }
+      if (to.empty()) {
+        for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
+          string u(denominator_units_[i]);
+          if (string_to_unit(u) == INCOMMENSURABLE) {
+            continue;
+          }
+          else {
+            to = u;
+            break;
+          }
+        }
+      }
+      // Now loop through again and do all the conversions.
+      for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
+        string from(numerator_units_[i]);
+        if (string_to_unit(from) == INCOMMENSURABLE) continue;
+        value_ *= conversion_factor(from, to);
+        numerator_units_[i] = to;
       }
       for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
-        if (convertible(denominator_units_[i], u)) {
-          return denominator_units_[i];
+        string from(denominator_units_[i]);
+        if (string_to_unit(from) == INCOMMENSURABLE) continue;
+        value_ /= conversion_factor(from, to);
+        denominator_units_[i] = to;
+      }
+      // Now divide out identical units in the numerator and denominator.
+      vector<string> ncopy;
+      ncopy.reserve(numerator_units_.size());
+      for (vector<string>::iterator n = numerator_units_.begin();
+           n != numerator_units_.end();
+           ++n) {
+        vector<string>::iterator d = find(denominator_units_.begin(),
+                                          denominator_units_.end(),
+                                          *n);
+        if (d != denominator_units_.end()) {
+          denominator_units_.erase(d);
         }
+        else {
+          ncopy.push_back(*n);
+        }
+      }
+      numerator_units_ = ncopy;
+      // Sort the units to make them pretty and, well, normal.
+      sort(numerator_units_.begin(), numerator_units_.end());
+      sort(denominator_units_.begin(), denominator_units_.end());
+    }
+    // useful for making one number compatible with another
+    string find_convertible_unit()
+    {
+      for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
+        string u(numerator_units_[i]);
+        if (string_to_unit(u) != INCOMMENSURABLE) return u;
+      }
+      for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
+        string u(denominator_units_[i]);
+        if (string_to_unit(u) != INCOMMENSURABLE) return u;
       }
       return string();
-    }
-    bool numerator_units_involve(const string& u)
-    {
-      return find(numerator_units_.begin(), numerator_units_.end(), u) !=
-                  numerator_units_.end();
-    }
-    bool denominator_units_involve(const string& u)
-    {
-      return find(denominator_units_.begin(), denominator_units_.end(), u) !=
-                  denominator_units_.end();
-    }
-    bool involves_unit(const string& u)
-    { return numerator_units_involve(u) || denominator_units_involve(u); }
-    bool has_basic_unit()
-    { return numerator_units_.size() == 1 && denominator_units_.empty(); }
-    void convert_unit(const string& u)
-    {
-      for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
-        if (convertible(numerator_units_[i], u)) {
-          value_ = convert(value_, numerator_units_[i], u);
-          numerator_units_[i] = u;
-        }
-      }
-      for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
-        if (convertible(denominator_units_[i], u)) {
-          value_ = convert(value_, denominator_units_[i], u);
-          denominator_units_[i] = u;
-        }
-      }
     }
     ATTACH_OPERATIONS();
   };

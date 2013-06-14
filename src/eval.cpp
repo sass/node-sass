@@ -463,8 +463,9 @@ namespace Sass {
       case Expression::NUMBER: {
         Number* l = static_cast<Number*>(lhs);
         Number* r = static_cast<Number*>(rhs);
-        r = convert_wrt(r, l, ctx);
-        return l->unit() == r->unit() && l->value() == r->value()
+        Number tmp_r(*r);
+        tmp_r.normalize(l->find_convertible_unit());
+        return l->unit() == tmp_r.unit() && l->value() == tmp_r.value()
                ? true
                : false;
       } break;
@@ -501,14 +502,21 @@ namespace Sass {
 
   bool lt(Expression* lhs, Expression* rhs, Context& ctx)
   {
-    return false;
+    Number* l = static_cast<Number*>(lhs);
+    Number* r = static_cast<Number*>(rhs);
+    Number tmp_r(*r);
+    tmp_r.normalize(l->find_convertible_unit());
+    if (l->unit() != tmp_r.unit()) {
+      error("cannot compare numbers with incompatible units", l->path(), l->line());
+    }
+    return l->value() < tmp_r.value();
   }
 
   Expression* op_numbers(Context& ctx, Binary_Expression::Type op, Expression* lhs, Expression* rhs)
   {
-    // TODO: implement conversion factors for numbers with units
     Number* l = static_cast<Number*>(lhs);
     Number* r = static_cast<Number*>(rhs);
+    double lv = l->value();
     double rv = r->value();
     if (op == Binary_Expression::DIV && !rv) {
       return new (ctx.mem) String_Constant(l->path(), l->line(), "Infinity");
@@ -517,36 +525,32 @@ namespace Sass {
       error("division by zero", r->path(), r->line());
     }
 
+    Number tmp(*r);
+    tmp.normalize(l->find_convertible_unit());
+    if (l->unit() != tmp.unit() &&
+        (op == Binary_Expression::ADD || op == Binary_Expression::SUB)) {
+      error("cannot add or subtract numbers with incompatible units", l->path(), l->line());
+    }
     Number* v = new (ctx.mem) Number(*l);
 
-    // Convert the rhs to the same units as the lhs if possible. By doing this
-    // bottom-up, we'll ensure that units always stay consistent and minimal.
-    if (r->has_basic_unit()) {
-      string from(r->unit());
-      string to(l->compatible_with(from));
-      if (!to.empty()) {
-        rv = convert(rv, from, to);
-        rhs = r = new (ctx.mem) Number(r->path(), r->line(), rv, to);
-      }
-    }
-
-    v->value(ops[op](v->value(), rv));
+    v->value(ops[op](lv, rv));
     if (op == Binary_Expression::MUL) {
       for (size_t i = 0, S = r->numerator_units().size(); i < S; ++i) {
-        v->mul_unit(r->numerator_units()[i]);
+        v->numerator_units().push_back(r->numerator_units()[i]);
       }
       for (size_t i = 0, S = r->denominator_units().size(); i < S; ++i) {
-        v->div_unit(r->denominator_units()[i]);
+        v->denominator_units().push_back(r->denominator_units()[i]);
       }
     }
     else if (op == Binary_Expression::DIV) {
       for (size_t i = 0, S = r->numerator_units().size(); i < S; ++i) {
-        v->div_unit(r->numerator_units()[i]);
+        v->denominator_units().push_back(r->numerator_units()[i]);
       }
       for (size_t i = 0, S = r->denominator_units().size(); i < S; ++i) {
-        v->mul_unit(r->denominator_units()[i]);
+        v->numerator_units().push_back(r->denominator_units()[i]);
       }
     }
+    v->normalize();
     return v;
   }
 
@@ -637,22 +641,25 @@ namespace Sass {
                                quote(unquote(lstr) + sep + unquote(rstr), q));
   }
 
-  Number* convert_wrt(Number* from, Number* to, Context& ctx)
-  {
-    To_String to_string;
-    Number* result = new (ctx.mem) Number(*from);
-    for (size_t i = 0, S = to->numerator_units().size(); i < S; ++i) {
-      result->convert_unit(to->numerator_units()[i]);
-    }
-    // cerr << "intermediate result: " << result->perform(&to_string) << endl;
-    for (size_t i = 0, S = to->denominator_units().size(); i < S; ++i) {
-      result->convert_unit(to->denominator_units()[i]);
-    }
-    // cerr << "intermediate result: " << result->perform(&to_string) << endl;
-    cerr << "INSPECTING CONVERSION" << endl;
-    cerr << "converted from " << from->perform(&to_string) << " to " << result->perform(&to_string) << endl;
-    cerr << "actual result magnitude and unit: " << result->value() << result->unit() << endl;
-    return result;
-  }
+  // Number* convert_wrt(Number* from, Number* to, Context& ctx)
+  // {
+  //   To_String to_string;
+  //   Number* result = new (ctx.mem) Number(*from);
+  //   // cerr << "RESULT (BEFORE):" << endl;
+  //   result->perform(&to_string);
+  //   for (size_t i = 0, S = to->numerator_units().size(); i < S; ++i) {
+  //     result->convert_unit(to->numerator_units()[i]);
+  //   }
+  //   for (size_t i = 0, S = to->denominator_units().size(); i < S; ++i) {
+  //     result->convert_unit(to->denominator_units()[i]);
+  //   }
+  //   // cerr << "FROM:" << endl;
+  //   from->perform(&to_string);
+  //   cerr << "TO:" << endl;
+  //   to->perform(&to_string);
+  //   // cerr << "RESULT (AFTER):" << endl;
+  //   result->perform(&to_string);
+  //   return result;
+  // }
 
 }
