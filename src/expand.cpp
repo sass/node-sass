@@ -240,13 +240,13 @@ namespace Sass {
   {
     env->current_frame()[d->name() +
                         (d->type() == Definition::MIXIN ? "[m]" : "[f]")] = d;
-    // evaluate the default args
-    Parameters* params = d->parameters();
-    for (size_t i = 0, L = params->length(); i < L; ++i) {
-      Parameter* param = (*params)[i];
-      Expression* dflt = param->default_value();
-      if (dflt) param->default_value(dflt->perform(eval->with(env)));
-    }
+    // // evaluate the default args
+    // Parameters* params = d->parameters();
+    // for (size_t i = 0, L = params->length(); i < L; ++i) {
+    //   Parameter* param = (*params)[i];
+    //   Expression* dflt = param->default_value();
+    //   if (dflt) param->default_value(dflt->perform(eval->with(env)));
+    // }
     // set the static link so we can have lexical scoping
     d->environment(env);
     return 0;
@@ -268,8 +268,8 @@ namespace Sass {
     Arguments* args = static_cast<Arguments*>(c->arguments()
                                                ->perform(eval->with(env)));
     Env new_env;
-    bind("mixin " + c->name(), params, args, ctx, &new_env);
     new_env.link(def->environment());
+    bind("mixin " + c->name(), params, args, ctx, &new_env, eval);
     Env* old_env = env;
     env = &new_env;
     append_block(body);

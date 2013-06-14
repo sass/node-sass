@@ -277,8 +277,8 @@ namespace Sass {
     if (body) {
       Parameters* params = def->parameters();
       Env new_env;
-      bind("function " + c->name(), params, args, ctx, &new_env);
       new_env.link(def->environment());
+      bind("function " + c->name(), params, args, ctx, &new_env, this);
       Env* old_env = env;
       env = &new_env;
       Expression* result = body->perform(this);

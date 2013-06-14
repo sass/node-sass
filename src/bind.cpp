@@ -1,20 +1,25 @@
 #include "bind.hpp"
 #include "ast.hpp"
 #include "context.hpp"
+#include "eval.hpp"
 #include <map>
 #include <iostream>
 #include <sstream>
 
 namespace Sass {
 
-  void bind(string callee, Parameters* ps, Arguments* as, Context& ctx, Env* env)
+  void bind(string callee, Parameters* ps, Arguments* as, Context& ctx, Env* env, Eval* eval)
   {
     map<string, Parameter*> param_map;
 
-    // set up the bindings
+    // Set up a map to ensure named arguments refer to actual parameters. Also
+    // eval each default value left-to-right, wrt env, populating env as we go.
     for (size_t i = 0, L = ps->length(); i < L; ++i) {
       Parameter*  p = (*ps)[i];
       param_map[p->name()] = p;
+      // if (p->default_value()) {
+      //   env->current_frame()[p->name()] = p->default_value()->perform(eval->with(env));
+      // }
     }
 
     // plug in all args; if we have leftover params, deal with it later
@@ -32,35 +37,35 @@ namespace Sass {
 
       if (a->is_rest_argument() && p->is_rest_parameter()) {
         // rest param and rest arg -- just add one to the other
-        if (env->has(p->name())) {
-          *static_cast<List*>((*env)[p->name()])
+        if (env->current_frame_has(p->name())) {
+          *static_cast<List*>(env->current_frame()[p->name()])
                               += static_cast<List*>(a->value());
         }
         else {
-          (*env)[p->name()] = a->value();
+          env->current_frame()[p->name()] = a->value();
         }
         ++ia;
         ++ip;
       }
       else if (p->is_rest_parameter()) {
         List* arglist = 0;
-        if (!env->has(p->name())) {
+        if (!env->current_frame_has(p->name())) {
           arglist = new (ctx.mem) List(p->path(),
                                        p->line(),
                                        0,
                                        List::COMMA,
                                        true);
-          (*env)[p->name()] = arglist;
+          env->current_frame()[p->name()] = arglist;
         }
         else {
-          arglist = static_cast<List*>((*env)[p->name()]);
+          arglist = static_cast<List*>(env->current_frame()[p->name()]);
         }
         *arglist << a->value(); // TODO: named args going into rest-param?
         ++ia;
       }
       else if (a->is_rest_argument()) {
         // normal param and rest arg
-        if (env->has(p->name())) {
+        if (env->current_frame_has(p->name())) {
           stringstream msg;
           msg << "parameter " << p->name()
               << " provided more than once in call to " << callee;
@@ -69,19 +74,19 @@ namespace Sass {
         List* arglist = static_cast<List*>(a->value());
         // if it's the last param, move the whole arglist into it
         if (ip == LP-1) {
-          (*env)[p->name()] = arglist;
+          env->current_frame()[p->name()] = arglist;
           ++ia;
         }
         // otherwise move one of the rest args into the param and loop
         else {
-          (*env)[p->name()] = (*arglist)[0];
+          env->current_frame()[p->name()] = (*arglist)[0];
           arglist->elements().erase(arglist->elements().begin());
         }
         ++ip;
       }
       else if (a->name().empty()) {
         // ordinal arg -- bind it to the next param
-        (*env)[p->name()] = a->value();
+        env->current_frame()[p->name()] = a->value();
         ++ip;
         ++ia;
       }
@@ -98,13 +103,13 @@ namespace Sass {
               << "cannot be used as named argument";
           error(msg.str(), a->path(), a->line());
         }
-        if (env->has(a->name())) {
+        if (env->current_frame_has(a->name())) {
           stringstream msg;
           msg << "parameter " << p->name()
               << "provided more than once in call to " << callee;
           error(msg.str(), a->path(), a->line());
         }
-        (*env)[a->name()] = a->value();
+        env->current_frame()[a->name()] = a->value();
         ++ia;
       }
     }
@@ -114,16 +119,17 @@ namespace Sass {
     // named arguments, or if it's a single rest-param.
     for (size_t i = ip; i < LP; ++i) {
       Parameter* leftover = (*ps)[i];
-      if (!env->has(leftover->name())) {
+      if (!env->current_frame_has(leftover->name())) {
         if (leftover->is_rest_parameter()) {
-          (*env)[leftover->name()] = new (ctx.mem) List(leftover->path(),
-                                                        leftover->line(),
-                                                        0,
-                                                        List::COMMA,
-                                                        true);
+          env->current_frame()[leftover->name()] = new (ctx.mem) List(leftover->path(),
+                                                                      leftover->line(),
+                                                                      0,
+                                                                      List::COMMA,
+                                                                      true);
         }
         else if (leftover->default_value()) {
-          (*env)[leftover->name()] = leftover->default_value();
+          // make sure to eval the default value in the env that we've been populating
+          env->current_frame()[leftover->name()] = leftover->default_value()->perform(eval->with(env));
         }
         else {
           // param is unbound and has no default value -- error

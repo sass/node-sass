@@ -14,5 +14,5 @@ namespace Sass {
   class   Eval;
   typedef Environment<AST_Node*> Env;
 
-  void bind(string caller, Parameters*, Arguments*, Context&, Env*);
+  void bind(string caller, Parameters*, Arguments*, Context&, Env*, Eval*);
 }
