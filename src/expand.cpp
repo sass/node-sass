@@ -2,6 +2,7 @@
 #include "ast.hpp"
 #include "bind.hpp"
 #include "eval.hpp"
+#include "contextualize.hpp"
 #include "to_string.hpp"
 
 #include <iostream>
@@ -13,15 +14,16 @@
 
 namespace Sass {
 
-  Expand::Expand(Context& ctx, Eval* eval, Env* env)
+  Expand::Expand(Context& ctx, Eval* eval, Contextualize* contextualize, Env* env)
   : ctx(ctx),
     eval(eval),
+    contextualize(contextualize),
     env(env),
     block_stack(vector<Block*>()),
     content_stack(vector<Block*>()),
     property_stack(vector<String*>()),
     selector_stack(vector<Selector*>())
-  { }
+  { selector_stack.push_back(0); }
 
   Statement* Expand::operator()(Block* b)
   {
@@ -38,10 +40,15 @@ namespace Sass {
 
   Statement* Expand::operator()(Ruleset* r)
   {
-    return new (ctx.mem) Ruleset(r->path(),
-                                 r->line(),
-                                 r->selector(), // TODO: expand the selector
-                                 r->block()->perform(this)->block());
+    To_String to_string;
+    Selector* sel_ctx = r->selector()->perform(contextualize->with(selector_stack.back(), env));
+    selector_stack.push_back(sel_ctx);
+    Ruleset* rr = new (ctx.mem) Ruleset(r->path(),
+                                        r->line(),
+                                        sel_ctx,
+                                        r->block()->perform(this)->block());
+    selector_stack.pop_back();
+    return rr;
   }
 
   Statement* Expand::operator()(Propset* p)

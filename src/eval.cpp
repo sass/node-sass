@@ -401,8 +401,8 @@ namespace Sass {
 
   Expression* Eval::operator()(Media_Query_Expression* e)
   {
-    String* feature = e->feature();
-    feature = static_cast<String*>(feature ? feature->perform(this) : 0);
+    Expression* feature = e->feature();
+    feature = (feature ? feature->perform(this) : 0);
     Expression* value = e->value();
     value = (value ? value->perform(this) : 0);
     return new (ctx.mem) Media_Query_Expression(e->path(),

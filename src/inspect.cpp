@@ -475,7 +475,7 @@ namespace Sass {
   void Inspect::operator()(Selector_Reference* ref)
   {
     if (ref->selector()) ref->selector()->perform(this);
-    else                 buffer += '&';
+    // else                 buffer += '&';
   }
 
   void Inspect::operator()(Selector_Placeholder* s)

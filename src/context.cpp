@@ -17,6 +17,7 @@
 #include "inspect.hpp"
 #include "expand.hpp"
 #include "eval.hpp"
+#include "contextualize.hpp"
 #include "copy_c_str.hpp"
 
 #ifndef SASS_PRELEXER
@@ -127,7 +128,8 @@ namespace Sass {
 
     Environment<AST_Node*> tge;
     Eval eval(*this, &tge);
-    Expand expand(*this, &eval, &tge);
+    Contextualize contextualize(*this, &eval, &tge);
+    Expand expand(*this, &eval, &contextualize, &tge);
     Inspect inspect;
 
     root->perform(&expand)->perform(&inspect);

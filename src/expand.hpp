@@ -16,12 +16,14 @@ namespace Sass {
 
 	class Context;
 	class Eval;
+	class Contextualize;
 	typedef Environment<AST_Node*> Env;
 
 	class Expand : public Operation_CRTP<Statement*, Expand> {
 
 		Context&          ctx;
 		Eval*             eval;
+		Contextualize*    contextualize;
 		Env*              env;
 		vector<Block*>    block_stack;
 		vector<Block*>    content_stack;
@@ -31,7 +33,7 @@ namespace Sass {
 		Statement* fallback_impl(AST_Node* n);
 
 	public:
-		Expand(Context&, Eval*, Env*);
+		Expand(Context&, Eval*, Contextualize*, Env*);
 		virtual ~Expand() { }
 
 		using Operation<Statement*>::operator();

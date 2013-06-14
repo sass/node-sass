@@ -690,6 +690,7 @@ namespace Sass {
         peek< exactly<'}'> >(position) ||
         peek< exactly<'{'> >(position) ||
         peek< exactly<')'> >(position) ||
+        peek< exactly<':'> >(position) ||
         peek< exactly<ellipsis> >(position))
     { return new (ctx.mem) List(path, line, 0); }
     Expression* list1 = parse_space_list();
@@ -718,6 +719,7 @@ namespace Sass {
         peek< exactly<'{'> >(position) ||
         peek< exactly<')'> >(position) ||
         peek< exactly<','> >(position) ||
+        peek< exactly<':'> >(position) ||
         peek< exactly<ellipsis> >(position) ||
         peek< default_flag >(position))
     { return disj1; }
@@ -731,6 +733,7 @@ namespace Sass {
              peek< exactly<'{'> >(position) ||
              peek< exactly<')'> >(position) ||
              peek< exactly<','> >(position) ||
+             peek< exactly<':'> >(position) ||
              peek< exactly<ellipsis> >(position) ||
              peek< default_flag >(position)))
     {
@@ -1207,24 +1210,29 @@ namespace Sass {
     if (!lex< exactly<'('> >()) {
       error("media query expression must begin with '('");
     }
-    String* first = 0;
-    if (peek< identifier_schema >()) {
-      first = parse_identifier_schema();
-    }
-    else if (lex< identifier >()) {
-      first = new (ctx.mem) String_Constant(path, line, lexed);
-    }
-    else {
+    // String* first = 0;
+    // if (peek< identifier_schema >()) {
+    //   first = parse_identifier_schema();
+    // }
+    // else if (lex< identifier >()) {
+    //   first = new (ctx.mem) String_Constant(path, line, lexed);
+    // }
+    // else {
+    //   error("media feature required in media query expression");
+    // }
+    Expression* feature = 0;
+    if (peek< exactly<')'> >()) {
       error("media feature required in media query expression");
     }
-    Expression* second = 0;
+    feature = parse_list();
+    Expression* expression = 0;
     if (lex< exactly<':'> >()) {
-      second = parse_list();
+      expression = parse_list();
     }
     if (!lex< exactly<')'> >()) {
       error("unclosed parenthesis in media query expression");
     }
-    return new (ctx.mem) Media_Query_Expression(path, first->line(), first, second);
+    return new (ctx.mem) Media_Query_Expression(path, feature->line(), feature, expression);
   }
 
   At_Rule* Parser::parse_at_rule()

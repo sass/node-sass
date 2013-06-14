@@ -801,12 +801,12 @@ namespace Sass {
   // Media expressions (for use inside media queries).
   ////////////////////////////////////////////////////
   class Media_Query_Expression : public Expression {
-    ADD_PROPERTY(String*, feature);
+    ADD_PROPERTY(Expression*, feature);
     ADD_PROPERTY(Expression*, value);
     ADD_PROPERTY(bool, is_interpolated);
   public:
     Media_Query_Expression(string p, size_t l,
-                           String* f, Expression* v, bool i = false)
+                           Expression* f, Expression* v, bool i = false)
     : Expression(p, l), feature_(f), value_(v), is_interpolated_(i)
     { }
     ATTACH_OPERATIONS();
