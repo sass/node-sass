@@ -285,13 +285,12 @@ namespace Sass {
                                                 c->line(),
                                                 "@content",
                                                 new (ctx.mem) Arguments(c->path(), c->line()));
-    call->perform(this);
-    return 0;
+    return call->perform(this);
   }
 
   inline Statement* Expand::fallback_impl(AST_Node* n)
   {
-    error("internal error; please contact the LibSass maintainers", n->path(), n->line());
+    error("unknown internal error; please contact the LibSass maintainers", n->path(), n->line());
     String_Constant* msg = new (ctx.mem) String_Constant("", 0, string("`Expand` doesn't handle ") + typeid(*n).name());
     return new (ctx.mem) Warning("", 0, msg);
   }
