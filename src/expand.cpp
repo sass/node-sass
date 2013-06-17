@@ -240,13 +240,6 @@ namespace Sass {
   {
     env->current_frame()[d->name() +
                         (d->type() == Definition::MIXIN ? "[m]" : "[f]")] = d;
-    // // evaluate the default args
-    // Parameters* params = d->parameters();
-    // for (size_t i = 0, L = params->length(); i < L; ++i) {
-    //   Parameter* param = (*params)[i];
-    //   Expression* dflt = param->default_value();
-    //   if (dflt) param->default_value(dflt->perform(eval->with(env)));
-    // }
     // set the static link so we can have lexical scoping
     d->environment(env);
     return 0;
@@ -260,35 +253,39 @@ namespace Sass {
     }
     Definition* def = static_cast<Definition*>((*env)[full_name]);
     Block* body = def->block();
-    if (c->block()) {
-      content_stack.push_back(static_cast<Block*>(c->block()->perform(this)));
-    }
-    Block* current_block = block_stack.back();
     Parameters* params = def->parameters();
     Arguments* args = static_cast<Arguments*>(c->arguments()
                                                ->perform(eval->with(env)));
     Env new_env;
     new_env.link(def->environment());
+    if (c->block()) {
+      // reprsent mixin content blocks as thunks/closures
+      Definition* thunk = new (ctx.mem) Definition(c->path(),
+                                                   c->line(),
+                                                   "@content",
+                                                   new (ctx.mem) Parameters(c->path(), c->line()),
+                                                   c->block(),
+                                                   Definition::MIXIN);
+      thunk->environment(env);
+      new_env.current_frame()["@content[m]"] = thunk;
+    }
     bind("mixin " + c->name(), params, args, ctx, &new_env, eval);
     Env* old_env = env;
     env = &new_env;
     append_block(body);
     env = old_env;
-    if (c->block()) {
-      content_stack.pop_back();
-    }
     return 0;
   }
 
   Statement* Expand::operator()(Content* c)
   {
-    if (content_stack.empty()) return 0;
-    Block* current_block = block_stack.back();
-    Block* content = content_stack.back();
-    for (size_t i = 0, L = content->length(); i < L; ++i) {
-      Statement* ith = (*content)[i];
-      if (ith) *current_block << ith;
-    }
+    // convert @content directives into mixin calls to the underlying thunk
+    if (!env->has("@content[m]")) return 0;
+    Mixin_Call* call = new (ctx.mem) Mixin_Call(c->path(),
+                                                c->line(),
+                                                "@content",
+                                                new (ctx.mem) Arguments(c->path(), c->line()));
+    call->perform(this);
     return 0;
   }
 
