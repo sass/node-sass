@@ -178,6 +178,7 @@ namespace Sass {
     Media_Block(string p, size_t l, List* mqs, Block* b)
     : Has_Block(p, l, b), media_queries_(mqs)
     { }
+    bool is_hoistable() { return true; }
     ATTACH_OPERATIONS();
   };
 

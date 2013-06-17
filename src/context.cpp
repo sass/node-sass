@@ -15,6 +15,7 @@
 #include "parser.hpp"
 #include "file.hpp"
 #include "inspect.hpp"
+#include "output_nested.hpp"
 #include "expand.hpp"
 #include "eval.hpp"
 #include "contextualize.hpp"
@@ -131,10 +132,11 @@ namespace Sass {
     Contextualize contextualize(*this, &eval, &tge);
     Expand expand(*this, &eval, &contextualize, &tge);
     Inspect inspect;
+    Output_Nested output_nested;
 
-    root->perform(&expand)->perform(&inspect);
+    root->perform(&expand)->perform(&output_nested);
 
-    char* result = copy_c_str(inspect.get_buffer().c_str());
+    char* result = copy_c_str(output_nested.get_buffer().c_str());
     return result;
   }
 
