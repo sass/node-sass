@@ -60,9 +60,7 @@ extern "C" {
     // extend_selectors(doc.context.pending_extensions, doc.context.extensions, doc.context.new_Node);
     if (doc.context.has_extensions) extend(doc.root, doc.context.extensions, doc.context.new_Node);
     string output(doc.emit_css(static_cast<Document::CSS_Style>(style)));
-    char* c_output = (char*) malloc(output.size() + 1);
-    strcpy(c_output, output.c_str());
-    return c_output;
+    return strdup(output.c_str());
   }
 
   int sass_compile(sass_context* c_ctx)
@@ -85,22 +83,16 @@ extern "C" {
     catch (Error& e) {
       stringstream msg_stream;
       msg_stream << e.path << ":" << e.line << ": error: " << e.message << endl;
-      string msg(msg_stream.str());
-      char* msg_str = (char*) malloc(msg.size() + 1);
-      strcpy(msg_str, msg.c_str());
+      c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
-      c_ctx->error_message = msg_str;
     }
     catch(bad_alloc& ba) {
       stringstream msg_stream;
       msg_stream << "Unable to allocate memory: " << ba.what() << endl;
-      string msg(msg_stream.str());
-      char* msg_str = (char*) malloc(msg.size() + 1);
-      strcpy(msg_str, msg.c_str());
+      c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
-      c_ctx->error_message = msg_str;
     }
     // TO DO: CATCH EVERYTHING ELSE
     return 0;
@@ -127,22 +119,16 @@ extern "C" {
     catch (Error& e) {
       stringstream msg_stream;
       msg_stream << e.path << ":" << e.line << ": error: " << e.message << endl;
-      string msg(msg_stream.str());
-      char* msg_str = (char*) malloc(msg.size() + 1);
-      strcpy(msg_str, msg.c_str());
+      c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
-      c_ctx->error_message = msg_str;
     }
     catch(bad_alloc& ba) {
       stringstream msg_stream;
       msg_stream << "Unable to allocate memory: " << ba.what() << endl;
-      string msg(msg_stream.str());
-      char* msg_str = (char*) malloc(msg.size() + 1);
-      strcpy(msg_str, msg.c_str());
+      c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
-      c_ctx->error_message = msg_str;
     }
     catch(string& bad_path) {
       for (vector<string>::iterator path = cpp_ctx.include_paths.begin(); path < cpp_ctx.include_paths.end(); ++path) {
@@ -160,12 +146,9 @@ extern "C" {
       // couldn't find the specified file in the include paths; report an error
       stringstream msg_stream;
       msg_stream << "error reading file \"" << bad_path << "\"" << endl;
-      string msg(msg_stream.str());
-      char* msg_str = (char*) malloc(msg.size() + 1);
-      strcpy(msg_str, msg.c_str());
+      c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
-      c_ctx->error_message = msg_str;
     }
     // TO DO: CATCH EVERYTHING ELSE
     return 0;

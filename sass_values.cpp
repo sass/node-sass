@@ -60,9 +60,7 @@ union Sass_Value new_sass_c_dimension(double val, const char* unit)
 	union Sass_Value v;
 	v.dimension.tag = SASS_DIMENSION;
 	v.dimension.value = val;
-	char* copy = (char*) malloc(sizeof(char)*(strlen(unit)+1));
-	strcpy(copy, unit);
-	v.dimension.unit = copy;
+	v.dimension.unit = strdup(unit);
 	return v;
 }
 
@@ -81,9 +79,7 @@ union Sass_Value new_sass_c_string(const char* val)
 {
 	union Sass_Value v;
 	v.string.tag = SASS_STRING;
-	char* copy = (char*) malloc(sizeof(char)*(strlen(val)+1));
-	strcpy(copy, val);
-	v.string.value = copy;
+	v.string.value = strdup(val);
 	return v;
 }
 
@@ -100,9 +96,7 @@ union Sass_Value new_sass_c_error(const char* msg)
 {
 	union Sass_Value v;
 	v.error.tag = SASS_ERROR;
-	char* copy = (char*) malloc(sizeof(char)*(strlen(msg)+1));
-	strcpy(copy, msg);
-	v.error.message = copy;
+	v.error.message = strdup(msg);
 	return v;
 }
 
