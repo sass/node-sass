@@ -2,6 +2,7 @@
 #include <iostream>
 #include "parser.hpp"
 #include "file.hpp"
+#include "inspect.hpp"
 #include "constants.hpp"
 
 #ifndef SASS_PRELEXER
@@ -129,7 +130,7 @@ namespace Sass {
         }
         else {
           string current_dir = File::dir_name(path);
-          string resolved(ctx.add_file(File::join_paths(current_dir, import_path)));
+          string resolved(ctx.add_file(File::join_paths(current_dir, unquote(import_path))));
           if (resolved.empty()) error("file to import not found or unreadable: " + import_path);
           imp->files().push_back(resolved);
         }
