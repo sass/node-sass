@@ -69,7 +69,6 @@ namespace Sass {
     source_comments(sc)
   {
     register_functions();
-    register_c_functions();
     collect_include_paths(paths_str);
     setup_color_map();
 
