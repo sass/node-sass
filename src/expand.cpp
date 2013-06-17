@@ -20,7 +20,6 @@ namespace Sass {
     contextualize(contextualize),
     env(env),
     block_stack(vector<Block*>()),
-    content_stack(vector<Block*>()),
     property_stack(vector<String*>()),
     selector_stack(vector<Selector*>())
   { selector_stack.push_back(0); }

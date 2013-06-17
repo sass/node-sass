@@ -26,7 +26,6 @@ namespace Sass {
 		Contextualize*    contextualize;
 		Env*              env;
 		vector<Block*>    block_stack;
-		vector<Block*>    content_stack;
 		vector<String*>   property_stack;
 		vector<Selector*> selector_stack;
 
