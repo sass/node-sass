@@ -38,7 +38,7 @@ namespace Sass {
 	    // (2) underscore + given
 	    // (3) underscore + given + extension
 	    // (4) given + extension
-			char* contents;
+			char* contents = 0;
 			// if the file isn't found with the given filename ...
 			if (!(contents = read_file(path))) {
 				string dir(dir_name(path));
