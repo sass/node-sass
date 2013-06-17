@@ -77,6 +77,7 @@ extern "C" {
           ++this_func_data;
         }
       }
+      cpp_ctx.register_c_functions();
       Document doc(Document::make_from_source_chars(cpp_ctx, c_ctx->source_string));
       c_ctx->output_string = process_document(doc, c_ctx->options.output_style);
       c_ctx->error_message = 0;
