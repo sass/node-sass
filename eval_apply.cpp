@@ -1066,6 +1066,7 @@ namespace Sass {
       for (size_t i = 0; i < num_params; ++i) {
         c_args.list.values[i] = bindings[f.parameter_names[i].token()].to_c_val();
       }
+      c_args.list.length = num_params;
       union Sass_Value c_val = f.c_func(c_args, f.cookie);
       if (c_val.unknown.tag == SASS_ERROR) {
         throw_eval_error(bt, "error in C function " + f.name + ": " + c_val.error.message, path, line);
