@@ -255,7 +255,7 @@ namespace Sass {
       case Binary_Expression::ADD: buffer += " + ";   break;
       case Binary_Expression::SUB: buffer += " - ";   break;
       case Binary_Expression::MUL: buffer += " * ";   break;
-      case Binary_Expression::DIV: buffer += " / ";   break;
+      case Binary_Expression::DIV: buffer += "/";   break;
       case Binary_Expression::MOD: buffer += " % ";   break;
     }
     expr->right()->perform(this);

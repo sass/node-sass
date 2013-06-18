@@ -840,6 +840,11 @@ namespace Sass {
     if (lex< exactly<'('> >()) {
       Expression* value = parse_comma_list();
       if (!lex< exactly<')'> >()) error("unclosed parenthesis");
+      value->is_delayed(false);
+      if (value->concrete_type() == Expression::LIST) {
+        List* l = static_cast<List*>(value);
+        if (!l->empty()) (*l)[0]->is_delayed(false);
+      }
       return value;
     }
     else if (lex< sequence< exactly<'+'>, spaces_and_comments, negate< number > > >()) {
@@ -1104,6 +1109,7 @@ namespace Sass {
     lex< if_directive >() || (else_if && lex< exactly<if_after_else_kwd> >());
     size_t if_line = line;
     Expression* predicate = parse_list();
+    predicate->is_delayed(false);
     if (!peek< exactly<'{'> >()) error("expected '{' after the predicate for @if");
     Block* consequent = parse_block();
     Block* alternative = 0;
@@ -1130,11 +1136,13 @@ namespace Sass {
     string var(lexed);
     if (!lex< from >()) error("expected 'from' keyword in @for directive");
     Expression* lower_bound = parse_expression();
+    lower_bound->is_delayed(false);
     bool inclusive;
     if (lex< through >()) inclusive = true;
     else if (lex< to >()) inclusive = false;
     else                  error("expected 'through' or 'to' keywod in @for directive");
     Expression* upper_bound = parse_expression();
+    upper_bound->is_delayed(false);
     if (!peek< exactly<'{'> >()) error("expected '{' after the upper bound in @for directive");
     Block* body = parse_block();
     return new (ctx.mem) For(path, for_line, var, lower_bound, upper_bound, body, inclusive);
@@ -1148,6 +1156,13 @@ namespace Sass {
     string var(lexed);
     if (!lex< in >()) error("expected 'in' keyword in @each directive");
     Expression* list = parse_list();
+    list->is_delayed(false);
+    if (list->concrete_type() == Expression::LIST) {
+      List* l = static_cast<List*>(list);
+      for (size_t i = 0, L = l->length(); i < L; ++i) {
+        (*l)[i]->is_delayed(false);
+      }
+    }
     if (!peek< exactly<'{'> >()) error("expected '{' after the upper bound in @each directive");
     Block* body = parse_block();
     return new (ctx.mem) Each(path, each_line, var, list, body);
@@ -1158,6 +1173,7 @@ namespace Sass {
     lex< while_directive >();
     size_t while_line = line;
     Expression* predicate = parse_list();
+    predicate->is_delayed(false);
     Block* body = parse_block();
     return new (ctx.mem) While(path, while_line, predicate, body);
   }
@@ -1441,6 +1457,14 @@ namespace Sass {
   {
     for (size_t i = 0, S = operands.size(); i < S; ++i) {
       base = new (ctx.mem) Binary_Expression(path, line, op, base, operands[i]);
+      Binary_Expression* b = static_cast<Binary_Expression*>(base);
+      if (op == Binary_Expression::DIV && b->left()->is_delayed() && b->right()->is_delayed()) {
+        base->is_delayed(true);
+      }
+      else {
+        b->left()->is_delayed(false);
+        b->right()->is_delayed(false);
+      }
     }
     return base;
   }
@@ -1449,6 +1473,14 @@ namespace Sass {
   {
     for (size_t i = 0, S = operands.size(); i < S; ++i) {
       base = new (ctx.mem) Binary_Expression(path, line, ops[i], base, operands[i]);
+      Binary_Expression* b = static_cast<Binary_Expression*>(base);
+      if (ops[i] == Binary_Expression::DIV && b->left()->is_delayed() && b->right()->is_delayed()) {
+        base->is_delayed(true);
+      }
+      else {
+        b->left()->is_delayed(false);
+        b->right()->is_delayed(false);
+      }
     }
     return base;
   }

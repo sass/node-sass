@@ -210,7 +210,7 @@ namespace Sass {
     env = &new_env;
     Block* body = e->block();
     for (size_t i = 0, L = list->length(); i < L; ++i) {
-      (*env)[variable] = (*list)[i];
+      (*env)[variable] = (*list)[i]->perform(eval->with(env));
       append_block(body);
     }
     env = new_env.parent();

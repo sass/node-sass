@@ -453,23 +453,6 @@ namespace Sass {
   };
   inline Expression::~Expression() { }
 
-  /////////////////////////////////////////////////////////////////////
-  // Mixin class for concrete value types that can show up as final CSS
-  // values and be passed to operators. Being able to explicitly fetch
-  // these will make arithmetic less cumbersome to implement.
-  /////////////////////////////////////////////////////////////////////
-  // class Value {
-  // public:
-  //   enum Type { NUMBER, PERCENTAGE, DIMENSION, COLOR, STRING, BOOLEAN, LIST };
-  // private:
-  //   ADD_PROPERTY(Type, type);
-  // public:
-  //   Value(Type t) : type_(t) { }
-  //   virtual ~Value() = 0;
-  //   virtual string type_name() { return string(); }
-  // };
-  // inline Value::~Value() { }
-
   ///////////////////////////////////////////////////////////////////////
   // Lists of values, both comma- and space-separated (distinguished by a
   // type-tag.) Also used to represent variable-length argument lists.
@@ -583,7 +566,7 @@ namespace Sass {
     ADD_PROPERTY(string, value);
   public:
     Textual(string p, size_t l, Type t, string val)
-    : Expression(p, l), type_(t), value_(val)
+    : Expression(p, l, true), type_(t), value_(val)
     { }
     ATTACH_OPERATIONS();
   };

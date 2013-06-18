@@ -177,8 +177,9 @@ namespace Sass {
 
   Expression* Eval::operator()(Binary_Expression* b)
   {
-    // TODO: don't eval delayed expressions (the '/' when used as a separator)
     Binary_Expression::Type op_type = b->type();
+    // don't eval delayed expressions (the '/' when used as a separator)
+    if (op_type == Binary_Expression::DIV && b->is_delayed()) return b;
     // the logical connectives need to short-circuit
     Expression* lhs = b->left()->perform(this);
     switch (op_type) {
@@ -380,6 +381,7 @@ namespace Sass {
 
   Expression* Eval::operator()(String_Constant* s)
   {
+    // TODO: check if it's the name of a color
     return s;
   }
 
