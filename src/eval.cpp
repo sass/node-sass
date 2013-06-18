@@ -531,11 +531,17 @@ namespace Sass {
 
     Number tmp(*r);
     tmp.normalize(l->find_convertible_unit());
-    if (l->unit() != tmp.unit() &&
+    string l_unit(l->unit());
+    string r_unit(tmp.unit());
+    if (l_unit != r_unit && !l_unit.empty() && !r_unit.empty() &&
         (op == Binary_Expression::ADD || op == Binary_Expression::SUB)) {
       error("cannot add or subtract numbers with incompatible units", l->path(), l->line());
     }
     Number* v = new (ctx.mem) Number(*l);
+    if (l_unit.empty() && (op == Binary_Expression::ADD || op == Binary_Expression::SUB)) {
+      v->numerator_units() = r->numerator_units();
+      v->denominator_units() = r->denominator_units();
+    }
 
     v->value(ops[op](lv, rv));
     if (op == Binary_Expression::MUL) {
@@ -644,26 +650,5 @@ namespace Sass {
                                lhs->line(),
                                quote(unquote(lstr) + sep + unquote(rstr), q));
   }
-
-  // Number* convert_wrt(Number* from, Number* to, Context& ctx)
-  // {
-  //   To_String to_string;
-  //   Number* result = new (ctx.mem) Number(*from);
-  //   // cerr << "RESULT (BEFORE):" << endl;
-  //   result->perform(&to_string);
-  //   for (size_t i = 0, S = to->numerator_units().size(); i < S; ++i) {
-  //     result->convert_unit(to->numerator_units()[i]);
-  //   }
-  //   for (size_t i = 0, S = to->denominator_units().size(); i < S; ++i) {
-  //     result->convert_unit(to->denominator_units()[i]);
-  //   }
-  //   // cerr << "FROM:" << endl;
-  //   from->perform(&to_string);
-  //   cerr << "TO:" << endl;
-  //   to->perform(&to_string);
-  //   // cerr << "RESULT (AFTER):" << endl;
-  //   result->perform(&to_string);
-  //   return result;
-  // }
 
 }
