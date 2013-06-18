@@ -82,10 +82,12 @@ namespace Sass {
   Statement* Expand::operator()(Media_Block* m)
   {
     Expression* media_queries = m->media_queries()->perform(eval->with(env));
-    return new (ctx.mem) Media_Block(m->path(),
-                                     m->line(),
-                                     static_cast<List*>(media_queries),
-                                     m->block()->perform(this)->block());
+    Media_Block* mm = new (ctx.mem) Media_Block(m->path(),
+                                                m->line(),
+                                                static_cast<List*>(media_queries),
+                                                m->block()->perform(this)->block());
+    mm->enclosing_selector(selector_stack.back());
+    return mm;
   }
 
   Statement* Expand::operator()(At_Rule* a)

@@ -64,6 +64,16 @@ namespace Sass {
     q->perform(this);
     buffer += " {\n";
 
+    Selector* e = m->enclosing_selector();
+    bool hoisted = false;
+    if (e) {
+      hoisted = true;
+      ++indentation;
+      indent();
+      e->perform(this);
+      buffer += " {\n";
+    }
+
     ++indentation;
     decls = true;
     for (size_t i = 0, L = b->length(); i < L; ++i) {
@@ -76,16 +86,24 @@ namespace Sass {
     }
     --indentation;
 
+    if (e) {
+      buffer.erase(buffer.length()-1);
+      buffer += " }\n";
+      --indentation;
+    }
+
     if (decls) ++indentation;
+    if (hoisted) ++indentation;
     for (size_t i = 0, L = b->length(); i < L; ++i) {
       Statement* stm = (*b)[i];
       if (stm->is_hoistable()) {
         stm->perform(this);
       }
     }
+    if (hoisted) --indentation;
     if (decls) --indentation;
 
-    if (b->has_hoistable()) buffer.erase(buffer.length()-1);
+    buffer.erase(buffer.length()-1);
     buffer += " }\n";
   }
 
