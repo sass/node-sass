@@ -66,7 +66,7 @@ namespace Sass {
 
     Selector* e = m->enclosing_selector();
     bool hoisted = false;
-    if (e) {
+    if (e && b->has_non_hoistable()) {
       hoisted = true;
       ++indentation;
       indent();
@@ -86,7 +86,7 @@ namespace Sass {
     }
     --indentation;
 
-    if (e) {
+    if (hoisted) {
       buffer.erase(buffer.length()-1);
       buffer += " }\n";
       --indentation;
