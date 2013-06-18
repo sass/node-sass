@@ -1227,16 +1227,6 @@ namespace Sass {
     if (!lex< exactly<'('> >()) {
       error("media query expression must begin with '('");
     }
-    // String* first = 0;
-    // if (peek< identifier_schema >()) {
-    //   first = parse_identifier_schema();
-    // }
-    // else if (lex< identifier >()) {
-    //   first = new (ctx.mem) String_Constant(path, line, lexed);
-    // }
-    // else {
-    //   error("media feature required in media query expression");
-    // }
     Expression* feature = 0;
     if (peek< exactly<')'> >()) {
       error("media feature required in media query expression");

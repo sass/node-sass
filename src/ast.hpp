@@ -719,8 +719,8 @@ namespace Sass {
   class String : public Expression {
     ADD_PROPERTY(bool, needs_unquoting);
   public:
-    String(string p, size_t l, bool unq = false)
-    : Expression(p, l), needs_unquoting_(unq)
+    String(string p, size_t l, bool unq = false, bool delayed = false)
+    : Expression(p, l, delayed), needs_unquoting_(unq)
     { concrete_type(STRING); }
     virtual ~String() = 0;
     ATTACH_OPERATIONS();
@@ -748,16 +748,16 @@ namespace Sass {
     ADD_PROPERTY(string, value);
   public:
     String_Constant(string p, size_t l, string val, bool unq = false)
-    : String(p, l, unq), value_(val)
+    : String(p, l, unq, true), value_(val)
     { }
     String_Constant(string p, size_t l, const char* beg, bool unq = false)
-    : String(p, l, unq), value_(string(beg))
+    : String(p, l, unq, true), value_(string(beg))
     { }
     String_Constant(string p, size_t l, const char* beg, const char* end, bool unq = false)
-    : String(p, l, unq), value_(string(beg, end-beg))
+    : String(p, l, unq, true), value_(string(beg, end-beg))
     { }
     String_Constant(string p, size_t l, const Token& tok, bool unq = false)
-    : String(p, l, unq), value_(string(tok.begin, tok.end))
+    : String(p, l, unq, true), value_(string(tok.begin, tok.end))
     { }
     string type() { return "string"; }
     bool is_quoted() { return value_[0] == '"' || value_[0] == '\''; }

@@ -381,7 +381,12 @@ namespace Sass {
 
   Expression* Eval::operator()(String_Constant* s)
   {
-    // TODO: check if it's the name of a color
+    // if (!s->is_delayed() && ctx.names_to_colors.count(s->value())) {
+    //   Color* c = new (ctx.mem) Color(*ctx.names_to_colors[s->value()]);
+    //   c->path(s->path());
+    //   c->line(s->line());
+    //   return c;
+    // }
     return s;
   }
 
@@ -632,6 +637,23 @@ namespace Sass {
 
   Expression* op_strings(Context& ctx, Binary_Expression::Type op, Expression* lhs, Expression*rhs)
   {
+    To_String to_string;
+    Expression::Concrete_Type ltype = lhs->concrete_type();
+    Expression::Concrete_Type rtype = rhs->concrete_type();
+    string lstr(lhs->perform(&to_string));
+    string rstr(rhs->perform(&to_string));
+    if (ltype == Expression::STRING && !lhs->is_delayed() && ctx.names_to_colors.count(lstr) &&
+        rtype == Expression::STRING && !rhs->is_delayed() && ctx.names_to_colors.count(rstr)) {
+      return op_colors(ctx, op, ctx.names_to_colors[lstr], ctx.names_to_colors[rstr]);
+    }
+    else if (ltype == Expression::STRING && !lhs->is_delayed() && ctx.names_to_colors.count(lstr) &&
+             rtype == Expression::NUMBER) {
+      return op_color_number(ctx, op, ctx.names_to_colors[lstr], rhs);
+    }
+    else if (ltype == Expression::NUMBER &&
+             rtype == Expression::STRING && !rhs->is_delayed() && ctx.names_to_colors.count(rstr)) {
+      return op_number_color(ctx, op, rhs, ctx.names_to_colors[rstr]);
+    }
     if (op == Binary_Expression::MUL) error("invalid operands for multiplication", lhs->path(), lhs->line());
     if (op == Binary_Expression::MOD) error("invalid operands for modulo", lhs->path(), lhs->line());
     string sep;
@@ -640,9 +662,6 @@ namespace Sass {
       case Binary_Expression::DIV: sep = "/"; break;
       default:                         break;
     }
-    To_String to_string;
-    string lstr(lhs->perform(&to_string));
-    string rstr(rhs->perform(&to_string));
     char q = '\0';
     if (lstr[0] == '"' || lstr[0] == '\'') q = lstr[0];
     else if (rstr[0] == '"' || rstr[0] == '\'') q = rstr[0];

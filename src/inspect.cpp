@@ -345,6 +345,13 @@ namespace Sass {
     double g = cap_channel<0xff>(c->g());
     double b = cap_channel<0xff>(c->b());
     double a = cap_channel<1>   (c->a());
+    // int numval = r * 0x10000;
+    // numval += g * 0x100;
+    // numval += b;
+    // if (a >= 1 && ctx.colors_to_names.count(numval)) {
+    //   ss << ctx.colors_to_names[numval];
+    // }
+    // else
     if (a >= 1) {
       ss << '#' << setw(2) << setfill('0');
       ss << hex << setw(2) << static_cast<unsigned long>(floor(r+0.5));

@@ -26,6 +26,8 @@
 #include "prelexer.hpp"
 #endif
 
+#include <iomanip>
+
 namespace Sass {
   using namespace Constants;
   using std::cerr;
@@ -62,12 +64,15 @@ namespace Sass {
     size_t i = 0;
     while (color_names[i]) {
       string name(color_names[i]);
-      Color* value = new (mem) Color("", 0,
+      Color* value = new (mem) Color("[COLOR TABLE]", 0,
                                      color_values[i*3],
                                      color_values[i*3+1],
                                      color_values[i*3+2]);
       names_to_colors[name] = value;
-      // set up the inverse
+      int numval = color_values[i*3]*0x10000;
+      numval += color_values[i*3+1]*0x100;
+      numval += color_values[i*3+2];
+      colors_to_names[numval] = name;
       ++i;
     }
   }
