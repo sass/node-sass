@@ -1648,6 +1648,7 @@ namespace Sass {
       } break;
       case SASS_LIST: {
         node = ctx.new_Node(Node::list, path, line, v.list.length);
+        node.is_comma_separated() = v.list.separator == SASS_COMMA;
         for (size_t i = 0; i < v.list.length; ++i) {
           node << c_val_to_node(v.list.values[i], ctx, bt, path, line);
         }
