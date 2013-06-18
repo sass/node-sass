@@ -1647,9 +1647,9 @@ namespace Sass {
         node = ctx.new_Node(Node::string_constant, path, line, Token::make(copy));
       } break;
       case SASS_LIST: {
-        Node list(ctx.new_Node(Node::list, path, line, v.list.length));
+        node = ctx.new_Node(Node::list, path, line, v.list.length);
         for (size_t i = 0; i < v.list.length; ++i) {
-          list << c_val_to_node(v.list.values[i], ctx, bt, path, line);
+          node << c_val_to_node(v.list.values[i], ctx, bt, path, line);
         }
       } break;
       case SASS_ERROR: {
