@@ -20,6 +20,7 @@
 #include "eval.hpp"
 #include "contextualize.hpp"
 #include "copy_c_str.hpp"
+#include "color_names.hpp"
 
 #ifndef SASS_PRELEXER
 #include "prelexer.hpp"
@@ -40,10 +41,14 @@ namespace Sass {
     image_path      (initializers.image_path()),
     source_comments (initializers.source_comments()),
     source_maps     (initializers.source_maps()),
-    output_style    (initializers.output_style())
+    output_style    (initializers.output_style()),
+    names_to_colors (map<string, Color*>()),
+    colors_to_names (map<int, string>())
   {
     collect_include_paths(initializers.include_paths_c_str());
     collect_include_paths(initializers.include_paths_array());
+
+    setup_color_map();
 
     string entry_point = initializers.entry_point();
     if (!entry_point.empty()) add_file(entry_point);
@@ -51,6 +56,21 @@ namespace Sass {
 
   Context::~Context()
   { for (size_t i = 0; i < sources.size(); ++i) delete[] sources[i]; }
+
+  void Context::setup_color_map()
+  {
+    size_t i = 0;
+    while (color_names[i]) {
+      string name(color_names[i]);
+      Color* value = new (mem) Color("", 0,
+                                     color_values[i*3],
+                                     color_values[i*3+1],
+                                     color_values[i*3+2]);
+      names_to_colors[name] = value;
+      // set up the inverse
+      ++i;
+    }
+  }
 
   void Context::collect_include_paths(const char* paths_str)
   {

@@ -13,6 +13,7 @@ namespace Sass {
   using namespace std;
   class AST_Node;
   class Block;
+  class Color;
 
   enum Output_Style { NESTED, EXPANDED, COMPACT, COMPRESSED, FORMATTED };
 
@@ -30,6 +31,9 @@ namespace Sass {
     bool         source_maps;
     Output_Style output_style;
 
+    map<string, Color*> names_to_colors;
+    map<int, string>    colors_to_names;
+
     KWD_ARG_SET(Data) {
       KWD_ARG(Data, const char*,     source_c_str);
       KWD_ARG(Data, string,          entry_point);
@@ -46,6 +50,7 @@ namespace Sass {
     ~Context();
     void collect_include_paths(const char* paths_str);
     void collect_include_paths(const char* paths_array[]);
+    void setup_color_map();
     string add_file(string path);
     char* compile_string();
     char* compile_file();
