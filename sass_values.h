@@ -108,9 +108,10 @@ extern "C" {
 
 void free_sass_value(union Sass_Value);
 
-typedef union Sass_Value(*C_Function)(union Sass_Value);
+typedef union Sass_Value(*C_Function)(union Sass_Value, void *cookie);
 
 struct Sass_C_Function_Data {
   const char* signature;
   C_Function function;
+  void *cookie;
 };
