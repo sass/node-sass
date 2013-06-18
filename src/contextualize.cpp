@@ -25,7 +25,8 @@ namespace Sass {
   Selector* Contextualize::operator()(Selector_Schema* s)
   {
     To_String to_string;
-    string result_str(s->perform(eval->with(env))->perform(&to_string));
+    string result_str(s->contents()->perform(eval->with(env))->perform(&to_string));
+    result_str += '{'; // the parser looks for a brace to end the selector
     Selector* result_sel = Parser::from_c_str(result_str.c_str(), ctx, s->path(), s->line()).parse_selector_group();
     return result_sel->perform(this);
   }

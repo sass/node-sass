@@ -92,11 +92,13 @@ namespace Sass {
   {
     Block* ab = a->block();
     selector_stack.push_back(0);
+    Selector* as = a->selector();
+    if (as) as = as->perform(contextualize->with(0, env));
     Block* bb = ab ? ab->perform(this)->block() : 0;
     At_Rule* aa = new (ctx.mem) At_Rule(a->path(),
                                         a->line(),
                                         a->keyword(),
-                                        a->selector(),
+                                        as,
                                         bb);
     selector_stack.pop_back();
     return aa;
