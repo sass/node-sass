@@ -5,6 +5,7 @@
 #include "constants.hpp"
 #include "to_string.hpp"
 #include "inspect.hpp"
+#include "eval.hpp"
 
 #include <cmath>
 #include <cctype>
@@ -42,11 +43,11 @@ namespace Sass {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
       T* val = dynamic_cast<T*>(env[argname]);
       if (!val) {
-        string msg("argument ");
+        string msg("argument `");
         msg += argname;
-        msg += " of ";
+        msg += "` of `";
         msg += sig;
-        msg += " must be a ";
+        msg += "` must be a ";
         msg += T::type_name();
         error(msg, path, line);
       }
@@ -60,7 +61,7 @@ namespace Sass {
       double v = val->value();
       if (!(lo <= v && v <= hi)) {
         stringstream msg;
-        msg << "argument " << argname << " of `" << sig << "` must be between ";
+        msg << "argument `" << argname << "` of `" << sig << "` must be between ";
         msg << lo << " and " << hi;
         error(msg.str(), path, line);
       }
@@ -640,6 +641,104 @@ namespace Sass {
       String_Constant* result = new (ctx.mem) String_Constant(path, line, str);
       result->is_delayed(true);
       return result;
+    }
+
+    ///////////////////
+    // NUMBER FUNCTIONS
+    ///////////////////
+
+    Signature percentage_sig = "percentage($value)";
+    BUILT_IN(percentage)
+    {
+      Number* n = ARG("$value", Number);
+      if (!n->is_unitless()) error("argument $value of `" + string(sig) + "` must be unitless", path, line);
+      return new (ctx.mem) Number(path, line, n->value() * 100, "%");
+    }
+
+    Signature round_sig = "round($value)";
+    BUILT_IN(round)
+    {
+      Number* n = ARG("$value", Number);
+      Number* r = new (ctx.mem) Number(*n);
+      r->path(path);
+      r->line(line);
+      r->value(std::floor(r->value() + 0.5));
+      return r;
+    }
+
+    Signature ceil_sig = "ceil($value)";
+    BUILT_IN(ceil)
+    {
+      Number* n = ARG("$value", Number);
+      Number* r = new (ctx.mem) Number(*n);
+      r->path(path);
+      r->line(line);
+      r->value(std::ceil(r->value()));
+      return r;
+    }
+
+    Signature floor_sig = "floor($value)";
+    BUILT_IN(floor)
+    {
+      Number* n = ARG("$value", Number);
+      Number* r = new (ctx.mem) Number(*n);
+      r->path(path);
+      r->line(line);
+      r->value(std::floor(r->value()));
+      return r;
+    }
+
+    Signature abs_sig = "abs($value)";
+    BUILT_IN(abs)
+    {
+      Number* n = ARG("$value", Number);
+      Number* r = new (ctx.mem) Number(*n);
+      r->path(path);
+      r->line(line);
+      r->value(std::abs(r->value()));
+      return r;
+    }
+
+    /////////////////
+    // LIST FUNCTIONS
+    /////////////////
+
+    Signature length_sig = "length($list)";
+    BUILT_IN(length)
+    {
+      List* list = dynamic_cast<List*>(env["$list"]);
+      return new (ctx.mem) Number(path,
+                                  line,
+                                  list ? list->length() : 1);
+    }
+
+    Signature nth_sig = "nth($list, $n)";
+    BUILT_IN(nth)
+    {
+      List* l = dynamic_cast<List*>(env["$list"]);
+      Number* n = ARG("$n", Number);
+      if (!l) {
+        l = new (ctx.mem) List(path, line, 1);
+        *l << ARG("$list", Expression);
+      }
+      if (l->empty()) error("argument `$list` of `" + string(sig) + "` must not be empty", path, line);
+      if (n->value() <= 1) error("argument `$n` of `" + string(sig) + "` must be greater than or equal to 1", path, line);
+      return (*l)[std::floor(n->value() - 1)];
+    }
+
+    Signature index_sig = "index($list, $value)";
+    BUILT_IN(index)
+    {
+      List* l = dynamic_cast<List*>(env["$list"]);
+      Expression* v = ARG("$value", Expression);
+      if (!l) {
+        l = new (ctx.mem) List(path, line, 1);
+        *l << ARG("$list", Expression);
+      }
+      for (size_t i = 0, L = l->length(); i < L; ++i) {
+        if (eq((*l)[i], v, ctx)) return new (ctx.mem) Number(path, line, i+1);
+      }
+      return new (ctx.mem) Boolean(path, line, false);
     }
 
   }

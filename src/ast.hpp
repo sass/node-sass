@@ -624,6 +624,8 @@ namespace Sass {
       }
       return u.str();
     }
+    bool is_unitless()
+    { return numerator_units_.empty() && denominator_units_.empty(); }
     void normalize(string to = "")
     {
       // (multiple passes because I'm too tired to think up something clever)

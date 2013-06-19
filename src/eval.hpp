@@ -63,4 +63,5 @@ namespace Sass {
     Expression* fallback(U x) { return fallback_impl(x); }
   };
 
+  bool eq(Expression*, Expression*, Context&);
 }
