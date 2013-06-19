@@ -3,9 +3,13 @@
 #include "context.hpp"
 #include "parser.hpp"
 #include "constants.hpp"
+#include "to_string.hpp"
+#include "inspect.hpp"
 
 #include <cmath>
+#include <cctype>
 #include <sstream>
+#include <iomanip>
 
 #define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, path, line)
 #define ARGR(argname, argtype, lo, hi) get_arg_r(argname, env, sig, path, line, lo, hi)
@@ -582,12 +586,60 @@ namespace Sass {
       return color;
     }
 
+    template <size_t range>
+    static double cap_channel(double c) {
+      if      (c > range) return range;
+      else if (c < 0)     return 0;
+      else                return c;
+    }
 
     Signature ie_hex_str_sig = "ie-hex-str($color)";
     BUILT_IN(ie_hex_str)
     {
-      stringstream ss;
+      Color* c = ARG("$color", Color);
+      double r = cap_channel<0xff>(c->r());
+      double g = cap_channel<0xff>(c->g());
+      double b = cap_channel<0xff>(c->b());
+      double a = cap_channel<1>   (c->a()) * 255;
 
+      stringstream ss;
+      ss << '#' << std::setw(2) << std::setfill('0');
+      ss << hex << std::setw(2) << static_cast<unsigned long>(floor(a+0.5));
+      ss << hex << std::setw(2) << static_cast<unsigned long>(floor(r+0.5));
+      ss << hex << std::setw(2) << static_cast<unsigned long>(floor(g+0.5));
+      ss << hex << std::setw(2) << static_cast<unsigned long>(floor(b+0.5));
+
+      string result(ss.str());
+      for (size_t i = 0, L = result.length(); i < L; ++i) {
+        result[i] = std::toupper(result[i]);
+      }
+      return new (ctx.mem) String_Constant(path, line, result);
+    }
+
+    ///////////////////
+    // STRING FUNCTIONS
+    ///////////////////
+
+    Signature unquote_sig = "unquote($string)";
+    BUILT_IN(sass_unquote)
+    {
+      To_String to_string;
+      AST_Node* arg = env["$string"];
+      string str(unquote(arg->perform(&to_string)));
+      String_Constant* result = new (ctx.mem) String_Constant(path, line, str);
+      result->is_delayed(true);
+      return result;
+    }
+
+    Signature quote_sig = "quote($string)";
+    BUILT_IN(sass_quote)
+    {
+      To_String to_string;
+      AST_Node* arg = env["$string"];
+      string str(quote(arg->perform(&to_string), '"'));
+      String_Constant* result = new (ctx.mem) String_Constant(path, line, str);
+      result->is_delayed(true);
+      return result;
     }
 
   }

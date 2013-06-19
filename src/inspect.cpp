@@ -215,14 +215,6 @@ namespace Sass {
     buffer += "@content;";
   }
 
-  // expressions
-  // void Inspect::operator()(Expression* expr)
-  // {
-  //   buffer += expr->perform(to_string);
-  // }
-
-  // void Inspect::operator()(List*)
-
   void Inspect::operator()(List* list)
   {
     string sep(list->separator() == List::SPACE ? " " : ", ");
