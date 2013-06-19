@@ -5,12 +5,16 @@
 #include "constants.hpp"
 
 #include <cmath>
+#include <sstream>
 
 #define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, path, line)
+#define ARGR(argname, argtype, lo, hi) get_arg_r(argname, env, sig, path, line, lo, hi)
 #define BUILT_IN(name) Expression*\
 name(Env& env, Context& ctx, Signature sig, const string& path, size_t line)
 
 namespace Sass {
+  using std::stringstream;
+  using std::endl;
 
   Definition* make_native_function(Signature sig, Native_Function f, Context& ctx)
   {
@@ -33,13 +37,29 @@ namespace Sass {
     {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
       T* val = dynamic_cast<T*>(env[argname]);
-      string msg("argument ");
-      msg += argname;
-      msg += " of ";
-      msg += sig;
-      msg += " must be a ";
-      msg += T::type_name();
-      if (!val) error(msg, path, line);
+      if (!val) {
+        string msg("argument ");
+        msg += argname;
+        msg += " of ";
+        msg += sig;
+        msg += " must be a ";
+        msg += T::type_name();
+        error(msg, path, line);
+      }
+      return val;
+    }
+
+    Number* get_arg_r(const string& argname, Env& env, Signature sig, const string& path, size_t line, double lo, double hi)
+    {
+      // Minimal error handling -- the expectation is that built-ins will be written correctly!
+      Number* val = get_arg<Number>(argname, env, sig, path, line);
+      double v = val->value();
+      if (!(lo <= v && v <= hi)) {
+        stringstream msg;
+        msg << "argument " << argname << " of " << sig << " must be between ";
+        msg << lo << " and " << hi;
+        error(msg.str(), path, line);
+      }
       return val;
     }
 
@@ -52,9 +72,9 @@ namespace Sass {
     {
       return new (ctx.mem) Color(path,
                                  line,
-                                 ARG("$red",   Number)->value(),
-                                 ARG("$green", Number)->value(),
-                                 ARG("$blue",  Number)->value());
+                                 ARGR("$red",   Number, 0, 255)->value(),
+                                 ARGR("$green", Number, 0, 255)->value(),
+                                 ARGR("$blue",  Number, 0, 255)->value());
     }
 
     Signature rgba_4_sig = "rgba($red, $green, $blue, $alpha)";
@@ -62,10 +82,10 @@ namespace Sass {
     {
       return new (ctx.mem) Color(path,
                                  line,
-                                 ARG("$red",   Number)->value(),
-                                 ARG("$green", Number)->value(),
-                                 ARG("$blue",  Number)->value(),
-                                 ARG("$alpha", Number)->value());
+                                 ARGR("$red",   Number, 0, 255)->value(),
+                                 ARGR("$green", Number, 0, 255)->value(),
+                                 ARGR("$blue",  Number, 0, 255)->value(),
+                                 ARGR("$alpha", Number, 0, 1)->value());
     }
 
     Signature rgba_2_sig = "rgba($color, $alpha)";
@@ -73,7 +93,7 @@ namespace Sass {
     {
       Color* c_arg = ARG("$color", Color);
       Color* new_c = new (ctx.mem) Color(*c_arg);
-      new_c->a(ARG("$alpha", Number)->value());
+      new_c->a(ARGR("$alpha", Number, 0, 1)->value());
       return new_c;
     }
 
@@ -94,7 +114,7 @@ namespace Sass {
     {
       Color*  color1 = ARG("$color-1", Color);
       Color*  color2 = ARG("$color-2", Color);
-      Number* weight = ARG("$weight", Number);
+      Number* weight = ARGR("$weight", Number, 0, 100);
 
       double p = weight->value()/100;
       double w = 2*p - 1;
@@ -152,5 +172,126 @@ namespace Sass {
       return hsl_struct;
     }
 
+    // hue to RGB helper function
+    double h_to_rgb(double m1, double m2, double h) {
+      if (h < 0) h += 1;
+      if (h > 1) h -= 1;
+      if (h*6.0 < 1) return m1 + (m2 - m1)*h*6;
+      if (h*2.0 < 1) return m2;
+      if (h*3.0 < 2) return m1 + (m2 - m1) * (2.0/3.0 - h)*6;
+      return m1;
+    }
+
+    Color* hsla_impl(double h, double s, double l, double a, Context& ctx, const string& path, size_t line)
+    {
+      h = static_cast<double>(((static_cast<int>(h) % 360) + 360) % 360) / 360.0;
+      s = (s < 0)   ? 0 :
+          (s > 100) ? 100 :
+          s;
+      l = (l < 0)   ? 0 :
+          (l > 100) ? 100 :
+          l;
+      s /= 100.0;
+      l /= 100.0;
+
+      double m2;
+      if (l <= 0.5) m2 = l*(s+1.0);
+      else m2 = l+s-l*s;
+      double m1 = l*2-m2;
+      // round the results -- consider moving this into the Color constructor
+      double r = std::floor(h_to_rgb(m1, m2, h+1.0/3.0) * 255.0 + 0.5);
+      double g = std::floor(h_to_rgb(m1, m2, h) * 255.0 + 0.5);
+      double b = std::floor(h_to_rgb(m1, m2, h-1.0/3.0) * 255.0 + 0.5);
+
+      return new (ctx.mem) Color(path, line, r, g, b, a);
+    }
+
+    Signature hsl_sig = "hsl($hue, $saturation, $lightness)";
+    BUILT_IN(hsl)
+    {
+      return hsla_impl(ARG("$hue", Number)->value(),
+                       ARGR("$saturation", Number, 0, 100)->value(),
+                       ARGR("$lightness", Number, 0, 100)->value(),
+                       1.0,
+                       ctx,
+                       path,
+                       line);
+    }
+
+    Signature hsla_sig = "hsla($hue, $saturation, $lightness, $alpha)";
+    BUILT_IN(hsla)
+    {
+      return hsla_impl(ARG("$hue", Number)->value(),
+                       ARGR("$saturation", Number, 0, 100)->value(),
+                       ARGR("$lightness", Number, 0, 100)->value(),
+                       ARGR("$alpha", Number, 0, 1)->value(),
+                       ctx,
+                       path,
+                       line);
+    }
+
+    Signature hue_sig = "hue($color)";
+    BUILT_IN(hue)
+    {
+      Color* rgb_color = ARG("$color", Color);
+      HSL hsl_color = rgb_to_hsl(rgb_color->r(),
+                                 rgb_color->g(),
+                                 rgb_color->b());
+      return new (ctx.mem) Number(path, line, hsl_color.h, "deg");
+    }
+
+    Signature saturation_sig = "saturation($color)";
+    BUILT_IN(saturation)
+    {
+      Color* rgb_color = ARG("$color", Color);
+      HSL hsl_color = rgb_to_hsl(rgb_color->r(),
+                                 rgb_color->g(),
+                                 rgb_color->b());
+      return new (ctx.mem) Number(path, line, hsl_color.s, "%");
+    }
+
+    Signature lightness_sig = "lightness($color)";
+    BUILT_IN(lightness)
+    {
+      Color* rgb_color = ARG("$color", Color);
+      HSL hsl_color = rgb_to_hsl(rgb_color->r(),
+                                 rgb_color->g(),
+                                 rgb_color->b());
+      return new (ctx.mem) Number(path, line, hsl_color.l, "%");
+    }
+
+    Signature adjust_hue_sig = "adjust-hue($color, $degrees)";
+    BUILT_IN(adjust_hue)
+    {
+      Color* rgb_color = ARG("$color", Color);
+      Number* degrees = ARG("$degrees", Number);
+      HSL hsl_color = rgb_to_hsl(rgb_color->r(),
+                                 rgb_color->g(),
+                                 rgb_color->b());
+      return hsla_impl(hsl_color.h + degrees->value(),
+                       hsl_color.s,
+                       hsl_color.l,
+                       rgb_color->a(),
+                       ctx,
+                       path,
+                       line);
+    }
+
+    Signature lighten_sig = "lighten($color, $amount)";
+    BUILT_IN(lighten)
+    {
+      Color* rgb_color = ARG("$color", Color);
+      Number* amount = ARGR("$amount", Number, 0, 100);
+      HSL hsl_color = rgb_to_hsl(rgb_color->r(),
+                                 rgb_color->g(),
+                                 rgb_color->b());
+      return hsla_impl(hsl_color.h,
+                       hsl_color.s,
+                       hsl_color.l + amount->value(),
+                       rgb_color->a(),
+                       ctx,
+                       path,
+                       line);
+    }
   }
 }
