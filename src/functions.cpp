@@ -293,5 +293,189 @@ namespace Sass {
                        path,
                        line);
     }
+
+    Signature darken_sig = "darken($color, $amount)";
+    BUILT_IN(darken)
+    {
+      Color* rgb_color = ARG("$color", Color);
+      Number* amount = ARGR("$amount", Number, 0, 100);
+      HSL hsl_color = rgb_to_hsl(rgb_color->r(),
+                                 rgb_color->g(),
+                                 rgb_color->b());
+      return hsla_impl(hsl_color.h,
+                       hsl_color.s,
+                       hsl_color.l - amount->value(),
+                       rgb_color->a(),
+                       ctx,
+                       path,
+                       line);
+    }
+
+    Signature saturate_sig = "saturate($color, $amount)";
+    BUILT_IN(saturate)
+    {
+      Color* rgb_color = ARG("$color", Color);
+      Number* amount = ARGR("$amount", Number, 0, 100);
+      HSL hsl_color = rgb_to_hsl(rgb_color->r(),
+                                 rgb_color->g(),
+                                 rgb_color->b());
+      return hsla_impl(hsl_color.h,
+                       hsl_color.s + amount->value(),
+                       hsl_color.l,
+                       rgb_color->a(),
+                       ctx,
+                       path,
+                       line);
+    }
+
+    Signature desaturate_sig = "desaturate($color, $amount)";
+    BUILT_IN(desaturate)
+    {
+      Color* rgb_color = ARG("$color", Color);
+      Number* amount = ARGR("$amount", Number, 0, 100);
+      HSL hsl_color = rgb_to_hsl(rgb_color->r(),
+                                 rgb_color->g(),
+                                 rgb_color->b());
+      return hsla_impl(hsl_color.h,
+                       hsl_color.s - amount->value(),
+                       hsl_color.l,
+                       rgb_color->a(),
+                       ctx,
+                       path,
+                       line);
+    }
+
+    Signature grayscale_sig = "grayscale($color)";
+    BUILT_IN(grayscale)
+    {
+      Color* rgb_color = ARG("$color", Color);
+      HSL hsl_color = rgb_to_hsl(rgb_color->r(),
+                                 rgb_color->g(),
+                                 rgb_color->b());
+      return hsla_impl(hsl_color.h,
+                       0.0,
+                       hsl_color.l,
+                       rgb_color->a(),
+                       ctx,
+                       path,
+                       line);
+    }
+
+    Signature complement_sig = "complement($color)";
+    BUILT_IN(complement)
+    {
+      Color* rgb_color = ARG("$color", Color);
+      HSL hsl_color = rgb_to_hsl(rgb_color->r(),
+                                 rgb_color->g(),
+                                 rgb_color->b());
+      return hsla_impl(hsl_color.h - 180.0,
+                       hsl_color.s,
+                       hsl_color.l,
+                       rgb_color->a(),
+                       ctx,
+                       path,
+                       line);
+    }
+
+    Signature invert_sig = "invert($color)";
+    BUILT_IN(invert)
+    {
+      Color* rgb_color = ARG("$color", Color);
+      return new (ctx.mem) Color(path,
+                                 line,
+                                 255 - rgb_color->r(),
+                                 255 - rgb_color->g(),
+                                 255 - rgb_color->b(),
+                                 rgb_color->a());
+    }
+
+    ////////////////////
+    // OPACITY FUNCTIONS
+    ////////////////////
+    Signature alpha_sig = "alpha($color)";
+    Signature opacity_sig = "opacity($color)";
+    BUILT_IN(alpha)
+    { return new (ctx.mem) Number(path, line, ARG("$color", Color)->a()); }
+
+    Signature opacify_sig = "opacify($color, $amount)";
+    Signature fade_in_sig = "fade-in($color, $amount)";
+    BUILT_IN(opacify)
+    {
+      Color* color = ARG("$color", Color);
+      double alpha = color->a() + ARGR("$amount", Number, 0, 1)->value();
+      return new (ctx.mem) Color(path,
+                                 line,
+                                 color->r(),
+                                 color->g(),
+                                 color->b(),
+                                 alpha > 1.0 ? 1.0 : alpha);
+    }
+
+    Signature transparentize_sig = "transparentize($color, $amount)";
+    Signature fade_out_sig = "fade-out($color, $amount)";
+    BUILT_IN(transparentize)
+    {
+      Color* color = ARG("$color", Color);
+      double alpha = color->a() - ARGR("$amount", Number, 0, 1)->value();
+      return new (ctx.mem) Color(path,
+                                 line,
+                                 color->r(),
+                                 color->g(),
+                                 color->b(),
+                                 alpha < 0.0 ? 0.0 : alpha);
+    }
+
+    ////////////////////////
+    // OTHER COLOR FUNCTIONS
+    ////////////////////////
+
+    Signature adjust_color_sig = "adjust-color($color, $red: false, $green: false, $blue: false, $hue: false, $saturation: false, $lightness: false, $alpha: false)";
+    BUILT_IN(adjust_color)
+    {
+      Color* color = ARG("$color", Color);
+      Number* r = dynamic_cast<Number*>(env["$red"]);
+      Number* g = dynamic_cast<Number*>(env["$green"]);
+      Number* b = dynamic_cast<Number*>(env["$blue"]);
+      Number* h = dynamic_cast<Number*>(env["$hue"]);
+      Number* s = dynamic_cast<Number*>(env["$saturation"]);
+      Number* l = dynamic_cast<Number*>(env["$lightness"]);
+      Number* a = dynamic_cast<Number*>(env["$alpha"]);
+
+      bool rgb = r || g || b;
+      bool hsl = h || s || l;
+
+      if (rgb && hsl) {
+        error("cannot specify both RGB and HSL values for `adjust-color`", path, line);
+      }
+      if (rgb) {
+        return new (ctx.mem) Color(path,
+                                   line,
+                                   color->r() + (r ? r->value() : 0),
+                                   color->g() + (g ? g->value() : 0),
+                                   color->b() + (b ? b->value() : 0),
+                                   color->a() + (a ? a->value() : 0));
+      }
+      if (hsl) {
+        HSL hsl_struct = rgb_to_hsl(color->r(), color->g(), color->b());
+        return hsla_impl(hsl_struct.h + (h ? h->value() : 0),
+                         hsl_struct.s + (s ? s->value() : 0),
+                         hsl_struct.l + (l ? l->value() : 0),
+                         color->a() + (a ? a->value() : 0),
+                         ctx,
+                         path,
+                         line);
+      }
+      if (a) {
+        return new (ctx.mem) Color(path,
+                                   line,
+                                   color->r(),
+                                   color->g(),
+                                   color->b(),
+                                   color->a() + (a ? a->value() : 0));
+      }
+      error("not enough argument for `adjust-color`", path, line);
+      // unreachable
+      return color;
+    }
   }
 }
