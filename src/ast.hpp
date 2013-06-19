@@ -366,7 +366,8 @@ namespace Sass {
   class Context;
   class Parameters;
   typedef Environment<AST_Node*> Env;
-  typedef Expression* (*Native_Function)(Context&, Env*, string, size_t);
+  typedef Expression* (*Native_Function)(Env&, Context&, Signature, string, size_t);
+  typedef const char* Signature;
   class Definition : public Has_Block {
   public:
     enum Type { MIXIN, FUNCTION };
@@ -376,22 +377,37 @@ namespace Sass {
     ADD_PROPERTY(Type, type);
     ADD_PROPERTY(Native_Function, native_function);
     ADD_PROPERTY(bool, is_overload_stub);
+    ADD_PROPERTY(Signature, signature);
   public:
     Definition(string p,
                size_t l,
                string n,
                Parameters* params,
                Block* b,
-               Type t,
-               Native_Function func_ptr = 0,
-               bool overload_stub = false)
+               Type t)
     : Has_Block(p, l, b),
       name_(n),
       parameters_(params),
       environment_(0),
       type_(t),
+      native_function_(0),
+      is_overload_stub_(false),
+      signature_(0)
+    { }
+    Definition(string p,
+               size_t l,
+               Signature sig,
+               string n,
+               Parameters* params,
+               Native_Function func_ptr,
+               bool overload_stub = false)
+    : Has_Block(p, l, 0),
+      parameters_(params),
+      environment_(0),
+      type_(FUNCTION),
       native_function_(func_ptr),
-      is_overload_stub_(overload_stub)
+      is_overload_stub_(overload_stub),
+      signature_(sig)
     { }
     ATTACH_OPERATIONS();
   };
@@ -450,6 +466,7 @@ namespace Sass {
     virtual ~Expression() = 0;
     virtual string type() { return ""; /* TODO: raise an error? */ }
     virtual bool is_invisible() { return false; }
+    static string type_name() { return ""; }
   };
   inline Expression::~Expression() { }
 
@@ -471,6 +488,7 @@ namespace Sass {
       separator_(sep), is_arglist_(argl)
     { concrete_type(LIST); }
     string type() { return is_arglist_ ? "arglist" : "list"; }
+    static string type_name() { return "list"; }
     bool is_invisible() { return !length(); }
     ATTACH_OPERATIONS();
   };
@@ -591,6 +609,7 @@ namespace Sass {
     vector<string>& numerator_units()   { return numerator_units_; }
     vector<string>& denominator_units() { return denominator_units_; }
     string type() { return "number"; }
+    static string type_name() { return "number"; }
     string unit()
     {
       stringstream u;
@@ -696,6 +715,7 @@ namespace Sass {
     : Expression(p, l), r_(r), g_(g), b_(b), a_(a)
     { concrete_type(COLOR); }
     string type() { return "color"; }
+    static string type_name() { return "color"; }
     ATTACH_OPERATIONS();
   };
 
@@ -709,6 +729,7 @@ namespace Sass {
     { concrete_type(BOOLEAN); }
     virtual operator bool() { return value_; }
     string type() { return "bool"; }
+    static string type_name() { return "bool"; }
     ATTACH_OPERATIONS();
   };
 
@@ -722,6 +743,7 @@ namespace Sass {
     String(string p, size_t l, bool unq = false, bool delayed = false)
     : Expression(p, l, delayed), needs_unquoting_(unq)
     { concrete_type(STRING); }
+    static string type_name() { return "string"; }
     virtual ~String() = 0;
     ATTACH_OPERATIONS();
   };
@@ -738,6 +760,7 @@ namespace Sass {
     : String(p, l, unq), Vectorized(size), quote_mark_(qm)
     { }
     string type() { return "string"; }
+    static string type_name() { return "string"; }
     ATTACH_OPERATIONS();
   };
 
@@ -760,6 +783,7 @@ namespace Sass {
     : String(p, l, unq, true), value_(string(tok.begin, tok.end))
     { }
     string type() { return "string"; }
+    static string type_name() { return "string"; }
     bool is_quoted() { return value_[0] == '"' || value_[0] == '\''; }
     char quote_mark() { return is_quoted() ? value_[0] : '\0'; }
     ATTACH_OPERATIONS();

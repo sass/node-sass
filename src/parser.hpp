@@ -31,6 +31,7 @@ namespace Sass {
   using namespace Prelexer;
 
   class Parser {
+  public:
     class AST_Node;
 
     enum Syntactic_Context { nothing, mixin_def, function_def };
@@ -51,7 +52,6 @@ namespace Sass {
       source(0), position(0), end(0), path(path), line(line)
     { stack.push_back(nothing); }
 
-  public:
     static Parser from_string(string src, Context& ctx, string path = "", size_t line = 1);
     static Parser from_c_str(const char* src, Context& ctx, string path = "", size_t line = 1);
     static Parser from_token(Token t, Context& ctx, string path = "", size_t line = 1);
