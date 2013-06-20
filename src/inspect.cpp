@@ -309,13 +309,14 @@ namespace Sass {
     // buffer += double_to_string(n->value(), 5);
     // buffer += n->unit();
     stringstream ss;
-    ss << n->value();
+    ss.precision(5);
+    ss << fixed << n->value();
     string d(ss.str());
-    size_t dot = d.find_last_of('.');
-    if (dot != string::npos) {
-      size_t max = dot + 6;
-      if (d.length() > max) d.resize(max);
+    for (size_t i = d.length()-1; i >= 0; --i) {
+      if (d[i] == '0') d.resize(d.length()-1);
+      else break;
     }
+    if (d[d.length()-1] == '.') d.resize(d.length()-1);
     if (n->numerator_units().size() > 1 || n->denominator_units().size() > 0) {
       error(d + n->unit() + " is not a valid CSS value", n->path(), n->line());
     }
@@ -564,6 +565,7 @@ namespace Sass {
 
   string unquote(const string& s)
   {
+    if (s.empty()) return "";
     char q;
     if      (*s.begin() == '"'  && *s.rbegin() == '"')  q = '"';
     else if (*s.begin() == '\'' && *s.rbegin() == '\'') q = '\'';
@@ -580,6 +582,7 @@ namespace Sass {
 
   string quote(const string& s, char q)
   {
+    if (s.empty()) return string(2, q);
     if (!q || s[0] == '"' || s[0] == '\'') return s;
     string t;
     t.reserve(s.length()+2);

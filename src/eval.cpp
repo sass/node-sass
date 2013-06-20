@@ -255,7 +255,9 @@ namespace Sass {
     string full_name(c->name() + "[f]");
 
     // if it doesn't exist, just pass it through as a literal
+    cerr << "about to look up " << full_name << full_name.length() << endl;
     if (!env->has(full_name)) {
+      cerr << full_name << " not found" << endl;
       Function_Call* lit = new (ctx.mem) Function_Call(c->path(),
                                                        c->line(),
                                                        c->name(),
@@ -349,10 +351,10 @@ namespace Sass {
         break;
       case Textual::HEX: {
         string hext(t->value().substr(1)); // chop off the '#'
-        string r(hext.substr(0,2));
-        string g(hext.substr(2,2));
-        string b(hext.substr(4,2));
         if (hext.length() == 6) {
+          string r(hext.substr(0,2));
+          string g(hext.substr(2,2));
+          string b(hext.substr(4,2));
           result = new (ctx.mem) Color(t->path(),
                                        t->line(),
                                        static_cast<double>(strtol(r.c_str(), NULL, 16)),
@@ -386,11 +388,11 @@ namespace Sass {
     string acc;
     To_String to_string;
     for (size_t i = 0, L = s->length(); i < L; ++i) {
-      acc += unquote((*s)[i]->perform(this)->perform(&to_string));
+      acc += (*s)[i]->perform(this)->perform(&to_string);
     }
     return new (ctx.mem) String_Constant(s->path(),
                                          s->line(),
-                                         quote(acc, s->quote_mark()));
+                                         quote(unquote(acc), s->quote_mark()));
   }
 
   Expression* Eval::operator()(String_Constant* s)
@@ -466,6 +468,7 @@ namespace Sass {
 
   inline Expression* Eval::fallback_impl(AST_Node* n)
   {
+    cerr << "called fallback for eval" << endl;
     return static_cast<Expression*>(n);
   }
 

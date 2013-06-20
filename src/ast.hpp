@@ -790,7 +790,7 @@ namespace Sass {
     { }
     string type() { return "string"; }
     static string type_name() { return "string"; }
-    bool is_quoted() { return value_[0] == '"' || value_[0] == '\''; }
+    bool is_quoted() { return value_.length() && (value_[0] == '"' || value_[0] == '\''); }
     char quote_mark() { return is_quoted() ? value_[0] : '\0'; }
     ATTACH_OPERATIONS();
   };

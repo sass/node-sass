@@ -483,7 +483,7 @@ namespace Sass {
       return color;
     }
 
-    Signature scale_color_sig = "scale_color($color, $red: false, $green: false, $blue: false, $hue: false, $saturation: false, $lightness: false, $alpha: false)";
+    Signature scale_color_sig = "scale-color($color, $red: false, $green: false, $blue: false, $hue: false, $saturation: false, $lightness: false, $alpha: false)";
     BUILT_IN(scale_color)
     {
       Color* color = ARG("$color", Color);
@@ -502,10 +502,10 @@ namespace Sass {
         error("cannot specify both RGB and HSL values for `scale-color`", path, line);
       }
       if (rgb) {
-        double rscale = (r ? ARGR("$red",   Number, -100.0, 100.0)->value() : 100.0) / 100.0;
-        double gscale = (g ? ARGR("$green", Number, -100.0, 100.0)->value() : 100.0) / 100.0;
-        double bscale = (b ? ARGR("$blue",  Number, -100.0, 100.0)->value() : 100.0) / 100.0;
-        double ascale = (a ? ARGR("$alpha", Number, -100.0, 100.0)->value() : 100.0) / 100.0;
+        double rscale = (r ? ARGR("$red",   Number, -100.0, 100.0)->value() : 0.0) / 100.0;
+        double gscale = (g ? ARGR("$green", Number, -100.0, 100.0)->value() : 0.0) / 100.0;
+        double bscale = (b ? ARGR("$blue",  Number, -100.0, 100.0)->value() : 0.0) / 100.0;
+        double ascale = (a ? ARGR("$alpha", Number, -100.0, 100.0)->value() : 0.0) / 100.0;
         return new (ctx.mem) Color(path,
                                    line,
                                    color->r() + rscale * (rscale > 0.0 ? 255 - color->r() : color->r()),
@@ -514,10 +514,10 @@ namespace Sass {
                                    color->a() + ascale * (ascale > 0.0 ? 1.0 - color->a() : color->a()));
       }
       if (hsl) {
-        double hscale = (h ? ARGR("$hue",        Number, -100.0, 100.0)->value() : 100.0) / 100.0;
-        double sscale = (s ? ARGR("$saturation", Number, -100.0, 100.0)->value() : 100.0) / 100.0;
-        double lscale = (l ? ARGR("$lightness",  Number, -100.0, 100.0)->value() : 100.0) / 100.0;
-        double ascale = (a ? ARGR("$alpha",      Number, -100.0, 100.0)->value() : 100.0) / 100.0;
+        double hscale = (h ? ARGR("$hue",        Number, -100.0, 100.0)->value() : 0.0) / 100.0;
+        double sscale = (s ? ARGR("$saturation", Number, -100.0, 100.0)->value() : 0.0) / 100.0;
+        double lscale = (l ? ARGR("$lightness",  Number, -100.0, 100.0)->value() : 0.0) / 100.0;
+        double ascale = (a ? ARGR("$alpha",      Number, -100.0, 100.0)->value() : 0.0) / 100.0;
         HSL hsl_struct = rgb_to_hsl(color->r(), color->g(), color->b());
         hsl_struct.h += hscale * (hscale > 0.0 ? 360.0 - hsl_struct.h : hsl_struct.h);
         hsl_struct.s += sscale * (sscale > 0.0 ? 100.0 - hsl_struct.s : hsl_struct.s);
@@ -526,7 +526,7 @@ namespace Sass {
         return hsla_impl(hsl_struct.h, hsl_struct.s, hsl_struct.l, alpha, ctx, path, line);
       }
       if (a) {
-        double ascale = (a ? ARGR("$alpha", Number, -100.0, 100.0)->value() : 100.0) / 100.0;
+        double ascale = (a ? ARGR("$alpha", Number, -100.0, 100.0)->value() : 0.0) / 100.0;
         return new (ctx.mem) Color(path,
                                    line,
                                    color->r(),

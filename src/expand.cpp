@@ -40,6 +40,7 @@ namespace Sass {
   Statement* Expand::operator()(Ruleset* r)
   {
     To_String to_string;
+    // if (selector_stack.back()) cerr << "expanding " << selector_stack.back()->perform(&to_string) << " and " << r->selector()->perform(&to_string) << endl;
     Selector* sel_ctx = r->selector()->perform(contextualize->with(selector_stack.back(), env));
     selector_stack.push_back(sel_ctx);
     Ruleset* rr = new (ctx.mem) Ruleset(r->path(),
