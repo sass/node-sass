@@ -700,7 +700,7 @@ namespace Sass {
     }
 
     Signature min_sig = "min($x1, $x2...)";
-    BUILT_IN(sass_min)
+    BUILT_IN(min)
     {
       Number* x1 = ARG("$x1", Number);
       List* arglist = ARG("$x2", List);
@@ -714,7 +714,7 @@ namespace Sass {
     }
 
     Signature max_sig = "max($x2, $x2...)";
-    BUILT_IN(sass_max)
+    BUILT_IN(max)
     {
       Number* x1 = ARG("$x1", Number);
       List* arglist = ARG("$x2", List);
@@ -893,7 +893,31 @@ namespace Sass {
       return new (ctx.mem) Boolean(path, line, n1->unit() == tmp_n2.unit());
     }
 
+    ////////////////////
+    // BOOLEAN FUNCTIONS
+    ////////////////////
 
+    Signature not_sig = "not($value)";
+    BUILT_IN(sass_not)
+    { return new (ctx.mem) Boolean(path, line, ARG("$value", Expression)->is_false()); }
+
+    Signature if_sig = "if($condition, $if-true, $if-false)";
+    BUILT_IN(sass_if)
+    { return ARG("$condition", Expression)->is_false() ? ARG("$if-false", Expression) : ARG("$if-true", Expression); }
+
+    ////////////////
+    // URL FUNCTIONS
+    ////////////////
+
+    Signature image_url_sig = "image-url($path, $only-path: false, $cache-buster: false)";
+    BUILT_IN(image_url)
+    {
+      String_Constant* ipath = ARG("$path", String_Constant);
+      bool only_path = !ARG("$only-path", Expression)->is_false();
+      string full_path(quote(ctx.image_path + unquote(ipath->value()), '"'));
+      if (!only_path) full_path = "url(" + full_path + ")";
+      return new (ctx.mem) String_Constant(path, line, full_path);
+    }
 
   }
 }

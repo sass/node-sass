@@ -467,6 +467,7 @@ namespace Sass {
     virtual string type() { return ""; /* TODO: raise an error? */ }
     virtual bool is_invisible() { return false; }
     static string type_name() { return ""; }
+    virtual bool is_false() { return false; }
   };
   inline Expression::~Expression() { }
 
@@ -732,6 +733,7 @@ namespace Sass {
     virtual operator bool() { return value_; }
     string type() { return "bool"; }
     static string type_name() { return "bool"; }
+    virtual bool is_false() { return !value_; }
     ATTACH_OPERATIONS();
   };
 
