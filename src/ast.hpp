@@ -154,16 +154,16 @@ namespace Sass {
   class Declaration;
   class Propset : public Statement {
     ADD_PROPERTY(String*, property_fragment);
-    vector<Declaration*> declarations_;
+    vector<Statement*> declarations_;
     vector<Propset*>     propsets_;
   public:
     Propset(string p, size_t l, String* pf)
     : Statement(p, l),
       property_fragment_(pf),
-      declarations_(vector<Declaration*>()),
+      declarations_(vector<Statement*>()),
       propsets_(vector<Propset*>())
     { }
-    vector<Declaration*>& declarations() { return declarations_; }
+    vector<Statement*>& declarations() { return declarations_; }
     vector<Propset*>&     propsets()     { return propsets_; }
     ATTACH_OPERATIONS();
   };

@@ -605,10 +605,10 @@ namespace Sass {
 
       stringstream ss;
       ss << '#' << std::setw(2) << std::setfill('0');
-      ss << hex << std::setw(2) << static_cast<unsigned long>(std::floor(a+0.5));
-      ss << hex << std::setw(2) << static_cast<unsigned long>(std::floor(r+0.5));
-      ss << hex << std::setw(2) << static_cast<unsigned long>(std::floor(g+0.5));
-      ss << hex << std::setw(2) << static_cast<unsigned long>(std::floor(b+0.5));
+      ss << std::hex << std::setw(2) << static_cast<unsigned long>(std::floor(a+0.5));
+      ss << std::hex << std::setw(2) << static_cast<unsigned long>(std::floor(r+0.5));
+      ss << std::hex << std::setw(2) << static_cast<unsigned long>(std::floor(g+0.5));
+      ss << std::hex << std::setw(2) << static_cast<unsigned long>(std::floor(b+0.5));
 
       string result(ss.str());
       for (size_t i = 0, L = result.length(); i < L; ++i) {
@@ -750,7 +750,7 @@ namespace Sass {
         *l << ARG("$list", Expression);
       }
       if (l->empty()) error("argument `$list` of `" + string(sig) + "` must not be empty", path, line);
-      if (n->value() <= 1) error("argument `$n` of `" + string(sig) + "` must be greater than or equal to 1", path, line);
+      if (n->value() < 1) error("argument `$n` of `" + string(sig) + "` must be greater than or equal to 1", path, line);
       return (*l)[std::floor(n->value() - 1)];
     }
 
@@ -870,11 +870,21 @@ namespace Sass {
 
     Signature type_of_sig = "type-of($value)";
     BUILT_IN(type_of)
-    { return new (ctx.mem) String_Constant(path, line, ARG("$value", Expression)->type()); }
+    {
+      Expression* v = ARG("$value", Expression);
+      if (v->concrete_type() == Expression::STRING) {
+        To_String to_string;
+        string str(v->perform(&to_string));
+        if (ctx.names_to_colors.count(str)) {
+          return new (ctx.mem) String_Constant(path, line, "color");
+        }
+      }
+      return new (ctx.mem) String_Constant(path, line, ARG("$value", Expression)->type());
+    }
 
     Signature unit_sig = "unit($number)";
     BUILT_IN(unit)
-    { return new (ctx.mem) String_Constant(path, line, ARG("$number", Number)->unit()); }
+    { return new (ctx.mem) String_Constant(path, line, quote(ARG("$number", Number)->unit(), '"')); }
 
     Signature unitless_sig = "unitless($number)";
     BUILT_IN(unitless)

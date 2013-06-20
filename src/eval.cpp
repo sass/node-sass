@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include <iostream>
+#include <iomanip>
 
 namespace Sass {
   using namespace std;
@@ -162,7 +163,7 @@ namespace Sass {
   }
 
   // -- only need to define two comparisons, and the rest can be implemented in terms of them
-  bool eq(Expression*, Expression*, Context&);
+  bool eq(Expression*, Expression*, Context&, Eval*);
   bool lt(Expression*, Expression*, Context&);
   // -- arithmetic on the combinations that matter
   Expression* op_numbers(Context&, Binary_Expression::Type, Expression*, Expression*);
@@ -270,6 +271,9 @@ namespace Sass {
     Block*          body   = def->block();
     Native_Function func   = def->native_function();
 
+    for (size_t i = 0, L = args->length(); i < L; ++i) {
+      (*args)[i]->value((*args)[i]->value()->perform(this));
+    }
 
     Parameters* params = def->parameters();
     Env new_env;
@@ -345,12 +349,15 @@ namespace Sass {
         break;
       case Textual::HEX: {
         string hext(t->value().substr(1)); // chop off the '#'
+        string r(hext.substr(0,2));
+        string g(hext.substr(2,2));
+        string b(hext.substr(4,2));
         if (hext.length() == 6) {
           result = new (ctx.mem) Color(t->path(),
                                        t->line(),
-                                       static_cast<double>(strtol(hext.substr(0,2).c_str(), NULL, 16)),
-                                       static_cast<double>(strtol(hext.substr(2,4).c_str(), NULL, 16)),
-                                       static_cast<double>(strtol(hext.substr(4,6).c_str(), NULL, 16)));
+                                       static_cast<double>(strtol(r.c_str(), NULL, 16)),
+                                       static_cast<double>(strtol(g.c_str(), NULL, 16)),
+                                       static_cast<double>(strtol(b.c_str(), NULL, 16)));
         }
         else {
           result = new (ctx.mem) Color(t->path(),
@@ -388,12 +395,12 @@ namespace Sass {
 
   Expression* Eval::operator()(String_Constant* s)
   {
-    // if (!s->is_delayed() && ctx.names_to_colors.count(s->value())) {
-    //   Color* c = new (ctx.mem) Color(*ctx.names_to_colors[s->value()]);
-    //   c->path(s->path());
-    //   c->line(s->line());
-    //   return c;
-    // }
+    if (!s->is_delayed() && ctx.names_to_colors.count(s->value())) {
+      Color* c = new (ctx.mem) Color(*ctx.names_to_colors[s->value()]);
+      c->path(s->path());
+      c->line(s->line());
+      return c;
+    }
     return s;
   }
 
@@ -428,7 +435,10 @@ namespace Sass {
 
   Expression* Eval::operator()(Argument* a)
   {
-    Expression* val = a->value()->perform(this);
+    Expression* val = a->value();
+    val->is_delayed(false);
+    val = val->perform(this);
+    val->is_delayed(false);
     if (a->is_rest_argument() && (val->concrete_type() != Expression::LIST)) {
       List* wrapper = new (ctx.mem) List(val->path(),
                                          val->line(),
@@ -649,6 +659,8 @@ namespace Sass {
     Expression::Concrete_Type rtype = rhs->concrete_type();
     string lstr(lhs->perform(&to_string));
     string rstr(rhs->perform(&to_string));
+    bool unquoted = false;
+    if (ltype == Expression::STRING && lstr[0] != '"' && lstr[0] != '\'') unquoted = true;
     if (ltype == Expression::STRING && !lhs->is_delayed() && ctx.names_to_colors.count(lstr) &&
         rtype == Expression::STRING && !rhs->is_delayed() && ctx.names_to_colors.count(rstr)) {
       return op_colors(ctx, op, ctx.names_to_colors[lstr], ctx.names_to_colors[rstr]);
@@ -672,9 +684,10 @@ namespace Sass {
     char q = '\0';
     if (lstr[0] == '"' || lstr[0] == '\'') q = lstr[0];
     else if (rstr[0] == '"' || rstr[0] == '\'') q = rstr[0];
+    string result(unquote(lstr) + sep + unquote(rstr));
     return new String_Constant(lhs->path(),
                                lhs->line(),
-                               quote(unquote(lstr) + sep + unquote(rstr), q));
+                               unquoted ? result : quote(result, q));
   }
 
 }

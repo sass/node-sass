@@ -63,13 +63,19 @@ namespace Sass {
       *combined_prop << p->property_fragment();
     }
     for (size_t i = 0, S = p->declarations().size(); i < S; ++i) {
-      Declaration* dec = static_cast<Declaration*>(p->declarations()[i]->perform(this));
-      String_Schema* final_prop = new (ctx.mem) String_Schema(dec->path(), dec->line());
-      *final_prop += combined_prop;
-      *final_prop << new (ctx.mem) String_Constant(dec->path(), dec->line(), "-");
-      *final_prop << dec->property();
-      dec->property(static_cast<String*>(final_prop->perform(eval->with(env))));
-      *current_block << dec;
+      Statement* stm = static_cast<Statement*>(p->declarations()[i]->perform(this));
+      Declaration* dec = dynamic_cast<Declaration*>(stm);
+      if (dec) {
+        String_Schema* final_prop = new (ctx.mem) String_Schema(dec->path(), dec->line());
+        *final_prop += combined_prop;
+        *final_prop << new (ctx.mem) String_Constant(dec->path(), dec->line(), "-");
+        *final_prop << dec->property();
+        dec->property(static_cast<String*>(final_prop->perform(eval->with(env))));
+        *current_block << dec;
+      }
+      // else {
+      //   *current_block << stm;
+      // }
     }
     for (size_t i = 0, S = p->propsets().size(); i < S; ++i) {
       property_stack.push_back(combined_prop);
@@ -113,7 +119,8 @@ namespace Sass {
     return new (ctx.mem) Declaration(d->path(),
                                      d->line(),
                                      new_p,
-                                     d->value()->perform(eval->with(env)));
+                                     d->value()->perform(eval->with(env)),
+                                     d->is_important());
   }
 
   Statement* Expand::operator()(Assignment* a)

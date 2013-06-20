@@ -189,6 +189,7 @@ namespace Sass {
     bool is_rest = false;
     if (lex< exactly<':'> >()) { // there's a default value
       val = parse_space_list();
+      val->is_delayed(false);
     }
     else if (lex< exactly< ellipsis > >()) {
       is_rest = true;
@@ -237,11 +238,13 @@ namespace Sass {
       string name(lexed);
       lex< exactly<':'> >();
       Expression* val = parse_space_list();
+      val->is_delayed(false);
       arg = new (ctx.mem) Argument(path, line, val, name);
     }
     else {
       bool is_arglist = false;
       Expression* val = parse_space_list();
+      val->is_delayed(false);
       if (lex< exactly< ellipsis > >()) {
         is_arglist = true;
       }
@@ -257,6 +260,7 @@ namespace Sass {
     size_t var_line = line;
     if (!lex< exactly<':'> >()) error("expected ':' after " + name + " in assignment statement");
     Expression* val = parse_list();
+    val->is_delayed(false);
     bool is_guarded = lex< default_flag >();
     Assignment* var = new (ctx.mem) Assignment(path, var_line, name, val, is_guarded);
     return var;
@@ -278,13 +282,37 @@ namespace Sass {
     if (!lex< exactly<'{'> >()) error("expected a '{' after namespaced property");
 
     while (!lex< exactly<'}'> >()) {
+      bool semicolon = false;
       if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         propset->propsets().push_back(parse_propset());
       }
       else {
-        propset->declarations().push_back(parse_declaration());
+        if (peek< if_directive >()) {
+          propset->declarations().push_back(parse_if_directive());
+        }
+        else if (peek< for_directive >()) {
+          propset->declarations().push_back(parse_for_directive());
+        }
+        else if (peek< each_directive >()) {
+          propset->declarations().push_back(parse_each_directive());
+        }
+        else if (peek< while_directive >()) {
+          propset->declarations().push_back(parse_while_directive());
+        }
+        else if (peek< warn >()) {
+          propset->declarations().push_back(parse_warning());
+          semicolon = true;
+        }
+        else if (peek< return_directive >()) {
+          propset->declarations().push_back(new (ctx.mem) Return(path, line, parse_list()));
+          semicolon = true;
+        }
+        else {
+          propset->declarations().push_back(parse_declaration());
+          semicolon = true;
+        }
         if (!peek< exactly<'}'> >()) {
-          if (!lex< exactly<';'> >()) {
+          if (semicolon && !lex< exactly<';'> >()) {
             error("non-terminal declaration must end with ';'");
           }
         }
@@ -675,6 +703,7 @@ namespace Sass {
       error("invalid property name");
     }
     if (!lex< exactly<':'> >()) error("property \"" + string(lexed) + "\" must be followed by a ':'");
+    if (peek< exactly<';'> >()) error("style declaration must contain a value");
     Expression* list = parse_list();
     return new (ctx.mem) Declaration(path, prop->line(), prop, list, lex<important>());
   }
@@ -911,8 +940,11 @@ namespace Sass {
     if (lex< sequence< false_val, negate< identifier > > >())
     { return new (ctx.mem) Boolean(path, line, false); }
 
-    if (lex< identifier >())
-    { return new (ctx.mem) String_Constant(path, line, lexed); }
+    if (lex< identifier >()) {
+      String_Constant* str = new (ctx.mem) String_Constant(path, line, lexed);
+      str->is_delayed(true);
+      return str;
+    }
 
     if (lex< percentage >())
     { return new (ctx.mem) Textual(path, line, Textual::PERCENTAGE, lexed); }
@@ -946,7 +978,9 @@ namespace Sass {
     // see if there any interpolants
     const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(str.begin, str.end);
     if (!p) {
-      return new (ctx.mem) String_Constant(path, line, str);
+      String_Constant* str_node = new (ctx.mem) String_Constant(path, line, str);
+      str_node->is_delayed(true);
+      return str_node;
     }
 
     String_Schema* schema = new (ctx.mem) String_Schema(path, line);

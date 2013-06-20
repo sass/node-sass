@@ -107,11 +107,12 @@ namespace Sass {
     if (!import->urls().empty()) {
       buffer += "@import ";
       import->urls().front()->perform(this);
-      for (size_t i = 1, S = import->urls().size(); i < S; ++i) {
-        buffer += ", ";
-        import->urls()[i]->perform(this);
-      }
       buffer += ';';
+      for (size_t i = 1, S = import->urls().size(); i < S; ++i) {
+        buffer += "\n@import ";
+        import->urls()[i]->perform(this);
+        buffer += ';';
+      }
     }
   }
 
