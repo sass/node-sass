@@ -161,10 +161,6 @@ namespace Sass {
     return ll;
   }
 
-  // (Declare the following for use when evaluating binary operators.)
-  // -- convert a number of one kind of unit to another
-  Number* convert_wrt(Number* from, Number* to, Context& ctx);
-
   // -- only need to define two comparisons, and the rest can be implemented in terms of them
   bool eq(Expression*, Expression*, Context&);
   bool lt(Expression*, Expression*, Context&);
@@ -274,26 +270,37 @@ namespace Sass {
     Block*          body   = def->block();
     Native_Function func   = def->native_function();
 
-    // if it's user-defined, bind the args and eval the body
+
+    Parameters* params = def->parameters();
+    Env new_env;
+    new_env.link(def->environment());
+    bind("function " + c->name(), params, args, ctx, &new_env, this);
+    Env* old_env = env;
+    env = &new_env;
+
+    // if it's user-defined, eval the body
     if (body) {
-      Parameters* params = def->parameters();
-      Env new_env;
-      new_env.link(def->environment());
-      bind("function " + c->name(), params, args, ctx, &new_env, this);
-      Env* old_env = env;
-      env = &new_env;
-      Expression* result = body->perform(this);
+      result = body->perform(this);
       if (!result) {
         error(string("function ") + c->name() + " did not return a value", c->path(), c->line());
       }
-      env = old_env;
-      return result;
     }
     // if it's native, invoke the underlying CPP function
     else if (func) {
-      // do stuff
+      result = func(*env, ctx, def->signature(), c->path(), c->line());
+    }
+    // else it's an overloaded native function; resolve it
+    else if (def->is_overload_stub()) {
+      size_t arity = args->length();
+      stringstream ss;
+      ss << full_name << arity;
+      string resolved_name(ss.str());
+      if (!old_env->has(resolved_name)) error("overloaded function `" + string(c->name()) + "` given wrong number of arguments", c->path(), c->line());
+      Definition* resolved_def = static_cast<Definition*>((*old_env)[ss.str()]);
+      result = resolved_def->native_function()(*env, ctx, resolved_def->signature(), c->path(), c->line());
     }
 
+    env = old_env;
     return result;
   }
 

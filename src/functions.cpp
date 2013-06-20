@@ -11,11 +11,10 @@
 #include <cctype>
 #include <sstream>
 #include <iomanip>
+#include <iostream>
 
 #define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, path, line)
 #define ARGR(argname, argtype, lo, hi) get_arg_r(argname, env, sig, path, line, lo, hi)
-#define BUILT_IN(name) Expression*\
-name(Env& env, Context& ctx, Signature sig, const string& path, size_t line)
 
 namespace Sass {
   using std::stringstream;
@@ -32,7 +31,8 @@ namespace Sass {
                                     sig,
                                     name,
                                     params,
-                                    f);
+                                    f,
+                                    false);
   }
 
   namespace Functions {
@@ -605,10 +605,10 @@ namespace Sass {
 
       stringstream ss;
       ss << '#' << std::setw(2) << std::setfill('0');
-      ss << hex << std::setw(2) << static_cast<unsigned long>(floor(a+0.5));
-      ss << hex << std::setw(2) << static_cast<unsigned long>(floor(r+0.5));
-      ss << hex << std::setw(2) << static_cast<unsigned long>(floor(g+0.5));
-      ss << hex << std::setw(2) << static_cast<unsigned long>(floor(b+0.5));
+      ss << hex << std::setw(2) << static_cast<unsigned long>(std::floor(a+0.5));
+      ss << hex << std::setw(2) << static_cast<unsigned long>(std::floor(r+0.5));
+      ss << hex << std::setw(2) << static_cast<unsigned long>(std::floor(g+0.5));
+      ss << hex << std::setw(2) << static_cast<unsigned long>(std::floor(b+0.5));
 
       string result(ss.str());
       for (size_t i = 0, L = result.length(); i < L; ++i) {

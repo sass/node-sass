@@ -9,11 +9,20 @@
 #include "memory_manager.hpp"
 #endif
 
+#ifndef SASS_ENVIRONMENT
+#include "environment.hpp"
+#endif
+
 namespace Sass {
   using namespace std;
   class AST_Node;
   class Block;
+  class Expression;
   class Color;
+  // typedef const char* Signature;
+  // struct Context;
+  // typedef Environment<AST_Node*> Env;
+  // typedef Expression* (*Native_Function)(Env&, Context&, Signature, string, size_t);
 
   enum Output_Style { NESTED, EXPANDED, COMPACT, COMPRESSED, FORMATTED };
 
@@ -54,6 +63,12 @@ namespace Sass {
     string add_file(string path);
     char* compile_string();
     char* compile_file();
+
+    // void register_built_in_functions(Env* env);
+    // void register_function(Signature sig, Native_Function f, Env* env);
+    // void register_function(Signature sig, Native_Function f, size_t arity, Env* env);
+    // void register_overload_stub(string name, Env* env);
+
   };
 
 }

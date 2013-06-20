@@ -21,12 +21,14 @@
 #include "contextualize.hpp"
 #include "copy_c_str.hpp"
 #include "color_names.hpp"
+#include "functions.hpp"
 
 #ifndef SASS_PRELEXER
 #include "prelexer.hpp"
 #endif
 
 #include <iomanip>
+#include <iostream>
 
 namespace Sass {
   using namespace Constants;
@@ -142,6 +144,11 @@ namespace Sass {
     return string();
   }
 
+  void register_function(Context&, Signature sig, Native_Function f, Env* env);
+  void register_function(Context&, Signature sig, Native_Function f, size_t arity, Env* env);
+  void register_overload_stub(Context&, string name, Env* env);
+  void register_built_in_functions(Context&, Env* env);
+
   char* Context::compile_file()
   {
     Block* root;
@@ -152,7 +159,8 @@ namespace Sass {
       style_sheets[queue[i].first] = ast;
     }
 
-    Environment<AST_Node*> tge;
+    Env tge;
+    register_built_in_functions(*this, &tge);
     Eval eval(*this, &tge);
     Contextualize contextualize(*this, &eval, &tge);
     Expand expand(*this, &eval, &contextualize, &tge);
@@ -172,4 +180,101 @@ namespace Sass {
     queue.push_back(make_pair("source string", source_c_str));
     return compile_file();
   }
+
+  void register_function(Context& ctx, Signature sig, Native_Function f, Env* env)
+  {
+    Definition* def = make_native_function(sig, f, ctx);
+    (*env)[def->name() + "[f]"] = def;
+  }
+
+  void register_function(Context& ctx, Signature sig, Native_Function f, size_t arity, Env* env)
+  {
+    Definition* def = make_native_function(sig, f, ctx);
+    stringstream ss;
+    ss << def->name() << "[f]" << arity;
+    (*env)[ss.str()] = def;
+  }
+
+  void register_overload_stub(Context& ctx, string name, Env* env)
+  {
+    Definition* stub = new (ctx.mem) Definition("[built-in function]",
+                                            0,
+                                            0,
+                                            name,
+                                            0,
+                                            0,
+                                            true);
+    (*env)[name + "[f]"] = stub;
+  }
+
+
+  void register_built_in_functions(Context& ctx, Env* env)
+  {
+    using namespace Functions;
+    // RGB Functions
+    register_function(ctx, rgb_sig,  rgb, env);
+    register_overload_stub(ctx, "rgba", env);
+    register_function(ctx, rgba_4_sig, rgba_4, 4, env);
+    register_function(ctx, rgba_2_sig, rgba_2, 2, env);
+    register_function(ctx, red_sig, red, env);
+    register_function(ctx, green_sig, green, env);
+    register_function(ctx, blue_sig, blue, env);
+    register_function(ctx, mix_sig, mix, env);
+    // HSL Functions
+    register_function(ctx, hsl_sig, hsl, env);
+    register_function(ctx, hsla_sig, hsla, env);
+    register_function(ctx, hue_sig, hue, env);
+    register_function(ctx, saturation_sig, saturation, env);
+    register_function(ctx, lightness_sig, lightness, env);
+    register_function(ctx, adjust_hue_sig, adjust_hue, env);
+    register_function(ctx, lighten_sig, lighten, env);
+    register_function(ctx, darken_sig, darken, env);
+    register_function(ctx, saturate_sig, saturate, env);
+    register_function(ctx, desaturate_sig, desaturate, env);
+    register_function(ctx, grayscale_sig, grayscale, env);
+    register_function(ctx, complement_sig, complement, env);
+    register_function(ctx, invert_sig, invert, env);
+    // Opacity Functions
+    register_function(ctx, alpha_sig, alpha, env);
+    register_function(ctx, opacity_sig, alpha, env);
+    register_function(ctx, opacify_sig, opacify, env);
+    register_function(ctx, fade_in_sig, opacify, env);
+    register_function(ctx, transparentize_sig, transparentize, env);
+    register_function(ctx, fade_out_sig, transparentize, env);
+    // Other Color Functions
+    register_function(ctx, adjust_color_sig, adjust_color, env);
+    register_function(ctx, scale_color_sig, scale_color, env);
+    register_function(ctx, change_color_sig, change_color, env);
+    register_function(ctx, ie_hex_str_sig, ie_hex_str, env);
+    // String Functions
+    register_function(ctx, unquote_sig, sass_unquote, env);
+    register_function(ctx, quote_sig, sass_quote, env);
+    // Number Functions
+    register_function(ctx, percentage_sig, percentage, env);
+    register_function(ctx, round_sig, round, env);
+    register_function(ctx, ceil_sig, ceil, env);
+    register_function(ctx, floor_sig, floor, env);
+    register_function(ctx, abs_sig, abs, env);
+    register_function(ctx, min_sig, min, env);
+    register_function(ctx, max_sig, max, env);
+    // List Functions
+    register_function(ctx, length_sig, length, env);
+    register_function(ctx, nth_sig, nth, env);
+    register_function(ctx, index_sig, index, env);
+    register_function(ctx, join_sig, join, env);
+    register_function(ctx, append_sig, append, env);
+    register_function(ctx, compact_sig, compact, env);
+    register_function(ctx, zip_sig, zip, env);
+    // Introspection Functions
+    register_function(ctx, type_of_sig, type_of, env);
+    register_function(ctx, unit_sig, unit, env);
+    register_function(ctx, unitless_sig, unitless, env);
+    register_function(ctx, comparable_sig, comparable, env);
+    // Boolean Functions
+    register_function(ctx, not_sig, sass_not, env);
+    register_function(ctx, if_sig, sass_if, env);
+    // Path Functions
+    register_function(ctx, image_url_sig, image_url, env);
+  }
+
 }
