@@ -741,5 +741,99 @@ namespace Sass {
       return new (ctx.mem) Boolean(path, line, false);
     }
 
+    Signature join_sig = "join($list1, $list2, $separator: auto)";
+    BUILT_IN(join)
+    {
+      List* l1 = dynamic_cast<List*>(env["$list1"]);
+      List* l2 = dynamic_cast<List*>(env["$list2"]);
+      String_Constant* sep = ARG("$separator", String_Constant);
+      List::Separator sep_val = (l1 ? l1->separator() : List::SPACE);
+      if (!l1) {
+        l1 = new (ctx.mem) List(path, line, 1);
+        *l1 << ARG("$list1", Expression);
+        sep_val = (l2 ? l2->separator() : List::SPACE);
+      }
+      if (!l2) {
+        l2 = new (ctx.mem) List(path, line, 1);
+        *l2 << ARG("$list2", Expression);
+      }
+      size_t len = l1->length() + l2->length();
+      string sep_str = unquote(sep->value());
+      if (sep_str == "space") sep_val = List::SPACE;
+      else if (sep_str == "comma") sep_val = List::COMMA;
+      else if (sep_str != "auto") error("argument `$separator` of `" + string(sig) + "` must be `space`, `comma`, or `auto`", path, line);
+      List* result = new (ctx.mem) List(path, line, len, sep_val);
+      *result += l1;
+      *result += l2;
+      return result;
+    }
+
+    Signature append_sig = "append($list, $val, $separator: auto)";
+    BUILT_IN(append)
+    {
+      List* l = dynamic_cast<List*>(env["$list"]);
+      Expression* v = ARG("$val", Expression);
+      String_Constant* sep = ARG("$separator", String_Constant);
+      if (!l) {
+        l = new (ctx.mem) List(path, line, 1);
+        *l << ARG("$list", Expression);
+      }
+      List* result = new (ctx.mem) List(path, line, l->length() + 1);
+      string sep_str(unquote(sep->value()));
+      if (sep_str == "space") result->separator(List::SPACE);
+      else if (sep_str == "comma") result->separator(List::COMMA);
+      else if (sep_str != "auto") error("argument `$separator` of `" + string(sig) + "` must be `space`, `comma`, or `auto`", path, line);
+      *result += l;
+      *result << v;
+      return result;
+    }
+
+    Signature zip_sig = "zip($lists...)";
+    BUILT_IN(zip)
+    {
+      List* arglist = new (ctx.mem) List(*ARG("$lists", List));
+      size_t shortest = 0;
+      for (size_t i = 0, L = arglist->length(); i < L; ++i) {
+        List* ith = dynamic_cast<List*>((*arglist)[i]);
+        if (!ith) {
+          ith = new (ctx.mem) List(path, line, 1);
+          *ith << (*arglist)[i];
+          (*arglist)[i] = ith;
+        }
+        shortest = (i ? std::min(shortest, ith->length()) : ith->length());
+      }
+      List* zippers = new (ctx.mem) List(path, line, shortest, List::COMMA);
+      size_t L = arglist->length();
+      for (size_t i = 0; i < shortest; ++i) {
+        List* zipper = new (ctx.mem) List(path, line, L);
+        for (size_t j = 0; j < L; ++j) {
+          *zipper << (*static_cast<List*>((*arglist)[j]))[i];
+        }
+        *zippers << zipper;
+      }
+      return zippers;
+    }
+
+    Signature compact_sig = "compact($values...)";
+    BUILT_IN(compact)
+    {
+      List* arglist = ARG("$values", List);
+      if (arglist->length() == 1) {
+        Expression* the_arg = (*arglist)[0];
+        arglist = dynamic_cast<List*>(the_arg);
+        if (!arglist) {
+          List* result = new (ctx.mem) List(path, line, 1, List::COMMA);
+          *result << the_arg;
+          return result;
+        }
+      }
+      List* result = new (ctx.mem) List(path, line, 0, List::COMMA);
+      for (size_t i = 0, L = arglist->length(); i < L; ++i) {
+        Boolean* ith = dynamic_cast<Boolean*>((*arglist)[i]);
+        if (ith && ith->value() == false) continue;
+        *result << (*arglist)[i];
+      }
+      return result;
+    }
   }
 }
