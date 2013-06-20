@@ -64,4 +64,5 @@ namespace Sass {
   };
 
   bool eq(Expression*, Expression*, Context&);
+  bool lt(Expression*, Expression*, Context&);
 }

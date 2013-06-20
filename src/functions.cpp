@@ -699,6 +699,34 @@ namespace Sass {
       return r;
     }
 
+    Signature min_sig = "min($x1, $x2...)";
+    BUILT_IN(sass_min)
+    {
+      Number* x1 = ARG("$x1", Number);
+      List* arglist = ARG("$x2", List);
+      Number* least = x1;
+      for (size_t i = 0, L = arglist->length(); i < L; ++i) {
+        Number* xi = dynamic_cast<Number*>((*arglist)[i]);
+        if (!xi) error("`" + string(sig) + "` only takes numeric arguments", path, line);
+        if (lt(xi, least, ctx)) least = xi;
+      }
+      return least;
+    }
+
+    Signature max_sig = "max($x2, $x2...)";
+    BUILT_IN(sass_max)
+    {
+      Number* x1 = ARG("$x1", Number);
+      List* arglist = ARG("$x2", List);
+      Number* greatest = x1;
+      for (size_t i = 0, L = arglist->length(); i < L; ++i) {
+        Number* xi = dynamic_cast<Number*>((*arglist)[i]);
+        if (!xi) error("`" + string(sig) + "` only takes numeric arguments", path, line);
+        if (lt(greatest, xi, ctx)) greatest = xi;
+      }
+      return greatest;
+    }
+
     /////////////////
     // LIST FUNCTIONS
     /////////////////
@@ -835,5 +863,37 @@ namespace Sass {
       }
       return result;
     }
+
+    //////////////////////////
+    // INTROSPECTION FUNCTIONS
+    //////////////////////////
+
+    Signature type_of_sig = "type-of($value)";
+    BUILT_IN(type_of)
+    { return new (ctx.mem) String_Constant(path, line, ARG("$value", Expression)->type()); }
+
+    Signature unit_sig = "unit($number)";
+    BUILT_IN(unit)
+    { return new (ctx.mem) String_Constant(path, line, ARG("$number", Number)->unit()); }
+
+    Signature unitless_sig = "unitless($number)";
+    BUILT_IN(unitless)
+    { return new (ctx.mem) Boolean(path, line, ARG("$number", Number)->is_unitless()); }
+
+    Signature comparable_sig = "comparable($number-1, $number-2)";
+    BUILT_IN(comparable)
+    {
+      Number* n1 = ARG("$number-1", Number);
+      Number* n2 = ARG("$number-2", Number);
+      if (n1->is_unitless() || n2->is_unitless()) {
+        return new (ctx.mem) Boolean(path, line, true);
+      }
+      Number tmp_n2(*n2);
+      tmp_n2.normalize(n1->find_convertible_unit());
+      return new (ctx.mem) Boolean(path, line, n1->unit() == tmp_n2.unit());
+    }
+
+
+
   }
 }
