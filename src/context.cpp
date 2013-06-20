@@ -184,6 +184,7 @@ namespace Sass {
   void register_function(Context& ctx, Signature sig, Native_Function f, Env* env)
   {
     Definition* def = make_native_function(sig, f, ctx);
+    def->environment(env);
     (*env)[def->name() + "[f]"] = def;
   }
 
@@ -192,6 +193,7 @@ namespace Sass {
     Definition* def = make_native_function(sig, f, ctx);
     stringstream ss;
     ss << def->name() << "[f]" << arity;
+    def->environment(env);
     (*env)[ss.str()] = def;
   }
 

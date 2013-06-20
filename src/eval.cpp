@@ -255,9 +255,7 @@ namespace Sass {
     string full_name(c->name() + "[f]");
 
     // if it doesn't exist, just pass it through as a literal
-    cerr << "about to look up " << full_name << full_name.length() << endl;
     if (!env->has(full_name)) {
-      cerr << full_name << " not found" << endl;
       Function_Call* lit = new (ctx.mem) Function_Call(c->path(),
                                                        c->line(),
                                                        c->name(),
