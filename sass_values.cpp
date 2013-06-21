@@ -89,6 +89,7 @@ union Sass_Value new_sass_c_list(size_t len, enum Sass_Separator sep)
 	v.list.tag = SASS_LIST;
 	v.list.separator = sep;
 	v.list.values = (union Sass_Value*) malloc(sizeof(union Sass_Value)*len);
+	v.list.length = len;
 	return v;
 }
 
