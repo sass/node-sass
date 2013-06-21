@@ -531,6 +531,9 @@ namespace Sass {
 
   bool lt(Expression* lhs, Expression* rhs, Context& ctx)
   {
+    if (lhs->concrete_type() != Expression::NUMBER ||
+        rhs->concrete_type() != Expression::NUMBER)
+      error("may only compare numbers", lhs->path(), lhs->line());
     Number* l = static_cast<Number*>(lhs);
     Number* r = static_cast<Number*>(rhs);
     Number tmp_r(*r);
