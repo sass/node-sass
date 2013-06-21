@@ -47,8 +47,8 @@ namespace Sass {
 
     void register_function(Signature sig, Primitive ip);
     void register_function(Signature sig, Primitive ip, size_t arity);
-    void register_c_function(Signature sig, C_Function ip);
-    void register_c_function(Signature sig, C_Function ip, size_t arity);
+    void register_c_function(Signature sig, C_Function ip, void *cookie);
+    void register_c_function(Signature sig, C_Function ip, void *cookie, size_t arity);
     void register_overload_stub(string name);
     void register_functions();
     void register_c_functions();

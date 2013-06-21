@@ -50,10 +50,11 @@ namespace Sass {
     }
   }
 
-  Function::Function(char* signature, C_Function ip, Context& ctx)
+  Function::Function(char* signature, C_Function ip, void *cookie, Context& ctx)
   : definition(Node()),
     primitive(0),
     c_func(ip),
+    cookie(cookie),
     overloaded(false)
   {
     Document sig_doc(Document::make_from_source_chars(ctx, signature));
