@@ -36,8 +36,6 @@ namespace Sass {
 	class Variable;
 	class Textual;
 	class Number;
-	// class Percentage;
-	// class Dimension;
 	class Color;
 	class Boolean;
 	class String_Schema;
@@ -45,6 +43,7 @@ namespace Sass {
 	class String_Constant;
 	class Media_Query;
 	class Media_Query_Expression;
+	class Null;
 	// parameters and arguments
 	class Parameter;
 	class Parameters;

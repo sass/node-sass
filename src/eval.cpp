@@ -235,14 +235,10 @@ namespace Sass {
       return result;
     }
     else {
-      Unary_Expression* inter = new (ctx.mem) Unary_Expression(u->path(),
-                                                               u->line(),
-                                                               u->type(),
-                                                               operand);
       To_String to_string;
       String_Constant* result = new (ctx.mem) String_Constant(u->path(),
                                                               u->line(),
-                                                              inter->perform(&to_string));
+                                                              u->perform(&to_string));
       return result;
     }
     // unreachable
@@ -433,6 +429,11 @@ namespace Sass {
                                                 e->is_interpolated());
   }
 
+  Expression* Eval::operator()(Null* n)
+  {
+    return n;
+  }
+
   Expression* Eval::operator()(Argument* a)
   {
     Expression* val = a->value();
@@ -466,7 +467,6 @@ namespace Sass {
 
   inline Expression* Eval::fallback_impl(AST_Node* n)
   {
-    cerr << "called fallback for eval" << endl;
     return static_cast<Expression*>(n);
   }
 
@@ -517,6 +517,10 @@ namespace Sass {
         for (size_t i = 0, L = l->length(); i < L; ++i) {
           if (!eq((*l)[i], (*r)[i], ctx)) return false;
         }
+        return true;
+      } break;
+
+      case Expression::NULL_VAL: {
         return true;
       } break;
 

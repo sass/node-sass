@@ -940,6 +940,9 @@ namespace Sass {
     if (lex< sequence< false_val, negate< identifier > > >())
     { return new (ctx.mem) Boolean(path, line, false); }
 
+    if (lex< sequence< null, negate< identifier > > >())
+    { return new (ctx.mem) Null(path, line); }
+
     if (lex< identifier >()) {
       String_Constant* str = new (ctx.mem) String_Constant(path, line, lexed);
       str->is_delayed(true);

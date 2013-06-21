@@ -229,6 +229,10 @@ namespace Sass {
       return sequence< exactly<'@'>, identifier >(src);
     }
 
+    const char* null(const char* src) {
+      return exactly<null_kwd>(src);
+    }
+
     // Match CSS type selectors
     const char* namespace_prefix(const char* src) {
       return sequence< optional< alternatives< identifier, exactly<'*'> > >,

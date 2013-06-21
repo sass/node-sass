@@ -15,8 +15,6 @@ namespace Sass {
 	class Inspect : public Operation_CRTP<void, Inspect> {
 		// import all the class-specific methods and override as desired
 		using Operation_CRTP<void, Inspect>::operator();
-		// override this to define a catch-all
-		// virtual void fallback(AST_Node* n);
 
 		// To_String* to_string;
 		string buffer;
@@ -54,7 +52,6 @@ namespace Sass {
 		virtual void operator()(Mixin_Call*);
 		virtual void operator()(Content*);
 		// expressions
-		// virtual void operator()(Expression*);
 		virtual void operator()(List*);
 		virtual void operator()(Binary_Expression*);
 		virtual void operator()(Unary_Expression*);
@@ -63,14 +60,13 @@ namespace Sass {
 		virtual void operator()(Variable*);
 		virtual void operator()(Textual*);
 		virtual void operator()(Number*);
-		// virtual void operator()(Percentage*);
-		// virtual void operator()(Dimension*);
 		virtual void operator()(Color*);
 		virtual void operator()(Boolean*);
 		virtual void operator()(String_Schema*);
-		virtual void operator()(String_Constant* x);
+		virtual void operator()(String_Constant*);
 		virtual void operator()(Media_Query*);
 		virtual void operator()(Media_Query_Expression*);
+		virtual void operator()(Null*);
 		// parameters and arguments
 		virtual void operator()(Parameter*);
 		virtual void operator()(Parameters*);

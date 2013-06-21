@@ -451,6 +451,7 @@ namespace Sass {
       COLOR,
       STRING,
       LIST,
+      NULL_VAL,
       NUM_TYPES
     };
   private:
@@ -824,6 +825,17 @@ namespace Sass {
                            Expression* f, Expression* v, bool i = false)
     : Expression(p, l), feature_(f), value_(v), is_interpolated_(i)
     { }
+    ATTACH_OPERATIONS();
+  };
+
+  //////////////////
+  // The null value.
+  //////////////////
+  class Null : public Expression {
+  public:
+    Null(string p, size_t l) : Expression(p, l) { concrete_type(NULL_VAL); }
+    string type() { return "null"; }
+    static string type_name() { return "null"; }
     ATTACH_OPERATIONS();
   };
 

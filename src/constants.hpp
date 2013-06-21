@@ -26,6 +26,7 @@ namespace Sass {
     extern const char while_kwd[];
     extern const char warn_kwd[];
     extern const char default_kwd[];
+    extern const char null_kwd[];
 
     // css standard units
     extern const char em_kwd[];

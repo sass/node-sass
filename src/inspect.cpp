@@ -416,6 +416,11 @@ namespace Sass {
     }
   }
 
+  void Inspect::operator()(Null* n)
+  {
+    buffer += "null";
+  }
+
   // parameters and arguments
   void Inspect::operator()(Parameter* p)
   {
