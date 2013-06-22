@@ -111,7 +111,7 @@ namespace Sass {
   public:
     Block(string p, size_t l, size_t s = 0, bool r = false)
     : Statement(p, l),
-      Vectorized(s),
+      Vectorized<Statement*>(s),
       is_root_(r), has_hoistable_(false), has_non_hoistable_(false)
     { }
     Block* block() { return this; }
@@ -497,7 +497,7 @@ namespace Sass {
     List(string p, size_t l,
          size_t size = 0, Separator sep = SPACE, bool argl = false)
     : Expression(p, l),
-      Vectorized(size),
+      Vectorized<Expression*>(size),
       separator_(sep), is_arglist_(argl)
     { concrete_type(LIST); }
     string type() { return is_arglist_ ? "arglist" : "list"; }
@@ -773,7 +773,7 @@ namespace Sass {
     ADD_PROPERTY(char, quote_mark);
   public:
     String_Schema(string p, size_t l, size_t size = 0, bool unq = false, char qm = '\0')
-    : String(p, l, unq), Vectorized(size), quote_mark_(qm)
+    : String(p, l, unq), Vectorized<Expression*>(size), quote_mark_(qm)
     { }
     string type() { return "string"; }
     static string type_name() { return "string"; }
@@ -816,7 +816,7 @@ namespace Sass {
   public:
     Media_Query(string p, size_t l,
                 String* t = 0, size_t s = 0, bool n = false, bool r = false)
-    : Expression(p, l), Vectorized(s),
+    : Expression(p, l), Vectorized<Media_Query_Expression*>(s),
       media_type_(t), is_negated_(n), is_restricted_(r)
     { }
     ATTACH_OPERATIONS();
@@ -905,7 +905,7 @@ namespace Sass {
   public:
     Parameters(string p, size_t l)
     : AST_Node(p, l),
-      Vectorized(),
+      Vectorized<Parameter*>(),
       has_optional_parameters_(false),
       has_rest_parameter_(false)
     { }
@@ -968,7 +968,7 @@ namespace Sass {
   public:
     Arguments(string p, size_t l)
     : Expression(p, l),
-      Vectorized(),
+      Vectorized<Argument*>(),
       has_named_arguments_(false),
       has_rest_argument_(false)
     { }
@@ -1115,7 +1115,7 @@ namespace Sass {
   public:
     Simple_Selector_Sequence(string p, size_t l, size_t s = 0)
     : Selector(p, l),
-      Vectorized(s)
+      Vectorized<Simple_Selector*>(s)
     { }
     ATTACH_OPERATIONS();
   };
@@ -1158,7 +1158,7 @@ namespace Sass {
     }
   public:
     Selector_Group(string p, size_t l, size_t s = 0)
-    : Selector(p, l), Vectorized(s)
+    : Selector(p, l), Vectorized<Selector_Combination*>(s)
     { }
     ATTACH_OPERATIONS();
   };
