@@ -115,15 +115,15 @@ namespace Sass {
     include_paths.push_back(getcwd(wd, wd_len));
     if (*include_paths.back().rbegin() != '/') include_paths.back() += '/';
 
-    if (paths_array) {
-      for (size_t i = 0; paths_array[i]; ++i) {
-        string path(paths_array[i]);
-        if (!path.empty()) {
-          if (*path.rbegin() != '/') path += '/';
-          include_paths.push_back(path);
-        }
-      }
-    }
+    // if (paths_array) {
+    //   for (size_t i = 0; paths_array[i]; ++i) {
+    //     string path(paths_array[i]);
+    //     if (!path.empty()) {
+    //       if (*path.rbegin() != '/') path += '/';
+    //       include_paths.push_back(path);
+    //     }
+    //   }
+    // }
   }
 
   string Context::add_file(string path)
