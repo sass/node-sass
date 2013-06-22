@@ -46,20 +46,21 @@ namespace Sass {
   void Inspect::operator()(Propset* propset)
   {
     propset->property_fragment()->perform(this);
-    buffer += ": {\n";
-    ++indentation;
-    for (size_t i = 0, S = propset->declarations().size(); i < S; ++i) {
-      indent();
-      propset->declarations()[i]->perform(this);
-      buffer += '\n';
-    }
-    for (size_t i = 0, S = propset->propsets().size(); i < S; ++i) {
-      indent();
-      propset->propsets()[i]->perform(this);
-      buffer += '\n';
-    }
-    --indentation;
-    buffer += "}";
+    buffer += ": ";
+    // ++indentation;
+    // for (size_t i = 0, S = propset->declarations().size(); i < S; ++i) {
+    //   indent();
+    //   propset->declarations()[i]->perform(this);
+    //   buffer += '\n';
+    // }
+    // for (size_t i = 0, S = propset->propsets().size(); i < S; ++i) {
+    //   indent();
+    //   propset->propsets()[i]->perform(this);
+    //   buffer += '\n';
+    // }
+    // --indentation;
+    // buffer += "}";
+    propset->block()->perform(this);
   }
 
   void Inspect::operator()(Media_Block* media_block)

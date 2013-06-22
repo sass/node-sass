@@ -53,7 +53,6 @@ namespace Sass {
 
   Statement* Expand::operator()(Propset* p)
   {
-    Block* current_block = block_stack.back();
     String_Schema* combined_prop = new (ctx.mem) String_Schema(p->path(), p->line());
     if (!property_stack.empty()) {
       *combined_prop << property_stack.back()
@@ -63,26 +62,50 @@ namespace Sass {
     else {
       *combined_prop << p->property_fragment();
     }
-    for (size_t i = 0, S = p->declarations().size(); i < S; ++i) {
-      Statement* stm = static_cast<Statement*>(p->declarations()[i]->perform(this));
-      Declaration* dec = dynamic_cast<Declaration*>(stm);
-      if (dec) {
-        String_Schema* final_prop = new (ctx.mem) String_Schema(dec->path(), dec->line());
-        *final_prop += combined_prop;
-        *final_prop << new (ctx.mem) String_Constant(dec->path(), dec->line(), "-");
-        *final_prop << dec->property();
-        dec->property(static_cast<String*>(final_prop->perform(eval->with(env))));
-        *current_block << dec;
+
+    property_stack.push_back(combined_prop);
+
+    Block* expanded_block = p->block()->perform(this)->block();
+    // Block* current_block = block_stack.back();
+
+
+    for (size_t i = 0, L = expanded_block->length(); i < L; ++i) {
+      Statement* stm = (*expanded_block)[i];
+      if (typeid(*stm) == typeid(Declaration)) {
+        Declaration* dec = static_cast<Declaration*>(stm);
+        dec->property(combined_prop);
       }
-      // else {
-      //   *current_block << stm;
-      // }
+      else {
+        error("contents of namespaced properties must yield declarations", stm->path(), stm->line());
+      }
     }
-    for (size_t i = 0, S = p->propsets().size(); i < S; ++i) {
-      property_stack.push_back(combined_prop);
-      p->propsets()[i]->perform(this);
-      property_stack.pop_back();
-    }
+
+    property_stack.pop_back();
+
+    append_block(expanded_block);
+
+    // Block* current_block = block_stack.back();
+
+    // for (size_t i = 0, S = p->declarations().size(); i < S; ++i) {
+    //   Statement* stm = static_cast<Statement*>(p->declarations()[i]->perform(this));
+    //   Declaration* dec = dynamic_cast<Declaration*>(stm);
+    //   if (dec) {
+    //     String_Schema* final_prop = new (ctx.mem) String_Schema(dec->path(), dec->line());
+    //     *final_prop += combined_prop;
+    //     *final_prop << new (ctx.mem) String_Constant(dec->path(), dec->line(), "-");
+    //     *final_prop << dec->property();
+    //     dec->property(static_cast<String*>(final_prop->perform(eval->with(env))));
+    //     *current_block << dec;
+    //   }
+    //   // else {
+    //   //   *current_block << stm;
+    //   // }
+    // }
+    // for (size_t i = 0, S = p->propsets().size(); i < S; ++i) {
+    //   property_stack.push_back(combined_prop);
+    //   p->propsets()[i]->perform(this);
+    //   property_stack.pop_back();
+    // }
     return 0;
   }
 

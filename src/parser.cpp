@@ -280,49 +280,51 @@ namespace Sass {
     Propset* propset = new (ctx.mem) Propset(path, line, property_segment);
     lex< exactly<':'> >();
 
-    if (!lex< exactly<'{'> >()) error("expected a '{' after namespaced property");
+    if (!peek< exactly<'{'> >()) error("expected a '{' after namespaced property");
 
-    while (!lex< exactly<'}'> >()) {
-      bool semicolon = false;
-      if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
-        propset->propsets().push_back(parse_propset());
-      }
-      else {
-        if (peek< if_directive >()) {
-          propset->declarations().push_back(parse_if_directive());
-        }
-        else if (peek< for_directive >()) {
-          propset->declarations().push_back(parse_for_directive());
-        }
-        else if (peek< each_directive >()) {
-          propset->declarations().push_back(parse_each_directive());
-        }
-        else if (peek< while_directive >()) {
-          propset->declarations().push_back(parse_while_directive());
-        }
-        else if (peek< warn >()) {
-          propset->declarations().push_back(parse_warning());
-          semicolon = true;
-        }
-        else if (peek< return_directive >()) {
-          propset->declarations().push_back(new (ctx.mem) Return(path, line, parse_list()));
-          semicolon = true;
-        }
-        else {
-          propset->declarations().push_back(parse_declaration());
-          semicolon = true;
-        }
-        if (!peek< exactly<'}'> >()) {
-          if (semicolon && !lex< exactly<';'> >()) {
-            error("non-terminal declaration must end with ';'");
-          }
-        }
-      }
-    }
+    propset->block(parse_block());
 
-    if (propset->declarations().empty() && propset->propsets().empty()) {
-      error("namespaced property cannot be empty");
-    }
+    // while (!lex< exactly<'}'> >()) {
+    //   bool semicolon = false;
+    //   if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
+    //     propset->propsets().push_back(parse_propset());
+    //   }
+    //   else {
+    //     if (peek< if_directive >()) {
+    //       propset->declarations().push_back(parse_if_directive());
+    //     }
+    //     else if (peek< for_directive >()) {
+    //       propset->declarations().push_back(parse_for_directive());
+    //     }
+    //     else if (peek< each_directive >()) {
+    //       propset->declarations().push_back(parse_each_directive());
+    //     }
+    //     else if (peek< while_directive >()) {
+    //       propset->declarations().push_back(parse_while_directive());
+    //     }
+    //     else if (peek< warn >()) {
+    //       propset->declarations().push_back(parse_warning());
+    //       semicolon = true;
+    //     }
+    //     else if (peek< return_directive >()) {
+    //       propset->declarations().push_back(new (ctx.mem) Return(path, line, parse_list()));
+    //       semicolon = true;
+    //     }
+    //     else {
+    //       propset->declarations().push_back(parse_declaration());
+    //       semicolon = true;
+    //     }
+    //     if (!peek< exactly<'}'> >()) {
+    //       if (semicolon && !lex< exactly<';'> >()) {
+    //         error("non-terminal declaration must end with ';'");
+    //       }
+    //     }
+    //   }
+    // }
+
+    // if (propset->declarations().empty() && propset->propsets().empty()) {
+    //   error("namespaced property cannot be empty");
+    // }
 
     return propset;
   }
