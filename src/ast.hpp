@@ -1123,8 +1123,6 @@ namespace Sass {
     ADD_PROPERTY(Combinator, combinator);
     ADD_PROPERTY(Simple_Selector_Sequence*, head);
     ADD_PROPERTY(Selector_Combination*, tail);
-    ADD_PROPERTY(bool, has_reference);
-    ADD_PROPERTY(bool, has_placeholder);
   public:
     Selector_Combination(string p, size_t l,
                          Combinator c,

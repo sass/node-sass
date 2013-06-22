@@ -3,6 +3,7 @@
 #include "parser.hpp"
 #include "file.hpp"
 #include "inspect.hpp"
+#include "to_string.hpp"
 #include "constants.hpp"
 
 #ifndef SASS_PRELEXER
@@ -370,6 +371,7 @@ namespace Sass {
 
   Selector_Group* Parser::parse_selector_group()
   {
+    To_String to_string;
     Selector_Group* group = new (ctx.mem) Selector_Group(path, line);
     do {
       Selector_Combination* comb = parse_selector_combination();
@@ -384,6 +386,7 @@ namespace Sass {
         }
         else {
           comb = new (ctx.mem) Selector_Combination(path, sel_line, Selector_Combination::ANCESTOR_OF, ref_wrap, comb);
+          comb->has_reference(true);
         }
       }
       (*group) << comb;
