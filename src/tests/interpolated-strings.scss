@@ -1,0 +1,7 @@
+$x: ecks;
+$y: why;
+
+div {
+  blah: "hey #{$x} ho";
+  blee: hey#{$y}ho;
+}
