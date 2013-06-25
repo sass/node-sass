@@ -1138,6 +1138,7 @@ namespace Sass {
   // CSS selector combinators (">", "+", "~", and whitespace). Essentially a
   // linked list.
   ////////////////////////////////////////////////////////////////////////////
+  class Context;
   class Selector_Combination : public Selector {
   public:
     enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO };
@@ -1156,6 +1157,8 @@ namespace Sass {
       if (h && h->has_placeholder() || t && t->has_placeholder()) has_placeholder(true);
     }
     Simple_Selector_Sequence* base();
+    Selector_Combination* context(Context&);
+    Selector_Combination* innermost();
     ATTACH_OPERATIONS();
   };
 

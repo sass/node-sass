@@ -35,3 +35,12 @@ ho {
   @extend [hey];
   c: d;
 }
+
+fancy outer space vehicle {
+  insides: advanced;
+}
+
+new american mars rover {
+  wheels: big;
+  @extend vehicle;
+}
