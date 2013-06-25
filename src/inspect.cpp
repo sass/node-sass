@@ -183,7 +183,7 @@ namespace Sass {
     buffer += ';';
   }
 
-  void Inspect::operator()(Extend* extend)
+  void Inspect::operator()(Extension* extend)
   {
     buffer += "@extend ";
     extend->selector()->perform(this);

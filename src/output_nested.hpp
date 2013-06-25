@@ -47,7 +47,7 @@ namespace Sass {
     // virtual void operator()(Each*);
     // virtual void operator()(While*);
     // virtual void operator()(Return*);
-    // virtual void operator()(Extend*);
+    // virtual void operator()(Extension*);
     // virtual void operator()(Definition*);
     // virtual void operator()(Mixin_Call*);
     // virtual void operator()(Content*);

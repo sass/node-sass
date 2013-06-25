@@ -35,8 +35,11 @@ namespace Sass {
     void operator()(Media_Block*);
     void operator()(At_Rule*);
 
+    Selector_Group* generate_extension(Selector_Combination*, Selector_Combination*);
+
     template <typename U>
     void fallback(U x) { return fallback_impl(x); }
   };
+
 
 }

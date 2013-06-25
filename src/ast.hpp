@@ -359,10 +359,10 @@ namespace Sass {
   ////////////////////////////////
   // The Sass `@extend` directive.
   ////////////////////////////////
-  class Extend : public Statement {
+  class Extension : public Statement {
     ADD_PROPERTY(Selector*, selector);
   public:
-    Extend(string p, size_t l, Selector* s)
+    Extension(string p, size_t l, Selector* s)
     : Statement(p, l), selector_(s)
     { }
     ATTACH_OPERATIONS();
@@ -1155,6 +1155,7 @@ namespace Sass {
       if (h && h->has_reference()   || t && t->has_reference())   has_reference(true);
       if (h && h->has_placeholder() || t && t->has_placeholder()) has_placeholder(true);
     }
+    Simple_Selector_Sequence* base();
     ATTACH_OPERATIONS();
   };
 

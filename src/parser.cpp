@@ -614,7 +614,7 @@ namespace Sass {
         Selector* target;
         if (lookahead.has_interpolants) target = parse_selector_schema(lookahead.found);
         else                            target = parse_selector_group();
-        (*block) << new (ctx.mem) Extend(path, line, target);
+        (*block) << new (ctx.mem) Extension(path, line, target);
         semicolon = true;
       }
       else if (peek< media >()) {

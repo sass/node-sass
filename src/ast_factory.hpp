@@ -28,7 +28,7 @@ namespace Sass {
 		For* new_For(string p, size_t l, string var, Expression* lo, Expression* hi, Block* b, bool inc);
 		Each* new_Each(string p, size_t l, string var, Expression* lst, Block* b);
 		While* new_While(string p, size_t l, Expression* pred, Block* b);
-		Extend* new_Extend(string p, size_t l, Selector* s);
+		Extension* new_Extension(string p, size_t l, Selector* s);
 		Definition<MIXIN>* new_Mixin_Definition(string p, size_t l, string n, Parameters* params, Block* b);
 		Definition<FUNCTION>* new_Function_Definition(string p, size_t l, string n, Parameters* params, Block* b);
 		Mixin_Call* new_Mixin_Call(string p, size_t l, string n, Arguments* args, Block* b = 0);

@@ -28,7 +28,7 @@ Statement ( unnestable? )
     Each                ( string, Value, Block )
     While               ( Value, Block )
 
-    Extend              ( Selector )
+    Extension              ( Selector )
 
     Definition<which>   ( string, Parameters, Block )
     Mixin_Call          ( string, Argument[], Block )

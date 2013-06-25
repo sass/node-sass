@@ -33,7 +33,6 @@ namespace Sass {
 		vector<Block*>    block_stack;
 		vector<String*>   property_stack;
 		vector<Selector*> selector_stack;
-		multimap<Simple_Selector_Sequence, Selector_Combination*> extensions;
 
 		Statement* fallback_impl(AST_Node* n);
 
@@ -59,7 +58,7 @@ namespace Sass {
 		Statement* operator()(Each*);
 		Statement* operator()(While*);
 		Statement* operator()(Return*);
-		Statement* operator()(Extend*);
+		Statement* operator()(Extension*);
 		Statement* operator()(Definition*);
 		Statement* operator()(Mixin_Call*);
 		Statement* operator()(Content*);
@@ -68,6 +67,8 @@ namespace Sass {
 		Statement* fallback(U x) { return fallback_impl(x); }
 
 		void append_block(Block*);
+
+		multimap<Simple_Selector_Sequence, Selector_Combination*> extensions;
 	};
 
 }

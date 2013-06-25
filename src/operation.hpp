@@ -31,7 +31,7 @@ namespace Sass {
 		virtual T operator()(While* x)                    = 0;
 		virtual T operator()(Return* x)                   = 0;
 		virtual T operator()(Content* x)                  = 0;
-		virtual T operator()(Extend* x)                   = 0;
+		virtual T operator()(Extension* x)                   = 0;
 		virtual T operator()(Definition* x)               = 0;
 		virtual T operator()(Mixin_Call* x)               = 0;
 		// expressions
@@ -95,7 +95,7 @@ namespace Sass {
 		virtual T operator()(While* x)                    { return static_cast<D*>(this)->fallback(x); }
 		virtual T operator()(Return* x)                   { return static_cast<D*>(this)->fallback(x); }
 		virtual T operator()(Content* x)                  { return static_cast<D*>(this)->fallback(x); }
-		virtual T operator()(Extend* x)                   { return static_cast<D*>(this)->fallback(x); }
+		virtual T operator()(Extension* x)                   { return static_cast<D*>(this)->fallback(x); }
 		virtual T operator()(Definition* x)               { return static_cast<D*>(this)->fallback(x); }
 		virtual T operator()(Mixin_Call* x)               { return static_cast<D*>(this)->fallback(x); }
 		// expressions

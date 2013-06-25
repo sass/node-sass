@@ -19,6 +19,7 @@
 #include "expand.hpp"
 #include "eval.hpp"
 #include "contextualize.hpp"
+#include "extend.hpp"
 #include "copy_c_str.hpp"
 #include "color_names.hpp"
 #include "functions.hpp"
@@ -167,7 +168,13 @@ namespace Sass {
     Inspect inspect;
     Output_Nested output_nested;
 
-    root->perform(&expand)->perform(&output_nested);
+    // root->perform(&expand)->perform(&output_nested);
+    root = root->perform(&expand)->block();
+    if (expand.extensions.size()) {
+      Extend extend(*this, expand.extensions);
+      root->perform(&extend);
+    }
+    root->perform(&output_nested);
 
     char* result = copy_c_str(output_nested.get_buffer().c_str());
     return result;

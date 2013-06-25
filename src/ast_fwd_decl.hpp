@@ -23,7 +23,7 @@ namespace Sass {
 	class While;
 	class Return;
 	class Content;
-	class Extend;
+	class Extension;
 	class Definition;
 	class Mixin_Call;
 	// expressions

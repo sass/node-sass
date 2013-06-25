@@ -238,9 +238,8 @@ namespace Sass {
     return 0;
   }
 
-  Statement* Expand::operator()(Extend* e)
+  Statement* Expand::operator()(Extension* e)
   {
-    // TODO: implement this, obviously
     Selector_Group* extender = static_cast<Selector_Group*>(selector_stack.back());
     if (!extender) return 0;
     Selector_Group* extendee = static_cast<Selector_Group*>(e->selector()->perform(contextualize->with(0, env)));
@@ -254,6 +253,8 @@ namespace Sass {
     Simple_Selector_Sequence* s = c->head();
     for (size_t i = 0, L = extender->length(); i < L; ++i) {
       extensions.insert(make_pair(*s, (*extender)[i]));
+      To_String to_string;
+      cerr << "registering extension request for " << s->perform(&to_string) << endl;
     }
     return 0;
   }
