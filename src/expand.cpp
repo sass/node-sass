@@ -254,7 +254,6 @@ namespace Sass {
     for (size_t i = 0, L = extender->length(); i < L; ++i) {
       extensions.insert(make_pair(*s, (*extender)[i]));
       To_String to_string;
-      cerr << "registering extension request for " << s->perform(&to_string) << endl;
     }
     return 0;
   }

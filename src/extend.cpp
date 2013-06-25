@@ -28,7 +28,6 @@ namespace Sass {
       // if it's supposed to be extended
       Simple_Selector_Sequence* sel_base = sel->base();
       To_String to_string;
-      cerr << "seeing if we should extend " << sel_base->perform(&to_string) << endl;
       if (sel_base && extensions.count(*sel_base)) {
         // extend it wrt each of its extenders
         for (multimap<Simple_Selector_Sequence, Selector_Combination*>::iterator extender = extensions.lower_bound(*sel_base), E = extensions.upper_bound(*sel_base);
@@ -56,7 +55,6 @@ namespace Sass {
   Selector_Group* Extend::generate_extension(Selector_Combination* extendee, Selector_Combination* extender)
   {
     To_String to_string;
-    cerr << "extending " << extendee->perform(&to_string) << " with " << extender->perform(&to_string) << endl;
     Selector_Group* new_group = new (ctx.mem) Selector_Group(extendee->path(), extendee->line());
     Selector_Combination* extendee_context = extendee->context(ctx);
     Selector_Combination* extender_context = extender->context(ctx);
@@ -64,16 +62,18 @@ namespace Sass {
       Selector_Combination* base = new (ctx.mem) Selector_Combination(new_group->path(), new_group->line(), Selector_Combination::ANCESTOR_OF, extender->base(), 0);
       extendee_context->innermost()->tail(extender);
       *new_group << extendee_context;
-      // make another one
+      // make another one so we don't erroneously share tails
       extendee_context = extendee->context(ctx);
       extendee_context->innermost()->tail(base);
       extender_context->innermost()->tail(extendee_context);
       *new_group << extender_context;
-      // brk->tail(0);
-      // extender_context->innermost()->tail(extendee_context);
-      // extender_context->innermost()->tail(base);
-      // *new_group << extender_context;
-
+    }
+    else if (extendee_context) {
+      extendee_context->innermost()->tail(extender);
+      *new_group << extendee_context;
+    }
+    else if (extender_context) {
+      *new_group << extender;
     }
     else {
       *new_group << extender;

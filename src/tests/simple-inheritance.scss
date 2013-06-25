@@ -44,3 +44,21 @@ new american mars rover {
   wheels: big;
   @extend vehicle;
 }
+
+foo {
+  something: whatever;
+}
+
+a b c {
+  blah: blah;
+  @extend foo;
+}
+
+d e f {
+  blah: blah;
+}
+
+g {
+  @extend f;
+  bloo: bloo;
+}
