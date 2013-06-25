@@ -20,11 +20,12 @@ namespace Sass {
 
     Context&          ctx;
     Env*              env;
+    bool              force;
 
     Expression* fallback_impl(AST_Node* n);
 
   public:
-    Eval(Context&, Env*);
+    Eval(Context&, Env*, bool force = false);
     virtual ~Eval();
     Eval* with(Env* e) // for setting the env before eval'ing an expression
     {

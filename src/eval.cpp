@@ -25,7 +25,8 @@ namespace Sass {
     add, sub, mul, div, fmod
   };
 
-  Eval::Eval(Context& ctx, Env* env) : ctx(ctx), env(env) { }
+  Eval::Eval(Context& ctx, Env* env, bool force)
+  : ctx(ctx), env(env), force(force) { }
   Eval::~Eval() { }
 
   Expression* Eval::operator()(Block* b)

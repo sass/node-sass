@@ -284,48 +284,6 @@ namespace Sass {
 
     propset->block(parse_block());
 
-    // while (!lex< exactly<'}'> >()) {
-    //   bool semicolon = false;
-    //   if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
-    //     propset->propsets().push_back(parse_propset());
-    //   }
-    //   else {
-    //     if (peek< if_directive >()) {
-    //       propset->declarations().push_back(parse_if_directive());
-    //     }
-    //     else if (peek< for_directive >()) {
-    //       propset->declarations().push_back(parse_for_directive());
-    //     }
-    //     else if (peek< each_directive >()) {
-    //       propset->declarations().push_back(parse_each_directive());
-    //     }
-    //     else if (peek< while_directive >()) {
-    //       propset->declarations().push_back(parse_while_directive());
-    //     }
-    //     else if (peek< warn >()) {
-    //       propset->declarations().push_back(parse_warning());
-    //       semicolon = true;
-    //     }
-    //     else if (peek< return_directive >()) {
-    //       propset->declarations().push_back(new (ctx.mem) Return(path, line, parse_list()));
-    //       semicolon = true;
-    //     }
-    //     else {
-    //       propset->declarations().push_back(parse_declaration());
-    //       semicolon = true;
-    //     }
-    //     if (!peek< exactly<'}'> >()) {
-    //       if (semicolon && !lex< exactly<';'> >()) {
-    //         error("non-terminal declaration must end with ';'");
-    //       }
-    //     }
-    //   }
-    // }
-
-    // if (propset->declarations().empty() && propset->propsets().empty()) {
-    //   error("namespaced property cannot be empty");
-    // }
-
     return propset;
   }
 
@@ -498,7 +456,7 @@ namespace Sass {
   Pseudo_Selector* Parser::parse_pseudo_selector() {
     if (lex< sequence< pseudo_prefix, functional > >() || lex< functional >()) {
       string name(lexed);
-      Expression* expr;
+      String* expr = 0;
       if (lex< alternatives< even, odd > >()) {
         expr = new (ctx.mem) String_Constant(path, line, lexed);
       }
@@ -506,10 +464,14 @@ namespace Sass {
         lex< sequence< optional< coefficient >, exactly<'n'> > >();
         String_Constant* var_coef = new (ctx.mem) String_Constant(path, line, lexed);
         lex< sign >();
-        Binary_Expression::Type op = (lexed == "+" ? Binary_Expression::ADD : Binary_Expression::SUB);
+        String_Constant* op = new (ctx.mem) String_Constant(path, line, lexed);
+        // Binary_Expression::Type op = (lexed == "+" ? Binary_Expression::ADD : Binary_Expression::SUB);
         lex< digits >();
         String_Constant* constant = new (ctx.mem) String_Constant(path, line, lexed);
-        expr = new (ctx.mem) Binary_Expression(path, line, op, var_coef, constant);
+        // expr = new (ctx.mem) Binary_Expression(path, line, op, var_coef, constant);
+        String_Schema* schema = new (ctx.mem) String_Schema(path, line, 3);
+        *schema << var_coef << op << constant;
+        expr = schema;
       }
       else if (lex< sequence< optional<sign>,
                               optional<digits>,

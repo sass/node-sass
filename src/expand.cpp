@@ -1,5 +1,4 @@
 #include "expand.hpp"
-#include "ast.hpp"
 #include "bind.hpp"
 #include "eval.hpp"
 #include "contextualize.hpp"
@@ -21,7 +20,8 @@ namespace Sass {
     env(env),
     block_stack(vector<Block*>()),
     property_stack(vector<String*>()),
-    selector_stack(vector<Selector*>())
+    selector_stack(vector<Selector*>()),
+    extensions(multimap<Simple_Selector_Sequence, Selector_Combination*>())
   { selector_stack.push_back(0); }
 
   Statement* Expand::operator()(Block* b)
@@ -69,7 +69,7 @@ namespace Sass {
         }
         else {
           *combined_prop << dec->property();
-        }        
+        }
         dec->property(combined_prop);
         *current_block << dec;
       }
@@ -241,6 +241,20 @@ namespace Sass {
   Statement* Expand::operator()(Extend* e)
   {
     // TODO: implement this, obviously
+    Selector_Group* extender = static_cast<Selector_Group*>(selector_stack.back());
+    if (!extender) return 0;
+    Selector_Group* extendee = static_cast<Selector_Group*>(e->selector()->perform(contextualize->with(0, env)));
+    if (extendee->length() != 1) {
+      error("selector groups may not be extended", extendee->path(), extendee->line());
+    }
+    Selector_Combination* c = (*extendee)[0];
+    if (!c->head() || c->tail()) {
+      error("nested selectors may not be extended", c->path(), c->line());
+    }
+    Simple_Selector_Sequence* s = c->head();
+    for (size_t i = 0, L = extender->length(); i < L; ++i) {
+      extensions.insert(make_pair(*s, (*extender)[i]));
+    }
     return 0;
   }
 

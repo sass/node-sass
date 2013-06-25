@@ -1,7 +1,12 @@
 #define SASS_EXPAND
 
 #include <vector>
+#include <map>
 #include <iostream>
+
+#ifndef SASS_AST
+#include "ast.hpp"
+#endif
 
 #ifndef SASS_OPERATION
 #include "operation.hpp"
@@ -28,6 +33,7 @@ namespace Sass {
 		vector<Block*>    block_stack;
 		vector<String*>   property_stack;
 		vector<Selector*> selector_stack;
+		multimap<Simple_Selector_Sequence, Selector_Combination*> extensions;
 
 		Statement* fallback_impl(AST_Node* n);
 

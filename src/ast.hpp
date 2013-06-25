@@ -848,6 +848,18 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
 
+  /////////////////////////////////
+  // Thunks for delayed evaluation.
+  /////////////////////////////////
+  class Thunk : public Expression {
+    ADD_PROPERTY(Expression*, expression);
+    ADD_PROPERTY(Env*, environment);
+  public:
+    Thunk(string p, size_t l, Expression* exp, Env* env = 0)
+    : Expression(p, l), expression_(exp), environment_(env)
+    { }
+  };
+
   /////////////////////////////////////////////////////////
   // Individual parameter objects for mixins and functions.
   /////////////////////////////////////////////////////////
@@ -1081,9 +1093,9 @@ namespace Sass {
   //////////////////////////////////////////////////////////////////
   class Pseudo_Selector : public Simple_Selector {
     ADD_PROPERTY(string, name);
-    ADD_PROPERTY(Expression*, expression);
+    ADD_PROPERTY(String*, expression);
   public:
-    Pseudo_Selector(string p, size_t l, string n, Expression* expr = 0)
+    Pseudo_Selector(string p, size_t l, string n, String* expr = 0)
     : Simple_Selector(p, l), name_(n), expression_(expr)
     { }
     ATTACH_OPERATIONS();
@@ -1117,6 +1129,7 @@ namespace Sass {
     : Selector(p, l),
       Vectorized<Simple_Selector*>(s)
     { }
+    bool operator<(const Simple_Selector_Sequence& rhs) const;
     ATTACH_OPERATIONS();
   };
 
