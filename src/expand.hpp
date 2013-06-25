@@ -23,6 +23,7 @@ namespace Sass {
 	class Eval;
 	class Contextualize;
 	typedef Environment<AST_Node*> Env;
+	struct Backtrace;
 
 	class Expand : public Operation_CRTP<Statement*, Expand> {
 
@@ -33,11 +34,12 @@ namespace Sass {
 		vector<Block*>    block_stack;
 		vector<String*>   property_stack;
 		vector<Selector*> selector_stack;
+		Backtrace*        backtrace;
 
 		Statement* fallback_impl(AST_Node* n);
 
 	public:
-		Expand(Context&, Eval*, Contextualize*, Env*);
+		Expand(Context&, Eval*, Contextualize*, Env*, Backtrace*);
 		virtual ~Expand() { }
 
 		using Operation<Statement*>::operator();

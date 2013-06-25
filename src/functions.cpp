@@ -1,6 +1,7 @@
 #include "functions.hpp"
 #include "ast.hpp"
 #include "context.hpp"
+#include "backtrace.hpp"
 #include "parser.hpp"
 #include "constants.hpp"
 #include "to_string.hpp"
@@ -13,8 +14,8 @@
 #include <iomanip>
 #include <iostream>
 
-#define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, path, line)
-#define ARGR(argname, argtype, lo, hi) get_arg_r(argname, env, sig, path, line, lo, hi)
+#define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, path, line, backtrace)
+#define ARGR(argname, argtype, lo, hi) get_arg_r(argname, env, sig, path, line, lo, hi, backtrace)
 
 namespace Sass {
   using std::stringstream;
@@ -38,7 +39,7 @@ namespace Sass {
   namespace Functions {
 
     template <typename T>
-    T* get_arg(const string& argname, Env& env, Signature sig, const string& path, size_t line)
+    T* get_arg(const string& argname, Env& env, Signature sig, const string& path, size_t line, Backtrace* backtrace)
     {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
       T* val = dynamic_cast<T*>(env[argname]);
@@ -49,21 +50,21 @@ namespace Sass {
         msg += sig;
         msg += "` must be a ";
         msg += T::type_name();
-        error(msg, path, line);
+        error(msg, path, line, backtrace);
       }
       return val;
     }
 
-    Number* get_arg_r(const string& argname, Env& env, Signature sig, const string& path, size_t line, double lo, double hi)
+    Number* get_arg_r(const string& argname, Env& env, Signature sig, const string& path, size_t line, double lo, double hi, Backtrace* backtrace)
     {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
-      Number* val = get_arg<Number>(argname, env, sig, path, line);
+      Number* val = get_arg<Number>(argname, env, sig, path, line, backtrace);
       double v = val->value();
       if (!(lo <= v && v <= hi)) {
         stringstream msg;
         msg << "argument `" << argname << "` of `" << sig << "` must be between ";
         msg << lo << " and " << hi;
-        error(msg.str(), path, line);
+        error(msg.str(), path, line, backtrace);
       }
       return val;
     }

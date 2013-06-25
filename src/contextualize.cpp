@@ -1,13 +1,14 @@
 #include "contextualize.hpp"
 #include "ast.hpp"
 #include "eval.hpp"
+#include "backtrace.hpp"
 #include "to_string.hpp"
 #include "parser.hpp"
 
 namespace Sass {
 
-  Contextualize::Contextualize(Context& ctx, Eval* eval, Env* env)
-  : ctx(ctx), eval(eval), env(env), parent(0)
+  Contextualize::Contextualize(Context& ctx, Eval* eval, Env* env, Backtrace* bt)
+  : ctx(ctx), eval(eval), env(env), parent(0), backtrace(bt)
   { }
 
   Contextualize::~Contextualize() { }
@@ -15,17 +16,18 @@ namespace Sass {
   Selector* Contextualize::fallback_impl(AST_Node* n)
   { return parent; }
 
-  Contextualize* Contextualize::with(Selector* s, Env* e)
+  Contextualize* Contextualize::with(Selector* s, Env* e, Backtrace* bt)
   {
     parent = s;
     env = e;
+    backtrace = bt;
     return this;
   }
 
   Selector* Contextualize::operator()(Selector_Schema* s)
   {
     To_String to_string;
-    string result_str(s->contents()->perform(eval->with(env))->perform(&to_string));
+    string result_str(s->contents()->perform(eval->with(env, backtrace))->perform(&to_string));
     result_str += '{'; // the parser looks for a brace to end the selector
     Selector* result_sel = Parser::from_c_str(result_str.c_str(), ctx, s->path(), s->line()).parse_selector_group();
     return result_sel->perform(this);

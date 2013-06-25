@@ -15,23 +15,21 @@ namespace Sass {
 
   class Context;
   typedef Environment<AST_Node*> Env;
+  struct Backtrace;
 
   class Eval : public Operation_CRTP<Expression*, Eval> {
 
-    Context&          ctx;
-    Env*              env;
-    bool              force;
+    Context&   ctx;
+    Env*       env;
+    bool       force;
 
     Expression* fallback_impl(AST_Node* n);
 
   public:
-    Eval(Context&, Env*, bool force = false);
+    Backtrace* backtrace;
+    Eval(Context&, Env*, Backtrace*);
     virtual ~Eval();
-    Eval* with(Env* e) // for setting the env before eval'ing an expression
-    {
-      env = e;
-      return this;
-    }
+    Eval* with(Env* e, Backtrace* bt); // for setting the env before eval'ing an expression
     using Operation<Expression*>::operator();
 
     // for evaluating function bodies

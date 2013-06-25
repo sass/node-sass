@@ -23,6 +23,7 @@
 #include "copy_c_str.hpp"
 #include "color_names.hpp"
 #include "functions.hpp"
+#include "backtrace.hpp"
 
 #ifndef SASS_PRELEXER
 #include "prelexer.hpp"
@@ -161,10 +162,11 @@ namespace Sass {
     }
 
     Env tge;
+    Backtrace backtrace(0, "", 0, "");
     register_built_in_functions(*this, &tge);
-    Eval eval(*this, &tge);
-    Contextualize contextualize(*this, &eval, &tge);
-    Expand expand(*this, &eval, &contextualize, &tge);
+    Eval eval(*this, &tge, &backtrace);
+    Contextualize contextualize(*this, &eval, &tge, &backtrace);
+    Expand expand(*this, &eval, &contextualize, &tge, &backtrace);
     Inspect inspect;
     Output_Nested output_nested;
 

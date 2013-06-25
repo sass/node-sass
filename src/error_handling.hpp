@@ -4,6 +4,8 @@
 namespace Sass {
 	using namespace std;
 
+  struct Backtrace;
+
   struct Error {
     enum Type { read, write, syntax, evaluation };
 
@@ -17,5 +19,6 @@ namespace Sass {
   };
 
   void error(string msg, string path, size_t line);
+  void error(string msg, string path, size_t line, Backtrace* bt);
 
 }

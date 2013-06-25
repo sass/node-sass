@@ -25,22 +25,24 @@ namespace Sass {
   class Simple_Selector;
   class Context;
   class Eval;
+  class Backtrace;
 
   typedef Environment<AST_Node*> Env;
 
   class Contextualize : public Operation_CRTP<Selector*, Contextualize> {
 
-    Context&  ctx;
-    Eval*     eval;
-    Env*      env;
-    Selector* parent;
+    Context&   ctx;
+    Eval*      eval;
+    Env*       env;
+    Selector*  parent;
+    Backtrace* backtrace;
 
     Selector* fallback_impl(AST_Node* n);
 
   public:
-    Contextualize(Context&, Eval*, Env*);
+    Contextualize(Context&, Eval*, Env*, Backtrace*);
     virtual ~Contextualize();
-    Contextualize* with(Selector*, Env*);
+    Contextualize* with(Selector*, Env*, Backtrace*);
     using Operation<Selector*>::operator();
 
     Selector* operator()(Selector_Schema*);

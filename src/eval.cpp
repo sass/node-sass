@@ -4,6 +4,7 @@
 #include "to_string.hpp"
 #include "inspect.hpp"
 #include "context.hpp"
+#include "backtrace.hpp"
 #include "prelexer.hpp"
 #include <cstdlib>
 #include <cmath>
@@ -25,9 +26,16 @@ namespace Sass {
     add, sub, mul, div, fmod
   };
 
-  Eval::Eval(Context& ctx, Env* env, bool force)
-  : ctx(ctx), env(env), force(force) { }
+  Eval::Eval(Context& ctx, Env* env, Backtrace* bt)
+  : ctx(ctx), env(env), force(force), backtrace(bt) { }
   Eval::~Eval() { }
+
+  Eval* Eval::with(Env* e, Backtrace* bt) // for setting the env before eval'ing an expression
+  {
+    env = e;
+    backtrace = bt;
+    return this;
+  }
 
   Expression* Eval::operator()(Block* b)
   {
@@ -279,6 +287,9 @@ namespace Sass {
     Env* old_env = env;
     env = &new_env;
 
+    Backtrace here(backtrace, c->path(), c->line(), ", in function `" + c->name() + "`");
+    backtrace = &here;
+
     // if it's user-defined, eval the body
     if (body) {
       result = body->perform(this);
@@ -288,7 +299,7 @@ namespace Sass {
     }
     // if it's native, invoke the underlying CPP function
     else if (func) {
-      result = func(*env, ctx, def->signature(), c->path(), c->line());
+      result = func(*env, ctx, def->signature(), c->path(), c->line(), backtrace);
     }
     // else it's an overloaded native function; resolve it
     else if (def->is_overload_stub()) {
@@ -298,9 +309,10 @@ namespace Sass {
       string resolved_name(ss.str());
       if (!old_env->has(resolved_name)) error("overloaded function `" + string(c->name()) + "` given wrong number of arguments", c->path(), c->line());
       Definition* resolved_def = static_cast<Definition*>((*old_env)[ss.str()]);
-      result = resolved_def->native_function()(*env, ctx, resolved_def->signature(), c->path(), c->line());
+      result = resolved_def->native_function()(*env, ctx, resolved_def->signature(), c->path(), c->line(), backtrace);
     }
 
+    backtrace = here.parent;
     env = old_env;
     return result;
   }

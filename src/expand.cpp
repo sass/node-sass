@@ -3,6 +3,7 @@
 #include "eval.hpp"
 #include "contextualize.hpp"
 #include "to_string.hpp"
+#include "backtrace.hpp"
 
 #include <iostream>
 #include <typeinfo>
@@ -13,7 +14,7 @@
 
 namespace Sass {
 
-  Expand::Expand(Context& ctx, Eval* eval, Contextualize* contextualize, Env* env)
+  Expand::Expand(Context& ctx, Eval* eval, Contextualize* contextualize, Env* env, Backtrace* bt)
   : ctx(ctx),
     eval(eval),
     contextualize(contextualize),
@@ -21,7 +22,8 @@ namespace Sass {
     block_stack(vector<Block*>()),
     property_stack(vector<String*>()),
     selector_stack(vector<Selector*>()),
-    extensions(multimap<Simple_Selector_Sequence, Selector_Combination*>())
+    extensions(multimap<Simple_Selector_Sequence, Selector_Combination*>()),
+    backtrace(bt)
   { selector_stack.push_back(0); }
 
   Statement* Expand::operator()(Block* b)
@@ -41,7 +43,7 @@ namespace Sass {
   {
     To_String to_string;
     // if (selector_stack.back()) cerr << "expanding " << selector_stack.back()->perform(&to_string) << " and " << r->selector()->perform(&to_string) << endl;
-    Selector* sel_ctx = r->selector()->perform(contextualize->with(selector_stack.back(), env));
+    Selector* sel_ctx = r->selector()->perform(contextualize->with(selector_stack.back(), env, backtrace));
     selector_stack.push_back(sel_ctx);
     Ruleset* rr = new (ctx.mem) Ruleset(r->path(),
                                         r->line(),
@@ -74,7 +76,7 @@ namespace Sass {
         *current_block << dec;
       }
       else {
-        error("contents of namespaced properties must result in style declarations only", stm->path(), stm->line());
+        error("contents of namespaced properties must result in style declarations only", stm->path(), stm->line(), backtrace);
       }
     }
 
@@ -85,7 +87,7 @@ namespace Sass {
 
   Statement* Expand::operator()(Media_Block* m)
   {
-    Expression* media_queries = m->media_queries()->perform(eval->with(env));
+    Expression* media_queries = m->media_queries()->perform(eval->with(env, backtrace));
     Media_Block* mm = new (ctx.mem) Media_Block(m->path(),
                                                 m->line(),
                                                 static_cast<List*>(media_queries),
@@ -99,7 +101,7 @@ namespace Sass {
     Block* ab = a->block();
     selector_stack.push_back(0);
     Selector* as = a->selector();
-    if (as) as = as->perform(contextualize->with(0, env));
+    if (as) as = as->perform(contextualize->with(0, env, backtrace));
     Block* bb = ab ? ab->perform(this)->block() : 0;
     At_Rule* aa = new (ctx.mem) At_Rule(a->path(),
                                         a->line(),
@@ -113,11 +115,11 @@ namespace Sass {
   Statement* Expand::operator()(Declaration* d)
   {
     String* old_p = d->property();
-    String* new_p = static_cast<String*>(old_p->perform(eval->with(env)));
+    String* new_p = static_cast<String*>(old_p->perform(eval->with(env, backtrace)));
     return new (ctx.mem) Declaration(d->path(),
                                      d->line(),
                                      new_p,
-                                     d->value()->perform(eval->with(env)),
+                                     d->value()->perform(eval->with(env, backtrace)),
                                      d->is_important());
   }
 
@@ -125,10 +127,10 @@ namespace Sass {
   {
     string var(a->variable());
     if (env->has(var)) {
-      if(!a->is_guarded()) (*env)[var] = a->value()->perform(eval->with(env));
+      if(!a->is_guarded()) (*env)[var] = a->value()->perform(eval->with(env, backtrace));
     }
     else {
-      env->current_frame()[var] = a->value()->perform(eval->with(env));
+      env->current_frame()[var] = a->value()->perform(eval->with(env, backtrace));
     }
     return 0;
   }
@@ -147,7 +149,7 @@ namespace Sass {
   Statement* Expand::operator()(Warning* w)
   {
     // eval handles this too, because warnings may occur in functions
-    w->perform(eval->with(env));
+    w->perform(eval->with(env, backtrace));
     return 0;
   }
 
@@ -159,7 +161,7 @@ namespace Sass {
 
   Statement* Expand::operator()(If* i)
   {
-    if (*i->predicate()->perform(eval->with(env))) {
+    if (*i->predicate()->perform(eval->with(env, backtrace))) {
       append_block(i->consequent());
     }
     else {
@@ -172,13 +174,13 @@ namespace Sass {
   Statement* Expand::operator()(For* f)
   {
     string variable(f->variable());
-    Expression* low = f->lower_bound()->perform(eval->with(env));
+    Expression* low = f->lower_bound()->perform(eval->with(env, backtrace));
     if (low->concrete_type() != Expression::NUMBER) {
-      error("lower bound of `@for` directive must be numeric", low->path(), low->line());
+      error("lower bound of `@for` directive must be numeric", low->path(), low->line(), backtrace);
     }
-    Expression* high = f->upper_bound()->perform(eval->with(env));
+    Expression* high = f->upper_bound()->perform(eval->with(env, backtrace));
     if (high->concrete_type() != Expression::NUMBER) {
-      error("upper bound of `@for` directive must be numeric", high->path(), high->line());
+      error("upper bound of `@for` directive must be numeric", high->path(), high->line(), backtrace);
     }
     double lo = static_cast<Number*>(low)->value();
     double hi = static_cast<Number*>(high)->value();
@@ -200,7 +202,7 @@ namespace Sass {
   Statement* Expand::operator()(Each* e)
   {
     string variable(e->variable());
-    Expression* expr = e->list()->perform(eval->with(env));
+    Expression* expr = e->list()->perform(eval->with(env, backtrace));
     List* list = 0;
     if (expr->concrete_type() != Expression::LIST) {
       list = new (ctx.mem) List(expr->path(), expr->line(), 1, List::COMMA);
@@ -215,7 +217,7 @@ namespace Sass {
     env = &new_env;
     Block* body = e->block();
     for (size_t i = 0, L = list->length(); i < L; ++i) {
-      (*env)[variable] = (*list)[i]->perform(eval->with(env));
+      (*env)[variable] = (*list)[i]->perform(eval->with(env, backtrace));
       append_block(body);
     }
     env = new_env.parent();
@@ -226,7 +228,7 @@ namespace Sass {
   {
     Expression* pred = w->predicate();
     Block* body = w->block();
-    while (*pred->perform(eval->with(env))) {
+    while (*pred->perform(eval->with(env, backtrace))) {
       append_block(body);
     }
     return 0;
@@ -234,7 +236,7 @@ namespace Sass {
 
   Statement* Expand::operator()(Return* r)
   {
-    error("@return may only be used within a function", r->path(), r->line());
+    error("@return may only be used within a function", r->path(), r->line(), backtrace);
     return 0;
   }
 
@@ -242,13 +244,13 @@ namespace Sass {
   {
     Selector_Group* extender = static_cast<Selector_Group*>(selector_stack.back());
     if (!extender) return 0;
-    Selector_Group* extendee = static_cast<Selector_Group*>(e->selector()->perform(contextualize->with(0, env)));
+    Selector_Group* extendee = static_cast<Selector_Group*>(e->selector()->perform(contextualize->with(0, env, backtrace)));
     if (extendee->length() != 1) {
-      error("selector groups may not be extended", extendee->path(), extendee->line());
+      error("selector groups may not be extended", extendee->path(), extendee->line(), backtrace);
     }
     Selector_Combination* c = (*extendee)[0];
     if (!c->head() || c->tail()) {
-      error("nested selectors may not be extended", c->path(), c->line());
+      error("nested selectors may not be extended", c->path(), c->line(), backtrace);
     }
     Simple_Selector_Sequence* s = c->head();
     for (size_t i = 0, L = extender->length(); i < L; ++i) {
@@ -271,13 +273,15 @@ namespace Sass {
   {
     string full_name(c->name() + "[m]");
     if (!env->has(full_name)) {
-      error("no mixin named " + c->name(), c->path(), c->line());
+      error("no mixin named " + c->name(), c->path(), c->line(), backtrace);
     }
     Definition* def = static_cast<Definition*>((*env)[full_name]);
     Block* body = def->block();
     Parameters* params = def->parameters();
     Arguments* args = static_cast<Arguments*>(c->arguments()
-                                               ->perform(eval->with(env)));
+                                               ->perform(eval->with(env, backtrace)));
+    Backtrace here(backtrace, c->path(), c->line(), ", in mixin `" + c->name() + "`");
+    backtrace = &here;
     Env new_env;
     new_env.link(def->environment());
     if (c->block()) {
@@ -296,6 +300,7 @@ namespace Sass {
     env = &new_env;
     append_block(body);
     env = old_env;
+    backtrace = here.parent;
     return 0;
   }
 
@@ -312,7 +317,7 @@ namespace Sass {
 
   inline Statement* Expand::fallback_impl(AST_Node* n)
   {
-    error("unknown internal error; please contact the LibSass maintainers", n->path(), n->line());
+    error("unknown internal error; please contact the LibSass maintainers", n->path(), n->line(), backtrace);
     String_Constant* msg = new (ctx.mem) String_Constant("", 0, string("`Expand` doesn't handle ") + typeid(*n).name());
     return new (ctx.mem) Warning("", 0, msg);
   }

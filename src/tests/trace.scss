@@ -4,6 +4,7 @@
 
 @mixin moo($c) {
   border: 1px solid foo($c);
+  @include booboo;
 }
 
 @mixin moomoo($c) {

@@ -151,23 +151,6 @@ namespace Sass {
   // Nested declaration sets (i.e., namespaced properties).
   /////////////////////////////////////////////////////////
   class String;
-  // class Declaration;
-  // class Propset : public Statement {
-  //   ADD_PROPERTY(String*, property_fragment);
-  //   vector<Statement*> declarations_;
-  //   vector<Propset*>     propsets_;
-  // public:
-  //   Propset(string p, size_t l, String* pf)
-  //   : Statement(p, l),
-  //     property_fragment_(pf),
-  //     declarations_(vector<Statement*>()),
-  //     propsets_(vector<Propset*>())
-  //   { }
-  //   vector<Statement*>& declarations() { return declarations_; }
-  //   vector<Propset*>&     propsets()     { return propsets_; }
-  //   ATTACH_OPERATIONS();
-  // };
-
   class Propset : public Has_Block {
     ADD_PROPERTY(String*, property_fragment);
   public:
@@ -373,10 +356,11 @@ namespace Sass {
   // by a type tag.
   /////////////////////////////////////////////////////////////////////////////
   class Context;
+  struct Backtrace;
   class Parameters;
   typedef Environment<AST_Node*> Env;
   typedef const char* Signature;
-  typedef Expression* (*Native_Function)(Env&, Context&, Signature, const string&, size_t);
+  typedef Expression* (*Native_Function)(Env&, Context&, Signature, const string&, size_t, Backtrace*);
   typedef const char* Signature;
   class Definition : public Has_Block {
   public:
