@@ -16,6 +16,7 @@
 #include "file.hpp"
 #include "inspect.hpp"
 #include "output_nested.hpp"
+#include "output_compressed.hpp"
 #include "expand.hpp"
 #include "eval.hpp"
 #include "contextualize.hpp"
@@ -176,9 +177,21 @@ namespace Sass {
       Extend extend(*this, expand.extensions);
       root->perform(&extend);
     }
-    root->perform(&output_nested);
+    char* result = 0;
+    switch (output_style) {
+      case COMPRESSED: {
+        Output_Compressed output_compressed;
+        root->perform(&output_compressed);
+        result = copy_c_str(output_compressed.get_buffer().c_str());
+      } break;
 
-    char* result = copy_c_str(output_nested.get_buffer().c_str());
+      default: {
+        Output_Nested output_nested;
+        root->perform(&output_nested);
+        result = copy_c_str(output_nested.get_buffer().c_str());
+      } break;
+    }
+
     return result;
   }
 
