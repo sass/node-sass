@@ -150,11 +150,11 @@ namespace Sass {
     To_String to_string;
     string prefix("WARNING: ");
     string indent("         ");
-    string result(message->perform(&to_string));
-    cerr << prefix << result << endl;
-    cerr << indent << "on line " << w->line() << " of " << w->path() << endl;
-    cerr << endl;
-    // TODO: print out a backtrace
+    string result(unquote(message->perform(&to_string)));
+    cerr << prefix << result;
+    Backtrace top(backtrace, w->path(), w->line(), "");
+    cerr << top.to_string(true);
+    cerr << endl << endl;
     return 0;
   }
 
