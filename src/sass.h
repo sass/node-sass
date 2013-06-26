@@ -26,17 +26,15 @@ struct Sass_Context {
   const char** include_paths_array;
 };
 
-struct Sass_Context* make_sass_context  ();
-void                 free_sass_context  (struct Sass_Context*);
-void                 compile_sass_file  (struct Sass_Context*);
-void                 compile_sass_string(struct Sass_Context*);
+struct Sass_Context* make_sass_context   ();
+void                 free_sass_context   (struct Sass_Context*);
+void                 compile_sass_file   (struct Sass_Context*);
+void                 compile_sass_string (struct Sass_Context*);
 
 // type tags for Sass values
 enum Sass_Tag {
   SASS_BOOLEAN,
   SASS_NUMBER,
-  SASS_PERCENTAGE,
-  SASS_DIMENSION,
   SASS_COLOR,
   SASS_STRING,
   SASS_LIST,
@@ -61,16 +59,6 @@ struct Sass_Boolean {
 };
 
 struct Sass_Number {
-  enum Sass_Tag tag;
-  double        value;
-};
-
-struct Sass_Percentage {
-  enum Sass_Tag tag;
-  double        value;
-};
-
-struct Sass_Dimension {
   enum Sass_Tag tag;
   double        value;
   char*         unit;
@@ -108,22 +96,18 @@ union Sass_Value {
   struct Sass_Unknown    unknown;
   struct Sass_Boolean    boolean;
   struct Sass_Number     number;
-  struct Sass_Percentage percentage;
-  struct Sass_Dimension  dimension;
   struct Sass_Color      color;
   struct Sass_String     string;
   struct Sass_List       list;
   struct Sass_Error      error;
 };
 
-union Sass_Value make_sass_boolean    (int val);
-union Sass_Value make_sass_number     (double val);
-union Sass_Value make_sass_percentage (double val);
-union Sass_Value make_sass_dimension  (double val, const char* unit);
-union Sass_Value make_sass_color      (double r, double g, double b, double a);
-union Sass_Value make_sass_string     (const char* val);
-union Sass_Value make_sass_list       (size_t len, enum Sass_Separator sep);
-union Sass_Value make_sass_error      (const char* msg);
+union Sass_Value make_sass_boolean (int val);
+union Sass_Value make_sass_number  (double val, const char* unit);
+union Sass_Value make_sass_color   (double r, double g, double b, double a);
+union Sass_Value make_sass_string  (const char* val);
+union Sass_Value make_sass_list    (size_t len, enum Sass_Separator sep);
+union Sass_Value make_sass_error   (const char* msg);
 
 typedef union Sass_Value(*Sass_C_Function)(union Sass_Value);
 
