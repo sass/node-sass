@@ -19,7 +19,7 @@ namespace Sass {
   using std::map;
 
   typedef Node (*Primitive)(const Node, Environment&, Node_Factory&, Backtrace& bt, string&, size_t);
-  typedef Sass_Value (*C_Function)(Sass_Value);
+  typedef Sass_Value (*C_Function)(Sass_Value, void*);
   typedef const char Signature[];
 
   struct Function {
@@ -30,6 +30,7 @@ namespace Sass {
     Node definition;
     Primitive primitive;
     C_Function c_func;
+    void *cookie;
     bool overloaded;
 
     Function()
@@ -42,6 +43,7 @@ namespace Sass {
       definition(def),
       primitive(0),
       c_func(0),
+      cookie(0),
       overloaded(false)
     { }
 
@@ -52,11 +54,12 @@ namespace Sass {
       definition(Node()),
       primitive(0),
       c_func(0),
+      cookie(0),
       overloaded(overloaded)
     { }
 
     Function(char* signature, Primitive ip, Context& ctx);
-    Function(char* signature, C_Function ip, Context& ctx);
+    Function(char* signature, C_Function ip, void *cookie, Context& ctx);
 
     // Node operator()(Environment& bindings, Node_Factory& new_Node, Backtrace& bt, string& path, size_t line) const
     // {
@@ -194,6 +197,12 @@ namespace Sass {
 
     extern Signature abs_sig;
     Node abs(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature min_sig;
+    Node min(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
+
+    extern Signature max_sig;
+    Node max(const Node, Environment&, Node_Factory&, Backtrace&, string& path, size_t line);
 
     // List Functions //////////////////////////////////////////////////////
 

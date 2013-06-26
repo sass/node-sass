@@ -69,7 +69,6 @@ namespace Sass {
     source_comments(sc)
   {
     register_functions();
-    register_c_functions();
     collect_include_paths(paths_str);
     setup_color_map();
 
@@ -105,15 +104,15 @@ namespace Sass {
     function_env[stub.str()] = f;
   }
 
-  inline void Context::register_c_function(Signature sig, C_Function ip)
+  inline void Context::register_c_function(Signature sig, C_Function ip, void *cookie)
   {
-    Function f(const_cast<char*>(sig), ip, *this);
+    Function f(const_cast<char*>(sig), ip, cookie, *this);
     function_env[f.name] = f;
   }
 
-  inline void Context::register_c_function(Signature sig, C_Function ip, size_t arity)
+  inline void Context::register_c_function(Signature sig, C_Function ip, void *cookie, size_t arity)
   {
-    Function f(const_cast<char*>(sig), ip, *this);
+    Function f(const_cast<char*>(sig), ip, cookie, *this);
     std::stringstream stub;
     stub << f.name << " " << arity;
     function_env[stub.str()] = f;
@@ -172,6 +171,8 @@ namespace Sass {
     register_function(ceil_sig, ceil);
     register_function(floor_sig, floor);
     register_function(abs_sig, abs);
+    register_function(min_sig, min);
+    register_function(max_sig, max);
     // List Functions
     register_function(length_sig, length);
     register_function(nth_sig, nth);
@@ -208,7 +209,7 @@ namespace Sass {
   {
     for (size_t i = 0, S = c_function_list.size(); i < S; ++i) {
       Sass_C_Function_Data f_data = c_function_list[i];
-      register_c_function(f_data.signature, f_data.function);
+      register_c_function(f_data.signature, f_data.function, f_data.cookie);
     }
   }
 

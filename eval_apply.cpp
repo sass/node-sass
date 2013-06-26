@@ -127,7 +127,12 @@ namespace Sass {
       } break;
 
       case Node::media_query: {
-        expand(expr[0], prefix, env, f_env, new_Node, ctx, bt, false, content);
+        Node id(expr[0]);
+        if( id.is_schema() || id.should_eval()) {
+          expr[0] = eval(id, prefix, env, f_env, new_Node, ctx, bt);
+        } else {
+          expand(expr[0], prefix, env, f_env, new_Node, ctx, bt, false, content);
+        }
         expand(expr[1], prefix, env, f_env, new_Node, ctx, bt, false, content);
         expr << prefix;
       } break;
@@ -439,8 +444,9 @@ namespace Sass {
         if (expr.should_eval() && expr.size() > 0) {
           result = new_Node(Node::list, expr.path(), expr.line(), expr.size());
           result.is_comma_separated() = expr.is_comma_separated();
-          result << eval(expr[0], prefix, env, f_env, new_Node, ctx, bt);
-          for (size_t i = 1, S = expr.size(); i < S; ++i) result << expr[i];
+          for(size_t i = 0, S = expr.size(); i < S; i++) {
+            result << eval(expr[i], prefix, env, f_env, new_Node, ctx, bt);
+          }
           result.is_arglist() = is_arglist;
           result.is_splat() = is_splat;
           // cerr << string(bt.depth(), '\t') << "evaluated a list: " << result.to_string() << "::" << result.is_arglist() << endl;
@@ -1060,7 +1066,8 @@ namespace Sass {
       for (size_t i = 0; i < num_params; ++i) {
         c_args.list.values[i] = bindings[f.parameter_names[i].token()].to_c_val();
       }
-      union Sass_Value c_val = f.c_func(c_args);
+      c_args.list.length = num_params;
+      union Sass_Value c_val = f.c_func(c_args, f.cookie);
       if (c_val.unknown.tag == SASS_ERROR) {
         throw_eval_error(bt, "error in C function " + f.name + ": " + c_val.error.message, path, line);
       }
@@ -1641,9 +1648,10 @@ namespace Sass {
         node = ctx.new_Node(Node::string_constant, path, line, Token::make(copy));
       } break;
       case SASS_LIST: {
-        Node list(ctx.new_Node(Node::list, path, line, v.list.length));
+        node = ctx.new_Node(Node::list, path, line, v.list.length);
+        node.is_comma_separated() = v.list.separator == SASS_COMMA;
         for (size_t i = 0; i < v.list.length; ++i) {
-          list << c_val_to_node(v.list.values[i], ctx, bt, path, line);
+          node << c_val_to_node(v.list.values[i], ctx, bt, path, line);
         }
       } break;
       case SASS_ERROR: {
