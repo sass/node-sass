@@ -10,6 +10,10 @@
 #include "environment.hpp"
 #endif
 
+#ifndef SASS
+#include "sass.h"
+#endif
+
 namespace Sass {
   using namespace std;
 
@@ -62,6 +66,8 @@ namespace Sass {
     template <typename U>
     Expression* fallback(U x) { return fallback_impl(x); }
   };
+
+  Expression* cval_to_astnode(Sass_Value v, Context& ctx, Backtrace* backtrace, string path = "", size_t line = 0);
 
   bool eq(Expression*, Expression*, Context&);
   bool lt(Expression*, Expression*, Context&);

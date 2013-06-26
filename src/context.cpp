@@ -58,7 +58,12 @@ namespace Sass {
     setup_color_map();
 
     string entry_point = initializers.entry_point();
-    if (!entry_point.empty()) add_file(entry_point);
+    if (!entry_point.empty()) {
+      string result(add_file(entry_point));
+      if (result.empty()) {
+        throw entry_point;
+      }
+    }
   }
 
   Context::~Context()
@@ -151,6 +156,8 @@ namespace Sass {
   void register_function(Context&, Signature sig, Native_Function f, size_t arity, Env* env);
   void register_overload_stub(Context&, string name, Env* env);
   void register_built_in_functions(Context&, Env* env);
+  void register_c_functions(Context&, Env* env, Sass_C_Function_Descriptor*);
+  void register_c_function(Context&, Env* env, Sass_C_Function_Descriptor);
 
   char* Context::compile_file()
   {
@@ -171,7 +178,6 @@ namespace Sass {
     Inspect inspect;
     Output_Nested output_nested;
 
-    // root->perform(&expand)->perform(&output_nested);
     root = root->perform(&expand)->block();
     if (expand.extensions.size()) {
       Extend extend(*this, expand.extensions);
@@ -300,5 +306,20 @@ namespace Sass {
     // Path Functions
     register_function(ctx, image_url_sig, image_url, env);
   }
+
+  void register_c_functions(Context& ctx, Env* env, Sass_C_Function_Descriptor* descrs)
+  {
+    while (descrs->signature && descrs->function) {
+      register_c_function(ctx, env, *descrs);
+      ++descrs;
+    }
+  }
+  void register_c_function(Context& ctx, Env* env, Sass_C_Function_Descriptor descr)
+  {
+    Definition* def = make_c_function(descr.signature, descr.function, ctx);
+    def->environment(env);
+    (*env)[def->name() + "[f]"] = def;
+  }
+
 
 }

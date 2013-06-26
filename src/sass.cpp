@@ -2,7 +2,11 @@
 #include <cstring>
 #include <vector>
 #include <sstream>
+
+#ifndef SASS
 #include "sass.h"
+#endif
+
 #include "context.hpp"
 #include "error_handling.hpp"
 
@@ -126,6 +130,13 @@ extern "C" {
     v.list.length = len;
     v.list.separator = sep;
     v.list.values = (union Sass_Value*) malloc(sizeof(union Sass_Value)*len);
+    return v;
+  }
+
+  union Sass_Value make_sass_null()
+  {
+    union Sass_Value v;
+    v.null.tag = SASS_NULL;
     return v;
   }
 

@@ -19,6 +19,7 @@ namespace Sass {
   class Block;
   class Expression;
   class Color;
+  class Backtrace;
   // typedef const char* Signature;
   // struct Context;
   // typedef Environment<AST_Node*> Env;
@@ -60,7 +61,7 @@ namespace Sass {
     void collect_include_paths(const char* paths_str);
     void collect_include_paths(const char* paths_array[]);
     void setup_color_map();
-    string add_file(string path);
+    string add_file(string);
     char* compile_string();
     char* compile_file();
 

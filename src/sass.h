@@ -38,6 +38,7 @@ enum Sass_Tag {
   SASS_COLOR,
   SASS_STRING,
   SASS_LIST,
+  SASS_NULL,
   SASS_ERROR
 };
 
@@ -86,6 +87,10 @@ struct Sass_List {
   union Sass_Value*   values;
 };
 
+struct Sass_Null {
+  enum Sass_Tag tag;
+};
+
 struct Sass_Error {
   enum Sass_Tag tag;
   char*         message;
@@ -93,13 +98,14 @@ struct Sass_Error {
 
 // represention of Sass values in C
 union Sass_Value {
-  struct Sass_Unknown    unknown;
-  struct Sass_Boolean    boolean;
-  struct Sass_Number     number;
-  struct Sass_Color      color;
-  struct Sass_String     string;
-  struct Sass_List       list;
-  struct Sass_Error      error;
+  struct Sass_Unknown unknown;
+  struct Sass_Boolean boolean;
+  struct Sass_Number  number;
+  struct Sass_Color   color;
+  struct Sass_String  string;
+  struct Sass_List    list;
+  struct Sass_Null    null;
+  struct Sass_Error   error;
 };
 
 union Sass_Value make_sass_boolean (int val);
@@ -107,6 +113,7 @@ union Sass_Value make_sass_number  (double val, const char* unit);
 union Sass_Value make_sass_color   (double r, double g, double b, double a);
 union Sass_Value make_sass_string  (const char* val);
 union Sass_Value make_sass_list    (size_t len, enum Sass_Separator sep);
+union Sass_Value make_sass_null    ();
 union Sass_Value make_sass_error   (const char* msg);
 
 typedef union Sass_Value(*Sass_C_Function)(union Sass_Value);

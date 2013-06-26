@@ -3,6 +3,7 @@
 #include "bind.hpp"
 #include "to_string.hpp"
 #include "inspect.hpp"
+#include "to_c.hpp"
 #include "context.hpp"
 #include "backtrace.hpp"
 #include "prelexer.hpp"
@@ -275,6 +276,7 @@ namespace Sass {
     Definition*     def    = static_cast<Definition*>((*env)[full_name]);
     Block*          body   = def->block();
     Native_Function func   = def->native_function();
+    Sass_C_Function c_func = def->c_function();
 
     for (size_t i = 0, L = args->length(); i < L; ++i) {
       (*args)[i]->value((*args)[i]->value()->perform(this));
@@ -300,6 +302,15 @@ namespace Sass {
     // if it's native, invoke the underlying CPP function
     else if (func) {
       result = func(*env, ctx, def->signature(), c->path(), c->line(), backtrace);
+    }
+    // else if it's a user-defined c function
+    else if (c_func) {
+      To_C to_c;
+      Sass_Value c_val = c_func(args->perform(&to_c));
+      if (c_val.unknown.tag == SASS_ERROR) {
+        error("error in C function " + c->name() + ": " + c_val.error.message, c->path(), c->line(), backtrace);
+      }
+      result = cval_to_astnode(c_val, ctx, backtrace, c->path(), c->line());
     }
     // else it's an overloaded native function; resolve it
     else if (def->is_overload_stub()) {
@@ -709,6 +720,41 @@ namespace Sass {
     return new String_Constant(lhs->path(),
                                lhs->line(),
                                unquoted ? result : quote(result, q));
+  }
+
+  Expression* cval_to_astnode(Sass_Value v, Context& ctx, Backtrace* backtrace, string path, size_t line)
+  {
+    using std::strlen;
+    using std::strcpy;
+    Expression* e = 0;
+    switch (v.unknown.tag) {
+      case SASS_BOOLEAN: {
+        e = new (ctx.mem) Boolean(path, line, v.boolean.value);
+      } break;
+      case SASS_NUMBER: {
+        e = new (ctx.mem) Number(path, line, v.number.value, v.number.unit);
+      } break;
+      case SASS_COLOR: {
+        e = new (ctx.mem) Color(path, line, v.color.r, v.color.g, v.color.b, v.color.a);
+      } break;
+      case SASS_STRING: {
+        e = new (ctx.mem) String_Constant(path, line, v.string.value);
+      } break;
+      case SASS_LIST: {
+        List* l = new (ctx.mem) List(path, line, v.list.length, v.list.separator == SASS_COMMA ? List::COMMA : List::SPACE);
+        for (size_t i = 0, L = v.list.length; i < L; ++i) {
+          *l << cval_to_astnode(v.list.values[i], ctx, backtrace, path, line);
+        }
+        e = l;
+      } break;
+      case SASS_NULL: {
+        e = new (ctx.mem) Null(path, line);
+      } break;
+      case SASS_ERROR: {
+        error("error in C function: " + string(v.error.message), path, line, backtrace);
+      } break;
+    }
+    return e;
   }
 
 }

@@ -17,6 +17,10 @@
 #include "environment.hpp"
 #endif
 
+#ifndef SASS
+#include "sass.h"
+#endif
+
 #include "units.hpp"
 #include "error_handling.hpp"
 #include "ast_def_macros.hpp"
@@ -370,6 +374,7 @@ namespace Sass {
     ADD_PROPERTY(Env*, environment);
     ADD_PROPERTY(Type, type);
     ADD_PROPERTY(Native_Function, native_function);
+    ADD_PROPERTY(Sass_C_Function, c_function);
     ADD_PROPERTY(bool, is_overload_stub);
     ADD_PROPERTY(Signature, signature);
   public:
@@ -385,6 +390,7 @@ namespace Sass {
       environment_(0),
       type_(t),
       native_function_(0),
+      c_function_(0),
       is_overload_stub_(false),
       signature_(0)
     { }
@@ -401,7 +407,26 @@ namespace Sass {
       environment_(0),
       type_(FUNCTION),
       native_function_(func_ptr),
+      c_function_(0),
       is_overload_stub_(overload_stub),
+      signature_(sig)
+    { }
+    Definition(string p,
+               size_t l,
+               Signature sig,
+               string n,
+               Parameters* params,
+               Sass_C_Function func_ptr,
+               bool whatever,
+               bool whatever2)
+    : Has_Block(p, l, 0),
+      name_(n),
+      parameters_(params),
+      environment_(0),
+      type_(FUNCTION),
+      native_function_(0),
+      c_function_(func_ptr),
+      is_overload_stub_(false),
       signature_(sig)
     { }
     ATTACH_OPERATIONS();

@@ -36,6 +36,21 @@ namespace Sass {
                                     false);
   }
 
+  Definition* make_c_function(Signature sig, Sass_C_Function f, Context& ctx)
+  {
+    Parser sig_parser = Parser::from_c_str(sig, ctx, "[c function]", 0);
+    sig_parser.lex<Prelexer::identifier>();
+    string name(sig_parser.lexed);
+    Parameters* params = sig_parser.parse_parameters();
+    return new (ctx.mem) Definition("[c function]",
+                                    0,
+                                    sig,
+                                    name,
+                                    params,
+                                    f,
+                                    false, true);
+  }
+
   namespace Functions {
 
     template <typename T>

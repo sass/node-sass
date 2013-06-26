@@ -4,6 +4,10 @@
 #include "environment.hpp"
 #endif
 
+#ifndef SASS
+#include "sass.h"
+#endif
+
 #include <string>
 
 #define BUILT_IN(name) Expression*\
@@ -20,6 +24,7 @@ namespace Sass {
   typedef Expression* (*Native_Function)(Env&, Context&, Signature, const string&, size_t, Backtrace*);
 
   Definition* make_native_function(Signature, Native_Function, Context&);
+  Definition* make_c_function(Signature sig, Sass_C_Function f, Context& ctx);
 
   namespace Functions {
 
