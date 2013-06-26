@@ -829,6 +829,7 @@ namespace Sass {
     Null(string p, size_t l) : Expression(p, l) { concrete_type(NULL_VAL); }
     string type() { return "null"; }
     static string type_name() { return "null"; }
+    bool is_invisible() { return true; }
     ATTACH_OPERATIONS();
   };
 
