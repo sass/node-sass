@@ -132,4 +132,87 @@ namespace Sass {
     buffer += ';';
   }
 
+  void Output_Compressed::operator()(List* list)
+  {
+    string sep(list->separator() == List::SPACE ? " " : ",");
+    if (list->empty()) return;
+    size_t prev = buffer.length();
+    Expression* first = (*list)[0];
+    bool first_invisible = first->is_invisible();
+    if (!first_invisible) first->perform(this);
+    for (size_t i = 1, L = list->length(); i < L; ++i) {
+      Expression* next = (*list)[i];
+      bool next_invisible = next->is_invisible();
+      if (i == 1 && !first_invisible && !next_invisible) buffer += sep;
+      else if (!next_invisible)                          buffer += sep;
+      next->perform(this);
+    }
+  }
+
+  void Output_Compressed::operator()(Media_Query_Expression* mqe)
+  {
+    if (mqe->is_interpolated()) {
+      mqe->feature()->perform(this);
+    }
+    else {
+      buffer += "(";
+      mqe->feature()->perform(this);
+      if (mqe->value()) {
+        buffer += ":";
+        mqe->value()->perform(this);
+      }
+      buffer += ')';
+    }
+  }
+
+  void Output_Compressed::operator()(Argument* a)
+  {
+    if (!a->name().empty()) {
+      buffer += a->name();
+      buffer += ":";
+    }
+    a->value()->perform(this);
+    if (a->is_rest_argument()) {
+      buffer += "...";
+    }
+  }
+
+  void Output_Compressed::operator()(Arguments* a)
+  {
+    buffer += '(';
+    if (!a->empty()) {
+      (*a)[0]->perform(this);
+      for (size_t i = 1, L = a->length(); i < L; ++i) {
+        buffer += ",";
+        (*a)[i]->perform(this);
+      }
+    }
+    buffer += ')';
+  }
+
+  void Output_Compressed::operator()(Selector_Combination* c)
+  {
+    Simple_Selector_Sequence*        head = c->head();
+    Selector_Combination*            tail = c->tail();
+    Selector_Combination::Combinator comb = c->combinator();
+    if (head) head->perform(this);
+    switch (comb) {
+      case Selector_Combination::ANCESTOR_OF: buffer += ' '; break;
+      case Selector_Combination::PARENT_OF:   buffer += '>'; break;
+      case Selector_Combination::PRECEDES:    buffer += '~'; break;
+      case Selector_Combination::ADJACENT_TO: buffer += '+'; break;
+    }
+    if (tail) tail->perform(this);
+  }
+
+  void Output_Compressed::operator()(Selector_Group* g)
+  {
+    if (g->empty()) return;
+    (*g)[0]->perform(this);
+    for (size_t i = 1, L = g->length(); i < L; ++i) {
+      buffer += ",";
+      (*g)[i]->perform(this);
+    }
+  }
+
 }

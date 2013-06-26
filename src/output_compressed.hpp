@@ -43,7 +43,7 @@ namespace Sass {
     // virtual void operator()(Mixin_Call*);
     // virtual void operator()(Content*);
     // // expressions
-    // virtual void operator()(List*);
+    virtual void operator()(List*);
     // virtual void operator()(Binary_Expression*);
     // virtual void operator()(Unary_Expression*);
     // virtual void operator()(Function_Call*);
@@ -56,12 +56,12 @@ namespace Sass {
     // virtual void operator()(String_Schema*);
     // virtual void operator()(String_Constant* x);
     // virtual void operator()(Media_Query*);
-    // virtual void operator()(Media_Query_Expression*);
+    virtual void operator()(Media_Query_Expression*);
     // // parameters and arguments
     // virtual void operator()(Parameter*);
     // virtual void operator()(Parameters*);
-    // virtual void operator()(Argument*);
-    // virtual void operator()(Arguments*);
+    virtual void operator()(Argument*);
+    virtual void operator()(Arguments*);
     // // selectors
     // virtual void operator()(Selector_Schema*);
     // virtual void operator()(Selector_Reference*);
@@ -72,8 +72,8 @@ namespace Sass {
     // virtual void operator()(Pseudo_Selector*);
     // virtual void operator()(Negated_Selector*);
     // virtual void operator()(Simple_Selector_Sequence*);
-    // virtual void operator()(Selector_Combination*);
-    // virtual void operator()(Selector_Group*);
+    virtual void operator()(Selector_Combination*);
+    virtual void operator()(Selector_Group*);
 
     template <typename U>
     void fallback(U x) { fallback_impl(x); }
