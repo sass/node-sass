@@ -136,7 +136,6 @@ namespace Sass {
   {
     string sep(list->separator() == List::SPACE ? " " : ",");
     if (list->empty()) return;
-    size_t prev = buffer.length();
     Expression* first = (*list)[0];
     bool first_invisible = first->is_invisible();
     if (!first_invisible) first->perform(this);

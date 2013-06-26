@@ -22,8 +22,8 @@ namespace Sass {
     block_stack(vector<Block*>()),
     property_stack(vector<String*>()),
     selector_stack(vector<Selector*>()),
-    extensions(multimap<Simple_Selector_Sequence, Selector_Combination*>()),
-    backtrace(bt)
+    backtrace(bt),
+    extensions(multimap<Simple_Selector_Sequence, Selector_Combination*>())
   { selector_stack.push_back(0); }
 
   Statement* Expand::operator()(Block* b)

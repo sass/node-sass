@@ -340,14 +340,16 @@ namespace Sass {
   Expression* Eval::operator()(Variable* v)
   {
     string name(v->name());
-    if (env->has(name)) return static_cast<Expression*>((*env)[name]);
+    Expression* value = 0;
+    if (env->has(name)) value = static_cast<Expression*>((*env)[name]);
     else error("unbound variable " + v->name(), v->path(), v->line());
+    return value;
   }
 
   Expression* Eval::operator()(Textual* t)
   {
     using Prelexer::number;
-    Expression* result;
+    Expression* result = 0;
     switch (t->type())
     {
       case Textual::NUMBER:
@@ -498,7 +500,6 @@ namespace Sass {
 
   bool eq(Expression* lhs, Expression* rhs, Context& ctx)
   {
-    Boolean* result = new Boolean(lhs->path(), lhs->line(), false);
     Expression::Concrete_Type ltype = lhs->concrete_type();
     Expression::Concrete_Type rtype = rhs->concrete_type();
     if (ltype != rtype) return false;
@@ -646,6 +647,7 @@ namespace Sass {
       case Binary_Expression::MOD: {
         error("cannot divide a number by a color", r->path(), r->line());
       } break;
+      default: break; // caller should ensure that we don't get here
     }
     // unreachable
     return l;

@@ -1163,8 +1163,8 @@ namespace Sass {
                          Selector_Combination* t)
     : Selector(p, l), combinator_(c), head_(h), tail_(t)
     {
-      if (h && h->has_reference()   || t && t->has_reference())   has_reference(true);
-      if (h && h->has_placeholder() || t && t->has_placeholder()) has_placeholder(true);
+      if ((h && h->has_reference())   || (t && t->has_reference()))   has_reference(true);
+      if ((h && h->has_placeholder()) || (t && t->has_placeholder())) has_placeholder(true);
     }
     Simple_Selector_Sequence* base();
     Selector_Combination* context(Context&);

@@ -150,7 +150,7 @@ namespace Sass {
 
   Definition* Parser::parse_definition()
   {
-    Definition::Type which_type;
+    Definition::Type which_type = Definition::MIXIN;
     if      (lex< mixin >())    which_type = Definition::MIXIN;
     else if (lex< function >()) which_type = Definition::FUNCTION;
     string which_str(lexed);
@@ -659,7 +659,7 @@ namespace Sass {
   }
 
   Declaration* Parser::parse_declaration() {
-    String* prop;
+    String* prop = 0;
     if (peek< sequence< optional< exactly<'*'> >, identifier_schema > >()) {
       prop = parse_identifier_schema();
     }
@@ -1141,7 +1141,7 @@ namespace Sass {
     if (!lex< from >()) error("expected 'from' keyword in @for directive");
     Expression* lower_bound = parse_expression();
     lower_bound->is_delayed(false);
-    bool inclusive;
+    bool inclusive = false;
     if (lex< through >()) inclusive = true;
     else if (lex< to >()) inclusive = false;
     else                  error("expected 'through' or 'to' keywod in @for directive");

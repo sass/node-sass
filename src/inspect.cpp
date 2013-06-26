@@ -221,7 +221,6 @@ namespace Sass {
   {
     string sep(list->separator() == List::SPACE ? " " : ", ");
     if (list->empty()) return;
-    size_t prev = buffer.length();
     Expression* first = (*list)[0];
     bool first_invisible = first->is_invisible();
     if (!first_invisible) first->perform(this);
@@ -249,8 +248,9 @@ namespace Sass {
       case Binary_Expression::ADD: buffer += " + ";   break;
       case Binary_Expression::SUB: buffer += " - ";   break;
       case Binary_Expression::MUL: buffer += " * ";   break;
-      case Binary_Expression::DIV: buffer += "/";   break;
+      case Binary_Expression::DIV: buffer += "/";     break;
       case Binary_Expression::MOD: buffer += " % ";   break;
+      default: break; // shouldn't get here
     }
     expr->right()->perform(this);
   }

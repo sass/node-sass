@@ -40,8 +40,8 @@ namespace Sass {
 
   Context::Context(Context::Data initializers)
   : mem(Memory_Manager<AST_Node*>()),
-    sources         (vector<const char*>()),
     source_c_str    (initializers.source_c_str()),
+    sources         (vector<const char*>()),
     include_paths   (initializers.include_paths()),
     queue           (vector<pair<string, const char*> >()),
     style_sheets    (map<string, Block*>()),
@@ -161,7 +161,7 @@ namespace Sass {
 
   char* Context::compile_file()
   {
-    Block* root;
+    Block* root = 0;
     for (size_t i = 0; i < queue.size(); ++i) {
       Parser p(Parser::from_c_str(queue[i].second, *this, queue[i].first));
       Block* ast = p.parse();
