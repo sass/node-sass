@@ -1,58 +1,75 @@
 #define SASS_CONTEXT
 
-//#ifndef SASS_ENVIRONMENT
+#include <string>
+#include <vector>
+#include <map>
+#include "kwd_arg_macros.hpp"
+
+#ifndef SASS_MEMORY_MANAGER
+#include "memory_manager.hpp"
+#endif
+
+#ifndef SASS_ENVIRONMENT
 #include "environment.hpp"
-//#endif
-
-#include <utility>
-
-#ifndef SASS_NODE_FACTORY
-#include "node_factory.hpp"
 #endif
-
-#ifndef SASS_FUNCTIONS
-#include "functions.hpp"
-#endif
-
-#ifndef SASS_VALUES
-#include "sass_values.h"
-#endif
-// struct Sass_C_Function_Data;
 
 namespace Sass {
-  using std::pair;
-  using std::map;
+  using namespace std;
+  class AST_Node;
+  class Block;
+  class Expression;
+  class Color;
+  class Backtrace;
+  // typedef const char* Signature;
+  // struct Context;
+  // typedef Environment<AST_Node*> Env;
+  // typedef Expression* (*Native_Function)(Env&, Context&, Signature, string, size_t);
+
+  enum Output_Style { NESTED, EXPANDED, COMPACT, COMPRESSED, FORMATTED };
 
   struct Context {
-    Environment global_env;
-    map<string, Function> function_env;
-    vector<Sass_C_Function_Data> c_function_list;
-    multimap<Node, Node> extensions;
-    vector<pair<Node, Node> > pending_extensions;
-    vector<const char*> source_refs; // all the source c-strings
+    Memory_Manager<AST_Node*> mem;
+
+    const char* source_c_str;
+    vector<const char*> sources; // c-strs containing Sass file contents
     vector<string> include_paths;
-    map<string, Node> color_names_to_values;
-    map<Node, string> color_values_to_names;
-    Node_Factory new_Node;
-    char* image_path;
-    size_t ref_count;
-    // string sass_path;
-    // string css_path;
-    bool has_extensions;
-    int source_comments;
+    vector<pair<string, const char*> > queue; // queue of files to be parsed
+    map<string, Block*> style_sheets; // map of paths to ASTs
 
-    void collect_include_paths(const char* paths_str);
-    Context(const char* paths_str = 0, const char* img_path_str = 0, int sc = 0);
+    string       image_path; // for the image-url Sass function
+    bool         source_comments;
+    bool         source_maps;
+    Output_Style output_style;
+
+    map<string, Color*> names_to_colors;
+    map<int, string>    colors_to_names;
+
+    KWD_ARG_SET(Data) {
+      KWD_ARG(Data, const char*,     source_c_str);
+      KWD_ARG(Data, string,          entry_point);
+      KWD_ARG(Data, string,          image_path);
+      KWD_ARG(Data, const char*,     include_paths_c_str);
+      KWD_ARG(Data, const char**,    include_paths_array);
+      KWD_ARG(Data, vector<string>,  include_paths);
+      KWD_ARG(Data, bool,            source_comments);
+      KWD_ARG(Data, bool,            source_maps);
+      KWD_ARG(Data, Output_Style,    output_style);
+    };
+
+    Context(Data);
     ~Context();
-
-    void register_function(Signature sig, Primitive ip);
-    void register_function(Signature sig, Primitive ip, size_t arity);
-    void register_c_function(Signature sig, C_Function ip, void *cookie);
-    void register_c_function(Signature sig, C_Function ip, void *cookie, size_t arity);
-    void register_overload_stub(string name);
-    void register_functions();
-    void register_c_functions();
+    void collect_include_paths(const char* paths_str);
+    void collect_include_paths(const char* paths_array[]);
     void setup_color_map();
+    string add_file(string);
+    char* compile_string();
+    char* compile_file();
+
+    // void register_built_in_functions(Env* env);
+    // void register_function(Signature sig, Native_Function f, Env* env);
+    // void register_function(Signature sig, Native_Function f, size_t arity, Env* env);
+    // void register_overload_stub(string name, Env* env);
+
   };
 
 }

@@ -1,7 +1,5 @@
 #define SASS_INTERFACE
 
-#include "sass.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

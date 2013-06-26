@@ -12,12 +12,80 @@
 #include <sstream>
 #include "context.hpp"
 #include "constants.hpp"
+#include "parser.hpp"
+#include "file.hpp"
+#include "inspect.hpp"
+#include "output_nested.hpp"
+#include "output_compressed.hpp"
+#include "expand.hpp"
+#include "eval.hpp"
+#include "contextualize.hpp"
+#include "extend.hpp"
+#include "copy_c_str.hpp"
 #include "color_names.hpp"
+#include "functions.hpp"
+#include "backtrace.hpp"
+
+#ifndef SASS_PRELEXER
 #include "prelexer.hpp"
+#endif
+
+#include <iomanip>
+#include <iostream>
 
 namespace Sass {
   using namespace Constants;
-  using std::pair; using std::cerr; using std::endl;
+  using std::cerr;
+  using std::endl;
+
+  Context::Context(Context::Data initializers)
+  : mem(Memory_Manager<AST_Node*>()),
+    source_c_str    (initializers.source_c_str()),
+    sources         (vector<const char*>()),
+    include_paths   (initializers.include_paths()),
+    queue           (vector<pair<string, const char*> >()),
+    style_sheets    (map<string, Block*>()),
+    image_path      (initializers.image_path()),
+    source_comments (initializers.source_comments()),
+    source_maps     (initializers.source_maps()),
+    output_style    (initializers.output_style()),
+    names_to_colors (map<string, Color*>()),
+    colors_to_names (map<int, string>())
+  {
+    collect_include_paths(initializers.include_paths_c_str());
+    collect_include_paths(initializers.include_paths_array());
+
+    setup_color_map();
+
+    string entry_point = initializers.entry_point();
+    if (!entry_point.empty()) {
+      string result(add_file(entry_point));
+      if (result.empty()) {
+        throw entry_point;
+      }
+    }
+  }
+
+  Context::~Context()
+  { for (size_t i = 0; i < sources.size(); ++i) delete[] sources[i]; }
+
+  void Context::setup_color_map()
+  {
+    size_t i = 0;
+    while (color_names[i]) {
+      string name(color_names[i]);
+      Color* value = new (mem) Color("[COLOR TABLE]", 0,
+                                     color_values[i*3],
+                                     color_values[i*3+1],
+                                     color_values[i*3+2]);
+      names_to_colors[name] = value;
+      int numval = color_values[i*3]*0x10000;
+      numval += color_values[i*3+1]*0x100;
+      numval += color_values[i*3+2];
+      colors_to_names[numval] = name;
+      ++i;
+    }
+  }
 
   void Context::collect_include_paths(const char* paths_str)
   {
@@ -46,187 +114,212 @@ namespace Sass {
         include_paths.push_back(path);
       }
     }
+  }
 
-    // for (int i = 0; i < include_paths.size(); ++i) {
-    //   cerr << include_paths[i] << endl;
+  void Context::collect_include_paths(const char* paths_array[])
+  {
+    const size_t wd_len = 1024;
+    char wd[wd_len];
+    include_paths.push_back(getcwd(wd, wd_len));
+    if (*include_paths.back().rbegin() != '/') include_paths.back() += '/';
+
+    // if (paths_array) {
+    //   for (size_t i = 0; paths_array[i]; ++i) {
+    //     string path(paths_array[i]);
+    //     if (!path.empty()) {
+    //       if (*path.rbegin() != '/') path += '/';
+    //       include_paths.push_back(path);
+    //     }
+    //   }
     // }
   }
 
-  Context::Context(const char* paths_str, const char* img_path_str, int sc)
-  : global_env(Environment()),
-    function_env(map<string, Function>()),
-    c_function_list(vector<Sass_C_Function_Data>()),
-    extensions(multimap<Node, Node>()),
-    pending_extensions(vector<pair<Node, Node> >()),
-    source_refs(vector<const char*>()),
-    include_paths(vector<string>()),
-    color_names_to_values(map<string, Node>()),
-    color_values_to_names(map<Node, string>()),
-    new_Node(Node_Factory()),
-    image_path(0),
-    ref_count(0),
-    has_extensions(false),
-    source_comments(sc)
+  string Context::add_file(string path)
   {
-    register_functions();
-    collect_include_paths(paths_str);
-    setup_color_map();
-
-    string path_string(img_path_str ? img_path_str : "");
-    path_string = "'" + path_string + "/'";
-    image_path = new char[path_string.length() + 1];
-    std::strcpy(image_path, path_string.c_str());
-
-    // stash this hidden variable for the image-url built-in to use
-    global_env[Token::make(image_path_var)] = new_Node(Node::string_constant, "[IMAGE PATH]", 0, Token::make(image_path));
-  }
-
-  Context::~Context()
-  {
-    for (size_t i = 0; i < source_refs.size(); ++i) {
-      delete[] source_refs[i];
+    using namespace File;
+    char* contents = 0;
+    for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
+      string full_path(join_paths(include_paths[i], path));
+      if (style_sheets.count(full_path)) return full_path;
+      contents = resolve_and_load(full_path);
+      if (contents) {
+        sources.push_back(contents);
+        queue.push_back(make_pair(full_path, contents));
+        style_sheets[full_path] = 0;
+        return full_path;
+      }
     }
-    delete[] image_path;
-    new_Node.free();
+    return string();
   }
 
-  inline void Context::register_function(Signature sig, Primitive ip)
+  void register_function(Context&, Signature sig, Native_Function f, Env* env);
+  void register_function(Context&, Signature sig, Native_Function f, size_t arity, Env* env);
+  void register_overload_stub(Context&, string name, Env* env);
+  void register_built_in_functions(Context&, Env* env);
+  void register_c_functions(Context&, Env* env, Sass_C_Function_Descriptor*);
+  void register_c_function(Context&, Env* env, Sass_C_Function_Descriptor);
+
+  char* Context::compile_file()
   {
-    Function f(const_cast<char*>(sig), ip, *this);
-    function_env[f.name] = f;
+    Block* root = 0;
+    for (size_t i = 0; i < queue.size(); ++i) {
+      Parser p(Parser::from_c_str(queue[i].second, *this, queue[i].first));
+      Block* ast = p.parse();
+      if (i == 0) root = ast;
+      style_sheets[queue[i].first] = ast;
+    }
+
+    Env tge;
+    Backtrace backtrace(0, "", 0, "");
+    register_built_in_functions(*this, &tge);
+    Eval eval(*this, &tge, &backtrace);
+    Contextualize contextualize(*this, &eval, &tge, &backtrace);
+    Expand expand(*this, &eval, &contextualize, &tge, &backtrace);
+    Inspect inspect;
+    Output_Nested output_nested;
+
+    root = root->perform(&expand)->block();
+    if (expand.extensions.size()) {
+      Extend extend(*this, expand.extensions);
+      root->perform(&extend);
+    }
+    char* result = 0;
+    switch (output_style) {
+      case COMPRESSED: {
+        Output_Compressed output_compressed;
+        root->perform(&output_compressed);
+        result = copy_c_str(output_compressed.get_buffer().c_str());
+      } break;
+
+      default: {
+        Output_Nested output_nested;
+        root->perform(&output_nested);
+        result = copy_c_str(output_nested.get_buffer().c_str());
+      } break;
+    }
+
+    return result;
   }
 
-  inline void Context::register_function(Signature sig, Primitive ip, size_t arity)
+  char* Context::compile_string()
   {
-    Function f(const_cast<char*>(sig), ip, *this);
-    std::stringstream stub;
-    stub << f.name << " " << arity;
-    function_env[stub.str()] = f;
+    if (!source_c_str) return 0;
+    queue.clear();
+    queue.push_back(make_pair("source string", source_c_str));
+    return compile_file();
   }
 
-  inline void Context::register_c_function(Signature sig, C_Function ip, void *cookie)
+  void register_function(Context& ctx, Signature sig, Native_Function f, Env* env)
   {
-    Function f(const_cast<char*>(sig), ip, cookie, *this);
-    function_env[f.name] = f;
+    Definition* def = make_native_function(sig, f, ctx);
+    def->environment(env);
+    (*env)[def->name() + "[f]"] = def;
   }
 
-  inline void Context::register_c_function(Signature sig, C_Function ip, void *cookie, size_t arity)
+  void register_function(Context& ctx, Signature sig, Native_Function f, size_t arity, Env* env)
   {
-    Function f(const_cast<char*>(sig), ip, cookie, *this);
-    std::stringstream stub;
-    stub << f.name << " " << arity;
-    function_env[stub.str()] = f;
+    Definition* def = make_native_function(sig, f, ctx);
+    stringstream ss;
+    ss << def->name() << "[f]" << arity;
+    def->environment(env);
+    (*env)[ss.str()] = def;
   }
 
-  inline void Context::register_overload_stub(string name)
+  void register_overload_stub(Context& ctx, string name, Env* env)
   {
-    function_env[name] = Function(name, true);
+    Definition* stub = new (ctx.mem) Definition("[built-in function]",
+                                            0,
+                                            0,
+                                            name,
+                                            0,
+                                            0,
+                                            true);
+    (*env)[name + "[f]"] = stub;
   }
 
-  void Context::register_functions()
+
+  void register_built_in_functions(Context& ctx, Env* env)
   {
     using namespace Functions;
-
     // RGB Functions
-    register_function(rgb_sig,  rgb);
-    register_overload_stub("rgba");
-    register_function(rgba_4_sig, rgba_4, 4);
-    register_function(rgba_2_sig, rgba_2, 2);
-    register_function(red_sig, red);
-    register_function(green_sig, green);
-    register_function(blue_sig, blue);
-    register_function(mix_sig, mix);
+    register_function(ctx, rgb_sig,  rgb, env);
+    register_overload_stub(ctx, "rgba", env);
+    register_function(ctx, rgba_4_sig, rgba_4, 4, env);
+    register_function(ctx, rgba_2_sig, rgba_2, 2, env);
+    register_function(ctx, red_sig, red, env);
+    register_function(ctx, green_sig, green, env);
+    register_function(ctx, blue_sig, blue, env);
+    register_function(ctx, mix_sig, mix, env);
     // HSL Functions
-    register_function(hsl_sig, hsl);
-    register_function(hsla_sig, hsla);
-    register_function(hue_sig, hue);
-    register_function(saturation_sig, saturation);
-    register_function(lightness_sig, lightness);
-    register_function(adjust_hue_sig, adjust_hue);
-    register_function(lighten_sig, lighten);
-    register_function(darken_sig, darken);
-    register_function(saturate_sig, saturate);
-    register_function(desaturate_sig, desaturate);
-    register_function(grayscale_sig, grayscale);
-    register_function(complement_sig, complement);
-    register_function(invert_sig, invert);
+    register_function(ctx, hsl_sig, hsl, env);
+    register_function(ctx, hsla_sig, hsla, env);
+    register_function(ctx, hue_sig, hue, env);
+    register_function(ctx, saturation_sig, saturation, env);
+    register_function(ctx, lightness_sig, lightness, env);
+    register_function(ctx, adjust_hue_sig, adjust_hue, env);
+    register_function(ctx, lighten_sig, lighten, env);
+    register_function(ctx, darken_sig, darken, env);
+    register_function(ctx, saturate_sig, saturate, env);
+    register_function(ctx, desaturate_sig, desaturate, env);
+    register_function(ctx, grayscale_sig, grayscale, env);
+    register_function(ctx, complement_sig, complement, env);
+    register_function(ctx, invert_sig, invert, env);
     // Opacity Functions
-    register_function(alpha_sig, alpha);
-    register_function(opacity_sig, opacity);
-    register_function(opacify_sig, opacify);
-    register_function(fade_in_sig, fade_in);
-    register_function(transparentize_sig, transparentize);
-    register_function(fade_out_sig, fade_out);
+    register_function(ctx, alpha_sig, alpha, env);
+    register_function(ctx, opacity_sig, alpha, env);
+    register_function(ctx, opacify_sig, opacify, env);
+    register_function(ctx, fade_in_sig, opacify, env);
+    register_function(ctx, transparentize_sig, transparentize, env);
+    register_function(ctx, fade_out_sig, transparentize, env);
     // Other Color Functions
-    register_function(adjust_color_sig, adjust_color);
-    register_function(scale_color_sig, scale_color);
-    register_function(change_color_sig, change_color);
-    register_function(ie_hex_str_sig, ie_hex_str);
+    register_function(ctx, adjust_color_sig, adjust_color, env);
+    register_function(ctx, scale_color_sig, scale_color, env);
+    register_function(ctx, change_color_sig, change_color, env);
+    register_function(ctx, ie_hex_str_sig, ie_hex_str, env);
     // String Functions
-    register_function(unquote_sig, unquote);
-    register_function(quote_sig, quote);
+    register_function(ctx, unquote_sig, sass_unquote, env);
+    register_function(ctx, quote_sig, sass_quote, env);
     // Number Functions
-    register_function(percentage_sig, percentage);
-    register_function(round_sig, round);
-    register_function(ceil_sig, ceil);
-    register_function(floor_sig, floor);
-    register_function(abs_sig, abs);
-    register_function(min_sig, min);
-    register_function(max_sig, max);
+    register_function(ctx, percentage_sig, percentage, env);
+    register_function(ctx, round_sig, round, env);
+    register_function(ctx, ceil_sig, ceil, env);
+    register_function(ctx, floor_sig, floor, env);
+    register_function(ctx, abs_sig, abs, env);
+    register_function(ctx, min_sig, min, env);
+    register_function(ctx, max_sig, max, env);
     // List Functions
-    register_function(length_sig, length);
-    register_function(nth_sig, nth);
-    register_function(index_sig, index);
-    register_function(join_sig, join);
-    register_function(append_sig, append);
-    register_overload_stub("compact");
-    register_function(compact_1_sig, compact_1, 1);
-    register_function(compact_n_sig, compact_n, 0);
-    register_function(compact_n_sig, compact_n, 2);
-    register_function(compact_n_sig, compact_n, 3);
-    register_function(compact_n_sig, compact_n, 4);
-    register_function(compact_n_sig, compact_n, 5);
-    register_function(compact_n_sig, compact_n, 6);
-    register_function(compact_n_sig, compact_n, 7);
-    register_function(compact_n_sig, compact_n, 8);
-    register_function(compact_n_sig, compact_n, 9);
-    register_function(compact_n_sig, compact_n, 10);
-    register_function(compact_n_sig, compact_n, 11);
-    register_function(compact_n_sig, compact_n, 12);
+    register_function(ctx, length_sig, length, env);
+    register_function(ctx, nth_sig, nth, env);
+    register_function(ctx, index_sig, index, env);
+    register_function(ctx, join_sig, join, env);
+    register_function(ctx, append_sig, append, env);
+    register_function(ctx, compact_sig, compact, env);
+    register_function(ctx, zip_sig, zip, env);
     // Introspection Functions
-    register_function(type_of_sig, type_of);
-    register_function(unit_sig, unit);
-    register_function(unitless_sig, unitless);
-    register_function(comparable_sig, comparable);
+    register_function(ctx, type_of_sig, type_of, env);
+    register_function(ctx, unit_sig, unit, env);
+    register_function(ctx, unitless_sig, unitless, env);
+    register_function(ctx, comparable_sig, comparable, env);
     // Boolean Functions
-    register_function(not_sig, not_impl);
-    register_function(if_sig, if_impl);
+    register_function(ctx, not_sig, sass_not, env);
+    register_function(ctx, if_sig, sass_if, env);
     // Path Functions
-    register_function(image_url_sig, image_url);
+    register_function(ctx, image_url_sig, image_url, env);
   }
 
-  void Context::register_c_functions()
+  void register_c_functions(Context& ctx, Env* env, Sass_C_Function_Descriptor* descrs)
   {
-    for (size_t i = 0, S = c_function_list.size(); i < S; ++i) {
-      Sass_C_Function_Data f_data = c_function_list[i];
-      register_c_function(f_data.signature, f_data.function, f_data.cookie);
+    while (descrs->signature && descrs->function) {
+      register_c_function(ctx, env, *descrs);
+      ++descrs;
     }
+  }
+  void register_c_function(Context& ctx, Env* env, Sass_C_Function_Descriptor descr)
+  {
+    Definition* def = make_c_function(descr.signature, descr.function, ctx);
+    def->environment(env);
+    (*env)[def->name() + "[f]"] = def;
   }
 
-  void Context::setup_color_map()
-  {
-    size_t i = 0;
-    while (color_names[i]) {
-      string name(color_names[i]);
-      Node value(new_Node("[COLOR TABLE]", 0,
-                          color_values[i*3],
-                          color_values[i*3+1],
-                          color_values[i*3+2],
-                          1));
-      color_names_to_values[name] = value;
-      color_values_to_names[value] = name;
-      ++i;
-    }
-  }
 
 }
