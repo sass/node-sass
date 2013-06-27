@@ -1,7 +1,14 @@
+#ifdef _WIN32
+#define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
+#endif
+
+
 #include <iostream>
 #include <fstream>
 #include "file.hpp"
 #include "context.hpp"
+#include <cstdio>
+#include <sys/stat.h>
 
 namespace Sass {
 	namespace File {
@@ -60,16 +67,32 @@ namespace Sass {
 
 		char* read_file(string path)
 		{
-			ifstream file(path.c_str(), ios::in | ios::binary | ios::ate);
+			// ifstream file(path.c_str(), ios::in | ios::binary | ios::ate);
+			// char* contents = 0;
+			// if (file.is_open()) {
+			// 	size_t size = file.tellg();
+			// 	contents = new char[size + 1]; // extra byte for the null char
+			// 	file.seekg(0, ios::beg);
+			// 	file.read(contents, size);
+			// 	contents[size] = '\0';
+			// 	file.close();
+			// }
+			// return contents;
+
 			char* contents = 0;
-			if (file.is_open()) {
-				size_t size = file.tellg();
-				contents = new char[size + 1]; // extra byte for the null char
-				file.seekg(0, ios::beg);
-				file.read(contents, size);
-				contents[size] = '\0';
-				file.close();
+			const char* path_str = path.c_str();
+			struct stat st;
+			if (stat(path_str, &st) == -1 || S_ISDIR(st.st_mode)) return 0;
+			FILE *f = fopen(path.c_str(), "rb");
+			size_t len = st.st_size;
+			contents = new char[len + 1];
+			size_t bytes_read = fread(contents, sizeof(char), len, f);
+			if (bytes_read != len) {
+				cerr << "Warning: possible error reading from " << path << endl;
 			}
+			if (ferror(f)) throw path;
+			contents[len] = '\0';
+			if (fclose(f)) throw path;
 			return contents;
 		}
 
