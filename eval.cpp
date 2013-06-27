@@ -453,9 +453,7 @@ namespace Sass {
     string acc;
     To_String to_string;
     for (size_t i = 0, L = s->length(); i < L; ++i) {
-      cerr << "unquoting interpolant" << endl;
       acc += unquote((*s)[i]->perform(this)->perform(&to_string));
-      cerr << "done" << endl;
     }
     return new (ctx.mem) String_Constant(s->path(),
                                          s->line(),

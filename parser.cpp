@@ -448,8 +448,10 @@ namespace Sass {
   {
     lex< pseudo_not >();
     size_t nline = line;
-    Simple_Selector* negated = parse_simple_selector();
-    if (!lex< exactly<')'> >()) error("negated selector is missing ')'");
+    Selector* negated = parse_selector_group();
+    if (!lex< exactly<')'> >()) {
+      error("negated selector is missing ')'");
+    }
     return new (ctx.mem) Negated_Selector(path, nline, negated);
   }
 

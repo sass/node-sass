@@ -81,7 +81,15 @@ namespace Sass {
   }
 
   Selector* Contextualize::operator()(Negated_Selector* s)
-  { return s; }
+  {
+    Selector* old_parent = parent;
+    parent = 0;
+    Negated_Selector* neg = new (ctx.mem) Negated_Selector(s->path(),
+                                                           s->line(),
+                                                           s->selector()->perform(this));
+    parent = old_parent;
+    return neg;
+  }
 
   Selector* Contextualize::operator()(Pseudo_Selector* s)
   { return s; }

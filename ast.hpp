@@ -1115,9 +1115,9 @@ namespace Sass {
   // Negated selector -- e.g., :not(:first-of-type)
   /////////////////////////////////////////////////
   class Negated_Selector : public Simple_Selector {
-    ADD_PROPERTY(Simple_Selector*, selector);
+    ADD_PROPERTY(Selector*, selector);
   public:
-    Negated_Selector(string p, size_t l, Simple_Selector* sel)
+    Negated_Selector(string p, size_t l, Selector* sel)
     : Simple_Selector(p, l), selector_(sel)
     { }
     ATTACH_OPERATIONS();
