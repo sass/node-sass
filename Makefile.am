@@ -8,4 +8,4 @@ libsass_la_SOURCES = ast.cpp bind.cpp constants.cpp context.cpp contextualize.cp
   units.cpp
 libsass_la_LDFLAGS = -no-undefined -version-info 0:0:0
 
-include_HEADERS = sass_interface.h sass_values.h
+include_HEADERS = sass_interface.h sass.h
