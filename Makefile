@@ -6,10 +6,10 @@ PREFIX  = /usr/local
 LIBDIR  = $(PREFIX)/lib
 
 SOURCES = ast.cpp bind.cpp constants.cpp context.cpp contextualize.cpp \
-					copy_c_str.cpp error_handling.cpp eval.cpp expand.cpp extend.cpp \
-					file.cpp functions.cpp inspect.cpp output_compressed.cpp \
-					output_nested.cpp parser.cpp prelexer.cpp sass.cpp \
-					sass_interface.cpp to_c.cpp to_string.cpp units.cpp
+	copy_c_str.cpp error_handling.cpp eval.cpp expand.cpp extend.cpp file.cpp \
+	functions.cpp inspect.cpp output_compressed.cpp output_nested.cpp \
+	parser.cpp prelexer.cpp sass.cpp sass_interface.cpp to_c.cpp to_string.cpp \
+	units.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)
 

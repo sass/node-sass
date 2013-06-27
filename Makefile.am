@@ -1,10 +1,11 @@
 ACLOCAL_AMFLAGS = -I m4
 
 lib_LTLIBRARIES = libsass.la
-libsass_la_SOURCES = context.cpp functions.cpp document.cpp \
-	constants.cpp document_parser.cpp eval_apply.cpp node.cpp \
-	node_factory.cpp node_emitters.cpp prelexer.cpp \
-	selector.cpp sass_interface.cpp sass_values.cpp
+libsass_la_SOURCES = ast.cpp bind.cpp constants.cpp context.cpp contextualize.cpp \
+  copy_c_str.cpp error_handling.cpp eval.cpp expand.cpp extend.cpp file.cpp \
+  functions.cpp inspect.cpp output_compressed.cpp output_nested.cpp \
+  parser.cpp prelexer.cpp sass.cpp sass_interface.cpp to_c.cpp to_string.cpp \
+  units.cpp
 libsass_la_LDFLAGS = -no-undefined -version-info 0:0:0
 
 include_HEADERS = sass_interface.h sass_values.h
