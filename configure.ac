@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.68])
 AC_INIT([libsass], [1.0], [support@moovweb.com])
-AC_CONFIG_SRCDIR([error.hpp])
+AC_CONFIG_SRCDIR([ast.hpp])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE
