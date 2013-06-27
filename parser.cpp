@@ -47,7 +47,7 @@ namespace Sass {
       }
       else if (peek< import >()) {
         Import* imp = parse_import();
-        (*root) << imp;
+        if (!imp->urls().empty()) (*root) << imp;
         if (!imp->files().empty()) {
           for (size_t i = 0, S = imp->files().size(); i < S; ++i) {
             (*root) << new (ctx.mem) Import_Stub(path, line, imp->files()[i]);
@@ -551,7 +551,7 @@ namespace Sass {
           error("@import directives are not allowed inside mixins and functions");
         }
         Import* imp = parse_import();
-        (*block) << imp;
+        if (!imp->urls().empty()) (*block) << imp;
         if (!imp->files().empty()) {
           for (size_t i = 0, S = imp->files().size(); i < S; ++i) {
             (*block) << new (ctx.mem) Import_Stub(path, line, imp->files()[i]);

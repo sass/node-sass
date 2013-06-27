@@ -1,6 +1,8 @@
 #include "output_nested.hpp"
 #include "inspect.hpp"
 #include "ast.hpp"
+#include <iostream>
+#include <typeinfo>
 
 namespace Sass {
   using namespace std;
@@ -13,6 +15,15 @@ namespace Sass {
     Inspect i;
     n->perform(&i);
     buffer += i.get_buffer();
+  }
+
+  void Output_Nested::operator()(Block* b)
+  {
+    if (!b->is_root()) return;
+    for (size_t i = 0, L = b->length(); i < L; ++i) {
+      (*b)[i]->perform(this);
+      if (i < L-1) buffer += '\n';
+    }
   }
 
   void Output_Nested::operator()(Ruleset* r)
@@ -154,15 +165,6 @@ namespace Sass {
       buffer.erase(buffer.length()-1);
     }
     buffer += " }\n";
-  }
-
-  void Output_Nested::operator()(Block* b)
-  {
-    if (!b->is_root()) return;
-    for (size_t i = 0, L = b->length(); i < L; ++i) {
-      (*b)[i]->perform(this);
-      if (i < L-1) buffer += '\n';
-    }
   }
 
   void Output_Nested::indent()
