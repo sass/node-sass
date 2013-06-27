@@ -644,8 +644,17 @@ namespace Sass {
           (*block) << parse_propset();
         }
         else {
-          (*block) << parse_declaration();
-          semicolon = true;
+          Declaration* decl = parse_declaration();
+          (*block) << decl;
+          if (peek< exactly<'{'> >()) {
+            // parse a propset that rides on the declaration's property
+            Propset* ps = new (ctx.mem) Propset(path, line, decl->property(), parse_block());
+            (*block) << ps;
+          }
+          else {
+            // finish and let the semicolon get munched
+            semicolon = true;
+          }
         }
       }
       else lex< exactly<';'> >();
@@ -863,30 +872,49 @@ namespace Sass {
       // gah, gonna have to use exception handling to do backtracking ...
       const char* here = position;
       try {
-        Expression* expr = parse_list();
-        (*args) << new (ctx.mem) Argument(path, line, expr);
+        try {
+          if (peek< string_constant >()) {
+            // cerr << "parsing a url string" << endl;
+            String* str = parse_string();
+            (*args) << new (ctx.mem) Argument(path, line, str);
+            // cerr << "done" << endl;
+          }
+          else if (peek< sequence< url_schema, spaces_and_comments, exactly<')'> > >()) {
+            // cerr << "url schema" << endl;
+            lex< url_schema >();
+            String_Schema* the_url = Parser::from_token(lexed, ctx, path, line).parse_url_schema();
+            (*args) << new (ctx.mem) Argument(path, line, the_url);
+            // cerr << "done" << endl;
+          }
+          else if (peek< sequence< url_value, spaces_and_comments, exactly<')'> > >()) {
+            // cerr << "url value" << endl;
+            lex< url_value >();
+            String_Constant* the_url = new (ctx.mem) String_Constant(path, line, lexed);
+            (*args) << new (ctx.mem) Argument(path, line, the_url);
+            // cerr << "done" << endl;
+          }
+          else {
+            // cerr << "stuff" << endl;
+            const char* value = position;
+            const char* rparen = find_first< exactly<')'> >(position);
+            if (!rparen) error("URI is missing ')'");
+            Token content_tok(Token(value, rparen));
+            String_Constant* content_node = new (ctx.mem) String_Constant(path, line, content_tok);
+            (*args) << new (ctx.mem) Argument(path, line, content_node);
+            position = rparen;
+            // cerr << "done" << endl;
+          }
+        }
+        catch (Error& e) {
+          // cerr << "expression" << endl;
+          position = here;
+          Expression* expr = parse_list();
+          (*args) << new (ctx.mem) Argument(path, line, expr);
+          // cerr << "done" << endl;
+        }
       }
       catch (Error& e) {
-        position = here;
-        if (peek< sequence< url_schema, spaces_and_comments, exactly<')'> > >()) {
-          lex< url_schema >();
-          String_Schema* the_url = Parser::from_token(lexed, ctx, path, line).parse_url_schema();
-          (*args) << new (ctx.mem) Argument(path, line, the_url);
-        }
-        else if (peek< sequence< url_value, spaces_and_comments, exactly<')'> > >()) {
-          lex< url_value >();
-          String_Constant* the_url = new (ctx.mem) String_Constant(path, line, lexed);
-          (*args) << new (ctx.mem) Argument(path, line, the_url);
-        }
-        else {
-          const char* value = position;
-          const char* rparen = find_first< exactly<')'> >(position);
-          if (!rparen) error("URI is missing ')'");
-          Token content_tok(Token(value, rparen));
-          String_Constant* content_node = new (ctx.mem) String_Constant(path, line, content_tok);
-          (*args) << new (ctx.mem) Argument(path, line, content_node);
-          position = rparen;
-        }
+        error("unable to parse URL");
       }
       if (!lex< exactly<')'> >()) error("URI is missing ')'");
       return result;

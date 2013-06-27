@@ -168,7 +168,6 @@ namespace Sass {
       if (i == 0) root = ast;
       style_sheets[queue[i].first] = ast;
     }
-
     Env tge;
     Backtrace backtrace(0, "", 0, "");
     register_built_in_functions(*this, &tge);

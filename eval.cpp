@@ -285,32 +285,64 @@ namespace Sass {
     Parameters* params = def->parameters();
     Env new_env;
     new_env.link(def->environment());
-    bind("function " + c->name(), params, args, ctx, &new_env, this);
-    Env* old_env = env;
-    env = &new_env;
+    // bind("function " + c->name(), params, args, ctx, &new_env, this);
+    // Env* old_env = env;
+    // env = &new_env;
 
-    Backtrace here(backtrace, c->path(), c->line(), ", in function `" + c->name() + "`");
-    backtrace = &here;
+    // Backtrace here(backtrace, c->path(), c->line(), ", in function `" + c->name() + "`");
+    // backtrace = &here;
 
     // if it's user-defined, eval the body
     if (body) {
+
+      bind("function " + c->name(), params, args, ctx, &new_env, this);
+      Env* old_env = env;
+      env = &new_env;
+
+      Backtrace here(backtrace, c->path(), c->line(), ", in function `" + c->name() + "`");
+      backtrace = &here;
+
       result = body->perform(this);
       if (!result) {
         error(string("function ") + c->name() + " did not return a value", c->path(), c->line());
       }
+      backtrace = here.parent;
+      env = old_env;
     }
     // if it's native, invoke the underlying CPP function
     else if (func) {
+
+      bind("function " + c->name(), params, args, ctx, &new_env, this);
+      Env* old_env = env;
+      env = &new_env;
+
+      Backtrace here(backtrace, c->path(), c->line(), ", in function `" + c->name() + "`");
+      backtrace = &here;
+
       result = func(*env, ctx, def->signature(), c->path(), c->line(), backtrace);
+
+      backtrace = here.parent;
+      env = old_env;
     }
     // else if it's a user-defined c function
     else if (c_func) {
+
+      bind("function " + c->name(), params, args, ctx, &new_env, this);
+      Env* old_env = env;
+      env = &new_env;
+
+      Backtrace here(backtrace, c->path(), c->line(), ", in function `" + c->name() + "`");
+      backtrace = &here;
+
       To_C to_c;
       Sass_Value c_val = c_func(args->perform(&to_c));
       if (c_val.unknown.tag == SASS_ERROR) {
         error("error in C function " + c->name() + ": " + c_val.error.message, c->path(), c->line(), backtrace);
       }
       result = cval_to_astnode(c_val, ctx, backtrace, c->path(), c->line());
+
+      backtrace = here.parent;
+      env = old_env;
     }
     // else it's an overloaded native function; resolve it
     else if (def->is_overload_stub()) {
@@ -318,13 +350,26 @@ namespace Sass {
       stringstream ss;
       ss << full_name << arity;
       string resolved_name(ss.str());
-      if (!old_env->has(resolved_name)) error("overloaded function `" + string(c->name()) + "` given wrong number of arguments", c->path(), c->line());
-      Definition* resolved_def = static_cast<Definition*>((*old_env)[ss.str()]);
+      if (!env->has(resolved_name)) error("overloaded function `" + string(c->name()) + "` given wrong number of arguments", c->path(), c->line());
+      Definition* resolved_def = static_cast<Definition*>((*env)[resolved_name]);
+      params = resolved_def->parameters();
+      Env newer_env;
+      newer_env.link(resolved_def->environment());
+      bind("function " + c->name(), params, args, ctx, &newer_env, this);
+      Env* old_env = env;
+      env = &newer_env;
+
+      Backtrace here(backtrace, c->path(), c->line(), ", in function `" + c->name() + "`");
+      backtrace = &here;
+
       result = resolved_def->native_function()(*env, ctx, resolved_def->signature(), c->path(), c->line(), backtrace);
+
+      backtrace = here.parent;
+      env = old_env;
     }
 
-    backtrace = here.parent;
-    env = old_env;
+    // backtrace = here.parent;
+    // env = old_env;
     return result;
   }
 
@@ -408,11 +453,13 @@ namespace Sass {
     string acc;
     To_String to_string;
     for (size_t i = 0, L = s->length(); i < L; ++i) {
-      acc += (*s)[i]->perform(this)->perform(&to_string);
+      cerr << "unquoting interpolant" << endl;
+      acc += unquote((*s)[i]->perform(this)->perform(&to_string));
+      cerr << "done" << endl;
     }
     return new (ctx.mem) String_Constant(s->path(),
                                          s->line(),
-                                         quote(unquote(acc), s->quote_mark()));
+                                         quote(acc, s->quote_mark()));
   }
 
   Expression* Eval::operator()(String_Constant* s)

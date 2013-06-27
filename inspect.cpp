@@ -358,7 +358,7 @@ namespace Sass {
       ss << static_cast<unsigned long>(r) << ", ";
       ss << static_cast<unsigned long>(g) << ", ";
       ss << static_cast<unsigned long>(b) << ", ";
-      ss << static_cast<unsigned long>(a) << ')';
+      ss << a << ')';
     }
     buffer += ss.str();
   }
@@ -572,6 +572,9 @@ namespace Sass {
   string unquote(const string& s)
   {
     if (s.empty()) return "";
+    if (s.length() == 1) {
+      if (s[0] == '"' || s[0] == '\'') return "";
+    }
     char q;
     if      (*s.begin() == '"'  && *s.rbegin() == '"')  q = '"';
     else if (*s.begin() == '\'' && *s.rbegin() == '\'') q = '\'';

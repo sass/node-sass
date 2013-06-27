@@ -158,8 +158,8 @@ namespace Sass {
   class Propset : public Has_Block {
     ADD_PROPERTY(String*, property_fragment);
   public:
-    Propset(string p, size_t l, String* pf)
-    : Has_Block(p, l, 0), property_fragment_(pf)
+    Propset(string p, size_t l, String* pf, Block* b = 0)
+    : Has_Block(p, l, b), property_fragment_(pf)
     { }
     ATTACH_OPERATIONS();
   };
