@@ -10,22 +10,22 @@
 
 namespace Sass {
   using namespace std;
-  // class To_String;
+  class Context;
 
   class Output_Nested : public Operation_CRTP<void, Output_Nested> {
     // import all the class-specific methods and override as desired
     using Operation_CRTP<void, Output_Nested>::operator();
 
-    // To_String* to_string;
     string buffer;
     size_t indentation;
+    Context* ctx;
     void indent();
 
     void fallback_impl(AST_Node* n);
 
   public:
 
-    Output_Nested();
+    Output_Nested(Context* ctx = 0);
     virtual ~Output_Nested();
 
     string get_buffer() { return buffer; }

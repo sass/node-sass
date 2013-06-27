@@ -1,18 +1,19 @@
 #include "output_nested.hpp"
 #include "inspect.hpp"
 #include "ast.hpp"
+#include "context.hpp"
 #include <iostream>
 #include <typeinfo>
 
 namespace Sass {
   using namespace std;
 
-  Output_Nested::Output_Nested() : buffer(""), indentation(0) { }
+  Output_Nested::Output_Nested(Context* ctx) : buffer(""), indentation(0), ctx(ctx) { }
   Output_Nested::~Output_Nested() { }
 
   inline void Output_Nested::fallback_impl(AST_Node* n)
   {
-    Inspect i;
+    Inspect i(ctx);
     n->perform(&i);
     buffer += i.get_buffer();
   }

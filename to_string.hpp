@@ -9,14 +9,18 @@
 namespace Sass {
   using namespace std;
 
+  class Context;
+
   class To_String : public Operation_CRTP<string, To_String> {
     // import all the class-specific methods and override as desired
     using Operation<string>::operator();
     // override this to define a catch-all
     string fallback_impl(AST_Node* n);
 
+    Context* ctx;
+
   public:
-    To_String();
+    To_String(Context* ctx = 0);
     virtual ~To_String();
 
     template <typename U>

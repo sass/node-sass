@@ -174,7 +174,7 @@ namespace Sass {
     Eval eval(*this, &tge, &backtrace);
     Contextualize contextualize(*this, &eval, &tge, &backtrace);
     Expand expand(*this, &eval, &contextualize, &tge, &backtrace);
-    Inspect inspect;
+    // Inspect inspect(this);
     Output_Nested output_nested;
 
     root = root->perform(&expand)->block();
@@ -185,13 +185,13 @@ namespace Sass {
     char* result = 0;
     switch (output_style) {
       case COMPRESSED: {
-        Output_Compressed output_compressed;
+        Output_Compressed output_compressed(this);
         root->perform(&output_compressed);
         result = copy_c_str(output_compressed.get_buffer().c_str());
       } break;
 
       default: {
-        Output_Nested output_nested;
+        Output_Nested output_nested(this);
         root->perform(&output_nested);
         result = copy_c_str(output_nested.get_buffer().c_str());
       } break;

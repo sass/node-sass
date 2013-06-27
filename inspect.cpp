@@ -1,5 +1,6 @@
 #include "inspect.hpp"
 #include "ast.hpp"
+#include "context.hpp"
 #include <cmath>
 #include <iostream>
 #include <iomanip>
@@ -7,7 +8,7 @@
 namespace Sass {
   using namespace std;
 
-  Inspect::Inspect() : buffer(""), indentation(0) { }
+  Inspect::Inspect(Context* ctx) : buffer(""), indentation(0), ctx(ctx) { }
   Inspect::~Inspect() { }
 
   // statements
@@ -47,19 +48,6 @@ namespace Sass {
   {
     propset->property_fragment()->perform(this);
     buffer += ": ";
-    // ++indentation;
-    // for (size_t i = 0, S = propset->declarations().size(); i < S; ++i) {
-    //   indent();
-    //   propset->declarations()[i]->perform(this);
-    //   buffer += '\n';
-    // }
-    // for (size_t i = 0, S = propset->propsets().size(); i < S; ++i) {
-    //   indent();
-    //   propset->propsets()[i]->perform(this);
-    //   buffer += '\n';
-    // }
-    // --indentation;
-    // buffer += "}";
     propset->block()->perform(this);
   }
 
@@ -340,18 +328,26 @@ namespace Sass {
     double g = cap_channel<0xff>(c->g());
     double b = cap_channel<0xff>(c->b());
     double a = cap_channel<1>   (c->a());
-    // int numval = r * 0x10000;
-    // numval += g * 0x100;
-    // numval += b;
+
     // if (a >= 1 && ctx.colors_to_names.count(numval)) {
     //   ss << ctx.colors_to_names[numval];
     // }
     // else
     if (a >= 1) {
-      ss << '#' << setw(2) << setfill('0');
-      ss << hex << setw(2) << static_cast<unsigned long>(floor(r+0.5));
-      ss << hex << setw(2) << static_cast<unsigned long>(floor(g+0.5));
-      ss << hex << setw(2) << static_cast<unsigned long>(floor(b+0.5));
+      // see if it's a named color
+      int numval = r * 0x10000;
+      numval += g * 0x100;
+      numval += b;
+      if (ctx && ctx->colors_to_names.count(numval)) {
+        ss << ctx->colors_to_names[numval];
+      }
+      else {
+        // otherwise output the hex triplet
+        ss << '#' << setw(2) << setfill('0');
+        ss << hex << setw(2) << static_cast<unsigned long>(floor(r+0.5));
+        ss << hex << setw(2) << static_cast<unsigned long>(floor(g+0.5));
+        ss << hex << setw(2) << static_cast<unsigned long>(floor(b+0.5));
+      }
     }
     else {
       ss << "rgba(";

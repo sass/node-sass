@@ -1,11 +1,12 @@
 #include "output_compressed.hpp"
 #include "inspect.hpp"
 #include "ast.hpp"
+#include "context.hpp"
 
 namespace Sass {
   using namespace std;
 
-  Output_Compressed::Output_Compressed() : buffer("") { }
+  Output_Compressed::Output_Compressed(Context* ctx) : buffer(""), ctx(ctx) { }
   Output_Compressed::~Output_Compressed() { }
 
   inline void Output_Compressed::fallback_impl(AST_Node* n)

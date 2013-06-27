@@ -10,7 +10,7 @@
 
 namespace Sass {
 	using namespace std;
-	// class To_String;
+	class Context;
 
 	class Inspect : public Operation_CRTP<void, Inspect> {
 		// import all the class-specific methods and override as desired
@@ -19,13 +19,14 @@ namespace Sass {
 		// To_String* to_string;
 		string buffer;
 		size_t indentation;
+		Context* ctx;
 		void indent();
 
 		void fallback_impl(AST_Node* n);
 
 	public:
 
-		Inspect();
+		Inspect(Context* ctx = 0);
 		virtual ~Inspect();
 
 		string get_buffer() { return buffer; }
