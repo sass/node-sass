@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <cctype>
 #include "file.hpp"
 #include "context.hpp"
 
@@ -26,6 +27,10 @@ namespace Sass {
 			if (l.empty()) return r;
 			if (r.empty()) return l;
 			if (r[0] == '/') return r;
+			// TODO: UN-HACKIFY THIS
+			#ifdef _WIN32
+			if (r.length() >= 2 && isalpha(r[0]) && r[1] == ':') return r;
+			#endif
 
 			if (l[l.length()-1] != '/') l += '/';
 			return l + r;
