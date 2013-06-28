@@ -59,7 +59,7 @@ namespace Sass {
 
     string entry_point = initializers.entry_point();
     if (!entry_point.empty()) {
-      string result(add_file(File::join_paths(include_paths[0], entry_point)));
+      string result(add_file(entry_point));
       if (result.empty()) {
         throw entry_point;
       }
@@ -134,25 +134,12 @@ namespace Sass {
     // }
   }
 
-  // best used with absolute paths only
   string Context::add_file(string path)
   {
     using namespace File;
     char* contents = 0;
-
-    // try the path as given (assume it's absolute)
-    if (style_sheets.count(path)) return path;
-    contents = resolve_and_load(path);
-    if (contents) {
-      sources.push_back(contents);
-      queue.push_back(make_pair(path, contents));
-      style_sheets[path] = 0;
-      return path;
-    }
-
-    // if that didn't work, try it with the include paths
     for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
-      string full_path(join_paths(include_paths[i], base_name(path)));
+      string full_path(join_paths(include_paths[i], path));
       if (style_sheets.count(full_path)) return full_path;
       contents = resolve_and_load(full_path);
       if (contents) {
@@ -217,7 +204,7 @@ namespace Sass {
   {
     if (!source_c_str) return 0;
     queue.clear();
-    queue.push_back(make_pair(include_paths[0], source_c_str));
+    queue.push_back(make_pair("source string", source_c_str));
     return compile_file();
   }
 
