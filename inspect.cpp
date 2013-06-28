@@ -543,7 +543,7 @@ namespace Sass {
       case Selector_Combination::PRECEDES:    buffer += '~'; break;
       case Selector_Combination::ADJACENT_TO: buffer += '+'; break;
     }
-    if (head && tail && comb != Selector_Combination::ANCESTOR_OF) {
+    if (tail && comb != Selector_Combination::ANCESTOR_OF) {
       buffer += ' ';
     }
     if (tail) tail->perform(this);
