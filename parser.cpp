@@ -137,7 +137,7 @@ namespace Sass {
         }
       }
       else if (peek< uri_prefix >()) {
-        imp->urls().push_back(parse_function_call());
+        imp->urls().push_back(parse_value());
       }
       else {
         if (first) error("@import directive requires a url or quoted path");

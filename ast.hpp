@@ -231,14 +231,14 @@ namespace Sass {
   ////////////////////////////////////////////////////////////////////////////
   class Import : public Statement {
     vector<string>         files_;
-    vector<Function_Call*> urls_;
+    vector<Expression*> urls_;
   public:
     Import(string p, size_t l)
     : Statement(p, l),
-      files_(vector<string>()), urls_(vector<Function_Call*>())
+      files_(vector<string>()), urls_(vector<Expression*>())
     { }
-    vector<string>&         files()   { return files_; }
-    vector<Function_Call*>& urls()    { return urls_; }
+    vector<string>&         files() { return files_; }
+    vector<Expression*>& urls()     { return urls_; }
     ATTACH_OPERATIONS();
   };
 
