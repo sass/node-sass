@@ -43,6 +43,7 @@ void MakeOldCallback(uv_work_t* req) {
     if (try_catch.HasCaught()) {
         node::FatalException(try_catch);
     }
+    delete ctx->source_string;
     sass_free_context_wrapper(ctx_w);
 }
 
@@ -98,6 +99,7 @@ void MakeCallback(uv_work_t* req) {
     if (try_catch.HasCaught()) {
         node::FatalException(try_catch);
     }
+    delete ctx->source_string;
     sass_free_context_wrapper(ctx_w);
 }
 
@@ -144,11 +146,23 @@ Handle<Value> RenderSync(const Arguments& args) {
     ctx->options.output_style = args[2]->Int32Value();
 
     sass_compile(ctx);
+
+    source = NULL;
+    delete ctx->source_string;
+    ctx->source_string = NULL;
+    delete ctx->options.include_paths;
+    ctx->options.include_paths = NULL;
+
     if (ctx->error_status == 0) {
-        return scope.Close(Local<Value>::New(String::New(ctx->output_string)));
+        Local<Value> output = Local<Value>::New(String::New(ctx->output_string));
+        sass_free_context(ctx);
+        return scope.Close(output);
     }
 
-    ThrowException(Exception::Error(String::New(ctx->error_message)));
+    Local<String> error = String::New(ctx->error_message);
+
+    sass_free_context(ctx);
+    ThrowException(Exception::Error(error));
     return scope.Close(Undefined());
 }
 
@@ -188,6 +202,7 @@ void MakeFileCallback(uv_work_t* req) {
     if (try_catch.HasCaught()) {
         node::FatalException(try_catch);
     }
+    delete ctx->input_path;
     sass_free_file_context_wrapper(ctx_w);
 }
 
@@ -234,11 +249,23 @@ Handle<Value> RenderFileSync(const Arguments& args) {
     ctx->options.output_style = args[2]->Int32Value();
 
     sass_compile_file(ctx);
-    if (ctx->error_status == 0) {
-        return scope.Close(Local<Value>::New(String::New(ctx->output_string)));
-    }
 
-    ThrowException(Exception::Error(String::New(ctx->error_message)));
+    filename = NULL;
+    delete ctx->input_path;
+    ctx->input_path = NULL;
+    delete ctx->options.include_paths;
+    ctx->options.include_paths = NULL;
+
+    if (ctx->error_status == 0) {
+        Local<Value> output = Local<Value>::New(String::New(ctx->output_string));
+        sass_free_file_context(ctx);
+
+        return scope.Close(output);
+    }
+    Local<String> error = String::New(ctx->error_message);
+    sass_free_file_context(ctx);
+
+    ThrowException(Exception::Error(error));
     return scope.Close(Undefined());
 }
 
