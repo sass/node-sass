@@ -854,6 +854,9 @@ namespace Sass {
       }
       return value;
     }
+    else if (peek< identifier_schema >()) {
+      return parse_identifier_schema();
+    }
     else if (lex< sequence< exactly<'+'>, spaces_and_comments, negate< number > > >()) {
       return new (ctx.mem) Unary_Expression(path, line, Unary_Expression::PLUS, parse_factor());
     }
