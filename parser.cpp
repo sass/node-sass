@@ -10,6 +10,8 @@
 #include "prelexer.hpp"
 #endif
 
+#include <typeinfo>
+
 namespace Sass {
   using namespace std;
   using namespace Constants;
@@ -533,7 +535,9 @@ namespace Sass {
     Block* block = new (ctx.mem) Block(path, line);
     while (!lex< exactly<'}'> >()) {
       if (semicolon) {
-        if (!lex< exactly<';'> >()) error("non-terminal statement or declaration must end with ';'");
+        if (!lex< exactly<';'> >()) {
+          error("non-terminal statement or declaration must end with ';'");
+        }
         semicolon = false;
         while (lex< block_comment >()) {
           String_Constant* contents = new (ctx.mem) String_Constant(path, line, lexed);
@@ -698,7 +702,7 @@ namespace Sass {
         peek< exactly<'}'> >(position) ||
         peek< exactly<'{'> >(position) ||
         peek< exactly<')'> >(position) ||
-        peek< exactly<':'> >(position) ||
+        //peek< exactly<':'> >(position) ||
         peek< exactly<ellipsis> >(position))
     { return new (ctx.mem) List(path, line, 0); }
     Expression* list1 = parse_space_list();
@@ -727,7 +731,7 @@ namespace Sass {
         peek< exactly<'{'> >(position) ||
         peek< exactly<')'> >(position) ||
         peek< exactly<','> >(position) ||
-        peek< exactly<':'> >(position) ||
+        // peek< exactly<':'> >(position) ||
         peek< exactly<ellipsis> >(position) ||
         peek< default_flag >(position))
     { return disj1; }
@@ -741,7 +745,7 @@ namespace Sass {
              peek< exactly<'{'> >(position) ||
              peek< exactly<')'> >(position) ||
              peek< exactly<','> >(position) ||
-             peek< exactly<':'> >(position) ||
+             // peek< exactly<':'> >(position) ||
              peek< exactly<ellipsis> >(position) ||
              peek< default_flag >(position)))
     {
@@ -853,6 +857,19 @@ namespace Sass {
         if (!l->empty()) (*l)[0]->is_delayed(false);
       }
       return value;
+    }
+    else if (peek< ie_stuff >()) {
+      return parse_ie_stuff();
+    }
+    else if (peek< ie_keyword_arg >()) {
+      String_Schema* kwd_arg = new (ctx.mem) String_Schema(path, line, 3);
+      lex< alternatives< identifier_schema, identifier > >();
+      *kwd_arg << new (ctx.mem) String_Constant(path, line, lexed);
+      lex< exactly<'='> >();
+      *kwd_arg << new (ctx.mem) String_Constant(path, line, lexed);
+      lex< alternatives< identifier_schema, identifier > >();
+      *kwd_arg << new (ctx.mem) String_Constant(path, line, lexed);
+      return kwd_arg;
     }
     else if (peek< identifier_schema >()) {
       return parse_identifier_schema();
@@ -1005,6 +1022,47 @@ namespace Sass {
         else {
           // throw an error if the interpolant is unterminated
           error("unterminated interpolant inside string constant " + str);
+        }
+      }
+      else { // no interpolants left; add the last segment if nonempty
+        if (i < str.end) (*schema) << new (ctx.mem) String_Constant(path, line, Token(i, str.end));
+        break;
+      }
+    }
+    return schema;
+  }
+
+  String* Parser::parse_ie_stuff()
+  {
+    lex< ie_stuff >();
+    Token str(lexed);
+    const char* i = str.begin;
+    // see if there any interpolants
+    const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(str.begin, str.end);
+    if (!p) {
+      String_Constant* str_node = new (ctx.mem) String_Constant(path, line, str);
+      str_node->is_delayed(true);
+      return str_node;
+    }
+
+    String_Schema* schema = new (ctx.mem) String_Schema(path, line);
+    while (i < str.end) {
+      p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, str.end);
+      if (p) {
+        if (i < p) {
+          (*schema) << new (ctx.mem) String_Constant(path, line, Token(i, p)); // accumulate the preceding segment if it's nonempty
+        }
+        const char* j = find_first_in_interval< exactly<rbrace> >(p, str.end); // find the closing brace
+        if (j) {
+          // parse the interpolant and accumulate it
+          Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, path, line).parse_list();
+          interp_node->is_interpolant(true);
+          (*schema) << interp_node;
+          i = j+1;
+        }
+        else {
+          // throw an error if the interpolant is unterminated
+          error("unterminated interpolant inside IE function " + str);
         }
       }
       else { // no interpolants left; add the last segment if nonempty
@@ -1268,7 +1326,7 @@ namespace Sass {
     if (peek< exactly<')'> >()) {
       error("media feature required in media query expression");
     }
-    feature = parse_list();
+    feature = parse_expression();
     Expression* expression = 0;
     if (lex< exactly<':'> >()) {
       expression = parse_list();

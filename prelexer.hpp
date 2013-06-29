@@ -412,6 +412,10 @@ namespace Sass {
     const char* lt_op(const char* src);
     const char* lte_op(const char* src);
 
+    // IE stuff
+    const char* ie_stuff(const char* src);
+    const char* ie_keyword_arg(const char* src);
+
     // Path matching functions.
     const char* folder(const char* src);
     const char* folders(const char* src);

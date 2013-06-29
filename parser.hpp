@@ -168,6 +168,7 @@ namespace Sass {
     Function_Call* parse_function_call();
     Function_Call_Schema* parse_function_call_schema();
     String* parse_string();
+    String* parse_ie_stuff();
     String_Schema* parse_value_schema();
     String* parse_identifier_schema();
     String_Schema* parse_url_schema();

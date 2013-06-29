@@ -413,6 +413,19 @@ namespace Sass {
       return exactly<lte>(src);
     }
 
+    // match the IE syntax
+    const char* progid(const char* src) {
+      return exactly<progid_kwd>(src);
+    }
+
+    const char* ie_stuff(const char* src) {
+      return sequence< progid, exactly<':'>, alternatives< identifier_schema, identifier >, one_plus< sequence< exactly<'.'>, alternatives< identifier_schema, identifier > > >, delimited_by<'(', ')', true> >(src);
+    }
+
+    const char* ie_keyword_arg(const char* src) {
+      return sequence< alternatives< identifier_schema, identifier >, spaces_and_comments, exactly<'='>, spaces_and_comments, alternatives< identifier_schema, identifier > >(src);
+    }
+
     // Path matching functions.
     const char* folder(const char* src) {
       return sequence< zero_plus< any_char_except<'/'> >,
