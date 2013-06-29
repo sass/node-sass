@@ -1076,7 +1076,7 @@ namespace Sass {
   String_Schema* Parser::parse_value_schema()
   {
     String_Schema* schema = new (ctx.mem) String_Schema(path, line);
-
+    size_t num_items = 0;
     while (position < end) {
       if (lex< interpolant >()) {
         Token insides(Token(lexed.begin + 2, lexed.end - 1));
@@ -1101,6 +1101,7 @@ namespace Sass {
       }
       else if (lex< string_constant >()) {
         (*schema) << new (ctx.mem) String_Constant(path, line, lexed);
+        if (!num_items) schema->quote_mark(*lexed.begin);
       }
       else if (lex< variable >()) {
         (*schema) << new (ctx.mem) Variable(path, line, lexed);
@@ -1108,6 +1109,7 @@ namespace Sass {
       else {
         error("error parsing interpolated value");
       }
+      ++num_items;
     }
     return schema;
   }
