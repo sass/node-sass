@@ -63,6 +63,7 @@ Handle<Value> OldRender(const Arguments& args) {
     strcpy(ctx->options.include_paths, *bstr);
     // ctx->options.output_style = SASS_STYLE_NESTED;
     ctx->options.output_style = args[3]->Int32Value();
+    ctx->options.source_comments = args[4]->Int32Value();
     ctx_w->ctx = ctx;
     ctx_w->callback = Persistent<Function>::New(callback);
     ctx_w->request.data = ctx_w;
@@ -120,6 +121,7 @@ Handle<Value> Render(const Arguments& args) {
     strcpy(ctx->options.include_paths, *bstr);
     // ctx->options.output_style = SASS_STYLE_NESTED;
     ctx->options.output_style = args[4]->Int32Value();
+    ctx->options.source_comments = args[5]->Int32Value();
     ctx_w->ctx = ctx;
     ctx_w->callback = Persistent<Function>::New(callback);
     ctx_w->errorCallback = Persistent<Function>::New(errorCallback);
@@ -144,6 +146,7 @@ Handle<Value> RenderSync(const Arguments& args) {
     ctx->options.include_paths = new char[strlen(*bstr)+1];
     strcpy(ctx->options.include_paths, *bstr);
     ctx->options.output_style = args[2]->Int32Value();
+    ctx->options.source_comments = args[3]->Int32Value();
 
     sass_compile(ctx);
 
@@ -223,6 +226,7 @@ Handle<Value> RenderFile(const Arguments& args) {
     strcpy(ctx->options.include_paths, *bstr);
     // ctx->options.output_style = SASS_STYLE_NESTED;
     ctx->options.output_style = args[4]->Int32Value();
+    ctx->options.source_comments = args[5]->Int32Value();
     ctx_w->ctx = ctx;
     ctx_w->callback = Persistent<Function>::New(callback);
     ctx_w->errorCallback = Persistent<Function>::New(errorCallback);
@@ -247,6 +251,7 @@ Handle<Value> RenderFileSync(const Arguments& args) {
     ctx->options.include_paths = new char[strlen(*bstr)+1];
     strcpy(ctx->options.include_paths, *bstr);
     ctx->options.output_style = args[2]->Int32Value();
+    ctx->options.source_comments = args[3]->Int32Value();
 
     sass_compile_file(ctx);
 

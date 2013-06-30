@@ -1,6 +1,9 @@
+/*jshint multistr:true */
 var sass = require('../sass');
 var assert = require('assert');
 
+var badSampleFilename = 'sample.scss';
+var sampleFilename = require('path').resolve(__dirname, 'sample.scss');
 
 var scssStr = '#navbar {\
   width: 80%;\
@@ -32,10 +35,6 @@ var expectedRender = '#navbar {\n\
   float: left; }\n\
   #navbar li a {\n\
     font-weight: bold; }\n';
-
-var badSampleFilename = 'sample.scss';
-var sampleFilename = require('path').resolve(__dirname, 'sample.scss');
-
 
 describe("DEPRECATED: compile scss", function() {
   it("should compile with render", function(done) {
@@ -111,7 +110,7 @@ describe("compile file", function() {
     sass.render({
       file: sampleFilename,
       success: function (css) {
-        done(assert.ok(css));
+        done(assert.equal(css, expectedRender));
       },
       error: function (error) {
         done(error);
