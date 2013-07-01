@@ -21,26 +21,35 @@ var SASS_OUTPUT_STYLE = {
     compressed: 3
 };
 
+var SASS_SOURCE_COMMENTS = {
+  none: 0,
+  // This is called default in libsass, but is a reserved keyword here
+  normal: 1,
+  map: 2
+};
+
 var prepareOptions = function(options) {
   var paths, style;
   options = typeof options !== 'object' ? {} : options;
   paths = options.include_paths || options.includePaths || [];
   style = SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0;
+  comments = SASS_SOURCE_COMMENTS[options.source_comments || options.sourceComments] || 0;
 
   return {
     paths: paths,
-    style: style
+    style: style,
+    comments: comments
   };
-}
+};
 
 var deprecatedRender = function(css, callback, options) {
   options = prepareOptions(options);
-  return binding.oldRender(css, callback, options.paths.join(':'), options.style);
+  return binding.oldRender(css, callback, options.paths.join(':'), options.style, options.comments);
 };
 
 var deprecatedRenderSync = function(css, options) {
   options = prepareOptions(options);
-  return binding.renderSync(css, options.paths.join(':'), options.style);
+  return binding.renderSync(css, options.paths.join(':'), options.style, options.comments);
 };
 
 exports.render = function(options) {
@@ -54,7 +63,7 @@ exports.render = function(options) {
   options.error = options.error || function(){};
 
   if (options.file !== undefined && options.file !== null) {
-    return binding.renderFile(options.file, options.success, options.error, newOptions.paths.join(':'), newOptions.style);
+    return binding.renderFile(options.file, options.success, options.error, newOptions.paths.join(':'), newOptions.style, newOptions.comments);
   }
 
   //Assume data is present if file is not. binding/libsass will tell the user otherwise!
@@ -71,7 +80,7 @@ exports.renderSync = function(options) {
   newOptions = prepareOptions(options);
 
   if (options.file !== undefined && options.file !== null) {
-    return binding.renderFileSync(options.file, newOptions.paths.join(':'), newOptions.style);
+    return binding.renderFileSync(options.file, newOptions.paths.join(':'), newOptions.style, newOptions.comments);
   }
 
   //Assume data is present if file is not. binding/libsass will tell the user otherwise!

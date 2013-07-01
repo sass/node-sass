@@ -51,6 +51,10 @@ The API for using node-sass has changed, so that now there is only one variable 
 `outputStyle` is a `String` to determine how the final CSS should be rendered. Its value should be one of `'nested', 'expanded', 'compact', 'compressed'`.
 [Important: currently the argument `outputStyle` has some problem which may cause the output css becomes nothing because of the libsass, so you should not use it now!]
 
+#### sourceComments
+`sourceComments` is a `String` to determine what debug information is included in the output file. Its value should be one of `'none', 'normal', 'map'`. The default is `'none'`.
+[Important: `souceComments` is only supported when using the `file` option, and does nothing when using `data` flag.]
+
 ### Examples
 
 ```javascript
@@ -120,7 +124,7 @@ Check out the project:
 Replace the prebuild binary with your newly generated one
 
     cp build/Release/binding.node precompiled/*your-platform*/binding.node
-    
+
 ## Command Line Interface
 
 The interface for command-line usage is fairly simplistic at this stage, as seen in the following usage section.
