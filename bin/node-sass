@@ -1,59 +1,50 @@
 #!/usr/bin/env node
-var colors    = require('colors');
-var fs        = require('fs');
-var sass      = require('../sass');
-var path      = require('path');
-var argv      = require('optimist').argv;
 
-var fileName  = argv._[0];
-var cssFileName = argv._[1];
-var outputStyle = argv['output-style'];
-var cwd = argv.cwd || process.cwd();
+var path   = require('path'),
+    fs     = require('fs'),
+    colors = require('colors'),
+    sass   = require(path.join(__dirname, '..', 'sass')),
+    cwd    = process.cwd(),
+
+    optimist = require('optimist')
+      .usage('Compile .scss files with node-sass\nUsage: node-sass [options] <input.scss> [<output.css>]')
+      .describe('output-style', 'CSS output style (nested|expanded|compact|compressed)')
+      .default('output-style', 'nested')
+      .describe('source-comments', 'Include debug info in output (none|normal|map)')
+      .default('source-comments', 'none')
+      .describe('include-path', 'Path to look for @import-ed files')
+      .default('include-path', cwd)
+      .string('h').alias('h', 'help')
+      .describe('help', 'Print usage info'),
+
+    argv    = optimist.argv,
+    inFile  = argv._[0],
+    outFile = argv._[1];
+
+if(argv.help || !inFile) return optimist.showHelp();
 
 console.log('Starting Render Process...'.green);
 
-if (fileName) {
-  fs.readFile(path.join(cwd, fileName), "utf8", function(err, data) {
-    if (err) {
-      console.log("** Error Opening File **".red);
-      console.log(JSON.stringify(err, null, 4).yellow);
-    } else {
-      console.log('File data read successfully, rendering css'.green);
-      renderSASS(data);
-    }
-  });
-} else {
-  console.log("** Please Pass a filename to compile **".red);
-}
+sass.render({
+  file: inFile,
 
-function renderSASS(data) {
-  sass.render(data, function(err, compiled) {
-    if (err) {
-      console.log("** Error Rendering SASS **".red);
-      console.log(JSON.stringify(err, null, 4).yellow);
-    } else {
-      console.log('Rendering Complete, saving .css file...'.green);
+  includePaths: [argv['include-path']],
+  outputStyle: argv['output-style'],
+  sourceComments: argv['source-comments'],
 
-      var outFile;
-      if (cssFileName) {
-        outFile = cssFileName;
-      } else {
-        outFile = fileName.slice(fileName.lastIndexOf('/') + 1,
-                  fileName.lastIndexOf('.')) + '.css';
-      }
+  success: function(css) {
+    console.log('Rendering Complete, saving .css file...'.green);
 
-      writeCssFile(outFile || 'nodesass.css', compiled);
+    if(!outFile) outFile = path.join(cwd, path.basename(inFile, '.scss') + '.css');
 
-    }
-  }, {include_paths: [cwd], output_style: outputStyle});
-}
+    fs.writeFile(outFile, css, function(err) {
+      if(err) return console.log(('Error: ' + err).red);
+      console.log(('Wrote CSS to ' + outFile).green);
+    });
+  },
 
-function writeCssFile(filename, data) {
-  fs.writeFile(path.join(cwd, filename), data, function(err){
-    if(err) {
-      console.log('Error: ' + err);
-    } else {
-      console.log('File saved! New .css file: ' + filename);
-    }
-  });
-}
+  error: function(err) {
+    console.log('** Error Rendering SASS **'.red);
+    console.log(err.yellow);
+  }
+});
