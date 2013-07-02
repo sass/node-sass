@@ -129,8 +129,17 @@ Replace the prebuild binary with your newly generated one
 
 The interface for command-line usage is fairly simplistic at this stage, as seen in the following usage section.
 
+Output will be saved with the same name as input SASS file into the current working directory if it's omitted.
+
 ### Usage
- `node-sass [input.scss] [output.css]`
+ `node-sass [options] <input.scss> [<output.css>]`
+
+ **Options:**
+ 
+      --output-style     CSS output style (nested|expanded|compact|compressed)  [default: "nested"]
+      --source-comments  Include debug info in output (none|normal|map)         [default: "none"]
+      --include-path     Path to look for @import-ed files                      [default: cwd]
+      --help, -h         Print usage info
 
 ## Contributors
 Special thanks to the following people for submitting patches:
