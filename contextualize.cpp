@@ -62,7 +62,9 @@ namespace Sass {
     Selector_Combination* ss = new (ctx.mem) Selector_Combination(*s);
     bool head_was_backref = false;
     if (ss->head()) {
-      if (typeid(*ss->head()) == typeid(Selector_Reference)) head_was_backref = true;
+      Simple_Selector_Sequence* h = static_cast<Simple_Selector_Sequence*>(ss->head());
+      if (h->length() == 1 && typeid(*(*h)[0]) == typeid(Selector_Reference)) head_was_backref = true;
+      // if (typeid(*ss->head()) == typeid(Selector_Reference)) head_was_backref = true;
       ss->head(static_cast<Simple_Selector_Sequence*>(s->head()->perform(this)));
     }
     if (ss->tail()) ss->tail(static_cast<Selector_Combination*>(s->tail()->perform(this)));
