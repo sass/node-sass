@@ -67,7 +67,12 @@ namespace Sass {
     if (ss->tail()) {
       ss->tail(static_cast<Selector_Combination*>(s->tail()->perform(this)));
     }
-    return ss;
+    if (!ss->head() && ss->combinator() == Selector_Combination::ANCESTOR_OF) {
+      return ss->tail();
+    }
+    else {
+      return ss;
+    }
   }
 
   Selector* Contextualize::operator()(Simple_Selector_Sequence* s)
