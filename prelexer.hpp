@@ -356,6 +356,8 @@ namespace Sass {
     const char* id_name(const char* src);
     // Match CSS class names.
     const char* class_name(const char* src);
+    // Match placeholder selectors.
+    const char* placeholder(const char* src);
     // Match CSS numeric constants.
     const char* sign(const char* src);
     const char* unsigned_number(const char* src);

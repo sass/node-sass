@@ -252,6 +252,10 @@ namespace Sass {
     const char* class_name(const char* src) {
       return sequence<exactly<'.'>, identifier>(src);
     }
+    // match placeholder selectors
+    const char* placeholder(const char* src) {
+      return sequence<exactly<'%'>, identifier>(src);
+    }
     // Match CSS numeric constants.
 
     const char* sign(const char* src) {

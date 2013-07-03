@@ -426,8 +426,7 @@ namespace Sass {
     if (lex< id_name >() || lex< class_name >()) {
       return new (ctx.mem) Selector_Qualifier(path, line, lexed);
     }
-
-    if (lex< string_constant >() || lex< number >()) {
+    else if (lex< string_constant >() || lex< number >()) {
       return new (ctx.mem) Type_Selector(path, line, lexed);
     }
     else if (peek< pseudo_not >()) {
@@ -438,6 +437,9 @@ namespace Sass {
     }
     else if (peek< exactly<'['> >(position)) {
       return parse_attribute_selector();
+    }
+    else if (lex< placeholder >()) {
+      return new (ctx.mem) Selector_Placeholder(path, line, lexed);
     }
     else {
       error("invalid selector after " + lexed);
@@ -1396,6 +1398,7 @@ namespace Sass {
                                 digits > >(p))                     ||
            (q = peek< number >(p))                                 ||
            (q = peek< exactly<'&'> >(p))                           ||
+           (q = peek< exactly<'%'> >(p))                           ||
            (q = peek< alternatives<exact_match,
                                    class_match,
                                    dash_match,
@@ -1450,6 +1453,7 @@ namespace Sass {
                                 digits > >(p))                     ||
            (q = peek< number >(p))                                 ||
            (q = peek< exactly<'&'> >(p))                           ||
+           (q = peek< exactly<'%'> >(p))                           ||
            (q = peek< alternatives<exact_match,
                                    class_match,
                                    dash_match,
