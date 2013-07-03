@@ -5,8 +5,10 @@
 #include <map>
 #include <iostream>
 #include <sstream>
+#include "to_string.hpp"
 
 namespace Sass {
+  using namespace std;
 
   void bind(string callee, Parameters* ps, Arguments* as, Context& ctx, Env* env, Eval* eval)
   {
@@ -118,7 +120,11 @@ namespace Sass {
     // That's only okay if they have default values, or were already bound by
     // named arguments, or if it's a single rest-param.
     for (size_t i = ip; i < LP; ++i) {
+      To_String to_string;
       Parameter* leftover = (*ps)[i];
+      // cerr << "env for default params:" << endl;
+      // env->print();
+      // cerr << "********" << endl;
       if (!env->current_frame_has(leftover->name())) {
         if (leftover->is_rest_parameter()) {
           env->current_frame()[leftover->name()] = new (ctx.mem) List(leftover->path(),
@@ -129,7 +135,9 @@ namespace Sass {
         }
         else if (leftover->default_value()) {
           // make sure to eval the default value in the env that we've been populating
-          env->current_frame()[leftover->name()] = leftover->default_value()->perform(eval->with(env, eval->backtrace));
+          Expression* dv = leftover->default_value()->perform(eval->with(env, eval->backtrace));
+          // dv->perform(&to_string);
+          env->current_frame()[leftover->name()] = dv;
         }
         else {
           // param is unbound and has no default value -- error

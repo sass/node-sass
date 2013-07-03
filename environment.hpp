@@ -3,10 +3,13 @@
 #include <string>
 #include <map>
 #include "ast_def_macros.hpp"
+#include <iostream>
 
 namespace Sass {
   using std::string;
   using std::map;
+  using std::cerr;
+  using std::endl;
 
   template <typename T>
   class Environment {
@@ -37,6 +40,17 @@ namespace Sass {
       if (current_frame_.count(key))  return current_frame_[key];
       else if (parent_)               return (*parent_)[key];
       else                            return current_frame_[key];
+    }
+
+    void print()
+    {
+      for (typename map<string, T>::iterator i = current_frame_.begin(); i != current_frame_.end(); ++i) {
+        cerr << i->first << endl;
+      }
+      if (parent_) {
+        cerr << "---" << endl;
+        parent_->print();
+      }
     }
   };
 }
