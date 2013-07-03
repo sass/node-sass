@@ -25,7 +25,6 @@ namespace Sass {
 
     Context&   ctx;
     Env*       env;
-    bool       force;
 
     Expression* fallback_impl(AST_Node* n);
 
