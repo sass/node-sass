@@ -28,7 +28,7 @@ namespace Sass {
   };
 
   Eval::Eval(Context& ctx, Env* env, Backtrace* bt)
-  : ctx(ctx), env(env), force(force), backtrace(bt) { }
+  : ctx(ctx), env(env), backtrace(bt) { }
   Eval::~Eval() { }
 
   Eval* Eval::with(Env* e, Backtrace* bt) // for setting the env before eval'ing an expression

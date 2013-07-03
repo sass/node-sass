@@ -455,7 +455,7 @@ namespace Sass {
       unsigned int counter = 0;
       while (beg < end && *beg) {
         const char* p;
-        if (p = mx(beg)) {
+        if ((p = mx(beg))) {
           ++counter;
           beg = p;
         }
