@@ -855,6 +855,8 @@ namespace Sass {
     string type() { return "null"; }
     static string type_name() { return "null"; }
     bool is_invisible() { return true; }
+    operator bool() { return false; }
+    bool is_false() { return true; }
     ATTACH_OPERATIONS();
   };
 
