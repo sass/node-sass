@@ -257,6 +257,7 @@ namespace Sass {
 
   Expression* Eval::operator()(Function_Call* c)
   {
+    if (c->name() == "calc") return c;
     Arguments* args = static_cast<Arguments*>(c->arguments()->perform(this));
     string full_name(c->name() + "[f]");
 
@@ -384,10 +385,14 @@ namespace Sass {
 
   Expression* Eval::operator()(Variable* v)
   {
+    To_String to_string;
+    cerr << "looking up " << v->name() << endl;
     string name(v->name());
     Expression* value = 0;
     if (env->has(name)) value = static_cast<Expression*>((*env)[name]);
     else error("unbound variable " + v->name(), v->path(), v->line());
+    cerr << "fetched a value of type " << typeid(*value).name() << endl;
+    // if (value) cerr << "fetched a value: " << value->perform(&to_string) << endl;
     return value;
   }
 
