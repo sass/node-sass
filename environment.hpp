@@ -1,51 +1,55 @@
 #define SASS_ENVIRONMENT
 
+#include <string>
 #include <map>
-
-#ifndef SASS_NODE
-#include "node.hpp"
-#endif
+#include "ast_def_macros.hpp"
+#include <iostream>
 
 namespace Sass {
+  using std::string;
   using std::map;
+  using std::cerr;
+  using std::endl;
 
-  struct Environment {
-    map<Token, Node> current_frame;
-    Environment* parent;
-    Environment* global;
-    
-    Environment()
-    : current_frame(map<Token, Node>()), parent(0), global(0)
-    { }
-    
-    void link(Environment& env)
+  template <typename T>
+  class Environment {
+    // TODO: test with unordered_map
+    map<string, T> current_frame_;
+    ADD_PROPERTY(Environment*, parent);
+
+  public:
+    Environment() : current_frame_(map<string, T>()), parent_(0) { }
+
+    map<string, T>& current_frame() { return current_frame_; }
+
+    void link(Environment& env) { parent_ = &env; }
+    void link(Environment* env) { parent_ = env; }
+
+    bool has(const string key) const
     {
-      parent = &env;
-      global = parent->global ? parent->global : parent;
+      if (current_frame_.count(key))  return true;
+      else if (parent_)               return parent_->has(key);
+      else                            return false;
     }
-    
-    bool query(const Token& key) const
+
+    bool current_frame_has(const string key) const
+    { return current_frame_.count(key); }
+
+    T& operator[](const string key)
     {
-      if (current_frame.count(key)) return true;
-      else if (parent)              return parent->query(key);
-      else                          return false;
-    }
-    
-    Node& operator[](const Token& key)
-    {
-      if (current_frame.count(key)) return current_frame[key];
-      else if (parent)              return (*parent)[key];
-      else                          return current_frame[key];
+      if (current_frame_.count(key))  return current_frame_[key];
+      else if (parent_)               return (*parent_)[key];
+      else                            return current_frame_[key];
     }
 
     void print()
     {
-      for (map<Token, Node>::iterator i = current_frame.begin(); i != current_frame.end(); ++i) {
-        cerr << i->first.to_string() << ": " << i->second.to_string() << endl;
+      for (typename map<string, T>::iterator i = current_frame_.begin(); i != current_frame_.end(); ++i) {
+        cerr << i->first << endl;
       }
-      if (parent) {
+      if (parent_) {
         cerr << "---" << endl;
-        parent->print();
+        parent_->print();
       }
     }
   };

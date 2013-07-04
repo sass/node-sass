@@ -5,10 +5,11 @@ LDFLAGS = -fPIC
 PREFIX  = /usr/local
 LIBDIR  = $(PREFIX)/lib
 
-SOURCES = constants.cpp context.cpp functions.cpp document.cpp \
-          document_parser.cpp eval_apply.cpp node.cpp \
-          node_factory.cpp node_emitters.cpp prelexer.cpp \
-          selector.cpp sass_interface.cpp sass_values.cpp
+SOURCES = ast.cpp bind.cpp constants.cpp context.cpp contextualize.cpp \
+	copy_c_str.cpp error_handling.cpp eval.cpp expand.cpp extend.cpp file.cpp \
+	functions.cpp inspect.cpp output_compressed.cpp output_nested.cpp \
+	parser.cpp prelexer.cpp sass.cpp sass_interface.cpp to_c.cpp to_string.cpp \
+	units.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)
 

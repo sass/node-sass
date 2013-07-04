@@ -575,7 +575,7 @@ PACKAGE_STRING='libsass 1.0'
 PACKAGE_BUGREPORT='support@moovweb.com'
 PACKAGE_URL=''
 
-ac_unique_file="error.hpp"
+ac_unique_file="ast.hpp"
 # Factoring default headers for most tests.
 ac_includes_default="\
 #include <stdio.h>

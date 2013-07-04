@@ -62,9 +62,9 @@ interface, but is backed by three different processes.
 
 To generate a context, use one of the following methods.
 
-    new_sass_context()
-    new_sass_file_context()
-    new_sass_folder_context()
+    sass_new_context()
+    sass_new_file_context()
+    sass_new_folder_context()
 
 Again, please see the sass_interface.h for more information.
 

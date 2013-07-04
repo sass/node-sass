@@ -84,9 +84,11 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libsass_la_LIBADD =
-am_libsass_la_OBJECTS = context.lo functions.lo document.lo \
-	constants.lo document_parser.lo eval_apply.lo node.lo node_factory.lo \
-	node_emitters.lo prelexer.lo selector.lo sass_interface.lo sass_values.lo
+am_libsass_la_OBJECTS = ast.lo bind.lo constants.lo context.lo \
+	contextualize.lo copy_c_str.lo error_handling.lo eval.lo expand.lo \
+	extend.lo file.lo functions.lo inspect.lo output_compressed.lo \
+	output_nested.lo parser.lo prelexer.lo sass.lo sass_interface.lo to_c.lo \
+	to_string.lo units.lo
 libsass_la_OBJECTS = $(am_libsass_la_OBJECTS)
 libsass_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -244,13 +246,14 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
 lib_LTLIBRARIES = libsass.la
-libsass_la_SOURCES = context.cpp functions.cpp document.cpp \
-	constants.cpp document_parser.cpp eval_apply.cpp node.cpp \
-	node_factory.cpp node_emitters.cpp prelexer.cpp \
-	selector.cpp sass_interface.cpp sass_values.cpp
+libsass_la_SOURCES = ast.cpp bind.cpp constants.cpp context.cpp contextualize.cpp \
+	copy_c_str.cpp error_handling.cpp eval.cpp expand.cpp extend.cpp file.cpp \
+	functions.cpp inspect.cpp output_compressed.cpp output_nested.cpp \
+	parser.cpp prelexer.cpp sass.cpp sass_interface.cpp to_c.cpp to_string.cpp \
+	units.cpp
 
 libsass_la_LDFLAGS = -no-undefined -version-info 0:0:0
-include_HEADERS = sass_interface.h
+include_HEADERS = sass_interface.h sass.h
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 

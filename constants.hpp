@@ -26,6 +26,7 @@ namespace Sass {
     extern const char while_kwd[];
     extern const char warn_kwd[];
     extern const char default_kwd[];
+    extern const char null_kwd[];
 
     // css standard units
     extern const char em_kwd[];
@@ -62,6 +63,7 @@ namespace Sass {
     extern const char pseudo_not_kwd[];
     extern const char even_kwd[];
     extern const char odd_kwd[];
+    extern const char progid_kwd[];
 
     // css attribute-matching operators
     extern const char tilde_equal[];
