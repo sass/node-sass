@@ -9,3 +9,6 @@ build/*
 a.out
 bin/*
 *.gem
+.svn/*
+libsass/*
+.gitattributes
