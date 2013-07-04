@@ -301,9 +301,8 @@ namespace Sass {
     ss.precision(5);
     ss << fixed << n->value();
     string d(ss.str());
-    for (size_t i = d.length()-1; i >= 0; --i) {
-      if (d[i] == '0') d.resize(d.length()-1);
-      else break;
+    for (size_t i = d.length()-1; d[i] == '0'; --i) {
+      d.resize(d.length()-1);
     }
     if (d[d.length()-1] == '.') d.resize(d.length()-1);
     if (n->numerator_units().size() > 1 || n->denominator_units().size() > 0) {
