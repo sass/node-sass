@@ -1002,6 +1002,7 @@ namespace Sass {
   /////////////////////////////////////////
   // Abstract base class for CSS selectors.
   /////////////////////////////////////////
+  class Simple_Selector_Sequence;
   class Selector : public AST_Node {
     ADD_PROPERTY(bool, has_reference);
     ADD_PROPERTY(bool, has_placeholder);
@@ -1010,6 +1011,7 @@ namespace Sass {
     : AST_Node(p, l), has_reference_(r), has_placeholder_(h)
     { }
     virtual ~Selector() = 0;
+    virtual Simple_Selector_Sequence* find_placeholder();
   };
   inline Selector::~Selector() { }
 
@@ -1142,6 +1144,7 @@ namespace Sass {
       Vectorized<Simple_Selector*>(s)
     { }
     bool operator<(const Simple_Selector_Sequence& rhs) const;
+    virtual Simple_Selector_Sequence* find_placeholder();
     ATTACH_OPERATIONS();
   };
 
@@ -1171,6 +1174,7 @@ namespace Sass {
     Simple_Selector_Sequence* base();
     Selector_Combination* context(Context&);
     Selector_Combination* innermost();
+    virtual Simple_Selector_Sequence* find_placeholder();
     ATTACH_OPERATIONS();
   };
 
@@ -1189,6 +1193,7 @@ namespace Sass {
     Selector_Group(string p, size_t l, size_t s = 0)
     : Selector(p, l), Vectorized<Selector_Combination*>(s)
     { }
+    virtual Simple_Selector_Sequence* find_placeholder();
     ATTACH_OPERATIONS();
   };
 }

@@ -16,16 +16,18 @@ namespace Sass {
   using namespace std;
 
   class Context;
+  class Backtrace;
 
   class Extend : public Operation_CRTP<void, Extend> {
 
     Context&          ctx;
     multimap<Simple_Selector_Sequence, Selector_Combination*>& extensions;
+    Backtrace&        backtrace;
 
     void fallback_impl(AST_Node* n) { };
 
   public:
-    Extend(Context&, multimap<Simple_Selector_Sequence, Selector_Combination*>&);
+    Extend(Context&, multimap<Simple_Selector_Sequence, Selector_Combination*>&, Backtrace&);
     virtual ~Extend() { }
 
     using Operation<void>::operator();

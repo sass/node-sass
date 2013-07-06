@@ -7,8 +7,8 @@
 
 namespace Sass {
 
-  Contextualize::Contextualize(Context& ctx, Eval* eval, Env* env, Backtrace* bt)
-  : ctx(ctx), eval(eval), env(env), parent(0), backtrace(bt)
+  Contextualize::Contextualize(Context& ctx, Eval* eval, Env* env, Backtrace* bt, Selector* placeholder, Selector* extender)
+  : ctx(ctx), eval(eval), env(env), parent(0), backtrace(bt), placeholder(placeholder), extender(extender)
   { }
 
   Contextualize::~Contextualize() { }
@@ -16,11 +16,13 @@ namespace Sass {
   Selector* Contextualize::fallback_impl(AST_Node* n)
   { return parent; }
 
-  Contextualize* Contextualize::with(Selector* s, Env* e, Backtrace* bt)
+  Contextualize* Contextualize::with(Selector* s, Env* e, Backtrace* bt, Selector* p, Selector* ex)
   {
     parent = s;
     env = e;
     backtrace = bt;
+    placeholder = p;
+    extender = ex;
     return this;
   }
 
@@ -77,6 +79,10 @@ namespace Sass {
 
   Selector* Contextualize::operator()(Simple_Selector_Sequence* s)
   {
+    To_String to_string;
+    if (placeholder && extender && s->perform(&to_string) == placeholder->perform(&to_string)) {
+      return extender;
+    }
     Simple_Selector_Sequence* ss = new (ctx.mem) Simple_Selector_Sequence(s->path(), s->line(), s->length());
     for (size_t i = 0, L = s->length(); i < L; ++i) {
       Simple_Selector* simp = static_cast<Simple_Selector*>((*s)[i]->perform(this));
@@ -109,7 +115,15 @@ namespace Sass {
   { return s; }
 
   Selector* Contextualize::operator()(Selector_Placeholder* s)
-  { return s; }
+  {
+    To_String to_string;
+    if (placeholder && extender && s->perform(&to_string) == placeholder->perform(&to_string)) {
+      return extender;
+    }
+    else {
+      return s;
+    }
+  }
 
   Selector* Contextualize::operator()(Selector_Reference* s)
   {

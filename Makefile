@@ -1,5 +1,5 @@
 CC      = g++
-CFLAGS  = -Wall -O2 -fPIC
+CFLAGS  = -Wall -g -fPIC
 LDFLAGS = -fPIC
 
 PREFIX  = /usr/local

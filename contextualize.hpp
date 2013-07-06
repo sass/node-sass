@@ -40,9 +40,11 @@ namespace Sass {
     Selector* fallback_impl(AST_Node* n);
 
   public:
-    Contextualize(Context&, Eval*, Env*, Backtrace*);
+    Selector* placeholder;
+    Selector* extender;
+    Contextualize(Context&, Eval*, Env*, Backtrace*, Selector* placeholder = 0, Selector* extender = 0);
     virtual ~Contextualize();
-    Contextualize* with(Selector*, Env*, Backtrace*);
+    Contextualize* with(Selector*, Env*, Backtrace*, Selector* placeholder = 0, Selector* extender = 0);
     using Operation<Selector*>::operator();
 
     Selector* operator()(Selector_Schema*);

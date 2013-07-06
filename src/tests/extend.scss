@@ -11,3 +11,9 @@
 #b {
   @extend div#a;
 }
+
+a b {
+  c {
+    @extend #b;
+  }
+}

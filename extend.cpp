@@ -1,12 +1,14 @@
 #include "extend.hpp"
 #include "context.hpp"
+#include "contextualize.hpp"
 #include "to_string.hpp"
+#include "backtrace.hpp"
 #include <iostream>
 
 namespace Sass {
 
-  Extend::Extend(Context& ctx, multimap<Simple_Selector_Sequence, Selector_Combination*>& extensions)
-  : ctx(ctx), extensions(extensions)
+  Extend::Extend(Context& ctx, multimap<Simple_Selector_Sequence, Selector_Combination*>& extensions, Backtrace& bt)
+  : ctx(ctx), extensions(extensions), backtrace(bt)
   { }
 
   void Extend::operator()(Block* b)
@@ -21,20 +23,28 @@ namespace Sass {
     Selector_Group* sg = static_cast<Selector_Group*>(r->selector());
     Selector_Group* ng = new (ctx.mem) Selector_Group(sg->path(), sg->line(), sg->length());
     bool extended = false;
-    // for each selector in the group
-    for (size_t i = 0, L = sg->length(); i < L; ++i) {
-      Selector_Combination* sel = (*sg)[i];
-      *ng << sel;
-      // if it's supposed to be extended
-      Simple_Selector_Sequence* sel_base = sel->base();
-      To_String to_string;
-      if (sel_base && extensions.count(*sel_base)) {
-        // extend it wrt each of its extenders
-        for (multimap<Simple_Selector_Sequence, Selector_Combination*>::iterator extender = extensions.lower_bound(*sel_base), E = extensions.upper_bound(*sel_base);
-             extender != E;
-             ++extender) {
-          *ng += generate_extension(sel, extender->second);
-          extended = true;
+    if (sg->has_placeholder()) {
+      Simple_Selector_Sequence* placeholder = sg->find_placeholder();
+      Contextualize expand_placeholder(0, 0, backtrace, placeholder, extensions[placeholder]);
+      Selector_Group* expanded = sg->perform(expand_placeholder);
+      ng = expanded;
+    }
+    else {
+      // for each selector in the group
+      for (size_t i = 0, L = sg->length(); i < L; ++i) {
+        Selector_Combination* sel = (*sg)[i];
+        *ng << sel;
+        // if it's supposed to be extended
+        Simple_Selector_Sequence* sel_base = sel->base();
+        To_String to_string;
+        if (sel_base && extensions.count(*sel_base)) {
+          // extend it wrt each of its extenders
+          for (multimap<Simple_Selector_Sequence, Selector_Combination*>::iterator extender = extensions.lower_bound(*sel_base), E = extensions.upper_bound(*sel_base);
+               extender != E;
+               ++extender) {
+            *ng += generate_extension(sel, extender->second);
+            extended = true;
+          }
         }
       }
     }

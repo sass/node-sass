@@ -20,6 +20,7 @@ AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
 
 # Checks for libraries.
+AC_CHECK_LIB([shlwapi])
 
 # Checks for header files.
 AC_CHECK_HEADERS([unistd.h])
@@ -31,7 +32,7 @@ AC_TYPE_SIZE_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([floor getcwd strtol])
+AC_CHECK_FUNCS([floor getcwd strtol PathIsRelative])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
