@@ -423,8 +423,13 @@ namespace Sass {
     }
 
     const char* ie_stuff(const char* src) {
-      return sequence< progid, exactly<':'>, alternatives< identifier_schema, identifier >, one_plus< sequence< exactly<'.'>, alternatives< identifier_schema, identifier > > >, delimited_by<'(', ')', true> >(src);
+      return sequence< progid, exactly<':'>, alternatives< identifier_schema, identifier >, one_plus< sequence< exactly<'.'>, alternatives< identifier_schema, identifier > > >, delimited_by<'(', ';', true> >(src);
     }
+
+    // const char* ie_args(const char* src) {
+    //   return sequence< alternatives< ie_keyword_arg, value_schema, string_constant, interpolant, number, identifier, delimited_by< '(', ')', true> >,
+    //                    zero_plus< sequence< spaces_and_comments, exactly<','>, spaces_and_comments, alternatives< ie_keyword_arg, value_schema, string_constant, interpolant, number, identifier, delimited_by<'(', ')', true> > > > >(src);
+    // }
 
     const char* ie_keyword_arg(const char* src) {
       return sequence< alternatives< variable, identifier_schema, identifier >, spaces_and_comments, exactly<'='>, spaces_and_comments, alternatives< variable, identifier_schema, identifier > >(src);
@@ -465,5 +470,10 @@ namespace Sass {
       // unreachable
       return 0;
     }
+
+    // const char* balanced_parens(const char* src) {
+    //   size_t depth = 0;
+    //   while (*src
+    // }
   }
 }

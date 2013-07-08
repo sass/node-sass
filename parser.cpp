@@ -1047,6 +1047,8 @@ namespace Sass {
   {
     lex< ie_stuff >();
     Token str(lexed);
+    --str.end;
+    --position;
     const char* i = str.begin;
     // see if there any interpolants
     const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(str.begin, str.end);
@@ -1073,6 +1075,7 @@ namespace Sass {
         }
         else {
           // throw an error if the interpolant is unterminated
+          cerr << string(str) << endl;
           error("unterminated interpolant inside IE function " + str);
         }
       }
