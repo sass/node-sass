@@ -689,7 +689,7 @@ namespace Sass {
     if (!lex< exactly<':'> >()) error("property \"" + string(lexed) + "\" must be followed by a ':'");
     if (peek< exactly<';'> >()) error("style declaration must contain a value");
     Expression* list = parse_list();
-    return new (ctx.mem) Declaration(path, prop->line(), prop, list, lex<important>());
+    return new (ctx.mem) Declaration(path, prop->line(), prop, list/*, lex<important>()*/);
   }
 
   Expression* Parser::parse_list()
@@ -699,7 +699,7 @@ namespace Sass {
 
   Expression* Parser::parse_comma_list()
   {
-    if (peek< exactly<'!'> >(position) ||
+    if (//peek< exactly<'!'> >(position) ||
         peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
         peek< exactly<'{'> >(position) ||
@@ -727,7 +727,7 @@ namespace Sass {
   {
     Expression* disj1 = parse_disjunction();
     // if it's a singleton, return it directly; don't wrap it
-    if (peek< exactly<'!'> >(position) ||
+    if (//peek< exactly<'!'> >(position) ||
         peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
         peek< exactly<'{'> >(position) ||
@@ -741,7 +741,7 @@ namespace Sass {
     List* space_list = new (ctx.mem) List(path, line, 2, List::SPACE);
     (*space_list) << disj1;
 
-    while (!(peek< exactly<'!'> >(position) ||
+    while (!(//peek< exactly<'!'> >(position) ||
              peek< exactly<';'> >(position) ||
              peek< exactly<'}'> >(position) ||
              peek< exactly<'{'> >(position) ||
@@ -949,6 +949,9 @@ namespace Sass {
       if (!lex< exactly<')'> >()) error("URI is missing ')'");
       return result;
     }
+
+    if (lex< important >())
+    { return new (ctx.mem) String_Constant(path, line, "!important"); }
 
     if (peek< functional_schema >())
     { return parse_function_call_schema(); }
