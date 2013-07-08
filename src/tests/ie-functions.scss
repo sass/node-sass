@@ -1,0 +1,15 @@
+@mixin ie-opacity($opacity) {
+  opacity: $opacity / 100;
+  filter: alpha(opacity=$opacity);
+  bilter: alpha(opacity=$opacity);
+  kilter: type-of(opacity=$opacity);
+}
+
+foo {
+  filter: progid:Microsoft.foo.bar.Baz(flip=#{foo + bar}, bang=#00ff00cc);
+  something: blah(hux = mumble);
+  blah: progid:something.something(flip=foobar, bang=#abc);
+  blah: progid:bar.hux();
+  blah: type-of(hux = mumble);
+  @include ie-opacity(.5);
+}
