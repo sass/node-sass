@@ -865,12 +865,18 @@ namespace Sass {
     }
     else if (peek< ie_keyword_arg >()) {
       String_Schema* kwd_arg = new (ctx.mem) String_Schema(path, line, 3);
-      lex< alternatives< identifier_schema, identifier > >();
-      *kwd_arg << new (ctx.mem) String_Constant(path, line, lexed);
+      if (lex< variable >()) *kwd_arg << new (ctx.mem) Variable(path, line, lexed);
+      else {
+        lex< alternatives< identifier_schema, identifier > >();
+        *kwd_arg << new (ctx.mem) String_Constant(path, line, lexed);
+      }
       lex< exactly<'='> >();
       *kwd_arg << new (ctx.mem) String_Constant(path, line, lexed);
-      lex< alternatives< identifier_schema, identifier > >();
-      *kwd_arg << new (ctx.mem) String_Constant(path, line, lexed);
+      if (lex< variable >()) *kwd_arg << new (ctx.mem) Variable(path, line, lexed);
+      else {
+        lex< alternatives< identifier_schema, identifier > >();
+        *kwd_arg << new (ctx.mem) String_Constant(path, line, lexed);
+      }
       return kwd_arg;
     }
     else if (peek< identifier_schema >()) {
