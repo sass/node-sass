@@ -7,7 +7,7 @@
 
 namespace Sass {
 
-  Extend::Extend(Context& ctx, multimap<Simple_Selector_Sequence, Selector_Combination*>& extensions, Backtrace& bt)
+  Extend::Extend(Context& ctx, multimap<Simple_Selector_Sequence, Selector_Combination*>& extensions, Backtrace* bt)
   : ctx(ctx), extensions(extensions), backtrace(bt)
   { }
 
@@ -21,15 +21,37 @@ namespace Sass {
   void Extend::operator()(Ruleset* r)
   {
     Selector_Group* sg = static_cast<Selector_Group*>(r->selector());
-    Selector_Group* ng = new (ctx.mem) Selector_Group(sg->path(), sg->line(), sg->length());
+    Selector_Group* ng = 0;
     bool extended = false;
     if (sg->has_placeholder()) {
-      Simple_Selector_Sequence* placeholder = sg->find_placeholder();
-      Contextualize expand_placeholder(0, 0, backtrace, placeholder, extensions[placeholder]);
-      Selector_Group* expanded = sg->perform(expand_placeholder);
-      ng = expanded;
+      // To_String to_string;
+      Simple_Selector_Sequence* placeholder = new (ctx.mem) Simple_Selector_Sequence(sg->path(), sg->line(), 1);
+      *placeholder << sg->find_placeholder();
+      // cerr << "placeholder: " << placeholder->perform(&to_string) << endl;
+      // if the placeholder needs to be subbed
+      if (extensions.count(*placeholder)) {
+        // cerr << "need to sub " << placeholder->perform(&to_string) << " " << extensions.count(*placeholder) << " times" << endl;
+        // perform each substitution and append it to the selector group of the ruleset
+        ng = new (ctx.mem) Selector_Group(sg->path(), sg->line(), extensions.count(*placeholder));
+        for (multimap<Simple_Selector_Sequence, Selector_Combination*>::iterator extender = extensions.lower_bound(*placeholder), E = extensions.upper_bound(*placeholder);
+             extender != E;
+             ++extender) {
+          // cerr << "performing a substitution: " << placeholder->perform(&to_string) << " -> " << extender->second->perform(&to_string) << endl;
+          Contextualize sub_plc(ctx, 0, 0, backtrace, placeholder, extender->second);
+          Selector_Group* subbed = static_cast<Selector_Group*>(sg->perform(&sub_plc));
+          // if (subbed) cerr << "subbed: " << subbed->perform(&to_string) << endl;
+          *ng += subbed;
+          extended = true;
+        }
+        ng->has_placeholder(false);
+      }
+      // otherwise prevent it from rendering
+      else {
+        // r->selector(0);
+      }
     }
     else {
+      ng = new (ctx.mem) Selector_Group(sg->path(), sg->line(), sg->length());
       // for each selector in the group
       for (size_t i = 0, L = sg->length(); i < L; ++i) {
         Selector_Combination* sel = (*sg)[i];

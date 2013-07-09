@@ -33,12 +33,12 @@ namespace Sass {
     else return tail()->innermost();
   }
 
-  Simple_Selector_Sequence* Selector::find_placeholder()
+  Selector_Placeholder* Selector::find_placeholder()
   {
     return 0;
   }
 
-  Simple_Selector_Sequence* Selector_Group::find_placeholder()
+  Selector_Placeholder* Selector_Group::find_placeholder()
   {
     if (has_placeholder()) {
       for (size_t i = 0, L = length(); i < L; ++i) {
@@ -48,7 +48,7 @@ namespace Sass {
     return 0;
   }
 
-  Simple_Selector_Sequence* Selector_Combination::find_placeholder()
+  Selector_Placeholder* Selector_Combination::find_placeholder()
   {
     if (has_placeholder()) {
       if (head() && head()->has_placeholder()) return head()->find_placeholder();
@@ -57,20 +57,20 @@ namespace Sass {
     return 0;
   }
 
-  Simple_Selector_Sequence* Simple_Selector_Sequence::find_placeholder()
+  Selector_Placeholder* Simple_Selector_Sequence::find_placeholder()
   {
     if (has_placeholder()) {
-      // for (size_t i = 0, L = length(); i < L; ++i) {
-      //   if ((*this)[i]->has_placeholder()) return (*this)[i]->find_placeholder();
-      // }
-      return this;
+      for (size_t i = 0, L = length(); i < L; ++i) {
+        if ((*this)[i]->has_placeholder()) return (*this)[i]->find_placeholder();
+      }
+      // return this;
     }
     return 0;
   }
 
-  // Selector_Placeholder* Selector_Placeholder::find_placeholder()
-  // {
-  //   return this;
-  // }
+  Selector_Placeholder* Selector_Placeholder::find_placeholder()
+  {
+    return this;
+  }
 
 }

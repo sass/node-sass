@@ -1,13 +1,17 @@
-%x {
+%x.buz {
   color: red;
 }
 
-foo {
+%y {
+  color: whatever;
+}
+
+foo bar {
   width: 10px;
   @extend %x;
 }
 
-hux {
+hux baz {
   height: 12px;
   @extend %x;
 }

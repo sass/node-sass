@@ -179,7 +179,7 @@ namespace Sass {
 
     root = root->perform(&expand)->block();
     if (expand.extensions.size()) {
-      Extend extend(*this, expand.extensions, backtrace);
+      Extend extend(*this, expand.extensions, &backtrace);
       root->perform(&extend);
     }
     char* result = 0;

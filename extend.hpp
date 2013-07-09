@@ -22,12 +22,12 @@ namespace Sass {
 
     Context&          ctx;
     multimap<Simple_Selector_Sequence, Selector_Combination*>& extensions;
-    Backtrace&        backtrace;
+    Backtrace*        backtrace;
 
     void fallback_impl(AST_Node* n) { };
 
   public:
-    Extend(Context&, multimap<Simple_Selector_Sequence, Selector_Combination*>&, Backtrace&);
+    Extend(Context&, multimap<Simple_Selector_Sequence, Selector_Combination*>&, Backtrace*);
     virtual ~Extend() { }
 
     using Operation<void>::operator();

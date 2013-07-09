@@ -29,6 +29,8 @@ namespace Sass {
     Selector* s     = r->selector();
     Block*    b     = r->block();
 
+    if (s->has_placeholder()) return;
+
     if (b->has_non_hoistable()) {
       s->perform(this);
       buffer += "{";

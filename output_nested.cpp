@@ -33,6 +33,8 @@ namespace Sass {
     Block*    b     = r->block();
     bool      decls = false;
 
+    if (s->has_placeholder()) return;
+
     if (b->has_non_hoistable()) {
       decls = true;
       indent();
