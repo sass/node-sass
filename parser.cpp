@@ -442,7 +442,7 @@ namespace Sass {
       return new (ctx.mem) Selector_Placeholder(path, line, lexed);
     }
     else {
-      error("invalid selector after " + lexed);
+      error("invalid selector after " + lexed.to_string());
     }
     // unreachable statement
     return 0;
@@ -995,7 +995,7 @@ namespace Sass {
     if (lex< variable >())
     { return new (ctx.mem) Variable(path, line, lexed); }
 
-    error("error reading values after " + lexed);
+    error("error reading values after " + lexed.to_string());
 
     // unreachable statement
     return 0;
@@ -1032,7 +1032,7 @@ namespace Sass {
         }
         else {
           // throw an error if the interpolant is unterminated
-          error("unterminated interpolant inside string constant " + str);
+          error("unterminated interpolant inside string constant " + str.to_string());
         }
       }
       else { // no interpolants left; add the last segment if nonempty
@@ -1075,8 +1075,7 @@ namespace Sass {
         }
         else {
           // throw an error if the interpolant is unterminated
-          cerr << string(str) << endl;
-          error("unterminated interpolant inside IE function " + str);
+          error("unterminated interpolant inside IE function " + str.to_string());
         }
       }
       else { // no interpolants left; add the last segment if nonempty
@@ -1185,7 +1184,7 @@ namespace Sass {
         }
         else {
           // throw an error if the interpolant is unterminated
-          error("unterminated interpolant inside interpolated identifier " + id);
+          error("unterminated interpolant inside interpolated identifier " + id.to_string());
         }
       }
       else { // no interpolants left; add the last segment if nonempty
