@@ -416,6 +416,7 @@ namespace Sass {
 
     // IE stuff
     const char* ie_stuff(const char* src);
+    const char* ie_args(const char* src);
     const char* ie_keyword_arg(const char* src);
 
     // Path matching functions.

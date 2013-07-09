@@ -416,7 +416,15 @@ namespace Sass {
     Signature alpha_sig = "alpha($color)";
     Signature opacity_sig = "opacity($color)";
     BUILT_IN(alpha)
-    { return new (ctx.mem) Number(path, line, ARG("$color", Color)->a()); }
+    {
+      String_Constant* ie_kwd = dynamic_cast<String_Constant*>(env["$color"]);
+      if (ie_kwd) {
+        return new (ctx.mem) String_Constant(path, line, "alpha(" + ie_kwd->value() + ")");
+      }
+      else {
+        return new (ctx.mem) Number(path, line, ARG("$color", Color)->a());
+      }
+    }
 
     Signature opacify_sig = "opacify($color, $amount)";
     Signature fade_in_sig = "fade-in($color, $amount)";

@@ -24,11 +24,11 @@ namespace Sass {
   class Eval : public Operation_CRTP<Expression*, Eval> {
 
     Context&   ctx;
-    Env*       env;
 
     Expression* fallback_impl(AST_Node* n);
 
   public:
+    Env*       env;
     Backtrace* backtrace;
     Eval(Context&, Env*, Backtrace*);
     virtual ~Eval();

@@ -689,7 +689,7 @@ namespace Sass {
     if (!lex< exactly<':'> >()) error("property \"" + string(lexed) + "\" must be followed by a ':'");
     if (peek< exactly<';'> >()) error("style declaration must contain a value");
     Expression* list = parse_list();
-    return new (ctx.mem) Declaration(path, prop->line(), prop, list, lex<important>());
+    return new (ctx.mem) Declaration(path, prop->line(), prop, list/*, lex<important>()*/);
   }
 
   Expression* Parser::parse_list()
@@ -699,7 +699,7 @@ namespace Sass {
 
   Expression* Parser::parse_comma_list()
   {
-    if (peek< exactly<'!'> >(position) ||
+    if (//peek< exactly<'!'> >(position) ||
         peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
         peek< exactly<'{'> >(position) ||
@@ -727,7 +727,7 @@ namespace Sass {
   {
     Expression* disj1 = parse_disjunction();
     // if it's a singleton, return it directly; don't wrap it
-    if (peek< exactly<'!'> >(position) ||
+    if (//peek< exactly<'!'> >(position) ||
         peek< exactly<';'> >(position) ||
         peek< exactly<'}'> >(position) ||
         peek< exactly<'{'> >(position) ||
@@ -741,7 +741,7 @@ namespace Sass {
     List* space_list = new (ctx.mem) List(path, line, 2, List::SPACE);
     (*space_list) << disj1;
 
-    while (!(peek< exactly<'!'> >(position) ||
+    while (!(//peek< exactly<'!'> >(position) ||
              peek< exactly<';'> >(position) ||
              peek< exactly<'}'> >(position) ||
              peek< exactly<'{'> >(position) ||
@@ -865,13 +865,22 @@ namespace Sass {
     }
     else if (peek< ie_keyword_arg >()) {
       String_Schema* kwd_arg = new (ctx.mem) String_Schema(path, line, 3);
-      lex< alternatives< identifier_schema, identifier > >();
-      *kwd_arg << new (ctx.mem) String_Constant(path, line, lexed);
+      if (lex< variable >()) *kwd_arg << new (ctx.mem) Variable(path, line, lexed);
+      else {
+        lex< alternatives< identifier_schema, identifier > >();
+        *kwd_arg << new (ctx.mem) String_Constant(path, line, lexed);
+      }
       lex< exactly<'='> >();
       *kwd_arg << new (ctx.mem) String_Constant(path, line, lexed);
-      lex< alternatives< identifier_schema, identifier > >();
-      *kwd_arg << new (ctx.mem) String_Constant(path, line, lexed);
+      if (lex< variable >()) *kwd_arg << new (ctx.mem) Variable(path, line, lexed);
+      else {
+        lex< alternatives< identifier_schema, identifier > >();
+        *kwd_arg << new (ctx.mem) String_Constant(path, line, lexed);
+      }
       return kwd_arg;
+    }
+    else if (peek< functional_schema >()) {
+      return parse_function_call_schema();
     }
     else if (peek< identifier_schema >()) {
       return parse_identifier_schema();
@@ -944,8 +953,8 @@ namespace Sass {
       return result;
     }
 
-    if (peek< functional_schema >())
-    { return parse_function_call_schema(); }
+    if (lex< important >())
+    { return new (ctx.mem) String_Constant(path, line, "!important"); }
 
     if (peek< functional >())
     { return parse_function_call(); }
@@ -1038,6 +1047,8 @@ namespace Sass {
   {
     lex< ie_stuff >();
     Token str(lexed);
+    --str.end;
+    --position;
     const char* i = str.begin;
     // see if there any interpolants
     const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(str.begin, str.end);
@@ -1064,6 +1075,7 @@ namespace Sass {
         }
         else {
           // throw an error if the interpolant is unterminated
+          cerr << string(str) << endl;
           error("unterminated interpolant inside IE function " + str);
         }
       }
