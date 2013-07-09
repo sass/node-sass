@@ -879,6 +879,9 @@ namespace Sass {
       }
       return kwd_arg;
     }
+    else if (peek< functional_schema >()) {
+      return parse_function_call_schema();
+    }
     else if (peek< identifier_schema >()) {
       return parse_identifier_schema();
     }
@@ -952,9 +955,6 @@ namespace Sass {
 
     if (lex< important >())
     { return new (ctx.mem) String_Constant(path, line, "!important"); }
-
-    if (peek< functional_schema >())
-    { return parse_function_call_schema(); }
 
     if (peek< functional >())
     { return parse_function_call(); }
