@@ -885,6 +885,9 @@ namespace Sass {
     else if (peek< identifier_schema >()) {
       return parse_identifier_schema();
     }
+    else if (peek< functional >() && !peek< uri_prefix >()) {
+      return parse_function_call();
+    }
     else if (lex< sequence< exactly<'+'>, spaces_and_comments, negate< number > > >()) {
       return new (ctx.mem) Unary_Expression(path, line, Unary_Expression::PLUS, parse_factor());
     }
@@ -955,9 +958,6 @@ namespace Sass {
 
     if (lex< important >())
     { return new (ctx.mem) String_Constant(path, line, "!important"); }
-
-    if (peek< functional >())
-    { return parse_function_call(); }
 
     if (lex< value_schema >())
     { return Parser::from_token(lexed, ctx, path, line).parse_value_schema(); }
