@@ -471,7 +471,7 @@ namespace Sass {
     To_String to_string;
     for (size_t i = 0, L = s->length(); i < L; ++i) {
       string chunk((*s)[i]->perform(this)->perform(&to_string));
-      if ((s->quote_mark() && is_quoted(chunk)) || !s->quote_mark()) { // some redundancy in that test
+      if (((s->quote_mark() && is_quoted(chunk)) || !s->quote_mark()) && (*s)[i]->is_interpolant()) { // some redundancy in that test
         acc += unquote(chunk);
       }
       else {
