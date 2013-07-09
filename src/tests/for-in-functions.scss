@@ -8,6 +8,15 @@
 	@return $y;
 }
 
+@function bar() {
+  $x: 0;
+  @for $i from 1 through 10 {
+    $x: $x + $i;
+  }
+  @return $x;
+}
+
 div {
 	width: foo();
+  height: bar();
 }
