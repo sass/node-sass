@@ -18,6 +18,7 @@ namespace Sass {
 
     string buffer;
     size_t indentation;
+    bool source_comments;
     Context* ctx;
     void indent();
 
@@ -25,7 +26,7 @@ namespace Sass {
 
   public:
 
-    Output_Nested(Context* ctx = 0);
+    Output_Nested(bool source_comments = false, Context* ctx = 0);
     virtual ~Output_Nested();
 
     string get_buffer() { return buffer; }

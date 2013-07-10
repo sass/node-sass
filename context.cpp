@@ -191,7 +191,7 @@ namespace Sass {
       } break;
 
       default: {
-        Output_Nested output_nested(this);
+        Output_Nested output_nested(source_comments, this);
         root->perform(&output_nested);
         result = copy_c_str(output_nested.get_buffer().c_str());
       } break;

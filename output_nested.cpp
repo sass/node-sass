@@ -3,12 +3,15 @@
 #include "ast.hpp"
 #include "context.hpp"
 #include <iostream>
+#include <sstream>
 #include <typeinfo>
 
 namespace Sass {
   using namespace std;
 
-  Output_Nested::Output_Nested(Context* ctx) : buffer(""), indentation(0), ctx(ctx) { }
+  Output_Nested::Output_Nested(bool source_comments, Context* ctx)
+  : buffer(""), indentation(0), source_comments(source_comments), ctx(ctx)
+  { }
   Output_Nested::~Output_Nested() { }
 
   inline void Output_Nested::fallback_impl(AST_Node* n)
@@ -38,6 +41,11 @@ namespace Sass {
     if (b->has_non_hoistable()) {
       decls = true;
       indent();
+      if (source_comments) {
+        stringstream ss;
+        ss << "/* line " << r->line() << ", " << r->path() << " */" << endl;
+        buffer += ss.str();
+      }
       s->perform(this);
       buffer += " {\n";
       ++indentation;

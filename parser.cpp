@@ -298,9 +298,10 @@ namespace Sass {
     else {
       sel = parse_selector_group();
     }
+    size_t r_line = line;
     if (!peek< exactly<'{'> >()) error("expected a '{' after the selector");
     Block* block = parse_block();
-    Ruleset* ruleset = new (ctx.mem) Ruleset(path, line, sel, block);
+    Ruleset* ruleset = new (ctx.mem) Ruleset(path, r_line, sel, block);
     return ruleset;
   }
 
