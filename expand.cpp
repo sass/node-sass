@@ -262,10 +262,11 @@ namespace Sass {
 
   Statement* Expand::operator()(Definition* d)
   {
+    Definition* dd = new (ctx.mem) Definition(*d);
     env->current_frame()[d->name() +
-                        (d->type() == Definition::MIXIN ? "[m]" : "[f]")] = d;
+                        (d->type() == Definition::MIXIN ? "[m]" : "[f]")] = dd;
     // set the static link so we can have lexical scoping
-    d->environment(env);
+    dd->environment(env);
     return 0;
   }
 
