@@ -45,6 +45,7 @@ namespace Sass {
         stringstream ss;
         ss << "/* line " << r->line() << ", " << r->path() << " */" << endl;
         buffer += ss.str();
+        indent();
       }
       s->perform(this);
       buffer += " {\n";
