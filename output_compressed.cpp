@@ -135,6 +135,11 @@ namespace Sass {
     buffer += ';';
   }
 
+  void Output_Compressed::operator()(Comment* c)
+  {
+    return;
+  }
+
   void Output_Compressed::operator()(List* list)
   {
     string sep(list->separator() == List::SPACE ? " " : ",");
