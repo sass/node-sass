@@ -2,6 +2,8 @@
 
 #ifdef __cplusplus
 extern "C" {
+#else
+#include <stddef.h>
 #endif
 
 #define SASS_OUTPUT_NESTED     0
