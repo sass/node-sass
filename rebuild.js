@@ -1,3 +1,5 @@
 var spawn = require('child_process').spawn;
 
-spawn('node-gyp', ['rebuild']);
+if (process.platform === 'darwin') {
+  spawn('node-gyp', ['rebuild']);
+}
