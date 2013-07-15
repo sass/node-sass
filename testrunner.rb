@@ -152,7 +152,7 @@ Dir["#{opts[:srchpath]}**/input.scss"].each do |input_file|
 		if opts[:verbose]
 			puts("Failed for #{input_file}.")
 		else
-			puts(":(")
+			print "F"
 		end
 		message = "Failed test in #{spec_dir}\n"
 		message << `diff -rub #{expected_file} #{outfile}`
@@ -163,7 +163,7 @@ Dir["#{opts[:srchpath]}**/input.scss"].each do |input_file|
 			if opts[:verbose]
 				puts("Passed for #{input_file}.")
 			else
-				puts(":)")
+				print "."
 			end
 		end
 	end
@@ -175,6 +175,7 @@ if test_count == 0
 	puts("No tests were run, please make sure this is the correct directory and it has input files under it somewhere unhidden.")
 	exit(0)
 else
+	puts("")
 	outmessage = "#{test_count} tests found. "
 	if did_not_run > 0
 		outmessage += "#{did_not_run} of them were not run"
