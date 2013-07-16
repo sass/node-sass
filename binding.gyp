@@ -40,7 +40,8 @@
          }],
         ['OS=="linux"', {
           'cflags_cc': [
-            '-fexceptions'
+            '-fexceptions',
+            '-frtti'
           ]
          }]
       ]
