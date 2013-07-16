@@ -5,6 +5,7 @@
       'sources': [
         'binding.cpp',
         'sass_context_wrapper.cpp',
+        'libsass/ast.cpp',
         'libsass/constants.cpp',
         'libsass/context.cpp',
         'libsass/contextualize.cpp',
