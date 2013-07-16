@@ -6,6 +6,7 @@
         'binding.cpp',
         'sass_context_wrapper.cpp',
         'libsass/ast.cpp',
+        'libsass/bind.cpp',
         'libsass/constants.cpp',
         'libsass/context.cpp',
         'libsass/contextualize.cpp',
@@ -24,7 +25,8 @@
         'libsass/sass.cpp',
         'libsass/sass_interface.cpp',
         'libsass/to_c.cpp',
-        'libsass/to_string.cpp'
+        'libsass/to_string.cpp',
+        'libsass/units.cpp'
       ],
       'cflags!'   : [ '-fno-exceptions' ],
       'cflags_cc!': [ '-fno-exceptions' ],
