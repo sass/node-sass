@@ -7,17 +7,23 @@
         'sass_context_wrapper.cpp',
         'libsass/constants.cpp',
         'libsass/context.cpp',
-        'libsass/document.cpp',
-        'libsass/document_parser.cpp',
-        'libsass/eval_apply.cpp',
+        'libsass/contextualize.cpp',
+        'libsass/copy_c_str.cpp',
+        'libsass/error_handling.cpp',
+        'libsass/eval.cpp',
+        'libsass/expand.cpp',
+        'libsass/extend.cpp',
+        'libsass/file.cpp',
         'libsass/functions.cpp',
-        'libsass/node.cpp',
-        'libsass/node_emitters.cpp',
-        'libsass/node_factory.cpp',
+        'libsass/inspect.cpp',
+        'libsass/output_compressed.cpp',
+        'libsass/output_nested.cpp',
+        'libsass/parser.cpp',
         'libsass/prelexer.cpp',
+        'libsass/sass.cpp',
         'libsass/sass_interface.cpp',
-        'libsass/sass_values.cpp',
-        'libsass/selector.cpp'
+        'libsass/to_c.cpp',
+        'libsass/to_string.cpp'
       ],
       'cflags!'   : [ '-fno-exceptions' ],
       'cflags_cc!': [ '-fno-exceptions' ],
@@ -25,6 +31,7 @@
         ['OS=="mac"', {
           'xcode_settings': {
             'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+            'GCC_ENABLE_CPP_RTTI': 'YES',
             'MACOSX_DEPLOYMENT_TARGET': '10.7'
           }
          }],
