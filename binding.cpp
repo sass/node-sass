@@ -60,6 +60,7 @@ Handle<Value> OldRender(const Arguments& args) {
     strcpy(source, *astr);
     ctx->source_string = source;
     ctx->options.include_paths = new char[strlen(*bstr)+1];
+    ctx->options.image_path = new char[0];
     strcpy(ctx->options.include_paths, *bstr);
     // ctx->options.output_style = SASS_STYLE_NESTED;
     ctx->options.output_style = args[3]->Int32Value();
