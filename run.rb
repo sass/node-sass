@@ -8,7 +8,7 @@
 #| |-test_1
 #| | |-input.scss
 #| | --expected_output.css
-#| |-test_2
+#| --test_2
 #|   |-input.scss
 #|   --expected_output.css
 #|-test_subclass_2
@@ -22,17 +22,17 @@
 #begin help section
 def description()
 	"\nThis script will search for all files under the current (or specified) directory that are\n"+
-	"named input.scss. It will then run either sass or sassc (the script is easily modifiable to\n"+
-	"allow testing with some other sass implementation) and check that the output matches the sass\n"+
-	"output. If you want set up your own test suite, follow a similar hierarchy as described in\n"+
-	"the initial comment of this script for your test hierarchy.\n"
+	"named input.scss. It will then run a specified binary and check that the output matches the\n"+
+	"expected output. If you want set up your own test suite, follow a similar hierarchy as described in\n"+
+	"the initial comment of this script for your test hierarchy. (This script is intended for testing\n"+
+	"sass implementations, but can be easily modified to test anything.)\n\n"
 end
 
 def getusage()
 	"Usage: testrunner.rb [Options]\n"+
 	"\n"+
 	"Options:\n"+
-	"\t-c, --sassc\t\tTests with sassc. If not used, will test with sass (all tests should pass).\n"+
+	"\t-c=, --command=\tSets a specific binary to run (defaults to 'sass')\n"+
 	"\t-d=, --dir=\tSets the directory to recursively search for tests (defaults to '.')\n"+
 	"\t-f, --fails\tDon't print out information about passing tests to make the output easier to wade through"+
 	"\t-h, --help\t\tDisplay this message\n"+
@@ -42,7 +42,7 @@ end
 
 def exampleusage()
 	"Example usage:\n"+
-	"./testrunner.rb -c\n"+
+	"./testrunner.rb -c='sassc'\n"+
 	"./testrunner.rb -d=mytestsuite -v\n\n"
 end
 
@@ -64,13 +64,15 @@ opts[:fails] = false
 opts[:nolog] = false
 
 loop { case ARGV[0] #this argument parsing allows garbage at the end that doesn't start with '-', modify if necessary
-	when /^-(c|-sassc)$/ then    #to change what to run, modify these lines (or copy them)
-		opts[:cmd] = 'sassc' #to modify the parsing to your needs and set opts[:cmd] to the right thing
-		ARGV.shift
+	when /^-(c|-command)=/ then    #to change what to run, modify these lines (or copy them)
+		opts[:cmd] = ARGV.shift.split("=",2)[1] #get the specified binary
+		if (opts[:cmd] == "") #catch empty command
+			usage("\nERROR: Must specify a command after -c= or --command=\n\n", 1)
+		end
 	when /^-(d|-dir)=/ then
 		opts[:srchpath] = ARGV.shift.split("=",2)[1] #get the dir
 		if (opts[:srchpath] == "") #catch empty dir (no dir was input)
-			usage("\nERROR: Must specify a directory to search after -d= or --dir=.\n\n", 1)
+			usage("\nERROR: Must specify a directory to search after -d= or --dir=\n\n", 1)
 		end
 	when /^-(f|-fails)$/ then
 		opts[:fails] = true
