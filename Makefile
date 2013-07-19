@@ -1,5 +1,5 @@
 CC      = g++
-CFLAGS  = -Wall -g -fPIC
+CFLAGS  = -Wall -O2 -fPIC
 LDFLAGS = -fPIC
 
 PREFIX  = /usr/local
@@ -31,8 +31,11 @@ install: libsass.a
 install-shared: libsass.so
 	install -Dpm0755 $< $(DESTDIR)$(LIBDIR)/$<
 
+bin: $(OBJECTS)
+	$(CC) $(CFLAGS) $(OBJECTS) sassc++.cpp -o sassc++
+
 clean:
-	rm -f $(OBJECTS) *.a *.so
+	rm -f $(OBJECTS) *.a *.so sassc++
 
 
 .PHONY: static shared install install-shared clean
