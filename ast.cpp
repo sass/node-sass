@@ -33,4 +33,44 @@ namespace Sass {
     else return tail()->innermost();
   }
 
+  Selector_Placeholder* Selector::find_placeholder()
+  {
+    return 0;
+  }
+
+  Selector_Placeholder* Selector_Group::find_placeholder()
+  {
+    if (has_placeholder()) {
+      for (size_t i = 0, L = length(); i < L; ++i) {
+        if ((*this)[i]->has_placeholder()) return (*this)[i]->find_placeholder();
+      }
+    }
+    return 0;
+  }
+
+  Selector_Placeholder* Selector_Combination::find_placeholder()
+  {
+    if (has_placeholder()) {
+      if (head() && head()->has_placeholder()) return head()->find_placeholder();
+      else if (tail() && tail()->has_placeholder()) return tail()->find_placeholder();
+    }
+    return 0;
+  }
+
+  Selector_Placeholder* Simple_Selector_Sequence::find_placeholder()
+  {
+    if (has_placeholder()) {
+      for (size_t i = 0, L = length(); i < L; ++i) {
+        if ((*this)[i]->has_placeholder()) return (*this)[i]->find_placeholder();
+      }
+      // return this;
+    }
+    return 0;
+  }
+
+  Selector_Placeholder* Selector_Placeholder::find_placeholder()
+  {
+    return this;
+  }
+
 }

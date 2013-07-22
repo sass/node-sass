@@ -31,8 +31,14 @@ install: libsass.a
 install-shared: libsass.so
 	install -Dpm0755 $< $(DESTDIR)$(LIBDIR)/$<
 
+bin: $(OBJECTS)
+	$(CC) $(CFLAGS) $(OBJECTS) sassc++.cpp -o sassc++
+
+test: bin
+	cd sass-spec && ./run.rb -c="../sassc++" -d="spec/basic" -s
+
 clean:
-	rm -f $(OBJECTS) *.a *.so
+	rm -f $(OBJECTS) *.a *.so sassc++
 
 
 .PHONY: static shared install install-shared clean

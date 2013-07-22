@@ -5,4 +5,6 @@ div[name="hello"] {
   color: blue;
 }
 
+@import "../tests/imp", "blimp";
+
 @import "bludge.css";

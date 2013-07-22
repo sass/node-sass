@@ -135,7 +135,11 @@ namespace Sass {
         }
         else if (leftover->default_value()) {
           // make sure to eval the default value in the env that we've been populating
+          Env* old_env = eval->env;
+          Backtrace* old_bt = eval->backtrace;
           Expression* dv = leftover->default_value()->perform(eval->with(env, eval->backtrace));
+          eval->env = old_env;
+          eval->backtrace = old_bt;
           // dv->perform(&to_string);
           env->current_frame()[leftover->name()] = dv;
         }

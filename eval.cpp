@@ -453,16 +453,34 @@ namespace Sass {
     return b;
   }
 
+  char is_quoted(string str)
+  {
+    size_t len = str.length();
+    if (len < 2) return 0;
+    if ((str[0] == '"' && str[len-1] == '"') || (str[0] == '\'' && str[len-1] == '\'')) {
+      return str[0];
+    }
+    else {
+      return 0;
+    }
+  }
+
   Expression* Eval::operator()(String_Schema* s)
   {
     string acc;
     To_String to_string;
     for (size_t i = 0, L = s->length(); i < L; ++i) {
-      acc += unquote((*s)[i]->perform(this)->perform(&to_string));
+      string chunk((*s)[i]->perform(this)->perform(&to_string));
+      if (((s->quote_mark() && is_quoted(chunk)) || !s->quote_mark()) && (*s)[i]->is_interpolant()) { // some redundancy in that test
+        acc += unquote(chunk);
+      }
+      else {
+        acc += chunk;
+      }
     }
     return new (ctx.mem) String_Constant(s->path(),
                                          s->line(),
-                                         quote(acc, s->quote_mark()));
+                                         acc);
   }
 
   Expression* Eval::operator()(String_Constant* s)

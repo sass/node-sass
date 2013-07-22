@@ -179,7 +179,7 @@ namespace Sass {
 
     root = root->perform(&expand)->block();
     if (expand.extensions.size()) {
-      Extend extend(*this, expand.extensions);
+      Extend extend(*this, expand.extensions, &backtrace);
       root->perform(&extend);
     }
     char* result = 0;
@@ -191,7 +191,7 @@ namespace Sass {
       } break;
 
       default: {
-        Output_Nested output_nested(this);
+        Output_Nested output_nested(source_comments, this);
         root->perform(&output_nested);
         result = copy_c_str(output_nested.get_buffer().c_str());
       } break;
