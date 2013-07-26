@@ -65,16 +65,4 @@ describe("compile file with source comments", function() {
       }
     });
   });
-  it("should compile with render and source map outputs", function(done) {
-    sass.render({
-      file: sampleFilename,
-      source_comments: 'map',
-      success: function (css) {
-        done(assert.equal(css, expectedDebugScssStr));
-      },
-      error: function (error) {
-        done(error);
-      }
-    });
-  });
 });
