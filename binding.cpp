@@ -158,6 +158,8 @@ Handle<Value> RenderSync(const Arguments& args) {
     ctx->source_string = NULL;
     delete ctx->options.include_paths;
     ctx->options.include_paths = NULL;
+    delete ctx->options.image_path;
+    ctx->options.image_path = NULL;
 
     if (ctx->error_status == 0) {
         Local<Value> output = Local<Value>::New(String::New(ctx->output_string));
@@ -254,6 +256,7 @@ Handle<Value> RenderFileSync(const Arguments& args) {
     ctx->input_path = filename;
     ctx->options.include_paths = new char[strlen(*bstr)+1];
     strcpy(ctx->options.include_paths, *bstr);
+    ctx->options.image_path = new char[0];
     ctx->options.output_style = args[2]->Int32Value();
     ctx->options.source_comments = args[3]->Int32Value();
 
@@ -264,6 +267,8 @@ Handle<Value> RenderFileSync(const Arguments& args) {
     ctx->input_path = NULL;
     delete ctx->options.include_paths;
     ctx->options.include_paths = NULL;
+    delete ctx->options.image_path;
+    ctx->options.image_path = NULL;
 
     if (ctx->error_status == 0) {
         Local<Value> output = Local<Value>::New(String::New(ctx->output_string));
