@@ -30,10 +30,10 @@ var SASS_SOURCE_COMMENTS = {
 
 var prepareOptions = function(options) {
   var paths, style;
-  options = typeof options !== 'object' ? {} : options;
-  paths = options.include_paths || options.includePaths || [];
-  style = SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0;
-  comments = SASS_SOURCE_COMMENTS[options.source_comments || options.sourceComments] || 0;
+  var options = typeof options !== 'object' ? {} : options;
+  var paths = options.include_paths || options.includePaths || [];
+  var style = SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0;
+  var comments = SASS_SOURCE_COMMENTS[options.source_comments || options.sourceComments] || 0;
 
   return {
     paths: paths,
