@@ -139,7 +139,36 @@ namespace Sass {
     using namespace File;
     char* contents = 0;
     for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
+      // cerr << endl << "importing " << path << " from path " << include_paths[i] << endl;
       string full_path(join_paths(include_paths[i], path));
+      if (style_sheets.count(full_path)) return full_path;
+      contents = resolve_and_load(full_path);
+      if (contents) {
+        sources.push_back(contents);
+        queue.push_back(make_pair(full_path, contents));
+        style_sheets[full_path] = 0;
+        return full_path;
+      }
+    }
+    return string();
+  }
+
+  string Context::add_file(string dir, string rel_filepath)
+  {
+    using namespace File;
+    char* contents = 0;
+    string full_path(join_paths(dir, rel_filepath));
+    if (style_sheets.count(full_path)) return full_path;
+    contents = resolve_and_load(full_path);
+    if (contents) {
+      sources.push_back(contents);
+      queue.push_back(make_pair(full_path, contents));
+      style_sheets[full_path] = 0;
+      return full_path;
+    }
+    for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
+      // cerr << endl << "importing " << rel_filepath << " from path " << include_paths[i] << endl;
+      string full_path(join_paths(include_paths[i], rel_filepath));
       if (style_sheets.count(full_path)) return full_path;
       contents = resolve_and_load(full_path);
       if (contents) {
