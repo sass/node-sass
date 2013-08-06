@@ -167,7 +167,6 @@ namespace Sass {
       return full_path;
     }
     for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
-      // cerr << endl << "importing " << rel_filepath << " from path " << include_paths[i] << endl;
       string full_path(join_paths(include_paths[i], rel_filepath));
       if (style_sheets.count(full_path)) return full_path;
       contents = resolve_and_load(full_path);

@@ -1,6 +1,11 @@
+#ifdef _WIN32
+#define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <cctype>
+#include <sys/stat.h>
 #include "file.hpp"
 #include "context.hpp"
 
@@ -38,7 +43,6 @@ namespace Sass {
 
 		char* resolve_and_load(string path)
 		{
-			// cerr << "resolving " << path << endl;
 	    // Resolution order for ambiguous imports:
 	    // (1) filename as given
 	    // (2) underscore + given
@@ -46,21 +50,17 @@ namespace Sass {
 	    // (4) given + extension
 			char* contents = 0;
 			// if the file isn't found with the given filename ...
-			// cerr << "trying " << path << endl;
 			if (!(contents = read_file(path))) {
 				string dir(dir_name(path));
 				string base(base_name(path));
 				string _base("_" + base);
 				// if the file isn't found with '_' + filename ...
-				// cerr << "trying " << dir + _base << endl;
 				if (!(contents = read_file(dir + _base))) {
 					string _base_scss(_base + ".scss");
 					// if the file isn't found with '_' + filename + ".scss" ...
-					// cerr << "trying " << dir + _base_scss << endl;
 					if (!(contents = read_file(dir + _base_scss))) {
 						string base_scss(base + ".scss");
 						// try filename + ".scss" as the last resort
-						// cerr << "trying " << dir + base_scss << endl;
 						contents = read_file(dir + base_scss);
 					}
 				}
@@ -70,6 +70,8 @@ namespace Sass {
 
 		char* read_file(string path)
 		{
+			struct stat st;
+			if (stat(path.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
 			ifstream file(path.c_str(), ios::in | ios::binary | ios::ate);
 			char* contents = 0;
 			if (file.is_open()) {
