@@ -1,6 +1,11 @@
+#ifdef _WIN32
+#define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <cctype>
+#include <sys/stat.h>
 #include "file.hpp"
 #include "context.hpp"
 
@@ -65,6 +70,8 @@ namespace Sass {
 
 		char* read_file(string path)
 		{
+			struct stat st;
+			if (stat(path.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
 			ifstream file(path.c_str(), ios::in | ios::binary | ios::ate);
 			char* contents = 0;
 			if (file.is_open()) {

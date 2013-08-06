@@ -62,6 +62,7 @@ namespace Sass {
     void collect_include_paths(const char* paths_array[]);
     void setup_color_map();
     string add_file(string);
+    string add_file(string, string);
     char* compile_string();
     char* compile_file();
 
