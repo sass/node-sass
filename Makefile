@@ -1,6 +1,6 @@
-CC      = g++
-CFLAGS  = -Wall -O2 -fPIC
-LDFLAGS = -fPIC
+CXX      = g++
+CXXFLAGS = -Wall -O2 -fPIC
+LDFLAGS  = -fPIC
 
 PREFIX  = /usr/local
 LIBDIR  = $(PREFIX)/lib
@@ -13,6 +13,10 @@ SOURCES = ast.cpp bind.cpp constants.cpp context.cpp contextualize.cpp \
 
 OBJECTS = $(SOURCES:.cpp=.o)
 
+PROGRAMS = sassc++
+
+all: static
+
 static: libsass.a
 shared: libsass.so
 
@@ -20,10 +24,13 @@ libsass.a: $(OBJECTS)
 	ar rvs $@ $(OBJECTS)
 
 libsass.so: $(OBJECTS)
-	$(CC) -shared $(LDFLAGS) -o $@ $(OBJECTS)
+	$(CXX) -shared $(LDFLAGS) -o $@ $(OBJECTS)
 
-.cpp.o:
-	$(CC) $(CFLAGS) -c -o $@ $<
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+%: %.o libsass.a
+	$(CXX) $(CXXFLAGS) -o $@ $+ $(LDFLAGS)
 
 install: libsass.a
 	install -Dpm0755 $< $(DESTDIR)$(LIBDIR)/$<
@@ -31,8 +38,7 @@ install: libsass.a
 install-shared: libsass.so
 	install -Dpm0755 $< $(DESTDIR)$(LIBDIR)/$<
 
-bin: $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) sassc++.cpp -o sassc++
+bin: $(PROGRAMS)
 
 test: bin
 	cd sass-spec && ./run.rb -c="../sassc++" -d="spec/basic" -s
@@ -41,4 +47,5 @@ clean:
 	rm -f $(OBJECTS) *.a *.so sassc++
 
 
-.PHONY: static shared install install-shared clean
+.PHONY: all static shared bin install install-shared clean
+
