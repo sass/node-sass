@@ -28,6 +28,6 @@ stamp-h1
 
 # Final results
 
-bin/
+sassc++
 libsass.la
 
