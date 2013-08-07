@@ -19,9 +19,6 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
 
-# Checks for libraries.
-AC_CHECK_LIB([shlwapi])
-
 # Checks for header files.
 AC_CHECK_HEADERS([unistd.h])
 
