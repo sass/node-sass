@@ -12,12 +12,12 @@ LT_INIT
 # Checks for programs.
 AC_PROG_CXX
 
+AC_LANG([C++])
+
 # Checks for header files.
 AC_CHECK_HEADERS([unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
-AC_HEADER_STDBOOL
-AC_C_INLINE
 AC_TYPE_SIZE_T
 
 # Checks for library functions.
