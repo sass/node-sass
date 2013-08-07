@@ -29,7 +29,7 @@ AC_TYPE_SIZE_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([floor getcwd strtol PathIsRelative])
+AC_CHECK_FUNCS([floor getcwd strtol])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
