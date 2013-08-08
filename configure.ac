@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.68])
+AC_PREREQ([2.64])
 AC_INIT([libsass], [1.0], [support@moovweb.com])
 AC_CONFIG_SRCDIR([ast.hpp])
 AC_CONFIG_MACRO_DIR([m4])
