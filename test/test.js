@@ -1,9 +1,9 @@
 /*jshint multistr:true */
 var sass = require('../sass');
 var assert = require('assert');
-
+var path = require('path');
 var badSampleFilename = 'sample.scss';
-var sampleFilename = require('path').resolve(__dirname, 'sample.scss');
+var sampleFilename = path.resolve(__dirname, 'sample.scss');
 
 var scssStr = '#navbar {\
   width: 80%;\
@@ -102,6 +102,21 @@ describe("compile scss", function() {
     done(assert.throws(function() {
       sass.renderSync({data: badInput});
     }));
+  });
+});
+
+describe("compile file with include paths", function(){
+  it("should compile with render", function(done) {
+    sass.render({
+      file: path.resolve(__dirname, "include_path.scss"),
+      includePaths: [path.resolve(__dirname, "lib")],
+      success: function (css) {
+        done(assert.equal(css, "body {\n  background: red; }\n"));
+      },
+      error: function (error) {
+        done(error);
+      }
+    })
   });
 });
 
