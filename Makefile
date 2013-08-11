@@ -39,11 +39,11 @@ install-shared: libsass.so
 sassc:
 	make -C $(SASS_SASSC_PATH)
 
-test: libsass.a sassc
-	ruby $(SASS_SPEC_PATH)/sass-spec.rb -s -d=$(SASS_SPEC_PATH) -c=$(SASS_SASSC_PATH)/bin/sassc
+test: sassc libsass.a 
+	ruby $(SASS_SPEC_PATH)/sass-spec.rb -d=$(SASS_SPEC_PATH) -c=$(SASS_SASSC_PATH)/bin/sassc
 
-test_issues: all
-	ruby $(SASS_SPEC_PATH)/sass-spec.rb -s -d=$(SASS_SPEC_PATH)/spec/issues -c=$(TARGET)
+test_issues: sassc libsass.a 
+	ruby $(SASS_SPEC_PATH)/sass-spec.rb -d=$(SASS_SPEC_PATH)/spec/issues -c=$(TARGET)
 
 clean:
 	rm -f $(OBJECTS) *.a *.so sassc++
