@@ -3,7 +3,7 @@ Libsass
 
 by Aaron Leung and Hampton Catlin (@hcatlin)
 
-[![Build Status](https://secure.travis-ci.org/hcatlin/sassc.png?branch=master)](http://travis-ci.org/hcatlin/sassc)
+[![Build Status](https://travis-ci.org/hcatlin/libsass.png?branch=master)](https://travis-ci.org/hcatlin/libsass)
 
 http://github.com/hcatlin/libsass
 
