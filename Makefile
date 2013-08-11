@@ -2,8 +2,9 @@ CXX      = g++
 CXXFLAGS = -Wall -O2 -fPIC
 LDFLAGS  = -fPIC
 
-PREFIX  = /usr/local
-LIBDIR  = $(PREFIX)/lib
+PREFIX    = /usr/local
+LIBDIR    = $(PREFIX)/lib
+SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc
 
 SOURCES = ast.cpp bind.cpp constants.cpp context.cpp contextualize.cpp \
 	copy_c_str.cpp error_handling.cpp eval.cpp expand.cpp extend.cpp file.cpp \
@@ -36,17 +37,17 @@ install: libsass.a
 install-shared: libsass.so
 	install -Dpm0755 $< $(DESTDIR)$(LIBDIR)/$<
 
-sassc:
+$(SASSC_BIN):
 	make -C $(SASS_SASSC_PATH)
 
-test: sassc libsass.a 
-	ruby $(SASS_SPEC_PATH)/sass-spec.rb -d=$(SASS_SPEC_PATH) -c=$(SASS_SASSC_PATH)/bin/sassc
+test: $(SASSC_BIN) libsass.a 
+	ruby $(SASS_SPEC_PATH)/sass-spec.rb -d=$(SASS_SPEC_PATH) -c=$(SASSC_BIN)
 
-test_issues: sassc libsass.a 
-	ruby $(SASS_SPEC_PATH)/sass-spec.rb -d=$(SASS_SPEC_PATH)/spec/issues -c=$(TARGET)
+test_issues: $(SASSC_BIN) libsass.a 
+	ruby $(SASS_SPEC_PATH)/sass-spec.rb -d=$(SASS_SPEC_PATH)/spec/issues -c=$(SASSC_BIN)
 
 clean:
-	rm -f $(OBJECTS) *.a *.so sassc++
+	rm -f $(OBJECTS) *.a *.so
 
 
 .PHONY: all static shared bin install install-shared clean
