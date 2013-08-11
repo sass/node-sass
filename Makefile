@@ -13,8 +13,6 @@ SOURCES = ast.cpp bind.cpp constants.cpp context.cpp contextualize.cpp \
 
 OBJECTS = $(SOURCES:.cpp=.o)
 
-PROGRAMS = sassc++
-
 all: static
 
 static: libsass.a
@@ -38,10 +36,14 @@ install: libsass.a
 install-shared: libsass.so
 	install -Dpm0755 $< $(DESTDIR)$(LIBDIR)/$<
 
-bin: $(PROGRAMS)
+sassc:
+	make -C $(SASS_SASSC_PATH)
 
-test: bin
-	cd sass-spec && ./run.rb -c="../sassc++" -d="spec/basic" -s
+test: libsass.a sassc
+	ruby $(SASS_SPEC_PATH)/sass-spec.rb -s -d=$(SASS_SPEC_PATH) -c=$(SASS_SASSC_PATH)/bin/sassc
+
+test_issues: all
+	ruby $(SASS_SPEC_PATH)/sass-spec.rb -s -d=$(SASS_SPEC_PATH)/spec/issues -c=$(TARGET)
 
 clean:
 	rm -f $(OBJECTS) *.a *.so sassc++
