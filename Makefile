@@ -37,8 +37,8 @@ install: libsass.a
 install-shared: libsass.so
 	install -Dpm0755 $< $(DESTDIR)$(LIBDIR)/$<
 
-$(SASSC_BIN):
-	make -C $(SASS_SASSC_PATH)
+$(SASSC_BIN): libsass.a
+	cd $(SASS_SASSC_PATH) && make
 
 test: $(SASSC_BIN) libsass.a 
 	ruby $(SASS_SPEC_PATH)/sass-spec.rb -d=$(SASS_SPEC_PATH) -c=$(SASSC_BIN)
