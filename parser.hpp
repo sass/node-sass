@@ -193,5 +193,5 @@ namespace Sass {
     void throw_read_error(string message, size_t ln = 0);
   };
 
-  size_t check_bom_chars(const char* src, const unsigned char* bom, size_t len);
+  size_t check_bom_chars(const char* src, const char *end, const unsigned char* bom, size_t len);
 }
