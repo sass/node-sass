@@ -1,8 +1,11 @@
-
+env:
+    - AUTOTOOLS=yes
+    - AUTOTOOLS=no
 before_install:
   - git clone https://github.com/hcatlin/sass-spec.git
   - git clone https://github.com/hcatlin/sassc.git
   - export SASS_SPEC_PATH=$TRAVIS_BUILD_DIR/sass-spec
   - export SASS_SASSC_PATH=$TRAVIS_BUILD_DIR/sassc
   - export SASS_LIBSASS_PATH=$TRAVIS_BUILD_DIR
-script: "make test"
+script: ./travis.sh
+
