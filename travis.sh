@@ -4,7 +4,9 @@ set -e
 
 if [ "x$AUTOTOOLS" == "xyes" ]; then
 	autoreconf
-	./configure
+	./configure --enable-tests \
+	            --with-sassc-dir=$SASS_SASSC_PATH \
+	            --with-sass-spec-dir=$SASS_SPEC_PATH
 	make
 fi
 
