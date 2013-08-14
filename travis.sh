@@ -8,5 +8,5 @@ if [ "x$AUTOTOOLS" == "xyes" ]; then
 	make
 fi
 
-make test
+make test TEST_FLAGS=--skip
 
