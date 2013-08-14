@@ -31,3 +31,9 @@ stamp-h1
 sassc++
 libsass.la
 
+# Testing
+
+sass-tester
+sass-spec/
+sassc/
+
