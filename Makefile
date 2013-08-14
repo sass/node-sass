@@ -4,6 +4,9 @@ LDFLAGS  = -fPIC
 
 PREFIX    = /usr/local
 LIBDIR    = $(PREFIX)/lib
+
+SASS_SASSC_PATH ?= sassc
+SASS_SPEC_PATH ?= sass-spec
 SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc
 
 SOURCES = ast.cpp bind.cpp constants.cpp context.cpp contextualize.cpp \
