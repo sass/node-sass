@@ -24,7 +24,7 @@ sass_tester_LDADD = libsass.la
 sass_tester_LDFLAGS = -no-install
 
 test: sass-tester
-	$(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb -d $(SASS_SPEC_PATH) -c ./sass-tester $(TEST_FLAGS)
+	$(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb -c ./sass-tester $(TEST_FLAGS) $(SASS_SPEC_PATH)
 
 endif
 

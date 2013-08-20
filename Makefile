@@ -44,10 +44,10 @@ $(SASSC_BIN): libsass.a
 	cd $(SASS_SASSC_PATH) && make
 
 test: $(SASSC_BIN) libsass.a 
-	ruby $(SASS_SPEC_PATH)/sass-spec.rb -d $(SASS_SPEC_PATH) -c $(SASSC_BIN) $(TEST_FLAGS)
+	ruby $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(TEST_FLAGS) $(SASS_SPEC_PATH)
 
 test_issues: $(SASSC_BIN) libsass.a 
-	ruby $(SASS_SPEC_PATH)/sass-spec.rb -d $(SASS_SPEC_PATH)/spec/issues -c $(SASSC_BIN) $(TEST_FLAGS)
+	ruby $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(TEST_FLAGS) $(SASS_SPEC_PATH)/spec/issues
 
 clean:
 	rm -f $(OBJECTS) *.a *.so
