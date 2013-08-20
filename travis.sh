@@ -10,5 +10,5 @@ if [ "x$AUTOTOOLS" == "xyes" ]; then
 	make
 fi
 
-make LOG_FLAGS=--skip test
+make LOG_FLAGS=--skip VERBOSE=1 test
 
