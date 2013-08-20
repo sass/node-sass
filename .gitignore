@@ -36,4 +36,7 @@ libsass.la
 sass-tester
 sass-spec/
 sassc/
+test-suite.log
+*.log
+*.trs
 

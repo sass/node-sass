@@ -6,7 +6,7 @@ AC_INIT([libsass], [1.0], [support@moovweb.com])
 AC_CONFIG_SRCDIR([ast.hpp])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE([1.11 foreign parallel-tests])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 LT_INIT
 
@@ -31,6 +31,7 @@ AC_ARG_ENABLE(tests, AS_HELP_STRING([--enable-tests], [enable testing the build]
 
 if test "x$enable_tests" = "xyes"; then
 	AC_PROG_CC
+	AC_PROG_AWK
 	AC_PATH_PROG(RUBY, [ruby])
 
 	AC_ARG_WITH(sassc-dir,
