@@ -55,7 +55,15 @@ You must clone the sass-spec repository in this directory or specify
 the --with-sass-spec-dir=<dir> argument.
 ])
 	])
-	SASS_SPEC_PATH=$sass_spec_dir
+	# Automake doesn't like its tests in an absolute path, so we make it relative.
+	case $sass_spec_dir in
+		/*)
+			SASS_SPEC_PATH=`$RUBY -e "require 'pathname';puts Pathname.new('$sass_spec_dir').relative_path_from(Pathname.new('$PWD')).to_s"`
+			;;
+		*)
+			SASS_SPEC_PATH="$sass_spec_dir"
+			;;
+	esac
 	AC_SUBST(SASS_SPEC_PATH)
 fi
 
