@@ -3,6 +3,7 @@ var path   = require('path'),
     fs     = require('fs'),
     exec   = require('child_process').exec,
     sass   = require(path.join(__dirname, '..', 'sass')),
+    cli    = require(path.join(__dirname, '..', 'lib', 'cli')),
 
     cliPath = path.resolve(__dirname, '..', 'bin', 'node-sass'),
     sampleFilename = path.resolve(__dirname, 'sample.scss');
@@ -44,4 +45,17 @@ describe('cli', function() {
       });
     });
   });
+
+  it('should compile with --include-paths option', function(done){
+    var emitter = cli(['--include-paths', __dirname + '/lib', __dirname + '/include_path.scss']);
+    emitter.on('error', function(err){
+      done(err);
+    });
+    emitter.on('render', function(css){
+      assert.equal(css.trim(), 'body {\n  background: red; }');
+      done();
+    });
+  });
+
+
 });
