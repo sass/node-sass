@@ -88,3 +88,4 @@ exports.renderSync = function(options) {
 };
 
 exports.middleware = require('./lib/middleware');
+exports.cli = require('./lib/cli');

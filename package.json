@@ -37,7 +37,8 @@
   "dependencies": {
     "mkdirp": "0.3.x",
     "colors": "0.6.0-1",
-    "optimist": "0.4.x"
+    "optimist": "0.6.x",
+    "node-watch": "0.3.x"
   },
   "devDependencies": {
     "mocha": "1.7.x"
