@@ -9,3 +9,19 @@ libsass_la_SOURCES = ast.cpp bind.cpp constants.cpp context.cpp contextualize.cp
 libsass_la_LDFLAGS = -no-undefined -version-info 0:0:0
 
 include_HEADERS = sass_interface.h sass.h
+
+bin_PROGRAMS = sassc++
+
+sassc___SOURCES = sassc++.cpp
+sassc___LDADD = libsass.la
+
+SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc
+
+$(SASSC_BIN): libsass.a
+	cd $(SASS_SASSC_PATH) && make
+
+test: $(SASSC_BIN) libsass.a 
+	ruby $(SASS_SPEC_PATH)/sass-spec.rb -d $(SASS_SPEC_PATH) -c $(SASSC_BIN)
+
+test_issues: $(SASSC_BIN) libsass.a 
+	ruby $(SASS_SPEC_PATH)/sass-spec.rb -d $(SASS_SPEC_PATH)/spec/issues -c $(SASSC_BIN)

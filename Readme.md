@@ -3,7 +3,7 @@ Libsass
 
 by Aaron Leung and Hampton Catlin (@hcatlin)
 
-[![Build Status](https://secure.travis-ci.org/hcatlin/sassc.png?branch=master)](http://travis-ci.org/hcatlin/sassc)
+[![Build Status](https://travis-ci.org/hcatlin/libsass.png?branch=master)](https://travis-ci.org/hcatlin/libsass)
 
 http://github.com/hcatlin/libsass
 
@@ -32,6 +32,21 @@ check out SassC and develop in that directory with the SassC spec
 and tests there.
 
 We even run Travis tests for SassC!
+
+Tests
+-------
+
+Since libsass is a pure library, tests are run through the [http://github.com/hcatlin/sass-spec](SassSpec) project using the [http://github.com/hcatlin/sasc](SassC) driver.
+
+To run tests against libsass while developing, please ensure you have the latest version of the above projects cloned, and then define the following environment variables:
+  
+  export SASS_SPEC_PATH=~/path/sass-spec
+  export SASS_SASSC_PATH=~/path/sassc
+  export SASS_LIBSASS_PATH=~/path/libsass
+
+Obviously, update them to your local environment. Then, its just a matter of running...
+
+  make test
 
 Usage
 -----
@@ -88,8 +103,11 @@ For more information about Sass itself, please visit http://sass-lang.com
 Contribution Agreement
 ----------------------
 
-Any contribution to the project are seen as copyright assigned to Hampton Catlin. Your contribution warrants that you have the right to assign copyright on your work. This is to ensure that the project remains free and open -- similar to the Apache Foundation.
+Any contribution to the project are seen as copyright assigned to Hampton Catlin, a
+human on the planet earth. Your contribution warrants that you have the right to 
+assign copyright on your work. The intention here is to ensure that the project
+remains totally free (liberal, like). 
 
-Our license is designed to be as simple as possible.
+Our MIT license is designed to be as simple, and liberal as possible.
 
 
