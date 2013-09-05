@@ -40,9 +40,8 @@ describe('cli', function() {
     }, function(err, stdout, stderr) {
 
       fs.exists(resultPath, function(exists) {
-        done(assert(exists));
-
-        fs.unlink(resultPath, function() {});
+        assert(exists);
+        fs.unlink(resultPath, done);
       });
     });
   });
@@ -55,53 +54,44 @@ describe('cli', function() {
     }, function(err, stdout, stderr) {
 
       fs.exists(resultPath, function(exists) {
-        done(assert(exists));
-
-        fs.unlink(resultPath, function() {});
+        assert(exists);
+        fs.unlink(resultPath, done);
       });
     });
   });
 
   it('should compile with --include-paths option', function(done){
     var emitter = cli(['--include-paths', __dirname + '/lib', __dirname + '/include_path.scss']);
-    emitter.on('error', function(err){
-      done(err);
-    });
+    emitter.on('error', done);
     emitter.on('render', function(css){
       assert.equal(css.trim(), 'body {\n  background: red; }');
-      done();
+      fs.unlink(process.cwd() + '/include_path.css', done);
     });
   });
 
-  it('should compile with the --output style', function(done){
+  it('should compile with the --output-style', function(done){
     var emitter = cli(['--output-style', 'compressed', __dirname + '/sample.scss']);
-    emitter.on('error', function(err){
-      done(err);
-    });
+    emitter.on('error', done);
     emitter.on('render', function(css){
       assert.equal(css, expectedSampleCompressed);
-      done();
+      fs.unlink(process.cwd() + '/sample.css', done);
     });
   });
 
   it('should compile with the --source-comments option', function(done){
     var emitter = cli(['--source-comments', 'none', __dirname + '/sample.scss']);
-    emitter.on('error', function(err){
-      done(err);
-    });
+    emitter.on('error', done);
     emitter.on('render', function(css){
       assert.equal(css, expectedSampleNoComments);
-      done();
+      fs.unlink(process.cwd() + '/sample.css', done);
     });
   });
 
   it('should write the output to the file specified with the --output option', function(done){
     var resultPath = path.resolve(__dirname, '..', 'output.css');
     var emitter = cli(['--output', resultPath, __dirname + '/sample.scss']);
-    emitter.on('error', function(err){
-      done(err);
-    });
-    emitter.on('render', function(css){
+    emitter.on('error', done);
+    emitter.on('write', function(css){
       fs.exists(resultPath, function(exists) {
         assert(exists);
         fs.unlink(resultPath, done);
