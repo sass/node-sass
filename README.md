@@ -99,6 +99,10 @@ var server = connect.createServer(
 
 Heavily inspired by <https://github.com/LearnBoost/stylus>
 
+## DocPad Plugin
+
+[@jking90](https://github.com/jking90) wrote a [DocPad](http://docpad.org/) plugin that compiles `.scss` files using node-sass: <https://github.com/jking90/docpad-plugin-nodesass>
+
 ## Grunt extension
 
 [@sindresorhus](https://github.com/sindresorhus/) has created a set of grunt tasks based on node-sass: <https://github.com/sindresorhus/grunt-sass>
