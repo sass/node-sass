@@ -109,9 +109,9 @@ describe("compile file with include paths", function(){
   it("should compile with render", function(done) {
     sass.render({
       file: path.resolve(__dirname, "include_path.scss"),
-      includePaths: [path.resolve(__dirname, "lib")],
+      includePaths: [path.resolve(__dirname, "lib"), path.resolve(__dirname, "functions")],
       success: function (css) {
-        done(assert.equal(css, "body {\n  background: red; }\n"));
+        done(assert.equal(css, "body {\n  background: red;\n  color: blue; }\n"));
       },
       error: function (error) {
         done(error);

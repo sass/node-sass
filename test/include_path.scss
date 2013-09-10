@@ -1,3 +1,4 @@
 @import "vars";
+@import "colorBlue";
 
-body { background: $color; }
+body { background: $color; color: colorBlue(); }
