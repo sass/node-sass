@@ -60,11 +60,15 @@ describe('cli', function() {
     });
   });
 
-  it('should compile with --include-paths option', function(done){
-    var emitter = cli(['--include-paths', __dirname + '/lib', __dirname + '/include_path.scss']);
+  it('should compile with --include-path option', function(done){
+    var emitter = cli([
+      '--include-path', __dirname + '/lib',
+      '--include-path', __dirname + '/functions',
+      __dirname + '/include_path.scss'
+    ]);
     emitter.on('error', done);
     emitter.on('render', function(css){
-      assert.equal(css.trim(), 'body {\n  background: red; }');
+      assert.equal(css.trim(), 'body {\n  background: red;\n  color: blue; }');
       fs.unlink(process.cwd() + '/include_path.css', done);
     });
   });
