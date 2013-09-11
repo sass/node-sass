@@ -66,6 +66,11 @@ namespace Sass {
     char* compile_string();
     char* compile_file();
 
+    std::vector<string> get_included_files();
+
+  private:
+    vector<string> included_files;
+
     // void register_built_in_functions(Env* env);
     // void register_function(Signature sig, Native_Function f, Env* env);
     // void register_function(Signature sig, Native_Function f, size_t arity, Env* env);

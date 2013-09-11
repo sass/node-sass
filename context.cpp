@@ -139,8 +139,8 @@ namespace Sass {
     using namespace File;
     char* contents = 0;
     for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
-      // cerr << endl << "importing " << path << " from path " << include_paths[i] << endl;
       string full_path(join_paths(include_paths[i], path));
+      included_files.push_back(full_path);
       if (style_sheets.count(full_path)) return full_path;
       contents = resolve_and_load(full_path);
       if (contents) {
@@ -158,6 +158,7 @@ namespace Sass {
     using namespace File;
     char* contents = 0;
     string full_path(join_paths(dir, rel_filepath));
+    included_files.push_back(full_path);
     if (style_sheets.count(full_path)) return full_path;
     contents = resolve_and_load(full_path);
     if (contents) {
@@ -168,6 +169,7 @@ namespace Sass {
     }
     for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
       string full_path(join_paths(include_paths[i], rel_filepath));
+      included_files.push_back(full_path);
       if (style_sheets.count(full_path)) return full_path;
       contents = resolve_and_load(full_path);
       if (contents) {
@@ -234,6 +236,13 @@ namespace Sass {
     queue.clear();
     queue.push_back(make_pair("source string", source_c_str));
     return compile_file();
+  }
+
+  std::vector<std::string> Context::get_included_files()
+  {
+      std::sort(included_files.begin(), included_files.end());
+      included_files.erase( std::unique( included_files.begin(), included_files.end() ), included_files.end());
+      return included_files;
   }
 
   void register_function(Context& ctx, Signature sig, Native_Function f, Env* env)
