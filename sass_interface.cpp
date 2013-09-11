@@ -25,7 +25,7 @@ extern "C" {
     if(!arr)
         return;
 
-    for(int i; i < num; i++) {
+    for(int i = 0; i < num; i++) {
       free(arr[i]);
     }
 
