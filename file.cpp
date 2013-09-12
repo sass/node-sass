@@ -41,7 +41,7 @@ namespace Sass {
 			return l + r;
 		}
 
-		char* resolve_and_load(string path)
+        char* resolve_and_load(string path, string& real_path)
 		{
 	    // Resolution order for ambiguous imports:
 	    // (1) filename as given
@@ -50,18 +50,22 @@ namespace Sass {
 	    // (4) given + extension
 			char* contents = 0;
 			// if the file isn't found with the given filename ...
-			if (!(contents = read_file(path))) {
+            real_path = path;
+            if (!(contents = read_file(real_path))) {
 				string dir(dir_name(path));
 				string base(base_name(path));
 				string _base("_" + base);
+                real_path = dir + _base;
 				// if the file isn't found with '_' + filename ...
-				if (!(contents = read_file(dir + _base))) {
+                if (!(contents = read_file(real_path))) {
 					string _base_scss(_base + ".scss");
+                    real_path = dir + _base_scss;
 					// if the file isn't found with '_' + filename + ".scss" ...
-					if (!(contents = read_file(dir + _base_scss))) {
+                    if (!(contents = read_file(real_path))) {
 						string base_scss(base + ".scss");
 						// try filename + ".scss" as the last resort
-						contents = read_file(dir + base_scss);
+                        real_path = dir + base_scss;
+                        contents = read_file(real_path);
 					}
 				}
 			}

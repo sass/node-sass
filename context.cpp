@@ -138,13 +138,15 @@ namespace Sass {
   {
     using namespace File;
     char* contents = 0;
+    string real_path;
     for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
       string full_path(join_paths(include_paths[i], path));
       included_files.push_back(full_path);
       if (style_sheets.count(full_path)) return full_path;
-      contents = resolve_and_load(full_path);
+      contents = resolve_and_load(full_path, real_path);
       if (contents) {
         sources.push_back(contents);
+        included_files.push_back(real_path);
         queue.push_back(make_pair(full_path, contents));
         style_sheets[full_path] = 0;
         return full_path;
@@ -157,23 +159,24 @@ namespace Sass {
   {
     using namespace File;
     char* contents = 0;
+    string real_path;
     string full_path(join_paths(dir, rel_filepath));
-    included_files.push_back(full_path);
     if (style_sheets.count(full_path)) return full_path;
-    contents = resolve_and_load(full_path);
+    contents = resolve_and_load(full_path, real_path);
     if (contents) {
       sources.push_back(contents);
+      included_files.push_back(real_path);
       queue.push_back(make_pair(full_path, contents));
       style_sheets[full_path] = 0;
       return full_path;
     }
     for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
       string full_path(join_paths(include_paths[i], rel_filepath));
-      included_files.push_back(full_path);
       if (style_sheets.count(full_path)) return full_path;
-      contents = resolve_and_load(full_path);
+      contents = resolve_and_load(full_path, real_path);
       if (contents) {
         sources.push_back(contents);
+        included_files.push_back(real_path);
         queue.push_back(make_pair(full_path, contents));
         style_sheets[full_path] = 0;
         return full_path;
