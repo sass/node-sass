@@ -36,7 +36,7 @@ We even run Travis tests for SassC!
 Tests
 -------
 
-Since libsass is a pure library, tests are run through the [http://github.com/hcatlin/sass-spec](SassSpec) project using the [http://github.com/hcatlin/sasc](SassC) driver.
+Since libsass is a pure library, tests are run through the [http://github.com/hcatlin/sass-spec](SassSpec) project using the [http://github.com/hcatlin/sassc](SassC) driver.
 
 To run tests against libsass while developing, please ensure you have the latest version of the above projects cloned, and then define the following environment variables:
   
@@ -103,8 +103,11 @@ For more information about Sass itself, please visit http://sass-lang.com
 Contribution Agreement
 ----------------------
 
-Any contribution to the project are seen as copyright assigned to Hampton Catlin. Your contribution warrants that you have the right to assign copyright on your work. This is to ensure that the project remains free and open -- similar to the Apache Foundation.
+Any contribution to the project are seen as copyright assigned to Hampton Catlin, a
+human on the planet earth. Your contribution warrants that you have the right to 
+assign copyright on your work. The intention here is to ensure that the project
+remains totally free (liberal, like). 
 
-Our license is designed to be as simple as possible.
+Our MIT license is designed to be as simple, and liberal as possible.
 
 
