@@ -36,7 +36,7 @@ We even run Travis tests for SassC!
 Tests
 -------
 
-Since libsass is a pure library, tests are run through the [http://github.com/hcatlin/sass-spec](SassSpec) project using the [http://github.com/hcatlin/sasc](SassC) driver.
+Since libsass is a pure library, tests are run through the [http://github.com/hcatlin/sass-spec](SassSpec) project using the [http://github.com/hcatlin/sassc](SassC) driver.
 
 To run tests against libsass while developing, please ensure you have the latest version of the above projects cloned, and then define the following environment variables:
   
