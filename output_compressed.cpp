@@ -128,11 +128,26 @@ namespace Sass {
 
   void Output_Compressed::operator()(Declaration* d)
   {
-    d->property()->perform(this);
-    buffer += ":";
-    d->value()->perform(this);
-    if (d->is_important()) buffer += "!important";
-    buffer += ';';
+    bool bPrintExpression = true;
+    // Check print conditions
+    if (d->value()->concrete_type() == Expression::NULL_VAL) {
+      bPrintExpression = false;
+    }
+    if (d->value()->concrete_type() == Expression::STRING) {
+      String_Constant* valConst = static_cast<String_Constant*>(d->value());
+      string val(valConst->value());
+      if (val.empty()) {
+        bPrintExpression = false;
+      }
+    }
+    // Print if OK
+    if(bPrintExpression) {
+      d->property()->perform(this);
+      buffer += ":";
+      d->value()->perform(this);
+      if (d->is_important()) buffer += "!important";
+      buffer += ';';
+    }
   }
 
   void Output_Compressed::operator()(Comment* c)
