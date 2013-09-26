@@ -1,5 +1,6 @@
 var binding;
 var fs = require('fs');
+var path = require('path');
 try {
   if (fs.realpathSync(__dirname + '/build')) {
     // use the build version if it exists
@@ -63,11 +64,11 @@ exports.render = function(options) {
   options.error = options.error || function(){};
 
   if (options.file !== undefined && options.file !== null) {
-    return binding.renderFile(options.file, options.success, options.error, newOptions.paths.join(':'), newOptions.style, newOptions.comments);
+    return binding.renderFile(options.file, options.success, options.error, newOptions.paths.join(path.delimiter), newOptions.style, newOptions.comments);
   }
 
   //Assume data is present if file is not. binding/libsass will tell the user otherwise!
-  return binding.render(options.data, options.success, options.error, newOptions.paths.join(":"), newOptions.style);
+  return binding.render(options.data, options.success, options.error, newOptions.paths.join(path.delimiter), newOptions.style);
 };
 
 exports.renderSync = function(options) {

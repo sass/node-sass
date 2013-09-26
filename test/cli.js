@@ -62,9 +62,9 @@ describe('cli', function() {
 
   it('should compile with --include-path option', function(done){
     var emitter = cli([
-      '--include-path', __dirname + '/lib',
-      '--include-path', __dirname + '/functions',
-      __dirname + '/include_path.scss'
+      '--include-path', path.join(__dirname, '/lib'),
+      '--include-path', path.join(__dirname, '/functions'),
+      path.join(__dirname, '/include_path.scss')
     ]);
     emitter.on('error', done);
     emitter.on('render', function(css){
