@@ -67,27 +67,27 @@ describe('cli', function() {
       path.join(__dirname, 'include_path.scss')
     ]);
     emitter.on('error', done);
-    emitter.on('render', function(css){
+    emitter.on('write', function(err, file, css){
       assert.equal(css.trim(), 'body {\n  background: red;\n  color: blue; }');
-      fs.unlink(path.resolve(process.cwd(), 'include_path.css'), done);
+      fs.unlink(file, done);
     });
   });
 
   it('should compile with the --output-style', function(done){
     var emitter = cli(['--output-style', 'compressed', path.join(__dirname, 'sample.scss')]);
     emitter.on('error', done);
-    emitter.on('render', function(css){
+    emitter.on('write', function(err, file, css){
       assert.equal(css, expectedSampleCompressed);
-      fs.unlink(path.resolve(process.cwd(), 'sample.css'), done);
+      fs.unlink(file, done);
     });
   });
 
   it('should compile with the --source-comments option', function(done){
     var emitter = cli(['--source-comments', 'none', path.join(__dirname, 'sample.scss')]);
     emitter.on('error', done);
-    emitter.on('render', function(css){
+    emitter.on('write', function(err, file, css){
       assert.equal(css, expectedSampleNoComments);
-      fs.unlink(path.resolve(process.cwd(), 'sample.css'), done);
+      fs.unlink(file, done);
     });
   });
 
@@ -95,7 +95,7 @@ describe('cli', function() {
     var resultPath = path.join(__dirname, '../output.css');
     var emitter = cli(['--output', resultPath, path.join(__dirname, 'sample.scss')]);
     emitter.on('error', done);
-    emitter.on('write', function(css){
+    emitter.on('write', function(err, file, css){
       fs.exists(resultPath, function(exists) {
         assert(exists);
         fs.unlink(resultPath, done);
