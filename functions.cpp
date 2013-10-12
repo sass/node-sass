@@ -115,6 +115,7 @@ namespace Sass {
       Color* c_arg = ARG("$color", Color);
       Color* new_c = new (ctx.mem) Color(*c_arg);
       new_c->a(ARGR("$alpha", Number, 0, 1)->value());
+      new_c->disp("");
       return new_c;
     }
 

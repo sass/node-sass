@@ -332,7 +332,12 @@ namespace Sass {
     //   ss << ctx.colors_to_names[numval];
     // }
     // else
-    if (a >= 1) {
+
+    // retain the originally specified color definition if unchanged
+    if (!c->disp().empty()) {
+      ss << c->disp();
+    }
+    else if (a >= 1) {
       // see if it's a named color
       int numval = r * 0x10000;
       numval += g * 0x100;
