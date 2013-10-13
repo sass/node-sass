@@ -24,4 +24,6 @@ namespace Sass {
     return i.get_buffer();
   }
 
+  inline string To_String::operator()(Null* n)
+  { return ""; }
 }

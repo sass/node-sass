@@ -246,6 +246,11 @@ namespace Sass {
     }
     else {
       To_String to_string;
+      // Special cases: +/- variables which evaluate to null ouput just +/-,
+      // but +/- null itself outputs the string
+      if (operand->concrete_type() == Expression::NULL_VAL && typeid(*(u->operand())) == typeid(Variable)) {
+        u->operand(new (ctx.mem) String_Constant(u->path(), u->line(), ""));
+      }
       String_Constant* result = new (ctx.mem) String_Constant(u->path(),
                                                               u->line(),
                                                               u->perform(&to_string));

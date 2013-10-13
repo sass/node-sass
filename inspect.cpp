@@ -209,15 +209,15 @@ namespace Sass {
   {
     string sep(list->separator() == List::SPACE ? " " : ", ");
     if (list->empty()) return;
-    Expression* first = (*list)[0];
-    bool first_invisible = first->is_invisible();
-    if (!first_invisible) first->perform(this);
-    for (size_t i = 1, L = list->length(); i < L; ++i) {
-      Expression* next = (*list)[i];
-      bool next_invisible = next->is_invisible();
-      if (i == 1 && !first_invisible && !next_invisible) buffer += sep;
-      else if (!next_invisible)                          buffer += sep;
-      next->perform(this);
+    bool items_output = false;
+    for (size_t i = 0, L = list->length(); i < L; ++i) {
+      Expression* list_item = (*list)[i];
+      if (list_item->is_invisible()) {
+        continue;
+      }
+      if (items_output) buffer += sep;
+      list_item->perform(this);
+      items_output = true;
     }
   }
 
@@ -417,10 +417,10 @@ namespace Sass {
     }
   }
 
-  // void Inspect::operator()(Null* n)
-  // {
-  //   buffer += "null";
-  // }
+  void Inspect::operator()(Null* n)
+  {
+     buffer += "null";
+  }
 
   // parameters and arguments
   void Inspect::operator()(Parameter* p)
@@ -453,6 +453,10 @@ namespace Sass {
     if (!a->name().empty()) {
       buffer += a->name();
       buffer += ": ";
+    }
+    // Special case: argument nulls can be ignored
+    if (a->value()->concrete_type() == Expression::NULL_VAL) {
+      return;
     }
     a->value()->perform(this);
     if (a->is_rest_argument()) {
