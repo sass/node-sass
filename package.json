@@ -24,6 +24,7 @@
     "url": "git://github.com/andrew/node-sass.git"
   },
   "scripts": {
+    "preinstall": "./prepare.sh",
     "install": "node rebuild.js",
     "test": "mocha test"
   },
