@@ -787,7 +787,7 @@ namespace Sass {
     if (lstr[0] == '"' || lstr[0] == '\'') q = lstr[0];
     else if (rstr[0] == '"' || rstr[0] == '\'') q = rstr[0];
     string result(unquote(lstr) + sep + unquote(rstr));
-    return new String_Constant(lhs->path(),
+    return new (ctx.mem) String_Constant(lhs->path(),
                                lhs->line(),
                                unquoted ? result : quote(result, q));
   }
