@@ -19,3 +19,4 @@ vagrant
 .lock-wscript
 .DS_Store
 .sass-cache
+libsass
