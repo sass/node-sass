@@ -300,9 +300,15 @@ namespace Sass {
       HSL hsl_color = rgb_to_hsl(rgb_color->r(),
                                  rgb_color->g(),
                                  rgb_color->b());
+      //Check lightness is not negative before lighten it
+      double hslcolorL = hsl_color.l;
+      if (hslcolorL < 0) {
+        hslcolorL = 0;
+      }
+
       return hsla_impl(hsl_color.h,
                        hsl_color.s,
-                       hsl_color.l + amount->value(),
+                       hslcolorL + amount->value(),
                        rgb_color->a(),
                        ctx,
                        path,
@@ -317,9 +323,16 @@ namespace Sass {
       HSL hsl_color = rgb_to_hsl(rgb_color->r(),
                                  rgb_color->g(),
                                  rgb_color->b());
+
+      //Check lightness if not over 100, before darken it
+      double hslcolorL = hsl_color.l;
+      if (hslcolorL > 100) {
+        hslcolorL = 100;
+      }
+
       return hsla_impl(hsl_color.h,
                        hsl_color.s,
-                       hsl_color.l - amount->value(),
+                       hslcolorL - amount->value(),
                        rgb_color->a(),
                        ctx,
                        path,
@@ -334,8 +347,15 @@ namespace Sass {
       HSL hsl_color = rgb_to_hsl(rgb_color->r(),
                                  rgb_color->g(),
                                  rgb_color->b());
+      //Check saturation is not negative before saturate it
+      double hslcolorS = hsl_color.s;
+      if (hslcolorS < 0) {
+        hslcolorS = 0;
+      }
+
+
       return hsla_impl(hsl_color.h,
-                       hsl_color.s + amount->value(),
+                       hslcolorS + amount->value(),
                        hsl_color.l,
                        rgb_color->a(),
                        ctx,
@@ -351,8 +371,14 @@ namespace Sass {
       HSL hsl_color = rgb_to_hsl(rgb_color->r(),
                                  rgb_color->g(),
                                  rgb_color->b());
+      //Check saturation is not over 100 before desaturate it
+      double hslcolorS = hsl_color.s;
+      if (hslcolorS > 100) {
+        hslcolorS = 100;
+      }
+
       return hsla_impl(hsl_color.h,
-                       hsl_color.s - amount->value(),
+                       hslcolorS - amount->value(),
                        hsl_color.l,
                        rgb_color->a(),
                        ctx,
