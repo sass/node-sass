@@ -92,8 +92,9 @@ var server = connect.createServer(
     , dest: __dirname + '/public'
     , debug: true
     , outputStyle: 'compressed'
+    , prefix:  '/prefix'
   }),
-  connect.static(__dirname + '/public')
+  connect.static('/prefix', __dirname + '/public')
 );
 ```
 
