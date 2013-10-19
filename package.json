@@ -24,8 +24,9 @@
     "url": "git://github.com/andrew/node-sass.git"
   },
   "scripts": {
-    "install": "node rebuild.js",
-    "test": "mocha test"
+    "install": "node build.js",
+    "test": "mocha test",
+    "prepublish": "bash scripts/prepublish.sh"
   },
   "bin": {
     "node-sass": "bin/node-sass"
@@ -38,9 +39,7 @@
     "mkdirp": "0.3.x",
     "colors": "0.6.0-1",
     "optimist": "0.6.x",
-    "node-watch": "0.3.x"
-  },
-  "devDependencies": {
-    "mocha": "1.7.x"
+    "node-watch": "0.3.x",
+    "mocha": "1.13.x"
   }
 }

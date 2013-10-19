@@ -19,3 +19,5 @@ vagrant
 .lock-wscript
 .DS_Store
 .sass-cache
+
+bin/*-v8-*
