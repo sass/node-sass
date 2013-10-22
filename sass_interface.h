@@ -29,7 +29,7 @@ struct sass_context {
   struct sass_options options;
   int error_status;
   char* error_message;
-  struct Sass_C_Function_Data* c_functions;
+  struct Sass_C_Function_Descriptor* c_functions;
   char** included_files;
   int num_included_files;
 };
@@ -43,7 +43,7 @@ struct sass_file_context {
   struct sass_options options;
   int error_status;
   char* error_message;
-  struct Sass_C_Function_Data* c_functions;
+  struct Sass_C_Function_Descriptor* c_functions;
   char** included_files;
   int num_included_files;
 };
@@ -54,7 +54,7 @@ struct sass_folder_context {
   struct sass_options options;
   int error_status;
   char* error_message;
-  struct Sass_C_Function_Data* c_functions;
+  struct Sass_C_Function_Descriptor* c_functions;
   char** included_files;
   int num_included_files;
 };
