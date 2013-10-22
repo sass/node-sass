@@ -92,7 +92,9 @@ extern "C" {
                        .output_style((Output_Style) c_ctx->options.output_style)
                        .source_comments(c_ctx->options.source_comments == SASS_SOURCE_COMMENTS_DEFAULT)
                        .source_maps(false) // Only supported for files.
-                       .image_path(c_ctx->options.image_path)
+                       .image_path(c_ctx->options.image_path ?
+                                   c_ctx->options.image_path :
+                                   "")
                        .include_paths_c_str(c_ctx->options.include_paths)
                        .include_paths_array(0)
                        .include_paths(vector<string>())
@@ -134,13 +136,17 @@ extern "C" {
       }
       string output_path = c_ctx->output_path ? c_ctx->output_path : "";
       Context cpp_ctx(
-        Context::Data().entry_point(c_ctx->input_path)
-	               .output_path(output_path)
+        Context::Data().entry_point(c_ctx->input_path ?
+                                    c_ctx->input_path :
+                                    "")
+                       .output_path(output_path)
                        .output_style((Output_Style) c_ctx->options.output_style)
                        .source_comments(c_ctx->options.source_comments == SASS_SOURCE_COMMENTS_DEFAULT)
                        .source_maps(source_maps)
                        .source_map_file(source_map_file)
-                       .image_path(c_ctx->options.image_path)
+                       .image_path(c_ctx->options.image_path ?
+                                   c_ctx->options.image_path :
+                                   "")
                        .include_paths_c_str(c_ctx->options.include_paths)
                        .include_paths_array(0)
                        .include_paths(vector<string>())
