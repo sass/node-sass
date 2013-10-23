@@ -734,9 +734,10 @@ namespace Sass {
     ADD_PROPERTY(double, g);
     ADD_PROPERTY(double, b);
     ADD_PROPERTY(double, a);
+    ADD_PROPERTY(string, disp);
   public:
-    Color(string p, size_t l, double r, double g, double b, double a = 1)
-    : Expression(p, l), r_(r), g_(g), b_(b), a_(a)
+    Color(string p, size_t l, double r, double g, double b, double a = 1, const string disp = "")
+    : Expression(p, l), r_(r), g_(g), b_(b), a_(a), disp_(disp)
     { concrete_type(COLOR); }
     string type() { return "color"; }
     static string type_name() { return "color"; }

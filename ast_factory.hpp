@@ -56,7 +56,7 @@ namespace Sass {
 		Number* new_Number(string p, size_t l, double val);
 		Percentage* new_Percentage(string p, size_t l, double val);
 		Dimension* new_Dimension(string p, size_t l, double val, string unit);
-		Color* new_Color(string p, size_t l, double r, double g, double b, double a = 1);
+		Color* new_Color(string p, size_t l, double r, double g, double b, double a = 1, string disp = "");
 		Boolean* new_Boolean(string p, size_t l, bool val);
 		String_Schema* new_String_Schema(string p, size_t l, size_t size = 0);
 		String_Constant* new_String_Constant(string p, size_t l, string val);

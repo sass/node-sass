@@ -246,6 +246,11 @@ namespace Sass {
     }
     else {
       To_String to_string;
+      // Special cases: +/- variables which evaluate to null ouput just +/-,
+      // but +/- null itself outputs the string
+      if (operand->concrete_type() == Expression::NULL_VAL && typeid(*(u->operand())) == typeid(Variable)) {
+        u->operand(new (ctx.mem) String_Constant(u->path(), u->line(), ""));
+      }
       String_Constant* result = new (ctx.mem) String_Constant(u->path(),
                                                               u->line(),
                                                               u->perform(&to_string));
@@ -429,14 +434,18 @@ namespace Sass {
                                        t->line(),
                                        static_cast<double>(strtol(r.c_str(), NULL, 16)),
                                        static_cast<double>(strtol(g.c_str(), NULL, 16)),
-                                       static_cast<double>(strtol(b.c_str(), NULL, 16)));
+                                       static_cast<double>(strtol(b.c_str(), NULL, 16)),
+                                       1,
+                                       t->value());
         }
         else {
           result = new (ctx.mem) Color(t->path(),
                                        t->line(),
                                        static_cast<double>(strtol(string(2,hext[0]).c_str(), NULL, 16)),
                                        static_cast<double>(strtol(string(2,hext[1]).c_str(), NULL, 16)),
-                                       static_cast<double>(strtol(string(2,hext[2]).c_str(), NULL, 16)));
+                                       static_cast<double>(strtol(string(2,hext[2]).c_str(), NULL, 16)),
+                                       1,
+                                       t->value());
         }
       } break;
     }
@@ -691,6 +700,10 @@ namespace Sass {
   {
     Number* l = static_cast<Number*>(lhs);
     Color* r = static_cast<Color*>(rhs);
+    // TODO: currently SASS converts colors to standard form when adding to strings;
+    // when https://github.com/nex3/sass/issues/363 is added this can be removed to
+    // preserve the original value
+    r->disp("");
     double lv = l->value();
     switch (op) {
       case Binary_Expression::ADD:
@@ -759,6 +772,13 @@ namespace Sass {
     To_String to_string;
     Expression::Concrete_Type ltype = lhs->concrete_type();
     Expression::Concrete_Type rtype = rhs->concrete_type();
+
+    // TODO: currently SASS converts colors to standard form when adding to strings;
+    // when https://github.com/nex3/sass/issues/363 is added this can be removed to
+    // preserve the original value
+    if (ltype == Expression::COLOR) ((Sass::Color*)lhs)->disp("");
+    if (rtype == Expression::COLOR) ((Sass::Color*)rhs)->disp("");
+
     string lstr(lhs->perform(&to_string));
     string rstr(rhs->perform(&to_string));
     bool unquoted = false;
