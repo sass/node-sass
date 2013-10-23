@@ -3,6 +3,8 @@
 .DS_Store
 .sass-cache
 *.gem
+.svn/*
+.gitattributes
 
 # Configuration stuff
 
@@ -17,12 +19,16 @@ Makefile.in
 src/Makefile
 libtool
 stamp-h1
+libsass/*
 
 # Build stuff
 
 *.o
 *.lo
 *.a
+a.out
+
+bin/*
 .deps/
 .libs/
 
