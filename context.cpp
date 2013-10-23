@@ -39,7 +39,7 @@ namespace Sass {
   using std::endl;
 
   Context::Context(Context::Data initializers)
-  : mem(Memory_Manager<AST_Node*>()),
+  : mem(Memory_Manager<AST_Node>()),
     source_c_str    (initializers.source_c_str()),
     sources         (vector<const char*>()),
     include_paths   (initializers.include_paths()),

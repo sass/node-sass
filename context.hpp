@@ -28,7 +28,7 @@ namespace Sass {
   enum Output_Style { NESTED, EXPANDED, COMPACT, COMPRESSED, FORMATTED };
 
   struct Context {
-    Memory_Manager<AST_Node*> mem;
+    Memory_Manager<AST_Node> mem;
 
     const char* source_c_str;
     vector<const char*> sources; // c-strs containing Sass file contents
