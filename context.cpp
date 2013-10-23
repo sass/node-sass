@@ -45,6 +45,7 @@ namespace Sass {
   : mem(Memory_Manager<AST_Node>()),
     source_c_str    (initializers.source_c_str()),
     sources         (vector<const char*>()),
+    c_functions     (vector<Sass_C_Function_Descriptor>()),
     include_paths   (initializers.include_paths()),
     queue           (vector<pair<string, const char*> >()),
     style_sheets    (map<string, Block*>()),
@@ -212,6 +213,9 @@ namespace Sass {
     Env tge;
     Backtrace backtrace(0, "", Position(), "");
     register_built_in_functions(*this, &tge);
+    for (size_t i = 0, S = c_functions.size(); i < S; ++i) {
+    	register_c_function(*this, &tge, c_functions[i]);
+    }
     Eval eval(*this, &tge, &backtrace);
     Contextualize contextualize(*this, &eval, &tge, &backtrace);
     Expand expand(*this, &eval, &contextualize, &tge, &backtrace);
@@ -320,7 +324,7 @@ namespace Sass {
   {
     using namespace Functions;
     // RGB Functions
-    register_function(ctx, rgb_sig,  rgb, env);
+    register_function(ctx, rgb_sig, rgb, env);
     register_overload_stub(ctx, "rgba", env);
     register_function(ctx, rgba_4_sig, rgba_4, 4, env);
     register_function(ctx, rgba_2_sig, rgba_2, 2, env);
@@ -394,7 +398,7 @@ namespace Sass {
   }
   void register_c_function(Context& ctx, Env* env, Sass_C_Function_Descriptor descr)
   {
-    Definition* def = make_c_function(descr.signature, descr.function, ctx);
+    Definition* def = make_c_function(descr.signature, descr.function, descr.cookie, ctx);
     def->environment(env);
     (*env)[def->name() + "[f]"] = def;
   }
