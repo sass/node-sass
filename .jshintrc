@@ -1,0 +1,9 @@
+{
+  "node": true,
+  "laxbreak": true,
+  "indent": 2,
+  "curly": true,
+  "trailing": true,
+  "undef": true,
+  "unused": true
+}
