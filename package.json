@@ -37,9 +37,9 @@
   },
   "dependencies": {
     "mkdirp": "0.3.x",
-    "colors": "0.6.0-1",
     "optimist": "0.6.x",
     "node-watch": "0.3.x",
-    "mocha": "1.13.x"
+    "mocha": "1.13.x",
+    "chalk": "~0.3.0"
   }
 }
