@@ -52,7 +52,7 @@ The API for using node-sass has changed, so that now there is only one variable 
 [Important: currently the argument `outputStyle` has some problem which may cause the output css becomes nothing because of the libsass, so you should not use it now!]
 
 #### sourceComments
-`sourceComments` is a `String` to determine what debug information is included in the output file. Its value should be one of `'none', 'normal', 'map'`. The default is `'none'`.
+`sourceComments` is a `String` to determine what debug information is included in the output file. Its value should be one of `'none', 'normal'`. The default is `'none'`.
 [Important: `souceComments` is only supported when using the `file` option, and does nothing when using `data` flag.]
 
 ### Examples
