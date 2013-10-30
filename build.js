@@ -35,7 +35,7 @@ if (!force) {
 		console.log('`'+ modPath+ '` exists; testing');
 		 
 		var mocha = new Mocha({
-		    reporter: 'min',
+		    reporter: 'dot',
 		    ui: 'bdd',
 		    timeout: 999999
 		});
