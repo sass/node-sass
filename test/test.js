@@ -111,7 +111,7 @@ describe("compile file with include paths", function(){
       file: path.resolve(__dirname, "include_path.scss"),
       includePaths: [path.resolve(__dirname, "lib"), path.resolve(__dirname, "functions")],
       success: function (css) {
-        done(assert.equal(css, "body {\n  background: red;\n  color: blue; }\n"));
+        done(assert.equal(css, "body {\n  background: red;\n  color: #0000FF; }\n"));
       },
       error: function (error) {
         done(error);
