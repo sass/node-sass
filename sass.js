@@ -85,11 +85,11 @@ exports.renderSync = function(options) {
   newOptions = prepareOptions(options);
 
   if (options.file !== undefined && options.file !== null) {
-    return binding.renderFileSync(options.file, newOptions.paths.join(':'), newOptions.style, newOptions.comments);
+    return binding.renderFileSync(options.file, newOptions.paths.join(path.delimiter), newOptions.style, newOptions.comments);
   }
 
   //Assume data is present if file is not. binding/libsass will tell the user otherwise!
-  return binding.renderSync(options.data, newOptions.paths.join(":"), newOptions.style);
+  return binding.renderSync(options.data, newOptions.paths.join(path.delimiter), newOptions.style);
 };
 
 exports.middleware = require('./lib/middleware');
