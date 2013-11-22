@@ -881,7 +881,7 @@ namespace Sass {
       *kwd_arg << new (ctx.mem) String_Constant(path, line, lexed);
       if (lex< variable >()) *kwd_arg << new (ctx.mem) Variable(path, line, lexed);
       else {
-        lex< alternatives< identifier_schema, identifier > >();
+        lex< alternatives< identifier_schema, identifier, number > >();
         *kwd_arg << new (ctx.mem) String_Constant(path, line, lexed);
       }
       return kwd_arg;
