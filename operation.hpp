@@ -64,9 +64,9 @@ namespace Sass {
 		virtual T operator()(Attribute_Selector* x)       = 0;
 		virtual T operator()(Pseudo_Selector* x)          = 0;
 		virtual T operator()(Negated_Selector* x)         = 0;
-		virtual T operator()(Simple_Selector_Sequence* x) = 0;
-		virtual T operator()(Selector_Combination* x)     = 0;
-		virtual T operator()(Selector_Group* x)           = 0;
+		virtual T operator()(Compound_Selector* x) = 0;
+		virtual T operator()(Complex_Selector* x)     = 0;
+		virtual T operator()(Selector_List* x)           = 0;
 
 		template <typename U>
 		T fallback(U x) { return T(); }
@@ -128,9 +128,9 @@ namespace Sass {
 		virtual T operator()(Attribute_Selector* x)       { return static_cast<D*>(this)->fallback(x); }
 		virtual T operator()(Pseudo_Selector* x)          { return static_cast<D*>(this)->fallback(x); }
 		virtual T operator()(Negated_Selector* x)         { return static_cast<D*>(this)->fallback(x); }
-		virtual T operator()(Simple_Selector_Sequence* x) { return static_cast<D*>(this)->fallback(x); }
-		virtual T operator()(Selector_Combination* x)     { return static_cast<D*>(this)->fallback(x); }
-		virtual T operator()(Selector_Group* x)           { return static_cast<D*>(this)->fallback(x); }
+		virtual T operator()(Compound_Selector* x) { return static_cast<D*>(this)->fallback(x); }
+		virtual T operator()(Complex_Selector* x)     { return static_cast<D*>(this)->fallback(x); }
+		virtual T operator()(Selector_List* x)           { return static_cast<D*>(this)->fallback(x); }
 
 		template <typename U>
 		T fallback(U x) { return T(); }

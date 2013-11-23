@@ -6,28 +6,28 @@
 namespace Sass {
   using namespace std;
 
-  bool Simple_Selector_Sequence::operator<(const Simple_Selector_Sequence& rhs) const
+  bool Compound_Selector::operator<(const Compound_Selector& rhs) const
   {
     To_String to_string;
     // ugly
-    return const_cast<Simple_Selector_Sequence*>(this)->perform(&to_string) <
-           const_cast<Simple_Selector_Sequence&>(rhs).perform(&to_string);
+    return const_cast<Compound_Selector*>(this)->perform(&to_string) <
+           const_cast<Compound_Selector&>(rhs).perform(&to_string);
   }
 
-  Simple_Selector_Sequence* Selector_Combination::base()
+  Compound_Selector* Complex_Selector::base()
   {
     if (!tail()) return head();
     else return tail()->base();
   }
 
-  Selector_Combination* Selector_Combination::context(Context& ctx)
+  Complex_Selector* Complex_Selector::context(Context& ctx)
   {
     if (!tail()) return 0;
     if (!head()) return tail()->context(ctx);
-    return new (ctx.mem) Selector_Combination(path(), line(), combinator(), head(), tail()->context(ctx));
+    return new (ctx.mem) Complex_Selector(path(), line(), combinator(), head(), tail()->context(ctx));
   }
 
-  Selector_Combination* Selector_Combination::innermost()
+  Complex_Selector* Complex_Selector::innermost()
   {
     if (!tail()) return this;
     else return tail()->innermost();
@@ -38,7 +38,7 @@ namespace Sass {
     return 0;
   }
 
-  Selector_Placeholder* Selector_Group::find_placeholder()
+  Selector_Placeholder* Selector_List::find_placeholder()
   {
     if (has_placeholder()) {
       for (size_t i = 0, L = length(); i < L; ++i) {
@@ -48,7 +48,7 @@ namespace Sass {
     return 0;
   }
 
-  Selector_Placeholder* Selector_Combination::find_placeholder()
+  Selector_Placeholder* Complex_Selector::find_placeholder()
   {
     if (has_placeholder()) {
       if (head() && head()->has_placeholder()) return head()->find_placeholder();
@@ -57,7 +57,7 @@ namespace Sass {
     return 0;
   }
 
-  Selector_Placeholder* Simple_Selector_Sequence::find_placeholder()
+  Selector_Placeholder* Compound_Selector::find_placeholder()
   {
     if (has_placeholder()) {
       for (size_t i = 0, L = length(); i < L; ++i) {

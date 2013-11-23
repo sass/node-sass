@@ -70,7 +70,7 @@ namespace Sass {
 
 		void append_block(Block*);
 
-		multimap<Simple_Selector_Sequence, Selector_Combination*> extensions;
+		multimap<Compound_Selector, Complex_Selector*> extensions;
 	};
 
 }

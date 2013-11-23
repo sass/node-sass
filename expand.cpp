@@ -23,7 +23,7 @@ namespace Sass {
     property_stack(vector<String*>()),
     selector_stack(vector<Selector*>()),
     backtrace(bt),
-    extensions(multimap<Simple_Selector_Sequence, Selector_Combination*>())
+    extensions(multimap<Compound_Selector, Complex_Selector*>())
   { selector_stack.push_back(0); }
 
   Statement* Expand::operator()(Block* b)
@@ -242,17 +242,17 @@ namespace Sass {
 
   Statement* Expand::operator()(Extension* e)
   {
-    Selector_Group* extender = static_cast<Selector_Group*>(selector_stack.back());
+    Selector_List* extender = static_cast<Selector_List*>(selector_stack.back());
     if (!extender) return 0;
-    Selector_Group* extendee = static_cast<Selector_Group*>(e->selector()->perform(contextualize->with(0, env, backtrace)));
+    Selector_List* extendee = static_cast<Selector_List*>(e->selector()->perform(contextualize->with(0, env, backtrace)));
     if (extendee->length() != 1) {
       error("selector groups may not be extended", extendee->path(), extendee->line(), backtrace);
     }
-    Selector_Combination* c = (*extendee)[0];
+    Complex_Selector* c = (*extendee)[0];
     if (!c->head() || c->tail()) {
       error("nested selectors may not be extended", c->path(), c->line(), backtrace);
     }
-    Simple_Selector_Sequence* s = c->head();
+    Compound_Selector* s = c->head();
     for (size_t i = 0, L = extender->length(); i < L; ++i) {
       extensions.insert(make_pair(*s, (*extender)[i]));
       To_String to_string;

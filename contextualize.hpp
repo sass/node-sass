@@ -12,9 +12,9 @@ namespace Sass {
   class AST_Node;
   class Selector;
   class Selector_Schema;
-  class Selector_Group;
-  class Selector_Combination;
-  class Simple_Selector_Sequence;
+  class Selector_List;
+  class Complex_Selector;
+  class Compound_Selector;
   class Negated_Selector;
   class Pseudo_Selector;
   class Attribute_Selector;
@@ -48,9 +48,9 @@ namespace Sass {
     using Operation<Selector*>::operator();
 
     Selector* operator()(Selector_Schema*);
-    Selector* operator()(Selector_Group*);
-    Selector* operator()(Selector_Combination*);
-    Selector* operator()(Simple_Selector_Sequence*);
+    Selector* operator()(Selector_List*);
+    Selector* operator()(Complex_Selector*);
+    Selector* operator()(Compound_Selector*);
     Selector* operator()(Negated_Selector*);
     Selector* operator()(Pseudo_Selector*);
     Selector* operator()(Attribute_Selector*);

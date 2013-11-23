@@ -333,23 +333,23 @@ namespace Sass {
     return new (ctx.mem) Selector_Schema(path, line, schema);
   }
 
-  Selector_Group* Parser::parse_selector_group()
+  Selector_List* Parser::parse_selector_group()
   {
     To_String to_string;
-    Selector_Group* group = new (ctx.mem) Selector_Group(path, line);
+    Selector_List* group = new (ctx.mem) Selector_List(path, line);
     do {
-      Selector_Combination* comb = parse_selector_combination();
+      Complex_Selector* comb = parse_selector_combination();
       if (!comb->has_reference()) {
         size_t sel_line = line;
         Selector_Reference* ref = new (ctx.mem) Selector_Reference(path, sel_line);
-        Simple_Selector_Sequence* ref_wrap = new (ctx.mem) Simple_Selector_Sequence(path, sel_line);
+        Compound_Selector* ref_wrap = new (ctx.mem) Compound_Selector(path, sel_line);
         (*ref_wrap) << ref;
         if (!comb->head()) {
           comb->head(ref_wrap);
           comb->has_reference(true);
         }
         else {
-          comb = new (ctx.mem) Selector_Combination(path, sel_line, Selector_Combination::ANCESTOR_OF, ref_wrap, comb);
+          comb = new (ctx.mem) Complex_Selector(path, sel_line, Complex_Selector::ANCESTOR_OF, ref_wrap, comb);
           comb->has_reference(true);
         }
       }
@@ -359,10 +359,10 @@ namespace Sass {
     return group;
   }
 
-  Selector_Combination* Parser::parse_selector_combination()
+  Complex_Selector* Parser::parse_selector_combination()
   {
     size_t sel_line = 0;
-    Simple_Selector_Sequence* lhs;
+    Compound_Selector* lhs;
     if (peek< exactly<'+'> >() ||
         peek< exactly<'~'> >() ||
         peek< exactly<'>'> >()) {
@@ -374,13 +374,13 @@ namespace Sass {
       sel_line = line;
     }
 
-    Selector_Combination::Combinator cmb;
-    if      (lex< exactly<'+'> >()) cmb = Selector_Combination::ADJACENT_TO;
-    else if (lex< exactly<'~'> >()) cmb = Selector_Combination::PRECEDES;
-    else if (lex< exactly<'>'> >()) cmb = Selector_Combination::PARENT_OF;
-    else                            cmb = Selector_Combination::ANCESTOR_OF;
+    Complex_Selector::Combinator cmb;
+    if      (lex< exactly<'+'> >()) cmb = Complex_Selector::ADJACENT_TO;
+    else if (lex< exactly<'~'> >()) cmb = Complex_Selector::PRECEDES;
+    else if (lex< exactly<'>'> >()) cmb = Complex_Selector::PARENT_OF;
+    else                            cmb = Complex_Selector::ANCESTOR_OF;
 
-    Selector_Combination* rhs;
+    Complex_Selector* rhs;
     if (peek< exactly<','> >() ||
         peek< exactly<')'> >() ||
         peek< exactly<'{'> >() ||
@@ -393,12 +393,12 @@ namespace Sass {
       sel_line = line;
     }
     if (!sel_line) sel_line = line;
-    return new (ctx.mem) Selector_Combination(path, sel_line, cmb, lhs, rhs);
+    return new (ctx.mem) Complex_Selector(path, sel_line, cmb, lhs, rhs);
   }
 
-  Simple_Selector_Sequence* Parser::parse_simple_selector_sequence()
+  Compound_Selector* Parser::parse_simple_selector_sequence()
   {
-    Simple_Selector_Sequence* seq = new (ctx.mem) Simple_Selector_Sequence(path, line);
+    Compound_Selector* seq = new (ctx.mem) Compound_Selector(path, line);
     // check for backref or type selector, which are only allowed at the front
     if (lex< exactly<'&'> >()) {
       (*seq) << new (ctx.mem) Selector_Reference(path, line);

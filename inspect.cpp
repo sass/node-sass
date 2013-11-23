@@ -531,33 +531,33 @@ namespace Sass {
     buffer += ')';
   }
 
-  void Inspect::operator()(Simple_Selector_Sequence* s)
+  void Inspect::operator()(Compound_Selector* s)
   {
     for (size_t i = 0, L = s->length(); i < L; ++i) {
       (*s)[i]->perform(this);
     }
   }
 
-  void Inspect::operator()(Selector_Combination* c)
+  void Inspect::operator()(Complex_Selector* c)
   {
-    Simple_Selector_Sequence*        head = c->head();
-    Selector_Combination*            tail = c->tail();
-    Selector_Combination::Combinator comb = c->combinator();
+    Compound_Selector*        head = c->head();
+    Complex_Selector*            tail = c->tail();
+    Complex_Selector::Combinator comb = c->combinator();
     if (head) head->perform(this);
     if (head && tail) buffer += ' ';
     switch (comb) {
-      case Selector_Combination::ANCESTOR_OF:                break;
-      case Selector_Combination::PARENT_OF:   buffer += '>'; break;
-      case Selector_Combination::PRECEDES:    buffer += '~'; break;
-      case Selector_Combination::ADJACENT_TO: buffer += '+'; break;
+      case Complex_Selector::ANCESTOR_OF:                break;
+      case Complex_Selector::PARENT_OF:   buffer += '>'; break;
+      case Complex_Selector::PRECEDES:    buffer += '~'; break;
+      case Complex_Selector::ADJACENT_TO: buffer += '+'; break;
     }
-    if (tail && comb != Selector_Combination::ANCESTOR_OF) {
+    if (tail && comb != Complex_Selector::ANCESTOR_OF) {
       buffer += ' ';
     }
     if (tail) tail->perform(this);
   }
 
-  void Inspect::operator()(Selector_Group* g)
+  void Inspect::operator()(Selector_List* g)
   {
     if (g->empty()) return;
     (*g)[0]->perform(this);

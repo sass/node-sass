@@ -146,9 +146,9 @@ namespace Sass {
     Propset* parse_propset();
     Ruleset* parse_ruleset(Selector_Lookahead lookahead);
     Selector_Schema* parse_selector_schema(const char* end_of_selector);
-    Selector_Group* parse_selector_group();
-    Selector_Combination* parse_selector_combination();
-    Simple_Selector_Sequence* parse_simple_selector_sequence();
+    Selector_List* parse_selector_group();
+    Complex_Selector* parse_selector_combination();
+    Compound_Selector* parse_simple_selector_sequence();
     Simple_Selector* parse_simple_selector();
     Negated_Selector* parse_negated_selector();
     Pseudo_Selector* parse_pseudo_selector();

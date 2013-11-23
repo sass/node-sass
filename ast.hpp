@@ -1003,7 +1003,7 @@ namespace Sass {
   /////////////////////////////////////////
   // Abstract base class for CSS selectors.
   /////////////////////////////////////////
-  class Simple_Selector_Sequence;
+  class Compound_Selector;
   class Selector : public AST_Node {
     ADD_PROPERTY(bool, has_reference);
     ADD_PROPERTY(bool, has_placeholder);
@@ -1133,7 +1133,7 @@ namespace Sass {
   // Simple selector sequences. Maintains flags indicating whether it contains
   // any parent references or placeholders, to simplify expansion.
   ////////////////////////////////////////////////////////////////////////////
-  class Simple_Selector_Sequence : public Selector, public Vectorized<Simple_Selector*> {
+  class Compound_Selector : public Selector, public Vectorized<Simple_Selector*> {
   protected:
     void adjust_after_pushing(Simple_Selector* s)
     {
@@ -1141,11 +1141,11 @@ namespace Sass {
       if (s->has_placeholder()) has_placeholder(true);
     }
   public:
-    Simple_Selector_Sequence(string p, size_t l, size_t s = 0)
+    Compound_Selector(string p, size_t l, size_t s = 0)
     : Selector(p, l),
       Vectorized<Simple_Selector*>(s)
     { }
-    bool operator<(const Simple_Selector_Sequence& rhs) const;
+    bool operator<(const Compound_Selector& rhs) const;
     virtual Selector_Placeholder* find_placeholder();
     ATTACH_OPERATIONS();
   };
@@ -1156,26 +1156,26 @@ namespace Sass {
   // linked list.
   ////////////////////////////////////////////////////////////////////////////
   class Context;
-  class Selector_Combination : public Selector {
+  class Complex_Selector : public Selector {
   public:
     enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO };
   private:
     ADD_PROPERTY(Combinator, combinator);
-    ADD_PROPERTY(Simple_Selector_Sequence*, head);
-    ADD_PROPERTY(Selector_Combination*, tail);
+    ADD_PROPERTY(Compound_Selector*, head);
+    ADD_PROPERTY(Complex_Selector*, tail);
   public:
-    Selector_Combination(string p, size_t l,
+    Complex_Selector(string p, size_t l,
                          Combinator c,
-                         Simple_Selector_Sequence* h,
-                         Selector_Combination* t)
+                         Compound_Selector* h,
+                         Complex_Selector* t)
     : Selector(p, l), combinator_(c), head_(h), tail_(t)
     {
       if ((h && h->has_reference())   || (t && t->has_reference()))   has_reference(true);
       if ((h && h->has_placeholder()) || (t && t->has_placeholder())) has_placeholder(true);
     }
-    Simple_Selector_Sequence* base();
-    Selector_Combination* context(Context&);
-    Selector_Combination* innermost();
+    Compound_Selector* base();
+    Complex_Selector* context(Context&);
+    Complex_Selector* innermost();
     virtual Selector_Placeholder* find_placeholder();
     ATTACH_OPERATIONS();
   };
@@ -1183,17 +1183,17 @@ namespace Sass {
   ///////////////////////////////////
   // Comma-separated selector groups.
   ///////////////////////////////////
-  class Selector_Group
-      : public Selector, public Vectorized<Selector_Combination*> {
+  class Selector_List
+      : public Selector, public Vectorized<Complex_Selector*> {
   protected:
-    void adjust_after_pushing(Selector_Combination* c)
+    void adjust_after_pushing(Complex_Selector* c)
     {
       if (c->has_reference())   has_reference(true);
       if (c->has_placeholder()) has_placeholder(true);
     }
   public:
-    Selector_Group(string p, size_t l, size_t s = 0)
-    : Selector(p, l), Vectorized<Selector_Combination*>(s)
+    Selector_List(string p, size_t l, size_t s = 0)
+    : Selector(p, l), Vectorized<Complex_Selector*>(s)
     { }
     virtual Selector_Placeholder* find_placeholder();
     ATTACH_OPERATIONS();
