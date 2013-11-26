@@ -52,7 +52,7 @@ Usage
 -----
 
 While libsass is primarily implemented in C++, it provides a simple
-C interface that is defined in [sass_inteface.h]. Its usage is pretty
+C interface that is defined in [sass_interface.h]. Its usage is pretty
 straight forward.
 
 First, you create a sass context struct. We use these objects to define
@@ -64,7 +64,7 @@ different context types.
     sass_folder_context // full-folder multi-file 
 
 Each of the context's have slightly different behavior and are
-implemented seperately. This does add extra work to implementing
+implemented separately. This does add extra work to implementing
 a wrapper library, but we felt that a mixed-use context object
 provides for too much implicit logic. What if you set "input_string"
 AND "input_file"... what do we do? This would introduce bugs into
