@@ -384,6 +384,7 @@ namespace Sass {
     if (peek< exactly<','> >() ||
         peek< exactly<')'> >() ||
         peek< exactly<'{'> >() ||
+        peek< exactly<'}'> >() ||
         peek< exactly<';'> >()) {
       // no selector after the combinator
       rhs = 0;
@@ -417,6 +418,7 @@ namespace Sass {
              peek < exactly<','> >(position) ||
              peek < exactly<')'> >(position) ||
              peek < exactly<'{'> >(position) ||
+             peek < exactly<'}'> >(position) ||
              peek < exactly<';'> >(position))) {
       (*seq) << parse_simple_selector();
     }
