@@ -1003,7 +1003,6 @@ namespace Sass {
   /////////////////////////////////////////
   // Abstract base class for CSS selectors.
   /////////////////////////////////////////
-  class Compound_Selector;
   class Selector : public AST_Node {
     ADD_PROPERTY(bool, has_reference);
     ADD_PROPERTY(bool, has_placeholder);
