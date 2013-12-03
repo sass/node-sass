@@ -2,9 +2,33 @@
 #include <map>
 #include <set>
 #include <algorithm>
+#include <iostream>
+#include <sstream>
 
 namespace Sass {
 	using namespace std;
+
+	// template<typename T>
+	// string vector_to_string(vector<T> v)
+	// {
+	// 	stringstream buffer;
+	// 	buffer << "[";
+
+	// 	if (!v.empty())
+	// 	{	buffer << v[0]; }
+	// 	else
+	// 	{ buffer << "]"; }
+
+	// 	if (v.size() == 1)
+	// 	{ buffer << "]"; }
+	// 	else
+	// 	{
+	// 		for (size_t i = 1, S = v.size(); i < S; ++i) buffer << ", " << v[i];
+	// 		buffer << "]";
+	// 	}
+
+	// 	return buffer.str();
+	// }
 
 	template<typename F, typename S, typename T>
 	struct triple {
@@ -35,7 +59,6 @@ namespace Sass {
 	void Subset_Map<K, V>::put(const vector<K>& s, const V& value)
 	{
 		if (s.empty()) throw "internal error: subset map keys may not be empty";
-
 		size_t index = values_.size();
 		values_.push_back(value);
 		set<K> ss;
@@ -54,7 +77,7 @@ namespace Sass {
 			if (!hash_.count(s[i])) continue;
 			vector<triple<vector<K>, set<K>, size_t> > subsets = hash_[s[i]];
 			for (size_t j = 0, T = subsets.size(); j < T; ++j) {
-				if (!includes(subsets[j].second.begin(), subsets[j].second.end(), s.begin(), s.end())) continue;
+				if (!includes(s.begin(), s.end(), subsets[j].second.begin(), subsets[j].second.end())) continue;
 				indices.push_back(make_pair(subsets[j].third, subsets[j].first));
 			}
 		}
