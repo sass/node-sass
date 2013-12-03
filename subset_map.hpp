@@ -2,6 +2,7 @@
 #include <map>
 #include <set>
 #include <algorithm>
+#include <iterator>
 #include <iostream>
 #include <sstream>
 
@@ -85,6 +86,9 @@ namespace Sass {
 		for (size_t i = 0, S = indices.size(); i < S; ++i) {
 			results.push_back(make_pair(values_[indices[i].first], indices[i].second));
 		}
+		typename vector<pair<V, vector<K> > >::iterator results_end = unique(results.begin(), results.end());
+		results.resize(distance(results.begin(), results_end));
+		sort(results.begin(), results.end());
 		return results;
 	}
 
