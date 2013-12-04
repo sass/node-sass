@@ -63,8 +63,10 @@ namespace Sass {
 		size_t index = values_.size();
 		values_.push_back(value);
 		set<K> ss;
-		for (size_t i = 0, S = s.size(); i < S; ++i) ss.insert(s[i]);
-		for (size_t i = 0, S = s.size(); i < S; ++i) {
+		for (size_t i = 0, S = s.size(); i < S; ++i)
+		{ ss.insert(s[i]); }
+		for (size_t i = 0, S = s.size(); i < S; ++i)
+		{
 			hash_[s[i]];
 			hash_[s[i]].push_back(make_triple(s, ss, index));
 		}
@@ -82,13 +84,14 @@ namespace Sass {
 				indices.push_back(make_pair(subsets[j].third, subsets[j].first));
 			}
 		}
+		sort(indices.begin(), indices.end());
+		typename vector<pair<size_t, vector<K> > >::iterator indices_end = unique(indices.begin(), indices.end());
+		indices.resize(distance(indices.begin(), indices_end));
+
 		vector<pair<V, vector<K> > > results;
 		for (size_t i = 0, S = indices.size(); i < S; ++i) {
 			results.push_back(make_pair(values_[indices[i].first], indices[i].second));
 		}
-		typename vector<pair<V, vector<K> > >::iterator results_end = unique(results.begin(), results.end());
-		results.resize(distance(results.begin(), results_end));
-		sort(results.begin(), results.end());
 		return results;
 	}
 

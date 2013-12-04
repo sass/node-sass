@@ -37,5 +37,17 @@ int main()
 		cout << fetched[i].first << endl;
 	}
 
+	Subset_Map<int, string> ssm2;
+	ssm2.put(s1, "foo");
+	ssm2.put(s2, "bar");
+	ssm2.put(s4, "hux");
+
+	vector<pair<string, vector<int> > > fetched2(ssm2.get_kv(s4));
+
+	cout << endl << "PRINTING RESULTS:" << endl;
+	for (size_t i = 0, S = fetched2.size(); i < S; ++i) {
+		cout << fetched2[i].first << endl;
+	}
+
 	return 0;
 }
