@@ -1017,7 +1017,7 @@ namespace Sass {
 
   /////////////////////////////////////////////////////////////////////////
   // Interpolated selectors -- the interpolated String will be expanded and
-  // re-parsed into a normal selector classure.
+  // re-parsed into a normal selector class.
   /////////////////////////////////////////////////////////////////////////
   class Selector_Schema : public Selector {
     ADD_PROPERTY(String*, contents);
