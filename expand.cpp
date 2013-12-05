@@ -190,7 +190,7 @@ namespace Sass {
     new_env.link(env);
     env = &new_env;
     Block* body = f->block();
-    for (size_t i = lo;
+    for (double i = lo;
          i < hi;
          (*env)[variable] = new (ctx.mem) Number(low->path(), low->line(), ++i)) {
       append_block(body);
