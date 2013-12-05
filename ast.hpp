@@ -1146,6 +1146,13 @@ namespace Sass {
     { }
     bool operator<(const Compound_Selector& rhs) const;
     virtual Selector_Placeholder* find_placeholder();
+    Simple_Selector* base()
+    {
+      if (length() > 0 && typeid(*(*this)[0]) == typeid(Type_Selector))
+        return (*this)[0];
+      return 0;
+    }
+    bool is_superselector_of(Compound_Selector* rhs);
     ATTACH_OPERATIONS();
   };
 

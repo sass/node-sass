@@ -1,6 +1,8 @@
 #include "ast.hpp"
 #include "context.hpp"
 #include "to_string.hpp"
+#include <set>
+#include <algorithm>
 #include <iostream>
 
 namespace Sass {
@@ -12,6 +14,24 @@ namespace Sass {
     // ugly
     return const_cast<Compound_Selector*>(this)->perform(&to_string) <
            const_cast<Compound_Selector&>(rhs).perform(&to_string);
+  }
+
+  bool Compound_Selector::is_superselector_of(Compound_Selector* rhs)
+  {
+    To_String to_string;
+
+    Simple_Selector* lbase = base();
+    Simple_Selector* rbase = rhs->base();
+
+    set<string> lset, rset;
+    for (size_t i = 1, L = length(); i < L; ++i)
+    { lset.insert((*this)[i]->perform(&to_string)); }
+    for (size_t i = 1, L = rhs->length(); i < L; ++i)
+    { rset.insert((*rhs)[i]->perform(&to_string)); }
+
+    return (!lbase || (rbase && (lbase->perform(&to_string) == rbase->perform(&to_string)))) &&
+           // skip the pseudo-element check for now
+           includes(rset.begin(), rset.end(), lset.begin(), lset.end());
   }
 
   Compound_Selector* Complex_Selector::base()
