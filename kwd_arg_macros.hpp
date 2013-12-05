@@ -1,4 +1,4 @@
-// Intended usage:
+// Example usage:
 // KWD_ARG_SET(Args) {
 //   KWD_ARG(Args, string, foo);
 //   KWD_ARG(Args, int, bar);
