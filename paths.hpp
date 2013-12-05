@@ -54,6 +54,7 @@ namespace Sass {
 		vector<T>          here       = strata[end-1];
 
 		vector<vector<T> > branches;
+		branches.reserve(up_to_here.size() * here.size());
 		for (size_t i = 0, S1 = up_to_here.size(); i < S1; ++i) {
 			for (size_t j = 0, S2 = here.size(); j < S2; ++j) {
 				vector<T> branch = up_to_here[i];
