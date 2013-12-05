@@ -23,8 +23,8 @@ void check(string s1, string s2)
        << endl;
 }
 
-int main() {
-
+int main()
+{
   check(".foo", ".foo.bar");
   check(".foo.bar", ".foo");
   check(".foo.bar", "div.foo");
