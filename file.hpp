@@ -2,7 +2,7 @@
 
 namespace Sass {
 	using namespace std;
-	struct Context;
+	class Context;
 	namespace File {
 		string base_name(string);
 		string dir_name(string);

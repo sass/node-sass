@@ -10,7 +10,7 @@
 
 namespace Sass {
 	using namespace std;
-	struct Context;
+	class Context;
 
 	class Inspect : public Operation_CRTP<void, Inspect> {
 		// import all the class-specific methods and override as desired

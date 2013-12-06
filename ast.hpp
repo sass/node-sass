@@ -5,26 +5,6 @@
 #include <vector>
 #include <algorithm>
 
-#ifdef __clang__
-
-/*
- * There are some overloads used here that trigger the clang overload
- * hiding warning. Specifically:
- *
- * Type type() which hides string type() from Expression
- * 
- * and
- *
- * Block* block() which hides virtual Block* block() from Statement
- *
- */
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Woverloaded-virtual"
-
-#endif
-
-
 #ifndef SASS_OPERATION
 #include "operation.hpp"
 #endif
@@ -114,7 +94,7 @@ namespace Sass {
     virtual ~Statement() = 0;
     // needed for rearranging nested rulesets during CSS emission
     virtual bool   is_hoistable() { return false; }
-    virtual Block* block() const  { return 0; }
+    virtual Block* block()        { return 0; }
   };
   inline Statement::~Statement() { }
 
@@ -379,7 +359,7 @@ namespace Sass {
   // Definitions for both mixins and functions. The two cases are distinguished
   // by a type tag.
   /////////////////////////////////////////////////////////////////////////////
-  struct Context;
+  class Context;
   struct Backtrace;
   class Parameters;
   typedef Environment<AST_Node*> Env;
@@ -1174,7 +1154,7 @@ namespace Sass {
   // CSS selector combinators (">", "+", "~", and whitespace). Essentially a
   // linked list.
   ////////////////////////////////////////////////////////////////////////////
-  struct Context;
+  class Context;
   class Complex_Selector : public Selector {
   public:
     enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO };
@@ -1218,9 +1198,3 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
 }
-
-#ifdef __clang__
-
-#pragma clang diagnostic pop
-
-#endif

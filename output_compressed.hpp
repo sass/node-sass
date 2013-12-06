@@ -7,13 +7,14 @@
 namespace Sass {
   using namespace std;
 
-  struct Context;
+  class Context;
 
   class Output_Compressed : public Operation_CRTP<void, Output_Compressed> {
     // import all the class-specific methods and override as desired
     using Operation_CRTP<void, Output_Compressed>::operator();
 
     string buffer;
+    Context* ctx;
 
     void fallback_impl(AST_Node* n);
 

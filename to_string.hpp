@@ -9,7 +9,7 @@
 namespace Sass {
   using namespace std;
 
-  struct Context;
+  class Context;
   class Null;
 
   class To_String : public Operation_CRTP<string, To_String> {

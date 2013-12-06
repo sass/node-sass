@@ -17,7 +17,7 @@
 namespace Sass {
   using namespace std;
 
-  struct Context;
+  class Context;
   typedef Environment<AST_Node*> Env;
   struct Backtrace;
 
