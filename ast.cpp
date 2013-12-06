@@ -34,6 +34,20 @@ namespace Sass {
            includes(rset.begin(), rset.end(), lset.begin(), lset.end());
   }
 
+  bool Complex_Selector::is_superselector_of(Compound_Selector* rhs)
+  {
+    if (length() != 1)
+    { return false; }
+    return base()->is_superselector_of(rhs);
+  }
+
+  size_t Complex_Selector::length()
+  {
+    // TODO: make this iterative
+    if (!tail()) return 1;
+    return 1 + tail()->length();
+  }
+
   Compound_Selector* Complex_Selector::base()
   {
     if (!tail()) return head();

@@ -1182,6 +1182,8 @@ namespace Sass {
     Compound_Selector* base();
     Complex_Selector* context(Context&);
     Complex_Selector* innermost();
+    size_t length();
+    bool is_superselector_of(Compound_Selector*);
     virtual Selector_Placeholder* find_placeholder();
     ATTACH_OPERATIONS();
   };
