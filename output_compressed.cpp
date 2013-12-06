@@ -6,7 +6,7 @@
 namespace Sass {
   using namespace std;
 
-  Output_Compressed::Output_Compressed(Context* ctx) : buffer(""), ctx(ctx) { }
+  Output_Compressed::Output_Compressed(Context* ctx) : buffer("") { }
   Output_Compressed::~Output_Compressed() { }
 
   inline void Output_Compressed::fallback_impl(AST_Node* n)
