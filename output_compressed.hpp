@@ -14,7 +14,6 @@ namespace Sass {
     using Operation_CRTP<void, Output_Compressed>::operator();
 
     string buffer;
-    Context* ctx;
 
     void fallback_impl(AST_Node* n);
 
