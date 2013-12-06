@@ -359,7 +359,7 @@ namespace Sass {
   // Definitions for both mixins and functions. The two cases are distinguished
   // by a type tag.
   /////////////////////////////////////////////////////////////////////////////
-  class Context;
+  struct Context;
   struct Backtrace;
   class Parameters;
   typedef Environment<AST_Node*> Env;
@@ -1154,7 +1154,7 @@ namespace Sass {
   // CSS selector combinators (">", "+", "~", and whitespace). Essentially a
   // linked list.
   ////////////////////////////////////////////////////////////////////////////
-  class Context;
+  struct Context;
   class Complex_Selector : public Selector {
   public:
     enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO };

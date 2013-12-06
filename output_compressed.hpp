@@ -7,7 +7,7 @@
 namespace Sass {
   using namespace std;
 
-  class Context;
+  struct Context;
 
   class Output_Compressed : public Operation_CRTP<void, Output_Compressed> {
     // import all the class-specific methods and override as desired

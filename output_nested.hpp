@@ -10,7 +10,7 @@
 
 namespace Sass {
   using namespace std;
-  class Context;
+  struct Context;
 
   class Output_Nested : public Operation_CRTP<void, Output_Nested> {
     // import all the class-specific methods and override as desired
