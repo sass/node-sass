@@ -13,6 +13,9 @@ extern "C" {
   {
     if (ctx_w->ctx) sass_free_context(ctx_w->ctx);
 
+    delete ctx_w->callback;
+    delete ctx_w->errorCallback;
+
     free(ctx_w);
   }
 
@@ -24,6 +27,9 @@ extern "C" {
   void sass_free_file_context_wrapper(sass_file_context_wrapper* ctx_w)
   {
     if (ctx_w->ctx) sass_free_file_context(ctx_w->ctx);
+
+    delete ctx_w->callback;
+    delete ctx_w->errorCallback;
 
     free(ctx_w);
   }

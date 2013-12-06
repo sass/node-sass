@@ -28,6 +28,9 @@
         'libsass/to_string.cpp',
         'libsass/units.cpp'
       ],
+      'include_dirs': [
+        '<!(node -e \'require("nan")\')'
+      ],
       'cflags!'   : [ '-fno-exceptions' ],
       'cflags_cc!': [ '-fno-exceptions' ],
       'cflags_cc' : [ '-fexceptions', '-frtti' ],

@@ -1,5 +1,4 @@
-#include <v8.h>
-#include <node.h>
+#include <nan.h>
 #include <string>
 #include <cstring>
 #include <iostream>
@@ -17,7 +16,7 @@ void WorkOnContext(uv_work_t* req) {
 }
 
 void MakeOldCallback(uv_work_t* req) {
-    HandleScope scope;
+    NanScope();
     TryCatch try_catch;
     sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(req->data);
     sass_context* ctx = static_cast<sass_context*>(ctx_w->ctx);
@@ -26,19 +25,19 @@ void MakeOldCallback(uv_work_t* req) {
         // if no error, do callback(null, result)
         const unsigned argc = 2;
         Local<Value> argv[argc] = {
-            Local<Value>::New(Null()),
-            Local<Value>::New(String::New(ctx->output_string))
+            NanNewLocal(Null()),
+            NanNewLocal(String::New(ctx->output_string))
         };
 
-        ctx_w->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+        ctx_w->callback->Call(argc, argv);
     } else {
         // if error, do callback(error)
         const unsigned argc = 1;
         Local<Value> argv[argc] = {
-            Local<Value>::New(String::New(ctx->error_message))
+            NanNewLocal(String::New(ctx->error_message))
         };
 
-        ctx_w->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+        ctx_w->callback->Call(argc, argv);
     }
     if (try_catch.HasCaught()) {
         node::FatalException(try_catch);
@@ -47,8 +46,8 @@ void MakeOldCallback(uv_work_t* req) {
     sass_free_context_wrapper(ctx_w);
 }
 
-Handle<Value> OldRender(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(OldRender) {
+    NanScope();
     sass_context* ctx = sass_new_context();
     sass_context_wrapper* ctx_w = sass_new_context_wrapper();
     char *source;
@@ -66,17 +65,17 @@ Handle<Value> OldRender(const Arguments& args) {
     ctx->options.output_style = args[3]->Int32Value();
     ctx->options.source_comments = args[4]->Int32Value();
     ctx_w->ctx = ctx;
-    ctx_w->callback = Persistent<Function>::New(callback);
+    ctx_w->callback = new NanCallback(callback);
     ctx_w->request.data = ctx_w;
 
     int status = uv_queue_work(uv_default_loop(), &ctx_w->request, WorkOnContext, (uv_after_work_cb)MakeOldCallback);
     assert(status == 0);
 
-    return scope.Close(Undefined());
+    NanReturnUndefined();
 }
 
 void MakeCallback(uv_work_t* req) {
-    HandleScope scope;
+    NanScope();
     TryCatch try_catch;
     sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(req->data);
     sass_context* ctx = static_cast<sass_context*>(ctx_w->ctx);
@@ -85,18 +84,18 @@ void MakeCallback(uv_work_t* req) {
         // if no error, do callback(null, result)
         const unsigned argc = 1;
         Local<Value> argv[argc] = {
-            Local<Value>::New(String::New(ctx->output_string))
+            NanNewLocal(String::New(ctx->output_string))
         };
 
-        ctx_w->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+        ctx_w->callback->Call(argc, argv);
     } else {
         // if error, do callback(error)
         const unsigned argc = 1;
         Local<Value> argv[argc] = {
-            Local<Value>::New(String::New(ctx->error_message))
+            NanNewLocal(String::New(ctx->error_message))
         };
 
-        ctx_w->errorCallback->Call(Context::GetCurrent()->Global(), argc, argv);
+        ctx_w->errorCallback->Call(argc, argv);
     }
     if (try_catch.HasCaught()) {
         node::FatalException(try_catch);
@@ -105,8 +104,8 @@ void MakeCallback(uv_work_t* req) {
     sass_free_context_wrapper(ctx_w);
 }
 
-Handle<Value> Render(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(Render) {
+    NanScope();
     sass_context* ctx = sass_new_context();
     sass_context_wrapper* ctx_w = sass_new_context_wrapper();
     char *source;
@@ -125,18 +124,18 @@ Handle<Value> Render(const Arguments& args) {
     ctx->options.output_style = args[4]->Int32Value();
     ctx->options.source_comments = args[5]->Int32Value();
     ctx_w->ctx = ctx;
-    ctx_w->callback = Persistent<Function>::New(callback);
-    ctx_w->errorCallback = Persistent<Function>::New(errorCallback);
+    ctx_w->callback = new NanCallback(callback);
+    ctx_w->errorCallback = new NanCallback(errorCallback);
     ctx_w->request.data = ctx_w;
 
     int status = uv_queue_work(uv_default_loop(), &ctx_w->request, WorkOnContext, (uv_after_work_cb)MakeCallback);
     assert(status == 0);
 
-    return scope.Close(Undefined());
+    NanReturnUndefined();
 }
 
-Handle<Value> RenderSync(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(RenderSync) {
+    NanScope();
     sass_context* ctx = sass_new_context();
     char *source;
     String::AsciiValue astr(args[0]);
@@ -162,16 +161,16 @@ Handle<Value> RenderSync(const Arguments& args) {
     ctx->options.image_path = NULL;
 
     if (ctx->error_status == 0) {
-        Local<Value> output = Local<Value>::New(String::New(ctx->output_string));
+        Local<Value> output = NanNewLocal(String::New(ctx->output_string));
         sass_free_context(ctx);
-        return scope.Close(output);
+        NanReturnValue(output);
     }
 
     Local<String> error = String::New(ctx->error_message);
 
     sass_free_context(ctx);
-    ThrowException(Exception::Error(error));
-    return scope.Close(Undefined());
+    NanThrowError(error);
+    NanReturnUndefined();
 }
 
 /**
@@ -185,7 +184,7 @@ void WorkOnFileContext(uv_work_t* req) {
 }
 
 void MakeFileCallback(uv_work_t* req) {
-    HandleScope scope;
+    NanScope();
     TryCatch try_catch;
     sass_file_context_wrapper* ctx_w = static_cast<sass_file_context_wrapper*>(req->data);
     sass_file_context* ctx = static_cast<sass_file_context*>(ctx_w->ctx);
@@ -194,18 +193,18 @@ void MakeFileCallback(uv_work_t* req) {
         // if no error, do callback(null, result)
         const unsigned argc = 1;
         Local<Value> argv[argc] = {
-            Local<Value>::New(String::New(ctx->output_string))
+            NanNewLocal(String::New(ctx->output_string))
         };
 
-        ctx_w->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+        ctx_w->callback->Call(argc, argv);
     } else {
         // if error, do callback(error)
         const unsigned argc = 1;
         Local<Value> argv[argc] = {
-            Local<Value>::New(String::New(ctx->error_message))
+            NanNewLocal(String::New(ctx->error_message))
         };
 
-        ctx_w->errorCallback->Call(Context::GetCurrent()->Global(), argc, argv);
+        ctx_w->errorCallback->Call(argc, argv);
     }
     if (try_catch.HasCaught()) {
         node::FatalException(try_catch);
@@ -214,8 +213,8 @@ void MakeFileCallback(uv_work_t* req) {
     sass_free_file_context_wrapper(ctx_w);
 }
 
-Handle<Value> RenderFile(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(RenderFile) {
+    NanScope();
     sass_file_context* ctx = sass_new_file_context();
     sass_file_context_wrapper* ctx_w = sass_new_file_context_wrapper();
     char *filename;
@@ -234,18 +233,18 @@ Handle<Value> RenderFile(const Arguments& args) {
     ctx->options.image_path = new char[0];
     ctx->options.source_comments = args[5]->Int32Value();
     ctx_w->ctx = ctx;
-    ctx_w->callback = Persistent<Function>::New(callback);
-    ctx_w->errorCallback = Persistent<Function>::New(errorCallback);
+    ctx_w->callback = new NanCallback(callback);
+    ctx_w->errorCallback = new NanCallback(errorCallback);
     ctx_w->request.data = ctx_w;
 
     int status = uv_queue_work(uv_default_loop(), &ctx_w->request, WorkOnFileContext, (uv_after_work_cb)MakeFileCallback);
     assert(status == 0);
 
-    return scope.Close(Undefined());
+    NanReturnUndefined();
 }
 
-Handle<Value> RenderFileSync(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(RenderFileSync) {
+    NanScope();
     sass_file_context* ctx = sass_new_file_context();
     char *filename;
     String::AsciiValue astr(args[0]);
@@ -271,16 +270,16 @@ Handle<Value> RenderFileSync(const Arguments& args) {
     ctx->options.image_path = NULL;
 
     if (ctx->error_status == 0) {
-        Local<Value> output = Local<Value>::New(String::New(ctx->output_string));
+        Local<Value> output = NanNewLocal(String::New(ctx->output_string));
         sass_free_file_context(ctx);
 
-        return scope.Close(output);
+        NanReturnValue(output);
     }
     Local<String> error = String::New(ctx->error_message);
     sass_free_file_context(ctx);
 
-    ThrowException(Exception::Error(error));
-    return scope.Close(Undefined());
+    NanThrowError(error);
+    NanReturnUndefined();
 }
 
 void RegisterModule(v8::Handle<v8::Object> target) {
