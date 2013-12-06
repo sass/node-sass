@@ -60,8 +60,8 @@ extern "C" {
 
   void sass_free_folder_context(sass_folder_context* ctx)
   {
-    free(ctx);
     free_string_array(ctx->included_files, ctx->num_included_files);
+    free(ctx);
   }
 
   void copy_strings(const std::vector<std::string>& strings, char*** array, int* n) {
