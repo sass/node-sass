@@ -24,7 +24,7 @@ namespace Sass {
   {
     if (!tail()) return 0;
     if (!head()) return tail()->context(ctx);
-    return new (ctx.mem) Complex_Selector(path(), line(), combinator(), head(), tail()->context(ctx));
+    return new (ctx.mem) Complex_Selector(path(), position(), combinator(), head(), tail()->context(ctx));
   }
 
   Complex_Selector* Complex_Selector::innermost()

@@ -2,7 +2,10 @@
 #include <string>
 #include <iostream>
 #include "context.hpp"
+
+#ifndef SASS_ERROR_HANDLING
 #include "error_handling.hpp"
+#endif
 
 using namespace std;
 
@@ -27,7 +30,7 @@ int main(int argc, char** argv)
 		}
 	}
 	catch (Sass::Error& e) {
-		cout << e.path << ":" << e.line << ": " << e.message << endl;
+		cout << e.path << ":" << e.position.line << ": " << e.message << endl;
 	}
 	catch (string& msg) {
 		cout << msg << endl;
