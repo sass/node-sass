@@ -48,4 +48,7 @@ inline void* operator new(size_t size, Sass::Memory_Manager<T>& mem_mgr)
 
 template <typename T>
 inline void operator delete(void *np, Sass::Memory_Manager<T>& mem_mgr)
-{ mem_mgr.remove(reinterpret_cast<T*>(np)); }
+{
+  mem_mgr.remove(reinterpret_cast<T*>(np));
+  operator delete(np);
+}
