@@ -34,9 +34,21 @@ namespace Sass {
 			// cout << "registering " << typeid(*np).name() << endl;
 			return np;
 		}
+        
+    void remove(T* np)
+		{
+      nodes.erase(find(nodes.begin(), nodes.end(), np));
+		}
 	};
 }
 
 template <typename T>
 inline void* operator new(size_t size, Sass::Memory_Manager<T>& mem_mgr)
 { return mem_mgr(static_cast<T*>(operator new(size))); }
+
+template <typename T>
+inline void operator delete(void *np, Sass::Memory_Manager<T>& mem_mgr)
+{
+  mem_mgr.remove(reinterpret_cast<T*>(np));
+  operator delete(np);
+}

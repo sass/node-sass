@@ -114,7 +114,7 @@ namespace Sass {
     virtual ~Statement() = 0;
     // needed for rearranging nested rulesets during CSS emission
     virtual bool   is_hoistable() { return false; }
-    virtual Block* block() const  { return 0; }
+    virtual Block* block()  { return 0; }
   };
   inline Statement::~Statement() { }
 
