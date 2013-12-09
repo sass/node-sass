@@ -15,8 +15,8 @@
 namespace Sass {
   using namespace std;
 
-  class Context;
-  class Backtrace;
+  struct Context;
+  struct Backtrace;
 
   class Extend : public Operation_CRTP<void, Extend> {
 

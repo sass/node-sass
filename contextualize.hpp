@@ -23,9 +23,9 @@ namespace Sass {
   class Selector_Placeholder;
   class Selector_Reference;
   class Simple_Selector;
-  class Context;
+  struct Context;
   class Eval;
-  class Backtrace;
+  struct Backtrace;
 
   typedef Environment<AST_Node*> Env;
 
