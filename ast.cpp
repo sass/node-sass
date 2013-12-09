@@ -41,6 +41,29 @@ namespace Sass {
     return base()->is_superselector_of(rhs);
   }
 
+  bool Complex_Selector::is_superselector_of(Complex_Selector* rhs)
+  {
+    // check for selectors with leading or trailing combinators
+    if (!lhs->head() || !rhs->head())
+    { return false; }
+    Complex_Selector* l_innermost = lhs->innermost();
+    if (l_innermost->combinator() != Complex_Selector::ANCESTOR_OF && !l_innermost->tail())
+    { return false; }
+    Complex_Selector* r_innermost = rhs->innermost();
+    if (r_innermost->combinator() != Complex_Selector::ANCESTOR_OF && !r_innermost->tail())
+    { return false; }
+    // more complex (i.e., longer) selectors are always more specific
+    size_t l_len = lhs->length(), r_len = rhs->length();
+    if (l_len > r_len)
+    { return false; }
+
+    if (l_len == 1)
+    { return lhs->head()->is_superselector_of(rhs->base()); }
+
+    bool found = false;
+    for (size_t i = 0; 
+  }
+
   size_t Complex_Selector::length()
   {
     // TODO: make this iterative
