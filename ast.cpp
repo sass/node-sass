@@ -43,6 +43,7 @@ namespace Sass {
 
   bool Complex_Selector::is_superselector_of(Complex_Selector* rhs)
   {
+    Complex_Selector* lhs = this;
     // check for selectors with leading or trailing combinators
     if (!lhs->head() || !rhs->head())
     { return false; }
@@ -61,7 +62,65 @@ namespace Sass {
     { return lhs->head()->is_superselector_of(rhs->base()); }
 
     bool found = false;
-    for (size_t i = 0; 
+    Complex_Selector* marker = rhs;
+    for (size_t i = 0, L = rhs->length(); i < L; ++i) {
+      if (i == L-1)
+      { return false; }
+      if (lhs->head()->is_superselector_of(marker->head()))
+      { found = true; break; }
+      marker = marker->tail();
+    }
+    if (!found)
+    { return false; }
+
+    /* 
+      Hmm, I hope I have the logic right:
+
+      if lhs has a combinator:
+        if !(marker has a combinator) return false
+        if !(lhs.combinator == '~' ? marker.combinator != '>' : lhs.combinator == marker.combinator) return false
+        return lhs.tail-without-innermost.is_superselector_of(marker.tail-without-innermost)
+      else if marker has a combinator:
+        if !(marker.combinator == ">") return false
+        return lhs.tail-without-innermost.is_superselector_of(marker.tail-without-innermost)
+      else
+        return lhs.tail-without-innermost.is_superselector_of(marker.tail-without-innermost)
+    */
+    if (lhs->combinator() != Complex_Selector::ANCESTOR_OF)
+    {
+      if (marker->combinator() == Complex_Selector::ANCESTOR_OF)
+      { return false; }
+      if (!(lhs->combinator() == Complex_Selector::PRECEDES ? marker->combinator() != Complex_Selector::PARENT_OF : lhs->combinator() == marker->combinator()))
+      { return false; }
+      lhs->clear_innermost();
+      rhs->clear_innermost();
+      bool is_sup = lhs->is_superselector_of(rhs);
+      lhs->set_innermost(l_innermost);
+      rhs->set_innermost(r_innermost);
+      return is_sup;
+    }
+    else if (marker->combinator() != Complex_Selector::ANCESTOR_OF)
+    {
+      if (marker->combinator() != Complex_Selector::PARENT_OF)
+      { return false; }
+      lhs->clear_innermost();
+      rhs->clear_innermost();
+      bool is_sup = lhs->is_superselector_of(rhs);
+      lhs->set_innermost(l_innermost);
+      rhs->set_innermost(r_innermost);
+      return is_sup;
+    }
+    else
+    {
+      lhs->clear_innermost();
+      rhs->clear_innermost();
+      bool is_sup = lhs->is_superselector_of(rhs);
+      lhs->set_innermost(l_innermost);
+      rhs->set_innermost(r_innermost);
+      return is_sup;
+    }
+    // catch-all
+    return false;
   }
 
   size_t Complex_Selector::length()
@@ -87,7 +146,19 @@ namespace Sass {
   Complex_Selector* Complex_Selector::innermost()
   {
     if (!tail()) return this;
-    else return tail()->innermost();
+    else         return tail()->innermost();
+  }
+
+  void Complex_Selector::clear_innermost()
+  {
+    if (!tail() || tail()->length() == 1) tail(0);
+    else                                  tail()->clear_innermost();
+  }
+
+  void Complex_Selector::set_innermost(Complex_Selector* val)
+  {
+    if (!tail()) tail(val);
+    else         tail()->set_innermost(val);
   }
 
   Selector_Placeholder* Selector::find_placeholder()

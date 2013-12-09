@@ -1206,6 +1206,8 @@ namespace Sass {
     bool is_superselector_of(Compound_Selector*);
     bool is_superselector_of(Complex_Selector*);
     virtual Selector_Placeholder* find_placeholder();
+    void clear_innermost();
+    void set_innermost(Complex_Selector*);
     ATTACH_OPERATIONS();
   };
 
