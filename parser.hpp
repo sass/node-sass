@@ -56,6 +56,18 @@ namespace Sass {
     static Parser from_c_str(const char* src, Context& ctx, string path = "", size_t line = 1);
     static Parser from_token(Token t, Context& ctx, string path = "", size_t line = 1);
 
+#ifdef __clang__
+
+    // lex and peak uses the template parameter to branch on the action, which
+    // triggers clangs tautological comparison on the single-comparison
+    // branches. This is not a bug, just a merging of behaviour into
+    // one function
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtautological-compare"
+
+#endif
+
     template <prelexer mx>
     const char* peek(const char* start = 0)
     {
@@ -130,6 +142,12 @@ namespace Sass {
         return 0;
       }
     }
+
+#ifdef __clang__
+
+#pragma clang diagnostic pop
+
+#endif
 
     void error(string msg, size_t ln = 0);
     void read_bom();

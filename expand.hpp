@@ -19,7 +19,7 @@
 namespace Sass {
 	using namespace std;
 
-	class Context;
+	struct Context;
 	class Eval;
 	class Contextualize;
 	typedef Environment<AST_Node*> Env;
