@@ -46,6 +46,7 @@ int main()
   check_compound("div.foo", ".foo");
   check_compound("div.foo", "div.bar.foo");
   check_compound("p.foo", "div.bar.foo");
+  check_compound(".hux", ".mumble");
 
   cout << endl;
 
