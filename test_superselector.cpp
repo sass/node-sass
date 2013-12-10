@@ -50,6 +50,16 @@ int main()
   cout << endl;
 
   check_complex(".foo ~ .bar", ".foo + .bar");
+  check_complex(".foo .bar", ".foo + .bar");
+  check_complex(".foo .bar", ".foo > .bar");
+  check_complex(".foo .bar > .hux", ".foo.a .bar.b > .hux");
+  check_complex(".foo ~ .bar .hux", ".foo.a + .bar.b > .hux");
+  check_complex(".foo", ".bar .foo");
+  check_complex(".foo", ".foo.a");
+  check_complex(".foo.bar", ".foo");
+  check_complex(".foo .bar .hux", ".bar .hux");
+  check_complex(".foo ~ .bar .hux.x", ".foo.a + .bar.b > .hux.y");
+  check_complex(".foo ~ .bar .hux", ".foo.a + .bar.b > .mumble");
 
   return 0;
 }

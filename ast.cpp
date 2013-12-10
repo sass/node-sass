@@ -44,6 +44,8 @@ namespace Sass {
   bool Complex_Selector::is_superselector_of(Complex_Selector* rhs)
   {
     Complex_Selector* lhs = this;
+    To_String to_string;
+    cout << "CHECKING " << lhs->perform(&to_string) << " AGAINST " << rhs->perform(&to_string) << endl;
     // check for selectors with leading or trailing combinators
     if (!lhs->head() || !rhs->head())
     { return false; }
