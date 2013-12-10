@@ -12,7 +12,10 @@ To_String to_string;
 Compound_Selector* compound_selector(string src)
 { return Parser::from_c_str(src.c_str(), ctx, "", 0).parse_simple_selector_sequence(); }
 
-void check(string s1, string s2)
+Complex_Selector* complex_selector(string src)
+{ return Parser::from_c_str(src.c_str(), ctx, "", 0).parse_selector_combination(); }
+
+void check_compound(string s1, string s2)
 {
   cout << "Is "
        << s1
@@ -23,15 +26,30 @@ void check(string s1, string s2)
        << endl;
 }
 
+void check_complex(string s1, string s2)
+{
+  cout << "Is "
+       << s1
+       << " a superselector of "
+       << s2
+       << "?\t"
+       << complex_selector(s1 + ";")->is_superselector_of(complex_selector(s2 + ";"))
+       << endl;
+}
+
 int main()
 {
-  check(".foo", ".foo.bar");
-  check(".foo.bar", ".foo");
-  check(".foo.bar", "div.foo");
-  check(".foo", "div.foo");
-  check("div.foo", ".foo");
-  check("div.foo", "div.bar.foo");
-  check("p.foo", "div.bar.foo");
+  check_compound(".foo", ".foo.bar");
+  check_compound(".foo.bar", ".foo");
+  check_compound(".foo.bar", "div.foo");
+  check_compound(".foo", "div.foo");
+  check_compound("div.foo", ".foo");
+  check_compound("div.foo", "div.bar.foo");
+  check_compound("p.foo", "div.bar.foo");
+
+  cout << endl;
+
+  check_complex(".foo ~ .bar", ".foo + .bar");
 
   return 0;
 }

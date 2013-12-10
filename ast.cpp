@@ -92,31 +92,31 @@ namespace Sass {
       { return false; }
       if (!(lhs->combinator() == Complex_Selector::PRECEDES ? marker->combinator() != Complex_Selector::PARENT_OF : lhs->combinator() == marker->combinator()))
       { return false; }
-      lhs->clear_innermost();
-      rhs->clear_innermost();
+      Complex_Selector::Combinator l_comb = lhs->clear_innermost();
+      Complex_Selector::Combinator r_comb = rhs->clear_innermost();
       bool is_sup = lhs->is_superselector_of(rhs);
-      lhs->set_innermost(l_innermost);
-      rhs->set_innermost(r_innermost);
+      lhs->set_innermost(l_innermost, l_comb);
+      rhs->set_innermost(r_innermost, r_comb);
       return is_sup;
     }
     else if (marker->combinator() != Complex_Selector::ANCESTOR_OF)
     {
       if (marker->combinator() != Complex_Selector::PARENT_OF)
       { return false; }
-      lhs->clear_innermost();
-      rhs->clear_innermost();
+      Complex_Selector::Combinator l_comb = lhs->clear_innermost();
+      Complex_Selector::Combinator r_comb = rhs->clear_innermost();
       bool is_sup = lhs->is_superselector_of(rhs);
-      lhs->set_innermost(l_innermost);
-      rhs->set_innermost(r_innermost);
+      lhs->set_innermost(l_innermost, l_comb);
+      rhs->set_innermost(r_innermost, r_comb);
       return is_sup;
     }
     else
     {
-      lhs->clear_innermost();
-      rhs->clear_innermost();
+      Complex_Selector::Combinator l_comb = lhs->clear_innermost();
+      Complex_Selector::Combinator r_comb = rhs->clear_innermost();
       bool is_sup = lhs->is_superselector_of(rhs);
-      lhs->set_innermost(l_innermost);
-      rhs->set_innermost(r_innermost);
+      lhs->set_innermost(l_innermost, l_comb);
+      rhs->set_innermost(r_innermost, r_comb);
       return is_sup;
     }
     // catch-all
@@ -149,16 +149,22 @@ namespace Sass {
     else         return tail()->innermost();
   }
 
-  void Complex_Selector::clear_innermost()
+  Complex_Selector::Combinator Complex_Selector::clear_innermost()
   {
-    if (!tail() || tail()->length() == 1) tail(0);
-    else                                  tail()->clear_innermost();
+    Combinator c;
+    if (!tail() || tail()->length() == 1)
+    { c = combinator(); combinator(ANCESTOR_OF); tail(0); }
+    else
+    { c = tail()->clear_innermost(); }
+    return c;
   }
 
-  void Complex_Selector::set_innermost(Complex_Selector* val)
+  void Complex_Selector::set_innermost(Complex_Selector* val, Combinator c)
   {
-    if (!tail()) tail(val);
-    else         tail()->set_innermost(val);
+    if (!tail())
+    { tail(val); combinator(c); }
+    else
+    { tail()->set_innermost(val, c); }
   }
 
   Selector_Placeholder* Selector::find_placeholder()
