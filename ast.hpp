@@ -24,6 +24,9 @@
 
 #endif
 
+#ifndef SASS_CONSTANTS
+#include "constants.hpp"
+#endif
 
 #ifndef SASS_OPERATION
 #include "operation.hpp"
@@ -1032,6 +1035,7 @@ namespace Sass {
     { }
     virtual ~Selector() = 0;
     virtual Selector_Placeholder* find_placeholder();
+    virtual int specificity() { return Constants::SPECIFICITY_BASE; }
   };
   inline Selector::~Selector() { }
 
@@ -1069,6 +1073,11 @@ namespace Sass {
     Selector_Reference(string p, size_t l, Selector* r = 0)
     : Simple_Selector(p, l), selector_(r)
     { has_reference(true); }
+    virtual int specificity()
+    {
+      if (selector()) return selector()->specificity();
+      else            return 0;
+    }
     ATTACH_OPERATIONS();
   };
 
@@ -1094,6 +1103,11 @@ namespace Sass {
     Type_Selector(string p, size_t l, string n)
     : Simple_Selector(p, l), name_(n)
     { }
+    virtual int specificity()
+    {
+      if (name() == "*") return 0;
+      else               return 1;
+    }
     ATTACH_OPERATIONS();
   };
 
@@ -1106,6 +1120,11 @@ namespace Sass {
     Selector_Qualifier(string p, size_t l, string n)
     : Simple_Selector(p, l), name_(n)
     { }
+    virtual int specificity()
+    {
+      if (name()[0] == '#') return Constants::SPECIFICITY_BASE * Constants::SPECIFICITY_BASE;
+      else                  return Constants::SPECIFICITY_BASE;
+    }
     ATTACH_OPERATIONS();
   };
 
@@ -1133,6 +1152,17 @@ namespace Sass {
     Pseudo_Selector(string p, size_t l, string n, String* expr = 0)
     : Simple_Selector(p, l), name_(n), expression_(expr)
     { }
+    virtual int specificity()
+    {
+      // TODO: clean up the pseudo-element checking
+      if (name() == ":before"       || name() == "::before"     ||
+          name() == ":after"        || name() == "::after"      ||
+          name() == ":first-line"   || name() == "::first-line" ||
+          name() == ":first-letter" || name() == "::first-letter")
+        return 1;
+      else
+        return Constants::SPECIFICITY_BASE;
+    }
     ATTACH_OPERATIONS();
   };
 
@@ -1173,6 +1203,13 @@ namespace Sass {
       return 0;
     }
     bool is_superselector_of(Compound_Selector* rhs);
+    virtual int specificity()
+    {
+      int sum = 0;
+      for (size_t i = 0, L = length(); i < L; ++i)
+      { sum += (*this)[i]->specificity(); }
+      return sum;
+    }
     ATTACH_OPERATIONS();
   };
 
@@ -1208,6 +1245,13 @@ namespace Sass {
     virtual Selector_Placeholder* find_placeholder();
     Combinator clear_innermost();
     void set_innermost(Complex_Selector*, Combinator);
+    virtual int specificity()
+    {
+      int sum = 0;
+      if (head()) sum += head()->specificity();
+      if (tail()) sum += tail()->specificity();
+      return sum;
+    }
     ATTACH_OPERATIONS();
   };
 
@@ -1227,6 +1271,13 @@ namespace Sass {
     : Selector(p, l), Vectorized<Complex_Selector*>(s)
     { }
     virtual Selector_Placeholder* find_placeholder();
+    virtual int specificity()
+    {
+      int sum = 0;
+      for (size_t i = 0, L = length(); i < L; ++i)
+      { sum += (*this)[i]->specificity(); }
+      return sum;
+    }
     ATTACH_OPERATIONS();
   };
 }

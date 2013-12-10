@@ -2,6 +2,7 @@
 
 namespace Sass {
   namespace Constants {
+    extern const int SPECIFICITY_BASE = 1000;
 
     // hidden variable name for the image path (for the image-url built-in)
     extern const char image_path_var[] = "$[image path]";

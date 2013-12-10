@@ -62,6 +62,8 @@ int main()
   check_complex(".foo ~ .bar .hux.x", ".foo.a + .bar.b > .hux.y");
   check_complex(".foo ~ .bar .hux", ".foo.a + .bar.b > .mumble");
   check_complex(".foo + .bar", ".foo ~ .bar");
+  check_complex("a c e", "a b c d e");
+  check_complex("c a e", "a b c d e");
 
   return 0;
 }

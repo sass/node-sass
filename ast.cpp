@@ -64,7 +64,6 @@ namespace Sass {
   {
     Complex_Selector* lhs = this;
     To_String to_string;
-    // cout << "CHECKING " << lhs->perform(&to_string) << " AGAINST " << rhs->perform(&to_string) << endl;
     // check for selectors with leading or trailing combinators
     if (!lhs->head() || !rhs->head())
     { return false; }
@@ -103,9 +102,9 @@ namespace Sass {
         return lhs.tail-without-innermost.is_superselector_of(marker.tail-without-innermost)
       else if marker has a combinator:
         if !(marker.combinator == ">") return false
-        return lhs.tail-without-innermost.is_superselector_of(marker.tail-without-innermost)
+        return lhs.tail.is_superselector_of(marker.tail)
       else
-        return lhs.tail-without-innermost.is_superselector_of(marker.tail-without-innermost)
+        return lhs.tail.is_superselector_of(marker.tail)
     */
     if (lhs->combinator() != Complex_Selector::ANCESTOR_OF)
     {
@@ -113,40 +112,16 @@ namespace Sass {
       { return false; }
       if (!(lhs->combinator() == Complex_Selector::PRECEDES ? marker->combinator() != Complex_Selector::PARENT_OF : lhs->combinator() == marker->combinator()))
       { return false; }
-      // Complex_Selector* l_tail = lhs->tail();
-      // Complex_Selector* r_tail = marker->tail();
-      // Complex_Selector::Combinator l_comb = l_tail->clear_innermost();
-      // Complex_Selector::Combinator r_comb = r_tail->clear_innermost();
-      // bool is_sup = l_tail->is_superselector_of(r_tail);
-      // l_tail->set_innermost(l_innermost, l_comb);
-      // r_tail->set_innermost(r_innermost, r_comb);
-      // return is_sup;
       return lhs->tail()->is_superselector_of(marker->tail());
     }
     else if (marker->combinator() != Complex_Selector::ANCESTOR_OF)
     {
       if (marker->combinator() != Complex_Selector::PARENT_OF)
       { return false; }
-      // Complex_Selector* l_tail = lhs->tail();
-      // Complex_Selector* r_tail = marker->tail();
-      // Complex_Selector::Combinator l_comb = l_tail->clear_innermost();
-      // Complex_Selector::Combinator r_comb = r_tail->clear_innermost();
-      // bool is_sup = l_tail->is_superselector_of(r_tail);
-      // l_tail->set_innermost(l_innermost, l_comb);
-      // r_tail->set_innermost(r_innermost, r_comb);
-      // return is_sup;
       return lhs->tail()->is_superselector_of(marker->tail());
     }
     else
     {
-      // Complex_Selector* l_tail = lhs->tail();
-      // Complex_Selector* r_tail = marker->tail();
-      // Complex_Selector::Combinator l_comb = l_tail->clear_innermost();
-      // Complex_Selector::Combinator r_comb = r_tail->clear_innermost();
-      // bool is_sup = l_tail->is_superselector_of(r_tail);
-      // l_tail->set_innermost(l_innermost, l_comb);
-      // r_tail->set_innermost(r_innermost, r_comb);
-      // return is_sup;
       return lhs->tail()->is_superselector_of(marker->tail());
     }
     // catch-all
