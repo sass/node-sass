@@ -95,10 +95,10 @@ namespace Sass {
       if (!(lhs->combinator() == Complex_Selector::PRECEDES ? marker->combinator() != Complex_Selector::PARENT_OF : lhs->combinator() == marker->combinator()))
       { return false; }
       Complex_Selector::Combinator l_comb = lhs->clear_innermost();
-      Complex_Selector::Combinator r_comb = rhs->clear_innermost();
-      bool is_sup = lhs->is_superselector_of(rhs);
+      Complex_Selector::Combinator r_comb = marker->clear_innermost();
+      bool is_sup = lhs->is_superselector_of(marker);
       lhs->set_innermost(l_innermost, l_comb);
-      rhs->set_innermost(r_innermost, r_comb);
+      marker->set_innermost(r_innermost, r_comb);
       return is_sup;
     }
     else if (marker->combinator() != Complex_Selector::ANCESTOR_OF)
@@ -106,19 +106,19 @@ namespace Sass {
       if (marker->combinator() != Complex_Selector::PARENT_OF)
       { return false; }
       Complex_Selector::Combinator l_comb = lhs->clear_innermost();
-      Complex_Selector::Combinator r_comb = rhs->clear_innermost();
-      bool is_sup = lhs->is_superselector_of(rhs);
+      Complex_Selector::Combinator r_comb = marker->clear_innermost();
+      bool is_sup = lhs->is_superselector_of(marker);
       lhs->set_innermost(l_innermost, l_comb);
-      rhs->set_innermost(r_innermost, r_comb);
+      marker->set_innermost(r_innermost, r_comb);
       return is_sup;
     }
     else
     {
       Complex_Selector::Combinator l_comb = lhs->clear_innermost();
-      Complex_Selector::Combinator r_comb = rhs->clear_innermost();
-      bool is_sup = lhs->is_superselector_of(rhs);
+      Complex_Selector::Combinator r_comb = marker->clear_innermost();
+      bool is_sup = lhs->is_superselector_of(marker);
       lhs->set_innermost(l_innermost, l_comb);
-      rhs->set_innermost(r_innermost, r_comb);
+      marker->set_innermost(r_innermost, r_comb);
       return is_sup;
     }
     // catch-all
