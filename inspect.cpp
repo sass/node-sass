@@ -540,11 +540,11 @@ namespace Sass {
 
   void Inspect::operator()(Complex_Selector* c)
   {
-    Compound_Selector*        head = c->head();
+    Compound_Selector*           head = c->head();
     Complex_Selector*            tail = c->tail();
     Complex_Selector::Combinator comb = c->combinator();
-    if (head) head->perform(this);
-    if (head && tail) buffer += ' ';
+    if (head && !head->is_empty_reference()) head->perform(this);
+    if (head && !head->is_empty_reference() && tail) buffer += ' ';
     switch (comb) {
       case Complex_Selector::ANCESTOR_OF:                break;
       case Complex_Selector::PARENT_OF:   buffer += '>'; break;

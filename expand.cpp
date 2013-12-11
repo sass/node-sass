@@ -12,6 +12,8 @@
 #include "context.hpp"
 #endif
 
+#include "parser.hpp"
+
 namespace Sass {
 
   Expand::Expand(Context& ctx, Eval* eval, Contextualize* contextualize, Env* env, Backtrace* bt)
@@ -44,6 +46,8 @@ namespace Sass {
     To_String to_string;
     // if (selector_stack.back()) cerr << "expanding " << selector_stack.back()->perform(&to_string) << " and " << r->selector()->perform(&to_string) << endl;
     Selector* sel_ctx = r->selector()->perform(contextualize->with(selector_stack.back(), env, backtrace));
+    // re-parse in order to restructure parent nodes correctly
+    sel_ctx = Parser::from_c_str((sel_ctx->perform(&to_string) + ";").c_str(), ctx, r->selector()->path(), r->selector()->line()).parse_selector_group();
     selector_stack.push_back(sel_ctx);
     Ruleset* rr = new (ctx.mem) Ruleset(r->path(),
                                         r->line(),

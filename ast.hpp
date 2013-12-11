@@ -1210,6 +1210,10 @@ namespace Sass {
       { sum += (*this)[i]->specificity(); }
       return sum;
     }
+    bool is_empty_reference()
+    { return length() == 1 &&
+             typeid(*(*this)[0]) == typeid(Selector_Reference) &&
+             !static_cast<Selector_Reference*>((*this)[0])->selector(); }
     ATTACH_OPERATIONS();
   };
 
