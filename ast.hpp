@@ -1061,6 +1061,7 @@ namespace Sass {
     : Selector(p, l)
     { }
     virtual ~Simple_Selector() = 0;
+    virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
   };
   inline Simple_Selector::~Simple_Selector() { }
 
@@ -1163,6 +1164,13 @@ namespace Sass {
       else
         return Constants::SPECIFICITY_BASE;
     }
+    bool is_pseudo_element()
+    {
+      return name() == ":before"       || name() == "::before"     ||
+             name() == ":after"        || name() == "::after"      ||
+             name() == ":first-line"   || name() == "::first-line" ||
+             name() == ":first-letter" || name() == "::first-letter";
+    }
     ATTACH_OPERATIONS();
   };
 
@@ -1195,6 +1203,7 @@ namespace Sass {
       Vectorized<Simple_Selector*>(s)
     { }
     bool operator<(const Compound_Selector& rhs) const;
+    Compound_Selector* unify_with(Compound_Selector* rhs, Context& ctx);
     virtual Selector_Placeholder* find_placeholder();
     Simple_Selector* base()
     {

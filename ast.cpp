@@ -16,6 +16,31 @@ namespace Sass {
            const_cast<Compound_Selector&>(rhs).perform(&to_string);
   }
 
+  Compound_Selector* Compound_Selector::unify_with(Compound_Selector* rhs, Context& ctx)
+  {
+    Compound_Selector* unified = rhs;
+    for (size_t i = 0, L = length(); i < L; ++i)
+    {
+      if (!unified) break;
+      else          unified = (*this)[i]->unify_with(unified, ctx);
+    }
+    return unified;
+  }
+
+  Compound_Selector* Simple_Selector::unify_with(Compound_Selector* rhs, Context& ctx)
+  {
+    To_String to_string;
+    for (size_t i = 0, L = rhs->length(); i < L; ++i)
+    { if (perform(&to_string) == (*rhs)[i]->perform(&to_string)) return rhs; }
+
+    size_t i, L;
+    for (i = 0, L = rhs->length(); i < L; ++i)
+    {
+      // check for pseudo elements because they need to come last
+    }
+    return 0;
+  }
+
   bool Compound_Selector::is_superselector_of(Compound_Selector* rhs)
   {
     To_String to_string;
