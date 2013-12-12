@@ -1127,6 +1127,7 @@ namespace Sass {
       if (name()[0] == '#') return Constants::SPECIFICITY_BASE * Constants::SPECIFICITY_BASE;
       else                  return Constants::SPECIFICITY_BASE;
     }
+    virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
     ATTACH_OPERATIONS();
   };
 

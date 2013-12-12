@@ -67,6 +67,22 @@ namespace Sass {
     return cpy;
   }
 
+  Compound_Selector* Selector_Qualifier::unify_with(Compound_Selector* rhs, Context& ctx)
+  {
+    if (name()[0] == '#')
+    {
+      for (size_t i = 0, L = rhs->length(); i < L; ++i)
+      {
+        Simple_Selector* rhs_i = (*rhs)[i];
+        if (typeid(*rhs_i) == typeid(Selector_Qualifier) &&
+            static_cast<Selector_Qualifier*>(rhs_i)->name()[0] == '#' &&
+            static_cast<Selector_Qualifier*>(rhs_i)->name() != name())
+          return 0;
+      }
+    }
+    return Simple_Selector::unify_with(rhs, ctx);
+  }
+
   bool Compound_Selector::is_superselector_of(Compound_Selector* rhs)
   {
     To_String to_string;
