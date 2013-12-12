@@ -77,7 +77,7 @@ namespace Sass {
 
     Simple_Selector* rhs_0 = (*rhs)[0];
     // otherwise, this is a tag name
-    if (typeid(rhs_0) == typeid(Type_Selector))
+    if (typeid(*rhs_0) == typeid(Type_Selector))
     {
       // if rhs is universal, just return this tagname + rhs's qualifiers
       if (static_cast<Type_Selector*>(rhs_0)->name() == "*")
@@ -95,7 +95,6 @@ namespace Sass {
       else
       { return 0; }
     }
-
     // else it's a tag name and a bunch of qualifiers -- just append them
     Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->path(), rhs->line());
     (*cpy) << this;
