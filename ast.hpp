@@ -1174,6 +1174,7 @@ namespace Sass {
              name() == ":first-line"   || name() == "::first-line" ||
              name() == ":first-letter" || name() == "::first-letter";
     }
+    virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
     ATTACH_OPERATIONS();
   };
 

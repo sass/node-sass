@@ -119,6 +119,22 @@ namespace Sass {
     return Simple_Selector::unify_with(rhs, ctx);
   }
 
+  Compound_Selector* Pseudo_Selector::unify_with(Compound_Selector* rhs, Context& ctx)
+  {
+    if (is_pseudo_element())
+    {
+      for (size_t i = 0, L = rhs->length(); i < L; ++i)
+      {
+        Simple_Selector* rhs_i = (*rhs)[i];
+        if (typeid(*rhs_i) == typeid(Pseudo_Selector) &&
+            static_cast<Pseudo_Selector*>(rhs_i)->is_pseudo_element() &&
+            static_cast<Pseudo_Selector*>(rhs_i)->name() != name())
+        { return 0; }
+      }
+    }
+    return Simple_Selector::unify_with(rhs, ctx);
+  }
+
   bool Compound_Selector::is_superselector_of(Compound_Selector* rhs)
   {
     To_String to_string;
