@@ -67,6 +67,42 @@ namespace Sass {
     return cpy;
   }
 
+  Compound_Selector* Type_Selector::unify_with(Compound_Selector* rhs, Context& ctx)
+  {
+    // TODO: handle namespaces
+
+    // if this is a universal selector, just return the rhs
+    if (name() == "*")
+    { return new (ctx.mem) Compound_Selector(*rhs); }
+
+    Simple_Selector* rhs_0 = (*rhs)[0];
+    // otherwise, this is a tag name
+    if (typeid(rhs_0) == typeid(Type_Selector))
+    {
+      // if rhs is universal, just return this tagname + rhs's qualifiers
+      if (static_cast<Type_Selector*>(rhs_0)->name() == "*")
+      {
+        Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->path(), rhs->line());
+        (*cpy) << this;
+        for (size_t i = 1, L = rhs->length(); i < L; ++i)
+        { (*cpy) << (*rhs)[i]; }
+        return cpy;
+      }
+      // if rhs is another tag name and it matches this, return rhs
+      else if (static_cast<Type_Selector*>(rhs_0)->name() == name())
+      { return new (ctx.mem) Compound_Selector(*rhs); }
+      // else the tag names don't match; return nil
+      else
+      { return 0; }
+    }
+
+    // else it's a tag name and a bunch of qualifiers -- just append them
+    Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->path(), rhs->line());
+    (*cpy) << this;
+    (*cpy) += rhs;
+    return cpy;
+  }
+
   Compound_Selector* Selector_Qualifier::unify_with(Compound_Selector* rhs, Context& ctx)
   {
     if (name()[0] == '#')

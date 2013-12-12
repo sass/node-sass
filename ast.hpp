@@ -1110,6 +1110,7 @@ namespace Sass {
       if (name() == "*") return 0;
       else               return 1;
     }
+    virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
     ATTACH_OPERATIONS();
   };
 
