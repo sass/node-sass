@@ -1062,6 +1062,7 @@ namespace Sass {
     { }
     virtual ~Simple_Selector() = 0;
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
+    virtual bool is_pseudo_element() { return false; }
   };
   inline Simple_Selector::~Simple_Selector() { }
 
@@ -1164,7 +1165,7 @@ namespace Sass {
       else
         return Constants::SPECIFICITY_BASE;
     }
-    bool is_pseudo_element()
+    virtual bool is_pseudo_element()
     {
       return name() == ":before"       || name() == "::before"     ||
              name() == ":after"        || name() == "::after"      ||

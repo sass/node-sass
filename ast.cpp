@@ -33,12 +33,38 @@ namespace Sass {
     for (size_t i = 0, L = rhs->length(); i < L; ++i)
     { if (perform(&to_string) == (*rhs)[i]->perform(&to_string)) return rhs; }
 
+    // check for pseudo elements because they need to come last
     size_t i, L;
-    for (i = 0, L = rhs->length(); i < L; ++i)
+    bool found = false;
+    if (typeid(*this) == typeid(Pseudo_Selector) || typeid(*this) == typeid(Negated_Selector))
     {
-      // check for pseudo elements because they need to come last
+      for (i = 0, L = rhs->length(); i < L; ++i)
+      {
+        if ((typeid(*(*rhs)[i]) == typeid(Pseudo_Selector) || typeid(*(*rhs)[i]) == typeid(Negated_Selector)) && (*rhs)[L-1]->is_pseudo_element())
+        { found = true; break; }
+      }  
     }
-    return 0;
+    else
+    {
+      for (i = 0, L = rhs->length(); i < L; ++i)
+      {
+        if (typeid(*(*rhs)[i]) == typeid(Pseudo_Selector) || typeid(*(*rhs)[i]) == typeid(Negated_Selector))
+        { found = true; break; }
+      }
+    }
+    if (!found)
+    {
+      Compound_Selector* cpy = new (ctx.mem) Compound_Selector(*rhs);
+      (*cpy) << this;
+      return cpy;
+    }
+    Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->path(), rhs->line());
+    for (size_t j = 0; j < i; ++j)
+    { (*cpy) << (*rhs)[j]; }
+    (*cpy) << this;
+    for (size_t j = i; j < L; ++j)
+    { (*cpy) << (*rhs)[j]; }
+    return cpy;
   }
 
   bool Compound_Selector::is_superselector_of(Compound_Selector* rhs)
