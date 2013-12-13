@@ -24,6 +24,10 @@ int main()
 	unify("div:nth-of-type(odd)", "div:first-child");
 	unify("div", "span:whatever");
 	unify("div", "span");
+	unify("foo:bar::after", "foo:bar::first-letter");
+	unify(".foo#bar.hux", ".hux.foo#bar");
+	unify(".foo#bar.hux", ".hux.foo#baz");
+	unify("*:blah:fudge", "p:fudge:blah");
 
 	return 0;
 }
