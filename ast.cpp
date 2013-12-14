@@ -16,6 +16,13 @@ namespace Sass {
            const_cast<Compound_Selector&>(rhs).perform(&to_string);
   }
 
+  bool Complex_Selector::operator<(const Complex_Selector& rhs) const
+  {
+    To_String to_string;
+    return const_cast<Complex_Selector*>(this)->perform(&to_string) <
+           const_cast<Complex_Selector&>(rhs).perform(&to_string);
+  }
+
   Compound_Selector* Compound_Selector::unify_with(Compound_Selector* rhs, Context& ctx)
   {
     Compound_Selector* unified = rhs;

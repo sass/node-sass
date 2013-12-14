@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <set>
 #include <algorithm>
 
 #ifdef __clang__
@@ -1195,6 +1196,8 @@ namespace Sass {
   // any parent references or placeholders, to simplify expansion.
   ////////////////////////////////////////////////////////////////////////////
   class Compound_Selector : public Selector, public Vectorized<Simple_Selector*> {
+  private:
+    set<Complex_Selector> sources_;
   protected:
     void adjust_after_pushing(Simple_Selector* s)
     {
@@ -1227,6 +1230,9 @@ namespace Sass {
     { return length() == 1 &&
              typeid(*(*this)[0]) == typeid(Selector_Reference) &&
              !static_cast<Selector_Reference*>((*this)[0])->selector(); }
+
+    set<Complex_Selector>& sources() { return sources_; }
+
     ATTACH_OPERATIONS();
   };
 
@@ -1268,6 +1274,27 @@ namespace Sass {
       if (head()) sum += head()->specificity();
       if (tail()) sum += tail()->specificity();
       return sum;
+    }
+    bool operator<(const Complex_Selector& rhs) const;
+    set<Complex_Selector> sources()
+    {
+      set<Complex_Selector> srcs;
+      Compound_Selector* h = head();
+      Complex_Selector*  t = tail();
+      if (!h && !t) return srcs;
+      if (!h && t)  return srcs = t->sources();
+      if (h && !t)  return srcs = h->sources();
+      if (h && t)
+      {
+        vector<Complex_Selector> vec;
+        set_union(h->sources().begin(), h->sources().end(),
+                  t->sources().begin(), t->sources().end(),
+                  vec.begin());
+        for (size_t i = 0, S = vec.size(); i < S; ++i) srcs.insert(vec[i]);
+        return srcs;
+      }
+      // fallback
+      return srcs;
     }
     ATTACH_OPERATIONS();
   };
