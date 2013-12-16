@@ -1,3 +1,5 @@
+#define SASS_SUBSET_MAP
+
 #include <vector>
 #include <map>
 #include <set>

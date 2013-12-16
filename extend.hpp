@@ -12,6 +12,10 @@
 #include "operation.hpp"
 #endif
 
+#ifndef SASS_SUBSET_MAP
+#include "subset_map.hpp"
+#endif
+
 namespace Sass {
   using namespace std;
 
@@ -22,12 +26,14 @@ namespace Sass {
 
     Context&          ctx;
     multimap<Compound_Selector, Complex_Selector*>& extensions;
+    Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >& subset_map;
+
     Backtrace*        backtrace;
 
     void fallback_impl(AST_Node* n) { };
 
   public:
-    Extend(Context&, multimap<Compound_Selector, Complex_Selector*>&, Backtrace*);
+    Extend(Context&, multimap<Compound_Selector, Complex_Selector*>&, Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >&, Backtrace*);
     virtual ~Extend() { }
 
     using Operation<void>::operator();

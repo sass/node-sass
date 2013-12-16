@@ -25,7 +25,8 @@ namespace Sass {
     property_stack(vector<String*>()),
     selector_stack(vector<Selector*>()),
     backtrace(bt),
-    extensions(multimap<Compound_Selector, Complex_Selector*>())
+    extensions(multimap<Compound_Selector, Complex_Selector*>()),
+    subset_map(Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >())
   { selector_stack.push_back(0); }
 
   Statement* Expand::operator()(Block* b)
@@ -246,6 +247,7 @@ namespace Sass {
 
   Statement* Expand::operator()(Extension* e)
   {
+    To_String to_string;
     Selector_List* extender = static_cast<Selector_List*>(selector_stack.back());
     if (!extender) return 0;
     Selector_List* extendee = static_cast<Selector_List*>(e->selector()->perform(contextualize->with(0, env, backtrace)));
@@ -257,9 +259,16 @@ namespace Sass {
       error("nested selectors may not be extended", c->path(), c->line(), backtrace);
     }
     Compound_Selector* s = c->head();
+
+    // need to convert the compound selector into a by-value data structure
+    vector<string> target_vec;
+    for (size_t i = 0, L = s->length(); i < L; ++i)
+    { target_vec.push_back((*s)[i]->perform(&to_string)); }
+
     for (size_t i = 0, L = extender->length(); i < L; ++i) {
       extensions.insert(make_pair(*s, (*extender)[i]));
-      To_String to_string;
+      // let's test this out
+      subset_map.put(target_vec, make_pair((*extender)[i], s));
     }
     return 0;
   }

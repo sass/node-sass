@@ -7,8 +7,8 @@
 
 namespace Sass {
 
-  Extend::Extend(Context& ctx, multimap<Compound_Selector, Complex_Selector*>& extensions, Backtrace* bt)
-  : ctx(ctx), extensions(extensions), backtrace(bt)
+  Extend::Extend(Context& ctx, multimap<Compound_Selector, Complex_Selector*>& extensions, Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >& ssm, Backtrace* bt)
+  : ctx(ctx), extensions(extensions), subset_map(ssm), backtrace(bt)
   { }
 
   void Extend::operator()(Block* b)

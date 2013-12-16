@@ -16,6 +16,10 @@
 #include "environment.hpp"
 #endif
 
+#ifndef SASS_SUBSET_MAP
+#include "subset_map.hpp"
+#endif
+
 namespace Sass {
 	using namespace std;
 
@@ -71,6 +75,7 @@ namespace Sass {
 		void append_block(Block*);
 
 		multimap<Compound_Selector, Complex_Selector*> extensions;
+		Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> > subset_map;
 	};
 
 }
