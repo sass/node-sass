@@ -260,15 +260,15 @@ namespace Sass {
     }
     Compound_Selector* s = c->head();
 
-    // need to convert the compound selector into a by-value data structure
-    vector<string> target_vec;
-    for (size_t i = 0, L = s->length(); i < L; ++i)
-    { target_vec.push_back((*s)[i]->perform(&to_string)); }
+    // // need to convert the compound selector into a by-value data structure
+    // vector<string> target_vec;
+    // for (size_t i = 0, L = s->length(); i < L; ++i)
+    // { target_vec.push_back((*s)[i]->perform(&to_string)); }
 
     for (size_t i = 0, L = extender->length(); i < L; ++i) {
       extensions.insert(make_pair(*s, (*extender)[i]));
       // let's test this out
-      subset_map.put(target_vec, make_pair((*extender)[i], s));
+      subset_map.put(s->to_str_vec(), make_pair((*extender)[i], s));
     }
     return 0;
   }
