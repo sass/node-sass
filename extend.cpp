@@ -51,6 +51,7 @@ namespace Sass {
       }
     }
     else {
+      To_String to_string;
       ng = new (ctx.mem) Selector_List(sg->path(), sg->line(), sg->length());
       // for each selector in the group
       for (size_t i = 0, L = sg->length(); i < L; ++i) {
@@ -58,7 +59,6 @@ namespace Sass {
         *ng << sel;
         // if it's supposed to be extended
         Compound_Selector* sel_base = sel->base();
-        To_String to_string;
         if (sel_base && extensions.count(*sel_base)) {
           // extend it wrt each of its extenders
           for (multimap<Compound_Selector, Complex_Selector*>::iterator extender = extensions.lower_bound(*sel_base), E = extensions.upper_bound(*sel_base);
