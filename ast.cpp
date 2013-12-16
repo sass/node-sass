@@ -337,4 +337,14 @@ namespace Sass {
     return this;
   }
 
+  vector<string> Compound_Selector::to_str_vec()
+  {
+    To_String to_string;
+    vector<string> result;
+    result.reserve(length());
+    for (size_t i = 0, L = length(); i < L; ++i)
+    { result.push_back((*this)[i]->perform(&to_string)); }
+    return result;
+  }
+
 }

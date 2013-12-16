@@ -1227,9 +1227,12 @@ namespace Sass {
       return sum;
     }
     bool is_empty_reference()
-    { return length() == 1 &&
+    {
+      return length() == 1 &&
              typeid(*(*this)[0]) == typeid(Selector_Reference) &&
-             !static_cast<Selector_Reference*>((*this)[0])->selector(); }
+             !static_cast<Selector_Reference*>((*this)[0])->selector();
+    }
+    vector<string> to_str_vec(); // sometimes need to convert to a flat "by-value" data structure
 
     set<Complex_Selector>& sources() { return sources_; }
 
