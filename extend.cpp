@@ -125,7 +125,37 @@ namespace Sass {
   Selector_List* Extend::extend_complex(Complex_Selector* sel, set<Compound_Selector>& seen)
   {
     To_String to_string;
-    cout << "EXTENDING " << sel->perform(&to_string) << endl;
+    cerr << "EXTENDING COMPLEX: " << sel->perform(&to_string) << endl;
+    Selector_List* choices = new (ctx.mem) Selector_List(sel->path(), sel->line());
+    Selector_List* extended;
+
+    Compound_Selector* h = sel->head();
+    Complex_Selector* t = sel->tail();
+    if (h && !h->is_empty_reference())
+    {
+      Selector_List* extended = extend_compound(h, seen);
+      // TODO: check extended for something or other
+      *choices += extended;
+    }
+    while(t)
+    {
+      h = t->head();
+      t = t->tail();
+      if (h && !h->is_empty_reference())
+      {
+        Selector_List* extended = extend_compound(h, seen);
+        // TODO: check extended for something or other
+        *choices += extended;
+      }
+    }
+
+    return choices;
+  }
+
+  Selector_List* Extend::extend_compound(Compound_Selector* sel, set<Compound_Selector>& seen)
+  {
+    To_String to_string;
+    cerr << "EXTENDING COMPOUND: " << sel->perform(&to_string) << endl;
     return new (ctx.mem) Selector_List(sel->path(), sel->line());
   }
 
