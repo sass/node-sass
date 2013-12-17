@@ -71,6 +71,15 @@ namespace Sass {
       }
     }
     if (extended) r->selector(ng);
+
+    // let's try the new stuff here; eventually it should replace the preceding
+    set<Compound_Selector> seen;
+    Selector_List* new_list = new (ctx.mem) Selector_List(sg->path(), sg->line());
+    for (size_t i = 0, L = sg->length(); i < L; ++i)
+    {
+      *new_list += extend_complex((*sg)[i], seen);
+    }
+
     r->block()->perform(this);
   }
 
@@ -111,6 +120,13 @@ namespace Sass {
       *new_group << extender;
     }
     return new_group;
+  }
+
+  Selector_List* Extend::extend_complex(Complex_Selector* sel, set<Compound_Selector>& seen)
+  {
+    To_String to_string;
+    cout << "EXTENDING " << sel->perform(&to_string) << endl;
+    return new (ctx.mem) Selector_List(sel->path(), sel->line());
   }
 
 }

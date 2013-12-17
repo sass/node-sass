@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 #include <iostream>
 
 #ifndef SASS_AST
@@ -44,6 +45,7 @@ namespace Sass {
     void operator()(At_Rule*);
 
     Selector_List* generate_extension(Complex_Selector*, Complex_Selector*);
+    Selector_List* extend_complex(Complex_Selector*, set<Compound_Selector>&);
 
     template <typename U>
     void fallback(U x) { return fallback_impl(x); }
