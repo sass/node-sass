@@ -133,7 +133,16 @@ namespace Sass {
     if (h && !h->is_empty_reference())
     {
       Selector_List* extended = extend_compound(h, seen);
-      // TODO: check extended for something or other
+      bool found = false;
+      for (size_t i = 0, L = extended->length(); i < L; ++i)
+      {
+        if ((*extended)[i]->is_superselector_of(h))
+        { found = true; break; }
+      }
+      if (!found)
+      {
+        *choices << new (ctx.mem) Complex_Selector(sel->path(), sel->line(), Complex_Selector::ANCESTOR_OF, h, 0);
+      }
       *choices += extended;
     }
     while(t)
@@ -143,7 +152,16 @@ namespace Sass {
       if (h && !h->is_empty_reference())
       {
         Selector_List* extended = extend_compound(h, seen);
-        // TODO: check extended for something or other
+        bool found = false;
+        for (size_t i = 0, L = extended->length(); i < L; ++i)
+        {
+          if ((*extended)[i]->is_superselector_of(h))
+          { found = true; break; }
+        }
+        if (!found)
+        {
+          *choices << new (ctx.mem) Complex_Selector(sel->path(), sel->line(), Complex_Selector::ANCESTOR_OF, h, 0);
+        }
         *choices += extended;
       }
     }
