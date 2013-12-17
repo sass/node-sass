@@ -127,7 +127,6 @@ namespace Sass {
     To_String to_string;
     cerr << "EXTENDING COMPLEX: " << sel->perform(&to_string) << endl;
     Selector_List* choices = new (ctx.mem) Selector_List(sel->path(), sel->line());
-    Selector_List* extended;
 
     Compound_Selector* h = sel->head();
     Complex_Selector* t = sel->tail();
@@ -155,8 +154,16 @@ namespace Sass {
   Selector_List* Extend::extend_compound(Compound_Selector* sel, set<Compound_Selector>& seen)
   {
     To_String to_string;
-    cerr << "EXTENDING COMPOUND: " << sel->perform(&to_string) << endl;
-    return new (ctx.mem) Selector_List(sel->path(), sel->line());
+    Selector_List* results = new (ctx.mem) Selector_List(sel->path(), sel->line());
+
+    vector<pair<Complex_Selector*, Compound_Selector*> > entries = subset_map.get_v(sel->to_str_vec());
+
+    for (size_t i = 0, S = entries.size(); i < S; ++i)
+    {
+      cerr << "COMPOUND: " << sel->perform(&to_string) << " KEYS TO " << entries[i].first->perform(&to_string) << " AND " << entries[i].second->perform(&to_string) << endl;
+    }
+
+    return results;
   }
 
 }
