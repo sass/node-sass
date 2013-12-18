@@ -2,6 +2,10 @@
 
 #include <sstream>
 
+#ifndef SASS_POSITION
+#include "position.hpp"
+#endif
+
 namespace Sass {
 
   using namespace std;
@@ -10,13 +14,13 @@ namespace Sass {
 
     Backtrace* parent;
     string     path;
-    size_t     line;
+    Position   position;
     string     caller;
 
-    Backtrace(Backtrace* prn, string pth, size_t ln, string c)
+    Backtrace(Backtrace* prn, string pth, Position position, string c)
     : parent(prn),
       path(pth),
-      line(ln),
+      position(position),
       caller(c)
     { }
 
@@ -33,7 +37,7 @@ namespace Sass {
            << (warning ? " " : "")
            << this_point->path
            << ":"
-           << this_point->line
+           << this_point->position.line
            << this_point->parent->caller;
         this_point = this_point->parent;
       }

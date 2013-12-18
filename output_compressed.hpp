@@ -14,8 +14,11 @@ namespace Sass {
     using Operation_CRTP<void, Output_Compressed>::operator();
 
     string buffer;
+    Context* ctx;
 
     void fallback_impl(AST_Node* n);
+    
+    void append_singleline_part_to_buffer(const string& text);
 
   public:
     Output_Compressed(Context* ctx = 0);

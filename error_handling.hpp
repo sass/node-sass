@@ -1,6 +1,10 @@
 #define SASS_ERROR_HANDLING
 #include <string>
 
+#ifndef SASS_POSITION
+#include "position.hpp"
+#endif
+
 namespace Sass {
 	using namespace std;
 
@@ -11,14 +15,14 @@ namespace Sass {
 
     Type type;
     string path;
-    size_t line;
+    Position position;
     string message;
 
-    Error(Type type, string path, size_t line, string message);
+    Error(Type type, string path, Position position, string message);
 
   };
 
-  void error(string msg, string path, size_t line);
-  void error(string msg, string path, size_t line, Backtrace* bt);
+  void error(string msg, string path, Position position);
+  void error(string msg, string path, Position position, Backtrace* bt);
 
 }

@@ -8,7 +8,10 @@
 #endif
 
 #include "context.hpp"
+
+#ifndef SASS_ERROR_HANDLING
 #include "error_handling.hpp"
+#endif
 
 extern "C" {
   using namespace std;
@@ -59,7 +62,7 @@ extern "C" {
       }
       catch (Error& e) {
         stringstream msg_stream;
-        msg_stream << e.path << ":" << e.line << ": error: " << e.message << endl;
+        msg_stream << e.path << ":" << e.position.line << ": error: " << e.message << endl;
         string msg(msg_stream.str());
         char* msg_str = (char*) malloc(msg.size() + 1);
         strcpy(msg_str, msg.c_str());

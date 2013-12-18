@@ -31,17 +31,68 @@ namespace Sass {
 		{
 			if (l.empty()) return r;
 			if (r.empty()) return l;
-			if (r[0] == '/') return r;
-			// TODO: UN-HACKIFY THIS
-			#ifdef _WIN32
-			if (r.length() >= 2 && isalpha(r[0]) && r[1] == ':') return r;
-			#endif
+			if (is_absolute_path(r)) return r;
 
 			if (l[l.length()-1] != '/') l += '/';
+      
+      while ((r.length() > 3) && (r.substr(0, 3) == "../")) {
+        r = r.substr(3);
+        size_t index = l.find_last_of('/', l.length() - 2);
+        l = l.substr(0, index + 1);
+      }
+      
 			return l + r;
 		}
+    
+    bool is_absolute_path(const string& path)
+    {
+      if (path[0] == '/') return true;
+			// TODO: UN-HACKIFY THIS
+      #ifdef _WIN32
+      if (path.length() >= 2 && isalpha(path[0]) && path[1] == ':') return true;
+      #endif
+      return false;
+    }
+    
+    string make_absolute_path(const string& path, const string& cwd)
+    {
+      return (is_absolute_path(path) ? path : join_paths(cwd, path));
+    }
 
-        char* resolve_and_load(string path, string& real_path)
+    string resolve_relative_path(const string& uri, const string& base, const string& cwd)
+    {
+      string absolute_uri = make_absolute_path(uri, cwd);
+      string absolute_base = make_absolute_path(base, cwd);
+      
+      string stripped_uri = "";
+      string stripped_base = "";
+      
+      size_t index = 0;
+      size_t minSize = min(absolute_uri.size(), absolute_base.size());
+      for (size_t i = 0; i < minSize; ++i) {
+        if (absolute_uri[i] != absolute_base[i]) break;
+        if (absolute_uri[i] == '/') index = i + 1;
+      }
+      for (size_t i = index; i < absolute_uri.size(); ++i) {
+        stripped_uri += absolute_uri[i];
+      }
+      for (size_t i = index; i < absolute_base.size(); ++i) {
+        stripped_base += absolute_base[i];
+      }
+      size_t directories = 0;
+      for (size_t i = 0; i < stripped_base.size(); ++i) {
+        if (stripped_base[i] == '/') ++directories;
+      }
+      string result = "";
+      for (size_t i = 0; i < directories; ++i) {
+        result += "../";
+      }
+      result += stripped_uri;
+      
+      return result;
+    }
+    
+    char* resolve_and_load(string path, string& real_path)
 		{
 	    // Resolution order for ambiguous imports:
 	    // (1) filename as given
