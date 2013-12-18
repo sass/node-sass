@@ -63,8 +63,8 @@ different context types.
     sass_file_context   // file-based compilation
     sass_folder_context // full-folder multi-file 
 
-Each of the context's have slightly different behavior and are
-implemented separately. This does add extra work to implementing
+Each of the contexts have slightly different behavior and are
+implemented seperately. This does add extra work to implementing
 a wrapper library, but we felt that a mixed-use context object
 provides for too much implicit logic. What if you set "input_string"
 AND "input_file"... what do we do? This would introduce bugs into
