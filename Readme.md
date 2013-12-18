@@ -46,7 +46,7 @@ To run tests against libsass while developing, please ensure you have the latest
 
 Obviously, update them to your local environment. Then, its just a matter of running...
 
-  make test
+    make test
 
 Usage
 -----
