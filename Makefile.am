@@ -34,8 +34,6 @@ TESTS = \
 LOG_COMPILER = $(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb
 AM_LOG_FLAGS = -c ./sass-tester
 
-test: check
-
 SASS_SASSC_PATH ?= sassc
 SASS_SPEC_PATH ?= sass-spec
 SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc
