@@ -40,13 +40,13 @@ Since libsass is a pure library, tests are run through the [SassSpec](http://git
 
 To run tests against libsass while developing, please ensure you have the latest version of the above projects cloned, and then define the following environment variables:
   
-  export SASS_SPEC_PATH=~/path/sass-spec
-  export SASS_SASSC_PATH=~/path/sassc
-  export SASS_LIBSASS_PATH=~/path/libsass
+    export SASS_SPEC_PATH=~/path/sass-spec
+    export SASS_SASSC_PATH=~/path/sassc
+    export SASS_LIBSASS_PATH=~/path/libsass
 
 Obviously, update them to your local environment. Then, its just a matter of running...
 
-  make test
+    make test
 
 Usage
 -----
@@ -63,8 +63,8 @@ different context types.
     sass_file_context   // file-based compilation
     sass_folder_context // full-folder multi-file 
 
-Each of the context's have slightly different behavior and are
-implemented separately. This does add extra work to implementing
+Each of the contexts have slightly different behavior and are
+implemented seperately. This does add extra work to implementing
 a wrapper library, but we felt that a mixed-use context object
 provides for too much implicit logic. What if you set "input_string"
 AND "input_file"... what do we do? This would introduce bugs into
