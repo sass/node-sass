@@ -178,6 +178,7 @@ namespace Sass {
 
     for (size_t i = 0, S = entries.size(); i < S; ++i)
     {
+      if (seen.count(*entries[i].second)) continue;
       cerr << "COMPOUND: " << sel->perform(&to_string) << " KEYS TO " << entries[i].first->perform(&to_string) << " AND " << entries[i].second->perform(&to_string) << endl;
     }
 

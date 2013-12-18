@@ -8,30 +8,54 @@
 #include <iostream>
 #include <sstream>
 
+// using namespace std;
+
+// template<typename T>
+// string vector_to_string(vector<T> v)
+// {
+// 	stringstream buffer;
+// 	buffer << "[";
+
+// 	if (!v.empty())
+// 	{	buffer << v[0]; }
+// 	else
+// 	{ buffer << "]"; }
+
+// 	if (v.size() == 1)
+// 	{ buffer << "]"; }
+// 	else
+// 	{
+// 		for (size_t i = 1, S = v.size(); i < S; ++i) buffer << ", " << v[i];
+// 		buffer << "]";
+// 	}
+
+// 	return buffer.str();
+// }
+
+// template<typename T>
+// string set_to_string(set<T> v)
+// {
+// 	stringstream buffer;
+// 	buffer << "[";
+// 	typename set<T>::iterator i = v.begin();
+// 	if (!v.empty())
+// 	{	buffer << *i; }
+// 	else
+// 	{ buffer << "]"; }
+
+// 	if (v.size() == 1)
+// 	{ buffer << "]"; }
+// 	else
+// 	{
+// 		for (++i; i != v.end(); ++i) buffer << ", " << *i;
+// 		buffer << "]";
+// 	}
+
+// 	return buffer.str();
+// }
+
 namespace Sass {
 	using namespace std;
-
-	// template<typename T>
-	// string vector_to_string(vector<T> v)
-	// {
-	// 	stringstream buffer;
-	// 	buffer << "[";
-
-	// 	if (!v.empty())
-	// 	{	buffer << v[0]; }
-	// 	else
-	// 	{ buffer << "]"; }
-
-	// 	if (v.size() == 1)
-	// 	{ buffer << "]"; }
-	// 	else
-	// 	{
-	// 		for (size_t i = 1, S = v.size(); i < S; ++i) buffer << ", " << v[i];
-	// 		buffer << "]";
-	// 	}
-
-	// 	return buffer.str();
-	// }
 
 	template<typename F, typename S, typename T>
 	struct triple {
@@ -77,13 +101,24 @@ namespace Sass {
 	template<typename K, typename V>
 	vector<pair<V, vector<K> > > Subset_Map<K, V>::get_kv(const vector<K>& s)
 	{
+		vector<K> sorted = s;
+		sort(sorted.begin(), sorted.end());
 		vector<pair<size_t, vector<K> > > indices;
 		for (size_t i = 0, S = s.size(); i < S; ++i) {
-			if (!hash_.count(s[i])) continue;
+			// cerr << "looking for " << s[i] << endl;
+			if (!hash_.count(s[i])) {
+				// cerr << "didn't find " << s[i] << endl;
+				continue;
+			}
 			vector<triple<vector<K>, set<K>, size_t> > subsets = hash_[s[i]];
+			// cerr << "length of subsets: " << subsets.size() << endl;
 			for (size_t j = 0, T = subsets.size(); j < T; ++j) {
-				if (!includes(s.begin(), s.end(), subsets[j].second.begin(), subsets[j].second.end())) continue;
+				if (!includes(sorted.begin(), sorted.end(), subsets[j].second.begin(), subsets[j].second.end())) {
+					// cout << vector_to_string(s) << " doesn't include " << set_to_string(subsets[j].second) << endl;
+					continue;
+				}
 				indices.push_back(make_pair(subsets[j].third, subsets[j].first));
+				// cerr << "pushed " << subsets[j].third << " and " << vector_to_string(subsets[j].first) << " onto indices" << endl;
 			}
 		}
 		sort(indices.begin(), indices.end());

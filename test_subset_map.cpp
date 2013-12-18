@@ -7,6 +7,29 @@ using namespace Sass;
 
 Subset_Map<int, string> ssm;
 
+template<typename T>
+string vector_to_string(vector<T> v)
+{
+	stringstream buffer;
+	buffer << "[";
+
+	if (!v.empty())
+	{	buffer << v[0]; }
+	else
+	{ buffer << "]"; }
+
+	if (v.size() == 1)
+	{ buffer << "]"; }
+	else
+	{
+		for (size_t i = 1, S = v.size(); i < S; ++i) buffer << ", " << v[i];
+		buffer << "]";
+	}
+
+	return buffer.str();
+}
+
+
 int main()
 {
 	vector<int> s1;
@@ -47,6 +70,25 @@ int main()
 	cout << endl << "PRINTING RESULTS:" << endl;
 	for (size_t i = 0, S = fetched2.size(); i < S; ++i) {
 		cout << fetched2[i].first << endl;
+	}
+
+	cout << "TRYING ON A SELECTOR-LIKE OBJECT" << endl;
+
+	Subset_Map<string, string> sel_ssm;
+	vector<string> target;
+	target.push_back("desk");
+	target.push_back(".wood");
+
+	vector<string> actual;
+	actual.push_back("desk");
+	actual.push_back(".wood");
+	actual.push_back(".mine");
+
+	sel_ssm.put(target, "has-aquarium");
+	vector<pair<string, vector<string> > > fetched3(sel_ssm.get_kv(actual));
+	cout << "RESULTS:" << endl;
+	for (size_t i = 0, S = fetched3.size(); i < S; ++i) {
+		cout << fetched3[i].first << endl;
 	}
 
 	return 0;
