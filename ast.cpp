@@ -65,7 +65,7 @@ namespace Sass {
       (*cpy) << this;
       return cpy;
     }
-    Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->path(), rhs->line());
+    Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->path(), rhs->position());
     for (size_t j = 0; j < i; ++j)
     { (*cpy) << (*rhs)[j]; }
     (*cpy) << this;
@@ -89,7 +89,7 @@ namespace Sass {
       // if rhs is universal, just return this tagname + rhs's qualifiers
       if (static_cast<Type_Selector*>(rhs_0)->name() == "*")
       {
-        Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->path(), rhs->line());
+        Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->path(), rhs->position());
         (*cpy) << this;
         for (size_t i = 1, L = rhs->length(); i < L; ++i)
         { (*cpy) << (*rhs)[i]; }
@@ -103,7 +103,7 @@ namespace Sass {
       { return 0; }
     }
     // else it's a tag name and a bunch of qualifiers -- just append them
-    Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->path(), rhs->line());
+    Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->path(), rhs->position());
     (*cpy) << this;
     (*cpy) += rhs;
     return cpy;
@@ -270,7 +270,7 @@ namespace Sass {
   {
     if (!tail()) return 0;
     if (!head()) return tail()->context(ctx);
-    return new (ctx.mem) Complex_Selector(path(), line(), combinator(), head(), tail()->context(ctx));
+    return new (ctx.mem) Complex_Selector(path(), position(), combinator(), head(), tail()->context(ctx));
   }
 
   Complex_Selector* Complex_Selector::innermost()

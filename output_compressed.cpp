@@ -6,12 +6,12 @@
 namespace Sass {
   using namespace std;
 
-  Output_Compressed::Output_Compressed(Context* ctx) : buffer("") { }
+  Output_Compressed::Output_Compressed(Context* ctx) : buffer(""), ctx(ctx) { }
   Output_Compressed::~Output_Compressed() { }
 
   inline void Output_Compressed::fallback_impl(AST_Node* n)
   {
-    Inspect i;
+    Inspect i(ctx);
     n->perform(&i);
     buffer += i.get_buffer();
   }
@@ -33,14 +33,14 @@ namespace Sass {
 
     if (b->has_non_hoistable()) {
       s->perform(this);
-      buffer += "{";
+      append_singleline_part_to_buffer("{");
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
         if (!stm->is_hoistable()) {
           stm->perform(this);
         }
       }
-      buffer += "}";
+      append_singleline_part_to_buffer("}");
     }
 
     if (b->has_hoistable()) {
@@ -58,16 +58,17 @@ namespace Sass {
     List*  q     = m->media_queries();
     Block* b     = m->block();
 
-    buffer += "@media ";
+    ctx->source_map.add_mapping(m);
+    append_singleline_part_to_buffer("@media ");
     q->perform(this);
-    buffer += "{";
+    append_singleline_part_to_buffer("{");
 
     Selector* e = m->enclosing_selector();
     bool hoisted = false;
     if (e && b->has_non_hoistable()) {
       hoisted = true;
       e->perform(this);
-      buffer += "{";
+      append_singleline_part_to_buffer("{");
     }
 
     for (size_t i = 0, L = b->length(); i < L; ++i) {
@@ -78,7 +79,7 @@ namespace Sass {
     }
 
     if (hoisted) {
-      buffer += "}";
+      append_singleline_part_to_buffer("}");
     }
 
     for (size_t i = 0, L = b->length(); i < L; ++i) {
@@ -88,7 +89,7 @@ namespace Sass {
       }
     }
 
-    buffer += "}";
+    append_singleline_part_to_buffer("}");
   }
 
   void Output_Compressed::operator()(At_Rule* a)
@@ -97,18 +98,18 @@ namespace Sass {
     Selector* s     = a->selector();
     Block*    b     = a->block();
 
-    buffer += kwd;
+    append_singleline_part_to_buffer(kwd);
     if (s) {
-      buffer += ' ';
+      append_singleline_part_to_buffer(" ");
       s->perform(this);
     }
 
     if (!b) {
-      buffer += ';';
+      append_singleline_part_to_buffer(";");
       return;
     }
 
-    buffer += "{";
+    append_singleline_part_to_buffer("{");
     for (size_t i = 0, L = b->length(); i < L; ++i) {
       Statement* stm = (*b)[i];
       if (!stm->is_hoistable()) {
@@ -123,7 +124,7 @@ namespace Sass {
       }
     }
 
-    buffer += "}";
+    append_singleline_part_to_buffer("}");
   }
 
   void Output_Compressed::operator()(Declaration* d)
@@ -142,11 +143,13 @@ namespace Sass {
     }
     // Print if OK
     if(bPrintExpression) {
+      if (ctx) ctx->source_map.add_mapping(d->property());
       d->property()->perform(this);
-      buffer += ":";
+      append_singleline_part_to_buffer(":");
+      if (ctx) ctx->source_map.add_mapping(d->value());
       d->value()->perform(this);
-      if (d->is_important()) buffer += "!important";
-      buffer += ';';
+      if (d->is_important()) append_singleline_part_to_buffer("!important");
+      append_singleline_part_to_buffer(";");
     }
   }
 
@@ -165,8 +168,8 @@ namespace Sass {
     for (size_t i = 1, L = list->length(); i < L; ++i) {
       Expression* next = (*list)[i];
       bool next_invisible = next->is_invisible();
-      if (i == 1 && !first_invisible && !next_invisible) buffer += sep;
-      else if (!next_invisible)                          buffer += sep;
+      if (i == 1 && !first_invisible && !next_invisible) append_singleline_part_to_buffer(sep);
+      else if (!next_invisible)                          append_singleline_part_to_buffer(sep);
       next->perform(this);
     }
   }
@@ -177,39 +180,39 @@ namespace Sass {
       mqe->feature()->perform(this);
     }
     else {
-      buffer += "(";
+      append_singleline_part_to_buffer("(");
       mqe->feature()->perform(this);
       if (mqe->value()) {
-        buffer += ":";
+        append_singleline_part_to_buffer(":");
         mqe->value()->perform(this);
       }
-      buffer += ')';
+      append_singleline_part_to_buffer(")");
     }
   }
 
   void Output_Compressed::operator()(Argument* a)
   {
     if (!a->name().empty()) {
-      buffer += a->name();
-      buffer += ":";
+      append_singleline_part_to_buffer(a->name());
+      append_singleline_part_to_buffer(":");
     }
     a->value()->perform(this);
     if (a->is_rest_argument()) {
-      buffer += "...";
+      append_singleline_part_to_buffer("...");
     }
   }
 
   void Output_Compressed::operator()(Arguments* a)
   {
-    buffer += '(';
+    append_singleline_part_to_buffer("(");
     if (!a->empty()) {
       (*a)[0]->perform(this);
       for (size_t i = 1, L = a->length(); i < L; ++i) {
-        buffer += ",";
+        append_singleline_part_to_buffer(",");
         (*a)[i]->perform(this);
       }
     }
-    buffer += ')';
+    append_singleline_part_to_buffer(")");
   }
 
   void Output_Compressed::operator()(Complex_Selector* c)
@@ -219,10 +222,10 @@ namespace Sass {
     Complex_Selector::Combinator comb = c->combinator();
     if (head) head->perform(this);
     switch (comb) {
-      case Complex_Selector::ANCESTOR_OF: buffer += ' '; break;
-      case Complex_Selector::PARENT_OF:   buffer += '>'; break;
-      case Complex_Selector::PRECEDES:    buffer += '~'; break;
-      case Complex_Selector::ADJACENT_TO: buffer += '+'; break;
+      case Complex_Selector::ANCESTOR_OF: append_singleline_part_to_buffer(" "); break;
+      case Complex_Selector::PARENT_OF:   append_singleline_part_to_buffer(">"); break;
+      case Complex_Selector::PRECEDES:    append_singleline_part_to_buffer("~"); break;
+      case Complex_Selector::ADJACENT_TO: append_singleline_part_to_buffer("+"); break;
     }
     if (tail) tail->perform(this);
   }
@@ -232,9 +235,15 @@ namespace Sass {
     if (g->empty()) return;
     (*g)[0]->perform(this);
     for (size_t i = 1, L = g->length(); i < L; ++i) {
-      buffer += ",";
+      append_singleline_part_to_buffer(",");
       (*g)[i]->perform(this);
     }
+  }
+  
+  void Output_Compressed::append_singleline_part_to_buffer(const string& text)
+  {
+    buffer += text;
+    if (ctx) ctx->source_map.update_column(text);
   }
 
 }

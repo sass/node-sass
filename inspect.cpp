@@ -15,26 +15,28 @@ namespace Sass {
   void Inspect::operator()(Block* block)
   {
     if (!block->is_root()) {
-      buffer += " {\n";
+      append_multiline_part_to_buffer(" {\n");
       ++indentation;
     }
     for (size_t i = 0, L = block->length(); i < L; ++i) {
       indent();
       (*block)[i]->perform(this);
       // extra newline at the end of top-level statements
-      if (block->is_root()) buffer += '\n';
-      buffer += '\n';
+      if (block->is_root()) append_multiline_part_to_buffer("\n");
+      append_multiline_part_to_buffer("\n");
     }
     if (!block->is_root()) {
       --indentation;
       indent();
-      buffer += "}";
+      append_singleline_part_to_buffer("}");
     }
     // remove extra newline that gets added after the last top-level block
     if (block->is_root()) {
       size_t l = buffer.length();
-      if (l > 2 && buffer[l-1] == '\n' && buffer[l-2] == '\n')
+      if (l > 2 && buffer[l-1] == '\n' && buffer[l-2] == '\n') {
         buffer.erase(l-1);
+        if (ctx) ctx->source_map.remove_line();
+      }
     }
   }
 
@@ -47,76 +49,84 @@ namespace Sass {
   void Inspect::operator()(Propset* propset)
   {
     propset->property_fragment()->perform(this);
-    buffer += ": ";
+    append_singleline_part_to_buffer(": ");
     propset->block()->perform(this);
   }
 
   void Inspect::operator()(Media_Block* media_block)
   {
-    buffer += "@media ";
+    if (ctx) ctx->source_map.add_mapping(media_block);
+    append_singleline_part_to_buffer("@media ");
     media_block->media_queries()->perform(this);
     media_block->block()->perform(this);
   }
 
   void Inspect::operator()(At_Rule* at_rule)
   {
-    buffer += at_rule->keyword();
+    append_singleline_part_to_buffer(at_rule->keyword());
     if (at_rule->selector()) {
-      buffer += ' ';
+      append_singleline_part_to_buffer(" ");
       at_rule->selector()->perform(this);
     }
     if (at_rule->block()) {
       at_rule->block()->perform(this);
     }
     else {
-      buffer += ';';
+      append_singleline_part_to_buffer(";");
     }
   }
 
   void Inspect::operator()(Declaration* dec)
   {
+    if (ctx) ctx->source_map.add_mapping(dec->property());
     dec->property()->perform(this);
-    buffer += ": ";
+    append_singleline_part_to_buffer(": ");
+    if (ctx) ctx->source_map.add_mapping(dec->value());
     dec->value()->perform(this);
-    if (dec->is_important()) buffer += " !important";
-    buffer += ';';
+    if (dec->is_important()) append_singleline_part_to_buffer(" !important");
+    append_singleline_part_to_buffer(";");
   }
 
   void Inspect::operator()(Assignment* assn)
   {
-    buffer += assn->variable();
-    buffer += ": ";
+    append_singleline_part_to_buffer(assn->variable());
+    append_singleline_part_to_buffer(": ");
     assn->value()->perform(this);
-    if (assn->is_guarded()) buffer += " !default";
-    buffer += ';';
+    if (assn->is_guarded()) append_singleline_part_to_buffer(" !default");
+    append_singleline_part_to_buffer(";");
   }
 
   void Inspect::operator()(Import* import)
   {
     if (!import->urls().empty()) {
-      buffer += "@import ";
+      if (ctx) ctx->source_map.add_mapping(import);
+      append_singleline_part_to_buffer("@import ");
       import->urls().front()->perform(this);
-      buffer += ';';
+      append_singleline_part_to_buffer(";");
       for (size_t i = 1, S = import->urls().size(); i < S; ++i) {
-        buffer += "\n@import ";
+        append_multiline_part_to_buffer("\n");
+        if (ctx) ctx->source_map.add_mapping(import);
+        append_singleline_part_to_buffer("@import ");
         import->urls()[i]->perform(this);
-        buffer += ';';
+        append_singleline_part_to_buffer(";");
       }
     }
   }
 
   void Inspect::operator()(Import_Stub* import)
   {
-    buffer += "@import ";
-    buffer += import->file_name();
-    buffer += ';';
+    if (ctx) ctx->source_map.add_mapping(import);
+    append_singleline_part_to_buffer("@import ");
+    append_singleline_part_to_buffer(import->file_name());
+    append_singleline_part_to_buffer(";");
   }
 
   void Inspect::operator()(Warning* warning)
   {
-    buffer += "@warn ";
+    if (ctx) ctx->source_map.add_mapping(warning);
+    append_singleline_part_to_buffer("@warn ");
     warning->message()->perform(this);
-    buffer += ';';
+    append_singleline_part_to_buffer(";");
   }
 
   void Inspect::operator()(Comment* comment)
@@ -126,83 +136,87 @@ namespace Sass {
 
   void Inspect::operator()(If* cond)
   {
-    buffer += "@if ";
+    append_singleline_part_to_buffer("@if ");
     cond->predicate()->perform(this);
     cond->consequent()->perform(this);
     if (cond->alternative()) {
-      buffer += '\n';
+      append_multiline_part_to_buffer("\n");
       indent();
-      buffer += "else";
+      append_singleline_part_to_buffer("else");
       cond->alternative()->perform(this);
     }
   }
 
   void Inspect::operator()(For* loop)
   {
-    buffer += string("@for ");
-    buffer += loop->variable();
-    buffer += " from ";
+    append_singleline_part_to_buffer("@for ");
+    append_singleline_part_to_buffer(loop->variable());
+    append_singleline_part_to_buffer(" from ");
     loop->lower_bound()->perform(this);
-    buffer += (loop->is_inclusive() ? " through " : " to ");
+    append_singleline_part_to_buffer((loop->is_inclusive() ? " through " : " to "));
     loop->upper_bound()->perform(this);
     loop->block()->perform(this);
   }
 
   void Inspect::operator()(Each* loop)
   {
-    buffer += string("@each ");
-    buffer += loop->variable();
-    buffer += " in ";
+    append_singleline_part_to_buffer("@each ");
+    append_singleline_part_to_buffer(loop->variable());
+    append_singleline_part_to_buffer(" in ");
     loop->list()->perform(this);
     loop->block()->perform(this);
   }
 
   void Inspect::operator()(While* loop)
   {
-    buffer += "@while ";
+    append_singleline_part_to_buffer("@while ");
     loop->predicate()->perform(this);
     loop->block()->perform(this);
   }
 
   void Inspect::operator()(Return* ret)
   {
-    buffer += "@return ";
+    append_singleline_part_to_buffer("@return ");
     ret->value()->perform(this);
-    buffer += ';';
+    append_singleline_part_to_buffer(";");
   }
 
   void Inspect::operator()(Extension* extend)
   {
-    buffer += "@extend ";
+    append_singleline_part_to_buffer("@extend ");
     extend->selector()->perform(this);
-    buffer += ';';
+    append_singleline_part_to_buffer(";");
   }
 
   void Inspect::operator()(Definition* def)
   {
-    if (def->type() == Definition::MIXIN) buffer += "@mixin ";
-    else                                  buffer += "@function ";
-    buffer += def->name();
+    if (def->type() == Definition::MIXIN) {
+      append_singleline_part_to_buffer("@mixin ");
+    } else {
+      append_singleline_part_to_buffer("@function ");
+    }
+    append_singleline_part_to_buffer(def->name());
     def->parameters()->perform(this);
     def->block()->perform(this);
   }
 
   void Inspect::operator()(Mixin_Call* call)
   {
-    buffer += string("@include ") += call->name();
+    append_singleline_part_to_buffer(string("@include ") += call->name());
     if (call->arguments()) {
       call->arguments()->perform(this);
     }
     if (call->block()) {
-      buffer += ' ';
+      append_singleline_part_to_buffer(" ");
       call->block()->perform(this);
     }
-    if (!call->block()) buffer += ';';
+    if (!call->block()) append_singleline_part_to_buffer(";");
   }
 
   void Inspect::operator()(Content* content)
   {
-    buffer += "@content;";
+    if (ctx) ctx->source_map.add_mapping(content);
+    append_singleline_part_to_buffer("@content;");
   }
 
   void Inspect::operator()(List* list)
@@ -215,7 +229,7 @@ namespace Sass {
       if (list_item->is_invisible()) {
         continue;
       }
-      if (items_output) buffer += sep;
+      if (items_output) append_singleline_part_to_buffer(sep);
       list_item->perform(this);
       items_output = true;
     }
@@ -225,19 +239,19 @@ namespace Sass {
   {
     expr->left()->perform(this);
     switch (expr->type()) {
-      case Binary_Expression::AND: buffer += " and "; break;
-      case Binary_Expression::OR:  buffer += " or ";  break;
-      case Binary_Expression::EQ:  buffer += " == ";  break;
-      case Binary_Expression::NEQ: buffer += " != ";  break;
-      case Binary_Expression::GT:  buffer += " > ";   break;
-      case Binary_Expression::GTE: buffer += " >= ";  break;
-      case Binary_Expression::LT:  buffer += " < ";   break;
-      case Binary_Expression::LTE: buffer += " <= ";  break;
-      case Binary_Expression::ADD: buffer += " + ";   break;
-      case Binary_Expression::SUB: buffer += " - ";   break;
-      case Binary_Expression::MUL: buffer += " * ";   break;
-      case Binary_Expression::DIV: buffer += "/";     break;
-      case Binary_Expression::MOD: buffer += " % ";   break;
+      case Binary_Expression::AND: append_singleline_part_to_buffer(" and "); break;
+      case Binary_Expression::OR:  append_singleline_part_to_buffer(" or ");  break;
+      case Binary_Expression::EQ:  append_singleline_part_to_buffer(" == ");  break;
+      case Binary_Expression::NEQ: append_singleline_part_to_buffer(" != ");  break;
+      case Binary_Expression::GT:  append_singleline_part_to_buffer(" > ");   break;
+      case Binary_Expression::GTE: append_singleline_part_to_buffer(" >= ");  break;
+      case Binary_Expression::LT:  append_singleline_part_to_buffer(" < ");   break;
+      case Binary_Expression::LTE: append_singleline_part_to_buffer(" <= ");  break;
+      case Binary_Expression::ADD: append_singleline_part_to_buffer(" + ");   break;
+      case Binary_Expression::SUB: append_singleline_part_to_buffer(" - ");   break;
+      case Binary_Expression::MUL: append_singleline_part_to_buffer(" * ");   break;
+      case Binary_Expression::DIV: append_singleline_part_to_buffer("/");     break;
+      case Binary_Expression::MOD: append_singleline_part_to_buffer(" % ");   break;
       default: break; // shouldn't get here
     }
     expr->right()->perform(this);
@@ -245,14 +259,14 @@ namespace Sass {
 
   void Inspect::operator()(Unary_Expression* expr)
   {
-    if (expr->type() == Unary_Expression::PLUS) buffer += '+';
-    else                                        buffer += '-';
+    if (expr->type() == Unary_Expression::PLUS) append_singleline_part_to_buffer("+");
+    else                                        append_singleline_part_to_buffer("-");
     expr->operand()->perform(this);
   }
 
   void Inspect::operator()(Function_Call* call)
   {
-    buffer += call->name();
+    append_singleline_part_to_buffer(call->name());
     call->arguments()->perform(this);
   }
 
@@ -264,12 +278,12 @@ namespace Sass {
 
   void Inspect::operator()(Variable* var)
   {
-    buffer += var->name();
+    append_singleline_part_to_buffer(var->name());
   }
 
   void Inspect::operator()(Textual* txt)
   {
-    buffer += txt->value();
+    append_singleline_part_to_buffer(txt->value());
   }
 
   // helper functions for serializing numbers
@@ -295,8 +309,6 @@ namespace Sass {
 
   void Inspect::operator()(Number* n)
   {
-    // buffer += double_to_string(n->value(), 5);
-    // buffer += n->unit();
     stringstream ss;
     ss.precision(5);
     ss << fixed << n->value();
@@ -306,10 +318,10 @@ namespace Sass {
     }
     if (d[d.length()-1] == '.') d.resize(d.length()-1);
     if (n->numerator_units().size() > 1 || n->denominator_units().size() > 0) {
-      error(d + n->unit() + " is not a valid CSS value", n->path(), n->line());
+      error(d + n->unit() + " is not a valid CSS value", n->path(), n->position());
     }
-    buffer += d;
-    buffer += n->unit();
+    append_singleline_part_to_buffer(d);
+    append_singleline_part_to_buffer(n->unit());
   }
 
   // helper function for serializing colors
@@ -360,12 +372,12 @@ namespace Sass {
       ss << static_cast<unsigned long>(b) << ", ";
       ss << a << ')';
     }
-    buffer += ss.str();
+    append_singleline_part_to_buffer(ss.str());
   }
 
   void Inspect::operator()(Boolean* b)
   {
-    buffer += (b->value() ? "true" : "false");
+    append_singleline_part_to_buffer(b->value() ? "true" : "false");
   }
 
   void Inspect::operator()(String_Schema* ss)
@@ -373,30 +385,30 @@ namespace Sass {
     // Evaluation should turn these into String_Constants, so this method is
     // only for inspection purposes.
     for (size_t i = 0, L = ss->length(); i < L; ++i) {
-      if ((*ss)[i]->is_interpolant()) buffer += "#{";
+      if ((*ss)[i]->is_interpolant()) append_singleline_part_to_buffer("#{");
       (*ss)[i]->perform(this);
-      if ((*ss)[i]->is_interpolant()) buffer += '}';
+      if ((*ss)[i]->is_interpolant()) append_singleline_part_to_buffer("}");
     }
   }
 
   void Inspect::operator()(String_Constant* s)
   {
-    buffer += (s->needs_unquoting() ? unquote(s->value()) : s->value());
+    append_singleline_part_to_buffer(s->needs_unquoting() ? unquote(s->value()) : s->value());
   }
 
   void Inspect::operator()(Media_Query* mq)
   {
     size_t i = 0;
     if (mq->media_type()) {
-      if      (mq->is_negated())    buffer += "not ";
-      else if (mq->is_restricted()) buffer += "only ";
+      if      (mq->is_negated())    append_singleline_part_to_buffer("not ");
+      else if (mq->is_restricted()) append_singleline_part_to_buffer("only ");
       mq->media_type()->perform(this);
     }
     else {
       (*mq)[i++]->perform(this);
     }
     for (size_t L = mq->length(); i < L; ++i) {
-      buffer += " and ";
+      append_singleline_part_to_buffer(" and ");
       (*mq)[i]->perform(this);
     }
   }
@@ -407,52 +419,52 @@ namespace Sass {
       mqe->feature()->perform(this);
     }
     else {
-      buffer += "(";
+      append_singleline_part_to_buffer("(");
       mqe->feature()->perform(this);
       if (mqe->value()) {
-        buffer += ": ";
+        append_singleline_part_to_buffer(": ");
         mqe->value()->perform(this);
       }
-      buffer += ')';
+      append_singleline_part_to_buffer(")");
     }
   }
 
   void Inspect::operator()(Null* n)
   {
-     buffer += "null";
+    append_singleline_part_to_buffer("null");
   }
 
   // parameters and arguments
   void Inspect::operator()(Parameter* p)
   {
-    buffer += p->name();
+    append_singleline_part_to_buffer(p->name());
     if (p->default_value()) {
-      buffer += ": ";
+      append_singleline_part_to_buffer(": ");
       p->default_value()->perform(this);
     }
     else if (p->is_rest_parameter()) {
-      buffer += "...";
+      append_singleline_part_to_buffer("...");
     }
   }
 
   void Inspect::operator()(Parameters* p)
   {
-    buffer += '(';
+    append_singleline_part_to_buffer("(");
     if (!p->empty()) {
       (*p)[0]->perform(this);
       for (size_t i = 1, L = p->length(); i < L; ++i) {
-        buffer += ", ";
+        append_singleline_part_to_buffer(", ");
         (*p)[i]->perform(this);
       }
     }
-    buffer += ')';
+    append_singleline_part_to_buffer(")");
   }
 
   void Inspect::operator()(Argument* a)
   {
     if (!a->name().empty()) {
-      buffer += a->name();
-      buffer += ": ";
+      append_singleline_part_to_buffer(a->name());
+      append_singleline_part_to_buffer(": ");
     }
     // Special case: argument nulls can be ignored
     if (a->value()->concrete_type() == Expression::NULL_VAL) {
@@ -460,21 +472,21 @@ namespace Sass {
     }
     a->value()->perform(this);
     if (a->is_rest_argument()) {
-      buffer += "...";
+      append_singleline_part_to_buffer("...");
     }
   }
 
   void Inspect::operator()(Arguments* a)
   {
-    buffer += '(';
+    append_singleline_part_to_buffer("(");
     if (!a->empty()) {
       (*a)[0]->perform(this);
       for (size_t i = 1, L = a->length(); i < L; ++i) {
-        buffer += ", ";
+        append_singleline_part_to_buffer(", ");
         (*a)[i]->perform(this);
       }
     }
-    buffer += ')';
+    append_singleline_part_to_buffer(")");
   }
 
   // selectors
@@ -486,49 +498,54 @@ namespace Sass {
   void Inspect::operator()(Selector_Reference* ref)
   {
     if (ref->selector()) ref->selector()->perform(this);
-    else                 buffer += '&';
+    else                 append_singleline_part_to_buffer("&");
   }
 
   void Inspect::operator()(Selector_Placeholder* s)
   {
-    buffer += s->name();
+    append_singleline_part_to_buffer(s->name());
   }
 
   void Inspect::operator()(Type_Selector* s)
   {
-    buffer += s->name();
+    if (ctx) ctx->source_map.add_mapping(s);
+    append_singleline_part_to_buffer(s->name());
   }
 
   void Inspect::operator()(Selector_Qualifier* s)
   {
-    buffer += s->name();
+    if (ctx) ctx->source_map.add_mapping(s);
+    append_singleline_part_to_buffer(s->name());
   }
 
   void Inspect::operator()(Attribute_Selector* s)
   {
-    buffer += '[';
-    buffer += s->name();
+    if (ctx) ctx->source_map.add_mapping(s);
+    append_singleline_part_to_buffer("[");
+    append_singleline_part_to_buffer(s->name());
     if (!s->matcher().empty()) {
-      buffer += s->matcher();
-      buffer += s->value();
+      append_singleline_part_to_buffer(s->matcher());
+      append_singleline_part_to_buffer(s->value());
     }
-    buffer += ']';
+    append_singleline_part_to_buffer("]");
   }
 
   void Inspect::operator()(Pseudo_Selector* s)
   {
-    buffer += s->name();
+    if (ctx) ctx->source_map.add_mapping(s);
+    append_singleline_part_to_buffer(s->name());
     if (s->expression()) {
       s->expression()->perform(this);
-      buffer += ')';
+      append_singleline_part_to_buffer(")");
     }
   }
 
   void Inspect::operator()(Negated_Selector* s)
   {
-    buffer += ":not(";
+    if (ctx) ctx->source_map.add_mapping(s);
+    append_singleline_part_to_buffer(":not(");
     s->selector()->perform(this);
-    buffer += ')';
+    append_singleline_part_to_buffer(")");
   }
 
   void Inspect::operator()(Compound_Selector* s)
@@ -544,15 +561,15 @@ namespace Sass {
     Complex_Selector*            tail = c->tail();
     Complex_Selector::Combinator comb = c->combinator();
     if (head && !head->is_empty_reference()) head->perform(this);
-    if (head && !head->is_empty_reference() && tail) buffer += ' ';
+    if (head && !head->is_empty_reference() && tail) append_singleline_part_to_buffer(" ");
     switch (comb) {
-      case Complex_Selector::ANCESTOR_OF:                break;
-      case Complex_Selector::PARENT_OF:   buffer += '>'; break;
-      case Complex_Selector::PRECEDES:    buffer += '~'; break;
-      case Complex_Selector::ADJACENT_TO: buffer += '+'; break;
+      case Complex_Selector::ANCESTOR_OF:                                        break;
+      case Complex_Selector::PARENT_OF:   append_singleline_part_to_buffer(">"); break;
+      case Complex_Selector::PRECEDES:    append_singleline_part_to_buffer("~"); break;
+      case Complex_Selector::ADJACENT_TO: append_singleline_part_to_buffer("+"); break;
     }
     if (tail && comb != Complex_Selector::ANCESTOR_OF) {
-      buffer += ' ';
+      append_singleline_part_to_buffer(" ");
     }
     if (tail) tail->perform(this);
   }
@@ -562,7 +579,7 @@ namespace Sass {
     if (g->empty()) return;
     (*g)[0]->perform(this);
     for (size_t i = 1, L = g->length(); i < L; ++i) {
-      buffer += ", ";
+      append_singleline_part_to_buffer(", ");
       (*g)[i]->perform(this);
     }
   }
@@ -571,7 +588,7 @@ namespace Sass {
   { }
 
   void Inspect::indent()
-  { buffer += string(2*indentation, ' '); }
+  { append_singleline_part_to_buffer(string(2*indentation, ' ')); }
 
   string unquote(const string& s)
   {
@@ -606,6 +623,18 @@ namespace Sass {
     }
     t.push_back(q);
     return t;
+  }
+  
+  void Inspect::append_singleline_part_to_buffer(const string& text)
+  {
+    buffer += text;
+    if (ctx) ctx->source_map.update_column(text);
+  }
+  
+  void Inspect::append_multiline_part_to_buffer(const string& text)
+  {
+    buffer += text;
+    if (ctx) ctx->source_map.new_line();
   }
 
 }

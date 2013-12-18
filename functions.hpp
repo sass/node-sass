@@ -10,8 +10,12 @@
 
 #include <string>
 
+#ifndef SASS_POSITION
+#include "position.hpp"
+#endif
+
 #define BUILT_IN(name) Expression*\
-name(Env& env, Context& ctx, Signature sig, const string& path, size_t line, Backtrace* backtrace)
+name(Env& env, Context& ctx, Signature sig, const string& path, Position position, Backtrace* backtrace)
 
 namespace Sass {
   struct Context;
@@ -21,7 +25,7 @@ namespace Sass {
   class Definition;
   typedef Environment<AST_Node*> Env;
   typedef const char* Signature;
-  typedef Expression* (*Native_Function)(Env&, Context&, Signature, const string&, size_t, Backtrace*);
+  typedef Expression* (*Native_Function)(Env&, Context&, Signature, const string&, Position, Backtrace*);
 
   Definition* make_native_function(Signature, Native_Function, Context&);
   Definition* make_c_function(Signature sig, Sass_C_Function f, Context& ctx);

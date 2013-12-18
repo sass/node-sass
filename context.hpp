@@ -13,6 +13,10 @@
 #include "environment.hpp"
 #endif
 
+#ifndef SASS_SOURCE_MAP
+#include "source_map.hpp"
+#endif
+
 namespace Sass {
   using namespace std;
   class AST_Node;
@@ -35,11 +39,13 @@ namespace Sass {
     vector<string> include_paths;
     vector<pair<string, const char*> > queue; // queue of files to be parsed
     map<string, Block*> style_sheets; // map of paths to ASTs
+    SourceMap source_map;
 
     string       image_path; // for the image-url Sass function
     bool         source_comments;
     bool         source_maps;
     Output_Style output_style;
+    string       source_map_file;
 
     map<string, Color*> names_to_colors;
     map<int, string>    colors_to_names;
@@ -54,6 +60,7 @@ namespace Sass {
       KWD_ARG(Data, bool,            source_comments);
       KWD_ARG(Data, bool,            source_maps);
       KWD_ARG(Data, Output_Style,    output_style);
+      KWD_ARG(Data, string,          source_map_file)
     };
 
     Context(Data);
@@ -65,11 +72,16 @@ namespace Sass {
     string add_file(string, string);
     char* compile_string();
     char* compile_file();
+    char* generate_source_map();
 
     std::vector<string> get_included_files();
 
   private:
+    string format_source_mapping_url(const string& file) const;
+    string get_cwd();
+    
     vector<string> included_files;
+    string cwd;
 
     // void register_built_in_functions(Env* env);
     // void register_function(Signature sig, Native_Function f, Env* env);

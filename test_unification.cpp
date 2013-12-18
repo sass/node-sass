@@ -10,7 +10,7 @@ Context ctx = Context(Context::Data());
 To_String to_string;
 
 Compound_Selector* selector(string src)
-{ return Parser::from_c_str(src.c_str(), ctx, "", 0).parse_simple_selector_sequence(); }
+{ return Parser::from_c_str(src.c_str(), ctx, "", Position()).parse_simple_selector_sequence(); }
 
 void unify(string lhs, string rhs)
 {

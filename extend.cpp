@@ -25,14 +25,14 @@ namespace Sass {
     bool extended = false;
     if (sg->has_placeholder()) {
       // To_String to_string;
-      Compound_Selector* placeholder = new (ctx.mem) Compound_Selector(sg->path(), sg->line(), 1);
+      Compound_Selector* placeholder = new (ctx.mem) Compound_Selector(sg->path(), sg->position(), 1);
       *placeholder << sg->find_placeholder();
       // cerr << "placeholder: " << placeholder->perform(&to_string) << endl;
       // if the placeholder needs to be subbed
       if (extensions.count(*placeholder)) {
         // cerr << "need to sub " << placeholder->perform(&to_string) << " " << extensions.count(*placeholder) << " times" << endl;
         // perform each substitution and append it to the selector group of the ruleset
-        ng = new (ctx.mem) Selector_List(sg->path(), sg->line(), extensions.count(*placeholder));
+        ng = new (ctx.mem) Selector_List(sg->path(), sg->position(), extensions.count(*placeholder));
         for (multimap<Compound_Selector, Complex_Selector*>::iterator extender = extensions.lower_bound(*placeholder), E = extensions.upper_bound(*placeholder);
              extender != E;
              ++extender) {
@@ -52,7 +52,7 @@ namespace Sass {
     }
     else {
       To_String to_string;
-      ng = new (ctx.mem) Selector_List(sg->path(), sg->line(), sg->length());
+      ng = new (ctx.mem) Selector_List(sg->path(), sg->position(), sg->length());
       // for each selector in the group
       for (size_t i = 0, L = sg->length(); i < L; ++i) {
         Complex_Selector* sel = (*sg)[i];
@@ -74,7 +74,7 @@ namespace Sass {
 
     // let's try the new stuff here; eventually it should replace the preceding
     set<Compound_Selector> seen;
-    Selector_List* new_list = new (ctx.mem) Selector_List(sg->path(), sg->line());
+    Selector_List* new_list = new (ctx.mem) Selector_List(sg->path(), sg->position());
     for (size_t i = 0, L = sg->length(); i < L; ++i)
     {
       *new_list += extend_complex((*sg)[i], seen);
@@ -96,11 +96,11 @@ namespace Sass {
   Selector_List* Extend::generate_extension(Complex_Selector* extendee, Complex_Selector* extender)
   {
     To_String to_string;
-    Selector_List* new_group = new (ctx.mem) Selector_List(extendee->path(), extendee->line());
+    Selector_List* new_group = new (ctx.mem) Selector_List(extendee->path(), extendee->position());
     Complex_Selector* extendee_context = extendee->context(ctx);
     Complex_Selector* extender_context = extender->context(ctx);
     if (extendee_context && extender_context) {
-      Complex_Selector* base = new (ctx.mem) Complex_Selector(new_group->path(), new_group->line(), Complex_Selector::ANCESTOR_OF, extender->base(), 0);
+      Complex_Selector* base = new (ctx.mem) Complex_Selector(new_group->path(), new_group->position(), Complex_Selector::ANCESTOR_OF, extender->base(), 0);
       extendee_context->innermost()->tail(extender);
       *new_group << extendee_context;
       // make another one so we don't erroneously share tails
@@ -126,7 +126,7 @@ namespace Sass {
   {
     To_String to_string;
     cerr << "EXTENDING COMPLEX: " << sel->perform(&to_string) << endl;
-    Selector_List* choices = new (ctx.mem) Selector_List(sel->path(), sel->line());
+    Selector_List* choices = new (ctx.mem) Selector_List(sel->path(), sel->position());
 
     Compound_Selector* h = sel->head();
     Complex_Selector* t = sel->tail();
@@ -141,7 +141,7 @@ namespace Sass {
       }
       if (!found)
       {
-        *choices << new (ctx.mem) Complex_Selector(sel->path(), sel->line(), Complex_Selector::ANCESTOR_OF, h, 0);
+        *choices << new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, h, 0);
       }
       *choices += extended;
     }
@@ -160,7 +160,7 @@ namespace Sass {
         }
         if (!found)
         {
-          *choices << new (ctx.mem) Complex_Selector(sel->path(), sel->line(), Complex_Selector::ANCESTOR_OF, h, 0);
+          *choices << new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, h, 0);
         }
         *choices += extended;
       }
@@ -172,7 +172,7 @@ namespace Sass {
   Selector_List* Extend::extend_compound(Compound_Selector* sel, set<Compound_Selector>& seen)
   {
     To_String to_string;
-    Selector_List* results = new (ctx.mem) Selector_List(sel->path(), sel->line());
+    Selector_List* results = new (ctx.mem) Selector_List(sel->path(), sel->position());
 
     vector<pair<Complex_Selector*, Compound_Selector*> > entries = subset_map.get_v(sel->to_str_vec());
 
