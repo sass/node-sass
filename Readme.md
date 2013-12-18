@@ -40,9 +40,9 @@ Since libsass is a pure library, tests are run through the [SassSpec](http://git
 
 To run tests against libsass while developing, please ensure you have the latest version of the above projects cloned, and then define the following environment variables:
   
-  export SASS_SPEC_PATH=~/path/sass-spec
-  export SASS_SASSC_PATH=~/path/sassc
-  export SASS_LIBSASS_PATH=~/path/libsass
+    export SASS_SPEC_PATH=~/path/sass-spec
+    export SASS_SASSC_PATH=~/path/sassc
+    export SASS_LIBSASS_PATH=~/path/libsass
 
 Obviously, update them to your local environment. Then, its just a matter of running...
 
