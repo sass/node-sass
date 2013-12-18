@@ -347,4 +347,27 @@ namespace Sass {
     return result;
   }
 
+  Compound_Selector* Compound_Selector::minus(Compound_Selector* rhs, Context& ctx)
+  {
+    To_String to_string;
+    Compound_Selector* result = new (ctx.mem) Compound_Selector(path(), position());
+
+    // not very efficient because it needs to preserve order
+    for (size_t i = 0, L = length(); i < L; ++i)
+    {
+      bool found = false;
+      for (size_t j = 0, M = rhs->length(); j < M; ++j)
+      {
+        if ((*this)[i]->perform(&to_string) == (*rhs)[j]->perform(&to_string))
+        {
+          found = true;
+          break;
+        }
+      }
+      if (!found) (*result) << (*this)[i];
+    }
+
+    return result;
+  }
+
 }

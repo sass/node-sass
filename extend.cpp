@@ -180,6 +180,16 @@ namespace Sass {
     {
       if (seen.count(*entries[i].second)) continue;
       cerr << "COMPOUND: " << sel->perform(&to_string) << " KEYS TO " << entries[i].first->perform(&to_string) << " AND " << entries[i].second->perform(&to_string) << endl;
+      Compound_Selector* diff = sel->minus(entries[i].second, ctx);
+      Compound_Selector* last = entries[i].first->base();
+      if (!last) last = new (ctx.mem) Compound_Selector(sel->path(), sel->position());
+      cerr << sel->perform(&to_string) << " - " << entries[i].second->perform(&to_string) << " = " << diff->perform(&to_string) << endl;
+      cerr << "LAST: " << last->perform(&to_string) << endl;
+      Compound_Selector* unif;
+      if (last->length() == 0) unif = diff;
+      else if (diff->length() == 0) unif = last;
+      else unif = last->unify_with(diff, ctx);
+      cerr << "UNIFIED: " << unif->perform(&to_string) << endl;
     }
 
     return results;

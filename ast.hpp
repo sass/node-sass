@@ -1243,7 +1243,7 @@ namespace Sass {
     vector<string> to_str_vec(); // sometimes need to convert to a flat "by-value" data structure
 
     set<Complex_Selector>& sources() { return sources_; }
-
+    Compound_Selector* minus(Compound_Selector* rhs, Context& ctx);
     ATTACH_OPERATIONS();
   };
 
