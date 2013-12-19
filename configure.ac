@@ -69,5 +69,5 @@ fi
 
 AM_CONDITIONAL(ENABLE_TESTS, test "x$enable_tests" = "xyes")
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile support/libsass.pc])
 AC_OUTPUT
