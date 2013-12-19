@@ -8,17 +8,22 @@
 
 # Configuration stuff
 
-aclocal.m4
-autom4te.cache/
-config.h
-config.h.in
-config.log
-config.status
-configure
 Makefile.in
+/aclocal.m4
+/autom4te.cache/
+/config.h
+/config.h.in
+/config.log
+/config.status
+/config.sub
+/configure
+/depcomp
+/install-sh
+/libtool
+/ltmain.sh
+/missing
+/stamp-h1
 src/Makefile
-libtool
-stamp-h1
 libsass/*
 
 # Build stuff
