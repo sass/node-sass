@@ -1307,6 +1307,7 @@ namespace Sass {
       // fallback
       return srcs;
     }
+    Complex_Selector* clone(Context&);
     ATTACH_OPERATIONS();
   };
 

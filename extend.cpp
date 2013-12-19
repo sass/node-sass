@@ -3,6 +3,7 @@
 #include "contextualize.hpp"
 #include "to_string.hpp"
 #include "backtrace.hpp"
+#include "paths.hpp"
 #include <iostream>
 
 namespace Sass {
@@ -141,7 +142,7 @@ namespace Sass {
       }
       if (!found)
       {
-        *choices << new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, h, 0);
+        *extended << new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, h, 0);
       }
       *choices += extended;
     }
@@ -160,7 +161,7 @@ namespace Sass {
         }
         if (!found)
         {
-          *choices << new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, h, 0);
+          *extended << new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, h, 0);
         }
         *choices += extended;
       }
@@ -189,7 +190,15 @@ namespace Sass {
       if (last->length() == 0) unif = diff;
       else if (diff->length() == 0) unif = last;
       else unif = last->unify_with(diff, ctx);
-      cerr << "UNIFIED: " << unif->perform(&to_string) << endl;
+      if (unif) cerr << "UNIFIED: " << unif->perform(&to_string) << endl;
+      if (!unif || unif->length() == 0) continue;
+      Complex_Selector* cplx = entries[i].first->clone(ctx);
+      Complex_Selector* new_innermost = new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, unif, 0);
+      cplx->set_innermost(new_innermost, cplx->clear_innermost());
+      cerr << "FULL UNIFIED: " << cplx->perform(&to_string) << endl;
+      set<Compound_Selector> seen2 = seen;
+      seen2.insert(*entries[i].second);
+      *results += extend_complex(cplx, seen2);
     }
 
     return results;

@@ -297,6 +297,13 @@ namespace Sass {
     { tail()->set_innermost(val, c); }
   }
 
+  Complex_Selector* Complex_Selector::clone(Context& ctx)
+  {
+    Complex_Selector* cpy = new (ctx.mem) Complex_Selector(*this);
+    if (tail()) cpy->tail(tail()->clone(ctx));
+    return cpy;
+  }
+
   Selector_Placeholder* Selector::find_placeholder()
   {
     return 0;
