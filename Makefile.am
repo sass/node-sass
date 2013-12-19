@@ -1,5 +1,8 @@
 ACLOCAL_AMFLAGS = -I m4
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = support/libsass.pc
+
 lib_LTLIBRARIES = libsass.la
 libsass_la_SOURCES = ast.cpp base64vlq.cpp bind.cpp constants.cpp context.cpp contextualize.cpp \
   copy_c_str.cpp error_handling.cpp eval.cpp expand.cpp extend.cpp file.cpp \

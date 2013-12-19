@@ -36,3 +36,4 @@ bin/*
 
 sassc++
 libsass.la
+support/libsass.pc
