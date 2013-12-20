@@ -6,7 +6,7 @@ AC_INIT([libsass], [1.0], [support@moovweb.com])
 AC_CONFIG_SRCDIR([ast.hpp])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE([1.10 foreign parallel-tests])
+AM_INIT_AUTOMAKE([1.10 foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 LT_INIT
 
