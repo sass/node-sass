@@ -1308,6 +1308,7 @@ namespace Sass {
       return srcs;
     }
     Complex_Selector* clone(Context&);
+    vector<Compound_Selector*> to_vector();
     ATTACH_OPERATIONS();
   };
 
@@ -1334,6 +1335,7 @@ namespace Sass {
       { sum += (*this)[i]->specificity(); }
       return sum;
     }
+    // vector<Complex_Selector*> members() { return elements_; }
     ATTACH_OPERATIONS();
   };
 }

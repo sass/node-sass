@@ -75,10 +75,10 @@ namespace Sass {
 
     // let's try the new stuff here; eventually it should replace the preceding
     set<Compound_Selector> seen;
-    Selector_List* new_list = new (ctx.mem) Selector_List(sg->path(), sg->position());
+    // Selector_List* new_list = new (ctx.mem) Selector_List(sg->path(), sg->position());
     for (size_t i = 0, L = sg->length(); i < L; ++i)
     {
-      *new_list += extend_complex((*sg)[i], seen);
+      /* *new_list += */ extend_complex((*sg)[i], seen);
     }
 
     r->block()->perform(this);
@@ -123,11 +123,11 @@ namespace Sass {
     return new_group;
   }
 
-  Selector_List* Extend::extend_complex(Complex_Selector* sel, set<Compound_Selector>& seen)
+  vector<Selector_List*> Extend::extend_complex(Complex_Selector* sel, set<Compound_Selector>& seen)
   {
     To_String to_string;
     cerr << "EXTENDING COMPLEX: " << sel->perform(&to_string) << endl;
-    Selector_List* choices = new (ctx.mem) Selector_List(sel->path(), sel->position());
+    vector<Selector_List*> choices; // = new (ctx.mem) Selector_List(sel->path(), sel->position());
 
     Compound_Selector* h = sel->head();
     Complex_Selector* t = sel->tail();
@@ -144,7 +144,7 @@ namespace Sass {
       {
         *extended << new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, h, 0);
       }
-      *choices += extended;
+      choices.push_back(extended);
     }
     while(t)
     {
@@ -163,10 +163,30 @@ namespace Sass {
         {
           *extended << new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, h, 0);
         }
-        *choices += extended;
+        choices.push_back(extended);
       }
     }
+    cerr << "CHOICES:" << endl;
+    for (size_t i = 0, L = choices.size(); i < L; ++i)
+    {
+      cerr << choices[i]->perform(&to_string) << endl;
+    }
 
+    vector<vector<Complex_Selector*> > cs;
+    for (size_t i = 0, S = choices.size(); i < S; ++i)
+    {
+      cs.push_back(choices[i]->elements());
+    }
+    vector<vector<Complex_Selector*> > ps = paths(cs);
+    cerr << "PATHS:" << endl;
+    for (size_t i = 0, S = cs.size(); i < S; ++i)
+    {
+      for (size_t j = 0, T = cs[i].size(); j < T; ++j)
+      {
+        cerr << cs[i][j]->perform(&to_string) << ", ";
+      }
+      cerr << endl;
+    }
     return choices;
   }
 
@@ -175,6 +195,7 @@ namespace Sass {
     To_String to_string;
     Selector_List* results = new (ctx.mem) Selector_List(sel->path(), sel->position());
 
+    // TODO: Do we need to group the results by extender?
     vector<pair<Complex_Selector*, Compound_Selector*> > entries = subset_map.get_v(sel->to_str_vec());
 
     for (size_t i = 0, S = entries.size(); i < S; ++i)
@@ -198,7 +219,11 @@ namespace Sass {
       cerr << "FULL UNIFIED: " << cplx->perform(&to_string) << endl;
       set<Compound_Selector> seen2 = seen;
       seen2.insert(*entries[i].second);
-      *results += extend_complex(cplx, seen2);
+      vector<Selector_List*> ex2 = extend_complex(cplx, seen2);
+      for (size_t j = 0, T = ex2.size(); j < T; ++j)
+      {
+        *results += ex2[i];
+      }
     }
 
     return results;

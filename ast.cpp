@@ -377,4 +377,19 @@ namespace Sass {
     return result;
   }
 
+  vector<Compound_Selector*> Complex_Selector::to_vector()
+  {
+    vector<Compound_Selector*> result;
+    Compound_Selector* h = head();
+    Complex_Selector* t = tail();
+    if (h) result.push_back(h);
+    while (t)
+    {
+      h = t->head();
+      t = t->tail();
+      if (h) result.push_back(h);
+    }
+    return result;
+  }
+
 }
