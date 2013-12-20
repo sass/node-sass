@@ -93,6 +93,7 @@ namespace Sass {
       return *this;
     }
     vector<T>& elements() { return elements_; }
+    vector<T>& elements(vector<T>& e) { elements_ = e; return elements_; }
   };
   template <typename T>
   inline Vectorized<T>::~Vectorized() { }
