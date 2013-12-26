@@ -74,6 +74,10 @@ namespace Sass {
           error(msg.str(), a->path(), a->position());
         }
         List* arglist = static_cast<List*>(a->value());
+        // empty rest arg - treat all args as default values
+        if (!arglist->length()) {
+          break;
+        }
         // if it's the last param, move the whole arglist into it
         if (ip == LP-1) {
           env->current_frame()[p->name()] = arglist;
