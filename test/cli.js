@@ -68,7 +68,7 @@ describe('cli', function() {
     ]);
     emitter.on('error', done);
     emitter.on('write', function(err, file, css){
-      assert.equal(css.trim(), 'body {\n  background: red;\n  color: #0000FF; }');
+      assert.equal(css.trim(), 'body {\n  background: red;\n  color: #0000fe; }');
       fs.unlink(file, done);
     });
   });
