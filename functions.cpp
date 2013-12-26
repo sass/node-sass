@@ -751,7 +751,7 @@ namespace Sass {
       List* arglist = ARG("$x2", List);
       Number* least = x1;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
-        Number* xi = dynamic_cast<Number*>((*arglist)[i]);
+        Number* xi = dynamic_cast<Number*>(arglist->value_at_index(i));
         if (!xi) error("`" + string(sig) + "` only takes numeric arguments", path, position);
         if (lt(xi, least, ctx)) least = xi;
       }
@@ -765,7 +765,7 @@ namespace Sass {
       List* arglist = ARG("$x2", List);
       Number* greatest = x1;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
-        Number* xi = dynamic_cast<Number*>((*arglist)[i]);
+        Number* xi = dynamic_cast<Number*>(arglist->value_at_index(i));
         if (!xi) error("`" + string(sig) + "` only takes numeric arguments", path, position);
         if (lt(greatest, xi, ctx)) greatest = xi;
       }
@@ -796,7 +796,7 @@ namespace Sass {
       }
       if (l->empty()) error("argument `$list` of `" + string(sig) + "` must not be empty", path, position);
       if (n->value() < 1) error("argument `$n` of `" + string(sig) + "` must be greater than or equal to 1", path, position);
-      return (*l)[std::floor(n->value() - 1)];
+      return l->value_at_index(std::floor(n->value() - 1));
     }
 
     Signature index_sig = "index($list, $value)";
@@ -809,7 +809,7 @@ namespace Sass {
         *l << ARG("$list", Expression);
       }
       for (size_t i = 0, L = l->length(); i < L; ++i) {
-        if (eq((*l)[i], v, ctx)) return new (ctx.mem) Number(path, position, i+1);
+        if (eq(l->value_at_index(i), v, ctx)) return new (ctx.mem) Number(path, position, i+1);
       }
       return new (ctx.mem) Boolean(path, position, false);
     }
@@ -867,11 +867,15 @@ namespace Sass {
       List* arglist = new (ctx.mem) List(*ARG("$lists", List));
       size_t shortest = 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
-        List* ith = dynamic_cast<List*>((*arglist)[i]);
+        List* ith = dynamic_cast<List*>(arglist->value_at_index(i));
         if (!ith) {
           ith = new (ctx.mem) List(path, position, 1);
-          *ith << (*arglist)[i];
-          (*arglist)[i] = ith;
+          *ith << arglist->value_at_index(i);
+          if (arglist->is_arglist()) {
+            ((Argument*)(*arglist)[i])->value(ith);
+          } else {
+            (*arglist)[i] = ith;
+          }
         }
         shortest = (i ? std::min(shortest, ith->length()) : ith->length());
       }
@@ -880,7 +884,7 @@ namespace Sass {
       for (size_t i = 0; i < shortest; ++i) {
         List* zipper = new (ctx.mem) List(path, position, L);
         for (size_t j = 0; j < L; ++j) {
-          *zipper << (*static_cast<List*>((*arglist)[j]))[i];
+          *zipper << (*static_cast<List*>(arglist->value_at_index(j)))[i];
         }
         *zippers << zipper;
       }
@@ -892,7 +896,7 @@ namespace Sass {
     {
       List* arglist = ARG("$values", List);
       if (arglist->length() == 1) {
-        Expression* the_arg = (*arglist)[0];
+        Expression* the_arg = arglist->value_at_index(0);
         arglist = dynamic_cast<List*>(the_arg);
         if (!arglist) {
           List* result = new (ctx.mem) List(path, position, 1, List::COMMA);
@@ -902,9 +906,9 @@ namespace Sass {
       }
       List* result = new (ctx.mem) List(path, position, 0, List::COMMA);
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
-        Boolean* ith = dynamic_cast<Boolean*>((*arglist)[i]);
+        Boolean* ith = dynamic_cast<Boolean*>(arglist->value_at_index(i));
         if (ith && ith->value() == false) continue;
-        *result << (*arglist)[i];
+        *result << arglist->value_at_index(i);
       }
       return result;
     }
