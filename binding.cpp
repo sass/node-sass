@@ -60,7 +60,7 @@ NAN_METHOD(OldRender) {
     ctx->source_string = source;
     ctx->options.include_paths = new char[strlen(*bstr)+1];
     ctx->options.image_path = new char[0];
-    strcpy(ctx->options.include_paths, *bstr);
+    ctx->options.include_paths = *bstr;
     // ctx->options.output_style = SASS_STYLE_NESTED;
     ctx->options.output_style = args[3]->Int32Value();
     ctx->options.source_comments = args[4]->Int32Value();
@@ -118,7 +118,7 @@ NAN_METHOD(Render) {
     strcpy(source, *astr);
     ctx->source_string = source;
     ctx->options.include_paths = new char[strlen(*bstr)+1];
-    strcpy(ctx->options.include_paths, *bstr);
+    ctx->options.include_paths = *bstr;
     // ctx->options.output_style = SASS_STYLE_NESTED;
     ctx->options.image_path = new char[0];
     ctx->options.output_style = args[4]->Int32Value();
@@ -145,7 +145,7 @@ NAN_METHOD(RenderSync) {
     strcpy(source, *astr);
     ctx->source_string = source;
     ctx->options.include_paths = new char[strlen(*bstr)+1];
-    strcpy(ctx->options.include_paths, *bstr);
+    ctx->options.include_paths = *bstr;
     ctx->options.output_style = args[2]->Int32Value();
     ctx->options.image_path = new char[0];
     ctx->options.source_comments = args[3]->Int32Value();
@@ -227,7 +227,7 @@ NAN_METHOD(RenderFile) {
     strcpy(filename, *astr);
     ctx->input_path = filename;
     ctx->options.include_paths = new char[strlen(*bstr)+1];
-    strcpy(ctx->options.include_paths, *bstr);
+    ctx->options.include_paths = *bstr;
     // ctx->options.output_style = SASS_STYLE_NESTED;
     ctx->options.output_style = args[4]->Int32Value();
     ctx->options.image_path = new char[0];
@@ -254,7 +254,7 @@ NAN_METHOD(RenderFileSync) {
     strcpy(filename, *astr);
     ctx->input_path = filename;
     ctx->options.include_paths = new char[strlen(*bstr)+1];
-    strcpy(ctx->options.include_paths, *bstr);
+    ctx->options.include_paths = *bstr;
     ctx->options.image_path = new char[0];
     ctx->options.output_style = args[2]->Int32Value();
     ctx->options.source_comments = args[3]->Int32Value();
