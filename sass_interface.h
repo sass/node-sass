@@ -37,7 +37,7 @@ struct sass_file_context {
   const char* input_path;
   char* output_string;
   char* source_map_string;
-  char* source_map_file;
+  const char* source_map_file;
   struct sass_options options;
   int error_status;
   char* error_message;
