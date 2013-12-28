@@ -6,6 +6,7 @@
         'binding.cpp',
         'sass_context_wrapper.cpp',
         'libsass/ast.cpp',
+        'libsass/base64vlq.cpp',
         'libsass/bind.cpp',
         'libsass/constants.cpp',
         'libsass/context.cpp',
@@ -24,6 +25,7 @@
         'libsass/prelexer.cpp',
         'libsass/sass.cpp',
         'libsass/sass_interface.cpp',
+        'libsass/source_map.cpp',
         'libsass/to_c.cpp',
         'libsass/to_string.cpp',
         'libsass/units.cpp'
