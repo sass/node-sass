@@ -10,7 +10,20 @@ var scssStr = '#navbar {\
     a {\
       font-weight: bold; }}';
 
-sass.render(scssStr, function(err, css){
-  console.log(css)
-})
+//sass.render(scssStr, function(err, css){
+  //console.log(css)
+//})
 
+//console.log(sass.renderSync(scssStr));
+console.log(sass.renderSync(scssStr));
+
+//console.log(sass.renderSync({
+      //file: './test/sample.scss'
+//}));
+
+
+sass.render({
+  file: './test/sample.scss'
+}, function(output) {
+  console.log(output);
+});
