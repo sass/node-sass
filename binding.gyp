@@ -6,6 +6,7 @@
         'binding.cpp',
         'sass_context_wrapper.cpp',
         'libsass/ast.cpp',
+        'libsass/base64vlq.cpp',
         'libsass/bind.cpp',
         'libsass/constants.cpp',
         'libsass/context.cpp',
@@ -24,13 +25,17 @@
         'libsass/prelexer.cpp',
         'libsass/sass.cpp',
         'libsass/sass_interface.cpp',
+        'libsass/source_map.cpp',
         'libsass/to_c.cpp',
         'libsass/to_string.cpp',
-        'libsass/source_map.cpp',
         'libsass/units.cpp'
+      ],
+      'include_dirs': [
+        '<!(node -e "require(\'nan\')")'
       ],
       'cflags!'   : [ '-fno-exceptions' ],
       'cflags_cc!': [ '-fno-exceptions' ],
+      'cflags_cc' : [ '-fexceptions', '-frtti' ],
       'conditions': [
         ['OS=="mac"', {
           'xcode_settings': {
@@ -38,12 +43,6 @@
             'GCC_ENABLE_CPP_RTTI': 'YES',
             'MACOSX_DEPLOYMENT_TARGET': '10.7'
           }
-         }],
-        ['OS=="linux"', {
-          'cflags_cc': [
-            '-fexceptions',
-            '-frtti'
-          ]
          }]
       ]
     }
