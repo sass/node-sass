@@ -82,28 +82,39 @@ void MakeCallback(uv_work_t* req) {
     HandleScope scope;
     TryCatch try_catch;
     sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(req->data);
-    Local<Value> val, err;
-    const unsigned argc = 1;
-    int error_status = ctx_w->ctx ? ctx_w->ctx->error_status : ctx_w->fctx->error_status;
+    sass_context* ctx = static_cast<sass_context*>(ctx_w->ctx);
+    sass_file_context* fctx = static_cast<sass_file_context*>(ctx_w->fctx);
 
-    if (error_status == 0) {
+    if ((ctx && ctx->error_status == 0) || (fctx && fctx->error_status == 0)) {
         // if no error, do callback(null, result)
-        val = ctx_w->ctx ? Local<Value>::New(String::New(ctx_w->ctx->output_string)) : Local<Value>::New(String::New(ctx_w->fctx->output_string));
+        const unsigned argc = 1;
+        Local<Value> val;
+        if (ctx) {
+          val = Local<Value>::New(String::New(ctx->output_string));
+        } else {
+          val = Local<Value>::New(String::New(fctx->output_string));
+        }
         Local<Value> argv[argc] = {val};
         ctx_w->callback->Call(Context::GetCurrent()->Global(), argc, argv);
     } else {
         // if error, do callback(error)
-        err = ctx_w->ctx ? Local<Value>::New(String::New(ctx_w->ctx->error_message)) : Local<Value>::New(String::New(ctx_w->fctx->error_message));
+        const unsigned argc = 1;
+        Local<Value> err;
+        if (ctx) {
+          err = Local<Value>::New(String::New(ctx->error_message));
+        } else {
+          err = Local<Value>::New(String::New(fctx->error_message));
+        }
         Local<Value> argv[argc] = {err};
         ctx_w->errorCallback->Call(Context::GetCurrent()->Global(), argc, argv);
     }
     if (try_catch.HasCaught()) {
         node::FatalException(try_catch);
     }
-    if (ctx_w->ctx) {
-      delete ctx_w->ctx->source_string;
-    } else {
-      delete ctx_w->fctx->input_path;
+    if (fctx) {
+      delete fctx->input_path;
+    } else if (ctx) {
+      delete ctx->source_string;
     }
     sass_free_context_wrapper(ctx_w);
 }
