@@ -795,8 +795,12 @@ namespace Sass {
         *l << ARG("$list", Expression);
       }
       if (l->empty()) error("argument `$list` of `" + string(sig) + "` must not be empty", path, position);
-      if (n->value() < 1) error("argument `$n` of `" + string(sig) + "` must be greater than or equal to 1", path, position);
-      return l->value_at_index(std::floor(n->value() - 1));
+      size_t index;
+      if      (n->value() == 0) error("argunemt `$n` of `" + string(sig) + "` must be nonzero", path, position);
+      else if (n->value() < 0)  index = std::floor(l->length() + n->value());
+      else                      index = std::floor(n->value() - 1);
+      if (index < 0 || index > l->length() - 1) error("index out of bounds for `" + string(sig) + "`", path, position);
+      return l->value_at_index(index);
     }
 
     Signature index_sig = "index($list, $value)";
