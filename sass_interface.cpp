@@ -52,7 +52,6 @@ extern "C" {
   {
     if (ctx->output_string)     free(ctx->output_string);
     if (ctx->source_map_string) free(ctx->source_map_string);
-    if (ctx->source_map_file)   free(ctx->source_map_file);
     if (ctx->error_message)     free(ctx->error_message);
 
     free_string_array(ctx->included_files, ctx->num_included_files);

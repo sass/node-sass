@@ -1,12 +1,12 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.64])
+AC_PREREQ([2.61])
 AC_INIT([libsass], [1.0], [support@moovweb.com])
 AC_CONFIG_SRCDIR([ast.hpp])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE([1.11 foreign parallel-tests])
+AM_INIT_AUTOMAKE([1.10 foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 LT_INIT
 
@@ -69,5 +69,5 @@ fi
 
 AM_CONDITIONAL(ENABLE_TESTS, test "x$enable_tests" = "xyes")
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile support/libsass.pc])
 AC_OUTPUT

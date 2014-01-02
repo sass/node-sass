@@ -37,60 +37,73 @@ namespace Sass {
       Parameter* p = (*ps)[ip];
       Argument*  a = (*as)[ia];
 
-      if (a->is_rest_argument() && p->is_rest_parameter()) {
-        // rest param and rest arg -- just add one to the other
-        if (env->current_frame_has(p->name())) {
-          *static_cast<List*>(env->current_frame()[p->name()])
-                              += static_cast<List*>(a->value());
-        }
-        else {
-          env->current_frame()[p->name()] = a->value();
-        }
-        ++ia;
-        ++ip;
-      }
-      else if (p->is_rest_parameter()) {
-        List* arglist = 0;
-        if (!env->current_frame_has(p->name())) {
-          arglist = new (ctx.mem) List(p->path(),
-                                       p->position(),
-                                       0,
-                                       List::COMMA,
-                                       true);
+      // If the current parameter is the rest parameter, process and break the loop
+      if (p->is_rest_parameter()) {
+        if (a->is_rest_argument()) {
+          // rest param and rest arg -- just add one to the other
+          if (env->current_frame_has(p->name())) {
+            *static_cast<List*>(env->current_frame()[p->name()])
+            += static_cast<List*>(a->value());
+          }
+          else {
+            env->current_frame()[p->name()] = a->value();
+          }
+        } else {
+
+          // copy all remaining arguments into the rest parameter, preserving names
+          List* arglist = new (ctx.mem) List(p->path(),
+                                             p->position(),
+                                             0,
+                                             List::COMMA,
+                                             true);
           env->current_frame()[p->name()] = arglist;
+          while (ia < LA) {
+            a = (*as)[ia];
+            (*arglist) << new (ctx.mem) Argument(a->path(),
+                                                 a->position(),
+                                                 a->value(),
+                                                 a->name(),
+                                                 false);
+            ++ia;
+          }
         }
-        else {
-          arglist = static_cast<List*>(env->current_frame()[p->name()]);
-        }
-        *arglist << a->value(); // TODO: named args going into rest-param?
-        ++ia;
+        ++ip;
+        break;
       }
+
+      // If the current argument is the rest argument, extract a value for processing
       else if (a->is_rest_argument()) {
         // normal param and rest arg
+        List* arglist = static_cast<List*>(a->value());
+        // empty rest arg - treat all args as default values
+        if (!arglist->length()) {
+          break;
+        }
+        // otherwise move one of the rest args into the param, converting to argument if necessary
+        if (arglist->is_arglist()) {
+          a = static_cast<Argument*>((*arglist)[0]);
+        } else {
+          Expression* a_to_convert = (*arglist)[0];
+          a = new (ctx.mem) Argument(a_to_convert->path(), a_to_convert->position(), a_to_convert, "", false);
+        }
+        arglist->elements().erase(arglist->elements().begin());
+        if (!arglist->length() || (!arglist->is_arglist() && ip + 1 == LP)) {
+          ++ia;
+        }
+      } else {
+        ++ia;
+      }
+
+      if (a->name().empty()) {
         if (env->current_frame_has(p->name())) {
           stringstream msg;
           msg << "parameter " << p->name()
-              << " provided more than once in call to " << callee;
+          << " provided more than once in call to " << callee;
           error(msg.str(), a->path(), a->position());
         }
-        List* arglist = static_cast<List*>(a->value());
-        // if it's the last param, move the whole arglist into it
-        if (ip == LP-1) {
-          env->current_frame()[p->name()] = arglist;
-          ++ia;
-        }
-        // otherwise move one of the rest args into the param and loop
-        else {
-          env->current_frame()[p->name()] = (*arglist)[0];
-          arglist->elements().erase(arglist->elements().begin());
-        }
-        ++ip;
-      }
-      else if (a->name().empty()) {
         // ordinal arg -- bind it to the next param
         env->current_frame()[p->name()] = a->value();
         ++ip;
-        ++ia;
       }
       else {
         // named arg -- bind it to the appropriately named param
@@ -112,7 +125,6 @@ namespace Sass {
           error(msg.str(), a->path(), a->position());
         }
         env->current_frame()[a->name()] = a->value();
-        ++ia;
       }
     }
 
