@@ -203,6 +203,7 @@ namespace Sass {
   Selector_List* Extend::extend_compound(Compound_Selector* sel, set<Compound_Selector>& seen)
   {
     To_String to_string;
+    cerr << "EXTEND_COMPOUND: " << sel->perform(&to_string) << endl;
     Selector_List* results = new (ctx.mem) Selector_List(sel->path(), sel->position());
 
     // TODO: Do we need to group the results by extender?
@@ -229,6 +230,7 @@ namespace Sass {
       // cerr << "FULL UNIFIED: " << cplx->perform(&to_string) << endl;
       set<Compound_Selector> seen2 = seen;
       seen2.insert(*entries[i].second);
+      cerr << "RECURSIVELY CALLING EXTEND_COMPLEX ON " << cplx->perform(&to_string) << endl;
       vector<Selector_List*> ex2 = extend_complex(cplx, seen2);
       for (size_t j = 0, T = ex2.size(); j < T; ++j)
       {
