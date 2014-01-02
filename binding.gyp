@@ -24,9 +24,9 @@
         'libsass/prelexer.cpp',
         'libsass/sass.cpp',
         'libsass/sass_interface.cpp',
-        'libsass/source_map.cpp',
         'libsass/to_c.cpp',
         'libsass/to_string.cpp',
+        'libsass/source_map.cpp',
         'libsass/units.cpp'
       ],
       'cflags!'   : [ '-fno-exceptions' ],

@@ -52,7 +52,7 @@ The API for using node-sass has changed, so that now there is only one variable 
 [Important: currently the argument `outputStyle` has some problem which may cause the output css becomes nothing because of the libsass, so you should not use it now!]
 
 #### sourceComments
-`sourceComments` is a `String` to determine what debug information is included in the output file. Its value should be one of `'none', 'normal'`. The default is `'none'`.
+`sourceComments` is a `String` to determine what debug information is included in the output file. Its value should be one of `'none', 'normal', 'map'`. The default is `'none'`.
 [Important: `souceComments` is only supported when using the `file` option, and does nothing when using `data` flag.]
 
 ### Examples
@@ -92,17 +92,12 @@ var server = connect.createServer(
     , dest: __dirname + '/public'
     , debug: true
     , outputStyle: 'compressed'
-    , prefix:  '/prefix'
   }),
-  connect.static('/prefix', __dirname + '/public')
+  connect.static(__dirname + '/public')
 );
 ```
 
 Heavily inspired by <https://github.com/LearnBoost/stylus>
-
-## DocPad Plugin
-
-[@jking90](https://github.com/jking90) wrote a [DocPad](http://docpad.org/) plugin that compiles `.scss` files using node-sass: <https://github.com/jking90/docpad-plugin-nodesass>
 
 ## Grunt extension
 
@@ -146,14 +141,6 @@ Output will be saved with the same name as input SASS file into the current work
       --include-path     Path to look for @import-ed files                      [default: cwd]
       --help, -h         Print usage info
 
-## Post-install Build
-
-Install runs a series of Mocha tests to see if your machine can use the pre-built `libsass` which will save some time during install. If any tests fail it will build from source.
-
-If you know the pre-built version will work and do not want to wait for the tests to run you can skip the tests by setting the environment variable `SKIP_NODE_SASS_TESTS` to true.
-
-      SKIP_NODE_SASS_TESTS=true npm install
-
 ## Contributors
 Special thanks to the following people for submitting patches:
 
@@ -161,7 +148,6 @@ Dean Mao
 Brett Wilkins
 litek
 gonghao
-Dylan Greene
 
 ### Note on Patches/Pull Requests
 
