@@ -540,6 +540,7 @@ namespace Sass {
     string type() { return is_arglist_ ? "arglist" : "list"; }
     static string type_name() { return "list"; }
     bool is_invisible() { return !length(); }
+    Expression* value_at_index(size_t i);
     ATTACH_OPERATIONS();
   };
 
@@ -982,6 +983,11 @@ namespace Sass {
     }
     ATTACH_OPERATIONS();
   };
+
+  //////////////////////////////////////////////////////////////////////////////////////////
+  // Additional method on Lists to retrieve values directly or from an encompassed Argument.
+  //////////////////////////////////////////////////////////////////////////////////////////
+  inline Expression* List::value_at_index(size_t i) { return is_arglist_ ? ((Argument*)(*this)[i])->value() : (*this)[i]; }
 
   ////////////////////////////////////////////////////////////////////////
   // Argument lists -- in their own class to facilitate context-sensitive
