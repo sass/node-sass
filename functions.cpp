@@ -790,6 +790,7 @@ namespace Sass {
     {
       List* l = dynamic_cast<List*>(env["$list"]);
       Number* n = ARG("$n", Number);
+      if (n->value() == 0) error("argument `$n` of `" + string(sig) + "` must be non-zero", path, position);
       if (!l) {
         l = new (ctx.mem) List(path, position, 1);
         *l << ARG("$list", Expression);
