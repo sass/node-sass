@@ -191,9 +191,17 @@ void MakeFileCallback(uv_work_t* req) {
 
     if (ctx->error_status == 0) {
         // if no error, do callback(null, result)
-        const unsigned argc = 1;
+        Handle<Value> source_map;
+        if (ctx->options.source_comments == SASS_SOURCE_COMMENTS_MAP) {
+            source_map = String::New(ctx->source_map_string);
+        } else {
+            source_map = Null();
+        }
+
+        const unsigned argc = 2;
         Local<Value> argv[argc] = {
-            NanNewLocal(String::New(ctx->output_string))
+            NanNewLocal(String::New(ctx->output_string)),
+            NanNewLocal(source_map)
         };
 
         ctx_w->callback->Call(argc, argv);
@@ -222,6 +230,7 @@ NAN_METHOD(RenderFile) {
     Local<Function> callback = Local<Function>::Cast(args[1]);
     Local<Function> errorCallback = Local<Function>::Cast(args[2]);
     String::AsciiValue bstr(args[3]);
+    String::AsciiValue cstr(args[6]);
 
     filename = new char[strlen(*astr)+1];
     strcpy(filename, *astr);
@@ -232,6 +241,10 @@ NAN_METHOD(RenderFile) {
     ctx->options.output_style = args[4]->Int32Value();
     ctx->options.image_path = new char[0];
     ctx->options.source_comments = args[5]->Int32Value();
+    if (ctx->options.source_comments == SASS_SOURCE_COMMENTS_MAP) {
+        ctx->source_map_file = new char[strlen(*cstr)+1];
+        strcpy(ctx->source_map_file, *cstr);
+    }
     ctx_w->ctx = ctx;
     ctx_w->callback = new NanCallback(callback);
     ctx_w->errorCallback = new NanCallback(errorCallback);

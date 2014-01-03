@@ -103,4 +103,41 @@ describe('cli', function() {
     });
   });
 
+  it('should compile with the --source-map option', function(done){
+    var emitter = cli([path.join(__dirname, 'sample.scss'), '--source-map']);
+    emitter.on('error', done);
+    emitter.on('write-source-map', function(err, file) {
+      assert.equal(file, path.join(__dirname, '../sample.css.map'));
+      fs.exists(file, function(exists) {
+        assert(exists);
+      });
+    });
+    emitter.on('done', function() {
+      fs.unlink(path.join(__dirname, '../sample.css.map'), function() {
+        fs.unlink(path.join(__dirname, '../sample.css'), function() {
+          done();
+        });
+      });
+    });
+  });
+
+  it('should compile with the --source-map option with specific filename', function(done){
+    var emitter = cli([path.join(__dirname, 'sample.scss'), '--source-map', path.join(__dirname, '../sample.map')]);
+    emitter.on('error', done);
+    emitter.on('write-source-map', function(err, file) {
+      assert.equal(file, path.join(__dirname, '../sample.map'));
+      fs.exists(file, function(exists) {
+        assert(exists);
+      });
+    });
+    emitter.on('done', function() {
+      fs.unlink(path.join(__dirname, '../sample.map'), function() {
+        fs.unlink(path.join(__dirname, '../sample.css'), function() {
+          done();
+        });
+      });
+    });
+  });
+
+
 });
