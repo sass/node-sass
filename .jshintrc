@@ -6,5 +6,10 @@
   "trailing": true,
   "undef": true,
   "unused": true,
-  "expr":true
+  "expr":true,
+  "multistr": true,
+  "globals": {
+    "it": true,
+    "describe": true
+  }
 }
