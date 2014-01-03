@@ -38,7 +38,7 @@ var expectedRender = '#navbar {\n\
 
 describe("DEPRECATED: compile scss", function() {
   it("should compile with render", function(done) {
-    sass.render(scssStr, function(err, css) {
+    sass.render(scssStr, function(err) {
       done(err);
     });
   });
@@ -98,6 +98,7 @@ describe("compile scss", function() {
     sass.render({
       data: '{zzz}',
       success: function(css) {
+        console.log(css);
       },
       error: function(error, status) {
         assert.equal(status, 1);
@@ -128,7 +129,7 @@ describe("compile file with include paths", function(){
       error: function (error) {
         done(error);
       }
-    })
+    });
   });
 });
 
@@ -145,7 +146,7 @@ describe("compile file", function() {
     });
   });
 
-    it("should compile with renderSync", function(done) {
+  it("should compile with renderSync", function(done) {
     done(assert.ok(sass.renderSync({file: sampleFilename})));
   });
 

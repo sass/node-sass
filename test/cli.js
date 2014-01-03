@@ -2,7 +2,6 @@ var path   = require('path'),
     assert = require('assert'),
     fs     = require('fs'),
     exec   = require('child_process').exec,
-    sass   = require('../sass'),
     cli    = require('../lib/cli'),
 
     cliPath = path.resolve(__dirname, '../bin/node-sass'),
@@ -37,7 +36,7 @@ describe('cli', function() {
 
     exec('node ' + cliPath + ' ' + sampleFilename, {
       cwd: __dirname
-    }, function(err, stdout, stderr) {
+    }, function() {
 
       fs.exists(resultPath, function(exists) {
         assert(exists);
@@ -46,12 +45,12 @@ describe('cli', function() {
     });
   });
 
-  it('should compile sample.scss to  ../out.css', function(done) {
+  it('should compile sample.scss to ../out.css', function(done) {
     var resultPath = path.resolve(__dirname, '../out.css');
 
     exec('node ' + cliPath + ' ' + sampleFilename + ' ../out.css', {
       cwd: __dirname
-    }, function(err, stdout, stderr) {
+    }, function() {
 
       fs.exists(resultPath, function(exists) {
         assert(exists);
@@ -95,7 +94,7 @@ describe('cli', function() {
     var resultPath = path.join(__dirname, '../output.css');
     var emitter = cli(['--output', resultPath, path.join(__dirname, 'sample.scss')]);
     emitter.on('error', done);
-    emitter.on('write', function(err, file, css){
+    emitter.on('write', function(){
       fs.exists(resultPath, function(exists) {
         assert(exists);
         fs.unlink(resultPath, done);
@@ -138,6 +137,5 @@ describe('cli', function() {
       });
     });
   });
-
 
 });
