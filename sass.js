@@ -1,17 +1,22 @@
 var binding;
 var fs = require('fs');
+var path = require('path');
+
+var v8 = 'v8-' + /[0-9]+\.[0-9]+/.exec(process.versions.v8)[0];
+var modPath = path.join(__dirname, 'bin', process.platform + '-' + process.arch + '-' + v8, 'binding');
 try {
   if (fs.realpathSync(__dirname + '/build')) {
     // use the build version if it exists
     binding = require(__dirname + '/build/Release/binding');
   }
 } catch (e) {
-  // default to a precompiled binary if no build exists
-  var platform_full = process.platform+'-'+process.arch;
-  binding = require(__dirname + '/precompiled/'+platform_full+'/binding');
-}
-if (binding === null) {
-  throw new Error('Cannot find appropriate binary library for node-sass');
+  try {
+    fs.realpathSync(modPath + '.node');
+    binding = require(modPath);
+  } catch (ex) {
+    // No binary!
+    throw new Error('`'+ modPath + '.node` is missing. Try reinstalling `node-sass`?');
+  }
 }
 
 var SASS_OUTPUT_STYLE = {
