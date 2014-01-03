@@ -12,24 +12,7 @@ extern "C" {
   void sass_free_context_wrapper(sass_context_wrapper* ctx_w)
   {
     if (ctx_w->ctx) sass_free_context(ctx_w->ctx);
-
-    delete ctx_w->callback;
-    delete ctx_w->errorCallback;
-
-    free(ctx_w);
-  }
-
-  sass_file_context_wrapper* sass_new_file_context_wrapper()
-  {
-    return (sass_file_context_wrapper*) calloc(1, sizeof(sass_file_context_wrapper));
-  }
-
-  void sass_free_file_context_wrapper(sass_file_context_wrapper* ctx_w)
-  {
-    if (ctx_w->ctx) sass_free_file_context(ctx_w->ctx);
-
-    delete ctx_w->callback;
-    delete ctx_w->errorCallback;
+    if (ctx_w->fctx) sass_free_file_context(ctx_w->fctx);
 
     free(ctx_w);
   }
