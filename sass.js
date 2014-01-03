@@ -34,11 +34,11 @@ var SASS_SOURCE_COMMENTS = {
 };
 
 var prepareOptions = function(options) {
-  var paths, style;
-  var options = typeof options !== 'object' ? {} : options;
-  var paths = options.include_paths || options.includePaths || [];
-  var style = SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0;
-  var comments = SASS_SOURCE_COMMENTS[options.source_comments || options.sourceComments] || 0;
+  var paths, style, comments;
+  options = typeof options !== 'object' ? {} : options;
+  paths = options.include_paths || options.includePaths || [];
+  style = SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0;
+  comments = SASS_SOURCE_COMMENTS[options.source_comments || options.sourceComments] || 0;
 
   return {
     paths: paths,
@@ -49,7 +49,13 @@ var prepareOptions = function(options) {
 
 var deprecatedRender = function(css, callback, options) {
   options = prepareOptions(options);
-  return binding.oldRender(css, callback, options.paths.join(':'), options.style, options.comments);
+  var errCallback = function(err) {
+    callback(err);
+  };
+  var oldCallback = function(css, err) {
+    callback(null, css);
+  };
+  return binding.render(css, oldCallback, errCallback, options.paths.join(':'), options.style, options.comments);
 };
 
 var deprecatedRenderSync = function(css, options) {
@@ -68,10 +74,11 @@ exports.render = function(options) {
   options.error = options.error || function(){};
 
   if (options.file !== undefined && options.file !== null) {
-    return binding.renderFile(options.file, options.success, options.error, newOptions.paths.join(path.delimiter), newOptions.style, newOptions.comments, options.sourceMap);
+    return binding.renderFile(options.file, options.success, options.error, newOptions.paths.join(':'), newOptions.style, newOptions.comments, options.sourceMap);
   }
+
   //Assume data is present if file is not. binding/libsass will tell the user otherwise!
-  return binding.render(options.data, options.success, options.error, newOptions.paths.join(path.delimiter), newOptions.style);
+  return binding.render(options.data, options.success, options.error, newOptions.paths.join(":"), newOptions.style);
 };
 
 exports.renderSync = function(options) {
@@ -84,11 +91,11 @@ exports.renderSync = function(options) {
   newOptions = prepareOptions(options);
 
   if (options.file !== undefined && options.file !== null) {
-    return binding.renderFileSync(options.file, newOptions.paths.join(path.delimiter), newOptions.style, newOptions.comments);
+    return binding.renderFileSync(options.file, newOptions.paths.join(':'), newOptions.style, newOptions.comments);
   }
 
   //Assume data is present if file is not. binding/libsass will tell the user otherwise!
-  return binding.renderSync(options.data, newOptions.paths.join(path.delimiter), newOptions.style);
+  return binding.renderSync(options.data, newOptions.paths.join(":"), newOptions.style);
 };
 
 exports.middleware = require('./lib/middleware');
