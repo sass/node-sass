@@ -150,7 +150,6 @@ namespace Sass {
     Expression* message = w->message()->perform(this);
     To_String to_string;
     string prefix("WARNING: ");
-    string indent("         ");
     string result(unquote(message->perform(&to_string)));
     cerr << prefix << result;
     Backtrace top(backtrace, w->path(), w->position(), "");
