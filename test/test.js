@@ -94,6 +94,18 @@ describe("compile scss", function() {
     });
   });
 
+  it("should have a error status of 1 for bad css", function(done) {
+    sass.render({
+      data: '{zzz}',
+      success: function(css) {
+      },
+      error: function(error, status) {
+        assert.equal(status, 1);
+        done();
+      }
+    });
+  });
+
   it("should match compiled string with renderSync", function(done) {
     done(assert.equal(sass.renderSync({data: scssStr}), expectedRender));
   });
