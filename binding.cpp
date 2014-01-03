@@ -84,11 +84,11 @@ void MakeCallback(uv_work_t* req) {
     TryCatch try_catch;
     sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(req->data);
     Handle<Value> val, err;
+    const unsigned argc = 2;
     int error_status = ctx_w->ctx ? ctx_w->ctx->error_status : ctx_w->fctx->error_status;
 
     if (error_status == 0) {
         // if no error, do callback(null, result)
-        const unsigned argc = 2;
         Handle<Value> source_map;
         if (ctx_w->fctx && ctx_w->fctx->options.source_comments == SASS_SOURCE_COMMENTS_MAP) {
             source_map = String::New(ctx_w->fctx->source_map_string);
@@ -104,10 +104,10 @@ void MakeCallback(uv_work_t* req) {
         ctx_w->callback->Call(argc, argv);
     } else {
         // if error, do callback(error)
-        const unsigned argc = 1;
         err = ctx_w->ctx ? NanNewLocal(String::New(ctx_w->ctx->error_message)) : NanNewLocal(String::New(ctx_w->fctx->error_message));
         Local<Value> argv[argc] = {
-            NanNewLocal(err)
+            NanNewLocal(err),
+            NanNewLocal(Integer::New(error_status))
         };
         ctx_w->errorCallback->Call(argc, argv);
     }
