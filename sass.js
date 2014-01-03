@@ -24,14 +24,14 @@ var SASS_OUTPUT_STYLE = {
     expanded: 1,
     compact: 2,
     compressed: 3
-};
+  };
 
 var SASS_SOURCE_COMMENTS = {
-  none: 0,
-  // This is called default in libsass, but is a reserved keyword here
-  normal: 1,
-  map: 2
-};
+    none: 0,
+    // This is called default in libsass, but is a reserved keyword here
+    normal: 1,
+    map: 2
+  };
 
 var prepareOptions = function(options) {
   var paths, style, comments;
@@ -52,7 +52,7 @@ var deprecatedRender = function(css, callback, options) {
   var errCallback = function(err) {
     callback(err);
   };
-  var oldCallback = function(css, err) {
+  var oldCallback = function(css) {
     callback(null, css);
   };
   return binding.render(css, oldCallback, errCallback, options.paths.join(':'), options.style, options.comments);
