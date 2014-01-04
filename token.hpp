@@ -5,7 +5,7 @@
 #include <sstream>
 
 namespace Sass {
-	using namespace std;
+  using namespace std;
 
   // Token type for representing lexed chunks of text
   struct Token {

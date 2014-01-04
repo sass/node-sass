@@ -17,60 +17,60 @@
 #endif
 
 namespace Sass {
-	using namespace std;
+  using namespace std;
 
-	struct Context;
-	class Eval;
-	class Contextualize;
-	typedef Environment<AST_Node*> Env;
-	struct Backtrace;
+  struct Context;
+  class Eval;
+  class Contextualize;
+  typedef Environment<AST_Node*> Env;
+  struct Backtrace;
 
-	class Expand : public Operation_CRTP<Statement*, Expand> {
+  class Expand : public Operation_CRTP<Statement*, Expand> {
 
-		Context&          ctx;
-		Eval*             eval;
-		Contextualize*    contextualize;
-		Env*              env;
-		vector<Block*>    block_stack;
-		vector<String*>   property_stack;
-		vector<Selector*> selector_stack;
-		Backtrace*        backtrace;
+    Context&          ctx;
+    Eval*             eval;
+    Contextualize*    contextualize;
+    Env*              env;
+    vector<Block*>    block_stack;
+    vector<String*>   property_stack;
+    vector<Selector*> selector_stack;
+    Backtrace*        backtrace;
 
-		Statement* fallback_impl(AST_Node* n);
+    Statement* fallback_impl(AST_Node* n);
 
-	public:
-		Expand(Context&, Eval*, Contextualize*, Env*, Backtrace*);
-		virtual ~Expand() { }
+  public:
+    Expand(Context&, Eval*, Contextualize*, Env*, Backtrace*);
+    virtual ~Expand() { }
 
-		using Operation<Statement*>::operator();
+    using Operation<Statement*>::operator();
 
-		Statement* operator()(Block*);
-		Statement* operator()(Ruleset*);
-		Statement* operator()(Propset*);
-		Statement* operator()(Media_Block*);
-		Statement* operator()(At_Rule*);
-		Statement* operator()(Declaration*);
-		Statement* operator()(Assignment*);
-		Statement* operator()(Import*);
-		Statement* operator()(Import_Stub*);
-		Statement* operator()(Warning*);
-		Statement* operator()(Comment*);
-		Statement* operator()(If*);
-		Statement* operator()(For*);
-		Statement* operator()(Each*);
-		Statement* operator()(While*);
-		Statement* operator()(Return*);
-		Statement* operator()(Extension*);
-		Statement* operator()(Definition*);
-		Statement* operator()(Mixin_Call*);
-		Statement* operator()(Content*);
+    Statement* operator()(Block*);
+    Statement* operator()(Ruleset*);
+    Statement* operator()(Propset*);
+    Statement* operator()(Media_Block*);
+    Statement* operator()(At_Rule*);
+    Statement* operator()(Declaration*);
+    Statement* operator()(Assignment*);
+    Statement* operator()(Import*);
+    Statement* operator()(Import_Stub*);
+    Statement* operator()(Warning*);
+    Statement* operator()(Comment*);
+    Statement* operator()(If*);
+    Statement* operator()(For*);
+    Statement* operator()(Each*);
+    Statement* operator()(While*);
+    Statement* operator()(Return*);
+    Statement* operator()(Extension*);
+    Statement* operator()(Definition*);
+    Statement* operator()(Mixin_Call*);
+    Statement* operator()(Content*);
 
-		template <typename U>
-		Statement* fallback(U x) { return fallback_impl(x); }
+    template <typename U>
+    Statement* fallback(U x) { return fallback_impl(x); }
 
-		void append_block(Block*);
+    void append_block(Block*);
 
-		multimap<Compound_Selector, Complex_Selector*> extensions;
-	};
+    multimap<Compound_Selector, Complex_Selector*> extensions;
+  };
 
 }

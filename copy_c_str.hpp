@@ -1,5 +1,5 @@
 namespace Sass {
 
-	char* copy_c_str(const char*);
+  char* copy_c_str(const char*);
 
 }

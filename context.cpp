@@ -55,7 +55,7 @@ namespace Sass {
     colors_to_names (map<int, string>())
   {
     cwd = get_cwd();
-    
+
     collect_include_paths(initializers.include_paths_c_str());
     collect_include_paths(initializers.include_paths_array());
 

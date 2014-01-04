@@ -143,7 +143,7 @@ namespace Sass {
       if (after_token) {
         size_t previous_line = source_position.line;
         source_position.line += count_interval<'\n'>(position, after_token);
-        
+
         size_t whitespace = 0;
         const char* ptr = after_whitespace - 1;
         while (ptr >= position) {
@@ -155,7 +155,7 @@ namespace Sass {
         if (previous_line != source_position.line) {
           column = 1;
         }
-        
+
         source_position.column = column + whitespace;
         column += after_token - after_whitespace + whitespace;
         lexed = Token(after_whitespace, after_token);
