@@ -118,9 +118,6 @@ namespace Sass {
       extendee_context->innermost()->tail(extender);
       *new_group << extendee_context;
     }
-    else if (extender_context) {
-      *new_group << extender;
-    }
     else {
       *new_group << extender;
     }
