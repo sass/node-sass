@@ -9,8 +9,8 @@ http://github.com/hcatlin/libsass
 
 Libsass is just a library, but if you want to RUN libsass,
 then go to http://github.com/hcatlin/sassc or
-http://github.com/hcatlin/sassruby or find your local
-implementer.
+http://github.com/hcatlin/sassruby or 
+[find your local implementer](https://github.com/hcatlin/libsass/wiki/Implementations).
 
 About
 -----
