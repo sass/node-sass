@@ -1,7 +1,7 @@
 Libsass
 =======
 
-by Aaron Leung and Hampton Catlin (@hcatlin)
+by Aaron Leung ([@akhleung]) and Hampton Catlin ([@hcatlin])
 
 [![Build Status](https://travis-ci.org/hcatlin/libsass.png?branch=master)](https://travis-ci.org/hcatlin/libsass)
 
@@ -94,9 +94,9 @@ awesome features to CSS. Sass was the first language of its kind
 and by far the most mature and up to date codebase.
 
 Sass was originally created by the co-creator of this library,
-Hampton Catlin (@hcatlin). The extension and continuing evolution
+Hampton Catlin ([@hcatlin]). The extension and continuing evolution
 of the language has all been the result of years of work by Nathan
-Weizenbaum (@nex3) and Chris Eppstein (@chriseppstein).
+Weizenbaum ([@nex3]) and Chris Eppstein ([@chriseppstein]).
 
 For more information about Sass itself, please visit http://sass-lang.com
 
@@ -110,4 +110,7 @@ remains totally free (liberal, like).
 
 Our MIT license is designed to be as simple, and liberal as possible.
 
-
+[@hcatlin]: http://github.com/hcatlin
+[@akhleung]: http://github.com/akhleung
+[@chriseppstein]: http://github.com/chriseppstein
+[@nex3]: http://github.com/nex3
