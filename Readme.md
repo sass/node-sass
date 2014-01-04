@@ -81,7 +81,7 @@ To generate a context, use one of the following methods.
     sass_new_file_context()
     sass_new_folder_context()
 
-Again, please see the sass_interface.h for more information.
+Again, please see the [sass_interface.h] for more information.
 
 And, to get even more information, then please see the implementations
 in SassC and SassC-Ruby.
@@ -114,3 +114,5 @@ Our MIT license is designed to be as simple, and liberal as possible.
 [@akhleung]: http://github.com/akhleung
 [@chriseppstein]: http://github.com/chriseppstein
 [@nex3]: http://github.com/nex3
+
+[sass_interface.h]: sass_interface.h
