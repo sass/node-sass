@@ -9,7 +9,7 @@ http://github.com/hcatlin/libsass
 
 Libsass is just a library, but if you want to RUN libsass,
 then go to http://github.com/hcatlin/sassc or
-http://github.com/hcatlin/sassruby or 
+http://github.com/hcatlin/sassruby or
 [find your local implementer](https://github.com/hcatlin/libsass/wiki/Implementations).
 
 About
@@ -40,13 +40,17 @@ Since libsass is a pure library, tests are run through the [SassSpec](http://git
 
 To run tests against libsass while developing, please ensure you have the latest version of the above projects cloned, and then define the following environment variables:
 
-    export SASS_SPEC_PATH=~/path/sass-spec
-    export SASS_SASSC_PATH=~/path/sassc
-    export SASS_LIBSASS_PATH=~/path/libsass
+```bash
+export SASS_SPEC_PATH=~/path/sass-spec
+export SASS_SASSC_PATH=~/path/sassc
+export SASS_LIBSASS_PATH=~/path/libsass
+```
 
 Obviously, update them to your local environment. Then, its just a matter of running...
 
-    make test
+```bash
+make test
+```
 
 Usage
 -----
@@ -59,9 +63,11 @@ First, you create a sass context struct. We use these objects to define
 different execution parameters for the library. There are three
 different context types.
 
-    sass_context        // string-in-string-out compilation
-    sass_file_context   // file-based compilation
-    sass_folder_context // full-folder multi-file
+```c
+sass_context();        // string-in-string-out compilation
+sass_file_context();   // file-based compilation
+sass_folder_context(); // full-folder multi-file
+```
 
 Each of the contexts have slightly different behavior and are
 implemented seperately. This does add extra work to implementing
@@ -77,9 +83,11 @@ interface, but is backed by three different processes.
 
 To generate a context, use one of the following methods.
 
-    sass_new_context()
-    sass_new_file_context()
-    sass_new_folder_context()
+```c
+sass_new_context();
+sass_new_file_context();
+sass_new_folder_context();
+```
 
 Again, please see the [sass_interface.h] for more information.
 
