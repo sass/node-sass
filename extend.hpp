@@ -45,7 +45,7 @@ namespace Sass {
     void operator()(At_Rule*);
 
     Selector_List* generate_extension(Complex_Selector*, Complex_Selector*);
-    vector<Selector_List*> extend_complex(Complex_Selector*, set<Compound_Selector>&);
+    Selector_List* extend_complex(Complex_Selector*, set<Compound_Selector>&);
     Selector_List* extend_compound(Compound_Selector*, set<Compound_Selector>&);
 
     template <typename U>

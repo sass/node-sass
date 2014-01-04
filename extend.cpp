@@ -76,9 +76,13 @@ namespace Sass {
     // let's try the new stuff here; eventually it should replace the preceding
     set<Compound_Selector> seen;
     // Selector_List* new_list = new (ctx.mem) Selector_List(sg->path(), sg->position());
+    To_String to_string;
     for (size_t i = 0, L = sg->length(); i < L; ++i)
     {
-      /* *new_list += */ extend_complex((*sg)[i], seen);
+      // /* *new_list += */ extend_complex((*sg)[i], seen);
+      cerr << "checking " << (*sg)[i]->perform(&to_string) << endl;
+      extend_complex((*sg)[i], seen);
+      // cerr << "skipping for now!" << endl;
     }
 
     r->block()->perform(this);
@@ -123,17 +127,19 @@ namespace Sass {
     return new_group;
   }
 
-  vector<Selector_List*> Extend::extend_complex(Complex_Selector* sel, set<Compound_Selector>& seen)
+  Selector_List* Extend::extend_complex(Complex_Selector* sel, set<Compound_Selector>& seen)
   {
     To_String to_string;
     cerr << "EXTENDING COMPLEX: " << sel->perform(&to_string) << endl;
-    vector<Selector_List*> choices; // = new (ctx.mem) Selector_List(sel->path(), sel->position());
+    // vector<Selector_List*> choices; // 
+    Selector_List* extended = new (ctx.mem) Selector_List(sel->path(), sel->position());
 
     Compound_Selector* h = sel->head();
     Complex_Selector* t = sel->tail();
     if (h && !h->is_empty_reference())
     {
-      Selector_List* extended = extend_compound(h, seen);
+      // Selector_List* extended = extend_compound(h, seen);
+      *extended += extend_compound(h, seen);
       bool found = false;
       for (size_t i = 0, L = extended->length(); i < L; ++i)
       {
@@ -144,7 +150,7 @@ namespace Sass {
       {
         *extended << new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, h, 0);
       }
-      choices.push_back(extended);
+      // choices.push_back(extended);
     }
     while(t)
     {
@@ -152,7 +158,8 @@ namespace Sass {
       t = t->tail();
       if (h && !h->is_empty_reference())
       {
-        Selector_List* extended = extend_compound(h, seen);
+        // Selector_List* extended = extend_compound(h, seen);
+        *extended += extend_compound(h, seen);
         bool found = false;
         for (size_t i = 0, L = extended->length(); i < L; ++i)
         {
@@ -163,41 +170,42 @@ namespace Sass {
         {
           *extended << new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, h, 0);
         }
-        choices.push_back(extended);
+        // choices.push_back(extended);
       }
     }
+    return extended;
     // cerr << "CHOICES:" << endl;
     // for (size_t i = 0, L = choices.size(); i < L; ++i)
     // {
     //   cerr << choices[i]->perform(&to_string) << endl;
     // }
 
-    vector<vector<Complex_Selector*> > cs;
-    for (size_t i = 0, S = choices.size(); i < S; ++i)
-    {
-      cs.push_back(choices[i]->elements());
-    }
-    vector<vector<Complex_Selector*> > ps = paths(cs);
-    cerr << "PATHS:" << endl;
-    for (size_t i = 0, S = ps.size(); i < S; ++i)
-    {
-      for (size_t j = 0, T = ps[i].size(); j < T; ++j)
-      {
-        cerr << ps[i][j]->perform(&to_string) << ", ";
-      }
-      cerr << endl;
-    }
-    vector<Selector_List*> new_choices;
-    for (size_t i = 0, S = ps.size(); i < S; ++i)
-    {
-      Selector_List* new_list = new (ctx.mem) Selector_List(sel->path(), sel->position());
-      for (size_t j = 0, T = ps[i].size(); j < T; ++j)
-      {
-        *new_list << ps[i][j];
-      }
-      new_choices.push_back(new_list);
-    }
-    return new_choices;
+    // vector<vector<Complex_Selector*> > cs;
+    // for (size_t i = 0, S = choices.size(); i < S; ++i)
+    // {
+    //   cs.push_back(choices[i]->elements());
+    // }
+    // vector<vector<Complex_Selector*> > ps = paths(cs);
+    // cerr << "PATHS:" << endl;
+    // for (size_t i = 0, S = ps.size(); i < S; ++i)
+    // {
+    //   for (size_t j = 0, T = ps[i].size(); j < T; ++j)
+    //   {
+    //     cerr << ps[i][j]->perform(&to_string) << ", ";
+    //   }
+    //   cerr << endl;
+    // }
+    // vector<Selector_List*> new_choices;
+    // for (size_t i = 0, S = ps.size(); i < S; ++i)
+    // {
+    //   Selector_List* new_list = new (ctx.mem) Selector_List(sel->path(), sel->position());
+    //   for (size_t j = 0, T = ps[i].size(); j < T; ++j)
+    //   {
+    //     *new_list << ps[i][j];
+    //   }
+    //   new_choices.push_back(new_list);
+    // }
+    // return new_choices;
   }
 
   Selector_List* Extend::extend_compound(Compound_Selector* sel, set<Compound_Selector>& seen)
@@ -227,15 +235,15 @@ namespace Sass {
       Complex_Selector* cplx = entries[i].first->clone(ctx);
       Complex_Selector* new_innermost = new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, unif, 0);
       cplx->set_innermost(new_innermost, cplx->clear_innermost());
-      // cerr << "FULL UNIFIED: " << cplx->perform(&to_string) << endl;
-      set<Compound_Selector> seen2 = seen;
-      seen2.insert(*entries[i].second);
-      cerr << "RECURSIVELY CALLING EXTEND_COMPLEX ON " << cplx->perform(&to_string) << endl;
-      vector<Selector_List*> ex2 = extend_complex(cplx, seen2);
-      for (size_t j = 0, T = ex2.size(); j < T; ++j)
-      {
-        *results += ex2[i];
-      }
+      cerr << "FULL UNIFIED: " << cplx->perform(&to_string) << endl;
+      // set<Compound_Selector> seen2 = seen;
+      // seen2.insert(*entries[i].second);
+      // cerr << "RECURSIVELY CALLING EXTEND_COMPLEX ON " << cplx->perform(&to_string) << endl;
+      // vector<Selector_List*> ex2 = extend_complex(cplx, seen2);
+      // for (size_t j = 0, T = ex2.size(); j < T; ++j)
+      // {
+      //   *results += ex2[i];
+      // }
     }
 
     cerr << "RESULTS: " << results->perform(&to_string) << endl;

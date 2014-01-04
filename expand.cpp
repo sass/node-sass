@@ -268,7 +268,7 @@ namespace Sass {
     for (size_t i = 0, L = extender->length(); i < L; ++i) {
       extensions.insert(make_pair(*s, (*extender)[i]));
       // let's test this out
-      cerr << "STORING " << s->perform(&to_string) << endl;
+      cerr << "REGISTERING EXTENSION REQUEST: " << (*extender)[i]->perform(&to_string) << " <- " << s->perform(&to_string) << endl;
       subset_map.put(s->to_str_vec(), make_pair((*extender)[i], s));
     }
     return 0;
