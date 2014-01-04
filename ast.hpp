@@ -12,7 +12,7 @@
  * hiding warning. Specifically:
  *
  * Type type() which hides string type() from Expression
- * 
+ *
  * and
  *
  * Block* block() which hides virtual Block* block() from Statement

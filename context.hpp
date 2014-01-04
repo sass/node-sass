@@ -79,7 +79,7 @@ namespace Sass {
   private:
     string format_source_mapping_url(const string& file) const;
     string get_cwd();
-    
+
     vector<string> included_files;
     string cwd;
 
