@@ -137,16 +137,16 @@ namespace Sass {
     {
       // Selector_List* extended = extend_compound(h, seen);
       *extended += extend_compound(h, seen);
-      bool found = false;
-      for (size_t i = 0, L = extended->length(); i < L; ++i)
-      {
-        if ((*extended)[i]->is_superselector_of(h))
-        { found = true; break; }
-      }
-      if (!found)
-      {
-        *extended << new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, h, 0);
-      }
+      // bool found = false;
+      // for (size_t i = 0, L = extended->length(); i < L; ++i)
+      // {
+      //   if ((*extended)[i]->is_superselector_of(h))
+      //   { found = true; break; }
+      // }
+      // if (!found)
+      // {
+      //   *extended << new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, h, 0);
+      // }
       // choices.push_back(extended);
     }
     while(t)
@@ -157,19 +157,20 @@ namespace Sass {
       {
         // Selector_List* extended = extend_compound(h, seen);
         *extended += extend_compound(h, seen);
-        bool found = false;
-        for (size_t i = 0, L = extended->length(); i < L; ++i)
-        {
-          if ((*extended)[i]->is_superselector_of(h))
-          { found = true; break; }
-        }
-        if (!found)
-        {
-          *extended << new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, h, 0);
-        }
+        // bool found = false;
+        // for (size_t i = 0, L = extended->length(); i < L; ++i)
+        // {
+        //   if ((*extended)[i]->is_superselector_of(h))
+        //   { found = true; break; }
+        // }
+        // if (!found)
+        // {
+        //   *extended << new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, h, 0);
+        // }
         // choices.push_back(extended);
       }
     }
+    cerr << "EXTENSIONS: " << extended->perform(&to_string) << endl;
     return extended;
     // cerr << "CHOICES:" << endl;
     // for (size_t i = 0, L = choices.size(); i < L; ++i)
@@ -233,6 +234,7 @@ namespace Sass {
       Complex_Selector* new_innermost = new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, unif, 0);
       cplx->set_innermost(new_innermost, cplx->clear_innermost());
       cerr << "FULL UNIFIED: " << cplx->perform(&to_string) << endl;
+      *results << cplx;
       // set<Compound_Selector> seen2 = seen;
       // seen2.insert(*entries[i].second);
       // cerr << "RECURSIVELY CALLING EXTEND_COMPLEX ON " << cplx->perform(&to_string) << endl;
@@ -243,7 +245,7 @@ namespace Sass {
       // }
     }
 
-    cerr << "RESULTS: " << results->perform(&to_string) << endl;
+    // cerr << "RESULTS: " << results->perform(&to_string) << endl;
     return results;
   }
 
