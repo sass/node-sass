@@ -1,6 +1,6 @@
 #define SASS_INTERFACE
 
-#include "sass.h"
+#include "src/sass.h"
 
 #ifdef __cplusplus
 extern "C" {

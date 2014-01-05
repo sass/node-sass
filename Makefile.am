@@ -5,6 +5,7 @@ pkgconfig_DATA = support/libsass.pc
 
 lib_LTLIBRARIES = libsass.la
 libsass_la_SOURCES = \
+	sass_interface.cpp \
 	src/ast.cpp \
 	src/base64vlq.cpp \
 	src/bind.cpp \
@@ -24,7 +25,6 @@ libsass_la_SOURCES = \
 	src/parser.cpp \
 	src/prelexer.cpp \
 	src/sass.cpp \
-	src/sass_interface.cpp \
 	src/source_map.cpp \
 	src/to_c.cpp \
 	src/to_string.cpp \
@@ -32,7 +32,7 @@ libsass_la_SOURCES = \
 
 libsass_la_LDFLAGS = -no-undefined -version-info 0:0:0
 
-include_HEADERS = src/sass_interface.h src/sass.h
+include_HEADERS = sass_interface.h src/sass.h
 
 check_PROGRAMS = sassc++
 

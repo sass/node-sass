@@ -10,6 +10,7 @@ SASS_SPEC_PATH ?= sass-spec
 SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc
 
 SOURCES = \
+	sass_interface.cpp \
 	src/ast.cpp \
 	src/base64vlq.cpp \
 	src/bind.cpp \
@@ -29,7 +30,6 @@ SOURCES = \
 	src/parser.cpp \
 	src/prelexer.cpp \
 	src/sass.cpp \
-	src/sass_interface.cpp \
 	src/source_map.cpp \
 	src/to_c.cpp \
 	src/to_string.cpp \
