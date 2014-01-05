@@ -43,13 +43,13 @@ install-shared: libsass.so
 $(SASSC_BIN): libsass.a
 	cd $(SASS_SASSC_PATH) && make
 
-test: $(SASSC_BIN) libsass.a 
+test: $(SASSC_BIN) libsass.a
 	ruby $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) -s $(LOG_FLAGS) $(SASS_SPEC_PATH)
 
-test_build: $(SASSC_BIN) libsass.a 
+test_build: $(SASSC_BIN) libsass.a
 	ruby $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) -s --ignore-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)
 
-test_issues: $(SASSC_BIN) libsass.a 
+test_issues: $(SASSC_BIN) libsass.a
 	ruby $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues
 
 clean:

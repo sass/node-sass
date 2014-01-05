@@ -1,13 +1,13 @@
 #include "base64vlq.hpp"
 
 namespace Sass {
-  
+
   string Base64VLQ::encode(const int number) const
   {
     string encoded = "";
-    
+
     int vlq = to_vlq_signed(number);
-    
+
     do {
       int digit = vlq & VLQ_BASE_MASK;
       vlq >>= VLQ_BASE_SHIFT;
@@ -16,10 +16,10 @@ namespace Sass {
       }
       encoded += base64_encode(digit);
     } while (vlq > 0);
-    
+
     return encoded;
   }
-  
+
   char Base64VLQ::base64_encode(const int number) const
   {
     int index = number;
@@ -27,17 +27,17 @@ namespace Sass {
     if (index > 63) index = 63;
     return CHARACTERS[index];
   }
-  
+
   int Base64VLQ::to_vlq_signed(const int number) const
   {
     return (number < 0) ? ((-number) << 1) + 1 : (number << 1) + 0;
   }
-  
+
   const char* Base64VLQ::CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-  
+
   const int Base64VLQ::VLQ_BASE_SHIFT = 5;
   const int Base64VLQ::VLQ_BASE = 1 << VLQ_BASE_SHIFT;
   const int Base64VLQ::VLQ_BASE_MASK = VLQ_BASE - 1;
   const int Base64VLQ::VLQ_CONTINUATION_BIT = VLQ_BASE;
-  
+
 }

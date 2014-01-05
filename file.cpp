@@ -10,50 +10,50 @@
 #include "context.hpp"
 
 namespace Sass {
-	namespace File {
-		using namespace std;
+  namespace File {
+    using namespace std;
 
-		string base_name(string path)
-		{
-			size_t pos = path.find_last_of('/');
-			if (pos == string::npos) return path;
-			else                     return path.substr(pos+1);
-		}
+    string base_name(string path)
+    {
+      size_t pos = path.find_last_of('/');
+      if (pos == string::npos) return path;
+      else                     return path.substr(pos+1);
+    }
 
-		string dir_name(string path)
-		{
-			size_t pos = path.find_last_of('/');
-			if (pos == string::npos) return "";
-			else                     return path.substr(0, pos+1);
-		}
+    string dir_name(string path)
+    {
+      size_t pos = path.find_last_of('/');
+      if (pos == string::npos) return "";
+      else                     return path.substr(0, pos+1);
+    }
 
-		string join_paths(string l, string r)
-		{
-			if (l.empty()) return r;
-			if (r.empty()) return l;
-			if (is_absolute_path(r)) return r;
+    string join_paths(string l, string r)
+    {
+      if (l.empty()) return r;
+      if (r.empty()) return l;
+      if (is_absolute_path(r)) return r;
 
-			if (l[l.length()-1] != '/') l += '/';
-      
+      if (l[l.length()-1] != '/') l += '/';
+
       while ((r.length() > 3) && (r.substr(0, 3) == "../")) {
         r = r.substr(3);
         size_t index = l.find_last_of('/', l.length() - 2);
         l = l.substr(0, index + 1);
       }
-      
-			return l + r;
-		}
-    
+
+      return l + r;
+    }
+
     bool is_absolute_path(const string& path)
     {
       if (path[0] == '/') return true;
-			// TODO: UN-HACKIFY THIS
+      // TODO: UN-HACKIFY THIS
       #ifdef _WIN32
       if (path.length() >= 2 && isalpha(path[0]) && path[1] == ':') return true;
       #endif
       return false;
     }
-    
+
     string make_absolute_path(const string& path, const string& cwd)
     {
       return (is_absolute_path(path) ? path : join_paths(cwd, path));
@@ -63,10 +63,10 @@ namespace Sass {
     {
       string absolute_uri = make_absolute_path(uri, cwd);
       string absolute_base = make_absolute_path(base, cwd);
-      
+
       string stripped_uri = "";
       string stripped_base = "";
-      
+
       size_t index = 0;
       size_t minSize = min(absolute_uri.size(), absolute_base.size());
       for (size_t i = 0; i < minSize; ++i) {
@@ -88,57 +88,57 @@ namespace Sass {
         result += "../";
       }
       result += stripped_uri;
-      
+
       return result;
     }
-    
+
     char* resolve_and_load(string path, string& real_path)
-		{
-	    // Resolution order for ambiguous imports:
-	    // (1) filename as given
-	    // (2) underscore + given
-	    // (3) underscore + given + extension
-	    // (4) given + extension
-			char* contents = 0;
-			// if the file isn't found with the given filename ...
-            real_path = path;
-            if (!(contents = read_file(real_path))) {
-				string dir(dir_name(path));
-				string base(base_name(path));
-				string _base("_" + base);
-                real_path = dir + _base;
-				// if the file isn't found with '_' + filename ...
-                if (!(contents = read_file(real_path))) {
-					string _base_scss(_base + ".scss");
-                    real_path = dir + _base_scss;
-					// if the file isn't found with '_' + filename + ".scss" ...
-                    if (!(contents = read_file(real_path))) {
-						string base_scss(base + ".scss");
-						// try filename + ".scss" as the last resort
-                        real_path = dir + base_scss;
-                        contents = read_file(real_path);
-					}
-				}
-			}
-			return contents;
-		}
+    {
+      // Resolution order for ambiguous imports:
+      // (1) filename as given
+      // (2) underscore + given
+      // (3) underscore + given + extension
+      // (4) given + extension
+      char* contents = 0;
+      // if the file isn't found with the given filename ...
+      real_path = path;
+      if (!(contents = read_file(real_path))) {
+        string dir(dir_name(path));
+        string base(base_name(path));
+        string _base("_" + base);
+        real_path = dir + _base;
+        // if the file isn't found with '_' + filename ...
+        if (!(contents = read_file(real_path))) {
+          string _base_scss(_base + ".scss");
+          real_path = dir + _base_scss;
+          // if the file isn't found with '_' + filename + ".scss" ...
+          if (!(contents = read_file(real_path))) {
+            string base_scss(base + ".scss");
+            // try filename + ".scss" as the last resort
+            real_path = dir + base_scss;
+            contents = read_file(real_path);
+          }
+        }
+      }
+      return contents;
+    }
 
-		char* read_file(string path)
-		{
-			struct stat st;
-			if (stat(path.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
-			ifstream file(path.c_str(), ios::in | ios::binary | ios::ate);
-			char* contents = 0;
-			if (file.is_open()) {
-				size_t size = file.tellg();
-				contents = new char[size + 1]; // extra byte for the null char
-				file.seekg(0, ios::beg);
-				file.read(contents, size);
-				contents[size] = '\0';
-				file.close();
-			}
-			return contents;
-		}
+    char* read_file(string path)
+    {
+      struct stat st;
+      if (stat(path.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
+      ifstream file(path.c_str(), ios::in | ios::binary | ios::ate);
+      char* contents = 0;
+      if (file.is_open()) {
+        size_t size = file.tellg();
+        contents = new char[size + 1]; // extra byte for the null char
+        file.seekg(0, ios::beg);
+        file.read(contents, size);
+        contents[size] = '\0';
+        file.close();
+      }
+      return contents;
+    }
 
-	}
+  }
 }

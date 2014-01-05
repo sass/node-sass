@@ -239,7 +239,7 @@ namespace Sass {
       (*g)[i]->perform(this);
     }
   }
-  
+
   void Output_Compressed::append_singleline_part_to_buffer(const string& text)
   {
     buffer += text;

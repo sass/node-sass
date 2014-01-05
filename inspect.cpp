@@ -624,13 +624,13 @@ namespace Sass {
     t.push_back(q);
     return t;
   }
-  
+
   void Inspect::append_singleline_part_to_buffer(const string& text)
   {
     buffer += text;
     if (ctx) ctx->source_map.update_column(text);
   }
-  
+
   void Inspect::append_multiline_part_to_buffer(const string& text)
   {
     buffer += text;
