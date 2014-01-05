@@ -4,14 +4,35 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = support/libsass.pc
 
 lib_LTLIBRARIES = libsass.la
-libsass_la_SOURCES = ast.cpp base64vlq.cpp bind.cpp constants.cpp context.cpp contextualize.cpp \
-	copy_c_str.cpp error_handling.cpp eval.cpp expand.cpp extend.cpp file.cpp \
-	functions.cpp inspect.cpp output_compressed.cpp output_nested.cpp \
-	parser.cpp prelexer.cpp sass.cpp sass_interface.cpp source_map.cpp to_c.cpp to_string.cpp \
-	units.cpp
+libsass_la_SOURCES = \
+	src/ast.cpp \
+	src/base64vlq.cpp \
+	src/bind.cpp \
+	src/constants.cpp \
+	src/context.cpp \
+	src/contextualize.cpp \
+	src/copy_c_str.cpp \
+	src/error_handling.cpp \
+	src/eval.cpp \
+	src/expand.cpp \
+	src/extend.cpp \
+	src/file.cpp \
+	src/functions.cpp \
+	src/inspect.cpp \
+	src/output_compressed.cpp \
+	src/output_nested.cpp \
+	src/parser.cpp \
+	src/prelexer.cpp \
+	src/sass.cpp \
+	src/sass_interface.cpp \
+	src/source_map.cpp \
+	src/to_c.cpp \
+	src/to_string.cpp \
+	src/units.cpp
+
 libsass_la_LDFLAGS = -no-undefined -version-info 0:0:0
 
-include_HEADERS = sass_interface.h sass.h
+include_HEADERS = src/sass_interface.h src/sass.h
 
 check_PROGRAMS = sassc++
 
@@ -54,4 +75,3 @@ test_issues: $(SASSC_BIN) libsass.la
 	ruby $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues
 
 endif
-
