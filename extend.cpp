@@ -90,16 +90,17 @@ namespace Sass {
       Selector_List* extended_sels = extend_complex((*sg)[i], seen);
       if (extended_sels->length() > 0)
       {
-        cerr << "EXTENDED SELS: " << extended_sels->perform(&to_string) << endl;
+        // cerr << "EXTENDED SELS: " << extended_sels->perform(&to_string) << endl;
         extended = true;
         for (size_t j = 0, M = extended_sels->length(); j < M; ++j)
         {
-          cerr << "GENERATING EXTENSION FOR " << (*sg)[i]->perform(&to_string) << " AND " << (*extended_sels)[j]->perform(&to_string) << endl;
-          *ng += generate_extension((*sg)[i], (*extended_sels)[j]);
+          // cerr << "GENERATING EXTENSION FOR " << (*sg)[i]->perform(&to_string) << " AND " << (*extended_sels)[j]->perform(&to_string) << endl;
+          Selector_List* fully_extended = generate_extension((*sg)[i], (*extended_sels)[j]);
+          *ng += fully_extended;
         }
       }
     }
-    if (extended) cerr << "FINAL SELECTOR: " << ng->perform(&to_string) << endl;
+    // if (extended) cerr << "FINAL SELECTOR: " << ng->perform(&to_string) << endl;
     if (extended) r->selector(ng);
     r->block()->perform(this);
   }
@@ -143,7 +144,7 @@ namespace Sass {
   Selector_List* Extend::extend_complex(Complex_Selector* sel, set<Compound_Selector>& seen)
   {
     To_String to_string;
-    cerr << "EXTENDING COMPLEX: " << sel->perform(&to_string) << endl;
+    // cerr << "EXTENDING COMPLEX: " << sel->perform(&to_string) << endl;
     // vector<Selector_List*> choices; // 
     Selector_List* extended = new (ctx.mem) Selector_List(sel->path(), sel->position());
 
@@ -251,8 +252,10 @@ namespace Sass {
       cplx->set_innermost(new_innermost, cplx->clear_innermost());
       // cerr << "FULL UNIFIED: " << cplx->perform(&to_string) << endl;
       *results << cplx;
-      // set<Compound_Selector> seen2 = seen;
-      // seen2.insert(*entries[i].second);
+      set<Compound_Selector> seen2 = seen;
+      seen2.insert(*entries[i].second);
+      Selector_List* ex2 = extend_complex(cplx, seen2);
+      *results += ex2;
       // cerr << "RECURSIVELY CALLING EXTEND_COMPLEX ON " << cplx->perform(&to_string) << endl;
       // vector<Selector_List*> ex2 = extend_complex(cplx, seen2);
       // for (size_t j = 0, T = ex2.size(); j < T; ++j)
