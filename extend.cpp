@@ -102,6 +102,18 @@ namespace Sass {
     }
     // if (extended) cerr << "FINAL SELECTOR: " << ng->perform(&to_string) << endl;
     if (extended) r->selector(ng);
+
+    // remove placeholders
+    if (r->selector()->has_placeholder())
+    {
+      Selector_List* current = static_cast<Selector_List*>(r->selector());
+      Selector_List* final = new (ctx.mem) Selector_List(sg->path(), sg->position());
+      for (size_t i = 0, L = current->length(); i < L; ++i)
+      {
+        if (!(*current)[i]->has_placeholder()) *final << (*current)[i];
+      }
+      r->selector(final);
+    }
     r->block()->perform(this);
   }
 

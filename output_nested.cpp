@@ -36,7 +36,8 @@ namespace Sass {
     Block*    b     = r->block();
     bool      decls = false;
 
-    if (s->has_placeholder()) return;
+    // if (s->has_placeholder()) return;
+    if (static_cast<Selector_List*>(s)->length() == 0) return;
 
     if (b->has_non_hoistable()) {
       decls = true;

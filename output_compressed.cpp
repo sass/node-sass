@@ -29,7 +29,8 @@ namespace Sass {
     Selector* s     = r->selector();
     Block*    b     = r->block();
 
-    if (s->has_placeholder()) return;
+    // if (s->has_placeholder()) return;
+    if (static_cast<Selector_List*>(s)->length() == 0) return;
 
     if (b->has_non_hoistable()) {
       s->perform(this);
