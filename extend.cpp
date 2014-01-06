@@ -82,13 +82,15 @@ namespace Sass {
     // for each complex selector in the list
     for (size_t i = 0, L = sg->length(); i < L; ++i)
     {
+      // get rid of the useless backref that's at the front of the selector
+      (*sg)[i] = (*sg)[i]->tail();
       *ng << (*sg)[i];
       // /* *new_list += */ extend_complex((*sg)[i], seen);
-      cerr << "checking " << (*sg)[i]->perform(&to_string) << endl;
+      // cerr << "checking " << (*sg)[i]->perform(&to_string) << endl;
       Selector_List* extended_sels = extend_complex((*sg)[i], seen);
       if (extended_sels->length() > 0)
       {
-        // *ng += extended_sels;
+        // cerr << "EXTENDED SELS: " << extended_sels->perform(&to_string) << endl;
         extended = true;
         for (size_t j = 0, M = extended_sels->length(); j < M; ++j)
         {
@@ -96,9 +98,9 @@ namespace Sass {
         }
       }
     }
-    if (extended)
-      cerr << "FINAL SELECTOR: " << ng->perform(&to_string) << endl;
-    // if (extended) r->selector(ng);
+    // if (extended)
+    //   cerr << "FINAL SELECTOR: " << ng->perform(&to_string) << endl;
+    if (extended) r->selector(ng);
     r->block()->perform(this);
   }
 
@@ -141,7 +143,7 @@ namespace Sass {
   Selector_List* Extend::extend_complex(Complex_Selector* sel, set<Compound_Selector>& seen)
   {
     To_String to_string;
-    cerr << "EXTENDING COMPLEX: " << sel->perform(&to_string) << endl;
+    // cerr << "EXTENDING COMPLEX: " << sel->perform(&to_string) << endl;
     // vector<Selector_List*> choices; // 
     Selector_List* extended = new (ctx.mem) Selector_List(sel->path(), sel->position());
 
@@ -184,7 +186,7 @@ namespace Sass {
         // choices.push_back(extended);
       }
     }
-    cerr << "EXTENSIONS: " << extended->perform(&to_string) << endl;
+    // cerr << "EXTENSIONS: " << extended->perform(&to_string) << endl;
     return extended;
     // cerr << "CHOICES:" << endl;
     // for (size_t i = 0, L = choices.size(); i < L; ++i)
@@ -223,7 +225,7 @@ namespace Sass {
   Selector_List* Extend::extend_compound(Compound_Selector* sel, set<Compound_Selector>& seen)
   {
     To_String to_string;
-    cerr << "EXTEND_COMPOUND: " << sel->perform(&to_string) << endl;
+    // cerr << "EXTEND_COMPOUND: " << sel->perform(&to_string) << endl;
     Selector_List* results = new (ctx.mem) Selector_List(sel->path(), sel->position());
 
     // TODO: Do we need to group the results by extender?
@@ -236,7 +238,7 @@ namespace Sass {
       Compound_Selector* diff = sel->minus(entries[i].second, ctx);
       Compound_Selector* last = entries[i].first->base();
       if (!last) last = new (ctx.mem) Compound_Selector(sel->path(), sel->position());
-      cerr << sel->perform(&to_string) << " - " << entries[i].second->perform(&to_string) << " = " << diff->perform(&to_string) << endl;
+      // cerr << sel->perform(&to_string) << " - " << entries[i].second->perform(&to_string) << " = " << diff->perform(&to_string) << endl;
       // cerr << "LAST: " << last->perform(&to_string) << endl;
       Compound_Selector* unif;
       if (last->length() == 0) unif = diff;
@@ -247,7 +249,7 @@ namespace Sass {
       Complex_Selector* cplx = entries[i].first->clone(ctx);
       Complex_Selector* new_innermost = new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, unif, 0);
       cplx->set_innermost(new_innermost, cplx->clear_innermost());
-      cerr << "FULL UNIFIED: " << cplx->perform(&to_string) << endl;
+      // cerr << "FULL UNIFIED: " << cplx->perform(&to_string) << endl;
       *results << cplx;
       // set<Compound_Selector> seen2 = seen;
       // seen2.insert(*entries[i].second);
