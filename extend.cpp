@@ -77,14 +77,28 @@ namespace Sass {
     set<Compound_Selector> seen;
     // Selector_List* new_list = new (ctx.mem) Selector_List(sg->path(), sg->position());
     To_String to_string;
+    extended = false;
+    ng = new (ctx.mem) Selector_List(sg->path(), sg->position(), sg->length());
+    // for each complex selector in the list
     for (size_t i = 0, L = sg->length(); i < L; ++i)
     {
+      *ng << (*sg)[i];
       // /* *new_list += */ extend_complex((*sg)[i], seen);
       cerr << "checking " << (*sg)[i]->perform(&to_string) << endl;
-      extend_complex((*sg)[i], seen);
-      // cerr << "skipping for now!" << endl;
+      Selector_List* extended_sels = extend_complex((*sg)[i], seen);
+      if (extended_sels->length() > 0)
+      {
+        // *ng += extended_sels;
+        extended = true;
+        for (size_t j = 0, M = extended_sels->length(); j < M; ++j)
+        {
+          *ng += generate_extension((*sg)[i], (*extended_sels)[j]);
+        }
+      }
     }
-
+    if (extended)
+      cerr << "FINAL SELECTOR: " << ng->perform(&to_string) << endl;
+    // if (extended) r->selector(ng);
     r->block()->perform(this);
   }
 
