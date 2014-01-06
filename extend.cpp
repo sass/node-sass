@@ -84,22 +84,22 @@ namespace Sass {
     {
       // get rid of the useless backref that's at the front of the selector
       (*sg)[i] = (*sg)[i]->tail();
-      *ng << (*sg)[i];
+      if (!(*sg)[i]->has_placeholder()) *ng << (*sg)[i];
       // /* *new_list += */ extend_complex((*sg)[i], seen);
       // cerr << "checking " << (*sg)[i]->perform(&to_string) << endl;
       Selector_List* extended_sels = extend_complex((*sg)[i], seen);
       if (extended_sels->length() > 0)
       {
-        // cerr << "EXTENDED SELS: " << extended_sels->perform(&to_string) << endl;
+        cerr << "EXTENDED SELS: " << extended_sels->perform(&to_string) << endl;
         extended = true;
         for (size_t j = 0, M = extended_sels->length(); j < M; ++j)
         {
+          cerr << "GENERATING EXTENSION FOR " << (*sg)[i]->perform(&to_string) << " AND " << (*extended_sels)[j]->perform(&to_string) << endl;
           *ng += generate_extension((*sg)[i], (*extended_sels)[j]);
         }
       }
     }
-    // if (extended)
-    //   cerr << "FINAL SELECTOR: " << ng->perform(&to_string) << endl;
+    if (extended) cerr << "FINAL SELECTOR: " << ng->perform(&to_string) << endl;
     if (extended) r->selector(ng);
     r->block()->perform(this);
   }
@@ -143,7 +143,7 @@ namespace Sass {
   Selector_List* Extend::extend_complex(Complex_Selector* sel, set<Compound_Selector>& seen)
   {
     To_String to_string;
-    // cerr << "EXTENDING COMPLEX: " << sel->perform(&to_string) << endl;
+    cerr << "EXTENDING COMPLEX: " << sel->perform(&to_string) << endl;
     // vector<Selector_List*> choices; // 
     Selector_List* extended = new (ctx.mem) Selector_List(sel->path(), sel->position());
 
