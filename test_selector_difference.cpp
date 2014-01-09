@@ -16,13 +16,13 @@ Compound_Selector* selector(string src)
 
 void diff(string s, string t)
 {
-	cout << s << " - " << t << " = " << selector(s + ";")->minus(selector(t + ";"), ctx)->perform(&to_string) << endl;
+  cout << s << " - " << t << " = " << selector(s + ";")->minus(selector(t + ";"), ctx)->perform(&to_string) << endl;
 }
 
 int main()
 {
-	diff(".a.b.c", ".c.b");
-	diff(".a.b.c", ".fludge.b");
+  diff(".a.b.c", ".c.b");
+  diff(".a.b.c", ".fludge.b");
 
-	return 0;
+  return 0;
 }

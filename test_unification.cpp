@@ -14,20 +14,20 @@ Compound_Selector* selector(string src)
 
 void unify(string lhs, string rhs)
 {
-	Compound_Selector* unified = selector(lhs + ";")->unify_with(selector(rhs + ";"), ctx);
-	cout << lhs << " UNIFIED WITH " << rhs << " =\t" << (unified ? unified->perform(&to_string) : "NOTHING") << endl;
+  Compound_Selector* unified = selector(lhs + ";")->unify_with(selector(rhs + ";"), ctx);
+  cout << lhs << " UNIFIED WITH " << rhs << " =\t" << (unified ? unified->perform(&to_string) : "NOTHING") << endl;
 }
 
 int main()
 {
-	unify(".foo", ".foo.bar");
-	unify("div:nth-of-type(odd)", "div:first-child");
-	unify("div", "span:whatever");
-	unify("div", "span");
-	unify("foo:bar::after", "foo:bar::first-letter");
-	unify(".foo#bar.hux", ".hux.foo#bar");
-	unify(".foo#bar.hux", ".hux.foo#baz");
-	unify("*:blah:fudge", "p:fudge:blah");
+  unify(".foo", ".foo.bar");
+  unify("div:nth-of-type(odd)", "div:first-child");
+  unify("div", "span:whatever");
+  unify("div", "span");
+  unify("foo:bar::after", "foo:bar::first-letter");
+  unify(".foo#bar.hux", ".hux.foo#bar");
+  unify(".foo#bar.hux", ".hux.foo#baz");
+  unify("*:blah:fudge", "p:fudge:blah");
 
-	return 0;
+  return 0;
 }
