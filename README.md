@@ -108,6 +108,10 @@ Heavily inspired by <https://github.com/LearnBoost/stylus>
 
 [@sindresorhus](https://github.com/sindresorhus/) has created a set of grunt tasks based on node-sass: <https://github.com/sindresorhus/grunt-sass>
 
+## Gulp extension
+
+[@dlmanning](https://github.com/dlmanning/) has created a gulp sass plugin based on node-sass: <https://github.com/dlmanning/gulp-sass>
+
 ## Example App
 
 There is also an example connect app here: <https://github.com/andrew/node-sass-example>
