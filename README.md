@@ -112,6 +112,10 @@ Heavily inspired by <https://github.com/LearnBoost/stylus>
 
 [@dlmanning](https://github.com/dlmanning/) has created a gulp sass plugin based on node-sass: <https://github.com/dlmanning/gulp-sass>
 
+## Harp
+
+[@sintaxi](https://github.com/sintaxi)’s Harp web server implicitly compiles `.scss` files using node-sass: <https://github.com/sintaxi/harp>
+
 ## Example App
 
 There is also an example connect app here: <https://github.com/andrew/node-sass-example>
