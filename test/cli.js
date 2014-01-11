@@ -138,4 +138,22 @@ describe('cli', function() {
     });
   });
 
+  it('should compile a sourceMap if --source-comments="map", but the --source-map option is excluded', function(done){
+    var emitter = cli([path.join(__dirname, 'sample.scss'), '--source-comments', 'map']);
+    emitter.on('error', done);
+    emitter.on('write-source-map', function(err, file) {
+      assert.equal(file, path.join(__dirname, '../sample.css.map'));
+      fs.exists(file, function(exists) {
+        assert(exists);
+      });
+    });
+    emitter.on('done', function() {
+      fs.unlink(path.join(__dirname, '../sample.css.map'), function() {
+        fs.unlink(path.join(__dirname, '../sample.css'), function() {
+          done();
+        });
+      });
+    });
+  });
+
 });
