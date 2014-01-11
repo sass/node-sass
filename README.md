@@ -52,8 +52,13 @@ The API for using node-sass has changed, so that now there is only one variable 
 [Important: currently the argument `outputStyle` has some problem which may cause the output css becomes nothing because of the libsass, so you should not use it now!]
 
 #### sourceComments
-`sourceComments` is a `String` to determine what debug information is included in the output file. Its value should be one of `'none', 'normal'`. The default is `'none'`.
+`sourceComments` is a `String` to determine what debug information is included in the output file. Its value should be one of `'none', 'normal', 'map'`. The default is `'none'`.
+The `map` option will create the source map file in your CSS destination.
 [Important: `souceComments` is only supported when using the `file` option, and does nothing when using `data` flag.]
+
+#### sourceMap
+If your `sourceComments` option is set to `map`, `sourceMap` allows setting a new path context for the referenced Sass files. 
+The source map describes a path from your CSS file location, into the the folder where the Sass files are located. In most occasions this will work out-of-the-box but, in some cases, you may need to set a different output. 
 
 ### Examples
 
