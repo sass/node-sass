@@ -1,6 +1,7 @@
 var path = require('path'),
   assert = require('assert'),
   fs = require('fs'),
+  os = require('os'),
   sassSpecPath = path.join(__dirname, '../sass-spec'),
   sass = require('../sass');
 
@@ -35,6 +36,11 @@ suites.forEach(function (suiteDir) {
           file: input,
           success: function (css) {
             var expected_output = fs.readFileSync(path.join(sassSpecPath, 'spec', suiteDir, testDir, 'expected_output.css'), 'utf-8');
+
+            if (os.platform() === 'win32') {
+              expected_output = expected_output.replace(/\r/g, '');
+            }
+
             assert.equal(css, expected_output);
             done();
           },
