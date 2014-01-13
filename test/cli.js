@@ -24,6 +24,9 @@ var expectedSampleNoComments = '#navbar {\n\
   #navbar li a {\n\
     font-weight: bold; }\n';
 
+var expectedSampleCustomImagePath = 'body {\n\
+  background-image: url("/path/to/images/image.png"); }\n';
+
 describe('cli', function() {
   it('should print help when run with no arguments', function(done) {
     exec('node ' + cliPath, function(err, stdout, stderr) {
@@ -86,6 +89,15 @@ describe('cli', function() {
     emitter.on('error', done);
     emitter.on('write', function(err, file, css){
       assert.equal(css, expectedSampleNoComments);
+      fs.unlink(file, done);
+    });
+  });
+
+  it('should compile with the --image-path option', function(done){
+    var emitter = cli(['--image-path', '/path/to/images', path.join(__dirname, 'image_path.scss')]);
+    emitter.on('error', done);
+    emitter.on('write', function(err, file, css){
+      assert.equal(css, expectedSampleCustomImagePath);
       fs.unlink(file, done);
     });
   });
