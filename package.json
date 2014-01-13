@@ -26,6 +26,7 @@
   "scripts": {
     "install": "node build.js",
     "test": "mocha test",
+    "coverage": "bash scripts/coverage.sh",
     "pretest": "jshint .",
     "prepublish": "bash scripts/prepublish.sh"
   },
@@ -45,6 +46,9 @@
     "nan": "~0.6.0"
   },
   "devDependencies": {
-    "jshint": "~2.4.0"
+    "jshint": "~2.4.0",
+    "coveralls": "~2.6.1",
+    "mocha-lcov-reporter": "0.0.1",
+    "jscoverage": "~0.3.8"
   }
 }
