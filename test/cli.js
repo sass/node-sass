@@ -2,7 +2,7 @@ var path   = require('path'),
     assert = require('assert'),
     fs     = require('fs'),
     exec   = require('child_process').exec,
-    cli    = require('../lib/cli'),
+    cli    = process.env.NODESASS_COVERAGE ? require('../lib-coverage/cli') : require('../lib/cli'),
 
     cliPath = path.resolve(__dirname, '../bin/node-sass'),
     sampleFilename = path.resolve(__dirname, 'sample.scss');

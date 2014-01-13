@@ -1,5 +1,5 @@
 /*jshint multistr:true */
-var sass = require('../sass');
+var sass = process.env.NODESASS_COVERAGE ? require('../sass-coverage') : require('../sass');
 var assert = require('assert');
 var path = require('path');
 var badSampleFilename = 'sample.scss';
