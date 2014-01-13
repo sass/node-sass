@@ -790,13 +790,14 @@ namespace Sass {
     {
       List* l = dynamic_cast<List*>(env["$list"]);
       Number* n = ARG("$n", Number);
+      if (n->value() == 0) error("argument `$n` of `" + string(sig) + "` must be non-zero", path, position);
       if (!l) {
         l = new (ctx.mem) List(path, position, 1);
         *l << ARG("$list", Expression);
       }
       if (l->empty()) error("argument `$list` of `" + string(sig) + "` must not be empty", path, position);
       size_t index = std::floor(n->value() < 0 ? l->length() + n->value() : n->value() - 1);
-      if (index < 0 || index > l->length() - 1) error("index out of bounds for `" + string(sig) + "`", path, position);
+      if (index > l->length() - 1) error("index out of bounds for `" + string(sig) + "`", path, position);
       return l->value_at_index(index);
     }
 
