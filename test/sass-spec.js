@@ -7,49 +7,48 @@ var path = require('path'),
 
 // Check for the required clone of the sass-spec repo under the root
 fs.exists(sassSpecPath, function(exists) {
-  if (exists) {
-    console.log('found sass-spec path!');
-  } else {
-    console.log('please run "git clone https://github.com/hcatlin/sass-spec.git" from the root of the project!');
-    process.exit(1);
-  }
-});
+  describe('sass-spec', function() {
+    if (exists) {
+      var suites = fs.readdirSync(path.join(sassSpecPath, 'spec'));
 
-var suites = fs.readdirSync(path.join(sassSpecPath, 'spec'));
+      // Each subfolder of spec is a separate suite of Sass tests
+      suites.forEach(function (suiteDir) {
 
-suites = suites.filter(function(element){
-  return !(element === 'todo' || element === 'benchmarks' || element === 'basic-extend-tests' || element === 'extend-tests');
-});
+        if (suiteDir === 'todo' || suiteDir === 'benchmarks' || suiteDir === 'basic-extend-tests' || suiteDir === 'extend-tests') {
+          describe.skip(suiteDir, function() {});
+        } else {
+          describe(suiteDir, function() {
+            var tests = fs.readdirSync(path.join(sassSpecPath, 'spec', suiteDir));
 
-// Each subfolder of spec is a separate suite of Sass tests
-suites.forEach(function (suiteDir) {
+            // Each subfolder of the suite folder contains a named folder with an expected
+            // 'input.scss' and the expected 'expected_output.css' that it should compile to
+            tests.forEach(function (testDir) {
+              it(testDir, function(done) {
+                var input = path.join(sassSpecPath, 'spec', suiteDir, testDir, 'input.scss');
+                sass.render({
+                  file: input,
+                  success: function (css) {
+                    var expected_output = fs.readFileSync(path.join(sassSpecPath, 'spec', suiteDir, testDir, 'expected_output.css'), 'utf-8');
 
-  describe(suiteDir, function() {
-    var tests = fs.readdirSync(path.join(sassSpecPath, 'spec', suiteDir));
+                    if (os.platform() === 'win32') {
+                      expected_output = expected_output.replace(/\r/g, '');
+                    }
 
-    // Each subfolder of the suite folder contains a named folder with an expected
-    // 'input.scss' and the expected 'expected_output.css' that it should compile to
-    tests.forEach(function (testDir) {
-      it(testDir, function(done) {
-        var input = path.join(sassSpecPath, 'spec', suiteDir, testDir, 'input.scss');
-        sass.render({
-          file: input,
-          success: function (css) {
-            var expected_output = fs.readFileSync(path.join(sassSpecPath, 'spec', suiteDir, testDir, 'expected_output.css'), 'utf-8');
+                    assert.equal(css, expected_output);
+                    done();
+                  },
+                  error: function (error) {
+                    done(error);
+                  }
+                });
+              });
+            });
+          });
+        }
 
-            if (os.platform() === 'win32') {
-              expected_output = expected_output.replace(/\r/g, '');
-            }
-
-            assert.equal(css, expected_output);
-            done();
-          },
-          error: function (error) {
-            done(error);
-          }
-        });
       });
-    });
+    } else {
+      it.skip('please run "git clone https://github.com/hcatlin/sass-spec.git" from the root of the project!');
+    }
   });
-
 });
