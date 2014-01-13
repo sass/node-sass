@@ -1,6 +1,9 @@
 ##node-sass
 
 [![Build Status](https://secure.travis-ci.org/andrew/node-sass.png?branch=master)](https://travis-ci.org/andrew/node-sass)
+[![NPM version](https://badge.fury.io/js/node-sass.png)](http://badge.fury.io/js/node-sass)
+[![Dependency Status](https://david-dm.org/andrew/node-sass.png?theme=shields.io)](https://david-dm.org/andrew/node-sass)
+[![devDependency Status](https://david-dm.org/andrew/node-sass/dev-status.png?theme=shields.io)](https://david-dm.org/andrew/node-sass#info=devDependencies)
 
 Node-sass is a library that provides binding for Node.js to [libsass](https://github.com/hcatlin/libsass), the C version of the popular stylesheet preprocessor, Sass.
 
@@ -57,8 +60,8 @@ The `map` option will create the source map file in your CSS destination.
 [Important: `souceComments` is only supported when using the `file` option, and does nothing when using `data` flag.]
 
 #### sourceMap
-If your `sourceComments` option is set to `map`, `sourceMap` allows setting a new path context for the referenced Sass files. 
-The source map describes a path from your CSS file location, into the the folder where the Sass files are located. In most occasions this will work out-of-the-box but, in some cases, you may need to set a different output. 
+If your `sourceComments` option is set to `map`, `sourceMap` allows setting a new path context for the referenced Sass files.
+The source map describes a path from your CSS file location, into the the folder where the Sass files are located. In most occasions this will work out-of-the-box but, in some cases, you may need to set a different output.
 
 ### Examples
 
@@ -153,7 +156,7 @@ Output will be saved with the same name as input SASS file into the current work
  `node-sass [options] <input.scss> [<output.css>]`
 
  **Options:**
- 
+
       --output-style     CSS output style (nested|expanded|compact|compressed)  [default: "nested"]
       --source-comments  Include debug info in output (none|normal|map)         [default: "none"]
       --include-path     Path to look for @import-ed files                      [default: cwd]
