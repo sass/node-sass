@@ -18,7 +18,7 @@ fs.exists(sassSpecPath, function(exists) {
 var suites = fs.readdirSync(path.join(sassSpecPath, 'spec'));
 
 suites = suites.filter(function(element){
-  return !(element === 'todo' || element === 'benchmarks');
+  return !(element === 'todo' || element === 'benchmarks' || element === 'basic-extend-tests' || element === 'extend-tests');
 });
 
 // Each subfolder of spec is a separate suite of Sass tests
