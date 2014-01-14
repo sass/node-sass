@@ -1,7 +1,6 @@
 var path = require('path'),
   assert = require('assert'),
   fs = require('fs'),
-  os = require('os'),
   sassSpecPath = path.join(__dirname, '../sass-spec'),
   sass = require('../sass');
 
@@ -24,15 +23,16 @@ fs.exists(sassSpecPath, function(exists) {
             // 'input.scss' and the expected 'expected_output.css' that it should compile to
             tests.forEach(function (testDir) {
               it(testDir, function(done) {
+                var testPath = path.join(sassSpecPath, 'spec', suiteDir, testDir, '/');
                 var input = path.join(sassSpecPath, 'spec', suiteDir, testDir, 'input.scss');
                 sass.render({
                   file: input,
+                  includePaths: [testPath, path.join(testPath, 'sub/')],
                   success: function (css) {
                     var expected_output = fs.readFileSync(path.join(sassSpecPath, 'spec', suiteDir, testDir, 'expected_output.css'), 'utf-8');
 
-                    if (os.platform() === 'win32') {
-                      expected_output = expected_output.replace(/\r/g, '');
-                    }
+                    expected_output = expected_output.replace(/(\r\n|\r)/g, '\n').replace(/\n$/g, '');
+                    css = css.replace(/\n$/g, '');
 
                     assert.equal(css, expected_output);
                     done();
