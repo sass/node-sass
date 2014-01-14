@@ -53,6 +53,7 @@ namespace Sass {
     KWD_ARG_SET(Data) {
       KWD_ARG(Data, const char*,     source_c_str);
       KWD_ARG(Data, string,          entry_point);
+      KWD_ARG(Data, string,          output_path);
       KWD_ARG(Data, string,          image_path);
       KWD_ARG(Data, const char*,     include_paths_c_str);
       KWD_ARG(Data, const char**,    include_paths_array);

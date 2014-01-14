@@ -8,7 +8,7 @@ namespace Sass {
 
   SourceMap::SourceMap(const string& file) : current_position(Position(1, 1)), file(file) { }
 
-  string SourceMap::generate_source_map(Context* ctx) {
+  string SourceMap::generate_source_map() {
     string result = "{\n";
     result += "  \"version\": 3,\n";
     result += "  \"file\": \"" + file + "\",\n";
