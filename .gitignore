@@ -4,7 +4,6 @@
 .sass-cache
 *.gem
 .svn/*
-.gitattributes
 
 # Configuration stuff
 
