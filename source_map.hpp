@@ -34,7 +34,7 @@ namespace Sass {
     void update_column();
     void add_mapping(AST_Node* node);
 
-    string generate_source_map(Context* ctx);
+    string generate_source_map();
 
   private:
 
