@@ -1,10 +1,10 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
-#include "src/context.hpp"
+#include "context.hpp"
 
 #ifndef SASS_ERROR_HANDLING
-#include "src/error_handling.hpp"
+#include "error_handling.hpp"
 #endif
 
 using namespace std;

@@ -9,31 +9,11 @@ SASS_SASSC_PATH ?= sassc
 SASS_SPEC_PATH ?= sass-spec
 SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc
 
-SOURCES = \
-	sass_interface.cpp \
-	src/ast.cpp \
-	src/base64vlq.cpp \
-	src/bind.cpp \
-	src/constants.cpp \
-	src/context.cpp \
-	src/contextualize.cpp \
-	src/copy_c_str.cpp \
-	src/error_handling.cpp \
-	src/eval.cpp \
-	src/expand.cpp \
-	src/extend.cpp \
-	src/file.cpp \
-	src/functions.cpp \
-	src/inspect.cpp \
-	src/output_compressed.cpp \
-	src/output_nested.cpp \
-	src/parser.cpp \
-	src/prelexer.cpp \
-	src/sass.cpp \
-	src/source_map.cpp \
-	src/to_c.cpp \
-	src/to_string.cpp \
-	src/units.cpp
+SOURCES = ast.cpp base64vlq.cpp bind.cpp constants.cpp context.cpp contextualize.cpp \
+	copy_c_str.cpp error_handling.cpp eval.cpp expand.cpp extend.cpp file.cpp \
+	functions.cpp inspect.cpp output_compressed.cpp output_nested.cpp \
+	parser.cpp prelexer.cpp sass.cpp sass_interface.cpp source_map.cpp to_c.cpp to_string.cpp \
+	units.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)
 
@@ -75,4 +55,6 @@ test_issues: $(SASSC_BIN) libsass.a
 clean:
 	rm -f $(OBJECTS) *.a *.so
 
+
 .PHONY: all static shared bin install install-shared clean
+
