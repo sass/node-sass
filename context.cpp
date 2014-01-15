@@ -45,7 +45,7 @@ namespace Sass {
     include_paths   (initializers.include_paths()),
     queue           (vector<pair<string, const char*> >()),
     style_sheets    (map<string, Block*>()),
-    source_map(File::base_name(initializers.entry_point())),
+    source_map(File::base_name(initializers.output_path())),
     image_path      (initializers.image_path()),
     source_comments (initializers.source_comments()),
     source_maps     (initializers.source_maps()),
@@ -249,7 +249,7 @@ namespace Sass {
   {
     if (!source_maps) return 0;
     char* result = 0;
-    string map = source_map.generate_source_map(this);
+    string map = source_map.generate_source_map();
     result = copy_c_str(map.c_str());
     return result;
   }
