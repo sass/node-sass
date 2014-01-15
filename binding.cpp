@@ -23,14 +23,19 @@ void WorkOnContext(uv_work_t* req) {
 void extractOptions(_NAN_METHOD_ARGS, void* cptr, sass_context_wrapper* ctx_w, bool isFile) {
   char *source;
   char* pathOrData;
+  char* imagePath;
   int output_style;
   int source_comments;
   String::AsciiValue astr(args[0]);
 
+  String::AsciiValue bstr(args[1]);
+  imagePath = new char[strlen(*bstr)+1];
+  strcpy(imagePath, *bstr);
+
   if (ctx_w) {
     // async (callback) style
-    Local<Function> callback = Local<Function>::Cast(args[1]);
-    Local<Function> errorCallback = Local<Function>::Cast(args[2]);
+    Local<Function> callback = Local<Function>::Cast(args[2]);
+    Local<Function> errorCallback = Local<Function>::Cast(args[3]);
     if (isFile) {
       ctx_w->fctx = (sass_file_context*) cptr;
     } else {
@@ -39,18 +44,18 @@ void extractOptions(_NAN_METHOD_ARGS, void* cptr, sass_context_wrapper* ctx_w, b
     ctx_w->request.data = ctx_w;
     ctx_w->callback = new NanCallback(callback);
     ctx_w->errorCallback = new NanCallback(errorCallback);
-    output_style = args[4]->Int32Value();
-    source_comments = args[5]->Int32Value();
-    String::AsciiValue bstr(args[3]);
-    pathOrData = new char[strlen(*bstr)+1];
-    strcpy(pathOrData, *bstr);
+    output_style = args[5]->Int32Value();
+    source_comments = args[6]->Int32Value();
+    String::AsciiValue cstr(args[4]);
+    pathOrData = new char[strlen(*cstr)+1];
+    strcpy(pathOrData, *cstr);
   } else {
     // synchronous style
-    output_style = args[2]->Int32Value();
-    source_comments = args[3]->Int32Value();
-    String::AsciiValue bstr(args[1]);
-    pathOrData = new char[strlen(*bstr)+1];
-    strcpy(pathOrData, *bstr);
+    output_style = args[3]->Int32Value();
+    source_comments = args[4]->Int32Value();
+    String::AsciiValue cstr(args[2]);
+    pathOrData = new char[strlen(*cstr)+1];
+    strcpy(pathOrData, *cstr);
   }
 
   if (isFile) {
@@ -58,21 +63,21 @@ void extractOptions(_NAN_METHOD_ARGS, void* cptr, sass_context_wrapper* ctx_w, b
     char *filename = new char[strlen(*astr)+1];
     strcpy(filename, *astr);
     ctx->input_path = filename;
-    ctx->options.image_path = new char[0];
+    ctx->options.image_path = imagePath;
     ctx->options.output_style = output_style;
     ctx->options.source_comments = source_comments;
     ctx->options.include_paths = pathOrData;
     if (source_comments == SASS_SOURCE_COMMENTS_MAP) {
-      String::AsciiValue cstr(args[6]);
-      ctx->source_map_file = new char[strlen(*cstr)+1];
-      strcpy(ctx->source_map_file, *cstr);
+      String::AsciiValue dstr(args[7]);
+      ctx->source_map_file = new char[strlen(*dstr)+1];
+      strcpy(ctx->source_map_file, *dstr);
     }
   } else {
     sass_context *ctx = (sass_context*)cptr;
     source = new char[strlen(*astr)+1];
     strcpy(source, *astr);
     ctx->source_string = source;
-    ctx->options.image_path = new char[0];
+    ctx->options.image_path = imagePath;
     ctx->options.output_style = output_style;
     ctx->options.source_comments = source_comments;
     ctx->options.include_paths = pathOrData;
