@@ -19,10 +19,10 @@ void spec(string sel)
 
 int main()
 {
-	spec("foo bar hux");
-	spec(".foo .bar hux");
-	spec("#foo .bar[hux='mux']");
-	spec("a b c d e f");
+  spec("foo bar hux");
+  spec(".foo .bar hux");
+  spec("#foo .bar[hux='mux']");
+  spec("a b c d e f");
 
-	return 0;
+  return 0;
 }
