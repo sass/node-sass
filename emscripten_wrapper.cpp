@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <cstring>
 #include "sass_interface.h"
-#include "empscripten_wrapper.hpp"
+#include "emscripten_wrapper.hpp"
 
 char *sass_compile_emscripten(
   char *source_string,
