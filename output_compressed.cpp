@@ -218,15 +218,31 @@ namespace Sass {
 
   void Output_Compressed::operator()(Complex_Selector* c)
   {
-    Compound_Selector*        head = c->head();
+    Compound_Selector*           head = c->head();
     Complex_Selector*            tail = c->tail();
     Complex_Selector::Combinator comb = c->combinator();
-    if (head) head->perform(this);
+    if (head && head->is_empty_reference() && tail)
+    {
+      tail->perform(this);
+      return;
+    } 
+    if (head && !head->is_empty_reference()) head->perform(this);
     switch (comb) {
-      case Complex_Selector::ANCESTOR_OF: append_singleline_part_to_buffer(" "); break;
-      case Complex_Selector::PARENT_OF:   append_singleline_part_to_buffer(">"); break;
-      case Complex_Selector::PRECEDES:    append_singleline_part_to_buffer("~"); break;
-      case Complex_Selector::ADJACENT_TO: append_singleline_part_to_buffer("+"); break;
+      case Complex_Selector::ANCESTOR_OF:
+        if (tail) append_singleline_part_to_buffer(" ");
+        break;
+      case Complex_Selector::PARENT_OF:
+        append_singleline_part_to_buffer(">");
+        break;
+      case Complex_Selector::PRECEDES:
+        // Apparently need to preserve spaces around this combinator?
+        if (head && !head->is_empty_reference()) append_singleline_part_to_buffer(" ");
+        append_singleline_part_to_buffer("~");
+        if (tail) append_singleline_part_to_buffer(" ");
+        break;
+      case Complex_Selector::ADJACENT_TO:
+        append_singleline_part_to_buffer("+");
+        break;
     }
     if (tail) tail->perform(this);
   }
