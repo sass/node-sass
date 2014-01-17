@@ -7,11 +7,12 @@
 #include "context.hpp"
 #include "backtrace.hpp"
 #include "prelexer.hpp"
+
 #include <cstdlib>
 #include <cmath>
-
 #include <iostream>
 #include <iomanip>
+#include <typeinfo>
 
 namespace Sass {
   using namespace std;
@@ -390,14 +391,14 @@ namespace Sass {
 
   Expression* Eval::operator()(Variable* v)
   {
-    // To_String to_string;
-    // cerr << "looking up " << v->name() << endl;
+    To_String to_string;
     string name(v->name());
     Expression* value = 0;
     if (env->has(name)) value = static_cast<Expression*>((*env)[name]);
     else error("unbound variable " + v->name(), v->path(), v->position());
-    // cerr << "fetched a value of type " << typeid(*value).name() << endl;
-    // if (value) cerr << "fetched a value: " << value->perform(&to_string) << endl;
+    // cerr << "name: " << v->name() << "; type: " << typeid(*value).name() << "; value: " << value->perform(&to_string) << endl;
+    if (typeid(*value) == typeid(Argument)) value = static_cast<Argument*>(value)->value();
+    // cerr << "\ttype is now: " << typeid(*value).name() << endl << endl;
     return value;
   }
 
