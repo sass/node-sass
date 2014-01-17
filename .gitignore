@@ -37,6 +37,7 @@ libsass/*
 *.lo
 *.a
 a.out
+libsass.js
 
 bin/*
 .deps/
