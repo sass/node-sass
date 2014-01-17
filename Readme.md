@@ -38,19 +38,7 @@ Tests
 
 Since libsass is a pure library, tests are run through the [SassSpec](http://github.com/hcatlin/sass-spec) project using the [SassC](http://github.com/hcatlin/sassc) driver.
 
-To run tests against libsass while developing, please ensure you have the latest version of the above projects cloned, and then define the following environment variables:
-
-```bash
-export SASS_SPEC_PATH=~/path/sass-spec
-export SASS_SASSC_PATH=~/path/sassc
-export SASS_LIBSASS_PATH=~/path/libsass
-```
-
-Obviously, update them to your local environment. Then, its just a matter of running...
-
-```bash
-make test
-```
+To run tests against libsass while developing, you can run `./script/spec`. This will clone SassC and Sass-Spec under the project folder and then run the Sass-Spec test suite. You may want to update the clones to ensure you have the latest version.
 
 Usage
 -----
