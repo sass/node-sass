@@ -48,3 +48,7 @@ bin/*
 sassc++
 libsass.la
 support/libsass.pc
+
+# Cloned testing dirs
+sassc/
+sass-spec/
