@@ -17,6 +17,10 @@
 #include "source_map.hpp"
 #endif
 
+#ifndef SASS_SUBSET_MAP
+#include "subset_map.hpp"
+#endif
+
 namespace Sass {
   using namespace std;
   class AST_Node;
@@ -89,6 +93,9 @@ namespace Sass {
     // void register_function(Signature sig, Native_Function f, size_t arity, Env* env);
     // void register_overload_stub(string name, Env* env);
 
+  public:
+    multimap<Compound_Selector, Complex_Selector*> extensions;
+    Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> > subset_map;
   };
 
 }

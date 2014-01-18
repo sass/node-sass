@@ -24,9 +24,7 @@ namespace Sass {
     block_stack(vector<Block*>()),
     property_stack(vector<String*>()),
     selector_stack(vector<Selector*>()),
-    backtrace(bt),
-    extensions(multimap<Compound_Selector, Complex_Selector*>()),
-    subset_map(Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >())
+    backtrace(bt)
   { selector_stack.push_back(0); }
 
   Statement* Expand::operator()(Block* b)
@@ -266,10 +264,10 @@ namespace Sass {
     // { target_vec.push_back((*s)[i]->perform(&to_string)); }
 
     for (size_t i = 0, L = extender->length(); i < L; ++i) {
-      extensions.insert(make_pair(*s, (*extender)[i]));
+      ctx.extensions.insert(make_pair(*s, (*extender)[i]));
       // let's test this out
       // cerr << "REGISTERING EXTENSION REQUEST: " << (*extender)[i]->perform(&to_string) << " <- " << s->perform(&to_string) << endl;
-      subset_map.put(s->to_str_vec(), make_pair((*extender)[i], s));
+      ctx.subset_map.put(s->to_str_vec(), make_pair((*extender)[i], s));
     }
     return 0;
   }

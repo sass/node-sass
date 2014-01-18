@@ -7,9 +7,10 @@
 #define PATH_SEP ':'
 #endif
 
-#include <cstring>
-#include <iostream>
-#include <sstream>
+#ifndef SASS_AST
+#include "ast.hpp"
+#endif
+
 #include "context.hpp"
 #include "constants.hpp"
 #include "parser.hpp"
@@ -32,6 +33,8 @@
 
 #include <iomanip>
 #include <iostream>
+#include <cstring>
+#include <sstream>
 
 namespace Sass {
   using namespace Constants;
@@ -52,7 +55,9 @@ namespace Sass {
     output_style    (initializers.output_style()),
     source_map_file (initializers.source_map_file()),
     names_to_colors (map<string, Color*>()),
-    colors_to_names (map<int, string>())
+    colors_to_names (map<int, string>()),
+    extensions(multimap<Compound_Selector, Complex_Selector*>()),
+    subset_map(Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >())
   {
     cwd = get_cwd();
 
@@ -210,11 +215,11 @@ namespace Sass {
     Contextualize contextualize(*this, &eval, &tge, &backtrace);
     Expand expand(*this, &eval, &contextualize, &tge, &backtrace);
     // Inspect inspect(this);
-    Output_Nested output_nested;
+    // Output_Nested output_nested(*this);
 
     root = root->perform(&expand)->block();
-    if (expand.extensions.size()) {
-      Extend extend(*this, expand.extensions, expand.subset_map, &backtrace);
+    if (extensions.size()) {
+      Extend extend(*this, extensions, subset_map, &backtrace);
       root->perform(&extend);
     }
     char* result = 0;
