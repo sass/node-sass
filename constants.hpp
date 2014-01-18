@@ -66,6 +66,7 @@ namespace Sass {
     extern const char even_kwd[];
     extern const char odd_kwd[];
     extern const char progid_kwd[];
+    extern const char calc_kwd[];
 
     // css attribute-matching operators
     extern const char tilde_equal[];

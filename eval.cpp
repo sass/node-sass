@@ -262,7 +262,6 @@ namespace Sass {
 
   Expression* Eval::operator()(Function_Call* c)
   {
-    if (c->name() == "calc") return c;
     Arguments* args = static_cast<Arguments*>(c->arguments()->perform(this));
     string full_name(c->name() + "[f]");
 

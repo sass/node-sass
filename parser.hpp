@@ -207,8 +207,10 @@ namespace Sass {
     Expression* parse_term();
     Expression* parse_factor();
     Expression* parse_value();
+    Function_Call* parse_calc_function();
     Function_Call* parse_function_call();
     Function_Call_Schema* parse_function_call_schema();
+    String* parse_interpolated_chunk(Token);
     String* parse_string();
     String* parse_ie_stuff();
     String_Schema* parse_value_schema();

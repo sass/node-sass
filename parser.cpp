@@ -893,6 +893,9 @@ namespace Sass {
       }
       return kwd_arg;
     }
+    else if (peek< exactly<calc_kwd> >()) {
+      return parse_calc_function();
+    }
     else if (peek< functional_schema >()) {
       return parse_function_call_schema();
     }
@@ -1015,28 +1018,26 @@ namespace Sass {
     return 0;
   }
 
-  String* Parser::parse_string()
+  String* Parser::parse_interpolated_chunk(Token chunk)
   {
-    lex< string_constant >();
-    Token str(lexed);
-    const char* i = str.begin;
+    const char* i = chunk.begin;
     // see if there any interpolants
-    const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(str.begin, str.end);
+    const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(chunk.begin, chunk.end);
     if (!p) {
-      String_Constant* str_node = new (ctx.mem) String_Constant(path, source_position, str);
+      String_Constant* str_node = new (ctx.mem) String_Constant(path, source_position, chunk);
       str_node->is_delayed(true);
       return str_node;
     }
 
     String_Schema* schema = new (ctx.mem) String_Schema(path, source_position);
-    schema->quote_mark(*str.begin);
-    while (i < str.end) {
-      p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, str.end);
+    schema->quote_mark(*chunk.begin);
+    while (i < chunk.end) {
+      p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, chunk.end);
       if (p) {
         if (i < p) {
           (*schema) << new (ctx.mem) String_Constant(path, source_position, Token(i, p)); // accumulate the preceding segment if it's nonempty
         }
-        const char* j = find_first_in_interval< exactly<rbrace> >(p, str.end); // find the closing brace
+        const char* j = find_first_in_interval< exactly<rbrace> >(p, chunk.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
           Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, path, source_position).parse_list();
@@ -1046,15 +1047,58 @@ namespace Sass {
         }
         else {
           // throw an error if the interpolant is unterminated
-          error("unterminated interpolant inside string constant " + str.to_string());
+          error("unterminated interpolant inside string constant " + chunk.to_string());
         }
       }
       else { // no interpolants left; add the last segment if nonempty
-        if (i < str.end) (*schema) << new (ctx.mem) String_Constant(path, source_position, Token(i, str.end));
+        if (i < chunk.end) (*schema) << new (ctx.mem) String_Constant(path, source_position, Token(i, chunk.end));
         break;
       }
     }
     return schema;
+  }
+
+  String* Parser::parse_string()
+  {
+    lex< string_constant >();
+    Token str(lexed);
+    return parse_interpolated_chunk(str);
+    // const char* i = str.begin;
+    // // see if there any interpolants
+    // const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(str.begin, str.end);
+    // if (!p) {
+    //   String_Constant* str_node = new (ctx.mem) String_Constant(path, source_position, str);
+    //   str_node->is_delayed(true);
+    //   return str_node;
+    // }
+
+    // String_Schema* schema = new (ctx.mem) String_Schema(path, source_position);
+    // schema->quote_mark(*str.begin);
+    // while (i < str.end) {
+    //   p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, str.end);
+    //   if (p) {
+    //     if (i < p) {
+    //       (*schema) << new (ctx.mem) String_Constant(path, source_position, Token(i, p)); // accumulate the preceding segment if it's nonempty
+    //     }
+    //     const char* j = find_first_in_interval< exactly<rbrace> >(p, str.end); // find the closing brace
+    //     if (j) {
+    //       // parse the interpolant and accumulate it
+    //       Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, path, source_position).parse_list();
+    //       interp_node->is_interpolant(true);
+    //       (*schema) << interp_node;
+    //       i = j+1;
+    //     }
+    //     else {
+    //       // throw an error if the interpolant is unterminated
+    //       error("unterminated interpolant inside string constant " + str.to_string());
+    //     }
+    //   }
+    //   else { // no interpolants left; add the last segment if nonempty
+    //     if (i < str.end) (*schema) << new (ctx.mem) String_Constant(path, source_position, Token(i, str.end));
+    //     break;
+    //   }
+    // }
+    // return schema;
   }
 
   String* Parser::parse_ie_stuff()
@@ -1207,6 +1251,24 @@ namespace Sass {
       }
     }
     return schema;
+  }
+
+  Function_Call* Parser::parse_calc_function()
+  {
+    lex< identifier >();
+    string name(lexed);
+    Position call_pos = source_position;
+    lex< exactly<'('> >();
+    Position arg_pos = source_position;
+    const char* arg_beg = position;
+    parse_list();
+    const char* arg_end = position;
+    lex< exactly<')'> >();
+
+    Argument* arg = new (ctx.mem) Argument(path, arg_pos, parse_interpolated_chunk(Token(arg_beg, arg_end)));
+    Arguments* args = new (ctx.mem) Arguments(path, arg_pos);
+    *args << arg;
+    return new (ctx.mem) Function_Call(path, call_pos, name, args);
   }
 
   Function_Call* Parser::parse_function_call()
