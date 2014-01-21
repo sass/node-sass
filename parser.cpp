@@ -341,6 +341,11 @@ namespace Sass {
     To_String to_string;
     Selector_List* group = new (ctx.mem) Selector_List(path, source_position);
     do {
+      if (peek< exactly<'{'> >() ||
+          peek< exactly<'}'> >() ||
+          peek< exactly<')'> >() ||
+          peek< exactly<';'> >())
+        break; // in case there are superfluous commas at the end
       Complex_Selector* comb = parse_selector_combination();
       if (!comb->has_reference()) {
         Position sel_source_position = source_position;
@@ -358,7 +363,7 @@ namespace Sass {
       }
       (*group) << comb;
     }
-    while (lex< exactly<','> >());
+    while (lex< one_plus< sequence< spaces_and_comments, exactly<','> > > >());
     return group;
   }
 
