@@ -43,8 +43,8 @@ namespace Sass {
     Selector_Lookahead lookahead_result;
     while (position < end) {
       if (lex< block_comment >()) {
-        String_Constant* contents = new (ctx.mem) String_Constant(path, source_position, lexed);
-        Comment*     comment  = new (ctx.mem) Comment(path, source_position, contents);
+        String*  contents = parse_interpolated_chunk(lexed);
+        Comment* comment  = new (ctx.mem) Comment(path, source_position, contents);
         (*root) << comment;
       }
       else if (peek< import >()) {
@@ -551,15 +551,15 @@ namespace Sass {
         }
         semicolon = false;
         while (lex< block_comment >()) {
-          String_Constant* contents = new (ctx.mem) String_Constant(path, source_position, lexed);
-          Comment*         comment  = new (ctx.mem) Comment(path, source_position, contents);
+          String*  contents = parse_interpolated_chunk(lexed);
+          Comment* comment  = new (ctx.mem) Comment(path, source_position, contents);
           (*block) << comment;
         }
         if (lex< exactly<'}'> >()) break;
       }
       if (lex< block_comment >()) {
-        String_Constant* contents = new (ctx.mem) String_Constant(path, source_position, lexed);
-        Comment*         comment  = new (ctx.mem) Comment(path, source_position, contents);
+        String*  contents = parse_interpolated_chunk(lexed);
+        Comment* comment  = new (ctx.mem) Comment(path, source_position, contents);
         (*block) << comment;
       }
       else if (peek< import >(position)) {
@@ -676,8 +676,8 @@ namespace Sass {
       }
       else lex< exactly<';'> >();
       while (lex< block_comment >()) {
-        String_Constant* contents = new (ctx.mem) String_Constant(path, source_position, lexed);
-        Comment*         comment  = new (ctx.mem) Comment(path, source_position, contents);
+        String*  contents = parse_interpolated_chunk(lexed);
+        Comment* comment  = new (ctx.mem) Comment(path, source_position, contents);
         (*block) << comment;
       }
     }
