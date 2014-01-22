@@ -100,6 +100,8 @@ namespace Sass {
     extern const char sign_chars[];
     extern const char hyphen[];
     extern const char ellipsis[];
+    extern const char url_space_chars[];
+    extern const char escape_chars[];
 
     // type names
     extern const char numeric_name[];

@@ -106,6 +106,21 @@ namespace Sass {
       return mx(src) ? 0 : src;
     }
 
+    // Tries to match a certain number of times (between the supplied interval).
+    template<prelexer mx, size_t lo, size_t hi>
+    const char* between(const char* src) {
+      for (size_t i = 0; i < lo; ++i) {
+        src = mx(src);
+        if (!src) return 0;
+      }
+      for (size_t i = lo; i <= hi; ++i) {
+        const char* new_src = mx(src);
+        if (!new_src) return src;
+        src = new_src;
+      }
+      return src;
+    }
+
     // Tries the matchers in sequence and returns the first match (or none)
     template <prelexer mx1, prelexer mx2>
     const char* alternatives(const char* src) {
@@ -418,6 +433,9 @@ namespace Sass {
     const char* ie_stuff(const char* src);
     const char* ie_args(const char* src);
     const char* ie_keyword_arg(const char* src);
+
+    // match urls
+    const char* url(const char* src);
 
     // Path matching functions.
     const char* folder(const char* src);

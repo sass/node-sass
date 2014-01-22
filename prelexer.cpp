@@ -471,9 +471,48 @@ namespace Sass {
       return 0;
     }
 
-    // const char* balanced_parens(const char* src) {
-    //   size_t depth = 0;
-    //   while (*src
-    // }
+    // follow the CSS spec more closely and see if this helps us scan URLs correctly
+    const char* NL(const char* src) {
+      return alternatives< exactly<'\n'>,
+                           sequence< exactly<'\r'>, exactly<'\n'> >,
+                           exactly<'\r'>,
+                           exactly<'\f'> >(src);
+    }
+
+    const char* H(const char* src) {
+      return std::isxdigit(*src) ? src+1 : 0;
+    }
+
+    const char* UNICODE(const char* src) {
+      return sequence< exactly<'\\'>,
+                       between<H, 1, 6>,
+                       optional< class_char<url_space_chars> > >(src);
+    }
+
+    const char* ESCAPE(const char* src) {
+      return alternatives< UNICODE, class_char<escape_chars> >(src);
+    }
+
+    const char* url(const char* src) {
+      // using (more or less) the algorithm described at this url:
+      // http://www.w3.org/TR/css3-syntax/#consume-a-url-token
+      const char* pos = src;
+      pos = zero_plus<spaces>(pos);
+      if (*pos == '"' || *pos == '\'') return string_constant(pos); // let the parser handle the rparen
+      while (*pos != ')') {
+        if (space(pos)) {
+          ++pos;
+          continue;
+        }
+        if (*pos == '\\') {
+          pos = ESCAPE(pos);
+          if (!pos) return 0; // invalid escape sequence
+          continue;
+        }
+        if (*pos == '"' || *pos == '\'' || *pos == '(') return 0;
+        ++pos;
+      }
+      return pos;
+    }
   }
 }

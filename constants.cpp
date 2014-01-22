@@ -89,18 +89,19 @@ namespace Sass {
     extern const char false_kwd[] = "false";
 
     // miscellaneous punctuation and delimiters
-    extern const char percent_str[] = "%";
-    extern const char empty_str[]   = "";
-    extern const char slash_slash[] = "//";
-    extern const char slash_star[]  = "/*";
-    extern const char star_slash[]  = "*/";
-    extern const char hash_lbrace[] = "#{";
-    extern const char rbrace[]      = "}";
-    extern const char rparen[]      = ")";
-    extern const char sign_chars[]  = "-+";
-    extern const char hyphen[]      = "-";
-    extern const char ellipsis[]    = "...";
-
+    extern const char percent_str[]     = "%";
+    extern const char empty_str[]       = "";
+    extern const char slash_slash[]     = "//";
+    extern const char slash_star[]      = "/*";
+    extern const char star_slash[]      = "*/";
+    extern const char hash_lbrace[]     = "#{";
+    extern const char rbrace[]          = "}";
+    extern const char rparen[]          = ")";
+    extern const char sign_chars[]      = "-+";
+    extern const char hyphen[]          = "-";
+    extern const char ellipsis[]        = "...";
+    extern const char url_space_chars[] = " \t\r\n\f";
+    extern const char escape_chars[]    = " -~"; // need to include unicode spaces too
     // type names
     extern const char numeric_name[]    = "numeric value";
     extern const char number_name[]     = "number";

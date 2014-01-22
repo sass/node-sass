@@ -924,56 +924,77 @@ namespace Sass {
   Expression* Parser::parse_value()
   {
     if (lex< uri_prefix >()) {
-      // TODO: really need to clean up this chunk
       Arguments* args = new (ctx.mem) Arguments(path, source_position);
       Function_Call* result = new (ctx.mem) Function_Call(path, source_position, "url", args);
-      // gah, gonna have to use exception handling to do backtracking ...
       const char* here = position;
+      Position here_p = source_position;
+      // Try to parse an SassScript expression. If it succeeds and we can munch
+      // a matching rparen, then that's our url. If we can't munch a matching
+      // rparen, or if the attempt to parse an expression fails, then try to
+      // munch a regular CSS url.
+      Expression* expr = 0;
       try {
-        try {
-          if (peek< string_constant >()) {
-            // cerr << "parsing a url string" << endl;
-            String* str = parse_string();
-            (*args) << new (ctx.mem) Argument(path, source_position, str);
-            // cerr << "done" << endl;
-          }
-          else if (peek< sequence< url_schema, spaces_and_comments, exactly<')'> > >()) {
-            // cerr << "url schema" << endl;
-            lex< url_schema >();
-            String_Schema* the_url = Parser::from_token(lexed, ctx, path, source_position).parse_url_schema();
-            (*args) << new (ctx.mem) Argument(path, source_position, the_url);
-            // cerr << "done" << endl;
-          }
-          else if (peek< sequence< url_value, spaces_and_comments, exactly<')'> > >()) {
-            // cerr << "url value" << endl;
-            lex< url_value >();
-            String_Constant* the_url = new (ctx.mem) String_Constant(path, source_position, lexed);
-            (*args) << new (ctx.mem) Argument(path, source_position, the_url);
-            // cerr << "done" << endl;
-          }
-          else {
-            // cerr << "stuff" << endl;
-            const char* value = position;
-            const char* rparen = find_first< exactly<')'> >(position);
-            if (!rparen) error("URI is missing ')'");
-            Token content_tok(Token(value, rparen));
-            String_Constant* content_node = new (ctx.mem) String_Constant(path, source_position, content_tok);
-            (*args) << new (ctx.mem) Argument(path, source_position, content_node);
-            position = rparen;
-            // cerr << "done" << endl;
-          }
-        }
-        catch (Error& e) {
-          // cerr << "expression" << endl;
-          position = here;
-          Expression* expr = parse_list();
-          (*args) << new (ctx.mem) Argument(path, source_position, expr);
-          // cerr << "done" << endl;
-        }
+        Expression* expr = parse_list();
+        if (!lex< exactly<')'> >()) error("dangling expression in URL");
+        Argument* arg = new (ctx.mem) Argument(path, expr->position(), expr);
+        *args << arg;
+        return result;
       }
-      catch (Error& e) {
-        error("unable to parse URL");
+      catch (Error& err) {
+        position = here;
+        source_position = here_p;
       }
+      if (lex< url >()) {
+        String* the_url = parse_interpolated_chunk(lexed);
+        Argument* arg = new (ctx.mem) Argument(path, the_url->position(), the_url);
+        *args << arg;
+      }
+
+      // try {
+      //   try {
+      //     if (peek< string_constant >()) {
+      //       // cerr << "parsing a url string" << endl;
+      //       String* str = parse_string();
+      //       (*args) << new (ctx.mem) Argument(path, source_position, str);
+      //       // cerr << "done" << endl;
+      //     }
+      //     else if (peek< sequence< url_schema, spaces_and_comments, exactly<')'> > >()) {
+      //       // cerr << "url schema" << endl;
+      //       lex< url_schema >();
+      //       String_Schema* the_url = Parser::from_token(lexed, ctx, path, source_position).parse_url_schema();
+      //       (*args) << new (ctx.mem) Argument(path, source_position, the_url);
+      //       // cerr << "done" << endl;
+      //     }
+      //     else if (peek< sequence< url_value, spaces_and_comments, exactly<')'> > >()) {
+      //       // cerr << "url value" << endl;
+      //       lex< url_value >();
+      //       String_Constant* the_url = new (ctx.mem) String_Constant(path, source_position, lexed);
+      //       (*args) << new (ctx.mem) Argument(path, source_position, the_url);
+      //       // cerr << "done" << endl;
+      //     }
+      //     else {
+      //       // cerr << "stuff" << endl;
+      //       const char* value = position;
+      //       const char* rparen = find_first< exactly<')'> >(position);
+      //       if (!rparen) error("URI is missing ')'");
+      //       Token content_tok(Token(value, rparen));
+      //       String_Constant* content_node = new (ctx.mem) String_Constant(path, source_position, content_tok);
+      //       (*args) << new (ctx.mem) Argument(path, source_position, content_node);
+      //       position = rparen;
+      //       // cerr << "done" << endl;
+      //     }
+      //   }
+      //   catch (Error& e) {
+      //     // cerr << "expression" << endl;
+      //     position = here;
+      //     Expression* expr = parse_list();
+      //     (*args) << new (ctx.mem) Argument(path, source_position, expr);
+      //     // cerr << "done" << endl;
+      //   }
+      // }
+      // catch (Error& e) {
+      //   error("unable to parse URL");
+      // }
       if (!lex< exactly<')'> >()) error("URI is missing ')'");
       return result;
     }
