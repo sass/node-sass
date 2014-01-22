@@ -928,11 +928,10 @@ namespace Sass {
       Function_Call* result = new (ctx.mem) Function_Call(path, source_position, "url", args);
       const char* here = position;
       Position here_p = source_position;
-      // Try to parse an SassScript expression. If it succeeds and we can munch
+      // Try to parse a SassScript expression. If it succeeds and we can munch
       // a matching rparen, then that's our url. If we can't munch a matching
       // rparen, or if the attempt to parse an expression fails, then try to
       // munch a regular CSS url.
-      Expression* expr = 0;
       try {
         Expression* expr = parse_list();
         if (!lex< exactly<')'> >()) error("dangling expression in URL");
@@ -941,6 +940,7 @@ namespace Sass {
         return result;
       }
       catch (Error& err) {
+        // back up so we can try again
         position = here;
         source_position = here_p;
       }
@@ -948,6 +948,9 @@ namespace Sass {
         String* the_url = parse_interpolated_chunk(lexed);
         Argument* arg = new (ctx.mem) Argument(path, the_url->position(), the_url);
         *args << arg;
+      }
+      else {
+        error("malformed URL");
       }
 
       // try {
