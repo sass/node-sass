@@ -934,7 +934,7 @@ namespace Sass {
       // munch a regular CSS url.
       try {
         Expression* expr = parse_list();
-        if (!lex< exactly<')'> >()) error("dangling expression in URL");
+        if (!lex< exactly<')'> >()) error("dangling expression in URL"); // doesn't really matter what we throw
         Argument* arg = new (ctx.mem) Argument(path, expr->position(), expr);
         *args << arg;
         return result;
@@ -952,52 +952,6 @@ namespace Sass {
       else {
         error("malformed URL");
       }
-
-      // try {
-      //   try {
-      //     if (peek< string_constant >()) {
-      //       // cerr << "parsing a url string" << endl;
-      //       String* str = parse_string();
-      //       (*args) << new (ctx.mem) Argument(path, source_position, str);
-      //       // cerr << "done" << endl;
-      //     }
-      //     else if (peek< sequence< url_schema, spaces_and_comments, exactly<')'> > >()) {
-      //       // cerr << "url schema" << endl;
-      //       lex< url_schema >();
-      //       String_Schema* the_url = Parser::from_token(lexed, ctx, path, source_position).parse_url_schema();
-      //       (*args) << new (ctx.mem) Argument(path, source_position, the_url);
-      //       // cerr << "done" << endl;
-      //     }
-      //     else if (peek< sequence< url_value, spaces_and_comments, exactly<')'> > >()) {
-      //       // cerr << "url value" << endl;
-      //       lex< url_value >();
-      //       String_Constant* the_url = new (ctx.mem) String_Constant(path, source_position, lexed);
-      //       (*args) << new (ctx.mem) Argument(path, source_position, the_url);
-      //       // cerr << "done" << endl;
-      //     }
-      //     else {
-      //       // cerr << "stuff" << endl;
-      //       const char* value = position;
-      //       const char* rparen = find_first< exactly<')'> >(position);
-      //       if (!rparen) error("URI is missing ')'");
-      //       Token content_tok(Token(value, rparen));
-      //       String_Constant* content_node = new (ctx.mem) String_Constant(path, source_position, content_tok);
-      //       (*args) << new (ctx.mem) Argument(path, source_position, content_node);
-      //       position = rparen;
-      //       // cerr << "done" << endl;
-      //     }
-      //   }
-      //   catch (Error& e) {
-      //     // cerr << "expression" << endl;
-      //     position = here;
-      //     Expression* expr = parse_list();
-      //     (*args) << new (ctx.mem) Argument(path, source_position, expr);
-      //     // cerr << "done" << endl;
-      //   }
-      // }
-      // catch (Error& e) {
-      //   error("unable to parse URL");
-      // }
       if (!lex< exactly<')'> >()) error("URI is missing ')'");
       return result;
     }
