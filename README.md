@@ -84,9 +84,9 @@ sass.render({
 });
 // OR
 console.log(sass.renderSync({
-	data: 'body{background:blue; a{color:black;}}'),
+	data: 'body{background:blue; a{color:black;}}',
 	outputStyle: 'compressed'
-});
+}));
 ```
 
 ### Edge-case behaviours
