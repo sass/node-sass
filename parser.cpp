@@ -122,8 +122,12 @@ namespace Sass {
     do {
       if (lex< string_constant >()) {
         string import_path(lexed);
-        size_t dot = import_path.find_last_of('.');
-        if (dot != string::npos && import_path.substr(dot, 4) == ".css") {
+        string extension;
+        if (import_path.length() > 4) {
+          // a string constant is guaranteed to end with a quote mark, so make sure to skip it when indexing from the end
+          extension = import_path.substr(import_path.length() - 5, 4);
+        }
+        if (extension == ".css") {
           String_Constant* loc = new (ctx.mem) String_Constant(path, source_position, import_path);
           Argument* loc_arg = new (ctx.mem) Argument(path, source_position, loc);
           Arguments* loc_args = new (ctx.mem) Arguments(path, source_position);
@@ -133,7 +137,6 @@ namespace Sass {
         }
         else {
           string current_dir = File::dir_name(path);
-          // string resolved(ctx.add_file(File::join_paths(current_dir, unquote(import_path))));
           string resolved(ctx.add_file(current_dir, unquote(import_path)));
           if (resolved.empty()) error("file to import not found or unreadable: " + import_path);
           imp->files().push_back(resolved);
