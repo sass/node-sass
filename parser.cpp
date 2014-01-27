@@ -123,7 +123,7 @@ namespace Sass {
       if (lex< string_constant >()) {
         string import_path(lexed);
         string extension;
-        if (import_path.length() > 4) {
+        if (import_path.length() > 6) { // 2 quote marks + the 4 chars in .css
           // a string constant is guaranteed to end with a quote mark, so make sure to skip it when indexing from the end
           extension = import_path.substr(import_path.length() - 5, 4);
         }
