@@ -1,5 +1,5 @@
 #include <iostream>
-#include "paths.hpp"
+#include "../paths.hpp"
 
 using namespace std;
 using namespace Sass;

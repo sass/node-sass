@@ -1,7 +1,7 @@
-#include "ast.hpp"
-#include "context.hpp"
-#include "parser.hpp"
-#include "to_string.hpp"
+#include "../ast.hpp"
+#include "../context.hpp"
+#include "../parser.hpp"
+#include "../to_string.hpp"
 #include <string>
 
 using namespace Sass;
