@@ -1420,6 +1420,7 @@ namespace Sass {
     string kwd(lexed);
     Position at_source_position = source_position;
     Selector* sel = 0;
+    Expression* val = 0;
     Selector_Lookahead lookahead = lookahead_for_extension_target(position);
     if (lookahead.found) {
       if (lookahead.has_interpolants) {
@@ -1429,9 +1430,14 @@ namespace Sass {
         sel = parse_selector_group();
       }
     }
+    else if (!(peek<exactly<'{'> >() || peek<exactly<'}'> >() || peek<exactly<';'> >())) {
+      val = parse_list();
+    }
     Block* body = 0;
     if (peek< exactly<'{'> >()) body = parse_block();
-    return new (ctx.mem) At_Rule(path, at_source_position, kwd, sel, body);
+    At_Rule* rule = new (ctx.mem) At_Rule(path, at_source_position, kwd, sel, body);
+    if (!sel) rule->value(val);
+    return rule;
   }
 
   Warning* Parser::parse_warning()

@@ -175,16 +175,21 @@ namespace Sass {
 
   void Output_Nested::operator()(At_Rule* a)
   {
-    string    kwd   = a->keyword();
-    Selector* s     = a->selector();
-    Block*    b     = a->block();
-    bool      decls = false;
+    string      kwd   = a->keyword();
+    Selector*   s     = a->selector();
+    Expression* v     = a->value();
+    Block*      b     = a->block();
+    bool        decls = false;
 
     // indent();
     append_singleline_part_to_buffer(kwd);
     if (s) {
       append_singleline_part_to_buffer(" ");
       s->perform(this);
+    }
+    else if (v) {
+      append_singleline_part_to_buffer(" ");
+      v->perform(this);
     }
 
     if (!b) {

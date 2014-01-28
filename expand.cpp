@@ -104,13 +104,16 @@ namespace Sass {
     Block* ab = a->block();
     selector_stack.push_back(0);
     Selector* as = a->selector();
+    Expression* av = a->value();
     if (as) as = as->perform(contextualize->with(0, env, backtrace));
+    else if (av) av = av->perform(eval->with(env, backtrace));
     Block* bb = ab ? ab->perform(this)->block() : 0;
     At_Rule* aa = new (ctx.mem) At_Rule(a->path(),
                                         a->position(),
                                         a->keyword(),
                                         as,
                                         bb);
+    if (av) aa->value(av);
     selector_stack.pop_back();
     return aa;
   }

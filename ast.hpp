@@ -219,9 +219,10 @@ namespace Sass {
   class At_Rule : public Has_Block {
     ADD_PROPERTY(string, keyword);
     ADD_PROPERTY(Selector*, selector);
+    ADD_PROPERTY(Expression*, value);
   public:
     At_Rule(string path, Position position, string kwd, Selector* sel = 0, Block* b = 0)
-    : Has_Block(path, position, b), keyword_(kwd), selector_(sel)
+    : Has_Block(path, position, b), keyword_(kwd), selector_(sel), value_(0) // set value manually if needed
     { }
     ATTACH_OPERATIONS();
   };
