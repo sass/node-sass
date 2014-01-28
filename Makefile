@@ -1,5 +1,5 @@
 CXX      ?= g++
-CXXFLAGS = -Wall -O2 -fPIC -g 
+CXXFLAGS = -Wall -O2 -fPIC -g
 LDFLAGS  = -fPIC
 
 PREFIX    = /usr/local
@@ -9,11 +9,32 @@ SASS_SASSC_PATH ?= sassc
 SASS_SPEC_PATH ?= sass-spec
 SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc
 
-SOURCES = ast.cpp base64vlq.cpp bind.cpp constants.cpp context.cpp contextualize.cpp \
-	copy_c_str.cpp error_handling.cpp eval.cpp expand.cpp extend.cpp file.cpp \
-	functions.cpp inspect.cpp output_compressed.cpp output_nested.cpp \
-	parser.cpp prelexer.cpp sass.cpp sass_interface.cpp source_map.cpp to_c.cpp to_string.cpp \
-	units.cpp emscripten_wrapper.cpp
+SOURCES = \
+	ast.cpp \
+	base64vlq.cpp \
+	bind.cpp \
+	constants.cpp \
+	context.cpp \
+	contextualize.cpp \
+	copy_c_str.cpp \
+	emscripten_wrapper.cpp \
+	error_handling.cpp \
+	eval.cpp \
+	expand.cpp \
+	extend.cpp \
+	file.cpp \
+	functions.cpp \
+	inspect.cpp \
+	output_compressed.cpp \
+	output_nested.cpp \
+	parser.cpp \
+	prelexer.cpp \
+	sass.cpp \
+	sass_interface.cpp \
+	source_map.cpp \
+	to_c.cpp \
+	to_string.cpp \
+	units.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)
 
