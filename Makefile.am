@@ -13,11 +13,6 @@ libsass_la_LDFLAGS = -no-undefined -version-info 0:0:0
 
 include_HEADERS = sass_interface.h sass.h
 
-check_PROGRAMS = sassc++
-
-sassc___SOURCES = sassc++.cpp
-sassc___LDADD = libsass.la
-
 if ENABLE_TESTS
 
 noinst_PROGRAMS = sass-tester
