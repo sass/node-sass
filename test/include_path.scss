@@ -1,4 +1,4 @@
-@import "vars";
-@import "colorBlue";
+@import "lib/vars";
+@import "functions/colorBlue";
 
 body { background: $color; color: colorBlue(); }
