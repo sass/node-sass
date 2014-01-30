@@ -12,16 +12,16 @@ var expectedSampleCompressed = '#navbar{width:80%;height:23px;}\
 #navbar li{float:left;}\
 #navbar li a{font-weight:bold;}';
 
-var expectedSampleNoComments = '#navbar{\n\
+var expectedSampleNoComments = '#navbar {\n\
   width: 80%;\n\
   height: 23px; }\n\
 \n\
-#navbar ul{\n\
+#navbar ul {\n\
   list-style-type: none; }\n\
 \n\
-#navbar li{\n\
+#navbar li {\n\
   float: left; }\n\
-  #navbar li a{\n\
+  #navbar li a {\n\
     font-weight: bold; }\n';
 
 var expectedSampleCustomImagePath = 'body {\n\
