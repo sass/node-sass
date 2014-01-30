@@ -4,6 +4,8 @@
 #include "context.hpp"
 #endif
 
+#include <sstream>
+
 namespace Sass {
 
   SourceMap::SourceMap(const string& file) : current_position(Position(1, 1)), file(file) { }
@@ -69,12 +71,6 @@ namespace Sass {
     return result;
   }
 
-  void SourceMap::new_line()
-  {
-    current_position.line += 1;
-    current_position.column = 1;
-  }
-
   void SourceMap::remove_line()
   {
     current_position.line -= 1;
@@ -83,12 +79,13 @@ namespace Sass {
 
   void SourceMap::update_column(const string& str)
   {
-    current_position.column += str.length();
-  }
-
-  void SourceMap::update_column()
-  {
-    current_position.column += 1;
+    const int new_line_count = std::count(str.begin(), str.end(), '\n');
+    current_position.line += new_line_count;
+    if (new_line_count >= 1) {
+      current_position.column = str.size() - str.find_last_of('\n');
+    } else {
+      current_position.column += str.size();
+    }
   }
 
   void SourceMap::add_mapping(AST_Node* node)

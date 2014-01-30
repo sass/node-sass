@@ -24,8 +24,7 @@ namespace Sass {
 
     void fallback_impl(AST_Node* n);
 
-    void append_singleline_part_to_buffer(const string& text);
-    void append_multiline_part_to_buffer(const string& text);
+    void append_to_buffer(const string& text);
 
   public:
 

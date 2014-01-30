@@ -26,7 +26,7 @@ namespace Sass {
     if (!b->is_root()) return;
     for (size_t i = 0, L = b->length(); i < L; ++i) {
       (*b)[i]->perform(this);
-      if (i < L-1) append_multiline_part_to_buffer("\n");
+      if (i < L-1) append_to_buffer("\n");
     }
   }
 
@@ -61,11 +61,11 @@ namespace Sass {
       if (source_comments) {
         stringstream ss;
         ss << "/* line " << r->position().line << ", " << r->path() << " */" << endl;
-        append_singleline_part_to_buffer(ss.str());
+        append_to_buffer(ss.str());
         indent();
       }
       s->perform(this);
-      append_multiline_part_to_buffer(" {\n");
+      append_to_buffer(" {\n");
       ++indentation;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
@@ -94,13 +94,13 @@ namespace Sass {
         if (!stm->is_hoistable() && bPrintExpression) {
           if (!stm->block()) indent();
           stm->perform(this);
-          append_multiline_part_to_buffer("\n");
+          append_to_buffer("\n");
         }
       }
       --indentation;
       buffer.erase(buffer.length()-1);
       if (ctx) ctx->source_map.remove_line();
-      append_multiline_part_to_buffer(" }\n");
+      append_to_buffer(" }\n");
     }
 
     if (b->has_hoistable()) {
@@ -124,9 +124,9 @@ namespace Sass {
 
     indent();
     ctx->source_map.add_mapping(m);
-    append_singleline_part_to_buffer("@media ");
+    append_to_buffer("@media ");
     q->perform(this);
-    append_multiline_part_to_buffer(" {\n");
+    append_to_buffer(" {\n");
 
     Selector* e = m->enclosing_selector();
     bool hoisted = false;
@@ -135,7 +135,7 @@ namespace Sass {
       ++indentation;
       indent();
       e->perform(this);
-      append_multiline_part_to_buffer(" {\n");
+      append_to_buffer(" {\n");
     }
 
     ++indentation;
@@ -145,7 +145,7 @@ namespace Sass {
       if (!stm->is_hoistable()) {
         if (!stm->block()) indent();
         stm->perform(this);
-        append_multiline_part_to_buffer("\n");
+        append_to_buffer("\n");
       }
     }
     --indentation;
@@ -153,7 +153,7 @@ namespace Sass {
     if (hoisted) {
       buffer.erase(buffer.length()-1);
       if (ctx) ctx->source_map.remove_line();
-      append_multiline_part_to_buffer(" }\n");
+      append_to_buffer(" }\n");
       --indentation;
     }
 
@@ -170,7 +170,7 @@ namespace Sass {
 
     buffer.erase(buffer.length()-1);
     if (ctx) ctx->source_map.remove_line();
-    append_multiline_part_to_buffer(" }\n");
+    append_to_buffer(" }\n");
   }
 
   void Output_Nested::operator()(At_Rule* a)
@@ -182,22 +182,22 @@ namespace Sass {
     bool        decls = false;
 
     // indent();
-    append_singleline_part_to_buffer(kwd);
+    append_to_buffer(kwd);
     if (s) {
-      append_singleline_part_to_buffer(" ");
+      append_to_buffer(" ");
       s->perform(this);
     }
     else if (v) {
-      append_singleline_part_to_buffer(" ");
+      append_to_buffer(" ");
       v->perform(this);
     }
 
     if (!b) {
-      append_singleline_part_to_buffer(";");
+      append_to_buffer(";");
       return;
     }
 
-    append_multiline_part_to_buffer(" {\n");
+    append_to_buffer(" {\n");
     ++indentation;
     decls = true;
     for (size_t i = 0, L = b->length(); i < L; ++i) {
@@ -205,7 +205,7 @@ namespace Sass {
       if (!stm->is_hoistable()) {
         if (!stm->block()) indent();
         stm->perform(this);
-        append_multiline_part_to_buffer("\n");
+        append_to_buffer("\n");
       }
     }
     --indentation;
@@ -215,7 +215,7 @@ namespace Sass {
       Statement* stm = (*b)[i];
       if (stm->is_hoistable()) {
         stm->perform(this);
-        append_multiline_part_to_buffer("\n");
+        append_to_buffer("\n");
       }
     }
     if (decls) --indentation;
@@ -226,22 +226,16 @@ namespace Sass {
       buffer.erase(buffer.length()-1);
       if (ctx) ctx->source_map.remove_line();
     }
-    append_multiline_part_to_buffer(" }\n");
+    append_to_buffer(" }\n");
   }
 
   void Output_Nested::indent()
-  { append_singleline_part_to_buffer(string(2*indentation, ' ')); }
+  { append_to_buffer(string(2*indentation, ' ')); }
 
-  void Output_Nested::append_singleline_part_to_buffer(const string& text)
+  void Output_Nested::append_to_buffer(const string& text)
   {
     buffer += text;
     if (ctx) ctx->source_map.update_column(text);
-  }
-
-  void Output_Nested::append_multiline_part_to_buffer(const string& text)
-  {
-    buffer += text;
-    if (ctx) ctx->source_map.new_line();
   }
 
 }
