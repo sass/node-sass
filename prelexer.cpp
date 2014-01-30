@@ -432,7 +432,7 @@ namespace Sass {
     // }
 
     const char* ie_keyword_arg(const char* src) {
-      return sequence< alternatives< variable, identifier_schema, identifier >, spaces_and_comments, exactly<'='>, spaces_and_comments, alternatives< variable, identifier_schema, identifier, number > >(src);
+      return sequence< alternatives< variable, identifier_schema, identifier >, spaces_and_comments, exactly<'='>, spaces_and_comments, alternatives< variable, identifier_schema, identifier, number, hex > >(src);
     }
 
     // Path matching functions.
