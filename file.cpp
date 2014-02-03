@@ -16,6 +16,9 @@ namespace Sass {
     string base_name(string path)
     {
       size_t pos = path.find_last_of('/');
+      #ifdef _WIN32
+      if (pos == string::npos) pos = path.find_last_of('\\');
+      #endif
       if (pos == string::npos) return path;
       else                     return path.substr(pos+1);
     }
@@ -23,6 +26,9 @@ namespace Sass {
     string dir_name(string path)
     {
       size_t pos = path.find_last_of('/');
+      #ifdef _WIN32
+      if (pos == string::npos) pos = path.find_last_of('\\');
+      #endif
       if (pos == string::npos) return "";
       else                     return path.substr(0, pos+1);
     }
@@ -35,10 +41,13 @@ namespace Sass {
 
       if (l[l.length()-1] != '/') l += '/';
 
-      while ((r.length() > 3) && (r.substr(0, 3) == "../")) {
+      while ((r.length() > 3) && ((r.substr(0, 3) == "../") || (r.substr(0, 3)) == "..\\")) {
         r = r.substr(3);
-        size_t index = l.find_last_of('/', l.length() - 2);
-        l = l.substr(0, index + 1);
+        size_t pos = l.find_last_of('/', l.length() - 2);
+        #ifdef _WIN32
+        if (pos == string::npos) pos = path.find_last_of('\\', l.length() - 2);
+        #endif
+        l = l.substr(0, pos + 1);
       }
 
       return l + r;
@@ -100,8 +109,8 @@ namespace Sass {
       // (3) underscore + given + extension
       // (4) given + extension
       char* contents = 0;
-      // if the file isn't found with the given filename ...
       real_path = path;
+      // if the file isn't found with the given filename ...
       if (!(contents = read_file(real_path))) {
         string dir(dir_name(path));
         string base(base_name(path));
