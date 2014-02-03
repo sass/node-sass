@@ -482,6 +482,9 @@ namespace Sass {
       if (lex< alternatives< even, odd > >()) {
         expr = new (ctx.mem) String_Constant(path, p, lexed);
       }
+      else if (lex< identifier >()) {
+        expr = new (ctx.mem) String_Constant(path, p, lexed);
+      }
       else if (peek< binomial >(position)) {
         lex< sequence< optional< coefficient >, exactly<'n'> > >();
         String_Constant* var_coef = new (ctx.mem) String_Constant(path, p, lexed);
@@ -495,9 +498,14 @@ namespace Sass {
         *schema << var_coef << op << constant;
         expr = schema;
       }
-      else if (lex< sequence< optional<sign>,
-                              optional<digits>,
-                              exactly<'n'> > >()) {
+      else if (peek< sequence< optional<sign>,
+                               optional<digits>,
+                               exactly<'n'>,
+                               spaces_and_comments,
+                               exactly<')'> > >()) {
+        lex< sequence< optional<sign>,
+                       optional<digits>,
+                       exactly<'n'> > >();
         expr = new (ctx.mem) String_Constant(path, p, lexed);
       }
       else if (lex< sequence< optional<sign>, digits > >()) {
