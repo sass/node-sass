@@ -28,10 +28,8 @@ namespace Sass {
 
     SourceMap(const string& file);
 
-    void new_line();
     void remove_line();
     void update_column(const string& str);
-    void update_column();
     void add_mapping(AST_Node* node);
 
     string generate_source_map();
