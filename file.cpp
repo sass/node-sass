@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <cctype>
+#include <algorithm>
 #include <sys/stat.h>
 #include "file.hpp"
 #include "context.hpp"
@@ -13,22 +14,36 @@ namespace Sass {
   namespace File {
     using namespace std;
 
+    size_t find_last_folder_separator(const string& path)
+    {
+      size_t pos = string::npos;
+      size_t pos_p = path.find_last_of('/');
+      size_t pos_w = string::npos;
+      #ifdef _WIN32
+      pos_w = path.find_last_of('\\');
+      #endif
+      if (pos_p != string::npos && pos_w != string::npos) {
+        pos = max(pos_p, pos_w);
+      }
+      else if (pos_p != string::npos) {
+        pos = pos_p;
+      }
+      else {
+        pos = pos_w;
+      }
+      return pos;
+    }
+
     string base_name(string path)
     {
-      size_t pos = path.find_last_of('/');
-      #ifdef _WIN32
-      if (pos == string::npos) pos = path.find_last_of('\\');
-      #endif
+      size_t pos = find_last_folder_separator(path);
       if (pos == string::npos) return path;
       else                     return path.substr(pos+1);
     }
 
     string dir_name(string path)
     {
-      size_t pos = path.find_last_of('/');
-      #ifdef _WIN32
-      if (pos == string::npos) pos = path.find_last_of('\\');
-      #endif
+      size_t pos = find_last_folder_separator(path);
       if (pos == string::npos) return "";
       else                     return path.substr(0, pos+1);
     }
@@ -44,9 +59,6 @@ namespace Sass {
       while ((r.length() > 3) && ((r.substr(0, 3) == "../") || (r.substr(0, 3)) == "..\\")) {
         r = r.substr(3);
         size_t pos = l.find_last_of('/', l.length() - 2);
-        #ifdef _WIN32
-        if (pos == string::npos) pos = path.find_last_of('\\', l.length() - 2);
-        #endif
         l = l.substr(0, pos + 1);
       }
 
