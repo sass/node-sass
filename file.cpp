@@ -14,13 +14,13 @@ namespace Sass {
   namespace File {
     using namespace std;
 
-    size_t find_last_folder_separator(const string& path)
+    size_t find_last_folder_separator(const string& path, size_t limit = string::npos)
     {
       size_t pos = string::npos;
-      size_t pos_p = path.find_last_of('/');
+      size_t pos_p = path.find_last_of('/', limit);
       size_t pos_w = string::npos;
       #ifdef _WIN32
-      pos_w = path.find_last_of('\\');
+      pos_w = path.find_last_of('\\', limit);
       #endif
       if (pos_p != string::npos && pos_w != string::npos) {
         pos = max(pos_p, pos_w);
@@ -58,8 +58,8 @@ namespace Sass {
 
       while ((r.length() > 3) && ((r.substr(0, 3) == "../") || (r.substr(0, 3)) == "..\\")) {
         r = r.substr(3);
-        size_t pos = l.find_last_of('/', l.length() - 2);
-        l = l.substr(0, pos + 1);
+        size_t pos = find_last_folder_separator(l, l.length() - 2);
+        l = l.substr(0, pos == string::npos ? pos : pos + 1);
       }
 
       return l + r;
