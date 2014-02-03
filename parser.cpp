@@ -482,9 +482,6 @@ namespace Sass {
       if (lex< alternatives< even, odd > >()) {
         expr = new (ctx.mem) String_Constant(path, p, lexed);
       }
-      else if (lex< identifier >()) {
-        expr = new (ctx.mem) String_Constant(path, p, lexed);
-      }
       else if (peek< binomial >(position)) {
         lex< sequence< optional< coefficient >, exactly<'n'> > >();
         String_Constant* var_coef = new (ctx.mem) String_Constant(path, p, lexed);
