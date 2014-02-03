@@ -532,7 +532,7 @@ namespace Sass {
   {
     lex< exactly<'['> >();
     Position p = source_position;
-    if (!lex< type_selector >()) error("invalid attribute name in attribute selector");
+    if (!lex< attribute_name >()) error("invalid attribute name in attribute selector");
     string name(lexed);
     if (lex< exactly<']'> >()) return new (ctx.mem) Attribute_Selector(path, p, name, "", "");
     if (!lex< alternatives< exact_match, class_match, dash_match,

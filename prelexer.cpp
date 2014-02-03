@@ -252,6 +252,11 @@ namespace Sass {
     const char* class_name(const char* src) {
       return sequence<exactly<'.'>, identifier>(src);
     }
+    // Attribute name in an attribute selector.
+    const char* attribute_name(const char* src) {
+      return alternatives< sequence< optional<namespace_prefix>, identifier>, 
+                           identifier >(src);
+    }
     // match placeholder selectors
     const char* placeholder(const char* src) {
       return sequence<exactly<'%'>, identifier>(src);
