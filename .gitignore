@@ -25,5 +25,3 @@ bin/*-v8-*
 lib-coverage/
 sass-coverage.js
 
-# Clone of hcatlin/sass-spec for testing
-sass-spec/

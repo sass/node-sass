@@ -1,7 +1,7 @@
 var path = require('path'),
   assert = require('assert'),
   fs = require('fs'),
-  sassSpecPath = path.join(__dirname, '../sass-spec'),
+  sassSpecPath = path.join(__dirname, 'sass-spec'),
   sass = require('../sass');
 
 // Check for the required clone of the sass-spec repo under the root
