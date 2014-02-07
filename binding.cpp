@@ -70,7 +70,7 @@ void extractOptions(_NAN_METHOD_ARGS, void* cptr, sass_context_wrapper* ctx_w, b
     if (source_comments == SASS_SOURCE_COMMENTS_MAP) {
       String::AsciiValue dstr(args[7]);
       ctx->source_map_file = new char[strlen(*dstr)+1];
-      ctx->source_map_file = *dstr;
+      strcpy((char*) ctx->source_map_file, *dstr);
     }
   } else {
     sass_context *ctx = (sass_context*)cptr;
