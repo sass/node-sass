@@ -941,6 +941,9 @@ namespace Sass {
       // rparen, or if the attempt to parse an expression fails, then try to
       // munch a regular CSS url.
       try {
+        // special case -- if there's a comment, treat it as part of a URL
+        lex<spaces>();
+        if (peek<exactly<slash_slash> >() || peek<exactly<slash_star> >()) error("comment in URL"); // doesn't really matter what we throw
         Expression* expr = parse_list();
         if (!lex< exactly<')'> >()) error("dangling expression in URL"); // doesn't really matter what we throw
         Argument* arg = new (ctx.mem) Argument(path, expr->position(), expr);
@@ -952,6 +955,7 @@ namespace Sass {
         position = here;
         source_position = here_p;
       }
+      lex< spaces >();
       if (lex< url >()) {
         String* the_url = parse_interpolated_chunk(lexed);
         Argument* arg = new (ctx.mem) Argument(path, the_url->position(), the_url);

@@ -119,6 +119,9 @@ namespace Sass {
         after_whitespace = // position;
           zero_plus< alternatives<spaces, line_comment> >(position);
       }
+      else if (mx == url) {
+        after_whitespace = position;
+      }
       else if (mx == ancestor_of || mx == no_spaces) {
         after_whitespace = position;
       }
