@@ -99,6 +99,9 @@ namespace Sass {
       else if (mx == optional_spaces) {
         after_whitespace = optional_spaces(start);
       }
+      else if (mx == line_comment_prefix || mx == block_comment_prefix) {
+        after_whitespace = position;
+      }
       else {
         after_whitespace = spaces_and_comments(start);
       }

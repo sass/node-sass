@@ -943,7 +943,7 @@ namespace Sass {
       try {
         // special case -- if there's a comment, treat it as part of a URL
         lex<spaces>();
-        if (peek<exactly<slash_slash> >() || peek<exactly<slash_star> >()) error("comment in URL"); // doesn't really matter what we throw
+        if (peek<line_comment_prefix>() || peek<block_comment_prefix>()) error("comment in URL"); // doesn't really matter what we throw
         Expression* expr = parse_list();
         if (!lex< exactly<')'> >()) error("dangling expression in URL"); // doesn't really matter what we throw
         Argument* arg = new (ctx.mem) Argument(path, expr->position(), expr);

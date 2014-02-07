@@ -37,13 +37,17 @@ namespace Sass {
     const char* puncts(const char* src) { return one_plus<punct>(src); }
 
     // Match a line comment.
-
     const char* line_comment(const char* src) { return to_endl<slash_slash>(src); }
+    // Match a line comment prefix.
+    const char* line_comment_prefix(const char* src) { return exactly<slash_slash>(src); }
+
+
     // Match a block comment.
-
-
     const char* block_comment(const char* src) {
       return sequence< optional_spaces, delimited_by<slash_star, star_slash, false> >(src);
+    }
+    const char* block_comment_prefix(const char* src) {
+      return exactly<slash_star>(src);
     }
     // Match either comment.
     const char* comment(const char* src) {
