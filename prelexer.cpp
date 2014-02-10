@@ -23,10 +23,10 @@ namespace Sass {
 
     // Match a single character satisfying the ctype predicates.
     const char* space(const char* src) { return std::isspace(*src) ? src+1 : 0; }
-    const char* alpha(const char* src) { return std::isalpha(*src) ? src+1 : 0; }
+    const char* alpha(const char* src) { return std::isalpha(*src) || !isascii(*src) ? src+1 : 0; }
     const char* digit(const char* src) { return std::isdigit(*src) ? src+1 : 0; }
     const char* xdigit(const char* src) { return std::isxdigit(*src) ? src+1 : 0; }
-    const char* alnum(const char* src) { return std::isalnum(*src) ? src+1 : 0; }
+    const char* alnum(const char* src) { return std::isalnum(*src) || !isascii(*src) ? src+1 : 0; }
     const char* punct(const char* src) { return std::ispunct(*src) ? src+1 : 0; }
     // Match multiple ctype characters.
     const char* spaces(const char* src) { return one_plus<space>(src); }
