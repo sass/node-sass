@@ -86,8 +86,9 @@ namespace Sass {
       (*sg)[i] = (*sg)[i]->tail();
       if (!(*sg)[i]->has_placeholder()) *ng << (*sg)[i];
       // /* *new_list += */ extend_complex((*sg)[i], seen);
-      // cerr << "checking " << (*sg)[i]->perform(&to_string) << endl;
+      cerr << "checking [ " << (*sg)[i]->perform(&to_string) << " ]" << endl;
       Selector_List* extended_sels = extend_complex((*sg)[i], seen);
+      cerr << "extended by [ " << extended_sels->perform(&to_string) << " ]" << endl;
       if (extended_sels->length() > 0)
       {
         // cerr << "EXTENDED SELS: " << extended_sels->perform(&to_string) << endl;
@@ -95,7 +96,10 @@ namespace Sass {
         for (size_t j = 0, M = extended_sels->length(); j < M; ++j)
         {
           // cerr << "GENERATING EXTENSION FOR " << (*sg)[i]->perform(&to_string) << " AND " << (*extended_sels)[j]->perform(&to_string) << endl;
-          Selector_List* fully_extended = generate_extension((*sg)[i], (*extended_sels)[j]);
+          cerr << "length of extender [ " << (*extended_sels)[j]->perform(&to_string) << " ] is " << (*extended_sels)[j]->length() << endl;
+          cerr << "extender's tail is [ " << (*extended_sels)[j]->tail()->perform(&to_string) << " ]" << endl;
+          Selector_List* fully_extended = generate_extension((*sg)[i], (*extended_sels)[j]->tail()); // TODO: figure out why the extenders each have an extra node at the beginning
+          cerr << "combining extensions into [ " << fully_extended->perform(&to_string) << " ]" << endl;
           *ng += fully_extended;
         }
       }
@@ -115,6 +119,7 @@ namespace Sass {
       r->selector(final);
     }
     r->block()->perform(this);
+    cerr << endl;
   }
 
   void Extend::operator()(Media_Block* m)
@@ -134,6 +139,8 @@ namespace Sass {
     Complex_Selector* extendee_context = extendee->context(ctx);
     Complex_Selector* extender_context = extender->context(ctx);
     if (extendee_context && extender_context) {
+      cerr << "extender and extendee have a context" << endl;
+      cerr << extender_context->length() << endl;
       Complex_Selector* base = new (ctx.mem) Complex_Selector(new_group->path(), new_group->position(), Complex_Selector::ANCESTOR_OF, extender->base(), 0);
       extendee_context->innermost()->tail(extender);
       *new_group << extendee_context;
@@ -144,10 +151,12 @@ namespace Sass {
       *new_group << extender_context;
     }
     else if (extendee_context) {
+      cerr << "extendee has a context" << endl;
       extendee_context->innermost()->tail(extender);
       *new_group << extendee_context;
     }
     else {
+      cerr << "extender has a context" << endl;
       *new_group << extender;
     }
     return new_group;
@@ -260,9 +269,11 @@ namespace Sass {
       // if (unif) cerr << "UNIFIED: " << unif->perform(&to_string) << endl;
       if (!unif || unif->length() == 0) continue;
       Complex_Selector* cplx = entries[i].first->clone(ctx);
+      cerr << "cplx: " << cplx->perform(&to_string) << endl;
       Complex_Selector* new_innermost = new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, unif, 0);
+      cerr << "new_innermost: " << new_innermost->perform(&to_string) << endl;
       cplx->set_innermost(new_innermost, cplx->clear_innermost());
-      // cerr << "FULL UNIFIED: " << cplx->perform(&to_string) << endl;
+      cerr << "new cplx: " << cplx->perform(&to_string) << endl;
       *results << cplx;
       set<Compound_Selector> seen2 = seen;
       seen2.insert(*entries[i].second);
