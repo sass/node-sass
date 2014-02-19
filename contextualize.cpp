@@ -63,11 +63,21 @@ namespace Sass {
   {
     To_String to_string;
     Complex_Selector* ss = new (ctx.mem) Complex_Selector(*s);
+    Compound_Selector* new_head = 0;
+    Complex_Selector* new_tail = 0;
     if (ss->head()) {
-      ss->head(static_cast<Compound_Selector*>(s->head()->perform(this)));
+      new_head = static_cast<Compound_Selector*>(s->head()->perform(this));
+      ss->head(new_head);
     }
     if (ss->tail()) {
-      ss->tail(static_cast<Complex_Selector*>(s->tail()->perform(this)));
+      new_tail = static_cast<Complex_Selector*>(s->tail()->perform(this));
+      ss->tail(new_tail);
+    }
+    if ((new_head && new_head->has_placeholder()) || (new_tail && new_tail->has_placeholder())) {
+      ss->has_placeholder(true);
+    }
+    else {
+      ss->has_placeholder(false);
     }
     if (!ss->head() && ss->combinator() == Complex_Selector::ANCESTOR_OF) {
       return ss->tail();
@@ -114,14 +124,14 @@ namespace Sass {
   Selector* Contextualize::operator()(Type_Selector* s)
   { return s; }
 
-  Selector* Contextualize::operator()(Selector_Placeholder* s)
+  Selector* Contextualize::operator()(Selector_Placeholder* p)
   {
     To_String to_string;
-    if (placeholder && extender && s->perform(&to_string) == placeholder->perform(&to_string)) {
+    if (placeholder && extender && p->perform(&to_string) == placeholder->perform(&to_string)) {
       return extender;
     }
     else {
-      return s;
+      return p;
     }
   }
 
