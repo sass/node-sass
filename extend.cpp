@@ -22,9 +22,6 @@ namespace Sass {
 
   void Extend::operator()(Ruleset* r)
   {
-    Selector_List* sg = static_cast<Selector_List*>(r->selector());
-    Selector_List* ng = 0;
-    bool extended = false;
     // To_String to_string;
     // ng = new (ctx.mem) Selector_List(sg->path(), sg->position(), sg->length());
     // // for each selector in the group
@@ -45,67 +42,51 @@ namespace Sass {
     // }
     // if (extended) r->selector(ng);
     To_String to_string;
-
-    // Do the placeholders separately -- the bits of code that I ported over
-    // from Ruby Sass don't handle placeholders that aren't in base position.
-    // if (r->selector()->has_placeholder())
-    // {
-    //   Selector_List* sg = static_cast<Selector_List*>(r->selector());
-    //   Compound_Selector* placeholder = new (ctx.mem) Compound_Selector(sg->path(), sg->position(), 1);
-    //   *placeholder << sg->find_placeholder();
-    //   // if the placeholder needs to be subbed
-    //   if (extensions.count(*placeholder)) {
-    //     // perform each substitution and append it to the selector group of the ruleset
-    //     ng = new (ctx.mem) Selector_List(sg->path(), sg->position(), extensions.count(*placeholder));
-    //     for (multimap<Compound_Selector, Complex_Selector*>::iterator extender = extensions.lower_bound(*placeholder), E = extensions.upper_bound(*placeholder);
-    //          extender != E;
-    //          ++extender) {
-    //       cerr << "expanding placeholder: " << placeholder->perform(&to_string) << " " << extender->second->perform(&to_string) << endl;
-    //       cerr << "full context: " << sg->perform(&to_string) << " " << e
-    //       Contextualize sub_plc(ctx, 0, 0, backtrace, placeholder, extender->second);
-    //       Selector_List* subbed = static_cast<Selector_List*>(sg->perform(&sub_plc));
-    //       *ng += subbed;
-    //       extended = true;
-    //     }
-    //     ng->has_placeholder(false);
-    //     r->selector(ng);
-    //   }
-    // }
-
-    while (r->selector()->has_placeholder()) {
-      cerr << "looping on " << r->selector()->perform(&to_string) << endl;
-      ng = new (ctx.mem) Selector_List(sg->path(), sg->position());
-      sg = static_cast<Selector_List*>(r->selector());
-      Compound_Selector* placeholder = new (ctx.mem) Compound_Selector(sg->path(), sg->position(), 1);
-      *placeholder << sg->find_placeholder(); // fetch the first placeholder
-      // if the current placeholder needs to be subbed
-      if (extensions.count(*placeholder)) {
-        // perform each substitution and append it to the results
-        for (multimap<Compound_Selector, Complex_Selector*>::iterator extender = extensions.lower_bound(*placeholder), E = extensions.upper_bound(*placeholder);
-             extender != E;
-             ++extender) {
-          cerr << "expanding placeholder: " << placeholder->perform(&to_string) << " with " << extender->second->perform(&to_string) << endl;
-          Contextualize sub_plc(ctx, 0, 0, backtrace, placeholder, extender->second);
-          Selector_List* subbed = static_cast<Selector_List*>(sg->perform(&sub_plc));
-          *ng += subbed;
-          extended = true;
-          cerr << "appended to ng: " << ng->perform(&to_string) << endl;
+    Selector_List* sg = static_cast<Selector_List*>(r->selector());
+    Selector_List* all_subbed = new (ctx.mem) Selector_List(r->selector()->path(), r->selector()->position());
+    for (size_t i = 0, L = sg->length(); i < L; ++i) {
+      Complex_Selector* cplx = (*sg)[i];
+      bool extended = true;
+      Selector_List* ng = 0;
+      while (cplx) {
+        Selector_Placeholder* sp = cplx->find_placeholder();
+        if (!sp) break;
+        Compound_Selector* placeholder = new (ctx.mem) Compound_Selector(cplx->path(), cplx->position(), 1);
+        *placeholder << sp;
+        // if the current placeholder can be subbed
+        if (extensions.count(*placeholder)) {
+          ng = new (ctx.mem) Selector_List(sg->path(), sg->position());
+          // perform each substitution and accumulate
+          for (multimap<Compound_Selector, Complex_Selector*>::iterator extender = extensions.lower_bound(*placeholder), E = extensions.upper_bound(*placeholder);
+               extender != E;
+               ++extender) {
+            Contextualize do_sub(ctx, 0, 0, backtrace, placeholder, extender->second);
+            Complex_Selector* subbed = static_cast<Complex_Selector*>(cplx->perform(&do_sub));
+            *ng << subbed;
+            // cplx = subbed;
+          }
         }
-        // ng->has_placeholder(false); // erroneous -- won't allow multiple placeholders in one selector list
-        r->selector(ng); // update r->selector and loop over it again for more placeholders
+        else extended = false;
+        // if at any point we fail to sub a placeholder, then break and skip this entire complex selector
+        // else {
+          cplx = 0;
+        // }
       }
-      cerr << "expanded a placeholder with all extenders; result is now " << r->selector()->perform(&to_string) << endl;
+      // if we make it through the loop and `extended` is still true, then
+      // we've subbed all placeholders in the current complex selector -- add
+      // it to the result
+      if (extended && ng) *all_subbed += ng;
     }
-    cerr << "done expanding all placeholders" << endl;
 
-    // re-parse in order to restructure expanded placeholder nodes correctly
-    if (extended) {
+
+    if (all_subbed->length()) {
+      // re-parse in order to restructure expanded placeholder nodes correctly
       r->selector(
         Parser::from_c_str(
-          (r->selector()->perform(&to_string) + ";").c_str(),
+          (all_subbed->perform(&to_string) + ";").c_str(),
           ctx,
-          r->selector()->path(),
-          r->selector()->position()
+          all_subbed->path(),
+          all_subbed->position()
         ).parse_selector_group()
       );
     }
@@ -113,9 +94,9 @@ namespace Sass {
     // let's try the new stuff here; eventually it should replace the preceding
     set<Compound_Selector> seen;
     // Selector_List* new_list = new (ctx.mem) Selector_List(sg->path(), sg->position());
-    extended = false;
+    bool extended = false;
     sg = static_cast<Selector_List*>(r->selector());
-    ng = new (ctx.mem) Selector_List(sg->path(), sg->position(), sg->length());
+    Selector_List* ng = new (ctx.mem) Selector_List(sg->path(), sg->position(), sg->length());
     // for each complex selector in the list
     for (size_t i = 0, L = sg->length(); i < L; ++i)
     {
