@@ -758,7 +758,7 @@ namespace Sass {
       return least;
     }
 
-    Signature max_sig = "max($x2, $x2...)";
+    Signature max_sig = "max($x1, $x2...)";
     BUILT_IN(max)
     {
       Number* x1 = ARG("$x1", Number);
