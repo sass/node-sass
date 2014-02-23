@@ -132,6 +132,10 @@ Heavily inspired by <https://github.com/LearnBoost/stylus>
 
 [@fourseven](https://github.com/fourseven) has created a meteor plugin based on node-sass: <https://github.com/fourseven/meteor-scss>
 
+## Mimosa module
+
+[@dbashford](https://github.com/dbashford) has created a Mimosa module for sass which includes node-sass: <https://github.com/dbashford/mimosa-sass>
+
 ## Example App
 
 There is also an example connect app here: <https://github.com/andrew/node-sass-example>
