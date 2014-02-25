@@ -38,6 +38,7 @@ extern "C" {
   void sass_free_context(sass_context* ctx)
   {
     if (ctx->output_string) free(ctx->output_string);
+    if (ctx->source_map_string) free(ctx->source_map_string);
     if (ctx->error_message) free(ctx->error_message);
 
     free_string_array(ctx->included_files, ctx->num_included_files);
@@ -86,12 +87,23 @@ extern "C" {
   {
     using namespace Sass;
     try {
+      bool source_maps = false;
+      string source_map_file = "";
+      if (c_ctx->source_map_file && (c_ctx->options.source_comments == SASS_SOURCE_COMMENTS_MAP)) {
+        source_maps = true;
+        source_map_file = c_ctx->source_map_file;
+      }
+      string output_path = c_ctx->output_path ? c_ctx->output_path : "";
       Context cpp_ctx(
         Context::Data().source_c_str(c_ctx->source_string)
-                       .entry_point("")
+                       .entry_point(c_ctx->input_path ?
+                                    c_ctx->input_path :
+                                    "")
+                       .output_path(output_path)
                        .output_style((Output_Style) c_ctx->options.output_style)
                        .source_comments(c_ctx->options.source_comments == SASS_SOURCE_COMMENTS_DEFAULT)
-                       .source_maps(false) // Only supported for files.
+                       .source_maps(source_maps)
+                       .source_map_file(source_map_file)
                        .image_path(c_ctx->options.image_path ?
                                    c_ctx->options.image_path :
                                    "")
@@ -108,6 +120,7 @@ extern "C" {
         }
       }
       c_ctx->output_string = cpp_ctx.compile_string();
+      c_ctx->source_map_string = source_maps ? cpp_ctx.generate_source_map() : NULL;
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
 
@@ -167,7 +180,7 @@ extern "C" {
         }
       }
       c_ctx->output_string = cpp_ctx.compile_file();
-      c_ctx->source_map_string = cpp_ctx.generate_source_map();
+      c_ctx->source_map_string = source_maps ? cpp_ctx.generate_source_map() : NULL;
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
 
