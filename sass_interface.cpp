@@ -120,7 +120,7 @@ extern "C" {
         }
       }
       c_ctx->output_string = cpp_ctx.compile_string();
-      c_ctx->source_map_string = source_maps ? cpp_ctx.generate_source_map() : NULL;
+      c_ctx->source_map_string = cpp_ctx.generate_source_map();
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
 
@@ -132,6 +132,7 @@ extern "C" {
       c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
+      c_ctx->source_map_string = 0;
     }
     catch(bad_alloc& ba) {
       stringstream msg_stream;
@@ -139,6 +140,7 @@ extern "C" {
       c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
+      c_ctx->source_map_string = 0;
     }
     // TO DO: CATCH EVERYTHING ELSE
     return 0;
@@ -180,7 +182,7 @@ extern "C" {
         }
       }
       c_ctx->output_string = cpp_ctx.compile_file();
-      c_ctx->source_map_string = source_maps ? cpp_ctx.generate_source_map() : NULL;
+      c_ctx->source_map_string = cpp_ctx.generate_source_map();
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
 
