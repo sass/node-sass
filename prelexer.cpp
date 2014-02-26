@@ -492,14 +492,14 @@ namespace Sass {
       return std::isxdigit(*src) ? src+1 : 0;
     }
 
-    const char* UNICODE(const char* src) {
+    const char* unicode(const char* src) {
       return sequence< exactly<'\\'>,
                        between<H, 1, 6>,
                        optional< class_char<url_space_chars> > >(src);
     }
 
     const char* ESCAPE(const char* src) {
-      return alternatives< UNICODE, class_char<escape_chars> >(src);
+      return alternatives< unicode, class_char<escape_chars> >(src);
     }
 
     const char* url(const char* src) {
