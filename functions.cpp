@@ -854,7 +854,7 @@ namespace Sass {
         l = new (ctx.mem) List(path, position, 1);
         *l << ARG("$list", Expression);
       }
-      List* result = new (ctx.mem) List(path, position, l->length() + 1);
+      List* result = new (ctx.mem) List(path, position, l->length() + 1, l->separator());
       string sep_str(unquote(sep->value()));
       if (sep_str == "space") result->separator(List::SPACE);
       else if (sep_str == "comma") result->separator(List::COMMA);
