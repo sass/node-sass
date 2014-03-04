@@ -854,7 +854,7 @@ namespace Sass {
         l = new (ctx.mem) List(path, position, 1);
         *l << ARG("$list", Expression);
       }
-      List* result = new (ctx.mem) List(path, position, l->length() + 1);
+      List* result = new (ctx.mem) List(path, position, l->length() + 1, l->separator());
       string sep_str(unquote(sep->value()));
       if (sep_str == "space") result->separator(List::SPACE);
       else if (sep_str == "comma") result->separator(List::COMMA);
@@ -898,6 +898,7 @@ namespace Sass {
     BUILT_IN(compact)
     {
       List* arglist = ARG("$values", List);
+      List::Separator sep = List::COMMA;
       if (arglist->length() == 1) {
         Expression* the_arg = arglist->value_at_index(0);
         arglist = dynamic_cast<List*>(the_arg);
@@ -906,8 +907,9 @@ namespace Sass {
           *result << the_arg;
           return result;
         }
+        sep = arglist->separator();
       }
-      List* result = new (ctx.mem) List(path, position, 0, List::COMMA);
+      List* result = new (ctx.mem) List(path, position, 0, sep);
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Boolean* ith = dynamic_cast<Boolean*>(arglist->value_at_index(i));
         if (ith && ith->value() == false) continue;
