@@ -113,6 +113,15 @@ void process (ostream& os, string& str, bool final = false)
 			comment = "";
 		}
 
+		// check if we have sass property syntax
+		if (str.substr(pos_left, 1) == ":")
+		{
+			// get postion of first meaningfull char
+			int pos_value = str.find_first_of(" \t\n\v\f\r", pos_left);
+			// create new string by interchanging the colon sign for property and value
+			str = indent + str.substr(pos_left + 1, pos_value - pos_left - 1) + ":" + str.substr(pos_value);
+		}
+
 		// check if current line starts a comment
 		string open = str.substr(pos_left, 2);
 
@@ -180,7 +189,7 @@ void process (ostream& os, string& str, bool final = false)
 			string close = str.substr(pos_right, 1);
 
 			// check if next line should be concatenated
-			if (comment == "" && close == ",") comma = true;
+			comma = comment == "" && close == ",";
 
 			// check if we have more than
 			// one meaningfull char
