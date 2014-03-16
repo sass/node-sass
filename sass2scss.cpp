@@ -59,11 +59,14 @@ void flush (ostream& os, string& str)
 }
 
 // process a line of the sass text
-void process (ostream& os, string& str)
+void process (ostream& os, string& str, bool final = false)
 {
 
 	// get postion of first meaningfull char
 	int pos_left = str.find_first_not_of(" \t\n\v\f\r");
+
+	// special case for final run
+	if (final) pos_left = 0;
 
 	// has only whitespace
 	if (pos_left == string::npos)
@@ -97,10 +100,10 @@ void process (ostream& os, string& str)
 			comment = "";
 		}
 		// current line has less or same indentation
-		else if (indent.length() <= indents[level].length())
+		else if (level > 0 && indent.length() <= indents[level].length())
 		{
 			// add semicolon if not in concat mode
-			if (comment == "" && !comma) os << ";";
+			if (comment == "" && comma == false) os << ";";
 		}
 
 		// make sure we close every "higher" block
@@ -109,7 +112,7 @@ void process (ostream& os, string& str)
 			// close block (lower level)
 			indents[level] = ""; level --;
 			// print closer
-			if (comment == "")
+			if (comment != "")
 			{ os << " */"; }
 			else { os << closer(); }
 			// reset comment
@@ -182,7 +185,7 @@ void process (ostream& os, string& str)
 			string closer = str.substr(pos_right, 1);
 
 			// check if next line should be concatenated
-			if (closer == ",") comma = true;
+			if (comment == "" && closer == ",") comma = true;
 
 			// check if we have more than
 			// one meaningfull char
@@ -196,10 +199,10 @@ void process (ostream& os, string& str)
 				{
 					// close implicit comment
 					comment = "";
-				// reset string
-				indents[level] == "";
-				// close block
-				level --;
+					// reset string
+					indents[level] == "";
+					// close block
+					level --;
 				}
 			}
 			// EO have meaningfull chars from end
@@ -218,6 +221,7 @@ int main (int argc, char** argv)
 	for (int i = 0; i < argc; ++i)
 	{
 		// only handle prettyfying option
+		if ("-p" == string(argv[i])) pretty ++;
 		if ("--pretty" == string(argv[i])) pretty ++;
 	}
 
@@ -241,6 +245,6 @@ int main (int argc, char** argv)
 
 	// flush buffer
 	string end = "";
-	flush(cout, end);
+	process(cout, end, true);
 
 }
