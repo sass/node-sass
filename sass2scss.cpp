@@ -9,7 +9,7 @@ using namespace std;
 int pretty = 0;
 
 // whitespace buffer
-string whites;
+string whitespace;
 
 // concatenate comma lists
 bool comma = false;
@@ -45,13 +45,15 @@ static string opener ()
 void flush (ostream& os, string& str)
 {
 	// print whitespace
-	os << whites; whites = "";
+	os << whitespace;
+	// reset whitespace
+	whitespace = "";
 	// remove newlines
 	int pos = str.find_last_not_of("\n\r");
 	string lfs = str.substr(pos + 1);
 	str = str.substr(0, pos + 1);
 	// getline discharged newline
-	whites = whites + lfs + "\n";
+	whitespace += lfs + "\n";
 	// print text
 	os << str;
 }
@@ -67,7 +69,7 @@ void process (ostream& os, string& str)
 	if (pos_left == string::npos)
 	{
 		// add whitespace
-		whites += str;
+		whitespace += str;
 	}
 	// have meaningfull first char
 	else
@@ -223,7 +225,7 @@ int main (int argc, char** argv)
 	string line;
 
 	// init variables
-	whites = "";
+	whitespace = "";
 	indents[0] = "";
 
 	// read from stdin
