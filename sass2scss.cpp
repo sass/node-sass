@@ -125,6 +125,17 @@ void process (ostream& os, string& str, bool final = false)
 		// replace some specific sass shorthand directives
 		else if (str.substr(pos_left, 1) == "=") { str = indent + "@mixin " + str.substr(pos_left + 1); }
 		else if (str.substr(pos_left, 1) == "+") { str = indent + "@include " + str.substr(pos_left + 1); }
+		// add quotes for import if needed
+		else if (str.substr(pos_left, 7) == "@import")
+		{
+			int pos_import = str.find_first_of(" \t\n\v\f\r", pos_left + 7);
+			int pos_quote = str.find_first_not_of(" \t\n\v\f\r", pos_import);
+			if (str.substr(pos_quote, 1) != "\"")
+			{
+				int pos_end = str.find_last_not_of(" \t\n\v\f\r");
+				str = str.substr(0, pos_quote) + "\"" + str.substr(pos_quote, pos_end - pos_quote + 1) + "\"";
+			}
+		}
 
 		// check if current line starts a comment
 		string open = str.substr(pos_left, 2);
