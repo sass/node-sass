@@ -1,14 +1,18 @@
 sass2scss
 =========
 
-Convert Sass to Scss
+It may just work or is probably horribly broken!
 
-C++ port of (sass2scss.pl)[https://github.com/mgreter/OCBNET-CSS3/blob/master/bin/sass2scss].
+C++ port of https://github.com/mgreter/OCBNET-CSS3/blob/master/bin/sass2scss.
 
-executable
-==========
+Converts old indented sass syntax to newer scss syntax. My C++ is very rusty so it may
+contain obvious errors and memory leaks. I only tested some basic examples from
+http://sass-lang.com/documentation/file.INDENTED_SYNTAX.html. The scripts reads from STDIN
+and writes to STDOUT, so you should be able to pipe sass files to scss processors.
 
-Converts old indented sass syntax to newer scss syntax (writes to stdout).
+
+Options
+=======
 
 ```
 sass2scss [options] < file.sass
