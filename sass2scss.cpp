@@ -122,6 +122,10 @@ void process (ostream& os, string& str, bool final = false)
 			str = indent + str.substr(pos_left + 1, pos_value - pos_left - 1) + ":" + str.substr(pos_value);
 		}
 
+		// replace some specific sass shorthand directives
+		else if (str.substr(pos_left, 1) == "=") { str = indent + "@mixin " + str.substr(pos_left + 1); }
+		else if (str.substr(pos_left, 1) == "+") { str = indent + "@include " + str.substr(pos_left + 1); }
+
 		// check if current line starts a comment
 		string open = str.substr(pos_left, 2);
 
