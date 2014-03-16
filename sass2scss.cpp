@@ -143,12 +143,12 @@ void process (ostream& os, string& str, bool final = false)
 			// level as the comment node itself, plus one char
 			if (comment == "/*" && comment == "//")
 			{
-				// open new block
-				level ++;
 				// only increase indentation minimaly
 				// this will accept everything that is more
 				// indented than the opening comment line
-				indents[level] = indents[level - 1] + ' ';
+				indents[level] = indents[level] + ' ';
+				// count new block
+				level ++;
 			}
 			// set comment to current indent
 			// multiline comments must be indented
@@ -156,6 +156,7 @@ void process (ostream& os, string& str, bool final = false)
 			if (comment != "") comment = indent;
 		}
 
+		// line is opening a new comment
 		if (open == "/*" || open == "//")
 		{
 			// force single line comments
@@ -208,10 +209,12 @@ void process (ostream& os, string& str, bool final = false)
 					// close block
 					level --;
 				}
+
 			}
-			// EO have meaningfull chars from end
+			// EO have at least two meaningfull chars from end
 
 		}
+		// EO have meaningfull chars from end
 
 	}
 	// EO have meaningfull chars from start
