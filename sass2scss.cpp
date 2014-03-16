@@ -81,18 +81,10 @@ void process (ostream& os, string& str, bool final = false)
 		// store indentation string
 		string indent = str.substr(0, pos_left);
 
-		// is a one-line comment
-		if (comment == "//")
-		{
-				// close comment
-				os << " */";
-				// unset flase
-				comment = "";
-		}
 		// special case for multiline comment, when the next
 		// line is on the same indentation as the actual comment
 		// I assume that this means we should close the comment node
-		else if (comment == "/*" && indent.length() == indents[level].length())
+		if (comment != "" && indent.length() <= indents[level].length())
 		{
 			// close comment
 			os << " */";
@@ -109,15 +101,20 @@ void process (ostream& os, string& str, bool final = false)
 		// make sure we close every "higher" block
 		while (indent.length() < indents[level].length())
 		{
-			// close block (lower level)
-			indents[level] = ""; level --;
+			// reset string
+			indents[level] == "";
+			// close block
+			level --;
 			// print closer
-			if (comment != "")
-			{ os << " */"; }
-			else { os << closer(); }
+			if (comment == "")
+			{ os << closer(); }
+			else { os << " */"; }
 			// reset comment
 			comment = "";
 		}
+
+		// check if current line starts a comment
+		string open = str.substr(pos_left, 2);
 
 		// current line has more indentation
 		if (indent.length() > indents[level].length())
@@ -135,7 +132,7 @@ void process (ostream& os, string& str, bool final = false)
 			// open new block if comment is opening
 			// be smart and only require the same indentation
 			// level as the comment node itself, plus one char
-			if (comment == "/*")
+			if (comment == "/*" && comment == "//")
 			{
 				// open new block
 				level ++;
@@ -150,9 +147,7 @@ void process (ostream& os, string& str, bool final = false)
 			if (comment != "") comment = indent;
 		}
 
-		// check if current line starts a comment
-		string opener = str.substr(pos_left, 2);
-		if (opener == "/*" || opener == "//")
+		if (open == "/*" || open == "//")
 		{
 			// force single line comments
 			// into a correct css comment
@@ -168,7 +163,7 @@ void process (ostream& os, string& str, bool final = false)
 				level --;
 			}
 			// set comment flag
-			comment = opener;
+			comment = open;
 		}
 
 		// flush line
@@ -182,10 +177,10 @@ void process (ostream& os, string& str, bool final = false)
 		{
 
 			// get the last meaningfull char
-			string closer = str.substr(pos_right, 1);
+			string close = str.substr(pos_right, 1);
 
 			// check if next line should be concatenated
-			if (comment == "" && closer == ",") comma = true;
+			if (comment == "" && close == ",") comma = true;
 
 			// check if we have more than
 			// one meaningfull char
@@ -193,9 +188,9 @@ void process (ostream& os, string& str, bool final = false)
 			{
 
 				// get the last two chars from string
-				string closer = str.substr(pos_right - 1, 2);
+				string close = str.substr(pos_right - 1, 2);
 				// is comment node closed expicitly
-				if (closer == "*/")
+				if (close == "*/")
 				{
 					// close implicit comment
 					comment = "";
