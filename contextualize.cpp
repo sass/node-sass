@@ -116,7 +116,16 @@ namespace Sass {
   { return s; }
 
   Selector* Contextualize::operator()(Attribute_Selector* s)
-  { return s; }
+  { 
+    // the value might be interpolated; evaluate it
+    String* v = s->value();
+    if (v) {
+      v = static_cast<String*>(v->perform(eval->with(env, backtrace)));
+    }
+    Attribute_Selector* ss = new (ctx.mem) Attribute_Selector(*s);
+    ss->value(v);
+    return ss;
+  }
 
   Selector* Contextualize::operator()(Selector_Qualifier* s)
   { return s; }

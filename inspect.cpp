@@ -525,7 +525,10 @@ namespace Sass {
     append_to_buffer(s->name());
     if (!s->matcher().empty()) {
       append_to_buffer(s->matcher());
-      append_to_buffer(s->value());
+      if (s->value()) {
+        s->value()->perform(this);
+      }
+      // append_to_buffer(s->value());
     }
     append_to_buffer("]");
   }

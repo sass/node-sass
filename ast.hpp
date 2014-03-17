@@ -1155,9 +1155,9 @@ namespace Sass {
   class Attribute_Selector : public Simple_Selector {
     ADD_PROPERTY(string, name);
     ADD_PROPERTY(string, matcher);
-    ADD_PROPERTY(string, value);
+    ADD_PROPERTY(String*, value); // might be interpolated
   public:
-    Attribute_Selector(string path, Position position, string n, string m, string v)
+    Attribute_Selector(string path, Position position, string n, string m, String* v)
     : Simple_Selector(path, position), name_(n), matcher_(m), value_(v)
     { }
     ATTACH_OPERATIONS();

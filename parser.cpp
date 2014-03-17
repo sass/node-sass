@@ -539,14 +539,24 @@ namespace Sass {
     Position p = source_position;
     if (!lex< attribute_name >()) error("invalid attribute name in attribute selector");
     string name(lexed);
-    if (lex< exactly<']'> >()) return new (ctx.mem) Attribute_Selector(path, p, name, "", "");
+    if (lex< exactly<']'> >()) return new (ctx.mem) Attribute_Selector(path, p, name, "", 0);
     if (!lex< alternatives< exact_match, class_match, dash_match,
                             prefix_match, suffix_match, substring_match > >()) {
       error("invalid operator in attribute selector for " + name);
     }
     string matcher(lexed);
-    if (!lex< string_constant >() && !lex< identifier >()) error("expected a string constant or identifier in attribute selector for " + name);
-    string value(lexed);
+
+    String* value = 0;
+    if (lex< identifier >()) {
+      value = new (ctx.mem) String_Constant(path, p, lexed, true);
+    }
+    else if (lex< string_constant >()) {
+      value = parse_interpolated_chunk(lexed);
+    }
+    else {
+      error("expected a string constant or identifier in attribute selector for " + name);
+    }
+
     if (!lex< exactly<']'> >()) error("unterminated attribute selector for " + name);
     return new (ctx.mem) Attribute_Selector(path, p, name, matcher, value);
   }
