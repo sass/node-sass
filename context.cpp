@@ -56,6 +56,7 @@ namespace Sass {
     source_map_file (initializers.source_map_file()),
     names_to_colors (map<string, Color*>()),
     colors_to_names (map<int, string>()),
+    precision       (initializers.precision()),
     extensions(multimap<Compound_Selector, Complex_Selector*>()),
     subset_map(Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >())
   {

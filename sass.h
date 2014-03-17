@@ -26,6 +26,7 @@ struct Sass_Context {
   const char*  image_path;
   const char*  include_paths_string;
   const char** include_paths_array;
+  int          precision;
 };
 
 struct Sass_Context* make_sass_context   ();

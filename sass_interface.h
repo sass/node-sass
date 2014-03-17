@@ -20,6 +20,7 @@ struct sass_options {
   int source_comments; // really want a bool, but C doesn't have them
   const char* include_paths;
   const char* image_path;
+  int precision;
 };
 
 struct sass_context {

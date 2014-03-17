@@ -54,6 +54,7 @@ extern "C" {
                          .include_paths_c_str (c_ctx->include_paths_string)
                          .include_paths_array (/*c_ctx->include_paths_array*/0)
                          .include_paths       (vector<string>())
+                         .precision           (c_ctx->precision ? c_ctx->precision : 5)
         );
         if (src_option == FILE_SOURCE) cpp_ctx.compile_file();
         else                           cpp_ctx.compile_string();

@@ -54,6 +54,8 @@ namespace Sass {
     map<string, Color*> names_to_colors;
     map<int, string>    colors_to_names;
 
+    size_t precision; // precision for outputting fractional numbers
+
     KWD_ARG_SET(Data) {
       KWD_ARG(Data, const char*,     source_c_str);
       KWD_ARG(Data, string,          entry_point);
@@ -65,7 +67,8 @@ namespace Sass {
       KWD_ARG(Data, bool,            source_comments);
       KWD_ARG(Data, bool,            source_maps);
       KWD_ARG(Data, Output_Style,    output_style);
-      KWD_ARG(Data, string,          source_map_file)
+      KWD_ARG(Data, string,          source_map_file);
+      KWD_ARG(Data, size_t,          precision);
     };
 
     Context(Data);

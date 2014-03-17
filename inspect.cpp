@@ -287,30 +287,30 @@ namespace Sass {
   }
 
   // helper functions for serializing numbers
-  string frac_to_string(double f, size_t p) {
-    stringstream ss;
-    ss.setf(ios::fixed, ios::floatfield);
-    ss.precision(p);
-    ss << f;
-    string result(ss.str().substr(f < 0 ? 2 : 1));
-    size_t i = result.size() - 1;
-    while (result[i] == '0') --i;
-    result = result.substr(0, i+1);
-    return result;
-  }
-  string double_to_string(double d, size_t p) {
-    stringstream ss;
-    double ipart;
-    double fpart = std::modf(d, &ipart);
-    ss << ipart;
-    if (fpart != 0) ss << frac_to_string(fpart, 5);
-    return ss.str();
-  }
+  // string frac_to_string(double f, size_t p) {
+  //   stringstream ss;
+  //   ss.setf(ios::fixed, ios::floatfield);
+  //   ss.precision(p);
+  //   ss << f;
+  //   string result(ss.str().substr(f < 0 ? 2 : 1));
+  //   size_t i = result.size() - 1;
+  //   while (result[i] == '0') --i;
+  //   result = result.substr(0, i+1);
+  //   return result;
+  // }
+  // string double_to_string(double d, size_t p) {
+  //   stringstream ss;
+  //   double ipart;
+  //   double fpart = std::modf(d, &ipart);
+  //   ss << ipart;
+  //   if (fpart != 0) ss << frac_to_string(fpart, 5);
+  //   return ss.str();
+  // }
 
   void Inspect::operator()(Number* n)
   {
     stringstream ss;
-    ss.precision(5);
+    ss.precision(ctx ? ctx->precision : 5);
     ss << fixed << n->value();
     string d(ss.str());
     for (size_t i = d.length()-1; d[i] == '0'; --i) {

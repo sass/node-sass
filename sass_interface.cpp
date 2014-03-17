@@ -96,6 +96,7 @@ extern "C" {
                        .include_paths_c_str(c_ctx->options.include_paths)
                        .include_paths_array(0)
                        .include_paths(vector<string>())
+                       .precision(c_ctx->options.precision ? c_ctx->options.precision : 5)
       );
       c_ctx->output_string = cpp_ctx.compile_string();
       c_ctx->error_message = 0;
@@ -143,6 +144,7 @@ extern "C" {
                        .include_paths_c_str(c_ctx->options.include_paths)
                        .include_paths_array(0)
                        .include_paths(vector<string>())
+                       .precision(c_ctx->options.precision ? c_ctx->options.precision : 5)
       );
       c_ctx->output_string = cpp_ctx.compile_file();
       c_ctx->source_map_string = cpp_ctx.generate_source_map();
