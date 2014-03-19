@@ -6,7 +6,7 @@
 namespace Sass {
   using namespace std;
 
-  Output_Compressed::Output_Compressed(Context* ctx) : buffer(""), ctx(ctx) { }
+  Output_Compressed::Output_Compressed(Context* ctx) : buffer(""), rendered_imports(""), ctx(ctx) { }
   Output_Compressed::~Output_Compressed() { }
 
   inline void Output_Compressed::fallback_impl(AST_Node* n)
@@ -14,6 +14,13 @@ namespace Sass {
     Inspect i(ctx);
     n->perform(&i);
     buffer += i.get_buffer();
+  }
+
+  void Output_Compressed::operator()(Import* imp)
+  {
+    Inspect insp(ctx);
+    imp->perform(&insp);
+    rendered_imports += insp.get_buffer();
   }
 
   void Output_Compressed::operator()(Block* b)

@@ -10,7 +10,7 @@ namespace Sass {
   using namespace std;
 
   Output_Nested::Output_Nested(bool source_comments, Context* ctx)
-  : buffer(""), indentation(0), source_comments(source_comments), ctx(ctx)
+  : buffer(""), rendered_imports(""), indentation(0), source_comments(source_comments), ctx(ctx)
   { }
   Output_Nested::~Output_Nested() { }
 
@@ -21,12 +21,23 @@ namespace Sass {
     buffer += i.get_buffer();
   }
 
+  void Output_Nested::operator()(Import* imp)
+  {
+    Inspect insp(ctx);
+    imp->perform(&insp);
+    if (!rendered_imports.empty()) {
+      rendered_imports += "\n";
+    }
+    rendered_imports += insp.get_buffer();
+  }
+
   void Output_Nested::operator()(Block* b)
   {
     if (!b->is_root()) return;
     for (size_t i = 0, L = b->length(); i < L; ++i) {
+      size_t old_len = buffer.length();
       (*b)[i]->perform(this);
-      if (i < L-1) append_to_buffer("\n");
+      if (i < L-1 && old_len < buffer.length()) append_to_buffer("\n");
     }
   }
 

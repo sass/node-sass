@@ -128,7 +128,7 @@ namespace Sass {
           extension = import_path.substr(import_path.length() - 5, 4);
         }
         if (extension == ".css") {
-          String_Constant* loc = new (ctx.mem) String_Constant(path, source_position, import_path);
+          String_Constant* loc = new (ctx.mem) String_Constant(path, source_position, import_path, true);
           Argument* loc_arg = new (ctx.mem) Argument(path, source_position, loc);
           Arguments* loc_args = new (ctx.mem) Arguments(path, source_position);
           (*loc_args) << loc_arg;
