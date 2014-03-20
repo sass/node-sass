@@ -5,7 +5,7 @@
 // using std::string
 using namespace std;
 
-#include "sass2scss.hpp"
+#include "sass2scss.h"
 
 // main program
 int main (int argc, char** argv)
