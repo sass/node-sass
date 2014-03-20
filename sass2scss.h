@@ -38,6 +38,7 @@ namespace ocbnet
 		string comment;
 		// whitespace buffer
 		string whitespace;
+		bool property;
 		// length should be dynamic
 		// but my c++ is very rusty
 		string indents[maxnested];

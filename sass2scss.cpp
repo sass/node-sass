@@ -98,6 +98,7 @@ namespace ocbnet
 
 		// get postion of first meaningfull character in string
 		int pos_left = sass.find_first_not_of(" \t\n\v\f\r");
+		int pos_right = sass.find_last_not_of(" \t\n\v\f\r");
 
 		// special case for final run
 		if (final) pos_left = 0;
@@ -115,32 +116,34 @@ namespace ocbnet
 			// store indentation string
 			string indent = sass.substr(0, pos_left);
 
-			// special case for multiline comment, when the next
-			// line is on the same indentation as the actual comment
-			// I assume that this means we should close the comment node
-			if (IS_COMMENT(converter) && indent.length() <= INDENT(converter).length())
-			{
-				// close open comments in data stream
-				if (IS_MULTILINE(converter) && ! STRIP_COMMENT(converter)) scss += " */";
-				else if (IS_ONELINE(converter) && CONVERT_COMMENT(converter) && ! STRIP_COMMENT(converter)) scss += " */";
-				else if (IS_ONELINE(converter))
-				{
-					// add a newline to avoid closers on same line
-					if (KEEP_COMMENT(converter)) scss += "\n";
-				}
-				// close comment mode
-				converter.comment = "";
-			}
-
 			// line has less or same indentation (css property?)
-			else if (indent.length() <= INDENT(converter).length())
+			if (indent.length() <= INDENT(converter).length())
 			{
+				// if (IS_COMMENT(converter))
+				{
+					// close open comments in data stream
+					if (IS_MULTILINE(converter) && ! STRIP_COMMENT(converter)) scss += " */";
+					else if (IS_ONELINE(converter) && CONVERT_COMMENT(converter) && ! STRIP_COMMENT(converter)) scss += " */";
+					else if (IS_ONELINE(converter))
+					{
+						// add a newline to avoid closers on same line
+						if (KEEP_COMMENT(converter)) scss += "\n";
+					}
+				}
+				/*
+				else
+				{
+				}
+				*/
 				// prevent on root level
 				if (converter.level > 0)
 				{
+		//			if (indent.length() <= INDENT(converter).length())
 					// add semicolon if not in comment and not in concat mode
-					if (IS_PARSING(converter) && converter.comma == false) scss += ";";
+					if (IS_PARSING(converter) && (!converter.comma) && converter.property) scss += ";";
 				}
+				// close comment mode
+				converter.comment = "";
 			}
 
 			// make sure we close every "higher" block
@@ -187,6 +190,16 @@ namespace ocbnet
 			string open = sass.substr(pos_left, 2);
 
 			// current line has more indentation
+			if (indent.length() >= INDENT(converter).length())
+			{
+				// not in comment mode
+				if (IS_PARSING(converter))
+				{
+					// probably a property
+					converter.property = true;
+				}
+			}
+			// current line has more indentation
 			if (indent.length() > INDENT(converter).length())
 			{
 				// not in comment mode
@@ -211,6 +224,7 @@ namespace ocbnet
 			// line is opening a new comment
 			if (open == "/*" || open == "//")
 			{
+				converter.property = false;
 				// close previous comment
 				if (IS_MULTILINE(converter) && open == "/*")
 				{
@@ -308,6 +322,7 @@ namespace ocbnet
 		converter.whitespace = "";
 		converter.indents[0] = "";
 		converter.options = options;
+		converter.property = false;
 
 		// read line by line and process them
 		while(std::getline(stream, line, delim))
