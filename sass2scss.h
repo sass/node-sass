@@ -7,6 +7,19 @@ using namespace std;
 namespace ocbnet
 {
 
+	// pretty print options
+	extern const int SASS2SCSS_PRETTYFY_0 = 0;
+	extern const int SASS2SCSS_PRETTYFY_1 = 1;
+	extern const int SASS2SCSS_PRETTYFY_2 = 2;
+	extern const int SASS2SCSS_PRETTYFY_3 = 3;
+
+	// remove one-line comment
+	extern const int SASS2SCSS_KEEP_COMMENT    =  32;
+	// remove multi-line comments
+	extern const int SASS2SCSS_STRIP_COMMENT   =  64;
+	// convert one-line to multi-line
+	extern const int SASS2SCSS_CONVERT_COMMENT = 128;
+
 	// maximum nested levels
 	// should probably be dynamic
 	const int maxnested = 256;
@@ -15,28 +28,23 @@ namespace ocbnet
 	// hold of all states
 	struct converter
 	{
+		// bit options
+		int options;
 		// indent level
 		int level;
-		// pretty print option
-		// set by command line
-		int pretty;
-		// concatenate comma lists
+		// concat lists
 		bool comma;
 		// comment context
 		string comment;
 		// whitespace buffer
 		string whitespace;
-		// strip some comments
-		bool comment_strip;
-		bool comment_convert;
-		// indent strings
 		// length should be dynamic
 		// but my c++ is very rusty
 		string indents[maxnested];
 	};
 
 	// only available in c++ code
-	const string sass2scss (const string sass, const int pretty);
+	const string sass2scss (const string sass, const int options);
 
 }
 // EO namespace
@@ -45,8 +53,21 @@ namespace ocbnet
 extern "C" {
 #endif
 
+	// prettyfy print options
+	#define SASS2SCSS_PRETTYFY_0   0
+	#define SASS2SCSS_PRETTYFY_1   1
+	#define SASS2SCSS_PRETTYFY_2   2
+	#define SASS2SCSS_PRETTYFY_3   3
+
+	// keep one-line comments
+	#define SASS2SCSS_KEEP_COMMENT     32
+	// remove multi-line comments
+	#define SASS2SCSS_STRIP_COMMENT    64
+	// convert one-line to multi-line
+	#define SASS2SCSS_CONVERT_COMMENT  128
+
 	// available to c and c++ code
-	const char* sass2scss (const char* sass, const int pretty);
+	const char* sass2scss (const char* sass, const int options);
 
 #ifdef __cplusplus
 }

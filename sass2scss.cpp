@@ -12,18 +12,36 @@ using namespace std;
 namespace ocbnet
 {
 
-	// helper function
+	// return the actual prettify value from options
+	#define PRETTIFY(converter) (converter.options - (converter.options & 248))
+	// query the options integer to check if the option is enables
+	#define KEEP_COMMENT(converter) ((converter.options & SASS2SCSS_KEEP_COMMENT) == SASS2SCSS_KEEP_COMMENT)
+	#define STRIP_COMMENT(converter) ((converter.options & SASS2SCSS_STRIP_COMMENT) == SASS2SCSS_STRIP_COMMENT)
+	#define CONVERT_COMMENT(converter) ((converter.options & SASS2SCSS_CONVERT_COMMENT) == SASS2SCSS_CONVERT_COMMENT)
+
+	// some makros to access the indentation stack
+	#define INDENT(converter) (converter.indents[converter.level])
+
+	// some makros to query comment parser status
+	#define IS_PARSING(converter) (converter.comment == "")
+	#define IS_COMMENT(converter) (converter.comment != "")
+	#define IS_ONELINE(converter) (converter.comment == "//")
+	#define IS_MULTILINE(converter) (converter.comment == "/*")
+
+	// pretty printer helper function
 	static string closer (const converter& converter)
 	{
-		return converter.pretty == 0 ? " }" : converter.pretty <= 1 ? " }"
-		       : "\n" + converter.indents[converter.level] + "}";
+		return PRETTIFY(converter) == 0 ? " }" :
+		       PRETTIFY(converter) <= 1 ? " }" :
+		       "\n" + INDENT(converter) + "}";
 	}
 
-	// helper function
+	// pretty printer helper function
 	static string opener (const converter& converter)
 	{
-		return converter.pretty == 0 ? " { " : converter.pretty <= 2 ? " {"
-		       : "\n" + converter.indents[converter.level] + "{";
+		return PRETTIFY(converter) == 0 ? " { " :
+		       PRETTIFY(converter) <= 2 ? " {" :
+		       "\n" + INDENT(converter) + "{";
 	}
 
 	// flush whitespace and
@@ -33,31 +51,43 @@ namespace ocbnet
 	// ***************************************************************************************
 	string flush (string& sass, converter& converter)
 	{
+
+		// return flushed
 		string scss = "";
-		// print whitespace
-		scss += converter.pretty > 0 ?
+
+		// print whitespace buffer
+		scss += PRETTIFY(converter) > 0 ?
 		        converter.whitespace : "";
-		// reset whitespace
+		// reset whitespace buffer
 		converter.whitespace = "";
-		// remove newlines
+
+		// remove possible newlines from string
 		int pos_right = sass.find_last_not_of("\n\r");
 		if (pos_right == string::npos) return scss;
 
+		// get the linefeeds from the string
 		string lfs = sass.substr(pos_right + 1);
 		sass = sass.substr(0, pos_right + 1);
-		// getline discharged newline
+
+		// add newline as getline discharged it
 		converter.whitespace += lfs + "\n";
-		// remove all whitespace?
-		if (converter.pretty == 0)
+
+		// maybe remove any leading whitespace
+		if (PRETTIFY(converter) == 0)
 		{
+			// remove leading whitespace and update string
 			int pos_left = sass.find_first_not_of(" \t\n\v\f\r");
 			if (pos_left != string::npos) sass = sass.substr(pos_left);
 		}
-		// print text
+
+		// add flushed data
 		scss += sass;
+
 		// return string
 		return scss;
+
 	}
+	// EO flush
 
 	// process a line of the sass text
 	string process (string& sass, converter& converter, const bool final = false)
@@ -66,16 +96,16 @@ namespace ocbnet
 		// resulting string
 		string scss = "";
 
-		// get postion of first meaningfull char
+		// get postion of first meaningfull character in string
 		int pos_left = sass.find_first_not_of(" \t\n\v\f\r");
 
 		// special case for final run
 		if (final) pos_left = 0;
 
-		// has only whitespace
+		// maybe has only whitespace
 		if (pos_left == string::npos)
 		{
-			// add whitespace
+			// just add complete whitespace
 			converter.whitespace += sass + "\n";
 		}
 		// have meaningfull first char
@@ -88,34 +118,42 @@ namespace ocbnet
 			// special case for multiline comment, when the next
 			// line is on the same indentation as the actual comment
 			// I assume that this means we should close the comment node
-			if (converter.comment != "" && indent.length() <= converter.indents[converter.level].length())
+			if (IS_COMMENT(converter) && indent.length() <= INDENT(converter).length())
 			{
-				// close comment
-				if (converter.comment == "/*") scss += " */";
-				else if (converter.comment == "//")
-				{ if (!converter.comment_strip) scss += "\n"; }
-				// unset flag
+				// close open comments in data stream
+				if (IS_MULTILINE(converter)) scss += " */";
+				else if (IS_ONELINE(converter))
+				{
+					// add a newline to avoid closers on same line
+					// if (!STRIP_COMMENT(converter)) scss += "\n";
+				}
+				// close comment mode
 				converter.comment = "";
 			}
-			// current line has less or same indentation
-			else if (converter.level > 0 && indent.length() <= converter.indents[converter.level].length())
+
+			// line has less or same indentation (css property?)
+			else if (indent.length() <= INDENT(converter).length())
 			{
-				// add semicolon if not in concat mode
-				if (converter.comment == "" && converter.comma == false) scss += ";";
+				// prevent on root level
+				if (converter.level > 0)
+				{
+					// add semicolon if not in comment and not in concat mode
+					if (IS_PARSING(converter) && converter.comma == false) scss += ";";
+				}
 			}
 
 			// make sure we close every "higher" block
-			while (indent.length() < converter.indents[converter.level].length())
+			while (indent.length() < INDENT(converter).length())
 			{
 				// reset string
-				converter.indents[converter.level] == "";
+				INDENT(converter) == "";
 				// close block
 				converter.level --;
 				// print closer
-				if (converter.comment == "")
+				if (IS_PARSING(converter))
 				{ scss += closer(converter); }
 				else { scss += " */"; }
-				// reset comment
+				// close comment mode
 				converter.comment = "";
 			}
 
@@ -131,6 +169,7 @@ namespace ocbnet
 			// replace some specific sass shorthand directives
 			else if (sass.substr(pos_left, 1) == "=") { sass = indent + "@mixin " + sass.substr(pos_left + 1); }
 			else if (sass.substr(pos_left, 1) == "+") { sass = indent + "@include " + sass.substr(pos_left + 1); }
+
 			// add quotes for import if needed
 			else if (sass.substr(pos_left, 7) == "@import")
 			{
@@ -147,23 +186,24 @@ namespace ocbnet
 			string open = sass.substr(pos_left, 2);
 
 			// current line has more indentation
-			if (indent.length() > converter.indents[converter.level].length())
+			if (indent.length() > INDENT(converter).length())
 			{
 				// not in comment mode
-				if (converter.comment == "")
+				if (IS_PARSING(converter))
 				{
 					// print block opener
 					scss += opener(converter);
 					// open new block
 					converter.level ++;
 					// store block indentation
-					converter.indents[converter.level] = indent;
+					INDENT(converter) = indent;
 				}
-				else if (converter.comment == "//")
+				else if (IS_ONELINE(converter))
 				{
-					sass[converter.indents[converter.level].length()+0] = '/';
-					sass[converter.indents[converter.level].length()+1] = '/';
-					// there is an edge case here (overwriting one char)
+					sass[INDENT(converter).length()+0] = '/';
+					// there is an edge case here if indentation
+					// is minimal (will overwrite the fist char)
+					sass[INDENT(converter).length()+1] = '/';
 				}
 			}
 
@@ -172,18 +212,18 @@ namespace ocbnet
 			{
 				// force single line comments
 				// into a correct css comment
-				if (converter.comment_convert)
+				if (CONVERT_COMMENT(converter))
 				{ sass[pos_left + 1] = '*'; }
 				// close previous comment
-				if (converter.comment != "")
+				if (IS_COMMENT(converter))
 				{
-					if (converter.comment != "") scss += " */";
+					scss += " */";
 				}
 				// remove indentation from previous comment
-				if (converter.comment == "//")
+				if (IS_ONELINE(converter))
 				{
 					// reset string
-					converter.indents[converter.level] == "";
+					INDENT(converter) == "";
 					// close block
 					converter.level --;
 				}
@@ -192,7 +232,7 @@ namespace ocbnet
 			}
 
 			// flush line
-			if (converter.comment != "//" || !converter.comment_strip)
+			if (!IS_ONELINE(converter) && !STRIP_COMMENT(converter))
 				scss += flush(sass, converter);
 
 			// get postion of last meaningfull char
@@ -205,8 +245,8 @@ namespace ocbnet
 				// get the last meaningfull char
 				string close = sass.substr(pos_right, 1);
 
-				// check if next line should be concatenated
-				converter.comma = converter.comment == "" && close == ",";
+				// check if next line should be concatenated (list mode)
+				converter.comma = IS_PARSING(converter) && close == ",";
 
 				// check if we have more than
 				// one meaningfull char
@@ -221,7 +261,7 @@ namespace ocbnet
 						// close implicit comment
 						converter.comment = "";
 						// reset string
-						// converter.indents[converter.level] == "";
+						// INDENT(converter) == "";
 						// close block
 						// converter.level --;
 					}
@@ -242,7 +282,7 @@ namespace ocbnet
 	// EO process
 
 	// the main converter function for c++
-	const string sass2scss (const string sass, const int pretty)
+	const string sass2scss (const string sass, const int options)
 	{
 
 		// local variables
@@ -255,11 +295,9 @@ namespace ocbnet
 		converter converter;
 		// initialise all options
 		converter.level = 0;
-		converter.pretty = pretty;
 		converter.whitespace = "";
 		converter.indents[0] = "";
-		converter.comment_strip = true;
-		converter.comment_convert = false;
+		converter.options = options;
 
 		// read line by line and process them
 		while(std::getline(stream, line, delim))
@@ -283,9 +321,9 @@ namespace ocbnet
 extern "C"
 {
 
-	const char* sass2scss (const char* sass, const int pretty)
+	const char* sass2scss (const char* sass, const int options)
 	{
-		return ocbnet::sass2scss(sass, pretty).c_str();
+		return ocbnet::sass2scss(sass, options).c_str();
 	}
 
 }
