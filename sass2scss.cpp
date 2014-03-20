@@ -15,13 +15,15 @@ namespace ocbnet
 	// helper function
 	static string closer (const converter& converter)
 	{
-		return converter.pretty > 0 ? "\n" + converter.indents[converter.level] + "}" : " }";
+		return converter.pretty == 0 ? " }" : converter.pretty <= 1 ? " }"
+		       : "\n" + converter.indents[converter.level] + "}";
 	}
 
 	// helper function
 	static string opener (const converter& converter)
 	{
-		return converter.pretty > 1 ? "\n" + converter.indents[converter.level] + "{" : " {";
+		return converter.pretty == 0 ? " { " : converter.pretty <= 2 ? " {"
+		       : "\n" + converter.indents[converter.level] + "{";
 	}
 
 	// flush whitespace and
@@ -33,15 +35,24 @@ namespace ocbnet
 	{
 		string scss = "";
 		// print whitespace
-		scss += converter.whitespace;
+		scss += converter.pretty > 0 ?
+		        converter.whitespace : "";
 		// reset whitespace
 		converter.whitespace = "";
 		// remove newlines
-		int pos = sass.find_last_not_of("\n\r");
-		string lfs = sass.substr(pos + 1);
-		sass = sass.substr(0, pos + 1);
+		int pos_right = sass.find_last_not_of("\n\r");
+		if (pos_right == string::npos) return scss;
+
+		string lfs = sass.substr(pos_right + 1);
+		sass = sass.substr(0, pos_right + 1);
 		// getline discharged newline
 		converter.whitespace += lfs + "\n";
+		// remove all whitespace?
+		if (converter.pretty == 0)
+		{
+			int pos_left = sass.find_first_not_of(" \t\n\v\f\r");
+			if (pos_left != string::npos) sass = sass.substr(pos_left);
+		}
 		// print text
 		scss += sass;
 		// return string
