@@ -76,7 +76,7 @@ namespace ocbnet
 		if (pos_left == string::npos)
 		{
 			// add whitespace
-			converter.whitespace += sass;
+			converter.whitespace += sass + "\n";
 		}
 		// have meaningfull first char
 		else
@@ -91,7 +91,9 @@ namespace ocbnet
 			if (converter.comment != "" && indent.length() <= converter.indents[converter.level].length())
 			{
 				// close comment
-				scss += " */";
+				if (converter.comment == "/*") scss += " */";
+				else if (converter.comment == "//")
+				{ if (!converter.comment_strip) scss += "\n"; }
 				// unset flag
 				converter.comment = "";
 			}
@@ -157,22 +159,12 @@ namespace ocbnet
 					// store block indentation
 					converter.indents[converter.level] = indent;
 				}
-				// open new block if comment is opening
-				// be smart and only require the same indentation
-				// level as the comment node itself, plus one char
-				if (converter.comment == "/*" && converter.comment == "//")
+				else if (converter.comment == "//")
 				{
-					// only increase indentation minimaly
-					// this will accept everything that is more
-					// indented than the opening comment line
-					converter.indents[converter.level] = converter.indents[converter.level] + ' ';
-					// count new block
-					converter.level ++;
+					sass[converter.indents[converter.level].length()+0] = '/';
+					sass[converter.indents[converter.level].length()+1] = '/';
+					// there is an edge case here (overwriting one char)
 				}
-				// set comment to current indent
-				// multiline comments must be indented
-				// indicates multiline if not eq "*"
-				if (converter.comment != "") converter.comment = indent;
 			}
 
 			// line is opening a new comment
@@ -180,9 +172,13 @@ namespace ocbnet
 			{
 				// force single line comments
 				// into a correct css comment
-				sass[pos_left + 1] = '*';
+				if (converter.comment_convert)
+				{ sass[pos_left + 1] = '*'; }
 				// close previous comment
-				if (converter.comment != "") scss += " */";;
+				if (converter.comment != "")
+				{
+					if (converter.comment != "") scss += " */";
+				}
 				// remove indentation from previous comment
 				if (converter.comment == "//")
 				{
@@ -196,7 +192,8 @@ namespace ocbnet
 			}
 
 			// flush line
-			scss += flush(sass, converter);
+			if (converter.comment != "//" || !converter.comment_strip)
+				scss += flush(sass, converter);
 
 			// get postion of last meaningfull char
 			int pos_right = sass.find_last_not_of(" \t\n\v\f\r");
@@ -224,9 +221,9 @@ namespace ocbnet
 						// close implicit comment
 						converter.comment = "";
 						// reset string
-						converter.indents[converter.level] == "";
+						// converter.indents[converter.level] == "";
 						// close block
-						converter.level --;
+						// converter.level --;
 					}
 
 				}
@@ -261,6 +258,8 @@ namespace ocbnet
 		converter.pretty = pretty;
 		converter.whitespace = "";
 		converter.indents[0] = "";
+		converter.comment_strip = true;
+		converter.comment_convert = false;
 
 		// read line by line and process them
 		while(std::getline(stream, line, delim))

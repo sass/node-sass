@@ -26,6 +26,9 @@ namespace ocbnet
 		string comment;
 		// whitespace buffer
 		string whitespace;
+		// strip some comments
+		bool comment_strip;
+		bool comment_convert;
 		// indent strings
 		// length should be dynamic
 		// but my c++ is very rusty
