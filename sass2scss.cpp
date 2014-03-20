@@ -122,10 +122,11 @@ namespace ocbnet
 			{
 				// close open comments in data stream
 				if (IS_MULTILINE(converter)) scss += " */";
+				else if (IS_ONELINE(converter) && CONVERT_COMMENT(converter)) scss += " */";
 				else if (IS_ONELINE(converter))
 				{
 					// add a newline to avoid closers on same line
-					// if (!STRIP_COMMENT(converter)) scss += "\n";
+					if (KEEP_COMMENT(converter)) scss += "\n";
 				}
 				// close comment mode
 				converter.comment = "";
@@ -198,7 +199,7 @@ namespace ocbnet
 					// store block indentation
 					INDENT(converter) = indent;
 				}
-				else if (IS_ONELINE(converter))
+				else if (IS_ONELINE(converter) && !CONVERT_COMMENT(converter))
 				{
 					sass[INDENT(converter).length()+0] = '/';
 					// there is an edge case here if indentation
@@ -213,11 +214,14 @@ namespace ocbnet
 				// force single line comments
 				// into a correct css comment
 				if (CONVERT_COMMENT(converter))
-				{ sass[pos_left + 1] = '*'; }
-				// close previous comment
-				if (IS_COMMENT(converter))
 				{
-					scss += " */";
+					if (IS_PARSING(converter))
+					{ sass[pos_left + 1] = '*'; }
+				}
+				// close previous comment
+				if (IS_MULTILINE(converter))
+				{
+					if (!STRIP_COMMENT(converter)) scss += " */";
 				}
 				// remove indentation from previous comment
 				if (IS_ONELINE(converter))
@@ -225,15 +229,15 @@ namespace ocbnet
 					// reset string
 					INDENT(converter) == "";
 					// close block
-					converter.level --;
+					// converter.level --;
 				}
 				// set comment flag
 				converter.comment = open;
 			}
 
 			// flush line
-			if (!IS_ONELINE(converter) && !STRIP_COMMENT(converter))
-				scss += flush(sass, converter);
+			if (!IS_ONELINE(converter) || IS_ONELINE(converter) && CONVERT_COMMENT(converter) || KEEP_COMMENT(converter))
+				if (!(STRIP_COMMENT(converter) && !IS_PARSING(converter))) scss += flush(sass, converter);
 
 			// get postion of last meaningfull char
 			int pos_right = sass.find_last_not_of(" \t\n\v\f\r");
