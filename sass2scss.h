@@ -8,10 +8,10 @@ namespace ocbnet
 {
 
 	// pretty print options
-	extern const int SASS2SCSS_PRETTYFY_0 = 0;
-	extern const int SASS2SCSS_PRETTYFY_1 = 1;
-	extern const int SASS2SCSS_PRETTYFY_2 = 2;
-	extern const int SASS2SCSS_PRETTYFY_3 = 3;
+	extern const int SASS2SCSS_PRETTIFY_0 = 0;
+	extern const int SASS2SCSS_PRETTIFY_1 = 1;
+	extern const int SASS2SCSS_PRETTIFY_2 = 2;
+	extern const int SASS2SCSS_PRETTIFY_3 = 3;
 
 	// remove one-line comment
 	extern const int SASS2SCSS_KEEP_COMMENT    =  32;
@@ -54,10 +54,10 @@ extern "C" {
 #endif
 
 	// prettyfy print options
-	#define SASS2SCSS_PRETTYFY_0   0
-	#define SASS2SCSS_PRETTYFY_1   1
-	#define SASS2SCSS_PRETTYFY_2   2
-	#define SASS2SCSS_PRETTYFY_3   3
+	#define SASS2SCSS_PRETTIFY_0   0
+	#define SASS2SCSS_PRETTIFY_1   1
+	#define SASS2SCSS_PRETTIFY_2   2
+	#define SASS2SCSS_PRETTIFY_3   3
 
 	// keep one-line comments
 	#define SASS2SCSS_KEEP_COMMENT     32

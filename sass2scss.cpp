@@ -32,7 +32,7 @@ namespace ocbnet
 	static string closer (const converter& converter)
 	{
 		return PRETTIFY(converter) == 0 ? " }" :
-		       PRETTIFY(converter) <= 1 ? " }" :
+		     PRETTIFY(converter) <= 1 ? " }" :
 		       "\n" + INDENT(converter) + "}";
 	}
 
@@ -40,7 +40,7 @@ namespace ocbnet
 	static string opener (const converter& converter)
 	{
 		return PRETTIFY(converter) == 0 ? " { " :
-		       PRETTIFY(converter) <= 2 ? " {" :
+		     PRETTIFY(converter) <= 2 ? " {" :
 		       "\n" + INDENT(converter) + "{";
 	}
 
