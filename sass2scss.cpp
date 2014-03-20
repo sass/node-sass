@@ -121,8 +121,8 @@ namespace ocbnet
 			if (IS_COMMENT(converter) && indent.length() <= INDENT(converter).length())
 			{
 				// close open comments in data stream
-				if (IS_MULTILINE(converter)) scss += " */";
-				else if (IS_ONELINE(converter) && CONVERT_COMMENT(converter)) scss += " */";
+				if (IS_MULTILINE(converter) && ! STRIP_COMMENT(converter)) scss += " */";
+				else if (IS_ONELINE(converter) && CONVERT_COMMENT(converter) && ! STRIP_COMMENT(converter)) scss += " */";
 				else if (IS_ONELINE(converter))
 				{
 					// add a newline to avoid closers on same line
@@ -211,6 +211,15 @@ namespace ocbnet
 			// line is opening a new comment
 			if (open == "/*" || open == "//")
 			{
+				// close previous comment
+				if (IS_MULTILINE(converter) && open == "/*")
+				{
+					if (!STRIP_COMMENT(converter)) scss += " */";
+				}
+				if (IS_MULTILINE(converter) && open == "//")
+				{
+					if (!STRIP_COMMENT(converter) && !CONVERT_COMMENT(converter)) scss += " */";
+				}
 				// force single line comments
 				// into a correct css comment
 				if (CONVERT_COMMENT(converter))
@@ -218,21 +227,18 @@ namespace ocbnet
 					if (IS_PARSING(converter))
 					{ sass[pos_left + 1] = '*'; }
 				}
-				// close previous comment
-				if (IS_MULTILINE(converter))
-				{
-					if (!STRIP_COMMENT(converter)) scss += " */";
-				}
 				// remove indentation from previous comment
 				if (IS_ONELINE(converter))
 				{
 					// reset string
-					INDENT(converter) == "";
+					// INDENT(converter) == "";
 					// close block
 					// converter.level --;
 				}
 				// set comment flag
 				converter.comment = open;
+
+
 			}
 
 			// flush line
