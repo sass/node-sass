@@ -319,10 +319,12 @@ namespace ocbnet
 		converter converter;
 		// initialise all options
 		converter.level = 0;
+		converter.comma = false;
+		converter.property = false;
+		converter.comment = "";
 		converter.whitespace = "";
 		converter.indents[0] = "";
 		converter.options = options;
-		converter.property = false;
 
 		// read line by line and process them
 		while(std::getline(stream, line, delim))
@@ -334,8 +336,7 @@ namespace ocbnet
 		scss += process(closer, converter, true);
 
 		// return result
-		return scss.c_str();
-		// c_str needed for linux
+		return scss;
 
 	}
 	// EO sass2scss
