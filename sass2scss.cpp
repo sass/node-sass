@@ -334,7 +334,8 @@ namespace ocbnet
 		scss += process(closer, converter, true);
 
 		// return result
-		return scss;
+		return scss.c_str();
+		// c_str needed for linux
 
 	}
 	// EO sass2scss
