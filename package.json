@@ -24,6 +24,7 @@
     "url": "git://github.com/andrew/node-sass.git"
   },
   "scripts": {
+    "preinstall": "if [ ! -d 'libsass' ]; then git clone git://github.com/hcatlin/libsass.git; fi",
     "install": "node build.js",
     "test": "mocha test",
     "coverage": "bash scripts/coverage.sh",
