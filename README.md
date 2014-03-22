@@ -5,12 +5,21 @@
 [![Dependency Status](https://david-dm.org/andrew/node-sass.png?theme=shields.io)](https://david-dm.org/andrew/node-sass)
 [![devDependency Status](https://david-dm.org/andrew/node-sass/dev-status.png?theme=shields.io)](https://david-dm.org/andrew/node-sass#info=devDependencies)
 [![Coverage Status](https://coveralls.io/repos/andrew/node-sass/badge.png)](https://coveralls.io/r/andrew/node-sass)
+[![Gitter chat](https://badges.gitter.im/andrew/node-sass.png)](https://gitter.im/andrew/node-sass)
 
 Node-sass is a library that provides binding for Node.js to [libsass](https://github.com/hcatlin/libsass), the C version of the popular stylesheet preprocessor, Sass.
 
 It allows you to natively compile .scss files to css at incredible speed and automatically via a connect middleware.
 
 Find it on npm: <https://npmjs.org/package/node-sass>
+
+## Important note on `libsass`
+
+The [`libsass` C++ library](https://github.com/hcatlin/libsass) that this library binds to is not currently at feature parity with the [Ruby Gem](https://github.com/nex3/sass) that most Sass users will use. While we try our best to maintain feature parity with `libsass`, we can not enable features that have not been implemented in `libsass` yet.
+
+If you'd like to see what features are still upcoming in `libsass`, [Jo Liss](http://twitter.com/jo_liss) has written [a recent blog post on the subject](http://www.solitr.com/blog/2014/01/state-of-libsass/).
+
+Please check the [Issues on the `libsass` repo](https://github.com/hcatlin/libsass/issues) before opening an issue here, as there is a good chance that it may be an issue there for it. If not, then by all means, open an issue here and we'll look into it.
 
 ## Install
 
@@ -153,10 +162,6 @@ Check out the project:
     npm install
     npm install -g node-gyp
     node-gyp rebuild
-
-Replace the prebuild binary with your newly generated one
-
-    cp build/Release/binding.node precompiled/*your-platform*/binding.node
 
 ## Command Line Interface
 
