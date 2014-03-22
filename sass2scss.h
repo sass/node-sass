@@ -45,7 +45,7 @@ namespace ocbnet
 	};
 
 	// only available in c++ code
-	const string sass2scss (const string sass, const int options);
+	const char* sass2scss (const string sass, const int options);
 
 }
 // EO namespace

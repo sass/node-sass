@@ -1,4 +1,6 @@
 // include library
+#include <string>
+#include <cstring>
 #include <sstream>
 #include <iostream>
 
@@ -306,7 +308,7 @@ namespace ocbnet
 	// EO process
 
 	// the main converter function for c++
-	const string sass2scss (const string sass, const int options)
+	const char* sass2scss (const string sass, const int options)
 	{
 
 		// local variables
@@ -335,8 +337,12 @@ namespace ocbnet
 		// process to close all open blocks
 		scss += process(closer, converter, true);
 
-		// return result
-		return scss;
+		// allocate memory on the heap
+		char * cstr = new char [scss.length()+1];
+		// create a copy of the string
+		strcpy (cstr, scss.c_str());
+		// return pointer
+		return &cstr[0];
 
 	}
 	// EO sass2scss
@@ -350,7 +356,7 @@ extern "C"
 
 	const char* sass2scss (const char* sass, const int options)
 	{
-		return ocbnet::sass2scss(sass, options).c_str();
+		return ocbnet::sass2scss(sass, options);
 	}
 
 }
