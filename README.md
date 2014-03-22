@@ -12,6 +12,14 @@ It allows you to natively compile .scss files to css at incredible speed and aut
 
 Find it on npm: <https://npmjs.org/package/node-sass>
 
+## Important note on `libsass`
+
+The [`libsass` C++ library](https://github.com/hcatlin/libsass) that this library binds to is not currently at feature parity with the [Ruby Gem](https://github.com/nex3/sass) that most Sass users will use. While we try our best to maintain feature parity with `libsass`, we can not enable features that have not been implemented in `libsass` yet.
+
+If you'd like to see what features are still upcoming in `libsass`, [Jo Liss](http://twitter.com/jo_liss) has written [a recent blog post on the subject](http://www.solitr.com/blog/2014/01/state-of-libsass/).
+
+Please check the [Issues on the `libsass` repo](https://github.com/hcatlin/libsass/issues) before opening an issue here, as there is a good chance that it may be an issue there for it. If not, then by all means, open an issue here and we'll look into it.
+
 ## Install
 
     npm install node-sass
@@ -153,10 +161,6 @@ Check out the project:
     npm install
     npm install -g node-gyp
     node-gyp rebuild
-
-Replace the prebuild binary with your newly generated one
-
-    cp build/Release/binding.node precompiled/*your-platform*/binding.node
 
 ## Command Line Interface
 
