@@ -187,14 +187,21 @@ If you know the pre-built version will work and do not want to wait for the test
 
       SKIP_NODE_SASS_TESTS=true npm install
 
-## Contributors
-Special thanks to the following people for submitting patches:
+## Maintainers
 
-Dean Mao
-Brett Wilkins
-litek
-gonghao
-Dylan Greene
+This module is brought to you and maintained by the following people:
+
+* Andrew Nesbitt ([Github](https://github.com/andrew) / [Twitter](https://twitter.com/teabass))
+* Dean Mao ([Github](https://github.com/deanmao) / [Twitter](https://twitter.com/deanmao))
+* Brett Wilkins ([Github](https://github.com/bwilkins) / [Twitter](https://twitter.com/bjmaz))
+* Keith Cirkel ([Github](https://github.com/keithamus) / [Twitter](https://twitter.com/Keithamus))
+* Laurent Goderre ([Github](https://github.com/laurentgoderre) / [Twitter](https://twitter.com/laurentgoderre))
+* Nick Schonning ([Github](https://github.com/nschonni) / [Twitter](https://twitter.com/nschonni))
+* Adam Yeats ([Github](https://github.com/adamyeats) / [Twitter](https://twitter.com/adamyeats))
+
+## Contributors
+
+We <3 our contributors! A special thanks to all those who have clocked in some dev time on this project, we really appreciate your hard work. You can find [a full list of those people here.](https://github.com/andrew/node-sass/graphs/contributors)
 
 ### Note on Patches/Pull Requests
 
