@@ -191,13 +191,13 @@ If you know the pre-built version will work and do not want to wait for the test
 
 This module is brought to you and maintained by the following people:
 
-Andrew Nesbitt ([Github](https://github.com/andrew) / [Twitter](https://twitter.com/teabass))
-Dean Mao ([Github](https://github.com/deanmao) / [Twitter](https://twitter.com/deanmao))
-Brett Wilkins ([Github](https://github.com/bwilkins) / [Twitter](https://twitter.com/bjmaz))
-Keith Cirkel ([Github](https://github.com/keithamus) / [Twitter](https://twitter.com/Keithamus))
-Laurent Goderre ([Github](https://github.com/laurentgoderre) / [Twitter](https://twitter.com/laurentgoderre))
-Nick Schonning ([Github](https://github.com/nschonni) / [Twitter](https://twitter.com/nschonni))
-Adam Yeats ([Github](https://github.com/adamyeats) / [Twitter](https://twitter.com/adamyeats))
+* Andrew Nesbitt ([Github](https://github.com/andrew) / [Twitter](https://twitter.com/teabass))
+* Dean Mao ([Github](https://github.com/deanmao) / [Twitter](https://twitter.com/deanmao))
+* Brett Wilkins ([Github](https://github.com/bwilkins) / [Twitter](https://twitter.com/bjmaz))
+* Keith Cirkel ([Github](https://github.com/keithamus) / [Twitter](https://twitter.com/Keithamus))
+* Laurent Goderre ([Github](https://github.com/laurentgoderre) / [Twitter](https://twitter.com/laurentgoderre))
+* Nick Schonning ([Github](https://github.com/nschonni) / [Twitter](https://twitter.com/nschonni))
+* Adam Yeats ([Github](https://github.com/adamyeats) / [Twitter](https://twitter.com/adamyeats))
 
 ## Contributors
 Special thanks to the following people for submitting patches:
