@@ -200,13 +200,8 @@ This module is brought to you and maintained by the following people:
 * Adam Yeats ([Github](https://github.com/adamyeats) / [Twitter](https://twitter.com/adamyeats))
 
 ## Contributors
-Special thanks to the following people for submitting patches:
 
-Dean Mao
-Brett Wilkins
-litek
-gonghao
-Dylan Greene
+We <3 our contributors! A special thanks to all those who have clocked in some dev time on this project, we really appreciate your hard work. You can find [a full list of those people here.](https://github.com/andrew/node-sass/graphs/contributors)
 
 ### Note on Patches/Pull Requests
 
