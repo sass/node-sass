@@ -5,6 +5,7 @@
 [![Dependency Status](https://david-dm.org/andrew/node-sass.png?theme=shields.io)](https://david-dm.org/andrew/node-sass)
 [![devDependency Status](https://david-dm.org/andrew/node-sass/dev-status.png?theme=shields.io)](https://david-dm.org/andrew/node-sass#info=devDependencies)
 [![Coverage Status](https://coveralls.io/repos/andrew/node-sass/badge.png)](https://coveralls.io/r/andrew/node-sass)
+[![Gitter chat](https://badges.gitter.im/andrew/node-sass.png)](https://gitter.im/andrew/node-sass)
 
 Node-sass is a library that provides binding for Node.js to [libsass](https://github.com/hcatlin/libsass), the C version of the popular stylesheet preprocessor, Sass.
 
