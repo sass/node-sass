@@ -27,8 +27,8 @@ namespace ocbnet
 	// some makros to query comment parser status
 	#define IS_PARSING(converter) (converter.comment == "")
 	#define IS_COMMENT(converter) (converter.comment != "")
-	#define IS_ONELINE(converter) (converter.comment == "//")
-	#define IS_MULTILINE(converter) (converter.comment == "/*")
+	#define IS_ONELINE(converter) (converter.comment == "//" && ! CONVERT_COMMENT(converter))
+	#define IS_MULTILINE(converter) (converter.comment == "/*" || (converter.comment == "//" && CONVERT_COMMENT(converter)))
 
 	// pretty printer helper function
 	static string closer (const converter& converter)
@@ -115,37 +115,38 @@ namespace ocbnet
 		else
 		{
 
-			// store indentation string
+			// extract and store indentation string
 			string indent = sass.substr(0, pos_left);
 
-			// line has less or same indentation (css property?)
+			// line has less or same indentation
+			// finalize previous open parser context
 			if (indent.length() <= INDENT(converter).length())
 			{
-				// if (IS_COMMENT(converter))
+
+				// close multilinie comment
+				if (IS_MULTILINE(converter))
 				{
-					// close open comments in data stream
-					if (IS_MULTILINE(converter) && ! STRIP_COMMENT(converter)) scss += " */";
-					else if (IS_ONELINE(converter) && CONVERT_COMMENT(converter) && ! STRIP_COMMENT(converter)) scss += " */";
-					else if (IS_ONELINE(converter))
-					{
-						// add a newline to avoid closers on same line
-						if (KEEP_COMMENT(converter)) scss += "\n";
-					}
+					// check if comments will be stripped anyway
+					if (!STRIP_COMMENT(converter)) scss += " */";
 				}
-				/*
-				else
+				// close src comment comment
+				else if (IS_ONELINE(converter))
 				{
+					// add a newline to avoid closer on same line
+					// this would but the bracket in the comment node
+					if (KEEP_COMMENT(converter)) scss += "\n";
 				}
-				*/
-				// prevent on root level
-				if (converter.level > 0)
+				// close css properties
+				// if (converter.level >= 0)
+				else if (converter.property)
 				{
-		//			if (indent.length() <= INDENT(converter).length())
-					// add semicolon if not in comment and not in concat mode
-					if (IS_PARSING(converter) && (!converter.comma) && converter.property) scss += ";";
+					// add semicolon unless in concat mode
+					if (!converter.comma) scss += ";";
 				}
-				// close comment mode
+
+				// reset comment state
 				converter.comment = "";
+
 			}
 
 			// make sure we close every "higher" block
@@ -153,13 +154,13 @@ namespace ocbnet
 			{
 				// reset string
 				INDENT(converter) == "";
-				// close block
+				// close level
 				converter.level --;
-				// print closer
+				// print close bracket
 				if (IS_PARSING(converter))
 				{ scss += closer(converter); }
 				else { scss += " */"; }
-				// close comment mode
+				// reset comment state
 				converter.comment = "";
 			}
 
@@ -179,11 +180,15 @@ namespace ocbnet
 			// add quotes for import if needed
 			else if (sass.substr(pos_left, 7) == "@import")
 			{
+				// get positions for the actual import url
 				int pos_import = sass.find_first_of(" \t\n\v\f\r", pos_left + 7);
 				int pos_quote = sass.find_first_not_of(" \t\n\v\f\r", pos_import);
+				// check if the url is quoted
 				if (sass.substr(pos_quote, 1) != "\"")
 				{
+					// get position of the last char on the line
 					int pos_end = sass.find_last_not_of(" \t\n\v\f\r");
+					// add quotes around the full line after the import statement
 					sass = sass.substr(0, pos_quote) + "\"" + sass.substr(pos_quote, pos_end - pos_quote + 1) + "\"";
 				}
 			}
@@ -214,25 +219,27 @@ namespace ocbnet
 					// store block indentation
 					INDENT(converter) = indent;
 				}
-				else if (IS_ONELINE(converter) && !CONVERT_COMMENT(converter))
+				// is and will be a src comment
+				else if (!IS_MULTILINE(converter))
 				{
+					// scss does not allow multiline src comments
+					// therefore add forward slashes to all lines
 					sass[INDENT(converter).length()+0] = '/';
 					// there is an edge case here if indentation
 					// is minimal (will overwrite the fist char)
 					sass[INDENT(converter).length()+1] = '/';
+					// could code around that, but I dont' think
+					// this will ever be the cause for any trouble
 				}
 			}
 
 			// line is opening a new comment
 			if (open == "/*" || open == "//")
 			{
+				// reset the property state
 				converter.property = false;
 				// close previous comment
-				if (IS_MULTILINE(converter) && open == "/*")
-				{
-					if (!STRIP_COMMENT(converter)) scss += " */";
-				}
-				if (IS_MULTILINE(converter) && open == "//")
+				if (IS_MULTILINE(converter) && open != "")
 				{
 					if (!STRIP_COMMENT(converter) && !CONVERT_COMMENT(converter)) scss += " */";
 				}
@@ -242,14 +249,6 @@ namespace ocbnet
 				{
 					if (IS_PARSING(converter))
 					{ sass[pos_left + 1] = '*'; }
-				}
-				// remove indentation from previous comment
-				if (IS_ONELINE(converter))
-				{
-					// reset string
-					// INDENT(converter) == "";
-					// close block
-					// converter.level --;
 				}
 				// set comment flag
 				converter.comment = open;
@@ -281,19 +280,10 @@ namespace ocbnet
 
 					// get the last two chars from string
 					string close = sass.substr(pos_right - 1, 2);
-					// is comment node closed expicitly
-					if (close == "*/")
-					{
-						// close implicit comment
-						converter.comment = "";
-						// reset string
-						// INDENT(converter) == "";
-						// close block
-						// converter.level --;
-					}
+					// update parser status for expicitly closed comment
+					if (close == "*/") converter.comment = "";
 
 				}
-				// EO have at least two meaningfull chars from end
 
 			}
 			// EO have meaningfull chars from end
