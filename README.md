@@ -7,19 +7,21 @@
 [![Coverage Status](https://coveralls.io/repos/andrew/node-sass/badge.png)](https://coveralls.io/r/andrew/node-sass)
 [![Gitter chat](https://badges.gitter.im/andrew/node-sass.png)](https://gitter.im/andrew/node-sass)
 
-Node-sass is a library that provides binding for Node.js to [libsass](https://github.com/hcatlin/libsass), the C version of the popular stylesheet preprocessor, Sass.
+Node-sass is a library that provides binding for Node.js to [libsass], the C version of the popular stylesheet preprocessor, Sass.
 
 It allows you to natively compile .scss files to css at incredible speed and automatically via a connect middleware.
 
 Find it on npm: <https://npmjs.org/package/node-sass>
 
-## Important note on `libsass`
+## Reporting Sass compilation and syntax issues
 
-The [`libsass` C++ library](https://github.com/hcatlin/libsass) that this library binds to is not currently at feature parity with the [Ruby Gem](https://github.com/nex3/sass) that most Sass users will use. While we try our best to maintain feature parity with `libsass`, we can not enable features that have not been implemented in `libsass` yet.
+The [libsass] library is not currently at feature parity with the 3.2 [Ruby Gem](https://github.com/nex3/sass) that most Sass users will use, and has little-to-no support for 3.3 syntax. While we try our best to maintain feature parity with [libsass], we can not enable features that have not been implemented in [libsass] yet.
 
-If you'd like to see what features are still upcoming in `libsass`, [Jo Liss](http://twitter.com/jo_liss) has written [a recent blog post on the subject](http://www.solitr.com/blog/2014/01/state-of-libsass/).
+If you'd like to see what features are still upcoming in [libsass], [Jo Liss](http://twitter.com/jo_liss) has written [a blog post on the subject](http://www.solitr.com/blog/2014/01/state-of-libsass/).
 
-Please check the [Issues on the `libsass` repo](https://github.com/hcatlin/libsass/issues) before opening an issue here, as there is a good chance that it may be an issue there for it. If not, then by all means, open an issue here and we'll look into it.
+Please check for [issues on the libsass repo](https://github.com/hcatlin/libsass/issues) (as there is a good chance that it may already be an issue there for it), and otherwise [create a new issue there](https://github.com/hcatlin/libsass/issues/new).
+
+If this project is missing an API or command line flag that has been added to [libsass], then please open an issue here. We will then look at updating our [libsass] submodule and create a new release. You can help us create the new release by rebuilding binaries, and then creating a pull request to the [node-sass-binaries](https://github.com/andrew/node-sass-binaries) repo.
 
 ## Install
 
@@ -46,10 +48,10 @@ var css = sass.renderSync({
 The API for using node-sass has changed, so that now there is only one variable - an options hash. Some of these options are optional, and in some circumstances some are mandatory.
 
 #### file
-`file` is a `String` of the path to an `scss` file for libsass to render. One of this or `data` options are required, for both render and renderSync.
+`file` is a `String` of the path to an `scss` file for [libsass] to render. One of this or `data` options are required, for both render and renderSync.
 
 #### data
-`data` is a `String` containing the scss to be rendered by libsass. One of this or `file` options are required, for both render and renderSync. It is recommended that you use the `includePaths` option in conjunction with this, as otherwise libsass may have trouble finding files imported via the `@import` directive.
+`data` is a `String` containing the scss to be rendered by [libsass]. One of this or `file` options are required, for both render and renderSync. It is recommended that you use the `includePaths` option in conjunction with this, as otherwise [libsass] may have trouble finding files imported via the `@import` directive.
 
 #### success
 `success` is a `Function` to be called upon successful rendering of the scss to css. This option is required but only for the render function. If provided to renderSync it will be ignored.
@@ -58,14 +60,14 @@ The API for using node-sass has changed, so that now there is only one variable 
 `error` is a `Function` to be called upon occurance of an error when rendering the scss to css. This option is optional, and only applies to the render function. If provided to renderSync it will be ignored.
 
 #### includePaths
-`includePaths` is an `Array` of path `String`s to look for any `@import`ed files. It is recommended that you use this option if you are using the `data` option and have **any** `@import` directives, as otherwise libsass may not find your depended-on files.
+`includePaths` is an `Array` of path `String`s to look for any `@import`ed files. It is recommended that you use this option if you are using the `data` option and have **any** `@import` directives, as otherwise [libsass] may not find your depended-on files.
 
 #### imagePath
 `imagePath` is a `String` that represents the public image path. When using the `image-url()` function in a stylesheet, this path will be prepended to the path you supply. eg. Given an `imagePath` of `/path/to/images`, `background-image: image-url('image.png')` will compile to `background-image: url("/path/to/images/image.png")`
 
 #### outputStyle
 `outputStyle` is a `String` to determine how the final CSS should be rendered. Its value should be one of `'nested'` or `'compressed'`.
-[`'expanded'` and `'compact'` are not currently supported by libsass]
+[`'expanded'` and `'compact'` are not currently supported by [libsass]]
 
 #### sourceComments
 `sourceComments` is a `String` to determine what debug information is included in the output file. Its value should be one of `'none', 'normal', 'map'`. The default is `'none'`.
@@ -181,7 +183,7 @@ Output will be saved with the same name as input SASS file into the current work
 
 ## Post-install Build
 
-Install runs a series of Mocha tests to see if your machine can use the pre-built `libsass` which will save some time during install. If any tests fail it will build from source.
+Install runs a series of Mocha tests to see if your machine can use the pre-built [libsass] which will save some time during install. If any tests fail it will build from source.
 
 If you know the pre-built version will work and do not want to wait for the tests to run you can skip the tests by setting the environment variable `SKIP_NODE_SASS_TESTS` to true.
 
@@ -214,3 +216,5 @@ We <3 our contributors! A special thanks to all those who have clocked in some d
 ## Copyright
 
 Copyright (c) 2013 Andrew Nesbitt. See [LICENSE](https://github.com/andrew/node-sass/blob/master/LICENSE) for details.
+
+[libsass]: https://github.com/hcatlin/libsass
