@@ -4,6 +4,17 @@
 #include <sstream>
 #include <iostream>
 
+/*
+
+	src comments: comments in sass syntax (staring with //)
+	css comments: multiline comments in css syntax (starting with /*)
+
+	KEEP_COMMENT: keep src comments in the resulting css code
+	STRIP_COMMENT: strip out all comments (either src or css)
+	CONVERT_COMMENT: convert all src comments to css comments
+
+*/
+
 // our own header
 #include "sass2scss.h"
 
@@ -27,8 +38,8 @@ namespace ocbnet
 	// some makros to query comment parser status
 	#define IS_PARSING(converter) (converter.comment == "")
 	#define IS_COMMENT(converter) (converter.comment != "")
-	#define IS_ONELINE(converter) (converter.comment == "//" && ! CONVERT_COMMENT(converter))
-	#define IS_MULTILINE(converter) (converter.comment == "/*" || (converter.comment == "//" && CONVERT_COMMENT(converter)))
+	#define IS_SRC_COMMENT(converter) (converter.comment == "//" && ! CONVERT_COMMENT(converter))
+	#define IS_CSS_COMMENT(converter) (converter.comment == "/*" || (converter.comment == "//" && CONVERT_COMMENT(converter)))
 
 	// pretty printer helper function
 	static string closer (const converter& converter)
@@ -124,13 +135,13 @@ namespace ocbnet
 			{
 
 				// close multilinie comment
-				if (IS_MULTILINE(converter))
+				if (IS_CSS_COMMENT(converter))
 				{
 					// check if comments will be stripped anyway
 					if (!STRIP_COMMENT(converter)) scss += " */";
 				}
 				// close src comment comment
-				else if (IS_ONELINE(converter))
+				else if (IS_SRC_COMMENT(converter))
 				{
 					// add a newline to avoid closer on same line
 					// this would but the bracket in the comment node
@@ -220,7 +231,7 @@ namespace ocbnet
 					INDENT(converter) = indent;
 				}
 				// is and will be a src comment
-				else if (!IS_MULTILINE(converter))
+				else if (!IS_CSS_COMMENT(converter))
 				{
 					// scss does not allow multiline src comments
 					// therefore add forward slashes to all lines
@@ -239,7 +250,7 @@ namespace ocbnet
 				// reset the property state
 				converter.property = false;
 				// close previous comment
-				if (IS_MULTILINE(converter) && open != "")
+				if (IS_CSS_COMMENT(converter) && open != "")
 				{
 					if (!STRIP_COMMENT(converter) && !CONVERT_COMMENT(converter)) scss += " */";
 				}
@@ -256,9 +267,18 @@ namespace ocbnet
 
 			}
 
-			// flush line
-			if (!IS_ONELINE(converter) || IS_ONELINE(converter) && CONVERT_COMMENT(converter) || KEEP_COMMENT(converter))
-				if (!(STRIP_COMMENT(converter) && !IS_PARSING(converter))) scss += flush(sass, converter);
+			// flush data only under certain conditions
+			if (!(
+				// strip css and src comments if option is set
+				(IS_COMMENT(converter) && STRIP_COMMENT(converter)) ||
+				// strip src comment even if strip option is not set
+				// but only if the keep src comment option is not set
+				(IS_SRC_COMMENT(converter) && ! KEEP_COMMENT(converter))
+			))
+			{
+				// flush data and buffer whitespace
+				scss += flush(sass, converter);
+			}
 
 			// get postion of last meaningfull char
 			int pos_right = sass.find_last_not_of(" \t\n\v\f\r");
