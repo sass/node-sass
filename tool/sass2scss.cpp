@@ -1,11 +1,13 @@
 // include library
+#include <string>
+#include <cstring>
 #include <sstream>
 #include <iostream>
 
+#include "sass2scss.h"
+
 // using std::string
 using namespace std;
-
-#include "sass2scss.h"
 
 // main program
 int main (int argc, char** argv)
@@ -41,6 +43,6 @@ int main (int argc, char** argv)
 	};
 
 	// print the resulting scss
-	cout << sass2scss (sass, pretty);
+	cout << ocbnet::sass2scss (sass, pretty);
 
 }

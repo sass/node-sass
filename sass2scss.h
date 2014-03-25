@@ -8,17 +8,17 @@ namespace ocbnet
 {
 
 	// pretty print options
-	extern const int SASS2SCSS_PRETTIFY_0 = 0;
-	extern const int SASS2SCSS_PRETTIFY_1 = 1;
-	extern const int SASS2SCSS_PRETTIFY_2 = 2;
-	extern const int SASS2SCSS_PRETTIFY_3 = 3;
+	const int SASS2SCSS_PRETTIFY_0 = 0;
+	const int SASS2SCSS_PRETTIFY_1 = 1;
+	const int SASS2SCSS_PRETTIFY_2 = 2;
+	const int SASS2SCSS_PRETTIFY_3 = 3;
 
 	// remove one-line comment
-	extern const int SASS2SCSS_KEEP_COMMENT    =  32;
+	const int SASS2SCSS_KEEP_COMMENT    =  32;
 	// remove multi-line comments
-	extern const int SASS2SCSS_STRIP_COMMENT   =  64;
+	const int SASS2SCSS_STRIP_COMMENT   =  64;
 	// convert one-line to multi-line
-	extern const int SASS2SCSS_CONVERT_COMMENT = 128;
+	const int SASS2SCSS_CONVERT_COMMENT = 128;
 
 	// maximum nested levels
 	// should probably be dynamic
