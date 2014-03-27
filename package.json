@@ -24,7 +24,7 @@
     "url": "git://github.com/andrew/node-sass.git"
   },
   "scripts": {
-    "install": "node build.js",
+    "install": "`command -v nodejs || command -v node` build.js",
     "test": "mocha test",
     "coverage": "bash scripts/coverage.sh",
     "pretest": "jshint .",
