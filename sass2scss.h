@@ -20,28 +20,22 @@ namespace ocbnet
 	// convert one-line to multi-line
 	const int SASS2SCSS_CONVERT_COMMENT = 128;
 
-	// maximum nested levels
-	// should probably be dynamic
-	const int maxnested = 256;
-
 	// converter struct
 	// hold of all states
 	struct converter
 	{
 		// bit options
 		int options;
-		// indent level
-		int level;
 		// concat lists
 		bool comma;
+		// has property
+		bool property;
 		// comment context
 		string comment;
 		// whitespace buffer
 		string whitespace;
-		bool property;
-		// length should be dynamic
-		// but my c++ is very rusty
-		string indents[maxnested];
+		// context/block stack
+		stack<string> indents;
 	};
 
 	// only available in c++ code

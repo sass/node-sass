@@ -1,4 +1,5 @@
 // include library
+#include <stack>
 #include <string>
 #include <cstring>
 #include <sstream>
@@ -33,7 +34,7 @@ namespace ocbnet
 	#define CONVERT_COMMENT(converter) ((converter.options & SASS2SCSS_CONVERT_COMMENT) == SASS2SCSS_CONVERT_COMMENT)
 
 	// some makros to access the indentation stack
-	#define INDENT(converter) (converter.indents[converter.level])
+	#define INDENT(converter) (converter.indents.top())
 
 	// some makros to query comment parser status
 	#define IS_PARSING(converter) (converter.comment == "")
@@ -148,7 +149,6 @@ namespace ocbnet
 					if (KEEP_COMMENT(converter)) scss += "\n";
 				}
 				// close css properties
-				// if (converter.level >= 0)
 				else if (converter.property)
 				{
 					// add semicolon unless in concat mode
@@ -165,8 +165,8 @@ namespace ocbnet
 			{
 				// reset string
 				INDENT(converter) == "";
-				// close level
-				converter.level --;
+				// pop stacked context
+				converter.indents.pop();
 				// print close bracket
 				if (IS_PARSING(converter))
 				{ scss += closer(converter); }
@@ -225,8 +225,8 @@ namespace ocbnet
 				{
 					// print block opener
 					scss += opener(converter);
-					// open new block
-					converter.level ++;
+					// push new stack context
+					converter.indents.push("");
 					// store block indentation
 					INDENT(converter) = indent;
 				}
@@ -330,12 +330,11 @@ namespace ocbnet
 		// create converter variable
 		converter converter;
 		// initialise all options
-		converter.level = 0;
 		converter.comma = false;
 		converter.property = false;
 		converter.comment = "";
 		converter.whitespace = "";
-		converter.indents[0] = "";
+		converter.indents.push("");
 		converter.options = options;
 
 		// read line by line and process them

@@ -1,4 +1,5 @@
 // include library
+#include <stack>
 #include <string>
 #include <cstring>
 #include <sstream>

@@ -11,3 +11,7 @@
 *.lai
 *.la
 *.a
+
+# Compiled Executables
+/sass2scss
+/sass2scss.exe
