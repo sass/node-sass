@@ -1,4 +1,4 @@
-##node-sass
+# node-sass
 
 [![Build Status](https://secure.travis-ci.org/andrew/node-sass.png?branch=master)](https://travis-ci.org/andrew/node-sass)
 [![NPM version](https://badge.fury.io/js/node-sass.png)](http://badge.fury.io/js/node-sass)
