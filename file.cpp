@@ -135,14 +135,39 @@ namespace Sass {
           real_path = dir + _base_scss;
           // if the file isn't found with '_' + filename + ".scss" ...
           if (!(contents = read_file(real_path))) {
-            string base_scss(base + ".scss");
-            // try filename + ".scss" as the last resort
-            real_path = dir + base_scss;
-            contents = read_file(real_path);
+            string _base_sass(_base + ".sass");
+            real_path = dir + _base_sass;
+            // if the file isn't found with '_' + filename + ".sass" ...
+            if (!(contents = read_file(real_path))) {
+              string base_scss(base + ".scss");
+              real_path = dir + base_scss;
+              // if the file isn't found with filename + ".scss" ...
+              if (!(contents = read_file(real_path))) {
+                string base_sass(base + ".sass");
+                real_path = dir + base_sass;
+                // if the file isn't found with filename + ".sass" ...
+                if (!(contents = read_file(real_path))) {
+                  // default back to scss version
+                  real_path = dir + base_scss;
+                }
+              }
+            }
           }
         }
       }
-      return contents;
+      string extension;
+      if (real_path.length() > 5) {
+        extension = real_path.substr(real_path.length() - 5, 5);
+      }
+      for(int i=0; i<extension.size();++i)
+        extension[i] = tolower(extension[i]);
+      if (extension == ".sass" && contents != 0) {
+        char * converted = ocbnet::sass2scss(contents, SASS2SCSS_PRETTIFY_1);
+        delete[] contents; // free the indented contents
+        return converted; // should be freed by caller
+      } else {
+        return contents;
+      }
     }
 
     char* read_file(string path)
@@ -163,9 +188,11 @@ namespace Sass {
         contents[size] = '\0';
         file.close();
       }
-      if (extension == ".sass") {
+      for(int i=0; i<extension.size();++i)
+        extension[i] = tolower(extension[i]);
+      if (extension == ".sass" && contents != 0) {
         char * converted = ocbnet::sass2scss(contents, SASS2SCSS_PRETTIFY_1);
-        delete[] contents; // free the sass content
+        delete[] contents; // free the indented contents
         return converted; // should be freed by caller
       } else {
         return contents;
