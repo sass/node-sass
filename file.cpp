@@ -164,7 +164,9 @@ namespace Sass {
         file.close();
       }
       if (extension == ".sass") {
-        return ocbnet::sass2scss(contents, SASS2SCSS_PRETTIFY_1);
+        char * converted = ocbnet::sass2scss(contents, SASS2SCSS_PRETTIFY_1);
+        delete[] contents; // free the sass content
+        return converted; // should be freed by caller
       } else {
         return contents;
       }
