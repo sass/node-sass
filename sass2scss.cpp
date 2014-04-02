@@ -318,7 +318,7 @@ namespace ocbnet
 	// EO process
 
 	// the main converter function for c++
-	const char* sass2scss (const string sass, const int options)
+	char* sass2scss (const string sass, const int options)
 	{
 
 		// local variables
@@ -363,7 +363,7 @@ namespace ocbnet
 extern "C"
 {
 
-	const char* sass2scss (const char* sass, const int options)
+	char* sass2scss (const char* sass, const int options)
 	{
 		return ocbnet::sass2scss(sass, options);
 	}

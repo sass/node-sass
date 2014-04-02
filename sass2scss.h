@@ -1,5 +1,11 @@
 #ifdef __cplusplus
 
+#include <stack>
+#include <string>
+#include <cstring>
+#include <sstream>
+#include <iostream>
+
 // using std::string
 using namespace std;
 
@@ -21,7 +27,7 @@ namespace ocbnet
 	const int SASS2SCSS_CONVERT_COMMENT = 128;
 
 	// converter struct
-	// hold of all states
+	// holding all states
 	struct converter
 	{
 		// bit options
@@ -38,8 +44,8 @@ namespace ocbnet
 		stack<string> indents;
 	};
 
-	// only available in c++ code
-	const char* sass2scss (const string sass, const int options);
+	// function only available in c++ code
+	char* sass2scss (const string sass, const int options);
 
 }
 // EO namespace
@@ -62,7 +68,7 @@ extern "C" {
 	#define SASS2SCSS_CONVERT_COMMENT  128
 
 	// available to c and c++ code
-	const char* sass2scss (const char* sass, const int options);
+	char* sass2scss (const char* sass, const int options);
 
 #ifdef __cplusplus
 }
