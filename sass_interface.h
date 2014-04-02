@@ -2,6 +2,8 @@
 
 #include "sass.h"
 
+#include "sass2scss/sass2scss.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

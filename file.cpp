@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include "file.hpp"
 #include "context.hpp"
+#include "sass2scss/sass2scss.h"
 
 namespace Sass {
   namespace File {
@@ -149,6 +150,10 @@ namespace Sass {
       struct stat st;
       if (stat(path.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
       ifstream file(path.c_str(), ios::in | ios::binary | ios::ate);
+      string extension;
+      if (path.length() > 5) {
+        extension = path.substr(path.length() - 5, 5);
+      }
       char* contents = 0;
       if (file.is_open()) {
         size_t size = file.tellg();
@@ -158,7 +163,11 @@ namespace Sass {
         contents[size] = '\0';
         file.close();
       }
-      return contents;
+      if (extension == ".sass") {
+        return ocbnet::sass2scss(contents, SASS2SCSS_PRETTIFY_1);
+      } else {
+        return contents;
+      }
     }
 
   }
