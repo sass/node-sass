@@ -10,7 +10,7 @@
 using namespace std;
 
 // add namespace for c++
-namespace ocbnet
+namespace Sass
 {
 
 	// pretty print options
@@ -38,6 +38,8 @@ namespace ocbnet
 		bool property;
 		// comment context
 		string comment;
+		// flag end of file
+		bool end_of_file;
 		// whitespace buffer
 		string whitespace;
 		// context/block stack

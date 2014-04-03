@@ -23,7 +23,7 @@
 using namespace std;
 
 // add namespace for c++
-namespace ocbnet
+namespace Sass
 {
 
 	// return the actual prettify value from options
@@ -104,7 +104,7 @@ namespace ocbnet
 	// EO flush
 
 	// process a line of the sass text
-	string process (string& sass, converter& converter, const bool final = false)
+	string process (string& sass, converter& converter)
 	{
 
 		// resulting string
@@ -115,7 +115,7 @@ namespace ocbnet
 		int pos_right = sass.find_last_not_of(" \t\n\v\f\r");
 
 		// special case for final run
-		if (final) pos_left = 0;
+		if (converter.end_of_file) pos_left = 0;
 
 		// maybe has only whitespace
 		if (pos_left == string::npos)
@@ -332,6 +332,7 @@ namespace ocbnet
 		// initialise all options
 		converter.comma = false;
 		converter.property = false;
+		converter.end_of_file = false;
 		converter.comment = "";
 		converter.whitespace = "";
 		converter.indents.push("");
@@ -343,10 +344,13 @@ namespace ocbnet
 
 		// create mutable string
 		string closer = "";
+		// set the end of file flag
+		converter.end_of_file = true;
 		// process to close all open blocks
-		scss += process(closer, converter, true);
+		scss += process(closer, converter);
 
-		// allocate memory on the heap
+		// allocate new memory on the heap
+		// caller has to free it after use
 		char * cstr = new char [scss.length()+1];
 		// create a copy of the string
 		strcpy (cstr, scss.c_str());
@@ -365,7 +369,7 @@ extern "C"
 
 	char* sass2scss (const char* sass, const int options)
 	{
-		return ocbnet::sass2scss(sass, options);
+		return Sass::sass2scss(sass, options);
 	}
 
 }

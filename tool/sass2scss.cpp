@@ -44,6 +44,6 @@ int main (int argc, char** argv)
 	};
 
 	// print the resulting scss
-	cout << ocbnet::sass2scss (sass, pretty);
+	cout << Sass::sass2scss (sass, pretty);
 
 }
