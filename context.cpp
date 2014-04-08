@@ -281,6 +281,7 @@ namespace Sass {
     char wd[wd_len];
     string cwd = getcwd(wd, wd_len);
     if (cwd[cwd.length() - 1] != '/') cwd += '/';
+    replace(begin(cwd), end(cwd), '\\', '/');    //convert Windows backslashes to URL forward slashes
     return cwd;
   }
 
