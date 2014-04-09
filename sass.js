@@ -57,12 +57,12 @@ var deprecatedRender = function(css, callback, options) {
   var oldCallback = function(css) {
     callback(null, css);
   };
-  return binding.render(css, options.imagePath, oldCallback, errCallback, options.paths.join(':'), options.style, options.comments);
+  return binding.render(css, options.imagePath, oldCallback, errCallback, options.paths.join(path.delimiter), options.style, options.comments);
 };
 
 var deprecatedRenderSync = function(css, options) {
   options = prepareOptions(options);
-  return binding.renderSync(css, options.imagePath, options.paths.join(':'), options.style, options.comments);
+  return binding.renderSync(css, options.imagePath, options.paths.join(path.delimiter), options.style, options.comments);
 };
 
 exports.render = function(options) {
