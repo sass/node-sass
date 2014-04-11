@@ -1,7 +1,9 @@
+/* global afterEach */
 /*jshint multistr:true */
 var sass = process.env.NODESASS_COVERAGE ? require('../sass-coverage') : require('../sass');
 var assert = require('assert');
 var path = require('path');
+var fs = require('fs');
 var badSampleFilename = 'sample.scss';
 var sampleFilename = path.resolve(__dirname, 'sample.scss');
 
@@ -186,4 +188,87 @@ describe("compile file", function() {
       sass.renderSync({file: badSampleFilename});
     }));
   });
+});
+
+describe("render to file", function() {
+  var outFile = path.resolve(__dirname, 'out.css'),
+      files = [outFile, 'out.css.map', 'foo.css.map', 'sample.css.map'];
+
+  afterEach(function() {
+    files.forEach(function(file) {
+      file = path.resolve(__dirname, file);
+      if (fs.existsSync(file)) {
+        fs.unlinkSync(file);
+      }
+    });
+  });
+  it("should compile with renderFile", function(done) {
+    sass.renderFile({
+      file: sampleFilename,
+      outFile: outFile,
+      success: function () {
+        var contents = fs.readFileSync(outFile);
+        done(assert.equal(contents, expectedRender));
+      },
+      error: function (error) {
+        done(error);
+      }
+    });
+  });
+
+  it("should raise an error for bad input", function(done) {
+    sass.renderFile({
+      file: badSampleFilename,
+      outFile: outFile,
+      success: function() {
+        assert(false, "success() should not be called");
+        done();
+      },
+      error: function() {
+        assert(true, "error() called");
+        done();
+      }
+    });
+  });
+
+  it("should save the sourceMap to the default file name", function(done) {
+    sass.renderFile({
+      file: sampleFilename,
+      outFile: outFile,
+      sourceMap: true,
+      success: function (cssFile, sourceMapFile) {
+        var css = fs.readFileSync(cssFile).toString();
+        var map = fs.readFileSync(sourceMapFile).toString();
+        var mapFileName = 'out.css.map';
+        assert.equal(path.basename(sourceMapFile), mapFileName);
+        assert.ok(css.indexOf('sourceMappingURL=' + mapFileName) !== -1);
+        assert.ok(map.indexOf('sample.scss') !== -1);
+        done();
+      },
+      error: function (error) {
+        done(error);
+      }
+    });
+  });
+
+  it("should save the sourceMap to a specified file name", function(done) {
+    var mapFileName = 'foo.css.map';
+    sass.renderFile({
+      file: sampleFilename,
+      outFile: outFile,
+      sourceMap: mapFileName,
+      success: function (cssFile, sourceMapFile) {
+        var css = fs.readFileSync(cssFile).toString();
+        var map = fs.readFileSync(sourceMapFile).toString();
+        assert.equal(path.basename(sourceMapFile), mapFileName);
+        assert.ok(css.indexOf('sourceMappingURL=' + mapFileName) !== -1);
+        assert.ok(map.indexOf('sample.scss') !== -1);
+        done();
+      },
+      error: function (error) {
+        done(error);
+      }
+    });
+  });
+
 });

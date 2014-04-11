@@ -36,10 +36,14 @@ var SASS_SOURCE_COMMENTS = {
 var prepareOptions = function(options) {
   var paths, imagePath, style, comments;
   options = typeof options !== 'object' ? {} : options;
+  var sourceComments = options.source_comments || options.sourceComments;
+  if (options.sourceMap && !sourceComments) {
+    sourceComments = 'map';
+  }
   paths = options.include_paths || options.includePaths || [];
   imagePath = options.image_path || options.imagePath || '';
   style = SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0;
-  comments = SASS_SOURCE_COMMENTS[options.source_comments || options.sourceComments] || 0;
+  comments = SASS_SOURCE_COMMENTS[sourceComments] || 0;
 
   return {
     paths: paths,
@@ -98,6 +102,61 @@ exports.renderSync = function(options) {
 
   //Assume data is present if file is not. binding/libsass will tell the user otherwise!
   return binding.renderSync(options.data, newOptions.imagePath, newOptions.paths.join(path.delimiter), newOptions.style);
+};
+
+/**
+  Same as `render()` but with an extra `outFile` property in `options` and writes
+  the CSS and sourceMap (if requested) to the filesystem.
+  
+  `options.sourceMap` can be used to specify that the source map should be saved:
+  
+  - If falsy the source map will not be saved
+  - If `options.sourceMap === true` the source map will be saved to the
+  standard location of `options.file + '.map'`
+  - Else `options.sourceMap` specifies the path (relative to the `outFile`) 
+  where the source map should be saved
+ */
+exports.renderFile = function(options) {
+  var newOptions = {};
+  for (var i in options) {
+    if (options.hasOwnProperty(i)) {
+      newOptions[i] = options[i];
+    }
+  }
+  if (options.sourceMap === true) {
+    newOptions.sourceMap = path.basename(options.outFile) + '.map';
+  }
+  newOptions.success = function(css, sourceMap) {
+    fs.writeFile(options.outFile, css, function(err) {
+      if (err) {
+        return error(err);
+      }
+      if (options.sourceMap) {
+        var dir = path.dirname(options.outFile);
+        var sourceMapFile = path.resolve(dir, newOptions.sourceMap);
+        fs.writeFile(sourceMapFile, sourceMap, function(err) {
+          if (err) {
+            return error(err);
+          }
+          success(options.outFile, sourceMapFile);
+        });
+      }
+      else {
+        success(options.outFile);
+      }
+    });
+  };
+  function error(err) {
+    if (options.error) {
+      options.error(err);
+    }
+  }
+  function success(css, sourceMap) {
+    if (options.success) {
+      options.success(css, sourceMap);
+    }
+  }
+  exports.render(newOptions);
 };
 
 exports.middleware = require('./lib/middleware');

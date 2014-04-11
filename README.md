@@ -78,6 +78,25 @@ The `map` option will create the source map file in your CSS destination.
 If your `sourceComments` option is set to `map`, `sourceMap` allows setting a new path context for the referenced Sass files.
 The source map describes a path from your CSS file location, into the the folder where the Sass files are located. In most occasions this will work out-of-the-box but, in some cases, you may need to set a different output.
 
+### renderFile()
+
+Same as `render()` but writes the CSS and sourceMap (if requested) to the filesystem.
+
+#### outFile
+
+`outFile` specifies where to save the CSS.
+
+#### sourceMap
+
+`sourceMap` specifies that the source map should be saved.
+
+- If falsy the source map will not be saved
+- If `sourceMap === true` the source map will be saved to the
+standard location of `path.basename(options.outFile) + '.map'`
+- Otherwise specifies the path (relative to the `outFile`) 
+where the source map should be saved
+
+
 ### Examples
 
 ```javascript
