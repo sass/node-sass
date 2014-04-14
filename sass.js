@@ -1,23 +1,26 @@
-var binding;
-var fs = require('fs');
 var path = require('path');
 
-var v8 = 'v8-' + /[0-9]+\.[0-9]+/.exec(process.versions.v8)[0];
-var modPath = path.join(__dirname, 'bin', process.platform + '-' + process.arch + '-' + v8, 'binding');
-try {
-  if (fs.realpathSync(__dirname + '/build')) {
-    // use the build version if it exists
-    binding = require(__dirname + '/build/Release/binding');
+function requireBinding() {
+  var fs = require('fs');
+  var v8 = 'v8-' + /[0-9]+\.[0-9]+/.exec(process.versions.v8)[0];
+
+  var candidates = [
+    [__dirname, 'build', 'Release', 'obj.target', 'binding.node'],
+    [__dirname, 'bin', process.platform + '-' + process.arch + '-' + v8, 'binding.node'],
+  ];
+
+  for (var i = 0, l = candidates.length; i < l; i++) {
+    var candidate = path.join.apply(path.join, candidates[i]);
+
+    if (fs.existsSync(candidate)) {
+      return require(candidate);
+    }
   }
-} catch (e) {
-  try {
-    fs.realpathSync(modPath + '.node');
-    binding = require(modPath);
-  } catch (ex) {
-    // No binary!
-    throw new Error('`'+ modPath + '.node` is missing. Try reinstalling `node-sass`?');
-  }
+
+  throw new Error('`libsass` bindings not found. Try reinstalling `node-sass`?');
 }
+
+var binding = requireBinding();
 
 var SASS_OUTPUT_STYLE = {
     nested: 0,
