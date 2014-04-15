@@ -1,9 +1,10 @@
-/* global afterEach */
+/* global beforeEach, afterEach */
 /*jshint multistr:true */
 var sass = process.env.NODESASS_COVERAGE ? require('../sass-coverage') : require('../sass');
 var assert = require('assert');
 var path = require('path');
 var fs = require('fs');
+var sinon = require('sinon');
 var badSampleFilename = 'sample.scss';
 var sampleFilename = path.resolve(__dirname, 'sample.scss');
 
@@ -192,22 +193,24 @@ describe("compile file", function() {
 
 describe("render to file", function() {
   var outFile = path.resolve(__dirname, 'out.css'),
-      files = [outFile, 'out.css.map', 'foo.css.map', 'sample.css.map'];
+      filesWritten;
 
-  afterEach(function() {
-    files.forEach(function(file) {
-      file = path.resolve(__dirname, file);
-      if (fs.existsSync(file)) {
-        fs.unlinkSync(file);
-      }
+  beforeEach(function() {
+    filesWritten = {};
+    sinon.stub(fs, 'writeFile', function(path, contents, cb) {
+      filesWritten[path] = contents;
+      cb();
     });
+  });
+  afterEach(function() {
+    fs.writeFile.restore();
   });
   it("should compile with renderFile", function(done) {
     sass.renderFile({
       file: sampleFilename,
       outFile: outFile,
       success: function () {
-        var contents = fs.readFileSync(outFile);
+        var contents = filesWritten[outFile];
         done(assert.equal(contents, expectedRender));
       },
       error: function (error) {
@@ -237,8 +240,8 @@ describe("render to file", function() {
       outFile: outFile,
       sourceMap: true,
       success: function (cssFile, sourceMapFile) {
-        var css = fs.readFileSync(cssFile).toString();
-        var map = fs.readFileSync(sourceMapFile).toString();
+        var css = filesWritten[cssFile];
+        var map = filesWritten[sourceMapFile];
         var mapFileName = 'out.css.map';
         assert.equal(path.basename(sourceMapFile), mapFileName);
         assert.ok(css.indexOf('sourceMappingURL=' + mapFileName) !== -1);
@@ -258,8 +261,8 @@ describe("render to file", function() {
       outFile: outFile,
       sourceMap: mapFileName,
       success: function (cssFile, sourceMapFile) {
-        var css = fs.readFileSync(cssFile).toString();
-        var map = fs.readFileSync(sourceMapFile).toString();
+        var css = filesWritten[cssFile];
+        var map = filesWritten[sourceMapFile];
         assert.equal(path.basename(sourceMapFile), mapFileName);
         assert.ok(css.indexOf('sourceMappingURL=' + mapFileName) !== -1);
         assert.ok(map.indexOf('sample.scss') !== -1);
