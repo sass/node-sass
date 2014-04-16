@@ -38,6 +38,18 @@ var SASS_SOURCE_COMMENTS = {
 
 var prepareOptions = function(options) {
   var paths, imagePath, style, comments;
+  var sourceMap = options ? options.sourceMap : false;
+
+  // Set the sourceMap path if the sourceComment was 'map', but set source-map was missing
+  if (options && options.sourceComments === 'map' && !options.sourceMap) {
+    sourceMap = true;
+  }
+
+  // set source map file and set sourceComments to 'map'
+  if (sourceMap) {
+    options.sourceComments = 'map';
+  }
+
   options = typeof options !== 'object' ? {} : options;
   var sourceComments = options.source_comments || options.sourceComments;
   if (options.sourceMap && !sourceComments) {
@@ -52,7 +64,8 @@ var prepareOptions = function(options) {
     paths: paths,
     imagePath: imagePath,
     style: style,
-    comments: comments
+    comments: comments,
+    sourceMap: sourceMap
   };
 };
 
@@ -83,7 +96,7 @@ exports.render = function(options) {
   options.error = options.error || function(){};
 
   if (options.file !== undefined && options.file !== null) {
-    return binding.renderFile(options.file, newOptions.imagePath, options.success, options.error, newOptions.paths.join(path.delimiter), newOptions.style, newOptions.comments, options.sourceMap);
+    return binding.renderFile(options.file, newOptions.imagePath, options.success, options.error, newOptions.paths.join(path.delimiter), newOptions.style, newOptions.comments, newOptions.sourceMap);
   }
 
   //Assume data is present if file is not. binding/libsass will tell the user otherwise!
