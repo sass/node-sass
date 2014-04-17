@@ -31,80 +31,79 @@ var SASS_OUTPUT_STYLE = {
 
 var SASS_SOURCE_COMMENTS = {
     none: 0,
-    // This is called default in libsass, but is a reserved keyword here
     normal: 1,
+    'default': 1,
     map: 2
   };
 
-var prepareOptions = function(options) {
-  var paths, imagePath, style, comments;
-  options = typeof options !== 'object' ? {} : options;
-  var sourceComments = options.source_comments || options.sourceComments;
+var noop = function () {};
+
+var prepareOptions = function (options) {
+  var sourceComments;
+
+  options = options || {};
+  sourceComments = options.source_comments || options.sourceComments;
   if (options.sourceMap && !sourceComments) {
     sourceComments = 'map';
   }
-  paths = options.include_paths || options.includePaths || [];
-  imagePath = options.image_path || options.imagePath || '';
-  style = SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0;
-  comments = SASS_SOURCE_COMMENTS[sourceComments] || 0;
 
   return {
-    paths: paths,
-    imagePath: imagePath,
-    style: style,
-    comments: comments
+    file: options.file || null,
+    outFile: options.outFile || null,
+    data: options.data || null,
+    paths: (options.include_paths || options.includePaths || []).join(path.delimiter),
+    imagePath: options.image_path || options.imagePath || '',
+    style: SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0,
+    comments: SASS_SOURCE_COMMENTS[sourceComments] || 0,
+    sourceMap: options.sourceMap,
+    success: options.success || noop,
+    error: options.error || noop
   };
 };
 
 var deprecatedRender = function(css, callback, options) {
   options = prepareOptions(options);
-  var errCallback = function(err) {
-    callback(err);
-  };
-  var oldCallback = function(css) {
+  // providing the deprecated single callback signature
+  options.error = callback;
+  options.success = function(css) {
     callback(null, css);
   };
-  return binding.render(css, options.imagePath, oldCallback, errCallback, options.paths.join(path.delimiter), options.style, options.comments);
+  return binding.render(css, options.imagePath, options.success, options.error, options.paths, options.style, options.comments);
 };
 
 var deprecatedRenderSync = function(css, options) {
   options = prepareOptions(options);
-  return binding.renderSync(css, options.imagePath, options.paths.join(path.delimiter), options.style, options.comments);
+  return binding.renderSync(css, options.imagePath, options.paths, options.style, options.comments);
 };
 
 exports.render = function(options) {
-  var newOptions;
-
   if (typeof arguments[0] === 'string') {
     return deprecatedRender.apply(this, arguments);
   }
 
-  newOptions = prepareOptions(options);
-  options.error = options.error || function(){};
+  options = prepareOptions(options);
 
-  if (options.file !== undefined && options.file !== null) {
-    return binding.renderFile(options.file, newOptions.imagePath, options.success, options.error, newOptions.paths.join(path.delimiter), newOptions.style, newOptions.comments, options.sourceMap);
+  if (options.file) {
+    return binding.renderFile(options.file, options.imagePath, options.success, options.error, options.paths, options.style, options.comments, options.sourceMap);
   }
 
   //Assume data is present if file is not. binding/libsass will tell the user otherwise!
-  return binding.render(options.data, newOptions.imagePath, options.success, options.error, newOptions.paths.join(path.delimiter), newOptions.style);
+  return binding.render(options.data, options.imagePath, options.success, options.error, options.paths, options.style);
 };
 
 exports.renderSync = function(options) {
-  var newOptions;
-
   if (typeof arguments[0] === 'string') {
     return deprecatedRenderSync.apply(this, arguments);
   }
 
-  newOptions = prepareOptions(options);
+  options = prepareOptions(options);
 
-  if (options.file !== undefined && options.file !== null) {
-    return binding.renderFileSync(options.file, newOptions.imagePath, newOptions.paths.join(path.delimiter), newOptions.style, newOptions.comments);
+  if (options.file) {
+    return binding.renderFileSync(options.file, options.imagePath, options.paths, options.style, options.comments);
   }
 
   //Assume data is present if file is not. binding/libsass will tell the user otherwise!
-  return binding.renderSync(options.data, newOptions.imagePath, newOptions.paths.join(path.delimiter), newOptions.style);
+  return binding.renderSync(options.data, options.imagePath, options.paths, options.style);
 };
 
 /**
@@ -120,26 +119,26 @@ exports.renderSync = function(options) {
   where the source map should be saved
  */
 exports.renderFile = function(options) {
-  var newOptions = {};
-  for (var i in options) {
-    if (options.hasOwnProperty(i)) {
-      newOptions[i] = options[i];
-    }
-  }
+  var success;
+
+  options = prepareOptions(options);
+  success = options.success;
   if (options.sourceMap === true) {
-    newOptions.sourceMap = path.basename(options.outFile) + '.map';
+    options.sourceMap = path.basename(options.outFile) + '.map';
   }
-  newOptions.success = function(css, sourceMap) {
+  options.success = function(css, sourceMap) {
     fs.writeFile(options.outFile, css, function(err) {
+      var dir, sourceMapFile;
+
       if (err) {
-        return error(err);
+        return options.error(err);
       }
       if (options.sourceMap) {
-        var dir = path.dirname(options.outFile);
-        var sourceMapFile = path.resolve(dir, newOptions.sourceMap);
+        dir = path.dirname(options.outFile);
+        sourceMapFile = path.resolve(dir, options.sourceMap);
         fs.writeFile(sourceMapFile, sourceMap, function(err) {
           if (err) {
-            return error(err);
+            return options.error(err);
           }
           success(options.outFile, sourceMapFile);
         });
@@ -149,17 +148,7 @@ exports.renderFile = function(options) {
       }
     });
   };
-  function error(err) {
-    if (options.error) {
-      options.error(err);
-    }
-  }
-  function success(css, sourceMap) {
-    if (options.success) {
-      options.success(css, sourceMap);
-    }
-  }
-  exports.render(newOptions);
+  exports.render(options);
 };
 
 exports.middleware = require('./lib/middleware');
