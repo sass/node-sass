@@ -68,12 +68,14 @@ var deprecatedRender = function(css, callback, options) {
   options.success = function(css) {
     callback(null, css);
   };
-  return binding.render(css, options.imagePath, options.success, options.error, options.paths, options.style, options.comments);
+  options.data = css;
+  return binding.render(options);
 };
 
 var deprecatedRenderSync = function(css, options) {
   options = prepareOptions(options);
-  return binding.renderSync(css, options.imagePath, options.paths, options.style, options.comments);
+  options.data = css;
+  return binding.renderSync(options);
 };
 
 exports.render = function(options) {
@@ -84,11 +86,11 @@ exports.render = function(options) {
   options = prepareOptions(options);
 
   if (options.file) {
-    return binding.renderFile(options.file, options.imagePath, options.success, options.error, options.paths, options.style, options.comments, options.sourceMap);
+    return binding.renderFile(options);
   }
 
   //Assume data is present if file is not. binding/libsass will tell the user otherwise!
-  return binding.render(options.data, options.imagePath, options.success, options.error, options.paths, options.style);
+  return binding.render(options);
 };
 
 exports.renderSync = function(options) {
@@ -99,11 +101,11 @@ exports.renderSync = function(options) {
   options = prepareOptions(options);
 
   if (options.file) {
-    return binding.renderFileSync(options.file, options.imagePath, options.paths, options.style, options.comments);
+    return binding.renderFileSync(options);
   }
 
   //Assume data is present if file is not. binding/libsass will tell the user otherwise!
-  return binding.renderSync(options.data, options.imagePath, options.paths, options.style);
+  return binding.renderSync(options);
 };
 
 /**
