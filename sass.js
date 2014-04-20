@@ -1,7 +1,7 @@
 var path = require('path');
+var fs = require('fs');
 
 function requireBinding() {
-  var fs = require('fs');
   var v8 = 'v8-' + /[0-9]+\.[0-9]+/.exec(process.versions.v8)[0];
 
   var candidates = [
