@@ -54,19 +54,21 @@ namespace Sass {
     extern const char vendor_khtml_kwd[]    = "-khtml-";
 
     // css functions and keywords
-    extern const char charset_kwd[]    = "@charset";
-    extern const char media_kwd[]      = "@media";
-    extern const char keyframes_kwd[]  = "keyframes";
-    extern const char only_kwd[]       = "only";
-    extern const char rgb_kwd[]        = "rgb(";
-    extern const char url_kwd[]        = "url(";
-    extern const char image_url_kwd[]  = "image-url(";
-    extern const char important_kwd[]  = "important";
-    extern const char pseudo_not_kwd[] = ":not(";
-    extern const char even_kwd[]       = "even";
-    extern const char odd_kwd[]        = "odd";
-    extern const char progid_kwd[]     = "progid";
-    extern const char calc_kwd[]       = "calc(";
+    extern const char charset_kwd[]      = "@charset";
+    extern const char media_kwd[]        = "@media";
+    extern const char keyframes_kwd[]    = "keyframes";
+    extern const char only_kwd[]         = "only";
+    extern const char rgb_kwd[]          = "rgb(";
+    extern const char url_kwd[]          = "url(";
+    extern const char image_url_kwd[]    = "image-url(";
+    extern const char important_kwd[]    = "important";
+    extern const char pseudo_not_kwd[]   = ":not(";
+    extern const char even_kwd[]         = "even";
+    extern const char odd_kwd[]          = "odd";
+    extern const char progid_kwd[]       = "progid";
+    extern const char calc_kwd[]         = "calc(";
+    extern const char moz_calc_kwd[]     = "-moz-calc(";
+    extern const char webkit_calc_kwd[]  = "-webkit-calc(";
 
     // css attribute-matching operators
     extern const char tilde_equal[]  = "~=";

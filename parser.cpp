@@ -916,7 +916,9 @@ namespace Sass {
       }
       return kwd_arg;
     }
-    else if (peek< exactly<calc_kwd> >()) {
+    else if (peek< exactly< calc_kwd > >() ||
+             peek< exactly< moz_calc_kwd > >() ||
+             peek< exactly< webkit_calc_kwd > >()) {
       return parse_calc_function();
     }
     else if (peek< functional_schema >()) {
