@@ -3,14 +3,14 @@ var fs = require('fs');
 
 function requireBinding() {
   var v8 = 'v8-' + /[0-9]+\.[0-9]+/.exec(process.versions.v8)[0];
-
   var candidates = [
     [__dirname, 'build', 'Release', 'obj.target', 'binding.node'],
-    [__dirname, 'bin', process.platform + '-' + process.arch + '-' + v8, 'binding.node'],
+    [__dirname, 'bin', process.platform + '-' + process.arch + '-' + v8, 'binding.node']
   ];
+  var candidate;
 
   for (var i = 0, l = candidates.length; i < l; i++) {
-    var candidate = path.join.apply(path.join, candidates[i]);
+    candidate = path.join.apply(path.join, candidates[i]);
 
     if (fs.existsSync(candidate)) {
       return require(candidate);
@@ -23,29 +23,35 @@ function requireBinding() {
 var binding = requireBinding();
 
 var SASS_OUTPUT_STYLE = {
-    nested: 0,
-    expanded: 1,
-    compact: 2,
-    compressed: 3
-  };
+  nested: 0,
+  expanded: 1,
+  compact: 2,
+  compressed: 3
+};
 
 var SASS_SOURCE_COMMENTS = {
-    none: 0,
-    normal: 1,
-    'default': 1,
-    map: 2
-  };
-
-var noop = function () {};
+  none: 0,
+  normal: 1,
+  'default': 1,
+  map: 2
+};
 
 var prepareOptions = function (options) {
+  var success;
+  var error;
+  var stats;
   var sourceComments;
 
   options = options || {};
+  success = options.success;
+  error = options.error;
+  stats = options.stats || {};
+
   sourceComments = options.source_comments || options.sourceComments;
   if (options.sourceMap && !sourceComments) {
     sourceComments = 'map';
   }
+  prepareStats(options, stats);
 
   return {
     file: options.file || null,
@@ -55,10 +61,31 @@ var prepareOptions = function (options) {
     imagePath: options.image_path || options.imagePath || '',
     style: SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0,
     comments: SASS_SOURCE_COMMENTS[sourceComments] || 0,
+    stats: stats,
     sourceMap: options.sourceMap,
-    success: options.success || noop,
-    error: options.error || noop
+    success: function onSuccess(css, sourceMap) {
+      finishStats(stats, sourceMap);
+      success && success(css, sourceMap);
+    },
+    error: function onError(err, errStatus) {
+      error && error(err, errStatus);
+    }
   };
+};
+
+var prepareStats = function (options, stats) {
+  stats.entry = options.file || 'data';
+  stats.start = Date.now();
+
+  return stats;
+};
+
+var finishStats = function (stats, sourceMap) {
+  stats.end = Date.now();
+  stats.duration = stats.end - stats.start;
+  stats.sourceMap = sourceMap;
+
+  return stats;
 };
 
 var deprecatedRender = function(css, callback, options) {
@@ -68,12 +95,14 @@ var deprecatedRender = function(css, callback, options) {
   options.success = function(css) {
     callback(null, css);
   };
-  return binding.render(css, options.imagePath, options.success, options.error, options.paths, options.style, options.comments);
+  options.data = css;
+  binding.render(options);
 };
 
 var deprecatedRenderSync = function(css, options) {
   options = prepareOptions(options);
-  return binding.renderSync(css, options.imagePath, options.paths, options.style, options.comments);
+  options.data = css;
+  return binding.renderSync(options);
 };
 
 exports.render = function(options) {
@@ -82,28 +111,21 @@ exports.render = function(options) {
   }
 
   options = prepareOptions(options);
-
-  if (options.file) {
-    return binding.renderFile(options.file, options.imagePath, options.success, options.error, options.paths, options.style, options.comments, options.sourceMap);
-  }
-
-  //Assume data is present if file is not. binding/libsass will tell the user otherwise!
-  return binding.render(options.data, options.imagePath, options.success, options.error, options.paths, options.style);
+  options.file? binding.renderFile(options) : binding.render(options);
 };
 
 exports.renderSync = function(options) {
+  var output;
+
   if (typeof arguments[0] === 'string') {
     return deprecatedRenderSync.apply(this, arguments);
   }
 
   options = prepareOptions(options);
+  output = options.file? binding.renderFileSync(options) : binding.renderSync(options);
+  finishStats(options.stats);
 
-  if (options.file) {
-    return binding.renderFileSync(options.file, options.imagePath, options.paths, options.style, options.comments);
-  }
-
-  //Assume data is present if file is not. binding/libsass will tell the user otherwise!
-  return binding.renderSync(options.data, options.imagePath, options.paths, options.style);
+  return output;
 };
 
 /**
