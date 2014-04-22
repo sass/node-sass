@@ -8,8 +8,7 @@
   "unused": true,
   "expr":true,
   "multistr": true,
-  "globals": {
-    "it": true,
-    "describe": true
-  }
+  "mocha": true,
+  "strict": false,
+  "quotmark": false
 }
