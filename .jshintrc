@@ -1,15 +1,19 @@
 {
-  "node": true,
-  "laxbreak": true,
-  "indent": 2,
+  "bitwise": true,
+  "camelcase": false,
   "curly": true,
-  "trailing": true,
-  "undef": true,
-  "unused": true,
-  "expr":true,
+  "eqeqeq": true,
+  "expr": true,
+  "immed": true,
+  "indent": 2,
+  "laxbreak": true,
+  "mocha": true,
   "multistr": true,
-  "globals": {
-    "it": true,
-    "describe": true
-  }
+  "newcap": true,
+  "noarg": true,
+  "node": true,
+  "quotmark": "single",
+  "strict": false,
+  "undef": true,
+  "unused": true
 }

@@ -1,11 +1,10 @@
-/*jshint multistr:true */
 var sass = require('../sass');
 var assert = require('assert');
 
 var sampleFilename = require('path').resolve(__dirname, 'sample.scss');
 
-describe("compile source maps", function() {
-  it("should compile file with source map URL", function(done) {
+describe('compile source maps', function() {
+  it('should compile file with source map URL', function(done) {
     var mapFileName = 'sample.css.map';
     sass.render({
       file: sampleFilename,
