@@ -38,18 +38,18 @@
     "node": ">=0.10.0"
   },
   "dependencies": {
-    "mkdirp": "0.3.x",
-    "optimist": "0.6.x",
-    "node-watch": "0.3.x",
     "chalk": "~0.4.0",
+    "mkdirp": "~0.3.5",
+    "mocha": "~1.18.2",
     "nan": "~0.8.0",
-    "mocha": "1.18.x",
-    "sinon": "^1.9.1"
+    "node-watch": "~0.3.4",
+    "optimist": "~0.6.1",
+    "sinon": "~1.9.1"
   },
   "devDependencies": {
-    "jshint": "~2.4.4",
     "coveralls": "~2.10.0",
-    "mocha-lcov-reporter": "0.0.1",
-    "jscoverage": "~0.3.8"
+    "jscoverage": "~0.3.8",
+    "jshint": "~2.5.0",
+    "mocha-lcov-reporter": "~0.0.1"
   }
 }
