@@ -25,10 +25,10 @@
   },
   "scripts": {
     "install": "node build.js",
-    "test": "mocha test",
-    "coverage": "bash scripts/coverage.sh",
-    "pretest": "jshint .",
-    "prepublish": "bash scripts/prepublish.sh"
+    "test": "node scripts/test",
+    "coverage": "node scripts/coverage",
+    "pretest": "node scripts/lint",
+    "prepublish": "node scripts/prepublish"
   },
   "bin": {
     "node-sass": "bin/node-sass"
@@ -44,6 +44,7 @@
     "nan": "~0.8.0",
     "node-watch": "~0.3.4",
     "optimist": "~0.6.1",
+    "shelljs": "~0.2.6",
     "sinon": "~1.9.1"
   },
   "devDependencies": {
