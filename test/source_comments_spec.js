@@ -1,4 +1,3 @@
-/*jshint multistr:true */
 var sass = require('../sass');
 var assert = require('assert');
 
@@ -20,8 +19,8 @@ var expectedCommentsScssStr = '/* line 1, ' + sampleFilename + ' */\n\
   #navbar li a {\n\
     font-weight: bold; }\n';
 
-describe("compile file with source comments", function() {
-  it("should compile with render and comment outputs", function(done) {
+describe('compile file with source comments', function() {
+  it('should compile with render and comment outputs', function(done) {
     sass.render({
       file: sampleFilename,
       source_comments: 'normal',
