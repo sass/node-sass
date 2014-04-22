@@ -107,18 +107,6 @@ exports.renderSync = function(options) {
   return binding.renderSync(options.data, newOptions.imagePath, newOptions.paths.join(path.delimiter), newOptions.style);
 };
 
-/**
-  Same as `render()` but with an extra `outFile` property in `options` and writes
-  the CSS and sourceMap (if requested) to the filesystem.
-  
-  `options.sourceMap` can be used to specify that the source map should be saved:
-  
-  - If falsy the source map will not be saved
-  - If `options.sourceMap === true` the source map will be saved to the
-  standard location of `options.file + '.map'`
-  - Else `options.sourceMap` specifies the path (relative to the `outFile`) 
-  where the source map should be saved
- */
 exports.renderFile = function(options) {
   var newOptions = {};
   for (var i in options) {
