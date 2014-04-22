@@ -43,13 +43,13 @@
     "node-watch": "0.3.x",
     "chalk": "~0.4.0",
     "nan": "~0.8.0",
-    "mocha": "1.18.x"
+    "mocha": "1.18.x",
+    "sinon": "^1.9.1"
   },
   "devDependencies": {
     "jshint": "~2.4.4",
     "coveralls": "~2.10.0",
     "mocha-lcov-reporter": "0.0.1",
-    "jscoverage": "~0.3.8",
-    "sinon": "^1.9.1"
+    "jscoverage": "~0.3.8"
   }
 }
