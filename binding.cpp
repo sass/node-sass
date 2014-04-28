@@ -105,17 +105,10 @@ void MakeCallback(uv_work_t* req) {
 
   if (error_status == 0) {
     // if no error, do callback(null, result)
-    Handle<Value> source_map;
-    if (ctx_w->fctx && ctx_w->fctx->options.source_comments == SASS_SOURCE_COMMENTS_MAP) {
-      source_map = String::New(ctx_w->fctx->source_map_string);
-    } else {
-      source_map = Null();
-    }
-
     val = ctx_w->ctx ? NanNewLocal(String::New(ctx_w->ctx->output_string)) : NanNewLocal(String::New(ctx_w->fctx->output_string));
     Local<Value> argv[] = {
       NanNewLocal(val),
-      NanNewLocal(source_map)
+      NanNewLocal(ctx_w->stats->Get(NanSymbol("sourceMap")))
     };
     ctx_w->callback->Call(2, argv);
   } else {
