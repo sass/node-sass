@@ -39,7 +39,8 @@ describe('cli', function() {
 
     exec('node ' + cliPath + ' ' + sampleFilename, {
       cwd: __dirname
-    }, function() {
+    }, function(err) {
+      assert.equal(err, null);
 
       fs.exists(resultPath, function(exists) {
         assert(exists);
@@ -53,7 +54,8 @@ describe('cli', function() {
 
     exec('node ' + cliPath + ' ' + sampleFilename + ' ../out.css', {
       cwd: __dirname
-    }, function() {
+    }, function(err) {
+      assert.equal(err, null);
 
       fs.exists(resultPath, function(exists) {
         assert(exists);
