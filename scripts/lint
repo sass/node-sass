@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+/*jshint shelljs:true */
+
+"use strict";
+
+require("shelljs/make");
+
+exec("jshint .");

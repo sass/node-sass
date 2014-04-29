@@ -1,0 +1,28 @@
+#!/usr/bin/env node
+/*jshint shelljs:true */
+
+"use strict";
+
+require("shelljs/make");
+var path = require("path");
+
+var JSCOVERAGE_BIN = ["node_modules", ".bin", "jscoverage"].join(path.sep);
+var COVERALLS_BIN = ["node_modules", ".bin", "coveralls"].join(path.sep);
+var MOCHA_BIN = ["node_modules", ".bin", "mocha"].join(path.sep);
+
+echo("Creating coverage files");
+exec(JSCOVERAGE_BIN + " sass.js sass-coverage.js");
+exec(JSCOVERAGE_BIN + " lib lib-coverage");
+
+echo("Piping mocha to coveralls");
+
+env["NODESASS_COVERAGE"] = 1;
+
+exec(MOCHA_BIN + " test -R mocha-lcov-reporter | " + COVERALLS_BIN, {async: false}, function(code, output) {
+	console.log('Exit code:', code);
+	console.log('Program output:', output);
+
+	echo("Cleanup coverage files");
+	rm("sass-coverage.js");
+	rm("-R", "lib-coverage");
+});
