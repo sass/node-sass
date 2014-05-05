@@ -78,6 +78,22 @@ The `map` option will create the source map file in your CSS destination.
 If your `sourceComments` option is set to `map`, `sourceMap` allows setting a new path context for the referenced Sass files.
 The source map describes a path from your CSS file location, into the the folder where the Sass files are located. In most occasions this will work out-of-the-box but, in some cases, you may need to set a different output.
 
+#### stats
+`stats` is an empty `Object` that will be filled with stats from the compilation:
+
+```javascript
+{
+    entry: "path/to/entry.scss",    // or just "data" if the source was not a file
+    start: 10000000,                // Date.now() before the compilation
+    end:   10000001,                // Date.now() after the compilation
+    duration: 1,                    // end - start
+    includedFiles: [ ... ],         // absolute paths to all related scss files
+    sourceMap: "..."                // the source map string or null
+}
+```
+
+`includedFiles` isn't sorted in any meaningful way, it's just a list of all imported scss files including the entry.
+
 ### renderFile()
 
 Same as `render()` but writes the CSS and sourceMap (if requested) to the filesystem.
@@ -101,22 +117,27 @@ where the source map should be saved
 
 ```javascript
 var sass = require('node-sass');
+var stats = {};
 sass.render({
 	data: 'body{background:blue; a{color:black;}}',
-	success: function(css){
-  		console.log(css)
+	success: function(css) {
+        console.log(css);
+        console.log(stats);
 	},
 	error: function(error) {
 		console.log(error);
 	},
 	includePaths: [ 'lib/', 'mod/' ],
-	outputStyle: 'compressed'
+	outputStyle: 'compressed',
+    stats: stats
 });
 // OR
 console.log(sass.renderSync({
 	data: 'body{background:blue; a{color:black;}}',
-	outputStyle: 'compressed'
+	outputStyle: 'compressed',
+    stats: stats
 }));
+console.log(stats);
 ```
 
 ### Edge-case behaviours
