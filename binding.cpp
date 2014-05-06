@@ -26,10 +26,10 @@ char* CreateString(Local<Value> value) {
 
 void ExtractOptions(Local<Value> optionsValue, void* cptr, sass_context_wrapper* ctx_w, bool isFile) {
   int source_comments;
-  Local<Object> options = Local<Object>::Cast(optionsValue);
+  Local<Object> options = optionsValue->ToObject();
 
   if (ctx_w) {
-    NanInitPersistent(Object, stats, Local<Object>::Cast(options->Get(NanSymbol("stats"))));
+    NanAssignPersistent(ctx_w->stats, options->Get(NanSymbol("stats"))->ToObject());
 
     // async (callback) style
     Local<Function> callback = Local<Function>::Cast(options->Get(NanSymbol("success")));
@@ -39,7 +39,6 @@ void ExtractOptions(Local<Value> optionsValue, void* cptr, sass_context_wrapper*
     } else {
       ctx_w->ctx = (sass_context*) cptr;
     }
-    ctx_w->stats = stats;
     ctx_w->request.data = ctx_w;
     ctx_w->callback = new NanCallback(callback);
     ctx_w->errorCallback = new NanCallback(errorCallback);
@@ -70,9 +69,9 @@ void FillStatsObj(Handle<Object> stats, Ctx ctx) {
   int i;
   Handle<Array> arr;
 
-  arr = Array::New(ctx->num_included_files);
+  arr = NanNew<Array>(ctx->num_included_files);
   for (i = 0; i < ctx->num_included_files; i++) {
-    arr->Set(i, String::New(ctx->included_files[i]));
+    arr->Set(i, NanNew<String>(ctx->included_files[i]));
   }
   (*stats)->Set(NanSymbol("includedFiles"), arr);
 }
@@ -82,9 +81,9 @@ void FillStatsObj(Handle<Object> stats, sass_file_context* ctx) {
 
   FillStatsObj<sass_file_context*>(stats, ctx);
   if (ctx->options.source_comments == SASS_SOURCE_COMMENTS_MAP) {
-    source_map = String::New(ctx->source_map_string);
+    source_map = NanNew<String>(ctx->source_map_string);
   } else {
-    source_map = Null();
+    source_map = NanNull();
   }
   (*stats)->Set(NanSymbol("sourceMap"), source_map);
 }
@@ -94,29 +93,28 @@ void MakeCallback(uv_work_t* req) {
 
   TryCatch try_catch;
   sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(req->data);
-  Handle<Value> val, err;
   int error_status = ctx_w->ctx ? ctx_w->ctx->error_status : ctx_w->fctx->error_status;
 
   if (ctx_w->ctx) {
-    FillStatsObj(ctx_w->stats, ctx_w->ctx);
+    FillStatsObj(NanNew(ctx_w->stats), ctx_w->ctx);
   } else {
-    FillStatsObj(ctx_w->stats, ctx_w->fctx);
+    FillStatsObj(NanNew(ctx_w->stats), ctx_w->fctx);
   }
 
   if (error_status == 0) {
     // if no error, do callback(null, result)
-    val = ctx_w->ctx ? NanNewLocal(String::New(ctx_w->ctx->output_string)) : NanNewLocal(String::New(ctx_w->fctx->output_string));
+    char* val = ctx_w->ctx ? ctx_w->ctx->output_string : ctx_w->fctx->output_string;
     Local<Value> argv[] = {
-      NanNewLocal(val),
-      NanNewLocal(ctx_w->stats->Get(NanSymbol("sourceMap")))
+      NanNew<String>(val),
+      NanNew(ctx_w->stats)->Get(NanSymbol("sourceMap"))
     };
     ctx_w->callback->Call(2, argv);
   } else {
     // if error, do callback(error)
-    err = ctx_w->ctx ? NanNewLocal(String::New(ctx_w->ctx->error_message)) : NanNewLocal(String::New(ctx_w->fctx->error_message));
+    char* err = ctx_w->ctx ? ctx_w->ctx->error_message : ctx_w->fctx->error_message;
     Local<Value> argv[] = {
-      NanNewLocal(err),
-      NanNewLocal(Integer::New(error_status))
+      NanNew<String>(err),
+      NanNew<Integer>(error_status)
     };
     ctx_w->errorCallback->Call(2, argv);
   }
@@ -151,12 +149,12 @@ NAN_METHOD(RenderSync) {
   FillStatsObj(options->Get(NanSymbol("stats"))->ToObject(), ctx);
 
   if (ctx->error_status == 0) {
-    Local<Value> output = NanNewLocal(String::New(ctx->output_string));
+    Local<String> output = NanNew<String>(ctx->output_string);
     free_context(ctx);
     NanReturnValue(output);
   }
 
-  Local<String> error = String::New(ctx->error_message);
+  Local<String> error = NanNew<String>(ctx->error_message);
   free_context(ctx);
   NanThrowError(error);
   NanReturnUndefined();
@@ -186,12 +184,12 @@ NAN_METHOD(RenderFileSync) {
   FillStatsObj(options->Get(NanSymbol("stats"))->ToObject(), ctx);
 
   if (ctx->error_status == 0) {
-    Local<Value> output = NanNewLocal(String::New(ctx->output_string));
+    Local<String> output = NanNew<String>(ctx->output_string);
     free_file_context(ctx);
     NanReturnValue(output);
   }
 
-  Local<String> error = String::New(ctx->error_message);
+  Local<String> error = NanNew<String>(ctx->error_message);
   free_file_context(ctx);
   NanThrowError(error);
   NanReturnUndefined();
