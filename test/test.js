@@ -5,53 +5,25 @@ var fs = require('fs');
 var sinon = require('sinon');
 var badSampleFilename = 'sample.scss';
 var sampleFilename = path.resolve(__dirname, 'sample.scss');
+var sample = require('./sample.js');
 
-var scssStr = '#navbar {\
-  width: 80%;\
-  height: 23px; }\
-  #navbar ul {\
-    list-style-type: none; }\
-  #navbar li {\
-    float: left;\
-    a {\
-      font-weight: bold; }}\
-  @mixin keyAnimation($name, $attr, $value) {\
-    @-webkit-keyframes #{$name} {\
-      0%   { #{$attr}: $value; }\
-    }\
-  }';
 
-// Note that the bad
-var badInput = '#navbar \n\
-  width: 80%';
-
-var expectedRender = '#navbar {\n\
-  width: 80%;\n\
-  height: 23px; }\n\
-\n\
-#navbar ul {\n\
-  list-style-type: none; }\n\
-\n\
-#navbar li {\n\
-  float: left; }\n\
-  #navbar li a {\n\
-    font-weight: bold; }\n';
 
 describe('DEPRECATED: compile scss', function() {
   it('should compile with render', function(done) {
-    sass.render(scssStr, function(err) {
+    sass.render(sample.input, function(err) {
       done(err);
     });
   });
 
   it('should compile with renderSync', function(done) {
-    done(assert.ok(sass.renderSync(scssStr)));
+    done(assert.ok(sass.renderSync(sample.input)));
   });
 
   it('should match compiled string with render', function(done) {
-    sass.render(scssStr, function(err, css) {
+    sass.render(sample.input, function(err, css) {
       if (!err) {
-        done(assert.equal(css, expectedRender));
+        done(assert.equal(css, sample.expectedRender));
       } else {
         done(err);
       }
@@ -59,12 +31,12 @@ describe('DEPRECATED: compile scss', function() {
   });
 
   it('should match compiled string with renderSync', function(done) {
-    done(assert.equal(sass.renderSync(scssStr), expectedRender));
+    done(assert.equal(sass.renderSync(sample.input), sample.expectedRender));
   });
 
   it('should throw an exception for bad input', function(done) {
     done(assert.throws(function() {
-      sass.renderSync(badInput);
+      sass.renderSync(sample.badInput);
     }));
   });
 });
@@ -72,7 +44,7 @@ describe('DEPRECATED: compile scss', function() {
 describe('compile scss', function() {
   it('should compile with render', function(done) {
     sass.render({
-      data: scssStr,
+      data: sample.input,
       success: function(css) {
         done(assert.ok(css));
       }
@@ -80,14 +52,14 @@ describe('compile scss', function() {
   });
 
   it('should compile with renderSync', function(done) {
-    done(assert.ok(sass.renderSync({data: scssStr})));
+    done(assert.ok(sass.renderSync({data: sample.input})));
   });
 
   it('should match compiled string with render', function(done) {
     sass.render({
-      data: scssStr,
+      data: sample.input,
       success: function(css) {
-        done(assert.equal(css, expectedRender));
+        done(assert.equal(css, sample.expectedRender));
       },
       error: function(error) {
         done(error);
@@ -109,12 +81,12 @@ describe('compile scss', function() {
   });
 
   it('should match compiled string with renderSync', function(done) {
-    done(assert.equal(sass.renderSync({data: scssStr}), expectedRender));
+    done(assert.equal(sass.renderSync({data: sample.input}), sample.expectedRender));
   });
 
   it('should throw an exception for bad input', function(done) {
     done(assert.throws(function() {
-      sass.renderSync({data: badInput});
+      sass.renderSync({data: sample.badInput});
     }));
   });
 });
@@ -140,7 +112,7 @@ describe('compile file with image path', function(){
       file: path.resolve(__dirname, 'image_path.scss'),
       imagePath: '/path/to/images',
       success: function (css) {
-        done(assert.equal(css, 'body {\n  background-image: url(\"/path/to/images/image.png\"); }\n'));
+        done(assert.equal(css, 'body {\n  background-image: url("/path/to/images/image.png"); }\n'));
       },
       error: function (error) {
         done(error);
@@ -154,7 +126,7 @@ describe('compile file', function() {
     sass.render({
       file: sampleFilename,
       success: function (css) {
-        done(assert.equal(css, expectedRender));
+        done(assert.equal(css, sample.expectedRender));
       },
       error: function (error) {
         done(error);
@@ -170,7 +142,7 @@ describe('compile file', function() {
     sass.render({
       file: sampleFilename,
       success: function(css) {
-        done(assert.equal(css, expectedRender));
+        done(assert.equal(css, sample.expectedRender));
       },
       error: function(error) {
         done(error);
@@ -179,7 +151,7 @@ describe('compile file', function() {
   });
 
   it('should match compiled string with renderSync', function(done) {
-    done(assert.equal(sass.renderSync({file: sampleFilename}), expectedRender));
+    done(assert.equal(sass.renderSync({file: sampleFilename}), sample.expectedRender));
   });
 
   it('should throw an exception for bad input', function(done) {
@@ -209,7 +181,7 @@ describe('render to file', function() {
       outFile: outFile,
       success: function () {
         var contents = filesWritten[outFile];
-        done(assert.equal(contents, expectedRender));
+        done(assert.equal(contents, sample.expectedRender));
       },
       error: function (error) {
         done(error);
