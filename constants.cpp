@@ -66,6 +66,7 @@ namespace Sass {
     extern const char even_kwd[]       = "even";
     extern const char odd_kwd[]        = "odd";
     extern const char progid_kwd[]     = "progid";
+    extern const char expression_kwd[] = "expression";
     extern const char calc_kwd[]       = "calc(";
 
     // css attribute-matching operators

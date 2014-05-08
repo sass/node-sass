@@ -21,6 +21,8 @@
 #include "subset_map.hpp"
 #endif
 
+struct Sass_C_Function_Descriptor;
+
 namespace Sass {
   using namespace std;
   class AST_Node;
@@ -44,6 +46,7 @@ namespace Sass {
     vector<pair<string, const char*> > queue; // queue of files to be parsed
     map<string, Block*> style_sheets; // map of paths to ASTs
     SourceMap source_map;
+    vector<Sass_C_Function_Descriptor> c_functions;
 
     string       image_path; // for the image-url Sass function
     bool         source_comments;
