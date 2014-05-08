@@ -159,7 +159,7 @@ namespace Sass {
       if (real_path.length() > 5) {
         extension = real_path.substr(real_path.length() - 5, 5);
       }
-      for(int i=0; i<extension.size();++i)
+      for(size_t i=0; i<extension.size();++i)
         extension[i] = tolower(extension[i]);
       return contents;
     }
@@ -182,10 +182,10 @@ namespace Sass {
         contents[size] = '\0';
         file.close();
       }
-      for(int i=0; i<extension.size();++i)
+      for(size_t i=0; i<extension.size();++i)
         extension[i] = tolower(extension[i]);
       if (extension == ".sass" && contents != 0) {
-        char * converted = Sass::sass2scss(contents, SASS2SCSS_PRETTIFY_1);
+        char * converted = sass2scss(contents, SASS2SCSS_PRETTIFY_1);
         delete[] contents; // free the indented contents
         return converted; // should be freed by caller
       } else {
