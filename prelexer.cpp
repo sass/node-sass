@@ -426,13 +426,16 @@ namespace Sass {
       return exactly<lte>(src);
     }
 
-    // match the IE syntax
-    const char* progid(const char* src) {
-      return exactly<progid_kwd>(src);
+    // match specific IE syntax
+    const char* ie_progid(const char* src) {
+      return sequence < exactly<progid_kwd>, exactly<':'>, alternatives< identifier_schema, identifier >, one_plus< sequence< exactly<'.'>, alternatives< identifier_schema, identifier > > > >(src);
     }
-
+    const char* ie_expression(const char* src) {
+      return exactly<expression_kwd>(src);
+    }
+    // match any IE syntax
     const char* ie_stuff(const char* src) {
-      return sequence< progid, exactly<':'>, alternatives< identifier_schema, identifier >, one_plus< sequence< exactly<'.'>, alternatives< identifier_schema, identifier > > >, delimited_by<'(', ';', true> >(src);
+      return sequence< alternatives < ie_expression, ie_progid >, delimited_by<'(', ';', true> >(src);
     }
 
     // const char* ie_args(const char* src) {

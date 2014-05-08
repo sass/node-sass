@@ -28,7 +28,7 @@ namespace Sass {
   typedef Expression* (*Native_Function)(Env&, Context&, Signature, const string&, Position, Backtrace*);
 
   Definition* make_native_function(Signature, Native_Function, Context&);
-  Definition* make_c_function(Signature sig, Sass_C_Function f, Context& ctx);
+  Definition* make_c_function(Signature sig, Sass_C_Function f, void* cookie, Context& ctx);
 
   namespace Functions {
 

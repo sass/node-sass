@@ -36,7 +36,7 @@ namespace Sass {
                                     false);
   }
 
-  Definition* make_c_function(Signature sig, Sass_C_Function f, Context& ctx)
+  Definition* make_c_function(Signature sig, Sass_C_Function f, void* cookie, Context& ctx)
   {
     Parser sig_parser = Parser::from_c_str(sig, ctx, "[c function]");
     sig_parser.lex<Prelexer::identifier>();
@@ -48,6 +48,7 @@ namespace Sass {
                                     name,
                                     params,
                                     f,
+                                    cookie,
                                     false, true);
   }
 

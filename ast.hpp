@@ -409,6 +409,7 @@ namespace Sass {
     ADD_PROPERTY(Type, type);
     ADD_PROPERTY(Native_Function, native_function);
     ADD_PROPERTY(Sass_C_Function, c_function);
+    ADD_PROPERTY(void*, cookie);
     ADD_PROPERTY(bool, is_overload_stub);
     ADD_PROPERTY(Signature, signature);
   public:
@@ -425,6 +426,7 @@ namespace Sass {
       type_(t),
       native_function_(0),
       c_function_(0),
+      cookie_(0),
       is_overload_stub_(false),
       signature_(0)
     { }
@@ -442,6 +444,7 @@ namespace Sass {
       type_(FUNCTION),
       native_function_(func_ptr),
       c_function_(0),
+      cookie_(0),
       is_overload_stub_(overload_stub),
       signature_(sig)
     { }
@@ -451,6 +454,7 @@ namespace Sass {
                string n,
                Parameters* params,
                Sass_C_Function func_ptr,
+               void* cookie,
                bool whatever,
                bool whatever2)
     : Has_Block(path, position, 0),
@@ -460,6 +464,7 @@ namespace Sass {
       type_(FUNCTION),
       native_function_(0),
       c_function_(func_ptr),
+      cookie_(cookie),
       is_overload_stub_(false),
       signature_(sig)
     { }
@@ -597,9 +602,13 @@ namespace Sass {
   class Function_Call : public Expression {
     ADD_PROPERTY(string, name);
     ADD_PROPERTY(Arguments*, arguments);
+    ADD_PROPERTY(void*, cookie);
   public:
+    Function_Call(string path, Position position, string n, Arguments* args, void* cookie)
+    : Expression(path, position), name_(n), arguments_(args), cookie_(cookie)
+    { concrete_type(STRING); }
     Function_Call(string path, Position position, string n, Arguments* args)
-    : Expression(path, position), name_(n), arguments_(args)
+    : Expression(path, position), name_(n), arguments_(args), cookie_(0)
     { concrete_type(STRING); }
     ATTACH_OPERATIONS();
   };
