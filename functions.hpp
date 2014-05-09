@@ -64,6 +64,7 @@ namespace Sass {
     extern Signature ie_hex_str_sig;
     extern Signature unquote_sig;
     extern Signature quote_sig;
+    extern Signature str_length_sig;
     extern Signature percentage_sig;
     extern Signature round_sig;
     extern Signature ceil_sig;
@@ -115,6 +116,7 @@ namespace Sass {
     BUILT_IN(ie_hex_str);
     BUILT_IN(sass_unquote);
     BUILT_IN(sass_quote);
+    BUILT_IN(str_length);
     BUILT_IN(percentage);
     BUILT_IN(round);
     BUILT_IN(ceil);
