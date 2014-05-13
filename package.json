@@ -40,7 +40,6 @@
   "dependencies": {
     "chalk": "~0.4.0",
     "mkdirp": "~0.3.5",
-    "mocha": "~1.18.2",
     "nan": "~1.0.0",
     "node-watch": "~0.3.4",
     "optimist": "~0.6.1",
@@ -51,6 +50,7 @@
     "coveralls": "~2.10.0",
     "jscoverage": "~0.3.8",
     "jshint": "~2.5.0",
+    "mocha": "~1.18.2",
     "mocha-lcov-reporter": "~0.0.1"
   }
 }
