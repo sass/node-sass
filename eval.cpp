@@ -477,7 +477,7 @@ namespace Sass {
   Expression* Eval::operator()(String_Schema* s)
   {
     string acc;
-    To_String to_string(&ctx);
+    To_String to_string(0);
     for (size_t i = 0, L = s->length(); i < L; ++i) {
       string chunk((*s)[i]->perform(this)->perform(&to_string));
       if (((s->quote_mark() && is_quoted(chunk)) || !s->quote_mark()) && (*s)[i]->is_interpolant()) { // some redundancy in that test
