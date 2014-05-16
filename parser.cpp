@@ -916,7 +916,9 @@ namespace Sass {
       }
       return kwd_arg;
     }
-    else if (peek< exactly<calc_kwd> >()) {
+    else if (peek< exactly< calc_kwd > >() ||
+             peek< exactly< moz_calc_kwd > >() ||
+             peek< exactly< webkit_calc_kwd > >()) {
       return parse_calc_function();
     }
     else if (peek< functional_schema >()) {
@@ -1469,6 +1471,7 @@ namespace Sass {
   {
     const char* p = start ? start : position;
     const char* q;
+    bool saw_stuff = false;
     bool saw_interpolant = false;
 
     while ((q = peek< identifier >(p))                             ||
@@ -1508,12 +1511,13 @@ namespace Sass {
            (q = peek< sequence< exactly<'-'>, interpolant > >(p))  ||
            (q = peek< sequence< pseudo_prefix, interpolant > >(p)) ||
            (q = peek< interpolant >(p))) {
+      saw_stuff = true;
       p = q;
       if (*(p - 1) == '}') saw_interpolant = true;
     }
 
     Selector_Lookahead result;
-    result.found            = peek< exactly<'{'> >(p) ? p : 0;
+    result.found            = saw_stuff && peek< exactly<'{'> >(p) ? p : 0;
     result.has_interpolants = saw_interpolant;
 
     return result;
