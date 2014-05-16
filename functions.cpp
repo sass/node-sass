@@ -689,6 +689,42 @@ namespace Sass {
       return result;
     }
 
+
+    Signature str_length_sig = "str-length($string)";
+    BUILT_IN(str_length)
+    {
+      String_Constant* s = ARG("$string", String_Constant);
+      string str = s->value();
+      size_t len = 0;
+      size_t length_of_s = str.size();
+      size_t i = 0;
+
+      if (s->is_quoted()) {
+        ++i;
+        --length_of_s;
+      }
+
+      while (i < length_of_s) {
+        unsigned char c = static_cast<unsigned char>(str[i]);
+        if (c < 128) {
+          // it's a single-byte character
+          ++len;
+          ++i;
+        }
+        // it's a multi bit sequence and presumably it's a leading bit
+        else {
+          ++i; // go to the next byte
+          // see if it's still part of the sequence
+          while ((i < length_of_s) && ((static_cast<unsigned char>(str[i]) & 0b11000000) == 0b10000000)) {
+            ++i;
+          }
+          // when it's not [aka a new leading bit], increment and move on
+          ++len;
+        }
+      }
+      return new (ctx.mem) Number(path, position, len);
+    }
+
     ///////////////////
     // NUMBER FUNCTIONS
     ///////////////////
