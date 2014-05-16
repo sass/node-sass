@@ -714,17 +714,14 @@ namespace Sass {
         // it's a multi bit sequence and presumably it's a leading bit
         else {
           ++i; // go to the next byte
-          c = static_cast<unsigned char>(str[i]);
           // see if it's still part of the sequence
-          while ((i < length_of_s) && ((c & 0b11000000) == 0b10000000)) {
+          while ((i < length_of_s) && ((static_cast<unsigned char>(str[i]) & 0b11000000) == 0b10000000)) {
             ++i;
-            c = static_cast<unsigned char>(str[i]);
           }
           // when it's not [aka a new leading bit], increment and move on
           ++len;
         }
       }
-
       return new (ctx.mem) Number(path, position, len);
     }
 
