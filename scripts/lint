@@ -5,4 +5,7 @@
 
 require("shelljs/make");
 
-exec("jshint .");
+var path = require("path");
+var JSHINT_BIN = ["node_modules", ".bin", "jshint"].join(path.sep);
+
+exec(JSHINT_BIN + " .");
