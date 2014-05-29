@@ -179,6 +179,10 @@ Heavily inspired by <https://github.com/LearnBoost/stylus>
 
 [@sintaxi](https://github.com/sintaxi)’s Harp web server implicitly compiles `.scss` files using node-sass: <https://github.com/sintaxi/harp>
 
+## Metalsmith plugin
+
+[@stevenschobert](https://github.com/stevenschobert/) has created a gulp sass plugin based on node-sass: <https://github.com/stevenschobert/metalsmith-sass>
+
 ## Meteor plugin
 
 [@fourseven](https://github.com/fourseven) has created a meteor plugin based on node-sass: <https://github.com/fourseven/meteor-scss>
