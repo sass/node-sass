@@ -245,6 +245,9 @@ namespace Sass {
     const char* type_selector(const char* src) {
       return sequence< optional<namespace_prefix>, identifier>(src);
     }
+    const char* hyphens_and_identifier(const char* src) {
+      return sequence< zero_plus< exactly< '-' > >, identifier >(src);
+    }
     const char* universal(const char* src) {
       return sequence< optional<namespace_prefix>, exactly<'*'> >(src);
     }

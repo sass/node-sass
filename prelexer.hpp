@@ -369,6 +369,7 @@ namespace Sass {
     // Match CSS type selectors
     const char* namespace_prefix(const char* src);
     const char* type_selector(const char* src);
+    const char* hyphens_and_identifier(const char* src);
     const char* universal(const char* src);
     // Match CSS id names.
     const char* id_name(const char* src);
