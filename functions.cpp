@@ -709,6 +709,49 @@ namespace Sass {
       return new (ctx.mem) Number(path, position, len);
     }
 
+    Signature str_insert_sig = "str-insert($string, $insert, $index)";
+    BUILT_IN(str_insert)
+    {
+      String_Constant* s = ARG("$string", String_Constant);
+      string str = s->value();
+      char quotemark = s->quote_mark();
+      str = unquote(str);
+      String_Constant* i = ARG("$insert", String_Constant);
+      string ins = i->value();
+      ins = unquote(ins);
+      Number* ind = ARG("$index", Number);
+      double index = ind->value();
+      size_t len = UTF_8::code_point_count(str, 0, str.size());
+
+      if (index > 0 && index <= len) {
+        // positive and within string length
+        str.insert(UTF_8::code_point_offset_to_byte_offset(str, index-1), ins);
+      } 
+      else if (index > len) {
+        // positive and past string length
+        str += ins;
+      }
+      else if (index == 0) {
+        str = ins + str;
+      }
+      else if (std::abs(index) <= len) {
+        // negative and within string length
+        index += len + 1;
+        str.insert(UTF_8::code_point_offset_to_byte_offset(str, index), ins);
+      }
+      else {
+        // negative and past string length
+        str = ins + str;
+      }
+
+      if (quotemark) {
+        str = quote(str, quotemark);
+      }
+
+      return new (ctx.mem) String_Constant(path, position, str);
+
+    }
+
     ///////////////////
     // NUMBER FUNCTIONS
     ///////////////////

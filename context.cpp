@@ -362,6 +362,7 @@ namespace Sass {
     register_function(ctx, unquote_sig, sass_unquote, env);
     register_function(ctx, quote_sig, sass_quote, env);
     register_function(ctx, str_length_sig, str_length, env);
+    register_function(ctx, str_insert_sig, str_insert, env);
     // Number Functions
     register_function(ctx, percentage_sig, percentage, env);
     register_function(ctx, round_sig, round, env);

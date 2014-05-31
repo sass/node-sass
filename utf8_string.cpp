@@ -47,6 +47,32 @@ namespace Sass {
       return code_point_count(str, 0, str.length());
     }
 
+    // function that will return the byte offset of a code point in a
+    size_t code_point_offset_to_byte_offset(const string& str, size_t offset) {
+      size_t i = 0;
+      size_t len = 0;
+
+      while (len < offset) {
+        unsigned char c = static_cast<unsigned char>(str[i]);
+        if (c < 128) {
+          // it's a single-byte character
+          ++len;
+          ++i;
+        }
+        // it's a multi bit sequence and presumably it's a leading bit
+        else {
+          ++i; // go to the next byte
+          // see if it's still part of the sequence
+          while ((i < str.length()) && ((static_cast<unsigned char>(str[i]) & 0b11000000) == 0b10000000)) {
+            ++i;
+          }
+          // when it's not [aka a new leading bit], increment and move on
+          ++len;
+        }
+      }
+      return i;
+    }
+
   }
 }
 

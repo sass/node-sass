@@ -20,6 +20,8 @@ namespace Sass {
     size_t code_point_count(const string& str, size_t start, size_t end);
     size_t code_point_count(const string& str);
 
+    size_t code_point_offset_to_byte_offset(const string& str, size_t offset);
+
   }
 }
 
