@@ -7,6 +7,7 @@
 #include "to_string.hpp"
 #include "inspect.hpp"
 #include "eval.hpp"
+#include "utf8_string.hpp"
 
 #include <cmath>
 #include <cctype>
@@ -695,7 +696,6 @@ namespace Sass {
     {
       String_Constant* s = ARG("$string", String_Constant);
       string str = s->value();
-      size_t len = 0;
       size_t length_of_s = str.size();
       size_t i = 0;
 
@@ -704,25 +704,126 @@ namespace Sass {
         --length_of_s;
       }
 
-      while (i < length_of_s) {
-        unsigned char c = static_cast<unsigned char>(str[i]);
-        if (c < 128) {
-          // it's a single-byte character
-          ++len;
-          ++i;
-        }
-        // it's a multi bit sequence and presumably it's a leading bit
-        else {
-          ++i; // go to the next byte
-          // see if it's still part of the sequence
-          while ((i < length_of_s) && ((static_cast<unsigned char>(str[i]) & 0b11000000) == 0b10000000)) {
-            ++i;
-          }
-          // when it's not [aka a new leading bit], increment and move on
-          ++len;
-        }
-      }
+      size_t len = UTF_8::code_point_count(str, i, length_of_s);
+
       return new (ctx.mem) Number(path, position, len);
+    }
+
+    Signature str_insert_sig = "str-insert($string, $insert, $index)";
+    BUILT_IN(str_insert)
+    {
+      String_Constant* s = ARG("$string", String_Constant);
+      string str = s->value();
+      char quotemark = s->quote_mark();
+      str = unquote(str);
+      String_Constant* i = ARG("$insert", String_Constant);
+      string ins = i->value();
+      ins = unquote(ins);
+      Number* ind = ARG("$index", Number);
+      double index = ind->value();
+      size_t len = UTF_8::code_point_count(str, 0, str.size());
+
+      if (index > 0 && index <= len) {
+        // positive and within string length
+        str.insert(UTF_8::code_point_offset_to_byte_offset(str, index-1), ins);
+      } 
+      else if (index > len) {
+        // positive and past string length
+        str += ins;
+      }
+      else if (index == 0) {
+        str = ins + str;
+      }
+      else if (std::abs(index) <= len) {
+        // negative and within string length
+        index += len + 1;
+        str.insert(UTF_8::code_point_offset_to_byte_offset(str, index), ins);
+      }
+      else {
+        // negative and past string length
+        str = ins + str;
+      }
+
+      if (quotemark) {
+        str = quote(str, quotemark);
+      }
+
+      return new (ctx.mem) String_Constant(path, position, str);
+
+    }
+
+    Signature str_index_sig = "str-index($string, $substring)";
+    BUILT_IN(str_index)
+    {
+      String_Constant* s = ARG("$string", String_Constant);
+      String_Constant* t = ARG("$substring", String_Constant);
+      string str = s->value();
+      str = unquote(str);
+      string substr = t->value();
+      substr = unquote(substr);
+
+      size_t c_index = str.find(substr);
+      if(c_index == string::npos) {
+        return new (ctx.mem) Null(path, position);
+      }
+      size_t index = UTF_8::code_point_count(str, 0, c_index + 1);
+
+      return new (ctx.mem) Number(path, position, index);
+    }
+
+    Signature str_slice_sig = "str-slice($string, $start-at, $end-at:-1)";
+    BUILT_IN(str_slice)
+    {
+      String_Constant* s = ARG("$string", String_Constant);
+      Number* n = ARG("$start-at", Number);
+      Number* m = ARG("$end-at", Number);
+
+      string str = s->value();
+      char quotemark = s->quote_mark();
+      str = unquote(str);
+
+      // normalize into 0-based indices
+      size_t start = UTF_8::code_point_offset_to_byte_offset(str, UTF_8::normalize_index(n->value(), UTF_8::code_point_count(str)));
+      size_t end = UTF_8::code_point_offset_to_byte_offset(str, UTF_8::normalize_index(m->value(), UTF_8::code_point_count(str)));
+
+      string newstr;
+      if(start - end == 0) {
+        newstr = str.substr(start, end - start);
+      } else {
+        newstr = str.substr(start, end - start + UTF_8::length_of_code_point_at(str, end));
+      }
+      if(quotemark) {
+        newstr = quote(newstr, quotemark);
+      }
+
+      return new (ctx.mem) String_Constant(path, position, newstr);
+
+    }
+
+    Signature to_upper_case_sig = "to-upper-case($string)";
+    BUILT_IN(to_upper_case)
+    {
+      String_Constant* s = ARG("$string", String_Constant);
+      string str = s->value();
+
+      for (size_t i = 0, L = str.length(); i < L; ++i) {
+        str[i] = std::toupper(str[i]);
+      }
+
+      return new (ctx.mem) String_Constant(path, position, str);
+    }
+
+    Signature to_lower_case_sig = "to-lower-case($string)";
+    BUILT_IN(to_lower_case)
+    {
+      String_Constant* s = ARG("$string", String_Constant);
+      string str = s->value();
+
+      for (size_t i = 0, L = str.length(); i < L; ++i) {
+        str[i] = std::tolower(str[i]);
+      }
+
+      return new (ctx.mem) String_Constant(path, position, str);
     }
 
     ///////////////////
