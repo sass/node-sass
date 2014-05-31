@@ -752,6 +752,25 @@ namespace Sass {
 
     }
 
+    Signature str_index_sig = "str-index($string, $substring)";
+    BUILT_IN(str_index)
+    {
+      String_Constant* s = ARG("$string", String_Constant);
+      String_Constant* t = ARG("$substring", String_Constant);
+      string str = s->value();
+      str = unquote(str);
+      string substr = t->value();
+      substr = unquote(substr);
+
+      size_t c_index = str.find(substr);
+      if(c_index == string::npos) {
+        return new (ctx.mem) Null(path, position);
+      }
+      size_t index = UTF_8::code_point_count(str, 0, c_index + 1);
+
+      return new (ctx.mem) Number(path, position, index);
+    }
+
     ///////////////////
     // NUMBER FUNCTIONS
     ///////////////////

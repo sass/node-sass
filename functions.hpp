@@ -66,6 +66,7 @@ namespace Sass {
     extern Signature quote_sig;
     extern Signature str_length_sig;
     extern Signature str_insert_sig;
+    extern Signature str_index_sig;
     extern Signature percentage_sig;
     extern Signature round_sig;
     extern Signature ceil_sig;
@@ -119,6 +120,7 @@ namespace Sass {
     BUILT_IN(sass_quote);
     BUILT_IN(str_length);
     BUILT_IN(str_insert);
+    BUILT_IN(str_index);
     BUILT_IN(percentage);
     BUILT_IN(round);
     BUILT_IN(ceil);
