@@ -73,6 +73,50 @@ namespace Sass {
       return i;
     }
 
+    // function that returns number of bytes in a character in a string
+    size_t length_of_code_point_at(const string& str, size_t pos) {
+      unsigned char c = static_cast<unsigned char>(str[pos]);
+      size_t i = 0;
+      if(c < 128) {
+        return 1;
+      } else {
+        ++i; // go to the next byte
+        ++pos;
+        // see if it's still part of the sequence
+        while ((i < str.length()) && ((static_cast<unsigned char>(str[pos]) & 0b11000000) == 0b10000000)) {
+          ++i;
+          ++pos;
+        }
+      }
+      return i;
+    }
+
+    // function that will return a normalized index, given a crazy one
+    size_t normalize_index(int index, size_t len) {
+      int signed_len = len;
+      // assuming the index is 1-based
+      // we are returning a 0-based index
+      if (index > 0 && index <= signed_len) {
+        // positive and within string length
+        return index-1;
+      } 
+      else if (index > signed_len) {
+        // positive and past string length
+        return len;
+      }
+      else if (index == 0) {
+        return 0;
+      }
+      else if (std::abs(index) <= signed_len) {
+        // negative and within string length
+        return index + signed_len;
+      }
+      else {
+        // negative and past string length
+        return 0;
+      }
+    }
+
   }
 }
 

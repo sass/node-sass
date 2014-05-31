@@ -771,6 +771,35 @@ namespace Sass {
       return new (ctx.mem) Number(path, position, index);
     }
 
+    Signature str_slice_sig = "str-slice($string, $start-at, $end-at:-1)";
+    BUILT_IN(str_slice)
+    {
+      String_Constant* s = ARG("$string", String_Constant);
+      Number* n = ARG("$start-at", Number);
+      Number* m = ARG("$end-at", Number);
+
+      string str = s->value();
+      char quotemark = s->quote_mark();
+      str = unquote(str);
+
+      // normalize into 0-based indices
+      size_t start = UTF_8::code_point_offset_to_byte_offset(str, UTF_8::normalize_index(n->value(), UTF_8::code_point_count(str)));
+      size_t end = UTF_8::code_point_offset_to_byte_offset(str, UTF_8::normalize_index(m->value(), UTF_8::code_point_count(str)));
+
+      string newstr;
+      if(start - end == 0) {
+        newstr = str.substr(start, end - start);
+      } else {
+        newstr = str.substr(start, end - start + UTF_8::length_of_code_point_at(str, end));
+      }
+      if(quotemark) {
+        newstr = quote(newstr, quotemark);
+      }
+
+      return new (ctx.mem) String_Constant(path, position, newstr);
+
+    }
+
     ///////////////////
     // NUMBER FUNCTIONS
     ///////////////////

@@ -20,7 +20,14 @@ namespace Sass {
     size_t code_point_count(const string& str, size_t start, size_t end);
     size_t code_point_count(const string& str);
 
+    // function that will return the byte offset of a code point in a
     size_t code_point_offset_to_byte_offset(const string& str, size_t offset);
+
+    // function that returns number of bytes in a character in a string
+    size_t length_of_code_point_at(const string& str, size_t pos);
+
+    // function that will return a normalized index, given a crazy one
+    size_t normalize_index(int index, size_t len);
 
   }
 }
