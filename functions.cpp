@@ -800,6 +800,32 @@ namespace Sass {
 
     }
 
+    Signature to_upper_case_sig = "to-upper-case($string)";
+    BUILT_IN(to_upper_case)
+    {
+      String_Constant* s = ARG("$string", String_Constant);
+      string str = s->value();
+
+      for (size_t i = 0, L = str.length(); i < L; ++i) {
+        str[i] = std::toupper(str[i]);
+      }
+
+      return new (ctx.mem) String_Constant(path, position, str);
+    }
+
+    Signature to_lower_case_sig = "to-lower-case($string)";
+    BUILT_IN(to_lower_case)
+    {
+      String_Constant* s = ARG("$string", String_Constant);
+      string str = s->value();
+
+      for (size_t i = 0, L = str.length(); i < L; ++i) {
+        str[i] = std::tolower(str[i]);
+      }
+
+      return new (ctx.mem) String_Constant(path, position, str);
+    }
+
     ///////////////////
     // NUMBER FUNCTIONS
     ///////////////////

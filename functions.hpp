@@ -68,6 +68,8 @@ namespace Sass {
     extern Signature str_insert_sig;
     extern Signature str_index_sig;
     extern Signature str_slice_sig;
+    extern Signature to_upper_case_sig;
+    extern Signature to_lower_case_sig;
     extern Signature percentage_sig;
     extern Signature round_sig;
     extern Signature ceil_sig;
@@ -123,6 +125,8 @@ namespace Sass {
     BUILT_IN(str_insert);
     BUILT_IN(str_index);
     BUILT_IN(str_slice);
+    BUILT_IN(to_upper_case);
+    BUILT_IN(to_lower_case);
     BUILT_IN(percentage);
     BUILT_IN(round);
     BUILT_IN(ceil);
