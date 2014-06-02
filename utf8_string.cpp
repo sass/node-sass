@@ -30,14 +30,14 @@ namespace Sass {
           ++len;
           ++i;
         }
-        // it's a multi bit sequence and presumably it's a leading bit
+        // it's a multi byte sequence and presumably it's a leading byte
         else {
           ++i; // go to the next byte
           // see if it's still part of the sequence
-          while ((i < end) && ((static_cast<unsigned char>(str[i]) & 0b11000000) == 0b10000000)) {
+          while ((i < end) && ((static_cast<unsigned char>(str[i]) & 0xC0) == 0x80)) {
             ++i;
           }
-          // when it's not [aka a new leading bit], increment and move on
+          // when it's not [aka a new leading byte], increment and move on
           ++len;
         }
       }
@@ -60,14 +60,14 @@ namespace Sass {
           ++len;
           ++i;
         }
-        // it's a multi bit sequence and presumably it's a leading bit
+        // it's a multi byte sequence and presumably it's a leading byte
         else {
           ++i; // go to the next byte
           // see if it's still part of the sequence
           while ((i < str.length()) && ((static_cast<unsigned char>(str[i]) & 0b11000000) == 0b10000000)) {
             ++i;
           }
-          // when it's not [aka a new leading bit], increment and move on
+          // when it's not [aka a new leading byte], increment and move on
           ++len;
         }
       }
