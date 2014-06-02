@@ -2,6 +2,7 @@
 #define SASS_UTF8_STRING
 
 #include <string>
+#include <cmath>
 
 namespace Sass {
   namespace UTF_8 {
