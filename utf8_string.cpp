@@ -64,7 +64,7 @@ namespace Sass {
         else {
           ++i; // go to the next byte
           // see if it's still part of the sequence
-          while ((i < str.length()) && ((static_cast<unsigned char>(str[i]) & 0b11000000) == 0b10000000)) {
+          while ((i < str.length()) && ((static_cast<unsigned char>(str[i]) & 0xC0) == 0x80)) {
             ++i;
           }
           // when it's not [aka a new leading byte], increment and move on
@@ -84,7 +84,7 @@ namespace Sass {
         ++i; // go to the next byte
         ++pos;
         // see if it's still part of the sequence
-        while ((i < str.length()) && ((static_cast<unsigned char>(str[pos]) & 0b11000000) == 0b10000000)) {
+        while ((i < str.length()) && ((static_cast<unsigned char>(str[pos]) & 0xC0) == 0x80)) {
           ++i;
           ++pos;
         }
