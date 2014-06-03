@@ -112,7 +112,6 @@ namespace Sass
 
 		// get postion of first meaningfull character in string
 		size_t pos_left = sass.find_first_not_of(" \t\n\v\f\r");
-		size_t pos_right = sass.find_last_not_of(" \t\n\v\f\r");
 
 		// special case for final run
 		if (converter.end_of_file) pos_left = 0;
