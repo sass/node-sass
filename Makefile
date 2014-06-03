@@ -16,10 +16,10 @@ endif
 all: sass2scss
 
 sass2scss.o: sass2scss.cpp
-	g++ -c sass2scss.cpp
+	g++ -Wall -c sass2scss.cpp
 
 sass2scss: sass2scss.o
-	g++ -o sass2scss -I. tool/sass2scss.cpp sass2scss.o
+	g++ -Wall -o sass2scss -I. tool/sass2scss.cpp sass2scss.o
 
 clean:
 	ifeq ($(OS),Windows_NT)
