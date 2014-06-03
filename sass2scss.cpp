@@ -5,16 +5,16 @@
 #include <sstream>
 #include <iostream>
 
-/*
-
-	src comments: comments in sass syntax (staring with //)
-	css comments: multiline comments in css syntax (starting with /*)
-
-	KEEP_COMMENT: keep src comments in the resulting css code
-	STRIP_COMMENT: strip out all comments (either src or css)
-	CONVERT_COMMENT: convert all src comments to css comments
-
-*/
+///*
+//
+// src comments: comments in sass syntax (staring with //)
+// css comments: multiline comments in css syntax (starting with /*)
+//
+// KEEP_COMMENT: keep src comments in the resulting css code
+// STRIP_COMMENT: strip out all comments (either src or css)
+// CONVERT_COMMENT: convert all src comments to css comments
+//
+//*/
 
 // our own header
 #include "sass2scss.h"
@@ -76,7 +76,7 @@ namespace Sass
 		converter.whitespace = "";
 
 		// remove possible newlines from string
-		int pos_right = sass.find_last_not_of("\n\r");
+		size_t pos_right = sass.find_last_not_of("\n\r");
 		if (pos_right == string::npos) return scss;
 
 		// get the linefeeds from the string
@@ -90,7 +90,7 @@ namespace Sass
 		if (PRETTIFY(converter) == 0)
 		{
 			// remove leading whitespace and update string
-			int pos_left = sass.find_first_not_of(" \t\n\v\f\r");
+			size_t pos_left = sass.find_first_not_of(" \t\n\v\f\r");
 			if (pos_left != string::npos) sass = sass.substr(pos_left);
 		}
 
@@ -111,8 +111,8 @@ namespace Sass
 		string scss = "";
 
 		// get postion of first meaningfull character in string
-		int pos_left = sass.find_first_not_of(" \t\n\v\f\r");
-		int pos_right = sass.find_last_not_of(" \t\n\v\f\r");
+		size_t pos_left = sass.find_first_not_of(" \t\n\v\f\r");
+		size_t pos_right = sass.find_last_not_of(" \t\n\v\f\r");
 
 		// special case for final run
 		if (converter.end_of_file) pos_left = 0;
@@ -179,7 +179,7 @@ namespace Sass
 			if (sass.substr(pos_left, 1) == ":")
 			{
 				// get postion of first meaningfull char
-				int pos_value = sass.find_first_of(" \t\n\v\f\r", pos_left);
+				size_t pos_value = sass.find_first_of(" \t\n\v\f\r", pos_left);
 				// create new string by interchanging the colon sign for property and value
 				sass = indent + sass.substr(pos_left + 1, pos_value - pos_left - 1) + ":" + sass.substr(pos_value);
 			}
@@ -192,13 +192,13 @@ namespace Sass
 			else if (sass.substr(pos_left, 7) == "@import")
 			{
 				// get positions for the actual import url
-				int pos_import = sass.find_first_of(" \t\n\v\f\r", pos_left + 7);
-				int pos_quote = sass.find_first_not_of(" \t\n\v\f\r", pos_import);
+				size_t pos_import = sass.find_first_of(" \t\n\v\f\r", pos_left + 7);
+				size_t pos_quote = sass.find_first_not_of(" \t\n\v\f\r", pos_import);
 				// check if the url is quoted
 				if (sass.substr(pos_quote, 1) != "\"")
 				{
 					// get position of the last char on the line
-					int pos_end = sass.find_last_not_of(" \t\n\v\f\r");
+					size_t pos_end = sass.find_last_not_of(" \t\n\v\f\r");
 					// add quotes around the full line after the import statement
 					sass = sass.substr(0, pos_quote) + "\"" + sass.substr(pos_quote, pos_end - pos_quote + 1) + "\"";
 				}
@@ -281,7 +281,7 @@ namespace Sass
 			}
 
 			// get postion of last meaningfull char
-			int pos_right = sass.find_last_not_of(" \t\n\v\f\r");
+			size_t pos_right = sass.find_last_not_of(" \t\n\v\f\r");
 
 			// check for invalid result
 			if (pos_right != string::npos)
