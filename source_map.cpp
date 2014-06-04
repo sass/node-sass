@@ -79,7 +79,7 @@ namespace Sass {
 
   void SourceMap::update_column(const string& str)
   {
-    const int new_line_count = std::count(str.begin(), str.end(), '\n');
+    const long new_line_count = std::count(str.begin(), str.end(), '\n');
     current_position.line += new_line_count;
     if (new_line_count >= 1) {
       current_position.column = str.size() - str.find_last_of('\n');
