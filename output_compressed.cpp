@@ -2,6 +2,7 @@
 #include "inspect.hpp"
 #include "ast.hpp"
 #include "context.hpp"
+#include "to_string.hpp"
 
 namespace Sass {
   using namespace std;
@@ -183,7 +184,16 @@ namespace Sass {
 
   void Output_Compressed::operator()(Comment* c)
   {
-    return;
+    To_String to_string;
+    string txt = c->text()->perform(&to_string);
+    if(txt[2] != '!') {
+      return;
+    }
+    else {
+      Inspect i(ctx);
+      c->perform(&i);
+      buffer += i.get_buffer();
+    }
   }
 
   void Output_Compressed::operator()(List* list)
