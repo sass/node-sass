@@ -2,11 +2,11 @@
 
 ![logo](https://rawgit.com/andrew/node-sass/master/media/logo.svg)
 
-[![Build Status](https://secure.travis-ci.org/andrew/node-sass.png?branch=master)](https://travis-ci.org/andrew/node-sass)
-[![NPM version](https://badge.fury.io/js/node-sass.png)](http://badge.fury.io/js/node-sass)
-[![Dependency Status](https://david-dm.org/andrew/node-sass.png?theme=shields.io)](https://david-dm.org/andrew/node-sass)
-[![devDependency Status](https://david-dm.org/andrew/node-sass/dev-status.png?theme=shields.io)](https://david-dm.org/andrew/node-sass#info=devDependencies)
-[![Coverage Status](https://coveralls.io/repos/andrew/node-sass/badge.png)](https://coveralls.io/r/andrew/node-sass)
+[![Build Status](https://travis-ci.org/andrew/node-sass.svg?branch=master&style=flat)](https://travis-ci.org/andrew/node-sass)
+[![npm version](https://badge.fury.io/js/node-sass.svg)](http://badge.fury.io/js/node-sass)
+[![Dependency Status](https://david-dm.org/andrew/node-sass.svg?theme=shields.io)](https://david-dm.org/andrew/node-sass)
+[![devDependency Status](https://david-dm.org/andrew/node-sass/dev-status.svg?theme=shields.io)](https://david-dm.org/andrew/node-sass#info=devDependencies)
+[![Coverage Status](http://img.shields.io/coveralls/andrew/node-sass.svg)](https://coveralls.io/r/andrew/node-sass)
 [![Gitter chat](https://badges.gitter.im/andrew/node-sass.png)](https://gitter.im/andrew/node-sass)
 
 Node-sass is a library that provides binding for Node.js to [libsass], the C version of the popular stylesheet preprocessor, Sass.
