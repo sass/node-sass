@@ -31,6 +31,8 @@ If this project is missing an API or command line flag that has been added to [l
 
     npm install node-sass
 
+Some users have reported issues installing on Ubuntu due to `node` being registered to another package. [Follow the official NodeJS docs](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager) to install NodeJS so that `#!/usr/bin/env node` correctly resolved.
+
 ## Usage
 
 ```javascript
