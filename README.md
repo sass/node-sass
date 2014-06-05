@@ -1,5 +1,7 @@
 # node-sass
 
+![logo](https://rawgit.com/andrew/node-sass/master/media/logo.svg)
+
 [![Build Status](https://secure.travis-ci.org/andrew/node-sass.png?branch=master)](https://travis-ci.org/andrew/node-sass)
 [![NPM version](https://badge.fury.io/js/node-sass.png)](http://badge.fury.io/js/node-sass)
 [![Dependency Status](https://david-dm.org/andrew/node-sass.png?theme=shields.io)](https://david-dm.org/andrew/node-sass)
@@ -109,7 +111,7 @@ Same as `render()` but writes the CSS and sourceMap (if requested) to the filesy
 - If falsy the source map will not be saved
 - If `sourceMap === true` the source map will be saved to the
 standard location of `path.basename(options.outFile) + '.map'`
-- Otherwise specifies the path (relative to the `outFile`) 
+- Otherwise specifies the path (relative to the `outFile`)
 where the source map should be saved
 
 
