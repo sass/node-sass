@@ -181,7 +181,7 @@ Heavily inspired by <https://github.com/LearnBoost/stylus>
 
 ## Metalsmith plugin
 
-[@stevenschobert](https://github.com/stevenschobert/) has created a gulp sass plugin based on node-sass: <https://github.com/stevenschobert/metalsmith-sass>
+[@stevenschobert](https://github.com/stevenschobert/) has created a metalsmith plugin based on node-sass: <https://github.com/stevenschobert/metalsmith-sass>
 
 ## Meteor plugin
 
