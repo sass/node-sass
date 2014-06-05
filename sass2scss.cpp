@@ -58,11 +58,8 @@ namespace Sass
 		       "\n" + INDENT(converter) + "{";
 	}
 
-	// flush whitespace and
-	// print additional text
-	// but only print additional
-	// chars and buffer whitespace
-	// ***************************************************************************************
+	// flush whitespace and print additional text, but
+	// only print additional chars and buffer whitespace
 	string flush (string& sass, converter& converter)
 	{
 
@@ -162,8 +159,6 @@ namespace Sass
 			// make sure we close every "higher" block
 			while (indent.length() < INDENT(converter).length())
 			{
-				// reset string
-				INDENT(converter) == "";
 				// pop stacked context
 				converter.indents.pop();
 				// print close bracket
