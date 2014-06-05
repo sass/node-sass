@@ -5,4 +5,7 @@
 
 require("shelljs/make");
 
-exec("mocha test");
+var path = require("path");
+var mocha = ["node_modules", ".bin", "mocha"].join(path.sep);
+
+exec(mocha + " test");
