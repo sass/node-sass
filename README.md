@@ -15,6 +15,8 @@ It allows you to natively compile .scss files to css at incredible speed and aut
 
 Find it on npm: <https://npmjs.org/package/node-sass>
 
+Follow @nodesass on twitter for release updates: https://twitter.com/nodesass
+
 ## Reporting Sass compilation and syntax issues
 
 The [libsass] library is not currently at feature parity with the 3.2 [Ruby Gem](https://github.com/nex3/sass) that most Sass users will use, and has little-to-no support for 3.3 syntax. While we try our best to maintain feature parity with [libsass], we can not enable features that have not been implemented in [libsass] yet.
