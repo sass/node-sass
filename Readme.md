@@ -5,7 +5,7 @@ by Aaron Leung ([@akhleung]) and Hampton Catlin ([@hcatlin])
 
 [![Build Status](https://travis-ci.org/hcatlin/libsass.png?branch=master)](https://travis-ci.org/hcatlin/libsass)
 
-http://github.com/hcatlin/libsass
+http://github.com/sass/libsass
 
 Libsass is just a library, but if you want to RUN libsass,
 then go to http://github.com/hcatlin/sassc or
