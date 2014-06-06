@@ -766,6 +766,15 @@ namespace Sass {
 
     while (lex< exactly<','> >())
     {
+      if (//peek< exactly<'!'> >(position) ||
+          peek< exactly<';'> >(position) ||
+          peek< exactly<'}'> >(position) ||
+          peek< exactly<'{'> >(position) ||
+          peek< exactly<')'> >(position) ||
+          //peek< exactly<':'> >(position) ||
+          peek< exactly<ellipsis> >(position)) {
+        break;
+      }
       Expression* list = parse_space_list();
       (*comma_list) << list;
     }
