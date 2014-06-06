@@ -1,5 +1,6 @@
 var path = require('path');
 var fs = require('fs');
+var assign = require('object-assign');
 
 function requireBinding() {
   var v8 = 'v8-' + /[0-9]+\.[0-9]+/.exec(process.versions.v8)[0];
@@ -110,6 +111,7 @@ exports.render = function(options) {
     return deprecatedRender.apply(this, arguments);
   }
 
+  options = assign({}, options);
   options = prepareOptions(options);
   options.file? binding.renderFile(options) : binding.render(options);
 };
@@ -121,6 +123,7 @@ exports.renderSync = function(options) {
     return deprecatedRenderSync.apply(this, arguments);
   }
 
+  options = assign({}, options);
   options = prepareOptions(options);
   output = options.file? binding.renderFileSync(options) : binding.renderSync(options);
   finishStats(options.stats);
@@ -143,6 +146,7 @@ exports.renderSync = function(options) {
 exports.renderFile = function(options) {
   var success;
 
+  options = assign({}, options);
   success = options.success;
   if (options.sourceMap === true) {
     options.sourceMap = path.basename(options.outFile) + '.map';

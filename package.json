@@ -43,6 +43,7 @@
     "mocha": "~1.18.2",
     "nan": "~1.0.0",
     "node-watch": "~0.3.4",
+    "object-assign": "^0.3.1",
     "optimist": "~0.6.1",
     "shelljs": "~0.2.6",
     "sinon": "~1.9.1"
