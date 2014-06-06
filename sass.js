@@ -131,19 +131,18 @@ exports.renderSync = function(options) {
 /**
   Same as `render()` but with an extra `outFile` property in `options` and writes
   the CSS and sourceMap (if requested) to the filesystem.
-  
+
   `options.sourceMap` can be used to specify that the source map should be saved:
-  
+
   - If falsy the source map will not be saved
   - If `options.sourceMap === true` the source map will be saved to the
   standard location of `options.file + '.map'`
-  - Else `options.sourceMap` specifies the path (relative to the `outFile`) 
+  - Else `options.sourceMap` specifies the path (relative to the `outFile`)
   where the source map should be saved
  */
 exports.renderFile = function(options) {
   var success;
 
-  options = prepareOptions(options);
   success = options.success;
   if (options.sourceMap === true) {
     options.sourceMap = path.basename(options.outFile) + '.map';
