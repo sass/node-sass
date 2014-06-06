@@ -475,22 +475,24 @@ namespace Sass {
     return 0;
   }
 
-  Negated_Selector* Parser::parse_negated_selector()
+  Wrapped_Selector* Parser::parse_negated_selector()
   {
     lex< pseudo_not >();
+    string name(lexed);
     Position nsource_position = source_position;
     Selector* negated = parse_selector_group();
     if (!lex< exactly<')'> >()) {
       error("negated selector is missing ')'");
     }
-    return new (ctx.mem) Negated_Selector(path, nsource_position, negated);
+    return new (ctx.mem) Wrapped_Selector(path, nsource_position, name, negated);
   }
 
-  Pseudo_Selector* Parser::parse_pseudo_selector() {
+  Simple_Selector* Parser::parse_pseudo_selector() {
     if (lex< sequence< pseudo_prefix, functional > >() || lex< functional >()) {
       string name(lexed);
       String* expr = 0;
       Position p = source_position;
+      Selector* wrapped = 0;
       if (lex< alternatives< even, odd > >()) {
         expr = new (ctx.mem) String_Constant(path, p, lexed);
       }
@@ -520,7 +522,8 @@ namespace Sass {
       else if (lex< sequence< optional<sign>, digits > >()) {
         expr = new (ctx.mem) String_Constant(path, p, lexed);
       }
-      else if (lex< identifier >()) {
+      else if (peek< sequence< identifier, spaces_and_comments, exactly<')'> > >()) {
+        lex< identifier >();
         expr = new (ctx.mem) String_Constant(path, p, lexed);
       }
       else if (lex< string_constant >()) {
@@ -530,9 +533,12 @@ namespace Sass {
         expr = new (ctx.mem) String_Constant(path, p, "");
       }
       else {
-        error("invalid argument to " + name + "...)");
+        wrapped = parse_selector_group();
       }
       if (!lex< exactly<')'> >()) error("unterminated argument to " + name + "...)");
+      if (wrapped) {
+        return new (ctx.mem) Wrapped_Selector(path, p, name, wrapped);
+      }
       return new (ctx.mem) Pseudo_Selector(path, p, name, expr);
     }
     else if (lex < sequence< pseudo_prefix, identifier > >()) {

@@ -15,7 +15,7 @@ namespace Sass {
   class Selector_List;
   class Complex_Selector;
   class Compound_Selector;
-  class Negated_Selector;
+  class Wrapped_Selector;
   class Pseudo_Selector;
   class Attribute_Selector;
   class Selector_Qualifier;
@@ -51,7 +51,7 @@ namespace Sass {
     Selector* operator()(Selector_List*);
     Selector* operator()(Complex_Selector*);
     Selector* operator()(Compound_Selector*);
-    Selector* operator()(Negated_Selector*);
+    Selector* operator()(Wrapped_Selector*);
     Selector* operator()(Pseudo_Selector*);
     Selector* operator()(Attribute_Selector*);
     Selector* operator()(Selector_Qualifier*);

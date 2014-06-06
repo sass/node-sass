@@ -543,10 +543,10 @@ namespace Sass {
     }
   }
 
-  void Inspect::operator()(Negated_Selector* s)
+  void Inspect::operator()(Wrapped_Selector* s)
   {
     if (ctx) ctx->source_map.add_mapping(s);
-    append_to_buffer(":not(");
+    append_to_buffer(s->name());
     s->selector()->perform(this);
     append_to_buffer(")");
   }

@@ -43,11 +43,11 @@ namespace Sass {
     // check for pseudo elements because they need to come last
     size_t i, L;
     bool found = false;
-    if (typeid(*this) == typeid(Pseudo_Selector) || typeid(*this) == typeid(Negated_Selector))
+    if (typeid(*this) == typeid(Pseudo_Selector) || typeid(*this) == typeid(Wrapped_Selector))
     {
       for (i = 0, L = rhs->length(); i < L; ++i)
       {
-        if ((typeid(*(*rhs)[i]) == typeid(Pseudo_Selector) || typeid(*(*rhs)[i]) == typeid(Negated_Selector)) && (*rhs)[L-1]->is_pseudo_element())
+        if ((typeid(*(*rhs)[i]) == typeid(Pseudo_Selector) || typeid(*(*rhs)[i]) == typeid(Wrapped_Selector)) && (*rhs)[L-1]->is_pseudo_element())
         { found = true; break; }
       }  
     }
@@ -55,7 +55,7 @@ namespace Sass {
     {
       for (i = 0, L = rhs->length(); i < L; ++i)
       {
-        if (typeid(*(*rhs)[i]) == typeid(Pseudo_Selector) || typeid(*(*rhs)[i]) == typeid(Negated_Selector))
+        if (typeid(*(*rhs)[i]) == typeid(Pseudo_Selector) || typeid(*(*rhs)[i]) == typeid(Wrapped_Selector))
         { found = true; break; }
       }
     }
