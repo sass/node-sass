@@ -1205,13 +1205,14 @@ namespace Sass {
   };
 
   /////////////////////////////////////////////////
-  // Negated selector -- e.g., :not(:first-of-type)
+  // Wrapped selector -- pseudo selector that takes a list of selectors as argument(s) e.g., :not(:first-of-type), :-moz-any(ol p.blah, ul, menu, dir)
   /////////////////////////////////////////////////
-  class Negated_Selector : public Simple_Selector {
+  class Wrapped_Selector : public Simple_Selector {
+    ADD_PROPERTY(string, name);
     ADD_PROPERTY(Selector*, selector);
   public:
-    Negated_Selector(string path, Position position, Selector* sel)
-    : Simple_Selector(path, position), selector_(sel)
+    Wrapped_Selector(string path, Position position, string n, Selector* sel)
+    : Simple_Selector(path, position), name_(n), selector_(sel)
     { }
     ATTACH_OPERATIONS();
   };

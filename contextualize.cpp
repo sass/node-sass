@@ -101,12 +101,13 @@ namespace Sass {
     return ss->length() ? ss : 0;
   }
 
-  Selector* Contextualize::operator()(Negated_Selector* s)
+  Selector* Contextualize::operator()(Wrapped_Selector* s)
   {
     Selector* old_parent = parent;
     parent = 0;
-    Negated_Selector* neg = new (ctx.mem) Negated_Selector(s->path(),
+    Wrapped_Selector* neg = new (ctx.mem) Wrapped_Selector(s->path(),
                                                            s->position(),
+                                                           s->name(),
                                                            s->selector()->perform(this));
     parent = old_parent;
     return neg;

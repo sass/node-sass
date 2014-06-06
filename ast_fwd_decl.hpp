@@ -58,7 +58,7 @@ namespace Sass {
   class Selector_Qualifier;
   class Attribute_Selector;
   class Pseudo_Selector;
-  class Negated_Selector;
+  class Wrapped_Selector;
   class Compound_Selector;
   class Complex_Selector;
   class Selector_List;

@@ -198,8 +198,8 @@ namespace Sass {
     Complex_Selector* parse_selector_combination();
     Compound_Selector* parse_simple_selector_sequence();
     Simple_Selector* parse_simple_selector();
-    Negated_Selector* parse_negated_selector();
-    Pseudo_Selector* parse_pseudo_selector();
+    Wrapped_Selector* parse_negated_selector();
+    Simple_Selector* parse_pseudo_selector();
     Attribute_Selector* parse_attribute_selector();
     Block* parse_block();
     Declaration* parse_declaration();
