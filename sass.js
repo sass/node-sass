@@ -143,7 +143,6 @@ exports.renderSync = function(options) {
 exports.renderFile = function(options) {
   var success;
 
-  options = prepareOptions(options);
   success = options.success;
   if (options.sourceMap === true) {
     options.sourceMap = path.basename(options.outFile) + '.map';

@@ -104,6 +104,22 @@ describe('compile file with include paths', function(){
       }
     });
   });
+
+  it('should compile with renderFile', function(done) {
+    var testFile = path.resolve(__dirname, 'tmp-include-path.css');
+    sass.renderFile({
+      file: path.resolve(__dirname, 'include_path.scss'),
+      outFile: testFile,
+      includePaths: [path.resolve(__dirname, 'lib'), path.resolve(__dirname, 'functions')],
+      success: function () {
+        done(assert.equal(fs.readFileSync(testFile, 'utf8'), 'body {\n  background: red;\n  color: #0000fe; }\n'));
+        fs.unlinkSync(testFile);
+      },
+      error: function (error) {
+        done(error);
+      }
+    });
+  });
 });
 
 describe('compile file with image path', function(){
