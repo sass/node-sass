@@ -54,6 +54,7 @@ void ExtractOptions(Local<Value> optionsValue, void* cptr, sass_context_wrapper*
     if (source_comments == SASS_SOURCE_COMMENTS_MAP) {
       ctx->source_map_file = CreateString(options->Get(NanSymbol("sourceMap")));
     }
+    ctx->options.precision = options->Get(NanSymbol("precision"))->Int32Value();
   } else {
     sass_context* ctx = (sass_context*) cptr;
     ctx->source_string = CreateString(options->Get(NanSymbol("data")));
@@ -61,6 +62,7 @@ void ExtractOptions(Local<Value> optionsValue, void* cptr, sass_context_wrapper*
     ctx->options.output_style = options->Get(NanSymbol("style"))->Int32Value();
     ctx->options.source_comments = source_comments = options->Get(NanSymbol("comments"))->Int32Value();
     ctx->options.include_paths = CreateString(options->Get(NanSymbol("paths")));
+    ctx->options.precision = options->Get(NanSymbol("precision"))->Int32Value();
   }
 }
 

@@ -261,3 +261,18 @@ describe('render to file', function() {
   });
 
 });
+
+describe('precision support', function() {
+  it('should render when precision is specified', function(done) {
+    sass.render({
+      data: '.test { margin: 1.23456789 px; }',
+      precision: 10,
+      success: function(css) {
+        done(assert.equal(css, '.test {\n  margin: 1.23456789 px; }\n')); 
+      },
+      error: function(error) {
+        done(error);
+      }
+    });
+  });
+});
