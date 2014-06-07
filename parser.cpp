@@ -5,6 +5,7 @@
 #include "inspect.hpp"
 #include "to_string.hpp"
 #include "constants.hpp"
+#include "util.hpp"
 
 #ifndef SASS_PRELEXER
 #include "prelexer.hpp"
@@ -161,7 +162,7 @@ namespace Sass {
     else if (lex< function >()) which_type = Definition::FUNCTION;
     string which_str(lexed);
     if (!lex< identifier >()) error("invalid name in " + which_str + " definition");
-    string name(lexed);
+    string name(Util::normalize_underscores(lexed));
     Position source_position_of_def = source_position;
     Parameters* params = parse_parameters();
     if (!peek< exactly<'{'> >()) error("body for " + which_str + " " + name + " must begin with a '{'");
@@ -191,7 +192,7 @@ namespace Sass {
   Parameter* Parser::parse_parameter()
   {
     lex< variable >();
-    string name(lexed);
+    string name(Util::normalize_underscores(lexed));
     Position pos = source_position;
     Expression* val = 0;
     bool is_rest = false;
@@ -211,7 +212,7 @@ namespace Sass {
     lex< include >() /* || lex< exactly<'+'> >() */;
     if (!lex< identifier >()) error("invalid name in @include directive");
     Position source_position_of_call = source_position;
-    string name(lexed);
+    string name(Util::normalize_underscores(lexed));
     Arguments* args = parse_arguments();
     Block* content = 0;
     if (peek< exactly<'{'> >()) {
@@ -243,7 +244,7 @@ namespace Sass {
     Argument* arg;
     if (peek< sequence < variable, spaces_and_comments, exactly<':'> > >()) {
       lex< variable >();
-      string name(lexed);
+      string name(Util::normalize_underscores(lexed));
       Position p = source_position;
       lex< exactly<':'> >();
       Expression* val = parse_space_list();
@@ -265,7 +266,7 @@ namespace Sass {
   Assignment* Parser::parse_assignment()
   {
     lex< variable >();
-    string name(lexed);
+    string name(Util::normalize_underscores(lexed));
     Position var_source_position = source_position;
     if (!lex< exactly<':'> >()) error("expected ':' after " + name + " in assignment statement");
     Expression* val = parse_list();
@@ -929,14 +930,14 @@ namespace Sass {
     }
     else if (peek< ie_keyword_arg >()) {
       String_Schema* kwd_arg = new (ctx.mem) String_Schema(path, source_position, 3);
-      if (lex< variable >()) *kwd_arg << new (ctx.mem) Variable(path, source_position, lexed);
+      if (lex< variable >()) *kwd_arg << new (ctx.mem) Variable(path, source_position, Util::normalize_underscores(lexed));
       else {
         lex< alternatives< identifier_schema, identifier > >();
         *kwd_arg << new (ctx.mem) String_Constant(path, source_position, lexed);
       }
       lex< exactly<'='> >();
       *kwd_arg << new (ctx.mem) String_Constant(path, source_position, lexed);
-      if (lex< variable >()) *kwd_arg << new (ctx.mem) Variable(path, source_position, lexed);
+      if (lex< variable >()) *kwd_arg << new (ctx.mem) Variable(path, source_position, Util::normalize_underscores(lexed));
       else {
         lex< alternatives< identifier_schema, identifier, number, hex > >();
         *kwd_arg << new (ctx.mem) String_Constant(path, source_position, lexed);
@@ -1044,7 +1045,7 @@ namespace Sass {
     { return parse_string(); }
 
     if (lex< variable >())
-    { return new (ctx.mem) Variable(path, source_position, lexed); }
+    { return new (ctx.mem) Variable(path, source_position, Util::normalize_underscores(lexed)); }
 
     error("error reading values after " + lexed.to_string());
 
@@ -1209,7 +1210,7 @@ namespace Sass {
         if (!num_items) schema->quote_mark(*lexed.begin);
       }
       else if (lex< variable >()) {
-        (*schema) << new (ctx.mem) Variable(path, source_position, lexed);
+        (*schema) << new (ctx.mem) Variable(path, source_position, Util::normalize_underscores(lexed));
       }
       else {
         error("error parsing interpolated value");
@@ -1308,7 +1309,7 @@ namespace Sass {
   Function_Call* Parser::parse_function_call()
   {
     lex< identifier >();
-    string name(lexed);
+    string name(Util::normalize_underscores(lexed));
     Position source_position_of_call = source_position;
 
     Function_Call* the_call = new (ctx.mem) Function_Call(path, source_position_of_call, name, parse_arguments());
