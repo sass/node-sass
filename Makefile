@@ -61,10 +61,12 @@ libsass.so: $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $@ $+ $(LDFLAGS)
 
 install: libsass.a
-	install -Dpm0755 $< $(DESTDIR)$(LIBDIR)/$<
+	mkdir -p $(DESTDIR)$(LIBDIR)/
+	install -pm0755 $< $(DESTDIR)$(LIBDIR)/$<
 
 install-shared: libsass.so
-	install -Dpm0755 $< $(DESTDIR)$(LIBDIR)/$<
+	mkdir -p $(DESTDIR)$(LIBDIR)/
+	install -pm0755 $< $(DESTDIR)$(LIBDIR)/$<
 
 $(SASSC_BIN): libsass.a
 	cd $(SASS_SASSC_PATH) && make
