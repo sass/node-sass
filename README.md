@@ -229,6 +229,8 @@ Output will be saved with the same name as input SASS file into the current work
       --output-style     CSS output style (nested|expanded|compact|compressed)  [default: "nested"]
       --source-comments  Include debug info in output (none|normal|map)         [default: "none"]
       --include-path     Path to look for @import-ed files                      [default: cwd]
+      --watch -w         Watch directory for file changes
+      --outdir -d        Location to render css files                           [default: cwd]
       --help, -h         Print usage info
 
 ## Post-install Build
