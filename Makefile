@@ -79,7 +79,7 @@ test_issues: $(SASSC_BIN) libsass.a
 	ruby $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues
 
 clean:
-	rm -f $(OBJECTS) *.a *.so
+	rm -f $(OBJECTS) *.a *.so libsass.js
 
 
 .PHONY: all static shared bin install install-shared clean
