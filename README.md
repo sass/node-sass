@@ -1,13 +1,13 @@
 # node-sass
 
-![logo](https://rawgit.com/andrew/node-sass/master/media/logo.svg)
+![logo](https://rawgit.com/sass/node-sass/master/media/logo.svg)
 
-[![Build Status](https://travis-ci.org/andrew/node-sass.svg?branch=master&style=flat)](https://travis-ci.org/andrew/node-sass)
+[![Build Status](https://travis-ci.org/sass/node-sass.svg?branch=master&style=flat)](https://travis-ci.org/sass/node-sass)
 [![npm version](https://badge.fury.io/js/node-sass.svg)](http://badge.fury.io/js/node-sass)
-[![Dependency Status](https://david-dm.org/andrew/node-sass.svg?theme=shields.io)](https://david-dm.org/andrew/node-sass)
-[![devDependency Status](https://david-dm.org/andrew/node-sass/dev-status.svg?theme=shields.io)](https://david-dm.org/andrew/node-sass#info=devDependencies)
-[![Coverage Status](http://img.shields.io/coveralls/andrew/node-sass.svg)](https://coveralls.io/r/andrew/node-sass)
-[![Gitter chat](https://badges.gitter.im/andrew/node-sass.png)](https://gitter.im/andrew/node-sass)
+[![Dependency Status](https://david-dm.org/sass/node-sass.svg?theme=shields.io)](https://david-dm.org/sass/node-sass)
+[![devDependency Status](https://david-dm.org/sass/node-sass/dev-status.svg?theme=shields.io)](https://david-dm.org/sass/node-sass#info=devDependencies)
+[![Coverage Status](http://img.shields.io/coveralls/sass/node-sass.svg)](https://coveralls.io/r/sass/node-sass)
+[![Gitter chat](https://badges.gitter.im/sass/node-sass.png)](https://gitter.im/sass/node-sass)
 
 Node-sass is a library that provides binding for Node.js to [libsass], the C version of the popular stylesheet preprocessor, Sass.
 
@@ -25,7 +25,7 @@ If you'd like to see what features are still upcoming in [libsass], [Jo Liss](ht
 
 Please check for [issues on the libsass repo](https://github.com/hcatlin/libsass/issues) (as there is a good chance that it may already be an issue there for it), and otherwise [create a new issue there](https://github.com/hcatlin/libsass/issues/new).
 
-If this project is missing an API or command line flag that has been added to [libsass], then please open an issue here. We will then look at updating our [libsass] submodule and create a new release. You can help us create the new release by rebuilding binaries, and then creating a pull request to the [node-sass-binaries](https://github.com/andrew/node-sass-binaries) repo.
+If this project is missing an API or command line flag that has been added to [libsass], then please open an issue here. We will then look at updating our [libsass] submodule and create a new release. You can help us create the new release by rebuilding binaries, and then creating a pull request to the [node-sass-binaries](https://github.com/sass/node-sass-binaries) repo.
 
 ## Install
 
@@ -199,7 +199,7 @@ Heavily inspired by <https://github.com/LearnBoost/stylus>
 
 ## Example App
 
-There is also an example connect app here: <https://github.com/andrew/node-sass-example>
+There is also an example connect app here: <https://github.com/sass/node-sass-example>
 
 ## Rebuilding binaries
 
@@ -207,7 +207,7 @@ Node-sass includes pre-compiled binaries for popular platforms, to add a binary 
 
 Check out the project:
 
-    git clone https://github.com/andrew/node-sass.git
+    git clone https://github.com/sass/node-sass.git
     cd node-sass
     git submodule init
     git submodule update
@@ -253,7 +253,7 @@ This module is brought to you and maintained by the following people:
 
 ## Contributors
 
-We <3 our contributors! A special thanks to all those who have clocked in some dev time on this project, we really appreciate your hard work. You can find [a full list of those people here.](https://github.com/andrew/node-sass/graphs/contributors)
+We <3 our contributors! A special thanks to all those who have clocked in some dev time on this project, we really appreciate your hard work. You can find [a full list of those people here.](https://github.com/sass/node-sass/graphs/contributors)
 
 ### Note on Patches/Pull Requests
 
@@ -265,6 +265,6 @@ We <3 our contributors! A special thanks to all those who have clocked in some d
 
 ## Copyright
 
-Copyright (c) 2013 Andrew Nesbitt. See [LICENSE](https://github.com/andrew/node-sass/blob/master/LICENSE) for details.
+Copyright (c) 2013 Andrew Nesbitt. See [LICENSE](https://github.com/sass/node-sass/blob/master/LICENSE) for details.
 
 [libsass]: https://github.com/hcatlin/libsass

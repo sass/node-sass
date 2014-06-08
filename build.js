@@ -45,7 +45,7 @@ if (!force && !process.env.SKIP_NODE_SASS_TESTS) {
     mocha.run(function (done) {
       if (done !== 0) {
         console.log('Problem with the binary; manual build incoming');
-        console.log('Please consider contributing the release binary to https://github.com/andrew/node-sass-binaries for npm distribution.');
+        console.log('Please consider contributing the release binary to https://github.com/sass/node-sass-binaries for npm distribution.');
         build();
       } else {
         console.log('Binary is fine; exiting');

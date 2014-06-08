@@ -23,7 +23,7 @@ if (!test("-e", NODE_SASS_BINARIES_DIR)) {
 	// Clone the binary repo to the expected location
 	var NODE_SASS_DIR = pwd();
 	cd("..");
-	exec("git clone https://github.com/andrew/node-sass-binaries.git")
+	exec("git clone https://github.com/sass/node-sass-binaries.git")
 
 	cd(NODE_SASS_DIR);
 }
