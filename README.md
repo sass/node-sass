@@ -75,6 +75,9 @@ The API for using node-sass has changed, so that now there is only one variable 
 `outputStyle` is a `String` to determine how the final CSS should be rendered. Its value should be one of `'nested'` or `'compressed'`.
 [`'expanded'` and `'compact'` are not currently supported by [libsass]]
 
+#### precision
+`precision` is a `Number` that will be used to determine how many digits after the decimal will be allowed. For instance, if you had a decimal number of `1.23456789` and a precision of `5`, the result will be `1.23457` in the final CSS.
+
 #### sourceComments
 `sourceComments` is a `String` to determine what debug information is included in the output file. Its value should be one of `'none', 'normal', 'map'`. The default is `'none'`.
 The `map` option will create the source map file in your CSS destination.
