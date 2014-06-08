@@ -1104,8 +1104,19 @@ namespace Sass {
     { return new (ctx.mem) Boolean(path, position, ARG("$value", Expression)->is_false()); }
 
     Signature if_sig = "if($condition, $if-true, $if-false)";
+    // BUILT_IN(sass_if)
+    // { return ARG("$condition", Expression)->is_false() ? ARG("$if-false", Expression) : ARG("$if-true", Expression); }
     BUILT_IN(sass_if)
-    { return ARG("$condition", Expression)->is_false() ? ARG("$if-false", Expression) : ARG("$if-true", Expression); }
+    {
+      Eval eval(ctx, &env, backtrace);
+      bool is_true = !ARG("$condition", Expression)->perform(&eval)->is_false();
+      if (is_true) {
+        return ARG("$if-true", Expression)->perform(&eval);
+      }
+      else {
+        return ARG("$if-false", Expression)->perform(&eval);
+      }
+    }
 
     ////////////////
     // URL FUNCTIONS

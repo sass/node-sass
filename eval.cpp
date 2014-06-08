@@ -262,8 +262,11 @@ namespace Sass {
 
   Expression* Eval::operator()(Function_Call* c)
   {
-    Arguments* args = static_cast<Arguments*>(c->arguments()->perform(this));
     string full_name(c->name() + "[f]");
+    Arguments* args = c->arguments();
+    if (full_name != "if[f]") {
+      args = static_cast<Arguments*>(args->perform(this));
+    }
 
     // if it doesn't exist, just pass it through as a literal
     if (!env->has(full_name)) {
@@ -283,8 +286,10 @@ namespace Sass {
     Native_Function func   = def->native_function();
     Sass_C_Function c_func = def->c_function();
 
-    for (size_t i = 0, L = args->length(); i < L; ++i) {
-      (*args)[i]->value((*args)[i]->value()->perform(this));
+    if (full_name != "if[f]") {
+      for (size_t i = 0, L = args->length(); i < L; ++i) {
+        (*args)[i]->value((*args)[i]->value()->perform(this));
+      }
     }
 
     Parameters* params = def->parameters();
