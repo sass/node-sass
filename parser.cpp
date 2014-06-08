@@ -874,7 +874,8 @@ namespace Sass {
     Expression* term1 = parse_term();
     // if it's a singleton, return it directly; don't wrap it
     if (!(peek< exactly<'+'> >(position) ||
-          peek< sequence< negate< number >, exactly<'-'> > >(position)))
+          peek< sequence< negate< number >, exactly<'-'> > >(position)) || 
+          peek< identifier >(position))
     { return term1; }
 
     vector<Expression*> operands;
