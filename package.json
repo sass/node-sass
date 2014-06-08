@@ -46,7 +46,8 @@
     "object-assign": "^0.3.1",
     "optimist": "~0.6.1",
     "shelljs": "~0.2.6",
-    "sinon": "~1.9.1"
+    "sinon": "~1.9.1",
+    "node-sass-middleware": "~0.2.0"
   },
   "devDependencies": {
     "coveralls": "~2.10.0",

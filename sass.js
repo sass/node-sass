@@ -175,3 +175,5 @@ exports.renderFile = function(options) {
   };
   exports.render(options);
 };
+
+exports.middleware = require('node-sass-middleware');
