@@ -365,7 +365,7 @@ namespace Sass {
     }
     const char* hex(const char* src) {
       const char* p = sequence< exactly<'#'>, one_plus<xdigit> >(src);
-      int len = p - src;
+      long len = p - src;
       return (len != 4 && len != 7) ? 0 : p;
     }
 
