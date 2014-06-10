@@ -210,10 +210,8 @@ Node-sass includes pre-compiled binaries for popular platforms, to add a binary 
 
 Check out the project:
 
-    git clone https://github.com/sass/node-sass.git
+    git clone --recursive https://github.com/sass/node-sass.git
     cd node-sass
-    git submodule init
-    git submodule update --recursive
     npm install
     npm install -g node-gyp
     node-gyp rebuild
