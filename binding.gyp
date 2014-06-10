@@ -30,6 +30,7 @@
         'libsass/to_string.cpp',
         'libsass/units.cpp',
         'libsass/utf8_string.cpp',
+        'libsass/util.cpp',
         'libsass/sass2scss/sass2scss.cpp'
       ],
       'include_dirs': [
