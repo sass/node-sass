@@ -9,6 +9,7 @@
 #include "eval.hpp"
 #include "utf8_string.hpp"
 
+#include <cstdlib>
 #include <cmath>
 #include <cctype>
 #include <sstream>
@@ -726,7 +727,7 @@ namespace Sass {
       if (index > 0 && index <= len) {
         // positive and within string length
         str.insert(UTF_8::code_point_offset_to_byte_offset(str, index-1), ins);
-      } 
+      }
       else if (index > len) {
         // positive and past string length
         str += ins;
