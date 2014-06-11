@@ -1,4 +1,5 @@
 #include <cctype>
+#include <cstddef>
 #include <iostream>
 #include "constants.hpp"
 #include "prelexer.hpp"
@@ -8,7 +9,7 @@ namespace Sass {
   using namespace Constants;
 
   namespace Prelexer {
-    using std::cerr; using std::endl;
+    using std::ptrdiff_t;
     // Matches zero characters (always succeeds without consuming input).
     const char* epsilon(char *src) {
       return src;

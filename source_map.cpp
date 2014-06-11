@@ -5,9 +5,10 @@
 #endif
 
 #include <sstream>
+#include <cstddef>
 
 namespace Sass {
-
+  using std::ptrdiff_t;
   SourceMap::SourceMap(const string& file) : current_position(Position(1, 1)), file(file) { }
 
   string SourceMap::generate_source_map() {
