@@ -109,7 +109,7 @@ namespace Sass {
       else if (index == 0) {
         return 0;
       }
-      else if (std::abs((long)index) <= signed_len) {
+      else if (std::abs((double)index) <= signed_len) {
         // negative and within string length
         return index + signed_len;
       }
