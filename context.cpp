@@ -388,6 +388,7 @@ namespace Sass {
     register_function(ctx, unit_sig, unit, env);
     register_function(ctx, unitless_sig, unitless, env);
     register_function(ctx, comparable_sig, comparable, env);
+    register_function(ctx, variable_exists_sig, variable_exists, env);
     // Boolean Functions
     register_function(ctx, not_sig, sass_not, env);
     register_function(ctx, if_sig, sass_if, env);

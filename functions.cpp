@@ -1096,6 +1096,19 @@ namespace Sass {
       return new (ctx.mem) Boolean(path, position, n1->unit() == tmp_n2.unit());
     }
 
+    Signature variable_exists_sig = "variable-exists($name)";
+    BUILT_IN(variable_exists)
+    {
+      string s = ARG("$name", String_Constant)->value();
+
+      if(denv.has("$"+s)) {
+        return new (ctx.mem) Boolean(path, position, true);
+      }
+      else {
+        return new (ctx.mem) Boolean(path, position, false);
+      }
+    }
+
     ////////////////////
     // BOOLEAN FUNCTIONS
     ////////////////////

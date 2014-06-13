@@ -324,7 +324,7 @@ namespace Sass {
       Backtrace here(backtrace, c->path(), c->position(), ", in function `" + c->name() + "`");
       backtrace = &here;
 
-      result = func(*env, ctx, def->signature(), c->path(), c->position(), backtrace);
+      result = func(*env, *old_env, ctx, def->signature(), c->path(), c->position(), backtrace);
 
       backtrace = here.parent;
       env = old_env;
@@ -367,7 +367,7 @@ namespace Sass {
       Backtrace here(backtrace, c->path(), c->position(), ", in function `" + c->name() + "`");
       backtrace = &here;
 
-      result = resolved_def->native_function()(*env, ctx, resolved_def->signature(), c->path(), c->position(), backtrace);
+      result = resolved_def->native_function()(*env, *old_env, ctx, resolved_def->signature(), c->path(), c->position(), backtrace);
 
       backtrace = here.parent;
       env = old_env;
