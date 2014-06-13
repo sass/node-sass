@@ -1122,6 +1122,19 @@ namespace Sass {
       }
     }
 
+    Signature function_exists_sig = "function-exists($name)";
+    BUILT_IN(function_exists)
+    {
+      string s = ARG("$name", String_Constant)->value();
+
+      if(denv.global_frame_has(s+"[f]")) {
+        return new (ctx.mem) Boolean(path, position, true);
+      }
+      else {
+        return new (ctx.mem) Boolean(path, position, false);
+      }
+    }
+
     ////////////////////
     // BOOLEAN FUNCTIONS
     ////////////////////
