@@ -35,6 +35,22 @@ namespace Sass {
     bool current_frame_has(const string key) const
     { return current_frame_.count(key); }
 
+    Environment* grandparent() const
+    {
+      if(parent_ && parent_->parent_) return parent_->parent_;
+      else return 0;
+    }
+
+    bool global_frame_has(const string key) const
+    {
+      if(!grandparent() && parent_) {
+        return has(key);
+      }
+      else {
+        return parent_->global_frame_has(key);
+      }
+    }
+
     T& operator[](const string key)
     {
       if (current_frame_.count(key))  return current_frame_[key];

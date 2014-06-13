@@ -1109,6 +1109,19 @@ namespace Sass {
       }
     }
 
+    Signature global_variable_exists_sig = "global-variable-exists($name)";
+    BUILT_IN(global_variable_exists)
+    {
+      string s = ARG("$name", String_Constant)->value();
+
+      if(denv.global_frame_has("$"+s)) {
+        return new (ctx.mem) Boolean(path, position, true);
+      }
+      else {
+        return new (ctx.mem) Boolean(path, position, false);
+      }
+    }
+
     ////////////////////
     // BOOLEAN FUNCTIONS
     ////////////////////

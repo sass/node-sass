@@ -89,6 +89,7 @@ namespace Sass {
     extern Signature unitless_sig;
     extern Signature comparable_sig;
     extern Signature variable_exists_sig;
+    extern Signature global_variable_exists_sig;
     extern Signature not_sig;
     extern Signature if_sig;
     extern Signature image_url_sig;
@@ -147,6 +148,7 @@ namespace Sass {
     BUILT_IN(unitless);
     BUILT_IN(comparable);
     BUILT_IN(variable_exists);
+    BUILT_IN(global_variable_exists);
     BUILT_IN(sass_not);
     BUILT_IN(sass_if);
     BUILT_IN(image_url);
