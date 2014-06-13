@@ -1135,6 +1135,19 @@ namespace Sass {
       }
     }
 
+    Signature mixin_exists_sig = "mixin-exists($name)";
+    BUILT_IN(mixin_exists)
+    {
+      string s = ARG("$name", String_Constant)->value();
+
+      if(denv.global_frame_has(s+"[m]")) {
+        return new (ctx.mem) Boolean(path, position, true);
+      }
+      else {
+        return new (ctx.mem) Boolean(path, position, false);
+      }
+    }
+
     ////////////////////
     // BOOLEAN FUNCTIONS
     ////////////////////
