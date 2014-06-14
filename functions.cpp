@@ -1101,7 +1101,7 @@ namespace Sass {
     {
       string s = unquote(ARG("$name", String_Constant)->value());
 
-      if(denv.has("$"+s)) {
+      if(d_env.has("$"+s)) {
         return new (ctx.mem) Boolean(path, position, true);
       }
       else {
@@ -1114,7 +1114,7 @@ namespace Sass {
     {
       string s = unquote(ARG("$name", String_Constant)->value());
 
-      if(denv.global_frame_has("$"+s)) {
+      if(d_env.global_frame_has("$"+s)) {
         return new (ctx.mem) Boolean(path, position, true);
       }
       else {
@@ -1127,7 +1127,7 @@ namespace Sass {
     {
       string s = unquote(ARG("$name", String_Constant)->value());
 
-      if(denv.global_frame_has(s+"[f]")) {
+      if(d_env.global_frame_has(s+"[f]")) {
         return new (ctx.mem) Boolean(path, position, true);
       }
       else {
@@ -1140,7 +1140,7 @@ namespace Sass {
     {
       string s = unquote(ARG("$name", String_Constant)->value());
 
-      if(denv.global_frame_has(s+"[m]")) {
+      if(d_env.global_frame_has(s+"[m]")) {
         return new (ctx.mem) Boolean(path, position, true);
       }
       else {
@@ -1161,7 +1161,7 @@ namespace Sass {
     // { return ARG("$condition", Expression)->is_false() ? ARG("$if-false", Expression) : ARG("$if-true", Expression); }
     BUILT_IN(sass_if)
     {
-      Eval eval(ctx, &env, backtrace);
+      Eval eval(ctx, &d_env, backtrace);
       bool is_true = !ARG("$condition", Expression)->perform(&eval)->is_false();
       if (is_true) {
         return ARG("$if-true", Expression)->perform(&eval);

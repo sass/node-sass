@@ -15,7 +15,7 @@
 #endif
 
 #define BUILT_IN(name) Expression*\
-name(Env& env, Env& denv, Context& ctx, Signature sig, const string& path, Position position, Backtrace* backtrace)
+name(Env& env, Env& d_env, Context& ctx, Signature sig, const string& path, Position position, Backtrace* backtrace)
 
 namespace Sass {
   struct Context;
