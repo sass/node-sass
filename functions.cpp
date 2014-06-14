@@ -9,6 +9,7 @@
 #include "eval.hpp"
 #include "utf8_string.hpp"
 
+#include <cstdlib>
 #include <cmath>
 #include <cctype>
 #include <sstream>
@@ -726,7 +727,7 @@ namespace Sass {
       if (index > 0 && index <= len) {
         // positive and within string length
         str.insert(UTF_8::code_point_offset_to_byte_offset(str, index-1), ins);
-      } 
+      }
       else if (index > len) {
         // positive and past string length
         str += ins;
@@ -935,7 +936,7 @@ namespace Sass {
         *l << ARG("$list", Expression);
       }
       if (l->empty()) error("argument `$list` of `" + string(sig) + "` must not be empty", path, position);
-      size_t index = std::floor(n->value() < 0 ? l->length() + n->value() : n->value() - 1);
+      double index = std::floor(n->value() < 0 ? l->length() + n->value() : n->value() - 1);
       if (index < 0 || index > l->length() - 1) error("index out of bounds for `" + string(sig) + "`", path, position);
       return l->value_at_index(index);
     }
@@ -1093,6 +1094,58 @@ namespace Sass {
       Number tmp_n2(*n2);
       tmp_n2.normalize(n1->find_convertible_unit());
       return new (ctx.mem) Boolean(path, position, n1->unit() == tmp_n2.unit());
+    }
+
+    Signature variable_exists_sig = "variable-exists($name)";
+    BUILT_IN(variable_exists)
+    {
+      string s = unquote(ARG("$name", String_Constant)->value());
+
+      if(denv.has("$"+s)) {
+        return new (ctx.mem) Boolean(path, position, true);
+      }
+      else {
+        return new (ctx.mem) Boolean(path, position, false);
+      }
+    }
+
+    Signature global_variable_exists_sig = "global-variable-exists($name)";
+    BUILT_IN(global_variable_exists)
+    {
+      string s = unquote(ARG("$name", String_Constant)->value());
+
+      if(denv.global_frame_has("$"+s)) {
+        return new (ctx.mem) Boolean(path, position, true);
+      }
+      else {
+        return new (ctx.mem) Boolean(path, position, false);
+      }
+    }
+
+    Signature function_exists_sig = "function-exists($name)";
+    BUILT_IN(function_exists)
+    {
+      string s = unquote(ARG("$name", String_Constant)->value());
+
+      if(denv.global_frame_has(s+"[f]")) {
+        return new (ctx.mem) Boolean(path, position, true);
+      }
+      else {
+        return new (ctx.mem) Boolean(path, position, false);
+      }
+    }
+
+    Signature mixin_exists_sig = "mixin-exists($name)";
+    BUILT_IN(mixin_exists)
+    {
+      string s = unquote(ARG("$name", String_Constant)->value());
+
+      if(denv.global_frame_has(s+"[m]")) {
+        return new (ctx.mem) Boolean(path, position, true);
+      }
+      else {
+        return new (ctx.mem) Boolean(path, position, false);
+      }
     }
 
     ////////////////////

@@ -398,7 +398,7 @@ namespace Sass {
   class Parameters;
   typedef Environment<AST_Node*> Env;
   typedef const char* Signature;
-  typedef Expression* (*Native_Function)(Env&, Context&, Signature, const string&, Position, Backtrace*);
+  typedef Expression* (*Native_Function)(Env&, Env&, Context&, Signature, const string&, Position, Backtrace*);
   typedef const char* Signature;
   class Definition : public Has_Block {
   public:

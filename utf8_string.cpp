@@ -95,7 +95,7 @@ namespace Sass {
 
     // function that will return a normalized index, given a crazy one
     size_t normalize_index(int index, size_t len) {
-      int signed_len = len;
+      long signed_len = len;
       // assuming the index is 1-based
       // we are returning a 0-based index
       if (index > 0 && index <= signed_len) {
@@ -109,7 +109,7 @@ namespace Sass {
       else if (index == 0) {
         return 0;
       }
-      else if (std::abs(index) <= signed_len) {
+      else if (std::abs((double)index) <= signed_len) {
         // negative and within string length
         return index + signed_len;
       }

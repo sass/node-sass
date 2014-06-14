@@ -5,9 +5,10 @@
 #endif
 
 #include <sstream>
+#include <cstddef>
 
 namespace Sass {
-
+  using std::ptrdiff_t;
   SourceMap::SourceMap(const string& file) : current_position(Position(1, 1)), file(file) { }
 
   string SourceMap::generate_source_map() {
@@ -79,7 +80,7 @@ namespace Sass {
 
   void SourceMap::update_column(const string& str)
   {
-    const int new_line_count = std::count(str.begin(), str.end(), '\n');
+    const ptrdiff_t new_line_count = std::count(str.begin(), str.end(), '\n');
     current_position.line += new_line_count;
     if (new_line_count >= 1) {
       current_position.column = str.size() - str.find_last_of('\n');
