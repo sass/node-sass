@@ -1099,7 +1099,7 @@ namespace Sass {
     Signature variable_exists_sig = "variable-exists($name)";
     BUILT_IN(variable_exists)
     {
-      string s = ARG("$name", String_Constant)->value();
+      string s = unquote(ARG("$name", String_Constant)->value());
 
       if(denv.has("$"+s)) {
         return new (ctx.mem) Boolean(path, position, true);
@@ -1112,7 +1112,7 @@ namespace Sass {
     Signature global_variable_exists_sig = "global-variable-exists($name)";
     BUILT_IN(global_variable_exists)
     {
-      string s = ARG("$name", String_Constant)->value();
+      string s = unquote(ARG("$name", String_Constant)->value());
 
       if(denv.global_frame_has("$"+s)) {
         return new (ctx.mem) Boolean(path, position, true);
@@ -1125,7 +1125,7 @@ namespace Sass {
     Signature function_exists_sig = "function-exists($name)";
     BUILT_IN(function_exists)
     {
-      string s = ARG("$name", String_Constant)->value();
+      string s = unquote(ARG("$name", String_Constant)->value());
 
       if(denv.global_frame_has(s+"[f]")) {
         return new (ctx.mem) Boolean(path, position, true);
@@ -1138,7 +1138,7 @@ namespace Sass {
     Signature mixin_exists_sig = "mixin-exists($name)";
     BUILT_IN(mixin_exists)
     {
-      string s = ARG("$name", String_Constant)->value();
+      string s = unquote(ARG("$name", String_Constant)->value());
 
       if(denv.global_frame_has(s+"[m]")) {
         return new (ctx.mem) Boolean(path, position, true);

@@ -43,11 +43,14 @@ namespace Sass {
 
     bool global_frame_has(const string key) const
     {
-      if(!grandparent() && parent_) {
+      if(parent_ && !grandparent()) {
         return has(key);
       }
-      else {
+      else if(parent_) {
         return parent_->global_frame_has(key);
+      }
+      else {
+        return false;
       }
     }
 
