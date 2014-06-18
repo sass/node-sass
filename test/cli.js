@@ -116,6 +116,15 @@ describe('cli', function() {
     });
   });
 
+  it('should write the stdout with the --stdout option', function(done){
+    var emitter = cli(['--stdout', path.join(__dirname, 'sample.scss')]);
+    emitter.on('error', done);
+    emitter.on('log', function(css){
+      assert.equal(css, expectedSampleNoComments);
+      done();
+    });
+  });
+
   it('should compile with the --source-map option', function(done){
     var emitter = cli([path.join(__dirname, 'sample.scss'), '--source-map']);
     emitter.on('error', done);
