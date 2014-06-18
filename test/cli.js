@@ -116,7 +116,7 @@ describe('cli', function() {
     });
   });
 
-  it('should write the stdout with the --stdout option', function(done){
+  it('should write to stdout with the --stdout option', function(done){
     var emitter = cli(['--stdout', path.join(__dirname, 'sample.scss')]);
     emitter.on('error', done);
     emitter.on('log', function(css){
