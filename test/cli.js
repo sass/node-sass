@@ -27,6 +27,8 @@ var expectedSampleNoComments = '#navbar {\n\
 var expectedSampleCustomImagePath = 'body {\n\
   background-image: url("/path/to/images/image.png"); }\n';
 
+var sampleScssPath = path.join(__dirname, 'sample.scss');
+
 describe('cli', function() {
   it('should print help when run with no arguments', function(done) {
     exec('node ' + cliPath, function(err, stdout, stderr) {
@@ -78,7 +80,7 @@ describe('cli', function() {
   });
 
   it('should compile with the --output-style', function(done){
-    var emitter = cli(['--output-style', 'compressed', path.join(__dirname, 'sample.scss')]);
+    var emitter = cli(['--output-style', 'compressed', sampleScssPath]);
     emitter.on('error', done);
     emitter.on('write', function(err, file, css){
       assert.equal(css, expectedSampleCompressed);
@@ -87,7 +89,7 @@ describe('cli', function() {
   });
 
   it('should compile with the --source-comments option', function(done){
-    var emitter = cli(['--source-comments', 'none', path.join(__dirname, 'sample.scss')]);
+    var emitter = cli(['--source-comments', 'none', sampleScssPath]);
     emitter.on('error', done);
     emitter.on('write', function(err, file, css){
       assert.equal(css, expectedSampleNoComments);
@@ -106,7 +108,7 @@ describe('cli', function() {
 
   it('should write the output to the file specified with the --output option', function(done){
     var resultPath = path.join(__dirname, '../output.css');
-    var emitter = cli(['--output', resultPath, path.join(__dirname, 'sample.scss')]);
+    var emitter = cli(['--output', resultPath, sampleScssPath]);
     emitter.on('error', done);
     emitter.on('write', function(){
       fs.exists(resultPath, function(exists) {
@@ -117,7 +119,7 @@ describe('cli', function() {
   });
 
   it('should write to stdout with the --stdout option', function(done){
-    var emitter = cli(['--stdout', path.join(__dirname, 'sample.scss')]);
+    var emitter = cli(['--stdout', sampleScssPath]);
     emitter.on('error', done);
     emitter.on('log', function(css){
       assert.equal(css, expectedSampleNoComments);
@@ -125,8 +127,27 @@ describe('cli', function() {
     });
   });
 
+  it('should not exit with the --watch option', function(done){
+    var command = cliPath + ' --watch ' + sampleScssPath;
+    var child = exec('node ' + command);
+    var exited = false;
+
+    child.on('exit', function() {
+      exited = true;
+    });
+
+    setTimeout(function() {
+      if (exited){
+        throw new Error('Watch ended too early!');
+      } else {
+        child.kill();
+        done();
+      }
+    }, 100);
+  });
+
   it('should compile with the --source-map option', function(done){
-    var emitter = cli([path.join(__dirname, 'sample.scss'), '--source-map']);
+    var emitter = cli([sampleScssPath, '--source-map']);
     emitter.on('error', done);
     emitter.on('write-source-map', function(err, file) {
       assert.equal(file, path.join(__dirname, '../sample.css.map'));
@@ -134,6 +155,7 @@ describe('cli', function() {
         assert(exists);
       });
     });
+
     emitter.on('done', function() {
       fs.unlink(path.join(__dirname, '../sample.css.map'), function() {
         fs.unlink(path.join(__dirname, '../sample.css'), function() {
@@ -144,7 +166,7 @@ describe('cli', function() {
   });
 
   it('should compile with the --source-map option with specific filename', function(done){
-    var emitter = cli([path.join(__dirname, 'sample.scss'), '--source-map', path.join(__dirname, '../sample.map')]);
+    var emitter = cli([sampleScssPath, '--source-map', path.join(__dirname, '../sample.map')]);
     emitter.on('error', done);
     emitter.on('write-source-map', function(err, file) {
       assert.equal(file, path.join(__dirname, '../sample.map'));
@@ -162,7 +184,7 @@ describe('cli', function() {
   });
 
   it('should compile a sourceMap if --source-comments="map", but the --source-map option is excluded', function(done){
-    var emitter = cli([path.join(__dirname, 'sample.scss'), '--source-comments', 'map']);
+    var emitter = cli([sampleScssPath, '--source-comments', 'map']);
     emitter.on('error', done);
     emitter.on('write-source-map', function(err, file) {
       assert.equal(file, path.join(__dirname, '../sample.css.map'));
