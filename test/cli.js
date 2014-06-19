@@ -28,6 +28,8 @@ var expectedSampleCustomImagePath = 'body {\n\
   background-image: url("/path/to/images/image.png"); }\n';
 
 var sampleScssPath = path.join(__dirname, 'sample.scss');
+var sampleCssOutputPath = path.join(__dirname, '../sample.css');
+var sampleCssMapOutputPath = path.join(__dirname, '../sample.css.map');
 
 describe('cli', function() {
   it('should print help when run with no arguments', function(done) {
@@ -127,6 +129,18 @@ describe('cli', function() {
     });
   });
 
+  it('should not write to disk with the --stdout option', function(done){
+    var emitter = cli(['--stdout', sampleScssPath]);
+    emitter.on('error', done);
+    emitter.on('done', function(){
+      fs.exists(sampleCssOutputPath, function(exists) {
+        assert(!exists);
+        if (exists) {fs.unlinkSync(sampleCssOutputPath);}
+        done();
+      });
+    });
+  });
+
   it('should not exit with the --watch option', function(done){
     var command = cliPath + ' --watch ' + sampleScssPath;
     var child = exec('node ' + command);
@@ -150,15 +164,15 @@ describe('cli', function() {
     var emitter = cli([sampleScssPath, '--source-map']);
     emitter.on('error', done);
     emitter.on('write-source-map', function(err, file) {
-      assert.equal(file, path.join(__dirname, '../sample.css.map'));
+      assert.equal(file, sampleCssMapOutputPath);
       fs.exists(file, function(exists) {
         assert(exists);
       });
     });
 
     emitter.on('done', function() {
-      fs.unlink(path.join(__dirname, '../sample.css.map'), function() {
-        fs.unlink(path.join(__dirname, '../sample.css'), function() {
+      fs.unlink(sampleCssMapOutputPath, function() {
+        fs.unlink(sampleCssOutputPath, function() {
           done();
         });
       });
@@ -176,7 +190,7 @@ describe('cli', function() {
     });
     emitter.on('done', function() {
       fs.unlink(path.join(__dirname, '../sample.map'), function() {
-        fs.unlink(path.join(__dirname, '../sample.css'), function() {
+        fs.unlink(sampleCssOutputPath, function() {
           done();
         });
       });
@@ -187,14 +201,14 @@ describe('cli', function() {
     var emitter = cli([sampleScssPath, '--source-comments', 'map']);
     emitter.on('error', done);
     emitter.on('write-source-map', function(err, file) {
-      assert.equal(file, path.join(__dirname, '../sample.css.map'));
+      assert.equal(file, sampleCssMapOutputPath);
       fs.exists(file, function(exists) {
         assert(exists);
       });
     });
     emitter.on('done', function() {
-      fs.unlink(path.join(__dirname, '../sample.css.map'), function() {
-        fs.unlink(path.join(__dirname, '../sample.css'), function() {
+      fs.unlink(sampleCssMapOutputPath, function() {
+        fs.unlink(sampleCssOutputPath, function() {
           done();
         });
       });
