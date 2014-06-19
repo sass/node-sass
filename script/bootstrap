@@ -3,8 +3,8 @@
 script/branding
 
 if [ ! -d "sass-spec" ]; then
-  git clone https://github.com/hcatlin/sass-spec.git
+  git clone https://github.com/sass/sass-spec.git
 fi
 if [ ! -d "sassc" ]; then
-  git clone https://github.com/hcatlin/sassc.git
+  git clone https://github.com/sass/sassc.git
 fi
