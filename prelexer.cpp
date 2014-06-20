@@ -407,6 +407,12 @@ namespace Sass {
                        spaces_and_comments,
                        exactly<default_kwd> >(src);
     }
+    // Match Sass "!global" keyword.
+    const char* global_flag(const char* src) {
+      return sequence< exactly<'!'>,
+                       spaces_and_comments,
+                       exactly<global_kwd> >(src);
+    }
     // Match CSS pseudo-class/element prefixes.
     const char* pseudo_prefix(const char* src) {
       return sequence< exactly<':'>, optional< exactly<':'> > >(src);
