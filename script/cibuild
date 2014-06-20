@@ -8,7 +8,7 @@ if [ "x$AUTOTOOLS" == "xyes" ]; then
   autoreconf -i
   ./configure --enable-tests \
     --prefix=$TRAVIS_BUILD_DIR
-  make install
+  make install -j
   cp $TRAVIS_BUILD_DIR/lib/libsass.a $TRAVIS_BUILD_DIR
 fi
 
