@@ -19,9 +19,10 @@ namespace Sass {
     {
       size_t pos = string::npos;
       size_t pos_p = path.find_last_of('/', limit);
-      size_t pos_w = string::npos;
       #ifdef _WIN32
-      pos_w = path.find_last_of('\\', limit);
+      size_t pos_w = path.find_last_of('\\', limit);
+      #else
+      size_t pos_w = string::npos;
       #endif
       if (pos_p != string::npos && pos_w != string::npos) {
         pos = max(pos_p, pos_w);
