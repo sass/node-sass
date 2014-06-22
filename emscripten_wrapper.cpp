@@ -18,6 +18,7 @@ char *sass_compile_emscripten(
   options.output_style = output_style;
   options.image_path = NULL;
   options.include_paths = include_paths;
+  options.precision = 0; // 0 => use sass default numeric precision
 
   ctx->options = options;
   ctx->source_string = source_string;
