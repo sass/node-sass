@@ -71,7 +71,7 @@ install-shared: libsass.so
 	install -pm0755 $< $(DESTDIR)$(LIBDIR)/$<
 
 $(SASSC_BIN): libsass.a
-	cd $(SASS_SASSC_PATH) && make
+	cd $(SASS_SASSC_PATH) && $(MAKE)
 
 test: $(SASSC_BIN) libsass.a
 	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) -s $(LOG_FLAGS) $(SASS_SPEC_PATH)
