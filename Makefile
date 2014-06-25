@@ -8,6 +8,7 @@ LIBDIR    = $(PREFIX)/lib
 SASS_SASSC_PATH ?= sassc
 SASS_SPEC_PATH ?= sass-spec
 SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc
+RUBY_BIN = ruby
 
 SOURCES = \
 	ast.cpp \
@@ -73,13 +74,13 @@ $(SASSC_BIN): libsass.a
 	cd $(SASS_SASSC_PATH) && make
 
 test: $(SASSC_BIN) libsass.a
-	ruby $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) -s $(LOG_FLAGS) $(SASS_SPEC_PATH)
+	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) -s $(LOG_FLAGS) $(SASS_SPEC_PATH)
 
 test_build: $(SASSC_BIN) libsass.a
-	ruby $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) -s --ignore-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)
+	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) -s --ignore-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)
 
 test_issues: $(SASSC_BIN) libsass.a
-	ruby $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues
+	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues
 
 clean:
 	rm -f $(OBJECTS) *.a *.so libsass.js
