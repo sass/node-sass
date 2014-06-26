@@ -3,178 +3,179 @@ var fs = require('fs');
 var assign = require('object-assign');
 
 function requireBinding() {
-  var v8 = 'v8-' + /[0-9]+\.[0-9]+/.exec(process.versions.v8)[0];
-  var candidates = [
-    [__dirname, 'build', 'Release', 'obj.target', 'binding.node'],
-    [__dirname, 'bin', process.platform + '-' + process.arch + '-' + v8, 'binding.node']
-  ];
-  var candidate;
+    var v8 = 'v8-' + /[0-9]+\.[0-9]+/.exec(process.versions.v8)[0];
+    var candidates = [
+        [__dirname, 'build', 'Release', 'obj.target', 'binding.node'],
+        [__dirname, 'bin', process.platform + '-' + process.arch + '-' + v8, 'binding.node']
+    ];
+    var candidate;
 
-  for (var i = 0, l = candidates.length; i < l; i++) {
-    candidate = path.join.apply(path.join, candidates[i]);
+    for (var i = 0, l = candidates.length; i < l; i++) {
+        candidate = path.join.apply(path.join, candidates[i]);
 
-    if (fs.existsSync(candidate)) {
-      return require(candidate);
+        if (fs.existsSync(candidate)) {
+            return require(candidate);
+        }
     }
-  }
 
-  throw new Error('`libsass` bindings not found. Try reinstalling `node-sass`?');
+    throw new Error('`libsass` bindings not found. Try reinstalling `node-sass`?');
 }
 
 var binding = requireBinding();
 
 var SASS_OUTPUT_STYLE = {
-  nested: 0,
-  expanded: 1,
-  compact: 2,
-  compressed: 3
+    nested: 0,
+    expanded: 1,
+    compact: 2,
+    compressed: 3
 };
 
 var SASS_SOURCE_COMMENTS = {
-  none: 0,
-  normal: 1,
-  'default': 1,
-  map: 2
+    none: 0,
+    normal: 1,
+    'default': 1,
+    map: 2
 };
 
 var prepareOptions = function (options) {
-  var success;
-  var error;
-  var stats;
-  var sourceComments;
+    var success;
+    var error;
+    var stats;
+    var sourceComments;
 
-  options = options || {};
-  success = options.success;
-  error = options.error;
-  stats = options.stats || {};
+    options = options || {};
+    success = options.success;
+    error = options.error;
+    stats = options.stats || {};
 
-  sourceComments = options.source_comments || options.sourceComments;
-  if (options.sourceMap && !sourceComments) {
-    sourceComments = 'map';
-  }
-  prepareStats(options, stats);
-
-  return {
-    file: options.file || null,
-    outFile: options.outFile || null,
-    data: options.data || null,
-    paths: (options.include_paths || options.includePaths || []).join(path.delimiter),
-    imagePath: options.image_path || options.imagePath || '',
-    style: SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0,
-    comments: SASS_SOURCE_COMMENTS[sourceComments] || 0,
-    stats: stats,
-    sourceMap: options.sourceMap,
-    precision: parseInt(options.precision) || 5,
-    success: function onSuccess(css, sourceMap) {
-      finishStats(stats, sourceMap);
-      success && success(css, sourceMap);
-    },
-    error: function onError(err, errStatus) {
-      error && error(err, errStatus);
+    sourceComments = options.source_comments || options.sourceComments;
+    if (options.sourceMap && !sourceComments) {
+        sourceComments = 'map';
     }
-  };
+    prepareStats(options, stats);
+
+    return {
+        file: options.file || null,
+        outFile: options.outFile || null,
+        data: options.data || null,
+        paths: (options.include_paths || options.includePaths || []).join(path.delimiter),
+        imagePath: options.image_path || options.imagePath || '',
+        style: SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0,
+        comments: SASS_SOURCE_COMMENTS[sourceComments] || 0,
+        stats: stats,
+        sourceMap: options.sourceMap,
+        precision: parseInt(options.precision) || 5,
+        importOnce: options.importOnce || false,
+        success: function onSuccess(css, sourceMap) {
+            finishStats(stats, sourceMap);
+            success && success(css, sourceMap);
+        },
+        error: function onError(err, errStatus) {
+            error && error(err, errStatus);
+        }
+    };
 };
 
 var prepareStats = function (options, stats) {
-  stats.entry = options.file || 'data';
-  stats.start = Date.now();
+    stats.entry = options.file || 'data';
+    stats.start = Date.now();
 
-  return stats;
+    return stats;
 };
 
 var finishStats = function (stats, sourceMap) {
-  stats.end = Date.now();
-  stats.duration = stats.end - stats.start;
-  stats.sourceMap = sourceMap;
+    stats.end = Date.now();
+    stats.duration = stats.end - stats.start;
+    stats.sourceMap = sourceMap;
 
-  return stats;
+    return stats;
 };
 
-var deprecatedRender = function(css, callback, options) {
-  options = prepareOptions(options);
-  // providing the deprecated single callback signature
-  options.error = callback;
-  options.success = function(css) {
-    callback(null, css);
-  };
-  options.data = css;
-  binding.render(options);
+var deprecatedRender = function (css, callback, options) {
+    options = prepareOptions(options);
+    // providing the deprecated single callback signature
+    options.error = callback;
+    options.success = function (css) {
+        callback(null, css);
+    };
+    options.data = css;
+    binding.render(options);
 };
 
-var deprecatedRenderSync = function(css, options) {
-  options = prepareOptions(options);
-  options.data = css;
-  return binding.renderSync(options);
+var deprecatedRenderSync = function (css, options) {
+    options = prepareOptions(options);
+    options.data = css;
+    return binding.renderSync(options);
 };
 
-exports.render = function(options) {
-  if (typeof arguments[0] === 'string') {
-    return deprecatedRender.apply(this, arguments);
-  }
+exports.render = function (options) {
+    if (typeof arguments[0] === 'string') {
+        return deprecatedRender.apply(this, arguments);
+    }
 
-  options = assign({}, options);
-  options = prepareOptions(options);
-  options.file? binding.renderFile(options) : binding.render(options);
+    options = assign({}, options);
+    options = prepareOptions(options);
+    options.file ? binding.renderFile(options) : binding.render(options);
 };
 
-exports.renderSync = function(options) {
-  var output;
+exports.renderSync = function (options) {
+    var output;
 
-  if (typeof arguments[0] === 'string') {
-    return deprecatedRenderSync.apply(this, arguments);
-  }
+    if (typeof arguments[0] === 'string') {
+        return deprecatedRenderSync.apply(this, arguments);
+    }
 
-  options = assign({}, options);
-  options = prepareOptions(options);
-  output = options.file? binding.renderFileSync(options) : binding.renderSync(options);
-  finishStats(options.stats);
+    options = assign({}, options);
+    options = prepareOptions(options);
+    output = options.file ? binding.renderFileSync(options) : binding.renderSync(options);
+    finishStats(options.stats);
 
-  return output;
+    return output;
 };
 
 /**
-  Same as `render()` but with an extra `outFile` property in `options` and writes
-  the CSS and sourceMap (if requested) to the filesystem.
+ Same as `render()` but with an extra `outFile` property in `options` and writes
+ the CSS and sourceMap (if requested) to the filesystem.
 
-  `options.sourceMap` can be used to specify that the source map should be saved:
+ `options.sourceMap` can be used to specify that the source map should be saved:
 
-  - If falsy the source map will not be saved
-  - If `options.sourceMap === true` the source map will be saved to the
-  standard location of `options.file + '.map'`
-  - Else `options.sourceMap` specifies the path (relative to the `outFile`)
-  where the source map should be saved
+ - If falsy the source map will not be saved
+ - If `options.sourceMap === true` the source map will be saved to the
+ standard location of `options.file + '.map'`
+ - Else `options.sourceMap` specifies the path (relative to the `outFile`)
+ where the source map should be saved
  */
-exports.renderFile = function(options) {
-  var success;
+exports.renderFile = function (options) {
+    var success;
 
-  options = assign({}, options);
-  success = options.success;
-  if (options.sourceMap === true) {
-    options.sourceMap = path.basename(options.outFile) + '.map';
-  }
-  options.success = function(css, sourceMap) {
-    fs.writeFile(options.outFile, css, function(err) {
-      var dir, sourceMapFile;
+    options = assign({}, options);
+    success = options.success;
+    if (options.sourceMap === true) {
+        options.sourceMap = path.basename(options.outFile) + '.map';
+    }
+    options.success = function (css, sourceMap) {
+        fs.writeFile(options.outFile, css, function (err) {
+            var dir, sourceMapFile;
 
-      if (err) {
-        return options.error(err);
-      }
-      if (options.sourceMap) {
-        dir = path.dirname(options.outFile);
-        sourceMapFile = path.resolve(dir, options.sourceMap);
-        fs.writeFile(sourceMapFile, sourceMap, function(err) {
-          if (err) {
-            return options.error(err);
-          }
-          success(options.outFile, sourceMapFile);
+            if (err) {
+                return options.error(err);
+            }
+            if (options.sourceMap) {
+                dir = path.dirname(options.outFile);
+                sourceMapFile = path.resolve(dir, options.sourceMap);
+                fs.writeFile(sourceMapFile, sourceMap, function (err) {
+                    if (err) {
+                        return options.error(err);
+                    }
+                    success(options.outFile, sourceMapFile);
+                });
+            }
+            else {
+                success(options.outFile);
+            }
         });
-      }
-      else {
-        success(options.outFile);
-      }
-    });
-  };
-  exports.render(options);
+    };
+    exports.render(options);
 };
 
 exports.middleware = require('node-sass-middleware');
