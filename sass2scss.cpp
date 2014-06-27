@@ -172,10 +172,22 @@ namespace Sass
 			// check if we have sass property syntax
 			if (sass.substr(pos_left, 1) == ":")
 			{
-				// get postion of first meaningfull char
-				size_t pos_value = sass.find_first_of(" \t\n\v\f\r", pos_left);
-				// create new string by interchanging the colon sign for property and value
-				sass = indent + sass.substr(pos_left + 1, pos_value - pos_left - 1) + ":" + sass.substr(pos_value);
+				// get postion of first whitespace char
+				size_t pos_wspace = sass.find_first_of(" \t\n\v\f\r", pos_left);
+				// assertion check for valid result
+				if (pos_wspace != string::npos)
+				{
+					// get position of the first real property value char
+					// pseudo selectors get this far, but have no actual value
+					size_t pos_value =  sass.find_first_not_of(" \t\n\v\f\r", pos_wspace);
+					// assertion check for valid result
+					if (pos_value != string::npos)
+					{
+						// create new string by interchanging the colon sign for property and value
+						sass = indent + sass.substr(pos_left + 1, pos_wspace - pos_left - 1) + ":" + sass.substr(pos_wspace);
+					}
+				}
+
 			}
 
 			// replace some specific sass shorthand directives
@@ -193,8 +205,12 @@ namespace Sass
 				{
 					// get position of the last char on the line
 					size_t pos_end = sass.find_last_not_of(" \t\n\v\f\r");
-					// add quotes around the full line after the import statement
-					sass = sass.substr(0, pos_quote) + "\"" + sass.substr(pos_quote, pos_end - pos_quote + 1) + "\"";
+					// assertion check for valid result
+					if (pos_end != string::npos)
+					{
+						// add quotes around the full line after the import statement
+						sass = sass.substr(0, pos_quote) + "\"" + sass.substr(pos_quote, pos_end - pos_quote + 1) + "\"";
+					}
 				}
 			}
 
