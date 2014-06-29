@@ -1,6 +1,6 @@
 project_id: "ojs37kekmpl6mr0k"
 
-version: {build}
+version: "{build}"
 
 init:
   - git config --global core.autocrlf input
