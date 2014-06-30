@@ -32,6 +32,8 @@ namespace Sass
 	{
 		// bit options
 		int options;
+		// is selector
+		bool selector;
 		// concat lists
 		bool comma;
 		// has property

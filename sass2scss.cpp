@@ -141,14 +141,21 @@ namespace Sass
 				else if (IS_SRC_COMMENT(converter))
 				{
 					// add a newline to avoid closer on same line
-					// this would but the bracket in the comment node
+					// this would put the bracket in the comment node
 					if (KEEP_COMMENT(converter)) scss += "\n";
 				}
 				// close css properties
 				else if (converter.property)
 				{
-					// add semicolon unless in concat mode
-					if (!converter.comma) scss += ";";
+					// add closer unless in concat mode
+					if (!converter.comma)
+					{
+						// if there was no colon we have a selector
+						// looks like there were no inner properties
+						if (converter.selector) scss += " {}";
+						// add final semicolon
+						else scss += ";";
+					}
 				}
 
 				// reset comment state
@@ -169,6 +176,9 @@ namespace Sass
 				converter.comment = "";
 			}
 
+			// reset converter state
+			converter.selector = false;
+
 			// check if we have sass property syntax
 			if (sass.substr(pos_left, 1) == ":")
 			{
@@ -186,6 +196,17 @@ namespace Sass
 						// create new string by interchanging the colon sign for property and value
 						sass = indent + sass.substr(pos_left + 1, pos_wspace - pos_left - 1) + ":" + sass.substr(pos_wspace);
 					}
+				}
+
+				// try to find a colon in the current line, but only ...
+				size_t pos_colon = sass.find_first_not_of(":", pos_left);
+				// assertion for valid result
+				if (pos_colon != string::npos)
+				{
+					// ... after the first word (skip begining colons)
+					pos_colon = sass.find_first_of(":", pos_colon);
+					// it is a selector if there was no colon found
+					converter.selector = pos_colon == string::npos;
 				}
 
 			}
@@ -212,6 +233,22 @@ namespace Sass
 						sass = sass.substr(0, pos_quote) + "\"" + sass.substr(pos_quote, pos_end - pos_quote + 1) + "\"";
 					}
 				}
+
+			}
+			else
+			{
+
+				// try to find a colon in the current line, but only ...
+				size_t pos_colon = sass.find_first_not_of(":", pos_left);
+				// assertion for valid result
+				if (pos_colon != string::npos)
+				{
+					// ... after the first word (skip begining colons)
+					pos_colon = sass.find_first_of(":", pos_colon);
+					// it is a selector if there was no colon found
+					converter.selector = pos_colon == string::npos;
+				}
+
 			}
 
 			// check if current line starts a comment
