@@ -235,7 +235,7 @@ namespace Sass
 				}
 
 			}
-			else
+			else if (sass.substr(pos_left, 8) != "@content")
 			{
 
 				// try to find a colon in the current line, but only ...
