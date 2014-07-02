@@ -101,12 +101,13 @@ namespace Sass
 
 		size_t col_pos = 0;
 		bool quoted = false;
+		bool comment = false;
 
 		while (col_pos != string::npos)
 		{
 
 			// process all interesting chars
-			col_pos = sass.find_first_of("\"/\\", col_pos);
+			col_pos = sass.find_first_of("\"/\\*", col_pos);
 
 			// assertion for valid result
 			if (col_pos != string::npos)
@@ -117,19 +118,32 @@ namespace Sass
 					// invert quote bool
 					quoted = !quoted;
 				}
+				else if (sass[col_pos] == '/')
+				{
+					if (col_pos > 0 && sass[col_pos - 1] == '*')
+					{
+						comment = false;
+					}
+					// next needs to be a slash too
+					else if (col_pos > 0 && sass[col_pos - 1] == '/')
+					{
+						// only found if not in quote or comment
+						if (!quoted && !comment) return col_pos - 1;
+					}
+				}
 				else if (sass[col_pos] == '\\')
 				{
 					// skip next char if in quote
 					if (quoted) col_pos ++;
 				}
 				// this might be a comment opener
-				else if (sass[col_pos] == '/')
+				else if (sass[col_pos] == '*')
 				{
-					// next needs to be a slash too
-					if (sass[col_pos + 1] == '/')
+					// opening a multiline comment
+					if (col_pos > 0 && sass[col_pos - 1] == '/')
 					{
-						// only found if not in quote
-						if (!quoted) return col_pos;
+						// we are now in a comment
+						if (!quoted) comment = true;
 					}
 				}
 
@@ -145,6 +159,91 @@ namespace Sass
 
 	}
 	// EO findCommentOpener
+
+	// remove multiline comments from sass string
+	// correctly skips quoted strings
+	static string removeMultilineComment (string &sass)
+	{
+
+		string clean = "";
+		size_t col_pos = 0;
+		size_t open_pos = 0;
+		size_t close_pos = 0;
+		bool quoted = false;
+		bool comment = false;
+
+		// process sass til string end
+		while (col_pos != string::npos)
+		{
+
+			// process all interesting chars
+			col_pos = sass.find_first_of("\"/\\*", col_pos);
+
+			// assertion for valid result
+			if (col_pos != string::npos)
+			{
+
+				// found quoted string delimiter
+				if (sass[col_pos] == '\"')
+				{
+					cout << "found delim\n";
+					if (!comment) quoted = !quoted;
+				}
+				// found possible comment closer
+				else if (sass[col_pos] == '/')
+				{
+					// look back to see if it is actually a closer
+					if (comment && col_pos > 0 && sass[col_pos - 1] == '*')
+					{
+						close_pos = col_pos + 1; comment = false;
+					}
+				}
+				else if (sass[col_pos] == '\\')
+				{
+					// skip escaped char
+					if (quoted) col_pos ++;
+				}
+				// this might be a comment opener
+				else if (sass[col_pos] == '*')
+				{
+					// look back to see if it is actually an opener
+					if (!quoted && col_pos > 0 && sass[col_pos - 1] == '/')
+					{
+						cout << "found opener\n";
+						comment = true; open_pos = col_pos - 1;
+						clean += sass.substr(close_pos, open_pos - close_pos);
+					}
+				}
+
+				// skip char
+				col_pos ++;
+
+			}
+
+		}
+		// EO while
+
+		// add final parts (add half open comment text)
+		if (comment) clean += sass.substr(open_pos);
+		else clean += sass.substr(close_pos);
+
+		// return string
+		return clean;
+
+	}
+	// EO removeMultilineComment
+
+	// right trim a given string
+	string rtrim(const string &sass)
+	{
+		string trimmed = sass;
+		size_t pos_ws = trimmed.find_last_not_of(" \t\n\v\f\r");
+		if (pos_ws != string::npos)
+		{ trimmed.erase(pos_ws + 1); }
+		else { trimmed.clear(); }
+		return trimmed;
+	}
+	// EO rtrim
 
 	// flush whitespace and print additional text, but
 	// only print additional chars and buffer whitespace
@@ -173,6 +272,14 @@ namespace Sass
 		// check if there was a source comment
 		if (comment_pos != string::npos)
 		{
+			// convert comment (but only outside other coments)
+			if (CONVERT_COMMENT(converter) && !IS_COMMENT(converter))
+			{
+				// convert to multiline comment
+				sass[comment_pos + 1] = '*';
+				// add comment node to the whitespace
+				sass += " */";
+			}
 			// not at line start
 			if (comment_pos > 0)
 			{
@@ -180,8 +287,15 @@ namespace Sass
 				size_t ws_pos = sass.find_last_not_of(" \t\n\v\f\r", comment_pos - 1);
 				comment_pos = ws_pos == string::npos ? 0 : ws_pos + 1;
 			}
-			// add comment node to the whitespace
-			converter.whitespace += sass.substr(comment_pos);
+			if (!STRIP_COMMENT(converter))
+			{
+				// add comment node to the whitespace
+				converter.whitespace += sass.substr(comment_pos);
+			}
+			else
+			{
+				// sass = removeMultilineComments(sass);
+			}
 			// update the actual sass code
 			sass = sass.substr(0, comment_pos);
 		}
@@ -212,6 +326,15 @@ namespace Sass
 
 		// resulting string
 		string scss = "";
+
+		// strip multi line comments
+		if (STRIP_COMMENT(converter))
+		{
+			sass = removeMultilineComment(sass);
+		}
+
+		// right trim input
+		sass = rtrim(sass);
 
 		// get postion of first meaningfull character in string
 		size_t pos_left = sass.find_first_not_of(" \t\n\v\f\r");
