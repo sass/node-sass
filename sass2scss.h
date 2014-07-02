@@ -38,6 +38,8 @@ namespace Sass
 		bool comma;
 		// has property
 		bool property;
+		// has semicolon
+		bool semicolon;
 		// comment context
 		string comment;
 		// flag end of file

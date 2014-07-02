@@ -385,7 +385,7 @@ namespace Sass
 						// looks like there were no inner properties
 						if (converter.selector) scss += " {}";
 						// add final semicolon
-						else scss += ";";
+						else if (!converter.semicolon) scss += ";";
 					}
 				}
 
@@ -580,6 +580,7 @@ namespace Sass
 
 				// check if next line should be concatenated (list mode)
 				converter.comma = IS_PARSING(converter) && close == ",";
+				converter.semicolon = IS_PARSING(converter) && close == ";";
 
 				// check if we have more than
 				// one meaningfull char
@@ -620,6 +621,8 @@ namespace Sass
 		// initialise all options
 		converter.comma = false;
 		converter.property = false;
+		converter.selector = false;
+		converter.semicolon = false;
 		converter.end_of_file = false;
 		converter.comment = "";
 		converter.whitespace = "";
