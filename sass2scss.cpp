@@ -113,34 +113,34 @@ namespace Sass
 			if (col_pos != string::npos)
 			{
 
-				if (sass[col_pos] == '\"')
+				if (sass.at(col_pos) == '\"')
 				{
 					// invert quote bool
 					quoted = !quoted;
 				}
-				else if (sass[col_pos] == '/')
+				else if (sass.at(col_pos) == '/')
 				{
-					if (col_pos > 0 && sass[col_pos - 1] == '*')
+					if (col_pos > 0 && sass.at(col_pos - 1) == '*')
 					{
 						comment = false;
 					}
 					// next needs to be a slash too
-					else if (col_pos > 0 && sass[col_pos - 1] == '/')
+					else if (col_pos > 0 && sass.at(col_pos - 1) == '/')
 					{
 						// only found if not in quote or comment
 						if (!quoted && !comment) return col_pos - 1;
 					}
 				}
-				else if (sass[col_pos] == '\\')
+				else if (sass.at(col_pos) == '\\')
 				{
 					// skip next char if in quote
 					if (quoted) col_pos ++;
 				}
 				// this might be a comment opener
-				else if (sass[col_pos] == '*')
+				else if (sass.at(col_pos) == '*')
 				{
 					// opening a multiline comment
-					if (col_pos > 0 && sass[col_pos - 1] == '/')
+					if (col_pos > 0 && sass.at(col_pos - 1) == '/')
 					{
 						// we are now in a comment
 						if (!quoted) comment = true;
@@ -184,30 +184,30 @@ namespace Sass
 			{
 
 				// found quoted string delimiter
-				if (sass[col_pos] == '\"')
+				if (sass.at(col_pos) == '\"')
 				{
 					cout << "found delim\n";
 					if (!comment) quoted = !quoted;
 				}
 				// found possible comment closer
-				else if (sass[col_pos] == '/')
+				else if (sass.at(col_pos) == '/')
 				{
 					// look back to see if it is actually a closer
-					if (comment && col_pos > 0 && sass[col_pos - 1] == '*')
+					if (comment && col_pos > 0 && sass.at(col_pos - 1) == '*')
 					{
 						close_pos = col_pos + 1; comment = false;
 					}
 				}
-				else if (sass[col_pos] == '\\')
+				else if (sass.at(col_pos) == '\\')
 				{
 					// skip escaped char
 					if (quoted) col_pos ++;
 				}
 				// this might be a comment opener
-				else if (sass[col_pos] == '*')
+				else if (sass.at(col_pos) == '*')
 				{
 					// look back to see if it is actually an opener
-					if (!quoted && col_pos > 0 && sass[col_pos - 1] == '/')
+					if (!quoted && col_pos > 0 && sass.at(col_pos - 1) == '/')
 					{
 						cout << "found opener\n";
 						comment = true; open_pos = col_pos - 1;
@@ -276,7 +276,7 @@ namespace Sass
 			if (CONVERT_COMMENT(converter) && !IS_COMMENT(converter))
 			{
 				// convert to multiline comment
-				sass[comment_pos + 1] = '*';
+				sass.at(comment_pos + 1) = '*';
 				// add comment node to the whitespace
 				sass += " */";
 			}
@@ -526,10 +526,10 @@ namespace Sass
 				{
 					// scss does not allow multiline src comments
 					// therefore add forward slashes to all lines
-					sass[INDENT(converter).length()+0] = '/';
+					sass.at(INDENT(converter).length()+0) = '/';
 					// there is an edge case here if indentation
 					// is minimal (will overwrite the fist char)
-					sass[INDENT(converter).length()+1] = '/';
+					sass.at(INDENT(converter).length()+1) = '/';
 					// could code around that, but I dont' think
 					// this will ever be the cause for any trouble
 				}
@@ -550,7 +550,7 @@ namespace Sass
 				if (CONVERT_COMMENT(converter))
 				{
 					if (IS_PARSING(converter))
-					{ sass[pos_left + 1] = '*'; }
+					{ sass.at(pos_left + 1) = '*'; }
 				}
 				// set comment flag
 				converter.comment = open;
