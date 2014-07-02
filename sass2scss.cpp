@@ -186,7 +186,6 @@ namespace Sass
 				// found quoted string delimiter
 				if (sass.at(col_pos) == '\"')
 				{
-					cout << "found delim\n";
 					if (!comment) quoted = !quoted;
 				}
 				// found possible comment closer
@@ -209,7 +208,6 @@ namespace Sass
 					// look back to see if it is actually an opener
 					if (!quoted && col_pos > 0 && sass.at(col_pos - 1) == '/')
 					{
-						cout << "found opener\n";
 						comment = true; open_pos = col_pos - 1;
 						clean += sass.substr(close_pos, open_pos - close_pos);
 					}
