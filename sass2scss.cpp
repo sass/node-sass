@@ -58,6 +58,42 @@ namespace Sass
 		       "\n" + INDENT(converter) + "{";
 	}
 
+	// check if there is some char data
+	// will ignore everything in comments
+	static bool hasCharData (string& sass)
+	{
+
+		size_t col_pos = 0;
+
+		while (true)
+		{
+
+			// try to find some meaningfull char
+			col_pos = sass.find_first_not_of(" \t\n\v\f\r", col_pos);
+
+			// there was no meaningfull char found
+			if (col_pos == string::npos) return false;
+
+			// found a multiline comment opener
+			if (sass.substr(col_pos, 2) == "/*")
+			{
+				// find the multiline comment closer
+				col_pos = sass.find("*/", col_pos);
+				// maybe we did not find the closer here
+				if (col_pos == string::npos) return false;
+				// skip closer
+				col_pos += 2;
+			}
+			else
+			{
+				return true;
+			}
+
+		}
+
+	}
+	// EO hasCharData
+
 	// flush whitespace and print additional text, but
 	// only print additional chars and buffer whitespace
 	string flush (string& sass, converter& converter)
@@ -125,6 +161,9 @@ namespace Sass
 
 			// extract and store indentation string
 			string indent = sass.substr(0, pos_left);
+
+			// check if current line starts a comment
+			string open = sass.substr(pos_left, 2);
 
 			// line has less or same indentation
 			// finalize previous open parser context
@@ -211,7 +250,7 @@ namespace Sass
 
 			}
 
-			// replace some specific sass shorthand directives
+			// replace some specific sass shorthand directives (if not fallowed by a white space character)
 			else if (sass.substr(pos_left, 1) == "=" && sass.find_first_of(" \t\n\v\f\r", pos_left) != pos_left + 1)
 			{ sass = indent + "@mixin " + sass.substr(pos_left + 1); }
 			else if (sass.substr(pos_left, 1) == "+" && sass.find_first_of(" \t\n\v\f\r", pos_left) != pos_left + 1)
@@ -256,17 +295,19 @@ namespace Sass
 
 			}
 
-			// check if current line starts a comment
-			string open = sass.substr(pos_left, 2);
-
 			// current line has more indentation
 			if (indent.length() >= INDENT(converter).length())
 			{
 				// not in comment mode
 				if (IS_PARSING(converter))
 				{
-					// probably a property
-					converter.property = true;
+					// has meaningfull chars
+					if (hasCharData(sass))
+					{
+						// is probably a property
+						// also true for selectors
+						converter.property = true;
+					}
 				}
 			}
 			// current line has more indentation
@@ -275,12 +316,16 @@ namespace Sass
 				// not in comment mode
 				if (IS_PARSING(converter))
 				{
-					// print block opener
-					scss += opener(converter);
-					// push new stack context
-					converter.indents.push("");
-					// store block indentation
-					INDENT(converter) = indent;
+					// had meaningfull chars
+					if (converter.property)
+					{
+						// print block opener
+						scss += opener(converter);
+						// push new stack context
+						converter.indents.push("");
+						// store block indentation
+						INDENT(converter) = indent;
+					}
 				}
 				// is and will be a src comment
 				else if (!IS_CSS_COMMENT(converter))
@@ -315,7 +360,6 @@ namespace Sass
 				}
 				// set comment flag
 				converter.comment = open;
-
 
 			}
 
