@@ -212,8 +212,10 @@ namespace Sass
 			}
 
 			// replace some specific sass shorthand directives
-			else if (sass.substr(pos_left, 1) == "=") { sass = indent + "@mixin " + sass.substr(pos_left + 1); }
-			else if (sass.substr(pos_left, 1) == "+") { sass = indent + "@include " + sass.substr(pos_left + 1); }
+			else if (sass.substr(pos_left, 1) == "=" && sass.find_first_of(" \t\n\v\f\r", pos_left) != pos_left + 1)
+			{ sass = indent + "@mixin " + sass.substr(pos_left + 1); }
+			else if (sass.substr(pos_left, 1) == "+" && sass.find_first_of(" \t\n\v\f\r", pos_left) != pos_left + 1)
+			{ sass = indent + "@include " + sass.substr(pos_left + 1); }
 
 			// add quotes for import if needed
 			else if (sass.substr(pos_left, 7) == "@import")
