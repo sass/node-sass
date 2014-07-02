@@ -235,8 +235,10 @@ namespace Sass
 				}
 
 			}
-			else if (sass.substr(pos_left, 8) != "@content")
-			{
+			else if (
+				sass.substr(pos_left, 7) != "@return" &&
+				sass.substr(pos_left, 8) != "@content"
+			) {
 
 				// try to find a colon in the current line, but only ...
 				size_t pos_colon = sass.find_first_not_of(":", pos_left);
