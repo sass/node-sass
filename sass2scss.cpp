@@ -94,6 +94,58 @@ namespace Sass
 	}
 	// EO hasCharData
 
+	// find src comment opener
+	// correctly skips quoted strings
+	static size_t findCommentOpener (string& sass)
+	{
+
+		size_t col_pos = 0;
+		bool quoted = false;
+
+		while (col_pos != string::npos)
+		{
+
+			// process all interesting chars
+			col_pos = sass.find_first_of("\"/\\", col_pos);
+
+			// assertion for valid result
+			if (col_pos != string::npos)
+			{
+
+				if (sass[col_pos] == '\"')
+				{
+					// invert quote bool
+					quoted = !quoted;
+				}
+				else if (sass[col_pos] == '\\')
+				{
+					// skip next char if in quote
+					if (quoted) col_pos ++;
+				}
+				// this might be a comment opener
+				else if (sass[col_pos] == '/')
+				{
+					// next needs to be a slash too
+					if (sass[col_pos + 1] == '/')
+					{
+						// only found if not in quote
+						if (!quoted) return col_pos;
+					}
+				}
+
+				// skip char
+				col_pos ++;
+
+			}
+
+		}
+		// EO while
+
+		return col_pos;
+
+	}
+	// EO findCommentOpener
+
 	// flush whitespace and print additional text, but
 	// only print additional chars and buffer whitespace
 	string flush (string& sass, converter& converter)
@@ -115,6 +167,24 @@ namespace Sass
 		// get the linefeeds from the string
 		string lfs = sass.substr(pos_right + 1);
 		sass = sass.substr(0, pos_right + 1);
+
+		// find some source comment opener
+		size_t comment_pos = findCommentOpener(sass);
+		// check if there was a source comment
+		if (comment_pos != string::npos)
+		{
+			// not at line start
+			if (comment_pos > 0)
+			{
+				// also include whitespace before the actual comment opener
+				size_t ws_pos = sass.find_last_not_of(" \t\n\v\f\r", comment_pos - 1);
+				comment_pos = ws_pos == string::npos ? 0 : ws_pos + 1;
+			}
+			// add comment node to the whitespace
+			converter.whitespace += sass.substr(comment_pos);
+			// update the actual sass code
+			sass = sass.substr(0, comment_pos);
+		}
 
 		// add newline as getline discharged it
 		converter.whitespace += lfs + "\n";
@@ -181,7 +251,8 @@ namespace Sass
 				{
 					// add a newline to avoid closer on same line
 					// this would put the bracket in the comment node
-					if (KEEP_COMMENT(converter)) scss += "\n";
+					// no longer needed since we parse them correctly
+					// if (KEEP_COMMENT(converter)) scss += "\n";
 				}
 				// close css properties
 				else if (converter.property)
