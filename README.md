@@ -27,4 +27,6 @@ sass2scss [options] < file.sass
 -c, --convert      convert src comments
 -s, --strip        strip all comments
 -k, --keep         keep all comments
+-h, --help         help text
+-v, --version      version information
 ```

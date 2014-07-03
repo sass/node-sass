@@ -51,7 +51,14 @@ int main (int argc, char** argv)
 		// Items for printing output and exit
 		else if (arg == "-h" || arg == "--help")
 		{
-			cout << "I heard you like Help..." << endl;
+			cout << "sass2scss [options] < file.sass" << endl;
+			cout << "---------" << endl;
+			cout << "-p, --pretty       pretty print output" << endl;
+			cout << "-c, --convert      convert src comments" << endl;
+			cout << "-s, --strip        strip all comments" << endl;
+			cout << "-k, --keep         keep all comments" << endl;
+			cout << "-h, --help         help text" << endl;
+			cout << "-v, --version      version information" << endl;
 			exit(0);
 		}
 		else if (arg == "-v" || arg == "--version")
