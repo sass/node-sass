@@ -1,6 +1,8 @@
 sass2scss
 =========
 
+[![Build Status](https://travis-ci.org/mgreter/sass2scss.svg?branch=master)](https://travis-ci.org/mgreter/sass2scss)
+
 It may just work or is probably horribly broken!
 
 C++ port of https://github.com/mgreter/OCBNET-CSS3/blob/master/bin/sass2scss.
@@ -12,8 +14,6 @@ http://sass-lang.com/documentation/file.INDENTED_SYNTAX.html. The scripts reads 
 and writes to STDOUT, so you should be able to pipe sass files to scss processors.
 
 Added some unit tests for sass2scss to https://github.com/mgreter/CSS-Sass.
-
-
 
 Options
 =======
