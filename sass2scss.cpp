@@ -58,6 +58,91 @@ namespace Sass
 		       "\n" + INDENT(converter) + "{";
 	}
 
+	// check if the given string is a pseudo selector
+	// needed to differentiate from sass property syntax
+	static bool isPseudoSelector (string& sel)
+	{
+
+		size_t len = sel.length();
+		if (len < 1) return false;
+		size_t pos = sel.find_first_not_of("abcdefghijklmnopqrstuvwxyz-ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1);
+		if (pos != string::npos) sel.erase(pos, string::npos);
+		size_t i = sel.length();
+		while (i -- > 0) { sel.at(i) = tolower(sel.at(i)); }
+
+		// CSS Level 1 - Recommendation
+		if (sel == ":link") return true;
+		if (sel == ":visited") return true;
+		if (sel == ":active") return true;
+
+		// CSS Level 2 (Revision 1) - Recommendation
+		if (sel == ":lang") return true;
+		if (sel == ":first-child") return true;
+		if (sel == ":hover") return true;
+		if (sel == ":focus") return true;
+		if (sel == ":left") return true;
+		if (sel == ":right") return true;
+		if (sel == ":first") return true;
+
+		// Selectors Level 3 - Recommendation
+		if (sel == ":target") return true;
+		if (sel == ":root") return true;
+		if (sel == ":nth-child") return true;
+		if (sel == ":nth-last-of-child") return true;
+		if (sel == ":nth-of-type") return true;
+		if (sel == ":nth-last-of-type") return true;
+		if (sel == ":last-child") return true;
+		if (sel == ":first-of-type") return true;
+		if (sel == ":last-of-type") return true;
+		if (sel == ":only-child") return true;
+		if (sel == ":only-of-type") return true;
+		if (sel == ":empty") return true;
+		if (sel == ":not") return true;
+
+		// CSS Basic User Interface Module Level 3 - Working Draft
+		if (sel == ":default") return true;
+		if (sel == ":valid") return true;
+		if (sel == ":invalid") return true;
+		if (sel == ":in-range") return true;
+		if (sel == ":out-of-range") return true;
+		if (sel == ":required") return true;
+		if (sel == ":optional") return true;
+		if (sel == ":read-only") return true;
+		if (sel == ":read-write") return true;
+		if (sel == ":dir") return true;
+		if (sel == ":enabled") return true;
+		if (sel == ":disabled") return true;
+		if (sel == ":checked") return true;
+		if (sel == ":indeterminate") return true;
+		if (sel == ":nth-last-child") return true;
+
+		// Selectors Level 4 - Working Draft
+		if (sel == ":any-link") return true;
+		if (sel == ":local-link") return true;
+		if (sel == ":scope") return true;
+		if (sel == ":active-drop-target") return true;
+		if (sel == ":valid-drop-target") return true;
+		if (sel == ":invalid-drop-target") return true;
+		if (sel == ":current") return true;
+		if (sel == ":past") return true;
+		if (sel == ":future") return true;
+		if (sel == ":placeholder-shown") return true;
+		if (sel == ":user-error") return true;
+		if (sel == ":blank") return true;
+		if (sel == ":nth-match") return true;
+		if (sel == ":nth-last-match") return true;
+		if (sel == ":nth-column") return true;
+		if (sel == ":nth-last-column") return true;
+		if (sel == ":matches") return true;
+
+		// Fullscreen API - Living Standard
+		if (sel == ":fullscreen") return true;
+
+		// not a pseudo selector
+		return false;
+
+	}
+
 	// check if there is some char data
 	// will ignore everything in comments
 	static bool hasCharData (string& sass)
@@ -411,33 +496,42 @@ namespace Sass
 			converter.selector = false;
 
 			// check if we have sass property syntax
-			if (sass.substr(pos_left, 1) == ":")
+			if (sass.substr(pos_left, 1) == ":" && sass.substr(pos_left, 2) != "::")
 			{
+
+				// default to a selector
+				// change back if property found
+				converter.selector = true;
 				// get postion of first whitespace char
 				size_t pos_wspace = sass.find_first_of(" \t\n\v\f\r", pos_left);
 				// assertion check for valid result
 				if (pos_wspace != string::npos)
 				{
-					// get position of the first real property value char
-					// pseudo selectors get this far, but have no actual value
-					size_t pos_value =  sass.find_first_not_of(" \t\n\v\f\r", pos_wspace);
-					// assertion check for valid result
-					if (pos_value != string::npos)
+					// get the possible pseudo selector
+					string pseudo = sass.substr(pos_left, pos_wspace - pos_left);
+					// only process if not a pseudo selector
+					if (!isPseudoSelector(pseudo))
 					{
-						// create new string by interchanging the colon sign for property and value
-						sass = indent + sass.substr(pos_left + 1, pos_wspace - pos_left - 1) + ":" + sass.substr(pos_wspace);
+						// get position of the first real property value char
+						// pseudo selectors get this far, but have no actual value
+						size_t pos_value =  sass.find_first_not_of(" \t\n\v\f\r", pos_wspace);
+						// assertion check for valid result
+						if (pos_value != string::npos)
+						{
+							// create new string by interchanging the colon sign for property and value
+							sass = indent + sass.substr(pos_left + 1, pos_wspace - pos_left - 1) + ":" + sass.substr(pos_wspace);
+							// try to find a colon in the current line, but only ...
+							size_t pos_colon = sass.find_first_not_of(":", pos_left);
+							// assertion for valid result
+							if (pos_colon != string::npos)
+							{
+								// ... after the first word (skip begining colons)
+								pos_colon = sass.find_first_of(":", pos_colon);
+								// it is a selector if there was no colon found
+								converter.selector = pos_colon == string::npos;
+							}
+						}
 					}
-				}
-
-				// try to find a colon in the current line, but only ...
-				size_t pos_colon = sass.find_first_not_of(":", pos_left);
-				// assertion for valid result
-				if (pos_colon != string::npos)
-				{
-					// ... after the first word (skip begining colons)
-					pos_colon = sass.find_first_of(":", pos_colon);
-					// it is a selector if there was no colon found
-					converter.selector = pos_colon == string::npos;
 				}
 
 			}
