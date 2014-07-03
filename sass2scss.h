@@ -12,6 +12,7 @@ using namespace std;
 // add namespace for c++
 namespace Sass
 {
+	const string SASS2SCSS_VERSION = "v0.0.0";
 
 	// pretty print options
 	const int SASS2SCSS_PRETTIFY_0 = 0;
