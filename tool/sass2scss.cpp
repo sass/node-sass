@@ -26,18 +26,46 @@ int main (int argc, char** argv)
 	// process command line arguments
 	for (int i = 1; i < argc; ++i)
 	{
+		string arg = string(argv[i]);
+
 		// handle prettyfying option
-		if ("-p" == string(argv[i])) pretty ++;
-		else if ("--pretty" == string(argv[i])) pretty ++;
+		if (arg == "-p" || arg == "--pretty")
+		{
+			pretty ++;
+		}
+
 		// handle other bitwise options (comment related)
-		else if ("-k" == string(argv[i])) options |= SASS2SCSS_KEEP_COMMENT;
-		else if ("--keep" == string(argv[i])) options |= SASS2SCSS_KEEP_COMMENT;
-		else if ("-s" == string(argv[i])) options |= SASS2SCSS_STRIP_COMMENT;
-		else if ("--strip" == string(argv[i])) options |= SASS2SCSS_STRIP_COMMENT;
-		else if ("-c" == string(argv[i])) options |= SASS2SCSS_CONVERT_COMMENT;
-		else if ("--convert" == string(argv[i])) options |= SASS2SCSS_CONVERT_COMMENT;
+		else if (arg == "-k" || arg == "--keep")
+		{
+			options |= SASS2SCSS_KEEP_COMMENT;
+		}
+		else if (arg == "-s" || arg == "--strip")
+		{
+			options |= SASS2SCSS_STRIP_COMMENT;
+		}
+		else if (arg == "-c" || arg == "--convert")
+		{
+			options |= SASS2SCSS_CONVERT_COMMENT;
+		}
+
+		// Items for printing output and exit
+		else if (arg == "-h" || arg == "--help")
+		{
+			cout << "I heard you like Help..." << endl;
+			exit(0);
+		}
+		else if (arg == "-v" || arg == "--version")
+		{
+			cout << "v0.0.0" << endl;
+			exit(0);
+		}
+
 		// error out with a generic error message (keep it simple for now)
-		else { cerr << "Unknown command line option " << argv[i] << endl; exit(EXIT_FAILURE); }
+		else
+		{
+			cerr << "Unknown command line option " << argv[i] << endl;
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	// declare variable
