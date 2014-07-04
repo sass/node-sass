@@ -1,4 +1,6 @@
 
+GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always)
+
 ifeq ($(OS),Windows_NT)
 	MV ?= move
 	CP ?= copy /Y
@@ -16,10 +18,10 @@ endif
 all: sass2scss
 
 sass2scss.o: sass2scss.cpp
-	g++ -Wall -c sass2scss.cpp
+	g++ -DVERSION="\"$(GIT_VERSION)\"" -Wall -c sass2scss.cpp
 
 sass2scss: sass2scss.o
-	g++ -Wall -o sass2scss -I. tool/sass2scss.cpp sass2scss.o
+	g++ -DVERSION="\"$(GIT_VERSION)\"" -Wall -o sass2scss -I. tool/sass2scss.cpp sass2scss.o
 
 clean:
 	ifeq ($(OS),Windows_NT)

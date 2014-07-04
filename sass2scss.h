@@ -6,13 +6,20 @@
 #include <sstream>
 #include <iostream>
 
+#ifndef VERSION
+#define VERSION "[NA]"
+#endif
+
 // using std::string
 using namespace std;
 
 // add namespace for c++
 namespace Sass
 {
-	const string SASS2SCSS_VERSION = "v0.0.0";
+
+	// define version from arguments
+	// compile with g++ -DVERSION="\"vX.X.X\""
+	const string SASS2SCSS_VERSION = VERSION;
 
 	// pretty print options
 	const int SASS2SCSS_PRETTIFY_0 = 0;
