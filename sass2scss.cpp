@@ -188,18 +188,27 @@ namespace Sass
 		bool apoed = false;
 		bool quoted = false;
 		bool comment = false;
+		size_t brackets = 0;
 
 		while (col_pos != string::npos)
 		{
 
 			// process all interesting chars
-			col_pos = sass.find_first_of("\"\'/\\*", col_pos);
+			col_pos = sass.find_first_of("\"\'/\\*\(\)", col_pos);
 
 			// assertion for valid result
 			if (col_pos != string::npos)
 			{
 
-				if (sass.at(col_pos) == '\"')
+				if (sass.at(col_pos) == '\(')
+				{
+					if (!quoted && !apoed) brackets ++;
+				}
+				else if (sass.at(col_pos) == '\)')
+				{
+					if (!quoted && !apoed) brackets --;
+				}
+				else if (sass.at(col_pos) == '\"')
 				{
 					// invert quote bool
 					if (!apoed && !comment) quoted = !quoted;
@@ -218,12 +227,8 @@ namespace Sass
 					// next needs to be a slash too
 					else if (sass.at(col_pos - 1) == '/')
 					{
-						// maybe it looks like a url scheme?
-						if (col_pos < 2 || sass.at(col_pos - 2) != ':')
-						{
-							// only found if not in quote or comment
-							if (!quoted && !apoed && !comment) return col_pos - 1;
-						}
+						// only found if not in single or double quote, bracket or comment
+						if (!quoted && !apoed && !comment && brackets == 0) return col_pos - 1;
 					}
 				}
 				else if (sass.at(col_pos) == '\\')
