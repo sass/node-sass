@@ -194,17 +194,17 @@ namespace Sass
 		{
 
 			// process all interesting chars
-			col_pos = sass.find_first_of("\"\'/\\*\(\)", col_pos);
+			col_pos = sass.find_first_of("\"\'/\\*()", col_pos);
 
 			// assertion for valid result
 			if (col_pos != string::npos)
 			{
 
-				if (sass.at(col_pos) == '\(')
+				if (sass.at(col_pos) == '(')
 				{
 					if (!quoted && !apoed) brackets ++;
 				}
-				else if (sass.at(col_pos) == '\)')
+				else if (sass.at(col_pos) == ')')
 				{
 					if (!quoted && !apoed) brackets --;
 				}
