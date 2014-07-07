@@ -7,6 +7,7 @@
 #include "to_string.hpp"
 #include "inspect.hpp"
 #include "eval.hpp"
+#include "util.hpp"
 #include "utf8_string.hpp"
 
 #include <cstdlib>
@@ -27,7 +28,7 @@ namespace Sass {
   {
     Parser sig_parser = Parser::from_c_str(sig, ctx, "[built-in function]");
     sig_parser.lex<Prelexer::identifier>();
-    string name(sig_parser.lexed);
+    string name(Util::normalize_underscores(sig_parser.lexed));
     Parameters* params = sig_parser.parse_parameters();
     return new (ctx.mem) Definition("[built-in function]",
                                     Position(),
@@ -42,7 +43,7 @@ namespace Sass {
   {
     Parser sig_parser = Parser::from_c_str(sig, ctx, "[c function]");
     sig_parser.lex<Prelexer::identifier>();
-    string name(sig_parser.lexed);
+    string name(Util::normalize_underscores(sig_parser.lexed));
     Parameters* params = sig_parser.parse_parameters();
     return new (ctx.mem) Definition("[c function]",
                                     Position(),
