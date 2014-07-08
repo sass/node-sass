@@ -1358,7 +1358,7 @@ namespace Sass {
     lex< for_directive >();
     Position for_source_position = source_position;
     if (!lex< variable >()) error("@for directive requires an iteration variable");
-    string var(lexed);
+    string var(Util::normalize_underscores(lexed));
     if (!lex< from >()) error("expected 'from' keyword in @for directive");
     Expression* lower_bound = parse_expression();
     lower_bound->is_delayed(false);
@@ -1378,7 +1378,7 @@ namespace Sass {
     lex < each_directive >();
     Position each_source_position = source_position;
     if (!lex< variable >()) error("@each directive requires an iteration variable");
-    string var(lexed);
+    string var(Util::normalize_underscores(lexed));
     if (!lex< in >()) error("expected 'in' keyword in @each directive");
     Expression* list = parse_list();
     list->is_delayed(false);
