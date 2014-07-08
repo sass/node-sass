@@ -1,4 +1,5 @@
 #include <cctype>
+#include <cstddef>
 #include <iostream>
 #include "constants.hpp"
 #include "prelexer.hpp"
@@ -8,7 +9,7 @@ namespace Sass {
   using namespace Constants;
 
   namespace Prelexer {
-    using std::cerr; using std::endl;
+    using std::ptrdiff_t;
     // Matches zero characters (always succeeds without consuming input).
     const char* epsilon(char *src) {
       return src;
@@ -53,12 +54,72 @@ namespace Sass {
     const char* comment(const char* src) {
       return alternatives<block_comment, line_comment>(src);
     }
+
+    const char* newline(const char* src) {
+      return
+      alternatives<
+        exactly<'\n'>,
+        sequence< exactly<'\r'>, exactly<'\n'> >,
+        exactly<'\r'>,
+        exactly<'\f'>
+      >(src);
+    }
+
+    const char* whitespace(const char* src) {
+      return
+      alternatives<
+        newline,
+        exactly<' '>,
+        exactly<'\t'>
+      >(src);
+    }
+
+    const char* escape(const char* src) {
+      return
+      sequence<
+        exactly<'\\'>,
+        any_char
+      >(src);
+    }
+
     // Match double- and single-quoted strings.
     const char* double_quoted_string(const char* src) {
-      return delimited_by<'"', '"', true>(src);
+      src = exactly<'"'>(src);
+      if (!src) return 0;
+      const char* p;
+      while (1) {
+        if (!*src) return 0;
+        if((p = escape(src))) {
+          src = p;
+          continue;
+        } 
+        else if((p = exactly<'"'>(src))) {
+          return p;
+        }
+        else {
+          ++src;
+        }
+      }
+      return 0;
     }
     const char* single_quoted_string(const char* src) {
-      return delimited_by<'\'', '\'', true>(src);
+      src = exactly<'\''>(src);
+      if (!src) return 0;
+      const char* p;
+      while (1) {
+        if (!*src) return 0;
+        if((p = escape(src))) {
+          src = p;
+          continue;
+        } 
+        else if((p = exactly<'\''>(src))) {
+          return p;
+        }
+        else {
+          ++src;
+        }
+      }
+      return 0;
     }
     const char* string_constant(const char* src) {
       return alternatives<double_quoted_string, single_quoted_string>(src);
@@ -305,7 +366,7 @@ namespace Sass {
     }
     const char* hex(const char* src) {
       const char* p = sequence< exactly<'#'>, one_plus<xdigit> >(src);
-      int len = p - src;
+      ptrdiff_t len = p - src;
       return (len != 4 && len != 7) ? 0 : p;
     }
 
@@ -345,6 +406,12 @@ namespace Sass {
       return sequence< exactly<'!'>,
                        spaces_and_comments,
                        exactly<default_kwd> >(src);
+    }
+    // Match Sass "!global" keyword.
+    const char* global_flag(const char* src) {
+      return sequence< exactly<'!'>,
+                       spaces_and_comments,
+                       exactly<global_kwd> >(src);
     }
     // Match CSS pseudo-class/element prefixes.
     const char* pseudo_prefix(const char* src) {

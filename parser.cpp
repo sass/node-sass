@@ -272,7 +272,8 @@ namespace Sass {
     Expression* val = parse_list();
     val->is_delayed(false);
     bool is_guarded = lex< default_flag >();
-    Assignment* var = new (ctx.mem) Assignment(path, var_source_position, name, val, is_guarded);
+    bool is_global = lex< global_flag >();
+    Assignment* var = new (ctx.mem) Assignment(path, var_source_position, name, val, is_guarded, is_global);
     return var;
   }
 
@@ -795,7 +796,8 @@ namespace Sass {
         peek< exactly<','> >(position) ||
         // peek< exactly<':'> >(position) ||
         peek< exactly<ellipsis> >(position) ||
-        peek< default_flag >(position))
+        peek< default_flag >(position) ||
+        peek< global_flag >(position))
     { return disj1; }
 
     List* space_list = new (ctx.mem) List(path, source_position, 2, List::SPACE);
@@ -809,7 +811,8 @@ namespace Sass {
              peek< exactly<','> >(position) ||
              // peek< exactly<':'> >(position) ||
              peek< exactly<ellipsis> >(position) ||
-             peek< default_flag >(position)))
+             peek< default_flag >(position) ||
+             peek< global_flag >(position)))
     {
       (*space_list) << parse_disjunction();
     }
@@ -874,7 +877,8 @@ namespace Sass {
     Expression* term1 = parse_term();
     // if it's a singleton, return it directly; don't wrap it
     if (!(peek< exactly<'+'> >(position) ||
-          peek< sequence< negate< number >, exactly<'-'> > >(position)))
+          peek< sequence< negate< number >, exactly<'-'> > >(position)) ||
+          peek< identifier >(position))
     { return term1; }
 
     vector<Expression*> operands;

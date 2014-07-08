@@ -42,7 +42,7 @@ namespace Sass {
     // make sure they aren't output.
     // TODO: investigate why I decided to duplicate this logic in the extend visitor
     Selector_List* sl = static_cast<Selector_List*>(s);
-    if (!ctx->extensions.size()) {
+    if (ctx->extensions.empty()) {
       Selector_List* new_sl = new (ctx->mem) Selector_List(sl->path(), sl->position());
       for (size_t i = 0, L = sl->length(); i < L; ++i) {
         if (!(*sl)[i]->has_placeholder()) {

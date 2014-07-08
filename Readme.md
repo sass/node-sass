@@ -3,14 +3,14 @@ Libsass
 
 by Aaron Leung ([@akhleung]) and Hampton Catlin ([@hcatlin])
 
-[![Build Status](https://travis-ci.org/hcatlin/libsass.png?branch=master)](https://travis-ci.org/hcatlin/libsass)
+[![Build Status](https://travis-ci.org/sass/libsass.png?branch=master)](https://travis-ci.org/sass/libsass) [![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=283068)](https://www.bountysource.com/trackers/283068-libsass?utm_source=283068&utm_medium=shield&utm_campaign=TRACKER_BADGE)
 
-http://github.com/sass/libsass
+https://github.com/sass/libsass
 
 Libsass is just a library, but if you want to RUN libsass,
-then go to http://github.com/hcatlin/sassc or
-http://github.com/hcatlin/sassruby or
-[find your local implementer](https://github.com/hcatlin/libsass/wiki/Implementations).
+then go to https://github.com/sass/sassc or
+https://github.com/sass/ruby-libsass or
+[find your local implementer](https://github.com/sass/libsass/wiki/Implementations).
 
 About
 -----
@@ -36,7 +36,7 @@ We even run Travis tests for SassC!
 Tests
 -------
 
-Since libsass is a pure library, tests are run through the [SassSpec](http://github.com/hcatlin/sass-spec) project using the [SassC](http://github.com/hcatlin/sassc) driver.
+Since libsass is a pure library, tests are run through the [SassSpec](https://github.com/sass/sass-spec) project using the [SassC](http://github.com/sass/sassc) driver.
 
 To run tests against libsass while developing, you can run `./script/spec`. This will clone SassC and Sass-Spec under the project folder and then run the Sass-Spec test suite. You may want to update the clones to ensure you have the latest version.
 
@@ -106,9 +106,9 @@ remains totally free (liberal, like).
 
 Our MIT license is designed to be as simple, and liberal as possible.
 
-[@hcatlin]: http://github.com/hcatlin
-[@akhleung]: http://github.com/akhleung
-[@chriseppstein]: http://github.com/chriseppstein
-[@nex3]: http://github.com/nex3
+[@hcatlin]: https://github.com/hcatlin
+[@akhleung]: https://github.com/akhleung
+[@chriseppstein]: https://github.com/chriseppstein
+[@nex3]: https://github.com/nex3
 
 [sass_interface.h]: sass_interface.h

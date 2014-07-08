@@ -26,10 +26,13 @@ libsass_la_SOURCES = \
 	prelexer.cpp \
 	sass.cpp \
 	sass_interface.cpp \
+	sass2scss/sass2scss.cpp \
 	source_map.cpp \
 	to_c.cpp \
 	to_string.cpp \
-	units.cpp
+	units.cpp \
+	utf8_string.cpp \
+	util.cpp
 
 libsass_la_LDFLAGS = -no-undefined -version-info 0:0:0
 
