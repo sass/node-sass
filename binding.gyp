@@ -29,6 +29,7 @@
         'libsass/to_c.cpp',
         'libsass/to_string.cpp',
         'libsass/units.cpp',
+        'libsass/util.cpp',
         'libsass/utf8_string.cpp',
         'libsass/sass2scss/sass2scss.cpp'
       ],
