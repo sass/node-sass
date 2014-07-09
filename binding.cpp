@@ -51,6 +51,7 @@ void ExtractOptions(Local<Value> optionsValue, void* cptr, sass_context_wrapper*
     ctx->options.output_style = options->Get(NanNew("style"))->Int32Value();
     ctx->options.source_comments = source_comments = options->Get(NanNew("comments"))->Int32Value();
     ctx->options.include_paths = CreateString(options->Get(NanNew("paths")));
+    ctx->options.import_once =  options->Get(NanNew("importOnce"))->Int32Value();
     if (source_comments == SASS_SOURCE_COMMENTS_MAP) {
       ctx->source_map_file = CreateString(options->Get(NanNew("sourceMap")));
     }
