@@ -6,6 +6,7 @@ var SCSS_TEST_DIR = path.resolve(__dirname, 'smore_specific');
 
 var includedFilesFile = path.resolve(SCSS_TEST_DIR, 'test_included_files.scss');
 var importOnceFile = path.resolve(SCSS_TEST_DIR, 'test_import_once.scss');
+var relativeAbsolutesFile = path.resolve(SCSS_TEST_DIR, 'relative_absolutes', 'test_relative_absolutes.scss');
 
 
 describe('Smore specific Scss addons', function () {
@@ -39,12 +40,15 @@ describe('Smore specific Scss addons', function () {
 
     it('Should include files only once if the importOnce flag was specified', function (done) {
 
+        var expected = 'body {\n  color: #aaa; }\n';
+
         sass.render({
             file: importOnceFile,
             importOnce: true,
             success: function (css) {
 
-                assert.equal(css, 'body {\n  color: #aaa; }\n');
+
+                assert.equal(css, expected);
 
                 done();
             },
@@ -56,5 +60,23 @@ describe('Smore specific Scss addons', function () {
 
     });
 
-    it('Should use absolute paths relatively to the included folders');
+    it('Should use absolute paths relatively to the included folders', function (done) {
+
+        var expected = 'body {\n  color: #aaa; }\n\nbody {\n  font-size: 12px; }\n';
+
+        sass.render({
+            file: relativeAbsolutesFile,
+            includePaths: [SCSS_TEST_DIR],
+            success: function (css) {
+
+
+                assert.equal(css, expected);
+
+                done();
+            },
+            error: function (error) {
+                done(error);
+            }
+        });
+    });
 });
