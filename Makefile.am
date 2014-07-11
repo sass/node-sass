@@ -27,6 +27,7 @@ libsass_la_SOURCES = \
 	functions.cpp \
 	inspect.cpp \
 	node.cpp \
+	json.cpp \
 	output_compressed.cpp \
 	output_nested.cpp \
 	parser.cpp \
