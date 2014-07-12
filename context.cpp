@@ -43,23 +43,24 @@ namespace Sass {
 
   Context::Context(Context::Data initializers)
   : mem(Memory_Manager<AST_Node>()),
-    source_c_str    (initializers.source_c_str()),
-    sources         (vector<const char*>()),
-    include_paths   (initializers.include_paths()),
-    queue           (vector<pair<string, const char*> >()),
-    style_sheets    (map<string, Block*>()),
-    source_map(File::base_name(initializers.output_path())),
-    c_functions     (vector<Sass_C_Function_Descriptor>()),
-    image_path      (initializers.image_path()),
-    source_comments (initializers.source_comments()),
-    source_maps     (initializers.source_maps()),
-    output_style    (initializers.output_style()),
-    source_map_file (initializers.source_map_file()),
-    names_to_colors (map<string, Color*>()),
-    colors_to_names (map<int, string>()),
-    precision       (initializers.precision()),
-    extensions(multimap<Compound_Selector, Complex_Selector*>()),
-    subset_map(Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >())
+    source_c_str         (initializers.source_c_str()),
+    sources              (vector<const char*>()),
+    include_paths        (initializers.include_paths()),
+    queue                (vector<pair<string, const char*> >()),
+    style_sheets         (map<string, Block*>()),
+    source_map           (File::base_name(initializers.output_path())),
+    c_functions          (vector<Sass_C_Function_Descriptor>()),
+    image_path           (initializers.image_path()),
+    source_comments      (initializers.source_comments()),
+    source_maps          (initializers.source_maps()),
+    output_style         (initializers.output_style()),
+    source_map_file      (initializers.source_map_file()),
+    omit_source_map_url  (initializers.omit_source_map_url()),
+    names_to_colors      (map<string, Color*>()),
+    colors_to_names      (map<int, string>()),
+    precision            (initializers.precision()),
+    extensions           (multimap<Compound_Selector, Complex_Selector*>()),
+    subset_map           (Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >())
   {
     cwd = get_cwd();
 
@@ -233,7 +234,7 @@ namespace Sass {
         Output_Compressed output_compressed(this);
         root->perform(&output_compressed);
         string output = output_compressed.get_buffer();
-        if (source_maps) output += format_source_mapping_url(source_map_file);
+        if (!omit_source_map_url) output += format_source_mapping_url(source_map_file);
         result = copy_c_str(output.c_str());
       } break;
 
@@ -241,7 +242,7 @@ namespace Sass {
         Output_Nested output_nested(source_comments, this);
         root->perform(&output_nested);
         string output = output_nested.get_buffer();
-        if (source_maps) output += "\n" + format_source_mapping_url(source_map_file);
+        if (!omit_source_map_url) output += "\n" + format_source_mapping_url(source_map_file);
         result = copy_c_str(output.c_str());
 
       } break;
