@@ -20,6 +20,9 @@ void WorkOnContext(uv_work_t* req) {
 }
 
 char* CreateString(Local<Value> value) {
+  if(value->IsNull() || !value->IsString()) {
+    return const_cast<char*>(""); // return empty string.
+  }
   size_t count;
   return NanCString(value, &count);
 }
