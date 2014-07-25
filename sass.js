@@ -5,7 +5,8 @@ var assign = require('object-assign');
 function requireBinding() {
   var v8 = 'v8-' + /[0-9]+\.[0-9]+/.exec(process.versions.v8)[0];
   var candidates = [
-    [__dirname, 'build', 'Release', 'obj.target', 'binding.node'],
+    [__dirname, 'build', 'Release', 'binding.node'],
+    [__dirname, 'build', 'Debug', 'binding.node'],
     [__dirname, 'bin', process.platform + '-' + process.arch + '-' + v8, 'binding.node']
   ];
   var candidate;
@@ -42,6 +43,7 @@ var prepareOptions = function (options) {
   var error;
   var stats;
   var sourceComments;
+  var sourceMap;
 
   options = options || {};
   success = options.success;
@@ -52,6 +54,11 @@ var prepareOptions = function (options) {
   if (options.sourceMap && !sourceComments) {
     sourceComments = 'map';
   }
+  sourceMap = options.sourceMap;
+  if (typeof sourceMap !== 'string' && sourceComments === 'map') {
+    sourceMap = '';
+  }
+
   prepareStats(options, stats);
 
   return {
@@ -63,7 +70,7 @@ var prepareOptions = function (options) {
     style: SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0,
     comments: SASS_SOURCE_COMMENTS[sourceComments] || 0,
     stats: stats,
-    sourceMap: options.sourceMap,
+    sourceMap: sourceMap,
     precision: parseInt(options.precision) || 5,
     success: function onSuccess(css, sourceMap) {
       finishStats(stats, sourceMap);
