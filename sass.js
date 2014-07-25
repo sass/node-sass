@@ -5,7 +5,8 @@ var assign = require('object-assign');
 function requireBinding() {
   var v8 = 'v8-' + /[0-9]+\.[0-9]+/.exec(process.versions.v8)[0];
   var candidates = [
-    [__dirname, 'build', 'Release', 'obj.target', 'binding.node'],
+    [__dirname, 'build', 'Release', 'binding.node'],
+    [__dirname, 'build', 'Debug', 'binding.node'],
     [__dirname, 'bin', process.platform + '-' + process.arch + '-' + v8, 'binding.node']
   ];
   var candidate;
