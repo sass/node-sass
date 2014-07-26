@@ -51,7 +51,8 @@
           'msvs_settings': {
             'VCCLCompilerTool': {
               'AdditionalOptions': [
-                '/GR'
+                '/GR',
+                '/EHsc'
               ]
             }
           }
