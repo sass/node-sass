@@ -156,12 +156,10 @@ namespace Sass {
           }
         }
       }
-      string extension;
-      if (real_path.length() > 5) {
-        extension = real_path.substr(real_path.length() - 5, 5);
-      }
-      for(size_t i=0; i<extension.size();++i)
-        extension[i] = tolower(extension[i]);
+#ifdef _WIN32
+      // convert Windows backslashes to URL forward slashes
+      replace(real_path.begin(), real_path.end(), '\\', '/');
+#endif
       return contents;
     }
 
