@@ -93,12 +93,18 @@ extern "C" {
         source_maps = true;
         source_map_file = c_ctx->source_map_file;
       }
-      string output_path = c_ctx->output_path ? c_ctx->output_path : "";
+      string input_path = c_ctx->input_path ? c_ctx->input_path : "";
+      int lastindex = input_path.find_last_of(".");
+      string output_path;
+      if (!c_ctx->output_path) {
+          output_path = (lastindex > -1 ? input_path.substr(0, lastindex) : input_path) + ".css";
+      }
+      else {
+          output_path = c_ctx->output_path;
+      }
       Context cpp_ctx(
         Context::Data().source_c_str(c_ctx->source_string)
-                       .entry_point(c_ctx->input_path ?
-                                    c_ctx->input_path :
-                                    "")
+                       .entry_point(input_path)
                        .output_path(output_path)
                        .output_style((Output_Style) c_ctx->options.output_style)
                        .source_comments(c_ctx->options.source_comments == SASS_SOURCE_COMMENTS_DEFAULT)
@@ -157,11 +163,17 @@ extern "C" {
         source_maps = true;
         source_map_file = c_ctx->source_map_file;
       }
-      string output_path = c_ctx->output_path ? c_ctx->output_path : "";
+      string input_path = c_ctx->input_path ? c_ctx->input_path : "";
+      int lastindex = input_path.find_last_of(".");
+      string output_path;
+      if (!c_ctx->output_path) {
+          output_path = (lastindex > -1 ? input_path.substr(0, lastindex) : input_path) + ".css";
+      }
+      else {
+          output_path = c_ctx->output_path;
+      }
       Context cpp_ctx(
-        Context::Data().entry_point(c_ctx->input_path ?
-                                    c_ctx->input_path :
-                                    "")
+        Context::Data().entry_point(input_path)
                        .output_path(output_path)
                        .output_style((Output_Style) c_ctx->options.output_style)
                        .source_comments(c_ctx->options.source_comments == SASS_SOURCE_COMMENTS_DEFAULT)

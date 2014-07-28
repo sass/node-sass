@@ -82,8 +82,24 @@ namespace Sass {
       return (is_absolute_path(path) ? path : join_paths(cwd, path));
     }
 
-    string resolve_relative_path(const string& uri, const string& base, const string& cwd)
+    string resolve_relative_path(const string& uri, const string& base, const string& cwd, const bool recurse)
     {
+      if (!recurse) {
+        #ifdef _WIN32
+          // Convert all paths to lower case for Windows
+          string uri2(uri);
+          transform(uri.begin(), uri.end(), uri2.begin(), tolower);
+
+          string base2(base);
+          transform(base.begin(), base.end(), base2.begin(), tolower);
+
+          string cwd2(cwd);
+          transform(cwd.begin(), cwd.end(), cwd2.begin(), tolower);
+
+          return resolve_relative_path(uri2, base2, cwd2, true);
+        #endif
+      }
+
       string absolute_uri = make_absolute_path(uri, cwd);
       string absolute_base = make_absolute_path(base, cwd);
 
