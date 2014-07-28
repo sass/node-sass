@@ -1,7 +1,7 @@
 #define SASS_INTERFACE
 
 #include "sass.h"
-
+#include <stdbool.h>
 #include "sass2scss/sass2scss.h"
 
 #ifdef __cplusplus
@@ -32,6 +32,7 @@ struct sass_context {
   char* output_string;
   char* source_map_string;
   const char* source_map_file;
+  bool omit_source_map_url;
   struct sass_options options;
   int error_status;
   char* error_message;
@@ -46,6 +47,7 @@ struct sass_file_context {
   char* output_string;
   char* source_map_string;
   const char* source_map_file;
+  bool omit_source_map_url;
   struct sass_options options;
   int error_status;
   char* error_message;

@@ -53,6 +53,7 @@ namespace Sass {
     bool         source_maps;
     Output_Style output_style;
     string       source_map_file;
+    bool         omit_source_map_url;
 
     map<string, Color*> names_to_colors;
     map<int, string>    colors_to_names;
@@ -71,6 +72,7 @@ namespace Sass {
       KWD_ARG(Data, bool,            source_maps);
       KWD_ARG(Data, Output_Style,    output_style);
       KWD_ARG(Data, string,          source_map_file);
+      KWD_ARG(Data, bool,            omit_source_map_url);
       KWD_ARG(Data, size_t,          precision);
     };
 
