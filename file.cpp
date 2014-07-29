@@ -144,10 +144,24 @@ namespace Sass {
       for (size_t i = index; i < absolute_base.size(); ++i) {
         stripped_base += absolute_base[i];
       }
+
+      size_t left = 0;
       size_t directories = 0;
-      for (size_t i = 0; i < stripped_base.size(); ++i) {
-        if (stripped_base[i] == '/') ++directories;
+      for (size_t right = 0; right < stripped_base.size(); ++right) {
+        if (stripped_base[right] == '/') {
+          if (stripped_base.substr(left, 2) != "..") {
+            ++directories;
+          }
+          else if (directories > 1) {
+            --directories;
+          }
+          else {
+            directories = 0;
+          }
+          left = right + 1;
+        }
       }
+
       string result = "";
       for (size_t i = 0; i < directories; ++i) {
         result += "../";
