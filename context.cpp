@@ -48,7 +48,7 @@ namespace Sass {
     include_paths        (initializers.include_paths()),
     queue                (vector<pair<string, const char*> >()),
     style_sheets         (map<string, Block*>()),
-    source_map           (File::make_canonical_path(initializers.output_path())),
+    source_map           (File::resolve_relative_path(initializers.output_path(), initializers.source_map_file(), get_cwd())),
     c_functions          (vector<Sass_C_Function_Descriptor>()),
     image_path           (File::make_canonical_path(initializers.image_path())),
     output_path          (File::make_canonical_path(initializers.output_path())),
