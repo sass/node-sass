@@ -97,7 +97,9 @@ extern "C" {
       int lastindex = input_path.find_last_of(".");
       string output_path;
       if (!c_ctx->output_path) {
+        if (input_path != "") {
           output_path = (lastindex > -1 ? input_path.substr(0, lastindex) : input_path) + ".css";
+        }
       }
       else {
           output_path = c_ctx->output_path;
