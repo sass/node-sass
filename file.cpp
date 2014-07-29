@@ -2,6 +2,14 @@
 #define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
 #endif
 
+#ifndef FS_CASE_SENSITIVE
+#ifdef _WIN32
+#define FS_CASE_SENSITIVE 0
+#else
+#define FS_CASE_SENSITIVE 1
+#endif
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <cctype>
@@ -82,23 +90,8 @@ namespace Sass {
       return (is_absolute_path(path) ? path : join_paths(cwd, path));
     }
 
-    string resolve_relative_path(const string& uri, const string& base, const string& cwd, const bool recurse)
+    string resolve_relative_path(const string& uri, const string& base, const string& cwd)
     {
-      if (!recurse) {
-        #ifdef _WIN32
-          // Convert all paths to lower case for Windows
-          string uri2(uri);
-          transform(uri.begin(), uri.end(), uri2.begin(), tolower);
-
-          string base2(base);
-          transform(base.begin(), base.end(), base2.begin(), tolower);
-
-          string cwd2(cwd);
-          transform(cwd.begin(), cwd.end(), cwd2.begin(), tolower);
-
-          return resolve_relative_path(uri2, base2, cwd2, true);
-        #endif
-      }
 
       string absolute_uri = make_absolute_path(uri, cwd);
       string absolute_base = make_absolute_path(base, cwd);
@@ -109,7 +102,13 @@ namespace Sass {
       size_t index = 0;
       size_t minSize = min(absolute_uri.size(), absolute_base.size());
       for (size_t i = 0; i < minSize; ++i) {
-        if (absolute_uri[i] != absolute_base[i]) break;
+        #ifdef FS_CASE_SENSITIVE
+          if (absolute_uri[i] != absolute_base[i]) break;
+        #else
+          // compare the charactes in a case insensitive manner
+          // windows fs is only case insensitive in ascii ranges
+          if (tolower(absolute_uri[i]) != tolower(absolute_base[i])) break;
+        #endif
         if (absolute_uri[i] == '/') index = i + 1;
       }
       for (size_t i = index; i < absolute_uri.size(); ++i) {

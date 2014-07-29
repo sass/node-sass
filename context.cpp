@@ -234,7 +234,9 @@ namespace Sass {
         Output_Compressed output_compressed(this);
         root->perform(&output_compressed);
         string output = output_compressed.get_buffer();
-        if (!omit_source_map_url) output += format_source_mapping_url(source_map_file);
+        if (source_map_file != "" && !omit_source_map_url) {
+          output += format_source_mapping_url(source_map_file);
+        }
         result = copy_c_str(output.c_str());
       } break;
 
@@ -242,7 +244,9 @@ namespace Sass {
         Output_Nested output_nested(source_comments, this);
         root->perform(&output_nested);
         string output = output_nested.get_buffer();
-        if (!omit_source_map_url) output += "\n" + format_source_mapping_url(source_map_file);
+        if (source_map_file != "" && !omit_source_map_url) {
+          output += "\n" + format_source_mapping_url(source_map_file);
+        }
         result = copy_c_str(output.c_str());
 
       } break;
