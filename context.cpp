@@ -289,10 +289,11 @@ namespace Sass {
     const size_t wd_len = 1024;
     char wd[wd_len];
     string cwd = getcwd(wd, wd_len);
-    if (cwd[cwd.length() - 1] != '/') cwd += '/';
 #ifdef _WIN32
-    replace(cwd.begin(), cwd.end(), '\\', '/');    //convert Windows backslashes to URL forward slashes
+    //convert backslashes to forward slashes
+    replace(cwd.begin(), cwd.end(), '\\', '/');
 #endif
+    if (cwd[cwd.length() - 1] != '/') cwd += '/';
     return cwd;
   }
 
