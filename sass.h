@@ -24,6 +24,7 @@ struct Sass_Context {
   int          source_comments;
   int          source_maps;
   const char*  image_path;
+  const char*  output_path;
   const char*  include_paths_string;
   const char** include_paths_array;
   int          precision;

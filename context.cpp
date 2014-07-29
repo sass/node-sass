@@ -48,13 +48,14 @@ namespace Sass {
     include_paths        (initializers.include_paths()),
     queue                (vector<pair<string, const char*> >()),
     style_sheets         (map<string, Block*>()),
-    source_map           (File::base_name(initializers.output_path())),
+    source_map           (File::make_canonical_path(initializers.output_path())),
     c_functions          (vector<Sass_C_Function_Descriptor>()),
-    image_path           (initializers.image_path()),
+    image_path           (File::make_canonical_path(initializers.image_path())),
+    output_path          (File::make_canonical_path(initializers.output_path())),
     source_comments      (initializers.source_comments()),
     source_maps          (initializers.source_maps()),
     output_style         (initializers.output_style()),
-    source_map_file      (initializers.source_map_file()),
+    source_map_file      (File::make_canonical_path(initializers.source_map_file())),
     omit_source_map_url  (initializers.omit_source_map_url()),
     names_to_colors      (map<string, Color*>()),
     colors_to_names      (map<int, string>()),
@@ -146,6 +147,7 @@ namespace Sass {
     using namespace File;
     char* contents = 0;
     string real_path;
+    path = make_canonical_path(path);
     for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
       string full_path(join_paths(include_paths[i], path));
       included_files.push_back(full_path);
@@ -168,6 +170,7 @@ namespace Sass {
     using namespace File;
     char* contents = 0;
     string real_path;
+    rel_filepath = make_canonical_path(rel_filepath);
     string full_path(join_paths(dir, rel_filepath));
     if (style_sheets.count(full_path)) return full_path;
     contents = resolve_and_load(full_path, real_path);
@@ -257,7 +260,7 @@ namespace Sass {
 
   string Context::format_source_mapping_url(const string& file) const
   {
-    return "/*# sourceMappingURL=" + File::base_name(file) + " */";
+    return "/*# sourceMappingURL=" + File::resolve_relative_path(file, output_path, cwd) + " */";
   }
 
   char* Context::generate_source_map()
