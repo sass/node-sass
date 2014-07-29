@@ -8,6 +8,7 @@ namespace Sass {
     string dir_name(string);
     string join_paths(string, string);
     bool is_absolute_path(const string& path);
+    string make_canonical_path (string path);
     string make_absolute_path(const string& path, const string& cwd);
     string resolve_relative_path(const string& uri, const string& base, const string& cwd);
     char* resolve_and_load(string path, string& real_path);

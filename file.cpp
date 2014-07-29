@@ -23,6 +23,33 @@ namespace Sass {
   namespace File {
     using namespace std;
 
+    // no physical check on filesystem
+    // only a logical cleanup of a path
+    string make_canonical_path (string path)
+    {
+
+      // declarations
+      size_t pos;
+
+      #ifdef _WIN32
+        //convert backslashes to forward slashes
+        replace(path.begin(), path.end(), '\\', '/');
+      #endif
+
+      pos = 0; // remove all self references inside the path string
+      while((pos = path.find("/./", pos)) != string::npos) path.erase(pos, 2);
+
+      pos = 0; // remove all leading and trailing self references
+      while(path.length() > 1 && path.substr(0, 2) == "./") path.erase(0, 2);
+      while((pos = path.length()) > 1 && path.substr(pos - 2) == "/.") path.erase(pos - 2);
+
+      pos = 0; // collapse multiple delimiters into a single one
+      while((pos = path.find("//", pos)) != string::npos) path.replace(pos, 2, "/");
+
+      return path;
+
+    }
+
     size_t find_last_folder_separator(const string& path, size_t limit = string::npos)
     {
       size_t pos = string::npos;
@@ -87,7 +114,7 @@ namespace Sass {
 
     string make_absolute_path(const string& path, const string& cwd)
     {
-      return (is_absolute_path(path) ? path : join_paths(cwd, path));
+      return make_canonical_path((is_absolute_path(path) ? path : join_paths(cwd, path)));
     }
 
     string resolve_relative_path(const string& uri, const string& base, const string& cwd)
