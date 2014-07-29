@@ -44,7 +44,7 @@ namespace Sass {
       while((pos = path.length()) > 1 && path.substr(pos - 2) == "/.") path.erase(pos - 2);
 
       pos = 0; // collapse multiple delimiters into a single one
-      while((pos = path.find("//", pos)) != string::npos) path.replace(pos, 2, "/");
+      while((pos = path.find("//", pos)) != string::npos) path.erase(pos, 1);
 
       return path;
 
