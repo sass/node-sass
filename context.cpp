@@ -38,6 +38,7 @@
 
 namespace Sass {
   using namespace Constants;
+  using namespace File;
   using std::cerr;
   using std::endl;
 
@@ -48,14 +49,14 @@ namespace Sass {
     include_paths        (initializers.include_paths()),
     queue                (vector<pair<string, const char*> >()),
     style_sheets         (map<string, Block*>()),
-    source_map           (File::resolve_relative_path(initializers.output_path(), initializers.source_map_file(), get_cwd())),
+    source_map           (resolve_relative_path(initializers.output_path(), initializers.source_map_file(), get_cwd())),
     c_functions          (vector<Sass_C_Function_Descriptor>()),
-    image_path           (File::make_canonical_path(initializers.image_path())),
-    output_path          (File::make_canonical_path(initializers.output_path())),
+    image_path           (make_canonical_path(initializers.image_path())),
+    output_path          (make_canonical_path(initializers.output_path())),
     source_comments      (initializers.source_comments()),
     source_maps          (initializers.source_maps()),
     output_style         (initializers.output_style()),
-    source_map_file      (File::make_canonical_path(initializers.source_map_file())),
+    source_map_file      (make_canonical_path(initializers.source_map_file())),
     omit_source_map_url  (initializers.omit_source_map_url()),
     names_to_colors      (map<string, Color*>()),
     colors_to_names      (map<int, string>()),
@@ -260,7 +261,7 @@ namespace Sass {
 
   string Context::format_source_mapping_url(const string& file) const
   {
-    return "/*# sourceMappingURL=" + File::resolve_relative_path(file, output_path, cwd) + " */";
+    return "/*# sourceMappingURL=" + resolve_relative_path(file, output_path, cwd) + " */";
   }
 
   char* Context::generate_source_map()
