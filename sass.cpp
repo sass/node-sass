@@ -51,6 +51,10 @@ extern "C" {
                                                c_ctx->image_path :
                                                "")
 
+                         .output_path         (c_ctx->output_path ?
+                                               c_ctx->output_path :
+                                               "")
+
                          .include_paths_c_str (c_ctx->include_paths_string)
                          .include_paths_array (/*c_ctx->include_paths_array*/0)
                          .include_paths       (vector<string>())

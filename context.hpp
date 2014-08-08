@@ -49,6 +49,7 @@ namespace Sass {
     vector<Sass_C_Function_Descriptor> c_functions;
 
     string       image_path; // for the image-url Sass function
+    string       output_path; // for relative paths to the output
     bool         source_comments;
     bool         source_maps;
     Output_Style output_style;
