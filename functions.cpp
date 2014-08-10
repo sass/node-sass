@@ -809,7 +809,9 @@ namespace Sass {
       string str = s->value();
 
       for (size_t i = 0, L = str.length(); i < L; ++i) {
-        str[i] = std::toupper(str[i]);
+        if (isascii(str[i])) {
+          str[i] = std::toupper(str[i]);
+        }
       }
 
       return new (ctx.mem) String_Constant(path, position, str);
@@ -822,7 +824,9 @@ namespace Sass {
       string str = s->value();
 
       for (size_t i = 0, L = str.length(); i < L; ++i) {
-        str[i] = std::tolower(str[i]);
+        if (isascii(str[i])) {
+          str[i] = std::tolower(str[i]);
+        }
       }
 
       return new (ctx.mem) String_Constant(path, position, str);
