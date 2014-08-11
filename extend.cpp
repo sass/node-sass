@@ -51,9 +51,10 @@ namespace Sass {
       while (cplx) {
         Selector_Placeholder* sp = cplx->find_placeholder();
         if (!sp) {
-            // if there's no placeholder, we don't want to lose the selector, so append
-            // it to ng, so that it will get added to all_subbed. all_subbed becomes the
-            // new selector for this rule set.
+            // After the loop over this rule set's selectors completes, the selectors in
+            // all_subbed will become the new selectors for this rule set. If we get here, there's no
+            // placeholder selector in the current complex selector. We don't want to lose
+            // this selector, so append it to ng, so that it will get added to all_subbed.
             ng = new (ctx.mem) Selector_List(sg->path(), sg->position());
             *ng << cplx;
             break;
