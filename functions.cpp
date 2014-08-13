@@ -359,11 +359,18 @@ namespace Sass {
                        position);
     }
 
-    Signature saturate_sig = "saturate($color, $amount)";
+    Signature saturate_sig = "saturate($color, $amount: false)";
     BUILT_IN(saturate)
     {
+      // CSS3 filter function overload: pass literal through directly
+      Number* amount = dynamic_cast<Number*>(env["$amount"]);
+      if (!amount) {
+        To_String to_string(&ctx);
+        return new (ctx.mem) String_Constant(path, position, "saturate(" + env["$color"]->perform(&to_string) + ")");
+      }
+
+      ARGR("$amount", Number, 0, 100);
       Color* rgb_color = ARG("$color", Color);
-      Number* amount = ARGR("$amount", Number, 0, 100);
       HSL hsl_color = rgb_to_hsl(rgb_color->r(),
                                  rgb_color->g(),
                                  rgb_color->b());
@@ -409,6 +416,13 @@ namespace Sass {
     Signature grayscale_sig = "grayscale($color)";
     BUILT_IN(grayscale)
     {
+      // CSS3 filter function overload: pass literal through directly
+      Number* amount = dynamic_cast<Number*>(env["$color"]);
+      if (amount) {
+        To_String to_string(&ctx);
+        return new (ctx.mem) String_Constant(path, position, "grayscale(" + amount->perform(&to_string) + ")");
+      }
+
       Color* rgb_color = ARG("$color", Color);
       HSL hsl_color = rgb_to_hsl(rgb_color->r(),
                                  rgb_color->g(),
@@ -438,26 +452,23 @@ namespace Sass {
                        position);
     }
 
-    Signature invert_sig = "invert($value)";
+    Signature invert_sig = "invert($color)";
     BUILT_IN(invert)
     {
-      Expression* v = ARG("$value", Expression);
-      if (v->concrete_type() == Expression::NUMBER) {
-        To_String to_string;
-        String_Constant* str = new String_Constant(path,
-                                                   position,
-                                                   v->perform(&to_string));
-        return new (ctx.mem) String_Constant(path, position, "invert(" + str->value() + ")");
+      // CSS3 filter function overload: pass literal through directly
+      Number* amount = dynamic_cast<Number*>(env["$color"]);
+      if (amount) {
+        To_String to_string(&ctx);
+        return new (ctx.mem) String_Constant(path, position, "invert(" + amount->perform(&to_string) + ")");
       }
-      else {
-        Color* rgb_color = static_cast<Color*>(v);
-        return new (ctx.mem) Color(path,
-                                   position,
-                                   255 - rgb_color->r(),
-                                   255 - rgb_color->g(),
-                                   255 - rgb_color->b(),
-                                   rgb_color->a());
-      }
+
+      Color* rgb_color = ARG("$color", Color);
+      return new (ctx.mem) Color(path,
+                                 position,
+                                 255 - rgb_color->r(),
+                                 255 - rgb_color->g(),
+                                 255 - rgb_color->b(),
+                                 rgb_color->a());
     }
 
     ////////////////////
@@ -471,9 +482,15 @@ namespace Sass {
       if (ie_kwd) {
         return new (ctx.mem) String_Constant(path, position, "alpha(" + ie_kwd->value() + ")");
       }
-      else {
-        return new (ctx.mem) Number(path, position, ARG("$color", Color)->a());
+
+      // CSS3 filter function overload: pass literal through directly
+      Number* amount = dynamic_cast<Number*>(env["$color"]);
+      if (amount) {
+        To_String to_string(&ctx);
+        return new (ctx.mem) String_Constant(path, position, "opacity(" + amount->perform(&to_string) + ")");
       }
+
+      return new (ctx.mem) Number(path, position, ARG("$color", Color)->a());
     }
 
     Signature opacify_sig = "opacify($color, $amount)";
