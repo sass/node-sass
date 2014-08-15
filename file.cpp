@@ -228,31 +228,23 @@ namespace Sass {
     {
       struct stat st;
 
-      // short path for windows
-      string spath = path;
-
 #ifdef _WIN32
-      // resolve to short path for ansi compatibility
-      // do file operations with the short path string
+      BYTE* pBuffer;
+      DWORD dwBytes;
+      // windows unicode filepaths are encoded in utf16
       const wchar_t* wpath = UTF_8::convert_to_utf16(path).c_str();
-      size_t length = GetShortPathNameW(wpath, NULL, 0);
-      if (length > 0) {
-        wchar_t* buffer = new wchar_t[length];
-        // result is without terminating null character
-        size_t result = GetShortPathNameW(wpath, buffer, length);
-        // check for success and expected result
-        if (result > 0 && length == result + 1) {
-          spath = UTF_8::convert_from_utf16(buffer);
-        }
-        delete [] buffer;
-      }
-#endif
-      if (stat(spath.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
-      ifstream file(spath.c_str(), ios::in | ios::binary | ios::ate);
-      string extension;
-      if (path.length() > 5) {
-        extension = path.substr(path.length() - 5, 5);
-      }
+      HANDLE hFile = CreateFileW(wpath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+      if (hFile == INVALID_HANDLE_VALUE) return 0;
+      DWORD dwFileLength = GetFileSize(hFile, NULL);
+      if (dwFileLength == INVALID_FILE_SIZE) return 0;
+      pBuffer = new BYTE[dwFileLength + 1];
+      ReadFile(hFile, pBuffer, dwFileLength, &dwBytes, NULL);
+      pBuffer[dwFileLength] = '\0';
+      // just convert from unsigned char*
+      char* contents = (char*) pBuffer;
+#else
+      if (stat(path.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
+      ifstream file(path.c_str(), ios::in | ios::binary | ios::ate);
       char* contents = 0;
       if (file.is_open()) {
         size_t size = file.tellg();
@@ -261,6 +253,11 @@ namespace Sass {
         file.read(contents, size);
         contents[size] = '\0';
         file.close();
+      }
+#endif
+      string extension;
+      if (path.length() > 5) {
+        extension = path.substr(path.length() - 5, 5);
       }
       for(size_t i=0; i<extension.size();++i)
         extension[i] = tolower(extension[i]);
