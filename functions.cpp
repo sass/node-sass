@@ -768,7 +768,7 @@ namespace Sass {
       if(c_index == string::npos) {
         return new (ctx.mem) Null(path, position);
       }
-      size_t index = UTF_8::code_point_count(str, 0, c_index + 1);
+      size_t index = UTF_8::code_point_count(str, 0, c_index) + 1;
 
       return new (ctx.mem) Number(path, position, index);
     }
