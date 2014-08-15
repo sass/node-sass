@@ -698,19 +698,19 @@ namespace Sass {
     BUILT_IN(str_length)
     {
       try {
-      String_Constant* s = ARG("$string", String_Constant);
-      string str = s->value();
-      size_t length_of_s = str.size();
-      size_t i = 0;
+        String_Constant* s = ARG("$string", String_Constant);
+        string str = s->value();
+        size_t length_of_s = str.size();
+        size_t i = 0;
 
-      if (s->is_quoted()) {
-        ++i;
-        --length_of_s;
-      }
+        if (s->is_quoted()) {
+          ++i;
+          --length_of_s;
+        }
 
-      size_t len = UTF_8::code_point_count(str, i, length_of_s);
+        size_t len = UTF_8::code_point_count(str, i, length_of_s);
 
-      return new (ctx.mem) Number(path, position, len);
+        return new (ctx.mem) Number(path, position, len);
 
       }
       catch (utf8::invalid_code_point) {
@@ -731,43 +731,43 @@ namespace Sass {
     BUILT_IN(str_insert)
     {
       try {
-      String_Constant* s = ARG("$string", String_Constant);
-      string str = s->value();
-      char quotemark = s->quote_mark();
-      str = unquote(str);
-      String_Constant* i = ARG("$insert", String_Constant);
-      string ins = i->value();
-      ins = unquote(ins);
-      Number* ind = ARG("$index", Number);
-      double index = ind->value();
-      size_t len = UTF_8::code_point_count(str, 0, str.size());
+        String_Constant* s = ARG("$string", String_Constant);
+        string str = s->value();
+        char quotemark = s->quote_mark();
+        str = unquote(str);
+        String_Constant* i = ARG("$insert", String_Constant);
+        string ins = i->value();
+        ins = unquote(ins);
+        Number* ind = ARG("$index", Number);
+        double index = ind->value();
+        size_t len = UTF_8::code_point_count(str, 0, str.size());
 
-      if (index > 0 && index <= len) {
-        // positive and within string length
-        str.insert(UTF_8::code_point_offset_to_byte_offset(str, index-1), ins);
-      }
-      else if (index > len) {
-        // positive and past string length
-        str += ins;
-      }
-      else if (index == 0) {
-        str = ins + str;
-      }
-      else if (std::abs(index) <= len) {
-        // negative and within string length
-        index += len + 1;
-        str.insert(UTF_8::code_point_offset_to_byte_offset(str, index), ins);
-      }
-      else {
-        // negative and past string length
-        str = ins + str;
-      }
+        if (index > 0 && index <= len) {
+          // positive and within string length
+          str.insert(UTF_8::code_point_offset_to_byte_offset(str, index-1), ins);
+        }
+        else if (index > len) {
+          // positive and past string length
+          str += ins;
+        }
+        else if (index == 0) {
+          str = ins + str;
+        }
+        else if (std::abs(index) <= len) {
+          // negative and within string length
+          index += len + 1;
+          str.insert(UTF_8::code_point_offset_to_byte_offset(str, index), ins);
+        }
+        else {
+          // negative and past string length
+          str = ins + str;
+        }
 
-      if (quotemark) {
-        str = quote(str, quotemark);
-      }
+        if (quotemark) {
+          str = quote(str, quotemark);
+        }
 
-      return new (ctx.mem) String_Constant(path, position, str);
+        return new (ctx.mem) String_Constant(path, position, str);
 
       }
       catch (utf8::invalid_code_point) {
@@ -788,20 +788,20 @@ namespace Sass {
     BUILT_IN(str_index)
     {
       try {
-      String_Constant* s = ARG("$string", String_Constant);
-      String_Constant* t = ARG("$substring", String_Constant);
-      string str = s->value();
-      str = unquote(str);
-      string substr = t->value();
-      substr = unquote(substr);
+        String_Constant* s = ARG("$string", String_Constant);
+        String_Constant* t = ARG("$substring", String_Constant);
+        string str = s->value();
+        str = unquote(str);
+        string substr = t->value();
+        substr = unquote(substr);
 
-      size_t c_index = str.find(substr);
-      if(c_index == string::npos) {
-        return new (ctx.mem) Null(path, position);
-      }
-      size_t index = UTF_8::code_point_count(str, 0, c_index) + 1;
+        size_t c_index = str.find(substr);
+        if(c_index == string::npos) {
+          return new (ctx.mem) Null(path, position);
+        }
+        size_t index = UTF_8::code_point_count(str, 0, c_index) + 1;
 
-      return new (ctx.mem) Number(path, position, index);
+        return new (ctx.mem) Number(path, position, index);
 
       }
       catch (utf8::invalid_code_point) {
@@ -822,29 +822,29 @@ namespace Sass {
     BUILT_IN(str_slice)
     {
       try {
-      String_Constant* s = ARG("$string", String_Constant);
-      Number* n = ARG("$start-at", Number);
-      Number* m = ARG("$end-at", Number);
+        String_Constant* s = ARG("$string", String_Constant);
+        Number* n = ARG("$start-at", Number);
+        Number* m = ARG("$end-at", Number);
 
-      string str = s->value();
-      char quotemark = s->quote_mark();
-      str = unquote(str);
+        string str = s->value();
+        char quotemark = s->quote_mark();
+        str = unquote(str);
 
-      // normalize into 0-based indices
-      size_t start = UTF_8::code_point_offset_to_byte_offset(str, UTF_8::normalize_index(n->value(), UTF_8::code_point_count(str)));
-      size_t end = UTF_8::code_point_offset_to_byte_offset(str, UTF_8::normalize_index(m->value(), UTF_8::code_point_count(str)));
+        // normalize into 0-based indices
+        size_t start = UTF_8::code_point_offset_to_byte_offset(str, UTF_8::normalize_index(n->value(), UTF_8::code_point_count(str)));
+        size_t end = UTF_8::code_point_offset_to_byte_offset(str, UTF_8::normalize_index(m->value(), UTF_8::code_point_count(str)));
 
-      string newstr;
-      if(start - end == 0) {
-        newstr = str.substr(start, end - start);
-      } else {
-        newstr = str.substr(start, end - start + UTF_8::length_of_code_point_at(str, end));
-      }
-      if(quotemark) {
-        newstr = quote(newstr, quotemark);
-      }
+        string newstr;
+        if(start - end == 0) {
+          newstr = str.substr(start, end - start);
+        } else {
+          newstr = str.substr(start, end - start + UTF_8::length_of_code_point_at(str, end));
+        }
+        if(quotemark) {
+          newstr = quote(newstr, quotemark);
+        }
 
-      return new (ctx.mem) String_Constant(path, position, newstr);
+        return new (ctx.mem) String_Constant(path, position, newstr);
 
       }
       catch (utf8::invalid_code_point) {
