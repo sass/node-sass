@@ -744,7 +744,7 @@ namespace Sass {
 
         if (index > 0 && index <= len) {
           // positive and within string length
-          str.insert(UTF_8::code_point_offset_to_byte_offset(str, index-1), ins);
+          str.insert(UTF_8::offset_at_position(str, index - 1), ins);
         }
         else if (index > len) {
           // positive and past string length
@@ -756,7 +756,7 @@ namespace Sass {
         else if (std::abs(index) <= len) {
           // negative and within string length
           index += len + 1;
-          str.insert(UTF_8::code_point_offset_to_byte_offset(str, index), ins);
+          str.insert(UTF_8::offset_at_position(str, index), ins);
         }
         else {
           // negative and past string length
@@ -831,14 +831,14 @@ namespace Sass {
         str = unquote(str);
 
         // normalize into 0-based indices
-        size_t start = UTF_8::code_point_offset_to_byte_offset(str, UTF_8::normalize_index(n->value(), UTF_8::code_point_count(str)));
-        size_t end = UTF_8::code_point_offset_to_byte_offset(str, UTF_8::normalize_index(m->value(), UTF_8::code_point_count(str)));
+        size_t start = UTF_8::offset_at_position(str, UTF_8::normalize_index(n->value(), UTF_8::code_point_count(str)));
+        size_t end = UTF_8::offset_at_position(str, UTF_8::normalize_index(m->value(), UTF_8::code_point_count(str)));
 
         string newstr;
         if(start - end == 0) {
           newstr = str.substr(start, end - start);
         } else {
-          newstr = str.substr(start, end - start + UTF_8::length_of_code_point_at(str, end));
+          newstr = str.substr(start, end - start + UTF_8::code_point_size_at_offset(str, end));
         }
         if(quotemark) {
           newstr = quote(newstr, quotemark);

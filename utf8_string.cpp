@@ -11,16 +11,11 @@
 namespace Sass {
   namespace UTF_8 {
     using std::string;
-    // class utf8_string {
-    //   string s_;
-    // public:
-    //   utf8_string(const string &s): s_(s) {}
-    //   utf8_string(const char* c): s_(string(c)) {}
 
-    //   char operator[](size_t i);
-    //   size_t length();
-    //   size_t byte_to_char(size_t i);
-    // };
+    // naming conventions:
+    // offset: raw byte offset (0 based)
+    // position: code point offset (0 based)
+    // index: code point offset (1 based or negative)
 
     // function that will count the number of code points (utf-8 characters) from the given beginning to the given end
     size_t code_point_count(const string& str, size_t start, size_t end) {
@@ -32,22 +27,22 @@ namespace Sass {
     }
 
     // function that will return the byte offset at a code point position
-    size_t code_point_offset_to_byte_offset(const string& str, size_t offset) {
+    size_t offset_at_position(const string& str, size_t position) {
       string::const_iterator it = str.begin();
-      utf8::advance(it, offset, str.end());
+      utf8::advance(it, position, str.end());
       return distance(str.begin(), it);
     }
 
     // function that returns number of bytes in a character at offset
-    size_t length_of_code_point_at(const string& str, size_t pos) {
+    size_t code_point_size_at_offset(const string& str, size_t offset) {
       // get iterator from string and forward by offset
-      string::const_iterator stop = str.begin() + pos;
+      string::const_iterator stop = str.begin() + offset;
       // check if beyond boundary
       if (stop == str.end()) return 0;
       // advance by one code point
       utf8::advance(stop, 1, str.end());
-      // calculate poset for code point
-      return  stop - str.begin() - pos;
+      // calculate offset for code point
+      return  stop - str.begin() - offset;
     }
 
     // function that will return a normalized index, given a crazy one
