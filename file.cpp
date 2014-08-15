@@ -17,7 +17,12 @@
 #include <sys/stat.h>
 #include "file.hpp"
 #include "context.hpp"
+#include "utf8_string.hpp"
 #include "sass2scss/sass2scss.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace Sass {
   namespace File {
@@ -222,8 +227,28 @@ namespace Sass {
     char* read_file(string path)
     {
       struct stat st;
-      if (stat(path.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
-      ifstream file(path.c_str(), ios::in | ios::binary | ios::ate);
+
+      // short path for windows
+      string spath = path;
+
+#ifdef _WIN32
+      // resolve to short path for ansi compatibility
+      // do file operations with the short path string
+      const wchar_t* wpath = UTF_8::convert_to_utf16(path).c_str();
+      size_t length = GetShortPathNameW(wpath, NULL, 0);
+      if (length > 0) {
+        wchar_t* buffer = new wchar_t[length];
+        // result is without terminating null character
+        size_t result = GetShortPathNameW(wpath, buffer, length);
+        // check for success and expected result
+        if (result > 0 && length == result + 1) {
+          spath = UTF_8::convert_from_utf16(buffer);
+        }
+        delete [] buffer;
+      }
+#endif
+      if (stat(spath.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
+      ifstream file(spath.c_str(), ios::in | ios::binary | ios::ate);
       string extension;
       if (path.length() > 5) {
         extension = path.substr(path.length() - 5, 5);

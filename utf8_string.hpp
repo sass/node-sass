@@ -29,6 +29,12 @@ namespace Sass {
     // function that will return a normalized index, given a crazy one
     size_t normalize_index(int index, size_t len);
 
+    #ifdef _WIN32
+    // functions to handle unicode paths on windows
+    string convert_from_utf16(const wstring& wstr);
+    wstring convert_to_utf16(const string& str);
+    #endif
+
   }
 }
 

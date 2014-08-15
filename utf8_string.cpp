@@ -2,8 +2,13 @@
 #define SASS_UTF8_STRING
 
 #include <string>
+#include <vector>
 #include <cstdlib>
 #include <cmath>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace Sass {
   namespace UTF_8 {
@@ -101,7 +106,7 @@ namespace Sass {
       if (index > 0 && index <= signed_len) {
         // positive and within string length
         return index-1;
-      } 
+      }
       else if (index > signed_len) {
         // positive and past string length
         return len;
@@ -118,6 +123,40 @@ namespace Sass {
         return 0;
       }
     }
+
+    #ifdef _WIN32
+
+    using std::wstring;
+
+    // function to convert utf16le to utf8
+    string convert_from_utf16(const wstring& wstr)
+    {
+      string convertedString;
+      int requiredSize = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, 0, 0, 0, 0);
+      if(requiredSize > 0)
+      {
+        std::vector<char> buffer(requiredSize);
+        WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &buffer[0], requiredSize, 0, 0);
+        convertedString.assign(buffer.begin(), buffer.end() - 1);
+      }
+      return convertedString;
+    }
+
+    // function to convert utf8 to utf16le
+    wstring convert_to_utf16(const string& str)
+    {
+      wstring convertedString;
+      int requiredSize = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, 0, 0);
+      if(requiredSize > 0)
+      {
+        std::vector<wchar_t> buffer(requiredSize);
+        MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &buffer[0], requiredSize);
+        convertedString.assign(buffer.begin(), buffer.end() - 1);
+      }
+      return convertedString;
+    }
+
+    #endif
 
   }
 }
