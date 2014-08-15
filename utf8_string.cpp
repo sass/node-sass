@@ -6,9 +6,7 @@
 #include <cstdlib>
 #include <cmath>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
+#include "utf8.h"
 
 namespace Sass {
   namespace UTF_8 {
@@ -26,76 +24,30 @@ namespace Sass {
 
     // function that will count the number of code points (utf-8 characters) from the given beginning to the given end
     size_t code_point_count(const string& str, size_t start, size_t end) {
-      size_t len = 0;
-      size_t i = start;
-
-      while (i < end) {
-        unsigned char c = static_cast<unsigned char>(str[i]);
-        if (c < 128) {
-          // it's a single-byte character
-          ++len;
-          ++i;
-        }
-        // it's a multi byte sequence and presumably it's a leading byte
-        else {
-          ++i; // go to the next byte
-          // see if it's still part of the sequence
-          while ((i < end) && ((static_cast<unsigned char>(str[i]) & 0xC0) == 0x80)) {
-            ++i;
-          }
-          // when it's not [aka a new leading byte], increment and move on
-          ++len;
-        }
-      }
-      return len;
+      return utf8::distance(str.begin() + start, str.begin() + end);
     }
 
     size_t code_point_count(const string& str) {
-      return code_point_count(str, 0, str.length());
+      return utf8::distance(str.begin(), str.end());
     }
 
-    // function that will return the byte offset of a code point in a
+    // function that will return the byte offset at a code point position
     size_t code_point_offset_to_byte_offset(const string& str, size_t offset) {
-      size_t i = 0;
-      size_t len = 0;
-
-      while (len < offset) {
-        unsigned char c = static_cast<unsigned char>(str[i]);
-        if (c < 128) {
-          // it's a single-byte character
-          ++len;
-          ++i;
-        }
-        // it's a multi byte sequence and presumably it's a leading byte
-        else {
-          ++i; // go to the next byte
-          // see if it's still part of the sequence
-          while ((i < str.length()) && ((static_cast<unsigned char>(str[i]) & 0xC0) == 0x80)) {
-            ++i;
-          }
-          // when it's not [aka a new leading byte], increment and move on
-          ++len;
-        }
-      }
-      return i;
+      string::const_iterator it = str.begin();
+      utf8::advance(it, offset, str.end());
+      return distance(str.begin(), it);
     }
 
-    // function that returns number of bytes in a character in a string
+    // function that returns number of bytes in a character at offset
     size_t length_of_code_point_at(const string& str, size_t pos) {
-      unsigned char c = static_cast<unsigned char>(str[pos]);
-      size_t i = 0;
-      if(c < 128) {
-        return 1;
-      } else {
-        ++i; // go to the next byte
-        ++pos;
-        // see if it's still part of the sequence
-        while ((i < str.length()) && ((static_cast<unsigned char>(str[pos]) & 0xC0) == 0x80)) {
-          ++i;
-          ++pos;
-        }
-      }
-      return i;
+      // get iterator from string and forward by offset
+      string::const_iterator stop = str.begin() + pos;
+      // check if beyond boundary
+      if (stop == str.end()) return 0;
+      // advance by one code point
+      utf8::advance(stop, 1, str.end());
+      // calculate poset for code point
+      return  stop - str.begin() - pos;
     }
 
     // function that will return a normalized index, given a crazy one
@@ -124,39 +76,26 @@ namespace Sass {
       }
     }
 
-    #ifdef _WIN32
-
+    // utf16 functions
     using std::wstring;
 
-    // function to convert utf16le to utf8
-    string convert_from_utf16(const wstring& wstr)
+    // convert from utf16/wide string to utf8 string
+    string convert_from_utf16(const wstring& utf16)
     {
-      string convertedString;
-      int requiredSize = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, 0, 0, 0, 0);
-      if(requiredSize > 0)
-      {
-        std::vector<char> buffer(requiredSize);
-        WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &buffer[0], requiredSize, 0, 0);
-        convertedString.assign(buffer.begin(), buffer.end() - 1);
-      }
-      return convertedString;
+      string utf8;
+      utf8::utf16to8(utf16.begin(), utf16.end(),
+                     back_inserter(utf8));
+      return utf8;
     }
 
-    // function to convert utf8 to utf16le
-    wstring convert_to_utf16(const string& str)
+    // convert from utf8 string to utf16/wide string
+    wstring convert_to_utf16(const string& utf8)
     {
-      wstring convertedString;
-      int requiredSize = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, 0, 0);
-      if(requiredSize > 0)
-      {
-        std::vector<wchar_t> buffer(requiredSize);
-        MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &buffer[0], requiredSize);
-        convertedString.assign(buffer.begin(), buffer.end() - 1);
-      }
-      return convertedString;
+      wstring utf16;
+      utf8::utf8to16(utf8.begin(), utf8.end(),
+                     back_inserter(utf16));
+      return utf16;
     }
-
-    #endif
 
   }
 }

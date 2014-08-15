@@ -9,6 +9,7 @@
 #include "eval.hpp"
 #include "util.hpp"
 #include "utf8_string.hpp"
+#include "utf8.h"
 
 #include <cstdlib>
 #include <cmath>
@@ -696,6 +697,7 @@ namespace Sass {
     Signature str_length_sig = "str-length($string)";
     BUILT_IN(str_length)
     {
+      try {
       String_Constant* s = ARG("$string", String_Constant);
       string str = s->value();
       size_t length_of_s = str.size();
@@ -709,11 +711,26 @@ namespace Sass {
       size_t len = UTF_8::code_point_count(str, i, length_of_s);
 
       return new (ctx.mem) Number(path, position, len);
+
+      }
+      catch (utf8::invalid_code_point) {
+        string msg("utf8::invalid_code_point");
+        error(msg, path, position, backtrace);
+      }
+      catch (utf8::not_enough_room) {
+        string msg("utf8::not_enough_room");
+        error(msg, path, position, backtrace);
+      }
+      catch (utf8::invalid_utf8) {
+        string msg("utf8::invalid_utf8");
+        error(msg, path, position, backtrace);
+      }
     }
 
     Signature str_insert_sig = "str-insert($string, $insert, $index)";
     BUILT_IN(str_insert)
     {
+      try {
       String_Constant* s = ARG("$string", String_Constant);
       string str = s->value();
       char quotemark = s->quote_mark();
@@ -752,11 +769,25 @@ namespace Sass {
 
       return new (ctx.mem) String_Constant(path, position, str);
 
+      }
+      catch (utf8::invalid_code_point) {
+        string msg("utf8::invalid_code_point");
+        error(msg, path, position, backtrace);
+      }
+      catch (utf8::not_enough_room) {
+        string msg("utf8::not_enough_room");
+        error(msg, path, position, backtrace);
+      }
+      catch (utf8::invalid_utf8) {
+        string msg("utf8::invalid_utf8");
+        error(msg, path, position, backtrace);
+      }
     }
 
     Signature str_index_sig = "str-index($string, $substring)";
     BUILT_IN(str_index)
     {
+      try {
       String_Constant* s = ARG("$string", String_Constant);
       String_Constant* t = ARG("$substring", String_Constant);
       string str = s->value();
@@ -771,11 +802,26 @@ namespace Sass {
       size_t index = UTF_8::code_point_count(str, 0, c_index) + 1;
 
       return new (ctx.mem) Number(path, position, index);
+
+      }
+      catch (utf8::invalid_code_point) {
+        string msg("utf8::invalid_code_point");
+        error(msg, path, position, backtrace);
+      }
+      catch (utf8::not_enough_room) {
+        string msg("utf8::not_enough_room");
+        error(msg, path, position, backtrace);
+      }
+      catch (utf8::invalid_utf8) {
+        string msg("utf8::invalid_utf8");
+        error(msg, path, position, backtrace);
+      }
     }
 
     Signature str_slice_sig = "str-slice($string, $start-at, $end-at:-1)";
     BUILT_IN(str_slice)
     {
+      try {
       String_Constant* s = ARG("$string", String_Constant);
       Number* n = ARG("$start-at", Number);
       Number* m = ARG("$end-at", Number);
@@ -800,6 +846,19 @@ namespace Sass {
 
       return new (ctx.mem) String_Constant(path, position, newstr);
 
+      }
+      catch (utf8::invalid_code_point) {
+        string msg("utf8::invalid_code_point");
+        error(msg, path, position, backtrace);
+      }
+      catch (utf8::not_enough_room) {
+        string msg("utf8::not_enough_room");
+        error(msg, path, position, backtrace);
+      }
+      catch (utf8::invalid_utf8) {
+        string msg("utf8::invalid_utf8");
+        error(msg, path, position, backtrace);
+      }
     }
 
     Signature to_upper_case_sig = "to-upper-case($string)";
