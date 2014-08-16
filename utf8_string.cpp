@@ -78,6 +78,8 @@ namespace Sass {
     string convert_from_utf16(const wstring& utf16)
     {
       string utf8;
+      // pre-allocate expected memory
+      utf8.reserve(sizeof(utf16)/2);
       utf8::utf16to8(utf16.begin(), utf16.end(),
                      back_inserter(utf8));
       return utf8;
@@ -87,6 +89,8 @@ namespace Sass {
     wstring convert_to_utf16(const string& utf8)
     {
       wstring utf16;
+      // pre-allocate expected memory
+      utf16.reserve(code_point_count(utf8)*2);
       utf8::utf8to16(utf8.begin(), utf8.end(),
                      back_inserter(utf16));
       return utf16;
