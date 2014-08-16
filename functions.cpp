@@ -697,6 +697,7 @@ namespace Sass {
     Signature str_length_sig = "str-length($string)";
     BUILT_IN(str_length)
     {
+      size_t len;
       try {
         String_Constant* s = ARG("$string", String_Constant);
         string str = s->value();
@@ -708,9 +709,7 @@ namespace Sass {
           --length_of_s;
         }
 
-        size_t len = UTF_8::code_point_count(str, i, length_of_s);
-
-        return new (ctx.mem) Number(path, position, len);
+        len = UTF_8::code_point_count(str, i, length_of_s);
 
       }
       catch (utf8::invalid_code_point) {
@@ -725,14 +724,16 @@ namespace Sass {
         string msg("utf8::invalid_utf8");
         error(msg, path, position, backtrace);
       }
+      return new (ctx.mem) Number(path, position, len);
     }
 
     Signature str_insert_sig = "str-insert($string, $insert, $index)";
     BUILT_IN(str_insert)
     {
+      string str;
       try {
         String_Constant* s = ARG("$string", String_Constant);
-        string str = s->value();
+        str = s->value();
         char quotemark = s->quote_mark();
         str = unquote(str);
         String_Constant* i = ARG("$insert", String_Constant);
@@ -766,9 +767,6 @@ namespace Sass {
         if (quotemark) {
           str = quote(str, quotemark);
         }
-
-        return new (ctx.mem) String_Constant(path, position, str);
-
       }
       catch (utf8::invalid_code_point) {
         string msg("utf8::invalid_code_point");
@@ -782,11 +780,13 @@ namespace Sass {
         string msg("utf8::invalid_utf8");
         error(msg, path, position, backtrace);
       }
+      return new (ctx.mem) String_Constant(path, position, str);
     }
 
     Signature str_index_sig = "str-index($string, $substring)";
     BUILT_IN(str_index)
     {
+      size_t index;
       try {
         String_Constant* s = ARG("$string", String_Constant);
         String_Constant* t = ARG("$substring", String_Constant);
@@ -799,10 +799,7 @@ namespace Sass {
         if(c_index == string::npos) {
           return new (ctx.mem) Null(path, position);
         }
-        size_t index = UTF_8::code_point_count(str, 0, c_index) + 1;
-
-        return new (ctx.mem) Number(path, position, index);
-
+        index = UTF_8::code_point_count(str, 0, c_index) + 1;
       }
       catch (utf8::invalid_code_point) {
         string msg("utf8::invalid_code_point");
@@ -816,11 +813,14 @@ namespace Sass {
         string msg("utf8::invalid_utf8");
         error(msg, path, position, backtrace);
       }
+      // return something even even we had an error
+      return new (ctx.mem) Number(path, position, index);
     }
 
     Signature str_slice_sig = "str-slice($string, $start-at, $end-at:-1)";
     BUILT_IN(str_slice)
     {
+      string newstr;
       try {
         String_Constant* s = ARG("$string", String_Constant);
         Number* n = ARG("$start-at", Number);
@@ -834,7 +834,6 @@ namespace Sass {
         size_t start = UTF_8::offset_at_position(str, UTF_8::normalize_index(n->value(), UTF_8::code_point_count(str)));
         size_t end = UTF_8::offset_at_position(str, UTF_8::normalize_index(m->value(), UTF_8::code_point_count(str)));
 
-        string newstr;
         if(start - end == 0) {
           newstr = str.substr(start, end - start);
         } else {
@@ -843,9 +842,6 @@ namespace Sass {
         if(quotemark) {
           newstr = quote(newstr, quotemark);
         }
-
-        return new (ctx.mem) String_Constant(path, position, newstr);
-
       }
       catch (utf8::invalid_code_point) {
         string msg("utf8::invalid_code_point");
@@ -859,6 +855,7 @@ namespace Sass {
         string msg("utf8::invalid_utf8");
         error(msg, path, position, backtrace);
       }
+      return new (ctx.mem) String_Constant(path, position, newstr);
     }
 
     Signature to_upper_case_sig = "to-upper-case($string)";
