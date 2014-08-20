@@ -37,22 +37,8 @@ namespace Sass {
     Selector* s     = r->selector();
     Block*    b     = r->block();
 
-    // In case the extend visitor isn't called (if there are no @extend
-    // directives in the entire document), check for placeholders here and
-    // make sure they aren't output.
-    // TODO: investigate why I decided to duplicate this logic in the extend visitor
     Selector_List* sl = static_cast<Selector_List*>(s);
-    if (ctx->extensions.empty()) {
-      Selector_List* new_sl = new (ctx->mem) Selector_List(sl->path(), sl->position());
-      for (size_t i = 0, L = sl->length(); i < L; ++i) {
-        if (!(*sl)[i]->has_placeholder()) {
-          *new_sl << (*sl)[i];
-        }
-      }
-      s = new_sl;
-      sl = new_sl;
-      r->selector(new_sl);
-    }
+
     if (sl->length() == 0) return;
 
     if (b->has_non_hoistable()) {

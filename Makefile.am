@@ -24,6 +24,7 @@ libsass_la_SOURCES = \
 	output_nested.cpp \
 	parser.cpp \
 	prelexer.cpp \
+	remove_placeholders.cpp \
 	sass.cpp \
 	sass_interface.cpp \
 	sass2scss/sass2scss.cpp \

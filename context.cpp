@@ -22,6 +22,7 @@
 #include "eval.hpp"
 #include "contextualize.hpp"
 #include "extend.hpp"
+#include "remove_placeholders.hpp"
 #include "copy_c_str.hpp"
 #include "color_names.hpp"
 #include "functions.hpp"
@@ -232,6 +233,10 @@ namespace Sass {
       Extend extend(*this, extensions, subset_map, &backtrace);
       root->perform(&extend);
     }
+
+    RemovePlaceholders RemovePlaceholders(*this);
+    root->perform(&RemovePlaceholders);
+
     char* result = 0;
     switch (output_style) {
       case COMPRESSED: {
