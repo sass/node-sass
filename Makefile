@@ -50,7 +50,7 @@ debug: static
 
 debug-shared: LDFLAGS := -g
 debug-shared: CXXFLAGS := -g $(filter-out -O2,$(CXXFLAGS))
-debug: shared
+debug-shared: shared
 
 static: libsass.a
 shared: libsass.so
