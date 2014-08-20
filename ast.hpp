@@ -1338,7 +1338,9 @@ namespace Sass {
   ///////////////////////////////////
   class Selector_List
       : public Selector, public Vectorized<Complex_Selector*> {
+#ifdef DEBUG
     ADD_PROPERTY(string, mCachedSelector);
+#endif
   protected:
     void adjust_after_pushing(Complex_Selector* c);
   public:

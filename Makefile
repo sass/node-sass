@@ -46,11 +46,11 @@ OBJECTS = $(SOURCES:.cpp=.o)
 all: static
 
 debug: LDFLAGS := -g
-debug: CXXFLAGS := -g $(filter-out -O2,$(CXXFLAGS))
+debug: CXXFLAGS := -g -DDEBUG $(filter-out -O2,$(CXXFLAGS))
 debug: static
 
 debug-shared: LDFLAGS := -g
-debug-shared: CXXFLAGS := -g $(filter-out -O2,$(CXXFLAGS))
+debug-shared: CXXFLAGS := -g -DDEBUG $(filter-out -O2,$(CXXFLAGS))
 debug-shared: shared
 
 static: libsass.a
@@ -95,5 +95,5 @@ clean:
 	rm -f $(OBJECTS) *.a *.so libsass.js
 
 
-.PHONY: all static shared bin install install-shared clean
+.PHONY: all debug debug-shared static shared bin install install-shared clean
 

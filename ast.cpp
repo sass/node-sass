@@ -313,9 +313,11 @@ namespace Sass {
   {
     if (c->has_reference())   has_reference(true);
     if (c->has_placeholder()) has_placeholder(true);
-    
+
+#ifdef DEBUG
     To_String to_string;
     this->mCachedSelector(this->perform(&to_string));
+#endif
   }
 
   Selector_Placeholder* Selector_List::find_placeholder()
