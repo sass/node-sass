@@ -1365,7 +1365,7 @@ namespace Sass {
     bool inclusive = false;
     if (lex< through >()) inclusive = true;
     else if (lex< to >()) inclusive = false;
-    else                  error("expected 'through' or 'to' keywod in @for directive");
+    else                  error("expected 'through' or 'to' keyword in @for directive");
     Expression* upper_bound = parse_expression();
     upper_bound->is_delayed(false);
     if (!peek< exactly<'{'> >()) error("expected '{' after the upper bound in @for directive");
