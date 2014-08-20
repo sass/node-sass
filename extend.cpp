@@ -6,10 +6,180 @@
 #include "paths.hpp"
 #include "parser.hpp"
 #include <iostream>
+#include <deque>
 
 namespace Sass {
+  
+  typedef deque<Complex_Selector*> ComplexSelectorDeque;
+  
+  // Return the extension Compound_Selector* or NULL if no extension was found
+  // For instance, @extend .bar would return a Compound_Selector* to .bar
+  Compound_Selector* getComplexSelectorExtension(Complex_Selector* pComplexSelector, Extensions& extensions) {
+    // Iterate the complex selector checking if any of the pieces are in the extensions collection
 
-  Extend::Extend(Context& ctx, multimap<Compound_Selector, Complex_Selector*>& extensions, Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >& ssm, Backtrace* bt)
+    Compound_Selector* pHead = pComplexSelector->head();
+    Complex_Selector* pTail = pComplexSelector->tail();
+
+    while(pTail)
+    {
+      pHead = pTail->head();
+      pTail = pTail->tail();
+      if (pHead &&
+          !pHead->is_empty_reference() &&
+          extensions.count(*pHead) > 0)
+      {
+        return pHead;
+      }
+    }
+    
+    return NULL;
+  }
+
+  // Returns a boolean specifying whether any Complex_Selector* in the Selector_List has an extension
+  bool selectorGroupHasExtension(Selector_List* pSelectorList, Extensions& extensions) {
+    for (size_t index = 0, listLength = pSelectorList->length(); index < listLength; index++) {
+      if (getComplexSelectorExtension((*pSelectorList)[index], extensions) != NULL) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+  
+  Selector_List* createSelectorListFromDeque(ComplexSelectorDeque& deque, Context& ctx, Selector_List* pSelectorGroupTemplate) {
+    Selector_List* pSelectorGroup = new (ctx.mem) Selector_List(pSelectorGroupTemplate->path(), pSelectorGroupTemplate->position(), pSelectorGroupTemplate->length());
+    for (ComplexSelectorDeque::iterator iterator = deque.begin(), iteratorEnd = deque.end(); iterator != iteratorEnd; ++iterator) {
+      *pSelectorGroup << *iterator;
+    }
+    return pSelectorGroup;
+  }
+  
+  void fillDequeFromSelectorList(ComplexSelectorDeque& deque, Selector_List* pSelectorList) {
+    for (size_t index = 0, length = pSelectorList->length(); index < length; index++) {
+      deque.push_back((*pSelectorList)[index]);
+    }
+  }
+  
+  Complex_Selector* generateExtension(Complex_Selector* pExtender, Complex_Selector* pExtendee, Compound_Selector* pExtensionCompoundSelector, Context& ctx) {
+    // Clone the selector so we can modify it in place and use it as our new selector
+    Complex_Selector* pNewSelector = pExtendee->clone(ctx);
+    
+    // Find the node in the linked list before the one we want to replace
+    Complex_Selector* pIterSelector = pNewSelector;
+    Complex_Selector* pSelectorBeforeExtendPoint = NULL;
+    while(pIterSelector)
+    {
+      if (pIterSelector->tail() && pIterSelector->tail()->head() == pExtensionCompoundSelector) {
+        pSelectorBeforeExtendPoint = pIterSelector;
+        break;
+      }
+      pIterSelector = pIterSelector->tail();
+    }
+    
+    // Insert our extender's selector into the current selector
+    // TODO: look into whether this library is memory leaking all over the place. Where does delete get called?
+    Complex_Selector* pSelectorAfterExtendPoint = pSelectorBeforeExtendPoint->tail()->tail();
+    pExtender->innermost()->tail(pSelectorAfterExtendPoint);
+    pSelectorBeforeExtendPoint->tail(pExtender);
+    
+    return pNewSelector;
+  }
+  
+  void extendRuleset(Ruleset* pRuleset, Context& ctx, Extensions& extensions) {
+    To_String to_string;
+
+    // Get the start selector list
+    Selector_List* pOriginalSelectorGroup = static_cast<Selector_List*>(pRuleset->selector());
+    cerr << "CURR GROUP: " << pOriginalSelectorGroup->perform(&to_string) << endl;
+    
+    // Create a collection of selectors we've already processed
+    ComplexSelectorDeque newGroup;
+    
+    // Create a collection of selectors we still need to process. As extensions are created, they'll
+    // get added to this list so that chained extends are processed in the correct order.
+    ComplexSelectorDeque selectorsToProcess;
+    fillDequeFromSelectorList(selectorsToProcess, pOriginalSelectorGroup);
+    
+    bool extendedSomething = false;
+    
+    while (selectorsToProcess.size() > 0) {
+      
+      // Get the current selector to try and extend
+      Complex_Selector* pCurrentSelector = selectorsToProcess[0];
+      cerr << "CUR SEL: " << pCurrentSelector->perform(&to_string) << endl;
+      
+      // Remove it from the process queue since we'll be done after we finish this loop
+      selectorsToProcess.pop_front();
+      
+      // Always add the current selector
+      newGroup.push_back(pCurrentSelector);
+      
+      // Check if the current selector has an extension
+      Compound_Selector* pExtensionCompoundSelector = getComplexSelectorExtension(pCurrentSelector, extensions);
+      
+      if (pExtensionCompoundSelector != NULL) {
+
+        cerr << "HAS EXT: " << pCurrentSelector->perform(&to_string) << endl;
+        cerr << "EXT FOUND: " << pExtensionCompoundSelector->perform(&to_string) << endl;
+
+        // We are going to extend something!
+        extendedSomething = true;
+        
+        // Iterate over the extensions in reverse to make adding them to our selectorsToProcess list in the correct order easier.
+        for (Extensions::iterator iterator = extensions.upper_bound(*pExtensionCompoundSelector),
+             endIterator = extensions.lower_bound(*pExtensionCompoundSelector);
+             iterator != endIterator;) {
+          
+          --iterator;
+          
+          Compound_Selector extCompoundSelector = iterator->first;
+          Complex_Selector* pExtComplexSelector = iterator->second->clone(ctx); // Clone this so we get a new copy to insert into
+          
+          cerr << "COMPOUND: " << extCompoundSelector.perform(&to_string) << endl;
+          cerr << "COMPLEX: " << pExtComplexSelector->perform(&to_string) << endl;
+          
+          // We can't extend ourself
+          // TODO: figure out a better way to do this
+          if (pCurrentSelector->perform(&to_string) == pExtComplexSelector->perform(&to_string)) {
+            continue;
+          }
+          
+          // Generate our new extension selector
+          Complex_Selector* pNewSelector = generateExtension(pExtComplexSelector, pCurrentSelector, pExtensionCompoundSelector, ctx);
+          
+          // Add the new selector to our list of selectors to process
+          selectorsToProcess.push_front(pNewSelector);
+        }
+      }
+      
+      // TODO: remove these once we're done debugging this method
+      Selector_List* pTempDone = createSelectorListFromDeque(newGroup, ctx, pOriginalSelectorGroup);
+      Selector_List* pTempToProcess = createSelectorListFromDeque(selectorsToProcess, ctx, pOriginalSelectorGroup);
+      cerr << "DONE PROCESSING GROUP AFTER EXT ITER: " << pTempDone->perform(&to_string) << endl;
+      cerr << "TO PROCESS GROUP AFTER EXT ITER: " << pTempToProcess->perform(&to_string) << endl;
+    }
+    
+    
+    // Only update the rule set's selector (incurring the cost of a parse) if we actually
+    // added something new.
+    
+    if (extendedSomething) {
+      Selector_List* pNewSelectorGroup = createSelectorListFromDeque(newGroup, ctx, pOriginalSelectorGroup);
+      cerr << "NEW GROUP: " << pNewSelectorGroup->perform(&to_string) << endl;
+      
+      // re-parse in order to restructure expanded placeholder nodes correctly
+      pRuleset->selector(
+        Parser::from_c_str(
+          (pNewSelectorGroup->perform(&to_string) + ";").c_str(),
+          ctx,
+          pNewSelectorGroup->path(),
+          pNewSelectorGroup->position()
+        ).parse_selector_group()
+      );
+    }
+  }
+
+  Extend::Extend(Context& ctx, Extensions& extensions, Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >& ssm, Backtrace* bt)
   : ctx(ctx), extensions(extensions), subset_map(ssm), backtrace(bt)
   { }
 
@@ -20,8 +190,32 @@ namespace Sass {
     }
   }
 
-  void Extend::operator()(Ruleset* r)
+  void Extend::operator()(Ruleset* pRuleset)
   {
+
+    // Deal with extensions in this Ruleset
+
+    extendRuleset(pRuleset, ctx, extensions);
+
+    
+    // Iterate into child blocks
+    
+    Block* b = pRuleset->block();
+
+    for (size_t i = 0, L = b->length(); i < L; ++i) {
+      Statement* stm = (*b)[i];
+      stm->perform(this);
+    }
+    
+
+    return;
+
+
+    // Define these so the old code continues to compile. I want to keep the old code around for reference, but
+    // it should be deleted before we go live with these changes.
+    Ruleset* r = pRuleset;
+
+    
     // To_String to_string;
     // ng = new (ctx.mem) Selector_List(sg->path(), sg->position(), sg->length());
     // // for each selector in the group

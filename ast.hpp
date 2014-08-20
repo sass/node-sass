@@ -1338,12 +1338,9 @@ namespace Sass {
   ///////////////////////////////////
   class Selector_List
       : public Selector, public Vectorized<Complex_Selector*> {
+    ADD_PROPERTY(string, mCachedSelector);
   protected:
-    void adjust_after_pushing(Complex_Selector* c)
-    {
-      if (c->has_reference())   has_reference(true);
-      if (c->has_placeholder()) has_placeholder(true);
-    }
+    void adjust_after_pushing(Complex_Selector* c);
   public:
     Selector_List(string path, Position position, size_t s = 0)
     : Selector(path, position), Vectorized<Complex_Selector*>(s)

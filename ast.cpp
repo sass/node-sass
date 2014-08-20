@@ -308,6 +308,15 @@ namespace Sass {
   {
     return 0;
   }
+  
+  void Selector_List::adjust_after_pushing(Complex_Selector* c)
+  {
+    if (c->has_reference())   has_reference(true);
+    if (c->has_placeholder()) has_placeholder(true);
+    
+    To_String to_string;
+    this->mCachedSelector(this->perform(&to_string));
+  }
 
   Selector_Placeholder* Selector_List::find_placeholder()
   {
