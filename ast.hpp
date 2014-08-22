@@ -203,10 +203,10 @@ namespace Sass {
   class List;
   class Media_Block : public Has_Block {
     ADD_PROPERTY(List*, media_queries);
-    ADD_PROPERTY(Selector*, enclosing_selector);
+    ADD_PROPERTY(Selector*, selector);
   public:
     Media_Block(string path, Position position, List* mqs, Block* b)
-    : Has_Block(path, position, b), media_queries_(mqs), enclosing_selector_(0)
+    : Has_Block(path, position, b), media_queries_(mqs), selector_(0)
     { }
     bool is_hoistable() { return true; }
     ATTACH_OPERATIONS();

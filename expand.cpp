@@ -95,7 +95,7 @@ namespace Sass {
                                                 m->position(),
                                                 static_cast<List*>(media_queries),
                                                 m->block()->perform(this)->block());
-    mm->enclosing_selector(selector_stack.back());
+    mm->selector(selector_stack.back());
     return mm;
   }
 
