@@ -10,8 +10,9 @@ namespace Sass {
     : ctx(ctx)
     { }
 
-    void RemovePlaceholders::operator()(Ruleset* r) {
-
+    template<typename T>
+    void RemovePlaceholders::CleanSelectorList(T r) {
+        
         // Create a new selector group without placeholders
         Selector_List* sl = static_cast<Selector_List*>(r->selector());
         Selector_List* new_sl = new (ctx.mem) Selector_List(sl->path(), sl->position());
@@ -34,20 +35,22 @@ namespace Sass {
         }
     }
 
-    void RemovePlaceholders::operator()(Block* b)
-    {
+    void RemovePlaceholders::operator()(Block* b) {
         for (size_t i = 0, L = b->length(); i < L; ++i) {
             (*b)[i]->perform(this);
         }
     }
 
-    void RemovePlaceholders::operator()(Media_Block* m)
-    {
-        m->block()->perform(this);
+    void RemovePlaceholders::operator()(Ruleset* r) {
+        RemovePlaceholders::CleanSelectorList(r);
     }
 
-    void RemovePlaceholders::operator()(At_Rule* a)
-    {
+    void RemovePlaceholders::operator()(Media_Block* m) {
+        RemovePlaceholders::CleanSelectorList(m);
+    }
+
+    void RemovePlaceholders::operator()(At_Rule* a) {
         if (a->block()) a->block()->perform(this);
     }
+
 }
