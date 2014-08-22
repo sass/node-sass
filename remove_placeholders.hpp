@@ -16,15 +16,15 @@ namespace Sass {
 
     struct Context;
 
-    class RemovePlaceholders : public Operation_CRTP<void, RemovePlaceholders> {
+    class Remove_Placeholders : public Operation_CRTP<void, Remove_Placeholders> {
 
         Context&          ctx;
 
         void fallback_impl(AST_Node* n) {};
 
     public:
-        RemovePlaceholders(Context&);
-        virtual ~RemovePlaceholders() { }
+        Remove_Placeholders(Context&);
+        virtual ~Remove_Placeholders() { }
 
         using Operation<void>::operator();
 
@@ -33,8 +33,8 @@ namespace Sass {
         void operator()(Media_Block*);
         void operator()(At_Rule*);
 
-        template<typename T>
-        void CleanSelectorList(T r);
+        template <typename T>
+        void clean_selector_list(T r);
 
         template <typename U>
         void fallback(U x) { return fallback_impl(x); }
