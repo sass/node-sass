@@ -45,11 +45,11 @@ namespace Sass {
     }
 
     void Remove_Placeholders::operator()(Ruleset* r) {
-        Remove_Placeholders::clean_selector_list(r);
+        clean_selector_list(r);
     }
 
     void Remove_Placeholders::operator()(Media_Block* m) {
-        Remove_Placeholders::clean_selector_list(m);
+        clean_selector_list(m);
     }
 
     void Remove_Placeholders::operator()(At_Rule* a) {
