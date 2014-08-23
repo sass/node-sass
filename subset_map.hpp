@@ -80,6 +80,7 @@ namespace Sass {
     vector<pair<V, vector<K> > > get_kv(const vector<K>& s);
     vector<V> get_v(const vector<K>& s);
     bool empty() { return values_.empty(); }
+    void clear() { values_.clear(); hash_.clear(); }
   };
 
   template<typename K, typename V>

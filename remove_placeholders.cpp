@@ -6,25 +6,29 @@
 
 namespace Sass {
 
-    RemovePlaceholders::RemovePlaceholders(Context& ctx)
+    Remove_Placeholders::Remove_Placeholders(Context& ctx)
     : ctx(ctx)
     { }
 
-    void RemovePlaceholders::operator()(Ruleset* r) {
-
+    template<typename T>
+    void Remove_Placeholders::clean_selector_list(T r) {
+        
         // Create a new selector group without placeholders
         Selector_List* sl = static_cast<Selector_List*>(r->selector());
-        Selector_List* new_sl = new (ctx.mem) Selector_List(sl->path(), sl->position());
 
-        for (size_t i = 0, L = sl->length(); i < L; ++i) {
-            if (!(*sl)[i]->has_placeholder()) {
-                *new_sl << (*sl)[i];
+        if (sl) {
+            Selector_List* new_sl = new (ctx.mem) Selector_List(sl->path(), sl->position());
+
+            for (size_t i = 0, L = sl->length(); i < L; ++i) {
+                if (!(*sl)[i]->has_placeholder()) {
+                    *new_sl << (*sl)[i];
+                }
             }
+
+            // Set the new placeholder selector list
+            r->selector(new_sl);
         }
-
-        // Set the new placeholder selector list
-        r->selector(new_sl);
-
+            
         // Iterate into child blocks
         Block* b = r->block();
 
@@ -34,20 +38,22 @@ namespace Sass {
         }
     }
 
-    void RemovePlaceholders::operator()(Block* b)
-    {
+    void Remove_Placeholders::operator()(Block* b) {
         for (size_t i = 0, L = b->length(); i < L; ++i) {
             (*b)[i]->perform(this);
         }
     }
 
-    void RemovePlaceholders::operator()(Media_Block* m)
-    {
-        m->block()->perform(this);
+    void Remove_Placeholders::operator()(Ruleset* r) {
+        clean_selector_list(r);
     }
 
-    void RemovePlaceholders::operator()(At_Rule* a)
-    {
+    void Remove_Placeholders::operator()(Media_Block* m) {
+        clean_selector_list(m);
+    }
+
+    void Remove_Placeholders::operator()(At_Rule* a) {
         if (a->block()) a->block()->perform(this);
     }
+
 }

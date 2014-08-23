@@ -125,7 +125,7 @@ namespace Sass {
     q->perform(this);
     append_to_buffer(" {\n");
 
-    Selector* e = m->enclosing_selector();
+    Selector* e = m->selector();
     bool hoisted = false;
     if (e && b->has_non_hoistable()) {
       hoisted = true;

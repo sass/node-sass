@@ -234,8 +234,8 @@ namespace Sass {
       root->perform(&extend);
     }
 
-    RemovePlaceholders RemovePlaceholders(*this);
-    root->perform(&RemovePlaceholders);
+    Remove_Placeholders remove_placeholders(*this);
+    root->perform(&remove_placeholders);
 
     char* result = 0;
     switch (output_style) {
