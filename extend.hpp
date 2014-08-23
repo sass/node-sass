@@ -24,19 +24,20 @@ namespace Sass {
   struct Backtrace;
   
   typedef multimap<Compound_Selector, Complex_Selector*> Extensions;
+  typedef Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> > ExtensionSubsetMap;
 
   class Extend : public Operation_CRTP<void, Extend> {
 
     Context&          ctx;
     Extensions& extensions;
-    Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >& subset_map;
+    ExtensionSubsetMap& subset_map;
 
     Backtrace*        backtrace;
 
     void fallback_impl(AST_Node* n) { };
 
   public:
-    Extend(Context&, Extensions&, Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >&, Backtrace*);
+    Extend(Context&, Extensions&, ExtensionSubsetMap&, Backtrace*);
     virtual ~Extend() { }
 
     using Operation<void>::operator();

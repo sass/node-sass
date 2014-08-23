@@ -81,6 +81,11 @@ namespace Sass {
     // if this is a universal selector, just return the rhs
     if (name() == "*")
     { return new (ctx.mem) Compound_Selector(*rhs); }
+    
+    // TODO: Is this the right thing to do?
+    if (rhs->length() == 0) {
+      return 0;
+    }
 
     Simple_Selector* rhs_0 = (*rhs)[0];
     // otherwise, this is a tag name
