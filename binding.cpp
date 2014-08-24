@@ -82,6 +82,10 @@ void FillStatsObj(Handle<Object> stats, sass_file_context* ctx) {
   Handle<Value> source_map;
 
   FillStatsObj<sass_file_context*>(stats, ctx);
+
+  if (ctx->error_status) {
+      return;
+  }
   if (ctx->options.source_comments == SASS_SOURCE_COMMENTS_MAP) {
     source_map = NanNew<String>(ctx->source_map_string);
   } else {
