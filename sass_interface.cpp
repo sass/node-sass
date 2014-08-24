@@ -112,7 +112,7 @@ extern "C" {
                        .source_comments(c_ctx->options.source_comments == SASS_SOURCE_COMMENTS_DEFAULT)
                        .source_maps(source_maps)
                        .source_map_file(source_map_file)
-                       .omit_source_map_url(c_ctx->omit_source_map_url)
+                       .omit_source_map_url(c_ctx->options.omit_source_map_url)
                        .image_path(c_ctx->options.image_path ?
                                    c_ctx->options.image_path :
                                    "")
@@ -181,7 +181,7 @@ extern "C" {
                        .source_comments(c_ctx->options.source_comments == SASS_SOURCE_COMMENTS_DEFAULT)
                        .source_maps(source_maps)
                        .source_map_file(source_map_file)
-                       .omit_source_map_url(c_ctx->omit_source_map_url)
+                       .omit_source_map_url(c_ctx->options.omit_source_map_url)
                        .image_path(c_ctx->options.image_path ?
                                    c_ctx->options.image_path :
                                    "")
