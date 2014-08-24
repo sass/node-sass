@@ -34,7 +34,7 @@ var sampleCssMapOutputPath = path.join(__dirname, '../sample.css.map');
 describe('cli', function() {
   it('should print help when run with no arguments', function(done) {
     exec('node ' + cliPath, function(err, stdout, stderr) {
-      done(assert(stderr.indexOf('Compile .scss files with node-sass') === 0));
+      done(assert(stderr.trim().indexOf('Compile .scss files with node-sass') === 0));
     });
   });
 
