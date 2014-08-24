@@ -3,9 +3,9 @@
 var path = require('path');
 var assert = require('assert');
 var sass = process.env.NODESASS_COVERAGE ? require('../sass-coverage') : require('../sass');
-var includedFilesFile = path.resolve(__dirname, 'included_files.scss');
-var sampleFile = path.resolve(__dirname, 'sample.scss');
-var imagePathFile = path.resolve(__dirname, 'image_path.scss');
+var includedFilesFile = path.resolve(__dirname, 'included_files.scss').replace(/\\/g, '/');
+var sampleFile = path.resolve(__dirname, 'sample.scss').replace(/\\/g, '/');
+var imagePathFile = path.resolve(__dirname, 'image_path.scss').replace(/\\/g, '/');
 var sample = require('./sample.js');
 
 describe('stats', function() {
