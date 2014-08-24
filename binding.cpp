@@ -50,6 +50,7 @@ void ExtractOptions(Local<Value> optionsValue, void* cptr, sass_context_wrapper*
   if (isFile) {
     sass_file_context* ctx = (sass_file_context*) cptr;
     ctx->input_path = CreateString(options->Get(NanNew("file")));
+    ctx->output_path = CreateString(options->Get(NanNew("outFile")));
     ctx->options.image_path = CreateString(options->Get(NanNew("imagePath")));
     ctx->options.output_style = options->Get(NanNew("style"))->Int32Value();
     ctx->options.source_comments = source_comments = options->Get(NanNew("comments"))->Int32Value();
@@ -61,6 +62,7 @@ void ExtractOptions(Local<Value> optionsValue, void* cptr, sass_context_wrapper*
   } else {
     sass_context* ctx = (sass_context*) cptr;
     ctx->source_string = CreateString(options->Get(NanNew("data")));
+    ctx->output_path = CreateString(options->Get(NanNew("outFile")));
     ctx->options.image_path = CreateString(options->Get(NanNew("imagePath")));
     ctx->options.output_style = options->Get(NanNew("style"))->Int32Value();
     ctx->options.source_comments = source_comments = options->Get(NanNew("comments"))->Int32Value();
