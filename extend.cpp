@@ -106,8 +106,8 @@ namespace Sass {
       end
 */
 	void subweave(Complex_Selector* pOne, Complex_Selector* pTwo, ComplexSelectorDeque& out, Context& ctx) {
-    cerr << "@@@@@@@@@@@@@@@@@@@@@@" << endl;
-    cerr << "SUBWEAVE ";
+//    cerr << "@@@@@@@@@@@@@@@@@@@@@@" << endl;
+//    cerr << "SUBWEAVE ";
     printComplexSelector(pOne);
     printComplexSelector(pTwo, " ", true);
 
@@ -123,7 +123,7 @@ namespace Sass {
     
     throw "NOT YET IMPLEMENTED";
     
-    cerr << "@@@@@@@@@@@@@@@@@@@@@@" << endl;
+//    cerr << "@@@@@@@@@@@@@@@@@@@@@@" << endl;
   }
   
   
@@ -164,7 +164,7 @@ namespace Sass {
         return befores
       end
  */
- 		cerr << "(((((((((((((((((((" << endl;
+// 		cerr << "(((((((((((((((((((" << endl;
 		printComplexSelector(pSource, "WEAVE ", true);
     
     ComplexSelectorDeque befores;
@@ -176,7 +176,7 @@ namespace Sass {
       Complex_Selector* pCurrent = pAfters->clone(ctx);
       pCurrent->tail(NULL);
 
-      printComplexSelector(pCurrent, "> CURRENT: ", true);
+//      printComplexSelector(pCurrent, "> CURRENT: ", true);
       
       pAfters = pAfters->tail();
 
@@ -196,8 +196,8 @@ namespace Sass {
         }
       }
       
-      printComplexSelector(pCurrent, "> CURRENT POST POP: ", true);
-      printComplexSelector(pLastCurrent, "> LAST CURRENT: ", true);
+//      printComplexSelector(pCurrent, "> CURRENT POST POP: ", true);
+//      printComplexSelector(pLastCurrent, "> LAST CURRENT: ", true);
       
       ComplexSelectorDeque collector; // TODO: figure out what to name this
       
@@ -207,14 +207,14 @@ namespace Sass {
 
         Complex_Selector* pBefore = *iterator;
         
-        cerr << "> BEFORE IN BEFORES LOOP: BEFORE=";
-        printComplexSelector(pBefore);
-        printComplexSelector(pCurrent, " CURRENT=", true);
+//        cerr << "> BEFORE IN BEFORES LOOP: BEFORE=";
+//        printComplexSelector(pBefore);
+//        printComplexSelector(pCurrent, " CURRENT=", true);
         
         ComplexSelectorDeque sub;
         subweave(pBefore, pCurrent, sub, ctx);
         
-        printSelectors("> SUB RESULT: ", sub, ctx);
+//        printSelectors("> SUB RESULT: ", sub, ctx);
         
         if (sub.empty()) {
           continue;
@@ -226,7 +226,7 @@ namespace Sass {
 
           Complex_Selector* pSequences = *iterator; // TODO: clone this?
           
-          printComplexSelector(pSequences, "> SEQS: ", true);
+//          printComplexSelector(pSequences, "> SEQS: ", true);
           
           if (pSequences) {
           	pSequences->set_innermost(pLastCurrent->clone(ctx), pSequences->innermost()->combinator()); // TODO: is this the correct combinator?
@@ -236,14 +236,14 @@ namespace Sass {
            
           collector.push_back(pSequences);
           
-          printComplexSelector(pSequences, "> TEMPB: ", true);
+//          printComplexSelector(pSequences, "> TEMPB: ", true);
         }
       }
 
     	befores = collector;
     }
  
-    cerr << "(((((((((((((((((((" << endl;
+//    cerr << "(((((((((((((((((((" << endl;
 
     return befores[0]; // TODO: this clearly isn't right...
   }
@@ -478,21 +478,17 @@ namespace Sass {
       Compound_Selector* pExtCompoundSelector = iterator->second; // The stuff after the @extend
       
       if (seen.find(*pExtCompoundSelector) != seen.end()) {
+      	printCompoundSelector(pExtCompoundSelector, "CONTINUING DUE TO SEEN: ", true);
         continue;
       }
       
+      // TODO: This can return a Compound_Selector with no elements. Should that just be returning NULL?
       Compound_Selector* pSelectorWithoutExtendSelectors = pSelector->minus(pExtCompoundSelector, ctx);
-//      cerr << "MINUS: " << pSelectorWithoutExtendSelectors->perform(&to_string) << endl;
+      cerr << "MINUS: " << pSelectorWithoutExtendSelectors->perform(&to_string) << endl;
 
 
-      
-      Compound_Selector* pInnermostCompoundSelector = pExtComplexSelector->base();
-      Compound_Selector* pUnifiedSelector = pInnermostCompoundSelector->unify_with(pSelectorWithoutExtendSelectors, ctx);
-      if (!pUnifiedSelector || pUnifiedSelector->length() == 0) {
-        continue;
-      }
-      // TODO: Is the version of this code that's based on the existing C++ impl any better?
-      /*
+
+
       Compound_Selector* pInnermostCompoundSelector = pExtComplexSelector->base();
       Compound_Selector* pUnifiedSelector = NULL;
 			if (!pInnermostCompoundSelector) {
@@ -505,7 +501,7 @@ namespace Sass {
       if (!pUnifiedSelector || pUnifiedSelector->length() == 0) {
         continue;
       }
-			*/
+			
 
 
       // This seems a little fishy to me. See if it causes any problems. From the ruby, we should be able to just
@@ -520,20 +516,21 @@ namespace Sass {
       
       
       
-      
-//      cerr << "CREATED EXT: " << pNewSelector->perform(&to_string) << endl;
+
 
       ComplexSelectorDeque recurseExtendedSelectors;
       set<Compound_Selector> recurseSeen(seen);
       recurseSeen.insert(*pExtCompoundSelector);
+
+
+			printComplexSelector(pNewSelector, "SIMPLESEQ CALLING DO EXTEND: ", true);
       extendComplexSelector(pNewSelector, ctx, subsetMap, recurseSeen, recurseExtendedSelectors /*out*/);
+
       for (ComplexSelectorDeque::iterator iterator = recurseExtendedSelectors.begin(), endIterator = recurseExtendedSelectors.end();
            iterator != endIterator; ++iterator) {
         Complex_Selector* pSelector = *iterator;
         bool selectorAlreadyExists = complexSelectorDequeContains(extendedSelectors, pSelector);
-//        cerr << "SEL ALREADY EXISTS: " << selectorAlreadyExists << " " << pSelector->perform(&to_string) << endl;
         if (!selectorAlreadyExists) {
-//          cerr << "ADDING EXT ASDF ASDF ASDF" << endl;
           extendedSelectors.push_back(pSelector);
         }
       }
@@ -591,7 +588,7 @@ namespace Sass {
       ComplexSelectorDeque extendedSelectorsFromCompound;
       extendCompoundSelector(pCompoundSelector, ctx, subsetMap, seen, extendedSelectorsFromCompound /*out*/);
       
-      printSelectors(">>>>> EXTENDED: ", extendedSelectorsFromCompound, ctx);
+//      printSelectors(">>>>> EXTENDED: ", extendedSelectorsFromCompound, ctx);
       
       
 
@@ -611,7 +608,7 @@ namespace Sass {
       }
       
       
-      printComplexSelector(pChoices, ">>>>> CHOICES BEFORE: ", true);
+//      printComplexSelector(pChoices, ">>>>> CHOICES BEFORE: ", true);
   
       
       
@@ -619,7 +616,7 @@ namespace Sass {
       // TODO: this is just here for debugging
       Complex_Selector* pTemp = pCurrentComplexSelector->clone(ctx);
       pTemp->tail(NULL);
-      printComplexSelector(pTemp, ">>>>> INSERT: ", true);
+//      printComplexSelector(pTemp, ">>>>> INSERT: ", true);
 
       
       
@@ -650,7 +647,7 @@ namespace Sass {
       }
       
 
-      printComplexSelector(pChoices, ">>>>> CHOICES FINAL : ", true);
+//      printComplexSelector(pChoices, ">>>>> CHOICES FINAL : ", true);
 
       
       if (pChoices) {
