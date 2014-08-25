@@ -569,7 +569,7 @@ namespace Sass
 				size_t pos_import = sass.find_first_of(" \t\n\v\f\r", pos_left + 7);
 				size_t pos_quote = sass.find_first_not_of(" \t\n\v\f\r", pos_import);
 				// check if the url is quoted
-				if (sass.substr(pos_quote, 1) != "\"")
+				if (sass.substr(pos_quote, 1) != "\"" && sass.substr(pos_quote, 1) != "\'")
 				{
 					// get position of the last char on the line
 					size_t pos_end = sass.find_last_not_of(" \t\n\v\f\r");
