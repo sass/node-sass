@@ -140,6 +140,14 @@ exports.renderSync = function(options) {
   return output;
 };
 
+var makeSourceMapUrlsRelative = function (sourceMap, dir) {
+    var map = JSON.parse(sourceMap);
+    map.sources = map.sources.map(function (source) {
+        return path.relative(dir, source);
+    });
+    return JSON.stringify(map);
+};
+
 /**
   Same as `render()` but with an extra `outFile` property in `options` and writes
   the CSS and sourceMap (if requested) to the filesystem.
@@ -170,6 +178,7 @@ exports.renderFile = function(options) {
       if (options.sourceMap) {
         dir = path.dirname(options.outFile);
         sourceMapFile = path.resolve(dir, options.sourceMap);
+        sourceMap = makeSourceMapUrlsRelative(sourceMap, path.dirname(sourceMapFile));
         fs.writeFile(sourceMapFile, sourceMap, function(err) {
           if (err) {
             return options.error(err);
