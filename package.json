@@ -50,9 +50,9 @@
     "node-sass-middleware": "~0.2.0"
   },
   "devDependencies": {
-    "coveralls": "~2.10.0",
-    "jscoverage": "~0.3.8",
-    "jshint": "~2.5.0",
-    "mocha-lcov-reporter": "~0.0.1"
+    "coveralls": "^2.11.1",
+    "jscoverage": "^0.5.6",
+    "jshint": "^2.5.5",
+    "mocha-lcov-reporter": "^0.0.1"
   }
 }
