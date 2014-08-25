@@ -212,6 +212,7 @@ Check out the project:
 
     git clone --recursive https://github.com/sass/node-sass.git
     cd node-sass
+    git submodule update --init --recursive
     npm install
     npm install -g node-gyp
     node-gyp rebuild
