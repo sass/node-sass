@@ -7,6 +7,7 @@ extern "C" {
 
   void free_context(sass_context* ctx) {
     delete[] ctx->source_string;
+    delete[] ctx->output_path;
     delete[] ctx->options.include_paths;
     delete[] ctx->options.image_path;
     sass_free_context(ctx);
