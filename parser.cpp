@@ -744,6 +744,57 @@ namespace Sass {
     return new (ctx.mem) Declaration(path, prop->position(), prop, list/*, lex<important>()*/);
   }
 
+  Expression* Parser::parse_map()
+  {
+    if (peek< exactly<')'> >(position))
+    { return new (ctx.mem) List(path, source_position, 0); }
+
+    Expression* key = parse_list();
+
+    // if it's not a map treat it like a list
+    if (!(peek< exactly<':'> >(position)))
+    { return key; }
+
+    // consume the ':'
+    lex< exactly<':'> >();
+
+    Expression* value;
+    if (peek< exactly<'('> >(position))
+    {
+      value = parse_comma_list();
+    } else {
+      value = parse_space_list();
+    }
+
+    KeyValuePair* pair = new (ctx.mem) KeyValuePair(path, source_position, key, value);
+
+    Map* map = new (ctx.mem) Map(path, source_position, 1);
+    (*map) << pair;
+
+    while (lex< exactly<','> >())
+    {
+      Expression* key = parse_list();
+      // if it's not a map treat it like a list
+      if (!(peek< exactly<':'> >(position)))
+      { error("invalid syntax"); }
+
+      // consume the ':'
+      lex< exactly<':'> >();
+
+      Expression* value;
+      if (peek< exactly<'('> >(position))
+      {
+        value = parse_comma_list();
+      } else {
+        value = parse_space_list();
+      }
+
+      (*map) << new (ctx.mem) KeyValuePair(path, source_position, key, value);
+    }
+
+    return map;
+  }
+
   Expression* Parser::parse_list()
   {
     return parse_comma_list();
@@ -794,7 +845,7 @@ namespace Sass {
         peek< exactly<'{'> >(position) ||
         peek< exactly<')'> >(position) ||
         peek< exactly<','> >(position) ||
-        // peek< exactly<':'> >(position) ||
+        peek< exactly<':'> >(position) ||
         peek< exactly<ellipsis> >(position) ||
         peek< default_flag >(position) ||
         peek< global_flag >(position))
@@ -915,7 +966,7 @@ namespace Sass {
   Expression* Parser::parse_factor()
   {
     if (lex< exactly<'('> >()) {
-      Expression* value = parse_comma_list();
+      Expression* value = parse_map();
       if (!lex< exactly<')'> >()) error("unclosed parenthesis");
       value->is_delayed(false);
       // make sure wrapped lists and division expressions are non-delayed within parentheses

@@ -141,6 +141,15 @@ extern "C" {
     return v;
   }
 
+  union Sass_Value make_sass_map(size_t len)
+  {
+    union Sass_Value v;
+    v.map.tag = SASS_MAP;
+    v.map.length = len;
+    v.map.pairs = (struct Sass_KeyValuePair*) malloc(sizeof(struct Sass_KeyValuePair)*len);
+    return v;
+  }
+
   union Sass_Value make_sass_null()
   {
     union Sass_Value v;
