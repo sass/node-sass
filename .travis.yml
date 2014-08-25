@@ -2,8 +2,10 @@ language: node_js
 node_js:
   - "0.10"
   - "0.11"
-
 before_install:
   - git submodule update --init --recursive
 after_success:
   - npm run-script coverage
+cache:
+  directories:
+    - node_modules
