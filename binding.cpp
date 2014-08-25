@@ -54,6 +54,7 @@ void ExtractOptions(Local<Value> optionsValue, void* cptr, sass_context_wrapper*
     ctx->options.image_path = CreateString(options->Get(NanNew("imagePath")));
     ctx->options.output_style = options->Get(NanNew("style"))->Int32Value();
     ctx->options.source_comments = source_comments = options->Get(NanNew("comments"))->Int32Value();
+    ctx->omit_source_map_url = options->Get(NanNew("omitSourceMapUrl"))->BooleanValue();
     ctx->options.include_paths = CreateString(options->Get(NanNew("paths")));
     if (source_comments == SASS_SOURCE_COMMENTS_MAP) {
       ctx->source_map_file = CreateString(options->Get(NanNew("sourceMap")));
@@ -66,6 +67,7 @@ void ExtractOptions(Local<Value> optionsValue, void* cptr, sass_context_wrapper*
     ctx->options.image_path = CreateString(options->Get(NanNew("imagePath")));
     ctx->options.output_style = options->Get(NanNew("style"))->Int32Value();
     ctx->options.source_comments = source_comments = options->Get(NanNew("comments"))->Int32Value();
+    ctx->omit_source_map_url = options->Get(NanNew("omitSourceMapUrl"))->BooleanValue();
     ctx->options.include_paths = CreateString(options->Get(NanNew("paths")));
     ctx->options.precision = options->Get(NanNew("precision"))->Int32Value();
   }

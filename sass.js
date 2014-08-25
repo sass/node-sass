@@ -69,6 +69,7 @@ var prepareOptions = function (options) {
     imagePath: options.image_path || options.imagePath || '',
     style: SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0,
     comments: SASS_SOURCE_COMMENTS[sourceComments] || 0,
+    omitSourceMapUrl: options.omitSourceMapUrl,
     stats: stats,
     sourceMap: sourceMap,
     precision: parseInt(options.precision) || 5,
