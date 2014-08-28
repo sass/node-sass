@@ -484,24 +484,30 @@ namespace Sass {
       
       // TODO: This can return a Compound_Selector with no elements. Should that just be returning NULL?
       Compound_Selector* pSelectorWithoutExtendSelectors = pSelector->minus(pExtCompoundSelector, ctx);
-      cerr << "MINUS: " << pSelectorWithoutExtendSelectors->perform(&to_string) << endl;
+//      cerr << "MINUS: " << pSelectorWithoutExtendSelectors->perform(&to_string) << endl;
 
 
 
 
       Compound_Selector* pInnermostCompoundSelector = pExtComplexSelector->base();
       Compound_Selector* pUnifiedSelector = NULL;
+
 			if (!pInnermostCompoundSelector) {
         pInnermostCompoundSelector = new (ctx.mem) Compound_Selector(pSelector->path(), pSelector->position());
+      }
+
+      if (pInnermostCompoundSelector->length() == 0) {
+        pUnifiedSelector = pSelectorWithoutExtendSelectors;
       } else if (pSelectorWithoutExtendSelectors->length() == 0) {
-        pUnifiedSelector = pInnermostCompoundSelector;
+      	pUnifiedSelector = pInnermostCompoundSelector;
       } else {
         pUnifiedSelector = pInnermostCompoundSelector->unify_with(pSelectorWithoutExtendSelectors, ctx);
       }
+      
       if (!pUnifiedSelector || pUnifiedSelector->length() == 0) {
         continue;
       }
-			
+      
 
 
       // This seems a little fishy to me. See if it causes any problems. From the ruby, we should be able to just
