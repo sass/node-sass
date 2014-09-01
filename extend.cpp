@@ -168,9 +168,21 @@ namespace Sass {
     	out.push_back(pOne ? pOne->clone(ctx) : NULL);
       return;
     }
-
     
-    throw "NOT YET IMPLEMENTED";
+    
+    
+    // Do the naive implementation
+    Complex_Selector* pFirstPermutation = pOne->clone(ctx);
+    pFirstPermutation->set_innermost(pTwo->clone(ctx), pFirstPermutation->innermost()->combinator()); // TODO: is this the correct combinator?
+    out.push_back(pFirstPermutation);
+
+    Complex_Selector* pSecondPermutation = pTwo->clone(ctx);
+    pSecondPermutation->set_innermost(pOne->clone(ctx), pSecondPermutation->innermost()->combinator()); // TODO: is this the correct combinator?
+    out.push_back(pSecondPermutation);
+    
+
+    //cerr << "subweave NOT YET IMPLEMENTED" << endl;
+    //throw "subweave NOT YET IMPLEMENTED";
   }
   
   
