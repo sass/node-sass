@@ -1219,12 +1219,16 @@ namespace Sass {
     { }
     ATTACH_OPERATIONS();
   };
+  
+  struct Complex_Selector_Pointer_Compare {
+    bool operator() (const Complex_Selector* const pLeft, const Complex_Selector* const pRight) const;
+  };
 
   ////////////////////////////////////////////////////////////////////////////
   // Simple selector sequences. Maintains flags indicating whether it contains
   // any parent references or placeholders, to simplify expansion.
   ////////////////////////////////////////////////////////////////////////////
-  typedef set<Complex_Selector*> SourcesSet;
+  typedef set<Complex_Selector*, Complex_Selector_Pointer_Compare> SourcesSet;
   class Compound_Selector : public Selector, public Vectorized<Simple_Selector*> {
   private:
     SourcesSet sources_;
@@ -1265,6 +1269,9 @@ namespace Sass {
     vector<string> to_str_vec(); // sometimes need to convert to a flat "by-value" data structure
 
     SourcesSet& sources() { return sources_; }
+    
+    void mergeSources(SourcesSet& sources, Context& ctx);
+
     Compound_Selector* minus(Compound_Selector* rhs, Context& ctx);
     ATTACH_OPERATIONS();
   };
@@ -1331,6 +1338,20 @@ namespace Sass {
       }
 
       return srcs;
+    }
+    void addSources(SourcesSet& sources, Context& ctx)
+    {
+      // members.map! {|m| m.is_a?(SimpleSequence) ? m.with_more_sources(sources) : m}
+      Complex_Selector* pIter = this;
+      while (pIter) {
+        Compound_Selector* pHead = pIter->head();
+        
+        if (pHead) {
+          pHead->mergeSources(sources, ctx);
+        }
+        
+        pIter = pIter->tail();
+      }
     }
     Complex_Selector* clone(Context&);
     vector<Compound_Selector*> to_vector();

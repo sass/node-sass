@@ -182,6 +182,10 @@ namespace Sass {
     // catch-all
     return false;
   }
+  
+  bool Complex_Selector_Pointer_Compare::operator() (const Complex_Selector* const pLeft, const Complex_Selector* const pRight) const {
+    return *pLeft < *pRight;
+  }
 
   bool Complex_Selector::is_superselector_of(Compound_Selector* rhs)
   {
@@ -391,6 +395,18 @@ namespace Sass {
     }
 
     return result;
+  }
+  
+  void Compound_Selector::mergeSources(SourcesSet& sources, Context& ctx)
+  {
+    // sseq = dup
+    // sseq.members = members.dup
+    // sseq.sources = self.sources | sources
+    // sseq
+    
+    for (SourcesSet::iterator iterator = sources.begin(), endIterator = sources.end(); iterator != endIterator; ++iterator) {
+      this->sources_.insert((*iterator)->clone(ctx));
+    }
   }
 
   vector<Compound_Selector*> Complex_Selector::to_vector()
