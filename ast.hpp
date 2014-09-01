@@ -1224,9 +1224,10 @@ namespace Sass {
   // Simple selector sequences. Maintains flags indicating whether it contains
   // any parent references or placeholders, to simplify expansion.
   ////////////////////////////////////////////////////////////////////////////
+  typedef set<Complex_Selector*> SourcesSet;
   class Compound_Selector : public Selector, public Vectorized<Simple_Selector*> {
   private:
-    set<Complex_Selector> sources_;
+    SourcesSet sources_;
   protected:
     void adjust_after_pushing(Simple_Selector* s)
     {
@@ -1263,7 +1264,7 @@ namespace Sass {
     }
     vector<string> to_str_vec(); // sometimes need to convert to a flat "by-value" data structure
 
-    set<Complex_Selector>& sources() { return sources_; }
+    SourcesSet& sources() { return sources_; }
     Compound_Selector* minus(Compound_Selector* rhs, Context& ctx);
     ATTACH_OPERATIONS();
   };
@@ -1300,7 +1301,7 @@ namespace Sass {
     virtual Selector_Placeholder* find_placeholder();
     Combinator clear_innermost();
     void set_innermost(Complex_Selector*, Combinator);
-    virtual int specificity()
+    virtual int specificity() const
     {
       int sum = 0;
       if (head()) sum += head()->specificity();
@@ -1308,24 +1309,27 @@ namespace Sass {
       return sum;
     }
     bool operator<(const Complex_Selector& rhs) const;
-    set<Complex_Selector> sources()
+    SourcesSet sources()
     {
-      set<Complex_Selector> srcs;
-      Compound_Selector* h = head();
-      Complex_Selector*  t = tail();
-      if (!h && !t) return srcs;
-      if (!h && t)  return srcs = t->sources();
-      if (h && !t)  return srcs = h->sources();
-      if (h && t)
-      {
-        vector<Complex_Selector> vec;
-        set_union(h->sources().begin(), h->sources().end(),
-                  t->sources().begin(), t->sources().end(),
-                  vec.begin());
-        for (size_t i = 0, S = vec.size(); i < S; ++i) srcs.insert(vec[i]);
-        return srcs;
+      //s = Set.new
+      //seq.map {|sseq_or_op| s.merge sseq_or_op.sources if sseq_or_op.is_a?(SimpleSequence)}
+      //s
+
+      SourcesSet srcs;
+      
+      Compound_Selector* pHead = head();
+      Complex_Selector*  pTail = tail();
+      
+      if (pHead) {
+        SourcesSet& headSources = pHead->sources();
+        srcs.insert(headSources.begin(), headSources.end());
       }
-      // fallback
+      
+      if (pTail) {
+        SourcesSet tailSources = pTail->sources();
+        srcs.insert(tailSources.begin(), tailSources.end());
+      }
+
       return srcs;
     }
     Complex_Selector* clone(Context&);

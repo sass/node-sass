@@ -112,13 +112,157 @@ namespace Sass {
   
   
   
+  void cloneComplexSelectorDequeDeque(ComplexSelectorDequeDeque& source, ComplexSelectorDequeDeque& dest, Context& ctx) {
+    for (ComplexSelectorDequeDeque::iterator iterator = source.begin(), iteratorEnd = source.end(); iterator != iteratorEnd; ++iterator) {
+
+      ComplexSelectorDeque& toClone = *iterator;
+      
+      ComplexSelectorDeque cloned;
+      cloneComplexSelectorDeque(toClone, cloned, ctx);
+
+			dest.push_back(cloned);
+    }
+  }
   
   
   
   
-  void trim(ComplexSelectorDequeDeque& toTrim, ComplexSelectorDequeDeque& trimmed) {
-    // TODO: implement trim
-    trimmed = toTrim;
+  /*
+        # Avoid truly horrific quadratic behavior. TODO: I think there
+        # may be a way to get perfect trimming without going quadratic.
+        return seqses if seqses.size > 100
+
+        # Keep the results in a separate array so we can be sure we aren't
+        # comparing against an already-trimmed selector. This ensures that two
+        # identical selectors don't mutually trim one another.
+        result = seqses.dup
+
+        # This is n^2 on the sequences, but only comparing between
+        # separate sequences should limit the quadratic behavior.
+        seqses.each_with_index do |seqs1, i|
+          $stderr.puts "SEQS1: #{seqs1} #{i}"
+
+
+          tempResult = []
+
+          for seq1 in seqs1 do
+            max_spec = 0
+            for seq in _sources(seq1) do
+              max_spec = [max_spec, seq.specificity].max
+            end
+
+
+            isMoreSpecificOuter = false
+            for seqs2 in result do
+              if seqs1.equal?(seqs2) then
+                next
+              end
+
+              # Second Law of Extend: the specificity of a generated selector
+              # should never be less than the specificity of the extending
+              # selector.
+              #
+              # See https://github.com/nex3/sass/issues/324.
+              isMoreSpecificInner = false
+              for seq2 in seqs2 do
+                isMoreSpecificInner = _specificity(seq2) >= max_spec && _superselector?(seq2, seq1)
+                if isMoreSpecificInner then
+                  break
+                end
+              end
+              
+              if isMoreSpecificInner then
+                isMoreSpecificOuter = true
+                break
+              end
+            end
+
+            if !isMoreSpecificOuter then
+              tempResult.push(seq1)
+            end
+          end
+
+          result[i] = tempResult
+
+          $stderr.puts "RESULT: #{result[i]}"
+        end
+        $stderr.puts "TRIM RESULT: #{result}"
+        result
+   */
+  void trim(ComplexSelectorDequeDeque& toTrim, ComplexSelectorDequeDeque& trimmed, Context& ctx) {
+    // return seqses if seqses.size > 100
+    if (toTrim.size() > 100) {
+    	trimmed = toTrim;
+      return;
+    }
+
+    // result = seqses.dup
+    ComplexSelectorDequeDeque result;
+    cloneComplexSelectorDequeDeque(toTrim, result, ctx);
+    
+    
+    // seqses.each_with_index do |seqs1, i|
+    for (ComplexSelectorDequeDeque::iterator iterator = toTrim.begin(), iteratorEnd = toTrim.end(); iterator != iteratorEnd; ++iterator) {
+    	ComplexSelectorDeque& seqs1 = *iterator;
+      
+      ComplexSelectorDeque tempResult;
+      
+      // for seq1 in seqs1 do
+      for (ComplexSelectorDeque::iterator iterator = seqs1.begin(), iteratorEnd = seqs1.end(); iterator != iteratorEnd; ++iterator) {
+       	Complex_Selector* pSeq1 = *iterator;
+  
+        
+        // max_spec = 0
+        // for seq in _sources(seq1) do
+        //   max_spec = [max_spec, seq.specificity].max
+        // end
+        int maxSpecificity = 0;
+        SourcesSet sources = pSeq1->sources();
+        for (SourcesSet::iterator iterator = sources.begin(), iteratorEnd = sources.end(); iterator != iteratorEnd; ++iterator) {
+         	const Complex_Selector* const pCurrentSelector = *iterator;
+          maxSpecificity = max(maxSpecificity, pCurrentSelector->specificity());
+        }
+
+        bool isMoreSpecificOuter = false;
+        for (ComplexSelectorDequeDeque::iterator iterator = result.begin(), iteratorEnd = result.end(); iterator != iteratorEnd; ++iterator) {
+          ComplexSelectorDeque& seqs2 = *iterator;
+          
+          // TODO: not sure if this equality operator is doing a correct search of the deque's.
+          if (seqs1 == seqs2) {
+            continue;
+          }
+          
+          bool isMoreSpecificInner = false;
+          
+          for (ComplexSelectorDeque::iterator iterator = seqs2.begin(), iteratorEnd = seqs2.end(); iterator != iteratorEnd; ++iterator) {
+            Complex_Selector* pSeq2 = *iterator;
+            
+            // isMoreSpecificInner = _specificity(seq2) >= max_spec && _superselector?(seq2, seq1)
+            isMoreSpecificInner = pSeq2->specificity() >= maxSpecificity && pSeq2->is_superselector_of(pSeq1);
+
+            if (isMoreSpecificInner) {
+              break;
+            }
+          }
+          
+          
+					if (isMoreSpecificInner) {
+            isMoreSpecificOuter = true;
+            break;
+          }
+        }
+        
+        if (!isMoreSpecificOuter) {
+          tempResult.push_back(pSeq1);
+        }
+      }
+      
+      // result[i] = tempResult
+      *iterator = tempResult;
+    }
+    
+    
+    trimmed = result;
   }
   
   
@@ -224,7 +368,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       end
  */
 
-		printSelectors("WEAVE: ", toWeave, ctx, true);
+//		printSelectors("WEAVE: ", toWeave, ctx, true);
 
   	// befores = [[]]
     ComplexSelectorDeque befores;
@@ -241,7 +385,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
 			Complex_Selector* pCurrent = afters[0]->clone(ctx);
       afters.pop_front();
       
-      printComplexSelector(pCurrent, "CURRENT: ", true);
+//      printComplexSelector(pCurrent, "CURRENT: ", true);
 
       
       //last_current = [current.pop]
@@ -261,8 +405,8 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
         }
       }
       
-      printComplexSelector(pCurrent, "CURRENT POST POP: ", true);
-      printComplexSelector(pLastCurrent, "LAST CURRENT: ", true);
+//      printComplexSelector(pCurrent, "CURRENT POST POP: ", true);
+//      printComplexSelector(pLastCurrent, "LAST CURRENT: ", true);
 
     
     
@@ -298,10 +442,10 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
         ComplexSelectorDeque sub;
         subweave(pBefore, pCurrent, sub, ctx);
         
-        printSelectors("SUB: ", sub, ctx, true /*newline*/);
+//        printSelectors("SUB: ", sub, ctx, true /*newline*/);
         
         if (sub.empty()) {
-          cerr << "CONTINUING DUE TO EMPTY" << endl;
+//          cerr << "CONTINUING DUE TO EMPTY" << endl;
           continue;
         }
       	
@@ -311,7 +455,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
           
           Complex_Selector* pSequences = *iterator; // TODO: clone this?
           
-          printComplexSelector(pSequences, "SEQS: ", true);
+//          printComplexSelector(pSequences, "SEQS: ", true);
           
           if (pSequences) {
           	pSequences->set_innermost(pLastCurrent->clone(ctx), pSequences->innermost()->combinator()); // TODO: is this the correct combinator?
@@ -319,7 +463,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
 						pSequences = pLastCurrent->clone(ctx);
           }
           
-          printComplexSelector(pSequences, "PUSHING: ", true);
+//          printComplexSelector(pSequences, "PUSHING: ", true);
           
           collector.push_back(pSequences);
           
@@ -835,7 +979,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
     
     
     ComplexSelectorDequeDeque trimmed;
-    trim(weaves, trimmed);
+    trim(weaves, trimmed, ctx);
 
     
 		printComplexSelectorDequeDeque("TRIMMED: ", trimmed, ctx, true /*newline*/);
