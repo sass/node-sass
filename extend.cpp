@@ -709,7 +709,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       ComplexSelectorDeque extended;
       extendCompoundSelector(pCompoundSelector, ctx, subsetMap, seen, extended /*out*/);
       
-//      printSelectors(">>>>> EXTENDED: ", extended, ctx, true /*newline*/);
+      printSelectors("EXTENDED: ", extended, ctx, true /*newline*/);
       
       
 
@@ -770,11 +770,12 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
         
         // TODO: this could be done in a simpler way
         
-        extended.push_back(pJustCurrentCompoundSelector);
+        extended.push_front(pJustCurrentCompoundSelector);
       }
       
 
-//      printComplexSelector(pChoices, ">>>>> CHOICES FINAL : ", true);
+      printSelectors("CHOICES UNSHIFTED: ", extended, ctx, true /*newline*/);
+
 
       
 //      if (pChoices) {
@@ -786,7 +787,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
     	pCurrentComplexSelector = pCurrentComplexSelector->tail();
     }
 
-//    printComplexSelectorDequeDeque("EXTENDED NOT EXPANDED: ", extendedNotExpanded, ctx, true /*newline*/);
+    printComplexSelectorDequeDeque("EXTENDED NOT EXPANDED: ", extendedNotExpanded, ctx, true /*newline*/);
     
   
     
