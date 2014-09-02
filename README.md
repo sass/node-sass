@@ -179,7 +179,7 @@ Heavily inspired by <https://github.com/LearnBoost/stylus>
 ## Duo.js extension
 
 [@stephenway](https://github.com/stephenway) has created an extension that transpiles Sass to CSS using node-sass with [duo.js](http://duojs.org/)
-<https://github.com/stephenway/duo-sass>
+<https://github.com/duojs/sass>
 
 ## Grunt extension
 
