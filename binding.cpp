@@ -23,8 +23,11 @@ char* CreateString(Local<Value> value) {
   if(value->IsNull() || !value->IsString()) {
     return const_cast<char*>(""); // return empty string.
   }
-  size_t count;
-  return NanCString(value, &count);
+
+  String::Utf8Value string(value);
+  char *str = (char *) malloc(string.length() + 1);
+  strcpy(str, *string);
+  return str;
 }
 
 void ExtractOptions(Local<Value> optionsValue, void* cptr, sass_context_wrapper* ctx_w, bool isFile) {
