@@ -215,4 +215,14 @@ describe('cli', function() {
     });
   });
 
+  it('should compile with input from stdin', function(done){
+    var emitter = cli(['--stdout']);
+    emitter.on('error', done);
+    emitter.on('log', function(css){
+      done(assert.equal(css, '#navbar ul {\n  list-style-type: none; }\n'));
+    });
+    process.stdin.emit('data', '#navbar ul{list-style-type:none;}');
+    process.stdin.emit('end');
+  });
+
 });
