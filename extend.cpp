@@ -12,6 +12,9 @@ namespace Sass {
   
   typedef deque<Complex_Selector*> ComplexSelectorDeque;
 	typedef deque<ComplexSelectorDeque> ComplexSelectorDequeDeque;
+  
+  typedef pair<Complex_Selector*, Compound_Selector*> ExtensionPair;
+  typedef vector<ExtensionPair> SubsetMapEntries;
 
   
   Selector_List* createSelectorListFromDeque(ComplexSelectorDeque& deque, Context& ctx, Selector_List* pSelectorGroupTemplate) {
@@ -64,7 +67,7 @@ namespace Sass {
     }
   }
   
-  void printSelectors(ComplexSelectorDeque& deque, const char* message=NULL, bool newline=true) {
+  void printComplexSelectorDeque(ComplexSelectorDeque& deque, const char* message=NULL, bool newline=true) {
   	To_String to_string;
 
   	if (message) {
@@ -99,7 +102,7 @@ namespace Sass {
       if (iterator != dequeDeque.begin()) {
       	cerr << ", ";
       }
-      printSelectors(deque, "", false /*newline*/);
+      printComplexSelectorDeque(deque, "", false /*newline*/);
     }
     cerr << "]";
     
@@ -286,8 +289,7 @@ namespace Sass {
         bool isMoreSpecificOuter = false;
         for (ComplexSelectorDequeDeque::iterator resultIterator = result.begin(), resultIteratorEnd = result.end(); resultIterator != resultIteratorEnd; ++resultIterator) {
           ComplexSelectorDeque& seqs2 = *resultIterator;
-          
-          // TODO: not sure if this equality operator is doing a correct search of the deque's.
+
 //          printSelectors(seqs1, "SEQS1: ");
 //          printSelectors(seqs2, "SEQS2: ");
           if (complexSelectorDequesEqual(seqs1, seqs2)) {
@@ -387,8 +389,7 @@ namespace Sass {
       return;
     }
     
-    
-    
+
     // Do the naive implementation
     Complex_Selector* pFirstPermutation = pOne->clone(ctx);
     pFirstPermutation->set_innermost(pTwo->clone(ctx), pFirstPermutation->innermost()->combinator()); // TODO: is this the correct combinator?
@@ -397,18 +398,12 @@ namespace Sass {
     Complex_Selector* pSecondPermutation = pTwo->clone(ctx);
     pSecondPermutation->set_innermost(pOne->clone(ctx), pSecondPermutation->innermost()->combinator()); // TODO: is this the correct combinator?
     out.push_back(pSecondPermutation);
-    
-
-    //cerr << "subweave NOT YET IMPLEMENTED" << endl;
-    //throw "subweave NOT YET IMPLEMENTED";
   }
   
   
   
   
   
-  
-void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& weaved /*out*/) {
 /*
       def weave(path)
         # This function works by moving through the selector path left-to-right,
@@ -440,8 +435,8 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
 
         return befores
       end
- */
-
+ */  
+void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& weaved /*out*/) {
 //		printSelectors("WEAVE: ", toWeave, ctx, true);
 
   	// befores = [[]]
@@ -459,9 +454,6 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
 			Complex_Selector* pCurrent = afters[0]->clone(ctx);
       afters.pop_front();
       
-//      printComplexSelector(pCurrent, "CURRENT: ", true);
-
-      
       //last_current = [current.pop]
       Complex_Selector* pLastCurrent = pCurrent->innermost();
       if (pCurrent == pLastCurrent) {
@@ -478,28 +470,6 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
         	pIter = pIter->tail();
         }
       }
-      
-//      printComplexSelector(pCurrent, "CURRENT POST POP: ", true);
-//      printComplexSelector(pLastCurrent, "LAST CURRENT: ", true);
-
-    
-    
-      /*
-      tempResult = []
-      
-      for before in befores do
-        sub = subweave(before, current)
-        if sub.nil?
-          next
-        end
-          
-        for seqs in sub do
-          tempResult.push(seqs + last_current)
-        end
-      end
-      */
-
-          
           
       ComplexSelectorDeque collector; // TODO: figure out what to name this
       
@@ -543,8 +513,6 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
   
   
   
-  
-  void paths(ComplexSelectorDequeDeque& source, ComplexSelectorDequeDeque& out, Context& ctx) {
     /*
     # Return an array of all possible paths through the given arrays.
     #
@@ -571,9 +539,8 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
         loopStart = permutations
       end
     end
-     */
-
-    
+     */  
+  void paths(ComplexSelectorDequeDeque& source, ComplexSelectorDequeDeque& out, Context& ctx) {
     To_String to_string;
     
     ComplexSelectorDequeDeque loopStart;
@@ -620,8 +587,8 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
   }
 
   
-  
-  
+
+  // TODO: move this to ast.hpp next to the other one?
   struct ComplexSelectorPointerComparator
   {
     bool operator()(Complex_Selector* const pOne)
@@ -656,60 +623,6 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
   
   
   
-  
-  void extendCompoundSelector(
-  	Compound_Selector* pSelector,
-    Context& ctx,
-    ExtensionSubsetMap& subsetMap,
-    set<Compound_Selector> seen,
-    ComplexSelectorDeque& extendedSelectors) {
-  /*
-   Selector_List* Extend::extend_compound(Compound_Selector* sel, set<Compound_Selector>& seen) {
-
-   To_String to_string;
-   // cerr << "EXTEND_COMPOUND: " << sel->perform(&to_string) << endl;
-   Selector_List* results = new (ctx.mem) Selector_List(sel->path(), sel->position());
-   
-   // TODO: Do we need to group the results by extender?
-   vector<pair<Complex_Selector*, Compound_Selector*> > entries = subset_map.get_v(sel->to_str_vec());
-   
-   for (size_t i = 0, S = entries.size(); i < S; ++i)
-   {
-   if (seen.count(*entries[i].second)) continue;
-   // cerr << "COMPOUND: " << sel->perform(&to_string) << " KEYS TO " << entries[i].first->perform(&to_string) << " AND " << entries[i].second->perform(&to_string) << endl;
-   Compound_Selector* diff = sel->minus(entries[i].second, ctx);
-   Compound_Selector* last = entries[i].first->base();
-   if (!last) last = new (ctx.mem) Compound_Selector(sel->path(), sel->position());
-   // cerr << sel->perform(&to_string) << " - " << entries[i].second->perform(&to_string) << " = " << diff->perform(&to_string) << endl;
-   // cerr << "LAST: " << last->perform(&to_string) << endl;
-   Compound_Selector* unif;
-   if (last->length() == 0) unif = diff;
-   else if (diff->length() == 0) unif = last;
-   else unif = last->unify_with(diff, ctx);
-   // if (unif) cerr << "UNIFIED: " << unif->perform(&to_string) << endl;
-   if (!unif || unif->length() == 0) continue;
-   Complex_Selector* cplx = entries[i].first->clone(ctx);
-   // cerr << "cplx: " << cplx->perform(&to_string) << endl;
-   Complex_Selector* new_innermost = new (ctx.mem) Complex_Selector(sel->path(), sel->position(), Complex_Selector::ANCESTOR_OF, unif, 0);
-   // cerr << "new_innermost: " << new_innermost->perform(&to_string) << endl;
-   cplx->set_innermost(new_innermost, cplx->clear_innermost());
-   // cerr << "new cplx: " << cplx->perform(&to_string) << endl;
-   *results << cplx;
-   set<Compound_Selector> seen2 = seen;
-   seen2.insert(*entries[i].second);
-   Selector_List* ex2 = extend_complex(cplx, seen2);
-   *results += ex2;
-   // cerr << "RECURSIVELY CALLING EXTEND_COMPLEX ON " << cplx->perform(&to_string) << endl;
-   // vector<Selector_List*> ex2 = extend_complex(cplx, seen2);
-   // for (size_t j = 0, T = ex2.size(); j < T; ++j)
-   // {
-   //   *results += ex2[i];
-   // }
-   }
-   
-   // cerr << "RESULTS: " << results->perform(&to_string) << endl;
-   return results;
-   */
   /*
       def do_extend(extends, parent_directives, seen = Set.new)
         print "\n%%%%%%%%%%%%% SIMPLE SEQ DO EXTEND #{members}\n"
@@ -741,16 +654,18 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
      ISSUES:
      - Previous TODO: Do we need to group the results by extender?
      - What does subject do in?: next unless unified = seq.members.last.unify(self_without_sel, subject?)
-     - If sibling extend fails, check if creation of new selecor is clone correct selector; might be extra parent nodes
      - The search for uniqueness at the end is not ideal since it's has to loop over everything...
      - Check if the final search for uniqueness is doing anything that extendComplexSelector isn't already doing...
      */
+  void extendCompoundSelector(
+  	Compound_Selector* pSelector,
+    Context& ctx,
+    ExtensionSubsetMap& subsetMap,
+    set<Compound_Selector> seen,
+    ComplexSelectorDeque& extendedSelectors) {
+
     To_String to_string;
-//    printCompoundSelector(pSelector, "%%%%%%%%%%%%% SIMPLE SEQ DO EXTEND: ", true);
 
-
-    typedef pair<Complex_Selector*, Compound_Selector*> ExtensionPair;
-    typedef vector<ExtensionPair> SubsetMapEntries;
     SubsetMapEntries entries = subsetMap.get_v(pSelector->to_str_vec());
     
 		for (SubsetMapEntries::iterator iterator = entries.begin(), endIterator = entries.end(); iterator != endIterator; ++iterator) {
@@ -758,15 +673,11 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       Compound_Selector* pExtCompoundSelector = iterator->second; // The stuff after the @extend
       
       if (seen.find(*pExtCompoundSelector) != seen.end()) {
-//      	printCompoundSelector(pExtCompoundSelector, "CONTINUING DUE TO SEEN: ", true);
         continue;
       }
       
       // TODO: This can return a Compound_Selector with no elements. Should that just be returning NULL?
       Compound_Selector* pSelectorWithoutExtendSelectors = pSelector->minus(pExtCompoundSelector, ctx);
-//      cerr << "MINUS: " << pSelectorWithoutExtendSelectors->perform(&to_string) << endl;
-
-
 
 
       Compound_Selector* pInnermostCompoundSelector = pExtComplexSelector->base();
@@ -790,7 +701,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       
 
 
-      // This seems a little fishy to me. See if it causes any problems. From the ruby, we should be able to just
+      // TODO: This seems a little fishy to me. See if it causes any problems. From the ruby, we should be able to just
       // get rid of the last Compound_Selector and replace it with this one. I think the reason this code is more
       // complex is that Complex_Selector contains a combinator, but in ruby combinators have already been filtered
       // out and aren't operated on.
@@ -822,7 +733,8 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
 
 
 			printComplexSelector(pNewSelector, "RECURSING DO EXTEND: ", true);
-      extendComplexSelector(pNewSelector, ctx, subsetMap, recurseSeen, recurseExtendedSelectors /*out*/);
+
+  		extendComplexSelector(pNewSelector, ctx, subsetMap, recurseSeen, recurseExtendedSelectors /*out*/);
 
       for (ComplexSelectorDeque::iterator iterator = recurseExtendedSelectors.begin(), endIterator = recurseExtendedSelectors.end();
            iterator != endIterator; ++iterator) {
@@ -835,13 +747,8 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
     }
   }
  
+
   
-  void extendComplexSelector(
-  	Complex_Selector* pComplexSelector,
-    Context& ctx,
-    ExtensionSubsetMap& subsetMap,
-    set<Compound_Selector> seen,
-    ComplexSelectorDeque& extendedSelectors) {
   /*
       def do_extend(extends, parent_directives, seen = Set.new)
 
@@ -870,8 +777,14 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
      ISSUES:
      - check for operator doesn't transfer over to libsass' object model
      */
+  void extendComplexSelector(
+  	Complex_Selector* pComplexSelector,
+    Context& ctx,
+    ExtensionSubsetMap& subsetMap,
+    set<Compound_Selector> seen,
+    ComplexSelectorDeque& extendedSelectors) {
+
     To_String to_string;
-//    cerr << "************ SEQ DO EXTEND: " << pComplexSelector->perform(&to_string) << endl;
 
     Complex_Selector* pCurrentComplexSelector = pComplexSelector->tail();
     
@@ -884,28 +797,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       ComplexSelectorDeque extended;
       extendCompoundSelector(pCompoundSelector, ctx, subsetMap, seen, extended /*out*/);
       
-      printSelectors(extended, "EXTENDED: ");
-      
-      
-
-      /*
-      Complex_Selector* pChoices = NULL;
-      
-      if (extended.size() > 0) {
-        pChoices = extended[0];
-
-        for (ComplexSelectorDeque::iterator iterator = extended.begin() + 1, endIterator = extended.end();
-             iterator != endIterator; ++iterator) {
-          // TODO: We could keep track of innermost so we don't traverse the whole thing each time
-          // TODO: Are we getting the combinator from the right place
-          Complex_Selector* pCurrentSelector = *iterator;
-          Complex_Selector* pCurrentInnermost = pChoices->innermost();
-          pCurrentInnermost->set_innermost(pCurrentSelector, pCurrentInnermost->combinator());
-        }
-      }
-      */
-      
-//      printComplexSelector(pChoices, ">>>>> CHOICES BEFORE: ", true);
+      printComplexSelectorDeque(extended, "EXTENDED: ");
 
       
       
@@ -931,7 +823,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       }
       
 
-      printSelectors(extended, "CHOICES UNSHIFTED: ");
+      printComplexSelectorDeque(extended, "CHOICES UNSHIFTED: ");
 
       
       extendedNotExpanded.push_back(extended);
@@ -983,12 +875,12 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       
     }
     
-    printSelectors(extendedSelectors, ">>>>> EXTENDED: ");
+    printComplexSelectorDeque(extendedSelectors, ">>>>> EXTENDED: ");
 
   }
 
-  
-  Selector_List* extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subsetMap) {
+
+
   /*
   def do_extend(extends, parent_directives)
 
@@ -1017,6 +909,8 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
      - Improvement: searching through deque with std::find is probably slow
      - Improvement: can we just use one deque?
      */
+  Selector_List* extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subsetMap) {
+
     To_String to_string;
 
     ComplexSelectorDeque newSelectors;
@@ -1062,60 +956,6 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
   }
   
   
-  
-  
-  
-  
-  // Return the extension Compound_Selector* or NULL if no extension was found
-  // For instance, @extend .bar would return a Compound_Selector* to .bar
-  Compound_Selector* getComplexSelectorExtension(Complex_Selector* pComplexSelector, Extensions& extensions) {
-    // Iterate the complex selector checking if any of the pieces are in the extensions collection
-
-    Compound_Selector* pHead = pComplexSelector->head();
-    Complex_Selector* pTail = pComplexSelector->tail();
-
-    while(pTail)
-    {
-      pHead = pTail->head();
-      pTail = pTail->tail();
-      if (pHead &&
-          !pHead->is_empty_reference() &&
-          extensions.count(*pHead) > 0)
-      {
-        return pHead;
-      }
-    }
-    
-    return NULL;
-  }
-  
-  Complex_Selector* generateExtension(Complex_Selector* pExtender, Complex_Selector* pExtendee, Compound_Selector* pExtensionCompoundSelector, Context& ctx) {
-    // Clone the selector so we can modify it in place and use it as our new selector
-    Complex_Selector* pNewSelector = pExtendee->clone(ctx);
-    
-    // Find the node in the linked list before the one we want to replace
-    Complex_Selector* pIterSelector = pNewSelector;
-    Complex_Selector* pSelectorBeforeExtendPoint = NULL;
-    while(pIterSelector)
-    {
-      if (pIterSelector->tail() && pIterSelector->tail()->head() == pExtensionCompoundSelector) {
-        pSelectorBeforeExtendPoint = pIterSelector;
-        break;
-      }
-      pIterSelector = pIterSelector->tail();
-    }
-    
-    // Insert our extender's selector into the current selector
-    // TODO: look into whether this library is memory leaking all over the place. Where does delete get called?
-    Complex_Selector* pSelectorAfterExtendPoint = pSelectorBeforeExtendPoint->tail()->tail();
-    pExtender->innermost()->tail(pSelectorAfterExtendPoint);
-    pSelectorBeforeExtendPoint->tail(pExtender);
-    
-    return pNewSelector;
-  }
-  
-
-
 
   Extend::Extend(Context& ctx, Extensions& extensions, ExtensionSubsetMap& ssm, Backtrace* bt)
   : ctx(ctx), extensions(extensions), subset_map(ssm), backtrace(bt)
