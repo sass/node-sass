@@ -226,7 +226,7 @@ namespace Sass {
         result
    */
   void trim(ComplexSelectorDequeDeque& toTrim, ComplexSelectorDequeDeque& trimmed, Context& ctx) {
-    printComplexSelectorDequeDeque("TRIM: ", toTrim, ctx, true /*newline*/);
+//    printComplexSelectorDequeDeque("TRIM: ", toTrim, ctx, true /*newline*/);
 
     // return seqses if seqses.size > 100
     if (toTrim.size() > 100) {
@@ -244,7 +244,7 @@ namespace Sass {
     for (ComplexSelectorDequeDeque::iterator toTrimIterator = toTrim.begin(), toTrimIteratorEnd = toTrim.end(); toTrimIterator != toTrimIteratorEnd; ++toTrimIterator) {
     	ComplexSelectorDeque& seqs1 = *toTrimIterator;
 
-      printSelectors("SEQS1: ", seqs1, ctx, true /*newline*/);
+//      printSelectors("SEQS1: ", seqs1, ctx, true /*newline*/);
       
       ComplexSelectorDeque tempResult;
       
@@ -260,25 +260,25 @@ namespace Sass {
         int maxSpecificity = 0;
         SourcesSet sources = pSeq1->sources();
 
-        printComplexSelector(pSeq1, "SEQ1: ", true /*newline*/);
-        printSourcesSet("SOURCES: ", sources);
+//        printComplexSelector(pSeq1, "TRIMASDF SEQ1: ", true /*newline*/);
+//        printSourcesSet("TRIMASDF SOURCES: ", sources);
 
         for (SourcesSet::iterator sourcesSetIterator = sources.begin(), sourcesSetIteratorEnd = sources.end(); sourcesSetIterator != sourcesSetIteratorEnd; ++sourcesSetIterator) {
          	const Complex_Selector* const pCurrentSelector = *sourcesSetIterator;
           maxSpecificity = max(maxSpecificity, pCurrentSelector->specificity());
         }
         
-        cerr << "MAX SPECIFIITY: " << maxSpecificity << endl;
+//        cerr << "MAX SPECIFIITY: " << maxSpecificity << endl;
 
         bool isMoreSpecificOuter = false;
         for (ComplexSelectorDequeDeque::iterator resultIterator = result.begin(), resultIteratorEnd = result.end(); resultIterator != resultIteratorEnd; ++resultIterator) {
           ComplexSelectorDeque& seqs2 = *resultIterator;
           
           // TODO: not sure if this equality operator is doing a correct search of the deque's.
-          printSelectors("SEQS1: ", seqs1, ctx, true /*newline*/);
-          printSelectors("SEQS2: ", seqs2, ctx, true /*newline*/);
+//          printSelectors("SEQS1: ", seqs1, ctx, true /*newline*/);
+//          printSelectors("SEQS2: ", seqs2, ctx, true /*newline*/);
           if (complexSelectorDequesEqual(seqs1, seqs2)) {
-            cerr << "CONTINUE" << endl;
+//            cerr << "CONTINUE" << endl;
             continue;
           }
           
@@ -287,14 +287,14 @@ namespace Sass {
           for (ComplexSelectorDeque::iterator seqs2Iterator = seqs2.begin(), seqs2IteratorEnd = seqs2.end(); seqs2Iterator != seqs2IteratorEnd; ++seqs2Iterator) {
             Complex_Selector* pSeq2 = *seqs2Iterator;
             
-            cerr << "SEQ2 SPEC: " << pSeq2->specificity() << endl;
-            cerr << "IS SUPER: " << pSeq2->is_superselector_of(pSeq1) << endl;
+//            cerr << "SEQ2 SPEC: " << pSeq2->specificity() << endl;
+//            cerr << "IS SUPER: " << pSeq2->is_superselector_of(pSeq1) << endl;
             
             // isMoreSpecificInner = _specificity(seq2) >= max_spec && _superselector?(seq2, seq1)
             isMoreSpecificInner = pSeq2->specificity() >= maxSpecificity && pSeq2->is_superselector_of(pSeq1);
 
             if (isMoreSpecificInner) {
-              cerr << "FOUND MORE SPECIFIC" << endl;
+//              cerr << "FOUND MORE SPECIFIC" << endl;
               break;
             }
           }
@@ -307,12 +307,12 @@ namespace Sass {
         }
         
         if (!isMoreSpecificOuter) {
-          cerr << "PUSHING" << endl;
+//          cerr << "PUSHING" << endl;
           tempResult.push_back(pSeq1);
         }
       }
       
-      printSelectors("RESULT: ", tempResult, ctx, true /*newline*/);
+//      printSelectors("RESULT: ", tempResult, ctx, true /*newline*/);
       
       // result[i] = tempResult
       result[resultIndex] = tempResult;
@@ -323,7 +323,7 @@ namespace Sass {
     
     trimmed = result;
     
-    printComplexSelectorDequeDeque("TRIM RESULT: ", trimmed, ctx, true /*newline*/);
+//    printComplexSelectorDequeDeque("TRIM RESULT: ", trimmed, ctx, true /*newline*/);
   }
   
   
@@ -361,9 +361,9 @@ namespace Sass {
       end
 */
 	void subweave(Complex_Selector* pOne, Complex_Selector* pTwo, ComplexSelectorDeque& out, Context& ctx) {
-		cerr << "SUBWEAVE: ";
-    printComplexSelector(pOne);
-    printComplexSelector(pTwo, " ", true);
+//		cerr << "SUBWEAVE: ";
+//    printComplexSelector(pOne);
+//    printComplexSelector(pTwo, " ", true);
 
     if (pOne == NULL) {
     	out.push_back(pTwo ? pTwo->clone(ctx) : NULL);
@@ -855,10 +855,17 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       
       // new_seq.add_sources!(sources + [seq])
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
-      // Clone everything to be safe.
+//      printComplexSelector(pNewSelector, "ASDF SETTING ON: ", true /*newline*/);
+
       SourcesSet newSourcesSet = pSelector->sources();
+//      printSourcesSet("ASDF SOURCES THIS: ", newSourcesSet);
       newSourcesSet.insert(pExtComplexSelector->clone(ctx));
+//      printSourcesSet("ASDF NEW: ", newSourcesSet);
       pNewSelector->addSources(newSourcesSet, ctx);
+      
+//      SourcesSet newSet = pNewSelector->sources();
+//      printSourcesSet("ASDF NEW AFTER SET: ", newSet);
+//      printSourcesSet("ASDF SOURCES THIS SHOULD BE SAME: ", pSelector->sources());
 
 
       ComplexSelectorDeque recurseExtendedSelectors;
@@ -1062,14 +1069,6 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
     printSelectors("FLATTENED: ", extendedSelectors, ctx, true);
     printSelectors(">>>>> EXTENDED: ", extendedSelectors, ctx, true);
 
-
-    // TODO: implement the rest of this...
-    /*
-     result = Sass::Util.flatten(trim(weaves), 1).map {|p| Sequence.new(p)}
-     
-     result
-     end
-     */
   }
 
   
@@ -1115,7 +1114,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       set<Compound_Selector> seen;
       extendComplexSelector(pSelector, ctx, subsetMap, seen, extendedSelectors /*out*/);
       
-			printSelectors("<<<<< EXTENDED: ", extendedSelectors, ctx, true /*newline*/);
+//			printSelectors("<<<<< EXTENDED: ", extendedSelectors, ctx, true /*newline*/);
       
       if (!pSelector->has_placeholder()) {
         bool selectorAlreadyExists = complexSelectorDequeContains(extendedSelectors, pSelector);
@@ -1124,7 +1123,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
         }
       }
       
-      printSelectors("<<<<< EXTENDED UNSHIFTED: ", extendedSelectors, ctx, true /*newline*/);
+//      printSelectors("<<<<< EXTENDED UNSHIFTED: ", extendedSelectors, ctx, true /*newline*/);
   
       newSelectors.insert(newSelectors.end(), extendedSelectors.begin(), extendedSelectors.end());
       
