@@ -1206,99 +1206,8 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
     return pNewSelector;
   }
   
-  void extendRulesetOld(Ruleset* pRuleset, Context& ctx, Extensions& extensions) {
-    To_String to_string;
 
-    // Get the start selector list
-    Selector_List* pOriginalSelectorGroup = static_cast<Selector_List*>(pRuleset->selector());
-    cerr << "CURR GROUP: " << pOriginalSelectorGroup->perform(&to_string) << endl;
-    
-    // Create a collection of selectors we've already processed
-    ComplexSelectorDeque newGroup;
-    
-    // Create a collection of selectors we still need to process. As extensions are created, they'll
-    // get added to this list so that chained extends are processed in the correct order.
-    ComplexSelectorDeque selectorsToProcess;
-    fillDequeFromSelectorList(selectorsToProcess, pOriginalSelectorGroup);
-    
-    bool extendedSomething = false;
-    
-    while (selectorsToProcess.size() > 0) {
-      
-      // Get the current selector to try and extend
-      Complex_Selector* pCurrentSelector = selectorsToProcess[0];
-      cerr << "CUR SEL: " << pCurrentSelector->perform(&to_string) << endl;
-      
-      // Remove it from the process queue since we'll be done after we finish this loop
-      selectorsToProcess.pop_front();
-      
-      // Always add the current selector
-      newGroup.push_back(pCurrentSelector);
-      
-      // Check if the current selector has an extension
-      Compound_Selector* pExtensionCompoundSelector = getComplexSelectorExtension(pCurrentSelector, extensions);
-      
-      if (pExtensionCompoundSelector != NULL) {
 
-        cerr << "HAS EXT: " << pCurrentSelector->perform(&to_string) << endl;
-        cerr << "EXT FOUND: " << pExtensionCompoundSelector->perform(&to_string) << endl;
-
-        // We are going to extend something!
-        extendedSomething = true;
-        
-        // Iterate over the extensions in reverse to make adding them to our selectorsToProcess list in the correct order easier.
-        for (Extensions::iterator iterator = extensions.upper_bound(*pExtensionCompoundSelector),
-             endIterator = extensions.lower_bound(*pExtensionCompoundSelector);
-             iterator != endIterator;) {
-          
-          --iterator;
-          
-          Compound_Selector extCompoundSelector = iterator->first;
-          Complex_Selector* pExtComplexSelector = iterator->second->clone(ctx); // Clone this so we get a new copy to insert into
-          
-          cerr << "COMPOUND: " << extCompoundSelector.perform(&to_string) << endl;
-          cerr << "COMPLEX: " << pExtComplexSelector->perform(&to_string) << endl;
-          
-          // We can't extend ourself
-          // TODO: figure out a better way to do this
-          if (pCurrentSelector->perform(&to_string) == pExtComplexSelector->perform(&to_string)) {
-            continue;
-          }
-          
-          // Generate our new extension selector
-          Complex_Selector* pNewSelector = generateExtension(pExtComplexSelector, pCurrentSelector, pExtensionCompoundSelector, ctx);
-          
-          // Add the new selector to our list of selectors to process
-          selectorsToProcess.push_front(pNewSelector);
-        }
-      }
-      
-      // TODO: remove these once we're done debugging this method
-      Selector_List* pTempDone = createSelectorListFromDeque(newGroup, ctx, pOriginalSelectorGroup);
-      Selector_List* pTempToProcess = createSelectorListFromDeque(selectorsToProcess, ctx, pOriginalSelectorGroup);
-      cerr << "DONE PROCESSING GROUP AFTER EXT ITER: " << pTempDone->perform(&to_string) << endl;
-      cerr << "TO PROCESS GROUP AFTER EXT ITER: " << pTempToProcess->perform(&to_string) << endl;
-    }
-    
-    
-    // Only update the rule set's selector (incurring the cost of a parse) if we actually
-    // added something new.
-    
-    if (extendedSomething) {
-      Selector_List* pNewSelectorGroup = createSelectorListFromDeque(newGroup, ctx, pOriginalSelectorGroup);
-      cerr << "NEW GROUP: " << pNewSelectorGroup->perform(&to_string) << endl;
-      
-      // re-parse in order to restructure expanded placeholder nodes correctly
-      pRuleset->selector(
-        Parser::from_c_str(
-          (pNewSelectorGroup->perform(&to_string) + ";").c_str(),
-          ctx,
-          pNewSelectorGroup->path(),
-          pNewSelectorGroup->position()
-        ).parse_selector_group()
-      );
-    }
-  }
 
   Extend::Extend(Context& ctx, Extensions& extensions, ExtensionSubsetMap& ssm, Backtrace* bt)
   : ctx(ctx), extensions(extensions), subset_map(ssm), backtrace(bt)
@@ -1316,9 +1225,9 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
 
     // Deal with extensions in this Ruleset
 
-    //extendRulesetOld(pRuleset, ctx, extensions);
     extendRuleset(pRuleset, ctx, subset_map);
-    
+
+
     // Iterate into child blocks
     
     Block* b = pRuleset->block();
