@@ -28,11 +28,11 @@ namespace Sass {
 
   class Extend : public Operation_CRTP<void, Extend> {
 
-    Context&          ctx;
-    Extensions& extensions;
+    Context&            ctx;
+    Extensions&         extensions;
     ExtensionSubsetMap& subset_map;
 
-    Backtrace*        backtrace;
+    Backtrace*          backtrace;
 
     void fallback_impl(AST_Node* n) { };
 
@@ -47,13 +47,8 @@ namespace Sass {
     void operator()(Media_Block*);
     void operator()(At_Rule*);
 
-    Selector_List* generate_extension(Complex_Selector*, Complex_Selector*);
-    Selector_List* extend_complex(Complex_Selector*, set<Compound_Selector>&);
-    Selector_List* extend_compound(Compound_Selector*, set<Compound_Selector>&);
-
     template <typename U>
     void fallback(U x) { return fallback_impl(x); }
   };
-
 
 }
