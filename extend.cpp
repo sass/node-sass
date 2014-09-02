@@ -28,7 +28,7 @@ namespace Sass {
     }
   }
   
-  void printCompoundSelector(Compound_Selector* pCompoundSelector, const char* message=NULL, bool newline=false) {
+  void printCompoundSelector(Compound_Selector* pCompoundSelector, const char* message=NULL, bool newline=true) {
 		To_String to_string;
   	if (message) {
     	cerr << message;
@@ -41,8 +41,9 @@ namespace Sass {
     }
   }
   
-  void printComplexSelector(Complex_Selector* pComplexSelector, const char* message=NULL, bool newline=false) {
+  void printComplexSelector(Complex_Selector* pComplexSelector, const char* message=NULL, bool newline=true) {
 		To_String to_string;
+
   	if (message) {
     	cerr << message;
     }
@@ -63,16 +64,20 @@ namespace Sass {
     }
   }
   
-  void printSelectors(const char* message, ComplexSelectorDeque& deque, Context& /*ctx*/, bool newline=false) {
+  void printSelectors(ComplexSelectorDeque& deque, const char* message=NULL, bool newline=true) {
   	To_String to_string;
 
-  	cerr << message << "[";
+  	if (message) {
+    	cerr << message;
+    }
+    
+    cerr << "[";
     for (ComplexSelectorDeque::iterator iterator = deque.begin(), iteratorEnd = deque.end(); iterator != iteratorEnd; ++iterator) {
       Complex_Selector* pComplexSelector = *iterator;
       if (iterator != deque.begin()) {
       	cerr << ", ";
       }
-      printComplexSelector(pComplexSelector);
+      printComplexSelector(pComplexSelector, "", false /*newline*/);
     }
     cerr << "]";
     
@@ -81,16 +86,20 @@ namespace Sass {
     }
   }
   
-  void printComplexSelectorDequeDeque(const char* message, ComplexSelectorDequeDeque& dequeDeque, Context& ctx, bool newline=false) {
+  void printComplexSelectorDequeDeque(ComplexSelectorDequeDeque& dequeDeque, const char* message=NULL, bool newline=true) {
   	To_String to_string;
     
-  	cerr << message << "[";
+  	if (message) {
+    	cerr << message;
+    }
+    
+    cerr << "[";
     for (ComplexSelectorDequeDeque::iterator iterator = dequeDeque.begin(), iteratorEnd = dequeDeque.end(); iterator != iteratorEnd; ++iterator) {
       ComplexSelectorDeque& deque = *iterator;
       if (iterator != dequeDeque.begin()) {
       	cerr << ", ";
       }
-      printSelectors("", deque, ctx);
+      printSelectors(deque, "", false /*newline*/);
     }
     cerr << "]";
     
@@ -99,10 +108,14 @@ namespace Sass {
     }
   }
   
-  void printSourcesSet(const char* message, SourcesSet& sources, bool newline = true) {
+  void printSourcesSet(SourcesSet& sources, const char* message=NULL, bool newline=true) {
   	To_String to_string;
     
-  	cerr << message << "SourcesSet[";
+  	if (message) {
+    	cerr << message;
+    }
+
+    cerr << "SourcesSet[";
     for (SourcesSet::iterator iterator = sources.begin(), iteratorEnd = sources.end(); iterator != iteratorEnd; ++iterator) {
       Complex_Selector* pSource = *iterator;
       if (iterator != sources.begin()) {
@@ -226,7 +239,7 @@ namespace Sass {
         result
    */
   void trim(ComplexSelectorDequeDeque& toTrim, ComplexSelectorDequeDeque& trimmed, Context& ctx) {
-//    printComplexSelectorDequeDeque("TRIM: ", toTrim, ctx, true /*newline*/);
+		printComplexSelectorDequeDeque(toTrim, "TRIM: ");
 
     // return seqses if seqses.size > 100
     if (toTrim.size() > 100) {
@@ -244,7 +257,7 @@ namespace Sass {
     for (ComplexSelectorDequeDeque::iterator toTrimIterator = toTrim.begin(), toTrimIteratorEnd = toTrim.end(); toTrimIterator != toTrimIteratorEnd; ++toTrimIterator) {
     	ComplexSelectorDeque& seqs1 = *toTrimIterator;
 
-//      printSelectors("SEQS1: ", seqs1, ctx, true /*newline*/);
+//      printSelectors(seqs1, "SEQS1: ");
       
       ComplexSelectorDeque tempResult;
       
@@ -260,8 +273,8 @@ namespace Sass {
         int maxSpecificity = 0;
         SourcesSet sources = pSeq1->sources();
 
-//        printComplexSelector(pSeq1, "TRIMASDF SEQ1: ", true /*newline*/);
-//        printSourcesSet("TRIMASDF SOURCES: ", sources);
+//        printComplexSelector(pSeq1, "TRIMASDF SEQ1: ");
+//        printSourcesSet(sources, "TRIMASDF SOURCES: ");
 
         for (SourcesSet::iterator sourcesSetIterator = sources.begin(), sourcesSetIteratorEnd = sources.end(); sourcesSetIterator != sourcesSetIteratorEnd; ++sourcesSetIterator) {
          	const Complex_Selector* const pCurrentSelector = *sourcesSetIterator;
@@ -275,8 +288,8 @@ namespace Sass {
           ComplexSelectorDeque& seqs2 = *resultIterator;
           
           // TODO: not sure if this equality operator is doing a correct search of the deque's.
-//          printSelectors("SEQS1: ", seqs1, ctx, true /*newline*/);
-//          printSelectors("SEQS2: ", seqs2, ctx, true /*newline*/);
+//          printSelectors(seqs1, "SEQS1: ");
+//          printSelectors(seqs2, "SEQS2: ");
           if (complexSelectorDequesEqual(seqs1, seqs2)) {
 //            cerr << "CONTINUE" << endl;
             continue;
@@ -312,7 +325,7 @@ namespace Sass {
         }
       }
       
-//      printSelectors("RESULT: ", tempResult, ctx, true /*newline*/);
+//      printSelectors(tempResult, "RESULT: ");
       
       // result[i] = tempResult
       result[resultIndex] = tempResult;
@@ -323,7 +336,7 @@ namespace Sass {
     
     trimmed = result;
     
-//    printComplexSelectorDequeDeque("TRIM RESULT: ", trimmed, ctx, true /*newline*/);
+//    printComplexSelectorDequeDeque(trimmed, "TRIM RESULT: ");
   }
   
   
@@ -496,17 +509,10 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
         
         Complex_Selector* pBefore = *iterator;
         
-        //        cerr << "> BEFORE IN BEFORES LOOP: BEFORE=";
-        //        printComplexSelector(pBefore);
-        //        printComplexSelector(pCurrent, " CURRENT=", true);
-        
         ComplexSelectorDeque sub;
         subweave(pBefore, pCurrent, sub, ctx);
         
-//        printSelectors("SUB: ", sub, ctx, true /*newline*/);
-        
         if (sub.empty()) {
-//          cerr << "CONTINUING DUE TO EMPTY" << endl;
           continue;
         }
       	
@@ -516,26 +522,17 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
           
           Complex_Selector* pSequences = *iterator; // TODO: clone this?
           
-//          printComplexSelector(pSequences, "SEQS: ", true);
-          
           if (pSequences) {
           	pSequences->set_innermost(pLastCurrent->clone(ctx), pSequences->innermost()->combinator()); // TODO: is this the correct combinator?
          	} else {
 						pSequences = pLastCurrent->clone(ctx);
           }
           
-//          printComplexSelector(pSequences, "PUSHING: ", true);
-          
           collector.push_back(pSequences);
-          
-//          printSelectors("COLLECTOR: ", collector, ctx, true);
         }
       }
       
     	befores = collector;
-    
-    
-    
     }
   
 
@@ -580,17 +577,12 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
     To_String to_string;
     
     ComplexSelectorDequeDeque loopStart;
-    
-//    cerr << "<<<<<<<<<<<<<<<<" << endl;
-//    printSelectors("ARRS: ", source, ctx);
 
     // for arr in arrs do
     for (ComplexSelectorDequeDeque::iterator arrsIterator = source.begin(), endIterator = source.end();
          arrsIterator != endIterator; ++arrsIterator) {
       
       ComplexSelectorDeque& arr = *arrsIterator;
-      
-//      printComplexSelectorDequeDeque("LOOP START: ", loopStart, ctx, true /*newline*/);
       
     	ComplexSelectorDequeDeque permutations;
 
@@ -599,16 +591,11 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
            arrIterator != endIterator; ++arrIterator) {
       	Complex_Selector* pE = (*arrIterator)->clone(ctx);
         
-//        printComplexSelector(pE, "E: ", true /*newline*/);
-        
         // for path in loopStart do
         if (loopStart.size() == 0) {
-//          cerr << "PATH: []" << endl;
           
           ComplexSelectorDeque newPermutation;
           newPermutation.push_back(pE);
-          
-//          printSelectors("CREATING: ", newPermutation, ctx, true /*newline*/);
           
           permutations.push_back(newPermutation);
         } else {
@@ -616,59 +603,20 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
                loopStartIterator != endIterator; ++loopStartIterator) {
             ComplexSelectorDeque& path = *loopStartIterator;
             
-//            printSelectors("PATH: ", path, ctx, true /*newline*/);
-            
             ComplexSelectorDeque newPermutation;
             cloneComplexSelectorDeque(path, newPermutation, ctx);
             newPermutation.push_back(pE);
             
-//            printSelectors("CREATING: ", newPermutation, ctx, true /*newline*/);
-            
             permutations.push_back(newPermutation);
-            
           }
         }
         
       }
-      
-      /*
-      Complex_Selector* pLoopingCurrentSelector = pOuterCurrentSelector;
-      while(pLoopingCurrentSelector)
-      {
-        Complex_Selector* pCurrentNode = pLoopingCurrentSelector->clone(ctx);
-        pCurrentNode->tail(NULL);
-
-//        cerr << "E: " << pCurrentNode->perform(&to_string) << endl;
-
-        // for path in loopStart do
-        if (loopStart.size() == 0) {
-//          cerr << "PATH: " << endl;
-          // TODO: make this cleaner; try to figure out how to have one loop instead of this conditional
-          permutations.push_back(pCurrentNode);
-        } else {
-          for (ComplexSelectorDeque::iterator iterator = loopStart.begin(), endIterator = loopStart.end();
-               iterator != endIterator; ++iterator) {
-
-            Complex_Selector* pNewPermutation = (*iterator)->clone(ctx);
-            
-//            cerr << "PATH: " << pNewPermutation->perform(&to_string) << endl;
-            
-            // TODO: is this the correct combinator? I don't want to replace what's there currently.
-            pNewPermutation->set_innermost(pCurrentNode->clone(ctx), pNewPermutation->combinator());
-            permutations.push_back(pNewPermutation);
-          }
-        }
-        
-        pLoopingCurrentSelector = pLoopingCurrentSelector->tail();
-      }
-      */
       
       loopStart = permutations;
     }
     
     out = loopStart;
-    
-//    cerr << "<<<<<<<<<<<<<<<<" << endl;
   }
 
   
@@ -855,17 +803,17 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       
       // new_seq.add_sources!(sources + [seq])
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
-//      printComplexSelector(pNewSelector, "ASDF SETTING ON: ", true /*newline*/);
+//      printComplexSelector(pNewSelector, "ASDF SETTING ON: ");
 
       SourcesSet newSourcesSet = pSelector->sources();
-//      printSourcesSet("ASDF SOURCES THIS: ", newSourcesSet);
+//      printSourcesSet(newSourcesSet, "ASDF SOURCES THIS: ");
       newSourcesSet.insert(pExtComplexSelector->clone(ctx));
-//      printSourcesSet("ASDF NEW: ", newSourcesSet);
+//      printSourcesSet(newSourcesSet, "ASDF NEW: ");
       pNewSelector->addSources(newSourcesSet, ctx);
       
 //      SourcesSet newSet = pNewSelector->sources();
-//      printSourcesSet("ASDF NEW AFTER SET: ", newSet);
-//      printSourcesSet("ASDF SOURCES THIS SHOULD BE SAME: ", pSelector->sources());
+//      printSourcesSet(newSet, "ASDF NEW AFTER SET: ");
+//      printSourcesSet(pSelector->sources(), "ASDF SOURCES THIS SHOULD BE SAME: ");
 
 
       ComplexSelectorDeque recurseExtendedSelectors;
@@ -885,8 +833,6 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
         }
       }
     }
-    
-//    printSelectors("SIMP SEQ RETURN:: ", extendedSelectors, ctx, true /*newline*/);
   }
  
   
@@ -938,7 +884,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       ComplexSelectorDeque extended;
       extendCompoundSelector(pCompoundSelector, ctx, subsetMap, seen, extended /*out*/);
       
-      printSelectors("EXTENDED: ", extended, ctx, true /*newline*/);
+      printSelectors(extended, "EXTENDED: ");
       
       
 
@@ -960,14 +906,6 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       */
       
 //      printComplexSelector(pChoices, ">>>>> CHOICES BEFORE: ", true);
-  
-      
-      
-      
-      // TODO: this is just here for debugging
-      Complex_Selector* pTemp = pCurrentComplexSelector->clone(ctx);
-      pTemp->tail(NULL);
-//      printComplexSelector(pTemp, ">>>>> INSERT: ", true);
 
       
       
@@ -975,8 +913,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       pJustCurrentCompoundSelector->tail(NULL);
       
       
-      
-      // Until the rest is implemented, just include the extended selectors
+  
       // Prepend the Compound_Selector based on the choices logic; choices seems to be extend but with an Array instead of a Sequence
 
       bool isSuperselector = false;
@@ -990,33 +927,19 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       }
 
       if (!isSuperselector) {
-        // Get just the first piece
-
-        
-        // Add in pJustCurrentCompoundSelector to the front of pChoices
-//        pJustCurrentCompoundSelector->tail(pChoices);
-//        pChoices = pJustCurrentCompoundSelector;
-        
-        // TODO: this could be done in a simpler way
-        
         extended.push_front(pJustCurrentCompoundSelector);
       }
       
 
-      printSelectors("CHOICES UNSHIFTED: ", extended, ctx, true /*newline*/);
+      printSelectors(extended, "CHOICES UNSHIFTED: ");
 
-
-      
-//      if (pChoices) {
-//      	extended.push_back(pChoices);
-//      }
       
       extendedNotExpanded.push_back(extended);
       
     	pCurrentComplexSelector = pCurrentComplexSelector->tail();
     }
 
-    printComplexSelectorDequeDeque("EXTENDED NOT EXPANDED: ", extendedNotExpanded, ctx, true /*newline*/);
+    printComplexSelectorDequeDeque(extendedNotExpanded, "EXTENDED NOT EXPANDED: ");
     
   
     
@@ -1024,15 +947,9 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
     paths(extendedNotExpanded, permutations, ctx);
     
     
-    printComplexSelectorDequeDeque("PATHS: ", permutations, ctx, true /*newline*/);
+    printComplexSelectorDequeDeque(permutations, "PATHS: ");
 
-  
-    
-    
-//    printSelectors("PERMS: ", permutations, ctx);
-//    cerr << endl;
-//    printComplexSelectorDequeDeque("PREWEAVE: ", permutations, ctx, true /-*newline*-/);
- 
+
 
  
  		ComplexSelectorDequeDeque weaves;
@@ -1046,7 +963,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       weaves.push_back(weaved);
     }
     
-    printComplexSelectorDequeDeque("WEAVES: ", weaves, ctx, true /*newline*/);
+    printComplexSelectorDequeDeque(weaves, "WEAVES: ");
     
     
     
@@ -1055,7 +972,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
     trim(weaves, trimmed, ctx);
 
     
-		printComplexSelectorDequeDeque("TRIMMED: ", trimmed, ctx, true /*newline*/);
+		printComplexSelectorDequeDeque(trimmed, "TRIMMED: ");
 
     
     for (ComplexSelectorDequeDeque::iterator iterator = trimmed.begin(), endIterator = trimmed.end();
@@ -1066,8 +983,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       
     }
     
-    printSelectors("FLATTENED: ", extendedSelectors, ctx, true);
-    printSelectors(">>>>> EXTENDED: ", extendedSelectors, ctx, true);
+    printSelectors(extendedSelectors, ">>>>> EXTENDED: ");
 
   }
 
@@ -1103,8 +1019,6 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
      */
     To_String to_string;
 
-//    cerr << "COMMA SEQ DO EXTEND " << pSelectorList->perform(&to_string) << endl;
-
     ComplexSelectorDeque newSelectors;
 
     for (size_t index = 0, length = pSelectorList->length(); index < length; index++) {
@@ -1114,20 +1028,14 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       set<Compound_Selector> seen;
       extendComplexSelector(pSelector, ctx, subsetMap, seen, extendedSelectors /*out*/);
       
-//			printSelectors("<<<<< EXTENDED: ", extendedSelectors, ctx, true /*newline*/);
-      
       if (!pSelector->has_placeholder()) {
         bool selectorAlreadyExists = complexSelectorDequeContains(extendedSelectors, pSelector);
         if (!selectorAlreadyExists) {
         	extendedSelectors.push_front(pSelector);
         }
       }
-      
-//      printSelectors("<<<<< EXTENDED UNSHIFTED: ", extendedSelectors, ctx, true /*newline*/);
   
       newSelectors.insert(newSelectors.end(), extendedSelectors.begin(), extendedSelectors.end());
-      
-//      printSelectors("FINAL SELECTORS: ", newSelectors, ctx, true /*newline*/);
     }
     
     return createSelectorListFromDeque(newSelectors, ctx, pSelectorList);
