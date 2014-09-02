@@ -8,8 +8,55 @@
 #include <iostream>
 #include <deque>
 
+
+/*
+ NOTES:
+
+ - The print* functions print to cerr. This allows our testing frameworks (like sass-spec) to ignore the output, which
+   is very helpful when debugging. The format of the output is mainly to wrap things in square brackets to match what
+   ruby already outputs (to make comparisons easier).
+
+ - For the direct porting effort, we're trying to port method-for-method until we get all the tests passing.
+   Where applicable, I've tried to include the ruby code above the function for reference until all our tests pass.
+   The ruby code isn't always directly portable, so I've tried to include any modified ruby code that was actually
+   used for the porting.
+
+ - DO NOT try to optimize yet. We get a tremendous benefit out of comparing the output of each stage of the extend to the ruby
+   output at the same stage. This makes it much easier to determine where problems are. Try to keep as close to
+   the ruby code as you can until we have all the sass-spec tests passing. Then, we should optimize. However, if you see
+   something that could probably be optimized, let's not forget it. Add a // TODO: or // IMPROVEMENT: comment.
+ 
+ - Coding conventions in this file (these may need to be changed before merging back into master)
+   - Very basic hungarian notation:
+     p prefix for pointers (pSelector)
+     no prefix for value types and references (selector)
+   - Use STL iterators where possible
+   - prefer verbose naming over terse naming
+   - use typedefs for STL container types for make maintenance easier
+ 
+ - You may see a lot of comments that say "// TODO: is this the correct combinator?". See the comment referring to combinators
+   in extendCompoundSelector for a more extensive explanation of my confusion. I think our divergence in data model from ruby
+   sass causes this to be necessary.
+ 
+
+ GLOBAL TODOS:
+ 
+ - wrap the contents of the print functions in DEBUG preprocesser conditionals so they will be optimized away in non-debug mode.
+ 
+ - consider making the extend* functions member functions to avoid passing around ctx and subsetMap map around. This has the
+   drawback that the implementation details of the operator are then exposed to the outside world, which is not ideal and
+   can cause additional compile time dependencies.
+ 
+ - mark the helper methods in this file static to given them compilation unit linkage.
+ 
+ - implement parent directive matching
+ 
+ - fix compilation warnings for unused Extend members if we really don't need those references anymore.
+ */
+
+
 namespace Sass {
-  
+
   typedef deque<Complex_Selector*> ComplexSelectorDeque;
 	typedef deque<ComplexSelectorDeque> ComplexSelectorDequeDeque;
   
@@ -17,6 +64,8 @@ namespace Sass {
   typedef vector<ExtensionPair> SubsetMapEntries;
 
   
+  // Create a Selector_List* from a ComplexSelectorDeque
+  // Complex_Selectors are NOT cloned.
   Selector_List* createSelectorListFromDeque(ComplexSelectorDeque& deque, Context& ctx, Selector_List* pSelectorGroupTemplate) {
     Selector_List* pSelectorGroup = new (ctx.mem) Selector_List(pSelectorGroupTemplate->path(), pSelectorGroupTemplate->position(), pSelectorGroupTemplate->length());
     for (ComplexSelectorDeque::iterator iterator = deque.begin(), iteratorEnd = deque.end(); iterator != iteratorEnd; ++iterator) {
@@ -24,13 +73,18 @@ namespace Sass {
     }
     return pSelectorGroup;
   }
-  
+
+
+  // Take the Complex_Selector pointers in Selector_List and append all of them to the passed in deque.
+  // Complex_Selectors are NOT cloned.
   void fillDequeFromSelectorList(ComplexSelectorDeque& deque, Selector_List* pSelectorList) {
     for (size_t index = 0, length = pSelectorList->length(); index < length; index++) {
       deque.push_back((*pSelectorList)[index]);
     }
   }
+
   
+  // Print a string representation of a Compound_Selector
   void printCompoundSelector(Compound_Selector* pCompoundSelector, const char* message=NULL, bool newline=true) {
 		To_String to_string;
   	if (message) {
@@ -43,7 +97,9 @@ namespace Sass {
     	cerr << endl;
     }
   }
+
   
+  // Print a string representation of a Complex_Selector
   void printComplexSelector(Complex_Selector* pComplexSelector, const char* message=NULL, bool newline=true) {
 		To_String to_string;
 
@@ -66,7 +122,9 @@ namespace Sass {
     	cerr << endl;
     }
   }
+
   
+  // Print a string representation of a ComplexSelectorDeque
   void printComplexSelectorDeque(ComplexSelectorDeque& deque, const char* message=NULL, bool newline=true) {
   	To_String to_string;
 
@@ -88,7 +146,9 @@ namespace Sass {
       cerr << endl;
     }
   }
+ 
   
+  // Print a string representation of a ComplexSelectorDequeDeque
   void printComplexSelectorDequeDeque(ComplexSelectorDequeDeque& dequeDeque, const char* message=NULL, bool newline=true) {
   	To_String to_string;
     
@@ -110,7 +170,9 @@ namespace Sass {
       cerr << endl;
     }
   }
+
   
+  // Print a string representation of a SourcesSet
   void printSourcesSet(SourcesSet& sources, const char* message=NULL, bool newline=true) {
   	To_String to_string;
     
@@ -134,9 +196,7 @@ namespace Sass {
   }
 
   
-  
-  
-  
+  // Clone the source ComplexSelectorDeque into dest. This WILL clone the Complex_Selectors.
   void cloneComplexSelectorDeque(ComplexSelectorDeque& source, ComplexSelectorDeque& dest, Context& ctx) {
     for (ComplexSelectorDeque::iterator iterator = source.begin(), iteratorEnd = source.end(); iterator != iteratorEnd; ++iterator) {
       Complex_Selector* pComplexSelector = *iterator;
@@ -145,7 +205,7 @@ namespace Sass {
   }
   
   
-  
+  // Clone the source ComplexSelectorDequeDeque into dest. This WILL clone the Complex_Selectors.
   void cloneComplexSelectorDequeDeque(ComplexSelectorDequeDeque& source, ComplexSelectorDequeDeque& dest, Context& ctx) {
     for (ComplexSelectorDequeDeque::iterator iterator = source.begin(), iteratorEnd = source.end(); iterator != iteratorEnd; ++iterator) {
 
@@ -159,6 +219,8 @@ namespace Sass {
   }
   
   
+  // Compare two ComplexSelectorDeques to see if they are equivalent. This uses the Complex_Selector operator< so it will compare
+  // the Complex_Selector's contents instead of just the pointers.
   bool complexSelectorDequesEqual(ComplexSelectorDeque& one, ComplexSelectorDeque& two) {
     if (one.size() != two.size()) {
       return false;
@@ -176,10 +238,12 @@ namespace Sass {
     return true;
   }
   
-  
-  
-  
-  /*
+
+  /* This is the equivalent of ruby's Sequence.trim.
+   
+   The following is the modified version of the ruby code that was more portable to C++. You
+   should be able to drop it into ruby 3.2.19 and get the same results from ruby sass.
+
         # Avoid truly horrific quadratic behavior. TODO: I think there
         # may be a way to get perfect trimming without going quadratic.
         return seqses if seqses.size > 100
@@ -192,9 +256,6 @@ namespace Sass {
         # This is n^2 on the sequences, but only comparing between
         # separate sequences should limit the quadratic behavior.
         seqses.each_with_index do |seqs1, i|
-          $stderr.puts "SEQS1: #{seqs1} #{i}"
-
-
           tempResult = []
 
           for seq1 in seqs1 do
@@ -236,43 +297,47 @@ namespace Sass {
 
           result[i] = tempResult
 
-          $stderr.puts "RESULT: #{result[i]}"
         end
-        $stderr.puts "TRIM RESULT: #{result}"
+
         result
    */
+  /*
+   - IMPROVEMENT: We could probably work directly in the output trimmed deque.
+   */
   void trim(ComplexSelectorDequeDeque& toTrim, ComplexSelectorDequeDeque& trimmed, Context& ctx) {
-		printComplexSelectorDequeDeque(toTrim, "TRIM: ");
+    // See the comments in the above ruby code before embarking on understanding this function.
 
-    // return seqses if seqses.size > 100
+    // Avoid poor performance in extreme cases.
     if (toTrim.size() > 100) {
     	trimmed = toTrim;
       return;
     }
 
-    // result = seqses.dup
+    // Copy the input to a temporary result so we can modify it without
     ComplexSelectorDequeDeque result;
     cloneComplexSelectorDequeDeque(toTrim, result, ctx);
     
-    
-    // seqses.each_with_index do |seqs1, i|
+    // Normally we use the standard STL iterators, but in this case, we need to access the result collection by index since we're
+    // iterating the input collection, computing a value, and then setting the result in the output collection. We have to keep track
+    // of the index manually.
     int resultIndex = 0;
+
     for (ComplexSelectorDequeDeque::iterator toTrimIterator = toTrim.begin(), toTrimIteratorEnd = toTrim.end(); toTrimIterator != toTrimIteratorEnd; ++toTrimIterator) {
     	ComplexSelectorDeque& seqs1 = *toTrimIterator;
-
-//      printSelectors(seqs1, "SEQS1: ");
       
       ComplexSelectorDeque tempResult;
-      
-      // for seq1 in seqs1 do
+
       for (ComplexSelectorDeque::iterator seqs1Iterator = seqs1.begin(), seqs1IteratorEnd = seqs1.end(); seqs1Iterator != seqs1IteratorEnd; ++seqs1Iterator) {
        	Complex_Selector* pSeq1 = *seqs1Iterator;
   
-        
-        // max_spec = 0
-        // for seq in _sources(seq1) do
-        //   max_spec = [max_spec, seq.specificity].max
-        // end
+        // Compute the maximum specificity. This requires looking at the "sources" of the sequence. See SimpleSequence.sources in the ruby code
+        // for a good description of sources.
+        //
+        // TODO: I'm pretty sure there's a bug in the sources code. It was implemented for sass-spec's 182_test_nested_extend_loop test.
+        // While the test passes, I compared the state of each trim call to verify correctness. The last trim call had incorrect sources. We
+        // had an extra source that the ruby version did not have. Without a failing test case, this is going to be extra hard to find. My
+        // best guess at this point is that we're cloning an object somewhere and maintaining the sources when we shouldn't be. This is purely
+        // a guess though.
         int maxSpecificity = 0;
         SourcesSet sources = pSeq1->sources();
 
@@ -287,11 +352,13 @@ namespace Sass {
 //        cerr << "MAX SPECIFIITY: " << maxSpecificity << endl;
 
         bool isMoreSpecificOuter = false;
+
         for (ComplexSelectorDequeDeque::iterator resultIterator = result.begin(), resultIteratorEnd = result.end(); resultIterator != resultIteratorEnd; ++resultIterator) {
           ComplexSelectorDeque& seqs2 = *resultIterator;
 
 //          printSelectors(seqs1, "SEQS1: ");
 //          printSelectors(seqs2, "SEQS2: ");
+
           if (complexSelectorDequesEqual(seqs1, seqs2)) {
 //            cerr << "CONTINUE" << endl;
             continue;
@@ -305,7 +372,6 @@ namespace Sass {
 //            cerr << "SEQ2 SPEC: " << pSeq2->specificity() << endl;
 //            cerr << "IS SUPER: " << pSeq2->is_superselector_of(pSeq1) << endl;
             
-            // isMoreSpecificInner = _specificity(seq2) >= max_spec && _superselector?(seq2, seq1)
             isMoreSpecificInner = pSeq2->specificity() >= maxSpecificity && pSeq2->is_superselector_of(pSeq1);
 
             if (isMoreSpecificInner) {
@@ -314,7 +380,7 @@ namespace Sass {
             }
           }
           
-          
+          // If we found something more specific, we're done. Let the outer loop know and stop iterating.
 					if (isMoreSpecificInner) {
             isMoreSpecificOuter = true;
             break;
@@ -326,10 +392,7 @@ namespace Sass {
           tempResult.push_back(pSeq1);
         }
       }
-      
-//      printSelectors(tempResult, "RESULT: ");
-      
-      // result[i] = tempResult
+
       result[resultIndex] = tempResult;
 
       resultIndex++;
@@ -337,13 +400,14 @@ namespace Sass {
     
     
     trimmed = result;
-    
-//    printComplexSelectorDequeDeque(trimmed, "TRIM RESULT: ");
   }
   
   
   
-/*
+  /* This is the equivalent of ruby's Sequence.subweave.
+
+    Here is the original subweave code for reference during porting.
+
       def subweave(seq1, seq2)
         return [seq2] if seq1.empty?
         return [seq1] if seq2.empty?
@@ -374,12 +438,14 @@ namespace Sass {
 
         result
       end
-*/
+	*/
+  /*
+   TODO:
+   - replace this code with the equivalent of the ruby code in Sequence.subweave
+   - see if we need to split apart combinator and complex selector before calling this method
+   */
 	void subweave(Complex_Selector* pOne, Complex_Selector* pTwo, ComplexSelectorDeque& out, Context& ctx) {
-//		cerr << "SUBWEAVE: ";
-//    printComplexSelector(pOne);
-//    printComplexSelector(pTwo, " ", true);
-
+    // Check for the simple cases
     if (pOne == NULL) {
     	out.push_back(pTwo ? pTwo->clone(ctx) : NULL);
       return;
@@ -388,9 +454,10 @@ namespace Sass {
     	out.push_back(pOne ? pOne->clone(ctx) : NULL);
       return;
     }
-    
 
-    // Do the naive implementation
+
+    // Do the naive implementation. pOne = A B and pTwo = C D ...yields...  A B C D and C D A B
+    // See https://gist.github.com/nex3/7609394 for details.
     Complex_Selector* pFirstPermutation = pOne->clone(ctx);
     pFirstPermutation->set_innermost(pTwo->clone(ctx), pFirstPermutation->innermost()->combinator()); // TODO: is this the correct combinator?
     out.push_back(pFirstPermutation);
@@ -400,11 +467,12 @@ namespace Sass {
     out.push_back(pSecondPermutation);
   }
   
-  
-  
-  
-  
-/*
+
+  /* This is the equivalent of ruby's Sequence.weave.
+   
+   The following is the modified version of the ruby code that was more portable to C++. You
+   should be able to drop it into ruby 3.2.19 and get the same results from ruby sass.
+
       def weave(path)
         # This function works by moving through the selector path left-to-right,
         # building all possible prefixes simultaneously. These prefixes are
@@ -435,31 +503,24 @@ namespace Sass {
 
         return befores
       end
- */  
+ 	*/
 void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& weaved /*out*/) {
-//		printSelectors("WEAVE: ", toWeave, ctx, true);
 
-  	// befores = [[]]
     ComplexSelectorDeque befores;
-  	befores.push_back(NULL);
+  	befores.push_back(NULL); // this push is necessary for the befores iteration below to do anything. This matches the ruby code initializing befores to [[]].
 
-  	// afters = path.dup
     ComplexSelectorDeque afters;
     cloneComplexSelectorDeque(toWeave, afters, ctx);
-  
 
-  	//until afters.empty?
     while (afters.size() > 0) {
-      //current = afters.shift.dup
 			Complex_Selector* pCurrent = afters[0]->clone(ctx);
       afters.pop_front();
-      
-      //last_current = [current.pop]
+
       Complex_Selector* pLastCurrent = pCurrent->innermost();
       if (pCurrent == pLastCurrent) {
         pCurrent = NULL;
       } else {
-        // TODO: consider adding popComplexSelector and shiftComplexSelector to make translating Ruby code easier.
+        // TODO: consider adding popComplexSelector and shiftComplexSelector to since this seems like general functionality that would be useful.
         Complex_Selector* pIter = pCurrent;
         while (pIter) {
           if (pIter->tail() && !pIter->tail()->tail()) {
@@ -471,9 +532,8 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
         }
       }
           
-      ComplexSelectorDeque collector; // TODO: figure out what to name this
-      
-      // for before in befores do
+      ComplexSelectorDeque collector; // TODO: figure out what to name this. A name with more context?
+
       for (ComplexSelectorDeque::iterator iterator = befores.begin(), endIterator = befores.end();
            iterator != endIterator; ++iterator) {
         
@@ -485,8 +545,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
         if (sub.empty()) {
           continue;
         }
-      	
-        // for seqs in sub do
+
         for (ComplexSelectorDeque::iterator iterator = sub.begin(), endIterator = sub.end();
              iterator != endIterator; ++iterator) {
           
@@ -504,16 +563,17 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       
     	befores = collector;
     }
-  
 
   	weaved = befores;
   }
   
-  
-  
-  
-  
-    /*
+
+
+  /* This is the equivalent of ruby's Sass::Util.paths.
+   
+   The following is the modified version of the ruby code that was more portable to C++. You
+   should be able to drop it into ruby 3.2.19 and get the same results from ruby sass.
+
     # Return an array of all possible paths through the given arrays.
     #
     # @param arrs [Array<Array>]
@@ -539,13 +599,12 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
         loopStart = permutations
       end
     end
-     */  
+	*/
   void paths(ComplexSelectorDequeDeque& source, ComplexSelectorDequeDeque& out, Context& ctx) {
     To_String to_string;
     
     ComplexSelectorDequeDeque loopStart;
 
-    // for arr in arrs do
     for (ComplexSelectorDequeDeque::iterator arrsIterator = source.begin(), endIterator = source.end();
          arrsIterator != endIterator; ++arrsIterator) {
       
@@ -553,14 +612,14 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       
     	ComplexSelectorDequeDeque permutations;
 
-      // for e in arr do
       for (ComplexSelectorDeque::iterator arrIterator = arr.begin(), endIterator = arr.end();
            arrIterator != endIterator; ++arrIterator) {
       	Complex_Selector* pE = (*arrIterator)->clone(ctx);
-        
-        // for path in loopStart do
+    
         if (loopStart.size() == 0) {
-          
+          // When the loopStart has nothing in it, we're on the first iteration. The new permutation
+          // is just the current Complex_Selector*. Without this special case, we would never loop
+          // over anything in the for loop in the below else clause.
           ComplexSelectorDeque newPermutation;
           newPermutation.push_back(pE);
           
@@ -588,7 +647,11 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
 
   
 
-  // TODO: move this to ast.hpp next to the other one?
+  // complexSelectorDequeContains checks if an equivalent Complex_Selector to the one passed in is contained within the
+  // passed in ComplexSelectorDeque. This is necessary because the deque contains pointers, and pointer comparison yields
+  // strict object equivalency. We want to compare the selector's contents.
+  //
+  // TODO: move ComplexSelectorPointerComparator to ast.hpp next to the other one aimed at set usage? This is aimed at usage for std::find_if in complexSelectorDequeContains. One could be implemented in terms of the other for less code duplication.
   struct ComplexSelectorPointerComparator
   {
     bool operator()(Complex_Selector* const pOne)
@@ -611,9 +674,9 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
   }
   
   
-  
-  
-  // TODO: make these member methods to avoid passing around ctx, subsetMap, and to avoid this forward declaration
+
+  // This forward declaration is needed since extendComplexSelector calls extendCompoundSelector, which may recursively
+  // call extendComplexSelector again.
   void extendComplexSelector(
     Complex_Selector* pComplexSelector,
     Context& ctx,
@@ -623,40 +686,17 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
   
   
   
-  /*
-      def do_extend(extends, parent_directives, seen = Set.new)
-        print "\n%%%%%%%%%%%%% SIMPLE SEQ DO EXTEND #{members}\n"
-
-        Sass::Util.group_by_to_a(extends.get(members.to_set)) {|ex, _| ex.extender}.map do |seq, group|
-          sels = group.map {|_, s| s}.flatten
-          # If A {@extend B} and C {...},
-          # seq is A, sels is B, and self is C
-
-          self_without_sel = Sass::Util.array_minus(self.members, sels)
-          group.each {|e, _| e.result = :failed_to_unify unless e.result == :succeeded}
-          next unless unified = seq.members.last.unify(self_without_sel, subject?)
-          group.each {|e, _| e.result = :succeeded}
-          next if group.map {|e, _| check_directives_match!(e, parent_directives)}.none?
-          new_seq = Sequence.new(seq.members[0...-1] + [unified])
-          new_seq.add_sources!(sources + [seq])
-          [sels, new_seq]
-        end.compact.map do |sels, seq|
-          if seen.include?(sels)
-            []
-          else
-            # print "SIMPLESEQ CALLING DO EXTEND: #{seq}\n"
-            seq.do_extend(extends, parent_directives, seen + [sels])
-          end
-        end.flatten.uniq
-      end
+  /* This is the equivalent of ruby's SimpleSequence.do_extend.
+   
+    // TODO: I think I have some modified ruby code to put here. Check.
   */
-    /*
-     ISSUES:
-     - Previous TODO: Do we need to group the results by extender?
-     - What does subject do in?: next unless unified = seq.members.last.unify(self_without_sel, subject?)
-     - The search for uniqueness at the end is not ideal since it's has to loop over everything...
-     - Check if the final search for uniqueness is doing anything that extendComplexSelector isn't already doing...
-     */
+  /*
+   ISSUES:
+   - Previous TODO: Do we need to group the results by extender?
+   - What does subject do in?: next unless unified = seq.members.last.unify(self_without_sel, subject?)
+   - IMPROVEMENT: The search for uniqueness at the end is not ideal since it's has to loop over everything...
+   - IMPROVEMENT: Check if the final search for uniqueness is doing anything that extendComplexSelector isn't already doing...
+   */
   void extendCompoundSelector(
   	Compound_Selector* pSelector,
     Context& ctx,
@@ -672,6 +712,11 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       Complex_Selector* pExtComplexSelector = iterator->first;    // The selector up to where the @extend is (ie, the thing to merge)
       Compound_Selector* pExtCompoundSelector = iterator->second; // The stuff after the @extend
       
+      // I know I said don't optimize yet, but I couldn't help moving this if check up until we find a reason not
+      // to. In the ruby code, this was done at the end after a lot of work was already done. The only reason this
+      // wouldn't be safe is if there are side effects in the skipped ruby code that the algorithm is relying on. In that
+      // case, we wouldn't have those side effects without moving this lower in this function to match it's placement in
+      // the ruby code. It's easy enough to change if this causes a problem.
       if (seen.find(*pExtCompoundSelector) != seen.end()) {
         continue;
       }
@@ -699,7 +744,10 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
         continue;
       }
       
-
+      
+      // TODO: implement the parent directive match (if necessary based on test failures)
+      // next if group.map {|e, _| check_directives_match!(e, parent_directives)}.none?
+      
 
       // TODO: This seems a little fishy to me. See if it causes any problems. From the ruby, we should be able to just
       // get rid of the last Compound_Selector and replace it with this one. I think the reason this code is more
@@ -710,9 +758,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       Complex_Selector::Combinator combinator = pNewSelector->clear_innermost();
       pNewSelector->set_innermost(pNewInnerMost, combinator);
 
-      
-      
-      // new_seq.add_sources!(sources + [seq])
+
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
 //      printComplexSelector(pNewSelector, "ASDF SETTING ON: ");
 
@@ -733,8 +779,8 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
 
 
 			printComplexSelector(pNewSelector, "RECURSING DO EXTEND: ", true);
-
   		extendComplexSelector(pNewSelector, ctx, subsetMap, recurseSeen, recurseExtendedSelectors /*out*/);
+
 
       for (ComplexSelectorDeque::iterator iterator = recurseExtendedSelectors.begin(), endIterator = recurseExtendedSelectors.end();
            iterator != endIterator; ++iterator) {
@@ -749,34 +795,16 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
  
 
   
+  /* This is the equivalent of ruby's Sequence.do_extend.
+   
+   // TODO: I think I have some modified ruby code to put here. Check.
+   */
   /*
-      def do_extend(extends, parent_directives, seen = Set.new)
-
-        extended_not_expanded = members.map do |sseq_or_op|
-
-          next [[sseq_or_op]] unless sseq_or_op.is_a?(SimpleSequence)
-
-          # print ">>>>> CALLING EXTEND ON: #{sseq_or_op}\n"
-          extended = sseq_or_op.do_extend(extends, parent_directives, seen)
-
-          choices = extended.map {|seq| seq.members}
-
-          choices.unshift([sseq_or_op]) unless extended.any? {|seq| seq.superselector?(sseq_or_op)}
-
-          choices
-        end
-
-        weaves = Sass::Util.paths(extended_not_expanded).map {|path| weave(path)}
-
-        result = Sass::Util.flatten(trim(weaves), 1).map {|p| Sequence.new(p)}
-
-        result
-      end
-  */
-    /*
-     ISSUES:
-     - check for operator doesn't transfer over to libsass' object model
-     */
+   ISSUES:
+   - check to automatically include combinators doesn't transfer over to libsass' data model where
+     the combinator and compound selector are one unit
+     next [[sseq_or_op]] unless sseq_or_op.is_a?(SimpleSequence)
+   */
   void extendComplexSelector(
   	Complex_Selector* pComplexSelector,
     Context& ctx,
@@ -796,17 +824,13 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
 
       ComplexSelectorDeque extended;
       extendCompoundSelector(pCompoundSelector, ctx, subsetMap, seen, extended /*out*/);
-      
       printComplexSelectorDeque(extended, "EXTENDED: ");
 
       
-      
+      // Prepend the Compound_Selector based on the choices logic; choices seems to be extend but with an ruby Array instead of a Sequence
+      // due to the member mapping: choices = extended.map {|seq| seq.members}
       Complex_Selector* pJustCurrentCompoundSelector = pCurrentComplexSelector->clone(ctx);
       pJustCurrentCompoundSelector->tail(NULL);
-      
-      
-  
-      // Prepend the Compound_Selector based on the choices logic; choices seems to be extend but with an Array instead of a Sequence
 
       bool isSuperselector = false;
       for (ComplexSelectorDeque::iterator iterator = extended.begin(), endIterator = extended.end();
@@ -821,29 +845,29 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       if (!isSuperselector) {
         extended.push_front(pJustCurrentCompoundSelector);
       }
-      
 
       printComplexSelectorDeque(extended, "CHOICES UNSHIFTED: ");
 
       
+      // Aggregate our current extensions
       extendedNotExpanded.push_back(extended);
-      
+    
+
+      // Continue our iteration
     	pCurrentComplexSelector = pCurrentComplexSelector->tail();
     }
+
 
     printComplexSelectorDequeDeque(extendedNotExpanded, "EXTENDED NOT EXPANDED: ");
     
   
-    
+    // Ruby Equivalent: paths
     ComplexSelectorDequeDeque permutations;
     paths(extendedNotExpanded, permutations, ctx);
-    
-    
     printComplexSelectorDequeDeque(permutations, "PATHS: ");
 
 
-
- 
+    // Ruby Equivalent: weave
  		ComplexSelectorDequeDeque weaves;
     for (ComplexSelectorDequeDeque::iterator iterator = permutations.begin(), endIterator = permutations.end();
          iterator != endIterator; ++iterator) {
@@ -858,51 +882,28 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
     printComplexSelectorDequeDeque(weaves, "WEAVES: ");
     
     
-    
-    
+    // Ruby Equivalent: trim
     ComplexSelectorDequeDeque trimmed;
     trim(weaves, trimmed, ctx);
-
-    
 		printComplexSelectorDequeDeque(trimmed, "TRIMMED: ");
 
     
+    // Ruby Equivalent: flatten
     for (ComplexSelectorDequeDeque::iterator iterator = trimmed.begin(), endIterator = trimmed.end();
          iterator != endIterator; ++iterator) {
       
       ComplexSelectorDeque& toCombine = *iterator;
       extendedSelectors.insert(extendedSelectors.end(), toCombine.begin(), toCombine.end());
-      
     }
     
-    printComplexSelectorDeque(extendedSelectors, ">>>>> EXTENDED: ");
 
+    printComplexSelectorDeque(extendedSelectors, ">>>>> EXTENDED: ");
   }
 
 
 
   /*
-  def do_extend(extends, parent_directives)
-
-    result = CommaSequence.new(members.map do |seq|
-
-        extended = seq.do_extend(extends, parent_directives)
-
-        # First Law of Extend: the result of extending a selector should
-        # always contain the base selector.
-        #
-        # See https://github.com/nex3/sass/issues/324.
-
-        # unshift = put seq on front of array unless it has a placeholder or is already in extended
-        # CAN YOU SAFELY GET RID OF PLACEHOLDERS HERE? - maybe because it will already be in the list?
-        extended.unshift seq unless seq.has_placeholder? || extended.include?(seq)
-        extended
-
-        extended
-      end.flatten)
-
-      result
-  end
+   This is the equivalent of ruby's CommaSequence.do_extend.
   */
     /*
      ISSUES:
@@ -933,17 +934,19 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
     }
     
     return createSelectorListFromDeque(newSelectors, ctx, pSelectorList);
-
   }
 
   
+  // Extend a ruleset by extending the selectors and updating them on the ruleset. The block's rules don't need to change.
   void extendRuleset(Ruleset* pRuleset, Context& ctx, ExtensionSubsetMap& subsetMap) {
     To_String to_string;
 
     Selector_List* pNewSelectorList = extendSelectorList(static_cast<Selector_List*>(pRuleset->selector()), ctx, subsetMap);
 
     if (pNewSelectorList) {
-      // re-parse in order to restructure expanded placeholder nodes correctly
+      // re-parse in order to restructure expanded placeholder nodes correctly.
+      //
+      // TODO: I don't know if this is needed, but it was in the original C++ implementation, so I kept it. Try running the tests without re-parsing.
       pRuleset->selector(
         Parser::from_c_str(
           (pNewSelectorList->perform(&to_string) + ";").c_str(),
