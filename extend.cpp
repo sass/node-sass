@@ -1425,7 +1425,7 @@ namespace Sass {
       flattened.push_back(currentFlattened);
     }
     
-    printCSOCDequeDeque(flattened, "MAPPED: ");
+    printCSOCDequeDeque(flattened, "FLATTENED: ");
 
 
 			/*
