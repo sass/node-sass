@@ -1353,7 +1353,7 @@ namespace Sass {
         pIter = pIter->tail();
       }
     }
-    Complex_Selector* clone(Context&);
+    Complex_Selector* clone(Context&) const;
     vector<Compound_Selector*> to_vector();
     ATTACH_OPERATIONS();
   };

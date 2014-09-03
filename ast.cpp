@@ -306,7 +306,7 @@ namespace Sass {
     { tail()->set_innermost(val, c); }
   }
 
-  Complex_Selector* Complex_Selector::clone(Context& ctx)
+  Complex_Selector* Complex_Selector::clone(Context& ctx) const
   {
     Complex_Selector* cpy = new (ctx.mem) Complex_Selector(*this);
     if (tail()) cpy->tail(tail()->clone(ctx));
@@ -399,11 +399,6 @@ namespace Sass {
   
   void Compound_Selector::mergeSources(SourcesSet& sources, Context& ctx)
   {
-    // sseq = dup
-    // sseq.members = members.dup
-    // sseq.sources = self.sources | sources
-    // sseq
-    
     for (SourcesSet::iterator iterator = sources.begin(), endIterator = sources.end(); iterator != endIterator; ++iterator) {
       this->sources_.insert((*iterator)->clone(ctx));
     }
