@@ -57,6 +57,8 @@ var prepareOptions = function (options) {
   sourceMap = options.sourceMap;
   if (typeof sourceMap !== 'string' && sourceComments === 'map') {
     sourceMap = '';
+  } else if (options.outFile && sourceMap) {
+    sourceMap = path.resolve(path.dirname(options.outFile), sourceMap);
   }
 
   prepareStats(options, stats);
