@@ -7,7 +7,10 @@
 
 
 namespace Sass {
+
+  
   using namespace std;
+
 
   struct Context;
 
@@ -24,7 +27,7 @@ namespace Sass {
    the Extend operator.
    
    Note that the current libsass data model also pairs the combinator with the Complex_Selector that follows it, but
-   ruby sass has no such restriction.
+   ruby sass has no such restriction, so we attempt to create a data structure that can handle them split apart.
    */
   
   class Node;
@@ -53,13 +56,16 @@ namespace Sass {
     NodeDequePtr collection() { return mpCollection; }
     const NodeDequePtr collection() const { return mpCollection; }
     
-    static Node createCombinator(Complex_Selector* pSelector);
+    static Node createCombinator(const Complex_Selector::Combinator& combinator);
     static Node createSelector(Complex_Selector* pSelector, Context& ctx);
     static Node createCollection();
     static Node createCollection(const NodeDeque& values);
     static Node createNil();
     
     Node clone(Context& ctx) const;
+    
+    bool operator==(const Node& rhs) const;
+    inline bool operator!=(const Node& rhs) const { return !(*this == rhs); }
     
   private:
     // Private constructor; Use the static methods (like createCombinator and createSelector)
@@ -72,5 +78,13 @@ namespace Sass {
     Complex_Selector* mpSelector; // this is an AST_Node, so it will be handled by the Memory_Manager
     NodeDequePtr mpCollection;
   };
+  
+  
+  ostream& operator<<(ostream& os, const Node& node);
+  
+
+  Node complexSelectorToNode(Complex_Selector* pToConvert, Context& ctx);
+  Complex_Selector* nodeToComplexSelector(const Node& toConvert, Context& ctx);
+  
 
 }
