@@ -2,6 +2,7 @@ var path   = require('path'),
     assert = require('assert'),
     fs     = require('fs'),
     exec   = require('child_process').exec,
+    spawn  = require('pty.js'),
     cli    = process.env.NODESASS_COVERAGE ? require('../lib-coverage/cli') : require('../lib/cli'),
 
     cliPath = path.resolve(__dirname, '../bin/node-sass'),
@@ -33,8 +34,9 @@ var sampleCssMapOutputPath = path.join(__dirname, '../sample.css.map');
 
 describe('cli', function() {
   it('should print help when run with no arguments', function(done) {
-    exec('node ' + cliPath, function(err, stdout, stderr) {
-      done(assert(stderr.trim().indexOf('Compile .scss files with node-sass') === 0));
+    var child = spawn(process.execPath, [cliPath]);
+    child.once('data', function(data) {
+      done(assert(data.trim().indexOf('Compile .scss files with node-sass') === 0));
     });
   });
 
@@ -218,7 +220,7 @@ describe('cli', function() {
   it('should compile with input from stdin', function(done){
     var emitter = cli(['--stdout']);
     emitter.on('error', done);
-    emitter.on('log', function(css){
+    emitter.once('log', function(css){
       done(assert.equal(css, '#navbar ul {\n  list-style-type: none; }\n'));
     });
     process.stdin.emit('data', '#navbar ul{list-style-type:none;}');
