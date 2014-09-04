@@ -26,6 +26,7 @@ SOURCES = \
 	file.cpp \
 	functions.cpp \
 	inspect.cpp \
+	node.cpp \
 	output_compressed.cpp \
 	output_nested.cpp \
 	parser.cpp \

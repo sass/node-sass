@@ -5,6 +5,7 @@
 #include "backtrace.hpp"
 #include "paths.hpp"
 #include "parser.hpp"
+#include "node.hpp"
 #include <iostream>
 #include <deque>
 
@@ -89,7 +90,7 @@ namespace Sass {
     
     ComplexSelectorOrCombinator(const ComplexSelectorOrCombinator& other);
     
-    inline ~ComplexSelectorOrCombinator() {}
+    inline ~ComplexSelectorOrCombinator() {} // TODO: is this needed?
 
   private:
     // private constructor; use the static methods createCombinator and createSelector to instantiate (this is just more expressive than a single constructor).
@@ -806,6 +807,7 @@ namespace Sass {
   
   
   // Trying this out since I'm seeing weird behavior where the deque's are being emptied when calling into the templated version of chunks
+  // TODO: use general version of chunks now that bug is fixed
   void chunksDeque(CSOCDequeDeque& seq1, CSOCDequeDeque& seq2, CSOCDequeDequeDeque& out, const SubweaveEmptyChunker& chunker) {
   	printCSOCDequeDeque(seq1, "ONE IN: ");
     printCSOCDequeDeque(seq2, "TWO IN: ");
@@ -1734,7 +1736,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
   // passed in ComplexSelectorDeque. This is necessary because the deque contains pointers, and pointer comparison yields
   // strict object equivalency. We want to compare the selector's contents.
   //
-  // TODO: move ComplexSelectorPointerComparator to ast.hpp next to the other one aimed at set usage? This is aimed at usage for std::find_if in complexSelectorDequeContains. One could be implemented in terms of the other for less code duplication.
+  // TODO: move ComplexSelectorPointerComparator to ast.hpp next to the other one aimed at set usage? This is aimed at usage for std::find_if in complexSelectorDequeContains. One could be implemented in terms of the other for less code duplication. Can this be removed entirely now that I implemented operator== on the Complex_Selector class?
   struct ComplexSelectorPointerComparator
   {
     bool operator()(Complex_Selector* const pOne)
