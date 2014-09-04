@@ -7,6 +7,7 @@ LIBDIR    = $(PREFIX)/lib
 
 SASS_SASSC_PATH ?= sassc
 SASS_SPEC_PATH ?= sass-spec
+SASS_SPEC_SPEC_DIR ?= spec
 SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc
 RUBY_BIN = ruby
 
@@ -84,10 +85,10 @@ $(SASSC_BIN): libsass.a
 	cd $(SASS_SASSC_PATH) && $(MAKE)
 
 test: $(SASSC_BIN) libsass.a
-	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) -s $(LOG_FLAGS) $(SASS_SPEC_PATH)
+	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) -s $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
 
 test_build: $(SASSC_BIN) libsass.a
-	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) -s --ignore-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)
+	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) -s --ignore-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
 
 test_issues: $(SASSC_BIN) libsass.a
 	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues
