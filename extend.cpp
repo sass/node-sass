@@ -1282,7 +1282,6 @@ namespace Sass {
     
     
     
-    /*
 
     // Do the naive implementation. pOne = A B and pTwo = C D ...yields...  A B C D and C D A B
     // See https://gist.github.com/nex3/7609394 for details.
@@ -1293,7 +1292,11 @@ namespace Sass {
     Complex_Selector* pSecondPermutation = pTwo->clone(ctx);
     pSecondPermutation->set_innermost(pOne->clone(ctx), pSecondPermutation->innermost()->combinator()); // TODO: is this the correct combinator?
     out.push_back(pSecondPermutation);
-    */
+
+    
+    return;
+
+    
     printComplexSelector(pOne, "SUBWEAVE ONE: ");
     printComplexSelector(pTwo, "SUBWEAVE TWO: ");
     
