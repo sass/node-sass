@@ -1316,6 +1316,9 @@ namespace Sass {
       return sum;
     }
     bool operator<(const Complex_Selector& rhs) const;
+    bool operator==(const Complex_Selector& rhs) const {
+      return (!(*this < rhs) && !(rhs < *this));
+    }
     SourcesSet sources()
     {
       //s = Set.new
