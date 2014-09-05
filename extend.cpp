@@ -1125,10 +1125,8 @@ namespace Sass {
     // newline ||= !!ops2.shift if ops2.first == "\n"
 
 		// If neither sequence is a subsequence of the other, they cannot be merged successfully
-    //DefaultLcsComparator lcsDefaultComparator;
-    //Node opsLcs = lcs(ops1, ops2, lcsDefaultComparator, ctx);
-    throw "Reenable this.";
-    Node opsLcs = Node::createNil();
+    DefaultLcsComparator lcsDefaultComparator;
+    Node opsLcs = lcs(ops1, ops2, lcsDefaultComparator, ctx);
     
     if (!(opsLcs == ops1 || opsLcs == ops2)) {
     	return Node::createNil();
@@ -1244,10 +1242,8 @@ namespace Sass {
     }
   
 		if (ops1.collection()->size() > 1 || ops2.collection()->size() > 1) {
-    	//DefaultLcsComparator lcsDefaultComparator;
-    	//Node opsLcs = lcs(ops1, ops2, lcsDefaultComparator, ctx);
-      throw "Reenable this.";
-      Node opsLcs = Node::createNil();
+    	DefaultLcsComparator lcsDefaultComparator;
+    	Node opsLcs = lcs(ops1, ops2, lcsDefaultComparator, ctx);
       
       // If there are multiple operators, something hacky's going on. If one is a supersequence of the other, use that, otherwise give up.
       
