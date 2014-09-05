@@ -1,6 +1,6 @@
 #include "node.hpp"
 #include "to_string.hpp"
-
+#include "context.hpp"
 
 namespace Sass {
 
@@ -175,39 +175,41 @@ namespace Sass {
 
     NodeDeque& childNodes = *toConvert.collection();
     
-    Complex_Selector* pCurrent = NULL;
-    Complex_Selector* pTail = NULL; // We're looping backwards, so this is the element after pCurrent in the Complex_Selector* we're building up
+    string noPath("");
+    Position noPosition;
+    Complex_Selector* pFirst = new (ctx.mem) Complex_Selector(noPath, noPosition, Complex_Selector::ANCESTOR_OF, NULL, NULL);
+    Complex_Selector* pCurrent = pFirst;
     
-    for (NodeDeque::reverse_iterator childIter = childNodes.rbegin(), childIterEnd = childNodes.rend(); childIter != childIterEnd; childIter++) {
+    for (NodeDeque::iterator childIter = childNodes.begin(), childIterEnd = childNodes.end(); childIter != childIterEnd; childIter++) {
+
       Node& child = *childIter;
       
-      /*
-      if (pCurrentCSOC.isCombinator()) {
-        // You might suspect that
-        throw "This should never happen. Either this algorithm is busted or there were two combinators in a row (which shouldn't happen).";
-      }
-
-      pCurrent = pCurrentCSOC.selector()->clone(ctx);
-      
-
-      
-      if (index > 0) {
-        const ComplexSelectorOrCombinator& pPreviousCSOC = toConvert[index - 1];
+      if (child.isSelector()) {
+        pCurrent->tail(child.selector());
+        pCurrent = pCurrent->tail();
+      } else if (child.isCombinator()) {
+        pCurrent->combinator(child.combinator());
         
-        if (pPreviousCSOC.isCombinator()) {
-          pCurrent->combinator(pPreviousCSOC.combinator());
-          index--; // skip over this combinator in our iteration now that we've consumed it
+        // if the next node is also a combinator, create another Complex_Selector to hold it so it doesn't replace the current combinator
+        if (childIter+1 != childIterEnd) {
+          Node& nextNode = *(childIter+1);
+          if (nextNode.isCombinator()) {
+            pCurrent->tail(new (ctx.mem) Complex_Selector(noPath, noPosition, Complex_Selector::ANCESTOR_OF, NULL, NULL));
+            pCurrent = pCurrent->tail();
+          }
         }
+      } else {
+        throw "The node to convert's children must be only combinators or selectors.";
       }
-      
-      pCurrent->tail(pTail);
-      
-			pTail = pCurrent;
-      */
     }
 
+    // Put the dummy Compound_Selector in the first position, for consistency with the rest of libsass
+    Compound_Selector* fakeHead = new (ctx.mem) Compound_Selector(noPath, noPosition, 1);
+    Selector_Reference* selectorRef = new (ctx.mem) Selector_Reference(noPath, noPosition, NULL);
+    fakeHead->elements().push_back(selectorRef);
+    pFirst->head(fakeHead);
     
-    return pCurrent;
+    return pFirst;
   }
 
 

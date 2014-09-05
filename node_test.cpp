@@ -28,6 +28,7 @@ namespace Sass {
     "> > CMPD",
     "CMPD ~ ~",
     "> + CMPD1.CMPD2 > ~",
+    "> + CMPD1.CMPD2 CMPD3.CMPD4 > ~",
     "+ CMPD1 CMPD2 ~ CMPD3 + CMPD4 > CMPD5 > ~"
   };
 
