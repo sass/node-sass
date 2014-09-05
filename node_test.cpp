@@ -8,21 +8,27 @@
 #define STATIC_ARRAY_SIZE(array) (sizeof((array))/sizeof((array[0])))
 
 
+// TODO: move this to test/test_node.cpp
+
+
 namespace Sass {
   
   Context ctx = Context::Data();
-
+  
   To_String to_string;
-
-
+  
+  
   const char* const ROUNDTRIP_TESTS[] = {
     NULL,
   	"~",
 		"CMPD",
     "~ CMPD",
     "CMPD >",
+    "> > CMPD",
+    "CMPD ~ ~",
     "+ CMPD1 CMPD2 ~ CMPD3 + CMPD4 > CMPD5 > ~"
   };
+
   
   
   static Complex_Selector* createComplexSelector(string src) {
