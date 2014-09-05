@@ -1,5 +1,5 @@
 CXX      ?= g++
-CXXFLAGS = -Wall -O2 -fPIC
+CXXFLAGS = -std=c++11 -stdlib=libc++ -Wall -fPIC -g
 LDFLAGS  = -fPIC
 
 PREFIX    = /usr/local

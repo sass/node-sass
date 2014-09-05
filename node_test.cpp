@@ -8,6 +8,9 @@
 #define STATIC_ARRAY_SIZE(array) (sizeof((array))/sizeof((array[0])))
 
 
+// TODO: move this to test/test_node.cpp
+
+
 namespace Sass {
   
   Context ctx = Context::Data();
@@ -21,6 +24,8 @@ namespace Sass {
 		"CMPD",
     "~ CMPD",
     "CMPD >",
+    "> > CMPD",
+    "CMPD ~ ~",
     "+ CMPD1 CMPD2 ~ CMPD3 + CMPD4 > CMPD5 > ~"
   };
   
