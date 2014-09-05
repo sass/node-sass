@@ -1041,7 +1041,6 @@ namespace Sass {
   
   
   Node groupSelectors(const Node& seq, Context& ctx) {
-  
   	Node newSeq = Node::createCollection();
     
     Node tail = seq.clone(ctx);
@@ -1499,7 +1498,7 @@ namespace Sass {
     
     
     
-    
+    /*
     // Do the naive implementation. pOne = A B and pTwo = C D ...yields...  A B C D and C D A B
     // See https://gist.github.com/nex3/7609394 for details.
     Complex_Selector* pFirstPermutation = pOne->clone(ctx);
@@ -1511,7 +1510,7 @@ namespace Sass {
     out.push_back(pSecondPermutation);
 
     
-    return;
+    return;*/
     
     
     
@@ -1559,7 +1558,7 @@ namespace Sass {
 
     }
 
-		cerr << "FIN MAPPED: " << fin;
+		cerr << "FIN MAPPED: " << fin << endl;
 
 
 
@@ -1598,7 +1597,7 @@ namespace Sass {
       groupSeq2.collection()->pop_front();
     }
     
-    cerr << "DIFF POST LCS: " << diff;
+    cerr << "DIFF POST LCS: " << diff << endl;
     
     
     cerr << "CHUNKS: ONE=" << groupSeq1 << " TWO=" << groupSeq2 << endl;
@@ -1612,94 +1611,55 @@ namespace Sass {
     cerr << "DIFF POST CHUNKS: " << diff << endl;
     
 
-
-		return;
-
-
-		// Converting to CSOCDeque clones the inputs,
-    CSOCDeque seq1Old;
-    CSOCDeque seq2Old;
-    CSOCDeque initOld;
-    CSOCDequeDeque finOld;
-    CSOCDequeDeque groupSeq1Old;
-    CSOCDequeDeque groupSeq2Old;
-    CSOCDequeDeque seqLcsOld;
-
-    CSOCDequeDeque diffWrapper;
-    diffWrapper.push_back(initOld);
-    CSOCDequeDequeDeque diffOld;
-    diffOld.push_back(diffWrapper);
-
+    diff.collection()->insert(diff.collection()->end(), fin.collection()->begin(), fin.collection()->end());
+    
+    cerr << "DIFF POST FIN MAPPED: " << diff << endl;
 
     
+    for (NodeDeque::iterator diffIter = diff.collection()->begin(), diffEndIter = diff.collection()->end();
+           diffIter != diffEndIter; ++diffIter) {
+    	Node& node = *diffIter;
+      if (node.collection()->empty()) {
+      	diffIter = diff.collection()->erase(diffIter);
+      }
+    }
+    
+    cerr << "DIFF POST REJECT: " << diff << endl;
+    
+    
+		Node pathsResult = paths(diff, ctx);
+    
+    cerr << "PATHS: " << pathsResult << endl;
+    
+
+		// We're flattening in place
+    for (NodeDeque::iterator pathsIter = pathsResult.collection()->begin(), pathsEndIter = pathsResult.collection()->end();
+			pathsIter != pathsEndIter; ++pathsIter) {
+
+    	Node& child = *pathsIter;
+      child = flatten(child, ctx);
+    }
+    
+    cerr << "FLATTENED: " << pathsResult;
+    
+    
+    /*
+      TODO: implement
+      rejected = mapped.reject {|p| path_has_two_subjects?(p)}
+      $stderr.puts "REJECTED: #{rejected}"
+     */
+    cerr << "REJECTED: " << pathsResult;
     
   
-
-
-
-    diffOld.push_back(finOld);
-    
-    printCSOCDequeDequeDeque(diffOld, "DIFF POST FIN MAPPED: ");
-    
-    
-    for (CSOCDequeDequeDeque::iterator diffIterator = diffOld.begin(), diffEndIterator = diffOld.end();
-           diffIterator != diffEndIterator; ++diffIterator) {
-    	CSOCDequeDeque& dequeDeque = *diffIterator;
-      if (dequeDeque.empty()) {
-      	diffIterator = diffOld.erase(diffIterator);
-      }
-    }
-    
-    printCSOCDequeDequeDeque(diffOld, "DIFF POST REJECT: ");
-    
-    
-
-		CSOCDequeDequeDeque pathsTemp; // TODO: rename this
-		//paths(diff, pathsTemp, ctx);
-
-		printCSOCDequeDequeDeque(pathsTemp, "PATHS: ");
-
-    
-    CSOCDequeDeque flattened;
-    for (CSOCDequeDequeDeque::iterator pathsIterator = pathsTemp.begin(), pathsEndIterator = pathsTemp.end();
-           pathsIterator != pathsEndIterator; ++pathsIterator) {
-    	CSOCDequeDeque& dequeDeque = *pathsIterator;
-
-			CSOCDeque currentFlattened;
-      
-      for (CSOCDequeDeque::iterator dequeDequeIterator = dequeDeque.begin(), dequeDequeEndIterator = dequeDeque.end();
-             dequeDequeIterator != dequeDequeEndIterator; ++dequeDequeIterator) {
-        CSOCDeque& innermostFlatten = *dequeDequeIterator;
-      	currentFlattened.insert(currentFlattened.end(), innermostFlatten.begin(), innermostFlatten.end());
-      }
-      
-      flattened.push_back(currentFlattened);
-    }
-    
-    printCSOCDequeDeque(flattened, "FLATTENED: ");
-
-
-			/*
-      	TODO: implement
-        rejected = mapped.reject {|p| path_has_two_subjects?(p)}
-        $stderr.puts "REJECTED: #{rejected}"
-
-        rejected
-       */
-    printCSOCDequeDeque(flattened, "REJECTED: ");
-       
-   
-
-    
     // Convert back to the data type the rest of the code expects.
-    for (CSOCDequeDeque::iterator resultIterator = flattened.begin(), resultEndIterator = flattened.end();
-           resultIterator != resultEndIterator; ++resultIterator) {
-    	CSOCDeque& deque = *resultIterator;
-      out.push_back(CSOCToComplexSelector(deque, ctx));
+    for (NodeDeque::iterator resultIter = pathsResult.collection()->begin(), resultEndIter = pathsResult.collection()->end();
+			resultIter != resultEndIter; ++resultIter) {
+
+    	Node& outNode = *resultIter;
+      out.push_back(nodeToComplexSelector(outNode, ctx));
+
     }
 
-    
-    cerr << "END SUBWEAVE" << endl;
   }
   
 

@@ -65,7 +65,10 @@ namespace Sass {
 	*/
   template<typename ComparatorType>
   Node lcs_backtrace(const LCSTable& c, const Node& x, const Node& y, int i, int j, const ComparatorType& comparator) {
+  	cerr << "LCSBACK: C=" /*<< c*/ << "X=" << x << " Y=" << y << " I=" << i << " J=" << j << endl;
+
   	if (i == 0 || j == 0) {
+    	cerr << "RETURNING EMPTY\n";
     	return Node::createCollection();
     }
     
@@ -74,15 +77,18 @@ namespace Sass {
 
     Node compareOut = Node::createNil();
     if (comparator(xChildren[i], yChildren[j], compareOut)) {
+    	cerr << "RETURNING AFTER ELEM COMPARE\n";
       Node result = lcs_backtrace(c, x, y, i - 1, j - 1, comparator);
       result.collection()->push_back(compareOut);
       return result;
     }
     
     if (c[i][j - 1] > c[i - 1][j]) {
+    	cerr << "RETURNING AFTER TABLE COMPARE\n";
     	return lcs_backtrace(c, x, y, i, j - 1, comparator);
     }
     
+    cerr << "FINAL RETURN" << endl;
     return lcs_backtrace(c, x, y, i - 1, j, comparator);
   }
   
@@ -95,6 +101,8 @@ namespace Sass {
   */
   template<typename ComparatorType>
   void lcs_table(const Node& x, const Node& y, const ComparatorType& comparator, LCSTable& out) {
+  	cerr << "LCSTABLE: X=" << x << " Y=" << y << endl;
+
   	NodeDeque& xChildren = *(x.collection());
     NodeDeque& yChildren = *(y.collection());
 
@@ -136,10 +144,12 @@ namespace Sass {
   */
   template<typename ComparatorType>
   Node lcs(const Node& x, const Node& y, const ComparatorType& comparator, Context& ctx) {
+  	cerr << "LCS: X=" << x << " Y=" << y << endl;
+
     Node newX = x.clone(ctx);
     newX.collection()->push_front(Node::createNil());
     
-    Node newY = x.clone(ctx);
+    Node newY = y.clone(ctx);
     newY.collection()->push_front(Node::createNil());
     
     LCSTable table;
@@ -147,5 +157,21 @@ namespace Sass {
     
 		return lcs_backtrace(table, newX, newY, newX.collection()->size() - 1, newY.collection()->size() - 1, comparator);
   }
+
+
+	/*
+  This is the equivalent of ruby sass' Sass::Util.flatten and [].flatten.
+  Sass::Util.flatten requires the number of levels to flatten, while
+  [].flatten doesn't and will flatten the entire array. This function
+  supports both.
+  
+  # Flattens the first `n` nested arrays. If n == -1, all arrays will be flattened
+  #
+  # @param arr [NodeCollection] The array to flatten
+  # @param n [int] The number of levels to flatten
+  # @return [NodeCollection] The flattened array
+  */
+  Node flatten(const Node& arr, Context& ctx, int n = -1);
+
 
 }

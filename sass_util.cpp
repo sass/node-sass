@@ -69,12 +69,67 @@ namespace Sass {
           
           permutations.collection()->push_back(newPermutation);
         }
-        
-        loopStart = permutations;
       }
+      
+      loopStart = permutations;
     }
     
     return loopStart;
   }
+  
 
+	/*
+  This is the equivalent of ruby sass' Sass::Util.flatten and [].flatten.
+  Sass::Util.flatten requires the number of levels to flatten, while
+  [].flatten doesn't and will flatten the entire array. This function
+  supports both.
+  
+  # Flattens the first `n` nested arrays. If n == -1, all arrays will be flattened
+  #
+  # @param arr [NodeCollection] The array to flatten
+  # @param n [int] The number of levels to flatten
+  # @return [NodeCollection] The flattened array
+  
+  The following is the modified version of the ruby code that was more portable to C++. You
+  should be able to drop it into ruby 3.2.19 and get the same results from ruby sass.
+
+  def flatten(arr, n = -1)
+    if n != -1 and n == 0 then
+      return arr
+    end
+
+    flattened = []
+
+    for e in arr do
+      if e.is_a?(Array) then
+        flattened.concat(flatten(e, n - 1))
+      else
+        flattened << e
+      end
+    end
+
+    return flattened
+  end
+  */
+  Node flatten(const Node& arr, Context& ctx, int n = -1) {
+    if (n != -1 && n == 0) {
+      return arr.clone(ctx);
+    }
+
+    Node flattened = Node::createCollection();
+    
+    for (NodeDeque::iterator iter = arr.collection()->begin(), iterEnd = arr.collection()->end();
+    	iter != iterEnd; iter++) {
+    	Node& e = *iter;
+      
+      if (e.isCollection()) {
+      	Node recurseFlattened = flatten(e, ctx, n - 1);
+        flattened.collection()->insert(flattened.collection()->end(), recurseFlattened.collection()->begin(), recurseFlattened.collection()->end());
+      } else {
+      	flattened.collection()->push_back(e);
+      }
+    }
+
+    return flattened;
+  }
 }
