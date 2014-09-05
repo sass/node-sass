@@ -9,9 +9,6 @@
 #define STATIC_ARRAY_SIZE(array) (sizeof((array))/sizeof((array[0])))
 
 
-// TODO: move this to test/test_node.cpp
-
-
 namespace Sass {
   
   Context ctx = Context::Data();
@@ -87,7 +84,7 @@ namespace Sass {
   }
 
 
-	void test_Node() {
+	int main() {
     for (int index = 0; index < STATIC_ARRAY_SIZE(ROUNDTRIP_TESTS); index++) {
       const char* const toTest = ROUNDTRIP_TESTS[index];
       cout << "\nINPUT STRING: " << (toTest ? toTest : "NULL") << endl;
