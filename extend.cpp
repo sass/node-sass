@@ -5,7 +5,10 @@
 #include "backtrace.hpp"
 #include "paths.hpp"
 #include "parser.hpp"
+#ifndef SASS_AST
 #include "node.hpp"
+#endif
+#include "sass_util.hpp"
 #include <iostream>
 #include <deque>
 
@@ -58,7 +61,9 @@
 
 namespace Sass {
 
+
 	typedef vector<vector<int> > LCSTable;
+
 
   // ComplexSelectorOrCombinator = CSOC
   // Ruby sass' ComplexSelector equivalent has an array of CompoundSelectors and Combinators, which can be acted on
@@ -692,37 +697,44 @@ namespace Sass {
     
     return pOneWithFakeParent->is_superselector_of(pTwoWithFakeParent);
   }
+  
+  
+  bool parentSuperselector(const Node& one, const Node& two, Context& ctx) {
+  	// TODO: figure out a better way to create a Complex_Selector from scratch
+    // TODO: There's got to be a better way. This got ugly quick...
+    Position noPosition;
+    Type_Selector fakeParent("", noPosition, "temp");
+    Compound_Selector fakeHead("", noPosition, 1 /*size*/);
+    fakeHead.elements().push_back(&fakeParent);
+		Complex_Selector fakeParentContainer("", noPosition, Complex_Selector::ANCESTOR_OF, &fakeHead /*head*/, NULL /*tail*/);
+    
+    Complex_Selector* pOneWithFakeParent = nodeToComplexSelector(one, ctx);
+    pOneWithFakeParent->set_innermost(&fakeParentContainer, Complex_Selector::ANCESTOR_OF);
+    Complex_Selector* pTwoWithFakeParent = nodeToComplexSelector(two, ctx);
+    pTwoWithFakeParent->set_innermost(&fakeParentContainer, Complex_Selector::ANCESTOR_OF);
+    
+    return pOneWithFakeParent->is_superselector_of(pTwoWithFakeParent);
+  }
 
   
-  class SubweaveSuperselectorChunker {
+  class ParentSuperselectorChunker {
   public:
-  	SubweaveSuperselectorChunker(CSOCDequeDeque& other, Context& ctx) : mOther(other), mCtx(ctx) {}
-    CSOCDequeDeque& mOther;
+  	ParentSuperselectorChunker(Node& lcs, Context& ctx) : mLcs(lcs), mCtx(ctx) {}
+    Node& mLcs;
     Context& mCtx;
 
-  	bool operator()(const CSOCDequeDeque& seq) const {
+  	bool operator()(const Node& seq) const {
 			// {|s| parent_superselector?(s.first, lcs.first)}
-      return parentSuperselector(seq.front(), mOther.front(), mCtx);
+      return parentSuperselector(seq.collection()->front(), mLcs.collection()->front(), mCtx);
     }
   };
   
   class SubweaveEmptyChunker {
   public:
-  	bool operator()(CSOCDequeDeque& seq) const {
+  	bool operator()(const Node& seq) const {
 			// {|s| s.empty?}
-      printCSOCDequeDeque(seq, "EMPTY CHECK: ");
-      
-      cerr << "ISEMPTY: " << seq.empty() << endl;
-      
-      cerr << "SIZE: " << seq.size() << endl;
-      
-      int computedSize = 0;
-      for (CSOCDequeDeque::iterator iterator = seq.begin(), iteratorEnd = seq.end(); iterator != iteratorEnd; ++iterator) {
-        computedSize++;
-      }
-      cerr << "COMP SIZE: " << computedSize << endl;
 
-      return seq.empty();
+      return seq.collection()->empty();
     }
   };
   
@@ -758,57 +770,61 @@ namespace Sass {
     [chunk1 + chunk2, chunk2 + chunk1]
   end
   */
-  template<typename DequeContentType, typename ChunkerType>
-  void chunks(deque<DequeContentType>& seq1, deque<DequeContentType>& seq2, deque<deque<DequeContentType> >& out, const ChunkerType& chunker) {
-  	typedef deque<DequeContentType> Deque;
-
-  	Deque chunk1;
+  template<typename ChunkerType>
+  Node chunks(Node& seq1, Node& seq2, const ChunkerType& chunker) {
+  	Node chunk1 = Node::createCollection();
     while (!chunker(seq1)) {
-    	chunk1.push_back(seq1.front());
-      seq1.pop_front();
+    	chunk1.collection()->push_back(seq1.collection()->front());
+      seq1.collection()->pop_front();
     }
     
-    Deque chunk2;
+    Node chunk2 = Node::createCollection();
     while (!chunker(seq2)) {
-    	chunk2.push_back(seq2.front());
-      seq2.pop_front();
+    	chunk2.collection()->push_back(seq2.collection()->front());
+      seq2.collection()->pop_front();
     }
     
-    if (chunk1.empty() && chunk2.empty()) {
-    	out.clear();
+    if (chunk1.collection()->empty() && chunk2.collection()->empty()) {
       cerr << "RETURNING BOTH EMPTY" << endl;
-      return;
+      return Node::createCollection();
     }
     
-    if (chunk1.empty()) {
-    	out.push_back(chunk2);
+    if (chunk1.collection()->empty()) {
+    	Node chunk2Wrapper = Node::createCollection();
+    	chunk2Wrapper.collection()->push_back(chunk2);
       cerr << "RETURNING ONE EMPTY" << endl;
-      return;
+      return chunk2Wrapper;
     }
     
-    if (chunk2.empty()) {
-    	out.push_back(chunk1);
+    if (chunk2.collection()->empty()) {
+	    Node chunk1Wrapper = Node::createCollection();
+      chunk1Wrapper.collection()->push_back(chunk1);
       cerr << "RETURNING TWO EMPTY" << endl;
-      return;
+      return chunk1Wrapper;
     }
     
-    Deque firstPermutation;
-    firstPermutation.insert(firstPermutation.end(), chunk1.begin(), chunk1.end());
-    firstPermutation.insert(firstPermutation.end(), chunk2.begin(), chunk2.end());
-    out.push_back(firstPermutation);
+    Node perms = Node::createCollection();
     
-    Deque secondPermutation;
-    secondPermutation.insert(secondPermutation.end(), chunk2.begin(), chunk2.end());
-    secondPermutation.insert(secondPermutation.end(), chunk1.begin(), chunk1.end());
-    out.push_back(secondPermutation);
+    Node firstPermutation = Node::createCollection();
+    firstPermutation.collection()->insert(firstPermutation.collection()->end(), chunk1.collection()->begin(), chunk1.collection()->end());
+    firstPermutation.collection()->insert(firstPermutation.collection()->end(), chunk2.collection()->begin(), chunk2.collection()->end());
+    perms.collection()->push_back(firstPermutation);
+    
+    Node secondPermutation = Node::createCollection();
+    secondPermutation.collection()->insert(secondPermutation.collection()->end(), chunk2.collection()->begin(), chunk2.collection()->end());
+    secondPermutation.collection()->insert(secondPermutation.collection()->end(), chunk1.collection()->begin(), chunk1.collection()->end());
+    perms.collection()->push_back(secondPermutation);
     
     cerr << "RETURNING PERM" << endl;
+    
+    return perms;
   }
   
   
   // Trying this out since I'm seeing weird behavior where the deque's are being emptied when calling into the templated version of chunks
   // TODO: use general version of chunks now that bug is fixed
   void chunksDeque(CSOCDequeDeque& seq1, CSOCDequeDeque& seq2, CSOCDequeDequeDeque& out, const SubweaveEmptyChunker& chunker) {
+  	/*
   	printCSOCDequeDeque(seq1, "ONE IN: ");
     printCSOCDequeDeque(seq2, "TWO IN: ");
 
@@ -852,11 +868,12 @@ namespace Sass {
     out.push_back(secondPermutation);
     
     cerr << "RETURNING PERM" << endl;
+    */
   }
   
   
   template<typename CompareType>
-  class DefaultLcsComparator {
+  class DefaultLcsComparatorOld {
   public:
   	bool operator()(const CompareType& one, const CompareType& two, CompareType& out) const {
     	// TODO: Is this the correct C++ interpretation?
@@ -893,6 +910,47 @@ namespace Sass {
       }
       
       if (one.front().isSelector() && two.front().isSelector()) {
+      	return false;
+      }
+      
+      if (parentSuperselector(one, two, mCtx)) {
+      	out = two;
+        return true;
+      }
+      
+      if (parentSuperselector(two, one, mCtx)) {
+      	out = one;
+        return true;
+      }
+
+      return false;
+    }
+  };
+  
+  
+  class LcsCollectionComparator {
+  public:
+  	LcsCollectionComparator(Context& ctx) : mCtx(ctx) {}
+    
+    Context& mCtx;
+
+  	bool operator()(const Node& one, const Node& two, Node& out) const {
+    	/*
+      This code is based on the following block from ruby sass' subweave
+				do |s1, s2|
+          next s1 if s1 == s2
+          next unless s1.first.is_a?(SimpleSequence) && s2.first.is_a?(SimpleSequence)
+          next s2 if parent_superselector?(s1, s2)
+          next s1 if parent_superselector?(s2, s1)
+        end
+      */
+
+      if (one == two) {
+      	out = one;
+        return true;
+      }
+      
+      if (one.collection()->front().isSelector() && two.collection()->front().isSelector()) {
       	return false;
       }
       
@@ -982,19 +1040,24 @@ namespace Sass {
   }
   
   
-  void groupSelectors(const CSOCDeque& in, CSOCDequeDeque& out) {
-  	CSOCDeque tail(in);
+  Node groupSelectors(const Node& seq, Context& ctx) {
+  
+  	Node newSeq = Node::createCollection();
     
-    while (!tail.empty()) {
-    	CSOCDeque head;
+    Node tail = seq.clone(ctx);
+    
+    while (!tail.collection()->empty()) {
+    	Node head = Node::createCollection();
       
       do {
-      	head.push_back(tail.front());
-        tail.pop_front();
-      } while (!tail.empty() && (head.back().isCombinator() || tail.front().isCombinator()));
+      	head.collection()->push_back(tail.collection()->front());
+        tail.collection()->pop_front();
+      } while (!tail.collection()->empty() && (head.collection()->back().isCombinator() || tail.collection()->front().isCombinator()));
       
-      out.push_back(head);
+      newSeq.collection()->push_back(head);
     }
+    
+    return newSeq;
   }
   
   
@@ -1004,12 +1067,30 @@ namespace Sass {
       seq.pop_front();
     }
   }
+  void getAndRemoveInitialOps(Node& seq, Node& ops) {
+  	NodeDeque& seqCollection = *(seq.collection());
+    NodeDeque& opsCollection = *(ops.collection());
+
+  	while (seqCollection.size() > 0 && seqCollection.front().isCombinator()) {
+    	opsCollection.push_back(seqCollection.front());
+      seqCollection.pop_front();
+    }
+  }
   
   
   void getAndRemoveFinalOps(CSOCDeque& seq, CSOCDeque& ops) {
   	while (seq.size() > 0 && seq.back().isCombinator()) {
     	ops.push_back(seq.back()); // Purposefully reversed to match ruby code
       seq.pop_back();
+    }
+  }
+  void getAndRemoveFinalOps(Node& seq, Node& ops) {
+  	NodeDeque& seqCollection = *(seq.collection());
+    NodeDeque& opsCollection = *(ops.collection());
+
+  	while (seqCollection.size() > 0 && seqCollection.back().isCombinator()) {
+    	opsCollection.push_back(seqCollection.back()); // Purposefully reversed to match ruby code
+      seqCollection.pop_back();
     }
   }
   
@@ -1031,6 +1112,34 @@ namespace Sass {
         return (newline ? ["\n"] : []) + (ops1.size > ops2.size ? ops1 : ops2)
       end
   */
+  Node mergeInitialOps(Node& seq1, Node& seq2, Context& ctx) {
+  	Node ops1 = Node::createCollection();
+    Node ops2 = Node::createCollection();
+    
+  	getAndRemoveInitialOps(seq1, ops1);
+    getAndRemoveInitialOps(seq2, ops2);
+    
+		// TODO: Do we have this information available to us?
+    // newline = false
+    // newline ||= !!ops1.shift if ops1.first == "\n"
+    // newline ||= !!ops2.shift if ops2.first == "\n"
+
+		// If neither sequence is a subsequence of the other, they cannot be merged successfully
+    //DefaultLcsComparator lcsDefaultComparator;
+    //Node opsLcs = lcs(ops1, ops2, lcsDefaultComparator, ctx);
+    throw "Reenable this.";
+    Node opsLcs = Node::createNil();
+    
+    if (!(opsLcs == ops1 || opsLcs == ops2)) {
+    	return Node::createNil();
+    }
+    
+    // TODO: more newline logic
+    // return (newline ? ["\n"] : []) + (ops1.size > ops2.size ? ops1 : ops2)
+    
+    return (ops1.collection()->size() > ops2.collection()->size() ? ops1 : ops2);
+  }
+
   bool mergeInitialOps(CSOCDeque& seq1, CSOCDeque& seq2, CSOCDeque& mergedOps) {
 		CSOCDeque ops1;
     CSOCDeque ops2;
@@ -1038,14 +1147,9 @@ namespace Sass {
 		getAndRemoveInitialOps(seq1, ops1);
     getAndRemoveInitialOps(seq2, ops2);
 
-		// TODO: Do we have this information available to us?
-    // newline = false
-    // newline ||= !!ops1.shift if ops1.first == "\n"
-    // newline ||= !!ops2.shift if ops2.first == "\n"
-    
     CSOCDeque opsLcs;
-    DefaultLcsComparator<ComplexSelectorOrCombinator> defaultComparator;
-    lcs<ComplexSelectorOrCombinator, DefaultLcsComparator<ComplexSelectorOrCombinator> >(ops1, ops2, defaultComparator, opsLcs);
+    DefaultLcsComparatorOld<ComplexSelectorOrCombinator> defaultComparator;
+    lcs<ComplexSelectorOrCombinator, DefaultLcsComparatorOld<ComplexSelectorOrCombinator> >(ops1, ops2, defaultComparator, opsLcs);
     
     if (!(opsLcs == ops1 || opsLcs == ops2)) {
     	return false;
@@ -1059,85 +1163,174 @@ namespace Sass {
   }
   
   
-  bool mergeFinalOps(CSOCDeque& seq1, CSOCDeque& seq2, CSOCDeque& mergedOps, Context& ctx) {
-		CSOCDeque ops1;
-    CSOCDeque ops2;
-    
-    getAndRemoveFinalOps(seq1, ops1);
-    getAndRemoveFinalOps(seq2, ops2);
-
-		// TODO: do we have newlines to remove?
-    // ops1.reject! {|o| o == "\n"}
-    // ops2.reject! {|o| o == "\n"}
-
-		if (ops1.empty() && ops2.empty()) {
-    	return true;
-    }
-
-		if (ops1.size() > 1 || ops2.size() > 1) {
-    	CSOCDeque opsLcs;
-      DefaultLcsComparator<ComplexSelectorOrCombinator> defaultComparator;
-      lcs<ComplexSelectorOrCombinator, DefaultLcsComparator<ComplexSelectorOrCombinator> >(ops1, ops2, defaultComparator, opsLcs);
+  /*
+      def merge_final_ops(seq1, seq2, res = [])
 
 
-      if (!(opsLcs == ops1 || opsLcs == ops2)) {
-      	return false;
-      }
-      
-      if (ops1.size() > ops2.size()) {
-      	mergedOps.insert(mergedOps.begin(), ops1.begin(), ops1.end());
-      } else {
-      	mergedOps.insert(mergedOps.begin(), ops2.begin(), ops2.end());
-      }
-      
-      reverse(mergedOps.begin(), mergedOps.end());
-      
-      return true;
-    }
-    
-    if (!ops1.empty() && !ops2.empty()) {
-    	ComplexSelectorOrCombinator op1 = ops1.front();
-      ComplexSelectorOrCombinator op2 = ops2.front();
-      
-      ComplexSelectorOrCombinator sel1 = seq1.back();
-      seq1.pop_back();
-      
-      ComplexSelectorOrCombinator sel2 = seq2.back();
-      seq2.pop_back();
-      
-      if (op1.combinator() == Complex_Selector::PRECEDES && op2.combinator() == Complex_Selector::PRECEDES) {
-
-      	if (sel1.selector()->is_superselector_of(sel2.selector())) {
-
-        	mergedOps.push_front(op1 /*PRECEDES - could have been op2 as well*/);
-          mergedOps.push_front(sel2);
-
-        } else if (sel2.selector()->is_superselector_of(sel1.selector())) {
-
-        	mergedOps.push_front(op1 /*PRECEDES - could have been op2 as well*/);
-          mergedOps.push_front(sel1);
-
-        } else {
-        
-        	throw "Not Yet Implemented. Should we allow chaining CSOCs or to create a CSOCDequeDeque?";
-
-        			/*
+        # This code looks complicated, but it's actually just a bunch of special
+        # cases for interactions between different combinators.
+        op1, op2 = ops1.first, ops2.first
+        if op1 && op2
+          sel1 = seq1.pop
+          sel2 = seq2.pop
+          if op1 == '~' && op2 == '~'
+            if sel1.superselector?(sel2)
+              res.unshift sel2, '~'
+            elsif sel2.superselector?(sel1)
+              res.unshift sel1, '~'
+            else
               merged = sel1.unify(sel2.members, sel2.subject?)
               res.unshift [
                 [sel1, '~', sel2, '~'],
                 [sel2, '~', sel1, '~'],
                 ([merged, '~'] if merged)
               ].compact
-              */
+            end
+          elsif (op1 == '~' && op2 == '+') || (op1 == '+' && op2 == '~')
+            if op1 == '~'
+              tilde_sel, plus_sel = sel1, sel2
+            else
+              tilde_sel, plus_sel = sel2, sel1
+            end
+
+            if tilde_sel.superselector?(plus_sel)
+              res.unshift plus_sel, '+'
+            else
+              merged = plus_sel.unify(tilde_sel.members, tilde_sel.subject?)
+              res.unshift [
+                [tilde_sel, '~', plus_sel, '+'],
+                ([merged, '+'] if merged)
+              ].compact
+            end
+          elsif op1 == '>' && %w[~ +].include?(op2)
+            res.unshift sel2, op2
+            seq1.push sel1, op1
+          elsif op2 == '>' && %w[~ +].include?(op1)
+            res.unshift sel1, op1
+            seq2.push sel2, op2
+          elsif op1 == op2
+            return unless merged = sel1.unify(sel2.members, sel2.subject?)
+            res.unshift merged, op1
+          else
+            # Unknown selector combinators can't be unified
+            return
+          end
+          return merge_final_ops(seq1, seq2, res)
+        elsif op1
+          seq2.pop if op1 == '>' && seq2.last && seq2.last.superselector?(seq1.last)
+          res.unshift seq1.pop, op1
+          return merge_final_ops(seq1, seq2, res)
+        else # op2
+          seq1.pop if op2 == '>' && seq1.last && seq1.last.superselector?(seq2.last)
+          res.unshift seq2.pop, op2
+          return merge_final_ops(seq1, seq2, res)
+        end
+      end
+  */
+  Node mergeFinalOps(Node& seq1, Node& seq2, Context& ctx, Node& res) {
+    
+    Node ops1 = Node::createCollection();
+    Node ops2 = Node::createCollection();
+  
+    getAndRemoveFinalOps(seq1, ops1);
+    getAndRemoveFinalOps(seq2, ops2);
+  
+		// TODO: do we have newlines to remove?
+    // ops1.reject! {|o| o == "\n"}
+    // ops2.reject! {|o| o == "\n"}
+    
+		if (ops1.collection()->empty() && ops2.collection()->empty()) {
+    	return res;
+    }
+  
+		if (ops1.collection()->size() > 1 || ops2.collection()->size() > 1) {
+    	//DefaultLcsComparator lcsDefaultComparator;
+    	//Node opsLcs = lcs(ops1, ops2, lcsDefaultComparator, ctx);
+      throw "Reenable this.";
+      Node opsLcs = Node::createNil();
+      
+      // If there are multiple operators, something hacky's going on. If one is a supersequence of the other, use that, otherwise give up.
+      
+      if (!(opsLcs == ops1 || opsLcs == ops2)) {
+      	return Node::createNil();
+      }
+      
+      if (ops1.collection()->size() > ops2.collection()->size()) {
+      	res.collection()->insert(res.collection()->begin(), ops1.collection()->rbegin(), ops1.collection()->rend());
+      } else {
+      	res.collection()->insert(res.collection()->begin(), ops2.collection()->rbegin(), ops2.collection()->rend());
+      }
+      
+      return res;
+    }
+    
+    if (!ops1.collection()->empty() && !ops2.collection()->empty()) {
+
+    	Node op1 = ops1.collection()->front();
+     	Node op2 = ops2.collection()->front();
+      
+      Node sel1 = seq1.collection()->back();
+      seq1.collection()->pop_back();
+      
+      Node sel2 = seq2.collection()->back();
+      seq2.collection()->pop_back();
+
+
+      if (op1.combinator() == Complex_Selector::PRECEDES && op2.combinator() == Complex_Selector::PRECEDES) {
+
+      	if (sel1.selector()->is_superselector_of(sel2.selector())) {
+        
+        	res.collection()->push_front(op1 /*PRECEDES - could have been op2 as well*/);
+          res.collection()->push_front(sel2);
+
+        } else if (sel2.selector()->is_superselector_of(sel1.selector())) {
+
+        	res.collection()->push_front(op1 /*PRECEDES - could have been op2 as well*/);
+          res.collection()->push_front(sel1);
+
+        } else {
+        
+        	// TODO: does subject matter? Ruby: merged = sel1.unify(sel2.members, sel2.subject?)
+        	//Complex_Selector* pSel2 = nodeToComplexSelector(sel2, ctx);
+          Complex_Selector* pMerged = sel1.selector()->clone(ctx);
+          //pMerged->head(sel1.selector()->head()->unify_with(pSel2->head(), ctx));
+          // TODO: how to do this unification properly? Need example.
+          
+          Node newRes = Node::createCollection();
+          
+          Node firstPerm = Node::createCollection();
+          firstPerm.collection()->push_back(sel1);
+          firstPerm.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
+          firstPerm.collection()->push_back(sel2);
+          firstPerm.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
+          newRes.collection()->push_back(firstPerm);
+
+          Node secondPerm = Node::createCollection();
+          secondPerm.collection()->push_back(sel2);
+          secondPerm.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
+          secondPerm.collection()->push_back(sel1);
+          secondPerm.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
+          newRes.collection()->push_back(secondPerm);
+      		
+          if (pMerged) {
+          	Node mergedPerm = Node::createCollection();
+            mergedPerm.collection()->push_back(complexSelectorToNode(pMerged, ctx));
+            mergedPerm.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
+            newRes.collection()->push_back(mergedPerm);
+          }
+          
+          // TODO: Implement [].compact newRes
+          
+          res.collection()->push_front(newRes);
 
         }
 
       } else if (((op1.combinator() == Complex_Selector::PRECEDES && op2.combinator() == Complex_Selector::ADJACENT_TO)) || ((op1.combinator() == Complex_Selector::ADJACENT_TO && op2.combinator() == Complex_Selector::PRECEDES))) {
       
-      		ComplexSelectorOrCombinator tildeSel = sel1;
-          ComplexSelectorOrCombinator tildeOp = op1;
-          ComplexSelectorOrCombinator plusSel = sel2;
-          ComplexSelectorOrCombinator plusOp = op2;
+      		Node tildeSel = sel1;
+          Node tildeOp = op1;
+          Node plusSel = sel2;
+          Node plusOp = op2;
       		if (op1.combinator() != Complex_Selector::PRECEDES) {
           	tildeSel = sel2;
             tildeOp = op2;
@@ -1146,85 +1339,107 @@ namespace Sass {
           }
         
           if (tildeSel.selector()->is_superselector_of(plusSel.selector())) {
-          	mergedOps.push_front(plusOp);
-            mergedOps.push_front(plusSel);
+
+            res.collection()->push_front(plusOp);
+            res.collection()->push_front(plusSel);
+
           } else {
           
-          	throw "Not Yet Implemented. Should we allow chaining CSOCs or to create a CSOCDequeDeque?";
-          
-          	/*
-              merged = plus_sel.unify(tilde_sel.members, tilde_sel.subject?)
-              res.unshift [
-                [tilde_sel, '~', plus_sel, '+'],
-                ([merged, '+'] if merged)
-              ].compact
-            */
+            // TODO: does subject matter? Ruby: merged = plus_sel.unify(tilde_sel.members, tilde_sel.subject?)
+            //Complex_Selector* pTildeSel = nodeToComplexSelector(tildeSel, ctx);
+            Complex_Selector* pMerged = plusSel.selector()->clone(ctx);
+            //pMerged->head(plusSel.selector()->head()->unify_with(pTildeSel->head(), ctx));
+            // TODO: how to do this unification properly? Need example.
+            
+            Node newRes = Node::createCollection();
+            
+            Node firstPerm = Node::createCollection();
+            firstPerm.collection()->push_back(tildeSel);
+            firstPerm.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
+            firstPerm.collection()->push_back(plusSel);
+            firstPerm.collection()->push_back(Node::createCombinator(Complex_Selector::ADJACENT_TO));
+            newRes.collection()->push_back(firstPerm);
+            
+            if (pMerged) {
+              Node mergedPerm = Node::createCollection();
+              mergedPerm.collection()->push_back(complexSelectorToNode(pMerged, ctx));
+              mergedPerm.collection()->push_back(Node::createCombinator(Complex_Selector::ADJACENT_TO));
+              newRes.collection()->push_back(mergedPerm);
+            }
+            
+            // TODO: Implement [].compact newRes
+            
+            res.collection()->push_front(newRes);
+  
           }
       } else if (op1.combinator() == Complex_Selector::PARENT_OF && (op2.combinator() == Complex_Selector::PRECEDES || op2.combinator() == Complex_Selector::ADJACENT_TO)) {
       
-      	mergedOps.push_front(op2);
-        mergedOps.push_front(sel2);
+      	res.collection()->push_front(op2);
+        res.collection()->push_front(sel2);
         
-        seq2.push_back(sel1);
-        seq2.push_back(op1);
+        seq2.collection()->push_back(sel1);
+        seq2.collection()->push_back(op1);
 
       } else if (op2.combinator() == Complex_Selector::PARENT_OF && (op1.combinator() == Complex_Selector::PRECEDES || op1.combinator() == Complex_Selector::ADJACENT_TO)) {
 
-      	mergedOps.push_front(op1);
-        mergedOps.push_front(sel1);
+      	res.collection()->push_front(op1);
+        res.collection()->push_front(sel1);
         
-        seq2.push_back(sel2);
-        seq2.push_back(op2);
+        seq2.collection()->push_back(sel2);
+        seq2.collection()->push_back(op2);
 
       } else if (op1.combinator() == op2.combinator()) {
 
+				// TODO: is this the right unification behavior? The ruby looks at all members, but sel2.selector() is just one thing...
         Compound_Selector* pMerged = sel1.selector()->head()->unify_with(sel2.selector()->head(), ctx);
         
         if (!pMerged) {
-        	return false;
+        	return Node::createNil();
         }
         
         Complex_Selector* pNewSelector = sel1.selector()->clone(ctx);
         pNewSelector->head(pMerged);
         
-      	mergedOps.push_front(op1);
-        mergedOps.push_front(ComplexSelectorOrCombinator::createSelector(pNewSelector, ctx));
+      	res.collection()->push_front(op1);
+        res.collection()->push_front(Node::createSelector(pNewSelector, ctx));
 
       } else {
-      	return false;
+      	return Node::createNil();
       }
 
-			return mergeFinalOps(seq1, seq2, mergedOps, ctx);
+			return mergeFinalOps(seq1, seq2, ctx, res);
+  
+    } else if (!ops1.collection()->empty()) {
 
-    } else if (!ops1.empty()) {
+	    Node op1 = ops1.collection()->front();
 
-	    ComplexSelectorOrCombinator op1 = ops1.front();
-
-    	if (op1.combinator() == Complex_Selector::PARENT_OF && !seq2.empty() && seq2.back().selector()->is_superselector_of(seq1.back().selector())) {
-      	seq2.pop_back();
-      }
-
-      mergedOps.push_front(op1);
-      mergedOps.push_front(seq1.back());
-      seq1.pop_back();
-
-			return mergeFinalOps(seq1, seq2, mergedOps, ctx);
-
-    } else { // !ops2.empty()
-
-    	ComplexSelectorOrCombinator op2 = ops2.front();
-      
-      if (op2.combinator() == Complex_Selector::PARENT_OF && !seq1.empty() && seq1.back().selector()->is_superselector_of(seq2.back().selector())) {
-      	seq1.pop_back();
+    	if (op1.combinator() == Complex_Selector::PARENT_OF && !seq2.collection()->empty() && seq2.collection()->back().selector()->is_superselector_of(seq1.collection()->back().selector())) {
+      	seq2.collection()->pop_back();
       }
       
-      mergedOps.push_front(op2);
-      mergedOps.push_front(seq2.back());
-      seq2.pop_back();
+      // TODO: consider unshift(NodeCollection, Node)
+      res.collection()->push_front(op1);
+      res.collection()->push_front(seq1.collection()->back());
+      seq1.collection()->pop_back();
 
-			return mergeFinalOps(seq1, seq2, mergedOps, ctx);
+			return mergeFinalOps(seq1, seq2, ctx, res);
+
+    } else { // !ops2.collection()->empty()
+
+    	Node op2 = ops2.collection()->front();
+      
+      if (op2.combinator() == Complex_Selector::PARENT_OF && !seq1.collection()->empty() && seq1.collection()->back().selector()->is_superselector_of(seq2.collection()->back().selector())) {
+      	seq1.collection()->pop_back();
+      }
+      
+      res.collection()->push_front(op2);
+      res.collection()->push_front(seq2.collection()->back());
+      seq2.collection()->pop_back();
+
+			return mergeFinalOps(seq1, seq2, ctx, res);
 
     }
+
   }
   
   
@@ -1281,8 +1496,14 @@ namespace Sass {
     }
     
     
+    printComplexSelector(pOne, "SUBWEAVE ONE: ");
+    printComplexSelector(pTwo, "SUBWEAVE TWO: ");
     
-
+    
+    
+    
+    
+    
     // Do the naive implementation. pOne = A B and pTwo = C D ...yields...  A B C D and C D A B
     // See https://gist.github.com/nex3/7609394 for details.
     Complex_Selector* pFirstPermutation = pOne->clone(ctx);
@@ -1295,116 +1516,145 @@ namespace Sass {
 
     
     return;
-
     
-    printComplexSelector(pOne, "SUBWEAVE ONE: ");
-    printComplexSelector(pTwo, "SUBWEAVE TWO: ");
+    
     
 
-		// Converting to CSOCDeque clones the inputs, so this is equivalent to the ruby code's .dup
-    CSOCDeque seq1;
-    complexSelectorToCSOC(pOne, seq1, ctx);
     
-    CSOCDeque seq2;
-    complexSelectorToCSOC(pTwo, seq2, ctx);
+		// Convert to a data structure more equivalent to Ruby so we can perform these complex operations in the same manner.
+    // Doing this clones the input, so this is equivalent to the ruby code's .dup
+    Node seq1 = complexSelectorToNode(pOne, ctx);
+    Node seq2 = complexSelectorToNode(pTwo, ctx);
     
-    
-    printCSOCDeque(seq1, "SUBWEAVE ONE: ");
-    printCSOCDeque(seq2, "SUBWEAVE TWO: ");
-    
-    
-    CSOCDeque init;
-    if (!mergeInitialOps(seq1, seq2, init)) {
+    cerr << "SUBWEAVE ONE: " << seq1 << endl;
+    cerr << "SUBWEAVE TWO: " << seq2 << endl;
+
+
+		Node init = mergeInitialOps(seq1, seq2, ctx);
+    if (init.isNil()) {
     	return;
     }
-    printCSOCDeque(init, "INIT: ");
     
-    CSOCDequeDeque fin;
-    /*
-    if (!mergeFinalOps(seq1, seq2, fin, ctx)) {
+    cerr << "INIT: " << init << endl;
+    
+    
+    Node res = Node::createCollection();
+		Node fin = mergeFinalOps(seq1, seq2, ctx, res);
+    if (fin.isNil()) {
     	return;
     }
-    */
-    /*
-    This code may be useful for mapping fin:
     
+    cerr << "FIN: " << init << endl;
+
+
+		// Moving this line up since fin isn't modified between now and when it happened before
     // fin.map {|sel| sel.is_a?(Array) ? sel : [sel]}
-    for (CSOCDeque::iterator finIterator = fin.begin(), finEndIterator = fin.end();
-           finIterator != finEndIterator; ++finIterator) {
-      CSOCDeque wrapper;
-      wrapper.push_back(*finIterator);
-      diff.push_back(wrapper);
+
+    for (NodeDeque::iterator finIter = fin.collection()->begin(), finEndIter = fin.collection()->end();
+           finIter != finEndIter; ++finIter) {
+      
+      Node& childNode = *finIter;
+      
+      if (!childNode.isCollection()) {
+      	Node wrapper = Node::createCollection();
+        wrapper.collection()->push_back(childNode);
+        childNode = wrapper;
+      }
+
     }
-    */
-    cerr << "FIN: <NO EQUIVALENT>" << endl;
-    printCSOCDequeDeque(fin, "FIN MAPPED: ");
+
+		cerr << "FIN MAPPED: " << fin;
+
+
+
+    Node groupSeq1 = groupSelectors(seq1, ctx);
+    cerr << "GROUP1: " << groupSeq1 << endl;
+    
+    Node groupSeq2 = groupSelectors(seq2, ctx);
+    cerr << "GROUP2: " << groupSeq2 << endl;
+
+
+    LcsCollectionComparator collectionComparator(ctx);
+    Node seqLcs = lcs(groupSeq2, groupSeq1, collectionComparator, ctx);
+    
+    cerr << "SEQLCS: " << seqLcs << endl;
+
+
+		Node initWrapper = Node::createCollection();
+    initWrapper.collection()->push_back(init);
+		Node diff = Node::createCollection();
+    diff.collection()->push_back(initWrapper);
+
+    cerr << "DIFF INIT: " << diff << endl;
     
     
-    CSOCDequeDeque groupSeq1;
-    groupSelectors(seq1, groupSeq1);
-    printCSOCDequeDeque(groupSeq1, "GROUP1: ");
+    while (!seqLcs.collection()->empty()) {
+    	ParentSuperselectorChunker superselectorChunker(seqLcs, ctx); // TODO: rename this to parent super selector chunker
+      Node chunksResult = chunks(groupSeq1, groupSeq2, superselectorChunker);
+      diff.collection()->push_back(chunksResult);
+      
+      Node lcsWrapper = Node::createCollection();
+      lcsWrapper.collection()->push_back(seqLcs.collection()->front());
+      seqLcs.collection()->pop_front();
+      diff.collection()->push_back(lcsWrapper);
     
-    CSOCDequeDeque groupSeq2;
-    groupSelectors(seq2, groupSeq2);
-    printCSOCDequeDeque(groupSeq2, "GROUP2: ");
+			groupSeq1.collection()->pop_front();
+      groupSeq2.collection()->pop_front();
+    }
     
-    CSOCDequeDeque seqLcs;
-    CSOCDequeLcsComparator dequeComparator(ctx);
-    lcs<CSOCDeque, CSOCDequeLcsComparator>(groupSeq2, groupSeq1, dequeComparator, seqLcs);
-    printCSOCDequeDeque(seqLcs, "SEQLCS: ");
+    cerr << "DIFF POST LCS: " << diff;
+    
+    
+    cerr << "CHUNKS: ONE=" << groupSeq1 << " TWO=" << groupSeq2 << endl;
+    
+
+    SubweaveEmptyChunker emptyChunker;
+    Node chunksResult = chunks(groupSeq1, groupSeq2, emptyChunker);
+    diff.collection()->push_back(chunksResult);
+    
+    
+    cerr << "DIFF POST CHUNKS: " << diff << endl;
+    
+
+
+		return;
+
+
+		// Converting to CSOCDeque clones the inputs,
+    CSOCDeque seq1Old;
+    CSOCDeque seq2Old;
+    CSOCDeque initOld;
+    CSOCDequeDeque finOld;
+    CSOCDequeDeque groupSeq1Old;
+    CSOCDequeDeque groupSeq2Old;
+    CSOCDequeDeque seqLcsOld;
 
     CSOCDequeDeque diffWrapper;
-    diffWrapper.push_back(init);
-    CSOCDequeDequeDeque diff;
-    diff.push_back(diffWrapper);
-    printCSOCDequeDequeDeque(diff, "DIFF INIT: ");
-    
-    while (!seqLcs.empty()) {
-    	SubweaveSuperselectorChunker superselectorChunker(seqLcs, ctx); // TODO: rename this to parent super selector chunker
-      
-      chunks(groupSeq1, groupSeq2, diff, superselectorChunker);
-      
-      CSOCDequeDeque lcsContainer;
-      lcsContainer.push_back(seqLcs.front());
-      diff.push_back(lcsContainer);
-      seqLcs.pop_front();
-    
-			groupSeq1.pop_front();
-      groupSeq2.pop_front();
-    }
-    
-    printCSOCDequeDequeDeque(diff, "DIFF POST LCS: ");
-    
-    cerr << "CHUNKS: ONE=";
-    printCSOCDequeDeque(groupSeq1, "", false);
-    cerr << " TWO=";
-    printCSOCDequeDeque(groupSeq2, "", false);
-    cerr << endl;
-    
-    SubweaveEmptyChunker emptyChunker;
-    //chunks<CSOCDeque, SubweaveEmptyChunker>(groupSeq1, groupSeq2, diff, emptyChunker);
-    chunksDeque(groupSeq1, groupSeq2, diff, emptyChunker);
-    
-    
-    printCSOCDequeDequeDeque(diff, "DIFF POST CHUNKS: ");
+    diffWrapper.push_back(initOld);
+    CSOCDequeDequeDeque diffOld;
+    diffOld.push_back(diffWrapper);
 
 
-		// TODO: finish implementing mergeFinalOps. Then the stuff in fin should be in an array already
-    // diff += fin.map {|sel| sel.is_a?(Array) ? sel : [sel]}
-    diff.push_back(fin);
-    
-    printCSOCDequeDequeDeque(diff, "DIFF POST FIN MAPPED: ");
     
     
-    for (CSOCDequeDequeDeque::iterator diffIterator = diff.begin(), diffEndIterator = diff.end();
+  
+
+
+
+    diffOld.push_back(finOld);
+    
+    printCSOCDequeDequeDeque(diffOld, "DIFF POST FIN MAPPED: ");
+    
+    
+    for (CSOCDequeDequeDeque::iterator diffIterator = diffOld.begin(), diffEndIterator = diffOld.end();
            diffIterator != diffEndIterator; ++diffIterator) {
     	CSOCDequeDeque& dequeDeque = *diffIterator;
       if (dequeDeque.empty()) {
-      	diffIterator = diff.erase(diffIterator);
+      	diffIterator = diffOld.erase(diffIterator);
       }
     }
     
-    printCSOCDequeDequeDeque(diff, "DIFF POST REJECT: ");
+    printCSOCDequeDequeDeque(diffOld, "DIFF POST REJECT: ");
     
     
 
@@ -2050,8 +2300,8 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
   
   
 
-  Extend::Extend(Context& ctx, Extensions& extensions, ExtensionSubsetMap& ssm, Backtrace* bt)
-  : ctx(ctx), extensions(extensions), subset_map(ssm), backtrace(bt)
+  Extend::Extend(Context& ctx, ExtensionSubsetMap& ssm)
+  : ctx(ctx), subset_map(ssm)
   { }
 
   void Extend::operator()(Block* b)

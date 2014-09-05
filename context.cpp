@@ -229,8 +229,8 @@ namespace Sass {
     // Output_Nested output_nested(*this);
 
     root = root->perform(&expand)->block();
-    if (!extensions.empty()) {
-      Extend extend(*this, extensions, subset_map, &backtrace);
+    if (!extensions.empty()) { // TODO: change this to subset_map.empty()?
+      Extend extend(*this, subset_map);
       root->perform(&extend);
     }
 

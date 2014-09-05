@@ -35,6 +35,7 @@ SOURCES = \
 	remove_placeholders.cpp \
 	sass.cpp \
 	sass_interface.cpp \
+	sass_util.cpp \
 	sass2scss/sass2scss.cpp \
 	source_map.cpp \
 	to_c.cpp \
