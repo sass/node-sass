@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <sstream>
 
 #include "node.hpp"
 #include "to_string.hpp"
@@ -14,10 +15,10 @@
 namespace Sass {
   
   Context ctx = Context::Data();
-
+  
   To_String to_string;
-
-
+  
+  
   const char* const ROUNDTRIP_TESTS[] = {
     NULL,
   	"~",
@@ -26,8 +27,10 @@ namespace Sass {
     "CMPD >",
     "> > CMPD",
     "CMPD ~ ~",
+    "> + CMPD1.CMPD2 > ~",
     "+ CMPD1 CMPD2 ~ CMPD3 + CMPD4 > CMPD5 > ~"
   };
+
   
   
   static Complex_Selector* createComplexSelector(string src) {
@@ -45,16 +48,23 @@ namespace Sass {
     if (toTest) {
       pOrigSelector = createComplexSelector(toTest);
     }
+    
+    string expected(pOrigSelector ? pOrigSelector->perform(&to_string) : "NULL");
   
     
     // Roundtrip the selector into a node and back
     
     Node node = complexSelectorToNode(pOrigSelector, ctx);
     
+    stringstream nodeStringStream;
+    nodeStringStream << node;
+    string nodeString = nodeStringStream.str();
+    cout << "ASNODE: " << node << endl;
+    
     Complex_Selector* pNewSelector = nodeToComplexSelector(node, ctx);
     
     // Show the result
-    string expected(pOrigSelector ? pOrigSelector->perform(&to_string) : "NULL");
+
     string result(pNewSelector ? pNewSelector->perform(&to_string) : "NULL");
     
     cout << "SELECTOR: " << expected << endl;

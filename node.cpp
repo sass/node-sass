@@ -13,19 +13,19 @@ namespace Sass {
     
   Node Node::createSelector(Complex_Selector* pSelector, Context& ctx) {
     NodeDequePtr null;
-    return Node(NIL, Complex_Selector::ANCESTOR_OF, pSelector->clone(ctx), null /*pCollection*/);
+    return Node(SELECTOR, Complex_Selector::ANCESTOR_OF, pSelector->clone(ctx), null /*pCollection*/);
   }
 
     
   Node Node::createCollection() {
     NodeDequePtr pEmptyCollection = make_shared<NodeDeque>();
-    return Node(NIL, Complex_Selector::ANCESTOR_OF, NULL /*pSelector*/, pEmptyCollection);
+    return Node(COLLECTION, Complex_Selector::ANCESTOR_OF, NULL /*pSelector*/, pEmptyCollection);
   }
 
     
   Node Node::createCollection(const NodeDeque& values) {
     NodeDequePtr pShallowCopiedCollection = make_shared<NodeDeque>(values);
-    return Node(NIL, Complex_Selector::ANCESTOR_OF, NULL /*pSelector*/, pShallowCopiedCollection);
+    return Node(COLLECTION, Complex_Selector::ANCESTOR_OF, NULL /*pSelector*/, pShallowCopiedCollection);
   }
 
     
@@ -142,15 +142,20 @@ namespace Sass {
 
 		Node node = Node::createCollection();
     
+    bool first = true;
     while (pToConvert) {
 
-    	if (pToConvert->combinator() != Complex_Selector::ANCESTOR_OF) {
+      // the first Complex_Selector contains a dummy head pointer, skip it.
+      if (!first && pToConvert->head() != NULL) {
+        node.collection()->push_back(Node::createSelector(pToConvert, ctx));
+      }
+
+      if (pToConvert->combinator() != Complex_Selector::ANCESTOR_OF) {
         node.collection()->push_back(Node::createCombinator(pToConvert->combinator()));
       }
-      
-      node.collection()->push_back(Node::createSelector(pToConvert, ctx));
-      
+
       pToConvert = pToConvert->tail();
+      first = false;
     }
     
     return node;
@@ -169,16 +174,6 @@ namespace Sass {
     
 
     NodeDeque& childNodes = *toConvert.collection();
-
-
-    if (!childNodes.empty() && childNodes.front().isCombinator()) {
-      throw "The first element in the selector must not be a combinator.";
-    }
-    
-    if (!childNodes.empty() && childNodes.back().isCombinator()) {
-      throw "The last element in the selector must not be a combinator.";
-    }
-    
     
     Complex_Selector* pCurrent = NULL;
     Complex_Selector* pTail = NULL; // We're looping backwards, so this is the element after pCurrent in the Complex_Selector* we're building up
