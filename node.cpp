@@ -1,6 +1,6 @@
 #include "node.hpp"
 #include "to_string.hpp"
-
+#include "context.hpp"
 
 namespace Sass {
 
@@ -13,19 +13,19 @@ namespace Sass {
     
   Node Node::createSelector(Complex_Selector* pSelector, Context& ctx) {
     NodeDequePtr null;
-    return Node(NIL, Complex_Selector::ANCESTOR_OF, pSelector->clone(ctx), null /*pCollection*/);
+    return Node(SELECTOR, Complex_Selector::ANCESTOR_OF, pSelector->clone(ctx), null /*pCollection*/);
   }
 
     
   Node Node::createCollection() {
     NodeDequePtr pEmptyCollection = make_shared<NodeDeque>();
-    return Node(NIL, Complex_Selector::ANCESTOR_OF, NULL /*pSelector*/, pEmptyCollection);
+    return Node(COLLECTION, Complex_Selector::ANCESTOR_OF, NULL /*pSelector*/, pEmptyCollection);
   }
 
     
   Node Node::createCollection(const NodeDeque& values) {
     NodeDequePtr pShallowCopiedCollection = make_shared<NodeDeque>(values);
-    return Node(NIL, Complex_Selector::ANCESTOR_OF, NULL /*pSelector*/, pShallowCopiedCollection);
+    return Node(COLLECTION, Complex_Selector::ANCESTOR_OF, NULL /*pSelector*/, pShallowCopiedCollection);
   }
 
     
@@ -142,15 +142,20 @@ namespace Sass {
 
 		Node node = Node::createCollection();
     
+    bool first = true;
     while (pToConvert) {
 
-    	if (pToConvert->combinator() != Complex_Selector::ANCESTOR_OF) {
+      // the first Complex_Selector contains a dummy head pointer, skip it.
+      if (!first && pToConvert->head() != NULL) {
+        node.collection()->push_back(Node::createSelector(pToConvert, ctx));
+      }
+
+      if (pToConvert->combinator() != Complex_Selector::ANCESTOR_OF) {
         node.collection()->push_back(Node::createCombinator(pToConvert->combinator()));
       }
-      
-      node.collection()->push_back(Node::createSelector(pToConvert, ctx));
-      
+
       pToConvert = pToConvert->tail();
+      first = false;
     }
     
     return node;
@@ -169,50 +174,42 @@ namespace Sass {
     
 
     NodeDeque& childNodes = *toConvert.collection();
+    
+    string noPath("");
+    Position noPosition;
+    Complex_Selector* pFirst = new (ctx.mem) Complex_Selector(noPath, noPosition, Complex_Selector::ANCESTOR_OF, NULL, NULL);
+    Complex_Selector* pCurrent = pFirst;
+    
+    for (NodeDeque::iterator childIter = childNodes.begin(), childIterEnd = childNodes.end(); childIter != childIterEnd; childIter++) {
 
-
-    if (!childNodes.empty() && childNodes.front().isCombinator()) {
-      throw "The first element in the selector must not be a combinator.";
-    }
-    
-    if (!childNodes.empty() && childNodes.back().isCombinator()) {
-      throw "The last element in the selector must not be a combinator.";
-    }
-    
-    
-    Complex_Selector* pCurrent = NULL;
-    Complex_Selector* pTail = NULL; // We're looping backwards, so this is the element after pCurrent in the Complex_Selector* we're building up
-    
-    for (NodeDeque::reverse_iterator childIter = childNodes.rbegin(), childIterEnd = childNodes.rend(); childIter != childIterEnd; childIter++) {
       Node& child = *childIter;
       
-      /*
-      if (pCurrentCSOC.isCombinator()) {
-        // You might suspect that
-        throw "This should never happen. Either this algorithm is busted or there were two combinators in a row (which shouldn't happen).";
-      }
-
-      pCurrent = pCurrentCSOC.selector()->clone(ctx);
-      
-
-      
-      if (index > 0) {
-        const ComplexSelectorOrCombinator& pPreviousCSOC = toConvert[index - 1];
+      if (child.isSelector()) {
+        pCurrent->tail(child.selector());
+        pCurrent = pCurrent->tail();
+      } else if (child.isCombinator()) {
+        pCurrent->combinator(child.combinator());
         
-        if (pPreviousCSOC.isCombinator()) {
-          pCurrent->combinator(pPreviousCSOC.combinator());
-          index--; // skip over this combinator in our iteration now that we've consumed it
+        // if the next node is also a combinator, create another Complex_Selector to hold it so it doesn't replace the current combinator
+        if (childIter+1 != childIterEnd) {
+          Node& nextNode = *(childIter+1);
+          if (nextNode.isCombinator()) {
+            pCurrent->tail(new (ctx.mem) Complex_Selector(noPath, noPosition, Complex_Selector::ANCESTOR_OF, NULL, NULL));
+            pCurrent = pCurrent->tail();
+          }
         }
+      } else {
+        throw "The node to convert's children must be only combinators or selectors.";
       }
-      
-      pCurrent->tail(pTail);
-      
-			pTail = pCurrent;
-      */
     }
 
+    // Put the dummy Compound_Selector in the first position, for consistency with the rest of libsass
+    Compound_Selector* fakeHead = new (ctx.mem) Compound_Selector(noPath, noPosition, 1);
+    Selector_Reference* selectorRef = new (ctx.mem) Selector_Reference(noPath, noPosition, NULL);
+    fakeHead->elements().push_back(selectorRef);
+    pFirst->head(fakeHead);
     
-    return pCurrent;
+    return pFirst;
   }
 
 
