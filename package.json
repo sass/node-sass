@@ -54,6 +54,7 @@
     "coveralls": "^2.11.1",
     "jscoverage": "^0.5.6",
     "jshint": "^2.5.5",
-    "mocha-lcov-reporter": "^0.0.1"
+    "mocha-lcov-reporter": "^0.0.1",
+    "object-assign": "^0.3.1"
   }
 }
