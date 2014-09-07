@@ -52,6 +52,7 @@
   },
   "devDependencies": {
     "coveralls": "^2.11.1",
+    "cross-spawn": "^0.2.3",
     "jscoverage": "^0.5.6",
     "jshint": "^2.5.5",
     "mocha-lcov-reporter": "^0.0.1",
