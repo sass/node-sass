@@ -35,7 +35,7 @@ var sampleCssMapOutputPath = path.join(__dirname, '../sample.css.map');
 describe('cli', function() {
   it('should read data from stdin', function(done) {
     var src = fs.createReadStream(sampleScssPath);
-    var emitter = spawn(cliPath, ['--stdout']);
+    var emitter = spawn('node', [cliPath, '--stdout']);
 
     emitter.stdout.on('data', function(data) {
       data = data.toString().trim();
