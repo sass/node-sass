@@ -2,7 +2,7 @@ var path   = require('path'),
     assert = require('assert'),
     fs     = require('fs'),
     exec   = require('child_process').exec,
-    spawn  = require('child_process').spawn,
+    spawn  = require('cross-spawn'),
     assign = require('object-assign'),
     cli    = process.env.NODESASS_COVERAGE ? require('../lib-coverage/cli') : require('../lib/cli'),
     cliPath = path.resolve(__dirname, '../bin/node-sass'),
@@ -35,7 +35,7 @@ var sampleCssMapOutputPath = path.join(__dirname, '../sample.css.map');
 describe('cli', function() {
   it('should read data from stdin', function(done) {
     var src = fs.createReadStream(sampleScssPath);
-    var emitter = spawn('node', [cliPath, '--stdout']);
+    var emitter = spawn(cliPath, ['--stdout']);
 
     emitter.stdout.on('data', function(data) {
       data = data.toString().trim();
