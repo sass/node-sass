@@ -1086,6 +1086,22 @@ namespace Sass {
       return new (ctx.mem) Null(path, position);
     }
 
+    Signature map_has_key_sig = "map-has-key($map, $key)";
+    BUILT_IN(map_has_key)
+    {
+      Expression* m = ARG("$map", Expression);
+      Expression* v = ARG("$key", Expression);
+      if (!(m->concrete_type() == Expression::MAP || m->concrete_type() == Expression::LIST)) {
+        error("$map: is not a map for `" + string(sig) + "`", path, position);
+      }
+      Map* map = dynamic_cast<Map*>(env["$map"]);
+      if (!map || map->empty()) return new (ctx.mem) Boolean(path, position, false);
+      for (size_t i = 0, L = map->length(); i < L; ++i) {
+        if (eq((*map)[i]->key(), v, ctx)) return new (ctx.mem) Boolean(path, position, true);
+      }
+      return new (ctx.mem) Boolean(path, position, false);
+    }
+
     //////////////////////////
     // INTROSPECTION FUNCTIONS
     //////////////////////////
