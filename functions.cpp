@@ -14,6 +14,7 @@
 #include <cmath>
 #include <cctype>
 #include <sstream>
+#include <string>
 #include <iomanip>
 #include <iostream>
 
@@ -1169,6 +1170,22 @@ namespace Sass {
       Map* result = new (ctx.mem) Map(path, position, 1);
       for (size_t i = 0, L = map->length(); i < L; ++i) {
         if (!eq((*map)[i]->key(), v, ctx)) *result << (*map)[i];
+      }
+      return result;
+    }
+
+    Signature keywords_sig = "keywords($args)";
+    BUILT_IN(keywords)
+    {
+      List* arglist = new (ctx.mem) List(*ARG("$args", List));
+      Map* result = new (ctx.mem) Map(path, position, 1);
+      for (size_t i = 0, L = arglist->length(); i < L; ++i) {
+        string name = string(((Argument*)(*arglist)[i])->name());
+        string sanitized_name = string(name, 1);
+        *result << new (ctx.mem) KeyValuePair(path,
+                                              position,
+                                              new (ctx.mem) String_Constant(path, position, sanitized_name),
+                                              ((Argument*)(*arglist)[i])->value());
       }
       return result;
     }
