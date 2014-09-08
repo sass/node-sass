@@ -1134,6 +1134,29 @@ namespace Sass {
       return result;
     }
 
+    Signature map_merge_sig = "map-merge($map1, $map2)";
+    BUILT_IN(map_merge)
+    {
+      Expression* m1 = ARG("$map1", Expression);
+      Expression* m2 = ARG("$map2", Expression);
+      if (!(m1->concrete_type() == Expression::MAP || m1->concrete_type() == Expression::LIST)) {
+        error("$map1: is not a map for `" + string(sig) + "`", path, position);
+      }
+      if (!(m2->concrete_type() == Expression::MAP || m2->concrete_type() == Expression::LIST)) {
+        error("$map2: is not a map for `" + string(sig) + "`", path, position);
+      }
+      Map* map1 = dynamic_cast<Map*>(env["$map1"]);
+      Map* map2 = dynamic_cast<Map*>(env["$map2"]);
+      if (!map1) map1 = new (ctx.mem) Map(path, position, 1);
+      if (!map2) map2 = new (ctx.mem) Map(path, position, 1);
+
+      size_t len = map1->length() + map2->length();
+      Map* result = new (ctx.mem) Map(path, position, len);
+      *result += map1;
+      *result += map2;
+      return result;
+    }
+
     //////////////////////////
     // INTROSPECTION FUNCTIONS
     //////////////////////////
