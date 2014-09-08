@@ -1270,7 +1270,6 @@ namespace Sass {
       Node sel2 = seq2.collection()->back();
       seq2.collection()->pop_back();
 
-
       if (op1.combinator() == Complex_Selector::PRECEDES && op2.combinator() == Complex_Selector::PRECEDES) {
 
       	if (sel1.selector()->is_superselector_of(sel2.selector())) {
@@ -1285,11 +1284,12 @@ namespace Sass {
 
         } else {
         
-        	// TODO: does subject matter? Ruby: merged = sel1.unify(sel2.members, sel2.subject?)
-        	//Complex_Selector* pSel2 = nodeToComplexSelector(sel2, ctx);
-          Complex_Selector* pMerged = sel1.selector()->clone(ctx);
-          //pMerged->head(sel1.selector()->head()->unify_with(pSel2->head(), ctx));
-          // TODO: how to do this unification properly? Need example.
+//          merged = sel1.unify(sel2.members, sel2.subject?)
+//          res.unshift [
+//                       [sel1, '~', sel2, '~'],
+//                       [sel2, '~', sel1, '~'],
+//                       ([merged, '~'] if merged)
+//                       ].compact
           
           Node newRes = Node::createCollection();
           
@@ -1306,14 +1306,21 @@ namespace Sass {
           secondPerm.collection()->push_back(sel1);
           secondPerm.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
           newRes.collection()->push_back(secondPerm);
-      		
-          if (pMerged) {
-          	Node mergedPerm = Node::createCollection();
-            mergedPerm.collection()->push_back(complexSelectorToNode(pMerged, ctx));
-            mergedPerm.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
-            newRes.collection()->push_back(mergedPerm);
-          }
+
+      		// TODO: unify and merge need to be properly implemented
+        	// TODO: does subject matter? Ruby: merged = sel1.unify(sel2.members, sel2.subject?)
+        	//Complex_Selector* pSel2 = nodeToComplexSelector(sel2, ctx);
+          //Complex_Selector* pMerged = sel1.selector()->clone(ctx);
+          //pMerged->head(sel1.selector()->head()->unify_with(pSel2->head(), ctx));
+          // TODO: how to do this unification properly? Need example.
           
+//          if (pMerged) {
+//          	Node mergedPerm = Node::createCollection();
+//            mergedPerm.collection()->push_back(complexSelectorToNode(pMerged, ctx));
+//            mergedPerm.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
+//            newRes.collection()->push_back(mergedPerm);
+//          }
+
           // TODO: Implement [].compact newRes
           
           res.collection()->push_front(newRes);
@@ -1474,11 +1481,6 @@ namespace Sass {
         result
       end
 	*/
-  /*
-   TODO:
-   - replace this code with the equivalent of the ruby code in Sequence.subweave
-   - see if we need to split apart combinator and complex selector before calling this method
-   */
 	void subweave(Complex_Selector* pOne, Complex_Selector* pTwo, ComplexSelectorDeque& out, Context& ctx) {
     // Check for the simple cases
     if (pOne == NULL) {
@@ -1539,7 +1541,7 @@ namespace Sass {
     	return;
     }
     
-    cerr << "FIN: " << init << endl;
+    cerr << "FIN: " << fin << endl;
 
 
 		// Moving this line up since fin isn't modified between now and when it happened before
@@ -1615,14 +1617,16 @@ namespace Sass {
     
     cerr << "DIFF POST FIN MAPPED: " << diff << endl;
 
-    
+    // JMA - filter out the empty nodes (use a new collection, since iterator erase() invalidates the old collection)
+    Node diffFiltered = Node::createCollection();
     for (NodeDeque::iterator diffIter = diff.collection()->begin(), diffEndIter = diff.collection()->end();
            diffIter != diffEndIter; ++diffIter) {
     	Node& node = *diffIter;
-      if (node.collection()->empty()) {
-      	diffIter = diff.collection()->erase(diffIter);
+      if (node.collection() != NULL && !node.collection()->empty()) {
+        diffFiltered.collection()->push_back(node);
       }
     }
+    diff = diffFiltered;
     
     cerr << "DIFF POST REJECT: " << diff << endl;
     
