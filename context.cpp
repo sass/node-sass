@@ -401,7 +401,7 @@ namespace Sass {
     // register_function(ctx, map_merge_sig, map_merge, env);
     // register_function(ctx, map_remove_sig, map_remove, env);
     register_function(ctx, map_keys_sig, map_keys, env);
-    // register_function(ctx, map_values_sig, map_values, env);
+    register_function(ctx, map_values_sig, map_values, env);
     register_function(ctx, map_has_key_sig, map_has_key, env);
     // register_function(ctx, keywords_sig, keywords, env);
     // Introspection Functions
