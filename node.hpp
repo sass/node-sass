@@ -1,3 +1,6 @@
+#define SASS_NODE
+
+
 #include <deque>
 #include <iostream>
 
@@ -74,6 +77,8 @@ namespace Sass {
     Node(const TYPE& type, Complex_Selector::Combinator combinator, Complex_Selector* pSelector, NodeDequePtr& pCollection);
 
     TYPE mType;
+    
+    // TODO: can we union these to save on memory?
     Complex_Selector::Combinator mCombinator;
     Complex_Selector* mpSelector; // this is an AST_Node, so it will be handled by the Memory_Manager
     NodeDequePtr mpCollection;

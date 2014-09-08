@@ -44,9 +44,11 @@ namespace Sass {
   
   Node Node::clone(Context& ctx) const {
     NodeDequePtr pNewCollection = make_shared<NodeDeque>();
-    for (NodeDeque::iterator iter = mpCollection->begin(), iterEnd = mpCollection->end(); iter != iterEnd; iter++) {
-      Node& toClone = *iter;
-      pNewCollection->push_back(toClone.clone(ctx));
+    if (mpCollection) {
+      for (NodeDeque::iterator iter = mpCollection->begin(), iterEnd = mpCollection->end(); iter != iterEnd; iter++) {
+        Node& toClone = *iter;
+        pNewCollection->push_back(toClone.clone(ctx));
+      }
     }
     
     return Node(mType, mCombinator, mpSelector ? mpSelector->clone(ctx) : NULL, pNewCollection);
@@ -142,11 +144,10 @@ namespace Sass {
 
 		Node node = Node::createCollection();
     
-    bool first = true;
     while (pToConvert) {
 
-      // the first Complex_Selector contains a dummy head pointer, skip it.
-      if (!first && pToConvert->head() != NULL) {
+      // the first Complex_Selector may contain a dummy head pointer, skip it.
+      if (pToConvert->head() != NULL && !pToConvert->head()->is_empty_reference()) {
         node.collection()->push_back(Node::createSelector(pToConvert, ctx));
       }
 
@@ -155,7 +156,6 @@ namespace Sass {
       }
 
       pToConvert = pToConvert->tail();
-      first = false;
     }
     
     return node;
