@@ -584,6 +584,7 @@ namespace Sass {
     string type() { return "map"; }
     static string type_name() { return "map"; }
     bool is_invisible() { return !length(); }
+    Expression* value_at_index(size_t i);
     ATTACH_OPERATIONS();
   };
 
@@ -1037,6 +1038,12 @@ namespace Sass {
   // Additional method on Lists to retrieve values directly or from an encompassed Argument.
   //////////////////////////////////////////////////////////////////////////////////////////
   inline Expression* List::value_at_index(size_t i) { return is_arglist_ ? ((Argument*)(*this)[i])->value() : (*this)[i]; }
+
+
+  //////////////////////////////////////////////////////////////////////////////////////////
+  // Additional method on Maps to retrieve values directly.
+  //////////////////////////////////////////////////////////////////////////////////////////
+  inline Expression* Map::value_at_index(size_t i) { return (*this)[i]->value(); }
 
   ////////////////////////////////////////////////////////////////////////
   // Argument lists -- in their own class to facilitate context-sensitive
