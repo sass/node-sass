@@ -919,6 +919,14 @@ namespace Sass {
     Signature length_sig = "length($list)";
     BUILT_IN(length)
     {
+      Expression* v = ARG("$list", Expression);
+      if (v->concrete_type() == Expression::MAP) {
+        Map* map = dynamic_cast<Map*>(env["$list"]);
+        return new (ctx.mem) Number(path,
+                                    position,
+                                    map ? map->length() : 1);
+      }
+
       List* list = dynamic_cast<List*>(env["$list"]);
       return new (ctx.mem) Number(path,
                                   position,
