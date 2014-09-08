@@ -1157,6 +1157,22 @@ namespace Sass {
       return result;
     }
 
+    Signature map_remove_sig = "map-remove($map, $key)";
+    BUILT_IN(map_remove)
+    {
+      Expression* m = ARG("$map", Expression);
+      Expression* v = ARG("$key", Expression);
+      if (!(m->concrete_type() == Expression::MAP || m->concrete_type() == Expression::LIST)) {
+        error("$map: is not a map for `" + string(sig) + "`", path, position);
+      }
+      Map* map = dynamic_cast<Map*>(env["$map"]);
+      Map* result = new (ctx.mem) Map(path, position, 1);
+      for (size_t i = 0, L = map->length(); i < L; ++i) {
+        if (!eq((*map)[i]->key(), v, ctx)) *result << (*map)[i];
+      }
+      return result;
+    }
+
     //////////////////////////
     // INTROSPECTION FUNCTIONS
     //////////////////////////
