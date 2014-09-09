@@ -1020,6 +1020,7 @@ namespace Sass {
     out = c;
   }
 
+  
   /*
   */
   template<typename DequeContentType, typename ComparatorType>
@@ -1307,19 +1308,10 @@ namespace Sass {
           secondPerm.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
           newRes.collection()->push_back(secondPerm);
 
-      		// TODO: unify and merge need to be properly implemented
-        	// TODO: does subject matter? Ruby: merged = sel1.unify(sel2.members, sel2.subject?)
-        	//Complex_Selector* pSel2 = nodeToComplexSelector(sel2, ctx);
-          //Complex_Selector* pMerged = sel1.selector()->clone(ctx);
-          //pMerged->head(sel1.selector()->head()->unify_with(pSel2->head(), ctx));
-          // TODO: how to do this unification properly? Need example.
-          
-//          if (pMerged) {
-//          	Node mergedPerm = Node::createCollection();
-//            mergedPerm.collection()->push_back(complexSelectorToNode(pMerged, ctx));
-//            mergedPerm.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
-//            newRes.collection()->push_back(mergedPerm);
-//          }
+          Node merged = unify(sel1, sel2, ctx);
+          if (merged.isCollection() && merged.collection()->size() > 0) {
+            newRes.collection()->push_back(merged);
+          }
 
           // TODO: Implement [].compact newRes
           

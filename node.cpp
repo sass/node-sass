@@ -1,6 +1,7 @@
 #include "node.hpp"
 #include "to_string.hpp"
 #include "context.hpp"
+#include "parser.hpp"
 
 namespace Sass {
 
@@ -212,5 +213,42 @@ namespace Sass {
     return pFirst;
   }
 
+  // TODO: does subject matter? Ruby: merged = sel1.unify(sel2.members, sel2.subject?)
+  // JMA - the ruby code seems to just concatenate all the selectors from sel1 after sel2
+  // Example: sel1 = ['.a'] sel2 = ['.b'] merged = ['.b.a']
+  // Example: sel1 = ['.a', '.b'] sel2 = ['.c', '.d'] merged = ['.c.d.a.b']
+  Node unify(const Node& sel1, const Node& sel2, Context& ctx) {
+
+    stringstream mergedSelector;
+    
+    if (sel2.isSelector()) {
+      mergedSelector << sel2;
+    }
+    else if (sel2.isCollection() && sel2.collection()->size() > 0) {
+      for (NodeDeque::iterator iter = sel2.collection()->begin(), endIter = sel2.collection()->end(); iter != endIter; ++iter) {
+        Node& childNode = *iter;
+        mergedSelector << childNode;
+      }
+    }
+    
+    if (sel1.isSelector()) {
+      mergedSelector << sel1;
+    }
+    else if (sel1.isCollection() && sel1.collection()->size() > 0) {
+      for (NodeDeque::iterator iter = sel1.collection()->begin(), endIter = sel1.collection()->end(); iter != endIter; ++iter) {
+        Node& childNode = *iter;
+        mergedSelector << childNode;
+      }
+    }
+    
+    mergedSelector << ";";
+    Complex_Selector* pComplexSelector = (*Parser::from_c_str(mergedSelector.str().c_str(), ctx, "", Position()).parse_selector_group())[0];
+
+    Node merged = Node::createCollection();
+    merged.collection()->push_back(Node::createSelector(pComplexSelector->tail(), ctx));
+    merged.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
+    return merged;
+  }
+  
 
 }
