@@ -91,5 +91,6 @@ namespace Sass {
   Node complexSelectorToNode(Complex_Selector* pToConvert, Context& ctx);
   Complex_Selector* nodeToComplexSelector(const Node& toConvert, Context& ctx);
   
+  Node unify(const Node& sel1, const Node& sel2, Context& ctx);
 
 }
