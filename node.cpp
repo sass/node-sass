@@ -185,7 +185,7 @@ namespace Sass {
       Node& child = *childIter;
       
       if (child.isSelector()) {
-        pCurrent->tail(child.selector());
+        pCurrent->tail(child.selector()->clone(ctx));   // JMA - need to clone the selector, because they can end up getting shared across Node collections, and can result in an infinite loop during the call to parentSuperselector()
         pCurrent = pCurrent->tail();
       } else if (child.isCombinator()) {
         pCurrent->combinator(child.combinator());
