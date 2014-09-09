@@ -369,6 +369,7 @@ namespace Sass {
       (*group) << comb;
     }
     while (lex< one_plus< sequence< spaces_and_comments, exactly<','> > > >());
+    while (lex< optional >());    // JMA - ignore optional flag if it follows the selector group
     return group;
   }
 
@@ -398,7 +399,8 @@ namespace Sass {
         peek< exactly<')'> >() ||
         peek< exactly<'{'> >() ||
         peek< exactly<'}'> >() ||
-        peek< exactly<';'> >()) {
+        peek< exactly<';'> >() ||
+        peek< optional >()) {
       // no selector after the combinator
       rhs = 0;
     }
@@ -1599,7 +1601,8 @@ namespace Sass {
            (q = peek< sequence< exactly<'#'>, interpolant > >(p))  ||
            (q = peek< sequence< exactly<'-'>, interpolant > >(p))  ||
            (q = peek< sequence< pseudo_prefix, interpolant > >(p)) ||
-           (q = peek< interpolant >(p))) {
+           (q = peek< interpolant >(p))                            ||
+           (q = peek< optional >(p))) {
       p = q;
       if (*(p - 1) == '}') saw_interpolant = true;
       saw_stuff = true;

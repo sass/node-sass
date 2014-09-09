@@ -401,6 +401,12 @@ namespace Sass {
                        spaces_and_comments,
                        exactly<important_kwd> >(src);
     }
+    // Match CSS "!optional" keyword.
+    const char* optional(const char* src) {
+      return sequence< exactly<'!'>,
+      spaces_and_comments,
+      exactly<optional_kwd> >(src);
+    }
     // Match Sass "!default" keyword.
     const char* default_flag(const char* src) {
       return sequence< exactly<'!'>,
