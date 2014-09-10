@@ -213,38 +213,87 @@ namespace Sass {
     return pFirst;
   }
 
-  // TODO: does subject matter? Ruby: merged = sel1.unify(sel2.members, sel2.subject?)
-  // JMA - the ruby code seems to just concatenate all the selectors from sel1 after sel2
+  // JMA - this is a helper function used by unify below.
+  // sel - the next Node to unify (must be a selector node)
+  // mergedTypes - should contain only the first type encountered, all subsequent types are compared against this and the unify is aborted if they don't match.
+  // mergedQualifiers - are just appended as they're encountered
+  bool unifySelector(const Node& sel, string& mergedTypes, stringstream& mergedQualifiers) {
+    Compound_Selector* pSel = sel.selector()->head();
+    for (int i=0; i<pSel->length(); i++) {
+      Simple_Selector* next = pSel->elements()[i];
+      if (typeid(*next) == typeid(Type_Selector)) {
+        if (mergedTypes.length() == 0) {
+          mergedTypes = ((Type_Selector*)next)->name();
+        }
+        else {
+          // ensure that it matches, can't combine multiple different type selectors
+          if (mergedTypes.compare(((Type_Selector*)next)->name()) != 0) {
+            return false;
+          }
+        }
+      }
+      else if (typeid(*next) == typeid(Selector_Qualifier)) {
+        // just append each selector qualifier        // TODO: is it necessary to filter duplicates?
+        mergedQualifiers << ((Selector_Qualifier*)next)->name();
+      }
+      else {
+        // TODO: only Type_Selector and Selector_Qualifier are handled by this implementation.  are any others valid?
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  // JMA - this is a helper function used by unify below.
+  // sel - the next Node to unify
+  // mergedTypes - should contain only the first type encountered, all subsequent types are compared against this and the unify is aborted if they don't match.
+  // mergedQualifiers - are just appended as they're encountered
+  bool unifyNode(const Node& sel, string& mergedTypes, stringstream& mergedQualifiers) {
+    if (sel.isSelector()) {
+      if (!unifySelector(sel, mergedTypes, mergedQualifiers)) {
+        return false;
+      }
+    }
+    else if (sel.isCollection() && sel.collection()->size() > 0) {
+      for (NodeDeque::iterator iter = sel.collection()->begin(), endIter = sel.collection()->end(); iter != endIter; ++iter) {
+        const Node& childNode = *iter;
+        if (!unifyNode(childNode, mergedTypes, mergedQualifiers)) {
+          return false;
+        }
+      }
+    }
+    else {
+      // only compound selectors need to be handled, per the documentation
+      return false;
+    }
+    
+    return true;
+  }
+  
+  // From sass documentation:
+  // An operation unify(Compound Selector, Compound Selector) => Compound Selector that returns a selector that matches exactly those elements matched by both input selectors. For example, unify(.foo, .bar) returns .foo.bar. This only needs to work for compound or simpler selectors. This operation can fail (e.g. unify(a, h1)), in which case it should return null.
   // Example: sel1 = ['.a'] sel2 = ['.b'] merged = ['.b.a']
   // Example: sel1 = ['.a', '.b'] sel2 = ['.c', '.d'] merged = ['.c.d.a.b']
+  // Example: sel1 = ['a', '.a'] sel2 = ['b', '.b'] merged = nil
+  // Example: sel1 = ['x', '.a'] sel2 = ['x', '.b'] merged = ['x.a.b']
   Node unify(const Node& sel1, const Node& sel2, Context& ctx) {
 
-    stringstream mergedSelector;
-    
-    if (sel2.isSelector()) {
-      mergedSelector << sel2;
-    }
-    else if (sel2.isCollection() && sel2.collection()->size() > 0) {
-      for (NodeDeque::iterator iter = sel2.collection()->begin(), endIter = sel2.collection()->end(); iter != endIter; ++iter) {
-        Node& childNode = *iter;
-        mergedSelector << childNode;
-      }
-    }
-    
-    if (sel1.isSelector()) {
-      mergedSelector << sel1;
-    }
-    else if (sel1.isCollection() && sel1.collection()->size() > 0) {
-      for (NodeDeque::iterator iter = sel1.collection()->begin(), endIter = sel1.collection()->end(); iter != endIter; ++iter) {
-        Node& childNode = *iter;
-        mergedSelector << childNode;
-      }
-    }
-    
-    mergedSelector << ";";
-    Complex_Selector* pComplexSelector = (*Parser::from_c_str(mergedSelector.str().c_str(), ctx, "", Position()).parse_selector_group())[0];
-
     Node merged = Node::createCollection();
+
+    string mergedTypes;
+    stringstream mergedQualifiers;
+    
+    if (!unifyNode(sel2, mergedTypes, mergedQualifiers)) {
+      return merged;
+    }
+
+    if (!unifyNode(sel1, mergedTypes, mergedQualifiers)) {
+      return merged;
+    }
+    
+    stringstream mergedSelector;
+    mergedSelector << mergedTypes << mergedQualifiers.str() << ";";
+    Complex_Selector* pComplexSelector = (*Parser::from_c_str(mergedSelector.str().c_str(), ctx, "", Position()).parse_selector_group())[0];
     merged.collection()->push_back(Node::createSelector(pComplexSelector->tail(), ctx));
     merged.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
     return merged;
