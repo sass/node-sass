@@ -1614,7 +1614,7 @@ namespace Sass {
     for (NodeDeque::iterator diffIter = diff.collection()->begin(), diffEndIter = diff.collection()->end();
            diffIter != diffEndIter; ++diffIter) {
     	Node& node = *diffIter;
-      if (node.collection() != NULL && !node.collection()->empty()) {
+      if (node.collection() && !node.collection()->empty()) {
         diffFiltered.collection()->push_back(node);
       }
     }
