@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <iostream>
+#include <memory>
 
 #ifndef SASS_AST
 #include "ast.hpp"
