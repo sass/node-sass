@@ -51,14 +51,21 @@ var prepareOptions = function (options) {
   stats = options.stats || {};
 
   sourceComments = options.source_comments || options.sourceComments;
+
   if (options.sourceMap && !sourceComments) {
     sourceComments = 'map';
   }
+
+  if (typeof options.outFile === 'string' && typeof options.file === 'string' && path.resolve(options.outFile) === path.normalize(options.outFile).replace(new RegExp(path.sep + '$'), '' )) {
+    options.outFile = path.resolve(path.dirname(options.file), options.outFile);
+  }
+
   sourceMap = options.sourceMap;
-  if (typeof sourceMap !== 'string' && sourceComments === 'map') {
-    sourceMap = '';
+
+  if ((typeof sourceMap !== 'string' || !sourceMap.trim()) && sourceComments === 'map') {
+    sourceMap = options.outFile !== null ? options.outFile + '.map' : '';
   } else if (options.outFile && sourceMap) {
-    sourceMap = path.resolve(path.dirname(options.outFile), sourceMap);
+    sourceMap = path.resolve(path.dirname(options.file), sourceMap);
   }
 
   prepareStats(options, stats);
