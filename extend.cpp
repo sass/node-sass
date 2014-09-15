@@ -13,8 +13,6 @@
 #include <iostream>
 #include <deque>
 
-#define DEBUG 1
-
 /*
  NOTES:
 
