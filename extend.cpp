@@ -1492,13 +1492,6 @@ namespace Sass {
       return;
     }
     
-#ifdef DEBUG
-    printComplexSelector(pOne, "SUBWEAVE ONE: ");
-    printComplexSelector(pTwo, "SUBWEAVE TWO: ");
-#endif
-    
-    
-    
     
     /*
     // Do the naive implementation. pOne = A B and pTwo = C D ...yields...  A B C D and C D A B
@@ -1514,8 +1507,6 @@ namespace Sass {
     
     return;*/
     
-    
-    
 
     
 		// Convert to a data structure more equivalent to Ruby so we can perform these complex operations in the same manner.
@@ -1523,17 +1514,19 @@ namespace Sass {
     Node seq1 = complexSelectorToNode(pOne, ctx);
     Node seq2 = complexSelectorToNode(pTwo, ctx);
     
+#ifdef DEBUG
     DEBUG_PRINTLN("SUBWEAVE ONE: " << seq1)
     DEBUG_PRINTLN("SUBWEAVE TWO: " << seq2)
-
+#endif
 
 		Node init = mergeInitialOps(seq1, seq2, ctx);
     if (init.isNil()) {
     	return;
     }
     
+#ifdef DEBUG
     DEBUG_PRINTLN("INIT: " << init)
-    
+#endif
     
     Node res = Node::createCollection();
 		Node fin = mergeFinalOps(seq1, seq2, ctx, res);
