@@ -956,8 +956,8 @@ namespace Sass {
         return true;
       }
       
-      if (one.collection()->front().isSelector() && two.collection()->front().isSelector()) {
-      	return true;
+      if (!one.collection()->front().isSelector() || !two.collection()->front().isSelector()) {
+      	return false;
       }
       
       if (parentSuperselector(one, two, mCtx)) {
