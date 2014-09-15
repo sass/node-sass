@@ -953,13 +953,22 @@ namespace Sass {
         end
       */
 
+      cerr << "S1:" << one << endl;
+      cerr << "S2:" << two << endl;
+
+      bool b1 = (one == two);
+      bool b2 = (one.collection()->front().isSelector() && two.collection()->front().isSelector());
+      bool b3 = (parentSuperselector(one, two, mCtx));
+      bool b4 = (parentSuperselector(two, one, mCtx));
+      cerr << b1 << " " << b2 << " " << b3 << " " << b4 << endl;
+      
       if (one == two) {
       	out = one;
         return true;
       }
       
-      if (one.collection()->front().isSelector() && two.collection()->front().isSelector()) {
-      	return true;
+      if (!one.collection()->front().isSelector() || !two.collection()->front().isSelector()) {
+      	return false;
       }
       
       if (parentSuperselector(one, two, mCtx)) {
@@ -1558,10 +1567,10 @@ namespace Sass {
 
 
     Node groupSeq1 = groupSelectors(seq1, ctx);
-    DEBUG_PRINTLN("GROUP1: " << groupSeq1)
+    DEBUG_PRINTLN("SEQ1: " << groupSeq1)
     
     Node groupSeq2 = groupSelectors(seq2, ctx);
-    DEBUG_PRINTLN("GROUP2: " << groupSeq2)
+    DEBUG_PRINTLN("SEQ2: " << groupSeq2)
 
 
     LcsCollectionComparator collectionComparator(ctx);
