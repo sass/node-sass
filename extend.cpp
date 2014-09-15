@@ -916,8 +916,8 @@ namespace Sass {
       	out = one;
         return true;
       }
-      
-      if (!one.collection()->front().isSelector() || !two.collection()->front().isSelector()) {
+
+      if (!one.front().isSelector() || !two.front().isSelector()) {
       	return false;
       }
       
