@@ -13,6 +13,7 @@
 #include <iostream>
 #include <deque>
 
+#define DEBUG 1
 
 /*
  NOTES:
@@ -1997,6 +1998,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
    */
   void extendCompoundSelector(
   	Compound_Selector* pSelector,
+    Complex_Selector::Combinator sourceCombinator,
     Context& ctx,
     ExtensionSubsetMap& subsetMap,
     set<Compound_Selector> seen,
@@ -2051,10 +2053,12 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       // get rid of the last Compound_Selector and replace it with this one. I think the reason this code is more
       // complex is that Complex_Selector contains a combinator, but in ruby combinators have already been filtered
       // out and aren't operated on.
+      // JMA - copy the combinator from the selector we're extending (sourceCombinator)
       Complex_Selector* pNewSelector = pExtComplexSelector->clone(ctx);
-      Complex_Selector* pNewInnerMost = new (ctx.mem) Complex_Selector(pSelector->path(), pSelector->position(), Complex_Selector::ANCESTOR_OF, pUnifiedSelector, NULL);
+      Complex_Selector* pNewInnerMost = new (ctx.mem) Complex_Selector(pSelector->path(), pSelector->position(), sourceCombinator, pUnifiedSelector, NULL);
       Complex_Selector::Combinator combinator = pNewSelector->clear_innermost();
       pNewSelector->set_innermost(pNewInnerMost, combinator);
+      
 
 
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
@@ -2133,7 +2137,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       Compound_Selector* pCompoundSelector = pCurrentComplexSelector->head();
 
       ComplexSelectorDeque extended;
-      extendCompoundSelector(pCompoundSelector, ctx, subsetMap, seen, extended /*out*/);
+      extendCompoundSelector(pCompoundSelector, pCurrentComplexSelector->combinator(), ctx, subsetMap, seen, extended /*out*/);
 #ifdef DEBUG
       printComplexSelectorDeque(extended, "EXTENDED: ");
 #endif
