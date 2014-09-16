@@ -113,12 +113,36 @@ namespace Sass {
     }
   }
 
+  // A Block is considered printable if a Declaration or At_Rule is found anywhere under its recursive structure
+  bool containsAnyPrintableStatements(Block* b) {
+    
+    for (size_t i = 0, L = b->length(); i < L; ++i) {
+      Statement* stm = (*b)[i];
+      if (typeid(*stm) == typeid(Declaration) || typeid(*stm) == typeid(At_Rule)) {
+        return true;
+      }
+      else if (dynamic_cast<Has_Block*>(stm) && containsAnyPrintableStatements(((Has_Block*)stm)->block())) {
+          return true;
+      }
+    }
+    
+    return false;
+  }
+  
   void Output_Nested::operator()(Media_Block* m)
   {
     List*  q     = m->media_queries();
     Block* b     = m->block();
     bool   decls = false;
 
+    // JMA - filter out blocks that don't contain any printable statements
+    // TODO - test comment and @content, maybe add them to the list
+    // TODO - move to a util location
+    // TODO - add to output_compressed.cpp also
+    if (!containsAnyPrintableStatements(b)) {
+      return;
+    }
+    
     indent();
     ctx->source_map.add_mapping(m);
     append_to_buffer("@media ");

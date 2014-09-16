@@ -165,36 +165,33 @@ namespace Sass {
     struct HSL { double h; double s; double l; };
     HSL rgb_to_hsl(double r, double g, double b)
     {
+
+      // Algorithm from http://en.wikipedia.org/wiki/wHSL_and_HSV#Conversion_from_RGB_to_HSL_or_HSV
       r /= 255.0; g /= 255.0; b /= 255.0;
 
       double max = std::max(r, std::max(g, b));
       double min = std::min(r, std::min(g, b));
       double del = max - min;
 
-      double h = 0, s = 0, l = (max + min)/2;
+      double h = 0, s = 0, l = (max + min) / 2.0;
 
       if (max == min) {
         h = s = 0; // achromatic
       }
       else {
-        if (l < 0.5) s = del / (max + min);
-        else         s = del / (2.0 - max - min);
+        if (l < 0.5) s = del / (2.0 * l);
+        else         s = del / (2.0 - 2.0 * l);
 
-        double dr = (((max - r)/6.0) + (del/2.0))/del;
-        double dg = (((max - g)/6.0) + (del/2.0))/del;
-        double db = (((max - b)/6.0) + (del/2.0))/del;
-
-        if      (r == max) h = db - dg;
-        else if (g == max) h = (1.0/3.0) + dr - db;
-        else if (b == max) h = (2.0/3.0) + dg - dr;
-
-        if      (h < 0) h += 1;
-        else if (h > 1) h -= 1;
+        if      (r == max) h = 60 * (g - b) / del;
+        else if (g == max) h = 60 * (b - r) / del + 120;
+        else if (b == max) h = 60 * (r - g) / del + 240;
       }
+
       HSL hsl_struct;
-      hsl_struct.h = static_cast<int>(h*360)%360;
-      hsl_struct.s = s*100;
-      hsl_struct.l = l*100;
+      hsl_struct.h = h;
+      hsl_struct.s = s * 100;
+      hsl_struct.l = l * 100;
+
       return hsl_struct;
     }
 
@@ -210,14 +207,15 @@ namespace Sass {
 
     Color* hsla_impl(double h, double s, double l, double a, Context& ctx, const string& path, Position position)
     {
-      h = static_cast<double>(((static_cast<int>(h) % 360) + 360) % 360) / 360.0;
+      h /= 360.0;
       s /= 100.0;
       l /= 100.0;
 
+      // Algorithm from the CSS3 spec: http://www.w3.org/TR/css3-color/#hsl-color.
       double m2;
       if (l <= 0.5) m2 = l*(s+1.0);
-      else m2 = l+s-l*s;
-      double m1 = l*2-m2;
+      else m2 = (l+s)-(l*s);
+      double m1 = (l*2)-m2;
       // round the results -- consider moving this into the Color constructor
       double r = (h_to_rgb(m1, m2, h+1.0/3.0) * 255.0);
       double g = (h_to_rgb(m1, m2, h) * 255.0);

@@ -61,181 +61,17 @@
 
 namespace Sass {
 
-
-	typedef vector<vector<int> > LCSTable;
-
-
-  // ComplexSelectorOrCombinator = CSOC
-  // Ruby sass' ComplexSelector equivalent has an array of CompoundSelectors and Combinators, which can be acted on
-  // separately. Our data model has one class that contains a combinator and ComplexSelector. This class can be one
-  // or the other, which will allow us to translate from our data model into something that can be operated on more
-  // like Ruby sass' extend functionality.
-  /*
-   TODO:
-   - consider adding c() and s() ease-of-use functions for accessing combinator() and selector()
-   */
-  class ComplexSelectorOrCombinator {
-  public:
-    inline bool isCombinator() const { return mIsCombinator; }
-    inline bool isSelector() const { return !mIsCombinator; }
-    
-    Complex_Selector::Combinator combinator() const { return mCombinator; }
-
-    Complex_Selector* selector() { return mpSelector; }
-    const Complex_Selector* const selector() const { return mpSelector; }
-    
-    // Pass these by-value since they're basically just two pointers.
-    static ComplexSelectorOrCombinator createCombinator(Complex_Selector* pSelector, Context& ctx);
-    static ComplexSelectorOrCombinator createSelector(Complex_Selector* pSelector, Context& ctx);
-    
-    bool operator==(const ComplexSelectorOrCombinator& rhs) const;
-		inline bool operator!=(const ComplexSelectorOrCombinator& rhs) const {return !(*this == rhs);}
-    
-    Context* mpContext;
-    
-    ComplexSelectorOrCombinator(const ComplexSelectorOrCombinator& other);
-    
-    inline ~ComplexSelectorOrCombinator() {} // TODO: is this needed?
-
-  private:
-    // private constructor; use the static methods createCombinator and createSelector to instantiate (this is just more expressive than a single constructor).
-    // If we think it's safe, we could also get rid of mIsCombinator in favor of just checking if mpSelector is NULL. This is less explicit though, so I'm keeping
-    // it the way it is now. A bool is a small price to pay.
-    ComplexSelectorOrCombinator(bool isCombinator, Complex_Selector::Combinator combinator, Complex_Selector* pSelector, Context* pContext);
-    
-    // This private default constructor is necessary for LCS to work. It will get overwritten. Just give
-    // it some innocuous values for now. We don't want other people calling it, so make it private. Use
-    // friends to only allow the lcs code to instantiate one of these.
-    ComplexSelectorOrCombinator() : mpContext(NULL), mIsCombinator(true), mCombinator(Complex_Selector::ANCESTOR_OF), mpSelector(NULL) {}
-    template<typename DequeContentType, typename ComparatorType>
-	  friend void lcsBacktrace(const LCSTable& c, const deque<DequeContentType>& x, const deque<DequeContentType>& y, int i, int j, const ComparatorType& comparator, deque<DequeContentType>& out);
-    template<typename DequeContentType, typename ComparatorType>
-	  friend void lcsTable(const deque<DequeContentType>& x, const deque<DequeContentType>& y, const ComparatorType& comparator, LCSTable& out);
-    template<typename DequeContentType, typename ComparatorType>
-  	friend void lcs(const deque<DequeContentType>& x, const deque<DequeContentType>& y, const ComparatorType& comparator, deque<DequeContentType>& out);
-    
-    bool mIsCombinator;
-    Complex_Selector::Combinator mCombinator;
-    Complex_Selector* mpSelector;
-  };
-  
-  ComplexSelectorOrCombinator::ComplexSelectorOrCombinator(bool isCombinator, Complex_Selector::Combinator combinator, Complex_Selector* pSelector, Context* pContext) :
-  	mpContext(pContext),
-  	mIsCombinator(isCombinator),
-    mCombinator(combinator),
-    mpSelector(pSelector){
-    
-  }
-  
-  ComplexSelectorOrCombinator::ComplexSelectorOrCombinator(const ComplexSelectorOrCombinator& other) :
-  	mpContext(other.mpContext),
-    mIsCombinator(other.mIsCombinator),
-    mCombinator(other.mCombinator),
-    mpSelector(other.mpSelector)
-  {
-  	if (mpContext) {
-	    mpSelector = mpSelector->clone(*mpContext);
-    }
-  }
-  
-  ComplexSelectorOrCombinator ComplexSelectorOrCombinator::createCombinator(Complex_Selector* pSelector, Context& ctx) {
-    return ComplexSelectorOrCombinator(true /*isCombinator*/, pSelector->combinator(), NULL /*pSelector*/, &ctx);
-  }
-
-  ComplexSelectorOrCombinator ComplexSelectorOrCombinator::createSelector(Complex_Selector* pSelector, Context& ctx) {
-    Complex_Selector* pClone = pSelector->clone(ctx);
-    pClone->combinator(Complex_Selector::ANCESTOR_OF); // clear out the existing combinator if there is one
-    pClone->tail(NULL); // clear out the tail pointer if there is one
-   	return ComplexSelectorOrCombinator(false /*isCombinator*/, Complex_Selector::ANCESTOR_OF, pClone /*pSelector*/, &ctx);
-  }
-  
-  bool ComplexSelectorOrCombinator::operator==(const ComplexSelectorOrCombinator& rhs) const {
-  	if ((this->isCombinator() && !rhs.isCombinator()) || (this->isSelector() && !rhs.isSelector())) {
-    	return false;
-    }
-    
-    if (this->isCombinator()) {
-    	return this->combinator() == rhs.combinator();
-    } else {
-    	return (!(*this->selector() < *rhs.selector()) && !(*rhs.selector() < *this->selector()));
-    }
-  }
-  
-  
-  
-  
   
   typedef deque<Complex_Selector*> ComplexSelectorDeque;
 	typedef deque<ComplexSelectorDeque> ComplexSelectorDequeDeque;
   
   typedef pair<Complex_Selector*, Compound_Selector*> ExtensionPair;
   typedef vector<ExtensionPair> SubsetMapEntries;
-  
-  typedef deque<ComplexSelectorOrCombinator> CSOCDeque;
-  typedef deque<CSOCDeque> CSOCDequeDeque;
-  typedef deque<CSOCDequeDeque> CSOCDequeDequeDeque;
-  
-  
-  void complexSelectorToCSOC(Complex_Selector* pToConvert, CSOCDeque& out, Context& ctx) {
-    out.clear();
-    
-    while (pToConvert) {
-      if (pToConvert->combinator() != Complex_Selector::ANCESTOR_OF) {
-        out.push_back(ComplexSelectorOrCombinator::createCombinator(pToConvert, ctx));
-      }
-      
-      out.push_back(ComplexSelectorOrCombinator::createSelector(pToConvert, ctx));
-
-      pToConvert = pToConvert->tail();
-    }
-  }
-  
-  Complex_Selector* CSOCToComplexSelector(const CSOCDeque& toConvert, Context& ctx) {
-    if (!toConvert.empty() && toConvert.front().isCombinator()) {
-      throw "The first element in the selector must not be a combinator.";
-    }
-
-    if (!toConvert.empty() && toConvert.back().isCombinator()) {
-      throw "The last element in the selector must not be a combinator.";
-    }
-    
-    Complex_Selector* pCurrent = NULL;
-    Complex_Selector* pTail = NULL; // We're looping backwards, so this is the element after pCurrent
-    
-    // I'm using indexing instead of STL iteration here due to the private constructor on the CSOC object
-    for (int index = toConvert.size() - 1; index >= 0; index--) {
-      const ComplexSelectorOrCombinator& pCurrentCSOC = toConvert[index];
-      pCurrent = pCurrentCSOC.selector()->clone(ctx);
-      
-      if (pCurrentCSOC.isCombinator()) {
-        throw "This should never happen. Either this algorithm is busted or there were two combinators in a row (which shouldn't happen).";
-      }
-
-      if (index > 0) {
-        const ComplexSelectorOrCombinator& pPreviousCSOC = toConvert[index - 1];
-        
-        if (pPreviousCSOC.isCombinator()) {
-          pCurrent->combinator(pPreviousCSOC.combinator());
-          index--; // skip over this combinator in our iteration now that we've consumed it
-        }
-      }
-      
-      pCurrent->tail(pTail);
-
-			pTail = pCurrent;
-
-    }
-  
-    return pCurrent;
-  }
-  
-  
-  
 
   
   // Create a Selector_List* from a ComplexSelectorDeque
   // Complex_Selectors are NOT cloned.
-  Selector_List* createSelectorListFromDeque(ComplexSelectorDeque& deque, Context& ctx, Selector_List* pSelectorGroupTemplate) {
+  static Selector_List* createSelectorListFromDeque(ComplexSelectorDeque& deque, Context& ctx, Selector_List* pSelectorGroupTemplate) {
     Selector_List* pSelectorGroup = new (ctx.mem) Selector_List(pSelectorGroupTemplate->path(), pSelectorGroupTemplate->position(), pSelectorGroupTemplate->length());
     for (ComplexSelectorDeque::iterator iterator = deque.begin(), iteratorEnd = deque.end(); iterator != iteratorEnd; ++iterator) {
       *pSelectorGroup << *iterator;
@@ -243,17 +79,9 @@ namespace Sass {
     return pSelectorGroup;
   }
 
-
-  // Take the Complex_Selector pointers in Selector_List and append all of them to the passed in deque.
-  // Complex_Selectors are NOT cloned.
-  void fillDequeFromSelectorList(ComplexSelectorDeque& deque, Selector_List* pSelectorList) {
-    for (size_t index = 0, length = pSelectorList->length(); index < length; index++) {
-      deque.push_back((*pSelectorList)[index]);
-    }
-  }
   
 #ifdef DEBUG
-  void printCombinator(Complex_Selector::Combinator combinator) {
+  static void printCombinator(Complex_Selector::Combinator combinator) {
     switch (combinator) {
       case Complex_Selector::ANCESTOR_OF: cerr << "\" \""; break;
       case Complex_Selector::PARENT_OF:   cerr << "\">\""; break;
@@ -264,7 +92,7 @@ namespace Sass {
 
   
   // Print a string representation of a Compound_Selector
-  void printCompoundSelector(Compound_Selector* pCompoundSelector, const char* message=NULL, bool newline=true) {
+  static void printCompoundSelector(Compound_Selector* pCompoundSelector, const char* message=NULL, bool newline=true) {
 		To_String to_string;
   	if (message) {
     	cerr << message;
@@ -279,7 +107,7 @@ namespace Sass {
 
   
   // Print a string representation of a Complex_Selector
-  void printComplexSelector(Complex_Selector* pComplexSelector, const char* message=NULL, bool newline=true) {
+  static void printComplexSelector(Complex_Selector* pComplexSelector, const char* message=NULL, bool newline=true) {
 		To_String to_string;
 
   	if (message) {
@@ -315,7 +143,7 @@ namespace Sass {
 
   
   // Print a string representation of a ComplexSelectorDeque
-  void printComplexSelectorDeque(ComplexSelectorDeque& deque, const char* message=NULL, bool newline=true) {
+  static void printComplexSelectorDeque(ComplexSelectorDeque& deque, const char* message=NULL, bool newline=true) {
   	To_String to_string;
 
   	if (message) {
@@ -339,7 +167,7 @@ namespace Sass {
  
   
   // Print a string representation of a ComplexSelectorDequeDeque
-  void printComplexSelectorDequeDeque(ComplexSelectorDequeDeque& dequeDeque, const char* message=NULL, bool newline=true) {
+  static void printComplexSelectorDequeDeque(ComplexSelectorDequeDeque& dequeDeque, const char* message=NULL, bool newline=true) {
   	To_String to_string;
     
   	if (message) {
@@ -363,7 +191,7 @@ namespace Sass {
 
   
   // Print a string representation of a SourcesSet
-  void printSourcesSet(SourcesSet& sources, const char* message=NULL, bool newline=true) {
+  static void printSourcesSet(SourcesSet& sources, const char* message=NULL, bool newline=true) {
   	To_String to_string;
     
   	if (message) {
@@ -385,95 +213,12 @@ namespace Sass {
     }
   }
 
-
-
-
-
-  // Print a string representation of a Complex_Selector
-  void printCSOCDeque(CSOCDeque& deque, const char* message=NULL, bool newline=true) {
-		To_String to_string;
-
-  	if (message) {
-    	cerr << message;
-    }
-
-    cerr << "[";
-    
-    for (CSOCDeque::iterator iterator = deque.begin(), iteratorEnd = deque.end(); iterator != iteratorEnd; ++iterator) {
-    	ComplexSelectorOrCombinator csoc = *iterator;
-      
-        if (iterator != deque.begin()) {
-          cerr << ", ";
-        }
-      
-      if (csoc.isCombinator()) {
-				printCombinator(csoc.combinator());
-      } else {
-        cerr << csoc.selector()->head()->perform(&to_string);
-      }
-    }
-
-    cerr << "]";
-
-		if (newline) {
-    	cerr << endl;
-    }
-  }
-
-  void printCSOCDequeDeque(CSOCDequeDeque& dequeDeque, const char* message=NULL, bool newline=true) {
-  	To_String to_string;
-
-  	if (message) {
-    	cerr << message;
-    }
-    
-    cerr << "[";
-
-    for (CSOCDequeDeque::iterator iterator = dequeDeque.begin(), iteratorEnd = dequeDeque.end(); iterator != iteratorEnd; ++iterator) {
-      CSOCDeque& deque = *iterator;
-      if (iterator != dequeDeque.begin()) {
-      	cerr << ", ";
-      }
-      printCSOCDeque(deque, "", false /*newline*/);
-    }
-
-    cerr << "]";
-    
-    if (newline) {
-      cerr << endl;
-    }
-  }
-  
-  // TODO: Can these prints be merged with templates and specialization
-  void printCSOCDequeDequeDeque(CSOCDequeDequeDeque& dequeDequeDeque, const char* message=NULL, bool newline=true) {
-  	To_String to_string;
-
-  	if (message) {
-    	cerr << message;
-    }
-    
-    cerr << "[";
-
-    for (CSOCDequeDequeDeque::iterator iterator = dequeDequeDeque.begin(), iteratorEnd = dequeDequeDeque.end(); iterator != iteratorEnd; ++iterator) {
-      CSOCDequeDeque& dequeDeque = *iterator;
-      if (iterator != dequeDequeDeque.begin()) {
-      	cerr << ", ";
-      }
-      printCSOCDequeDeque(dequeDeque, "", false /*newline*/);
-    }
-
-    cerr << "]";
-    
-    if (newline) {
-      cerr << endl;
-    }
-  }
 #endif
 
 
   
   // Clone the source ComplexSelectorDeque into dest. This WILL clone the Complex_Selectors.
-  void cloneComplexSelectorDeque(ComplexSelectorDeque& source, ComplexSelectorDeque& dest, Context& ctx) {
+  static void cloneComplexSelectorDeque(ComplexSelectorDeque& source, ComplexSelectorDeque& dest, Context& ctx) {
     for (ComplexSelectorDeque::iterator iterator = source.begin(), iteratorEnd = source.end(); iterator != iteratorEnd; ++iterator) {
       Complex_Selector* pComplexSelector = *iterator;
 			dest.push_back(pComplexSelector->clone(ctx));
@@ -482,7 +227,7 @@ namespace Sass {
   
   
   // Clone the source ComplexSelectorDequeDeque into dest. This WILL clone the Complex_Selectors.
-  void cloneComplexSelectorDequeDeque(ComplexSelectorDequeDeque& source, ComplexSelectorDequeDeque& dest, Context& ctx) {
+  static void cloneComplexSelectorDequeDeque(ComplexSelectorDequeDeque& source, ComplexSelectorDequeDeque& dest, Context& ctx) {
     for (ComplexSelectorDequeDeque::iterator iterator = source.begin(), iteratorEnd = source.end(); iterator != iteratorEnd; ++iterator) {
 
       ComplexSelectorDeque& toClone = *iterator;
@@ -497,7 +242,7 @@ namespace Sass {
   
   // Compare two ComplexSelectorDeques to see if they are equivalent. This uses the Complex_Selector operator< so it will compare
   // the Complex_Selector's contents instead of just the pointers.
-  bool complexSelectorDequesEqual(ComplexSelectorDeque& one, ComplexSelectorDeque& two) {
+  static bool complexSelectorDequesEqual(ComplexSelectorDeque& one, ComplexSelectorDeque& two) {
     if (one.size() != two.size()) {
       return false;
     }
@@ -581,7 +326,7 @@ namespace Sass {
   /*
    - IMPROVEMENT: We could probably work directly in the output trimmed deque.
    */
-  void trim(ComplexSelectorDequeDeque& toTrim, ComplexSelectorDequeDeque& trimmed, Context& ctx) {
+  static void trim(ComplexSelectorDequeDeque& toTrim, ComplexSelectorDequeDeque& trimmed, Context& ctx) {
     // See the comments in the above ruby code before embarking on understanding this function.
 
     // Avoid poor performance in extreme cases.
@@ -682,28 +427,9 @@ namespace Sass {
     
     trimmed = result;
   }
+
   
-  
-  
-  bool parentSuperselector(const CSOCDeque& one, const CSOCDeque& two, Context& ctx) {
-  	// TODO: figure out a better way to create a Complex_Selector from scratch
-    // TODO: There's got to be a better way. This got ugly quick...
-    Position noPosition;
-    Type_Selector fakeParent("", noPosition, "temp");
-    Compound_Selector fakeHead("", noPosition, 1 /*size*/);
-    fakeHead.elements().push_back(&fakeParent);
-		Complex_Selector fakeParentContainer("", noPosition, Complex_Selector::ANCESTOR_OF, &fakeHead /*head*/, NULL /*tail*/);
-    
-    Complex_Selector* pOneWithFakeParent = CSOCToComplexSelector(one, ctx);
-    pOneWithFakeParent->set_innermost(&fakeParentContainer, Complex_Selector::ANCESTOR_OF);
-    Complex_Selector* pTwoWithFakeParent = CSOCToComplexSelector(two, ctx);
-    pTwoWithFakeParent->set_innermost(&fakeParentContainer, Complex_Selector::ANCESTOR_OF);
-    
-    return pOneWithFakeParent->is_superselector_of(pTwoWithFakeParent);
-  }
-  
-  
-  bool parentSuperselector(const Node& one, const Node& two, Context& ctx) {
+  static bool parentSuperselector(const Node& one, const Node& two, Context& ctx) {
   	// TODO: figure out a better way to create a Complex_Selector from scratch
     // TODO: There's got to be a better way. This got ugly quick...
     Position noPosition;
@@ -775,7 +501,7 @@ namespace Sass {
   end
   */
   template<typename ChunkerType>
-  Node chunks(Node& seq1, Node& seq2, const ChunkerType& chunker) {
+  static Node chunks(Node& seq1, Node& seq2, const ChunkerType& chunker) {
   	Node chunk1 = Node::createCollection();
     while (!chunker(seq1)) {
     	chunk1.collection()->push_back(seq1.collection()->front());
@@ -823,116 +549,7 @@ namespace Sass {
     
     return perms;
   }
-  
-  
-  // Trying this out since I'm seeing weird behavior where the deque's are being emptied when calling into the templated version of chunks
-  // TODO: use general version of chunks now that bug is fixed
-  void chunksDeque(CSOCDequeDeque& seq1, CSOCDequeDeque& seq2, CSOCDequeDequeDeque& out, const SubweaveEmptyChunker& chunker) {
-  	/*
-#ifdef DEBUG
-  	printCSOCDequeDeque(seq1, "ONE IN: ");
-    printCSOCDequeDeque(seq2, "TWO IN: ");
-#endif
 
-  	CSOCDequeDeque chunk1;
-    while (!chunker(seq1)) {
-    	chunk1.push_back(seq1.front());
-      seq1.pop_front();
-    }
-    
-    CSOCDequeDeque chunk2;
-    while (!chunker(seq2)) {
-    	chunk2.push_back(seq2.front());
-      seq2.pop_front();
-    }
-    
-    if (chunk1.empty() && chunk2.empty()) {
-      DEBUG_PRINTLN("RETURNING BOTH EMPTY")
-      return;
-    }
-    
-    if (chunk1.empty()) {
-    	out.push_back(chunk2);
-      DEBUG_PRINTLN("RETURNING ONE EMPTY")
-      return;
-    }
-    
-    if (chunk2.empty()) {
-    	out.push_back(chunk1);
-      DEBUG_PRINTLN("RETURNING TWO EMPTY")
-      return;
-    }
-    
-    CSOCDequeDeque firstPermutation;
-    firstPermutation.insert(firstPermutation.end(), chunk1.begin(), chunk1.end());
-    firstPermutation.insert(firstPermutation.end(), chunk2.begin(), chunk2.end());
-    out.push_back(firstPermutation);
-    
-    CSOCDequeDeque secondPermutation;
-    secondPermutation.insert(secondPermutation.end(), chunk2.begin(), chunk2.end());
-    secondPermutation.insert(secondPermutation.end(), chunk1.begin(), chunk1.end());
-    out.push_back(secondPermutation);
-    
-    DEBUG_PRINTLN("RETURNING PERM")
-    */
-  }
-  
-  
-  template<typename CompareType>
-  class DefaultLcsComparatorOld {
-  public:
-  	bool operator()(const CompareType& one, const CompareType& two, CompareType& out) const {
-    	// TODO: Is this the correct C++ interpretation?
-      // block ||= proc {|a, b| a == b && a}
-      if (one == two) {
-      	out = one;
-        return true;
-      }
-
-      return false;
-    }
-  };
-  
-  class CSOCDequeLcsComparator {
-  public:
-  	CSOCDequeLcsComparator(Context& ctx) : mCtx(ctx) {}
-    
-    Context& mCtx;
-
-  	bool operator()(const CSOCDeque& one, const CSOCDeque& two, CSOCDeque& out) const {
-    	/*
-      This code is based on the following block from ruby sass' subweave
-				do |s1, s2|
-          next s1 if s1 == s2
-          next unless s1.first.is_a?(SimpleSequence) && s2.first.is_a?(SimpleSequence)
-          next s2 if parent_superselector?(s1, s2)
-          next s1 if parent_superselector?(s2, s1)
-        end
-      */
-
-      if (one == two) {
-      	out = one;
-        return true;
-      }
-
-      if (!one.front().isSelector() || !two.front().isSelector()) {
-      	return false;
-      }
-      
-      if (parentSuperselector(one, two, mCtx)) {
-      	out = two;
-        return true;
-      }
-      
-      if (parentSuperselector(two, one, mCtx)) {
-      	out = one;
-        return true;
-      }
-
-      return false;
-    }
-  };
-  
   
   class LcsCollectionComparator {
   public:
@@ -984,79 +601,7 @@ namespace Sass {
   };
   
   
-  /*
-  */
-  template<typename DequeContentType, typename ComparatorType>
-  void lcsBacktrace(const LCSTable& c, const deque<DequeContentType>& x, const deque<DequeContentType>& y, int i, int j, const ComparatorType& comparator, deque<DequeContentType>& out) {
-
-  	if (i == 0 || j == 0) {
-    	return;
-    }
-
-    DequeContentType compareOut;
-    if (comparator(x[i], y[j], compareOut)) {
-    	lcsBacktrace(c, x, y, i - 1, j - 1, comparator, out);
-      out.push_back(compareOut);
-    	return;
-    }
-    
-    if (c[i][j - 1] > c[i - 1][j]) {
-    	lcsBacktrace(c, x, y, i, j - 1, comparator, out);
-      return;
-    }
-    
-    lcsBacktrace(c, x, y, i - 1, j, comparator, out);
-  }
-  
-
-  /*
-  */
-  template<typename DequeContentType, typename ComparatorType>
-  void lcsTable(const deque<DequeContentType>& x, const deque<DequeContentType>& y, const ComparatorType& comparator, LCSTable& out) {
-
-  	LCSTable c(x.size(), vector<int>(y.size()));
-    
-    // These shouldn't be necessary since the vector will be initialized to 0 already.
-    // x.size.times {|i| c[i][0] = 0}
-    // y.size.times {|j| c[0][j] = 0}
-
-    for (int i = 1; i < x.size(); i++) {
-    	for (int j = 1; j < y.size(); j++) {
-        DequeContentType compareOut;
-
-      	if (comparator(x[i], y[j], compareOut)) {
-        	c[i][j] = c[i - 1][j - 1] + 1;
-        } else {
-        	c[i][j] = max(c[i][j - 1], c[i - 1][j]);
-        }
-      }
-    }
-
-    out = c;
-  }
-
-  
-  /*
-  */
-  template<typename DequeContentType, typename ComparatorType>
-  void lcs(const deque<DequeContentType>& x, const deque<DequeContentType>& y, const ComparatorType& comparator, deque<DequeContentType>& out) {
-    
-    deque<DequeContentType> newX(x);
-    newX.push_front(DequeContentType());
-    deque<DequeContentType> newY(y);
-    newY.push_front(DequeContentType());
-
-    LCSTable table;
-    lcsTable(newX, newY, comparator, table);
-    
-    deque<DequeContentType> backtraceResult;
-    lcsBacktrace(table, newX, newY, newX.size() - 1, newY.size() - 1, comparator, backtraceResult);
-    
-    out = backtraceResult;
-  }
-  
-  
-  Node groupSelectors(const Node& seq, Context& ctx) {
+  static Node groupSelectors(const Node& seq, Context& ctx) {
   	Node newSeq = Node::createCollection();
     
     Node tail = seq.clone(ctx);
@@ -1075,14 +620,8 @@ namespace Sass {
     return newSeq;
   }
   
-  
-  void getAndRemoveInitialOps(CSOCDeque& seq, CSOCDeque& ops) {
-  	while (seq.size() > 0 && seq.front().isCombinator()) {
-    	ops.push_back(seq.front());
-      seq.pop_front();
-    }
-  }
-  void getAndRemoveInitialOps(Node& seq, Node& ops) {
+
+  static void getAndRemoveInitialOps(Node& seq, Node& ops) {
   	NodeDeque& seqCollection = *(seq.collection());
     NodeDeque& opsCollection = *(ops.collection());
 
@@ -1092,14 +631,8 @@ namespace Sass {
     }
   }
   
-  
-  void getAndRemoveFinalOps(CSOCDeque& seq, CSOCDeque& ops) {
-  	while (seq.size() > 0 && seq.back().isCombinator()) {
-    	ops.push_back(seq.back()); // Purposefully reversed to match ruby code
-      seq.pop_back();
-    }
-  }
-  void getAndRemoveFinalOps(Node& seq, Node& ops) {
+
+  static void getAndRemoveFinalOps(Node& seq, Node& ops) {
   	NodeDeque& seqCollection = *(seq.collection());
     NodeDeque& opsCollection = *(ops.collection());
 
@@ -1127,7 +660,7 @@ namespace Sass {
         return (newline ? ["\n"] : []) + (ops1.size > ops2.size ? ops1 : ops2)
       end
   */
-  Node mergeInitialOps(Node& seq1, Node& seq2, Context& ctx) {
+  static Node mergeInitialOps(Node& seq1, Node& seq2, Context& ctx) {
   	Node ops1 = Node::createCollection();
     Node ops2 = Node::createCollection();
     
@@ -1151,28 +684,6 @@ namespace Sass {
     // return (newline ? ["\n"] : []) + (ops1.size > ops2.size ? ops1 : ops2)
     
     return (ops1.collection()->size() > ops2.collection()->size() ? ops1 : ops2);
-  }
-
-  bool mergeInitialOps(CSOCDeque& seq1, CSOCDeque& seq2, CSOCDeque& mergedOps) {
-		CSOCDeque ops1;
-    CSOCDeque ops2;
-
-		getAndRemoveInitialOps(seq1, ops1);
-    getAndRemoveInitialOps(seq2, ops2);
-
-    CSOCDeque opsLcs;
-    DefaultLcsComparatorOld<ComplexSelectorOrCombinator> defaultComparator;
-    lcs<ComplexSelectorOrCombinator, DefaultLcsComparatorOld<ComplexSelectorOrCombinator> >(ops1, ops2, defaultComparator, opsLcs);
-    
-    if (!(opsLcs == ops1 || opsLcs == ops2)) {
-    	return false;
-    }
-    
-    // TODO: more newline logic
-    // return (newline ? ["\n"] : []) + (ops1.size > ops2.size ? ops1 : ops2)
-    
-    mergedOps = (ops1.size() > ops2.size() ? ops1 : ops2);
-    return true;
   }
   
   
@@ -1240,7 +751,7 @@ namespace Sass {
         end
       end
   */
-  Node mergeFinalOps(Node& seq1, Node& seq2, Context& ctx, Node& res) {
+  static Node mergeFinalOps(Node& seq1, Node& seq2, Context& ctx, Node& res) {
     
     Node ops1 = Node::createCollection();
     Node ops2 = Node::createCollection();
@@ -1488,7 +999,7 @@ namespace Sass {
         result
       end
 	*/
-	void subweave(Complex_Selector* pOne, Complex_Selector* pTwo, ComplexSelectorDeque& out, Context& ctx) {
+	static void subweave(Complex_Selector* pOne, Complex_Selector* pTwo, ComplexSelectorDeque& out, Context& ctx) {
     // Check for the simple cases
     if (pOne == NULL) {
     	out.push_back(pTwo ? pTwo->clone(ctx) : NULL);
@@ -1498,23 +1009,6 @@ namespace Sass {
     	out.push_back(pOne ? pOne->clone(ctx) : NULL);
       return;
     }
-    
-    
-    /*
-    // Do the naive implementation. pOne = A B and pTwo = C D ...yields...  A B C D and C D A B
-    // See https://gist.github.com/nex3/7609394 for details.
-    Complex_Selector* pFirstPermutation = pOne->clone(ctx);
-    pFirstPermutation->set_innermost(pTwo->clone(ctx), pFirstPermutation->innermost()->combinator()); // TODO: is this the correct combinator?
-    out.push_back(pFirstPermutation);
-
-    Complex_Selector* pSecondPermutation = pTwo->clone(ctx);
-    pSecondPermutation->set_innermost(pOne->clone(ctx), pSecondPermutation->innermost()->combinator()); // TODO: is this the correct combinator?
-    out.push_back(pSecondPermutation);
-
-    
-    return;*/
-    
-
     
 		// Convert to a data structure more equivalent to Ruby so we can perform these complex operations in the same manner.
     // Doing this clones the input, so this is equivalent to the ruby code's .dup
@@ -1704,7 +1198,7 @@ namespace Sass {
         return befores
       end
  	*/
-void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& weaved /*out*/) {
+	static void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& weaved /*out*/) {
 
     ComplexSelectorDeque befores;
   	befores.push_back(NULL); // this push is necessary for the befores iteration below to do anything. This matches the ruby code initializing befores to [[]].
@@ -1801,7 +1295,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
       end
     end
 	*/
-  void paths(ComplexSelectorDequeDeque& source, ComplexSelectorDequeDeque& out, Context& ctx) {
+  static void paths(ComplexSelectorDequeDeque& source, ComplexSelectorDequeDeque& out, Context& ctx) {
     To_String to_string;
     
     ComplexSelectorDequeDeque loopStart;
@@ -1846,104 +1340,6 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
     out = loopStart;
   }
   
-  void paths(CSOCDequeDequeDeque& source, CSOCDequeDequeDeque& out, Context& ctx) {
-  	/*
-    To_String to_string;
-    
-    CSOCDequeDequeDeque loopStart;
-
-    for (CSOCDequeDequeDeque::iterator arrsIterator = source.begin(), endIterator = source.end();
-         arrsIterator != endIterator; ++arrsIterator) {
-      
-      CSOCDequeDeque& arr = *arrsIterator;
-      
-    	CSOCDequeDequeDeque permutations;
-
-      for (CSOCDequeDeque::iterator arrIterator = arr.begin(), endIterator = arr.end();
-           arrIterator != endIterator; ++arrIterator) {
-      	Complex_Selector* pE = (*arrIterator)->clone(ctx);
-    
-        if (loopStart.size() == 0) {
-          // When the loopStart has nothing in it, we're on the first iteration. The new permutation
-          // is just the current Complex_Selector*. Without this special case, we would never loop
-          // over anything in the for loop in the below else clause.
-          CSOCDequeDeque newPermutation;
-          newPermutation.push_back(pE);
-          
-          permutations.push_back(newPermutation);
-        } else {
-          for (CSOCDequeDequeDeque::iterator loopStartIterator = loopStart.begin(), endIterator = loopStart.end();
-               loopStartIterator != endIterator; ++loopStartIterator) {
-            CSOCDequeDeque& path = *loopStartIterator;
-            
-            CSOCDequeDeque newPermutation;
-            cloneComplexSelectorDeque(path, newPermutation, ctx);
-            newPermutation.push_back(pE);
-            
-            permutations.push_back(newPermutation);
-          }
-        }
-        
-      }
-      
-      loopStart = permutations;
-    }
-    
-    out = loopStart;
-    */
-  }
-  
-  // TODO: replace paths with this function
-  /*
-  template<typename ContentType>
-  void pathsGeneral(deque<deque<ContentType> >& source, deque<deque<ContentType> >& out, Context& ctx) {
-		typedef deque<ContentType> Deque;
-    typedef deque<Deque> DequeDeque;
-
-    DequeDeque loopStart;
-
-    for (typename DequeDeque::iterator arrsIterator = source.begin(), endIterator = source.end();
-         arrsIterator != endIterator; ++arrsIterator) {
-      
-      Deque& arr = *arrsIterator;
-      
-    	DequeDeque permutations;
-
-      for (typename Deque::iterator arrIterator = arr.begin(), endIterator = arr.end();
-           arrIterator != endIterator; ++arrIterator) {
-      	Complex_Selector* pE = (*arrIterator)->clone(ctx);
-    
-        if (loopStart.size() == 0) {
-          // When the loopStart has nothing in it, we're on the first iteration. The new permutation
-          // is just the current Complex_Selector*. Without this special case, we would never loop
-          // over anything in the for loop in the below else clause.
-          Deque newPermutation;
-          newPermutation.push_back(pE);
-          
-          permutations.push_back(newPermutation);
-        } else {
-          for (typename DequeDeque::iterator loopStartIterator = loopStart.begin(), endIterator = loopStart.end();
-               loopStartIterator != endIterator; ++loopStartIterator) {
-            Deque& path = *loopStartIterator;
-            
-            Deque newPermutation;
-            cloneComplexSelectorDeque(path, newPermutation, ctx);
-            newPermutation.push_back(pE);
-            
-            permutations.push_back(newPermutation);
-          }
-        }
-        
-      }
-      
-      loopStart = permutations;
-    }
-    
-    out = loopStart;
-  }
-  */
-
-  
 
   // complexSelectorDequeContains checks if an equivalent Complex_Selector to the one passed in is contained within the
   // passed in ComplexSelectorDeque. This is necessary because the deque contains pointers, and pointer comparison yields
@@ -1958,10 +1354,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
     }
     Complex_Selector* pTwo;
   };
-  bool complexSelectorDequeContainsImpl(const Complex_Selector& one, const Complex_Selector* pTwo) {
-    return (!(one < *pTwo) && !(*pTwo < one));
-  }
-  bool complexSelectorDequeContains(ComplexSelectorDeque& deque, Complex_Selector* pComplexSelector) {
+  static bool complexSelectorDequeContains(ComplexSelectorDeque& deque, Complex_Selector* pComplexSelector) {
     ComplexSelectorPointerComparator comparator = { pComplexSelector };
     
     return std::find_if(
@@ -1975,7 +1368,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
 
   // This forward declaration is needed since extendComplexSelector calls extendCompoundSelector, which may recursively
   // call extendComplexSelector again.
-  void extendComplexSelector(
+  static void extendComplexSelector(
     Complex_Selector* pComplexSelector,
     Context& ctx,
     ExtensionSubsetMap& subsetMap,
@@ -1996,7 +1389,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
    - IMPROVEMENT: The search for uniqueness at the end is not ideal since it's has to loop over everything...
    - IMPROVEMENT: Check if the final search for uniqueness is doing anything that extendComplexSelector isn't already doing...
    */
-  void extendCompoundSelector(
+  static void extendCompoundSelector(
   	Compound_Selector* pSelector,
     Complex_Selector::Combinator sourceCombinator,
     Context& ctx,
@@ -2119,7 +1512,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
      the combinator and compound selector are one unit
      next [[sseq_or_op]] unless sseq_or_op.is_a?(SimpleSequence)
    */
-  void extendComplexSelector(
+  static void extendComplexSelector(
   	Complex_Selector* pComplexSelector,
     Context& ctx,
     ExtensionSubsetMap& subsetMap,
@@ -2232,7 +1625,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
      - Improvement: searching through deque with std::find is probably slow
      - Improvement: can we just use one deque?
      */
-  Selector_List* extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subsetMap) {
+  static Selector_List* extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subsetMap) {
 
     To_String to_string;
 
@@ -2260,7 +1653,7 @@ void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& we
 
   
   // Extend a ruleset by extending the selectors and updating them on the ruleset. The block's rules don't need to change.
-  void extendRuleset(Ruleset* pRuleset, Context& ctx, ExtensionSubsetMap& subsetMap) {
+  static void extendRuleset(Ruleset* pRuleset, Context& ctx, ExtensionSubsetMap& subsetMap) {
     To_String to_string;
 
     Selector_List* pNewSelectorList = extendSelectorList(static_cast<Selector_List*>(pRuleset->selector()), ctx, subsetMap);

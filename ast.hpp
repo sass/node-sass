@@ -1198,10 +1198,16 @@ namespace Sass {
     }
     virtual bool is_pseudo_element()
     {
-      return name() == ":before"       || name() == "::before"     ||
-             name() == ":after"        || name() == "::after"      ||
-             name() == ":first-line"   || name() == "::first-line" ||
-             name() == ":first-letter" || name() == "::first-letter";
+      if (name() == ":before"       || name() == "::before"     ||
+          name() == ":after"        || name() == "::after"      ||
+          name() == ":first-line"   || name() == "::first-line" ||
+          name() == ":first-letter" || name() == "::first-letter") {
+        return true;
+      }
+      else {
+      	// If it's not a known pseudo-element, check whether it looks like one. This is similar to the type method on the Pseudo class in ruby sass.
+        return name().find("::") == 0;
+      }
     }
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
     ATTACH_OPERATIONS();
