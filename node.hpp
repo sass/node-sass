@@ -55,7 +55,7 @@ namespace Sass {
     Complex_Selector::Combinator combinator() const { return mCombinator; }
     
     Complex_Selector* selector() { return mpSelector; }
-    const Complex_Selector* const selector() const { return mpSelector; }
+    const Complex_Selector* selector() const { return mpSelector; }
     
     NodeDequePtr collection() { return mpCollection; }
     const NodeDequePtr collection() const { return mpCollection; }
