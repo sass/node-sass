@@ -152,10 +152,34 @@ namespace Sass {
 
     Simple_Selector* lbase = base();
     Simple_Selector* rbase = rhs->base();
+    
+    // Check if pseudo-elements are the same between the selectors
+    
+    set<string> lpsuedoset, rpsuedoset;
+    for (size_t i = 0, L = length(); i < L; ++i)
+    {
+    	if ((*this)[i]->is_pseudo_element()) {
+      	string pseudo((*this)[i]->perform(&to_string));
+        pseudo = pseudo.substr(pseudo.find_first_not_of(":")); // strip off colons to ensure :after matches ::after since ruby sass is forgiving
+      	lpsuedoset.insert(pseudo);
+      }
+    }
+    for (size_t i = 0, L = rhs->length(); i < L; ++i)
+    {
+    	if ((*rhs)[i]->is_pseudo_element()) {
+      	string pseudo((*rhs)[i]->perform(&to_string));
+        pseudo = pseudo.substr(pseudo.find_first_not_of(":")); // strip off colons to ensure :after matches ::after since ruby sass is forgiving
+	    	rpsuedoset.insert(pseudo);
+      }
+    }
+  	if (lpsuedoset != rpsuedoset) {
+      return false;
+    }
+
+		// Check the Simple_Selectors
 
     set<string> lset, rset;
 
-    // TODO: check pseudo-elements once we store semantic info for them
     if (!lbase) // no lbase; just see if the left-hand qualifiers are a subset of the right-hand selector
     {
       for (size_t i = 0, L = length(); i < L; ++i)
