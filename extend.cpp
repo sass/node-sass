@@ -247,7 +247,7 @@ namespace Sass {
       return false;
     }
     
-    for (int index = 0; index < one.size(); index++) {
+    for (size_t index = 0; index < one.size(); index++) {
       Complex_Selector* pOne = one[index];
       Complex_Selector* pTwo = two[index];
 

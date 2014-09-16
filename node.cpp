@@ -219,7 +219,7 @@ namespace Sass {
   // mergedQualifiers - are just appended as they're encountered
   bool unifySelector(const Node& sel, string& mergedTypes, stringstream& mergedQualifiers) {
     Compound_Selector* pSel = sel.selector()->head();
-    for (int i=0; i<pSel->length(); i++) {
+    for (size_t i=0; i<pSel->length(); i++) {
       Simple_Selector* next = pSel->elements()[i];
       if (typeid(*next) == typeid(Type_Selector)) {
         if (mergedTypes.length() == 0) {
