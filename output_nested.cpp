@@ -118,7 +118,6 @@ namespace Sass {
   {
     List*  q     = m->media_queries();
     Block* b     = m->block();
-    bool   decls = false;
 
     // JMA - filter out blocks that don't contain any printable statements
     if (!Util::containsAnyPrintableStatements(b)) {
@@ -132,45 +131,54 @@ namespace Sass {
     append_to_buffer(" {\n");
 
     Selector* e = m->selector();
-    bool hoisted = false;
     if (e && b->has_non_hoistable()) {
-      hoisted = true;
+      // JMA - hoisted, output the non-hoistable in a nested block, followed by the hoistable
       ++indentation;
       indent();
       e->perform(this);
       append_to_buffer(" {\n");
-    }
-
-    ++indentation;
-    decls = true;
-    for (size_t i = 0, L = b->length(); i < L; ++i) {
-      Statement* stm = (*b)[i];
-      if (!stm->is_hoistable()) {
-        if (!stm->block()) indent();
-        stm->perform(this);
-        append_to_buffer("\n");
+      
+      ++indentation;
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (!stm->is_hoistable()) {
+          if (!stm->block()) indent();
+          stm->perform(this);
+          append_to_buffer("\n");
+        }
       }
-    }
-    --indentation;
-
-    if (hoisted) {
+      --indentation;
+      
       buffer.erase(buffer.length()-1);
       if (ctx) ctx->source_map.remove_line();
       append_to_buffer(" }\n");
       --indentation;
-    }
-
-    if (decls) ++indentation;
-    if (hoisted) ++indentation;
-    for (size_t i = 0, L = b->length(); i < L; ++i) {
-      Statement* stm = (*b)[i];
-      if (stm->is_hoistable()) {
-        stm->perform(this);
+      
+      ++indentation;
+      ++indentation;
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (stm->is_hoistable()) {
+          stm->perform(this);
+        }
       }
+      --indentation;
+      --indentation;
     }
-    if (hoisted) --indentation;
-    if (decls) --indentation;
-
+    else {
+      // JMA - not hoisted, just output in order
+      ++indentation;
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (!stm->is_hoistable()) {
+          if (!stm->block()) indent();
+        }
+        stm->perform(this);
+        append_to_buffer("\n");
+      }
+      --indentation;
+    }
+    
     buffer.erase(buffer.length()-1);
     if (ctx) ctx->source_map.remove_line();
     append_to_buffer(" }\n");

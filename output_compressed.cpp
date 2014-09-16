@@ -80,28 +80,34 @@ namespace Sass {
     append_singleline_part_to_buffer("{");
 
     Selector* e = m->selector();
-    bool hoisted = false;
     if (e && b->has_non_hoistable()) {
-      hoisted = true;
+      // JMA - hoisted, output the non-hoistable in a nested block, followed by the hoistable
       e->perform(this);
       append_singleline_part_to_buffer("{");
-    }
 
-    for (size_t i = 0, L = b->length(); i < L; ++i) {
-      Statement* stm = (*b)[i];
-      if (!stm->is_hoistable()) {
-        stm->perform(this);
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (!stm->is_hoistable()) {
+          stm->perform(this);
+        }
+      }
+      
+      append_singleline_part_to_buffer("}");
+      
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (stm->is_hoistable()) {
+          stm->perform(this);
+        }
       }
     }
-
-    if (hoisted) {
-      append_singleline_part_to_buffer("}");
-    }
-
-    for (size_t i = 0, L = b->length(); i < L; ++i) {
-      Statement* stm = (*b)[i];
-      if (stm->is_hoistable()) {
-        stm->perform(this);
+    else {
+      // JMA - not hoisted, just output in order
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (!stm->is_hoistable()) {
+          stm->perform(this);
+        }
       }
     }
 
