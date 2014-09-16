@@ -549,23 +549,7 @@ namespace Sass {
     
     return perms;
   }
-  
-  
-  template<typename CompareType>
-  class DefaultLcsComparatorOld {
-  public:
-  	bool operator()(const CompareType& one, const CompareType& two, CompareType& out) const {
-    	// TODO: Is this the correct C++ interpretation?
-      // block ||= proc {|a, b| a == b && a}
-      if (one == two) {
-      	out = one;
-        return true;
-      }
 
-      return false;
-    }
-  };
-  
   
   class LcsCollectionComparator {
   public:
@@ -606,78 +590,6 @@ namespace Sass {
       return false;
     }
   };
-  
-  
-  /*
-  */
-  template<typename DequeContentType, typename ComparatorType>
-  static void lcsBacktrace(const LCSTable& c, const deque<DequeContentType>& x, const deque<DequeContentType>& y, int i, int j, const ComparatorType& comparator, deque<DequeContentType>& out) {
-
-  	if (i == 0 || j == 0) {
-    	return;
-    }
-
-    DequeContentType compareOut;
-    if (comparator(x[i], y[j], compareOut)) {
-    	lcsBacktrace(c, x, y, i - 1, j - 1, comparator, out);
-      out.push_back(compareOut);
-    	return;
-    }
-    
-    if (c[i][j - 1] > c[i - 1][j]) {
-    	lcsBacktrace(c, x, y, i, j - 1, comparator, out);
-      return;
-    }
-    
-    lcsBacktrace(c, x, y, i - 1, j, comparator, out);
-  }
-  
-
-  /*
-  */
-  template<typename DequeContentType, typename ComparatorType>
-  static void lcsTable(const deque<DequeContentType>& x, const deque<DequeContentType>& y, const ComparatorType& comparator, LCSTable& out) {
-
-  	LCSTable c(x.size(), vector<int>(y.size()));
-    
-    // These shouldn't be necessary since the vector will be initialized to 0 already.
-    // x.size.times {|i| c[i][0] = 0}
-    // y.size.times {|j| c[0][j] = 0}
-
-    for (int i = 1; i < x.size(); i++) {
-    	for (int j = 1; j < y.size(); j++) {
-        DequeContentType compareOut;
-
-      	if (comparator(x[i], y[j], compareOut)) {
-        	c[i][j] = c[i - 1][j - 1] + 1;
-        } else {
-        	c[i][j] = max(c[i][j - 1], c[i - 1][j]);
-        }
-      }
-    }
-
-    out = c;
-  }
-
-  
-  /*
-  */
-  template<typename DequeContentType, typename ComparatorType>
-  static void lcs(const deque<DequeContentType>& x, const deque<DequeContentType>& y, const ComparatorType& comparator, deque<DequeContentType>& out) {
-    
-    deque<DequeContentType> newX(x);
-    newX.push_front(DequeContentType());
-    deque<DequeContentType> newY(y);
-    newY.push_front(DequeContentType());
-
-    LCSTable table;
-    lcsTable(newX, newY, comparator, table);
-    
-    deque<DequeContentType> backtraceResult;
-    lcsBacktrace(table, newX, newY, newX.size() - 1, newY.size() - 1, comparator, backtraceResult);
-    
-    out = backtraceResult;
-  }
   
   
   static Node groupSelectors(const Node& seq, Context& ctx) {
@@ -1093,25 +1005,6 @@ namespace Sass {
     printComplexSelector(pOne, "SUBWEAVE ONE: ");
     printComplexSelector(pTwo, "SUBWEAVE TWO: ");
 #endif
-    
-    
-    
-    
-    /*
-    // Do the naive implementation. pOne = A B and pTwo = C D ...yields...  A B C D and C D A B
-    // See https://gist.github.com/nex3/7609394 for details.
-    Complex_Selector* pFirstPermutation = pOne->clone(ctx);
-    pFirstPermutation->set_innermost(pTwo->clone(ctx), pFirstPermutation->innermost()->combinator()); // TODO: is this the correct combinator?
-    out.push_back(pFirstPermutation);
-
-    Complex_Selector* pSecondPermutation = pTwo->clone(ctx);
-    pSecondPermutation->set_innermost(pOne->clone(ctx), pSecondPermutation->innermost()->combinator()); // TODO: is this the correct combinator?
-    out.push_back(pSecondPermutation);
-
-    
-    return;*/
-    
-    
     
 
     
