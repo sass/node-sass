@@ -113,8 +113,8 @@ namespace Sass {
     // x.size.times {|i| c[i][0] = 0}
     // y.size.times {|j| c[0][j] = 0}
 
-    for (int i = 1; i < xChildren.size(); i++) {
-    	for (int j = 1; j < yChildren.size(); j++) {
+    for (size_t i = 1; i < xChildren.size(); i++) {
+    	for (size_t j = 1; j < yChildren.size(); j++) {
         Node compareOut = Node::createNil();
 
       	if (comparator(xChildren[i], yChildren[j], compareOut)) {
