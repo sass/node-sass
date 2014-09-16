@@ -5,8 +5,7 @@ var assign = require('object-assign');
 function requireBinding() {
   var v8 = 'v8-' + /[0-9]+\.[0-9]+/.exec(process.versions.v8)[0];
   var candidates = [
-    [__dirname, 'build', 'Release', 'binding.node'],
-    [__dirname, 'build', 'Debug', 'binding.node'],
+    [__dirname, 'build', 'Release', 'obj.target', 'binding.node'],
     [__dirname, 'bin', process.platform + '-' + process.arch + '-' + v8, 'binding.node']
   ];
   var candidate;
@@ -43,7 +42,6 @@ var prepareOptions = function (options) {
   var error;
   var stats;
   var sourceComments;
-  var sourceMap;
 
   options = options || {};
   success = options.success;
@@ -51,23 +49,9 @@ var prepareOptions = function (options) {
   stats = options.stats || {};
 
   sourceComments = options.source_comments || options.sourceComments;
-
   if (options.sourceMap && !sourceComments) {
     sourceComments = 'map';
   }
-
-  if (typeof options.outFile === 'string' && typeof options.file === 'string' && path.resolve(options.outFile) === path.normalize(options.outFile).replace(new RegExp(path.sep + '$'), '' )) {
-    options.outFile = path.resolve(path.dirname(options.file), options.outFile);
-  }
-
-  sourceMap = options.sourceMap;
-
-  if ((typeof sourceMap !== 'string' || !sourceMap.trim()) && sourceComments === 'map') {
-    sourceMap = options.outFile !== null ? options.outFile + '.map' : '';
-  } else if (options.outFile && sourceMap) {
-    sourceMap = path.resolve(path.dirname(options.file), sourceMap);
-  }
-
   prepareStats(options, stats);
 
   return {
@@ -78,9 +62,8 @@ var prepareOptions = function (options) {
     imagePath: options.image_path || options.imagePath || '',
     style: SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0,
     comments: SASS_SOURCE_COMMENTS[sourceComments] || 0,
-    omitSourceMapUrl: options.omitSourceMapUrl,
     stats: stats,
-    sourceMap: sourceMap,
+    sourceMap: options.sourceMap,
     precision: parseInt(options.precision) || 5,
     success: function onSuccess(css, sourceMap) {
       finishStats(stats, sourceMap);
@@ -167,7 +150,7 @@ exports.renderFile = function(options) {
   options = assign({}, options);
   success = options.success;
   if (options.sourceMap === true) {
-    options.sourceMap = options.outFile + '.map';
+    options.sourceMap = path.basename(options.outFile) + '.map';
   }
   options.success = function(css, sourceMap) {
     fs.writeFile(options.outFile, css, function(err) {

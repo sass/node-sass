@@ -51,17 +51,10 @@
           'msvs_settings': {
             'VCCLCompilerTool': {
               'AdditionalOptions': [
-                '/GR',
-                '/EHsc'
+                '/GR'
               ]
             }
-          },
-          'msvs_disabled_warnings': [
-            # conversion from `double` to `size_t`, possible loss of data
-            4244,
-            # decorated name length exceeded
-            4503
-          ]
+          }
         }]
       ]
     }
