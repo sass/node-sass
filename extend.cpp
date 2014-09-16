@@ -1649,16 +1649,17 @@ namespace Sass {
 
   
   // Extend a ruleset by extending the selectors and updating them on the ruleset. The block's rules don't need to change.
-  static void extendRuleset(Ruleset* pRuleset, Context& ctx, ExtensionSubsetMap& subsetMap) {
+  template <typename ObjectWithSelectorType>
+  static void extendObjectWithSelector(ObjectWithSelectorType* pObjectWithSelector, Context& ctx, ExtensionSubsetMap& subsetMap) {
     To_String to_string;
 
-    Selector_List* pNewSelectorList = extendSelectorList(static_cast<Selector_List*>(pRuleset->selector()), ctx, subsetMap);
+    Selector_List* pNewSelectorList = extendSelectorList(static_cast<Selector_List*>(pObjectWithSelector->selector()), ctx, subsetMap);
 
     if (pNewSelectorList) {
       // re-parse in order to restructure expanded placeholder nodes correctly.
       //
       // TODO: I don't know if this is needed, but it was in the original C++ implementation, so I kept it. Try running the tests without re-parsing.
-      pRuleset->selector(
+      pObjectWithSelector->selector(
         Parser::from_c_str(
           (pNewSelectorList->perform(&to_string) + ";").c_str(),
           ctx,
@@ -1684,24 +1685,18 @@ namespace Sass {
 
   void Extend::operator()(Ruleset* pRuleset)
   {
-    // Deal with extensions in this Ruleset
+    extendObjectWithSelector(pRuleset, ctx, subset_map);
 
-    extendRuleset(pRuleset, ctx, subset_map);
-
-
-    // Iterate into child blocks
-    
-    Block* b = pRuleset->block();
-
-    for (size_t i = 0, L = b->length(); i < L; ++i) {
-      Statement* stm = (*b)[i];
-      stm->perform(this);
-    }
+    pRuleset->block()->perform(this);
   }
 
-  void Extend::operator()(Media_Block* m)
+  void Extend::operator()(Media_Block* pMediaBlock)
   {
-    m->block()->perform(this);
+    if (pMediaBlock->selector()) {
+      extendObjectWithSelector(pMediaBlock, ctx, subset_map);
+    }
+    
+    pMediaBlock->block()->perform(this);
   }
 
   void Extend::operator()(At_Rule* a)
