@@ -3,6 +3,7 @@
 #include "ast.hpp"
 #include "context.hpp"
 #include "to_string.hpp"
+#include "util.hpp"
 
 namespace Sass {
   using namespace std;
@@ -68,6 +69,11 @@ namespace Sass {
     List*  q     = m->media_queries();
     Block* b     = m->block();
 
+    // JMA - filter out blocks that don't contain any printable statements
+    if (!Util::containsAnyPrintableStatements(b)) {
+      return;
+    }
+    
     ctx->source_map.add_mapping(m);
     append_singleline_part_to_buffer("@media ");
     q->perform(this);
