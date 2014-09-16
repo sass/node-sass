@@ -29,6 +29,7 @@ if (!{ia32: true, x64: true, arm: true}.hasOwnProperty(arch)) {
 
 // Test for pre-built library
 var modPath = platform + '-' + arch + '-v8-' + v8;
+console.log(modPath);
 if (!force && !process.env.SKIP_NODE_SASS_TESTS) {
   try {
     fs.statSync(path.join(__dirname, 'bin', modPath, 'binding.node'));

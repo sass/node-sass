@@ -1,5 +1,9 @@
 {
-  "author": "Andrew Nesbitt <andrewnez@gmail.com> (http://andrew.github.com)",
+  "author": {
+    "name": "Andrew Nesbitt",
+    "email": "andrewnez@gmail.com",
+    "url": "http://andrew.github.com"
+  },
   "name": "node-sass",
   "description": "wrapper around libsass",
   "version": "0.9.3",
@@ -41,21 +45,47 @@
     "chalk": "~0.4.0",
     "mkdirp": "~0.3.5",
     "mocha": "~1.18.2",
-    "nan": "~1.3.0",
+    "nan": "~1.0.0",
     "node-watch": "~0.3.4",
     "object-assign": "^0.3.1",
+    "optimist": "~0.6.1",
     "shelljs": "~0.2.6",
     "sinon": "~1.9.1",
-    "node-sass-middleware": "~0.2.0",
-    "yargs": "~1.3.1",
-    "get-stdin": "~3.0.0"
+    "node-sass-middleware": "~0.2.0"
   },
   "devDependencies": {
-    "coveralls": "^2.11.1",
-    "cross-spawn": "^0.2.3",
-    "jscoverage": "^0.5.6",
-    "jshint": "^2.5.5",
-    "mocha-lcov-reporter": "^0.0.1",
-    "object-assign": "^0.3.1"
-  }
+    "coveralls": "~2.10.0",
+    "jscoverage": "~0.3.8",
+    "jshint": "~2.5.0",
+    "mocha-lcov-reporter": "~0.0.1"
+  },
+  "_id": "node-sass@0.9.3",
+  "dist": {
+    "shasum": "f6d9c192aa77ac2a760541938d275cf157360fa9",
+    "tarball": "http://registry.npmjs.org/node-sass/-/node-sass-0.9.3.tgz"
+  },
+  "_from": "node-sass@",
+  "_npmVersion": "1.4.6",
+  "_npmUser": {
+    "name": "andrewnez",
+    "email": "andrewnez@gmail.com"
+  },
+  "maintainers": [
+    {
+      "name": "andrewnez",
+      "email": "andrewnez@gmail.com"
+    },
+    {
+      "name": "deanmao",
+      "email": "deanmao@gmail.com"
+    },
+    {
+      "name": "laurentgoderre",
+      "email": "laurent.goderre@gmail.com"
+    }
+  ],
+  "directories": {},
+  "_shasum": "f6d9c192aa77ac2a760541938d275cf157360fa9",
+  "_resolved": "https://registry.npmjs.org/node-sass/-/node-sass-0.9.3.tgz",
+  "readme": "ERROR: No README data found!"
 }

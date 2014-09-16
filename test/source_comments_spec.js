@@ -1,7 +1,7 @@
 var sass = require('../sass');
 var assert = require('assert');
 
-var sampleFilename = require('path').resolve(__dirname, 'sample.scss').replace(/\\/g, '/');
+var sampleFilename = require('path').resolve(__dirname, 'sample.scss');
 
 var expectedCommentsScssStr = '/* line 1, ' + sampleFilename + ' */\n\
 #navbar {\n\

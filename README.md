@@ -153,15 +153,7 @@ console.log(stats);
 
 * In the case that both `file` and `data` options are set, node-sass will only attempt to honour the `file` directive.
 
-## Integrations
-
-Listing of community uses of node-sass in build tools and frameworks.
-
-### Brunch plugin
-
-[Brunch](http://brunch.io)'s official sass plugin uses node-sass by default, and automatically falls back to ruby if use of Compass is detected: <https://github.com/brunch/sass-brunch>
-
-### Connect/Express middleware
+## Connect/Express middleware
 
 Recompile `.scss` files automatically for connect and express based http servers
 
@@ -180,42 +172,37 @@ var server = connect.createServer(
 
 Heavily inspired by <https://github.com/LearnBoost/stylus>
 
-### DocPad Plugin
+## DocPad Plugin
 
 [@jking90](https://github.com/jking90) wrote a [DocPad](http://docpad.org/) plugin that compiles `.scss` files using node-sass: <https://github.com/jking90/docpad-plugin-nodesass>
 
-### Duo.js extension
-
-[@stephenway](https://github.com/stephenway) has created an extension that transpiles Sass to CSS using node-sass with [duo.js](http://duojs.org/)
-<https://github.com/duojs/sass>
-
-### Grunt extension
+## Grunt extension
 
 [@sindresorhus](https://github.com/sindresorhus/) has created a set of grunt tasks based on node-sass: <https://github.com/sindresorhus/grunt-sass>
 
-### Gulp extension
+## Gulp extension
 
 [@dlmanning](https://github.com/dlmanning/) has created a gulp sass plugin based on node-sass: <https://github.com/dlmanning/gulp-sass>
 
-### Harp
+## Harp
 
 [@sintaxi](https://github.com/sintaxi)’s Harp web server implicitly compiles `.scss` files using node-sass: <https://github.com/sintaxi/harp>
 
-### Metalsmith plugin
+## Metalsmith plugin
 
 [@stevenschobert](https://github.com/stevenschobert/) has created a metalsmith plugin based on node-sass: <https://github.com/stevenschobert/metalsmith-sass>
 
-### Meteor plugin
+## Meteor plugin
 
 [@fourseven](https://github.com/fourseven) has created a meteor plugin based on node-sass: <https://github.com/fourseven/meteor-scss>
 
-### Mimosa module
+## Mimosa module
 
 [@dbashford](https://github.com/dbashford) has created a Mimosa module for sass which includes node-sass: <https://github.com/dbashford/mimosa-sass>
 
 ## Example App
 
-There is also an example connect app here: <https://github.com/andrew/node-sass-example>
+There is also an example connect app here: <https://github.com/sass/node-sass-example>
 
 ## Rebuilding binaries
 
@@ -225,7 +212,6 @@ Check out the project:
 
     git clone --recursive https://github.com/sass/node-sass.git
     cd node-sass
-    git submodule update --init --recursive
     npm install
     npm install -g node-gyp
     node-gyp rebuild

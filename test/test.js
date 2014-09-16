@@ -260,26 +260,6 @@ describe('render to file', function() {
     });
   });
 
-  it('should save source paths relative to the sourceMap file', function(done) {
-    var includedFilesFile = path.resolve(__dirname, 'included_files.scss');
-    var relativeOutFile = path.resolve(__dirname, 'some_path/out.scss');
-    sass.renderFile({
-      file: includedFilesFile,
-      outFile: relativeOutFile,
-      sourceMap: true,
-      success: function (cssFile, sourceMapFile) {
-        var mapObject = JSON.parse(filesWritten[sourceMapFile]);
-        assert.ok(mapObject.sources.indexOf('../included_files.scss') > -1);
-        assert.ok(mapObject.sources.indexOf('../sample.scss') > -1);
-        assert.ok(mapObject.sources.indexOf('../image_path.scss') > -1);
-        done();
-      },
-      error: function (error) {
-        done(error);
-      }
-    });
-  });
-
 });
 
 describe('precision support', function() {
