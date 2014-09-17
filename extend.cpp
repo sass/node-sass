@@ -341,7 +341,7 @@ namespace Sass {
     // Normally we use the standard STL iterators, but in this case, we need to access the result collection by index since we're
     // iterating the input collection, computing a value, and then setting the result in the output collection. We have to keep track
     // of the index manually.
-    int resultIndex = 0;
+    int toTrimIndex = 0;
 
     for (ComplexSelectorDequeDeque::iterator toTrimIterator = toTrim.begin(), toTrimIteratorEnd = toTrim.end(); toTrimIterator != toTrimIteratorEnd; ++toTrimIterator) {
     	ComplexSelectorDeque& seqs1 = *toTrimIterator;
@@ -376,6 +376,8 @@ namespace Sass {
 
         bool isMoreSpecificOuter = false;
 
+				int resultIndex = 0;
+
         for (ComplexSelectorDequeDeque::iterator resultIterator = result.begin(), resultIteratorEnd = result.end(); resultIterator != resultIteratorEnd; ++resultIterator) {
           ComplexSelectorDeque& seqs2 = *resultIterator;
 
@@ -384,7 +386,8 @@ namespace Sass {
 //          printComplexSelectorDeque(seqs2, "SEQS2: ");
 #endif
 
-          if (complexSelectorDequesEqual(seqs1, seqs2)) {
+					// Do not compare the same sequence to itself
+          if (toTrimIndex == resultIndex) {
 //            DEBUG_PRINTLN("CONTINUE")
             continue;
           }
@@ -410,6 +413,8 @@ namespace Sass {
             isMoreSpecificOuter = true;
             break;
           }
+          
+          resultIndex++;
         }
         
         if (!isMoreSpecificOuter) {
@@ -418,9 +423,9 @@ namespace Sass {
         }
       }
 
-      result[resultIndex] = tempResult;
+      result[toTrimIndex] = tempResult;
 
-      resultIndex++;
+      toTrimIndex++;
     }
     
     
