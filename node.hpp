@@ -61,9 +61,13 @@ namespace Sass {
     const NodeDequePtr collection() const { return mpCollection; }
     
     static Node createCombinator(const Complex_Selector::Combinator& combinator);
+
+    // This method will clone the selector, stripping off the tail and combinator
     static Node createSelector(Complex_Selector* pSelector, Context& ctx);
+    
     static Node createCollection();
     static Node createCollection(const NodeDeque& values);
+
     static Node createNil();
     
     Node clone(Context& ctx) const;
