@@ -568,15 +568,6 @@ namespace Sass {
         end
       */
 
-//      cerr << "S1:" << one << endl;
-//      cerr << "S2:" << two << endl;
-//
-//      bool b1 = (one == two);
-//      bool b2 = (one.collection()->front().isSelector() && two.collection()->front().isSelector());
-//      bool b3 = (parentSuperselector(one, two, mCtx));
-//      bool b4 = (parentSuperselector(two, one, mCtx));
-//      cerr << b1 << " " << b2 << " " << b3 << " " << b4 << endl;
-      
       if (one == two) {
       	out = one;
         return true;
