@@ -240,8 +240,7 @@ namespace Sass {
   }
   
   
-  // Compare two ComplexSelectorDeques to see if they are equivalent. This uses the Complex_Selector operator< so it will compare
-  // the Complex_Selector's contents instead of just the pointers.
+  // Compare two ComplexSelectorDeques to see if they are equivalent.
   static bool complexSelectorDequesEqual(ComplexSelectorDeque& one, ComplexSelectorDeque& two) {
     if (one.size() != two.size()) {
       return false;
@@ -251,7 +250,7 @@ namespace Sass {
       Complex_Selector* pOne = one[index];
       Complex_Selector* pTwo = two[index];
 
-      if (*pOne < *pTwo || *pTwo < *pOne) {
+      if (*pOne != *pTwo) {
         return false;
       }
     }
@@ -381,8 +380,8 @@ namespace Sass {
           ComplexSelectorDeque& seqs2 = *resultIterator;
 
 #ifdef DEBUG
-//          printSelectors(seqs1, "SEQS1: ");
-//          printSelectors(seqs2, "SEQS2: ");
+//          printComplexSelectorDeque(seqs1, "SEQS1: ");
+//          printComplexSelectorDeque(seqs2, "SEQS2: ");
 #endif
 
           if (complexSelectorDequesEqual(seqs1, seqs2)) {
@@ -1350,7 +1349,7 @@ namespace Sass {
   {
     bool operator()(Complex_Selector* const pOne)
     {
-      return (!(*pOne < *pTwo) && !(*pTwo < *pOne));
+      return *pOne == *pTwo;
     }
     Complex_Selector* pTwo;
   };
@@ -1528,6 +1527,8 @@ namespace Sass {
     while(pCurrentComplexSelector)
     {
       Compound_Selector* pCompoundSelector = pCurrentComplexSelector->head();
+      
+      cerr << "LOOP: " << pCompoundSelector->perform(&to_string) << endl;
 
       ComplexSelectorDeque extended;
       extendCompoundSelector(pCompoundSelector, pCurrentComplexSelector->combinator(), ctx, subsetMap, seen, extended /*out*/);

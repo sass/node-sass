@@ -81,6 +81,7 @@ namespace Sass {
     size_t length() const   { return elements_.size(); }
     bool empty() const      { return elements_.empty(); }
     T& operator[](size_t i) { return elements_[i]; }
+    const T& operator[](size_t i) const { return elements_[i]; }
     Vectorized& operator<<(T element)
     {
       elements_.push_back(element);
@@ -93,6 +94,7 @@ namespace Sass {
       return *this;
     }
     vector<T>& elements() { return elements_; }
+    const vector<T>& elements() const { return elements_; }
     vector<T>& elements(vector<T>& e) { elements_ = e; return elements_; }
   };
   template <typename T>
@@ -1092,6 +1094,11 @@ namespace Sass {
     virtual ~Simple_Selector() = 0;
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
     virtual bool is_pseudo_element() { return false; }
+    
+    bool operator==(const Simple_Selector& rhs) const;
+    inline bool operator!=(const Simple_Selector& rhs) const { return !(*this == rhs); }
+    
+    bool operator<(const Simple_Selector& rhs) const;
   };
   inline Simple_Selector::~Simple_Selector() { }
 
@@ -1254,6 +1261,10 @@ namespace Sass {
     virtual Selector_Placeholder* find_placeholder();
     Simple_Selector* base()
     {
+    	// Implement non-const in terms of const. Safe to const_cast since this method is non-const
+      return const_cast<Simple_Selector*>(static_cast<const Compound_Selector*>(this)->base());
+    }
+    const Simple_Selector* const base() const {
       if (length() > 0 && typeid(*(*this)[0]) == typeid(Type_Selector))
         return (*this)[0];
       return 0;
@@ -1273,6 +1284,9 @@ namespace Sass {
              !static_cast<Selector_Reference*>((*this)[0])->selector();
     }
     vector<string> to_str_vec(); // sometimes need to convert to a flat "by-value" data structure
+    
+    bool operator==(const Compound_Selector& rhs) const;
+    inline bool operator!=(const Compound_Selector& rhs) const { return !(*this == rhs); }
 
     SourcesSet& sources() { return sources_; }
     
@@ -1322,9 +1336,8 @@ namespace Sass {
       return sum;
     }
     bool operator<(const Complex_Selector& rhs) const;
-    bool operator==(const Complex_Selector& rhs) const {
-      return (!(*this < rhs) && !(rhs < *this));
-    }
+    bool operator==(const Complex_Selector& rhs) const;
+    inline bool operator!=(const Complex_Selector& rhs) const { return !(*this == rhs); }
     SourcesSet sources()
     {
       //s = Set.new

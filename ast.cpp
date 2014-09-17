@@ -22,6 +22,36 @@ namespace Sass {
     return const_cast<Complex_Selector*>(this)->perform(&to_string) <
            const_cast<Complex_Selector&>(rhs).perform(&to_string);
   }
+  
+  bool Complex_Selector::operator==(const Complex_Selector& rhs) const {
+  	// TODO: We have to access the tail directly using tail_ since ADD_PROPERTY doesn't provide a const version.
+
+  	const Complex_Selector* pOne = this;
+    const Complex_Selector* pTwo = &rhs;
+    
+    // Consume any empty references at the beginning of the Complex_Selector
+    if (pOne->combinator() == Complex_Selector::ANCESTOR_OF && pOne->head()->is_empty_reference()) {
+    	pOne = pOne->tail_;
+    }
+    if (pTwo->combinator() == Complex_Selector::ANCESTOR_OF && pTwo->head()->is_empty_reference()) {
+    	pTwo = pTwo->tail_;
+    }
+    
+    while (pOne && pTwo) {
+    	if (pOne->combinator() != pTwo->combinator()) {
+      	return false;
+      }
+      
+      if (*(pOne->head()) != *(pTwo->head())) {
+      	return false;
+      }
+
+    	pOne = pOne->tail_;
+      pTwo = pTwo->tail_;
+    }
+    
+    return pOne == NULL && pTwo == NULL;
+  }
 
   Compound_Selector* Compound_Selector::unify_with(Compound_Selector* rhs, Context& ctx)
   {
@@ -32,6 +62,29 @@ namespace Sass {
       else          unified = (*this)[i]->unify_with(unified, ctx);
     }
     return unified;
+  }
+  
+  bool Simple_Selector::operator==(const Simple_Selector& rhs) const
+  {
+  	// Compare the string representations for equality.
+
+  	// Cast away const here. To_String should take a const object, but it doesn't.
+  	Simple_Selector* pLHS = const_cast<Simple_Selector*>(this);
+    Simple_Selector* pRHS = const_cast<Simple_Selector*>(&rhs);
+
+    To_String to_string;
+    return pLHS->perform(&to_string) == pRHS->perform(&to_string);
+  }
+  
+  bool Simple_Selector::operator<(const Simple_Selector& rhs) const {
+		// Use the string representation for ordering.
+
+  	// Cast away const here. To_String should take a const object, but it doesn't.
+  	Simple_Selector* pLHS = const_cast<Simple_Selector*>(this);
+    Simple_Selector* pRHS = const_cast<Simple_Selector*>(&rhs);
+    
+    To_String to_string;
+    return pLHS->perform(&to_string) < pRHS->perform(&to_string);
   }
 
   Compound_Selector* Simple_Selector::unify_with(Compound_Selector* rhs, Context& ctx)
@@ -205,6 +258,60 @@ namespace Sass {
     }
     // catch-all
     return false;
+  }
+  
+  bool Compound_Selector::operator==(const Compound_Selector& rhs) const {
+    To_String to_string;
+    
+    // Check if pseudo-elements are the same between the selectors
+    
+    set<string> lpsuedoset, rpsuedoset;
+    for (size_t i = 0, L = length(); i < L; ++i)
+    {
+    	if ((*this)[i]->is_pseudo_element()) {
+      	string pseudo((*this)[i]->perform(&to_string));
+        pseudo = pseudo.substr(pseudo.find_first_not_of(":")); // strip off colons to ensure :after matches ::after since ruby sass is forgiving
+      	lpsuedoset.insert(pseudo);
+      }
+    }
+    for (size_t i = 0, L = rhs.length(); i < L; ++i)
+    {
+    	if (rhs[i]->is_pseudo_element()) {
+      	string pseudo(rhs[i]->perform(&to_string));
+        pseudo = pseudo.substr(pseudo.find_first_not_of(":")); // strip off colons to ensure :after matches ::after since ruby sass is forgiving
+	    	rpsuedoset.insert(pseudo);
+      }
+    }
+  	if (lpsuedoset != rpsuedoset) {
+      return false;
+    }
+
+		// Check the base
+    
+    const Simple_Selector* const lbase = base();
+    const Simple_Selector* const rbase = rhs.base();
+    
+    if ((lbase && !rbase) ||
+    	(!lbase && rbase) ||
+      ((lbase && rbase) && (*lbase != *rbase))) {
+			return false;
+    }
+    
+    
+    // Check the rest of the SimpleSelectors
+    // Use string representations. We can't create a set of Simple_Selector pointers because std::set == std::set is going to call ==
+    // on the pointers to determine equality. I don't know of a way to pass in a comparison object. The one you can specify as part of
+    // the template type is used for ordering, but not equality. We also can't just put in non-pointer Simple_Selectors because the
+    // class is intended to be subclassed, and we'd get splicing.
+    
+    set<string> lset, rset;
+    
+    for (size_t i = 0, L = length(); i < L; ++i)
+    { lset.insert((*this)[i]->perform(&to_string)); }
+    for (size_t i = 0, L = rhs.length(); i < L; ++i)
+    { rset.insert(rhs[i]->perform(&to_string)); }
+    
+    return lset == rset;
   }
   
   bool Complex_Selector_Pointer_Compare::operator() (const Complex_Selector* const pLeft, const Complex_Selector* const pRight) const {
