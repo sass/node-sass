@@ -1264,7 +1264,7 @@ namespace Sass {
     	// Implement non-const in terms of const. Safe to const_cast since this method is non-const
       return const_cast<Simple_Selector*>(static_cast<const Compound_Selector*>(this)->base());
     }
-    const Simple_Selector* const base() const {
+    const Simple_Selector* base() const {
       if (length() > 0 && typeid(*(*this)[0]) == typeid(Type_Selector))
         return (*this)[0];
       return 0;
