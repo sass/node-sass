@@ -1,6 +1,20 @@
 CXX      ?= g++
-CXXFLAGS = -std=c++11 -stdlib=libc++ -Wall -fPIC -g -DDEBUG
+CXXFLAGS = -std=c++11 -Wall -fPIC -O2
 LDFLAGS  = -fPIC
+
+ifneq (,$(findstring /cygdrive/,$(PATH)))
+	UNAME := Cygwin
+else
+ifneq (,$(findstring WINDOWS,$(PATH)))
+	UNAME := Windows
+else
+	UNAME := $(shell uname -s)
+endif
+endif
+
+ifeq ($(UNAME),Darwin)
+	CXXFLAGS += -stdlib=libc++
+endif
 
 PREFIX    = /usr/local
 LIBDIR    = $(PREFIX)/lib
