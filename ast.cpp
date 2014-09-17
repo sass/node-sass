@@ -131,14 +131,17 @@ namespace Sass {
   {
     // TODO: handle namespaces
 
-    // if this is a universal selector, just return the rhs
+    // if the rhs is empty, just return a copy of this
+    if (rhs->length() == 0) {
+      Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->path(), rhs->position());
+      (*cpy) << this;
+      return cpy;
+    }
+
+    // if this is a universal selector and rhs is not empty, just return the rhs
     if (name() == "*")
     { return new (ctx.mem) Compound_Selector(*rhs); }
     
-    // TODO: Is this the right thing to do?
-    if (rhs->length() == 0) {
-      return 0;
-    }
 
     Simple_Selector* rhs_0 = (*rhs)[0];
     // otherwise, this is a tag name

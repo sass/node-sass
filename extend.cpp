@@ -1420,13 +1420,7 @@ namespace Sass {
         pInnermostCompoundSelector = new (ctx.mem) Compound_Selector(pSelector->path(), pSelector->position());
       }
 
-      if (pInnermostCompoundSelector->length() == 0) {
-        pUnifiedSelector = pSelectorWithoutExtendSelectors;
-      } else if (pSelectorWithoutExtendSelectors->length() == 0) {
-      	pUnifiedSelector = pInnermostCompoundSelector;
-      } else {
-        pUnifiedSelector = pInnermostCompoundSelector->unify_with(pSelectorWithoutExtendSelectors, ctx);
-      }
+      pUnifiedSelector = pInnermostCompoundSelector->unify_with(pSelectorWithoutExtendSelectors, ctx);
       
       if (!pUnifiedSelector || pUnifiedSelector->length() == 0) {
         continue;
