@@ -503,6 +503,7 @@ namespace Sass {
       Color* c = new (ctx.mem) Color(*ctx.names_to_colors[s->value()]);
       c->path(s->path());
       c->position(s->position());
+      c->disp(s->value());
       return c;
     }
     return s;
