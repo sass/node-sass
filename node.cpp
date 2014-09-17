@@ -12,9 +12,12 @@ namespace Sass {
   }
 
     
+  // TODO: Should we warn if a tail exists on pSelector?  This method removes any tail if it exists, so that only a single Compound_Selector is stored in each Node.
   Node Node::createSelector(Complex_Selector* pSelector, Context& ctx) {
     NodeDequePtr null;
-    return Node(SELECTOR, Complex_Selector::ANCESTOR_OF, pSelector->clone(ctx), null /*pCollection*/);
+    Complex_Selector* pCloneWithoutTail = pSelector->clone(ctx);
+    pCloneWithoutTail->tail(NULL);
+    return Node(SELECTOR, Complex_Selector::ANCESTOR_OF, pCloneWithoutTail, null /*pCollection*/);
   }
 
     
