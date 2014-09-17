@@ -1524,7 +1524,9 @@ namespace Sass {
     {
       Compound_Selector* pCompoundSelector = pCurrentComplexSelector->head();
       
+#ifdef DEBUG
       cerr << "LOOP: " << pCompoundSelector->perform(&to_string) << endl;
+#endif
 
       ComplexSelectorDeque extended;
       extendCompoundSelector(pCompoundSelector, pCurrentComplexSelector->combinator(), ctx, subsetMap, seen, extended /*out*/);
