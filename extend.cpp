@@ -62,22 +62,9 @@
 namespace Sass {
 
   
-  typedef deque<Complex_Selector*> ComplexSelectorDeque;
-	typedef deque<ComplexSelectorDeque> ComplexSelectorDequeDeque;
-  
   typedef pair<Complex_Selector*, Compound_Selector*> ExtensionPair;
   typedef vector<ExtensionPair> SubsetMapEntries;
 
-  
-  // Create a Selector_List* from a ComplexSelectorDeque
-  // Complex_Selectors are NOT cloned.
-  static Selector_List* createSelectorListFromDeque(ComplexSelectorDeque& deque, Context& ctx, Selector_List* pSelectorGroupTemplate) {
-    Selector_List* pSelectorGroup = new (ctx.mem) Selector_List(pSelectorGroupTemplate->path(), pSelectorGroupTemplate->position(), pSelectorGroupTemplate->length());
-    for (ComplexSelectorDeque::iterator iterator = deque.begin(), iteratorEnd = deque.end(); iterator != iteratorEnd; ++iterator) {
-      *pSelectorGroup << *iterator;
-    }
-    return pSelectorGroup;
-  }
 
   
 #ifdef DEBUG
@@ -89,20 +76,61 @@ namespace Sass {
       case Complex_Selector::ADJACENT_TO: cerr << "\"+\""; break;
     }
   }
+  
+  
+  ostream& operator<<(ostream& os, Compound_Selector& compoundSelector) {
+		To_String to_string;
+    os << "(" << compoundSelector.perform(&to_string) << ")";
+    return os;
+  }
 
   
   // Print a string representation of a Compound_Selector
   static void printCompoundSelector(Compound_Selector* pCompoundSelector, const char* message=NULL, bool newline=true) {
 		To_String to_string;
+
   	if (message) {
     	cerr << message;
     }
 
-    cerr << "(" << (pCompoundSelector ? pCompoundSelector->perform(&to_string) : "NULL") << ")";
+		if (pCompoundSelector) {
+    	cerr << *pCompoundSelector;
+    } else {
+    	cerr << "NULL";
+    }
 
 		if (newline) {
     	cerr << endl;
     }
+  }
+  
+  
+  ostream& operator<<(ostream& os, Complex_Selector& complexSelector) {
+		To_String to_string;
+    
+    os << "[";
+    Complex_Selector* pIter = &complexSelector;
+    bool first = true;
+    while (pIter) {
+      if (pIter->combinator() != Complex_Selector::ANCESTOR_OF) {
+        if (!first) {
+          os << ", ";
+        }
+        first = false;
+      	printCombinator(pIter->combinator());
+      }
+
+      if (!first) {
+        os << ", ";
+      }
+      first = false;
+      os << pIter->head()->perform(&to_string);
+
+      pIter = pIter->tail();
+    }
+    os << "]";
+
+    return os;
   }
 
   
@@ -114,78 +142,14 @@ namespace Sass {
     	cerr << message;
     }
 
-    cerr << "[";
-    Complex_Selector* pIter = pComplexSelector;
-    bool first = true;
-    while (pIter) {
-      if (pIter->combinator() != Complex_Selector::ANCESTOR_OF) {
-        if (!first) {
-          cerr << ", ";
-        }
-        first = false;
-      	printCombinator(pIter->combinator());
-      }
-
-      if (!first) {
-        cerr << ", ";
-      }
-      first = false;
-      cerr << pIter->head()->perform(&to_string);
-
-      pIter = pIter->tail();
+		if (pComplexSelector) {
+    	cerr << *pComplexSelector;
+    } else {
+    	cerr << "NULL";
     }
-    cerr << "]";
 
 		if (newline) {
     	cerr << endl;
-    }
-  }
-
-  
-  // Print a string representation of a ComplexSelectorDeque
-  static void printComplexSelectorDeque(ComplexSelectorDeque& deque, const char* message=NULL, bool newline=true) {
-  	To_String to_string;
-
-  	if (message) {
-    	cerr << message;
-    }
-    
-    cerr << "[";
-    for (ComplexSelectorDeque::iterator iterator = deque.begin(), iteratorEnd = deque.end(); iterator != iteratorEnd; ++iterator) {
-      Complex_Selector* pComplexSelector = *iterator;
-      if (iterator != deque.begin()) {
-      	cerr << ", ";
-      }
-      printComplexSelector(pComplexSelector, "", false /*newline*/);
-    }
-    cerr << "]";
-    
-    if (newline) {
-      cerr << endl;
-    }
-  }
- 
-  
-  // Print a string representation of a ComplexSelectorDequeDeque
-  static void printComplexSelectorDequeDeque(ComplexSelectorDequeDeque& dequeDeque, const char* message=NULL, bool newline=true) {
-  	To_String to_string;
-    
-  	if (message) {
-    	cerr << message;
-    }
-    
-    cerr << "[";
-    for (ComplexSelectorDequeDeque::iterator iterator = dequeDeque.begin(), iteratorEnd = dequeDeque.end(); iterator != iteratorEnd; ++iterator) {
-      ComplexSelectorDeque& deque = *iterator;
-      if (iterator != dequeDeque.begin()) {
-      	cerr << ", ";
-      }
-      printComplexSelectorDeque(deque, "", false /*newline*/);
-    }
-    cerr << "]";
-    
-    if (newline) {
-      cerr << endl;
     }
   }
 
@@ -212,51 +176,47 @@ namespace Sass {
       cerr << endl;
     }
   }
+  
+  
+  ostream& operator<<(ostream& os, SubsetMapEntries& entries) {
+  	os << "SUBSET_MAP_ENTRIES[";
+
+		for (SubsetMapEntries::iterator iterator = entries.begin(), endIterator = entries.end(); iterator != endIterator; ++iterator) {
+      Complex_Selector* pExtComplexSelector = iterator->first;    // The selector up to where the @extend is (ie, the thing to merge)
+      Compound_Selector* pExtCompoundSelector = iterator->second; // The stuff after the @extend
+      
+      if (iterator != entries.begin()) {
+      	os << ", ";
+      }
+    	
+      os << "(";
+      
+      if (pExtComplexSelector) {
+        cerr << *pExtComplexSelector;
+      } else {
+        cerr << "NULL";
+      }
+
+      os << " -> ";
+
+      if (pExtCompoundSelector) {
+        cerr << *pExtCompoundSelector;
+      } else {
+        cerr << "NULL";
+      }
+
+      os << ")";
+      
+    }
+    
+    os << "]";
+    
+    return os;
+  }
+  
 
 #endif
 
-
-  
-  // Clone the source ComplexSelectorDeque into dest. This WILL clone the Complex_Selectors.
-  static void cloneComplexSelectorDeque(ComplexSelectorDeque& source, ComplexSelectorDeque& dest, Context& ctx) {
-    for (ComplexSelectorDeque::iterator iterator = source.begin(), iteratorEnd = source.end(); iterator != iteratorEnd; ++iterator) {
-      Complex_Selector* pComplexSelector = *iterator;
-			dest.push_back(pComplexSelector->clone(ctx));
-    }
-  }
-  
-  
-  // Clone the source ComplexSelectorDequeDeque into dest. This WILL clone the Complex_Selectors.
-  static void cloneComplexSelectorDequeDeque(ComplexSelectorDequeDeque& source, ComplexSelectorDequeDeque& dest, Context& ctx) {
-    for (ComplexSelectorDequeDeque::iterator iterator = source.begin(), iteratorEnd = source.end(); iterator != iteratorEnd; ++iterator) {
-
-      ComplexSelectorDeque& toClone = *iterator;
-      
-      ComplexSelectorDeque cloned;
-      cloneComplexSelectorDeque(toClone, cloned, ctx);
-
-			dest.push_back(cloned);
-    }
-  }
-  
-  
-  // Compare two ComplexSelectorDeques to see if they are equivalent.
-  static bool complexSelectorDequesEqual(ComplexSelectorDeque& one, ComplexSelectorDeque& two) {
-    if (one.size() != two.size()) {
-      return false;
-    }
-    
-    for (size_t index = 0; index < one.size(); index++) {
-      Complex_Selector* pOne = one[index];
-      Complex_Selector* pTwo = two[index];
-
-      if (*pOne != *pTwo) {
-        return false;
-      }
-    }
-    
-    return true;
-  }
   
 
   /*
@@ -325,32 +285,31 @@ namespace Sass {
   /*
    - IMPROVEMENT: We could probably work directly in the output trimmed deque.
    */
-  static void trim(ComplexSelectorDequeDeque& toTrim, ComplexSelectorDequeDeque& trimmed, Context& ctx) {
+  static Node trim(const Node& seqses, Context& ctx) {
     // See the comments in the above ruby code before embarking on understanding this function.
 
     // Avoid poor performance in extreme cases.
-    if (toTrim.size() > 100) {
-    	trimmed = toTrim;
-      return;
+    if (seqses.collection()->size() > 100) {
+    	return seqses.clone(ctx);
     }
-
-    // Copy the input to a temporary result so we can modify it without
-    ComplexSelectorDequeDeque result;
-    cloneComplexSelectorDequeDeque(toTrim, result, ctx);
+    
+    Node result = seqses.clone(ctx);
     
     // Normally we use the standard STL iterators, but in this case, we need to access the result collection by index since we're
     // iterating the input collection, computing a value, and then setting the result in the output collection. We have to keep track
     // of the index manually.
     int toTrimIndex = 0;
 
-    for (ComplexSelectorDequeDeque::iterator toTrimIterator = toTrim.begin(), toTrimIteratorEnd = toTrim.end(); toTrimIterator != toTrimIteratorEnd; ++toTrimIterator) {
-    	ComplexSelectorDeque& seqs1 = *toTrimIterator;
+    for (NodeDeque::iterator seqsesIter = seqses.collection()->begin(), seqsesIterEnd = seqses.collection()->end(); seqsesIter != seqsesIterEnd; ++seqsesIter) {
+    	Node& seqs1 = *seqsesIter;
       
-      ComplexSelectorDeque tempResult;
-
-      for (ComplexSelectorDeque::iterator seqs1Iterator = seqs1.begin(), seqs1IteratorEnd = seqs1.end(); seqs1Iterator != seqs1IteratorEnd; ++seqs1Iterator) {
-       	Complex_Selector* pSeq1 = *seqs1Iterator;
-  
+      Node tempResult = Node::createCollection();
+      
+      for (NodeDeque::iterator seqs1Iter = seqs1.collection()->begin(), seqs1EndIter = seqs1.collection()->end(); seqs1Iter != seqs1EndIter; ++seqs1Iter) {
+        Node& seq1 = *seqs1Iter;
+        
+        Complex_Selector* pSeq1 = nodeToComplexSelector(seq1, ctx);
+        
         // Compute the maximum specificity. This requires looking at the "sources" of the sequence. See SimpleSequence.sources in the ruby code
         // for a good description of sources.
         //
@@ -361,29 +320,29 @@ namespace Sass {
         // a guess though.
         int maxSpecificity = 0;
         SourcesSet sources = pSeq1->sources();
-
+        
 #ifdef DEBUG
-//        printComplexSelector(pSeq1, "TRIMASDF SEQ1: ");
+//				cerr << "TRIMASDF SEQ1: " << seq1 << endl;
 //        printSourcesSet(sources, "TRIMASDF SOURCES: ");
 #endif
-
+        
         for (SourcesSet::iterator sourcesSetIterator = sources.begin(), sourcesSetIteratorEnd = sources.end(); sourcesSetIterator != sourcesSetIteratorEnd; ++sourcesSetIterator) {
          	const Complex_Selector* const pCurrentSelector = *sourcesSetIterator;
           maxSpecificity = max(maxSpecificity, pCurrentSelector->specificity());
         }
         
 //        DEBUG_PRINTLN("MAX SPECIFIITY: " << maxSpecificity)
-
+        
         bool isMoreSpecificOuter = false;
 
 				int resultIndex = 0;
 
-        for (ComplexSelectorDequeDeque::iterator resultIterator = result.begin(), resultIteratorEnd = result.end(); resultIterator != resultIteratorEnd; ++resultIterator) {
-          ComplexSelectorDeque& seqs2 = *resultIterator;
-
+        for (NodeDeque::iterator resultIter = result.collection()->begin(), resultIterEnd = result.collection()->end(); resultIter != resultIterEnd; ++resultIter) {
+        	Node& seqs2 = *resultIter;
+          
 #ifdef DEBUG
-//          printComplexSelectorDeque(seqs1, "SEQS1: ");
-//          printComplexSelectorDeque(seqs2, "SEQS2: ");
+//					cerr << "SEQS1: " << seqs1 << endl;
+//          cerr << "SEQS2: " << seqs2 << endl;
 #endif
 
 					// Do not compare the same sequence to itself
@@ -391,11 +350,13 @@ namespace Sass {
 //            DEBUG_PRINTLN("CONTINUE")
             continue;
           }
-          
+
           bool isMoreSpecificInner = false;
           
-          for (ComplexSelectorDeque::iterator seqs2Iterator = seqs2.begin(), seqs2IteratorEnd = seqs2.end(); seqs2Iterator != seqs2IteratorEnd; ++seqs2Iterator) {
-            Complex_Selector* pSeq2 = *seqs2Iterator;
+          for (NodeDeque::iterator seqs2Iter = seqs2.collection()->begin(), seqs2IterEnd = seqs2.collection()->end(); seqs2Iter != seqs2IterEnd; ++seqs2Iter) {
+        		Node& seq2 = *seqs2Iter;
+
+            Complex_Selector* pSeq2 = nodeToComplexSelector(seq2, ctx);
             
 //            DEBUG_PRINTLN("SEQ2 SPEC: " << pSeq2->specificity())
 //            DEBUG_PRINTLN("IS SUPER: " << pSeq2->is_superselector_of(pSeq1))
@@ -407,30 +368,31 @@ namespace Sass {
               break;
             }
           }
-          
+
           // If we found something more specific, we're done. Let the outer loop know and stop iterating.
 					if (isMoreSpecificInner) {
             isMoreSpecificOuter = true;
             break;
           }
-          
+
           resultIndex++;
         }
         
         if (!isMoreSpecificOuter) {
 //          DEBUG_PRINTLN("PUSHING")
-          tempResult.push_back(pSeq1);
+          tempResult.collection()->push_back(seq1); // TODO: clone this?
         }
+
       }
-
-      result[toTrimIndex] = tempResult;
-
+      
+      (*result.collection())[toTrimIndex] = tempResult;
+      
       toTrimIndex++;
-    }
+		}
     
-    
-    trimmed = result;
+    return result;
   }
+
 
   
   static bool parentSuperselector(const Node& one, const Node& two, Context& ctx) {
@@ -994,21 +956,24 @@ namespace Sass {
         result
       end
 	*/
-	static void subweave(Complex_Selector* pOne, Complex_Selector* pTwo, ComplexSelectorDeque& out, Context& ctx) {
+	static Node subweave(const Node& one, const Node& two, Context& ctx) {
     // Check for the simple cases
-    if (pOne == NULL) {
-    	out.push_back(pTwo ? pTwo->clone(ctx) : NULL);
-      return;
+    if (one.isNil()) {
+    	Node out = Node::createCollection();
+      out.collection()->push_back(two.clone(ctx));
+      return out;
     }
-		if (pTwo == NULL) {
-    	out.push_back(pOne ? pOne->clone(ctx) : NULL);
-      return;
+		if (two.isNil()) {
+    	Node out = Node::createCollection();
+      out.collection()->push_back(one.clone(ctx));
+      return out;
     }
+
     
 		// Convert to a data structure more equivalent to Ruby so we can perform these complex operations in the same manner.
     // Doing this clones the input, so this is equivalent to the ruby code's .dup
-    Node seq1 = complexSelectorToNode(pOne, ctx);
-    Node seq2 = complexSelectorToNode(pTwo, ctx);
+    Node seq1 = one.clone(ctx);
+    Node seq2 = two.clone(ctx);
     
 #ifdef DEBUG
     DEBUG_PRINTLN("SUBWEAVE ONE: " << seq1)
@@ -1017,7 +982,7 @@ namespace Sass {
 
 		Node init = mergeInitialOps(seq1, seq2, ctx);
     if (init.isNil()) {
-    	return;
+    	return Node::createNil();
     }
     
 #ifdef DEBUG
@@ -1027,7 +992,7 @@ namespace Sass {
     Node res = Node::createCollection();
 		Node fin = mergeFinalOps(seq1, seq2, ctx, res);
     if (fin.isNil()) {
-    	return;
+    	return Node::createNil();
     }
     
     DEBUG_PRINTLN("FIN: " << fin)
@@ -1144,14 +1109,7 @@ namespace Sass {
     DEBUG_PRINTLN("REJECTED: " << pathsResult)
     
   
-    // Convert back to the data type the rest of the code expects.
-    for (NodeDeque::iterator resultIter = pathsResult.collection()->begin(), resultEndIter = pathsResult.collection()->end();
-			resultIter != resultEndIter; ++resultIter) {
-
-    	Node& outNode = *resultIter;
-      out.push_back(nodeToComplexSelector(outNode, ctx));
-
-    }
+  	return pathsResult;
 
   }
   
@@ -1193,182 +1151,102 @@ namespace Sass {
         return befores
       end
  	*/
-	static void weave(ComplexSelectorDeque& toWeave, Context& ctx, ComplexSelectorDeque& weaved /*out*/) {
-
-    ComplexSelectorDeque befores;
-  	befores.push_back(NULL); // this push is necessary for the befores iteration below to do anything. This matches the ruby code initializing befores to [[]].
-
-    ComplexSelectorDeque afters;
-    cloneComplexSelectorDeque(toWeave, afters, ctx);
-
-    while (afters.size() > 0) {
-			Complex_Selector* pCurrent = afters[0]->clone(ctx);
-      afters.pop_front();
-
-      Complex_Selector* pLastCurrent = pCurrent->innermost();
-      if (pCurrent == pLastCurrent) {
-        pCurrent = NULL;
-      } else {
-        // TODO: consider adding popComplexSelector and shiftComplexSelector to since this seems like general functionality that would be useful.
-        Complex_Selector* pIter = pCurrent;
-        while (pIter) {
-          if (pIter->tail() && !pIter->tail()->tail()) {
-            pIter->tail(NULL);
-            break;
-          }
-          
-        	pIter = pIter->tail();
-        }
-      }
-          
-      ComplexSelectorDeque collector; // TODO: figure out what to name this. A name with more context?
-
-      for (ComplexSelectorDeque::iterator iterator = befores.begin(), endIterator = befores.end();
-           iterator != endIterator; ++iterator) {
-        
-        Complex_Selector* pBefore = *iterator;
-        
-        ComplexSelectorDeque sub;
-        subweave(pBefore, pCurrent, sub, ctx);
-        
-        if (sub.empty()) {
-          continue;
-        }
-
-        for (ComplexSelectorDeque::iterator iterator = sub.begin(), endIterator = sub.end();
-             iterator != endIterator; ++iterator) {
-          
-          Complex_Selector* pSequences = *iterator; // TODO: clone this?
-          
-          if (pSequences) {
-          	pSequences->set_innermost(pLastCurrent->clone(ctx), pSequences->innermost()->combinator()); // TODO: is this the correct combinator?
-         	} else {
-						pSequences = pLastCurrent->clone(ctx);
-          }
-          
-          collector.push_back(pSequences);
-        }
-      }
-      
-    	befores = collector;
-    }
-
-  	weaved = befores;
-  }
-  
-
-
   /*
-   This is the equivalent of ruby's Sass::Util.paths.
-   
-   The following is the modified version of the ruby code that was more portable to C++. You
-   should be able to drop it into ruby 3.2.19 and get the same results from ruby sass.
+      def weave(path)
+        befores = [[]]
+        afters = path.dup
 
-    # Return an array of all possible paths through the given arrays.
-    #
-    # @param arrs [Array<Array>]
-    # @return [Array<Arrays>]
-    #
-    # @example
-    #   paths([[1, 2], [3, 4], [5]]) #=>
-    #     # [[1, 3, 5],
-    #     #  [2, 3, 5],
-    #     #  [1, 4, 5],
-    #     #  [2, 4, 5]]
-    def paths(arrs)
-     	// I changed the inject and maps to an iterative approach to make it easier to implement in C++
-      loopStart = [[]]
+        until afters.empty?
+          current = afters.shift.dup
 
-      for arr in arrs do
-        permutations = []
-        for e in arr do
-          for path in loopStart do
-            permutations.push(path + [e])
+          last_current = [current.pop]
+
+
+          tempResult = []
+
+          for before in befores do
+            sub = subweave(before, current)
+
+            if sub.nil?
+              next []
+            end
+
+            
+            for seqs in sub do
+              toPush = seqs + last_current
+
+              tempResult.push(seqs + last_current)
+            end
+
           end
+
+          befores = tempResult
+
         end
-        loopStart = permutations
+
+        return befores
       end
-    end
-	*/
-  static void paths(ComplexSelectorDequeDeque& source, ComplexSelectorDequeDeque& out, Context& ctx) {
-    To_String to_string;
-    
-    ComplexSelectorDequeDeque loopStart;
+  */
+	static Node weave(const Node& path, Context& ctx) {
+  
+  	cerr << "WEAVE: " << path << endl;
+  
+  	Node befores = Node::createCollection();
+    befores.collection()->push_back(Node::createCollection());
 
-    for (ComplexSelectorDequeDeque::iterator arrsIterator = source.begin(), endIterator = source.end();
-         arrsIterator != endIterator; ++arrsIterator) {
-      
-      ComplexSelectorDeque& arr = *arrsIterator;
-      
-    	ComplexSelectorDequeDeque permutations;
+		Node afters = path.clone(ctx);
 
-      for (ComplexSelectorDeque::iterator arrIterator = arr.begin(), endIterator = arr.end();
-           arrIterator != endIterator; ++arrIterator) {
-      	Complex_Selector* pE = (*arrIterator)->clone(ctx);
+		while (!afters.collection()->empty()) {
+    	Node current = afters.collection()->front().clone(ctx);
+      afters.collection()->pop_front();
+      cerr << "CURRENT: " << current << endl;
+      
+      Node last_current = Node::createCollection();
+      last_current.collection()->push_back(current.collection()->back());
+      current.collection()->pop_back();
+      cerr << "CURRENT POST POP: " << current << endl;
+      cerr << "LAST CURRENT: " << last_current << endl;
     
-        if (loopStart.size() == 0) {
-          // When the loopStart has nothing in it, we're on the first iteration. The new permutation
-          // is just the current Complex_Selector*. Without this special case, we would never loop
-          // over anything in the for loop in the below else clause.
-          ComplexSelectorDeque newPermutation;
-          newPermutation.push_back(pE);
-          
-          permutations.push_back(newPermutation);
-        } else {
-          for (ComplexSelectorDequeDeque::iterator loopStartIterator = loopStart.begin(), endIterator = loopStart.end();
-               loopStartIterator != endIterator; ++loopStartIterator) {
-            ComplexSelectorDeque& path = *loopStartIterator;
-            
-            ComplexSelectorDeque newPermutation;
-            cloneComplexSelectorDeque(path, newPermutation, ctx);
-            newPermutation.push_back(pE);
-            
-            permutations.push_back(newPermutation);
-          }
+			Node tempResult = Node::createCollection();
+      
+      for (NodeDeque::iterator beforesIter = befores.collection()->begin(), beforesEndIter = befores.collection()->end(); beforesIter != beforesEndIter; beforesIter++) {
+      	Node& before = *beforesIter;
+        
+        Node sub = subweave(before, current, ctx);
+        
+        cerr << "SUB: " << sub << endl;
+        
+        if (sub.isNil()) {
+        	return Node::createCollection();
         }
         
+        for (NodeDeque::iterator subIter = sub.collection()->begin(), subEndIter = sub.collection()->end(); subIter != subEndIter; subIter++) {
+          Node& seqs = *subIter;
+          
+          Node toPush = seqs.clone(ctx);
+          toPush.plus(last_current);
+          
+          tempResult.collection()->push_back(toPush);
+          
+        }
       }
       
-      loopStart = permutations;
-    }
-    
-    out = loopStart;
-  }
-  
+      befores = tempResult;
 
-  // complexSelectorDequeContains checks if an equivalent Complex_Selector to the one passed in is contained within the
-  // passed in ComplexSelectorDeque. This is necessary because the deque contains pointers, and pointer comparison yields
-  // strict object equivalency. We want to compare the selector's contents.
-  //
-  // TODO: move ComplexSelectorPointerComparator to ast.hpp next to the other one aimed at set usage? This is aimed at usage for std::find_if in complexSelectorDequeContains. One could be implemented in terms of the other for less code duplication. Can this be removed entirely now that I implemented operator== on the Complex_Selector class?
-  struct ComplexSelectorPointerComparator
-  {
-    bool operator()(Complex_Selector* const pOne)
-    {
-      return *pOne == *pTwo;
     }
-    Complex_Selector* pTwo;
-  };
-  static bool complexSelectorDequeContains(ComplexSelectorDeque& deque, Complex_Selector* pComplexSelector) {
-    ComplexSelectorPointerComparator comparator = { pComplexSelector };
     
-    return std::find_if(
-      deque.begin(),
-      deque.end(),
-      comparator
-      ) != deque.end();
+    return befores;
   }
-  
-  
+
+
 
   // This forward declaration is needed since extendComplexSelector calls extendCompoundSelector, which may recursively
   // call extendComplexSelector again.
-  static void extendComplexSelector(
+  static Node extendComplexSelector(
     Complex_Selector* pComplexSelector,
     Context& ctx,
     ExtensionSubsetMap& subsetMap,
-    set<Compound_Selector> seen,
-    ComplexSelectorDeque& extendedSelectors);
+    set<Compound_Selector> seen);
   
   
   
@@ -1384,21 +1262,85 @@ namespace Sass {
    - IMPROVEMENT: The search for uniqueness at the end is not ideal since it's has to loop over everything...
    - IMPROVEMENT: Check if the final search for uniqueness is doing anything that extendComplexSelector isn't already doing...
    */
-  static void extendCompoundSelector(
+  template<typename KeyType>
+  class GroupByToAFunctor {
+  public:
+  	KeyType operator()(ExtensionPair& extPair) const {
+    	Complex_Selector* pSelector = extPair.first;
+			return *pSelector;
+    }
+  };
+  static Node extendCompoundSelector(
   	Compound_Selector* pSelector,
-    Complex_Selector::Combinator sourceCombinator,
     Context& ctx,
     ExtensionSubsetMap& subsetMap,
-    set<Compound_Selector> seen,
-    ComplexSelectorDeque& extendedSelectors) {
+    set<Compound_Selector> seen) {
+    
+    Node extendedSelectors = Node::createCollection();
 
     To_String to_string;
 
     SubsetMapEntries entries = subsetMap.get_v(pSelector->to_str_vec());
     
-		for (SubsetMapEntries::iterator iterator = entries.begin(), endIterator = entries.end(); iterator != endIterator; ++iterator) {
-      Complex_Selector* pExtComplexSelector = iterator->first;    // The selector up to where the @extend is (ie, the thing to merge)
-      Compound_Selector* pExtCompoundSelector = iterator->second; // The stuff after the @extend
+    cerr << "SUBSET MAP ENTRIES: " << entries << endl;
+//
+    cerr << "GROUPED LEN: " << entries.size() << endl;
+
+    
+//    typedef pair<Complex_Selector*, Compound_Selector*> ExtensionPair;
+//    typedef vector<ExtensionPair> SubsetMapEntries;
+  
+//  template<typename EnumType, typename KeyType, typename KeyFunctorType>
+//	void group_by_to_a(vector<EnumType>& enumeration, KeyFunctorType& keyFunc, vector<pair<KeyType, vector<EnumType> > >& arr /*out*/) {
+
+		typedef vector<pair<Complex_Selector, vector<ExtensionPair> > > GroupedByToAResult;
+    
+    GroupByToAFunctor<Complex_Selector> extPairKeyFunctor;
+    GroupedByToAResult arr;
+    group_by_to_a(entries, extPairKeyFunctor, arr);
+
+    
+    
+    
+		//for (SubsetMapEntries::iterator iterator = entries.begin(), endIterator = entries.end(); iterator != endIterator; ++iterator) {
+
+    for (GroupedByToAResult::iterator groupedIter = arr.begin(), groupedIterEnd = arr.end(); groupedIter != groupedIterEnd; groupedIter++) {
+    	pair<Complex_Selector, vector<ExtensionPair> >& groupedPair = *groupedIter;
+
+      Complex_Selector& seq = groupedPair.first;
+      vector<ExtensionPair>& group = groupedPair.second;
+      
+      printComplexSelector(&seq, "SEQ: ");
+//      printCompoundSelector(pExtCompoundSelector, "GROUP: ");
+
+
+			Compound_Selector* pSels = new (ctx.mem) Compound_Selector(pSelector->path(), pSelector->position());
+			for (vector<ExtensionPair>::iterator groupIter = group.begin(), groupIterEnd = group.end(); groupIter != groupIterEnd; groupIter++) {
+      	ExtensionPair& pair = *groupIter;
+        Compound_Selector* pCompound = pair.second;
+        for (int index = 0; index < pCompound->length(); index++) {
+        	Simple_Selector* pSimpleSelector = (*pCompound)[index];
+	        (*pSels) << pSimpleSelector;
+        }
+      }
+
+
+
+//      sels = group.map {|_, s| s}.flatten
+
+      printCompoundSelector(pSels, "SELS: ");
+
+
+      Complex_Selector* pExtComplexSelector = &seq;    // The selector up to where the @extend is (ie, the thing to merge)
+      Compound_Selector* pExtCompoundSelector = pSels; // All the simple selectors to be replaced from the current compound selector from all extensions
+
+
+//      Complex_Selector* pExtComplexSelector = iterator->first;    // The selector up to where the @extend is (ie, the thing to merge)
+//      Compound_Selector* pExtCompoundSelector = iterator->second; // The stuff after the @extend
+      
+
+
+
       
       // I know I said don't optimize yet, but I couldn't help moving this if check up until we find a reason not
       // to. In the ruby code, this was done at the end after a lot of work was already done. The only reason this
@@ -1411,6 +1353,10 @@ namespace Sass {
       
       // TODO: This can return a Compound_Selector with no elements. Should that just be returning NULL?
       Compound_Selector* pSelectorWithoutExtendSelectors = pSelector->minus(pExtCompoundSelector, ctx);
+      
+      
+      printCompoundSelector(pSelector, "MEMBERS: ");
+      printCompoundSelector(pSelectorWithoutExtendSelectors, "SELF_WO_SEL: ");
 
 
       Compound_Selector* pInnermostCompoundSelector = pExtComplexSelector->base();
@@ -1421,6 +1367,10 @@ namespace Sass {
       }
 
       pUnifiedSelector = pInnermostCompoundSelector->unify_with(pSelectorWithoutExtendSelectors, ctx);
+      
+      printCompoundSelector(pInnermostCompoundSelector, "LHS: ");
+      printCompoundSelector(pSelectorWithoutExtendSelectors, "RHS: ");
+      printCompoundSelector(pUnifiedSelector, "UNIFIED: ");
       
       if (!pUnifiedSelector || pUnifiedSelector->length() == 0) {
         continue;
@@ -1435,9 +1385,8 @@ namespace Sass {
       // get rid of the last Compound_Selector and replace it with this one. I think the reason this code is more
       // complex is that Complex_Selector contains a combinator, but in ruby combinators have already been filtered
       // out and aren't operated on.
-      // JMA - copy the combinator from the selector we're extending (sourceCombinator)
       Complex_Selector* pNewSelector = pExtComplexSelector->clone(ctx);
-      Complex_Selector* pNewInnerMost = new (ctx.mem) Complex_Selector(pSelector->path(), pSelector->position(), sourceCombinator, pUnifiedSelector, NULL);
+      Complex_Selector* pNewInnerMost = new (ctx.mem) Complex_Selector(pSelector->path(), pSelector->position(), Complex_Selector::ANCESTOR_OF, pUnifiedSelector, NULL);
       Complex_Selector::Combinator combinator = pNewSelector->clear_innermost();
       pNewSelector->set_innermost(pNewInnerMost, combinator);
       
@@ -1466,7 +1415,9 @@ namespace Sass {
 #endif
 
 
-      ComplexSelectorDeque recurseExtendedSelectors;
+
+
+
       set<Compound_Selector> recurseSeen(seen);
       recurseSeen.insert(*pExtCompoundSelector);
 
@@ -1474,18 +1425,19 @@ namespace Sass {
 #ifdef DEBUG
 			printComplexSelector(pNewSelector, "RECURSING DO EXTEND: ", true);
 #endif
-  		extendComplexSelector(pNewSelector, ctx, subsetMap, recurseSeen, recurseExtendedSelectors /*out*/);
 
+			Node recurseExtendedSelectors = extendComplexSelector(pNewSelector, ctx, subsetMap, recurseSeen);
 
-      for (ComplexSelectorDeque::iterator iterator = recurseExtendedSelectors.begin(), endIterator = recurseExtendedSelectors.end();
+      for (NodeDeque::iterator iterator = recurseExtendedSelectors.collection()->begin(), endIterator = recurseExtendedSelectors.collection()->end();
            iterator != endIterator; ++iterator) {
-        Complex_Selector* pSelector = *iterator;
-        bool selectorAlreadyExists = complexSelectorDequeContains(extendedSelectors, pSelector);
-        if (!selectorAlreadyExists) {
-          extendedSelectors.push_back(pSelector);
+        Node& newSelector = *iterator;
+        if (!extendedSelectors.contains(newSelector)) {
+          extendedSelectors.collection()->push_back(newSelector);
         }
       }
     }
+    
+    return extendedSelectors;
   }
  
 
@@ -1501,41 +1453,50 @@ namespace Sass {
      the combinator and compound selector are one unit
      next [[sseq_or_op]] unless sseq_or_op.is_a?(SimpleSequence)
    */
-  static void extendComplexSelector(
+  static Node extendComplexSelector(
   	Complex_Selector* pComplexSelector,
     Context& ctx,
     ExtensionSubsetMap& subsetMap,
-    set<Compound_Selector> seen,
-    ComplexSelectorDeque& extendedSelectors) {
-
-    To_String to_string;
-
-    Complex_Selector* pCurrentComplexSelector = pComplexSelector->tail();
+    set<Compound_Selector> seen) {
     
-    ComplexSelectorDequeDeque extendedNotExpanded;
+    Node complexSelector = complexSelectorToNode(pComplexSelector, ctx); // TODO: remove 2 in name once it compiles
     
-    while(pCurrentComplexSelector)
-    {
-      Compound_Selector* pCompoundSelector = pCurrentComplexSelector->head();
+    Node extendedNotExpanded = Node::createCollection();
+    
+    for (NodeDeque::iterator complexSelIter = complexSelector.collection()->begin(), complexSelIterEnd = complexSelector.collection()->end(); complexSelIter != complexSelIterEnd; ++complexSelIter) {
+      Node& sseqOrOp = *complexSelIter;
+      
+      cerr << "LOOP: " << sseqOrOp << endl;
+      
+      // If it's not a selector (meaning it's a combinator), just include it automatically
+      if (!sseqOrOp.isSelector()) {
+      	// Wrap our Combinator in two collections to match ruby. This is essentially making a collection Node
+        // with one collection child. The collection child represents a Complex_Selector that is only a combinator.
+      	Node outer = Node::createCollection();
+        Node inner = Node::createCollection();
+        outer.collection()->push_back(inner);
+        inner.collection()->push_back(sseqOrOp);
+        extendedNotExpanded.collection()->push_back(outer);
+      	continue;
+      }
+    
+      Compound_Selector* pCompoundSelector = sseqOrOp.selector()->head();
 
-      DEBUG_PRINTLN("LOOP: " << pCompoundSelector->perform(&to_string))
-
-      ComplexSelectorDeque extended;
-      extendCompoundSelector(pCompoundSelector, pCurrentComplexSelector->combinator(), ctx, subsetMap, seen, extended /*out*/);
+      Node extended = extendCompoundSelector(pCompoundSelector, ctx, subsetMap, seen);
 #ifdef DEBUG
-      printComplexSelectorDeque(extended, "EXTENDED: ");
+			cerr << "EXTENDED: " << extended << endl;
 #endif
 
       
       // Prepend the Compound_Selector based on the choices logic; choices seems to be extend but with an ruby Array instead of a Sequence
       // due to the member mapping: choices = extended.map {|seq| seq.members}
-      Complex_Selector* pJustCurrentCompoundSelector = pCurrentComplexSelector->clone(ctx);
-      pJustCurrentCompoundSelector->tail(NULL);
+      Complex_Selector* pJustCurrentCompoundSelector = sseqOrOp.selector()->clone(ctx);
 
       bool isSuperselector = false;
-      for (ComplexSelectorDeque::iterator iterator = extended.begin(), endIterator = extended.end();
+      for (NodeDeque::iterator iterator = extended.collection()->begin(), endIterator = extended.collection()->end();
            iterator != endIterator; ++iterator) {
-        Complex_Selector* pExtensionSelector = *iterator;
+        Node& childNode = *iterator;
+        Complex_Selector* pExtensionSelector = nodeToComplexSelector(childNode, ctx);
       	if (pExtensionSelector->is_superselector_of(pJustCurrentCompoundSelector)) {
           isSuperselector = true;
           break;
@@ -1543,67 +1504,63 @@ namespace Sass {
       }
 
       if (!isSuperselector) {
-        extended.push_front(pJustCurrentCompoundSelector);
+        extended.collection()->push_front(complexSelectorToNode(pJustCurrentCompoundSelector, ctx));
       }
 
 #ifdef DEBUG
-      printComplexSelectorDeque(extended, "CHOICES UNSHIFTED: ");
+			cerr << "CHOICES UNSHIFTED: " << extended << endl;
 #endif
       
       // Aggregate our current extensions
-      extendedNotExpanded.push_back(extended);
-    
-
-      // Continue our iteration
-    	pCurrentComplexSelector = pCurrentComplexSelector->tail();
+      extendedNotExpanded.collection()->push_back(extended);
     }
 
+
 #ifdef DEBUG
-    printComplexSelectorDequeDeque(extendedNotExpanded, "EXTENDED NOT EXPANDED: ");
+		cerr << "EXTENDED NOT EXPANDED: " << extendedNotExpanded << endl;
 #endif
   
+  
+
     // Ruby Equivalent: paths
-    ComplexSelectorDequeDeque permutations;
-    paths(extendedNotExpanded, permutations, ctx);
+    Node paths = Sass::paths(extendedNotExpanded, ctx);
 #ifdef DEBUG
-    printComplexSelectorDequeDeque(permutations, "PATHS: ");
+		cerr << "PATHS: " << paths << endl;
 #endif
 
+
+
     // Ruby Equivalent: weave
- 		ComplexSelectorDequeDeque weaves;
-    for (ComplexSelectorDequeDeque::iterator iterator = permutations.begin(), endIterator = permutations.end();
-         iterator != endIterator; ++iterator) {
-      ComplexSelectorDeque& toWeave = *iterator;
-      
-      ComplexSelectorDeque weaved;
-			weave(toWeave, ctx, weaved);
-      
-      weaves.push_back(weaved);
+    Node weaves = Node::createCollection();
+    
+    for (NodeDeque::iterator pathsIter = paths.collection()->begin(), pathsEndIter = paths.collection()->end(); pathsIter != pathsEndIter; ++pathsIter) {
+      Node& path = *pathsIter;
+			Node weaved = weave(path, ctx);
+			weaves.collection()->push_back(weaved);
     }
 
 #ifdef DEBUG
-    printComplexSelectorDequeDeque(weaves, "WEAVES: ");
+		cerr << "WEAVES: " << weaves << endl;
 #endif
-    
+
+
+
     // Ruby Equivalent: trim
-    ComplexSelectorDequeDeque trimmed;
-    trim(weaves, trimmed, ctx);
+    Node trimmed = trim(weaves, ctx);
+
 #ifdef DEBUG
-		printComplexSelectorDequeDeque(trimmed, "TRIMMED: ");
+		cerr << "TRIMMED: " << trimmed << endl;
 #endif
 
     
     // Ruby Equivalent: flatten
-    for (ComplexSelectorDequeDeque::iterator iterator = trimmed.begin(), endIterator = trimmed.end();
-         iterator != endIterator; ++iterator) {
-      
-      ComplexSelectorDeque& toCombine = *iterator;
-      extendedSelectors.insert(extendedSelectors.end(), toCombine.begin(), toCombine.end());
-    }
+    Node extendedSelectors = flatten(trimmed, ctx, 1);
     
 #ifdef DEBUG
-    printComplexSelectorDeque(extendedSelectors, ">>>>> EXTENDED: ");
+		cerr << ">>>>> EXTENDED: " << extendedSelectors << endl;
 #endif
+
+		return extendedSelectors;
   }
 
 
@@ -1620,26 +1577,27 @@ namespace Sass {
 
     To_String to_string;
 
-    ComplexSelectorDeque newSelectors;
+    Selector_List* pNewSelectors = new (ctx.mem) Selector_List(pSelectorList->path(), pSelectorList->position(), pSelectorList->length());
 
     for (size_t index = 0, length = pSelectorList->length(); index < length; index++) {
       Complex_Selector* pSelector = (*pSelectorList)[index];
 
-      ComplexSelectorDeque extendedSelectors;
       set<Compound_Selector> seen;
-      extendComplexSelector(pSelector, ctx, subsetMap, seen, extendedSelectors /*out*/);
+      Node extendedSelectors = extendComplexSelector(pSelector, ctx, subsetMap, seen);
       
       if (!pSelector->has_placeholder()) {
-        bool selectorAlreadyExists = complexSelectorDequeContains(extendedSelectors, pSelector);
-        if (!selectorAlreadyExists) {
-        	extendedSelectors.push_front(pSelector);
+        if (!extendedSelectors.contains(complexSelectorToNode(pSelector, ctx))) {
+        	*pNewSelectors << pSelector;
         }
       }
-  
-      newSelectors.insert(newSelectors.end(), extendedSelectors.begin(), extendedSelectors.end());
+      
+      for (NodeDeque::iterator iterator = extendedSelectors.collection()->begin(), iteratorEnd = extendedSelectors.collection()->end(); iterator != iteratorEnd; ++iterator) {
+        Node& childNode = *iterator;
+        *pNewSelectors << nodeToComplexSelector(childNode, ctx);
+      }
     }
     
-    return createSelectorListFromDeque(newSelectors, ctx, pSelectorList);
+    return pNewSelectors;
   }
 
   

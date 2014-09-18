@@ -517,9 +517,10 @@ namespace Sass {
     for (size_t i = 0, L = length(); i < L; ++i)
     {
       bool found = false;
+      string thisSelector((*this)[i]->perform(&to_string));
       for (size_t j = 0, M = rhs->length(); j < M; ++j)
       {
-        if ((*this)[i]->perform(&to_string) == (*rhs)[j]->perform(&to_string))
+        if (thisSelector == (*rhs)[j]->perform(&to_string))
         {
           found = true;
           break;

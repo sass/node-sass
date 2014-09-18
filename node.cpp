@@ -60,6 +60,21 @@ namespace Sass {
     return Node(mType, mCombinator, mpSelector ? mpSelector->clone(ctx) : NULL, pNewCollection);
   }
   
+  
+  bool Node::contains(const Node& potentialChild) const {
+  	bool found = false;
+    
+    for (NodeDeque::iterator iter = mpCollection->begin(), iterEnd = mpCollection->end(); iter != iterEnd; iter++) {
+      Node& toTest = *iter;
+      if (toTest == potentialChild) {
+      	found = true;
+        break;
+      }
+    }
+
+    return found;
+  }
+  
 
   bool Node::operator==(const Node& rhs) const {
     if (this->mType != rhs.mType) {
@@ -99,6 +114,14 @@ namespace Sass {
     
     // We shouldn't get here. If we did, a new type was added, but this wasn't updated.
     return false;
+  }
+  
+  
+  void Node::plus(Node& rhs) {
+  	if (!this->isCollection() || !rhs.isCollection()) {
+    	throw "Both the current node and rhs must be collections.";
+    }
+  	this->collection()->insert(this->collection()->end(), rhs.collection()->begin(), rhs.collection()->end());
   }
   
   

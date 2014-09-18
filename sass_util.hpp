@@ -66,10 +66,10 @@ namespace Sass {
 	*/
   template<typename ComparatorType>
   Node lcs_backtrace(const LCSTable& c, const Node& x, const Node& y, int i, int j, const ComparatorType& comparator) {
-  	DEBUG_PRINTLN("LCSBACK: C=" /*<< c*/ << "X=" << x << " Y=" << y << " I=" << i << " J=" << j)
+//  	DEBUG_PRINTLN("LCSBACK: C=" /*<< c*/ << "X=" << x << " Y=" << y << " I=" << i << " J=" << j)
 
   	if (i == 0 || j == 0) {
-    	DEBUG_PRINTLN("RETURNING EMPTY")
+//    	DEBUG_PRINTLN("RETURNING EMPTY")
     	return Node::createCollection();
     }
     
@@ -78,18 +78,18 @@ namespace Sass {
 
     Node compareOut = Node::createNil();
     if (comparator(xChildren[i], yChildren[j], compareOut)) {
-      DEBUG_PRINTLN("RETURNING AFTER ELEM COMPARE")
+//      DEBUG_PRINTLN("RETURNING AFTER ELEM COMPARE")
       Node result = lcs_backtrace(c, x, y, i - 1, j - 1, comparator);
       result.collection()->push_back(compareOut);
       return result;
     }
     
     if (c[i][j - 1] > c[i - 1][j]) {
-    	DEBUG_PRINTLN("RETURNING AFTER TABLE COMPARE")
+//    	DEBUG_PRINTLN("RETURNING AFTER TABLE COMPARE")
     	return lcs_backtrace(c, x, y, i, j - 1, comparator);
     }
     
-    DEBUG_PRINTLN("FINAL RETURN")
+//    DEBUG_PRINTLN("FINAL RETURN")
     return lcs_backtrace(c, x, y, i - 1, j, comparator);
   }
   
@@ -145,7 +145,7 @@ namespace Sass {
   */
   template<typename ComparatorType>
   Node lcs(const Node& x, const Node& y, const ComparatorType& comparator, Context& ctx) {
-  	DEBUG_PRINTLN("LCS: X=" << x << " Y=" << y)
+//  	DEBUG_PRINTLN("LCS: X=" << x << " Y=" << y)
 
     Node newX = x.clone(ctx);
     newX.collection()->push_front(Node::createNil());
@@ -173,6 +173,99 @@ namespace Sass {
   # @return [NodeCollection] The flattened array
   */
   Node flatten(const Node& arr, Context& ctx, int n = -1);
+
+
+  /*
+  This is the equivalent of ruby's Sass::Util.group_by_to_a.
+
+  # Performs the equivalent of `enum.group_by.to_a`, but with a guaranteed
+  # order. Unlike [#hash_to_a], the resulting order isn't sorted key order;
+  # instead, it's the same order as `#group_by` has under Ruby 1.9 (key
+  # appearance order).
+  #
+  # @param enum [Enumerable]
+  # @return [Array<[Object, Array]>] An array of pairs.
+
+  TODO: update @param and @return once I know what those are.
+  
+  The following is the modified version of the ruby code that was more portable to C++. You
+  should be able to drop it into ruby 3.2.19 and get the same results from ruby sass.
+   
+    def group_by_to_a(enum, &block)
+      order = {}
+
+      arr = []
+
+      grouped = {}
+
+      for e in enum do
+        key = block[e]
+        unless order.include?(key)
+          order[key] = order.size
+        end
+
+        if not grouped.has_key?(key) then
+          grouped[key] = [e]
+        else
+          grouped[key].push(e)
+        end
+      end
+
+      grouped.each do |key, vals|
+        arr[order[key]] = [key, vals]
+      end
+
+      arr
+    end
+
+  */
+  template<typename EnumType, typename KeyType, typename KeyFunctorType>
+	void group_by_to_a(vector<EnumType>& enumeration, KeyFunctorType& keyFunc, vector<pair<KeyType, vector<EnumType> > >& arr /*out*/) {
+
+  	map<unsigned int, KeyType> order;
+
+    map<KeyType, vector<EnumType> > grouped;
+
+    for (typename vector<EnumType>::iterator enumIter = enumeration.begin(), enumIterEnd = enumeration.end(); enumIter != enumIterEnd; enumIter++) {
+    	EnumType& e = *enumIter;
+      
+      KeyType key = keyFunc(e);
+
+      if (grouped.find(key) == grouped.end()) {
+	      order.insert(make_pair(order.size(), key));
+
+      	vector<EnumType> newCollection;
+        newCollection.push_back(e);
+      	grouped.insert(make_pair(key, newCollection));
+      } else {
+      	vector<EnumType>& collection = grouped.at(key);
+        collection.push_back(e);
+      }
+    }
+    
+    for (unsigned int index = 0; index < order.size(); index++) {
+    	KeyType& key = order.at(index);
+      vector<EnumType>& values = grouped.at(key);
+
+			pair<KeyType, vector<EnumType> > grouping = make_pair(key, values);
+
+      arr.push_back(grouping);
+    }
+    
+
+		/*
+    arr.reserve(grouped.size());
+    
+    for (typename map<KeyType, vector<EnumType> >::iterator groupedIter = grouped.begin(), groupedIterEnd = grouped.end(); groupedIter != groupedIterEnd; groupedIter++) {
+    	pair<KeyType, vector<EnumType> > grouping = make_pair(groupedIter->first, groupedIter->second);
+      KeyType& key = grouping.first;
+  
+    	unsigned int index = order.at(key);
+			arr[index] = grouping;
+    }
+    */
+
+  }
 
 
 }

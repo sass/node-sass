@@ -75,6 +75,25 @@ namespace Sass {
     bool operator==(const Node& rhs) const;
     inline bool operator!=(const Node& rhs) const { return !(*this == rhs); }
     
+    
+    /*
+    COLLECTION FUNCTIONS
+    
+    Most types don't need any helper methods (nil and combinator due to their simplicity and
+    selector due to the fact that we leverage the non-node selector code on the Complex_Selector
+    whereever possible). The following methods are intended to be called on Node objects whose
+    type is COLLECTION only.
+    */
+    
+    // rhs and this must be node collections. Shallow copy the nodes from rhs to the end of this.
+    // This function DOES NOT remove the nodes from rhs.
+    void plus(Node& rhs);
+    
+    // potentialChild must be a node collection of selectors/combinators. this must be a collection
+    // of collections of nodes/combinators. This method checks if potentialChild is a child of this
+    // Node.
+    bool contains(const Node& potentialChild) const;
+    
   private:
     // Private constructor; Use the static methods (like createCombinator and createSelector)
     // to instantiate this object. This is more expressive, and it allows us to break apart each
