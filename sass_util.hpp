@@ -102,7 +102,7 @@ namespace Sass {
   */
   template<typename ComparatorType>
   void lcs_table(const Node& x, const Node& y, const ComparatorType& comparator, LCSTable& out) {
-  	DEBUG_PRINTLN("LCSTABLE: X=" << x << " Y=" << y)
+//  	DEBUG_PRINTLN("LCSTABLE: X=" << x << " Y=" << y)
 
   	NodeDeque& xChildren = *(x.collection());
     NodeDeque& yChildren = *(y.collection());
