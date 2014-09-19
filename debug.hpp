@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 enum dbg_lvl_t : uint32_t {
+	NONE = 0,
 	TRIM = 1,
 	CHUNKS = 2,
 	SUBWEAVE = 4,
