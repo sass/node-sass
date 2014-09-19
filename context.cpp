@@ -62,7 +62,6 @@ namespace Sass {
     names_to_colors      (map<string, Color*>()),
     colors_to_names      (map<int, string>()),
     precision            (initializers.precision()),
-    extensions           (multimap<Compound_Selector, Complex_Selector*>()),
     subset_map           (Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >())
   {
     cwd = get_cwd();
@@ -229,7 +228,7 @@ namespace Sass {
     // Output_Nested output_nested(*this);
 
     root = root->perform(&expand)->block();
-    if (!extensions.empty()) { // TODO: change this to subset_map.empty()?
+    if (!subset_map.empty()) {
       Extend extend(*this, subset_map);
       root->perform(&extend);
     }
