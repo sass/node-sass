@@ -1455,6 +1455,38 @@ namespace Sass {
     
     return extendedSelectors;
   }
+  
+  
+  static bool complexSelectorHasExtension(
+  	Complex_Selector* pComplexSelector,
+    Context& ctx,
+    ExtensionSubsetMap& subsetMap) {
+
+		bool hasExtension = false;
+
+		Complex_Selector* pIter = pComplexSelector;
+    
+    while (!hasExtension && pIter) {
+    	Compound_Selector* pHead = pIter->head();
+
+      SubsetMapEntries entries = subsetMap.get_v(pHead->to_str_vec());
+
+      typedef vector<pair<Complex_Selector, vector<ExtensionPair> > > GroupedByToAResult;
+      
+      GroupByToAFunctor<Complex_Selector> extPairKeyFunctor;
+      GroupedByToAResult arr;
+      group_by_to_a(entries, extPairKeyFunctor, arr);
+
+      for (GroupedByToAResult::iterator groupedIter = arr.begin(), groupedIterEnd = arr.end(); groupedIter != groupedIterEnd; groupedIter++) {
+      	hasExtension = true;
+        break;
+      }
+
+    	pIter = pIter->tail();
+    }
+    
+    return hasExtension;
+  }
  
 
   
@@ -1597,6 +1629,16 @@ namespace Sass {
 
     for (size_t index = 0, length = pSelectorList->length(); index < length; index++) {
       Complex_Selector* pSelector = (*pSelectorList)[index];
+      
+#ifdef DEBUG
+			// In debug mode, we want our prints to more closely line up with sass. sass seems to only extend a selector if it has
+      // an extension. libsass is looping over all the selectors and checking at extend time. For now, just check in debug mode
+      // if there is an extension and early return if there is.
+      if (!complexSelectorHasExtension(pSelector, ctx, subsetMap)) {
+      	*pNewSelectors << pSelector;
+      	continue;
+      }
+#endif
 
       set<Compound_Selector> seen;
       Node extendedSelectors = extendComplexSelector(pSelector, ctx, subsetMap, seen);
