@@ -66,10 +66,10 @@ namespace Sass {
 	*/
   template<typename ComparatorType>
   Node lcs_backtrace(const LCSTable& c, const Node& x, const Node& y, int i, int j, const ComparatorType& comparator) {
-//  	DEBUG_PRINTLN("LCSBACK: C=" /*<< c*/ << "X=" << x << " Y=" << y << " I=" << i << " J=" << j)
+  	DEBUG_PRINTLN(LCS, "LCSBACK: C=" /*<< c*/ << "X=" << x << " Y=" << y << " I=" << i << " J=" << j)
 
   	if (i == 0 || j == 0) {
-//    	DEBUG_PRINTLN("RETURNING EMPTY")
+    	DEBUG_PRINTLN(LCS, "RETURNING EMPTY")
     	return Node::createCollection();
     }
     
@@ -78,18 +78,18 @@ namespace Sass {
 
     Node compareOut = Node::createNil();
     if (comparator(xChildren[i], yChildren[j], compareOut)) {
-//      DEBUG_PRINTLN("RETURNING AFTER ELEM COMPARE")
+      DEBUG_PRINTLN(LCS, "RETURNING AFTER ELEM COMPARE")
       Node result = lcs_backtrace(c, x, y, i - 1, j - 1, comparator);
       result.collection()->push_back(compareOut);
       return result;
     }
     
     if (c[i][j - 1] > c[i - 1][j]) {
-//    	DEBUG_PRINTLN("RETURNING AFTER TABLE COMPARE")
+    	DEBUG_PRINTLN(LCS, "RETURNING AFTER TABLE COMPARE")
     	return lcs_backtrace(c, x, y, i, j - 1, comparator);
     }
     
-//    DEBUG_PRINTLN("FINAL RETURN")
+    DEBUG_PRINTLN(LCS, "FINAL RETURN")
     return lcs_backtrace(c, x, y, i - 1, j, comparator);
   }
   
@@ -102,7 +102,7 @@ namespace Sass {
   */
   template<typename ComparatorType>
   void lcs_table(const Node& x, const Node& y, const ComparatorType& comparator, LCSTable& out) {
-//  	DEBUG_PRINTLN("LCSTABLE: X=" << x << " Y=" << y)
+  	DEBUG_PRINTLN(LCS, "LCSTABLE: X=" << x << " Y=" << y)
 
   	NodeDeque& xChildren = *(x.collection());
     NodeDeque& yChildren = *(y.collection());
@@ -145,7 +145,7 @@ namespace Sass {
   */
   template<typename ComparatorType>
   Node lcs(const Node& x, const Node& y, const ComparatorType& comparator, Context& ctx) {
-//  	DEBUG_PRINTLN("LCS: X=" << x << " Y=" << y)
+  	DEBUG_PRINTLN(LCS, "LCS: X=" << x << " Y=" << y)
 
     Node newX = x.clone(ctx);
     newX.collection()->push_front(Node::createNil());
@@ -251,20 +251,6 @@ namespace Sass {
 
       arr.push_back(grouping);
     }
-    
-
-		/*
-    arr.reserve(grouped.size());
-    
-    for (typename map<KeyType, vector<EnumType> >::iterator groupedIter = grouped.begin(), groupedIterEnd = grouped.end(); groupedIter != groupedIterEnd; groupedIter++) {
-    	pair<KeyType, vector<EnumType> > grouping = make_pair(groupedIter->first, groupedIter->second);
-      KeyType& key = grouping.first;
-  
-    	unsigned int index = order.at(key);
-			arr[index] = grouping;
-    }
-    */
-
   }
 
 

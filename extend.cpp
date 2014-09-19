@@ -68,14 +68,18 @@ namespace Sass {
 
   
 #ifdef DEBUG
-  static void printCombinator(Complex_Selector::Combinator combinator) {
+
+	// TODO: move the ast specific ostream operators into ast.hpp/ast.cpp
+  ostream& operator<<(ostream& os, const Complex_Selector::Combinator combinator) {
     switch (combinator) {
-      case Complex_Selector::ANCESTOR_OF: cerr << "\" \""; break;
-      case Complex_Selector::PARENT_OF:   cerr << "\">\""; break;
-      case Complex_Selector::PRECEDES:    cerr << "\"~\""; break;
-      case Complex_Selector::ADJACENT_TO: cerr << "\"+\""; break;
+      case Complex_Selector::ANCESTOR_OF: os << "\" \""; break;
+      case Complex_Selector::PARENT_OF:   os << "\">\""; break;
+      case Complex_Selector::PRECEDES:    os << "\"~\""; break;
+      case Complex_Selector::ADJACENT_TO: os << "\"+\""; break;
     }
-  }
+    
+    return os;
+	}
   
   
   ostream& operator<<(ostream& os, Compound_Selector& compoundSelector) {
@@ -117,7 +121,7 @@ namespace Sass {
           os << ", ";
         }
         first = false;
-      	printCombinator(pIter->combinator());
+      	os << pIter->combinator();
       }
 
       if (!first) {
@@ -294,12 +298,12 @@ namespace Sass {
     }
 
 
-//		cerr << "TRIM: " << seqses << endl;
+		DEBUG_PRINTLN(TRIM, "TRIM: " << seqses)
 
     
     Node result = seqses.clone(ctx);
     
-//    cerr << "RESULT INITIAL: " << result << endl;
+    DEBUG_PRINTLN(TRIM, "RESULT INITIAL: " << result)
     
     // Normally we use the standard STL iterators, but in this case, we need to access the result collection by index since we're
     // iterating the input collection, computing a value, and then setting the result in the output collection. We have to keep track
@@ -309,7 +313,7 @@ namespace Sass {
     for (NodeDeque::iterator seqsesIter = seqses.collection()->begin(), seqsesIterEnd = seqses.collection()->end(); seqsesIter != seqsesIterEnd; ++seqsesIter) {
     	Node& seqs1 = *seqsesIter;
       
-//      cerr << "SEQS1: " << seqs1 << " " << toTrimIndex << endl;
+      DEBUG_PRINTLN(TRIM, "SEQS1: " << seqs1 << " " << toTrimIndex)
       
       Node tempResult = Node::createCollection();
       
@@ -329,17 +333,15 @@ namespace Sass {
         int maxSpecificity = 0;
         SourcesSet sources = pSeq1->sources();
         
-#ifdef DEBUG
-//				cerr << "TRIMASDF SEQ1: " << seq1 << endl;
-//        printSourcesSet(sources, "TRIMASDF SOURCES: ");
-#endif
+				DEBUG_PRINTLN(TRIM, "TRIMASDF SEQ1: " << seq1)
+        DEBUG_EXEC(TRIM, printSourcesSet(sources, "TRIMASDF SOURCES: "))
         
         for (SourcesSet::iterator sourcesSetIterator = sources.begin(), sourcesSetIteratorEnd = sources.end(); sourcesSetIterator != sourcesSetIteratorEnd; ++sourcesSetIterator) {
          	const Complex_Selector* const pCurrentSelector = *sourcesSetIterator;
           maxSpecificity = max(maxSpecificity, pCurrentSelector->specificity());
         }
         
-//        DEBUG_PRINTLN("MAX SPECIFICITY: " << maxSpecificity)
+        DEBUG_PRINTLN(TRIM, "MAX SPECIFICITY: " << maxSpecificity)
         
         bool isMoreSpecificOuter = false;
 
@@ -348,10 +350,8 @@ namespace Sass {
         for (NodeDeque::iterator resultIter = result.collection()->begin(), resultIterEnd = result.collection()->end(); resultIter != resultIterEnd; ++resultIter) {
         	Node& seqs2 = *resultIter;
           
-#ifdef DEBUG
-//					cerr << "SEQS1: " << seqs1 << endl;
-//          cerr << "SEQS2: " << seqs2 << endl;
-#endif
+					DEBUG_PRINTLN(TRIM, "SEQS1: " << seqs1)
+          DEBUG_PRINTLN(TRIM, "SEQS2: " << seqs2)
 
 					// Do not compare the same sequence to itself in the same position. The ruby call we're trying to
           // emulate is: seqs1.equal?(seqs2). equal? is an object comparison, not an equivalency comparision.
@@ -359,7 +359,7 @@ namespace Sass {
           // are the same (operator== currently ends up comparing the Simple_Selectors in a Compound_Selector
           // in an order-dependent manner, so these sequences should be functionally the same).
           if (toTrimIndex == resultIndex && seqs1 == seqs2) {
-//            DEBUG_PRINTLN("CONTINUE")
+            DEBUG_PRINTLN(TRIM, "CONTINUE")
             continue;
           }
 
@@ -370,13 +370,13 @@ namespace Sass {
 
             Complex_Selector* pSeq2 = nodeToComplexSelector(seq2, ctx);
             
-//            DEBUG_PRINTLN("SEQ2 SPEC: " << pSeq2->specificity())
-//            DEBUG_PRINTLN("IS SUPER: " << (pSeq2->is_superselector_of(pSeq1) ? "true" : "false"))
+            DEBUG_PRINTLN(TRIM, "SEQ2 SPEC: " << pSeq2->specificity())
+            DEBUG_PRINTLN(TRIM, "IS SUPER: " << (pSeq2->is_superselector_of(pSeq1) ? "true" : "false"))
             
             isMoreSpecificInner = pSeq2->specificity() >= maxSpecificity && pSeq2->is_superselector_of(pSeq1);
 
             if (isMoreSpecificInner) {
-//              DEBUG_PRINTLN("FOUND MORE SPECIFIC")
+              DEBUG_PRINTLN(TRIM, "FOUND MORE SPECIFIC")
               break;
             }
           }
@@ -391,19 +391,19 @@ namespace Sass {
         }
         
         if (!isMoreSpecificOuter) {
-//          DEBUG_PRINTLN("PUSHING: " << seq1)
+          DEBUG_PRINTLN(TRIM, "PUSHING: " << seq1)
           tempResult.collection()->push_back(seq1); // TODO: clone this?
         }
 
       }
       
-//      cerr << "RESULT BEFORE ASSIGN: " << result << endl;
-//      DEBUG_PRINTLN("TEMP RESULT: " << toTrimIndex << " " << tempResult);
+      DEBUG_PRINTLN(TRIM, "RESULT BEFORE ASSIGN: " << result)
+      DEBUG_PRINTLN(TRIM, "TEMP RESULT: " << toTrimIndex << " " << tempResult)
       (*result.collection())[toTrimIndex] = tempResult;
       
       toTrimIndex++;
       
-//      cerr << "RESULT: " << result << endl;
+      DEBUG_PRINTLN(TRIM, "RESULT: " << result)
 		}
     
     return result;
@@ -497,21 +497,21 @@ namespace Sass {
     }
     
     if (chunk1.collection()->empty() && chunk2.collection()->empty()) {
-//      DEBUG_PRINTLN("RETURNING BOTH EMPTY")
+      DEBUG_PRINTLN(CHUNKS, "RETURNING BOTH EMPTY")
       return Node::createCollection();
     }
     
     if (chunk1.collection()->empty()) {
     	Node chunk2Wrapper = Node::createCollection();
     	chunk2Wrapper.collection()->push_back(chunk2);
-//      DEBUG_PRINTLN("RETURNING ONE EMPTY")
+      DEBUG_PRINTLN(CHUNKS, "RETURNING ONE EMPTY")
       return chunk2Wrapper;
     }
     
     if (chunk2.collection()->empty()) {
 	    Node chunk1Wrapper = Node::createCollection();
       chunk1Wrapper.collection()->push_back(chunk1);
-//      DEBUG_PRINTLN("RETURNING TWO EMPTY")
+      DEBUG_PRINTLN(CHUNKS, "RETURNING TWO EMPTY")
       return chunk1Wrapper;
     }
     
@@ -527,7 +527,7 @@ namespace Sass {
     secondPermutation.collection()->insert(secondPermutation.collection()->end(), chunk1.collection()->begin(), chunk1.collection()->end());
     perms.collection()->push_back(secondPermutation);
     
-//    DEBUG_PRINTLN("RETURNING PERM")
+    DEBUG_PRINTLN(CHUNKS, "RETURNING PERM")
     
     return perms;
   }
@@ -991,19 +991,15 @@ namespace Sass {
     Node seq1 = one.clone(ctx);
     Node seq2 = two.clone(ctx);
     
-#ifdef DEBUG
-//    DEBUG_PRINTLN("SUBWEAVE ONE: " << seq1)
-//    DEBUG_PRINTLN("SUBWEAVE TWO: " << seq2)
-#endif
+    DEBUG_PRINTLN(SUBWEAVE, "SUBWEAVE ONE: " << seq1)
+    DEBUG_PRINTLN(SUBWEAVE, "SUBWEAVE TWO: " << seq2)
 
 		Node init = mergeInitialOps(seq1, seq2, ctx);
     if (init.isNil()) {
     	return Node::createNil();
     }
     
-#ifdef DEBUG
-//    DEBUG_PRINTLN("INIT: " << init)
-#endif
+    DEBUG_PRINTLN(SUBWEAVE, "INIT: " << init)
     
     Node res = Node::createCollection();
 		Node fin = mergeFinalOps(seq1, seq2, ctx, res);
@@ -1011,7 +1007,7 @@ namespace Sass {
     	return Node::createNil();
     }
     
-//    DEBUG_PRINTLN("FIN: " << fin)
+    DEBUG_PRINTLN(SUBWEAVE, "FIN: " << fin)
 
 
 		// Moving this line up since fin isn't modified between now and when it happened before
@@ -1030,21 +1026,21 @@ namespace Sass {
 
     }
 
-//		DEBUG_PRINTLN("FIN MAPPED: " << fin)
+		DEBUG_PRINTLN(SUBWEAVE, "FIN MAPPED: " << fin)
 
 
 
     Node groupSeq1 = groupSelectors(seq1, ctx);
-//    DEBUG_PRINTLN("SEQ1: " << groupSeq1)
+    DEBUG_PRINTLN(SUBWEAVE, "SEQ1: " << groupSeq1)
     
     Node groupSeq2 = groupSelectors(seq2, ctx);
-//    DEBUG_PRINTLN("SEQ2: " << groupSeq2)
+    DEBUG_PRINTLN(SUBWEAVE, "SEQ2: " << groupSeq2)
 
 
     LcsCollectionComparator collectionComparator(ctx);
     Node seqLcs = lcs(groupSeq2, groupSeq1, collectionComparator, ctx);
     
-//    DEBUG_PRINTLN("SEQLCS: " << seqLcs)
+    DEBUG_PRINTLN(SUBWEAVE, "SEQLCS: " << seqLcs)
 
 
 		Node initWrapper = Node::createCollection();
@@ -1052,7 +1048,7 @@ namespace Sass {
 		Node diff = Node::createCollection();
     diff.collection()->push_back(initWrapper);
 
-//    DEBUG_PRINTLN("DIFF INIT: " << diff)
+    DEBUG_PRINTLN(SUBWEAVE, "DIFF INIT: " << diff)
     
     
     while (!seqLcs.collection()->empty()) {
@@ -1069,10 +1065,10 @@ namespace Sass {
       groupSeq2.collection()->pop_front();
     }
     
-//    DEBUG_PRINTLN("DIFF POST LCS: " << diff)
+    DEBUG_PRINTLN(SUBWEAVE, "DIFF POST LCS: " << diff)
     
     
-//    DEBUG_PRINTLN("CHUNKS: ONE=" << groupSeq1 << " TWO=" << groupSeq2)
+    DEBUG_PRINTLN(SUBWEAVE, "CHUNKS: ONE=" << groupSeq1 << " TWO=" << groupSeq2)
     
 
     SubweaveEmptyChunker emptyChunker;
@@ -1080,12 +1076,12 @@ namespace Sass {
     diff.collection()->push_back(chunksResult);
     
     
-//    DEBUG_PRINTLN("DIFF POST CHUNKS: " << diff)
+    DEBUG_PRINTLN(SUBWEAVE, "DIFF POST CHUNKS: " << diff)
     
 
     diff.collection()->insert(diff.collection()->end(), fin.collection()->begin(), fin.collection()->end());
     
-//    DEBUG_PRINTLN("DIFF POST FIN MAPPED: " << diff)
+    DEBUG_PRINTLN(SUBWEAVE, "DIFF POST FIN MAPPED: " << diff)
 
     // JMA - filter out the empty nodes (use a new collection, since iterator erase() invalidates the old collection)
     Node diffFiltered = Node::createCollection();
@@ -1098,12 +1094,12 @@ namespace Sass {
     }
     diff = diffFiltered;
     
-//    DEBUG_PRINTLN("DIFF POST REJECT: " << diff)
+    DEBUG_PRINTLN(SUBWEAVE, "DIFF POST REJECT: " << diff)
     
     
 		Node pathsResult = paths(diff, ctx);
     
-//    DEBUG_PRINTLN("PATHS: " << pathsResult)
+    DEBUG_PRINTLN(SUBWEAVE, "PATHS: " << pathsResult)
     
 
 		// We're flattening in place
@@ -1114,7 +1110,7 @@ namespace Sass {
       child = flatten(child, ctx);
     }
     
-//    DEBUG_PRINTLN("FLATTENED: " << pathsResult)
+    DEBUG_PRINTLN(SUBWEAVE, "FLATTENED: " << pathsResult)
     
     
     /*
@@ -1122,7 +1118,6 @@ namespace Sass {
       rejected = mapped.reject {|p| path_has_two_subjects?(p)}
       $stderr.puts "REJECTED: #{rejected}"
      */
-//    DEBUG_PRINTLN("REJECTED: " << pathsResult)
     
   
   	return pathsResult;
@@ -1205,7 +1200,7 @@ namespace Sass {
   */
 	static Node weave(const Node& path, Context& ctx) {
   
-//  	cerr << "WEAVE: " << path << endl;
+  	DEBUG_PRINTLN(WEAVE, "WEAVE: " << path)
   
   	Node befores = Node::createCollection();
     befores.collection()->push_back(Node::createCollection());
@@ -1215,13 +1210,13 @@ namespace Sass {
 		while (!afters.collection()->empty()) {
     	Node current = afters.collection()->front().clone(ctx);
       afters.collection()->pop_front();
-//      cerr << "CURRENT: " << current << endl;
+      DEBUG_PRINTLN(WEAVE, "CURRENT: " << current)
       
       Node last_current = Node::createCollection();
       last_current.collection()->push_back(current.collection()->back());
       current.collection()->pop_back();
-//      cerr << "CURRENT POST POP: " << current << endl;
-//      cerr << "LAST CURRENT: " << last_current << endl;
+      DEBUG_PRINTLN(WEAVE, "CURRENT POST POP: " << current)
+      DEBUG_PRINTLN(WEAVE, "LAST CURRENT: " << last_current)
     
 			Node tempResult = Node::createCollection();
       
@@ -1230,7 +1225,7 @@ namespace Sass {
         
         Node sub = subweave(before, current, ctx);
         
-//        cerr << "SUB: " << sub << endl;
+        DEBUG_PRINTLN(WEAVE, "SUB: " << sub)
         
         if (sub.isNil()) {
         	return Node::createCollection();
@@ -1298,16 +1293,6 @@ namespace Sass {
 
     SubsetMapEntries entries = subsetMap.get_v(pSelector->to_str_vec());
     
-//    cerr << "SUBSET MAP ENTRIES: " << entries << endl;
-//
-//    cerr << "GROUPED LEN: " << entries.size() << endl;
-
-    
-//    typedef pair<Complex_Selector*, Compound_Selector*> ExtensionPair;
-//    typedef vector<ExtensionPair> SubsetMapEntries;
-  
-//  template<typename EnumType, typename KeyType, typename KeyFunctorType>
-//	void group_by_to_a(vector<EnumType>& enumeration, KeyFunctorType& keyFunc, vector<pair<KeyType, vector<EnumType> > >& arr /*out*/) {
 
 		typedef vector<pair<Complex_Selector, vector<ExtensionPair> > > GroupedByToAResult;
     
@@ -1315,10 +1300,6 @@ namespace Sass {
     GroupedByToAResult arr;
     group_by_to_a(entries, extPairKeyFunctor, arr);
 
-    
-    
-    
-		//for (SubsetMapEntries::iterator iterator = entries.begin(), endIterator = entries.end(); iterator != endIterator; ++iterator) {
 
     for (GroupedByToAResult::iterator groupedIter = arr.begin(), groupedIterEnd = arr.end(); groupedIter != groupedIterEnd; groupedIter++) {
     	pair<Complex_Selector, vector<ExtensionPair> >& groupedPair = *groupedIter;
@@ -1326,8 +1307,7 @@ namespace Sass {
       Complex_Selector& seq = groupedPair.first;
       vector<ExtensionPair>& group = groupedPair.second;
       
-//      printComplexSelector(&seq, "SEQ: ");
-//      printCompoundSelector(pExtCompoundSelector, "GROUP: ");
+      DEBUG_EXEC(EXTEND_COMPOUND, printComplexSelector(&seq, "SEQ: "))
 
 
 			Compound_Selector* pSels = new (ctx.mem) Compound_Selector(pSelector->path(), pSelector->position());
@@ -1342,18 +1322,11 @@ namespace Sass {
 
 
 
-//      sels = group.map {|_, s| s}.flatten
-
-//      printCompoundSelector(pSels, "SELS: ");
+      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSels, "SELS: "))
 
 
       Complex_Selector* pExtComplexSelector = &seq;    // The selector up to where the @extend is (ie, the thing to merge)
       Compound_Selector* pExtCompoundSelector = pSels; // All the simple selectors to be replaced from the current compound selector from all extensions
-
-
-//      Complex_Selector* pExtComplexSelector = iterator->first;    // The selector up to where the @extend is (ie, the thing to merge)
-//      Compound_Selector* pExtCompoundSelector = iterator->second; // The stuff after the @extend
-      
 
 
 
@@ -1371,8 +1344,8 @@ namespace Sass {
       Compound_Selector* pSelectorWithoutExtendSelectors = pSelector->minus(pExtCompoundSelector, ctx);
       
       
-//      printCompoundSelector(pSelector, "MEMBERS: ");
-//      printCompoundSelector(pSelectorWithoutExtendSelectors, "SELF_WO_SEL: ");
+      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelector, "MEMBERS: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelectorWithoutExtendSelectors, "SELF_WO_SEL: "))
 
 
       Compound_Selector* pInnermostCompoundSelector = pExtComplexSelector->base();
@@ -1384,9 +1357,9 @@ namespace Sass {
 
       pUnifiedSelector = pInnermostCompoundSelector->unify_with(pSelectorWithoutExtendSelectors, ctx);
       
-//      printCompoundSelector(pInnermostCompoundSelector, "LHS: ");
-//      printCompoundSelector(pSelectorWithoutExtendSelectors, "RHS: ");
-//      printCompoundSelector(pUnifiedSelector, "UNIFIED: ");
+      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pInnermostCompoundSelector, "LHS: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelectorWithoutExtendSelectors, "RHS: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pUnifiedSelector, "UNIFIED: "))
       
       if (!pUnifiedSelector || pUnifiedSelector->length() == 0) {
         continue;
@@ -1409,28 +1382,18 @@ namespace Sass {
 
 
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
-#ifdef DEBUG
-//      printComplexSelector(pNewSelector, "ASDF SETTING ON: ");
-#endif
+      DEBUG_EXEC(EXTEND_COMPOUND, printComplexSelector(pNewSelector, "ASDF SETTING ON: "))
 
       SourcesSet newSourcesSet = pSelector->sources();
-#ifdef DEBUG
-//      printSourcesSet(newSourcesSet, "ASDF SOURCES THIS: ");
-#endif
+      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, "ASDF SOURCES THIS: "))
 
       newSourcesSet.insert(pExtComplexSelector->clone(ctx));
-#ifdef DEBUG
-//      printSourcesSet(newSourcesSet, "ASDF NEW: ");
-#endif
+      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, "ASDF NEW: "))
 
       pNewSelector->addSources(newSourcesSet, ctx);
-#ifdef DEBUG
-//      SourcesSet newSet = pNewSelector->sources();
-//      printSourcesSet(newSet, "ASDF NEW AFTER SET: ");
-//      printSourcesSet(pSelector->sources(), "ASDF SOURCES THIS SHOULD BE SAME: ");
-#endif
-
-
+      
+			DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet newSet = pNewSelector->sources(); printSourcesSet(newSet, "ASDF NEW AFTER SET: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(pSelector->sources(), "ASDF SOURCES THIS SHOULD BE SAME: "))
 
 
 
@@ -1438,37 +1401,31 @@ namespace Sass {
       recurseSeen.insert(*pExtCompoundSelector);
 
 
-#ifdef DEBUG
-			cerr << "RECURSING DO EXTEND: " << complexSelectorToNode(pNewSelector, ctx) << endl;
-#endif
+			DEBUG_PRINTLN(EXTEND_COMPOUND, "RECURSING DO EXTEND: " << complexSelectorToNode(pNewSelector, ctx))
 
 			Node recurseExtendedSelectors = extendComplexSelector(pNewSelector, ctx, subsetMap, recurseSeen);
       
-#ifdef DEBUG
-			cerr << "RECURSING DO EXTEND RETURN: " << recurseExtendedSelectors << endl;
-#endif
+			DEBUG_PRINTLN(EXTEND_COMPOUND, "RECURSING DO EXTEND RETURN: " << recurseExtendedSelectors)
 
       for (NodeDeque::iterator iterator = recurseExtendedSelectors.collection()->begin(), endIterator = recurseExtendedSelectors.collection()->end();
            iterator != endIterator; ++iterator) {
         Node& newSelector = *iterator;
 
-//				DEBUG_PRINTLN("EXTENDED AT THIS POINT: " << extendedSelectors)
-//				DEBUG_PRINTLN("SELECTOR EXISTS ALREADY: " << newSelector << " " << extendedSelectors.contains(newSelector, false /*simpleSelectorOrderDependent*/));
+				DEBUG_PRINTLN(EXTEND_COMPOUND, "EXTENDED AT THIS POINT: " << extendedSelectors)
+				DEBUG_PRINTLN(EXTEND_COMPOUND, "SELECTOR EXISTS ALREADY: " << newSelector << " " << extendedSelectors.contains(newSelector, false /*simpleSelectorOrderDependent*/));
 
         if (!extendedSelectors.contains(newSelector, false /*simpleSelectorOrderDependent*/)) {
-//        	DEBUG_PRINTLN("ADDING NEW SELECTOR: ")
+        	DEBUG_PRINTLN(EXTEND_COMPOUND, "ADDING NEW SELECTOR")
           extendedSelectors.collection()->push_back(newSelector);
         }
       }
-      
-#ifdef DEBUG
-//			cerr << "EXTENDED SELECTORS AFTER ITER: " << extendedSelectors << endl;
-#endif
     }
     
     return extendedSelectors;
   }
   
+  
+#ifdef DEBUG
   
   static bool complexSelectorHasExtension(
   	Complex_Selector* pComplexSelector,
@@ -1501,6 +1458,7 @@ namespace Sass {
     return hasExtension;
   }
  
+#endif
 
   
   /*
@@ -1527,7 +1485,7 @@ namespace Sass {
     for (NodeDeque::iterator complexSelIter = complexSelector.collection()->begin(), complexSelIterEnd = complexSelector.collection()->end(); complexSelIter != complexSelIterEnd; ++complexSelIter) {
       Node& sseqOrOp = *complexSelIter;
       
-      cerr << "LOOP: " << sseqOrOp << endl;
+      DEBUG_PRINTLN(EXTEND_COMPLEX, "LOOP: " << sseqOrOp)
       
       // If it's not a selector (meaning it's a combinator), just include it automatically
       if (!sseqOrOp.isSelector()) {
@@ -1544,9 +1502,8 @@ namespace Sass {
       Compound_Selector* pCompoundSelector = sseqOrOp.selector()->head();
 
       Node extended = extendCompoundSelector(pCompoundSelector, ctx, subsetMap, seen);
-#ifdef DEBUG
-			cerr << "EXTENDED: " << extended << endl;
-#endif
+
+			DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTENDED: " << extended)
 
       
       // Prepend the Compound_Selector based on the choices logic; choices seems to be extend but with an ruby Array instead of a Sequence
@@ -1568,26 +1525,21 @@ namespace Sass {
         extended.collection()->push_front(complexSelectorToNode(pJustCurrentCompoundSelector, ctx));
       }
 
-#ifdef DEBUG
-			cerr << "CHOICES UNSHIFTED: " << extended << endl;
-#endif
+			DEBUG_PRINTLN(EXTEND_COMPLEX, "CHOICES UNSHIFTED: " << extended)
       
       // Aggregate our current extensions
       extendedNotExpanded.collection()->push_back(extended);
     }
 
 
-#ifdef DEBUG
-		cerr << "EXTENDED NOT EXPANDED: " << extendedNotExpanded << endl;
-#endif
+		DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTENDED NOT EXPANDED: " << extendedNotExpanded)
   
   
 
     // Ruby Equivalent: paths
     Node paths = Sass::paths(extendedNotExpanded, ctx);
-#ifdef DEBUG
-		cerr << "PATHS: " << paths << endl;
-#endif
+
+		DEBUG_PRINTLN(EXTEND_COMPLEX, "PATHS: " << paths)
 
 
 
@@ -1600,26 +1552,21 @@ namespace Sass {
 			weaves.collection()->push_back(weaved);
     }
 
-#ifdef DEBUG
-		cerr << "WEAVES: " << weaves << endl;
-#endif
+		DEBUG_PRINTLN(EXTEND_COMPLEX, "WEAVES: " << weaves)
 
 
 
     // Ruby Equivalent: trim
     Node trimmed = trim(weaves, ctx);
 
-#ifdef DEBUG
-		cerr << "TRIMMED: " << trimmed << endl;
-#endif
+		DEBUG_PRINTLN(EXTEND_COMPLEX, "TRIMMED: " << trimmed)
 
     
     // Ruby Equivalent: flatten
     Node extendedSelectors = flatten(trimmed, ctx, 1);
     
-#ifdef DEBUG
-		cerr << ">>>>> EXTENDED: " << extendedSelectors << endl;
-#endif
+		DEBUG_PRINTLN(EXTEND_COMPLEX, ">>>>> EXTENDED: " << extendedSelectors)
+
 
 		return extendedSelectors;
   }

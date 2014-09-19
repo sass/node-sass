@@ -60,14 +60,16 @@ SOURCES = \
 
 OBJECTS = $(SOURCES:.cpp=.o)
 
+DEBUG_LVL ?= NONE
+
 all: static
 
 debug: LDFLAGS := -g
-debug: CXXFLAGS := -g -DDEBUG $(filter-out -O2,$(CXXFLAGS))
+debug: CXXFLAGS := -g -DDEBUG -DDEBUG_LVL="$(DEBUG_LVL)" $(filter-out -O2,$(CXXFLAGS))
 debug: static
 
 debug-shared: LDFLAGS := -g
-debug-shared: CXXFLAGS := -g -DDEBUG $(filter-out -O2,$(CXXFLAGS))
+debug-shared: CXXFLAGS := -g -DDEBUG -DDEBUG_LVL="$(DEBUG_LVL)" $(filter-out -O2,$(CXXFLAGS))
 debug-shared: shared
 
 static: libsass.a

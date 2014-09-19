@@ -1,12 +1,38 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#ifdef DEBUG
-#define DEBUG_PRINT(x) do { std::cerr << x; } while (0);
-#define DEBUG_PRINTLN(x) do { std::cerr << x << std::endl; } while (0);
-#else
-#define DEBUG_PRINT(x)
-#define DEBUG_PRINTLN(x)
-#endif
+#include <stdint.h>
 
-#endif
+enum dbg_lvl_t : uint32_t {
+	NONE = 0,
+	TRIM = 1,
+	CHUNKS = 2,
+	SUBWEAVE = 4,
+	WEAVE = 8,
+	EXTEND_COMPOUND = 16,
+	EXTEND_COMPLEX = 32,
+	LCS = 64,
+	ALL = UINT32_MAX
+};
+
+#ifdef DEBUG
+
+#ifndef DEBUG_LVL
+const uint32_t debug_lvl = UINT32_MAX;
+#else
+const uint32_t debug_lvl = (DEBUG_LVL);
+#endif // DEBUG_LVL
+
+#define DEBUG_PRINT(lvl, x) if((lvl) & debug_lvl) { std::cerr << x; }
+#define DEBUG_PRINTLN(lvl, x) if((lvl) & debug_lvl) { std::cerr << x << std::endl; }
+#define DEBUG_EXEC(lvl, x) if((lvl) & debug_lvl) { x; }
+
+#else // DEBUG
+
+#define DEBUG_PRINT(lvl, x)
+#define DEBUG_PRINTLN(lvl, x)
+#define DEBUG_EXEC(lvl, x)
+
+#endif // DEBUG
+
+#endif // DEBUG_H
