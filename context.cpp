@@ -51,7 +51,7 @@ namespace Sass {
     style_sheets         (map<string, Block*>()),
     source_map           (resolve_relative_path(initializers.output_path(), initializers.source_map_file(), get_cwd())),
     c_functions          (vector<Sass_C_Function_Descriptor>()),
-    image_path           (make_canonical_path(initializers.image_path())),
+    image_path           (initializers.image_path()),
     output_path          (make_canonical_path(initializers.output_path())),
     source_comments      (initializers.source_comments()),
     source_maps          (initializers.source_maps()),
