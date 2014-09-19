@@ -294,12 +294,12 @@ namespace Sass {
     }
 
 
-		cerr << "TRIM: " << seqses << endl;
+//		cerr << "TRIM: " << seqses << endl;
 
     
     Node result = seqses.clone(ctx);
     
-    cerr << "RESULT INITIAL: " << result << endl;
+//    cerr << "RESULT INITIAL: " << result << endl;
     
     // Normally we use the standard STL iterators, but in this case, we need to access the result collection by index since we're
     // iterating the input collection, computing a value, and then setting the result in the output collection. We have to keep track
@@ -309,7 +309,7 @@ namespace Sass {
     for (NodeDeque::iterator seqsesIter = seqses.collection()->begin(), seqsesIterEnd = seqses.collection()->end(); seqsesIter != seqsesIterEnd; ++seqsesIter) {
     	Node& seqs1 = *seqsesIter;
       
-      cerr << "SEQS1: " << seqs1 << " " << toTrimIndex << endl;
+//      cerr << "SEQS1: " << seqs1 << " " << toTrimIndex << endl;
       
       Node tempResult = Node::createCollection();
       
@@ -330,8 +330,8 @@ namespace Sass {
         SourcesSet sources = pSeq1->sources();
         
 #ifdef DEBUG
-				cerr << "TRIMASDF SEQ1: " << seq1 << endl;
-        printSourcesSet(sources, "TRIMASDF SOURCES: ");
+//				cerr << "TRIMASDF SEQ1: " << seq1 << endl;
+//        printSourcesSet(sources, "TRIMASDF SOURCES: ");
 #endif
         
         for (SourcesSet::iterator sourcesSetIterator = sources.begin(), sourcesSetIteratorEnd = sources.end(); sourcesSetIterator != sourcesSetIteratorEnd; ++sourcesSetIterator) {
@@ -339,7 +339,7 @@ namespace Sass {
           maxSpecificity = max(maxSpecificity, pCurrentSelector->specificity());
         }
         
-        DEBUG_PRINTLN("MAX SPECIFICITY: " << maxSpecificity)
+//        DEBUG_PRINTLN("MAX SPECIFICITY: " << maxSpecificity)
         
         bool isMoreSpecificOuter = false;
 
@@ -349,13 +349,17 @@ namespace Sass {
         	Node& seqs2 = *resultIter;
           
 #ifdef DEBUG
-					cerr << "SEQS1: " << seqs1 << endl;
-          cerr << "SEQS2: " << seqs2 << endl;
+//					cerr << "SEQS1: " << seqs1 << endl;
+//          cerr << "SEQS2: " << seqs2 << endl;
 #endif
 
-					// Do not compare the same sequence to itself
+					// Do not compare the same sequence to itself in the same position. The ruby call we're trying to
+          // emulate is: seqs1.equal?(seqs2). equal? is an object comparison, not an equivalency comparision.
+          // So, check if we're in the same spot of the array that we were before and whether the selectors
+          // are the same (operator== currently ends up comparing the Simple_Selectors in a Compound_Selector
+          // in an order-dependent manner, so these sequences should be functionally the same).
           if (toTrimIndex == resultIndex && seqs1 == seqs2) {
-            DEBUG_PRINTLN("CONTINUE")
+//            DEBUG_PRINTLN("CONTINUE")
             continue;
           }
 
@@ -366,13 +370,13 @@ namespace Sass {
 
             Complex_Selector* pSeq2 = nodeToComplexSelector(seq2, ctx);
             
-            DEBUG_PRINTLN("SEQ2 SPEC: " << pSeq2->specificity())
-            DEBUG_PRINTLN("IS SUPER: " << (pSeq2->is_superselector_of(pSeq1) ? "true" : "false"))
+//            DEBUG_PRINTLN("SEQ2 SPEC: " << pSeq2->specificity())
+//            DEBUG_PRINTLN("IS SUPER: " << (pSeq2->is_superselector_of(pSeq1) ? "true" : "false"))
             
             isMoreSpecificInner = pSeq2->specificity() >= maxSpecificity && pSeq2->is_superselector_of(pSeq1);
 
             if (isMoreSpecificInner) {
-              DEBUG_PRINTLN("FOUND MORE SPECIFIC")
+//              DEBUG_PRINTLN("FOUND MORE SPECIFIC")
               break;
             }
           }
@@ -387,19 +391,19 @@ namespace Sass {
         }
         
         if (!isMoreSpecificOuter) {
-          DEBUG_PRINTLN("PUSHING: " << seq1)
+//          DEBUG_PRINTLN("PUSHING: " << seq1)
           tempResult.collection()->push_back(seq1); // TODO: clone this?
         }
 
       }
       
-      cerr << "RESULT BEFORE ASSIGN: " << result << endl;
-      DEBUG_PRINTLN("TEMP RESULT: " << toTrimIndex << " " << tempResult);
+//      cerr << "RESULT BEFORE ASSIGN: " << result << endl;
+//      DEBUG_PRINTLN("TEMP RESULT: " << toTrimIndex << " " << tempResult);
       (*result.collection())[toTrimIndex] = tempResult;
       
       toTrimIndex++;
       
-      cerr << "RESULT: " << result << endl;
+//      cerr << "RESULT: " << result << endl;
 		}
     
     return result;
