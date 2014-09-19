@@ -240,7 +240,7 @@ namespace Sass {
   }
   
   
-  // Compare two ComplexSelectorDeques to see if they are equivalent.
+  // Compare two ComplexSelectorDeques to see if they are equivalent.  (this will be order dependent)
   static bool complexSelectorDequesEqual(ComplexSelectorDeque& one, ComplexSelectorDeque& two) {
     if (one.size() != two.size()) {
       return false;
@@ -249,8 +249,8 @@ namespace Sass {
     for (size_t index = 0; index < one.size(); index++) {
       Complex_Selector* pOne = one[index];
       Complex_Selector* pTwo = two[index];
-
-      if (*pOne != *pTwo) {
+      
+      if ((*pOne < *pTwo) || (*pTwo < *pOne)) {
         return false;
       }
     }
@@ -387,8 +387,8 @@ namespace Sass {
 #endif
 
 					// Do not compare the same sequence to itself
-          if (toTrimIndex == resultIndex) {
-//            DEBUG_PRINTLN("CONTINUE")
+          if (toTrimIndex == resultIndex && complexSelectorDequesEqual(seqs1, seqs2)) {
+            //            DEBUG_PRINTLN("CONTINUE")
             continue;
           }
           
