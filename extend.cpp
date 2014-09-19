@@ -41,21 +41,13 @@
  - You may see a lot of comments that say "// TODO: is this the correct combinator?". See the comment referring to combinators
    in extendCompoundSelector for a more extensive explanation of my confusion. I think our divergence in data model from ruby
    sass causes this to be necessary.
- 
 
  GLOBAL TODOS:
- 
- - wrap the contents of the print functions in DEBUG preprocesser conditionals so they will be optimized away in non-debug mode.
- 
  - consider making the extend* functions member functions to avoid passing around ctx and subsetMap map around. This has the
    drawback that the implementation details of the operator are then exposed to the outside world, which is not ideal and
    can cause additional compile time dependencies.
- 
- - mark the helper methods in this file static to given them compilation unit linkage.
- 
+
  - implement parent directive matching
- 
- - fix compilation warnings for unused Extend members if we really don't need those references anymore.
  */
 
 
@@ -362,17 +354,15 @@ namespace Sass {
         int maxSpecificity = 0;
         SourcesSet sources = pSeq1->sources();
 
-#ifdef DEBUG
-//        printComplexSelector(pSeq1, "TRIMASDF SEQ1: ");
-//        printSourcesSet(sources, "TRIMASDF SOURCES: ");
-#endif
+        DEBUG_EXEC(TRIM, printComplexSelector(pSeq1, "TRIMASDF SEQ1: "))
+        DEBUG_EXEC(TRIM, printSourcesSet(sources, "TRIMASDF SOURCES: "))
 
         for (SourcesSet::iterator sourcesSetIterator = sources.begin(), sourcesSetIteratorEnd = sources.end(); sourcesSetIterator != sourcesSetIteratorEnd; ++sourcesSetIterator) {
          	const Complex_Selector* const pCurrentSelector = *sourcesSetIterator;
           maxSpecificity = max(maxSpecificity, pCurrentSelector->specificity());
         }
         
-//        DEBUG_PRINTLN("MAX SPECIFIITY: " << maxSpecificity)
+        DEBUG_PRINTLN(TRIM, "MAX SPECIFIITY: " << maxSpecificity)
 
         bool isMoreSpecificOuter = false;
 
@@ -381,14 +371,12 @@ namespace Sass {
         for (ComplexSelectorDequeDeque::iterator resultIterator = result.begin(), resultIteratorEnd = result.end(); resultIterator != resultIteratorEnd; ++resultIterator) {
           ComplexSelectorDeque& seqs2 = *resultIterator;
 
-#ifdef DEBUG
-//          printComplexSelectorDeque(seqs1, "SEQS1: ");
-//          printComplexSelectorDeque(seqs2, "SEQS2: ");
-#endif
+          DEBUG_EXEC(TRIM, printComplexSelectorDeque(seqs1, "SEQS1: "))
+          DEBUG_EXEC(TRIM, printComplexSelectorDeque(seqs2, "SEQS2: "))
 
 					// Do not compare the same sequence to itself
           if (toTrimIndex == resultIndex && complexSelectorDequesEqual(seqs1, seqs2)) {
-            //            DEBUG_PRINTLN("CONTINUE")
+            DEBUG_PRINTLN(TRIM, "CONTINUE")
             continue;
           }
           
@@ -397,13 +385,13 @@ namespace Sass {
           for (ComplexSelectorDeque::iterator seqs2Iterator = seqs2.begin(), seqs2IteratorEnd = seqs2.end(); seqs2Iterator != seqs2IteratorEnd; ++seqs2Iterator) {
             Complex_Selector* pSeq2 = *seqs2Iterator;
             
-//            DEBUG_PRINTLN("SEQ2 SPEC: " << pSeq2->specificity())
-//            DEBUG_PRINTLN("IS SUPER: " << pSeq2->is_superselector_of(pSeq1))
+            DEBUG_PRINTLN(TRIM, "SEQ2 SPEC: " << pSeq2->specificity())
+            DEBUG_PRINTLN(TRIM, "IS SUPER: " << pSeq2->is_superselector_of(pSeq1))
             
             isMoreSpecificInner = pSeq2->specificity() >= maxSpecificity && pSeq2->is_superselector_of(pSeq1);
 
             if (isMoreSpecificInner) {
-//              DEBUG_PRINTLN("FOUND MORE SPECIFIC")
+              DEBUG_PRINTLN(TRIM, "FOUND MORE SPECIFIC")
               break;
             }
           }
@@ -418,7 +406,7 @@ namespace Sass {
         }
         
         if (!isMoreSpecificOuter) {
-//          DEBUG_PRINTLN("PUSHING")
+          DEBUG_PRINTLN(TRIM, "PUSHING")
           tempResult.push_back(pSeq1);
         }
       }
@@ -519,21 +507,21 @@ namespace Sass {
     }
     
     if (chunk1.collection()->empty() && chunk2.collection()->empty()) {
-      DEBUG_PRINTLN("RETURNING BOTH EMPTY")
+      DEBUG_PRINTLN(CHUNKS, "RETURNING BOTH EMPTY")
       return Node::createCollection();
     }
     
     if (chunk1.collection()->empty()) {
     	Node chunk2Wrapper = Node::createCollection();
     	chunk2Wrapper.collection()->push_back(chunk2);
-      DEBUG_PRINTLN("RETURNING ONE EMPTY")
+      DEBUG_PRINTLN(CHUNKS, "RETURNING ONE EMPTY")
       return chunk2Wrapper;
     }
     
     if (chunk2.collection()->empty()) {
 	    Node chunk1Wrapper = Node::createCollection();
       chunk1Wrapper.collection()->push_back(chunk1);
-      DEBUG_PRINTLN("RETURNING TWO EMPTY")
+      DEBUG_PRINTLN(CHUNKS, "RETURNING TWO EMPTY")
       return chunk1Wrapper;
     }
     
@@ -549,7 +537,7 @@ namespace Sass {
     secondPermutation.collection()->insert(secondPermutation.collection()->end(), chunk1.collection()->begin(), chunk1.collection()->end());
     perms.collection()->push_back(secondPermutation);
     
-    DEBUG_PRINTLN("RETURNING PERM")
+    DEBUG_PRINTLN(CHUNKS, "RETURNING PERM")
     
     return perms;
   }
@@ -1009,28 +997,24 @@ namespace Sass {
     // Doing this clones the input, so this is equivalent to the ruby code's .dup
     Node seq1 = complexSelectorToNode(pOne, ctx);
     Node seq2 = complexSelectorToNode(pTwo, ctx);
-    
-#ifdef DEBUG
-    DEBUG_PRINTLN("SUBWEAVE ONE: " << seq1)
-    DEBUG_PRINTLN("SUBWEAVE TWO: " << seq2)
-#endif
+
+    DEBUG_PRINTLN(SUBWEAVE, "SUBWEAVE ONE: " << seq1)
+    DEBUG_PRINTLN(SUBWEAVE, "SUBWEAVE TWO: " << seq2)
 
 		Node init = mergeInitialOps(seq1, seq2, ctx);
     if (init.isNil()) {
     	return;
     }
-    
-#ifdef DEBUG
-    DEBUG_PRINTLN("INIT: " << init)
-#endif
-    
+
+    DEBUG_PRINTLN(SUBWEAVE, "INIT: " << init)
+
     Node res = Node::createCollection();
 		Node fin = mergeFinalOps(seq1, seq2, ctx, res);
     if (fin.isNil()) {
     	return;
     }
-    
-    DEBUG_PRINTLN("FIN: " << fin)
+
+    DEBUG_PRINTLN(SUBWEAVE, "FIN: " << fin)
 
 
 		// Moving this line up since fin isn't modified between now and when it happened before
@@ -1049,21 +1033,19 @@ namespace Sass {
 
     }
 
-		DEBUG_PRINTLN("FIN MAPPED: " << fin)
-
-
+    DEBUG_PRINTLN(SUBWEAVE, "FIN MAPPED: " << fin)
 
     Node groupSeq1 = groupSelectors(seq1, ctx);
-    DEBUG_PRINTLN("SEQ1: " << groupSeq1)
+    DEBUG_PRINTLN(SUBWEAVE, "SEQ1: " << groupSeq1)
     
     Node groupSeq2 = groupSelectors(seq2, ctx);
-    DEBUG_PRINTLN("SEQ2: " << groupSeq2)
+    DEBUG_PRINTLN(SUBWEAVE, "SEQ2: " << groupSeq2)
 
 
     LcsCollectionComparator collectionComparator(ctx);
     Node seqLcs = lcs(groupSeq2, groupSeq1, collectionComparator, ctx);
     
-    DEBUG_PRINTLN("SEQLCS: " << seqLcs)
+    DEBUG_PRINTLN(SUBWEAVE, "SEQLCS: " << seqLcs)
 
 
 		Node initWrapper = Node::createCollection();
@@ -1071,7 +1053,7 @@ namespace Sass {
 		Node diff = Node::createCollection();
     diff.collection()->push_back(initWrapper);
 
-    DEBUG_PRINTLN("DIFF INIT: " << diff)
+    DEBUG_PRINTLN(SUBWEAVE, "DIFF INIT: " << diff)
     
     
     while (!seqLcs.collection()->empty()) {
@@ -1088,10 +1070,10 @@ namespace Sass {
       groupSeq2.collection()->pop_front();
     }
     
-    DEBUG_PRINTLN("DIFF POST LCS: " << diff)
+    DEBUG_PRINTLN(SUBWEAVE, "DIFF POST LCS: " << diff)
     
     
-    DEBUG_PRINTLN("CHUNKS: ONE=" << groupSeq1 << " TWO=" << groupSeq2)
+    DEBUG_PRINTLN(SUBWEAVE, "CHUNKS: ONE=" << groupSeq1 << " TWO=" << groupSeq2)
     
 
     SubweaveEmptyChunker emptyChunker;
@@ -1099,12 +1081,12 @@ namespace Sass {
     diff.collection()->push_back(chunksResult);
     
     
-    DEBUG_PRINTLN("DIFF POST CHUNKS: " << diff)
+    DEBUG_PRINTLN(SUBWEAVE, "DIFF POST CHUNKS: " << diff)
     
 
     diff.collection()->insert(diff.collection()->end(), fin.collection()->begin(), fin.collection()->end());
     
-    DEBUG_PRINTLN("DIFF POST FIN MAPPED: " << diff)
+    DEBUG_PRINTLN(SUBWEAVE, "DIFF POST FIN MAPPED: " << diff)
 
     // JMA - filter out the empty nodes (use a new collection, since iterator erase() invalidates the old collection)
     Node diffFiltered = Node::createCollection();
@@ -1117,12 +1099,12 @@ namespace Sass {
     }
     diff = diffFiltered;
     
-    DEBUG_PRINTLN("DIFF POST REJECT: " << diff)
+    DEBUG_PRINTLN(SUBWEAVE, "DIFF POST REJECT: " << diff)
     
     
 		Node pathsResult = paths(diff, ctx);
     
-    DEBUG_PRINTLN("PATHS: " << pathsResult)
+    DEBUG_PRINTLN(SUBWEAVE, "PATHS: " << pathsResult)
     
 
 		// We're flattening in place
@@ -1133,7 +1115,7 @@ namespace Sass {
       child = flatten(child, ctx);
     }
     
-    DEBUG_PRINTLN("FLATTENED: " << pathsResult)
+    DEBUG_PRINTLN(SUBWEAVE, "FLATTENED: " << pathsResult)
     
     
     /*
@@ -1141,7 +1123,7 @@ namespace Sass {
       rejected = mapped.reject {|p| path_has_two_subjects?(p)}
       $stderr.puts "REJECTED: #{rejected}"
      */
-    DEBUG_PRINTLN("REJECTED: " << pathsResult)
+    DEBUG_PRINTLN(SUBWEAVE, "REJECTED: " << pathsResult)
     
   
     // Convert back to the data type the rest of the code expects.
@@ -1440,42 +1422,30 @@ namespace Sass {
       Complex_Selector* pNewInnerMost = new (ctx.mem) Complex_Selector(pSelector->path(), pSelector->position(), sourceCombinator, pUnifiedSelector, NULL);
       Complex_Selector::Combinator combinator = pNewSelector->clear_innermost();
       pNewSelector->set_innermost(pNewInnerMost, combinator);
-      
-
 
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
-#ifdef DEBUG
-//      printComplexSelector(pNewSelector, "ASDF SETTING ON: ");
-#endif
+
+      DEBUG_EXEC(EXTEND_COMPOUND, printComplexSelector(pNewSelector, "ASDF SETTING ON: "))
 
       SourcesSet newSourcesSet = pSelector->sources();
-#ifdef DEBUG
-//      printSourcesSet(newSourcesSet, "ASDF SOURCES THIS: ");
-#endif
+      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, "ASDF SOURCES THIS: "))
 
       newSourcesSet.insert(pExtComplexSelector->clone(ctx));
-#ifdef DEBUG
-//      printSourcesSet(newSourcesSet, "ASDF NEW: ");
-#endif
+      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, "ASDF NEW: "))
 
       pNewSelector->addSources(newSourcesSet, ctx);
-#ifdef DEBUG
-//      SourcesSet newSet = pNewSelector->sources();
-//      printSourcesSet(newSet, "ASDF NEW AFTER SET: ");
-//      printSourcesSet(pSelector->sources(), "ASDF SOURCES THIS SHOULD BE SAME: ");
-#endif
+      DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet newSet = pNewSelector->sources(); \
+                                  printSourcesSet(newSet, "ASDF NEW AFTER SET: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(pSelector->sources(), "ASDF SOURCES THIS SHOULD BE SAME: "))
 
 
       ComplexSelectorDeque recurseExtendedSelectors;
       set<Compound_Selector> recurseSeen(seen);
       recurseSeen.insert(*pExtCompoundSelector);
 
+      DEBUG_EXEC(EXTEND_COMPOUND, printComplexSelector(pNewSelector, "RECURSING DO EXTEND: ", true))
 
-#ifdef DEBUG
-			printComplexSelector(pNewSelector, "RECURSING DO EXTEND: ", true);
-#endif
-  		extendComplexSelector(pNewSelector, ctx, subsetMap, recurseSeen, recurseExtendedSelectors /*out*/);
-
+      extendComplexSelector(pNewSelector, ctx, subsetMap, recurseSeen, recurseExtendedSelectors /*out*/);
 
       for (ComplexSelectorDeque::iterator iterator = recurseExtendedSelectors.begin(), endIterator = recurseExtendedSelectors.end();
            iterator != endIterator; ++iterator) {
@@ -1517,14 +1487,11 @@ namespace Sass {
     while(pCurrentComplexSelector)
     {
       Compound_Selector* pCompoundSelector = pCurrentComplexSelector->head();
-
-      DEBUG_PRINTLN("LOOP: " << pCompoundSelector->perform(&to_string))
+      DEBUG_PRINTLN(EXTEND_COMPLEX, "LOOP: " << pCompoundSelector->perform(&to_string))
 
       ComplexSelectorDeque extended;
       extendCompoundSelector(pCompoundSelector, pCurrentComplexSelector->combinator(), ctx, subsetMap, seen, extended /*out*/);
-#ifdef DEBUG
-      printComplexSelectorDeque(extended, "EXTENDED: ");
-#endif
+      DEBUG_EXEC(EXTEND_COMPLEX, printComplexSelectorDeque(extended, "EXTENDED: "))
 
       
       // Prepend the Compound_Selector based on the choices logic; choices seems to be extend but with an ruby Array instead of a Sequence
@@ -1546,28 +1513,21 @@ namespace Sass {
         extended.push_front(pJustCurrentCompoundSelector);
       }
 
-#ifdef DEBUG
-      printComplexSelectorDeque(extended, "CHOICES UNSHIFTED: ");
-#endif
-      
+      DEBUG_EXEC(EXTEND_COMPLEX, printComplexSelectorDeque(extended, "CHOICES UNSHIFTED: "))
+
       // Aggregate our current extensions
       extendedNotExpanded.push_back(extended);
-    
 
       // Continue our iteration
     	pCurrentComplexSelector = pCurrentComplexSelector->tail();
     }
 
-#ifdef DEBUG
-    printComplexSelectorDequeDeque(extendedNotExpanded, "EXTENDED NOT EXPANDED: ");
-#endif
-  
+    DEBUG_EXEC(EXTEND_COMPLEX, printComplexSelectorDequeDeque(extendedNotExpanded, "EXTENDED NOT EXPANDED: "))
+
     // Ruby Equivalent: paths
     ComplexSelectorDequeDeque permutations;
     paths(extendedNotExpanded, permutations, ctx);
-#ifdef DEBUG
-    printComplexSelectorDequeDeque(permutations, "PATHS: ");
-#endif
+    DEBUG_EXEC(EXTEND_COMPLEX, printComplexSelectorDequeDeque(permutations, "PATHS: "))
 
     // Ruby Equivalent: weave
  		ComplexSelectorDequeDeque weaves;
@@ -1581,18 +1541,13 @@ namespace Sass {
       weaves.push_back(weaved);
     }
 
-#ifdef DEBUG
-    printComplexSelectorDequeDeque(weaves, "WEAVES: ");
-#endif
-    
+    DEBUG_EXEC(EXTEND_COMPLEX, printComplexSelectorDequeDeque(weaves, "WEAVES: "))
+
     // Ruby Equivalent: trim
     ComplexSelectorDequeDeque trimmed;
     trim(weaves, trimmed, ctx);
-#ifdef DEBUG
-		printComplexSelectorDequeDeque(trimmed, "TRIMMED: ");
-#endif
+    DEBUG_EXEC(EXTEND_COMPLEX, printComplexSelectorDequeDeque(trimmed, "TRIMMED: "))
 
-    
     // Ruby Equivalent: flatten
     for (ComplexSelectorDequeDeque::iterator iterator = trimmed.begin(), endIterator = trimmed.end();
          iterator != endIterator; ++iterator) {
@@ -1600,10 +1555,7 @@ namespace Sass {
       ComplexSelectorDeque& toCombine = *iterator;
       extendedSelectors.insert(extendedSelectors.end(), toCombine.begin(), toCombine.end());
     }
-    
-#ifdef DEBUG
-    printComplexSelectorDeque(extendedSelectors, ">>>>> EXTENDED: ");
-#endif
+    DEBUG_EXEC(EXTEND_COMPLEX, printComplexSelectorDeque(extendedSelectors, ">>>>> EXTENDED: "))
   }
 
 
