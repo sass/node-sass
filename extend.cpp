@@ -1133,7 +1133,7 @@ namespace Sass {
       child = flatten(child, ctx);
     }
     
-    DEBUG_PRINTLN("FLATTENED: " << pathsResult);
+    DEBUG_PRINTLN("FLATTENED: " << pathsResult)
     
     
     /*
@@ -1517,10 +1517,8 @@ namespace Sass {
     while(pCurrentComplexSelector)
     {
       Compound_Selector* pCompoundSelector = pCurrentComplexSelector->head();
-      
-#ifdef DEBUG
-      cerr << "LOOP: " << pCompoundSelector->perform(&to_string) << endl;
-#endif
+
+      DEBUG_PRINTLN("LOOP: " << pCompoundSelector->perform(&to_string))
 
       ComplexSelectorDeque extended;
       extendCompoundSelector(pCompoundSelector, pCurrentComplexSelector->combinator(), ctx, subsetMap, seen, extended /*out*/);
