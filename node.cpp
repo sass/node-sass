@@ -61,13 +61,14 @@ namespace Sass {
   }
   
   
-  bool Node::contains(const Node& potentialChild) const {
+  bool Node::contains(const Node& potentialChild, bool simpleSelectorOrderDependent) const {
   	bool found = false;
     
     for (NodeDeque::iterator iter = mpCollection->begin(), iterEnd = mpCollection->end(); iter != iterEnd; iter++) {
       Node& toTest = *iter;
-      if (toTest == potentialChild) {
-      	found = true;
+
+      if (nodesEqual(toTest, potentialChild, simpleSelectorOrderDependent)) {
+        found = true;
         break;
       }
     }
@@ -77,32 +78,37 @@ namespace Sass {
   
 
   bool Node::operator==(const Node& rhs) const {
-    if (this->mType != rhs.mType) {
+  	return nodesEqual(*this, rhs, true /*simpleSelectorOrderDependent*/);
+  }
+  
+
+  bool nodesEqual(const Node& lhs, const Node& rhs, bool simpleSelectorOrderDependent) {
+    if (lhs.type() != rhs.type()) {
       return false;
     }
     
-    if (this->isCombinator()) {
+    if (lhs.isCombinator()) {
 
-    	return this->combinator() == rhs.combinator();
+    	return lhs.combinator() == rhs.combinator();
 
-    } else if (this->isNil()) {
+    } else if (lhs.isNil()) {
 
       return true; // no state to check
 
-    } else if (this->isSelector()){
+    } else if (lhs.isSelector()){
 
-    	return (!(*this->selector() < *rhs.selector()) && !(*rhs.selector() < *this->selector()));
+      return selectors_equal(*lhs.selector(), *rhs.selector(), simpleSelectorOrderDependent);
 
-    } else if (this->isCollection()) {
+    } else if (lhs.isCollection()) {
 
-      if (this->collection()->size() != rhs.collection()->size()) {
+      if (lhs.collection()->size() != rhs.collection()->size()) {
         return false;
       }
 
-      for (NodeDeque::iterator thisIter = mpCollection->begin(), thisIterEnd = mpCollection->end(),
-           rhsIter = rhs.collection()->begin(); thisIter != thisIterEnd; thisIter++, rhsIter++) {
+      for (NodeDeque::iterator lhsIter = lhs.collection()->begin(), lhsIterEnd = lhs.collection()->end(),
+           rhsIter = rhs.collection()->begin(); lhsIter != lhsIterEnd; lhsIter++, rhsIter++) {
 
-        if (*thisIter != *rhsIter) {
+        if (!nodesEqual(*lhsIter, *rhsIter, simpleSelectorOrderDependent)) {
           return false;
         }
 
@@ -112,8 +118,8 @@ namespace Sass {
 
     }
     
-    // We shouldn't get here. If we did, a new type was added, but this wasn't updated.
-    return false;
+    // We shouldn't get here.
+    throw "Comparing unknown node types. A new type was probably added and this method wasn't implemented for it.";
   }
   
   

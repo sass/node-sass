@@ -1256,7 +1256,7 @@ namespace Sass {
     : Selector(path, position),
       Vectorized<Simple_Selector*>(s)
     { }
-    bool operator<(const Compound_Selector& rhs) const;
+
     Compound_Selector* unify_with(Compound_Selector* rhs, Context& ctx);
     virtual Selector_Placeholder* find_placeholder();
     Simple_Selector* base()
@@ -1284,6 +1284,8 @@ namespace Sass {
              !static_cast<Selector_Reference*>((*this)[0])->selector();
     }
     vector<string> to_str_vec(); // sometimes need to convert to a flat "by-value" data structure
+    
+    bool operator<(const Compound_Selector& rhs) const;
     
     bool operator==(const Compound_Selector& rhs) const;
     inline bool operator!=(const Compound_Selector& rhs) const { return !(*this == rhs); }
@@ -1405,7 +1407,28 @@ namespace Sass {
     // vector<Complex_Selector*> members() { return elements_; }
     ATTACH_OPERATIONS();
   };
+  
+  
+  template<typename SelectorType>
+  bool selectors_equal(const SelectorType& one, const SelectorType& two, bool simpleSelectorOrderDependent) {
+  	// Test for equality among selectors while differentiating between checks that demand the underlying Simple_Selector
+    // ordering to be the same or not. This works because operator< (which doesn't make a whole lot of sense for selectors, but
+    // is required for proper stl collection ordering) is implemented using string comparision. This gives stable sorting
+    // behavior, and can be used to determine if the selectors would have exactly idential output. operator== matches the
+    // ruby sass implementations for eql, which sometimes perform order independent comparisions (like set comparisons of the
+    // members of a SimpleSequence (Compound_Selector)).
+    //
+    // Due to the reliance on operator== and operater< behavior, this templated method is currently only intended for
+    // use with Compound_Selector and Complex_Selector objects.
+  	if (simpleSelectorOrderDependent) {
+    	return !(one < two) && !(two < one);
+    } else {
+    	return one == two;
+    }
+  }
+
 }
+
 
 #ifdef __clang__
 

@@ -1443,14 +1443,27 @@ namespace Sass {
 #endif
 
 			Node recurseExtendedSelectors = extendComplexSelector(pNewSelector, ctx, subsetMap, recurseSeen);
+      
+#ifdef DEBUG
+			cerr << "RECURSING DO EXTEND RETURN: " << recurseExtendedSelectors << endl;
+#endif
 
       for (NodeDeque::iterator iterator = recurseExtendedSelectors.collection()->begin(), endIterator = recurseExtendedSelectors.collection()->end();
            iterator != endIterator; ++iterator) {
         Node& newSelector = *iterator;
-        if (!extendedSelectors.contains(newSelector)) {
+
+//				DEBUG_PRINTLN("EXTENDED AT THIS POINT: " << extendedSelectors)
+//				DEBUG_PRINTLN("SELECTOR EXISTS ALREADY: " << newSelector << " " << extendedSelectors.contains(newSelector, false /*simpleSelectorOrderDependent*/));
+
+        if (!extendedSelectors.contains(newSelector, false /*simpleSelectorOrderDependent*/)) {
+//        	DEBUG_PRINTLN("ADDING NEW SELECTOR: ")
           extendedSelectors.collection()->push_back(newSelector);
         }
       }
+      
+#ifdef DEBUG
+//			cerr << "EXTENDED SELECTORS AFTER ITER: " << extendedSelectors << endl;
+#endif
     }
     
     return extendedSelectors;
@@ -1644,7 +1657,7 @@ namespace Sass {
       Node extendedSelectors = extendComplexSelector(pSelector, ctx, subsetMap, seen);
       
       if (!pSelector->has_placeholder()) {
-        if (!extendedSelectors.contains(complexSelectorToNode(pSelector, ctx))) {
+        if (!extendedSelectors.contains(complexSelectorToNode(pSelector, ctx), true /*simpleSelectorOrderDependent*/)) {
         	*pNewSelectors << pSelector;
         }
       }

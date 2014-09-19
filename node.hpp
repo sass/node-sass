@@ -47,6 +47,7 @@ namespace Sass {
       NIL
     };
 
+		TYPE type() const { return mType; }
     bool isCombinator() const { return mType == COMBINATOR; }
     bool isSelector() const { return mType == SELECTOR; }
     bool isCollection() const { return mType == COLLECTION; }
@@ -92,7 +93,7 @@ namespace Sass {
     // potentialChild must be a node collection of selectors/combinators. this must be a collection
     // of collections of nodes/combinators. This method checks if potentialChild is a child of this
     // Node.
-    bool contains(const Node& potentialChild) const;
+    bool contains(const Node& potentialChild, bool simpleSelectorOrderDependent) const;
     
   private:
     // Private constructor; Use the static methods (like createCombinator and createSelector)
@@ -116,5 +117,7 @@ namespace Sass {
   Complex_Selector* nodeToComplexSelector(const Node& toConvert, Context& ctx);
   
   Node unify(const Node& sel1, const Node& sel2, Context& ctx);
+  
+  bool nodesEqual(const Node& one, const Node& two, bool simpleSelectorOrderDependent);
 
 }
