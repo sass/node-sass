@@ -1314,7 +1314,7 @@ namespace Sass {
 			for (vector<ExtensionPair>::iterator groupIter = group.begin(), groupIterEnd = group.end(); groupIter != groupIterEnd; groupIter++) {
       	ExtensionPair& pair = *groupIter;
         Compound_Selector* pCompound = pair.second;
-        for (int index = 0; index < pCompound->length(); index++) {
+        for (size_t index = 0; index < pCompound->length(); index++) {
         	Simple_Selector* pSimpleSelector = (*pCompound)[index];
 	        (*pSels) << pSimpleSelector;
         }
