@@ -1,5 +1,3 @@
-project_id: "ojs37kekmpl6mr0k"
-
 version: "{build}"
 
 init:
@@ -7,14 +5,13 @@ init:
 
 environment:
   matrix:
-    - nodejs_version: 0.10
+    - nodejs_version: 0.10.32
+    - nodejs_version: 0.11.13
 
 install:
-  - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version)
-  - cmd: SET PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
+  - ps: Install-Product node $env:nodejs_version
   - cmd: SET PATH=C:\python27;%PATH%
   - cmd: git submodule update --init --recursive
-  - cmd: npm install -g node-gyp
   - npm install --msvs_version=2013
 
 test_script:
