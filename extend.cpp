@@ -1602,15 +1602,15 @@ namespace Sass {
     for (size_t index = 0, length = pSelectorList->length(); index < length; index++) {
       Complex_Selector* pSelector = (*pSelectorList)[index];
       
-#ifdef DEBUG
-			// In debug mode, we want our prints to more closely line up with sass. sass seems to only extend a selector if it has
-      // an extension. libsass is looping over all the selectors and checking at extend time. For now, just check in debug mode
-      // if there is an extension and early return if there is.
+      // ruby sass seems to keep a list of things that have extensions and then only extend those. We don't currently do that.
+      // Since it's not that expensive to check if an extension exists in the subset map and since it can be relatively expensive to
+      // run through the extend code (which does a data model transformation), check if there is anything to extend before doing
+      // the extend. We might be able to optimize extendComplexSelector, but this approach keeps us closer to ruby sass (which helps
+      // when debugging).
       if (!complexSelectorHasExtension(pSelector, ctx, subsetMap)) {
       	*pNewSelectors << pSelector;
       	continue;
       }
-#endif
 
       set<Compound_Selector> seen;
       Node extendedSelectors = extendComplexSelector(pSelector, ctx, subsetMap, seen);
