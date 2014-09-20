@@ -289,19 +289,20 @@ namespace Sass {
   /*
    - IMPROVEMENT: We could probably work directly in the output trimmed deque.
    */
-  static Node trim(const Node& seqses, Context& ctx) {
+  static Node trim(Node& seqses, Context& ctx) {
     // See the comments in the above ruby code before embarking on understanding this function.
 
     // Avoid poor performance in extreme cases.
     if (seqses.collection()->size() > 100) {
-    	return seqses.clone(ctx);
+    	return seqses;
     }
 
 
 		DEBUG_PRINTLN(TRIM, "TRIM: " << seqses)
 
     
-    Node result = seqses.clone(ctx);
+    Node result = Node::createCollection();
+    result.plus(seqses);
     
     DEBUG_PRINTLN(TRIM, "RESULT INITIAL: " << result)
     
@@ -392,7 +393,7 @@ namespace Sass {
         
         if (!isMoreSpecificOuter) {
           DEBUG_PRINTLN(TRIM, "PUSHING: " << seq1)
-          tempResult.collection()->push_back(seq1); // TODO: clone this?
+          tempResult.collection()->push_back(seq1);
         }
 
       }
@@ -1052,7 +1053,7 @@ namespace Sass {
     
     
     while (!seqLcs.collection()->empty()) {
-    	ParentSuperselectorChunker superselectorChunker(seqLcs, ctx); // TODO: rename this to parent super selector chunker
+    	ParentSuperselectorChunker superselectorChunker(seqLcs, ctx);
       Node chunksResult = chunks(groupSeq1, groupSeq2, superselectorChunker);
       diff.collection()->push_back(chunksResult);
       
@@ -1122,31 +1123,6 @@ namespace Sass {
   
   	return pathsResult;
 
-  }
-	static Node subweaveNaive(const Node& one, const Node& two, Context& ctx) {
-		Node out = Node::createCollection();
-
-    // Check for the simple cases
-    if (one.isNil()) {
-      out.collection()->push_back(two.clone(ctx));
-    } else if (two.isNil()) {
-      out.collection()->push_back(one.clone(ctx));
-    } else {
-      // Do the naive implementation. pOne = A B and pTwo = C D ...yields...  A B C D and C D A B
-      // See https://gist.github.com/nex3/7609394 for details.
-      
-      Node firstPerm = one.clone(ctx);
-      Node twoCloned = two.clone(ctx);
-      firstPerm.plus(twoCloned);
-      out.collection()->push_back(firstPerm);
-      
-      Node secondPerm = two.clone(ctx);
-      Node oneCloned = one.clone(ctx);
-      secondPerm.plus(oneCloned );
-      out.collection()->push_back(secondPerm);
-    }
-    
-    return out;
   }
 
 
@@ -1223,14 +1199,15 @@ namespace Sass {
         return befores
       end
   */
-	static Node weave(const Node& path, Context& ctx) {
+	static Node weave(Node& path, Context& ctx) {
   
   	DEBUG_PRINTLN(WEAVE, "WEAVE: " << path)
   
   	Node befores = Node::createCollection();
     befores.collection()->push_back(Node::createCollection());
 
-		Node afters = path.clone(ctx);
+		Node afters = Node::createCollection();
+    afters.plus(path);
 
 		while (!afters.collection()->empty()) {
     	Node current = afters.collection()->front().clone(ctx);
@@ -1259,7 +1236,8 @@ namespace Sass {
         for (NodeDeque::iterator subIter = sub.collection()->begin(), subEndIter = sub.collection()->end(); subIter != subEndIter; subIter++) {
           Node& seqs = *subIter;
           
-          Node toPush = seqs.clone(ctx);
+          Node toPush = Node::createCollection();
+          toPush.plus(seqs);
           toPush.plus(last_current);
           
           tempResult.collection()->push_back(toPush);
@@ -1412,7 +1390,7 @@ namespace Sass {
       SourcesSet newSourcesSet = pSelector->sources();
       DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, "ASDF SOURCES THIS: "))
 
-      newSourcesSet.insert(pExtComplexSelector->clone(ctx));
+      newSourcesSet.insert(pExtComplexSelector);
       DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, "ASDF NEW: "))
 
       pNewSelector->addSources(newSourcesSet, ctx);
@@ -1490,7 +1468,7 @@ namespace Sass {
     ExtensionSubsetMap& subsetMap,
     set<Compound_Selector> seen) {
     
-    Node complexSelector = complexSelectorToNode(pComplexSelector, ctx); // TODO: remove 2 in name once it compiles
+    Node complexSelector = complexSelectorToNode(pComplexSelector, ctx);
     
     Node extendedNotExpanded = Node::createCollection();
     
@@ -1520,7 +1498,7 @@ namespace Sass {
       
       // Prepend the Compound_Selector based on the choices logic; choices seems to be extend but with an ruby Array instead of a Sequence
       // due to the member mapping: choices = extended.map {|seq| seq.members}
-      Complex_Selector* pJustCurrentCompoundSelector = sseqOrOp.selector()->clone(ctx);
+      Complex_Selector* pJustCurrentCompoundSelector = sseqOrOp.selector();
 
       bool isSuperselector = false;
       for (NodeDeque::iterator iterator = extended.collection()->begin(), endIterator = extended.collection()->end();
