@@ -1123,7 +1123,32 @@ namespace Sass {
   	return pathsResult;
 
   }
-  
+	static Node subweaveNaive(const Node& one, const Node& two, Context& ctx) {
+		Node out = Node::createCollection();
+
+    // Check for the simple cases
+    if (one.isNil()) {
+      out.collection()->push_back(two.clone(ctx));
+    } else if (two.isNil()) {
+      out.collection()->push_back(one.clone(ctx));
+    } else {
+      // Do the naive implementation. pOne = A B and pTwo = C D ...yields...  A B C D and C D A B
+      // See https://gist.github.com/nex3/7609394 for details.
+      
+      Node firstPerm = one.clone(ctx);
+      Node twoCloned = two.clone(ctx);
+      firstPerm.plus(twoCloned);
+      out.collection()->push_back(firstPerm);
+      
+      Node secondPerm = two.clone(ctx);
+      Node oneCloned = one.clone(ctx);
+      secondPerm.plus(oneCloned );
+      out.collection()->push_back(secondPerm);
+    }
+    
+    return out;
+  }
+
 
   /*
    This is the equivalent of ruby's Sequence.weave.
@@ -1425,8 +1450,6 @@ namespace Sass {
   }
   
   
-#ifdef DEBUG
-  
   static bool complexSelectorHasExtension(
   	Complex_Selector* pComplexSelector,
     Context& ctx,
@@ -1440,25 +1463,14 @@ namespace Sass {
     	Compound_Selector* pHead = pIter->head();
 
       SubsetMapEntries entries = subsetMap.get_v(pHead->to_str_vec());
-
-      typedef vector<pair<Complex_Selector, vector<ExtensionPair> > > GroupedByToAResult;
       
-      GroupByToAFunctor<Complex_Selector> extPairKeyFunctor;
-      GroupedByToAResult arr;
-      group_by_to_a(entries, extPairKeyFunctor, arr);
-
-      for (GroupedByToAResult::iterator groupedIter = arr.begin(), groupedIterEnd = arr.end(); groupedIter != groupedIterEnd; groupedIter++) {
-      	hasExtension = true;
-        break;
-      }
+      hasExtension = entries.size() > 0;
 
     	pIter = pIter->tail();
     }
     
     return hasExtension;
   }
- 
-#endif
 
   
   /*
