@@ -575,10 +575,11 @@ namespace Sass {
   };
   
   
-  static Node groupSelectors(const Node& seq, Context& ctx) {
+  static Node groupSelectors(Node& seq, Context& ctx) {
   	Node newSeq = Node::createCollection();
     
-    Node tail = seq.clone(ctx);
+    Node tail = Node::createCollection();
+    tail.plus(seq);
     
     while (!tail.collection()->empty()) {
     	Node head = Node::createCollection();
@@ -973,24 +974,25 @@ namespace Sass {
         result
       end
 	*/
-	static Node subweave(const Node& one, const Node& two, Context& ctx) {
+	static Node subweave(Node& one, Node& two, Context& ctx) {
     // Check for the simple cases
     if (one.isNil()) {
     	Node out = Node::createCollection();
-      out.collection()->push_back(two.clone(ctx));
+      out.collection()->push_back(two);
       return out;
     }
 		if (two.isNil()) {
     	Node out = Node::createCollection();
-      out.collection()->push_back(one.clone(ctx));
+      out.collection()->push_back(one);
       return out;
     }
 
     
-		// Convert to a data structure more equivalent to Ruby so we can perform these complex operations in the same manner.
-    // Doing this clones the input, so this is equivalent to the ruby code's .dup
-    Node seq1 = one.clone(ctx);
-    Node seq2 = two.clone(ctx);
+
+    Node seq1 = Node::createCollection();
+    seq1.plus(one);
+    Node seq2 = Node::createCollection();
+    seq2.plus(two);
     
     DEBUG_PRINTLN(SUBWEAVE, "SUBWEAVE ONE: " << seq1)
     DEBUG_PRINTLN(SUBWEAVE, "SUBWEAVE TWO: " << seq2)
