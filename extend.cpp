@@ -128,7 +128,12 @@ namespace Sass {
         os << ", ";
       }
       first = false;
-      os << pIter->head()->perform(&to_string);
+      
+      if (pIter->head()) {
+	      os << pIter->head()->perform(&to_string);
+      } else {
+      	os << "NULL_HEAD";
+      }
 
       pIter = pIter->tail();
     }
@@ -314,7 +319,8 @@ namespace Sass {
   # Algorithm from http://en.wikipedia.org/wiki/Longest_common_subsequence_problem#Reading_out_an_LCS
 	*/
   void lcs_backtrace2(const LCSTable& c, ComplexSelectorDeque& x, ComplexSelectorDeque& y, int i, int j, const LcsCollectionComparator2& comparator, ComplexSelectorDeque& out) {
-  	DEBUG_PRINTLN(LCS, "LCSBACK: X=" << x << " Y=" << y << " I=" << i << " J=" << j)
+  	//DEBUG_PRINTLN(LCS, "LCSBACK: X=" << x << " Y=" << y << " I=" << i << " J=" << j)
+		// TODO: make printComplexSelectorDeque and use DEBUG_EXEC AND DEBUG_PRINTLN HERE to get equivalent output
 
   	if (i == 0 || j == 0) {
     	DEBUG_PRINTLN(LCS, "RETURNING EMPTY")
@@ -348,7 +354,8 @@ namespace Sass {
   # Algorithm from http://en.wikipedia.org/wiki/Longest_common_subsequence_problem#Computing_the_length_of_the_LCS
   */
   void lcs_table2(const ComplexSelectorDeque& x, const ComplexSelectorDeque& y, const LcsCollectionComparator2& comparator, LCSTable& out) {
-  	DEBUG_PRINTLN(LCS, "LCSTABLE: X=" << x << " Y=" << y)
+  	//DEBUG_PRINTLN(LCS, "LCSTABLE: X=" << x << " Y=" << y)
+		// TODO: make printComplexSelectorDeque and use DEBUG_EXEC AND DEBUG_PRINTLN HERE to get equivalent output
 
   	LCSTable c(x.size(), vector<int>(y.size()));
     
@@ -386,7 +393,8 @@ namespace Sass {
   http://en.wikipedia.org/wiki/Longest_common_subsequence_problem
   */
   void lcs2(ComplexSelectorDeque& x, ComplexSelectorDeque& y, const LcsCollectionComparator2& comparator, Context& ctx, ComplexSelectorDeque& out) {
-  	DEBUG_PRINTLN(LCS, "LCS: X=" << x << " Y=" << y)
+  	//DEBUG_PRINTLN(LCS, "LCS: X=" << x << " Y=" << y)
+    // TODO: make printComplexSelectorDeque and use DEBUG_EXEC AND DEBUG_PRINTLN HERE to get equivalent output
 
     x.push_front(NULL);
     y.push_front(NULL);
@@ -960,14 +968,17 @@ namespace Sass {
           res.collection()->push_front(sel1);
 
         } else {
+
+          DEBUG_PRINTLN(ALL, "sel1: " << sel1)
+          DEBUG_PRINTLN(ALL, "sel2: " << sel2)
         
-//          merged = sel1.unify(sel2.members, sel2.subject?)
-//          res.unshift [
-//                       [sel1, '~', sel2, '~'],
-//                       [sel2, '~', sel1, '~'],
-//                       ([merged, '~'] if merged)
-//                       ].compact
+          Complex_Selector* pMergedWrapper = sel1.selector()->clone(ctx); // Clone the Complex_Selector to get back to something we can transform to a node once we replace the head with the unification result
+          // TODO: does subject matter? Ruby: return unless merged = sel1.unify(sel2.members, sel2.subject?)
+          Compound_Selector* pMerged = sel1.selector()->head()->unify_with(sel2.selector()->head(), ctx);
+          pMergedWrapper->head(pMerged);
           
+          DEBUG_EXEC(ALL, printCompoundSelector(pMerged, "MERGED: "))
+
           Node newRes = Node::createCollection();
           
           Node firstPerm = Node::createCollection();
@@ -983,15 +994,17 @@ namespace Sass {
           secondPerm.collection()->push_back(sel1);
           secondPerm.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
           newRes.collection()->push_back(secondPerm);
-
-          Node merged = unify(sel1, sel2, ctx);
-          if (merged.isCollection() && merged.collection()->size() > 0) {
-            newRes.collection()->push_back(merged);
+          
+          if (pMerged) {
+            Node mergedPerm = Node::createCollection();
+            mergedPerm.collection()->push_back(Node::createSelector(pMergedWrapper, ctx));
+            mergedPerm.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
+            newRes.collection()->push_back(mergedPerm);
           }
-
-          // TODO: Implement [].compact newRes
           
           res.collection()->push_front(newRes);
+
+          DEBUG_PRINTLN(ALL, "RESULT: " << res)
 
         }
 
@@ -1014,12 +1027,16 @@ namespace Sass {
             res.collection()->push_front(plusSel);
 
           } else {
+
+						DEBUG_PRINTLN(ALL, "PLUS SEL: " << plusSel)
+            DEBUG_PRINTLN(ALL, "TILDE SEL: " << tildeSel)
           
+            Complex_Selector* pMergedWrapper = plusSel.selector()->clone(ctx); // Clone the Complex_Selector to get back to something we can transform to a node once we replace the head with the unification result
             // TODO: does subject matter? Ruby: merged = plus_sel.unify(tilde_sel.members, tilde_sel.subject?)
-            //Complex_Selector* pTildeSel = nodeToComplexSelector(tildeSel, ctx);
-            Complex_Selector* pMerged = plusSel.selector()->clone(ctx);
-            //pMerged->head(plusSel.selector()->head()->unify_with(pTildeSel->head(), ctx));
-            // TODO: how to do this unification properly? Need example.
+            Compound_Selector* pMerged = plusSel.selector()->head()->unify_with(tildeSel.selector()->head(), ctx);
+            pMergedWrapper->head(pMerged);
+            
+            DEBUG_EXEC(ALL, printCompoundSelector(pMerged, "MERGED: "))
             
             Node newRes = Node::createCollection();
             
@@ -1032,14 +1049,14 @@ namespace Sass {
             
             if (pMerged) {
               Node mergedPerm = Node::createCollection();
-              mergedPerm.collection()->push_back(complexSelectorToNode(pMerged, ctx));
+              mergedPerm.collection()->push_back(Node::createSelector(pMergedWrapper, ctx));
               mergedPerm.collection()->push_back(Node::createCombinator(Complex_Selector::ADJACENT_TO));
               newRes.collection()->push_back(mergedPerm);
             }
             
-            // TODO: Implement [].compact newRes
-            
             res.collection()->push_front(newRes);
+            
+            DEBUG_PRINTLN(ALL, "RESULT: " << res)
   
           }
       } else if (op1.combinator() == Complex_Selector::PARENT_OF && (op2.combinator() == Complex_Selector::PRECEDES || op2.combinator() == Complex_Selector::ADJACENT_TO)) {
@@ -1059,19 +1076,25 @@ namespace Sass {
         seq2.collection()->push_back(op2);
 
       } else if (op1.combinator() == op2.combinator()) {
-
-				// TODO: is this the right unification behavior? The ruby looks at all members, but sel2.selector() is just one thing...
-        Compound_Selector* pMerged = sel1.selector()->head()->unify_with(sel2.selector()->head(), ctx);
         
+        DEBUG_PRINTLN(ALL, "sel1: " << sel1)
+        DEBUG_PRINTLN(ALL, "sel2: " << sel2)
+      
+        Complex_Selector* pMergedWrapper = sel1.selector()->clone(ctx); // Clone the Complex_Selector to get back to something we can transform to a node once we replace the head with the unification result
+        // TODO: does subject matter? Ruby: return unless merged = sel1.unify(sel2.members, sel2.subject?)
+        Compound_Selector* pMerged = sel1.selector()->head()->unify_with(sel2.selector()->head(), ctx);
+        pMergedWrapper->head(pMerged);
+        
+        DEBUG_EXEC(ALL, printCompoundSelector(pMerged, "MERGED: "))
+
         if (!pMerged) {
         	return Node::createNil();
         }
         
-        Complex_Selector* pNewSelector = sel1.selector()->clone(ctx);
-        pNewSelector->head(pMerged);
-        
       	res.collection()->push_front(op1);
-        res.collection()->push_front(Node::createSelector(pNewSelector, ctx));
+        res.collection()->push_front(Node::createSelector(pMergedWrapper, ctx));
+        
+        DEBUG_PRINTLN(ALL, "RESULT: " << res)
 
       } else {
       	return Node::createNil();
@@ -1633,9 +1656,11 @@ namespace Sass {
     while (!hasExtension && pIter) {
     	Compound_Selector* pHead = pIter->head();
 
-      SubsetMapEntries entries = subsetMap.get_v(pHead->to_str_vec());
-      
-      hasExtension = entries.size() > 0;
+			if (pHead) {
+        SubsetMapEntries entries = subsetMap.get_v(pHead->to_str_vec());
+        
+        hasExtension = entries.size() > 0;
+      }
 
     	pIter = pIter->tail();
     }
