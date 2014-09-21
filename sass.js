@@ -167,7 +167,7 @@ exports.renderFile = function(options) {
   options = assign({}, options);
   success = options.success;
   if (options.sourceMap === true) {
-    options.sourceMap = options.outFile + '.map';
+    options.sourceMap = path.basename(options.outFile) + '.map';
   }
   options.success = function(css, sourceMap) {
     fs.writeFile(options.outFile, css, function(err) {
