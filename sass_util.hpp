@@ -66,7 +66,7 @@ namespace Sass {
 	*/
   template<typename ComparatorType>
   Node lcs_backtrace(const LCSTable& c, const Node& x, const Node& y, int i, int j, const ComparatorType& comparator) {
-  	DEBUG_PRINTLN(LCS, "LCSBACK: C=" /*<< c*/ << "X=" << x << " Y=" << y << " I=" << i << " J=" << j)
+  	DEBUG_PRINTLN(LCS, "LCSBACK: X=" << x << " Y=" << y << " I=" << i << " J=" << j)
 
   	if (i == 0 || j == 0) {
     	DEBUG_PRINTLN(LCS, "RETURNING EMPTY")

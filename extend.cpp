@@ -221,6 +221,181 @@ namespace Sass {
 
 #endif
 
+
+	typedef deque<Complex_Selector*> ComplexSelectorDeque;
+  
+  
+  static bool parentSuperselector2(Complex_Selector* pOne, Complex_Selector* pTwo, Context& ctx) {
+  	// TODO: figure out a better way to create a Complex_Selector from scratch
+    // TODO: There's got to be a better way. This got ugly quick...
+    Position noPosition;
+    Type_Selector fakeParent("", noPosition, "temp");
+    Compound_Selector fakeHead("", noPosition, 1 /*size*/);
+    fakeHead.elements().push_back(&fakeParent);
+		Complex_Selector fakeParentContainer("", noPosition, Complex_Selector::ANCESTOR_OF, &fakeHead /*head*/, NULL /*tail*/);
+
+    
+    pOne->set_innermost(&fakeParentContainer, Complex_Selector::ANCESTOR_OF);
+    pTwo->set_innermost(&fakeParentContainer, Complex_Selector::ANCESTOR_OF);
+    
+    bool isSuperselector = pOne->is_superselector_of(pTwo);
+    
+    pOne->clear_innermost();
+    pTwo->clear_innermost();
+    
+    return isSuperselector;
+  }
+  
+  
+  void nodeToComplexSelectorDeque(const Node& node, ComplexSelectorDeque& out, Context& ctx) {
+  	for (NodeDeque::iterator iter = node.collection()->begin(), iterEnd = node.collection()->end(); iter != iterEnd; iter++) {
+    	Node& child = *iter;
+      out.push_back(nodeToComplexSelector(child, ctx));
+    }
+  }
+  
+  Node complexSelectorDequeToNode(const ComplexSelectorDeque& deque, Context& ctx) {
+  	Node result = Node::createCollection();
+
+  	for (ComplexSelectorDeque::const_iterator iter = deque.begin(), iterEnd = deque.end(); iter != iterEnd; iter++) {
+    	Complex_Selector* pChild = *iter;
+      result.collection()->push_back(complexSelectorToNode(pChild, ctx));
+    }
+    
+    return result;
+  }
+  
+
+  class LcsCollectionComparator2 {
+  public:
+  	LcsCollectionComparator2(Context& ctx) : mCtx(ctx) {}
+    
+    Context& mCtx;
+
+  	bool operator()(Complex_Selector* pOne, Complex_Selector* pTwo, Complex_Selector*& pOut) const {
+    	/*
+      This code is based on the following block from ruby sass' subweave
+				do |s1, s2|
+          next s1 if s1 == s2
+          next unless s1.first.is_a?(SimpleSequence) && s2.first.is_a?(SimpleSequence)
+          next s2 if parent_superselector?(s1, s2)
+          next s1 if parent_superselector?(s2, s1)
+        end
+      */
+
+      if (selectors_equal(*pOne, *pTwo, true /*simpleSelectorOrderDependent*/)) {
+      	pOut = pOne;
+        return true;
+      }
+      
+      if (pOne->combinator() != Complex_Selector::ANCESTOR_OF || pTwo->combinator() != Complex_Selector::ANCESTOR_OF) {
+      	return false;
+      }
+      
+      if (parentSuperselector2(pOne, pTwo, mCtx)) {
+      	pOut = pTwo;
+        return true;
+      }
+      
+      if (parentSuperselector2(pTwo, pOne, mCtx)) {
+      	pOut = pOne;
+        return true;
+      }
+
+      return false;
+    }
+  };
+
+
+  /*
+  This is the equivalent of ruby's Sass::Util.lcs_backtrace.
+  
+  # Computes a single longest common subsequence for arrays x and y.
+  # Algorithm from http://en.wikipedia.org/wiki/Longest_common_subsequence_problem#Reading_out_an_LCS
+	*/
+  void lcs_backtrace2(const LCSTable& c, ComplexSelectorDeque& x, ComplexSelectorDeque& y, int i, int j, const LcsCollectionComparator2& comparator, ComplexSelectorDeque& out) {
+  	DEBUG_PRINTLN(LCS, "LCSBACK: X=" << x << " Y=" << y << " I=" << i << " J=" << j)
+
+  	if (i == 0 || j == 0) {
+    	DEBUG_PRINTLN(LCS, "RETURNING EMPTY")
+    	return;
+    }
+    
+
+    Complex_Selector* pCompareOut = NULL;
+    if (comparator(x[i], y[j], pCompareOut)) {
+      DEBUG_PRINTLN(LCS, "RETURNING AFTER ELEM COMPARE")
+      lcs_backtrace2(c, x, y, i - 1, j - 1, comparator, out);
+      out.push_back(pCompareOut);
+      return;
+    }
+    
+    if (c[i][j - 1] > c[i - 1][j]) {
+    	DEBUG_PRINTLN(LCS, "RETURNING AFTER TABLE COMPARE")
+    	lcs_backtrace2(c, x, y, i, j - 1, comparator, out);
+      return;
+    }
+    
+    DEBUG_PRINTLN(LCS, "FINAL RETURN")
+    lcs_backtrace2(c, x, y, i - 1, j, comparator, out);
+    return;
+  }
+
+  /*
+  This is the equivalent of ruby's Sass::Util.lcs_table.
+  
+  # Calculates the memoization table for the Least Common Subsequence algorithm.
+  # Algorithm from http://en.wikipedia.org/wiki/Longest_common_subsequence_problem#Computing_the_length_of_the_LCS
+  */
+  void lcs_table2(const ComplexSelectorDeque& x, const ComplexSelectorDeque& y, const LcsCollectionComparator2& comparator, LCSTable& out) {
+  	DEBUG_PRINTLN(LCS, "LCSTABLE: X=" << x << " Y=" << y)
+
+  	LCSTable c(x.size(), vector<int>(y.size()));
+    
+    // These shouldn't be necessary since the vector will be initialized to 0 already.
+    // x.size.times {|i| c[i][0] = 0}
+    // y.size.times {|j| c[0][j] = 0}
+
+    for (size_t i = 1; i < x.size(); i++) {
+    	for (size_t j = 1; j < y.size(); j++) {
+        Complex_Selector* pCompareOut = NULL;
+
+      	if (comparator(x[i], y[j], pCompareOut)) {
+        	c[i][j] = c[i - 1][j - 1] + 1;
+        } else {
+        	c[i][j] = max(c[i][j - 1], c[i - 1][j]);
+        }
+      }
+    }
+
+    out = c;
+  }
+
+  /*
+  This is the equivalent of ruby's Sass::Util.lcs.
+  
+  # Computes a single longest common subsequence for `x` and `y`.
+  # If there are more than one longest common subsequences,
+  # the one returned is that which starts first in `x`.
+
+  # @param x [NodeCollection]
+  # @param y [NodeCollection]
+  # @comparator An equality check between elements of `x` and `y`.
+  # @return [NodeCollection] The LCS
+
+  http://en.wikipedia.org/wiki/Longest_common_subsequence_problem
+  */
+  void lcs2(ComplexSelectorDeque& x, ComplexSelectorDeque& y, const LcsCollectionComparator2& comparator, Context& ctx, ComplexSelectorDeque& out) {
+  	DEBUG_PRINTLN(LCS, "LCS: X=" << x << " Y=" << y)
+
+    x.push_front(NULL);
+    y.push_front(NULL);
+
+    LCSTable table;
+    lcs_table2(x, y, comparator, table);
+    
+		return lcs_backtrace2(table, x, y, x.size() - 1, y.size() - 1, comparator, out);
+  }
   
 
   /*
@@ -976,12 +1151,12 @@ namespace Sass {
 	*/
 	static Node subweave(Node& one, Node& two, Context& ctx) {
     // Check for the simple cases
-    if (one.isNil()) {
+    if (one.collection()->size() == 0) {
     	Node out = Node::createCollection();
       out.collection()->push_back(two);
       return out;
     }
-		if (two.isNil()) {
+		if (two.collection()->size() == 0) {
     	Node out = Node::createCollection();
       out.collection()->push_back(one);
       return out;
@@ -1040,8 +1215,24 @@ namespace Sass {
     DEBUG_PRINTLN(SUBWEAVE, "SEQ2: " << groupSeq2)
 
 
-    LcsCollectionComparator collectionComparator(ctx);
-    Node seqLcs = lcs(groupSeq2, groupSeq1, collectionComparator, ctx);
+    ComplexSelectorDeque groupSeq1Converted;
+    nodeToComplexSelectorDeque(groupSeq1, groupSeq1Converted, ctx);
+
+    ComplexSelectorDeque groupSeq2Converted;
+    nodeToComplexSelectorDeque(groupSeq2, groupSeq2Converted, ctx);
+
+		ComplexSelectorDeque out;
+    LcsCollectionComparator2 collectionComparator2(ctx);
+    lcs2(groupSeq2Converted, groupSeq1Converted, collectionComparator2, ctx, out);
+    Node seqLcs = complexSelectorDequeToNode(out, ctx);
+
+//    LcsCollectionComparator collectionComparator(ctx);
+//    Node seqLcs = lcs(groupSeq2, groupSeq1, collectionComparator, ctx);
+//    
+//    if (seqLcsTest != seqLcs) {
+//    	throw "DID NOT MATCH";
+//    }
+
     
     DEBUG_PRINTLN(SUBWEAVE, "SEQLCS: " << seqLcs)
 
