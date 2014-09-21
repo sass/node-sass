@@ -537,12 +537,11 @@ namespace Sass {
 					DEBUG_PRINTLN(TRIM, "SEQS1: " << seqs1)
           DEBUG_PRINTLN(TRIM, "SEQS2: " << seqs2)
 
-					// Do not compare the same sequence to itself in the same position. The ruby call we're trying to
+					// Do not compare the same sequence to itself. The ruby call we're trying to
           // emulate is: seqs1.equal?(seqs2). equal? is an object comparison, not an equivalency comparision.
-          // So, check if we're in the same spot of the array that we were before and whether the selectors
-          // are the same (operator== currently ends up comparing the Simple_Selectors in a Compound_Selector
-          // in an order-dependent manner, so these sequences should be functionally the same).
-          if (toTrimIndex == resultIndex && seqs1 == seqs2) {
+          // Since we have the same pointers in seqes and results, we can do a pointer comparision. seqs1 is
+          // derived from seqses and seqs2 is derived from result.
+          if (seqs1.collection() == seqs2.collection()) {
             DEBUG_PRINTLN(TRIM, "CONTINUE")
             continue;
           }
