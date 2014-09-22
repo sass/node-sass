@@ -1123,7 +1123,32 @@ namespace Sass {
   	return pathsResult;
 
   }
-  
+	static Node subweaveNaive(const Node& one, const Node& two, Context& ctx) {
+		Node out = Node::createCollection();
+
+    // Check for the simple cases
+    if (one.isNil()) {
+      out.collection()->push_back(two.clone(ctx));
+    } else if (two.isNil()) {
+      out.collection()->push_back(one.clone(ctx));
+    } else {
+      // Do the naive implementation. pOne = A B and pTwo = C D ...yields...  A B C D and C D A B
+      // See https://gist.github.com/nex3/7609394 for details.
+      
+      Node firstPerm = one.clone(ctx);
+      Node twoCloned = two.clone(ctx);
+      firstPerm.plus(twoCloned);
+      out.collection()->push_back(firstPerm);
+      
+      Node secondPerm = two.clone(ctx);
+      Node oneCloned = one.clone(ctx);
+      secondPerm.plus(oneCloned );
+      out.collection()->push_back(secondPerm);
+    }
+    
+    return out;
+  }
+
 
   /*
    This is the equivalent of ruby's Sequence.weave.
@@ -1314,7 +1339,7 @@ namespace Sass {
 			for (vector<ExtensionPair>::iterator groupIter = group.begin(), groupIterEnd = group.end(); groupIter != groupIterEnd; groupIter++) {
       	ExtensionPair& pair = *groupIter;
         Compound_Selector* pCompound = pair.second;
-        for (int index = 0; index < pCompound->length(); index++) {
+        for (size_t index = 0; index < pCompound->length(); index++) {
         	Simple_Selector* pSimpleSelector = (*pCompound)[index];
 	        (*pSels) << pSimpleSelector;
         }
@@ -1425,8 +1450,6 @@ namespace Sass {
   }
   
   
-#ifdef DEBUG
-  
   static bool complexSelectorHasExtension(
   	Complex_Selector* pComplexSelector,
     Context& ctx,
@@ -1440,25 +1463,14 @@ namespace Sass {
     	Compound_Selector* pHead = pIter->head();
 
       SubsetMapEntries entries = subsetMap.get_v(pHead->to_str_vec());
-
-      typedef vector<pair<Complex_Selector, vector<ExtensionPair> > > GroupedByToAResult;
       
-      GroupByToAFunctor<Complex_Selector> extPairKeyFunctor;
-      GroupedByToAResult arr;
-      group_by_to_a(entries, extPairKeyFunctor, arr);
-
-      for (GroupedByToAResult::iterator groupedIter = arr.begin(), groupedIterEnd = arr.end(); groupedIter != groupedIterEnd; groupedIter++) {
-      	hasExtension = true;
-        break;
-      }
+      hasExtension = entries.size() > 0;
 
     	pIter = pIter->tail();
     }
     
     return hasExtension;
   }
- 
-#endif
 
   
   /*
@@ -1590,15 +1602,15 @@ namespace Sass {
     for (size_t index = 0, length = pSelectorList->length(); index < length; index++) {
       Complex_Selector* pSelector = (*pSelectorList)[index];
       
-#ifdef DEBUG
-			// In debug mode, we want our prints to more closely line up with sass. sass seems to only extend a selector if it has
-      // an extension. libsass is looping over all the selectors and checking at extend time. For now, just check in debug mode
-      // if there is an extension and early return if there is.
+      // ruby sass seems to keep a list of things that have extensions and then only extend those. We don't currently do that.
+      // Since it's not that expensive to check if an extension exists in the subset map and since it can be relatively expensive to
+      // run through the extend code (which does a data model transformation), check if there is anything to extend before doing
+      // the extend. We might be able to optimize extendComplexSelector, but this approach keeps us closer to ruby sass (which helps
+      // when debugging).
       if (!complexSelectorHasExtension(pSelector, ctx, subsetMap)) {
       	*pNewSelectors << pSelector;
       	continue;
       }
-#endif
 
       set<Compound_Selector> seen;
       Node extendedSelectors = extendComplexSelector(pSelector, ctx, subsetMap, seen);
