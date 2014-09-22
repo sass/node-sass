@@ -589,6 +589,14 @@ namespace Sass {
     bool semicolon = false;
     Selector_Lookahead lookahead_result;
     Block* block = new (ctx.mem) Block(path, source_position);
+    
+    // JMA - ensure that a block containing only block_comments is parsed 
+    while (lex< block_comment >()) {
+      String*  contents = parse_interpolated_chunk(lexed);
+      Comment* comment  = new (ctx.mem) Comment(path, source_position, contents);
+      (*block) << comment;
+    }
+    
     while (!lex< exactly<'}'> >()) {
       if (semicolon) {
         if (!lex< exactly<';'> >()) {
