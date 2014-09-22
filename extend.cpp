@@ -164,7 +164,7 @@ namespace Sass {
 
   
   // Print a string representation of a SourcesSet
-  static void printSourcesSet(SourcesSet& sources, const char* message=NULL, bool newline=true) {
+  static void printSourcesSet(SourcesSet& sources, Context& ctx, const char* message=NULL, bool newline=true) {
   	To_String to_string;
     
   	if (message) {
@@ -177,7 +177,7 @@ namespace Sass {
       if (iterator != sources.begin()) {
       	cerr << ", ";
       }
-      printComplexSelector(pSource, "", false /*newline*/);
+      cerr << complexSelectorToNode(pSource, ctx);
     }
     cerr << "]";
     
@@ -515,7 +515,7 @@ namespace Sass {
         SourcesSet sources = pSeq1->sources();
         
 				DEBUG_PRINTLN(TRIM, "TRIMASDF SEQ1: " << seq1)
-        DEBUG_EXEC(TRIM, printSourcesSet(sources, "TRIMASDF SOURCES: "))
+        DEBUG_EXEC(TRIM, printSourcesSet(sources, ctx, "TRIMASDF SOURCES: "))
         
         for (SourcesSet::iterator sourcesSetIterator = sources.begin(), sourcesSetIteratorEnd = sources.end(); sourcesSetIterator != sourcesSetIteratorEnd; ++sourcesSetIterator) {
          	const Complex_Selector* const pCurrentSelector = *sourcesSetIterator;
@@ -551,6 +551,7 @@ namespace Sass {
             Complex_Selector* pSeq2 = nodeToComplexSelector(seq2, ctx);
             
             DEBUG_PRINTLN(TRIM, "SEQ2 SPEC: " << pSeq2->specificity())
+            DEBUG_PRINTLN(TRIM, "IS SPEC: " << pSeq2->specificity() << " >= " << maxSpecificity << " " << (pSeq2->specificity() >= maxSpecificity ? "true" : "false"))
             DEBUG_PRINTLN(TRIM, "IS SUPER: " << (pSeq2->is_superselector_of(pSeq1) ? "true" : "false"))
             
             isMoreSpecificInner = pSeq2->specificity() >= maxSpecificity && pSeq2->is_superselector_of(pSeq1);
@@ -1498,7 +1499,7 @@ namespace Sass {
       Complex_Selector& seq = groupedPair.first;
       vector<ExtensionPair>& group = groupedPair.second;
       
-      DEBUG_EXEC(EXTEND_COMPOUND, printComplexSelector(&seq, "SEQ: "))
+//      DEBUG_EXEC(EXTEND_COMPOUND, printComplexSelector(&seq, "SEQ: "))
 
 
 			Compound_Selector* pSels = new (ctx.mem) Compound_Selector(pSelector->path(), pSelector->position());
@@ -1513,7 +1514,7 @@ namespace Sass {
 
 
 
-      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSels, "SELS: "))
+//      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSels, "SELS: "))
 
 
       Complex_Selector* pExtComplexSelector = &seq;    // The selector up to where the @extend is (ie, the thing to merge)
@@ -1535,8 +1536,8 @@ namespace Sass {
       Compound_Selector* pSelectorWithoutExtendSelectors = pSelector->minus(pExtCompoundSelector, ctx);
       
       
-      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelector, "MEMBERS: "))
-      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelectorWithoutExtendSelectors, "SELF_WO_SEL: "))
+//      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelector, "MEMBERS: "))
+//      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelectorWithoutExtendSelectors, "SELF_WO_SEL: "))
 
 
       Compound_Selector* pInnermostCompoundSelector = pExtComplexSelector->base();
@@ -1548,9 +1549,9 @@ namespace Sass {
 
       pUnifiedSelector = pInnermostCompoundSelector->unify_with(pSelectorWithoutExtendSelectors, ctx);
       
-      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pInnermostCompoundSelector, "LHS: "))
-      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelectorWithoutExtendSelectors, "RHS: "))
-      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pUnifiedSelector, "UNIFIED: "))
+//      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pInnermostCompoundSelector, "LHS: "))
+//      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelectorWithoutExtendSelectors, "RHS: "))
+//      DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pUnifiedSelector, "UNIFIED: "))
       
       if (!pUnifiedSelector || pUnifiedSelector->length() == 0) {
         continue;
@@ -1573,18 +1574,18 @@ namespace Sass {
 
 
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
-      DEBUG_EXEC(EXTEND_COMPOUND, printComplexSelector(pNewSelector, "ASDF SETTING ON: "))
+//      DEBUG_EXEC(EXTEND_COMPOUND, printComplexSelector(pNewSelector, "ASDF SETTING ON: "))
 
       SourcesSet newSourcesSet = pSelector->sources();
-      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, "ASDF SOURCES THIS: "))
+//      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, "ASDF SOURCES THIS: "))
 
       newSourcesSet.insert(pExtComplexSelector);
-      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, "ASDF NEW: "))
+//      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, "ASDF NEW: "))
 
       pNewSelector->addSources(newSourcesSet, ctx);
       
-			DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet newSet = pNewSelector->sources(); printSourcesSet(newSet, "ASDF NEW AFTER SET: "))
-      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(pSelector->sources(), "ASDF SOURCES THIS SHOULD BE SAME: "))
+//			DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet newSet = pNewSelector->sources(); printSourcesSet(newSet, "ASDF NEW AFTER SET: "))
+//      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(pSelector->sources(), "ASDF SOURCES THIS SHOULD BE SAME: "))
 
 
 
@@ -1602,11 +1603,11 @@ namespace Sass {
            iterator != endIterator; ++iterator) {
         Node& newSelector = *iterator;
 
-				DEBUG_PRINTLN(EXTEND_COMPOUND, "EXTENDED AT THIS POINT: " << extendedSelectors)
-				DEBUG_PRINTLN(EXTEND_COMPOUND, "SELECTOR EXISTS ALREADY: " << newSelector << " " << extendedSelectors.contains(newSelector, false /*simpleSelectorOrderDependent*/));
+//				DEBUG_PRINTLN(EXTEND_COMPOUND, "EXTENDED AT THIS POINT: " << extendedSelectors)
+//				DEBUG_PRINTLN(EXTEND_COMPOUND, "SELECTOR EXISTS ALREADY: " << newSelector << " " << extendedSelectors.contains(newSelector, false /*simpleSelectorOrderDependent*/));
 
         if (!extendedSelectors.contains(newSelector, false /*simpleSelectorOrderDependent*/)) {
-        	DEBUG_PRINTLN(EXTEND_COMPOUND, "ADDING NEW SELECTOR")
+//        	DEBUG_PRINTLN(EXTEND_COMPOUND, "ADDING NEW SELECTOR")
           extendedSelectors.collection()->push_back(newSelector);
         }
       }
