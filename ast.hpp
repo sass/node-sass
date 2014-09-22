@@ -5,6 +5,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <deque>
 
 #ifdef __clang__
 
@@ -1381,6 +1382,8 @@ namespace Sass {
     vector<Compound_Selector*> to_vector();
     ATTACH_OPERATIONS();
   };
+  
+	typedef deque<Complex_Selector*> ComplexSelectorDeque;
 
   ///////////////////////////////////
   // Comma-separated selector groups.

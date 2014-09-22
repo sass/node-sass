@@ -225,12 +225,9 @@ namespace Sass {
   
 
 #endif
-
-
-	typedef deque<Complex_Selector*> ComplexSelectorDeque;
   
   
-  static bool parentSuperselector2(Complex_Selector* pOne, Complex_Selector* pTwo, Context& ctx) {
+  static bool parentSuperselector(Complex_Selector* pOne, Complex_Selector* pTwo, Context& ctx) {
   	// TODO: figure out a better way to create a Complex_Selector from scratch
     // TODO: There's got to be a better way. This got ugly quick...
     Position noPosition;
@@ -271,9 +268,9 @@ namespace Sass {
   }
   
 
-  class LcsCollectionComparator2 {
+  class LcsCollectionComparator {
   public:
-  	LcsCollectionComparator2(Context& ctx) : mCtx(ctx) {}
+  	LcsCollectionComparator(Context& ctx) : mCtx(ctx) {}
     
     Context& mCtx;
 
@@ -297,12 +294,12 @@ namespace Sass {
       	return false;
       }
       
-      if (parentSuperselector2(pOne, pTwo, mCtx)) {
+      if (parentSuperselector(pOne, pTwo, mCtx)) {
       	pOut = pTwo;
         return true;
       }
       
-      if (parentSuperselector2(pTwo, pOne, mCtx)) {
+      if (parentSuperselector(pTwo, pOne, mCtx)) {
       	pOut = pOne;
         return true;
       }
@@ -310,15 +307,15 @@ namespace Sass {
       return false;
     }
   };
-
-
+  
+  
   /*
   This is the equivalent of ruby's Sass::Util.lcs_backtrace.
   
   # Computes a single longest common subsequence for arrays x and y.
   # Algorithm from http://en.wikipedia.org/wiki/Longest_common_subsequence_problem#Reading_out_an_LCS
 	*/
-  void lcs_backtrace2(const LCSTable& c, ComplexSelectorDeque& x, ComplexSelectorDeque& y, int i, int j, const LcsCollectionComparator2& comparator, ComplexSelectorDeque& out) {
+  void lcs_backtrace(const LCSTable& c, ComplexSelectorDeque& x, ComplexSelectorDeque& y, int i, int j, const LcsCollectionComparator& comparator, ComplexSelectorDeque& out) {
   	//DEBUG_PRINTLN(LCS, "LCSBACK: X=" << x << " Y=" << y << " I=" << i << " J=" << j)
 		// TODO: make printComplexSelectorDeque and use DEBUG_EXEC AND DEBUG_PRINTLN HERE to get equivalent output
 
@@ -331,19 +328,19 @@ namespace Sass {
     Complex_Selector* pCompareOut = NULL;
     if (comparator(x[i], y[j], pCompareOut)) {
       DEBUG_PRINTLN(LCS, "RETURNING AFTER ELEM COMPARE")
-      lcs_backtrace2(c, x, y, i - 1, j - 1, comparator, out);
+      lcs_backtrace(c, x, y, i - 1, j - 1, comparator, out);
       out.push_back(pCompareOut);
       return;
     }
     
     if (c[i][j - 1] > c[i - 1][j]) {
     	DEBUG_PRINTLN(LCS, "RETURNING AFTER TABLE COMPARE")
-    	lcs_backtrace2(c, x, y, i, j - 1, comparator, out);
+    	lcs_backtrace(c, x, y, i, j - 1, comparator, out);
       return;
     }
     
     DEBUG_PRINTLN(LCS, "FINAL RETURN")
-    lcs_backtrace2(c, x, y, i - 1, j, comparator, out);
+    lcs_backtrace(c, x, y, i - 1, j, comparator, out);
     return;
   }
 
@@ -353,7 +350,7 @@ namespace Sass {
   # Calculates the memoization table for the Least Common Subsequence algorithm.
   # Algorithm from http://en.wikipedia.org/wiki/Longest_common_subsequence_problem#Computing_the_length_of_the_LCS
   */
-  void lcs_table2(const ComplexSelectorDeque& x, const ComplexSelectorDeque& y, const LcsCollectionComparator2& comparator, LCSTable& out) {
+  void lcs_table(const ComplexSelectorDeque& x, const ComplexSelectorDeque& y, const LcsCollectionComparator& comparator, LCSTable& out) {
   	//DEBUG_PRINTLN(LCS, "LCSTABLE: X=" << x << " Y=" << y)
 		// TODO: make printComplexSelectorDeque and use DEBUG_EXEC AND DEBUG_PRINTLN HERE to get equivalent output
 
@@ -392,7 +389,7 @@ namespace Sass {
 
   http://en.wikipedia.org/wiki/Longest_common_subsequence_problem
   */
-  void lcs2(ComplexSelectorDeque& x, ComplexSelectorDeque& y, const LcsCollectionComparator2& comparator, Context& ctx, ComplexSelectorDeque& out) {
+  void lcs(ComplexSelectorDeque& x, ComplexSelectorDeque& y, const LcsCollectionComparator& comparator, Context& ctx, ComplexSelectorDeque& out) {
   	//DEBUG_PRINTLN(LCS, "LCS: X=" << x << " Y=" << y)
     // TODO: make printComplexSelectorDeque and use DEBUG_EXEC AND DEBUG_PRINTLN HERE to get equivalent output
 
@@ -400,9 +397,9 @@ namespace Sass {
     y.push_front(NULL);
 
     LCSTable table;
-    lcs_table2(x, y, comparator, table);
+    lcs_table(x, y, comparator, table);
     
-		return lcs_backtrace2(table, x, y, x.size() - 1, y.size() - 1, comparator, out);
+		return lcs_backtrace(table, x, y, x.size() - 1, y.size() - 1, comparator, out);
   }
   
 
@@ -714,47 +711,6 @@ namespace Sass {
     
     return perms;
   }
-
-  
-  class LcsCollectionComparator {
-  public:
-  	LcsCollectionComparator(Context& ctx) : mCtx(ctx) {}
-    
-    Context& mCtx;
-
-  	bool operator()(const Node& one, const Node& two, Node& out) const {
-    	/*
-      This code is based on the following block from ruby sass' subweave
-				do |s1, s2|
-          next s1 if s1 == s2
-          next unless s1.first.is_a?(SimpleSequence) && s2.first.is_a?(SimpleSequence)
-          next s2 if parent_superselector?(s1, s2)
-          next s1 if parent_superselector?(s2, s1)
-        end
-      */
-
-      if (one == two) {
-      	out = one;
-        return true;
-      }
-      
-      if (!one.collection()->front().isSelector() || !two.collection()->front().isSelector()) {
-      	return false;
-      }
-      
-      if (parentSuperselector(one, two, mCtx)) {
-      	out = two;
-        return true;
-      }
-      
-      if (parentSuperselector(two, one, mCtx)) {
-      	out = one;
-        return true;
-      }
-
-      return false;
-    }
-  };
   
   
   static Node groupSelectors(Node& seq, Context& ctx) {
@@ -1244,17 +1200,9 @@ namespace Sass {
     nodeToComplexSelectorDeque(groupSeq2, groupSeq2Converted, ctx);
 
 		ComplexSelectorDeque out;
-    LcsCollectionComparator2 collectionComparator2(ctx);
-    lcs2(groupSeq2Converted, groupSeq1Converted, collectionComparator2, ctx, out);
+    LcsCollectionComparator collectionComparator(ctx);
+    lcs(groupSeq2Converted, groupSeq1Converted, collectionComparator, ctx, out);
     Node seqLcs = complexSelectorDequeToNode(out, ctx);
-
-//    LcsCollectionComparator collectionComparator(ctx);
-//    Node seqLcs = lcs(groupSeq2, groupSeq1, collectionComparator, ctx);
-//    
-//    if (seqLcsTest != seqLcs) {
-//    	throw "DID NOT MATCH";
-//    }
-
     
     DEBUG_PRINTLN(SUBWEAVE, "SEQLCS: " << seqLcs)
 
@@ -1338,6 +1286,31 @@ namespace Sass {
   
   	return pathsResult;
 
+  }
+	static Node subweaveNaive(const Node& one, const Node& two, Context& ctx) {
+		Node out = Node::createCollection();
+
+    // Check for the simple cases
+    if (one.isNil()) {
+      out.collection()->push_back(two.clone(ctx));
+    } else if (two.isNil()) {
+      out.collection()->push_back(one.clone(ctx));
+    } else {
+      // Do the naive implementation. pOne = A B and pTwo = C D ...yields...  A B C D and C D A B
+      // See https://gist.github.com/nex3/7609394 for details.
+      
+      Node firstPerm = one.clone(ctx);
+      Node twoCloned = two.clone(ctx);
+      firstPerm.plus(twoCloned);
+      out.collection()->push_back(firstPerm);
+      
+      Node secondPerm = two.clone(ctx);
+      Node oneCloned = one.clone(ctx);
+      secondPerm.plus(oneCloned );
+      out.collection()->push_back(secondPerm);
+    }
+    
+    return out;
   }
 
 
