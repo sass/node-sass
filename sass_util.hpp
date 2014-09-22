@@ -66,7 +66,7 @@ namespace Sass {
 	*/
   template<typename ComparatorType>
   Node lcs_backtrace(const LCSTable& c, const Node& x, const Node& y, int i, int j, const ComparatorType& comparator) {
-  	DEBUG_PRINTLN(LCS, "LCSBACK: C=" /*<< c*/ << "X=" << x << " Y=" << y << " I=" << i << " J=" << j)
+  	DEBUG_PRINTLN(LCS, "LCSBACK: X=" << x << " Y=" << y << " I=" << i << " J=" << j)
 
   	if (i == 0 || j == 0) {
     	DEBUG_PRINTLN(LCS, "RETURNING EMPTY")
@@ -144,14 +144,16 @@ namespace Sass {
   http://en.wikipedia.org/wiki/Longest_common_subsequence_problem
   */
   template<typename ComparatorType>
-  Node lcs(const Node& x, const Node& y, const ComparatorType& comparator, Context& ctx) {
+  Node lcs(Node& x, Node& y, const ComparatorType& comparator, Context& ctx) {
   	DEBUG_PRINTLN(LCS, "LCS: X=" << x << " Y=" << y)
 
-    Node newX = x.clone(ctx);
-    newX.collection()->push_front(Node::createNil());
+    Node newX = Node::createCollection();
+    newX.collection()->push_back(Node::createNil());
+    newX.plus(x);
     
-    Node newY = y.clone(ctx);
-    newY.collection()->push_front(Node::createNil());
+    Node newY = Node::createCollection();
+    newY.collection()->push_back(Node::createNil());
+    newY.plus(y);
     
     LCSTable table;
     lcs_table(newX, newY, comparator, table);

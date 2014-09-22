@@ -128,7 +128,12 @@ namespace Sass {
         os << ", ";
       }
       first = false;
-      os << pIter->head()->perform(&to_string);
+      
+      if (pIter->head()) {
+	      os << pIter->head()->perform(&to_string);
+      } else {
+      	os << "NULL_HEAD";
+      }
 
       pIter = pIter->tail();
     }
@@ -220,7 +225,182 @@ namespace Sass {
   
 
 #endif
+  
+  
+  static bool parentSuperselector(Complex_Selector* pOne, Complex_Selector* pTwo, Context& ctx) {
+  	// TODO: figure out a better way to create a Complex_Selector from scratch
+    // TODO: There's got to be a better way. This got ugly quick...
+    Position noPosition;
+    Type_Selector fakeParent("", noPosition, "temp");
+    Compound_Selector fakeHead("", noPosition, 1 /*size*/);
+    fakeHead.elements().push_back(&fakeParent);
+		Complex_Selector fakeParentContainer("", noPosition, Complex_Selector::ANCESTOR_OF, &fakeHead /*head*/, NULL /*tail*/);
 
+    
+    pOne->set_innermost(&fakeParentContainer, Complex_Selector::ANCESTOR_OF);
+    pTwo->set_innermost(&fakeParentContainer, Complex_Selector::ANCESTOR_OF);
+    
+    bool isSuperselector = pOne->is_superselector_of(pTwo);
+    
+    pOne->clear_innermost();
+    pTwo->clear_innermost();
+    
+    return isSuperselector;
+  }
+  
+  
+  void nodeToComplexSelectorDeque(const Node& node, ComplexSelectorDeque& out, Context& ctx) {
+  	for (NodeDeque::iterator iter = node.collection()->begin(), iterEnd = node.collection()->end(); iter != iterEnd; iter++) {
+    	Node& child = *iter;
+      out.push_back(nodeToComplexSelector(child, ctx));
+    }
+  }
+  
+  Node complexSelectorDequeToNode(const ComplexSelectorDeque& deque, Context& ctx) {
+  	Node result = Node::createCollection();
+
+  	for (ComplexSelectorDeque::const_iterator iter = deque.begin(), iterEnd = deque.end(); iter != iterEnd; iter++) {
+    	Complex_Selector* pChild = *iter;
+      result.collection()->push_back(complexSelectorToNode(pChild, ctx));
+    }
+    
+    return result;
+  }
+  
+
+  class LcsCollectionComparator {
+  public:
+  	LcsCollectionComparator(Context& ctx) : mCtx(ctx) {}
+    
+    Context& mCtx;
+
+  	bool operator()(Complex_Selector* pOne, Complex_Selector* pTwo, Complex_Selector*& pOut) const {
+    	/*
+      This code is based on the following block from ruby sass' subweave
+				do |s1, s2|
+          next s1 if s1 == s2
+          next unless s1.first.is_a?(SimpleSequence) && s2.first.is_a?(SimpleSequence)
+          next s2 if parent_superselector?(s1, s2)
+          next s1 if parent_superselector?(s2, s1)
+        end
+      */
+
+      if (selectors_equal(*pOne, *pTwo, true /*simpleSelectorOrderDependent*/)) {
+      	pOut = pOne;
+        return true;
+      }
+      
+      if (pOne->combinator() != Complex_Selector::ANCESTOR_OF || pTwo->combinator() != Complex_Selector::ANCESTOR_OF) {
+      	return false;
+      }
+      
+      if (parentSuperselector(pOne, pTwo, mCtx)) {
+      	pOut = pTwo;
+        return true;
+      }
+      
+      if (parentSuperselector(pTwo, pOne, mCtx)) {
+      	pOut = pOne;
+        return true;
+      }
+
+      return false;
+    }
+  };
+  
+  
+  /*
+  This is the equivalent of ruby's Sass::Util.lcs_backtrace.
+  
+  # Computes a single longest common subsequence for arrays x and y.
+  # Algorithm from http://en.wikipedia.org/wiki/Longest_common_subsequence_problem#Reading_out_an_LCS
+	*/
+  void lcs_backtrace(const LCSTable& c, ComplexSelectorDeque& x, ComplexSelectorDeque& y, int i, int j, const LcsCollectionComparator& comparator, ComplexSelectorDeque& out) {
+  	//DEBUG_PRINTLN(LCS, "LCSBACK: X=" << x << " Y=" << y << " I=" << i << " J=" << j)
+		// TODO: make printComplexSelectorDeque and use DEBUG_EXEC AND DEBUG_PRINTLN HERE to get equivalent output
+
+  	if (i == 0 || j == 0) {
+    	DEBUG_PRINTLN(LCS, "RETURNING EMPTY")
+    	return;
+    }
+    
+
+    Complex_Selector* pCompareOut = NULL;
+    if (comparator(x[i], y[j], pCompareOut)) {
+      DEBUG_PRINTLN(LCS, "RETURNING AFTER ELEM COMPARE")
+      lcs_backtrace(c, x, y, i - 1, j - 1, comparator, out);
+      out.push_back(pCompareOut);
+      return;
+    }
+    
+    if (c[i][j - 1] > c[i - 1][j]) {
+    	DEBUG_PRINTLN(LCS, "RETURNING AFTER TABLE COMPARE")
+    	lcs_backtrace(c, x, y, i, j - 1, comparator, out);
+      return;
+    }
+    
+    DEBUG_PRINTLN(LCS, "FINAL RETURN")
+    lcs_backtrace(c, x, y, i - 1, j, comparator, out);
+    return;
+  }
+
+  /*
+  This is the equivalent of ruby's Sass::Util.lcs_table.
+  
+  # Calculates the memoization table for the Least Common Subsequence algorithm.
+  # Algorithm from http://en.wikipedia.org/wiki/Longest_common_subsequence_problem#Computing_the_length_of_the_LCS
+  */
+  void lcs_table(const ComplexSelectorDeque& x, const ComplexSelectorDeque& y, const LcsCollectionComparator& comparator, LCSTable& out) {
+  	//DEBUG_PRINTLN(LCS, "LCSTABLE: X=" << x << " Y=" << y)
+		// TODO: make printComplexSelectorDeque and use DEBUG_EXEC AND DEBUG_PRINTLN HERE to get equivalent output
+
+  	LCSTable c(x.size(), vector<int>(y.size()));
+    
+    // These shouldn't be necessary since the vector will be initialized to 0 already.
+    // x.size.times {|i| c[i][0] = 0}
+    // y.size.times {|j| c[0][j] = 0}
+
+    for (size_t i = 1; i < x.size(); i++) {
+    	for (size_t j = 1; j < y.size(); j++) {
+        Complex_Selector* pCompareOut = NULL;
+
+      	if (comparator(x[i], y[j], pCompareOut)) {
+        	c[i][j] = c[i - 1][j - 1] + 1;
+        } else {
+        	c[i][j] = max(c[i][j - 1], c[i - 1][j]);
+        }
+      }
+    }
+
+    out = c;
+  }
+
+  /*
+  This is the equivalent of ruby's Sass::Util.lcs.
+  
+  # Computes a single longest common subsequence for `x` and `y`.
+  # If there are more than one longest common subsequences,
+  # the one returned is that which starts first in `x`.
+
+  # @param x [NodeCollection]
+  # @param y [NodeCollection]
+  # @comparator An equality check between elements of `x` and `y`.
+  # @return [NodeCollection] The LCS
+
+  http://en.wikipedia.org/wiki/Longest_common_subsequence_problem
+  */
+  void lcs(ComplexSelectorDeque& x, ComplexSelectorDeque& y, const LcsCollectionComparator& comparator, Context& ctx, ComplexSelectorDeque& out) {
+  	//DEBUG_PRINTLN(LCS, "LCS: X=" << x << " Y=" << y)
+    // TODO: make printComplexSelectorDeque and use DEBUG_EXEC AND DEBUG_PRINTLN HERE to get equivalent output
+
+    x.push_front(NULL);
+    y.push_front(NULL);
+
+    LCSTable table;
+    lcs_table(x, y, comparator, table);
+    
+		return lcs_backtrace(table, x, y, x.size() - 1, y.size() - 1, comparator, out);
+  }
   
 
   /*
@@ -289,19 +469,20 @@ namespace Sass {
   /*
    - IMPROVEMENT: We could probably work directly in the output trimmed deque.
    */
-  static Node trim(const Node& seqses, Context& ctx) {
+  static Node trim(Node& seqses, Context& ctx) {
     // See the comments in the above ruby code before embarking on understanding this function.
 
     // Avoid poor performance in extreme cases.
     if (seqses.collection()->size() > 100) {
-    	return seqses.clone(ctx);
+    	return seqses;
     }
 
 
 		DEBUG_PRINTLN(TRIM, "TRIM: " << seqses)
 
     
-    Node result = seqses.clone(ctx);
+    Node result = Node::createCollection();
+    result.plus(seqses);
     
     DEBUG_PRINTLN(TRIM, "RESULT INITIAL: " << result)
     
@@ -353,12 +534,11 @@ namespace Sass {
 					DEBUG_PRINTLN(TRIM, "SEQS1: " << seqs1)
           DEBUG_PRINTLN(TRIM, "SEQS2: " << seqs2)
 
-					// Do not compare the same sequence to itself in the same position. The ruby call we're trying to
+					// Do not compare the same sequence to itself. The ruby call we're trying to
           // emulate is: seqs1.equal?(seqs2). equal? is an object comparison, not an equivalency comparision.
-          // So, check if we're in the same spot of the array that we were before and whether the selectors
-          // are the same (operator== currently ends up comparing the Simple_Selectors in a Compound_Selector
-          // in an order-dependent manner, so these sequences should be functionally the same).
-          if (toTrimIndex == resultIndex && seqs1 == seqs2) {
+          // Since we have the same pointers in seqes and results, we can do a pointer comparision. seqs1 is
+          // derived from seqses and seqs2 is derived from result.
+          if (seqs1.collection() == seqs2.collection()) {
             DEBUG_PRINTLN(TRIM, "CONTINUE")
             continue;
           }
@@ -392,7 +572,7 @@ namespace Sass {
         
         if (!isMoreSpecificOuter) {
           DEBUG_PRINTLN(TRIM, "PUSHING: " << seq1)
-          tempResult.collection()->push_back(seq1); // TODO: clone this?
+          tempResult.collection()->push_back(seq1);
         }
 
       }
@@ -531,53 +711,13 @@ namespace Sass {
     
     return perms;
   }
-
-  
-  class LcsCollectionComparator {
-  public:
-  	LcsCollectionComparator(Context& ctx) : mCtx(ctx) {}
-    
-    Context& mCtx;
-
-  	bool operator()(const Node& one, const Node& two, Node& out) const {
-    	/*
-      This code is based on the following block from ruby sass' subweave
-				do |s1, s2|
-          next s1 if s1 == s2
-          next unless s1.first.is_a?(SimpleSequence) && s2.first.is_a?(SimpleSequence)
-          next s2 if parent_superselector?(s1, s2)
-          next s1 if parent_superselector?(s2, s1)
-        end
-      */
-
-      if (one == two) {
-      	out = one;
-        return true;
-      }
-      
-      if (!one.collection()->front().isSelector() || !two.collection()->front().isSelector()) {
-      	return false;
-      }
-      
-      if (parentSuperselector(one, two, mCtx)) {
-      	out = two;
-        return true;
-      }
-      
-      if (parentSuperselector(two, one, mCtx)) {
-      	out = one;
-        return true;
-      }
-
-      return false;
-    }
-  };
   
   
-  static Node groupSelectors(const Node& seq, Context& ctx) {
+  static Node groupSelectors(Node& seq, Context& ctx) {
   	Node newSeq = Node::createCollection();
     
-    Node tail = seq.clone(ctx);
+    Node tail = Node::createCollection();
+    tail.plus(seq);
     
     while (!tail.collection()->empty()) {
     	Node head = Node::createCollection();
@@ -783,14 +923,17 @@ namespace Sass {
           res.collection()->push_front(sel1);
 
         } else {
+
+          DEBUG_PRINTLN(ALL, "sel1: " << sel1)
+          DEBUG_PRINTLN(ALL, "sel2: " << sel2)
         
-//          merged = sel1.unify(sel2.members, sel2.subject?)
-//          res.unshift [
-//                       [sel1, '~', sel2, '~'],
-//                       [sel2, '~', sel1, '~'],
-//                       ([merged, '~'] if merged)
-//                       ].compact
+          Complex_Selector* pMergedWrapper = sel1.selector()->clone(ctx); // Clone the Complex_Selector to get back to something we can transform to a node once we replace the head with the unification result
+          // TODO: does subject matter? Ruby: return unless merged = sel1.unify(sel2.members, sel2.subject?)
+          Compound_Selector* pMerged = sel1.selector()->head()->unify_with(sel2.selector()->head(), ctx);
+          pMergedWrapper->head(pMerged);
           
+          DEBUG_EXEC(ALL, printCompoundSelector(pMerged, "MERGED: "))
+
           Node newRes = Node::createCollection();
           
           Node firstPerm = Node::createCollection();
@@ -806,15 +949,17 @@ namespace Sass {
           secondPerm.collection()->push_back(sel1);
           secondPerm.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
           newRes.collection()->push_back(secondPerm);
-
-          Node merged = unify(sel1, sel2, ctx);
-          if (merged.isCollection() && merged.collection()->size() > 0) {
-            newRes.collection()->push_back(merged);
+          
+          if (pMerged) {
+            Node mergedPerm = Node::createCollection();
+            mergedPerm.collection()->push_back(Node::createSelector(pMergedWrapper, ctx));
+            mergedPerm.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
+            newRes.collection()->push_back(mergedPerm);
           }
-
-          // TODO: Implement [].compact newRes
           
           res.collection()->push_front(newRes);
+
+          DEBUG_PRINTLN(ALL, "RESULT: " << res)
 
         }
 
@@ -837,12 +982,16 @@ namespace Sass {
             res.collection()->push_front(plusSel);
 
           } else {
+
+						DEBUG_PRINTLN(ALL, "PLUS SEL: " << plusSel)
+            DEBUG_PRINTLN(ALL, "TILDE SEL: " << tildeSel)
           
+            Complex_Selector* pMergedWrapper = plusSel.selector()->clone(ctx); // Clone the Complex_Selector to get back to something we can transform to a node once we replace the head with the unification result
             // TODO: does subject matter? Ruby: merged = plus_sel.unify(tilde_sel.members, tilde_sel.subject?)
-            //Complex_Selector* pTildeSel = nodeToComplexSelector(tildeSel, ctx);
-            Complex_Selector* pMerged = plusSel.selector()->clone(ctx);
-            //pMerged->head(plusSel.selector()->head()->unify_with(pTildeSel->head(), ctx));
-            // TODO: how to do this unification properly? Need example.
+            Compound_Selector* pMerged = plusSel.selector()->head()->unify_with(tildeSel.selector()->head(), ctx);
+            pMergedWrapper->head(pMerged);
+            
+            DEBUG_EXEC(ALL, printCompoundSelector(pMerged, "MERGED: "))
             
             Node newRes = Node::createCollection();
             
@@ -855,14 +1004,14 @@ namespace Sass {
             
             if (pMerged) {
               Node mergedPerm = Node::createCollection();
-              mergedPerm.collection()->push_back(complexSelectorToNode(pMerged, ctx));
+              mergedPerm.collection()->push_back(Node::createSelector(pMergedWrapper, ctx));
               mergedPerm.collection()->push_back(Node::createCombinator(Complex_Selector::ADJACENT_TO));
               newRes.collection()->push_back(mergedPerm);
             }
             
-            // TODO: Implement [].compact newRes
-            
             res.collection()->push_front(newRes);
+            
+            DEBUG_PRINTLN(ALL, "RESULT: " << res)
   
           }
       } else if (op1.combinator() == Complex_Selector::PARENT_OF && (op2.combinator() == Complex_Selector::PRECEDES || op2.combinator() == Complex_Selector::ADJACENT_TO)) {
@@ -882,19 +1031,25 @@ namespace Sass {
         seq2.collection()->push_back(op2);
 
       } else if (op1.combinator() == op2.combinator()) {
-
-				// TODO: is this the right unification behavior? The ruby looks at all members, but sel2.selector() is just one thing...
-        Compound_Selector* pMerged = sel1.selector()->head()->unify_with(sel2.selector()->head(), ctx);
         
+        DEBUG_PRINTLN(ALL, "sel1: " << sel1)
+        DEBUG_PRINTLN(ALL, "sel2: " << sel2)
+      
+        Complex_Selector* pMergedWrapper = sel1.selector()->clone(ctx); // Clone the Complex_Selector to get back to something we can transform to a node once we replace the head with the unification result
+        // TODO: does subject matter? Ruby: return unless merged = sel1.unify(sel2.members, sel2.subject?)
+        Compound_Selector* pMerged = sel1.selector()->head()->unify_with(sel2.selector()->head(), ctx);
+        pMergedWrapper->head(pMerged);
+        
+        DEBUG_EXEC(ALL, printCompoundSelector(pMerged, "MERGED: "))
+
         if (!pMerged) {
         	return Node::createNil();
         }
         
-        Complex_Selector* pNewSelector = sel1.selector()->clone(ctx);
-        pNewSelector->head(pMerged);
-        
       	res.collection()->push_front(op1);
-        res.collection()->push_front(Node::createSelector(pNewSelector, ctx));
+        res.collection()->push_front(Node::createSelector(pMergedWrapper, ctx));
+        
+        DEBUG_PRINTLN(ALL, "RESULT: " << res)
 
       } else {
       	return Node::createNil();
@@ -972,24 +1127,25 @@ namespace Sass {
         result
       end
 	*/
-	static Node subweave(const Node& one, const Node& two, Context& ctx) {
+	static Node subweave(Node& one, Node& two, Context& ctx) {
     // Check for the simple cases
-    if (one.isNil()) {
+    if (one.collection()->size() == 0) {
     	Node out = Node::createCollection();
-      out.collection()->push_back(two.clone(ctx));
+      out.collection()->push_back(two);
       return out;
     }
-		if (two.isNil()) {
+		if (two.collection()->size() == 0) {
     	Node out = Node::createCollection();
-      out.collection()->push_back(one.clone(ctx));
+      out.collection()->push_back(one);
       return out;
     }
 
     
-		// Convert to a data structure more equivalent to Ruby so we can perform these complex operations in the same manner.
-    // Doing this clones the input, so this is equivalent to the ruby code's .dup
-    Node seq1 = one.clone(ctx);
-    Node seq2 = two.clone(ctx);
+
+    Node seq1 = Node::createCollection();
+    seq1.plus(one);
+    Node seq2 = Node::createCollection();
+    seq2.plus(two);
     
     DEBUG_PRINTLN(SUBWEAVE, "SUBWEAVE ONE: " << seq1)
     DEBUG_PRINTLN(SUBWEAVE, "SUBWEAVE TWO: " << seq2)
@@ -1037,8 +1193,16 @@ namespace Sass {
     DEBUG_PRINTLN(SUBWEAVE, "SEQ2: " << groupSeq2)
 
 
+    ComplexSelectorDeque groupSeq1Converted;
+    nodeToComplexSelectorDeque(groupSeq1, groupSeq1Converted, ctx);
+
+    ComplexSelectorDeque groupSeq2Converted;
+    nodeToComplexSelectorDeque(groupSeq2, groupSeq2Converted, ctx);
+
+		ComplexSelectorDeque out;
     LcsCollectionComparator collectionComparator(ctx);
-    Node seqLcs = lcs(groupSeq2, groupSeq1, collectionComparator, ctx);
+    lcs(groupSeq2Converted, groupSeq1Converted, collectionComparator, ctx, out);
+    Node seqLcs = complexSelectorDequeToNode(out, ctx);
     
     DEBUG_PRINTLN(SUBWEAVE, "SEQLCS: " << seqLcs)
 
@@ -1052,7 +1216,7 @@ namespace Sass {
     
     
     while (!seqLcs.collection()->empty()) {
-    	ParentSuperselectorChunker superselectorChunker(seqLcs, ctx); // TODO: rename this to parent super selector chunker
+    	ParentSuperselectorChunker superselectorChunker(seqLcs, ctx);
       Node chunksResult = chunks(groupSeq1, groupSeq2, superselectorChunker);
       diff.collection()->push_back(chunksResult);
       
@@ -1223,14 +1387,15 @@ namespace Sass {
         return befores
       end
   */
-	static Node weave(const Node& path, Context& ctx) {
+	static Node weave(Node& path, Context& ctx) {
   
   	DEBUG_PRINTLN(WEAVE, "WEAVE: " << path)
   
   	Node befores = Node::createCollection();
     befores.collection()->push_back(Node::createCollection());
 
-		Node afters = path.clone(ctx);
+		Node afters = Node::createCollection();
+    afters.plus(path);
 
 		while (!afters.collection()->empty()) {
     	Node current = afters.collection()->front().clone(ctx);
@@ -1259,7 +1424,8 @@ namespace Sass {
         for (NodeDeque::iterator subIter = sub.collection()->begin(), subEndIter = sub.collection()->end(); subIter != subEndIter; subIter++) {
           Node& seqs = *subIter;
           
-          Node toPush = seqs.clone(ctx);
+          Node toPush = Node::createCollection();
+          toPush.plus(seqs);
           toPush.plus(last_current);
           
           tempResult.collection()->push_back(toPush);
@@ -1412,7 +1578,7 @@ namespace Sass {
       SourcesSet newSourcesSet = pSelector->sources();
       DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, "ASDF SOURCES THIS: "))
 
-      newSourcesSet.insert(pExtComplexSelector->clone(ctx));
+      newSourcesSet.insert(pExtComplexSelector);
       DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, "ASDF NEW: "))
 
       pNewSelector->addSources(newSourcesSet, ctx);
@@ -1462,9 +1628,11 @@ namespace Sass {
     while (!hasExtension && pIter) {
     	Compound_Selector* pHead = pIter->head();
 
-      SubsetMapEntries entries = subsetMap.get_v(pHead->to_str_vec());
-      
-      hasExtension = entries.size() > 0;
+			if (pHead) {
+        SubsetMapEntries entries = subsetMap.get_v(pHead->to_str_vec());
+        
+        hasExtension = entries.size() > 0;
+      }
 
     	pIter = pIter->tail();
     }
@@ -1490,7 +1658,7 @@ namespace Sass {
     ExtensionSubsetMap& subsetMap,
     set<Compound_Selector> seen) {
     
-    Node complexSelector = complexSelectorToNode(pComplexSelector, ctx); // TODO: remove 2 in name once it compiles
+    Node complexSelector = complexSelectorToNode(pComplexSelector, ctx);
     
     Node extendedNotExpanded = Node::createCollection();
     
@@ -1520,7 +1688,7 @@ namespace Sass {
       
       // Prepend the Compound_Selector based on the choices logic; choices seems to be extend but with an ruby Array instead of a Sequence
       // due to the member mapping: choices = extended.map {|seq| seq.members}
-      Complex_Selector* pJustCurrentCompoundSelector = sseqOrOp.selector()->clone(ctx);
+      Complex_Selector* pJustCurrentCompoundSelector = sseqOrOp.selector();
 
       bool isSuperselector = false;
       for (NodeDeque::iterator iterator = extended.collection()->begin(), endIterator = extended.collection()->end();

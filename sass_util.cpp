@@ -64,8 +64,9 @@ namespace Sass {
         
           Node& path = *loopStartIter;
           
-          Node newPermutation = path.clone(ctx);
-          newPermutation.collection()->push_back(e.clone(ctx));
+          Node newPermutation = Node::createCollection();
+          newPermutation.plus(path);
+          newPermutation.collection()->push_back(e);
           
           permutations.collection()->push_back(newPermutation);
         }
@@ -113,7 +114,7 @@ namespace Sass {
   */
   Node flatten(const Node& arr, Context& ctx, int n = -1) {
     if (n != -1 && n == 0) {
-      return arr.clone(ctx);
+      return arr;
     }
 
     Node flattened = Node::createCollection();
