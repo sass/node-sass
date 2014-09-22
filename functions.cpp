@@ -20,6 +20,7 @@
 
 #define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, path, position, backtrace)
 #define ARGR(argname, argtype, lo, hi) get_arg_r(argname, env, sig, path, position, lo, hi, backtrace)
+#define ARGM(argname, argtype, ctx) get_arg_m(argname, env, sig, path, position, backtrace, ctx)
 
 namespace Sass {
   using std::stringstream;
@@ -72,6 +73,20 @@ namespace Sass {
         msg += T::type_name();
         error(msg, path, position, backtrace);
       }
+      return val;
+    }
+
+    Map* get_arg_m(const string& argname, Env& env, Signature sig, const string& path, Position position, Backtrace* backtrace, Context& ctx)
+    {
+      // Minimal error handling -- the expectation is that built-ins will be written correctly!
+      Map* val = dynamic_cast<Map*>(env[argname]);
+      if (val) return val;
+
+      List* lval = dynamic_cast<List*>(env[argname]);
+      if (lval && lval->length() == 0) return new (ctx.mem) Map(path, position, 1);
+
+      // fallback on get_arg for error handling
+      val = get_arg<Map>(argname, env, sig, path, position, backtrace);
       return val;
     }
 
@@ -1074,15 +1089,11 @@ namespace Sass {
     Signature map_get_sig = "map-get($map, $key)";
     BUILT_IN(map_get)
     {
-      Expression* m = ARG("$map", Expression);
+      Map* m = ARGM("$map", Map, ctx);
       Expression* v = ARG("$key", Expression);
-      if (!(m->concrete_type() == Expression::MAP || m->concrete_type() == Expression::LIST)) {
-        error("$map: is not a map for `" + string(sig) + "`", path, position);
-      }
-      Map* map = dynamic_cast<Map*>(env["$map"]);
-      if (!map || map->empty()) return new (ctx.mem) Null(path, position);
-      for (size_t i = 0, L = map->length(); i < L; ++i) {
-        if (eq((*map)[i]->key(), v, ctx)) return map->value_at_index(i);
+      if (!m || m->empty()) return new (ctx.mem) Null(path, position);
+      for (size_t i = 0, L = m->length(); i < L; ++i) {
+        if (eq((*m)[i]->key(), v, ctx)) return m->value_at_index(i);
       }
       return new (ctx.mem) Null(path, position);
     }
@@ -1090,15 +1101,11 @@ namespace Sass {
     Signature map_has_key_sig = "map-has-key($map, $key)";
     BUILT_IN(map_has_key)
     {
-      Expression* m = ARG("$map", Expression);
+      Map* m = ARGM("$map", Map, ctx);
       Expression* v = ARG("$key", Expression);
-      if (!(m->concrete_type() == Expression::MAP || m->concrete_type() == Expression::LIST)) {
-        error("$map: is not a map for `" + string(sig) + "`", path, position);
-      }
-      Map* map = dynamic_cast<Map*>(env["$map"]);
-      if (!map || map->empty()) return new (ctx.mem) Boolean(path, position, false);
-      for (size_t i = 0, L = map->length(); i < L; ++i) {
-        if (eq((*map)[i]->key(), v, ctx)) return new (ctx.mem) Boolean(path, position, true);
+      if (!m || m->empty()) return new (ctx.mem) Boolean(path, position, false);
+      for (size_t i = 0, L = m->length(); i < L; ++i) {
+        if (eq((*m)[i]->key(), v, ctx)) return new (ctx.mem) Boolean(path, position, true);
       }
       return new (ctx.mem) Boolean(path, position, false);
     }
@@ -1106,15 +1113,11 @@ namespace Sass {
     Signature map_keys_sig = "map-keys($map)";
     BUILT_IN(map_keys)
     {
-      Expression* m = ARG("$map", Expression);
-      if (!(m->concrete_type() == Expression::MAP || m->concrete_type() == Expression::LIST)) {
-        error("$map: is not a map for `" + string(sig) + "`", path, position);
-      }
-      Map* map = dynamic_cast<Map*>(env["$map"]);
+      Map* m = ARGM("$map", Map, ctx);
       List* result = new (ctx.mem) List(path, position, 1, List::COMMA);
-      if (!map || map->empty()) return result;
-      for (size_t i = 0, L = map->length(); i < L; ++i) {
-        *result << (*map)[i]->key();
+      if (!m || m->empty()) return result;
+      for (size_t i = 0, L = m->length(); i < L; ++i) {
+        *result << (*m)[i]->key();
       }
       return result;
     }
@@ -1122,15 +1125,11 @@ namespace Sass {
     Signature map_values_sig = "map-values($map)";
     BUILT_IN(map_values)
     {
-      Expression* m = ARG("$map", Expression);
-      if (!(m->concrete_type() == Expression::MAP || m->concrete_type() == Expression::LIST)) {
-        error("$map: is not a map for `" + string(sig) + "`", path, position);
-      }
-      Map* map = dynamic_cast<Map*>(env["$map"]);
+      Map* m = ARGM("$map", Map, ctx);
       List* result = new (ctx.mem) List(path, position, 1, List::COMMA);
-      if (!map || map->empty()) return result;
-      for (size_t i = 0, L = map->length(); i < L; ++i) {
-        *result << (*map)[i]->value();
+      if (!m || m->empty()) return result;
+      for (size_t i = 0, L = m->length(); i < L; ++i) {
+        *result << (*m)[i]->value();
       }
       return result;
     }
@@ -1138,38 +1137,24 @@ namespace Sass {
     Signature map_merge_sig = "map-merge($map1, $map2)";
     BUILT_IN(map_merge)
     {
-      Expression* m1 = ARG("$map1", Expression);
-      Expression* m2 = ARG("$map2", Expression);
-      if (!(m1->concrete_type() == Expression::MAP || m1->concrete_type() == Expression::LIST)) {
-        error("$map1: is not a map for `" + string(sig) + "`", path, position);
-      }
-      if (!(m2->concrete_type() == Expression::MAP || m2->concrete_type() == Expression::LIST)) {
-        error("$map2: is not a map for `" + string(sig) + "`", path, position);
-      }
-      Map* map1 = dynamic_cast<Map*>(env["$map1"]);
-      Map* map2 = dynamic_cast<Map*>(env["$map2"]);
-      if (!map1) map1 = new (ctx.mem) Map(path, position, 1);
-      if (!map2) map2 = new (ctx.mem) Map(path, position, 1);
+      Map* m1 = ARGM("$map1", Map, ctx);
+      Map* m2 = ARGM("$map2", Map, ctx);
 
-      size_t len = map1->length() + map2->length();
+      size_t len = m1->length() + m2->length();
       Map* result = new (ctx.mem) Map(path, position, len);
-      *result += map1;
-      *result += map2;
+      *result += m1;
+      *result += m2;
       return result;
     }
 
     Signature map_remove_sig = "map-remove($map, $key)";
     BUILT_IN(map_remove)
     {
-      Expression* m = ARG("$map", Expression);
+      Map* m = ARGM("$map", Map, ctx);
       Expression* v = ARG("$key", Expression);
-      if (!(m->concrete_type() == Expression::MAP || m->concrete_type() == Expression::LIST)) {
-        error("$map: is not a map for `" + string(sig) + "`", path, position);
-      }
-      Map* map = dynamic_cast<Map*>(env["$map"]);
       Map* result = new (ctx.mem) Map(path, position, 1);
-      for (size_t i = 0, L = map->length(); i < L; ++i) {
-        if (!eq((*map)[i]->key(), v, ctx)) *result << (*map)[i];
+      for (size_t i = 0, L = m->length(); i < L; ++i) {
+        if (!eq((*m)[i]->key(), v, ctx)) *result << (*m)[i];
       }
       return result;
     }
