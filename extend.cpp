@@ -170,14 +170,28 @@ namespace Sass {
   	if (message) {
     	cerr << message;
     }
-
-    cerr << "SourcesSet[";
+    
+    // Convert to a deque of strings so we can sort since order doesn't matter in a set. This should cut down on
+    // the differences we see when debug printing.
+    typedef deque<string> SourceStrings;
+    SourceStrings sourceStrings;
     for (SourcesSet::iterator iterator = sources.begin(), iteratorEnd = sources.end(); iterator != iteratorEnd; ++iterator) {
       Complex_Selector* pSource = *iterator;
-      if (iterator != sources.begin()) {
+      stringstream sstream;
+      sstream << complexSelectorToNode(pSource, ctx);
+      sourceStrings.push_back(sstream.str());
+    }
+
+    // Sort to get consistent output
+    std::sort(sourceStrings.begin(), sourceStrings.end());
+
+    cerr << "SourcesSet[";
+    for (SourceStrings::iterator iterator = sourceStrings.begin(), iteratorEnd = sourceStrings.end(); iterator != iteratorEnd; ++iterator) {
+      string source = *iterator;
+      if (iterator != sourceStrings.begin()) {
       	cerr << ", ";
       }
-      cerr << complexSelectorToNode(pSource, ctx);
+      cerr << source;
     }
     cerr << "]";
     
@@ -1571,21 +1585,26 @@ namespace Sass {
       Complex_Selector::Combinator combinator = pNewSelector->clear_innermost();
       pNewSelector->set_innermost(pNewInnerMost, combinator);
       
+      pNewSelector->clearSources();
+      
 
 
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
-//      DEBUG_EXEC(EXTEND_COMPOUND, printComplexSelector(pNewSelector, "ASDF SETTING ON: "))
+      DEBUG_PRINTLN(EXTEND_COMPOUND, "SOURCES SETTING ON NEW SEQ: " << complexSelectorToNode(pNewSelector, ctx))
+      
+      DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet oldSet = pNewSelector->sources(); printSourcesSet(oldSet, ctx, "SOURCES NEW SEQ BEGIN: "))
 
       SourcesSet newSourcesSet = pSelector->sources();
-//      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, "ASDF SOURCES THIS: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, ctx, "SOURCES THIS EXTEND: "))
 
       newSourcesSet.insert(pExtComplexSelector);
-//      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, "ASDF NEW: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, ctx, "SOURCES WITH NEW SOURCE: "))
 
       pNewSelector->addSources(newSourcesSet, ctx);
       
-//			DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet newSet = pNewSelector->sources(); printSourcesSet(newSet, "ASDF NEW AFTER SET: "))
-//      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(pSelector->sources(), "ASDF SOURCES THIS SHOULD BE SAME: "))
+			DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet newSet = pNewSelector->sources(); printSourcesSet(newSet, ctx, "SOURCES ON NEW SELECTOR AFTER ADD: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(pSelector->sources(), ctx, "SOURCES THIS EXTEND WHICH SHOULD BE SAME STILL: "))
+
 
 
 

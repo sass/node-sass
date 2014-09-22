@@ -1292,6 +1292,7 @@ namespace Sass {
     inline bool operator!=(const Compound_Selector& rhs) const { return !(*this == rhs); }
 
     SourcesSet& sources() { return sources_; }
+    void clearSources() { sources_.clear(); }
     
     void mergeSources(SourcesSet& sources, Context& ctx);
 
@@ -1364,8 +1365,7 @@ namespace Sass {
 
       return srcs;
     }
-    void addSources(SourcesSet& sources, Context& ctx)
-    {
+    void addSources(SourcesSet& sources, Context& ctx) {
       // members.map! {|m| m.is_a?(SimpleSequence) ? m.with_more_sources(sources) : m}
       Complex_Selector* pIter = this;
       while (pIter) {
@@ -1373,6 +1373,18 @@ namespace Sass {
         
         if (pHead) {
           pHead->mergeSources(sources, ctx);
+        }
+        
+        pIter = pIter->tail();
+      }
+    }
+    void clearSources() {
+      Complex_Selector* pIter = this;
+      while (pIter) {
+        Compound_Selector* pHead = pIter->head();
+        
+        if (pHead) {
+          pHead->clearSources();
         }
         
         pIter = pIter->tail();
