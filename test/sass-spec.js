@@ -11,9 +11,19 @@ describe('sass-spec', function() {
   var sassSpecPath = path.join(__dirname, 'sass-spec'),
       sassSpecDirExists = fs.existsSync(sassSpecPath);
 
-  describe('test directory', function() {
-    it('it should exist', function() {
-      assert.ok(sassSpecDirExists);
+  describe('spec directory', function() {
+    it('should be a cloned into place', function() {
+      try {
+        assert.ok(sassSpecDirExists);
+      } catch (e) {
+        console.log([
+          'test/sass-spec directory missing. Please clone it into place by',
+          'executing `git submodule update --init --recursive test/sass-spec`',
+          'from the project\'s root directory.'
+        ].join(' '));
+
+        throw e;
+      }
     });
   });
 
