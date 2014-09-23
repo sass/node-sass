@@ -1505,6 +1505,13 @@ namespace Sass {
     GroupByToAFunctor<Complex_Selector> extPairKeyFunctor;
     GroupedByToAResult arr;
     group_by_to_a(entries, extPairKeyFunctor, arr);
+    
+    
+    typedef pair<Compound_Selector*, Complex_Selector*> SelsNewSeqPair;
+    typedef vector<SelsNewSeqPair> SelsNewSeqPairCollection;
+    
+    
+    SelsNewSeqPairCollection holder;
 
 
     for (GroupedByToAResult::iterator groupedIter = arr.begin(), groupedIterEnd = arr.end(); groupedIter != groupedIterEnd; groupedIter++) {
@@ -1535,16 +1542,6 @@ namespace Sass {
       Compound_Selector* pExtCompoundSelector = pSels; // All the simple selectors to be replaced from the current compound selector from all extensions
 
 
-
-      
-      // I know I said don't optimize yet, but I couldn't help moving this if check up until we find a reason not
-      // to. In the ruby code, this was done at the end after a lot of work was already done. The only reason this
-      // wouldn't be safe is if there are side effects in the skipped ruby code that the algorithm is relying on. In that
-      // case, we wouldn't have those side effects without moving this lower in this function to match it's placement in
-      // the ruby code. It's easy enough to change if this causes a problem.
-      if (seen.find(*pExtCompoundSelector) != seen.end()) {
-        continue;
-      }
       
       // TODO: This can return a Compound_Selector with no elements. Should that just be returning NULL?
       Compound_Selector* pSelectorWithoutExtendSelectors = pSelector->minus(pExtCompoundSelector, ctx);
@@ -1599,26 +1596,41 @@ namespace Sass {
 
 
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
-//      DEBUG_PRINTLN(EXTEND_COMPOUND, "SOURCES SETTING ON NEW SEQ: " << complexSelectorToNode(pNewSelector, ctx))
+      DEBUG_PRINTLN(EXTEND_COMPOUND, "SOURCES SETTING ON NEW SEQ: " << complexSelectorToNode(pNewSelector, ctx))
       
-//      DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet oldSet = pNewSelector->sources(); printSourcesSet(oldSet, ctx, "SOURCES NEW SEQ BEGIN: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet oldSet = pNewSelector->sources(); printSourcesSet(oldSet, ctx, "SOURCES NEW SEQ BEGIN: "))
 
       SourcesSet newSourcesSet = pSelector->sources();
-//      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, ctx, "SOURCES THIS EXTEND: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, ctx, "SOURCES THIS EXTEND: "))
 
       newSourcesSet.insert(pExtComplexSelector);
-//      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, ctx, "SOURCES WITH NEW SOURCE: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, ctx, "SOURCES WITH NEW SOURCE: "))
 
       pNewSelector->addSources(newSourcesSet, ctx);
       
-//			DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet newSet = pNewSelector->sources(); printSourcesSet(newSet, ctx, "SOURCES ON NEW SELECTOR AFTER ADD: "))
-//      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(pSelector->sources(), ctx, "SOURCES THIS EXTEND WHICH SHOULD BE SAME STILL: "))
+			DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet newSet = pNewSelector->sources(); printSourcesSet(newSet, ctx, "SOURCES ON NEW SELECTOR AFTER ADD: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(pSelector->sources(), ctx, "SOURCES THIS EXTEND WHICH SHOULD BE SAME STILL: "))
 
 
 
+			holder.push_back(make_pair(pSels, pNewSelector));
+    }
+
+
+    for (SelsNewSeqPairCollection::iterator holderIter = holder.begin(), holderIterEnd = holder.end(); holderIter != holderIterEnd; holderIter++) {
+			SelsNewSeqPair& pair = *holderIter;
+      
+      Compound_Selector* pSels = pair.first;
+      Complex_Selector* pNewSelector = pair.second;
+      
+
+      if (seen.find(*pSels) != seen.end()) {
+        continue;
+      }
+      
 
       set<Compound_Selector> recurseSeen(seen);
-      recurseSeen.insert(*pExtCompoundSelector);
+      recurseSeen.insert(*pSels);
 
 
 			DEBUG_PRINTLN(EXTEND_COMPOUND, "RECURSING DO EXTEND: " << complexSelectorToNode(pNewSelector, ctx))
