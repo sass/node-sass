@@ -50,8 +50,17 @@ namespace Sass {
     bool      decls = false;
 
     Selector_List* sl = static_cast<Selector_List*>(s);
-
-    if (sl->length() == 0 && !b->has_hoistable()) return;
+    
+    // JMA - filter out rulesets that aren't printable (process its children though)
+    if (!Util::isPrintable(r)) {
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (dynamic_cast<Has_Block*>(stm)) {
+          stm->perform(this);
+        }
+      }
+      return;
+    }
 
     if (b->has_non_hoistable()) {
       decls = true;
@@ -120,7 +129,7 @@ namespace Sass {
     Block* b     = m->block();
 
     // JMA - filter out blocks that don't contain any printable statements
-    if (!Util::containsAnyPrintableStatements(b)) {
+    if (!Util::isPrintable(b)) {
       return;
     }
     
