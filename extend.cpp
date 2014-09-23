@@ -1785,16 +1785,13 @@ namespace Sass {
   /*
    This is the equivalent of ruby's CommaSequence.do_extend.
   */
-    /*
-     ISSUES:
-     - Improvement: searching through deque with std::find is probably slow
-     - Improvement: can we just use one deque?
-     */
-  static Selector_List* extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subsetMap) {
+  static Selector_List* extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subsetMap, bool& extendedSomething) {
 
     To_String to_string;
 
     Selector_List* pNewSelectors = new (ctx.mem) Selector_List(pSelectorList->path(), pSelectorList->position(), pSelectorList->length());
+    
+    extendedSomething = false;
 
     for (size_t index = 0, length = pSelectorList->length(); index < length; index++) {
       Complex_Selector* pSelector = (*pSelectorList)[index];
@@ -1808,6 +1805,8 @@ namespace Sass {
       	*pNewSelectors << pSelector;
       	continue;
       }
+      
+      extendedSomething = true;
 
       set<Compound_Selector> seen;
       Node extendedSelectors = extendComplexSelector(pSelector, ctx, subsetMap, seen);
@@ -1825,6 +1824,7 @@ namespace Sass {
     }
     
     return pNewSelectors;
+
   }
 
   
@@ -1833,9 +1833,10 @@ namespace Sass {
   static void extendObjectWithSelector(ObjectWithSelectorType* pObjectWithSelector, Context& ctx, ExtensionSubsetMap& subsetMap) {
     To_String to_string;
 
-    Selector_List* pNewSelectorList = extendSelectorList(static_cast<Selector_List*>(pObjectWithSelector->selector()), ctx, subsetMap);
+		bool extendedSomething = false;
+    Selector_List* pNewSelectorList = extendSelectorList(static_cast<Selector_List*>(pObjectWithSelector->selector()), ctx, subsetMap, extendedSomething);
 
-    if (pNewSelectorList) {
+    if (extendedSomething && pNewSelectorList) {
       // re-parse in order to restructure expanded placeholder nodes correctly.
       //
       // TODO: I don't know if this is needed, but it was in the original C++ implementation, so I kept it. Try running the tests without re-parsing.
