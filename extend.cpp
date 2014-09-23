@@ -1599,20 +1599,20 @@ namespace Sass {
 
 
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
-      DEBUG_PRINTLN(EXTEND_COMPOUND, "SOURCES SETTING ON NEW SEQ: " << complexSelectorToNode(pNewSelector, ctx))
+//      DEBUG_PRINTLN(EXTEND_COMPOUND, "SOURCES SETTING ON NEW SEQ: " << complexSelectorToNode(pNewSelector, ctx))
       
-      DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet oldSet = pNewSelector->sources(); printSourcesSet(oldSet, ctx, "SOURCES NEW SEQ BEGIN: "))
+//      DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet oldSet = pNewSelector->sources(); printSourcesSet(oldSet, ctx, "SOURCES NEW SEQ BEGIN: "))
 
       SourcesSet newSourcesSet = pSelector->sources();
-      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, ctx, "SOURCES THIS EXTEND: "))
+//      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, ctx, "SOURCES THIS EXTEND: "))
 
       newSourcesSet.insert(pExtComplexSelector);
-      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, ctx, "SOURCES WITH NEW SOURCE: "))
+//      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, ctx, "SOURCES WITH NEW SOURCE: "))
 
       pNewSelector->addSources(newSourcesSet, ctx);
       
-			DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet newSet = pNewSelector->sources(); printSourcesSet(newSet, ctx, "SOURCES ON NEW SELECTOR AFTER ADD: "))
-      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(pSelector->sources(), ctx, "SOURCES THIS EXTEND WHICH SHOULD BE SAME STILL: "))
+//			DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet newSet = pNewSelector->sources(); printSourcesSet(newSet, ctx, "SOURCES ON NEW SELECTOR AFTER ADD: "))
+//      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(pSelector->sources(), ctx, "SOURCES THIS EXTEND WHICH SHOULD BE SAME STILL: "))
 
 
 
@@ -1639,7 +1639,6 @@ namespace Sass {
           extendedSelectors.collection()->push_back(newSelector);
         }
       }
-      
     }
     
     return extendedSelectors;
