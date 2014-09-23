@@ -51,7 +51,7 @@ namespace Sass {
 
     Selector_List* sl = static_cast<Selector_List*>(s);
 
-    if (sl->length() == 0) return;
+    if (sl->length() == 0 && !b->has_hoistable()) return;
 
     if (b->has_non_hoistable()) {
       decls = true;

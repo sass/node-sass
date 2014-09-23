@@ -1857,13 +1857,7 @@ namespace Sass {
         return true;
       }
       else if (typeid(*stm) == typeid(Ruleset)) {
-      	Ruleset* pRuleset = (Ruleset*) stm;
-      	if (pRuleset && pRuleset->selector() && pRuleset->selector()->has_placeholder()) {
-        	// Always extend placeholders. That's what they're there for.
-        	return true;
-        } else {
-	      	// Do nothing. This doesn't count as an extendable statement since we'll iterate over this rule set at some point and try to extend it.
-        }
+        // Do nothing. This doesn't count as an extendable statement since we'll iterate over this rule set at some point and try to extend it.
       }
       else if (dynamic_cast<Has_Block*>(stm) && shouldExtendBlock(((Has_Block*)stm)->block())) {
         return true;
