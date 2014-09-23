@@ -84,7 +84,7 @@ namespace Sass {
   
   ostream& operator<<(ostream& os, Compound_Selector& compoundSelector) {
 		To_String to_string;
-    os << "(" << compoundSelector.perform(&to_string) << ")";
+    os << compoundSelector.perform(&to_string);
     return os;
   }
 
@@ -1493,6 +1493,8 @@ namespace Sass {
     ExtensionSubsetMap& subsetMap,
     set<Compound_Selector> seen) {
     
+    DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelector, "EXTEND COMPOUND: "))
+    
     Node extendedSelectors = Node::createCollection();
 
     To_String to_string;
@@ -1653,6 +1655,8 @@ namespace Sass {
       }
     }
     
+    DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelector, "EXTEND COMPOUND END: "))
+    
     return extendedSelectors;
   }
   
@@ -1700,6 +1704,8 @@ namespace Sass {
     set<Compound_Selector> seen) {
     
     Node complexSelector = complexSelectorToNode(pComplexSelector, ctx);
+ 
+    DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTEND COMPLEX: " << complexSelector)
     
     Node extendedNotExpanded = Node::createCollection();
     
@@ -1787,6 +1793,9 @@ namespace Sass {
     Node extendedSelectors = flatten(trimmed, ctx, 1);
     
 		DEBUG_PRINTLN(EXTEND_COMPLEX, ">>>>> EXTENDED: " << extendedSelectors)
+    
+    
+    DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTEND COMPLEX END: " << complexSelector)
 
 
 		return extendedSelectors;
@@ -1838,20 +1847,47 @@ namespace Sass {
     
     return pNewSelectors;
   }
+  
+
+  bool containsAnyExtendableStatements(Block* b) {
+    
+    for (size_t i = 0, L = b->length(); i < L; ++i) {
+      Statement* stm = (*b)[i];
+      if (typeid(*stm) == typeid(Declaration) || typeid(*stm) == typeid(At_Rule)) {
+        return true;
+      }
+      else if (typeid(*stm) == typeid(Ruleset)) {
+      	// Do nothing. This doesn't count as an extendable statement since we'll iterate over this rule set at some point and try to extend it.
+      }
+      else if (dynamic_cast<Has_Block*>(stm) && containsAnyExtendableStatements(((Has_Block*)stm)->block())) {
+        return true;
+      }
+    }
+    
+    return false;
+
+  }
 
   
   // Extend a ruleset by extending the selectors and updating them on the ruleset. The block's rules don't need to change.
-  template <typename ObjectWithSelectorType>
-  static void extendObjectWithSelector(ObjectWithSelectorType* pObjectWithSelector, Context& ctx, ExtensionSubsetMap& subsetMap) {
+  template <typename ObjectType>
+  static void extendObjectWithSelectorAndBlock(ObjectType* pObject, Context& ctx, ExtensionSubsetMap& subsetMap) {
     To_String to_string;
+    
+    // Ruby sass seems to filter nodes that don't have any content well before we get here. I'm not sure the repercussions
+    // of doing so, so for now, let's just not extend things that won't be output later.
+    // TODO: can we do this check in expand so that we don't have extra nodes laying around that we don't need and will never print.
+    if (!containsAnyExtendableStatements(pObject->block())) {
+    	return;
+    }
 
-    Selector_List* pNewSelectorList = extendSelectorList(static_cast<Selector_List*>(pObjectWithSelector->selector()), ctx, subsetMap);
+    Selector_List* pNewSelectorList = extendSelectorList(static_cast<Selector_List*>(pObject->selector()), ctx, subsetMap);
 
     if (pNewSelectorList) {
       // re-parse in order to restructure expanded placeholder nodes correctly.
       //
       // TODO: I don't know if this is needed, but it was in the original C++ implementation, so I kept it. Try running the tests without re-parsing.
-      pObjectWithSelector->selector(
+      pObject->selector(
         Parser::from_c_str(
           (pNewSelectorList->perform(&to_string) + ";").c_str(),
           ctx,
@@ -1877,7 +1913,7 @@ namespace Sass {
 
   void Extend::operator()(Ruleset* pRuleset)
   {
-    extendObjectWithSelector(pRuleset, ctx, subset_map);
+    extendObjectWithSelectorAndBlock(pRuleset, ctx, subset_map);
 
     pRuleset->block()->perform(this);
   }
@@ -1885,7 +1921,7 @@ namespace Sass {
   void Extend::operator()(Media_Block* pMediaBlock)
   {
     if (pMediaBlock->selector()) {
-      extendObjectWithSelector(pMediaBlock, ctx, subset_map);
+      extendObjectWithSelectorAndBlock(pMediaBlock, ctx, subset_map);
     }
     
     pMediaBlock->block()->perform(this);
