@@ -1849,7 +1849,7 @@ namespace Sass {
   }
   
 
-  bool containsAnyExtendableStatements(Block* b) {
+  bool shouldExtendBlock(Block* b) {
     
     for (size_t i = 0, L = b->length(); i < L; ++i) {
       Statement* stm = (*b)[i];
@@ -1857,9 +1857,15 @@ namespace Sass {
         return true;
       }
       else if (typeid(*stm) == typeid(Ruleset)) {
-      	// Do nothing. This doesn't count as an extendable statement since we'll iterate over this rule set at some point and try to extend it.
+      	Ruleset* pRuleset = (Ruleset*) stm;
+      	if (pRuleset && pRuleset->selector() && pRuleset->selector()->has_placeholder()) {
+        	// Always extend placeholders. That's what they're there for.
+        	return true;
+        } else {
+	      	// Do nothing. This doesn't count as an extendable statement since we'll iterate over this rule set at some point and try to extend it.
+        }
       }
-      else if (dynamic_cast<Has_Block*>(stm) && containsAnyExtendableStatements(((Has_Block*)stm)->block())) {
+      else if (dynamic_cast<Has_Block*>(stm) && shouldExtendBlock(((Has_Block*)stm)->block())) {
         return true;
       }
     }
@@ -1874,10 +1880,13 @@ namespace Sass {
   static void extendObjectWithSelectorAndBlock(ObjectType* pObject, Context& ctx, ExtensionSubsetMap& subsetMap) {
     To_String to_string;
     
+    DEBUG_PRINTLN(EXTEND_OBJECT, "FOUND SELECTOR: " << static_cast<Selector_List*>(pObject->selector())->perform(&to_string))
+    
     // Ruby sass seems to filter nodes that don't have any content well before we get here. I'm not sure the repercussions
     // of doing so, so for now, let's just not extend things that won't be output later.
     // TODO: can we do this check in expand so that we don't have extra nodes laying around that we don't need and will never print.
-    if (!containsAnyExtendableStatements(pObject->block())) {
+    if (!shouldExtendBlock(pObject->block())) {
+    	DEBUG_PRINTLN(EXTEND_OBJECT, "RETURNING WITHOUT EXTEND ATTEMPT")
     	return;
     }
 
@@ -1885,6 +1894,9 @@ namespace Sass {
     Selector_List* pNewSelectorList = extendSelectorList(static_cast<Selector_List*>(pObject->selector()), ctx, subsetMap, extendedSomething);
 
     if (extendedSomething && pNewSelectorList) {
+    	DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND ORIGINAL SELECTORS: " << static_cast<Selector_List*>(pObject->selector())->perform(&to_string))
+    	DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND SETTING NEW SELECTORS: " << pNewSelectorList->perform(&to_string))
+
       // re-parse in order to restructure expanded placeholder nodes correctly.
       //
       // TODO: I don't know if this is needed, but it was in the original C++ implementation, so I kept it. Try running the tests without re-parsing.
@@ -1896,6 +1908,8 @@ namespace Sass {
           pNewSelectorList->position()
         ).parse_selector_group()
       );
+    } else {
+      DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND DID NOT TRY TO EXTEND ANYTHING")
     }
   }
   
