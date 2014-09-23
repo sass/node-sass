@@ -1293,7 +1293,6 @@ namespace Sass {
 
     SourcesSet& sources() { return sources_; }
     void clearSources() { sources_.clear(); }
-    
     void mergeSources(SourcesSet& sources, Context& ctx);
 
     Compound_Selector* minus(Compound_Selector* rhs, Context& ctx);

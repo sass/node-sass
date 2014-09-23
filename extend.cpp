@@ -1571,10 +1571,13 @@ namespace Sass {
         continue;
       }
       
+
       
       // TODO: implement the parent directive match (if necessary based on test failures)
       // next if group.map {|e, _| check_directives_match!(e, parent_directives)}.none?
       
+      
+
 
       // TODO: This seems a little fishy to me. See if it causes any problems. From the ruby, we should be able to just
       // get rid of the last Compound_Selector and replace it with this one. I think the reason this code is more
@@ -1585,6 +1588,12 @@ namespace Sass {
       Complex_Selector::Combinator combinator = pNewSelector->clear_innermost();
       pNewSelector->set_innermost(pNewInnerMost, combinator);
       
+      // Clear the sources on the selector. In ruby sass, the selector starts anew with no sources. pExtComplexSelector ends up
+      // having sources on it, and during iteration or recursion, those sources may end up on it at this point in the code. To
+      // try and compensate, remove the sources. This may not be sufficient due to the iterative and recursive nature of this
+      // code, but it seems to work. The other solution would be to create a pExtComplexSelector->cloneDeep(ctx), which would
+      // clone the Compound_Selectors it points to as well so that sources wouldn't be shared. Until we know
+      // it's a problem, let's not take the memory hit.
       pNewSelector->clearSources();
       
 
@@ -1630,6 +1639,7 @@ namespace Sass {
           extendedSelectors.collection()->push_back(newSelector);
         }
       }
+      
     }
     
     return extendedSelectors;
