@@ -80,8 +80,9 @@ namespace Sass
 		if (sel == ":first-child") return true;
 		if (sel == ":hover") return true;
 		if (sel == ":focus") return true;
-		if (sel == ":left") return true;
-		if (sel == ":right") return true;
+		// disabled - also valid properties
+		// if (sel == ":left") return true;
+		// if (sel == ":right") return true;
 		if (sel == ":first") return true;
 
 		// Selectors Level 3 - Recommendation
@@ -529,12 +530,12 @@ namespace Sass
 				{
 					// get the possible pseudo selector
 					string pseudo = sass.substr(pos_left, pos_wspace - pos_left);
-					// only process if not a pseudo selector
-					if (!isPseudoSelector(pseudo))
+					// get position of the first real property value char
+					// pseudo selectors get this far, but have no actual value
+					size_t pos_value =  sass.find_first_not_of(" \t\n\v\f\r", pos_wspace);
+					// only process if not (fallowed by a semicolon or is a pseudo selector)
+					if (!(sass.at(pos_value) == ':' || isPseudoSelector(pseudo)))
 					{
-						// get position of the first real property value char
-						// pseudo selectors get this far, but have no actual value
-						size_t pos_value =  sass.find_first_not_of(" \t\n\v\f\r", pos_wspace);
 						// assertion check for valid result
 						if (pos_value != string::npos)
 						{
