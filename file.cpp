@@ -240,6 +240,7 @@ namespace Sass {
       pBuffer = new BYTE[dwFileLength + 1];
       ReadFile(hFile, pBuffer, dwFileLength, &dwBytes, NULL);
       pBuffer[dwFileLength] = '\0';
+      CloseHandle(hFile);
       // just convert from unsigned char*
       char* contents = (char*) pBuffer;
 #else
