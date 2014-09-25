@@ -533,11 +533,11 @@ namespace Sass
 					// get position of the first real property value char
 					// pseudo selectors get this far, but have no actual value
 					size_t pos_value =  sass.find_first_not_of(" \t\n\v\f\r", pos_wspace);
-					// only process if not (fallowed by a semicolon or is a pseudo selector)
-					if (!(sass.at(pos_value) == ':' || isPseudoSelector(pseudo)))
+					// assertion check for valid result
+					if (pos_value != string::npos)
 					{
-						// assertion check for valid result
-						if (pos_value != string::npos)
+						// only process if not (fallowed by a semicolon or is a pseudo selector)
+						if (!(sass.at(pos_value) == ':' || isPseudoSelector(pseudo)))
 						{
 							// create new string by interchanging the colon sign for property and value
 							sass = indent + sass.substr(pos_left + 1, pos_wspace - pos_left - 1) + ":" + sass.substr(pos_wspace);
