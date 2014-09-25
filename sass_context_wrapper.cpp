@@ -15,7 +15,6 @@ extern "C" {
   void free_file_context(sass_file_context* fctx) {
     delete[] fctx->input_path;
     delete[] fctx->options.include_paths;
-    delete[] fctx->options.image_path;
     sass_free_file_context(fctx);
   }
 
