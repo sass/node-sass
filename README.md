@@ -5,14 +5,14 @@ sass2scss
 
 C++ tool/library to convert indented sass syntax to the newer scss syntax. This
 was initially a port of a previous perl implementation. Its primary intention
-was to bring indented sass syntax support to [`libsass`](https://github.com/hcatlin/libsass).
+was to bring indented sass syntax support to [`libsass`](https://github.com/sass/libsass).
 `sass2scss` is included in `libsass` since [version 2.0](https://github.com/sass/libsass/releases/tag/v2.0).
 
 Unit Tests
 ==========
 
 I added around 60 unit tests for `sass2sccs` to the `libsass` perl binding
-[`CSS-Sass`](https://github.com/mgreter/CSS-Sass/blob/master/t/05_sass2scss.t).
+[`CSS-Sass`](https://github.com/sass/perl-libsass/blob/master/t/06_sass_to_scss.t).
 
 Command Line Utility
 ====================
@@ -37,7 +37,7 @@ sass2scss [options] < file.sass
 - 2: Add lf after opening and before closing bracket (`1TBS style`)
 - 3: Add lf before/after opening and before closing (`allman style`)
 
-The `listp style` is the only output style that should not alter the line count
+The `lisp style` is the only output style that should not alter the line count
 of the input file. This is the best option if you still want to use `source-maps`,
 since it should only change the source by a few inserted chars. So far
 `sass2sccs` does not produce source-maps and `libsass` will not be able to
