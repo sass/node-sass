@@ -70,6 +70,10 @@ var prepareOptions = function (options) {
 
   prepareStats(options, stats);
 
+  if (options.imagePath && typeof options.imagePath !== 'string') {
+    throw new Error('imagePath needs to be a string');
+  }
+
   return {
     file: options.file || null,
     outFile: options.outFile || null,
