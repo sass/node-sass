@@ -135,6 +135,21 @@ describe('compile file with image path', function(){
       }
     });
   });
+  it('should throw on non-string path', function(done) {
+    try {
+      sass.render({
+        file: path.resolve(__dirname, 'image_path.scss'),
+        imagePath: ['/path/to/images'],
+        success: function () {},
+        error: function () {}
+      });
+    } catch(err) {
+      assert(err);
+      return done();
+    }
+
+    done(new Error('did not throw'));
+  });
 });
 
 describe('compile file', function() {
