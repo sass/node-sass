@@ -1850,16 +1850,27 @@ namespace Sass {
   
 
   bool shouldExtendBlock(Block* b) {
+  
+  	// If a block is empty, there's no reason to extend it since any rules placed on this block
+    // won't have any output. The main benefit of this is for structures like:
+    //
+    //    .a {
+    //    	.b {
+    //      	x: y;
+    //      }
+    //    }
+    //
+    // We end up visiting two rulesets (one with the selector .a and the other with the selector .a .b).
+    // In this case, we don't want to try to pull rules onto .a since they won't get output anyway since
+    // there are no child statements. However .a .b should have extensions applied.
     
     for (size_t i = 0, L = b->length(); i < L; ++i) {
       Statement* stm = (*b)[i];
-      if (typeid(*stm) == typeid(Declaration) || typeid(*stm) == typeid(At_Rule)) {
-        return true;
+
+      if (typeid(*stm) == typeid(Ruleset)) {
+        // Do nothing. This doesn't count as a statement that causes extension since we'll iterate over this rule set in a future visit and try to extend it.
       }
-      else if (typeid(*stm) == typeid(Ruleset)) {
-        // Do nothing. This doesn't count as an extendable statement since we'll iterate over this rule set at some point and try to extend it.
-      }
-      else if (dynamic_cast<Has_Block*>(stm) && shouldExtendBlock(((Has_Block*)stm)->block())) {
+      else {
         return true;
       }
     }
@@ -1878,7 +1889,6 @@ namespace Sass {
     
     // Ruby sass seems to filter nodes that don't have any content well before we get here. I'm not sure the repercussions
     // of doing so, so for now, let's just not extend things that won't be output later.
-    // TODO: can we do this check in expand so that we don't have extra nodes laying around that we don't need and will never print.
     if (!shouldExtendBlock(pObject->block())) {
     	DEBUG_PRINTLN(EXTEND_OBJECT, "RETURNING WITHOUT EXTEND ATTEMPT")
     	return;
