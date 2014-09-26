@@ -1587,6 +1587,18 @@ namespace Sass {
       Complex_Selector::Combinator combinator = pNewSelector->clear_innermost();
       pNewSelector->set_innermost(pNewInnerMost, combinator);
       
+#ifdef DEBUG
+			SourcesSet debugSet;
+      debugSet = pNewSelector->sources();
+      if (debugSet.size() > 0) {
+      	throw "The new selector should start with no sources. Something needs to be cloned to fix this.";
+      }
+      debugSet = pExtComplexSelector->sources();
+      if (debugSet.size() > 0) {
+      	throw "The extension selector from our subset map should not have sources. These will bleed to the new selector. Something needs to be cloned to fix this.";
+      }
+#endif
+      
       
 
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
