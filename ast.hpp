@@ -1294,6 +1294,8 @@ namespace Sass {
     SourcesSet& sources() { return sources_; }
     void clearSources() { sources_.clear(); }
     void mergeSources(SourcesSet& sources, Context& ctx);
+    
+    Compound_Selector* clone(Context&) const; // does not clone the Simple_Selector*s
 
     Compound_Selector* minus(Compound_Selector* rhs, Context& ctx);
     ATTACH_OPERATIONS();
@@ -1389,7 +1391,8 @@ namespace Sass {
         pIter = pIter->tail();
       }
     }
-    Complex_Selector* clone(Context&) const;
+    Complex_Selector* clone(Context&) const;      // does not clone Compound_Selector*s
+    Complex_Selector* cloneFully(Context&) const; // clones Compound_Selector*s
     vector<Compound_Selector*> to_vector();
     ATTACH_OPERATIONS();
   };

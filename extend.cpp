@@ -1582,20 +1582,12 @@ namespace Sass {
       // get rid of the last Compound_Selector and replace it with this one. I think the reason this code is more
       // complex is that Complex_Selector contains a combinator, but in ruby combinators have already been filtered
       // out and aren't operated on.
-      Complex_Selector* pNewSelector = pExtComplexSelector->clone(ctx);
+      Complex_Selector* pNewSelector = pExtComplexSelector->cloneFully(ctx);
       Complex_Selector* pNewInnerMost = new (ctx.mem) Complex_Selector(pSelector->path(), pSelector->position(), Complex_Selector::ANCESTOR_OF, pUnifiedSelector, NULL);
       Complex_Selector::Combinator combinator = pNewSelector->clear_innermost();
       pNewSelector->set_innermost(pNewInnerMost, combinator);
       
-      // Clear the sources on the selector. In ruby sass, the selector starts anew with no sources. pExtComplexSelector ends up
-      // having sources on it, and during iteration or recursion, those sources may end up on it at this point in the code. To
-      // try and compensate, remove the sources. This may not be sufficient due to the iterative and recursive nature of this
-      // code, but it seems to work. The other solution would be to create a pExtComplexSelector->cloneDeep(ctx), which would
-      // clone the Compound_Selectors it points to as well so that sources wouldn't be shared. Until we know
-      // it's a problem, let's not take the memory hit.
-      pNewSelector->clearSources();
       
-
 
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
       DEBUG_PRINTLN(EXTEND_COMPOUND, "SOURCES SETTING ON NEW SEQ: " << complexSelectorToNode(pNewSelector, ctx))

@@ -446,6 +446,29 @@ namespace Sass {
     if (tail()) cpy->tail(tail()->clone(ctx));
     return cpy;
   }
+  
+  Complex_Selector* Complex_Selector::cloneFully(Context& ctx) const
+  {
+    Complex_Selector* cpy = new (ctx.mem) Complex_Selector(*this);
+
+		if (head()) {
+    	cpy->head(head()->clone(ctx));
+    }
+
+    if (tail()) {
+      cpy->tail(tail()->cloneFully(ctx));
+    }
+
+    return cpy;
+  }
+  
+  Compound_Selector* Compound_Selector::clone(Context& ctx) const
+  {
+    Compound_Selector* cpy = new (ctx.mem) Compound_Selector(*this);
+    return cpy;
+  }
+  
+
 
   Selector_Placeholder* Selector::find_placeholder()
   {
