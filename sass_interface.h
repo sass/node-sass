@@ -13,13 +13,9 @@ extern "C" {
 #define SASS_STYLE_COMPACT    2
 #define SASS_STYLE_COMPRESSED 3
 
-#define SASS_SOURCE_COMMENTS_NONE 0
-#define SASS_SOURCE_COMMENTS_DEFAULT 1
-#define SASS_SOURCE_COMMENTS_MAP 2
-
 struct sass_options {
   int output_style;
-  int source_comments; // really want a bool, but C doesn't have them
+  bool source_comments;
   const char* include_paths;
   const char* image_path;
   int precision;
