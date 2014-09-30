@@ -47,6 +47,23 @@ describe('cli', function() {
     src.pipe(emitter.stdin);
   });
 
+  it('should write to disk when using --output', function(done) {
+    this.timeout(6000);
+    var src = fs.createReadStream(sampleScssPath);
+    var emitter = spawn(cliPath, ['--output', sampleCssOutputPath], {
+      stdio: [null, 'ignore', null]
+    });
+
+    emitter.on('close', function() {
+      fs.exists(sampleCssOutputPath, function(exists) {
+        assert(exists);
+        fs.unlink(sampleCssOutputPath, done);
+      });
+    });
+
+    src.pipe(emitter.stdin);
+  });
+
   it('should print help when run with no arguments', function(done) {
     var env = assign(process.env, { isTTY: true });
     exec('node ' + cliPath, {
