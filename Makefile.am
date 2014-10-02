@@ -1,4 +1,5 @@
 ACLOCAL_AMFLAGS = -I m4
+CXXFLAGS='-std=c++11 -Wall -fPIC -O2'
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = support/libsass.pc
@@ -78,4 +79,3 @@ test_issues: $(SASSC_BIN) libsass.la
 	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues
 
 endif
-
