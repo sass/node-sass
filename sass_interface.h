@@ -2,7 +2,7 @@
 
 #include "sass.h"
 #include <stdbool.h>
-#include "sass2scss/sass2scss.h"
+#include "sass2scss.h"
 
 #ifdef __cplusplus
 extern "C" {

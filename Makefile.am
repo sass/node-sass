@@ -1,5 +1,6 @@
+AM_INIT_AUTOMAKE
 ACLOCAL_AMFLAGS = -I m4
-CXXFLAGS='-std=c++11 -Wall -fPIC -O2'
+AM_CXXFLAGS='-std=c++11 -Wall -fPIC -O2'
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = support/libsass.pc
@@ -30,7 +31,7 @@ libsass_la_SOURCES = \
 	sass.cpp \
 	sass_interface.cpp \
 	sass_util.cpp \
-	sass2scss/sass2scss.cpp \
+	sass2scss.cpp \
 	source_map.cpp \
 	to_c.cpp \
 	to_string.cpp \

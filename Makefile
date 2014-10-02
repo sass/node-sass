@@ -50,7 +50,7 @@ SOURCES = \
 	sass.cpp \
 	sass_interface.cpp \
 	sass_util.cpp \
-	sass2scss/sass2scss.cpp \
+	sass2scss.cpp \
 	source_map.cpp \
 	to_c.cpp \
 	to_string.cpp \
@@ -115,4 +115,3 @@ clean:
 
 
 .PHONY: all debug debug-shared static shared bin install install-shared clean
-

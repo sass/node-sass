@@ -18,7 +18,7 @@
 #include "file.hpp"
 #include "context.hpp"
 #include "utf8_string.hpp"
-#include "sass2scss/sass2scss.h"
+#include "sass2scss.h"
 
 #ifdef _WIN32
 #include <windows.h>
