@@ -17,7 +17,12 @@
 #include <sys/stat.h>
 #include "file.hpp"
 #include "context.hpp"
+#include "utf8_string.hpp"
 #include "sass2scss/sass2scss.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace Sass {
   namespace File {
@@ -222,12 +227,25 @@ namespace Sass {
     char* read_file(string path)
     {
       struct stat st;
+
+#ifdef _WIN32
+      BYTE* pBuffer;
+      DWORD dwBytes;
+      // windows unicode filepaths are encoded in utf16
+      const wchar_t* wpath = UTF_8::convert_to_utf16(path).c_str();
+      HANDLE hFile = CreateFileW(wpath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+      if (hFile == INVALID_HANDLE_VALUE) return 0;
+      DWORD dwFileLength = GetFileSize(hFile, NULL);
+      if (dwFileLength == INVALID_FILE_SIZE) return 0;
+      pBuffer = new BYTE[dwFileLength + 1];
+      ReadFile(hFile, pBuffer, dwFileLength, &dwBytes, NULL);
+      pBuffer[dwFileLength] = '\0';
+      CloseHandle(hFile);
+      // just convert from unsigned char*
+      char* contents = (char*) pBuffer;
+#else
       if (stat(path.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
       ifstream file(path.c_str(), ios::in | ios::binary | ios::ate);
-      string extension;
-      if (path.length() > 5) {
-        extension = path.substr(path.length() - 5, 5);
-      }
       char* contents = 0;
       if (file.is_open()) {
         size_t size = file.tellg();
@@ -236,6 +254,11 @@ namespace Sass {
         file.read(contents, size);
         contents[size] = '\0';
         file.close();
+      }
+#endif
+      string extension;
+      if (path.length() > 5) {
+        extension = path.substr(path.length() - 5, 5);
       }
       for(size_t i=0; i<extension.size();++i)
         extension[i] = tolower(extension[i]);
