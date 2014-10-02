@@ -95,6 +95,13 @@ namespace Sass {
     extern Signature not_sig;
     extern Signature if_sig;
     extern Signature image_url_sig;
+    extern Signature map_get_sig;
+    extern Signature map_merge_sig;
+    extern Signature map_remove_sig;
+    extern Signature map_keys_sig;
+    extern Signature map_values_sig;
+    extern Signature map_has_key_sig;
+    extern Signature keywords_sig;
 
     BUILT_IN(rgb);
     BUILT_IN(rgba_4);
@@ -156,6 +163,13 @@ namespace Sass {
     BUILT_IN(sass_not);
     BUILT_IN(sass_if);
     BUILT_IN(image_url);
+    BUILT_IN(map_get);
+    BUILT_IN(map_merge);
+    BUILT_IN(map_remove);
+    BUILT_IN(map_keys);
+    BUILT_IN(map_values);
+    BUILT_IN(map_has_key);
+    BUILT_IN(keywords);
 
   }
 }

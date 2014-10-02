@@ -14,11 +14,13 @@
 #include <cmath>
 #include <cctype>
 #include <sstream>
+#include <string>
 #include <iomanip>
 #include <iostream>
 
 #define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, path, position, backtrace)
 #define ARGR(argname, argtype, lo, hi) get_arg_r(argname, env, sig, path, position, lo, hi, backtrace)
+#define ARGM(argname, argtype, ctx) get_arg_m(argname, env, sig, path, position, backtrace, ctx)
 
 namespace Sass {
   using std::stringstream;
@@ -71,6 +73,20 @@ namespace Sass {
         msg += T::type_name();
         error(msg, path, position, backtrace);
       }
+      return val;
+    }
+
+    Map* get_arg_m(const string& argname, Env& env, Signature sig, const string& path, Position position, Backtrace* backtrace, Context& ctx)
+    {
+      // Minimal error handling -- the expectation is that built-ins will be written correctly!
+      Map* val = dynamic_cast<Map*>(env[argname]);
+      if (val) return val;
+
+      List* lval = dynamic_cast<List*>(env[argname]);
+      if (lval && lval->length() == 0) return new (ctx.mem) Map(path, position, 1);
+
+      // fallback on get_arg for error handling
+      val = get_arg<Map>(argname, env, sig, path, position, backtrace);
       return val;
     }
 
@@ -919,6 +935,14 @@ namespace Sass {
     Signature length_sig = "length($list)";
     BUILT_IN(length)
     {
+      Expression* v = ARG("$list", Expression);
+      if (v->concrete_type() == Expression::MAP) {
+        Map* map = dynamic_cast<Map*>(env["$list"]);
+        return new (ctx.mem) Number(path,
+                                    position,
+                                    map ? map->length() : 1);
+      }
+
       List* list = dynamic_cast<List*>(env["$list"]);
       return new (ctx.mem) Number(path,
                                   position,
@@ -1054,6 +1078,99 @@ namespace Sass {
         Boolean* ith = dynamic_cast<Boolean*>(arglist->value_at_index(i));
         if (ith && ith->value() == false) continue;
         *result << arglist->value_at_index(i);
+      }
+      return result;
+    }
+
+    /////////////////
+    // MAP FUNCTIONS
+    /////////////////
+
+    Signature map_get_sig = "map-get($map, $key)";
+    BUILT_IN(map_get)
+    {
+      Map* m = ARGM("$map", Map, ctx);
+      Expression* v = ARG("$key", Expression);
+      if (!m || m->empty()) return new (ctx.mem) Null(path, position);
+      for (size_t i = 0, L = m->length(); i < L; ++i) {
+        if (eq((*m)[i]->key(), v, ctx)) return m->value_at_index(i);
+      }
+      return new (ctx.mem) Null(path, position);
+    }
+
+    Signature map_has_key_sig = "map-has-key($map, $key)";
+    BUILT_IN(map_has_key)
+    {
+      Map* m = ARGM("$map", Map, ctx);
+      Expression* v = ARG("$key", Expression);
+      if (!m || m->empty()) return new (ctx.mem) Boolean(path, position, false);
+      for (size_t i = 0, L = m->length(); i < L; ++i) {
+        if (eq((*m)[i]->key(), v, ctx)) return new (ctx.mem) Boolean(path, position, true);
+      }
+      return new (ctx.mem) Boolean(path, position, false);
+    }
+
+    Signature map_keys_sig = "map-keys($map)";
+    BUILT_IN(map_keys)
+    {
+      Map* m = ARGM("$map", Map, ctx);
+      List* result = new (ctx.mem) List(path, position, 1, List::COMMA);
+      if (!m || m->empty()) return result;
+      for (size_t i = 0, L = m->length(); i < L; ++i) {
+        *result << (*m)[i]->key();
+      }
+      return result;
+    }
+
+    Signature map_values_sig = "map-values($map)";
+    BUILT_IN(map_values)
+    {
+      Map* m = ARGM("$map", Map, ctx);
+      List* result = new (ctx.mem) List(path, position, 1, List::COMMA);
+      if (!m || m->empty()) return result;
+      for (size_t i = 0, L = m->length(); i < L; ++i) {
+        *result << (*m)[i]->value();
+      }
+      return result;
+    }
+
+    Signature map_merge_sig = "map-merge($map1, $map2)";
+    BUILT_IN(map_merge)
+    {
+      Map* m1 = ARGM("$map1", Map, ctx);
+      Map* m2 = ARGM("$map2", Map, ctx);
+
+      size_t len = m1->length() + m2->length();
+      Map* result = new (ctx.mem) Map(path, position, len);
+      *result += m1;
+      *result += m2;
+      return result;
+    }
+
+    Signature map_remove_sig = "map-remove($map, $key)";
+    BUILT_IN(map_remove)
+    {
+      Map* m = ARGM("$map", Map, ctx);
+      Expression* v = ARG("$key", Expression);
+      Map* result = new (ctx.mem) Map(path, position, 1);
+      for (size_t i = 0, L = m->length(); i < L; ++i) {
+        if (!eq((*m)[i]->key(), v, ctx)) *result << (*m)[i];
+      }
+      return result;
+    }
+
+    Signature keywords_sig = "keywords($args)";
+    BUILT_IN(keywords)
+    {
+      List* arglist = new (ctx.mem) List(*ARG("$args", List));
+      Map* result = new (ctx.mem) Map(path, position, 1);
+      for (size_t i = 0, L = arglist->length(); i < L; ++i) {
+        string name = string(((Argument*)(*arglist)[i])->name());
+        string sanitized_name = string(name, 1);
+        *result << new (ctx.mem) KeyValuePair(path,
+                                              position,
+                                              new (ctx.mem) String_Constant(path, position, sanitized_name),
+                                              ((Argument*)(*arglist)[i])->value());
       }
       return result;
     }

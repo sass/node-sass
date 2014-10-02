@@ -395,6 +395,14 @@ namespace Sass {
     register_function(ctx, append_sig, append, env);
     register_function(ctx, compact_sig, compact, env);
     register_function(ctx, zip_sig, zip, env);
+    // Map Functions
+    register_function(ctx, map_get_sig, map_get, env);
+    register_function(ctx, map_merge_sig, map_merge, env);
+    register_function(ctx, map_remove_sig, map_remove, env);
+    register_function(ctx, map_keys_sig, map_keys, env);
+    register_function(ctx, map_values_sig, map_values, env);
+    register_function(ctx, map_has_key_sig, map_has_key, env);
+    register_function(ctx, keywords_sig, keywords, env);
     // Introspection Functions
     register_function(ctx, type_of_sig, type_of, env);
     register_function(ctx, unit_sig, unit, env);
