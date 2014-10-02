@@ -438,16 +438,26 @@ namespace Sass {
                        position);
     }
 
-    Signature invert_sig = "invert($color)";
+    Signature invert_sig = "invert($value)";
     BUILT_IN(invert)
     {
-      Color* rgb_color = ARG("$color", Color);
-      return new (ctx.mem) Color(path,
-                                 position,
-                                 255 - rgb_color->r(),
-                                 255 - rgb_color->g(),
-                                 255 - rgb_color->b(),
-                                 rgb_color->a());
+      Expression* v = ARG("$value", Expression);
+      if (v->concrete_type() == Expression::NUMBER) {
+        To_String to_string;
+        String_Constant* str = new String_Constant(path,
+                                                   position,
+                                                   v->perform(&to_string));
+        return new (ctx.mem) String_Constant(path, position, "invert(" + str->value() + ")");
+      }
+      else {
+        Color* rgb_color = static_cast<Color*>(v);
+        return new (ctx.mem) Color(path,
+                                   position,
+                                   255 - rgb_color->r(),
+                                   255 - rgb_color->g(),
+                                   255 - rgb_color->b(),
+                                   rgb_color->a());
+      }
     }
 
     ////////////////////
