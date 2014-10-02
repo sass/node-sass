@@ -91,7 +91,7 @@ and by far the most mature and up to date codebase.
 
 Sass was originally created by the co-creator of this library,
 Hampton Catlin ([@hcatlin]). The extension and continuing evolution
-of the language has all been the result of years of work by Nathan
+of the language has all been the result of years of work by Natalie
 Weizenbaum ([@nex3]) and Chris Eppstein ([@chriseppstein]).
 
 For more information about Sass itself, please visit http://sass-lang.com
@@ -110,5 +110,8 @@ Our MIT license is designed to be as simple, and liberal as possible.
 [@akhleung]: https://github.com/akhleung
 [@chriseppstein]: https://github.com/chriseppstein
 [@nex3]: https://github.com/nex3
+
+Sass2CSS is was originally written by Marcel Greeter [@mgreeter]
+and allowed to be merged into the project.
 
 [sass_interface.h]: sass_interface.h

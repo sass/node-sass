@@ -369,6 +369,7 @@ namespace Sass {
       (*group) << comb;
     }
     while (lex< one_plus< sequence< spaces_and_comments, exactly<','> > > >());
+    while (lex< optional >());    // JMA - ignore optional flag if it follows the selector group
     return group;
   }
 
@@ -398,7 +399,8 @@ namespace Sass {
         peek< exactly<')'> >() ||
         peek< exactly<'{'> >() ||
         peek< exactly<'}'> >() ||
-        peek< exactly<';'> >()) {
+        peek< exactly<';'> >() ||
+        peek< optional >()) {
       // no selector after the combinator
       rhs = 0;
     }
@@ -587,6 +589,14 @@ namespace Sass {
     bool semicolon = false;
     Selector_Lookahead lookahead_result;
     Block* block = new (ctx.mem) Block(path, source_position);
+    
+    // JMA - ensure that a block containing only block_comments is parsed 
+    while (lex< block_comment >()) {
+      String*  contents = parse_interpolated_chunk(lexed);
+      Comment* comment  = new (ctx.mem) Comment(path, source_position, contents);
+      (*block) << comment;
+    }
+    
     while (!lex< exactly<'}'> >()) {
       if (semicolon) {
         if (!lex< exactly<';'> >()) {
@@ -744,6 +754,57 @@ namespace Sass {
     return new (ctx.mem) Declaration(path, prop->position(), prop, list/*, lex<important>()*/);
   }
 
+  Expression* Parser::parse_map()
+  {
+    if (peek< exactly<')'> >(position))
+    { return new (ctx.mem) List(path, source_position, 0); }
+
+    Expression* key = parse_list();
+
+    // if it's not a map treat it like a list
+    if (!(peek< exactly<':'> >(position)))
+    { return key; }
+
+    // consume the ':'
+    lex< exactly<':'> >();
+
+    Expression* value;
+    if (peek< exactly<'('> >(position))
+    {
+      value = parse_comma_list();
+    } else {
+      value = parse_space_list();
+    }
+
+    KeyValuePair* pair = new (ctx.mem) KeyValuePair(path, source_position, key, value);
+
+    Map* map = new (ctx.mem) Map(path, source_position, 1);
+    (*map) << pair;
+
+    while (lex< exactly<','> >())
+    {
+      Expression* key = parse_list();
+      // if it's not a map treat it like a list
+      if (!(peek< exactly<':'> >(position)))
+      { error("invalid syntax"); }
+
+      // consume the ':'
+      lex< exactly<':'> >();
+
+      Expression* value;
+      if (peek< exactly<'('> >(position))
+      {
+        value = parse_comma_list();
+      } else {
+        value = parse_space_list();
+      }
+
+      (*map) << new (ctx.mem) KeyValuePair(path, source_position, key, value);
+    }
+
+    return map;
+  }
+
   Expression* Parser::parse_list()
   {
     return parse_comma_list();
@@ -794,7 +855,7 @@ namespace Sass {
         peek< exactly<'{'> >(position) ||
         peek< exactly<')'> >(position) ||
         peek< exactly<','> >(position) ||
-        // peek< exactly<':'> >(position) ||
+        peek< exactly<':'> >(position) ||
         peek< exactly<ellipsis> >(position) ||
         peek< default_flag >(position) ||
         peek< global_flag >(position))
@@ -915,7 +976,7 @@ namespace Sass {
   Expression* Parser::parse_factor()
   {
     if (lex< exactly<'('> >()) {
-      Expression* value = parse_comma_list();
+      Expression* value = parse_map();
       if (!lex< exactly<')'> >()) error("unclosed parenthesis");
       value->is_delayed(false);
       // make sure wrapped lists and division expressions are non-delayed within parentheses
@@ -1365,7 +1426,7 @@ namespace Sass {
     bool inclusive = false;
     if (lex< through >()) inclusive = true;
     else if (lex< to >()) inclusive = false;
-    else                  error("expected 'through' or 'to' keywod in @for directive");
+    else                  error("expected 'through' or 'to' keyword in @for directive");
     Expression* upper_bound = parse_expression();
     upper_bound->is_delayed(false);
     if (!peek< exactly<'{'> >()) error("expected '{' after the upper bound in @for directive");
@@ -1599,7 +1660,8 @@ namespace Sass {
            (q = peek< sequence< exactly<'#'>, interpolant > >(p))  ||
            (q = peek< sequence< exactly<'-'>, interpolant > >(p))  ||
            (q = peek< sequence< pseudo_prefix, interpolant > >(p)) ||
-           (q = peek< interpolant >(p))) {
+           (q = peek< interpolant >(p))                            ||
+           (q = peek< optional >(p))) {
       p = q;
       if (*(p - 1) == '}') saw_interpolant = true;
       saw_stuff = true;

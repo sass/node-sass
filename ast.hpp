@@ -5,6 +5,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <deque>
 
 #ifdef __clang__
 
@@ -81,6 +82,7 @@ namespace Sass {
     size_t length() const   { return elements_.size(); }
     bool empty() const      { return elements_.empty(); }
     T& operator[](size_t i) { return elements_[i]; }
+    const T& operator[](size_t i) const { return elements_[i]; }
     Vectorized& operator<<(T element)
     {
       elements_.push_back(element);
@@ -93,6 +95,7 @@ namespace Sass {
       return *this;
     }
     vector<T>& elements() { return elements_; }
+    const vector<T>& elements() const { return elements_; }
     vector<T>& elements(vector<T>& e) { elements_ = e; return elements_; }
   };
   template <typename T>
@@ -203,10 +206,10 @@ namespace Sass {
   class List;
   class Media_Block : public Has_Block {
     ADD_PROPERTY(List*, media_queries);
-    ADD_PROPERTY(Selector*, enclosing_selector);
+    ADD_PROPERTY(Selector*, selector);
   public:
     Media_Block(string path, Position position, List* mqs, Block* b)
-    : Has_Block(path, position, b), media_queries_(mqs), enclosing_selector_(0)
+    : Has_Block(path, position, b), media_queries_(mqs), selector_(0)
     { }
     bool is_hoistable() { return true; }
     ATTACH_OPERATIONS();
@@ -511,6 +514,7 @@ namespace Sass {
       COLOR,
       STRING,
       LIST,
+      MAP,
       NULL_VAL,
       NUM_TYPES
     };
@@ -557,6 +561,37 @@ namespace Sass {
     Expression* value_at_index(size_t i);
     ATTACH_OPERATIONS();
   };
+
+  ///////////////////////////////////////////////////////////////////////
+  // Key value paris.
+  ///////////////////////////////////////////////////////////////////////
+  class KeyValuePair : public AST_Node {
+    ADD_PROPERTY(Expression*, key);
+    ADD_PROPERTY(Expression*, value);
+  public:
+    KeyValuePair(string p, Position pos,
+              Expression* key = 0, Expression* value = 0)
+    : AST_Node(p, pos), key_(key), value_(value)
+    {
+    }
+    ATTACH_OPERATIONS();
+  };
+
+  class Map : public Expression, public Vectorized<KeyValuePair*> {
+  public:
+    Map(string path, Position position,
+         size_t size = 0)
+    : Expression(path, position),
+      Vectorized<KeyValuePair*>(size)
+    { concrete_type(MAP); }
+    string type() { return "map"; }
+    static string type_name() { return "map"; }
+    bool is_invisible() { return !length(); }
+    Expression* value_at_index(size_t i);
+    ATTACH_OPERATIONS();
+  };
+
+
 
   //////////////////////////////////////////////////////////////////////////
   // Binary expressions. Represents logical, relational, and arithmetic
@@ -1007,6 +1042,12 @@ namespace Sass {
   //////////////////////////////////////////////////////////////////////////////////////////
   inline Expression* List::value_at_index(size_t i) { return is_arglist_ ? ((Argument*)(*this)[i])->value() : (*this)[i]; }
 
+
+  //////////////////////////////////////////////////////////////////////////////////////////
+  // Additional method on Maps to retrieve values directly.
+  //////////////////////////////////////////////////////////////////////////////////////////
+  inline Expression* Map::value_at_index(size_t i) { return (*this)[i]->value(); }
+
   ////////////////////////////////////////////////////////////////////////
   // Argument lists -- in their own class to facilitate context-sensitive
   // error checking (e.g., ensuring that all ordinal arguments precede all
@@ -1092,6 +1133,11 @@ namespace Sass {
     virtual ~Simple_Selector() = 0;
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
     virtual bool is_pseudo_element() { return false; }
+    
+    bool operator==(const Simple_Selector& rhs) const;
+    inline bool operator!=(const Simple_Selector& rhs) const { return !(*this == rhs); }
+    
+    bool operator<(const Simple_Selector& rhs) const;
   };
   inline Simple_Selector::~Simple_Selector() { }
 
@@ -1198,10 +1244,16 @@ namespace Sass {
     }
     virtual bool is_pseudo_element()
     {
-      return name() == ":before"       || name() == "::before"     ||
-             name() == ":after"        || name() == "::after"      ||
-             name() == ":first-line"   || name() == "::first-line" ||
-             name() == ":first-letter" || name() == "::first-letter";
+      if (name() == ":before"       || name() == "::before"     ||
+          name() == ":after"        || name() == "::after"      ||
+          name() == ":first-line"   || name() == "::first-line" ||
+          name() == ":first-letter" || name() == "::first-letter") {
+        return true;
+      }
+      else {
+      	// If it's not a known pseudo-element, check whether it looks like one. This is similar to the type method on the Pseudo class in ruby sass.
+        return name().find("::") == 0;
+      }
     }
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
     ATTACH_OPERATIONS();
@@ -1219,14 +1271,19 @@ namespace Sass {
     { }
     ATTACH_OPERATIONS();
   };
+  
+  struct Complex_Selector_Pointer_Compare {
+    bool operator() (const Complex_Selector* const pLeft, const Complex_Selector* const pRight) const;
+  };
 
   ////////////////////////////////////////////////////////////////////////////
   // Simple selector sequences. Maintains flags indicating whether it contains
   // any parent references or placeholders, to simplify expansion.
   ////////////////////////////////////////////////////////////////////////////
+  typedef set<Complex_Selector*, Complex_Selector_Pointer_Compare> SourcesSet;
   class Compound_Selector : public Selector, public Vectorized<Simple_Selector*> {
   private:
-    set<Complex_Selector> sources_;
+    SourcesSet sources_;
   protected:
     void adjust_after_pushing(Simple_Selector* s)
     {
@@ -1238,11 +1295,15 @@ namespace Sass {
     : Selector(path, position),
       Vectorized<Simple_Selector*>(s)
     { }
-    bool operator<(const Compound_Selector& rhs) const;
+
     Compound_Selector* unify_with(Compound_Selector* rhs, Context& ctx);
     virtual Selector_Placeholder* find_placeholder();
     Simple_Selector* base()
     {
+    	// Implement non-const in terms of const. Safe to const_cast since this method is non-const
+      return const_cast<Simple_Selector*>(static_cast<const Compound_Selector*>(this)->base());
+    }
+    const Simple_Selector* base() const {
       if (length() > 0 && typeid(*(*this)[0]) == typeid(Type_Selector))
         return (*this)[0];
       return 0;
@@ -1262,8 +1323,18 @@ namespace Sass {
              !static_cast<Selector_Reference*>((*this)[0])->selector();
     }
     vector<string> to_str_vec(); // sometimes need to convert to a flat "by-value" data structure
+    
+    bool operator<(const Compound_Selector& rhs) const;
+    
+    bool operator==(const Compound_Selector& rhs) const;
+    inline bool operator!=(const Compound_Selector& rhs) const { return !(*this == rhs); }
 
-    set<Complex_Selector>& sources() { return sources_; }
+    SourcesSet& sources() { return sources_; }
+    void clearSources() { sources_.clear(); }
+    void mergeSources(SourcesSet& sources, Context& ctx);
+    
+    Compound_Selector* clone(Context&) const; // does not clone the Simple_Selector*s
+
     Compound_Selector* minus(Compound_Selector* rhs, Context& ctx);
     ATTACH_OPERATIONS();
   };
@@ -1300,7 +1371,7 @@ namespace Sass {
     virtual Selector_Placeholder* find_placeholder();
     Combinator clear_innermost();
     void set_innermost(Complex_Selector*, Combinator);
-    virtual int specificity()
+    virtual int specificity() const
     {
       int sum = 0;
       if (head()) sum += head()->specificity();
@@ -1308,42 +1379,74 @@ namespace Sass {
       return sum;
     }
     bool operator<(const Complex_Selector& rhs) const;
-    set<Complex_Selector> sources()
+    bool operator==(const Complex_Selector& rhs) const;
+    inline bool operator!=(const Complex_Selector& rhs) const { return !(*this == rhs); }
+    SourcesSet sources()
     {
-      set<Complex_Selector> srcs;
-      Compound_Selector* h = head();
-      Complex_Selector*  t = tail();
-      if (!h && !t) return srcs;
-      if (!h && t)  return srcs = t->sources();
-      if (h && !t)  return srcs = h->sources();
-      if (h && t)
-      {
-        vector<Complex_Selector> vec;
-        set_union(h->sources().begin(), h->sources().end(),
-                  t->sources().begin(), t->sources().end(),
-                  vec.begin());
-        for (size_t i = 0, S = vec.size(); i < S; ++i) srcs.insert(vec[i]);
-        return srcs;
+      //s = Set.new
+      //seq.map {|sseq_or_op| s.merge sseq_or_op.sources if sseq_or_op.is_a?(SimpleSequence)}
+      //s
+
+      SourcesSet srcs;
+      
+      Compound_Selector* pHead = head();
+      Complex_Selector*  pTail = tail();
+      
+      if (pHead) {
+        SourcesSet& headSources = pHead->sources();
+        srcs.insert(headSources.begin(), headSources.end());
       }
-      // fallback
+      
+      if (pTail) {
+        SourcesSet tailSources = pTail->sources();
+        srcs.insert(tailSources.begin(), tailSources.end());
+      }
+
       return srcs;
     }
-    Complex_Selector* clone(Context&);
+    void addSources(SourcesSet& sources, Context& ctx) {
+      // members.map! {|m| m.is_a?(SimpleSequence) ? m.with_more_sources(sources) : m}
+      Complex_Selector* pIter = this;
+      while (pIter) {
+        Compound_Selector* pHead = pIter->head();
+        
+        if (pHead) {
+          pHead->mergeSources(sources, ctx);
+        }
+        
+        pIter = pIter->tail();
+      }
+    }
+    void clearSources() {
+      Complex_Selector* pIter = this;
+      while (pIter) {
+        Compound_Selector* pHead = pIter->head();
+        
+        if (pHead) {
+          pHead->clearSources();
+        }
+        
+        pIter = pIter->tail();
+      }
+    }
+    Complex_Selector* clone(Context&) const;      // does not clone Compound_Selector*s
+    Complex_Selector* cloneFully(Context&) const; // clones Compound_Selector*s
     vector<Compound_Selector*> to_vector();
     ATTACH_OPERATIONS();
   };
+  
+	typedef deque<Complex_Selector*> ComplexSelectorDeque;
 
   ///////////////////////////////////
   // Comma-separated selector groups.
   ///////////////////////////////////
   class Selector_List
       : public Selector, public Vectorized<Complex_Selector*> {
+#ifdef DEBUG
+    ADD_PROPERTY(string, mCachedSelector);
+#endif
   protected:
-    void adjust_after_pushing(Complex_Selector* c)
-    {
-      if (c->has_reference())   has_reference(true);
-      if (c->has_placeholder()) has_placeholder(true);
-    }
+    void adjust_after_pushing(Complex_Selector* c);
   public:
     Selector_List(string path, Position position, size_t s = 0)
     : Selector(path, position), Vectorized<Complex_Selector*>(s)
@@ -1359,7 +1462,28 @@ namespace Sass {
     // vector<Complex_Selector*> members() { return elements_; }
     ATTACH_OPERATIONS();
   };
+  
+  
+  template<typename SelectorType>
+  bool selectors_equal(const SelectorType& one, const SelectorType& two, bool simpleSelectorOrderDependent) {
+  	// Test for equality among selectors while differentiating between checks that demand the underlying Simple_Selector
+    // ordering to be the same or not. This works because operator< (which doesn't make a whole lot of sense for selectors, but
+    // is required for proper stl collection ordering) is implemented using string comparision. This gives stable sorting
+    // behavior, and can be used to determine if the selectors would have exactly idential output. operator== matches the
+    // ruby sass implementations for eql, which sometimes perform order independent comparisions (like set comparisons of the
+    // members of a SimpleSequence (Compound_Selector)).
+    //
+    // Due to the reliance on operator== and operater< behavior, this templated method is currently only intended for
+    // use with Compound_Selector and Complex_Selector objects.
+  	if (simpleSelectorOrderDependent) {
+    	return !(one < two) && !(two < one);
+    } else {
+    	return one == two;
+    }
+  }
+
 }
+
 
 #ifdef __clang__
 

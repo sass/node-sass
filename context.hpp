@@ -103,7 +103,6 @@ namespace Sass {
     // void register_overload_stub(string name, Env* env);
 
   public:
-    multimap<Compound_Selector, Complex_Selector*> extensions;
     Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> > subset_map;
   };
 

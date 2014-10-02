@@ -36,6 +36,7 @@ namespace Sass {
     virtual T operator()(Mixin_Call* x)             = 0;
     // expressions
     virtual T operator()(List* x)                   = 0;
+    virtual T operator()(Map* x)                    = 0;
     virtual T operator()(Binary_Expression* x)      = 0;
     virtual T operator()(Unary_Expression* x)       = 0;
     virtual T operator()(Function_Call* x)          = 0;
@@ -100,6 +101,7 @@ namespace Sass {
     virtual T operator()(Mixin_Call* x)             { return static_cast<D*>(this)->fallback(x); }
     // expressions
     virtual T operator()(List* x)                   { return static_cast<D*>(this)->fallback(x); }
+    virtual T operator()(Map* x)                    { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Binary_Expression* x)      { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Unary_Expression* x)       { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Function_Call* x)          { return static_cast<D*>(this)->fallback(x); }

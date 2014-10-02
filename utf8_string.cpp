@@ -2,95 +2,47 @@
 #define SASS_UTF8_STRING
 
 #include <string>
+#include <vector>
 #include <cstdlib>
 #include <cmath>
+
+#include "utf8.h"
 
 namespace Sass {
   namespace UTF_8 {
     using std::string;
-    // class utf8_string {
-    //   string s_;
-    // public:
-    //   utf8_string(const string &s): s_(s) {}
-    //   utf8_string(const char* c): s_(string(c)) {}
 
-    //   char operator[](size_t i);
-    //   size_t length();
-    //   size_t byte_to_char(size_t i);
-    // };
+    // naming conventions:
+    // offset: raw byte offset (0 based)
+    // position: code point offset (0 based)
+    // index: code point offset (1 based or negative)
 
     // function that will count the number of code points (utf-8 characters) from the given beginning to the given end
     size_t code_point_count(const string& str, size_t start, size_t end) {
-      size_t len = 0;
-      size_t i = start;
-
-      while (i < end) {
-        unsigned char c = static_cast<unsigned char>(str[i]);
-        if (c < 128) {
-          // it's a single-byte character
-          ++len;
-          ++i;
-        }
-        // it's a multi byte sequence and presumably it's a leading byte
-        else {
-          ++i; // go to the next byte
-          // see if it's still part of the sequence
-          while ((i < end) && ((static_cast<unsigned char>(str[i]) & 0xC0) == 0x80)) {
-            ++i;
-          }
-          // when it's not [aka a new leading byte], increment and move on
-          ++len;
-        }
-      }
-      return len;
+      return utf8::distance(str.begin() + start, str.begin() + end);
     }
 
     size_t code_point_count(const string& str) {
-      return code_point_count(str, 0, str.length());
+      return utf8::distance(str.begin(), str.end());
     }
 
-    // function that will return the byte offset of a code point in a
-    size_t code_point_offset_to_byte_offset(const string& str, size_t offset) {
-      size_t i = 0;
-      size_t len = 0;
-
-      while (len < offset) {
-        unsigned char c = static_cast<unsigned char>(str[i]);
-        if (c < 128) {
-          // it's a single-byte character
-          ++len;
-          ++i;
-        }
-        // it's a multi byte sequence and presumably it's a leading byte
-        else {
-          ++i; // go to the next byte
-          // see if it's still part of the sequence
-          while ((i < str.length()) && ((static_cast<unsigned char>(str[i]) & 0xC0) == 0x80)) {
-            ++i;
-          }
-          // when it's not [aka a new leading byte], increment and move on
-          ++len;
-        }
-      }
-      return i;
+    // function that will return the byte offset at a code point position
+    size_t offset_at_position(const string& str, size_t position) {
+      string::const_iterator it = str.begin();
+      utf8::advance(it, position, str.end());
+      return distance(str.begin(), it);
     }
 
-    // function that returns number of bytes in a character in a string
-    size_t length_of_code_point_at(const string& str, size_t pos) {
-      unsigned char c = static_cast<unsigned char>(str[pos]);
-      size_t i = 0;
-      if(c < 128) {
-        return 1;
-      } else {
-        ++i; // go to the next byte
-        ++pos;
-        // see if it's still part of the sequence
-        while ((i < str.length()) && ((static_cast<unsigned char>(str[pos]) & 0xC0) == 0x80)) {
-          ++i;
-          ++pos;
-        }
-      }
-      return i;
+    // function that returns number of bytes in a character at offset
+    size_t code_point_size_at_offset(const string& str, size_t offset) {
+      // get iterator from string and forward by offset
+      string::const_iterator stop = str.begin() + offset;
+      // check if beyond boundary
+      if (stop == str.end()) return 0;
+      // advance by one code point
+      utf8::advance(stop, 1, str.end());
+      // calculate offset for code point
+      return  stop - str.begin() - offset;
     }
 
     // function that will return a normalized index, given a crazy one
@@ -101,7 +53,7 @@ namespace Sass {
       if (index > 0 && index <= signed_len) {
         // positive and within string length
         return index-1;
-      } 
+      }
       else if (index > signed_len) {
         // positive and past string length
         return len;
@@ -117,6 +69,31 @@ namespace Sass {
         // negative and past string length
         return 0;
       }
+    }
+
+    // utf16 functions
+    using std::wstring;
+
+    // convert from utf16/wide string to utf8 string
+    string convert_from_utf16(const wstring& utf16)
+    {
+      string utf8;
+      // pre-allocate expected memory
+      utf8.reserve(sizeof(utf16)/2);
+      utf8::utf16to8(utf16.begin(), utf16.end(),
+                     back_inserter(utf8));
+      return utf8;
+    }
+
+    // convert from utf8 string to utf16/wide string
+    wstring convert_to_utf16(const string& utf8)
+    {
+      wstring utf16;
+      // pre-allocate expected memory
+      utf16.reserve(code_point_count(utf8)*2);
+      utf8::utf8to16(utf8.begin(), utf8.end(),
+                     back_inserter(utf16));
+      return utf16;
     }
 
   }

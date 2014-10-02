@@ -22,6 +22,7 @@
 #include "eval.hpp"
 #include "contextualize.hpp"
 #include "extend.hpp"
+#include "remove_placeholders.hpp"
 #include "copy_c_str.hpp"
 #include "color_names.hpp"
 #include "functions.hpp"
@@ -51,7 +52,7 @@ namespace Sass {
     style_sheets         (map<string, Block*>()),
     source_map           (resolve_relative_path(initializers.output_path(), initializers.source_map_file(), get_cwd())),
     c_functions          (vector<Sass_C_Function_Descriptor>()),
-    image_path           (make_canonical_path(initializers.image_path())),
+    image_path           (initializers.image_path()),
     output_path          (make_canonical_path(initializers.output_path())),
     source_comments      (initializers.source_comments()),
     source_maps          (initializers.source_maps()),
@@ -61,7 +62,6 @@ namespace Sass {
     names_to_colors      (map<string, Color*>()),
     colors_to_names      (map<int, string>()),
     precision            (initializers.precision()),
-    extensions           (multimap<Compound_Selector, Complex_Selector*>()),
     subset_map           (Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >())
   {
     cwd = get_cwd();
@@ -228,10 +228,14 @@ namespace Sass {
     // Output_Nested output_nested(*this);
 
     root = root->perform(&expand)->block();
-    if (!extensions.empty()) {
-      Extend extend(*this, extensions, subset_map, &backtrace);
+    if (!subset_map.empty()) {
+      Extend extend(*this, subset_map);
       root->perform(&extend);
     }
+
+    Remove_Placeholders remove_placeholders(*this);
+    root->perform(&remove_placeholders);
+
     char* result = 0;
     switch (output_style) {
       case COMPRESSED: {
@@ -395,6 +399,14 @@ namespace Sass {
     register_function(ctx, append_sig, append, env);
     register_function(ctx, compact_sig, compact, env);
     register_function(ctx, zip_sig, zip, env);
+    // Map Functions
+    register_function(ctx, map_get_sig, map_get, env);
+    register_function(ctx, map_merge_sig, map_merge, env);
+    register_function(ctx, map_remove_sig, map_remove, env);
+    register_function(ctx, map_keys_sig, map_keys, env);
+    register_function(ctx, map_values_sig, map_values, env);
+    register_function(ctx, map_has_key_sig, map_has_key, env);
+    register_function(ctx, keywords_sig, keywords, env);
     // Introspection Functions
     register_function(ctx, type_of_sig, type_of, env);
     register_function(ctx, unit_sig, unit, env);

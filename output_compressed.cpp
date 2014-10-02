@@ -3,6 +3,7 @@
 #include "ast.hpp"
 #include "context.hpp"
 #include "to_string.hpp"
+#include "util.hpp"
 
 namespace Sass {
   using namespace std;
@@ -37,23 +38,16 @@ namespace Sass {
     Selector* s     = r->selector();
     Block*    b     = r->block();
 
-    // In case the extend visitor isn't called (if there are no @extend
-    // directives in the entire document), check for placeholders here and
-    // make sure they aren't output.
-    // TODO: investigate why I decided to duplicate this logic in the extend visitor
-    Selector_List* sl = static_cast<Selector_List*>(s);
-    if (ctx->extensions.empty()) {
-      Selector_List* new_sl = new (ctx->mem) Selector_List(sl->path(), sl->position());
-      for (size_t i = 0, L = sl->length(); i < L; ++i) {
-        if (!(*sl)[i]->has_placeholder()) {
-          *new_sl << (*sl)[i];
+    // Filter out rulesets that aren't printable (process its children though)
+    if (!Util::isPrintable(r)) {
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (dynamic_cast<Has_Block*>(stm)) {
+          stm->perform(this);
         }
       }
-      s = new_sl;
-      sl = new_sl;
-      r->selector(new_sl);
+      return;
     }
-    if (sl->length() == 0) return;
 
     if (b->has_non_hoistable()) {
       s->perform(this);
@@ -82,34 +76,51 @@ namespace Sass {
     List*  q     = m->media_queries();
     Block* b     = m->block();
 
+    // Filter out media blocks that aren't printable (process its children though)
+    if (!Util::isPrintable(m)) {
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (dynamic_cast<Has_Block*>(stm)) {
+          stm->perform(this);
+        }
+      }
+      return;
+    }
+    
     ctx->source_map.add_mapping(m);
     append_singleline_part_to_buffer("@media ");
     q->perform(this);
     append_singleline_part_to_buffer("{");
 
-    Selector* e = m->enclosing_selector();
-    bool hoisted = false;
+    Selector* e = m->selector();
     if (e && b->has_non_hoistable()) {
-      hoisted = true;
+      // JMA - hoisted, output the non-hoistable in a nested block, followed by the hoistable
       e->perform(this);
       append_singleline_part_to_buffer("{");
-    }
 
-    for (size_t i = 0, L = b->length(); i < L; ++i) {
-      Statement* stm = (*b)[i];
-      if (!stm->is_hoistable()) {
-        stm->perform(this);
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (!stm->is_hoistable()) {
+          stm->perform(this);
+        }
+      }
+      
+      append_singleline_part_to_buffer("}");
+      
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (stm->is_hoistable()) {
+          stm->perform(this);
+        }
       }
     }
-
-    if (hoisted) {
-      append_singleline_part_to_buffer("}");
-    }
-
-    for (size_t i = 0, L = b->length(); i < L; ++i) {
-      Statement* stm = (*b)[i];
-      if (stm->is_hoistable()) {
-        stm->perform(this);
+    else {
+      // JMA - not hoisted, just output in order
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (!stm->is_hoistable()) {
+          stm->perform(this);
+        }
       }
     }
 

@@ -29,6 +29,7 @@ namespace Sass {
   // expressions
   class Expression;
   class List;
+  class Map;
   class Binary_Expression;
   class Unary_Expression;
   class Function_Call;

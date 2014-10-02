@@ -95,7 +95,7 @@ namespace Sass {
                                                 m->position(),
                                                 static_cast<List*>(media_queries),
                                                 m->block()->perform(this)->block());
-    mm->enclosing_selector(selector_stack.back());
+    mm->selector(selector_stack.back());
     return mm;
   }
 
@@ -271,7 +271,6 @@ namespace Sass {
     // { target_vec.push_back((*s)[i]->perform(&to_string)); }
 
     for (size_t i = 0, L = extender->length(); i < L; ++i) {
-      ctx.extensions.insert(make_pair(*s, (*extender)[i]));
       // let's test this out
       // cerr << "REGISTERING EXTENSION REQUEST: " << (*extender)[i]->perform(&to_string) << " <- " << s->perform(&to_string) << endl;
       ctx.subset_map.put(s->to_str_vec(), make_pair((*extender)[i], s));

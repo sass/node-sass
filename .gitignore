@@ -4,6 +4,9 @@
 .sass-cache
 *.gem
 .svn/*
+.cproject
+.project
+.settings/
 
 # Configuration stuff
 

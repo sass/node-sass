@@ -1,4 +1,6 @@
+AM_INIT_AUTOMAKE
 ACLOCAL_AMFLAGS = -I m4
+AM_CXXFLAGS='-std=c++11 -Wall -fPIC -O2'
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = support/libsass.pc
@@ -20,13 +22,16 @@ libsass_la_SOURCES = \
 	file.cpp \
 	functions.cpp \
 	inspect.cpp \
+	node.cpp \
 	output_compressed.cpp \
 	output_nested.cpp \
 	parser.cpp \
 	prelexer.cpp \
+	remove_placeholders.cpp \
 	sass.cpp \
 	sass_interface.cpp \
-	sass2scss/sass2scss.cpp \
+	sass_util.cpp \
+	sass2scss.cpp \
 	source_map.cpp \
 	to_c.cpp \
 	to_string.cpp \
@@ -75,4 +80,3 @@ test_issues: $(SASSC_BIN) libsass.la
 	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues
 
 endif
-

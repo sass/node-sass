@@ -203,6 +203,7 @@ namespace Sass {
     Attribute_Selector* parse_attribute_selector();
     Block* parse_block();
     Declaration* parse_declaration();
+    Expression* parse_map();
     Expression* parse_list();
     Expression* parse_comma_list();
     Expression* parse_space_list();
