@@ -5,6 +5,7 @@ compiler:
   - clang
 
 env:
+  - AUTOTOOLS=yes
   - AUTOTOOLS=no
 
 script: ./script/cibuild
