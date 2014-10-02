@@ -16,6 +16,7 @@ namespace Sass {
   class Number;
   class String_Constant;
   class List;
+  class Map;
   class Null;
 
   class To_C : public Operation_CRTP<Sass_Value, To_C> {
@@ -33,6 +34,7 @@ namespace Sass {
     Sass_Value operator()(Color*);
     Sass_Value operator()(String_Constant*);
     Sass_Value operator()(List*);
+    Sass_Value operator()(Map*);
     Sass_Value operator()(Null*);
     Sass_Value operator()(Arguments*);
     Sass_Value operator()(Argument*);

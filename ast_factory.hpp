@@ -34,6 +34,7 @@ namespace Sass {
     Mixin_Call* new_Mixin_Call(string p, size_t l, string n, Arguments* args, Block* b = 0);
     // expressions
     List* new_List(string p, size_t l, size_t size = 0, List::Separator sep = List::space, bool argl = false);
+    Map* new_Map(string p, size_t l, size_t size = 0);
     Binary_Expression<AND>* new_And(string p, size_t l, Expression* lhs, Expression* rhs);
     Binary_Expression<OR>* new_Or(string p, size_t l, Expression* lhs, Expression* rhs);
     Binary_Expression<EQ>* new_Eq(string p, size_t l, Expression* lhs, Expression* rhs);

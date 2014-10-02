@@ -514,6 +514,7 @@ namespace Sass {
       COLOR,
       STRING,
       LIST,
+      MAP,
       NULL_VAL,
       NUM_TYPES
     };
@@ -560,6 +561,37 @@ namespace Sass {
     Expression* value_at_index(size_t i);
     ATTACH_OPERATIONS();
   };
+
+  ///////////////////////////////////////////////////////////////////////
+  // Key value paris.
+  ///////////////////////////////////////////////////////////////////////
+  class KeyValuePair : public AST_Node {
+    ADD_PROPERTY(Expression*, key);
+    ADD_PROPERTY(Expression*, value);
+  public:
+    KeyValuePair(string p, Position pos,
+              Expression* key = 0, Expression* value = 0)
+    : AST_Node(p, pos), key_(key), value_(value)
+    {
+    }
+    ATTACH_OPERATIONS();
+  };
+
+  class Map : public Expression, public Vectorized<KeyValuePair*> {
+  public:
+    Map(string path, Position position,
+         size_t size = 0)
+    : Expression(path, position),
+      Vectorized<KeyValuePair*>(size)
+    { concrete_type(MAP); }
+    string type() { return "map"; }
+    static string type_name() { return "map"; }
+    bool is_invisible() { return !length(); }
+    Expression* value_at_index(size_t i);
+    ATTACH_OPERATIONS();
+  };
+
+
 
   //////////////////////////////////////////////////////////////////////////
   // Binary expressions. Represents logical, relational, and arithmetic
@@ -1009,6 +1041,12 @@ namespace Sass {
   // Additional method on Lists to retrieve values directly or from an encompassed Argument.
   //////////////////////////////////////////////////////////////////////////////////////////
   inline Expression* List::value_at_index(size_t i) { return is_arglist_ ? ((Argument*)(*this)[i])->value() : (*this)[i]; }
+
+
+  //////////////////////////////////////////////////////////////////////////////////////////
+  // Additional method on Maps to retrieve values directly.
+  //////////////////////////////////////////////////////////////////////////////////////////
+  inline Expression* Map::value_at_index(size_t i) { return (*this)[i]->value(); }
 
   ////////////////////////////////////////////////////////////////////////
   // Argument lists -- in their own class to facilitate context-sensitive
