@@ -111,7 +111,7 @@ Our MIT license is designed to be as simple, and liberal as possible.
 [@chriseppstein]: https://github.com/chriseppstein
 [@nex3]: https://github.com/nex3
 
-Sass2CSS is was originally written by Marcel Greeter [@mgreeter]
-and allowed to be merged into the project.
+sass2scss was originally written by Marcel Greter [@mgreter]
+and he happily agreed to have it merged into the project.
 
 [sass_interface.h]: sass_interface.h
