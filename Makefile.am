@@ -1,6 +1,5 @@
-AM_INIT_AUTOMAKE
 ACLOCAL_AMFLAGS = -I m4
-AM_CXXFLAGS='-std=c++11 -Wall -fPIC -O2'
+AM_CXXFLAGS = -std=c++11 -Wall -fPIC -O2
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = support/libsass.pc
