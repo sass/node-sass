@@ -42,8 +42,8 @@ Since libsass is a pure library, tests are run through the [SassSpec](https://gi
 
 To run tests against libsass while developing, you can run `./script/spec`. This will clone SassC and Sass-Spec under the project folder and then run the Sass-Spec test suite. You may want to update the clones to ensure you have the latest version.
 
-Usage
------
+Library Usage
+-------------
 
 While libsass is primarily implemented in C++, it provides a simple
 C interface that is defined in [sass_interface.h]. Its usage is pretty
@@ -83,6 +83,12 @@ Again, please see the [sass_interface.h] for more information.
 
 And, to get even more information, then please see the implementations
 in SassC and SassC-Ruby.
+
+Implementations
+---------------
+
+For a full list of implementations, checkout our
+[implementations wiki page](https://github.com/sass/libsass/wiki/Implementations)
 
 About Sass
 ----------
