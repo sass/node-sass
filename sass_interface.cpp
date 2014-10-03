@@ -137,7 +137,7 @@ extern "C" {
     }
     catch (Error& e) {
       stringstream msg_stream;
-      msg_stream << e.path << ":" << e.position.line << ": error: " << e.message << endl;
+      msg_stream << e.path << ":" << e.position.line << ": " << e.message << endl;
       c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
@@ -151,7 +151,31 @@ extern "C" {
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
     }
-    // TO DO: CATCH EVERYTHING ELSE
+    catch (std::exception& e) {
+      stringstream msg_stream;
+      msg_stream << "Error: " << e.what() << endl;
+      c_ctx->error_message = strdup(msg_stream.str().c_str());
+      c_ctx->error_status = 1;
+      c_ctx->output_string = 0;
+      c_ctx->source_map_string = 0;
+    }
+    catch (string& e) {
+      stringstream msg_stream;
+      msg_stream << "Error: " << e << endl;
+      c_ctx->error_message = strdup(msg_stream.str().c_str());
+      c_ctx->error_status = 1;
+      c_ctx->output_string = 0;
+      c_ctx->source_map_string = 0;
+    }
+    catch (...) {
+      // couldn't find the specified file in the include paths; report an error
+      stringstream msg_stream;
+      msg_stream << "Unknown error occurred" << endl;
+      c_ctx->error_message = strdup(msg_stream.str().c_str());
+      c_ctx->error_status = 1;
+      c_ctx->output_string = 0;
+      c_ctx->source_map_string = 0;
+    }
     return 0;
   }
 
@@ -206,7 +230,7 @@ extern "C" {
     }
     catch (Error& e) {
       stringstream msg_stream;
-      msg_stream << e.path << ":" << e.position.line << ": error: " << e.message << endl;
+      msg_stream << e.path << ":" << e.position.line << ": " << e.message << endl;
       c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
@@ -220,16 +244,31 @@ extern "C" {
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
     }
-    catch(string& bad_path) {
-      // couldn't find the specified file in the include paths; report an error
+    catch (std::exception& e) {
       stringstream msg_stream;
-      msg_stream << "error reading file \"" << bad_path << "\"" << endl;
+      msg_stream << "Error: " << e.what() << endl;
       c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
     }
-    // TO DO: CATCH EVERYTHING ELSE
+    catch (string& e) {
+      stringstream msg_stream;
+      msg_stream << "Error: " << e << endl;
+      c_ctx->error_message = strdup(msg_stream.str().c_str());
+      c_ctx->error_status = 1;
+      c_ctx->output_string = 0;
+      c_ctx->source_map_string = 0;
+    }
+    catch (...) {
+      // couldn't find the specified file in the include paths; report an error
+      stringstream msg_stream;
+      msg_stream << "Unknown error occurred" << endl;
+      c_ctx->error_message = strdup(msg_stream.str().c_str());
+      c_ctx->error_status = 1;
+      c_ctx->output_string = 0;
+      c_ctx->source_map_string = 0;
+    }
     return 0;
   }
 

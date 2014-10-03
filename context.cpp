@@ -75,7 +75,7 @@ namespace Sass {
     if (!entry_point.empty()) {
       string result(add_file(entry_point));
       if (result.empty()) {
-        throw entry_point;
+        throw "File to read not found or unreadable: " + entry_point;
       }
     }
   }
@@ -281,7 +281,7 @@ namespace Sass {
   {
     if (!source_c_str) return 0;
     queue.clear();
-    queue.push_back(make_pair("source string", source_c_str));
+    queue.push_back(make_pair("stdin", source_c_str));
     // mimic google closure compiler
     source_map.files.push_back("stdin");
     return compile_file();
