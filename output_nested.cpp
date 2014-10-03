@@ -49,8 +49,9 @@ namespace Sass {
     Block*    b     = r->block();
     bool      decls = false;
 
-    Selector_List* sl = static_cast<Selector_List*>(s);
-    
+    // disabled to avoid clang warning [-Wunused-function]
+    // Selector_List* sl = static_cast<Selector_List*>(s);
+
     // Filter out rulesets that aren't printable (process its children though)
     if (!Util::isPrintable(r)) {
       for (size_t i = 0, L = b->length(); i < L; ++i) {

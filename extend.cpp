@@ -1302,6 +1302,8 @@ namespace Sass {
   	return pathsResult;
 
   }
+	/*
+	// disabled to avoid clang warning [-Wunused-function]
 	static Node subweaveNaive(const Node& one, const Node& two, Context& ctx) {
 		Node out = Node::createCollection();
 
@@ -1327,6 +1329,7 @@ namespace Sass {
     
     return out;
   }
+  */
 
 
   /*

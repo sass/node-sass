@@ -721,7 +721,7 @@ namespace Sass {
     Signature str_length_sig = "str-length($string)";
     BUILT_IN(str_length)
     {
-      size_t len;
+      size_t len = string::npos;
       try {
         String_Constant* s = ARG("$string", String_Constant);
         string str = s->value();
@@ -748,6 +748,7 @@ namespace Sass {
         string msg("utf8::invalid_utf8");
         error(msg, path, position, backtrace);
       }
+      // return something even if we had an error (-1)
       return new (ctx.mem) Number(path, position, len);
     }
 
@@ -810,7 +811,7 @@ namespace Sass {
     Signature str_index_sig = "str-index($string, $substring)";
     BUILT_IN(str_index)
     {
-      size_t index;
+      size_t index = string::npos;
       try {
         String_Constant* s = ARG("$string", String_Constant);
         String_Constant* t = ARG("$substring", String_Constant);
@@ -837,7 +838,7 @@ namespace Sass {
         string msg("utf8::invalid_utf8");
         error(msg, path, position, backtrace);
       }
-      // return something even even we had an error
+      // return something even if we had an error (-1)
       return new (ctx.mem) Number(path, position, index);
     }
 
