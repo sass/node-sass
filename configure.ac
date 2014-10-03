@@ -69,5 +69,12 @@ fi
 
 AM_CONDITIONAL(ENABLE_TESTS, test "x$enable_tests" = "xyes")
 
+AC_ARG_ENABLE([coverage],
+  [AS_HELP_STRING([--enable-coverage],
+    [create coverage report for the test suite])],
+    [],
+    [enable_coverage=no])
+AM_CONDITIONAL([COND_COVERAGE],[test '!' "$enable_coverage" = no])
+
 AC_CONFIG_FILES([Makefile support/libsass.pc])
 AC_OUTPUT
