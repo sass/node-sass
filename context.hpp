@@ -84,7 +84,10 @@ namespace Sass {
     void setup_color_map();
     string add_file(string);
     string add_file(string, string);
-    char* compile_string();
+    // allow to optionally overwrite the input path
+    // default argument for input_path is string("stdin")
+    // usefull to influence the source-map generating etc.
+    char* compile_string(const string& input_path = "stdin");
     char* compile_file();
     char* generate_source_map();
 

@@ -277,13 +277,15 @@ namespace Sass {
     return result;
   }
 
-  char* Context::compile_string()
+  // allow to optionally overwrite the input path
+  // default argument for input_path is string("stdin")
+  // usefull to influence the source-map generating etc.
+  char* Context::compile_string(const string& input_path)
   {
     if (!source_c_str) return 0;
     queue.clear();
-    queue.push_back(make_pair("stdin", source_c_str));
-    // mimic google closure compiler
-    source_map.files.push_back("stdin");
+    queue.push_back(make_pair(input_path, source_c_str));
+    source_map.files.push_back(input_path);
     return compile_file();
   }
 
