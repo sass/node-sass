@@ -32,6 +32,8 @@ If this project is missing an API or command line flag that has been added to [l
 
 Some users have reported issues installing on Ubuntu due to `node` being registered to another package. [Follow the official NodeJS docs](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager) to install NodeJS so that `#!/usr/bin/env node` correctly resolved.
 
+Compiling versions 0.9.4 and above on Windows machines requires [Visual Studio 2013 WD](http://www.visualstudio.com/downloads/download-visual-studio-vs#d-express-windows-desktop). If you have multiple VS versions, use ```npm install``` with the ```--msvs_version=2013``` flag.
+
 ## Usage
 
 ```javascript
