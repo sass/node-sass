@@ -1,6 +1,10 @@
 ACLOCAL_AMFLAGS = -I m4
 AM_CXXFLAGS = -std=c++11 -Wall -fPIC -O2
 
+if COND_COVERAGE
+   AM_CXXFLAGS += --coverage --no-inline
+endif
+
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = support/libsass.pc
 

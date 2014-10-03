@@ -3,6 +3,7 @@
 .DS_Store
 .sass-cache
 *.gem
+*.gcno
 .svn/*
 .cproject
 .project
