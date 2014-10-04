@@ -33,7 +33,6 @@ SOURCES = \
 	context.cpp \
 	contextualize.cpp \
 	copy_c_str.cpp \
-	emscripten_wrapper.cpp \
 	error_handling.cpp \
 	eval.cpp \
 	expand.cpp \
@@ -75,9 +74,6 @@ debug-shared: shared
 static: libsass.a
 shared: libsass.so
 
-js: static
-	emcc -O2 libsass.a -o libsass.js -s EXPORTED_FUNCTIONS="['_sass_compile_emscripten']" -s DISABLE_EXCEPTION_CATCHING=0
-
 libsass.a: $(OBJECTS)
 	$(AR) rvs $@ $(OBJECTS)
 
@@ -111,7 +107,7 @@ test_issues: $(SASSC_BIN) libsass.a
 	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues
 
 clean:
-	rm -f $(OBJECTS) *.a *.so libsass.js
+	rm -f $(OBJECTS) *.a *.so
 
 
 .PHONY: all debug debug-shared static shared bin install install-shared clean

@@ -17,7 +17,6 @@ libsass_la_SOURCES = \
 	context.cpp \
 	contextualize.cpp \
 	copy_c_str.cpp \
-	emscripten_wrapper.cpp \
 	error_handling.cpp \
 	eval.cpp \
 	expand.cpp \
