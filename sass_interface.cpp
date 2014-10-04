@@ -89,7 +89,7 @@ extern "C" {
     try {
       bool source_maps = false;
       string source_map_file = "";
-      if (c_ctx->source_map_file && (c_ctx->options.source_comments == SASS_SOURCE_COMMENTS_MAP)) {
+      if (c_ctx->source_map_file && c_ctx->options.source_comments) {
         source_maps = true;
         source_map_file = c_ctx->source_map_file;
       }
@@ -108,10 +108,10 @@ extern "C" {
         Context::Data().source_c_str(c_ctx->source_string)
                        .output_path(output_path)
                        .output_style((Output_Style) c_ctx->options.output_style)
-                       .source_comments(c_ctx->options.source_comments == SASS_SOURCE_COMMENTS_DEFAULT)
+                       .source_comments(!c_ctx->options.source_comments)
                        .source_maps(source_maps)
                        .source_map_file(source_map_file)
-                       .omit_source_map_url(c_ctx->omit_source_map_url)
+                       .omit_source_map_url(c_ctx->options.omit_source_map_url)
                        .image_path(c_ctx->options.image_path ?
                                    c_ctx->options.image_path :
                                    "")
@@ -186,7 +186,7 @@ extern "C" {
     try {
       bool source_maps = false;
       string source_map_file = "";
-      if (c_ctx->source_map_file && (c_ctx->options.source_comments == SASS_SOURCE_COMMENTS_MAP)) {
+      if (c_ctx->source_map_file && c_ctx->options.source_comments) {
         source_maps = true;
         source_map_file = c_ctx->source_map_file;
       }
@@ -203,10 +203,10 @@ extern "C" {
         Context::Data().entry_point(input_path)
                        .output_path(output_path)
                        .output_style((Output_Style) c_ctx->options.output_style)
-                       .source_comments(c_ctx->options.source_comments == SASS_SOURCE_COMMENTS_DEFAULT)
+                       .source_comments(!c_ctx->options.source_comments)
                        .source_maps(source_maps)
                        .source_map_file(source_map_file)
-                       .omit_source_map_url(c_ctx->omit_source_map_url)
+                       .omit_source_map_url(c_ctx->options.omit_source_map_url)
                        .image_path(c_ctx->options.image_path ?
                                    c_ctx->options.image_path :
                                    "")

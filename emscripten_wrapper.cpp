@@ -6,7 +6,7 @@
 char *sass_compile_emscripten(
   char *source_string,
   int output_style,
-  int source_comments,
+  bool source_comments,
   char *include_paths,
   char **error_message
 ) {

@@ -13,16 +13,13 @@ extern "C" {
 #define SASS_STYLE_COMPACT    2
 #define SASS_STYLE_COMPRESSED 3
 
-#define SASS_SOURCE_COMMENTS_NONE 0
-#define SASS_SOURCE_COMMENTS_DEFAULT 1
-#define SASS_SOURCE_COMMENTS_MAP 2
-
 struct sass_options {
   int output_style;
-  int source_comments; // really want a bool, but C doesn't have them
+  bool source_comments;
   const char* include_paths;
   const char* image_path;
   int precision;
+  bool omit_source_map_url;
 };
 
 struct sass_context {
@@ -32,7 +29,6 @@ struct sass_context {
   char* output_string;
   char* source_map_string;
   const char* source_map_file;
-  bool omit_source_map_url;
   struct sass_options options;
   int error_status;
   char* error_message;
@@ -47,7 +43,6 @@ struct sass_file_context {
   char* output_string;
   char* source_map_string;
   const char* source_map_file;
-  bool omit_source_map_url;
   struct sass_options options;
   int error_status;
   char* error_message;
