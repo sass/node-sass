@@ -783,6 +783,10 @@ namespace Sass {
 
     while (lex< exactly<','> >())
     {
+      // allow trailing commas - #495
+      if (peek< exactly<')'> >(position))
+      { break; }
+
       Expression* key = parse_list();
       // if it's not a map treat it like a list
       if (!(peek< exactly<':'> >(position)))
