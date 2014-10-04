@@ -32,10 +32,10 @@ var SASS_OUTPUT_STYLE = {
 };
 
 var SASS_SOURCE_COMMENTS = {
-  none: 0,
-  normal: 1,
-  'default': 1,
-  map: 2
+  none: false,
+  normal: true,
+  default: false,
+  map: true
 };
 
 var prepareOptions = function (options) {
@@ -81,7 +81,7 @@ var prepareOptions = function (options) {
     paths: (options.include_paths || options.includePaths || []).join(path.delimiter),
     imagePath: options.image_path || options.imagePath || '',
     style: SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0,
-    comments: SASS_SOURCE_COMMENTS[sourceComments] || 0,
+    comments: SASS_SOURCE_COMMENTS[sourceComments] || false,
     omitSourceMapUrl: options.omitSourceMapUrl,
     stats: stats,
     sourceMap: sourceMap,

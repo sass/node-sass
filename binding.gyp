@@ -19,19 +19,22 @@
         'libsass/file.cpp',
         'libsass/functions.cpp',
         'libsass/inspect.cpp',
+        'libsass/node.cpp',
         'libsass/output_compressed.cpp',
         'libsass/output_nested.cpp',
         'libsass/parser.cpp',
         'libsass/prelexer.cpp',
+        'libsass/remove_placeholders.cpp',
         'libsass/sass.cpp',
+        'libsass/sass2scss.cpp',
         'libsass/sass_interface.cpp',
+        'libsass/sass_util.cpp',
         'libsass/source_map.cpp',
         'libsass/to_c.cpp',
         'libsass/to_string.cpp',
         'libsass/units.cpp',
         'libsass/utf8_string.cpp',
-        'libsass/util.cpp',
-        'libsass/sass2scss/sass2scss.cpp'
+        'libsass/util.cpp'
       ],
       'include_dirs': [
         '<!(node -e "require(\'nan\')")'
@@ -42,6 +45,8 @@
       'conditions': [
         ['OS=="mac"', {
           'xcode_settings': {
+            'OTHER_CPLUSPLUSFLAGS' : [ '-std=c++11', '-stdlib=libc++' ],
+            'OTHER_LDFLAGS': [ '-stdlib=libc++' ],
             'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
             'GCC_ENABLE_CPP_RTTI': 'YES',
             'MACOSX_DEPLOYMENT_TARGET': '10.7'
@@ -62,6 +67,11 @@
             # decorated name length exceeded
             4503
           ]
+        }],
+        [ 'OS!="win"', {
+           'cflags+': [ '-std=c++11' ],
+           'cflags_c+': [ '-std=c++11' ],
+           'cflags_cc+': [ '-std=c++11' ],
         }]
       ]
     }
