@@ -13,6 +13,8 @@ extern "C" {
 #define SASS_STYLE_COMPACT    2
 #define SASS_STYLE_COMPRESSED 3
 
+// Please ensure there are no null values.
+// Thar be dragons.
 struct sass_options {
   int output_style;
   bool source_comments;
