@@ -16,10 +16,14 @@ extern "C" {
 // Please ensure there are no null values.
 // Thar be dragons.
 struct sass_options {
+  // A value defined above in SASS_STYLE_* constants
   int output_style;
+  // If you want inline source comments
   bool source_comments;
+  // colon-separated list of paths (semicolon-separated if you're on Windows)
   const char* include_paths;
   const char* image_path;
+  // Positive integer
   int precision;
   bool omit_source_map_url;
 };
