@@ -1,6 +1,6 @@
 CXX      ?= g++
-CXXFLAGS = -std=c++11 -Wall -fPIC -O2
-LDFLAGS  = -fPIC
+CXXFLAGS = -std=c++11 -Wall -fPIC -O2 $(EXTRA_CFLAGS)
+LDFLAGS  = -fPIC $(EXTRA_LDFLAGS)
 
 ifneq (,$(findstring /cygdrive/,$(PATH)))
 	UNAME := Cygwin

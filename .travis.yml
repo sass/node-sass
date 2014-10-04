@@ -12,13 +12,25 @@ script: ./script/cibuild
 
 before_install:
   - sudo pip install cpp-coveralls
+  # enable to debug coverage
+  - sudo pip install gcovr
+  - sudo apt-get install libjson-perl
+  - sudo apt-get install libjson-xs-perl
+  - sudo apt-get install libfile-slurp-perl
 
 install:
-  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-  - sudo apt-get update -qq
-  - if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.8; fi
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+  # gcc >= 4.7 is needed for -std=c++11
+  - ./script/install-compiler
   - gem install minitest
 
 after_success:
-  - coveralls --exclude sass-spec --exclude sassc --gcov-options '\-lp'
+  # exclude some directories from profiling (.libs is from autotools)
+  - export EXCLUDE_COVERAGE="--exclude sassc --exclude sass-spec --exclude .libs"
+  # debug via gcovr
+  - gcovr -r .
+  # debug via coveralls (dump result for futher analyzing)
+  - coveralls $EXCLUDE_COVERAGE --gcov-options '\-lp' --dump coveralls.json
+  # analyze the resulting json
+  - ./script/coveralls-debug
+  # generate and submit report to coveralls.io
+  - coveralls $EXCLUDE_COVERAGE --gcov-options '\-lp'

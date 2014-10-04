@@ -3,7 +3,9 @@ Libsass
 
 by Aaron Leung ([@akhleung]) and Hampton Catlin ([@hcatlin])
 
-[![Build Status](https://travis-ci.org/sass/libsass.png?branch=master)](https://travis-ci.org/sass/libsass) [![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=283068)](https://www.bountysource.com/trackers/283068-libsass?utm_source=283068&utm_medium=shield&utm_campaign=TRACKER_BADGE)
+[![Build Status](https://travis-ci.org/sass/libsass.png?branch=master)](https://travis-ci.org/sass/libsass)
+[![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=283068)](https://www.bountysource.com/trackers/283068-libsass?utm_source=283068&utm_medium=shield&utm_campaign=TRACKER_BADGE)
+[![Coverage Status](https://img.shields.io/coveralls/sass/libsass.svg)](https://coveralls.io/r/sass/libsass?branch=feature%2Ftest-travis-ci-3)
 
 https://github.com/sass/libsass
 
