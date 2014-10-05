@@ -1606,7 +1606,7 @@ namespace Sass {
                                    substring_match> >(p))          ||
            (q = peek< sequence< exactly<'.'>, interpolant > >(p))  ||
            (q = peek< sequence< exactly<'#'>, interpolant > >(p))  ||
-           (q = peek< sequence< exactly<'-'>, interpolant > >(p))  ||
+           (q = peek< sequence< one_plus< exactly<'-'> >, interpolant > >(p))  ||
            (q = peek< sequence< pseudo_prefix, interpolant > >(p)) ||
            (q = peek< interpolant >(p))) {
       saw_stuff = true;
@@ -1662,7 +1662,7 @@ namespace Sass {
                                    substring_match> >(p))          ||
            (q = peek< sequence< exactly<'.'>, interpolant > >(p))  ||
            (q = peek< sequence< exactly<'#'>, interpolant > >(p))  ||
-           (q = peek< sequence< exactly<'-'>, interpolant > >(p))  ||
+           (q = peek< sequence< one_plus< exactly<'-'> >, interpolant > >(p))  ||
            (q = peek< sequence< pseudo_prefix, interpolant > >(p)) ||
            (q = peek< interpolant >(p))                            ||
            (q = peek< optional >(p))) {
