@@ -45,7 +45,8 @@ extern "C" {
                                                c_ctx->output_style)
 
                          .source_comments     (c_ctx->source_comments)
-                         .source_maps         (c_ctx->source_maps)
+                         .source_map_file     (c_ctx->source_map_file)
+                         .omit_source_map_url (c_ctx->omit_source_map_url)
 
                          .image_path          (c_ctx->image_path ?
                                                c_ctx->image_path :

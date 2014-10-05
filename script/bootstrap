@@ -6,5 +6,5 @@ if [ ! -d "sass-spec" ]; then
   git clone https://github.com/sass/sass-spec.git
 fi
 if [ ! -d "sassc" ]; then
-  git clone -b feature/extra-env-variables https://github.com/mgreter/sassc.git
+  git clone https://github.com/sass/sassc.git
 fi
