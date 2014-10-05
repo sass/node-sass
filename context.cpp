@@ -55,7 +55,6 @@ namespace Sass {
     image_path           (initializers.image_path()),
     output_path          (make_canonical_path(initializers.output_path())),
     source_comments      (initializers.source_comments()),
-    source_maps          (initializers.source_maps()),
     output_style         (initializers.output_style()),
     source_map_file      (make_canonical_path(initializers.source_map_file())),
     omit_source_map_url  (initializers.omit_source_map_url()),
@@ -270,7 +269,7 @@ namespace Sass {
 
   char* Context::generate_source_map()
   {
-    if (!source_maps) return 0;
+    if (source_map_file == "") return 0;
     char* result = 0;
     string map = source_map.generate_source_map();
     result = copy_c_str(map.c_str());

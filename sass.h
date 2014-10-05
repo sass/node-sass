@@ -23,7 +23,8 @@ struct Sass_Context {
 
   int          output_style;
   bool         source_comments;
-  int          source_maps;
+  const char*  source_map_file;
+  bool         omit_source_map_url;
   const char*  image_path;
   const char*  output_path;
   const char*  include_paths_string;

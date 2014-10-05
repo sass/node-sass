@@ -83,17 +83,16 @@ extern "C" {
     *n = num;
   }
 
+  // helper for safe access to c_ctx
+  const char* safe_str (const char* str) {
+    return str == NULL ? "" : str;
+  }
+
   int sass_compile(sass_context* c_ctx)
   {
     using namespace Sass;
     try {
-      bool source_maps = false;
-      string source_map_file = "";
-      if (c_ctx->source_map_file && c_ctx->options.source_comments) {
-        source_maps = true;
-        source_map_file = c_ctx->source_map_file;
-      }
-      string input_path = c_ctx->input_path ? c_ctx->input_path : "";
+      string input_path = safe_str(c_ctx->input_path);
       int lastindex = input_path.find_last_of(".");
       string output_path;
       if (!c_ctx->output_path) {
@@ -108,13 +107,10 @@ extern "C" {
         Context::Data().source_c_str(c_ctx->source_string)
                        .output_path(output_path)
                        .output_style((Output_Style) c_ctx->options.output_style)
-                       .source_comments(!c_ctx->options.source_comments)
-                       .source_maps(source_maps)
-                       .source_map_file(source_map_file)
+                       .source_comments(c_ctx->options.source_comments)
+                       .source_map_file(safe_str(c_ctx->options.source_map_file))
                        .omit_source_map_url(c_ctx->options.omit_source_map_url)
-                       .image_path(c_ctx->options.image_path ?
-                                   c_ctx->options.image_path :
-                                   "")
+                       .image_path(safe_str(c_ctx->options.image_path))
                        .include_paths_c_str(c_ctx->options.include_paths)
                        .include_paths_array(0)
                        .include_paths(vector<string>())
@@ -184,13 +180,7 @@ extern "C" {
   {
     using namespace Sass;
     try {
-      bool source_maps = false;
-      string source_map_file = "";
-      if (c_ctx->source_map_file && c_ctx->options.source_comments) {
-        source_maps = true;
-        source_map_file = c_ctx->source_map_file;
-      }
-      string input_path = c_ctx->input_path ? c_ctx->input_path : "";
+      string input_path = safe_str(c_ctx->input_path);
       int lastindex = input_path.find_last_of(".");
       string output_path;
       if (!c_ctx->output_path) {
@@ -203,13 +193,10 @@ extern "C" {
         Context::Data().entry_point(input_path)
                        .output_path(output_path)
                        .output_style((Output_Style) c_ctx->options.output_style)
-                       .source_comments(!c_ctx->options.source_comments)
-                       .source_maps(source_maps)
-                       .source_map_file(source_map_file)
+                       .source_comments(c_ctx->options.source_comments)
+                       .source_map_file(safe_str(c_ctx->options.source_map_file))
                        .omit_source_map_url(c_ctx->options.omit_source_map_url)
-                       .image_path(c_ctx->options.image_path ?
-                                   c_ctx->options.image_path :
-                                   "")
+                       .image_path(safe_str(c_ctx->options.image_path))
                        .include_paths_c_str(c_ctx->options.include_paths)
                        .include_paths_array(0)
                        .include_paths(vector<string>())

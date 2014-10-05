@@ -50,11 +50,10 @@ namespace Sass {
 
     string       image_path; // for the image-url Sass function
     string       output_path; // for relative paths to the output
-    bool         source_comments;
-    bool         source_maps;
-    Output_Style output_style;
-    string       source_map_file;
-    bool         omit_source_map_url;
+    bool         source_comments; // for inline debug comments in css output
+    Output_Style output_style; // output style for the generated css code
+    string       source_map_file; // path to source map file (enables feature)
+    bool         omit_source_map_url; // disable source map comment in css output
 
     map<string, Color*> names_to_colors;
     map<int, string>    colors_to_names;
@@ -70,7 +69,6 @@ namespace Sass {
       KWD_ARG(Data, const char**,    include_paths_array);
       KWD_ARG(Data, vector<string>,  include_paths);
       KWD_ARG(Data, bool,            source_comments);
-      KWD_ARG(Data, bool,            source_maps);
       KWD_ARG(Data, Output_Style,    output_style);
       KWD_ARG(Data, string,          source_map_file);
       KWD_ARG(Data, bool,            omit_source_map_url);
