@@ -745,6 +745,9 @@ namespace Sass {
     else if (lex< sequence< optional< exactly<'*'> >, identifier > >()) {
       prop = new (ctx.mem) String_Constant(path, source_position, lexed);
     }
+    else if (lex< custom_property_name >()) {
+      prop = new (ctx.mem) String_Constant(path, source_position, lexed);
+    }
     else {
       error("invalid property name");
     }

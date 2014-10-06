@@ -166,6 +166,11 @@ namespace Sass {
                                                 backslash_something > > >(src);
     }
 
+    // Match CSS css variables.
+    const char* custom_property_name(const char* src) {
+      return sequence< exactly<'-'>, exactly<'-'>, identifier >(src);
+    }
+
     // Match interpolant schemas
     const char* identifier_schema(const char* src) {
       // follows this pattern: (x*ix*)+ ... well, not quite
