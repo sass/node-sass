@@ -1151,6 +1151,19 @@ namespace Sass {
       return result;
     }
 
+    Signature list_separator_sig = "list_separator($list)";
+    BUILT_IN(list_separator)
+    {
+      List* l = dynamic_cast<List*>(env["$list"]);
+      if (!l) {
+        l = new (ctx.mem) List(path, position, 1);
+        *l << ARG("$list", Expression);
+      }
+      return new (ctx.mem) String_Constant(path,
+                                           position,
+                                           l->separator() == List::COMMA ? "comma" : "space");
+    }
+
     /////////////////
     // MAP FUNCTIONS
     /////////////////
