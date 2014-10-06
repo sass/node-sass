@@ -400,6 +400,7 @@ namespace Sass {
     register_function(ctx, append_sig, append, env);
     register_function(ctx, compact_sig, compact, env);
     register_function(ctx, zip_sig, zip, env);
+    register_function(ctx, list_separator_sig, list_separator, env);
     // Map Functions
     register_function(ctx, map_get_sig, map_get, env);
     register_function(ctx, map_merge_sig, map_merge, env);
