@@ -1348,6 +1348,23 @@ namespace Sass {
       }
     }
 
+    Signature call_sig = "call($name, $args...)";
+    BUILT_IN(call)
+    {
+      string name = unquote(ARG("$name", String_Constant)->value());
+      List* arglist = new (ctx.mem) List(*ARG("$args", List));
+
+      Arguments* args = new (ctx.mem) Arguments(path, position);
+      for (size_t i = 0, L = arglist->length(); i < L; ++i) {
+        Argument* arg = new (ctx.mem) Argument(path, position, arglist->value_at_index(i));
+        *args << arg;
+      }
+      Function_Call* func = new (ctx.mem) Function_Call(path, position, name, args);
+      Eval eval(ctx, &d_env, backtrace);
+      return func->perform(&eval);
+
+    }
+
     ////////////////////
     // BOOLEAN FUNCTIONS
     ////////////////////

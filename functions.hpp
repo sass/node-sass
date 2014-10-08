@@ -93,6 +93,7 @@ namespace Sass {
     extern Signature global_variable_exists_sig;
     extern Signature function_exists_sig;
     extern Signature mixin_exists_sig;
+    extern Signature call_sig;
     extern Signature not_sig;
     extern Signature if_sig;
     extern Signature image_url_sig;
@@ -162,6 +163,7 @@ namespace Sass {
     BUILT_IN(global_variable_exists);
     BUILT_IN(function_exists);
     BUILT_IN(mixin_exists);
+    BUILT_IN(call);
     BUILT_IN(sass_not);
     BUILT_IN(sass_if);
     BUILT_IN(image_url);
