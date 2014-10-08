@@ -31,7 +31,7 @@ char* CreateString(Local<Value> value) {
 }
 
 void ExtractOptions(Local<Value> optionsValue, void* cptr, sass_context_wrapper* ctx_w, bool isFile) {
-  int source_comments;
+  bool source_comments;
   Local<Object> options = optionsValue->ToObject();
 
   if (ctx_w) {
@@ -56,12 +56,10 @@ void ExtractOptions(Local<Value> optionsValue, void* cptr, sass_context_wrapper*
     ctx->output_path = CreateString(options->Get(NanNew("outFile")));
     ctx->options.image_path = CreateString(options->Get(NanNew("imagePath")));
     ctx->options.output_style = options->Get(NanNew("style"))->Int32Value();
-    ctx->options.source_comments = source_comments = options->Get(NanNew("comments"))->Int32Value();
-    ctx->omit_source_map_url = options->Get(NanNew("omitSourceMapUrl"))->BooleanValue();
+    ctx->options.source_comments = source_comments = options->Get(NanNew("comments"))->BooleanValue();
+    ctx->options.omit_source_map_url = options->Get(NanNew("omitSourceMapUrl"))->BooleanValue();
+    ctx->options.source_map_file = CreateString(options->Get(NanNew("sourceMap")));
     ctx->options.include_paths = CreateString(options->Get(NanNew("paths")));
-    if (source_comments == SASS_SOURCE_COMMENTS_MAP) {
-      ctx->source_map_file = CreateString(options->Get(NanNew("sourceMap")));
-    }
     ctx->options.precision = options->Get(NanNew("precision"))->Int32Value();
   } else {
     sass_context* ctx = (sass_context*) cptr;
@@ -69,8 +67,9 @@ void ExtractOptions(Local<Value> optionsValue, void* cptr, sass_context_wrapper*
     ctx->output_path = CreateString(options->Get(NanNew("outFile")));
     ctx->options.image_path = CreateString(options->Get(NanNew("imagePath")));
     ctx->options.output_style = options->Get(NanNew("style"))->Int32Value();
-    ctx->options.source_comments = source_comments = options->Get(NanNew("comments"))->Int32Value();
-    ctx->omit_source_map_url = options->Get(NanNew("omitSourceMapUrl"))->BooleanValue();
+    ctx->options.source_comments = source_comments = options->Get(NanNew("comments"))->BooleanValue();
+    ctx->options.omit_source_map_url = options->Get(NanNew("omitSourceMapUrl"))->BooleanValue();
+    ctx->options.source_map_file = CreateString(options->Get(NanNew("sourceMap")));
     ctx->options.include_paths = CreateString(options->Get(NanNew("paths")));
     ctx->options.precision = options->Get(NanNew("precision"))->Int32Value();
   }
@@ -96,7 +95,7 @@ void FillStatsObj(Handle<Object> stats, sass_file_context* ctx) {
   if (ctx->error_status) {
       return;
   }
-  if (ctx->options.source_comments == SASS_SOURCE_COMMENTS_MAP) {
+  if (ctx->source_map_string) {
     source_map = NanNew<String>(ctx->source_map_string);
   } else {
     source_map = NanNull();
