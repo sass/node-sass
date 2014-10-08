@@ -107,6 +107,7 @@ extern "C" {
         Context::Data().source_c_str(c_ctx->source_string)
                        .output_path(output_path)
                        .output_style((Output_Style) c_ctx->options.output_style)
+                       .is_indented_syntax_src(c_ctx->options.is_indented_syntax_src)
                        .source_comments(c_ctx->options.source_comments)
                        .source_map_file(safe_str(c_ctx->options.source_map_file))
                        .omit_source_map_url(c_ctx->options.omit_source_map_url)
