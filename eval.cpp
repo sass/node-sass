@@ -417,6 +417,7 @@ namespace Sass {
     else error("unbound variable " + v->name(), v->path(), v->position());
     // cerr << "name: " << v->name() << "; type: " << typeid(*value).name() << "; value: " << value->perform(&to_string) << endl;
     if (typeid(*value) == typeid(Argument)) value = static_cast<Argument*>(value)->value();
+
     // cerr << "\ttype is now: " << typeid(*value).name() << endl << endl;
     return value;
   }
@@ -518,6 +519,7 @@ namespace Sass {
       Color* c = new (ctx.mem) Color(*ctx.names_to_colors[s->value()]);
       c->path(s->path());
       c->position(s->position());
+      c->disp(s->value());
       return c;
     }
     return s;

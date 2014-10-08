@@ -340,11 +340,6 @@ namespace Sass {
     double b = round(cap_channel<0xff>(c->b()));
     double a = cap_channel<1>   (c->a());
 
-    // if (a >= 1 && ctx.colors_to_names.count(numval)) {
-    //   ss << ctx.colors_to_names[numval];
-    // }
-    // else
-
     // retain the originally specified color definition if unchanged
     if (!c->disp().empty()) {
       ss << c->disp();
