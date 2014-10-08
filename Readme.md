@@ -3,7 +3,9 @@ Libsass
 
 by Aaron Leung ([@akhleung]) and Hampton Catlin ([@hcatlin])
 
-[![Build Status](https://travis-ci.org/sass/libsass.png?branch=master)](https://travis-ci.org/sass/libsass) [![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=283068)](https://www.bountysource.com/trackers/283068-libsass?utm_source=283068&utm_medium=shield&utm_campaign=TRACKER_BADGE)
+[![Build Status](https://travis-ci.org/sass/libsass.png?branch=master)](https://travis-ci.org/sass/libsass)
+[![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=283068)](https://www.bountysource.com/trackers/283068-libsass?utm_source=283068&utm_medium=shield&utm_campaign=TRACKER_BADGE)
+[![Coverage Status](https://img.shields.io/coveralls/sass/libsass.svg)](https://coveralls.io/r/sass/libsass?branch=feature%2Ftest-travis-ci-3)
 
 https://github.com/sass/libsass
 
@@ -11,6 +13,8 @@ Libsass is just a library, but if you want to RUN libsass,
 then go to https://github.com/sass/sassc or
 https://github.com/sass/ruby-libsass or
 [find your local implementer](https://github.com/sass/libsass/wiki/Implementations).
+
+LibSass requires GCC 4.7+ or Clang/LLVM. If your OS is older, this version may not compile.
 
 About
 -----
@@ -40,8 +44,8 @@ Since libsass is a pure library, tests are run through the [SassSpec](https://gi
 
 To run tests against libsass while developing, you can run `./script/spec`. This will clone SassC and Sass-Spec under the project folder and then run the Sass-Spec test suite. You may want to update the clones to ensure you have the latest version.
 
-Usage
------
+Library Usage
+-------------
 
 While libsass is primarily implemented in C++, it provides a simple
 C interface that is defined in [sass_interface.h]. Its usage is pretty
@@ -82,6 +86,12 @@ Again, please see the [sass_interface.h] for more information.
 And, to get even more information, then please see the implementations
 in SassC and SassC-Ruby.
 
+Implementations
+---------------
+
+For a full list of implementations, checkout our
+[implementations wiki page](https://github.com/sass/libsass/wiki/Implementations)
+
 About Sass
 ----------
 
@@ -111,7 +121,7 @@ Our MIT license is designed to be as simple, and liberal as possible.
 [@chriseppstein]: https://github.com/chriseppstein
 [@nex3]: https://github.com/nex3
 
-Sass2CSS is was originally written by Marcel Greeter [@mgreeter]
-and allowed to be merged into the project.
+sass2scss was originally written by Marcel Greter [@mgreter]
+and he happily agreed to have it merged into the project.
 
 [sass_interface.h]: sass_interface.h

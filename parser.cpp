@@ -745,6 +745,9 @@ namespace Sass {
     else if (lex< sequence< optional< exactly<'*'> >, identifier > >()) {
       prop = new (ctx.mem) String_Constant(path, source_position, lexed);
     }
+    else if (lex< custom_property_name >()) {
+      prop = new (ctx.mem) String_Constant(path, source_position, lexed);
+    }
     else {
       error("invalid property name");
     }
@@ -783,6 +786,10 @@ namespace Sass {
 
     while (lex< exactly<','> >())
     {
+      // allow trailing commas - #495
+      if (peek< exactly<')'> >(position))
+      { break; }
+
       Expression* key = parse_list();
       // if it's not a map treat it like a list
       if (!(peek< exactly<':'> >(position)))
@@ -1602,7 +1609,7 @@ namespace Sass {
                                    substring_match> >(p))          ||
            (q = peek< sequence< exactly<'.'>, interpolant > >(p))  ||
            (q = peek< sequence< exactly<'#'>, interpolant > >(p))  ||
-           (q = peek< sequence< exactly<'-'>, interpolant > >(p))  ||
+           (q = peek< sequence< one_plus< exactly<'-'> >, interpolant > >(p))  ||
            (q = peek< sequence< pseudo_prefix, interpolant > >(p)) ||
            (q = peek< interpolant >(p))) {
       saw_stuff = true;
@@ -1658,7 +1665,7 @@ namespace Sass {
                                    substring_match> >(p))          ||
            (q = peek< sequence< exactly<'.'>, interpolant > >(p))  ||
            (q = peek< sequence< exactly<'#'>, interpolant > >(p))  ||
-           (q = peek< sequence< exactly<'-'>, interpolant > >(p))  ||
+           (q = peek< sequence< one_plus< exactly<'-'> >, interpolant > >(p))  ||
            (q = peek< sequence< pseudo_prefix, interpolant > >(p)) ||
            (q = peek< interpolant >(p))                            ||
            (q = peek< optional >(p))) {

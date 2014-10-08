@@ -5,8 +5,32 @@ compiler:
   - clang
 
 env:
+  - AUTOTOOLS=yes
   - AUTOTOOLS=no
 
 script: ./script/cibuild
 
-install: gem install minitest
+before_install:
+  - sudo pip install cpp-coveralls
+  # enable to debug coverage
+  - sudo pip install gcovr
+  - sudo apt-get install libjson-perl
+  - sudo apt-get install libjson-xs-perl
+  - sudo apt-get install libfile-slurp-perl
+
+install:
+  # gcc >= 4.7 is needed for -std=c++11
+  - ./script/install-compiler
+  - gem install minitest
+
+after_success:
+  # exclude some directories from profiling (.libs is from autotools)
+  - export EXCLUDE_COVERAGE="--exclude sassc --exclude sass-spec --exclude .libs"
+  # debug via gcovr
+  - gcovr -r .
+  # debug via coveralls (dump result for futher analyzing)
+  - coveralls $EXCLUDE_COVERAGE --gcov-options '\-lp' --dump coveralls.json
+  # analyze the resulting json
+  - ./script/coveralls-debug
+  # generate and submit report to coveralls.io
+  - coveralls $EXCLUDE_COVERAGE --gcov-options '\-lp'

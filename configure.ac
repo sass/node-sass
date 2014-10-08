@@ -69,5 +69,28 @@ fi
 
 AM_CONDITIONAL(ENABLE_TESTS, test "x$enable_tests" = "xyes")
 
+AC_ARG_ENABLE([coverage],
+  [AS_HELP_STRING([--enable-coverage],
+    [enable coverage report for test suite])],
+    [enable_cov=$enableval],
+    [enable_cov=no])
+
+if test "x$enable_cov" = "xyes"; then
+    if test "x$enable_static" != "xyes"; then
+        AC_MSG_ERROR([Static libraries are required for --enable-coverage])
+    fi
+
+    AC_CHECK_PROG(GCOV, gcov, gcov)
+
+    # Remove all optimization flags from C[XX]FLAGS
+    changequote({,})
+    CFLAGS=`echo "$CFLAGS" | $SED -e 's/-O[0-9]*//g'`
+    CXXFLAGS=`echo "$CXXFLAGS" | $SED -e 's/-O[0-9]*//g'`
+    changequote([,])
+
+    AC_SUBST(GCOV)
+fi
+
+AM_CONDITIONAL(ENABLE_COVERAGE, test "x$enable_cov" = "xyes")
 AC_CONFIG_FILES([Makefile support/libsass.pc])
 AC_OUTPUT

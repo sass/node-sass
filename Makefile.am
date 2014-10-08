@@ -1,6 +1,11 @@
-AM_INIT_AUTOMAKE
 ACLOCAL_AMFLAGS = -I m4
-AM_CXXFLAGS='-std=c++11 -Wall -fPIC -O2'
+AM_CXXFLAGS = -std=c++11 -Wall -fPIC
+
+if ENABLE_COVERAGE
+  AM_CXXFLAGS += -O0 --coverage
+else
+  AM_CXXFLAGS += -O2
+endif
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = support/libsass.pc
@@ -14,7 +19,6 @@ libsass_la_SOURCES = \
 	context.cpp \
 	contextualize.cpp \
 	copy_c_str.cpp \
-	emscripten_wrapper.cpp \
 	error_handling.cpp \
 	eval.cpp \
 	expand.cpp \
@@ -50,6 +54,10 @@ noinst_PROGRAMS = sass-tester
 sass_tester_SOURCES = $(SASS_SASSC_PATH)/sassc.c
 sass_tester_LDADD = libsass.la
 sass_tester_LDFLAGS = -no-install
+if ENABLE_COVERAGE
+sass_tester_LDFLAGS += -static
+nodist_EXTRA_sass_tester_SOURCES = non-existent-file-to-force-CXX-linking.cxx
+endif
 
 TESTS = \
 	$(SASS_SPEC_PATH)/spec/basic \

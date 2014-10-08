@@ -232,8 +232,8 @@ namespace Sass {
       BYTE* pBuffer;
       DWORD dwBytes;
       // windows unicode filepaths are encoded in utf16
-      const wchar_t* wpath = UTF_8::convert_to_utf16(path).c_str();
-      HANDLE hFile = CreateFileW(wpath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+      wstring wpath = UTF_8::convert_to_utf16(path);
+      HANDLE hFile = CreateFileW(wpath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
       if (hFile == INVALID_HANDLE_VALUE) return 0;
       DWORD dwFileLength = GetFileSize(hFile, NULL);
       if (dwFileLength == INVALID_FILE_SIZE) return 0;

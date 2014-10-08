@@ -55,7 +55,6 @@ namespace Sass {
     image_path           (initializers.image_path()),
     output_path          (make_canonical_path(initializers.output_path())),
     source_comments      (initializers.source_comments()),
-    source_maps          (initializers.source_maps()),
     output_style         (initializers.output_style()),
     source_map_file      (make_canonical_path(initializers.source_map_file())),
     omit_source_map_url  (initializers.omit_source_map_url()),
@@ -75,7 +74,7 @@ namespace Sass {
     if (!entry_point.empty()) {
       string result(add_file(entry_point));
       if (result.empty()) {
-        throw entry_point;
+        throw "File to read not found or unreadable: " + entry_point;
       }
     }
   }
@@ -270,20 +269,22 @@ namespace Sass {
 
   char* Context::generate_source_map()
   {
-    if (!source_maps) return 0;
+    if (source_map_file == "") return 0;
     char* result = 0;
     string map = source_map.generate_source_map();
     result = copy_c_str(map.c_str());
     return result;
   }
 
-  char* Context::compile_string()
+  // allow to optionally overwrite the input path
+  // default argument for input_path is string("stdin")
+  // usefull to influence the source-map generating etc.
+  char* Context::compile_string(const string& input_path)
   {
     if (!source_c_str) return 0;
     queue.clear();
-    queue.push_back(make_pair("source string", source_c_str));
-    // mimic google closure compiler
-    source_map.files.push_back("stdin");
+    queue.push_back(make_pair(input_path, source_c_str));
+    source_map.files.push_back(input_path);
     return compile_file();
   }
 
@@ -399,6 +400,7 @@ namespace Sass {
     register_function(ctx, append_sig, append, env);
     register_function(ctx, compact_sig, compact, env);
     register_function(ctx, zip_sig, zip, env);
+    register_function(ctx, list_separator_sig, list_separator, env);
     // Map Functions
     register_function(ctx, map_get_sig, map_get, env);
     register_function(ctx, map_merge_sig, map_merge, env);
@@ -416,6 +418,7 @@ namespace Sass {
     register_function(ctx, global_variable_exists_sig, global_variable_exists, env);
     register_function(ctx, function_exists_sig, function_exists, env);
     register_function(ctx, mixin_exists_sig, mixin_exists, env);
+    register_function(ctx, call_sig, call, env);
     // Boolean Functions
     register_function(ctx, not_sig, sass_not, env);
     register_function(ctx, if_sig, sass_if, env);

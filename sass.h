@@ -1,6 +1,7 @@
 #define SASS
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,8 +22,9 @@ struct Sass_Context {
   char*        error_message;
 
   int          output_style;
-  int          source_comments;
-  int          source_maps;
+  bool         source_comments;
+  const char*  source_map_file;
+  bool         omit_source_map_url;
   const char*  image_path;
   const char*  output_path;
   const char*  include_paths_string;
