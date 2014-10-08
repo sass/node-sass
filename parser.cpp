@@ -139,7 +139,7 @@ namespace Sass {
         else {
           string current_dir = File::dir_name(path);
           string resolved(ctx.add_file(current_dir, unquote(import_path)));
-          if (resolved.empty()) error("file to import not found or unreadable: " + import_path);
+          if (resolved.empty()) error("file to import not found or unreadable: " + import_path + "\nCurrent dir: " + current_dir);
           imp->files().push_back(resolved);
         }
       }
