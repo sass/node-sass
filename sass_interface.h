@@ -27,6 +27,8 @@ struct sass_options {
   const char* source_map_file;
   // Disable sourceMappingUrl in css output
   bool omit_source_map_url;
+  // Treat source_string as sass (as opposed to scss)
+  bool is_indented_syntax_src;
   // Colon-separated list of paths
   // Semicolon-separated on Windows
   const char* include_paths;

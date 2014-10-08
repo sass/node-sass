@@ -27,6 +27,7 @@
 #include "color_names.hpp"
 #include "functions.hpp"
 #include "backtrace.hpp"
+#include "sass2scss.h"
 
 #ifndef SASS_PRELEXER
 #include "prelexer.hpp"
@@ -45,23 +46,24 @@ namespace Sass {
 
   Context::Context(Context::Data initializers)
   : mem(Memory_Manager<AST_Node>()),
-    source_c_str         (initializers.source_c_str()),
-    sources              (vector<const char*>()),
-    include_paths        (initializers.include_paths()),
-    queue                (vector<pair<string, const char*> >()),
-    style_sheets         (map<string, Block*>()),
-    source_map           (resolve_relative_path(initializers.output_path(), initializers.source_map_file(), get_cwd())),
-    c_functions          (vector<Sass_C_Function_Descriptor>()),
-    image_path           (initializers.image_path()),
-    output_path          (make_canonical_path(initializers.output_path())),
-    source_comments      (initializers.source_comments()),
-    output_style         (initializers.output_style()),
-    source_map_file      (make_canonical_path(initializers.source_map_file())),
-    omit_source_map_url  (initializers.omit_source_map_url()),
-    names_to_colors      (map<string, Color*>()),
-    colors_to_names      (map<int, string>()),
-    precision            (initializers.precision()),
-    subset_map           (Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >())
+    source_c_str            (initializers.source_c_str()),
+    sources                 (vector<const char*>()),
+    include_paths           (initializers.include_paths()),
+    queue                   (vector<pair<string, const char*> >()),
+    style_sheets            (map<string, Block*>()),
+    source_map              (resolve_relative_path(initializers.output_path(), initializers.source_map_file(), get_cwd())),
+    c_functions             (vector<Sass_C_Function_Descriptor>()),
+    image_path              (initializers.image_path()),
+    output_path             (make_canonical_path(initializers.output_path())),
+    source_comments         (initializers.source_comments()),
+    output_style            (initializers.output_style()),
+    source_map_file         (make_canonical_path(initializers.source_map_file())),
+    omit_source_map_url     (initializers.omit_source_map_url()),
+    is_indented_syntax_src  (initializers.is_indented_syntax_src()),
+    names_to_colors         (map<string, Color*>()),
+    colors_to_names         (map<int, string>()),
+    precision               (initializers.precision()),
+    subset_map              (Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >())
   {
     cwd = get_cwd();
 
@@ -283,6 +285,14 @@ namespace Sass {
   {
     if (!source_c_str) return 0;
     queue.clear();
+    if(is_indented_syntax_src) {
+      char * contents = sass2scss(source_c_str, SASS2SCSS_PRETTIFY_1);
+      queue.push_back(make_pair(input_path, contents));
+      source_map.files.push_back(input_path);
+      char * compiled = compile_file();
+      delete[] contents;
+      return compiled;
+    }
     queue.push_back(make_pair(input_path, source_c_str));
     source_map.files.push_back(input_path);
     return compile_file();
