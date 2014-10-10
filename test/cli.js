@@ -64,6 +64,17 @@ describe('cli', function() {
     src.pipe(emitter.stdin);
   });
 
+  it('should treat data as indented code (.sass) if --indented-syntax flag is used', function(done) {
+    this.timeout(6000);
+    var src = fs.createReadStream(path.join(__dirname, 'indented.sass'));
+    var emitter = spawn(cliPath, ['--stdout', '--indented-syntax']);
+
+    // when hit the callback in the following,
+    // it means that data is recieved, so we are ok to go.
+    emitter.stdout.on('data', function() { done(); }); 
+    src.pipe(emitter.stdin);
+  });
+
   it('should print help when run with no arguments', function(done) {
     var env = assign(process.env, { isTTY: true });
     exec('node ' + cliPath, {
@@ -255,6 +266,18 @@ describe('cli', function() {
         fs.unlink(sampleCssOutputPath, function() {
           done();
         });
+      });
+    });
+  });
+
+  it('should omit a sourceMappingURL from CSS if --omit-source-map-url flag is used', function(done) {
+    var emitter = cli([sampleScssPath, '--source-map', path.join(__dirname, '../sample.map'), '--omit-source-map-url']);
+    emitter.on('error', done);
+    emitter.on('done', function() {
+      fs.exists(sampleCssOutputPath, function(exists) {
+        assert.ok(fs.readFileSync(sampleCssOutputPath, 'utf8').indexOf('sourceMappingURL=') === -1);
+        if (exists) {fs.unlinkSync(sampleCssOutputPath);}
+        done();
       });
     });
   });

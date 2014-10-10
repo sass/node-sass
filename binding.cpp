@@ -65,6 +65,7 @@ void ExtractOptions(Local<Value> optionsValue, void* cptr, sass_context_wrapper*
     sass_context* ctx = (sass_context*) cptr;
     ctx->source_string = CreateString(options->Get(NanNew("data")));
     ctx->output_path = CreateString(options->Get(NanNew("outFile")));
+    ctx->options.is_indented_syntax_src = options->Get(NanNew("indentedSyntax"))->BooleanValue();
     ctx->options.image_path = CreateString(options->Get(NanNew("imagePath")));
     ctx->options.output_style = options->Get(NanNew("style"))->Int32Value();
     ctx->options.source_comments = source_comments = options->Get(NanNew("comments"))->BooleanValue();

@@ -83,6 +83,7 @@ var prepareOptions = function (options) {
     style: SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0,
     comments: SASS_SOURCE_COMMENTS[sourceComments] || false,
     omitSourceMapUrl: options.omitSourceMapUrl,
+    indentedSyntax: options.indentedSyntax,
     stats: stats,
     sourceMap: sourceMap,
     precision: parseInt(options.precision) || 5,
