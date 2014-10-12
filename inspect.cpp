@@ -78,6 +78,7 @@ namespace Sass {
 
   void Inspect::operator()(Declaration* dec)
   {
+    if (dec->value()->concrete_type() == Expression::NULL_VAL) return;
     if (ctx) ctx->source_map.add_mapping(dec->property());
     dec->property()->perform(this);
     append_to_buffer(": ");
