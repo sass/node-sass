@@ -4,6 +4,8 @@
 #include "context.hpp"
 #include "to_string.hpp"
 #include "util.hpp"
+#include <cmath>
+#include <iomanip>
 
 namespace Sass {
   using namespace std;
@@ -223,6 +225,52 @@ namespace Sass {
       else if (!next_invisible)                          append_singleline_part_to_buffer(sep);
       next->perform(this);
     }
+  }
+
+  // helper function for serializing colors
+  template <size_t range>
+  static double cap_channel(double c) {
+    if      (c > range) return range;
+    else if (c < 0)     return 0;
+    else                return c;
+  }
+
+  void Output_Compressed::operator()(Color* c)
+  {
+    stringstream ss;
+    double r = round(cap_channel<0xff>(c->r()));
+    double g = round(cap_channel<0xff>(c->g()));
+    double b = round(cap_channel<0xff>(c->b()));
+    double a = cap_channel<1>   (c->a());
+
+    // retain the originally specified color definition if unchanged
+    if (!c->disp().empty()) {
+      ss << c->disp();
+    }
+    else if (a >= 1) {
+      // see if it's a named color
+      int numval = r * 0x10000;
+      numval += g * 0x100;
+      numval += b;
+      if (ctx && ctx->colors_to_names.count(numval)) {
+        ss << ctx->colors_to_names[numval];
+      }
+      else {
+        // otherwise output the hex triplet
+        ss << '#' << setw(2) << setfill('0');
+        ss << hex << setw(2) << static_cast<unsigned long>(r);
+        ss << hex << setw(2) << static_cast<unsigned long>(g);
+        ss << hex << setw(2) << static_cast<unsigned long>(b);
+      }
+    }
+    else {
+      ss << "rgba(";
+      ss << static_cast<unsigned long>(r) << ",";
+      ss << static_cast<unsigned long>(g) << ",";
+      ss << static_cast<unsigned long>(b) << ",";
+      ss << a << ')';
+    }
+    append_singleline_part_to_buffer(ss.str());
   }
 
   void Output_Compressed::operator()(Media_Query_Expression* mqe)
