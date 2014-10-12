@@ -7,7 +7,10 @@
   "keywords": [
     "sass",
     "css",
-    "libsass"
+    "libsass",
+    "scss",
+    "style",
+    "preprocessor"
   ],
   "bugs": {
     "url": "https://github.com/sass/node-sass/issues"
