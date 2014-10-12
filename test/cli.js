@@ -8,10 +8,10 @@ var path   = require('path'),
     cliPath = path.resolve(__dirname, '../bin/node-sass'),
     sampleFilename = path.resolve(__dirname, 'sample.scss');
 
-var expectedSampleCompressed = '#navbar{width:80%;height:23px;}\
-#navbar ul{list-style-type:none;}\
-#navbar li{float:left;}\
-#navbar li a{font-weight:bold;}';
+var expectedSampleCompressed = '#navbar{width:80%;height:23px}\
+#navbar ul{list-style-type:none}\
+#navbar li{float:left}\
+#navbar li a{font-weight:bold}';
 
 var expectedSampleNoComments = '#navbar {\n\
   width: 80%;\n\
