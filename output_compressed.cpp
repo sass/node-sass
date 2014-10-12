@@ -239,6 +239,11 @@ namespace Sass {
     }
   }
 
+  void Output_Compressed::operator()(Null* n)
+  {
+    // noop
+  }
+
   void Output_Compressed::operator()(Argument* a)
   {
     if (!a->name().empty()) {
