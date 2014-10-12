@@ -58,6 +58,8 @@ namespace Sass {
           stm->perform(this);
         }
       }
+      size_t l = buffer.length();
+      buffer.erase(l-1);
       append_singleline_part_to_buffer("}");
     }
 
