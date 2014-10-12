@@ -1064,7 +1064,7 @@ namespace Sass {
       for (size_t i = 0, L = l->length(); i < L; ++i) {
         if (eq(l->value_at_index(i), v, ctx)) return new (ctx.mem) Number(path, position, i+1);
       }
-      return new (ctx.mem) Boolean(path, position, false);
+      return new (ctx.mem) Null(path, position);
     }
 
     Signature join_sig = "join($list1, $list2, $separator: auto)";
