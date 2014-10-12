@@ -1246,14 +1246,19 @@ namespace Sass {
       return result;
     }
 
-    Signature map_remove_sig = "map-remove($map, $key)";
+    Signature map_remove_sig = "map-remove($map, $keys...)";
     BUILT_IN(map_remove)
     {
+      bool remove;
       Map* m = ARGM("$map", Map, ctx);
-      Expression* v = ARG("$key", Expression);
+      List* arglist = ARG("$keys", List);
       Map* result = new (ctx.mem) Map(path, position, 1);
       for (size_t i = 0, L = m->length(); i < L; ++i) {
-        if (!eq((*m)[i]->key(), v, ctx)) *result << (*m)[i];
+        remove = false;
+        for (size_t j = 0, K = arglist->length(); j < K && !remove; ++j) {
+          remove = eq((*m)[i]->key(), arglist->value_at_index(j), ctx);
+        }
+        if (!remove) *result << (*m)[i];
       }
       return result;
     }
