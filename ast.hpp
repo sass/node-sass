@@ -6,6 +6,7 @@
 #include <set>
 #include <algorithm>
 #include <deque>
+#include <unordered_map>
 
 #ifdef __clang__
 
@@ -53,6 +54,7 @@
 #endif
 
 #include "ast_def_macros.hpp"
+#include "inspect.hpp"
 
 #include <sstream>
 #include <iostream>
@@ -62,44 +64,9 @@
 #include "position.hpp"
 #endif
 
+
 namespace Sass {
   using namespace std;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Mixin class for AST nodes that should behave like vectors. Uses the
-  // "Template Method" design pattern to allow subclasses to adjust their flags
-  // when certain objects are pushed.
-  /////////////////////////////////////////////////////////////////////////////
-  template <typename T>
-  class Vectorized {
-    vector<T> elements_;
-  protected:
-    virtual void adjust_after_pushing(T element) { }
-  public:
-    Vectorized(size_t s = 0) : elements_(vector<T>())
-    { elements_.reserve(s); }
-    virtual ~Vectorized() = 0;
-    size_t length() const   { return elements_.size(); }
-    bool empty() const      { return elements_.empty(); }
-    T& operator[](size_t i) { return elements_[i]; }
-    const T& operator[](size_t i) const { return elements_[i]; }
-    Vectorized& operator<<(T element)
-    {
-      elements_.push_back(element);
-      adjust_after_pushing(element);
-      return *this;
-    }
-    Vectorized& operator+=(Vectorized* v)
-    {
-      for (size_t i = 0, L = v->length(); i < L; ++i) *this << (*v)[i];
-      return *this;
-    }
-    vector<T>& elements() { return elements_; }
-    const vector<T>& elements() const { return elements_; }
-    vector<T>& elements(vector<T>& e) { elements_ = e; return elements_; }
-  };
-  template <typename T>
-  inline Vectorized<T>::~Vectorized() { }
 
   //////////////////////////////////////////////////////////
   // Abstract base class for all abstract syntax tree nodes.
@@ -118,6 +85,160 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
   inline AST_Node::~AST_Node() { }
+
+
+  //////////////////////////////////////////////////////////////////////
+  // Abstract base class for expressions. This side of the AST hierarchy
+  // represents elements in value contexts, which exist primarily to be
+  // evaluated and returned.
+  //////////////////////////////////////////////////////////////////////
+  class Expression : public AST_Node {
+  public:
+    enum Concrete_Type {
+      NONE,
+      BOOLEAN,
+      NUMBER,
+      COLOR,
+      STRING,
+      LIST,
+      MAP,
+      NULL_VAL,
+      NUM_TYPES
+    };
+  private:
+    // expressions in some contexts shouldn't be evaluated
+    ADD_PROPERTY(bool, is_delayed);
+    ADD_PROPERTY(bool, is_interpolant);
+    ADD_PROPERTY(Concrete_Type, concrete_type);
+  public:
+    Expression(string path, Position position,
+               bool d = false, bool i = false, Concrete_Type ct = NONE)
+    : AST_Node(path, position),
+      is_delayed_(d), is_interpolant_(i), concrete_type_(ct)
+    { }
+    virtual operator bool() { return true; }
+    virtual ~Expression() { };
+    virtual string type() { return ""; /* TODO: raise an error? */ }
+    virtual bool is_invisible() { return false; }
+    static string type_name() { return ""; }
+    virtual bool is_false() { return false; }
+    virtual bool operator==( Expression& rhs) const { return false; }
+    virtual size_t hash() { return 0; }
+  };
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Hash method specializations for unordered_map to work with Sass::Expression
+/////////////////////////////////////////////////////////////////////////////
+
+namespace std {
+  template<>
+  struct hash<Sass::Expression*>
+  {
+    size_t operator()(Sass::Expression* s) const
+    {
+      return s->hash();
+    }
+  };
+  template<>
+  struct equal_to<Sass::Expression*>
+  {
+    bool operator()( Sass::Expression* lhs,  Sass::Expression* rhs) const
+    {
+      return *lhs == *rhs;
+    }
+  };
+}
+
+namespace Sass {
+  using namespace std;
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Mixin class for AST nodes that should behave like vectors. Uses the
+  // "Template Method" design pattern to allow subclasses to adjust their flags
+  // when certain objects are pushed.
+  /////////////////////////////////////////////////////////////////////////////
+  template <typename T>
+  class Vectorized {
+    vector<T> elements_;
+  protected:
+    size_t hash_;
+    void reset_hash() { hash_ = 0; }
+    virtual void adjust_after_pushing(T element) { }
+  public:
+    Vectorized(size_t s = 0) : elements_(vector<T>())
+    { elements_.reserve(s); }
+    virtual ~Vectorized() = 0;
+    size_t length() const   { return elements_.size(); }
+    bool empty() const      { return elements_.empty(); }
+    T& operator[](size_t i) { return elements_[i]; }
+    const T& operator[](size_t i) const { return elements_[i]; }
+    Vectorized& operator<<(T element)
+    {
+      reset_hash();
+      elements_.push_back(element);
+      adjust_after_pushing(element);
+      return *this;
+    }
+    Vectorized& operator+=(Vectorized* v)
+    {
+      for (size_t i = 0, L = v->length(); i < L; ++i) *this << (*v)[i];
+      return *this;
+    }
+    vector<T>& elements() { return elements_; }
+    const vector<T>& elements() const { return elements_; }
+    vector<T>& elements(vector<T>& e) { elements_ = e; return elements_; }
+  };
+  template <typename T>
+  inline Vectorized<T>::~Vectorized() { }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Mixin class for AST nodes that should behave like ahash table. Uses an
+  // extra <vector> internally to maintain insertion order for interation.
+  /////////////////////////////////////////////////////////////////////////////
+  class Hashed {
+  private:
+    unordered_map<Expression*, Expression*> elements_;
+    vector<Expression*> list_;
+  protected:
+    size_t hash_;
+    void reset_hash() { hash_ = 0; }
+  public:
+    Hashed(size_t s = 0) : elements_(unordered_map<Expression*, Expression*>(s)), list_(vector<Expression*>())
+    { elements_.reserve(s); list_.reserve(s); }
+    virtual ~Hashed();
+    size_t length() const                  { return list_.size(); }
+    bool empty() const                     { return list_.empty(); }
+    bool has(Expression* k) const          { return elements_.count(k) == 1; }
+    Expression* at(Expression* k) const    { return elements_.at(k); }
+    Hashed& operator<<(pair<Expression*, Expression*> p)
+    {
+      reset_hash();
+
+      if (!has(p.first)) list_.push_back(p.first);
+
+      elements_[p.first] = p.second;
+      return *this;
+    }
+    Hashed& operator+=(Hashed* h)
+    {
+      if (length() == 0) {
+        this->elements_ = h->elements_;
+        this->list_ = h->list_;
+        return *this;
+      }
+
+      for (auto key : h->keys()) {
+        *this << make_pair(key, h->at(key));
+      }
+      return *this;
+    }
+    const unordered_map<Expression*, Expression*>& pairs() const { return elements_; }
+    const vector<Expression*>& keys() const { return list_; }
+  };
+  inline Hashed::~Hashed() { }
+
 
   /////////////////////////////////////////////////////////////////////////
   // Abstract base class for statements. This side of the AST hierarchy
@@ -500,44 +621,6 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
 
-  //////////////////////////////////////////////////////////////////////
-  // Abstract base class for expressions. This side of the AST hierarchy
-  // represents elements in value contexts, which exist primarily to be
-  // evaluated and returned.
-  //////////////////////////////////////////////////////////////////////
-  class Expression : public AST_Node {
-  public:
-    enum Concrete_Type {
-      NONE,
-      BOOLEAN,
-      NUMBER,
-      COLOR,
-      STRING,
-      LIST,
-      MAP,
-      NULL_VAL,
-      NUM_TYPES
-    };
-  private:
-    // expressions in some contexts shouldn't be evaluated
-    ADD_PROPERTY(bool, is_delayed);
-    ADD_PROPERTY(bool, is_interpolant);
-    ADD_PROPERTY(Concrete_Type, concrete_type);
-  public:
-    Expression(string path, Position position,
-               bool d = false, bool i = false, Concrete_Type ct = NONE)
-    : AST_Node(path, position),
-      is_delayed_(d), is_interpolant_(i), concrete_type_(ct)
-    { }
-    virtual operator bool() { return true; }
-    virtual ~Expression() = 0;
-    virtual string type() { return ""; /* TODO: raise an error? */ }
-    virtual bool is_invisible() { return false; }
-    static string type_name() { return ""; }
-    virtual bool is_false() { return false; }
-  };
-  inline Expression::~Expression() { }
-
   ///////////////////////////////////////////////////////////////////////
   // Lists of values, both comma- and space-separated (distinguished by a
   // type-tag.) Also used to represent variable-length argument lists.
@@ -559,35 +642,80 @@ namespace Sass {
     static string type_name() { return "list"; }
     bool is_invisible() { return !length(); }
     Expression* value_at_index(size_t i);
+
+    virtual bool operator==(Expression& rhs) const
+    {
+      try
+      {
+        List& l = dynamic_cast<List&>(rhs);
+        if (!(l && length() == l.length() && separator() == l.separator())) return false;
+        for (size_t i = 0, L = l.length(); i < L; ++i)
+          if (!(*(elements()[i]) == *(l[i]))) return false;
+        return true;
+      }
+      catch (std::bad_cast& bc)
+      {
+        return false;
+      }
+
+    }
+
+    virtual size_t hash()
+    {
+      if (hash_ > 0) return hash_;
+
+      hash_ = std::hash<string>()(separator() == COMMA ? "comma" : "space");
+
+      for (size_t i = 0, L = length(); i < L; ++i)
+        hash_ ^= (elements()[i])->hash();
+
+      return hash_;
+    }
+
     ATTACH_OPERATIONS();
   };
 
   ///////////////////////////////////////////////////////////////////////
   // Key value paris.
   ///////////////////////////////////////////////////////////////////////
-  class KeyValuePair : public AST_Node {
-    ADD_PROPERTY(Expression*, key);
-    ADD_PROPERTY(Expression*, value);
-  public:
-    KeyValuePair(string p, Position pos,
-              Expression* key = 0, Expression* value = 0)
-    : AST_Node(p, pos), key_(key), value_(value)
-    {
-    }
-    ATTACH_OPERATIONS();
-  };
 
-  class Map : public Expression, public Vectorized<KeyValuePair*> {
+  class Map : public Expression, public Hashed {
   public:
     Map(string path, Position position,
          size_t size = 0)
     : Expression(path, position),
-      Vectorized<KeyValuePair*>(size)
+      Hashed(size)
     { concrete_type(MAP); }
     string type() { return "map"; }
     static string type_name() { return "map"; }
     bool is_invisible() { return !length(); }
-    Expression* value_at_index(size_t i);
+
+    virtual bool operator==(Expression& rhs) const
+    {
+      try
+      {
+        Map& m = dynamic_cast<Map&>(rhs);
+        if (!(m && length() == m.length())) return false;
+        for (auto key : keys())
+          if (!(*at(key) == *m.at(key))) return false;
+        return true;
+      }
+      catch (std::bad_cast& bc)
+      {
+        return false;
+      }
+    }
+
+    virtual size_t hash()
+    {
+      if (hash_ > 0) return hash_;
+
+      for (auto key : keys())
+        hash_ ^= key->hash() ^ at(key)->hash();
+
+      return hash_;
+    }
+
     ATTACH_OPERATIONS();
   };
 
@@ -673,6 +801,25 @@ namespace Sass {
     Variable(string path, Position position, string n)
     : Expression(path, position), name_(n)
     { }
+
+    virtual bool operator==(Expression& rhs) const
+    {
+      try
+      {
+        Variable& e = dynamic_cast<Variable&>(rhs);
+        return e && name() == e.name();
+      }
+      catch (std::bad_cast& bc)
+      {
+        return false;
+      }
+    }
+
+    virtual size_t hash()
+    {
+      return std::hash<string>()(name());
+    }
+
     ATTACH_OPERATIONS();
   };
 
@@ -700,6 +847,7 @@ namespace Sass {
     ADD_PROPERTY(double, value);
     vector<string> numerator_units_;
     vector<string> denominator_units_;
+    size_t hash_ = 0;
   public:
     Number(string path, Position position, double val, string u = "")
     : Expression(path, position),
@@ -714,7 +862,7 @@ namespace Sass {
     vector<string>& denominator_units() { return denominator_units_; }
     string type() { return "number"; }
     static string type_name() { return "number"; }
-    string unit()
+    string unit() const
     {
       stringstream u;
       for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
@@ -793,7 +941,7 @@ namespace Sass {
       sort(denominator_units_.begin(), denominator_units_.end());
     }
     // useful for making one number compatible with another
-    string find_convertible_unit()
+    string find_convertible_unit() const
     {
       for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
         string u(numerator_units_[i]);
@@ -805,6 +953,28 @@ namespace Sass {
       }
       return string();
     }
+
+    virtual bool operator==(Expression& rhs) const
+    {
+      try
+      {
+        Number& e(dynamic_cast<Number&>(rhs));
+        if (!e) return false;
+        e.normalize(find_convertible_unit());
+        return unit() == e.unit() && value() == e.value();
+      }
+      catch (std::bad_cast& bc)
+      {
+        return false;
+      }
+    }
+
+    virtual size_t hash()
+    {
+      if (hash_ == 0) hash_ = std::hash<double>()(value_);
+      return hash_;
+    }
+
     ATTACH_OPERATIONS();
   };
 
@@ -817,12 +987,33 @@ namespace Sass {
     ADD_PROPERTY(double, b);
     ADD_PROPERTY(double, a);
     ADD_PROPERTY(string, disp);
+    size_t hash_ = 0;
   public:
     Color(string path, Position position, double r, double g, double b, double a = 1, const string disp = "")
     : Expression(path, position), r_(r), g_(g), b_(b), a_(a), disp_(disp)
     { concrete_type(COLOR); }
     string type() { return "color"; }
     static string type_name() { return "color"; }
+
+    virtual bool operator==(Expression& rhs) const
+    {
+      try
+      {
+        Color& c = (dynamic_cast<Color&>(rhs));
+        return c && r() == c.r() && g() == c.g() && b() == c.b() && a() == c.a();
+      }
+      catch (std::bad_cast& bc)
+      {
+        return false;
+      }
+    }
+
+    virtual size_t hash()
+    {
+      if (hash_ == 0) hash_ = std::hash<double>()(r_) ^ std::hash<double>()(g_) ^ std::hash<double>()(b_) ^ std::hash<double>()(a_);
+      return hash_;
+    }
+
     ATTACH_OPERATIONS();
   };
 
@@ -831,6 +1022,7 @@ namespace Sass {
   ////////////
   class Boolean : public Expression {
     ADD_PROPERTY(bool, value);
+    size_t hash_ = 0;
   public:
     Boolean(string path, Position position, bool val) : Expression(path, position), value_(val)
     { concrete_type(BOOLEAN); }
@@ -838,6 +1030,26 @@ namespace Sass {
     string type() { return "bool"; }
     static string type_name() { return "bool"; }
     virtual bool is_false() { return !value_; }
+
+    virtual bool operator==(Expression& rhs) const
+    {
+      try
+      {
+        Boolean& e = dynamic_cast<Boolean&>(rhs);
+        return e && value() == e.value();
+      }
+      catch (std::bad_cast& bc)
+      {
+        return false;
+      }
+    }
+
+    virtual size_t hash()
+    {
+      if (hash_ == 0) hash_ = std::hash<bool>()(value_);
+      return hash_;
+    }
+
     ATTACH_OPERATIONS();
   };
 
@@ -877,21 +1089,43 @@ namespace Sass {
   ////////////////////////////////////////////////////////
   class String_Constant : public String {
     ADD_PROPERTY(string, value);
+    string unquoted_;
+    size_t hash_ = 0;
   public:
     String_Constant(string path, Position position, string val, bool unq = false)
     : String(path, position, unq, true), value_(val)
-    { }
+    { unquoted_ = unquote(value_); }
     String_Constant(string path, Position position, const char* beg, bool unq = false)
     : String(path, position, unq, true), value_(string(beg))
-    { }
+    { unquoted_ = unquote(value_); }
     String_Constant(string path, Position position, const char* beg, const char* end, bool unq = false)
     : String(path, position, unq, true), value_(string(beg, end-beg))
-    { }
+    { unquoted_ = unquote(value_); }
     String_Constant(string path, Position position, const Token& tok, bool unq = false)
     : String(path, position, unq, true), value_(string(tok.begin, tok.end))
-    { }
+    { unquoted_ = unquote(value_); }
     string type() { return "string"; }
     static string type_name() { return "string"; }
+
+    virtual bool operator==(Expression& rhs) const
+    {
+      try
+      {
+        String_Constant& e = dynamic_cast<String_Constant&>(rhs);
+        return e && unquoted_ == e.unquoted_;
+      }
+      catch (std::bad_cast& bc)
+      {
+        return false;
+      }
+    }
+
+    virtual size_t hash() const
+    {
+      if (hash_ == 0) std::hash<string>()(unquoted_);
+      return hash_;
+    }
+
     bool is_quoted() { return value_.length() && (value_[0] == '"' || value_[0] == '\''); }
     char quote_mark() { return is_quoted() ? value_[0] : '\0'; }
     ATTACH_OPERATIONS();
@@ -940,6 +1174,17 @@ namespace Sass {
     bool is_invisible() { return true; }
     operator bool() { return false; }
     bool is_false() { return true; }
+
+    virtual bool operator==(Expression& rhs) const
+    {
+      return rhs.concrete_type() == NULL_VAL;
+    }
+
+    virtual size_t hash()
+    {
+      return 0;
+    }
+
     ATTACH_OPERATIONS();
   };
 
@@ -1042,12 +1287,6 @@ namespace Sass {
   //////////////////////////////////////////////////////////////////////////////////////////
   inline Expression* List::value_at_index(size_t i) { return is_arglist_ ? ((Argument*)(*this)[i])->value() : (*this)[i]; }
 
-
-  //////////////////////////////////////////////////////////////////////////////////////////
-  // Additional method on Maps to retrieve values directly.
-  //////////////////////////////////////////////////////////////////////////////////////////
-  inline Expression* Map::value_at_index(size_t i) { return (*this)[i]->value(); }
-
   ////////////////////////////////////////////////////////////////////////
   // Argument lists -- in their own class to facilitate context-sensitive
   // error checking (e.g., ensuring that all ordinal arguments precede all
@@ -1133,10 +1372,10 @@ namespace Sass {
     virtual ~Simple_Selector() = 0;
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
     virtual bool is_pseudo_element() { return false; }
-    
+
     bool operator==(const Simple_Selector& rhs) const;
     inline bool operator!=(const Simple_Selector& rhs) const { return !(*this == rhs); }
-    
+
     bool operator<(const Simple_Selector& rhs) const;
   };
   inline Simple_Selector::~Simple_Selector() { }
@@ -1251,7 +1490,7 @@ namespace Sass {
         return true;
       }
       else {
-      	// If it's not a known pseudo-element, check whether it looks like one. This is similar to the type method on the Pseudo class in ruby sass.
+        // If it's not a known pseudo-element, check whether it looks like one. This is similar to the type method on the Pseudo class in ruby sass.
         return name().find("::") == 0;
       }
     }
@@ -1271,7 +1510,7 @@ namespace Sass {
     { }
     ATTACH_OPERATIONS();
   };
-  
+
   struct Complex_Selector_Pointer_Compare {
     bool operator() (const Complex_Selector* const pLeft, const Complex_Selector* const pRight) const;
   };
@@ -1300,7 +1539,7 @@ namespace Sass {
     virtual Selector_Placeholder* find_placeholder();
     Simple_Selector* base()
     {
-    	// Implement non-const in terms of const. Safe to const_cast since this method is non-const
+      // Implement non-const in terms of const. Safe to const_cast since this method is non-const
       return const_cast<Simple_Selector*>(static_cast<const Compound_Selector*>(this)->base());
     }
     const Simple_Selector* base() const {
@@ -1323,16 +1562,16 @@ namespace Sass {
              !static_cast<Selector_Reference*>((*this)[0])->selector();
     }
     vector<string> to_str_vec(); // sometimes need to convert to a flat "by-value" data structure
-    
+
     bool operator<(const Compound_Selector& rhs) const;
-    
+
     bool operator==(const Compound_Selector& rhs) const;
     inline bool operator!=(const Compound_Selector& rhs) const { return !(*this == rhs); }
 
     SourcesSet& sources() { return sources_; }
     void clearSources() { sources_.clear(); }
     void mergeSources(SourcesSet& sources, Context& ctx);
-    
+
     Compound_Selector* clone(Context&) const; // does not clone the Simple_Selector*s
 
     Compound_Selector* minus(Compound_Selector* rhs, Context& ctx);
@@ -1388,15 +1627,15 @@ namespace Sass {
       //s
 
       SourcesSet srcs;
-      
+
       Compound_Selector* pHead = head();
       Complex_Selector*  pTail = tail();
-      
+
       if (pHead) {
         SourcesSet& headSources = pHead->sources();
         srcs.insert(headSources.begin(), headSources.end());
       }
-      
+
       if (pTail) {
         SourcesSet tailSources = pTail->sources();
         srcs.insert(tailSources.begin(), tailSources.end());
@@ -1409,11 +1648,11 @@ namespace Sass {
       Complex_Selector* pIter = this;
       while (pIter) {
         Compound_Selector* pHead = pIter->head();
-        
+
         if (pHead) {
           pHead->mergeSources(sources, ctx);
         }
-        
+
         pIter = pIter->tail();
       }
     }
@@ -1421,11 +1660,11 @@ namespace Sass {
       Complex_Selector* pIter = this;
       while (pIter) {
         Compound_Selector* pHead = pIter->head();
-        
+
         if (pHead) {
           pHead->clearSources();
         }
-        
+
         pIter = pIter->tail();
       }
     }
@@ -1434,8 +1673,8 @@ namespace Sass {
     vector<Compound_Selector*> to_vector();
     ATTACH_OPERATIONS();
   };
-  
-	typedef deque<Complex_Selector*> ComplexSelectorDeque;
+
+  typedef deque<Complex_Selector*> ComplexSelectorDeque;
 
   ///////////////////////////////////
   // Comma-separated selector groups.
@@ -1462,11 +1701,11 @@ namespace Sass {
     // vector<Complex_Selector*> members() { return elements_; }
     ATTACH_OPERATIONS();
   };
-  
-  
+
+
   template<typename SelectorType>
   bool selectors_equal(const SelectorType& one, const SelectorType& two, bool simpleSelectorOrderDependent) {
-  	// Test for equality among selectors while differentiating between checks that demand the underlying Simple_Selector
+    // Test for equality among selectors while differentiating between checks that demand the underlying Simple_Selector
     // ordering to be the same or not. This works because operator< (which doesn't make a whole lot of sense for selectors, but
     // is required for proper stl collection ordering) is implemented using string comparision. This gives stable sorting
     // behavior, and can be used to determine if the selectors would have exactly idential output. operator== matches the
@@ -1475,15 +1714,14 @@ namespace Sass {
     //
     // Due to the reliance on operator== and operater< behavior, this templated method is currently only intended for
     // use with Compound_Selector and Complex_Selector objects.
-  	if (simpleSelectorOrderDependent) {
-    	return !(one < two) && !(two < one);
+    if (simpleSelectorOrderDependent) {
+      return !(one < two) && !(two < one);
     } else {
-    	return one == two;
+      return one == two;
     }
   }
 
 }
-
 
 #ifdef __clang__
 

@@ -92,7 +92,7 @@ namespace Sass {
         if((p = escape(src))) {
           src = p;
           continue;
-        } 
+        }
         else if((p = exactly<'"'>(src))) {
           return p;
         }
@@ -111,7 +111,7 @@ namespace Sass {
         if((p = escape(src))) {
           src = p;
           continue;
-        } 
+        }
         else if((p = exactly<'\''>(src))) {
           return p;
         }
@@ -169,7 +169,7 @@ namespace Sass {
     const char* map_key(const char* src) {
       return sequence< spaces_and_comments,
                        one_plus< sequence< exactly<'('>, spaces_and_comments > >,
-                       one_plus< alternatives< identifier, alnums, string_constant, variable, spaces > >,
+                       one_plus< alternatives< identifier, alnums, string_constant, variable, spaces, exactly<','> > >,
                        spaces_and_comments,
                        zero_plus< exactly<')'> >,
                        spaces_and_comments,
@@ -337,7 +337,7 @@ namespace Sass {
     }
     // Attribute name in an attribute selector.
     const char* attribute_name(const char* src) {
-      return alternatives< sequence< optional<namespace_prefix>, identifier>, 
+      return alternatives< sequence< optional<namespace_prefix>, identifier>,
                            identifier >(src);
     }
     // match placeholder selectors

@@ -31,9 +31,11 @@ namespace Sass {
   Sass_Value To_C::operator()(Map* m)
   {
     Sass_Value v = make_sass_map(m->length());
-    for (size_t i = 0, L = m->length(); i < L; ++i) {
-      v.map.pairs[i].key = (*m)[i]->key()->perform(this);
-      v.map.pairs[i].value = (*m)[i]->value()->perform(this);
+    int i = 0;
+    for (auto key : m->keys()) {
+      v.map.pairs[i].key = key->perform(this);
+      v.map.pairs[i].value = m->at(key)->perform(this);
+      i++;
     }
     return v;
   }
