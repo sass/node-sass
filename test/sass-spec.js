@@ -30,7 +30,7 @@ describe('sass-spec', function() {
   if (sassSpecDirExists) {
     var suitesPath = path.join(sassSpecPath, 'spec');
     var suites = fs.readdirSync(suitesPath);
-    var ignoreSuites = ['todo', 'benchmarks'];
+    var ignoreSuites = ['libsass-todo-issues', 'libsass-todo-tests'];
 
     suites.forEach(function(suite) {
       if (ignoreSuites.indexOf(suite) !== -1) {
@@ -43,22 +43,27 @@ describe('sass-spec', function() {
 
         tests.forEach(function(test) {
           var testPath = path.join(suitePath, test);
+          var inputFilePath = path.join(testPath, 'input.scss');
 
-          it(test, function(done) {
-            sass.render({
-              file: path.join(testPath, 'input.scss'),
-              includePaths: [testPath, path.join(testPath, 'sub')],
-              success: function(css) {
-                var expected = fs.readFileSync(path.join(testPath, 'expected_output.css'), 'utf-8');
+          if (fs.existsSync(inputFilePath)) {
+            it(test, function(done) {
+              sass.render({
+                file: inputFilePath,
+                includePaths: [testPath, path.join(testPath, 'sub')],
+                success: function(css) {
+                  var expected = fs.readFileSync(path.join(testPath, 'expected_output.css'), 'utf-8');
 
-                assert.equal(normalize(css), normalize(expected));
-                done();
-              },
-              error: function(error) {
-                done(new Error(error));
-              }
+                  assert.equal(normalize(css), normalize(expected));
+                  done();
+                },
+                error: function(error) {
+                  done(new Error(error));
+                }
+              });
             });
-          });
+          } else {
+            it(test);
+          }
         });
       });
     });
