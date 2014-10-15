@@ -61,7 +61,7 @@ namespace Sass {
         }
       }
       size_t l = buffer.length();
-      buffer.erase(l-1);
+      if (l > 0 && buffer.at(l - 1) == ';') buffer.erase(l - 1);
       append_singleline_part_to_buffer("}");
     }
 
@@ -90,7 +90,7 @@ namespace Sass {
       }
       return;
     }
-    
+
     ctx->source_map.add_mapping(m);
     append_singleline_part_to_buffer("@media ");
     q->perform(this);
@@ -108,9 +108,9 @@ namespace Sass {
           stm->perform(this);
         }
       }
-      
+
       append_singleline_part_to_buffer("}");
-      
+
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
         if (stm->is_hoistable()) {
@@ -328,7 +328,7 @@ namespace Sass {
     {
       tail->perform(this);
       return;
-    } 
+    }
     if (head && !head->is_empty_reference()) head->perform(this);
     switch (comb) {
       case Complex_Selector::ANCESTOR_OF:
