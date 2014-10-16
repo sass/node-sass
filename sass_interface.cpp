@@ -6,6 +6,7 @@
 
 #include "sass_interface.h"
 #include "context.hpp"
+#include "inspect.hpp"
 
 #ifndef SASS_ERROR_HANDLING
 #include "error_handling.hpp"
@@ -264,6 +265,14 @@ extern "C" {
   int sass_compile_folder(sass_folder_context* c_ctx)
   {
     return 1;
+  }
+
+  const char* quote (const char *str, const char quotemark) {
+    return Sass::quote(str, quotemark).c_str();
+  }
+
+  const char* unquote (const char *str) {
+    return Sass::unquote(str).c_str();
   }
 
 }
