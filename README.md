@@ -165,22 +165,9 @@ Listing of community uses of node-sass in build tools and frameworks.
 
 ### Connect/Express middleware
 
-Recompile `.scss` files automatically for connect and express based http servers
+Recompile `.scss` files automatically for connect and express based http servers.
 
-```javascript
-var server = connect.createServer(
-  sass.middleware({
-      src: __dirname
-    , dest: __dirname + '/public'
-    , debug: true
-    , outputStyle: 'compressed'
-    , prefix:  '/prefix'
-  }),
-  connect.static('/prefix', __dirname + '/public')
-);
-```
-
-Heavily inspired by <https://github.com/LearnBoost/stylus>
+This functionality has been moved to [`node-sass-middleware`](https://github.com/sass/node-sass-middleware) in node-sass v1.0.0
 
 ### DocPad Plugin
 

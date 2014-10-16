@@ -199,4 +199,6 @@ exports.renderFile = function(options) {
   exports.render(options);
 };
 
-exports.middleware = require('node-sass-middleware');
+exports.middleware = function() {
+  return new Error('The middleware has been moved to https://github.com/sass/node-sass-middleware');
+};
