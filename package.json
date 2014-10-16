@@ -2,7 +2,7 @@
   "author": "Andrew Nesbitt <andrewnez@gmail.com> (http://andrew.github.com)",
   "name": "node-sass",
   "description": "wrapper around libsass",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "homepage": "https://github.com/sass/node-sass",
   "keywords": [
     "sass",
