@@ -360,13 +360,15 @@ namespace Sass {
       backtrace = &here;
 
       To_C to_c;
-      Sass_Value c_val = c_func(args->perform(&to_c), def->cookie());
+      union Sass_Value c_args = args->perform(&to_c);
+      Sass_Value c_val = c_func(c_args, def->cookie());
       if (c_val.unknown.tag == SASS_ERROR) {
         error("error in C function " + c->name() + ": " + c_val.error.message, c->path(), c->position(), backtrace);
       }
       result = cval_to_astnode(c_val, ctx, backtrace, c->path(), c->position());
 
       backtrace = here.parent;
+      free_sass_value(c_val);
       env = old_env;
     }
     // else it's an overloaded native function; resolve it

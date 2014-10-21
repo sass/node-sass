@@ -38,9 +38,10 @@ extern "C" {
 
   void sass_free_context(sass_context* ctx)
   {
-    if (ctx->output_string) free(ctx->output_string);
+    if (ctx->output_string)     free(ctx->output_string);
     if (ctx->source_map_string) free(ctx->source_map_string);
-    if (ctx->error_message) free(ctx->error_message);
+    if (ctx->error_message)     free(ctx->error_message);
+    if (ctx->c_functions)       free(ctx->c_functions);
 
     free_string_array(ctx->included_files, ctx->num_included_files);
 
@@ -55,6 +56,7 @@ extern "C" {
     if (ctx->output_string)     free(ctx->output_string);
     if (ctx->source_map_string) free(ctx->source_map_string);
     if (ctx->error_message)     free(ctx->error_message);
+    if (ctx->c_functions)       free(ctx->c_functions);
 
     free_string_array(ctx->included_files, ctx->num_included_files);
 
@@ -267,12 +269,20 @@ extern "C" {
     return 1;
   }
 
-  const char* quote (const char *str, const char quotemark) {
-    return Sass::quote(str, quotemark).c_str();
+  // caller must free the returned memory
+  char* quote (const char *str, const char quotemark) {
+    string quoted = Sass::quote(str, quotemark);
+    char *cstr = new char[quoted.length() + 1];
+    std::strcpy(cstr, quoted.c_str());
+    return cstr;
   }
 
-  const char* unquote (const char *str) {
-    return Sass::unquote(str).c_str();
+  // caller must free the returned memory
+  char* unquote (const char *str) {
+    string unquoted = Sass::unquote(str);
+    char *cstr = new char[unquoted.length() + 1];
+    std::strcpy(cstr, unquoted.c_str());
+    return cstr;
   }
 
 }

@@ -166,4 +166,41 @@ extern "C" {
     return v;
   }
 
+  // make_sass_* may allocated additional memory
+  void free_sass_value(const union Sass_Value val) {
+
+    int i;
+    switch(val.unknown.tag) {
+        // case SASS_NULL: {
+        // }   break;
+        // case SASS_BOOLEAN: {
+        // }   break;
+        case SASS_NUMBER: {
+                free(val.number.unit);
+        }   break;
+        // case SASS_COLOR: {
+        // }   break;
+        case SASS_STRING: {
+                free(val.string.value);
+        }   break;
+        case SASS_LIST: {
+                for (i=0; i<val.list.length; i++) {
+                    free_sass_value(val.list.values[i]);
+                }
+                free(val.list.values);
+        }   break;
+        case SASS_MAP: {
+                for (i=0; i<val.map.length; i++) {
+                    free_sass_value(val.map.pairs[i].key);
+                    free_sass_value(val.map.pairs[i].value);
+                }
+                free(val.map.pairs);
+        }   break;
+        case SASS_ERROR: {
+                free(val.error.message);
+        }   break;
+    }
+
+  }
+
 }

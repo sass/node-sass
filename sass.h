@@ -137,6 +137,8 @@ union Sass_Value make_sass_map     (size_t len);
 union Sass_Value make_sass_null    ();
 union Sass_Value make_sass_error   (const char* msg);
 
+void free_sass_value (const union Sass_Value val);
+
 typedef union Sass_Value(*Sass_C_Function)(union Sass_Value, void *cookie);
 
 struct Sass_C_Function_Descriptor {
