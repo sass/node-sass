@@ -8,6 +8,7 @@ cli.on('log', function(msg){
 
 cli.on('error', function(msg){
   console.error(msg);
+  process.exit(1);
 });
 
 cli.on('warn', function(msg){
