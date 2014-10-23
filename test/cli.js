@@ -71,16 +71,16 @@ describe('cli', function() {
 
     // when hit the callback in the following,
     // it means that data is recieved, so we are ok to go.
-    emitter.stdout.on('data', function() { done(); }); 
+    emitter.stdout.on('data', function() { done(); });
     src.pipe(emitter.stdin);
   });
 
-  it('should print help when run with no arguments', function(done) {
+  it('should print usage when run with no arguments', function(done) {
     var env = assign(process.env, { isTTY: true });
     exec('node ' + cliPath, {
       env: env
     }, function(err, stdout, stderr) {
-      done(assert(stderr.trim().indexOf('Compile .scss files with node-sass') === 0));
+      done(assert(stderr.trim().indexOf('Provide a sass file to render') === 0));
     });
   });
 
