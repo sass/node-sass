@@ -155,9 +155,14 @@ console.log(stats);
 
 * In the case that both `file` and `data` options are set, node-sass will only attempt to honour the `file` directive.
 
+
 ## Integrations
 
 Listing of community uses of node-sass in build tools and frameworks.
+
+### Brackets extension
+
+[@jasonsanjose](https://github.com/jasonsanjose) has created a [Brackets](http://brackets.io) extension based on node-sass: <https://github.com/jasonsanjose/brackets-sass>. When editing Sass files, the extension compiles changes on save. The extension also integrates with Live Preview to show Sass changes in the browser without saving or compiling.
 
 ### Brunch plugin
 
