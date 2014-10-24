@@ -149,7 +149,7 @@ exports.renderSync = function(options) {
   options = assign({}, options);
   options = prepareOptions(options);
   output = options.file? binding.renderFileSync(options) : binding.renderSync(options);
-  finishStats(options.stats);
+  finishStats(options.stats, options.stats.sourceMap);
 
   return output;
 };
