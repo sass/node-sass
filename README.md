@@ -147,6 +147,10 @@ Heavily inspired by <https://github.com/LearnBoost/stylus>
 
 [@dbashford](https://github.com/dbashford) has created a Mimosa module for sass which includes node-sass: <https://github.com/dbashford/mimosa-sass>
 
+## Brackets extension
+
+[@jasonsanjose](https://github.com/jasonsanjose) has created a Brackets extension based on node-sass: <https://github.com/jasonsanjose/brackets-sass>. When editing Sass files, the extension compiles changes on save. The extension also integrates with Live Preview to show Sass changes in the browser without saving or compiling.
+
 ## Example App
 
 There is also an example connect app here: <https://github.com/andrew/node-sass-example>
