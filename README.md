@@ -149,7 +149,7 @@ Heavily inspired by <https://github.com/LearnBoost/stylus>
 
 ## Brackets extension
 
-[@jasonsanjose](https://github.com/jasonsanjose) has created a Brackets extension based on node-sass: <https://github.com/jasonsanjose/brackets-sass>. When editing Sass files, the extension compiles changes on save. The extension also integrates with Live Preview to show Sass changes in the browser without saving or compiling.
+[@jasonsanjose](https://github.com/jasonsanjose) has created a [Brackets](http://brackets.io) extension based on node-sass: <https://github.com/jasonsanjose/brackets-sass>. When editing Sass files, the extension compiles changes on save. The extension also integrates with Live Preview to show Sass changes in the browser without saving or compiling.
 
 ## Example App
 
