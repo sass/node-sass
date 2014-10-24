@@ -104,6 +104,10 @@ console.log(sass.renderSync({
 
 * In the case that both `file` and `data` options are set, node-sass will only attempt to honour the `file` directive.
 
+## Brackets extension
+
+[@jasonsanjose](https://github.com/jasonsanjose) has created a [Brackets](http://brackets.io) extension based on node-sass: <https://github.com/jasonsanjose/brackets-sass>. When editing Sass files, the extension compiles changes on save. The extension also integrates with Live Preview to show Sass changes in the browser without saving or compiling.
+
 ## Connect/Express middleware
 
 Recompile `.scss` files automatically for connect and express based http servers
@@ -146,10 +150,6 @@ Heavily inspired by <https://github.com/LearnBoost/stylus>
 ## Mimosa module
 
 [@dbashford](https://github.com/dbashford) has created a Mimosa module for sass which includes node-sass: <https://github.com/dbashford/mimosa-sass>
-
-## Brackets extension
-
-[@jasonsanjose](https://github.com/jasonsanjose) has created a [Brackets](http://brackets.io) extension based on node-sass: <https://github.com/jasonsanjose/brackets-sass>. When editing Sass files, the extension compiles changes on save. The extension also integrates with Live Preview to show Sass changes in the browser without saving or compiling.
 
 ## Example App
 
