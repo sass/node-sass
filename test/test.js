@@ -311,3 +311,17 @@ describe('precision support', function() {
     });
   });
 });
+
+describe('compile with stats', function() {
+  it('should report correct sourceMap in stats with renderSync', function(done) {
+    var stats = {};
+    sass.renderSync({
+      file: sampleFilename,
+      stats: stats,
+      sourceComments: 'map',
+      sourceMap: true
+    });
+
+    done(assert.ok(stats.sourceMap.indexOf('sample.scss') !== -1));
+  });
+});
