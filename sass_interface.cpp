@@ -272,7 +272,7 @@ extern "C" {
   // caller must free the returned memory
   char* quote (const char *str, const char quotemark) {
     string quoted = Sass::quote(str, quotemark);
-    char *cstr = new char[quoted.length() + 1];
+    char *cstr = (char*) malloc(quoted.length() + 1);
     std::strcpy(cstr, quoted.c_str());
     return cstr;
   }
@@ -280,7 +280,7 @@ extern "C" {
   // caller must free the returned memory
   char* unquote (const char *str) {
     string unquoted = Sass::unquote(str);
-    char *cstr = new char[unquoted.length() + 1];
+    char *cstr = (char*) malloc(unquoted.length() + 1);
     std::strcpy(cstr, unquoted.c_str());
     return cstr;
   }
