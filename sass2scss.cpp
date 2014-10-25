@@ -2,6 +2,7 @@
 #include <stack>
 #include <string>
 #include <cstring>
+#include <cstdlib>
 #include <sstream>
 #include <iostream>
 
@@ -200,26 +201,27 @@ namespace Sass
 			// assertion for valid result
 			if (col_pos != string::npos)
 			{
+				char character = sass.at(col_pos);
 
-				if (sass.at(col_pos) == '(')
+				if (character == '(')
 				{
 					if (!quoted && !apoed) brackets ++;
 				}
-				else if (sass.at(col_pos) == ')')
+				else if (character == ')')
 				{
 					if (!quoted && !apoed) brackets --;
 				}
-				else if (sass.at(col_pos) == '\"')
+				else if (character == '\"')
 				{
 					// invert quote bool
 					if (!apoed && !comment) quoted = !quoted;
 				}
-				else if (sass.at(col_pos) == '\'')
+				else if (character == '\'')
 				{
 					// invert quote bool
 					if (!quoted && !comment) apoed = !apoed;
 				}
-				else if (col_pos > 0 && sass.at(col_pos) == '/')
+				else if (col_pos > 0 && character == '/')
 				{
 					if (sass.at(col_pos - 1) == '*')
 					{
@@ -232,13 +234,13 @@ namespace Sass
 						if (!quoted && !apoed && !comment && brackets == 0) return col_pos - 1;
 					}
 				}
-				else if (sass.at(col_pos) == '\\')
+				else if (character == '\\')
 				{
 					// skip next char if in quote
 					if (quoted || apoed) col_pos ++;
 				}
 				// this might be a comment opener
-				else if (col_pos > 0 && sass.at(col_pos) == '*')
+				else if (col_pos > 0 && character == '*')
 				{
 					// opening a multiline comment
 					if (sass.at(col_pos - 1) == '/')
@@ -284,18 +286,19 @@ namespace Sass
 			// assertion for valid result
 			if (col_pos != string::npos)
 			{
+				char character = sass.at(col_pos);
 
 				// found quoted string delimiter
-				if (sass.at(col_pos) == '\"')
+				if (character == '\"')
 				{
 					if (!apoed && !comment) quoted = !quoted;
 				}
-				else if (sass.at(col_pos) == '\'')
+				else if (character == '\'')
 				{
 					if (!quoted && !comment) apoed = !apoed;
 				}
 				// found possible comment closer
-				else if (sass.at(col_pos) == '/')
+				else if (character == '/')
 				{
 					// look back to see if it is actually a closer
 					if (comment && col_pos > 0 && sass.at(col_pos - 1) == '*')
@@ -303,13 +306,13 @@ namespace Sass
 						close_pos = col_pos + 1; comment = false;
 					}
 				}
-				else if (sass.at(col_pos) == '\\')
+				else if (character == '\\')
 				{
 					// skip escaped char
 					if (quoted || apoed) col_pos ++;
 				}
 				// this might be a comment opener
-				else if (sass.at(col_pos) == '*')
+				else if (character == '*')
 				{
 					// look back to see if it is actually an opener
 					if (!quoted && !apoed && col_pos > 0 && sass.at(col_pos - 1) == '/')
@@ -388,7 +391,7 @@ namespace Sass
 			if (comment_pos > 0)
 			{
 				// also include whitespace before the actual comment opener
-				size_t ws_pos = sass.find_last_not_of(" \t\n\v\f\r", comment_pos - 1);
+				size_t ws_pos = sass.find_last_not_of(SASS2SCSS_FIND_WHITESPACE, comment_pos - 1);
 				comment_pos = ws_pos == string::npos ? 0 : ws_pos + 1;
 			}
 			if (!STRIP_COMMENT(converter))
@@ -411,7 +414,7 @@ namespace Sass
 		if (PRETTIFY(converter) == 0)
 		{
 			// remove leading whitespace and update string
-			size_t pos_left = sass.find_first_not_of(" \t\n\v\f\r");
+			size_t pos_left = sass.find_first_not_of(SASS2SCSS_FIND_WHITESPACE);
 			if (pos_left != string::npos) sass = sass.substr(pos_left);
 		}
 
@@ -441,7 +444,7 @@ namespace Sass
 		sass = rtrim(sass);
 
 		// get postion of first meaningfull character in string
-		size_t pos_left = sass.find_first_not_of(" \t\n\v\f\r");
+		size_t pos_left = sass.find_first_not_of(SASS2SCSS_FIND_WHITESPACE);
 
 		// special case for final run
 		if (converter.end_of_file) pos_left = 0;
@@ -524,7 +527,7 @@ namespace Sass
 				// change back if property found
 				converter.selector = true;
 				// get postion of first whitespace char
-				size_t pos_wspace = sass.find_first_of(" \t\n\v\f\r", pos_left);
+				size_t pos_wspace = sass.find_first_of(SASS2SCSS_FIND_WHITESPACE, pos_left);
 				// assertion check for valid result
 				if (pos_wspace != string::npos)
 				{
@@ -532,7 +535,7 @@ namespace Sass
 					string pseudo = sass.substr(pos_left, pos_wspace - pos_left);
 					// get position of the first real property value char
 					// pseudo selectors get this far, but have no actual value
-					size_t pos_value =  sass.find_first_not_of(" \t\n\v\f\r", pos_wspace);
+					size_t pos_value =  sass.find_first_not_of(SASS2SCSS_FIND_WHITESPACE, pos_wspace);
 					// assertion check for valid result
 					if (pos_value != string::npos)
 					{
@@ -558,22 +561,22 @@ namespace Sass
 			}
 
 			// replace some specific sass shorthand directives (if not fallowed by a white space character)
-			else if (sass.substr(pos_left, 1) == "=" && sass.find_first_of(" \t\n\v\f\r", pos_left) != pos_left + 1)
+			else if (sass.substr(pos_left, 1) == "=" && sass.find_first_of(SASS2SCSS_FIND_WHITESPACE, pos_left) != pos_left + 1)
 			{ sass = indent + "@mixin " + sass.substr(pos_left + 1); }
-			else if (sass.substr(pos_left, 1) == "+" && sass.find_first_of(" \t\n\v\f\r", pos_left) != pos_left + 1)
+			else if (sass.substr(pos_left, 1) == "+" && sass.find_first_of(SASS2SCSS_FIND_WHITESPACE, pos_left) != pos_left + 1)
 			{ sass = indent + "@include " + sass.substr(pos_left + 1); }
 
 			// add quotes for import if needed
 			else if (sass.substr(pos_left, 7) == "@import")
 			{
 				// get positions for the actual import url
-				size_t pos_import = sass.find_first_of(" \t\n\v\f\r", pos_left + 7);
-				size_t pos_quote = sass.find_first_not_of(" \t\n\v\f\r", pos_import);
+				size_t pos_import = sass.find_first_of(SASS2SCSS_FIND_WHITESPACE, pos_left + 7);
+				size_t pos_quote = sass.find_first_not_of(SASS2SCSS_FIND_WHITESPACE, pos_import);
 				// check if the url is quoted
 				if (sass.substr(pos_quote, 1) != "\"" && sass.substr(pos_quote, 1) != "\'")
 				{
 					// get position of the last char on the line
-					size_t pos_end = sass.find_last_not_of(" \t\n\v\f\r");
+					size_t pos_end = sass.find_last_not_of(SASS2SCSS_FIND_WHITESPACE);
 					// assertion check for valid result
 					if (pos_end != string::npos)
 					{
@@ -684,7 +687,7 @@ namespace Sass
 			}
 
 			// get postion of last meaningfull char
-			size_t pos_right = sass.find_last_not_of(" \t\n\v\f\r");
+			size_t pos_right = sass.find_last_not_of(SASS2SCSS_FIND_WHITESPACE);
 
 			// check for invalid result
 			if (pos_right != string::npos)
