@@ -108,13 +108,14 @@ namespace Sass {
   private:
     // expressions in some contexts shouldn't be evaluated
     ADD_PROPERTY(bool, is_delayed);
+    ADD_PROPERTY(bool, is_expanded);
     ADD_PROPERTY(bool, is_interpolant);
     ADD_PROPERTY(Concrete_Type, concrete_type);
   public:
     Expression(string path, Position position,
-               bool d = false, bool i = false, Concrete_Type ct = NONE)
+               bool d = false, bool e = false, bool i = false, Concrete_Type ct = NONE)
     : AST_Node(path, position),
-      is_delayed_(d), is_interpolant_(i), concrete_type_(ct)
+      is_delayed_(d), is_expanded_(d), is_interpolant_(i), concrete_type_(ct)
     { }
     virtual operator bool() { return true; }
     virtual ~Expression() { };
@@ -204,6 +205,7 @@ namespace Sass {
   protected:
     size_t hash_;
     void reset_hash() { hash_ = 0; }
+    virtual void adjust_after_pushing(std::pair<Expression*, Expression*> p) { }
   public:
     Hashed(size_t s = 0) : elements_(unordered_map<Expression*, Expression*>(s)), list_(vector<Expression*>())
     { elements_.reserve(s); list_.reserve(s); }
@@ -219,6 +221,8 @@ namespace Sass {
       if (!has(p.first)) list_.push_back(p.first);
 
       elements_[p.first] = p.second;
+
+      adjust_after_pushing(p);
       return *this;
     }
     Hashed& operator+=(Hashed* h)
@@ -626,6 +630,7 @@ namespace Sass {
   // type-tag.) Also used to represent variable-length argument lists.
   ///////////////////////////////////////////////////////////////////////
   class List : public Expression, public Vectorized<Expression*> {
+    void adjust_after_pushing(Expression* e) { is_expanded(false); }
   public:
     enum Separator { SPACE, COMMA };
   private:
@@ -680,6 +685,7 @@ namespace Sass {
   ///////////////////////////////////////////////////////////////////////
 
   class Map : public Expression, public Hashed {
+    void adjust_after_pushing(std::pair<Expression*, Expression*> p) { is_expanded(false); }
   public:
     Map(string path, Position position,
          size_t size = 0)

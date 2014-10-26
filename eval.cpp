@@ -161,6 +161,7 @@ namespace Sass {
 
   Expression* Eval::operator()(List* l)
   {
+    if (l->is_expanded()) return l;
     List* ll = new (ctx.mem) List(l->path(),
                                   l->position(),
                                   l->length(),
@@ -169,17 +170,20 @@ namespace Sass {
     for (size_t i = 0, L = l->length(); i < L; ++i) {
       *ll << (*l)[i]->perform(this);
     }
+    ll->is_expanded(true);
     return ll;
   }
 
   Expression* Eval::operator()(Map* m)
   {
+    if (m->is_expanded()) return m;
     Map* mm = new (ctx.mem) Map(m->path(),
                                   m->position(),
                                   m->length());
     for (auto key : m->keys()) {
       *mm << std::make_pair(key->perform(this), m->at(key)->perform(this));
     }
+    mm->is_expanded(true);
     return mm;
   }
 
