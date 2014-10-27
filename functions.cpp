@@ -1192,7 +1192,7 @@ namespace Sass {
       Expression* v = ARG("$key", Expression);
       try {
         return m->at(v);
-      } catch (const std::out_of_range& oor) {
+      } catch (const std::out_of_range&) {
         return new (ctx.mem) Null(path, position);
       }
     }

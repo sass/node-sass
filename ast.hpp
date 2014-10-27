@@ -658,7 +658,7 @@ namespace Sass {
           if (!(*(elements()[i]) == *(l[i]))) return false;
         return true;
       }
-      catch (std::bad_cast& bc)
+      catch (std::bad_cast&)
       {
         return false;
       }
@@ -706,7 +706,7 @@ namespace Sass {
           if (!(*at(key) == *m.at(key))) return false;
         return true;
       }
-      catch (std::bad_cast& bc)
+      catch (std::bad_cast&)
       {
         return false;
       }
@@ -815,7 +815,7 @@ namespace Sass {
         Variable& e = dynamic_cast<Variable&>(rhs);
         return e && name() == e.name();
       }
-      catch (std::bad_cast& bc)
+      catch (std::bad_cast&)
       {
         return false;
       }
@@ -969,7 +969,7 @@ namespace Sass {
         e.normalize(find_convertible_unit());
         return unit() == e.unit() && value() == e.value();
       }
-      catch (std::bad_cast& bc)
+      catch (std::bad_cast&)
       {
         return false;
       }
@@ -1008,7 +1008,7 @@ namespace Sass {
         Color& c = (dynamic_cast<Color&>(rhs));
         return c && r() == c.r() && g() == c.g() && b() == c.b() && a() == c.a();
       }
-      catch (std::bad_cast& bc)
+      catch (std::bad_cast&)
       {
         return false;
       }
@@ -1044,7 +1044,7 @@ namespace Sass {
         Boolean& e = dynamic_cast<Boolean&>(rhs);
         return e && value() == e.value();
       }
-      catch (std::bad_cast& bc)
+      catch (std::bad_cast&)
       {
         return false;
       }
@@ -1120,7 +1120,7 @@ namespace Sass {
         String_Constant& e = dynamic_cast<String_Constant&>(rhs);
         return e && unquoted_ == e.unquoted_;
       }
-      catch (std::bad_cast& bc)
+      catch (std::bad_cast&)
       {
         return false;
       }

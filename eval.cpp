@@ -853,7 +853,7 @@ namespace Sass {
     Expression* e = 0;
     switch (v.unknown.tag) {
       case SASS_BOOLEAN: {
-        e = new (ctx.mem) Boolean(path, position, v.boolean.value);
+        e = new (ctx.mem) Boolean(path, position, !!v.boolean.value);
       } break;
       case SASS_NUMBER: {
         e = new (ctx.mem) Number(path, position, v.number.value, v.number.unit);

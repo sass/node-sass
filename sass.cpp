@@ -169,7 +169,7 @@ extern "C" {
   // make_sass_* may allocated additional memory
   void free_sass_value(const union Sass_Value val) {
 
-    int i;
+    size_t i;
     switch(val.unknown.tag) {
         // case SASS_NULL: {
         // }   break;
