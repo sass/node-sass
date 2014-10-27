@@ -63,7 +63,8 @@ namespace Sass {
     names_to_colors         (map<string, Color*>()),
     colors_to_names         (map<int, string>()),
     precision               (initializers.precision()),
-    subset_map              (Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >())
+    subset_map              (Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >()),
+    _skip_source_map_update (initializers._skip_source_map_update())
   {
     cwd = get_cwd();
 
