@@ -105,7 +105,7 @@ namespace Sass {
 
   Expression* Eval::operator()(Each* e)
   {
-    string variable(e->variable());
+    string variable(e->variables()[0]);
     Expression* expr = e->list()->perform(this);
     List* list = 0;
     if (expr->concrete_type() != Expression::LIST) {

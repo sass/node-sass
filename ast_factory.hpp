@@ -26,7 +26,7 @@ namespace Sass {
     Comment* new_Comment(string p, size_t l, String* txt);
     If* new_If(string p, size_t l, Expression* pred, Block* con, Block* alt = 0);
     For* new_For(string p, size_t l, string var, Expression* lo, Expression* hi, Block* b, bool inc);
-    Each* new_Each(string p, size_t l, string var, Expression* lst, Block* b);
+    Each* new_Each(string p, size_t l, vector<string> vars, Expression* lst, Block* b);
     While* new_While(string p, size_t l, Expression* pred, Block* b);
     Extension* new_Extension(string p, size_t l, Selector* s);
     Definition<MIXIN>* new_Mixin_Definition(string p, size_t l, string n, Parameters* params, Block* b);
