@@ -88,8 +88,8 @@ int sass_compile            (struct sass_context* ctx);
 int sass_compile_file       (struct sass_file_context* ctx);
 int sass_compile_folder     (struct sass_folder_context* ctx);
 
-const char* quote     (const char *str, const char quotemark);
-const char* unquote   (const char *str);
+char* quote     (const char *str, const char quotemark);
+char* unquote   (const char *str);
 
 #ifdef __cplusplus
 }

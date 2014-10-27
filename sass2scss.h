@@ -34,6 +34,9 @@ namespace Sass
 	// convert one-line to multi-line
 	const int SASS2SCSS_CONVERT_COMMENT = 128;
 
+	// String for finding something interesting
+	const string SASS2SCSS_FIND_WHITESPACE = " \t\n\v\f\r";
+
 	// converter struct
 	// holding all states
 	struct converter
