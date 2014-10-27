@@ -475,11 +475,11 @@ namespace Sass {
   // The Sass `@each` control directive.
   //////////////////////////////////////
   class Each : public Has_Block {
-    ADD_PROPERTY(vector<string>, variables);
+    ADD_PROPERTY(string, variable);
     ADD_PROPERTY(Expression*, list);
   public:
-    Each(string path, Position position, vector<string> vars, Expression* lst, Block* b)
-    : Has_Block(path, position, b), variables_(vars), list_(lst)
+    Each(string path, Position position, string var, Expression* lst, Block* b)
+    : Has_Block(path, position, b), variable_(var), list_(lst)
     { }
     ATTACH_OPERATIONS();
   };

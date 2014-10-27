@@ -211,14 +211,10 @@ namespace Sass {
 
   Statement* Expand::operator()(Each* e)
   {
-    vector<string> variables(e->variables());
+    string variable(e->variable());
     Expression* expr = e->list()->perform(eval->with(env, backtrace));
     List* list = 0;
-    Map* map = 0;
-    if (expr->concrete_type() == Expression::MAP) {
-      map = static_cast<Map*>(expr);
-    }
-    else if (expr->concrete_type() != Expression::LIST) {
+    if (expr->concrete_type() != Expression::LIST) {
       list = new (ctx.mem) List(expr->path(), expr->position(), 1, List::COMMA);
       *list << expr;
     }
@@ -226,31 +222,13 @@ namespace Sass {
       list = static_cast<List*>(expr);
     }
     Env new_env;
-    for (size_t i = 0, L = variables.size(); i < L; ++i) new_env[variables[i]] = 0;
+    new_env[variable] = 0;
     new_env.link(env);
     env = &new_env;
     Block* body = e->block();
-
-    if (map) {
-      for (auto key : map->keys()) {
-        (*env)[variables[0]] = key->perform(eval->with(env, backtrace));
-        (*env)[variables[1]] = map->at(key)->perform(eval->with(env, backtrace));
-        append_block(body);
-      }
-    }
-    else {
-      for (size_t i = 0, L = list->length(); i < L; ++i) {
-        List* variable = static_cast<List*>(list->value_at_index(i));
-        for (size_t j = 0, K = variables.size(); j < K; ++j) {
-          if (j < variable->length()) {
-            (*env)[variables[j]] = (*variable)[j]->perform(eval->with(env, backtrace));
-          }
-          else {
-            (*env)[variables[j]] = new (ctx.mem) Null(expr->path(), expr->position());
-          }
-        }
-        append_block(body);
-      }
+    for (size_t i = 0, L = list->length(); i < L; ++i) {
+      (*env)[variable] = (*list)[i]->perform(eval->with(env, backtrace));
+      append_block(body);
     }
     env = new_env.parent();
     return 0;

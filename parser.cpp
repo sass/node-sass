@@ -1,6 +1,5 @@
 #include <cstdlib>
 #include <iostream>
-#include <vector>
 #include "parser.hpp"
 #include "file.hpp"
 #include "inspect.hpp"
@@ -1455,12 +1454,7 @@ namespace Sass {
     lex < each_directive >();
     Position each_source_position = source_position;
     if (!lex< variable >()) error("@each directive requires an iteration variable");
-    vector<string> vars;
-    vars.push_back(Util::normalize_underscores(lexed));
-    while (peek< exactly<','> >() && lex< exactly<','> >()) {
-      if (!lex< variable >()) error("@each directive requires an iteration variable");
-      vars.push_back(Util::normalize_underscores(lexed));
-    }
+    string var(Util::normalize_underscores(lexed));
     if (!lex< in >()) error("expected 'in' keyword in @each directive");
     Expression* list = parse_list();
     list->is_delayed(false);
@@ -1472,7 +1466,7 @@ namespace Sass {
     }
     if (!peek< exactly<'{'> >()) error("expected '{' after the upper bound in @each directive");
     Block* body = parse_block();
-    return new (ctx.mem) Each(path, each_source_position, vars, list, body);
+    return new (ctx.mem) Each(path, each_source_position, var, list, body);
   }
 
   While* Parser::parse_while_directive()
