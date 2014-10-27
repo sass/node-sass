@@ -479,7 +479,7 @@ namespace Sass {
 
     // Match SCSS variable names.
     const char* variable(const char* src) {
-      return sequence<exactly<'$'>, name>(src);
+      return sequence<exactly<'$'>, identifier>(src);
     }
 
     // Match Sass boolean keywords.
