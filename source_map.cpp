@@ -79,16 +79,16 @@ namespace Sass {
       }
 
       // generated column
-      result += base64vlq.encode(generated_column - previous_generated_column);
+      result += base64vlq.encode(static_cast<int>(generated_column) - static_cast<int>(previous_generated_column));
       previous_generated_column = generated_column;
       // file
-      result += base64vlq.encode(original_file - previous_original_file);
+      result += base64vlq.encode(static_cast<int>(original_file) - static_cast<int>(previous_original_file));
       previous_original_file = original_file;
       // source line
-      result += base64vlq.encode(original_line - previous_original_line);
+      result += base64vlq.encode(static_cast<int>(original_line) - static_cast<int>(previous_original_line));
       previous_original_line = original_line;
       // source column
-      result += base64vlq.encode(original_column - previous_original_column);
+      result += base64vlq.encode(static_cast<int>(original_column) - static_cast<int>(previous_original_column));
       previous_original_column = original_column;
     }
 
