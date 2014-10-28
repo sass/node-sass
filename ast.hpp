@@ -853,13 +853,14 @@ namespace Sass {
     ADD_PROPERTY(double, value);
     vector<string> numerator_units_;
     vector<string> denominator_units_;
-    size_t hash_ = 0;
+    size_t hash_;
   public:
     Number(string path, Position position, double val, string u = "")
     : Expression(path, position),
       value_(val),
       numerator_units_(vector<string>()),
-      denominator_units_(vector<string>())
+      denominator_units_(vector<string>()),
+      hash_(0)
     {
       if (!u.empty()) numerator_units_.push_back(u);
       concrete_type(NUMBER);
@@ -993,10 +994,11 @@ namespace Sass {
     ADD_PROPERTY(double, b);
     ADD_PROPERTY(double, a);
     ADD_PROPERTY(string, disp);
-    size_t hash_ = 0;
+    size_t hash_;
   public:
     Color(string path, Position position, double r, double g, double b, double a = 1, const string disp = "")
-    : Expression(path, position), r_(r), g_(g), b_(b), a_(a), disp_(disp)
+    : Expression(path, position), r_(r), g_(g), b_(b), a_(a), disp_(disp),
+      hash_(0)
     { concrete_type(COLOR); }
     string type() { return "color"; }
     static string type_name() { return "color"; }
@@ -1028,9 +1030,11 @@ namespace Sass {
   ////////////
   class Boolean : public Expression {
     ADD_PROPERTY(bool, value);
-    size_t hash_ = 0;
+    size_t hash_;
   public:
-    Boolean(string path, Position position, bool val) : Expression(path, position), value_(val)
+    Boolean(string path, Position position, bool val)
+    : Expression(path, position), value_(val),
+      hash_(0)
     { concrete_type(BOOLEAN); }
     virtual operator bool() { return value_; }
     string type() { return "bool"; }
@@ -1096,19 +1100,19 @@ namespace Sass {
   class String_Constant : public String {
     ADD_PROPERTY(string, value);
     string unquoted_;
-    size_t hash_ = 0;
+    size_t hash_;
   public:
     String_Constant(string path, Position position, string val, bool unq = false)
-    : String(path, position, unq, true), value_(val)
+    : String(path, position, unq, true), value_(val), hash_(0)
     { unquoted_ = unquote(value_); }
     String_Constant(string path, Position position, const char* beg, bool unq = false)
-    : String(path, position, unq, true), value_(string(beg))
+    : String(path, position, unq, true), value_(string(beg)), hash_(0)
     { unquoted_ = unquote(value_); }
     String_Constant(string path, Position position, const char* beg, const char* end, bool unq = false)
-    : String(path, position, unq, true), value_(string(beg, end-beg))
+    : String(path, position, unq, true), value_(string(beg, end-beg)), hash_(0)
     { unquoted_ = unquote(value_); }
     String_Constant(string path, Position position, const Token& tok, bool unq = false)
-    : String(path, position, unq, true), value_(string(tok.begin, tok.end))
+    : String(path, position, unq, true), value_(string(tok.begin, tok.end)), hash_(0)
     { unquoted_ = unquote(value_); }
     string type() { return "string"; }
     static string type_name() { return "string"; }
