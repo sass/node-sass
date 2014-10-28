@@ -11,12 +11,12 @@ environment:
 install:
   - ps: Install-Product node $env:nodejs_version
   - cmd: SET PATH=C:\python27;%PATH%
-  - cmd: git submodule update --init --recursive
-  - npm install --msvs_version=2013
+  - git submodule update --init --recursive
+  - ps: npm install --msvs_version=2013
 
 test_script:
   - node --version
   - npm --version
-  - cmd: npm test
+  - ps: npm test
 
 build: off
