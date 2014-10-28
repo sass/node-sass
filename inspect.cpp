@@ -631,7 +631,8 @@ namespace Sass {
   void Inspect::append_to_buffer(const string& text)
   {
     buffer += text;
-    if (ctx) ctx->source_map.update_column(text);
+    if (ctx && !ctx->_skip_source_map_update)
+      ctx->source_map.update_column(text);
   }
 
 }

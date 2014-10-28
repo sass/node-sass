@@ -361,7 +361,8 @@ namespace Sass {
   void Output_Compressed::append_singleline_part_to_buffer(const string& text)
   {
     buffer += text;
-    if (ctx) ctx->source_map.update_column(text);
+    if (ctx && !ctx->_skip_source_map_update)
+      ctx->source_map.update_column(text);
   }
 
 }

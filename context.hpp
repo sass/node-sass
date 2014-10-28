@@ -60,6 +60,7 @@ namespace Sass {
     map<int, string>    colors_to_names;
 
     size_t precision; // precision for outputting fractional numbers
+    bool _skip_source_map_update; // status flag to skip source map updates
 
     KWD_ARG_SET(Data) {
       KWD_ARG(Data, const char*,     source_c_str);
@@ -75,6 +76,7 @@ namespace Sass {
       KWD_ARG(Data, bool,            omit_source_map_url);
       KWD_ARG(Data, bool,            is_indented_syntax_src);
       KWD_ARG(Data, size_t,          precision);
+      KWD_ARG(Data, bool,            _skip_source_map_update);
     };
 
     Context(Data);
