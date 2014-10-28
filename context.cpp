@@ -406,6 +406,7 @@ namespace Sass {
     // List Functions
     register_function(ctx, length_sig, length, env);
     register_function(ctx, nth_sig, nth, env);
+    register_function(ctx, set_nth_sig, set_nth, env);
     register_function(ctx, index_sig, index, env);
     register_function(ctx, join_sig, join, env);
     register_function(ctx, append_sig, append, env);

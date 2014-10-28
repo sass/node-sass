@@ -104,6 +104,7 @@ namespace Sass {
     extern Signature map_values_sig;
     extern Signature map_has_key_sig;
     extern Signature keywords_sig;
+    extern Signature set_nth_sig;
 
     BUILT_IN(rgb);
     BUILT_IN(rgba_4);
@@ -174,6 +175,7 @@ namespace Sass {
     BUILT_IN(map_values);
     BUILT_IN(map_has_key);
     BUILT_IN(keywords);
+    BUILT_IN(set_nth);
 
   }
 }
