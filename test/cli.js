@@ -25,6 +25,24 @@ var expectedSampleNoComments = '#navbar {\n\
   #navbar li a {\n\
     font-weight: bold; }\n';
 
+var sampleFilenameFwdSlashes = sampleFilename.replace(/\\/g, '/');
+
+var expectedSampleComments = '/* line 1, ' + sampleFilenameFwdSlashes + ' */\n\
+#navbar {\n\
+  width: 80%;\n\
+  height: 23px; }\n\
+\n\
+/* line 5, ' + sampleFilenameFwdSlashes + ' */\n\
+#navbar ul {\n\
+  list-style-type: none; }\n\
+\n\
+/* line 8, ' + sampleFilenameFwdSlashes + ' */\n\
+#navbar li {\n\
+  float: left; }\n\
+  /* line 10, ' + sampleFilenameFwdSlashes + ' */\n\
+  #navbar li a {\n\
+    font-weight: bold; }\n';
+
 var expectedSampleCustomImagePath = 'body {\n\
   background-image: url("/path/to/images/image.png"); }\n';
 
@@ -143,10 +161,10 @@ describe('cli', function() {
   });
 
   it('should compile with the --source-comments option', function(done) {
-    var emitter = cli(['--source-comments', 'none', sampleScssPath]);
+    var emitter = cli(['--source-comments', sampleScssPath]);
     emitter.on('error', done);
     emitter.on('write', function(err, file, css) {
-      assert.equal(css, expectedSampleNoComments);
+      assert.equal(css, expectedSampleComments);
       fs.unlink(file, done);
     });
   });
@@ -252,8 +270,8 @@ describe('cli', function() {
     });
   });
 
-  it('should compile a sourceMap if --source-comments="map", but the --source-map option is excluded', function(done) {
-    var emitter = cli([sampleScssPath, '--source-comments', 'map']);
+  it('should not compile a sourceMap if --source-map option is excluded', function(done) {
+    var emitter = cli([sampleScssPath, '--source-comments']);
     emitter.on('error', done);
     emitter.on('write-source-map', function(err, file) {
       assert.equal(file, sampleCssMapOutputPath);

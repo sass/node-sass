@@ -31,13 +31,6 @@ var SASS_OUTPUT_STYLE = {
   compressed: 3
 };
 
-var SASS_SOURCE_COMMENTS = {
-  none: false,
-  normal: true,
-  default: false,
-  map: true
-};
-
 var prepareOptions = function (options) {
   var success;
   var error;
@@ -50,11 +43,7 @@ var prepareOptions = function (options) {
   error = options.error;
   stats = options.stats || {};
 
-  sourceComments = options.source_comments || options.sourceComments;
-
-  if (options.sourceMap && !sourceComments) {
-    sourceComments = 'map';
-  }
+  sourceComments = options.source_comments || options.sourceComments || false;
 
   if (typeof options.outFile === 'string' && typeof options.file === 'string' && path.resolve(options.outFile) === path.normalize(options.outFile).replace(new RegExp(path.sep + '$'), '' )) {
     options.outFile = path.resolve(path.dirname(options.file), options.outFile);
@@ -62,10 +51,12 @@ var prepareOptions = function (options) {
 
   sourceMap = options.sourceMap;
 
-  if ((typeof sourceMap !== 'string' || !sourceMap.trim()) && sourceComments === 'map') {
-    sourceMap = options.outFile !== null ? options.outFile + '.map' : '';
-  } else if (options.outFile && sourceMap) {
-    sourceMap = path.resolve(path.dirname(options.file), sourceMap);
+  if (sourceMap) {
+    if (typeof sourceMap !== 'string' || !sourceMap.trim()) {
+      sourceMap = options.outFile !== null ? options.outFile + '.map' : '';
+    } else if (options.outFile) {
+      sourceMap = path.resolve(path.dirname(options.file), sourceMap);
+    }
   }
 
   prepareStats(options, stats);
@@ -81,7 +72,7 @@ var prepareOptions = function (options) {
     paths: (options.include_paths || options.includePaths || []).join(path.delimiter),
     imagePath: options.image_path || options.imagePath || '',
     style: SASS_OUTPUT_STYLE[options.output_style || options.outputStyle] || 0,
-    comments: SASS_SOURCE_COMMENTS[sourceComments] || false,
+    comments: sourceComments,
     omitSourceMapUrl: options.omitSourceMapUrl,
     indentedSyntax: options.indentedSyntax,
     stats: stats,

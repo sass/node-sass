@@ -23,7 +23,7 @@ describe('compile file with source comments', function() {
   it('should compile with render and comment outputs', function(done) {
     sass.render({
       file: sampleFilename,
-      source_comments: 'normal',
+      source_comments: 'map',
       success: function (css) {
         done(assert.equal(css, expectedCommentsScssStr));
       },
