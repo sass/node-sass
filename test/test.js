@@ -318,7 +318,6 @@ describe('compile with stats', function() {
     sass.renderSync({
       file: sampleFilename,
       stats: stats,
-      sourceComments: 'map',
       sourceMap: true
     });
 
