@@ -73,7 +73,7 @@ extern "C" {
   }
 
   void copy_strings(const std::vector<std::string>& strings, char*** array, int* n) {
-    int num = strings.size();
+    int num = static_cast<int>(strings.size());
     char** arr = (char**) malloc(sizeof(char*)* num);
 
     for(int i = 0; i < num; i++) {
@@ -96,7 +96,7 @@ extern "C" {
     using namespace Sass;
     try {
       string input_path = safe_str(c_ctx->input_path);
-      int lastindex = input_path.find_last_of(".");
+      int lastindex = static_cast<int>(input_path.find_last_of("."));
       string output_path;
       if (!c_ctx->output_path) {
         if (input_path != "") {
@@ -185,7 +185,7 @@ extern "C" {
     using namespace Sass;
     try {
       string input_path = safe_str(c_ctx->input_path);
-      int lastindex = input_path.find_last_of(".");
+      int lastindex = static_cast<int>(input_path.find_last_of("."));
       string output_path;
       if (!c_ctx->output_path) {
           output_path = (lastindex > -1 ? input_path.substr(0, lastindex) : input_path) + ".css";

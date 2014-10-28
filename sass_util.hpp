@@ -20,7 +20,7 @@ namespace Sass {
    */
   
 
-	/*
+  /*
     # Return a Node collection of all possible paths through the given Node collection of Node collections.
     #
     # @param arrs [NodeCollection<NodeCollection<Node>>]
@@ -33,7 +33,7 @@ namespace Sass {
     #     #  [1, 4, 5],
     #     #  [2, 4, 5]]
   */
-	Node paths(const Node& arrs, Context& ctx);
+  Node paths(const Node& arrs, Context& ctx);
   
   
   /*
@@ -42,11 +42,11 @@ namespace Sass {
   */
   class DefaultLcsComparator {
   public:
-  	bool operator()(const Node& one, const Node& two, Node& out) const {
-    	// TODO: Is this the correct C++ interpretation?
+    bool operator()(const Node& one, const Node& two, Node& out) const {
+      // TODO: Is this the correct C++ interpretation?
       // block ||= proc {|a, b| a == b && a}
       if (one == two) {
-      	out = one;
+        out = one;
         return true;
       }
 
@@ -55,7 +55,7 @@ namespace Sass {
   };
 
   
-	typedef vector<vector<int> > LCSTable;
+  typedef vector<vector<int> > LCSTable;
   
   
   /*
@@ -63,17 +63,17 @@ namespace Sass {
   
   # Computes a single longest common subsequence for arrays x and y.
   # Algorithm from http://en.wikipedia.org/wiki/Longest_common_subsequence_problem#Reading_out_an_LCS
-	*/
+  */
   template<typename ComparatorType>
   Node lcs_backtrace(const LCSTable& c, const Node& x, const Node& y, int i, int j, const ComparatorType& comparator) {
-  	DEBUG_PRINTLN(LCS, "LCSBACK: X=" << x << " Y=" << y << " I=" << i << " J=" << j)
+    DEBUG_PRINTLN(LCS, "LCSBACK: X=" << x << " Y=" << y << " I=" << i << " J=" << j)
 
-  	if (i == 0 || j == 0) {
-    	DEBUG_PRINTLN(LCS, "RETURNING EMPTY")
-    	return Node::createCollection();
+    if (i == 0 || j == 0) {
+      DEBUG_PRINTLN(LCS, "RETURNING EMPTY")
+      return Node::createCollection();
     }
     
-  	NodeDeque& xChildren = *(x.collection());
+    NodeDeque& xChildren = *(x.collection());
     NodeDeque& yChildren = *(y.collection());
 
     Node compareOut = Node::createNil();
@@ -85,8 +85,8 @@ namespace Sass {
     }
     
     if (c[i][j - 1] > c[i - 1][j]) {
-    	DEBUG_PRINTLN(LCS, "RETURNING AFTER TABLE COMPARE")
-    	return lcs_backtrace(c, x, y, i, j - 1, comparator);
+      DEBUG_PRINTLN(LCS, "RETURNING AFTER TABLE COMPARE")
+      return lcs_backtrace(c, x, y, i, j - 1, comparator);
     }
     
     DEBUG_PRINTLN(LCS, "FINAL RETURN")
@@ -102,25 +102,25 @@ namespace Sass {
   */
   template<typename ComparatorType>
   void lcs_table(const Node& x, const Node& y, const ComparatorType& comparator, LCSTable& out) {
-  	DEBUG_PRINTLN(LCS, "LCSTABLE: X=" << x << " Y=" << y)
+    DEBUG_PRINTLN(LCS, "LCSTABLE: X=" << x << " Y=" << y)
 
-  	NodeDeque& xChildren = *(x.collection());
+    NodeDeque& xChildren = *(x.collection());
     NodeDeque& yChildren = *(y.collection());
 
-  	LCSTable c(xChildren.size(), vector<int>(yChildren.size()));
+    LCSTable c(xChildren.size(), vector<int>(yChildren.size()));
     
     // These shouldn't be necessary since the vector will be initialized to 0 already.
     // x.size.times {|i| c[i][0] = 0}
     // y.size.times {|j| c[0][j] = 0}
 
     for (size_t i = 1; i < xChildren.size(); i++) {
-    	for (size_t j = 1; j < yChildren.size(); j++) {
+      for (size_t j = 1; j < yChildren.size(); j++) {
         Node compareOut = Node::createNil();
 
-      	if (comparator(xChildren[i], yChildren[j], compareOut)) {
-        	c[i][j] = c[i - 1][j - 1] + 1;
+        if (comparator(xChildren[i], yChildren[j], compareOut)) {
+          c[i][j] = c[i - 1][j - 1] + 1;
         } else {
-        	c[i][j] = max(c[i][j - 1], c[i - 1][j]);
+          c[i][j] = max(c[i][j - 1], c[i - 1][j]);
         }
       }
     }
@@ -145,7 +145,7 @@ namespace Sass {
   */
   template<typename ComparatorType>
   Node lcs(Node& x, Node& y, const ComparatorType& comparator, Context& ctx) {
-  	DEBUG_PRINTLN(LCS, "LCS: X=" << x << " Y=" << y)
+    DEBUG_PRINTLN(LCS, "LCS: X=" << x << " Y=" << y)
 
     Node newX = Node::createCollection();
     newX.collection()->push_back(Node::createNil());
@@ -158,11 +158,11 @@ namespace Sass {
     LCSTable table;
     lcs_table(newX, newY, comparator, table);
     
-		return lcs_backtrace(table, newX, newY, newX.collection()->size() - 1, newY.collection()->size() - 1, comparator);
+    return lcs_backtrace(table, newX, newY, static_cast<int>(newX.collection()->size()) - 1, static_cast<int>(newY.collection()->size()) - 1, comparator);
   }
 
 
-	/*
+  /*
   This is the equivalent of ruby sass' Sass::Util.flatten and [].flatten.
   Sass::Util.flatten requires the number of levels to flatten, while
   [].flatten doesn't and will flatten the entire array. This function
@@ -222,34 +222,34 @@ namespace Sass {
 
   */
   template<typename EnumType, typename KeyType, typename KeyFunctorType>
-	void group_by_to_a(vector<EnumType>& enumeration, KeyFunctorType& keyFunc, vector<pair<KeyType, vector<EnumType> > >& arr /*out*/) {
+  void group_by_to_a(vector<EnumType>& enumeration, KeyFunctorType& keyFunc, vector<pair<KeyType, vector<EnumType> > >& arr /*out*/) {
 
-  	map<unsigned int, KeyType> order;
+    map<unsigned int, KeyType> order;
 
     map<KeyType, vector<EnumType> > grouped;
 
     for (typename vector<EnumType>::iterator enumIter = enumeration.begin(), enumIterEnd = enumeration.end(); enumIter != enumIterEnd; enumIter++) {
-    	EnumType& e = *enumIter;
+      EnumType& e = *enumIter;
       
       KeyType key = keyFunc(e);
 
       if (grouped.find(key) == grouped.end()) {
-	      order.insert(make_pair(order.size(), key));
+        order.insert(make_pair(order.size(), key));
 
-      	vector<EnumType> newCollection;
+        vector<EnumType> newCollection;
         newCollection.push_back(e);
-      	grouped.insert(make_pair(key, newCollection));
+        grouped.insert(make_pair(key, newCollection));
       } else {
-      	vector<EnumType>& collection = grouped.at(key);
+        vector<EnumType>& collection = grouped.at(key);
         collection.push_back(e);
       }
     }
     
     for (unsigned int index = 0; index < order.size(); index++) {
-    	KeyType& key = order.at(index);
+      KeyType& key = order.at(index);
       vector<EnumType>& values = grouped.at(key);
 
-			pair<KeyType, vector<EnumType> > grouping = make_pair(key, values);
+      pair<KeyType, vector<EnumType> > grouping = make_pair(key, values);
 
       arr.push_back(grouping);
     }
