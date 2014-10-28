@@ -122,9 +122,7 @@ namespace Sass {
       // JMA - not hoisted, just output in order
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
-        if (!stm->is_hoistable()) {
-          stm->perform(this);
-        }
+        stm->perform(this);
       }
     }
 
