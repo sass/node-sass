@@ -120,6 +120,24 @@ describe('cli', function() {
     });
   });
 
+  it('should compile sample.scss as sample.css without isTTY', function(done) {
+    this.timeout(6000);
+    var env = assign(process.env, { isTTY: '' });
+    var resultPath = path.join(__dirname, 'sample.css');
+
+    exec('node ' + cliPath + ' ' + sampleFilename, {
+      cwd: __dirname,
+      env: env
+    }, function(err) {
+      assert.equal(err, null);
+
+      fs.exists(resultPath, function(exists) {
+        assert(exists);
+        fs.unlink(resultPath, done);
+      });
+    });
+  });
+
   it('should compile sample.scss to ../out.css', function(done) {
     this.timeout(6000);
     var env = assign(process.env, { isTTY: true });
@@ -204,10 +222,47 @@ describe('cli', function() {
     emitter.on('error', done);
     emitter.on('done', function() {
       fs.exists(sampleCssOutputPath, function(exists) {
-        assert(!exists);
         if (exists) {fs.unlinkSync(sampleCssOutputPath);}
+        assert(!exists);
         done();
       });
+    });
+  });
+
+  it('should write to stdout with the --stdout option without isTTY', function(done) {
+    this.timeout(6000);
+    var env = assign(process.env, { isTTY: '' });
+
+    exec('node ' + cliPath + ' --stdout ' + sampleScssPath, {
+      cwd: __dirname,
+      env: env
+    }, function(err, stdout) {
+      if (err) {
+        done(err);
+      } else {
+        assert.equal(stdout.replace(/[\n\r]$/, ''), expectedSampleNoComments);
+        done();
+      }
+    });
+  });
+
+  it('should not write to disk with the --stdout option without isTTY', function(done) {
+    this.timeout(6000);
+    var env = assign(process.env, { isTTY: '' });
+
+    exec('node ' + cliPath + ' --stdout ' + sampleScssPath, {
+      cwd: __dirname,
+      env: env
+    }, function(err) {
+      if (err) {
+        done(err);
+      } else {
+        fs.exists(sampleCssOutputPath, function(exists) {
+          if (exists) {fs.unlinkSync(sampleCssOutputPath);}
+          assert(!exists);
+          done();
+        });
+      }
     });
   });
 
