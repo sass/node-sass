@@ -1,4 +1,4 @@
-# node-sass
+﻿# node-sass
 
 ![logo](https://rawgit.com/sass/node-sass/master/media/logo.svg)
 
@@ -81,9 +81,10 @@ The API for using node-sass has changed, so that now there is only one variable 
 `precision` is a `Number` that will be used to determine how many digits after the decimal will be allowed. For instance, if you had a decimal number of `1.23456789` and a precision of `5`, the result will be `1.23457` in the final CSS.
 
 #### sourceComments
-`sourceComments` is a `String` to determine what debug information is included in the output file. Its value should be one of `'none', 'normal', 'map'`. The default is `'none'`.
-The `map` option will create the source map file in your CSS destination.
-[Important: `souceComments` is only supported when using the `file` option, and does nothing when using `data` flag.]
+`sourceComments` is a `Boolean` flag to determine what debug information is included in the output file.
+
+#### omitSourceMapUrl
+`omitSourceMapUrl` is a `Boolean` flag to determine whether to include `sourceMappingURL` comment in the output file.
 
 #### sourceMap
 If your `sourceComments` option is set to `map`, `sourceMap` allows setting a new path context for the referenced Sass files.
@@ -235,10 +236,11 @@ Output will be saved with the same name as input SASS file into the current work
 
  **Options:**
 
-      --output-style     CSS output style (nested|expanded|compact|compressed)  [default: "nested"]
-      --source-comments  Include debug info in output (none|normal|map)         [default: "none"]
-      --include-path     Path to look for @import-ed files                      [default: cwd]
-      --help, -h         Print usage info
+      --output-style         CSS output style (nested|expanded|compact|compressed)  [default: "nested"]
+      --source-comments      Include debug info in output                           [default: false]
+      --omit-source-map-url  Omit source map URL comment from output                [default: false]
+      --include-path         Path to look for @import-ed files                      [default: cwd]
+      --help, -h             Print usage info
 
 ## Post-install Build
 
