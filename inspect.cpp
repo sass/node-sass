@@ -162,7 +162,11 @@ namespace Sass {
   void Inspect::operator()(Each* loop)
   {
     append_to_buffer("@each ");
-    append_to_buffer(loop->variable());
+    append_to_buffer(loop->variables()[0]);
+    for (size_t i = 1, L = loop->variables().size(); i < L; ++i) {
+      append_to_buffer(", ");
+      append_to_buffer(loop->variables()[i]);
+    }
     append_to_buffer(" in ");
     loop->list()->perform(this);
     loop->block()->perform(this);
