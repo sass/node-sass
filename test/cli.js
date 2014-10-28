@@ -186,8 +186,8 @@ describe('cli', function() {
     emitter.on('error', done);
     emitter.on('done', function() {
       fs.exists(sampleCssOutputPath, function(exists) {
-        assert(!exists);
         if (exists) {fs.unlinkSync(sampleCssOutputPath);}
+        assert(!exists);
         done();
       });
     });
