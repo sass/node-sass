@@ -271,8 +271,8 @@ namespace Sass {
     if (!lex< exactly<':'> >()) error("expected ':' after " + name + " in assignment statement");
     Expression* val = parse_list();
     val->is_delayed(false);
-    bool is_guarded = lex< default_flag >();
-    bool is_global = lex< global_flag >();
+    bool is_guarded = lex< default_flag >() != NULL;
+    bool is_global = lex< global_flag >() != NULL;
     Assignment* var = new (ctx.mem) Assignment(path, var_source_position, name, val, is_guarded, is_global);
     return var;
   }
@@ -1070,7 +1070,7 @@ namespace Sass {
         *args << arg;
         return result;
       }
-      catch (Error& err) {
+      catch (Error&) {
         // back up so we can try again
         position = here;
         source_position = here_p;

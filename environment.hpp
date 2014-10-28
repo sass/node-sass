@@ -33,7 +33,7 @@ namespace Sass {
     }
 
     bool current_frame_has(const string key) const
-    { return current_frame_.count(key); }
+    { return !!current_frame_.count(key); }
 
     Environment* grandparent() const
     {

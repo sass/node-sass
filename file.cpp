@@ -2,14 +2,6 @@
 #define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
 #endif
 
-#ifndef FS_CASE_SENSITIVE
-#ifdef _WIN32
-#define FS_CASE_SENSITIVE 0
-#else
-#define FS_CASE_SENSITIVE 1
-#endif
-#endif
-
 #include <iostream>
 #include <fstream>
 #include <cctype>
@@ -22,6 +14,14 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#endif
+
+#ifndef FS_CASE_SENSITIVE
+#ifdef _WIN32
+#define FS_CASE_SENSITIVE 0
+#else
+#define FS_CASE_SENSITIVE 1
+#endif
 #endif
 
 namespace Sass {
@@ -226,8 +226,6 @@ namespace Sass {
 
     char* read_file(string path)
     {
-      struct stat st;
-
 #ifdef _WIN32
       BYTE* pBuffer;
       DWORD dwBytes;
@@ -244,6 +242,7 @@ namespace Sass {
       // just convert from unsigned char*
       char* contents = (char*) pBuffer;
 #else
+      struct stat st;
       if (stat(path.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
       ifstream file(path.c_str(), ios::in | ios::binary | ios::ate);
       char* contents = 0;
