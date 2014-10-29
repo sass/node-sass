@@ -49,7 +49,7 @@ if (!force && !process.env.SKIP_NODE_SASS_TESTS) {
     mocha.run(function () {
       // at least 90% of tests should pass
       if ((total - failures) * 100 / total < 90) {
-        console.log('Problem with the binary; manual build incoming');
+        console.log('Problem with the binary: ' + failures + ' of ' + total + ' tests are failing.\nManual build incoming');
         console.log('Please consider contributing the release binary to https://github.com/sass/node-sass-binaries for npm distribution.');
         build();
       } else {
