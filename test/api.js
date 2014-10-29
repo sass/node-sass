@@ -175,6 +175,7 @@ describe('api', function() {
         outFile: dest,
         success: function() {
           assert.equal(read(dest, 'utf8').trim(), expected);
+          fs.unlinkSync(dest);
           done();
         }
       });
