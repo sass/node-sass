@@ -10,12 +10,12 @@ describe('cli', function() {
   describe('node-sass < in.scss', function() {
     it('should read data from stdin', function(done) {
       var src = fs.createReadStream(fixture('simple/index.scss'));
-      var expected = fixture('simple/expected.css');
+      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
       var bin = spawn(cli, ['--stdout']);
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
-        assert.equal(data.trim(), read(expected, 'utf8').trim());
+        assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
 
@@ -38,12 +38,12 @@ describe('cli', function() {
 
     it('should compile sass using the --indented-syntax option', function(done) {
       var src = fs.createReadStream(fixture('indent/index.sass'));
-      var expected = fixture('indent/expected.css');
+      var expected = read(fixture('indent/expected.css'), 'utf8').trim();
       var bin = spawn(cli, ['--stdout', '--indented-syntax']);
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
-        assert.equal(data.trim(), read(expected, 'utf8').trim());
+        assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
 
@@ -52,12 +52,12 @@ describe('cli', function() {
 
     it('should compile with the --output-style option', function(done) {
       var src = fs.createReadStream(fixture('compressed/index.scss'));
-      var expected = fixture('compressed/expected.css');
+      var expected = read(fixture('compressed/expected.css'), 'utf8').trim();
       var bin = spawn(cli, ['--stdout', '--output-style', 'compressed']);
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
-        assert.equal(data.trim(), read(expected, 'utf8').trim());
+        assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
 
@@ -66,12 +66,12 @@ describe('cli', function() {
 
     it('should compile with the --source-comments option', function(done) {
       var src = fs.createReadStream(fixture('source-comments/index.scss'));
-      var expected = fixture('source-comments/expected.css');
+      var expected = read(fixture('source-comments/expected.css'), 'utf8').trim();
       var bin = spawn(cli, ['--stdout', '--source-comments']);
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
-        assert.equal(data.trim(), read(expected, 'utf8').trim());
+        assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
 
@@ -80,12 +80,12 @@ describe('cli', function() {
 
     it('should compile with the --image-path option', function(done) {
       var src = fs.createReadStream(fixture('image-path/index.scss'));
-      var expected = fixture('image-path/expected.css');
+      var expected = read(fixture('image-path/expected.css'), 'utf8').trim();
       var bin = spawn(cli, ['--stdout', '--image-path', '/path/to/images']);
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
-        assert.equal(data.trim(), read(expected, 'utf8').trim());
+        assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
 
@@ -116,12 +116,12 @@ describe('cli', function() {
       ];
 
       var src = fixture('include-path/index.scss');
-      var expected = fixture('include-path/expected.css');
+      var expected = read(fixture('include-path/expected.css'), 'utf8').trim();
       var bin = spawn(cli, [src, '--stdout'].concat(includePaths));
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
-        assert.equal(data.trim(), read(expected, 'utf8').trim());
+        assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
     });
@@ -162,12 +162,12 @@ describe('cli', function() {
     it('should compile with the --source-map option', function(done) {
       var src = fixture('source-map/index.scss');
       var dest = fixture('source-map/build.css');
-      var expected = fixture('source-map/expected.css');
+      var expected = read(fixture('source-map/expected.css'), 'utf8').trim();
       var map = fixture('source-map/index.map');
       var bin = spawn(cli, [src, '--output', dest, '--source-map', map]);
 
       bin.on('close', function () {
-        assert.equal(read(dest, 'utf8').trim(), read(expected, 'utf8').trim());
+        assert.equal(read(dest, 'utf8').trim(), expected);
         assert(fs.existsSync(map));
         fs.unlinkSync(map);
         fs.unlinkSync(dest);

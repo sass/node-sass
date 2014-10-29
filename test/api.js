@@ -14,7 +14,7 @@ describe('api (deprecated)', function() {
 
       sass.render(src, function(err, css) {
         assert(!err);
-        assert.equal(css.trim(), expected);
+        assert.equal(css.trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
     });
@@ -32,7 +32,7 @@ describe('api (deprecated)', function() {
       var src = read(fixture('simple/index.scss'), 'utf8');
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
 
-      assert.equal(sass.renderSync(src).trim(), expected);
+      assert.equal(sass.renderSync(src).trim(), expected.replace(/\r\n/g, '\n'));
       done();
     });
 
@@ -55,7 +55,7 @@ describe('api', function() {
       sass.render({
         data: src,
         success: function(css) {
-          assert.equal(css.trim(), expected);
+          assert.equal(css.trim(), expected.replace(/\r\n/g, '\n'));
           done();
         }
       });
@@ -83,7 +83,7 @@ describe('api', function() {
           fixture('include-path/lib')
         ],
         success: function(css) {
-          assert.equal(css.trim(), expected);
+          assert.equal(css.trim(), expected.replace(/\r\n/g, '\n'));
           done();
         }
       });
@@ -97,7 +97,7 @@ describe('api', function() {
         data: src,
         imagePath: '/path/to/images',
         success: function(css) {
-          assert.equal(css.trim(), expected);
+          assert.equal(css.trim(), expected.replace(/\r\n/g, '\n'));
           done();
         }
       });
@@ -124,7 +124,7 @@ describe('api', function() {
         data: src,
         precision: 10,
         success: function(css) {
-          assert.equal(css.trim(), expected);
+          assert.equal(css.trim(), expected.replace(/\r\n/g, '\n'));
           done();
         }
       });
@@ -151,7 +151,7 @@ describe('api', function() {
       var src = read(fixture('simple/index.scss'), 'utf8');
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
 
-      assert.equal(sass.renderSync({ data: src }).trim(), expected);
+      assert.equal(sass.renderSync({ data: src }).trim(), expected.replace(/\r\n/g, '\n'));
       done();
     });
 
@@ -174,7 +174,7 @@ describe('api', function() {
         data: src,
         outFile: dest,
         success: function() {
-          assert.equal(read(dest, 'utf8').trim(), expected);
+          assert.equal(read(dest, 'utf8').trim(), expected.replace(/\r\n/g, '\n'));
           fs.unlinkSync(dest);
           done();
         }
@@ -283,18 +283,26 @@ describe('api', function() {
     });
 
     it('should contain an array of all included files', function(done) {
-      assert.equal(stats.includedFiles[0], resolveFixture('include-files/bar.scss'));
-      assert.equal(stats.includedFiles[1], resolveFixture('include-files/foo.scss'));
-      assert.equal(stats.includedFiles[2], resolveFixture('include-files/index.scss'));
+      var expected = [
+        fixture('include-files/bar.scss').replace(/\\/g, '/'),
+        fixture('include-files/foo.scss').replace(/\\/g, '/'),
+        fixture('include-files/index.scss').replace(/\\/g, '/')
+      ];
+
+      assert.equal(stats.includedFiles[0], expected[0]);
+      assert.equal(stats.includedFiles[1], expected[1]);
+      assert.equal(stats.includedFiles[2], expected[2]);
       done();
     });
 
     it('should contain array with the entry if there are no import statements', function(done) {
+      var expected = fixture('simple/index.scss').replace(/\\/g, '/');
+
       sass.render({
         file: fixture('simple/index.scss'),
         stats: stats,
         success: function () {
-          assert.deepEqual(stats.includedFiles, [resolveFixture('simple/index.scss')]);
+          assert.deepEqual(stats.includedFiles, [expected]);
           done();
         }
       });
@@ -358,19 +366,26 @@ describe('api', function() {
     });
 
     it('should contain an array of all included files', function(done) {
-      assert.equal(stats.includedFiles[0], resolveFixture('include-files/bar.scss'));
-      assert.equal(stats.includedFiles[1], resolveFixture('include-files/foo.scss'));
-      assert.equal(stats.includedFiles[2], resolveFixture('include-files/index.scss'));
+      var expected = [
+        fixture('include-files/bar.scss').replace(/\\/g, '/'),
+        fixture('include-files/foo.scss').replace(/\\/g, '/'),
+        fixture('include-files/index.scss').replace(/\\/g, '/')
+      ];
+
+      assert.equal(stats.includedFiles[0], expected[0]);
+      assert.equal(stats.includedFiles[1], expected[1]);
+      assert.equal(stats.includedFiles[2], expected[2]);
       done();
     });
 
     it('should contain array with the entry if there are no import statements', function(done) {
+      var expected = fixture('simple/index.scss').replace(/\\/g, '/');
       sass.renderSync({
         file: fixture('simple/index.scss'),
         stats: stats
       });
 
-      assert.deepEqual(stats.includedFiles, [fixture('simple/index.scss')]);
+      assert.deepEqual(stats.includedFiles, [expected]);
       done();
     });
 
