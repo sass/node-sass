@@ -44,7 +44,7 @@ if (!force && !process.env.SKIP_NODE_SASS_TESTS) {
       timeout: 999999
     });
 
-    mocha.addFile(path.resolve(__dirname, 'test', 'test.js'));
+    mocha.addFile(path.resolve(__dirname, 'test', 'api.js'));
 
     mocha.run(function () {
       // at least 90% of tests should pass
