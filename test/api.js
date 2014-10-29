@@ -3,17 +3,18 @@ var assert = require('assert'),
     path = require('path'),
     read = fs.readFileSync,
     sass = require('../sass'),
-    fixture = path.join.bind(null, __dirname, 'fixtures');
+    fixture = path.join.bind(null, __dirname, 'fixtures'),
+    resolveFixture = path.resolve.bind(null, __dirname, 'fixtures');
 
 describe('api (deprecated)', function() {
   describe('.render(src, fn)', function() {
     it('should compile sass to css', function(done) {
       var src = read(fixture('simple/index.scss'), 'utf8');
-      var expected = read(fixture('simple/expected.css'), 'utf8');
+      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
 
       sass.render(src, function(err, css) {
         assert(!err);
-        assert.equal(css, expected);
+        assert.equal(css.trim(), expected);
         done();
       });
     });
@@ -29,9 +30,9 @@ describe('api (deprecated)', function() {
   describe('.renderSync(src)', function() {
     it('should compile sass to css', function(done) {
       var src = read(fixture('simple/index.scss'), 'utf8');
-      var expected = read(fixture('simple/expected.css'), 'utf8');
+      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
 
-      assert.equal(sass.renderSync(src), expected);
+      assert.equal(sass.renderSync(src).trim(), expected);
       done();
     });
 
@@ -49,12 +50,12 @@ describe('api', function() {
   describe('.render(options)', function() {
     it('should compile sass to css', function(done) {
       var src = read(fixture('simple/index.scss'), 'utf8');
-      var expected = read(fixture('simple/expected.css'), 'utf8');
+      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
 
       sass.render({
         data: src,
         success: function(css) {
-          assert.equal(css, expected);
+          assert.equal(css.trim(), expected);
           done();
         }
       });
@@ -73,7 +74,7 @@ describe('api', function() {
 
     it('should compile with include paths', function(done) {
       var src = read(fixture('include-path/index.scss'), 'utf8');
-      var expected = read(fixture('include-path/expected.css'), 'utf8');
+      var expected = read(fixture('include-path/expected.css'), 'utf8').trim();
 
       sass.render({
         data: src,
@@ -82,24 +83,7 @@ describe('api', function() {
           fixture('include-path/lib')
         ],
         success: function(css) {
-          assert.equal(css, expected);
-          done();
-        }
-      });
-    });
-
-    it('should compile with include paths', function(done) {
-      var src = read(fixture('include-path/index.scss'), 'utf8');
-      var expected = read(fixture('include-path/expected.css'), 'utf8');
-
-      sass.render({
-        data: src,
-        includePaths: [
-          fixture('include-path/functions'),
-          fixture('include-path/lib')
-        ],
-        success: function(css) {
-          assert.equal(css, expected);
+          assert.equal(css.trim(), expected);
           done();
         }
       });
@@ -107,13 +91,13 @@ describe('api', function() {
 
     it('should compile with image path', function(done) {
       var src = read(fixture('image-path/index.scss'), 'utf8');
-      var expected = read(fixture('image-path/expected.css'), 'utf8');
+      var expected = read(fixture('image-path/expected.css'), 'utf8').trim();
 
       sass.render({
         data: src,
         imagePath: '/path/to/images',
         success: function(css) {
-          assert.equal(css, expected);
+          assert.equal(css.trim(), expected);
           done();
         }
       });
@@ -134,13 +118,13 @@ describe('api', function() {
 
     it('should render with --precision option', function(done) {
       var src = read(fixture('precision/index.scss'), 'utf8');
-      var expected = read(fixture('precision/expected.css'), 'utf8');
+      var expected = read(fixture('precision/expected.css'), 'utf8').trim();
 
       sass.render({
         data: src,
         precision: 10,
         success: function(css) {
-          assert.equal(css, expected);
+          assert.equal(css.trim(), expected);
           done();
         }
       });
@@ -165,9 +149,9 @@ describe('api', function() {
   describe('.renderSync(options)', function() {
     it('should compile with renderSync', function(done) {
       var src = read(fixture('simple/index.scss'), 'utf8');
-      var expected = read(fixture('simple/expected.css'), 'utf8');
+      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
 
-      assert.equal(sass.renderSync({ data: src }), expected);
+      assert.equal(sass.renderSync({ data: src }).trim(), expected);
       done();
     });
 
@@ -184,13 +168,13 @@ describe('api', function() {
     it('should compile with renderFile', function(done) {
       var src = read(fixture('simple/index.scss'), 'utf8');
       var dest = fixture('simple/build.css');
-      var expected = read(fixture('simple/expected.css'), 'utf8');
+      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
 
       sass.renderFile({
         data: src,
         outFile: dest,
         success: function() {
-          assert.equal(read(dest, 'utf8'), expected);
+          assert.equal(read(dest, 'utf8').trim(), expected);
           done();
         }
       });
@@ -298,9 +282,9 @@ describe('api', function() {
     });
 
     it('should contain an array of all included files', function(done) {
-      assert.equal(stats.includedFiles[0], fixture('include-files/bar.scss'));
-      assert.equal(stats.includedFiles[1], fixture('include-files/foo.scss'));
-      assert.equal(stats.includedFiles[2], fixture('include-files/index.scss'));
+      assert.equal(stats.includedFiles[0], resolveFixture('include-files/bar.scss'));
+      assert.equal(stats.includedFiles[1], resolveFixture('include-files/foo.scss'));
+      assert.equal(stats.includedFiles[2], resolveFixture('include-files/index.scss'));
       done();
     });
 
@@ -309,7 +293,7 @@ describe('api', function() {
         file: fixture('simple/index.scss'),
         stats: stats,
         success: function () {
-          assert.deepEqual(stats.includedFiles, [fixture('simple/index.scss')]);
+          assert.deepEqual(stats.includedFiles, [resolveFixture('simple/index.scss')]);
           done();
         }
       });
@@ -368,14 +352,14 @@ describe('api', function() {
     });
 
     it('should contain the given entry file', function(done) {
-      assert.equal(stats.entry, fixture('include-files/index.scss'));
+      assert.equal(stats.entry, resolveFixture('include-files/index.scss'));
       done();
     });
 
     it('should contain an array of all included files', function(done) {
-      assert.equal(stats.includedFiles[0], fixture('include-files/bar.scss'));
-      assert.equal(stats.includedFiles[1], fixture('include-files/foo.scss'));
-      assert.equal(stats.includedFiles[2], fixture('include-files/index.scss'));
+      assert.equal(stats.includedFiles[0], resolveFixture('include-files/bar.scss'));
+      assert.equal(stats.includedFiles[1], resolveFixture('include-files/foo.scss'));
+      assert.equal(stats.includedFiles[2], resolveFixture('include-files/index.scss'));
       done();
     });
 

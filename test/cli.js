@@ -2,7 +2,7 @@ var assert = require('assert'),
     fs = require('fs'),
     path = require('path'),
     read = require('fs').readFileSync,
-    spawn = require('child_process').spawn,
+    spawn = require('cross-spawn'),
     cli = path.join(__dirname, '..', 'bin', 'node-sass'),
     fixture = path.join.bind(null, __dirname, 'fixtures');
 
