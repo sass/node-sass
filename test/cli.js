@@ -1,355 +1,191 @@
-var path   = require('path'),
-    assert = require('assert'),
-    fs     = require('fs'),
-    exec   = require('child_process').exec,
-    spawn  = require('cross-spawn'),
-    assign = require('object-assign'),
-    cli    = process.env.NODESASS_COVERAGE ? require('../lib-coverage/cli') : require('../lib/cli'),
-    cliPath = path.resolve(__dirname, '../bin/node-sass'),
-    sampleFilename = path.resolve(__dirname, 'sample.scss');
-
-var expectedSampleCompressed = '#navbar{width:80%;height:23px}\
-#navbar ul{list-style-type:none}\
-#navbar li{float:left}\
-#navbar li a{font-weight:bold}';
-
-var expectedSampleNoComments = '#navbar {\n\
-  width: 80%;\n\
-  height: 23px; }\n\
-\n\
-#navbar ul {\n\
-  list-style-type: none; }\n\
-\n\
-#navbar li {\n\
-  float: left; }\n\
-  #navbar li a {\n\
-    font-weight: bold; }\n';
-
-var sampleFilenameFwdSlashes = sampleFilename.replace(/\\/g, '/');
-
-var expectedSampleComments = '/* line 1, ' + sampleFilenameFwdSlashes + ' */\n\
-#navbar {\n\
-  width: 80%;\n\
-  height: 23px; }\n\
-\n\
-/* line 5, ' + sampleFilenameFwdSlashes + ' */\n\
-#navbar ul {\n\
-  list-style-type: none; }\n\
-\n\
-/* line 8, ' + sampleFilenameFwdSlashes + ' */\n\
-#navbar li {\n\
-  float: left; }\n\
-  /* line 10, ' + sampleFilenameFwdSlashes + ' */\n\
-  #navbar li a {\n\
-    font-weight: bold; }\n';
-
-var expectedSampleCustomImagePath = 'body {\n\
-  background-image: url("/path/to/images/image.png"); }\n';
-
-var sampleScssPath = path.join(__dirname, 'sample.scss');
-var sampleCssOutputPath = path.join(__dirname, '../sample.css');
-var sampleCssMapOutputPath = path.join(__dirname, '../sample.css.map');
+var assert = require('assert'),
+    fs = require('fs'),
+    path = require('path'),
+    read = require('fs').readFileSync,
+    spawn = require('child_process').spawn,
+    cli = path.join(__dirname, '..', 'bin', 'node-sass'),
+    fixture = path.join.bind(null, __dirname, 'fixtures');
 
 describe('cli', function() {
-  it('should read data from stdin', function(done) {
-    this.timeout(6000);
-    var src = fs.createReadStream(sampleScssPath);
-    var emitter = spawn(cliPath, ['--stdout']);
+  describe('node-sass < in.scss', function() {
+    it('should read data from stdin', function(done) {
+      var src = fs.createReadStream(fixture('simple/index.scss'));
+      var expected = fixture('simple/expected.css');
+      var bin = spawn(cli, ['--stdout']);
 
-    emitter.stdout.on('data', function(data) {
-      data = data.toString().trim();
-      assert.equal(data, expectedSampleNoComments.trim());
-      done();
-    });
-
-    src.pipe(emitter.stdin);
-  });
-
-  it('should write to disk when using --output', function(done) {
-    this.timeout(6000);
-    var src = fs.createReadStream(sampleScssPath);
-    var emitter = spawn(cliPath, ['--output', sampleCssOutputPath], {
-      stdio: [null, 'ignore', null]
-    });
-
-    emitter.on('close', function() {
-      fs.exists(sampleCssOutputPath, function(exists) {
-        assert(exists);
-        fs.unlink(sampleCssOutputPath, done);
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.once('data', function(data) {
+        assert.equal(data.trim(), read(expected, 'utf8').trim());
+        done();
       });
+
+      src.pipe(bin.stdin);
     });
 
-    src.pipe(emitter.stdin);
-  });
+    it('should write to disk when using --output', function(done) {
+      var src = fs.createReadStream(fixture('simple/index.scss'));
+      var dest = fixture('simple/build.css');
+      var bin = spawn(cli, ['--output', dest]);
 
-  it('should treat data as indented code (.sass) if --indented-syntax flag is used', function(done) {
-    this.timeout(6000);
-    var src = fs.createReadStream(path.join(__dirname, 'indented.sass'));
-    var emitter = spawn(cliPath, ['--stdout', '--indented-syntax']);
-
-    // when hit the callback in the following,
-    // it means that data is recieved, so we are ok to go.
-    emitter.stdout.on('data', function() { done(); });
-    src.pipe(emitter.stdin);
-  });
-
-  it('should print usage when run with no arguments', function(done) {
-    var env = assign(process.env, { isTTY: true });
-    exec('node ' + cliPath, {
-      env: env
-    }, function(err, stdout, stderr) {
-      done(assert(stderr.trim().indexOf('Provide a sass file to render') === 0));
-    });
-  });
-
-  it('should compile sample.scss as sample.css', function(done) {
-    this.timeout(6000);
-    var env = assign(process.env, { isTTY: true });
-    var resultPath = path.join(__dirname, 'sample.css');
-
-    exec('node ' + cliPath + ' ' + sampleFilename, {
-      cwd: __dirname,
-      env: env
-    }, function(err) {
-      assert.equal(err, null);
-
-      fs.exists(resultPath, function(exists) {
-        assert(exists);
-        fs.unlink(resultPath, done);
+      bin.on('close', function() {
+        assert(fs.existsSync(dest));
+        fs.unlinkSync(dest);
+        done();
       });
+
+      src.pipe(bin.stdin);
     });
-  });
 
-  it('should compile sample.scss as sample.css without isTTY', function(done) {
-    this.timeout(6000);
-    var env = assign(process.env, { isTTY: '' });
-    var resultPath = path.join(__dirname, 'sample.css');
+    it('should compile sass using the --indented-syntax option', function(done) {
+      var src = fs.createReadStream(fixture('indent/index.sass'));
+      var expected = fixture('indent/expected.css');
+      var bin = spawn(cli, ['--stdout', '--indented-syntax']);
 
-    exec('node ' + cliPath + ' ' + sampleFilename, {
-      cwd: __dirname,
-      env: env
-    }, function(err) {
-      assert.equal(err, null);
-
-      fs.exists(resultPath, function(exists) {
-        assert(exists);
-        fs.unlink(resultPath, done);
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.once('data', function(data) {
+        assert.equal(data.trim(), read(expected, 'utf8').trim());
+        done();
       });
+
+      src.pipe(bin.stdin);
     });
-  });
 
-  it('should compile sample.scss to ../out.css', function(done) {
-    this.timeout(6000);
-    var env = assign(process.env, { isTTY: true });
-    var resultPath = path.resolve(__dirname, '../out.css');
+    it('should compile with the --output-style option', function(done) {
+      var src = fs.createReadStream(fixture('compressed/index.scss'));
+      var expected = fixture('compressed/expected.css');
+      var bin = spawn(cli, ['--stdout', '--output-style', 'compressed']);
 
-    exec('node ' + cliPath + ' ' + sampleFilename + ' ../out.css', {
-      cwd: __dirname,
-      env: env
-    }, function(err) {
-      assert.equal(err, null);
-
-      fs.exists(resultPath, function(exists) {
-        assert(exists);
-        fs.unlink(resultPath, done);
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.once('data', function(data) {
+        assert.equal(data.trim(), read(expected, 'utf8').trim());
+        done();
       });
-    });
-  });
 
-  it('should compile with --include-path option', function(done) {
-    var emitter = cli([
-      '--include-path', path.join(__dirname, 'lib'),
-      '--include-path', path.join(__dirname, 'functions'),
-      path.join(__dirname, 'include_path.scss')
-    ]);
-    emitter.on('error', done);
-    emitter.on('write', function(err, file, css) {
-      assert.equal(css.trim(), 'body {\n  background: red;\n  color: #0000fe; }');
-      fs.unlink(file, done);
+      src.pipe(bin.stdin);
     });
-  });
 
-  it('should compile with the --output-style', function(done) {
-    var emitter = cli(['--output-style', 'compressed', sampleScssPath]);
-    emitter.on('error', done);
-    emitter.on('write', function(err, file, css) {
-      assert.equal(css, expectedSampleCompressed);
-      fs.unlink(file, done);
-    });
-  });
+    it('should compile with the --source-comments option', function(done) {
+      var src = fs.createReadStream(fixture('source-comments/index.scss'));
+      var expected = fixture('source-comments/expected.css');
+      var bin = spawn(cli, ['--stdout', '--source-comments']);
 
-  it('should compile with the --source-comments option', function(done) {
-    var emitter = cli(['--source-comments', sampleScssPath]);
-    emitter.on('error', done);
-    emitter.on('write', function(err, file, css) {
-      assert.equal(css, expectedSampleComments);
-      fs.unlink(file, done);
-    });
-  });
-
-  it('should compile with the --image-path option', function(done) {
-    var emitter = cli(['--image-path', '/path/to/images', path.join(__dirname, 'image_path.scss')]);
-    emitter.on('error', done);
-    emitter.on('write', function(err, file, css) {
-      assert.equal(css, expectedSampleCustomImagePath);
-      fs.unlink(file, done);
-    });
-  });
-
-  it('should write the output to the file specified with the --output option', function(done) {
-    var resultPath = path.join(__dirname, '../output.css');
-    var emitter = cli(['--output', resultPath, sampleScssPath]);
-    emitter.on('error', done);
-    emitter.on('write', function() {
-      fs.exists(resultPath, function(exists) {
-        assert(exists);
-        fs.unlink(resultPath, done);
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.once('data', function(data) {
+        assert.equal(data.trim(), read(expected, 'utf8').trim());
+        done();
       });
+
+      src.pipe(bin.stdin);
+    });
+
+    it('should compile with the --image-path option', function(done) {
+      var src = fs.createReadStream(fixture('image-path/index.scss'));
+      var expected = fixture('image-path/expected.css');
+      var bin = spawn(cli, ['--stdout', '--image-path', '/path/to/images']);
+
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.once('data', function(data) {
+        assert.equal(data.trim(), read(expected, 'utf8').trim());
+        done();
+      });
+
+      src.pipe(bin.stdin);
     });
   });
 
-  it('should write to stdout with the --stdout option', function(done) {
-    var emitter = cli(['--stdout', sampleScssPath]);
-    emitter.on('error', done);
-    emitter.on('log', function(css) {
-      assert.equal(css, expectedSampleNoComments);
-      done();
-    });
-  });
+  describe('node-sass in.scss', function() {
+    it('should compile a scss file', function(done) {
+      process.chdir(fixture('simple'));
 
-  it('should not write to disk with the --stdout option', function(done) {
-    var emitter = cli(['--stdout', sampleScssPath]);
-    emitter.on('error', done);
-    emitter.on('done', function() {
-      fs.exists(sampleCssOutputPath, function(exists) {
-        if (exists) {fs.unlinkSync(sampleCssOutputPath);}
-        assert(!exists);
+      var src = fixture('simple/index.scss');
+      var dest = fixture('simple/index.css');
+      var bin = spawn(cli, [src]);
+
+      bin.on('close', function() {
+        assert(fs.existsSync(dest));
+        fs.unlinkSync(dest);
+        process.chdir(__dirname);
         done();
       });
     });
-  });
 
-  it('should write to stdout with the --stdout option without isTTY', function(done) {
-    this.timeout(6000);
-    var env = assign(process.env, { isTTY: '' });
+    it('should compile with the --include-path option', function(done) {
+      var includePaths = [
+        '--include-path', fixture('include-path/functions'),
+        '--include-path', fixture('include-path/lib')
+      ];
 
-    exec('node ' + cliPath + ' --stdout ' + sampleScssPath, {
-      cwd: __dirname,
-      env: env
-    }, function(err, stdout) {
-      if (err) {
-        done(err);
-      } else {
-        assert.equal(stdout.replace(/[\n\r]$/, ''), expectedSampleNoComments);
+      var src = fixture('include-path/index.scss');
+      var expected = fixture('include-path/expected.css');
+      var bin = spawn(cli, [src, '--stdout'].concat(includePaths));
+
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.once('data', function(data) {
+        assert.equal(data.trim(), read(expected, 'utf8').trim());
         done();
-      }
+      });
     });
-  });
 
-  it('should not write to disk with the --stdout option without isTTY', function(done) {
-    this.timeout(6000);
-    var env = assign(process.env, { isTTY: '' });
+    it('should not exit with the --watch option', function(done) {
+      var src = fixture('simple/index.scss');
+      var bin = spawn(cli, ['--stdout', '--watch', src]);
+      var exited;
 
-    exec('node ' + cliPath + ' --stdout ' + sampleScssPath, {
-      cwd: __dirname,
-      env: env
-    }, function(err) {
-      if (err) {
-        done(err);
-      } else {
-        fs.exists(sampleCssOutputPath, function(exists) {
-          if (exists) {fs.unlinkSync(sampleCssOutputPath);}
-          assert(!exists);
+      bin.on('close', function () {
+        exited = true;
+      });
+
+      setTimeout(function() {
+        if (exited) {
+          throw new Error('Watch ended too early!');
+        } else {
+          bin.kill();
           done();
-        });
-      }
+        }
+      }, 100);
     });
   });
 
-  it('should not exit with the --watch option', function(done) {
-    var command = cliPath + ' --watch ' + sampleScssPath;
-    var env = assign(process.env, { isTTY: true });
-    var child = exec('node ' + command, {
-      env: env
-    });
-    var exited = false;
+  describe('node-sass in.scss --output out.css', function() {
+    it('should compile a scss file to build.css', function(done) {
+      var src = fixture('simple/index.scss');
+      var dest = fixture('simple/build.css');
+      var bin = spawn(cli, [src, '--output', dest]);
 
-    child.on('exit', function() {
-      exited = true;
-    });
-
-    setTimeout(function() {
-      if (exited){
-        throw new Error('Watch ended too early!');
-      } else {
-        child.kill();
+      bin.on('close', function() {
+        assert(fs.existsSync(dest));
+        fs.unlinkSync(dest);
         done();
-      }
-    }, 100);
-  });
-
-  it('should compile with the --source-map option', function(done) {
-    var emitter = cli([sampleScssPath, '--source-map']);
-    emitter.on('error', done);
-    emitter.on('write-source-map', function(err, file) {
-      assert.equal(file, sampleCssMapOutputPath);
-      fs.exists(file, function(exists) {
-        assert(exists);
       });
     });
 
-    emitter.on('done', function() {
-      fs.unlink(sampleCssMapOutputPath, function() {
-        fs.unlink(sampleCssOutputPath, function() {
-          done();
-        });
-      });
-    });
-  });
+    it('should compile with the --source-map option', function(done) {
+      var src = fixture('source-map/index.scss');
+      var dest = fixture('source-map/build.css');
+      var expected = fixture('source-map/expected.css');
+      var map = fixture('source-map/index.map');
+      var bin = spawn(cli, [src, '--output', dest, '--source-map', map]);
 
-  it('should compile with the --source-map option with specific filename', function(done){
-    var emitter = cli([sampleScssPath, '--source-map', path.join(__dirname, '../sample.map')]);
-    emitter.on('error', done);
-    emitter.on('write-source-map', function(err, file) {
-      assert.equal(file, path.join(__dirname, '../sample.map'));
-      fs.exists(file, function(exists) {
-        assert(exists);
+      bin.on('close', function () {
+        assert.equal(read(dest, 'utf8').trim(), read(expected, 'utf8').trim());
+        assert(fs.existsSync(map));
+        fs.unlinkSync(map);
+        fs.unlinkSync(dest);
+        done();
       });
     });
-    emitter.on('done', function() {
-      fs.unlink(path.join(__dirname, '../sample.map'), function() {
-        fs.unlink(sampleCssOutputPath, function() {
-          done();
-        });
-      });
-    });
-  });
 
-  it('should not compile a sourceMap if --source-map option is excluded', function(done) {
-    var emitter = cli([sampleScssPath, '--source-comments']);
-    emitter.on('error', done);
-    emitter.on('write-source-map', function(err, file) {
-      assert.equal(file, sampleCssMapOutputPath);
-      fs.exists(file, function(exists) {
-        assert(exists);
-      });
-    });
-    emitter.on('done', function() {
-      fs.unlink(sampleCssMapOutputPath, function() {
-        fs.unlink(sampleCssOutputPath, function() {
-          done();
-        });
-      });
-    });
-  });
+    it('should omit sourceMappingURL if --omit-source-map-url flag is used', function(done) {
+      var src = fixture('source-map/index.scss');
+      var dest = fixture('source-map/build.css');
+      var map = fixture('source-map/index.map');
+      var bin = spawn(cli, [src, '--output', dest, '--source-map', map, '--omit-source-map-url']);
 
-  it('should omit a sourceMappingURL from CSS if --omit-source-map-url flag is used', function(done) {
-    var emitter = cli([sampleScssPath, '--source-map', path.join(__dirname, '../sample.map'), '--omit-source-map-url']);
-    emitter.on('error', done);
-    emitter.on('done', function() {
-      fs.exists(sampleCssOutputPath, function(exists) {
-        assert.ok(fs.readFileSync(sampleCssOutputPath, 'utf8').indexOf('sourceMappingURL=') === -1);
-        if (exists) {fs.unlinkSync(sampleCssOutputPath);}
+      bin.on('close', function () {
+        assert(read(dest, 'utf8').indexOf('sourceMappingURL') === -1);
+        assert(fs.existsSync(map));
+        fs.unlinkSync(map);
+        fs.unlinkSync(dest);
         done();
       });
     });
