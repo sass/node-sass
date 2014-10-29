@@ -27,7 +27,7 @@
     "url": "git://github.com/sass/node-sass.git"
   },
   "scripts": {
-    "install": "node build.js",
+    "install": "node lib/build.js",
     "test": "node scripts/test",
     "coverage": "node scripts/coverage",
     "pretest": "node scripts/lint",
