@@ -53,7 +53,7 @@ var prepareOptions = function (options) {
 
   if (sourceMap) {
     if (typeof sourceMap !== 'string' || !sourceMap.trim()) {
-      sourceMap = options.outFile !== null ? options.outFile + '.map' : '';
+      sourceMap = options.outFile ? options.outFile + '.map' : '';
     } else if (options.outFile) {
       sourceMap = path.resolve(path.dirname(options.file), sourceMap);
     }
