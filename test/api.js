@@ -245,14 +245,14 @@ describe('api', function() {
     var start = Date.now();
     var stats = {};
 
-    before(function (done) {
+    before(function(done) {
       sass.render({
         file: fixture('include-files/index.scss'),
         stats: stats,
-        success: function () {
+        success: function() {
           done();
         },
-        error: function (err) {
+        error: function(err) {
           assert(!err);
           done();
         }
@@ -301,7 +301,7 @@ describe('api', function() {
       sass.render({
         file: fixture('simple/index.scss'),
         stats: stats,
-        success: function () {
+        success: function() {
           assert.deepEqual(stats.includedFiles, [expected]);
           done();
         }
@@ -312,7 +312,7 @@ describe('api', function() {
       sass.render({
         data: read(fixture('simple/index.scss'), 'utf8'),
         stats: stats,
-        success: function () {
+        success: function() {
           assert.equal(stats.entry, 'data');
           done();
         }
@@ -323,7 +323,7 @@ describe('api', function() {
       sass.render({
         data: read(fixture('simple/index.scss'), 'utf8'),
         stats: stats,
-        success: function () {
+        success: function() {
           assert.deepEqual(stats.includedFiles, []);
           done();
         }
@@ -335,7 +335,7 @@ describe('api', function() {
     var start = Date.now();
     var stats = {};
 
-    before(function () {
+    before(function() {
       sass.renderSync({
         file: fixture('include-files/index.scss'),
         stats: stats
@@ -407,6 +407,19 @@ describe('api', function() {
 
       assert.deepEqual(stats.includedFiles, []);
       done();
+    });
+
+    it('should report correct sourceMap in stats with renderSync', function(done) {
+      var stats = {};
+
+      sass.renderSync({
+        file: fixture('simple/index.scss'),
+        outFile: fixture('simple/index.css'),
+        stats: stats,
+        sourceMap: true
+      });
+
+      done(assert.ok(stats.sourceMap.indexOf('index.scss') !== -1));
     });
   });
 });
