@@ -380,6 +380,7 @@ describe('api', function() {
 
     it('should contain array with the entry if there are no import statements', function(done) {
       var expected = fixture('simple/index.scss').replace(/\\/g, '/');
+
       sass.renderSync({
         file: fixture('simple/index.scss'),
         stats: stats
@@ -409,17 +410,17 @@ describe('api', function() {
       done();
     });
 
-    it('should report correct sourceMap in stats with renderSync', function(done) {
-      var stats = {};
-
+    it('should report correct source map in stats with renderSync', function(done) {
       sass.renderSync({
         file: fixture('simple/index.scss'),
-        outFile: fixture('simple/index.css'),
+        outFile: fixture('simple/build.css'),
         stats: stats,
         sourceMap: true
       });
 
-      done(assert.ok(stats.sourceMap.indexOf('index.scss') !== -1));
+      var map = JSON.parse(stats.sourceMap);
+      assert.equal(map.sources[0], 'index.scss');
+      done();
     });
   });
 });
