@@ -1203,12 +1203,40 @@ namespace Sass {
   ///////////////////////////////////////////////////////////////////////
   class String_Schema : public String, public Vectorized<Expression*> {
     ADD_PROPERTY(char, quote_mark);
+    size_t hash_;
   public:
     String_Schema(string path, Position position, size_t size = 0, bool unq = false, char qm = '\0')
-    : String(path, position, unq), Vectorized<Expression*>(size), quote_mark_(qm)
+    : String(path, position, unq), Vectorized<Expression*>(size), quote_mark_(qm), hash_(0)
     { }
     string type() { return "string"; }
     static string type_name() { return "string"; }
+
+    virtual bool operator==(Expression& rhs) const
+    {
+      try
+      {
+        String_Schema& e = dynamic_cast<String_Schema&>(rhs);
+        if (!(e && length() == e.length())) return false;
+        for (size_t i = 0, L = length(); i < L; ++i)
+          if (!((*this)[i] == e[i])) return false;
+        return true;
+      }
+      catch (std::bad_cast&)
+      {
+        return false;
+      }
+    }
+
+    virtual size_t hash()
+    {
+      if (hash_ > 0) return hash_;
+
+      for (auto string : elements())
+        hash_ ^= string->hash();
+
+      return hash_;
+    }
+
     ATTACH_OPERATIONS();
   };
 
