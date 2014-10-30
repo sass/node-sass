@@ -11,7 +11,6 @@ var COVERALLS_BIN = ["node_modules", ".bin", "coveralls"].join(path.sep);
 var MOCHA_BIN = ["node_modules", ".bin", "mocha"].join(path.sep);
 
 echo("Creating coverage files");
-exec(JSCOVERAGE_BIN + " sass.js sass-coverage.js");
 exec(JSCOVERAGE_BIN + " lib lib-coverage");
 
 echo("Piping mocha to coveralls");
@@ -23,6 +22,5 @@ exec(MOCHA_BIN + " test -R mocha-lcov-reporter | " + COVERALLS_BIN, {async: fals
 	console.log('Program output:', output);
 
 	echo("Cleanup coverage files");
-	rm("sass-coverage.js");
 	rm("-R", "lib-coverage");
 });

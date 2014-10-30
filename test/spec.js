@@ -3,7 +3,7 @@ var assert = require('assert'),
     exists = fs.existsSync,
     path = require('path'),
     read = fs.readFileSync,
-    sass = require('../sass'),
+    sass = require('../lib'),
     util = require('./util');
 
 describe('spec', function () {
