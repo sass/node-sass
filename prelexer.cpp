@@ -166,16 +166,6 @@ namespace Sass {
                                                 backslash_something > > >(src);
     }
 
-    const char* map_key(const char* src) {
-      return sequence< spaces_and_comments,
-                       one_plus< sequence< exactly<'('>, spaces_and_comments > >,
-                       one_plus< alternatives< identifier, alnums, string_constant, variable, spaces, exactly<','> > >,
-                       spaces_and_comments,
-                       zero_plus< exactly<')'> >,
-                       spaces_and_comments,
-                       exactly<':'> >(src);
-    }
-
     // Match CSS css variables.
     const char* custom_property_name(const char* src) {
       return sequence< exactly<'-'>, exactly<'-'>, identifier >(src);
