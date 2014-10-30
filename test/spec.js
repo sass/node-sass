@@ -11,11 +11,11 @@ describe('spec', function () {
 
   describe('test/sass-spec directory', function() {
     it('should be a cloned into place', function(done) {
-      fs.exists(path.join(__dirname, 'sass-spec'), function (exists) {
+      fs.exists(path.join(__dirname, 'fixtures', 'spec'), function (exists) {
         if (!exists) {
           throw new Error([
-            'test/sass-spec directory missing. Please clone it into place by',
-            'executing `git submodule update --init --recursive test/sass-spec`',
+            'test/fixtures/spec directory missing. Please clone it into place by',
+            'executing `git submodule update --init --recursive test/fixtures/spec`',
             'from the project\'s root directory.'
           ].join(' '));
         }

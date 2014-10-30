@@ -3,50 +3,62 @@
     {
       'target_name': 'binding',
       'sources': [
-        'binding.cpp',
-        'sass_context_wrapper.cpp',
-        'libsass/ast.cpp',
-        'libsass/base64vlq.cpp',
-        'libsass/bind.cpp',
-        'libsass/constants.cpp',
-        'libsass/context.cpp',
-        'libsass/contextualize.cpp',
-        'libsass/copy_c_str.cpp',
-        'libsass/error_handling.cpp',
-        'libsass/eval.cpp',
-        'libsass/expand.cpp',
-        'libsass/extend.cpp',
-        'libsass/file.cpp',
-        'libsass/functions.cpp',
-        'libsass/inspect.cpp',
-        'libsass/node.cpp',
-        'libsass/output_compressed.cpp',
-        'libsass/output_nested.cpp',
-        'libsass/parser.cpp',
-        'libsass/prelexer.cpp',
-        'libsass/remove_placeholders.cpp',
-        'libsass/sass.cpp',
-        'libsass/sass2scss.cpp',
-        'libsass/sass_interface.cpp',
-        'libsass/sass_util.cpp',
-        'libsass/source_map.cpp',
-        'libsass/to_c.cpp',
-        'libsass/to_string.cpp',
-        'libsass/units.cpp',
-        'libsass/utf8_string.cpp',
-        'libsass/util.cpp'
+        'src/binding.cpp',
+        'src/sass_context_wrapper.cpp',
+        'src/libsass/ast.cpp',
+        'src/libsass/base64vlq.cpp',
+        'src/libsass/bind.cpp',
+        'src/libsass/constants.cpp',
+        'src/libsass/context.cpp',
+        'src/libsass/contextualize.cpp',
+        'src/libsass/copy_c_str.cpp',
+        'src/libsass/error_handling.cpp',
+        'src/libsass/eval.cpp',
+        'src/libsass/expand.cpp',
+        'src/libsass/extend.cpp',
+        'src/libsass/file.cpp',
+        'src/libsass/functions.cpp',
+        'src/libsass/inspect.cpp',
+        'src/libsass/node.cpp',
+        'src/libsass/output_compressed.cpp',
+        'src/libsass/output_nested.cpp',
+        'src/libsass/parser.cpp',
+        'src/libsass/prelexer.cpp',
+        'src/libsass/remove_placeholders.cpp',
+        'src/libsass/sass.cpp',
+        'src/libsass/sass2scss.cpp',
+        'src/libsass/sass_interface.cpp',
+        'src/libsass/sass_util.cpp',
+        'src/libsass/source_map.cpp',
+        'src/libsass/to_c.cpp',
+        'src/libsass/to_string.cpp',
+        'src/libsass/units.cpp',
+        'src/libsass/utf8_string.cpp',
+        'src/libsass/util.cpp'
       ],
       'include_dirs': [
         '<!(node -e "require(\'nan\')")'
       ],
-      'cflags!'   : [ '-fno-exceptions' ],
-      'cflags_cc!': [ '-fno-exceptions' ],
-      'cflags_cc' : [ '-fexceptions', '-frtti' ],
+      'cflags!': [
+        '-fno-exceptions'
+      ],
+      'cflags_cc!': [
+        '-fno-exceptions'
+      ],
+      'cflags_cc': [
+        '-fexceptions',
+        '-frtti'
+      ],
       'conditions': [
         ['OS=="mac"', {
           'xcode_settings': {
-            'OTHER_CPLUSPLUSFLAGS' : [ '-std=c++11', '-stdlib=libc++' ],
-            'OTHER_LDFLAGS': [ '-stdlib=libc++' ],
+            'OTHER_CPLUSPLUSFLAGS': [
+              '-std=c++11',
+              '-stdlib=libc++'
+            ],
+            'OTHER_LDFLAGS': [
+              '-stdlib=libc++'
+            ],
             'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
             'GCC_ENABLE_CPP_RTTI': 'YES',
             'MACOSX_DEPLOYMENT_TARGET': '10.7'
@@ -68,10 +80,16 @@
             4503
           ]
         }],
-        [ 'OS!="win"', {
-           'cflags+': [ '-std=c++11' ],
-           'cflags_c+': [ '-std=c++11' ],
-           'cflags_cc+': [ '-std=c++11' ],
+        ['OS!="win"', {
+          'cflags+': [
+            '-std=c++11'
+          ],
+          'cflags_c+': [
+            '-std=c++11'
+          ],
+          'cflags_cc+': [
+            '-std=c++11'
+          ]
         }]
       ]
     }

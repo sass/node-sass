@@ -1,6 +1,6 @@
 var fs = require('fs'),
     join = require('path').join,
-    spec = join(__dirname, '..', 'sass-spec', 'spec');
+    spec = join(__dirname, '..', 'fixtures', 'spec', 'spec');
 
 /**
  * Normalize CSS
