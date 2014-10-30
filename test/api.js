@@ -147,7 +147,7 @@ describe('api', function() {
   });
 
   describe('.renderSync(options)', function() {
-    it('should compile with renderSync', function(done) {
+    it('should compile sass to css', function(done) {
       var src = read(fixture('simple/index.scss'), 'utf8');
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
 
@@ -329,6 +329,20 @@ describe('api', function() {
         }
       });
     });
+
+    it('should report correct source map in stats', function(done) {
+      sass.render({
+        file: fixture('simple/index.scss'),
+        outFile: fixture('simple/build.css'),
+        stats: stats,
+        sourceMap: true,
+        success: function() {
+          var map = JSON.parse(stats.sourceMap);
+          assert.equal(map.sources[0], 'index.scss');
+          done();
+        }
+      });
+    });
   });
 
   describe('.renderSync({ stats: {} })', function() {
@@ -410,7 +424,7 @@ describe('api', function() {
       done();
     });
 
-    it('should report correct source map in stats with renderSync', function(done) {
+    it('should report correct source map in stats', function(done) {
       sass.renderSync({
         file: fixture('simple/index.scss'),
         outFile: fixture('simple/build.css'),
