@@ -72,18 +72,18 @@ extern "C" {
     free(ctx);
   }
 
-  void copy_strings(const std::vector<std::string>& strings, char*** array, int* n) {
+  void copy_strings(const std::vector<std::string>& strings, char*** array, int* n, int skip = 0) {
     int num = static_cast<int>(strings.size());
     char** arr = (char**) malloc(sizeof(char*)* num);
 
-    for(int i = 0; i < num; i++) {
-      arr[i] = (char*) malloc(sizeof(char) * strings[i].size() + 1);
-      std::copy(strings[i].begin(), strings[i].end(), arr[i]);
-      arr[i][strings[i].size()] = '\0';
+    for(int i = skip; i < num; i++) {
+      arr[i-skip] = (char*) malloc(sizeof(char) * strings[i].size() + 1);
+      std::copy(strings[i].begin(), strings[i].end(), arr[i-skip]);
+      arr[i-skip][strings[i].size()] = '\0';
     }
 
     *array = arr;
-    *n = num;
+    *n = num - skip;
   }
 
   // helper for safe access to c_ctx
@@ -134,7 +134,7 @@ extern "C" {
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
 
-      copy_strings(cpp_ctx.get_included_files(), &c_ctx->included_files, &c_ctx->num_included_files);
+      copy_strings(cpp_ctx.get_included_files(), &c_ctx->included_files, &c_ctx->num_included_files, 1);
     }
     catch (Error& e) {
       stringstream msg_stream;

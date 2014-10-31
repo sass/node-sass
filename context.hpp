@@ -96,6 +96,7 @@ namespace Sass {
     std::vector<string> get_included_files();
 
   private:
+    void add_source(const string &load_path, const string &abs_path, const char* contents);
     string format_source_mapping_url(const string& file) const;
     string get_cwd();
 
