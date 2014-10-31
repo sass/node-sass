@@ -2,7 +2,7 @@ var assert = require('assert'),
     fs = require('fs'),
     path = require('path'),
     read = fs.readFileSync,
-    sass = require('../lib'),
+    sass = process.env.NODESASS_COV ? require('../lib-cov') : require('../lib'),
     fixture = path.join.bind(null, __dirname, 'fixtures'),
     resolveFixture = path.resolve.bind(null, __dirname, 'fixtures');
 
