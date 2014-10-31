@@ -199,6 +199,8 @@ extern "C" {
                        .output_style((Output_Style) c_ctx->options.output_style)
                        .source_comments(c_ctx->options.source_comments)
                        .source_map_file(safe_str(c_ctx->options.source_map_file))
+                       .source_map_embed(c_ctx->options.source_map_embed)
+                       .source_map_contents(c_ctx->options.source_map_contents)
                        .omit_source_map_url(c_ctx->options.omit_source_map_url)
                        .image_path(safe_str(c_ctx->options.image_path))
                        .include_paths_c_str(c_ctx->options.include_paths)

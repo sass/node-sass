@@ -58,6 +58,8 @@ namespace Sass {
     source_comments         (initializers.source_comments()),
     output_style            (initializers.output_style()),
     source_map_file         (make_canonical_path(initializers.source_map_file())),
+    source_map_embed        (initializers.source_map_embed()),
+    source_map_contents     (initializers.source_map_contents()),
     omit_source_map_url     (initializers.omit_source_map_url()),
     is_indented_syntax_src  (initializers.is_indented_syntax_src()),
     names_to_colors         (map<string, Color*>()),
@@ -153,7 +155,8 @@ namespace Sass {
     sources.push_back(contents);
     included_files.push_back(abs_path);
     queue.push_back(make_pair(load_path, contents));
-    source_map.files.push_back(resolve_relative_path(abs_path, source_map_file, cwd));
+    source_map.source_index.push_back(sources.size() - 1);
+    include_links.push_back(resolve_relative_path(abs_path, source_map_file, cwd));
   }
 
   string Context::add_file(string path)
@@ -268,14 +271,23 @@ namespace Sass {
 
   string Context::format_source_mapping_url(const string& file) const
   {
-    return "/*# sourceMappingURL=" + resolve_relative_path(file, output_path, cwd) + " */";
+    string url = resolve_relative_path(file, output_path, cwd);
+    if (source_map_embed) {
+      base64::encoder E;
+      istringstream is( sources[0] );
+      ostringstream buffer;
+      E.encode(is, buffer);
+      url = "data:text/css;base64," + buffer.str();
+      url.erase(url.size() - 1);
+    }
+    return "/*# sourceMappingURL=" + url + " */";
   }
 
   char* Context::generate_source_map()
   {
     if (source_map_file == "") return 0;
     char* result = 0;
-    string map = source_map.generate_source_map();
+    string map = source_map.generate_source_map(*this);
     result = copy_c_str(map.c_str());
     return result;
   }

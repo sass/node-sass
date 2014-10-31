@@ -46,6 +46,8 @@ extern "C" {
 
                          .source_comments     (c_ctx->source_comments)
                          .source_map_file     (c_ctx->source_map_file)
+                         .source_map_embed    (c_ctx->source_map_embed)
+                         .source_map_contents (c_ctx->source_map_contents)
                          .omit_source_map_url (c_ctx->omit_source_map_url)
 
                          .image_path          (c_ctx->image_path ?
