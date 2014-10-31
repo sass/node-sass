@@ -24,5 +24,4 @@ bin/*-v8-*
 
 lib-coverage/
 sass-coverage.js
-sample.css
-sample.map
+**/fixtures/**/build.*
