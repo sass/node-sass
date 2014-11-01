@@ -46,6 +46,8 @@ extern "C" {
 
                          .source_comments     (c_ctx->source_comments)
                          .source_map_file     (c_ctx->source_map_file)
+                         .source_map_embed    (c_ctx->source_map_embed)
+                         .source_map_contents (c_ctx->source_map_contents)
                          .omit_source_map_url (c_ctx->omit_source_map_url)
 
                          .image_path          (c_ctx->image_path ?
@@ -171,15 +173,15 @@ extern "C" {
 
     size_t i;
     switch(val.unknown.tag) {
-        // case SASS_NULL: {
-        // }   break;
-        // case SASS_BOOLEAN: {
-        // }   break;
+        case SASS_NULL: {
+        }   break;
+        case SASS_BOOLEAN: {
+        }   break;
         case SASS_NUMBER: {
                 free(val.number.unit);
         }   break;
-        // case SASS_COLOR: {
-        // }   break;
+        case SASS_COLOR: {
+        }   break;
         case SASS_STRING: {
                 free(val.string.value);
         }   break;

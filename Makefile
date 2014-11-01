@@ -41,6 +41,7 @@ SOURCES = \
 	functions.cpp \
 	inspect.cpp \
 	node.cpp \
+	json.cpp \
 	output_compressed.cpp \
 	output_nested.cpp \
 	parser.cpp \
@@ -55,9 +56,10 @@ SOURCES = \
 	to_string.cpp \
 	units.cpp \
 	utf8_string.cpp \
+	cencode.c \
 	util.cpp
 
-OBJECTS = $(SOURCES:.cpp=.o)
+OBJECTS = $(SOURCES:.cpp=.o) $(SOURCES:.c=.o)
 
 DEBUG_LVL ?= NONE
 
@@ -80,7 +82,7 @@ libsass.a: $(OBJECTS)
 libsass.so: $(OBJECTS)
 	$(CXX) -shared $(LDFLAGS) -o $@ $(OBJECTS)
 
-%.o: %.cpp
+%.o: %.cpp %.c
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 %: %.o libsass.a

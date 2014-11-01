@@ -1,4 +1,5 @@
 #include "source_map.hpp"
+#include "json.hpp"
 
 #ifndef SASS_CONTEXT
 #include "context.hpp"
@@ -13,44 +14,53 @@ namespace Sass {
   using std::ptrdiff_t;
   SourceMap::SourceMap(const string& file) : current_position(Position(1, 1)), file(file) { }
 
-  // taken from http://stackoverflow.com/a/7725289/1550314
-  std::string encodeJsonString(const std::string& input) {
-    std::ostringstream ss;
-    for (std::string::const_iterator iter = input.begin(); iter != input.end(); iter++) {
-        switch (*iter) {
-            case '\\': ss << "\\\\"; break;
-            case '"': ss << "\\\""; break;
-            case '\b': ss << "\\b"; break;
-            case '\f': ss << "\\f"; break;
-            case '\n': ss << "\\n"; break;
-            case '\r': ss << "\\r"; break;
-            case '\t': ss << "\\t"; break;
-            // is a legal escape in JSON
-            case '/': ss << "\\/"; break;
-            default: ss << *iter; break;
-        }
+  string SourceMap::generate_source_map(Context &ctx) {
+
+    const bool include_sources = ctx.source_map_contents;
+    const vector<string> includes = ctx.include_links;
+    const vector<const char*> sources = ctx.sources;
+
+    JsonNode *json_srcmap = json_mkobject();
+
+    json_append_member(json_srcmap, "version", json_mknumber(3));
+
+    const char *include = file.c_str();
+    JsonNode *json_include = json_mkstring(include);
+    json_append_member(json_srcmap, "file", json_include);
+
+    JsonNode *json_includes = json_mkarray();
+    for (size_t i = 0; i < source_index.size(); ++i) {
+      const char *include = includes[source_index[i]].c_str();
+      JsonNode *json_include = json_mkstring(include);
+      json_append_element(json_includes, json_include);
     }
+    json_append_member(json_srcmap, "sources", json_includes);
 
-    return ss.str();
-  }
-
-  string SourceMap::generate_source_map() {
-    string result = "{\n";
-    result += "  \"version\": 3,\n";
-    result += "  \"file\": \"" + encodeJsonString(file) + "\",\n";
-    result += "  \"sources\": [";
-    for (size_t i = 0; i < files.size(); ++i) {
-      result+="\"" + encodeJsonString(files[i]) + "\",";
+    JsonNode *json_contents = json_mkarray();
+    if (include_sources) {
+      for (size_t i = 1; i < source_index.size(); ++i) {
+        const char *content = sources[source_index[i]];
+        JsonNode *json_content = json_mkstring(content);
+        json_append_element(json_contents, json_content);
+      }
     }
-    if (!files.empty()) result.erase(result.length() - 1);
-    result += "],\n";
-    result += "  \"names\": [],\n";
-    result += "  \"mappings\": \"" + serialize_mappings() + "\"\n";
-    result += "}";
+    json_append_member(json_srcmap, "sourcesContent", json_contents);
 
+    string mappings = serialize_mappings();
+    JsonNode *json_mappings = json_mkstring(mappings.c_str());
+    json_append_member(json_srcmap, "mappings", json_mappings);
+
+    JsonNode *json_names = json_mkarray();
+    // so far we have no implementation for names
+    // no problem as we do not alter any identifiers
+    json_append_member(json_srcmap, "names", json_names);
+
+    char *str = json_stringify(json_srcmap, "\t");
+    string result = string(str);
+    free(str);
+    json_delete(json_srcmap);
     return result;
   }
-
 
   string SourceMap::serialize_mappings() {
     string result = "";
@@ -69,13 +79,13 @@ namespace Sass {
 
       if (generated_line != previous_generated_line) {
         previous_generated_column = 0;
-        while (generated_line != previous_generated_line) {
-          result += ";";
-          previous_generated_line += 1;
+        if (generated_line > previous_generated_line) {
+          result += std::string(generated_line - previous_generated_line, ';');
+          previous_generated_line = generated_line;
         }
       }
-      else {
-        if (i > 0) result += ",";
+      else if (i > 0) {
+        result += ",";
       }
 
       // generated column
@@ -97,15 +107,18 @@ namespace Sass {
 
   void SourceMap::remove_line()
   {
-    current_position.line -= 1;
-    current_position.column = 1;
+    // prevent removing non existing lines
+    if (current_position.line > 1) {
+      current_position.line -= 1;
+      current_position.column = 1;
+    }
   }
 
   void SourceMap::update_column(const string& str)
   {
     const ptrdiff_t new_line_count = std::count(str.begin(), str.end(), '\n');
     current_position.line += new_line_count;
-    if (new_line_count >= 1) {
+    if (new_line_count > 0) {
       current_position.column = str.size() - str.find_last_of('\n');
     } else {
       current_position.column += str.size();

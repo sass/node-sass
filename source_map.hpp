@@ -24,15 +24,14 @@ namespace Sass {
   class SourceMap {
 
   public:
-    vector<string> files;
-
+    vector<size_t> source_index;
     SourceMap(const string& file);
 
     void remove_line();
     void update_column(const string& str);
     void add_mapping(AST_Node* node);
 
-    string generate_source_map();
+    string generate_source_map(Context &ctx);
 
   private:
 

@@ -27,6 +27,7 @@ libsass_la_SOURCES = \
 	functions.cpp \
 	inspect.cpp \
 	node.cpp \
+	json.cpp \
 	output_compressed.cpp \
 	output_nested.cpp \
 	parser.cpp \
@@ -41,6 +42,7 @@ libsass_la_SOURCES = \
 	to_string.cpp \
 	units.cpp \
 	utf8_string.cpp \
+	cencode.c \
 	util.cpp
 
 libsass_la_LDFLAGS = -no-undefined -version-info 0:0:0

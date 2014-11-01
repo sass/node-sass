@@ -58,6 +58,8 @@ namespace Sass {
     source_comments         (initializers.source_comments()),
     output_style            (initializers.output_style()),
     source_map_file         (make_canonical_path(initializers.source_map_file())),
+    source_map_embed        (initializers.source_map_embed()),
+    source_map_contents     (initializers.source_map_contents()),
     omit_source_map_url     (initializers.omit_source_map_url()),
     is_indented_syntax_src  (initializers.is_indented_syntax_src()),
     names_to_colors         (map<string, Color*>()),
@@ -83,7 +85,10 @@ namespace Sass {
   }
 
   Context::~Context()
-  { for (size_t i = 0; i < sources.size(); ++i) delete[] sources[i]; }
+  {
+    // everything that gets put into sources will be freed by us
+    for (size_t i = 0; i < sources.size(); ++i) delete[] sources[i];
+  }
 
   void Context::setup_color_map()
   {
@@ -145,6 +150,15 @@ namespace Sass {
     // }
   }
 
+  void Context::add_source(const string& load_path, const string& abs_path, const char* contents)
+  {
+    sources.push_back(contents);
+    included_files.push_back(abs_path);
+    queue.push_back(make_pair(load_path, contents));
+    source_map.source_index.push_back(sources.size() - 1);
+    include_links.push_back(resolve_relative_path(abs_path, source_map_file, cwd));
+  }
+
   string Context::add_file(string path)
   {
     using namespace File;
@@ -153,14 +167,10 @@ namespace Sass {
     path = make_canonical_path(path);
     for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
       string full_path(join_paths(include_paths[i], path));
-      included_files.push_back(full_path);
       if (style_sheets.count(full_path)) return full_path;
       contents = resolve_and_load(full_path, real_path);
       if (contents) {
-        sources.push_back(contents);
-        included_files.push_back(real_path);
-        queue.push_back(make_pair(full_path, contents));
-        source_map.files.push_back(resolve_relative_path(real_path, source_map_file, cwd));
+        add_source(full_path, real_path, contents);
         style_sheets[full_path] = 0;
         return full_path;
       }
@@ -178,10 +188,7 @@ namespace Sass {
     if (style_sheets.count(full_path)) return full_path;
     contents = resolve_and_load(full_path, real_path);
     if (contents) {
-      sources.push_back(contents);
-      included_files.push_back(real_path);
-      queue.push_back(make_pair(full_path, contents));
-      source_map.files.push_back(resolve_relative_path(real_path, source_map_file, cwd));
+      add_source(full_path, real_path, contents);
       style_sheets[full_path] = 0;
       return full_path;
     }
@@ -190,10 +197,7 @@ namespace Sass {
       if (style_sheets.count(full_path)) return full_path;
       contents = resolve_and_load(full_path, real_path);
       if (contents) {
-        sources.push_back(contents);
-        included_files.push_back(real_path);
-        queue.push_back(make_pair(full_path, contents));
-        source_map.files.push_back(resolve_relative_path(real_path, source_map_file, cwd));
+        add_source(full_path, real_path, contents);
         style_sheets[full_path] = 0;
         return full_path;
       }
@@ -267,14 +271,23 @@ namespace Sass {
 
   string Context::format_source_mapping_url(const string& file) const
   {
-    return "/*# sourceMappingURL=" + resolve_relative_path(file, output_path, cwd) + " */";
+    string url = resolve_relative_path(file, output_path, cwd);
+    if (source_map_embed) {
+      base64::encoder E;
+      istringstream is( sources[0] );
+      ostringstream buffer;
+      E.encode(is, buffer);
+      url = "data:text/css;base64," + buffer.str();
+      url.erase(url.size() - 1);
+    }
+    return "/*# sourceMappingURL=" + url + " */";
   }
 
   char* Context::generate_source_map()
   {
     if (source_map_file == "") return 0;
     char* result = 0;
-    string map = source_map.generate_source_map();
+    string map = source_map.generate_source_map(*this);
     result = copy_c_str(map.c_str());
     return result;
   }
@@ -288,14 +301,10 @@ namespace Sass {
     queue.clear();
     if(is_indented_syntax_src) {
       char * contents = sass2scss(source_c_str, SASS2SCSS_PRETTIFY_1);
-      queue.push_back(make_pair(input_path, contents));
-      source_map.files.push_back(input_path);
-      char * compiled = compile_file();
-      delete[] contents;
-      return compiled;
+      add_source(input_path, input_path, contents);
+      return compile_file();
     }
-    queue.push_back(make_pair(input_path, source_c_str));
-    source_map.files.push_back(input_path);
+    add_source(input_path, input_path, strdup(source_c_str));
     return compile_file();
   }
 

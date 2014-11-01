@@ -21,6 +21,9 @@
 #include "subset_map.hpp"
 #endif
 
+#define BUFFERSIZE 255
+#include "b64/encode.h"
+
 struct Sass_C_Function_Descriptor;
 
 namespace Sass {
@@ -41,8 +44,17 @@ namespace Sass {
     Memory_Manager<AST_Node> mem;
 
     const char* source_c_str;
-    vector<const char*> sources; // c-strs containing Sass file contents
-    vector<string> include_paths;
+
+    // c-strs containing Sass file contents
+    // we will overtake ownership of memory
+    vector<const char*> sources;
+    // absolute paths to includes
+    vector<string> included_files;
+    // relative links to includes
+    vector<string> include_links;
+    // vectors above have same size
+
+    vector<string> include_paths; // lookup paths for includes
     vector<pair<string, const char*> > queue; // queue of files to be parsed
     map<string, Block*> style_sheets; // map of paths to ASTs
     SourceMap source_map;
@@ -53,6 +65,8 @@ namespace Sass {
     bool         source_comments; // for inline debug comments in css output
     Output_Style output_style; // output style for the generated css code
     string       source_map_file; // path to source map file (enables feature)
+    bool         source_map_embed; // embed in sourceMappingUrl (as data-url)
+    bool         source_map_contents; // insert included contents into source map
     bool         omit_source_map_url; // disable source map comment in css output
     bool         is_indented_syntax_src; // treat source string as sass
 
@@ -77,6 +91,8 @@ namespace Sass {
       KWD_ARG(Data, bool,            is_indented_syntax_src);
       KWD_ARG(Data, size_t,          precision);
       KWD_ARG(Data, bool,            _skip_source_map_update);
+      KWD_ARG(Data, bool,            source_map_embed);
+      KWD_ARG(Data, bool,            source_map_contents);
     };
 
     Context(Data);
@@ -93,13 +109,13 @@ namespace Sass {
     char* compile_file();
     char* generate_source_map();
 
-    std::vector<string> get_included_files();
+    vector<string> get_included_files();
 
   private:
+    void add_source(const string &load_path, const string &abs_path, const char* contents);
     string format_source_mapping_url(const string& file) const;
     string get_cwd();
 
-    vector<string> included_files;
     string cwd;
 
     // void register_built_in_functions(Env* env);
