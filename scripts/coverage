@@ -11,16 +11,16 @@ var COVERALLS_BIN = ["node_modules", ".bin", "coveralls"].join(path.sep);
 var MOCHA_BIN = ["node_modules", ".bin", "mocha"].join(path.sep);
 
 echo("Creating coverage files");
-exec(JSCOVERAGE_BIN + " lib lib-coverage");
+exec(JSCOVERAGE_BIN + " lib lib-cov");
 
 echo("Piping mocha to coveralls");
 
-env["NODESASS_COVERAGE"] = 1;
+env["NODESASS_COV"] = 1;
 
 exec(MOCHA_BIN + " test -R mocha-lcov-reporter | " + COVERALLS_BIN, {async: false}, function(code, output) {
 	console.log('Exit code:', code);
 	console.log('Program output:', output);
 
 	echo("Cleanup coverage files");
-	rm("-R", "lib-coverage");
+	rm("-R", "lib-cov");
 });
