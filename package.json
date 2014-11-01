@@ -19,7 +19,7 @@
   },
   "gypfile": true,
   "scripts": {
-    "coverage": "make test-cov",
+    "coverage": "node scripts/coverage",
     "install": "node lib/build.js",
     "prepublish": "node scripts/prepublish",
     "pretest": "node_modules/.bin/jshint bin lib test",
