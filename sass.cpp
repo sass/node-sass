@@ -173,15 +173,15 @@ extern "C" {
 
     size_t i;
     switch(val.unknown.tag) {
-        // case SASS_NULL: {
-        // }   break;
-        // case SASS_BOOLEAN: {
-        // }   break;
+        case SASS_NULL: {
+        }   break;
+        case SASS_BOOLEAN: {
+        }   break;
         case SASS_NUMBER: {
                 free(val.number.unit);
         }   break;
-        // case SASS_COLOR: {
-        // }   break;
+        case SASS_COLOR: {
+        }   break;
         case SASS_STRING: {
                 free(val.string.value);
         }   break;
