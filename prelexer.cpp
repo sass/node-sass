@@ -288,7 +288,8 @@ namespace Sass {
     const char* name(const char* src) {
       return one_plus< alternatives< alnum,
                                      exactly<'-'>,
-                                     exactly<'_'> > >(src);
+                                     exactly<'_'>,
+                                     exactly<'\\'> > >(src);
     }
 
     const char* warn(const char* src) {
