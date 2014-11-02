@@ -609,7 +609,7 @@ namespace Sass {
           Comment* comment  = new (ctx.mem) Comment(path, source_position, contents);
           (*block) << comment;
         }
-        if (lex< exactly<'}'> >()) break;
+        if (lex< sequence< exactly<'}'>, zero_plus< exactly<';'> > > >()) break;
       }
       if (lex< block_comment >()) {
         String*  contents = parse_interpolated_chunk(lexed);
