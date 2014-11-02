@@ -76,9 +76,6 @@ AC_ARG_ENABLE([coverage],
     [enable_cov=no])
 
 if test "x$enable_cov" = "xyes"; then
-    if test "x$enable_static" != "xyes"; then
-        AC_MSG_ERROR([Static libraries are required for --enable-coverage])
-    fi
 
     AC_CHECK_PROG(GCOV, gcov, gcov)
 

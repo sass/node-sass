@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ "x$COVERAGE" == "xyes" ]; then
+  sudo pip install cpp-coveralls
+  # enable to debug coverage
+  sudo pip install gcovr
+  sudo apt-get install libjson-perl
+  sudo apt-get install libjson-xs-perl
+  sudo apt-get install libfile-slurp-perl
+else
+  echo "no dependencies to install"
+fi

@@ -1,42 +1,37 @@
 language: cpp
 
+os:
+  - linux
+  # - osx
+
 compiler:
   - gcc
   - clang
 
+# currently only builds via autotools
+# will use the shared library of libsass
+# - AUTOTOOLS=no COVERAGE=yes BUILD=shared
+# - AUTOTOOLS=no COVERAGE=no BUILD=shared
+
 env:
-  - AUTOTOOLS=yes
-  - AUTOTOOLS=no
+  - AUTOTOOLS=yes COVERAGE=yes BUILD=shared
+  - AUTOTOOLS=yes COVERAGE=yes BUILD=static
+  - AUTOTOOLS=no COVERAGE=yes BUILD=static
+  - AUTOTOOLS=yes COVERAGE=no BUILD=shared
+  - AUTOTOOLS=yes COVERAGE=no BUILD=static
+  - AUTOTOOLS=no COVERAGE=no BUILD=static
 
-script: ./script/cibuild
+# currenty there are various issues when
+# built with coverage, clang and autotools
 
-before_install:
-  - sudo pip install cpp-coveralls
-  # enable to debug coverage
-  - sudo pip install gcovr
-  - sudo apt-get install libjson-perl
-  - sudo apt-get install libjson-xs-perl
-  - sudo apt-get install libfile-slurp-perl
+matrix:
+  exclude:
+    - compiler: clang
+      env: AUTOTOOLS=yes COVERAGE=yes BUILD=shared
+    - compiler: clang
+      env: AUTOTOOLS=yes COVERAGE=yes BUILD=static
 
-install:
-  # gcc >= 4.7 is needed for -std=c++11
-  - ./script/install-compiler
-  - gem install minitest
-
-after_success:
-  # exclude some directories from profiling (.libs is from autotools)
-  - export EXCLUDE_COVERAGE="--exclude sassc --exclude sass-spec \
-                             --exclude .libs --exclude debug.hpp \
-                             --exclude json.cpp --exclude json.hpp \
-                             --exclude cencode.c --exclude b64 \
-                             --exclude utf8 --exclude utf8_string.hpp \
-                             --exclude utf8.h --exclude utf8_string.cpp \
-                             --exclude test"
-  # debug via gcovr
-  - gcovr -r .
-  # debug via coveralls (dump result for futher analyzing)
-  - coveralls $EXCLUDE_COVERAGE --gcov-options '\-lp' --dump coveralls.json
-  # analyze the resulting json
-  - ./script/coveralls-debug
-  # generate and submit report to coveralls.io
-  - coveralls $EXCLUDE_COVERAGE --gcov-options '\-lp'
+script: ./script/ci-build-libsass
+before_install: ./script/ci-install-deps
+install: ./script/ci-install-compiler
+after_success: ./script/ci-report-coverage
