@@ -109,7 +109,7 @@ namespace Sass {
     Expression* expr = e->list()->perform(this);
     List* list = 0;
     Map* map = 0;
-    if (expr->concrete_type() != Expression::LIST) {
+    if (expr->concrete_type() == Expression::MAP) {
       map = static_cast<Map*>(expr);
     }
     else if (expr->concrete_type() != Expression::LIST) {
