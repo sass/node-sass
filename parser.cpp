@@ -254,12 +254,14 @@ namespace Sass {
     }
     else {
       bool is_arglist = false;
+      bool is_keyword = false;
       Expression* val = parse_space_list();
       val->is_delayed(false);
       if (lex< exactly< ellipsis > >()) {
-        is_arglist = true;
+        if (val->concrete_type() == Expression::MAP) is_keyword = true;
+        else is_arglist = true;
       }
-      arg = new (ctx.mem) Argument(path, source_position, val, "", is_arglist);
+      arg = new (ctx.mem) Argument(path, source_position, val, "", is_arglist, is_keyword);
     }
     return arg;
   }

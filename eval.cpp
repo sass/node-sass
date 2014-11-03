@@ -599,20 +599,32 @@ namespace Sass {
     val->is_delayed(false);
     val = val->perform(this);
     val->is_delayed(false);
-    if (a->is_rest_argument() && (val->concrete_type() != Expression::LIST)) {
-      List* wrapper = new (ctx.mem) List(val->path(),
-                                         val->position(),
-                                         0,
-                                         List::COMMA,
-                                         true);
-      *wrapper << val;
-      val = wrapper;
+
+    bool is_rest_argument = a->is_rest_argument();
+    bool is_keyword_argument = a->is_keyword_argument();
+
+    if (a->is_rest_argument()) {
+      if (val->concrete_type() == Expression::MAP) {
+        is_rest_argument = false;
+        is_keyword_argument = true;
+      }
+      else
+      if(val->concrete_type() != Expression::LIST) {
+        List* wrapper = new (ctx.mem) List(val->path(),
+                                           val->position(),
+                                           0,
+                                           List::COMMA,
+                                           true);
+        *wrapper << val;
+        val = wrapper;
+      }
     }
     return new (ctx.mem) Argument(a->path(),
                                   a->position(),
                                   val,
                                   a->name(),
-                                  a->is_rest_argument());
+                                  is_rest_argument,
+                                  is_keyword_argument);
   }
 
   Expression* Eval::operator()(Arguments* a)
