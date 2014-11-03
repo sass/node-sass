@@ -21,7 +21,7 @@ namespace Sass {
   using namespace std;
 
   struct Context;
-  
+
   typedef Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> > ExtensionSubsetMap;
 
   class Extend : public Operation_CRTP<void, Extend> {

@@ -3,7 +3,7 @@
 namespace Sass {
   namespace Util {
     using std::string;
-    
+
     string normalize_underscores(const string& str) {
       string normalized = str;
       for(size_t i = 0, L = normalized.length(); i < L; ++i) {
@@ -20,9 +20,9 @@ namespace Sass {
       }
 
       Block* b = r->block();
-      
+
       bool hasSelectors = static_cast<Selector_List*>(r->selector())->length() > 0;
-      
+
       if (!hasSelectors) {
       	return false;
       }
@@ -39,12 +39,12 @@ namespace Sass {
         } else {
         	hasDeclarations = true;
         }
-        
+
         if (hasDeclarations || hasPrintableChildBlocks) {
         	return true;
         }
       }
-      
+
       return false;
     }
 
@@ -52,11 +52,11 @@ namespace Sass {
       if (m == NULL) {
         return false;
       }
-  
+
       Block* b = m->block();
 
       bool hasSelectors = m->selector() && static_cast<Selector_List*>(m->selector())->length() > 0;
-      
+
       bool hasDeclarations = false;
       bool hasPrintableChildBlocks = false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
@@ -81,15 +81,15 @@ namespace Sass {
         	return true;
         }
       }
-      
+
       return false;
     }
- 
+
      bool isPrintable(Block* b) {
        if (b == NULL) {
          return false;
        }
- 
+
        for (size_t i = 0, L = b->length(); i < L; ++i) {
          Statement* stm = (*b)[i];
          if (typeid(*stm) == typeid(Declaration) || typeid(*stm) == typeid(At_Rule)) {
@@ -111,9 +111,9 @@ namespace Sass {
            return true;
          }
        }
-       
+
        return false;
      }
-    
+
   }
 }
