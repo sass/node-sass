@@ -559,6 +559,41 @@ namespace Sass {
     return s;
   }
 
+  Expression* Eval::operator()(Feature_Queries* f)
+  {
+    Feature_Queries* ff = new (ctx.mem) Feature_Queries(f->path(),
+                                                        f->position(),
+                                                        f->length());
+    for (size_t i = 0, L = f->length(); i < L; ++i) {
+      *ff << static_cast<Feature_Query*>((*f)[i]->perform(this));
+    }
+    return ff;
+  }
+
+  Expression* Eval::operator()(Feature_Query* q)
+  {
+    Feature_Query* qq = new (ctx.mem) Feature_Query(q->path(),
+                                                    q->position(),
+                                                    q->length(),
+                                                    q->is_negated());
+    for (size_t i = 0, L = q->length(); i < L; ++i) {
+      *qq << static_cast<Feature_Query_Condition*>((*q)[i]->perform(this));
+    }
+    return qq;
+  }
+
+  Expression* Eval::operator()(Feature_Query_Condition* c)
+  {
+    Expression* feature = c->feature()->perform(this);
+    Expression* value = c->value()->perform(this);
+    return new (ctx.mem) Feature_Query_Condition(c->path(),
+                                                 c->position(),
+                                                 feature,
+                                                 value,
+                                                 c->operand(),
+                                                 c->is_negated());
+  }
+
   Expression* Eval::operator()(Media_Query* q)
   {
     String* t = q->media_type();

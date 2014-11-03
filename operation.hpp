@@ -17,6 +17,7 @@ namespace Sass {
     virtual T operator()(Block* x)                  = 0;
     virtual T operator()(Ruleset* x)                = 0;
     virtual T operator()(Propset* x)                = 0;
+    virtual T operator()(Feature_Block* x)          = 0;
     virtual T operator()(Media_Block* x)            = 0;
     virtual T operator()(At_Rule* x)                = 0;
     virtual T operator()(Declaration* x)            = 0;
@@ -48,6 +49,9 @@ namespace Sass {
     virtual T operator()(Boolean* x)                = 0;
     virtual T operator()(String_Schema* x)          = 0;
     virtual T operator()(String_Constant* x)        = 0;
+    virtual T operator()(Feature_Queries* x)        = 0;
+    virtual T operator()(Feature_Query* x)          = 0;
+    virtual T operator()(Feature_Query_Condition* x)= 0;
     virtual T operator()(Media_Query* x)            = 0;
     virtual T operator()(Media_Query_Expression* x) = 0;
     virtual T operator()(Null* x)                   = 0;
@@ -82,6 +86,7 @@ namespace Sass {
     virtual T operator()(Block* x)                  { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Ruleset* x)                { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Propset* x)                { return static_cast<D*>(this)->fallback(x); }
+    virtual T operator()(Feature_Block* x)          { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Media_Block* x)            { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(At_Rule* x)                { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Declaration* x)            { return static_cast<D*>(this)->fallback(x); }
@@ -113,6 +118,9 @@ namespace Sass {
     virtual T operator()(Boolean* x)                { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(String_Schema* x)          { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(String_Constant* x)        { return static_cast<D*>(this)->fallback(x); }
+    virtual T operator()(Feature_Queries* x)        { return static_cast<D*>(this)->fallback(x); }
+    virtual T operator()(Feature_Query* x)          { return static_cast<D*>(this)->fallback(x); }
+    virtual T operator()(Feature_Query_Condition* x){ return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Media_Query* x)            { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Media_Query_Expression* x) { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Null* x)                   { return static_cast<D*>(this)->fallback(x); }

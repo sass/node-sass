@@ -207,6 +207,10 @@ namespace Sass {
       return exactly<media_kwd>(src);
     }
 
+    const char* supports(const char* src) {
+      return exactly<supports_kwd>(src);
+    }
+
     const char* keyframes(const char* src) {
       return sequence< exactly<'@'>, optional< vendor_prefix >, exactly< keyframes_kwd > >(src);
     }
