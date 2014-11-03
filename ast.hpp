@@ -340,6 +340,19 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
 
+  ///////////////////
+  // Feature queries.
+  ///////////////////
+  class Feature_Block : public Has_Block {
+    ADD_PROPERTY(Feature_Queries*, feature_queries);
+  public:
+    Feature_Block(string path, Position position, Feature_Queries* fqs, Block* b)
+    : Has_Block(path, position, b), feature_queries_(fqs)
+    { }
+    bool is_hoistable() { return true; }
+    ATTACH_OPERATIONS();
+  };
+
   ///////////////////////////////////////////////////////////////////////
   // At-rules -- arbitrary directives beginning with "@" that may have an
   // optional statement block.
@@ -1324,6 +1337,50 @@ namespace Sass {
     Media_Query_Expression(string path, Position position,
                            Expression* f, Expression* v, bool i = false)
     : Expression(path, position), feature_(f), value_(v), is_interpolated_(i)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
+  ///////////////////
+  // Feature queries.
+  ///////////////////
+  class Feature_Queries : public Expression, public Vectorized<Feature_Query*> {
+  public:
+    Feature_Queries(string path, Position position, size_t s = 0)
+    : Expression(path, position), Vectorized<Feature_Query*>(s)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
+  /////////////////
+  // Feature query.
+  /////////////////
+  class Feature_Query : public Expression, public Vectorized<Feature_Query_Condition*> {
+    ADD_PROPERTY(bool, is_negated);
+  public:
+    Feature_Query(string path, Position position, size_t s = 0, bool n = false)
+    : Expression(path, position), Vectorized<Feature_Query_Condition*>(s),
+      is_negated_(false)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
+  ////////////////////////////////////////////////////////
+  // Feature expressions (for use inside feature queries).
+  ////////////////////////////////////////////////////////
+  class Feature_Query_Condition : public Expression {
+  public:
+    enum Operand { NONE, AND, OR };
+  private:
+    ADD_PROPERTY(Expression*, feature);
+    ADD_PROPERTY(Expression*, value);
+    ADD_PROPERTY(Operand, operand);
+    ADD_PROPERTY(bool, is_negated);
+  public:
+    Feature_Query_Condition(string path, Position position,
+                           Expression* f, Expression* v,
+                           Operand o = NONE, bool n = false, bool i = false)
+    : Expression(path, position), feature_(f), value_(v), operand_(o), is_negated_(n)
     { }
     ATTACH_OPERATIONS();
   };

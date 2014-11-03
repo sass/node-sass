@@ -14,6 +14,7 @@ namespace Sass {
     bool containsAnyPrintableStatements(Block* b);
 
     bool isPrintable(Ruleset* r);
+    bool isPrintable(Feature_Block* r);
     bool isPrintable(Media_Block* r);
     bool isPrintable(Block* b);
 

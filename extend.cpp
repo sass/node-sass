@@ -1937,6 +1937,11 @@ namespace Sass {
     pRuleset->block()->perform(this);
   }
 
+  void Extend::operator()(Feature_Block* pFeatureBlock)
+  {
+    pFeatureBlock->block()->perform(this);
+  }
+
   void Extend::operator()(Media_Block* pMediaBlock)
   {
     if (pMediaBlock->selector()) {

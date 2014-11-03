@@ -48,6 +48,42 @@ namespace Sass {
       return false;
     }
 
+    bool isPrintable(Feature_Block* f) {
+      if (f == NULL) {
+        return false;
+      }
+
+      Block* b = f->block();
+
+      bool hasSelectors = false;
+      bool hasDeclarations = false;
+      bool hasPrintableChildBlocks = false;
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (!stm->is_hoistable() && !hasSelectors) {
+          // If a statement isn't hoistable, the selectors apply to it. If there are no selectors (a selector list of length 0),
+          // then those statements aren't considered printable. That means there was a placeholder that was removed. If the selector
+          // is NULL, then that means there was never a wrapping selector and it is printable (think of a top level media block with
+          // a declaration in it).
+        }
+        else if (typeid(*stm) == typeid(Declaration) || typeid(*stm) == typeid(At_Rule)) {
+          hasDeclarations = true;
+        }
+        else if (dynamic_cast<Has_Block*>(stm)) {
+          Block* pChildBlock = ((Has_Block*)stm)->block();
+          if (isPrintable(pChildBlock)) {
+            hasPrintableChildBlocks = true;
+          }
+        }
+
+        if (hasDeclarations || hasPrintableChildBlocks) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
     bool isPrintable(Media_Block* m) {
       if (m == NULL) {
         return false;
@@ -98,6 +134,12 @@ namespace Sass {
          else if (typeid(*stm) == typeid(Ruleset)) {
            Ruleset* r = (Ruleset*) stm;
            if (isPrintable(r)) {
+             return true;
+           }
+         }
+         else if (typeid(*stm) == typeid(Feature_Block)) {
+           Feature_Block* f = (Feature_Block*) stm;
+           if (isPrintable(f)) {
              return true;
            }
          }

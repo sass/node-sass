@@ -57,6 +57,7 @@ namespace Sass {
     // css functions and keywords
     extern const char charset_kwd[];
     extern const char media_kwd[];
+    extern const char supports_kwd[];
     extern const char keyframes_kwd[];
     extern const char only_kwd[];
     extern const char rgb_kwd[];

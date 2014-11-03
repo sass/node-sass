@@ -338,6 +338,7 @@ namespace Sass {
     const char* at_keyword(const char* src);
     const char* import(const char* src);
     const char* media(const char* src);
+    const char* supports(const char* src);
     const char* keyframes(const char* src);
     const char* keyf(const char* src);
     const char* mixin(const char* src);

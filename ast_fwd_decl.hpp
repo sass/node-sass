@@ -10,6 +10,7 @@ namespace Sass {
   class Ruleset;
   class Propset;
   class Media_Block;
+  class Feature_Block;
   class At_Rule;
   class Declaration;
   class Assignment;
@@ -44,6 +45,9 @@ namespace Sass {
   class String_Constant;
   class Media_Query;
   class Media_Query_Expression;
+  class Feature_Queries;
+  class Feature_Query;
+  class Feature_Query_Condition;
   class Null;
   // parameters and arguments
   class Parameter;
