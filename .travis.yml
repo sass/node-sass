@@ -8,26 +8,27 @@ compiler:
   - gcc
   - clang
 
-# currently only builds via autotools
-# will use the shared library of libsass
+# don't create redundant code coverage reports
+# - AUTOTOOLS=yes COVERAGE=yes BUILD=static
 # - AUTOTOOLS=no COVERAGE=yes BUILD=shared
+# - AUTOTOOLS=no COVERAGE=no BUILD=static
+
+# further speed up day by day travis-ci builds
+# re-enable this if you change the makefiles
+# this will still catch all coding errors!
 # - AUTOTOOLS=no COVERAGE=no BUILD=shared
+# - AUTOTOOLS=yes COVERAGE=no BUILD=static
 
 env:
-  - AUTOTOOLS=yes COVERAGE=yes BUILD=shared
-  - AUTOTOOLS=yes COVERAGE=yes BUILD=static
   - AUTOTOOLS=no COVERAGE=yes BUILD=static
   - AUTOTOOLS=yes COVERAGE=no BUILD=shared
-  - AUTOTOOLS=yes COVERAGE=no BUILD=static
-  - AUTOTOOLS=no COVERAGE=no BUILD=static
 
 # currenty there are various issues when
 # built with coverage, clang and autotools
+# - AUTOTOOLS=yes COVERAGE=yes BUILD=shared
 
 matrix:
   exclude:
-    - compiler: clang
-      env: AUTOTOOLS=yes COVERAGE=yes BUILD=shared
     - compiler: clang
       env: AUTOTOOLS=yes COVERAGE=yes BUILD=static
 
