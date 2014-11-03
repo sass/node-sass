@@ -612,7 +612,8 @@ namespace Sass {
                                   a->position(),
                                   val,
                                   a->name(),
-                                  a->is_rest_argument());
+                                  a->is_rest_argument(),
+                                  a->is_keyword_argument());
   }
 
   Expression* Eval::operator()(Arguments* a)

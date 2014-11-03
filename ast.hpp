@@ -775,10 +775,11 @@ namespace Sass {
     ADD_PROPERTY(Expression*, value);
     ADD_PROPERTY(string, name);
     ADD_PROPERTY(bool, is_rest_argument);
+    ADD_PROPERTY(bool, is_keyword_argument);
     size_t hash_;
   public:
-    Argument(string p, Position pos, Expression* val, string n = "", bool rest = false)
-    : Expression(p, pos), value_(val), name_(n), is_rest_argument_(rest), hash_(0)
+    Argument(string p, Position pos, Expression* val, string n = "", bool rest = false, bool keyword = false)
+    : Expression(p, pos), value_(val), name_(n), is_rest_argument_(rest), is_keyword_argument_(keyword), hash_(0)
     {
       if (!name_.empty() && is_rest_argument_) {
         error("variable-length argument may not be passed by name", path(), position());
@@ -819,11 +820,12 @@ namespace Sass {
   class Arguments : public Expression, public Vectorized<Argument*> {
     ADD_PROPERTY(bool, has_named_arguments);
     ADD_PROPERTY(bool, has_rest_argument);
+    ADD_PROPERTY(bool, has_keyword_argument);
   protected:
     void adjust_after_pushing(Argument* a)
     {
       if (!a->name().empty()) {
-        if (has_rest_argument_) {
+        if (has_rest_argument_ || has_keyword_argument_) {
           error("named arguments must precede variable-length argument", a->path(), a->position());
         }
         has_named_arguments_ = true;
@@ -832,10 +834,16 @@ namespace Sass {
         if (has_rest_argument_) {
           error("functions and mixins may only be called with one variable-length argument", a->path(), a->position());
         }
-        if (has_named_arguments_) {
-          error("functions and mixins may not be called with both named arguments and variable-length arguments", a->path(), a->position());
+        if (has_keyword_argument_) {
+          error("only keyword arguments may follow variable arguments", a->path(), a->position());
         }
         has_rest_argument_ = true;
+      }
+      else if (a->is_keyword_argument()) {
+        if (has_keyword_argument_) {
+          error("functions and mixins may only be called with one keyword argument", a->path(), a->position());
+        }
+        has_keyword_argument_ = true;
       }
       else {
         if (has_rest_argument_) {
@@ -851,7 +859,8 @@ namespace Sass {
     : Expression(path, position),
       Vectorized<Argument*>(),
       has_named_arguments_(false),
-      has_rest_argument_(false)
+      has_rest_argument_(false),
+      has_keyword_argument_(false)
     { }
     ATTACH_OPERATIONS();
   };

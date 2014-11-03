@@ -90,6 +90,21 @@ namespace Sass {
         if (!arglist->length() || (!arglist->is_arglist() && ip + 1 == LP)) {
           ++ia;
         }
+      } else if (a->is_keyword_argument()) {
+        Map* argmap = static_cast<Map*>(a->value());
+
+        for (auto key : argmap->keys()) {
+          string name = "$" + static_cast<String_Constant*>(key)->value();
+
+          if (!param_map.count(name)) {
+            stringstream msg;
+            msg << callee << " has no parameter named " << name;
+            error(msg.str(), a->path(), a->position());
+          }
+          env->current_frame()[name] = argmap->at(key);
+        }
+        ++ia;
+        continue;
       } else {
         ++ia;
       }
