@@ -1,7 +1,7 @@
-#!/usr/bin/env node
 var fs = require('fs'),
     path = require('path'),
     spawn = require('child_process').spawn,
+    mkdir = require('mkdirp'),
     Mocha = require('mocha');
 
 /**
@@ -14,24 +14,24 @@ var fs = require('fs'),
 function afterBuild(options) {
   var folder = options.debug ? 'Debug' : 'Release';
   var target = path.join(__dirname, '..', 'build', folder, 'binding.node');
-  var install = path.join(__dirname, '..', 'bin', options.bin, 'binding.node');
+  var install = path.join(__dirname, '..', 'vendor', options.bin, 'binding.node');
 
-  fs.mkdir(path.join(__dirname, '..', 'bin', options.bin), function (err) {
+  mkdir(path.join(__dirname, '..', 'vendor', options.bin), function (err) {
     if (err && err.code !== 'EEXIST') {
       console.error(err.message);
-      process.exit(1);
+      return;
     }
 
     fs.stat(target, function (err) {
       if (err) {
         console.error('Build succeeded but target not found');
-        process.exit(1);
+        return;
       }
 
       fs.rename(target, install, function (err) {
         if (err) {
           console.error(err.message);
-          process.exit(1);
+          return;
         }
 
         console.log('Installed in `' + install + '`');
@@ -61,11 +61,11 @@ function build(options) {
           'You need at least 1.1.5 (I think) and preferably 1.1.30.'
         ].join(' '));
 
-        process.exit(code);
+        return;
       }
 
       console.error('Build failed');
-      process.exit(code);
+      return;
     }
 
     afterBuild(options);
@@ -120,7 +120,7 @@ function testBinary(options) {
   }
 
   if (!process.env.SKIP_NODE_SASS_TESTS) {
-    fs.stat(path.join(__dirname, '..', 'bin', options.bin, 'binding.node'), function (err) {
+    fs.stat(path.join(__dirname, '..', 'vendor', options.bin, 'binding.node'), function (err) {
       if (err) {
         return build(options);
       }

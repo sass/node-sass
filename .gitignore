@@ -1,8 +1,7 @@
 *.log
 .DS_Store
 .sass-cache
-bin
-!bin/node-sass
 build
 lib-cov
 node_modules
+vendor
