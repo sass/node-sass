@@ -95,6 +95,7 @@ namespace Sass {
                                                     f->position(),
                                                     static_cast<Feature_Queries*>(feature_queries),
                                                     f->block()->perform(this)->block());
+    ff->selector(selector_stack.back());
     return ff;
   }
 

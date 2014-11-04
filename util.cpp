@@ -55,12 +55,13 @@ namespace Sass {
 
       Block* b = f->block();
 
-      bool hasSelectors = false;
+      bool hasSelectors = f->selector() && static_cast<Selector_List*>(f->selector())->length() > 0;
+
       bool hasDeclarations = false;
       bool hasPrintableChildBlocks = false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
-        if (!stm->is_hoistable() && !hasSelectors) {
+        if (!stm->is_hoistable() && f->selector() != NULL && !hasSelectors) {
           // If a statement isn't hoistable, the selectors apply to it. If there are no selectors (a selector list of length 0),
           // then those statements aren't considered printable. That means there was a placeholder that was removed. If the selector
           // is NULL, then that means there was never a wrapping selector and it is printable (think of a top level media block with

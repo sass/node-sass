@@ -1939,6 +1939,10 @@ namespace Sass {
 
   void Extend::operator()(Feature_Block* pFeatureBlock)
   {
+    if (pFeatureBlock->selector()) {
+      extendObjectWithSelectorAndBlock(pFeatureBlock, ctx, subset_map);
+    }
+
     pFeatureBlock->block()->perform(this);
   }
 
