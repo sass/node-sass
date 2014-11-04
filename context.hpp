@@ -113,7 +113,7 @@ namespace Sass {
 
   private:
     void add_source(const string &load_path, const string &abs_path, const char* contents);
-    string format_source_mapping_url(const string& file) const;
+    string format_source_mapping_url(const string& file);
     string get_cwd();
 
     string cwd;

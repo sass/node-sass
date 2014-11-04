@@ -38,7 +38,7 @@ namespace Sass {
 
     JsonNode *json_contents = json_mkarray();
     if (include_sources) {
-      for (size_t i = 1; i < source_index.size(); ++i) {
+      for (size_t i = 0; i < source_index.size(); ++i) {
         const char *content = sources[source_index[i]];
         JsonNode *json_content = json_mkstring(content);
         json_append_element(json_contents, json_content);
