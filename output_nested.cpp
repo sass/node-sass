@@ -124,13 +124,13 @@ namespace Sass {
     }
   }
 
-  void Output_Nested::operator()(Media_Block* m)
+  void Output_Nested::operator()(Feature_Block* f)
   {
-    List*  q     = m->media_queries();
-    Block* b     = m->block();
+    Feature_Queries*  q = f->feature_queries();
+    Block* b            = f->block();
 
-    // Filter out media blocks that aren't printable (process its children though)
-    if (!Util::isPrintable(m)) {
+    // Filter out feature blocks that aren't printable (process its children though)
+    if (!Util::isPrintable(f)) {
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
         if (dynamic_cast<Has_Block*>(stm)) {
@@ -139,21 +139,21 @@ namespace Sass {
       }
       return;
     }
-    
+
     indent();
-    ctx->source_map.add_mapping(m);
-    append_to_buffer("@media ");
+    ctx->source_map.add_mapping(f);
+    append_to_buffer("@supports ");
     q->perform(this);
     append_to_buffer(" {\n");
 
-    Selector* e = m->selector();
+    Selector* e = f->selector();
     if (e && b->has_non_hoistable()) {
       // JMA - hoisted, output the non-hoistable in a nested block, followed by the hoistable
       ++indentation;
       indent();
       e->perform(this);
       append_to_buffer(" {\n");
-      
+
       ++indentation;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
@@ -164,12 +164,12 @@ namespace Sass {
         }
       }
       --indentation;
-      
+
       buffer.erase(buffer.length()-1);
       if (ctx) ctx->source_map.remove_line();
       append_to_buffer(" }\n");
       --indentation;
-      
+
       ++indentation;
       ++indentation;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
@@ -194,7 +194,83 @@ namespace Sass {
       }
       --indentation;
     }
-    
+
+    buffer.erase(buffer.length()-1);
+    if (ctx) ctx->source_map.remove_line();
+    append_to_buffer(" }\n");
+  }
+
+  void Output_Nested::operator()(Media_Block* m)
+  {
+    List*  q     = m->media_queries();
+    Block* b     = m->block();
+
+    // Filter out media blocks that aren't printable (process its children though)
+    if (!Util::isPrintable(m)) {
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (dynamic_cast<Has_Block*>(stm)) {
+          stm->perform(this);
+        }
+      }
+      return;
+    }
+
+    indent();
+    ctx->source_map.add_mapping(m);
+    append_to_buffer("@media ");
+    q->perform(this);
+    append_to_buffer(" {\n");
+
+    Selector* e = m->selector();
+    if (e && b->has_non_hoistable()) {
+      // JMA - hoisted, output the non-hoistable in a nested block, followed by the hoistable
+      ++indentation;
+      indent();
+      e->perform(this);
+      append_to_buffer(" {\n");
+
+      ++indentation;
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (!stm->is_hoistable()) {
+          if (!stm->block()) indent();
+          stm->perform(this);
+          append_to_buffer("\n");
+        }
+      }
+      --indentation;
+
+      buffer.erase(buffer.length()-1);
+      if (ctx) ctx->source_map.remove_line();
+      append_to_buffer(" }\n");
+      --indentation;
+
+      ++indentation;
+      ++indentation;
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (stm->is_hoistable()) {
+          stm->perform(this);
+        }
+      }
+      --indentation;
+      --indentation;
+    }
+    else {
+      // JMA - not hoisted, just output in order
+      ++indentation;
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (!stm->is_hoistable()) {
+          if (!stm->block()) indent();
+        }
+        stm->perform(this);
+        append_to_buffer("\n");
+      }
+      --indentation;
+    }
+
     buffer.erase(buffer.length()-1);
     if (ctx) ctx->source_map.remove_line();
     append_to_buffer(" }\n");

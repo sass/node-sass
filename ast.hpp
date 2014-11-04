@@ -345,9 +345,10 @@ namespace Sass {
   ///////////////////
   class Feature_Block : public Has_Block {
     ADD_PROPERTY(Feature_Queries*, feature_queries);
+    ADD_PROPERTY(Selector*, selector);
   public:
     Feature_Block(string path, Position position, Feature_Queries* fqs, Block* b)
-    : Has_Block(path, position, b), feature_queries_(fqs)
+    : Has_Block(path, position, b), feature_queries_(fqs), selector_(0)
     { }
     bool is_hoistable() { return true; }
     ATTACH_OPERATIONS();
