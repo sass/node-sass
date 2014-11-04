@@ -269,13 +269,14 @@ namespace Sass {
     return result;
   }
 
-  string Context::format_source_mapping_url(const string& file) const
+  string Context::format_source_mapping_url(const string& file)
   {
     string url = resolve_relative_path(file, output_path, cwd);
     if (source_map_embed) {
-      base64::encoder E;
-      istringstream is( sources[0] );
+      string map = source_map.generate_source_map(*this);
+      istringstream is( map );
       ostringstream buffer;
+      base64::encoder E;
       E.encode(is, buffer);
       url = "data:text/css;base64," + buffer.str();
       url.erase(url.size() - 1);
