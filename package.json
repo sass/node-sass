@@ -20,8 +20,8 @@
   "gypfile": true,
   "scripts": {
     "coverage": "node scripts/coverage.js",
-    "install": "node lib/build.js",
-    "prepublish": "node scripts/prepublish",
+    "install": "node scripts/install.js",
+    "postinstall": "node scripts/build.js",
     "pretest": "node_modules/.bin/jshint bin lib test",
     "test": "node_modules/.bin/mocha test"
   },
@@ -44,14 +44,15 @@
   "dependencies": {
     "chalk": "^0.5.1",
     "cross-spawn": "^0.2.3",
+    "download": "^3.1.2",
+    "download-status": "^2.1.0",
     "get-stdin": "^3.0.0",
     "meow": "^2.0.0",
     "mkdirp": "^0.5.0",
     "mocha": "^2.0.1",
     "nan": "^1.3.0",
     "node-watch": "^0.3.4",
-    "object-assign": "^1.0.0",
-    "shelljs": "^0.3.0"
+    "object-assign": "^1.0.0"
   },
   "devDependencies": {
     "coveralls": "^2.11.1",
