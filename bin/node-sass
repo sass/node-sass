@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 var Emitter = require('events').EventEmitter,
     path = require('path'),
+    Gaze = require('gaze'),
     meow = require('meow'),
     stdin = require('get-stdin'),
-    watch = require('node-watch'),
     render = require('../lib/render');
 
 /**
@@ -40,7 +40,6 @@ var cli = meow({
     'indented-syntax',
     'omit-source-map-url',
     'stdout',
-    'watch',
     'source-comments'
   ],
   string: [
@@ -64,27 +63,6 @@ var cli = meow({
     precision: 5
   }
 });
-
-/**
- * Throttle
- *
- * @param {Function} fn
- * @api private
- */
-
-function throttle(fn) {
-  var timer;
-  var args = [].slice.call(arguments, 1);
-
-  return function() {
-    var self = this;
-    clearTimeout(timer);
-
-    timer = setTimeout(function() {
-      fn.apply(self, args);
-    }, 20);
-  };
-}
 
 /**
  * Check if file is a Sass file
@@ -148,6 +126,38 @@ function getOptions(args, options) {
 }
 
 /**
+ * Watch
+ *
+ * @param {Object} options
+ * @param {Object} emitter
+ * @api private
+ */
+
+function watch(options, emitter) {
+  var dir = options.watch;
+  var gaze = new Gaze();
+
+  if (dir === true) {
+    dir = [];
+  } else if (!Array.isArray(dir)) {
+    dir = [dir];
+  }
+
+  dir.push(options.src);
+  dir = dir.map(function(d) {
+    return isSassFile(d) ? d : path.join(d, '*.{sass,scss}');
+  });
+
+  gaze.add(dir);
+  gaze.on('error', emitter.emit.bind(emitter, 'error'));
+
+  gaze.on('changed', function(file) {
+    emitter.emit('warn', '=> changed: ' + file);
+    render(options, emitter);
+  });
+}
+
+/**
  * Run
  *
  * @param {Object} options
@@ -169,26 +179,7 @@ function run(options, emitter) {
   }
 
   if (options.watch) {
-    var throttledRender = throttle(render, options, emitter);
-    var watchDir = options.watch;
-
-    if (watchDir === true) {
-      watchDir = [];
-    } else if (!Array.isArray(watchDir)) {
-      watchDir = [watchDir];
-    }
-
-    watchDir.push(options.src);
-
-    watch(watchDir, function(file) {
-      emitter.emit('warn', '=> changed: '.grey + file.blue);
-
-      if (isSassFile(file)) {
-        throttledRender();
-      }
-    });
-
-    throttledRender();
+    watch(options, emitter);
   } else {
     render(options, emitter);
   }
