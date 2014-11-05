@@ -162,7 +162,7 @@ describe('cli', function() {
     it('should compile with the --source-map option', function(done) {
       var src = fixture('source-map/index.scss');
       var dest = fixture('source-map/build.css');
-      var expected = read(fixture('source-map/expected.css'), 'utf8').trim();
+      var expected = read(fixture('source-map/expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
       var map = fixture('source-map/index.map');
       var bin = spawn(cli, [src, '--output', dest, '--source-map', map]);
 
