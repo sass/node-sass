@@ -19,6 +19,19 @@ describe('api (deprecated)', function() {
       });
     });
 
+    it('should compile sass to css using indented syntax', function(done) {
+      var src = read(fixture('indent/index.sass'), 'utf8');
+      var expected = read(fixture('indent/expected.css'), 'utf8').trim();
+
+      sass.render(src, function(err, css) {
+        assert(!err);
+        assert.equal(css.trim(), expected.replace(/\r\n/g, '\n'));
+        done();
+      }, {
+        indentedSyntax: true
+      });
+    });
+
     it('should throw error for bad input', function(done) {
       sass.render('#navbar width 80%;', function(err) {
         assert(err);
@@ -31,8 +44,18 @@ describe('api (deprecated)', function() {
     it('should compile sass to css', function(done) {
       var src = read(fixture('simple/index.scss'), 'utf8');
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
+      var css = sass.renderSync(src).trim();
 
-      assert.equal(sass.renderSync(src).trim(), expected.replace(/\r\n/g, '\n'));
+      assert.equal(css, expected.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should compile sass to css using indented syntax', function(done) {
+      var src = read(fixture('indent/index.sass'), 'utf8');
+      var expected = read(fixture('indent/expected.css'), 'utf8').trim();
+      var css = sass.renderSync(src, {indentedSyntax: true}).trim();
+
+      assert.equal(css, expected.replace(/\r\n/g, '\n'));
       done();
     });
 
@@ -54,6 +77,20 @@ describe('api', function() {
 
       sass.render({
         data: src,
+        success: function(css) {
+          assert.equal(css.trim(), expected.replace(/\r\n/g, '\n'));
+          done();
+        }
+      });
+    });
+
+    it('should compile sass to css using indented syntax', function(done) {
+      var src = read(fixture('indent/index.sass'), 'utf8');
+      var expected = read(fixture('indent/expected.css'), 'utf8').trim();
+
+      sass.render({
+        data: src,
+        indentedSyntax: true,
         success: function(css) {
           assert.equal(css.trim(), expected.replace(/\r\n/g, '\n'));
           done();
@@ -150,14 +187,27 @@ describe('api', function() {
     it('should compile sass to css', function(done) {
       var src = read(fixture('simple/index.scss'), 'utf8');
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
+      var css = sass.renderSync({data: src}).trim();
 
-      assert.equal(sass.renderSync({ data: src }).trim(), expected.replace(/\r\n/g, '\n'));
+      assert.equal(css, expected.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should compile sass to css using indented syntax', function(done) {
+      var src = read(fixture('indent/index.sass'), 'utf8');
+      var expected = read(fixture('indent/expected.css'), 'utf8').trim();
+      var css = sass.renderSync({
+        data: src,
+        indentedSyntax: true
+      }).trim();
+
+      assert.equal(css, expected.replace(/\r\n/g, '\n'));
       done();
     });
 
     it('should throw error for bad input', function(done) {
       assert.throws(function() {
-        sass.renderSync({ data: '#navbar width 80%;' });
+        sass.renderSync({data: '#navbar width 80%;'});
       });
 
       done();
@@ -165,7 +215,7 @@ describe('api', function() {
   });
 
   describe('.renderFile(options)', function() {
-    it('should compile with renderFile', function(done) {
+    it('should compile sass to css', function(done) {
       var src = read(fixture('simple/index.scss'), 'utf8');
       var dest = fixture('simple/build.css');
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
@@ -173,6 +223,23 @@ describe('api', function() {
       sass.renderFile({
         data: src,
         outFile: dest,
+        success: function() {
+          assert.equal(read(dest, 'utf8').trim(), expected.replace(/\r\n/g, '\n'));
+          fs.unlinkSync(dest);
+          done();
+        }
+      });
+    });
+
+    it('should compile sass to css using indented syntax', function(done) {
+      var src = read(fixture('indent/index.sass'), 'utf8');
+      var dest = fixture('indent/build.css');
+      var expected = read(fixture('indent/expected.css'), 'utf8').trim();
+
+      sass.renderFile({
+        data: src,
+        outFile: dest,
+        indentedSyntax: true,
         success: function() {
           assert.equal(read(dest, 'utf8').trim(), expected.replace(/\r\n/g, '\n'));
           fs.unlinkSync(dest);
@@ -241,7 +308,7 @@ describe('api', function() {
     });
   });
 
-  describe('.render({ stats: {} })', function() {
+  describe('.render({stats: {}})', function() {
     var start = Date.now();
     var stats = {};
 
@@ -345,7 +412,7 @@ describe('api', function() {
     });
   });
 
-  describe('.renderSync({ stats: {} })', function() {
+  describe('.renderSync({stats: {}})', function() {
     var start = Date.now();
     var stats = {};
 
