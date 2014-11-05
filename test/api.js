@@ -504,4 +504,11 @@ describe('api', function() {
       done();
     });
   });
+
+  describe('.middleware()', function() {
+    it('should throw error on require', function(done) {
+      assert.throws(sass.middleware());
+      done();
+    });
+  });
 });
