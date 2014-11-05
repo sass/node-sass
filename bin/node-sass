@@ -23,6 +23,7 @@ var cli = meow({
     '',
     'Options',
     '  -w, --watch                Watch a directory or file',
+    '  -r, --recursive            Recursively watch directories or files',
     '  -o, --output               Output CSS file',
     '  -x, --omit-source-map-url  Omit source map URL comment from output',
     '  -i, --indented-syntax      Treat data from stdin as sass code (versus scss)',
@@ -39,6 +40,7 @@ var cli = meow({
   boolean: [
     'indented-syntax',
     'omit-source-map-url',
+    'recursive',
     'stdout',
     'source-comments'
   ],
@@ -54,7 +56,8 @@ var cli = meow({
     o: 'output',
     w: 'watch',
     x: 'omit-source-map-url',
-    c: 'source-comments'
+    c: 'source-comments',
+    r: 'recursive'
   },
   default: {
     'image-path': '',
@@ -145,7 +148,8 @@ function watch(options, emitter) {
 
   dir.push(options.src);
   dir = dir.map(function(d) {
-    return isSassFile(d) ? d : path.join(d, '*.{sass,scss}');
+    var glob = options.recursive ? '**/*.{sass,scss}' : '*.{sass,scss}';
+    return isSassFile(d) ? d : path.join(d, glob);
   });
 
   gaze.add(dir);
