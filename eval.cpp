@@ -450,6 +450,16 @@ namespace Sass {
     // cerr << "name: " << v->name() << "; type: " << typeid(*value).name() << "; value: " << value->perform(&to_string) << endl;
     if (typeid(*value) == typeid(Argument)) value = static_cast<Argument*>(value)->value();
 
+    // behave according to as ruby sass (add leading zero)
+    if (value->concrete_type() == Expression::NUMBER) {
+      Number* n = static_cast<Number*>(value);
+      value = new (ctx.mem) Number(n->path(),
+                                   n->position(),
+                                   n->value(),
+                                   n->unit(),
+                                   true);
+    }
+
     // cerr << "\ttype is now: " << typeid(*value).name() << endl << endl;
     return value;
   }
@@ -458,24 +468,30 @@ namespace Sass {
   {
     using Prelexer::number;
     Expression* result = 0;
+    bool zero = !( t->value().substr(0, 1) == "." ||
+                   t->value().substr(0, 2) == "-." );
     switch (t->type())
     {
       case Textual::NUMBER:
         result = new (ctx.mem) Number(t->path(),
                                       t->position(),
-                                      atof(t->value().c_str()));
+                                      atof(t->value().c_str()),
+                                      "",
+                                      zero);
         break;
       case Textual::PERCENTAGE:
         result = new (ctx.mem) Number(t->path(),
                                       t->position(),
                                       atof(t->value().c_str()),
-                                      "%");
+                                      "%",
+                                      zero);
         break;
       case Textual::DIMENSION:
         result = new (ctx.mem) Number(t->path(),
                                       t->position(),
                                       atof(t->value().c_str()),
-                                      Token(number(t->value().c_str())));
+                                      Token(number(t->value().c_str())),
+                                      zero);
         break;
       case Textual::HEX: {
         string hext(t->value().substr(1)); // chop off the '#'
@@ -507,7 +523,12 @@ namespace Sass {
 
   Expression* Eval::operator()(Number* n)
   {
-    return n;
+    // behave according to as ruby sass (add leading zero)
+    return new (ctx.mem) Number(n->path(),
+                                n->position(),
+                                n->value(),
+                                n->unit(),
+                                true);
   }
 
   Expression* Eval::operator()(Boolean* b)

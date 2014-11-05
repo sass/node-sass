@@ -333,6 +333,10 @@ namespace Sass {
     if (n->numerator_units().size() > 1 || n->denominator_units().size() > 0) {
       error(d + n->unit() + " is not a valid CSS value", n->path(), n->position());
     }
+    if (!n->zero()) {
+      if (d.substr(0, 3) == "-0.") d.erase(1, 1);
+      if (d.substr(0, 2) == "0.") d.erase(0, 1);
+    }
     append_to_buffer(d == "-0" ? "0" : d);
     append_to_buffer(n->unit());
   }

@@ -992,13 +992,15 @@ namespace Sass {
   ////////////////////////////////////////////////
   class Number : public Expression {
     ADD_PROPERTY(double, value);
+    ADD_PROPERTY(bool, zero);
     vector<string> numerator_units_;
     vector<string> denominator_units_;
     size_t hash_;
   public:
-    Number(string path, Position position, double val, string u = "")
+    Number(string path, Position position, double val, string u = "", bool zero = true)
     : Expression(path, position),
       value_(val),
+      zero_(zero),
       numerator_units_(vector<string>()),
       denominator_units_(vector<string>()),
       hash_(0)
@@ -1006,6 +1008,7 @@ namespace Sass {
       if (!u.empty()) numerator_units_.push_back(u);
       concrete_type(NUMBER);
     }
+    bool            zero()              { return zero_; }
     vector<string>& numerator_units()   { return numerator_units_; }
     vector<string>& denominator_units() { return denominator_units_; }
     string type() { return "number"; }
