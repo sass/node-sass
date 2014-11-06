@@ -128,7 +128,7 @@ describe('cli', function() {
 
     it('should not exit with the --watch option', function(done) {
       var src = fixture('simple/index.scss');
-      var bin = spawn(cli, ['--stdout', '--watch', src]);
+      var bin = spawn(cli, [src, '--stdout', '--watch']);
       var exited;
 
       bin.on('close', function () {
@@ -143,6 +143,25 @@ describe('cli', function() {
           done();
         }
       }, 100);
+    });
+
+    it('should emit `warn` on file change when using --watch option', function(done) {
+      fs.writeFileSync(fixture('simple/tmp.scss'), '');
+
+      var src = fixture('simple/tmp.scss');
+      var bin = spawn(cli, [src, '--stdout', '--watch']);
+
+      bin.stderr.setEncoding('utf8');
+      bin.stderr.on('data', function(data) {
+        assert(data.trim() === '=> changed: ' + src);
+        bin.kill();
+        fs.unlinkSync(src);
+        done();
+      });
+
+      setTimeout(function() {
+        fs.appendFileSync(src, 'body {}');
+      }, 500);
     });
   });
 
