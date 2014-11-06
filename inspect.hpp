@@ -71,7 +71,6 @@ namespace Sass {
     virtual void operator()(Boolean*);
     virtual void operator()(String_Schema*);
     virtual void operator()(String_Constant*);
-    virtual void operator()(Feature_Queries*);
     virtual void operator()(Feature_Query*);
     virtual void operator()(Feature_Query_Condition*);
     virtual void operator()(Media_Query*);

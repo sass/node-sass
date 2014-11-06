@@ -45,7 +45,6 @@ namespace Sass {
   class String_Constant;
   class Media_Query;
   class Media_Query_Expression;
-  class Feature_Queries;
   class Feature_Query;
   class Feature_Query_Condition;
   class Null;

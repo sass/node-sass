@@ -233,12 +233,13 @@ namespace Sass {
     Media_Query* parse_media_query();
     Media_Query_Expression* parse_media_expression();
     Feature_Block* parse_feature_block();
-    Feature_Queries* parse_feature_queries();
-    Feature_Query* parse_feature_query();
+    Feature_Query* parse_feature_queries();
+    Feature_Query_Condition* parse_feature_query();
+    Feature_Query_Condition* parse_feature_query_in_parens();
     Feature_Query_Condition* parse_supports_negation();
     Feature_Query_Condition* parse_supports_conjunction();
     Feature_Query_Condition* parse_supports_disjunction();
-    Feature_Query_Condition* parse_supports_declaration_condition();
+    Feature_Query_Condition* parse_supports_declaration();
     At_Rule* parse_at_rule();
     Warning* parse_warning();
 

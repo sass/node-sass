@@ -1533,7 +1533,7 @@ namespace Sass {
     lex< supports >();
     Position supports_source_position = source_position;
 
-    Feature_Queries* feature_queries = parse_feature_queries();
+    Feature_Query* feature_queries = parse_feature_queries();
 
     if (!peek< exactly<'{'> >()) {
       error("expected '{' in feature query");
@@ -1543,37 +1543,47 @@ namespace Sass {
     return new (ctx.mem) Feature_Block(path, supports_source_position, feature_queries, block);
   }
 
-  Feature_Queries* Parser::parse_feature_queries()
+  Feature_Query* Parser::parse_feature_queries()
   {
-    Feature_Queries* fq = new (ctx.mem) Feature_Queries(path, source_position);
-    while (!peek< exactly<'{'> >(position))
-      (*fq) << parse_feature_query();
+    Feature_Query* fq = new (ctx.mem) Feature_Query(path, source_position);
+    Feature_Query_Condition* cond = new (ctx.mem) Feature_Query_Condition(path, source_position);
+    cond->is_root(true);
+    while (!peek< exactly<')'> >(position) && !peek< exactly<'{'> >(position))
+      (*cond) << parse_feature_query();
+    (*fq) << cond;
 
     if (fq->empty()) error("expected @supports condition (e.g. (display: flexbox))");
 
     return fq;
   }
 
-  Feature_Query* Parser::parse_feature_query()
+  Feature_Query_Condition* Parser::parse_feature_query()
   {
-    Feature_Query* fq = new (ctx.mem) Feature_Query(path, source_position);
-    while (!peek< exactly<'{'> >(position))
-    {
-      if (peek< not_op >(position)) (*fq) << parse_supports_negation();
-      else if (peek< and_op >(position)) (*fq) << parse_supports_conjunction();
-      else if (peek< or_op >(position)) (*fq) << parse_supports_disjunction();
-      else (*fq) << parse_supports_declaration_condition();
-    }
+    if (peek< not_op >(position)) return parse_supports_negation();
+    else if (peek< and_op >(position)) return parse_supports_conjunction();
+    else if (peek< or_op >(position)) return parse_supports_disjunction();
+    else if (peek< exactly<'('> >(position)) return parse_feature_query_in_parens();
+    else return parse_supports_declaration();
+  }
 
-    return fq;
+  Feature_Query_Condition* Parser::parse_feature_query_in_parens()
+  {
+    Feature_Query_Condition* cond = new (ctx.mem) Feature_Query_Condition(path, source_position);
+
+    if (!lex< exactly<'('> >()) error("@supports declaration expected '('");
+    while (!peek< exactly<')'> >(position) && !peek< exactly<'{'> >(position))
+      (*cond) << parse_feature_query();
+    if (!lex< exactly<')'> >()) error("unclosed parenthesis in @supports declaration");
+
+    return (cond->length() == 1) ? (*cond)[0] : cond;
   }
 
   Feature_Query_Condition* Parser::parse_supports_negation()
   {
     lex< not_op >();
 
-    Feature_Query_Condition* cond = parse_supports_declaration_condition();
-    cond->is_negated(true);
+    Feature_Query_Condition* cond = parse_feature_query();
+    cond->operand(Feature_Query_Condition::NOT);
 
     return cond;
   }
@@ -1582,7 +1592,7 @@ namespace Sass {
   {
     lex< and_op >();
 
-    Feature_Query_Condition* cond = parse_supports_declaration_condition();
+    Feature_Query_Condition* cond = parse_feature_query();
     cond->operand(Feature_Query_Condition::AND);
 
     return cond;
@@ -1592,23 +1602,20 @@ namespace Sass {
   {
     lex< or_op >();
 
-    Feature_Query_Condition* cond = parse_supports_declaration_condition();
+    Feature_Query_Condition* cond = parse_feature_query();
     cond->operand(Feature_Query_Condition::OR);
 
     return cond;
   }
 
-  Feature_Query_Condition* Parser::parse_supports_declaration_condition()
+  Feature_Query_Condition* Parser::parse_supports_declaration()
   {
-    if (!lex< exactly<'('> >()) error("@supports declaration expected '('");
-    Expression* feature = parse_expression();
-    lex< exactly<':'> >();
-    Expression* expression = parse_list();
-    if (!lex< exactly<')'> >()) error("unclosed parenthesis in @supports declaration");
-    Feature_Query_Condition* cond = new (ctx.mem) Feature_Query_Condition(feature->path(),
-                                                                          feature->position(),
-                                                                          feature,
-                                                                          expression);
+    Declaration* declaration = parse_declaration();
+    Feature_Query_Condition* cond = new (ctx.mem) Feature_Query_Condition(declaration->path(),
+                                                                          declaration->position(),
+                                                                          1,
+                                                                          declaration->property(),
+                                                                          declaration->value());
     return cond;
   }
 
