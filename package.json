@@ -46,7 +46,7 @@
     "cross-spawn": "^0.2.3",
     "download": "^3.1.2",
     "download-status": "^2.1.0",
-    "gaze": "^0.6.4",
+    "gaze": "^0.5.1",
     "get-stdin": "^3.0.0",
     "meow": "^2.0.0",
     "mkdirp": "^0.5.0",
