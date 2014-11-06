@@ -190,7 +190,7 @@ namespace Sass {
           if (!stm->block()) indent();
         }
         stm->perform(this);
-        append_to_buffer("\n");
+        if (!stm->is_hoistable()) append_to_buffer("\n");
       }
       --indentation;
     }
@@ -266,7 +266,7 @@ namespace Sass {
           if (!stm->block()) indent();
         }
         stm->perform(this);
-        append_to_buffer("\n");
+        if (!stm->is_hoistable()) append_to_buffer("\n");
       }
       --indentation;
     }
