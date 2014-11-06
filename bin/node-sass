@@ -156,6 +156,7 @@ function watch(options, emitter) {
   gaze.on('error', emitter.emit.bind(emitter, 'error'));
 
   gaze.on('changed', function(file) {
+    options = getOptions([file], options);
     emitter.emit('warn', '=> changed: ' + file);
     render(options, emitter);
   });
