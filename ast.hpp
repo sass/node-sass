@@ -344,10 +344,10 @@ namespace Sass {
   // Feature queries.
   ///////////////////
   class Feature_Block : public Has_Block {
-    ADD_PROPERTY(Feature_Queries*, feature_queries);
+    ADD_PROPERTY(Feature_Query*, feature_queries);
     ADD_PROPERTY(Selector*, selector);
   public:
-    Feature_Block(string path, Position position, Feature_Queries* fqs, Block* b)
+    Feature_Block(string path, Position position, Feature_Query* fqs, Block* b)
     : Has_Block(path, position, b), feature_queries_(fqs), selector_(0)
     { }
     bool is_hoistable() { return true; }
@@ -1345,23 +1345,10 @@ namespace Sass {
   ///////////////////
   // Feature queries.
   ///////////////////
-  class Feature_Queries : public Expression, public Vectorized<Feature_Query*> {
-  public:
-    Feature_Queries(string path, Position position, size_t s = 0)
-    : Expression(path, position), Vectorized<Feature_Query*>(s)
-    { }
-    ATTACH_OPERATIONS();
-  };
-
-  /////////////////
-  // Feature query.
-  /////////////////
   class Feature_Query : public Expression, public Vectorized<Feature_Query_Condition*> {
-    ADD_PROPERTY(bool, is_negated);
   public:
-    Feature_Query(string path, Position position, size_t s = 0, bool n = false)
-    : Expression(path, position), Vectorized<Feature_Query_Condition*>(s),
-      is_negated_(false)
+    Feature_Query(string path, Position position, size_t s = 0)
+    : Expression(path, position), Vectorized<Feature_Query_Condition*>(s)
     { }
     ATTACH_OPERATIONS();
   };
@@ -1369,19 +1356,19 @@ namespace Sass {
   ////////////////////////////////////////////////////////
   // Feature expressions (for use inside feature queries).
   ////////////////////////////////////////////////////////
-  class Feature_Query_Condition : public Expression {
+  class Feature_Query_Condition : public Expression, public Vectorized<Feature_Query_Condition*> {
   public:
-    enum Operand { NONE, AND, OR };
+    enum Operand { NONE, AND, OR, NOT };
   private:
-    ADD_PROPERTY(Expression*, feature);
+    ADD_PROPERTY(String*, feature);
     ADD_PROPERTY(Expression*, value);
     ADD_PROPERTY(Operand, operand);
-    ADD_PROPERTY(bool, is_negated);
+    ADD_PROPERTY(bool, is_root);
   public:
-    Feature_Query_Condition(string path, Position position,
-                           Expression* f, Expression* v,
-                           Operand o = NONE, bool n = false, bool i = false)
-    : Expression(path, position), feature_(f), value_(v), operand_(o), is_negated_(n)
+    Feature_Query_Condition(string path, Position position, size_t s = 0, String* f = 0,
+                            Expression* v = 0, Operand o = NONE, bool r = false)
+    : Expression(path, position), Vectorized<Feature_Query_Condition*>(s),
+      feature_(f), value_(v), operand_(o), is_root_(r)
     { }
     ATTACH_OPERATIONS();
   };

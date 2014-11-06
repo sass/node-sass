@@ -126,7 +126,7 @@ namespace Sass {
 
   void Output_Nested::operator()(Feature_Block* f)
   {
-    Feature_Queries*  q = f->feature_queries();
+    Feature_Query* q    = f->feature_queries();
     Block* b            = f->block();
 
     // Filter out feature blocks that aren't printable (process its children though)

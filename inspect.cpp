@@ -404,21 +404,11 @@ namespace Sass {
     append_to_buffer(s->needs_unquoting() ? unquote(s->value()) : s->value());
   }
 
-  void Inspect::operator()(Feature_Queries* fq)
-  {
-    size_t i = 0;
-    (*fq)[i++]->perform(this);
-    for (size_t L = fq->length(); i < L; ++i) {
-      (*fq)[i]->perform(this);
-    }
-  }
-
   void Inspect::operator()(Feature_Query* fq)
   {
     size_t i = 0;
     (*fq)[i++]->perform(this);
     for (size_t L = fq->length(); i < L; ++i) {
-      if (fq->is_negated()) append_to_buffer("not ");
       (*fq)[i]->perform(this);
     }
   }
@@ -429,16 +419,21 @@ namespace Sass {
       append_to_buffer(" and ");
     else if (fqc->operand() == Feature_Query_Condition::OR)
       append_to_buffer(" or ");
+    else if (fqc->operand() == Feature_Query_Condition::NOT)
+      append_to_buffer(" not ");
 
-    if (fqc->is_negated()) append_to_buffer("not ");
+    if (!fqc->is_root()) append_to_buffer("(");
 
-    append_to_buffer("(");
-    fqc->feature()->perform(this);
-    if (fqc->value()) {
+    if (!fqc->length()) {
+      fqc->feature()->perform(this);
       append_to_buffer(": ");
       fqc->value()->perform(this);
     }
-    append_to_buffer(")");
+    // else
+    for (size_t i = 0, L = fqc->length(); i < L; ++i)
+      (*fqc)[i]->perform(this);
+
+    if (!fqc->is_root()) append_to_buffer(")");
   }
 
   void Inspect::operator()(Media_Query* mq)

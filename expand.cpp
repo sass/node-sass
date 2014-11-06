@@ -93,7 +93,7 @@ namespace Sass {
     Expression* feature_queries = f->feature_queries()->perform(eval->with(env, backtrace));
     Feature_Block* ff = new (ctx.mem) Feature_Block(f->path(),
                                                     f->position(),
-                                                    static_cast<Feature_Queries*>(feature_queries),
+                                                    static_cast<Feature_Query*>(feature_queries),
                                                     f->block()->perform(this)->block());
     ff->selector(selector_stack.back());
     return ff;
