@@ -37,7 +37,7 @@ function fetch(name) {
   });
 
   var url = [
-    'https://raw.githubusercontent.com/sass/node-sass/v',
+    'https://raw.githubusercontent.com/sass/node-sass-binaries/v',
     require('../package.json').version, '/', name,
     '/binding.node'
   ].join('');
