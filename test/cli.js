@@ -163,6 +163,31 @@ describe('cli', function() {
         fs.appendFileSync(src, 'body {}');
       }, 500);
     });
+
+    it('should render all watched files', function(done) {
+      fs.writeFileSync(fixture('simple/foo.scss'), '');
+      fs.writeFileSync(fixture('simple/bar.scss'), '');
+
+      var src = fixture('simple/foo.scss');
+      var watched = fixture('simple/bar.scss');
+      var bin = spawn(cli, [
+        src, '--stdout', '--watch', watched,
+        '--output-style', 'compressed'
+      ]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.on('data', function(data) {
+        assert(data.trim() === 'body{background:white}');
+        bin.kill();
+        fs.unlinkSync(src);
+        fs.unlinkSync(watched);
+        done();
+      });
+
+      setTimeout(function() {
+        fs.appendFileSync(watched, 'body{background:white}');
+      }, 500);
+    });
   });
 
   describe('node-sass in.scss --output out.css', function() {
