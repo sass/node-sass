@@ -181,6 +181,29 @@ describe('api', function() {
         }
       });
     });
+
+    it('should contain an array of all included files in stats when data is passed', function(done) {
+      var stats = {};
+      sass.render({
+        data: read(fixture('include-files/index.scss'), 'utf8'),
+        includePaths: [fixture('include-files')],
+        stats: stats,
+        success: function() {
+          ['foo', 'bar'].map(function(expect) {
+            var slug = fixture('include-files/' + expect + '.scss').replace(/\\/g, '/');
+            assert(stats.includedFiles.some(function(s) {
+              return s === slug;
+            }));
+          });
+          done();
+        },
+        error: function(err) {
+          assert(!err);
+          done();
+        }
+      });
+    });
+
   });
 
   describe('.renderSync(options)', function() {
@@ -411,6 +434,10 @@ describe('api', function() {
       });
     });
   });
+
+ 
+    
+
 
   describe('.renderSync({stats: {}})', function() {
     var start = Date.now();
