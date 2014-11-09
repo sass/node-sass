@@ -181,6 +181,29 @@ describe('api', function() {
         }
       });
     });
+
+    it('should contain an array of all included files in stats when data is passed', function(done) {
+      var stats = {};
+      sass.render({
+        data: read(fixture('include-files/index.scss'), 'utf8'),
+        includePaths: [fixture('include-files')],
+        stats: stats,
+        success: function() {
+          ['foo', 'bar'].map(function(expect) {
+            var slug = fixture('include-files/' + expect + '.scss').replace(/\\/g, '/');
+            assert(stats.includedFiles.some(function(s) {
+              return s === slug;
+            }));
+          });
+          done();
+        },
+        error: function(err) {
+          assert(!err);
+          done();
+        }
+      });
+    });
+
   });
 
   describe('.renderSync(options)', function() {
@@ -412,36 +435,9 @@ describe('api', function() {
     });
   });
 
-  describe('.render({stats: {}}) with data', function() {
-    var stats = {};
+ 
+    
 
-    before(function(done) {
-      sass.render({
-        data: read(fixture('include-files/index.scss'), 'utf8'),
-        includePaths: [fixture('include-files')],
-        stats: stats,
-        success: function() {
-          done();
-        },
-        error: function(err) {
-          assert(!err);
-          done();
-        }
-      });
-    });
-  
-    it('should contain an array of all included files', function(done) {
-      var expected = [
-        fixture('include-files/bar.scss').replace(/\\/g, '/'),
-        fixture('include-files/foo.scss').replace(/\\/g, '/'),
-        fixture('include-files/index.scss').replace(/\\/g, '/')
-      ];
-      assert.equal(stats.includedFiles[0], expected[0]);
-      assert.equal(stats.includedFiles[1], expected[1]);
-      assert.equal(stats.includedFiles[2], expected[2]);
-      done();
-    });
-  });
 
   describe('.renderSync({stats: {}})', function() {
     var start = Date.now();
