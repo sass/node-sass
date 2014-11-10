@@ -390,15 +390,16 @@ namespace Sass {
       backtrace = &here;
 
       To_C to_c;
-      union Sass_Value c_args = args->perform(&to_c);
-      Sass_Value c_val = c_func(c_args, def->cookie());
-      if (c_val.unknown.tag == SASS_ERROR) {
-        error("error in C function " + c->name() + ": " + c_val.error.message, c->path(), c->position(), backtrace);
+      union Sass_Value* c_args = args->perform(&to_c);
+      Sass_Value* c_val = c_func(c_args, def->cookie());
+      if (sass_value_get_tag(c_val) == SASS_ERROR) {
+        error("error in C function " + c->name() + ": " + sass_error_get_message(c_val), c->path(), c->position(), backtrace);
       }
       result = cval_to_astnode(c_val, ctx, backtrace, c->path(), c->position());
 
       backtrace = here.parent;
-      free_sass_value(c_val);
+      sass_delete_value(c_args);
+      sass_delete_value(c_val);
       env = old_env;
     }
     // else it's an overloaded native function; resolve it
@@ -940,37 +941,37 @@ namespace Sass {
                                unquoted ? result : quote(result, q));
   }
 
-  Expression* cval_to_astnode(Sass_Value v, Context& ctx, Backtrace* backtrace, string path, Position position)
+  Expression* cval_to_astnode(Sass_Value* v, Context& ctx, Backtrace* backtrace, string path, Position position)
   {
     using std::strlen;
     using std::strcpy;
     Expression* e = 0;
-    switch (v.unknown.tag) {
+    switch (sass_value_get_tag(v)) {
       case SASS_BOOLEAN: {
-        e = new (ctx.mem) Boolean(path, position, !!v.boolean.value);
+        e = new (ctx.mem) Boolean(path, position, !!sass_boolean_get_value(v));
       } break;
       case SASS_NUMBER: {
-        e = new (ctx.mem) Number(path, position, v.number.value, v.number.unit);
+        e = new (ctx.mem) Number(path, position, sass_number_get_value(v), sass_number_get_unit(v));
       } break;
       case SASS_COLOR: {
-        e = new (ctx.mem) Color(path, position, v.color.r, v.color.g, v.color.b, v.color.a);
+        e = new (ctx.mem) Color(path, position, sass_color_get_r(v), sass_color_get_g(v), sass_color_get_b(v), sass_color_get_a(v));
       } break;
       case SASS_STRING: {
-        e = new (ctx.mem) String_Constant(path, position, v.string.value);
+        e = new (ctx.mem) String_Constant(path, position, sass_string_get_value(v));
       } break;
       case SASS_LIST: {
-        List* l = new (ctx.mem) List(path, position, v.list.length, v.list.separator == SASS_COMMA ? List::COMMA : List::SPACE);
-        for (size_t i = 0, L = v.list.length; i < L; ++i) {
-          *l << cval_to_astnode(v.list.values[i], ctx, backtrace, path, position);
+        List* l = new (ctx.mem) List(path, position, sass_list_get_length(v), sass_list_get_separator(v) == SASS_COMMA ? List::COMMA : List::SPACE);
+        for (size_t i = 0, L = sass_list_get_length(v); i < L; ++i) {
+          *l << cval_to_astnode(sass_list_get_value(v, i), ctx, backtrace, path, position);
         }
         e = l;
       } break;
       case SASS_MAP: {
         Map* m = new (ctx.mem) Map(path, position);
-        for (size_t i = 0, L = v.map.length; i < L; ++i) {
+        for (size_t i = 0, L = sass_map_get_length(v); i < L; ++i) {
           *m << std::make_pair(
-            cval_to_astnode(v.map.pairs[i].key, ctx, backtrace, path, position),
-            cval_to_astnode(v.map.pairs[i].value, ctx, backtrace, path, position));
+            cval_to_astnode(sass_map_get_key(v, i), ctx, backtrace, path, position),
+            cval_to_astnode(sass_map_get_value(v, i), ctx, backtrace, path, position));
         }
         e = m;
       } break;
@@ -978,7 +979,7 @@ namespace Sass {
         e = new (ctx.mem) Null(path, position);
       } break;
       case SASS_ERROR: {
-        error("error in C function: " + string(v.error.message), path, position, backtrace);
+        error("error in C function: " + string(sass_error_get_message(v)), path, position, backtrace);
       } break;
     }
     return e;

@@ -58,8 +58,11 @@ SOURCES = \
 	prelexer.cpp \
 	remove_placeholders.cpp \
 	sass.cpp \
-	sass_interface.cpp \
 	sass_util.cpp \
+	sass_values.cpp \
+	sass_context.cpp \
+	sass_functions.cpp \
+	sass_interface.cpp \
 	sass2scss.cpp \
 	source_map.cpp \
 	to_c.cpp \

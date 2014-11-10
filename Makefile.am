@@ -39,8 +39,11 @@ libsass_la_SOURCES = \
 	prelexer.cpp \
 	remove_placeholders.cpp \
 	sass.cpp \
-	sass_interface.cpp \
 	sass_util.cpp \
+	sass_values.cpp \
+	sass_context.cpp \
+	sass_functions.cpp \
+	sass_interface.cpp \
 	sass2scss.cpp \
 	source_map.cpp \
 	to_c.cpp \
@@ -56,7 +59,7 @@ if ENABLE_COVERAGE
 libsass_la_LDFLAGS += -lgcov
 endif
 
-include_HEADERS = sass2scss.h sass_interface.h sass.h
+include_HEADERS = sass2scss.h sass_interface.h sass_context.h sass_functions.h sass_values.h sass.h
 
 if ENABLE_TESTS
 

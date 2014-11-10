@@ -24,6 +24,8 @@
 #define BUFFERSIZE 255
 #include "b64/encode.h"
 
+#include "sass_functions.h"
+
 struct Sass_C_Function_Descriptor;
 
 namespace Sass {
@@ -58,7 +60,7 @@ namespace Sass {
     vector<pair<string, const char*> > queue; // queue of files to be parsed
     map<string, Block*> style_sheets; // map of paths to ASTs
     SourceMap source_map;
-    vector<Sass_C_Function_Descriptor> c_functions;
+    vector<Sass_C_Function_Callback> c_functions;
 
     string       image_path; // for the image-url Sass function
     string       output_path; // for relative paths to the output
@@ -97,11 +99,10 @@ namespace Sass {
 
     Context(Data);
     ~Context();
-    void collect_include_paths(const char* paths_str);
-    void collect_include_paths(const char* paths_array[]);
     void setup_color_map();
     string add_file(string);
     string add_file(string, string);
+    void add_source(string, string, const char*);
     // allow to optionally overwrite the input path
     // default argument for input_path is string("stdin")
     // usefull to influence the source-map generating etc.
@@ -112,7 +113,8 @@ namespace Sass {
     vector<string> get_included_files();
 
   private:
-    void add_source(const string &load_path, const string &abs_path, const char* contents);
+    void collect_include_paths(const char* paths_str);
+    void collect_include_paths(const char** paths_array);
     string format_source_mapping_url(const string& file);
     string get_cwd();
 

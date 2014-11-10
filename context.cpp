@@ -52,7 +52,7 @@ namespace Sass {
     queue                   (vector<pair<string, const char*> >()),
     style_sheets            (map<string, Block*>()),
     source_map              (resolve_relative_path(initializers.output_path(), initializers.source_map_file(), get_cwd())),
-    c_functions             (vector<Sass_C_Function_Descriptor>()),
+    c_functions             (vector<Sass_C_Function_Callback>()),
     image_path              (initializers.image_path()),
     output_path             (make_canonical_path(initializers.output_path())),
     source_comments         (initializers.source_comments()),
@@ -70,6 +70,7 @@ namespace Sass {
   {
     cwd = get_cwd();
 
+    include_paths.push_back(cwd);
     collect_include_paths(initializers.include_paths_c_str());
     collect_include_paths(initializers.include_paths_array());
 
@@ -110,7 +111,6 @@ namespace Sass {
 
   void Context::collect_include_paths(const char* paths_str)
   {
-    include_paths.push_back(cwd);
 
     if (paths_str) {
       const char* beg = paths_str;
@@ -134,23 +134,17 @@ namespace Sass {
     }
   }
 
-  void Context::collect_include_paths(const char* paths_array[])
+  void Context::collect_include_paths(const char** paths_array)
   {
-    include_paths.push_back(get_cwd());
     if (*include_paths.back().rbegin() != '/') include_paths.back() += '/';
-
-    // if (paths_array) {
-    //   for (size_t i = 0; paths_array[i]; ++i) {
-    //     string path(paths_array[i]);
-    //     if (!path.empty()) {
-    //       if (*path.rbegin() != '/') path += '/';
-    //       include_paths.push_back(path);
-    //     }
-    //   }
-    // }
+    if (paths_array) {
+      for (size_t i = 0; paths_array[i]; i++) {
+        collect_include_paths(paths_array[i]);
+      }
+    }
   }
 
-  void Context::add_source(const string& load_path, const string& abs_path, const char* contents)
+  void Context::add_source(string load_path, string abs_path, const char* contents)
   {
     sources.push_back(contents);
     included_files.push_back(abs_path);
@@ -209,8 +203,8 @@ namespace Sass {
   void register_function(Context&, Signature sig, Native_Function f, size_t arity, Env* env);
   void register_overload_stub(Context&, string name, Env* env);
   void register_built_in_functions(Context&, Env* env);
-  void register_c_functions(Context&, Env* env, Sass_C_Function_Descriptor*);
-  void register_c_function(Context&, Env* env, Sass_C_Function_Descriptor);
+  void register_c_functions(Context&, Env* env, Sass_C_Function_List);
+  void register_c_function(Context&, Env* env, Sass_C_Function_Callback);
 
   char* Context::compile_file()
   {
@@ -225,7 +219,7 @@ namespace Sass {
     Backtrace backtrace(0, "", Position(), "");
     register_built_in_functions(*this, &tge);
     for (size_t i = 0, S = c_functions.size(); i < S; ++i) {
-    	register_c_function(*this, &tge, c_functions[i]);
+      register_c_function(*this, &tge, c_functions[i]);
     }
     Eval eval(*this, &tge, &backtrace);
     Contextualize contextualize(*this, &eval, &tge, &backtrace);
@@ -448,16 +442,21 @@ namespace Sass {
     register_function(ctx, image_url_sig, image_url, env);
   }
 
-  void register_c_functions(Context& ctx, Env* env, Sass_C_Function_Descriptor* descrs)
+  void register_c_functions(Context& ctx, Env* env, Sass_C_Function_List descrs)
   {
-    while (descrs->signature && descrs->function) {
+    while (descrs && *descrs) {
       register_c_function(ctx, env, *descrs);
       ++descrs;
     }
   }
-  void register_c_function(Context& ctx, Env* env, Sass_C_Function_Descriptor descr)
+  void register_c_function(Context& ctx, Env* env, Sass_C_Function_Callback descr)
   {
-    Definition* def = make_c_function(descr.signature, descr.function, descr.cookie, ctx);
+    Definition* def = make_c_function(
+      sass_function_get_signature(descr),
+      sass_function_get_function(descr),
+      sass_function_get_cookie(descr),
+      ctx
+    );
     def->environment(env);
     (*env)[def->name() + "[f]"] = def;
   }

@@ -1,17 +1,14 @@
-#define SASS_INTERFACE
+#ifndef SASS_C_INTERFACE
+#define SASS_C_INTERFACE
 
-#include "sass.h"
+#include <stddef.h>
 #include <stdbool.h>
-#include "sass2scss.h"
+#include "sass.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define SASS_STYLE_NESTED     0
-#define SASS_STYLE_EXPANDED   1
-#define SASS_STYLE_COMPACT    2
-#define SASS_STYLE_COMPRESSED 3
 
 // Please ensure there are no null values.
 // Thar be dragons.
@@ -51,7 +48,7 @@ struct sass_context {
   struct sass_options options;
   int error_status;
   char* error_message;
-  struct Sass_C_Function_Descriptor* c_functions;
+  Sass_C_Function_List c_functions;
   char** included_files;
   int num_included_files;
 };
@@ -64,7 +61,7 @@ struct sass_file_context {
   struct sass_options options;
   int error_status;
   char* error_message;
-  struct Sass_C_Function_Descriptor* c_functions;
+  Sass_C_Function_List c_functions;
   char** included_files;
   int num_included_files;
 };
@@ -75,26 +72,26 @@ struct sass_folder_context {
   struct sass_options options;
   int error_status;
   char* error_message;
-  struct Sass_C_Function_Descriptor* c_functions;
+  Sass_C_Function_List c_functions;
   char** included_files;
   int num_included_files;
 };
 
-struct sass_context*        sass_new_context        (void);
-struct sass_file_context*   sass_new_file_context   (void);
+struct sass_context* sass_new_context (void);
+struct sass_file_context* sass_new_file_context (void);
 struct sass_folder_context* sass_new_folder_context (void);
 
-void sass_free_context        (struct sass_context* ctx);
-void sass_free_file_context   (struct sass_file_context* ctx);
-void sass_free_folder_context (struct sass_folder_context* ctx);
+void sass_free_context (struct sass_context* ctx);
+void sass_free_file_context (struct sass_file_context* ctx);
+void sass_free_folder_context(struct sass_folder_context* ctx);
 
-int sass_compile            (struct sass_context* ctx);
-int sass_compile_file       (struct sass_file_context* ctx);
-int sass_compile_folder     (struct sass_folder_context* ctx);
+int sass_compile (struct sass_context* ctx);
+int sass_compile_file (struct sass_file_context* ctx);
+int sass_compile_folder (struct sass_folder_context* ctx);
 
-char* quote     (const char *str, const char quotemark);
-char* unquote   (const char *str);
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

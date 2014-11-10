@@ -1,154 +1,31 @@
+#ifndef SASS
 #define SASS
 
 #include <stddef.h>
 #include <stdbool.h>
+#include "sass_values.h"
+#include "sass_functions.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define SASS_OUTPUT_NESTED     0
-#define SASS_OUTPUT_EXPANDED   1
-#define SASS_OUTPUT_COMPACT    2
-#define SASS_OUTPUT_COMPRESSED 3
-#define SASS_OUTPUT_FORMATTED  4
 
-struct Sass_Context {
-  const char*  input_path;
-  const char*  input_string;
-  char*        output_string;
-
-  int          error_status;
-  char*        error_message;
-
-  int          output_style;
-  bool         source_comments;
-  bool         source_map_embed;
-  bool         source_map_contents;
-  bool         omit_source_map_url;
-  const char*  source_map_file;
-  const char*  image_path;
-  const char*  output_path;
-  const char*  include_paths_string;
-  const char** include_paths_array;
-  int          precision;
+// Different render styles
+enum Sass_Output_Style {
+  SASS_STYLE_NESTED,
+  SASS_STYLE_EXPANDED,
+  SASS_STYLE_COMPACT,
+  SASS_STYLE_COMPRESSED
 };
 
-struct Sass_Context* make_sass_context   ();
-void                 free_sass_context   (struct Sass_Context*);
-void                 compile_sass_file   (struct Sass_Context*);
-void                 compile_sass_string (struct Sass_Context*);
+// Some convenient string helper function
+char* sass_string_quote (const char *str, const char quotemark);
+char* sass_string_unquote (const char *str);
 
-// type tags for Sass values
-enum Sass_Tag {
-  SASS_BOOLEAN,
-  SASS_NUMBER,
-  SASS_COLOR,
-  SASS_STRING,
-  SASS_LIST,
-  SASS_MAP,
-  SASS_NULL,
-  SASS_ERROR
-};
-
-// tags for denoting Sass list separators
-enum Sass_Separator {
-  SASS_COMMA,
-  SASS_SPACE
-};
-
-// Component structs for the Sass value union type.
-// Not meant to be used directly.
-struct Sass_Unknown {
-  enum Sass_Tag tag;
-};
-
-struct Sass_Boolean {
-  enum Sass_Tag tag;
-  int           value;
-};
-
-struct Sass_Number {
-  enum Sass_Tag tag;
-  double        value;
-  char*         unit;
-};
-
-struct Sass_Color {
-  enum Sass_Tag tag;
-  double        r;
-  double        g;
-  double        b;
-  double        a;
-};
-
-struct Sass_String {
-  enum Sass_Tag tag;
-  char*         value;
-};
-
-union Sass_Value;
-
-struct Sass_List {
-  enum Sass_Tag       tag;
-  enum Sass_Separator separator;
-  size_t              length;
-  union Sass_Value*   values;
-};
-
-struct Sass_KeyValuePair;
-struct Sass_Map {
-  enum Sass_Tag              tag;
-  size_t                     length;
-  struct Sass_KeyValuePair*  pairs;
-};
-
-struct Sass_Null {
-  enum Sass_Tag tag;
-};
-
-struct Sass_Error {
-  enum Sass_Tag tag;
-  char*         message;
-};
-
-// represention of Sass values in C
-union Sass_Value {
-  struct Sass_Unknown unknown;
-  struct Sass_Boolean boolean;
-  struct Sass_Number  number;
-  struct Sass_Color   color;
-  struct Sass_String  string;
-  struct Sass_List    list;
-  struct Sass_Map     map;
-  struct Sass_Null    null;
-  struct Sass_Error   error;
-};
-
-struct Sass_KeyValuePair {
-  union Sass_Value key;
-  union Sass_Value value;
-};
-
-union Sass_Value make_sass_boolean (int val);
-union Sass_Value make_sass_number  (double val, const char* unit);
-union Sass_Value make_sass_color   (double r, double g, double b, double a);
-union Sass_Value make_sass_string  (const char* val);
-union Sass_Value make_sass_list    (size_t len, enum Sass_Separator sep);
-union Sass_Value make_sass_map     (size_t len);
-union Sass_Value make_sass_null    ();
-union Sass_Value make_sass_error   (const char* msg);
-
-void free_sass_value (const union Sass_Value val);
-
-typedef union Sass_Value(*Sass_C_Function)(union Sass_Value, void *cookie);
-
-struct Sass_C_Function_Descriptor {
-  const char*     signature;
-  Sass_C_Function function;
-  void *cookie;
-};
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
