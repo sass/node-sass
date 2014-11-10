@@ -38,7 +38,7 @@ extern "C" {
   struct Sass_Import {
     const char* path;
     char*       source;
-    const char* srcmap;
+    char*       srcmap;
   };
 
   struct Sass_C_Import_Descriptor {
@@ -64,7 +64,8 @@ extern "C" {
   }
 
   // Creator for a single import entry returned by the custom importer inside the list
-  struct Sass_Import* sass_make_import_entry(const char* path, char* source, const char* srcmap)
+  // We take ownership of the memory for source and srcmap (freed when context is destroyd)
+  struct Sass_Import* sass_make_import_entry(const char* path, char* source, char* srcmap)
   {
     Sass_Import* v = (Sass_Import*) calloc(1, sizeof(Sass_Import));
     v->path = path;
@@ -82,6 +83,8 @@ extern "C" {
   {
     struct Sass_Import** it = list;
     while(*list) {
+      free((*list)->source);
+      free((*list)->srcmap);
       free(*list);
       ++list;
     }
@@ -90,7 +93,11 @@ extern "C" {
 
   // Getter for import entry
   const char*sass_import_get_path(struct Sass_Import* entry) { return entry->path; }
-  const char*sass_import_get_source(struct Sass_Import* entry) { return entry->source; }
-  const char*sass_import_get_srcmap(struct Sass_Import* entry) { return entry->srcmap; }
+  char* sass_import_get_source(struct Sass_Import* entry) { return entry->source; }
+  char* sass_import_get_srcmap(struct Sass_Import* entry) { return entry->srcmap; }
+
+  // Explicit functions once the ownership is passed on
+  void sass_import_forget_source (struct Sass_Import* entry) { entry->source = 0; }
+  void sass_import_forget_srcmap (struct Sass_Import* entry) { entry->srcmap = 0; }
 
 }

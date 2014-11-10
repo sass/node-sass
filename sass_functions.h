@@ -29,7 +29,7 @@ void* sass_import_get_cookie (Sass_C_Import_Callback fn);
 // Creator for sass custom importer return argument list
 struct Sass_Import** sass_make_import_list (size_t length);
 // Creator for a single import entry returned by the custom importer inside the list
-struct Sass_Import* sass_make_import_entry (const char* path, char* source, const char* srcmap);
+struct Sass_Import* sass_make_import_entry (const char* path, char* source, char* srcmap);
 
 // Setters to insert an entry into the import list (you may also use [] access directly)
 // Since we are dealing with pointers they should have a guaranteed and fixed size
@@ -38,8 +38,11 @@ struct Sass_Import* sass_import_get_list_entry (struct Sass_Import** list, size_
 
 // Getters for import entry
 const char*sass_import_get_path (struct Sass_Import*);
-const char*sass_import_get_source (struct Sass_Import*);
-const char*sass_import_get_srcmap (struct Sass_Import*);
+char* sass_import_get_source (struct Sass_Import*);
+char* sass_import_get_srcmap (struct Sass_Import*);
+// Explicit functions once the ownership is passed on
+void sass_import_forget_source (struct Sass_Import*);
+void sass_import_forget_srcmap (struct Sass_Import*);
 
 // Deallocator for associated memory (incl. entries)
 void sass_delete_import_list (struct Sass_Import**);

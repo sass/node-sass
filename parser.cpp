@@ -167,17 +167,19 @@ namespace Sass {
             while (*includes) {
               struct Sass_Import* include = *includes;
               const char *file = sass_import_get_path(include);
-              const char *source = sass_import_get_source(include);
-              // const char *srcmap = sass_import_get_srcmap[include];
+              char *source = sass_import_get_source(include);
+              // char *srcmap = sass_import_get_srcmap(include);
               if (source) {
                 string inc_path = unquote(import_path);
                 if (file) {
-                  ctx.add_source(file, import_path, strdup(source));
+                  ctx.add_source(file, import_path, source);
                   imp->files().push_back(file);
                 } else {
-                  ctx.add_source(import_path, import_path, strdup(source));
+                  ctx.add_source(import_path, import_path, source);
                   imp->files().push_back(import_path);
                 }
+                // we passed ownership to context
+                sass_import_forget_source(include);
               } else if(file) {
                 add_single_file(imp, file);
               }
