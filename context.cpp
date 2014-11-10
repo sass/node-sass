@@ -303,11 +303,14 @@ namespace Sass {
     return compile_file();
   }
 
-  std::vector<std::string> Context::get_included_files()
+  std::vector<std::string> Context::get_included_files(size_t skip)
   {
-      std::sort(included_files.begin(), included_files.end());
-      included_files.erase( std::unique( included_files.begin(), included_files.end() ), included_files.end());
-      return included_files;
+      vector<string> includes = included_files;
+      std::sort( includes.begin() + skip, includes.end() );
+      includes.erase( std::unique( includes.begin(), includes.end() ), includes.end() );
+      // the skip solution seems more robust, as we may have real files named stdin
+      // includes.erase( std::remove( includes.begin(), includes.end(), "stdin" ), includes.end() );
+      return includes;
   }
 
   string Context::get_cwd()

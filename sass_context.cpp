@@ -248,7 +248,7 @@ extern "C" {
       // generate source map json and store on context
       c_ctx->source_map_string = cpp_ctx.generate_source_map();
       // copy the included files on to the context (dont forget to free)
-      copy_strings(cpp_ctx.get_included_files(), &c_ctx->included_files, 1);
+      copy_strings(cpp_ctx.get_included_files(1), &c_ctx->included_files, 1);
 
     }
     catch (Error& e) {
