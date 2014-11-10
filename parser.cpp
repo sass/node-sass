@@ -119,6 +119,32 @@ namespace Sass {
     return root;
   }
 
+  void Parser::add_single_file (Import* imp, string import_path) {
+
+    string extension;
+    string unquoted(unquote(import_path));
+    if (unquoted.length() > 4) { // 2 quote marks + the 4 chars in .css
+      // a string constant is guaranteed to end with a quote mark, so make sure to skip it when indexing from the end
+      extension = unquoted.substr(unquoted.length() - 4, 4);
+    }
+
+    if (extension == ".css") {
+      String_Constant* loc = new (ctx.mem) String_Constant(path, source_position, import_path, true);
+      Argument* loc_arg = new (ctx.mem) Argument(path, source_position, loc);
+      Arguments* loc_args = new (ctx.mem) Arguments(path, source_position);
+      (*loc_args) << loc_arg;
+      Function_Call* new_url = new (ctx.mem) Function_Call(path, source_position, "url", loc_args);
+      imp->urls().push_back(new_url);
+    }
+    else {
+      string current_dir = File::dir_name(path);
+      string resolved(ctx.add_file(current_dir, unquoted));
+      if (resolved.empty()) error("file to import not found or unreadable: " + unquoted + "\nCurrent dir: " + current_dir);
+      imp->files().push_back(resolved);
+    }
+
+  }
+
   Import* Parser::parse_import()
   {
     lex< import >();
@@ -127,25 +153,47 @@ namespace Sass {
     do {
       if (lex< string_constant >()) {
         string import_path(lexed);
-        string extension;
-        if (import_path.length() > 6) { // 2 quote marks + the 4 chars in .css
-          // a string constant is guaranteed to end with a quote mark, so make sure to skip it when indexing from the end
-          extension = import_path.substr(import_path.length() - 5, 4);
+
+        // struct Sass_Options opt = sass_context_get_options(ctx)
+        Sass_C_Import_Callback importer = ctx.importer;
+        // custom importer
+        if (importer) {
+          Sass_C_Import_Fn fn = sass_import_get_function(importer);
+          void* cookie = sass_import_get_cookie(importer);
+          // get null delimited "array" of "external" imports
+          struct Sass_Import** imports = fn(import_path.c_str(), cookie);
+          struct Sass_Import** includes = imports;
+          if (includes) {
+            while (*includes) {
+              struct Sass_Import* include = *includes;
+              const char *file = sass_import_get_path(include);
+              const char *source = sass_import_get_source(include);
+              // const char *srcmap = sass_import_get_srcmap[include];
+              if (source) {
+                string inc_path = unquote(import_path);
+                if (file) {
+                  ctx.add_source(file, import_path, strdup(source));
+                  imp->files().push_back(file);
+                } else {
+                  ctx.add_source(import_path, import_path, strdup(source));
+                  imp->files().push_back(import_path);
+                }
+              } else if(file) {
+                add_single_file(imp, file);
+              }
+              ++includes;
+            }
+            // deallocate returned memory
+            sass_delete_import_list(imports);
+            // go for next parse loop
+            continue;
+          }
+          // custom importer returned nothing
+          // means we should use default loader
         }
-        if (extension == ".css") {
-          String_Constant* loc = new (ctx.mem) String_Constant(path, source_position, import_path, true);
-          Argument* loc_arg = new (ctx.mem) Argument(path, source_position, loc);
-          Arguments* loc_args = new (ctx.mem) Arguments(path, source_position);
-          (*loc_args) << loc_arg;
-          Function_Call* new_url = new (ctx.mem) Function_Call(path, source_position, "url", loc_args);
-          imp->urls().push_back(new_url);
-        }
-        else {
-          string current_dir = File::dir_name(path);
-          string resolved(ctx.add_file(current_dir, unquote(import_path)));
-          if (resolved.empty()) error("file to import not found or unreadable: " + import_path + "\nCurrent dir: " + current_dir);
-          imp->files().push_back(resolved);
-        }
+
+        add_single_file(imp, import_path);
+
       }
       else if (peek< uri_prefix >()) {
         imp->urls().push_back(parse_value());

@@ -72,6 +72,9 @@ namespace Sass {
     bool         omit_source_map_url; // disable source map comment in css output
     bool         is_indented_syntax_src; // treat source string as sass
 
+    // overload import calls
+    Sass_C_Import_Callback importer;
+
     map<string, Color*> names_to_colors;
     map<int, string>    colors_to_names;
 
@@ -95,6 +98,7 @@ namespace Sass {
       KWD_ARG(Data, bool,            _skip_source_map_update);
       KWD_ARG(Data, bool,            source_map_embed);
       KWD_ARG(Data, bool,            source_map_contents);
+      KWD_ARG(Data, Sass_C_Import_Callback, importer);
     };
 
     Context(Data);

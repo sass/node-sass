@@ -67,6 +67,8 @@ void sass_option_set_include_path (struct Sass_Options* options, const char* inc
 void sass_option_set_source_map_file (struct Sass_Options* options, const char* source_map_file);
 // Sass_C_Function_List sass_option_get_c_functions (struct Sass_Options* options);
 void sass_option_set_c_functions (struct Sass_Options* options, Sass_C_Function_List c_functions);
+// Sass_C_Import_Callback sass_option_get_importer (struct Sass_Options* options);
+void sass_option_set_importer (struct Sass_Options* options, Sass_C_Import_Callback importer);
 
 // Getter functions for context
 const char* sass_context_get_output_string (struct Sass_Context* ctx);

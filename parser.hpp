@@ -37,6 +37,8 @@ namespace Sass {
   using namespace Prelexer;
 
   class Parser {
+  private:
+    void add_single_file (Import* imp, string import_path);
   public:
     class AST_Node;
 

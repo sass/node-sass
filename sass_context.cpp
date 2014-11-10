@@ -85,6 +85,9 @@ extern "C" {
     // Custom functions that can be called from sccs code
     Sass_C_Function_List c_functions;
 
+    // Custom functions to overload imports
+    Sass_C_Import_Callback importer;
+
   };
 
   // base for all contexts
@@ -214,6 +217,7 @@ extern "C" {
              .omit_source_map_url(c_ctx->omit_source_map_url)
              .image_path(safe_str(c_ctx->image_path))
              .include_paths_c_str(c_ctx->include_path)
+             .importer(c_ctx->importer)
              .include_paths_array(include_paths)
              .include_paths(vector<string>())
              .precision(c_ctx->precision ? c_ctx->precision : 5);
@@ -423,6 +427,7 @@ extern "C" {
   IMPLEMENT_SASS_OPTION_SETTER(const char*, include_path);
   IMPLEMENT_SASS_OPTION_SETTER(const char*, source_map_file);
   IMPLEMENT_SASS_OPTION_SETTER(Sass_C_Function_List, c_functions);
+  IMPLEMENT_SASS_OPTION_SETTER(Sass_C_Import_Callback, importer);
 
   // Create getter and setters for context
   IMPLEMENT_SASS_CONTEXT_GETTER(int, error_status);
