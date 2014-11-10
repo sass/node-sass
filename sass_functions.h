@@ -37,12 +37,13 @@ void sass_import_set_list_entry (struct Sass_Import** list, size_t idx, struct S
 struct Sass_Import* sass_import_get_list_entry (struct Sass_Import** list, size_t idx);
 
 // Getters for import entry
-const char*sass_import_get_path (struct Sass_Import*);
-char* sass_import_get_source (struct Sass_Import*);
-char* sass_import_get_srcmap (struct Sass_Import*);
-// Explicit functions once the ownership is passed on
-void sass_import_forget_source (struct Sass_Import*);
-void sass_import_forget_srcmap (struct Sass_Import*);
+const char* sass_import_get_path (struct Sass_Import*);
+const char* sass_import_get_source (struct Sass_Import*);
+const char* sass_import_get_srcmap (struct Sass_Import*);
+// Explicit functions to take ownership of these items
+// The property on our struct will be reset to NULL
+char* sass_import_take_source (struct Sass_Import*);
+char* sass_import_take_srcmap (struct Sass_Import*);
 
 // Deallocator for associated memory (incl. entries)
 void sass_delete_import_list (struct Sass_Import**);

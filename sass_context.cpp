@@ -85,7 +85,7 @@ extern "C" {
     // Custom functions that can be called from sccs code
     Sass_C_Function_List c_functions;
 
-    // Custom functions to overload imports
+    // Callback to overload imports
     Sass_C_Import_Callback importer;
 
   };
@@ -116,7 +116,8 @@ extern "C" {
   // struct for file compilation
   struct Sass_File_Context : Sass_Context {
 
-    // no additional fields
+    // no additional fields required
+    // input_path is already on options
 
   };
 
@@ -124,7 +125,7 @@ extern "C" {
   struct Sass_Data_Context : Sass_Context {
 
     // provided source string
-    const char* source_string;
+    char* source_string;
 
   };
 
@@ -321,6 +322,11 @@ extern "C" {
     return c_ctx->error_status;
   }
 
+  Sass_Options* sass_make_options (void)
+  {
+    return (struct Sass_Options*) calloc(1, sizeof(struct Sass_Options));
+  }
+
   Sass_File_Context* sass_make_file_context(const char* input_path)
   {
     struct Sass_File_Context* ctx = (struct Sass_File_Context*) calloc(1, sizeof(struct Sass_File_Context));
@@ -329,7 +335,7 @@ extern "C" {
     return ctx;
   }
 
-  Sass_Data_Context* sass_make_data_context(const char* source_string)
+  Sass_Data_Context* sass_make_data_context(char* source_string)
   {
     struct Sass_Data_Context* ctx = (struct Sass_Data_Context*) calloc(1, sizeof(struct Sass_Data_Context));
     ctx->type = SASS_CONTEXT_DATA;
@@ -412,22 +418,24 @@ extern "C" {
   struct Sass_Options* sass_context_get_options(struct Sass_Context* ctx) { return ctx; }
   struct Sass_Options* sass_file_context_get_options(struct Sass_File_Context* ctx) { return ctx; }
   struct Sass_Options* sass_data_context_get_options(struct Sass_Data_Context* ctx) { return ctx; }
+  void sass_file_context_set_options (struct Sass_File_Context* ctx, struct Sass_Options* opt) { (Sass_Options) *ctx = *opt; }
+  void sass_data_context_set_options (struct Sass_Data_Context* ctx, struct Sass_Options* opt) { (Sass_Options) *ctx = *opt; }
 
   // Create getter and setters for options
-  IMPLEMENT_SASS_OPTION_SETTER(int, precision);
-  IMPLEMENT_SASS_OPTION_SETTER(enum Sass_Output_Style, output_style);
-  IMPLEMENT_SASS_OPTION_SETTER(bool, source_comments);
-  IMPLEMENT_SASS_OPTION_SETTER(bool, source_map_embed);
-  IMPLEMENT_SASS_OPTION_SETTER(bool, source_map_contents);
-  IMPLEMENT_SASS_OPTION_SETTER(bool, omit_source_map_url);
-  IMPLEMENT_SASS_OPTION_SETTER(bool, is_indented_syntax_src);
-  IMPLEMENT_SASS_OPTION_SETTER(const char*, input_path);
-  IMPLEMENT_SASS_OPTION_SETTER(const char*, output_path);
-  IMPLEMENT_SASS_OPTION_SETTER(const char*, image_path);
-  IMPLEMENT_SASS_OPTION_SETTER(const char*, include_path);
-  IMPLEMENT_SASS_OPTION_SETTER(const char*, source_map_file);
-  IMPLEMENT_SASS_OPTION_SETTER(Sass_C_Function_List, c_functions);
-  IMPLEMENT_SASS_OPTION_SETTER(Sass_C_Import_Callback, importer);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(int, precision);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(enum Sass_Output_Style, output_style);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(bool, source_comments);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(bool, source_map_embed);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(bool, source_map_contents);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(bool, omit_source_map_url);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(bool, is_indented_syntax_src);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, input_path);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, output_path);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, image_path);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, include_path);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, source_map_file);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_C_Function_List, c_functions);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_C_Import_Callback, importer);
 
   // Create getter and setters for context
   IMPLEMENT_SASS_CONTEXT_GETTER(int, error_status);
@@ -438,7 +446,7 @@ extern "C" {
   IMPLEMENT_SASS_CONTEXT_GETTER(char**, included_files);
 
   // Create getter and setters for specialized contexts
-  IMPLEMENT_SASS_DATA_CONTEXT_SETTER(const char*, source_string);
+  IMPLEMENT_SASS_DATA_CONTEXT_SETTER(char*, source_string);
 
   // Push function for include paths (no manipulation support for now)
   void sass_option_push_include_path(struct Sass_Options* options, const char* path)

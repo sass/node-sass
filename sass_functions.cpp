@@ -10,6 +10,7 @@
 extern "C" {
   using namespace std;
 
+  // Struct to hold custom function callback
   struct Sass_C_Function_Descriptor {
     const char*     signature;
     Sass_C_Function function;
@@ -41,6 +42,7 @@ extern "C" {
     char*       srcmap;
   };
 
+  // Struct to hold importer callback
   struct Sass_C_Import_Descriptor {
     Sass_C_Import_Fn function;
     void*            cookie;
@@ -92,12 +94,13 @@ extern "C" {
   }
 
   // Getter for import entry
-  const char*sass_import_get_path(struct Sass_Import* entry) { return entry->path; }
-  char* sass_import_get_source(struct Sass_Import* entry) { return entry->source; }
-  char* sass_import_get_srcmap(struct Sass_Import* entry) { return entry->srcmap; }
+  const char* sass_import_get_path(struct Sass_Import* entry) { return entry->path; }
+  const char* sass_import_get_source(struct Sass_Import* entry) { return entry->source; }
+  const char* sass_import_get_srcmap(struct Sass_Import* entry) { return entry->srcmap; }
 
-  // Explicit functions once the ownership is passed on
-  void sass_import_forget_source (struct Sass_Import* entry) { entry->source = 0; }
-  void sass_import_forget_srcmap (struct Sass_Import* entry) { entry->srcmap = 0; }
+  // Explicit functions to take ownership of the memory
+  // Resets our own property since we do not know if it is still alive
+  char* sass_import_take_source(struct Sass_Import* entry) { char* ptr = entry->source; entry->source = 0; return ptr; }
+  char* sass_import_take_srcmap(struct Sass_Import* entry) { char* ptr = entry->srcmap; entry->srcmap = 0; return ptr; }
 
 }
