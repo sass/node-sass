@@ -180,6 +180,25 @@ namespace Sass {
   {
     Expression* message = w->message()->perform(this);
     To_String to_string;
+
+    // try to use generic function
+    if (env->has("@warn[f]")) {
+
+      Definition* def = static_cast<Definition*>((*env)["@warn[f]"]);
+      // Block*          body   = def->block();
+      // Native_Function func   = def->native_function();
+      Sass_C_Function c_func = def->c_function();
+
+      To_C to_c;
+      union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
+      sass_list_set_value(c_args, 0, message->perform(&to_c));
+      Sass_Value* c_val = c_func(c_args, def->cookie());
+      sass_delete_value(c_args);
+      sass_delete_value(c_val);
+      return 0;
+
+    }
+
     string prefix("WARNING: ");
     string result(unquote(message->perform(&to_string)));
     cerr << prefix << result;
@@ -313,6 +332,13 @@ namespace Sass {
       args = static_cast<Arguments*>(args->perform(this));
     }
 
+    // try to use generic function
+    if (!env->has(full_name)) {
+      if (env->has("*[f]")) {
+        full_name = "*[f]";
+      }
+    }
+
     // if it doesn't exist, just pass it through as a literal
     if (!env->has(full_name)) {
       Function_Call* lit = new (ctx.mem) Function_Call(c->path(),
@@ -382,7 +408,16 @@ namespace Sass {
     // else if it's a user-defined c function
     else if (c_func) {
 
-      bind("function " + c->name(), params, args, ctx, &new_env, this);
+      if (full_name != "*[f]") {
+        bind("function " + c->name(), params, args, ctx, &new_env, this);
+      } else {
+        String_Constant *str = new (ctx.mem) String_Constant(c->path(), c->position(), c->name());
+        Arguments* new_args = new (ctx.mem) Arguments(c->path(), c->position());
+        *new_args << new (ctx.mem) Argument(c->path(), c->position(), str);
+        *new_args += args;
+        args = new_args;
+      }
+
       Env* old_env = env;
       env = &new_env;
 
