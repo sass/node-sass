@@ -115,7 +115,7 @@ function testBinary(options) {
     '-v8-' + options.v8
   ].join('');
 
-  if (options.force) {
+  if (options.force || process.env.SASS_FORCE_BUILD) {
     return build(options);
   }
 
