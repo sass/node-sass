@@ -242,18 +242,23 @@ extern "C" {
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
 
+      // maybe skip some entries of included files
+      // we do not include stdin for data contexts
+      size_t skip = 0;
+
       // dispatch to the correct render function
       if (c_ctx->type == SASS_CONTEXT_FILE) {
         c_ctx->output_string = cpp_ctx.compile_file();
       } else if (c_ctx->type == SASS_CONTEXT_DATA) {
         if (input_path == "") { c_ctx->output_string = cpp_ctx.compile_string(); }
         else { c_ctx->output_string = cpp_ctx.compile_string(input_path); }
+        skip = 1; // skip stdin (first) entry of included files
       }
 
       // generate source map json and store on context
       c_ctx->source_map_string = cpp_ctx.generate_source_map();
       // copy the included files on to the context (dont forget to free)
-      copy_strings(cpp_ctx.get_included_files(1), &c_ctx->included_files, 1);
+      copy_strings(cpp_ctx.get_included_files(skip), &c_ctx->included_files, skip);
 
     }
     catch (Error& e) {
