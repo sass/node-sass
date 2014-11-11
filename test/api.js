@@ -182,28 +182,25 @@ describe('api', function() {
       });
     });
 
-    it('should contain an array of all included files in stats when data is passed', function(done) {
+    it('should contain all included files in stats when data is passed', function(done) {
+      var src = fixture('include-files/index.scss');
       var stats = {};
+      var expected = [
+        fixture('include-files/bar.scss').replace(/\\/g, '/'),
+        fixture('include-files/foo.scss').replace(/\\/g, '/'),
+        'stdin'
+      ];
+
       sass.render({
-        data: read(fixture('include-files/index.scss'), 'utf8'),
+        data: read(src, 'utf8'),
         includePaths: [fixture('include-files')],
         stats: stats,
         success: function() {
-          ['foo', 'bar'].map(function(expect) {
-            var slug = fixture('include-files/' + expect + '.scss').replace(/\\/g, '/');
-            assert(stats.includedFiles.some(function(s) {
-              return s === slug;
-            }));
-          });
-          done();
-        },
-        error: function(err) {
-          assert(!err);
+          assert.deepEqual(stats.includedFiles, expected);
           done();
         }
       });
     });
-
   });
 
   describe('.renderSync(options)', function() {
@@ -379,9 +376,7 @@ describe('api', function() {
         fixture('include-files/index.scss').replace(/\\/g, '/')
       ];
 
-      assert.equal(stats.includedFiles[0], expected[0]);
-      assert.equal(stats.includedFiles[1], expected[1]);
-      assert.equal(stats.includedFiles[2], expected[2]);
+      assert.deepEqual(stats.includedFiles, expected);
       done();
     });
 
@@ -434,10 +429,6 @@ describe('api', function() {
       });
     });
   });
-
- 
-    
-
 
   describe('.renderSync({stats: {}})', function() {
     var start = Date.now();
