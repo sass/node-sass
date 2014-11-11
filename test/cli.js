@@ -22,20 +22,6 @@ describe('cli', function() {
       src.pipe(bin.stdin);
     });
 
-    it('should write to disk when using --output', function(done) {
-      var src = fs.createReadStream(fixture('simple/index.scss'));
-      var dest = fixture('simple/build.css');
-      var bin = spawn(cli, ['--output', dest]);
-
-      bin.on('close', function() {
-        assert(fs.existsSync(dest));
-        fs.unlinkSync(dest);
-        done();
-      });
-
-      src.pipe(bin.stdin);
-    });
-
     it('should compile sass using the --indented-syntax option', function(done) {
       var src = fs.createReadStream(fixture('indent/index.sass'));
       var expected = read(fixture('indent/expected.css'), 'utf8').trim();
@@ -193,8 +179,8 @@ describe('cli', function() {
   describe('node-sass in.scss --output out.css', function() {
     it('should compile a scss file to build.css', function(done) {
       var src = fixture('simple/index.scss');
-      var dest = fixture('simple/build.css');
-      var bin = spawn(cli, [src, '--output', dest]);
+      var dest = fixture('simple/index.css');
+      var bin = spawn(cli, [src, '--output', path.dirname(dest)]);
 
       bin.on('close', function() {
         assert(fs.existsSync(dest));
@@ -205,10 +191,10 @@ describe('cli', function() {
 
     it('should compile with the --source-map option', function(done) {
       var src = fixture('source-map/index.scss');
-      var dest = fixture('source-map/build.css');
+      var dest = fixture('source-map/index.css');
       var expected = read(fixture('source-map/expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
       var map = fixture('source-map/index.map');
-      var bin = spawn(cli, [src, '--output', dest, '--source-map', map]);
+      var bin = spawn(cli, [src, '--output', path.dirname(dest), '--source-map', map]);
 
       bin.on('close', function () {
         assert.equal(read(dest, 'utf8').trim(), expected);
@@ -221,9 +207,12 @@ describe('cli', function() {
 
     it('should omit sourceMappingURL if --omit-source-map-url flag is used', function(done) {
       var src = fixture('source-map/index.scss');
-      var dest = fixture('source-map/build.css');
+      var dest = fixture('source-map/index.css');
       var map = fixture('source-map/index.map');
-      var bin = spawn(cli, [src, '--output', dest, '--source-map', map, '--omit-source-map-url']);
+      var bin = spawn(cli, [
+        src, '--output', path.dirname(dest),
+        '--source-map', map, '--omit-source-map-url'
+      ]);
 
       bin.on('close', function () {
         assert(read(dest, 'utf8').indexOf('sourceMappingURL') === -1);
