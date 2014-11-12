@@ -37,9 +37,9 @@ extern "C" {
 
   // External import entry
   struct Sass_Import {
-    const char* path;
-    char*       source;
-    char*       srcmap;
+    char* path;
+    char* source;
+    char* srcmap;
   };
 
   // Struct to hold importer callback
@@ -70,7 +70,7 @@ extern "C" {
   struct Sass_Import* sass_make_import_entry(const char* path, char* source, char* srcmap)
   {
     Sass_Import* v = (Sass_Import*) calloc(1, sizeof(Sass_Import));
-    v->path = path;
+    v->path = strdup(path);
     v->source = source;
     v->srcmap = srcmap;
     return v;
@@ -85,6 +85,7 @@ extern "C" {
   {
     struct Sass_Import** it = list;
     while(*list) {
+      free((*list)->path);
       free((*list)->source);
       free((*list)->srcmap);
       free(*list);

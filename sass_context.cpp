@@ -24,7 +24,7 @@ extern "C" {
   // simple linked list
   struct string_list {
     string_list* next;
-    const char*  string;
+    char* string;
   };
 
   // sass config options structure
@@ -59,21 +59,21 @@ extern "C" {
     // overload the input file path. It is
     // set to "stdin" for data contexts and
     // to the input file on file contexts.
-    const char* input_path;
+    char* input_path;
 
     // The output path is used for source map
     // generation. Libsass will not write to
     // this file, it is just used to create
     // information in source-maps etc.
-    const char* output_path;
+    char* output_path;
 
     // For the image-url Sass function
-    const char* image_path;
+    char* image_path;
 
     // Colon-separated list of paths
     // Semicolon-separated on Windows
     // Maybe use array interface instead?
-    const char* include_path;
+    char* include_path;
 
     // Include path (linked string list)
     struct string_list* include_paths;
@@ -81,7 +81,7 @@ extern "C" {
     // Path to source map file
     // Enables source map generation
     // Used to create sourceMappingUrl
-    const char* source_map_file;
+    char* source_map_file;
 
     // Custom functions that can be called from sccs code
     Sass_C_Function_List c_functions;
@@ -145,22 +145,21 @@ extern "C" {
   struct Sass_Compiler {
     // progress status
     Sass_Compiler_State state;
-    // must be Sass::Block
-    void*         root;
-    // must be Sass::Context
-    void*         cpp_ctx;
     // original c context
     Sass_Context* c_ctx;
+    // Sass::Context
+    void* cpp_ctx;
+    // Sass::Block
+    void* root;
   };
 
 
-  #define IMPLEMENT_SASS_OPTION_GETTER(type, option) \
-    type sass_option_get_##option (struct Sass_Options* options) { return options->option; }
-  #define IMPLEMENT_SASS_OPTION_SETTER(type, option) \
-    void sass_option_set_##option (struct Sass_Options* options, type option) { options->option = option; }
   #define IMPLEMENT_SASS_OPTION_ACCESSOR(type, option) \
-    IMPLEMENT_SASS_OPTION_GETTER(type, option) \
-    IMPLEMENT_SASS_OPTION_SETTER(type, option)
+    type sass_option_get_##option (struct Sass_Options* options) { return options->option; } \
+    void sass_option_set_##option (struct Sass_Options* options, type option) { options->option = option; }
+  #define IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(type, option) \
+    type sass_option_get_##option (struct Sass_Options* options) { return options->option; } \
+    void sass_option_set_##option (struct Sass_Options* options, type option) { free(options->option); options->option = strdup(option); }
 
   #define IMPLEMENT_SASS_CONTEXT_GETTER(type, option) \
     type sass_context_get_##option (struct Sass_Context* ctx) { return ctx->option; }
@@ -429,7 +428,7 @@ extern "C" {
   {
     struct Sass_File_Context* ctx = (struct Sass_File_Context*) calloc(1, sizeof(struct Sass_File_Context));
     ctx->type = SASS_CONTEXT_FILE;
-    ctx->input_path = input_path;
+    sass_option_set_input_path(ctx, input_path);
     return ctx;
   }
 
@@ -487,6 +486,7 @@ extern "C" {
     if (compiler->cpp_ctx == NULL) return 1;
     compiler->state = SASS_COMPILER_PARSED;
     Context* cpp_ctx = (Context*) compiler->cpp_ctx;
+    // parse the context we have set up (file or data)
     compiler->root = sass_parse_block(compiler->c_ctx, cpp_ctx);
     // success
     return 0;
@@ -502,7 +502,7 @@ extern "C" {
     compiler->state = SASS_COMPILER_EXECUTED;
     Context* cpp_ctx = (Context*) compiler->cpp_ctx;
     Block* root = (Block*) compiler->root;
-    // now compile the parsed root block
+    // compile the parsed root block
     compiler->c_ctx->output_string = cpp_ctx->compile_block(root);
     // generate source map json and store on context
     compiler->c_ctx->source_map_string = cpp_ctx->generate_source_map();
@@ -528,6 +528,7 @@ extern "C" {
       cur = options->include_paths;
       while (cur) {
         next = cur->next;
+        free(cur->string);
         free(cur);
         cur = next;
       }
@@ -535,25 +536,46 @@ extern "C" {
     // Free the list container
     free(options->c_functions);
     // Make it null terminated
-    options->c_functions = NULL;
+    options->c_functions = 0;
+    options->include_paths = 0;
   }
 
   // helper function, not exported, only accessible locally
   // sass_free_context is also defined in old sass_interface
   static void sass_clear_context (struct Sass_Context* ctx)
   {
+    // release the allocated memory (mostly via strdup)
     if (ctx->output_string)     free(ctx->output_string);
     if (ctx->source_map_string) free(ctx->source_map_string);
     if (ctx->error_message)     free(ctx->error_message);
     if (ctx->error_json)        free(ctx->error_json);
     if (ctx->error_path)        free(ctx->error_path);
+    if (ctx->input_path)        free(ctx->input_path);
+    if (ctx->output_path)       free(ctx->output_path);
+    if (ctx->image_path)        free(ctx->image_path);
+    if (ctx->include_path)      free(ctx->include_path);
+    if (ctx->source_map_file)   free(ctx->source_map_file);
     free_string_array(ctx->included_files);
+    // play safe and reset properties
+    ctx->output_string = 0;
+    ctx->source_map_string = 0;
+    ctx->error_message = 0;
+    ctx->error_json = 0;
+    ctx->error_path = 0;
+    ctx->input_path = 0;
+    ctx->output_path = 0;
+    ctx->image_path = 0;
+    ctx->include_path = 0;
+    ctx->source_map_file = 0;
+    ctx->included_files = 0;
+    // now clear the options
     sass_clear_options(ctx);
   }
 
   void sass_delete_compiler (struct Sass_Compiler* compiler)
   {
     Context* cpp_ctx = (Context*) compiler->cpp_ctx;
+    compiler->cpp_ctx = 0;
     delete cpp_ctx;
     free(compiler);
   }
@@ -581,13 +603,13 @@ extern "C" {
   IMPLEMENT_SASS_OPTION_ACCESSOR(bool, source_map_contents);
   IMPLEMENT_SASS_OPTION_ACCESSOR(bool, omit_source_map_url);
   IMPLEMENT_SASS_OPTION_ACCESSOR(bool, is_indented_syntax_src);
-  IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, input_path);
-  IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, output_path);
-  IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, image_path);
-  IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, include_path);
-  IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, source_map_file);
   IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_C_Function_List, c_functions);
   IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_C_Import_Callback, importer);
+  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, input_path);
+  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, output_path);
+  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, image_path);
+  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, include_path);
+  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, source_map_file);
 
   // Create getter and setters for context
   IMPLEMENT_SASS_CONTEXT_GETTER(int, error_status);
@@ -608,7 +630,7 @@ extern "C" {
   {
 
     struct string_list* include_paths = (struct string_list*) calloc(1, sizeof(struct string_list));
-    include_paths->string = path;
+    include_paths->string = strdup(path);
     struct string_list* last = options->include_paths;
     if (!options->include_paths) {
       options->include_paths = include_paths;
