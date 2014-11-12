@@ -1,4 +1,7 @@
 language: node_js
+env:
+  SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=true
+
 compiler:
   - gcc
 node_js:
@@ -10,7 +13,7 @@ before_install:
   - sudo apt-get install gcc-4.8 g++-4.8;
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 20;
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 20;
-  - sudo g++ --version;
+  - g++ --version;
   - sudo apt-get update -qq;
 
   - git submodule update --init --recursive
