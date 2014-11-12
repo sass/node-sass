@@ -63,6 +63,7 @@ namespace Sass {
     vector<Sass_C_Function_Callback> c_functions;
 
     string       image_path; // for the image-url Sass function
+    string       input_path; // for relative paths in src-map
     string       output_path; // for relative paths to the output
     bool         source_comments; // for inline debug comments in css output
     Output_Style output_style; // output style for the generated css code
@@ -84,6 +85,7 @@ namespace Sass {
     KWD_ARG_SET(Data) {
       KWD_ARG(Data, const char*,     source_c_str);
       KWD_ARG(Data, string,          entry_point);
+      KWD_ARG(Data, string,          input_path);
       KWD_ARG(Data, string,          output_path);
       KWD_ARG(Data, string,          image_path);
       KWD_ARG(Data, const char*,     include_paths_c_str);
@@ -105,13 +107,16 @@ namespace Sass {
     ~Context();
     void setup_color_map();
     string add_file(string);
+    Block* parse_file();
     string add_file(string, string);
+    Block* parse_string();
     void add_source(string, string, const char*);
     // allow to optionally overwrite the input path
     // default argument for input_path is string("stdin")
     // usefull to influence the source-map generating etc.
-    char* compile_string(const string& input_path = "stdin");
     char* compile_file();
+    char* compile_string();
+    char* compile_block(Block* root);
     char* generate_source_map();
 
     vector<string> get_included_files(size_t skip = 0);

@@ -11,6 +11,9 @@ extern "C" {
 
 
 // Forward declaration
+struct Sass_Compiler;
+
+// Forward declaration
 struct Sass_Options;
 struct Sass_Context; // : Sass_Options
 struct Sass_File_Context; // : Sass_Context
@@ -26,20 +29,33 @@ struct Sass_Data_Context* sass_make_data_context (char* source_string);
 int sass_compile_file_context (struct Sass_File_Context* ctx);
 int sass_compile_data_context (struct Sass_Data_Context* ctx);
 
+// Create a sass compiler instance for more control
+struct Sass_Compiler* sass_make_file_compiler (struct Sass_File_Context* file_ctx);
+struct Sass_Compiler* sass_make_data_compiler (struct Sass_Data_Context* data_ctx);
+
+// Execute the different compilation steps individually
+// Usefull if you only want to query the included files
+int sass_compiler_parse(struct Sass_Compiler* compiler);
+int sass_compiler_execute(struct Sass_Compiler* compiler);
+
+// Release all memory allocated with the compiler
+// This does _not_ include any contexts or options
+void sass_delete_compiler(struct Sass_Compiler* compiler);
+
 // Release all memory allocated and also ourself
 void sass_delete_file_context (struct Sass_File_Context* ctx);
 void sass_delete_data_context (struct Sass_Data_Context* ctx);
 
 // Getters for context from specific implementation
-struct Sass_Context* sass_file_context_get_context (struct Sass_File_Context* ctx);
-struct Sass_Context* sass_data_context_get_context (struct Sass_Data_Context* ctx);
+struct Sass_Context* sass_file_context_get_context (struct Sass_File_Context* file_ctx);
+struct Sass_Context* sass_data_context_get_context (struct Sass_Data_Context* data_ctx);
 
 // Getters for context options from Sass_Context
 struct Sass_Options* sass_context_get_options (struct Sass_Context* ctx);
-struct Sass_Options* sass_file_context_get_options (struct Sass_File_Context* ctx);
-struct Sass_Options* sass_data_context_get_options (struct Sass_Data_Context* ctx);
-void sass_file_context_set_options (struct Sass_File_Context* ctx, struct Sass_Options* opt);
-void sass_data_context_set_options (struct Sass_Data_Context* ctx, struct Sass_Options* opt);
+struct Sass_Options* sass_file_context_get_options (struct Sass_File_Context* file_ctx);
+struct Sass_Options* sass_data_context_get_options (struct Sass_Data_Context* data_ctx);
+void sass_file_context_set_options (struct Sass_File_Context* file_ctx, struct Sass_Options* opt);
+void sass_data_context_set_options (struct Sass_Data_Context* data_ctx, struct Sass_Options* opt);
 
 
 // Getters for options

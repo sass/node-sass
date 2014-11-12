@@ -54,6 +54,7 @@ namespace Sass {
     source_map              (resolve_relative_path(initializers.output_path(), initializers.source_map_file(), get_cwd())),
     c_functions             (vector<Sass_C_Function_Callback>()),
     image_path              (initializers.image_path()),
+    input_path              (make_canonical_path(initializers.input_path())),
     output_path             (make_canonical_path(initializers.output_path())),
     source_comments         (initializers.source_comments()),
     output_style            (initializers.output_style()),
@@ -70,6 +71,11 @@ namespace Sass {
     subset_map              (Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >())
   {
     cwd = get_cwd();
+
+    // enforce some safe defaults
+    // used to create relative file links
+    if (input_path == "") input_path = "stdin";
+    if (output_path == "") output_path = "stdout";
 
     include_paths.push_back(cwd);
     collect_include_paths(initializers.include_paths_c_str());
@@ -207,7 +213,36 @@ namespace Sass {
   void register_c_functions(Context&, Env* env, Sass_C_Function_List);
   void register_c_function(Context&, Env* env, Sass_C_Function_Callback);
 
-  char* Context::compile_file()
+  char* Context::compile_block(Block* root)
+  {
+    char* result = 0;
+    if (!root) return 0;
+    switch (output_style) {
+      case COMPRESSED: {
+        Output_Compressed output_compressed(this);
+        root->perform(&output_compressed);
+        string output = output_compressed.get_buffer();
+        if (source_map_file != "" && !omit_source_map_url) {
+          output += format_source_mapping_url(source_map_file);
+        }
+        result = copy_c_str(output.c_str());
+      } break;
+
+      default: {
+        Output_Nested output_nested(source_comments, this);
+        root->perform(&output_nested);
+        string output = output_nested.get_buffer();
+        if (source_map_file != "" && !omit_source_map_url) {
+          output += "\n" + format_source_mapping_url(source_map_file);
+        }
+        result = copy_c_str(output.c_str());
+
+      } break;
+    }
+    return result;
+  }
+
+  Block* Context::parse_file()
   {
     Block* root = 0;
     for (size_t i = 0; i < queue.size(); ++i) {
@@ -237,31 +272,32 @@ namespace Sass {
     Remove_Placeholders remove_placeholders(*this);
     root->perform(&remove_placeholders);
 
-    char* result = 0;
-    switch (output_style) {
-      case COMPRESSED: {
-        Output_Compressed output_compressed(this);
-        root->perform(&output_compressed);
-        string output = output_compressed.get_buffer();
-        if (source_map_file != "" && !omit_source_map_url) {
-          output += format_source_mapping_url(source_map_file);
-        }
-        result = copy_c_str(output.c_str());
-      } break;
+    return root;
+  }
 
-      default: {
-        Output_Nested output_nested(source_comments, this);
-        root->perform(&output_nested);
-        string output = output_nested.get_buffer();
-        if (source_map_file != "" && !omit_source_map_url) {
-          output += "\n" + format_source_mapping_url(source_map_file);
-        }
-        result = copy_c_str(output.c_str());
-
-      } break;
+  Block* Context::parse_string()
+  {
+    if (!source_c_str) return 0;
+    queue.clear();
+    if(is_indented_syntax_src) {
+      char * contents = sass2scss(source_c_str, SASS2SCSS_PRETTIFY_1);
+      add_source(input_path, input_path, contents);
+      return parse_file();
     }
+    add_source(input_path, input_path, strdup(source_c_str));
+    return parse_file();
+  }
 
-    return result;
+  char* Context::compile_file()
+  {
+    // returns NULL if something fails
+    return compile_block(parse_file());
+  }
+
+  char* Context::compile_string()
+  {
+    // returns NULL if something fails
+    return compile_block(parse_string());
   }
 
   string Context::format_source_mapping_url(const string& file)
@@ -288,21 +324,6 @@ namespace Sass {
     return result;
   }
 
-  // allow to optionally overwrite the input path
-  // default argument for input_path is string("stdin")
-  // usefull to influence the source-map generating etc.
-  char* Context::compile_string(const string& input_path)
-  {
-    if (!source_c_str) return 0;
-    queue.clear();
-    if(is_indented_syntax_src) {
-      char * contents = sass2scss(source_c_str, SASS2SCSS_PRETTIFY_1);
-      add_source(input_path, input_path, contents);
-      return compile_file();
-    }
-    add_source(input_path, input_path, strdup(source_c_str));
-    return compile_file();
-  }
 
   std::vector<std::string> Context::get_included_files(size_t skip)
   {

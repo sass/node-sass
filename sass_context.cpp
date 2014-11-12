@@ -11,6 +11,7 @@
 
 extern "C" {
   using namespace std;
+  using namespace Sass;
 
   // Input behaviours
   enum Sass_Input_Style {
@@ -129,6 +130,25 @@ extern "C" {
 
   };
 
+  // Compiler states
+  enum Sass_Compiler_State {
+    SASS_COMPILER_CREATED,
+    SASS_COMPILER_PARSED,
+    SASS_COMPILER_EXECUTED
+  };
+
+  // link c and cpp context
+  struct Sass_Compiler {
+    // progress status
+    Sass_Compiler_State state;
+    // must be Sass::Block
+    void*         root;
+    // must be Sass::Context
+    void*         cpp_ctx;
+    // original c context
+    Sass_Context* c_ctx;
+  };
+
 
   #define IMPLEMENT_SASS_OPTION_GETTER(type, option) \
     type sass_option_get_##option (struct Sass_Options* options) { return options->option; }
@@ -177,89 +197,9 @@ extern "C" {
     free(arr);
   }
 
-  // generic compilation function (not exported, use file/data compile instead)
-  static int sass_compile_context (Sass_Context* c_ctx, Sass::Context::Data cpp_opt)
-  {
-
-    using namespace Sass;
+  static int handle_errors(Sass_Context* c_ctx) {
     try {
-
-      // get input/output path from options
-      string input_path = safe_str(c_ctx->input_path);
-      string output_path = safe_str(c_ctx->output_path);
-      // maybe we can extract an output path from input path
-      if (output_path == "" && input_path != "") {
-        int lastindex = static_cast<int>(input_path.find_last_of("."));
-        output_path = (lastindex > -1 ? input_path.substr(0, lastindex) : input_path) + ".css";
-      }
-
-      // convert include path linked list to static array
-      struct string_list* cur = c_ctx->include_paths;
-      // very poor loop to get the length of the linked list
-      size_t length = 0; while (cur) { length ++; cur = cur->next; }
-      // create char* array to hold all paths plus null terminator
-      const char** include_paths = (const char**) calloc(length + 1, sizeof(char*));
-      // reset iterator
-      cur = c_ctx->include_paths;
-      // copy over the paths
-      for (size_t i = 0; cur; i++) {
-        include_paths[i] = cur->string;
-        cur = cur->next;
-      }
-
-      // transfer the options to c++
-      cpp_opt.output_path(output_path)
-             .output_style((Output_Style) c_ctx->output_style)
-             .is_indented_syntax_src(c_ctx->is_indented_syntax_src)
-             .source_comments(c_ctx->source_comments)
-             .source_map_file(safe_str(c_ctx->source_map_file))
-             .source_map_embed(c_ctx->source_map_embed)
-             .source_map_contents(c_ctx->source_map_contents)
-             .omit_source_map_url(c_ctx->omit_source_map_url)
-             .image_path(safe_str(c_ctx->image_path))
-             .include_paths_c_str(c_ctx->include_path)
-             .importer(c_ctx->importer)
-             .include_paths_array(include_paths)
-             .include_paths(vector<string>())
-             .precision(c_ctx->precision ? c_ctx->precision : 5);
-
-      // create new c++ Context
-      Context cpp_ctx(cpp_opt);
-      // free intermediate data
-      free(include_paths);
-
-      // register our custom functions
-      if (c_ctx->c_functions) {
-        Sass_C_Function_List this_func_data = c_ctx->c_functions;
-        while ((this_func_data) && (*this_func_data)) {
-          cpp_ctx.c_functions.push_back((*this_func_data));
-          ++this_func_data;
-        }
-      }
-
-      // reset error status
-      c_ctx->error_json = 0;
-      c_ctx->error_message = 0;
-      c_ctx->error_status = 0;
-
-      // maybe skip some entries of included files
-      // we do not include stdin for data contexts
-      size_t skip = 0;
-
-      // dispatch to the correct render function
-      if (c_ctx->type == SASS_CONTEXT_FILE) {
-        c_ctx->output_string = cpp_ctx.compile_file();
-      } else if (c_ctx->type == SASS_CONTEXT_DATA) {
-        if (input_path == "") { c_ctx->output_string = cpp_ctx.compile_string(); }
-        else { c_ctx->output_string = cpp_ctx.compile_string(input_path); }
-        skip = 1; // skip stdin (first) entry of included files
-      }
-
-      // generate source map json and store on context
-      c_ctx->source_map_string = cpp_ctx.generate_source_map();
-      // copy the included files on to the context (dont forget to free)
-      copy_strings(cpp_ctx.get_included_files(skip), &c_ctx->included_files, skip);
-
+     throw;
     }
     catch (Error& e) {
       stringstream msg_stream;
@@ -327,6 +267,148 @@ extern "C" {
     return c_ctx->error_status;
   }
 
+  // generic compilation function (not exported, use file/data compile instead)
+  static Context* sass_prepare_context (Sass_Context* c_ctx, Context::Data cpp_opt)
+  {
+    try {
+
+      // get input/output path from options
+      string input_path = safe_str(c_ctx->input_path);
+      string output_path = safe_str(c_ctx->output_path);
+      // maybe we can extract an output path from input path
+      if (output_path == "" && input_path != "") {
+        int lastindex = static_cast<int>(input_path.find_last_of("."));
+        output_path = (lastindex > -1 ? input_path.substr(0, lastindex) : input_path) + ".css";
+      }
+
+      // convert include path linked list to static array
+      struct string_list* cur = c_ctx->include_paths;
+      // very poor loop to get the length of the linked list
+      size_t length = 0; while (cur) { length ++; cur = cur->next; }
+      // create char* array to hold all paths plus null terminator
+      const char** include_paths = (const char**) calloc(length + 1, sizeof(char*));
+      // reset iterator
+      cur = c_ctx->include_paths;
+      // copy over the paths
+      for (size_t i = 0; cur; i++) {
+        include_paths[i] = cur->string;
+        cur = cur->next;
+      }
+      // transfer the options to c++
+      cpp_opt.input_path(input_path)
+             .output_path(output_path)
+             .output_style((Output_Style) c_ctx->output_style)
+             .is_indented_syntax_src(c_ctx->is_indented_syntax_src)
+             .source_comments(c_ctx->source_comments)
+             .source_map_file(safe_str(c_ctx->source_map_file))
+             .source_map_embed(c_ctx->source_map_embed)
+             .source_map_contents(c_ctx->source_map_contents)
+             .omit_source_map_url(c_ctx->omit_source_map_url)
+             .image_path(safe_str(c_ctx->image_path))
+             .include_paths_c_str(c_ctx->include_path)
+             .importer(c_ctx->importer)
+             .include_paths_array(include_paths)
+             .include_paths(vector<string>())
+             .precision(c_ctx->precision ? c_ctx->precision : 5);
+
+      // create new c++ Context
+      Context* cpp_ctx = new Context(cpp_opt);
+      // free intermediate data
+      free(include_paths);
+
+      // register our custom functions
+      if (c_ctx->c_functions) {
+        Sass_C_Function_List this_func_data = c_ctx->c_functions;
+        while ((this_func_data) && (*this_func_data)) {
+          cpp_ctx->c_functions.push_back((*this_func_data));
+          ++this_func_data;
+        }
+      }
+
+      // reset error status
+      c_ctx->error_json = 0;
+      c_ctx->error_message = 0;
+      c_ctx->error_status = 0;
+
+      // use to parse block
+      return cpp_ctx;
+
+    }
+    // pass errors to generic error handler
+    catch (...) { handle_errors(c_ctx); }
+
+    // error
+    return 0;
+
+  }
+
+  static Block* sass_parse_block (Sass_Context* c_ctx, Context* cpp_ctx)
+  {
+    try {
+
+      // get input/output path from options
+      string input_path = safe_str(c_ctx->input_path);
+      string output_path = safe_str(c_ctx->output_path);
+
+      // parsed root block
+      Block* root = 0;
+
+      // maybe skip some entries of included files
+      // we do not include stdin for data contexts
+      size_t skip = 0;
+
+      // dispatch to the correct render function
+      if (c_ctx->type == SASS_CONTEXT_FILE) {
+        root = cpp_ctx->parse_file();
+      } else if (c_ctx->type == SASS_CONTEXT_DATA) {
+        root = cpp_ctx->parse_string();
+        skip = 1; // skip first entry of includes
+      }
+
+      // copy the included files on to the context (dont forget to free)
+      copy_strings(cpp_ctx->get_included_files(skip), &c_ctx->included_files, skip);
+
+      // return parsed block
+      return root;
+
+    }
+    // pass errors to generic error handler
+    catch (...) { handle_errors(c_ctx); }
+
+    // error
+    return 0;
+
+  }
+
+  // generic compilation function (not exported, use file/data compile instead)
+  static int sass_compile_context (Sass_Context* c_ctx, Context::Data cpp_opt)
+  {
+
+    Context* cpp_ctx = 0;
+
+    try {
+
+      // first prepare the c++ context
+      cpp_ctx = sass_prepare_context(c_ctx, cpp_opt);
+
+      // parse given context and return root block
+      Block* root = sass_parse_block(c_ctx, cpp_ctx);
+
+      // now compile the parsed root block
+      c_ctx->output_string = cpp_ctx->compile_block(root);
+
+      // generate source map json and store on context
+      c_ctx->source_map_string = cpp_ctx->generate_source_map();
+
+    }
+    // pass errors to generic error handler
+    catch (...) { delete cpp_ctx; return handle_errors(c_ctx); }
+
+    delete cpp_ctx;
+
+    return c_ctx->error_status;
+  }
+
   Sass_Options* sass_make_options (void)
   {
     return (struct Sass_Options*) calloc(1, sizeof(struct Sass_Options));
@@ -348,15 +430,31 @@ extern "C" {
     return ctx;
   }
 
+  struct Sass_Compiler* sass_make_file_compiler (struct Sass_File_Context* c_ctx)
+  {
+    struct Sass_Compiler* compiler = (struct Sass_Compiler*) calloc(1, sizeof(struct Sass_Compiler));
+    compiler->state = SASS_COMPILER_CREATED;
+    compiler->c_ctx = c_ctx;
+    Context::Data cpp_opt = Context::Data();
+    cpp_opt.entry_point(c_ctx->input_path);
+    compiler->cpp_ctx = sass_prepare_context(c_ctx, cpp_opt);
+    return compiler;
+  }
+
+  struct Sass_Compiler* sass_make_data_compiler (struct Sass_Data_Context* c_ctx)
+  {
+    struct Sass_Compiler* compiler = (struct Sass_Compiler*) calloc(1, sizeof(struct Sass_Compiler));
+    compiler->state = SASS_COMPILER_CREATED;
+    compiler->c_ctx = c_ctx;
+    Context::Data cpp_opt = Context::Data();
+    cpp_opt.source_c_str(c_ctx->source_string);
+    compiler->cpp_ctx = sass_prepare_context(c_ctx, cpp_opt);
+    return compiler;
+  }
+
   int sass_compile_data_context(Sass_Data_Context* data_ctx)
   {
-    using namespace Sass;
     Sass_Context* c_ctx = data_ctx;
-    if (!c_ctx->input_path) {
-      // use a default value which
-      // will be seen relative to cwd
-      c_ctx->input_path = "stdin";
-    }
     Context::Data cpp_opt = Context::Data();
     cpp_opt.source_c_str(data_ctx->source_string);
     return sass_compile_context(c_ctx, cpp_opt);
@@ -364,11 +462,41 @@ extern "C" {
 
   int sass_compile_file_context(Sass_File_Context* file_ctx)
   {
-    using namespace Sass;
     Sass_Context* c_ctx = file_ctx;
     Context::Data cpp_opt = Context::Data();
     cpp_opt.entry_point(file_ctx->input_path);
     return sass_compile_context(c_ctx, cpp_opt);
+  }
+
+  int sass_compiler_parse(struct Sass_Compiler* compiler)
+  {
+    if (compiler->state == SASS_COMPILER_PARSED) return 0;
+    if (compiler->state != SASS_COMPILER_CREATED) return -1;
+    if (compiler->c_ctx == NULL) return 1;
+    if (compiler->cpp_ctx == NULL) return 1;
+    compiler->state = SASS_COMPILER_PARSED;
+    Context* cpp_ctx = (Context*) compiler->cpp_ctx;
+    compiler->root = sass_parse_block(compiler->c_ctx, cpp_ctx);
+    // success
+    return 0;
+  }
+
+  int sass_compiler_execute(struct Sass_Compiler* compiler)
+  {
+    if (compiler->state == SASS_COMPILER_EXECUTED) return 0;
+    if (compiler->state != SASS_COMPILER_PARSED) return -1;
+    if (compiler->c_ctx == NULL) return 1;
+    if (compiler->cpp_ctx == NULL) return 1;
+    if (compiler->root == NULL) return 1;
+    compiler->state = SASS_COMPILER_EXECUTED;
+    Context* cpp_ctx = (Context*) compiler->cpp_ctx;
+    Block* root = (Block*) compiler->root;
+    // now compile the parsed root block
+    compiler->c_ctx->output_string = cpp_ctx->compile_block(root);
+    // generate source map json and store on context
+    compiler->c_ctx->source_map_string = cpp_ctx->generate_source_map();
+    // success
+    return 0;
   }
 
   // helper function, not exported, only accessible locally
@@ -409,6 +537,13 @@ extern "C" {
     if (ctx->error_json)        free(ctx->error_json);
     free_string_array(ctx->included_files);
     sass_clear_options(ctx);
+  }
+
+  void sass_delete_compiler (struct Sass_Compiler* compiler)
+  {
+    Context* cpp_ctx = (Context*) compiler->cpp_ctx;
+    delete cpp_ctx;
+    free(compiler);
   }
 
   // Deallocate all associated memory with contexts
