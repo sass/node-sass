@@ -108,6 +108,10 @@ extern "C" {
     int error_status;
     char* error_json;
     char* error_message;
+    // error position
+    char* error_path;
+    size_t error_line;
+    size_t error_column;
 
     // report imported files
     char** included_files;
@@ -213,6 +217,9 @@ extern "C" {
       c_ctx->error_json = json_stringify(json_err, "\t");;
       c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
+      c_ctx->error_path = strdup(e.path.c_str());
+      c_ctx->error_line = e.position.line;
+      c_ctx->error_column = e.position.column;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
     }
@@ -329,6 +336,10 @@ extern "C" {
       c_ctx->error_json = 0;
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
+      // reset error position
+      c_ctx->error_path = 0;
+      c_ctx->error_line = -1;
+      c_ctx->error_column = -1;
 
       // use to parse block
       return cpp_ctx;
@@ -402,7 +413,7 @@ extern "C" {
 
     }
     // pass errors to generic error handler
-    catch (...) { delete cpp_ctx; return handle_errors(c_ctx); }
+    catch (...) { handle_errors(c_ctx); }
 
     delete cpp_ctx;
 
@@ -535,6 +546,7 @@ extern "C" {
     if (ctx->source_map_string) free(ctx->source_map_string);
     if (ctx->error_message)     free(ctx->error_message);
     if (ctx->error_json)        free(ctx->error_json);
+    if (ctx->error_path)        free(ctx->error_path);
     free_string_array(ctx->included_files);
     sass_clear_options(ctx);
   }
@@ -581,6 +593,9 @@ extern "C" {
   IMPLEMENT_SASS_CONTEXT_GETTER(int, error_status);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_json);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_message);
+  IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_path);
+  IMPLEMENT_SASS_CONTEXT_GETTER(size_t, error_line);
+  IMPLEMENT_SASS_CONTEXT_GETTER(size_t, error_column);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, output_string);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, source_map_string);
   IMPLEMENT_SASS_CONTEXT_GETTER(char**, included_files);
