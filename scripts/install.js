@@ -60,7 +60,7 @@ function fetch(name) {
  * Skip if CI
  */
 
-if (process.env.CI || process.env.APPVEYOR) {
+if (process.env.SKIP_SASS_BINARY_DOWNLOAD_FOR_CI) {
   console.log('Skipping downloading binaries on CI builds');
   return;
 }

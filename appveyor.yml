@@ -4,6 +4,7 @@ init:
   - git config --global core.autocrlf input
 
 environment:
+  SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
   matrix:
     - nodejs_version: 0.10.32
     - nodejs_version: 0.11.13
