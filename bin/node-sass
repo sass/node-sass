@@ -3,6 +3,7 @@ var Emitter = require('events').EventEmitter,
     path = require('path'),
     Gaze = require('gaze'),
     meow = require('meow'),
+    replaceExt = require('replace-ext'),
     stdin = require('get-stdin'),
     render = require('../lib/render');
 
@@ -24,7 +25,7 @@ var cli = meow({
     'Options',
     '  -w, --watch                Watch a directory or file',
     '  -r, --recursive            Recursively watch directories or files',
-    '  -o, --output               Output CSS file',
+    '  -o, --output               Output directory',
     '  -x, --omit-source-map-url  Omit source map URL comment from output',
     '  -i, --indented-syntax      Treat data from stdin as sass code (versus scss)',
     '  --output-style             CSS output style (nested|expanded|compact|compressed)',
@@ -112,17 +113,21 @@ function getEmitter() {
  */
 
 function getOptions(args, options) {
+  var dir = options.output || process.cwd();
+
   options.src = args[0];
-  options.dest = options.output || args[1];
+  options.dest = args[1] ? path.join(dir, args[1]) : null;
 
   if (!options.dest && !options.stdout) {
+    var ext = path.extname(options.src);
+    var out = path.basename(options.src);
     var suffix = '.css';
 
-    if (/\.css$/.test(options.src)) {
-      suffix = '';
+    if (ext !== suffix) {
+      out = replaceExt(out, suffix);
     }
 
-    options.dest = path.join(process.cwd(), path.basename(options.src, '.scss') + suffix);
+    options.dest = path.join(dir, out);
   }
 
   return options;
