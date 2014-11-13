@@ -1038,18 +1038,30 @@ namespace Sass {
     Signature nth_sig = "nth($list, $n)";
     BUILT_IN(nth)
     {
+      Map* m = dynamic_cast<Map*>(env["$list"]);
       List* l = dynamic_cast<List*>(env["$list"]);
       Number* n = ARG("$n", Number);
       if (n->value() == 0) error("argument `$n` of `" + string(sig) + "` must be non-zero", path, position);
       // if the argument isn't a list, then wrap it in a singleton list
-      if (!l) {
+      if (!m && !l) {
         l = new (ctx.mem) List(path, position, 1);
         *l << ARG("$list", Expression);
       }
-      if (l->empty()) error("argument `$list` of `" + string(sig) + "` must not be empty", path, position);
-      double index = std::floor(n->value() < 0 ? l->length() + n->value() : n->value() - 1);
-      if (index < 0 || index > l->length() - 1) error("index out of bounds for `" + string(sig) + "`", path, position);
-      return l->value_at_index(index);
+      size_t len = m ? m->length() : l->length();
+      bool empty = m ? m->empty() : l->empty();
+      if (empty) error("argument `$list` of `" + string(sig) + "` must not be empty", path, position);
+      double index = std::floor(n->value() < 0 ? len + n->value() : n->value() - 1);
+      if (index < 0 || index > len - 1) error("index out of bounds for `" + string(sig) + "`", path, position);
+
+      if (m) {
+        l = new (ctx.mem) List(path, position, 1);
+        *l << m->keys()[index];
+        *l << m->at(m->keys()[index]);
+        return l;
+      }
+      else {
+        return l->value_at_index(index);
+      }
     }
 
     Signature set_nth_sig = "set-nth($list, $n, $value)";
