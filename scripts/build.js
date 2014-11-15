@@ -119,41 +119,43 @@ function testBinary(options) {
     return build(options);
   }
 
-  if (!process.env.SKIP_NODE_SASS_TESTS) {
-    fs.stat(path.join(__dirname, '..', 'vendor', options.bin, 'binding.node'), function (err) {
-      if (err) {
+  if (process.env.SKIP_NODE_SASS_TESTS) {
+    return;
+  }
+
+  fs.stat(path.join(__dirname, '..', 'vendor', options.bin, 'binding.node'), function (err) {
+    if (err) {
+      return build(options);
+    }
+
+    console.log('`' + options.bin + '` exists; testing');
+
+    var total;
+    var failures;
+    var mocha = new Mocha({
+      ui: 'bdd',
+      timeout: 999999,
+      reporter: function(stats) {
+        total = stats.total;
+        failures = stats.failures;
+      }
+    });
+
+    mocha.addFile(path.resolve(__dirname, '..', 'test', 'api.js'));
+    mocha.run(function () {
+      if ((total - failures) * 100 / total < 90) {
+        console.log([
+          'Problem with the binary: ' + failures + ' of ' + total + ' tests are failing.',
+          'Manual build incoming.',
+          'Please consider contributing the release binary to https://github.com/sass/node-sass-binaries for npm distribution.'
+        ].join('\n'));
+
         return build(options);
       }
 
-      console.log('`' + options.bin + '` exists; testing');
-
-      var total;
-      var failures;
-      var mocha = new Mocha({
-        ui: 'bdd',
-        timeout: 999999,
-        reporter: function(stats) {
-          total = stats.total;
-          failures = stats.failures;
-        }
-      });
-
-      mocha.addFile(path.resolve(__dirname, '..', 'test', 'api.js'));
-      mocha.run(function () {
-        if ((total - failures) * 100 / total < 90) {
-          console.log([
-            'Problem with the binary: ' + failures + ' of ' + total + ' tests are failing.',
-            'Manual build incoming.',
-            'Please consider contributing the release binary to https://github.com/sass/node-sass-binaries for npm distribution.'
-          ].join('\n'));
-
-          return build(options);
-        }
-
-        console.log('Binary is fine; exiting');
-      });
+      console.log('Binary is fine; exiting');
     });
-  }
+  });
 }
 
 /**
