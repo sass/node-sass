@@ -1,10 +1,11 @@
 var fs = require('fs'),
     path = require('path'),
     request = require('request'),
-    mkdirp = require('mkdirp');
+    mkdirp = require('mkdirp'),
+    exec = require('shelljs').exec;
 
 /**
- * Download file, if succeded save, if not delete
+ * Download file, if succeeds save, if not delete
  *
  * @param {String} url
  * @param {String} dest
@@ -14,10 +15,7 @@ var fs = require('fs'),
 
 function download(url, dest, cb) {
   var file = fs.createWriteStream(dest);
-  var env = process.env;
-  var options = {
-    proxy: env.HTTPS_PROXY || env.https_proxy || env.HTTP_PROXY || env.http_proxy
-  };
+  var options = { proxy: getProxy() };
   var returnError = function(err) {
     fs.unlink(dest);
     cb(typeof err.message === 'string' ? err.message : err);
@@ -37,6 +35,33 @@ function download(url, dest, cb) {
   req.end();
   req.on('error', returnError);
 };
+
+/**
+ * Get proxy settings
+ *
+ * @api private
+ */
+
+function getProxy() {
+  var result;
+
+  ['https-proxy', 'proxy', 'http-proxy'].map(function(config) {
+    var proxy = exec('npm config get ' + config, {silent: true});
+    var output = proxy.output.trim();
+
+    if (proxy.code === 0 && output !== 'undefined' && output !== 'null') {
+      result = proxy.output;
+      return;
+    }
+  });
+
+  if (result) {
+    return result;
+  }
+
+  var env = process.env;
+  return env.HTTPS_PROXY || env.https_proxy || env.HTTP_PROXY || env.http_proxy
+}
 
 /**
  * Check if binaries exists
