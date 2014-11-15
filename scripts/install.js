@@ -1,10 +1,11 @@
 var fs = require('fs'),
     path = require('path'),
     request = require('request'),
-    mkdirp = require('mkdirp');
+    mkdirp = require('mkdirp'),
+    exec = require('shelljs').exec;
 
 /**
- * Download file, if succeded save, if not delete
+ * Download file, if succeeds save, if not delete
  *
  * @param {String} url
  * @param {String} dest
@@ -14,17 +15,15 @@ var fs = require('fs'),
 
 function download(url, dest, cb) {
   var file = fs.createWriteStream(dest);
-  var env = process.env;
-  var options = {
-    proxy: env.HTTPS_PROXY || env.https_proxy || env.HTTP_PROXY || env.http_proxy
-  };
+  var options = { proxy: getProxy() };
   var returnError = function(err) {
     fs.unlink(dest);
-    cb(err);
+    cb(typeof err.message === 'string' ? err.message : err);
   };
   var req = request.get(url, options).on('response', function(response) {
     if (response.statusCode < 200 || response.statusCode >= 300) {
       returnError('Can not download file from ' + url);
+      return;
     }
     response.pipe(file);
 
@@ -38,14 +37,40 @@ function download(url, dest, cb) {
 };
 
 /**
+ * Get proxy settings
+ *
+ * @api private
+ */
+
+function getProxy() {
+  var result;
+
+  ['https-proxy', 'proxy', 'http-proxy'].map(function(config) {
+    var proxy = exec('npm config get ' + config, {silent: true});
+    var output = proxy.output.trim();
+
+    if (proxy.code === 0 && output !== 'undefined' && output !== 'null') {
+      result = proxy.output;
+      return;
+    }
+  });
+
+  if (result) {
+    return result;
+  }
+
+  var env = process.env;
+  return env.HTTPS_PROXY || env.https_proxy || env.HTTP_PROXY || env.http_proxy
+}
+
+/**
  * Check if binaries exists
  *
  * @api private
  */
 
 function exists() {
-  var v8 = 'v8-' + /[0-9]+\.[0-9]+/.exec(process.versions.v8)[0];
-  var name = process.platform + '-' + process.arch + '-' + v8;
+  var name = process.platform + '-' + process.arch;
 
   fs.exists(path.join(__dirname, '..', 'vendor', name), function (exists) {
     if (exists) {
@@ -80,7 +105,7 @@ function fetch(name) {
 
     download(url, dest, function(err) {
       if (err) {
-        console.error(err.message);
+        console.error(err);
         return;
       }
 

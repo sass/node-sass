@@ -82,8 +82,7 @@ function build(options) {
 function parseArgs(args) {
   var options = {
     arch: process.arch,
-    platform: process.platform,
-    v8: /[0-9]+\.[0-9]+/.exec(process.versions.v8)[0]
+    platform: process.platform
   };
 
   options.args = args.filter(function(arg) {
@@ -110,10 +109,7 @@ function parseArgs(args) {
  */
 
 function testBinary(options) {
-  options.bin = [
-    options.platform + '-' + options.arch,
-    '-v8-' + options.v8
-  ].join('');
+  options.bin = options.platform + '-' + options.arch;
 
   if (options.force || process.env.SASS_FORCE_BUILD) {
     return build(options);
