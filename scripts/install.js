@@ -44,8 +44,7 @@ function download(url, dest, cb) {
  */
 
 function exists() {
-  var v8 = 'v8-' + /[0-9]+\.[0-9]+/.exec(process.versions.v8)[0];
-  var name = process.platform + '-' + process.arch + '-' + v8;
+  var name = process.platform + '-' + process.arch;
 
   fs.exists(path.join(__dirname, '..', 'vendor', name), function (exists) {
     if (exists) {
