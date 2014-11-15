@@ -20,11 +20,12 @@ function download(url, dest, cb) {
   };
   var returnError = function(err) {
     fs.unlink(dest);
-    cb(err);
+    cb(typeof err.message === 'string' ? err.message : err);
   };
   var req = request.get(url, options).on('response', function(response) {
     if (response.statusCode < 200 || response.statusCode >= 300) {
       returnError('Can not download file from ' + url);
+      return;
     }
     response.pipe(file);
 
@@ -79,7 +80,7 @@ function fetch(name) {
 
     download(url, dest, function(err) {
       if (err) {
-        console.error(err.message);
+        console.error(err);
         return;
       }
 
