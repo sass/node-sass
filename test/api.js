@@ -187,8 +187,7 @@ describe('api', function() {
       var stats = {};
       var expected = [
         fixture('include-files/bar.scss').replace(/\\/g, '/'),
-        fixture('include-files/foo.scss').replace(/\\/g, '/'),
-        'stdin'
+        fixture('include-files/foo.scss').replace(/\\/g, '/')
       ];
 
       sass.render({
