@@ -12,7 +12,7 @@ char* CreateString(Local<Value> value) {
   return str;
 }
 
-void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx_w, char* data_or_path, bool isFile) {
+void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx_w, bool isFile) {
   bool source_comments;
 
   if (ctx_w) {
@@ -36,7 +36,6 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
     struct Sass_Context* ctx = sass_file_context_get_context(fctx);
     struct Sass_Options* sass_options = sass_context_get_options(ctx);
 
-    sass_option_set_input_path(sass_options, data_or_path);
     sass_option_set_output_path(sass_options, CreateString(options->Get(NanNew("outFile"))));
     sass_option_set_image_path(sass_options, CreateString(options->Get(NanNew("imagePath"))));
     sass_option_set_output_style(sass_options, (Sass_Output_Style)options->Get(NanNew("style"))->Int32Value());
@@ -64,12 +63,10 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
 
 void FillStatsObj(Handle<Object> stats, Sass_Context* ctx) {
   char** included_files = sass_context_get_included_files(ctx);
-  //int length = sizeof(included_files) / sizeof(included_files[0]);
-  //int length =   std::char_traits<char*>::length(included_files);
   Handle<Array> arr = NanNew<Array>();
 
   if(included_files) {
-    for (int i = 0; included_files[i] != nullptr; ++i) {//cout<<included_files[i]<<endl;
+    for (int i = 0; included_files[i] != nullptr; ++i) {
       arr->Set(i, NanNew<String>(included_files[i]));
     }
   }
@@ -147,7 +144,7 @@ NAN_METHOD(Render) {
 
   ctx_w->dctx = dctx;
 
-  ExtractOptions(options, dctx, ctx_w, source_string, false);
+  ExtractOptions(options, dctx, ctx_w, false);
 
   int status = uv_queue_work(uv_default_loop(), &ctx_w->request, compile_it, (uv_after_work_cb)MakeCallback);
 
@@ -165,7 +162,7 @@ NAN_METHOD(RenderSync) {
   struct Sass_Data_Context* dctx = sass_make_data_context(source_string);
   struct Sass_Context* ctx = sass_data_context_get_context(dctx);
 
-  ExtractOptions(options, dctx, NULL, source_string, false);
+  ExtractOptions(options, dctx, NULL, false);
   compile_data(dctx);
   FillStatsObj(options->Get(NanNew("stats"))->ToObject(), ctx);
 //  free(source_string);
@@ -194,7 +191,7 @@ NAN_METHOD(RenderFile) {
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
 
   ctx_w->fctx = fctx;
-  ExtractOptions(options, fctx, ctx_w, input_path, true);
+  ExtractOptions(options, fctx, ctx_w, true);
 
   int status = uv_queue_work(uv_default_loop(), &ctx_w->request, compile_it, (uv_after_work_cb)MakeCallback);
   assert(status == 0);
@@ -212,7 +209,7 @@ NAN_METHOD(RenderFileSync) {
   struct Sass_File_Context* fctx = sass_make_file_context(input_path);
   struct Sass_Context* ctx = sass_file_context_get_context(fctx);
 
-  ExtractOptions(options, fctx, NULL, input_path, true);
+  ExtractOptions(options, fctx, NULL, true);
   compile_file(fctx);
   FillStatsObj(options->Get(NanNew("stats"))->ToObject(), ctx);
 
