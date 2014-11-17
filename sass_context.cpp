@@ -109,7 +109,7 @@ extern "C" {
     char* error_json;
     char* error_message;
     // error position
-    char* error_path;
+    char* error_file;
     size_t error_line;
     size_t error_column;
 
@@ -208,15 +208,15 @@ extern "C" {
       stringstream msg_stream;
       JsonNode* json_err = json_mkobject();
       json_append_member(json_err, "status", json_mknumber(1));
-      json_append_member(json_err, "path", json_mkstring(e.path.c_str()));
+      json_append_member(json_err, "file", json_mkstring(e.path.c_str()));
       json_append_member(json_err, "line", json_mknumber(e.position.line));
       json_append_member(json_err, "column", json_mknumber(e.position.column));
       json_append_member(json_err, "message", json_mkstring(e.message.c_str()));
       msg_stream << e.path << ":" << e.position.line << ": " << e.message << endl;
-      c_ctx->error_json = json_stringify(json_err, "\t");;
+      c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
-      c_ctx->error_path = strdup(e.path.c_str());
+      c_ctx->error_file = strdup(e.path.c_str());
       c_ctx->error_line = e.position.line;
       c_ctx->error_column = e.position.column;
       c_ctx->output_string = 0;
@@ -228,7 +228,7 @@ extern "C" {
       msg_stream << "Unable to allocate memory: " << ba.what() << endl;
       json_append_member(json_err, "status", json_mknumber(2));
       json_append_member(json_err, "message", json_mkstring(ba.what()));
-      c_ctx->error_json = json_stringify(json_err, "\t");;
+      c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 2;
       c_ctx->output_string = 0;
@@ -240,7 +240,7 @@ extern "C" {
       msg_stream << "Error: " << e.what() << endl;
       json_append_member(json_err, "status", json_mknumber(3));
       json_append_member(json_err, "message", json_mkstring(e.what()));
-      c_ctx->error_json = json_stringify(json_err, "\t");;
+      c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 3;
       c_ctx->output_string = 0;
@@ -252,7 +252,7 @@ extern "C" {
       msg_stream << "Error: " << e << endl;
       json_append_member(json_err, "status", json_mknumber(4));
       json_append_member(json_err, "message", json_mkstring(e.c_str()));
-      c_ctx->error_json = json_stringify(json_err, "\t");;
+      c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 4;
       c_ctx->output_string = 0;
@@ -264,7 +264,7 @@ extern "C" {
       msg_stream << "Unknown error occurred" << endl;
       json_append_member(json_err, "status", json_mknumber(5));
       json_append_member(json_err, "message", json_mkstring("unknown"));
-      c_ctx->error_json = json_stringify(json_err, "\t");;
+      c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 5;
       c_ctx->output_string = 0;
@@ -336,7 +336,7 @@ extern "C" {
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
       // reset error position
-      c_ctx->error_path = 0;
+      c_ctx->error_file = 0;
       c_ctx->error_line = -1;
       c_ctx->error_column = -1;
 
@@ -549,7 +549,7 @@ extern "C" {
     if (ctx->source_map_string) free(ctx->source_map_string);
     if (ctx->error_message)     free(ctx->error_message);
     if (ctx->error_json)        free(ctx->error_json);
-    if (ctx->error_path)        free(ctx->error_path);
+    if (ctx->error_file)        free(ctx->error_file);
     if (ctx->input_path)        free(ctx->input_path);
     if (ctx->output_path)       free(ctx->output_path);
     if (ctx->image_path)        free(ctx->image_path);
@@ -561,7 +561,7 @@ extern "C" {
     ctx->source_map_string = 0;
     ctx->error_message = 0;
     ctx->error_json = 0;
-    ctx->error_path = 0;
+    ctx->error_file = 0;
     ctx->input_path = 0;
     ctx->output_path = 0;
     ctx->image_path = 0;
@@ -615,7 +615,7 @@ extern "C" {
   IMPLEMENT_SASS_CONTEXT_GETTER(int, error_status);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_json);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_message);
-  IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_path);
+  IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_file);
   IMPLEMENT_SASS_CONTEXT_GETTER(size_t, error_line);
   IMPLEMENT_SASS_CONTEXT_GETTER(size_t, error_column);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, output_string);
