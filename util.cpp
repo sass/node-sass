@@ -158,5 +158,9 @@ namespace Sass {
        return false;
      }
 
+     bool isAscii(int ch) {
+         return ch >= 0 && ch < 128;
+     }
+
   }
 }
