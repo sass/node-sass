@@ -1302,9 +1302,9 @@ namespace Sass {
       }
     }
 
-    virtual size_t hash() const
+    virtual size_t hash()
     {
-      if (hash_ == 0) std::hash<string>()(unquoted_);
+      if (hash_ == 0) hash_ = std::hash<string>()(unquoted_);
       return hash_;
     }
 
