@@ -53,13 +53,13 @@ libsass_la_SOURCES = \
 	util.cpp
 
 libsass_la_CXXFLAGS = $(AM_CXXFLAGS) -std=c++0x
-libsass_la_LDFLAGS = -no-undefined -version-info 0:0:0
+libsass_la_LDFLAGS = -no-undefined -version-info 0:9:0
 
 if ENABLE_COVERAGE
 libsass_la_LDFLAGS += -lgcov
 endif
 
-include_HEADERS = sass2scss.h sass_interface.h sass_context.h sass_functions.h sass_values.h sass.h
+include_HEADERS = sass2scss.h sass_context.h sass_functions.h sass_values.h sass.h
 
 if ENABLE_TESTS
 
