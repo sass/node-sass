@@ -26,16 +26,10 @@ extern "C" {
   }
 
   void free_data_context(struct Sass_Data_Context* dctx) {
-   // delete[] dctx->source_string;
-   // delete[] dctx->options.include_paths;
-   // delete[] dctx->options.image_path;
     sass_delete_data_context(dctx);
   }
 
   void free_file_context(struct Sass_File_Context* fctx) {
-   // delete[] fctx->input_path;
-   // delete[] fctx->options.include_paths;
-   // delete[] fctx->options.image_path;
     sass_delete_file_context(fctx);
   }
 
