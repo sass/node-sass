@@ -95,7 +95,7 @@ namespace Sass {
     virtual void operator()(Selector_List*);
 
     template <typename U>
-    void fallback(U x) { fallback_impl(x); }
+    void fallback(U x) { fallback_impl(reinterpret_cast<AST_Node*>(x)); }
   };
 
   string unquote(const string&);
