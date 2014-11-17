@@ -1660,6 +1660,7 @@ namespace Sass {
 
     while ((q = peek< identifier >(p))                             ||
            (q = peek< hyphens_and_identifier >(p))                 ||
+           (q = peek< hyphens_and_name >(p))                       ||
            (q = peek< type_selector >(p))                          ||
            (q = peek< id_name >(p))                                ||
            (q = peek< class_name >(p))                             ||
