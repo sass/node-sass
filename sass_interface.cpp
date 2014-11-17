@@ -17,7 +17,6 @@
 #include <string>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
 
 extern "C" {
   using namespace std;
@@ -25,12 +24,33 @@ extern "C" {
   sass_context* sass_new_context()
   { return (sass_context*) calloc(1, sizeof(sass_context)); }
 
-  void free_string_array(char ** arr, int num) {
+  // helper for safe access to c_ctx
+  static const char* safe_str (const char* str) {
+    return str == NULL ? "" : str;
+  }
+
+  static void copy_strings(const std::vector<std::string>& strings, char*** array, int skip = 0) {
+    int num = static_cast<int>(strings.size());
+    char** arr = (char**) malloc(sizeof(char*)* num + 1);
+
+    for(int i = skip; i < num; i++) {
+      arr[i-skip] = (char*) malloc(sizeof(char) * strings[i].size() + 1);
+      std::copy(strings[i].begin(), strings[i].end(), arr[i-skip]);
+      arr[i-skip][strings[i].size()] = '\0';
+    }
+
+    arr[num-skip] = 0;
+    *array = arr;
+  }
+
+  static void free_string_array(char ** arr) {
     if(!arr)
         return;
 
-    for(int i = 0; i < num; i++) {
-      free(arr[i]);
+    char **it = arr;
+    while (it && (*it)) {
+      free(*it);
+      ++it;
     }
 
     free(arr);
@@ -43,7 +63,7 @@ extern "C" {
     if (ctx->error_message)     free(ctx->error_message);
     if (ctx->c_functions)       free(ctx->c_functions);
 
-    free_string_array(ctx->included_files, ctx->num_included_files);
+    free_string_array(ctx->included_files);
 
     free(ctx);
   }
@@ -58,7 +78,7 @@ extern "C" {
     if (ctx->error_message)     free(ctx->error_message);
     if (ctx->c_functions)       free(ctx->c_functions);
 
-    free_string_array(ctx->included_files, ctx->num_included_files);
+    free_string_array(ctx->included_files);
 
     free(ctx);
   }
@@ -68,27 +88,8 @@ extern "C" {
 
   void sass_free_folder_context(sass_folder_context* ctx)
   {
-    free_string_array(ctx->included_files, ctx->num_included_files);
+    free_string_array(ctx->included_files);
     free(ctx);
-  }
-
-  void copy_strings(const std::vector<std::string>& strings, char*** array, int* n, int skip = 0) {
-    int num = static_cast<int>(strings.size());
-    char** arr = (char**) malloc(sizeof(char*)* num);
-
-    for(int i = skip; i < num; i++) {
-      arr[i-skip] = (char*) malloc(sizeof(char) * strings[i].size() + 1);
-      std::copy(strings[i].begin(), strings[i].end(), arr[i-skip]);
-      arr[i-skip][strings[i].size()] = '\0';
-    }
-
-    *array = arr;
-    *n = num - skip;
-  }
-
-  // helper for safe access to c_ctx
-  const char* safe_str (const char* str) {
-    return str == NULL ? "" : str;
   }
 
   int sass_compile(sass_context* c_ctx)
@@ -123,20 +124,18 @@ extern "C" {
                        .precision(c_ctx->options.precision ? c_ctx->options.precision : 5)
       );
       if (c_ctx->c_functions) {
-        struct Sass_C_Function_Descriptor* this_func_data = c_ctx->c_functions;
-        while (this_func_data->signature && this_func_data->function) {
+        struct Sass_C_Function_Descriptor** this_func_data = c_ctx->c_functions;
+        while ((this_func_data) && (*this_func_data)) {
           cpp_ctx.c_functions.push_back(*this_func_data);
           ++this_func_data;
         }
       }
-      // by checking c_ctx->input_path, implementors can pass in an empty string
-      c_ctx->output_string = c_ctx->input_path ? cpp_ctx.compile_string(input_path) :
-                                                 cpp_ctx.compile_string();
+      c_ctx->output_string = cpp_ctx.compile_string();
       c_ctx->source_map_string = cpp_ctx.generate_source_map();
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
 
-      copy_strings(cpp_ctx.get_included_files(), &c_ctx->included_files, &c_ctx->num_included_files, 1);
+      copy_strings(cpp_ctx.get_included_files(1), &c_ctx->included_files, 1);
     }
     catch (Error& e) {
       stringstream msg_stream;
@@ -212,8 +211,8 @@ extern "C" {
                        .precision(c_ctx->options.precision ? c_ctx->options.precision : 5)
       );
       if (c_ctx->c_functions) {
-        struct Sass_C_Function_Descriptor* this_func_data = c_ctx->c_functions;
-        while (this_func_data->signature && this_func_data->function) {
+        struct Sass_C_Function_Descriptor** this_func_data = c_ctx->c_functions;
+        while ((this_func_data) && (*this_func_data)) {
           cpp_ctx.c_functions.push_back(*this_func_data);
           ++this_func_data;
         }
@@ -223,7 +222,7 @@ extern "C" {
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
 
-      copy_strings(cpp_ctx.get_included_files(), &c_ctx->included_files, &c_ctx->num_included_files);
+      copy_strings(cpp_ctx.get_included_files(), &c_ctx->included_files);
     }
     catch (Error& e) {
       stringstream msg_stream;
@@ -272,22 +271,6 @@ extern "C" {
   int sass_compile_folder(sass_folder_context* c_ctx)
   {
     return 1;
-  }
-
-  // caller must free the returned memory
-  char* quote (const char *str, const char quotemark) {
-    string quoted = Sass::quote(str, quotemark);
-    char *cstr = (char*) malloc(quoted.length() + 1);
-    std::strcpy(cstr, quoted.c_str());
-    return cstr;
-  }
-
-  // caller must free the returned memory
-  char* unquote (const char *str) {
-    string unquoted = Sass::unquote(str);
-    char *cstr = (char*) malloc(unquoted.length() + 1);
-    std::strcpy(cstr, unquoted.c_str());
-    return cstr;
   }
 
 }

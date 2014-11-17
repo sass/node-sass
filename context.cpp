@@ -52,8 +52,9 @@ namespace Sass {
     queue                   (vector<pair<string, const char*> >()),
     style_sheets            (map<string, Block*>()),
     source_map              (resolve_relative_path(initializers.output_path(), initializers.source_map_file(), get_cwd())),
-    c_functions             (vector<Sass_C_Function_Descriptor>()),
+    c_functions             (vector<Sass_C_Function_Callback>()),
     image_path              (initializers.image_path()),
+    input_path              (make_canonical_path(initializers.input_path())),
     output_path             (make_canonical_path(initializers.output_path())),
     source_comments         (initializers.source_comments()),
     output_style            (initializers.output_style()),
@@ -62,6 +63,7 @@ namespace Sass {
     source_map_contents     (initializers.source_map_contents()),
     omit_source_map_url     (initializers.omit_source_map_url()),
     is_indented_syntax_src  (initializers.is_indented_syntax_src()),
+    importer                (initializers.importer()),
     names_to_colors         (map<string, Color*>()),
     colors_to_names         (map<int, string>()),
     precision               (initializers.precision()),
@@ -70,6 +72,12 @@ namespace Sass {
   {
     cwd = get_cwd();
 
+    // enforce some safe defaults
+    // used to create relative file links
+    if (input_path == "") input_path = "stdin";
+    if (output_path == "") output_path = "stdout";
+
+    include_paths.push_back(cwd);
     collect_include_paths(initializers.include_paths_c_str());
     collect_include_paths(initializers.include_paths_array());
 
@@ -110,7 +118,6 @@ namespace Sass {
 
   void Context::collect_include_paths(const char* paths_str)
   {
-    include_paths.push_back(cwd);
 
     if (paths_str) {
       const char* beg = paths_str;
@@ -134,23 +141,17 @@ namespace Sass {
     }
   }
 
-  void Context::collect_include_paths(const char* paths_array[])
+  void Context::collect_include_paths(const char** paths_array)
   {
-    include_paths.push_back(get_cwd());
     if (*include_paths.back().rbegin() != '/') include_paths.back() += '/';
-
-    // if (paths_array) {
-    //   for (size_t i = 0; paths_array[i]; ++i) {
-    //     string path(paths_array[i]);
-    //     if (!path.empty()) {
-    //       if (*path.rbegin() != '/') path += '/';
-    //       include_paths.push_back(path);
-    //     }
-    //   }
-    // }
+    if (paths_array) {
+      for (size_t i = 0; paths_array[i]; i++) {
+        collect_include_paths(paths_array[i]);
+      }
+    }
   }
 
-  void Context::add_source(const string& load_path, const string& abs_path, const char* contents)
+  void Context::add_source(string load_path, string abs_path, const char* contents)
   {
     sources.push_back(contents);
     included_files.push_back(abs_path);
@@ -209,40 +210,13 @@ namespace Sass {
   void register_function(Context&, Signature sig, Native_Function f, size_t arity, Env* env);
   void register_overload_stub(Context&, string name, Env* env);
   void register_built_in_functions(Context&, Env* env);
-  void register_c_functions(Context&, Env* env, Sass_C_Function_Descriptor*);
-  void register_c_function(Context&, Env* env, Sass_C_Function_Descriptor);
+  void register_c_functions(Context&, Env* env, Sass_C_Function_List);
+  void register_c_function(Context&, Env* env, Sass_C_Function_Callback);
 
-  char* Context::compile_file()
+  char* Context::compile_block(Block* root)
   {
-    Block* root = 0;
-    for (size_t i = 0; i < queue.size(); ++i) {
-      Parser p(Parser::from_c_str(queue[i].second, *this, queue[i].first, Position(1 + i, 1, 1)));
-      Block* ast = p.parse();
-      if (i == 0) root = ast;
-      style_sheets[queue[i].first] = ast;
-    }
-    Env tge;
-    Backtrace backtrace(0, "", Position(), "");
-    register_built_in_functions(*this, &tge);
-    for (size_t i = 0, S = c_functions.size(); i < S; ++i) {
-    	register_c_function(*this, &tge, c_functions[i]);
-    }
-    Eval eval(*this, &tge, &backtrace);
-    Contextualize contextualize(*this, &eval, &tge, &backtrace);
-    Expand expand(*this, &eval, &contextualize, &tge, &backtrace);
-    // Inspect inspect(this);
-    // Output_Nested output_nested(*this);
-
-    root = root->perform(&expand)->block();
-    if (!subset_map.empty()) {
-      Extend extend(*this, subset_map);
-      root->perform(&extend);
-    }
-
-    Remove_Placeholders remove_placeholders(*this);
-    root->perform(&remove_placeholders);
-
     char* result = 0;
+    if (!root) return 0;
     switch (output_style) {
       case COMPRESSED: {
         Output_Compressed output_compressed(this);
@@ -265,8 +239,65 @@ namespace Sass {
 
       } break;
     }
-
     return result;
+  }
+
+  Block* Context::parse_file()
+  {
+    Block* root = 0;
+    for (size_t i = 0; i < queue.size(); ++i) {
+      Parser p(Parser::from_c_str(queue[i].second, *this, queue[i].first, Position(1 + i, 1, 1)));
+      Block* ast = p.parse();
+      if (i == 0) root = ast;
+      style_sheets[queue[i].first] = ast;
+    }
+    Env tge;
+    Backtrace backtrace(0, "", Position(), "");
+    register_built_in_functions(*this, &tge);
+    for (size_t i = 0, S = c_functions.size(); i < S; ++i) {
+      register_c_function(*this, &tge, c_functions[i]);
+    }
+    Eval eval(*this, &tge, &backtrace);
+    Contextualize contextualize(*this, &eval, &tge, &backtrace);
+    Expand expand(*this, &eval, &contextualize, &tge, &backtrace);
+    // Inspect inspect(this);
+    // Output_Nested output_nested(*this);
+
+    root = root->perform(&expand)->block();
+    if (!subset_map.empty()) {
+      Extend extend(*this, subset_map);
+      root->perform(&extend);
+    }
+
+    Remove_Placeholders remove_placeholders(*this);
+    root->perform(&remove_placeholders);
+
+    return root;
+  }
+
+  Block* Context::parse_string()
+  {
+    if (!source_c_str) return 0;
+    queue.clear();
+    if(is_indented_syntax_src) {
+      char * contents = sass2scss(source_c_str, SASS2SCSS_PRETTIFY_1);
+      add_source(input_path, input_path, contents);
+      return parse_file();
+    }
+    add_source(input_path, input_path, strdup(source_c_str));
+    return parse_file();
+  }
+
+  char* Context::compile_file()
+  {
+    // returns NULL if something fails
+    return compile_block(parse_file());
+  }
+
+  char* Context::compile_string()
+  {
+    // returns NULL if something fails
+    return compile_block(parse_string());
   }
 
   string Context::format_source_mapping_url(const string& file)
@@ -293,27 +324,15 @@ namespace Sass {
     return result;
   }
 
-  // allow to optionally overwrite the input path
-  // default argument for input_path is string("stdin")
-  // usefull to influence the source-map generating etc.
-  char* Context::compile_string(const string& input_path)
-  {
-    if (!source_c_str) return 0;
-    queue.clear();
-    if(is_indented_syntax_src) {
-      char * contents = sass2scss(source_c_str, SASS2SCSS_PRETTIFY_1);
-      add_source(input_path, input_path, contents);
-      return compile_file();
-    }
-    add_source(input_path, input_path, strdup(source_c_str));
-    return compile_file();
-  }
 
-  std::vector<std::string> Context::get_included_files()
+  std::vector<std::string> Context::get_included_files(size_t skip)
   {
-      std::sort(included_files.begin(), included_files.end());
-      included_files.erase( std::unique( included_files.begin(), included_files.end() ), included_files.end());
-      return included_files;
+      vector<string> includes = included_files;
+      std::sort( includes.begin() + skip, includes.end() );
+      includes.erase( std::unique( includes.begin(), includes.end() ), includes.end() );
+      // the skip solution seems more robust, as we may have real files named stdin
+      // includes.erase( std::remove( includes.begin(), includes.end(), "stdin" ), includes.end() );
+      return includes;
   }
 
   string Context::get_cwd()
@@ -448,16 +467,21 @@ namespace Sass {
     register_function(ctx, image_url_sig, image_url, env);
   }
 
-  void register_c_functions(Context& ctx, Env* env, Sass_C_Function_Descriptor* descrs)
+  void register_c_functions(Context& ctx, Env* env, Sass_C_Function_List descrs)
   {
-    while (descrs->signature && descrs->function) {
+    while (descrs && *descrs) {
       register_c_function(ctx, env, *descrs);
       ++descrs;
     }
   }
-  void register_c_function(Context& ctx, Env* env, Sass_C_Function_Descriptor descr)
+  void register_c_function(Context& ctx, Env* env, Sass_C_Function_Callback descr)
   {
-    Definition* def = make_c_function(descr.signature, descr.function, descr.cookie, ctx);
+    Definition* def = make_c_function(
+      sass_function_get_signature(descr),
+      sass_function_get_function(descr),
+      sass_function_get_cookie(descr),
+      ctx
+    );
     def->environment(env);
     (*env)[def->name() + "[f]"] = def;
   }

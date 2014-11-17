@@ -10,13 +10,11 @@
 #include "environment.hpp"
 #endif
 
-#ifndef SASS
-#include "sass.h"
-#endif
-
 #ifndef SASS_POSITION
 #include "position.hpp"
 #endif
+
+#include "sass_values.h"
 
 namespace Sass {
   using namespace std;
@@ -73,7 +71,7 @@ namespace Sass {
     Expression* fallback(U x) { return fallback_impl(x); }
   };
 
-  Expression* cval_to_astnode(Sass_Value v, Context& ctx, Backtrace* backtrace, string path = "", Position position = Position());
+  Expression* cval_to_astnode(Sass_Value* v, Context& ctx, Backtrace* backtrace, string path = "", Position position = Position());
 
   bool eq(Expression*, Expression*, Context&);
   bool lt(Expression*, Expression*, Context&);

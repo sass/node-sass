@@ -1,18 +1,16 @@
 #define SASS_FUNCTIONS
 
+#include <string>
+
 #ifndef SASS_ENVIRONMENT
 #include "environment.hpp"
 #endif
 
-#ifndef SASS
-#include "sass.h"
-#endif
-
-#include <string>
-
 #ifndef SASS_POSITION
 #include "position.hpp"
 #endif
+
+#include "sass_functions.h"
 
 #define BUILT_IN(name) Expression*\
 name(Env& env, Env& d_env, Context& ctx, Signature sig, const string& path, Position position, Backtrace* backtrace)
