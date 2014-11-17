@@ -66,6 +66,20 @@ void FillStatsObj(Handle<Object> stats, Sass_Context* ctx) {
   }
 
   (*stats)->Set(NanNew("includedFiles"), arr);
+
+  Handle<Value> source_map;
+
+  if (sass_context_get_error_status(ctx)) {
+    return;
+  }
+
+  if (sass_context_get_source_map_string(ctx)) {
+    source_map = NanNew<String>(sass_context_get_source_map_string(ctx));
+  } else {
+    source_map = NanNew<String>("{}");
+  }
+
+  (*stats)->Set(NanNew("sourceMap"), source_map); 
 }
 
 void FillStatsObj(Handle<Object> stats, struct Sass_File_Context* fctx) {
