@@ -980,10 +980,32 @@ namespace Sass {
   private:
     ADD_PROPERTY(Type, type);
     ADD_PROPERTY(string, value);
+    size_t hash_;
   public:
     Textual(string path, Position position, Type t, string val)
-    : Expression(path, position, true), type_(t), value_(val)
+    : Expression(path, position, true), type_(t), value_(val),
+      hash_(0)
     { }
+
+    virtual bool operator==(Expression& rhs) const
+    {
+      try
+      {
+        Textual& e = dynamic_cast<Textual&>(rhs);
+        return e && value() == e.value() && type() == e.type();
+      }
+      catch (std::bad_cast&)
+      {
+        return false;
+      }
+    }
+
+    virtual size_t hash()
+    {
+      if (hash_ == 0) hash_ = std::hash<string>()(value_) ^ std::hash<int>()(type_);
+      return hash_;
+    }
+
     ATTACH_OPERATIONS();
   };
 
