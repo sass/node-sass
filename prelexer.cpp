@@ -319,6 +319,9 @@ namespace Sass {
     const char* hyphens_and_identifier(const char* src) {
       return sequence< zero_plus< exactly< '-' > >, identifier >(src);
     }
+    const char* hyphens_and_name(const char* src) {
+      return sequence< zero_plus< exactly< '-' > >, name >(src);
+    }
     const char* universal(const char* src) {
       return sequence< optional<namespace_prefix>, exactly<'*'> >(src);
     }
