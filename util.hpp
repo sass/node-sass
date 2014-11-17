@@ -17,6 +17,7 @@ namespace Sass {
     bool isPrintable(Feature_Block* r);
     bool isPrintable(Media_Block* r);
     bool isPrintable(Block* b);
+    bool isAscii(int ch);
 
   }
 }

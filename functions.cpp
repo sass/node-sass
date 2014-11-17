@@ -907,7 +907,7 @@ namespace Sass {
       string str = s->value();
 
       for (size_t i = 0, L = str.length(); i < L; ++i) {
-        if (isascii(str[i])) {
+        if (Sass::Util::isAscii(str[i])) {
           str[i] = std::toupper(str[i]);
         }
       }
@@ -922,7 +922,7 @@ namespace Sass {
       string str = s->value();
 
       for (size_t i = 0, L = str.length(); i < L; ++i) {
-        if (isascii(str[i])) {
+        if (Sass::Util::isAscii(str[i])) {
           str[i] = std::tolower(str[i]);
         }
       }
