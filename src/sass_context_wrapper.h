@@ -10,8 +10,6 @@ using namespace v8;
 void compile_data(struct Sass_Data_Context* dctx);
 void compile_file(struct Sass_File_Context* fctx);
 void compile_it(uv_work_t* req);
-void free_data_context(struct Sass_Data_Context* dctx);
-void free_file_context(struct Sass_File_Context* fctx);
 
 struct sass_context_wrapper {
   Sass_Data_Context* dctx;
