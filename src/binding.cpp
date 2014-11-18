@@ -12,13 +12,62 @@ char* CreateString(Local<Value> value) {
   return str;
 }
 
+struct Sass_Import** sass_importer(const char* file, void* cookie)
+{
+  NanScope();
+
+  Handle<Value> argv[] = {
+    NanNew<String>(file)
+  };
+
+  Local<Value> returned_value = NanNew<Value>(((NanCallback*)cookie)->Call(2, argv));
+
+  if(returned_value->IsArray()) {
+    Handle<Array> array = Handle<Array>::Cast(returned_value);
+
+    struct Sass_Import** incs = sass_make_import_list(array->Length());
+
+    for(size_t i = 0; i < array->Length(); ++i) {
+      Local<Value> value = array->Get(i);
+
+      if(!value->IsObject())
+        continue;
+
+      Local<Object> object = Local<Object>::Cast(value);
+      char* path = CreateString(object->Get(String::New("path")));
+      char* contents = CreateString(object->Get(String::New("contents")));
+
+      incs[i] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
+    }
+
+    return incs;
+  } else if(returned_value->IsObject()) {
+    struct Sass_Import** incs = sass_make_import_list(1);
+    Local<Object> object = Local<Object>::Cast(returned_value);
+    char* path = CreateString(object->Get(String::New("path")));
+    char* contents = CreateString(object->Get(String::New("contents")));
+
+    incs[0] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
+
+    return incs;
+  }
+
+  struct Sass_Import** incs = sass_make_import_list(1);
+
+  incs[0] = sass_make_import_entry(file, 0, 0);
+
+  return incs;
+}
+
 void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx_w, bool isFile) {
   if (ctx_w) {
     NanAssignPersistent(ctx_w->stats, options->Get(NanNew("stats"))->ToObject());
 
     // async (callback) style
     Local<Function> callback = Local<Function>::Cast(options->Get(NanNew("success")));
-    Local<Function> errorCallback = Local<Function>::Cast(options->Get(NanNew("error")));
+    Local<Function> error_callback = Local<Function>::Cast(options->Get(NanNew("error")));
+    Local<Function> importer_callback = Local<Function>::Cast(options->Get(NanNew("importer")));
+
     if (isFile) {
       ctx_w->fctx = (struct Sass_File_Context*) cptr;
     } else {
@@ -26,7 +75,8 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
     }
     ctx_w->request.data = ctx_w;
     ctx_w->callback = new NanCallback(callback);
-    ctx_w->errorCallback = new NanCallback(errorCallback);
+    ctx_w->error_callback = new NanCallback(error_callback);
+    ctx_w->importer_callback = new NanCallback(importer_callback);
   }
 
   struct Sass_Context* ctx;
@@ -50,6 +100,7 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
   sass_option_set_source_map_file(sass_options, CreateString(options->Get(NanNew("sourceMap"))));
   sass_option_set_include_path(sass_options, CreateString(options->Get(NanNew("paths"))));
   sass_option_set_precision(sass_options, options->Get(NanNew("precision"))->Int32Value());
+  sass_option_set_importer(sass_options, sass_make_importer(sass_importer, ctx_w->importer_callback));
 }
 
 void FillStatsObj(Handle<Object> stats, Sass_Context* ctx) {
@@ -112,7 +163,7 @@ void MakeCallback(uv_work_t* req) {
       NanNew<String>(err),
       NanNew<Integer>(error_status)
     };
-    ctx_w->errorCallback->Call(2, argv);
+    ctx_w->error_callback->Call(2, argv);
   }
   if (try_catch.HasCaught()) {
     node::FatalException(try_catch);

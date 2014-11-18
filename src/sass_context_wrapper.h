@@ -17,7 +17,8 @@ struct sass_context_wrapper {
   Persistent<Object> stats;
   uv_work_t request;
   NanCallback* callback;
-  NanCallback* errorCallback;
+  NanCallback* error_callback;
+  NanCallback* importer_callback;
 };
 
 struct sass_context_wrapper*      sass_make_context_wrapper(void);

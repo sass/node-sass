@@ -34,7 +34,8 @@ extern "C" {
 
     NanDisposePersistent(ctx_w->stats);
     delete ctx_w->callback;
-    delete ctx_w->errorCallback;
+    delete ctx_w->error_callback;
+    delete ctx_w->importer_callback;
 
     free(ctx_w);
   }
