@@ -16,7 +16,7 @@ struct sass_context_wrapper {
   Sass_File_Context* fctx;
   Persistent<Object> stats;
   uv_work_t request;
-  NanCallback* callback;
+  NanCallback* success_callback;
   NanCallback* error_callback;
   NanCallback* importer_callback;
 };

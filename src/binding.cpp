@@ -74,7 +74,7 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
     NanAssignPersistent(ctx_w->stats, options->Get(NanNew("stats"))->ToObject());
 
     // async (callback) style
-    Local<Function> callback = Local<Function>::Cast(options->Get(NanNew("success")));
+    Local<Function> success_callback = Local<Function>::Cast(options->Get(NanNew("success")));
     Local<Function> error_callback = Local<Function>::Cast(options->Get(NanNew("error")));
     Local<Function> importer_callback = Local<Function>::Cast(options->Get(NanNew("importer")));
 
@@ -84,7 +84,7 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
       ctx_w->dctx = (struct Sass_Data_Context*) cptr;
     }
     ctx_w->request.data = ctx_w;
-    ctx_w->callback = new NanCallback(callback);
+    ctx_w->success_callback = new NanCallback(success_callback);
     ctx_w->error_callback = new NanCallback(error_callback);
     ctx_w->importer_callback = new NanCallback(importer_callback);
 
@@ -157,7 +157,7 @@ void MakeCallback(uv_work_t* req) {
       NanNew<String>(val),
       NanNew(ctx_w->stats)->Get(NanNew("sourceMap"))
     };
-    ctx_w->callback->Call(2, argv);
+    ctx_w->success_callback->Call(2, argv);
   } else {
     // if error, do callback(error)
     const char* err = sass_context_get_error_json(ctx);
