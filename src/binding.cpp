@@ -60,6 +60,16 @@ struct Sass_Import** sass_importer(const char* file, void* cookie)
 }
 
 void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx_w, bool isFile) {
+  struct Sass_Context* ctx;
+
+  if (isFile) {
+    ctx = sass_file_context_get_context((struct Sass_File_Context*) cptr);
+  } else {
+    ctx = sass_data_context_get_context((struct Sass_Data_Context*) cptr);
+  }
+
+  struct Sass_Options* sass_options = sass_context_get_options(ctx);
+
   if (ctx_w) {
     NanAssignPersistent(ctx_w->stats, options->Get(NanNew("stats"))->ToObject());
 
@@ -77,17 +87,10 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
     ctx_w->callback = new NanCallback(callback);
     ctx_w->error_callback = new NanCallback(error_callback);
     ctx_w->importer_callback = new NanCallback(importer_callback);
+
+    if(!importer_callback->IsUndefined())
+      sass_option_set_importer(sass_options, sass_make_importer(sass_importer, ctx_w->importer_callback));
   }
-
-  struct Sass_Context* ctx;
-
-  if (isFile) {
-    ctx = sass_file_context_get_context((struct Sass_File_Context*) cptr);
-  } else {
-    ctx = sass_data_context_get_context((struct Sass_Data_Context*) cptr);
-  }
-
-  struct Sass_Options* sass_options = sass_context_get_options(ctx);
 
   sass_option_set_output_path(sass_options, CreateString(options->Get(NanNew("outFile"))));
   sass_option_set_image_path(sass_options, CreateString(options->Get(NanNew("imagePath"))));
@@ -100,7 +103,6 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
   sass_option_set_source_map_file(sass_options, CreateString(options->Get(NanNew("sourceMap"))));
   sass_option_set_include_path(sass_options, CreateString(options->Get(NanNew("paths"))));
   sass_option_set_precision(sass_options, options->Get(NanNew("precision"))->Int32Value());
-  sass_option_set_importer(sass_options, sass_make_importer(sass_importer, ctx_w->importer_callback));
 }
 
 void FillStatsObj(Handle<Object> stats, Sass_Context* ctx) {
