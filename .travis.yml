@@ -22,3 +22,8 @@ after_success:
 cache:
   directories:
     - node_modules
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/8dddd234a441d0d07664
+    on_success: change
