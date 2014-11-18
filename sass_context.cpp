@@ -394,25 +394,27 @@ extern "C" {
   static int sass_compile_context (Sass_Context* c_ctx, Context::Data cpp_opt)
   {
 
-    Context* cpp_ctx = 0;
+    // first prepare the c++ context
+    Context* cpp_ctx = sass_prepare_context(c_ctx, cpp_opt);
 
-    try {
+    // parse given context and return root block
+    Block* root = cpp_ctx ? sass_parse_block(c_ctx, cpp_ctx) : 0;
 
-      // first prepare the c++ context
-      cpp_ctx = sass_prepare_context(c_ctx, cpp_opt);
+    if (cpp_ctx && root) {
 
-      // parse given context and return root block
-      Block* root = sass_parse_block(c_ctx, cpp_ctx);
+      try {
 
-      // now compile the parsed root block
-      c_ctx->output_string = cpp_ctx->compile_block(root);
+        // now compile the parsed root block
+        c_ctx->output_string = cpp_ctx->compile_block(root);
 
-      // generate source map json and store on context
-      c_ctx->source_map_string = cpp_ctx->generate_source_map();
+        // generate source map json and store on context
+        c_ctx->source_map_string = cpp_ctx->generate_source_map();
+
+      }
+      // pass errors to generic error handler
+      catch (...) { handle_errors(c_ctx); }
 
     }
-    // pass errors to generic error handler
-    catch (...) { handle_errors(c_ctx); }
 
     delete cpp_ctx;
 
