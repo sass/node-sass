@@ -301,7 +301,12 @@ namespace Sass {
   Expression* Eval::operator()(Unary_Expression* u)
   {
     Expression* operand = u->operand()->perform(this);
-    if (operand->concrete_type() == Expression::NUMBER) {
+    if (u->type() == Unary_Expression::NOT) {
+      Boolean* result = new (ctx.mem) Boolean(*static_cast<Boolean*>(operand));
+      result->value(!result->value());
+      return result;
+    }
+    else if (operand->concrete_type() == Expression::NUMBER) {
       Number* result = new (ctx.mem) Number(*static_cast<Number*>(operand));
       result->value(u->type() == Unary_Expression::MINUS
                     ? -result->value()
