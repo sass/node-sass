@@ -1,6 +1,7 @@
 #include <cctype>
 #include <cstddef>
 #include <iostream>
+#include <iomanip>
 #include "constants.hpp"
 #include "prelexer.hpp"
 #include "util.hpp"
