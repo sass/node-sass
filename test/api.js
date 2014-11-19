@@ -421,8 +421,7 @@ describe('api', function() {
         stats: stats,
         sourceMap: true,
         success: function() {
-          var map = JSON.parse(stats.sourceMap);
-          assert.equal(map.sources[0], 'index.scss');
+          assert.equal(stats.sourceMap.sources[0], 'index.scss');
           done();
         }
       });
@@ -516,8 +515,7 @@ describe('api', function() {
         sourceMap: true
       });
 
-      var map = JSON.parse(stats.sourceMap);
-      assert.equal(map.sources[0], 'index.scss');
+      assert.equal(stats.sourceMap.sources[0], 'index.scss');
       done();
     });
   });
