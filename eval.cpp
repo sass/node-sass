@@ -839,7 +839,7 @@ namespace Sass {
       v->denominator_units() = r->denominator_units();
     }
 
-    v->value(ops[op](lv, rv));
+    v->value(ops[op](lv, tmp.value()));
     if (op == Binary_Expression::MUL) {
       for (size_t i = 0, S = r->numerator_units().size(); i < S; ++i) {
         v->numerator_units().push_back(r->numerator_units()[i]);
