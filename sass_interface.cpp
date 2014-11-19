@@ -31,10 +31,10 @@ extern "C" {
 
   static void copy_strings(const std::vector<std::string>& strings, char*** array, int skip = 0) {
     int num = static_cast<int>(strings.size());
-    char** arr = (char**) malloc(sizeof(char*)* num + 1);
+    char** arr = (char**) malloc(sizeof(char*) * (num + 1));
 
     for(int i = skip; i < num; i++) {
-      arr[i-skip] = (char*) malloc(sizeof(char) * strings[i].size() + 1);
+      arr[i-skip] = (char*) malloc(sizeof(char) * (strings[i].size() + 1));
       std::copy(strings[i].begin(), strings[i].end(), arr[i-skip]);
       arr[i-skip][strings[i].size()] = '\0';
     }
