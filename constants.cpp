@@ -42,6 +42,7 @@ namespace Sass {
     extern const char deg_kwd[]  = "deg";
     extern const char rad_kwd[]  = "rad";
     extern const char grad_kwd[] = "grad";
+    extern const char turn_kwd[] = "turn";
     extern const char ms_kwd[]   = "ms";
     extern const char s_kwd[]    = "s";
     extern const char Hz_kwd[]   = "Hz";
