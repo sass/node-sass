@@ -1050,6 +1050,7 @@ namespace Sass {
       lex< exactly<'='> >();
       *kwd_arg << new (ctx.mem) String_Constant(path, source_position, lexed);
       if (lex< variable >()) *kwd_arg << new (ctx.mem) Variable(path, source_position, Util::normalize_underscores(lexed));
+      else if (lex< number >()) *kwd_arg << new (ctx.mem) Textual(path, source_position, Textual::NUMBER, Util::normalize_decimals(lexed));
       else {
         lex< alternatives< identifier_schema, identifier, number, hex > >();
         *kwd_arg << new (ctx.mem) String_Constant(path, source_position, lexed);

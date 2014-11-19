@@ -10,6 +10,7 @@ namespace Sass {
   namespace Util {
 
     std::string normalize_underscores(const std::string& str);
+    std::string normalize_decimals(const std::string& str);
 
     bool containsAnyPrintableStatements(Block* b);
 
