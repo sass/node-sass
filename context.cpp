@@ -432,6 +432,7 @@ namespace Sass {
     register_function(ctx, abs_sig, abs, env);
     register_function(ctx, min_sig, min, env);
     register_function(ctx, max_sig, max, env);
+    register_function(ctx, random_sig, random, env);
     // List Functions
     register_function(ctx, length_sig, length, env);
     register_function(ctx, nth_sig, nth, env);

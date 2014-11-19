@@ -10,7 +10,6 @@
 #include "util.hpp"
 #include "utf8_string.hpp"
 #include "utf8.h"
-#include <random>
 
 #include <cstdlib>
 #include <cmath>
@@ -19,6 +18,7 @@
 #include <string>
 #include <iomanip>
 #include <iostream>
+#include <random>
 
 #define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, path, position, backtrace)
 #define ARGR(argname, argtype, lo, hi) get_arg_r(argname, env, sig, path, position, lo, hi, backtrace)
@@ -106,6 +106,13 @@ namespace Sass {
       }
       return val;
     }
+
+    // note: the performance of many  implementations of
+    // random_device degrades sharply once the entropy pool
+    // is exhausted. For practical use, random_device is
+    // generally only used to seed a PRNG such as mt19937.
+    static random_device rd;
+    static mt19937 rand(rd());
 
     ////////////////
     // RGB FUNCTIONS
@@ -1016,6 +1023,23 @@ namespace Sass {
       return greatest;
     }
 
+    Signature random_sig = "random($limit:false)";
+    BUILT_IN(random)
+    {
+      Number* l = dynamic_cast<Number*>(env["$limit"]);
+      if (l && trunc(l->value()) != l->value()) error("argument $limit of `" + string(sig) + "` must be an integer", path, position);
+      if (l) {
+        uniform_real_distribution<> distributor(1, l->value() + 1);
+        uint_fast32_t distributed = distributor(rand);
+        return new (ctx.mem) Number(path, position, (double)distributed);
+      }
+      else {
+        uniform_real_distribution<> distributor(0, 1);
+        uint_fast32_t distributed = distributor(rand);
+        return new (ctx.mem) Number(path, position, trunc(distributed));
+     }
+    }
+
     /////////////////
     // LIST FUNCTIONS
     /////////////////
@@ -1450,23 +1474,16 @@ namespace Sass {
       return new (ctx.mem) String_Constant(path, position, full_path);
     }
 
-    /////////////////
-    // MAP FUNCTIONS
-    /////////////////
-
-    // note: the performance of many  implementations of
-    // random_device degrades sharply once the entropy pool
-    // is exhausted. For practical use, random_device is
-    // generally only used to seed a PRNG such as mt19937.
-    static random_device rd;
-    static mt19937 random(rd());
+    //////////////////////////
+    // MISCELLANEOUS FUNCTIONS
+    //////////////////////////
 
     Signature unique_id_sig = "unique-id()";
     BUILT_IN(unique_id)
     {
       std::stringstream ss;
       uniform_real_distribution<> distributor(0, 4294967296); // 16^8
-      uint_fast32_t distributed = distributor(random);
+      uint_fast32_t distributed = distributor(rand);
       ss << "u" << setfill('0') << setw(8) << std::hex << distributed;
       return new (ctx.mem) String_Constant(path, position, ss.str());
     }
