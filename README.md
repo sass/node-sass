@@ -254,6 +254,7 @@ If you know the pre-built version will work and do not want to wait for the test
 
 This module is brought to you and maintained by the following people:
 
+* Adeel Mujahid - Project Lead ([Github](https://github.com/am11) / [Twitter](https://twitter.com/adeelbm))
 * Andrew Nesbitt ([Github](https://github.com/andrew) / [Twitter](https://twitter.com/teabass))
 * Dean Mao ([Github](https://github.com/deanmao) / [Twitter](https://twitter.com/deanmao))
 * Brett Wilkins ([Github](https://github.com/bwilkins) / [Twitter](https://twitter.com/bjmaz))
