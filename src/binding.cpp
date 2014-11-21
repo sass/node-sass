@@ -1,3 +1,4 @@
+#include <mutex>
 #include <nan.h>
 #include "sass_context_wrapper.h"
 
@@ -12,9 +13,12 @@ char* CreateString(Local<Value> value) {
   return str;
 }
 
-uv_async_t async;
+static std::mutex importer_mutex;
 
 void dispatched_async_uv_callback(uv_async_t *req){
+  std::unique_lock<std::mutex> v8_lock(importer_mutex);
+  v8_lock.lock();
+  //importer_mutex.lock();
   NanScope();
 
   TryCatch try_catch;
@@ -57,6 +61,8 @@ void dispatched_async_uv_callback(uv_async_t *req){
     bag->incs[0] = sass_make_import_entry(bag->file, 0, 0);
   }
 
+  v8_lock.unlock();
+  //importer_mutex.unlock();
   if (try_catch.HasCaught()) {
     node::FatalException(try_catch);
   }
@@ -64,16 +70,20 @@ void dispatched_async_uv_callback(uv_async_t *req){
 
 struct Sass_Import** sass_importer(const char* file, void* cookie)
 {
+  std::try_lock(importer_mutex);
   import_bag* bag = (import_bag*)calloc(1, sizeof(import_bag));
 
   bag->cookie = cookie;
   bag->file = file;
 
+  uv_async_t async;
+
+  uv_async_init(uv_default_loop(), &async, (uv_async_cb)dispatched_async_uv_callback);
   async.data = (void*)bag;
   uv_async_send(&async);
 
   // Dispatch immediately
-  uv_run(async.loop, UV_RUN_DEFAULT);
+  //uv_run(async.loop, UV_RUN_DEFAULT);
 
   Sass_Import** import = bag->incs;
 
@@ -115,7 +125,6 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
 
     if (!importer_callback->IsUndefined()){
       sass_option_set_importer(sass_options, sass_make_importer(sass_importer, ctx_w->importer_callback));
-      uv_async_init(uv_default_loop(), &async, (uv_async_cb)dispatched_async_uv_callback);
     }
   }
 
