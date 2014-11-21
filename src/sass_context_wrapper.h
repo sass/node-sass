@@ -21,6 +21,12 @@ struct sass_context_wrapper {
   NanCallback* importer_callback;
 };
 
+struct import_bag {
+  const char* file;
+  void* cookie;
+  Sass_Import** incs;
+};
+
 struct sass_context_wrapper*      sass_make_context_wrapper(void);
 void sass_free_context_wrapper(struct sass_context_wrapper* ctx_w);
 
