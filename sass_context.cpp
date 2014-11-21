@@ -315,7 +315,8 @@ extern "C" {
              .importer(c_ctx->importer)
              .include_paths_array(include_paths)
              .include_paths(vector<string>())
-             .precision(c_ctx->precision ? c_ctx->precision : 5);
+             .precision(c_ctx->precision ? c_ctx->precision : 5)
+             .importer(0);
 
       // create new c++ Context
       Context* cpp_ctx = new Context(cpp_opt);
