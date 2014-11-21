@@ -23,7 +23,7 @@
     "install": "node scripts/install.js",
     "postinstall": "node scripts/build.js",
     "pretest": "node_modules/.bin/jshint bin lib test",
-    "test": "node_modules/.bin/mocha test"
+    "test": "node_modules/.bin/mocha test --no-exit --bail"
   },
   "files": [
     "bin",
