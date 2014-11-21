@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <sstream>
 #include <iostream>
+#include <stdio.h>
 
 ///*
 //
@@ -575,16 +576,20 @@ namespace Sass
 				// get positions for the actual import url
 				size_t pos_import = sass.find_first_of(SASS2SCSS_FIND_WHITESPACE, pos_left + 7);
 				size_t pos_quote = sass.find_first_not_of(SASS2SCSS_FIND_WHITESPACE, pos_import);
-				// check if the url is quoted
-				if (sass.substr(pos_quote, 1) != "\"" && sass.substr(pos_quote, 1) != "\'")
+				// leave proper urls untouched
+				if (sass.substr(pos_quote, 4) != "url(")
 				{
-					// get position of the last char on the line
-					size_t pos_end = sass.find_last_not_of(SASS2SCSS_FIND_WHITESPACE);
-					// assertion check for valid result
-					if (pos_end != string::npos)
+					// check if the url appears to be already quoted
+					if (sass.substr(pos_quote, 1) != "\"" && sass.substr(pos_quote, 1) != "\'")
 					{
-						// add quotes around the full line after the import statement
-						sass = sass.substr(0, pos_quote) + "\"" + sass.substr(pos_quote, pos_end - pos_quote + 1) + "\"";
+						// get position of the last char on the line
+						size_t pos_end = sass.find_last_not_of(SASS2SCSS_FIND_WHITESPACE);
+						// assertion check for valid result
+						if (pos_end != string::npos)
+						{
+							// add quotes around the full line after the import statement
+							sass = sass.substr(0, pos_quote) + "\"" + sass.substr(pos_quote, pos_end - pos_quote + 1) + "\"";
+						}
 					}
 				}
 
@@ -727,6 +732,41 @@ namespace Sass
 	}
 	// EO process
 
+	// read line with either CR, LF or CR LF format
+	// http://stackoverflow.com/a/6089413/1550314
+	static std::istream& safeGetline(std::istream& is, std::string& t)
+	{
+		t.clear();
+
+		// The characters in the stream are read one-by-one using a std::streambuf.
+		// That is faster than reading them one-by-one using the std::istream.
+		// Code that uses streambuf this way must be guarded by a sentry object.
+		// The sentry object performs various tasks,
+		// such as thread synchronization and updating the stream state.
+
+		std::istream::sentry se(is, true);
+		std::streambuf* sb = is.rdbuf();
+
+		for(;;) {
+			int c = sb->sbumpc();
+			switch (c) {
+				case '\n':
+					return is;
+				case '\r':
+					if(sb->sgetc() == '\n')
+						sb->sbumpc();
+					return is;
+				case EOF:
+					// Also handle the case when the last line has no line ending
+					if(t.empty())
+						is.setstate(std::ios::eofbit);
+					return is;
+				default:
+					t += (char)c;
+			}
+		}
+	}
+
 	// the main converter function for c++
 	char* sass2scss (const string sass, const int options)
 	{
@@ -734,7 +774,6 @@ namespace Sass
 		// local variables
 		string line;
 		string scss = "";
-		const char delim = '\n';
 		stringstream stream(sass);
 
 		// create converter variable
@@ -751,7 +790,7 @@ namespace Sass
 		converter.options = options;
 
 		// read line by line and process them
-		while(std::getline(stream, line, delim))
+		while(safeGetline(stream, line) && !stream.eof())
 		{ scss += process(line, converter); }
 
 		// create mutable string
