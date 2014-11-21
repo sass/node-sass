@@ -25,6 +25,7 @@ extern "C" {
   Sass_C_Function_Callback sass_make_function(const char* signature, Sass_C_Function function, void* cookie)
   {
     Sass_C_Function_Callback cb = (Sass_C_Function_Callback) calloc(1, sizeof(Sass_C_Function_Descriptor));
+    if (cb == 0) return 0;
     cb->signature = signature;
     cb->function = function;
     cb->cookie = cookie;
@@ -51,6 +52,7 @@ extern "C" {
   Sass_C_Import_Callback sass_make_importer(Sass_C_Import_Fn function, void* cookie)
   {
     Sass_C_Import_Callback cb = (Sass_C_Import_Callback) calloc(1, sizeof(Sass_C_Import_Descriptor));
+    if (cb == 0) return 0;
     cb->function = function;
     cb->cookie = cookie;
     return cb;
@@ -70,6 +72,7 @@ extern "C" {
   struct Sass_Import* sass_make_import_entry(const char* path, char* source, char* srcmap)
   {
     Sass_Import* v = (Sass_Import*) calloc(1, sizeof(Sass_Import));
+    if (v == 0) return 0;
     v->path = strdup(path);
     v->source = source;
     v->srcmap = srcmap;
@@ -84,6 +87,7 @@ extern "C" {
   void sass_delete_import_list(struct Sass_Import** list)
   {
     struct Sass_Import** it = list;
+    if (list == 0) return;
     while(*list) {
       free((*list)->path);
       free((*list)->source);

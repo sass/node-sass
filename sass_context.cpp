@@ -176,9 +176,11 @@ extern "C" {
   static void copy_strings(const std::vector<std::string>& strings, char*** array, int skip = 0) {
     int num = static_cast<int>(strings.size());
     char** arr = (char**) malloc(sizeof(char*) * (num + 1));
+    if (arr == 0) throw(bad_alloc());
 
     for(int i = skip; i < num; i++) {
       arr[i-skip] = (char*) malloc(sizeof(char) * (strings[i].size() + 1));
+      if (arr[i-skip] == 0) throw(bad_alloc());
       std::copy(strings[i].begin(), strings[i].end(), arr[i-skip]);
       arr[i-skip][strings[i].size()] = '\0';
     }
@@ -293,6 +295,7 @@ extern "C" {
       size_t length = 0; while (cur) { length ++; cur = cur->next; }
       // create char* array to hold all paths plus null terminator
       const char** include_paths = (const char**) calloc(length + 1, sizeof(char*));
+      if (include_paths == 0) throw(bad_alloc());
       // reset iterator
       cur = c_ctx->include_paths;
       // copy over the paths
@@ -430,6 +433,7 @@ extern "C" {
   Sass_File_Context* sass_make_file_context(const char* input_path)
   {
     struct Sass_File_Context* ctx = (struct Sass_File_Context*) calloc(1, sizeof(struct Sass_File_Context));
+    if (ctx == 0) return 0;
     ctx->type = SASS_CONTEXT_FILE;
     sass_option_set_input_path(ctx, input_path);
     return ctx;
@@ -438,6 +442,7 @@ extern "C" {
   Sass_Data_Context* sass_make_data_context(char* source_string)
   {
     struct Sass_Data_Context* ctx = (struct Sass_Data_Context*) calloc(1, sizeof(struct Sass_Data_Context));
+    if (ctx == 0) return 0;
     ctx->type = SASS_CONTEXT_DATA;
     ctx->source_string = source_string;
     return ctx;
@@ -446,6 +451,7 @@ extern "C" {
   struct Sass_Compiler* sass_make_file_compiler (struct Sass_File_Context* c_ctx)
   {
     struct Sass_Compiler* compiler = (struct Sass_Compiler*) calloc(1, sizeof(struct Sass_Compiler));
+    if (compiler == 0) return 0;
     compiler->state = SASS_COMPILER_CREATED;
     compiler->c_ctx = c_ctx;
     Context::Data cpp_opt = Context::Data();
@@ -457,6 +463,7 @@ extern "C" {
   struct Sass_Compiler* sass_make_data_compiler (struct Sass_Data_Context* c_ctx)
   {
     struct Sass_Compiler* compiler = (struct Sass_Compiler*) calloc(1, sizeof(struct Sass_Compiler));
+    if (compiler == 0) return 0;
     compiler->state = SASS_COMPILER_CREATED;
     compiler->c_ctx = c_ctx;
     Context::Data cpp_opt = Context::Data();
@@ -497,6 +504,7 @@ extern "C" {
 
   int sass_compiler_execute(struct Sass_Compiler* compiler)
   {
+    if (compiler == 0) return 0;
     if (compiler->state == SASS_COMPILER_EXECUTED) return 0;
     if (compiler->state != SASS_COMPILER_PARSED) return -1;
     if (compiler->c_ctx == NULL) return 1;
@@ -516,6 +524,7 @@ extern "C" {
   // helper function, not exported, only accessible locally
   static void sass_clear_options (struct Sass_Options* options)
   {
+    if (options == 0) return;
     // Deallocate custom functions
     if (options->c_functions) {
       struct Sass_C_Function_Descriptor** this_func_data = options->c_functions;
@@ -547,6 +556,7 @@ extern "C" {
   // sass_free_context is also defined in old sass_interface
   static void sass_clear_context (struct Sass_Context* ctx)
   {
+    if (ctx == 0) return;
     // release the allocated memory (mostly via strdup)
     if (ctx->output_string)     free(ctx->output_string);
     if (ctx->source_map_string) free(ctx->source_map_string);
@@ -577,6 +587,7 @@ extern "C" {
 
   void sass_delete_compiler (struct Sass_Compiler* compiler)
   {
+    if (compiler == 0) return;
     Context* cpp_ctx = (Context*) compiler->cpp_ctx;
     compiler->cpp_ctx = 0;
     delete cpp_ctx;
@@ -632,15 +643,16 @@ extern "C" {
   void sass_option_push_include_path(struct Sass_Options* options, const char* path)
   {
 
-    struct string_list* include_paths = (struct string_list*) calloc(1, sizeof(struct string_list));
-    include_paths->string = strdup(path);
+    struct string_list* include_path = (struct string_list*) calloc(1, sizeof(struct string_list));
+    if (include_path == 0) return;
+    include_path->string = strdup(path);
     struct string_list* last = options->include_paths;
     if (!options->include_paths) {
-      options->include_paths = include_paths;
+      options->include_paths = include_path;
     } else {
       while (last->next)
         last = last->next;
-      last->next = include_paths;
+      last->next = include_path;
     }
 
   }

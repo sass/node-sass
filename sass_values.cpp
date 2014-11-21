@@ -141,6 +141,7 @@ extern "C" {
   union Sass_Value* sass_make_boolean(bool val)
   {
     Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    if (v == 0) return 0;
     v->boolean.tag = SASS_BOOLEAN;
     v->boolean.value = val;
     return v;
@@ -149,15 +150,18 @@ extern "C" {
   union Sass_Value* sass_make_number(double val, const char* unit)
   {
     Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    if (v == 0) return 0;
     v->number.tag = SASS_NUMBER;
     v->number.value = val;
     v->number.unit = strdup(unit);
+    if (v->number.unit == 0) { free(v); return 0; }
     return v;
   }
 
   union Sass_Value* sass_make_color(double r, double g, double b, double a)
   {
     Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    if (v == 0) return 0;
     v->color.tag = SASS_COLOR;
     v->color.r = r;
     v->color.g = g;
@@ -169,33 +173,40 @@ extern "C" {
   union Sass_Value* sass_make_string(const char* val)
   {
     Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    if (v == 0) return 0;
     v->string.tag = SASS_STRING;
     v->string.value = strdup(val);
+    if (v->string.value == 0) { free(v); return 0; }
     return v;
   }
 
   union Sass_Value* sass_make_list(size_t len, enum Sass_Separator sep)
   {
     Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    if (v == 0) return 0;
     v->list.tag = SASS_LIST;
     v->list.length = len;
     v->list.separator = sep;
     v->list.values = (union Sass_Value**) calloc(len, sizeof(union Sass_Value));
+    if (v->list.values == 0) { free(v); return 0; }
     return v;
   }
 
   union Sass_Value* sass_make_map(size_t len)
   {
     Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    if (v == 0) return 0;
     v->map.tag = SASS_MAP;
     v->map.length = len;
     v->map.pairs = (struct Sass_MapPair*) calloc(len, sizeof(struct Sass_MapPair));
+    if (v->map.pairs == 0) { free(v); return 0; }
     return v;
   }
 
   union Sass_Value* sass_make_null(void)
   {
     Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    if (v == 0) return 0;
     v->null.tag = SASS_NULL;
     return v;
   }
@@ -203,8 +214,10 @@ extern "C" {
   union Sass_Value* sass_make_error(const char* msg)
   {
     Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    if (v == 0) return 0;
     v->error.tag = SASS_ERROR;
     v->error.message = strdup(msg);
+    if (v->error.message == 0) { free(v); return 0; }
     return v;
   }
 
@@ -212,6 +225,7 @@ extern "C" {
   void sass_delete_value(union Sass_Value* val) {
 
     size_t i;
+    if (val == 0) return;
     switch(val->unknown.tag) {
         case SASS_NULL: {
         }   break;
