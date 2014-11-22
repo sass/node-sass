@@ -22,7 +22,10 @@ extern "C" {
   }
 
   sass_context_wrapper* sass_make_context_wrapper() {
-    return (sass_context_wrapper*) calloc(1, sizeof(sass_context_wrapper));
+    // (sass_context_wrapper*) calloc(1, sizeof(sass_context_wrapper));
+    auto ctx_w = (sass_context_wrapper*) calloc(1, sizeof(sass_context_wrapper));
+    ctx_w->importer_mutex = new std::recursive_mutex();
+    return ctx_w;
   }
 
   void sass_free_context_wrapper(sass_context_wrapper* ctx_w) {

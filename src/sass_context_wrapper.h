@@ -1,3 +1,4 @@
+#include <mutex>
 #include <nan.h>
 #include "libsass/sass_context.h"
 
@@ -16,15 +17,15 @@ struct sass_context_wrapper {
   Sass_File_Context* fctx;
   Persistent<Object> stats;
   uv_work_t request;
+  std::recursive_mutex* importer_mutex;
+  //uv_mutex_t* mutex;
+  uv_async_t async;
+  const char* file;
+  void* cookie;
+  Sass_Import** imports;
   NanCallback* success_callback;
   NanCallback* error_callback;
   NanCallback* importer_callback;
-};
-
-struct import_bag {
-  const char* file;
-  void* cookie;
-  Sass_Import** incs;
 };
 
 struct sass_context_wrapper*      sass_make_context_wrapper(void);

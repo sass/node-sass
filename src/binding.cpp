@@ -1,4 +1,3 @@
-#include <mutex>
 #include <nan.h>
 #include "sass_context_wrapper.h"
 
@@ -13,27 +12,22 @@ char* CreateString(Local<Value> value) {
   return str;
 }
 
-static std::mutex importer_mutex;
-
 void dispatched_async_uv_callback(uv_async_t *req){
-  std::unique_lock<std::mutex> v8_lock(importer_mutex);
-  v8_lock.lock();
-  //importer_mutex.lock();
   NanScope();
+  sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(req->data);
 
   TryCatch try_catch;
-  import_bag* bag = static_cast<import_bag*>(req->data);
 
   Handle<Value> argv[] = {
-    NanNew<String>(bag->file)
+    NanNew<String>(ctx_w->file)
   };
 
-  Local<Value> returned_value = NanNew<Value>(((NanCallback*)bag->cookie)->Call(1, argv));
+  Local<Value> returned_value = NanNew<Value>(ctx_w->importer_callback->Call(1, argv));
 
   if (returned_value->IsArray()) {
     Handle<Array> array = Handle<Array>::Cast(returned_value);
 
-    bag->incs = sass_make_import_list(array->Length());
+    ctx_w->imports = sass_make_import_list(array->Length());
 
     for (size_t i = 0; i < array->Length(); ++i) {
       Local<Value> value = array->Get(i);
@@ -45,24 +39,25 @@ void dispatched_async_uv_callback(uv_async_t *req){
       char* path = CreateString(object->Get(String::New("file")));
       char* contents = CreateString(object->Get(String::New("contents")));
 
-      bag->incs[i] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
+      ctx_w->imports[i] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
     }
   }
   else if (returned_value->IsObject()) {
-    bag->incs = sass_make_import_list(1);
+    ctx_w->imports = sass_make_import_list(1);
     Local<Object> object = Local<Object>::Cast(returned_value);
     char* path = CreateString(object->Get(String::New("file")));
     char* contents = CreateString(object->Get(String::New("contents")));
 
-    bag->incs[0] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
+    ctx_w->imports[0] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
   }
   else {
-    bag->incs = sass_make_import_list(1);
-    bag->incs[0] = sass_make_import_entry(bag->file, 0, 0);
+    ctx_w->imports = sass_make_import_list(1);
+    ctx_w->imports[0] = sass_make_import_entry(ctx_w->file, 0, 0);
   }
 
-  v8_lock.unlock();
-  //importer_mutex.unlock();
+  //uv_mutex_unlock(ctx_w->mutex);
+  ctx_w->importer_mutex->unlock();
+
   if (try_catch.HasCaught()) {
     node::FatalException(try_catch);
   }
@@ -70,26 +65,24 @@ void dispatched_async_uv_callback(uv_async_t *req){
 
 struct Sass_Import** sass_importer(const char* file, void* cookie)
 {
-  std::try_lock(importer_mutex);
-  import_bag* bag = (import_bag*)calloc(1, sizeof(import_bag));
+  sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(cookie);
 
-  bag->cookie = cookie;
-  bag->file = file;
+  uv_mutex_t t;
+  ctx_w->importer_mutex->lock();
+  //uv_mutex_lock(ctx_w->mutex);
 
-  uv_async_t async;
+  // Enter critical section
+  ctx_w->file = file;
+  ctx_w->async.data = (void*)&ctx_w;
+  uv_async_send(&ctx_w->async);
 
-  uv_async_init(uv_default_loop(), &async, (uv_async_cb)dispatched_async_uv_callback);
-  async.data = (void*)bag;
-  uv_async_send(&async);
+  // Reassurances
+  //uv_mutex_lock(ctx_w->mutex);
+  //uv_mutex_unlock(ctx_w->mutex);
+  ctx_w->importer_mutex->lock();
+  ctx_w->importer_mutex->unlock();
 
-  // Dispatch immediately
-  //uv_run(async.loop, UV_RUN_DEFAULT);
-
-  Sass_Import** import = bag->incs;
-
-  free(bag);
-
-  return import;
+  return ctx_w->imports;
 }
 
 void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx_w, bool isFile) {
@@ -124,7 +117,8 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
     ctx_w->importer_callback = new NanCallback(importer_callback);
 
     if (!importer_callback->IsUndefined()){
-      sass_option_set_importer(sass_options, sass_make_importer(sass_importer, ctx_w->importer_callback));
+      uv_async_init(uv_default_loop(), &ctx_w->async, (uv_async_cb)dispatched_async_uv_callback);
+      sass_option_set_importer(sass_options, sass_make_importer(sass_importer, ctx_w));
     }
   }
 
