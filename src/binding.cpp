@@ -1,4 +1,3 @@
-#include<iostream>
 #include <nan.h>
 #include "sass_context_wrapper.h"
 

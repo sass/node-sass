@@ -8,7 +8,8 @@ extern "C" {
 
     if (ctx_w->dctx) {
       compile_data(ctx_w->dctx);
-    } else if (ctx_w->fctx) {
+    }
+    else if (ctx_w->fctx) {
       compile_file(ctx_w->fctx);
     }
   }
@@ -23,7 +24,7 @@ extern "C" {
 
   sass_context_wrapper* sass_make_context_wrapper() {
     // (sass_context_wrapper*) calloc(1, sizeof(sass_context_wrapper));
-    auto ctx_w = (sass_context_wrapper*) calloc(1, sizeof(sass_context_wrapper));
+    auto ctx_w = (sass_context_wrapper*)calloc(1, sizeof(sass_context_wrapper));
     ctx_w->importer_mutex = new std::mutex();
     return ctx_w;
   }
@@ -31,7 +32,8 @@ extern "C" {
   void sass_free_context_wrapper(sass_context_wrapper* ctx_w) {
     if (ctx_w->dctx) {
       sass_delete_data_context(ctx_w->dctx);
-    } else if (ctx_w->fctx) {
+    }
+    else if (ctx_w->fctx) {
       sass_delete_file_context(ctx_w->fctx);
     }
 
