@@ -78,6 +78,7 @@ struct Sass_Import** sass_importer(const char* file, void* cookie)
   // Reassurances
   //uv_mutex_lock(ctx_w->mutex);
   //uv_mutex_unlock(ctx_w->mutex);
+  Sleep(5);
   ctx_w->importer_mutex->lock();
   ctx_w->importer_mutex->unlock();
 
