@@ -17,7 +17,7 @@ struct sass_context_wrapper {
   Sass_File_Context* fctx;
   Persistent<Object> stats;
   uv_work_t request;
-  std::recursive_mutex* importer_mutex;
+  std::mutex* importer_mutex;
   //uv_mutex_t* mutex;
   uv_async_t async;
   const char* file;

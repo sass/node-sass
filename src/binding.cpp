@@ -1,3 +1,4 @@
+#include<iostream>
 #include <nan.h>
 #include "sass_context_wrapper.h"
 
@@ -19,7 +20,7 @@ void dispatched_async_uv_callback(uv_async_t *req){
   TryCatch try_catch;
 
   Handle<Value> argv[] = {
-    NanNew<String>(ctx_w->file)
+    NanNew<String>(strdup(ctx_w->file))
   };
 
   Local<Value> returned_value = NanNew<Value>(ctx_w->importer_callback->Call(1, argv));
@@ -67,13 +68,12 @@ struct Sass_Import** sass_importer(const char* file, void* cookie)
 {
   sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(cookie);
 
-  uv_mutex_t t;
   ctx_w->importer_mutex->lock();
   //uv_mutex_lock(ctx_w->mutex);
 
   // Enter critical section
-  ctx_w->file = file;
-  ctx_w->async.data = (void*)&ctx_w;
+  ctx_w->file = strdup(file);
+  ctx_w->async.data = (void*)ctx_w;
   uv_async_send(&ctx_w->async);
 
   // Reassurances
