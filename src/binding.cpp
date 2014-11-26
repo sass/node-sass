@@ -55,8 +55,7 @@ void dispatched_async_uv_callback(uv_async_t *req){
     ctx_w->imports[0] = sass_make_import_entry(ctx_w->file, 0, 0);
   }
 
-  //uv_mutex_unlock(ctx_w->mutex);
-  ctx_w->importer_mutex->unlock();
+  uv_cond_signal(&ctx_w->importer_condition_variable);
 
   if (try_catch.HasCaught()) {
     node::FatalException(try_catch);
@@ -67,20 +66,11 @@ struct Sass_Import** sass_importer(const char* file, void* cookie)
 {
   sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(cookie);
 
-  ctx_w->importer_mutex->lock();
-  //uv_mutex_lock(ctx_w->mutex);
-
-  // Enter critical section
   ctx_w->file = strdup(file);
   ctx_w->async.data = (void*)ctx_w;
   uv_async_send(&ctx_w->async);
 
-  // Reassurances
-  //uv_mutex_lock(ctx_w->mutex);
-  //uv_mutex_unlock(ctx_w->mutex);
-  Sleep(5);
-  ctx_w->importer_mutex->lock();
-  ctx_w->importer_mutex->unlock();
+  uv_cond_wait(&ctx_w->importer_condition_variable, &ctx_w->importer_mutex);
 
   return ctx_w->imports;
 }

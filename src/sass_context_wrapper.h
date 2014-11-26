@@ -1,4 +1,3 @@
-#include <mutex>
 #include <nan.h>
 #include "libsass/sass_context.h"
 
@@ -17,8 +16,8 @@ extern "C" {
     Sass_File_Context* fctx;
     Persistent<Object> stats;
     uv_work_t request;
-    std::mutex* importer_mutex;
-    //uv_mutex_t* mutex;
+    uv_mutex_t importer_mutex;
+    uv_cond_t importer_condition_variable;
     uv_async_t async;
     const char* file;
     void* cookie;
