@@ -63,6 +63,10 @@ typedef union Sass_Value*(*Sass_C_Function) (union Sass_Value*, void *cookie);
 Sass_C_Function_List sass_make_function_list (size_t length);
 Sass_C_Function_Callback sass_make_function (const char* signature, Sass_C_Function fn, void* cookie);
 
+// Setters and getters for callbacks on function lists
+Sass_C_Function_Callback sass_function_get_list_entry(Sass_C_Function_List* list, size_t pos);
+void sass_function_set_list_entry(Sass_C_Function_List* list, Sass_C_Function_Callback cb, size_t pos);
+
 // Getters for custom function descriptors
 const char* sass_function_get_signature (Sass_C_Function_Callback fn);
 Sass_C_Function sass_function_get_function (Sass_C_Function_Callback fn);

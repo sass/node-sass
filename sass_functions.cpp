@@ -32,6 +32,10 @@ extern "C" {
     return cb;
   }
 
+  // Setters and getters for callbacks on function lists
+  Sass_C_Function_Callback sass_function_get_list_entry(Sass_C_Function_List* list, size_t pos) { return *list[pos]; }
+  void sass_function_set_list_entry(Sass_C_Function_List* list, Sass_C_Function_Callback cb, size_t pos) { *list[pos] = cb; }
+
   const char* sass_function_get_signature(Sass_C_Function_Callback fn) { return fn->signature; }
   Sass_C_Function sass_function_get_function(Sass_C_Function_Callback fn) { return fn->function; }
   void* sass_function_get_cookie(Sass_C_Function_Callback fn) { return fn->cookie; }
