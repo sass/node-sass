@@ -38,9 +38,15 @@ extern "C" {
     }
 
     NanDisposePersistent(ctx_w->stats);
+
     delete ctx_w->success_callback;
     delete ctx_w->error_callback;
     delete ctx_w->importer_callback;
+    delete ctx_w->file;
+    delete ctx_w->cookie;
+
+    uv_mutex_destroy(&ctx_w->importer_mutex);
+    uv_cond_destroy(&ctx_w->importer_condition_variable);
 
     free(ctx_w);
   }
