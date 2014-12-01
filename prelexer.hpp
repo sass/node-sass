@@ -454,6 +454,11 @@ namespace Sass {
     const char* folder(const char* src);
     const char* folders(const char* src);
 
+
+    const char* static_string(const char* src);
+    const char* static_component(const char* src);
+    const char* static_value(const char* src);
+
     // Utility functions for finding and counting characters in a string.
     template<char c>
     const char* find_first(const char* src) {

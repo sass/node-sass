@@ -617,5 +617,33 @@ namespace Sass {
       }
       return pos;
     }
+
+    const char* static_string(const char* src) {
+      const char* pos = src;
+      const char * s = string_constant(pos);
+      Token t(pos, s);
+      const unsigned int p = count_interval< interpolant >(t.begin, t.end);
+      return (p == 0) ? t.end : 0;
+    }
+
+    const char* static_component(const char* src) {
+      return alternatives< identifier,
+                           static_string,
+                           hex,
+                           sequence< alternatives< exactly<'+'>, exactly<'-'> >, number >,
+                           sequence< exactly<'!'>, exactly<important_kwd> >
+                          >(src);
+    }
+
+    const char* static_value(const char* src) {
+      return sequence< static_component,
+                       zero_plus < sequence<
+                                   alternatives< spaces, exactly<'/'> >,
+                                   optional_spaces,
+                                   static_component
+                       > >,
+                       alternatives< exactly<';'>, exactly<'}'> >
+                      >(src);
+    }
   }
 }
