@@ -14,6 +14,13 @@ namespace Sass {
       return normalized;
     }
 
+    string normalize_decimals(const string& str) {
+      string prefix = "0";
+      string normalized = str;
+
+      return normalized[0] == '.' ? normalized.insert(0, prefix) : normalized;
+    }
+
     bool isPrintable(Ruleset* r) {
       if (r == NULL) {
         return false;
