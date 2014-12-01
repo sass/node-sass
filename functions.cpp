@@ -10,6 +10,7 @@
 #include "util.hpp"
 #include "utf8_string.hpp"
 #include "utf8.h"
+#include <random>
 
 #include <cstdlib>
 #include <cmath>
@@ -1447,6 +1448,21 @@ namespace Sass {
       string full_path(quote(ctx.image_path + "/" + unquote(ipath->value()), '"'));
       if (!only_path) full_path = "url(" + full_path + ")";
       return new (ctx.mem) String_Constant(path, position, full_path);
+    }
+
+    /////////////////
+    // MAP FUNCTIONS
+    /////////////////
+
+    Signature unique_id_sig = "unique-id()";
+    BUILT_IN(unique_id)
+    {
+      std::stringstream ss;
+      random_device rd;
+      mt19937 gen(rd());
+      uniform_real_distribution<> dis(0, 4294967296); // 16^8
+      ss << "u" << setfill('0') << setw(8) << std::hex << (long)dis(gen);
+      return new (ctx.mem) String_Constant(path, position, ss.str());
     }
 
   }
