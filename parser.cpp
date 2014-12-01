@@ -810,8 +810,12 @@ namespace Sass {
     }
     if (!lex< exactly<':'> >()) error("property \"" + string(lexed) + "\" must be followed by a ':'");
     if (peek< exactly<';'> >()) error("style declaration must contain a value");
-    Expression* list = parse_list();
-    return new (ctx.mem) Declaration(path, prop->position(), prop, list/*, lex<important>()*/);
+    if (peek< static_value >()) {
+      return new (ctx.mem) Declaration(path, prop->position(), prop, parse_static_value()/*, lex<important>()*/);
+    }
+    else {
+      return new (ctx.mem) Declaration(path, prop->position(), prop, parse_list()/*, lex<important>()*/);
+    }
   }
 
   Expression* Parser::parse_map()
@@ -1199,6 +1203,17 @@ namespace Sass {
       }
     }
     return schema;
+  }
+
+  String_Constant* Parser::parse_static_value()
+  {
+    lex< static_value >();
+    Token str(lexed);
+    --str.end;
+    --position;
+    String_Constant* str_node = new (ctx.mem) String_Constant(path, source_position, str);
+    str_node->is_delayed(true);
+    return str_node;
   }
 
   String* Parser::parse_string()
