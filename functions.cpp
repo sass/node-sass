@@ -1454,14 +1454,20 @@ namespace Sass {
     // MAP FUNCTIONS
     /////////////////
 
+    // note: the performance of many  implementations of
+    // random_device degrades sharply once the entropy pool
+    // is exhausted. For practical use, random_device is
+    // generally only used to seed a PRNG such as mt19937.
+    static random_device rd;
+    static mt19937 random(rd());
+
     Signature unique_id_sig = "unique-id()";
     BUILT_IN(unique_id)
     {
       std::stringstream ss;
-      random_device rd;
-      mt19937 gen(rd());
-      uniform_real_distribution<> dis(0, 4294967296); // 16^8
-      ss << "u" << setfill('0') << setw(8) << std::hex << (long)dis(gen);
+      uniform_real_distribution<> distributor(0, 4294967296); // 16^8
+      uint_fast32_t distributed = distributor(random);
+      ss << "u" << setfill('0') << setw(8) << std::hex << distributed;
       return new (ctx.mem) String_Constant(path, position, ss.str());
     }
 
