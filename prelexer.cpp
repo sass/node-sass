@@ -384,6 +384,11 @@ namespace Sass {
       ptrdiff_t len = p - src;
       return (len != 4 && len != 7) ? 0 : p;
     }
+    const char* hexa(const char* src) {
+      const char* p = sequence< exactly<'#'>, one_plus<xdigit> >(src);
+      ptrdiff_t len = p - src;
+      return (len != 4 && len != 7 && len != 9) ? 0 : p;
+    }
 
     const char* rgb_prefix(const char* src) {
       return exactly<rgb_kwd>(src);
@@ -519,14 +524,47 @@ namespace Sass {
 
     // match specific IE syntax
     const char* ie_progid(const char* src) {
-      return sequence < exactly<progid_kwd>, exactly<':'>, alternatives< identifier_schema, identifier >, one_plus< sequence< exactly<'.'>, alternatives< identifier_schema, identifier > > > >(src);
+      return sequence <
+        exactly<progid_kwd>,
+        exactly<':'>,
+        alternatives< identifier_schema, identifier >,
+        zero_plus< sequence<
+          exactly<'.'>,
+          alternatives< identifier_schema, identifier >
+        > >,
+        zero_plus < sequence<
+          exactly<'('>,
+          spaces_and_comments,
+          optional < sequence<
+            alternatives< variable, identifier_schema, identifier >,
+            spaces_and_comments,
+            exactly<'='>,
+            spaces_and_comments,
+            alternatives< variable, identifier_schema, identifier, string_constant, number, hexa >,
+            zero_plus< sequence<
+              spaces_and_comments,
+              exactly<','>,
+              spaces_and_comments,
+              sequence<
+                alternatives< variable, identifier_schema, identifier >,
+                spaces_and_comments,
+                exactly<'='>,
+                spaces_and_comments,
+                alternatives< variable, identifier_schema, identifier, string_constant, number, hexa >
+              >
+            > >
+          > >,
+          spaces_and_comments,
+          exactly<')'>,
+          spaces_and_comments
+        > >
+      >(src);
     }
     const char* ie_expression(const char* src) {
-      return exactly<expression_kwd>(src);
+      return sequence < exactly<expression_kwd>, delimited_by< '(', ')', true> >(src);
     }
-    // match any IE syntax
-    const char* ie_stuff(const char* src) {
-      return sequence< alternatives < ie_expression, ie_progid >, delimited_by<'(', ';', true> >(src);
+    const char* ie_property(const char* src) {
+      return alternatives < ie_expression, ie_progid >(src);
     }
 
     // const char* ie_args(const char* src) {
@@ -535,7 +573,7 @@ namespace Sass {
     // }
 
     const char* ie_keyword_arg(const char* src) {
-      return sequence< alternatives< variable, identifier_schema, identifier >, spaces_and_comments, exactly<'='>, spaces_and_comments, alternatives< variable, identifier_schema, identifier, number, hex > >(src);
+      return sequence< alternatives< variable, identifier_schema, identifier >, spaces_and_comments, exactly<'='>, spaces_and_comments, alternatives< variable, identifier_schema, identifier, string_constant, number, hexa > >(src);
     }
 
     // Path matching functions.

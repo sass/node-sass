@@ -1037,25 +1037,11 @@ namespace Sass {
       }
       return value;
     }
-    else if (peek< ie_stuff >()) {
-      return parse_ie_stuff();
+    else if (peek< ie_property >()) {
+      return parse_ie_property();
     }
     else if (peek< ie_keyword_arg >()) {
-      String_Schema* kwd_arg = new (ctx.mem) String_Schema(path, source_position, 3);
-      if (lex< variable >()) *kwd_arg << new (ctx.mem) Variable(path, source_position, Util::normalize_underscores(lexed));
-      else {
-        lex< alternatives< identifier_schema, identifier > >();
-        *kwd_arg << new (ctx.mem) String_Constant(path, source_position, lexed);
-      }
-      lex< exactly<'='> >();
-      *kwd_arg << new (ctx.mem) String_Constant(path, source_position, lexed);
-      if (lex< variable >()) *kwd_arg << new (ctx.mem) Variable(path, source_position, Util::normalize_underscores(lexed));
-      else if (lex< number >()) *kwd_arg << new (ctx.mem) Textual(path, source_position, Textual::NUMBER, Util::normalize_decimals(lexed));
-      else {
-        lex< alternatives< identifier_schema, identifier, number, hex > >();
-        *kwd_arg << new (ctx.mem) String_Constant(path, source_position, lexed);
-      }
-      return kwd_arg;
+      return parse_ie_keyword_arg();
     }
     else if (peek< exactly< calc_kwd > >() ||
              peek< exactly< moz_calc_kwd > >() ||
@@ -1263,12 +1249,10 @@ namespace Sass {
     // return schema;
   }
 
-  String* Parser::parse_ie_stuff()
+  String* Parser::parse_ie_property()
   {
-    lex< ie_stuff >();
+    lex< ie_property >();
     Token str(lexed);
-    --str.end;
-    --position;
     const char* i = str.begin;
     // see if there any interpolants
     const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(str.begin, str.end);
@@ -1304,6 +1288,25 @@ namespace Sass {
       }
     }
     return schema;
+  }
+
+  String* Parser::parse_ie_keyword_arg()
+  {
+    String_Schema* kwd_arg = new (ctx.mem) String_Schema(path, source_position, 3);
+    if (lex< variable >()) *kwd_arg << new (ctx.mem) Variable(path, source_position, Util::normalize_underscores(lexed));
+    else {
+      lex< alternatives< identifier_schema, identifier > >();
+      *kwd_arg << new (ctx.mem) String_Constant(path, source_position, lexed);
+    }
+    lex< exactly<'='> >();
+    *kwd_arg << new (ctx.mem) String_Constant(path, source_position, lexed);
+    if (lex< variable >()) *kwd_arg << new (ctx.mem) Variable(path, source_position, Util::normalize_underscores(lexed));
+    else if (lex< number >()) *kwd_arg << new (ctx.mem) Textual(path, source_position, Textual::NUMBER, Util::normalize_decimals(lexed));
+    else {
+      lex< alternatives< identifier_schema, identifier, number, hex > >();
+      *kwd_arg << new (ctx.mem) String_Constant(path, source_position, lexed);
+    }
+    return kwd_arg;
   }
 
   String_Schema* Parser::parse_value_schema()
