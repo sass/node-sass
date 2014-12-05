@@ -44,12 +44,20 @@ namespace Sass {
   using std::cerr;
   using std::endl;
 
+  Sass_Queued::Sass_Queued(const string& load_path, const string& abs_path, const char* source)
+  {
+    this->load_path = load_path;
+    this->abs_path = abs_path;
+    this->source = source;
+  }
+
+
   Context::Context(Context::Data initializers)
   : mem(Memory_Manager<AST_Node>()),
     source_c_str            (initializers.source_c_str()),
     sources                 (vector<const char*>()),
     include_paths           (initializers.include_paths()),
-    queue                   (vector<pair<string, const char*> >()),
+    queue                   (vector<Sass_Queued>()),
     style_sheets            (map<string, Block*>()),
     source_map              (resolve_relative_path(initializers.output_path(), initializers.source_map_file(), get_cwd())),
     c_functions             (vector<Sass_C_Function_Callback>()),
@@ -96,6 +104,8 @@ namespace Sass {
   {
     // everything that gets put into sources will be freed by us
     for (size_t i = 0; i < sources.size(); ++i) delete[] sources[i];
+    for (size_t n = 0; n < import_stack.size(); ++n) sass_delete_import(import_stack[n]);
+    sources.clear(); import_stack.clear();
   }
 
   void Context::setup_color_map()
@@ -155,7 +165,7 @@ namespace Sass {
   {
     sources.push_back(contents);
     included_files.push_back(abs_path);
-    queue.push_back(make_pair(load_path, contents));
+    queue.push_back(Sass_Queued(load_path, abs_path, contents));
     source_map.source_index.push_back(sources.size() - 1);
     include_links.push_back(resolve_relative_path(abs_path, source_map_file, cwd));
   }
@@ -246,10 +256,18 @@ namespace Sass {
   {
     Block* root = 0;
     for (size_t i = 0; i < queue.size(); ++i) {
-      Parser p(Parser::from_c_str(queue[i].second, *this, queue[i].first, Position(1 + i, 1, 1)));
+      struct Sass_Import* import = sass_make_import(
+        queue[i].load_path.c_str(),
+        queue[i].abs_path.c_str(),
+        0, 0
+      );
+      import_stack.push_back(import);
+      Parser p(Parser::from_c_str(queue[i].source, *this, queue[i].load_path, Position(1 + i, 1, 1)));
       Block* ast = p.parse();
+      sass_delete_import(import_stack.back());
+      import_stack.pop_back();
       if (i == 0) root = ast;
-      style_sheets[queue[i].first] = ast;
+      style_sheets[queue[i].load_path] = ast;
     }
     Env tge;
     Backtrace backtrace(0, "", Position(), "");

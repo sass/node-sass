@@ -43,6 +43,7 @@ extern "C" {
   // External import entry
   struct Sass_Import {
     char* path;
+    char* base;
     char* source;
     char* srcmap;
   };
@@ -73,14 +74,21 @@ extern "C" {
 
   // Creator for a single import entry returned by the custom importer inside the list
   // We take ownership of the memory for source and srcmap (freed when context is destroyd)
-  struct Sass_Import* sass_make_import_entry(const char* path, char* source, char* srcmap)
+  struct Sass_Import* sass_make_import(const char* path, const char* base, char* source, char* srcmap)
   {
     Sass_Import* v = (Sass_Import*) calloc(1, sizeof(Sass_Import));
     if (v == 0) return 0;
     v->path = strdup(path);
+    v->base = strdup(base);
     v->source = source;
     v->srcmap = srcmap;
     return v;
+  }
+
+  // Older style, but somehow still valid - keep around or deprecate?
+  struct Sass_Import* sass_make_import_entry(const char* path, char* source, char* srcmap)
+  {
+    return sass_make_import(path, path, source, srcmap);
   }
 
   // Setters and getters for entries on the import list
@@ -93,17 +101,25 @@ extern "C" {
     struct Sass_Import** it = list;
     if (list == 0) return;
     while(*list) {
-      free((*list)->path);
-      free((*list)->source);
-      free((*list)->srcmap);
-      free(*list);
+      sass_delete_import(*list);
       ++list;
     }
     free(it);
   }
 
+  // Just in case we have some stray import structs
+  void sass_delete_import(struct Sass_Import* import)
+  {
+    free(import->path);
+    free(import->base);
+    free(import->source);
+    free(import->srcmap);
+    free(import);
+  }
+
   // Getter for import entry
   const char* sass_import_get_path(struct Sass_Import* entry) { return entry->path; }
+  const char* sass_import_get_base(struct Sass_Import* entry) { return entry->base; }
   const char* sass_import_get_source(struct Sass_Import* entry) { return entry->source; }
   const char* sass_import_get_srcmap(struct Sass_Import* entry) { return entry->srcmap; }
 
