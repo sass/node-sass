@@ -223,7 +223,8 @@ namespace Sass {
     String* parse_interpolated_chunk(Token);
     String* parse_string();
     String_Constant* parse_static_value();
-    String* parse_ie_stuff();
+    String* parse_ie_property();
+    String* parse_ie_keyword_arg();
     String_Schema* parse_value_schema();
     String* parse_identifier_schema();
     String_Schema* parse_url_schema();

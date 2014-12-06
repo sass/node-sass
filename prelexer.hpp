@@ -392,6 +392,7 @@ namespace Sass {
     const char* percentage(const char* src);
     const char* dimension(const char* src);
     const char* hex(const char* src);
+    const char* hexa(const char* src);
     const char* rgb_prefix(const char* src);
     // Match CSS uri specifiers.
     const char* uri_prefix(const char* src);
@@ -443,8 +444,9 @@ namespace Sass {
     const char* lte_op(const char* src);
 
     // IE stuff
-    const char* ie_stuff(const char* src);
-    const char* ie_args(const char* src);
+    const char* ie_progid(const char* src);
+    const char* ie_expression(const char* src);
+    const char* ie_property(const char* src);
     const char* ie_keyword_arg(const char* src);
 
     // match urls
