@@ -25,4 +25,9 @@ extern "C" {
     return cstr;
   }
 
+  // Get compiled libsass version
+  const char* libsass_version() {
+    return LIBSASS_VERSION;
+  }
+
 }

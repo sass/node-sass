@@ -1,13 +1,21 @@
 ACLOCAL_AMFLAGS = -I m4
+
+AM_LDFLAGS = -lstdc++ -lm
 AM_CFLAGS = -Wall -fPIC
 AM_CXXFLAGS = -Wall -fPIC
+AM_CFLAGS += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
+AM_CXXFLAGS += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
+
+AM_CXXFLAGS += -std=c++0x
 
 if ENABLE_COVERAGE
   AM_CFLAGS += -O0 --coverage
   AM_CXXFLAGS += -O0 --coverage
+  AM_LDFLAGS += -O0 --coverage -lgcov
 else
   AM_CFLAGS += -O2
   AM_CXXFLAGS += -O2
+  AM_LDFLAGS += -O2
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig
@@ -52,25 +60,25 @@ libsass_la_SOURCES = \
 	utf8_string.cpp \
 	util.cpp
 
-libsass_la_CXXFLAGS = $(AM_CXXFLAGS) -std=c++0x
-libsass_la_LDFLAGS = -no-undefined -version-info 0:9:0
-
-if ENABLE_COVERAGE
-libsass_la_LDFLAGS += -lgcov
-endif
+libsass_la_CFLAGS = $(AM_CFLAGS)
+libsass_la_CXXFLAGS = $(AM_CXXFLAGS)
+libsass_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 0:9:0
 
 include_HEADERS = sass2scss.h sass_context.h sass_functions.h sass_values.h sass.h
 
 if ENABLE_TESTS
 
-noinst_PROGRAMS = sass-tester
+noinst_PROGRAMS = sassc_bin
 
-sass_tester_SOURCES = $(SASS_SASSC_PATH)/sassc.c
-sass_tester_LDADD = libsass.la
-sass_tester_LDFLAGS = -no-install
+sassc_bin_SOURCES = $(SASS_SASSC_PATH)/sassc.c
+sassc_bin_LDADD = libsass.la
+sassc_bin_CFLAGS = $(AM_CFLAGS)
+sassc_bin_CXXFLAGS = $(AM_CXXFLAGS)
+sassc_bin_LDFLAGS = $(AM_LDFLAGS) -no-install
+
 if ENABLE_COVERAGE
-sass_tester_LDFLAGS += -lgcov
-nodist_EXTRA_sass_tester_SOURCES = non-existent-file-to-force-CXX-linking.cxx
+nodist_EXTRA_sassc_bin_SOURCES = non-existent-file-to-force-CXX-linking.cxx
+nodist_EXTRA_libsass_la_SOURCES = non-existent-file-to-force-CXX-linking.cxx
 endif
 
 TESTS = \

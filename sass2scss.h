@@ -6,8 +6,8 @@
 #include <sstream>
 #include <iostream>
 
-#ifndef VERSION
-#define VERSION "[NA]"
+#ifndef SASS2SCSS_VERSION
+#define SASS2SCSS_VERSION "1.0.3"
 #endif
 
 // using std::string
@@ -16,10 +16,6 @@ using namespace std;
 // add namespace for c++
 namespace Sass
 {
-
-	// define version from arguments
-	// compile with g++ -DVERSION="\"vX.X.X\""
-	const string SASS2SCSS_VERSION = VERSION;
 
 	// pretty print options
 	const int SASS2SCSS_PRETTIFY_0 = 0;
@@ -86,6 +82,9 @@ extern "C" {
 
 	// available to c and c++ code
 	char* sass2scss (const char* sass, const int options);
+
+	// Get compiled sass2scss version
+	const char* sass2scss_version();
 
 #ifdef __cplusplus
 }

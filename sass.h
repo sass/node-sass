@@ -6,6 +6,10 @@
 #include "sass_values.h"
 #include "sass_functions.h"
 
+#ifndef LIBSASS_VERSION
+#define LIBSASS_VERSION "[NA]"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -23,6 +27,8 @@ enum Sass_Output_Style {
 char* sass_string_quote (const char *str, const char quotemark);
 char* sass_string_unquote (const char *str);
 
+// Get compiled libsass version
+const char* libsass_version();
 
 #ifdef __cplusplus
 }

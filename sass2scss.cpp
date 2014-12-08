@@ -823,4 +823,9 @@ extern "C"
 		return Sass::sass2scss(sass, options);
 	}
 
+	// Get compiled sass2scss version
+	const char* sass2scss_version() {
+		return SASS2SCSS_VERSION;
+	}
+
 }
