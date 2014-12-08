@@ -2,23 +2,58 @@ CC       ?= cc
 CXX      ?= g++
 RM       ?= rm -f
 MKDIR    ?= mkdir -p
-CFLAGS   = -Wall -fPIC -O2 $(EXTRA_CFLAGS)
-CXXFLAGS = -std=c++0x -Wall -fPIC -O2 $(EXTRA_CXXFLAGS)
-LDFLAGS  = -fPIC $(EXTRA_LDFLAGS)
+CFLAGS   ?= -Wall -fPIC -O2
+CXXFLAGS ?= -Wall -fPIC -O2
+LDFLAGS  ?= -Wall -fPIC -O2
+
+ifeq "$(LIBSASS_VERSION)" ""
+  ifneq "$(wildcard ./.git/ )" ""
+    LIBSASS_VERSION ?= $(shell git describe --abbrev=4 --dirty --always --tags)
+  endif
+endif
+
+ifneq "$(LIBSASS_VERSION)" ""
+  CFLAGS   += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
+  CXXFLAGS += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
+endif
+
+# enable mandatory flag
+CXXFLAGS += -std=c++0x
+LDFLAGS  += -std=c++0x
+
+ifneq "$(SASS_LIBSASS_PATH)" ""
+  CFLAGS   += -I $(SASS_LIBSASS_PATH)
+  CXXFLAGS += -I $(SASS_LIBSASS_PATH)
+endif
+
+ifneq "$(EXTRA_CFLAGS)" ""
+  CFLAGS   += $(EXTRA_CFLAGS)
+endif
+ifneq "$(EXTRA_CXXFLAGS)" ""
+  CXXFLAGS += $(EXTRA_CXXFLAGS)
+endif
+ifneq "$(EXTRA_LDFLAGS)" ""
+  LDFLAGS  += $(EXTRA_LDFLAGS)
+endif
 
 ifneq (,$(findstring /cygdrive/,$(PATH)))
 	UNAME := Cygwin
 else
-ifneq (,$(findstring WINDOWS,$(PATH)))
-	UNAME := Windows
-else
-	UNAME := $(shell uname -s)
-endif
+	ifneq (,$(findstring WINDOWS,$(PATH)))
+		UNAME := Windows
+	else
+		UNAME := $(shell uname -s)
+	endif
 endif
 
+LDLIBS = -lstdc++ -lm
 ifeq ($(UNAME),Darwin)
 	CFLAGS += -stdlib=libc++
 	CXXFLAGS += -stdlib=libc++
+endif
+
+ifneq ($(BUILD), shared)
+	BUILD = static
 endif
 
 ifeq (,$(PREFIX))
@@ -78,20 +113,16 @@ COBJECTS = $(CSOURCES:.c=.o)
 
 DEBUG_LVL ?= NONE
 
-ifneq ($(BUILD), shared)
-	BUILD = static
-endif
-
 all: $(BUILD)
 
 debug: $(BUILD)
 
-debug-static: LDFLAGS := -g
+debug-static: LDFLAGS := -g $(filter-out -O2,$(LDLAGS))
 debug-static: CFLAGS := -g -DDEBUG -DDEBUG_LVL="$(DEBUG_LVL)" $(filter-out -O2,$(CFLAGS))
 debug-static: CXXFLAGS := -g -DDEBUG -DDEBUG_LVL="$(DEBUG_LVL)" $(filter-out -O2,$(CXXFLAGS))
 debug-static: static
 
-debug-shared: LDFLAGS := -g
+debug-shared: LDFLAGS := -g $(filter-out -O2,$(LDLAGS))
 debug-shared: CFLAGS := -g -DDEBUG -DDEBUG_LVL="$(DEBUG_LVL)" $(filter-out -O2,$(CFLAGS))
 debug-shared: CXXFLAGS := -g -DDEBUG -DDEBUG_LVL="$(DEBUG_LVL)" $(filter-out -O2,$(CXXFLAGS))
 debug-shared: shared
@@ -105,7 +136,7 @@ lib/libsass.a: $(COBJECTS) $(OBJECTS)
 
 lib/libsass.so: $(COBJECTS) $(OBJECTS)
 	$(MKDIR) lib
-	$(CXX) -shared $(LDFLAGS) -o $@ $(COBJECTS) $(OBJECTS)
+	$(CXX) -shared $(LDFLAGS) -o $@ $(COBJECTS) $(OBJECTS) $(LDLIBS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -114,7 +145,7 @@ lib/libsass.so: $(COBJECTS) $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 %: %.o static
-	$(CXX) $(CXXFLAGS) -o $@ $+ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -o $@ $+ $(LDFLAGS) $(LDLIBS)
 
 install: install-$(BUILD)
 

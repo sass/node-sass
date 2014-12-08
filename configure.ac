@@ -33,7 +33,6 @@ if test "x$enable_tests" = "xyes"; then
   AC_PROG_CC
   AC_PROG_AWK
   AC_PATH_PROG(RUBY, [ruby])
-
   AC_ARG_WITH(sassc-dir,
               AS_HELP_STRING([--with-sassc-dir=<dir>], [specify directory of sassc sources for testing (default: sassc)]),
               [sassc_dir="$withval"], [sassc_dir="sassc"])
@@ -89,5 +88,31 @@ if test "x$enable_cov" = "xyes"; then
 fi
 
 AM_CONDITIONAL(ENABLE_COVERAGE, test "x$enable_cov" = "xyes")
+
+AC_ARG_VAR(LIBSASS_VERSION, libsass version)
+if test "x$LIBSASS_VERSION" = "x"; then
+  AC_CHECK_PROG(GIT, git, git)
+  if test "x$GIT" = "x"; then
+    AC_MSG_ERROR([Unable to find git binary to query version.
+You can solve this by setting LIBSASS_VERSION:
+# export LIBSASS_VERSION="x.y.z"
+])
+  else
+    AC_CHECK_FILE(.git/config, [], [
+    AC_MSG_ERROR([Unable to find .git directory to query version.
+You can solve this by setting LIBSASS_VERSION:
+# export LIBSASS_VERSION="x.y.z"
+])
+    ])
+    LIBSASS_VERSION=`$GIT describe --abbrev=4 --dirty --always --tags`
+  fi
+  if test "x$LIBSASS_VERSION" = "x"; then
+    AC_MSG_ERROR([LIBSASS_VERSION not defined.
+You can solve this by setting LIBSASS_VERSION:
+# export LIBSASS_VERSION="x.y.z"
+])
+  fi
+fi
+
 AC_CONFIG_FILES([Makefile support/libsass.pc])
 AC_OUTPUT
