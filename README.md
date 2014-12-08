@@ -1,4 +1,4 @@
-﻿# node-sass
+# node-sass
 
 ![logo](https://rawgit.com/sass/node-sass/master/media/logo.svg)
 
@@ -227,6 +227,9 @@ Check out the project:
     npm install
     npm install -g node-gyp
     node-gyp rebuild
+
+### Workaround for node `v0.11.13` `v0.11.14`
+Comment out this  [line](https://github.com/sass/node-sass/blob/e01497c4d4b8a7a7f4dbf9d607920ac10ad64445/lib/index.js#L181) in `lib/index.js` before the `npm install` step. Then uncomment it back again, and continue with the rest of the steps (#563).
 
 ## Command Line Interface
 
