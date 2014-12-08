@@ -28,7 +28,7 @@ char* sass_string_quote (const char *str, const char quotemark);
 char* sass_string_unquote (const char *str);
 
 // Get compiled libsass version
-const char* libsass_version();
+const char* libsass_version(void);
 
 #ifdef __cplusplus
 }

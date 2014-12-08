@@ -26,7 +26,7 @@ extern "C" {
   }
 
   // Get compiled libsass version
-  const char* libsass_version() {
+  const char* libsass_version(void) {
     return LIBSASS_VERSION;
   }
 

@@ -117,12 +117,12 @@ all: $(BUILD)
 
 debug: $(BUILD)
 
-debug-static: LDFLAGS := -g $(filter-out -O2,$(LDLAGS))
+debug-static: LDFLAGS := -g $(filter-out -O2,$(LDFLAGS))
 debug-static: CFLAGS := -g -DDEBUG -DDEBUG_LVL="$(DEBUG_LVL)" $(filter-out -O2,$(CFLAGS))
 debug-static: CXXFLAGS := -g -DDEBUG -DDEBUG_LVL="$(DEBUG_LVL)" $(filter-out -O2,$(CXXFLAGS))
 debug-static: static
 
-debug-shared: LDFLAGS := -g $(filter-out -O2,$(LDLAGS))
+debug-shared: LDFLAGS := -g $(filter-out -O2,$(LDFLAGS))
 debug-shared: CFLAGS := -g -DDEBUG -DDEBUG_LVL="$(DEBUG_LVL)" $(filter-out -O2,$(CFLAGS))
 debug-shared: CXXFLAGS := -g -DDEBUG -DDEBUG_LVL="$(DEBUG_LVL)" $(filter-out -O2,$(CXXFLAGS))
 debug-shared: shared

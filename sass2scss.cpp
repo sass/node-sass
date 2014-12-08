@@ -824,7 +824,7 @@ extern "C"
 	}
 
 	// Get compiled sass2scss version
-	const char* sass2scss_version() {
+	const char* sass2scss_version(void) {
 		return SASS2SCSS_VERSION;
 	}
 
