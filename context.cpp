@@ -460,6 +460,7 @@ namespace Sass {
     register_function(ctx, global_variable_exists_sig, global_variable_exists, env);
     register_function(ctx, function_exists_sig, function_exists, env);
     register_function(ctx, mixin_exists_sig, mixin_exists, env);
+    register_function(ctx, feature_exists_sig, feature_exists, env);
     register_function(ctx, call_sig, call, env);
     // Boolean Functions
     register_function(ctx, not_sig, sass_not, env);
