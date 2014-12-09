@@ -15,7 +15,7 @@ var fs = require('fs'),
 
 function download(url, dest, cb) {
   var file = fs.createWriteStream(dest);
-  var options = { proxy: getProxy() };
+  var options = { proxy: getProxy(), rejectUnauthorized: false };
   var returnError = function(err) {
     fs.unlink(dest);
     cb(typeof err.message === 'string' ? err.message : err);
@@ -34,7 +34,7 @@ function download(url, dest, cb) {
 
   req.end();
   req.on('error', returnError);
-};
+}
 
 /**
  * Get proxy settings
@@ -60,7 +60,7 @@ function getProxy() {
   }
 
   var env = process.env;
-  return env.HTTPS_PROXY || env.https_proxy || env.HTTP_PROXY || env.http_proxy
+  return env.HTTPS_PROXY || env.https_proxy || env.HTTP_PROXY || env.http_proxy;
 }
 
 /**
