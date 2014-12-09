@@ -84,20 +84,30 @@ namespace Sass {
     if (high->concrete_type() != Expression::NUMBER) {
       error("upper bound of `@for` directive must be numeric", high->path(), high->position());
     }
-    double lo = static_cast<Number*>(low)->value();
-    double hi = static_cast<Number*>(high)->value();
-    if (f->is_inclusive()) ++hi;
+    double start = static_cast<Number*>(low)->value();
+    double end = static_cast<Number*>(high)->value();
     Env new_env;
-    new_env[variable] = new (ctx.mem) Number(low->path(), low->position(), lo);
+    new_env[variable] = new (ctx.mem) Number(low->path(), low->position(), start);
     new_env.link(env);
     env = &new_env;
     Block* body = f->block();
     Expression* val = 0;
-    for (double i = lo;
-         i < hi;
-         (*env)[variable] = new (ctx.mem) Number(low->path(), low->position(), ++i)) {
-      val = body->perform(this);
-      if (val) break;
+    if (start < end) {
+      if (f->is_inclusive()) ++end;
+      for (double i = start;
+           i < end;
+           (*env)[variable] = new (ctx.mem) Number(low->path(), low->position(), ++i)) {
+        val = body->perform(this);
+        if (val) break;
+      }
+    } else {
+      if (f->is_inclusive()) --end;
+      for (double i = start;
+           i > end;
+           (*env)[variable] = new (ctx.mem) Number(low->path(), low->position(), --i)) {
+        val = body->perform(this);
+        if (val) break;
+      }
     }
     env = new_env.parent();
     return val;
