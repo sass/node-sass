@@ -1127,7 +1127,8 @@ namespace Sass {
 
     if (lex< identifier >()) {
       String_Constant* str = new (ctx.mem) String_Constant(path, source_position, lexed);
-      str->is_delayed(true);
+      // Dont' delay this string if it is a name color. Fixes #652.
+      str->is_delayed(ctx.names_to_colors.count(lexed) == 0);
       return str;
     }
 
