@@ -1320,6 +1320,9 @@ namespace Sass {
     {
       List* arglist = new (ctx.mem) List(*ARG("$args", List));
       Map* result = new (ctx.mem) Map(path, position, 1);
+      // The parser ensures the ordering of arguments so we can assert this
+      // isn't keyword argument list the first argument isn't a keyword argument
+      if (!(arglist->empty() || ((Argument*)(*arglist)[0])->is_keyword_argument())) return result;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         string name = string(((Argument*)(*arglist)[i])->name());
         string sanitized_name = string(name, 1);
