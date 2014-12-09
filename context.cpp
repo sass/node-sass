@@ -467,6 +467,7 @@ namespace Sass {
     // Path Functions
     register_function(ctx, image_url_sig, image_url, env);
     // Misc Functions
+    register_function(ctx, inspect_sig, inspect, env);
     register_function(ctx, unique_id_sig, unique_id, env);
   }
 

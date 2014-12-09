@@ -59,6 +59,7 @@ namespace Sass {
     virtual void operator()(Mixin_Call*);
     virtual void operator()(Content*);
     // expressions
+    virtual void operator()(Map*);
     virtual void operator()(List*);
     virtual void operator()(Binary_Expression*);
     virtual void operator()(Unary_Expression*);

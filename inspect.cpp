@@ -232,6 +232,24 @@ namespace Sass {
     append_to_buffer("@content;");
   }
 
+  void Inspect::operator()(Map* map)
+  {
+    if (map->empty()) return;
+    if (map->is_invisible()) return;
+    bool items_output = false;
+    append_to_buffer("(");
+    for (auto key : map->keys()) {
+      if (key->is_invisible()) continue;
+      if (map->at(key)->is_invisible()) continue;
+      if (items_output) append_to_buffer(", ");
+      key->perform(this);
+      append_to_buffer(": ");
+      map->at(key)->perform(this);
+      items_output = true;
+    }
+    append_to_buffer(")");
+  }
+
   void Inspect::operator()(List* list)
   {
     string sep(list->separator() == List::SPACE ? " " : ", ");

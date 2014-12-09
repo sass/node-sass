@@ -1481,6 +1481,18 @@ namespace Sass {
     // MISCELLANEOUS FUNCTIONS
     //////////////////////////
 
+    Signature inspect_sig = "inspect($value)";
+    BUILT_IN(inspect)
+    {
+      Expression* v = ARG("$value", Expression);
+      if (v->concrete_type() == Expression::NULL_VAL) {
+        return new (ctx.mem) String_Constant(path, position, "null");
+      } else if (v->concrete_type() == Expression::BOOLEAN && *v == 0) {
+        return new (ctx.mem) String_Constant(path, position, "false");
+      }
+      return v;
+    }
+
     Signature unique_id_sig = "unique-id()";
     BUILT_IN(unique_id)
     {

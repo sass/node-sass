@@ -75,6 +75,7 @@ namespace Sass {
     extern Signature abs_sig;
     extern Signature min_sig;
     extern Signature max_sig;
+    extern Signature inspect_sig;
     extern Signature random_sig;
     extern Signature length_sig;
     extern Signature nth_sig;
@@ -148,6 +149,7 @@ namespace Sass {
     BUILT_IN(abs);
     BUILT_IN(min);
     BUILT_IN(max);
+    BUILT_IN(inspect);
     BUILT_IN(random);
     BUILT_IN(length);
     BUILT_IN(nth);
