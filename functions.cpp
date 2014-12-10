@@ -19,6 +19,7 @@
 #include <iomanip>
 #include <iostream>
 #include <random>
+#include <set>
 
 #define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, path, position, backtrace)
 #define ARGR(argname, argtype, lo, hi) get_arg_r(argname, env, sig, path, position, lo, hi, backtrace)
@@ -113,6 +114,9 @@ namespace Sass {
     // generally only used to seed a PRNG such as mt19937.
     static random_device rd;
     static mt19937 rand(rd());
+
+    // features
+    static set<string> features;
 
     ////////////////
     // RGB FUNCTIONS
@@ -1420,6 +1424,19 @@ namespace Sass {
       }
       else {
         return new (ctx.mem) Boolean(path, position, false);
+      }
+    }
+
+    Signature feature_exists_sig = "feature-exists($name)";
+    BUILT_IN(feature_exists)
+    {
+      string s = unquote(ARG("$name", String_Constant)->value());
+
+      if(features.find(s) == features.end()) {
+        return new (ctx.mem) Boolean(path, position, false);
+      }
+      else {
+        return new (ctx.mem) Boolean(path, position, true);
       }
     }
 
