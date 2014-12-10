@@ -245,6 +245,9 @@ namespace Sass {
     if (!c->disp().empty()) {
       ss << c->disp();
     }
+    else if (r == 0 && g == 0 && b == 0 && a == 0) {
+        ss << "transparent";
+    }
     else if (a >= 1) {
       // see if it's a named color
       int numval = r * 0x10000;

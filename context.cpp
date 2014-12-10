@@ -104,14 +104,18 @@ namespace Sass {
     while (color_names[i]) {
       string name(color_names[i]);
       Color* value = new (mem) Color("[COLOR TABLE]", Position(),
-                                     color_values[i*3],
-                                     color_values[i*3+1],
-                                     color_values[i*3+2]);
+                                     color_values[i*4],
+                                     color_values[i*4+1],
+                                     color_values[i*4+2],
+                                     color_values[i*4+3]);
       names_to_colors[name] = value;
-      int numval = color_values[i*3]*0x10000;
-      numval += color_values[i*3+1]*0x100;
-      numval += color_values[i*3+2];
-      colors_to_names[numval] = name;
+      // only map fully opaque colors
+      if (color_values[i*4+3] >= 1) {
+        int numval = color_values[i*4]*0x10000;
+        numval += color_values[i*4+1]*0x100;
+        numval += color_values[i*4+2];
+        colors_to_names[numval] = name;
+      }
       ++i;
     }
   }
