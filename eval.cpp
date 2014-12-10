@@ -423,9 +423,7 @@ namespace Sass {
     // else if it's a user-defined c function
     else if (c_func) {
 
-      if (full_name != "*[f]") {
-        bind("function " + c->name(), params, args, ctx, &new_env, this);
-      } else {
+      if (full_name == "*[f]") {
         String_Constant *str = new (ctx.mem) String_Constant(c->path(), c->position(), c->name());
         Arguments* new_args = new (ctx.mem) Arguments(c->path(), c->position());
         *new_args << new (ctx.mem) Argument(c->path(), c->position(), str);
@@ -433,6 +431,8 @@ namespace Sass {
         args = new_args;
       }
 
+      // populates env with default values for params
+      bind("function " + c->name(), params, args, ctx, &new_env, this);
       Env* old_env = env;
       env = &new_env;
 
@@ -440,7 +440,13 @@ namespace Sass {
       backtrace = &here;
 
       To_C to_c;
-      union Sass_Value* c_args = args->perform(&to_c);
+      union Sass_Value* c_args = sass_make_list(env->current_frame().size(), SASS_COMMA);
+      for(size_t i = 0; i < params[0].length(); i++) {
+        string key = params[0][i]->name();
+        AST_Node* node = env->current_frame().at(key);
+        Expression* arg = static_cast<Expression*>(node);
+        sass_list_set_value(c_args, i, arg->perform(&to_c));
+      }
       Sass_Value* c_val = c_func(c_args, def->cookie());
       if (sass_value_get_tag(c_val) == SASS_ERROR) {
         error("error in C function " + c->name() + ": " + sass_error_get_message(c_val), c->path(), c->position(), backtrace);
