@@ -344,6 +344,10 @@ namespace Sass {
     ss.precision(ctx ? ctx->precision : 5);
     ss << fixed << n->value();
     string d(ss.str());
+    // store if the value did not equal zero
+    // if after applying precsision, the value gets
+    // truncated to zero, sass emits 0.0 instead of 0
+    bool nonzero = n->value() != 0;
     for (size_t i = d.length()-1; d[i] == '0'; --i) {
       d.resize(d.length()-1);
     }
@@ -355,7 +359,13 @@ namespace Sass {
       if (d.substr(0, 3) == "-0.") d.erase(1, 1);
       if (d.substr(0, 2) == "0.") d.erase(0, 1);
     }
-    append_to_buffer(d == "-0" ? "0" : d);
+    // remove the leading minus
+    if (d == "-0") d.erase(0, 1);
+    // use fractional output if we had
+    // a value before it got truncated
+    if (d == "0" && nonzero) d = "0.0";
+    // append number and unit
+    append_to_buffer(d);
     append_to_buffer(n->unit());
   }
 
