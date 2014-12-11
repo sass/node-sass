@@ -1,4 +1,5 @@
 #include <nan.h>
+#include <vector>
 #include "sass_context_wrapper.h"
 
 char* CreateString(Local<Value> value) {
@@ -12,50 +13,22 @@ char* CreateString(Local<Value> value) {
   return str;
 }
 
+std::vector<sass_context_wrapper*> imports_collection;
+
 void dispatched_async_uv_callback(uv_async_t *req){
   NanScope();
   sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(req->data);
 
   TryCatch try_catch;
 
+  imports_collection.push_back(ctx_w);
+
   Handle<Value> argv[] = {
-    NanNew<String>(strdup(ctx_w->file))
+    NanNew<String>(strdup(ctx_w->file)),
+    NanNew<Number>(imports_collection.size() - 1)
   };
 
-  Local<Value> returned_value = NanNew<Value>(ctx_w->importer_callback->Call(1, argv));
-
-  if (returned_value->IsArray()) {
-    Handle<Array> array = Handle<Array>::Cast(returned_value);
-
-    ctx_w->imports = sass_make_import_list(array->Length());
-
-    for (size_t i = 0; i < array->Length(); ++i) {
-      Local<Value> value = array->Get(i);
-
-      if (!value->IsObject())
-        continue;
-
-      Local<Object> object = Local<Object>::Cast(value);
-      char* path = CreateString(object->Get(String::New("file")));
-      char* contents = CreateString(object->Get(String::New("contents")));
-
-      ctx_w->imports[i] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
-    }
-  }
-  else if (returned_value->IsObject()) {
-    ctx_w->imports = sass_make_import_list(1);
-    Local<Object> object = Local<Object>::Cast(returned_value);
-    char* path = CreateString(object->Get(String::New("file")));
-    char* contents = CreateString(object->Get(String::New("contents")));
-
-    ctx_w->imports[0] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
-  }
-  else {
-    ctx_w->imports = sass_make_import_list(1);
-    ctx_w->imports[0] = sass_make_import_entry(ctx_w->file, 0, 0);
-  }
-
-  uv_cond_signal(&ctx_w->importer_condition_variable);
+  NanNew<Value>(ctx_w->importer_callback->Call(2, argv));
 
   if (try_catch.HasCaught()) {
     node::FatalException(try_catch);
@@ -290,11 +263,69 @@ NAN_METHOD(RenderFileSync) {
   NanReturnUndefined();
 }
 
+NAN_METHOD(ImportedCallback) {
+  NanScope();
+
+  TryCatch try_catch;
+
+  Local<Object> options = args[0]->ToObject();
+  char* source_string = CreateString(options->Get(NanNew("index")));
+  Local<Value> returned_value = options->Get(NanNew("objectLiteral"));
+
+  size_t index = options->Get(NanNew("index"))->Int32Value();
+
+  if (index >= imports_collection.size()) {
+    NanReturnUndefined();
+  }
+
+  sass_context_wrapper* ctx_w = imports_collection[index];
+
+  if (returned_value->IsArray()) {
+    Handle<Array> array = Handle<Array>::Cast(returned_value);
+
+    ctx_w->imports = sass_make_import_list(array->Length());
+
+    for (size_t i = 0; i < array->Length(); ++i) {
+      Local<Value> value = array->Get(i);
+
+      if (!value->IsObject())
+        continue;
+
+      Local<Object> object = Local<Object>::Cast(value);
+      char* path = CreateString(object->Get(String::New("file")));
+      char* contents = CreateString(object->Get(String::New("contents")));
+
+      ctx_w->imports[i] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
+    }
+  }
+  else if (returned_value->IsObject()) {
+    ctx_w->imports = sass_make_import_list(1);
+    Local<Object> object = Local<Object>::Cast(returned_value);
+    char* path = CreateString(object->Get(String::New("file")));
+    char* contents = CreateString(object->Get(String::New("contents")));
+
+    ctx_w->imports[0] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
+  }
+  else {
+    ctx_w->imports = sass_make_import_list(1);
+    ctx_w->imports[0] = sass_make_import_entry(ctx_w->file, 0, 0);
+  }
+
+  uv_cond_signal(&ctx_w->importer_condition_variable);
+
+  NanReturnValue(NanNew<Number>(0));
+
+  if (try_catch.HasCaught()) {
+    node::FatalException(try_catch);
+  }
+}
+
 void RegisterModule(v8::Handle<v8::Object> target) {
   NODE_SET_METHOD(target, "render", Render);
   NODE_SET_METHOD(target, "renderSync", RenderSync);
   NODE_SET_METHOD(target, "renderFile", RenderFile);
   NODE_SET_METHOD(target, "renderFileSync", RenderFileSync);
+  NODE_SET_METHOD(target, "importedCallback", ImportedCallback);
 }
 
 NODE_MODULE(binding, RegisterModule);
