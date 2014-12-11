@@ -21,6 +21,7 @@ namespace Sass {
     size_t indentation;
     bool source_comments;
     Context* ctx;
+    bool seen_utf8;
     void indent();
 
     void fallback_impl(AST_Node* n);
@@ -33,10 +34,11 @@ namespace Sass {
     virtual ~Output_Nested();
 
     string get_buffer() {
-        if (!rendered_imports.empty() && !buffer.empty()) {
-            rendered_imports += "\n";
-        }
-        return rendered_imports + buffer;
+      if (!rendered_imports.empty() && !buffer.empty()) {
+        rendered_imports += "\n";
+      }
+      return (seen_utf8 ? "@charset \"UTF-8\";\n" : "")
+             + rendered_imports + buffer;
     }
 
     // statements

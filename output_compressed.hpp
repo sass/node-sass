@@ -16,6 +16,7 @@ namespace Sass {
     string buffer;
     string rendered_imports;
     Context* ctx;
+    bool seen_utf8;
 
     void fallback_impl(AST_Node* n);
 
@@ -25,7 +26,10 @@ namespace Sass {
     Output_Compressed(Context* ctx = 0);
     virtual ~Output_Compressed();
 
-    string get_buffer() { return rendered_imports + buffer; }
+    string get_buffer() {
+      return (seen_utf8 ? "@charset \"UTF-8\";\n" : "")
+             + rendered_imports + buffer;
+    }
 
     // statements
     virtual void operator()(Block*);
