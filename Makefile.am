@@ -81,32 +81,48 @@ nodist_EXTRA_sassc_bin_SOURCES = non-existent-file-to-force-CXX-linking.cxx
 nodist_EXTRA_libsass_la_SOURCES = non-existent-file-to-force-CXX-linking.cxx
 endif
 
-TESTS = \
-	$(SASS_SPEC_PATH)/spec/basic \
-	$(SASS_SPEC_PATH)/spec/benchmarks \
-	$(SASS_SPEC_PATH)/spec/bourbon \
-	$(SASS_SPEC_PATH)/spec/libsass \
-	$(SASS_SPEC_PATH)/spec/scss \
-	$(SASS_SPEC_PATH)/spec/todo
-
-LOG_COMPILER = $(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb
-AM_LOG_FLAGS = -c ./sass-tester
-
 SASS_SASSC_PATH ?= sassc
 SASS_SPEC_PATH ?= sass-spec
 SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc
-RUBY_BIN = ruby
+
+TESTS = $(SASS_SPEC_PATH)/spec/basic \
+        $(SASS_SPEC_PATH)/spec/css \
+        $(SASS_SPEC_PATH)/spec/extend-tests \
+        $(SASS_SPEC_PATH)/spec/extends \
+        $(SASS_SPEC_PATH)/spec/libsass \
+        $(SASS_SPEC_PATH)/spec/libsass-closed-issues \
+        $(SASS_SPEC_PATH)/spec/maps \
+        $(SASS_SPEC_PATH)/spec/misc \
+        $(SASS_SPEC_PATH)/spec/regressions \
+        $(SASS_SPEC_PATH)/spec/scss \
+        $(SASS_SPEC_PATH)/spec/scss-tests \
+        $(SASS_SPEC_PATH)/spec/types
+
+SASS_TEST_FLAGS =
+LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) ./scripts/tap-driver
+AM_LOG_FLAGS = -c ./sassc_bin --ignore-todo $(LOG_FLAGS)
+if USE_TAP
+  AM_LOG_FLAGS += -t
+  SASS_TEST_FLAGS += -t | tapout
+  # route everything throught the tap runner to produce tap output
+  LOG_COMPILER = ./scripts/tap-runner $(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb
+else
+  LOG_COMPILER = $(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb
+endif
 
 $(SASSC_BIN): libsass.la
 	cd $(SASS_SASSC_PATH) && $(MAKE)
 
 test: $(SASSC_BIN)
-	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) -s $(LOG_FLAGS) $(SASS_SPEC_PATH)
+	$(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) --ignore-todo $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
 
 test_build: $(SASSC_BIN)
-	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) -s --ignore-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)
+	$(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) --ignore-todo $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
+
+test_full: $(SASSC_BIN)
+	$(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
 
 test_issues: $(SASSC_BIN)
-	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues
+	$(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues $(SASS_TEST_FLAGS)
 
 endif
