@@ -313,7 +313,7 @@ namespace Sass {
       ostringstream buffer;
       base64::encoder E;
       E.encode(is, buffer);
-      url = "data:text/css;base64," + buffer.str();
+      url = "data:application/json;base64," + buffer.str();
       url.erase(url.size() - 1);
     }
     return "/*# sourceMappingURL=" + url + " */";
