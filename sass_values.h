@@ -21,7 +21,8 @@ enum Sass_Tag {
   SASS_LIST,
   SASS_MAP,
   SASS_NULL,
-  SASS_ERROR
+  SASS_ERROR,
+  SASS_WARNING
 };
 
 // Tags for denoting Sass list separators
@@ -44,6 +45,7 @@ bool sass_value_is_color (union Sass_Value* v);
 bool sass_value_is_list (union Sass_Value* v);
 bool sass_value_is_map (union Sass_Value* v);
 bool sass_value_is_error (union Sass_Value* v);
+bool sass_value_is_warning (union Sass_Value* v);
 
 // Getters and setters for Sass_Number
 double sass_number_get_value (union Sass_Value* v);
@@ -90,6 +92,10 @@ void sass_map_set_value (union Sass_Value* v, size_t i, union Sass_Value*);
 char* sass_error_get_message (union Sass_Value* v);
 void sass_error_set_message (union Sass_Value* v, char* msg);
 
+// Getters and setters for Sass_Warning
+char* sass_warning_get_message (union Sass_Value* v);
+void sass_warning_set_message (union Sass_Value* v, char* msg);
+
 // Creator functions for all value types
 union Sass_Value* sass_make_null    (void);
 union Sass_Value* sass_make_boolean (bool val);
@@ -99,6 +105,7 @@ union Sass_Value* sass_make_color   (double r, double g, double b, double a);
 union Sass_Value* sass_make_list    (size_t len, enum Sass_Separator sep);
 union Sass_Value* sass_make_map     (size_t len);
 union Sass_Value* sass_make_error   (const char* msg);
+union Sass_Value* sass_make_warning (const char* msg);
 
 // Generic destructor function for all types
 // Will release memory of all associated Sass_Values

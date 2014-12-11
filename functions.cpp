@@ -47,8 +47,11 @@ namespace Sass {
   Definition* make_c_function(Signature sig, Sass_C_Function f, void* cookie, Context& ctx)
   {
     Parser sig_parser = Parser::from_c_str(sig, ctx, "[c function]");
-    // allow to overload generic callback and @warn with custom functions
-    sig_parser.lex< alternatives < identifier, exactly <'*'>, exactly<Constants::warn_kwd> > >();
+    // allow to overload generic callback plus @warn and @error with custom functions
+    sig_parser.lex < alternatives < identifier, exactly <'*'>,
+                                    exactly < Constants::warn_kwd >,
+                                    exactly < Constants::error_kwd >
+                   >              >();
     string name(Util::normalize_underscores(sig_parser.lexed));
     Parameters* params = sig_parser.parse_parameters();
     return new (ctx.mem) Definition("[c function]",

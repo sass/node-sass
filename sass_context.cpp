@@ -206,7 +206,7 @@ extern "C" {
     try {
      throw;
     }
-    catch (Error& e) {
+    catch (Sass_Error& e) {
       stringstream msg_stream;
       JsonNode* json_err = json_mkobject();
       json_append_member(json_err, "status", json_mknumber(1));

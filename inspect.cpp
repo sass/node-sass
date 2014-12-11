@@ -138,6 +138,14 @@ namespace Sass {
     append_to_buffer(";");
   }
 
+  void Inspect::operator()(Error* error)
+  {
+    if (ctx) ctx->source_map.add_mapping(error);
+    append_to_buffer("@error ");
+    error->message()->perform(this);
+    append_to_buffer(";");
+  }
+
   void Inspect::operator()(Comment* comment)
   {
     comment->text()->perform(this);

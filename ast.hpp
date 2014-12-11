@@ -442,6 +442,18 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
 
+  ///////////////////////////////
+  // The Sass `@error` directive.
+  ///////////////////////////////
+  class Error : public Statement {
+    ADD_PROPERTY(Expression*, message);
+  public:
+    Error(string path, Position position, Expression* msg)
+    : Statement(path, position), message_(msg)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
   ///////////////////////////////////////////
   // CSS comments. These may be interpolated.
   ///////////////////////////////////////////

@@ -174,6 +174,13 @@ namespace Sass {
     return 0;
   }
 
+  Statement* Expand::operator()(Error* e)
+  {
+    // eval handles this too, because errors may occur in functions
+    e->perform(eval->with(env, backtrace));
+    return 0;
+  }
+
   Statement* Expand::operator()(Comment* c)
   {
     // TODO: eval the text, once we're parsing/storing it as a String_Schema

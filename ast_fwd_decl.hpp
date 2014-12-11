@@ -17,6 +17,7 @@ namespace Sass {
   class Import;
   class Import_Stub;
   class Warning;
+  class Error;
   class Comment;
   class If;
   class For;
