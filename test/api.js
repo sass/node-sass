@@ -6,69 +6,6 @@ var assert = require('assert'),
     fixture = path.join.bind(null, __dirname, 'fixtures'),
     resolveFixture = path.resolve.bind(null, __dirname, 'fixtures');
 
-describe('api (deprecated)', function() {
-  describe('.render(src, fn)', function() {
-    it('should compile sass to css', function(done) {
-      var src = read(fixture('simple/index.scss'), 'utf8');
-      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
-
-      sass.render(src, function(err, css) {
-        assert(!err);
-        assert.equal(css.trim(), expected.replace(/\r\n/g, '\n'));
-        done();
-      });
-    });
-
-    it('should compile sass to css using indented syntax', function(done) {
-      var src = read(fixture('indent/index.sass'), 'utf8');
-      var expected = read(fixture('indent/expected.css'), 'utf8').trim();
-
-      sass.render(src, function(err, css) {
-        assert(!err);
-        assert.equal(css.trim(), expected.replace(/\r\n/g, '\n'));
-        done();
-      }, {
-        indentedSyntax: true
-      });
-    });
-
-    it('should throw error for bad input', function(done) {
-      sass.render('#navbar width 80%;', function(err) {
-        assert(err);
-        done();
-      });
-    });
-  });
-
-  describe('.renderSync(src)', function() {
-    it('should compile sass to css', function(done) {
-      var src = read(fixture('simple/index.scss'), 'utf8');
-      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
-      var css = sass.renderSync(src).trim();
-
-      assert.equal(css, expected.replace(/\r\n/g, '\n'));
-      done();
-    });
-
-    it('should compile sass to css using indented syntax', function(done) {
-      var src = read(fixture('indent/index.sass'), 'utf8');
-      var expected = read(fixture('indent/expected.css'), 'utf8').trim();
-      var css = sass.renderSync(src, {indentedSyntax: true}).trim();
-
-      assert.equal(css, expected.replace(/\r\n/g, '\n'));
-      done();
-    });
-
-    it('should throw error for bad input', function(done) {
-      assert.throws(function() {
-        sass.renderSync('#navbar width 80%;');
-      });
-
-      done();
-    });
-  });
-});
-
 describe('api', function() {
   describe('.render(options)', function() {
     it('should compile sass to css', function(done) {
@@ -230,100 +167,6 @@ describe('api', function() {
       });
 
       done();
-    });
-  });
-
-  describe('.renderFile(options)', function() {
-    it('should compile sass to css', function(done) {
-      var src = read(fixture('simple/index.scss'), 'utf8');
-      var dest = fixture('simple/build.css');
-      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
-
-      sass.renderFile({
-        data: src,
-        outFile: dest,
-        success: function() {
-          assert.equal(read(dest, 'utf8').trim(), expected.replace(/\r\n/g, '\n'));
-          fs.unlinkSync(dest);
-          done();
-        }
-      });
-    });
-
-    it('should compile sass to css using indented syntax', function(done) {
-      var src = read(fixture('indent/index.sass'), 'utf8');
-      var dest = fixture('indent/build.css');
-      var expected = read(fixture('indent/expected.css'), 'utf8').trim();
-
-      sass.renderFile({
-        data: src,
-        outFile: dest,
-        indentedSyntax: true,
-        success: function() {
-          assert.equal(read(dest, 'utf8').trim(), expected.replace(/\r\n/g, '\n'));
-          fs.unlinkSync(dest);
-          done();
-        }
-      });
-    });
-
-    it('should save source map to default name', function(done) {
-      var src = fixture('source-map/index.scss');
-      var dest = fixture('source-map/build.css');
-      var name = 'build.css.map';
-
-      sass.renderFile({
-        file: src,
-        outFile: dest,
-        sourceMap: true,
-        success: function(file, map) {
-          assert.equal(path.basename(map), name);
-          assert(read(dest, 'utf8').indexOf('sourceMappingURL=' + name) !== -1);
-          fs.unlinkSync(map);
-          fs.unlinkSync(dest);
-          done();
-        }
-      });
-    });
-
-    it('should save source map to specified name', function(done) {
-      var src = fixture('source-map/index.scss');
-      var dest = fixture('source-map/build.css');
-      var name = 'foo.css.map';
-
-      sass.renderFile({
-        file: src,
-        outFile: dest,
-        sourceMap: name,
-        success: function(file, map) {
-          assert.equal(path.basename(map), name);
-          assert(read(dest, 'utf8').indexOf('sourceMappingURL=' + name) !== -1);
-          fs.unlinkSync(map);
-          fs.unlinkSync(dest);
-          done();
-        }
-      });
-    });
-
-    it('should save source paths relative to the source map file', function(done) {
-      var src = fixture('include-files/index.scss');
-      var dest = fixture('include-files/build.css');
-      var obj;
-
-      sass.renderFile({
-        file: src,
-        outFile: dest,
-        sourceMap: true,
-        success: function(file, map) {
-          obj = JSON.parse(read(map, 'utf8'));
-          assert.equal(obj.sources[0], 'index.scss');
-          assert.equal(obj.sources[1], 'foo.scss');
-          assert.equal(obj.sources[2], 'bar.scss');
-          fs.unlinkSync(map);
-          fs.unlinkSync(dest);
-          done();
-        }
-      });
     });
   });
 
@@ -516,13 +359,6 @@ describe('api', function() {
       });
 
       assert.equal(stats.sourceMap.sources[0], 'index.scss');
-      done();
-    });
-  });
-
-  describe('.middleware()', function() {
-    it('should throw error on require', function(done) {
-      assert.throws(sass.middleware());
       done();
     });
   });
