@@ -94,7 +94,7 @@ namespace Sass {
         Map* argmap = static_cast<Map*>(a->value());
 
         for (auto key : argmap->keys()) {
-          string name = "$" + static_cast<String_Constant*>(key)->value();
+          string name = "$" + unquote(static_cast<String_Constant*>(key)->value());
 
           if (!param_map.count(name)) {
             stringstream msg;
