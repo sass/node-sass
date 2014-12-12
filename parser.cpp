@@ -215,6 +215,8 @@ namespace Sass {
     string which_str(lexed);
     if (!lex< identifier >()) error("invalid name in " + which_str + " definition");
     string name(Util::normalize_underscores(lexed));
+    if (which_type == Definition::FUNCTION && (name == "and" || name == "or" || name == "not"))
+    { error("Invalid function name \"" + name + "\"."); }
     Position source_position_of_def = source_position;
     Parameters* params = parse_parameters();
     if (!peek< exactly<'{'> >()) error("body for " + which_str + " " + name + " must begin with a '{'");
