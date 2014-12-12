@@ -982,6 +982,8 @@ namespace Sass {
       case Binary_Expression::DIV: sep = "/"; break;
       default:                         break;
     }
+    if (ltype == Expression::NULL_VAL) error("invalid null operation: \"null plus "+quote(unquote(rstr), '"')+"\".", lhs->path(), lhs->position());
+    if (rtype == Expression::NULL_VAL) error("invalid null operation: \""+quote(unquote(lstr), '"')+" plus null\".", lhs->path(), lhs->position());
     char q = '\0';
     if (lstr[0] == '"' || lstr[0] == '\'') q = lstr[0];
     else if (rstr[0] == '"' || rstr[0] == '\'') q = rstr[0];
