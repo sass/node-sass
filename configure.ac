@@ -2,12 +2,12 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.61])
-AC_INIT([libsass], [1.0], [support@moovweb.com])
+AC_INIT([libsass], [3.0.3], [support@moovweb.com])
 AC_CONFIG_SRCDIR([ast.hpp])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([script])
-AM_INIT_AUTOMAKE([1.10 foreign parallel-tests])
+AM_INIT_AUTOMAKE([foreign parallel-tests])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([no])])
 LT_INIT
 
@@ -110,18 +110,13 @@ AC_ARG_VAR(LIBSASS_VERSION, libsass version)
 if test "x$LIBSASS_VERSION" = "x"; then
   AC_CHECK_PROG(GIT, git, git)
   if test "x$GIT" = "x"; then
-    AC_MSG_ERROR([Unable to find git binary to query version.
-You can solve this by setting LIBSASS_VERSION:
-# export LIBSASS_VERSION="x.y.z"
-])
+    LIBSASS_VERSION=$VERSION
   else
-    AC_CHECK_FILE(.git/config, [], [
-    AC_MSG_ERROR([Unable to find .git directory to query version.
-You can solve this by setting LIBSASS_VERSION:
-# export LIBSASS_VERSION="x.y.z"
-])
+    AC_CHECK_FILE(.git/config, [
+      LIBSASS_VERSION=`$GIT describe --abbrev=4 --dirty --always --tags`
+    ], [
+      LIBSASS_VERSION=$VERSION
     ])
-    LIBSASS_VERSION=`$GIT describe --abbrev=4 --dirty --always --tags`
   fi
   if test "x$LIBSASS_VERSION" = "x"; then
     AC_MSG_ERROR([LIBSASS_VERSION not defined.

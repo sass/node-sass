@@ -9,14 +9,22 @@ AM_CXXFLAGS += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
 AM_CXXFLAGS += -std=c++0x
 
 if ENABLE_COVERAGE
-  AM_CFLAGS += -O0 --coverage
-  AM_CXXFLAGS += -O0 --coverage
-  AM_LDFLAGS += -O0 --coverage -lgcov
+	AM_CFLAGS += -O0 --coverage
+	AM_CXXFLAGS += -O0 --coverage
+	AM_LDFLAGS += -O0 --coverage -lgcov
 else
-  AM_CFLAGS += -O2
-  AM_CXXFLAGS += -O2
-  AM_LDFLAGS += -O2
+	AM_CFLAGS += -O2
+	AM_CXXFLAGS += -O2
+	AM_LDFLAGS += -O2
 endif
+
+VERSION = $(LIBSASS_VERSION)
+
+EXTRA_DIST = \
+	COPYING \
+	INSTALL \
+	LICENSE \
+	Readme.md
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = support/libsass.pc
@@ -24,41 +32,50 @@ pkgconfig_DATA = support/libsass.pc
 lib_LTLIBRARIES = libsass.la
 
 libsass_la_SOURCES = \
-	cencode.c \
-	ast.cpp \
-	base64vlq.cpp \
-	bind.cpp \
-	constants.cpp \
-	context.cpp \
-	contextualize.cpp \
-	copy_c_str.cpp \
-	error_handling.cpp \
-	eval.cpp \
-	expand.cpp \
-	extend.cpp \
-	file.cpp \
-	functions.cpp \
-	inspect.cpp \
-	node.cpp \
-	json.cpp \
-	output_compressed.cpp \
-	output_nested.cpp \
-	parser.cpp \
-	prelexer.cpp \
-	remove_placeholders.cpp \
-	sass.cpp \
-	sass_util.cpp \
-	sass_values.cpp \
-	sass_context.cpp \
-	sass_functions.cpp \
-	sass_interface.cpp \
-	sass2scss.cpp \
-	source_map.cpp \
-	to_c.cpp \
-	to_string.cpp \
-	units.cpp \
-	utf8_string.cpp \
-	util.cpp
+	ast_fwd_decl.hpp ast_def_macros.hpp \
+	kwd_arg_macros.hpp memory_manager.hpp \
+	position.hpp operation.hpp \
+	subset_map.hpp mapping.hpp \
+	color_names.hpp backtrace.hpp \
+	cencode.c b64/cencode.h b64/encode.h \
+	token.hpp environment.hpp \
+	paths.hpp debug.hpp \
+	utf8.h utf8/core.h \
+	utf8/checked.h utf8/unchecked.h \
+	ast.cpp ast.hpp \
+	base64vlq.cpp base64vlq.hpp \
+	bind.cpp bind.hpp \
+	constants.cpp constants.hpp \
+	context.cpp context.hpp \
+	contextualize.cpp contextualize.hpp \
+	copy_c_str.cpp copy_c_str.hpp \
+	error_handling.cpp error_handling.hpp \
+	eval.cpp eval.hpp \
+	expand.cpp expand.hpp \
+	extend.cpp extend.hpp \
+	file.cpp file.hpp \
+	functions.cpp functions.hpp \
+	inspect.cpp inspect.hpp \
+	node.cpp node.hpp \
+	json.cpp json.hpp \
+	output_compressed.cpp output_compressed.hpp \
+	output_nested.cpp output_nested.hpp \
+	parser.cpp parser.hpp \
+	prelexer.cpp prelexer.hpp \
+	remove_placeholders.cpp remove_placeholders.hpp \
+	sass.cpp sass.h \
+	sass_util.cpp sass_util.hpp \
+	sass_values.cpp sass_values.h \
+	sass_context.cpp sass_context.h \
+	sass_functions.cpp sass_functions.h \
+	sass_interface.cpp sass_interface.h \
+	sass2scss.cpp sass2scss.h \
+	source_map.cpp source_map.hpp \
+	to_c.cpp to_c.hpp \
+	to_string.cpp to_string.hpp \
+	units.cpp units.hpp \
+	utf8_string.cpp utf8_string.hpp \
+	util.cpp util.hpp
 
 libsass_la_CFLAGS = $(AM_CFLAGS)
 libsass_la_CXXFLAGS = $(AM_CXXFLAGS)
@@ -85,29 +102,29 @@ SASS_SASSC_PATH ?= sassc
 SASS_SPEC_PATH ?= sass-spec
 SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc
 
-TESTS = $(SASS_SPEC_PATH)/spec/basic \
-        $(SASS_SPEC_PATH)/spec/css \
-        $(SASS_SPEC_PATH)/spec/extend-tests \
-        $(SASS_SPEC_PATH)/spec/extends \
-        $(SASS_SPEC_PATH)/spec/libsass \
-        $(SASS_SPEC_PATH)/spec/libsass-closed-issues \
-        $(SASS_SPEC_PATH)/spec/maps \
-        $(SASS_SPEC_PATH)/spec/misc \
-        $(SASS_SPEC_PATH)/spec/regressions \
-        $(SASS_SPEC_PATH)/spec/scss \
-        $(SASS_SPEC_PATH)/spec/scss-tests \
-        $(SASS_SPEC_PATH)/spec/types
+TESTS = \
+	$(SASS_SPEC_PATH)/spec/basic \
+	$(SASS_SPEC_PATH)/spec/css \
+	$(SASS_SPEC_PATH)/spec/extend-tests \
+	$(SASS_SPEC_PATH)/spec/extends \
+	$(SASS_SPEC_PATH)/spec/libsass \
+	$(SASS_SPEC_PATH)/spec/libsass-closed-issues \
+	$(SASS_SPEC_PATH)/spec/maps \
+	$(SASS_SPEC_PATH)/spec/misc \
+	$(SASS_SPEC_PATH)/spec/regressions \
+	$(SASS_SPEC_PATH)/spec/scss \
+	$(SASS_SPEC_PATH)/spec/scss-tests \
+	$(SASS_SPEC_PATH)/spec/types
 
 SASS_TEST_FLAGS =
-LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) ./scripts/tap-driver
+LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) ./script/tap-driver
 AM_LOG_FLAGS = -c ./sassc_bin --ignore-todo $(LOG_FLAGS)
 if USE_TAP
-  AM_LOG_FLAGS += -t
-  SASS_TEST_FLAGS += -t | tapout
-  # route everything throught the tap runner to produce tap output
-  LOG_COMPILER = ./scripts/tap-runner $(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb
+	AM_LOG_FLAGS += -t
+	SASS_TEST_FLAGS += -t | tapout
+	LOG_COMPILER = ./script/tap-runner $(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb
 else
-  LOG_COMPILER = $(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb
+	LOG_COMPILER = $(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb
 endif
 
 $(SASSC_BIN): libsass.la
