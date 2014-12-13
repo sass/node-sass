@@ -42,6 +42,14 @@ namespace Sass {
 
   enum Output_Style { NESTED, EXPANDED, COMPACT, COMPRESSED, FORMATTED };
 
+  struct Sass_Queued {
+    string abs_path;
+    string load_path;
+    const char* source;
+  public:
+    Sass_Queued(const string& load_path, const string& abs_path, const char* source);
+  };
+
   struct Context {
     Memory_Manager<AST_Node> mem;
 
@@ -57,7 +65,7 @@ namespace Sass {
     // vectors above have same size
 
     vector<string> include_paths; // lookup paths for includes
-    vector<pair<string, const char*> > queue; // queue of files to be parsed
+    vector<Sass_Queued> queue; // queue of files to be parsed
     map<string, Block*> style_sheets; // map of paths to ASTs
     SourceMap source_map;
     vector<Sass_C_Function_Callback> c_functions;
@@ -75,6 +83,7 @@ namespace Sass {
 
     // overload import calls
     Sass_C_Import_Callback importer;
+    vector<struct Sass_Import*> import_stack;
 
     map<string, Color*> names_to_colors;
     map<int, string>    colors_to_names;

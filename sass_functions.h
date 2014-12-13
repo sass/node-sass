@@ -10,12 +10,15 @@ extern "C" {
 
 
 // Forward declaration
+struct Sass_Import;
+
+// Forward declaration
 struct Sass_C_Import_Descriptor;
 
 // Typedef defining the custom importer callback
 typedef struct Sass_C_Import_Descriptor (*Sass_C_Import_Callback);
 // Typedef defining the importer c function prototype
-typedef struct Sass_Import** (*Sass_C_Import_Fn) (const char* url, void* cookie);
+typedef struct Sass_Import** (*Sass_C_Import_Fn) (const char* url, const char* prev, void* cookie);
 
 // Creators for custom importer callback (with some additional pointer)
 // The pointer is mostly used to store the callback into the actual binding
@@ -30,6 +33,7 @@ void* sass_import_get_cookie (Sass_C_Import_Callback fn);
 struct Sass_Import** sass_make_import_list (size_t length);
 // Creator for a single import entry returned by the custom importer inside the list
 struct Sass_Import* sass_make_import_entry (const char* path, char* source, char* srcmap);
+struct Sass_Import* sass_make_import (const char* path, const char* base, char* source, char* srcmap);
 
 // Setters to insert an entry into the import list (you may also use [] access directly)
 // Since we are dealing with pointers they should have a guaranteed and fixed size
@@ -38,6 +42,7 @@ struct Sass_Import* sass_import_get_list_entry (struct Sass_Import** list, size_
 
 // Getters for import entry
 const char* sass_import_get_path (struct Sass_Import*);
+const char* sass_import_get_base (struct Sass_Import*);
 const char* sass_import_get_source (struct Sass_Import*);
 const char* sass_import_get_srcmap (struct Sass_Import*);
 // Explicit functions to take ownership of these items
@@ -47,6 +52,8 @@ char* sass_import_take_srcmap (struct Sass_Import*);
 
 // Deallocator for associated memory (incl. entries)
 void sass_delete_import_list (struct Sass_Import**);
+// Just in case we have some stray import structs
+void sass_delete_import (struct Sass_Import*);
 
 
 // Forward declaration
@@ -56,7 +63,7 @@ struct Sass_C_Function_Descriptor;
 typedef struct Sass_C_Function_Descriptor* (*Sass_C_Function_List);
 typedef struct Sass_C_Function_Descriptor (*Sass_C_Function_Callback);
 // Typedef defining custom function prototype and its return value type
-typedef union Sass_Value*(*Sass_C_Function) (union Sass_Value*, void *cookie);
+typedef union Sass_Value*(*Sass_C_Function) (union Sass_Value*, void* cookie);
 
 
 // Creators for sass function list and function descriptors

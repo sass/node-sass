@@ -12,6 +12,8 @@
 #include "prelexer.hpp"
 #endif
 
+#include "sass_functions.h"
+
 #include <typeinfo>
 
 namespace Sass {
@@ -158,11 +160,15 @@ namespace Sass {
         Sass_C_Import_Callback importer = ctx.importer;
         // custom importer
         if (importer) {
+          Sass_Import* current = ctx.import_stack.back();
           Sass_C_Import_Fn fn = sass_import_get_function(importer);
           void* cookie = sass_import_get_cookie(importer);
-          // get null delimited "array" of "external" imports
-          struct Sass_Import** imports = fn(import_path.c_str(), cookie);
-          struct Sass_Import** includes = imports;
+          // create a new import entry
+          string inc_path = unquote(import_path);
+          struct Sass_Import** includes = fn(
+            inc_path.c_str(),
+            sass_import_get_path(current),
+            cookie);
           if (includes) {
             while (*includes) {
               struct Sass_Import* include = *includes;
@@ -170,24 +176,23 @@ namespace Sass {
               char *source = sass_import_take_source(include);
               // char *srcmap = sass_import_take_srcmap(include);
               if (source) {
-                string inc_path = unquote(import_path);
                 if (file) {
-                  ctx.add_source(file, import_path, source);
+                  ctx.add_source(file, inc_path, source);
                   imp->files().push_back(file);
                 } else {
-                  ctx.add_source(import_path, import_path, source);
-                  imp->files().push_back(import_path);
+                  ctx.add_source(inc_path, inc_path, source);
+                  imp->files().push_back(inc_path);
                 }
               } else if(file) {
                 add_single_file(imp, file);
               }
               ++includes;
             }
-            // deallocate returned memory
-            sass_delete_import_list(imports);
             // go for next parse loop
             continue;
           }
+          // deallocate returned memory
+          sass_delete_import_list(includes);
           // custom importer returned nothing
           // means we should use default loader
         }
