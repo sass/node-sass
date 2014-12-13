@@ -98,6 +98,10 @@ namespace Sass {
         (*root) << parse_warning();
         if (!lex< exactly<';'> >()) error("top-level @warn directive must be terminated by ';'");
       }
+      else if (peek< err >()) {
+        (*root) << parse_error();
+        if (!lex< exactly<';'> >()) error("top-level @error directive must be terminated by ';'");
+      }
       // ignore the @charset directive for now
       else if (lex< exactly< charset_kwd > >()) {
         lex< string_constant >();
@@ -714,6 +718,10 @@ namespace Sass {
         (*block) << parse_warning();
         semicolon = true;
       }
+      else if (peek< err >()) {
+        (*block) << parse_error();
+        semicolon = true;
+      }
       else if (stack.back() == function_def) {
         error("only variable declarations and control directives are allowed inside functions");
       }
@@ -1099,7 +1107,7 @@ namespace Sass {
         *args << arg;
         return result;
       }
-      catch (Error&) {
+      catch (Sass_Error&) {
         // back up so we can try again
         position = here;
         source_position = here_p;
@@ -1729,6 +1737,12 @@ namespace Sass {
     return new (ctx.mem) Warning(path, source_position, parse_list());
   }
 
+  Error* Parser::parse_error()
+  {
+    lex< err >();
+    return new (ctx.mem) Error(path, source_position, parse_list());
+  }
+
   Selector_Lookahead Parser::lookahead_for_selector(const char* start)
   {
     const char* p = start ? start : position;
@@ -1946,7 +1960,7 @@ namespace Sass {
 
   void Parser::error(string msg, Position pos)
   {
-    throw Error(Error::syntax, path, pos.line ? pos : source_position, msg);
+    throw Sass_Error(Sass_Error::syntax, path, pos.line ? pos : source_position, msg);
   }
 
 }

@@ -10,7 +10,7 @@ namespace Sass {
 
   struct Backtrace;
 
-  struct Error {
+  struct Sass_Error {
     enum Type { read, write, syntax, evaluation };
 
     Type type;
@@ -18,7 +18,7 @@ namespace Sass {
     Position position;
     string message;
 
-    Error(Type type, string path, Position position, string message);
+    Sass_Error(Type type, string path, Position position, string message);
 
   };
 

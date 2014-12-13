@@ -7,12 +7,12 @@
 
 namespace Sass {
 
-  Error::Error(Type type, string path, Position position, string message)
+  Sass_Error::Sass_Error(Type type, string path, Position position, string message)
   : type(type), path(path), position(position), message(message)
   { }
 
   void error(string msg, string path, Position position)
-  { throw Error(Error::syntax, path, position, msg); }
+  { throw Sass_Error(Sass_Error::syntax, path, position, msg); }
 
   void error(string msg, string path, Position position, Backtrace* bt)
   {
@@ -22,7 +22,7 @@ namespace Sass {
     Backtrace top(bt, path, position, "");
     msg += top.to_string();
 
-    throw Error(Error::syntax, path, position, msg);
+    throw Sass_Error(Sass_Error::syntax, path, position, msg);
   }
 
 }

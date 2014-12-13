@@ -562,8 +562,11 @@ namespace Sass
 			}
 
 			// terminate warn and debug statements immediately
-			else if (sass.substr(pos_left, 5) == "@warn" || sass.substr(pos_left, 6) == "@debug")
-			{ sass = indent + sass.substr(pos_left); }
+			else if (
+				sass.substr(pos_left, 5) == "@warn" ||
+				sass.substr(pos_left, 6) == "@debug" ||
+				sass.substr(pos_left, 6) == "@error"
+			) { sass = indent + sass.substr(pos_left); }
 			// replace some specific sass shorthand directives (if not fallowed by a white space character)
 			else if (sass.substr(pos_left, 1) == "=" && sass.find_first_of(SASS2SCSS_FIND_WHITESPACE, pos_left) != pos_left + 1)
 			{ sass = indent + "@mixin " + sass.substr(pos_left + 1); }
