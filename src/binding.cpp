@@ -43,46 +43,58 @@ struct Sass_Import** sass_importer(const char* file, void* cookie)
   ctx_w->async.data = (void*)ctx_w;
   uv_async_send(&ctx_w->async);
 
-  uv_cond_wait(&ctx_w->importer_condition_variable, &ctx_w->importer_mutex);
+  if (ctx_w->success_callback) {
+    /*  that is async: Render() or RenderFile(),
+     *  the default even loop is unblocked so it
+     *  can run uv_async_send without a push.
+     */
+    uv_cond_wait(&ctx_w->importer_condition_variable, &ctx_w->importer_mutex);
+  }
+  else{
+    /*  that is sync: RenderSync() or RenderFileSync,
+     *  we need to explicitly uv_run as the event loop
+     *  is blocked; waiting down the chain.
+     */
+    uv_run(ctx_w->async.loop, UV_RUN_DEFAULT);
+  }
 
   return ctx_w->imports;
 }
 
-void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx_w, bool isFile) {
+void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx_w, bool isFile, bool isSync) {
   struct Sass_Context* ctx;
 
   if (isFile) {
     ctx = sass_file_context_get_context((struct Sass_File_Context*) cptr);
+    ctx_w->fctx = (struct Sass_File_Context*) cptr;
   }
   else {
     ctx = sass_data_context_get_context((struct Sass_Data_Context*) cptr);
+    ctx_w->dctx = (struct Sass_Data_Context*) cptr;
   }
 
   struct Sass_Options* sass_options = sass_context_get_options(ctx);
 
-  if (ctx_w) {
+  if (!isSync) {
     NanAssignPersistent(ctx_w->stats, options->Get(NanNew("stats"))->ToObject());
+
+    ctx_w->request.data = ctx_w;
 
     // async (callback) style
     Local<Function> success_callback = Local<Function>::Cast(options->Get(NanNew("success")));
     Local<Function> error_callback = Local<Function>::Cast(options->Get(NanNew("error")));
-    Local<Function> importer_callback = Local<Function>::Cast(options->Get(NanNew("importer")));
 
-    if (isFile) {
-      ctx_w->fctx = (struct Sass_File_Context*) cptr;
-    }
-    else {
-      ctx_w->dctx = (struct Sass_Data_Context*) cptr;
-    }
-    ctx_w->request.data = ctx_w;
     ctx_w->success_callback = new NanCallback(success_callback);
     ctx_w->error_callback = new NanCallback(error_callback);
-    ctx_w->importer_callback = new NanCallback(importer_callback);
+  }
 
-    if (!importer_callback->IsUndefined()){
-      uv_async_init(uv_default_loop(), &ctx_w->async, (uv_async_cb)dispatched_async_uv_callback);
-      sass_option_set_importer(sass_options, sass_make_importer(sass_importer, ctx_w));
-    }
+  Local<Function> importer_callback = Local<Function>::Cast(options->Get(NanNew("importer")));
+
+  ctx_w->importer_callback = new NanCallback(importer_callback);
+
+  if (!importer_callback->IsUndefined()) {
+    uv_async_init(uv_default_loop(), &ctx_w->async, (uv_async_cb)dispatched_async_uv_callback);
+    sass_option_set_importer(sass_options, sass_make_importer(sass_importer, ctx_w));
   }
 
   sass_option_set_output_path(sass_options, CreateString(options->Get(NanNew("outFile"))));
@@ -178,9 +190,7 @@ NAN_METHOD(Render) {
   struct Sass_Data_Context* dctx = sass_make_data_context(source_string);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
 
-  ctx_w->dctx = dctx;
-
-  ExtractOptions(options, dctx, ctx_w, false);
+  ExtractOptions(options, dctx, ctx_w, false, false);
 
   int status = uv_queue_work(uv_default_loop(), &ctx_w->request, compile_it, (uv_after_work_cb)make_callback);
 
@@ -196,8 +206,9 @@ NAN_METHOD(RenderSync) {
   char* source_string = CreateString(options->Get(NanNew("data")));
   struct Sass_Data_Context* dctx = sass_make_data_context(source_string);
   struct Sass_Context* ctx = sass_data_context_get_context(dctx);
+  sass_context_wrapper* ctx_w = sass_make_context_wrapper();
 
-  ExtractOptions(options, dctx, NULL, false);
+  ExtractOptions(options, dctx, ctx_w, false, true);
   compile_data(dctx);
   FillStatsObj(options->Get(NanNew("stats"))->ToObject(), ctx);
 
@@ -211,6 +222,7 @@ NAN_METHOD(RenderSync) {
   Local<String> error = NanNew<String>(sass_context_get_error_json(ctx));
 
   sass_delete_data_context(dctx);
+  sass_free_context_wrapper(ctx_w);
   NanThrowError(error);
 
   NanReturnUndefined();
@@ -224,8 +236,7 @@ NAN_METHOD(RenderFile) {
   struct Sass_File_Context* fctx = sass_make_file_context(input_path);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
 
-  ctx_w->fctx = fctx;
-  ExtractOptions(options, fctx, ctx_w, true);
+  ExtractOptions(options, fctx, ctx_w, true, false);
 
   int status = uv_queue_work(uv_default_loop(), &ctx_w->request, compile_it, (uv_after_work_cb)make_callback);
 
@@ -242,8 +253,9 @@ NAN_METHOD(RenderFileSync) {
   char* input_path = CreateString(options->Get(NanNew("file")));
   struct Sass_File_Context* fctx = sass_make_file_context(input_path);
   struct Sass_Context* ctx = sass_file_context_get_context(fctx);
+  sass_context_wrapper* ctx_w = sass_make_context_wrapper();
 
-  ExtractOptions(options, fctx, NULL, true);
+  ExtractOptions(options, fctx, ctx_w, true, true);
   compile_file(fctx);
   FillStatsObj(options->Get(NanNew("stats"))->ToObject(), ctx);
   free(input_path);
@@ -258,6 +270,7 @@ NAN_METHOD(RenderFileSync) {
   Local<String> error = NanNew<String>(sass_context_get_error_json(ctx));
 
   sass_delete_file_context(fctx);
+  sass_free_context_wrapper(ctx_w);
   NanThrowError(error);
 
   NanReturnUndefined();
@@ -313,11 +326,19 @@ NAN_METHOD(ImportedCallback) {
 
   uv_cond_signal(&ctx_w->importer_condition_variable);
 
-  NanReturnValue(NanNew<Number>(0));
-
   if (try_catch.HasCaught()) {
     node::FatalException(try_catch);
   }
+
+  if (!ctx_w->success_callback) {
+    /*
+     *  that is sync: RenderSync() or RenderFileSync,
+     *  we ran it explictly, so we stop it similarly.
+     */
+    uv_stop(ctx_w->async.loop);
+  }
+
+  NanReturnValue(NanNew<Number>(0));
 }
 
 void RegisterModule(v8::Handle<v8::Object> target) {
