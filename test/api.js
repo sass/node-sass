@@ -143,7 +143,7 @@ describe('api', function() {
     it('should compile sass to css', function(done) {
       var src = read(fixture('simple/index.scss'), 'utf8');
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
-      var css = sass.renderSync({data: src}).trim();
+      var css = sass.renderSync({data: src}).css.trim();
 
       assert.equal(css, expected.replace(/\r\n/g, '\n'));
       done();
@@ -155,7 +155,7 @@ describe('api', function() {
       var css = sass.renderSync({
         data: src,
         indentedSyntax: true
-      }).trim();
+      }).css.trim();
 
       assert.equal(css, expected.replace(/\r\n/g, '\n'));
       done();
