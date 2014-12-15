@@ -63,7 +63,7 @@ struct Sass_C_Function_Descriptor;
 typedef struct Sass_C_Function_Descriptor* (*Sass_C_Function_List);
 typedef struct Sass_C_Function_Descriptor (*Sass_C_Function_Callback);
 // Typedef defining custom function prototype and its return value type
-typedef union Sass_Value*(*Sass_C_Function) (union Sass_Value*, void* cookie);
+typedef union Sass_Value*(*Sass_C_Function) (const union Sass_Value*, void* cookie);
 
 
 // Creators for sass function list and function descriptors
