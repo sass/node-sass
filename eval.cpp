@@ -562,27 +562,35 @@ namespace Sass {
     Expression* result = 0;
     bool zero = !( t->value().substr(0, 1) == "." ||
                    t->value().substr(0, 2) == "-." );
+
+    const string& text = t->value();
+    size_t num_pos = text.find_first_not_of(" \n\r\t");
+    if (num_pos == string::npos) num_pos = text.length();
+    size_t unit_pos = text.find_first_not_of("-+0123456789.", num_pos);
+    if (unit_pos == string::npos) unit_pos = text.length();
+    const string& num = text.substr(num_pos, unit_pos - num_pos);
+
     switch (t->type())
     {
       case Textual::NUMBER:
         result = new (ctx.mem) Number(t->path(),
                                       t->position(),
-                                      atof(t->value().c_str()),
+                                      atof(num.c_str()),
                                       "",
                                       zero);
         break;
       case Textual::PERCENTAGE:
         result = new (ctx.mem) Number(t->path(),
                                       t->position(),
-                                      atof(t->value().c_str()),
+                                      atof(num.c_str()),
                                       "%",
                                       zero);
         break;
       case Textual::DIMENSION:
         result = new (ctx.mem) Number(t->path(),
                                       t->position(),
-                                      atof(t->value().c_str()),
-                                      Token(number(t->value().c_str())),
+                                      atof(num.c_str()),
+                                      Token(number(text.c_str())),
                                       zero);
         break;
       case Textual::HEX: {
