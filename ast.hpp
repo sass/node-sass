@@ -258,7 +258,23 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
   class Statement : public AST_Node {
   public:
-    Statement(string path, Position position) : AST_Node(path, position) { }
+    enum Statement_Type {
+      NONE,
+      RULESET,
+      MEDIA,
+      DIRECTIVE,
+      KEYFRAME,
+      FEATURE,
+      BUBBLE
+    };
+  private:
+    ADD_PROPERTY(Block*, block);
+    ADD_PROPERTY(Statement_Type, statement_type);
+  public:
+    Statement(string path, Position position, Statement_Type st = NONE)
+    : AST_Node(path, position),
+      statement_type_(st)
+     { }
     virtual ~Statement() = 0;
     // needed for rearranging nested rulesets during CSS emission
     virtual bool   is_hoistable() { return false; }
@@ -314,7 +330,7 @@ namespace Sass {
   public:
     Ruleset(string path, Position position, Selector* s, Block* b)
     : Has_Block(path, position, b), selector_(s)
-    { }
+    { statement_type(RULESET); }
     bool is_invisible();
     // nested rulesets need to be hoisted out of their enclosing blocks
     bool is_hoistable() { return true; }
@@ -335,6 +351,20 @@ namespace Sass {
   };
 
   /////////////////
+  // Bubble.
+  /////////////////
+  class Bubble : public Statement {
+    ADD_PROPERTY(Statement*, node);
+    ADD_PROPERTY(Statement*, group_end);
+    ADD_PROPERTY(size_t, tabs);
+  public:
+    Bubble(string path, Position position, Statement* n, Statement* g = 0, size_t t = 0)
+    : Statement(path, position), node_(n), group_end_(g), tabs_(t)
+    { statement_type(BUBBLE); }
+    ATTACH_OPERATIONS();
+  };
+
+  /////////////////
   // Media queries.
   /////////////////
   class List;
@@ -344,7 +374,10 @@ namespace Sass {
   public:
     Media_Block(string path, Position position, List* mqs, Block* b)
     : Has_Block(path, position, b), media_queries_(mqs), selector_(0)
-    { }
+    { statement_type(MEDIA); }
+    Media_Block(string path, Position position, List* mqs, Block* b, Selector* s)
+    : Has_Block(path, position, b), media_queries_(mqs), selector_(s)
+    { statement_type(MEDIA); }
     bool is_hoistable() { return true; }
     bool is_invisible() {
       bool is_invisible = true;

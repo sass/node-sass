@@ -105,8 +105,8 @@ namespace Sass {
     Media_Block* mm = new (ctx.mem) Media_Block(m->path(),
                                                 m->position(),
                                                 static_cast<List*>(media_queries),
-                                                m->block()->perform(this)->block());
-    mm->selector(selector_stack.back());
+                                                m->block()->perform(this)->block(),
+                                                selector_stack.back());
     return mm;
   }
 

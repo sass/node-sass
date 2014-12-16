@@ -53,6 +53,13 @@ namespace Sass {
     propset->block()->perform(this);
   }
 
+  void Inspect::operator()(Bubble* bubble)
+  {
+    append_to_buffer("Bubble ( ");
+    bubble->node()->perform(this);
+    append_to_buffer(" )");
+  }
+
   void Inspect::operator()(Media_Block* media_block)
   {
     if (ctx) ctx->source_map.add_mapping(media_block);
