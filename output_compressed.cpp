@@ -10,14 +10,23 @@
 namespace Sass {
   using namespace std;
 
-  Output_Compressed::Output_Compressed(Context* ctx) : buffer(""), rendered_imports(""), ctx(ctx) { }
+  Output_Compressed::Output_Compressed(Context* ctx) : buffer(""), rendered_imports(""), ctx(ctx), seen_utf8(false) { }
   Output_Compressed::~Output_Compressed() { }
 
   inline void Output_Compressed::fallback_impl(AST_Node* n)
   {
     Inspect i(ctx);
     n->perform(&i);
-    buffer += i.get_buffer();
+    const string& text = i.get_buffer();
+    for(const char& chr : text) {
+      // abort clause
+      if (seen_utf8) break;
+      // skip all normal ascii chars
+      if (Util::isAscii(chr)) continue;
+      // singleton
+      seen_utf8 = true;
+    }
+    buffer += text;
   }
 
   void Output_Compressed::operator()(Import* imp)
@@ -205,7 +214,16 @@ namespace Sass {
     else {
       Inspect i(ctx);
       c->perform(&i);
-      buffer += i.get_buffer();
+      const string& text = i.get_buffer();
+      for(const char& chr : text) {
+        // abort clause
+        if (seen_utf8) break;
+        // skip all normal ascii chars
+        if (Util::isAscii(chr)) continue;
+        // singleton
+        seen_utf8 = true;
+      }
+      buffer += text;
     }
   }
 
@@ -364,6 +382,14 @@ namespace Sass {
   void Output_Compressed::append_singleline_part_to_buffer(const string& text)
   {
     buffer += text;
+    for(const char& chr : text) {
+      // abort clause
+      if (seen_utf8) break;
+      // skip all normal ascii chars
+      if (Util::isAscii(chr)) continue;
+      // singleton
+      seen_utf8 = true;
+    }
     if (ctx && !ctx->_skip_source_map_update)
       ctx->source_map.update_column(text);
   }

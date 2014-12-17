@@ -12,7 +12,7 @@ namespace Sass {
   using namespace std;
 
   Output_Nested::Output_Nested(bool source_comments, Context* ctx)
-  : buffer(""), rendered_imports(""), indentation(0), source_comments(source_comments), ctx(ctx)
+  : buffer(""), rendered_imports(""), indentation(0), source_comments(source_comments), ctx(ctx), seen_utf8(false)
   { }
   Output_Nested::~Output_Nested() { }
 
@@ -20,7 +20,16 @@ namespace Sass {
   {
     Inspect i(ctx);
     n->perform(&i);
-    buffer += i.get_buffer();
+    const string& text = i.get_buffer();
+    for(const char& chr : text) {
+      // abort clause
+      if (seen_utf8) break;
+      // skip all normal ascii chars
+      if (Util::isAscii(chr)) continue;
+      // singleton
+      seen_utf8 = true;
+    }
+    buffer += text;
   }
 
   void Output_Nested::operator()(Import* imp)
@@ -338,6 +347,14 @@ namespace Sass {
   void Output_Nested::append_to_buffer(const string& text)
   {
     buffer += text;
+    for(const char& chr : text) {
+      // abort clause
+      if (seen_utf8) break;
+      // skip all normal ascii chars
+      if (Util::isAscii(chr)) continue;
+      // singleton
+      seen_utf8 = true;
+    }
     if (ctx && !ctx->_skip_source_map_update)
       ctx->source_map.update_column(text);
   }
