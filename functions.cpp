@@ -734,8 +734,11 @@ namespace Sass {
     {
       To_String to_string;
       AST_Node* arg = env["$string"];
-      string str(unquote(arg->perform(&to_string)));
+      string org(arg->perform(&to_string));
+      string str(unquote(org));
       String_Constant* result = new (ctx.mem) String_Constant(path, position, str);
+      // remember if the string was quoted (color tokens)
+      if (org[0] != str[0]) result->needs_unquoting(true);
       result->is_delayed(true);
       return result;
     }

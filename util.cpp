@@ -21,6 +21,22 @@ namespace Sass {
       return normalized[0] == '.' ? normalized.insert(0, prefix) : normalized;
     }
 
+    // compress a color sixtuplet if possible
+    // input: "#CC9900" -> output: "#C90"
+    string normalize_sixtuplet(const string& col) {
+      if(
+        col.substr(1, 1) == col.substr(2, 1) &&
+        col.substr(3, 1) == col.substr(4, 1) &&
+        col.substr(5, 1) == col.substr(6, 1)
+      ) {
+        return string("#" + col.substr(1, 1)
+                          + col.substr(3, 1)
+                          + col.substr(5, 1));
+      } else {
+        return string(col);
+      }
+    }
+
     bool isPrintable(Ruleset* r) {
       if (r == NULL) {
         return false;

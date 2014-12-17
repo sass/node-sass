@@ -1171,11 +1171,12 @@ namespace Sass {
     ADD_PROPERTY(double, g);
     ADD_PROPERTY(double, b);
     ADD_PROPERTY(double, a);
+    ADD_PROPERTY(bool, sixtuplet);
     ADD_PROPERTY(string, disp);
     size_t hash_;
   public:
-    Color(string path, Position position, double r, double g, double b, double a = 1, const string disp = "")
-    : Expression(path, position), r_(r), g_(g), b_(b), a_(a), disp_(disp),
+    Color(string path, Position position, double r, double g, double b, double a = 1, bool sixtuplet = true, const string disp = "")
+    : Expression(path, position), r_(r), g_(g), b_(b), a_(a), sixtuplet_(sixtuplet), disp_(disp),
       hash_(0)
     { concrete_type(COLOR); }
     string type() { return "color"; }

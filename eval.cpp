@@ -1,6 +1,7 @@
 #include "eval.hpp"
 #include "ast.hpp"
 #include "bind.hpp"
+#include "util.hpp"
 #include "to_string.hpp"
 #include "inspect.hpp"
 #include "to_c.hpp"
@@ -561,27 +562,35 @@ namespace Sass {
     Expression* result = 0;
     bool zero = !( t->value().substr(0, 1) == "." ||
                    t->value().substr(0, 2) == "-." );
+
+    const string& text = t->value();
+    size_t num_pos = text.find_first_not_of(" \n\r\t");
+    if (num_pos == string::npos) num_pos = text.length();
+    size_t unit_pos = text.find_first_not_of("-+0123456789.", num_pos);
+    if (unit_pos == string::npos) unit_pos = text.length();
+    const string& num = text.substr(num_pos, unit_pos - num_pos);
+
     switch (t->type())
     {
       case Textual::NUMBER:
         result = new (ctx.mem) Number(t->path(),
                                       t->position(),
-                                      atof(t->value().c_str()),
+                                      atof(num.c_str()),
                                       "",
                                       zero);
         break;
       case Textual::PERCENTAGE:
         result = new (ctx.mem) Number(t->path(),
                                       t->position(),
-                                      atof(t->value().c_str()),
+                                      atof(num.c_str()),
                                       "%",
                                       zero);
         break;
       case Textual::DIMENSION:
         result = new (ctx.mem) Number(t->path(),
                                       t->position(),
-                                      atof(t->value().c_str()),
-                                      Token(number(t->value().c_str())),
+                                      atof(num.c_str()),
+                                      Token(number(text.c_str())),
                                       zero);
         break;
       case Textual::HEX: {
@@ -595,7 +604,7 @@ namespace Sass {
                                        static_cast<double>(strtol(r.c_str(), NULL, 16)),
                                        static_cast<double>(strtol(g.c_str(), NULL, 16)),
                                        static_cast<double>(strtol(b.c_str(), NULL, 16)),
-                                       1,
+                                       1, true,
                                        t->value());
         }
         else {
@@ -604,7 +613,7 @@ namespace Sass {
                                        static_cast<double>(strtol(string(2,hext[0]).c_str(), NULL, 16)),
                                        static_cast<double>(strtol(string(2,hext[1]).c_str(), NULL, 16)),
                                        static_cast<double>(strtol(string(2,hext[2]).c_str(), NULL, 16)),
-                                       1,
+                                       1, false,
                                        t->value());
         }
       } break;
@@ -938,11 +947,13 @@ namespace Sass {
       case Binary_Expression::DIV: {
         string sep(op == Binary_Expression::SUB ? "-" : "/");
         To_String to_string;
+        string color(r->sixtuplet() ? r->perform(&to_string) :
+                     Util::normalize_sixtuplet(r->perform(&to_string)));
         return new (ctx.mem) String_Constant(l->path(),
                                              l->position(),
                                              l->perform(&to_string)
                                              + sep
-                                             + r->perform(&to_string));
+                                             + color);
       } break;
       case Binary_Expression::MOD: {
         error("cannot divide a number by a color", r->path(), r->position());
@@ -992,27 +1003,30 @@ namespace Sass {
     Expression::Concrete_Type ltype = lhs->concrete_type();
     Expression::Concrete_Type rtype = rhs->concrete_type();
 
-    // TODO: currently SASS converts colors to standard form when adding to strings;
-    // when https://github.com/nex3/sass/issues/363 is added this can be removed to
-    // preserve the original value
-    if (ltype == Expression::COLOR) ((Sass::Color*)lhs)->disp("");
-    if (rtype == Expression::COLOR) ((Sass::Color*)rhs)->disp("");
-
     string lstr(lhs->perform(&to_string));
     string rstr(rhs->perform(&to_string));
+
+    bool l_str_quoted = ((Sass::String*)lhs) && ((Sass::String*)lhs)->needs_unquoting();
+    bool r_str_quoted = ((Sass::String*)rhs) && ((Sass::String*)rhs)->needs_unquoting();
+    bool l_str_color = ltype == Expression::STRING && ctx.names_to_colors.count(lstr) && !l_str_quoted;
+    bool r_str_color = rtype == Expression::STRING && ctx.names_to_colors.count(rstr) && !r_str_quoted;
+
     bool unquoted = false;
     if (ltype == Expression::STRING && lstr[0] != '"' && lstr[0] != '\'') unquoted = true;
-    if (ltype == Expression::STRING && !lhs->is_delayed() && ctx.names_to_colors.count(lstr) &&
-        rtype == Expression::STRING && !rhs->is_delayed() && ctx.names_to_colors.count(rstr)) {
+    if (l_str_color && r_str_color) {
       return op_colors(ctx, op, ctx.names_to_colors[lstr], ctx.names_to_colors[rstr]);
     }
-    else if (ltype == Expression::STRING && !lhs->is_delayed() && ctx.names_to_colors.count(lstr) &&
-             rtype == Expression::NUMBER) {
+    else if (l_str_color && rtype == Expression::COLOR) {
+      return op_colors(ctx, op, ctx.names_to_colors[lstr], rhs);
+    }
+    else if (l_str_color && rtype == Expression::NUMBER) {
       return op_color_number(ctx, op, ctx.names_to_colors[lstr], rhs);
     }
-    else if (ltype == Expression::NUMBER &&
-             rtype == Expression::STRING && !rhs->is_delayed() && ctx.names_to_colors.count(rstr)) {
-      return op_number_color(ctx, op, rhs, ctx.names_to_colors[rstr]);
+    else if (ltype == Expression::COLOR && r_str_color) {
+      return op_number_color(ctx, op, lhs, ctx.names_to_colors[rstr]);
+    }
+    else if (ltype == Expression::NUMBER && r_str_color) {
+      return op_number_color(ctx, op, lhs, ctx.names_to_colors[rstr]);
     }
     if (op == Binary_Expression::MUL) error("invalid operands for multiplication", lhs->path(), lhs->position());
     if (op == Binary_Expression::MOD) error("invalid operands for modulo", lhs->path(), lhs->position());
