@@ -223,7 +223,6 @@ NAN_METHOD(RenderSync) {
 
   Local<String> error = NanNew<String>(sass_context_get_error_json(ctx));
 
-  sass_delete_data_context(dctx);
   sass_free_context_wrapper(ctx_w);
   NanThrowError(error);
 
@@ -271,7 +270,6 @@ NAN_METHOD(RenderFileSync) {
 
   Local<String> error = NanNew<String>(sass_context_get_error_json(ctx));
 
-  sass_delete_file_context(fctx);
   sass_free_context_wrapper(ctx_w);
   NanThrowError(error);
 
