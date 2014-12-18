@@ -240,6 +240,7 @@ if (options.src) {
 } else if (!process.stdin.isTTY) {
   stdin(function(data) {
     options.data = data;
+    options.stdin = true;
     run(options, emitter);
   });
 }
