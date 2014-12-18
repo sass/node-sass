@@ -40,8 +40,8 @@ describe('spec', function () {
             sass.render({
               file: t.src,
               includePaths: t.paths,
-              success: function(css) {
-                assert.equal(util.normalize(css), expected);
+              success: function(result) {
+                assert.equal(util.normalize(result.css), expected);
                 done();
               },
               error: function(err) {
