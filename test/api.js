@@ -133,6 +133,24 @@ describe('api', function() {
         }
       });
     });
+
+    it('should override imports with custom importer', function(done) {
+      var src = read(fixture('include-files/index.scss'), 'utf8');
+
+      sass.render({
+        data: src,
+        success: function(result) {
+          assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+          done();
+        },
+        importer: function(url, prev, done) {
+          done({
+            file: '/some/other/path.scss',
+            contents: 'div {color: yellow;}'
+          });
+        }
+      });
+    });
   });
 
   describe('.renderSync(options)', function() {
@@ -162,6 +180,23 @@ describe('api', function() {
         sass.renderSync({data: '#navbar width 80%;'});
       });
 
+      done();
+    });
+
+    it('should override imports with custom importer', function(done) {
+      var src = read(fixture('include-files/index.scss'), 'utf8');
+
+      var result = sass.renderSync({
+        data: src,
+        importer: function(url, prev, finish) {
+          finish({
+            file: '/some/other/path.scss',
+            contents: 'div {color: yellow;}'
+          });
+        }
+      });
+
+      assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
       done();
     });
   });
