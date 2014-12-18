@@ -20,6 +20,7 @@ extern "C" {
     uv_cond_t importer_condition_variable;
     uv_async_t async;
     const char* file;
+    const char* prev;
     void* cookie;
     Sass_Import** imports;
     NanCallback* success_callback;

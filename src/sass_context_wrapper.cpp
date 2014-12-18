@@ -43,6 +43,7 @@ extern "C" {
     delete ctx_w->error_callback;
     delete ctx_w->importer_callback;
     delete ctx_w->file;
+    delete ctx_w->prev;
     delete ctx_w->cookie;
 
     uv_mutex_destroy(&ctx_w->importer_mutex);

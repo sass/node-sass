@@ -25,21 +25,23 @@ void dispatched_async_uv_callback(uv_async_t *req){
 
   Handle<Value> argv[] = {
     NanNew<String>(strdup(ctx_w->file)),
+    NanNew<String>(strdup(ctx_w->prev)),
     NanNew<Number>(imports_collection.size() - 1)
   };
 
-  NanNew<Value>(ctx_w->importer_callback->Call(2, argv));
+  NanNew<Value>(ctx_w->importer_callback->Call(3, argv));
 
   if (try_catch.HasCaught()) {
     node::FatalException(try_catch);
   }
 }
 
-struct Sass_Import** sass_importer(const char* file, void* cookie)
+struct Sass_Import** sass_importer(const char* file, const char* prev, void* cookie)
 {
   sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(cookie);
 
   ctx_w->file = strdup(file);
+  ctx_w->prev = strdup(prev);
   ctx_w->async.data = (void*)ctx_w;
   uv_async_send(&ctx_w->async);
 
