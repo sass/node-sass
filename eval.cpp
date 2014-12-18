@@ -164,6 +164,7 @@ namespace Sass {
           val = body->perform(this);
           if (val) break;
         }
+        if (val) break;
       }
     }
     env = new_env.parent();
