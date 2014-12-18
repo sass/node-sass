@@ -31,6 +31,8 @@ var cli = meow({
     '  --output-style             CSS output style (nested|expanded|compact|compressed)',
     '  --source-comments          Include debug info in output',
     '  --source-map               Emit source map',
+    '  --source-map-embed         Embed sourceMappingUrl as data URI',
+    '  --source-map-contents      Embed include contents in map',
     '  --include-path             Path to look for imported files',
     '  --image-path               Path to prepend when using the `image-url()` helper',
     '  --precision                The amount of precision allowed in decimal numbers',
@@ -43,6 +45,8 @@ var cli = meow({
     'omit-source-map-url',
     'recursive',
     'stdout',
+    'source-map-embed',
+    'source-map-contents',
     'source-comments'
   ],
   string: [
@@ -116,7 +120,17 @@ function getOptions(args, options) {
   var dir = options.output || process.cwd();
 
   options.src = args[0];
-  options.dest = args[1] ? path.join(dir, args[1]) : null;
+  options.dest = null;
+
+  if (args[1]) { // destination is available
+    // now first check if the destination is absolute path
+    // see http://stackoverflow.com/a/24225816/863980 for Marc Diethelm's comment
+    if (path.resolve(args[1]) === path.normalize(args[1]).replace(/(.+)([\/|\\])$/, '$1')) {
+      options.dest = args[1];
+    } else { // since dest path is relative, resolve it w.r.t input 
+      options.dest = path.join(dir, args[1]);
+    }
+  }
 
   if (!options.dest && !options.stdout) {
     var ext = path.extname(options.src);

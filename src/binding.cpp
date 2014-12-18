@@ -1,23 +1,5 @@
 #include <nan.h>
-#include <string>
-#include <cstring>
-#include <iostream>
-#include <cstdlib>
 #include "sass_context_wrapper.h"
-
-using namespace v8;
-using namespace std;
-
-void WorkOnContext(uv_work_t* req) {
-  sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(req->data);
-  if (ctx_w->ctx) {
-    sass_context* ctx = static_cast<sass_context*>(ctx_w->ctx);
-    sass_compile(ctx);
-  } else if (ctx_w->fctx) {
-    sass_file_context* ctx = static_cast<sass_file_context*>(ctx_w->fctx);
-    sass_compile_file(ctx);
-  }
-}
 
 char* CreateString(Local<Value> value) {
   if(value->IsNull() || !value->IsString()) {
@@ -30,10 +12,7 @@ char* CreateString(Local<Value> value) {
   return str;
 }
 
-void ExtractOptions(Local<Value> optionsValue, void* cptr, sass_context_wrapper* ctx_w, bool isFile) {
-  bool source_comments;
-  Local<Object> options = optionsValue->ToObject();
-
+void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx_w, bool isFile) {
   if (ctx_w) {
     NanAssignPersistent(ctx_w->stats, options->Get(NanNew("stats"))->ToObject());
 
@@ -41,67 +20,63 @@ void ExtractOptions(Local<Value> optionsValue, void* cptr, sass_context_wrapper*
     Local<Function> callback = Local<Function>::Cast(options->Get(NanNew("success")));
     Local<Function> errorCallback = Local<Function>::Cast(options->Get(NanNew("error")));
     if (isFile) {
-      ctx_w->fctx = (sass_file_context*) cptr;
+      ctx_w->fctx = (struct Sass_File_Context*) cptr;
     } else {
-      ctx_w->ctx = (sass_context*) cptr;
+      ctx_w->dctx = (struct Sass_Data_Context*) cptr;
     }
     ctx_w->request.data = ctx_w;
     ctx_w->callback = new NanCallback(callback);
     ctx_w->errorCallback = new NanCallback(errorCallback);
   }
 
+  struct Sass_Context* ctx;
+
   if (isFile) {
-    sass_file_context* ctx = (sass_file_context*) cptr;
-    ctx->input_path = CreateString(options->Get(NanNew("file")));
-    ctx->output_path = CreateString(options->Get(NanNew("outFile")));
-    ctx->options.image_path = CreateString(options->Get(NanNew("imagePath")));
-    ctx->options.output_style = options->Get(NanNew("style"))->Int32Value();
-    ctx->options.source_comments = source_comments = options->Get(NanNew("comments"))->BooleanValue();
-    ctx->options.omit_source_map_url = options->Get(NanNew("omitSourceMapUrl"))->BooleanValue();
-    ctx->options.source_map_file = CreateString(options->Get(NanNew("sourceMap")));
-    ctx->options.include_paths = CreateString(options->Get(NanNew("paths")));
-    ctx->options.precision = options->Get(NanNew("precision"))->Int32Value();
+    ctx = sass_file_context_get_context((struct Sass_File_Context*) cptr);
   } else {
-    sass_context* ctx = (sass_context*) cptr;
-    ctx->source_string = CreateString(options->Get(NanNew("data")));
-    ctx->output_path = CreateString(options->Get(NanNew("outFile")));
-    ctx->options.is_indented_syntax_src = options->Get(NanNew("indentedSyntax"))->BooleanValue();
-    ctx->options.image_path = CreateString(options->Get(NanNew("imagePath")));
-    ctx->options.output_style = options->Get(NanNew("style"))->Int32Value();
-    ctx->options.source_comments = source_comments = options->Get(NanNew("comments"))->BooleanValue();
-    ctx->options.omit_source_map_url = options->Get(NanNew("omitSourceMapUrl"))->BooleanValue();
-    ctx->options.source_map_file = CreateString(options->Get(NanNew("sourceMap")));
-    ctx->options.include_paths = CreateString(options->Get(NanNew("paths")));
-    ctx->options.precision = options->Get(NanNew("precision"))->Int32Value();
+    ctx = sass_data_context_get_context((struct Sass_Data_Context*) cptr);
   }
+
+  struct Sass_Options* sass_options = sass_context_get_options(ctx);
+
+  sass_option_set_output_path(sass_options, CreateString(options->Get(NanNew("outFile"))));
+  sass_option_set_image_path(sass_options, CreateString(options->Get(NanNew("imagePath"))));
+  sass_option_set_output_style(sass_options, (Sass_Output_Style)options->Get(NanNew("style"))->Int32Value());
+  sass_option_set_is_indented_syntax_src(sass_options, options->Get(NanNew("indentedSyntax"))->BooleanValue());
+  sass_option_set_source_comments(sass_options, options->Get(NanNew("comments"))->BooleanValue());
+  sass_option_set_omit_source_map_url(sass_options, options->Get(NanNew("omitSourceMapUrl"))->BooleanValue());
+  sass_option_set_source_map_embed(sass_options, options->Get(NanNew("sourceMapEmbed"))->BooleanValue());
+  sass_option_set_source_map_contents(sass_options, options->Get(NanNew("sourceMapContents"))->BooleanValue());
+  sass_option_set_source_map_file(sass_options, CreateString(options->Get(NanNew("sourceMap"))));
+  sass_option_set_include_path(sass_options, CreateString(options->Get(NanNew("paths"))));
+  sass_option_set_precision(sass_options, options->Get(NanNew("precision"))->Int32Value());
 }
 
-template<typename Ctx>
-void FillStatsObj(Handle<Object> stats, Ctx ctx) {
-  int i;
-  Handle<Array> arr;
+void FillStatsObj(Handle<Object> stats, Sass_Context* ctx) {
+  char** included_files = sass_context_get_included_files(ctx);
+  Handle<Array> arr = NanNew<Array>();
 
-  arr = NanNew<Array>(ctx->num_included_files);
-  for (i = 0; i < ctx->num_included_files; i++) {
-    arr->Set(i, NanNew<String>(ctx->included_files[i]));
+  if(included_files) {
+    for (int i = 0; included_files[i] != nullptr; ++i) {
+      arr->Set(i, NanNew<String>(included_files[i]));
+    }
   }
+
   (*stats)->Set(NanNew("includedFiles"), arr);
-}
 
-void FillStatsObj(Handle<Object> stats, sass_file_context* ctx) {
   Handle<Value> source_map;
 
-  FillStatsObj<sass_file_context*>(stats, ctx);
+  if (sass_context_get_error_status(ctx)) {
+    return;
+  }
 
-  if (ctx->error_status) {
-      return;
-  }
-  if (ctx->source_map_string) {
-    source_map = NanNew<String>(ctx->source_map_string);
+  if (sass_context_get_source_map_string(ctx)) {
+    source_map = NanNew<String>(sass_context_get_source_map_string(ctx));
   } else {
-    source_map = NanNull();
+    source_map = NanNew<String>("{}");
   }
-  (*stats)->Set(NanNew("sourceMap"), source_map);
+
+  (*stats)->Set(NanNew("sourceMap"), source_map); 
 }
 
 void MakeCallback(uv_work_t* req) {
@@ -109,17 +84,22 @@ void MakeCallback(uv_work_t* req) {
 
   TryCatch try_catch;
   sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(req->data);
-  int error_status = ctx_w->ctx ? ctx_w->ctx->error_status : ctx_w->fctx->error_status;
+  int error_status;
+  struct Sass_Context* ctx;
 
-  if (ctx_w->ctx) {
-    FillStatsObj(NanNew(ctx_w->stats), ctx_w->ctx);
+  if (ctx_w->dctx) {
+    ctx = sass_data_context_get_context(ctx_w->dctx);
+    FillStatsObj(NanNew(ctx_w->stats), ctx);
+    error_status = sass_context_get_error_status(ctx);
   } else {
-    FillStatsObj(NanNew(ctx_w->stats), ctx_w->fctx);
+    ctx = sass_file_context_get_context(ctx_w->fctx);
+    FillStatsObj(NanNew(ctx_w->stats), ctx);
+    error_status = sass_context_get_error_status(ctx);
   }
 
   if (error_status == 0) {
     // if no error, do callback(null, result)
-    char* val = ctx_w->ctx ? ctx_w->ctx->output_string : ctx_w->fctx->output_string;
+    const char* val = sass_context_get_output_string(ctx);
     Local<Value> argv[] = {
       NanNew<String>(val),
       NanNew(ctx_w->stats)->Get(NanNew("sourceMap"))
@@ -127,7 +107,7 @@ void MakeCallback(uv_work_t* req) {
     ctx_w->callback->Call(2, argv);
   } else {
     // if error, do callback(error)
-    char* err = ctx_w->ctx ? ctx_w->ctx->error_message : ctx_w->fctx->error_message;
+    const char* err = sass_context_get_error_json(ctx);
     Local<Value> argv[] = {
       NanNew<String>(err),
       NanNew<Integer>(error_status)
@@ -137,18 +117,24 @@ void MakeCallback(uv_work_t* req) {
   if (try_catch.HasCaught()) {
     node::FatalException(try_catch);
   }
+
   sass_free_context_wrapper(ctx_w);
 }
 
 NAN_METHOD(Render) {
   NanScope();
 
-  sass_context* ctx = sass_new_context();
-  sass_context_wrapper* ctx_w = sass_new_context_wrapper();
-  ctx_w->ctx = ctx;
-  ExtractOptions(args[0], ctx, ctx_w, false);
+  Local<Object> options = args[0]->ToObject();
+  char* source_string = CreateString(options->Get(NanNew("data")));
+  struct Sass_Data_Context* dctx = sass_make_data_context(source_string);
+  sass_context_wrapper* ctx_w = sass_make_context_wrapper();
 
-  int status = uv_queue_work(uv_default_loop(), &ctx_w->request, WorkOnContext, (uv_after_work_cb)MakeCallback);
+  ctx_w->dctx = dctx;
+
+  ExtractOptions(options, dctx, ctx_w, false);
+
+  int status = uv_queue_work(uv_default_loop(), &ctx_w->request, compile_it, (uv_after_work_cb)MakeCallback);
+
   assert(status == 0);
 
   NanReturnUndefined();
@@ -156,58 +142,75 @@ NAN_METHOD(Render) {
 
 NAN_METHOD(RenderSync) {
   NanScope();
-  Handle<Object> options = args[0]->ToObject();
-  sass_context* ctx = sass_new_context();
-  ExtractOptions(args[0], ctx, NULL, false);
 
-  sass_compile(ctx);
+  Local<Object> options = args[0]->ToObject();
+  char* source_string = CreateString(options->Get(NanNew("data")));
+  struct Sass_Data_Context* dctx = sass_make_data_context(source_string);
+  struct Sass_Context* ctx = sass_data_context_get_context(dctx);
 
+  ExtractOptions(options, dctx, NULL, false);
+  compile_data(dctx);
   FillStatsObj(options->Get(NanNew("stats"))->ToObject(), ctx);
 
-  if (ctx->error_status == 0) {
-    Local<String> output = NanNew<String>(ctx->output_string);
-    free_context(ctx);
+  if (sass_context_get_error_status(ctx) == 0) {
+    Local<String> output = NanNew<String>(sass_context_get_output_string(ctx));
+
+    sass_delete_data_context(dctx);
     NanReturnValue(output);
   }
 
-  Local<String> error = NanNew<String>(ctx->error_message);
-  free_context(ctx);
+  Local<String> error = NanNew<String>(sass_context_get_error_json(ctx));
+
+  sass_delete_data_context(dctx);
   NanThrowError(error);
+
   NanReturnUndefined();
 }
 
 NAN_METHOD(RenderFile) {
   NanScope();
-  sass_file_context* fctx = sass_new_file_context();
-  sass_context_wrapper* ctx_w = sass_new_context_wrapper();
-  ctx_w->fctx = fctx;
-  ExtractOptions(args[0], fctx, ctx_w, true);
 
-  int status = uv_queue_work(uv_default_loop(), &ctx_w->request, WorkOnContext, (uv_after_work_cb)MakeCallback);
+  Local<Object> options = args[0]->ToObject();
+  char* input_path = CreateString(options->Get(NanNew("file")));
+  struct Sass_File_Context* fctx = sass_make_file_context(input_path);
+  sass_context_wrapper* ctx_w = sass_make_context_wrapper();
+
+  ctx_w->fctx = fctx;
+  ExtractOptions(options, fctx, ctx_w, true);
+
+  int status = uv_queue_work(uv_default_loop(), &ctx_w->request, compile_it, (uv_after_work_cb)MakeCallback);
+
   assert(status == 0);
+  free(input_path);
 
   NanReturnUndefined();
 }
 
 NAN_METHOD(RenderFileSync) {
   NanScope();
-  sass_file_context* ctx = sass_new_file_context();
-  ExtractOptions(args[0], ctx, NULL, true);
-  Handle<Object> options = args[0]->ToObject();
 
-  sass_compile_file(ctx);
+  Local<Object> options = args[0]->ToObject();
+  char* input_path = CreateString(options->Get(NanNew("file")));
+  struct Sass_File_Context* fctx = sass_make_file_context(input_path);
+  struct Sass_Context* ctx = sass_file_context_get_context(fctx);
 
+  ExtractOptions(options, fctx, NULL, true);
+  compile_file(fctx);
   FillStatsObj(options->Get(NanNew("stats"))->ToObject(), ctx);
+  free(input_path);
 
-  if (ctx->error_status == 0) {
-    Local<String> output = NanNew<String>(ctx->output_string);
-    free_file_context(ctx);
+  if (sass_context_get_error_status(ctx) == 0) {
+    Local<String> output = NanNew<String>(sass_context_get_output_string(ctx));
+
+    sass_delete_file_context(fctx);
     NanReturnValue(output);
   }
 
-  Local<String> error = NanNew<String>(ctx->error_message);
-  free_file_context(ctx);
+  Local<String> error = NanNew<String>(sass_context_get_error_json(ctx));
+
+  sass_delete_file_context(fctx);
   NanThrowError(error);
+
   NanReturnUndefined();
 }
 

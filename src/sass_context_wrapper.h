@@ -1,5 +1,5 @@
-#include "libsass/sass_interface.h"
 #include <nan.h>
+#include "libsass/sass_context.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -7,20 +7,21 @@ extern "C" {
 
 using namespace v8;
 
-void free_context(sass_context* ctx);
-void free_file_context(sass_file_context* fctx);
+void compile_data(struct Sass_Data_Context* dctx);
+void compile_file(struct Sass_File_Context* fctx);
+void compile_it(uv_work_t* req);
 
 struct sass_context_wrapper {
-  sass_context* ctx;
-  sass_file_context* fctx;
+  Sass_Data_Context* dctx;
+  Sass_File_Context* fctx;
   Persistent<Object> stats;
   uv_work_t request;
   NanCallback* callback;
   NanCallback* errorCallback;
 };
 
-struct sass_context_wrapper*      sass_new_context_wrapper(void);
-void sass_free_context_wrapper(struct sass_context_wrapper* ctx);
+struct sass_context_wrapper*      sass_make_context_wrapper(void);
+void sass_free_context_wrapper(struct sass_context_wrapper* ctx_w);
 
 #ifdef __cplusplus
 }
