@@ -490,7 +490,7 @@ namespace Sass {
         return seq;
       }
     }
-    if (sawsomething && lex< sequence< negate< functional >, alternatives< hyphens_and_identifier, universal, string_constant, dimension, percentage, number > > >()) {
+    if (sawsomething && lex< sequence< negate< functional >, alternatives< identifier_fragment, universal, string_constant, dimension, percentage, number > > >()) {
       // saw an ampersand, then allow type selectors with arbitrary number of hyphens at the beginning
       (*seq) << new (ctx.mem) Type_Selector(path, source_position, lexed);
     } else if (lex< sequence< negate< functional >, alternatives< type_selector, universal, string_constant, dimension, percentage, number > > >()) {
@@ -1776,6 +1776,8 @@ namespace Sass {
            (q = peek< sequence< optional<sign>,
                                 digits > >(p))                     ||
            (q = peek< number >(p))                                 ||
+           (q = peek< sequence< exactly<'&'>,
+                                identifier_fragment > >(p))        ||
            (q = peek< exactly<'&'> >(p))                           ||
            (q = peek< exactly<'%'> >(p))                           ||
            (q = peek< alternatives<exact_match,
@@ -1832,6 +1834,8 @@ namespace Sass {
            (q = peek< sequence< optional<sign>,
                                 digits > >(p))                     ||
            (q = peek< number >(p))                                 ||
+           (q = peek< sequence< exactly<'&'>,
+                                identifier_fragment > >(p))        ||
            (q = peek< exactly<'&'> >(p))                           ||
            (q = peek< exactly<'%'> >(p))                           ||
            (q = peek< alternatives<exact_match,
