@@ -8,7 +8,19 @@ var assert = require('assert'),
 
 describe('api', function() {
   describe('.render(options)', function() {
-    it('should compile sass to css', function(done) {
+    it('should compile sass to css with file', function(done) {
+      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
+
+      sass.render({
+        file: fixture('simple/index.scss'),
+        success: function(result) {
+          assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
+          done();
+        }
+      });
+    });
+
+    it('should compile sass to css with data', function(done) {
       var src = read(fixture('simple/index.scss'), 'utf8');
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
 
@@ -104,19 +116,6 @@ describe('api', function() {
       });
     });
 
-    it('should compile with stats', function(done) {
-      var src = fixture('precision/index.scss');
-
-      sass.render({
-        file: src,
-        sourceMap: true,
-        success: function(result) {
-          assert.equal(result.stats.entry, src);
-          done();
-        }
-      });
-    });
-
     it('should contain all included files in stats when data is passed', function(done) {
       var src = fixture('include-files/index.scss');
       var expected = [
@@ -134,7 +133,7 @@ describe('api', function() {
       });
     });
 
-    it('should override imports with custom importer', function(done) {
+    it('should override imports with custom importer with data', function(done) {
       var src = read(fixture('include-files/index.scss'), 'utf8');
 
       sass.render({
@@ -151,10 +150,34 @@ describe('api', function() {
         }
       });
     });
+
+    it('should override imports with custom importer with file', function(done) {
+      sass.render({
+        file: fixture('include-files/index.scss'),
+        success: function(result) {
+          assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+          done();
+        },
+        importer: function(url, prev, done) {
+          done({
+            file: '/some/other/path.scss',
+            contents: 'div {color: yellow;}'
+          });
+        }
+      });
+    });
   });
 
   describe('.renderSync(options)', function() {
-    it('should compile sass to css', function(done) {
+    it('should compile sass to css with file', function(done) {
+      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
+      var result = sass.renderSync({file: fixture('simple/index.scss')});
+
+      assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should compile sass to css with data', function(done) {
       var src = read(fixture('simple/index.scss'), 'utf8');
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
       var result = sass.renderSync({data: src});
@@ -183,11 +206,26 @@ describe('api', function() {
       done();
     });
 
-    it('should override imports with custom importer', function(done) {
+    it('should override imports with custom importer with data', function(done) {
       var src = read(fixture('include-files/index.scss'), 'utf8');
 
       var result = sass.renderSync({
         data: src,
+        importer: function(url, prev, finish) {
+          finish({
+            file: '/some/other/path.scss',
+            contents: 'div {color: yellow;}'
+          });
+        }
+      });
+
+      assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
+    it('should override imports with custom importer with file', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
         importer: function(url, prev, finish) {
           finish({
             file: '/some/other/path.scss',
