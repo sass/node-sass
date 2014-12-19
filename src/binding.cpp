@@ -101,7 +101,6 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
 
   sass_option_set_input_path(sass_options, CreateString(options->Get(NanNew("file"))));
   sass_option_set_output_path(sass_options, CreateString(options->Get(NanNew("outFile"))));
-  sass_option_set_output_path(sass_options, CreateString(options->Get(NanNew("outFile"))));
   sass_option_set_image_path(sass_options, CreateString(options->Get(NanNew("imagePath"))));
   sass_option_set_output_style(sass_options, (Sass_Output_Style)options->Get(NanNew("style"))->Int32Value());
   sass_option_set_is_indented_syntax_src(sass_options, options->Get(NanNew("indentedSyntax"))->BooleanValue());
