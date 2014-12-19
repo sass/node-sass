@@ -28,6 +28,8 @@ Sass_C_Import_Callback sass_make_importer (Sass_C_Import_Fn, void* cookie);
 Sass_C_Import_Fn sass_import_get_function (Sass_C_Import_Callback fn);
 void* sass_import_get_cookie (Sass_C_Import_Callback fn);
 
+// Deallocator for associated memory
+void sass_delete_importer (Sass_C_Import_Callback fn);
 
 // Creator for sass custom importer return argument list
 struct Sass_Import** sass_make_import_list (size_t length);

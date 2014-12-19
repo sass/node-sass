@@ -549,9 +549,12 @@ extern "C" {
         cur = next;
       }
     }
+    // Free custom importer
+    free(options->importer);
     // Free the list container
     free(options->c_functions);
     // Make it null terminated
+    options->importer = 0;
     options->c_functions = 0;
     options->include_paths = 0;
   }

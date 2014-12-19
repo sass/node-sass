@@ -66,6 +66,12 @@ extern "C" {
   Sass_C_Import_Fn sass_import_get_function(Sass_C_Import_Callback fn) { return fn->function; }
   void* sass_import_get_cookie(Sass_C_Import_Callback fn) { return fn->cookie; }
 
+  // Just in case we have some stray import structs
+  void sass_delete_importer (Sass_C_Import_Callback fn)
+  {
+    free(fn);
+  }
+
   // Creator for sass custom importer return argument list
   struct Sass_Import** sass_make_import_list(size_t length)
   {
