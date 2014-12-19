@@ -324,6 +324,7 @@ namespace Sass {
     const char* custom_property_name(const char* src);
     // Match a CSS identifier.
     const char* identifier(const char* src);
+    const char* identifier_fragment(const char* src);
     // Match selector names.
     const char* sel_ident(const char* src);
     // Match interpolant schemas

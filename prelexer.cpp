@@ -157,6 +157,13 @@ namespace Sass {
                                                 backslash_something > > >(src);
     }
 
+    const char* identifier_fragment(const char* src) {
+      return one_plus< alternatives< alnum,
+                                     exactly<'-'>,
+                                     exactly<'_'>,
+                                     backslash_something > >(src);
+    }
+
     // Match CSS selectors.
     const char* sel_ident(const char* src) {
       return sequence< optional< alternatives< exactly<'-'>, exactly<'|'> > >,
