@@ -223,6 +223,7 @@ extern "C" {
       c_ctx->error_column = e.position.column;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
+      json_delete(json_err);
     }
     catch(bad_alloc& ba) {
       stringstream msg_stream;
@@ -235,6 +236,7 @@ extern "C" {
       c_ctx->error_status = 2;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
+      json_delete(json_err);
     }
     catch (std::exception& e) {
       stringstream msg_stream;
@@ -247,6 +249,7 @@ extern "C" {
       c_ctx->error_status = 3;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
+      json_delete(json_err);
     }
     catch (string& e) {
       stringstream msg_stream;
@@ -259,6 +262,7 @@ extern "C" {
       c_ctx->error_status = 4;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
+      json_delete(json_err);
     }
     catch (...) {
       stringstream msg_stream;
@@ -271,6 +275,7 @@ extern "C" {
       c_ctx->error_status = 5;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
+      json_delete(json_err);
     }
     return c_ctx->error_status;
   }
