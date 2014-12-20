@@ -2,12 +2,13 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.61])
-AC_INIT([libsass], [1.0], [support@moovweb.com])
+AC_INIT([libsass], [3.0.3], [support@moovweb.com])
 AC_CONFIG_SRCDIR([ast.hpp])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE([1.10 foreign])
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+AC_CONFIG_AUX_DIR([script])
+AM_INIT_AUTOMAKE([foreign parallel-tests])
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([no])])
 LT_INIT
 
 # Checks for programs.
@@ -32,7 +33,11 @@ AC_ARG_ENABLE(tests, AS_HELP_STRING([--enable-tests], [enable testing the build]
 if test "x$enable_tests" = "xyes"; then
   AC_PROG_CC
   AC_PROG_AWK
+  # test need minitest gem
   AC_PATH_PROG(RUBY, [ruby])
+  AC_PATH_PROG(TAPOUT, [tapout])
+  AC_REQUIRE_AUX_FILE([tap-driver])
+  AC_REQUIRE_AUX_FILE([tap-runner])
   AC_ARG_WITH(sassc-dir,
               AS_HELP_STRING([--with-sassc-dir=<dir>], [specify directory of sassc sources for testing (default: sassc)]),
               [sassc_dir="$withval"], [sassc_dir="sassc"])
@@ -64,9 +69,21 @@ the --with-sass-spec-dir=<dir> argument.
       ;;
   esac
   AC_SUBST(SASS_SPEC_PATH)
+
+  # TODO: Remove this when automake requirements are 1.12+
+  AC_MSG_CHECKING([whether we can use TAP mode])
+  tmp=`$AWK '/TEST_LOG_DRIVER/' $srcdir/Makefile.in`
+  if test "x$tmp" != "x"; then
+    use_tap=yes
+  else
+    use_tap=no
+  fi
+  AC_MSG_RESULT([$use_tap])
+
 fi
 
 AM_CONDITIONAL(ENABLE_TESTS, test "x$enable_tests" = "xyes")
+AM_CONDITIONAL(USE_TAP, test "x$use_tap" = "xyes")
 
 AC_ARG_ENABLE([coverage],
   [AS_HELP_STRING([--enable-coverage],
@@ -93,18 +110,13 @@ AC_ARG_VAR(LIBSASS_VERSION, libsass version)
 if test "x$LIBSASS_VERSION" = "x"; then
   AC_CHECK_PROG(GIT, git, git)
   if test "x$GIT" = "x"; then
-    AC_MSG_ERROR([Unable to find git binary to query version.
-You can solve this by setting LIBSASS_VERSION:
-# export LIBSASS_VERSION="x.y.z"
-])
+    LIBSASS_VERSION=$VERSION
   else
-    AC_CHECK_FILE(.git/config, [], [
-    AC_MSG_ERROR([Unable to find .git directory to query version.
-You can solve this by setting LIBSASS_VERSION:
-# export LIBSASS_VERSION="x.y.z"
-])
+    AC_CHECK_FILE(.git/config, [
+      LIBSASS_VERSION=`$GIT describe --abbrev=4 --dirty --always --tags`
+    ], [
+      LIBSASS_VERSION=$VERSION
     ])
-    LIBSASS_VERSION=`$GIT describe --abbrev=4 --dirty --always --tags`
   fi
   if test "x$LIBSASS_VERSION" = "x"; then
     AC_MSG_ERROR([LIBSASS_VERSION not defined.

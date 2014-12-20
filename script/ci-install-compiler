@@ -1,3 +1,4 @@
 #!/bin/bash
 
 gem install minitest
+gem install minitap
