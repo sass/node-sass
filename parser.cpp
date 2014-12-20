@@ -174,6 +174,7 @@ namespace Sass {
             sass_import_get_path(current),
             cookie);
           if (includes) {
+            struct Sass_Import** list = includes;
             while (*includes) {
               struct Sass_Import* include = *includes;
               const char *file = sass_import_get_path(include);
@@ -192,13 +193,11 @@ namespace Sass {
               }
               ++includes;
             }
-            // go for next parse loop
+            // deallocate returned memory
+            sass_delete_import_list(list);
+            // parse next import
             continue;
           }
-          // deallocate returned memory
-          sass_delete_import_list(includes);
-          // custom importer returned nothing
-          // means we should use default loader
         }
 
         add_single_file(imp, import_path);
