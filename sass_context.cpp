@@ -159,7 +159,8 @@ extern "C" {
     void sass_option_set_##option (struct Sass_Options* options, type option) { options->option = option; }
   #define IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(type, option) \
     type sass_option_get_##option (struct Sass_Options* options) { return options->option; } \
-    void sass_option_set_##option (struct Sass_Options* options, type option) { free(options->option); options->option = strdup(option); }
+    void sass_option_set_##option (struct Sass_Options* options, type option) \
+    { free(options->option); options->option = option ? strdup(option) : 0; }
 
   #define IMPLEMENT_SASS_CONTEXT_GETTER(type, option) \
     type sass_context_get_##option (struct Sass_Context* ctx) { return ctx->option; }
