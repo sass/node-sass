@@ -22,6 +22,10 @@
 #include <random>
 #include <set>
 
+#ifdef __MINGW32__
+#include "windows.h"
+#endif
+
 #define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, path, position, backtrace)
 #define ARGR(argname, argtype, lo, hi) get_arg_r(argname, env, sig, path, position, lo, hi, backtrace)
 #define ARGM(argname, argtype, ctx) get_arg_m(argname, env, sig, path, position, backtrace, ctx)
@@ -112,12 +116,33 @@ namespace Sass {
       return val;
     }
 
+#ifdef __MINGW32__
+    uint64_t GetSeed()
+    {
+      HCRYPTPROV hp = 0;
+      BYTE rb[8];
+      CryptAcquireContext(&hp, 0, 0, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT);
+      CryptGenRandom(hp, sizeof(rb), rb);
+      CryptReleaseContext(hp, 0); 
+
+      uint64_t seed;
+      memcpy(&seed, &rb[0], sizeof(seed)); 
+
+      return seed;
+    }
+#else
+    static random_device rd;
+    uint64_t GetSeed()
+    {
+	  return rd();
+	}
+#endif
+
     // note: the performance of many  implementations of
     // random_device degrades sharply once the entropy pool
     // is exhausted. For practical use, random_device is
     // generally only used to seed a PRNG such as mt19937.
-    static random_device rd;
-    static mt19937 rand(rd());
+    static mt19937 rand(GetSeed());
 
     // features
     static set<string> features;

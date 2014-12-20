@@ -39,6 +39,8 @@ libsass/*
 
 *.o
 *.lo
+*.so
+*.dll
 *.a
 a.out
 libsass.js

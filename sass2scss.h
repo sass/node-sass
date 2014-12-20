@@ -1,3 +1,22 @@
+#ifdef _WIN32
+
+  /* You should define ADD_EXPORTS *only* when building the DLL. */
+  #ifdef ADD_EXPORTS
+    #define ADDAPI __declspec(dllexport)
+	#define ADDCALL __cdecl
+  #else
+    #define ADDAPI
+	#define ADDCALL
+  #endif
+
+#else /* _WIN32 not defined. */
+
+  /* Define with no value on non-Windows OSes. */
+  #define ADDAPI
+  #define ADDCALL
+
+#endif
+
 #ifdef __cplusplus
 
 #include <stack>
@@ -81,11 +100,11 @@ extern "C" {
 	#define SASS2SCSS_CONVERT_COMMENT  128
 
 	// available to c and c++ code
-	char* sass2scss (const char* sass, const int options);
+	ADDAPI char* ADDCALL sass2scss (const char* sass, const int options);
 
 	// Get compiled sass2scss version
-	const char* sass2scss_version(void);
+	ADDAPI const char* ADDCALL sass2scss_version(void);
 
 #ifdef __cplusplus
-}
+} // __cplusplus defined.
 #endif

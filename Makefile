@@ -1,10 +1,12 @@
-CC       ?= cc
+CC       ?= gcc
 CXX      ?= g++
 RM       ?= rm -f
+CP       ?= cp -a
 MKDIR    ?= mkdir -p
-CFLAGS   ?= -Wall -fPIC -O2
-CXXFLAGS ?= -Wall -fPIC -O2
-LDFLAGS  ?= -Wall -fPIC -O2
+WINDRES  ?= windres
+CFLAGS   ?= -Wall -O2
+CXXFLAGS ?= -Wall -O2
+LDFLAGS  ?= -Wall -O2
 
 ifeq "$(LIBSASS_VERSION)" ""
   ifneq "$(wildcard ./.git/ )" ""
@@ -46,13 +48,18 @@ else
 	endif
 endif
 
+ifneq (,$(findstring MINGW32,$(UNAME)))
+	UNAME := MinGW
+endif
+
 LDLIBS = -lstdc++ -lm
 ifeq ($(UNAME),Darwin)
 	CFLAGS += -stdlib=libc++
 	CXXFLAGS += -stdlib=libc++
+	LDFLAGS += -stdlib=libc++
 endif
 
-ifneq ($(BUILD), shared)
+ifneq ($(BUILD),shared)
 	BUILD = static
 endif
 
@@ -69,6 +76,13 @@ SASS_SPEC_PATH ?= sass-spec
 SASS_SPEC_SPEC_DIR ?= spec
 SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc
 RUBY_BIN = ruby
+
+ifeq (MinGW,$(UNAME))
+	SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc.exe
+endif
+ifeq (Windows,$(UNAME))
+	SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc.exe
+endif
 
 SOURCES = \
 	ast.cpp \
@@ -108,8 +122,26 @@ SOURCES = \
 
 CSOURCES = cencode.c
 
+RESOURCES = 
+
+LIBRARIES = lib/libsass.so
+
+ifeq (MinGW,$(UNAME))
+	ifeq (shared,$(BUILD))
+		CFLAGS    += -D ADD_EXPORTS 
+		CXXFLAGS  += -D ADD_EXPORTS 
+		LIBRARIES += lib/libsass.dll
+		RESOURCES += res/resource.rc
+	endif
+else
+	CFLAGS   += -fPIC
+	CXXFLAGS += -fPIC
+	LDFLAGS  += -fPIC
+endif
+
 OBJECTS = $(SOURCES:.cpp=.o)
 COBJECTS = $(CSOURCES:.c=.o)
+RCOBJECTS = $(RESOURCES:.rc=.o)
 
 DEBUG_LVL ?= NONE
 
@@ -128,7 +160,7 @@ debug-shared: CXXFLAGS := -g -DDEBUG -DDEBUG_LVL="$(DEBUG_LVL)" $(filter-out -O2
 debug-shared: shared
 
 static: lib/libsass.a
-shared: lib/libsass.so
+shared: $(LIBRARIES)
 
 lib/libsass.a: $(COBJECTS) $(OBJECTS)
 	$(MKDIR) lib
@@ -138,8 +170,15 @@ lib/libsass.so: $(COBJECTS) $(OBJECTS)
 	$(MKDIR) lib
 	$(CXX) -shared $(LDFLAGS) -o $@ $(COBJECTS) $(OBJECTS) $(LDLIBS)
 
+lib/libsass.dll: $(COBJECTS) $(OBJECTS) $(RCOBJECTS)
+	$(MKDIR) lib
+	$(CXX) -shared $(LDFLAGS) -o $@ $(COBJECTS) $(OBJECTS) $(RCOBJECTS) $(LDLIBS) -s -Wl,--subsystem,windows,--out-implib,lib/libsass.a
+
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+%.o: %.rc
+	$(WINDRES) -i $< -o $@
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
@@ -170,7 +209,7 @@ test_issues: $(SASSC_BIN)
 	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues
 
 clean:
-	$(RM) $(COBJECTS) $(OBJECTS) lib/*.a lib/*.la lib/*.so
+	$(RM) $(RCOBJECTS) $(COBJECTS) $(OBJECTS) $(LIBRARIES) lib/*.a lib/*.so lib/*.dll lib/*.la
 
 
 .PHONY: all debug debug-static debug-shared static shared install install-static install-shared clean
