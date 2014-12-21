@@ -8,6 +8,20 @@ CFLAGS   ?= -Wall -O2
 CXXFLAGS ?= -Wall -O2
 LDFLAGS  ?= -Wall -O2
 
+ifneq (,$(findstring /cygdrive/,$(PATH)))
+	UNAME := Cygwin
+else
+	ifneq (,$(findstring WINDOWS,$(PATH)))
+		UNAME := Windows
+	else
+		UNAME := $(shell uname -s)
+	endif
+endif
+
+ifneq (,$(findstring MINGW32,$(UNAME)))
+	UNAME := MinGW
+endif
+
 ifeq "$(LIBSASS_VERSION)" ""
   ifneq "$(wildcard ./.git/ )" ""
     LIBSASS_VERSION ?= $(shell git describe --abbrev=4 --dirty --always --tags)
@@ -20,8 +34,13 @@ ifneq "$(LIBSASS_VERSION)" ""
 endif
 
 # enable mandatory flag
-CXXFLAGS += -std=c++0x
-LDFLAGS  += -std=c++0x
+ifeq (MinGW,$(UNAME))
+	CXXFLAGS += -std=gnu++0x
+	LDFLAGS  += -std=gnu++0x
+else
+	CXXFLAGS += -std=c++0x
+	LDFLAGS  += -std=c++0x
+endif
 
 ifneq "$(SASS_LIBSASS_PATH)" ""
   CFLAGS   += -I $(SASS_LIBSASS_PATH)
@@ -36,20 +55,6 @@ ifneq "$(EXTRA_CXXFLAGS)" ""
 endif
 ifneq "$(EXTRA_LDFLAGS)" ""
   LDFLAGS  += $(EXTRA_LDFLAGS)
-endif
-
-ifneq (,$(findstring /cygdrive/,$(PATH)))
-	UNAME := Cygwin
-else
-	ifneq (,$(findstring WINDOWS,$(PATH)))
-		UNAME := Windows
-	else
-		UNAME := $(shell uname -s)
-	endif
-endif
-
-ifneq (,$(findstring MINGW32,$(UNAME)))
-	UNAME := MinGW
 endif
 
 LDLIBS = -lstdc++ -lm
@@ -164,7 +169,7 @@ shared: $(LIBRARIES)
 
 lib/libsass.a: $(COBJECTS) $(OBJECTS)
 	$(MKDIR) lib
-	$(AR) rvs $@ $(COBJECTS) $(OBJECTS)
+	$(AR) rcvs $@ $(COBJECTS) $(OBJECTS)
 
 lib/libsass.so: $(COBJECTS) $(OBJECTS)
 	$(MKDIR) lib
