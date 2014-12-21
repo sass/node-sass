@@ -3,13 +3,22 @@ environment:
   matrix:
   - Compiler: mingw
     Build: static
+    ruby_version: "21-x64"
   - Compiler: mingw
     Build: shared
+    ruby_version: "21-x64"
+  - Compiler: msvc
+    Config: Release
+    ruby_version: "21-x64"
+  - Compiler: msvc
+    Config: Debug
+    ruby_version: "21-x64"
 
 install:
   - git clone https://github.com/mgreter/sassc.git --branch feature/build-dll-win-mingw
   - git clone https://github.com/sass/sass-spec.git
-  - set SASS_LIBSASS_PATH=c:/projects/libsass
+  - set PATH=C:\Ruby%ruby_version%\bin;%PATH%
+  - set SASS_LIBSASS_PATH=..
   - gem install minitest
   - ps: |
       if ($env:Compiler -eq "mingw") {
@@ -21,21 +30,40 @@ install:
         Invoke-WebRequest -UserAgent wget -Uri $url -OutFile mingw.7z
         &7z x -oC:\ mingw.7z > $null
       }
-  - set PATH=%PATH%;C:\mingw64\bin
+  - set PATH=C:\mingw64\bin;%PATH%
   - set CC=gcc
 
 build_script:
   - ps: |
       if ($env:Compiler -eq "mingw") {
-        mingw32-make
+        mingw32-make -j4 sassc
       } else {
-        msbuild /m:4 /p:Config=$env:Config FORMAT.sln
+        msbuild /m:4 /p:Configuration=$env:Config win\libsass.sln
+      }
+  - ps: |
+      if ($env:Compiler -eq "mingw") {
+        sassc\bin\sassc.exe -v
+        ruby -v
+      } else {
+        if ($env:Config -eq "Debug") {
+          win\bin\Debug\sassc.exe -v
+          ruby -v
+        } else {
+          win\bin\sassc.exe -v
+          ruby -v
+        }
       }
 
 test_script:
   - ps: |
       if ($env:Compiler -eq "mingw") {
-        mingw32-make test_build
+        ruby sass-spec\sass-spec.rb -c sassc\bin\sassc.exe -s --ignore-todo sass-spec/spec
       } else {
-        msbuild RUN_TESTS.vcxproj
+        if ($env:Config -eq "Debug") {
+          echo test runner in debug mode build via msvc will throw debug assertions
+          echo ruby sass-spec\sass-spec.rb -c win\bin\Debug\sassc.exe -s --ignore-todo sass-spec/spec
+        } else {
+          ruby sass-spec\sass-spec.rb -c win\bin\sassc.exe -s --ignore-todo sass-spec/spec
+        }
       }
+

@@ -14,12 +14,12 @@ else
 	ifneq (,$(findstring WINDOWS,$(PATH)))
 		UNAME := Windows
 	else
-		UNAME := $(shell uname -s)
+		ifneq (,$(findstring mingw32,$(MAKE)))
+			UNAME := MinGW
+		else
+			UNAME := $(shell uname -s)
+		endif
 	endif
-endif
-
-ifneq (,$(findstring MINGW32,$(UNAME)))
-	UNAME := MinGW
 endif
 
 ifeq "$(LIBSASS_VERSION)" ""
@@ -204,6 +204,9 @@ install-shared: lib/libsass.so
 $(SASSC_BIN): $(BUILD)
 	cd $(SASS_SASSC_PATH) && $(MAKE)
 
+sassc: $(SASSC_BIN)
+	$(SASSC_BIN) -v
+
 test: $(SASSC_BIN)
 	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) -s $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
 
@@ -217,4 +220,4 @@ clean:
 	$(RM) $(RCOBJECTS) $(COBJECTS) $(OBJECTS) $(LIBRARIES) lib/*.a lib/*.so lib/*.dll lib/*.la
 
 
-.PHONY: all debug debug-static debug-shared static shared install install-static install-shared clean
+.PHONY: all debug debug-static debug-shared static shared install install-static install-shared sassc clean
