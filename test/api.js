@@ -117,14 +117,14 @@ describe('api', function() {
     });
 
     it('should contain all included files in stats when data is passed', function(done) {
-      var src = fixture('include-files/index.scss');
+      var src = read(fixture('include-files/index.scss'), 'utf8');
       var expected = [
         fixture('include-files/bar.scss').replace(/\\/g, '/'),
         fixture('include-files/foo.scss').replace(/\\/g, '/')
       ];
 
       sass.render({
-        data: read(src, 'utf8'),
+        data: src,
         includePaths: [fixture('include-files')],
         success: function(result) {
           assert.deepEqual(result.stats.includedFiles, expected);
@@ -132,10 +132,12 @@ describe('api', function() {
         }
       });
     });
+  });
 
-    it('should override imports with custom importer with "data" as input and uses callback', function(done) {
-      var src = read(fixture('include-files/index.scss'), 'utf8');
+  describe('.render(importer)', function() {
+    var src = read(fixture('include-files/index.scss'), 'utf8');
 
+    it('should override imports with "data" as input and fires callback with file and contents', function(done) {
       sass.render({
         data: src,
         success: function(result) {
@@ -151,7 +153,7 @@ describe('api', function() {
       });
     });
 
-    it('should override imports with custom importer with "file" as input and uses callback', function(done) {
+    it('should override imports with "file" as input and fires callback with file and contents', function(done) {
       sass.render({
         file: fixture('include-files/index.scss'),
         success: function(result) {
@@ -167,9 +169,7 @@ describe('api', function() {
       });
     });
 
-    it('should override imports with custom importer with "data" as input and returns value', function(done) {
-      var src = read(fixture('include-files/index.scss'), 'utf8');
-
+    it('should override imports with "data" as input and returns file and contents', function(done) {
       sass.render({
         data: src,
         success: function(result) {
@@ -185,7 +185,7 @@ describe('api', function() {
       });
     });
 
-    it('should override imports with custom importer with "file" as input and returns value', function(done) {
+    it('should override imports with "file" as input and returns file and contents', function(done) {
       sass.render({
         file: fixture('include-files/index.scss'),
         success: function(result) {
@@ -195,6 +195,126 @@ describe('api', function() {
         importer: function(url, prev) {
           return {
             file: prev + url,
+            contents: 'div {color: yellow;}'
+          };
+        }
+      });
+    });
+
+    it('should override imports with "data" as input and fires callback with file', function(done) {
+      sass.render({
+        data: src,
+        success: function(result) {
+          assert.equal(result.css.trim(), '');
+          done();
+        },
+        importer: function(url, /* jshint unused:false */ prev, done) {
+          done({
+            file: path.resolve(path.dirname(fixture('include-files/index.scss')), url + (path.extname(url) ? '' : '.scss'))
+          });
+        }
+      });
+    });
+
+    it('should override imports with "file" as input and fires callback with file', function(done) {
+      sass.render({
+        file: fixture('include-files/index.scss'),
+        success: function(result) {
+          assert.equal(result.css.trim(), '');
+          done();
+        },
+        importer: function(url, prev, done) {
+          done({
+            file: path.resolve(path.dirname(prev), url + (path.extname(url) ? '' : '.scss'))
+          });
+        }
+      });
+    });
+
+    it('should override imports with "data" as input and returns file', function(done) {
+      sass.render({
+        data: src,
+        success: function(result) {
+          assert.equal(result.css.trim(), '');
+          done();
+        },
+        importer: function(url, /* jshint unused:false */ prev) {
+          return {
+            file: path.resolve(path.dirname(fixture('include-files/index.scss')), url + (path.extname(url) ? '' : '.scss'))
+          };
+        }
+      });
+    });
+
+    it('should override imports with "file" as input and returns file', function(done) {
+      sass.render({
+        file: fixture('include-files/index.scss'),
+        success: function(result) {
+          assert.equal(result.css.trim(), '');
+          done();
+        },
+        importer: function(url, prev) {
+          return {
+            file: path.resolve(path.dirname(prev), url + (path.extname(url) ? '' : '.scss'))
+          };
+        }
+      });
+    });
+	
+    it('should override imports with "data" as input and fires callback with contents', function(done) {
+      sass.render({
+        data: src,
+        success: function(result) {
+          assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+          done();
+        },
+        importer: function(url, prev, done) {
+          done({
+            contents: 'div {color: yellow;}'
+          });
+        }
+      });
+    });
+
+    it('should override imports with "file" as input and fires callback with contents', function(done) {
+      sass.render({
+        file: fixture('include-files/index.scss'),
+        success: function(result) {
+          assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+          done();
+        },
+        importer: function(url, prev, done) {
+          done({
+            contents: 'div {color: yellow;}'
+          });
+        }
+      });
+    });
+
+    it('should override imports with "data" as input and returns contents', function(done) {
+      sass.render({
+        data: src,
+        success: function(result) {
+          assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+          done();
+        },
+        importer: function() {
+          return {
+            contents: 'div {color: yellow;}'
+          };
+        }
+      });
+    });
+
+    it('should override imports with "file" as input and returns contents', function(done) {
+      sass.render({
+        file: fixture('include-files/index.scss'),
+        success: function(result) {
+          assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+          done();
+        },
+        importer: function() {
+          return {
             contents: 'div {color: yellow;}'
           };
         }
@@ -239,14 +359,16 @@ describe('api', function() {
 
       done();
     });
+  });
 
-    it('should override imports with custom importer with "data" as input and uses callback', function(done) {
-      var src = read(fixture('include-files/index.scss'), 'utf8');
+  describe('.renderSync(importer)', function() {
+    var src = read(fixture('include-files/index.scss'), 'utf8');
 
+    it('should override imports with "data" as input and fires callback with file and contents', function(done) {
       var result = sass.renderSync({
         data: src,
-        importer: function(url, prev, finish) {
-          finish({
+        importer: function(url, prev, done) {
+          done({
             file: '/some/other/path.scss',
             contents: 'div {color: yellow;}'
           });
@@ -257,11 +379,11 @@ describe('api', function() {
       done();
     });
 
-    it('should override imports with custom importer with "file" as input and uses callback', function(done) {
+    it('should override imports with "file" as input and fires callback with file and contents', function(done) {
       var result = sass.renderSync({
         file: fixture('include-files/index.scss'),
-        importer: function(url, prev, finish) {
-          finish({
+        importer: function(url, prev, done) {
+          done({
             file: '/some/other/path.scss',
             contents: 'div {color: yellow;}'
           });
@@ -272,9 +394,7 @@ describe('api', function() {
       done();
     });
 
-    it('should override imports with custom importer with "data" as input and returns value', function(done) {
-      var src = read(fixture('include-files/index.scss'), 'utf8');
-
+    it('should override imports with "data" as input and returns file and contents', function(done) {
       var result = sass.renderSync({
         data: src,
         importer: function(url, prev) {
@@ -289,12 +409,124 @@ describe('api', function() {
       done();
     });
 
-    it('should override imports with custom importer with "file" as input and returns value', function(done) {
+    it('should override imports with "file" as input and returns file and contents', function(done) {
       var result = sass.renderSync({
         file: fixture('include-files/index.scss'),
         importer: function(url, prev) {
           return {
             file: prev + url,
+            contents: 'div {color: yellow;}'
+          };
+        }
+      });
+
+      assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
+    it('should override imports with "data" as input and fires callback with file', function(done) {
+      var result = sass.renderSync({
+        data: src,
+        importer: function(url, /* jshint unused:false */ prev, done) {
+          done({
+            file: path.resolve(path.dirname(fixture('include-files/index.scss')), url + (path.extname(url) ? '' : '.scss'))
+          });
+        }
+      });
+
+      assert.equal(result.css.trim(), '');
+      done();
+    });
+
+    it('should override imports with "file" as input and fires callback with file', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function(url, prev, done) {
+          done({
+            file: path.resolve(path.dirname(prev), url + (path.extname(url) ? '' : '.scss'))
+          });
+        }
+      });
+
+      assert.equal(result.css.trim(), '');
+      done();
+    });
+
+    it('should override imports with "data" as input and returns file', function(done) {
+      var result = sass.renderSync({
+        data: src,
+        importer: function(url, /* jshint unused:false */ prev) {
+          return {
+            file: path.resolve(path.dirname(fixture('include-files/index.scss')), url + (path.extname(url) ? '' : '.scss'))
+          };
+        }
+      });
+
+      assert.equal(result.css.trim(), '');
+      done();
+    });
+
+    it('should override imports with "file" as input and returns file', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function(url, prev) {
+          return {
+            file: path.resolve(path.dirname(prev), url + (path.extname(url) ? '' : '.scss'))
+          };
+        }
+      });
+
+      assert.equal(result.css.trim(), '');
+      done();
+    });
+	
+    it('should override imports with "data" as input and fires callback with contents', function(done) {
+      var result = sass.renderSync({
+        data: src,
+        importer: function(url, prev, done) {
+          done({
+            contents: 'div {color: yellow;}'
+          });
+        }
+      });
+
+      assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
+    it('should override imports with "file" as input and fires callback with contents', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function(url, prev, done) {
+          done({
+            contents: 'div {color: yellow;}'
+          });
+        }
+      });
+
+      assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
+    it('should override imports with "data" as input and returns contents', function(done) {
+      var result = sass.renderSync({
+        data: src,
+        importer: function() {
+          return {
+            contents: 'div {color: yellow;}'
+          };
+        }
+      });
+
+      assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
+    it('should override imports with "file" as input and returns contents', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function() {
+          return {
             contents: 'div {color: yellow;}'
           };
         }
