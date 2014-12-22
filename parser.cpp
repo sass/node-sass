@@ -1016,6 +1016,15 @@ namespace Sass {
   Expression* Parser::parse_term()
   {
     Expression* fact1 = parse_factor();
+
+    // Special case: Ruby sass never tries to modulo if the lhs contains an interpolant
+    if (peek< exactly<'%'> >(position) && fact1->concrete_type() == Expression::STRING) {
+      try {
+        String_Schema* ss = dynamic_cast<String_Schema*>(fact1);
+        if (ss->has_interpolants()) return fact1;
+      } catch (bad_cast&) {}
+    }
+
     // if it's a singleton, return it directly; don't wrap it
     if (!(peek< exactly<'*'> >(position) ||
           peek< exactly<'/'> >(position) ||
@@ -1065,7 +1074,7 @@ namespace Sass {
     else if (peek< functional_schema >()) {
       return parse_function_call_schema();
     }
-    else if (peek< identifier_schema >()) {
+    else if (peek< sequence< identifier_schema, negate< exactly<'%'> > > >()) {
       return parse_identifier_schema();
     }
     else if (peek< functional >() && !peek< uri_prefix >()) {
@@ -1127,7 +1136,9 @@ namespace Sass {
     if (lex< important >())
     { return new (ctx.mem) String_Constant(path, source_position, "!important"); }
 
-    if (lex< value_schema >())
+    // #TODO: Use the uncommented version when #745 is fixed
+    // if (lex< value_schema >())
+    if (lex< sequence< value_schema, optional< exactly<'%'> > > >())
     { return Parser::from_token(lexed, ctx, path, source_position).parse_value_schema(); }
 
     if (lex< sequence< true_val, negate< identifier > > >())
@@ -1163,6 +1174,10 @@ namespace Sass {
 
     if (lex< variable >())
     { return new (ctx.mem) Variable(path, source_position, Util::normalize_underscores(lexed)); }
+
+    // Special case handling for `%` proceeding an interpolant.
+    if (lex< sequence< exactly<'%'>, optional< percentage > > >())
+    { return new (ctx.mem) String_Constant(path, source_position, lexed); }
 
     error("error reading values after " + lexed.to_string());
 
@@ -1335,6 +1350,9 @@ namespace Sass {
         interp_node->is_interpolant(true);
         (*schema) << interp_node;
       }
+      else if (lex< exactly<'%'> >()) {
+        (*schema) << new (ctx.mem) String_Constant(path, source_position, lexed);
+      }
       else if (lex< identifier >()) {
         (*schema) << new (ctx.mem) String_Constant(path, source_position, lexed);
       }
@@ -1418,6 +1436,7 @@ namespace Sass {
           Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, path, source_position).parse_list();
           interp_node->is_interpolant(true);
           (*schema) << interp_node;
+          schema->has_interpolants(true);
           i = j+1;
         }
         else {

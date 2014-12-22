@@ -191,7 +191,8 @@ namespace Sass {
       // follows this pattern: ([xyz]*i[xyz]*)+
       return one_plus< sequence< zero_plus< alternatives< identifier, percentage, dimension, hex, number, string_constant > >,
                                  interpolant,
-                                 zero_plus< alternatives< identifier, percentage, dimension, hex, number, string_constant > > > >(src);
+                                 // #TODO: uncomment the 7th param whrn #745 is fixed
+                                 zero_plus< alternatives< identifier, percentage, dimension, hex, number, string_constant/*, exactly<'%'>*/ > > > >(src);
     }
     const char* filename_schema(const char* src) {
       return one_plus< sequence< zero_plus< alternatives< identifier, number, exactly<'.'>, exactly<'/'> > >,
