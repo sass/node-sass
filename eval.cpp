@@ -899,7 +899,7 @@ namespace Sass {
     }
     Number* v = new (ctx.mem) Number(*l);
     v->position(b->position());
-    if (l_unit.empty() && (op == Binary_Expression::ADD || op == Binary_Expression::SUB)) {
+    if (l_unit.empty() && (op == Binary_Expression::ADD || op == Binary_Expression::SUB || op == Binary_Expression::MOD)) {
       v->numerator_units() = r->numerator_units();
       v->denominator_units() = r->denominator_units();
     }
