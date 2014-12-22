@@ -14,6 +14,11 @@ environment:
     Config: Debug
     ruby_version: "21-x64"
 
+cache:
+  - x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z
+  - C:\Ruby21-x64\lib\ruby\gems\2.1.0
+  - C:\Ruby21-x64\bin
+
 install:
   - git clone https://github.com/mgreter/sassc.git --branch feature/build-dll-win-mingw
   - git clone https://github.com/sass/sass-spec.git
@@ -22,13 +27,15 @@ install:
   - gem install minitest
   - ps: |
       if ($env:Compiler -eq "mingw") {
-        # Install MinGW.
-        $url  = "http://sourceforge.net/projects/mingw-w64/files/"
-        $url += "Toolchains%20targetting%20Win64/Personal%20Builds/"
-        $url += "mingw-builds/4.9.2/threads-win32/seh/"
-        $url += "x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z/download"
-        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile mingw.7z
-        &7z x -oC:\ mingw.7z > $null
+        if (-Not (Test-Path "x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z")) {
+          # Install MinGW.
+          $url  = "http://sourceforge.net/projects/mingw-w64/files/"
+          $url += "Toolchains%20targetting%20Win64/Personal%20Builds/"
+          $url += "mingw-builds/4.9.2/threads-win32/seh/"
+          $url += "x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z/download"
+          Invoke-WebRequest -UserAgent wget -Uri $url -OutFile x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z
+        }
+        &7z x -oC:\ x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z > $null
       }
   - set PATH=C:\mingw64\bin;%PATH%
   - set CC=gcc
