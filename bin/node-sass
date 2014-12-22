@@ -5,7 +5,8 @@ var Emitter = require('events').EventEmitter,
     meow = require('meow'),
     replaceExt = require('replace-ext'),
     stdin = require('get-stdin'),
-    render = require('../lib/render');
+    render = require('../lib/render'),
+    fs = require('fs');
 
 /**
  * Initialize CLI
@@ -39,6 +40,7 @@ var cli = meow({
     '  --image-path               Path to prepend when using the `image-url()` helper',
     '  --precision                The amount of precision allowed in decimal numbers',
     '  --stdout                   Print the resulting CSS to stdout',
+    '  --importer                 Path to custom importer',
     '  --help                     Print usage info'
   ].join('\n')
 }, {
@@ -105,6 +107,10 @@ function getEmitter() {
 
   emitter.on('log', function(data){
     console.log(data);
+  });
+
+  emitter.on('done', function(){
+    process.exit(0);
   });
 
   return emitter;
@@ -201,6 +207,15 @@ function run(options, emitter) {
       options.sourceMap = options.dest + '.map';
     } else {
       options.sourceMap = path.resolve(process.cwd(), options.sourceMap);
+    }
+  }
+
+  if (options.importer) {
+    if (fs.existsSync(options.importer)) {
+      options.importer = require(options.importer);
+    } else {
+      console.error('Could not locate importer.');
+      process.exit(1);
     }
   }
 

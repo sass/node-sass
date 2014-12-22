@@ -223,4 +223,106 @@ describe('cli', function() {
       });
     });
   });
+
+  describe('importer', function() {
+    var dest = fixture('include-files/index.css');
+    var src = fixture('include-files/index.scss');
+    var expected = read(fixture('include-files/expected-importer.css'), 'utf8').trim().replace(/\r\n/g, '\n');
+
+    it('should override imports and fire callback with file and contents', function(done) {
+      var bin = spawn(cli, [
+        src, '--output', path.dirname(dest),
+        '--importer', fixture('extras/my_custom_importer_file_and_data_cb.js')
+      ]);
+
+      bin.on('close', function () {
+        assert.equal(read(dest, 'utf8').trim(), expected);
+        fs.unlinkSync(dest);
+        done();
+      });
+    });
+
+    it('should override imports and fire callback with file', function(done) {
+      var bin = spawn(cli, [
+        src, '--output', path.dirname(dest),
+        '--importer', fixture('extras/my_custom_importer_file_cb.js')
+      ]);
+
+      bin.on('close', function () {
+        if (fs.existsSync(dest)) {
+          assert.equal(read(dest, 'utf8').trim(), '');
+          fs.unlinkSync(dest);
+        }
+
+        done();
+      });
+    });
+
+    it('should override imports and fire callback with data', function(done) {
+      var bin = spawn(cli, [
+        src, '--output', path.dirname(dest),
+        '--importer', fixture('extras/my_custom_importer_data_cb.js')
+      ]);
+
+      bin.on('close', function () {
+        assert.equal(read(dest, 'utf8').trim(), expected);
+        fs.unlinkSync(dest);
+        done();
+      });
+    });
+
+    it('should override imports and return file and contents', function(done) {
+      var bin = spawn(cli, [
+        src, '--output', path.dirname(dest),
+        '--importer', fixture('extras/my_custom_importer_file_and_data.js')
+      ]);
+
+      bin.on('close', function () {
+        assert.equal(read(dest, 'utf8').trim(), expected);
+        fs.unlinkSync(dest);
+        done();
+      });
+    });
+
+    it('should override imports and return file', function(done) {
+      var bin = spawn(cli, [
+        src, '--output', path.dirname(dest),
+        '--importer', fixture('extras/my_custom_importer_file.js')
+      ]);
+
+      bin.on('close', function () {
+        if (fs.existsSync(dest)) {
+          assert.equal(read(dest, 'utf8').trim(), '');
+          fs.unlinkSync(dest);
+        }
+
+        done();
+      });
+    });
+
+    it('should override imports and return data', function(done) {
+      var bin = spawn(cli, [
+        src, '--output', path.dirname(dest),
+        '--importer', fixture('extras/my_custom_importer_data.js')
+      ]);
+
+      bin.on('close', function () {
+        assert.equal(read(dest, 'utf8').trim(), expected);
+        fs.unlinkSync(dest);
+        done();
+      });
+    });
+
+    it('should return error on for invalid importer file path', function(done) {
+      var bin = spawn(cli, [
+        src, '--output', path.dirname(dest),
+        '--importer', fixture('non/existing/path')
+      ]);
+
+      bin.on('close', function (code) {
+        assert(code !== 0);
+        done();
+      });
+    });
+  });
 });
