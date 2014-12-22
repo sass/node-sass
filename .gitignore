@@ -39,6 +39,8 @@ libsass/*
 
 *.o
 *.lo
+*.so
+*.dll
 *.a
 a.out
 libsass.js
@@ -46,6 +48,7 @@ libsass.js
 bin/*
 .deps/
 .libs/
+win/bin
 
 # Final results
 

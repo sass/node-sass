@@ -155,19 +155,19 @@ extern "C" {
 
 
   #define IMPLEMENT_SASS_OPTION_ACCESSOR(type, option) \
-    type sass_option_get_##option (struct Sass_Options* options) { return options->option; } \
-    void sass_option_set_##option (struct Sass_Options* options, type option) { options->option = option; }
+    type ADDCALL sass_option_get_##option (struct Sass_Options* options) { return options->option; } \
+    void ADDCALL sass_option_set_##option (struct Sass_Options* options, type option) { options->option = option; }
   #define IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(type, option) \
-    type sass_option_get_##option (struct Sass_Options* options) { return options->option; } \
-    void sass_option_set_##option (struct Sass_Options* options, type option) \
+    type ADDCALL sass_option_get_##option (struct Sass_Options* options) { return options->option; } \
+    void ADDCALL sass_option_set_##option (struct Sass_Options* options, type option) \
     { free(options->option); options->option = option ? strdup(option) : 0; }
 
   #define IMPLEMENT_SASS_CONTEXT_GETTER(type, option) \
-    type sass_context_get_##option (struct Sass_Context* ctx) { return ctx->option; }
+    type ADDCALL sass_context_get_##option (struct Sass_Context* ctx) { return ctx->option; }
   #define IMPLEMENT_SASS_FILE_CONTEXT_SETTER(type, option) \
-    void sass_file_context_set_##option (struct Sass_File_Context* ctx, type option) { ctx->option = option; }
+    void ADDCALL sass_file_context_set_##option (struct Sass_File_Context* ctx, type option) { ctx->option = option; }
   #define IMPLEMENT_SASS_DATA_CONTEXT_SETTER(type, option) \
-    void sass_data_context_set_##option (struct Sass_Data_Context* ctx, type option) { ctx->option = option; }
+    void ADDCALL sass_data_context_set_##option (struct Sass_Data_Context* ctx, type option) { ctx->option = option; }
 
   // helper for safe access to c_ctx
   static const char* safe_str (const char* str) {
@@ -430,12 +430,12 @@ extern "C" {
     return c_ctx->error_status;
   }
 
-  Sass_Options* sass_make_options (void)
+  Sass_Options* ADDCALL sass_make_options (void)
   {
     return (struct Sass_Options*) calloc(1, sizeof(struct Sass_Options));
   }
 
-  Sass_File_Context* sass_make_file_context(const char* input_path)
+  Sass_File_Context* ADDCALL sass_make_file_context(const char* input_path)
   {
     struct Sass_File_Context* ctx = (struct Sass_File_Context*) calloc(1, sizeof(struct Sass_File_Context));
     if (ctx == 0) return 0;
@@ -444,7 +444,7 @@ extern "C" {
     return ctx;
   }
 
-  Sass_Data_Context* sass_make_data_context(char* source_string)
+  Sass_Data_Context* ADDCALL sass_make_data_context(char* source_string)
   {
     struct Sass_Data_Context* ctx = (struct Sass_Data_Context*) calloc(1, sizeof(struct Sass_Data_Context));
     if (ctx == 0) return 0;
@@ -453,7 +453,7 @@ extern "C" {
     return ctx;
   }
 
-  struct Sass_Compiler* sass_make_file_compiler (struct Sass_File_Context* c_ctx)
+  struct Sass_Compiler* ADDCALL sass_make_file_compiler (struct Sass_File_Context* c_ctx)
   {
     struct Sass_Compiler* compiler = (struct Sass_Compiler*) calloc(1, sizeof(struct Sass_Compiler));
     if (compiler == 0) return 0;
@@ -465,7 +465,7 @@ extern "C" {
     return compiler;
   }
 
-  struct Sass_Compiler* sass_make_data_compiler (struct Sass_Data_Context* c_ctx)
+  struct Sass_Compiler* ADDCALL sass_make_data_compiler (struct Sass_Data_Context* c_ctx)
   {
     struct Sass_Compiler* compiler = (struct Sass_Compiler*) calloc(1, sizeof(struct Sass_Compiler));
     if (compiler == 0) return 0;
@@ -477,7 +477,7 @@ extern "C" {
     return compiler;
   }
 
-  int sass_compile_data_context(Sass_Data_Context* data_ctx)
+  int ADDCALL sass_compile_data_context(Sass_Data_Context* data_ctx)
   {
     Sass_Context* c_ctx = data_ctx;
     Context::Data cpp_opt = Context::Data();
@@ -485,7 +485,7 @@ extern "C" {
     return sass_compile_context(c_ctx, cpp_opt);
   }
 
-  int sass_compile_file_context(Sass_File_Context* file_ctx)
+  int ADDCALL sass_compile_file_context(Sass_File_Context* file_ctx)
   {
     Sass_Context* c_ctx = file_ctx;
     Context::Data cpp_opt = Context::Data();
@@ -493,7 +493,7 @@ extern "C" {
     return sass_compile_context(c_ctx, cpp_opt);
   }
 
-  int sass_compiler_parse(struct Sass_Compiler* compiler)
+  int ADDCALL sass_compiler_parse(struct Sass_Compiler* compiler)
   {
     if (compiler->state == SASS_COMPILER_PARSED) return 0;
     if (compiler->state != SASS_COMPILER_CREATED) return -1;
@@ -507,7 +507,7 @@ extern "C" {
     return 0;
   }
 
-  int sass_compiler_execute(struct Sass_Compiler* compiler)
+  int ADDCALL sass_compiler_execute(struct Sass_Compiler* compiler)
   {
     if (compiler == 0) return 0;
     if (compiler->state == SASS_COMPILER_EXECUTED) return 0;
@@ -593,7 +593,7 @@ extern "C" {
     sass_clear_options(ctx);
   }
 
-  void sass_delete_compiler (struct Sass_Compiler* compiler)
+  void ADDCALL sass_delete_compiler (struct Sass_Compiler* compiler)
   {
     if (compiler == 0) return;
     Context* cpp_ctx = (Context*) compiler->cpp_ctx;
@@ -603,19 +603,19 @@ extern "C" {
   }
 
   // Deallocate all associated memory with contexts
-  void sass_delete_file_context (struct Sass_File_Context* ctx) { sass_clear_context(ctx); free(ctx); }
-  void sass_delete_data_context (struct Sass_Data_Context* ctx) { sass_clear_context(ctx); free(ctx); }
+  void ADDCALL sass_delete_file_context (struct Sass_File_Context* ctx) { sass_clear_context(ctx); free(ctx); }
+  void ADDCALL sass_delete_data_context (struct Sass_Data_Context* ctx) { sass_clear_context(ctx); free(ctx); }
 
   // Getters for sass context from specific implementations
-  struct Sass_Context* sass_file_context_get_context(struct Sass_File_Context* ctx) { return ctx; }
-  struct Sass_Context* sass_data_context_get_context(struct Sass_Data_Context* ctx) { return ctx; }
+  struct Sass_Context* ADDCALL sass_file_context_get_context(struct Sass_File_Context* ctx) { return ctx; }
+  struct Sass_Context* ADDCALL sass_data_context_get_context(struct Sass_Data_Context* ctx) { return ctx; }
 
   // Getters for context options from Sass_Context
-  struct Sass_Options* sass_context_get_options(struct Sass_Context* ctx) { return ctx; }
-  struct Sass_Options* sass_file_context_get_options(struct Sass_File_Context* ctx) { return ctx; }
-  struct Sass_Options* sass_data_context_get_options(struct Sass_Data_Context* ctx) { return ctx; }
-  void sass_file_context_set_options (struct Sass_File_Context* ctx, struct Sass_Options* opt) { (Sass_Options) *ctx = *opt; }
-  void sass_data_context_set_options (struct Sass_Data_Context* ctx, struct Sass_Options* opt) { (Sass_Options) *ctx = *opt; }
+  struct Sass_Options* ADDCALL sass_context_get_options(struct Sass_Context* ctx) { return ctx; }
+  struct Sass_Options* ADDCALL sass_file_context_get_options(struct Sass_File_Context* ctx) { return ctx; }
+  struct Sass_Options* ADDCALL sass_data_context_get_options(struct Sass_Data_Context* ctx) { return ctx; }
+  void ADDCALL sass_file_context_set_options (struct Sass_File_Context* ctx, struct Sass_Options* opt) { (Sass_Options) *ctx = *opt; }
+  void ADDCALL sass_data_context_set_options (struct Sass_Data_Context* ctx, struct Sass_Options* opt) { (Sass_Options) *ctx = *opt; }
 
   // Create getter and setters for options
   IMPLEMENT_SASS_OPTION_ACCESSOR(int, precision);
@@ -648,7 +648,7 @@ extern "C" {
   IMPLEMENT_SASS_DATA_CONTEXT_SETTER(char*, source_string);
 
   // Push function for include paths (no manipulation support for now)
-  void sass_option_push_include_path(struct Sass_Options* options, const char* path)
+  void ADDCALL sass_option_push_include_path(struct Sass_Options* options, const char* path)
   {
 
     struct string_list* include_path = (struct string_list*) calloc(1, sizeof(struct string_list));

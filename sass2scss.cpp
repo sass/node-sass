@@ -821,13 +821,13 @@ namespace Sass
 extern "C"
 {
 
-	char* sass2scss (const char* sass, const int options)
+	char* ADDCALL sass2scss (const char* sass, const int options)
 	{
 		return Sass::sass2scss(sass, options);
 	}
 
 	// Get compiled sass2scss version
-	const char* sass2scss_version(void) {
+	const char* ADDCALL sass2scss_version(void) {
 		return SASS2SCSS_VERSION;
 	}
 

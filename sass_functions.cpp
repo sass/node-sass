@@ -17,12 +17,12 @@ extern "C" {
     void*           cookie;
   };
 
-  Sass_C_Function_List sass_make_function_list(size_t length)
+  Sass_C_Function_List ADDCALL sass_make_function_list(size_t length)
   {
     return (Sass_C_Function_List) calloc(length + 1, sizeof(Sass_C_Function_Callback));
   }
 
-  Sass_C_Function_Callback sass_make_function(const char* signature, Sass_C_Function function, void* cookie)
+  Sass_C_Function_Callback ADDCALL sass_make_function(const char* signature, Sass_C_Function function, void* cookie)
   {
     Sass_C_Function_Callback cb = (Sass_C_Function_Callback) calloc(1, sizeof(Sass_C_Function_Descriptor));
     if (cb == 0) return 0;
@@ -33,12 +33,12 @@ extern "C" {
   }
 
   // Setters and getters for callbacks on function lists
-  Sass_C_Function_Callback sass_function_get_list_entry(Sass_C_Function_List* list, size_t pos) { return *list[pos]; }
+  Sass_C_Function_Callback ADDCALL sass_function_get_list_entry(Sass_C_Function_List* list, size_t pos) { return *list[pos]; }
   void sass_function_set_list_entry(Sass_C_Function_List* list, Sass_C_Function_Callback cb, size_t pos) { *list[pos] = cb; }
 
-  const char* sass_function_get_signature(Sass_C_Function_Callback fn) { return fn->signature; }
-  Sass_C_Function sass_function_get_function(Sass_C_Function_Callback fn) { return fn->function; }
-  void* sass_function_get_cookie(Sass_C_Function_Callback fn) { return fn->cookie; }
+  const char* ADDCALL sass_function_get_signature(Sass_C_Function_Callback fn) { return fn->signature; }
+  Sass_C_Function ADDCALL sass_function_get_function(Sass_C_Function_Callback fn) { return fn->function; }
+  void* ADDCALL sass_function_get_cookie(Sass_C_Function_Callback fn) { return fn->cookie; }
 
   // External import entry
   struct Sass_Import {
@@ -54,7 +54,7 @@ extern "C" {
     void*            cookie;
   };
 
-  Sass_C_Import_Callback sass_make_importer(Sass_C_Import_Fn function, void* cookie)
+  Sass_C_Import_Callback ADDCALL sass_make_importer(Sass_C_Import_Fn function, void* cookie)
   {
     Sass_C_Import_Callback cb = (Sass_C_Import_Callback) calloc(1, sizeof(Sass_C_Import_Descriptor));
     if (cb == 0) return 0;
@@ -63,24 +63,24 @@ extern "C" {
     return cb;
   }
 
-  Sass_C_Import_Fn sass_import_get_function(Sass_C_Import_Callback fn) { return fn->function; }
-  void* sass_import_get_cookie(Sass_C_Import_Callback fn) { return fn->cookie; }
+  Sass_C_Import_Fn ADDCALL sass_import_get_function(Sass_C_Import_Callback fn) { return fn->function; }
+  void* ADDCALL sass_import_get_cookie(Sass_C_Import_Callback fn) { return fn->cookie; }
 
   // Just in case we have some stray import structs
-  void sass_delete_importer (Sass_C_Import_Callback fn)
+  void ADDCALL sass_delete_importer (Sass_C_Import_Callback fn)
   {
     free(fn);
   }
 
   // Creator for sass custom importer return argument list
-  struct Sass_Import** sass_make_import_list(size_t length)
+  struct Sass_Import** ADDCALL sass_make_import_list(size_t length)
   {
     return (Sass_Import**) calloc(length + 1, sizeof(Sass_Import*));
   }
 
   // Creator for a single import entry returned by the custom importer inside the list
   // We take ownership of the memory for source and srcmap (freed when context is destroyd)
-  struct Sass_Import* sass_make_import(const char* path, const char* base, char* source, char* srcmap)
+  struct Sass_Import* ADDCALL sass_make_import(const char* path, const char* base, char* source, char* srcmap)
   {
     Sass_Import* v = (Sass_Import*) calloc(1, sizeof(Sass_Import));
     if (v == 0) return 0;
@@ -92,17 +92,17 @@ extern "C" {
   }
 
   // Older style, but somehow still valid - keep around or deprecate?
-  struct Sass_Import* sass_make_import_entry(const char* path, char* source, char* srcmap)
+  struct Sass_Import* ADDCALL sass_make_import_entry(const char* path, char* source, char* srcmap)
   {
     return sass_make_import(path, path, source, srcmap);
   }
 
   // Setters and getters for entries on the import list
-  void sass_import_set_list_entry(struct Sass_Import** list, size_t idx, struct Sass_Import* entry) { list[idx] = entry; }
-  struct Sass_Import* sass_import_get_list_entry(struct Sass_Import** list, size_t idx) { return list[idx]; }
+  void ADDCALL sass_import_set_list_entry(struct Sass_Import** list, size_t idx, struct Sass_Import* entry) { list[idx] = entry; }
+  struct Sass_Import* ADDCALL sass_import_get_list_entry(struct Sass_Import** list, size_t idx) { return list[idx]; }
 
   // Deallocator for the allocated memory
-  void sass_delete_import_list(struct Sass_Import** list)
+  void ADDCALL sass_delete_import_list(struct Sass_Import** list)
   {
     struct Sass_Import** it = list;
     if (list == 0) return;
@@ -114,7 +114,7 @@ extern "C" {
   }
 
   // Just in case we have some stray import structs
-  void sass_delete_import(struct Sass_Import* import)
+  void ADDCALL sass_delete_import(struct Sass_Import* import)
   {
     free(import->path);
     free(import->base);
@@ -124,14 +124,14 @@ extern "C" {
   }
 
   // Getter for import entry
-  const char* sass_import_get_path(struct Sass_Import* entry) { return entry->path; }
-  const char* sass_import_get_base(struct Sass_Import* entry) { return entry->base; }
-  const char* sass_import_get_source(struct Sass_Import* entry) { return entry->source; }
-  const char* sass_import_get_srcmap(struct Sass_Import* entry) { return entry->srcmap; }
+  const char* ADDCALL sass_import_get_path(struct Sass_Import* entry) { return entry->path; }
+  const char* ADDCALL sass_import_get_base(struct Sass_Import* entry) { return entry->base; }
+  const char* ADDCALL sass_import_get_source(struct Sass_Import* entry) { return entry->source; }
+  const char* ADDCALL sass_import_get_srcmap(struct Sass_Import* entry) { return entry->srcmap; }
 
   // Explicit functions to take ownership of the memory
   // Resets our own property since we do not know if it is still alive
-  char* sass_import_take_source(struct Sass_Import* entry) { char* ptr = entry->source; entry->source = 0; return ptr; }
-  char* sass_import_take_srcmap(struct Sass_Import* entry) { char* ptr = entry->srcmap; entry->srcmap = 0; return ptr; }
+  char* ADDCALL sass_import_take_source(struct Sass_Import* entry) { char* ptr = entry->source; entry->source = 0; return ptr; }
+  char* ADDCALL sass_import_take_srcmap(struct Sass_Import* entry) { char* ptr = entry->srcmap; entry->srcmap = 0; return ptr; }
 
 }
