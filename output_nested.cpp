@@ -30,6 +30,8 @@ namespace Sass {
       seen_utf8 = true;
     }
     buffer += text;
+    if (ctx && !ctx->_skip_source_map_update)
+      ctx->source_map.update_column(text);
   }
 
   void Output_Nested::operator()(Import* imp)
@@ -347,6 +349,8 @@ namespace Sass {
   void Output_Nested::append_to_buffer(const string& text)
   {
     buffer += text;
+    if (ctx && !ctx->_skip_source_map_update)
+      ctx->source_map.update_column(text);
     for(const char& chr : text) {
       // abort clause
       if (seen_utf8) break;
@@ -355,8 +359,6 @@ namespace Sass {
       // singleton
       seen_utf8 = true;
     }
-    if (ctx && !ctx->_skip_source_map_update)
-      ctx->source_map.update_column(text);
   }
 
 }
