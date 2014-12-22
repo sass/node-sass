@@ -172,11 +172,11 @@ namespace Sass {
               prelexer mx5, prelexer mx6,
               prelexer mx7>
     const char* alternatives(const char* src) {
-      const char* rslt = src;
-      (rslt = mx1(rslt)) || (rslt = mx2(rslt)) ||
-      (rslt = mx3(rslt)) || (rslt = mx4(rslt)) ||
-      (rslt = mx5(rslt)) || (rslt = mx6(rslt)) ||
-      (rslt = mx7(rslt));
+      const char* rslt;
+      (rslt = mx1(src)) || (rslt = mx2(src)) ||
+      (rslt = mx3(src)) || (rslt = mx4(src)) ||
+      (rslt = mx5(src)) || (rslt = mx6(src)) ||
+      (rslt = mx7(src));
       return rslt;
     }
 
@@ -186,11 +186,11 @@ namespace Sass {
               prelexer mx5, prelexer mx6,
               prelexer mx7, prelexer mx8>
     const char* alternatives(const char* src) {
-      const char* rslt = src;
-      (rslt = mx1(rslt)) || (rslt = mx2(rslt)) ||
-      (rslt = mx3(rslt)) || (rslt = mx4(rslt)) ||
-      (rslt = mx5(rslt)) || (rslt = mx6(rslt)) ||
-      (rslt = mx7(rslt)) || (rslt = mx8(rslt));
+      const char* rslt;
+      (rslt = mx1(src)) || (rslt = mx2(src)) ||
+      (rslt = mx3(src)) || (rslt = mx4(src)) ||
+      (rslt = mx5(src)) || (rslt = mx6(src)) ||
+      (rslt = mx7(src)) || (rslt = mx8(src));
       return rslt;
     }
 
