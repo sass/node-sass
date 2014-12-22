@@ -9,6 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <cctype>
+#include <vector>
 #include <algorithm>
 #include <sys/stat.h>
 #include "file.hpp"
@@ -202,34 +203,38 @@ namespace Sass {
       // (4) given + extension
       char* contents = 0;
       real_path = path;
-      // if the file isn't found with the given filename ...
+      vector<string> exts(3);
+      exts[0] = ".scss";
+      exts[1] = ".sass";
+      exts[2] = ".css";
+
+      // if the file isn't found with the given filename (1)
       if (!(contents = read_file(real_path))) {
         string dir(dir_name(path));
         string base(base_name(path));
-        string _base("_" + base);
-        real_path = dir + _base;
-        // if the file isn't found with '_' + filename ...
-        if (!(contents = read_file(real_path))) {
-          string _base_scss(_base + ".scss");
-          real_path = dir + _base_scss;
-          // if the file isn't found with '_' + filename + ".scss" ...
-          if (!(contents = read_file(real_path))) {
-            string _base_sass(_base + ".sass");
-            real_path = dir + _base_sass;
-            // if the file isn't found with '_' + filename + ".sass" ...
-            if (!(contents = read_file(real_path))) {
-              string base_scss(base + ".scss");
-              real_path = dir + base_scss;
-              // if the file isn't found with filename + ".scss" ...
-              if (!(contents = read_file(real_path))) {
-                string base_sass(base + ".sass");
-                real_path = dir + base_sass;
-                // if the file isn't found with filename + ".sass" ...
-                if (!(contents = read_file(real_path))) {
-                  // default back to scss version
-                  real_path = dir + base_scss;
-                }
-              }
+        real_path = dir + base;
+        // (2) underscore + given
+        string test_path(dir + "_" + base);
+        if ((contents = read_file(test_path))) {
+          real_path = test_path;
+        }
+        // (3) underscore + given + extension
+        if (!contents) {
+          for(auto ext : exts) {
+            test_path = dir + "_" + base + ext;
+            if ((contents = read_file(test_path))) {
+              real_path = test_path;
+              break;
+            }
+          }
+        }
+        // (4) given + extension
+        if (!contents) {
+          for(auto ext : exts) {
+            test_path = dir + base + ext;
+            if ((contents = read_file(test_path))) {
+              real_path = test_path;
+              break;
             }
           }
         }
