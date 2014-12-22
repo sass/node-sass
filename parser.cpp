@@ -1136,9 +1136,7 @@ namespace Sass {
     if (lex< important >())
     { return new (ctx.mem) String_Constant(path, source_position, "!important"); }
 
-    // #TODO: Use the uncommented version when #745 is fixed
-    // if (lex< value_schema >())
-    if (lex< sequence< value_schema, optional< exactly<'%'> > > >())
+    if (lex< value_schema >())
     { return Parser::from_token(lexed, ctx, path, source_position).parse_value_schema(); }
 
     if (lex< sequence< true_val, negate< identifier > > >())
