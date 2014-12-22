@@ -183,16 +183,16 @@ namespace Sass {
     // Match interpolant schemas
     const char* identifier_schema(const char* src) {
       // follows this pattern: (x*ix*)+ ... well, not quite
-      return one_plus< sequence< zero_plus< alternatives< identifier, exactly<'-'> > >,
+      return sequence< one_plus< sequence< zero_plus< alternatives< identifier, exactly<'-'> > >,
                                  interpolant,
-                                 zero_plus< alternatives< identifier, number, exactly<'-'> > > > >(src);
+                                 zero_plus< alternatives< identifier, number, exactly<'-'> > > > >,
+                       negate< exactly<'%'> > >(src);
     }
     const char* value_schema(const char* src) {
       // follows this pattern: ([xyz]*i[xyz]*)+
       return one_plus< sequence< zero_plus< alternatives< identifier, percentage, dimension, hex, number, string_constant > >,
                                  interpolant,
-                                 // #TODO: uncomment the 7th param whrn #745 is fixed
-                                 zero_plus< alternatives< identifier, percentage, dimension, hex, number, string_constant/*, exactly<'%'>*/ > > > >(src);
+                                 zero_plus< alternatives< identifier, percentage, dimension, hex, number, string_constant, exactly<'%'> > > > >(src);
     }
     const char* filename_schema(const char* src) {
       return one_plus< sequence< zero_plus< alternatives< identifier, number, exactly<'.'>, exactly<'/'> > >,
