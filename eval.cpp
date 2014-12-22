@@ -346,7 +346,7 @@ namespace Sass {
   {
     Expression* operand = u->operand()->perform(this);
     if (u->type() == Unary_Expression::NOT) {
-      Boolean* result = new (ctx.mem) Boolean(*static_cast<Boolean*>(operand));
+      Boolean* result = new (ctx.mem) Boolean(u->path(), u->position(), (bool)*operand);
       result->value(!result->value());
       return result;
     }
