@@ -1264,10 +1264,11 @@ namespace Sass {
   ///////////////////////////////////////////////////////////////////////
   class String_Schema : public String, public Vectorized<Expression*> {
     ADD_PROPERTY(char, quote_mark);
+    ADD_PROPERTY(bool, has_interpolants);
     size_t hash_;
   public:
-    String_Schema(string path, Position position, size_t size = 0, bool unq = false, char qm = '\0')
-    : String(path, position, unq), Vectorized<Expression*>(size), quote_mark_(qm), hash_(0)
+    String_Schema(string path, Position position, size_t size = 0, bool unq = false, char qm = '\0', bool i = false)
+    : String(path, position, unq), Vectorized<Expression*>(size), quote_mark_(qm), has_interpolants_(i), hash_(0)
     { }
     string type() { return "string"; }
     static string type_name() { return "string"; }
