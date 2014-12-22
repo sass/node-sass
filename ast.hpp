@@ -454,6 +454,18 @@ namespace Sass {
     ATTACH_OPERATIONS();
   };
 
+  ///////////////////////////////
+  // The Sass `@debug` directive.
+  ///////////////////////////////
+  class Debug : public Statement {
+    ADD_PROPERTY(Expression*, value);
+  public:
+    Debug(string path, Position position, Expression* val)
+    : Statement(path, position), value_(val)
+    { }
+    ATTACH_OPERATIONS();
+  };
+
   ///////////////////////////////////////////
   // CSS comments. These may be interpolated.
   ///////////////////////////////////////////

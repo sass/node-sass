@@ -25,6 +25,7 @@ namespace Sass {
     Import<String*>* new_SASS_Import(string p, size_t l, String* loc);
     Warning* new_Warning(string p, size_t l, Expression* msg);
     Error* new_Error(string p, size_t l, Expression* msg);
+    Debug* new_Debug(string p, size_t l, Expression* val);
     Comment* new_Comment(string p, size_t l, String* txt);
     If* new_If(string p, size_t l, Expression* pred, Block* con, Block* alt = 0);
     For* new_For(string p, size_t l, string var, Expression* lo, Expression* hi, Block* b, bool inc);

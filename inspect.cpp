@@ -146,6 +146,14 @@ namespace Sass {
     append_to_buffer(";");
   }
 
+  void Inspect::operator()(Debug* debug)
+  {
+    if (ctx) ctx->source_map.add_mapping(debug);
+    append_to_buffer("@debug ");
+    debug->value()->perform(this);
+    append_to_buffer(";");
+  }
+
   void Inspect::operator()(Comment* comment)
   {
     comment->text()->perform(this);

@@ -47,6 +47,7 @@ namespace Sass {
     Expression* operator()(Return*);
     Expression* operator()(Warning*);
     Expression* operator()(Error*);
+    Expression* operator()(Debug*);
 
     Expression* operator()(List*);
     Expression* operator()(Map*);

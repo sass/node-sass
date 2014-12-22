@@ -53,10 +53,11 @@ namespace Sass {
   Definition* make_c_function(Signature sig, Sass_C_Function f, void* cookie, Context& ctx)
   {
     Parser sig_parser = Parser::from_c_str(sig, ctx, "[c function]");
-    // allow to overload generic callback plus @warn and @error with custom functions
+    // allow to overload generic callback plus @warn, @error and @debug with custom functions
     sig_parser.lex < alternatives < identifier, exactly <'*'>,
                                     exactly < Constants::warn_kwd >,
-                                    exactly < Constants::error_kwd >
+                                    exactly < Constants::error_kwd >,
+                                    exactly < Constants::debug_kwd >
                    >              >();
     string name(Util::normalize_underscores(sig_parser.lexed));
     Parameters* params = sig_parser.parse_parameters();
@@ -124,10 +125,10 @@ namespace Sass {
       BYTE rb[8];
       CryptAcquireContext(&hp, 0, 0, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT);
       CryptGenRandom(hp, sizeof(rb), rb);
-      CryptReleaseContext(hp, 0); 
+      CryptReleaseContext(hp, 0);
 
       uint64_t seed;
-      memcpy(&seed, &rb[0], sizeof(seed)); 
+      memcpy(&seed, &rb[0], sizeof(seed));
 
       return seed;
     }

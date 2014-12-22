@@ -314,6 +314,10 @@ namespace Sass {
       return exactly<error_kwd>(src);
     }
 
+    const char* dbg(const char* src) {
+      return exactly<debug_kwd>(src);
+    }
+
     const char* directive(const char* src) {
       return sequence< exactly<'@'>, identifier >(src);
     }
