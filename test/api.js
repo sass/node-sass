@@ -723,4 +723,15 @@ describe('api', function() {
       done();
     });
   });
+
+  describe('.info()', function() {
+    it('should return a correct version info', function(done) {
+      assert.equal(sass.info(), [
+        'node-sass version: ' + require('../package.json').version, 
+        'libsass version: ' + require('../package.json').libsass 
+      ].join('\n'));
+
+      done();
+    });
+  });
 });
