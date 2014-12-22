@@ -114,7 +114,7 @@ namespace Sass {
 
     Context(Data);
     ~Context();
-    string get_cwd();
+    static string get_cwd();
     void setup_color_map();
     string add_file(string);
     Block* parse_file();

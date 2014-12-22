@@ -1,5 +1,9 @@
 #ifdef _WIN32
+#include <direct.h>
+#define getcwd _getcwd
 #define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
+#else
+#include <unistd.h>
 #endif
 
 #include <iostream>
@@ -27,6 +31,19 @@
 namespace Sass {
   namespace File {
     using namespace std;
+
+    string get_cwd()
+    {
+      const size_t wd_len = 1024;
+      char wd[wd_len];
+      string cwd = getcwd(wd, wd_len);
+#ifdef _WIN32
+      //convert backslashes to forward slashes
+      replace(cwd.begin(), cwd.end(), '\\', '/');
+#endif
+      if (cwd[cwd.length() - 1] != '/') cwd += '/';
+      return cwd;
+    }
 
     // no physical check on filesystem
     // only a logical cleanup of a path
