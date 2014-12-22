@@ -24,6 +24,7 @@
 
 #ifdef __MINGW32__
 #include "windows.h"
+#include "wincrypt.h"
 #endif
 
 #define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, path, position, backtrace)
