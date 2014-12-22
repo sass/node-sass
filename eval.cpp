@@ -364,6 +364,7 @@ namespace Sass {
       if (operand->concrete_type() == Expression::NULL_VAL && typeid(*(u->operand())) == typeid(Variable)) {
         u->operand(new (ctx.mem) String_Constant(u->path(), u->position(), ""));
       }
+      else u->operand(operand);
       String_Constant* result = new (ctx.mem) String_Constant(u->path(),
                                                               u->position(),
                                                               u->perform(&to_string));
@@ -551,6 +552,12 @@ namespace Sass {
                                    n->value(),
                                    n->unit(),
                                    true);
+    }
+    else if (value->concrete_type() == Expression::STRING) {
+      String_Constant* s = static_cast<String_Constant*>(value);
+      value = new (ctx.mem) String_Constant(s->path(),
+                                            s->position(),
+                                            s->value());
     }
 
     // cerr << "\ttype is now: " << typeid(*value).name() << endl << endl;
