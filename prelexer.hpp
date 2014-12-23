@@ -365,6 +365,7 @@ namespace Sass {
 
     const char* warn(const char* src);
     const char* err(const char* src);
+    const char* dbg(const char* src);
 
     const char* directive(const char* src);
     const char* at_keyword(const char* src);

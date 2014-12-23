@@ -1,3 +1,4 @@
+#include "file.hpp"
 #include "eval.hpp"
 #include "ast.hpp"
 #include "bind.hpp"
@@ -211,10 +212,9 @@ namespace Sass {
 
     }
 
-    string prefix("WARNING: ");
     string result(unquote(message->perform(&to_string)));
-    cerr << prefix << result;
     Backtrace top(backtrace, w->path(), w->position(), "");
+    cerr << "WARNING: " << result;
     cerr << top.to_string(true);
     cerr << endl << endl;
     return 0;
@@ -243,12 +243,42 @@ namespace Sass {
 
     }
 
-    string prefix("Error: ");
     string result(unquote(message->perform(&to_string)));
-    cerr << prefix << result;
     Backtrace top(backtrace, e->path(), e->position(), "");
+    cerr << "Error: " << result;
     cerr << top.to_string(true);
     cerr << endl << endl;
+    return 0;
+  }
+
+  Expression* Eval::operator()(Debug* d)
+  {
+    Expression* message = d->value()->perform(this);
+    To_String to_string;
+
+    // try to use generic function
+    if (env->has("@debug[f]")) {
+
+      Definition* def = static_cast<Definition*>((*env)["@debug[f]"]);
+      // Block*          body   = def->block();
+      // Native_Function func   = def->native_function();
+      Sass_C_Function c_func = def->c_function();
+
+      To_C to_c;
+      union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
+      sass_list_set_value(c_args, 0, message->perform(&to_c));
+      Sass_Value* c_val = c_func(c_args, def->cookie());
+      sass_delete_value(c_args);
+      sass_delete_value(c_val);
+      return 0;
+
+    }
+
+    string cwd(ctx.get_cwd());
+    string result(unquote(message->perform(&to_string)));
+    string rel_path(Sass::File::resolve_relative_path(d->path(), cwd, cwd));
+    cerr << rel_path << ":" << d->position().line << ":" << " DEBUG: " << result;
+    cerr << endl;
     return 0;
   }
 

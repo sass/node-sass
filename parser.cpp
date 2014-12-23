@@ -102,6 +102,10 @@ namespace Sass {
         (*root) << parse_error();
         if (!lex< exactly<';'> >()) error("top-level @error directive must be terminated by ';'");
       }
+      else if (peek< dbg >()) {
+        (*root) << parse_debug();
+        if (!lex< exactly<';'> >()) error("top-level @debug directive must be terminated by ';'");
+      }
       // ignore the @charset directive for now
       else if (lex< exactly< charset_kwd > >()) {
         lex< string_constant >();
@@ -719,6 +723,10 @@ namespace Sass {
       }
       else if (peek< err >()) {
         (*block) << parse_error();
+        semicolon = true;
+      }
+      else if (peek< dbg >()) {
+        (*block) << parse_debug();
         semicolon = true;
       }
       else if (stack.back() == function_def) {
@@ -1757,6 +1765,12 @@ namespace Sass {
   {
     lex< err >();
     return new (ctx.mem) Error(path, source_position, parse_list());
+  }
+
+  Debug* Parser::parse_debug()
+  {
+    lex< dbg >();
+    return new (ctx.mem) Debug(path, source_position, parse_list());
   }
 
   Selector_Lookahead Parser::lookahead_for_selector(const char* start)

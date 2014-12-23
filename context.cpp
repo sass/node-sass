@@ -1,9 +1,6 @@
 #ifdef _WIN32
-#include <direct.h>
-#define getcwd _getcwd
 #define PATH_SEP ';'
 #else
-#include <unistd.h>
 #define PATH_SEP ':'
 #endif
 
@@ -266,7 +263,7 @@ namespace Sass {
         0, 0
       );
       import_stack.push_back(import);
-      Parser p(Parser::from_c_str(queue[i].source, *this, queue[i].load_path, Position(1 + i, 1, 1)));
+      Parser p(Parser::from_c_str(queue[i].source, *this, queue[i].abs_path, Position(1 + i, 1, 1)));
       Block* ast = p.parse();
       sass_delete_import(import_stack.back());
       import_stack.pop_back();
@@ -359,15 +356,7 @@ namespace Sass {
 
   string Context::get_cwd()
   {
-    const size_t wd_len = 1024;
-    char wd[wd_len];
-    string cwd = getcwd(wd, wd_len);
-#ifdef _WIN32
-    //convert backslashes to forward slashes
-    replace(cwd.begin(), cwd.end(), '\\', '/');
-#endif
-    if (cwd[cwd.length() - 1] != '/') cwd += '/';
-    return cwd;
+    return Sass::File::get_cwd();
   }
 
   void register_function(Context& ctx, Signature sig, Native_Function f, Env* env)

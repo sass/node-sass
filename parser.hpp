@@ -247,6 +247,7 @@ namespace Sass {
     At_Rule* parse_at_rule();
     Warning* parse_warning();
     Error* parse_error();
+    Debug* parse_debug();
 
     Selector_Lookahead lookahead_for_selector(const char* start = 0);
     Selector_Lookahead lookahead_for_extension_target(const char* start = 0);

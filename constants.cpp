@@ -27,6 +27,7 @@ namespace Sass {
     extern const char while_kwd[]         = "@while";
     extern const char warn_kwd[]          = "@warn";
     extern const char error_kwd[]         = "@error";
+    extern const char debug_kwd[]         = "@debug";
     extern const char default_kwd[]       = "default";
     extern const char global_kwd[]        = "global";
     extern const char null_kwd[]          = "null";

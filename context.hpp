@@ -114,6 +114,7 @@ namespace Sass {
 
     Context(Data);
     ~Context();
+    static string get_cwd();
     void setup_color_map();
     string add_file(string);
     Block* parse_file();
@@ -134,7 +135,6 @@ namespace Sass {
     void collect_include_paths(const char* paths_str);
     void collect_include_paths(const char** paths_array);
     string format_source_mapping_url(const string& file);
-    string get_cwd();
 
     string cwd;
 
