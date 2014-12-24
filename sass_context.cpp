@@ -164,10 +164,9 @@ extern "C" {
 
   #define IMPLEMENT_SASS_CONTEXT_GETTER(type, option) \
     type ADDCALL sass_context_get_##option (struct Sass_Context* ctx) { return ctx->option; }
-  #define IMPLEMENT_SASS_FILE_CONTEXT_SETTER(type, option) \
-    void ADDCALL sass_file_context_set_##option (struct Sass_File_Context* ctx, type option) { ctx->option = option; }
-  #define IMPLEMENT_SASS_DATA_CONTEXT_SETTER(type, option) \
-    void ADDCALL sass_data_context_set_##option (struct Sass_Data_Context* ctx, type option) { ctx->option = option; }
+  #define IMPLEMENT_SASS_CONTEXT_TAKER(type, option) \
+    type sass_context_take_##option (struct Sass_Context* ctx) \
+    { type foo = ctx->option; ctx->option = 0; return foo; }
 
   // helper for safe access to c_ctx
   static const char* safe_str (const char* str) {
@@ -644,8 +643,12 @@ extern "C" {
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, source_map_string);
   IMPLEMENT_SASS_CONTEXT_GETTER(char**, included_files);
 
-  // Create getter and setters for specialized contexts
-  IMPLEMENT_SASS_DATA_CONTEXT_SETTER(char*, source_string);
+  // Take ownership of memory (value on context is set to 0)
+  IMPLEMENT_SASS_CONTEXT_TAKER(char*, error_json);
+  IMPLEMENT_SASS_CONTEXT_TAKER(char*, error_message);
+  IMPLEMENT_SASS_CONTEXT_TAKER(char*, error_file);
+  IMPLEMENT_SASS_CONTEXT_TAKER(char*, output_string);
+  IMPLEMENT_SASS_CONTEXT_TAKER(char*, source_map_string);
 
   // Push function for include paths (no manipulation support for now)
   void ADDCALL sass_option_push_include_path(struct Sass_Options* options, const char* path)
