@@ -74,8 +74,8 @@ ADDAPI Sass_C_Function_List ADDCALL sass_make_function_list (size_t length);
 ADDAPI Sass_C_Function_Callback ADDCALL sass_make_function (const char* signature, Sass_C_Function fn, void* cookie);
 
 // Setters and getters for callbacks on function lists
-ADDAPI Sass_C_Function_Callback ADDCALL sass_function_get_list_entry(Sass_C_Function_List* list, size_t pos);
-ADDAPI void ADDCALL sass_function_set_list_entry(Sass_C_Function_List* list, Sass_C_Function_Callback cb, size_t pos);
+ADDAPI Sass_C_Function_Callback ADDCALL sass_function_get_list_entry(Sass_C_Function_List list, size_t pos);
+ADDAPI void ADDCALL sass_function_set_list_entry(Sass_C_Function_List list, size_t pos, Sass_C_Function_Callback cb);
 
 // Getters for custom function descriptors
 ADDAPI const char* ADDCALL sass_function_get_signature (Sass_C_Function_Callback fn);
