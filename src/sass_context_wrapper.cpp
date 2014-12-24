@@ -31,7 +31,7 @@ extern "C" {
 
   void sass_free_context_wrapper(sass_context_wrapper* ctx_w) {
     if (ctx_w->dctx) {
-    //  sass_delete_data_context(ctx_w->dctx);
+      sass_delete_data_context(ctx_w->dctx);
     }
     else if (ctx_w->fctx) {
       sass_delete_file_context(ctx_w->fctx);
@@ -48,6 +48,6 @@ extern "C" {
     uv_mutex_destroy(&ctx_w->importer_mutex);
     uv_cond_destroy(&ctx_w->importer_condition_variable);
 
-    // free(ctx_w);
+    free(ctx_w);
   }
 }
