@@ -186,6 +186,18 @@ Note: `includedFiles` isn't sorted in any meaningful way, it's just a list of al
 
 * In the case that both `file` and `data` options are set, node-sass will give precedence to `data` and use `file` to calculate paths in sourcemaps.
 
+### Version information (v2 change)
+
+Both `node-sass` and `libsass` version info is now present in `package.json` and is expoded via `info()` method:
+
+```javascript
+require('node-sass').info();
+
+// outputs something like:
+// node-sass version: 2.0.0-beta
+// libsass version: 3.1.0-beta
+```
+
 ## Integrations
 
 Listing of community uses of node-sass in build tools and frameworks.
