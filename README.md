@@ -45,9 +45,9 @@ sass.render({
 	[, options..]
 	});
 // OR
-var css = sass.renderSync({
-	data: scss_content
-	[, options..]
+var result = sass.renderSync({
+	           data: scss_content
+               [, options..]
 });
 ```
 
@@ -65,7 +65,10 @@ The API for using node-sass has changed, so that now there is only one variable 
 `success` is a `Function` to be called upon successful rendering of the scss to css. This option is required but only for the render function. If provided to renderSync it will be ignored.
 
 #### error
-`error` is a `Function` to be called upon occurance of an error when rendering the scss to css. This option is optional, and only applies to the render function. If provided to renderSync it will be ignored.
+`error` is a `Function` to be called upon occurrence of an error when rendering the scss to css. This option is optional, and only applies to the render function. If provided to renderSync it will be ignored.
+
+#### importer (starting from v2)
+`importer` is a `Function` to be called when libsass parser encounters the import directive. If present, libsass will call node-sass and let the user change file, data or both during the compilation. This option is optional, and applies to both render and renderSync functions. Also, it can either return object of form `{file:'..', contents: '..'}` or send it back via `done({})`. Note in renderSync or render, there is no restriction imposed on using `done()` callback or `return` statement (dispite of the asnchrony difference).
 
 #### includePaths
 `includePaths` is an `Array` of path `String`s to look for any `@import`ed files. It is recommended that you use this option if you are using the `data` option and have **any** `@import` directives, as otherwise [libsass] may not find your depended-on files.
@@ -75,6 +78,12 @@ The API for using node-sass has changed, so that now there is only one variable 
 
 #### indentedSyntax
 `indentedSyntax` is a `Boolean` flag to determine if [Sass Indented Syntax](http://sass-lang.com/documentation/file.INDENTED_SYNTAX.html) should be used to parse provided string or a file.
+
+#### omitSourceMapUrl
+`omitSourceMapUrl` is a `Boolean` flag to determine whether to include `sourceMappingURL` comment in the output file.
+
+#### outFile
+`outFile` specifies where to save the CSS.
 
 #### outputStyle
 `outputStyle` is a `String` to determine how the final CSS should be rendered. Its value should be one of `'nested'` or `'compressed'`.
@@ -86,15 +95,79 @@ The API for using node-sass has changed, so that now there is only one variable 
 #### sourceComments
 `sourceComments` is a `Boolean` flag to determine what debug information is included in the output file.
 
-#### omitSourceMapUrl
-`omitSourceMapUrl` is a `Boolean` flag to determine whether to include `sourceMappingURL` comment in the output file.
-
 #### sourceMap
-If your `sourceComments` option is set to `map`, `sourceMap` allows setting a new path context for the referenced Sass files.
-The source map describes a path from your CSS file location, into the the folder where the Sass files are located. In most occasions this will work out-of-the-box but, in some cases, you may need to set a different output.
+`sourceMap` can be set as `String` or `Boolean`. If it is set to `true`, the path of sourceMap would be computed by node-sass w.r.t the outFile path. It can also be set to absolute or relative (to outFile) path.
 
-#### stats
-`stats` is an empty `Object` that will be filled with stats from the compilation:
+#### sourceMapEmbed
+`sourceMapEmbed` is a `Boolean` flag to determine whether to embed `sourceMappingUrl` as data URI.
+
+#### sourceMapContents
+`sourceMapContents` is a `Boolean` flag to determine whether to include `contents` in maps.
+
+### Examples
+
+```javascript
+var sass = require('node-sass');
+sass.render({
+        file: '/path/to/myFile.scss',
+	data: 'body{background:blue; a{color:black;}}',
+	success: function(result) {
+		// result is an object: v2 change
+        	console.log(result.css);
+        	console.log(result.stats);
+        	console.log(result.map)
+	},
+	error: function(error) {
+	        // error is an object: v2 change
+		console.log(error.message);
+		console.log(error.code);
+	},
+	importer: function(url, prev, done) {
+		// url is the path in import as is, which libsass encountered.
+		// prev is the previously resolved path.
+		// done is an optional callback, either consume it or return value synchronously.
+		someAsyncFunction(url, prev, function(result){
+			done({
+				file: result.path, // only one of them is required, see section Sepcial Behaviours.
+				contents: result.data
+			});
+		});
+		// OR
+		var result = someSyncFunction(url, prev);
+		return {file: result.path, contents: result.data};
+	},
+	includePaths: [ 'lib/', 'mod/' ],
+	outputStyle: 'compressed'
+});
+// OR
+var result = sass.renderSync({
+        file: '/path/to/file.scss',
+	data: 'body{background:blue; a{color:black;}}',
+	outputStyle: 'compressed',
+	outFile: '/to/my/output.css',
+	sourceMap: true, // or an absolute or relative (to outFile) path
+	importer: function(url, prev, done) {
+		// url is the path in import as is, which libsass encountered.
+		// prev is the previously resolved path.
+		// done is an optional callback, either consume it or return value synchronously.
+		someAsyncFunction(url, prev, function(result){
+			done({
+				file: result.path, // only one of them is required, see section Sepcial Behaviours.
+				contents: result.data
+			});
+		});
+		// OR
+		var result = someSyncFunction(url, prev);
+		return {file: result.path, contents: result.data};
+	},
+}));
+
+console.log(result.css);
+console.log(result.map);
+console.log(result.stats);
+```
+
+The stats object consists of the following constituents:
 
 ```javascript
 {
@@ -107,58 +180,11 @@ The source map describes a path from your CSS file location, into the the folder
 }
 ```
 
-`includedFiles` isn't sorted in any meaningful way, it's just a list of all imported scss files including the entry.
+Note: `includedFiles` isn't sorted in any meaningful way, it's just a list of all imported scss files including the entry.
 
-### renderFile()
+### Sepecial behaviours
 
-Same as `render()` but writes the CSS and sourceMap (if requested) to the filesystem.
-
-#### outFile
-
-`outFile` specifies where to save the CSS.
-
-#### sourceMap
-
-`sourceMap` specifies that the source map should be saved.
-
-- If falsy the source map will not be saved
-- If `sourceMap === true` the source map will be saved to the
-standard location of `path.basename(options.outFile) + '.map'`
-- Otherwise specifies the path (relative to the `outFile`)
-where the source map should be saved
-
-
-### Examples
-
-```javascript
-var sass = require('node-sass');
-var stats = {};
-sass.render({
-	data: 'body{background:blue; a{color:black;}}',
-	success: function(css) {
-        console.log(css);
-        console.log(stats);
-	},
-	error: function(error) {
-		console.log(error);
-	},
-	includePaths: [ 'lib/', 'mod/' ],
-	outputStyle: 'compressed',
-    stats: stats
-});
-// OR
-console.log(sass.renderSync({
-	data: 'body{background:blue; a{color:black;}}',
-	outputStyle: 'compressed',
-    stats: stats
-}));
-console.log(stats);
-```
-
-### Edge-case behaviours
-
-* In the case that both `file` and `data` options are set, node-sass will only attempt to honour the `file` directive.
-
+* In the case that both `file` and `data` options are set, node-sass will give precedence to `data` and use `file` to calculate paths in sourcemaps.
 
 ## Integrations
 
@@ -221,12 +247,14 @@ Node-sass includes pre-compiled binaries for popular platforms, to add a binary 
 
 Check out the project:
 
-    git clone --recursive https://github.com/sass/node-sass.git
-    cd node-sass
-    git submodule update --init --recursive
-    npm install
-    npm install -g node-gyp
-    node-gyp rebuild
+```bash
+git clone --recursive https://github.com/sass/node-sass.git
+cd node-sass
+git submodule update --init --recursive
+npm install
+npm install -g node-gyp
+node-gyp rebuild  # to make debug release, use -d switch
+```
 
 ### Workaround for node `v0.11.13` `v0.11.14`
 Follow the steps above, but comment out this [line](https://github.com/sass/node-sass/blob/e01497c4d4b8a7a7f4dbf9d607920ac10ad64445/lib/index.js#L181) in `lib/index.js` before the `npm install` step. Then uncomment it back again, and continue with the rest of the steps (see issue [#563](https://github.com/sass/node-sass/issues/563)).
@@ -242,11 +270,26 @@ Output will be saved with the same name as input SASS file into the current work
 
  **Options:**
 
-      --output-style         CSS output style (nested|expanded|compact|compressed)  [default: "nested"]
-      --source-comments      Include debug info in output                           [default: false]
-      --omit-source-map-url  Omit source map URL comment from output                [default: false]
-      --include-path         Path to look for @import-ed files                      [default: cwd]
-      --help, -h             Print usage info
+```bash
+    -w, --watch                Watch a directory or file
+    -r, --recursive            Recursively watch directories or files
+    -o, --output               Output directory
+    -x, --omit-source-map-url  Omit source map URL comment from output
+    -i, --indented-syntax      Treat data from stdin as sass code (versus scss)
+    --output-style             CSS output style (nested|expanded|compact|compressed)
+    --source-comments          Include debug info in output
+    --source-map               Emit source map
+    --source-map-embed         Embed sourceMappingUrl as data URI
+    --source-map-contents      Embed include contents in map
+    --include-path             Path to look for imported files
+    --image-path               Path to prepend when using the `image-url()` helper
+    --precision                The amount of precision allowed in decimal numbers
+    --stdout                   Print the resulting CSS to stdout
+    --importer                 Path to custom importer
+    --help                     Print usage info
+```
+
+Note `--importer` takes the (absolute or relative to pwd) path to a js file, which needs to have a default `module.exports` set to the importer function. See our test [fixtures](https://github.com/sass/node-sass/tree/974f93e76ddd08ea850e3e663cfe64bb6a059dd3/test/fixtures/extras) for example.
 
 ## Post-install Build
 
