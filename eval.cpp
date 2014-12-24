@@ -525,7 +525,8 @@ namespace Sass {
 
       backtrace = here.parent;
       sass_delete_value(c_args);
-      sass_delete_value(c_val);
+      if (c_val != c_args)
+        sass_delete_value(c_val);
       env = old_env;
     }
     // else it's an overloaded native function; resolve it
