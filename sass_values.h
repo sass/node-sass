@@ -113,6 +113,9 @@ ADDAPI union Sass_Value* ADDCALL sass_make_warning (const char* msg);
 // Means we will delete recursively for lists and maps
 ADDAPI void ADDCALL sass_delete_value (union Sass_Value* val);
 
+// Make a deep cloned copy of the given sass value
+ADDAPI union Sass_Value* ADDCALL sass_clone_value (const union Sass_Value* val);
+
 
 #ifdef __cplusplus
 } // __cplusplus defined.
