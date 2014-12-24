@@ -14,7 +14,7 @@ extern "C" {
   struct sass_context_wrapper {
     Sass_Data_Context* dctx;
     Sass_File_Context* fctx;
-    Persistent<Object> stats;
+    Persistent<Object> result;
     uv_work_t request;
     uv_mutex_t importer_mutex;
     uv_cond_t importer_condition_variable;
