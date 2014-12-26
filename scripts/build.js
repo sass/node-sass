@@ -119,13 +119,12 @@ function testBinary(options) {
     return;
   }
 
-  return; // TODO: remove it once TravisCI build pass 90% and above tests
-
   fs.stat(path.join(__dirname, '..', 'vendor', options.bin, 'binding.node'), function (err) {
     if (err) {
       return build(options);
     }
 
+    return; // TODO: remove it once TravisCI build pass 90% and above tests
     console.log('`' + options.bin + '` exists; testing');
 
     var total;
