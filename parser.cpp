@@ -846,6 +846,7 @@ namespace Sass {
 
   Expression* Parser::parse_map()
   {
+    To_String to_string;
     Expression* key = parse_list();
 
     // it's not a map so return the lexed value as a list value
@@ -874,6 +875,9 @@ namespace Sass {
 
       (*map) << make_pair(key, value);
     }
+
+    if (map->has_duplicate_key())
+    { error("Duplicate key \"" + map->get_duplicate_key()->perform(&to_string) + "\" in map " + map->perform(&to_string) + "."); }
 
     return map;
   }
