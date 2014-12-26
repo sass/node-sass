@@ -558,6 +558,10 @@ namespace Sass {
     // backtrace = here.parent;
     // env = old_env;
     result->position(c->position());
+    do {
+      result->is_delayed(result->concrete_type() == Expression::STRING);
+      result = result->perform(this);
+    } while (result->concrete_type() == Expression::NONE);
     return result;
   }
 
