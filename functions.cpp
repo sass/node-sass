@@ -923,7 +923,9 @@ namespace Sass {
         size_t start = UTF_8::offset_at_position(str, UTF_8::normalize_index(n->value(), UTF_8::code_point_count(str)));
         size_t end = UTF_8::offset_at_position(str, UTF_8::normalize_index(m->value(), UTF_8::code_point_count(str)));
 
-        if(start == end) {
+        // `str-slice` should always return an empty string when $end-at == 0
+        // `normalize_index` normalizes 1 -> 0 so we need to check the original value
+        if(start == end && m->value() > 0) {
           newstr = str.substr(start, 1);
         } else if(end > start) {
           newstr = str.substr(start, end - start + UTF_8::code_point_size_at_offset(str, end));
