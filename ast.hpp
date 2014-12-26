@@ -204,21 +204,26 @@ namespace Sass {
     vector<Expression*> list_;
   protected:
     size_t hash_;
+    Expression* duplicate_key_;
     void reset_hash() { hash_ = 0; }
+    void reset_duplicate_key() { duplicate_key_ = 0; }
     virtual void adjust_after_pushing(std::pair<Expression*, Expression*> p) { }
   public:
     Hashed(size_t s = 0) : elements_(unordered_map<Expression*, Expression*>(s)), list_(vector<Expression*>())
-    { elements_.reserve(s); list_.reserve(s); }
+    { elements_.reserve(s); list_.reserve(s); reset_duplicate_key(); }
     virtual ~Hashed();
     size_t length() const                  { return list_.size(); }
     bool empty() const                     { return list_.empty(); }
     bool has(Expression* k) const          { return elements_.count(k) == 1; }
     Expression* at(Expression* k) const    { return elements_.at(k); }
+    bool has_duplicate_key() const         { return duplicate_key_ != 0; }
+    Expression* get_duplicate_key() const  { return duplicate_key_; }
     Hashed& operator<<(pair<Expression*, Expression*> p)
     {
       reset_hash();
 
       if (!has(p.first)) list_.push_back(p.first);
+      else if (!duplicate_key_) duplicate_key_ = p.first;
 
       elements_[p.first] = p.second;
 
@@ -236,6 +241,8 @@ namespace Sass {
       for (auto key : h->keys()) {
         *this << make_pair(key, h->at(key));
       }
+
+      reset_duplicate_key();
       return *this;
     }
     const unordered_map<Expression*, Expression*>& pairs() const { return elements_; }
