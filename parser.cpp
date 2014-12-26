@@ -59,14 +59,14 @@ namespace Sass {
             (*root) << new (ctx.mem) Import_Stub(path, source_position, imp->files()[i]);
           }
         }
-        if (!lex< exactly<';'> >()) error("top-level @import directive must be terminated by ';'");
+        if (!lex< one_plus< exactly<';'> > >()) error("top-level @import directive must be terminated by ';'");
       }
       else if (peek< mixin >() || peek< function >()) {
         (*root) << parse_definition();
       }
       else if (peek< variable >()) {
         (*root) << parse_assignment();
-        if (!lex< exactly<';'> >()) error("top-level variable binding must be terminated by ';'");
+        if (!lex< one_plus< exactly<';'> > >()) error("top-level variable binding must be terminated by ';'");
       }
       else if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         (*root) << parse_propset();
@@ -74,7 +74,7 @@ namespace Sass {
       else if (peek< include >() /* || peek< exactly<'+'> >() */) {
         Mixin_Call* mixin_call = parse_mixin_call();
         (*root) << mixin_call;
-        if (!mixin_call->block() && !lex< exactly<';'> >()) error("top-level @include directive must be terminated by ';'");
+        if (!mixin_call->block() && !lex< one_plus< exactly<';'> > >()) error("top-level @include directive must be terminated by ';'");
       }
       else if (peek< if_directive >()) {
         (*root) << parse_if_directive();
@@ -96,25 +96,25 @@ namespace Sass {
       }
       else if (peek< warn >()) {
         (*root) << parse_warning();
-        if (!lex< exactly<';'> >()) error("top-level @warn directive must be terminated by ';'");
+        if (!lex< one_plus< exactly<';'> > >()) error("top-level @warn directive must be terminated by ';'");
       }
       else if (peek< err >()) {
         (*root) << parse_error();
-        if (!lex< exactly<';'> >()) error("top-level @error directive must be terminated by ';'");
+        if (!lex< one_plus< exactly<';'> > >()) error("top-level @error directive must be terminated by ';'");
       }
       else if (peek< dbg >()) {
         (*root) << parse_debug();
-        if (!lex< exactly<';'> >()) error("top-level @debug directive must be terminated by ';'");
+        if (!lex< one_plus< exactly<';'> > >()) error("top-level @debug directive must be terminated by ';'");
       }
       // ignore the @charset directive for now
       else if (lex< exactly< charset_kwd > >()) {
         lex< string_constant >();
-        lex< exactly<';'> >();
+        lex< one_plus< exactly<';'> > >();
       }
       else if (peek< at_keyword >()) {
         At_Rule* at_rule = parse_at_rule();
         (*root) << at_rule;
-        if (!at_rule->block() && !lex< exactly<';'> >()) error("top-level directive must be terminated by ';'");
+        if (!at_rule->block() && !lex< one_plus< exactly<';'> > >()) error("top-level directive must be terminated by ';'");
       }
       else if ((lookahead_result = lookahead_for_selector(position)).found) {
         (*root) << parse_ruleset(lookahead_result);
@@ -671,7 +671,7 @@ namespace Sass {
 
     while (!lex< exactly<'}'> >()) {
       if (semicolon) {
-        if (!lex< exactly<';'> >()) {
+        if (!lex< one_plus< exactly<';'> > >()) {
           error("non-terminal statement or declaration must end with ';'");
         }
         semicolon = false;
