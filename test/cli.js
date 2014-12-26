@@ -191,16 +191,17 @@ describe('cli', function() {
 
     it('should compile with the --source-map option', function(done) {
       var src = fixture('source-map/index.scss');
-      var dest = fixture('source-map/index.css');
-      var expected = read(fixture('source-map/expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
-      var map = fixture('source-map/index.map');
-      var bin = spawn(cli, [src, '--output', path.dirname(dest), '--source-map', map]);
+      var destCss = fixture('source-map/index.css');
+      var destMap = fixture('source-map/index.map');
+      var expectedCss = read(fixture('source-map/expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
+      var expectedMap = read(fixture('source-map/expected.map'), 'utf8').trim().replace(/\r\n/g, '\n');
+      var bin = spawn(cli, [src, '--output', path.dirname(destCss), '--source-map', destMap]);
 
       bin.on('close', function () {
-        assert.equal(read(dest, 'utf8').trim(), expected);
-        assert(fs.existsSync(map));
-        fs.unlinkSync(map);
-        fs.unlinkSync(dest);
+        assert.equal(read(destCss, 'utf8').trim(), expectedCss);
+        assert.equal(read(destMap, 'utf8').trim(), expectedMap);
+        fs.unlinkSync(destMap);
+        fs.unlinkSync(destCss);
         done();
       });
     });
