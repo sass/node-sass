@@ -144,7 +144,8 @@ namespace Sass {
   {
     string var(a->variable());
     if (env->has(var)) {
-      if(!a->is_guarded()) (*env)[var] = a->value()->perform(eval->with(env, backtrace));
+      Expression* v = static_cast<Expression*>((*env)[var]);
+      if (!a->is_guarded() || v->concrete_type() == Expression::NULL_VAL) (*env)[var] = a->value()->perform(eval->with(env, backtrace));
     }
     else {
       env->current_frame()[var] = a->value()->perform(eval->with(env, backtrace));
