@@ -133,10 +133,14 @@ namespace Sass {
   {
     String* old_p = d->property();
     String* new_p = static_cast<String*>(old_p->perform(eval->with(env, backtrace)));
+    Expression* value = d->value()->perform(eval->with(env, backtrace));
+
+    if (value->is_invisible() && !d->is_important()) return 0;
+
     return new (ctx.mem) Declaration(d->path(),
                                      d->position(),
                                      new_p,
-                                     d->value()->perform(eval->with(env, backtrace)),
+                                     value,
                                      d->is_important());
   }
 
