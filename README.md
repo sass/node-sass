@@ -175,8 +175,7 @@ The stats object consists of the following constituents:
     start: 10000000,                // Date.now() before the compilation
     end:   10000001,                // Date.now() after the compilation
     duration: 1,                    // end - start
-    includedFiles: [ ... ],         // absolute paths to all related scss files
-    sourceMap: "..."                // the source map string or null
+    includedFiles: [ ... ]         // absolute paths to all related scss files
 }
 ```
 
