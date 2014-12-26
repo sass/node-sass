@@ -46,8 +46,8 @@ sass.render({
 	});
 // OR
 var result = sass.renderSync({
-	           data: scss_content
-               [, options..]
+	data: scss_content
+	[, options..]
 });
 ```
 
@@ -109,16 +109,16 @@ The API for using node-sass has changed, so that now there is only one variable 
 ```javascript
 var sass = require('node-sass');
 sass.render({
-        file: '/path/to/myFile.scss',
+	file: '/path/to/myFile.scss',
 	data: 'body{background:blue; a{color:black;}}',
 	success: function(result) {
 		// result is an object: v2 change
-        	console.log(result.css);
-        	console.log(result.stats);
-        	console.log(result.map)
+        console.log(result.css);
+        console.log(result.stats);
+        console.log(result.map)
 	},
 	error: function(error) {
-	        // error is an object: v2 change
+		// error is an object: v2 change
 		console.log(error.message);
 		console.log(error.code);
 	},
@@ -141,7 +141,7 @@ sass.render({
 });
 // OR
 var result = sass.renderSync({
-        file: '/path/to/file.scss',
+	file: '/path/to/file.scss',
 	data: 'body{background:blue; a{color:black;}}',
 	outputStyle: 'compressed',
 	outFile: '/to/my/output.css',
