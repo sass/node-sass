@@ -326,6 +326,8 @@ namespace Sass {
     Binary_Expression::Type op_type = b->type();
     // don't eval delayed expressions (the '/' when used as a separator)
     if (op_type == Binary_Expression::DIV && b->is_delayed()) return b;
+    // if one of the operands is a '/' then make sure it's evaluated
+    if (typeid(*b->left()) == typeid(Binary_Expression)) b->left()->is_delayed(false);
     // the logical connectives need to short-circuit
     Expression* lhs = b->left()->perform(this);
     switch (op_type) {
