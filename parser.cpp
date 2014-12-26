@@ -339,8 +339,12 @@ namespace Sass {
     if (!lex< exactly<':'> >()) error("expected ':' after " + name + " in assignment statement");
     Expression* val = parse_list();
     val->is_delayed(false);
-    bool is_guarded = lex< default_flag >() != NULL;
-    bool is_global = lex< global_flag >() != NULL;
+    bool is_guarded = false;
+    bool is_global = false;
+    while (peek< default_flag >() || peek< global_flag >()) {
+      is_guarded = lex< default_flag >() || is_guarded;
+      is_global = lex< global_flag >() || is_global;
+    }
     Assignment* var = new (ctx.mem) Assignment(path, var_source_position, name, val, is_guarded, is_global);
     return var;
   }
