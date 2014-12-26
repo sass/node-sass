@@ -416,6 +416,7 @@ namespace Sass {
   Selector_List* Parser::parse_selector_group()
   {
     To_String to_string;
+    lex< spaces_and_comments >();
     Selector_List* group = new (ctx.mem) Selector_List(path, source_position);
     do {
       if (peek< exactly<'{'> >() ||
