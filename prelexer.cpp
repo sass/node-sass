@@ -684,7 +684,7 @@ namespace Sass {
       return alternatives< identifier,
                            static_string,
                            hex,
-                           sequence< alternatives< exactly<'+'>, exactly<'-'> >, number >,
+                           number,
                            sequence< exactly<'!'>, exactly<important_kwd> >
                           >(src);
     }
@@ -692,8 +692,11 @@ namespace Sass {
     const char* static_value(const char* src) {
       return sequence< static_component,
                        zero_plus < sequence<
-                                   alternatives< spaces, exactly<'/'> >,
-                                   optional_spaces,
+                                   alternatives<
+                                     sequence< optional_spaces, exactly<'/'>, optional_spaces >,
+                                     sequence< optional_spaces, exactly<','>, optional_spaces >,
+                                     spaces
+                                   >,
                                    static_component
                        > >,
                        alternatives< exactly<';'>, exactly<'}'> >
