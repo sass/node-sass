@@ -775,7 +775,7 @@ namespace Sass {
     {
       To_String to_string;
       AST_Node* arg = env["$string"];
-      string str(quote(arg->perform(&to_string), '"'));
+      string str(quote(arg->perform(&to_string), String_Constant::double_quote()));
       String_Constant* result = new (ctx.mem) String_Constant(path, position, str);
       result->is_delayed(true);
       return result;
@@ -854,7 +854,7 @@ namespace Sass {
         }
 
         if (quotemark) {
-          str = quote(str, quotemark);
+          str = quote(str, String_Constant::double_quote());
         }
       }
       catch (utf8::invalid_code_point) {
@@ -929,7 +929,7 @@ namespace Sass {
           newstr = str.substr(start, end - start + UTF_8::code_point_size_at_offset(str, end));
         }
         if(quotemark) {
-          newstr = quote(newstr, quotemark);
+          newstr = quote(newstr, String_Constant::double_quote());
         }
       }
       catch (utf8::invalid_code_point) {
