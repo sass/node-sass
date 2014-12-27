@@ -55,11 +55,12 @@ namespace Sass {
 
 
     Token lexed;
+    bool dequote;
 
     Parser(Context& ctx, string path, Position source_position)
     : ctx(ctx), stack(vector<Syntactic_Context>()),
       source(0), position(0), end(0), path(path), column(1), source_position(source_position)
-    { stack.push_back(nothing); }
+    { dequote = false; stack.push_back(nothing); }
 
     static Parser from_string(string src, Context& ctx, string path = "", Position source_position = Position());
     static Parser from_c_str(const char* src, Context& ctx, string path = "", Position source_position = Position());
