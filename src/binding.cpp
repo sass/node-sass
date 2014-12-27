@@ -113,7 +113,7 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
   sass_option_set_precision(sass_options, options->Get(NanNew("precision"))->Int32Value());
 }
 
-void GetStats(Handle<Object> result, Sass_Context* ctx) {
+void GetStats(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
   char** included_files = sass_context_get_included_files(ctx);
   Handle<Array> arr = NanNew<Array>();
 
@@ -123,10 +123,13 @@ void GetStats(Handle<Object> result, Sass_Context* ctx) {
     }
   }
 
-  (*result)->Get(NanNew("stats"))->ToObject()->Set(NanNew("includedFiles"), arr);
+  Local<Object> obj = NanNew(ctx_w->result);
+  obj->Get(NanNew("stats"))->ToObject()->Set(NanNew("includedFiles"), arr);
+
+  NanAssignPersistent(ctx_w->result, obj);
 }
 
-void GetSourceMap(Handle<Object> result, Sass_Context* ctx) {
+void GetSourceMap(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
   Handle<Value> source_map;
 
   if (sass_context_get_error_status(ctx)) {
@@ -140,16 +143,23 @@ void GetSourceMap(Handle<Object> result, Sass_Context* ctx) {
     source_map = NanNew<String>("{}");
   }
 
-  (*result)->Set(NanNew("sourceMap"), source_map);
+  Local<Object> obj = NanNew(ctx_w->result);
+  obj->Set(NanNew("sourceMap"), source_map);
+
+  NanAssignPersistent(ctx_w->result, obj);
 }
 
-int GetResult(Handle<Object> result, Sass_Context* ctx) {
+int GetResult(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
   int status = sass_context_get_error_status(ctx);
 
   if (status == 0) {
-    (*result)->Set(NanNew("css"), NanNew<String>(sass_context_get_output_string(ctx)));
-    GetStats(result, ctx);
-    GetSourceMap(result, ctx);
+    Local<Object> obj = NanNew(ctx_w->result);
+    obj->Set(NanNew("css"), NanNew<String>(sass_context_get_output_string(ctx)));
+
+    NanAssignPersistent(ctx_w->result, obj);
+
+    GetStats(ctx_w, ctx);
+    GetSourceMap(ctx_w, ctx);
   }
 
   return status;
@@ -169,7 +179,7 @@ void make_callback(uv_work_t* req) {
     ctx = sass_file_context_get_context(ctx_w->fctx);
   }
 
-  int status = GetResult(ctx_w->result, ctx);
+  int status = GetResult(ctx_w, ctx);
 
   if (status == 0) {
     // if no error, do callback(null, result)
@@ -220,7 +230,7 @@ NAN_METHOD(RenderSync) {
   ExtractOptions(options, dctx, ctx_w, false, true);
   compile_data(dctx);
 
-  int result = GetResult(ctx_w->result, ctx);
+  int result = GetResult(ctx_w, ctx);
   Local<String> error;
 
   if (result != 0) {
@@ -267,7 +277,7 @@ NAN_METHOD(RenderFileSync) {
   ExtractOptions(options, fctx, ctx_w, true, true);
   compile_file(fctx);
 
-  int result = GetResult(ctx_w->result, ctx);
+  int result = GetResult(ctx_w, ctx);
   Local<String> error;
 
   if (result != 0) {
