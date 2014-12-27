@@ -119,6 +119,9 @@ namespace Sass {
       else if ((lookahead_result = lookahead_for_selector(position)).found) {
         (*root) << parse_ruleset(lookahead_result);
       }
+      else if (peek< exactly<';'> >()) {
+        lex< one_plus< exactly<';'> > >();
+      }
       else {
         lex< spaces_and_comments >();
         if (position >= end) break;
@@ -776,7 +779,7 @@ namespace Sass {
       // ignore the @charset directive for now
       else if (lex< exactly< charset_kwd > >()) {
         lex< string_constant >();
-        lex< exactly<';'> >();
+        lex< one_plus< exactly<';'> > >();
       }
       else if (peek< at_keyword >()) {
         At_Rule* at_rule = parse_at_rule();
@@ -810,7 +813,7 @@ namespace Sass {
           }
         }
       }
-      else lex< exactly<';'> >();
+      else lex< one_plus< exactly<';'> > >();
       while (lex< block_comment >()) {
         String*  contents = parse_interpolated_chunk(lexed);
         Comment* comment  = new (ctx.mem) Comment(path, source_position, contents);
@@ -834,7 +837,7 @@ namespace Sass {
     else {
       error("invalid property name");
     }
-    if (!lex< exactly<':'> >()) error("property \"" + string(lexed) + "\" must be followed by a ':'");
+    if (!lex< one_plus< exactly<':'> > >()) error("property \"" + string(lexed) + "\" must be followed by a ':'");
     if (peek< exactly<';'> >()) error("style declaration must contain a value");
     if (peek< static_value >()) {
       return new (ctx.mem) Declaration(path, prop->position(), prop, parse_static_value()/*, lex<important>()*/);
