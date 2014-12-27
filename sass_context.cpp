@@ -4,6 +4,7 @@
 #include <unistd.h>
 #endif
 
+#include <stdexcept>
 #include "json.hpp"
 #include "context.hpp"
 #include "sass_values.h"
@@ -437,25 +438,38 @@ extern "C" {
   Sass_File_Context* ADDCALL sass_make_file_context(const char* input_path)
   {
     struct Sass_File_Context* ctx = (struct Sass_File_Context*) calloc(1, sizeof(struct Sass_File_Context));
-    if (ctx == 0) return 0;
+    if (ctx == 0) { cerr << "Error allocating memory for file context" << endl; return 0; }
     ctx->type = SASS_CONTEXT_FILE;
-    sass_option_set_input_path(ctx, input_path);
+    try {
+      if (input_path == 0) { throw(runtime_error("File context created without an input path")); }
+      if (*input_path == 0) { throw(runtime_error("File context created with empty input path")); }
+      sass_option_set_input_path(ctx, input_path);
+    } catch (...) {
+      handle_errors(ctx);
+    }
     return ctx;
   }
 
   Sass_Data_Context* ADDCALL sass_make_data_context(char* source_string)
   {
     struct Sass_Data_Context* ctx = (struct Sass_Data_Context*) calloc(1, sizeof(struct Sass_Data_Context));
-    if (ctx == 0) return 0;
+    if (ctx == 0) { cerr << "Error allocating memory for data context" << endl; return 0; }
     ctx->type = SASS_CONTEXT_DATA;
-    ctx->source_string = source_string;
+    try {
+      if (source_string == 0) { throw(runtime_error("Data context created without a source string")); }
+      if (*source_string == 0) { throw(runtime_error("Data context created with empty source string")); }
+      ctx->source_string = source_string;
+    } catch (...) {
+      handle_errors(ctx);
+    }
     return ctx;
   }
 
   struct Sass_Compiler* ADDCALL sass_make_file_compiler (struct Sass_File_Context* c_ctx)
   {
+    if (c_ctx == 0) return 0;
     struct Sass_Compiler* compiler = (struct Sass_Compiler*) calloc(1, sizeof(struct Sass_Compiler));
-    if (compiler == 0) return 0;
+    if (compiler == 0) { cerr << "Error allocating memory for file compiler" << endl; return 0; }
     compiler->state = SASS_COMPILER_CREATED;
     compiler->c_ctx = c_ctx;
     Context::Data cpp_opt = Context::Data();
@@ -466,8 +480,9 @@ extern "C" {
 
   struct Sass_Compiler* ADDCALL sass_make_data_compiler (struct Sass_Data_Context* c_ctx)
   {
+    if (c_ctx == 0) return 0;
     struct Sass_Compiler* compiler = (struct Sass_Compiler*) calloc(1, sizeof(struct Sass_Compiler));
-    if (compiler == 0) return 0;
+    if (compiler == 0) { cerr << "Error allocating memory for data compiler" << endl; return 0; }
     compiler->state = SASS_COMPILER_CREATED;
     compiler->c_ctx = c_ctx;
     Context::Data cpp_opt = Context::Data();
@@ -478,26 +493,37 @@ extern "C" {
 
   int ADDCALL sass_compile_data_context(Sass_Data_Context* data_ctx)
   {
+    if (data_ctx == 0) return 1;
     Sass_Context* c_ctx = data_ctx;
+    if (c_ctx->error_status)
+      return c_ctx->error_status;
     Context::Data cpp_opt = Context::Data();
-    cpp_opt.source_c_str(data_ctx->source_string);
+    try { cpp_opt.source_c_str(data_ctx->source_string); }
+    catch (...) { return handle_errors(c_ctx) || 1; }
     return sass_compile_context(c_ctx, cpp_opt);
   }
 
   int ADDCALL sass_compile_file_context(Sass_File_Context* file_ctx)
   {
+    if (file_ctx == 0) return 1;
     Sass_Context* c_ctx = file_ctx;
+    if (c_ctx->error_status)
+      return c_ctx->error_status;
     Context::Data cpp_opt = Context::Data();
-    cpp_opt.entry_point(file_ctx->input_path);
+    try { cpp_opt.entry_point(file_ctx->input_path); }
+    catch (...) { return handle_errors(c_ctx) || 1; }
     return sass_compile_context(c_ctx, cpp_opt);
   }
 
   int ADDCALL sass_compiler_parse(struct Sass_Compiler* compiler)
   {
+    if (compiler == 0) return 1;
     if (compiler->state == SASS_COMPILER_PARSED) return 0;
     if (compiler->state != SASS_COMPILER_CREATED) return -1;
     if (compiler->c_ctx == NULL) return 1;
     if (compiler->cpp_ctx == NULL) return 1;
+    if (compiler->c_ctx->error_status)
+      return compiler->c_ctx->error_status;
     compiler->state = SASS_COMPILER_PARSED;
     Context* cpp_ctx = (Context*) compiler->cpp_ctx;
     // parse the context we have set up (file or data)
@@ -508,12 +534,14 @@ extern "C" {
 
   int ADDCALL sass_compiler_execute(struct Sass_Compiler* compiler)
   {
-    if (compiler == 0) return 0;
+    if (compiler == 0) return 1;
     if (compiler->state == SASS_COMPILER_EXECUTED) return 0;
     if (compiler->state != SASS_COMPILER_PARSED) return -1;
     if (compiler->c_ctx == NULL) return 1;
     if (compiler->cpp_ctx == NULL) return 1;
     if (compiler->root == NULL) return 1;
+    if (compiler->c_ctx->error_status)
+      return compiler->c_ctx->error_status;
     compiler->state = SASS_COMPILER_EXECUTED;
     Context* cpp_ctx = (Context*) compiler->cpp_ctx;
     Block* root = (Block*) compiler->root;
