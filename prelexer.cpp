@@ -651,25 +651,7 @@ namespace Sass {
     }
 
     const char* url(const char* src) {
-      // using (more or less) the algorithm described at this url:
-      // http://www.w3.org/TR/css3-syntax/#consume-a-url-token
-      const char* pos = src;
-      pos = zero_plus<spaces>(pos);
-      if (*pos == '"' || *pos == '\'') return string_constant(pos); // let the parser handle the rparen
-      while (*pos != ')') {
-        if (space(pos)) {
-          ++pos;
-          continue;
-        }
-        if (*pos == '\\') {
-          pos = ESCAPE(pos);
-          if (!pos) return 0; // invalid escape sequence
-          continue;
-        }
-        if (*pos == '"' || *pos == '\'' || *pos == '(') return 0;
-        ++pos;
-      }
-      return pos;
+      return chunk(src);
     }
 
     const char* static_string(const char* src) {
