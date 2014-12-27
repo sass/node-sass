@@ -270,6 +270,7 @@ namespace Sass {
       if (i == 0) root = ast;
       style_sheets[queue[i].load_path] = ast;
     }
+    if (root == 0) return 0;
     Env tge;
     Backtrace backtrace(0, "", Position(), "");
     register_built_in_functions(*this, &tge);
