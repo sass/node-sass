@@ -102,10 +102,12 @@ ADDAPI size_t ADDCALL sass_context_get_error_column (struct Sass_Context* ctx);
 ADDAPI const char* ADDCALL sass_context_get_source_map_string (struct Sass_Context* ctx);
 ADDAPI char** ADDCALL sass_context_get_included_files (struct Sass_Context* ctx);
 
-
-// Setters for specific data context option
-// const char* sass_data_context_get_source_string (struct Sass_Data_Context* ctx);
-ADDAPI void ADDCALL sass_data_context_set_source_string (struct Sass_Data_Context* ctx, char* source_string);
+// Take ownership of memory (value on context is set to 0)
+ADDAPI char* ADDCALL sass_context_take_error_json (struct Sass_Context* ctx);
+ADDAPI char* ADDCALL sass_context_take_error_message (struct Sass_Context* ctx);
+ADDAPI char* ADDCALL sass_context_take_error_file (struct Sass_Context* ctx);
+ADDAPI char* ADDCALL sass_context_take_output_string (struct Sass_Context* ctx);
+ADDAPI char* ADDCALL sass_context_take_source_map_string (struct Sass_Context* ctx);
 
 // Push function for include paths (no manipulation support for now)
 ADDAPI void ADDCALL sass_option_push_include_path (struct Sass_Options* options, const char* path);
