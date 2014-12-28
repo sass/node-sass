@@ -121,6 +121,8 @@ sass.render({
 		// error is an object: v2 change
 		console.log(error.message);
 		console.log(error.code);
+		console.log(error.line);
+		console.log(error.column); // new in v2
 	},
 	importer: function(url, prev, done) {
 		// url is the path in import as is, which libsass encountered.
