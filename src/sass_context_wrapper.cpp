@@ -4,7 +4,7 @@ extern "C" {
   using namespace std;
 
   void compile_it(uv_work_t* req) {
-    sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(req->data);
+    sass_context_wrapper* ctx_w = (sass_context_wrapper*)req->data;
 
     if (ctx_w->dctx) {
       compile_data(ctx_w->dctx);
@@ -23,9 +23,10 @@ extern "C" {
   }
 
   sass_context_wrapper* sass_make_context_wrapper() {
-    auto ctx_w = (sass_context_wrapper*)calloc(1, sizeof(sass_context_wrapper));
+    sass_context_wrapper* ctx_w = (sass_context_wrapper*)calloc(1, sizeof(sass_context_wrapper));
     uv_mutex_init(&ctx_w->importer_mutex);
     uv_cond_init(&ctx_w->importer_condition_variable);
+
     return ctx_w;
   }
 
