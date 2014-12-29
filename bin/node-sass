@@ -29,6 +29,7 @@ var cli = meow({
     '  -w, --watch                Watch a directory or file',
     '  -r, --recursive            Recursively watch directories or files',
     '  -o, --output               Output directory',
+    '  -m, --matchdir             Directory matching',
     '  -x, --omit-source-map-url  Omit source map URL comment from output',
     '  -i, --indented-syntax      Treat data from stdin as sass code (versus scss)',
     '  --output-style             CSS output style (nested|expanded|compact|compressed)',
@@ -48,6 +49,7 @@ var cli = meow({
     'indented-syntax',
     'omit-source-map-url',
     'recursive',
+    'matchdir',
     'stdout',
     'source-map-embed',
     'source-map-contents',
@@ -66,7 +68,8 @@ var cli = meow({
     w: 'watch',
     x: 'omit-source-map-url',
     c: 'source-comments',
-    r: 'recursive'
+    r: 'recursive',
+    m: 'matchdir'
   },
   default: {
     'image-path': '',
@@ -126,6 +129,8 @@ function getEmitter() {
 
 function getOptions(args, options) {
   var dir = options.output || process.cwd();
+  var resolved = path.resolve(dir);
+  var _src = options.src;
 
   options.src = args[0];
   options.dest = null;
@@ -142,7 +147,12 @@ function getOptions(args, options) {
 
   if (!options.dest && !options.stdout) {
     var ext = path.extname(options.src);
-    var out = path.basename(options.src);
+    var out;
+    if (options.m && options.inputDir) {
+      out = path.relative(options.inputDir, options.src)
+    } else {
+      out = path.basename(options.src);
+    }
     var suffix = '.css';
 
     if (ext !== suffix) {
@@ -178,6 +188,8 @@ function watch(options, emitter) {
     var glob = options.recursive ? '**/*.{sass,scss}' : '*.{sass,scss}';
     return isSassFile(d) ? d : path.join(d, glob);
   });
+
+  options.inputDir = options.matchdir ? path.resolve(options.src) : null;
 
   gaze.add(dir);
   gaze.on('error', emitter.emit.bind(emitter, 'error'));
