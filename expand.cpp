@@ -272,8 +272,18 @@ namespace Sass {
 
     if (map) {
       for (auto key : map->keys()) {
-        (*env)[variables[0]] = key->perform(eval->with(env, backtrace));
-        (*env)[variables[1]] = map->at(key)->perform(eval->with(env, backtrace));
+        Expression* k = key->perform(eval->with(env, backtrace));
+        Expression* v = map->at(key)->perform(eval->with(env, backtrace));
+
+        if (variables.size() == 1) {
+          List* variable = new (ctx.mem) List(map->path(), map->position(), 2, List::SPACE);
+          *variable << k;
+          *variable << v;
+          (*env)[variables[0]] = variable;
+        } else {
+          (*env)[variables[0]] = k;
+          (*env)[variables[1]] = v;
+        }
         append_block(body);
       }
     }
