@@ -141,8 +141,18 @@ namespace Sass {
 
     if (map) {
       for (auto key : map->keys()) {
-        (*env)[variables[0]] = key;
-        (*env)[variables[1]] = map->at(key);
+        Expression* value = map->at(key);
+
+        if (variables.size() == 1) {
+          List* variable = new (ctx.mem) List(map->path(), map->position(), 2, List::SPACE);
+          *variable << key;
+          *variable << value;
+          (*env)[variables[0]] = variable;
+        } else {
+          (*env)[variables[0]] = key;
+          (*env)[variables[1]] = value;
+        }
+
         val = body->perform(this);
         if (val) break;
       }
