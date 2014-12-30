@@ -344,7 +344,12 @@ namespace Sass {
   }
 
   void Output_Nested::indent()
-  { append_to_buffer(string(2*indentation, ' ')); }
+  {
+    string indent = "";
+    for (size_t i = 0; i < indentation; i++)
+      indent += ctx->indent;
+    append_to_buffer(indent);
+  }
 
   void Output_Nested::append_to_buffer(const string& text)
   {

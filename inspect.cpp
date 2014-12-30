@@ -682,7 +682,12 @@ namespace Sass {
   { }
 
   void Inspect::indent()
-  { append_to_buffer(string(2*indentation, ' ')); }
+  {
+    string indent = "";
+    for (size_t i = 0; i < indentation; i++)
+      indent += ctx->indent;
+    append_to_buffer(indent);
+  }
 
   string unquote(const string& s)
   {
