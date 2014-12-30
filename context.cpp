@@ -246,7 +246,7 @@ namespace Sass {
         root->perform(&output_nested);
         string output = output_nested.get_buffer();
         if (source_map_file != "" && !omit_source_map_url) {
-          output += "\n" + format_source_mapping_url(source_map_file);
+          output += linefeed + format_source_mapping_url(source_map_file);
         }
         result = copy_c_str(output.c_str());
 

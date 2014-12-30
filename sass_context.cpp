@@ -68,9 +68,9 @@ extern "C" {
     // information in source-maps etc.
     char* output_path;
 
-    // For the image-url Sass function
+    // String to be used for indentation
     const char* indent;
-    // For the image-url Sass function
+    // String to be used to for line feeds
     const char* linefeed;
 
     // For the image-url Sass function

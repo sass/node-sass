@@ -70,8 +70,8 @@ namespace Sass {
     SourceMap source_map;
     vector<Sass_C_Function_Callback> c_functions;
 
-    string       indent;
-    string       linefeed;
+    string       indent; // String to be used for indentation
+    string       linefeed; // String to be used for line feeds
     string       image_path; // for the image-url Sass function
     string       input_path; // for relative paths in src-map
     string       output_path; // for relative paths to the output
