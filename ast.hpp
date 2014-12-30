@@ -187,6 +187,11 @@ namespace Sass {
       for (size_t i = 0, L = v->length(); i < L; ++i) *this << (*v)[i];
       return *this;
     }
+    Vectorized& unshift(T element)
+    {
+      elements_.insert(elements_.begin(), element);
+      return *this;
+    }
     vector<T>& elements() { return elements_; }
     const vector<T>& elements() const { return elements_; }
     vector<T>& elements(vector<T>& e) { elements_ = e; return elements_; }

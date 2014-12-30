@@ -63,6 +63,7 @@ namespace Sass {
 
     Statement* parent();
     vector<pair<bool, Block*>> slice_by_bubble(Statement*);
+    Statement* bubble(Media_Block*);
     Statement* debubble(Block* children, Statement* parent = 0);
     Statement* flatten(Statement*);
     bool bubblable(Statement*);
