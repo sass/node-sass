@@ -3,7 +3,8 @@ Libsass
 
 by Aaron Leung ([@akhleung]) and Hampton Catlin ([@hcatlin])
 
-[![Build Status](https://travis-ci.org/sass/libsass.png?branch=master)](https://travis-ci.org/sass/libsass)
+[![Linux CI](https://travis-ci.org/sass/libsass.png?branch=master)](https://travis-ci.org/sass/libsass)
+[![Windows CI](https://ci.appveyor.com/api/projects/status/s88o0u5qra2ng4vy/branch/master?svg=true)](https://ci.appveyor.com/project/sass/libsass/branch/master)
 [![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=283068)](https://www.bountysource.com/trackers/283068-libsass?utm_source=283068&utm_medium=shield&utm_campaign=TRACKER_BADGE)
 [![Coverage Status](https://img.shields.io/coveralls/sass/libsass.svg)](https://coveralls.io/r/sass/libsass?branch=feature%2Ftest-travis-ci-3)
 
@@ -14,7 +15,7 @@ then go to https://github.com/sass/sassc or
 https://github.com/sass/ruby-libsass or
 [find your local implementer](https://github.com/sass/libsass/wiki/Implementations).
 
-LibSass requires GCC 4.7+ or Clang/LLVM. If your OS is older, this version may not compile.
+LibSass requires GCC 4.5+ or Clang/LLVM. If your OS is older, this version may not compile.
 
 About
 -----
@@ -47,50 +48,15 @@ To run tests against libsass while developing, you can run `./script/spec`. This
 Library Usage
 -------------
 
-While libsass is primarily implemented in C++, it provides a simple
-C interface that is defined in [sass_interface.h]. Its usage is pretty
-straight forward.
+While libsass is a library primarily written in C++, it provides a simple
+C interface which should be used by most implementers. Libsass does not do
+much on its own without an implementer. This can be a command line tool, like
+[sassc](https://github.com/sass/sassc) or a [binding](https://github.com/sass/libsass/wiki/Implementations)
+to your favorite programing language.
 
-First, you create a sass context struct. We use these objects to define
-different execution parameters for the library. There are three
-different context types.
-
-```c
-sass_context();        // string-in-string-out compilation
-sass_file_context();   // file-based compilation
-sass_folder_context(); // full-folder multi-file
-```
-
-Each of the contexts have slightly different behavior and are
-implemented seperately. This does add extra work to implementing
-a wrapper library, but we felt that a mixed-use context object
-provides for too much implicit logic. What if you set "input_string"
-AND "input_file"... what do we do? This would introduce bugs into
-wrapper libraries that would be difficult to debug.
-
-We anticipate that most adapters in most languages will define
-their own logic for how to separate these use cases based on the
-language. For instance, the original Ruby interface has a combined
-interface, but is backed by three different processes.
-
-To generate a context, use one of the following methods.
-
-```c
-sass_new_context();
-sass_new_file_context();
-sass_new_folder_context();
-```
-
-Again, please see the [sass_interface.h] for more information.
-
-And, to get even more information, then please see the implementations
-in SassC and SassC-Ruby.
-
-Implementations
----------------
-
-For a full list of implementations, checkout our
-[implementations wiki page](https://github.com/sass/libsass/wiki/Implementations)
+If you want to build or interface with libsass, we recommend to check out the
+wiki pages about [building libsass](https://github.com/sass/libsass/wiki/Building-Libsass) and
+the [C-API documentation](https://github.com/sass/libsass/wiki/API-Documentation).
 
 About Sass
 ----------
