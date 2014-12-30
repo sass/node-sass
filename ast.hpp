@@ -279,6 +279,7 @@ namespace Sass {
     // needed for rearranging nested rulesets during CSS emission
     virtual bool   is_hoistable() { return false; }
     virtual bool   is_invisible() { return false; }
+    virtual bool   bubbles() { return false; }
     virtual Block* block()  { return 0; }
   };
   inline Statement::~Statement() { }
@@ -361,6 +362,7 @@ namespace Sass {
     Bubble(string path, Position position, Statement* n, Statement* g = 0, size_t t = 0)
     : Statement(path, position), node_(n), group_end_(g), tabs_(t)
     { statement_type(BUBBLE); }
+    bool bubbles() { return true; }
     ATTACH_OPERATIONS();
   };
 
@@ -378,6 +380,7 @@ namespace Sass {
     Media_Block(string path, Position position, List* mqs, Block* b, Selector* s)
     : Has_Block(path, position, b), media_queries_(mqs), selector_(s)
     { statement_type(MEDIA); }
+    bool bubbles() { return true; }
     bool is_hoistable() { return true; }
     bool is_invisible() {
       bool is_invisible = true;

@@ -38,7 +38,7 @@ namespace Sass {
     using Operation<Statement*>::operator();
 
     Statement* operator()(Block*);
-    // Statement* operator()(Ruleset*);
+    Statement* operator()(Ruleset*);
     // Statement* operator()(Propset*);
     // Statement* operator()(Bubble*);
     Statement* operator()(Media_Block*);
@@ -63,8 +63,12 @@ namespace Sass {
 
     Statement* parent();
     vector<pair<bool, Block*>> slice_by_bubble(Statement*);
-    Statement* debubble(Block*, Statement*);
+    Statement* debubble(Block* children, Statement* parent = 0);
     Statement* flatten(Statement*);
+    bool bubblable(Statement*);
+
+    List* merge_media_queries(Media_Block*, Media_Block*);
+    Media_Query* merge_media_query(Media_Query*, Media_Query*);
 
     template <typename U>
     Statement* fallback(U x) { return fallback_impl(x); }
