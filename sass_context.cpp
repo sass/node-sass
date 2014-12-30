@@ -69,6 +69,11 @@ extern "C" {
     char* output_path;
 
     // For the image-url Sass function
+    const char* indent;
+    // For the image-url Sass function
+    const char* linefeed;
+
+    // For the image-url Sass function
     char* image_path;
 
     // Colon-separated list of paths
@@ -325,7 +330,9 @@ extern "C" {
              .importer(c_ctx->importer)
              .include_paths_array(include_paths)
              .include_paths(vector<string>())
-             .precision(c_ctx->precision ? c_ctx->precision : 5);
+             .precision(c_ctx->precision ? c_ctx->precision : 5)
+             .linefeed(c_ctx->linefeed ? c_ctx->linefeed : "\n")
+             .indent(c_ctx->indent ? c_ctx->indent : "  ");
 
       // create new c++ Context
       Context* cpp_ctx = new Context(cpp_opt);
@@ -665,6 +672,8 @@ extern "C" {
   IMPLEMENT_SASS_OPTION_ACCESSOR(bool, is_indented_syntax_src);
   IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_C_Function_List, c_functions);
   IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_C_Import_Callback, importer);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, indent);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, linefeed);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, input_path);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, output_path);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, image_path);

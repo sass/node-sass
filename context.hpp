@@ -70,6 +70,8 @@ namespace Sass {
     SourceMap source_map;
     vector<Sass_C_Function_Callback> c_functions;
 
+    string       indent;
+    string       linefeed;
     string       image_path; // for the image-url Sass function
     string       input_path; // for relative paths in src-map
     string       output_path; // for relative paths to the output
@@ -97,6 +99,8 @@ namespace Sass {
       KWD_ARG(Data, string,          input_path);
       KWD_ARG(Data, string,          output_path);
       KWD_ARG(Data, string,          image_path);
+      KWD_ARG(Data, string,          indent);
+      KWD_ARG(Data, string,          linefeed);
       KWD_ARG(Data, const char*,     include_paths_c_str);
       KWD_ARG(Data, const char**,    include_paths_array);
       KWD_ARG(Data, vector<string>,  include_paths);

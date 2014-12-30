@@ -35,6 +35,10 @@ struct sass_options {
   const char* include_paths;
   // For the image-url Sass function
   const char* image_path;
+  // String to be used to indicate new lines
+  const char* linefeed;
+  // String to be used for indentation
+  const char* indent;
   // Precision for outputting fractional numbers
   int precision;
 };

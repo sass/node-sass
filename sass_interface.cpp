@@ -122,6 +122,8 @@ extern "C" {
                        .include_paths_array(0)
                        .include_paths(vector<string>())
                        .precision(c_ctx->options.precision ? c_ctx->options.precision : 5)
+                       .indent(c_ctx->options.indent ? c_ctx->options.indent : "  ")
+                       .linefeed(c_ctx->options.linefeed ? c_ctx->options.linefeed : "\n")
                        .importer(0)
       );
       if (c_ctx->c_functions) {
