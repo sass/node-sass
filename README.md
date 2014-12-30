@@ -1,4 +1,4 @@
-# node-sass
+﻿# node-sass
 
 ![logo](https://rawgit.com/sass/node-sass/master/media/logo.svg)
 
@@ -64,6 +64,11 @@ The API for using node-sass has changed, so that now there is only one variable 
 #### success
 `success` is a `Function` to be called upon successful rendering of the scss to css. This option is required but only for the render function. If provided to renderSync it will be ignored.
 
+The callback function is passed a results object, containing the following keys:
+
+* `css` - The compiled CSS. Write this to a file, or serve it out as needed.
+* `map` - The source map
+
 #### error
 `error` is a `Function` to be called upon occurrence of an error when rendering the scss to css. This option is optional, and only applies to the render function. If provided to renderSync it will be ignored.
 
@@ -83,7 +88,9 @@ The API for using node-sass has changed, so that now there is only one variable 
 `omitSourceMapUrl` is a `Boolean` flag to determine whether to include `sourceMappingURL` comment in the output file.
 
 #### outFile
-`outFile` specifies where to save the CSS.
+~~`outFile` specifies where to save the CSS.~~
+
+The `outFile` argument has been deprecated with the 2.0.0 release. You should instead write the results passed to the `success` callback to a file yourself.
 
 #### outputStyle
 `outputStyle` is a `String` to determine how the final CSS should be rendered. Its value should be one of `'nested'` or `'compressed'`.
