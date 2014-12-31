@@ -1,6 +1,17 @@
 ﻿# node-sass
 
-![logo](https://rawgit.com/sass/node-sass/master/media/logo.svg)
+<table>
+  <tr>
+    <td>
+      <img width="100%" alt="Sass logo" src="https://rawgit.com/sass/node-sass/master/media/logo.svg" />
+    </td>
+    <td valign="bottom" align="right">
+      <a href="https://nodei.co/npm/node-sass/">
+        <img width="100%" src="https://nodei.co/npm/node-sass.png?downloads=true&downloadRank=true&stars=true">
+      </a>
+    </td>
+  </tr>
+</table>
 
 [![Build Status](https://travis-ci.org/sass/node-sass.svg?branch=master&style=flat)](https://travis-ci.org/sass/node-sass)
 [![Build status](https://ci.appveyor.com/api/projects/status/22mjbk59kvd55m9y/branch/master)](https://ci.appveyor.com/project/sass/node-sass/branch/master)
