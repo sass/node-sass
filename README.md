@@ -88,9 +88,7 @@ The callback function is passed a results object, containing the following keys:
 `omitSourceMapUrl` is a `Boolean` flag to determine whether to include `sourceMappingURL` comment in the output file.
 
 #### outFile
-~~`outFile` specifies where to save the CSS.~~
-
-The `outFile` argument has been deprecated with the 2.0.0 release. You should instead write the results passed to the `success` callback to a file yourself.
+`outFile` specifies where the CSS will be saved. This option does not actually output a file, but is used as input for generating a source map.
 
 #### outputStyle
 `outputStyle` is a `String` to determine how the final CSS should be rendered. Its value should be one of `'nested'` or `'compressed'`.
