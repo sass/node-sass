@@ -546,7 +546,9 @@ extern "C" {
     Context* cpp_ctx = (Context*) compiler->cpp_ctx;
     Block* root = (Block*) compiler->root;
     // compile the parsed root block
-    compiler->c_ctx->output_string = cpp_ctx->compile_block(root);
+    try { compiler->c_ctx->output_string = cpp_ctx->compile_block(root); }
+    // pass catched errors to generic error handler
+    catch (...) { handle_errors(compiler->c_ctx); }
     // generate source map json and store on context
     compiler->c_ctx->source_map_string = cpp_ctx->generate_source_map();
     // success
