@@ -193,16 +193,10 @@ lib/libsass.dll: lib $(COBJECTS) $(OBJECTS) $(RCOBJECTS)
 
 install: install-$(BUILD)
 
-$(DESTDIR):
-	$(MKDIR) $(DESTDIR)
-
-$(DESTDIR)$(PREFIX): $(DESTDIR)
-	$(MKDIR) $(DESTDIR)$(PREFIX)
-
-install-static: $(DESTDIR)$(PREFIX) lib/libsass.a
+install-static: lib/libsass.a
 	install -pm0755 $< $(DESTDIR)$(PREFIX)/$<
 
-install-shared: $(DESTDIR)$(PREFIX) lib/libsass.so
+install-shared: lib/libsass.so
 	install -pm0755 $< $(DESTDIR)$(PREFIX)/$<
 
 $(SASSC_BIN): $(BUILD)
