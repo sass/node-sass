@@ -154,6 +154,7 @@ extern "C" {
     void* root;
   };
 
+  static void copy_options(struct Sass_Options* to, struct Sass_Options* from) { *to = *from; }
 
   #define IMPLEMENT_SASS_OPTION_ACCESSOR(type, option) \
     type ADDCALL sass_option_get_##option (struct Sass_Options* options) { return options->option; } \
@@ -498,7 +499,11 @@ extern "C" {
     if (c_ctx->error_status)
       return c_ctx->error_status;
     Context::Data cpp_opt = Context::Data();
-    try { cpp_opt.source_c_str(data_ctx->source_string); }
+    try {
+      if (data_ctx->source_string == 0) { throw(runtime_error("Data context has no source string")); }
+      if (*data_ctx->source_string == 0) { throw(runtime_error("Data context has empty source string")); }
+      cpp_opt.source_c_str(data_ctx->source_string);
+    }
     catch (...) { return handle_errors(c_ctx) || 1; }
     return sass_compile_context(c_ctx, cpp_opt);
   }
@@ -510,7 +515,11 @@ extern "C" {
     if (c_ctx->error_status)
       return c_ctx->error_status;
     Context::Data cpp_opt = Context::Data();
-    try { cpp_opt.entry_point(file_ctx->input_path); }
+    try {
+      if (file_ctx->input_path == 0) { throw(runtime_error("File context has no input path")); }
+      if (*file_ctx->input_path == 0) { throw(runtime_error("File context has empty input path")); }
+      cpp_opt.entry_point(file_ctx->input_path);
+    }
     catch (...) { return handle_errors(c_ctx) || 1; }
     return sass_compile_context(c_ctx, cpp_opt);
   }
@@ -567,7 +576,7 @@ extern "C" {
         ++this_func_data;
       }
     }
-    // Deallocate inc paths
+    // Free custom importer
     if (options->include_paths) {
       struct string_list* cur;
       struct string_list* next;
@@ -643,8 +652,8 @@ extern "C" {
   struct Sass_Options* ADDCALL sass_context_get_options(struct Sass_Context* ctx) { return ctx; }
   struct Sass_Options* ADDCALL sass_file_context_get_options(struct Sass_File_Context* ctx) { return ctx; }
   struct Sass_Options* ADDCALL sass_data_context_get_options(struct Sass_Data_Context* ctx) { return ctx; }
-  void ADDCALL sass_file_context_set_options (struct Sass_File_Context* ctx, struct Sass_Options* opt) { (Sass_Options) *ctx = *opt; }
-  void ADDCALL sass_data_context_set_options (struct Sass_Data_Context* ctx, struct Sass_Options* opt) { (Sass_Options) *ctx = *opt; }
+  void ADDCALL sass_file_context_set_options (struct Sass_File_Context* ctx, struct Sass_Options* opt) { copy_options(ctx, opt); }
+  void ADDCALL sass_data_context_set_options (struct Sass_Data_Context* ctx, struct Sass_Options* opt) { copy_options(ctx, opt); }
 
   // Create getter and setters for options
   IMPLEMENT_SASS_OPTION_ACCESSOR(int, precision);
