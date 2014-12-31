@@ -812,6 +812,7 @@ namespace Sass {
         string msg("utf8::invalid_utf8");
         error(msg, path, position, backtrace);
       }
+      catch (...) { throw; }
       // return something even if we had an error (-1)
       return new (ctx.mem) Number(path, position, len);
     }
@@ -869,6 +870,7 @@ namespace Sass {
         string msg("utf8::invalid_utf8");
         error(msg, path, position, backtrace);
       }
+      catch (...) { throw; }
       return new (ctx.mem) String_Constant(path, position, str);
     }
 
@@ -902,6 +904,7 @@ namespace Sass {
         string msg("utf8::invalid_utf8");
         error(msg, path, position, backtrace);
       }
+      catch (...) { throw; }
       // return something even if we had an error (-1)
       return new (ctx.mem) Number(path, position, index);
     }
@@ -946,6 +949,7 @@ namespace Sass {
         string msg("utf8::invalid_utf8");
         error(msg, path, position, backtrace);
       }
+      catch (...) { throw; }
       return new (ctx.mem) String_Constant(path, position, newstr);
     }
 
@@ -1293,6 +1297,7 @@ namespace Sass {
       } catch (const std::out_of_range&) {
         return new (ctx.mem) Null(path, position);
       }
+      catch (...) { throw; }
     }
 
     Signature map_has_key_sig = "map-has-key($map, $key)";

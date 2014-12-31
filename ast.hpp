@@ -707,6 +707,7 @@ namespace Sass {
       {
         return false;
       }
+      catch (...) { throw; }
 
     }
 
@@ -755,6 +756,7 @@ namespace Sass {
       {
         return false;
       }
+      catch (...) { throw; }
     }
 
     virtual size_t hash()
@@ -843,6 +845,7 @@ namespace Sass {
       {
         return false;
       }
+      catch (...) { throw; }
     }
 
     virtual size_t hash()
@@ -941,6 +944,7 @@ namespace Sass {
       {
         return false;
       }
+      catch (...) { throw; }
     }
 
     virtual size_t hash()
@@ -991,6 +995,7 @@ namespace Sass {
       {
         return false;
       }
+      catch (...) { throw; }
     }
 
     virtual size_t hash()
@@ -1029,6 +1034,7 @@ namespace Sass {
       {
         return false;
       }
+      catch (...) { throw; }
     }
 
     virtual size_t hash()
@@ -1171,6 +1177,7 @@ namespace Sass {
       {
         return false;
       }
+      catch (...) { throw; }
     }
 
     virtual size_t hash()
@@ -1212,6 +1219,7 @@ namespace Sass {
       {
         return false;
       }
+      catch (...) { throw; }
     }
 
     virtual size_t hash()
@@ -1250,6 +1258,7 @@ namespace Sass {
       {
         return false;
       }
+      catch (...) { throw; }
     }
 
     virtual size_t hash()
@@ -1306,6 +1315,7 @@ namespace Sass {
       {
         return false;
       }
+      catch (...) { throw; }
     }
 
     virtual size_t hash()
@@ -1355,6 +1365,7 @@ namespace Sass {
       {
         return false;
       }
+      catch (...) { throw; }
     }
 
     virtual size_t hash()

@@ -1043,7 +1043,9 @@ namespace Sass {
       try {
         String_Schema* ss = dynamic_cast<String_Schema*>(fact1);
         if (ss->has_interpolants()) return fact1;
-      } catch (bad_cast&) {}
+      }
+      catch (bad_cast&) {}
+      catch (...) { throw; }
     }
 
     // if it's a singleton, return it directly; don't wrap it
@@ -1141,6 +1143,7 @@ namespace Sass {
         position = here;
         source_position = here_p;
       }
+      catch (...) { throw; }
       lex< spaces >();
       if (lex< url >()) {
         String* the_url = parse_interpolated_chunk(lexed);
