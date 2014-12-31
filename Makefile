@@ -2,7 +2,7 @@ CC       ?= gcc
 CXX      ?= g++
 RM       ?= rm -f
 CP       ?= cp -a
-MKDIR    ?= mkdir -p
+MKDIR    ?= mkdir
 WINDRES  ?= windres
 CFLAGS   ?= -Wall -O2
 CXXFLAGS ?= -Wall -O2
@@ -167,16 +167,16 @@ debug-shared: shared
 static: lib/libsass.a
 shared: $(LIBRARIES)
 
-lib/libsass.a: $(COBJECTS) $(OBJECTS)
+lib:
 	$(MKDIR) lib
+
+lib/libsass.a: lib $(COBJECTS) $(OBJECTS)
 	$(AR) rcvs $@ $(COBJECTS) $(OBJECTS)
 
-lib/libsass.so: $(COBJECTS) $(OBJECTS)
-	$(MKDIR) lib
+lib/libsass.so: lib $(COBJECTS) $(OBJECTS)
 	$(CXX) -shared $(LDFLAGS) -o $@ $(COBJECTS) $(OBJECTS) $(LDLIBS)
 
-lib/libsass.dll: $(COBJECTS) $(OBJECTS) $(RCOBJECTS)
-	$(MKDIR) lib
+lib/libsass.dll: lib $(COBJECTS) $(OBJECTS) $(RCOBJECTS)
 	$(CXX) -shared $(LDFLAGS) -o $@ $(COBJECTS) $(OBJECTS) $(RCOBJECTS) $(LDLIBS) -s -Wl,--subsystem,windows,--out-implib,lib/libsass.a
 
 %.o: %.c
@@ -193,12 +193,16 @@ lib/libsass.dll: $(COBJECTS) $(OBJECTS) $(RCOBJECTS)
 
 install: install-$(BUILD)
 
-install-static: lib/libsass.a
-	$(MKDIR) $(DESTDIR)$(PREFIX)\/lib/
+$(DESTDIR):
+	$(MKDIR) $(DESTDIR)
+
+$(DESTDIR)$(PREFIX): $(DESTDIR)
+	$(MKDIR) $(DESTDIR)$(PREFIX)
+
+install-static: $(DESTDIR)$(PREFIX) lib/libsass.a
 	install -pm0755 $< $(DESTDIR)$(PREFIX)/$<
 
-install-shared: lib/libsass.so
-	$(MKDIR) $(DESTDIR)$(PREFIX)\/lib/
+install-shared: $(DESTDIR)$(PREFIX) lib/libsass.so
 	install -pm0755 $< $(DESTDIR)$(PREFIX)/$<
 
 $(SASSC_BIN): $(BUILD)
