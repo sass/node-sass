@@ -1,4 +1,4 @@
-# node-sass
+﻿# node-sass
 
 ![logo](https://rawgit.com/sass/node-sass/master/media/logo.svg)
 
@@ -64,6 +64,17 @@ The API for using node-sass has changed, so that now there is only one variable 
 #### success
 `success` is a `Function` to be called upon successful rendering of the scss to css. This option is required but only for the render function. If provided to renderSync it will be ignored.
 
+The callback function is passed a results object, containing the following keys:
+
+* `css` - The compiled CSS. Write this to a file, or serve it out as needed.
+* `map` - The source map
+* `stats` - An object containing information about the compile. It contains the following keys:
+    * `entry` - The path to the scss file, or `data` if the source was not a file
+    * `start` - Date.now() before the compilation
+    * `end` - Date.now() after the compilation
+    * `duration` - *end* - *start*
+    * `includedFiles` - Absolute paths to all related scss files in no particular order.
+
 #### error
 `error` is a `Function` to be called upon occurrence of an error when rendering the scss to css. This option is optional, and only applies to the render function. If provided to renderSync it will be ignored.
 
@@ -83,7 +94,7 @@ The API for using node-sass has changed, so that now there is only one variable 
 `omitSourceMapUrl` is a `Boolean` flag to determine whether to include `sourceMappingURL` comment in the output file.
 
 #### outFile
-`outFile` specifies where to save the CSS.
+`outFile` specifies where the CSS will be saved. This option does not actually output a file, but is used as input for generating a source map.
 
 #### outputStyle
 `outputStyle` is a `String` to determine how the final CSS should be rendered. Its value should be one of `'nested'` or `'compressed'`.
@@ -168,20 +179,6 @@ console.log(result.css);
 console.log(result.map);
 console.log(result.stats);
 ```
-
-The stats object consists of the following constituents:
-
-```javascript
-{
-    entry: "path/to/entry.scss",    // or just "data" if the source was not a file
-    start: 10000000,                // Date.now() before the compilation
-    end:   10000001,                // Date.now() after the compilation
-    duration: 1,                    // end - start
-    includedFiles: [ ... ]         // absolute paths to all related scss files
-}
-```
-
-Note: `includedFiles` isn't sorted in any meaningful way, it's just a list of all imported scss files including the entry.
 
 ### Sepecial behaviours
 
