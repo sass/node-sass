@@ -88,6 +88,8 @@ namespace Sass {
 
   void Output_Compressed::operator()(Media_Block* m)
   {
+    if (m->is_invisible()) return;
+
     List*  q     = m->media_queries();
     Block* b     = m->block();
 
