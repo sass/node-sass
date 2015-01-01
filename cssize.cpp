@@ -63,10 +63,23 @@ namespace Sass {
       Block* bb = new Block(rr->block()->path(), rr->block()->position());
       *bb += props;
       rr->block(bb);
+
+      for (size_t i = 0, L = rules->length(); i < L; i++)
+      {
+        (*rules)[i]->tabs((*rules)[i]->tabs() + 1);
+      }
+
       rules->unshift(rr);
     }
 
     rules = debubble(rules)->block();
+
+    if (!(!rules->length() ||
+          !bubblable(rules->last()) ||
+          parent()->statement_type() == Statement::RULESET))
+    {
+      rules->last()->group_end(true);
+    }
 
     return rules;
   }
@@ -85,6 +98,8 @@ namespace Sass {
                                                 m->position(),
                                                 m->media_queries(),
                                                 m->block()->perform(this)->block());
+    mm->tabs(m->tabs());
+
     p_stack.pop_back();
 
     return debubble(mm->block(), mm)->block();
@@ -99,6 +114,7 @@ namespace Sass {
                                               parent->position(),
                                               parent->selector(),
                                               bb);
+    new_rule->tabs(parent->tabs());
 
     for (size_t i = 0, L = m->block()->length(); i < L; ++i) {
       *new_rule->block() << (*m->block())[i];
@@ -182,9 +198,11 @@ namespace Sass {
         }
         else {
           previous_parent = static_cast<Has_Block*>(parent);
+          previous_parent->tabs(parent->tabs());
 
           Has_Block* new_parent = static_cast<Has_Block*>(parent);
           new_parent->block(slice);
+          new_parent->tabs(parent->tabs());
 
           *result << new_parent;
         }
@@ -214,6 +232,9 @@ namespace Sass {
           static_cast<Media_Block*>(b->node())->media_queries(mq);
           ss = b->node();
         }
+
+        ss->tabs(ss->tabs() + b->tabs());
+        ss->group_end(b->group_end());
 
         if (!ss) continue;
 
