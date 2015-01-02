@@ -504,7 +504,7 @@ extern "C" {
       if (*data_ctx->source_string == 0) { throw(runtime_error("Data context has empty source string")); }
       cpp_opt.source_c_str(data_ctx->source_string);
     }
-    catch (...) { return handle_errors(c_ctx) || 1; }
+    catch (...) { return handle_errors(c_ctx) | 1; }
     return sass_compile_context(c_ctx, cpp_opt);
   }
 
@@ -520,7 +520,7 @@ extern "C" {
       if (*file_ctx->input_path == 0) { throw(runtime_error("File context has empty input path")); }
       cpp_opt.entry_point(file_ctx->input_path);
     }
-    catch (...) { return handle_errors(c_ctx) || 1; }
+    catch (...) { return handle_errors(c_ctx) | 1; }
     return sass_compile_context(c_ctx, cpp_opt);
   }
 
@@ -557,7 +557,7 @@ extern "C" {
     // compile the parsed root block
     try { compiler->c_ctx->output_string = cpp_ctx->compile_block(root); }
     // pass catched errors to generic error handler
-    catch (...) { return handle_errors(compiler->c_ctx) || 1; }
+    catch (...) { return handle_errors(compiler->c_ctx) | 1; }
     // generate source map json and store on context
     compiler->c_ctx->source_map_string = cpp_ctx->generate_source_map();
     // success
@@ -576,7 +576,7 @@ extern "C" {
         ++this_func_data;
       }
     }
-    // Free custom importer
+    // Deallocate inc paths
     if (options->include_paths) {
       struct string_list* cur;
       struct string_list* next;
