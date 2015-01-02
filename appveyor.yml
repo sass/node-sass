@@ -20,7 +20,7 @@ cache:
   - C:\Ruby21-x64\bin
 
 install:
-  - git clone https://github.com/mgreter/sassc.git --branch feature/build-dll-win-mingw
+  - git clone https://github.com/sass/sassc.git
   - git clone https://github.com/sass/sass-spec.git
   - set PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - set SASS_LIBSASS_PATH=..
