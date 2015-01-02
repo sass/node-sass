@@ -58,6 +58,8 @@ namespace Sass {
     style_sheets            (map<string, Block*>()),
     source_map              (resolve_relative_path(initializers.output_path(), initializers.source_map_file(), get_cwd())),
     c_functions             (vector<Sass_C_Function_Callback>()),
+    indent                  (initializers.indent()),
+    linefeed                (initializers.linefeed()),
     image_path              (initializers.image_path()),
     input_path              (make_canonical_path(initializers.input_path())),
     output_path             (make_canonical_path(initializers.output_path())),
@@ -244,7 +246,7 @@ namespace Sass {
         root->perform(&output_nested);
         string output = output_nested.get_buffer();
         if (source_map_file != "" && !omit_source_map_url) {
-          output += "\n" + format_source_mapping_url(source_map_file);
+          output += linefeed + format_source_mapping_url(source_map_file);
         }
         result = copy_c_str(output.c_str());
 

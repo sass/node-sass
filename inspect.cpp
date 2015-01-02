@@ -15,15 +15,15 @@ namespace Sass {
   void Inspect::operator()(Block* block)
   {
     if (!block->is_root()) {
-      append_to_buffer(" {\n");
+      append_to_buffer(" {" + ctx->linefeed);
       ++indentation;
     }
     for (size_t i = 0, L = block->length(); i < L; ++i) {
       indent();
       (*block)[i]->perform(this);
       // extra newline at the end of top-level statements
-      if (block->is_root()) append_to_buffer("\n");
-      append_to_buffer("\n");
+      if (block->is_root()) append_to_buffer(ctx->linefeed);
+      append_to_buffer(ctx->linefeed);
     }
     if (!block->is_root()) {
       --indentation;
@@ -113,7 +113,7 @@ namespace Sass {
       import->urls().front()->perform(this);
       append_to_buffer(";");
       for (size_t i = 1, S = import->urls().size(); i < S; ++i) {
-        append_to_buffer("\n");
+        append_to_buffer(ctx->linefeed);
         if (ctx) ctx->source_map.add_mapping(import);
         append_to_buffer("@import ");
         import->urls()[i]->perform(this);
@@ -165,7 +165,7 @@ namespace Sass {
     cond->predicate()->perform(this);
     cond->consequent()->perform(this);
     if (cond->alternative()) {
-      append_to_buffer("\n");
+      append_to_buffer(ctx->linefeed);
       indent();
       append_to_buffer("else");
       cond->alternative()->perform(this);
@@ -682,7 +682,12 @@ namespace Sass {
   { }
 
   void Inspect::indent()
-  { append_to_buffer(string(2*indentation, ' ')); }
+  {
+    string indent = "";
+    for (size_t i = 0; i < indentation; i++)
+      indent += ctx->indent;
+    append_to_buffer(indent);
+  }
 
   string unquote(const string& s)
   {
