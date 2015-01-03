@@ -1020,13 +1020,14 @@ namespace Sass {
     Expression* term1 = parse_term();
     // if it's a singleton, return it directly; don't wrap it
     if (!(peek< exactly<'+'> >(position) ||
-          peek< sequence< negate< number >, exactly<'-'> > >(position)) ||
+          (peek< no_spaces >(position) && peek< sequence< negate< digits >, exactly<'-'> > >(position)) ||
+          (peek< sequence< negate< digits >, exactly<'-'>, negate< digits > > >(position))) ||
           peek< identifier >(position))
     { return term1; }
 
     vector<Expression*> operands;
     vector<Binary_Expression::Type> operators;
-    while (lex< exactly<'+'> >() || lex< sequence< negate< number >, exactly<'-'> > >()) {
+    while (lex< exactly<'+'> >() || lex< sequence< negate< digits >, exactly<'-'> > >()) {
       operators.push_back(lexed == "+" ? Binary_Expression::ADD : Binary_Expression::SUB);
       operands.push_back(parse_term());
     }
