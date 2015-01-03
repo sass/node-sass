@@ -100,6 +100,63 @@ namespace Sass {
     return debubble(mm->block(), mm)->block();
   }
 
+  Statement* Cssize::operator()(At_Root_Block* m)
+  {
+    // # If there aren't any more directives or rules that this @at-root needs to
+    // # exclude, we can get rid of it and just evaluate the children.
+    // if @parents.none? {|n| node.exclude_node?(n)}
+    //   results = visit_children_without_parent(node)
+    //   results.each {|c| c.tabs += node.tabs if bubblable?(c)}
+    //   if !results.empty? && bubblable?(results.last)
+    //     results.last.group_end = node.group_end
+    //   end
+    //   return results
+    // end
+
+    bool tmp = false;
+    for (size_t i = 0, L = p_stack.size(); i < L; ++i) {
+      Statement* s = p_stack[i];
+      tmp |= m->exclude_node(s);
+    }
+
+    if (!tmp)
+    {
+      Block* bb = m->block()->perform(this)->block();
+      return bb;
+    }
+
+    if (m->exclude_node(parent()))
+    {
+      return new (ctx.mem) Bubble(m->pstate(), m);
+    }
+
+    return bubble(m);
+  }
+
+  Statement* Cssize::bubble(At_Root_Block* m)
+  {
+    Ruleset* parent = static_cast<Ruleset*>(this->parent());
+
+    Block* bb = new (ctx.mem) Block(parent->block()->pstate());
+    Ruleset* new_rule = new (ctx.mem) Ruleset(parent->pstate(),
+                                              parent->selector(),
+                                              bb);
+    new_rule->tabs(parent->tabs());
+
+    for (size_t i = 0, L = m->block()->length(); i < L; ++i) {
+      *new_rule->block() << (*m->block())[i];
+    }
+
+    Block* wrapper_block = new (ctx.mem) Block(m->block()->pstate());
+    *wrapper_block << new_rule;
+    At_Root_Block* mm = new (ctx.mem) At_Root_Block(m->pstate(),
+                                                    wrapper_block,
+                                                    m->expression());
+
+    Bubble* bubble = new (ctx.mem) Bubble(mm->pstate(), mm);
+    return bubble;
+  }
+
   Statement* Cssize::bubble(Media_Block* m)
   {
     Ruleset* parent = static_cast<Ruleset*>(this->parent());

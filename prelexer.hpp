@@ -54,6 +54,14 @@ namespace Sass {
     }
 
     // Match a sequence of characters up to the next newline.
+    template <char end>
+    const char* until(const char* src) {
+      if (*src == '\n' && exactly<end>(src)) return 0;
+      while (*src && *src != '\n' && !exactly<end>(src)) ++src;
+      return ++src;
+    }
+
+    // Match a sequence of characters up to the next newline.
     template <const char* prefix>
     const char* to_endl(const char* src) {
       if (!(src = exactly<prefix>(src))) return 0;
@@ -330,6 +338,7 @@ namespace Sass {
     const char* identifier_fragment(const char* src);
     // Match selector names.
     const char* sel_ident(const char* src);
+    const char* until_closing_paren(const char* src);
     // Match interpolant schemas
     const char* identifier_schema(const char* src);
     const char* value_schema(const char* src);
@@ -341,6 +350,9 @@ namespace Sass {
     // Match CSS '@' keywords.
     const char* at_keyword(const char* src);
     const char* import(const char* src);
+    const char* at_root(const char* src);
+    const char* with_directive(const char* src);
+    const char* without_directive(const char* src);
     const char* media(const char* src);
     const char* supports(const char* src);
     const char* keyframes(const char* src);

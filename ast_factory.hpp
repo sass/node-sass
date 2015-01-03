@@ -17,6 +17,7 @@ namespace Sass {
     Propset* new_Propset(string p, size_t l, String* pf, Block* b);
     Feature_Query* new_Feature_Query(string p, size_t l, Feature_Query* f, Block* b);
     Media_Query* new_Media_Query(string p, size_t l, List* q, Block* b);
+    At_Root_Block* new_At_Root_Block(string p, size_t l, Selector* sel, Block* b);
     At_Rule* new_At_Rule(string p, size_t l, string kwd, Selector* sel, Block* b);
     Declaration* new_Declaration(string p, size_t l, String* prop, List* vals);
     Assignment* new_Assignment(string p, size_t l, string var, Expression* val, bool guarded = false);

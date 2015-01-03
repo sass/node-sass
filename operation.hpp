@@ -21,6 +21,7 @@ namespace Sass {
     virtual T operator()(Bubble* x)                 = 0;
     virtual T operator()(Feature_Block* x)          = 0;
     virtual T operator()(Media_Block* x)            = 0;
+    virtual T operator()(At_Root_Block* x)          = 0;
     virtual T operator()(At_Rule* x)                = 0;
     virtual T operator()(Declaration* x)            = 0;
     virtual T operator()(Assignment* x)             = 0;
@@ -57,6 +58,7 @@ namespace Sass {
     virtual T operator()(Feature_Query_Condition* x)= 0;
     virtual T operator()(Media_Query* x)            = 0;
     virtual T operator()(Media_Query_Expression* x) = 0;
+    virtual T operator()(At_Root_Expression* x)     = 0;
     virtual T operator()(Null* x)                   = 0;
     // parameters and arguments
     virtual T operator()(Parameter* x)              = 0;
@@ -92,6 +94,7 @@ namespace Sass {
     virtual T operator()(Bubble* x)                 { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Feature_Block* x)          { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Media_Block* x)            { return static_cast<D*>(this)->fallback(x); }
+    virtual T operator()(At_Root_Block* x)          { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(At_Rule* x)                { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Declaration* x)            { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Assignment* x)             { return static_cast<D*>(this)->fallback(x); }
@@ -128,6 +131,7 @@ namespace Sass {
     virtual T operator()(Feature_Query_Condition* x){ return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Media_Query* x)            { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Media_Query_Expression* x) { return static_cast<D*>(this)->fallback(x); }
+    virtual T operator()(At_Root_Expression* x)     { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Null* x)                   { return static_cast<D*>(this)->fallback(x); }
     // parameters and arguments
     virtual T operator()(Parameter* x)              { return static_cast<D*>(this)->fallback(x); }

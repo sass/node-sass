@@ -756,6 +756,19 @@ namespace Sass {
     return cc;
   }
 
+  Expression* Eval::operator()(At_Root_Expression* e)
+  {
+    Expression* feature = e->feature();
+    feature = (feature ? feature->perform(this) : 0);
+    Expression* value = e->value();
+    value = (value ? value->perform(this) : 0);
+    Expression* ee = new (ctx.mem) At_Root_Expression(e->pstate(),
+                                                      static_cast<String*>(feature),
+                                                      value,
+                                                      e->is_interpolated());
+    return ee;
+  }
+
   Expression* Eval::operator()(Media_Query* q)
   {
     To_String to_string;

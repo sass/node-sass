@@ -16,6 +16,7 @@ namespace Sass {
   class Media_Block;
   class Feature_Block;
   class At_Rule;
+  class At_Root_Block;
   class Declaration;
   class Assignment;
   class Import;
@@ -53,6 +54,7 @@ namespace Sass {
   class Media_Query_Expression;
   class Feature_Query;
   class Feature_Query_Condition;
+  class At_Root_Expression;
   class Null;
   // parameters and arguments
   class Parameter;

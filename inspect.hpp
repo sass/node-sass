@@ -43,6 +43,7 @@ namespace Sass {
     virtual void operator()(Bubble*);
     virtual void operator()(Feature_Block*);
     virtual void operator()(Media_Block*);
+    virtual void operator()(At_Root_Block*);
     virtual void operator()(At_Rule*);
     virtual void operator()(Declaration*);
     virtual void operator()(Assignment*);
@@ -79,6 +80,7 @@ namespace Sass {
     virtual void operator()(Feature_Query_Condition*);
     virtual void operator()(Media_Query*);
     virtual void operator()(Media_Query_Expression*);
+    virtual void operator()(At_Root_Expression*);
     virtual void operator()(Null*);
     // parameters and arguments
     virtual void operator()(Parameter*);

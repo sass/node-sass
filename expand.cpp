@@ -132,6 +132,21 @@ namespace Sass {
     return mm;
   }
 
+  Statement* Expand::operator()(At_Root_Block* a)
+  {
+    Block* ab = a->block();
+    selector_stack.push_back(0);
+    Expression* ae = a->expression();
+    if (ae) ae = ae->perform(eval->with(env, backtrace));
+    else ae = new (ctx.mem) At_Root_Expression(a->pstate());
+    Block* bb = ab ? ab->perform(this)->block() : 0;
+    At_Root_Block* aa = new (ctx.mem) At_Root_Block(a->pstate(),
+                                                    bb,
+                                                    static_cast<At_Root_Expression*>(ae));
+    selector_stack.pop_back();
+    return aa;
+  }
+
   Statement* Expand::operator()(At_Rule* a)
   {
     Block* ab = a->block();

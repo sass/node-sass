@@ -257,6 +257,8 @@ namespace Sass {
     Feature_Query_Condition* parse_supports_conjunction();
     Feature_Query_Condition* parse_supports_disjunction();
     Feature_Query_Condition* parse_supports_declaration();
+    At_Root_Block* parse_at_root_block();
+    At_Root_Expression* parse_at_root_expression();
     At_Rule* parse_at_rule();
     Warning* parse_warning();
     Error* parse_error();
