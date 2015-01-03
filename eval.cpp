@@ -598,11 +598,8 @@ namespace Sass {
     // behave according to as ruby sass (add leading zero)
     if (value->concrete_type() == Expression::NUMBER) {
       Number* n = static_cast<Number*>(value);
-      value = new (ctx.mem) Number(n->path(),
-                                   n->position(),
-                                   n->value(),
-                                   n->unit(),
-                                   true);
+      value = new (ctx.mem) Number(*n);
+      static_cast<Number*>(value)->zero(true);
     }
     else if (value->concrete_type() == Expression::STRING) {
       String_Constant* s = static_cast<String_Constant*>(value);
@@ -953,7 +950,7 @@ namespace Sass {
     string r_unit(tmp.unit());
     if (l_unit != r_unit && !l_unit.empty() && !r_unit.empty() &&
         (op == Binary_Expression::ADD || op == Binary_Expression::SUB)) {
-      error("cannot add or subtract numbers with incompatible units", l->path(), l->position());
+      error("Incompatible units: '"+r_unit+"' and '"+l_unit+"'.", l->path(), l->position());
     }
     Number* v = new (ctx.mem) Number(*l);
     v->position(b->position());
