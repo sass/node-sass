@@ -1791,9 +1791,16 @@ namespace Sass {
     }
 
     Declaration* declaration = parse_declaration();
+    List* value = new (ctx.mem) List(declaration->value()->pstate(), 1);
+
+    if (declaration->value()->concrete_type() == Expression::LIST) {
+        value = static_cast<List*>(declaration->value());
+    }
+    else *value << declaration->value();
+
     At_Root_Expression* cond = new (ctx.mem) At_Root_Expression(declaration->pstate(),
                                                                 declaration->property(),
-                                                                declaration->value());
+                                                                value);
     if (!lex< exactly<')'> >()) error("unclosed parenthesis in @at-root expression", pstate);
     return cond;
   }

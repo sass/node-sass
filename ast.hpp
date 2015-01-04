@@ -1492,18 +1492,30 @@ namespace Sass {
     { }
     bool exclude(string str)
     {
-      bool with = feature() && unquote(static_cast<String_Constant*>(feature())->value()).compare("with") == 0;
-      string v = value() ? unquote(static_cast<String_Constant*>(value())->value()) : "rule";
+      To_String to_string;
+      bool with = feature() && unquote(feature()->perform(&to_string)).compare("with") == 0;
+      List* l = static_cast<List*>(value());
+      string v;
 
       if (with)
       {
-        if (v.compare("all") == 0) return false;
-        return (v != str);
+        if (!l || !l->length()) return str.compare("rule");
+        for (size_t i = 0, L = l->length(); i < L; ++i)
+        {
+          v = unquote((*l)[i]->perform(&to_string));
+          if (v.compare("all") == 0 || v == str) return false;
+        }
+        return true;
       }
       else
       {
-        if (v.compare("all") == 0) return true;
-        return (v == str);
+        if (!l || !l->length()) return str.compare("rule") == 0;
+        for (size_t i = 0, L = l->length(); i < L; ++i)
+        {
+          v = unquote((*l)[i]->perform(&to_string));
+          if (v.compare("all") == 0 || v == str) return true;
+        }
+        return false;
       }
     }
     ATTACH_OPERATIONS();
