@@ -389,8 +389,9 @@ namespace Sass {
   public:
     Feature_Block(ParserState pstate, Feature_Query* fqs, Block* b)
     : Has_Block(pstate, b), feature_queries_(fqs), selector_(0)
-    { }
+    { statement_type(FEATURE); }
     bool is_hoistable() { return true; }
+    bool bubbles() { return true; }
     ATTACH_OPERATIONS();
   };
 
@@ -406,6 +407,7 @@ namespace Sass {
     At_Rule(ParserState pstate, string kwd, Selector* sel = 0, Block* b = 0)
     : Has_Block(pstate, b), keyword_(kwd), selector_(sel), value_(0) // set value manually if needed
     { statement_type(DIRECTIVE); }
+    bool bubbles() { return true; }
     bool is_keyframes() { return keyword_.compare("keyframes"); }
     ATTACH_OPERATIONS();
   };
@@ -1523,9 +1525,17 @@ namespace Sass {
       {
         return expression()->exclude(static_cast<At_Rule*>(s)->keyword().erase(0, 1));
       }
+      if (s->statement_type() == Statement::MEDIA)
+      {
+        return expression()->exclude("media");
+      }
       if (s->statement_type() == Statement::RULESET)
       {
         return expression()->exclude("rule");
+      }
+      if (s->statement_type() == Statement::FEATURE)
+      {
+        return expression()->exclude("supports");
       }
       if (static_cast<At_Rule*>(s)->is_keyframes())
       {

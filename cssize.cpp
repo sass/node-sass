@@ -100,19 +100,28 @@ namespace Sass {
     return debubble(mm->block(), mm)->block();
   }
 
+  Statement* Cssize::operator()(Feature_Block* m)
+  {
+    if (!m->block()->length())
+    { return m; }
+
+    if (parent()->statement_type() == Statement::RULESET)
+    { return bubble(m); }
+
+    p_stack.push_back(m);
+
+    Feature_Block* mm = new (ctx.mem) Feature_Block(m->pstate(),
+                                                    m->feature_queries(),
+                                                    m->block()->perform(this)->block());
+    mm->tabs(m->tabs());
+
+    p_stack.pop_back();
+
+    return debubble(mm->block(), mm)->block();
+  }
+
   Statement* Cssize::operator()(At_Root_Block* m)
   {
-    // # If there aren't any more directives or rules that this @at-root needs to
-    // # exclude, we can get rid of it and just evaluate the children.
-    // if @parents.none? {|n| node.exclude_node?(n)}
-    //   results = visit_children_without_parent(node)
-    //   results.each {|c| c.tabs += node.tabs if bubblable?(c)}
-    //   if !results.empty? && bubblable?(results.last)
-    //     results.last.group_end = node.group_end
-    //   end
-    //   return results
-    // end
-
     bool tmp = false;
     for (size_t i = 0, L = p_stack.size(); i < L; ++i) {
       Statement* s = p_stack[i];
@@ -122,6 +131,10 @@ namespace Sass {
     if (!tmp)
     {
       Block* bb = m->block()->perform(this)->block();
+      //   results.each {|c| c.tabs += node.tabs if bubblable?(c)}
+      //   if !results.empty? && bubblable?(results.last)
+      //     results.last.group_end = node.group_end
+      //   end
       return bb;
     }
 
@@ -134,6 +147,27 @@ namespace Sass {
   }
 
   Statement* Cssize::bubble(At_Root_Block* m)
+  {
+    Block* bb = new (ctx.mem) Block(this->parent()->pstate());
+    Has_Block* new_rule = static_cast<Has_Block*>(this->parent());
+    new_rule->block(bb);
+    new_rule->tabs(this->parent()->tabs());
+
+    for (size_t i = 0, L = m->block()->length(); i < L; ++i) {
+      *new_rule->block() << (*m->block())[i];
+    }
+
+    Block* wrapper_block = new (ctx.mem) Block(m->block()->pstate());
+    *wrapper_block << new_rule;
+    At_Root_Block* mm = new (ctx.mem) At_Root_Block(m->pstate(),
+                                                    wrapper_block,
+                                                    m->expression());
+
+    Bubble* bubble = new (ctx.mem) Bubble(mm->pstate(), mm);
+    return bubble;
+  }
+
+  Statement* Cssize::bubble(Feature_Block* m)
   {
     Ruleset* parent = static_cast<Ruleset*>(this->parent());
 
@@ -149,9 +183,9 @@ namespace Sass {
 
     Block* wrapper_block = new (ctx.mem) Block(m->block()->pstate());
     *wrapper_block << new_rule;
-    At_Root_Block* mm = new (ctx.mem) At_Root_Block(m->pstate(),
-                                                    wrapper_block,
-                                                    m->expression());
+    Feature_Block* mm = new (ctx.mem) Feature_Block(m->pstate(),
+                                                    m->feature_queries(),
+                                                    wrapper_block);
 
     Bubble* bubble = new (ctx.mem) Bubble(mm->pstate(), mm);
     return bubble;
@@ -281,6 +315,8 @@ namespace Sass {
           static_cast<Media_Block*>(b->node())->media_queries(mq);
           ss = b->node();
         }
+
+        if (!ss) continue;
 
         ss->tabs(ss->tabs() + b->tabs());
         ss->group_end(b->group_end());

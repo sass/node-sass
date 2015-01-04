@@ -1762,6 +1762,7 @@ namespace Sass {
     in_at_root = true;
     if (peek< exactly<'('> >()) {
       expr = parse_at_root_expression();
+      body = parse_block();
     }
     else if (peek< exactly<'{'> >()) {
       body = parse_block();
