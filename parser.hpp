@@ -42,11 +42,12 @@ namespace Sass {
 
     Token lexed;
     bool dequote;
+    bool in_at_root;
 
     Parser(Context& ctx, ParserState pstate)
     : ParserState(pstate), ctx(ctx), stack(vector<Syntactic_Context>()),
       source(0), position(0), end(0), before_token(pstate), after_token(pstate), pstate("[NULL]")
-    { dequote = false; stack.push_back(nothing); }
+    { dequote = false; in_at_root = false; stack.push_back(nothing); }
 
     static Parser from_string(string src, Context& ctx, ParserState pstate = ParserState("[STRING]"));
     static Parser from_c_str(const char* src, Context& ctx, ParserState pstate = ParserState("[CSTRING]"));

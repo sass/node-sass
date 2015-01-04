@@ -381,9 +381,13 @@ namespace Sass {
     else {
       sel = parse_selector_group();
     }
+    bool old_in_at_root = in_at_root;
+    in_at_root = false;
     ParserState r_source_position = pstate;
     if (!peek< exactly<'{'> >()) error("expected a '{' after the selector", pstate);
     Block* block = parse_block();
+    in_at_root = old_in_at_root;
+    old_in_at_root = false;
     Ruleset* ruleset = new (ctx.mem) Ruleset(r_source_position, sel, block);
     return ruleset;
   }
@@ -428,7 +432,7 @@ namespace Sass {
           peek< exactly<';'> >())
         break; // in case there are superfluous commas at the end
       Complex_Selector* comb = parse_selector_combination();
-      if (!comb->has_reference()) {
+      if (!comb->has_reference() && !in_at_root) {
         ParserState sel_source_position = pstate;
         Selector_Reference* ref = new (ctx.mem) Selector_Reference(sel_source_position);
         Compound_Selector* ref_wrap = new (ctx.mem) Compound_Selector(sel_source_position);
@@ -1755,6 +1759,7 @@ namespace Sass {
     Block* body = 0;
     At_Root_Expression* expr = 0;
     Selector_Lookahead lookahead_result;
+    in_at_root = true;
     if (peek< exactly<'('> >()) {
       expr = parse_at_root_expression();
     }
@@ -1766,6 +1771,7 @@ namespace Sass {
       body = new (ctx.mem) Block(r->pstate(), 1);
       *body << r;
     }
+    in_at_root = false;
     At_Root_Block* at_root = new (ctx.mem) At_Root_Block(at_source_position, body);
     if (expr) at_root->expression(expr);
     return at_root;
