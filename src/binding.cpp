@@ -75,15 +75,16 @@ struct Sass_Import** sass_importer(const char* file, const char* prev, void* coo
 {
   sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(cookie);
 
-  ctx_w->file = file ? strdup(file) : 0;
-  ctx_w->prev = prev ? strdup(prev) : 0;
-
-  if (ctx_w->success_callback) {
+  if (!ctx_w->is_sync) {
     /*  that is async: Render() or RenderFile(),
      *  the default even loop is unblocked so it
      *  can run uv_async_send without a push.
      */
+
+    ctx_w->file = file ? strdup(file) : 0;
+    ctx_w->prev = prev ? strdup(prev) : 0;
     ctx_w->async.data = (void*)ctx_w;
+
     uv_async_send(&ctx_w->async);
     uv_cond_wait(&ctx_w->importer_condition_variable, &ctx_w->importer_mutex);
   }
@@ -91,8 +92,8 @@ struct Sass_Import** sass_importer(const char* file, const char* prev, void* coo
     NanScope();
 
     Handle<Value> argv[] = {
-      NanNew<String>(strdup(ctx_w->file ? ctx_w->file : 0)),
-      NanNew<String>(strdup(ctx_w->prev ? ctx_w->prev : 0)),
+      NanNew<String>(file),
+      NanNew<String>(prev),
       NanNew<Number>(imports_collection.size() - 1)
     };
 
@@ -122,6 +123,9 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
 
   struct Sass_Options* sass_options = sass_context_get_options(ctx);
 
+  ctx_w->importer_callback = NULL;
+  ctx_w->is_sync = isSync;
+
   if (!isSync) {
     ctx_w->request.data = ctx_w;
 
@@ -135,15 +139,16 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
 
   Local<Function> importer_callback = Local<Function>::Cast(options->Get(NanNew("importer")));
 
-  ctx_w->importer_callback = NULL;
-
-  if (!importer_callback->IsUndefined()) {
+  if (importer_callback->IsFunction()) {
     ctx_w->importer_callback = new NanCallback(importer_callback);
     uv_async_init(uv_default_loop(), &ctx_w->async, (uv_async_cb)dispatched_async_uv_callback);
     sass_option_set_importer(sass_options, sass_make_importer(sass_importer, ctx_w));
   }
 
-  sass_option_set_input_path(sass_options, CreateString(options->Get(NanNew("file"))));
+  if(!isFile) {
+    sass_option_set_input_path(sass_options, CreateString(options->Get(NanNew("file"))));
+  }
+
   sass_option_set_output_path(sass_options, CreateString(options->Get(NanNew("outFile"))));
   sass_option_set_image_path(sass_options, CreateString(options->Get(NanNew("imagePath"))));
   sass_option_set_output_style(sass_options, (Sass_Output_Style)options->Get(NanNew("style"))->Int32Value());
@@ -222,11 +227,11 @@ void make_callback(uv_work_t* req) {
 
   int status = GetResult(ctx_w, ctx);
 
-  if (status == 0) {
+  if (status == 0 && ctx_w->success_callback) {
     // if no error, do callback(null, result)
     ctx_w->success_callback->Call(0, 0);
   }
-  else {
+  else if(ctx_w->error_callback) {
     // if error, do callback(error)
     const char* err = sass_context_get_error_json(ctx);
     Local<Value> argv[] = {
@@ -283,7 +288,7 @@ NAN_METHOD(RenderSync) {
     error = NanNew<String>(sass_context_get_error_json(ctx));
   }
 
-  sass_free_context_wrapper(ctx_w);
+  sass_wrapper_dispose(ctx_w, source_string);
 
   if (result != 0) {
     NanThrowError(error);
@@ -328,7 +333,7 @@ NAN_METHOD(RenderFileSync) {
     error = NanNew<String>(sass_context_get_error_json(ctx));
   }
 
-  sass_free_context_wrapper(ctx_w);
+  sass_wrapper_dispose(ctx_w, input_path);
 
   if (result != 0) {
     NanThrowError(error);

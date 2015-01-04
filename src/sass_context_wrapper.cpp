@@ -30,7 +30,7 @@ extern "C" {
     return ctx_w;
   }
 
-  void sass_free_context_wrapper(sass_context_wrapper* ctx_w) {
+  void sass_wrapper_dispose(struct sass_context_wrapper* ctx_w, char* string = 0) {
     if (ctx_w->dctx) {
       sass_delete_data_context(ctx_w->dctx);
     }
@@ -48,6 +48,14 @@ extern "C" {
     uv_cond_destroy(&ctx_w->importer_condition_variable);
 
     NanDisposePersistent(ctx_w->result);
+
+    if(string) {
+      free(string);
+    }
+  }
+
+  void sass_free_context_wrapper(sass_context_wrapper* ctx_w) {
+    sass_wrapper_dispose(ctx_w);
 
     free(ctx_w);
   }

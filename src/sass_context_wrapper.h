@@ -22,6 +22,7 @@ extern "C" {
     const char* file;
     const char* prev;
     void* cookie;
+    bool is_sync;
     Sass_Import** imports;
     NanCallback* success_callback;
     NanCallback* error_callback;
@@ -29,7 +30,8 @@ extern "C" {
   };
 
   struct sass_context_wrapper*      sass_make_context_wrapper(void);
-  void sass_free_context_wrapper(struct sass_context_wrapper* ctx_w);
+  void sass_wrapper_dispose(struct sass_context_wrapper*, char*);
+  void sass_free_context_wrapper(struct sass_context_wrapper*);
 
 #ifdef __cplusplus
 }
