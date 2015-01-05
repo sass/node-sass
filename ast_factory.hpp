@@ -1,10 +1,9 @@
-#define SASS_AST_FACTORY
+#ifndef SASS_AST_FACTORY_H
+#define SASS_AST_FACTORY_H
 
 #include <vector>
 
-#ifndef SASS_AST
 #include "ast.hpp"
-#endif
 
 namespace Sass {
   using namespace std;
@@ -85,3 +84,5 @@ namespace Sass {
     Selector_List* new_Selector_List(string p, size_t l, size_t s = 0);
   };
 }
+
+#endif

@@ -1,15 +1,10 @@
-#define SASS_FUNCTIONS
+#ifndef SASS_FUNCTIONS_H
+#define SASS_FUNCTIONS_H
 
 #include <string>
 
-#ifndef SASS_ENVIRONMENT
-#include "environment.hpp"
-#endif
-
-#ifndef SASS_POSITION
 #include "position.hpp"
-#endif
-
+#include "environment.hpp"
 #include "sass_functions.h"
 
 #define BUILT_IN(name) Expression*\
@@ -185,3 +180,5 @@ namespace Sass {
 
   }
 }
+
+#endif

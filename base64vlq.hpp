@@ -1,4 +1,5 @@
-#define SASS_BASE64VLQ
+#ifndef SASS_BASE64VLQ_H
+#define SASS_BASE64VLQ_H
 
 #include <string>
 
@@ -26,3 +27,5 @@ namespace Sass {
   };
 
 }
+
+#endif

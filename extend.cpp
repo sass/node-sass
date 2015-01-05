@@ -5,9 +5,7 @@
 #include "backtrace.hpp"
 #include "paths.hpp"
 #include "parser.hpp"
-#ifndef SASS_AST
 #include "node.hpp"
-#endif
 #include "sass_util.hpp"
 #include "debug.hpp"
 #include <iostream>

@@ -1,8 +1,9 @@
-#define SASS_SUBSET_MAP
+#ifndef SASS_SUBSET_MAP_H
+#define SASS_SUBSET_MAP_H
 
-#include <vector>
 #include <map>
 #include <set>
+#include <vector>
 #include <algorithm>
 #include <iterator>
 #include <iostream>
@@ -143,3 +144,5 @@ namespace Sass {
   }
 
 }
+
+#endif

@@ -1,9 +1,11 @@
-#define SASS_ENVIRONMENT
+#ifndef SASS_ENVIRONMENT_H
+#define SASS_ENVIRONMENT_H
 
-#include <string>
 #include <map>
-#include "ast_def_macros.hpp"
+#include <string>
 #include <iostream>
+
+#include "ast_def_macros.hpp"
 
 namespace Sass {
   using std::string;
@@ -73,3 +75,5 @@ namespace Sass {
     }
   };
 }
+
+#endif

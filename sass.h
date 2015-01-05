@@ -1,5 +1,5 @@
-#ifndef SASS
-#define SASS
+#ifndef SASS_H
+#define SASS_H
 
 #include <stddef.h>
 #include <stdbool.h>

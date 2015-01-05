@@ -7,11 +7,7 @@
 #include "to_string.hpp"
 #include "constants.hpp"
 #include "util.hpp"
-
-#ifndef SASS_PRELEXER
 #include "prelexer.hpp"
-#endif
-
 #include "sass_functions.h"
 
 #include <typeinfo>

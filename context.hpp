@@ -1,29 +1,18 @@
-#define SASS_CONTEXT
+#ifndef SASS_CONTEXT_H
+#define SASS_CONTEXT_H
 
 #include <string>
 #include <vector>
 #include <map>
-#include "kwd_arg_macros.hpp"
-
-#ifndef SASS_MEMORY_MANAGER
-#include "memory_manager.hpp"
-#endif
-
-#ifndef SASS_ENVIRONMENT
-#include "environment.hpp"
-#endif
-
-#ifndef SASS_SOURCE_MAP
-#include "source_map.hpp"
-#endif
-
-#ifndef SASS_SUBSET_MAP
-#include "subset_map.hpp"
-#endif
 
 #define BUFFERSIZE 255
 #include "b64/encode.h"
 
+#include "kwd_arg_macros.hpp"
+#include "memory_manager.hpp"
+#include "environment.hpp"
+#include "source_map.hpp"
+#include "subset_map.hpp"
 #include "sass_functions.h"
 
 struct Sass_C_Function_Descriptor;
@@ -152,3 +141,5 @@ namespace Sass {
   };
 
 }
+
+#endif

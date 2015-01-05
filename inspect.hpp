@@ -1,23 +1,11 @@
-#ifndef SASS_INSPECT
-#define SASS_INSPECT
+#ifndef SASS_INSPECT_H
+#define SASS_INSPECT_H
 
 #include <string>
 
-#ifndef SASS_SOURCE_MAP
-#include "source_map.hpp"
-#endif
-
-#ifndef SASS_OPERATION
-#include "operation.hpp"
-#endif
-
-#ifndef SASS_POSITION
 #include "position.hpp"
-#endif
-
-// #ifndef SASS_TO_STRING
-// #include "to_string.hpp"
-// #endif
+#include "operation.hpp"
+#include "source_map.hpp"
 
 namespace Sass {
   using namespace std;

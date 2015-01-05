@@ -1,6 +1,3 @@
-#ifndef SASS_UTF8_STRING
-#define SASS_UTF8_STRING
-
 #include <string>
 #include <vector>
 #include <cstdlib>
@@ -98,5 +95,3 @@ namespace Sass {
 
   }
 }
-
-#endif

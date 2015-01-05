@@ -1,3 +1,6 @@
+#ifndef SASS_UNITS_H
+#define SASS_UNITS_H
+
 #include <string>
 
 namespace Sass {
@@ -8,3 +11,5 @@ namespace Sass {
   double conversion_factor(const string&, const string&);
   double convert(double, const string&, const string&);
 }
+
+#endif

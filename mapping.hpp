@@ -1,8 +1,7 @@
-#define SASS_MAPPING
+#ifndef SASS_MAPPING_H
+#define SASS_MAPPING_H
 
-#ifndef SASS_POSITION
 #include "position.hpp"
-#endif
 
 namespace Sass {
 
@@ -15,3 +14,5 @@ namespace Sass {
   };
 
 }
+
+#endif

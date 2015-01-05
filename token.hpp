@@ -1,9 +1,11 @@
-#define SASS_TOKEN
+#ifndef SASS_TOKEN_H
+#define SASS_TOKEN_H
 
-#include "position.hpp"
 #include <cstring>
 #include <string>
 #include <sstream>
+
+#include "position.hpp"
 
 namespace Sass {
   using namespace std;
@@ -36,3 +38,5 @@ namespace Sass {
   };
 
 }
+
+#endif

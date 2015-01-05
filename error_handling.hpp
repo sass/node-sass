@@ -1,9 +1,9 @@
-#define SASS_ERROR_HANDLING
+#ifndef SASS_ERROR_HANDLING_H
+#define SASS_ERROR_HANDLING_H
+
 #include <string>
 
-#ifndef SASS_POSITION
 #include "position.hpp"
-#endif
 
 namespace Sass {
   using namespace std;
@@ -26,3 +26,5 @@ namespace Sass {
   void error(string msg, ParserState pstate, Backtrace* bt);
 
 }
+
+#endif

@@ -1,9 +1,6 @@
-#ifndef SASS_ERROR_HANDLING
-#include "error_handling.hpp"
-#endif
-
-#include "backtrace.hpp"
 #include "prelexer.hpp"
+#include "backtrace.hpp"
+#include "error_handling.hpp"
 
 namespace Sass {
 

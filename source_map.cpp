@@ -1,23 +1,14 @@
-#include "source_map.hpp"
-#include "json.hpp"
-
-#ifndef SASS_AST
-#include "ast.hpp"
-#endif
-
-#ifndef SASS_CONTEXT
-#include "context.hpp"
-#endif
-
-#ifndef SASS_POSITION
-#include "position.hpp"
-#endif
-
 #include <string>
 #include <sstream>
 #include <iostream>
 #include <cstddef>
 #include <iomanip>
+
+#include "ast.hpp"
+#include "json.hpp"
+#include "context.hpp"
+#include "position.hpp"
+#include "source_map.hpp"
 
 namespace Sass {
   using std::ptrdiff_t;

@@ -1,14 +1,12 @@
+#ifndef SASS_REMOVE_PLACEHOLDERS_H
+#define SASS_REMOVE_PLACEHOLDERS_H
+
 #pragma once
 
 #include <iostream>
 
-#ifndef SASS_AST
 #include "ast.hpp"
-#endif
-
-#ifndef SASS_OPERATION
 #include "operation.hpp"
-#endif
 
 namespace Sass {
 
@@ -41,3 +39,5 @@ namespace Sass {
     };
 
 }
+
+#endif

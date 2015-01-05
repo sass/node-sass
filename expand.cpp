@@ -1,17 +1,13 @@
+#include <iostream>
+#include <typeinfo>
+
 #include "expand.hpp"
 #include "bind.hpp"
 #include "eval.hpp"
 #include "contextualize.hpp"
 #include "to_string.hpp"
 #include "backtrace.hpp"
-
-#include <iostream>
-#include <typeinfo>
-
-#ifndef SASS_CONTEXT
 #include "context.hpp"
-#endif
-
 #include "parser.hpp"
 
 namespace Sass {

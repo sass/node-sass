@@ -1,7 +1,10 @@
-#include <vector>
-#include <iostream>
+#ifndef SASS_PATHS_H
+#define SASS_PATHS_H
+
 #include <string>
+#include <vector>
 #include <sstream>
+#include <iostream>
 
 using namespace std;
 
@@ -67,3 +70,5 @@ namespace Sass {
   }
 
 }
+
+#endif

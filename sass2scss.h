@@ -1,3 +1,6 @@
+#ifndef SASS2SCSS_H
+#define SASS2SCSS_H
+
 #ifdef _WIN32
 
   /* You should define ADD_EXPORTS *only* when building the DLL. */
@@ -107,4 +110,6 @@ extern "C" {
 
 #ifdef __cplusplus
 } // __cplusplus defined.
+#endif
+
 #endif

@@ -1,19 +1,11 @@
-#define SASS_EVAL
+#ifndef SASS_EVAL_H
+#define SASS_EVAL_H
 
 #include <iostream>
 
-#ifndef SASS_OPERATION
-#include "operation.hpp"
-#endif
-
-#ifndef SASS_ENVIRONMENT
-#include "environment.hpp"
-#endif
-
-#ifndef SASS_POSITION
 #include "position.hpp"
-#endif
-
+#include "operation.hpp"
+#include "environment.hpp"
 #include "sass_values.h"
 
 namespace Sass {
@@ -78,3 +70,5 @@ namespace Sass {
   bool eq(Expression*, Expression*, Context&);
   bool lt(Expression*, Expression*, Context&);
 }
+
+#endif

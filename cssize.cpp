@@ -1,12 +1,9 @@
-#include "cssize.hpp"
-#include "to_string.hpp"
-
 #include <iostream>
 #include <typeinfo>
 
-#ifndef SASS_CONTEXT
+#include "cssize.hpp"
+#include "to_string.hpp"
 #include "context.hpp"
-#endif
 
 namespace Sass {
 

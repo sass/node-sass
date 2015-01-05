@@ -1,20 +1,12 @@
-#ifndef SASS_CSSIZE
-#define SASS_CSSIZE
+#ifndef SASS_CSSIZE_H
+#define SASS_CSSIZE_H
 
 #include <vector>
 #include <iostream>
 
-#ifndef SASS_AST
 #include "ast.hpp"
-#endif
-
-#ifndef SASS_OPERATION
 #include "operation.hpp"
-#endif
-
-#ifndef SASS_ENVIRONMENT
 #include "environment.hpp"
-#endif
 
 namespace Sass {
   using namespace std;

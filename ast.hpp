@@ -1,12 +1,14 @@
-#ifndef SASS_AST
-#define SASS_AST
+#ifndef SASS_AST_H
+#define SASS_AST_H
 
+#include <set>
+#include <deque>
+#include <vector>
 #include <string>
 #include <sstream>
-#include <vector>
-#include <set>
+#include <iostream>
+#include <typeinfo>
 #include <algorithm>
-#include <deque>
 #include <unordered_map>
 
 #ifdef __clang__
@@ -28,50 +30,20 @@
 
 #endif
 
-#ifndef SASS_CONSTANTS
-#include "constants.hpp"
-#endif
-
-#ifndef SASS_OPERATION
-#include "operation.hpp"
-#endif
-
-#ifndef SASS_TOKEN
+#include "units.hpp"
 #include "token.hpp"
-#endif
-
-#ifndef SASS_ENVIRONMENT
+#include "constants.hpp"
+#include "operation.hpp"
+#include "position.hpp"
+#include "inspect.hpp"
+#include "source_map.hpp"
 #include "environment.hpp"
-#endif
+#include "error_handling.hpp"
+#include "ast_def_macros.hpp"
 
 #include "sass.h"
 #include "sass_values.h"
 #include "sass_functions.h"
-
-#include "units.hpp"
-
-#ifndef SASS_ERROR_HANDLING
-#include "error_handling.hpp"
-#endif
-
-#include "ast_def_macros.hpp"
-
-#ifndef SASS_SOURCE_MAP
-#include "source_map.hpp"
-#endif
-
-#ifndef SASS_INSPECT
-#include "inspect.hpp"
-#endif
-
-#include <sstream>
-#include <iostream>
-#include <typeinfo>
-
-#ifndef SASS_POSITION
-#include "position.hpp"
-#endif
-
 
 namespace Sass {
   using namespace std;

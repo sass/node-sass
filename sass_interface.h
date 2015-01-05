@@ -1,5 +1,5 @@
-#ifndef SASS_C_INTERFACE
-#define SASS_C_INTERFACE
+#ifndef SASS_C_INTERFACE_H
+#define SASS_C_INTERFACE_H
 
 #include <stddef.h>
 #include <stdbool.h>

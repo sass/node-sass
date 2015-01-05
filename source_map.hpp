@@ -1,18 +1,11 @@
-#define SASS_SOURCE_MAP
+#ifndef SASS_SOURCE_MAP_H
+#define SASS_SOURCE_MAP_H
 
 #include <vector>
 
 #include "ast_fwd_decl.hpp"
-
-#ifndef SASS_MAPPING
-#include "mapping.hpp"
-#endif
-
-#ifndef SASSS_BASE64VLQ
 #include "base64vlq.hpp"
-#endif
-
-
+#include "mapping.hpp"
 
 namespace Sass {
   using std::vector;
@@ -45,3 +38,5 @@ namespace Sass {
   };
 
 }
+
+#endif

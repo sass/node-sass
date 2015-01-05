@@ -4,19 +4,17 @@
 #include <unistd.h>
 #endif
 
-#include "sass_interface.h"
-#include "context.hpp"
-#include "inspect.hpp"
-
-#ifndef SASS_ERROR_HANDLING
-#include "error_handling.hpp"
-#endif
-
-#include <iostream>
-#include <sstream>
 #include <string>
 #include <cstdlib>
 #include <cstring>
+#include <sstream>
+#include <iostream>
+
+#include "context.hpp"
+#include "inspect.hpp"
+#include "error_handling.hpp"
+#include "sass_interface.h"
+
 
 extern "C" {
   using namespace std;

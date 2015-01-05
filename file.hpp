@@ -1,3 +1,6 @@
+#ifndef SASS_FILE_H
+#define SASS_FILE_H
+
 #include <string>
 
 namespace Sass {
@@ -16,3 +19,5 @@ namespace Sass {
     char* read_file(string path);
   }
 }
+
+#endif

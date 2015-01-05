@@ -1,5 +1,5 @@
-#ifndef SASS_C_CONTEXT
-#define SASS_C_CONTEXT
+#ifndef SASS_C_CONTEXT_H
+#define SASS_C_CONTEXT_H
 
 #include <stddef.h>
 #include <stdbool.h>

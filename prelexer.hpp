@@ -1,4 +1,7 @@
-#define SASS_PRELEXER
+#ifndef SASS_PRELEXER_H
+#define SASS_PRELEXER_H
+
+#include <cstring>
 
 namespace Sass {
   namespace Prelexer {
@@ -511,3 +514,5 @@ namespace Sass {
     const char* chunk(const char* src);
   }
 }
+
+#endif

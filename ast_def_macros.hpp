@@ -1,3 +1,6 @@
+#ifndef SASS_AST_DEF_MACROS_H
+#define SASS_AST_DEF_MACROS_H
+
 #define ATTACH_OPERATIONS()\
 virtual void perform(Operation<void>* op) { (*op)(this); }\
 virtual AST_Node* perform(Operation<AST_Node*>* op) { return (*op)(this); }\
@@ -14,3 +17,5 @@ public:\
   type name() const        { return name##_; }\
   type name(type name##__) { return name##_ = name##__; }\
 private:
+
+#endif

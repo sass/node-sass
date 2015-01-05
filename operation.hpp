@@ -1,12 +1,13 @@
-#define SASS_OPERATION
+#ifndef SASS_OPERATION_H
+#define SASS_OPERATION_H
+
+#include <iostream>
+#include <typeinfo>
 
 #include "ast_fwd_decl.hpp"
 
-#include <iostream>
-using namespace std;
-#include <typeinfo>
-
 namespace Sass {
+  using namespace std;
 
   template<typename T>
   class Operation {
@@ -153,3 +154,5 @@ namespace Sass {
   inline Operation_CRTP<T, D>::~Operation_CRTP()    { }
 
 }
+
+#endif

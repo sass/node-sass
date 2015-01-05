@@ -1,8 +1,8 @@
-#include <string>
+#ifndef SASS_OUTPUT_COMPRESSED_H
+#define SASS_OUTPUT_COMPRESSED_H
 
-#ifndef SASS_OUTPUT
+#include <string>
 #include "output.hpp"
-#endif
 
 namespace Sass {
   using namespace std;
@@ -87,3 +87,5 @@ namespace Sass {
   };
 
 }
+
+#endif

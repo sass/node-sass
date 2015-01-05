@@ -1,4 +1,5 @@
-#define SASS_COLOR_NAMES
+#ifndef SASS_COLOR_NAMES_H
+#define SASS_COLOR_NAMES_H
 
 namespace Sass {
 
@@ -322,3 +323,5 @@ namespace Sass {
   };
 
 }
+
+#endif
