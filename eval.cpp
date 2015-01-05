@@ -780,7 +780,7 @@ namespace Sass {
     for (size_t i = 0, L = q->length(); i < L; ++i) {
       *qq << static_cast<Media_Query_Expression*>((*q)[i]->perform(this));
     }
-    return Parser::from_c_str(qq->perform(&to_string).c_str(), ctx, qq->path(), qq->position()).parse_media_query();;
+    return Parser::from_c_str(qq->perform(&to_string).c_str(), ctx, qq->path(), qq->position()).parse_media_queries();
   }
 
   Expression* Eval::operator()(Media_Query_Expression* e)
