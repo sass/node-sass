@@ -124,7 +124,6 @@ function testBinary(options) {
       return build(options);
     }
 
-    return; // TODO: remove it once TravisCI build pass 90% and above tests
     console.log('`' + options.bin + '` exists; testing');
 
     var total;
