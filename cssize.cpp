@@ -131,10 +131,10 @@ namespace Sass {
     if (!tmp)
     {
       Block* bb = m->block()->perform(this)->block();
-      //   results.each {|c| c.tabs += node.tabs if bubblable?(c)}
-      //   if !results.empty? && bubblable?(results.last)
-      //     results.last.group_end = node.group_end
-      //   end
+      for (size_t i = 0, L = bb->length(); i < L; ++i) {
+        if (bubblable(m)) (*m->block())[i]->tabs((*m->block())[i]->tabs() + m->tabs());
+      }
+      if (bb->length() && bubblable(bb->last())) bb->last()->group_end(m->group_end());
       return bb;
     }
 
