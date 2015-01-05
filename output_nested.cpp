@@ -289,6 +289,8 @@ namespace Sass {
     if (ctx) ctx->source_map.remove_line();
     append_to_buffer(" }");
     if (m->group_end()) append_to_buffer(ctx->linefeed);
+
+    indentation -= m->tabs();
   }
 
   void Output_Nested::operator()(At_Rule* a)
