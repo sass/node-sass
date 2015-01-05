@@ -101,10 +101,12 @@ namespace Sass {
 
   Statement* Expand::operator()(Media_Block* m)
   {
-    Expression* media_queries = m->media_queries()->perform(eval->with(env, backtrace));
+    To_String to_string;
+    Expression* mq = m->media_queries()->perform(eval->with(env, backtrace));
+    mq = Parser::from_c_str(mq->perform(&to_string).c_str(), ctx, mq->path(), mq->position()).parse_media_queries();
     Media_Block* mm = new (ctx.mem) Media_Block(m->path(),
                                                 m->position(),
-                                                static_cast<List*>(media_queries),
+                                                static_cast<List*>(mq),
                                                 m->block()->perform(this)->block(),
                                                 selector_stack.back());
     return mm;
