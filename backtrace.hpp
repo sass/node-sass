@@ -16,15 +16,13 @@ namespace Sass {
 
   struct Backtrace {
 
-    Backtrace* parent;
-    string     path;
-    Position   position;
-    string     caller;
+    Backtrace*  parent;
+    ParserState pstate;
+    string      caller;
 
-    Backtrace(Backtrace* prn, string pth, Position position, string c)
+    Backtrace(Backtrace* prn, ParserState pstate, string c)
     : parent(prn),
-      path(pth),
-      position(position),
+      pstate(pstate),
       caller(c)
     { }
 
@@ -40,14 +38,14 @@ namespace Sass {
       while (this_point->parent) {
 
         // make path relative to the current directory
-        string rel_path(Sass::File::resolve_relative_path(this_point->path, cwd, cwd));
+        string rel_path(Sass::File::resolve_relative_path(this_point->pstate.path, cwd, cwd));
 
         if (warning) {
           ss << endl
              << "\t"
              << (++i == 0 ? "on" : "from")
              << " line "
-             << this_point->position.line
+             << this_point->pstate.line
              << " of "
              << rel_path;
         } else {
@@ -55,7 +53,7 @@ namespace Sass {
              << "\t"
              << rel_path
              << ":"
-             << this_point->position.line
+             << this_point->pstate.line
              << this_point->parent->caller;
         }
 

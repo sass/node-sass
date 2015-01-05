@@ -1,41 +1,37 @@
 #include "output_compressed.hpp"
 #include "inspect.hpp"
+#ifndef SASS_AST
 #include "ast.hpp"
+#endif
+#ifndef SASS_CONTEXT
 #include "context.hpp"
+#endif
 #include "to_string.hpp"
+#ifndef SASS_UTIL
 #include "util.hpp"
+#endif
 #include <cmath>
 #include <iomanip>
 
 namespace Sass {
   using namespace std;
 
-  Output_Compressed::Output_Compressed(Context* ctx) : buffer(""), rendered_imports(""), ctx(ctx), seen_utf8(false) { }
+  Output_Compressed::Output_Compressed(Context* ctx) : Output(ctx), seen_utf8(false) { }
   Output_Compressed::~Output_Compressed() { }
 
   inline void Output_Compressed::fallback_impl(AST_Node* n)
   {
     Inspect i(ctx);
     n->perform(&i);
-    const string& text = i.get_buffer();
-    for(const char& chr : text) {
-      // abort clause
-      if (seen_utf8) break;
-      // skip all normal ascii chars
-      if (Util::isAscii(chr)) continue;
-      // singleton
-      seen_utf8 = true;
-    }
-    buffer += text;
-    if (ctx && !ctx->_skip_source_map_update)
-      ctx->source_map.update_column(text);
+    append_to_buffer(i.get_buffer());
   }
 
   void Output_Compressed::operator()(Import* imp)
   {
-    Inspect insp(ctx);
-    imp->perform(&insp);
-    rendered_imports += insp.get_buffer();
+    // Inspect insp(ctx);
+    // imp->perform(&insp);
+    // rendered_imports += insp.get_buffer();
+    top_imports.push_back(imp);
   }
 
   void Output_Compressed::operator()(Block* b)
@@ -104,8 +100,9 @@ namespace Sass {
       return;
     }
 
-    ctx->source_map.add_mapping(m);
+    ctx->source_map.add_open_mapping(m);
     append_singleline_part_to_buffer("@media ");
+    ctx->source_map.add_close_mapping(m);
     q->perform(this);
     append_singleline_part_to_buffer("{");
 
@@ -198,10 +195,10 @@ namespace Sass {
     }
     // Print if OK
     if(bPrintExpression) {
-      if (ctx) ctx->source_map.add_mapping(d->property());
+      if (ctx) ctx->source_map.add_open_mapping(d->property());
       d->property()->perform(this);
       append_singleline_part_to_buffer(":");
-      if (ctx) ctx->source_map.add_mapping(d->value());
+      if (ctx) ctx->source_map.add_open_mapping(d->value());
       d->value()->perform(this);
       if (d->is_important()) append_singleline_part_to_buffer("!important");
       append_singleline_part_to_buffer(";");
@@ -218,18 +215,7 @@ namespace Sass {
     else {
       Inspect i(ctx);
       c->perform(&i);
-      const string& text = i.get_buffer();
-      for(const char& chr : text) {
-        // abort clause
-        if (seen_utf8) break;
-        // skip all normal ascii chars
-        if (Util::isAscii(chr)) continue;
-        // singleton
-        seen_utf8 = true;
-      }
-      buffer += text;
-      if (ctx && !ctx->_skip_source_map_update)
-       ctx->source_map.update_column(text);
+      append_to_buffer(i.get_buffer());
     }
   }
 
@@ -387,17 +373,10 @@ namespace Sass {
 
   void Output_Compressed::append_singleline_part_to_buffer(const string& text)
   {
-    buffer += text;
-    if (ctx && !ctx->_skip_source_map_update)
-      ctx->source_map.update_column(text);
-    for(const char& chr : text) {
-      // abort clause
-      if (seen_utf8) break;
-      // skip all normal ascii chars
-      if (Util::isAscii(chr)) continue;
-      // singleton
-      seen_utf8 = true;
-    }
+    append_to_buffer(text);
   }
+
+  // compile output implementation
+  template class Output<Output_Compressed>;
 
 }

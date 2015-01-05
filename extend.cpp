@@ -240,11 +240,11 @@ namespace Sass {
   static bool parentSuperselector(Complex_Selector* pOne, Complex_Selector* pTwo, Context& ctx) {
     // TODO: figure out a better way to create a Complex_Selector from scratch
     // TODO: There's got to be a better way. This got ugly quick...
-    Position noPosition;
-    Type_Selector fakeParent("", noPosition, "temp");
-    Compound_Selector fakeHead("", noPosition, 1 /*size*/);
+    Position noPosition(-1, -1, -1);
+    Type_Selector fakeParent(ParserState("[FAKE]"), "temp");
+    Compound_Selector fakeHead(ParserState("[FAKE]"), 1 /*size*/);
     fakeHead.elements().push_back(&fakeParent);
-    Complex_Selector fakeParentContainer("", noPosition, Complex_Selector::ANCESTOR_OF, &fakeHead /*head*/, NULL /*tail*/);
+    Complex_Selector fakeParentContainer(ParserState("[FAKE]"), Complex_Selector::ANCESTOR_OF, &fakeHead /*head*/, NULL /*tail*/);
 
     pOne->set_innermost(&fakeParentContainer, Complex_Selector::ANCESTOR_OF);
     pTwo->set_innermost(&fakeParentContainer, Complex_Selector::ANCESTOR_OF);
@@ -602,11 +602,11 @@ namespace Sass {
   static bool parentSuperselector(const Node& one, const Node& two, Context& ctx) {
     // TODO: figure out a better way to create a Complex_Selector from scratch
     // TODO: There's got to be a better way. This got ugly quick...
-    Position noPosition;
-    Type_Selector fakeParent("", noPosition, "temp");
-    Compound_Selector fakeHead("", noPosition, 1 /*size*/);
+    Position noPosition(-1, -1, -1);
+    Type_Selector fakeParent(ParserState("[FAKE]"), "temp");
+    Compound_Selector fakeHead(ParserState("[FAKE]"), 1 /*size*/);
     fakeHead.elements().push_back(&fakeParent);
-    Complex_Selector fakeParentContainer("", noPosition, Complex_Selector::ANCESTOR_OF, &fakeHead /*head*/, NULL /*tail*/);
+    Complex_Selector fakeParentContainer(ParserState("[FAKE]"), Complex_Selector::ANCESTOR_OF, &fakeHead /*head*/, NULL /*tail*/);
 
     Complex_Selector* pOneWithFakeParent = nodeToComplexSelector(one, ctx);
     pOneWithFakeParent->set_innermost(&fakeParentContainer, Complex_Selector::ANCESTOR_OF);
@@ -1521,7 +1521,7 @@ namespace Sass {
 //      DEBUG_EXEC(EXTEND_COMPOUND, printComplexSelector(&seq, "SEQ: "))
 
 
-      Compound_Selector* pSels = new (ctx.mem) Compound_Selector(pSelector->path(), pSelector->position());
+      Compound_Selector* pSels = new (ctx.mem) Compound_Selector(pSelector->pstate());
       for (vector<ExtensionPair>::iterator groupIter = group.begin(), groupIterEnd = group.end(); groupIter != groupIterEnd; groupIter++) {
         ExtensionPair& pair = *groupIter;
         Compound_Selector* pCompound = pair.second;
@@ -1553,7 +1553,7 @@ namespace Sass {
       Compound_Selector* pUnifiedSelector = NULL;
 
       if (!pInnermostCompoundSelector) {
-        pInnermostCompoundSelector = new (ctx.mem) Compound_Selector(pSelector->path(), pSelector->position());
+        pInnermostCompoundSelector = new (ctx.mem) Compound_Selector(pSelector->pstate());
       }
 
       pUnifiedSelector = pInnermostCompoundSelector->unify_with(pSelectorWithoutExtendSelectors, ctx);
@@ -1579,7 +1579,7 @@ namespace Sass {
       // complex is that Complex_Selector contains a combinator, but in ruby combinators have already been filtered
       // out and aren't operated on.
       Complex_Selector* pNewSelector = pExtComplexSelector->cloneFully(ctx);
-      Complex_Selector* pNewInnerMost = new (ctx.mem) Complex_Selector(pSelector->path(), pSelector->position(), Complex_Selector::ANCESTOR_OF, pUnifiedSelector, NULL);
+      Complex_Selector* pNewInnerMost = new (ctx.mem) Complex_Selector(pSelector->pstate(), Complex_Selector::ANCESTOR_OF, pUnifiedSelector, NULL);
       Complex_Selector::Combinator combinator = pNewSelector->clear_innermost();
       pNewSelector->set_innermost(pNewInnerMost, combinator);
 
@@ -1810,7 +1810,7 @@ namespace Sass {
 
     To_String to_string;
 
-    Selector_List* pNewSelectors = new (ctx.mem) Selector_List(pSelectorList->path(), pSelectorList->position(), pSelectorList->length());
+    Selector_List* pNewSelectors = new (ctx.mem) Selector_List(pSelectorList->pstate(), pSelectorList->length());
 
     extendedSomething = false;
 
@@ -1904,12 +1904,12 @@ namespace Sass {
       // re-parse in order to restructure expanded placeholder nodes correctly.
       //
       // TODO: I don't know if this is needed, but it was in the original C++ implementation, so I kept it. Try running the tests without re-parsing.
+      // this probably messes up source-maps
       pObject->selector(
         Parser::from_c_str(
           (pNewSelectorList->perform(&to_string) + ";").c_str(),
           ctx,
-          pNewSelectorList->path(),
-          pNewSelectorList->position()
+          pNewSelectorList->pstate()
         ).parse_selector_group()
       );
     } else {

@@ -22,13 +22,13 @@ namespace Sass {
     return const_cast<Complex_Selector*>(this)->perform(&to_string) <
            const_cast<Complex_Selector&>(rhs).perform(&to_string);
   }
-  
+
   bool Complex_Selector::operator==(const Complex_Selector& rhs) const {
   	// TODO: We have to access the tail directly using tail_ since ADD_PROPERTY doesn't provide a const version.
 
   	const Complex_Selector* pOne = this;
     const Complex_Selector* pTwo = &rhs;
-    
+
     // Consume any empty references at the beginning of the Complex_Selector
     if (pOne->combinator() == Complex_Selector::ANCESTOR_OF && pOne->head()->is_empty_reference()) {
     	pOne = pOne->tail_;
@@ -36,12 +36,12 @@ namespace Sass {
     if (pTwo->combinator() == Complex_Selector::ANCESTOR_OF && pTwo->head()->is_empty_reference()) {
     	pTwo = pTwo->tail_;
     }
-    
+
     while (pOne && pTwo) {
     	if (pOne->combinator() != pTwo->combinator()) {
       	return false;
       }
-      
+
       if (*(pOne->head()) != *(pTwo->head())) {
       	return false;
       }
@@ -49,7 +49,7 @@ namespace Sass {
     	pOne = pOne->tail_;
       pTwo = pTwo->tail_;
     }
-    
+
     return pOne == NULL && pTwo == NULL;
   }
 
@@ -63,7 +63,7 @@ namespace Sass {
     }
     return unified;
   }
-  
+
   bool Simple_Selector::operator==(const Simple_Selector& rhs) const
   {
   	// Compare the string representations for equality.
@@ -75,14 +75,14 @@ namespace Sass {
     To_String to_string;
     return pLHS->perform(&to_string) == pRHS->perform(&to_string);
   }
-  
+
   bool Simple_Selector::operator<(const Simple_Selector& rhs) const {
 		// Use the string representation for ordering.
 
   	// Cast away const here. To_String should take a const object, but it doesn't.
   	Simple_Selector* pLHS = const_cast<Simple_Selector*>(this);
     Simple_Selector* pRHS = const_cast<Simple_Selector*>(&rhs);
-    
+
     To_String to_string;
     return pLHS->perform(&to_string) < pRHS->perform(&to_string);
   }
@@ -102,7 +102,7 @@ namespace Sass {
       {
         if ((typeid(*(*rhs)[i]) == typeid(Pseudo_Selector) || typeid(*(*rhs)[i]) == typeid(Wrapped_Selector)) && (*rhs)[L-1]->is_pseudo_element())
         { found = true; break; }
-      }  
+      }
     }
     else
     {
@@ -118,7 +118,7 @@ namespace Sass {
       (*cpy) << this;
       return cpy;
     }
-    Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->path(), rhs->position());
+    Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->pstate());
     for (size_t j = 0; j < i; ++j)
     { (*cpy) << (*rhs)[j]; }
     (*cpy) << this;
@@ -133,7 +133,7 @@ namespace Sass {
 
     // if the rhs is empty, just return a copy of this
     if (rhs->length() == 0) {
-      Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->path(), rhs->position());
+      Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->pstate());
       (*cpy) << this;
       return cpy;
     }
@@ -141,7 +141,7 @@ namespace Sass {
     // if this is a universal selector and rhs is not empty, just return the rhs
     if (name() == "*")
     { return new (ctx.mem) Compound_Selector(*rhs); }
-    
+
 
     Simple_Selector* rhs_0 = (*rhs)[0];
     // otherwise, this is a tag name
@@ -150,7 +150,7 @@ namespace Sass {
       // if rhs is universal, just return this tagname + rhs's qualifiers
       if (static_cast<Type_Selector*>(rhs_0)->name() == "*")
       {
-        Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->path(), rhs->position());
+        Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->pstate());
         (*cpy) << this;
         for (size_t i = 1, L = rhs->length(); i < L; ++i)
         { (*cpy) << (*rhs)[i]; }
@@ -164,7 +164,7 @@ namespace Sass {
       { return 0; }
     }
     // else it's a tag name and a bunch of qualifiers -- just append them
-    Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->path(), rhs->position());
+    Compound_Selector* cpy = new (ctx.mem) Compound_Selector(rhs->pstate());
     (*cpy) << this;
     (*cpy) += rhs;
     return cpy;
@@ -208,9 +208,9 @@ namespace Sass {
 
     Simple_Selector* lbase = base();
     Simple_Selector* rbase = rhs->base();
-    
+
     // Check if pseudo-elements are the same between the selectors
-    
+
     set<string> lpsuedoset, rpsuedoset;
     for (size_t i = 0, L = length(); i < L; ++i)
     {
@@ -262,12 +262,12 @@ namespace Sass {
     // catch-all
     return false;
   }
-  
+
   bool Compound_Selector::operator==(const Compound_Selector& rhs) const {
     To_String to_string;
-    
+
     // Check if pseudo-elements are the same between the selectors
-    
+
     set<string> lpsuedoset, rpsuedoset;
     for (size_t i = 0, L = length(); i < L; ++i)
     {
@@ -290,33 +290,33 @@ namespace Sass {
     }
 
 		// Check the base
-    
+
     const Simple_Selector* const lbase = base();
     const Simple_Selector* const rbase = rhs.base();
-    
+
     if ((lbase && !rbase) ||
     	(!lbase && rbase) ||
       ((lbase && rbase) && (*lbase != *rbase))) {
 			return false;
     }
-    
-    
+
+
     // Check the rest of the SimpleSelectors
     // Use string representations. We can't create a set of Simple_Selector pointers because std::set == std::set is going to call ==
     // on the pointers to determine equality. I don't know of a way to pass in a comparison object. The one you can specify as part of
     // the template type is used for ordering, but not equality. We also can't just put in non-pointer Simple_Selectors because the
     // class is intended to be subclassed, and we'd get splicing.
-    
+
     set<string> lset, rset;
-    
+
     for (size_t i = 0, L = length(); i < L; ++i)
     { lset.insert((*this)[i]->perform(&to_string)); }
     for (size_t i = 0, L = rhs.length(); i < L; ++i)
     { rset.insert(rhs[i]->perform(&to_string)); }
-    
+
     return lset == rset;
   }
-  
+
   bool Complex_Selector_Pointer_Compare::operator() (const Complex_Selector* const pLeft, const Complex_Selector* const pRight) const {
     return *pLeft < *pRight;
   }
@@ -361,7 +361,7 @@ namespace Sass {
     if (!found)
     { return false; }
 
-    /* 
+    /*
       Hmm, I hope I have the logic right:
 
       if lhs has a combinator:
@@ -413,7 +413,7 @@ namespace Sass {
   {
     if (!tail()) return 0;
     if (!head()) return tail()->context(ctx);
-    return new (ctx.mem) Complex_Selector(path(), position(), combinator(), head(), tail()->context(ctx));
+    return new (ctx.mem) Complex_Selector(pstate(), combinator(), head(), tail()->context(ctx));
   }
 
   Complex_Selector* Complex_Selector::innermost()
@@ -446,7 +446,7 @@ namespace Sass {
     if (tail()) cpy->tail(tail()->clone(ctx));
     return cpy;
   }
-  
+
   Complex_Selector* Complex_Selector::cloneFully(Context& ctx) const
   {
     Complex_Selector* cpy = new (ctx.mem) Complex_Selector(*this);
@@ -461,20 +461,20 @@ namespace Sass {
 
     return cpy;
   }
-  
+
   Compound_Selector* Compound_Selector::clone(Context& ctx) const
   {
     Compound_Selector* cpy = new (ctx.mem) Compound_Selector(*this);
     return cpy;
   }
-  
+
 
 
   Selector_Placeholder* Selector::find_placeholder()
   {
     return 0;
   }
-  
+
   void Selector_List::adjust_after_pushing(Complex_Selector* c)
   {
     if (c->has_reference())   has_reference(true);
@@ -534,7 +534,7 @@ namespace Sass {
   Compound_Selector* Compound_Selector::minus(Compound_Selector* rhs, Context& ctx)
   {
     To_String to_string;
-    Compound_Selector* result = new (ctx.mem) Compound_Selector(path(), position());
+    Compound_Selector* result = new (ctx.mem) Compound_Selector(pstate());
 
     // not very efficient because it needs to preserve order
     for (size_t i = 0, L = length(); i < L; ++i)
@@ -554,7 +554,7 @@ namespace Sass {
 
     return result;
   }
-  
+
   void Compound_Selector::mergeSources(SourcesSet& sources, Context& ctx)
   {
     for (SourcesSet::iterator iterator = sources.begin(), endIterator = sources.end(); iterator != endIterator; ++iterator) {

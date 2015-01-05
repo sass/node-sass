@@ -1,44 +1,30 @@
 #include <string>
 
-#ifndef SASS_OPERATION
-#include "operation.hpp"
+#ifndef SASS_OUTPUT
+#include "output.hpp"
 #endif
-
-// #ifndef SASS_TO_STRING
-// #include "to_string.hpp"
-// #endif
 
 namespace Sass {
   using namespace std;
   struct Context;
 
-  class Output_Nested : public Operation_CRTP<void, Output_Nested> {
-    // import all the class-specific methods and override as desired
-    using Operation_CRTP<void, Output_Nested>::operator();
+  class Output_Nested : public Output<Output_Nested> {
 
-    string buffer;
-    string rendered_imports;
     size_t indentation;
     bool source_comments;
-    Context* ctx;
-    bool seen_utf8;
     void indent();
 
     void fallback_impl(AST_Node* n);
-
-    void append_to_buffer(const string& text);
 
   public:
 
     Output_Nested(bool source_comments = false, Context* ctx = 0);
     virtual ~Output_Nested();
 
-    string get_buffer() {
-      if (!rendered_imports.empty() && !buffer.empty()) {
-        rendered_imports += "\n";
-      }
-      return (seen_utf8 ? "@charset \"UTF-8\";\n" : "")
-             + rendered_imports + buffer;
+    string get_buffer()
+    {
+      // call parent method for result
+      return Output<Output_Nested>::get_buffer();
     }
 
     // statements
@@ -55,7 +41,7 @@ namespace Sass {
     // virtual void operator()(Warning*);
     // virtual void operator()(Error*);
     // virtual void operator()(Debug*);
-    // virtual void operator()(Comment*);
+    virtual void operator()(Comment*);
     // virtual void operator()(If*);
     // virtual void operator()(For*);
     // virtual void operator()(Each*);

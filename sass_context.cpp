@@ -4,11 +4,13 @@
 #include <unistd.h>
 #endif
 
+#include <cstring>
 #include <stdexcept>
 #include "json.hpp"
 #include "context.hpp"
 #include "sass_values.h"
 #include "sass_context.h"
+#include "error_handling.hpp"
 
 extern "C" {
   using namespace std;
@@ -217,17 +219,17 @@ extern "C" {
       stringstream msg_stream;
       JsonNode* json_err = json_mkobject();
       json_append_member(json_err, "status", json_mknumber(1));
-      json_append_member(json_err, "file", json_mkstring(e.path.c_str()));
-      json_append_member(json_err, "line", json_mknumber(e.position.line));
-      json_append_member(json_err, "column", json_mknumber(e.position.column));
+      json_append_member(json_err, "file", json_mkstring(e.pstate.path.c_str()));
+      json_append_member(json_err, "line", json_mknumber(e.pstate.line+1));
+      json_append_member(json_err, "column", json_mknumber(e.pstate.column+1));
       json_append_member(json_err, "message", json_mkstring(e.message.c_str()));
-      msg_stream << e.path << ":" << e.position.line << ": " << e.message << endl;
+      msg_stream << e.pstate.path << ":" << e.pstate.line+1 << ": " << e.message << endl;
       c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
-      c_ctx->error_file = strdup(e.path.c_str());
-      c_ctx->error_line = e.position.line;
-      c_ctx->error_column = e.position.column;
+      c_ctx->error_file = strdup(e.pstate.path.c_str());
+      c_ctx->error_line = e.pstate.line+1;
+      c_ctx->error_column = e.pstate.column+1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
       json_delete(json_err);
@@ -704,7 +706,7 @@ extern "C" {
 
     struct string_list* include_path = (struct string_list*) calloc(1, sizeof(struct string_list));
     if (include_path == 0) return;
-    include_path->string = strdup(path);
+    include_path->string = path ? strdup(path) : 0;
     struct string_list* last = options->include_paths;
     if (!options->include_paths) {
       options->include_paths = include_path;

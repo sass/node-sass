@@ -34,7 +34,8 @@ lib_LTLIBRARIES = libsass.la
 libsass_la_SOURCES = \
 	ast_fwd_decl.hpp ast_def_macros.hpp \
 	kwd_arg_macros.hpp memory_manager.hpp \
-	position.hpp operation.hpp \
+	position.cpp position.hpp \
+	operation.hpp \
 	subset_map.hpp mapping.hpp \
 	color_names.hpp backtrace.hpp \
 	cencode.c b64/cencode.h b64/encode.h \

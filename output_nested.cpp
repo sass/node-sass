@@ -1,9 +1,15 @@
 #include "output_nested.hpp"
 #include "inspect.hpp"
+#ifndef SASS_AST
 #include "ast.hpp"
+#endif
+#ifndef SASS_CONTEXT
 #include "context.hpp"
+#endif
 #include "to_string.hpp"
+#ifndef SASS_UTIL
 #include "util.hpp"
+#endif
 #include <iostream>
 #include <sstream>
 #include <typeinfo>
@@ -12,7 +18,9 @@ namespace Sass {
   using namespace std;
 
   Output_Nested::Output_Nested(bool source_comments, Context* ctx)
-  : buffer(""), rendered_imports(""), indentation(0), source_comments(source_comments), ctx(ctx), seen_utf8(false)
+  : Output(ctx),
+    indentation(0),
+    source_comments(source_comments)
   { }
   Output_Nested::~Output_Nested() { }
 
@@ -20,28 +28,15 @@ namespace Sass {
   {
     Inspect i(ctx);
     n->perform(&i);
-    const string& text = i.get_buffer();
-    for(const char& chr : text) {
-      // abort clause
-      if (seen_utf8) break;
-      // skip all normal ascii chars
-      if (Util::isAscii(chr)) continue;
-      // singleton
-      seen_utf8 = true;
-    }
-    buffer += text;
-    if (ctx && !ctx->_skip_source_map_update)
-      ctx->source_map.update_column(text);
+    append_to_buffer(i.get_buffer());
   }
 
   void Output_Nested::operator()(Import* imp)
   {
-    Inspect insp(ctx);
-    imp->perform(&insp);
-    if (!rendered_imports.empty()) {
-      rendered_imports += ctx->linefeed;
-    }
-    rendered_imports += insp.get_buffer();
+    // Inspect insp(ctx);
+    // imp->perform(&insp);
+    // insp.get_buffer();
+    top_imports.push_back(imp);
   }
 
   void Output_Nested::operator()(Block* b)
@@ -51,6 +46,19 @@ namespace Sass {
       size_t old_len = buffer.length();
       (*b)[i]->perform(this);
       if (i < L-1 && old_len < buffer.length()) append_to_buffer(ctx->linefeed);
+    }
+  }
+
+  void Output_Nested::operator()(Comment* c)
+  {
+    To_String to_string;
+    string txt = c->text()->perform(&to_string);
+    if (buffer.size() + top_imports.size() == 0) {
+      top_comments.push_back(c);
+    } else {
+      Inspect i(ctx);
+      c->perform(&i);
+      append_to_buffer(i.get_buffer());
     }
   }
 
@@ -79,7 +87,7 @@ namespace Sass {
       indent();
       if (source_comments) {
         stringstream ss;
-        ss << "/* line " << r->position().line << ", " << r->path() << " */" << endl;
+        ss << "/* line " << r->pstate().line+1 << ", " << r->pstate().path << " */" << endl;
         append_to_buffer(ss.str());
         indent();
       }
@@ -152,10 +160,12 @@ namespace Sass {
     }
 
     indent();
-    ctx->source_map.add_mapping(f);
-    append_to_buffer("@supports ");
+    append_to_buffer("@supports", f);
+    append_to_buffer(" ");
     q->perform(this);
-    append_to_buffer(" {" + ctx->linefeed);
+    append_to_buffer(" ");
+    append_to_buffer("{");
+    append_to_buffer(ctx->linefeed);
 
     Selector* e = f->selector();
     if (e && b->has_non_hoistable()) {
@@ -231,10 +241,12 @@ namespace Sass {
 
     indentation += m->tabs();
     indent();
-    ctx->source_map.add_mapping(m);
-    append_to_buffer("@media ");
+    append_to_buffer("@media", m);
+    append_to_buffer(" ");
     q->perform(this);
-    append_to_buffer(" {" + ctx->linefeed);
+    append_to_buffer(" ");
+    append_to_buffer("{");
+    append_to_buffer(ctx->linefeed);
 
     Selector* e = m->selector();
     if (e && b->has_non_hoistable()) {
@@ -357,19 +369,7 @@ namespace Sass {
     append_to_buffer(indent);
   }
 
-  void Output_Nested::append_to_buffer(const string& text)
-  {
-    buffer += text;
-    if (ctx && !ctx->_skip_source_map_update)
-      ctx->source_map.update_column(text);
-    for(const char& chr : text) {
-      // abort clause
-      if (seen_utf8) break;
-      // skip all normal ascii chars
-      if (Util::isAscii(chr)) continue;
-      // singleton
-      seen_utf8 = true;
-    }
-  }
+  // compile output implementation
+  template class Output<Output_Nested>;
 
 }

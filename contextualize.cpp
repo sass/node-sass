@@ -31,7 +31,7 @@ namespace Sass {
     To_String to_string;
     string result_str(s->contents()->perform(eval->with(env, backtrace))->perform(&to_string));
     result_str += '{'; // the parser looks for a brace to end the selector
-    Selector* result_sel = Parser::from_c_str(result_str.c_str(), ctx, s->path(), s->position()).parse_selector_group();
+    Selector* result_sel = Parser::from_c_str(result_str.c_str(), ctx, s->pstate()).parse_selector_group();
     return result_sel->perform(this);
   }
 
@@ -40,7 +40,7 @@ namespace Sass {
     Selector_List* p = static_cast<Selector_List*>(parent);
     Selector_List* ss = 0;
     if (p) {
-      ss = new (ctx.mem) Selector_List(s->path(), s->position(), p->length() * s->length());
+      ss = new (ctx.mem) Selector_List(s->pstate(), p->length() * s->length());
       for (size_t i = 0, L = p->length(); i < L; ++i) {
         for (size_t j = 0, L = s->length(); j < L; ++j) {
           parent = (*p)[i];
@@ -50,7 +50,7 @@ namespace Sass {
       }
     }
     else {
-      ss = new (ctx.mem) Selector_List(s->path(), s->position(), s->length());
+      ss = new (ctx.mem) Selector_List(s->pstate(), s->length());
       for (size_t j = 0, L = s->length(); j < L; ++j) {
         Complex_Selector* comb = static_cast<Complex_Selector*>((*s)[j]->perform(this));
         if (comb) *ss << comb;
@@ -93,7 +93,7 @@ namespace Sass {
     if (placeholder && extender && s->perform(&to_string) == placeholder->perform(&to_string)) {
       return extender;
     }
-    Compound_Selector* ss = new (ctx.mem) Compound_Selector(s->path(), s->position(), s->length());
+    Compound_Selector* ss = new (ctx.mem) Compound_Selector(s->pstate(), s->length());
     for (size_t i = 0, L = s->length(); i < L; ++i) {
       Simple_Selector* simp = static_cast<Simple_Selector*>((*s)[i]->perform(this));
       if (simp) *ss << simp;
@@ -105,8 +105,7 @@ namespace Sass {
   {
     Selector* old_parent = parent;
     parent = 0;
-    Wrapped_Selector* neg = new (ctx.mem) Wrapped_Selector(s->path(),
-                                                           s->position(),
+    Wrapped_Selector* neg = new (ctx.mem) Wrapped_Selector(s->pstate(),
                                                            s->name(),
                                                            s->selector()->perform(this));
     parent = old_parent;

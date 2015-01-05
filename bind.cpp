@@ -32,7 +32,7 @@ namespace Sass {
         stringstream msg;
         msg << callee << " only takes " << LP << " arguments; "
             << "given " << LA;
-        error(msg.str(), as->path(), as->position());
+        error(msg.str(), as->pstate());
       }
       Parameter* p = (*ps)[ip];
       Argument*  a = (*as)[ia];
@@ -51,16 +51,14 @@ namespace Sass {
         } else {
 
           // copy all remaining arguments into the rest parameter, preserving names
-          List* arglist = new (ctx.mem) List(p->path(),
-                                             p->position(),
+          List* arglist = new (ctx.mem) List(p->pstate(),
                                              0,
                                              List::COMMA,
                                              true);
           env->current_frame()[p->name()] = arglist;
           while (ia < LA) {
             a = (*as)[ia];
-            (*arglist) << new (ctx.mem) Argument(a->path(),
-                                                 a->position(),
+            (*arglist) << new (ctx.mem) Argument(a->pstate(),
                                                  a->value(),
                                                  a->name(),
                                                  false);
@@ -84,7 +82,7 @@ namespace Sass {
           a = static_cast<Argument*>((*arglist)[0]);
         } else {
           Expression* a_to_convert = (*arglist)[0];
-          a = new (ctx.mem) Argument(a_to_convert->path(), a_to_convert->position(), a_to_convert, "", false);
+          a = new (ctx.mem) Argument(a_to_convert->pstate(), a_to_convert, "", false);
         }
         arglist->elements().erase(arglist->elements().begin());
         if (!arglist->length() || (!arglist->is_arglist() && ip + 1 == LP)) {
@@ -99,7 +97,7 @@ namespace Sass {
           if (!param_map.count(name)) {
             stringstream msg;
             msg << callee << " has no parameter named " << name;
-            error(msg.str(), a->path(), a->position());
+            error(msg.str(), a->pstate());
           }
           env->current_frame()[name] = argmap->at(key);
         }
@@ -114,7 +112,7 @@ namespace Sass {
           stringstream msg;
           msg << "parameter " << p->name()
           << " provided more than once in call to " << callee;
-          error(msg.str(), a->path(), a->position());
+          error(msg.str(), a->pstate());
         }
         // ordinal arg -- bind it to the next param
         env->current_frame()[p->name()] = a->value();
@@ -125,19 +123,19 @@ namespace Sass {
         if (!param_map.count(a->name())) {
           stringstream msg;
           msg << callee << " has no parameter named " << a->name();
-          error(msg.str(), a->path(), a->position());
+          error(msg.str(), a->pstate());
         }
         if (param_map[a->name()]->is_rest_parameter()) {
           stringstream msg;
           msg << "argument " << a->name() << " of " << callee
               << "cannot be used as named argument";
-          error(msg.str(), a->path(), a->position());
+          error(msg.str(), a->pstate());
         }
         if (env->current_frame_has(a->name())) {
           stringstream msg;
           msg << "parameter " << p->name()
               << "provided more than once in call to " << callee;
-          error(msg.str(), a->path(), a->position());
+          error(msg.str(), a->pstate());
         }
         env->current_frame()[a->name()] = a->value();
       }
@@ -154,8 +152,7 @@ namespace Sass {
       // cerr << "********" << endl;
       if (!env->current_frame_has(leftover->name())) {
         if (leftover->is_rest_parameter()) {
-          env->current_frame()[leftover->name()] = new (ctx.mem) List(leftover->path(),
-                                                                      leftover->position(),
+          env->current_frame()[leftover->name()] = new (ctx.mem) List(leftover->pstate(),
                                                                       0,
                                                                       List::COMMA,
                                                                       true);
@@ -175,7 +172,7 @@ namespace Sass {
           stringstream msg;
           msg << "required parameter " << leftover->name()
               << " is missing in call to " << callee;
-          error(msg.str(), as->path(), as->position());
+          error(msg.str(), as->pstate());
         }
       }
     }

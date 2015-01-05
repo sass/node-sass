@@ -27,7 +27,7 @@ namespace Sass {
     Env new_env;
     new_env.link(*env);
     env = &new_env;
-    Block* bb = new (ctx.mem) Block(b->path(), b->position(), b->length(), b->is_root());
+    Block* bb = new (ctx.mem) Block(b->pstate(), b->length(), b->is_root());
     block_stack.push_back(bb);
     append_block(b);
     block_stack.pop_back();
@@ -38,20 +38,19 @@ namespace Sass {
   Statement* Cssize::operator()(Ruleset* r)
   {
     p_stack.push_back(r);
-    Ruleset* rr = new (ctx.mem) Ruleset(r->path(),
-                                        r->position(),
+    Ruleset* rr = new (ctx.mem) Ruleset(r->pstate(),
                                         r->selector(),
                                         r->block()->perform(this)->block());
     p_stack.pop_back();
 
-    Block* props = new Block(rr->block()->path(), rr->block()->position());
+    Block* props = new Block(rr->block()->pstate());
     for (size_t i = 0, L = rr->block()->length(); i < L; i++)
     {
       Statement* s = (*rr->block())[i];
       if (!bubblable(s)) *props << s;
     }
 
-    Block* rules = new Block(rr->block()->path(), rr->block()->position());
+    Block* rules = new Block(rr->block()->pstate());
     for (size_t i = 0, L = rr->block()->length(); i < L; i++)
     {
       Statement* s = (*rr->block())[i];
@@ -60,7 +59,7 @@ namespace Sass {
 
     if (props->length())
     {
-      Block* bb = new Block(rr->block()->path(), rr->block()->position());
+      Block* bb = new Block(rr->block()->pstate());
       *bb += props;
       rr->block(bb);
 
@@ -90,12 +89,11 @@ namespace Sass {
     { return bubble(m); }
 
     if (parent()->statement_type() == Statement::MEDIA)
-    { return new (ctx.mem) Bubble(m->path(), m->position(), m); }
+    { return new (ctx.mem) Bubble(m->pstate(), m); }
 
     p_stack.push_back(m);
 
-    Media_Block* mm = new (ctx.mem) Media_Block(m->path(),
-                                                m->position(),
+    Media_Block* mm = new (ctx.mem) Media_Block(m->pstate(),
                                                 m->media_queries(),
                                                 m->block()->perform(this)->block());
     mm->tabs(m->tabs());
@@ -109,9 +107,8 @@ namespace Sass {
   {
     Ruleset* parent = static_cast<Ruleset*>(this->parent());
 
-    Block* bb = new (ctx.mem) Block(parent->block()->path(), parent->block()->position());
-    Ruleset* new_rule = new (ctx.mem) Ruleset(parent->path(),
-                                              parent->position(),
+    Block* bb = new (ctx.mem) Block(parent->block()->pstate());
+    Ruleset* new_rule = new (ctx.mem) Ruleset(parent->pstate(),
                                               parent->selector(),
                                               bb);
     new_rule->tabs(parent->tabs());
@@ -120,15 +117,14 @@ namespace Sass {
       *new_rule->block() << (*m->block())[i];
     }
 
-    Block* wrapper_block = new (ctx.mem) Block(m->block()->path(), m->block()->position());
+    Block* wrapper_block = new (ctx.mem) Block(m->block()->pstate());
     *wrapper_block << new_rule;
-    Media_Block* mm = new (ctx.mem) Media_Block(m->path(),
-                                                m->position(),
+    Media_Block* mm = new (ctx.mem) Media_Block(m->pstate(),
                                                 m->media_queries(),
                                                 wrapper_block,
                                                 m->selector());
 
-    Bubble* bubble = new (ctx.mem) Bubble(mm->path(), mm->position(), mm);
+    Bubble* bubble = new (ctx.mem) Bubble(mm->pstate(), mm);
 
     return bubble;
   }
@@ -141,7 +137,7 @@ namespace Sass {
   Statement* Cssize::flatten(Statement* s)
   {
     Block* bb = s->block();
-    Block* result = new (ctx.mem) Block(bb->path(), bb->position(), 0, bb->is_root());
+    Block* result = new (ctx.mem) Block(bb->pstate(), 0, bb->is_root());
     for (size_t i = 0, L = bb->length(); i < L; ++i) {
       Statement* ss = (*bb)[i];
       if (ss->block()) {
@@ -171,7 +167,7 @@ namespace Sass {
       }
       else
       {
-        Block* wrapper_block = new (ctx.mem) Block(value->path(), value->position());
+        Block* wrapper_block = new (ctx.mem) Block(value->pstate());
         *wrapper_block << value;
         results.push_back(make_pair(key, wrapper_block));
       }
@@ -183,7 +179,7 @@ namespace Sass {
   {
     Has_Block* previous_parent = 0;
     vector<pair<bool, Block*>> baz = slice_by_bubble(children);
-    Block* result = new (ctx.mem) Block(children->path(), children->position());
+    Block* result = new (ctx.mem) Block(children->pstate());
 
     for (size_t i = 0, L = baz.size(); i < L; ++i) {
       bool is_bubble = baz[i].first;
@@ -209,8 +205,7 @@ namespace Sass {
         continue;
       }
 
-      Block* wrapper_block = new (ctx.mem) Block(children->block()->path(),
-                                                 children->block()->position(),
+      Block* wrapper_block = new (ctx.mem) Block(children->block()->pstate(),
                                                  children->block()->length(),
                                                  children->block()->is_root());
 
@@ -238,8 +233,7 @@ namespace Sass {
 
         if (!ss) continue;
 
-        Block* bb = new (ctx.mem) Block(children->block()->path(),
-                                        children->block()->position(),
+        Block* bb = new (ctx.mem) Block(children->block()->pstate(),
                                         children->block()->length(),
                                         children->block()->is_root());
         *bb << ss->perform(this);
@@ -283,8 +277,7 @@ namespace Sass {
 
   List* Cssize::merge_media_queries(Media_Block* m1, Media_Block* m2)
   {
-    List* qq = new (ctx.mem) List(m1->media_queries()->path(),
-                                  m1->media_queries()->position(),
+    List* qq = new (ctx.mem) List(m1->media_queries()->pstate(),
                                   m1->media_queries()->length(),
                                   List::COMMA);
 
@@ -340,12 +333,12 @@ namespace Sass {
     }
 
     Media_Query* mm = new (ctx.mem) Media_Query(
-      mq1->path(), mq1->position(), 0,
+      mq1->pstate(), 0,
       mq1->length() + mq2->length(), mod == "not", mod == "only"
     );
 
     if (!type.empty()) {
-      mm->media_type(new (ctx.mem) String_Constant(mq1->path(), mq1->position(), type));
+      mm->media_type(new (ctx.mem) String_Constant(mq1->pstate(), type));
     }
 
     *mm += mq2;

@@ -8,11 +8,13 @@
 #include <string>
 namespace Sass {
   namespace Util {
+    using namespace std;
 
-    std::string normalize_underscores(const std::string& str);
-    std::string normalize_decimals(const std::string& str);
-    std::string normalize_sixtuplet(const std::string& col);
+    string normalize_underscores(const string& str);
+    string normalize_decimals(const string& str);
+    string normalize_sixtuplet(const string& col);
 
+    string vecJoin(const vector<string>& vec, const string& sep);
     bool containsAnyPrintableStatements(Block* b);
 
     bool isPrintable(Ruleset* r);

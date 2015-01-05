@@ -3,8 +3,16 @@
 
 #include <string>
 
+#ifndef SASS_SOURCE_MAP
+#include "source_map.hpp"
+#endif
+
 #ifndef SASS_OPERATION
 #include "operation.hpp"
+#endif
+
+#ifndef SASS_POSITION
+#include "position.hpp"
 #endif
 
 // #ifndef SASS_TO_STRING
@@ -23,14 +31,18 @@ namespace Sass {
     string buffer;
     size_t indentation;
     Context* ctx;
-    void indent();
 
     void fallback_impl(AST_Node* n);
 
+  public:
+    void append_indent_to_buffer();
     void append_to_buffer(const string& text);
+    void append_to_buffer(const string& text, AST_Node* node);
+    void append_to_buffer(const string& text, AST_Node* node, const string& tail);
 
   public:
 
+    SourceMap source_map;
     Inspect(Context* ctx = 0);
     virtual ~Inspect();
 

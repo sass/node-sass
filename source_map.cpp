@@ -1,18 +1,28 @@
 #include "source_map.hpp"
 #include "json.hpp"
 
+#ifndef SASS_AST
+#include "ast.hpp"
+#endif
+
 #ifndef SASS_CONTEXT
 #include "context.hpp"
 #endif
 
+#ifndef SASS_POSITION
+#include "position.hpp"
+#endif
+
 #include <string>
 #include <sstream>
+#include <iostream>
 #include <cstddef>
 #include <iomanip>
 
 namespace Sass {
   using std::ptrdiff_t;
-  SourceMap::SourceMap(const string& file) : current_position(Position(1, 1)), file(file) { }
+  SourceMap::SourceMap() : current_position(0, 0, 0), file("stdin") { }
+  SourceMap::SourceMap(const string& file) : current_position(0, 0, 0), file(file) { }
 
   string SourceMap::generate_source_map(Context &ctx) {
 
@@ -71,11 +81,11 @@ namespace Sass {
     size_t previous_original_column = 0;
     size_t previous_original_file = 0;
     for (size_t i = 0; i < mappings.size(); ++i) {
-      const size_t generated_line = mappings[i].generated_position.line - 1;
-      const size_t generated_column = mappings[i].generated_position.column - 1;
-      const size_t original_line = mappings[i].original_position.line - 1;
-      const size_t original_column = mappings[i].original_position.column - 1;
-      const size_t original_file = mappings[i].original_position.file - 1;
+      const size_t generated_line = mappings[i].generated_position.line;
+      const size_t generated_column = mappings[i].generated_position.column;
+      const size_t original_line = mappings[i].original_position.line;
+      const size_t original_column = mappings[i].original_position.column;
+      const size_t original_file = mappings[i].original_position.file;
 
       if (generated_line != previous_generated_line) {
         previous_generated_column = 0;
@@ -119,15 +129,32 @@ namespace Sass {
     const ptrdiff_t new_line_count = std::count(str.begin(), str.end(), '\n');
     current_position.line += new_line_count;
     if (new_line_count > 0) {
-      current_position.column = str.size() - str.find_last_of('\n');
+      current_position.column = str.size() - str.find_last_of('\n') - 1;
     } else {
       current_position.column += str.size();
     }
   }
 
-  void SourceMap::add_mapping(AST_Node* node)
+  void SourceMap::add_open_mapping(AST_Node* node)
   {
-    mappings.push_back(Mapping(node->position(), current_position));
+    mappings.push_back(Mapping(node->pstate(), current_position));
+  }
+
+  void SourceMap::add_close_mapping(AST_Node* node)
+  {
+    mappings.push_back(Mapping(node->pstate() + node->pstate().offset, current_position));
+  }
+
+  ParserState SourceMap::remap(const ParserState& pstate) {
+    for (size_t i = 0; i < mappings.size(); ++i) {
+      if (
+        mappings[i].generated_position.file == pstate.file &&
+        mappings[i].generated_position.line == pstate.line &&
+        mappings[i].generated_position.column == pstate.column
+      ) return ParserState(pstate.path, mappings[i].original_position, pstate.offset);
+    }
+    return ParserState(pstate.path, Position(-1, -1, -1), Offset(0, 0));
+
   }
 
 }

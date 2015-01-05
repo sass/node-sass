@@ -142,7 +142,7 @@ extern "C" {
     }
     catch (Sass_Error& e) {
       stringstream msg_stream;
-      msg_stream << e.path << ":" << e.position.line << ": " << e.message << endl;
+      msg_stream << e.pstate.path << ":" << e.pstate.line << ": " << e.message << endl;
       c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
@@ -229,7 +229,7 @@ extern "C" {
     }
     catch (Sass_Error& e) {
       stringstream msg_stream;
-      msg_stream << e.path << ":" << e.position.line << ": " << e.message << endl;
+      msg_stream << e.path << ":" << e.pstate.line << ": " << e.message << endl;
       c_ctx->error_message = strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;

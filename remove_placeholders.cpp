@@ -17,7 +17,7 @@ namespace Sass {
         Selector_List* sl = static_cast<Selector_List*>(r->selector());
 
         if (sl) {
-            Selector_List* new_sl = new (ctx.mem) Selector_List(sl->path(), sl->position());
+            Selector_List* new_sl = new (ctx.mem) Selector_List(sl->pstate());
 
             for (size_t i = 0, L = sl->length(); i < L; ++i) {
                 if (!(*sl)[i]->has_placeholder()) {
