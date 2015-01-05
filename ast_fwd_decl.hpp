@@ -9,6 +9,7 @@ namespace Sass {
   class Block;
   class Ruleset;
   class Propset;
+  class Bubble;
   class Media_Block;
   class Feature_Block;
   class At_Rule;

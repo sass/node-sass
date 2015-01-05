@@ -97,6 +97,7 @@ SOURCES = \
 	context.cpp \
 	contextualize.cpp \
 	copy_c_str.cpp \
+	cssize.cpp \
 	error_handling.cpp \
 	eval.cpp \
 	expand.cpp \
@@ -127,14 +128,14 @@ SOURCES = \
 
 CSOURCES = cencode.c
 
-RESOURCES = 
+RESOURCES =
 
 LIBRARIES = lib/libsass.so
 
 ifeq (MinGW,$(UNAME))
 	ifeq (shared,$(BUILD))
-		CFLAGS    += -D ADD_EXPORTS 
-		CXXFLAGS  += -D ADD_EXPORTS 
+		CFLAGS    += -D ADD_EXPORTS
+		CXXFLAGS  += -D ADD_EXPORTS
 		LIBRARIES += lib/libsass.dll
 		RESOURCES += res/resource.rc
 	endif

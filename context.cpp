@@ -18,6 +18,7 @@
 #include "expand.hpp"
 #include "eval.hpp"
 #include "contextualize.hpp"
+#include "cssize.hpp"
 #include "extend.hpp"
 #include "remove_placeholders.hpp"
 #include "copy_c_str.hpp"
@@ -282,10 +283,12 @@ namespace Sass {
     Eval eval(*this, &tge, &backtrace);
     Contextualize contextualize(*this, &eval, &tge, &backtrace);
     Expand expand(*this, &eval, &contextualize, &tge, &backtrace);
+    Cssize cssize(*this, &tge);
     // Inspect inspect(this);
     // Output_Nested output_nested(*this);
 
     root = root->perform(&expand)->block();
+    root = root->perform(&cssize)->block();
     if (!subset_map.empty()) {
       Extend extend(*this, subset_map);
       root->perform(&extend);

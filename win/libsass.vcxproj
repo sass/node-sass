@@ -168,6 +168,7 @@
     <ClCompile Include="..\error_handling.cpp" />
     <ClCompile Include="..\eval.cpp" />
     <ClCompile Include="..\expand.cpp" />
+    <ClCompile Include="..\cssize.cpp" />
     <ClCompile Include="..\extend.cpp" />
     <ClCompile Include="..\file.cpp" />
     <ClCompile Include="..\functions.cpp" />
@@ -184,7 +185,7 @@
     <ClCompile Include="..\sass_interface.cpp" />
     <ClCompile Include="..\sass_context.cpp" />
     <ClCompile Include="..\sass_functions.cpp" />
-    <ClCompile Include="..\sass_values.cpp" />	
+    <ClCompile Include="..\sass_values.cpp" />
     <ClCompile Include="..\sass_util.cpp" />
     <ClCompile Include="..\source_map.cpp" />
     <ClCompile Include="..\to_c.cpp" />
@@ -212,6 +213,7 @@
     <ClInclude Include="..\error_handling.hpp" />
     <ClInclude Include="..\eval.hpp" />
     <ClInclude Include="..\expand.hpp" />
+    <ClInclude Include="..\cssize.hpp" />
     <ClInclude Include="..\extend.hpp" />
     <ClInclude Include="..\file.hpp" />
     <ClInclude Include="..\functions.hpp" />
