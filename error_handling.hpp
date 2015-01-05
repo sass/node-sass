@@ -15,14 +15,14 @@ namespace Sass {
 
     Type type;
     string path;
-    Position position;
+    ParserState pstate;
     string message;
 
-    Sass_Error(Type type, string path, Position position, string message);
+    Sass_Error(Type type, ParserState pstate, string message);
 
   };
 
-  void error(string msg, string path, Position position);
-  void error(string msg, string path, Position position, Backtrace* bt);
+  void error(string msg, ParserState pstate);
+  void error(string msg, ParserState pstate, Backtrace* bt);
 
 }

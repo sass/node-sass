@@ -4,6 +4,7 @@
 #include <unistd.h>
 #endif
 
+#include <cstring>
 #include "context.hpp"
 #include "sass_functions.h"
 

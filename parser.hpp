@@ -36,7 +36,7 @@ namespace Sass {
   using std::map;
   using namespace Prelexer;
 
-  class Parser {
+  class Parser : public ParserState {
   private:
     void add_single_file (Import* imp, string import_path);
   public:
@@ -49,22 +49,22 @@ namespace Sass {
     const char* source;
     const char* position;
     const char* end;
-    string path;
-    size_t column;
-    Position source_position;
+    Position before_token;
+    Position after_token;
+    ParserState pstate;
 
 
     Token lexed;
     bool dequote;
 
-    Parser(Context& ctx, string path, Position source_position)
-    : ctx(ctx), stack(vector<Syntactic_Context>()),
-      source(0), position(0), end(0), path(path), column(1), source_position(source_position)
+    Parser(Context& ctx, ParserState pstate)
+    : ParserState(pstate), ctx(ctx), stack(vector<Syntactic_Context>()),
+      source(0), position(0), end(0), before_token(pstate), after_token(pstate), pstate("[NULL]")
     { dequote = false; stack.push_back(nothing); }
 
-    static Parser from_string(string src, Context& ctx, string path = "", Position source_position = Position());
-    static Parser from_c_str(const char* src, Context& ctx, string path = "", Position source_position = Position());
-    static Parser from_token(Token t, Context& ctx, string path = "", Position source_position = Position());
+    static Parser from_string(string src, Context& ctx, ParserState pstate = ParserState("[STRING]"));
+    static Parser from_c_str(const char* src, Context& ctx, ParserState pstate = ParserState("[CSTRING]"));
+    static Parser from_token(Token t, Context& ctx, ParserState pstate = ParserState("[TOKEN]"));
 
 #ifdef __clang__
 
@@ -82,98 +82,124 @@ namespace Sass {
     const char* peek(const char* start = 0)
     {
       if (!start) start = position;
-      const char* after_whitespace;
+      const char* it_before_token;
       if (mx == block_comment) {
-        after_whitespace = // start;
+        it_before_token = // start;
           zero_plus< alternatives<spaces, line_comment> >(start);
       }
       else if (/*mx == ancestor_of ||*/ mx == no_spaces) {
-        after_whitespace = position;
+        it_before_token = position;
       }
       else if (mx == spaces || mx == ancestor_of) {
-        after_whitespace = mx(start);
-        if (after_whitespace) {
-          return after_whitespace;
+        it_before_token = mx(start);
+        if (it_before_token) {
+          return it_before_token;
         }
         else {
           return 0;
         }
       }
       else if (mx == optional_spaces) {
-        after_whitespace = optional_spaces(start);
+        it_before_token = optional_spaces(start);
       }
       else if (mx == line_comment_prefix || mx == block_comment_prefix) {
-        after_whitespace = position;
+        it_before_token = position;
       }
       else {
-        after_whitespace = spaces_and_comments(start);
+        it_before_token = spaces_and_comments(start);
       }
-      const char* after_token = mx(after_whitespace);
-      if (after_token) {
-        return after_token;
+      const char* it_after_token = mx(it_before_token);
+      if (it_after_token) {
+        return it_after_token;
       }
       else {
         return 0;
       }
     }
 
+    // white-space handling is built into the lexer
+    // this way you do not need to parse it yourself
+    // some matchers don't accept certain white-space
     template <prelexer mx>
     const char* lex()
     {
-      const char* after_whitespace;
+
+      // advance position for next call
+      before_token = after_token;
+
+      // after optional whitespace
+      const char* it_before_token;
+
       if (mx == block_comment) {
-        after_whitespace = // position;
-          zero_plus< alternatives<spaces, line_comment> >(position);
+        // a block comment can be preceded by spaces and/or line comments
+        it_before_token = zero_plus< alternatives<spaces, line_comment> >(position);
       }
-      else if (mx == url) {
-        after_whitespace = position;
+      else if (mx == url || mx == ancestor_of || mx == no_spaces) {
+        // parse everything literally
+        it_before_token = position;
       }
-      else if (mx == ancestor_of || mx == no_spaces) {
-        after_whitespace = position;
-      }
+
       else if (mx == spaces) {
-        after_whitespace = spaces(position);
-        if (after_whitespace) {
-          source_position.line += count_interval<'\n'>(position, after_whitespace);
-          lexed = Token(position, after_whitespace);
-          return position = after_whitespace;
+        it_before_token = spaces(position);
+        if (it_before_token) {
+          return position = it_before_token;
         }
         else {
           return 0;
         }
       }
+
       else if (mx == optional_spaces) {
-        after_whitespace = optional_spaces(position);
+        // ToDo: what are optiona_spaces ???
+        it_before_token = optional_spaces(position);
       }
       else {
-        after_whitespace = spaces_and_comments(position);
+        // most can be preceded by spaces and comments
+        it_before_token = spaces_and_comments(position);
       }
-      const char* after_token = mx(after_whitespace);
-      if (after_token) {
-        size_t previous_line = source_position.line;
-        source_position.line += count_interval<'\n'>(position, after_token);
 
-        size_t whitespace = 0;
-        const char* ptr = after_whitespace - 1;
-        while (ptr >= position) {
-          if (*ptr == '\n')
-            break;
-          whitespace++;
-          ptr--;
+      // now call matcher to get position after token
+      const char* it_after_token = mx(it_before_token);
+      // assertion that we got a valid match
+      if (it_after_token == 0) return 0;
+
+      // add whitespace after previous and before this token
+      while (position < it_before_token && *position) {
+        if (*position == '\n') {
+          ++ before_token.line;
+          before_token.column = 0;
+        } else {
+          ++ before_token.column;
         }
-        if (previous_line != source_position.line) {
-          column = 1;
+        ++position;
+      }
+
+      // copy position
+      after_token = before_token;
+
+      Offset size(0, 0);
+
+      // increase position to include current token
+      while (position < it_after_token && *position) {
+        if (*position == '\n') {
+          ++ size.line;
+          size.column = 0;
+        } else {
+          ++ size.column;
         }
-
-        source_position.column = column + whitespace;
-        column += after_token - after_whitespace + whitespace;
-        lexed = Token(after_whitespace, after_token);
-
-        return position = after_token;
+        ++position;
       }
-      else {
-        return 0;
-      }
+
+      after_token = after_token + size;
+
+      // create parsed token string (public member)
+      lexed = Token(it_before_token, it_after_token, before_token);
+
+      pstate = ParserState(path, Position(before_token.file, before_token.line, before_token.column), size);
+
+      // advance internal char iterator
+      return position = it_after_token;
+
     }
 
 #ifdef __clang__
@@ -182,7 +208,7 @@ namespace Sass {
 
 #endif
 
-    void error(string msg, Position pos = Position());
+    void error(string msg, Position pos);
     void read_bom();
 
     Block* parse();

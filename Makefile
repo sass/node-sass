@@ -110,6 +110,7 @@ SOURCES = \
 	output_compressed.cpp \
 	output_nested.cpp \
 	parser.cpp \
+	position.cpp \
 	prelexer.cpp \
 	remove_placeholders.cpp \
 	sass.cpp \

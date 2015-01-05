@@ -657,7 +657,7 @@ namespace Sass {
     const char* static_string(const char* src) {
       const char* pos = src;
       const char * s = string_constant(pos);
-      Token t(pos, s);
+      Token t(pos, s, Position(0, 0));
       const unsigned int p = count_interval< interpolant >(t.begin, t.end);
       return (p == 0) ? t.end : 0;
     }

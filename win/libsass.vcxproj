@@ -178,6 +178,7 @@
     <ClCompile Include="..\output_compressed.cpp" />
     <ClCompile Include="..\output_nested.cpp" />
     <ClCompile Include="..\parser.cpp" />
+    <ClCompile Include="..\position.cpp" />
     <ClCompile Include="..\prelexer.cpp" />
     <ClCompile Include="..\remove_placeholders.cpp" />
     <ClCompile Include="..\sass.cpp" />

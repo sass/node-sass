@@ -78,6 +78,9 @@
     <ClCompile Include="..\parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\position.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\prelexer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

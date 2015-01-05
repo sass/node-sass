@@ -73,7 +73,7 @@ namespace Sass {
     Expression* fallback(U x) { return fallback_impl(x); }
   };
 
-  Expression* cval_to_astnode(Sass_Value* v, Context& ctx, Backtrace* backtrace, string path = "", Position position = Position());
+  Expression* cval_to_astnode(Sass_Value* v, Context& ctx, Backtrace* backtrace, ParserState pstate = ParserState("[AST]"));
 
   bool eq(Expression*, Expression*, Context&);
   bool lt(Expression*, Expression*, Context&);

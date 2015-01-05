@@ -164,7 +164,7 @@ extern "C" {
     if (v == 0) return 0;
     v->number.tag = SASS_NUMBER;
     v->number.value = val;
-    v->number.unit = strdup(unit);
+    v->number.unit = unit ? strdup(unit) : 0;
     if (v->number.unit == 0) { free(v); return 0; }
     return v;
   }
@@ -186,7 +186,7 @@ extern "C" {
     Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->string.tag = SASS_STRING;
-    v->string.value = strdup(val);
+    v->string.value = val ? strdup(val) : 0;
     if (v->string.value == 0) { free(v); return 0; }
     return v;
   }
@@ -227,7 +227,7 @@ extern "C" {
     Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->error.tag = SASS_ERROR;
-    v->error.message = strdup(msg);
+    v->error.message = msg ? strdup(msg) : 0;
     if (v->error.message == 0) { free(v); return 0; }
     return v;
   }
@@ -237,7 +237,7 @@ extern "C" {
     Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->warning.tag = SASS_WARNING;
-    v->warning.message = strdup(msg);
+    v->warning.message = msg ? strdup(msg) : 0;
     if (v->warning.message == 0) { free(v); return 0; }
     return v;
   }

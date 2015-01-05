@@ -47,7 +47,7 @@ namespace Sass {
       bool hasSelectors = static_cast<Selector_List*>(r->selector())->length() > 0;
 
       if (!hasSelectors) {
-      	return false;
+        return false;
       }
 
       bool hasDeclarations = false;
@@ -55,16 +55,16 @@ namespace Sass {
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
         if (dynamic_cast<Has_Block*>(stm)) {
-        	Block* pChildBlock = ((Has_Block*)stm)->block();
+          Block* pChildBlock = ((Has_Block*)stm)->block();
           if (isPrintable(pChildBlock)) {
             hasPrintableChildBlocks = true;
           }
         } else {
-        	hasDeclarations = true;
+          hasDeclarations = true;
         }
 
         if (hasDeclarations || hasPrintableChildBlocks) {
-        	return true;
+          return true;
         }
       }
 
@@ -122,7 +122,7 @@ namespace Sass {
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
         if (!stm->is_hoistable() && m->selector() != NULL && !hasSelectors) {
-        	// If a statement isn't hoistable, the selectors apply to it. If there are no selectors (a selector list of length 0),
+          // If a statement isn't hoistable, the selectors apply to it. If there are no selectors (a selector list of length 0),
           // then those statements aren't considered printable. That means there was a placeholder that was removed. If the selector
           // is NULL, then that means there was never a wrapping selector and it is printable (think of a top level media block with
           // a declaration in it).
@@ -131,55 +131,73 @@ namespace Sass {
           hasDeclarations = true;
         }
         else if (dynamic_cast<Has_Block*>(stm)) {
-        	Block* pChildBlock = ((Has_Block*)stm)->block();
+          Block* pChildBlock = ((Has_Block*)stm)->block();
           if (isPrintable(pChildBlock)) {
             hasPrintableChildBlocks = true;
           }
         }
 
-				if (hasDeclarations || hasPrintableChildBlocks) {
-        	return true;
+        if (hasDeclarations || hasPrintableChildBlocks) {
+          return true;
         }
       }
 
       return false;
     }
 
-     bool isPrintable(Block* b) {
-       if (b == NULL) {
-         return false;
-       }
+    bool isPrintable(Block* b) {
+      if (b == NULL) {
+        return false;
+      }
 
-       for (size_t i = 0, L = b->length(); i < L; ++i) {
-         Statement* stm = (*b)[i];
-         if (typeid(*stm) == typeid(Declaration) || typeid(*stm) == typeid(At_Rule)) {
-           return true;
-         }
-         else if (typeid(*stm) == typeid(Ruleset)) {
-           Ruleset* r = (Ruleset*) stm;
-           if (isPrintable(r)) {
-             return true;
-           }
-         }
-         else if (typeid(*stm) == typeid(Feature_Block)) {
-           Feature_Block* f = (Feature_Block*) stm;
-           if (isPrintable(f)) {
-             return true;
-           }
-         }
-         else if (typeid(*stm) == typeid(Media_Block)) {
-           Media_Block* m = (Media_Block*) stm;
-           if (isPrintable(m)) {
-             return true;
-           }
-         }
-         else if (dynamic_cast<Has_Block*>(stm) && isPrintable(((Has_Block*)stm)->block())) {
-           return true;
-         }
-       }
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (typeid(*stm) == typeid(Declaration) || typeid(*stm) == typeid(At_Rule)) {
+          return true;
+        }
+        else if (typeid(*stm) == typeid(Ruleset)) {
+          Ruleset* r = (Ruleset*) stm;
+          if (isPrintable(r)) {
+            return true;
+          }
+        }
+        else if (typeid(*stm) == typeid(Feature_Block)) {
+          Feature_Block* f = (Feature_Block*) stm;
+          if (isPrintable(f)) {
+            return true;
+          }
+        }
+        else if (typeid(*stm) == typeid(Media_Block)) {
+          Media_Block* m = (Media_Block*) stm;
+          if (isPrintable(m)) {
+            return true;
+          }
+        }
+        else if (dynamic_cast<Has_Block*>(stm) && isPrintable(((Has_Block*)stm)->block())) {
+          return true;
+        }
+      }
 
-       return false;
-     }
+      return false;
+    }
+
+    string vecJoin(const vector<string>& vec, const string& sep)
+    {
+      switch (vec.size())
+      {
+        case 0:
+            return string("");
+        case 1:
+            return vec[0];
+        default:
+            std::ostringstream os;
+            os << vec[0];
+            for (size_t i = 1; i < vec.size(); i++) {
+              os << sep << vec[i];
+            }
+            return os.str();
+      }
+    }
 
      bool isAscii(int ch) {
          return ch >= 0 && ch < 128;

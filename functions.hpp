@@ -13,7 +13,7 @@
 #include "sass_functions.h"
 
 #define BUILT_IN(name) Expression*\
-name(Env& env, Env& d_env, Context& ctx, Signature sig, const string& path, Position position, Backtrace* backtrace)
+name(Env& env, Env& d_env, Context& ctx, Signature sig, ParserState pstate, Backtrace* backtrace)
 
 namespace Sass {
   struct Context;
@@ -23,7 +23,7 @@ namespace Sass {
   class Definition;
   typedef Environment<AST_Node*> Env;
   typedef const char* Signature;
-  typedef Expression* (*Native_Function)(Env&, Env&, Context&, Signature, const string&, Position, Backtrace*);
+  typedef Expression* (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtrace*);
 
   Definition* make_native_function(Signature, Native_Function, Context&);
   Definition* make_c_function(Signature sig, Sass_C_Function f, void* cookie, Context& ctx);
