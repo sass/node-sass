@@ -1,4 +1,4 @@
-﻿# node-sass
+# node-sass
 
 <table>
   <tr>
@@ -118,7 +118,7 @@ The callback function is passed a results object, containing the following keys:
 `sourceComments` is a `Boolean` flag to determine what debug information is included in the output file.
 
 #### sourceMap
-`sourceMap` can be set as `String` or `Boolean`. If it is set to `true`, the path of sourceMap would be computed by node-sass w.r.t the outFile path. It can also be set to absolute or relative (to outFile) path.
+You must define this option as well as `outFile` in order to generate a source map. If it is set to `true`, the source map will be generated at the path provided in the `outFile` option. If set to a path (`String`), the source map will be generated at the provided path.
 
 #### sourceMapEmbed
 `sourceMapEmbed` is a `Boolean` flag to determine whether to embed `sourceMappingUrl` as data URI.
