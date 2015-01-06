@@ -4,7 +4,7 @@ extern "C" {
   using namespace std;
 
   void compile_it(uv_work_t* req) {
-    sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(req->data);
+    sass_context_wrapper* ctx_w = (sass_context_wrapper*)req->data;
 
     if (ctx_w->dctx) {
       compile_data(ctx_w->dctx);
@@ -23,13 +23,14 @@ extern "C" {
   }
 
   sass_context_wrapper* sass_make_context_wrapper() {
-    auto ctx_w = (sass_context_wrapper*)calloc(1, sizeof(sass_context_wrapper));
+    sass_context_wrapper* ctx_w = (sass_context_wrapper*)calloc(1, sizeof(sass_context_wrapper));
     uv_mutex_init(&ctx_w->importer_mutex);
     uv_cond_init(&ctx_w->importer_condition_variable);
+
     return ctx_w;
   }
 
-  void sass_free_context_wrapper(sass_context_wrapper* ctx_w) {
+  void sass_wrapper_dispose(struct sass_context_wrapper* ctx_w, char* string = 0) {
     if (ctx_w->dctx) {
       sass_delete_data_context(ctx_w->dctx);
     }
@@ -47,6 +48,14 @@ extern "C" {
     uv_cond_destroy(&ctx_w->importer_condition_variable);
 
     NanDisposePersistent(ctx_w->result);
+
+    if(string) {
+      free(string);
+    }
+  }
+
+  void sass_free_context_wrapper(sass_context_wrapper* ctx_w) {
+    sass_wrapper_dispose(ctx_w);
 
     free(ctx_w);
   }

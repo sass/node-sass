@@ -5,8 +5,7 @@ var Emitter = require('events').EventEmitter,
     meow = require('meow'),
     replaceExt = require('replace-ext'),
     stdin = require('get-stdin'),
-    render = require('../lib/render'),
-    fs = require('fs');
+    render = require('../lib/render');
 
 /**
  * Initialize CLI
@@ -109,9 +108,7 @@ function getEmitter() {
     console.log(data);
   });
 
-  emitter.on('done', function(){
-    process.exit(0);
-  });
+  emitter.on('done', process.exit);
 
   return emitter;
 }
@@ -211,11 +208,10 @@ function run(options, emitter) {
   }
 
   if (options.importer) {
-    if (fs.existsSync(options.importer)) {
+    if ((path.resolve(options.importer) === path.normalize(options.importer).replace(/(.+)([\/|\\])$/, '$1'))) {
       options.importer = require(options.importer);
     } else {
-      console.error('Could not locate importer.');
-      process.exit(1);
+      options.importer = require(path.resolve(process.cwd(), options.importer));
     }
   }
 
