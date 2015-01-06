@@ -1,5 +1,5 @@
-#ifndef DEBUG_H
-#define DEBUG_H
+#ifndef SASS_DEBUG_H
+#define SASS_DEBUG_H
 
 #include <stdint.h>
 
@@ -36,4 +36,4 @@ const uint32_t debug_lvl = (DEBUG_LVL);
 
 #endif // DEBUG
 
-#endif // DEBUG_H
+#endif // SASS_DEBUG

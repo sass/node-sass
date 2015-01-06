@@ -1,19 +1,12 @@
-#define SASS_OUTPUT
-
-#ifndef SASS_OPERATION
-#include "operation.hpp"
-#endif
-
-#ifndef SASS_CONTEXT
-#include "context.hpp"
-#endif
-
-#ifndef SASS_UTIL
-#include "util.hpp"
-#endif
+#ifndef SASS_OUTPUT_H
+#define SASS_OUTPUT_H
 
 #include <string>
 #include <vector>
+
+#include "util.hpp"
+#include "context.hpp"
+#include "operation.hpp"
 
 namespace Sass {
   using namespace std;
@@ -94,3 +87,5 @@ namespace Sass {
   };
 
 }
+
+#endif

@@ -1,21 +1,14 @@
-#define SASS_EXTEND
+#ifndef SASS_EXTEND_H
+#define SASS_EXTEND_H
 
-#include <vector>
 #include <map>
 #include <set>
+#include <vector>
 #include <iostream>
 
-#ifndef SASS_AST
 #include "ast.hpp"
-#endif
-
-#ifndef SASS_OPERATION
 #include "operation.hpp"
-#endif
-
-#ifndef SASS_SUBSET_MAP
 #include "subset_map.hpp"
-#endif
 
 namespace Sass {
   using namespace std;
@@ -48,3 +41,5 @@ namespace Sass {
   };
 
 }
+
+#endif

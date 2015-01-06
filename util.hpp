@@ -1,9 +1,7 @@
-#ifndef SASS_UTIL
-#define SASS_UTIL
+#ifndef SASS_UTIL_H
+#define SASS_UTIL_H
 
-#ifndef SASS_AST
 #include "ast.hpp"
-#endif
 
 #include <string>
 namespace Sass {

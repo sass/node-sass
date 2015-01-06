@@ -1,3 +1,6 @@
+#ifndef SASS_AST_FWD_DECL_H
+#define SASS_AST_FWD_DECL_H
+
 /////////////////////////////////////////////
 // Forward declarations for the AST visitors.
 /////////////////////////////////////////////
@@ -71,3 +74,5 @@ namespace Sass {
   class Selector_List;
 
 }
+
+#endif

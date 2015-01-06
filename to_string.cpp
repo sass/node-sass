@@ -1,15 +1,12 @@
 #include <cmath>
 #include <sstream>
 #include <iomanip>
-
-#ifndef SASS_TO_STRING
-#include "to_string.hpp"
-#endif
-
-#include "inspect.hpp"
-#include "ast.hpp"
-#include "context.hpp"
 #include <iostream>
+
+#include "ast.hpp"
+#include "inspect.hpp"
+#include "context.hpp"
+#include "to_string.hpp"
 
 namespace Sass {
   using namespace std;

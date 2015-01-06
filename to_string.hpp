@@ -1,10 +1,9 @@
-#define SASS_TO_STRING
+#ifndef SASS_TO_STRING_H
+#define SASS_TO_STRING_H
 
 #include <string>
 
-#ifndef SASS_OPERATION
 #include "operation.hpp"
-#endif
 
 namespace Sass {
   using namespace std;
@@ -30,3 +29,5 @@ namespace Sass {
     string fallback(U n) { return fallback_impl(n); }
   };
 }
+
+#endif

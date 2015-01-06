@@ -1,5 +1,5 @@
-#ifndef SASS_POSITION
-#define SASS_POSITION
+#ifndef SASS_POSITION_H
+#define SASS_POSITION_H
 
 #include <string>
 #include <cstdlib>

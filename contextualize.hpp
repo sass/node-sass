@@ -1,12 +1,8 @@
-#define SASS_CONTEXTUALIZE
+#ifndef SASS_CONTEXTUALIZE_H
+#define SASS_CONTEXTUALIZE_H
 
-#ifndef SASS_ENVIRONMENT
-#include "environment.hpp"
-#endif
-
-#ifndef SASS_OPERATION
 #include "operation.hpp"
-#endif
+#include "environment.hpp"
 
 namespace Sass {
   class AST_Node;
@@ -63,3 +59,5 @@ namespace Sass {
     Selector* fallback(U x) { return fallback_impl(x); }
   };
 }
+
+#endif

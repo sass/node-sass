@@ -1,17 +1,12 @@
-#include "output_compressed.hpp"
-#include "inspect.hpp"
-#ifndef SASS_AST
-#include "ast.hpp"
-#endif
-#ifndef SASS_CONTEXT
-#include "context.hpp"
-#endif
-#include "to_string.hpp"
-#ifndef SASS_UTIL
-#include "util.hpp"
-#endif
 #include <cmath>
 #include <iomanip>
+
+#include "ast.hpp"
+#include "util.hpp"
+#include "context.hpp"
+#include "inspect.hpp"
+#include "to_string.hpp"
+#include "output_compressed.hpp"
 
 namespace Sass {
   using namespace std;

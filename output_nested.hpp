@@ -1,8 +1,8 @@
-#include <string>
+#ifndef SASS_OUTPUT_NESTED_H
+#define SASS_OUTPUT_NESTED_H
 
-#ifndef SASS_OUTPUT
+#include <string>
 #include "output.hpp"
-#endif
 
 namespace Sass {
   using namespace std;
@@ -92,3 +92,5 @@ namespace Sass {
   string quote(const string&, char);
 
 }
+
+#endif

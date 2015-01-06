@@ -1,29 +1,15 @@
-#define SASS_PARSER
+#ifndef SASS_PARSER_H
+#define SASS_PARSER_H
 
-#include <vector>
 #include <map>
-
-#ifndef SASS_PRELEXER
-#include "prelexer.hpp"
-#endif
-
-#ifndef SASS_TOKEN
-#include "token.hpp"
-#endif
-
-#ifndef SASS_CONTEXT
-#include "context.hpp"
-#endif
-
-#ifndef SASS_AST
-#include "ast.hpp"
-#endif
-
-#ifndef SASS_POSITION
-#include "position.hpp"
-#endif
-
+#include <vector>
 #include <iostream>
+
+#include "ast.hpp"
+#include "token.hpp"
+#include "context.hpp"
+#include "position.hpp"
+#include "prelexer.hpp"
 
 struct Selector_Lookahead {
   const char* found;
@@ -288,3 +274,5 @@ namespace Sass {
 
   size_t check_bom_chars(const char* src, const char *end, const unsigned char* bom, size_t len);
 }
+
+#endif

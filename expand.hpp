@@ -1,20 +1,13 @@
-#define SASS_EXPAND
+#ifndef SASS_EXPAND_H
+#define SASS_EXPAND_H
 
-#include <vector>
 #include <map>
+#include <vector>
 #include <iostream>
 
-#ifndef SASS_AST
 #include "ast.hpp"
-#endif
-
-#ifndef SASS_OPERATION
 #include "operation.hpp"
-#endif
-
-#ifndef SASS_ENVIRONMENT
 #include "environment.hpp"
-#endif
 
 namespace Sass {
   using namespace std;
@@ -75,3 +68,5 @@ namespace Sass {
   };
 
 }
+
+#endif

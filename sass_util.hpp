@@ -1,24 +1,23 @@
+#ifndef SASS_SASS_UTIL_H
+#define SASS_SASS_UTIL_H
+
 #include <deque>
 #include <iostream>
 
-#ifndef SASS_AST
 #include "ast.hpp"
-#endif
-
 #include "node.hpp"
 #include "debug.hpp"
 
-
 namespace Sass {
 
-  
+
   using namespace std;
 
 
   /*
    This is for ports of functions in the Sass:Util module.
    */
-  
+
 
   /*
     # Return a Node collection of all possible paths through the given Node collection of Node collections.
@@ -34,8 +33,8 @@ namespace Sass {
     #     #  [2, 4, 5]]
   */
   Node paths(const Node& arrs, Context& ctx);
-  
-  
+
+
   /*
   This class is a default implementation of a Node comparator that can be passed to the lcs function below.
   It uses operator== for equality comparision. It then returns one if the Nodes are equal.
@@ -54,13 +53,13 @@ namespace Sass {
     }
   };
 
-  
+
   typedef vector<vector<int> > LCSTable;
-  
-  
+
+
   /*
   This is the equivalent of ruby's Sass::Util.lcs_backtrace.
-  
+
   # Computes a single longest common subsequence for arrays x and y.
   # Algorithm from http://en.wikipedia.org/wiki/Longest_common_subsequence_problem#Reading_out_an_LCS
   */
@@ -72,7 +71,7 @@ namespace Sass {
       DEBUG_PRINTLN(LCS, "RETURNING EMPTY")
       return Node::createCollection();
     }
-    
+
     NodeDeque& xChildren = *(x.collection());
     NodeDeque& yChildren = *(y.collection());
 
@@ -83,20 +82,20 @@ namespace Sass {
       result.collection()->push_back(compareOut);
       return result;
     }
-    
+
     if (c[i][j - 1] > c[i - 1][j]) {
       DEBUG_PRINTLN(LCS, "RETURNING AFTER TABLE COMPARE")
       return lcs_backtrace(c, x, y, i, j - 1, comparator);
     }
-    
+
     DEBUG_PRINTLN(LCS, "FINAL RETURN")
     return lcs_backtrace(c, x, y, i - 1, j, comparator);
   }
-  
+
 
   /*
   This is the equivalent of ruby's Sass::Util.lcs_table.
-  
+
   # Calculates the memoization table for the Least Common Subsequence algorithm.
   # Algorithm from http://en.wikipedia.org/wiki/Longest_common_subsequence_problem#Computing_the_length_of_the_LCS
   */
@@ -108,7 +107,7 @@ namespace Sass {
     NodeDeque& yChildren = *(y.collection());
 
     LCSTable c(xChildren.size(), vector<int>(yChildren.size()));
-    
+
     // These shouldn't be necessary since the vector will be initialized to 0 already.
     // x.size.times {|i| c[i][0] = 0}
     // y.size.times {|j| c[0][j] = 0}
@@ -131,7 +130,7 @@ namespace Sass {
 
   /*
   This is the equivalent of ruby's Sass::Util.lcs.
-  
+
   # Computes a single longest common subsequence for `x` and `y`.
   # If there are more than one longest common subsequences,
   # the one returned is that which starts first in `x`.
@@ -150,14 +149,14 @@ namespace Sass {
     Node newX = Node::createCollection();
     newX.collection()->push_back(Node::createNil());
     newX.plus(x);
-    
+
     Node newY = Node::createCollection();
     newY.collection()->push_back(Node::createNil());
     newY.plus(y);
-    
+
     LCSTable table;
     lcs_table(newX, newY, comparator, table);
-    
+
     return lcs_backtrace(table, newX, newY, static_cast<int>(newX.collection()->size()) - 1, static_cast<int>(newY.collection()->size()) - 1, comparator);
   }
 
@@ -167,7 +166,7 @@ namespace Sass {
   Sass::Util.flatten requires the number of levels to flatten, while
   [].flatten doesn't and will flatten the entire array. This function
   supports both.
-  
+
   # Flattens the first `n` nested arrays. If n == -1, all arrays will be flattened
   #
   # @param arr [NodeCollection] The array to flatten
@@ -189,10 +188,10 @@ namespace Sass {
   # @return [Array<[Object, Array]>] An array of pairs.
 
   TODO: update @param and @return once I know what those are.
-  
+
   The following is the modified version of the ruby code that was more portable to C++. You
   should be able to drop it into ruby 3.2.19 and get the same results from ruby sass.
-   
+
     def group_by_to_a(enum, &block)
       order = {}
 
@@ -230,7 +229,7 @@ namespace Sass {
 
     for (typename vector<EnumType>::iterator enumIter = enumeration.begin(), enumIterEnd = enumeration.end(); enumIter != enumIterEnd; enumIter++) {
       EnumType& e = *enumIter;
-      
+
       KeyType key = keyFunc(e);
 
       if (grouped.find(key) == grouped.end()) {
@@ -244,7 +243,7 @@ namespace Sass {
         collection.push_back(e);
       }
     }
-    
+
     for (unsigned int index = 0; index < order.size(); index++) {
       KeyType& key = order.at(index);
       vector<EnumType>& values = grouped.at(key);
@@ -257,3 +256,5 @@ namespace Sass {
 
 
 }
+
+#endif

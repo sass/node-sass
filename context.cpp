@@ -4,10 +4,7 @@
 #define PATH_SEP ':'
 #endif
 
-#ifndef SASS_AST
 #include "ast.hpp"
-#endif
-
 #include "context.hpp"
 #include "constants.hpp"
 #include "parser.hpp"
@@ -26,10 +23,7 @@
 #include "functions.hpp"
 #include "backtrace.hpp"
 #include "sass2scss.h"
-
-#ifndef SASS_PRELEXER
 #include "prelexer.hpp"
-#endif
 
 #include <iomanip>
 #include <iostream>

@@ -1,4 +1,5 @@
-#define SASS_CONSTANTS
+#ifndef SASS_CONSTANTS_H
+#define SASS_CONSTANTS_H
 
 namespace Sass {
   namespace Constants {
@@ -143,3 +144,5 @@ namespace Sass {
 
   }
 }
+
+#endif

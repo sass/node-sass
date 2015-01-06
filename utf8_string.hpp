@@ -1,5 +1,5 @@
-#ifndef SASS_UTF8_STRING
-#define SASS_UTF8_STRING
+#ifndef SASS_UTF8_STRING_H
+#define SASS_UTF8_STRING_H
 
 #include <string>
 

@@ -1,9 +1,7 @@
-#define SASS_TO_C
+#ifndef SASS_TO_C_H
+#define SASS_TO_C_H
 
-#ifndef SASS_OPERATION
 #include "operation.hpp"
-#endif
-
 #include "sass_values.h"
 
 namespace Sass {
@@ -42,3 +40,5 @@ namespace Sass {
   };
 
 }
+
+#endif

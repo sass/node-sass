@@ -1,10 +1,8 @@
-#define SASS_BIND
-
-#ifndef SASS_ENVIRONMENT
-#include "environment.hpp"
-#endif
+#ifndef SASS_BIND_H
+#define SASS_BIND_H
 
 #include <string>
+#include "environment.hpp"
 
 namespace Sass {
   class   AST_Node;
@@ -16,3 +14,5 @@ namespace Sass {
 
   void bind(string caller, Parameters*, Arguments*, Context&, Env*, Eval*);
 }
+
+#endif

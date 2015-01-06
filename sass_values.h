@@ -1,5 +1,5 @@
-#ifndef SASS_C_VALUES
-#define SASS_C_VALUES
+#ifndef SASS_C_VALUES_H
+#define SASS_C_VALUES_H
 
 #include <stddef.h>
 #include <stdbool.h>

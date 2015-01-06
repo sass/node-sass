@@ -1,10 +1,11 @@
-#define SASS_MEMORY_MANAGER
+#ifndef SASS_MEMORY_MANAGER_H
+#define SASS_MEMORY_MANAGER_H
 
 #include <vector>
 #include <iostream>
-using namespace std;
 
 namespace Sass {
+  using namespace std;
   /////////////////////////////////////////////////////////////////////////////
   // A class for tracking allocations of AST_Node objects. The intended usage
   // is something like: Some_Node* n = new (mem_mgr) Some_Node(...);
@@ -52,3 +53,5 @@ inline void operator delete(void *np, Sass::Memory_Manager<T>& mem_mgr)
   mem_mgr.remove(reinterpret_cast<T*>(np));
   operator delete(np);
 }
+
+#endif

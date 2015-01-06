@@ -1,10 +1,9 @@
-#define SASS_BACKTRACE
+#ifndef SASS_BACKTRACE_H
+#define SASS_BACKTRACE_H
 
 #include <sstream>
 
-#ifndef SASS_POSITION
 #include "position.hpp"
-#endif
 
 #ifndef SASS_FILE
 #include "file.hpp"
@@ -77,3 +76,5 @@ namespace Sass {
   };
 
 }
+
+#endif
