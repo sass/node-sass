@@ -207,7 +207,15 @@ namespace Sass {
           }
         }
 
-        add_single_file(imp, import_path);
+        if (!unquote(import_path).substr(0, 7).compare("http://") ||
+            !unquote(import_path).substr(0, 8).compare("https://") ||
+            !unquote(import_path).substr(0, 2).compare("//"))
+        {
+          imp->urls().push_back(new (ctx.mem) String_Constant(pstate, import_path));
+        }
+        else {
+          add_single_file(imp, import_path);
+        }
 
       }
       else if (peek< uri_prefix >()) {
