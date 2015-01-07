@@ -76,6 +76,13 @@ namespace Sass {
     feature_block->block()->perform(this);
   }
 
+  void Inspect::operator()(At_Root_Block* at_root_block)
+  {
+    append_to_buffer("@at-root ", at_root_block, " ");
+    if(at_root_block->expression()) at_root_block->expression()->perform(this);
+    at_root_block->block()->perform(this);
+  }
+
   void Inspect::operator()(At_Rule* at_rule)
   {
     append_to_buffer(at_rule->keyword());
@@ -538,6 +545,22 @@ namespace Sass {
         mqe->value()->perform(this);
         if (ctx) ctx->source_map.add_close_mapping(mqe->value());
         source_map.add_close_mapping(mqe->value());
+      }
+      append_to_buffer(")");
+    }
+  }
+
+  void Inspect::operator()(At_Root_Expression* ae)
+  {
+    if (ae->is_interpolated()) {
+      ae->feature()->perform(this);
+    }
+    else {
+      append_to_buffer("(");
+      ae->feature()->perform(this);
+      if (ae->value()) {
+        append_to_buffer(": ");
+        ae->value()->perform(this);
       }
       append_to_buffer(")");
     }

@@ -88,6 +88,9 @@ namespace Sass {
       else if (peek< media >()) {
         (*root) << parse_media_block();
       }
+      else if (peek< at_root >()) {
+        (*root) << parse_at_root_block();
+      }
       else if (peek< supports >()) {
         (*root) << parse_feature_block();
       }
@@ -378,9 +381,13 @@ namespace Sass {
     else {
       sel = parse_selector_group();
     }
+    bool old_in_at_root = in_at_root;
+    in_at_root = false;
     ParserState r_source_position = pstate;
     if (!peek< exactly<'{'> >()) error("expected a '{' after the selector", pstate);
     Block* block = parse_block();
+    in_at_root = old_in_at_root;
+    old_in_at_root = false;
     Ruleset* ruleset = new (ctx.mem) Ruleset(r_source_position, sel, block);
     return ruleset;
   }
@@ -425,7 +432,7 @@ namespace Sass {
           peek< exactly<';'> >())
         break; // in case there are superfluous commas at the end
       Complex_Selector* comb = parse_selector_combination();
-      if (!comb->has_reference()) {
+      if (!comb->has_reference() && !in_at_root) {
         ParserState sel_source_position = pstate;
         Selector_Reference* ref = new (ctx.mem) Selector_Reference(sel_source_position);
         Compound_Selector* ref_wrap = new (ctx.mem) Compound_Selector(sel_source_position);
@@ -774,6 +781,9 @@ namespace Sass {
       }
       else if (peek< supports >()) {
         (*block) << parse_feature_block();
+      }
+      else if (peek< at_root >()) {
+        (*block) << parse_at_root_block();
       }
       // ignore the @charset directive for now
       else if (lex< exactly< charset_kwd > >()) {
@@ -1739,6 +1749,59 @@ namespace Sass {
                                                                           1,
                                                                           declaration->property(),
                                                                           declaration->value());
+    return cond;
+  }
+
+  At_Root_Block* Parser::parse_at_root_block()
+  {
+    lex<at_root>();
+    ParserState at_source_position = pstate;
+    Block* body = 0;
+    At_Root_Expression* expr = 0;
+    Selector_Lookahead lookahead_result;
+    in_at_root = true;
+    if (peek< exactly<'('> >()) {
+      expr = parse_at_root_expression();
+      body = parse_block();
+    }
+    else if (peek< exactly<'{'> >()) {
+      body = parse_block();
+    }
+    else if ((lookahead_result = lookahead_for_selector(position)).found) {
+      Ruleset* r = parse_ruleset(lookahead_result);
+      body = new (ctx.mem) Block(r->pstate(), 1);
+      *body << r;
+    }
+    in_at_root = false;
+    At_Root_Block* at_root = new (ctx.mem) At_Root_Block(at_source_position, body);
+    if (expr) at_root->expression(expr);
+    return at_root;
+  }
+
+  At_Root_Expression* Parser::parse_at_root_expression()
+  {
+    lex< exactly<'('> >();
+    if (peek< exactly<')'> >()) error("at-root feature required in at-root expression", pstate);
+
+    if (!peek< alternatives< with_directive, without_directive > >()) {
+      const char* i = position;
+      const char* p = peek< until_closing_paren >(i);
+      Token* t = new Token(i, p, Position(0, 0));
+      error("Invalid CSS after \"(\": expected \"with\" or \"without\", was \""+t->to_string()+"\"", pstate);
+    }
+
+    Declaration* declaration = parse_declaration();
+    List* value = new (ctx.mem) List(declaration->value()->pstate(), 1);
+
+    if (declaration->value()->concrete_type() == Expression::LIST) {
+        value = static_cast<List*>(declaration->value());
+    }
+    else *value << declaration->value();
+
+    At_Root_Expression* cond = new (ctx.mem) At_Root_Expression(declaration->pstate(),
+                                                                declaration->property(),
+                                                                value);
+    if (!lex< exactly<')'> >()) error("unclosed parenthesis in @at-root expression", pstate);
     return cond;
   }
 

@@ -34,8 +34,9 @@ namespace Sass {
     // Statement* operator()(Propset*);
     // Statement* operator()(Bubble*);
     Statement* operator()(Media_Block*);
-    // Statement* operator()(Feature_Block*);
-    // Statement* operator()(At_Rule*);
+    Statement* operator()(Feature_Block*);
+    Statement* operator()(At_Root_Block*);
+    Statement* operator()(At_Rule*);
     // Statement* operator()(Declaration*);
     // Statement* operator()(Assignment*);
     // Statement* operator()(Import*);
@@ -55,7 +56,10 @@ namespace Sass {
 
     Statement* parent();
     vector<pair<bool, Block*>> slice_by_bubble(Statement*);
+    Statement* bubble(At_Rule*);
+    Statement* bubble(At_Root_Block*);
     Statement* bubble(Media_Block*);
+    Statement* bubble(Feature_Block*);
     Statement* debubble(Block* children, Statement* parent = 0);
     Statement* flatten(Statement*);
     bool bubblable(Statement*);

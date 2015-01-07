@@ -20,6 +20,8 @@ namespace Sass {
     block_stack(vector<Block*>()),
     property_stack(vector<String*>()),
     selector_stack(vector<Selector*>()),
+    at_root_selector_stack(vector<Selector*>()),
+    in_at_root(false),
     backtrace(bt)
   { selector_stack.push_back(0); }
 
@@ -38,9 +40,13 @@ namespace Sass {
 
   Statement* Expand::operator()(Ruleset* r)
   {
-    To_String to_string;
+    bool old_in_at_root = in_at_root;
+    in_at_root = false;
 
     Contextualize* contextual = contextualize->with(selector_stack.back(), env, backtrace);
+    if (old_in_at_root && !r->selector()->has_reference())
+      contextual = contextualize->with(at_root_selector_stack.back(), env, backtrace);
+
     Selector* sel_ctx = r->selector()->perform(contextual);
 
     Inspect isp(0);
@@ -75,6 +81,8 @@ namespace Sass {
                                         sel_ctx,
                                         r->block()->perform(this)->block());
     selector_stack.pop_back();
+    in_at_root = old_in_at_root;
+    old_in_at_root = false;
     return rr;
   }
 
@@ -130,6 +138,23 @@ namespace Sass {
                                                 m->block()->perform(this)->block(),
                                                 selector_stack.back());
     return mm;
+  }
+
+  Statement* Expand::operator()(At_Root_Block* a)
+  {
+    in_at_root = true;
+    at_root_selector_stack.push_back(0);
+    Block* ab = a->block();
+    Expression* ae = a->expression();
+    if (ae) ae = ae->perform(eval->with(env, backtrace));
+    else ae = new (ctx.mem) At_Root_Expression(a->pstate());
+    Block* bb = ab ? ab->perform(this)->block() : 0;
+    At_Root_Block* aa = new (ctx.mem) At_Root_Block(a->pstate(),
+                                                    bb,
+                                                    static_cast<At_Root_Expression*>(ae));
+    at_root_selector_stack.pop_back();
+    in_at_root = false;
+    return aa;
   }
 
   Statement* Expand::operator()(At_Rule* a)

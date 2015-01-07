@@ -9,6 +9,7 @@ namespace Sass {
     extern const char image_path_var[];
 
     // sass keywords
+    extern const char at_root_kwd[];
     extern const char import_kwd[];
     extern const char mixin_kwd[];
     extern const char function_kwd[];
@@ -33,6 +34,10 @@ namespace Sass {
     extern const char global_kwd[];
     extern const char null_kwd[];
     extern const char optional_kwd[];
+    extern const char with_kwd[];
+    extern const char without_kwd[];
+    extern const char all_kwd[];
+    extern const char rule_kwd[];
 
     // css standard units
     extern const char em_kwd[];

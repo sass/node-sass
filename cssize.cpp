@@ -32,6 +32,53 @@ namespace Sass {
     return bb;
   }
 
+  Statement* Cssize::operator()(At_Rule* r)
+  {
+    if (!r->block() || !r->block()->length()) return r;
+
+    if (/*!r->is_keyframes() &&*/
+        parent()->statement_type() == Statement::RULESET)
+    {
+      return (r->is_keyframes()) ? new (ctx.mem) Bubble(r->pstate(), r) : bubble(r);
+    }
+
+    At_Rule* rr = new (ctx.mem) At_Rule(r->pstate(),
+                                        r->keyword(),
+                                        r->selector(),
+                                        r->block() ? r->block()->perform(this)->block() : 0);
+    if (r->value()) rr->value(r->value());
+
+    // if (!r->is_keyframes()) return debubble(rr->block(), rr)->block();
+
+    bool directive_exists = false;
+    size_t L = rr->block() ? rr->block()->length() : 0;
+    for (size_t i = 0; i < L && !directive_exists; ++i) {
+      Statement* s = (*r->block())[i];
+      if (s->statement_type() != Statement::BUBBLE) directive_exists = true;
+      else {
+        s = static_cast<Bubble*>(s)->node();
+        if (s->statement_type() != Statement::DIRECTIVE) directive_exists = false;
+        else directive_exists = (static_cast<At_Rule*>(s)->keyword() == rr->keyword());
+      }
+
+    }
+
+    Block* result = new (ctx.mem) Block(rr->pstate());
+    if (!(directive_exists && rr->is_keyframes()))
+    {
+      At_Rule* empty_node = static_cast<At_Rule*>(rr);
+      empty_node->block(new (ctx.mem) Block(rr->block() ? rr->block()->pstate() : rr->pstate()));
+      *result << empty_node;
+    }
+
+    Statement* ss = debubble(rr->block() ? rr->block() : new (ctx.mem) Block(rr->pstate()), rr);
+    for (size_t i = 0, L = ss->block()->length(); i < L; ++i) {
+      *result << (*ss->block())[i];
+    }
+
+    return result;
+  }
+
   Statement* Cssize::operator()(Ruleset* r)
   {
     p_stack.push_back(r);
@@ -98,6 +145,121 @@ namespace Sass {
     p_stack.pop_back();
 
     return debubble(mm->block(), mm)->block();
+  }
+
+  Statement* Cssize::operator()(Feature_Block* m)
+  {
+    if (!m->block()->length())
+    { return m; }
+
+    if (parent()->statement_type() == Statement::RULESET)
+    { return bubble(m); }
+
+    p_stack.push_back(m);
+
+    Feature_Block* mm = new (ctx.mem) Feature_Block(m->pstate(),
+                                                    m->feature_queries(),
+                                                    m->block()->perform(this)->block());
+    mm->tabs(m->tabs());
+
+    p_stack.pop_back();
+
+    return debubble(mm->block(), mm)->block();
+  }
+
+  Statement* Cssize::operator()(At_Root_Block* m)
+  {
+    bool tmp = false;
+    for (size_t i = 0, L = p_stack.size(); i < L; ++i) {
+      Statement* s = p_stack[i];
+      tmp |= m->exclude_node(s);
+    }
+
+    if (!tmp)
+    {
+      Block* bb = m->block()->perform(this)->block();
+      for (size_t i = 0, L = bb->length(); i < L; ++i) {
+        if (bubblable(m)) (*m->block())[i]->tabs((*m->block())[i]->tabs() + m->tabs());
+      }
+      if (bb->length() && bubblable(bb->last())) bb->last()->group_end(m->group_end());
+      return bb;
+    }
+
+    if (m->exclude_node(parent()))
+    {
+      return new (ctx.mem) Bubble(m->pstate(), m);
+    }
+
+    return bubble(m);
+  }
+
+  Statement* Cssize::bubble(At_Rule* m)
+  {
+    Block* bb = new (ctx.mem) Block(this->parent()->pstate());
+    Has_Block* new_rule = static_cast<Has_Block*>(this->parent());
+    new_rule->block(bb);
+    new_rule->tabs(this->parent()->tabs());
+
+    size_t L = m->block() ? m->block()->length() : 0;
+    for (size_t i = 0; i < L; ++i) {
+      *new_rule->block() << (*m->block())[i];
+    }
+
+    Block* wrapper_block = new (ctx.mem) Block(m->block() ? m->block()->pstate() : m->pstate());
+    *wrapper_block << new_rule;
+    At_Rule* mm = new (ctx.mem) At_Rule(m->pstate(),
+                                        m->keyword(),
+                                        m->selector(),
+                                        wrapper_block);
+    if (m->value()) mm->value(m->value());
+
+    Bubble* bubble = new (ctx.mem) Bubble(mm->pstate(), mm);
+    return bubble;
+  }
+
+  Statement* Cssize::bubble(At_Root_Block* m)
+  {
+    Block* bb = new (ctx.mem) Block(this->parent()->pstate());
+    Has_Block* new_rule = static_cast<Has_Block*>(this->parent());
+    new_rule->block(bb);
+    new_rule->tabs(this->parent()->tabs());
+
+    for (size_t i = 0, L = m->block()->length(); i < L; ++i) {
+      *new_rule->block() << (*m->block())[i];
+    }
+
+    Block* wrapper_block = new (ctx.mem) Block(m->block()->pstate());
+    *wrapper_block << new_rule;
+    At_Root_Block* mm = new (ctx.mem) At_Root_Block(m->pstate(),
+                                                    wrapper_block,
+                                                    m->expression());
+
+    Bubble* bubble = new (ctx.mem) Bubble(mm->pstate(), mm);
+    return bubble;
+  }
+
+  Statement* Cssize::bubble(Feature_Block* m)
+  {
+    Ruleset* parent = static_cast<Ruleset*>(this->parent());
+
+    Block* bb = new (ctx.mem) Block(parent->block()->pstate());
+    Ruleset* new_rule = new (ctx.mem) Ruleset(parent->pstate(),
+                                              parent->selector(),
+                                              bb);
+    new_rule->tabs(parent->tabs());
+
+    for (size_t i = 0, L = m->block()->length(); i < L; ++i) {
+      *new_rule->block() << (*m->block())[i];
+    }
+
+    Block* wrapper_block = new (ctx.mem) Block(m->block()->pstate());
+    *wrapper_block << new_rule;
+    Feature_Block* mm = new (ctx.mem) Feature_Block(m->pstate(),
+                                                    m->feature_queries(),
+                                                    wrapper_block);
+
+    Bubble* bubble = new (ctx.mem) Bubble(mm->pstate(), mm);
+    return bubble;
   }
 
   Statement* Cssize::bubble(Media_Block* m)
@@ -224,6 +386,8 @@ namespace Sass {
           static_cast<Media_Block*>(b->node())->media_queries(mq);
           ss = b->node();
         }
+
+        if (!ss) continue;
 
         ss->tabs(ss->tabs() + b->tabs());
         ss->group_end(b->group_end());

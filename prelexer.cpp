@@ -213,6 +213,22 @@ namespace Sass {
       return exactly<import_kwd>(src);
     }
 
+    const char* at_root(const char* src) {
+      return exactly<at_root_kwd>(src);
+    }
+
+    const char* with_directive(const char* src) {
+      return exactly<with_kwd>(src);
+    }
+
+    const char* without_directive(const char* src) {
+      return exactly<without_kwd>(src);
+    }
+
+    const char* until_closing_paren(const char* src) {
+      return until<')'>(src);
+    }
+
     const char* media(const char* src) {
       return exactly<media_kwd>(src);
     }

@@ -27,6 +27,8 @@ namespace Sass {
     vector<Block*>    block_stack;
     vector<String*>   property_stack;
     vector<Selector*> selector_stack;
+    vector<Selector*> at_root_selector_stack;
+    bool              in_at_root;
     Backtrace*        backtrace;
 
     Statement* fallback_impl(AST_Node* n);
@@ -42,6 +44,7 @@ namespace Sass {
     Statement* operator()(Propset*);
     Statement* operator()(Media_Block*);
     Statement* operator()(Feature_Block*);
+    Statement* operator()(At_Root_Block*);
     Statement* operator()(At_Rule*);
     Statement* operator()(Declaration*);
     Statement* operator()(Assignment*);

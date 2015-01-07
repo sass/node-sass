@@ -79,6 +79,7 @@ namespace Sass {
 
     if (b->has_non_hoistable()) {
       decls = true;
+      indentation += r->tabs();
       indent();
       if (source_comments) {
         stringstream ss;
@@ -116,13 +117,15 @@ namespace Sass {
         if (!stm->is_hoistable() && bPrintExpression) {
           if (!stm->block()) indent();
           stm->perform(this);
-          append_to_buffer(ctx->linefeed);
+          if (i < L-1) append_to_buffer(ctx->linefeed);
         }
       }
       --indentation;
-      buffer.erase(buffer.length()-1);
-      if (ctx) ctx->source_map.remove_line();
-      append_to_buffer(" }" + ctx->linefeed);
+      indentation -= r->tabs();
+      // buffer.erase(buffer.length()-1);
+      // if (ctx) ctx->source_map.remove_line();
+      append_to_buffer(" }");
+      if (r->group_end()) append_to_buffer(ctx->linefeed);
     }
 
     if (b->has_hoistable()) {
@@ -176,13 +179,13 @@ namespace Sass {
         if (!stm->is_hoistable()) {
           if (!stm->block()) indent();
           stm->perform(this);
-          append_to_buffer(ctx->linefeed);
+          if (i < L-1) append_to_buffer(ctx->linefeed);
         }
       }
       --indentation;
 
-      buffer.erase(buffer.length()-1);
-      if (ctx) ctx->source_map.remove_line();
+      // buffer.erase(buffer.length()-1);
+      // if (ctx) ctx->source_map.remove_line();
       append_to_buffer(" }" + ctx->linefeed);
       --indentation;
 
@@ -211,9 +214,13 @@ namespace Sass {
       --indentation;
     }
 
-    buffer.erase(buffer.length()-1);
-    if (ctx) ctx->source_map.remove_line();
-    append_to_buffer(" }" + ctx->linefeed);
+    while (buffer.substr(buffer.length()-ctx->linefeed.length()) == ctx->linefeed) {
+      buffer.erase(buffer.length()-1);
+      if (ctx) ctx->source_map.remove_line();
+    }
+
+    append_to_buffer(" }");
+    if (f->group_end()) append_to_buffer(ctx->linefeed);
   }
 
   void Output_Nested::operator()(Media_Block* m)
@@ -257,13 +264,13 @@ namespace Sass {
         if (!stm->is_hoistable()) {
           if (!stm->block()) indent();
           stm->perform(this);
-          append_to_buffer(ctx->linefeed);
+          if (i < L-1) append_to_buffer(ctx->linefeed);
         }
       }
       --indentation;
 
-      buffer.erase(buffer.length()-1);
-      if (ctx) ctx->source_map.remove_line();
+      // buffer.erase(buffer.length()-1);
+      // if (ctx) ctx->source_map.remove_line();
       append_to_buffer(" }" + ctx->linefeed);
       --indentation;
 
@@ -292,8 +299,11 @@ namespace Sass {
       --indentation;
     }
 
-    buffer.erase(buffer.length()-1);
-    if (ctx) ctx->source_map.remove_line();
+    while (buffer.substr(buffer.length()-ctx->linefeed.length()) == ctx->linefeed) {
+      buffer.erase(buffer.length()-1);
+      if (ctx) ctx->source_map.remove_line();
+    }
+
     append_to_buffer(" }");
     if (m->group_end()) append_to_buffer(ctx->linefeed);
 
@@ -347,12 +357,11 @@ namespace Sass {
     }
     if (decls) --indentation;
 
-    buffer.erase(buffer.length()-1);
-    if (ctx) ctx->source_map.remove_line();
-    if (b->has_hoistable()) {
+    while (buffer.substr(buffer.length()-ctx->linefeed.length()) == ctx->linefeed) {
       buffer.erase(buffer.length()-1);
       if (ctx) ctx->source_map.remove_line();
     }
+
     append_to_buffer(" }" + ctx->linefeed);
   }
 
