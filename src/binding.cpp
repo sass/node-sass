@@ -93,8 +93,7 @@ struct Sass_Import** sass_importer(const char* file, const char* prev, void* coo
 
     Handle<Value> argv[] = {
       NanNew<String>(file),
-      NanNew<String>(prev),
-      NanNew<Number>(imports_collection.size() - 1)
+      NanNew<String>(prev)
     };
 
     Local<Object> returned_value = Local<Object>::Cast(NanNew<Value>(ctx_w->importer_callback->Call(3, argv)));
