@@ -15,7 +15,9 @@ namespace Sass {
   Output_Nested::Output_Nested(bool source_comments, Context* ctx)
   : Output(ctx),
     indentation(0),
-    source_comments(source_comments)
+    source_comments(source_comments),
+    in_directive(false),
+    in_keyframes(false)
   { }
   Output_Nested::~Output_Nested() { }
 
@@ -122,10 +124,16 @@ namespace Sass {
       }
       --indentation;
       indentation -= r->tabs();
-      // buffer.erase(buffer.length()-1);
-      // if (ctx) ctx->source_map.remove_line();
+
+      while (buffer.substr(buffer.length()-ctx->linefeed.length()) == ctx->linefeed) {
+        buffer.erase(buffer.length()-1);
+        if (ctx) ctx->source_map.remove_line();
+      }
+
       append_to_buffer(" }");
       if (r->group_end()) append_to_buffer(ctx->linefeed);
+      // Match Sass 3.4.9 behaviour
+      if (in_directive && !in_keyframes) append_to_buffer(ctx->linefeed);
     }
 
     if (b->has_hoistable()) {
@@ -143,6 +151,8 @@ namespace Sass {
 
   void Output_Nested::operator()(Feature_Block* f)
   {
+    if (f->is_invisible()) return;
+
     Feature_Query* q    = f->feature_queries();
     Block* b            = f->block();
 
@@ -157,6 +167,7 @@ namespace Sass {
       return;
     }
 
+    indentation += f->tabs();
     indent();
     append_to_buffer("@supports", f);
     append_to_buffer(" ");
@@ -164,6 +175,9 @@ namespace Sass {
     append_to_buffer(" ");
     append_to_buffer("{");
     append_to_buffer(ctx->linefeed);
+
+    bool old_in_directive = in_directive;
+    in_directive = true;
 
     Selector* e = f->selector();
     if (e && b->has_non_hoistable()) {
@@ -183,6 +197,8 @@ namespace Sass {
         }
       }
       --indentation;
+
+      in_directive = old_in_directive;
 
       // buffer.erase(buffer.length()-1);
       // if (ctx) ctx->source_map.remove_line();
@@ -219,8 +235,12 @@ namespace Sass {
       if (ctx) ctx->source_map.remove_line();
     }
 
+    in_directive = old_in_directive;
+
     append_to_buffer(" }");
-    if (f->group_end()) append_to_buffer(ctx->linefeed);
+    if (f->group_end() || in_directive) append_to_buffer(ctx->linefeed);
+
+    indentation -= f->tabs();
   }
 
   void Output_Nested::operator()(Media_Block* m)
@@ -250,6 +270,9 @@ namespace Sass {
     append_to_buffer("{");
     append_to_buffer(ctx->linefeed);
 
+    bool old_in_directive = in_directive;
+    in_directive = true;
+
     Selector* e = m->selector();
     if (e && b->has_non_hoistable()) {
       // JMA - hoisted, output the non-hoistable in a nested block, followed by the hoistable
@@ -268,6 +291,8 @@ namespace Sass {
         }
       }
       --indentation;
+
+      in_directive = old_in_directive;
 
       // buffer.erase(buffer.length()-1);
       // if (ctx) ctx->source_map.remove_line();
@@ -304,8 +329,10 @@ namespace Sass {
       if (ctx) ctx->source_map.remove_line();
     }
 
+    in_directive = old_in_directive;
+
     append_to_buffer(" }");
-    if (m->group_end()) append_to_buffer(ctx->linefeed);
+    if (m->group_end() || in_directive) append_to_buffer(ctx->linefeed);
 
     indentation -= m->tabs();
   }
@@ -335,6 +362,11 @@ namespace Sass {
     }
 
     append_to_buffer(" {" + ctx->linefeed);
+
+    bool old_in_directive = in_directive;
+    in_directive = true;
+    in_keyframes = kwd.compare("@keyframes") == 0;
+
     ++indentation;
     decls = true;
     for (size_t i = 0, L = b->length(); i < L; ++i) {
@@ -352,7 +384,7 @@ namespace Sass {
       Statement* stm = (*b)[i];
       if (stm->is_hoistable()) {
         stm->perform(this);
-        append_to_buffer(ctx->linefeed);
+        // append_to_buffer(ctx->linefeed);
       }
     }
     if (decls) --indentation;
@@ -362,7 +394,13 @@ namespace Sass {
       if (ctx) ctx->source_map.remove_line();
     }
 
-    append_to_buffer(" }" + ctx->linefeed);
+    in_directive = old_in_directive;
+    in_keyframes = false;
+
+    append_to_buffer(" }");
+
+    // Match Sass 3.4.9 behaviour
+    if (kwd.compare("@font-face") != 0 && kwd.compare("@keyframes") != 0) append_to_buffer(ctx->linefeed);
   }
 
   void Output_Nested::indent()
