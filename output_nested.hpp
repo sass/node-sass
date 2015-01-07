@@ -12,6 +12,8 @@ namespace Sass {
 
     size_t indentation;
     bool source_comments;
+    bool in_directive;
+    bool in_keyframes;
     void indent();
 
     void fallback_impl(AST_Node* n);
