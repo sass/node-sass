@@ -160,7 +160,6 @@ namespace Sass {
   Statement* Expand::operator()(At_Rule* a)
   {
     Block* ab = a->block();
-    selector_stack.push_back(0);
     Selector* as = a->selector();
     Expression* av = a->value();
     if (as) as = as->perform(contextualize->with(0, env, backtrace));
@@ -171,7 +170,6 @@ namespace Sass {
                                         as,
                                         bb);
     if (av) aa->value(av);
-    selector_stack.pop_back();
     return aa;
   }
 
