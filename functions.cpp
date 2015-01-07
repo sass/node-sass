@@ -904,7 +904,10 @@ namespace Sass {
 
         // `str-slice` should always return an empty string when $end-at == 0
         // `normalize_index` normalizes 1 -> 0 so we need to check the original value
-        if(start == end && m->value() > 0) {
+        if(m->value() == 0) {
+          if(!quotemark) return new (ctx.mem) Null(pstate);
+          newstr = "";
+        } else if(start == end && m->value() != 0) {
           newstr = str.substr(start, 1);
         } else if(end > start) {
           newstr = str.substr(start, end - start + UTF_8::code_point_size_at_offset(str, end));
