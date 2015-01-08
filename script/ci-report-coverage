@@ -9,7 +9,8 @@ if [ "x$COVERAGE" = "xyes" ]; then
                              --exclude cencode.c --exclude b64
                              --exclude utf8 --exclude utf8_string.hpp
                              --exclude utf8.h --exclude utf8_string.cpp
-                             --exclude test"
+                             --exclude sass2scss.h --exclude sass2scss.cpp
+                             --exclude test --exclude posix"
   # debug via gcovr
   gcov -v
   gcovr -r .
