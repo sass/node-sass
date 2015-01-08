@@ -6,7 +6,7 @@ MKDIR    ?= mkdir
 WINDRES  ?= windres
 CFLAGS   ?= -Wall -O2
 CXXFLAGS ?= -Wall -O2
-LDFLAGS  ?= -Wall -O2
+LDFLAGS  ?= -Wall -O2 -Wl,--no-undefined
 
 ifneq (,$(findstring /cygdrive/,$(PATH)))
 	UNAME := Cygwin
