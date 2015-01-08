@@ -43,17 +43,11 @@ function download(url, dest, cb) {
  */
 
 function getProxy() {
-  var result;
-
-  ['https-proxy', 'proxy', 'http-proxy'].map(function(config) {
+  var result = ['https-proxy', 'proxy', 'http-proxy'].filter(function(config) {
     var proxy = exec('npm config get ' + config, {silent: true});
-    var output = proxy.output.trim();
 
-    if (proxy.code === 0 && output !== 'undefined' && output !== 'null') {
-      result = proxy.output;
-      return;
-    }
-  });
+    return proxy.code === 0 && validateProxyUrl(proxy.output.trim());
+  })[0];
 
   if (result) {
     return result;
@@ -61,6 +55,24 @@ function getProxy() {
 
   var env = process.env;
   return env.HTTPS_PROXY || env.https_proxy || env.HTTP_PROXY || env.http_proxy;
+}
+
+/**
+ * Validates Proxy URL
+ *
+ * @param {String} url
+ * @api private
+ */
+
+function validateProxyUrl(url) {
+  if (/\n/.test(url)) {
+    url = url.replace(/\r?\n+/, '\n').split('\n');
+    url = url[url.length - 3].trim(); // get the second last element.
+  }
+
+  return url !== 'null' &&
+         url !== 'undefined' &&
+         url === require('url').parse(url);
 }
 
 /**
