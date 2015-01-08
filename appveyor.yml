@@ -16,8 +16,6 @@ environment:
 
 cache:
   - x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z
-  - C:\Ruby21-x64\lib\ruby\gems\2.1.0
-  - C:\Ruby21-x64\bin
 
 install:
   - git clone https://github.com/sass/sassc.git
