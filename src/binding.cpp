@@ -81,12 +81,14 @@ struct Sass_Import** sass_importer(const char* file, const char* prev, void* coo
      *  can run uv_async_send without a push.
      */
 
+    std::unique_lock<std::mutex> lock(*ctx_w->importer_mutex);
+
     ctx_w->file = file ? strdup(file) : 0;
     ctx_w->prev = prev ? strdup(prev) : 0;
     ctx_w->async.data = (void*)ctx_w;
 
     uv_async_send(&ctx_w->async);
-    uv_cond_wait(&ctx_w->importer_condition_variable, &ctx_w->importer_mutex);
+    ctx_w->importer_condition_variable->wait(lock);
   }
   else {
     NanScope();
@@ -357,7 +359,7 @@ NAN_METHOD(ImportedCallback) {
   sass_context_wrapper* ctx_w = imports_collection[index];
 
   prepare_import_results(returned_value, ctx_w);
-  uv_cond_signal(&ctx_w->importer_condition_variable);
+  ctx_w->importer_condition_variable->notify_all();
 
   if (try_catch.HasCaught()) {
     node::FatalException(try_catch);
