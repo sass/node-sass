@@ -6,8 +6,8 @@ init:
 environment:
   SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
   matrix:
-    - nodejs_version: 0.10.32
-    - nodejs_version: 0.11.13
+    - nodejs_version: 0.10
+    - nodejs_version: 0.11
 
 install:
   - ps: Install-Product node $env:nodejs_version
