@@ -24,8 +24,9 @@ extern "C" {
 
   sass_context_wrapper* sass_make_context_wrapper() {
     sass_context_wrapper* ctx_w = (sass_context_wrapper*)calloc(1, sizeof(sass_context_wrapper));
-    uv_mutex_init(&ctx_w->importer_mutex);
-    uv_cond_init(&ctx_w->importer_condition_variable);
+
+    ctx_w->importer_mutex = new std::mutex();
+    ctx_w->importer_condition_variable = new std::condition_variable();
 
     return ctx_w;
   }
@@ -38,14 +39,14 @@ extern "C" {
       sass_delete_file_context(ctx_w->fctx);
     }
 
-    delete ctx_w->success_callback;
-    delete ctx_w->error_callback;
-    delete ctx_w->importer_callback;
     delete ctx_w->file;
     delete ctx_w->prev;
+    delete ctx_w->error_callback;
+    delete ctx_w->success_callback;
+    delete ctx_w->importer_callback;
 
-    uv_mutex_destroy(&ctx_w->importer_mutex);
-    uv_cond_destroy(&ctx_w->importer_condition_variable);
+    delete ctx_w->importer_mutex;
+    delete ctx_w->importer_condition_variable;
 
     NanDisposePersistent(ctx_w->result);
 

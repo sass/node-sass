@@ -1,4 +1,5 @@
 #include <nan.h>
+#include <condition_variable>
 #include "libsass/sass_context.h"
 
 #ifdef __cplusplus
@@ -12,20 +13,27 @@ extern "C" {
   void compile_it(uv_work_t* req);
 
   struct sass_context_wrapper {
+    // binding related
+    bool is_sync;
+    void* cookie;
+    const char* prev;
+    const char* file;
+    std::mutex* importer_mutex;
+    std::condition_variable* importer_condition_variable;
+
+    // libsass related
+    Sass_Import** imports;
     Sass_Data_Context* dctx;
     Sass_File_Context* fctx;
-    Persistent<Object> result;
-    uv_work_t request;
-    uv_mutex_t importer_mutex;
-    uv_cond_t importer_condition_variable;
+
+    // libuv related
     uv_async_t async;
-    const char* file;
-    const char* prev;
-    void* cookie;
-    bool is_sync;
-    Sass_Import** imports;
-    NanCallback* success_callback;
+    uv_work_t request;
+
+    // v8 and nan related
+    Persistent<Object> result;
     NanCallback* error_callback;
+    NanCallback* success_callback;
     NanCallback* importer_callback;
   };
 
