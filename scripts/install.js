@@ -9,70 +9,64 @@ var fs = require('fs'),
  *
  * @param {String} url
  * @param {String} dest
- * @param {function} cb
+ * @param {Function} cb
  * @api private
  */
 
 function download(url, dest, cb) {
   var file = fs.createWriteStream(dest);
-  var options = { proxy: getProxy(), rejectUnauthorized: false };
-  var returnError = function(err) {
-    fs.unlink(dest);
-    cb(typeof err.message === 'string' ? err.message : err);
-  };
-  var req = request.get(url, options).on('response', function(response) {
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      returnError('Can not download file from ' + url);
-      return;
-    }
-    response.pipe(file);
 
-    file.on('finish', function() {
+  applyProxy({ rejectUnauthorized: false }, function(options) {
+    var returnError = function(err) {
+      fs.unlink(dest);
+      cb(typeof err.message === 'string' ? err.message : err);
+    };
+    var req = request.get(url, options).on('response', function(response) {
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        returnError('Can not download file from ' + url);
+        return;
+      }
+      response.pipe(file);
+
+      file.on('finish', function() {
         file.close(cb);
+      });
+    }).on('error', returnError);
+
+    req.end();
+    req.on('error', returnError);
+  });
+}
+
+/**
+ * Get applyProxy settings
+ *
+ * @param {Object} options
+ * @param {Function} cb
+ * @api private
+ */
+
+function applyProxy(options, cb) {
+  require('npmconf').load({}, function (er, conf) {
+    var getProxyFromEnv = true;
+    ['https-proxy', 'proxy', 'http-proxy'].forEach(function(setting) {
+      var proxyUrl = conf.get(setting);
+
+      if(proxyUrl && proxyUrl === require('url').parse(proxyUrl)) {
+        options.proxy = proxyUrl;
+        getProxyFromEnv = false;
+        cb(options);
+        return;
+      }
     });
-  }).on('error', returnError);
 
-  req.end();
-  req.on('error', returnError);
-}
+    if(getProxyFromEnv) {
+      var env = process.env;
+      options.proxy = env.HTTPS_PROXY || env.https_proxy || env.HTTP_PROXY || env.http_proxy;
 
-/**
- * Get proxy settings
- *
- * @api private
- */
-
-function getProxy() {
-  var result = ['https-proxy', 'proxy', 'http-proxy'].filter(function(config) {
-    var proxy = exec('npm config get ' + config, {silent: true});
-
-    return proxy.code === 0 && validateProxyUrl(proxy.output.trim());
-  })[0];
-
-  if (result) {
-    return result;
-  }
-
-  var env = process.env;
-  return env.HTTPS_PROXY || env.https_proxy || env.HTTP_PROXY || env.http_proxy;
-}
-
-/**
- * Validates Proxy URL
- *
- * @param {String} url
- * @api private
- */
-
-function validateProxyUrl(url) {
-  if (/\n/.test(url)) {
-    url = url.replace(/\r?\n+/, '\n').split('\n');
-    url = url[url.length - 3].trim(); // get the second last element.
-  }
-
-  return url !== 'null' &&
-         url !== 'undefined' &&
-         url === require('url').parse(url);
+      cb(options);
+    }
+  });
 }
 
 /**
