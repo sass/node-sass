@@ -4,14 +4,16 @@
 #include "cssize.hpp"
 #include "to_string.hpp"
 #include "context.hpp"
+#include "backtrace.hpp"
 
 namespace Sass {
 
-  Cssize::Cssize(Context& ctx, Env* env)
+  Cssize::Cssize(Context& ctx, Env* env, Backtrace* bt)
   : ctx(ctx),
     env(env),
     block_stack(vector<Block*>()),
-    p_stack(vector<Statement*>())
+    p_stack(vector<Statement*>()),
+    backtrace(bt)
   {  }
 
   Statement* Cssize::parent()
@@ -334,6 +336,30 @@ namespace Sass {
     return results;
   }
 
+  Statement* Cssize::shallow_copy(Statement* s)
+  {
+    switch (s->statement_type())
+    {
+      case Statement::RULESET:
+        return new (ctx.mem) Ruleset(*static_cast<Ruleset*>(s));
+      case Statement::MEDIA:
+        return new (ctx.mem) Media_Block(*static_cast<Media_Block*>(s));
+      case Statement::BUBBLE:
+        return new (ctx.mem) Bubble(*static_cast<Bubble*>(s));
+      case Statement::DIRECTIVE:
+        return new (ctx.mem) At_Rule(*static_cast<At_Rule*>(s));
+      case Statement::FEATURE:
+        return new (ctx.mem) Feature_Block(*static_cast<Feature_Block*>(s));
+      case Statement::ATROOT:
+        return new (ctx.mem) At_Root_Block(*static_cast<At_Root_Block*>(s));
+      case Statement::NONE:
+      default:
+        error("unknown internal error; please contact the LibSass maintainers", s->pstate(), backtrace);
+        String_Constant* msg = new (ctx.mem) String_Constant(ParserState("[WARN]"), string("`CSSize` can't clone ") + typeid(*s).name());
+        return new (ctx.mem) Warning(ParserState("[WARN]"), msg);
+    }
+  }
+
   Statement* Cssize::debubble(Block* children, Statement* parent)
   {
     Has_Block* previous_parent = 0;
@@ -352,10 +378,10 @@ namespace Sass {
           *previous_parent->block() += slice;
         }
         else {
-          previous_parent = static_cast<Has_Block*>(parent);
+          previous_parent = static_cast<Has_Block*>(shallow_copy(parent));
           previous_parent->tabs(parent->tabs());
 
-          Has_Block* new_parent = static_cast<Has_Block*>(parent);
+          Has_Block* new_parent = static_cast<Has_Block*>(shallow_copy(parent));
           new_parent->block(slice);
           new_parent->tabs(parent->tabs());
 

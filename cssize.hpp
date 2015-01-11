@@ -13,6 +13,7 @@ namespace Sass {
 
   struct Context;
   typedef Environment<AST_Node*> Env;
+  struct Backtrace;
 
   class Cssize : public Operation_CRTP<Statement*, Cssize> {
 
@@ -20,11 +21,12 @@ namespace Sass {
     Env*                env;
     vector<Block*>      block_stack;
     vector<Statement*>  p_stack;
+    Backtrace*          backtrace;
 
     Statement* fallback_impl(AST_Node* n);
 
   public:
-    Cssize(Context&, Env*);
+    Cssize(Context&, Env*, Backtrace*);
     virtual ~Cssize() { }
 
     using Operation<Statement*>::operator();
@@ -60,6 +62,7 @@ namespace Sass {
     Statement* bubble(At_Root_Block*);
     Statement* bubble(Media_Block*);
     Statement* bubble(Feature_Block*);
+    Statement* shallow_copy(Statement*);
     Statement* debubble(Block* children, Statement* parent = 0);
     Statement* flatten(Statement*);
     bool bubblable(Statement*);
