@@ -277,7 +277,7 @@ namespace Sass {
     Eval eval(*this, &tge, &backtrace);
     Contextualize contextualize(*this, &eval, &tge, &backtrace);
     Expand expand(*this, &eval, &contextualize, &tge, &backtrace);
-    Cssize cssize(*this, &tge);
+    Cssize cssize(*this, &tge, &backtrace);
     // Inspect inspect(this);
     // Output_Nested output_nested(*this);
 
