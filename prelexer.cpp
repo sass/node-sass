@@ -409,7 +409,7 @@ namespace Sass {
       return sequence< number, exactly<em_kwd> >(src);
     }
     const char* dimension(const char* src) {
-      return sequence<number, identifier>(src);
+      return sequence<number, one_plus< alpha > >(src);
     }
     const char* hex(const char* src) {
       const char* p = sequence< exactly<'#'>, one_plus<xdigit> >(src);
@@ -420,6 +420,11 @@ namespace Sass {
       const char* p = sequence< exactly<'#'>, one_plus<xdigit> >(src);
       ptrdiff_t len = p - src;
       return (len != 4 && len != 7 && len != 9) ? 0 : p;
+    }
+    const char* hex0(const char* src) {
+      const char* p = sequence< exactly<'0'>, exactly<'x'>, one_plus<xdigit> >(src);
+      ptrdiff_t len = p - src;
+      return (len != 5 && len != 8) ? 0 : p;
     }
 
     const char* rgb_prefix(const char* src) {
