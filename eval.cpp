@@ -599,14 +599,26 @@ namespace Sass {
 
     // behave according to as ruby sass (add leading zero)
     if (value->concrete_type() == Expression::NUMBER) {
-      Number* n = static_cast<Number*>(value);
-      value = new (ctx.mem) Number(*n);
+      value = new (ctx.mem) Number(*static_cast<Number*>(value));
       static_cast<Number*>(value)->zero(true);
     }
     else if (value->concrete_type() == Expression::STRING) {
-      String_Constant* s = static_cast<String_Constant*>(value);
-      value = new (ctx.mem) String_Constant(s->pstate(),
-                                            s->value());
+      value = new (ctx.mem) String_Constant(*static_cast<String_Constant*>(value));
+    }
+    else if (value->concrete_type() == Expression::LIST) {
+      value = new (ctx.mem) List(*static_cast<List*>(value));
+    }
+    else if (value->concrete_type() == Expression::MAP) {
+      value = new (ctx.mem) Map(*static_cast<Map*>(value));
+    }
+    else if (value->concrete_type() == Expression::BOOLEAN) {
+      value = new (ctx.mem) Boolean(*static_cast<Boolean*>(value));
+    }
+    else if (value->concrete_type() == Expression::COLOR) {
+      value = new (ctx.mem) Color(*static_cast<Color*>(value));
+    }
+    else if (value->concrete_type() == Expression::NULL_VAL) {
+      value = new (ctx.mem) Null(value->pstate());
     }
 
     // cerr << "\ttype is now: " << typeid(*value).name() << endl << endl;
