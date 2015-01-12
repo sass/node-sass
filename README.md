@@ -197,7 +197,7 @@ console.log(result.stats);
 
 ### Version information (v2 change)
 
-Both `node-sass` and `libsass` version info is now present in `package.json` and is expoded via `info()` method:
+Both `node-sass` and `libsass` version info is now present in `package.json` and is exposed via `info()` method:
 
 ```javascript
 require('node-sass').info();
