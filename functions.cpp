@@ -966,78 +966,80 @@ namespace Sass {
     // NUMBER FUNCTIONS
     ///////////////////
 
-    Signature percentage_sig = "percentage($value)";
+    Signature percentage_sig = "percentage($number)";
     BUILT_IN(percentage)
     {
-      Number* n = ARG("$value", Number);
-      if (!n->is_unitless()) error("argument $value of `" + string(sig) + "` must be unitless", pstate);
+      Number* n = ARG("$number", Number);
+      if (!n->is_unitless()) error("argument $number of `" + string(sig) + "` must be unitless", pstate);
       return new (ctx.mem) Number(pstate, n->value() * 100, "%");
     }
 
-    Signature round_sig = "round($value)";
+    Signature round_sig = "round($number)";
     BUILT_IN(round)
     {
-      Number* n = ARG("$value", Number);
+      Number* n = ARG("$number", Number);
       Number* r = new (ctx.mem) Number(*n);
       r->pstate(pstate);
       r->value(std::floor(r->value() + 0.5));
       return r;
     }
 
-    Signature ceil_sig = "ceil($value)";
+    Signature ceil_sig = "ceil($number)";
     BUILT_IN(ceil)
     {
-      Number* n = ARG("$value", Number);
+      Number* n = ARG("$number", Number);
       Number* r = new (ctx.mem) Number(*n);
       r->pstate(pstate);
       r->value(std::ceil(r->value()));
       return r;
     }
 
-    Signature floor_sig = "floor($value)";
+    Signature floor_sig = "floor($number)";
     BUILT_IN(floor)
     {
-      Number* n = ARG("$value", Number);
+      Number* n = ARG("$number", Number);
       Number* r = new (ctx.mem) Number(*n);
       r->pstate(pstate);
       r->value(std::floor(r->value()));
       return r;
     }
 
-    Signature abs_sig = "abs($value)";
+    Signature abs_sig = "abs($number)";
     BUILT_IN(abs)
     {
-      Number* n = ARG("$value", Number);
+      Number* n = ARG("$number", Number);
       Number* r = new (ctx.mem) Number(*n);
       r->pstate(pstate);
       r->value(std::abs(r->value()));
       return r;
     }
 
-    Signature min_sig = "min($x1, $x2...)";
+    Signature min_sig = "min($numbers...)";
     BUILT_IN(min)
     {
-      Number* x1 = ARG("$x1", Number);
-      List* arglist = ARG("$x2", List);
-      Number* least = x1;
+      List* arglist = ARG("$numbers", List);
+      Number* least = 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Number* xi = dynamic_cast<Number*>(arglist->value_at_index(i));
-        if (!xi) error("`" + string(sig) + "` only takes numeric arguments", pstate);
-        if (lt(xi, least, ctx)) least = xi;
+        if (least) {
+          if (!xi) error("`" + string(sig) + "` only takes numeric arguments", pstate);
+          if (lt(xi, least, ctx)) least = xi;
+        } else least = xi;
       }
       return least;
     }
 
-    Signature max_sig = "max($x1, $x2...)";
+    Signature max_sig = "max($numbers...)";
     BUILT_IN(max)
     {
-      Number* x1 = ARG("$x1", Number);
-      List* arglist = ARG("$x2", List);
-      Number* greatest = x1;
+      List* arglist = ARG("$numbers", List);
+      Number* greatest = 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Number* xi = dynamic_cast<Number*>(arglist->value_at_index(i));
-        if (!xi) error("`" + string(sig) + "` only takes numeric arguments", pstate);
-        if (lt(greatest, xi, ctx)) greatest = xi;
+        if (greatest) {
+          if (!xi) error("`" + string(sig) + "` only takes numeric arguments", pstate);
+          if (lt(greatest, xi, ctx)) greatest = xi;
+        } else greatest = xi;
       }
       return greatest;
     }
