@@ -19,6 +19,8 @@ namespace Sass {
     string buffer;
     size_t indentation;
     Context* ctx;
+    bool in_declaration;
+    bool in_declaration_list;
 
     void fallback_impl(AST_Node* n);
 
