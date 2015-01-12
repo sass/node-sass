@@ -75,9 +75,6 @@ extern "C" {
     // String to be used to for line feeds
     const char* linefeed;
 
-    // For the image-url Sass function
-    char* image_path;
-
     // Colon-separated list of paths
     // Semicolon-separated on Windows
     // Maybe use array interface instead?
@@ -327,7 +324,6 @@ extern "C" {
              .source_map_embed(c_ctx->source_map_embed)
              .source_map_contents(c_ctx->source_map_contents)
              .omit_source_map_url(c_ctx->omit_source_map_url)
-             .image_path(safe_str(c_ctx->image_path))
              .include_paths_c_str(c_ctx->include_path)
              .importer(c_ctx->importer)
              .include_paths_array(include_paths)
@@ -620,7 +616,6 @@ extern "C" {
     if (ctx->error_file)        free(ctx->error_file);
     if (ctx->input_path)        free(ctx->input_path);
     if (ctx->output_path)       free(ctx->output_path);
-    if (ctx->image_path)        free(ctx->image_path);
     if (ctx->include_path)      free(ctx->include_path);
     if (ctx->source_map_file)   free(ctx->source_map_file);
     free_string_array(ctx->included_files);
@@ -632,7 +627,6 @@ extern "C" {
     ctx->error_file = 0;
     ctx->input_path = 0;
     ctx->output_path = 0;
-    ctx->image_path = 0;
     ctx->include_path = 0;
     ctx->source_map_file = 0;
     ctx->included_files = 0;
@@ -678,7 +672,6 @@ extern "C" {
   IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, linefeed);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, input_path);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, output_path);
-  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, image_path);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, include_path);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, source_map_file);
 
