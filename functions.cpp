@@ -1224,25 +1224,8 @@ namespace Sass {
     Signature compact_sig = "compact($values...)";
     BUILT_IN(compact)
     {
-      List* arglist = ARG("$values", List);
-      List::Separator sep = List::COMMA;
-      if (arglist->length() == 1) {
-        Expression* the_arg = arglist->value_at_index(0);
-        arglist = dynamic_cast<List*>(the_arg);
-        if (!arglist) {
-          List* result = new (ctx.mem) List(pstate, 1, List::COMMA);
-          *result << the_arg;
-          return result;
-        }
-        sep = arglist->separator();
-      }
-      List* result = new (ctx.mem) List(pstate, 0, sep);
-      for (size_t i = 0, L = arglist->length(); i < L; ++i) {
-        Boolean* ith = dynamic_cast<Boolean*>(arglist->value_at_index(i));
-        if (ith && ith->value() == false) continue;
-        *result << arglist->value_at_index(i);
-      }
-      return result;
+      error("`compact` has been removed from libsass because it's not part of the Sass spec", pstate);
+      return 0;
     }
 
     Signature list_separator_sig = "list_separator($list)";
