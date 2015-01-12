@@ -61,6 +61,7 @@ namespace Sass {
     Expression* operator()(Null*);
     Expression* operator()(Argument*);
     Expression* operator()(Arguments*);
+    Expression* operator()(Comment*);
 
     template <typename U>
     Expression* fallback(U x) { return fallback_impl(x); }

@@ -855,6 +855,11 @@ namespace Sass {
     return aa;
   }
 
+  Expression* Eval::operator()(Comment* c)
+  {
+    return 0;
+  }
+
   inline Expression* Eval::fallback_impl(AST_Node* n)
   {
     return static_cast<Expression*>(n);
