@@ -411,6 +411,7 @@ namespace Sass {
     const char* dimension(const char* src);
     const char* hex(const char* src);
     const char* hexa(const char* src);
+    const char* hex0(const char* src);
     const char* rgb_prefix(const char* src);
     // Match CSS uri specifiers.
     const char* uri_prefix(const char* src);

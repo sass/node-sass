@@ -1035,8 +1035,8 @@ namespace Sass {
     Expression* term1 = parse_term();
     // if it's a singleton, return it directly; don't wrap it
     if (!(peek< exactly<'+'> >(position) ||
-          (peek< no_spaces >(position) && peek< sequence< negate< digits >, exactly<'-'> > >(position)) ||
-          (peek< sequence< negate< digits >, exactly<'-'>, negate< digits > > >(position))) ||
+          (peek< no_spaces >(position) && peek< sequence< negate< unsigned_number >, exactly<'-'>, negate< space > > >(position)) ||
+          (peek< sequence< negate< unsigned_number >, exactly<'-'>, negate< unsigned_number > > >(position))) ||
           peek< identifier >(position))
     { return term1; }
 
@@ -1198,14 +1198,16 @@ namespace Sass {
     if (lex< percentage >())
     { return new (ctx.mem) Textual(pstate, Textual::PERCENTAGE, lexed); }
 
-    if (lex< dimension >())
+    // match hex number first because 0x000 looks like a number followed by an indentifier
+    if (lex< alternatives< hex, hex0 > >())
+    { return new (ctx.mem) Textual(pstate, Textual::HEX, lexed); }
+
+    // also handle the 10em- foo special case
+    if (lex< sequence< dimension, optional< sequence< exactly<'-'>, negate< digit > > > > >())
     { return new (ctx.mem) Textual(pstate, Textual::DIMENSION, lexed); }
 
     if (lex< number >())
     { return new (ctx.mem) Textual(pstate, Textual::NUMBER, lexed); }
-
-    if (lex< hex >())
-    { return new (ctx.mem) Textual(pstate, Textual::HEX, lexed); }
 
     if (peek< string_constant >())
     { return parse_string(); }

@@ -9,7 +9,13 @@
 namespace Sass {
   using namespace std;
 
-  Inspect::Inspect(Context* ctx) : buffer(""), indentation(0), ctx(ctx) { }
+  Inspect::Inspect(Context* ctx)
+  : buffer(""),
+    indentation(0),
+    ctx(ctx),
+    in_declaration(false),
+    in_declaration_list(false)
+  { }
   Inspect::~Inspect() { }
 
   // statements
@@ -101,6 +107,7 @@ namespace Sass {
   void Inspect::operator()(Declaration* dec)
   {
     if (dec->value()->concrete_type() == Expression::NULL_VAL) return;
+    in_declaration = true;
     if (ctx) ctx->source_map.add_open_mapping(dec->property());
     source_map.add_open_mapping(dec->property());
     dec->property()->perform(this);
@@ -114,6 +121,7 @@ namespace Sass {
     if (ctx) ctx->source_map.add_close_mapping(dec->value());
     source_map.add_close_mapping(dec->value());
     append_to_buffer(";");
+    in_declaration = false;
   }
 
   void Inspect::operator()(Assignment* assn)
@@ -285,6 +293,7 @@ namespace Sass {
     string sep(list->separator() == List::SPACE ? " " : ", ");
     if (list->empty()) return;
     bool items_output = false;
+    in_declaration_list = in_declaration;
     for (size_t i = 0, L = list->length(); i < L; ++i) {
       Expression* list_item = (*list)[i];
       if (list_item->is_invisible()) {
@@ -294,6 +303,7 @@ namespace Sass {
       list_item->perform(this);
       items_output = true;
     }
+    in_declaration_list = false;
   }
 
   void Inspect::operator()(Binary_Expression* expr)
@@ -389,7 +399,7 @@ namespace Sass {
     ) {
       error(d + n->unit() + " isn't a valid CSS value.", n->pstate());
     }
-    if (!n->zero()) {
+    if (!n->zero() && !in_declaration_list) {
       if (d.substr(0, 3) == "-0.") d.erase(1, 1);
       if (d.substr(0, 2) == "0.") d.erase(0, 1);
     }
