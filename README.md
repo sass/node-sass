@@ -191,7 +191,7 @@ console.log(result.map);
 console.log(result.stats);
 ```
 
-### Sepecial behaviours
+### Special behaviours
 
 * In the case that both `file` and `data` options are set, node-sass will give precedence to `data` and use `file` to calculate paths in sourcemaps.
 
