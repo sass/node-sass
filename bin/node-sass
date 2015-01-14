@@ -126,20 +126,10 @@ function getEmitter() {
  */
 
 function getOptions(args, options) {
-  var dir = options.output || process.cwd();
+  var dir = options.output ? path.resolve(process.cwd(), options.output) : process.cwd();
 
   options.src = args[0];
-  options.dest = null;
-
-  if (args[1]) { // destination is available
-    // now first check if the destination is absolute path
-    // see http://stackoverflow.com/a/24225816/863980 for Marc Diethelm's comment
-    if (path.resolve(args[1]) === path.normalize(args[1]).replace(/(.+)([\/|\\])$/, '$1')) {
-      options.dest = args[1];
-    } else { // since dest path is relative, resolve it w.r.t input 
-      options.dest = path.join(dir, args[1]);
-    }
-  }
+  options.dest = args[1] ? path.resolve(dir, args[1]) : undefined;
 
   if (!options.dest && !options.stdout) {
     var ext = path.extname(options.src);
@@ -204,7 +194,7 @@ function run(options, emitter) {
   }
 
   if (options.sourceMap) {
-    if (options.sourceMap === true) {
+    if (options.sourceMap === 'true') {
       options.sourceMap = options.dest + '.map';
     } else {
       options.sourceMap = path.resolve(process.cwd(), options.sourceMap);
