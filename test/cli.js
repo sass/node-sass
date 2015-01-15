@@ -95,6 +95,21 @@ describe('cli', function() {
       });
     });
 
+    it('should compile a scss file to custom destination', function(done) {
+      process.chdir(fixture('simple'));
+
+      var src = fixture('simple/index.scss');
+      var dest = fixture('simple/index-custom.css');
+      var bin = spawn(cli, [src, dest]);
+
+      bin.on('close', function() {
+        assert(fs.existsSync(dest));
+        fs.unlinkSync(dest);
+        process.chdir(__dirname);
+        done();
+      });
+    });
+
     it('should compile with the --include-path option', function(done) {
       var includePaths = [
         '--include-path', fixture('include-path/functions'),
