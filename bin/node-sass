@@ -108,7 +108,11 @@ function getEmitter() {
     console.log(data);
   });
 
-  emitter.on('done', process.exit);
+  emitter.on('done', function() {
+    if (!options.watch) {
+      process.exit;
+    }
+  });
 
   return emitter;
 }
