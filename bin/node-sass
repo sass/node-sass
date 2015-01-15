@@ -5,6 +5,7 @@ var Emitter = require('events').EventEmitter,
     meow = require('meow'),
     replaceExt = require('replace-ext'),
     stdin = require('get-stdin'),
+    grapher = require('sass-graph'),
     render = require('../lib/render');
 
 /**
@@ -173,10 +174,20 @@ function watch(options, emitter) {
   gaze.add(dir);
   gaze.on('error', emitter.emit.bind(emitter, 'error'));
 
+  var graph = grapher.parseDir(options.src, { loadPaths: options.includePath });
+
   gaze.on('changed', function(file) {
-    options = getOptions([file], options);
-    emitter.emit('warn', '=> changed: ' + file);
-    render(options, emitter);
+    var files = [file];
+    graph.visitAncestors(file, function(parent) {
+      files.push(parent);
+    });
+
+    files.forEach(function(file) {
+      if (path.basename(file)[0] === '_') return;
+      options = getOptions([path.resolve(file)], options);
+      emitter.emit('warn', '=> changed: ' + file);
+      render(options, emitter);
+    });
   });
 }
 

@@ -55,6 +55,7 @@
     "object-assign": "^2.0.0",
     "replace-ext": "0.0.1",
     "request": "^2.48.0",
+    "sass-graph": "^1.0.1",
     "shelljs": "^0.3.0"
   },
   "devDependencies": {
