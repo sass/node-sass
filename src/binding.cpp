@@ -30,8 +30,8 @@ void prepare_import_results(Local<Value> returned_value, sass_context_wrapper* c
         continue;
 
       Local<Object> object = Local<Object>::Cast(value);
-      char* path = CreateString(object->Get(String::New("file")));
-      char* contents = CreateString(object->Get(String::New("contents")));
+      char* path = CreateString(object->Get(NanNew<String>("file")));
+      char* contents = CreateString(object->Get(NanNew<String>("contents")));
 
       ctx_w->imports[i] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
     }
@@ -39,8 +39,8 @@ void prepare_import_results(Local<Value> returned_value, sass_context_wrapper* c
   else if (returned_value->IsObject()) {
     ctx_w->imports = sass_make_import_list(1);
     Local<Object> object = Local<Object>::Cast(returned_value);
-    char* path = CreateString(object->Get(String::New("file")));
-    char* contents = CreateString(object->Get(String::New("contents")));
+    char* path = CreateString(object->Get(NanNew<String>("file")));
+    char* contents = CreateString(object->Get(NanNew<String>("contents")));
 
     ctx_w->imports[0] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
   }
