@@ -19,6 +19,7 @@ namespace Sass {
     Media_Query* new_Media_Query(string p, size_t l, List* q, Block* b);
     At_Root_Block* new_At_Root_Block(string p, size_t l, Selector* sel, Block* b);
     At_Rule* new_At_Rule(string p, size_t l, string kwd, Selector* sel, Block* b);
+    Keyframe_Rule* new_Keyframe_Rule(string p, size_t l, Block* b);
     Declaration* new_Declaration(string p, size_t l, String* prop, List* vals);
     Assignment* new_Assignment(string p, size_t l, string var, Expression* val, bool guarded = false);
     Import<Function_Call*>* new_CSS_Import(string p, size_t l, Function_Call* loc);

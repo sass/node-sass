@@ -16,6 +16,7 @@ namespace Sass {
   class Media_Block;
   class Feature_Block;
   class At_Rule;
+  class Keyframe_Rule;
   class At_Root_Block;
   class Declaration;
   class Assignment;

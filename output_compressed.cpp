@@ -134,6 +134,39 @@ namespace Sass {
     append_singleline_part_to_buffer("}");
   }
 
+  void Output_Compressed::operator()(Keyframe_Rule* r)
+  {
+    String* v       = r->rules();
+    Block*  b       = r->block();
+
+    if (v) {
+      append_singleline_part_to_buffer(" ");
+      v->perform(this);
+    }
+
+    if (!b) {
+      append_singleline_part_to_buffer(";");
+      return;
+    }
+
+    append_singleline_part_to_buffer("{");
+    for (size_t i = 0, L = b->length(); i < L; ++i) {
+      Statement* stm = (*b)[i];
+      if (!stm->is_hoistable()) {
+        stm->perform(this);
+      }
+    }
+
+    for (size_t i = 0, L = b->length(); i < L; ++i) {
+      Statement* stm = (*b)[i];
+      if (stm->is_hoistable()) {
+        stm->perform(this);
+      }
+    }
+
+    append_singleline_part_to_buffer("}");
+  }
+
   void Output_Compressed::operator()(At_Rule* a)
   {
     string      kwd   = a->keyword();

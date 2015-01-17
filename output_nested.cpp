@@ -149,6 +149,60 @@ namespace Sass {
     }
   }
 
+  void Output_Nested::operator()(Keyframe_Rule* r)
+  {
+    String* v       = r->rules();
+    Block*  b       = r->block();
+    bool    decls   = false;
+
+    // indent();
+    if (v) {
+      append_to_buffer(" ");
+      v->perform(this);
+    }
+
+    if (!b) {
+      append_to_buffer(";");
+      return;
+    }
+
+    append_to_buffer(" {" + ctx->linefeed);
+
+    bool old_in_directive = in_directive;
+    in_directive = true;
+
+    ++indentation;
+    decls = true;
+    for (size_t i = 0, L = b->length(); i < L; ++i) {
+      Statement* stm = (*b)[i];
+      if (!stm->is_hoistable()) {
+        if (!stm->block()) indent();
+        stm->perform(this);
+        append_to_buffer(ctx->linefeed);
+      }
+    }
+    --indentation;
+
+    if (decls) ++indentation;
+    for (size_t i = 0, L = b->length(); i < L; ++i) {
+      Statement* stm = (*b)[i];
+      if (stm->is_hoistable()) {
+        stm->perform(this);
+        // append_to_buffer(ctx->linefeed);
+      }
+    }
+    if (decls) --indentation;
+
+    while (buffer.substr(buffer.length()-ctx->linefeed.length()) == ctx->linefeed) {
+      buffer.erase(buffer.length()-1);
+      if (ctx) ctx->source_map.remove_line();
+    }
+
+    in_directive = old_in_directive;
+
+    append_to_buffer(" }");
+  }
+
   void Output_Nested::operator()(Feature_Block* f)
   {
     if (f->is_invisible()) return;

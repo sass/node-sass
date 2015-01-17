@@ -22,6 +22,7 @@ namespace Sass {
     selector_stack(vector<Selector*>()),
     at_root_selector_stack(vector<Selector*>()),
     in_at_root(false),
+    in_keyframes(false),
     backtrace(bt)
   { selector_stack.push_back(0); }
 
@@ -42,6 +43,19 @@ namespace Sass {
   {
     bool old_in_at_root = in_at_root;
     in_at_root = false;
+
+    if (in_keyframes) {
+      To_String to_string;
+      Keyframe_Rule* k = new (ctx.mem) Keyframe_Rule(r->pstate(), r->block()->perform(this)->block());
+      if (r->selector()) {
+        string s(r->selector()->perform(eval->with(env, backtrace))->perform(&to_string));
+        String_Constant* ss = new (ctx.mem) String_Constant(r->selector()->pstate(), s);
+        k->rules(ss);
+      }
+      in_at_root = old_in_at_root;
+      old_in_at_root = false;
+      return k;
+    }
 
     Contextualize* contextual = contextualize->with(selector_stack.back(), env, backtrace);
     if (old_in_at_root && !r->selector()->has_reference())
@@ -159,6 +173,8 @@ namespace Sass {
 
   Statement* Expand::operator()(At_Rule* a)
   {
+    bool old_in_keyframes = in_keyframes;
+    in_keyframes = a->is_keyframes();
     Block* ab = a->block();
     Selector* as = a->selector();
     Expression* av = a->value();
@@ -170,6 +186,7 @@ namespace Sass {
                                         as,
                                         bb);
     if (av) aa->value(av);
+    in_keyframes = old_in_keyframes;
     return aa;
   }
 

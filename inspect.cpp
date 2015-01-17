@@ -54,6 +54,12 @@ namespace Sass {
     ruleset->block()->perform(this);
   }
 
+  void Inspect::operator()(Keyframe_Rule* rule)
+  {
+    if (rule->rules()) rule->rules()->perform(this);
+    rule->block()->perform(this);
+  }
+
   void Inspect::operator()(Propset* propset)
   {
     propset->property_fragment()->perform(this);
