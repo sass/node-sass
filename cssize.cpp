@@ -38,19 +38,18 @@ namespace Sass {
   {
     if (!r->block() || !r->block()->length()) return r;
 
-    if (/*!r->is_keyframes() &&*/
-        parent()->statement_type() == Statement::RULESET)
+    if (parent()->statement_type() == Statement::RULESET)
     {
       return (r->is_keyframes()) ? new (ctx.mem) Bubble(r->pstate(), r) : bubble(r);
     }
 
+    p_stack.push_back(r);
     At_Rule* rr = new (ctx.mem) At_Rule(r->pstate(),
                                         r->keyword(),
                                         r->selector(),
                                         r->block() ? r->block()->perform(this)->block() : 0);
     if (r->value()) rr->value(r->value());
-
-    // if (!r->is_keyframes()) return debubble(rr->block(), rr)->block();
+    p_stack.pop_back();
 
     bool directive_exists = false;
     size_t L = rr->block() ? rr->block()->length() : 0;
@@ -66,7 +65,7 @@ namespace Sass {
     }
 
     Block* result = new (ctx.mem) Block(rr->pstate());
-    if (!(directive_exists && rr->is_keyframes()))
+    if (!(directive_exists || rr->is_keyframes()))
     {
       At_Rule* empty_node = static_cast<At_Rule*>(rr);
       empty_node->block(new (ctx.mem) Block(rr->block() ? rr->block()->pstate() : rr->pstate()));
@@ -79,6 +78,17 @@ namespace Sass {
     }
 
     return result;
+  }
+
+  Statement* Cssize::operator()(Keyframe_Rule* r)
+  {
+    if (!r->block() || !r->block()->length()) return r;
+
+    Keyframe_Rule* rr = new (ctx.mem) Keyframe_Rule(r->pstate(),
+                                                    r->block()->perform(this)->block());
+    if (r->rules()) rr->rules(r->rules());
+
+    return debubble(rr->block(), rr)->block();
   }
 
   Statement* Cssize::operator()(Ruleset* r)
@@ -352,6 +362,8 @@ namespace Sass {
         return new (ctx.mem) Feature_Block(*static_cast<Feature_Block*>(s));
       case Statement::ATROOT:
         return new (ctx.mem) At_Root_Block(*static_cast<At_Root_Block*>(s));
+      case Statement::KEYFRAMERULE:
+        return new (ctx.mem) Keyframe_Rule(*static_cast<Keyframe_Rule*>(s));
       case Statement::NONE:
       default:
         error("unknown internal error; please contact the LibSass maintainers", s->pstate(), backtrace);

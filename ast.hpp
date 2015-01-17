@@ -254,7 +254,8 @@ namespace Sass {
       DIRECTIVE,
       FEATURE,
       ATROOT,
-      BUBBLE
+      BUBBLE,
+      KEYFRAMERULE
     };
   private:
     ADD_PROPERTY(Block*, block);
@@ -408,7 +409,24 @@ namespace Sass {
     : Has_Block(pstate, b), keyword_(kwd), selector_(sel), value_(0) // set value manually if needed
     { statement_type(DIRECTIVE); }
     bool bubbles() { return true; }
-    bool is_keyframes() { return keyword_.compare("keyframes"); }
+    bool is_keyframes() {
+      return keyword_.compare("@-webkit-keyframes") == 0 ||
+             keyword_.compare("@-moz-keyframes") == 0 ||
+             keyword_.compare("@-o-keyframes") == 0 ||
+             keyword_.compare("@keyframes") == 0;
+    }
+    ATTACH_OPERATIONS();
+  };
+
+  ///////////////////////////////////////////////////////////////////////
+  // Keyframe-rules -- the child blocks of "@keyframes" nodes.
+  ///////////////////////////////////////////////////////////////////////
+  class Keyframe_Rule : public Has_Block {
+    ADD_PROPERTY(String*, rules);
+  public:
+    Keyframe_Rule(ParserState pstate, Block* b)
+    : Has_Block(pstate, b), rules_(0)
+    { statement_type(KEYFRAMERULE); }
     ATTACH_OPERATIONS();
   };
 

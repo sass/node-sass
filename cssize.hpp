@@ -39,6 +39,7 @@ namespace Sass {
     Statement* operator()(Feature_Block*);
     Statement* operator()(At_Root_Block*);
     Statement* operator()(At_Rule*);
+    Statement* operator()(Keyframe_Rule*);
     // Statement* operator()(Declaration*);
     // Statement* operator()(Assignment*);
     // Statement* operator()(Import*);

@@ -29,6 +29,7 @@ namespace Sass {
     vector<Selector*> selector_stack;
     vector<Selector*> at_root_selector_stack;
     bool              in_at_root;
+    bool              in_keyframes;
     Backtrace*        backtrace;
 
     Statement* fallback_impl(AST_Node* n);
