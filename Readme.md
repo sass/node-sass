@@ -15,7 +15,9 @@ then go to https://github.com/sass/sassc or
 https://github.com/sass/ruby-libsass or
 [find your local implementer](https://github.com/sass/libsass/wiki/Implementations).
 
-LibSass requires GCC 4.5+ or Clang/LLVM. If your OS is older, this version may not compile.
+LibSass requires GCC 4.6+ or Clang/LLVM. If your OS is older, this version may not compile.
+
+On Windows, you need MinGW with GCC 4.6+ or VS 2013 Update 4+. It is also possible to build LibSass with Clang/LLVM on Windows.
 
 About
 -----
