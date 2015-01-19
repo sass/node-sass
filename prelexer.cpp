@@ -130,7 +130,7 @@ namespace Sass {
 
 
     const char* interpolant(const char* src) {
-      return delimited_by<hash_lbrace, rbrace, false>(src);
+      return smartdel_by<hash_lbrace, rbrace, false>(src);
     }
 
     // Whitespace handling.
