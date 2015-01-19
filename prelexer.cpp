@@ -592,8 +592,7 @@ namespace Sass {
             > >
           > >,
           spaces_and_comments,
-          exactly<')'>,
-          spaces_and_comments
+          exactly<')'>
         > >
       >(src);
     }
@@ -686,6 +685,7 @@ namespace Sass {
     const char* static_component(const char* src) {
       return alternatives< identifier,
                            static_string,
+                           percentage,
                            hex,
                            number,
                            sequence< exactly<'!'>, exactly<important_kwd> >
@@ -696,8 +696,11 @@ namespace Sass {
       return sequence< static_component,
                        zero_plus < sequence<
                                    alternatives<
-                                     sequence< optional_spaces, exactly<'/'>, optional_spaces >,
-                                     sequence< optional_spaces, exactly<','>, optional_spaces >,
+                                     sequence< optional_spaces, alternatives<
+                                       exactly < '/' >,
+                                       exactly < ',' >,
+                                       exactly < ' ' >
+                                     >, optional_spaces >,
                                      spaces
                                    >,
                                    static_component
