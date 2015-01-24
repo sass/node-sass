@@ -108,7 +108,7 @@ namespace Sass {
       }
       // ignore the @charset directive for now
       else if (lex< exactly< charset_kwd > >()) {
-        lex< string_constant >();
+        lex< quoted_string >();
         lex< one_plus< exactly<';'> > >();
       }
       else if (peek< at_keyword >()) {
@@ -164,7 +164,7 @@ namespace Sass {
     Import* imp = new (ctx.mem) Import(pstate);
     bool first = true;
     do {
-      if (lex< string_constant >()) {
+      if (lex< quoted_string >()) {
         string import_path(lexed);
 
         // struct Sass_Options opt = sass_context_get_options(ctx)
@@ -514,10 +514,10 @@ namespace Sass {
         return seq;
       }
     }
-    if (sawsomething && lex< sequence< negate< functional >, alternatives< identifier_fragment, universal, string_constant, dimension, percentage, number > > >()) {
+    if (sawsomething && lex< sequence< negate< functional >, alternatives< identifier_fragment, universal, quoted_string, dimension, percentage, number > > >()) {
       // saw an ampersand, then allow type selectors with arbitrary number of hyphens at the beginning
       (*seq) << new (ctx.mem) Type_Selector(pstate, lexed);
-    } else if (lex< sequence< negate< functional >, alternatives< type_selector, universal, string_constant, dimension, percentage, number > > >()) {
+    } else if (lex< sequence< negate< functional >, alternatives< type_selector, universal, quoted_string, dimension, percentage, number > > >()) {
       // if you see a type selector
       (*seq) << new (ctx.mem) Type_Selector(pstate, lexed);
       sawsomething = true;
@@ -546,7 +546,7 @@ namespace Sass {
     if (lex< id_name >() || lex< class_name >()) {
       return new (ctx.mem) Selector_Qualifier(pstate, lexed);
     }
-    else if (lex< string_constant >() || lex< number >()) {
+    else if (lex< quoted_string >() || lex< number >()) {
       return new (ctx.mem) Type_Selector(pstate, lexed);
     }
     else if (peek< pseudo_not >()) {
@@ -619,7 +619,7 @@ namespace Sass {
         lex< identifier >();
         expr = new (ctx.mem) String_Constant(p, lexed);
       }
-      else if (lex< string_constant >()) {
+      else if (lex< quoted_string >()) {
         expr = new (ctx.mem) String_Constant(p, lexed);
       }
       else if (peek< exactly<')'> >()) {
@@ -661,7 +661,7 @@ namespace Sass {
     if (lex< identifier >()) {
       value = new (ctx.mem) String_Constant(p, lexed, true);
     }
-    else if (lex< string_constant >()) {
+    else if (lex< quoted_string >()) {
       value = parse_interpolated_chunk(lexed);
     }
     else {
@@ -795,7 +795,7 @@ namespace Sass {
       }
       // ignore the @charset directive for now
       else if (lex< exactly< charset_kwd > >()) {
-        lex< string_constant >();
+        lex< quoted_string >();
         lex< one_plus< exactly<';'> > >();
       }
       else if (peek< at_keyword >()) {
@@ -1209,7 +1209,7 @@ namespace Sass {
     if (lex< number >())
     { return new (ctx.mem) Textual(pstate, Textual::NUMBER, lexed); }
 
-    if (peek< string_constant >())
+    if (peek< quoted_string >())
     { return parse_string(); }
 
     if (lex< variable >())
@@ -1278,7 +1278,7 @@ namespace Sass {
 
   String* Parser::parse_string()
   {
-    lex< string_constant >();
+    lex< quoted_string >();
     Token str(lexed);
     return parse_interpolated_chunk(str);
     // const char* i = str.begin;
@@ -1408,7 +1408,7 @@ namespace Sass {
       else if (lex< hex >()) {
         (*schema) << new (ctx.mem) Textual(pstate, Textual::HEX, lexed);
       }
-      else if (lex< string_constant >()) {
+      else if (lex< quoted_string >()) {
         (*schema) << new (ctx.mem) String_Constant(pstate, lexed);
         if (!num_items) schema->quote_mark(*lexed.begin);
       }
@@ -1875,7 +1875,7 @@ namespace Sass {
            (q = peek< sequence< pseudo_prefix, identifier > >(p))  ||
            (q = peek< percentage >(p))                             ||
            (q = peek< dimension >(p))                              ||
-           (q = peek< string_constant >(p))                        ||
+           (q = peek< quoted_string >(p))                        ||
            (q = peek< exactly<'*'> >(p))                           ||
            (q = peek< exactly<'('> >(p))                           ||
            (q = peek< exactly<')'> >(p))                           ||
@@ -1933,7 +1933,7 @@ namespace Sass {
            (q = peek< sequence< pseudo_prefix, identifier > >(p))  ||
            (q = peek< percentage >(p))                             ||
            (q = peek< dimension >(p))                              ||
-           (q = peek< string_constant >(p))                        ||
+           (q = peek< quoted_string >(p))                        ||
            (q = peek< exactly<'*'> >(p))                           ||
            (q = peek< exactly<'('> >(p))                           ||
            (q = peek< exactly<')'> >(p))                           ||

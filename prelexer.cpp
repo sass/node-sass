@@ -84,54 +84,6 @@ namespace Sass {
       >(src);
     }
 
-    // Match double- and single-quoted strings.
-    const char* double_quoted_string(const char* src) {
-      src = exactly<'"'>(src);
-      if (!src) return 0;
-      const char* p;
-      while (1) {
-        if (!*src) return 0;
-        if((p = escape(src))) {
-          src = p;
-          continue;
-        }
-        else if((p = exactly<'"'>(src))) {
-          return p;
-        }
-        else {
-          ++src;
-        }
-      }
-      return 0;
-    }
-    const char* single_quoted_string(const char* src) {
-      src = exactly<'\''>(src);
-      if (!src) return 0;
-      const char* p;
-      while (1) {
-        if (!*src) return 0;
-        if((p = escape(src))) {
-          src = p;
-          continue;
-        }
-        else if((p = exactly<'\''>(src))) {
-          return p;
-        }
-        else {
-          ++src;
-        }
-      }
-      return 0;
-    }
-    const char* string_constant(const char* src) {
-      return alternatives<double_quoted_string, single_quoted_string>(src);
-    }
-    // Match interpolants.
-
-
-    const char* interpolant(const char* src) {
-      return smartdel_by<hash_lbrace, rbrace, false>(src);
-    }
 
     // Whitespace handling.
     const char* optional_spaces(const char* src) { return optional<spaces>(src); }
@@ -188,11 +140,64 @@ namespace Sass {
                                  zero_plus< alternatives< identifier, number, exactly<'-'> > > > >,
                        negate< exactly<'%'> > >(src);
     }
+
+    // interpolants can be recursive/nested
+    const char* interpolant(const char* src) {
+      return smartdel_by<hash_lbrace, rbrace, false>(src);
+    }
+
+    // $re_squote = /'(?:$re_itplnt|\\.|[^'])*'/
+    const char* single_quoted_string(const char* src) {
+      // match a single quoted string, while skipping interpolants
+      return sequence <
+        exactly <'\''>,
+        zero_plus <
+          alternatives <
+            // skip all escaped chars first
+            sequence < exactly < '\\' >, any_char >,
+            // skip interpolants
+            interpolant,
+            // skip non delimiters
+            any_char_except < '\'' >
+          >
+        >,
+        exactly <'\''>
+      >(src);
+    }
+
+    // $re_dquote = /"(?:$re_itp|\\.|[^"])*"/
+    const char* double_quoted_string(const char* src) {
+      // match a single quoted string, while skipping interpolants
+      return sequence <
+        exactly <'"'>,
+        zero_plus <
+          alternatives <
+            // skip all escaped chars first
+            sequence < exactly < '\\' >, any_char >,
+            // skip interpolants
+            interpolant,
+            // skip non delimiters
+            any_char_except < '"' >
+          >
+        >,
+        exactly <'"'>
+      >(src);
+    }
+
+    // $re_quoted = /(?:$re_squote|$re_dquote)/
+    const char* quoted_string(const char* src) {
+      // match a quoted string, while skipping interpolants
+      return alternatives<
+        single_quoted_string,
+        double_quoted_string
+      >(src);
+    }
+
     const char* value_schema(const char* src) {
       // follows this pattern: ([xyz]*i[xyz]*)+
-      return one_plus< sequence< zero_plus< alternatives< identifier, percentage, dimension, hex, number, string_constant > >,
+      return one_plus< sequence< zero_plus< alternatives< identifier, percentage, dimension, hex, number, quoted_string > >,
                                  interpolant,
-                                 zero_plus< alternatives< identifier, percentage, dimension, hex, number, string_constant, exactly<'%'> > > > >(src);
+                                 zero_plus< alternatives< identifier, percentage, dimension, hex, number, quoted_string, exactly<'%'> > > > >(src);
     }
     const char* filename_schema(const char* src) {
       return one_plus< sequence< zero_plus< alternatives< identifier, number, exactly<'.'>, exactly<'/'> > >,
@@ -439,7 +444,7 @@ namespace Sass {
     const char* uri(const char* src) {
       return sequence< exactly<url_kwd>,
                        optional<spaces>,
-                       string_constant,
+                       quoted_string,
                        optional<spaces>,
                        exactly<')'> >(src);
     }
@@ -577,7 +582,7 @@ namespace Sass {
             spaces_and_comments,
             exactly<'='>,
             spaces_and_comments,
-            alternatives< variable, identifier_schema, identifier, string_constant, number, hexa >,
+            alternatives< variable, identifier_schema, identifier, quoted_string, number, hexa >,
             zero_plus< sequence<
               spaces_and_comments,
               exactly<','>,
@@ -587,7 +592,7 @@ namespace Sass {
                 spaces_and_comments,
                 exactly<'='>,
                 spaces_and_comments,
-                alternatives< variable, identifier_schema, identifier, string_constant, number, hexa >
+                alternatives< variable, identifier_schema, identifier, quoted_string, number, hexa >
               >
             > >
           > >,
@@ -604,12 +609,18 @@ namespace Sass {
     }
 
     // const char* ie_args(const char* src) {
-    //   return sequence< alternatives< ie_keyword_arg, value_schema, string_constant, interpolant, number, identifier, delimited_by< '(', ')', true> >,
-    //                    zero_plus< sequence< spaces_and_comments, exactly<','>, spaces_and_comments, alternatives< ie_keyword_arg, value_schema, string_constant, interpolant, number, identifier, delimited_by<'(', ')', true> > > > >(src);
+    //   return sequence< alternatives< ie_keyword_arg, value_schema, quoted_string, interpolant, number, identifier, delimited_by< '(', ')', true> >,
+    //                    zero_plus< sequence< spaces_and_comments, exactly<','>, spaces_and_comments, alternatives< ie_keyword_arg, value_schema, quoted_string, interpolant, number, identifier, delimited_by<'(', ')', true> > > > >(src);
     // }
 
     const char* ie_keyword_arg(const char* src) {
-      return sequence< alternatives< variable, identifier_schema, identifier >, spaces_and_comments, exactly<'='>, spaces_and_comments, alternatives< variable, identifier_schema, identifier, string_constant, number, hexa > >(src);
+      return sequence<
+        alternatives< variable, identifier_schema, identifier >,
+        spaces_and_comments,
+        exactly<'='>,
+        spaces_and_comments,
+        alternatives< variable, identifier_schema, identifier, quoted_string, number, hexa >
+      >(src);
     }
 
     // Path matching functions.
@@ -676,7 +687,7 @@ namespace Sass {
 
     const char* static_string(const char* src) {
       const char* pos = src;
-      const char * s = string_constant(pos);
+      const char * s = quoted_string(pos);
       Token t(pos, s, Position(0, 0));
       const unsigned int p = count_interval< interpolant >(t.begin, t.end);
       return (p == 0) ? t.end : 0;

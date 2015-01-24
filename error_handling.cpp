@@ -13,7 +13,7 @@ namespace Sass {
 
   void error(string msg, ParserState pstate, Backtrace* bt)
   {
-    if (!pstate.path.empty() && Prelexer::string_constant(pstate.path.c_str()))
+    if (!pstate.path.empty() && Prelexer::quoted_string(pstate.path.c_str()))
       pstate.path = pstate.path.substr(1, pstate.path.size() - 1);
 
     Backtrace top(bt, pstate, "");

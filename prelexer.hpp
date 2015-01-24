@@ -19,7 +19,12 @@ namespace Sass {
     template <const char* prefix>
     const char* exactly(const char* src) {
       const char* pre = prefix;
-      while (*pre && *src == *pre) ++src, ++pre;
+      if (*src == 0) return 0;
+      // there is a small chance that the search prefix
+      // is longer than the rest of the string to look at
+      while (*pre && *src == *pre) {
+      	++src, ++pre;
+      }
       return *pre ? 0 : src;
     }
 
@@ -423,7 +428,7 @@ namespace Sass {
     // Match double- and single-quoted strings.
     const char* double_quoted_string(const char* src);
     const char* single_quoted_string(const char* src);
-    const char* string_constant(const char* src);
+    const char* quoted_string(const char* src);
     // Match interpolants.
     const char* interpolant(const char* src);
 
