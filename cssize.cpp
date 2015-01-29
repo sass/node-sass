@@ -191,7 +191,7 @@ namespace Sass {
     {
       Block* bb = m->block()->perform(this)->block();
       for (size_t i = 0, L = bb->length(); i < L; ++i) {
-        if (bubblable(m)) (*m->block())[i]->tabs((*m->block())[i]->tabs() + m->tabs());
+        if (bubblable((*bb)[i])) (*bb)[i]->tabs((*bb)[i]->tabs() + m->tabs());
       }
       if (bb->length() && bubblable(bb->last())) bb->last()->group_end(m->group_end());
       return bb;
