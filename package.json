@@ -46,22 +46,22 @@
     "chalk": "^0.5.1",
     "cross-spawn": "^0.2.3",
     "gaze": "^0.5.1",
-    "get-stdin": "^3.0.0",
-    "meow": "^2.0.0",
+    "get-stdin": "^4.0.1",
+    "meow": "^3.0.0",
     "mkdirp": "^0.5.0",
-    "mocha": "^2.0.1",
-    "nan": "^1.5.1",
-    "npmconf": "^2.1.1",
+    "mocha": "^2.1.0",
+    "nan": "^1.6.1",
+    "npmconf": "^1.1.9",
     "object-assign": "^2.0.0",
     "replace-ext": "0.0.1",
-    "request": "^2.48.0",
+    "request": "^2.51.0",
     "sass-graph": "^1.0.1",
     "shelljs": "^0.3.0"
   },
   "devDependencies": {
-    "coveralls": "^2.11.1",
-    "jscoverage": "^0.5.6",
-    "jshint": "^2.5.5",
+    "coveralls": "^2.11.2",
+    "jscoverage": "^0.5.9",
+    "jshint": "^2.6.0",
     "mocha-lcov-reporter": "^0.0.1"
   }
 }
