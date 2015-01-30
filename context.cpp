@@ -298,7 +298,7 @@ namespace Sass {
     if (!source_c_str) return 0;
     queue.clear();
     if(is_indented_syntax_src) {
-      char * contents = sass2scss(source_c_str, SASS2SCSS_PRETTIFY_1);
+      char * contents = sass2scss(source_c_str, SASS2SCSS_PRETTIFY_1 | SASS2SCSS_KEEP_COMMENT);
       add_source(input_path, input_path, contents);
       return parse_file();
     }
