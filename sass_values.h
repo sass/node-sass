@@ -83,7 +83,7 @@ ADDAPI void ADDCALL sass_list_set_value (union Sass_Value* v, size_t i, union Sa
 
 // Getter for the number of items in map
 ADDAPI size_t ADDCALL sass_map_get_length (const union Sass_Value* v);
-// Getters and setters for Sass_List keys and values
+// Getters and setters for Sass_Map keys and values
 ADDAPI union Sass_Value* ADDCALL sass_map_get_key (const union Sass_Value* v, size_t i);
 ADDAPI void ADDCALL sass_map_set_key (union Sass_Value* v, size_t i, union Sass_Value*);
 ADDAPI union Sass_Value* ADDCALL sass_map_get_value (const union Sass_Value* v, size_t i);
