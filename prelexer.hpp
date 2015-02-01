@@ -19,7 +19,12 @@ namespace Sass {
     template <const char* prefix>
     const char* exactly(const char* src) {
       const char* pre = prefix;
-      while (*pre && *src == *pre) ++src, ++pre;
+      if (*src == 0) return 0;
+      // there is a small chance that the search prefix
+      // is longer than the rest of the string to look at
+      while (*pre && *src == *pre) {
+      	++src, ++pre;
+      }
       return *pre ? 0 : src;
     }
 
@@ -83,6 +88,58 @@ namespace Sass {
       }
     }
 
+    // Match a sequence of characters delimited by the supplied chars.
+    template <char beg, char end, bool esc>
+    const char* smartdel_by(const char* src) {
+
+      size_t level = 0;
+      bool in_squote = false;
+      bool in_dquote = false;
+      // bool in_braces = false;
+
+      src = exactly<beg>(src);
+
+      if (!src) return 0;
+
+      while (1) {
+
+        // end of string?
+        if (!*src) return 0;
+
+        // has escaped sequence?
+        if (!esc && *src == '\\') {
+          ++ src; // skip this (and next)
+        }
+        else if (*src == '"') {
+          in_dquote = ! in_dquote;
+        }
+        else if (*src == '\'') {
+          in_squote = ! in_squote;
+        }
+        else if (in_dquote || in_squote) {
+          // take everything literally
+        }
+
+        // find another opener inside?
+        else if (exactly<beg>(src)) {
+          ++ level; // increase counter
+        }
+
+        // look for the closer (maybe final, maybe not)
+        else if (const char* stop = exactly<end>(src)) {
+          // only close one level?
+          if (level > 0) -- level;
+          // return position at end of stop
+          // delimiter may be multiple chars
+          else return stop;
+        }
+
+        // next
+        ++ src;
+
+      }
+    }
+
     // Match a sequence of characters delimited by the supplied strings.
     template <const char* beg, const char* end, bool esc>
     const char* delimited_by(const char* src) {
@@ -94,6 +151,58 @@ namespace Sass {
         stop = exactly<end>(src);
         if (stop && (!esc || *(src - 1) != '\\')) return stop;
         src = stop ? stop : src + 1;
+      }
+    }
+
+    // Match a sequence of characters delimited by the supplied strings.
+    template <const char* beg, const char* end, bool esc>
+    const char* smartdel_by(const char* src) {
+
+      size_t level = 0;
+      bool in_squote = false;
+      bool in_dquote = false;
+      // bool in_braces = false;
+
+      src = exactly<beg>(src);
+
+      if (!src) return 0;
+
+      while (1) {
+
+        // end of string?
+        if (!*src) return 0;
+
+        // has escaped sequence?
+        if (!esc && *src == '\\') {
+          ++ src; // skip this (and next)
+        }
+        else if (*src == '"') {
+          in_dquote = ! in_dquote;
+        }
+        else if (*src == '\'') {
+          in_squote = ! in_squote;
+        }
+        else if (in_dquote || in_squote) {
+          // take everything literally
+        }
+
+        // find another opener inside?
+        else if (exactly<beg>(src)) {
+          ++ level; // increase counter
+        }
+
+        // look for the closer (maybe final, maybe not)
+        else if (const char* stop = exactly<end>(src)) {
+          // only close one level?
+          if (level > 0) -- level;
+          // return position at end of stop
+          // delimiter may be multiple chars
+          else return stop;
+        }
+
+        // next
+        ++ src;
+
       }
     }
 
@@ -319,7 +428,7 @@ namespace Sass {
     // Match double- and single-quoted strings.
     const char* double_quoted_string(const char* src);
     const char* single_quoted_string(const char* src);
-    const char* string_constant(const char* src);
+    const char* quoted_string(const char* src);
     // Match interpolants.
     const char* interpolant(const char* src);
 

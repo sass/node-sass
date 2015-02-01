@@ -1,6 +1,7 @@
 #include "inspect.hpp"
 #include "ast.hpp"
 #include "context.hpp"
+#include "utf8/checked.h"
 #include <cmath>
 #include <string>
 #include <iostream>
@@ -768,17 +769,60 @@ namespace Sass {
     if (s.length() == 1) {
       if (s[0] == '"' || s[0] == '\'') return "";
     }
-    char q;
-    if      (*s.begin() == '"'  && *s.rbegin() == '"')  q = '"';
-    else if (*s.begin() == '\'' && *s.rbegin() == '\'') q = '\'';
+    // char q;
+    if      (*s.begin() == '"'  && *s.rbegin() == '"')  {} // q = '"';
+    else if (*s.begin() == '\'' && *s.rbegin() == '\'') {} // q = '\'';
     else                                                return s;
     string t;
     t.reserve(s.length()-2);
+
     for (size_t i = 1, L = s.length()-1; i < L; ++i) {
-      // if we see a quote, we need to remove the preceding backslash from t
-      if (s[i-1] == '\\' && s[i] == q) t.erase(t.length()-1);
-      t.push_back(s[i]);
+
+      // implement the same strange ruby sass behavior
+      // an escape sequence can also mean a unicode char
+      if (s[i] == '\\') {
+
+        // skip it
+        ++ i;
+
+        // escape length
+        size_t len = 0;
+
+        // parse as many sequence chars as possible
+        // ToDo: Check if ruby aborts after possible max
+        while (s[i + len] && isxdigit(s[i + len])) ++ len;
+
+        // hex string?
+        if (len == 0) {
+
+          // add next char
+          t.push_back(s[i]);
+
+        } else {
+
+          // convert the extracted hex string to code point value
+          // ToDo: Maybe we could do this without creating a substring
+          uint32_t cp = strtol(s.substr (i, len).c_str(), nullptr, 16);
+
+          // use a very simple approach to convert via utf8 lib
+          // maybe there is a more elegant way; maybe we shoud
+          // convert the whole output from string to a stream!?
+          // allocate memory for utf8 char and convert to utf8
+          unsigned char u[5] = {0,0,0,0,0}; utf8::append(cp, u);
+          for(size_t m = 0; u[m] && m < 5; m++) t.push_back(u[m]);
+
+          // skip some more chars?
+          if (len > 1) i += len - 1;
+
+        }
+        // EO if hex
+
+      } else {
+        // add single char
+        t.push_back(s[i]);
+      }
     }
+
     return t;
   }
 
