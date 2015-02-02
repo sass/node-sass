@@ -408,15 +408,19 @@ namespace Sass {
       HSL hsl_color = rgb_to_hsl(rgb_color->r(),
                                  rgb_color->g(),
                                  rgb_color->b());
-      //Check saturation is not negative before saturate it
-      double hslcolorS = hsl_color.s;
+
+      double hslcolorS = hsl_color.s + amount->value();
+
+      // Saturation cannot be below 0 or above 100
       if (hslcolorS < 0) {
         hslcolorS = 0;
       }
-
+      if (hslcolorS > 100) {
+        hslcolorS = 100;
+      }
 
       return hsla_impl(hsl_color.h,
-                       hslcolorS + amount->value(),
+                       hslcolorS,
                        hsl_color.l,
                        rgb_color->a(),
                        ctx,
@@ -431,14 +435,19 @@ namespace Sass {
       HSL hsl_color = rgb_to_hsl(rgb_color->r(),
                                  rgb_color->g(),
                                  rgb_color->b());
-      //Check saturation is not over 100 before desaturate it
-      double hslcolorS = hsl_color.s;
+
+      double hslcolorS = hsl_color.s - amount->value();
+
+      // Saturation cannot be below 0 or above 100
+      if (hslcolorS <= 0) {
+        hslcolorS = 0;
+      }
       if (hslcolorS > 100) {
         hslcolorS = 100;
       }
 
       return hsla_impl(hsl_color.h,
-                       hslcolorS - amount->value(),
+                       hslcolorS,
                        hsl_color.l,
                        rgb_color->a(),
                        ctx,
