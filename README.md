@@ -108,7 +108,7 @@ The callback function is passed a results object, containing the following keys:
 `outFile` specifies where the CSS will be saved. This option does not actually output a file, but is used as input for generating a source map.
 
 #### outputStyle
-`outputStyle` is a `String` to determine how the final CSS should be rendered. Its value should be one of `'nested'` or `'compressed'`.
+`outputStyle` is a `String` to determine how the final CSS should be rendered. Its value should be one of `'nested'` or `'compressed'`.  Node-sass defaults to 'nested'.
 [`'expanded'` and `'compact'` are not currently supported by [libsass]]
 
 #### precision
