@@ -98,7 +98,9 @@ function getEmitter() {
 
   emitter.on('error', function(err) {
     console.error(err);
-    process.exit(1);
+    if (!options.watch) {
+      process.exit(1);
+    }
   });
 
   emitter.on('warn', function(data){
