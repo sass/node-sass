@@ -50,18 +50,19 @@
     "meow": "^3.0.0",
     "mkdirp": "^0.5.0",
     "mocha": "^2.1.0",
-    "nan": "^1.6.1",
-    "npmconf": "^1.1.9",
+    "nan": "^1.6.2",
+    "npmconf": "^2.1.1",
     "object-assign": "^2.0.0",
     "replace-ext": "0.0.1",
-    "request": "^2.51.0",
-    "sass-graph": "^1.0.1",
+    "request": "^2.53.0",
+    "sass-graph": "^1.0.3",
     "shelljs": "^0.3.0"
   },
   "devDependencies": {
     "coveralls": "^2.11.2",
     "jscoverage": "^0.5.9",
     "jshint": "^2.6.0",
-    "mocha-lcov-reporter": "^0.0.1"
+    "mocha-lcov-reporter": "^0.0.1",
+    "pangyp": "^2.0.2"
   }
 }
