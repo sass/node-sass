@@ -46,6 +46,19 @@ describe('api', function() {
       });
     });
 
+    it('should compile sass to css with outFile and sourceMap set to relative url', function(done) {
+      sass.render({
+        file: fixture('simple/index.scss'),
+        sourceMap: './deep/nested/index.map',
+        outFile: './index-test.css',
+
+        success: function(result) {
+          assert.equal(JSON.parse(result.map).file, '../../index-test.css');
+          done();
+        }
+      });
+    });
+
     it('should compile sass to css with data', function(done) {
       var src = read(fixture('simple/index.scss'), 'utf8');
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
@@ -376,6 +389,17 @@ describe('api', function() {
       });
 
       assert.equal(JSON.parse(result.map).file, 'index-test.css');
+      done();
+    });
+
+    it('should compile sass to css with outFile and sourceMap set to relative url', function(done) {
+      var result = sass.renderSync({
+        file: fixture('simple/index.scss'),
+        sourceMap: './deep/nested/index.map',
+        outFile: './index-test.css'
+      });
+
+      assert.equal(JSON.parse(result.map).file, '../../index-test.css');
       done();
     });
 
