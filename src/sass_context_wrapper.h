@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <nan.h>
 #include <condition_variable>
 #include "libsass/sass_context.h"
