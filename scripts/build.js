@@ -2,7 +2,8 @@ var fs = require('fs'),
     path = require('path'),
     spawn = require('child_process').spawn,
     mkdir = require('mkdirp'),
-    Mocha = require('mocha');
+    Mocha = require('mocha'),
+    utils = require('../lib/utils');
 
 /**
  * After build
@@ -109,7 +110,7 @@ function parseArgs(args) {
  */
 
 function testBinary(options) {
-  options.bin = options.platform + '-' + options.arch;
+  options.bin = utils.getBinaryIdentifiableName();
 
   if (options.force || process.env.SASS_FORCE_BUILD) {
     return build(options);
