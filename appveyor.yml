@@ -6,18 +6,21 @@ init:
 environment:
   SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
   matrix:
+    # node.js
     - nodejs_version: 0.10
-    - nodejs_version: 0.11
+    - nodejs_version: 0.12
+    # io.js
+    - nodejs_version: "1.1"
 
 install:
   - ps: Install-Product node $env:nodejs_version
   - cmd: SET PATH=C:\python27;%PATH%
   - git submodule update --init --recursive
   - ps: npm install --msvs_version=2013
-
-test_script:
   - node --version
   - npm --version
+
+test_script:
   - npm test
 
 build: off
