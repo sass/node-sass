@@ -2,8 +2,9 @@ var fs = require('fs'),
     path = require('path'),
     request = require('request'),
     mkdirp = require('mkdirp'),
-    exec = require('shelljs').exec,
-    utils = require('../lib/utils');
+    exec = require('shelljs').exec;
+
+require('../lib/extensions');
 
 /**
  * Download file, if succeeds save, if not delete
@@ -77,31 +78,28 @@ function applyProxy(options, cb) {
  */
 
 function exists() {
-  var name = utils.getBinaryIdentifiableName();
-
-  fs.exists(path.join(__dirname, '..', 'vendor', name), function (exists) {
+  fs.exists(path.join(__dirname, '..', 'vendor', process.sassBinaryName), function (exists) {
     if (exists) {
       return;
     }
 
-    fetch(name);
+    fetch();
   });
 }
 
 /**
  * Fetch binaries
  *
- * @param {String} name
  * @api private
  */
 
-function fetch(name) {
+function fetch() {
   var url = [
     'https://raw.githubusercontent.com/sass/node-sass-binaries/v',
-    require('../package.json').version, '/', name,
+    require('../package.json').version, '/', process.sassBinaryName,
     '/binding.node'
   ].join('');
-  var dir = path.join(__dirname, '..', 'vendor', name);
+  var dir = path.join(__dirname, '..', 'vendor', process.sassBinaryName);
   var dest = path.join(dir, 'binding.node');
 
   mkdirp(dir, function(err) {

@@ -2,8 +2,9 @@ var fs = require('fs'),
     path = require('path'),
     spawn = require('child_process').spawn,
     mkdir = require('mkdirp'),
-    Mocha = require('mocha'),
-    utils = require('../lib/utils');
+    Mocha = require('mocha');
+    
+require('../lib/extensions');
 
 /**
  * After build
@@ -15,9 +16,9 @@ var fs = require('fs'),
 function afterBuild(options) {
   var folder = options.debug ? 'Debug' : 'Release';
   var target = path.join(__dirname, '..', 'build', folder, 'binding.node');
-  var install = path.join(__dirname, '..', 'vendor', options.bin, 'binding.node');
+  var install = path.join(__dirname, '..', 'vendor', process.sassBinaryName, 'binding.node');
 
-  mkdir(path.join(__dirname, '..', 'vendor', options.bin), function (err) {
+  mkdir(path.join(__dirname, '..', 'vendor', process.sassBinaryName), function (err) {
     if (err && err.code !== 'EEXIST') {
       console.error(err.message);
       return;
@@ -49,9 +50,8 @@ function afterBuild(options) {
  */
 
 function build(options) {
-  var bin = options.platform === 'win32' ? 'node-gyp.cmd' : 'node-gyp';
-  var proc = spawn(bin, ['rebuild'].concat(options.args), {
-    customFds: [0, 1, 2]
+  var proc = spawn(process.execPath, ['node_modules/pangyp/bin/node-gyp', 'rebuild'].concat(options.args), {
+    stdio: [0, 1, 2]
   });
 
   proc.on('exit', function(code) {
@@ -92,7 +92,7 @@ function parseArgs(args) {
       return false;
     } else if (arg.substring(0, 13) === '--target_arch') {
       options.arch = arg.substring(14);
-    } else if (arg === '--debug') {
+    } else if (arg === '-d' || arg === '--debug') {
       options.debug = true;
     }
 
@@ -110,18 +110,16 @@ function parseArgs(args) {
  */
 
 function testBinary(options) {
-  options.bin = utils.getBinaryIdentifiableName();
-
   if (options.force || process.env.SASS_FORCE_BUILD) {
     return build(options);
   }
 
-  fs.stat(path.join(__dirname, '..', 'vendor', options.bin, 'binding.node'), function (err) {
+  fs.stat(path.join(__dirname, '..', 'vendor', process.sassBinaryName, 'binding.node'), function (err) {
     if (err) {
       return build(options);
     }
 
-    console.log('`' + options.bin + '` exists; testing');
+    console.log('`' + process.sassBinaryName + '` exists; testing');
 
     var mocha = new Mocha({
       ui: 'bdd',
