@@ -194,7 +194,7 @@ void GetSourceMap(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
     source_map = NanNew<String>("{}");
   }
 
-  NanNew(ctx_w->result)->Set(NanNew("sourceMap"), source_map);
+  NanNew(ctx_w->result)->Set(NanNew("map"), source_map);
 }
 
 int GetResult(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
