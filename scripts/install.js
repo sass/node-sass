@@ -2,7 +2,8 @@ var fs = require('fs'),
     path = require('path'),
     request = require('request'),
     mkdirp = require('mkdirp'),
-    exec = require('shelljs').exec;
+    exec = require('shelljs').exec,
+    utils = require('../lib/utils');
 
 /**
  * Download file, if succeeds save, if not delete
@@ -76,7 +77,7 @@ function applyProxy(options, cb) {
  */
 
 function exists() {
-  var name = process.platform + '-' + process.arch;
+  var name = utils.getBinaryIdentifiableName();
 
   fs.exists(path.join(__dirname, '..', 'vendor', name), function (exists) {
     if (exists) {

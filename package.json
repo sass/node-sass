@@ -44,7 +44,7 @@
   ],
   "dependencies": {
     "chalk": "^0.5.1",
-    "cross-spawn": "^0.2.3",
+    "cross-spawn": "^0.2.6",
     "gaze": "^0.5.1",
     "get-stdin": "^4.0.1",
     "meow": "^3.0.0",
@@ -56,6 +56,7 @@
     "replace-ext": "0.0.1",
     "request": "^2.53.0",
     "sass-graph": "^1.0.3",
+    "semver": "^4.2.2",
     "shelljs": "^0.3.0"
   },
   "devDependencies": {
