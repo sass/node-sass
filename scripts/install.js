@@ -16,27 +16,17 @@ require('../lib/extensions');
  */
 
 function download(url, dest, cb) {
-  var file = fs.createWriteStream(dest);
-
   applyProxy({ rejectUnauthorized: false }, function(options) {
     var returnError = function(err) {
-      fs.unlink(dest);
       cb(typeof err.message === 'string' ? err.message : err);
     };
-    var req = request.get(url, options).on('response', function(response) {
+    request.get(url, options).on('response', function(response) {
       if (response.statusCode < 200 || response.statusCode >= 300) {
         returnError('Can not download file from ' + url);
         return;
       }
-      response.pipe(file);
-
-      file.on('finish', function() {
-        file.close(cb);
-      });
+      response.pipe(fs.createWriteStream(dest));
     }).on('error', returnError);
-
-    req.end();
-    req.on('error', returnError);
   });
 }
 
