@@ -2,7 +2,9 @@ var fs = require('fs'),
     path = require('path'),
     request = require('request'),
     mkdirp = require('mkdirp'),
-    exec = require('shelljs').exec;
+    exec = require('shelljs').exec,
+    npmconf = require('npmconf'),
+    packageInfo = require('../package.json');
 
 require('../lib/extensions');
 
@@ -39,25 +41,26 @@ function download(url, dest, cb) {
  */
 
 function applyProxy(options, cb) {
-  require('npmconf').load({}, function (er, conf) {
-    var getProxyFromEnv = true;
-    ['https-proxy', 'proxy', 'http-proxy'].forEach(function(setting) {
-      var proxyUrl = conf.get(setting);
+  npmconf.load({}, function (er, conf) {
+    var proxyUrl;
 
-      if(proxyUrl && proxyUrl === require('url').parse(proxyUrl)) {
-        options.proxy = proxyUrl;
-        getProxyFromEnv = false;
-        cb(options);
-        return;
-      }
-    });
-
-    if(getProxyFromEnv) {
-      var env = process.env;
-      options.proxy = env.HTTPS_PROXY || env.https_proxy || env.HTTP_PROXY || env.http_proxy;
-
-      cb(options);
+    if (!er) {
+      ['https-proxy', 'proxy', 'http-proxy'].some(function(setting) {
+        var npmProxyUrl = conf.get(setting);
+        if (npmProxyUrl) {
+          proxyUrl = npmProxyUrl;
+          return true;
+        }
+      });
     }
+
+    if (!proxyUrl) {
+      var env = process.env;
+      proxyUrl = env.HTTPS_PROXY || env.https_proxy || env.HTTP_PROXY || env.http_proxy;
+    }
+
+    options.proxy = proxyUrl;
+    cb(options);
   });
 }
 
@@ -67,7 +70,7 @@ function applyProxy(options, cb) {
  * @api private
  */
 
-function exists() {
+function checkAndFetchBinaries() {
   fs.exists(path.join(__dirname, '..', 'vendor', process.sassBinaryName), function (exists) {
     if (exists) {
       return;
@@ -86,7 +89,7 @@ function exists() {
 function fetch() {
   var url = [
     'https://raw.githubusercontent.com/sass/node-sass-binaries/v',
-    require('../package.json').version, '/', process.sassBinaryName,
+    packageInfo.version, '/', process.sassBinaryName,
     '/binding.node'
   ].join('');
   var dir = path.join(__dirname, '..', 'vendor', process.sassBinaryName);
@@ -122,4 +125,4 @@ if (process.env.SKIP_SASS_BINARY_DOWNLOAD_FOR_CI) {
  * Run
  */
 
-exists();
+checkAndFetchBinaries();
