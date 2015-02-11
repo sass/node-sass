@@ -6,11 +6,12 @@ compiler:
   - gcc
 node_js:
   - "0.10"
-  - "0.11"
+  - "0.12"
+  - iojs
 matrix:
   fast_finish: true
   allow_failures:
-    - node_js: "0.11"
+    - node_js: iojs
 before_install:
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;
   - sudo apt-get update;
