@@ -88,8 +88,8 @@ function checkAndFetchBinaries() {
 
 function fetch() {
   var url = [
-    'https://raw.githubusercontent.com/sass/node-sass-binaries/v',
-    packageInfo.version, '/', process.sassBinaryName,
+    'https://raw.githubusercontent.com/sass/node-sass-binaries/master',
+    '/', process.sassBinaryName,
     '/binding.node'
   ].join('');
   var dir = path.join(__dirname, '..', 'vendor', process.sassBinaryName);
