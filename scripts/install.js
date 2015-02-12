@@ -22,11 +22,13 @@ function download(url, dest, cb) {
     var returnError = function(err) {
       cb(typeof err.message === 'string' ? err.message : err);
     };
+
     request.get(url, options).on('response', function(response) {
       if (response.statusCode < 200 || response.statusCode >= 300) {
         returnError('Can not download file from ' + url);
         return;
       }
+
       response.pipe(fs.createWriteStream(dest));
     }).on('error', returnError);
   });
@@ -45,21 +47,19 @@ function applyProxy(options, cb) {
     var proxyUrl;
 
     if (!er) {
-      ['https-proxy', 'proxy', 'http-proxy'].some(function(setting) {
-        var npmProxyUrl = conf.get(setting);
-        if (npmProxyUrl) {
-          proxyUrl = npmProxyUrl;
-          return true;
-        }
-      });
+      proxyUrl = conf.get('https-proxy') ||
+                 conf.get('proxy') ||
+                 conf.get('http-proxy');
     }
 
-    if (!proxyUrl) {
-      var env = process.env;
-      proxyUrl = env.HTTPS_PROXY || env.https_proxy || env.HTTP_PROXY || env.http_proxy;
-    }
+    var env = process.env;
 
-    options.proxy = proxyUrl;
+    options.proxy = proxyUrl ||
+                    env.HTTPS_PROXY ||
+                    env.https_proxy ||
+                    env.HTTP_PROXY ||
+                    env.http_proxy;
+
     cb(options);
   });
 }
