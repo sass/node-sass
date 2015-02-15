@@ -359,6 +359,21 @@ describe('api', function() {
         }
       });
     });
+
+    it('should be able to see its options in this.options', function(done) {
+      var fxt = fixture('include-files/index.scss');
+      sass.render({
+        file: fxt,
+        success: function() {
+          assert.equal(fxt, this.options.file);
+          done();
+        },
+        importer: function() {
+          assert.equal(fxt, this.options.file);
+          return {};
+        }
+      });
+    });
   });
 
   describe('.renderSync(options)', function() {
@@ -519,6 +534,21 @@ describe('api', function() {
       });
 
       assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
+    it('should be able to see its options in this.options', function(done) {
+      var fxt = fixture('include-files/index.scss');
+      var sync = false;
+      sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function() {
+          assert.equal(fxt, this.options.file);
+          sync = true;
+          return {};
+        }
+      });
+      assert.equal(sync, true);
       done();
     });
   });

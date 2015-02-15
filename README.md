@@ -88,11 +88,17 @@ The callback function is passed a results object, containing the following keys:
     * `duration` - *end* - *start*
     * `includedFiles` - Absolute paths to all related scss files in no particular order.
 
+The options passed in to `render` are available as `this.options` within the `Function`.
+
 #### error
 `error` is a `Function` to be called upon occurrence of an error when rendering the scss to css. This option is optional, and only applies to the render function. If provided to renderSync it will be ignored.
 
+The options passed in to `render` are available as `this.options` within the `Function`.
+
 #### importer (starting from v2)
 `importer` is a `Function` to be called when libsass parser encounters the import directive. If present, libsass will call node-sass and let the user change file, data or both during the compilation. This option is optional, and applies to both render and renderSync functions. Also, it can either return object of form `{file:'..', contents: '..'}` or send it back via `done({})`. Note in renderSync or render, there is no restriction imposed on using `done()` callback or `return` statement (dispite of the asnchrony difference).
+
+The options passed in to `render` and `renderSync` are available as `this.options` within the `Function`.
 
 #### includePaths
 `includePaths` is an `Array` of path `String`s to look for any `@import`ed files. It is recommended that you use this option if you are using the `data` option and have **any** `@import` directives, as otherwise [libsass] may not find your depended-on files.
