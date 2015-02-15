@@ -44,6 +44,7 @@
   ],
   "dependencies": {
     "chalk": "^0.5.1",
+    "clone": "^1.0.0",
     "cross-spawn": "^0.2.6",
     "gaze": "^0.5.1",
     "get-stdin": "^4.0.1",
