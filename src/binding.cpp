@@ -2,7 +2,7 @@
 #include <vector>
 #include "sass_context_wrapper.h"
 
-char* CreateString(Local<Value> value) {
+char* create_string(Local<Value> value) {
   if (value->IsNull() || !value->IsString()) {
     return 0;
   }
@@ -30,8 +30,8 @@ void prepare_import_results(Local<Value> returned_value, sass_context_wrapper* c
         continue;
 
       Local<Object> object = Local<Object>::Cast(value);
-      char* path = CreateString(object->Get(NanNew<String>("file")));
-      char* contents = CreateString(object->Get(NanNew<String>("contents")));
+      char* path = create_string(object->Get(NanNew<String>("file")));
+      char* contents = create_string(object->Get(NanNew<String>("contents")));
 
       ctx_w->imports[i] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
     }
@@ -39,8 +39,8 @@ void prepare_import_results(Local<Value> returned_value, sass_context_wrapper* c
   else if (returned_value->IsObject()) {
     ctx_w->imports = sass_make_import_list(1);
     Local<Object> object = Local<Object>::Cast(returned_value);
-    char* path = CreateString(object->Get(NanNew<String>("file")));
-    char* contents = CreateString(object->Get(NanNew<String>("contents")));
+    char* path = create_string(object->Get(NanNew<String>("file")));
+    char* contents = create_string(object->Get(NanNew<String>("contents")));
 
     ctx_w->imports[0] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
   }
@@ -106,14 +106,14 @@ struct Sass_Import** sass_importer(const char* file, const char* prev, void* coo
   return ctx_w->imports;
 }
 
-void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx_w, bool isFile, bool isSync) {
+void extract_options(Local<Object> options, void* cptr, sass_context_wrapper* ctx_w, bool is_file, bool is_sync) {
   NanScope();
 
   struct Sass_Context* ctx;
 
   NanAssignPersistent(ctx_w->result, options->Get(NanNew("result"))->ToObject());
 
-  if (isFile) {
+  if (is_file) {
     ctx_w->fctx = (struct Sass_File_Context*) cptr;
     ctx = sass_file_context_get_context(ctx_w->fctx);
   }
@@ -125,9 +125,9 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
   struct Sass_Options* sass_options = sass_context_get_options(ctx);
 
   ctx_w->importer_callback = NULL;
-  ctx_w->is_sync = isSync;
+  ctx_w->is_sync = is_sync;
 
-  if (!isSync) {
+  if (!is_sync) {
     ctx_w->request.data = ctx_w;
 
     // async (callback) style
@@ -146,24 +146,24 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
     sass_option_set_importer(sass_options, sass_make_importer(sass_importer, ctx_w));
   }
 
-  if(!isFile) {
-    sass_option_set_input_path(sass_options, CreateString(options->Get(NanNew("file"))));
+  if(!is_file) {
+    sass_option_set_input_path(sass_options, create_string(options->Get(NanNew("file"))));
   }
 
-  sass_option_set_output_path(sass_options, CreateString(options->Get(NanNew("outFile"))));
-  sass_option_set_image_path(sass_options, CreateString(options->Get(NanNew("imagePath"))));
+  sass_option_set_output_path(sass_options, create_string(options->Get(NanNew("outFile"))));
+  sass_option_set_image_path(sass_options, create_string(options->Get(NanNew("imagePath"))));
   sass_option_set_output_style(sass_options, (Sass_Output_Style)options->Get(NanNew("style"))->Int32Value());
   sass_option_set_is_indented_syntax_src(sass_options, options->Get(NanNew("indentedSyntax"))->BooleanValue());
   sass_option_set_source_comments(sass_options, options->Get(NanNew("comments"))->BooleanValue());
   sass_option_set_omit_source_map_url(sass_options, options->Get(NanNew("omitSourceMapUrl"))->BooleanValue());
   sass_option_set_source_map_embed(sass_options, options->Get(NanNew("sourceMapEmbed"))->BooleanValue());
   sass_option_set_source_map_contents(sass_options, options->Get(NanNew("sourceMapContents"))->BooleanValue());
-  sass_option_set_source_map_file(sass_options, CreateString(options->Get(NanNew("sourceMap"))));
-  sass_option_set_include_path(sass_options, CreateString(options->Get(NanNew("paths"))));
+  sass_option_set_source_map_file(sass_options, create_string(options->Get(NanNew("sourceMap"))));
+  sass_option_set_include_path(sass_options, create_string(options->Get(NanNew("paths"))));
   sass_option_set_precision(sass_options, options->Get(NanNew("precision"))->Int32Value());
 }
 
-void GetStats(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
+void get_stats(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
   NanScope();
 
   char** included_files = sass_context_get_included_files(ctx);
@@ -178,7 +178,7 @@ void GetStats(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
   NanNew(ctx_w->result)->Get(NanNew("stats"))->ToObject()->Set(NanNew("includedFiles"), arr);
 }
 
-void GetSourceMap(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
+void get_source_map(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
   NanScope();
 
   Handle<Value> source_map;
@@ -197,15 +197,15 @@ void GetSourceMap(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
   NanNew(ctx_w->result)->Set(NanNew("map"), source_map);
 }
 
-int GetResult(sass_context_wrapper* ctx_w, Sass_Context* ctx, bool is_sync = false) {
+int get_result(sass_context_wrapper* ctx_w, Sass_Context* ctx, bool is_sync = false) {
   NanScope();
 
   int status = sass_context_get_error_status(ctx);
 
   if (status == 0) {
     NanNew(ctx_w->result)->Set(NanNew("css"), NanNew<String>(sass_context_get_output_string(ctx)));
-    GetStats(ctx_w, ctx);
-    GetSourceMap(ctx_w, ctx);
+    get_stats(ctx_w, ctx);
+    get_source_map(ctx_w, ctx);
   }
   else if (is_sync) {
     NanNew(ctx_w->result)->Set(NanNew("error"), NanNew<String>(sass_context_get_error_json(ctx)));
@@ -228,7 +228,7 @@ void make_callback(uv_work_t* req) {
     ctx = sass_file_context_get_context(ctx_w->fctx);
   }
 
-  int status = GetResult(ctx_w, ctx);
+  int status = get_result(ctx_w, ctx);
 
   if (status == 0 && ctx_w->success_callback) {
     // if no error, do callback(null, result)
@@ -253,15 +253,15 @@ void make_callback(uv_work_t* req) {
   sass_free_context_wrapper(ctx_w);
 }
 
-NAN_METHOD(Render) {
+NAN_METHOD(render) {
   NanScope();
 
   Local<Object> options = args[0]->ToObject();
-  char* source_string = CreateString(options->Get(NanNew("data")));
+  char* source_string = create_string(options->Get(NanNew("data")));
   struct Sass_Data_Context* dctx = sass_make_data_context(source_string);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
 
-  ExtractOptions(options, dctx, ctx_w, false, false);
+  extract_options(options, dctx, ctx_w, false, false);
 
   int status = uv_queue_work(uv_default_loop(), &ctx_w->request, compile_it, (uv_after_work_cb)make_callback);
 
@@ -270,35 +270,35 @@ NAN_METHOD(Render) {
   NanReturnUndefined();
 }
 
-NAN_METHOD(RenderSync) {
+NAN_METHOD(render_sync) {
   NanScope();
 
   Local<Object> options = args[0]->ToObject();
-  char* source_string = CreateString(options->Get(NanNew("data")));
+  char* source_string = create_string(options->Get(NanNew("data")));
   struct Sass_Data_Context* dctx = sass_make_data_context(source_string);
   struct Sass_Context* ctx = sass_data_context_get_context(dctx);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
 
-  ExtractOptions(options, dctx, ctx_w, false, true);
+  extract_options(options, dctx, ctx_w, false, true);
 
   compile_data(dctx);
 
-  int result = GetResult(ctx_w, ctx, true);
+  int result = get_result(ctx_w, ctx, true);
 
   sass_wrapper_dispose(ctx_w, source_string);
 
   NanReturnValue(NanNew<Boolean>(result == 0));
 }
 
-NAN_METHOD(RenderFile) {
+NAN_METHOD(render_file) {
   NanScope();
 
   Local<Object> options = args[0]->ToObject();
-  char* input_path = CreateString(options->Get(NanNew("file")));
+  char* input_path = create_string(options->Get(NanNew("file")));
   struct Sass_File_Context* fctx = sass_make_file_context(input_path);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
 
-  ExtractOptions(options, fctx, ctx_w, true, false);
+  extract_options(options, fctx, ctx_w, true, false);
 
   int status = uv_queue_work(uv_default_loop(), &ctx_w->request, compile_it, (uv_after_work_cb)make_callback);
 
@@ -307,26 +307,26 @@ NAN_METHOD(RenderFile) {
   NanReturnUndefined();
 }
 
-NAN_METHOD(RenderFileSync) {
+NAN_METHOD(render_file_sync) {
   NanScope();
 
   Local<Object> options = args[0]->ToObject();
-  char* input_path = CreateString(options->Get(NanNew("file")));
+  char* input_path = create_string(options->Get(NanNew("file")));
   struct Sass_File_Context* fctx = sass_make_file_context(input_path);
   struct Sass_Context* ctx = sass_file_context_get_context(fctx);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
 
-  ExtractOptions(options, fctx, ctx_w, true, true);
+  extract_options(options, fctx, ctx_w, true, true);
   compile_file(fctx);
 
-  int result = GetResult(ctx_w, ctx, true);
+  int result = get_result(ctx_w, ctx, true);
 
   sass_wrapper_dispose(ctx_w, input_path);
 
   NanReturnValue(NanNew<Boolean>(result == 0));
 }
 
-NAN_METHOD(ImportedCallback) {
+NAN_METHOD(imported_callback) {
   NanScope();
 
   TryCatch try_catch;
@@ -352,11 +352,11 @@ NAN_METHOD(ImportedCallback) {
 }
 
 void RegisterModule(v8::Handle<v8::Object> target) {
-  NODE_SET_METHOD(target, "render", Render);
-  NODE_SET_METHOD(target, "renderSync", RenderSync);
-  NODE_SET_METHOD(target, "renderFile", RenderFile);
-  NODE_SET_METHOD(target, "renderFileSync", RenderFileSync);
-  NODE_SET_METHOD(target, "importedCallback", ImportedCallback);
+  NODE_SET_METHOD(target, "render", render);
+  NODE_SET_METHOD(target, "renderSync", render_sync);
+  NODE_SET_METHOD(target, "renderFile", render_file);
+  NODE_SET_METHOD(target, "renderFileSync", render_file_sync);
+  NODE_SET_METHOD(target, "importedCallback", imported_callback);
 }
 
 NODE_MODULE(binding, RegisterModule);
