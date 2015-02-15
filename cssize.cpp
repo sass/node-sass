@@ -208,7 +208,7 @@ namespace Sass {
   Statement* Cssize::bubble(At_Rule* m)
   {
     Block* bb = new (ctx.mem) Block(this->parent()->pstate());
-    Has_Block* new_rule = static_cast<Has_Block*>(this->parent());
+    Has_Block* new_rule = static_cast<Has_Block*>(shallow_copy(this->parent()));
     new_rule->block(bb);
     new_rule->tabs(this->parent()->tabs());
 
@@ -232,7 +232,7 @@ namespace Sass {
   Statement* Cssize::bubble(At_Root_Block* m)
   {
     Block* bb = new (ctx.mem) Block(this->parent()->pstate());
-    Has_Block* new_rule = static_cast<Has_Block*>(this->parent());
+    Has_Block* new_rule = static_cast<Has_Block*>(shallow_copy(this->parent()));
     new_rule->block(bb);
     new_rule->tabs(this->parent()->tabs());
 
@@ -252,7 +252,7 @@ namespace Sass {
 
   Statement* Cssize::bubble(Feature_Block* m)
   {
-    Ruleset* parent = static_cast<Ruleset*>(this->parent());
+    Ruleset* parent = static_cast<Ruleset*>(shallow_copy(this->parent()));
 
     Block* bb = new (ctx.mem) Block(parent->block()->pstate());
     Ruleset* new_rule = new (ctx.mem) Ruleset(parent->pstate(),
@@ -276,7 +276,7 @@ namespace Sass {
 
   Statement* Cssize::bubble(Media_Block* m)
   {
-    Ruleset* parent = static_cast<Ruleset*>(this->parent());
+    Ruleset* parent = static_cast<Ruleset*>(shallow_copy(this->parent()));
 
     Block* bb = new (ctx.mem) Block(parent->block()->pstate());
     Ruleset* new_rule = new (ctx.mem) Ruleset(parent->pstate(),
