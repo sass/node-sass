@@ -197,16 +197,18 @@ void GetSourceMap(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
   NanNew(ctx_w->result)->Set(NanNew("map"), source_map);
 }
 
-int GetResult(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
+int GetResult(sass_context_wrapper* ctx_w, Sass_Context* ctx, bool is_sync = false) {
   NanScope();
 
   int status = sass_context_get_error_status(ctx);
 
   if (status == 0) {
     NanNew(ctx_w->result)->Set(NanNew("css"), NanNew<String>(sass_context_get_output_string(ctx)));
-
     GetStats(ctx_w, ctx);
     GetSourceMap(ctx_w, ctx);
+  }
+  else if (is_sync) {
+    NanNew(ctx_w->result)->Set(NanNew("error"), NanNew<String>(sass_context_get_error_json(ctx)));
   }
 
   return status;
@@ -236,10 +238,9 @@ void make_callback(uv_work_t* req) {
     // if error, do callback(error)
     const char* err = sass_context_get_error_json(ctx);
     Local<Value> argv[] = {
-      NanNew<String>(err),
-      NanNew<Integer>(status)
+      NanNew<String>(err)
     };
-    ctx_w->error_callback->Call(2, argv);
+    ctx_w->error_callback->Call(1, argv);
   }
   if (try_catch.HasCaught()) {
     node::FatalException(try_catch);
@@ -282,18 +283,9 @@ NAN_METHOD(RenderSync) {
 
   compile_data(dctx);
 
-  int result = GetResult(ctx_w, ctx);
-  Local<String> error;
-
-  if (result != 0) {
-    error = NanNew<String>(sass_context_get_error_json(ctx));
-  }
+  int result = GetResult(ctx_w, ctx, true);
 
   sass_wrapper_dispose(ctx_w, source_string);
-
-  if (result != 0) {
-    NanThrowError(error);
-  }
 
   NanReturnValue(NanNew<Boolean>(result == 0));
 }
@@ -327,18 +319,9 @@ NAN_METHOD(RenderFileSync) {
   ExtractOptions(options, fctx, ctx_w, true, true);
   compile_file(fctx);
 
-  int result = GetResult(ctx_w, ctx);
-  Local<String> error;
-
-  if (result != 0) {
-    error = NanNew<String>(sass_context_get_error_json(ctx));
-  }
+  int result = GetResult(ctx_w, ctx, true);
 
   sass_wrapper_dispose(ctx_w, input_path);
-
-  if (result != 0) {
-    NanThrowError(error);
-  }
 
   NanReturnValue(NanNew<Boolean>(result == 0));
 }
