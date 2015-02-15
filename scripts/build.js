@@ -50,7 +50,11 @@ function afterBuild(options) {
  */
 
 function build(options) {
-  var proc = spawn(process.execPath, ['node_modules/pangyp/bin/node-gyp', 'rebuild'].concat(options.args), {
+  var arguments = ['node_modules/pangyp/bin/node-gyp', 'rebuild'].concat(options.args);
+
+  console.log(['Building:', process.runtime.execPath].concat(arguments).join(' '));
+
+  var proc = spawn(process.runtime.execPath, arguments, {
     stdio: [0, 1, 2]
   });
 

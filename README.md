@@ -75,7 +75,7 @@ The API for using node-sass has changed, so that now there is only one variable 
 `data` is a `String` containing the scss to be rendered by [libsass]. One of this or `file` options are required, for both render and renderSync. It is recommended that you use the `includePaths` option in conjunction with this, as otherwise [libsass] may have trouble finding files imported via the `@import` directive.
 
 #### success
-`success` is a `Function` to be called upon successful rendering of the scss to css. This option is required but only for the render function. If provided to renderSync it will be ignored.
+`success` is a `Function` to be called upon successful rendering of the scss to css. This option is required but only for the render function. If provided to `renderSync` it will be ignored. The error object take
 
 The callback function is passed a results object, containing the following keys:
 
@@ -89,7 +89,17 @@ The callback function is passed a results object, containing the following keys:
     * `includedFiles` - Absolute paths to all related scss files in no particular order.
 
 #### error
-`error` is a `Function` to be called upon occurrence of an error when rendering the scss to css. This option is optional, and only applies to the render function. If provided to renderSync it will be ignored.
+`error` is a `Function` to be called upon occurrence of an error when rendering the scss to css. This option is optional, and only applies to the render function.
+
+The callback function is passed an error object, containing the following keys:
+
+* `message` - The error message.
+* `line` - The line number of error.
+* `column` - The column number of error.
+* `status` - The status code.
+* `file` - The filename of error. In case `file` option was not set (in favour of `data`), this will reflect the value `stdin`.
+
+Note: If this option is provided to renderSync it will be ignored. In case of `renderSync` the error is thrown to stderr, which is try-catchable. In catch block, the same error object will be received.
 
 #### importer (starting from v2)
 `importer` is a `Function` to be called when libsass parser encounters the import directive. If present, libsass will call node-sass and let the user change file, data or both during the compilation. This option is optional, and applies to both render and renderSync functions. Also, it can either return object of form `{file:'..', contents: '..'}` or send it back via `done({})`. Note in renderSync or render, there is no restriction imposed on using `done()` callback or `return` statement (dispite of the asnchrony difference).
@@ -141,10 +151,10 @@ sass.render({
         console.log(result.stats);
         console.log(result.map)
 	},
-	error: function(error) {
+	error: function(error) { // starting v2.1 error is an Error-typed object
 		// error is an object: v2 change
 		console.log(error.message);
-		console.log(error.code);
+		console.log(error.status); // changed from code to status in v2.1
 		console.log(error.line);
 		console.log(error.column); // new in v2
 	},
@@ -278,9 +288,6 @@ npm install
 npm install -g node-gyp
 node-gyp rebuild  # to make debug release, use -d switch
 ```
-
-### Workaround for node `v0.11.13` `v0.11.14`
-Follow the steps above, but comment out this [line](https://github.com/sass/node-sass/blob/e01497c4d4b8a7a7f4dbf9d607920ac10ad64445/lib/index.js#L181) in `lib/index.js` before the `npm install` step. Then uncomment it back again, and continue with the rest of the steps (see issue [#563](https://github.com/sass/node-sass/issues/563)).
 
 ## Command Line Interface
 
