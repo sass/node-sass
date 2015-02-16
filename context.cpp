@@ -55,7 +55,6 @@ namespace Sass {
     c_functions             (vector<Sass_C_Function_Callback>()),
     indent                  (initializers.indent()),
     linefeed                (initializers.linefeed()),
-    image_path              (initializers.image_path()),
     input_path              (make_canonical_path(initializers.input_path())),
     output_path             (make_canonical_path(initializers.output_path())),
     source_comments         (initializers.source_comments()),
@@ -475,8 +474,6 @@ namespace Sass {
     // Boolean Functions
     register_function(ctx, not_sig, sass_not, env);
     register_function(ctx, if_sig, sass_if, env);
-    // Path Functions
-    register_function(ctx, image_url_sig, image_url, env);
     // Misc Functions
     register_function(ctx, inspect_sig, inspect, env);
     register_function(ctx, unique_id_sig, unique_id, env);

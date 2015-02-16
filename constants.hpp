@@ -5,9 +5,6 @@ namespace Sass {
   namespace Constants {
     extern const int SPECIFICITY_BASE;
 
-    // hidden variable name for the image path (for the image-url built-in)
-    extern const char image_path_var[];
-
     // sass keywords
     extern const char at_root_kwd[];
     extern const char import_kwd[];

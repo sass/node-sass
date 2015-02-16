@@ -61,7 +61,6 @@ namespace Sass {
 
     string       indent; // String to be used for indentation
     string       linefeed; // String to be used for line feeds
-    string       image_path; // for the image-url Sass function
     string       input_path; // for relative paths in src-map
     string       output_path; // for relative paths to the output
     bool         source_comments; // for inline debug comments in css output
@@ -87,7 +86,6 @@ namespace Sass {
       KWD_ARG(Data, string,          entry_point);
       KWD_ARG(Data, string,          input_path);
       KWD_ARG(Data, string,          output_path);
-      KWD_ARG(Data, string,          image_path);
       KWD_ARG(Data, string,          indent);
       KWD_ARG(Data, string,          linefeed);
       KWD_ARG(Data, const char*,     include_paths_c_str);

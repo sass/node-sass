@@ -70,7 +70,6 @@ ADDAPI const char* ADDCALL sass_option_get_indent (struct Sass_Options* options)
 ADDAPI const char* ADDCALL sass_option_get_linefeed (struct Sass_Options* options);
 ADDAPI const char* ADDCALL sass_option_get_input_path (struct Sass_Options* options);
 ADDAPI const char* ADDCALL sass_option_get_output_path (struct Sass_Options* options);
-ADDAPI const char* ADDCALL sass_option_get_image_path (struct Sass_Options* options);
 ADDAPI const char* ADDCALL sass_option_get_include_path (struct Sass_Options* options);
 ADDAPI const char* ADDCALL sass_option_get_source_map_file (struct Sass_Options* options);
 ADDAPI Sass_C_Function_List ADDCALL sass_option_get_c_functions (struct Sass_Options* options);
@@ -88,7 +87,6 @@ ADDAPI void ADDCALL sass_option_set_indent (struct Sass_Options* options, const 
 ADDAPI void ADDCALL sass_option_set_linefeed (struct Sass_Options* options, const char* linefeed);
 ADDAPI void ADDCALL sass_option_set_input_path (struct Sass_Options* options, const char* input_path);
 ADDAPI void ADDCALL sass_option_set_output_path (struct Sass_Options* options, const char* output_path);
-ADDAPI void ADDCALL sass_option_set_image_path (struct Sass_Options* options, const char* image_path);
 ADDAPI void ADDCALL sass_option_set_include_path (struct Sass_Options* options, const char* include_path);
 ADDAPI void ADDCALL sass_option_set_source_map_file (struct Sass_Options* options, const char* source_map_file);
 ADDAPI void ADDCALL sass_option_set_c_functions (struct Sass_Options* options, Sass_C_Function_List c_functions);
