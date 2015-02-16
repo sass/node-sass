@@ -1056,12 +1056,8 @@ namespace Sass {
 
     // Special case: Ruby sass never tries to modulo if the lhs contains an interpolant
     if (peek< exactly<'%'> >(position) && fact1->concrete_type() == Expression::STRING) {
-      try {
-        String_Schema* ss = dynamic_cast<String_Schema*>(fact1);
-        if (ss->has_interpolants()) return fact1;
-      }
-      catch (bad_cast&) {}
-      catch (...) { throw; }
+      String_Schema* ss = dynamic_cast<String_Schema*>(fact1);
+      if (ss && ss->has_interpolants()) return fact1;
     }
 
     // if it's a singleton, return it directly; don't wrap it
