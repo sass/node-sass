@@ -1402,7 +1402,7 @@ namespace Sass {
     Signature variable_exists_sig = "variable-exists($name)";
     BUILT_IN(variable_exists)
     {
-      string s = unquote(ARG("$name", String_Constant)->value());
+      string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
 
       if(d_env.has("$"+s)) {
         return new (ctx.mem) Boolean(pstate, true);
@@ -1415,7 +1415,7 @@ namespace Sass {
     Signature global_variable_exists_sig = "global-variable-exists($name)";
     BUILT_IN(global_variable_exists)
     {
-      string s = unquote(ARG("$name", String_Constant)->value());
+      string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
 
       if(d_env.global_frame_has("$"+s)) {
         return new (ctx.mem) Boolean(pstate, true);
@@ -1428,7 +1428,7 @@ namespace Sass {
     Signature function_exists_sig = "function-exists($name)";
     BUILT_IN(function_exists)
     {
-      string s = unquote(ARG("$name", String_Constant)->value());
+      string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
 
       if(d_env.global_frame_has(s+"[f]")) {
         return new (ctx.mem) Boolean(pstate, true);
@@ -1441,7 +1441,7 @@ namespace Sass {
     Signature mixin_exists_sig = "mixin-exists($name)";
     BUILT_IN(mixin_exists)
     {
-      string s = unquote(ARG("$name", String_Constant)->value());
+      string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
 
       if(d_env.global_frame_has(s+"[m]")) {
         return new (ctx.mem) Boolean(pstate, true);
@@ -1467,7 +1467,7 @@ namespace Sass {
     Signature call_sig = "call($name, $args...)";
     BUILT_IN(call)
     {
-      string name = unquote(ARG("$name", String_Constant)->value());
+      string name = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
       List* arglist = new (ctx.mem) List(*ARG("$args", List));
 
       Arguments* args = new (ctx.mem) Arguments(pstate);
