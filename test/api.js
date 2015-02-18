@@ -173,6 +173,28 @@ describe('api', function() {
     });
   });
 
+  describe('.render(options, cb)', function() {
+    it('should compile sass to css with file', function(done) {
+      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
+      sass.render({
+        file: fixture('simple/index.scss')
+      }, function(err, result) {
+        assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
+        done();
+      });
+    });
+
+    it('should throw error status 1 for bad input', function(done) {
+      sass.render({
+        data: '#navbar width 80%;'
+      }, function(err) {
+        assert(err.message);
+        assert.equal(err.status, 1);
+        done();
+      });
+    });
+  });
+
   describe('.render(importer)', function() {
     var src = read(fixture('include-files/index.scss'), 'utf8');
 
@@ -299,7 +321,7 @@ describe('api', function() {
         }
       });
     });
-	
+
     it('should override imports with "data" as input and fires callback with contents', function(done) {
       sass.render({
         data: src,
@@ -353,6 +375,38 @@ describe('api', function() {
           done();
         },
         importer: function() {
+          return {
+            contents: 'div {color: yellow;}'
+          };
+        }
+      });
+    });
+
+    it('should be able to see its options in this.options', function(done) {
+      var fxt = fixture('include-files/index.scss');
+      sass.render({
+        file: fxt,
+        success: function() {
+          assert.equal(fxt, this.options.file);
+          done();
+        },
+        importer: function() {
+          assert.equal(fxt, this.options.file);
+          return {};
+        }
+      });
+    });
+
+    it('should be able to view a persistent state object', function(done) {
+      sass.render({
+        data: src,
+        success: function() {
+          assert.equal(this.state.count, 2);
+          done();
+        },
+        importer: function() {
+          this.state.count = this.state.count || 0;
+          this.state.count++;
           return {
             contents: 'div {color: yellow;}'
           };
@@ -493,7 +547,7 @@ describe('api', function() {
       assert.equal(result.css.trim(), '');
       done();
     });
-	
+
     it('should override imports with "data" as input and returns contents', function(done) {
       var result = sass.renderSync({
         data: src,
@@ -519,6 +573,21 @@ describe('api', function() {
       });
 
       assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
+    it('should be able to see its options in this.options', function(done) {
+      var fxt = fixture('include-files/index.scss');
+      var sync = false;
+      sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function() {
+          assert.equal(fxt, this.options.file);
+          sync = true;
+          return {};
+        }
+      });
+      assert.equal(sync, true);
       done();
     });
   });
@@ -713,8 +782,8 @@ describe('api', function() {
   describe('.info()', function() {
     it('should return a correct version info', function(done) {
       assert.equal(sass.info(), [
-        'node-sass version: ' + require('../package.json').version, 
-        'libsass version: ' + require('../package.json').libsass 
+        'node-sass version: ' + require('../package.json').version,
+        'libsass version: ' + require('../package.json').libsass
       ].join('\n'));
 
       done();

@@ -54,9 +54,8 @@ Compiling versions 0.9.4 and above on Windows machines requires [Visual Studio 2
 var sass = require('node-sass');
 sass.render({
 	file: scss_filename,
-	success: callback
 	[, options..]
-	});
+}, function(err, result) { /*...*/ });
 // OR
 var result = sass.renderSync({
 	data: scss_content
@@ -66,7 +65,7 @@ var result = sass.renderSync({
 
 ### Options
 
-The API for using node-sass has changed, so that now there is only one variable - an options hash. Some of these options are optional, and in some circumstances some are mandatory.
+The API for using node-sass has changed, so that now there are only two variables - an options hash and a callback. Some of these options are optional, and in some circumstances some are mandatory.
 
 #### file
 `file` is a `String` of the path to an `scss` file for [libsass] to render. One of this or `data` options are required, for both render and renderSync.
@@ -74,35 +73,37 @@ The API for using node-sass has changed, so that now there is only one variable 
 #### data
 `data` is a `String` containing the scss to be rendered by [libsass]. One of this or `file` options are required, for both render and renderSync. It is recommended that you use the `includePaths` option in conjunction with this, as otherwise [libsass] may have trouble finding files imported via the `@import` directive.
 
-#### success
-`success` is a `Function` to be called upon successful rendering of the scss to css. This option is required but only for the render function. If provided to `renderSync` it will be ignored. The error object take
-
-The callback function is passed a results object, containing the following keys:
-
-* `css` - The compiled CSS. Write this to a file, or serve it out as needed.
-* `map` - The source map
-* `stats` - An object containing information about the compile. It contains the following keys:
-    * `entry` - The path to the scss file, or `data` if the source was not a file
-    * `start` - Date.now() before the compilation
-    * `end` - Date.now() after the compilation
-    * `duration` - *end* - *start*
-    * `includedFiles` - Absolute paths to all related scss files in no particular order.
-
-#### error
-`error` is a `Function` to be called upon occurrence of an error when rendering the scss to css. This option is optional, and only applies to the render function.
-
-The callback function is passed an error object, containing the following keys:
-
-* `message` - The error message.
-* `line` - The line number of error.
-* `column` - The column number of error.
-* `status` - The status code.
-* `file` - The filename of error. In case `file` option was not set (in favour of `data`), this will reflect the value `stdin`.
-
-Note: If this option is provided to renderSync it will be ignored. In case of `renderSync` the error is thrown to stderr, which is try-catchable. In catch block, the same error object will be received.
+#### deprecated: success / error
+> `success` is a `Function` to be called upon successful rendering of the scss to css. This option is required but only for the render function. If provided to `renderSync` it will be ignored.
+>
+> The callback function is passed a results object, containing the following keys:
+>
+> * `css` - The compiled CSS. Write this to a file, or serve it out as needed.
+> * `map` - The source map
+> * `stats` - An object containing information about the compile. It contains the following keys:
+>   * `entry` - The path to the scss file, or `data` if the source was not a file
+>   * `start` - Date.now() before the compilation
+>   * `end` - Date.now() after the compilation
+>   * `duration` - *end* - *start*
+>   * `includedFiles` - Absolute paths to all related scss files in no particular order.
+>
+>
+> `error` is a `Function` to be called upon occurrence of an error when rendering the scss to css. This option is optional, and only applies to the render function.
+>
+> The callback function is passed an error object, containing the following keys:
+>
+> * `message` - The error message.
+> * `line` - The line number of error.
+> * `column` - The column number of error.
+> * `status` - The status code.
+> * `file` - The filename of error. In case `file` option was not set (in favour of `data`), this will reflect the value `stdin`.
+>
+> Note: If this option is provided to renderSync it will be ignored. In case of `renderSync` the error is thrown to stderr, which is try-catchable. In catch block, the same error object will be received.
 
 #### importer (starting from v2)
 `importer` is a `Function` to be called when libsass parser encounters the import directive. If present, libsass will call node-sass and let the user change file, data or both during the compilation. This option is optional, and applies to both render and renderSync functions. Also, it can either return object of form `{file:'..', contents: '..'}` or send it back via `done({})`. Note in renderSync or render, there is no restriction imposed on using `done()` callback or `return` statement (dispite of the asnchrony difference).
+
+The options passed in to `render` and `renderSync` are available as `this.options` within the `Function`.
 
 #### includePaths
 `includePaths` is an `Array` of path `String`s to look for any `@import`ed files. It is recommended that you use this option if you are using the `data` option and have **any** `@import` directives, as otherwise [libsass] may not find your depended-on files.
@@ -138,6 +139,28 @@ You must define this option as well as `outFile` in order to generate a source m
 #### sourceMapContents
 `sourceMapContents` is a `Boolean` flag to determine whether to include `contents` in maps.
 
+### The `render` Callback
+node-sass supports standard node style callbacks with the signature of `function(err, result)`. In error conditions, the `err` argument is populated with the error object. In success conditions, the `result` object is populated with an object describing the result of the render call.
+
+By default, the callback runs with the `this` context set to an object describing the Sass environment. The options passed in to `render` and `renderSync` are available as `this.options`.
+
+#### The Error Object
+* `message` - The error message.
+* `line` - The line number of error.
+* `column` - The column number of error.
+* `status` - The status code.
+* `file` - The filename of error. In case `file` option was not set (in favour of `data`), this will reflect the value `stdin`.
+
+#### The Result Object
+* `css` - The compiled CSS. Write this to a file, or serve it out as needed.
+* `map` - The source map
+* `stats` - An object containing information about the compile. It contains the following keys:
+  * `entry` - The path to the scss file, or `data` if the source was not a file
+  * `start` - Date.now() before the compilation
+  * `end` - Date.now() after the compilation
+  * `duration` - *end* - *start*
+  * `includedFiles` - Absolute paths to all related scss files in no particular order.
+
 ### Examples
 
 ```javascript
@@ -145,19 +168,6 @@ var sass = require('node-sass');
 sass.render({
 	file: '/path/to/myFile.scss',
 	data: 'body{background:blue; a{color:black;}}',
-	success: function(result) {
-		// result is an object: v2 change
-        console.log(result.css);
-        console.log(result.stats);
-        console.log(result.map)
-	},
-	error: function(error) { // starting v2.1 error is an Error-typed object
-		// error is an object: v2 change
-		console.log(error.message);
-		console.log(error.status); // changed from code to status in v2.1
-		console.log(error.line);
-		console.log(error.column); // new in v2
-	},
 	importer: function(url, prev, done) {
 		// url is the path in import as is, which libsass encountered.
 		// prev is the previously resolved path.
@@ -174,6 +184,21 @@ sass.render({
 	},
 	includePaths: [ 'lib/', 'mod/' ],
 	outputStyle: 'compressed'
+}, function(error, result) {
+  if (error) {
+    // starting v2.1 error is an Error-typed object
+    // error is an object: v2 change
+    console.log(error.message);
+    console.log(error.status); // changed from code to status in v2.1
+    console.log(error.line);
+    console.log(error.column); // new in v2
+  }
+  else if (result) {
+    // result is an object: v2 change
+    console.log(result.css);
+    console.log(result.stats);
+    console.log(result.map)
+  }
 });
 // OR
 var result = sass.renderSync({
