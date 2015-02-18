@@ -321,7 +321,7 @@ describe('api', function() {
         }
       });
     });
-	
+
     it('should override imports with "data" as input and fires callback with contents', function(done) {
       sass.render({
         data: src,
@@ -393,6 +393,23 @@ describe('api', function() {
         importer: function() {
           assert.equal(fxt, this.options.file);
           return {};
+        }
+      });
+    });
+
+    it('should be able to view a persistent state object', function(done) {
+      sass.render({
+        data: src,
+        success: function() {
+          assert.equal(this.state.count, 2);
+          done();
+        },
+        importer: function() {
+          this.state.count = this.state.count || 0;
+          this.state.count++;
+          return {
+            contents: 'div {color: yellow;}'
+          };
         }
       });
     });
@@ -530,7 +547,7 @@ describe('api', function() {
       assert.equal(result.css.trim(), '');
       done();
     });
-	
+
     it('should override imports with "data" as input and returns contents', function(done) {
       var result = sass.renderSync({
         data: src,
@@ -765,8 +782,8 @@ describe('api', function() {
   describe('.info()', function() {
     it('should return a correct version info', function(done) {
       assert.equal(sass.info(), [
-        'node-sass version: ' + require('../package.json').version, 
-        'libsass version: ' + require('../package.json').libsass 
+        'node-sass version: ' + require('../package.json').version,
+        'libsass version: ' + require('../package.json').libsass
       ].join('\n'));
 
       done();
