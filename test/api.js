@@ -173,6 +173,28 @@ describe('api', function() {
     });
   });
 
+  describe('.render(options, cb)', function() {
+    it('should compile sass to css with file', function(done) {
+      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
+      sass.render({
+        file: fixture('simple/index.scss')
+      }, function(err, result) {
+        assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
+        done();
+      });
+    });
+
+    it('should throw error status 1 for bad input', function(done) {
+      sass.render({
+        data: '#navbar width 80%;'
+      }, function(err) {
+        assert(err.message);
+        assert.equal(err.status, 1);
+        done();
+      });
+    });
+  });
+
   describe('.render(importer)', function() {
     var src = read(fixture('include-files/index.scss'), 'utf8');
 
