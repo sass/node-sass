@@ -54,9 +54,8 @@ Compiling versions 0.9.4 and above on Windows machines requires [Visual Studio 2
 var sass = require('node-sass');
 sass.render({
 	file: scss_filename,
-	success: callback
 	[, options..]
-	});
+}, function(err, result) { /*...*/ });
 // OR
 var result = sass.renderSync({
 	data: scss_content
@@ -66,7 +65,7 @@ var result = sass.renderSync({
 
 ### Options
 
-The API for using node-sass has changed, so that now there is only one variable - an options hash. Some of these options are optional, and in some circumstances some are mandatory.
+The API for using node-sass has changed, so that now there is only one options hash. In the options hash, some items are optional, others may be mandatory depending on circumstances.
 
 #### file
 `file` is a `String` of the path to an `scss` file for [libsass] to render. One of this or `data` options are required, for both render and renderSync.
@@ -140,6 +139,26 @@ You must define this option as well as `outFile` in order to generate a source m
 #### sourceMapContents
 `sourceMapContents` is a `Boolean` flag to determine whether to include `contents` in maps.
 
+### The `render` Callback (starting from v2.1)
+node-sass supports standard node style asynchronous callbacks with the signature of `function(err, result)`. In error conditions, the `error` argument is populated with the error object. In success conditions, the `result` object is populated with an object describing the result of the render call.
+
+#### The Error Object
+* `message` - The error message.
+* `line` - The line number of error.
+* `column` - The column number of error.
+* `status` - The status code.
+* `file` - The filename of error. In case `file` option was not set (in favour of `data`), this will reflect the value `stdin`.
+
+#### The Result Object
+* `css` - The compiled CSS. Write this to a file, or serve it out as needed.
+* `map` - The source map
+* `stats` - An object containing information about the compile. It contains the following keys:
+  * `entry` - The path to the scss file, or `data` if the source was not a file
+  * `start` - Date.now() before the compilation
+  * `end` - Date.now() after the compilation
+  * `duration` - *end* - *start*
+  * `includedFiles` - Absolute paths to all related scss files in no particular order.
+
 ### Examples
 
 ```javascript
@@ -147,19 +166,19 @@ var sass = require('node-sass');
 sass.render({
 	file: '/path/to/myFile.scss',
 	data: 'body{background:blue; a{color:black;}}',
-	success: function(result) {
-		// result is an object: v2 change
-        console.log(result.css);
-        console.log(result.stats);
-        console.log(result.map)
-	},
-	error: function(error) { // starting v2.1 error is an Error-typed object
-		// error is an object: v2 change
-		console.log(error.message);
-		console.log(error.status); // changed from code to status in v2.1
-		console.log(error.line);
-		console.log(error.column); // new in v2
-	},
+  success: function(result) {
+    // result is an object: v2 change
+    console.log(result.css);
+    console.log(result.stats);
+    console.log(result.map)
+  },
+  error: function(error) { // starting v2.1 error is an Error-typed object
+    // error is an object: v2 change
+  	console.log(error.message);
+  	console.log(error.status); // changed from code to status in v2.1
+  	console.log(error.line);
+  	console.log(error.column); // new in v2
+  },
 	importer: function(url, prev, done) {
 		// url is the path in import as is, which libsass encountered.
 		// prev is the previously resolved path.
@@ -176,6 +195,10 @@ sass.render({
 	},
 	includePaths: [ 'lib/', 'mod/' ],
 	outputStyle: 'compressed'
+}, function(error, result) {
+  // starting v2.1 the node-style callback has error (Object) and result (Object)
+  // the objects are identical to those provided for the error and success keys
+  // in the options object
 });
 // OR
 var result = sass.renderSync({
