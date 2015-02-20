@@ -299,7 +299,7 @@ describe('api', function() {
         }
       });
     });
-	
+
     it('should override imports with "data" as input and fires callback with contents', function(done) {
       sass.render({
         data: src,
@@ -358,6 +358,56 @@ describe('api', function() {
           };
         }
       });
+    });
+
+    it('should be able to see its options in this.options', function(done) {
+      var fxt = fixture('include-files/index.scss');
+      sass.render({
+        file: fxt,
+        success: function() {
+          assert.equal(fxt, this.options.file);
+          done();
+        },
+        importer: function() {
+          assert.equal(fxt, this.options.file);
+          return {};
+        }
+      });
+    });
+
+    it('should be able to access a persistent options object', function(done) {
+      sass.render({
+        data: src,
+        success: function() {
+          assert.equal(this.state, 2);
+          done();
+        },
+        importer: function() {
+          this.state = this.state || 0;
+          this.state++;
+          return {
+            contents: 'div {color: yellow;}'
+          };
+        }
+      });
+    });
+
+    it('should copy all options properties', function(done) {
+      var options;
+      options = {
+        data: src,
+        success: function() {
+          assert.strictEqual(this.options.success, options.success);
+          done();
+        },
+        importer: function() {
+          assert.strictEqual(this.options.importer, options.importer);
+          return {
+            contents: 'div {color: yellow;}'
+          };
+        }
+      };
+      sass.render(options);
     });
   });
 
@@ -493,7 +543,7 @@ describe('api', function() {
       assert.equal(result.css.trim(), '');
       done();
     });
-	
+
     it('should override imports with "data" as input and returns contents', function(done) {
       var result = sass.renderSync({
         data: src,
@@ -519,6 +569,21 @@ describe('api', function() {
       });
 
       assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
+    it('should be able to see its options in this.options', function(done) {
+      var fxt = fixture('include-files/index.scss');
+      var sync = false;
+      sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function() {
+          assert.equal(fxt, this.options.file);
+          sync = true;
+          return {};
+        }
+      });
+      assert.equal(sync, true);
       done();
     });
   });
@@ -713,8 +778,8 @@ describe('api', function() {
   describe('.info()', function() {
     it('should return a correct version info', function(done) {
       assert.equal(sass.info(), [
-        'node-sass version: ' + require('../package.json').version, 
-        'libsass version: ' + require('../package.json').libsass 
+        'node-sass version: ' + require('../package.json').version,
+        'libsass version: ' + require('../package.json').libsass
       ].join('\n'));
 
       done();
