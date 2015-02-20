@@ -46,7 +46,7 @@ enum Sass_Output_Style {
 };
 
 // Some convenient string helper function
-ADDAPI char* ADDCALL sass_string_quote (const char *str, const char quotemark);
+ADDAPI char* ADDCALL sass_string_quote (const char *str, const char quote_mark);
 ADDAPI char* ADDCALL sass_string_unquote (const char *str);
 
 // Get compiled libsass version

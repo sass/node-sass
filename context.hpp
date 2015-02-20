@@ -29,8 +29,6 @@ namespace Sass {
   // typedef Environment<AST_Node*> Env;
   // typedef Expression* (*Native_Function)(Env&, Context&, Signature, string, size_t);
 
-  enum Output_Style { NESTED, EXPANDED, COMPACT, COMPRESSED, FORMATTED };
-
   struct Sass_Queued {
     string abs_path;
     string load_path;
@@ -79,7 +77,6 @@ namespace Sass {
     map<int, string>    colors_to_names;
 
     size_t precision; // precision for outputting fractional numbers
-    bool _skip_source_map_update; // status flag to skip source map updates
 
     KWD_ARG_SET(Data) {
       KWD_ARG(Data, const char*,     source_c_str);
@@ -97,7 +94,6 @@ namespace Sass {
       KWD_ARG(Data, bool,            omit_source_map_url);
       KWD_ARG(Data, bool,            is_indented_syntax_src);
       KWD_ARG(Data, size_t,          precision);
-      KWD_ARG(Data, bool,            _skip_source_map_update);
       KWD_ARG(Data, bool,            source_map_embed);
       KWD_ARG(Data, bool,            source_map_contents);
       KWD_ARG(Data, Sass_C_Import_Callback, importer);

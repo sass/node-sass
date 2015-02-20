@@ -50,14 +50,16 @@ namespace Sass {
 
 
   ParserState::ParserState(string path)
-  : Position(-1, 0, 0), path(path), offset(0, 0) { }
+  : Position(-1, 0, 0), path(path), offset(0, 0), token() { }
 
   ParserState::ParserState(string path, const size_t file)
-  : Position(file, 0, 0), path(path), offset(0, 0) { }
+  : Position(file, 0, 0), path(path), offset(0, 0), token() { }
 
   ParserState::ParserState(string path, Position position, Offset offset)
-  : Position(position), path(path), offset(offset) { }
+  : Position(position), path(path), offset(offset), token() { }
 
+  ParserState::ParserState(string path, Token token, Position position, Offset offset)
+  : Position(position), path(path), offset(offset), token(token) { }
 
   Position Position::inc(const char* begin, const char* end) const
   {

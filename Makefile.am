@@ -65,6 +65,7 @@ libsass_la_SOURCES = \
 	inspect.cpp inspect.hpp \
 	node.cpp node.hpp \
 	json.cpp json.hpp \
+	output.cpp output.hpp \
 	output_compressed.cpp output_compressed.hpp \
 	output_nested.cpp output_nested.hpp \
 	parser.cpp parser.hpp \

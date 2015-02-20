@@ -2,11 +2,19 @@
 #define SASS_UTIL_H
 
 #include "ast.hpp"
-
+#include <vector>
 #include <string>
+
 namespace Sass {
+  using namespace std;
+
+  string string_escape(const string& str);
+  string string_unescape(const string& str);
+  string evacuate_quotes(const string& str);
+  string evacuate_escapes(const string& str);
+  string string_to_output(const string& str);
+
   namespace Util {
-    using namespace std;
 
     string normalize_underscores(const string& str);
     string normalize_decimals(const string& str);

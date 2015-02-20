@@ -88,26 +88,25 @@ namespace Sass {
       }
     }
 
-    // Match a sequence of characters delimited by the supplied chars.
-    template <char beg, char end, bool esc>
-    const char* smartdel_by(const char* src) {
+    // skip to delimiter (mx) inside given range
+    // this will savely skip over all quoted strings
+    // recursive skip stuff delimited by start/stop
+    // first start/opener must be consumed already!
+    template<prelexer start, prelexer stop>
+    const char* skip_over_scopes(const char* src, const char* end = 0) {
 
       size_t level = 0;
       bool in_squote = false;
       bool in_dquote = false;
       // bool in_braces = false;
 
-      src = exactly<beg>(src);
+      while (*src) {
 
-      if (!src) return 0;
-
-      while (1) {
-
-        // end of string?
-        if (!*src) return 0;
+        // check for abort condition
+        if (end && src >= end) break;
 
         // has escaped sequence?
-        if (!esc && *src == '\\') {
+        if (*src == '\\') {
           ++ src; // skip this (and next)
         }
         else if (*src == '"') {
@@ -121,23 +120,35 @@ namespace Sass {
         }
 
         // find another opener inside?
-        else if (exactly<beg>(src)) {
+        else if (start(src)) {
           ++ level; // increase counter
         }
 
         // look for the closer (maybe final, maybe not)
-        else if (const char* stop = exactly<end>(src)) {
+        else if (const char* final = stop(src)) {
           // only close one level?
           if (level > 0) -- level;
           // return position at end of stop
           // delimiter may be multiple chars
-          else return stop;
+          else return final;
         }
 
         // next
         ++ src;
-
       }
+
+      return 0;
+    }
+
+    // Match a sequence of characters delimited by the supplied chars.
+    template <prelexer start, prelexer stop>
+    const char* recursive_scopes(const char* src) {
+      // parse opener
+      src = start(src);
+      // abort if not found
+      if (!src) return 0;
+      // parse the rest until final closer
+      return skip_over_scopes<start, stop>(src);
     }
 
     // Match a sequence of characters delimited by the supplied strings.
@@ -151,58 +162,6 @@ namespace Sass {
         stop = exactly<end>(src);
         if (stop && (!esc || *(src - 1) != '\\')) return stop;
         src = stop ? stop : src + 1;
-      }
-    }
-
-    // Match a sequence of characters delimited by the supplied strings.
-    template <const char* beg, const char* end, bool esc>
-    const char* smartdel_by(const char* src) {
-
-      size_t level = 0;
-      bool in_squote = false;
-      bool in_dquote = false;
-      // bool in_braces = false;
-
-      src = exactly<beg>(src);
-
-      if (!src) return 0;
-
-      while (1) {
-
-        // end of string?
-        if (!*src) return 0;
-
-        // has escaped sequence?
-        if (!esc && *src == '\\') {
-          ++ src; // skip this (and next)
-        }
-        else if (*src == '"') {
-          in_dquote = ! in_dquote;
-        }
-        else if (*src == '\'') {
-          in_squote = ! in_squote;
-        }
-        else if (in_dquote || in_squote) {
-          // take everything literally
-        }
-
-        // find another opener inside?
-        else if (exactly<beg>(src)) {
-          ++ level; // increase counter
-        }
-
-        // look for the closer (maybe final, maybe not)
-        else if (const char* stop = exactly<end>(src)) {
-          // only close one level?
-          if (level > 0) -- level;
-          // return position at end of stop
-          // delimiter may be multiple chars
-          else return stop;
-        }
-
-        // next
-        ++ src;
-
       }
     }
 

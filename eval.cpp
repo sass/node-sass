@@ -204,7 +204,7 @@ namespace Sass {
   Expression* Eval::operator()(Warning* w)
   {
     Expression* message = w->message()->perform(this);
-    To_String to_string;
+    To_String to_string(&ctx);
 
     // try to use generic function
     if (env->has("@warn[f]")) {
@@ -235,7 +235,7 @@ namespace Sass {
   Expression* Eval::operator()(Error* e)
   {
     Expression* message = e->message()->perform(this);
-    To_String to_string;
+    To_String to_string(&ctx);
 
     // try to use generic function
     if (env->has("@error[f]")) {
@@ -266,7 +266,7 @@ namespace Sass {
   Expression* Eval::operator()(Debug* d)
   {
     Expression* message = d->value()->perform(this);
-    To_String to_string;
+    To_String to_string(&ctx);
 
     // try to use generic function
     if (env->has("@debug[f]")) {
@@ -403,7 +403,7 @@ namespace Sass {
       return result;
     }
     else {
-      To_String to_string;
+      To_String to_string(&ctx);
       // Special cases: +/- variables which evaluate to null ouput just +/-,
       // but +/- null itself outputs the string
       if (operand->concrete_type() == Expression::NULL_VAL && typeid(*(u->operand())) == typeid(Variable)) {
@@ -438,7 +438,7 @@ namespace Sass {
       Function_Call* lit = new (ctx.mem) Function_Call(c->pstate(),
                                                        c->name(),
                                                        args);
-      To_String to_string;
+      To_String to_string(&ctx);
       return new (ctx.mem) String_Constant(c->pstate(),
                                            lit->perform(&to_string));
     }
@@ -589,7 +589,7 @@ namespace Sass {
 
   Expression* Eval::operator()(Variable* v)
   {
-    To_String to_string;
+    To_String to_string(&ctx);
     string name(v->name());
     Expression* value = 0;
     if (env->has(name)) value = static_cast<Expression*>((*env)[name]);
@@ -603,7 +603,11 @@ namespace Sass {
       static_cast<Number*>(value)->zero(true);
     }
     else if (value->concrete_type() == Expression::STRING) {
-      value = new (ctx.mem) String_Constant(*static_cast<String_Constant*>(value));
+      if (auto str = dynamic_cast<String_Quoted*>(value)) {
+        value = new (ctx.mem) String_Quoted(*str);
+      } else if (auto str = dynamic_cast<String_Constant*>(value)) {
+        value = new (ctx.mem) String_Constant(*str);
+      }
     }
     else if (value->concrete_type() == Expression::LIST) {
       value = new (ctx.mem) List(*static_cast<List*>(value));
@@ -719,7 +723,7 @@ namespace Sass {
     // ctx._skip_source_map_update = false;
     for (size_t i = 0, L = s->length(); i < L; ++i) {
       string chunk((*s)[i]->perform(this)->perform(&to_string));
-      if (((s->quote_mark() && is_quoted(chunk)) || !s->quote_mark()) && (*s)[i]->is_interpolant()) { // some redundancy in that test
+      if (((is_quoted(chunk))) && (*s)[i]->is_interpolant()) {
         acc += unquote(chunk);
       }
       else {
@@ -783,7 +787,7 @@ namespace Sass {
 
   Expression* Eval::operator()(Media_Query* q)
   {
-    To_String to_string;
+    To_String to_string(&ctx);
     String* t = q->media_type();
     t = static_cast<String*>(t ? t->perform(this) : 0);
     Media_Query* qq = new (ctx.mem) Media_Query(q->pstate(),
@@ -1019,7 +1023,7 @@ namespace Sass {
       case Binary_Expression::SUB:
       case Binary_Expression::DIV: {
         string sep(op == Binary_Expression::SUB ? "-" : "/");
-        To_String to_string;
+        To_String to_string(&ctx);
         string color(r->sixtuplet() ? r->perform(&to_string) :
                      Util::normalize_sixtuplet(r->perform(&to_string)));
         return new (ctx.mem) String_Constant(l->pstate(),
@@ -1069,15 +1073,15 @@ namespace Sass {
 
   Expression* op_strings(Context& ctx, Binary_Expression::Type op, Expression* lhs, Expression*rhs)
   {
-    To_String to_string;
+    To_String to_string(&ctx);
     Expression::Concrete_Type ltype = lhs->concrete_type();
     Expression::Concrete_Type rtype = rhs->concrete_type();
 
     string lstr(lhs->perform(&to_string));
     string rstr(rhs->perform(&to_string));
 
-    bool l_str_quoted = ((Sass::String*)lhs) && ((Sass::String*)lhs)->needs_unquoting();
-    bool r_str_quoted = ((Sass::String*)rhs) && ((Sass::String*)rhs)->needs_unquoting();
+    bool l_str_quoted = ((Sass::String*)lhs) && ((Sass::String*)lhs)->sass_fix_1291();
+    bool r_str_quoted = ((Sass::String*)rhs) && ((Sass::String*)rhs)->sass_fix_1291();
     bool l_str_color = ltype == Expression::STRING && ctx.names_to_colors.count(lstr) && !l_str_quoted;
     bool r_str_color = rtype == Expression::STRING && ctx.names_to_colors.count(rstr) && !r_str_quoted;
 

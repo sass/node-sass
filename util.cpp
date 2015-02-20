@@ -1,6 +1,112 @@
+#include "ast.hpp"
 #include "util.hpp"
+#include "utf8/checked.h"
 
 namespace Sass {
+
+  // double escape every escape sequences
+  // escape unescaped quotes and backslashes
+  string string_escape(const string& str)
+  {
+    string out("");
+    for (auto i : str) {
+      // escape some characters
+      if (i == '"') out += '\\';
+      if (i == '\'') out += '\\';
+      if (i == '\\') out += '\\';
+      out += i;
+    }
+    return out;
+  }
+
+  // unescape every escape sequence
+  // only removes unescaped backslashes
+  string string_unescape(const string& str)
+  {
+    string out("");
+    bool esc = false;
+    for (auto i : str) {
+      if (esc || i != '\\') {
+        esc = false;
+        out += i;
+      } else {
+        esc = true;
+      }
+    }
+    // open escape sequence at end
+    // maybe it should thow an error
+    if (esc) { out += '\\'; }
+    return out;
+  }
+
+  // evacuate unescaped quoted
+  // leave everything else untouched
+  string evacuate_quotes(const string& str)
+  {
+    string out("");
+    bool esc = false;
+    for (auto i : str) {
+      if (!esc) {
+        // ignore next character
+        if (i == '\\') esc = true;
+        // evacuate unescaped quotes
+        else if (i == '"') out += '\\';
+        else if (i == '\'') out += '\\';
+      }
+      // get escaped char now
+      else { esc = false; }
+      // remove nothing
+      out += i;
+    }
+    return out;
+  }
+
+  // double escape all escape sequences
+  // keep unescaped quotes and backslashes
+  string evacuate_escapes(const string& str)
+  {
+    string out("");
+    bool esc = false;
+    for (auto i : str) {
+      if (i == '\\' && !esc) {
+        out += '\\';
+        out += '\\';
+        esc = true;
+      } else if (esc && i == '"') {
+        out += '\\';
+        out += i;
+        esc = false;
+      } else if (esc && i == '\'') {
+        out += '\\';
+        out += i;
+        esc = false;
+      } else if (esc && i == '\\') {
+        out += '\\';
+        out += i;
+        esc = false;
+      } else {
+        esc = false;
+        out += i;
+      }
+    }
+    if (esc) out += 'Z';
+    return out;
+  }
+
+  // bell character is replaces with space
+  string string_to_output(const string& str)
+  {
+    string out("");
+    for (auto i : str) {
+      if (i == 10) {
+        out += ' ';
+      } else {
+        out += i;
+      }
+    }
+    return out;
+  }
+
   namespace Util {
     using std::string;
 

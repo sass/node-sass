@@ -28,7 +28,7 @@ namespace Sass {
 
   Selector* Contextualize::operator()(Selector_Schema* s)
   {
-    To_String to_string;
+    To_String to_string(&ctx);
     string result_str(s->contents()->perform(eval->with(env, backtrace))->perform(&to_string));
     result_str += '{'; // the parser looks for a brace to end the selector
     Selector* result_sel = Parser::from_c_str(result_str.c_str(), ctx, s->pstate()).parse_selector_group();
@@ -61,7 +61,7 @@ namespace Sass {
 
   Selector* Contextualize::operator()(Complex_Selector* s)
   {
-    To_String to_string;
+    To_String to_string(&ctx);
     Complex_Selector* ss = new (ctx.mem) Complex_Selector(*s);
     Compound_Selector* new_head = 0;
     Complex_Selector* new_tail = 0;
@@ -89,7 +89,7 @@ namespace Sass {
 
   Selector* Contextualize::operator()(Compound_Selector* s)
   {
-    To_String to_string;
+    To_String to_string(&ctx);
     if (placeholder && extender && s->perform(&to_string) == placeholder->perform(&to_string)) {
       return extender;
     }
@@ -135,7 +135,7 @@ namespace Sass {
 
   Selector* Contextualize::operator()(Selector_Placeholder* p)
   {
-    To_String to_string;
+    To_String to_string(&ctx);
     if (placeholder && extender && p->perform(&to_string) == placeholder->perform(&to_string)) {
       return extender;
     }

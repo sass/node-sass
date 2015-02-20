@@ -31,7 +31,7 @@
 #endif
 
 #include "units.hpp"
-#include "token.hpp"
+#include "position.hpp"
 #include "constants.hpp"
 #include "operation.hpp"
 #include "position.hpp"
@@ -40,7 +40,7 @@
 #include "environment.hpp"
 #include "error_handling.hpp"
 #include "ast_def_macros.hpp"
- #include "to_string.hpp"
+#include "to_string.hpp"
 
 #include "sass.h"
 #include "sass_values.h"
@@ -59,7 +59,9 @@ namespace Sass {
   class AST_Node {
     ADD_PROPERTY(ParserState, pstate);
   public:
-    AST_Node(ParserState pstate) : pstate_(pstate) { }
+    AST_Node(ParserState pstate)
+    : pstate_(pstate)
+    { }
     virtual ~AST_Node() = 0;
     // virtual Block* block() { return 0; }
   public:
@@ -98,7 +100,10 @@ namespace Sass {
     Expression(ParserState pstate,
                bool d = false, bool e = false, bool i = false, Concrete_Type ct = NONE)
     : AST_Node(pstate),
-      is_delayed_(d), is_expanded_(d), is_interpolant_(i), concrete_type_(ct)
+      is_delayed_(d),
+      is_expanded_(d),
+      is_interpolant_(i),
+      concrete_type_(ct)
     { }
     virtual operator bool() { return true; }
     virtual ~Expression() { };
@@ -184,7 +189,7 @@ namespace Sass {
   inline Vectorized<T>::~Vectorized() { }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Mixin class for AST nodes that should behave like ahash table. Uses an
+  // Mixin class for AST nodes that should behave like a hash table. Uses an
   // extra <vector> internally to maintain insertion order for interation.
   /////////////////////////////////////////////////////////////////////////////
   class Hashed {
@@ -471,7 +476,7 @@ namespace Sass {
   ////////////////////////////////////////////////////////////////////////////
   class Import : public Statement {
     vector<string>         files_;
-    vector<Expression*> urls_;
+    vector<Expression*>    urls_;
   public:
     Import(ParserState pstate)
     : Statement(pstate),
@@ -1326,10 +1331,10 @@ namespace Sass {
   // "flat" strings.
   ////////////////////////////////////////////////////////////////////////
   class String : public Expression {
-    ADD_PROPERTY(bool, needs_unquoting);
+    ADD_PROPERTY(bool, sass_fix_1291);
   public:
-    String(ParserState pstate, bool unq = false, bool delayed = false)
-    : Expression(pstate, delayed), needs_unquoting_(unq)
+    String(ParserState pstate, bool delayed = false, bool sass_fix_1291 = false)
+    : Expression(pstate, delayed), sass_fix_1291_(sass_fix_1291)
     { concrete_type(STRING); }
     static string type_name() { return "string"; }
     virtual ~String() = 0;
@@ -1342,12 +1347,11 @@ namespace Sass {
   // evaluation phase.
   ///////////////////////////////////////////////////////////////////////
   class String_Schema : public String, public Vectorized<Expression*> {
-    ADD_PROPERTY(char, quote_mark);
     ADD_PROPERTY(bool, has_interpolants);
     size_t hash_;
   public:
-    String_Schema(ParserState pstate, size_t size = 0, bool unq = false, char qm = '\0', bool i = false)
-    : String(pstate, unq), Vectorized<Expression*>(size), quote_mark_(qm), has_interpolants_(i), hash_(0)
+    String_Schema(ParserState pstate, size_t size = 0, bool has_interpolants = false)
+    : String(pstate), Vectorized<Expression*>(size), has_interpolants_(has_interpolants), hash_(0)
     { }
     string type() { return "string"; }
     static string type_name() { return "string"; }
@@ -1386,22 +1390,23 @@ namespace Sass {
   // Flat strings -- the lowest level of raw textual data.
   ////////////////////////////////////////////////////////
   class String_Constant : public String {
+    ADD_PROPERTY(char, quote_mark);
     ADD_PROPERTY(string, value);
     string unquoted_;
     size_t hash_;
   public:
-    String_Constant(ParserState pstate, string val, bool unq = false)
-    : String(pstate, unq, true), value_(val), hash_(0)
-    { unquoted_ = unquote(value_); }
-    String_Constant(ParserState pstate, const char* beg, bool unq = false)
-    : String(pstate, unq, true), value_(string(beg)), hash_(0)
-    { unquoted_ = unquote(value_); }
-    String_Constant(ParserState pstate, const char* beg, const char* end, bool unq = false)
-    : String(pstate, unq, true), value_(string(beg, end-beg)), hash_(0)
-    { unquoted_ = unquote(value_); }
-    String_Constant(ParserState pstate, const Token& tok, bool unq = false)
-    : String(pstate, unq, true), value_(string(tok.begin, tok.end)), hash_(0)
-    { unquoted_ = unquote(value_); }
+    String_Constant(ParserState pstate, string val)
+    : String(pstate), quote_mark_(0), value_(val), hash_(0)
+    { unquoted_ = unquote(value_, &quote_mark_); }
+    String_Constant(ParserState pstate, const char* beg)
+    : String(pstate), quote_mark_(0), value_(string(beg)), hash_(0)
+    { unquoted_ = unquote(value_, &quote_mark_); }
+    String_Constant(ParserState pstate, const char* beg, const char* end)
+    : String(pstate), quote_mark_(0), value_(string(beg, end-beg)), hash_(0)
+    { unquoted_ = unquote(value_, &quote_mark_); }
+    String_Constant(ParserState pstate, const Token& tok)
+    : String(pstate), quote_mark_(0), value_(string(tok.begin, tok.end)), hash_(0)
+    { unquoted_ = unquote(value_, &quote_mark_); }
     string type() { return "string"; }
     static string type_name() { return "string"; }
 
@@ -1425,11 +1430,23 @@ namespace Sass {
       return hash_;
     }
 
-    static char single_quote() { return '\''; }
+    // static char auto_quote() { return '*'; }
     static char double_quote() { return '"'; }
+    static char single_quote() { return '\''; }
 
-    bool is_quoted() { return value_.length() && (value_[0] == '"' || value_[0] == '\''); }
-    char quote_mark() { return is_quoted() ? value_[0] : '\0'; }
+    ATTACH_OPERATIONS();
+  };
+
+  ////////////////////////////////////////////////////////
+  // Possibly quoted string (unquote on instantiation)
+  ////////////////////////////////////////////////////////
+  class String_Quoted : public String_Constant {
+  public:
+    String_Quoted(ParserState pstate, string val)
+    : String_Constant(pstate, val)
+    {
+      // value_ = unquote(value_, &quote_mark_);
+    }
     ATTACH_OPERATIONS();
   };
 
@@ -1690,7 +1707,9 @@ namespace Sass {
     ADD_PROPERTY(bool, has_placeholder);
   public:
     Selector(ParserState pstate, bool r = false, bool h = false)
-    : AST_Node(pstate), has_reference_(r), has_placeholder_(h)
+    : AST_Node(pstate),
+      has_reference_(r),
+      has_placeholder_(h)
     { }
     virtual ~Selector() = 0;
     virtual Selector_Placeholder* find_placeholder();
@@ -2029,8 +2048,7 @@ namespace Sass {
   ///////////////////////////////////
   // Comma-separated selector groups.
   ///////////////////////////////////
-  class Selector_List
-      : public Selector, public Vectorized<Complex_Selector*> {
+  class Selector_List : public Selector, public Vectorized<Complex_Selector*> {
 #ifdef DEBUG
     ADD_PROPERTY(string, mCachedSelector);
 #endif

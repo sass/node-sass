@@ -11,7 +11,8 @@
 namespace Sass {
   using namespace std;
 
-  To_String::To_String(Context* ctx) : ctx(ctx) { }
+  To_String::To_String(Context* ctx)
+  : ctx(ctx) { }
   To_String::~To_String() { }
 
   inline string To_String::fallback_impl(AST_Node* n)
@@ -19,6 +20,11 @@ namespace Sass {
     Inspect i(ctx);
     n->perform(&i);
     return i.get_buffer();
+  }
+
+  inline string To_String::operator()(String_Constant* s)
+  {
+    return s->value();
   }
 
   inline string To_String::operator()(Null* n)

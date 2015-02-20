@@ -487,7 +487,7 @@ namespace Sass {
 
   void Inspect::operator()(String_Constant* s)
   {
-    append_to_buffer(s->needs_unquoting() ? unquote(s->value()) : s->value(), s);
+    append_to_buffer(s->sass_fix_1291() ? unquote(s->value()) : s->value(), s);
   }
 
   void Inspect::operator()(Feature_Query* fq)
@@ -626,7 +626,7 @@ namespace Sass {
     }
     if (a->value()->concrete_type() == Expression::STRING) {
       String_Constant* s = static_cast<String_Constant*>(a->value());
-      if (s->is_quoted()) s->value(quote(unquote(s->value()), String_Constant::double_quote()));
+      if (s->quote_mark()) s->value(quote(unquote(s->value()), String_Constant::double_quote()));
       s->perform(this);
     } else a->value()->perform(this);
     if (a->is_rest_argument()) {
@@ -763,15 +763,18 @@ namespace Sass {
     append_to_buffer(indent);
   }
 
-  string unquote(const string& s)
+  string unquote(const string& s, char* qd)
   {
     if (s.empty()) return "";
     if (s.length() == 1) {
       if (s[0] == '"' || s[0] == '\'') return "";
     }
-    // char q;
-    if      (*s.begin() == '"'  && *s.rbegin() == '"')  {} // q = '"';
-    else if (*s.begin() == '\'' && *s.rbegin() == '\'') {} // q = '\'';
+    char q;
+
+    // this is no guarantee that the unquoting will work
+    // what about whitespace before/after the quote_mark?
+    if      (*s.begin() == '"'  && *s.rbegin() == '"')  q = '"';
+    else if (*s.begin() == '\'' && *s.rbegin() == '\'') q = '\'';
     else                                                return s;
     string t;
     t.reserve(s.length()-2);
@@ -823,6 +826,7 @@ namespace Sass {
       }
     }
 
+    if (qd) *qd = q;
     return t;
   }
 

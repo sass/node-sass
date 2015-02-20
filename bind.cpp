@@ -145,7 +145,7 @@ namespace Sass {
     // That's only okay if they have default values, or were already bound by
     // named arguments, or if it's a single rest-param.
     for (size_t i = ip; i < LP; ++i) {
-      To_String to_string;
+      To_String to_string(&ctx);
       Parameter* leftover = (*ps)[i];
       // cerr << "env for default params:" << endl;
       // env->print();

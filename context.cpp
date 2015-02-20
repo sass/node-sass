@@ -68,7 +68,6 @@ namespace Sass {
     names_to_colors         (map<string, Color*>()),
     colors_to_names         (map<int, string>()),
     precision               (initializers.precision()),
-    _skip_source_map_update (initializers._skip_source_map_update()),
     subset_map              (Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >())
   {
     cwd = get_cwd();
@@ -277,9 +276,6 @@ namespace Sass {
     Contextualize contextualize(*this, &eval, &tge, &backtrace);
     Expand expand(*this, &eval, &contextualize, &tge, &backtrace);
     Cssize cssize(*this, &tge, &backtrace);
-    // Inspect inspect(this);
-    // Output_Nested output_nested(*this);
-
     root = root->perform(&expand)->block();
     root = root->perform(&cssize)->block();
     if (!subset_map.empty()) {

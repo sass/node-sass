@@ -107,9 +107,7 @@ namespace Sass {
     sort(sorted.begin(), sorted.end());
     vector<pair<size_t, vector<K> > > indices;
     for (size_t i = 0, S = s.size(); i < S; ++i) {
-      // cerr << "looking for " << s[i] << endl;
       if (!hash_.count(s[i])) {
-        // cerr << "didn't find " << s[i] << endl;
         continue;
       }
       vector<triple<vector<K>, set<K>, size_t> > subsets = hash_[s[i]];
