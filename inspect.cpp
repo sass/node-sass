@@ -6,16 +6,14 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
+#include <stdint.h>
+#include <stdint.h>
 
 namespace Sass {
   using namespace std;
 
-  Inspect::Inspect(Context* ctx)
-  : buffer(""),
-    indentation(0),
-    ctx(ctx),
-    in_declaration(false),
-    in_declaration_list(false)
+  Inspect::Inspect(Emitter emi)
+  : Emitter(emi)
   { }
   Inspect::~Inspect() { }
 
@@ -23,30 +21,19 @@ namespace Sass {
   void Inspect::operator()(Block* block)
   {
     if (!block->is_root()) {
-      append_to_buffer(" {" + ctx->linefeed);
-      ++ indentation;
+      add_open_mapping(block);
+      append_scope_opener();
     }
+    if (output_style() == NESTED) indentation += block->tabs();
     for (size_t i = 0, L = block->length(); i < L; ++i) {
-      append_indent_to_buffer();
       (*block)[i]->perform(this);
-      // extra newline at the end of top-level statements
-      if (block->is_root()) append_to_buffer(ctx->linefeed);
-      append_to_buffer(ctx->linefeed);
     }
+    if (output_style() == NESTED) indentation -= block->tabs();
     if (!block->is_root()) {
-      -- indentation;
-      append_indent_to_buffer();
-      append_to_buffer("}");
+      append_scope_closer();
+      add_close_mapping(block);
     }
-    // remove extra newline that gets added after the last top-level block
-    if (block->is_root()) {
-      size_t l = buffer.length();
-      if (l > 2 && buffer[l-1] == '\n' && buffer[l-2] == '\n') {
-        buffer.erase(l-1);
-        if (ctx) ctx->source_map.remove_line();
-        source_map.remove_line();
-      }
-    }
+
   }
 
   void Inspect::operator()(Ruleset* ruleset)
@@ -57,6 +44,7 @@ namespace Sass {
 
   void Inspect::operator()(Keyframe_Rule* rule)
   {
+    append_indentation();
     if (rule->rules()) rule->rules()->perform(this);
     rule->block()->perform(this);
   }
@@ -64,50 +52,65 @@ namespace Sass {
   void Inspect::operator()(Propset* propset)
   {
     propset->property_fragment()->perform(this);
-    append_to_buffer(": ");
+    append_colon_separator();
     propset->block()->perform(this);
   }
 
   void Inspect::operator()(Bubble* bubble)
   {
-    append_to_buffer("Bubble ( ");
+    append_indentation();
+    append_token("Bubble", bubble);
+    append_optional_space();
+    append_string("(");
+    append_optional_space();
     bubble->node()->perform(this);
-    append_to_buffer(" )");
+    append_optional_space();
+    append_string(")");
+    append_optional_space();
   }
 
   void Inspect::operator()(Media_Block* media_block)
   {
-    append_to_buffer("@media", media_block, " ");
+    append_indentation();
+    append_token("@media", media_block);
+    append_mandatory_space();
+    in_media_block = true;
     media_block->media_queries()->perform(this);
+    in_media_block = false;
     media_block->block()->perform(this);
   }
 
   void Inspect::operator()(Feature_Block* feature_block)
   {
-    append_to_buffer("@supports", feature_block, " ");
+    append_indentation();
+    append_token("@supports", feature_block);
+    append_mandatory_space();
     feature_block->feature_queries()->perform(this);
     feature_block->block()->perform(this);
   }
 
   void Inspect::operator()(At_Root_Block* at_root_block)
   {
-    append_to_buffer("@at-root ", at_root_block, " ");
+    append_indentation();
+    append_token("@at-root ", at_root_block);
+    append_mandatory_space();
     if(at_root_block->expression()) at_root_block->expression()->perform(this);
     at_root_block->block()->perform(this);
   }
 
   void Inspect::operator()(At_Rule* at_rule)
   {
-    append_to_buffer(at_rule->keyword());
+    append_indentation();
+    append_token(at_rule->keyword(), at_rule);
     if (at_rule->selector()) {
-      append_to_buffer(" ");
+      append_mandatory_space();
       at_rule->selector()->perform(this);
     }
     if (at_rule->block()) {
       at_rule->block()->perform(this);
     }
     else {
-      append_to_buffer(";");
+      append_delimiter();
     }
   }
 
@@ -115,166 +118,210 @@ namespace Sass {
   {
     if (dec->value()->concrete_type() == Expression::NULL_VAL) return;
     in_declaration = true;
-    if (ctx) ctx->source_map.add_open_mapping(dec->property());
-    source_map.add_open_mapping(dec->property());
+    if (output_style() == NESTED)
+      indentation += dec->tabs();
+    append_indentation();
     dec->property()->perform(this);
-    if (ctx) ctx->source_map.add_close_mapping(dec->property());
-    source_map.add_close_mapping(dec->property());
-    append_to_buffer(": ");
-    if (ctx) ctx->source_map.add_open_mapping(dec->value());
-    source_map.add_open_mapping(dec->value());
+    append_colon_separator();
     dec->value()->perform(this);
-    if (dec->is_important()) append_to_buffer(" !important");
-    if (ctx) ctx->source_map.add_close_mapping(dec->value());
-    source_map.add_close_mapping(dec->value());
-    append_to_buffer(";");
+    if (dec->is_important()) {
+      append_optional_space();
+      append_string("!important");
+    }
+    append_delimiter();
+    if (output_style() == NESTED)
+      indentation -= dec->tabs();
     in_declaration = false;
   }
 
   void Inspect::operator()(Assignment* assn)
   {
-    append_to_buffer(assn->variable());
-    append_to_buffer(": ");
+    append_token(assn->variable(), assn);
+    append_colon_separator();
     assn->value()->perform(this);
-    if (assn->is_guarded()) append_to_buffer(" !default");
-    append_to_buffer(";");
+    if (assn->is_guarded()) {
+      append_optional_space();
+      append_string("!default");
+    }
+    append_delimiter();
   }
 
   void Inspect::operator()(Import* import)
   {
     if (!import->urls().empty()) {
-      append_to_buffer("@import", import, " ");
+      append_token("@import", import);
+      append_mandatory_space();
+
+      if (String_Quoted* strq = dynamic_cast<String_Quoted*>(import->urls().front())) {
+        strq->is_delayed(false);
+      }
+
       import->urls().front()->perform(this);
-      append_to_buffer(";");
+      append_delimiter();
       for (size_t i = 1, S = import->urls().size(); i < S; ++i) {
-        append_to_buffer(ctx->linefeed);
-        append_to_buffer("@import", import, " ");
+        append_mandatory_linefeed();
+        append_token("@import", import);
+        append_mandatory_space();
+
+        if (String_Quoted* strq = dynamic_cast<String_Quoted*>(import->urls()[i])) {
+          strq->is_delayed(false);
+        }
+
         import->urls()[i]->perform(this);
-        append_to_buffer(";");
+        append_delimiter();
       }
     }
   }
 
   void Inspect::operator()(Import_Stub* import)
   {
-    append_to_buffer("@import", import, " ");
-    append_to_buffer(import->file_name());
-    append_to_buffer(";");
+    append_indentation();
+    append_token("@import", import);
+    append_mandatory_space();
+    append_string(import->file_name());
+    append_delimiter();
   }
 
   void Inspect::operator()(Warning* warning)
   {
-    append_to_buffer("@warn", warning, " ");
+    append_indentation();
+    append_token("@warn", warning);
+    append_mandatory_space();
     warning->message()->perform(this);
-    append_to_buffer(";");
+    append_delimiter();
   }
 
   void Inspect::operator()(Error* error)
   {
-    append_to_buffer("@error", error, " ");
+    append_indentation();
+    append_token("@error", error);
+    append_mandatory_space();
     error->message()->perform(this);
-    append_to_buffer(";");
+    append_delimiter();
   }
 
   void Inspect::operator()(Debug* debug)
   {
-    append_to_buffer("@debug", debug, " ");
+    append_indentation();
+    append_token("@debug", debug);
+    append_mandatory_space();
     debug->value()->perform(this);
-    append_to_buffer(";");
+    append_delimiter();
   }
 
   void Inspect::operator()(Comment* comment)
   {
+    in_comment = true;
     comment->text()->perform(this);
+    in_comment = false;
   }
 
   void Inspect::operator()(If* cond)
   {
-    append_to_buffer("@if", cond, " ");
+    append_indentation();
+    append_token("@if", cond);
+    append_mandatory_space();
     cond->predicate()->perform(this);
     cond->consequent()->perform(this);
     if (cond->alternative()) {
-      append_to_buffer(ctx->linefeed);
-      append_indent_to_buffer();
-      append_to_buffer("else");
+      append_optional_linefeed();
+      append_indentation();
+      append_string("else");
       cond->alternative()->perform(this);
     }
   }
 
   void Inspect::operator()(For* loop)
   {
-    append_to_buffer("@for", loop, " ");
-    append_to_buffer(loop->variable());
-    append_to_buffer(" from ");
+    append_indentation();
+    append_token("@for", loop);
+    append_mandatory_space();
+    append_string(loop->variable());
+    append_string(" from ");
     loop->lower_bound()->perform(this);
-    append_to_buffer((loop->is_inclusive() ? " through " : " to "));
+    append_string(loop->is_inclusive() ? " through " : " to ");
     loop->upper_bound()->perform(this);
     loop->block()->perform(this);
   }
 
   void Inspect::operator()(Each* loop)
   {
-    append_to_buffer("@each", loop, " ");
-    append_to_buffer(loop->variables()[0]);
+    append_indentation();
+    append_token("@each", loop);
+    append_mandatory_space();
+    append_string(loop->variables()[0]);
     for (size_t i = 1, L = loop->variables().size(); i < L; ++i) {
-      append_to_buffer(", ");
-      append_to_buffer(loop->variables()[i]);
+      append_comma_separator();
+      append_string(loop->variables()[i]);
     }
-    append_to_buffer(" in ");
+    append_string(" in ");
     loop->list()->perform(this);
     loop->block()->perform(this);
   }
 
   void Inspect::operator()(While* loop)
   {
-    append_to_buffer("@while", loop, " ");
+    append_indentation();
+    append_token("@while", loop);
+    append_mandatory_space();
     loop->predicate()->perform(this);
     loop->block()->perform(this);
   }
 
   void Inspect::operator()(Return* ret)
   {
-    append_to_buffer("@return", ret, " ");
+    append_indentation();
+    append_token("@return", ret);
+    append_mandatory_space();
     ret->value()->perform(this);
-    append_to_buffer(";");
+    append_delimiter();
   }
 
   void Inspect::operator()(Extension* extend)
   {
-    append_to_buffer("@extend", extend, " ");
+    append_indentation();
+    append_token("@extend", extend);
+    append_mandatory_space();
     extend->selector()->perform(this);
-    append_to_buffer(";");
+    append_delimiter();
   }
 
   void Inspect::operator()(Definition* def)
   {
+    append_indentation();
     if (def->type() == Definition::MIXIN) {
-      append_to_buffer("@mixin", def, " ");
+      append_token("@mixin", def);
+      append_mandatory_space();
     } else {
-      append_to_buffer("@function", def, " ");
+      append_token("@function", def);
+      append_mandatory_space();
     }
-    append_to_buffer(def->name());
+    append_string(def->name());
     def->parameters()->perform(this);
     def->block()->perform(this);
   }
 
   void Inspect::operator()(Mixin_Call* call)
   {
-    append_to_buffer("@include", call, " ");
-    append_to_buffer(call->name());
+    append_indentation();
+    append_token("@include", call);
+    append_mandatory_space();
+    append_string(call->name());
     if (call->arguments()) {
       call->arguments()->perform(this);
     }
     if (call->block()) {
-      append_to_buffer(" ");
+      append_optional_space();
       call->block()->perform(this);
     }
-    if (!call->block()) append_to_buffer(";");
+    if (!call->block()) append_delimiter();
   }
 
   void Inspect::operator()(Content* content)
   {
-    append_to_buffer("@content", content, ";");
+    append_indentation();
+    append_token("@content", content);
+    append_delimiter();
   }
 
   void Inspect::operator()(Map* map)
@@ -282,22 +329,24 @@ namespace Sass {
     if (map->empty()) return;
     if (map->is_invisible()) return;
     bool items_output = false;
-    append_to_buffer("(");
+    append_string("(");
     for (auto key : map->keys()) {
       if (key->is_invisible()) continue;
       if (map->at(key)->is_invisible()) continue;
-      if (items_output) append_to_buffer(", ");
+      if (items_output) append_comma_separator();
       key->perform(this);
-      append_to_buffer(": ");
+      append_colon_separator();
       map->at(key)->perform(this);
       items_output = true;
     }
-    append_to_buffer(")");
+    append_string(")");
   }
 
   void Inspect::operator()(List* list)
   {
-    string sep(list->separator() == List::SPACE ? " " : ", ");
+    string sep(list->separator() == List::SPACE ? " " : ",");
+    if (output_style() != COMPRESSED && sep == ",") sep += " ";
+    else if (in_media_block && sep != " ") sep += " "; // verified
     if (list->empty()) return;
     bool items_output = false;
     in_declaration_list = in_declaration;
@@ -306,7 +355,11 @@ namespace Sass {
       if (list_item->is_invisible()) {
         continue;
       }
-      if (items_output) append_to_buffer(sep);
+      if (items_output) {
+        append_string(sep);
+      }
+      if (items_output && sep != " ")
+        append_optional_space();
       list_item->perform(this);
       items_output = true;
     }
@@ -317,19 +370,19 @@ namespace Sass {
   {
     expr->left()->perform(this);
     switch (expr->type()) {
-      case Binary_Expression::AND: append_to_buffer(" and "); break;
-      case Binary_Expression::OR:  append_to_buffer(" or ");  break;
-      case Binary_Expression::EQ:  append_to_buffer(" == ");  break;
-      case Binary_Expression::NEQ: append_to_buffer(" != ");  break;
-      case Binary_Expression::GT:  append_to_buffer(" > ");   break;
-      case Binary_Expression::GTE: append_to_buffer(" >= ");  break;
-      case Binary_Expression::LT:  append_to_buffer(" < ");   break;
-      case Binary_Expression::LTE: append_to_buffer(" <= ");  break;
-      case Binary_Expression::ADD: append_to_buffer(" + ");   break;
-      case Binary_Expression::SUB: append_to_buffer(" - ");   break;
-      case Binary_Expression::MUL: append_to_buffer(" * ");   break;
-      case Binary_Expression::DIV: append_to_buffer("/");     break;
-      case Binary_Expression::MOD: append_to_buffer(" % ");   break;
+      case Binary_Expression::AND: append_string(" and "); break;
+      case Binary_Expression::OR:  append_string(" or ");  break;
+      case Binary_Expression::EQ:  append_string(" == ");  break;
+      case Binary_Expression::NEQ: append_string(" != ");  break;
+      case Binary_Expression::GT:  append_string(" > ");   break;
+      case Binary_Expression::GTE: append_string(" >= ");  break;
+      case Binary_Expression::LT:  append_string(" < ");   break;
+      case Binary_Expression::LTE: append_string(" <= ");  break;
+      case Binary_Expression::ADD: append_string(" + ");   break;
+      case Binary_Expression::SUB: append_string(" - ");   break;
+      case Binary_Expression::MUL: append_string(" * ");   break;
+      case Binary_Expression::DIV: append_string("/");     break;
+      case Binary_Expression::MOD: append_string(" % ");   break;
       default: break; // shouldn't get here
     }
     expr->right()->perform(this);
@@ -337,14 +390,14 @@ namespace Sass {
 
   void Inspect::operator()(Unary_Expression* expr)
   {
-    if (expr->type() == Unary_Expression::PLUS) append_to_buffer("+");
-    else                                        append_to_buffer("-");
+    if (expr->type() == Unary_Expression::PLUS) append_string("+");
+    else                                        append_string("-");
     expr->operand()->perform(this);
   }
 
   void Inspect::operator()(Function_Call* call)
   {
-    append_to_buffer(call->name());
+    append_token(call->name(), call);
     call->arguments()->perform(this);
   }
 
@@ -356,34 +409,13 @@ namespace Sass {
 
   void Inspect::operator()(Variable* var)
   {
-    append_to_buffer(var->name());
+    append_token(var->name(), var);
   }
 
   void Inspect::operator()(Textual* txt)
   {
-    append_to_buffer(txt->value());
+    append_token(txt->value(), txt);
   }
-
-  // helper functions for serializing numbers
-  // string frac_to_string(double f, size_t p) {
-  //   stringstream ss;
-  //   ss.setf(ios::fixed, ios::floatfield);
-  //   ss.precision(p);
-  //   ss << f;
-  //   string result(ss.str().substr(f < 0 ? 2 : 1));
-  //   size_t i = result.size() - 1;
-  //   while (result[i] == '0') --i;
-  //   result = result.substr(0, i+1);
-  //   return result;
-  // }
-  // string double_to_string(double d, size_t p) {
-  //   stringstream ss;
-  //   double ipart;
-  //   double fpart = std::modf(d, &ipart);
-  //   ss << ipart;
-  //   if (fpart != 0) ss << frac_to_string(fpart, 5);
-  //   return ss.str();
-  // }
 
   void Inspect::operator()(Number* n)
   {
@@ -416,8 +448,7 @@ namespace Sass {
     // a value before it got truncated
     if (d == "0" && nonzero) d = "0.0";
     // append number and unit
-    append_to_buffer(d);
-    append_to_buffer(n->unit());
+    append_token(d + n->unit(), n);
   }
 
   // helper function for serializing colors
@@ -431,47 +462,85 @@ namespace Sass {
   void Inspect::operator()(Color* c)
   {
     stringstream ss;
+
+    // check if we prefer short hex colors
+    bool want_short = output_style() == COMPRESSED;
+
+    // original color name
+    // maybe an unknown token
+    string name = c->disp();
+
+    // resolved color
+    string res_name = name;
+
     double r = round(cap_channel<0xff>(c->r()));
     double g = round(cap_channel<0xff>(c->g()));
     double b = round(cap_channel<0xff>(c->b()));
     double a = cap_channel<1>   (c->a());
 
+    // get color from given name (if one was given at all)
+    if (name != "" && ctx && ctx->names_to_colors.count(name)) {
+      Color* n = ctx->names_to_colors[name];
+      r = round(cap_channel<0xff>(n->r()));
+      g = round(cap_channel<0xff>(n->g()));
+      b = round(cap_channel<0xff>(n->b()));
+      a = cap_channel<1>   (n->a());
+    }
+    // otherwise get the possible resolved color name
+    else {
+      int numval = r * 0x10000 + g * 0x100 + b;
+      if (ctx && ctx->colors_to_names.count(numval))
+        res_name = ctx->colors_to_names[numval];
+    }
+
+    stringstream hexlet;
+    hexlet << '#' << setw(1) << setfill('0');
+    // create a short color hexlet if there is any need for it
+    if (want_short && is_color_doublet(r, g, b) && a == 1) {
+      hexlet << hex << setw(1) << (static_cast<unsigned long>(r) >> 4);
+      hexlet << hex << setw(1) << (static_cast<unsigned long>(g) >> 4);
+      hexlet << hex << setw(1) << (static_cast<unsigned long>(b) >> 4);
+    } else {
+      hexlet << hex << setw(2) << static_cast<unsigned long>(r);
+      hexlet << hex << setw(2) << static_cast<unsigned long>(g);
+      hexlet << hex << setw(2) << static_cast<unsigned long>(b);
+    }
+
     // retain the originally specified color definition if unchanged
-    if (!c->disp().empty()) {
-      ss << c->disp();
+    if (name != "") {
+      ss << name;
     }
     else if (r == 0 && g == 0 && b == 0 && a == 0) {
         ss << "transparent";
     }
     else if (a >= 1) {
-      // see if it's a named color
-      int numval = r * 0x10000;
-      numval += g * 0x100;
-      numval += b;
-      if (ctx && ctx->colors_to_names.count(numval)) {
-        ss << ctx->colors_to_names[numval];
+      if (res_name != "") {
+        if (want_short && hexlet.str().size() < res_name.size()) {
+          ss << hexlet.str();
+        } else {
+          ss << res_name;
+        }
       }
       else {
-        // otherwise output the hex triplet
-        ss << '#' << setw(2) << setfill('0');
-        ss << hex << setw(2) << static_cast<unsigned long>(r);
-        ss << hex << setw(2) << static_cast<unsigned long>(g);
-        ss << hex << setw(2) << static_cast<unsigned long>(b);
+        ss << hexlet.str();
       }
     }
     else {
       ss << "rgba(";
-      ss << static_cast<unsigned long>(r) << ", ";
-      ss << static_cast<unsigned long>(g) << ", ";
-      ss << static_cast<unsigned long>(b) << ", ";
+      ss << static_cast<unsigned long>(r) << ",";
+      if (output_style() != COMPRESSED) ss << " ";
+      ss << static_cast<unsigned long>(g) << ",";
+      if (output_style() != COMPRESSED) ss << " ";
+      ss << static_cast<unsigned long>(b) << ",";
+      if (output_style() != COMPRESSED) ss << " ";
       ss << a << ')';
     }
-    append_to_buffer(ss.str());
+    append_token(ss.str(), c);
   }
 
   void Inspect::operator()(Boolean* b)
   {
-    append_to_buffer(b->value() ? "true" : "false");
+    append_token(b->value() ? "true" : "false", b);
   }
 
   void Inspect::operator()(String_Schema* ss)
@@ -479,15 +548,27 @@ namespace Sass {
     // Evaluation should turn these into String_Constants, so this method is
     // only for inspection purposes.
     for (size_t i = 0, L = ss->length(); i < L; ++i) {
-      if ((*ss)[i]->is_interpolant()) append_to_buffer("#{");
+      if ((*ss)[i]->is_interpolant()) append_string("#{");
       (*ss)[i]->perform(this);
-      if ((*ss)[i]->is_interpolant()) append_to_buffer("}");
+      if ((*ss)[i]->is_interpolant()) append_string("}");
     }
   }
 
   void Inspect::operator()(String_Constant* s)
   {
-    append_to_buffer(s->sass_fix_1291() ? unquote(s->value()) : s->value(), s);
+    if (String_Quoted* quoted = dynamic_cast<String_Quoted*>(s)) {
+      return Inspect::operator()(quoted);
+    }
+    append_token(s->value(), s);
+  }
+
+  void Inspect::operator()(String_Quoted* s)
+  {
+    if (s->quote_mark()) {
+      append_token(quote(s->value(), s->quote_mark()), s);
+    } else {
+      append_token(s->value(), s);
+    }
   }
 
   void Inspect::operator()(Feature_Query* fq)
@@ -501,40 +582,46 @@ namespace Sass {
 
   void Inspect::operator()(Feature_Query_Condition* fqc)
   {
-    if (fqc->operand() == Feature_Query_Condition::AND)
-      append_to_buffer(" and ");
-    else if (fqc->operand() == Feature_Query_Condition::OR)
-      append_to_buffer(" or ");
-    else if (fqc->operand() == Feature_Query_Condition::NOT)
-      append_to_buffer(" not ");
+    if (fqc->operand() == Feature_Query_Condition::AND) {
+      append_mandatory_space();
+      append_token("and", fqc);
+      append_mandatory_space();
+    } else if (fqc->operand() == Feature_Query_Condition::OR) {
+      append_mandatory_space();
+      append_token("or", fqc);
+      append_mandatory_space();
+    } else if (fqc->operand() == Feature_Query_Condition::NOT) {
+      append_mandatory_space();
+      append_token("not", fqc);
+      append_mandatory_space();
+    }
 
-    if (!fqc->is_root()) append_to_buffer("(");
+    if (!fqc->is_root()) append_string("(");
 
     if (!fqc->length()) {
       fqc->feature()->perform(this);
-      append_to_buffer(": ");
+      append_string(": "); // verified
       fqc->value()->perform(this);
     }
-    // else
     for (size_t i = 0, L = fqc->length(); i < L; ++i)
       (*fqc)[i]->perform(this);
 
-    if (!fqc->is_root()) append_to_buffer(")");
+    if (!fqc->is_root()) append_string(")");
   }
 
   void Inspect::operator()(Media_Query* mq)
   {
     size_t i = 0;
     if (mq->media_type()) {
-      if      (mq->is_negated())    append_to_buffer("not ");
-      else if (mq->is_restricted()) append_to_buffer("only ");
+      if      (mq->is_negated())    append_string("not ");
+      else if (mq->is_restricted()) append_string("only ");
       mq->media_type()->perform(this);
     }
     else {
       (*mq)[i++]->perform(this);
     }
     for (size_t L = mq->length(); i < L; ++i) {
-      append_to_buffer(" and ");
+      append_string(" and ");
       (*mq)[i]->perform(this);
     }
   }
@@ -542,28 +629,16 @@ namespace Sass {
   void Inspect::operator()(Media_Query_Expression* mqe)
   {
     if (mqe->is_interpolated()) {
-      if (ctx) ctx->source_map.add_open_mapping(mqe->feature());
-      source_map.add_open_mapping(mqe->feature());
       mqe->feature()->perform(this);
-      if (ctx) ctx->source_map.add_close_mapping(mqe->feature());
-      source_map.add_close_mapping(mqe->feature());
     }
     else {
-      append_to_buffer("(");
-      if (ctx) ctx->source_map.add_open_mapping(mqe->feature());
-      source_map.add_open_mapping(mqe->feature());
+      append_string("(");
       mqe->feature()->perform(this);
-      if (ctx) ctx->source_map.add_close_mapping(mqe->feature());
-      source_map.add_close_mapping(mqe->feature());
       if (mqe->value()) {
-        append_to_buffer(": ");
-        if (ctx) ctx->source_map.add_open_mapping(mqe->value());
-        source_map.add_open_mapping(mqe->value());
+        append_string(": "); // verified
         mqe->value()->perform(this);
-        if (ctx) ctx->source_map.add_close_mapping(mqe->value());
-        source_map.add_close_mapping(mqe->value());
       }
-      append_to_buffer(")");
+      append_string(")");
     }
   }
 
@@ -573,52 +648,52 @@ namespace Sass {
       ae->feature()->perform(this);
     }
     else {
-      append_to_buffer("(");
+      append_string("(");
       ae->feature()->perform(this);
       if (ae->value()) {
-        append_to_buffer(": ");
+        append_colon_separator();
         ae->value()->perform(this);
       }
-      append_to_buffer(")");
+      append_string(")");
     }
   }
 
   void Inspect::operator()(Null* n)
   {
-    append_to_buffer("null");
+    append_token("null", n);
   }
 
   // parameters and arguments
   void Inspect::operator()(Parameter* p)
   {
-    append_to_buffer(p->name());
+    append_token(p->name(), p);
     if (p->default_value()) {
-      append_to_buffer(": ");
+      append_colon_separator();
       p->default_value()->perform(this);
     }
     else if (p->is_rest_parameter()) {
-      append_to_buffer("...");
+      append_string("...");
     }
   }
 
   void Inspect::operator()(Parameters* p)
   {
-    append_to_buffer("(");
+    append_string("(");
     if (!p->empty()) {
       (*p)[0]->perform(this);
       for (size_t i = 1, L = p->length(); i < L; ++i) {
-        append_to_buffer(", ");
+        append_comma_separator();
         (*p)[i]->perform(this);
       }
     }
-    append_to_buffer(")");
+    append_string(")");
   }
 
   void Inspect::operator()(Argument* a)
   {
     if (!a->name().empty()) {
-      append_to_buffer(a->name());
-      append_to_buffer(": ");
+      append_token(a->name(), a);
+      append_colon_separator();
     }
     // Special case: argument nulls can be ignored
     if (a->value()->concrete_type() == Expression::NULL_VAL) {
@@ -626,28 +701,27 @@ namespace Sass {
     }
     if (a->value()->concrete_type() == Expression::STRING) {
       String_Constant* s = static_cast<String_Constant*>(a->value());
-      if (s->quote_mark()) s->value(quote(unquote(s->value()), String_Constant::double_quote()));
       s->perform(this);
     } else a->value()->perform(this);
     if (a->is_rest_argument()) {
-      append_to_buffer("...");
+      append_string("...");
     }
   }
 
   void Inspect::operator()(Arguments* a)
   {
-    append_to_buffer("(");
+    append_string("(");
     if (!a->empty()) {
       (*a)[0]->perform(this);
       for (size_t i = 1, L = a->length(); i < L; ++i) {
-        append_to_buffer(", ");
+        append_string(", "); // verified
+        // Sass Bug? append_comma_separator();
         (*a)[i]->perform(this);
       }
     }
-    append_to_buffer(")");
+    append_string(")");
   }
 
-  // selectors
   void Inspect::operator()(Selector_Schema* s)
   {
     s->contents()->perform(this);
@@ -656,62 +730,67 @@ namespace Sass {
   void Inspect::operator()(Selector_Reference* ref)
   {
     if (ref->selector()) ref->selector()->perform(this);
-    else                 append_to_buffer("&");
+    else                 append_string("&");
   }
 
   void Inspect::operator()(Selector_Placeholder* s)
   {
-    append_to_buffer(s->name(), s);
+    append_token(s->name(), s);
+    if (s->has_line_break()) append_optional_linefeed();
+    if (s->has_line_break()) append_indentation();
+
   }
 
   void Inspect::operator()(Type_Selector* s)
   {
-    append_to_buffer(s->name(), s);
+    append_token(s->name(), s);
   }
 
   void Inspect::operator()(Selector_Qualifier* s)
   {
-    append_to_buffer(s->name(), s);
+    append_token(s->name(), s);
+    if (s->has_line_break()) append_optional_linefeed();
+    if (s->has_line_break()) append_indentation();
   }
 
   void Inspect::operator()(Attribute_Selector* s)
   {
-    append_to_buffer("[");
-    if (ctx) ctx->source_map.add_open_mapping(s);
-    source_map.add_open_mapping(s);
-    append_to_buffer(s->name());
+    append_string("[");
+    add_open_mapping(s);
+    append_token(s->name(), s);
     if (!s->matcher().empty()) {
-      append_to_buffer(s->matcher());
+      append_string(s->matcher());
       if (s->value()) {
         s->value()->perform(this);
       }
-      // append_to_buffer(s->value());
     }
-    if (ctx) ctx->source_map.add_close_mapping(s);
-    source_map.add_close_mapping(s);
-    append_to_buffer("]");
+    add_close_mapping(s);
+    append_string("]");
   }
 
   void Inspect::operator()(Pseudo_Selector* s)
   {
-    append_to_buffer(s->name(), s);
+    append_token(s->name(), s);
     if (s->expression()) {
       s->expression()->perform(this);
-      append_to_buffer(")");
+      append_string(")");
     }
   }
 
   void Inspect::operator()(Wrapped_Selector* s)
   {
-    append_to_buffer(s->name(), s);
+    append_token(s->name(), s);
     s->selector()->perform(this);
-    append_to_buffer(")");
+    append_string(")");
   }
 
   void Inspect::operator()(Compound_Selector* s)
   {
     for (size_t i = 0, L = s->length(); i < L; ++i) {
       (*s)[i]->perform(this);
+    }
+    if (s->has_line_break()) {
+      append_optional_linefeed();
     }
   }
 
@@ -721,15 +800,34 @@ namespace Sass {
     Complex_Selector*            tail = c->tail();
     Complex_Selector::Combinator comb = c->combinator();
     if (head && !head->is_empty_reference()) head->perform(this);
-    if (head && !head->is_empty_reference() && tail) append_to_buffer(" ");
+    bool is_empty = head && head->is_empty_reference();
+    bool is_tail = head && !head->is_empty_reference() && tail;
+    if (output_style() == COMPRESSED && comb != Complex_Selector::ANCESTOR_OF) scheduled_space = 0;
+
     switch (comb) {
-      case Complex_Selector::ANCESTOR_OF:                                        break;
-      case Complex_Selector::PARENT_OF:   append_to_buffer(">"); break;
-      case Complex_Selector::PRECEDES:    append_to_buffer("~"); break;
-      case Complex_Selector::ADJACENT_TO: append_to_buffer("+"); break;
+      case Complex_Selector::ANCESTOR_OF:
+        if (is_tail) append_mandatory_space();
+      break;
+      case Complex_Selector::PARENT_OF:
+        append_optional_space();
+        append_string(">");
+        append_optional_space();
+      break;
+      case Complex_Selector::ADJACENT_TO:
+        append_optional_space();
+        append_string("+");
+        append_optional_space();
+      break;
+      case Complex_Selector::PRECEDES:
+        if (is_empty) append_optional_space();
+        else append_mandatory_space();
+        append_string("~");
+        if (tail) append_mandatory_space();
+        else append_optional_space();
+      break;
     }
     if (tail && comb != Complex_Selector::ANCESTOR_OF) {
-      append_to_buffer(" ");
+      if (c->has_line_break()) append_optional_linefeed();
     }
     if (tail) tail->perform(this);
   }
@@ -737,134 +835,21 @@ namespace Sass {
   void Inspect::operator()(Selector_List* g)
   {
     if (g->empty()) return;
-    if (ctx) ctx->source_map.add_open_mapping((*g)[0]);
-    source_map.add_open_mapping((*g)[0]);
-    (*g)[0]->perform(this);
-    if (ctx) ctx->source_map.add_close_mapping((*g)[0]);
-    source_map.add_close_mapping((*g)[0]);
-    for (size_t i = 1, L = g->length(); i < L; ++i) {
-      append_to_buffer(", ");
-      if (ctx) ctx->source_map.add_open_mapping((*g)[i]);
-      source_map.add_open_mapping((*g)[i]);
+    for (size_t i = 0, L = g->length(); i < L; ++i) {
+      if (i == 0) append_indentation();
       (*g)[i]->perform(this);
-      if (ctx) ctx->source_map.add_close_mapping((*g)[i]);
-      source_map.add_close_mapping((*g)[i]);
-    }
-  }
-
-  inline void Inspect::fallback_impl(AST_Node* n)
-  { }
-
-  void Inspect::append_indent_to_buffer()
-  {
-    string indent = "";
-    for (size_t i = 0; i < indentation; i++)
-      indent += ctx->indent;
-    append_to_buffer(indent);
-  }
-
-  string unquote(const string& s, char* qd)
-  {
-    if (s.empty()) return "";
-    if (s.length() == 1) {
-      if (s[0] == '"' || s[0] == '\'') return "";
-    }
-    char q;
-
-    // this is no guarantee that the unquoting will work
-    // what about whitespace before/after the quote_mark?
-    if      (*s.begin() == '"'  && *s.rbegin() == '"')  q = '"';
-    else if (*s.begin() == '\'' && *s.rbegin() == '\'') q = '\'';
-    else                                                return s;
-    string t;
-    t.reserve(s.length()-2);
-
-    for (size_t i = 1, L = s.length()-1; i < L; ++i) {
-
-      // implement the same strange ruby sass behavior
-      // an escape sequence can also mean a unicode char
-      if (s[i] == '\\') {
-
-        // skip it
-        ++ i;
-
-        // escape length
-        size_t len = 0;
-
-        // parse as many sequence chars as possible
-        // ToDo: Check if ruby aborts after possible max
-        while (s[i + len] && isxdigit(s[i + len])) ++ len;
-
-        // hex string?
-        if (len == 0) {
-
-          // add next char
-          t.push_back(s[i]);
-
-        } else {
-
-          // convert the extracted hex string to code point value
-          // ToDo: Maybe we could do this without creating a substring
-          uint32_t cp = strtol(s.substr (i, len).c_str(), nullptr, 16);
-
-          // use a very simple approach to convert via utf8 lib
-          // maybe there is a more elegant way; maybe we shoud
-          // convert the whole output from string to a stream!?
-          // allocate memory for utf8 char and convert to utf8
-          unsigned char u[5] = {0,0,0,0,0}; utf8::append(cp, u);
-          for(size_t m = 0; u[m] && m < 5; m++) t.push_back(u[m]);
-
-          // skip some more chars?
-          if (len > 1) i += len - 1;
-
+      if (i < L - 1) {
+        append_comma_separator();
+        if ((*g)[i]->has_line_feed()) {
+          append_optional_linefeed();
+          append_indentation();
         }
-        // EO if hex
-
-      } else {
-        // add single char
-        t.push_back(s[i]);
       }
     }
-
-    if (qd) *qd = q;
-    return t;
   }
 
-  string quote(const string& s, char q)
+  void Inspect::fallback_impl(AST_Node* n)
   {
-    if (s.empty()) return string(2, q);
-    if (!q || s[0] == '"' || s[0] == '\'') return s;
-    string t;
-    t.reserve(s.length()+2);
-    t.push_back(q);
-    for (size_t i = 0, L = s.length(); i < L; ++i) {
-      if (s[i] == q) t.push_back('\\');
-      t.push_back(s[i]);
-    }
-    t.push_back(q);
-    return t;
-  }
-
-  void Inspect::append_to_buffer(const string& text)
-  {
-    buffer += text;
-    if (ctx) ctx->source_map.update_column(text);
-    source_map.update_column(text);
-  }
-
-  void Inspect::append_to_buffer(const string& text, AST_Node* node)
-  {
-    if (ctx) ctx->source_map.add_open_mapping(node);
-    source_map.add_open_mapping(node);
-    append_to_buffer(text);
-    if (ctx) ctx->source_map.add_close_mapping(node);
-    source_map.add_close_mapping(node);
-  }
-
-  void Inspect::append_to_buffer(const string& text, AST_Node* node, const string& tail)
-  {
-    append_to_buffer(text, node);
-    append_to_buffer(tail);
   }
 
 }

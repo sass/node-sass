@@ -38,6 +38,7 @@ namespace Sass {
     Position before_token;
     Position after_token;
     ParserState pstate;
+    int indentation;
 
 
     Token lexed;
@@ -45,7 +46,7 @@ namespace Sass {
 
     Parser(Context& ctx, ParserState pstate)
     : ParserState(pstate), ctx(ctx), stack(vector<Syntactic_Context>()),
-      source(0), position(0), end(0), before_token(pstate), after_token(pstate), pstate("[NULL]")
+      source(0), position(0), end(0), before_token(pstate), after_token(pstate), pstate("[NULL]"), indentation(0)
     { in_at_root = false; stack.push_back(nothing); }
 
     static Parser from_string(const string& src, Context& ctx, ParserState pstate = ParserState("[STRING]"));
@@ -65,6 +66,9 @@ namespace Sass {
 
 #endif
 
+
+    bool peek_newline(const char* start = 0);
+
     template <prelexer mx>
     const char* peek(const char* start = 0)
     {
@@ -77,7 +81,7 @@ namespace Sass {
       else if (/*mx == ancestor_of ||*/ mx == no_spaces) {
         it_before_token = position;
       }
-      else if (mx == spaces || mx == ancestor_of) {
+      else if (mx == spaces) {
         it_before_token = mx(start);
         if (it_before_token) {
           return it_before_token;
@@ -124,7 +128,7 @@ namespace Sass {
         // a block comment can be preceded by spaces and/or line comments
         it_before_token = zero_plus< alternatives<spaces, line_comment> >(position);
       }
-      else if (mx == url || mx == ancestor_of || mx == no_spaces) {
+      else if (mx == url || mx == no_spaces) {
         // parse everything literally
         it_before_token = position;
       }
@@ -139,7 +143,7 @@ namespace Sass {
         }
       }
 
-      else if (mx == spaces_and_comments) {
+      else if (mx == optional_spaces_and_comments) {
         it_before_token = position;
       }
 
@@ -187,7 +191,7 @@ namespace Sass {
       after_token = after_token + size;
 
       // create parsed token string (public member)
-      lexed = Token(wspace_start, it_before_token, it_after_token, spaces_and_comments(it_after_token) ? spaces_and_comments(it_after_token) : it_after_token, before_token);
+      lexed = Token(wspace_start, it_before_token, it_after_token, optional_spaces_and_comments(it_after_token) ? optional_spaces_and_comments(it_after_token) : it_after_token, before_token);
       Position pos(before_token.file, before_token.line, before_token.column);
       pstate = ParserState(path, lexed, pos, size);
 
@@ -214,7 +218,7 @@ namespace Sass {
     Arguments* parse_arguments();
     Argument* parse_argument();
     Assignment* parse_assignment();
-    Propset* parse_propset();
+    // Propset* parse_propset();
     Ruleset* parse_ruleset(Selector_Lookahead lookahead);
     Selector_Schema* parse_selector_schema(const char* end_of_selector);
     Selector_List* parse_selector_group();
@@ -241,14 +245,14 @@ namespace Sass {
     Function_Call* parse_calc_function();
     Function_Call* parse_function_call();
     Function_Call_Schema* parse_function_call_schema();
-    String* parse_interpolated_chunk(Token, bool const = false);
+    String* parse_interpolated_chunk(Token, bool constant = false);
     String* parse_string();
     String_Constant* parse_static_value();
     String* parse_ie_property();
     String* parse_ie_keyword_arg();
     String_Schema* parse_value_schema(const char* stop);
     String* parse_identifier_schema();
-    String_Schema* parse_url_schema();
+    // String_Schema* parse_url_schema();
     If* parse_if_directive(bool else_if = false);
     For* parse_for_directive();
     Each* parse_each_directive();

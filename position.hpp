@@ -25,7 +25,7 @@ namespace Sass {
       const Offset operator+ (const Offset &off) const;
 
     public: // overload output stream operator
-      friend ostream& operator<<(ostream& strm, const Offset& off);
+      // friend ostream& operator<<(ostream& strm, const Offset& off);
 
     public:
       Offset off() { return *this; };
@@ -40,6 +40,7 @@ namespace Sass {
 
     public: // c-tor
       Position(const size_t file); // line(0), column(0)
+      Position(const size_t file, const Offset& offset);
       Position(const size_t line, const size_t column); // file(-1)
       Position(const size_t file, const size_t line, const size_t column);
 
@@ -51,7 +52,7 @@ namespace Sass {
       Position inc(const char* begin, const char* end) const;
 
     public: // overload output stream operator
-      friend ostream& operator<<(ostream& strm, const Position& pos);
+      // friend ostream& operator<<(ostream& strm, const Position& pos);
 
     public:
       size_t file;

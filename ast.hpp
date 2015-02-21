@@ -30,7 +30,9 @@
 
 #endif
 
+#include "util.hpp"
 #include "units.hpp"
+#include "context.hpp"
 #include "position.hpp"
 #include "constants.hpp"
 #include "operation.hpp"
@@ -40,6 +42,7 @@
 #include "environment.hpp"
 #include "error_handling.hpp"
 #include "ast_def_macros.hpp"
+#include "ast_fwd_decl.hpp"
 #include "to_string.hpp"
 
 #include "sass.h"
@@ -52,10 +55,6 @@ namespace Sass {
   //////////////////////////////////////////////////////////
   // Abstract base class for all abstract syntax tree nodes.
   //////////////////////////////////////////////////////////
-  class Block;
-  class Statement;
-  class Expression;
-  class Selector;
   class AST_Node {
     ADD_PROPERTY(ParserState, pstate);
   public:
@@ -321,7 +320,6 @@ namespace Sass {
   // Rulesets (i.e., sets of styles headed by a selector and containing a block
   // of style declarations.
   /////////////////////////////////////////////////////////////////////////////
-  class Selector;
   class Ruleset : public Has_Block {
     ADD_PROPERTY(Selector*, selector);
   public:
@@ -337,7 +335,6 @@ namespace Sass {
   /////////////////////////////////////////////////////////
   // Nested declaration sets (i.e., namespaced properties).
   /////////////////////////////////////////////////////////
-  class String;
   class Propset : public Has_Block {
     ADD_PROPERTY(String*, property_fragment);
   public:
@@ -364,7 +361,6 @@ namespace Sass {
   /////////////////
   // Media queries.
   /////////////////
-  class List;
   class Media_Block : public Has_Block {
     ADD_PROPERTY(List*, media_queries);
     ADD_PROPERTY(Selector*, selector);
@@ -453,8 +449,6 @@ namespace Sass {
   /////////////////////////////////////
   // Assignments -- variable and value.
   /////////////////////////////////////
-  class Variable;
-  class Expression;
   class Assignment : public Statement {
     ADD_PROPERTY(string, variable);
     ADD_PROPERTY(Expression*, value);
@@ -537,9 +531,10 @@ namespace Sass {
   ///////////////////////////////////////////
   class Comment : public Statement {
     ADD_PROPERTY(String*, text);
+    ADD_PROPERTY(bool, is_important);
   public:
-    Comment(ParserState pstate, String* txt)
-    : Statement(pstate), text_(txt)
+    Comment(ParserState pstate, String* txt, bool is_important)
+    : Statement(pstate), text_(txt), is_important_(is_important)
     { }
     ATTACH_OPERATIONS();
   };
@@ -628,9 +623,7 @@ namespace Sass {
   // Definitions for both mixins and functions. The two cases are distinguished
   // by a type tag.
   /////////////////////////////////////////////////////////////////////////////
-  struct Context;
   struct Backtrace;
-  class Parameters;
   typedef Environment<AST_Node*> Env;
   typedef const char* Signature;
   typedef Expression* (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtrace*);
@@ -706,7 +699,6 @@ namespace Sass {
   //////////////////////////////////////
   // Mixin calls (i.e., `@include ...`).
   //////////////////////////////////////
-  class Arguments;
   class Mixin_Call : public Has_Block {
     ADD_PROPERTY(string, name);
     ADD_PROPERTY(Arguments*, arguments);
@@ -785,7 +777,6 @@ namespace Sass {
   ///////////////////////////////////////////////////////////////////////
   // Key value paris.
   ///////////////////////////////////////////////////////////////////////
-
   class Map : public Expression, public Hashed {
     void adjust_after_pushing(std::pair<Expression*, Expression*> p) { is_expanded(false); }
   public:
@@ -827,8 +818,6 @@ namespace Sass {
 
     ATTACH_OPERATIONS();
   };
-
-
 
   //////////////////////////////////////////////////////////////////////////
   // Binary expressions. Represents logical, relational, and arithmetic
@@ -1392,21 +1381,21 @@ namespace Sass {
   class String_Constant : public String {
     ADD_PROPERTY(char, quote_mark);
     ADD_PROPERTY(string, value);
-    string unquoted_;
+  protected:
     size_t hash_;
   public:
     String_Constant(ParserState pstate, string val)
     : String(pstate), quote_mark_(0), value_(val), hash_(0)
-    { unquoted_ = unquote(value_, &quote_mark_); }
+    { }
     String_Constant(ParserState pstate, const char* beg)
     : String(pstate), quote_mark_(0), value_(string(beg)), hash_(0)
-    { unquoted_ = unquote(value_, &quote_mark_); }
+    { }
     String_Constant(ParserState pstate, const char* beg, const char* end)
     : String(pstate), quote_mark_(0), value_(string(beg, end-beg)), hash_(0)
-    { unquoted_ = unquote(value_, &quote_mark_); }
+    { }
     String_Constant(ParserState pstate, const Token& tok)
     : String(pstate), quote_mark_(0), value_(string(tok.begin, tok.end)), hash_(0)
-    { unquoted_ = unquote(value_, &quote_mark_); }
+    { }
     string type() { return "string"; }
     static string type_name() { return "string"; }
 
@@ -1415,7 +1404,7 @@ namespace Sass {
       try
       {
         String_Constant& e = dynamic_cast<String_Constant&>(rhs);
-        return e && unquoted_ == e.unquoted_;
+        return e && value_ == e.value_;
       }
       catch (std::bad_cast&)
       {
@@ -1426,7 +1415,7 @@ namespace Sass {
 
     virtual size_t hash()
     {
-      if (hash_ == 0) hash_ = std::hash<string>()(unquoted_);
+      if (hash_ == 0) hash_ = std::hash<string>()(value_);
       return hash_;
     }
 
@@ -1445,7 +1434,7 @@ namespace Sass {
     String_Quoted(ParserState pstate, string val)
     : String_Constant(pstate, val)
     {
-      // value_ = unquote(value_, &quote_mark_);
+      value_ = unquote(value_, &quote_mark_);
     }
     ATTACH_OPERATIONS();
   };
@@ -1705,14 +1694,20 @@ namespace Sass {
   class Selector : public AST_Node {
     ADD_PROPERTY(bool, has_reference);
     ADD_PROPERTY(bool, has_placeholder);
+    // line break before list separator
+    ADD_PROPERTY(bool, has_line_feed);
+    // line break after list separator
+    ADD_PROPERTY(bool, has_line_break);
   public:
     Selector(ParserState pstate, bool r = false, bool h = false)
     : AST_Node(pstate),
       has_reference_(r),
-      has_placeholder_(h)
+      has_placeholder_(h),
+      has_line_feed_(false),
+      has_line_break_(false)
     { }
     virtual ~Selector() = 0;
-    virtual Selector_Placeholder* find_placeholder();
+    // virtual Selector_Placeholder* find_placeholder();
     virtual int specificity() { return Constants::SPECIFICITY_BASE; }
   };
   inline Selector::~Selector() { }
@@ -1775,7 +1770,7 @@ namespace Sass {
     Selector_Placeholder(ParserState pstate, string n)
     : Simple_Selector(pstate), name_(n)
     { has_placeholder(true); }
-    virtual Selector_Placeholder* find_placeholder();
+    // virtual Selector_Placeholder* find_placeholder();
     ATTACH_OPERATIONS();
   };
 
@@ -1905,7 +1900,7 @@ namespace Sass {
     { }
 
     Compound_Selector* unify_with(Compound_Selector* rhs, Context& ctx);
-    virtual Selector_Placeholder* find_placeholder();
+    // virtual Selector_Placeholder* find_placeholder();
     Simple_Selector* base()
     {
       // Implement non-const in terms of const. Safe to const_cast since this method is non-const
@@ -1952,7 +1947,6 @@ namespace Sass {
   // CSS selector combinators (">", "+", "~", and whitespace). Essentially a
   // linked list.
   ////////////////////////////////////////////////////////////////////////////
-  struct Context;
   class Complex_Selector : public Selector {
   public:
     enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO };
@@ -1976,7 +1970,7 @@ namespace Sass {
     size_t length();
     bool is_superselector_of(Compound_Selector*);
     bool is_superselector_of(Complex_Selector*);
-    virtual Selector_Placeholder* find_placeholder();
+    // virtual Selector_Placeholder* find_placeholder();
     Combinator clear_innermost();
     void set_innermost(Complex_Selector*, Combinator);
     virtual int specificity() const
@@ -2039,7 +2033,7 @@ namespace Sass {
     }
     Complex_Selector* clone(Context&) const;      // does not clone Compound_Selector*s
     Complex_Selector* cloneFully(Context&) const; // clones Compound_Selector*s
-    vector<Compound_Selector*> to_vector();
+    // vector<Compound_Selector*> to_vector();
     ATTACH_OPERATIONS();
   };
 
@@ -2052,13 +2046,14 @@ namespace Sass {
 #ifdef DEBUG
     ADD_PROPERTY(string, mCachedSelector);
 #endif
+    ADD_PROPERTY(vector<string>, wspace);
   protected:
     void adjust_after_pushing(Complex_Selector* c);
   public:
     Selector_List(ParserState pstate, size_t s = 0)
-    : Selector(pstate), Vectorized<Complex_Selector*>(s)
+    : Selector(pstate), Vectorized<Complex_Selector*>(s), wspace_(0)
     { }
-    virtual Selector_Placeholder* find_placeholder();
+    // virtual Selector_Placeholder* find_placeholder();
     virtual int specificity()
     {
       int sum = 0;

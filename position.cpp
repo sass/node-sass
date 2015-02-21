@@ -42,6 +42,9 @@ namespace Sass {
   Position::Position(const size_t file)
   : Offset(0, 0), file(file) { }
 
+  Position::Position(const size_t file, const Offset& offset)
+  : Offset(offset), file(file) { }
+
   Position::Position(const size_t line, const size_t column)
   : Offset(line, column), file(-1) { }
 
@@ -63,17 +66,9 @@ namespace Sass {
 
   Position Position::inc(const char* begin, const char* end) const
   {
-    Position pos(file, line, column);
-    while (begin < end && *begin) {
-      if (*begin == '\n') {
-        ++ pos.line;
-        pos.column = 0;
-      } else {
-        ++ pos.column;
-      }
-      ++begin;
-    }
-    return pos;
+    Offset offset(line, column);
+    offset.inc(begin, end);
+    return Position(file, offset);
   }
 
   bool Position::operator== (const Position &pos) const
@@ -91,19 +86,21 @@ namespace Sass {
     return Position(file, line + off.line, off.line > 0 ? off.column : off.column + column);
   }
 
+  /* not used anymore - remove?
   std::ostream& operator<<(std::ostream& strm, const Offset& off)
   {
     if (off.line == string::npos) strm << "-1:"; else strm << off.line << ":";
     if (off.column == string::npos) strm << "-1"; else strm << off.column;
     return strm;
-  }
+  } */
 
+  /* not used anymore - remove?
   std::ostream& operator<<(std::ostream& strm, const Position& pos)
   {
     if (pos.file != string::npos) strm << pos.file << ":";
     if (pos.line == string::npos) strm << "-1:"; else strm << pos.line << ":";
     if (pos.column == string::npos) strm << "-1"; else strm << pos.column;
     return strm;
-  }
+  } */
 
 }

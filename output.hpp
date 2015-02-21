@@ -5,43 +5,49 @@
 #include <vector>
 
 #include "util.hpp"
-#include "context.hpp"
+#include "inspect.hpp"
 #include "operation.hpp"
 
 namespace Sass {
+  class Context;
   using namespace std;
-  struct Context;
 
-  template<typename T>
-  class Output : public Operation_CRTP<void, T> {
-    // import class-specific methods and override as desired
-    using Operation_CRTP<void, T>::operator();
+  // Refactor to make it generic to find linefeed (look behind)
+  inline bool ends_with(std::string const & value, std::string const & ending)
+  {
+    if (ending.size() > value.size()) return false;
+    return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+  }
 
+  class Output : public Inspect {
   protected:
-    Context* ctx;
-    string buffer;
-    vector<Import*> top_imports;
-    vector<Comment*> top_comments;
-    virtual void fallback_impl(AST_Node* n) = 0;
+    using Inspect::operator();
 
   public:
-    Output(Context* ctx = 0)
-    : ctx(ctx),
-      buffer(""),
-      top_imports(0),
-      top_comments(0)
-    { }
-    virtual ~Output() { };
+    // change to Emitter
+    Output(Context* ctx);
+    virtual ~Output();
 
-    // return buffer as string
+  protected:
+    string charset;
+    vector<Import*> top_imports;
+    vector<Comment*> top_comments;
+
+  public:
     string get_buffer(void);
 
-    // append some text or token to the buffer
-    void append_to_buffer(const string& data);
+    virtual void operator()(Ruleset*);
+    // virtual void operator()(Propset*);
+    virtual void operator()(Feature_Block*);
+    virtual void operator()(Media_Block*);
+    virtual void operator()(At_Rule*);
+    virtual void operator()(Keyframe_Rule*);
+    virtual void operator()(Import*);
+    virtual void operator()(Comment*);
+    virtual void operator()(String_Quoted*);
+    virtual void operator()(String_Constant*);
 
-    // append some text or token to the buffer
-    // this adds source-mappings for node start and end
-    void append_to_buffer(const string& data, AST_Node* node);
+    void fallback_impl(AST_Node* n);
 
   };
 

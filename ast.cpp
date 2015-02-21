@@ -183,6 +183,7 @@ namespace Sass {
           return 0;
       }
     }
+    rhs->has_line_break(has_line_break());
     return Simple_Selector::unify_with(rhs, ctx);
   }
 
@@ -470,10 +471,11 @@ namespace Sass {
 
 
 
+  /* not used anymore - remove?
   Selector_Placeholder* Selector::find_placeholder()
   {
     return 0;
-  }
+  }*/
 
   void Selector_List::adjust_after_pushing(Complex_Selector* c)
   {
@@ -486,6 +488,7 @@ namespace Sass {
 #endif
   }
 
+  /* not used anymore - remove?
   Selector_Placeholder* Selector_List::find_placeholder()
   {
     if (has_placeholder()) {
@@ -494,8 +497,9 @@ namespace Sass {
       }
     }
     return 0;
-  }
+  }*/
 
+  /* not used anymore - remove?
   Selector_Placeholder* Complex_Selector::find_placeholder()
   {
     if (has_placeholder()) {
@@ -503,8 +507,9 @@ namespace Sass {
       else if (tail() && tail()->has_placeholder()) return tail()->find_placeholder();
     }
     return 0;
-  }
+  }*/
 
+  /* not used anymore - remove?
   Selector_Placeholder* Compound_Selector::find_placeholder()
   {
     if (has_placeholder()) {
@@ -514,12 +519,13 @@ namespace Sass {
       // return this;
     }
     return 0;
-  }
+  }*/
 
+  /* not used anymore - remove?
   Selector_Placeholder* Selector_Placeholder::find_placeholder()
   {
     return this;
-  }
+  }*/
 
   vector<string> Compound_Selector::to_str_vec()
   {
@@ -562,6 +568,7 @@ namespace Sass {
     }
   }
 
+  /* not used anymore - remove?
   vector<Compound_Selector*> Complex_Selector::to_vector()
   {
     vector<Compound_Selector*> result;
@@ -575,7 +582,7 @@ namespace Sass {
       if (h) result.push_back(h);
     }
     return result;
-  }
+  }*/
 
 }
 

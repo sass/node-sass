@@ -106,15 +106,6 @@ namespace Sass {
     return result;
   }
 
-  void SourceMap::remove_line()
-  {
-    // prevent removing non existing lines
-    if (current_position.line > 1) {
-      current_position.line -= 1;
-      current_position.column = 1;
-    }
-  }
-
   void SourceMap::update_column(const string& str)
   {
     const ptrdiff_t new_line_count = std::count(str.begin(), str.end(), '\n');

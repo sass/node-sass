@@ -45,10 +45,11 @@ namespace Sass {
     return factor;
   }
 
+  /* not used anymore - remove?
   double convert(double n, const string& from, const string& to)
   {
     double factor = conversion_factor(from, to);
     return factor ? factor * n : n;
-  }
+  } */
 
 }

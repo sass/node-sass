@@ -174,10 +174,10 @@ namespace Sass {
     }
 
     // Matches zero characters (always succeeds without consuming input).
-    const char* epsilon(const char*);
+    // const char* epsilon(const char*);
 
     // Matches the empty string.
-    const char* empty(const char*);
+    // const char* empty(const char*);
 
     // Succeeds of the supplied matcher fails, and vice versa.
     template <prelexer mx>
@@ -374,6 +374,10 @@ namespace Sass {
     const char* xdigits(const char* src);
     const char* alnums(const char* src);
     const char* puncts(const char* src);
+    // Match certain white-space charactes.
+    const char* wspaces(const char* src);
+    // const char* newline(const char* src);
+    // const char* whitespace(const char* src);
 
     // Match a line comment.
     const char* line_comment(const char* src);
@@ -393,7 +397,7 @@ namespace Sass {
 
     // Whitespace handling.
     const char* optional_spaces(const char* src);
-    const char* optional_comment(const char* src);
+    // const char* optional_comment(const char* src);
     const char* optional_spaces_and_comments(const char* src);
     const char* spaces_and_comments(const char* src);
     const char* no_spaces(const char* src);
@@ -406,15 +410,14 @@ namespace Sass {
     const char* identifier(const char* src);
     const char* identifier_fragment(const char* src);
     // Match selector names.
-    const char* sel_ident(const char* src);
-    const char* until_closing_paren(const char* src);
+    // const char* sel_ident(const char* src);
     // Match interpolant schemas
     const char* identifier_schema(const char* src);
     const char* value_schema(const char* src);
     const char* filename(const char* src);
-    const char* filename_schema(const char* src);
-    const char* url_schema(const char* src);
-    const char* url_value(const char* src);
+    // const char* filename_schema(const char* src);
+    // const char* url_schema(const char* src);
+    // const char* url_value(const char* src);
     const char* vendor_prefix(const char* src);
     // Match CSS '@' keywords.
     const char* at_keyword(const char* src);
@@ -424,8 +427,8 @@ namespace Sass {
     const char* without_directive(const char* src);
     const char* media(const char* src);
     const char* supports(const char* src);
-    const char* keyframes(const char* src);
-    const char* keyf(const char* src);
+    // const char* keyframes(const char* src);
+    // const char* keyf(const char* src);
     const char* mixin(const char* src);
     const char* function(const char* src);
     const char* return_directive(const char* src);
@@ -451,7 +454,7 @@ namespace Sass {
     const char* err(const char* src);
     const char* dbg(const char* src);
 
-    const char* directive(const char* src);
+    // const char* directive(const char* src);
     const char* at_keyword(const char* src);
 
     const char* null(const char* src);
@@ -481,10 +484,10 @@ namespace Sass {
     const char* hex(const char* src);
     const char* hexa(const char* src);
     const char* hex0(const char* src);
-    const char* rgb_prefix(const char* src);
+    // const char* rgb_prefix(const char* src);
     // Match CSS uri specifiers.
     const char* uri_prefix(const char* src);
-    const char* uri(const char* src);
+    // const char* uri(const char* src);
     const char* url(const char* src);
     // Match CSS "!important" keyword.
     const char* important(const char* src);
@@ -510,10 +513,10 @@ namespace Sass {
     const char* suffix_match(const char* src);
     const char* substring_match(const char* src);
     // Match CSS combinators.
-    const char* adjacent_to(const char* src);
-    const char* precedes(const char* src);
-    const char* parent_of(const char* src);
-    const char* ancestor_of(const char* src);
+    // const char* adjacent_to(const char* src);
+    // const char* precedes(const char* src);
+    // const char* parent_of(const char* src);
+    // const char* ancestor_of(const char* src);
 
     // Match SCSS variable names.
     const char* variable(const char* src);
@@ -541,8 +544,8 @@ namespace Sass {
     const char* url(const char* src);
 
     // Path matching functions.
-    const char* folder(const char* src);
-    const char* folders(const char* src);
+    // const char* folder(const char* src);
+    // const char* folders(const char* src);
 
 
     const char* static_string(const char* src);

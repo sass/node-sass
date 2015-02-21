@@ -1,76 +1,398 @@
-#include <string>
-#include <vector>
-
 #include "ast.hpp"
 #include "output.hpp"
 #include "to_string.hpp"
-#include "output_nested.hpp"
-#include "output_compressed.hpp"
 
 namespace Sass {
   using namespace std;
 
-  // return buffer as string
-  template<typename T>
-  string Output<T>::get_buffer(void)
-  {
-    string charset("");
+  Output::Output(Context* ctx)
+  : Inspect(Emitter(ctx)),
+    charset(""),
+    top_imports(0),
+    top_comments(0)
+  {}
 
-    Inspect comments(ctx);
+  Output::~Output() { }
+
+  void Output::fallback_impl(AST_Node* n)
+  {
+    return n->perform(this);
+  }
+
+  void Output::operator()(Import* imp)
+  {
+    top_imports.push_back(imp);
+  }
+
+  string Output::get_buffer(void)
+  {
+
+    Emitter emitter(ctx);
+    Inspect inspect(emitter);
+
     size_t size_com = top_comments.size();
     for (size_t i = 0; i < size_com; i++) {
-      top_comments[i]->perform(&comments);
-      comments.append_to_buffer(ctx->linefeed);
+      top_comments[i]->perform(&inspect);
+      inspect.append_mandatory_linefeed();
     }
 
-    Inspect imports(ctx);
     size_t size_imp = top_imports.size();
     for (size_t i = 0; i < size_imp; i++) {
-      top_imports[i]->perform(&imports);
-      imports.append_to_buffer(ctx->linefeed);
+      top_imports[i]->perform(&inspect);
+      inspect.append_mandatory_linefeed();
     }
 
+    // flush scheduled outputs
+    inspect.finalize();
     // create combined buffer string
-    string buffer = comments.get_buffer()
-                  + imports.get_buffer()
-                  + this->buffer;
+    string buffer = inspect.buffer()
+                  + this->buffer();
+    // make sure we end with a linefeed
+    if (!ends_with(buffer, ctx->linefeed)) {
+      // if the output is not completely empty
+      if (!buffer.empty()) buffer += ctx->linefeed;
+    }
 
     // search for unicode char
     for(const char& chr : buffer) {
       // skip all ascii chars
       if (chr >= 0) continue;
       // declare the charset
-      charset = "@charset \"UTF-8\";";
+      if (output_style() != COMPRESSED)
+        charset = "@charset \"UTF-8\";"
+                  + ctx->linefeed;
+      else charset = "\xEF\xBB\xBF";
       // abort search
       break;
     }
 
-    // add charset as the very first line, before top comments and imports
-    return (charset.empty() ? "" : charset + ctx->linefeed) + buffer;
+    // add charset as first line, before comments and imports
+    return (charset.empty() ? "" : charset) + buffer;
+
   }
 
-  // append some text or token to the buffer
-  template<typename T>
-  void Output<T>::append_to_buffer(const string& data)
+  void Output::operator()(Comment* c)
   {
-    // add to buffer
-    buffer += data;
-    // account for data in source-maps
-    ctx->source_map.update_column(data);
+    To_String to_string(ctx);
+    string txt = c->text()->perform(&to_string);
+    // if (indentation && txt == "/**/") return;
+    bool important = c->is_important();
+    if (output_style() != COMPRESSED || important) {
+      if (buffer().size() + top_imports.size() == 0) {
+        top_comments.push_back(c);
+      } else {
+        in_comment = true;
+        append_indentation();
+        c->text()->perform(this);
+        in_comment = false;
+        if (indentation == 0) {
+          append_mandatory_linefeed();
+        } else {
+          append_optional_linefeed();
+        }
+      }
+    }
   }
 
-  // append some text or token to the buffer
-  // this adds source-mappings for node start and end
-  template<typename T>
-  void Output<T>::append_to_buffer(const string& data, AST_Node* node)
+  void Output::operator()(Ruleset* r)
   {
-    ctx->source_map.add_open_mapping(node);
-    append_to_buffer(data);
-    ctx->source_map.add_close_mapping(node);
+    Selector* s     = r->selector();
+    Block*    b     = r->block();
+    bool      decls = false;
+
+    // Filter out rulesets that aren't printable (process its children though)
+    if (!Util::isPrintable(r, output_style())) {
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (dynamic_cast<Has_Block*>(stm)) {
+          stm->perform(this);
+        }
+      }
+      return;
+    }
+
+    if (b->has_non_hoistable()) {
+      decls = true;
+      if (output_style() == NESTED) indentation += r->tabs();
+      if (ctx && ctx->source_comments) {
+        stringstream ss;
+        append_indentation();
+        ss << "/* line " << r->pstate().line+1 << ", " << r->pstate().path << " */";
+        append_string(ss.str());
+        append_optional_linefeed();
+      }
+      s->perform(this);
+      append_scope_opener(b);
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        bool bPrintExpression = true;
+        // Check print conditions
+        if (typeid(*stm) == typeid(Declaration)) {
+          Declaration* dec = static_cast<Declaration*>(stm);
+          if (dec->value()->concrete_type() == Expression::STRING) {
+            String_Constant* valConst = static_cast<String_Constant*>(dec->value());
+            string val(valConst->value());
+            if (dynamic_cast<String_Quoted*>(valConst)) {
+              if (val.empty()) {
+                bPrintExpression = false;
+              }
+            }
+          }
+          else if (dec->value()->concrete_type() == Expression::LIST) {
+            List* list = static_cast<List*>(dec->value());
+            bool all_invisible = true;
+            for (size_t list_i = 0, list_L = list->length(); list_i < list_L; ++list_i) {
+              Expression* item = (*list)[list_i];
+              if (!item->is_invisible()) all_invisible = false;
+            }
+            if (all_invisible) bPrintExpression = false;
+          }
+        }
+        // Print if OK
+        if (!stm->is_hoistable() && bPrintExpression) {
+          stm->perform(this);
+        }
+      }
+      if (output_style() == NESTED) indentation -= r->tabs();
+      append_scope_closer(b);
+    }
+
+    if (b->has_hoistable()) {
+      if (decls) ++indentation;
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (stm->is_hoistable()) {
+          stm->perform(this);
+        }
+      }
+      if (decls) --indentation;
+    }
   }
 
-  // explicitly instantiate the template
-  template class Output<Output_Nested>;
-  template class Output<Output_Compressed>;
+  void Output::operator()(Keyframe_Rule* r)
+  {
+    String* v = r->rules();
+    Block* b = r->block();
+
+    if (v) {
+      append_indentation();
+      v->perform(this);
+    }
+
+    if (!b) {
+      append_colon_separator();
+      return;
+    }
+
+    append_scope_opener();
+    for (size_t i = 0, L = b->length(); i < L; ++i) {
+      Statement* stm = (*b)[i];
+      if (!stm->is_hoistable()) {
+        stm->perform(this);
+        if (i < L - 1) append_special_linefeed();
+      }
+    }
+
+    for (size_t i = 0, L = b->length(); i < L; ++i) {
+      Statement* stm = (*b)[i];
+      if (stm->is_hoistable()) {
+        stm->perform(this);
+      }
+    }
+
+    append_scope_closer();
+  }
+
+  void Output::operator()(Feature_Block* f)
+  {
+    if (f->is_invisible()) return;
+
+    Feature_Query* q    = f->feature_queries();
+    Block* b            = f->block();
+
+    // Filter out feature blocks that aren't printable (process its children though)
+    if (!Util::isPrintable(f, output_style())) {
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (dynamic_cast<Has_Block*>(stm)) {
+          stm->perform(this);
+        }
+      }
+      return;
+    }
+
+    if (output_style() == NESTED) indentation += f->tabs();
+    append_indentation();
+    append_token("@supports", f);
+    append_mandatory_space();
+    q->perform(this);
+    append_scope_opener();
+
+    Selector* e = f->selector();
+    if (e && b->has_non_hoistable()) {
+      // JMA - hoisted, output the non-hoistable in a nested block, followed by the hoistable
+      e->perform(this);
+      append_scope_opener();
+
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (!stm->is_hoistable()) {
+          stm->perform(this);
+        }
+      }
+
+      append_scope_closer();
+
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (stm->is_hoistable()) {
+          stm->perform(this);
+        }
+      }
+    }
+    else {
+      // JMA - not hoisted, just output in order
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        stm->perform(this);
+        if (i < L - 1) append_special_linefeed();
+      }
+    }
+
+    if (output_style() == NESTED) indentation -= f->tabs();
+
+    append_scope_closer();
+
+  }
+
+  void Output::operator()(Media_Block* m)
+  {
+    if (m->is_invisible()) return;
+
+    List*  q     = m->media_queries();
+    Block* b     = m->block();
+
+    // Filter out media blocks that aren't printable (process its children though)
+    if (!Util::isPrintable(m, output_style())) {
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (dynamic_cast<Has_Block*>(stm)) {
+          stm->perform(this);
+        }
+      }
+      return;
+    }
+    if (output_style() == NESTED) indentation += m->tabs();
+    append_indentation();
+    append_token("@media", m);
+    append_mandatory_space();
+    in_media_block = true;
+    q->perform(this);
+    in_media_block = false;
+    append_scope_opener();
+
+    Selector* e = m->selector();
+    if (e && b->has_non_hoistable()) {
+      // JMA - hoisted, output the non-hoistable in a nested block, followed by the hoistable
+      e->perform(this);
+      append_scope_opener();
+
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (!stm->is_hoistable()) {
+          stm->perform(this);
+        }
+      }
+
+      append_scope_closer();
+
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        if (stm->is_hoistable()) {
+          stm->perform(this);
+        }
+      }
+    }
+    else {
+      // JMA - not hoisted, just output in order
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        Statement* stm = (*b)[i];
+        stm->perform(this);
+        if (i < L - 1) append_special_linefeed();
+      }
+    }
+
+    if (output_style() == NESTED) indentation -= m->tabs();
+    append_scope_closer();
+  }
+
+  void Output::operator()(At_Rule* a)
+  {
+    string      kwd   = a->keyword();
+    Selector*   s     = a->selector();
+    Expression* v     = a->value();
+    Block*      b     = a->block();
+
+    append_indentation();
+    append_token(kwd, a);
+    if (s) {
+      append_mandatory_space();
+      s->perform(this);
+    }
+    else if (v) {
+      append_mandatory_space();
+      v->perform(this);
+    }
+    if (!b) {
+      append_delimiter();
+      return;
+    }
+
+    if (b->is_invisible() || b->length() == 0) {
+      return append_string(" {}");
+    }
+
+    append_scope_opener();
+
+    for (size_t i = 0, L = b->length(); i < L; ++i) {
+      Statement* stm = (*b)[i];
+      if (!stm->is_hoistable()) {
+        stm->perform(this);
+        if (i < L - 1) append_special_linefeed();
+      }
+    }
+
+    for (size_t i = 0, L = b->length(); i < L; ++i) {
+      Statement* stm = (*b)[i];
+      if (stm->is_hoistable()) {
+        stm->perform(this);
+        if (i < L - 1) append_special_linefeed();
+      }
+    }
+
+    append_scope_closer();
+  }
+
+  void Output::operator()(String_Quoted* s)
+  {
+    if (s->quote_mark()) {
+      append_token(quote((s->value()), s->quote_mark()), s);
+    } else if (!in_comment) {
+      append_token(string_to_output(s->value()), s);
+    } else {
+      append_token(s->value(), s);
+    }
+  }
+
+  void Output::operator()(String_Constant* s)
+  {
+    if (String_Quoted* quoted = dynamic_cast<String_Quoted*>(s)) {
+      return Output::operator()(quoted);
+    } else if (!in_comment) {
+      append_token(string_to_output(s->value()), s);
+    } else {
+      append_token(s->value(), s);
+    }
+  }
 
 }

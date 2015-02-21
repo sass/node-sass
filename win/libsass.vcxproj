@@ -175,8 +175,8 @@
     <ClCompile Include="..\inspect.cpp" />
     <ClCompile Include="..\json.cpp" />
     <ClCompile Include="..\node.cpp" />
-    <ClCompile Include="..\output_compressed.cpp" />
-    <ClCompile Include="..\output_nested.cpp" />
+    <ClCompile Include="..\emitter.cpp" />
+    <ClCompile Include="..\output.cpp" />
     <ClCompile Include="..\parser.cpp" />
     <ClCompile Include="..\position.cpp" />
     <ClCompile Include="..\prelexer.cpp" />
@@ -225,8 +225,8 @@
     <ClInclude Include="..\memory_manager.hpp" />
     <ClInclude Include="..\node.hpp" />
     <ClInclude Include="..\operation.hpp" />
-    <ClInclude Include="..\output_compressed.hpp" />
-    <ClInclude Include="..\output_nested.hpp" />
+    <ClInclude Include="..\emitter.hpp" />
+    <ClInclude Include="..\output.hpp" />
     <ClInclude Include="..\parser.hpp" />
     <ClInclude Include="..\paths.hpp" />
     <ClInclude Include="..\position.hpp" />

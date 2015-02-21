@@ -756,13 +756,13 @@ namespace Sass {
     {
       To_String to_string(&ctx);
       AST_Node* arg = env["$string"];
-      string org(arg->perform(&to_string));
-      string str(unquote(org));
-      String_Constant* result = new (ctx.mem) String_Constant(pstate, str);
-      // remember if the string was quoted (color tokens)
-      if (org[0] != str[0]) result->sass_fix_1291(true);
-      result->is_delayed(true);
-      return result;
+      if (String_Quoted* string_quoted = dynamic_cast<String_Quoted*>(arg)) {
+        String_Constant* result = new (ctx.mem) String_Constant(pstate, string_quoted->value());
+        // remember if the string was quoted (color tokens)
+        result->sass_fix_1291(string_quoted->quote_mark());
+        return result;
+      }
+      return new (ctx.mem) String_Constant(pstate, string(arg->perform(&to_string)));
     }
 
     Signature quote_sig = "quote($string)";
@@ -839,8 +839,8 @@ namespace Sass {
           str = ins + str;
         }
 
-        if (s->quote_mark()) {
-          str = quote(str, String_Constant::double_quote());
+        if (String_Quoted* ss = dynamic_cast<String_Quoted*>(s)) {
+          if (ss->quote_mark()) str = quote(str);
         }
       }
       catch (utf8::invalid_code_point) {
@@ -912,15 +912,19 @@ namespace Sass {
         // `str-slice` should always return an empty string when $end-at == 0
         // `normalize_index` normalizes 1 -> 0 so we need to check the original value
         if(m->value() == 0) {
-          if(!s->quote_mark()) return new (ctx.mem) Null(pstate);
+          if (String_Quoted* ss = dynamic_cast<String_Quoted*>(s)) {
+            if(!ss->quote_mark()) return new (ctx.mem) Null(pstate);
+          } else {
+            return new (ctx.mem) Null(pstate);
+          }
           newstr = "";
         } else if(start == end && m->value() != 0) {
           newstr = str.substr(start, 1);
         } else if(end > start) {
           newstr = str.substr(start, end - start + UTF_8::code_point_size_at_offset(str, end));
         }
-        if(s->quote_mark()) {
-          newstr = quote(newstr, String_Constant::double_quote());
+        if (String_Quoted* ss = dynamic_cast<String_Quoted*>(s)) {
+          if(ss->quote_mark()) newstr = quote(newstr);
         }
       }
       catch (utf8::invalid_code_point) {
@@ -951,7 +955,9 @@ namespace Sass {
         }
       }
 
-      str = s->quote_mark() ? quote(str, '"') : str;
+      if (String_Quoted* ss = dynamic_cast<String_Quoted*>(s)) {
+        str = ss->quote_mark() ? quote(str) : str;
+      }
       return new (ctx.mem) String_Constant(pstate, str);
     }
 
@@ -967,7 +973,9 @@ namespace Sass {
         }
       }
 
-      str = s->quote_mark() ? quote(str, '"') : str;
+      if (String_Quoted* ss = dynamic_cast<String_Quoted*>(s)) {
+        str = ss->quote_mark() ? quote(str, '"') : str;
+      }
       return new (ctx.mem) String_Constant(pstate, str);
     }
 
@@ -1510,8 +1518,20 @@ namespace Sass {
         return new (ctx.mem) String_Constant(pstate, "null");
       } else if (v->concrete_type() == Expression::BOOLEAN && *v == 0) {
         return new (ctx.mem) String_Constant(pstate, "false");
+      } else if (v->concrete_type() == Expression::STRING) {
+        return v;
+      } else {
+        Output_Style old_style;
+        old_style = ctx.output_style;
+        ctx.output_style = NESTED;
+        To_String to_string(&ctx);
+        string inspect = v->perform(&to_string);
+        ctx.output_style = old_style;
+        return new (ctx.mem) String_Constant(pstate, inspect);
+
+
       }
-      return v;
+      // return v;
     }
 
     Signature unique_id_sig = "unique-id()";

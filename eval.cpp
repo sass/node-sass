@@ -384,7 +384,18 @@ namespace Sass {
     if (l_type == Expression::COLOR && r_type == Expression::COLOR) {
       return op_colors(ctx, op_type, lhs, rhs);
     }
-    return op_strings(ctx, op_type, lhs, rhs);
+
+    Expression* ex = op_strings(ctx, op_type, lhs, rhs);
+    if (String_Constant* str = (String_Constant*) ex)
+    {
+      if (str->concrete_type() != Expression::STRING) return ex;
+      String_Constant* lstr = dynamic_cast<String_Constant*>(lhs);
+      String_Constant* rstr = dynamic_cast<String_Constant*>(rhs);
+      if (String_Constant* org = lstr ? lstr : rstr)
+      { str->quote_mark(org->quote_mark()); }
+    }
+    return ex;
+
   }
 
   Expression* Eval::operator()(Unary_Expression* u)
@@ -715,28 +726,91 @@ namespace Sass {
     }
   }
 
+  string Eval::interpolation(Expression* s) {
+
+    if (String_Quoted* str_quoted = dynamic_cast<String_Quoted*>(s)) {
+
+      if (str_quoted->quote_mark()) {
+        return string_escape(str_quoted->value());
+      } else {
+        return evacuate_escapes(str_quoted->value());
+      }
+
+    } else if (String_Constant* str_constant = dynamic_cast<String_Constant*>(s)) {
+
+      return evacuate_escapes(str_constant->value());
+
+    } else if (String_Schema* str_schema = dynamic_cast<String_Schema*>(s)) {
+
+      string res = "";
+      for(auto i : str_schema->elements())
+        res += (interpolation(i));
+      //ToDo: do this in one step
+      auto esc = evacuate_escapes(res);
+      auto unq = unquote(esc);
+      if (unq == esc) {
+        return string_to_output(res);
+      } else {
+        return evacuate_quotes(unq);
+      }
+
+    } else if (List* list = dynamic_cast<List*>(s)) {
+
+      string acc = ""; // ToDo: different output styles
+      string sep = list->separator() == List::Separator::COMMA ? "," : " ";
+      if (ctx.output_style != COMPRESSED && sep == ",") sep += " ";
+      bool initial = false;
+      for(auto item : list->elements()) {
+        if (initial) acc += sep;
+        acc += interpolation(item);
+        initial = true;
+      }
+      return evacuate_quotes(acc);
+
+    } else if (Variable* var = dynamic_cast<Variable*>(s)) {
+
+      string name(var->name());
+      if (!env->has(name)) return name;
+      Expression* value = static_cast<Expression*>((*env)[name]);
+      return evacuate_quotes(interpolation(value));
+
+    } else if (Binary_Expression* var = dynamic_cast<Binary_Expression*>(s)) {
+
+      Expression* ex = operator()(var);
+      return evacuate_quotes(interpolation(ex));
+
+    } else if (Function_Call* var = dynamic_cast<Function_Call*>(s)) {
+
+      Expression* ex = operator()(var);
+      return evacuate_quotes(interpolation(ex));
+
+    } else {
+
+      To_String to_string(&ctx);
+      // to_string.in_decl_list = true;
+      return evacuate_quotes(s->perform(&to_string));
+
+    }
+  }
+
   Expression* Eval::operator()(String_Schema* s)
   {
     string acc;
-    // ctx._skip_source_map_update = true;
-    To_String to_string(&ctx);
-    // ctx._skip_source_map_update = false;
     for (size_t i = 0, L = s->length(); i < L; ++i) {
-      string chunk((*s)[i]->perform(this)->perform(&to_string));
-      if (((is_quoted(chunk))) && (*s)[i]->is_interpolant()) {
-        acc += unquote(chunk);
-      }
-      else {
-        acc += chunk;
-      }
+      acc += interpolation((*s)[i]);
     }
-    return new (ctx.mem) String_Constant(s->pstate(),
-                                         acc);
+    String_Quoted* str = new (ctx.mem) String_Quoted(s->pstate(), acc);
+    if (!str->quote_mark()) {
+      str->value(string_unescape(str->value()));
+    } else if (str->quote_mark()) {
+      str->quote_mark('*');
+    }
+    return str;
   }
 
   Expression* Eval::operator()(String_Constant* s)
   {
-    if (!s->is_delayed() && ctx.names_to_colors.count(s->value())) {
+    if (!s->quote_mark() && !s->is_delayed() && ctx.names_to_colors.count(s->value())) {
       Color* c = new (ctx.mem) Color(*ctx.names_to_colors[s->value()]);
       c->pstate(s->pstate());
       c->disp(s->value());
@@ -1024,7 +1098,8 @@ namespace Sass {
       case Binary_Expression::DIV: {
         string sep(op == Binary_Expression::SUB ? "-" : "/");
         To_String to_string(&ctx);
-        string color(r->sixtuplet() ? r->perform(&to_string) :
+        string color(r->sixtuplet() && (ctx.output_style != COMPRESSED) ?
+                     r->perform(&to_string) :
                      Util::normalize_sixtuplet(r->perform(&to_string)));
         return new (ctx.mem) String_Constant(l->pstate(),
                                              l->perform(&to_string)
@@ -1085,8 +1160,6 @@ namespace Sass {
     bool l_str_color = ltype == Expression::STRING && ctx.names_to_colors.count(lstr) && !l_str_quoted;
     bool r_str_color = rtype == Expression::STRING && ctx.names_to_colors.count(rstr) && !r_str_quoted;
 
-    bool unquoted = false;
-    if (ltype == Expression::STRING && lstr[0] != '"' && lstr[0] != '\'') unquoted = true;
     if (l_str_color && r_str_color) {
       return op_colors(ctx, op, ctx.names_to_colors[lstr], ctx.names_to_colors[rstr]);
     }
@@ -1112,12 +1185,10 @@ namespace Sass {
     }
     if (ltype == Expression::NULL_VAL) error("invalid null operation: \"null plus "+quote(unquote(rstr), '"')+"\".", lhs->pstate());
     if (rtype == Expression::NULL_VAL) error("invalid null operation: \""+quote(unquote(lstr), '"')+" plus null\".", lhs->pstate());
-    char q = '\0';
-    if (lstr[0] == '"' || lstr[0] == '\'') q = lstr[0];
-    else if (rstr[0] == '"' || rstr[0] == '\'') q = rstr[0];
-    string result(unquote(lstr) + sep + unquote(rstr));
-    return new (ctx.mem) String_Constant(lhs->pstate(),
-                               unquoted ? result : quote(result, q));
+    string result((lstr) + sep + (rstr));
+    String_Quoted* str = new (ctx.mem) String_Quoted(lhs->pstate(), result);
+    str->quote_mark(0);
+    return str;
   }
 
   Expression* cval_to_astnode(Sass_Value* v, Context& ctx, Backtrace* backtrace, ParserState pstate)

@@ -8,27 +8,19 @@
 #define BUFFERSIZE 255
 #include "b64/encode.h"
 
+#include "ast_fwd_decl.hpp"
 #include "kwd_arg_macros.hpp"
 #include "memory_manager.hpp"
 #include "environment.hpp"
 #include "source_map.hpp"
 #include "subset_map.hpp"
+#include "output.hpp"
 #include "sass_functions.h"
 
 struct Sass_C_Function_Descriptor;
 
 namespace Sass {
   using namespace std;
-  class AST_Node;
-  class Block;
-  class Expression;
-  class Color;
-  struct Backtrace;
-  // typedef const char* Signature;
-  // struct Context;
-  // typedef Environment<AST_Node*> Env;
-  // typedef Expression* (*Native_Function)(Env&, Context&, Signature, string, size_t);
-
   struct Sass_Queued {
     string abs_path;
     string load_path;
@@ -37,7 +29,8 @@ namespace Sass {
     Sass_Queued(const string& load_path, const string& abs_path, const char* source);
   };
 
-  struct Context {
+  class Context {
+  public:
     Memory_Manager<AST_Node> mem;
 
     const char* source_c_str;
@@ -54,7 +47,8 @@ namespace Sass {
     vector<string> include_paths; // lookup paths for includes
     vector<Sass_Queued> queue; // queue of files to be parsed
     map<string, Block*> style_sheets; // map of paths to ASTs
-    SourceMap source_map;
+    // SourceMap source_map;
+    Output emitter;
     vector<Sass_C_Function_Callback> c_functions;
 
     string       indent; // String to be used for indentation

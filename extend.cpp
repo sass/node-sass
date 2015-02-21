@@ -1594,6 +1594,7 @@ namespace Sass {
 #endif
 
 
+      if (pSelector && pSelector->has_line_feed()) pNewSelector->has_line_feed(true);
 
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
       DEBUG_PRINTLN(EXTEND_COMPOUND, "SOURCES SETTING ON NEW SEQ: " << complexSelectorToNode(pNewSelector, ctx))
@@ -1700,6 +1701,8 @@ namespace Sass {
     Context& ctx,
     ExtensionSubsetMap& subsetMap,
     set<Compound_Selector> seen) {
+
+    pComplexSelector->tail()->has_line_feed(pComplexSelector->has_line_feed());
 
     Node complexSelector = complexSelectorToNode(pComplexSelector, ctx);
 

@@ -17,7 +17,9 @@ namespace Sass {
 
   inline string To_String::fallback_impl(AST_Node* n)
   {
-    Inspect i(ctx);
+    Emitter emitter(ctx);
+    Inspect i(emitter);
+    i.in_declaration_list = true;
     n->perform(&i);
     return i.get_buffer();
   }

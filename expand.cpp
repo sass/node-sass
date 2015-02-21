@@ -64,7 +64,8 @@ namespace Sass {
     Selector* sel_ctx = r->selector()->perform(contextual);
     if (sel_ctx == 0) throw "Cannot expand null selector";
 
-    Inspect isp(0);
+    Emitter emitter(&ctx);
+    Inspect isp(emitter);
     sel_ctx->perform(&isp);
     string str = isp.get_buffer();
     str += ";";
@@ -74,17 +75,17 @@ namespace Sass {
     p.position = str.c_str();
     p.end      = str.c_str() + strlen(str.c_str());
     Selector_List* sel_lst = p.parse_selector_group();
-    sel_lst->pstate(isp.source_map.remap(sel_lst->pstate()));
+    sel_lst->pstate(isp.remap(sel_lst->pstate()));
 
     for(size_t i = 0; i < sel_lst->length(); i++) {
 
       Complex_Selector* pIter = (*sel_lst)[i];
       while (pIter) {
         Compound_Selector* pHead = pIter->head();
-        pIter->pstate(isp.source_map.remap(pIter->pstate()));
+        pIter->pstate(isp.remap(pIter->pstate()));
         if (pHead) {
-          pHead->pstate(isp.source_map.remap(pHead->pstate()));
-          (*pHead)[0]->pstate(isp.source_map.remap((*pHead)[0]->pstate()));
+          pHead->pstate(isp.remap(pHead->pstate()));
+          (*pHead)[0]->pstate(isp.remap((*pHead)[0]->pstate()));
         }
         pIter = pIter->tail();
       }
@@ -96,6 +97,7 @@ namespace Sass {
     Ruleset* rr = new (ctx.mem) Ruleset(r->pstate(),
                                         sel_ctx,
                                         blk);
+    rr->tabs(r->tabs());
     selector_stack.pop_back();
     in_at_root = old_in_at_root;
     old_in_at_root = false;
@@ -149,13 +151,14 @@ namespace Sass {
 
   Statement* Expand::operator()(Media_Block* m)
   {
-    To_String to_string; // (&ctx); -> src-map test fails!??
+    To_String to_string(&ctx);
     Expression* mq = m->media_queries()->perform(eval->with(env, backtrace));
     mq = Parser::from_c_str(mq->perform(&to_string).c_str(), ctx, mq->pstate()).parse_media_queries();
     Media_Block* mm = new (ctx.mem) Media_Block(m->pstate(),
                                                 static_cast<List*>(mq),
                                                 m->block()->perform(this)->block(),
                                                 selector_stack.back());
+    mm->tabs(m->tabs());
     return mm;
   }
 
@@ -207,6 +210,7 @@ namespace Sass {
                                                   new_p,
                                                   value,
                                                   d->is_important());
+    decl->tabs(d->tabs());
     return decl;
   }
 
@@ -262,7 +266,7 @@ namespace Sass {
   Statement* Expand::operator()(Comment* c)
   {
     // TODO: eval the text, once we're parsing/storing it as a String_Schema
-    return new (ctx.mem) Comment(c->pstate(), static_cast<String*>(c->text()->perform(eval->with(env, backtrace))));
+    return new (ctx.mem) Comment(c->pstate(), static_cast<String*>(c->text()->perform(eval->with(env, backtrace))), c->is_important());
   }
 
   Statement* Expand::operator()(If* i)

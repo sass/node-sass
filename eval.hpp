@@ -3,6 +3,7 @@
 
 #include <iostream>
 
+#include "context.hpp"
 #include "position.hpp"
 #include "operation.hpp"
 #include "environment.hpp"
@@ -11,7 +12,6 @@
 namespace Sass {
   using namespace std;
 
-  struct Context;
   typedef Environment<AST_Node*> Env;
   struct Backtrace;
 
@@ -65,6 +65,10 @@ namespace Sass {
 
     template <typename U>
     Expression* fallback(U x) { return fallback_impl(x); }
+
+  private:
+    string interpolation(Expression* s);
+
   };
 
   Expression* cval_to_astnode(Sass_Value* v, Context& ctx, Backtrace* backtrace, ParserState pstate = ParserState("[AST]"));

@@ -72,10 +72,7 @@
     <ClCompile Include="..\output.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\output_compressed.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\output_nested.cpp">
+    <ClCompile Include="..\emitter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\parser.cpp">
@@ -230,10 +227,7 @@
     <ClInclude Include="..\output.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\output_compressed.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\output_nested.hpp">
+    <ClInclude Include="..\emitter.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\parser.hpp">
