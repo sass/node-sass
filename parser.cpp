@@ -1122,7 +1122,7 @@ namespace Sass {
     else if (lex< sequence< exactly<'-'>, optional_spaces_and_comments, negate< number> > >()) {
       return new (ctx.mem) Unary_Expression(pstate, Unary_Expression::MINUS, parse_factor());
     }
-    else if (lex< sequence< not_op, optional_spaces_and_comments > >()) {
+    else if (lex< sequence< not_op, spaces_and_comments > >()) {
       return new (ctx.mem) Unary_Expression(pstate, Unary_Expression::NOT, parse_factor());
     }
     else {
