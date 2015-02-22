@@ -1103,6 +1103,7 @@ namespace Sass {
     }
     else if (peek< exactly< calc_kwd > >() ||
              peek< exactly< moz_calc_kwd > >() ||
+             peek< exactly< ms_calc_kwd > >() ||
              peek< exactly< webkit_calc_kwd > >()) {
       return parse_calc_function();
     }

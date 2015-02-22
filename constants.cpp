@@ -76,6 +76,7 @@ namespace Sass {
     extern const char calc_kwd[]         = "calc(";
     extern const char moz_calc_kwd[]     = "-moz-calc(";
     extern const char webkit_calc_kwd[]  = "-webkit-calc(";
+    extern const char ms_calc_kwd[]      = "-ms-calc(";
 
     // css attribute-matching operators
     extern const char tilde_equal[]  = "~=";
