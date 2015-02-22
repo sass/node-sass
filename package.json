@@ -56,7 +56,6 @@
     "replace-ext": "0.0.1",
     "request": "^2.53.0",
     "sass-graph": "^1.0.3",
-    "semver": "^4.2.2",
     "shelljs": "^0.3.0"
   },
   "devDependencies": {
