@@ -122,6 +122,9 @@ namespace Sass {
         dec->property(combined_prop);
         *current_block << dec;
       }
+      else if (typeid(*stm) == typeid(Comment)) {
+        // drop comments in propsets
+      }
       else {
         error("contents of namespaced properties must result in style declarations only", stm->pstate(), backtrace);
       }
