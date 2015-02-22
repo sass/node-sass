@@ -93,7 +93,7 @@ namespace Sass {
         it_before_token = position;
       }
       else {
-        it_before_token = spaces_and_comments(start);
+        it_before_token = optional_spaces_and_comments(start);
       }
       const char* it_after_token = mx(it_before_token);
       if (it_after_token) {
@@ -142,7 +142,7 @@ namespace Sass {
       }
       else {
         // most can be preceded by spaces and comments
-        it_before_token = spaces_and_comments(position);
+        it_before_token = optional_spaces_and_comments(position);
       }
 
       // now call matcher to get position after token

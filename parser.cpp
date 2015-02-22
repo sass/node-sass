@@ -123,7 +123,7 @@ namespace Sass {
         lex< one_plus< exactly<';'> > >();
       }
       else {
-        lex< spaces_and_comments >();
+        lex< optional_spaces_and_comments >();
         if (position >= end) break;
         error("invalid top-level expression", pstate);
       }
@@ -319,7 +319,7 @@ namespace Sass {
   Argument* Parser::parse_argument()
   {
     Argument* arg;
-    if (peek< sequence < variable, spaces_and_comments, exactly<':'> > >()) {
+    if (peek< sequence < variable, optional_spaces_and_comments, exactly<':'> > >()) {
       lex< variable >();
       string name(Util::normalize_underscores(lexed));
       ParserState p = pstate;
@@ -431,7 +431,7 @@ namespace Sass {
   Selector_List* Parser::parse_selector_group()
   {
     To_String to_string;
-    lex< spaces_and_comments >();
+    lex< optional_spaces_and_comments >();
     Selector_List* group = new (ctx.mem) Selector_List(pstate);
     do {
       if (peek< exactly<'{'> >() ||
@@ -456,14 +456,14 @@ namespace Sass {
       }
       (*group) << comb;
     }
-    while (lex< one_plus< sequence< spaces_and_comments, exactly<','> > > >());
+    while (lex< one_plus< sequence< optional_spaces_and_comments, exactly<','> > > >());
     while (lex< optional >());    // JMA - ignore optional flag if it follows the selector group
     return group;
   }
 
   Complex_Selector* Parser::parse_selector_combination()
   {
-    lex< spaces_and_comments >();
+    lex< optional_spaces_and_comments >();
     Position sel_source_position(-1);
     Compound_Selector* lhs;
     if (peek< exactly<'+'> >() ||
@@ -605,7 +605,7 @@ namespace Sass {
       else if (peek< sequence< optional<sign>,
                                optional<digits>,
                                exactly<'n'>,
-                               spaces_and_comments,
+                               optional_spaces_and_comments,
                                exactly<')'> > >()) {
         lex< sequence< optional<sign>,
                        optional<digits>,
@@ -615,7 +615,7 @@ namespace Sass {
       else if (lex< sequence< optional<sign>, digits > >()) {
         expr = new (ctx.mem) String_Constant(p, lexed);
       }
-      else if (peek< sequence< identifier, spaces_and_comments, exactly<')'> > >()) {
+      else if (peek< sequence< identifier, optional_spaces_and_comments, exactly<')'> > >()) {
         lex< identifier >();
         expr = new (ctx.mem) String_Constant(p, lexed);
       }
@@ -1116,13 +1116,13 @@ namespace Sass {
     else if (peek< functional >() && !peek< uri_prefix >()) {
       return parse_function_call();
     }
-    else if (lex< sequence< exactly<'+'>, spaces_and_comments, negate< number > > >()) {
+    else if (lex< sequence< exactly<'+'>, optional_spaces_and_comments, negate< number > > >()) {
       return new (ctx.mem) Unary_Expression(pstate, Unary_Expression::PLUS, parse_factor());
     }
-    else if (lex< sequence< exactly<'-'>, spaces_and_comments, negate< number> > >()) {
+    else if (lex< sequence< exactly<'-'>, optional_spaces_and_comments, negate< number> > >()) {
       return new (ctx.mem) Unary_Expression(pstate, Unary_Expression::MINUS, parse_factor());
     }
-    else if (lex< sequence< not_op, spaces_and_comments > >()) {
+    else if (lex< sequence< not_op, optional_spaces_and_comments > >()) {
       return new (ctx.mem) Unary_Expression(pstate, Unary_Expression::NOT, parse_factor());
     }
     else {

@@ -435,6 +435,7 @@ namespace Sass {
     // Whitespace handling.
     const char* optional_spaces(const char* src);
     const char* optional_comment(const char* src);
+    const char* optional_spaces_and_comments(const char* src);
     const char* spaces_and_comments(const char* src);
     const char* no_spaces(const char* src);
 
