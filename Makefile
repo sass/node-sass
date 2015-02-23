@@ -7,6 +7,7 @@ WINDRES  ?= windres
 CFLAGS   ?= -Wall -O2
 CXXFLAGS ?= -Wall -O2
 LDFLAGS  ?= -Wall -O2 -Wl,--no-undefined
+CAT      ?= $(if $(filter $(OS),Windows_NT),type,cat)
 
 ifneq (,$(findstring /cygdrive/,$(PATH)))
 	UNAME := Cygwin
@@ -25,6 +26,12 @@ endif
 ifeq "$(LIBSASS_VERSION)" ""
   ifneq "$(wildcard ./.git/ )" ""
     LIBSASS_VERSION ?= $(shell git describe --abbrev=4 --dirty --always --tags)
+  endif
+endif
+
+ifeq "$(LIBSASS_VERSION)" ""
+  ifneq ("$(wildcard VERSION)","")
+    LIBSASS_VERSION ?= $(shell $(CAT) VERSION)
   endif
 endif
 
