@@ -316,7 +316,6 @@ Output will be saved with the same name as input SASS file into the current work
     --include-path             Path to look for imported files
     --image-path               Path to prepend when using the `image-url()` helper
     --precision                The amount of precision allowed in decimal numbers
-    --stdout                   Print the resulting CSS to stdout
     --importer                 Path to custom importer
     --help                     Print usage info
 ```

@@ -3,7 +3,6 @@ var Emitter = require('events').EventEmitter,
     path = require('path'),
     Gaze = require('gaze'),
     meow = require('meow'),
-    replaceExt = require('replace-ext'),
     stdin = require('get-stdin'),
     grapher = require('sass-graph'),
     render = require('../lib/render');
@@ -39,7 +38,6 @@ var cli = meow({
     '  --include-path             Path to look for imported files',
     '  --image-path               Path to prepend when using the `image-url()` helper',
     '  --precision                The amount of precision allowed in decimal numbers',
-    '  --stdout                   Print the resulting CSS to stdout',
     '  --importer                 Path to custom importer',
     '  --help                     Print usage info'
   ].join('\n')
@@ -48,7 +46,6 @@ var cli = meow({
     'indented-syntax',
     'omit-source-map-url',
     'recursive',
-    'stdout',
     'source-map-embed',
     'source-map-contents',
     'source-comments'
@@ -129,21 +126,14 @@ function getEmitter() {
  */
 
 function getOptions(args, options) {
-  var dir = options.output ? path.resolve(process.cwd(), options.output) : process.cwd();
-
   options.src = args[0];
-  options.dest = args[1] ? path.resolve(dir, args[1]) : undefined;
 
-  if (!options.dest && !options.stdout) {
-    var ext = path.extname(options.src);
-    var out = path.basename(options.src);
-    var suffix = '.css';
-
-    if (ext !== suffix) {
-      out = replaceExt(out, suffix);
-    }
-
-    options.dest = path.join(dir, out);
+  if (args[1]) {
+    options.dest = path.resolve(process.cwd(), args[1]);
+  } else if (options.output) {
+    options.dest = path.join(
+      path.resolve(process.cwd(), options.output),
+      [path.basename(options.src, path.extname(options.src)), '.css'].join(''));  // replace ext.
   }
 
   return options;
@@ -208,7 +198,12 @@ function run(options, emitter) {
 
   if (options.sourceMap) {
     if (options.sourceMap === 'true') {
-      options.sourceMap = options.dest + '.map';
+      if (options.dest) {
+        options.sourceMap = options.dest + '.map';
+      } else {
+        // replace ext.
+        options.sourceMap = [path.basename(options.src, path.extname(options.src)), '.css.map'].join('');
+      }
     } else {
       options.sourceMap = path.resolve(process.cwd(), options.sourceMap);
     }
