@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 var Emitter = require('events').EventEmitter,
-    path = require('path'),
     Gaze = require('gaze'),
-    meow = require('meow'),
-    replaceExt = require('replace-ext'),
-    stdin = require('get-stdin'),
+    glob = require('glob'),
     grapher = require('sass-graph'),
-    render = require('../lib/render');
+    meow = require('meow'),
+    path = require('path'),
+    render = require('../lib/render'),
+    stdin = require('get-stdin'),
+    cwd = process.cwd();
 
 /**
  * Initialize CLI
@@ -27,8 +28,6 @@ var cli = meow({
     '',
     'Options',
     '  -w, --watch                Watch a directory or file',
-    '  -r, --recursive            Recursively watch directories or files',
-    '  -o, --output               Output directory',
     '  -x, --omit-source-map-url  Omit source map URL comment from output',
     '  -i, --indented-syntax      Treat data from stdin as sass code (versus scss)',
     '  --output-style             CSS output style (nested|expanded|compact|compressed)',
@@ -39,7 +38,6 @@ var cli = meow({
     '  --include-path             Path to look for imported files',
     '  --image-path               Path to prepend when using the `image-url()` helper',
     '  --precision                The amount of precision allowed in decimal numbers',
-    '  --stdout                   Print the resulting CSS to stdout',
     '  --importer                 Path to custom importer',
     '  --help                     Print usage info'
   ].join('\n')
@@ -47,8 +45,6 @@ var cli = meow({
   boolean: [
     'indented-syntax',
     'omit-source-map-url',
-    'recursive',
-    'stdout',
     'source-map-embed',
     'source-map-contents',
     'source-comments'
@@ -56,44 +52,29 @@ var cli = meow({
   string: [
     'image-path',
     'include-path',
-    'output',
     'output-style',
     'precision'
   ],
   alias: {
     i: 'indented-syntax',
-    o: 'output',
     w: 'watch',
     x: 'omit-source-map-url',
-    c: 'source-comments',
-    r: 'recursive'
+    c: 'source-comments'
   },
   default: {
     'image-path': '',
-    'include-path': process.cwd(),
-    'output-style': 'nested',
-    precision: 5
+    'include-path': cwd,
+    'output-style': 'nested'
   }
 });
 
 /**
- * Check if file is a Sass file
- *
- * @param {String} file
- * @api private
- */
-
-function isSassFile(file) {
-  return file.match(/\.(sass|scss)/);
-}
-
-/**
- * Create emitter
+ * Create Emitter
  *
  * @api private
  */
 
-function getEmitter() {
+function createEmitter() {
   var emitter = new Emitter();
 
   emitter.on('error', function(err) {
@@ -121,32 +102,188 @@ function getEmitter() {
 }
 
 /**
- * Construct options
+ * Find Least Common Denominator
  *
- * @param {Array} arguments
- * @param {Object} options
+ * Given the array of absolute paths,
+ * this function calculates the least
+ * common ancestor.
+ *
+ * @returns {String}
+ *
  * @api private
  */
 
-function getOptions(args, options) {
-  var dir = options.output ? path.resolve(process.cwd(), options.output) : process.cwd();
+function findLeastCommonDenominator() {
+  var least,
+      sep = path.sep,
+      prev = options.sourceCollection[0];
 
-  options.src = args[0];
-  options.dest = args[1] ? path.resolve(dir, args[1]) : undefined;
+  for(var i = 1; i < options.sourceCollection.length; ++i) {
+    var short, long, file = options.sourceCollection[i];
 
-  if (!options.dest && !options.stdout) {
-    var ext = path.extname(options.src);
-    var out = path.basename(options.src);
-    var suffix = '.css';
+    file = path.dirname(file);
+    prev = path.dirname(prev);
 
-    if (ext !== suffix) {
-      out = replaceExt(out, suffix);
+    if (file === prev) {
+      least = file;
+      continue
     }
 
-    options.dest = path.join(dir, out);
+    if(prev.split(sep).length > file.split(sep).length) {console.log(1);
+      short = file;console.log(3);
+      long = prev;console.log(4);
+    } else {
+      short = prev;
+      long = file;
+    }
+
+    // starts with
+    if(long.lastIndexOf(short, 0) === 0) {
+      least = short;
+      continue;
+    }
+
+    var relative = path.relative(long, short);
+
+    var length = relative.split(sep).filter(function(slug) {
+      return slug === '..';
+    }).length;
+
+    var splitLong = long.split(sep);
+
+    if(splitLong.length - 1 === length || length === 0) {
+      least = sep;
+      break;
+    }
+
+    least = splitLong.slice(0, length * -1).join(sep);
+    prev = file;
   }
 
-  return options;
+  return least;
+}
+
+/**
+ * Is Sass File
+ *
+ * @api private
+ */
+
+function isSassFile(file) {
+  return ['.scss', '.sass'].some(function(ext) {
+    return path.extname(file) === ext;
+  });
+}
+
+/**
+ * Is Partial file
+ *
+ * @api private
+ */
+
+function isPartialFile(file) {
+  return path.basename(file)[0] === '_';
+}
+
+/**
+ * Validate Destination Path:
+ *
+ * If glob pattern yielded multiple files
+ * and destination is a single file, exit
+ * with error.
+ *
+ * @param {String} dest
+ * @param {Number} sourceLength
+ *
+ * @returns {Boolean}
+ *
+ * @api private
+ */
+
+function validateDestination(dest, sourceLength) {
+  var isDirectory = false;
+
+  try {
+    isDirectory = fs.lstatSync(dest).isDirectory();
+  } catch() {
+    isDirectory = false;
+  }
+
+  if(sourceLength > 1 && !isDirectory) {
+    emitter.emit('error', ['Multi-file compilation: requires destination', dest, 'to be a directory.']);
+  }
+}
+
+/**
+ * Process Paths
+ *
+ * @param {Array} arguments
+ * @api private
+ */
+
+function processPaths(args) {
+  options.destinationCollection = [];
+
+  // watch? let gaze take care of glob
+  // no output? output to stdout
+  if(options.watch || !args[1]) {
+    return;
+  }
+
+  glob(args[0], { nonull: false }, function (err, files) {
+    if(err) {
+      emitter.emit('error', ['You do not have permission to access this path:', err.path, '.']);
+    } else if(!files.length) {
+      emitter.emit('error', 'No input file was found.');
+    }
+
+    var dest = path.resolve(cwd, args[1]);
+
+    validateDestination(dest, files.length); // will throw and exit upon voilation
+
+    options.sourceCollection = files.filter(isSassFile).filter(!isPartialFile);
+
+    var lcd = (path.extname(dest) !== '.css') ? findLeastCommonDenominator() : '';
+
+    options.sourceCollection.forEach(function(file) {
+      if(path.extname(dest) !== '.css') {
+        // swap extension
+        var out = [path.basename(file, path.extname(file)), '.css'].join('');
+        var sourceDir = path.dirname(file);
+
+        // starts with
+        if(sourceDir.lastIndexOf(cwd, 0) === 0) {
+          out = path.join(sourceDir, out);
+        } else {
+          path.resolve(cwd, lcd, out);
+
+          dest = path.join(cwd, out);
+        }
+      }
+
+      options.destinationCollection.push(dest);
+    });
+  });
+
+  if (!Array.isArray(options.includePath)) {
+    options.includePath = [options.includePath];
+  }
+
+  if (options.sourceMap) {
+    if (options.sourceMap === 'true') {
+      options.sourceMap = options.dest + '.map';
+    } else {
+      options.sourceMap = path.resolve(cwd, options.sourceMap);
+    }
+  }
+
+  if (options.importer) {
+    if ((path.resolve(options.importer) === path.normalize(options.importer).replace(/(.+)([\/|\\])$/, '$1'))) {
+      options.importer = require(options.importer);
+    } else {
+      options.importer = require(path.resolve(cwd, options.importer));
+    }
+  }
 }
 
 /**
@@ -159,7 +296,6 @@ function getOptions(args, options) {
 
 function watch(options, emitter) {
   var dir = options.watch;
-  var gaze = new Gaze();
 
   if (dir === true) {
     dir = [];
@@ -167,26 +303,37 @@ function watch(options, emitter) {
     dir = [dir];
   }
 
-  dir.push(options.src);
   dir = dir.map(function(d) {
-    var glob = options.recursive ? '**/*.{sass,scss}' : '*.{sass,scss}';
-    return isSassFile(d) ? d : path.join(d, glob);
-  });
+    try {
+      if(fs.lstatSync(d).isDirectory()) {
+        return path.join(d, '**/*.{sass,scss}');
+      } else {
+        return d;
+      }
+    } catch() {
+      return d;
+    }
+  }).concat(options.src);
 
-  gaze.add(dir);
+  var gaze = new Gaze(options);
+
   gaze.on('error', emitter.emit.bind(emitter, 'error'));
 
   var graph = grapher.parseDir(options.src, { loadPaths: options.includePath });
 
   gaze.on('changed', function(file) {
     var files = [file];
+
     graph.visitAncestors(file, function(parent) {
       files.push(parent);
     });
 
     files.forEach(function(file) {
-      if (path.basename(file)[0] === '_') return;
-      options = getOptions([path.resolve(file)], options);
+      if (!isSassFile(file) && isPartialFile(file)){
+        return;
+      }
+
+      options = processOptions([path.resolve(file)], options);
       emitter.emit('warn', '=> changed: ' + file);
       render(options, emitter);
     });
@@ -202,25 +349,6 @@ function watch(options, emitter) {
  */
 
 function run(options, emitter) {
-  if (!Array.isArray(options.includePath)) {
-    options.includePath = [options.includePath];
-  }
-
-  if (options.sourceMap) {
-    if (options.sourceMap === 'true') {
-      options.sourceMap = options.dest + '.map';
-    } else {
-      options.sourceMap = path.resolve(process.cwd(), options.sourceMap);
-    }
-  }
-
-  if (options.importer) {
-    if ((path.resolve(options.importer) === path.normalize(options.importer).replace(/(.+)([\/|\\])$/, '$1'))) {
-      options.importer = require(options.importer);
-    } else {
-      options.importer = require(path.resolve(process.cwd(), options.importer));
-    }
-  }
 
   if (options.watch) {
     watch(options, emitter);
@@ -234,8 +362,10 @@ function run(options, emitter) {
  */
 
 var input = cli.input;
-var options = getOptions(input, cli.flags);
+var options = cli.flags;
 var emitter = getEmitter();
+
+processOptions(input);
 
 /**
  * Show usage if no arguments are supplied
