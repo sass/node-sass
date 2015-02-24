@@ -1,12 +1,19 @@
 ACLOCAL_AMFLAGS = -I m4
 
 AM_LDFLAGS = -lstdc++ -lm
-AM_CFLAGS = -Wall -fPIC
-AM_CXXFLAGS = -Wall -fPIC
-AM_CFLAGS += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
-AM_CXXFLAGS += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
+AM_CFLAGS = -Wall
+AM_CXXFLAGS = -Wall
 
-AM_CXXFLAGS += -std=c++0x
+if COMPILER_IS_MINGW32
+  AM_CXXFLAGS += -std=gnu++0x
+else
+  AM_CFLAGS += -fPIC
+  AM_CXXFLAGS += -fPIC
+  AM_CXXFLAGS += -std=c++0x
+endif
+
+AM_CFLAGS += -DLIBSASS_VERSION="\"$(VERSION)\""
+AM_CXXFLAGS += -DLIBSASS_VERSION="\"$(VERSION)\""
 
 if ENABLE_COVERAGE
 	AM_CFLAGS += -O0 --coverage
@@ -17,8 +24,6 @@ else
 	AM_CXXFLAGS += -O2
 	AM_LDFLAGS += -O2
 endif
-
-VERSION = $(LIBSASS_VERSION)
 
 EXTRA_DIST = \
 	COPYING \
@@ -87,22 +92,22 @@ include_HEADERS = sass2scss.h sass_context.h sass_functions.h sass_values.h sass
 
 if ENABLE_TESTS
 
-noinst_PROGRAMS = sassc_bin
+noinst_PROGRAMS = tester
 
-sassc_bin_SOURCES = $(SASS_SASSC_PATH)/sassc.c
-sassc_bin_LDADD = libsass.la
-sassc_bin_CFLAGS = $(AM_CFLAGS)
-sassc_bin_CXXFLAGS = $(AM_CXXFLAGS)
-sassc_bin_LDFLAGS = $(AM_LDFLAGS) -no-install
+tester_LDADD = libsass.la
+tester_SOURCES = $(SASS_SASSC_PATH)/sassc.c
+SASSC_VERSION=`cd "$(SASS_SASSC_PATH)" && ./version.sh`
+tester_CFLAGS = $(AM_CFLAGS) -DSASSC_VERSION="\"$(SASSC_VERSION)\""
+tester_CXXFLAGS = $(AM_CXXFLAGS) -DSASSC_VERSION="\"$(SASSC_VERSION)\""
+tester_LDFLAGS = $(AM_LDFLAGS) -no-install
 
 if ENABLE_COVERAGE
-nodist_EXTRA_sassc_bin_SOURCES = non-existent-file-to-force-CXX-linking.cxx
+nodist_EXTRA_tester_SOURCES = non-existent-file-to-force-CXX-linking.cxx
 nodist_EXTRA_libsass_la_SOURCES = non-existent-file-to-force-CXX-linking.cxx
 endif
 
 SASS_SASSC_PATH ?= sassc
 SASS_SPEC_PATH ?= sass-spec
-SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc
 
 TESTS = \
 	$(SASS_SPEC_PATH)/spec/basic \
@@ -120,7 +125,7 @@ TESTS = \
 
 SASS_TEST_FLAGS =
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) ./script/tap-driver
-AM_LOG_FLAGS = -c ./sassc_bin --ignore-todo $(LOG_FLAGS)
+AM_LOG_FLAGS = -c ./tester --ignore-todo $(LOG_FLAGS)
 if USE_TAP
 	AM_LOG_FLAGS += -t
 	SASS_TEST_FLAGS += -t | tapout
@@ -129,19 +134,24 @@ else
 	LOG_COMPILER = $(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb
 endif
 
-$(SASSC_BIN): libsass.la
-	cd $(SASS_SASSC_PATH) && $(MAKE)
+SASS_TESTER = $(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb
 
-test: $(SASSC_BIN)
-	$(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) --ignore-todo $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
+if COMPILER_IS_MINGW32
+  SASS_TESTER += -c $(SASS_LIBSASS_PATH)/tester.exe
+else
+  SASS_TESTER += -c $(SASS_LIBSASS_PATH)/tester
+endif
 
-test_build: $(SASSC_BIN)
-	$(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) --ignore-todo $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
+test:
+	$(SASS_TESTER) --ignore-todo $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
 
-test_full: $(SASSC_BIN)
-	$(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
+test_build:
+	$(SASS_TESTER) --ignore-todo $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
 
-test_issues: $(SASSC_BIN)
-	$(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues $(SASS_TEST_FLAGS)
+test_full:
+	$(SASS_TESTER) $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
+
+test_issues:
+	$(SASS_TESTER) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues $(SASS_TEST_FLAGS)
 
 endif

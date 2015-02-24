@@ -30,13 +30,18 @@ else
   MAKE_TARGET="shared"
 fi
 
-MAKE_OPTS="$MAKE_OPTS -j3 V=1"
+if [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
+  MAKE_OPTS="$MAKE_OPTS -j1 V=1"
+else
+  MAKE_OPTS="$MAKE_OPTS -j3 V=1"
+fi
 
 if [ "x$AUTOTOOLS" == "xyes" ]; then
 
   echo -en 'travis_fold:start:configure\r'
   autoreconf --force --install
   ./configure --enable-tests $COVERAGE_OPT \
+    --prefix=build \
     --disable-silent-rules \
     --with-sassc-dir=$SASS_SASSC_PATH \
     --with-sass-spec-dir=$SASS_SPEC_PATH \
@@ -44,7 +49,14 @@ if [ "x$AUTOTOOLS" == "xyes" ]; then
     ${SHARED_OPT}
   echo -en 'travis_fold:end:configure\r'
 
+  make clean
+
   make $MAKE_OPTS install
+
+  if [ -d build/lib ]; then
+    mkdir -p lib
+    cp -a build/lib/* lib/
+  fi
 
 else
 

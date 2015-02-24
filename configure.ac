@@ -2,7 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.61])
-AC_INIT([libsass], [3.0.3], [support@moovweb.com])
+
+AC_INIT([libsass], m4_esyscmd_s([./version.sh]), [support@moovweb.com])
 AC_CONFIG_SRCDIR([ast.hpp])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
@@ -62,7 +63,7 @@ the --with-sass-spec-dir=<dir> argument.
   # Automake doesn't like its tests in an absolute path, so we make it relative.
   case $sass_spec_dir in
     /*)
-      SASS_SPEC_PATH=`$RUBY -e "require 'pathname';puts Pathname.new('$sass_spec_dir').relative_path_from(Pathname.new('$PWD')).to_s"`
+      SASS_SPEC_PATH=`$RUBY -e "require 'pathname'; puts Pathname.new('$sass_spec_dir').relative_path_from(Pathname.new('$PWD')).to_s"`
       ;;
     *)
       SASS_SPEC_PATH="$sass_spec_dir"
@@ -106,25 +107,10 @@ fi
 
 AM_CONDITIONAL(ENABLE_COVERAGE, test "x$enable_cov" = "xyes")
 
-AC_ARG_VAR(LIBSASS_VERSION, libsass version)
-if test "x$LIBSASS_VERSION" = "x"; then
-  AC_CHECK_PROG(GIT, git, git)
-  if test "x$GIT" = "x"; then
-    LIBSASS_VERSION=$VERSION
-  else
-    AC_CHECK_FILE(.git/config, [
-      LIBSASS_VERSION=`$GIT describe --abbrev=4 --dirty --always --tags`
-    ], [
-      LIBSASS_VERSION=$VERSION
-    ])
-  fi
-  if test "x$LIBSASS_VERSION" = "x"; then
-    AC_MSG_ERROR([LIBSASS_VERSION not defined.
-You can solve this by setting LIBSASS_VERSION:
-# export LIBSASS_VERSION="x.y.z"
-])
-  fi
-fi
+AS_CASE([$host], [*-*-mingw32], [is_mingw32=yes], [is_mingw32=no])
+AM_CONDITIONAL(COMPILER_IS_MINGW32, test "x$is_mingw32" = "xyes")
+
+AC_MSG_NOTICE([Building libsass ($VERSION)])
 
 AC_CONFIG_FILES([Makefile support/libsass.pc])
 AC_OUTPUT
