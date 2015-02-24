@@ -11,7 +11,7 @@ describe('cli', function() {
     it('should read data from stdin', function(done) {
       var src = fs.createReadStream(fixture('simple/index.scss'));
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
-      var bin = spawn(cli, ['--stdout']);
+      var bin = spawn(cli);
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
@@ -25,7 +25,7 @@ describe('cli', function() {
     it('should compile sass using the --indented-syntax option', function(done) {
       var src = fs.createReadStream(fixture('indent/index.sass'));
       var expected = read(fixture('indent/expected.css'), 'utf8').trim();
-      var bin = spawn(cli, ['--stdout', '--indented-syntax']);
+      var bin = spawn(cli, ['--indented-syntax']);
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
@@ -39,7 +39,7 @@ describe('cli', function() {
     it('should compile with the --output-style option', function(done) {
       var src = fs.createReadStream(fixture('compressed/index.scss'));
       var expected = read(fixture('compressed/expected.css'), 'utf8').trim();
-      var bin = spawn(cli, ['--stdout', '--output-style', 'compressed']);
+      var bin = spawn(cli, ['--output-style', 'compressed']);
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
@@ -53,7 +53,7 @@ describe('cli', function() {
     it('should compile with the --source-comments option', function(done) {
       var src = fs.createReadStream(fixture('source-comments/index.scss'));
       var expected = read(fixture('source-comments/expected.css'), 'utf8').trim();
-      var bin = spawn(cli, ['--stdout', '--source-comments']);
+      var bin = spawn(cli, ['--source-comments']);
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
@@ -67,7 +67,7 @@ describe('cli', function() {
     it('should compile with the --image-path option', function(done) {
       var src = fs.createReadStream(fixture('image-path/index.scss'));
       var expected = read(fixture('image-path/expected.css'), 'utf8').trim();
-      var bin = spawn(cli, ['--stdout', '--image-path', '/path/to/images']);
+      var bin = spawn(cli, ['--image-path', '/path/to/images']);
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
@@ -85,7 +85,7 @@ describe('cli', function() {
 
       var src = fixture('simple/index.scss');
       var dest = fixture('simple/index.css');
-      var bin = spawn(cli, [src]);
+      var bin = spawn(cli, [src, dest]);
 
       bin.on('close', function() {
         assert(fs.existsSync(dest));
@@ -118,7 +118,7 @@ describe('cli', function() {
 
       var src = fixture('include-path/index.scss');
       var expected = read(fixture('include-path/expected.css'), 'utf8').trim();
-      var bin = spawn(cli, [src, '--stdout'].concat(includePaths));
+      var bin = spawn(cli, [src].concat(includePaths));
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
@@ -129,7 +129,7 @@ describe('cli', function() {
 
     it('should not exit with the --watch option', function(done) {
       var src = fixture('simple/index.scss');
-      var bin = spawn(cli, [src, '--stdout', '--watch']);
+      var bin = spawn(cli, [src, '--watch']);
       var exited;
 
       bin.on('close', function () {
@@ -150,7 +150,7 @@ describe('cli', function() {
       fs.writeFileSync(fixture('simple/tmp.scss'), '');
 
       var src = fixture('simple/tmp.scss');
-      var bin = spawn(cli, [src, '--stdout', '--watch']);
+      var bin = spawn(cli, [src, '--watch']);
 
       bin.stderr.setEncoding('utf8');
       bin.stderr.on('data', function(data) {
@@ -172,7 +172,7 @@ describe('cli', function() {
       var src = fixture('simple/foo.scss');
       var watched = fixture('simple/bar.scss');
       var bin = spawn(cli, [
-        src, '--stdout', '--watch', watched,
+        src, '--watch', watched,
         '--output-style', 'compressed'
       ]);
 

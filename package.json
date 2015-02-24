@@ -53,7 +53,6 @@
     "nan": "^1.6.2",
     "npmconf": "^2.1.1",
     "object-assign": "^2.0.0",
-    "replace-ext": "0.0.1",
     "request": "^2.53.0",
     "sass-graph": "^1.0.3",
     "shelljs": "^0.3.0"
