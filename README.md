@@ -42,7 +42,9 @@ If this project is missing an API or command line flag that has been added to [l
 
 ## Install
 
-    npm install node-sass
+```
+npm install node-sass
+```
 
 Some users have reported issues installing on Ubuntu due to `node` being registered to another package. [Follow the official NodeJS docs](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager) to install NodeJS so that `#!/usr/bin/env node` correctly resolved.
 
@@ -53,18 +55,17 @@ Compiling versions 0.9.4 and above on Windows machines requires [Visual Studio 2
 ```javascript
 var sass = require('node-sass');
 sass.render({
-	file: scss_filename,
-	[, options..]
+  file: scss_filename,
+  [, options..]
 }, function(err, result) { /*...*/ });
 // OR
 var result = sass.renderSync({
-	data: scss_content
-	[, options..]
+  data: scss_content
+  [, options..]
 });
 ```
 
 ### Options
-
 The API for using node-sass has changed, so that now there is only one options hash. In the options hash, some items are optional, others may be mandatory depending on circumstances.
 
 #### file
@@ -81,11 +82,11 @@ The callback function is passed a results object, containing the following keys:
 * `css` - The compiled CSS. Write this to a file, or serve it out as needed.
 * `map` - The source map
 * `stats` - An object containing information about the compile. It contains the following keys:
-    * `entry` - The path to the scss file, or `data` if the source was not a file
-    * `start` - Date.now() before the compilation
-    * `end` - Date.now() after the compilation
-    * `duration` - *end* - *start*
-    * `includedFiles` - Absolute paths to all related scss files in no particular order.
+  * `entry` - The path to the scss file, or `data` if the source was not a file
+  * `start` - Date.now() before the compilation
+  * `end` - Date.now() after the compilation
+  * `duration` - *end* - *start*
+  * `includedFiles` - Absolute paths to all related scss files in no particular order.
 
 #### error
 `error` is a `Function` to be called upon occurrence of an error when rendering the scss to css. This option is optional, and only applies to the render function.
@@ -164,8 +165,8 @@ node-sass supports standard node style asynchronous callbacks with the signature
 ```javascript
 var sass = require('node-sass');
 sass.render({
-	file: '/path/to/myFile.scss',
-	data: 'body{background:blue; a{color:black;}}',
+  file: '/path/to/myFile.scss',
+  data: 'body{background:blue; a{color:black;}}',
   success: function(result) {
     // result is an object: v2 change
     console.log(result.css);
@@ -174,27 +175,27 @@ sass.render({
   },
   error: function(error) { // starting v2.1 error is an Error-typed object
     // error is an object: v2 change
-  	console.log(error.message);
-  	console.log(error.status); // changed from code to status in v2.1
-  	console.log(error.line);
-  	console.log(error.column); // new in v2
+    console.log(error.message);
+    console.log(error.status); // changed from code to status in v2.1
+    console.log(error.line);
+    console.log(error.column); // new in v2
   },
-	importer: function(url, prev, done) {
-		// url is the path in import as is, which libsass encountered.
-		// prev is the previously resolved path.
-		// done is an optional callback, either consume it or return value synchronously.
-		someAsyncFunction(url, prev, function(result){
-			done({
-				file: result.path, // only one of them is required, see section Sepcial Behaviours.
-				contents: result.data
-			});
-		});
-		// OR
-		var result = someSyncFunction(url, prev);
-		return {file: result.path, contents: result.data};
-	},
-	includePaths: [ 'lib/', 'mod/' ],
-	outputStyle: 'compressed'
+  importer: function(url, prev, done) {
+    // url is the path in import as is, which libsass encountered.
+    // prev is the previously resolved path.
+    // done is an optional callback, either consume it or return value synchronously.
+    someAsyncFunction(url, prev, function(result){
+      done({
+        file: result.path, // only one of them is required, see section Sepcial Behaviours.
+        contents: result.data
+      });
+    });
+    // OR
+    var result = someSyncFunction(url, prev);
+    return {file: result.path, contents: result.data};
+  },
+  includePaths: [ 'lib/', 'mod/' ],
+  outputStyle: 'compressed'
 }, function(error, result) {
   // starting v2.1 the node-style callback has error (Object) and result (Object)
   // the objects are identical to those provided for the error and success keys
@@ -202,25 +203,25 @@ sass.render({
 });
 // OR
 var result = sass.renderSync({
-	file: '/path/to/file.scss',
-	data: 'body{background:blue; a{color:black;}}',
-	outputStyle: 'compressed',
-	outFile: '/to/my/output.css',
-	sourceMap: true, // or an absolute or relative (to outFile) path
-	importer: function(url, prev, done) {
-		// url is the path in import as is, which libsass encountered.
-		// prev is the previously resolved path.
-		// done is an optional callback, either consume it or return value synchronously.
-		someAsyncFunction(url, prev, function(result){
-			done({
-				file: result.path, // only one of them is required, see section Sepcial Behaviours.
-				contents: result.data
-			});
-		});
-		// OR
-		var result = someSyncFunction(url, prev);
-		return {file: result.path, contents: result.data};
-	},
+  file: '/path/to/file.scss',
+  data: 'body{background:blue; a{color:black;}}',
+  outputStyle: 'compressed',
+  outFile: '/to/my/output.css',
+  sourceMap: true, // or an absolute or relative (to outFile) path
+  importer: function(url, prev, done) {
+    // url is the path in import as is, which libsass encountered.
+    // prev is the previously resolved path.
+    // done is an optional callback, either consume it or return value synchronously.
+    someAsyncFunction(url, prev, function(result){
+      done({
+        file: result.path, // only one of them is required, see section Sepcial Behaviours.
+        contents: result.data
+      });
+    });
+    // OR
+    var result = someSyncFunction(url, prev);
+    return {file: result.path, contents: result.data};
+  },
 }));
 
 console.log(result.css);
