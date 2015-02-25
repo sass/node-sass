@@ -411,6 +411,28 @@ describe('api', function() {
     });
   });
 
+  describe('.render(options, cb)', function() {
+    it('should compile sass to css with file', function(done) {
+      var expected = 'div {\n  color: yellow; }';
+      sass.render({
+        data: 'div {color: yellow;}'
+      }, function(err, result) {
+        assert.equal(result.css.trim(), expected);
+        done();
+      });
+    });
+
+    it('should throw error status 1 for bad input', function(done) {
+      sass.render({
+        data: '#navbar width 80%;'
+      }, function(err) {
+        assert(err.message);
+        assert.equal(err.status, 1);
+        done();
+      });
+    });
+  });
+
   describe('.renderSync(options)', function() {
     it('should compile sass to css with file', function(done) {
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
