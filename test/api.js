@@ -114,6 +114,27 @@ describe('api', function() {
       });
     });
 
+    it('should throw error when libsass binary is missing.', function(done) {
+      var originalBin = path.join('vendor', process.sassBinaryName, 'binding.node'),
+          renamedBin = [originalBin, '_moved'].join('');
+
+      assert.throws(function() {
+        // un-require node-sass
+        var resolved = require.resolve('../lib');
+        delete require.cache[resolved];
+
+        fs.renameSync(originalBin, renamedBin);
+        // try to re-require it
+        require('../lib');
+      }, function(err) {
+        if ((err instanceof Error) && /`libsass` bindings not found. Try reinstalling `node-sass`?/.test(err)) {
+          fs.renameSync(renamedBin, originalBin);
+          done();
+          return true;
+        }
+      });
+    });
+
     it('should render with --precision option', function(done) {
       var src = read(fixture('precision/index.scss'), 'utf8');
       var expected = read(fixture('precision/expected.css'), 'utf8').trim();
