@@ -114,33 +114,6 @@ describe('api', function() {
       });
     });
 
-    it('should compile with image path', function(done) {
-      var src = read(fixture('image-path/index.scss'), 'utf8');
-      var expected = read(fixture('image-path/expected.css'), 'utf8').trim();
-
-      sass.render({
-        data: src,
-        imagePath: '/path/to/images',
-        success: function(result) {
-          assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
-          done();
-        }
-      });
-    });
-
-    it('should throw error with non-string image path', function(done) {
-      var src = read(fixture('image-path/index.scss'), 'utf8');
-
-      assert.throws(function() {
-        sass.render({
-          data: src,
-          imagePath: ['/path/to/images']
-        });
-      });
-
-      done();
-    });
-
     it('should render with --precision option', function(done) {
       var src = read(fixture('precision/index.scss'), 'utf8');
       var expected = read(fixture('precision/expected.css'), 'utf8').trim();

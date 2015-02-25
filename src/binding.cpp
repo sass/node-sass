@@ -151,7 +151,6 @@ void extract_options(Local<Object> options, void* cptr, sass_context_wrapper* ct
   }
 
   sass_option_set_output_path(sass_options, create_string(options->Get(NanNew("outFile"))));
-  sass_option_set_image_path(sass_options, create_string(options->Get(NanNew("imagePath"))));
   sass_option_set_output_style(sass_options, (Sass_Output_Style)options->Get(NanNew("style"))->Int32Value());
   sass_option_set_is_indented_syntax_src(sass_options, options->Get(NanNew("indentedSyntax"))->BooleanValue());
   sass_option_set_source_comments(sass_options, options->Get(NanNew("comments"))->BooleanValue());
