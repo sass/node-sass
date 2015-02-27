@@ -63,20 +63,6 @@ describe('cli', function() {
 
       src.pipe(bin.stdin);
     });
-
-    it('should compile with the --image-path option', function(done) {
-      var src = fs.createReadStream(fixture('image-path/index.scss'));
-      var expected = read(fixture('image-path/expected.css'), 'utf8').trim();
-      var bin = spawn(cli, ['--image-path', '/path/to/images']);
-
-      bin.stdout.setEncoding('utf8');
-      bin.stdout.once('data', function(data) {
-        assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
-        done();
-      });
-
-      src.pipe(bin.stdin);
-    });
   });
 
   describe('node-sass in.scss', function() {

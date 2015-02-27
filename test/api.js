@@ -114,31 +114,25 @@ describe('api', function() {
       });
     });
 
-    it('should compile with image path', function(done) {
-      var src = read(fixture('image-path/index.scss'), 'utf8');
-      var expected = read(fixture('image-path/expected.css'), 'utf8').trim();
-
-      sass.render({
-        data: src,
-        imagePath: '/path/to/images',
-        success: function(result) {
-          assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
-          done();
-        }
-      });
-    });
-
-    it('should throw error with non-string image path', function(done) {
-      var src = read(fixture('image-path/index.scss'), 'utf8');
+    it('should throw error when libsass binary is missing.', function(done) {
+      var originalBin = path.join('vendor', process.sassBinaryName, 'binding.node'),
+          renamedBin = [originalBin, '_moved'].join('');
 
       assert.throws(function() {
-        sass.render({
-          data: src,
-          imagePath: ['/path/to/images']
-        });
-      });
+        // un-require node-sass
+        var resolved = require.resolve('../lib');
+        delete require.cache[resolved];
 
-      done();
+        fs.renameSync(originalBin, renamedBin);
+        // try to re-require it
+        require('../lib');
+      }, function(err) {
+        if ((err instanceof Error) && /`libsass` bindings not found. Try reinstalling `node-sass`?/.test(err)) {
+          fs.renameSync(renamedBin, originalBin);
+          done();
+          return true;
+        }
+      });
     });
 
     it('should render with --precision option', function(done) {
