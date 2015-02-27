@@ -61,7 +61,6 @@
     "coveralls": "^2.11.2",
     "jscoverage": "^0.5.9",
     "jshint": "^2.6.0",
-    "mocha-lcov-reporter": "^0.0.1",
-    "pangyp": "^2.1.0"
+    "mocha-lcov-reporter": "^0.0.1"
   }
 }
