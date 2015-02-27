@@ -3,7 +3,7 @@ var fs = require('fs'),
     spawn = require('child_process').spawn,
     mkdir = require('mkdirp'),
     Mocha = require('mocha');
-    
+
 require('../lib/extensions');
 
 /**
@@ -50,11 +50,8 @@ function afterBuild(options) {
  */
 
 function build(options) {
-  var arguments = ['node_modules/pangyp/bin/node-gyp', 'rebuild'].concat(options.args);
-
-  console.log(['Building:', process.runtime.execPath].concat(arguments).join(' '));
-
-  var proc = spawn(process.runtime.execPath, arguments, {
+  var bin = options.platform === 'win32' ? 'node-gyp.cmd' : 'node-gyp';
+  var proc = spawn(bin, ['rebuild'].concat(options.args), {
     stdio: [0, 1, 2]
   });
 
