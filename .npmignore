@@ -1,0 +1,8 @@
+*.log
+.DS_Store
+.sass-cache
+build
+lib-cov
+node_modules
+vendor
+test
