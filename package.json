@@ -5,7 +5,10 @@
   "description": "Wrapper around libsass",
   "license": "MIT",
   "homepage": "https://github.com/sass/node-sass",
-  "repository": "sass/node-sass",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sass/node-sass"
+  },
   "author": {
     "name": "Andrew Nesbitt",
     "email": "andrewnez@gmail.com",
@@ -54,8 +57,7 @@
     "object-assign": "^2.0.0",
     "pangyp": "^2.1.0",
     "request": "^2.53.0",
-    "sass-graph": "^1.0.3",
-    "shelljs": "^0.3.0"
+    "sass-graph": "^1.0.3"
   },
   "devDependencies": {
     "coveralls": "^2.11.2",

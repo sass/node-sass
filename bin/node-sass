@@ -98,11 +98,11 @@ function getEmitter() {
     }
   });
 
-  emitter.on('warn', function(data){
+  emitter.on('warn', function(data) {
     console.warn(data);
   });
 
-  emitter.on('log', function(data){
+  emitter.on('log', function(data) {
     console.log(data);
   });
 

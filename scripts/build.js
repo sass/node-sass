@@ -18,19 +18,19 @@ function afterBuild(options) {
   var target = path.join(__dirname, '..', 'build', folder, 'binding.node');
   var install = path.join(__dirname, '..', 'vendor', process.sassBinaryName, 'binding.node');
 
-  mkdir(path.join(__dirname, '..', 'vendor', process.sassBinaryName), function (err) {
+  mkdir(path.join(__dirname, '..', 'vendor', process.sassBinaryName), function(err) {
     if (err && err.code !== 'EEXIST') {
       console.error(err.message);
       return;
     }
 
-    fs.stat(target, function (err) {
+    fs.stat(target, function(err) {
       if (err) {
         console.error('Build succeeded but target not found');
         return;
       }
 
-      fs.rename(target, install, function (err) {
+      fs.rename(target, install, function(err) {
         if (err) {
           console.error(err.message);
           return;
@@ -110,7 +110,7 @@ function testBinary(options) {
     return build(options);
   }
 
-  fs.stat(path.join(__dirname, '..', 'vendor', process.sassBinaryName, 'binding.node'), function (err) {
+  fs.stat(path.join(__dirname, '..', 'vendor', process.sassBinaryName, 'binding.node'), function(err) {
     if (err) {
       return build(options);
     }

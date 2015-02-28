@@ -1,5 +1,5 @@
 module.exports = function() {
   return {
-      contents: 'div {color: yellow;}'
+    contents: 'div {color: yellow;}'
   };
 };

@@ -6,12 +6,12 @@ var assert = require('assert'),
     sass = require('../lib'),
     util = require('./util');
 
-describe('spec', function () {
+describe('spec', function() {
   var suites = util.getSuites();
 
   describe('test/sass-spec directory', function() {
     it('should be a cloned into place', function(done) {
-      fs.exists(path.join(__dirname, 'fixtures', 'spec'), function (exists) {
+      fs.exists(path.join(__dirname, 'fixtures', 'spec'), function(exists) {
         if (!exists) {
           throw new Error([
             'test/fixtures/spec directory missing. Please clone it into place by',
@@ -29,7 +29,7 @@ describe('spec', function () {
   Object.keys(suites).forEach(function(suite) {
     var tests = Object.keys(suites[suite]);
 
-    describe(suite, function () {
+    describe(suite, function() {
       tests.forEach(function(test) {
         var t = suites[suite][test];
 
