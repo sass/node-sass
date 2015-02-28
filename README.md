@@ -232,14 +232,19 @@ console.log(result.stats);
 
 ### Version information (v2 change)
 
-Both `node-sass` and `libsass` version info is now present in `package.json` and is exposed via `info()` method:
+Both `node-sass` and `libsass` version info is now present in `package.json` and is exposed via `info` method:
 
 ```javascript
-require('node-sass').info();
+var sass = require('node-sass');
 
-// outputs something like:
-// node-sass version: 2.0.0-beta
-// libsass version: 3.1.0-beta
+console.log(sass.info);
+
+/*
+  it will output something like:
+
+  node-sass       2.0.1   (Wrapper)       [JavaScript]
+  libsass         3.1.0   (Sass Compiler) [C/C++]
+*/
 ```
 
 ## Integrations
@@ -329,6 +334,7 @@ Output will be saved with the same name as input SASS file into the current work
     -o, --output               Output directory
     -x, --omit-source-map-url  Omit source map URL comment from output
     -i, --indented-syntax      Treat data from stdin as sass code (versus scss)
+    -v, --version              Prints version info
     --output-style             CSS output style (nested|expanded|compact|compressed)
     --source-comments          Include debug info in output
     --source-map               Emit source map

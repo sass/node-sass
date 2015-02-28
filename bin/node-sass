@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 var Emitter = require('events').EventEmitter,
-    path = require('path'),
     Gaze = require('gaze'),
-    meow = require('meow'),
-    stdin = require('get-stdin'),
     grapher = require('sass-graph'),
-    render = require('../lib/render');
+    meow = require('meow'),
+    path = require('path'),
+    render = require('../lib/render'),
+    stdin = require('get-stdin');
 
 /**
  * Initialize CLI
@@ -13,9 +13,8 @@ var Emitter = require('events').EventEmitter,
 
 var cli = meow({
   pkg: '../package.json',
+  version: process.sassInfo,
   help: [
-    require('../lib/').info(),
-    '',
     'Usage',
     '  node-sass [options] <input.scss> [output.css]',
     '  cat <input.scss> | node-sass > output.css',
@@ -30,6 +29,7 @@ var cli = meow({
     '  -o, --output               Output directory',
     '  -x, --omit-source-map-url  Omit source map URL comment from output',
     '  -i, --indented-syntax      Treat data from stdin as sass code (versus scss)',
+    '  -v, --version              Prints version info',
     '  --output-style             CSS output style (nested|expanded|compact|compressed)',
     '  --source-comments          Include debug info in output',
     '  --source-map               Emit source map',
@@ -56,12 +56,13 @@ var cli = meow({
     'precision'
   ],
   alias: {
+    c: 'source-comments',
     i: 'indented-syntax',
     o: 'output',
-    w: 'watch',
+    r: 'recursive',
     x: 'omit-source-map-url',
-    c: 'source-comments',
-    r: 'recursive'
+    v: 'version',
+    w: 'watch'
   },
   default: {
     'include-path': process.cwd(),
