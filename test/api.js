@@ -430,7 +430,7 @@ describe('api', function() {
   describe('.renderSync(options)', function() {
     it('should compile sass to css with file', function(done) {
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
-      var result = sass.renderSync({file: fixture('simple/index.scss')});
+      var result = sass.renderSync({ file: fixture('simple/index.scss') });
 
       assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
       done();
@@ -472,7 +472,7 @@ describe('api', function() {
     it('should compile sass to css with data', function(done) {
       var src = read(fixture('simple/index.scss'), 'utf8');
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
-      var result = sass.renderSync({data: src});
+      var result = sass.renderSync({ data: src });
 
       assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
       done();
@@ -492,7 +492,7 @@ describe('api', function() {
 
     it('should throw error for bad input', function(done) {
       assert.throws(function() {
-        sass.renderSync({data: '#navbar width 80%;'});
+        sass.renderSync({ data: '#navbar width 80%;' });
       });
 
       done();

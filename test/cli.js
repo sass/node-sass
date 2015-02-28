@@ -118,7 +118,7 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--watch']);
       var exited;
 
-      bin.on('close', function () {
+      bin.on('close', function() {
         exited = true;
       });
 
@@ -198,7 +198,7 @@ describe('cli', function() {
       var expectedMap = read(fixture('source-map/expected.map'), 'utf8').trim().replace(/\r\n/g, '\n');
       var bin = spawn(cli, [src, '--output', path.dirname(destCss), '--source-map', destMap]);
 
-      bin.on('close', function () {
+      bin.on('close', function() {
         assert.equal(read(destCss, 'utf8').trim(), expectedCss);
         assert.equal(read(destMap, 'utf8').trim(), expectedMap);
         fs.unlinkSync(destMap);
@@ -216,7 +216,7 @@ describe('cli', function() {
         '--source-map', map, '--omit-source-map-url'
       ]);
 
-      bin.on('close', function () {
+      bin.on('close', function() {
         assert(read(dest, 'utf8').indexOf('sourceMappingURL') === -1);
         assert(fs.existsSync(map));
         fs.unlinkSync(map);
@@ -257,7 +257,7 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_file_and_data_cb.js')
       ]);
 
-      bin.on('close', function () {
+      bin.on('close', function() {
         assert.equal(read(dest, 'utf8').trim(), expected);
         fs.unlinkSync(dest);
         done();
@@ -270,7 +270,7 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_file_cb.js')
       ]);
 
-      bin.on('close', function () {
+      bin.on('close', function() {
         if (fs.existsSync(dest)) {
           assert.equal(read(dest, 'utf8').trim(), '');
           fs.unlinkSync(dest);
@@ -286,7 +286,7 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_data_cb.js')
       ]);
 
-      bin.on('close', function () {
+      bin.on('close', function() {
         assert.equal(read(dest, 'utf8').trim(), expected);
         fs.unlinkSync(dest);
         done();
@@ -299,7 +299,7 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_file_and_data.js')
       ]);
 
-      bin.on('close', function () {
+      bin.on('close', function() {
         assert.equal(read(dest, 'utf8').trim(), expected);
         fs.unlinkSync(dest);
         done();
@@ -312,7 +312,7 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_file.js')
       ]);
 
-      bin.on('close', function () {
+      bin.on('close', function() {
         if (fs.existsSync(dest)) {
           assert.equal(read(dest, 'utf8').trim(), '');
           fs.unlinkSync(dest);
@@ -328,7 +328,7 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_data.js')
       ]);
 
-      bin.on('close', function () {
+      bin.on('close', function() {
         assert.equal(read(dest, 'utf8').trim(), expected);
         fs.unlinkSync(dest);
         done();
@@ -341,7 +341,7 @@ describe('cli', function() {
         '--importer', fixture('non/existing/path')
       ]);
 
-      bin.on('close', function (code) {
+      bin.on('close', function(code) {
         assert(code !== 0);
         done();
       });

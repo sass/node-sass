@@ -2,7 +2,6 @@ var fs = require('fs'),
     path = require('path'),
     request = require('request'),
     mkdirp = require('mkdirp'),
-    exec = require('shelljs').exec,
     npmconf = require('npmconf'),
     packageInfo = require('../package.json');
 
