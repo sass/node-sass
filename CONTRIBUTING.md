@@ -23,8 +23,8 @@ A good bug report shouldn't leave others needing to chase you up for more inform
 
 If you are facing binary related issues, please create a gist (see [Creating gists on GitHub](https://help.github.com/articles/creating-gists/)) with the output of this set of commands:
 
-*nix: https://gist.github.com/am11/9f429c211822a9b15aee.
-win: https://gist.github.com/am11/e5de3c49c219f0811e1d.
+  * For *nix: https://gist.github.com/am11/9f429c211822a9b15aee.
+  * For win: https://gist.github.com/am11/e5de3c49c219f0811e1d.
 
 If this project is missing an API or command line flag that has been added to [libsass], then please open an issue here. We will then look at updating our [libsass] submodule and create a new release. You can help us create the new release by rebuilding binaries, and then creating a pull request to the [node-sass-binaries](https://github.com/sass/node-sass-binaries) repo.
 
