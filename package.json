@@ -46,20 +46,19 @@
   ],
   "dependencies": {
     "chalk": "^1.0.0",
-    "cross-spawn": "^0.2.6",
     "gaze": "^0.5.1",
     "get-stdin": "^4.0.1",
     "meow": "^3.1.0",
     "mkdirp": "^0.5.0",
     "nan": "^1.6.2",
     "npmconf": "^2.1.1",
-    "object-assign": "^2.0.0",
     "pangyp": "^2.1.0",
     "request": "^2.53.0",
     "sass-graph": "^1.0.3"
   },
   "devDependencies": {
     "coveralls": "^2.11.2",
+    "cross-spawn": "^0.2.6",
     "jscoverage": "^0.5.9",
     "jshint": "^2.6.0",
     "mocha": "^2.1.0",
