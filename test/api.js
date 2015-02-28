@@ -792,11 +792,16 @@ describe('api', function() {
   });
 
   describe('.info()', function() {
+    var package = require('../package.json'),
+        info = sass.info;
+
     it('should return a correct version info', function(done) {
-      assert.equal(sass.info(), [
-        'node-sass version: ' + require('../package.json').version,
-        'libsass version: ' + require('../package.json').libsass
-      ].join('\n'));
+      assert(info.indexOf(package.version) > 0);
+      assert(info.indexOf('(Wrapper)') > 0);
+      assert(info.indexOf('[JavaScript]') > 0);
+      assert(info.indexOf(package.libsass) > 0);
+      assert(info.indexOf('(Sass Compiler)') > 0);
+      assert(info.indexOf('[C/C++]') > 0);
 
       done();
     });

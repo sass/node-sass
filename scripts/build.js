@@ -1,9 +1,9 @@
-var fs = require('fs'),
-    path = require('path'),
-    spawn = require('child_process').spawn,
+var eol = require('os').EOL,
+    fs = require('fs'),
     mkdir = require('mkdirp'),
-    Mocha = require('mocha');
-    
+    path = require('path'),
+    spawn = require('child_process').spawn;
+
 require('../lib/extensions');
 
 /**
@@ -50,7 +50,7 @@ function afterBuild(options) {
  */
 
 function build(options) {
-  var arguments = ['node_modules/pangyp/bin/node-gyp', 'rebuild'].concat(options.args);
+  var arguments = [path.join('node_modules', 'pangyp', 'bin', 'node-gyp'), 'rebuild'].concat(options.args);
 
   console.log(['Building:', process.runtime.execPath].concat(arguments).join(' '));
 
@@ -58,22 +58,14 @@ function build(options) {
     stdio: [0, 1, 2]
   });
 
-  proc.on('exit', function(code) {
-    if (code) {
-      if (code === 127) {
-        console.error([
-          'node-gyp not found! Please upgrade your install of npm!',
-          'You need at least 1.1.5 (I think) and preferably 1.1.30.'
-        ].join(' '));
+  proc.on('exit', function(errorCode) {
+    if (!errorCode) {
+      afterBuild(options);
 
-        return;
-      }
-
-      console.error('Build failed');
       return;
     }
 
-    afterBuild(options);
+    console.error(errorCode === 127 ? 'node-gyp not found!' : 'Build failed');
   });
 }
 
@@ -123,28 +115,19 @@ function testBinary(options) {
       return build(options);
     }
 
-    console.log('`' + process.sassBinaryName + '` exists; testing');
+    console.log('`' + process.sassBinaryName + '` exists; testing.');
 
-    var mocha = new Mocha({
-      ui: 'bdd',
-      timeout: 999999,
-      reporter: function() {}
-    });
+    try {
+      require('../').renderSync({
+        data: 's: { a: ss }'
+      });
 
-    mocha.addFile(path.resolve(__dirname, '..', 'test', 'api.js'));
-    mocha.grep(/should compile sass to css with file/).run(function (done) {
-      if (done !== 0) {
-        console.log([
-          'Problem with the binary.',
-          'Manual build incoming.',
-          'Please consider contributing the release binary to https://github.com/sass/node-sass-binaries for npm distribution.'
-        ].join('\n'));
+      console.log('Binary is fine; exiting.');
+    } catch (e) {
+      console.log(['Problem with the binary.', 'Manual build incoming.'].join(eol));
 
-        return build(options);
-      }
-
-      console.log('Binary is fine; exiting');
-    });
+      return build(options);
+    }
   });
 }
 

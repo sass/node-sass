@@ -5,14 +5,31 @@
  * Add tests for it. This is important so I don't break it in a future version unintentionally.
  * Send a pull request. Bonus points for topic branches.
 
-## Reporting Sass compilation and syntax issues
+## Bug reports
 
-The [libsass] library is not currently at feature parity with the 3.2 [Ruby Gem](https://github.com/nex3/sass) that most Sass users will use, and has little-to-no support for 3.3 syntax. While we try our best to maintain feature parity with [libsass], we can not enable features that have not been implemented in [libsass] yet.
+A bug is a _demonstrable problem_ that is caused by the code in the repository. Good bug reports are extremely helpful, so thanks!
 
-If you'd like to see what features are still upcoming in [libsass], [Jo Liss](http://twitter.com/jo_liss) has written [a blog post on the subject](http://www.solitr.com/blog/2014/01/state-of-libsass/).
+Guidelines for bug reports:
 
-Please check for [issues on the libsass repo](https://github.com/hcatlin/libsass/issues) (as there is a good chance that it may already be an issue there for it), and otherwise [create a new issue there](https://github.com/hcatlin/libsass/issues/new).
+1. **Use the GitHub issue search** &mdash; check if the issue has already been
+ reported.
+2. **Check if the issue has been fixed** &mdash; try to reproduce it using the
+ latest `master` branch in the repository.
+3. **Isolate the problem** &mdash; ideally create an
+ [SSCCE](http://www.sscce.org/) and a live example.
+
+
+A good bug report shouldn't leave others needing to chase you up for more information. Please try to be as detailed as possible in your report. What is your environment? What steps will reproduce the issue? What browser(s) and OS experience the problem? Do other browsers show the bug differently? What would you expect to be the outcome? All these details will help people to fix any potential bugs.
+
+If you are facing binary related issues, please create a gist (see [Creating gists on GitHub](https://help.github.com/articles/creating-gists/)) with the output of this set of commands:
+
+*nix: https://gist.github.com/am11/9f429c211822a9b15aee.
+win: https://gist.github.com/am11/e5de3c49c219f0811e1d.
 
 If this project is missing an API or command line flag that has been added to [libsass], then please open an issue here. We will then look at updating our [libsass] submodule and create a new release. You can help us create the new release by rebuilding binaries, and then creating a pull request to the [node-sass-binaries](https://github.com/sass/node-sass-binaries) repo.
 
-[libsass]: https://github.com/hcatlin/libsass
+## Reporting Sass compilation and syntax issues
+
+Please check for [issues on the libsass repo](https://github.com/hcatlin/libsass/issues) (as there is a good chance that it may already be an issue there for it), and otherwise [create a new issue there](https://github.com/sass/libsass/issues/new).
+
+[libsass]: https://github.com/sass/libsass

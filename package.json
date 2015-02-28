@@ -43,16 +43,16 @@
     "style"
   ],
   "dependencies": {
-    "chalk": "^0.5.1",
+    "chalk": "^1.0.0",
     "cross-spawn": "^0.2.6",
     "gaze": "^0.5.1",
     "get-stdin": "^4.0.1",
-    "meow": "^3.0.0",
+    "meow": "^3.1.0",
     "mkdirp": "^0.5.0",
-    "mocha": "^2.1.0",
     "nan": "^1.6.2",
     "npmconf": "^2.1.1",
     "object-assign": "^2.0.0",
+    "pangyp": "^2.1.0",
     "request": "^2.53.0",
     "sass-graph": "^1.0.3",
     "shelljs": "^0.3.0"
@@ -61,7 +61,7 @@
     "coveralls": "^2.11.2",
     "jscoverage": "^0.5.9",
     "jshint": "^2.6.0",
-    "mocha-lcov-reporter": "^0.0.1",
-    "pangyp": "^2.1.0"
+    "mocha": "^2.1.0",
+    "mocha-lcov-reporter": "^0.0.2"
   }
 }
