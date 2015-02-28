@@ -34,8 +34,7 @@
     "binding.gyp",
     "lib",
     "scripts",
-    "src",
-    "test"
+    "src"
   ],
   "keywords": [
     "css",
