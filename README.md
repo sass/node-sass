@@ -156,8 +156,8 @@ sass.render({
   outputStyle: 'compressed'
 }, function(error, result) { // >= v3.0.0
   if (error) {
-    console.log(error.status); // use "code" <= v2.1.0
-    console.log(error.column); // >= v2.0.0
+    console.log(error.status); // use "code" <= v3.0.0
+    console.log(error.column);
     console.log(error.message);
     console.log(error.line);
   }
