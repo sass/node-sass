@@ -39,15 +39,11 @@ describe('spec', function() {
 
             sass.render({
               file: t.src,
-              includePaths: t.paths,
-              success: function(result) {
-                assert.equal(util.normalize(result.css), expected);
-                done();
-              },
-              error: function(err) {
-                assert(!err);
-                done();
-              }
+              includePaths: t.paths
+            }, function(error, result) {
+              assert(!error);
+              assert.equal(util.normalize(result.css), expected);
+              done();
             });
           });
         }
