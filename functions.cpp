@@ -151,22 +151,30 @@ namespace Sass {
     // RGB FUNCTIONS
     ////////////////
 
+    inline double color_num(Number* n) {
+      if (n->unit() == "%") {
+        return std::min(std::max(n->value(), 0.0), 1.0) * 255;
+      } else {
+        return std::min(std::max(n->value(), 0.0), 255.0);
+      }
+    }
+
     Signature rgb_sig = "rgb($red, $green, $blue)";
     BUILT_IN(rgb)
     {
       return new (ctx.mem) Color(pstate,
-                                 ARGR("$red",   Number, 0, 255)->value(),
-                                 ARGR("$green", Number, 0, 255)->value(),
-                                 ARGR("$blue",  Number, 0, 255)->value());
+                                 color_num(ARGR("$red",   Number, 0, 255)),
+                                 color_num(ARGR("$green", Number, 0, 255)),
+                                 color_num(ARGR("$blue",  Number, 0, 255)));
     }
 
     Signature rgba_4_sig = "rgba($red, $green, $blue, $alpha)";
     BUILT_IN(rgba_4)
     {
       return new (ctx.mem) Color(pstate,
-                                 ARGR("$red",   Number, 0, 255)->value(),
-                                 ARGR("$green", Number, 0, 255)->value(),
-                                 ARGR("$blue",  Number, 0, 255)->value(),
+                                 color_num(ARGR("$red",   Number, 0, 255)),
+                                 color_num(ARGR("$green", Number, 0, 255)),
+                                 color_num(ARGR("$blue",  Number, 0, 255)),
                                  ARGR("$alpha", Number, 0, 1)->value());
     }
 
@@ -536,12 +544,13 @@ namespace Sass {
     BUILT_IN(opacify)
     {
       Color* color = ARG("$color", Color);
-      double alpha = color->a() + ARGR("$amount", Number, 0, 1)->value();
+      double amount = ARGR("$amount", Number, 0, 1)->value();
+      double alpha = std::min(color->a() + amount, 1.0);
       return new (ctx.mem) Color(pstate,
                                  color->r(),
                                  color->g(),
                                  color->b(),
-                                 alpha > 1.0 ? 1.0 : alpha);
+                                 alpha);
     }
 
     Signature transparentize_sig = "transparentize($color, $amount)";
@@ -549,12 +558,13 @@ namespace Sass {
     BUILT_IN(transparentize)
     {
       Color* color = ARG("$color", Color);
-      double alpha = color->a() - ARGR("$amount", Number, 0, 1)->value();
+      double amount = ARGR("$amount", Number, 0, 1)->value();
+      double alpha = std::max(color->a() - amount, 0.0);
       return new (ctx.mem) Color(pstate,
                                  color->r(),
                                  color->g(),
                                  color->b(),
-                                 alpha < 0.0 ? 0.0 : alpha);
+                                 alpha);
     }
 
     ////////////////////////
@@ -645,7 +655,7 @@ namespace Sass {
         hsl_struct.h += hscale * (hscale > 0.0 ? 360.0 - hsl_struct.h : hsl_struct.h);
         hsl_struct.s += sscale * (sscale > 0.0 ? 100.0 - hsl_struct.s : hsl_struct.s);
         hsl_struct.l += lscale * (lscale > 0.0 ? 100.0 - hsl_struct.l : hsl_struct.l);
-        double alpha = color->a() + ascale * (ascale > 0.0 ? 1.0 - color->a() : color->r());
+        double alpha = color->a() + ascale * (ascale > 0.0 ? 1.0 - color->a() : color->a());
         return hsla_impl(hsl_struct.h, hsl_struct.s, hsl_struct.l, alpha, ctx, pstate);
       }
       if (a) {
@@ -1234,7 +1244,7 @@ namespace Sass {
     BUILT_IN(compact)
     {
       error("`compact` has been removed from libsass because it's not part of the Sass spec", pstate);
-      return 0;
+      return 0; // suppress warning, error will exit anyway
     }
 
     Signature list_separator_sig = "list_separator($list)";
@@ -1495,6 +1505,7 @@ namespace Sass {
     BUILT_IN(image_url)
     {
       error("`image_url` has been removed from libsass because it's not part of the Sass spec", pstate);
+      return 0; // suppress warning, error will exit anyway
     }
 
     //////////////////////////
