@@ -7,16 +7,15 @@ var assert = require('assert'),
     resolveFixture = path.resolve.bind(null, __dirname, 'fixtures');
 
 describe('api', function() {
-  describe('.render(options)', function() {
+  describe('.render(options, callback)', function() {
     it('should compile sass to css with file', function(done) {
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
 
       sass.render({
-        file: fixture('simple/index.scss'),
-        success: function(result) {
-          assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
-          done();
-        }
+        file: fixture('simple/index.scss')
+      }, function(error, result) {
+        assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
+        done();
       });
     });
 
@@ -24,12 +23,10 @@ describe('api', function() {
       sass.render({
         file: fixture('simple/index.scss'),
         sourceMap: true,
-        outFile: fixture('simple/index-test.css'),
-
-        success: function(result) {
-          assert.equal(JSON.parse(result.map).file, 'index-test.css');
-          done();
-        }
+        outFile: fixture('simple/index-test.css')
+      }, function(error, result) {
+        assert.equal(JSON.parse(result.map).file, 'index-test.css');
+        done();
       });
     });
 
@@ -37,12 +34,10 @@ describe('api', function() {
       sass.render({
         file: fixture('simple/index.scss'),
         sourceMap: true,
-        outFile: './index-test.css',
-
-        success: function(result) {
-          assert.equal(JSON.parse(result.map).file, 'index-test.css');
-          done();
-        }
+        outFile: './index-test.css'
+      }, function(error, result) {
+        assert.equal(JSON.parse(result.map).file, 'index-test.css');
+        done();
       });
     });
 
@@ -50,12 +45,10 @@ describe('api', function() {
       sass.render({
         file: fixture('simple/index.scss'),
         sourceMap: './deep/nested/index.map',
-        outFile: './index-test.css',
-
-        success: function(result) {
-          assert.equal(JSON.parse(result.map).file, '../../index-test.css');
-          done();
-        }
+        outFile: './index-test.css'
+      }, function(error, result) {
+        assert.equal(JSON.parse(result.map).file, '../../index-test.css');
+        done();
       });
     });
 
@@ -64,11 +57,10 @@ describe('api', function() {
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
 
       sass.render({
-        data: src,
-        success: function(result) {
-          assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
-          done();
-        }
+        data: src
+      }, function(error, result) {
+        assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
+        done();
       });
     });
 
@@ -78,22 +70,20 @@ describe('api', function() {
 
       sass.render({
         data: src,
-        indentedSyntax: true,
-        success: function(result) {
-          assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
-          done();
-        }
+        indentedSyntax: true
+      }, function(error, result) {
+        assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
+        done();
       });
     });
 
     it('should throw error status 1 for bad input', function(done) {
       sass.render({
-        data: '#navbar width 80%;',
-        error: function(error) {
-          assert(error.message);
-          assert.equal(error.status, 1);
-          done();
-        }
+        data: '#navbar width 80%;'
+      }, function(error) {
+        assert(error.message);
+        assert.equal(error.status, 1);
+        done();
       });
     });
 
@@ -106,11 +96,10 @@ describe('api', function() {
         includePaths: [
           fixture('include-path/functions'),
           fixture('include-path/lib')
-        ],
-        success: function(result) {
-          assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
-          done();
-        }
+        ]
+      }, function(error, result) {
+        assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
+        done();
       });
     });
 
@@ -141,11 +130,10 @@ describe('api', function() {
 
       sass.render({
         data: src,
-        precision: 10,
-        success: function(result) {
-          assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
-          done();
-        }
+        precision: 10
+      }, function(error, result) {
+        assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
+        done();
       });
     });
 
@@ -158,11 +146,10 @@ describe('api', function() {
 
       sass.render({
         data: src,
-        includePaths: [fixture('include-files')],
-        success: function(result) {
-          assert.deepEqual(result.stats.includedFiles, expected);
-          done();
-        }
+        includePaths: [fixture('include-files')]
+      }, function(error, result) {
+        assert.deepEqual(result.stats.includedFiles, expected);
+        done();
       });
     });
   });
@@ -173,184 +160,172 @@ describe('api', function() {
     it('should override imports with "data" as input and fires callback with file and contents', function(done) {
       sass.render({
         data: src,
-        success: function(result) {
-          assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
-          done();
-        },
         importer: function(url, prev, done) {
           done({
             file: '/some/other/path.scss',
             contents: 'div {color: yellow;}'
           });
         }
+      }, function(error, result) {
+        assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        done();
       });
     });
 
     it('should override imports with "file" as input and fires callback with file and contents', function(done) {
       sass.render({
         file: fixture('include-files/index.scss'),
-        success: function(result) {
-          assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
-          done();
-        },
         importer: function(url, prev, done) {
           done({
             file: '/some/other/path.scss',
             contents: 'div {color: yellow;}'
           });
         }
+      }, function(error, result) {
+        assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        done();
       });
     });
 
     it('should override imports with "data" as input and returns file and contents', function(done) {
       sass.render({
         data: src,
-        success: function(result) {
-          assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
-          done();
-        },
         importer: function(url, prev) {
           return {
             file: prev + url,
             contents: 'div {color: yellow;}'
           };
         }
+      }, function(error, result) {
+        assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        done();
       });
     });
 
     it('should override imports with "file" as input and returns file and contents', function(done) {
       sass.render({
         file: fixture('include-files/index.scss'),
-        success: function(result) {
-          assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
-          done();
-        },
         importer: function(url, prev) {
           return {
             file: prev + url,
             contents: 'div {color: yellow;}'
           };
         }
+      }, function(error, result) {
+        assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        done();
       });
     });
 
     it('should override imports with "data" as input and fires callback with file', function(done) {
       sass.render({
         data: src,
-        success: function(result) {
-          assert.equal(result.css.trim(), '');
-          done();
-        },
         importer: function(url, /* jshint unused:false */ prev, done) {
           done({
             file: path.resolve(path.dirname(fixture('include-files/index.scss')), url + (path.extname(url) ? '' : '.scss'))
           });
         }
+      }, function(error, result) {
+        assert.equal(result.css.trim(), '');
+        done();
       });
     });
 
     it('should override imports with "file" as input and fires callback with file', function(done) {
       sass.render({
         file: fixture('include-files/index.scss'),
-        success: function(result) {
-          assert.equal(result.css.trim(), '');
-          done();
-        },
         importer: function(url, prev, done) {
           done({
             file: path.resolve(path.dirname(prev), url + (path.extname(url) ? '' : '.scss'))
           });
         }
+      }, function(error, result) {
+        assert.equal(result.css.trim(), '');
+        done();
       });
     });
 
     it('should override imports with "data" as input and returns file', function(done) {
       sass.render({
         data: src,
-        success: function(result) {
-          assert.equal(result.css.trim(), '');
-          done();
-        },
         importer: function(url, /* jshint unused:false */ prev) {
           return {
             file: path.resolve(path.dirname(fixture('include-files/index.scss')), url + (path.extname(url) ? '' : '.scss'))
           };
         }
+      }, function(error, result) {
+        assert.equal(result.css.trim(), '');
+        done();
       });
     });
 
     it('should override imports with "file" as input and returns file', function(done) {
       sass.render({
         file: fixture('include-files/index.scss'),
-        success: function(result) {
-          assert.equal(result.css.trim(), '');
-          done();
-        },
         importer: function(url, prev) {
           return {
             file: path.resolve(path.dirname(prev), url + (path.extname(url) ? '' : '.scss'))
           };
         }
+      }, function(error, result) {
+        assert.equal(result.css.trim(), '');
+        done();
       });
     });
 
     it('should override imports with "data" as input and fires callback with contents', function(done) {
       sass.render({
         data: src,
-        success: function(result) {
-          assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
-          done();
-        },
         importer: function(url, prev, done) {
           done({
             contents: 'div {color: yellow;}'
           });
         }
+      }, function(error, result) {
+        assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        done();
       });
     });
 
     it('should override imports with "file" as input and fires callback with contents', function(done) {
       sass.render({
         file: fixture('include-files/index.scss'),
-        success: function(result) {
-          assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
-          done();
-        },
         importer: function(url, prev, done) {
           done({
             contents: 'div {color: yellow;}'
           });
         }
+      }, function(error, result) {
+        assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        done();
       });
     });
 
     it('should override imports with "data" as input and returns contents', function(done) {
       sass.render({
         data: src,
-        success: function(result) {
-          assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
-          done();
-        },
         importer: function() {
           return {
             contents: 'div {color: yellow;}'
           };
         }
+      }, function(error, result) {
+        assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        done();
       });
     });
 
     it('should override imports with "file" as input and returns contents', function(done) {
       sass.render({
         file: fixture('include-files/index.scss'),
-        success: function(result) {
-          assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
-          done();
-        },
         importer: function() {
           return {
             contents: 'div {color: yellow;}'
           };
         }
+      }, function(error, result) {
+        assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        done();
       });
     });
 
@@ -358,24 +333,19 @@ describe('api', function() {
       var fxt = fixture('include-files/index.scss');
       sass.render({
         file: fxt,
-        success: function() {
-          assert.equal(fxt, this.options.file);
-          done();
-        },
         importer: function() {
           assert.equal(fxt, this.options.file);
           return {};
         }
+      }, function() {
+        assert.equal(fxt, this.options.file);
+        done();
       });
     });
 
     it('should be able to access a persistent options object', function(done) {
       sass.render({
         data: src,
-        success: function() {
-          assert.equal(this.state, 2);
-          done();
-        },
         importer: function() {
           this.state = this.state || 0;
           this.state++;
@@ -383,6 +353,9 @@ describe('api', function() {
             contents: 'div {color: yellow;}'
           };
         }
+      }, function() {
+        assert.equal(this.state, 2);
+        done();
       });
     });
 
@@ -390,10 +363,6 @@ describe('api', function() {
       var options;
       options = {
         data: src,
-        success: function() {
-          assert.strictEqual(this.options.success, options.success);
-          done();
-        },
         importer: function() {
           assert.strictEqual(this.options.importer, options.importer);
           return {
@@ -401,27 +370,8 @@ describe('api', function() {
           };
         }
       };
-      sass.render(options);
-    });
-  });
-
-  describe('.render(options, cb)', function() {
-    it('should compile sass to css with file', function(done) {
-      var expected = 'div {\n  color: yellow; }';
-      sass.render({
-        data: 'div {color: yellow;}'
-      }, function(err, result) {
-        assert.equal(result.css.trim(), expected);
-        done();
-      });
-    });
-
-    it('should throw error status 1 for bad input', function(done) {
-      sass.render({
-        data: '#navbar width 80%;'
-      }, function(err) {
-        assert(err.message);
-        assert.equal(err.status, 1);
+      sass.render(options, function() {
+        assert.strictEqual(this.options, options);
         done();
       });
     });
@@ -609,60 +559,44 @@ describe('api', function() {
 
     it('should provide a start timestamp', function(done) {
       sass.render({
-        file: fixture('include-files/index.scss'),
-        success: function(result) {
-          assert(typeof result.stats.start === 'number');
-          assert(result.stats.start >= start);
-          done();
-        },
-        error: function(err) {
-          assert(!err);
-          done();
-        }
+        file: fixture('include-files/index.scss')
+      }, function(error, result) {
+        assert(!error);
+        assert(typeof result.stats.start === 'number');
+        assert(result.stats.start >= start);
+        done();
       });
     });
 
     it('should provide an end timestamp', function(done) {
       sass.render({
-        file: fixture('include-files/index.scss'),
-        success: function(result) {
-          assert(typeof result.stats.end === 'number');
-          assert(result.stats.end >= result.stats.start);
-          done();
-        },
-        error: function(err) {
-          assert(!err);
-          done();
-        }
+        file: fixture('include-files/index.scss')
+      }, function(error, result) {
+        assert(!error);
+        assert(typeof result.stats.end === 'number');
+        assert(result.stats.end >= result.stats.start);
+        done();
       });
     });
 
     it('should provide a duration', function(done) {
       sass.render({
-        file: fixture('include-files/index.scss'),
-        success: function(result) {
-          assert(typeof result.stats.duration === 'number');
-          assert.equal(result.stats.end - result.stats.start, result.stats.duration);
-          done();
-        },
-        error: function(err) {
-          assert(!err);
-          done();
-        }
+        file: fixture('include-files/index.scss')
+      }, function(error, result) {
+        assert(!error);
+        assert(typeof result.stats.duration === 'number');
+        assert.equal(result.stats.end - result.stats.start, result.stats.duration);
+        done();
       });
     });
 
     it('should contain the given entry file', function(done) {
       sass.render({
-        file: fixture('include-files/index.scss'),
-        success: function(result) {
-          assert.equal(result.stats.entry, fixture('include-files/index.scss'));
-          done();
-        },
-        error: function(err) {
-          assert(!err);
-          done();
-        }
+        file: fixture('include-files/index.scss')
+      }, function(error, result) {
+        assert(!error);
+        assert.equal(result.stats.entry, fixture('include-files/index.scss'));
+        done();
       });
     });
 
@@ -674,15 +608,11 @@ describe('api', function() {
       ];
 
       sass.render({
-        file: fixture('include-files/index.scss'),
-        success: function(result) {
-          assert.deepEqual(result.stats.includedFiles, expected);
-          done();
-        },
-        error: function(err) {
-          assert(!err);
-          done();
-        }
+        file: fixture('include-files/index.scss')
+      }, function(error, result) {
+        assert(!error);
+        assert.deepEqual(result.stats.includedFiles, expected);
+        done();
       });
     });
 
@@ -690,31 +620,28 @@ describe('api', function() {
       var expected = fixture('simple/index.scss').replace(/\\/g, '/');
 
       sass.render({
-        file: fixture('simple/index.scss'),
-        success: function(result) {
-          assert.deepEqual(result.stats.includedFiles, [expected]);
-          done();
-        }
+        file: fixture('simple/index.scss')
+      }, function(error, result) {
+        assert.deepEqual(result.stats.includedFiles, [expected]);
+        done();
       });
     });
 
     it('should state `data` as entry file', function(done) {
       sass.render({
-        data: read(fixture('simple/index.scss'), 'utf8'),
-        success: function(result) {
-          assert.equal(result.stats.entry, 'data');
-          done();
-        }
+        data: read(fixture('simple/index.scss'), 'utf8')
+      }, function(error, result) {
+        assert.equal(result.stats.entry, 'data');
+        done();
       });
     });
 
     it('should contain an empty array as includedFiles', function(done) {
       sass.render({
-        data: read(fixture('simple/index.scss'), 'utf8'),
-        success: function(result) {
-          assert.deepEqual(result.stats.includedFiles, []);
-          done();
-        }
+        data: read(fixture('simple/index.scss'), 'utf8')
+      }, function(error, result) {
+        assert.deepEqual(result.stats.includedFiles, []);
+        done();
       });
     });
   });
