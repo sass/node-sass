@@ -153,12 +153,12 @@ void extract_options(Local<Object> options, void* cptr, sass_context_wrapper* ct
   sass_option_set_output_path(sass_options, create_string(options->Get(NanNew("outFile"))));
   sass_option_set_output_style(sass_options, (Sass_Output_Style)options->Get(NanNew("style"))->Int32Value());
   sass_option_set_is_indented_syntax_src(sass_options, options->Get(NanNew("indentedSyntax"))->BooleanValue());
-  sass_option_set_source_comments(sass_options, options->Get(NanNew("comments"))->BooleanValue());
+  sass_option_set_source_comments(sass_options, options->Get(NanNew("sourceComments"))->BooleanValue());
   sass_option_set_omit_source_map_url(sass_options, options->Get(NanNew("omitSourceMapUrl"))->BooleanValue());
   sass_option_set_source_map_embed(sass_options, options->Get(NanNew("sourceMapEmbed"))->BooleanValue());
   sass_option_set_source_map_contents(sass_options, options->Get(NanNew("sourceMapContents"))->BooleanValue());
   sass_option_set_source_map_file(sass_options, create_string(options->Get(NanNew("sourceMap"))));
-  sass_option_set_include_path(sass_options, create_string(options->Get(NanNew("paths"))));
+  sass_option_set_include_path(sass_options, create_string(options->Get(NanNew("includePaths"))));
   sass_option_set_precision(sass_options, options->Get(NanNew("precision"))->Int32Value());
 }
 
