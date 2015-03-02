@@ -14,7 +14,7 @@ describe('api', function() {
       sass.render({
         file: fixture('simple/index.scss')
       }, function(error, result) {
-        assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
+        assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
     });
@@ -59,7 +59,7 @@ describe('api', function() {
       sass.render({
         data: src
       }, function(error, result) {
-        assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
+        assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
     });
@@ -72,7 +72,7 @@ describe('api', function() {
         data: src,
         indentedSyntax: true
       }, function(error, result) {
-        assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
+        assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
     });
@@ -98,7 +98,7 @@ describe('api', function() {
           fixture('include-path/lib')
         ]
       }, function(error, result) {
-        assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
+        assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
     });
@@ -132,7 +132,7 @@ describe('api', function() {
         data: src,
         precision: 10
       }, function(error, result) {
-        assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
+        assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
     });
@@ -167,7 +167,7 @@ describe('api', function() {
           });
         }
       }, function(error, result) {
-        assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -182,7 +182,7 @@ describe('api', function() {
           });
         }
       }, function(error, result) {
-        assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -197,7 +197,7 @@ describe('api', function() {
           };
         }
       }, function(error, result) {
-        assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -212,7 +212,7 @@ describe('api', function() {
           };
         }
       }, function(error, result) {
-        assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -226,7 +226,7 @@ describe('api', function() {
           });
         }
       }, function(error, result) {
-        assert.equal(result.css.trim(), '');
+        assert.equal(result.css.toString().trim(), '');
         done();
       });
     });
@@ -240,7 +240,7 @@ describe('api', function() {
           });
         }
       }, function(error, result) {
-        assert.equal(result.css.trim(), '');
+        assert.equal(result.css.toString().trim(), '');
         done();
       });
     });
@@ -254,7 +254,7 @@ describe('api', function() {
           };
         }
       }, function(error, result) {
-        assert.equal(result.css.trim(), '');
+        assert.equal(result.css.toString().trim(), '');
         done();
       });
     });
@@ -268,7 +268,7 @@ describe('api', function() {
           };
         }
       }, function(error, result) {
-        assert.equal(result.css.trim(), '');
+        assert.equal(result.css.toString().trim(), '');
         done();
       });
     });
@@ -282,7 +282,7 @@ describe('api', function() {
           });
         }
       }, function(error, result) {
-        assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -296,7 +296,7 @@ describe('api', function() {
           });
         }
       }, function(error, result) {
-        assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -310,7 +310,7 @@ describe('api', function() {
           };
         }
       }, function(error, result) {
-        assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -324,7 +324,7 @@ describe('api', function() {
           };
         }
       }, function(error, result) {
-        assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -382,7 +382,7 @@ describe('api', function() {
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
       var result = sass.renderSync({ file: fixture('simple/index.scss') });
 
-      assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
+      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
       done();
     });
 
@@ -424,19 +424,19 @@ describe('api', function() {
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
       var result = sass.renderSync({ data: src });
 
-      assert.equal(result.css.trim(), expected.replace(/\r\n/g, '\n'));
+      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
       done();
     });
 
     it('should compile sass to css using indented syntax', function(done) {
       var src = read(fixture('indent/index.sass'), 'utf8');
       var expected = read(fixture('indent/expected.css'), 'utf8').trim();
-      var css = sass.renderSync({
+      var result = sass.renderSync({
         data: src,
         indentedSyntax: true
-      }).css.trim();
+      });
 
-      assert.equal(css, expected.replace(/\r\n/g, '\n'));
+      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
       done();
     });
 
@@ -463,7 +463,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
       done();
     });
 
@@ -478,7 +478,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
       done();
     });
 
@@ -492,7 +492,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.trim(), '');
+      assert.equal(result.css.toString().trim(), '');
       done();
     });
 
@@ -506,7 +506,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.trim(), '');
+      assert.equal(result.css.toString().trim(), '');
       done();
     });
 
@@ -520,7 +520,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
       done();
     });
 
@@ -534,7 +534,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
       done();
     });
 

@@ -77,9 +77,9 @@ struct Sass_Import** sass_importer(const char* file, const char* prev, void* coo
 
   if (!ctx_w->is_sync) {
     /*  that is async: Render() or RenderFile(),
-     *  the default even loop is unblocked so it
-     *  can run uv_async_send without a push.
-     */
+    *  the default even loop is unblocked so it
+    *  can run uv_async_send without a push.
+    */
 
     std::unique_lock<std::mutex> lock(*ctx_w->importer_mutex);
 
@@ -146,7 +146,7 @@ void extract_options(Local<Object> options, void* cptr, sass_context_wrapper* ct
     sass_option_set_importer(sass_options, sass_make_importer(sass_importer, ctx_w));
   }
 
-  if(!is_file) {
+  if (!is_file) {
     sass_option_set_input_path(sass_options, create_string(options->Get(NanNew("file"))));
   }
 
@@ -177,34 +177,22 @@ void get_stats(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
   NanNew(ctx_w->result)->Get(NanNew("stats"))->ToObject()->Set(NanNew("includedFiles"), arr);
 }
 
-void get_source_map(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
-  NanScope();
-
-  Handle<Value> source_map;
-
-  if (sass_context_get_error_status(ctx)) {
-    return;
-  }
-
-  if (sass_context_get_source_map_string(ctx)) {
-    source_map = NanNew<String>(sass_context_get_source_map_string(ctx));
-  }
-  else {
-    source_map = NanNew<String>("{}");
-  }
-
-  NanNew(ctx_w->result)->Set(NanNew("map"), source_map);
-}
-
 int get_result(sass_context_wrapper* ctx_w, Sass_Context* ctx, bool is_sync = false) {
   NanScope();
 
   int status = sass_context_get_error_status(ctx);
 
   if (status == 0) {
-    NanNew(ctx_w->result)->Set(NanNew("css"), NanNew<String>(sass_context_get_output_string(ctx)));
+    const char* css = sass_context_get_output_string(ctx);
+    const char* map = sass_context_get_source_map_string(ctx);
+
+    NanNew(ctx_w->result)->Set(NanNew("css"), NanNewBufferHandle(css, strlen(css)));
+
     get_stats(ctx_w, ctx);
-    get_source_map(ctx_w, ctx);
+
+    if (map) {
+      NanNew(ctx_w->result)->Set(NanNew("map"), NanNewBufferHandle(map, strlen(map)));
+    }
   }
   else if (is_sync) {
     NanNew(ctx_w->result)->Set(NanNew("error"), NanNew<String>(sass_context_get_error_json(ctx)));
@@ -233,7 +221,7 @@ void make_callback(uv_work_t* req) {
     // if no error, do callback(null, result)
     ctx_w->success_callback->Call(0, 0);
   }
-  else if(ctx_w->error_callback) {
+  else if (ctx_w->error_callback) {
     // if error, do callback(error)
     const char* err = sass_context_get_error_json(ctx);
     Local<Value> argv[] = {
