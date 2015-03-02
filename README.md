@@ -55,62 +55,115 @@ var result = sass.renderSync({
 });
 ```
 
-### Options
-The API for using node-sass has changed. It supports an options hash and a node-style callback function for `render`, and just the options hash for `renderSync`. In the options hash, some items are optional, others may be mandatory depending on circumstances.
+## Options
+### file
+Type: `String | null`  
+Default: `null`  
+**Special**: `file` or `data` must be specified
 
-#### file
-`file` is a `String` of the path to an `scss` file for [libsass] to render. One of this or `data` options are required, for both render and renderSync.
+Path to a file for [libsass] to render.
 
-#### data
-`data` is a `String` containing the scss to be rendered by [libsass]. One of this or `file` options are required, for both render and renderSync. It is recommended that you use the `includePaths` option in conjunction with this, as otherwise [libsass] may have trouble finding files imported via the `@import` directive.
+### data
+Type: `String | null`  
+Default: `null`  
+**Special**: `file` or `data` must be specified
 
-#### importer (>= v2.0.0)
-`importer` is a `Function` to be called when libsass parser encounters the import directive. If present, libsass will call node-sass and let the user change file, data or both during the compilation. This option is optional, and applies to both render and renderSync functions. Also, it can either return object of form `{file:'..', contents: '..'}` or send it back via `done({})`. Note in renderSync or render, there is no restriction imposed on using `done()` callback or `return` statement (dispite of the asnchrony difference).
+A string to pass to [libsass] to render. It is recommended that you use `includePaths` in conjunction with this so that [libsass] can find files when using the `@import` directive.
 
-The options passed in to `render` and `renderSync` are available as `this.options` within the `Function`.
+### importer (>= v2.0.0)
+Type: `Function` signature `function(url, prev, done)`  
+Default: `undefined`
 
-#### includePaths
-`includePaths` is an `Array` of path `String`s to look for any `@import`ed files. It is recommended that you use this option if you are using the `data` option and have **any** `@import` directives, as otherwise [libsass] may not find your depended-on files.
+Function Parameters and Information:
+* `url (String)` - the path in import **as-is**, which [libsass] encountered
+* `prev (String)` - the previously resolved path
+* `done (Function)` - a callback function to invoke on async completion, takes an object literal containing
+  * `file (String)` - an alternate path for [libsass] to use **OR**
+  * `contents (String)` - the imported contents (for example, read from memory or the file system)
 
-#### indentedSyntax
-`indentedSyntax` is a `Boolean` flag to determine if [Sass Indented Syntax](http://sass-lang.com/documentation/file.INDENTED_SYNTAX.html) should be used to parse provided string or a file.
+Handles when [libsass] encounters the `@import` directive. A custom importer allows extension of the [libsass] engine in both a synchronous and asynchronous manner. In both cases, the goal is to either `return` or call `done()` with an object literal. Depending on the value of the object literal, one of two things will happen.
 
-#### omitSourceMapUrl
-`omitSourceMapUrl` is a `Boolean` flag to determine whether to include `sourceMappingURL` comment in the output file.
+When returning or calling `done()` with `{ file: "String" }`, the new file path will be assumed for the `@import`. It's recommended to be mindful of the value of `prev` in instances where relative path resolution may be required.
 
-#### outFile
-`outFile` specifies where the CSS will be saved. This option does not actually output a file, but is used as input for generating a source map.
+When returning or calling `done()` with `{ contents: "String" }`, the string value will be used as if the file was read in through an external source.
 
-#### outputStyle
-`outputStyle` is a `String` to determine how the final CSS should be rendered. Its value should be one of `'nested'` or `'compressed'`.  Node-sass defaults to 'nested'.
-[`'expanded'` and `'compact'` are not currently supported by [libsass]]
+`this` refers to a contextual scope for the immediate run of `sass.render` or `sass.renderSync`
 
-#### precision
-`precision` is a `Number` that will be used to determine how many digits after the decimal will be allowed. For instance, if you had a decimal number of `1.23456789` and a precision of `5`, the result will be `1.23457` in the final CSS.
+### includePaths
+Type: `Array<String>`  
+Default: `[]`
 
-#### sourceComments
-`sourceComments` is a `Boolean` flag to determine what debug information is included in the output file.
+An array of paths that [libsass] can look in to attempt to resolve your `@import` declarations. When using `data`, it is recommended that you use this.
 
-#### sourceMap
-You must define this option as well as `outFile` in order to generate a source map. If it is set to `true`, the source map will be generated at the path provided in the `outFile` option. If set to a path (`String`), the source map will be generated at the provided path.
+### indentedSyntax
+Type: `Boolean`  
+Default: `false`
 
-#### sourceMapEmbed
-`sourceMapEmbed` is a `Boolean` flag to determine whether to embed `sourceMappingUrl` as data URI.
+`true` values enable [Sass Indented Syntax](http://sass-lang.com/documentation/file.INDENTED_SYNTAX.html) for parsing the data string or file.
 
-#### sourceMapContents
-`sourceMapContents` is a `Boolean` flag to determine whether to include `contents` in maps.
+### omitSourceMapUrl
+Type: `Boolean`  
+Default: `false`  
+**Special:** When using this, you should also specify `outFile` to avoid unexpected behavior.
 
-### The `render` Callback (>= v3.0.0)
+`true` values disable the inclusion of source map information in the output file.
+
+### outFile
+Type: `String | null`
+Default: `null`
+**Special:** Required when `sourceMap` is a truthy value
+
+Specify the intended location of the output file. Strongly recommended when outputting source maps so that they can properly refer back to their intended files.
+
+### outputStyle
+Type: `String`  
+Default: `nested`  
+Values: `nested`, `compressed`
+
+Determines the output format of the final CSS style. (`'expanded'` and `'compact'` are not currently supported by [libsass], but are planned in a future version.)
+
+### precision
+Type: `Integer`  
+Default: `5`
+
+Used to determine how many digits after the decimal will be allowed. For instance, if you had a decimal number of `1.23456789` and a precision of `5`, the result will be `1.23457` in the final CSS.
+
+### sourceComments
+Type: `Boolean`  
+Default: `false`
+
+`true` enables additional debugging information in the output file as CSS comments
+
+### sourceMap
+Type: `Boolean | String | undefined`  
+Default: `undefined`  
+**Special:** Setting the `sourceMap` option requires also setting the `outFile` option
+
+Enables the outputting of a source map during `render` and `renderSync`. When `sourceMap === true`, the value of `outFile` is used as the target output location for the source map. When `typeof sourceMap === "String"`, the value of `sourceMap` will be used as the writing location for the file.
+
+### sourceMapEmbed
+Type: `Boolean`  
+Default: `false`  
+
+`true` embeds the source map as a data URI
+
+### sourceMapContents
+Type: `Boolean`  
+Default: `false`  
+
+`true` includes the `contents` in the source map information
+
+## `render` Callback (>= v3.0.0)
 node-sass supports standard node style asynchronous callbacks with the signature of `function(err, result)`. In error conditions, the `error` argument is populated with the error object. In success conditions, the `result` object is populated with an object describing the result of the render call.
 
-#### The Error Object
+### Error Object
 * `message` - The error message.
 * `line` - The line number of error.
 * `column` - The column number of error.
 * `status` - The status code.
 * `file` - The filename of error. In case `file` option was not set (in favour of `data`), this will reflect the value `stdin`.
 
-#### The Result Object
+### Result Object
 * `css` - The compiled CSS. Write this to a file, or serve it out as needed.
 * `map` - The source map
 * `stats` - An object containing information about the compile. It contains the following keys:
