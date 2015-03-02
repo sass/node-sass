@@ -13,7 +13,7 @@
 namespace Sass {
   using namespace std;
 
-  struct Context;
+  class Context;
 
   typedef Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> > ExtensionSubsetMap;
 

@@ -119,9 +119,9 @@ namespace Sass {
       names_to_colors[name] = value;
       // only map fully opaque colors
       if (color_values[i*4+3] >= 1) {
-        int numval = color_values[i*4]*0x10000;
-        numval += color_values[i*4+1]*0x100;
-        numval += color_values[i*4+2];
+        int numval = static_cast<int>(color_values[i*4])*0x10000;
+        numval += static_cast<int>(color_values[i*4+1])*0x100;
+        numval += static_cast<int>(color_values[i*4+2]);
         colors_to_names[numval] = name;
       }
       ++i;
@@ -287,7 +287,7 @@ namespace Sass {
       add_source(input_path, input_path, contents);
       return parse_file();
     }
-    add_source(input_path, input_path, strdup(source_c_str));
+    add_source(input_path, input_path, copy_c_str(source_c_str));
     return parse_file();
   }
 

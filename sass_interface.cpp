@@ -12,6 +12,7 @@
 #include <sstream>
 #include <iostream>
 
+#include "copy_c_str.hpp"
 #include "context.hpp"
 #include "inspect.hpp"
 #include "error_handling.hpp"
@@ -142,7 +143,7 @@ extern "C" {
     catch (Sass_Error& e) {
       stringstream msg_stream;
       msg_stream << e.pstate.path << ":" << e.pstate.line << ": " << e.message << endl;
-      c_ctx->error_message = strdup(msg_stream.str().c_str());
+      c_ctx->error_message = copy_c_str(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -150,7 +151,7 @@ extern "C" {
     catch(bad_alloc& ba) {
       stringstream msg_stream;
       msg_stream << "Unable to allocate memory: " << ba.what() << endl;
-      c_ctx->error_message = strdup(msg_stream.str().c_str());
+      c_ctx->error_message = copy_c_str(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -158,7 +159,7 @@ extern "C" {
     catch (std::exception& e) {
       stringstream msg_stream;
       msg_stream << "Error: " << e.what() << endl;
-      c_ctx->error_message = strdup(msg_stream.str().c_str());
+      c_ctx->error_message = copy_c_str(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -166,7 +167,7 @@ extern "C" {
     catch (string& e) {
       stringstream msg_stream;
       msg_stream << "Error: " << e << endl;
-      c_ctx->error_message = strdup(msg_stream.str().c_str());
+      c_ctx->error_message = copy_c_str(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -175,7 +176,7 @@ extern "C" {
       // couldn't find the specified file in the include paths; report an error
       stringstream msg_stream;
       msg_stream << "Unknown error occurred" << endl;
-      c_ctx->error_message = strdup(msg_stream.str().c_str());
+      c_ctx->error_message = copy_c_str(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -228,7 +229,7 @@ extern "C" {
     catch (Sass_Error& e) {
       stringstream msg_stream;
       msg_stream << e.path << ":" << e.pstate.line << ": " << e.message << endl;
-      c_ctx->error_message = strdup(msg_stream.str().c_str());
+      c_ctx->error_message = copy_c_str(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -236,7 +237,7 @@ extern "C" {
     catch(bad_alloc& ba) {
       stringstream msg_stream;
       msg_stream << "Unable to allocate memory: " << ba.what() << endl;
-      c_ctx->error_message = strdup(msg_stream.str().c_str());
+      c_ctx->error_message = copy_c_str(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -244,7 +245,7 @@ extern "C" {
     catch (std::exception& e) {
       stringstream msg_stream;
       msg_stream << "Error: " << e.what() << endl;
-      c_ctx->error_message = strdup(msg_stream.str().c_str());
+      c_ctx->error_message = copy_c_str(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -252,7 +253,7 @@ extern "C" {
     catch (string& e) {
       stringstream msg_stream;
       msg_stream << "Error: " << e << endl;
-      c_ctx->error_message = strdup(msg_stream.str().c_str());
+      c_ctx->error_message = copy_c_str(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -261,7 +262,7 @@ extern "C" {
       // couldn't find the specified file in the include paths; report an error
       stringstream msg_stream;
       msg_stream << "Unknown error occurred" << endl;
-      c_ctx->error_message = strdup(msg_stream.str().c_str());
+      c_ctx->error_message = copy_c_str(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;

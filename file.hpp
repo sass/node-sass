@@ -5,7 +5,7 @@
 
 namespace Sass {
   using namespace std;
-  struct Context;
+  class Context;
   namespace File {
     string get_cwd();
     string base_name(string);

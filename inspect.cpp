@@ -488,7 +488,7 @@ namespace Sass {
     }
     // otherwise get the possible resolved color name
     else {
-      int numval = r * 0x10000 + g * 0x100 + b;
+      int numval = static_cast<int>(r) * 0x10000 + static_cast<int>(g) * 0x100 + static_cast<int>(b);
       if (ctx && ctx->colors_to_names.count(numval))
         res_name = ctx->colors_to_names[numval];
     }

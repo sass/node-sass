@@ -11,7 +11,7 @@
 name(Env& env, Env& d_env, Context& ctx, Signature sig, ParserState pstate, Backtrace* backtrace)
 
 namespace Sass {
-  struct Context;
+  class Context;
   struct Backtrace;
   class AST_Node;
   class Expression;

@@ -478,7 +478,7 @@ namespace Sass {
       while (peek< sequence< optional_spaces_and_comments, exactly<','> > >())
       {
         // consume everything up and including the comma speparator
-        reloop = lex< sequence< optional_spaces_and_comments, exactly<','> > >();
+        reloop = lex< sequence< optional_spaces_and_comments, exactly<','> > >() != 0;
         // remember line break (also between some commas)
         if (peek_newline()) comb->has_line_feed(true);
         if (comb->tail() && peek_newline()) comb->tail()->has_line_feed(true);
