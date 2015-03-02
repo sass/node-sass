@@ -42,7 +42,7 @@ describe('spec', function() {
               includePaths: t.paths
             }, function(error, result) {
               assert(!error);
-              assert.equal(util.normalize(result.css), expected);
+              assert.equal(util.normalize(result.css.toString()), expected);
               done();
             });
           });

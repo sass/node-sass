@@ -57,21 +57,21 @@ var result = sass.renderSync({
 
 ## Options
 ### file
-Type: `String | null`  
-Default: `null`  
+Type: `String | null`
+Default: `null`
 **Special**: `file` or `data` must be specified
 
 Path to a file for [libsass] to render.
 
 ### data
-Type: `String | null`  
-Default: `null`  
+Type: `String | null`
+Default: `null`
 **Special**: `file` or `data` must be specified
 
 A string to pass to [libsass] to render. It is recommended that you use `includePaths` in conjunction with this so that [libsass] can find files when using the `@import` directive.
 
 ### importer (>= v2.0.0)
-Type: `Function` signature `function(url, prev, done)`  
+Type: `Function` signature `function(url, prev, done)`
 Default: `undefined`
 
 Function Parameters and Information:
@@ -90,20 +90,20 @@ When returning or calling `done()` with `{ contents: "String" }`, the string val
 `this` refers to a contextual scope for the immediate run of `sass.render` or `sass.renderSync`
 
 ### includePaths
-Type: `Array<String>`  
+Type: `Array<String>`
 Default: `[]`
 
 An array of paths that [libsass] can look in to attempt to resolve your `@import` declarations. When using `data`, it is recommended that you use this.
 
 ### indentedSyntax
-Type: `Boolean`  
+Type: `Boolean`
 Default: `false`
 
 `true` values enable [Sass Indented Syntax](http://sass-lang.com/documentation/file.INDENTED_SYNTAX.html) for parsing the data string or file.
 
 ### omitSourceMapUrl
-Type: `Boolean`  
-Default: `false`  
+Type: `Boolean`
+Default: `false`
 **Special:** When using this, you should also specify `outFile` to avoid unexpected behavior.
 
 `true` values disable the inclusion of source map information in the output file.
@@ -116,40 +116,40 @@ Default: `null`
 Specify the intended location of the output file. Strongly recommended when outputting source maps so that they can properly refer back to their intended files.
 
 ### outputStyle
-Type: `String`  
-Default: `nested`  
+Type: `String`
+Default: `nested`
 Values: `nested`, `compressed`
 
 Determines the output format of the final CSS style. (`'expanded'` and `'compact'` are not currently supported by [libsass], but are planned in a future version.)
 
 ### precision
-Type: `Integer`  
+Type: `Integer`
 Default: `5`
 
 Used to determine how many digits after the decimal will be allowed. For instance, if you had a decimal number of `1.23456789` and a precision of `5`, the result will be `1.23457` in the final CSS.
 
 ### sourceComments
-Type: `Boolean`  
+Type: `Boolean`
 Default: `false`
 
 `true` enables additional debugging information in the output file as CSS comments
 
 ### sourceMap
-Type: `Boolean | String | undefined`  
-Default: `undefined`  
+Type: `Boolean | String | undefined`
+Default: `undefined`
 **Special:** Setting the `sourceMap` option requires also setting the `outFile` option
 
 Enables the outputting of a source map during `render` and `renderSync`. When `sourceMap === true`, the value of `outFile` is used as the target output location for the source map. When `typeof sourceMap === "String"`, the value of `sourceMap` will be used as the writing location for the file.
 
 ### sourceMapEmbed
-Type: `Boolean`  
-Default: `false`  
+Type: `Boolean`
+Default: `false`
 
 `true` embeds the source map as a data URI
 
 ### sourceMapContents
-Type: `Boolean`  
-Default: `false`  
+Type: `Boolean`
+Default: `false`
 
 `true` includes the `contents` in the source map information
 
@@ -157,21 +157,21 @@ Default: `false`
 node-sass supports standard node style asynchronous callbacks with the signature of `function(err, result)`. In error conditions, the `error` argument is populated with the error object. In success conditions, the `result` object is populated with an object describing the result of the render call.
 
 ### Error Object
-* `message` - The error message.
-* `line` - The line number of error.
-* `column` - The column number of error.
-* `status` - The status code.
-* `file` - The filename of error. In case `file` option was not set (in favour of `data`), this will reflect the value `stdin`.
+* `message` (String) - The error message.
+* `line` (Number) - The line number of error.
+* `column` (Number) - The column number of error.
+* `status` (Number) - The status code.
+* `file` (String) - The filename of error. In case `file` option was not set (in favour of `data`), this will reflect the value `stdin`.
 
 ### Result Object
-* `css` - The compiled CSS. Write this to a file, or serve it out as needed.
-* `map` - The source map
-* `stats` - An object containing information about the compile. It contains the following keys:
-  * `entry` - The path to the scss file, or `data` if the source was not a file
-  * `start` - Date.now() before the compilation
-  * `end` - Date.now() after the compilation
-  * `duration` - *end* - *start*
-  * `includedFiles` - Absolute paths to all related scss files in no particular order.
+* `css` (Buffer) - The compiled CSS. Write this to a file, or serve it out as needed.
+* `map` (Buffer) - The source map
+* `stats` (Object) - An object containing information about the compile. It contains the following keys:
+  * `entry` (String) - The path to the scss file, or `data` if the source was not a file
+  * `start` (Number) - Date.now() before the compilation
+  * `end` (Number) - Date.now() after the compilation
+  * `duration` (Number) - *end* - *start*
+  * `includedFiles` (Array) - Absolute paths to all related scss files in no particular order.
 
 ### Examples
 
@@ -205,9 +205,9 @@ sass.render({
     console.log(error.line);
   }
   else {
-    console.log(result.css);
+    console.log(result.css.toString());
     console.log(result.stats);
-    console.log(result.map);
+    console.log(result.map.toString()); // or console.log(JSON.stringify(result.map));
   }
 });
 // OR
