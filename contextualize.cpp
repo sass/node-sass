@@ -28,7 +28,7 @@ namespace Sass {
 
   Selector* Contextualize::operator()(Selector_Schema* s)
   {
-    To_String to_string;
+    To_String to_string(&ctx);
     string result_str(s->contents()->perform(eval->with(env, backtrace))->perform(&to_string));
     result_str += '{'; // the parser looks for a brace to end the selector
     Selector* result_sel = Parser::from_c_str(result_str.c_str(), ctx, s->pstate()).parse_selector_group();
@@ -45,6 +45,7 @@ namespace Sass {
         for (size_t j = 0, L = s->length(); j < L; ++j) {
           parent = (*p)[i];
           Complex_Selector* comb = static_cast<Complex_Selector*>((*s)[j]->perform(this));
+          if (parent->has_line_feed()) comb->has_line_feed(true);
           if (comb) *ss << comb;
         }
       }
@@ -61,7 +62,7 @@ namespace Sass {
 
   Selector* Contextualize::operator()(Complex_Selector* s)
   {
-    To_String to_string;
+    To_String to_string(&ctx);
     Complex_Selector* ss = new (ctx.mem) Complex_Selector(*s);
     Compound_Selector* new_head = 0;
     Complex_Selector* new_tail = 0;
@@ -89,11 +90,12 @@ namespace Sass {
 
   Selector* Contextualize::operator()(Compound_Selector* s)
   {
-    To_String to_string;
+    To_String to_string(&ctx);
     if (placeholder && extender && s->perform(&to_string) == placeholder->perform(&to_string)) {
       return extender;
     }
     Compound_Selector* ss = new (ctx.mem) Compound_Selector(s->pstate(), s->length());
+    ss->has_line_break(s->has_line_break());
     for (size_t i = 0, L = s->length(); i < L; ++i) {
       Simple_Selector* simp = static_cast<Simple_Selector*>((*s)[i]->perform(this));
       if (simp) *ss << simp;
@@ -135,7 +137,7 @@ namespace Sass {
 
   Selector* Contextualize::operator()(Selector_Placeholder* p)
   {
-    To_String to_string;
+    To_String to_string(&ctx);
     if (placeholder && extender && p->perform(&to_string) == placeholder->perform(&to_string)) {
       return extender;
     }

@@ -5,13 +5,13 @@
 #include <iostream>
 
 #include "ast.hpp"
+#include "context.hpp"
 #include "operation.hpp"
 #include "environment.hpp"
 
 namespace Sass {
   using namespace std;
 
-  struct Context;
   typedef Environment<AST_Node*> Env;
   struct Backtrace;
 

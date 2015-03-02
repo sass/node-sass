@@ -9,7 +9,7 @@ namespace Sass {
   extern double conversion_factors[10][10];
   Unit string_to_unit(const string&);
   double conversion_factor(const string&, const string&);
-  double convert(double, const string&, const string&);
+  // double convert(double, const string&, const string&);
 }
 
 #endif

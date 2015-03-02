@@ -5,88 +5,49 @@
 #include <vector>
 
 #include "util.hpp"
-#include "context.hpp"
+#include "inspect.hpp"
 #include "operation.hpp"
 
 namespace Sass {
+  class Context;
   using namespace std;
-  struct Context;
 
-  template<typename T>
-  class Output : public Operation_CRTP<void, T> {
-    // import class-specific methods and override as desired
-    using Operation_CRTP<void, T>::operator();
+  // Refactor to make it generic to find linefeed (look behind)
+  inline bool ends_with(std::string const & value, std::string const & ending)
+  {
+    if (ending.size() > value.size()) return false;
+    return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+  }
 
+  class Output : public Inspect {
   protected:
-    Context* ctx;
-    string buffer;
-    vector<Import*> top_imports;
-    vector<Comment*> top_comments;
-    virtual void fallback_impl(AST_Node* n) = 0;
+    using Inspect::operator();
 
   public:
-    Output(Context* ctx = 0)
-    : ctx(ctx),
-      buffer(""),
-      top_imports(0),
-      top_comments(0)
-    { }
-    virtual ~Output() { };
+    // change to Emitter
+    Output(Context* ctx);
+    virtual ~Output();
 
-    string get_buffer(void)
-    {
-      string charset("");
+  protected:
+    string charset;
+    vector<Import*> top_imports;
+    vector<Comment*> top_comments;
 
-      Inspect comments(ctx);
-      size_t size_com = top_comments.size();
-      for (size_t i = 0; i < size_com; i++) {
-        top_comments[i]->perform(&comments);
-        comments.append_to_buffer(ctx->linefeed);
-      }
+  public:
+    string get_buffer(void);
 
-      Inspect imports(ctx);
-      size_t size_imp = top_imports.size();
-      for (size_t i = 0; i < size_imp; i++) {
-        top_imports[i]->perform(&imports);
-        imports.append_to_buffer(ctx->linefeed);
-      }
+    virtual void operator()(Ruleset*);
+    // virtual void operator()(Propset*);
+    virtual void operator()(Feature_Block*);
+    virtual void operator()(Media_Block*);
+    virtual void operator()(At_Rule*);
+    virtual void operator()(Keyframe_Rule*);
+    virtual void operator()(Import*);
+    virtual void operator()(Comment*);
+    virtual void operator()(String_Quoted*);
+    virtual void operator()(String_Constant*);
 
-      // create combined buffer string
-      string buffer = comments.get_buffer()
-                    + imports.get_buffer()
-                    + this->buffer;
-
-      // search for unicode char
-      for(const char& chr : buffer) {
-        // skip all ascii chars
-        if (chr >= 0) continue;
-        // declare the charset
-        charset = "@charset \"UTF-8\";";
-        // abort search
-        break;
-      }
-
-      // add charset as the very first line, before top comments and imports
-      return (charset.empty() ? "" : charset + ctx->linefeed) + buffer;
-    }
-
-    // append some text or token to the buffer
-    void append_to_buffer(const string& data)
-    {
-      // add to buffer
-      buffer += data;
-      // account for data in source-maps
-      ctx->source_map.update_column(data);
-    }
-
-    // append some text or token to the buffer
-    // this adds source-mappings for node start and end
-    void append_to_buffer(const string& data, AST_Node* node)
-    {
-      ctx->source_map.add_open_mapping(node);
-      append_to_buffer(data);
-      ctx->source_map.add_close_mapping(node);
-    }
+    void fallback_impl(AST_Node* n);
 
   };
 

@@ -4,14 +4,14 @@
 #include <sstream>
 
 #include "sass.h"
-#include "inspect.hpp"
+#include "util.hpp"
 
 extern "C" {
   using namespace std;
 
   // caller must free the returned memory
-  char* ADDCALL sass_string_quote (const char *str, const char quotemark) {
-    string quoted = Sass::quote(str, quotemark);
+  char* ADDCALL sass_string_quote (const char *str, const char quote_mark) {
+    string quoted = Sass::quote(str, quote_mark);
     char *cstr = (char*) malloc(quoted.length() + 1);
     std::strcpy(cstr, quoted.c_str());
     return cstr;

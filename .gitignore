@@ -46,6 +46,11 @@ libsass/*
 *.a
 a.out
 libsass.js
+tester
+tester.exe
+build/
+config.h.in*
+lib/pkgconfig/
 
 bin/*
 .deps/

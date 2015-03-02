@@ -27,6 +27,7 @@ namespace Sass {
     new_env.link(*env);
     env = &new_env;
     Block* bb = new (ctx.mem) Block(b->pstate(), b->length(), b->is_root());
+    // bb->tabs(b->tabs());
     block_stack.push_back(bb);
     append_block(b);
     block_stack.pop_back();
@@ -97,6 +98,7 @@ namespace Sass {
     Ruleset* rr = new (ctx.mem) Ruleset(r->pstate(),
                                         r->selector(),
                                         r->block()->perform(this)->block());
+    // rr->tabs(r->block()->tabs());
     p_stack.pop_back();
 
     Block* props = new Block(rr->block()->pstate());
@@ -191,6 +193,7 @@ namespace Sass {
     {
       Block* bb = m->block()->perform(this)->block();
       for (size_t i = 0, L = bb->length(); i < L; ++i) {
+        // (bb->elements())[i]->tabs(m->tabs());
         if (bubblable((*bb)[i])) (*bb)[i]->tabs((*bb)[i]->tabs() + m->tabs());
       }
       if (bb->length() && bubblable(bb->last())) bb->last()->group_end(m->group_end());
@@ -294,6 +297,8 @@ namespace Sass {
                                                 m->media_queries(),
                                                 wrapper_block,
                                                 m->selector());
+
+    mm->tabs(m->tabs());
 
     Bubble* bubble = new (ctx.mem) Bubble(mm->pstate(), mm);
 
@@ -496,7 +501,7 @@ namespace Sass {
 
   Media_Query* Cssize::merge_media_query(Media_Query* mq1, Media_Query* mq2)
   {
-    To_String to_string;
+    To_String to_string(&ctx);
 
     string type;
     string mod;

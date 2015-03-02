@@ -6,15 +6,14 @@
 #include <iostream>
 
 #include "ast.hpp"
+#include "eval.hpp"
 #include "operation.hpp"
 #include "environment.hpp"
+#include "contextualize.hpp"
 
 namespace Sass {
   using namespace std;
 
-  struct Context;
-  class Eval;
-  class Contextualize;
   typedef Environment<AST_Node*> Env;
   struct Backtrace;
 

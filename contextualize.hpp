@@ -1,26 +1,13 @@
 #ifndef SASS_CONTEXTUALIZE_H
 #define SASS_CONTEXTUALIZE_H
 
+#include "eval.hpp"
+#include "context.hpp"
 #include "operation.hpp"
 #include "environment.hpp"
+#include "ast_fwd_decl.hpp"
 
 namespace Sass {
-  class AST_Node;
-  class Selector;
-  class Selector_Schema;
-  class Selector_List;
-  class Complex_Selector;
-  class Compound_Selector;
-  class Wrapped_Selector;
-  class Pseudo_Selector;
-  class Attribute_Selector;
-  class Selector_Qualifier;
-  class Type_Selector;
-  class Selector_Placeholder;
-  class Selector_Reference;
-  class Simple_Selector;
-  struct Context;
-  class Eval;
   struct Backtrace;
 
   typedef Environment<AST_Node*> Env;

@@ -50,6 +50,7 @@ namespace Sass {
     bool isSelector() const { return mType == SELECTOR; }
     bool isCollection() const { return mType == COLLECTION; }
     bool isNil() const { return mType == NIL; }
+    bool got_line_feed;
 
     Complex_Selector::Combinator combinator() const { return mCombinator; }
 
@@ -107,13 +108,9 @@ namespace Sass {
     NodeDequePtr mpCollection;
   };
 
-
-  ostream& operator<<(ostream& os, const Node& node);
-
-
+  // ostream& operator<<(ostream& os, const Node& node);
   Node complexSelectorToNode(Complex_Selector* pToConvert, Context& ctx);
   Complex_Selector* nodeToComplexSelector(const Node& toConvert, Context& ctx);
-
 
   bool nodesEqual(const Node& one, const Node& two, bool simpleSelectorOrderDependent);
 

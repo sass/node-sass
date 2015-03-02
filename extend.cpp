@@ -1594,6 +1594,7 @@ namespace Sass {
 #endif
 
 
+      if (pSelector && pSelector->has_line_feed()) pNewSelector->has_line_feed(true);
 
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
       DEBUG_PRINTLN(EXTEND_COMPOUND, "SOURCES SETTING ON NEW SEQ: " << complexSelectorToNode(pNewSelector, ctx))
@@ -1701,6 +1702,8 @@ namespace Sass {
     ExtensionSubsetMap& subsetMap,
     set<Compound_Selector> seen) {
 
+    pComplexSelector->tail()->has_line_feed(pComplexSelector->has_line_feed());
+
     Node complexSelector = complexSelectorToNode(pComplexSelector, ctx);
 
     DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTEND COMPLEX: " << complexSelector)
@@ -1806,7 +1809,7 @@ namespace Sass {
   */
   static Selector_List* extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subsetMap, bool& extendedSomething) {
 
-    To_String to_string;
+    To_String to_string(&ctx);
 
     Selector_List* pNewSelectors = new (ctx.mem) Selector_List(pSelectorList->pstate(), pSelectorList->length());
 
@@ -1881,7 +1884,7 @@ namespace Sass {
   // Extend a ruleset by extending the selectors and updating them on the ruleset. The block's rules don't need to change.
   template <typename ObjectType>
   static void extendObjectWithSelectorAndBlock(ObjectType* pObject, Context& ctx, ExtensionSubsetMap& subsetMap) {
-    To_String to_string;
+    To_String to_string(&ctx);
 
     DEBUG_PRINTLN(EXTEND_OBJECT, "FOUND SELECTOR: " << static_cast<Selector_List*>(pObject->selector())->perform(&to_string))
 

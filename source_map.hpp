@@ -19,7 +19,9 @@ namespace Sass {
     SourceMap();
     SourceMap(const string& file);
 
-    void remove_line();
+    void setFile(const string& str) {
+      file = str;
+    }
     void update_column(const string& str);
     void add_open_mapping(AST_Node* node);
     void add_close_mapping(AST_Node* node);
@@ -33,7 +35,9 @@ namespace Sass {
 
     vector<Mapping> mappings;
     Position current_position;
+public:
     string file;
+private:
     Base64VLQ base64vlq;
   };
 
