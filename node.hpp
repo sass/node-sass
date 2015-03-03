@@ -108,7 +108,9 @@ namespace Sass {
     NodeDequePtr mpCollection;
   };
 
-  // ostream& operator<<(ostream& os, const Node& node);
+#ifdef DEBUG
+  ostream& operator<<(ostream& os, const Node& node);
+#endif
   Node complexSelectorToNode(Complex_Selector* pToConvert, Context& ctx);
   Complex_Selector* nodeToComplexSelector(const Node& toConvert, Context& ctx);
 

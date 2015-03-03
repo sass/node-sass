@@ -128,8 +128,7 @@ namespace Sass {
   	this->collection()->insert(this->collection()->end(), rhs.collection()->begin(), rhs.collection()->end());
   }
 
-
-  /* not used anymore - remove?
+#ifdef DEBUG
   ostream& operator<<(ostream& os, const Node& node) {
 
     if (node.isCombinator()) {
@@ -168,7 +167,8 @@ namespace Sass {
 
     return os;
 
-  }*/
+  }
+#endif
 
 
   Node complexSelectorToNode(Complex_Selector* pToConvert, Context& ctx) {
