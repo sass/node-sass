@@ -199,9 +199,15 @@ namespace Sass {
             while (*includes) {
               struct Sass_Import* include = *includes;
               const char *file = sass_import_get_path(include);
-              char *source = sass_import_take_source(include);
+              char* source = sass_import_take_source(include);
+              size_t line = sass_import_get_error_line(include);
+              size_t column = sass_import_get_error_column(include);
+              const char* message = sass_import_get_error_message(include);
               // char *srcmap = sass_import_take_srcmap(include);
-              if (source) {
+              if (message) {
+                if (line == string::npos && column == string::npos) error(message, pstate);
+                else error(message, ParserState(message, Position(line, column)));
+              } else if (source) {
                 if (file) {
                   ctx.add_source(file, inc_path, source);
                   imp->files().push_back(file);
