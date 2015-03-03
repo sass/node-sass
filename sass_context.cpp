@@ -91,6 +91,9 @@ extern "C" {
     // Used to create sourceMappingUrl
     char* source_map_file;
 
+    // option for sourceRoot property
+    char* source_map_root;
+
     // Custom functions that can be called from sccs code
     Sass_C_Function_List c_functions;
 
@@ -330,6 +333,7 @@ extern "C" {
              .is_indented_syntax_src(c_ctx->is_indented_syntax_src)
              .source_comments(c_ctx->source_comments)
              .source_map_file(safe_str(c_ctx->source_map_file))
+             .source_map_root(safe_str(c_ctx->source_map_root))
              .source_map_embed(c_ctx->source_map_embed)
              .source_map_contents(c_ctx->source_map_contents)
              .omit_source_map_url(c_ctx->omit_source_map_url)
@@ -629,6 +633,7 @@ extern "C" {
     if (ctx->output_path)       free(ctx->output_path);
     if (ctx->include_path)      free(ctx->include_path);
     if (ctx->source_map_file)   free(ctx->source_map_file);
+    if (ctx->source_map_root)   free(ctx->source_map_root);
     free_string_array(ctx->included_files);
     // play safe and reset properties
     ctx->output_string = 0;
@@ -641,6 +646,7 @@ extern "C" {
     ctx->output_path = 0;
     ctx->include_path = 0;
     ctx->source_map_file = 0;
+    ctx->source_map_root = 0;
     ctx->included_files = 0;
     // now clear the options
     sass_clear_options(ctx);
@@ -686,6 +692,7 @@ extern "C" {
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, output_path);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, include_path);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, source_map_file);
+  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, source_map_root);
 
   // Create getter and setters for context
   IMPLEMENT_SASS_CONTEXT_GETTER(int, error_status);

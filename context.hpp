@@ -58,6 +58,7 @@ namespace Sass {
     bool         source_comments; // for inline debug comments in css output
     Output_Style output_style; // output style for the generated css code
     string       source_map_file; // path to source map file (enables feature)
+    string       source_map_root; // path for sourceRoot property (pass-through)
     bool         source_map_embed; // embed in sourceMappingUrl (as data-url)
     bool         source_map_contents; // insert included contents into source map
     bool         omit_source_map_url; // disable source map comment in css output
@@ -85,6 +86,7 @@ namespace Sass {
       KWD_ARG(Data, bool,            source_comments);
       KWD_ARG(Data, Output_Style,    output_style);
       KWD_ARG(Data, string,          source_map_file);
+      KWD_ARG(Data, string,          source_map_root);
       KWD_ARG(Data, bool,            omit_source_map_url);
       KWD_ARG(Data, bool,            is_indented_syntax_src);
       KWD_ARG(Data, size_t,          precision);

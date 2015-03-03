@@ -106,7 +106,7 @@ extern "C" {
     return sass_make_import(path, path, source, srcmap);
   }
 
-  // Creator for an import error entry returned by the custom importer inside the list
+  // Upgrade a normal import entry to throw an error (original path can be re-used by error reporting)
   struct Sass_Import* ADDCALL sass_import_set_error(struct Sass_Import* import, const char* error, size_t line, size_t col)
   {
     if (import == 0) return 0;
