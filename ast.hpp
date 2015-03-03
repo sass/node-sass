@@ -1523,7 +1523,7 @@ namespace Sass {
 
       if (with)
       {
-        if (!l || !l->length() != 0) return str.compare("rule") != 0;
+        if (!l || l->length() == 0) return str.compare("rule") != 0;
         for (size_t i = 0, L = l->length(); i < L; ++i)
         {
           v = unquote((*l)[i]->perform(&to_string));
