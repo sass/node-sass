@@ -14,7 +14,7 @@ namespace Sass {
   using namespace std;
 
 
-  struct Context;
+  class Context;
 
   /*
    There are a lot of stumbling blocks when trying to port the ruby extend code to C++. The biggest is the choice of

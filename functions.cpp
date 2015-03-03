@@ -142,7 +142,7 @@ namespace Sass {
     // random_device degrades sharply once the entropy pool
     // is exhausted. For practical use, random_device is
     // generally only used to seed a PRNG such as mt19937.
-    static mt19937 rand(GetSeed());
+    static mt19937 rand(static_cast<unsigned int>(GetSeed()));
 
     // features
     static set<string> features;
@@ -759,7 +759,7 @@ namespace Sass {
       if (String_Quoted* string_quoted = dynamic_cast<String_Quoted*>(arg)) {
         String_Constant* result = new (ctx.mem) String_Constant(pstate, string_quoted->value());
         // remember if the string was quoted (color tokens)
-        result->sass_fix_1291(string_quoted->quote_mark());
+        result->sass_fix_1291(string_quoted->quote_mark() != 0);
         return result;
       }
       return new (ctx.mem) String_Constant(pstate, string(arg->perform(&to_string)));
@@ -820,7 +820,7 @@ namespace Sass {
 
         if (index > 0 && index <= len) {
           // positive and within string length
-          str.insert(UTF_8::offset_at_position(str, index - 1), ins);
+          str.insert(UTF_8::offset_at_position(str, static_cast<size_t>(index) - 1), ins);
         }
         else if (index > len) {
           // positive and past string length
@@ -832,7 +832,7 @@ namespace Sass {
         else if (std::abs(index) <= len) {
           // negative and within string length
           index += len + 1;
-          str.insert(UTF_8::offset_at_position(str, index), ins);
+          str.insert(UTF_8::offset_at_position(str, static_cast<size_t>(index)), ins);
         }
         else {
           // negative and past string length
@@ -906,8 +906,8 @@ namespace Sass {
         string str = unquote(s->value());
 
         // normalize into 0-based indices
-        size_t start = UTF_8::offset_at_position(str, UTF_8::normalize_index(n->value(), UTF_8::code_point_count(str)));
-        size_t end = UTF_8::offset_at_position(str, UTF_8::normalize_index(m->value(), UTF_8::code_point_count(str)));
+        size_t start = UTF_8::offset_at_position(str, UTF_8::normalize_index(static_cast<int>(n->value()), UTF_8::code_point_count(str)));
+        size_t end = UTF_8::offset_at_position(str, UTF_8::normalize_index(static_cast<int>(m->value()), UTF_8::code_point_count(str)));
 
         // `str-slice` should always return an empty string when $end-at == 0
         // `normalize_index` normalizes 1 -> 0 so we need to check the original value
@@ -1068,12 +1068,12 @@ namespace Sass {
       if (l && trunc(l->value()) != l->value()) error("argument $limit of `" + string(sig) + "` must be an integer", pstate);
       if (l) {
         uniform_real_distribution<> distributor(1, l->value() + 1);
-        uint_fast32_t distributed = distributor(rand);
+        uint_fast32_t distributed = static_cast<uint_fast32_t>(distributor(rand));
         return new (ctx.mem) Number(pstate, (double)distributed);
       }
       else {
         uniform_real_distribution<> distributor(0, 1);
-        uint_fast32_t distributed = distributor(rand);
+        uint_fast32_t distributed = static_cast<uint_fast32_t>(distributor(rand));
         return new (ctx.mem) Number(pstate, trunc(distributed));
      }
     }
@@ -1117,12 +1117,12 @@ namespace Sass {
 
       if (m) {
         l = new (ctx.mem) List(pstate, 1);
-        *l << m->keys()[index];
-        *l << m->at(m->keys()[index]);
+        *l << m->keys()[static_cast<unsigned int>(index)];
+        *l << m->at(m->keys()[static_cast<unsigned int>(index)]);
         return l;
       }
       else {
-        return l->value_at_index(index);
+        return l->value_at_index(static_cast<int>(index));
       }
     }
 
@@ -1539,7 +1539,7 @@ namespace Sass {
     {
       std::stringstream ss;
       uniform_real_distribution<> distributor(0, 4294967296); // 16^8
-      uint_fast32_t distributed = distributor(rand);
+      uint_fast32_t distributed = static_cast<uint_fast32_t>(distributor(rand));
       ss << "u" << setfill('0') << setw(8) << std::hex << distributed;
       return new (ctx.mem) String_Constant(pstate, ss.str());
     }

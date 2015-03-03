@@ -8,7 +8,7 @@ namespace Sass {
   class   AST_Node;
   class   Parameters;
   class   Arguments;
-  struct  Context;
+  class   Context;
   class   Eval;
   typedef Environment<AST_Node*> Env;
 

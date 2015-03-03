@@ -5,6 +5,7 @@
 #endif
 
 #include <cstring>
+#include "copy_c_str.hpp"
 #include "context.hpp"
 #include "sass_functions.h"
 
@@ -85,8 +86,8 @@ extern "C" {
   {
     Sass_Import* v = (Sass_Import*) calloc(1, sizeof(Sass_Import));
     if (v == 0) return 0;
-    v->path = path ? strdup(path) : 0;
-    v->base = base ? strdup(base) : 0;
+    v->path = path ? Sass::copy_c_str(path) : 0;
+    v->base = base ? Sass::copy_c_str(base) : 0;
     v->source = source;
     v->srcmap = srcmap;
     return v;

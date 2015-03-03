@@ -10,7 +10,7 @@
 namespace Sass {
   using std::vector;
 
-  struct Context;
+  class Context;
 
   class SourceMap {
 
