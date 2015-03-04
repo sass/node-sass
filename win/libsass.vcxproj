@@ -178,6 +178,7 @@
     <ClCompile Include="..\emitter.cpp" />
     <ClCompile Include="..\output.cpp" />
     <ClCompile Include="..\parser.cpp" />
+    <ClCompile Include="..\plugins.cpp" />
     <ClCompile Include="..\position.cpp" />
     <ClCompile Include="..\prelexer.cpp" />
     <ClCompile Include="..\remove_placeholders.cpp" />
@@ -228,6 +229,7 @@
     <ClInclude Include="..\emitter.hpp" />
     <ClInclude Include="..\output.hpp" />
     <ClInclude Include="..\parser.hpp" />
+    <ClInclude Include="..\plugins.hpp" />
     <ClInclude Include="..\paths.hpp" />
     <ClInclude Include="..\position.hpp" />
     <ClInclude Include="..\prelexer.hpp" />

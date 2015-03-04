@@ -15,6 +15,7 @@
 #include "source_map.hpp"
 #include "subset_map.hpp"
 #include "output.hpp"
+#include "plugins.hpp"
 #include "sass_functions.h"
 
 struct Sass_C_Function_Descriptor;
@@ -44,6 +45,7 @@ namespace Sass {
     vector<string> include_links;
     // vectors above have same size
 
+    vector<string> plugin_paths; // relative paths to load plugins
     vector<string> include_paths; // lookup paths for includes
     vector<Sass_Queued> queue; // queue of files to be parsed
     map<string, Block*> style_sheets; // map of paths to ASTs
@@ -80,8 +82,11 @@ namespace Sass {
       KWD_ARG(Data, string,          indent);
       KWD_ARG(Data, string,          linefeed);
       KWD_ARG(Data, const char*,     include_paths_c_str);
+      KWD_ARG(Data, const char*,     plugin_paths_c_str);
       KWD_ARG(Data, const char**,    include_paths_array);
+      KWD_ARG(Data, const char**,    plugin_paths_array);
       KWD_ARG(Data, vector<string>,  include_paths);
+      KWD_ARG(Data, vector<string>,  plugin_paths);
       KWD_ARG(Data, bool,            source_comments);
       KWD_ARG(Data, Output_Style,    output_style);
       KWD_ARG(Data, string,          source_map_file);
@@ -113,11 +118,14 @@ namespace Sass {
     vector<string> get_included_files(size_t skip = 0);
 
   private:
+    void collect_plugin_paths(const char* paths_str);
+    void collect_plugin_paths(const char** paths_array);
     void collect_include_paths(const char* paths_str);
     void collect_include_paths(const char** paths_array);
     string format_source_mapping_url(const string& file);
 
     string cwd;
+    Plugins plugins;
 
     // void register_built_in_functions(Env* env);
     // void register_function(Signature sig, Native_Function f, Env* env);

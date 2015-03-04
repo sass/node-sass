@@ -33,6 +33,7 @@ struct sass_options {
   // Colon-separated list of paths
   // Semicolon-separated on Windows
   const char* include_paths;
+  const char* plugin_paths;
   // String to be used for indentation
   const char* indent;
   // String to be used to for line feeds

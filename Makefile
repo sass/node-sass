@@ -24,20 +24,20 @@ else
 endif
 
 ifeq "$(LIBSASS_VERSION)" ""
-  ifneq "$(wildcard ./.git/ )" ""
-    LIBSASS_VERSION ?= $(shell git describe --abbrev=4 --dirty --always --tags)
-  endif
+	ifneq "$(wildcard ./.git/ )" ""
+		LIBSASS_VERSION ?= $(shell git describe --abbrev=4 --dirty --always --tags)
+	endif
 endif
 
 ifeq "$(LIBSASS_VERSION)" ""
-  ifneq ("$(wildcard VERSION)","")
-    LIBSASS_VERSION ?= $(shell $(CAT) VERSION)
-  endif
+	ifneq ("$(wildcard VERSION)","")
+		LIBSASS_VERSION ?= $(shell $(CAT) VERSION)
+	endif
 endif
 
 ifneq "$(LIBSASS_VERSION)" ""
-  CFLAGS   += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
-  CXXFLAGS += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
+	CFLAGS   += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
+	CXXFLAGS += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
 endif
 
 # enable mandatory flag
@@ -50,18 +50,18 @@ else
 endif
 
 ifneq "$(SASS_LIBSASS_PATH)" ""
-  CFLAGS   += -I $(SASS_LIBSASS_PATH)
-  CXXFLAGS += -I $(SASS_LIBSASS_PATH)
+	CFLAGS   += -I $(SASS_LIBSASS_PATH)
+	CXXFLAGS += -I $(SASS_LIBSASS_PATH)
 endif
 
 ifneq "$(EXTRA_CFLAGS)" ""
-  CFLAGS   += $(EXTRA_CFLAGS)
+	CFLAGS   += $(EXTRA_CFLAGS)
 endif
 ifneq "$(EXTRA_CXXFLAGS)" ""
-  CXXFLAGS += $(EXTRA_CXXFLAGS)
+	CXXFLAGS += $(EXTRA_CXXFLAGS)
 endif
 ifneq "$(EXTRA_LDFLAGS)" ""
-  LDFLAGS  += $(EXTRA_LDFLAGS)
+	LDFLAGS  += $(EXTRA_LDFLAGS)
 endif
 
 LDLIBS = -lstdc++ -lm
@@ -69,6 +69,11 @@ ifeq ($(UNAME),Darwin)
 	CFLAGS += -stdlib=libc++
 	CXXFLAGS += -stdlib=libc++
 	LDFLAGS += -stdlib=libc++
+endif
+
+ifneq (MinGW,$(UNAME))
+	LDFLAGS += -ldl
+	LDLIBS += -ldl
 endif
 
 ifneq ($(BUILD),shared)
@@ -117,6 +122,7 @@ SOURCES = \
 	emitter.cpp \
 	output.cpp \
 	parser.cpp \
+	plugins.cpp \
 	position.cpp \
 	prelexer.cpp \
 	remove_placeholders.cpp \

@@ -82,9 +82,12 @@ extern "C" {
     // Semicolon-separated on Windows
     // Maybe use array interface instead?
     char* include_path;
+    char* plugin_path;
 
-    // Include path (linked string list)
+    // Include paths (linked string list)
     struct string_list* include_paths;
+    // Plugin paths (linked string list)
+    struct string_list* plugin_paths;
 
     // Path to source map file
     // Enables source map generation
@@ -304,19 +307,35 @@ extern "C" {
       }
 
       // convert include path linked list to static array
-      struct string_list* cur = c_ctx->include_paths;
+      struct string_list* inc = c_ctx->include_paths;
       // very poor loop to get the length of the linked list
-      size_t length = 0; while (cur) { length ++; cur = cur->next; }
+      size_t inc_size = 0; while (inc) { inc_size ++; inc = inc->next; }
       // create char* array to hold all paths plus null terminator
-      const char** include_paths = (const char**) calloc(length + 1, sizeof(char*));
+      const char** include_paths = (const char**) calloc(inc_size + 1, sizeof(char*));
       if (include_paths == 0) throw(bad_alloc());
       // reset iterator
-      cur = c_ctx->include_paths;
+      inc = c_ctx->include_paths;
       // copy over the paths
-      for (size_t i = 0; cur; i++) {
-        include_paths[i] = cur->string;
-        cur = cur->next;
+      for (size_t i = 0; inc; i++) {
+        include_paths[i] = inc->string;
+        inc = inc->next;
       }
+
+      // convert plugin path linked list to static array
+      struct string_list* imp = c_ctx->plugin_paths;
+      // very poor loop to get the length of the linked list
+      size_t imp_size = 0; while (imp) { imp_size ++; imp = imp->next; }
+      // create char* array to hold all paths plus null terminator
+      const char** plugin_paths = (const char**) calloc(imp_size + 1, sizeof(char*));
+      if (plugin_paths == 0) throw(bad_alloc());
+      // reset iterator
+      imp = c_ctx->plugin_paths;
+      // copy over the paths
+      for (size_t i = 0; imp; i++) {
+        plugin_paths[i] = imp->string;
+        imp = imp->next;
+      }
+
       // transfer the options to c++
       cpp_opt.input_path(input_path)
              .output_path(output_path)
@@ -328,9 +347,12 @@ extern "C" {
              .source_map_contents(c_ctx->source_map_contents)
              .omit_source_map_url(c_ctx->omit_source_map_url)
              .include_paths_c_str(c_ctx->include_path)
-             .importer(c_ctx->importer)
+             .plugin_paths_c_str(c_ctx->plugin_path)
              .include_paths_array(include_paths)
+             .plugin_paths_array(plugin_paths)
              .include_paths(vector<string>())
+             .plugin_paths(vector<string>())
+             .importer(c_ctx->importer)
              .precision(c_ctx->precision ? c_ctx->precision : 5)
              .linefeed(c_ctx->linefeed ? c_ctx->linefeed : LFEED)
              .indent(c_ctx->indent ? c_ctx->indent : "  ");
@@ -339,6 +361,7 @@ extern "C" {
       Context* cpp_ctx = new Context(cpp_opt);
       // free intermediate data
       free(include_paths);
+      free(plugin_paths);
 
       // register our custom functions
       if (c_ctx->c_functions) {
@@ -585,6 +608,18 @@ extern "C" {
       }
     }
     // Deallocate inc paths
+    if (options->plugin_paths) {
+      struct string_list* cur;
+      struct string_list* next;
+      cur = options->plugin_paths;
+      while (cur) {
+        next = cur->next;
+        free(cur->string);
+        free(cur);
+        cur = next;
+      }
+    }
+    // Deallocate inc paths
     if (options->include_paths) {
       struct string_list* cur;
       struct string_list* next;
@@ -603,6 +638,7 @@ extern "C" {
     // Make it null terminated
     options->importer = 0;
     options->c_functions = 0;
+    options->plugin_paths = 0;
     options->include_paths = 0;
   }
 
@@ -675,6 +711,7 @@ extern "C" {
   IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, linefeed);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, input_path);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, output_path);
+  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, plugin_path);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, include_path);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, source_map_file);
 
@@ -713,4 +750,23 @@ extern "C" {
     }
 
   }
+
+  // Push function for plugin paths (no manipulation support for now)
+  void ADDCALL sass_option_push_plugin_path(struct Sass_Options* options, const char* path)
+  {
+
+    struct string_list* plugin_path = (struct string_list*) calloc(1, sizeof(struct string_list));
+    if (plugin_path == 0) return;
+    plugin_path->string = path ? copy_c_str(path) : 0;
+    struct string_list* last = options->plugin_paths;
+    if (!options->plugin_paths) {
+      options->plugin_paths = plugin_path;
+    } else {
+      while (last->next)
+        last = last->next;
+      last->next = plugin_path;
+    }
+
+  }
+
 }
