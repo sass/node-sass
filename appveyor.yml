@@ -15,24 +15,23 @@ environment:
     ruby_version: "21-x64"
 
 cache:
-  - x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z
+  - C:\mingw64
+  - C:\Ruby%ruby_version%\lib\ruby\gems
 
 install:
   - git clone https://github.com/sass/sassc.git
   - git clone https://github.com/sass/sass-spec.git
   - set PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - set SASS_LIBSASS_PATH=..
-  - gem install minitest
   - ps: |
-      if ($env:Compiler -eq "mingw") {
-        if (-Not (Test-Path "x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z")) {
-          # Install MinGW.
-          $url  = "http://sourceforge.net/projects/mingw-w64/files/"
-          $url += "Toolchains%20targetting%20Win64/Personal%20Builds/"
-          $url += "mingw-builds/4.9.2/threads-win32/seh/"
-          $url += "x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z/download"
-          Invoke-WebRequest -UserAgent wget -Uri $url -OutFile x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z
-        }
+      if(!(gem which minitest 2>$nul)) { gem install minitest }
+      if ($env:Compiler -eq "mingw" -AND -Not (Test-Path "C:\mingw64")) {
+        # Install MinGW.
+        $url  = "http://sourceforge.net/projects/mingw-w64/files/"
+        $url += "Toolchains%20targetting%20Win64/Personal%20Builds/"
+        $url += "mingw-builds/4.9.2/threads-win32/seh/"
+        $url += "x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z/download"
+        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z
         &7z x -oC:\ x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z > $null
       }
   - set PATH=C:\mingw64\bin;%PATH%
@@ -71,4 +70,3 @@ test_script:
           ruby sass-spec\sass-spec.rb -c win\bin\sassc.exe -s --ignore-todo sass-spec/spec
         }
       }
-
