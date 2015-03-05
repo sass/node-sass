@@ -284,7 +284,7 @@ namespace Sass {
       for(size_t i=0; i<extension.size();++i)
         extension[i] = tolower(extension[i]);
       if (extension == ".sass" && contents != 0) {
-        char * converted = sass2scss(contents, SASS2SCSS_PRETTIFY_1);
+        char * converted = sass2scss(contents, SASS2SCSS_PRETTIFY_1 | SASS2SCSS_KEEP_COMMENT);
         delete[] contents; // free the indented contents
         return converted; // should be freed by caller
       } else {
