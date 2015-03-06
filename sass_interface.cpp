@@ -119,8 +119,11 @@ extern "C" {
                        .source_map_contents(c_ctx->options.source_map_contents)
                        .omit_source_map_url(c_ctx->options.omit_source_map_url)
                        .include_paths_c_str(c_ctx->options.include_paths)
+                       .plugin_paths_c_str(c_ctx->options.plugin_paths)
                        .include_paths_array(0)
+                       .plugin_paths_array(0)
                        .include_paths(vector<string>())
+                       .plugin_paths(vector<string>())
                        .precision(c_ctx->options.precision ? c_ctx->options.precision : 5)
                        .indent(c_ctx->options.indent ? c_ctx->options.indent : "  ")
                        .linefeed(c_ctx->options.linefeed ? c_ctx->options.linefeed : LFEED)
@@ -208,8 +211,11 @@ extern "C" {
                        .source_map_contents(c_ctx->options.source_map_contents)
                        .omit_source_map_url(c_ctx->options.omit_source_map_url)
                        .include_paths_c_str(c_ctx->options.include_paths)
+                       .plugin_paths_c_str(c_ctx->options.plugin_paths)
                        .include_paths_array(0)
+                       .plugin_paths_array(0)
                        .include_paths(vector<string>())
+                       .plugin_paths(vector<string>())
                        .precision(c_ctx->options.precision ? c_ctx->options.precision : 5)
       );
       if (c_ctx->c_functions) {

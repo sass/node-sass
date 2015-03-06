@@ -52,7 +52,6 @@ ADDAPI char* ADDCALL sass_string_unquote (const char *str);
 // Get compiled libsass version
 ADDAPI const char* ADDCALL libsass_version(void);
 
-
 #ifdef __cplusplus
 } // __cplusplus defined.
 #endif

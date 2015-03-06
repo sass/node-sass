@@ -78,6 +78,9 @@
     <ClCompile Include="..\parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\plugins.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\position.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -231,6 +234,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\parser.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\plugins.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\paths.hpp">
