@@ -1904,6 +1904,7 @@ namespace Sass {
            (q = peek< exactly<'~'> >(p))                           ||
            (q = peek< exactly<'>'> >(p))                           ||
            (q = peek< exactly<','> >(p))                           ||
+           (saw_stuff && (q = peek< exactly<'-'> >(p)))            ||
            (q = peek< binomial >(p))                               ||
            (q = peek< sequence< optional<sign>,
                                 optional<digits>,
@@ -1962,6 +1963,7 @@ namespace Sass {
            (q = peek< exactly<'~'> >(p))                           ||
            (q = peek< exactly<'>'> >(p))                           ||
            (q = peek< exactly<','> >(p))                           ||
+           (saw_stuff && (q = peek< exactly<'-'> >(p)))            ||
            (q = peek< binomial >(p))                               ||
            (q = peek< sequence< optional<sign>,
                                 optional<digits>,
