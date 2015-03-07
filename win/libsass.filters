@@ -39,9 +39,6 @@
     <ClCompile Include="..\contextualize.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\copy_c_str.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\error_handling.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -177,9 +174,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\contextualize.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\copy_c_str.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\debug.hpp">

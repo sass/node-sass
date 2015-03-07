@@ -5,12 +5,13 @@
 #endif
 
 #include <cstring>
-#include "copy_c_str.hpp"
+#include "util.hpp"
 #include "context.hpp"
 #include "sass_functions.h"
 
 extern "C" {
   using namespace std;
+  using namespace Sass;
 
   // Struct to hold custom function callback
   struct Sass_C_Function_Descriptor {
@@ -90,8 +91,8 @@ extern "C" {
   {
     Sass_Import* v = (Sass_Import*) calloc(1, sizeof(Sass_Import));
     if (v == 0) return 0;
-    v->path = path ? Sass::copy_c_str(path) : 0;
-    v->base = base ? Sass::copy_c_str(base) : 0;
+    v->path = path ? sass_strdup(path) : 0;
+    v->base = base ? sass_strdup(base) : 0;
     v->source = source;
     v->srcmap = srcmap;
     v->error = 0;

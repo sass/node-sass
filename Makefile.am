@@ -55,7 +55,6 @@ libsass_la_SOURCES = \
 	constants.cpp constants.hpp \
 	context.cpp context.hpp \
 	contextualize.cpp contextualize.hpp \
-	copy_c_str.cpp copy_c_str.hpp \
 	error_handling.cpp error_handling.hpp \
 	eval.cpp eval.hpp \
 	expand.cpp expand.hpp \

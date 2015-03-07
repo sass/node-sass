@@ -8,6 +8,7 @@
 namespace Sass {
   using namespace std;
 
+  char* sass_strdup(const char* str);
   string string_escape(const string& str);
   string string_unescape(const string& str);
   string evacuate_quotes(const string& str);

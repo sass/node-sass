@@ -6,11 +6,12 @@
 
 #include <cstdlib>
 #include <cstring>
-#include "copy_c_str.hpp"
+#include "util.hpp"
 #include "sass_values.h"
 
 extern "C" {
   using namespace std;
+  using namespace Sass;
 
   struct Sass_Unknown {
     enum Sass_Tag tag;
@@ -165,7 +166,7 @@ extern "C" {
     if (v == 0) return 0;
     v->number.tag = SASS_NUMBER;
     v->number.value = val;
-    v->number.unit = unit ? Sass::copy_c_str(unit) : 0;
+    v->number.unit = unit ? sass_strdup(unit) : 0;
     if (v->number.unit == 0) { free(v); return 0; }
     return v;
   }
@@ -187,7 +188,7 @@ extern "C" {
     Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->string.tag = SASS_STRING;
-    v->string.value = val ? Sass::copy_c_str(val) : 0;
+    v->string.value = val ? sass_strdup(val) : 0;
     if (v->string.value == 0) { free(v); return 0; }
     return v;
   }
@@ -228,7 +229,7 @@ extern "C" {
     Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->error.tag = SASS_ERROR;
-    v->error.message = msg ? Sass::copy_c_str(msg) : 0;
+    v->error.message = msg ? sass_strdup(msg) : 0;
     if (v->error.message == 0) { free(v); return 0; }
     return v;
   }
@@ -238,7 +239,7 @@ extern "C" {
     Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->warning.tag = SASS_WARNING;
-    v->warning.message = msg ? Sass::copy_c_str(msg) : 0;
+    v->warning.message = msg ? sass_strdup(msg) : 0;
     if (v->warning.message == 0) { free(v); return 0; }
     return v;
   }

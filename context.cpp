@@ -5,6 +5,7 @@
 #endif
 
 #include "ast.hpp"
+#include "util.hpp"
 #include "sass.h"
 #include "context.hpp"
 #include "plugins.hpp"
@@ -19,7 +20,6 @@
 #include "cssize.hpp"
 #include "extend.hpp"
 #include "remove_placeholders.hpp"
-#include "copy_c_str.hpp"
 #include "color_names.hpp"
 #include "functions.hpp"
 #include "backtrace.hpp"
@@ -37,6 +37,7 @@
 namespace Sass {
   using namespace Constants;
   using namespace File;
+  using namespace Sass;
   using std::cerr;
   using std::endl;
 
@@ -282,7 +283,7 @@ namespace Sass {
     if (source_map_file != "" && !omit_source_map_url) {
       output += linefeed + format_source_mapping_url(source_map_file);
     }
-    return copy_c_str(output.c_str());
+    return sass_strdup(output.c_str());
   }
 
   Block* Context::parse_file()
@@ -335,7 +336,7 @@ namespace Sass {
       add_source(input_path, input_path, contents);
       return parse_file();
     }
-    add_source(input_path, input_path, copy_c_str(source_c_str));
+    add_source(input_path, input_path, sass_strdup(source_c_str));
     return parse_file();
   }
 
@@ -371,7 +372,7 @@ namespace Sass {
     if (source_map_file == "") return 0;
     char* result = 0;
     string map = emitter.generate_source_map(*this);
-    result = copy_c_str(map.c_str());
+    result = sass_strdup(map.c_str());
     return result;
   }
 
