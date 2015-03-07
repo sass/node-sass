@@ -62,6 +62,8 @@ namespace Sass {
       void finalize(void);
       // flush scheduled space/linefeed
       void flush_schedules(void);
+      // prepend some text or token to the buffer
+      void prepend_string(const string& text);
       // append some text or token to the buffer
       void append_string(const string& text);
       // append some white-space only text

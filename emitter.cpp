@@ -85,6 +85,13 @@ namespace Sass {
     }
   }
 
+  // prepend some text or token to the buffer
+  void Emitter::prepend_string(const string& text)
+  {
+    // update source-map for new text
+    wbuf.buffer = text + wbuf.buffer;
+  }
+
   // append some text or token to the buffer
   void Emitter::append_string(const string& text)
   {

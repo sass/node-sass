@@ -34,7 +34,7 @@ namespace Sass {
     vector<Comment*> top_comments;
 
   public:
-    string get_buffer(void);
+    OutputBuffer get_buffer(void);
 
     virtual void operator()(Ruleset*);
     // virtual void operator()(Propset*);

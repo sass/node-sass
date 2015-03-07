@@ -102,17 +102,12 @@ namespace Sass {
     p_stack.pop_back();
 
     Block* props = new (ctx.mem) Block(rr->block()->pstate());
-    for (size_t i = 0, L = rr->block()->length(); i < L; i++)
-    {
-      Statement* s = (*rr->block())[i];
-      if (!bubblable(s)) *props << s;
-    }
-
     Block* rules = new (ctx.mem) Block(rr->block()->pstate());
     for (size_t i = 0, L = rr->block()->length(); i < L; i++)
     {
       Statement* s = (*rr->block())[i];
       if (bubblable(s)) *rules << s;
+      if (!bubblable(s)) *props << s;
     }
 
     if (props->length())
