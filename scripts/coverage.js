@@ -1,6 +1,11 @@
-var path = require('path'),
-    spawn = require('child_process').spawn,
-    bin = path.join.bind(null, __dirname, '..', 'node_modules', '.bin');
+/*!
+ * node-sass: scripts/coverage.js
+ */
+
+require('../lib/extensions');
+
+var bin = require('path').join.bind(null, __dirname, '..', 'node_modules', '.bin'),
+    spawn = require('child_process').spawn;
 
 /**
  * Run test suite
@@ -14,7 +19,7 @@ function suite() {
   var coveralls = spawn(bin('coveralls'));
 
   var args = [bin('_mocha')].concat(['--reporter', 'mocha-lcov-reporter']);
-  var mocha = spawn(process.execPath, args, {
+  var mocha = spawn(process.sass.runtime.execPath, args, {
     env: process.env
   });
 

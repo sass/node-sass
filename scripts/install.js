@@ -1,9 +1,12 @@
+/*!
+ * node-sass: scripts/install.js
+ */
+
 var fs = require('fs'),
-    path = require('path'),
-    request = require('request'),
-    mkdirp = require('mkdirp'),
+    mkdir = require('mkdirp'),
     npmconf = require('npmconf'),
-    packageInfo = require('../package.json');
+    path = require('path'),
+    request = require('request');
 
 require('../lib/extensions');
 
@@ -24,7 +27,7 @@ function download(url, dest, cb) {
 
     request.get(url, options).on('response', function(response) {
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        returnError('Can not download file from ' + url);
+        returnError(['Can not download file from:', url].join());
         return;
       }
 
@@ -64,49 +67,31 @@ function applyProxy(options, cb) {
 }
 
 /**
- * Check if binaries exists
+ * Check and download binary
  *
  * @api private
  */
 
-function checkAndFetchBinaries() {
-  fs.exists(path.join(__dirname, '..', 'vendor', process.sassBinaryName), function (exists) {
-    if (exists) {
-      return;
-    }
+function checkAndDownloadBinary() {
+  try {
+    process.sass.getBinaryPath(true);
+  } catch (e) {
+    return;
+  }
 
-    fetch();
-  });
-}
-
-/**
- * Fetch binaries
- *
- * @api private
- */
-
-function fetch() {
-  var url = [
-    'https://raw.githubusercontent.com/sass/node-sass-binaries/v',
-    packageInfo.version, '/', process.sassBinaryName,
-    '/binding.node'
-  ].join('');
-  var dir = path.join(__dirname, '..', 'vendor', process.sassBinaryName);
-  var dest = path.join(dir, 'binding.node');
-
-  mkdirp(dir, function(err) {
+  mkdirp(path.dirname(process.sass.binaryPath), function(err) {
     if (err) {
       console.error(err);
       return;
     }
 
-    download(url, dest, function(err) {
+    download(process.sass.binaryUrl, process.sass.binaryPath, function(err) {
       if (err) {
         console.error(err);
         return;
       }
 
-      console.log('Binary downloaded and installed at ' + dest);
+      console.log('Binary downloaded and installed at', process.sass.binaryPath);
     });
   });
 }
@@ -121,7 +106,7 @@ if (process.env.SKIP_SASS_BINARY_DOWNLOAD_FOR_CI) {
 }
 
 /**
- * Run
+ * If binary does not exsit, download it
  */
 
-checkAndFetchBinaries();
+checkAndDownloadBinary();
