@@ -201,8 +201,8 @@ describe('cli', function() {
       bin.on('close', function() {
         assert.equal(read(destCss, 'utf8').trim(), expectedCss);
         assert.equal(read(destMap, 'utf8').trim(), expectedMap);
-        fs.unlinkSync(destMap);
         fs.unlinkSync(destCss);
+        fs.unlinkSync(destMap);
         done();
       });
     });

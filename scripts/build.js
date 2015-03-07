@@ -1,3 +1,7 @@
+/*!
+ * node-sass: scripts/build.js
+ */
+
 var eol = require('os').EOL,
     fs = require('fs'),
     mkdir = require('mkdirp'),
@@ -14,11 +18,10 @@ require('../lib/extensions');
  */
 
 function afterBuild(options) {
-  var folder = options.debug ? 'Debug' : 'Release';
-  var target = path.join(__dirname, '..', 'build', folder, 'binding.node');
-  var install = path.join(__dirname, '..', 'vendor', process.sassBinaryName, 'binding.node');
+  var install = process.sass.binaryPath;
+  var target = path.join(__dirname, '..', 'build', options.debug ? 'Debug' : 'Release', 'binding.node');
 
-  mkdir(path.join(__dirname, '..', 'vendor', process.sassBinaryName), function(err) {
+  mkdir(path.dirname(install), function(err) {
     if (err && err.code !== 'EEXIST') {
       console.error(err.message);
       return;
@@ -36,7 +39,7 @@ function afterBuild(options) {
           return;
         }
 
-        console.log('Installed in `' + install + '`');
+        console.log('Installed in `', install, '`');
       });
     });
   });
@@ -52,9 +55,9 @@ function afterBuild(options) {
 function build(options) {
   var arguments = [path.join('node_modules', 'pangyp', 'bin', 'node-gyp'), 'rebuild'].concat(options.args);
 
-  console.log(['Building:', process.runtime.execPath].concat(arguments).join(' '));
+  console.log(['Building:', process.sass.runtime.execPath].concat(arguments).join(' '));
 
-  var proc = spawn(process.runtime.execPath, arguments, {
+  var proc = spawn(process.sass.runtime.execPath, arguments, {
     stdio: [0, 1, 2]
   });
 
@@ -110,25 +113,25 @@ function testBinary(options) {
     return build(options);
   }
 
-  fs.stat(path.join(__dirname, '..', 'vendor', process.sassBinaryName, 'binding.node'), function(err) {
-    if (err) {
-      return build(options);
-    }
+  try {
+    process.sass.getBinaryPath(true);
+  } catch (e) {
+    return build(options);
+  }
 
-    console.log('`' + process.sassBinaryName + '` exists; testing.');
+  console.log('`', process.sass.binaryPath, '` exists.', eol, 'testing binary.');
 
-    try {
-      require('../').renderSync({
-        data: 's: { a: ss }'
-      });
+  try {
+    require('../').renderSync({
+      data: 's: { a: ss }'
+    });
 
-      console.log('Binary is fine; exiting.');
-    } catch (e) {
-      console.log(['Problem with the binary.', 'Manual build incoming.'].join(eol));
+    console.log('Binary is fine; exiting.');
+  } catch (e) {
+    console.log(['Problem with the binary.', 'Manual build incoming.'].join(eol));
 
-      return build(options);
-    }
-  });
+    return build(options);
+  }
 }
 
 /**

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 var Emitter = require('events').EventEmitter,
     Gaze = require('gaze'),
     grapher = require('sass-graph'),
@@ -13,7 +14,7 @@ var Emitter = require('events').EventEmitter,
 
 var cli = meow({
   pkg: '../package.json',
-  version: process.sassInfo,
+  version: process.sass.versionInfo,
   help: [
     'Usage',
     '  node-sass [options] <input.scss> [output.css]',

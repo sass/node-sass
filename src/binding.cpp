@@ -24,7 +24,7 @@ void prepare_import_results(Local<Value> returned_value, sass_context_wrapper* c
     ctx_w->imports = sass_make_import_list(array->Length());
 
     for (size_t i = 0; i < array->Length(); ++i) {
-      Local<Value> value = array->Get(i);
+      Local<Value> value = array->Get(static_cast<uint32_t>(i));
 
       if (!value->IsObject())
         continue;
@@ -186,12 +186,12 @@ int get_result(sass_context_wrapper* ctx_w, Sass_Context* ctx, bool is_sync = fa
     const char* css = sass_context_get_output_string(ctx);
     const char* map = sass_context_get_source_map_string(ctx);
 
-    NanNew(ctx_w->result)->Set(NanNew("css"), NanNewBufferHandle(css, strlen(css)));
+    NanNew(ctx_w->result)->Set(NanNew("css"), NanNewBufferHandle(css, static_cast<uint32_t>(strlen(css))));
 
     get_stats(ctx_w, ctx);
 
     if (map) {
-      NanNew(ctx_w->result)->Set(NanNew("map"), NanNewBufferHandle(map, strlen(map)));
+      NanNew(ctx_w->result)->Set(NanNew("map"), NanNewBufferHandle(map, static_cast<uint32_t>(strlen(map))));
     }
   }
   else if (is_sync) {
