@@ -172,6 +172,8 @@ namespace Sass {
     const char* any_char_except(const char* src) {
       return (*src && *src != c) ? src+1 : 0;
     }
+    // Match word boundary (look ahead)
+    const char* word_boundary(const char* src);
 
     // Matches zero characters (always succeeds without consuming input).
     // const char* epsilon(const char*);

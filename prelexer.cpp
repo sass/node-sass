@@ -26,6 +26,8 @@ namespace Sass {
 
     // Match any single character.
     const char* any_char(const char* src) { return *src ? src+1 : src; }
+    // Match word boundary (look ahead)
+    const char* word_boundary(const char* src) { return !*src || isspace(*src) || ispunct(*src) || !Sass::Util::isAscii(*src) ? src : 0 ; }
 
     // Match a single character satisfying the ctype predicates.
     const char* space(const char* src) { return std::isspace(*src) ? src+1 : 0; }
@@ -288,7 +290,7 @@ namespace Sass {
     }
 
     const char* extend(const char* src) {
-      return exactly<extend_kwd>(src);
+      return sequence < exactly<extend_kwd>, word_boundary >(src);
     }
 
 

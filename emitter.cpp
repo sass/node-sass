@@ -15,6 +15,7 @@ namespace Sass {
     scheduled_linefeed(0),
     scheduled_delimiter(false),
     in_comment(false),
+    in_at_rule(false),
     in_media_block(false),
     in_declaration(false),
     in_declaration_list(false)
