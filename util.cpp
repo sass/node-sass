@@ -106,7 +106,10 @@ namespace Sass {
         out += i;
       }
     }
-    if (esc) out += 'Z';
+    // happens when parsing does not correctly skip
+    // over escaped sequences for ie. interpolations
+    // one example: foo\#{interpolate}
+    // if (esc) out += '\\';
     return out;
   }
 

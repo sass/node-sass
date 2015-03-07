@@ -1279,7 +1279,7 @@ namespace Sass {
   {
     const char* i = chunk.begin;
     // see if there any interpolants
-    const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, chunk.end);
+    const char* p = find_first_in_interval< exactly<hash_lbrace> >(i, chunk.end);
     if (!p) {
       String_Quoted* str_quoted = new (ctx.mem) String_Quoted(pstate, string(i, chunk.end));
       if (!constant && str_quoted->quote_mark()) str_quoted->quote_mark('*');
@@ -1289,7 +1289,7 @@ namespace Sass {
 
     String_Schema* schema = new (ctx.mem) String_Schema(pstate);
     while (i < chunk.end) {
-      p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, chunk.end);
+      p = find_first_in_interval< exactly<hash_lbrace> >(i, chunk.end);
       if (p) {
         if (i < p) {
           // accumulate the preceding segment if it's nonempty
@@ -1344,7 +1344,7 @@ namespace Sass {
     Token str(lexed);
     const char* i = str.begin;
     // see if there any interpolants
-    const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(str.begin, str.end);
+    const char* p = find_first_in_interval< exactly<hash_lbrace> >(str.begin, str.end);
     if (!p) {
       String_Constant* str_node = new (ctx.mem) String_Constant(pstate, normalize_wspace(string(str.begin, str.end)));
       str_node->is_delayed(true);
@@ -1353,7 +1353,7 @@ namespace Sass {
 
     String_Schema* schema = new (ctx.mem) String_Schema(pstate);
     while (i < str.end) {
-      p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, str.end);
+      p = find_first_in_interval< exactly<hash_lbrace> >(i, str.end);
       if (p) {
         if (i < p) {
           (*schema) << new (ctx.mem) String_Constant(pstate, string(i, p)); // accumulate the preceding segment if it's nonempty
@@ -1480,14 +1480,14 @@ namespace Sass {
     Token id(lexed);
     const char* i = id.begin;
     // see if there any interpolants
-    const char* p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(id.begin, id.end);
+    const char* p = find_first_in_interval< exactly<hash_lbrace> >(id.begin, id.end);
     if (!p) {
       return new (ctx.mem) String_Quoted(pstate, string(id.begin, id.end));
     }
 
     String_Schema* schema = new (ctx.mem) String_Schema(pstate);
     while (i < id.end) {
-      p = find_first_in_interval< sequence< negate< exactly<'\\'> >, exactly<hash_lbrace> > >(i, id.end);
+      p = find_first_in_interval< exactly<hash_lbrace> >(i, id.end);
       if (p) {
         if (i < p) {
           // accumulate the preceding segment if it's nonempty

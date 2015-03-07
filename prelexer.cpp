@@ -169,7 +169,7 @@ namespace Sass {
         zero_plus <
           alternatives <
             // skip all escaped chars first
-            sequence < exactly < '\\' >, any_char >,
+            backslash_something,
             // skip interpolants
             interpolant,
             // skip non delimiters
@@ -188,7 +188,7 @@ namespace Sass {
         zero_plus <
           alternatives <
             // skip all escaped chars first
-            sequence < exactly < '\\' >, any_char >,
+            backslash_something,
             // skip interpolants
             interpolant,
             // skip non delimiters
