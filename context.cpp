@@ -334,9 +334,10 @@ namespace Sass {
     if(is_indented_syntax_src) {
       char * contents = sass2scss(source_c_str, SASS2SCSS_PRETTIFY_1 | SASS2SCSS_KEEP_COMMENT);
       add_source(input_path, input_path, contents);
+      delete [] source_c_str;
       return parse_file();
     }
-    add_source(input_path, input_path, sass_strdup(source_c_str));
+    add_source(input_path, input_path, source_c_str);
     return parse_file();
   }
 
