@@ -1696,11 +1696,18 @@ namespace Sass {
     else if (lex< exactly< only_kwd > >()) media_query->is_restricted(true);
 
     if (peek< identifier_schema >()) media_query->media_type(parse_identifier_schema());
-    else if (lex< identifier >())    media_query->media_type(new (ctx.mem) String_Quoted(pstate, lexed));
+    else if (lex< identifier >())    media_query->media_type(parse_interpolated_chunk(lexed));
     else                             (*media_query) << parse_media_expression();
 
     while (lex< exactly< and_kwd > >()) (*media_query) << parse_media_expression();
-
+    if (peek< identifier_schema >()) {
+      String_Schema* schema = new (ctx.mem) String_Schema(pstate);
+      *schema << media_query->media_type();
+      *schema << new (ctx.mem) String_Constant(pstate, " ");
+      *schema << parse_identifier_schema();
+      media_query->media_type(schema);
+    }
+    while (lex< exactly< and_kwd > >()) (*media_query) << parse_media_expression();
     return media_query;
   }
 

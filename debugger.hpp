@@ -1,6 +1,7 @@
 #ifndef SASS_DEBUGGER_H
 #define SASS_DEBUGGER_H
 
+#include <string>
 #include "ast_fwd_decl.hpp"
 
 using namespace std;
@@ -128,6 +129,15 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
       << (selector->has_line_break() ? " [line-break]": " -")
       << (selector->has_line_feed() ? " [line-feed]": " -")
     << endl;
+
+  } else if (dynamic_cast<Media_Query_Expression*>(node)) {
+    Media_Query_Expression* block = dynamic_cast<Media_Query_Expression*>(node);
+    cerr << ind << "Media_Query_Expression " << block
+      << (block->is_interpolated() ? " [is_interpolated]": " -")
+    << endl;
+    debug_ast(block->feature(), ind + " f) ");
+    debug_ast(block->value(), ind + " v) ");
+
   } else if (dynamic_cast<Media_Query*>(node)) {
     Media_Query* block = dynamic_cast<Media_Query*>(node);
     cerr << ind << "Media_Query " << block
@@ -135,6 +145,7 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
       << (block->is_restricted() ? " [is_restricted]": " -")
     << endl;
     debug_ast(block->media_type(), ind + " ");
+    for(auto i : block->elements()) { debug_ast(i, ind + " ", env); }
 
   } else if (dynamic_cast<Media_Block*>(node)) {
     Media_Block* block = dynamic_cast<Media_Block*>(node);
