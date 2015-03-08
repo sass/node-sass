@@ -178,6 +178,7 @@ namespace Sass {
     Import* imp = new (ctx.mem) Import(pstate);
     bool first = true;
     do {
+      while (lex< block_comment >());
       if (lex< quoted_string >()) {
         string import_path(lexed);
 
@@ -279,8 +280,10 @@ namespace Sass {
       // if there's anything there at all
       if (!peek< exactly<')'> >()) {
         do (*params) << parse_parameter();
-        while (lex< exactly<','> >());
+        while (lex< alternatives < spaces,block_comment, exactly<','> > >());
       }
+    while (lex< alternatives < spaces, block_comment > >());
+      if (!peek< exactly<')'> >()) cerr << "BALAB [" << position << "]\n";
       if (!lex< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name, pstate);
     }
     return params;
@@ -288,12 +291,15 @@ namespace Sass {
 
   Parameter* Parser::parse_parameter()
   {
+    while (lex< alternatives < spaces, block_comment > >());
     lex< variable >();
     string name(Util::normalize_underscores(lexed));
     ParserState pos = pstate;
     Expression* val = 0;
     bool is_rest = false;
+    while (lex< alternatives < spaces, block_comment > >());
     if (lex< exactly<':'> >()) { // there's a default value
+      while (lex< block_comment >());
       val = parse_space_list();
       val->is_delayed(false);
     }
@@ -328,8 +334,10 @@ namespace Sass {
       // if there's anything there at all
       if (!peek< exactly<')'> >()) {
         do (*args) << parse_argument();
-        while (lex< exactly<','> >());
+        while (lex< alternatives < block_comment, exactly<','> > >());
       }
+      while (lex< block_comment >());
+      if (!peek< exactly<')'> >()) cerr << "BALAB [" << position << "]\n";
       if (!lex< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name, pstate);
     }
 
@@ -339,10 +347,12 @@ namespace Sass {
   Argument* Parser::parse_argument()
   {
     Argument* arg;
-    if (peek< sequence < variable, optional_spaces_and_comments, exactly<':'> > >()) {
+    while (lex< alternatives < spaces, block_comment > >());
+    if (peek< sequence < variable, zero_plus < alternatives < spaces, line_comment, block_comment > >, exactly<':'> > >()) {
       lex< variable >();
       string name(Util::normalize_underscores(lexed));
       ParserState p = pstate;
+    while (lex< alternatives < spaces, block_comment > >());
       lex< exactly<':'> >();
       Expression* val = parse_space_list();
       val->is_delayed(false);
@@ -728,7 +738,7 @@ namespace Sass {
     bool semicolon = false;
     Selector_Lookahead lookahead_result;
     Block* block = new (ctx.mem) Block(pstate);
-    // lex< zero_plus < alternatives < space, line_comment > > >();
+    lex< zero_plus < alternatives < space, line_comment > > >();
     // JMA - ensure that a block containing only block_comments is parsed
     while (lex< block_comment >()) {
       bool is_important = lexed.begin[2] == '!';
@@ -1128,6 +1138,7 @@ namespace Sass {
           peek< exactly<'%'> >(position)))
     { return fact1; }
 
+    while (lex< block_comment >());
     vector<Expression*> operands;
     vector<Binary_Expression::Type> operators;
     while (lex< exactly<'*'> >() || lex< exactly<'/'> >() || lex< exactly<'%'> >()) {
@@ -1194,6 +1205,10 @@ namespace Sass {
 
   Expression* Parser::parse_value()
   {
+
+    // ToDo: Move where
+    while (lex< block_comment >());
+
     if (lex< uri_prefix >()) {
       Arguments* args = new (ctx.mem) Arguments(pstate);
       Function_Call* result = new (ctx.mem) Function_Call(pstate, "url", args);

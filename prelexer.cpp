@@ -59,7 +59,7 @@ namespace Sass {
     }
     // Match either comment.
     const char* comment(const char* src) {
-      return alternatives<block_comment, line_comment>(src);
+      return line_comment(src);
     }
 
     const char* wspaces(const char* src) {
@@ -100,10 +100,10 @@ namespace Sass {
     const char* optional_spaces(const char* src) { return optional<spaces>(src); }
     // const char* optional_comment(const char* src) { return optional<comment>(src); }
     const char* optional_spaces_and_comments(const char* src) {
-      return zero_plus< alternatives<spaces, comment> >(src);
+      return zero_plus< alternatives<spaces, line_comment> >(src);
     }
     const char* spaces_and_comments(const char* src) {
-      return one_plus< alternatives<spaces, comment> >(src);
+      return one_plus< alternatives<spaces, line_comment> >(src);
     }
     const char* no_spaces(const char* src) {
       return negate< spaces >(src);
