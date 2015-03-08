@@ -5,6 +5,7 @@
 #include "backtrace.hpp"
 #include "paths.hpp"
 #include "parser.hpp"
+#include "debugger.hpp"
 #include "node.hpp"
 #include "sass_util.hpp"
 #include "debug.hpp"
@@ -1678,10 +1679,10 @@ namespace Sass {
         for (ExtensionPair ext : entries) {
           // check if both selectors have the same media block parent
           if (ext.first->media_block() == pComplexSelector->media_block()) continue;
+          // fail if one goes across media block boundaries
           stringstream err;
           To_String to_string(&ctx);
           string cwd(Sass::File::get_cwd());
-          // make path relative to the current directory
           ParserState pstate(ext.second->pstate());
           string rel_path(Sass::File::resolve_relative_path(pstate.path, cwd, cwd));
           err << "You may not @extend an outer selector from within @media.\n";
@@ -1690,10 +1691,31 @@ namespace Sass {
           err << " on line " << pstate.line+1 << " of " << rel_path << "\n";
           error(err.str(), pComplexSelector->pstate());
         }
-        hasExtension = entries.size() > 0;
+        if (entries.size() > 0) hasExtension = true;
       }
 
       pIter = pIter->tail();
+    }
+
+    if (!hasExtension) {
+      stringstream err;
+      To_String to_string(&ctx);
+      string cwd(Sass::File::get_cwd());
+      string sel1(pComplexSelector->perform(&to_string));
+      Compound_Selector* pExtendSelector = 0;
+      for (auto i : subsetMap.values()) {
+        if (i.first == pComplexSelector) {
+          pExtendSelector = i.second;
+          break;
+        }
+      }
+      if (!pExtendSelector->is_optional()) {
+        string sel2(pExtendSelector ? pExtendSelector->perform(&to_string) : "[unknown]");
+        err << "\"" << sel1 << "\" failed to @extend \"" << sel2 << "\"\n";
+        err << "The selector \"" << sel2 << "\" was not found.\n";
+        err << "Use \"@extend " << sel2 << " !optional\" if the extend should be able to fail.";
+        error(err.str(), pExtendSelector ? pExtendSelector->pstate() : pComplexSelector->pstate());
+      }
     }
 
     return hasExtension;

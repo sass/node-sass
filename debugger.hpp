@@ -40,6 +40,7 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
 
     cerr << ind << "Selector_List " << selector
       << " [mq:" << selector->media_block() << "]"
+      << (selector->is_optional() ? " [is_optional]": " -")
       << (selector->has_line_break() ? " [line-break]": " -")
       << (selector->has_line_feed() ? " [line-feed]": " -")
     << endl;
@@ -54,6 +55,7 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     Complex_Selector* selector = dynamic_cast<Complex_Selector*>(node);
     cerr << ind << "Complex_Selector " << selector
       << " [mq:" << selector->media_block() << "]"
+      << (selector->is_optional() ? " [is_optional]": " -")
       << (selector->has_line_break() ? " [line-break]": " -")
       << (selector->has_line_feed() ? " [line-feed]": " -") << " -> ";
       switch (selector->combinator()) {
@@ -69,6 +71,7 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     Compound_Selector* selector = dynamic_cast<Compound_Selector*>(node);
     cerr << ind << "Compound_Selector " << selector
       << " [mq:" << selector->media_block() << "]"
+      << (selector->is_optional() ? " [is_optional]": " -")
       << (selector->has_line_break() ? " [line-break]": " -")
       << (selector->has_line_feed() ? " [line-feed]": " -") <<
       " <" << prettyprint(selector->pstate().token.ws_before()) << "> X <" << prettyprint(selector->pstate().token.ws_after()) << ">" << endl;
@@ -101,6 +104,7 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     Selector_Placeholder* selector = dynamic_cast<Selector_Placeholder*>(node);
     cerr << ind << "Selector_Placeholder [" << selector->name() << "] " << selector
       << " [mq:" << selector->media_block() << "]"
+      << (selector->is_optional() ? " [is_optional]": " -")
       << (selector->has_line_break() ? " [line-break]": " -")
       << (selector->has_line_feed() ? " [line-feed]": " -")
     << endl;

@@ -404,7 +404,8 @@ namespace Sass {
     To_String to_string(&ctx);
     Selector_List* extender = static_cast<Selector_List*>(selector_stack.back());
     if (!extender) return 0;
-    Selector_List* extendee = static_cast<Selector_List*>(e->selector()->perform(contextualize->with(0, env, backtrace)));
+    Selector_List* org_extendee = static_cast<Selector_List*>(e->selector());
+    Selector_List* extendee = static_cast<Selector_List*>(org_extendee->perform(contextualize->with(0, env, backtrace)));
     if (extendee->length() != 1) {
       error("selector groups may not be extended", extendee->pstate(), backtrace);
     }
@@ -413,7 +414,7 @@ namespace Sass {
       error("nested selectors may not be extended", c->pstate(), backtrace);
     }
     Compound_Selector* s = c->head();
-
+    s->is_optional(org_extendee->is_optional());
     // // need to convert the compound selector into a by-value data structure
     // vector<string> target_vec;
     // for (size_t i = 0, L = s->length(); i < L; ++i)

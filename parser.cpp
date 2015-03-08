@@ -497,7 +497,9 @@ namespace Sass {
       (*group) << comb;
     }
     while (reloop);
-    while (lex< optional >());    // JMA - ignore optional flag if it follows the selector group
+    while (lex< optional >()) {
+      group->is_optional(true);
+    }
     return group;
   }
 

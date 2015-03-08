@@ -1704,6 +1704,8 @@ namespace Sass {
     ADD_PROPERTY(bool, has_line_feed);
     // line break after list separator
     ADD_PROPERTY(bool, has_line_break);
+    // maybe we have optional flag
+    ADD_PROPERTY(bool, is_optional);
     // parent media block (for extend check)
     ADD_PROPERTY(Media_Block*, media_block);
   public:
@@ -1713,6 +1715,7 @@ namespace Sass {
       has_placeholder_(h),
       has_line_feed_(false),
       has_line_break_(false),
+      is_optional_(false),
       media_block_(0)
     { }
     virtual ~Selector() = 0;
