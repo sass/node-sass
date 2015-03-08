@@ -94,6 +94,9 @@ extern "C" {
     // Used to create sourceMappingUrl
     char* source_map_file;
 
+    // option for sourceRoot property
+    char* source_map_root;
+
     // Custom functions that can be called from sccs code
     Sass_C_Function_List c_functions;
 
@@ -118,6 +121,7 @@ extern "C" {
     // error status
     int error_status;
     char* error_json;
+    char* error_text;
     char* error_message;
     // error position
     char* error_file;
@@ -229,6 +233,7 @@ extern "C" {
       msg_stream << e.pstate.path << ":" << e.pstate.line+1 << ": " << e.message << endl;
       c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = copy_c_str(msg_stream.str().c_str());
+      c_ctx->error_text = strdup(e.message.c_str());
       c_ctx->error_status = 1;
       c_ctx->error_file = copy_c_str(e.pstate.path.c_str());
       c_ctx->error_line = e.pstate.line+1;
@@ -245,6 +250,7 @@ extern "C" {
       json_append_member(json_err, "message", json_mkstring(ba.what()));
       c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = copy_c_str(msg_stream.str().c_str());
+      c_ctx->error_text = strdup(ba.what());
       c_ctx->error_status = 2;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -258,6 +264,7 @@ extern "C" {
       json_append_member(json_err, "message", json_mkstring(e.what()));
       c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = copy_c_str(msg_stream.str().c_str());
+      c_ctx->error_text = strdup(e.what());
       c_ctx->error_status = 3;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -271,6 +278,7 @@ extern "C" {
       json_append_member(json_err, "message", json_mkstring(e.c_str()));
       c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = copy_c_str(msg_stream.str().c_str());
+      c_ctx->error_text = strdup(e.c_str());
       c_ctx->error_status = 4;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -284,6 +292,7 @@ extern "C" {
       json_append_member(json_err, "message", json_mkstring("unknown"));
       c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = copy_c_str(msg_stream.str().c_str());
+      c_ctx->error_text = strdup("unknown");
       c_ctx->error_status = 5;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -343,6 +352,7 @@ extern "C" {
              .is_indented_syntax_src(c_ctx->is_indented_syntax_src)
              .source_comments(c_ctx->source_comments)
              .source_map_file(safe_str(c_ctx->source_map_file))
+             .source_map_root(safe_str(c_ctx->source_map_root))
              .source_map_embed(c_ctx->source_map_embed)
              .source_map_contents(c_ctx->source_map_contents)
              .omit_source_map_url(c_ctx->omit_source_map_url)
@@ -374,6 +384,7 @@ extern "C" {
 
       // reset error status
       c_ctx->error_json = 0;
+      c_ctx->error_text = 0;
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
       // reset error position
@@ -651,23 +662,27 @@ extern "C" {
     if (ctx->output_string)     free(ctx->output_string);
     if (ctx->source_map_string) free(ctx->source_map_string);
     if (ctx->error_message)     free(ctx->error_message);
+    if (ctx->error_text)        free(ctx->error_text);
     if (ctx->error_json)        free(ctx->error_json);
     if (ctx->error_file)        free(ctx->error_file);
     if (ctx->input_path)        free(ctx->input_path);
     if (ctx->output_path)       free(ctx->output_path);
     if (ctx->include_path)      free(ctx->include_path);
     if (ctx->source_map_file)   free(ctx->source_map_file);
+    if (ctx->source_map_root)   free(ctx->source_map_root);
     free_string_array(ctx->included_files);
     // play safe and reset properties
     ctx->output_string = 0;
     ctx->source_map_string = 0;
     ctx->error_message = 0;
+    ctx->error_text = 0;
     ctx->error_json = 0;
     ctx->error_file = 0;
     ctx->input_path = 0;
     ctx->output_path = 0;
     ctx->include_path = 0;
     ctx->source_map_file = 0;
+    ctx->source_map_root = 0;
     ctx->included_files = 0;
     // now clear the options
     sass_clear_options(ctx);
@@ -714,11 +729,13 @@ extern "C" {
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, plugin_path);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, include_path);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, source_map_file);
+  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, source_map_root);
 
   // Create getter and setters for context
   IMPLEMENT_SASS_CONTEXT_GETTER(int, error_status);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_json);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_message);
+  IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_text);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_file);
   IMPLEMENT_SASS_CONTEXT_GETTER(size_t, error_line);
   IMPLEMENT_SASS_CONTEXT_GETTER(size_t, error_column);
@@ -729,6 +746,7 @@ extern "C" {
   // Take ownership of memory (value on context is set to 0)
   IMPLEMENT_SASS_CONTEXT_TAKER(char*, error_json);
   IMPLEMENT_SASS_CONTEXT_TAKER(char*, error_message);
+  IMPLEMENT_SASS_CONTEXT_TAKER(char*, error_text);
   IMPLEMENT_SASS_CONTEXT_TAKER(char*, error_file);
   IMPLEMENT_SASS_CONTEXT_TAKER(char*, output_string);
   IMPLEMENT_SASS_CONTEXT_TAKER(char*, source_map_string);

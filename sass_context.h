@@ -73,6 +73,7 @@ ADDAPI const char* ADDCALL sass_option_get_output_path (struct Sass_Options* opt
 ADDAPI const char* ADDCALL sass_option_get_plugin_path (struct Sass_Options* options);
 ADDAPI const char* ADDCALL sass_option_get_include_path (struct Sass_Options* options);
 ADDAPI const char* ADDCALL sass_option_get_source_map_file (struct Sass_Options* options);
+ADDAPI const char* ADDCALL sass_option_get_source_map_root (struct Sass_Options* options);
 ADDAPI Sass_C_Function_List ADDCALL sass_option_get_c_functions (struct Sass_Options* options);
 ADDAPI Sass_C_Import_Callback ADDCALL sass_option_get_importer (struct Sass_Options* options);
 
@@ -91,6 +92,7 @@ ADDAPI void ADDCALL sass_option_set_output_path (struct Sass_Options* options, c
 ADDAPI void ADDCALL sass_option_set_plugin_path (struct Sass_Options* options, const char* plugin_path);
 ADDAPI void ADDCALL sass_option_set_include_path (struct Sass_Options* options, const char* include_path);
 ADDAPI void ADDCALL sass_option_set_source_map_file (struct Sass_Options* options, const char* source_map_file);
+ADDAPI void ADDCALL sass_option_set_source_map_root (struct Sass_Options* options, const char* source_map_root);
 ADDAPI void ADDCALL sass_option_set_c_functions (struct Sass_Options* options, Sass_C_Function_List c_functions);
 ADDAPI void ADDCALL sass_option_set_importer (struct Sass_Options* options, Sass_C_Import_Callback importer);
 
@@ -99,6 +101,7 @@ ADDAPI void ADDCALL sass_option_set_importer (struct Sass_Options* options, Sass
 ADDAPI const char* ADDCALL sass_context_get_output_string (struct Sass_Context* ctx);
 ADDAPI int ADDCALL sass_context_get_error_status (struct Sass_Context* ctx);
 ADDAPI const char* ADDCALL sass_context_get_error_json (struct Sass_Context* ctx);
+ADDAPI const char* ADDCALL sass_context_get_error_text (struct Sass_Context* ctx);
 ADDAPI const char* ADDCALL sass_context_get_error_message (struct Sass_Context* ctx);
 ADDAPI const char* ADDCALL sass_context_get_error_file (struct Sass_Context* ctx);
 ADDAPI size_t ADDCALL sass_context_get_error_line (struct Sass_Context* ctx);
@@ -108,6 +111,7 @@ ADDAPI char** ADDCALL sass_context_get_included_files (struct Sass_Context* ctx)
 
 // Take ownership of memory (value on context is set to 0)
 ADDAPI char* ADDCALL sass_context_take_error_json (struct Sass_Context* ctx);
+ADDAPI char* ADDCALL sass_context_take_error_text (struct Sass_Context* ctx);
 ADDAPI char* ADDCALL sass_context_take_error_message (struct Sass_Context* ctx);
 ADDAPI char* ADDCALL sass_context_take_error_file (struct Sass_Context* ctx);
 ADDAPI char* ADDCALL sass_context_take_output_string (struct Sass_Context* ctx);

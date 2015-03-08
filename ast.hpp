@@ -409,7 +409,13 @@ namespace Sass {
     At_Rule(ParserState pstate, string kwd, Selector* sel = 0, Block* b = 0)
     : Has_Block(pstate, b), keyword_(kwd), selector_(sel), value_(0) // set value manually if needed
     { statement_type(DIRECTIVE); }
-    bool bubbles() { return true; }
+    bool bubbles() { return is_keyframes() || is_media(); }
+    bool is_media() {
+      return keyword_.compare("@-webkit-media") == 0 ||
+             keyword_.compare("@-moz-media") == 0 ||
+             keyword_.compare("@-o-media") == 0 ||
+             keyword_.compare("@media") == 0;
+    }
     bool is_keyframes() {
       return keyword_.compare("@-webkit-keyframes") == 0 ||
              keyword_.compare("@-moz-keyframes") == 0 ||

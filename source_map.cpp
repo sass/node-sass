@@ -21,9 +21,15 @@ namespace Sass {
     const vector<string> includes = ctx.include_links;
     const vector<const char*> sources = ctx.sources;
 
-    JsonNode *json_srcmap = json_mkobject();
+    JsonNode* json_srcmap = json_mkobject();
 
     json_append_member(json_srcmap, "version", json_mknumber(3));
+
+    // pass-through sourceRoot option
+    if (!ctx.source_map_root.empty()) {
+      JsonNode* root = json_mkstring(ctx.source_map_root.c_str());
+      json_append_member(json_srcmap, "sourceRoot", root);
+    }
 
     const char *include = file.c_str();
     JsonNode *json_include = json_mkstring(include);

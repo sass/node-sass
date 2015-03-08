@@ -66,6 +66,7 @@ namespace Sass {
     source_comments         (initializers.source_comments()),
     output_style            (initializers.output_style()),
     source_map_file         (make_canonical_path(initializers.source_map_file())),
+    source_map_root         (initializers.source_map_root()), // pass-through
     source_map_embed        (initializers.source_map_embed()),
     source_map_contents     (initializers.source_map_contents()),
     omit_source_map_url     (initializers.omit_source_map_url()),

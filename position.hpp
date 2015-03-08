@@ -96,8 +96,8 @@ namespace Sass {
     public: // c-tor
       ParserState(string path);
       ParserState(string path, const size_t file);
-      ParserState(string path, Position position, Offset offset);
-      ParserState(string path, Token token, Position position, Offset offset);
+      ParserState(string path, Position position, Offset offset = Offset(0, 0));
+      ParserState(string path, Token token, Position position, Offset offset = Offset(0, 0));
 
     public: // down casts
       Offset off() { return *this; };

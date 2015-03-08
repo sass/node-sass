@@ -37,6 +37,8 @@ ADDAPI struct Sass_Import** ADDCALL sass_make_import_list (size_t length);
 // Creator for a single import entry returned by the custom importer inside the list
 ADDAPI struct Sass_Import* ADDCALL sass_make_import_entry (const char* path, char* source, char* srcmap);
 ADDAPI struct Sass_Import* ADDCALL sass_make_import (const char* path, const char* base, char* source, char* srcmap);
+// set error message to abort import and to print out a message (path from existing object is used in output)
+ADDAPI struct Sass_Import* ADDCALL sass_import_set_error(struct Sass_Import* import, const char* message, size_t line, size_t col);
 
 // Setters to insert an entry into the import list (you may also use [] access directly)
 // Since we are dealing with pointers they should have a guaranteed and fixed size
@@ -52,6 +54,10 @@ ADDAPI const char* ADDCALL sass_import_get_srcmap (struct Sass_Import*);
 // The property on our struct will be reset to NULL
 ADDAPI char* ADDCALL sass_import_take_source (struct Sass_Import*);
 ADDAPI char* ADDCALL sass_import_take_srcmap (struct Sass_Import*);
+// Getters from import error entry
+ADDAPI size_t ADDCALL sass_import_get_error_line (struct Sass_Import*);
+ADDAPI size_t ADDCALL sass_import_get_error_column (struct Sass_Import*);
+ADDAPI const char* ADDCALL sass_import_get_error_message (struct Sass_Import*);
 
 // Deallocator for associated memory (incl. entries)
 ADDAPI void ADDCALL sass_delete_import_list (struct Sass_Import**);

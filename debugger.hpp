@@ -86,7 +86,7 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
       " <" << prettyprint(selector->pstate().token.ws_before()) << "> X <" << prettyprint(selector->pstate().token.ws_after()) << ">" << endl;
   } else if (dynamic_cast<Selector_Placeholder*>(node)) {
     Selector_Placeholder* selector = dynamic_cast<Selector_Placeholder*>(node);
-    cerr << ind << "Selector_Placeholder " << selector << (selector->has_line_break() ? " [line-break]": " -") << (selector->has_line_feed() ? " [line-feed]": " -") << endl;
+    cerr << ind << "Selector_Placeholder [" << selector->name() << "] " << selector << (selector->has_line_break() ? " [line-break]": " -") << (selector->has_line_feed() ? " [line-feed]": " -") << endl;
   } else if (dynamic_cast<Selector_Reference*>(node)) {
     Selector_Reference* selector = dynamic_cast<Selector_Reference*>(node);
     cerr << ind << "Selector_Reference " << selector << " @ref " << selector->selector() << endl;
@@ -161,7 +161,7 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     debug_ast(block->value(), ind + " value: ", env);
   } else if (dynamic_cast<At_Rule*>(node)) {
     At_Rule* block = dynamic_cast<At_Rule*>(node);
-    cerr << ind << "At_Rule " << block << " " << block->tabs() << endl;
+    cerr << ind << "At_Rule " << block << " [" << block->keyword() << "] " << block->tabs() << endl;
     debug_ast(block->value(), ind + "+", env);
     debug_ast(block->selector(), ind + "~", env);
     if (block->block()) for(auto i : block->block()->elements()) { debug_ast(i, ind + " ", env); }
