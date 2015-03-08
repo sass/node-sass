@@ -728,7 +728,7 @@ namespace Sass {
     bool semicolon = false;
     Selector_Lookahead lookahead_result;
     Block* block = new (ctx.mem) Block(pstate);
-
+    lex< spaces_and_comments >();
     // JMA - ensure that a block containing only block_comments is parsed
     while (lex< block_comment >()) {
       bool is_important = lexed.begin[2] == '!';
@@ -774,6 +774,9 @@ namespace Sass {
       else if (lex< variable >()) {
         (*block) << parse_assignment();
         semicolon = true;
+      }
+      else if (lex< line_comment >()) {
+        // throw line comments away
       }
       else if (peek< if_directive >()) {
         (*block) << parse_if_directive();

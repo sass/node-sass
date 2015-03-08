@@ -604,7 +604,7 @@ namespace Sass {
     string name(v->name());
     Expression* value = 0;
     if (env->has(name)) value = static_cast<Expression*>((*env)[name]);
-    else error("unbound variable " + v->name(), v->pstate());
+    else error("Undefined variable: \"" + v->name() + "\".", v->pstate());
     // cerr << "name: " << v->name() << "; type: " << typeid(*value).name() << "; value: " << value->perform(&to_string) << endl;
     if (typeid(*value) == typeid(Argument)) value = static_cast<Argument*>(value)->value();
 
@@ -770,7 +770,7 @@ namespace Sass {
     } else if (Variable* var = dynamic_cast<Variable*>(s)) {
 
       string name(var->name());
-      if (!env->has(name)) return name;
+      if (!env->has(name)) error("Undefined variable: \"" + var->name() + "\".", var->pstate());
       Expression* value = static_cast<Expression*>((*env)[name]);
       return evacuate_quotes(interpolation(value));
 

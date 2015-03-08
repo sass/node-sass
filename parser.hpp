@@ -147,6 +147,9 @@ namespace Sass {
       else if (mx == optional_spaces_and_comments) {
         it_before_token = position;
       }
+      else if (mx == spaces_and_comments) {
+        it_before_token = position;
+      }
 
       else if (mx == optional_spaces) {
         // ToDo: what are optiona_spaces ???
