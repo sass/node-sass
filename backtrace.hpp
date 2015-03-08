@@ -3,11 +3,8 @@
 
 #include <sstream>
 
-#include "position.hpp"
-
-#ifndef SASS_FILE
 #include "file.hpp"
-#endif
+#include "position.hpp"
 
 namespace Sass {
 

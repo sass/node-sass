@@ -458,6 +458,7 @@ namespace Sass {
     To_String to_string(&ctx);
     lex< optional_spaces_and_comments >();
     Selector_List* group = new (ctx.mem) Selector_List(pstate);
+    group->media_block(last_media_block);
     do {
       reloop = false;
       if (peek< exactly<'{'> >() ||
@@ -470,6 +471,7 @@ namespace Sass {
         ParserState sel_source_position = pstate;
         Selector_Reference* ref = new (ctx.mem) Selector_Reference(sel_source_position);
         Compound_Selector* ref_wrap = new (ctx.mem) Compound_Selector(sel_source_position);
+        ref_wrap->media_block(last_media_block);
         (*ref_wrap) << ref;
         if (!comb->head()) {
           comb->head(ref_wrap);
@@ -477,6 +479,7 @@ namespace Sass {
         }
         else {
           comb = new (ctx.mem) Complex_Selector(sel_source_position, Complex_Selector::ANCESTOR_OF, ref_wrap, comb);
+          comb->media_block(last_media_block);
           comb->has_reference(true);
         }
         if (peek_newline()) ref_wrap->has_line_break(true);
@@ -538,6 +541,7 @@ namespace Sass {
     }
     if (!sel_source_position.line) sel_source_position = before_token;
     Complex_Selector* cpx = new (ctx.mem) Complex_Selector(ParserState(path, sel_source_position, Offset(0, 0)), cmb, lhs, rhs);
+    cpx->media_block(last_media_block);
     if (cpx_lf) cpx->has_line_break(cpx_lf);
     return cpx;
   }
@@ -545,6 +549,7 @@ namespace Sass {
   Compound_Selector* Parser::parse_simple_selector_sequence()
   {
     Compound_Selector* seq = new (ctx.mem) Compound_Selector(pstate);
+    seq->media_block(last_media_block);
     bool sawsomething = false;
     if (lex< exactly<'&'> >()) {
       // if you see a &
@@ -600,7 +605,9 @@ namespace Sass {
       return parse_attribute_selector();
     }
     else if (lex< placeholder >()) {
-      return new (ctx.mem) Selector_Placeholder(pstate, unquote(lexed));
+      Selector_Placeholder* sel = new (ctx.mem) Selector_Placeholder(pstate, unquote(lexed));
+      sel->media_block(last_media_block);
+      return sel;
     }
     else {
       error("invalid selector after " + lexed.to_string(), pstate);
@@ -1643,9 +1650,13 @@ namespace Sass {
     if (!peek< exactly<'{'> >()) {
       error("expected '{' in media query", pstate);
     }
-    Block* block = parse_block();
+    Media_Block* media_block = new (ctx.mem) Media_Block(media_source_position, media_queries, 0);
+    Media_Block* prev_media_block = last_media_block;
+    last_media_block = media_block;
+    media_block->block(parse_block());
+    last_media_block = prev_media_block;
 
-    return new (ctx.mem) Media_Block(media_source_position, media_queries, block);
+    return media_block;
   }
 
   List* Parser::parse_media_queries()

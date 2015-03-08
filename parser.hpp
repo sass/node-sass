@@ -32,6 +32,7 @@ namespace Sass {
 
     Context& ctx;
     vector<Syntactic_Context> stack;
+    Media_Block* last_media_block;
     const char* source;
     const char* position;
     const char* end;
@@ -44,8 +45,8 @@ namespace Sass {
     Token lexed;
     bool in_at_root;
 
-    Parser(Context& ctx, ParserState pstate)
-    : ParserState(pstate), ctx(ctx), stack(vector<Syntactic_Context>()),
+    Parser(Context& ctx, const ParserState& pstate)
+    : ParserState(pstate), ctx(ctx), stack(0), last_media_block(0),
       source(0), position(0), end(0), before_token(pstate), after_token(pstate), pstate("[NULL]"), indentation(0)
     { in_at_root = false; stack.push_back(nothing); }
 

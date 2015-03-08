@@ -1675,7 +1675,21 @@ namespace Sass {
 
       if (pHead) {
         SubsetMapEntries entries = subsetMap.get_v(pHead->to_str_vec());
-
+        for (ExtensionPair ext : entries) {
+          // check if both selectors have the same media block parent
+          if (ext.first->media_block() == pComplexSelector->media_block()) continue;
+          stringstream err;
+          To_String to_string(&ctx);
+          string cwd(Sass::File::get_cwd());
+          // make path relative to the current directory
+          ParserState pstate(ext.second->pstate());
+          string rel_path(Sass::File::resolve_relative_path(pstate.path, cwd, cwd));
+          err << "You may not @extend an outer selector from within @media.\n";
+          err << "You may only @extend selectors within the same directive.\n";
+          err << "From \"@extend " << ext.second->perform(&to_string) << "\"";
+          err << " on line " << pstate.line+1 << " of " << rel_path << "\n";
+          error(err.str(), pComplexSelector->pstate());
+        }
         hasExtension = entries.size() > 0;
       }
 
@@ -1706,10 +1720,11 @@ namespace Sass {
     pComplexSelector->tail()->has_line_feed(pComplexSelector->has_line_feed());
 
     Node complexSelector = complexSelectorToNode(pComplexSelector, ctx);
-
+// debug_ast(pComplexSelector->parent());
     DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTEND COMPLEX: " << complexSelector)
 
     Node extendedNotExpanded = Node::createCollection();
+    // extendedNotExpanded.media_block = pComplexSelector->media_block();
 
     for (NodeDeque::iterator complexSelIter = complexSelector.collection()->begin(), complexSelIterEnd = complexSelector.collection()->end(); complexSelIter != complexSelIterEnd; ++complexSelIter) {
       Node& sseqOrOp = *complexSelIter;

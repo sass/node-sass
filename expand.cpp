@@ -70,22 +70,23 @@ namespace Sass {
     string str = isp.get_buffer();
     str += ";";
 
-    Parser p(ctx, ParserState("[REPARSE]", 0));
+    Parser p(ctx, r->pstate());
+    p.last_media_block = r->selector() ? r->selector()->media_block() : 0;
     p.source   = str.c_str();
     p.position = str.c_str();
     p.end      = str.c_str() + strlen(str.c_str());
     Selector_List* sel_lst = p.parse_selector_group();
-    sel_lst->pstate(isp.remap(sel_lst->pstate()));
+    // sel_lst->pstate(isp.remap(sel_lst->pstate()));
 
     for(size_t i = 0; i < sel_lst->length(); i++) {
 
       Complex_Selector* pIter = (*sel_lst)[i];
       while (pIter) {
         Compound_Selector* pHead = pIter->head();
-        pIter->pstate(isp.remap(pIter->pstate()));
+        // pIter->pstate(isp.remap(pIter->pstate()));
         if (pHead) {
-          pHead->pstate(isp.remap(pHead->pstate()));
-          (*pHead)[0]->pstate(isp.remap((*pHead)[0]->pstate()));
+          // pHead->pstate(isp.remap(pHead->pstate()));
+          // (*pHead)[0]->pstate(isp.remap((*pHead)[0]->pstate()));
         }
         pIter = pIter->tail();
       }
