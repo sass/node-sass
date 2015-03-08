@@ -1580,6 +1580,7 @@ namespace Sass {
       // out and aren't operated on.
       Complex_Selector* pNewSelector = pExtComplexSelector->cloneFully(ctx);
       Complex_Selector* pNewInnerMost = new (ctx.mem) Complex_Selector(pSelector->pstate(), Complex_Selector::ANCESTOR_OF, pUnifiedSelector, NULL);
+      // pNewInnerMost->media_block(pSelector->media_block());
       Complex_Selector::Combinator combinator = pNewSelector->clear_innermost();
       pNewSelector->set_innermost(pNewInnerMost, combinator);
 
@@ -1679,9 +1680,17 @@ namespace Sass {
         for (ExtensionPair ext : entries) {
           // check if both selectors have the same media block parent
           if (ext.first->media_block() == pComplexSelector->media_block()) continue;
+          To_String to_string(&ctx);
+          if (ext.second->media_block() && ext.second->media_block()->media_queries() &&
+              pComplexSelector->media_block() && pComplexSelector->media_block()->media_queries())
+          {
+            string query_left(ext.second->media_block()->media_queries()->perform(&to_string));
+            string query_right(pComplexSelector->media_block()->media_queries()->perform(&to_string));
+            if (query_left == query_right) continue;
+          }
+
           // fail if one goes across media block boundaries
           stringstream err;
-          To_String to_string(&ctx);
           string cwd(Sass::File::get_cwd());
           ParserState pstate(ext.second->pstate());
           string rel_path(Sass::File::resolve_relative_path(pstate.path, cwd, cwd));
@@ -1698,6 +1707,7 @@ namespace Sass {
     }
 
     if (!hasExtension) {
+      /* ToDo: don't break stuff
       stringstream err;
       To_String to_string(&ctx);
       string cwd(Sass::File::get_cwd());
@@ -1709,13 +1719,14 @@ namespace Sass {
           break;
         }
       }
-      if (!pExtendSelector->is_optional()) {
+      if (!pExtendSelector || !pExtendSelector->is_optional()) {
         string sel2(pExtendSelector ? pExtendSelector->perform(&to_string) : "[unknown]");
         err << "\"" << sel1 << "\" failed to @extend \"" << sel2 << "\"\n";
         err << "The selector \"" << sel2 << "\" was not found.\n";
         err << "Use \"@extend " << sel2 << " !optional\" if the extend should be able to fail.";
         error(err.str(), pExtendSelector ? pExtendSelector->pstate() : pComplexSelector->pstate());
       }
+      */
     }
 
     return hasExtension;

@@ -64,6 +64,7 @@ namespace Sass {
   {
     To_String to_string(&ctx);
     Complex_Selector* ss = new (ctx.mem) Complex_Selector(*s);
+    // ss->media_block(s->media_block());
     Compound_Selector* new_head = 0;
     Complex_Selector* new_tail = 0;
     if (ss->head()) {
@@ -72,6 +73,7 @@ namespace Sass {
     }
     if (ss->tail()) {
       new_tail = static_cast<Complex_Selector*>(s->tail()->perform(this));
+      // new_tail->media_block(s->media_block());
       ss->tail(new_tail);
     }
     if ((new_head && new_head->has_placeholder()) || (new_tail && new_tail->has_placeholder())) {
@@ -95,6 +97,7 @@ namespace Sass {
       return extender;
     }
     Compound_Selector* ss = new (ctx.mem) Compound_Selector(s->pstate(), s->length());
+    ss->media_block(s->media_block());
     ss->has_line_break(s->has_line_break());
     for (size_t i = 0, L = s->length(); i < L; ++i) {
       Simple_Selector* simp = static_cast<Simple_Selector*>((*s)[i]->perform(this));

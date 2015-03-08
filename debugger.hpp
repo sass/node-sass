@@ -124,10 +124,23 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
 
   } else if (dynamic_cast<Selector*>(node)) {
     Selector* selector = dynamic_cast<Selector*>(node);
-    cerr << ind << "Selector " << selector << (selector->has_line_break() ? " [line-break]": " -") << (selector->has_line_feed() ? " [line-feed]": " -") << endl;
+    cerr << ind << "Selector " << selector
+      << (selector->has_line_break() ? " [line-break]": " -")
+      << (selector->has_line_feed() ? " [line-feed]": " -")
+    << endl;
+  } else if (dynamic_cast<Media_Query*>(node)) {
+    Media_Query* block = dynamic_cast<Media_Query*>(node);
+    cerr << ind << "Media_Query " << block
+      << (block->is_negated() ? " [is_negated]": " -")
+      << (block->is_restricted() ? " [is_restricted]": " -")
+    << endl;
+    debug_ast(block->media_type(), ind + " ");
+
   } else if (dynamic_cast<Media_Block*>(node)) {
     Media_Block* block = dynamic_cast<Media_Block*>(node);
     cerr << ind << "Media_Block " << block << " " << block->tabs() << endl;
+    debug_ast(block->media_queries(), ind + " =@ ");
+    debug_ast(block->selector(), ind + " -@ ");
     if (block->block()) for(auto i : block->block()->elements()) { debug_ast(i, ind + " ", env); }
   } else if (dynamic_cast<Feature_Block*>(node)) {
     Feature_Block* block = dynamic_cast<Feature_Block*>(node);
