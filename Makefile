@@ -108,7 +108,6 @@ SOURCES = \
 	constants.cpp \
 	context.cpp \
 	contextualize.cpp \
-	copy_c_str.cpp \
 	cssize.cpp \
 	error_handling.cpp \
 	eval.cpp \

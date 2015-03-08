@@ -101,14 +101,14 @@ namespace Sass {
     // rr->tabs(r->block()->tabs());
     p_stack.pop_back();
 
-    Block* props = new Block(rr->block()->pstate());
+    Block* props = new (ctx.mem) Block(rr->block()->pstate());
     for (size_t i = 0, L = rr->block()->length(); i < L; i++)
     {
       Statement* s = (*rr->block())[i];
       if (!bubblable(s)) *props << s;
     }
 
-    Block* rules = new Block(rr->block()->pstate());
+    Block* rules = new (ctx.mem) Block(rr->block()->pstate());
     for (size_t i = 0, L = rr->block()->length(); i < L; i++)
     {
       Statement* s = (*rr->block())[i];
@@ -117,7 +117,7 @@ namespace Sass {
 
     if (props->length())
     {
-      Block* bb = new Block(rr->block()->pstate());
+      Block* bb = new (ctx.mem) Block(rr->block()->pstate());
       *bb += props;
       rr->block(bb);
 

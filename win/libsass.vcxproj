@@ -164,7 +164,6 @@
     <ClCompile Include="..\constants.cpp" />
     <ClCompile Include="..\context.cpp" />
     <ClCompile Include="..\contextualize.cpp" />
-    <ClCompile Include="..\copy_c_str.cpp" />
     <ClCompile Include="..\error_handling.cpp" />
     <ClCompile Include="..\eval.cpp" />
     <ClCompile Include="..\expand.cpp" />
@@ -209,7 +208,6 @@
     <ClInclude Include="..\constants.hpp" />
     <ClInclude Include="..\context.hpp" />
     <ClInclude Include="..\contextualize.hpp" />
-    <ClInclude Include="..\copy_c_str.hpp" />
     <ClInclude Include="..\debug.hpp" />
     <ClInclude Include="..\environment.hpp" />
     <ClInclude Include="..\error_handling.hpp" />
