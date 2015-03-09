@@ -12,7 +12,9 @@ function suite() {
   process.env.NODESASS_COV = 1;
 
   var coveralls = spawn(bin('coveralls'));
-  var mocha = spawn(bin('_mocha'), ['--reporter', 'mocha-lcov-reporter'], {
+
+  var args = [bin('_mocha')].concat(['--reporter', 'mocha-lcov-reporter']);
+  var mocha = spawn(process.execPath, args, {
     env: process.env
   });
 
