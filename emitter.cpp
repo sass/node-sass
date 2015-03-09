@@ -86,9 +86,16 @@ namespace Sass {
   }
 
   // prepend some text or token to the buffer
+  void Emitter::prepend_output(const OutputBuffer& output)
+  {
+    wbuf.smap.prepend(output);
+    wbuf.buffer = output.buffer + wbuf.buffer;
+  }
+
+  // prepend some text or token to the buffer
   void Emitter::prepend_string(const string& text)
   {
-    // update source-map for new text
+    wbuf.smap.prepend(Offset(text));
     wbuf.buffer = text + wbuf.buffer;
   }
 
@@ -104,12 +111,12 @@ namespace Sass {
       // add to buffer
       wbuf.buffer += out;
       // account for data in source-maps
-      wbuf.smap.update_column(out);
+      wbuf.smap.append(Offset(out));
     } else {
       // add to buffer
       wbuf.buffer += text;
       // account for data in source-maps
-      wbuf.smap.update_column(text);
+      wbuf.smap.append(Offset(text));
     }
   }
 

@@ -44,9 +44,8 @@ namespace Sass {
 
     // flush scheduled outputs
     inspect.finalize();
-    // create combined buffer string
-    wbuf.buffer = inspect.buffer()
-                + this->buffer();
+    // prepend buffer on top
+    prepend_output(inspect.output());
     // make sure we end with a linefeed
     if (!ends_with(wbuf.buffer, ctx->linefeed)) {
       // if the output is not completely empty

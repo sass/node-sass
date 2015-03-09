@@ -9,17 +9,6 @@ namespace Sass {
   class Context;
   using namespace std;
 
-  class OutputBuffer {
-    public:
-      OutputBuffer(void)
-      : buffer(""),
-        smap()
-      { }
-    public:
-      string buffer;
-      SourceMap smap;
-  };
-
   class Emitter {
 
     public:
@@ -31,6 +20,7 @@ namespace Sass {
     public:
       const string buffer(void) { return wbuf.buffer; }
       const SourceMap smap(void) { return wbuf.smap; }
+      const OutputBuffer output(void) { return wbuf; }
       // proxy methods for source maps
       void add_source_index(size_t idx);
       void set_filename(const string& str);
@@ -64,6 +54,7 @@ namespace Sass {
       void flush_schedules(void);
       // prepend some text or token to the buffer
       void prepend_string(const string& text);
+      void prepend_output(const OutputBuffer& out);
       // append some text or token to the buffer
       void append_string(const string& text);
       // append some white-space only text

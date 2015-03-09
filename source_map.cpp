@@ -112,15 +112,51 @@ namespace Sass {
     return result;
   }
 
-  void SourceMap::update_column(const string& str)
+  void SourceMap::prepend(const OutputBuffer& out)
   {
-    const ptrdiff_t new_line_count = std::count(str.begin(), str.end(), '\n');
-    current_position.line += new_line_count;
-    if (new_line_count > 0) {
-      current_position.column = str.size() - str.find_last_of('\n') - 1;
-    } else {
-      current_position.column += str.size();
+    Offset size(out.smap.current_position);
+    for (Mapping mapping : out.smap.mappings) {
+      if (mapping.generated_position.line > size.line) {
+        throw(runtime_error("prepend sourcemap has illegal line"));
+      }
+      if (mapping.generated_position.line == size.line) {
+        if (mapping.generated_position.column > size.column) {
+          throw(runtime_error("prepend sourcemap has illegal column"));
+        }
+      }
     }
+    // will adjust the offset
+    prepend(Offset(out.buffer));
+    // now add the new mappings
+    VECTOR_UNSHIFT(mappings, out.smap.mappings);
+  }
+
+  void SourceMap::append(const OutputBuffer& out)
+  {
+    append(Offset(out.buffer));
+  }
+
+  void SourceMap::prepend(const Offset& offset)
+  {
+    if (offset.line != 0 || offset.column != 0) {
+      for (Mapping& mapping : mappings) {
+        // move stuff on the first old line
+        if (mapping.generated_position.line == 0) {
+          mapping.generated_position.column += offset.column;
+        }
+        // make place for the new lines
+        mapping.generated_position.line += offset.line;
+      }
+    }
+    if (current_position.line == 0) {
+      current_position.column += offset.column;
+    }
+    current_position.line += offset.line;
+  }
+
+  void SourceMap::append(const Offset& offset)
+  {
+    current_position += offset;
   }
 
   void SourceMap::add_open_mapping(AST_Node* node)

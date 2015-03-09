@@ -4,6 +4,18 @@ namespace Sass {
 
   using namespace std;
 
+  Offset::Offset(const char* string)
+  : line(0), column(0)
+  {
+    *this = inc(string, string + strlen(string));
+  }
+
+  Offset::Offset(const string& text)
+  : line(0), column(0)
+  {
+    *this = inc(text.c_str(), text.c_str() + text.size());
+  }
+
   Offset::Offset(const size_t line, const size_t column)
   : line(line), column(column) { }
 
@@ -34,7 +46,12 @@ namespace Sass {
     return line != pos.line || column != pos.column;
   }
 
-  const Offset Offset::operator+ (const Offset &off) const
+  void Offset::operator+= (const Offset &off)
+  {
+    *this = Offset(line + off.line, off.line > 0 ? off.column : off.column + column);
+  }
+
+  Offset Offset::operator+ (const Offset &off) const
   {
     return Offset(line + off.line, off.line > 0 ? off.column : off.column + column);
   }
@@ -67,7 +84,7 @@ namespace Sass {
   Position Position::inc(const char* begin, const char* end) const
   {
     Offset offset(line, column);
-    offset.inc(begin, end);
+    offset = offset.inc(begin, end);
     return Position(file, offset);
   }
 
@@ -79,6 +96,11 @@ namespace Sass {
   bool Position::operator!= (const Position &pos) const
   {
     return file == pos.file || line != pos.line || column != pos.column;
+  }
+
+  void Position::operator+= (const Offset &off)
+  {
+    *this = Position(file, line + off.line, off.line > 0 ? off.column : off.column + column);
   }
 
   const Position Position::operator+ (const Offset &off) const

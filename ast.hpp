@@ -44,6 +44,7 @@
 #include "ast_def_macros.hpp"
 #include "ast_fwd_decl.hpp"
 #include "to_string.hpp"
+#include "source_map.hpp"
 
 #include "sass.h"
 #include "sass_values.h"
