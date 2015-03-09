@@ -279,7 +279,8 @@ namespace Sass {
     if (!root) return 0;
     root->perform(&emitter);
     emitter.finalize();
-    string output = emitter.get_buffer();
+    OutputBuffer emitted = emitter.get_buffer();
+    string output = emitted.buffer;
     if (source_map_file != "" && !omit_source_map_url) {
       output += linefeed + format_source_mapping_url(source_map_file);
     }

@@ -8,6 +8,7 @@
 
 #include <cstring>
 #include <stdexcept>
+#include "file.hpp"
 #include "json.hpp"
 #include "util.hpp"
 #include "context.hpp"
@@ -224,13 +225,30 @@ extern "C" {
     }
     catch (Sass_Error& e) {
       stringstream msg_stream;
+      string cwd(Sass::File::get_cwd());
       JsonNode* json_err = json_mkobject();
       json_append_member(json_err, "status", json_mknumber(1));
       json_append_member(json_err, "file", json_mkstring(e.pstate.path.c_str()));
       json_append_member(json_err, "line", json_mknumber(e.pstate.line+1));
       json_append_member(json_err, "column", json_mknumber(e.pstate.column+1));
       json_append_member(json_err, "message", json_mkstring(e.message.c_str()));
-      msg_stream << e.pstate.path << ":" << e.pstate.line+1 << ": " << e.message << endl;
+      string rel_path(Sass::File::resolve_relative_path(e.pstate.path, cwd, cwd));
+
+      string msg_prefix("Error: ");
+      bool got_newline = false;
+      msg_stream << msg_prefix;
+      for (char chr : e.message) {
+        if (chr == '\n') {
+          got_newline = true;
+        } else if (got_newline) {
+          msg_stream << string(msg_prefix.size(), ' ');
+          got_newline = false;
+        }
+        msg_stream << chr;
+      }
+      if (!got_newline) msg_stream << "\n";
+      msg_stream << string(msg_prefix.size(), ' ');
+      msg_stream << " on line " << e.pstate.line+1 << " of " << rel_path << "\n";
       c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
       c_ctx->error_text = strdup(e.message.c_str());

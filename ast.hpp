@@ -44,6 +44,7 @@
 #include "ast_def_macros.hpp"
 #include "ast_fwd_decl.hpp"
 #include "to_string.hpp"
+#include "source_map.hpp"
 
 #include "sass.h"
 #include "sass_values.h"
@@ -1704,13 +1705,19 @@ namespace Sass {
     ADD_PROPERTY(bool, has_line_feed);
     // line break after list separator
     ADD_PROPERTY(bool, has_line_break);
+    // maybe we have optional flag
+    ADD_PROPERTY(bool, is_optional);
+    // parent media block (for extend check)
+    ADD_PROPERTY(Media_Block*, media_block);
   public:
     Selector(ParserState pstate, bool r = false, bool h = false)
     : AST_Node(pstate),
       has_reference_(r),
       has_placeholder_(h),
       has_line_feed_(false),
-      has_line_break_(false)
+      has_line_break_(false),
+      is_optional_(false),
+      media_block_(0)
     { }
     virtual ~Selector() = 0;
     // virtual Selector_Placeholder* find_placeholder();
@@ -1962,9 +1969,9 @@ namespace Sass {
     ADD_PROPERTY(Complex_Selector*, tail);
   public:
     Complex_Selector(ParserState pstate,
-                         Combinator c,
-                         Compound_Selector* h,
-                         Complex_Selector* t)
+                     Combinator c,
+                     Compound_Selector* h,
+                     Complex_Selector* t)
     : Selector(pstate), combinator_(c), head_(h), tail_(t)
     {
       if ((h && h->has_reference())   || (t && t->has_reference()))   has_reference(true);

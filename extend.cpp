@@ -235,6 +235,7 @@ namespace Sass {
     return os;
   }
 #endif
+
   static bool parentSuperselector(Complex_Selector* pOne, Complex_Selector* pTwo, Context& ctx) {
     // TODO: figure out a better way to create a Complex_Selector from scratch
     // TODO: There's got to be a better way. This got ugly quick...
@@ -1674,11 +1675,56 @@ namespace Sass {
 
       if (pHead) {
         SubsetMapEntries entries = subsetMap.get_v(pHead->to_str_vec());
+        for (ExtensionPair ext : entries) {
+          // check if both selectors have the same media block parent
+          if (ext.first->media_block() == pComplexSelector->media_block()) continue;
+          To_String to_string(&ctx);
+          if (ext.second->media_block() && ext.second->media_block()->media_queries() &&
+              pComplexSelector->media_block() && pComplexSelector->media_block()->media_queries())
+          {
+            string query_left(ext.second->media_block()->media_queries()->perform(&to_string));
+            string query_right(pComplexSelector->media_block()->media_queries()->perform(&to_string));
+            if (query_left == query_right) continue;
+          }
 
-        hasExtension = entries.size() > 0;
+          // fail if one goes across media block boundaries
+          stringstream err;
+          string cwd(Sass::File::get_cwd());
+          ParserState pstate(ext.second->pstate());
+          string rel_path(Sass::File::resolve_relative_path(pstate.path, cwd, cwd));
+          err << "You may not @extend an outer selector from within @media.\n";
+          err << "You may only @extend selectors within the same directive.\n";
+          err << "From \"@extend " << ext.second->perform(&to_string) << "\"";
+          err << " on line " << pstate.line+1 << " of " << rel_path << "\n";
+          error(err.str(), pComplexSelector->pstate());
+        }
+        if (entries.size() > 0) hasExtension = true;
       }
 
       pIter = pIter->tail();
+    }
+
+    if (!hasExtension) {
+      /* ToDo: don't break stuff
+      stringstream err;
+      To_String to_string(&ctx);
+      string cwd(Sass::File::get_cwd());
+      string sel1(pComplexSelector->perform(&to_string));
+      Compound_Selector* pExtendSelector = 0;
+      for (auto i : subsetMap.values()) {
+        if (i.first == pComplexSelector) {
+          pExtendSelector = i.second;
+          break;
+        }
+      }
+      if (!pExtendSelector || !pExtendSelector->is_optional()) {
+        string sel2(pExtendSelector ? pExtendSelector->perform(&to_string) : "[unknown]");
+        err << "\"" << sel1 << "\" failed to @extend \"" << sel2 << "\"\n";
+        err << "The selector \"" << sel2 << "\" was not found.\n";
+        err << "Use \"@extend " << sel2 << " !optional\" if the extend should be able to fail.";
+        error(err.str(), pExtendSelector ? pExtendSelector->pstate() : pComplexSelector->pstate());
+      }
+      */
     }
 
     return hasExtension;
@@ -1705,7 +1751,6 @@ namespace Sass {
     pComplexSelector->tail()->has_line_feed(pComplexSelector->has_line_feed());
 
     Node complexSelector = complexSelectorToNode(pComplexSelector, ctx);
-
     DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTEND COMPLEX: " << complexSelector)
 
     Node extendedNotExpanded = Node::createCollection();

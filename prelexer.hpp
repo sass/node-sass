@@ -396,6 +396,8 @@ namespace Sass {
     const char* quoted_string(const char* src);
     // Match interpolants.
     const char* interpolant(const char* src);
+    // Match number prefix ([\+\-]+)
+    const char* number_prefix(const char* src);
 
     // Whitespace handling.
     const char* optional_spaces(const char* src);

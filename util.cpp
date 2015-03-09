@@ -21,6 +21,16 @@ namespace Sass {
     return ret;
   }
 
+  /* Locale unspecific atof function. */
+  double sass_atof(const char *str)
+  {
+    char* locale = setlocale(LC_NUMERIC, NULL);
+    setlocale(LC_NUMERIC, "C");
+    double val = atof(str);
+    setlocale(LC_NUMERIC, locale);
+    return val;
+  }
+
   // double escape every escape sequences
   // escape unescaped quotes and backslashes
   string string_escape(const string& str)

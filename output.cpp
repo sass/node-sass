@@ -24,7 +24,7 @@ namespace Sass {
     top_imports.push_back(imp);
   }
 
-  string Output::get_buffer(void)
+  OutputBuffer Output::get_buffer(void)
   {
 
     Emitter emitter(ctx);
@@ -44,17 +44,16 @@ namespace Sass {
 
     // flush scheduled outputs
     inspect.finalize();
-    // create combined buffer string
-    string buffer = inspect.buffer()
-                  + this->buffer();
+    // prepend buffer on top
+    prepend_output(inspect.output());
     // make sure we end with a linefeed
-    if (!ends_with(buffer, ctx->linefeed)) {
+    if (!ends_with(wbuf.buffer, ctx->linefeed)) {
       // if the output is not completely empty
-      if (!buffer.empty()) buffer += ctx->linefeed;
+      if (!wbuf.buffer.empty()) append_string(ctx->linefeed);
     }
 
     // search for unicode char
-    for(const char& chr : buffer) {
+    for(const char& chr : wbuf.buffer) {
       // skip all ascii chars
       if (chr >= 0) continue;
       // declare the charset
@@ -67,7 +66,9 @@ namespace Sass {
     }
 
     // add charset as first line, before comments and imports
-    return (charset.empty() ? "" : charset) + buffer;
+    if (!charset.empty()) prepend_string(charset);
+
+    return wbuf;
 
   }
 
