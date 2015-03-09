@@ -565,6 +565,9 @@ namespace Sass {
     bool sawsomething = false;
     if (lex< exactly<'&'> >()) {
       // if you see a &
+      if (block_stack.size() == 0) {
+        error("Base-level rules cannot contain the parent-selector-referencing character '&'.", pstate);
+      }
       (*seq) << new (ctx.mem) Selector_Reference(pstate);
       sawsomething = true;
       // if you see a space after a &, then you're done
@@ -738,6 +741,7 @@ namespace Sass {
     bool semicolon = false;
     Selector_Lookahead lookahead_result;
     Block* block = new (ctx.mem) Block(pstate);
+    block_stack.push_back(block);
     lex< zero_plus < alternatives < space, line_comment > > >();
     // JMA - ensure that a block containing only block_comments is parsed
     while (lex< block_comment >()) {
@@ -909,6 +913,7 @@ namespace Sass {
         (*block) << comment;
       }
     }
+    block_stack.pop_back();
     return block;
   }
 

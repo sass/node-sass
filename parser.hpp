@@ -31,6 +31,7 @@ namespace Sass {
     enum Syntactic_Context { nothing, mixin_def, function_def };
 
     Context& ctx;
+    vector<Block*> block_stack;
     vector<Syntactic_Context> stack;
     Media_Block* last_media_block;
     const char* source;
@@ -46,7 +47,7 @@ namespace Sass {
     bool in_at_root;
 
     Parser(Context& ctx, const ParserState& pstate)
-    : ParserState(pstate), ctx(ctx), stack(0), last_media_block(0),
+    : ParserState(pstate), ctx(ctx), block_stack(0), stack(0), last_media_block(0),
       source(0), position(0), end(0), before_token(pstate), after_token(pstate), pstate("[NULL]"), indentation(0)
     { in_at_root = false; stack.push_back(nothing); }
 
