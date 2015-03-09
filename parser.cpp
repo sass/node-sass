@@ -402,7 +402,6 @@ namespace Sass {
       property_segment = new (ctx.mem) String_Quoted(pstate, lexed);
     }
     Propset* propset = new (ctx.mem) Propset(pstate, property_segment);
-    // debug_ast(property_segment);
     lex< exactly<':'> >();
 
     if (!peek< exactly<'{'> >()) error("expected a '{' after namespaced property", pstate);
@@ -941,6 +940,22 @@ namespace Sass {
     }
   }
 
+  // parse +/- and return false if negative
+  bool Parser::parse_number_prefix()
+  {
+    bool positive = true;
+    while(true) {
+      if (lex < block_comment >()) continue;
+      if (lex < number_prefix >()) continue;
+      if (lex < exactly < '-' > >()) {
+        positive = !positive;
+        continue;
+      }
+      break;
+    }
+    return positive;
+  }
+
   Expression* Parser::parse_map()
   {
     To_String to_string(&ctx);
@@ -1203,6 +1218,10 @@ namespace Sass {
     else if (lex< sequence< not_op, spaces_and_comments > >()) {
       return new (ctx.mem) Unary_Expression(pstate, Unary_Expression::NOT, parse_factor());
     }
+    else if (peek < sequence < one_plus < alternatives < spaces_and_comments, exactly<'-'>, exactly<'+'> > >, number > >()) {
+      if (parse_number_prefix()) return parse_value(); // prefix is positive
+      return new (ctx.mem) Unary_Expression(pstate, Unary_Expression::MINUS, parse_value());
+    }
     else {
       return parse_value();
     }
@@ -1210,10 +1229,7 @@ namespace Sass {
 
   Expression* Parser::parse_value()
   {
-
-    // ToDo: Move where
     while (lex< block_comment >());
-
     if (lex< uri_prefix >()) {
       Arguments* args = new (ctx.mem) Arguments(pstate);
       Function_Call* result = new (ctx.mem) Function_Call(pstate, "url", args);

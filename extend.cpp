@@ -5,7 +5,6 @@
 #include "backtrace.hpp"
 #include "paths.hpp"
 #include "parser.hpp"
-#include "debugger.hpp"
 #include "node.hpp"
 #include "sass_util.hpp"
 #include "debug.hpp"
@@ -1580,7 +1579,6 @@ namespace Sass {
       // out and aren't operated on.
       Complex_Selector* pNewSelector = pExtComplexSelector->cloneFully(ctx);
       Complex_Selector* pNewInnerMost = new (ctx.mem) Complex_Selector(pSelector->pstate(), Complex_Selector::ANCESTOR_OF, pUnifiedSelector, NULL);
-      // pNewInnerMost->media_block(pSelector->media_block());
       Complex_Selector::Combinator combinator = pNewSelector->clear_innermost();
       pNewSelector->set_innermost(pNewInnerMost, combinator);
 
@@ -1753,11 +1751,9 @@ namespace Sass {
     pComplexSelector->tail()->has_line_feed(pComplexSelector->has_line_feed());
 
     Node complexSelector = complexSelectorToNode(pComplexSelector, ctx);
-// debug_ast(pComplexSelector->parent());
     DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTEND COMPLEX: " << complexSelector)
 
     Node extendedNotExpanded = Node::createCollection();
-    // extendedNotExpanded.media_block = pComplexSelector->media_block();
 
     for (NodeDeque::iterator complexSelIter = complexSelector.collection()->begin(), complexSelIterEnd = complexSelector.collection()->end(); complexSelIter != complexSelIterEnd; ++complexSelIter) {
       Node& sseqOrOp = *complexSelIter;

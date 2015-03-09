@@ -147,6 +147,18 @@ namespace Sass {
       return sequence< exactly<'-'>, exactly<'-'>, identifier >(src);
     }
 
+    // Match number prefix ([\+\-]+)
+    const char* number_prefix(const char* src) {
+      return alternatives <
+        exactly < '+' >,
+        sequence <
+          exactly < '-' >,
+          optional_spaces_and_comments,
+          exactly< '-' >
+        >
+      >(src);
+    }
+
     // Match interpolant schemas
     const char* identifier_schema(const char* src) {
       // follows this pattern: (x*ix*)+ ... well, not quite
