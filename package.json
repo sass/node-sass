@@ -61,7 +61,7 @@
     "cross-spawn": "^0.2.6",
     "jscoverage": "^0.5.9",
     "jshint": "^2.6.3",
-    "mocha": "^2.2.0",
+    "mocha": "^2.2.1",
     "mocha-lcov-reporter": "^0.0.2"
   }
 }
