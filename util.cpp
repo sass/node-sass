@@ -24,11 +24,24 @@ namespace Sass {
   /* Locale unspecific atof function. */
   double sass_atof(const char *str)
   {
-    char* locale = setlocale(LC_NUMERIC, NULL);
-    setlocale(LC_NUMERIC, "C");
-    double val = atof(str);
-    setlocale(LC_NUMERIC, locale);
-    return val;
+    char separator = *(localeconv()->decimal_point);
+    if(separator != '.'){
+      // The current locale specifies another
+      // separator. convert the separator to the 
+      // one understood by the locale if needed
+      const char *found = strchr(str, '.');
+      if(found != NULL){
+        // substitution is required. perform the substitution on a copy
+        // of the string. This is slower but it is thread safe.
+        char *copy = sass_strdup(str);
+        *(copy + (found - str)) = separator;
+        double res = atof(copy);
+        free(copy);
+        return res;
+      }
+    }
+
+    return atof(str);
   }
 
   // double escape every escape sequences
