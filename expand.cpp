@@ -71,6 +71,7 @@ namespace Sass {
     str += ";";
 
     Parser p(ctx, r->pstate());
+    p.block_stack.push_back(r->selector() ? r->selector()->last_block() : 0);
     p.last_media_block = r->selector() ? r->selector()->media_block() : 0;
     p.source   = str.c_str();
     p.position = str.c_str();

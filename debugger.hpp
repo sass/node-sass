@@ -40,7 +40,9 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     Selector_List* selector = dynamic_cast<Selector_List*>(node);
 
     cerr << ind << "Selector_List " << selector
-      << " [mq:" << selector->media_block() << "]"
+      << " [block:" << selector->last_block() << "]"
+      << (selector->last_block() && selector->last_block()->is_root() ? " [root]" : "")
+      << " [@media:" << selector->media_block() << "]"
       << (selector->is_optional() ? " [is_optional]": " -")
       << (selector->has_line_break() ? " [line-break]": " -")
       << (selector->has_line_feed() ? " [line-feed]": " -")
@@ -55,7 +57,9 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
   } else if (dynamic_cast<Complex_Selector*>(node)) {
     Complex_Selector* selector = dynamic_cast<Complex_Selector*>(node);
     cerr << ind << "Complex_Selector " << selector
-      << " [mq:" << selector->media_block() << "]"
+      << " [block:" << selector->last_block() << "]"
+      << (selector->last_block() && selector->last_block()->is_root() ? " [root]" : "")
+      << " [@media:" << selector->media_block() << "]"
       << (selector->is_optional() ? " [is_optional]": " -")
       << (selector->has_line_break() ? " [line-break]": " -")
       << (selector->has_line_feed() ? " [line-feed]": " -") << " -> ";
@@ -71,7 +75,9 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
   } else if (dynamic_cast<Compound_Selector*>(node)) {
     Compound_Selector* selector = dynamic_cast<Compound_Selector*>(node);
     cerr << ind << "Compound_Selector " << selector
-      << " [mq:" << selector->media_block() << "]"
+      << " [block:" << selector->last_block() << "]"
+      << (selector->last_block() && selector->last_block()->is_root() ? " [root]" : "")
+      << " [@media:" << selector->media_block() << "]"
       << (selector->is_optional() ? " [is_optional]": " -")
       << (selector->has_line_break() ? " [line-break]": " -")
       << (selector->has_line_feed() ? " [line-feed]": " -") <<
@@ -104,7 +110,8 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
 
     Selector_Placeholder* selector = dynamic_cast<Selector_Placeholder*>(node);
     cerr << ind << "Selector_Placeholder [" << selector->name() << "] " << selector
-      << " [mq:" << selector->media_block() << "]"
+      << " [block:" << selector->last_block() << "]"
+      << " [@media:" << selector->media_block() << "]"
       << (selector->is_optional() ? " [is_optional]": " -")
       << (selector->has_line_break() ? " [line-break]": " -")
       << (selector->has_line_feed() ? " [line-feed]": " -")
@@ -119,7 +126,14 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
 
   } else if (dynamic_cast<Selector_Schema*>(node)) {
     Selector_Schema* selector = dynamic_cast<Selector_Schema*>(node);
-    cerr << ind << "Selector_Schema " << selector << (selector->has_line_break() ? " [line-break]": " -") << (selector->has_line_feed() ? " [line-feed]": " -") << endl;
+    cerr << ind << "Selector_Schema " << selector
+      << " [block:" << selector->last_block() << "]"
+      << (selector->last_block() && selector->last_block()->is_root() ? " [root]" : "")
+      << " [@media:" << selector->media_block() << "]"
+      << (selector->has_line_break() ? " [line-break]": " -")
+      << (selector->has_line_feed() ? " [line-feed]": " -")
+    << endl;
+
     debug_ast(selector->contents(), ind + " ");
     // for(auto i : selector->elements()) { debug_ast(i, ind + " ", env); }
 

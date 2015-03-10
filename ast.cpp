@@ -416,6 +416,7 @@ namespace Sass {
     if (!head()) return tail()->context(ctx);
     Complex_Selector* cpy = new (ctx.mem) Complex_Selector(pstate(), combinator(), head(), tail()->context(ctx));
     cpy->media_block(media_block());
+    cpy->last_block(last_block());
     return cpy;
   }
 

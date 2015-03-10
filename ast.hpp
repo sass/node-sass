@@ -1707,7 +1707,8 @@ namespace Sass {
     ADD_PROPERTY(bool, has_line_break);
     // maybe we have optional flag
     ADD_PROPERTY(bool, is_optional);
-    // parent media block (for extend check)
+    // parent block pointers
+    ADD_PROPERTY(Block*, last_block);
     ADD_PROPERTY(Media_Block*, media_block);
   public:
     Selector(ParserState pstate, bool r = false, bool h = false)
