@@ -1,3 +1,6 @@
+/*!
+ * node-sass: test/api.js
+ */
 var assert = require('assert'),
     fs = require('fs'),
     path = require('path'),
@@ -104,20 +107,20 @@ describe('api', function() {
     });
 
     it('should throw error when libsass binary is missing.', function(done) {
-      var originalBin = path.join('vendor', process.sassBinaryName, 'binding.node'),
-          renamedBin = [originalBin, '_moved'].join('');
+      var pathMapping = {};
 
       assert.throws(function() {
         // un-require node-sass
-        var resolved = require.resolve('../lib');
-        delete require.cache[resolved];
-
-        fs.renameSync(originalBin, renamedBin);
-        // try to re-require it
-        require('../lib');
+        var tmp;
+        while( (tmp=sass.getBinding())) {
+          pathMapping[tmp] = tmp + '.tmp';
+          fs.renameSync(tmp, pathMapping[tmp]);
+        }
       }, function(err) {
         if ((err instanceof Error) && /`libsass` bindings not found. Try reinstalling `node-sass`?/.test(err)) {
-          fs.renameSync(renamedBin, originalBin);
+          Object.keys(pathMapping).forEach(function (key) {
+            fs.renameSync(pathMapping[key], key);
+          });
           done();
           return true;
         }
