@@ -103,23 +103,6 @@ describe('api', function() {
       });
     });
 
-    it('should throw error when libsass binary is missing.', function(done) {
-      var originalBin = process.sass.binaryPath,
-          renamedBin = [originalBin, '_moved'].join('');
-
-      assert.throws(function() {
-        fs.renameSync(originalBin, renamedBin);
-        process.sass.getBinaryPath(true);
-      }, function(err) {
-        fs.renameSync(renamedBin, originalBin);
-
-        if ((err instanceof Error) && /`libsass` bindings not found. Try reinstalling `node-sass`?/.test(err)) {
-          done();
-          return true;
-        }
-      });
-    });
-
     it('should render with --precision option', function(done) {
       var src = read(fixture('precision/index.scss'), 'utf8');
       var expected = read(fixture('precision/expected.css'), 'utf8').trim();
@@ -727,6 +710,89 @@ describe('api', function() {
       assert(info.indexOf('[C/C++]') > 0);
 
       done();
+    });
+  });
+
+  describe('extensions', function() {
+    it('should use the binary path and name set in package.json.', function(done) {
+      var packagePath = require.resolve('../package'),
+          extensionsPath = require.resolve('../lib/extensions');
+
+      delete require.cache[extensionsPath];
+
+      require.cache[packagePath].exports.nodeSassConfig = { binaryName: 'foo', binaryPath: 'bar' };
+      require(extensionsPath);
+
+      assert.equal(process.sass.binaryName, 'foo_binding.node');
+      assert.equal(process.sass.binaryPath, 'bar');
+
+      delete require.cache[packagePath];
+      delete require.cache[extensionsPath];
+
+      require(extensionsPath);
+
+      done();
+    });
+
+    it('should use the binary path and name set as environment variable.', function(done) {
+      var extensionsPath = require.resolve('../lib/extensions');
+
+      delete require.cache[extensionsPath];
+
+      process.env.SASS_BINARY_NAME = 'foo';
+      process.env.SASS_BINARY_PATH = 'bar';
+
+      require(extensionsPath);
+
+      assert.equal(process.sass.binaryName, 'foo_binding.node');
+      assert.equal(process.sass.binaryPath, 'bar');
+
+      delete process.env.SASS_BINARY_NAME;
+      delete process.env.SASS_BINARY_PATH;
+      delete require.cache[extensionsPath];
+
+      require(extensionsPath);
+
+      done();
+    });
+
+    it('should use the binary path and name set as process argument.', function(done) {
+      var extensionsPath = require.resolve('../lib/extensions'),
+          argv = process.argv;
+
+      delete require.cache[extensionsPath];
+
+      process.argv = argv.concat(['--binary-name', 'foo', '--binary-path', 'bar']);
+
+      require(extensionsPath);
+
+      assert.equal(process.sass.binaryName, 'foo_binding.node');
+      assert.equal(process.sass.binaryPath, 'bar');
+
+      process.argv = argv;
+
+      delete require.cache[extensionsPath];
+
+      require(extensionsPath);
+
+      done();
+    });
+
+    it('should throw error when libsass binary is missing.', function(done) {
+      var originalBin = process.sass.binaryPath,
+          renamedBin = [originalBin, '_moved'].join('');
+
+      assert.throws(function() {
+        fs.renameSync(originalBin, renamedBin);
+        process.sass.getBinaryPath(true);
+      }, function(err) {
+        fs.renameSync(renamedBin, originalBin);
+
+        if ((err instanceof Error) && /`libsass` bindings not found. Try reinstalling `node-sass`?/.test(err)) {
+          done();
+          return true;
+        }
+      });
     });
   });
 });
