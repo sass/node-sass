@@ -22,6 +22,9 @@ namespace Sass {
     p.source   = str;
     p.position = p.source;
     p.end      = str + strlen(str);
+    Block* root = new (ctx.mem) Block(pstate);
+    p.block_stack.push_back(root);
+    root->is_root(true);
     return p;
   }
 
@@ -31,6 +34,9 @@ namespace Sass {
     p.source   = beg;
     p.position = p.source;
     p.end      = end;
+    Block* root = new (ctx.mem) Block(pstate);
+    p.block_stack.push_back(root);
+    root->is_root(true);
     return p;
   }
 
@@ -45,12 +51,16 @@ namespace Sass {
     p.source   = t.begin;
     p.position = p.source;
     p.end      = t.end;
+    Block* root = new (ctx.mem) Block(pstate);
+    p.block_stack.push_back(root);
+    root->is_root(true);
     return p;
   }
 
   Block* Parser::parse()
   {
     Block* root = new (ctx.mem) Block(pstate);
+    block_stack.push_back(root);
     root->is_root(true);
     read_bom();
     lex< optional_spaces >();
@@ -143,6 +153,7 @@ namespace Sass {
       }
       lex< optional_spaces >();
     }
+    block_stack.pop_back();
     return root;
   }
 
@@ -282,8 +293,7 @@ namespace Sass {
         do (*params) << parse_parameter();
         while (lex< alternatives < spaces,block_comment, exactly<','> > >());
       }
-    while (lex< alternatives < spaces, block_comment > >());
-      if (!peek< exactly<')'> >()) cerr << "BALAB [" << position << "]\n";
+      while (lex< alternatives < spaces, block_comment > >()) {};
       if (!lex< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name, pstate);
     }
     return params;
@@ -337,7 +347,6 @@ namespace Sass {
         while (lex< alternatives < block_comment, exactly<','> > >());
       }
       while (lex< block_comment >());
-      if (!peek< exactly<')'> >()) cerr << "BALAB [" << position << "]\n";
       if (!lex< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name, pstate);
     }
 
@@ -352,7 +361,7 @@ namespace Sass {
       lex< variable >();
       string name(Util::normalize_underscores(lexed));
       ParserState p = pstate;
-    while (lex< alternatives < spaces, block_comment > >());
+      while (lex< alternatives < spaces, block_comment > >()) {};
       lex< exactly<':'> >();
       Expression* val = parse_space_list();
       val->is_delayed(false);
@@ -458,7 +467,10 @@ namespace Sass {
       }
     }
     position = end_of_selector;
-    return new (ctx.mem) Selector_Schema(pstate, schema);
+    Selector_Schema* selector_schema = new (ctx.mem) Selector_Schema(pstate, schema);
+    selector_schema->media_block(last_media_block);
+    selector_schema->last_block(block_stack.back());
+    return selector_schema;
   }
 
   Selector_List* Parser::parse_selector_group()
@@ -468,6 +480,7 @@ namespace Sass {
     lex< optional_spaces_and_comments >();
     Selector_List* group = new (ctx.mem) Selector_List(pstate);
     group->media_block(last_media_block);
+    group->last_block(block_stack.back());
     do {
       reloop = false;
       if (peek< exactly<'{'> >() ||
@@ -481,6 +494,7 @@ namespace Sass {
         Selector_Reference* ref = new (ctx.mem) Selector_Reference(sel_source_position);
         Compound_Selector* ref_wrap = new (ctx.mem) Compound_Selector(sel_source_position);
         ref_wrap->media_block(last_media_block);
+        ref_wrap->last_block(block_stack.back());
         (*ref_wrap) << ref;
         if (!comb->head()) {
           comb->head(ref_wrap);
@@ -489,6 +503,7 @@ namespace Sass {
         else {
           comb = new (ctx.mem) Complex_Selector(sel_source_position, Complex_Selector::ANCESTOR_OF, ref_wrap, comb);
           comb->media_block(last_media_block);
+          comb->last_block(block_stack.back());
           comb->has_reference(true);
         }
         if (peek_newline()) ref_wrap->has_line_break(true);
@@ -551,8 +566,9 @@ namespace Sass {
       sel_source_position = before_token;
     }
     if (!sel_source_position.line) sel_source_position = before_token;
-    Complex_Selector* cpx = new (ctx.mem) Complex_Selector(ParserState(path, sel_source_position, Offset(0, 0)), cmb, lhs, rhs);
+    Complex_Selector* cpx = new (ctx.mem) Complex_Selector(ParserState(path, sel_source_position), cmb, lhs, rhs);
     cpx->media_block(last_media_block);
+    cpx->last_block(block_stack.back());
     if (cpx_lf) cpx->has_line_break(cpx_lf);
     return cpx;
   }
@@ -561,10 +577,11 @@ namespace Sass {
   {
     Compound_Selector* seq = new (ctx.mem) Compound_Selector(pstate);
     seq->media_block(last_media_block);
+    seq->last_block(block_stack.back());
     bool sawsomething = false;
     if (lex< exactly<'&'> >()) {
-      // if you see a &
-      if (block_stack.size() == 0) {
+      // check if we have a parent selector on the root level block
+      if (block_stack.back() && block_stack.back()->is_root()) {
         error("Base-level rules cannot contain the parent-selector-referencing character '&'.", pstate);
       }
       (*seq) << new (ctx.mem) Selector_Reference(pstate);
@@ -621,6 +638,7 @@ namespace Sass {
     else if (lex< placeholder >()) {
       Selector_Placeholder* sel = new (ctx.mem) Selector_Placeholder(pstate, unquote(lexed));
       sel->media_block(last_media_block);
+      sel->last_block(block_stack.back());
       return sel;
     }
     else {

@@ -31,7 +31,10 @@ namespace Sass {
     To_String to_string(&ctx);
     string result_str(s->contents()->perform(eval->with(env, backtrace))->perform(&to_string));
     result_str += '{'; // the parser looks for a brace to end the selector
-    Selector* result_sel = Parser::from_c_str(result_str.c_str(), ctx, s->pstate()).parse_selector_group();
+    Parser p = Parser::from_c_str(result_str.c_str(), ctx, s->pstate());
+    p.block_stack.push_back(s->last_block());
+    p.last_media_block = s->media_block();
+    Selector* result_sel = p.parse_selector_group();
     return result_sel->perform(this);
   }
 
@@ -64,6 +67,7 @@ namespace Sass {
   {
     To_String to_string(&ctx);
     Complex_Selector* ss = new (ctx.mem) Complex_Selector(*s);
+    // ss->last_block(s->last_block());
     // ss->media_block(s->media_block());
     Compound_Selector* new_head = 0;
     Complex_Selector* new_tail = 0;
@@ -73,6 +77,7 @@ namespace Sass {
     }
     if (ss->tail()) {
       new_tail = static_cast<Complex_Selector*>(s->tail()->perform(this));
+      // new_tail->last_block(s->last_block());
       // new_tail->media_block(s->media_block());
       ss->tail(new_tail);
     }
@@ -97,6 +102,7 @@ namespace Sass {
       return extender;
     }
     Compound_Selector* ss = new (ctx.mem) Compound_Selector(s->pstate(), s->length());
+    ss->last_block(s->last_block());
     ss->media_block(s->media_block());
     ss->has_line_break(s->has_line_break());
     for (size_t i = 0, L = s->length(); i < L; ++i) {
