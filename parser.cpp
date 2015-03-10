@@ -293,8 +293,7 @@ namespace Sass {
         do (*params) << parse_parameter();
         while (lex< alternatives < spaces,block_comment, exactly<','> > >());
       }
-    while (lex< alternatives < spaces, block_comment > >());
-      if (!peek< exactly<')'> >()) cerr << "BALAB [" << position << "]\n";
+      while (lex< alternatives < spaces, block_comment > >()) {};
       if (!lex< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name, pstate);
     }
     return params;
@@ -348,7 +347,6 @@ namespace Sass {
         while (lex< alternatives < block_comment, exactly<','> > >());
       }
       while (lex< block_comment >());
-      if (!peek< exactly<')'> >()) cerr << "BALAB [" << position << "]\n";
       if (!lex< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name, pstate);
     }
 
@@ -363,7 +361,7 @@ namespace Sass {
       lex< variable >();
       string name(Util::normalize_underscores(lexed));
       ParserState p = pstate;
-    while (lex< alternatives < spaces, block_comment > >());
+      while (lex< alternatives < spaces, block_comment > >()) {};
       lex< exactly<':'> >();
       Expression* val = parse_space_list();
       val->is_delayed(false);
