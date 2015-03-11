@@ -1,7 +1,7 @@
 Name:           libsass
-Version:        3.1.0
+Version:        %{version}
 Release:        1%{?dist}
-Summary:        A C/C++ implementation of a Sass compiler 
+Summary:        A C/C++ implementation of a Sass compiler
 
 License:        MIT
 URL:            http://libsass.org
