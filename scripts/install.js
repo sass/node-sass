@@ -32,6 +32,8 @@ function download(url, dest, cb) {
       }
 
       response.pipe(fs.createWriteStream(dest));
+
+      cb();
     }).on('error', returnError);
   });
 }
@@ -75,11 +77,10 @@ function applyProxy(options, cb) {
 function checkAndDownloadBinary() {
   try {
     process.sass.getBinaryPath(true);
-  } catch (e) {
     return;
-  }
+  } catch (e) { }
 
-  mkdirp(path.dirname(process.sass.binaryPath), function(err) {
+  mkdir(path.dirname(process.sass.binaryPath), function(err) {
     if (err) {
       console.error(err);
       return;
