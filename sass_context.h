@@ -50,7 +50,7 @@ ADDAPI void ADDCALL sass_delete_data_context (struct Sass_Data_Context* ctx);
 ADDAPI struct Sass_Context* ADDCALL sass_file_context_get_context (struct Sass_File_Context* file_ctx);
 ADDAPI struct Sass_Context* ADDCALL sass_data_context_get_context (struct Sass_Data_Context* data_ctx);
 
-// Getters for context options from Sass_Context
+// Getters for Context_Options from Sass_Context
 ADDAPI struct Sass_Options* ADDCALL sass_context_get_options (struct Sass_Context* ctx);
 ADDAPI struct Sass_Options* ADDCALL sass_file_context_get_options (struct Sass_File_Context* file_ctx);
 ADDAPI struct Sass_Options* ADDCALL sass_data_context_get_options (struct Sass_Data_Context* data_ctx);
@@ -58,7 +58,7 @@ ADDAPI void ADDCALL sass_file_context_set_options (struct Sass_File_Context* fil
 ADDAPI void ADDCALL sass_data_context_set_options (struct Sass_Data_Context* data_ctx, struct Sass_Options* opt);
 
 
-// Getters for options
+// Getters for Context_Option values
 ADDAPI int ADDCALL sass_option_get_precision (struct Sass_Options* options);
 ADDAPI enum Sass_Output_Style ADDCALL sass_option_get_output_style (struct Sass_Options* options);
 ADDAPI bool ADDCALL sass_option_get_source_comments (struct Sass_Options* options);
@@ -77,7 +77,7 @@ ADDAPI const char* ADDCALL sass_option_get_source_map_root (struct Sass_Options*
 ADDAPI Sass_C_Function_List ADDCALL sass_option_get_c_functions (struct Sass_Options* options);
 ADDAPI Sass_C_Import_Callback ADDCALL sass_option_get_importer (struct Sass_Options* options);
 
-// Setters for options
+// Setters for Context_Option values
 ADDAPI void ADDCALL sass_option_set_precision (struct Sass_Options* options, int precision);
 ADDAPI void ADDCALL sass_option_set_output_style (struct Sass_Options* options, enum Sass_Output_Style output_style);
 ADDAPI void ADDCALL sass_option_set_source_comments (struct Sass_Options* options, bool source_comments);
@@ -97,7 +97,7 @@ ADDAPI void ADDCALL sass_option_set_c_functions (struct Sass_Options* options, S
 ADDAPI void ADDCALL sass_option_set_importer (struct Sass_Options* options, Sass_C_Import_Callback importer);
 
 
-// Getter for context
+// Getters for Sass_Context values
 ADDAPI const char* ADDCALL sass_context_get_output_string (struct Sass_Context* ctx);
 ADDAPI int ADDCALL sass_context_get_error_status (struct Sass_Context* ctx);
 ADDAPI const char* ADDCALL sass_context_get_error_json (struct Sass_Context* ctx);
@@ -117,7 +117,7 @@ ADDAPI char* ADDCALL sass_context_take_error_file (struct Sass_Context* ctx);
 ADDAPI char* ADDCALL sass_context_take_output_string (struct Sass_Context* ctx);
 ADDAPI char* ADDCALL sass_context_take_source_map_string (struct Sass_Context* ctx);
 
-// Push function for include paths (no manipulation support for now)
+// Push function for paths (no manipulation support for now)
 ADDAPI void ADDCALL sass_option_push_plugin_path (struct Sass_Options* options, const char* path);
 ADDAPI void ADDCALL sass_option_push_include_path (struct Sass_Options* options, const char* path);
 
