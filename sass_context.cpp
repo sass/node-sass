@@ -95,7 +95,7 @@ extern "C" {
     // Used to create sourceMappingUrl
     char* source_map_file;
 
-    // Custom functions that can be called from sccs code
+    // Directly inserted in source maps
     char* source_map_root;
 
     // Custom functions that can be called from sccs code

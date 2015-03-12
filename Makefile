@@ -18,7 +18,11 @@ else
 		ifneq (,$(findstring mingw32,$(MAKE)))
 			UNAME := MinGW
 		else
-			UNAME := $(shell uname -s)
+			ifneq (,$(findstring MINGW32,$(shell uname -s)))
+				UNAME = MinGW
+			else
+				UNAME := $(shell uname -s)
+			endif
 		endif
 	endif
 endif
