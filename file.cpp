@@ -146,6 +146,12 @@ namespace Sass {
       string absolute_uri = make_absolute_path(uri, cwd);
       string absolute_base = make_absolute_path(base, cwd);
 
+      #ifdef _WIN32
+        // absolute link must have a drive letter, and we know that we
+        // can only create relative links if both are on the same drive
+        if (absolute_base[0] != absolute_uri[0]) return absolute_uri;
+      #endif
+
       string stripped_uri = "";
       string stripped_base = "";
 

@@ -1,5 +1,6 @@
 # Miscellaneous stuff
 
+VERSION
 .DS_Store
 .sass-cache
 *.gem
