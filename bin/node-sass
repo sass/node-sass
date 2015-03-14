@@ -54,7 +54,8 @@ var cli = meow({
     'include-path',
     'output',
     'output-style',
-    'precision'
+    'precision',
+    'watch'
   ],
   alias: {
     c: 'source-comments',
@@ -125,7 +126,7 @@ function getEmitter() {
  */
 
 function getOptions(args, options) {
-  options.src = args[0];
+  options.src = options.watch ? options.watch : args[0];
 
   if (args[1]) {
     options.dest = path.resolve(process.cwd(), args[1]);
@@ -227,15 +228,14 @@ function run(options, emitter) {
  * Arguments and options
  */
 
-var input = cli.input;
-var options = getOptions(input, cli.flags);
+var options = getOptions(cli.input, cli.flags);
 var emitter = getEmitter();
 
 /**
  * Show usage if no arguments are supplied
  */
 
-if (!input.length && process.stdin.isTTY) {
+if (!options.src && process.stdin.isTTY) {
   emitter.emit('error', [
     'Provide a Sass file to render',
     '',
