@@ -15,7 +15,6 @@ environment:
     ruby_version: "21-x64"
 
 cache:
-  - C:\mingw64
   - C:\Ruby%ruby_version%\lib\ruby\gems
 
 install:
@@ -64,7 +63,7 @@ test_script:
         ruby sass-spec\sass-spec.rb -c sassc\bin\sassc.exe -s --ignore-todo sass-spec/spec
       } else {
         if ($env:Config -eq "Debug") {
-          echo test runner in debug mode build via msvc will throw debug assertions
+          echo "test runner in debug mode build via msvc will throw debug assertions"
           echo ruby sass-spec\sass-spec.rb -c win\bin\Debug\sassc.exe -s --ignore-todo sass-spec/spec
         } else {
           ruby sass-spec\sass-spec.rb -c win\bin\sassc.exe -s --ignore-todo sass-spec/spec
