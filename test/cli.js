@@ -73,7 +73,7 @@ describe('cli', function() {
       var dest = fixture('simple/index.css');
       var bin = spawn(cli, [src, dest]);
 
-      bin.on('close', function() {
+      bin.once('close', function() {
         assert(fs.existsSync(dest));
         fs.unlinkSync(dest);
         process.chdir(__dirname);
@@ -88,7 +88,7 @@ describe('cli', function() {
       var dest = fixture('simple/index-custom.css');
       var bin = spawn(cli, [src, dest]);
 
-      bin.on('close', function() {
+      bin.once('close', function() {
         assert(fs.existsSync(dest));
         fs.unlinkSync(dest);
         process.chdir(__dirname);
@@ -118,7 +118,7 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--watch']);
       var exited;
 
-      bin.on('close', function() {
+      bin.once('close', function() {
         exited = true;
       });
 
@@ -133,15 +133,15 @@ describe('cli', function() {
     });
 
     it('should emit `warn` on file change when using --watch option', function(done) {
-      fs.writeFileSync(fixture('simple/tmp.scss'), '');
-
       var src = fixture('simple/tmp.scss');
-      var bin = spawn(cli, [src, '--watch']);
+
+      fs.writeFileSync(src, '');
+
+      var bin = spawn(cli, ['--watch', src]);
 
       bin.stderr.setEncoding('utf8');
-      bin.stderr.on('data', function(data) {
+      bin.stderr.once('data', function(data) {
         assert(data.trim() === '=> changed: ' + src);
-        bin.kill();
         fs.unlinkSync(src);
         done();
       });
@@ -152,27 +152,24 @@ describe('cli', function() {
     });
 
     it('should render all watched files', function(done) {
-      fs.writeFileSync(fixture('simple/foo.scss'), '');
-      fs.writeFileSync(fixture('simple/bar.scss'), '');
+      var src = fixture('simple/bar.scss');
 
-      var src = fixture('simple/foo.scss');
-      var watched = fixture('simple/bar.scss');
+      fs.writeFileSync(src, '');
+
       var bin = spawn(cli, [
-        src, '--watch', watched,
-        '--output-style', 'compressed'
+        '--output-style', 'compressed',
+        '--watch', src
       ]);
 
       bin.stdout.setEncoding('utf8');
-      bin.stdout.on('data', function(data) {
+      bin.stdout.once('data', function(data) {
         assert(data.trim() === 'body{background:white}');
-        bin.kill();
         fs.unlinkSync(src);
-        fs.unlinkSync(watched);
         done();
       });
 
       setTimeout(function() {
-        fs.appendFileSync(watched, 'body{background:white}');
+        fs.appendFileSync(src, 'body{background:white}');
       }, 500);
     });
   });
@@ -183,7 +180,7 @@ describe('cli', function() {
       var dest = fixture('simple/index.css');
       var bin = spawn(cli, [src, '--output', path.dirname(dest)]);
 
-      bin.on('close', function() {
+      bin.once('close', function() {
         assert(fs.existsSync(dest));
         fs.unlinkSync(dest);
         done();
@@ -198,7 +195,7 @@ describe('cli', function() {
       var expectedMap = read(fixture('source-map/expected.map'), 'utf8').trim().replace(/\r\n/g, '\n');
       var bin = spawn(cli, [src, '--output', path.dirname(destCss), '--source-map', destMap]);
 
-      bin.on('close', function() {
+      bin.once('close', function() {
         assert.equal(read(destCss, 'utf8').trim(), expectedCss);
         assert.equal(read(destMap, 'utf8').trim(), expectedMap);
         fs.unlinkSync(destCss);
@@ -216,7 +213,7 @@ describe('cli', function() {
         '--source-map', map, '--omit-source-map-url'
       ]);
 
-      bin.on('close', function() {
+      bin.once('close', function() {
         assert(read(dest, 'utf8').indexOf('sourceMappingURL') === -1);
         assert(fs.existsSync(map));
         fs.unlinkSync(map);
@@ -232,7 +229,7 @@ describe('cli', function() {
       var dest = fixture('output-directory/path/to/file/index.css');
       var bin = spawn(cli, [src, '--output', path.dirname(dest)]);
 
-      bin.on('close', function() {
+      bin.once('close', function() {
         assert(fs.existsSync(path.dirname(dest)));
         fs.unlinkSync(dest);
         fs.rmdirSync(path.dirname(dest));
@@ -257,7 +254,7 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_file_and_data_cb.js')
       ]);
 
-      bin.on('close', function() {
+      bin.once('close', function() {
         assert.equal(read(dest, 'utf8').trim(), expected);
         fs.unlinkSync(dest);
         done();
@@ -270,7 +267,7 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_file_cb.js')
       ]);
 
-      bin.on('close', function() {
+      bin.once('close', function() {
         if (fs.existsSync(dest)) {
           assert.equal(read(dest, 'utf8').trim(), '');
           fs.unlinkSync(dest);
@@ -286,7 +283,7 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_data_cb.js')
       ]);
 
-      bin.on('close', function() {
+      bin.once('close', function() {
         assert.equal(read(dest, 'utf8').trim(), expected);
         fs.unlinkSync(dest);
         done();
@@ -299,7 +296,7 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_file_and_data.js')
       ]);
 
-      bin.on('close', function() {
+      bin.once('close', function() {
         assert.equal(read(dest, 'utf8').trim(), expected);
         fs.unlinkSync(dest);
         done();
@@ -312,7 +309,7 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_file.js')
       ]);
 
-      bin.on('close', function() {
+      bin.once('close', function() {
         if (fs.existsSync(dest)) {
           assert.equal(read(dest, 'utf8').trim(), '');
           fs.unlinkSync(dest);
@@ -328,7 +325,7 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_data.js')
       ]);
 
-      bin.on('close', function() {
+      bin.once('close', function() {
         assert.equal(read(dest, 'utf8').trim(), expected);
         fs.unlinkSync(dest);
         done();
@@ -341,7 +338,7 @@ describe('cli', function() {
         '--importer', fixture('non/existing/path')
       ]);
 
-      bin.on('close', function(code) {
+      bin.once('close', function(code) {
         assert(code !== 0);
         done();
       });
