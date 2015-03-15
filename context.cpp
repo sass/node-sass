@@ -118,8 +118,10 @@ namespace Sass {
   Context::~Context()
   {
     // everything that gets put into sources will be freed by us
-    for (size_t i = 0; i < sources.size(); ++i) delete[] sources[i];
     for (size_t n = 0; n < import_stack.size(); ++n) sass_delete_import(import_stack[n]);
+    // sources are allocated by strdup or malloc (overtaken from C code)
+    for (size_t i = 0; i < sources.size(); ++i) free((void*)sources[i]);
+    // clear inner structures (vectors)
     sources.clear(); import_stack.clear();
   }
 
