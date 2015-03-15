@@ -7,6 +7,7 @@ var assert = require('assert'),
     util = require('./util');
 
 describe('spec', function() {
+  this.timeout(0);
   var suites = util.getSuites();
 
   describe('test/sass-spec directory', function() {

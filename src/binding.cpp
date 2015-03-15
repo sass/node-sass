@@ -272,7 +272,7 @@ NAN_METHOD(render_sync) {
 
   int result = get_result(ctx_w, ctx, true);
 
-  sass_wrapper_dispose(ctx_w, source_string);
+  sass_free_context_wrapper(ctx_w);
 
   NanReturnValue(NanNew<Boolean>(result == 0));
 }
