@@ -147,7 +147,7 @@ namespace Sass {
         lex< one_plus< exactly<';'> > >();
       }
       else {
-        lex< optional_spaces_and_comments >();
+        lex< css_whitespace >();
         if (position >= end) break;
         error("invalid top-level expression", pstate);
       }
@@ -477,7 +477,7 @@ namespace Sass {
   {
     bool reloop = true;
     To_String to_string(&ctx);
-    lex< optional_spaces_and_comments >();
+    lex< css_whitespace >();
     Selector_List* group = new (ctx.mem) Selector_List(pstate);
     group->media_block(last_media_block);
     group->last_block(block_stack.back());
@@ -508,10 +508,10 @@ namespace Sass {
         }
         if (peek_newline()) ref_wrap->has_line_break(true);
       }
-      while (peek< sequence< optional_spaces_and_comments, exactly<','> > >())
+      while (peek< sequence< optional_css_whitespace, optional < block_comment >, exactly<','> > >())
       {
         // consume everything up and including the comma speparator
-        reloop = lex< sequence< optional_spaces_and_comments, exactly<','> > >() != 0;
+        reloop = lex< sequence< optional_css_comments, exactly<','> > >() != 0;
         // remember line break (also between some commas)
         if (peek_newline()) comb->has_line_feed(true);
         if (comb->tail() && peek_newline()) comb->tail()->has_line_feed(true);
@@ -529,7 +529,6 @@ namespace Sass {
 
   Complex_Selector* Parser::parse_selector_combination()
   {
-    // lex< optional_spaces_and_comments >();
     Position sel_source_position(-1);
     Compound_Selector* lhs;
     if (peek< exactly<'+'> >() ||
@@ -685,7 +684,7 @@ namespace Sass {
       else if (peek< sequence< optional<sign>,
                                optional<digits>,
                                exactly<'n'>,
-                               optional_spaces_and_comments,
+                               optional_css_whitespace,
                                exactly<')'> > >()) {
         lex< sequence< optional<sign>,
                        optional<digits>,
@@ -695,7 +694,7 @@ namespace Sass {
       else if (lex< sequence< optional<sign>, digits > >()) {
         expr = new (ctx.mem) String_Quoted(p, lexed);
       }
-      else if (peek< sequence< identifier, optional_spaces_and_comments, exactly<')'> > >()) {
+      else if (peek< sequence< identifier, optional_css_whitespace, exactly<')'> > >()) {
         lex< identifier >();
         expr = new (ctx.mem) String_Quoted(p, lexed);
       }
@@ -1227,16 +1226,16 @@ namespace Sass {
     else if (peek< functional >() && !peek< uri_prefix >()) {
       return parse_function_call();
     }
-    else if (lex< sequence< exactly<'+'>, optional_spaces_and_comments, negate< number > > >()) {
+    else if (lex< sequence< exactly<'+'>, optional_css_whitespace, negate< number > > >()) {
       return new (ctx.mem) Unary_Expression(pstate, Unary_Expression::PLUS, parse_factor());
     }
-    else if (lex< sequence< exactly<'-'>, optional_spaces_and_comments, negate< number> > >()) {
+    else if (lex< sequence< exactly<'-'>, optional_css_whitespace, negate< number> > >()) {
       return new (ctx.mem) Unary_Expression(pstate, Unary_Expression::MINUS, parse_factor());
     }
-    else if (lex< sequence< not_op, spaces_and_comments > >()) {
+    else if (lex< sequence< not_op, css_whitespace > >()) {
       return new (ctx.mem) Unary_Expression(pstate, Unary_Expression::NOT, parse_factor());
     }
-    else if (peek < sequence < one_plus < alternatives < spaces_and_comments, exactly<'-'>, exactly<'+'> > >, number > >()) {
+    else if (peek < sequence < one_plus < alternatives < css_whitespace, exactly<'-'>, exactly<'+'> > >, number > >()) {
       if (parse_number_prefix()) return parse_value(); // prefix is positive
       return new (ctx.mem) Unary_Expression(pstate, Unary_Expression::MINUS, parse_value());
     }
@@ -1671,7 +1670,7 @@ namespace Sass {
     if (!lex< variable >()) error("@each directive requires an iteration variable", pstate);
     vector<string> vars;
     vars.push_back(Util::normalize_underscores(lexed));
-    while (peek< exactly<','> >() && lex< exactly<','> >()) {
+    while (lex< exactly<','> >()) {
       if (!lex< variable >()) error("@each directive requires an iteration variable", pstate);
       vars.push_back(Util::normalize_underscores(lexed));
     }
@@ -1977,7 +1976,7 @@ namespace Sass {
            (q = peek< sequence< pseudo_prefix, identifier > >(p))  ||
            (q = peek< percentage >(p))                             ||
            (q = peek< dimension >(p))                              ||
-           (q = peek< quoted_string >(p))                        ||
+           (q = peek< quoted_string >(p))                          ||
            (q = peek< exactly<'*'> >(p))                           ||
            (q = peek< exactly<'('> >(p))                           ||
            (q = peek< exactly<')'> >(p))                           ||
@@ -1989,6 +1988,7 @@ namespace Sass {
            (q = peek< exactly<','> >(p))                           ||
            (saw_stuff && (q = peek< exactly<'-'> >(p)))            ||
            (q = peek< binomial >(p))                               ||
+           (q = peek< block_comment >(p))                          ||
            (q = peek< sequence< optional<sign>,
                                 optional<digits>,
                                 exactly<'n'> > >(p))               ||
@@ -2036,7 +2036,7 @@ namespace Sass {
            (q = peek< sequence< pseudo_prefix, identifier > >(p))  ||
            (q = peek< percentage >(p))                             ||
            (q = peek< dimension >(p))                              ||
-           (q = peek< quoted_string >(p))                        ||
+           (q = peek< quoted_string >(p))                          ||
            (q = peek< exactly<'*'> >(p))                           ||
            (q = peek< exactly<'('> >(p))                           ||
            (q = peek< exactly<')'> >(p))                           ||
@@ -2048,6 +2048,7 @@ namespace Sass {
            (q = peek< exactly<','> >(p))                           ||
            (saw_stuff && (q = peek< exactly<'-'> >(p)))            ||
            (q = peek< binomial >(p))                               ||
+           (q = peek< block_comment >(p))                          ||
            (q = peek< sequence< optional<sign>,
                                 optional<digits>,
                                 exactly<'n'> > >(p))               ||

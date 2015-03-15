@@ -380,10 +380,12 @@ namespace Sass {
 
   bool peek_linefeed(const char* start)
   {
-    if(*start == '\n' || *start == '\r') return true;;
-    const char* linefeed = Prelexer::wspaces(start);
-    if (linefeed == 0) return false;
-    return *linefeed == '\n' || *linefeed == '\r';
+    while (*start) {
+      if (*start == '\n' || *start == '\r') return true;
+      if (*start != ' ' && *start != '\t') return false;
+      ++ start;
+    }
+    return false;
   }
 
   namespace Util {

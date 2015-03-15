@@ -401,11 +401,16 @@ namespace Sass {
 
     // Whitespace handling.
     const char* optional_spaces(const char* src);
-    // const char* optional_comment(const char* src);
-    const char* optional_spaces_and_comments(const char* src);
-    const char* spaces_and_comments(const char* src);
     const char* no_spaces(const char* src);
 
+    // Match zero plus white-space or line_comments
+    const char* optional_css_whitespace(const char* src);
+    const char* css_whitespace(const char* src);
+    // Match optional_css_whitepace plus block_comments
+    const char* optional_css_comments(const char* src);
+    const char* css_comments(const char* src);
+
+    // Match one backslash escaped char
     const char* backslash_something(const char* src);
 
     // Match CSS css variables.

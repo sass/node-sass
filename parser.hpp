@@ -99,7 +99,7 @@ namespace Sass {
         it_before_token = position;
       }
       else {
-        it_before_token = optional_spaces_and_comments(start);
+        it_before_token = optional_css_whitespace(start);
       }
       const char* it_after_token = mx(it_before_token);
       if (it_after_token) {
@@ -145,10 +145,11 @@ namespace Sass {
         }
       }
 
-      else if (mx == optional_spaces_and_comments) {
-        it_before_token = position;
-      }
-      else if (mx == spaces_and_comments) {
+      else if (mx == css_comments ||
+               mx == css_whitespace ||
+               mx == optional_css_comments ||
+               mx == optional_css_whitespace
+      ) {
         it_before_token = position;
       }
 
@@ -158,7 +159,7 @@ namespace Sass {
       }
       else {
         // most can be preceded by spaces and comments
-        it_before_token = optional_spaces_and_comments(position);
+        it_before_token = optional_css_whitespace(position);
       }
 
       // now call matcher to get position after token
@@ -196,7 +197,7 @@ namespace Sass {
       after_token = after_token + size;
 
       // create parsed token string (public member)
-      lexed = Token(wspace_start, it_before_token, it_after_token, optional_spaces_and_comments(it_after_token) ? optional_spaces_and_comments(it_after_token) : it_after_token, before_token);
+      lexed = Token(wspace_start, it_before_token, it_after_token, optional_css_whitespace(it_after_token) ? optional_css_whitespace(it_after_token) : it_after_token, before_token);
       Position pos(before_token.file, before_token.line, before_token.column);
       pstate = ParserState(path, lexed, pos, size);
 
