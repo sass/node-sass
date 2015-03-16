@@ -2187,4 +2187,39 @@ namespace Sass {
     throw Sass_Error(Sass_Error::syntax, ParserState(path, pos.line ? pos : before_token, Offset(0, 0)), msg);
   }
 
+  // print a css parsing error with actual context information from parsed source
+  void Parser::css_error(const string& msg, const string& prefix, const string& middle)
+  {
+    int max_len = 14;
+    const char* pos = peek < optional_spaces >();
+    bool ellipsis_left = false;
+    const char* pos_left(pos);
+    while (*pos_left && pos_left >= source) {
+      if (pos - pos_left > max_len) {
+        ellipsis_left = true;
+        break;
+      }
+      if (*pos_left == '\r') break;
+      if (*pos_left == '\n') break;
+      -- pos_left;
+    }
+    bool ellipsis_right = false;
+    const char* pos_right(pos);
+    while (*pos_right && pos_right <= end) {
+      if (pos_right - pos > max_len) {
+        ellipsis_right = true;
+        break;
+      }
+      if (*pos_right == '\r') break;
+      if (*pos_right == '\n') break;
+      ++ pos_right;
+    }
+    string left(pos_left, pos);
+    string right(pos, pos_right);
+    if (ellipsis_left) left = ellipsis + left;
+    if (ellipsis_right) right = right + ellipsis;
+    // now pass new message to the more generic error function
+    error(msg + prefix + quote(left) + middle + quote(right), pstate);
+  }
+
 }

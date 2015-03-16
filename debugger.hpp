@@ -298,7 +298,7 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     cerr << ind << "Map " << expression << " [Hashed]" << endl;
   } else if (dynamic_cast<List*>(node)) {
     List* expression = dynamic_cast<List*>(node);
-    cerr << ind << "List " << expression <<
+    cerr << ind << "List " << expression << " (" << expression->length() << ") " <<
       (expression->separator() == Sass::List::Separator::COMMA ? "Comma " : "Space ") <<
       " [delayed: " << expression->is_delayed() << "] " <<
       " [interpolant: " << expression->is_interpolant() << "] " <<
