@@ -283,6 +283,8 @@ namespace Sass {
     Error* parse_error();
     Debug* parse_debug();
 
+    void parse_block_comments(Block* block);
+
     Selector_Lookahead lookahead_for_selector(const char* start = 0);
     Selector_Lookahead lookahead_for_extension_target(const char* start = 0);
 
