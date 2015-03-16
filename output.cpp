@@ -172,11 +172,10 @@ namespace Sass {
 
   void Output::operator()(Keyframe_Rule* r)
   {
-    String* v = r->rules();
     Block* b = r->block();
+    Selector* v = r->selector();
 
     if (v) {
-      append_indentation();
       v->perform(this);
     }
 
