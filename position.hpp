@@ -19,7 +19,7 @@ namespace Sass {
       Offset(const size_t line, const size_t column);
 
       // return new position, incremented by the given string
-      void add(const char* begin, const char* end);
+      Offset add(const char* begin, const char* end);
       Offset inc(const char* begin, const char* end) const;
 
       // init/create instance from const char substring
@@ -59,7 +59,7 @@ namespace Sass {
       const Position operator+ (const Offset &off) const;
       const Offset operator- (const Offset &off) const;
       // return new position, incremented by the given string
-      void add(const char* begin, const char* end);
+      Position add(const char* begin, const char* end);
       Position inc(const char* begin, const char* end) const;
 
     public: // overload output stream operator

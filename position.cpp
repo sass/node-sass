@@ -33,8 +33,9 @@ namespace Sass {
   // increase offset by given string (mostly called by lexer)
   // increase line counter and count columns on the last line
   // ToDo: make the col count utf8 aware
-  void Offset::add(const char* begin, const char* end)
+  Offset Offset::add(const char* begin, const char* end)
   {
+    if (end == 0) return *this;
     while (begin < end && *begin) {
       if (*begin == '\n') {
         ++ line;
@@ -45,6 +46,7 @@ namespace Sass {
       }
       ++begin;
     }
+    return *this;
   }
 
   // increase offset by given string (mostly called by lexer)
@@ -103,9 +105,10 @@ namespace Sass {
   ParserState::ParserState(string path, const char* src, Token token, Position position, Offset offset)
   : Position(position), path(path), src(src), offset(offset), token(token) { }
 
-  void Position::add(const char* begin, const char* end)
+  Position Position::add(const char* begin, const char* end)
   {
     Offset::add(begin, end);
+    return *this;
   }
 
   Position Position::inc(const char* begin, const char* end) const

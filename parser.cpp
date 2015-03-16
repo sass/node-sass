@@ -253,7 +253,7 @@ namespace Sass {
         else error("expecting another url or quoted path in @import list", pstate);
       }
       first = false;
-    } while (lex< exactly<','> >());
+    } while (lex_css< exactly<','> >());
     return imp;
   }
 
@@ -286,7 +286,7 @@ namespace Sass {
       // if there's anything there at all
       if (!peek< exactly<')'> >()) {
         do (*params) << parse_parameter();
-        while (lex< alternatives < spaces,block_comment, exactly<','> > >());
+        while (lex_css< exactly<','> >());
       }
       while (lex< alternatives < spaces, block_comment > >()) {};
       if (!lex< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name, pstate);
@@ -339,7 +339,7 @@ namespace Sass {
       // if there's anything there at all
       if (!peek< exactly<')'> >()) {
         do (*args) << parse_argument();
-        while (lex< alternatives < block_comment, exactly<','> > >());
+        while (lex_css< exactly<','> >());
       }
       while (lex< block_comment >());
       if (!lex< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name, pstate);
@@ -505,7 +505,7 @@ namespace Sass {
         }
         if (peek_newline()) ref_wrap->has_line_break(true);
       }
-      while (peek< sequence < optional_css_whitespace, optional < block_comment >, exactly<','> > >())
+      while (peek_css< exactly<','> >())
       {
         // consume everything up and including the comma speparator
         reloop = lex< sequence < optional_css_comments, exactly<','> > >() != 0;
@@ -528,7 +528,7 @@ namespace Sass {
   {
     Position sel_source_position(-1);
     Compound_Selector* lhs;
-    if (peek< alternatives <
+    if (peek_css< alternatives <
           exactly<'+'>,
           exactly<'~'>,
           exactly<'>'>
@@ -549,7 +549,7 @@ namespace Sass {
     bool cpx_lf = peek_newline();
 
     Complex_Selector* rhs;
-    if (peek< alternatives <
+    if (peek_css< alternatives <
                 exactly<','>,
                 exactly<')'>,
                 exactly<'{'>,
@@ -589,10 +589,10 @@ namespace Sass {
         return seq;
       }
     }
-    if (sawsomething && lex< sequence< negate< functional >, alternatives< identifier_fragment, universal, quoted_string, dimension, percentage, number > > >()) {
+    if (sawsomething && lex_css< sequence< negate< functional >, alternatives< identifier_fragment, universal, quoted_string, dimension, percentage, number > > >()) {
       // saw an ampersand, then allow type selectors with arbitrary number of hyphens at the beginning
       (*seq) << new (ctx.mem) Type_Selector(pstate, unquote(lexed));
-    } else if (lex< sequence< negate< functional >, alternatives< type_selector, universal, quoted_string, dimension, percentage, number > > >()) {
+    } else if (lex_css< sequence< negate< functional >, alternatives< type_selector, universal, quoted_string, dimension, percentage, number > > >()) {
       // if you see a type selector
       (*seq) << new (ctx.mem) Type_Selector(pstate, lexed);
       sawsomething = true;
@@ -603,14 +603,15 @@ namespace Sass {
     }
 
     while (!peek< spaces >(position) &&
-           !(peek < alternatives < exactly<'+'>,
-                                   exactly<'~'>,
-                                   exactly<'>'>,
-                                   exactly<','>,
-                                   exactly<')'>,
-                                   exactly<'{'>,
-                                   exactly<'}'>,
-                                   exactly<';'>
+           !(peek_css < alternatives <
+               exactly<'+'>,
+               exactly<'~'>,
+               exactly<'>'>,
+               exactly<','>,
+               exactly<')'>,
+               exactly<'{'>,
+               exactly<'}'>,
+               exactly<';'>
              > >(position))) {
       (*seq) << parse_simple_selector();
     }
@@ -619,6 +620,7 @@ namespace Sass {
 
   Simple_Selector* Parser::parse_simple_selector()
   {
+    lex < css_comments >();
     if (lex< id_name >() || lex< class_name >()) {
       return new (ctx.mem) Selector_Qualifier(pstate, unquote(lexed));
     }
@@ -725,29 +727,29 @@ namespace Sass {
 
   Attribute_Selector* Parser::parse_attribute_selector()
   {
-    lex< exactly<'['> >();
+    lex_css< exactly<'['> >();
     ParserState p = pstate;
-    if (!lex< attribute_name >()) error("invalid attribute name in attribute selector", pstate);
+    if (!lex_css< attribute_name >()) error("invalid attribute name in attribute selector", pstate);
     string name(lexed);
-    if (lex< exactly<']'> >()) return new (ctx.mem) Attribute_Selector(p, name, "", 0);
-    if (!lex< alternatives< exact_match, class_match, dash_match,
-                            prefix_match, suffix_match, substring_match > >()) {
+    if (lex_css< exactly<']'> >()) return new (ctx.mem) Attribute_Selector(p, name, "", 0);
+    if (!lex_css< alternatives< exact_match, class_match, dash_match,
+                                prefix_match, suffix_match, substring_match > >()) {
       error("invalid operator in attribute selector for " + name, pstate);
     }
     string matcher(lexed);
 
     String* value = 0;
-    if (lex< identifier >()) {
+    if (lex_css< identifier >()) {
       value = new (ctx.mem) String_Constant(p, lexed);
     }
-    else if (lex< quoted_string >()) {
+    else if (lex_css< quoted_string >()) {
       value = parse_interpolated_chunk(lexed, true); // needed!
     }
     else {
       error("expected a string constant or identifier in attribute selector for " + name, pstate);
     }
 
-    if (!lex< exactly<']'> >()) error("unterminated attribute selector for " + name, pstate);
+    if (!lex_css< exactly<']'> >()) error("unterminated attribute selector for " + name, pstate);
     return new (ctx.mem) Attribute_Selector(p, name, matcher, value);
   }
 
@@ -979,10 +981,10 @@ namespace Sass {
     Map* map = new (ctx.mem) Map(pstate, 1);
     (*map) << make_pair(key, value);
 
-    while (lex< exactly<','> >())
+    while (lex_css< exactly<','> >())
     {
       // allow trailing commas - #495
-      if (peek< exactly<')'> >(position))
+      if (peek_css< exactly<')'> >(position))
       { break; }
 
       Expression* key = parse_list();

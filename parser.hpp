@@ -76,7 +76,7 @@ namespace Sass {
     {
 
       // maybe use optional start position from arguments?
-      const char* it_before_token = start ? start : position;
+      const char* it_position = start ? start : position;
 
       // skip white-space?
       if (mx == url ||
@@ -88,11 +88,13 @@ namespace Sass {
           mx == optional_css_comments ||
           mx == optional_css_whitespace
       ) {
-        return it_before_token;
+        return it_position;
       }
 
       // skip over spaces, tabs and sass line comments
-      return optional_css_whitespace(it_before_token);
+      const char* pos = optional_css_whitespace(it_position);
+      // always return a valid position
+      return pos ? pos : it_position;
 
     }
 
@@ -112,33 +114,34 @@ namespace Sass {
     // white-space handling is built into the lexer
     // this way you do not need to parse it yourself
     // some matchers don't accept certain white-space
+    // we do not support start arg, since we manipulate
+    // sourcemap offset and we modify the position pointer!
     template <prelexer mx>
     const char* lex()
     {
 
-      // remeber interesting position
-      const char* wspace_start = position;
-
       // sneak up to the actual token we want to lex
       // this should skip over white-space if desired
       const char* it_before_token = sneak < mx >(position);
-
-      // advance position (add whitespace before current token)
-      before_token = after_token.inc(position, it_before_token);
 
       // now call matcher to get position after token
       const char* it_after_token = mx(it_before_token);
 
       // assertion that we got a valid match
       if (it_after_token == 0) return 0;
+      // assertion that we actually lexed something
+      if (it_after_token == it_before_token) return 0;
 
       // create new lexed token object (holds all parse result information)
-      lexed = Token(wspace_start, it_before_token, it_after_token);
+      lexed = Token(position, it_before_token, it_after_token);
 
-      // update position of after_token (add token to before position)
-      after_token = before_token.inc(it_before_token, it_after_token);
+      // advance position (add whitespace before current token)
+      before_token = after_token.add(position, it_before_token);
 
-      // ToDo: could probably do this incremetal on original object
+      // update after_token position for current token
+      after_token.add(it_before_token, it_after_token);
+
+      // ToDo: could probably do this incremetal on original object (API wants offset?)
       pstate = ParserState(path, source, lexed, before_token, after_token - before_token);
 
       // advance internal char iterator
@@ -151,6 +154,7 @@ namespace Sass {
     const char* lex_css()
     {
       // throw away comments
+      // update srcmap position
       lex < css_comments >();
       // now lex a token
       return lex< mx >();
@@ -158,10 +162,10 @@ namespace Sass {
 
     // skips over css comments
     template <prelexer mx>
-    const char* peek_css()
+    const char* peek_css(const char* start = 0)
     {
       // now peek a token (skip comments first)
-      return peek< mx >(peek < css_comments >());
+      return peek< mx >(peek < css_comments >(start));
     }
 
 #ifdef __clang__
