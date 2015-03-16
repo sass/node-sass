@@ -23,7 +23,7 @@ namespace Sass {
       // there is a small chance that the search prefix
       // is longer than the rest of the string to look at
       while (*pre && *src == *pre) {
-      	++src, ++pre;
+        ++src, ++pre;
       }
       return *pre ? 0 : src;
     }
@@ -202,142 +202,26 @@ namespace Sass {
       return src;
     }
 
-    // Tries the matchers in sequence and returns the first match (or none)
-    template <prelexer mx1, prelexer mx2>
+    // Tries the matchers in sequence and succeeds if they all succeed.
+    template <prelexer... mxs>
     const char* alternatives(const char* src) {
       const char* rslt;
-      (rslt = mx1(src)) || (rslt = mx2(src));
-      return rslt;
-    }
-
-    // Same as above, but with 3 arguments.
-    template <prelexer mx1, prelexer mx2, prelexer mx3>
-    const char* alternatives(const char* src) {
-      const char* rslt;
-      (rslt = mx1(src)) || (rslt = mx2(src)) || (rslt = mx3(src));
-      return rslt;
-    }
-
-    // Same as above, but with 4 arguments.
-    template <prelexer mx1, prelexer mx2, prelexer mx3, prelexer mx4>
-    const char* alternatives(const char* src) {
-      const char* rslt;
-      (rslt = mx1(src)) || (rslt = mx2(src)) ||
-      (rslt = mx3(src)) || (rslt = mx4(src));
-      return rslt;
-    }
-
-    // Same as above, but with 5 arguments.
-    template <prelexer mx1, prelexer mx2, prelexer mx3,
-              prelexer mx4, prelexer mx5>
-    const char* alternatives(const char* src) {
-      const char* rslt;
-      (rslt = mx1(src)) || (rslt = mx2(src)) || (rslt = mx3(src)) ||
-      (rslt = mx4(src)) || (rslt = mx5(src));
-      return rslt;
-    }
-
-    // Same as above, but with 6 arguments.
-    template <prelexer mx1, prelexer mx2, prelexer mx3,
-              prelexer mx4, prelexer mx5, prelexer mx6>
-    const char* alternatives(const char* src) {
-      const char* rslt;
-      (rslt = mx1(src)) || (rslt = mx2(src)) || (rslt = mx3(src)) ||
-      (rslt = mx4(src)) || (rslt = mx5(src)) || (rslt = mx6(src));
-      return rslt;
-    }
-
-    // Same as above, but with 7 arguments.
-    template <prelexer mx1, prelexer mx2,
-              prelexer mx3, prelexer mx4,
-              prelexer mx5, prelexer mx6,
-              prelexer mx7>
-    const char* alternatives(const char* src) {
-      const char* rslt;
-      (rslt = mx1(src)) || (rslt = mx2(src)) ||
-      (rslt = mx3(src)) || (rslt = mx4(src)) ||
-      (rslt = mx5(src)) || (rslt = mx6(src)) ||
-      (rslt = mx7(src));
-      return rslt;
-    }
-
-    // Same as above, but with 8 arguments.
-    template <prelexer mx1, prelexer mx2,
-              prelexer mx3, prelexer mx4,
-              prelexer mx5, prelexer mx6,
-              prelexer mx7, prelexer mx8>
-    const char* alternatives(const char* src) {
-      const char* rslt;
-      (rslt = mx1(src)) || (rslt = mx2(src)) ||
-      (rslt = mx3(src)) || (rslt = mx4(src)) ||
-      (rslt = mx5(src)) || (rslt = mx6(src)) ||
-      (rslt = mx7(src)) || (rslt = mx8(src));
-      return rslt;
+      for (prelexer mx : { mxs... }) {
+        if ((rslt = mx(src))) return rslt;
+      }
+      return 0;
     }
 
     // Tries the matchers in sequence and succeeds if they all succeed.
-    template <prelexer mx1, prelexer mx2>
+    template <prelexer... mxs>
     const char* sequence(const char* src) {
       const char* rslt = src;
-      (rslt = mx1(rslt)) && (rslt = mx2(rslt));
+      for (prelexer mx : { mxs... }) {
+        if (!(rslt = mx(rslt))) return 0;
+      }
       return rslt;
     }
-
-    // Same as above, but with 3 arguments.
-    template <prelexer mx1, prelexer mx2, prelexer mx3>
-    const char* sequence(const char* src) {
-      const char* rslt = src;
-      (rslt = mx1(rslt)) && (rslt = mx2(rslt)) && (rslt = mx3(rslt));
-      return rslt;
-    }
-
-    // Same as above, but with 4 arguments.
-    template <prelexer mx1, prelexer mx2, prelexer mx3, prelexer mx4>
-    const char* sequence(const char* src) {
-      const char* rslt = src;
-      (rslt = mx1(rslt)) && (rslt = mx2(rslt)) &&
-      (rslt = mx3(rslt)) && (rslt = mx4(rslt));
-      return rslt;
-    }
-
-    // Same as above, but with 5 arguments.
-    template <prelexer mx1, prelexer mx2,
-              prelexer mx3, prelexer mx4,
-              prelexer mx5>
-    const char* sequence(const char* src) {
-      const char* rslt = src;
-      (rslt = mx1(rslt)) && (rslt = mx2(rslt)) &&
-      (rslt = mx3(rslt)) && (rslt = mx4(rslt)) &&
-      (rslt = mx5(rslt));
-      return rslt;
-    }
-
-    // Same as above, but with 6 arguments.
-    template <prelexer mx1, prelexer mx2,
-              prelexer mx3, prelexer mx4,
-              prelexer mx5, prelexer mx6>
-    const char* sequence(const char* src) {
-      const char* rslt = src;
-      (rslt = mx1(rslt)) && (rslt = mx2(rslt)) &&
-      (rslt = mx3(rslt)) && (rslt = mx4(rslt)) &&
-      (rslt = mx5(rslt)) && (rslt = mx6(rslt));
-      return rslt;
-    }
-
-    // Same as above, but with 7 arguments.
-    template <prelexer mx1, prelexer mx2,
-              prelexer mx3, prelexer mx4,
-              prelexer mx5, prelexer mx6,
-              prelexer mx7>
-    const char* sequence(const char* src) {
-      const char* rslt = src;
-      (rslt = mx1(rslt)) && (rslt = mx2(rslt)) &&
-      (rslt = mx3(rslt)) && (rslt = mx4(rslt)) &&
-      (rslt = mx5(rslt)) && (rslt = mx6(rslt)) &&
-      (rslt = mx7(rslt));
-      return rslt;
-    }
-
+    
     // Match a pattern or not. Always succeeds.
     template <prelexer mx>
     const char* optional(const char* src) {
