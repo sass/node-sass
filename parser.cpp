@@ -954,7 +954,13 @@ namespace Sass {
       return new (ctx.mem) Declaration(prop->pstate(), prop, parse_static_value()/*, lex<important>()*/);
     }
     else {
-      return new (ctx.mem) Declaration(prop->pstate(), prop, parse_list()/*, lex<important>()*/);
+      Expression* list_ex = parse_list();
+      if (List* list = dynamic_cast<List*>(list_ex)) {
+        if (list->length() == 0 && !peek< exactly <'{'> >()) {
+          css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
+        }
+      }
+      return new (ctx.mem) Declaration(prop->pstate(), prop, list_ex/*, lex<important>()*/);
     }
   }
 
