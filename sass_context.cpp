@@ -407,8 +407,8 @@ extern "C" {
       c_ctx->error_status = 0;
       // reset error position
       c_ctx->error_file = 0;
-      c_ctx->error_line = -1;
-      c_ctx->error_column = -1;
+      c_ctx->error_line = string::npos;
+      c_ctx->error_column = string::npos;
 
       // use to parse block
       return cpp_ctx;

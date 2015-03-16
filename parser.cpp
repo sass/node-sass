@@ -505,10 +505,10 @@ namespace Sass {
         }
         if (peek_newline()) ref_wrap->has_line_break(true);
       }
-      while (peek< sequence< optional_css_whitespace, optional < block_comment >, exactly<','> > >())
+      while (peek< sequence < optional_css_whitespace, optional < block_comment >, exactly<','> > >())
       {
         // consume everything up and including the comma speparator
-        reloop = lex< sequence< optional_css_comments, exactly<','> > >() != 0;
+        reloop = lex< sequence < optional_css_comments, exactly<','> > >() != 0;
         // remember line break (also between some commas)
         if (peek_newline()) comb->has_line_feed(true);
         if (comb->tail() && peek_newline()) comb->tail()->has_line_feed(true);
@@ -1114,12 +1114,13 @@ namespace Sass {
   {
     Expression* expr1 = parse_expression();
     // if it's a singleton, return it directly; don't wrap it
-    if (!(peek< alternatives < eq_op,
-                               neq_op,
-                               gte_op,
-                               gt_op,
-                               lte_op,
-                               lt_op
+    if (!(peek< alternatives <
+            eq_op,
+            neq_op,
+            gte_op,
+            gt_op,
+            lte_op,
+            lt_op
           > >(position)))
     { return expr1; }
 
@@ -1363,7 +1364,7 @@ namespace Sass {
         const char* j = skip_over_scopes< exactly<hash_lbrace>, exactly<rbrace> >(p + 2, chunk.end); // find the closing brace
         if (j) { --j;
           // parse the interpolant and accumulate it
-          Expression* interp_node = Parser::from_token(Token(p+2, j, before_token), ctx, pstate).parse_list();
+          Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, pstate).parse_list();
           interp_node->is_interpolant(true);
           (*schema) << interp_node;
           i = j;
@@ -1424,7 +1425,7 @@ namespace Sass {
         const char* j = skip_over_scopes< exactly<hash_lbrace>, exactly<rbrace> >(p+2, str.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
-          Expression* interp_node = Parser::from_token(Token(p+2, j, before_token), ctx, pstate).parse_list();
+          Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, pstate).parse_list();
           interp_node->is_interpolant(true);
           (*schema) << interp_node;
           i = j;
@@ -1467,7 +1468,7 @@ namespace Sass {
     size_t num_items = 0;
     while (position < stop) {
       if (lex< interpolant >()) {
-        Token insides(Token(lexed.begin + 2, lexed.end - 1, before_token));
+        Token insides(Token(lexed.begin + 2, lexed.end - 1));
         Expression* interp_node = Parser::from_token(insides, ctx, pstate).parse_list();
         interp_node->is_interpolant(true);
         (*schema) << interp_node;
@@ -1561,7 +1562,7 @@ namespace Sass {
         const char* j = skip_over_scopes< exactly<hash_lbrace>, exactly<rbrace> >(p+2, id.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
-          Expression* interp_node = Parser::from_token(Token(p+2, j, before_token), ctx, pstate).parse_list();
+          Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, pstate).parse_list();
           interp_node->is_interpolant(true);
           (*schema) << interp_node;
           schema->has_interpolants(true);
@@ -1592,7 +1593,7 @@ namespace Sass {
     const char* arg_end = position;
     lex< exactly<')'> >();
 
-    Argument* arg = new (ctx.mem) Argument(arg_pos, parse_interpolated_chunk(Token(arg_beg, arg_end, before_token)));
+    Argument* arg = new (ctx.mem) Argument(arg_pos, parse_interpolated_chunk(Token(arg_beg, arg_end)));
     Arguments* args = new (ctx.mem) Arguments(arg_pos);
     *args << arg;
     return new (ctx.mem) Function_Call(call_pos, name, args);
@@ -1895,7 +1896,7 @@ namespace Sass {
     if (!peek< alternatives< with_directive, without_directive > >()) {
       const char* i = position;
       const char* p = peek< until<')'> >(i);
-      Token* t = new Token(i, p, Position(0, 0));
+      Token* t = new Token(i, p);
       error("Invalid CSS after \"(\": expected \"with\" or \"without\", was \""+t->to_string()+"\"", pstate);
     }
 

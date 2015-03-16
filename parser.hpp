@@ -197,7 +197,7 @@ namespace Sass {
       after_token = after_token + size;
 
       // create parsed token string (public member)
-      lexed = Token(wspace_start, it_before_token, it_after_token, optional_css_whitespace(it_after_token) ? optional_css_whitespace(it_after_token) : it_after_token, before_token);
+      lexed = Token(wspace_start, it_before_token, it_after_token);
       Position pos(before_token.file, before_token.line, before_token.column);
       pstate = ParserState(path, lexed, pos, size);
 

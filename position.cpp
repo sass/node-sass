@@ -19,20 +19,40 @@ namespace Sass {
   Offset::Offset(const size_t line, const size_t column)
   : line(line), column(column) { }
 
+  // init/create instance from const char substring
+  Offset Offset::init(const char* beg, const char* end)
+  {
+    Offset offset(0, 0);
+    if (end == 0) {
+      end += strlen(beg);
+    }
+    offset.add(beg, end);
+    return offset;
+  }
+
+  // increase offset by given string (mostly called by lexer)
+  // increase line counter and count columns on the last line
+  // ToDo: make the col count utf8 aware
+  void Offset::add(const char* begin, const char* end)
+  {
+    while (begin < end && *begin) {
+      if (*begin == '\n') {
+        ++ line;
+        // start new line
+        column = 0;
+      } else {
+        ++ column;
+      }
+      ++begin;
+    }
+  }
+
   // increase offset by given string (mostly called by lexer)
   // increase line counter and count columns on the last line
   Offset Offset::inc(const char* begin, const char* end) const
   {
     Offset offset(line, column);
-    while (begin < end && *begin) {
-      if (*begin == '\n') {
-        ++ offset.line;
-        offset.column = 0;
-      } else {
-        ++ offset.column;
-      }
-      ++begin;
-    }
+    offset.add(begin, end);
     return offset;
   }
 
@@ -48,12 +68,17 @@ namespace Sass {
 
   void Offset::operator+= (const Offset &off)
   {
-    *this = Offset(line + off.line, off.line > 0 ? off.column : off.column + column);
+    *this = Offset(line + off.line, off.line > 0 ? off.column : column + off.column);
   }
 
   Offset Offset::operator+ (const Offset &off) const
   {
-    return Offset(line + off.line, off.line > 0 ? off.column : off.column + column);
+    return Offset(line + off.line, off.line > 0 ? off.column : column + off.column);
+  }
+
+  Offset Offset::operator- (const Offset &off) const
+  {
+    return Offset(line - off.line, off.line == line ? column - off.column : column);
   }
 
   Position::Position(const size_t file)
@@ -69,9 +94,6 @@ namespace Sass {
   : Offset(line, column), file(file) { }
 
 
-  ParserState::ParserState(string path)
-  : Position(-1, 0, 0), path(path), offset(0, 0), token() { }
-
   ParserState::ParserState(string path, const size_t file)
   : Position(file, 0, 0), path(path), offset(0, 0), token() { }
 
@@ -80,6 +102,11 @@ namespace Sass {
 
   ParserState::ParserState(string path, Token token, Position position, Offset offset)
   : Position(position), path(path), offset(offset), token(token) { }
+
+  void Position::add(const char* begin, const char* end)
+  {
+    Offset::add(begin, end);
+  }
 
   Position Position::inc(const char* begin, const char* end) const
   {
@@ -100,12 +127,17 @@ namespace Sass {
 
   void Position::operator+= (const Offset &off)
   {
-    *this = Position(file, line + off.line, off.line > 0 ? off.column : off.column + column);
+    *this = Position(file, line + off.line, off.line > 0 ? off.column : column + off.column);
   }
 
   const Position Position::operator+ (const Offset &off) const
   {
-    return Position(file, line + off.line, off.line > 0 ? off.column : off.column + column);
+    return Position(file, line + off.line, off.line > 0 ? off.column : column + off.column);
+  }
+
+  const Offset Position::operator- (const Offset &off) const
+  {
+    return Offset(line - off.line, off.line == line ? column - off.column : column);
   }
 
   /* not used anymore - remove?
