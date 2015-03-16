@@ -213,7 +213,7 @@ namespace Sass {
               // char *srcmap = sass_import_take_srcmap(include);
               if (message) {
                 if (line == string::npos && column == string::npos) error(message, pstate);
-                else error(message, ParserState(message, Position(line, column)));
+                else error(message, ParserState(message, source, Position(line, column)));
               } else if (source) {
                 if (file) {
                   ctx.add_source(file, inc_path, source);
@@ -564,7 +564,7 @@ namespace Sass {
       sel_source_position = before_token;
     }
     if (!sel_source_position.line) sel_source_position = before_token;
-    Complex_Selector* cpx = new (ctx.mem) Complex_Selector(ParserState(path, sel_source_position), cmb, lhs, rhs);
+    Complex_Selector* cpx = new (ctx.mem) Complex_Selector(ParserState(path, source, sel_source_position), cmb, lhs, rhs);
     cpx->media_block(last_media_block);
     cpx->last_block(block_stack.back());
     if (cpx_lf) cpx->has_line_break(cpx_lf);
@@ -2184,7 +2184,7 @@ namespace Sass {
 
   void Parser::error(string msg, Position pos)
   {
-    throw Sass_Error(Sass_Error::syntax, ParserState(path, pos.line ? pos : before_token, Offset(0, 0)), msg);
+    throw Sass_Error(Sass_Error::syntax, ParserState(path, source, pos.line ? pos : before_token, Offset(0, 0)), msg);
   }
 
 }

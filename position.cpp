@@ -94,14 +94,14 @@ namespace Sass {
   : Offset(line, column), file(file) { }
 
 
-  ParserState::ParserState(string path, const size_t file)
-  : Position(file, 0, 0), path(path), offset(0, 0), token() { }
+  ParserState::ParserState(string path, const char* src, const size_t file)
+  : Position(file, 0, 0), path(path), src(src), offset(0, 0), token() { }
 
-  ParserState::ParserState(string path, Position position, Offset offset)
-  : Position(position), path(path), offset(offset), token() { }
+  ParserState::ParserState(string path, const char* src, Position position, Offset offset)
+  : Position(position), path(path), src(src), offset(offset), token() { }
 
-  ParserState::ParserState(string path, Token token, Position position, Offset offset)
-  : Position(position), path(path), offset(offset), token(token) { }
+  ParserState::ParserState(string path, const char* src, Token token, Position position, Offset offset)
+  : Position(position), path(path), src(src), offset(offset), token(token) { }
 
   void Position::add(const char* begin, const char* end)
   {

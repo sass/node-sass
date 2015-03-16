@@ -139,7 +139,7 @@ namespace Sass {
       after_token = before_token.inc(it_before_token, it_after_token);
 
       // ToDo: could probably do this incremetal on original object
-      pstate = ParserState(path, lexed, before_token, after_token - before_token);
+      pstate = ParserState(path, source, lexed, before_token, after_token - before_token);
 
       // advance internal char iterator
       return position = it_after_token;

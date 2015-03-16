@@ -128,6 +128,7 @@ extern "C" {
     char* error_file;
     size_t error_line;
     size_t error_column;
+    const char* error_src;
 
     // report imported files
     char** included_files;
@@ -256,6 +257,7 @@ extern "C" {
       c_ctx->error_file = sass_strdup(e.pstate.path.c_str());
       c_ctx->error_line = e.pstate.line+1;
       c_ctx->error_column = e.pstate.column+1;
+      c_ctx->error_src = e.pstate.src;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
       json_delete(json_err);
@@ -406,6 +408,7 @@ extern "C" {
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
       // reset error position
+      c_ctx->error_src = 0;
       c_ctx->error_file = 0;
       c_ctx->error_line = string::npos;
       c_ctx->error_column = string::npos;
@@ -757,6 +760,7 @@ extern "C" {
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_file);
   IMPLEMENT_SASS_CONTEXT_GETTER(size_t, error_line);
   IMPLEMENT_SASS_CONTEXT_GETTER(size_t, error_column);
+  IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_src);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, output_string);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, source_map_string);
   IMPLEMENT_SASS_CONTEXT_GETTER(char**, included_files);

@@ -175,9 +175,9 @@ namespace Sass {
         mappings[i].generated_position.file == pstate.file &&
         mappings[i].generated_position.line == pstate.line &&
         mappings[i].generated_position.column == pstate.column
-      ) return ParserState(pstate.path, mappings[i].original_position, pstate.offset);
+      ) return ParserState(pstate.path, pstate.src, mappings[i].original_position, pstate.offset);
     }
-    return ParserState(pstate.path, Position(-1, -1, -1), Offset(0, 0));
+    return ParserState(pstate.path, pstate.src, Position(-1, -1, -1), Offset(0, 0));
 
   }
 

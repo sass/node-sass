@@ -104,6 +104,7 @@ ADDAPI const char* ADDCALL sass_context_get_error_json (struct Sass_Context* ctx
 ADDAPI const char* ADDCALL sass_context_get_error_text (struct Sass_Context* ctx);
 ADDAPI const char* ADDCALL sass_context_get_error_message (struct Sass_Context* ctx);
 ADDAPI const char* ADDCALL sass_context_get_error_file (struct Sass_Context* ctx);
+ADDAPI const char* ADDCALL sass_context_get_error_src (struct Sass_Context* ctx);
 ADDAPI size_t ADDCALL sass_context_get_error_line (struct Sass_Context* ctx);
 ADDAPI size_t ADDCALL sass_context_get_error_column (struct Sass_Context* ctx);
 ADDAPI const char* ADDCALL sass_context_get_source_map_string (struct Sass_Context* ctx);
