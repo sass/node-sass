@@ -45,6 +45,9 @@ libsass/*
 *.so
 *.dll
 *.a
+*.suo
+*.sdf
+*.opensdf
 a.out
 libsass.js
 tester
