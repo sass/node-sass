@@ -320,7 +320,7 @@ extern "C" {
   }
 
   // generic compilation function (not exported, use file/data compile instead)
-  static Context* sass_prepare_context (Sass_Context* c_ctx, Context::Data cpp_opt)
+  static Context* sass_prepare_context (Sass_Context* c_ctx, Context::Data cpp_opt) throw()
   {
     try {
 
@@ -422,7 +422,7 @@ extern "C" {
 
   }
 
-  static Block* sass_parse_block (Sass_Context* c_ctx, Context* cpp_ctx)
+  static Block* sass_parse_block (Sass_Context* c_ctx, Context* cpp_ctx) throw()
   {
     try {
 
