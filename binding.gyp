@@ -4,56 +4,43 @@
       'target_name': 'binding',
       'sources': [
         'src/binding.cpp',
-        'src/sass_context_wrapper.cpp',
-        'src/libsass/ast.cpp',
-        'src/libsass/base64vlq.cpp',
-        'src/libsass/bind.cpp',
-        'src/libsass/cencode.c',
-        'src/libsass/constants.cpp',
-        'src/libsass/context.cpp',
-        'src/libsass/contextualize.cpp',
-        'src/libsass/copy_c_str.cpp',
-        'src/libsass/error_handling.cpp',
-        'src/libsass/eval.cpp',
-        'src/libsass/expand.cpp',
-        'src/libsass/extend.cpp',
-        'src/libsass/file.cpp',
-        'src/libsass/functions.cpp',
-        'src/libsass/inspect.cpp',
-        'src/libsass/json.cpp',
-        'src/libsass/node.cpp',
-        'src/libsass/output_compressed.cpp',
-        'src/libsass/output_nested.cpp',
-        'src/libsass/parser.cpp',
-        'src/libsass/prelexer.cpp',
-        'src/libsass/remove_placeholders.cpp',
-        'src/libsass/sass.cpp',
-        'src/libsass/sass2scss.cpp',
-        'src/libsass/sass_context.cpp',
-        'src/libsass/sass_functions.cpp',
-        'src/libsass/sass_util.cpp',
-        'src/libsass/sass_values.cpp',
-        'src/libsass/source_map.cpp',
-        'src/libsass/to_c.cpp',
-        'src/libsass/to_string.cpp',
-        'src/libsass/units.cpp',
-        'src/libsass/utf8_string.cpp',
-        'src/libsass/util.cpp'
+        'src/sass_context_wrapper.cpp'
       ],
       'include_dirs': [
-        '<!(node -e "require(\'nan\')")'
-      ],
-      'cflags!': [
-        '-fno-exceptions'
-      ],
-      'cflags_cc!': [
-        '-fno-exceptions'
-      ],
-      'cflags_cc': [
-        '-fexceptions',
-        '-frtti'
+        '<!(node -e "require(\'nan\')")',
       ],
       'conditions': [
+        ['libsass_ext == ""', {
+            'dependencies': [
+              'libsass.gyp:libsass',
+            ]
+        }],
+	['libsass_ext == "auto"', {
+	  'cflags_cc': [
+	    '<!(pkg-config --cflags libsass)',
+	  ],
+	  'link_settings': {
+	    'ldflags': [
+	      '<!(pkg-config --libs-only-other --libs-only-L libsass)',
+	    ],
+	    'libraries': [
+	      '<!(pkg-config --libs-only-l libsass)',
+	    ],
+	  }
+	}],
+	['libsass_ext == "yes"', {
+	  'cflags_cc': [
+	    '<(libsass_cflags)',
+	  ],
+	  'link_settings': {
+	    'ldflags': [
+	      '<(libsass_ldflags)',
+	    ],
+	    'libraries': [
+	      '<(libsass_library)',
+	    ],
+	  }
+        }],
         ['OS=="mac"', {
           'xcode_settings': {
             'OTHER_CPLUSPLUSFLAGS': [
@@ -67,7 +54,7 @@
             'GCC_ENABLE_CPP_RTTI': 'YES',
             'MACOSX_DEPLOYMENT_TARGET': '10.7'
           }
-         }],
+        }],
         ['OS=="win"', {
           'msvs_settings': {
             'VCCLCompilerTool': {
