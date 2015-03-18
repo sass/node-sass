@@ -14,6 +14,9 @@
 namespace Sass {
   using namespace std;
 
+  class Context;
+  class Eval;
+  class Contextualize_Eval;
   typedef Environment<AST_Node*> Env;
   struct Backtrace;
 
@@ -21,7 +24,7 @@ namespace Sass {
 
     Context&          ctx;
     Eval*             eval;
-    Contextualize*    contextualize;
+    Contextualize_Eval*    contextualize_eval;
     Env*              env;
     vector<Block*>    block_stack;
     vector<String*>   property_stack;
@@ -34,7 +37,7 @@ namespace Sass {
     Statement* fallback_impl(AST_Node* n);
 
   public:
-    Expand(Context&, Eval*, Contextualize*, Env*, Backtrace*);
+    Expand(Context&, Eval*, Contextualize_Eval*, Env*, Backtrace*);
     virtual ~Expand() { }
 
     using Operation<Statement*>::operator();

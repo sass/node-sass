@@ -1,6 +1,7 @@
-#ifndef SASS_CONTEXTUALIZE_H
-#define SASS_CONTEXTUALIZE_H
+#ifndef SASS_CONTEXTUALIZE_EVAL_H
+#define SASS_CONTEXTUALIZE_EVAL_H
 
+#include "eval.hpp"
 #include "context.hpp"
 #include "operation.hpp"
 #include "environment.hpp"
@@ -11,28 +12,25 @@ namespace Sass {
 
   typedef Environment<AST_Node*> Env;
 
-  class Contextualize : public Operation_CRTP<Selector*, Contextualize> {
+  class Contextualize_Eval : public Contextualize {
 
-
-  public:
-    Context&   ctx;
-    Env*       env;
-    Backtrace* backtrace;
-    Selector*  parent;
-    Selector* placeholder;
-    Selector* extender;
+    Eval*      eval;
 
     Selector* fallback_impl(AST_Node* n);
-    Contextualize(Context&, Env*, Backtrace*, Selector* placeholder = 0, Selector* extender = 0);
-    virtual ~Contextualize();
-    Contextualize* with(Selector*, Env*, Backtrace*, Selector* placeholder = 0, Selector* extender = 0);
+
+  public:
+    Contextualize_Eval(Context&, Eval*, Env*, Backtrace*);
+    virtual ~Contextualize_Eval();
+    Contextualize_Eval* with(Selector*, Env*, Backtrace*, Selector* placeholder = 0, Selector* extender = 0);
     using Operation<Selector*>::operator();
 
+    Selector* operator()(Selector_Schema*);
     Selector* operator()(Selector_List*);
     Selector* operator()(Complex_Selector*);
     Selector* operator()(Compound_Selector*);
     Selector* operator()(Wrapped_Selector*);
     Selector* operator()(Pseudo_Selector*);
+    Selector* operator()(Attribute_Selector*);
     Selector* operator()(Selector_Qualifier*);
     Selector* operator()(Type_Selector*);
     Selector* operator()(Selector_Placeholder*);

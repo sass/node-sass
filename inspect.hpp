@@ -71,6 +71,7 @@ namespace Sass {
     virtual void operator()(Media_Query_Expression*);
     virtual void operator()(At_Root_Expression*);
     virtual void operator()(Null*);
+    virtual void operator()(Parent_Selector* p);
     // parameters and arguments
     virtual void operator()(Parameter*);
     virtual void operator()(Parameters*);

@@ -61,6 +61,7 @@ namespace Sass {
     virtual T operator()(Media_Query_Expression* x) = 0;
     virtual T operator()(At_Root_Expression* x)     = 0;
     virtual T operator()(Null* x)                   = 0;
+    virtual T operator()(Parent_Selector* x)        = 0;
     // parameters and arguments
     virtual T operator()(Parameter* x)              = 0;
     virtual T operator()(Parameters* x)             = 0;
@@ -135,6 +136,7 @@ namespace Sass {
     virtual T operator()(Media_Query_Expression* x) { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(At_Root_Expression* x)     { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Null* x)                   { return static_cast<D*>(this)->fallback(x); }
+    virtual T operator()(Parent_Selector* x)        { return static_cast<D*>(this)->fallback(x); }
     // parameters and arguments
     virtual T operator()(Parameter* x)              { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Parameters* x)             { return static_cast<D*>(this)->fallback(x); }

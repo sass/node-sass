@@ -437,6 +437,9 @@ namespace Sass {
     const char* percentage(const char* src) {
       return sequence< number, exactly<'%'> >(src);
     }
+    const char* ampersand(const char* src) {
+      return exactly<'&'>(src);
+    }
 
     /* not used anymore - remove?
     const char* em(const char* src) {

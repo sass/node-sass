@@ -87,6 +87,7 @@ namespace Sass {
       STRING,
       LIST,
       MAP,
+      SELECTOR,
       NULL_VAL,
       NUM_TYPES
     };
@@ -1694,6 +1695,22 @@ namespace Sass {
   // Additional method on Lists to retrieve values directly or from an encompassed Argument.
   //////////////////////////////////////////////////////////////////////////////////////////
   inline Expression* List::value_at_index(size_t i) { return is_arglist_ ? ((Argument*)(*this)[i])->value() : (*this)[i]; }
+
+  ////////////
+  // The Parent Selector Expression.
+  ////////////
+  class Parent_Selector : public Expression {
+    ADD_PROPERTY(Selector*, selector);
+  public:
+    Parent_Selector(ParserState pstate, Selector* r = 0)
+    : Expression(pstate), selector_(r)
+    { concrete_type(SELECTOR); }
+    virtual Selector* selector() { return selector_; }
+    string type() { return "selector"; }
+    static string type_name() { return "selector"; }
+
+    ATTACH_OPERATIONS();
+  };
 
   /////////////////////////////////////////
   // Abstract base class for CSS selectors.

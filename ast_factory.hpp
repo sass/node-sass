@@ -69,6 +69,7 @@ namespace Sass {
     String_Constant* new_String_Constant(string p, size_t l, const char* beg, const char* end);
     Feature_Query_Condition* new_Feature_Query_Condition(string p, size_t l, String* f, Expression* v);
     Media_Expression* new_Media_Expression(string p, size_t l, String* f, Expression* v);
+    Parent_Selector* new_Parent_Selector(string p, size_t l, Selector* s);
     // parameters and arguments
     Parameter* new_Parameter(string p, size_t l, string n, Expression* def = 0, bool rest = false);
     Parameters* new_Parameters(string p, size_t l);
@@ -76,6 +77,7 @@ namespace Sass {
     Arguments* new_Arguments(string p, size_t l);
     // selectors
     Selector_Schema* new_Selector_Schema(string p, size_t l, String* c);
+    Attribute_Selector* new_Attribute_Selector(string p, size_t l, string n, string m, String* v);
     Simple_Selector* new_Simple_Selector(string p, size_t l, string c);
     Reference_Selector* new_Reference_Selector(string p, size_t l);
     Placeholder_Selector* new_Placeholder_Selector(string p, size_t l, string n);
