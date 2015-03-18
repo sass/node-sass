@@ -11,6 +11,10 @@ environment:
     # io.js
     - nodejs_version: 1    # will fetch the latest io.js version
 
+matrix:
+  allow_failures:
+    - nodejs_version: 1
+
 install:
   - ps: Install-Product node $env:nodejs_version
   - node --version
