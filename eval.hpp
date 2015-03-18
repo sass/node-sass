@@ -7,6 +7,8 @@
 #include "position.hpp"
 #include "operation.hpp"
 #include "environment.hpp"
+#include "contextualize.hpp"
+#include "listize.hpp"
 #include "sass_values.h"
 
 namespace Sass {
@@ -14,6 +16,8 @@ namespace Sass {
 
   typedef Environment<AST_Node*> Env;
   struct Backtrace;
+  class Contextualize;
+  class Listize;
 
   class Eval : public Operation_CRTP<Expression*, Eval> {
 
@@ -22,11 +26,14 @@ namespace Sass {
     Expression* fallback_impl(AST_Node* n);
 
   public:
+    Contextualize* contextualize;
+    Listize*   listize;
     Env*       env;
     Backtrace* backtrace;
-    Eval(Context&, Env*, Backtrace*);
+    Eval(Context&, Contextualize*, Listize*, Env*, Backtrace*);
     virtual ~Eval();
     Eval* with(Env* e, Backtrace* bt); // for setting the env before eval'ing an expression
+    Eval* with(Selector* c, Env* e, Backtrace* bt, Selector* placeholder = 0, Selector* extender = 0); // for setting the env before eval'ing an expression
     using Operation<Expression*>::operator();
 
     // for evaluating function bodies
@@ -62,6 +69,7 @@ namespace Sass {
     Expression* operator()(Argument*);
     Expression* operator()(Arguments*);
     Expression* operator()(Comment*);
+    Expression* operator()(Parent_Selector* p);
 
     template <typename U>
     Expression* fallback(U x) { return fallback_impl(x); }

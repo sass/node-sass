@@ -4,7 +4,7 @@
 #include "expand.hpp"
 #include "bind.hpp"
 #include "eval.hpp"
-#include "contextualize.hpp"
+#include "contextualize_eval.hpp"
 #include "to_string.hpp"
 #include "backtrace.hpp"
 #include "context.hpp"
@@ -12,10 +12,10 @@
 
 namespace Sass {
 
-  Expand::Expand(Context& ctx, Eval* eval, Contextualize* contextualize, Env* env, Backtrace* bt)
+  Expand::Expand(Context& ctx, Eval* eval, Contextualize_Eval* contextualize_eval, Env* env, Backtrace* bt)
   : ctx(ctx),
     eval(eval),
-    contextualize(contextualize),
+    contextualize_eval(contextualize_eval),
     env(env),
     block_stack(vector<Block*>()),
     property_stack(vector<String*>()),
@@ -57,9 +57,9 @@ namespace Sass {
       return k;
     }
 
-    Contextualize* contextual = contextualize->with(selector_stack.back(), env, backtrace);
+    Contextualize_Eval* contextual = contextualize_eval->with(selector_stack.back(), env, backtrace);
     if (old_in_at_root && !r->selector()->has_reference())
-      contextual = contextualize->with(at_root_selector_stack.back(), env, backtrace);
+      contextual = contextualize_eval->with(at_root_selector_stack.back(), env, backtrace);
 
     Selector* sel_ctx = r->selector()->perform(contextual);
     if (sel_ctx == 0) throw "Cannot expand null selector";
@@ -188,7 +188,7 @@ namespace Sass {
     Block* ab = a->block();
     Selector* as = a->selector();
     Expression* av = a->value();
-    if (as) as = as->perform(contextualize->with(0, env, backtrace));
+    if (as) as = as->perform(contextualize_eval->with(0, env, backtrace));
     else if (av) av = av->perform(eval->with(env, backtrace));
     Block* bb = ab ? ab->perform(this)->block() : 0;
     At_Rule* aa = new (ctx.mem) At_Rule(a->pstate(),
@@ -204,10 +204,9 @@ namespace Sass {
   {
     String* old_p = d->property();
     String* new_p = static_cast<String*>(old_p->perform(eval->with(env, backtrace)));
-    Expression* value = d->value()->perform(eval->with(env, backtrace));
-
+    Selector* p = selector_stack.size() <= 1 ? 0 : selector_stack.back();
+    Expression* value = d->value()->perform(eval->with(p, env, backtrace));
     if (value->is_invisible() && !d->is_important()) return 0;
-
     Declaration* decl = new (ctx.mem) Declaration(d->pstate(),
                                                   new_p,
                                                   value,
@@ -219,12 +218,13 @@ namespace Sass {
   Statement* Expand::operator()(Assignment* a)
   {
     string var(a->variable());
+    Selector* p = selector_stack.size() <= 1 ? 0 : selector_stack.back();
     if (env->has(var)) {
       Expression* v = static_cast<Expression*>((*env)[var]);
-      if (!a->is_guarded() || v->concrete_type() == Expression::NULL_VAL) (*env)[var] = a->value()->perform(eval->with(env, backtrace));
+      if (!a->is_guarded() || v->concrete_type() == Expression::NULL_VAL) (*env)[var] = a->value()->perform(eval->with(p, env, backtrace));
     }
     else {
-      env->current_frame()[var] = a->value()->perform(eval->with(env, backtrace));
+      env->current_frame()[var] = a->value()->perform(eval->with(p, env, backtrace));
     }
     return 0;
   }
@@ -406,7 +406,7 @@ namespace Sass {
     Selector_List* extender = static_cast<Selector_List*>(selector_stack.back());
     if (!extender) return 0;
     Selector_List* org_extendee = static_cast<Selector_List*>(e->selector());
-    Selector_List* extendee = static_cast<Selector_List*>(org_extendee->perform(contextualize->with(0, env, backtrace)));
+    Selector_List* extendee = static_cast<Selector_List*>(org_extendee->perform(contextualize_eval->with(0, env, backtrace)));
     if (extendee->length() != 1) {
       error("selector groups may not be extended", extendee->pstate(), backtrace);
     }
@@ -448,8 +448,10 @@ namespace Sass {
     Definition* def = static_cast<Definition*>((*env)[full_name]);
     Block* body = def->block();
     Parameters* params = def->parameters();
+    Selector* p = selector_stack.size() <= 1 ? 0 : selector_stack.back();
+
     Arguments* args = static_cast<Arguments*>(c->arguments()
-                                               ->perform(eval->with(env, backtrace)));
+                                               ->perform(eval->with(p, env, backtrace)));
     Backtrace here(backtrace, c->pstate(), ", in mixin `" + c->name() + "`");
     backtrace = &here;
     Env new_env;

@@ -31,12 +31,21 @@ namespace Sass {
     add, sub, mul, div, fmod
   };
 
-  Eval::Eval(Context& ctx, Env* env, Backtrace* bt)
-  : ctx(ctx), env(env), backtrace(bt) { }
+  Eval::Eval(Context& ctx, Contextualize* contextualize, Listize* listize, Env* env, Backtrace* bt)
+  : ctx(ctx), contextualize(contextualize), listize(listize), env(env), backtrace(bt) { }
   Eval::~Eval() { }
 
   Eval* Eval::with(Env* e, Backtrace* bt) // for setting the env before eval'ing an expression
   {
+    contextualize = contextualize->with(0, e, bt);
+    env = e;
+    backtrace = bt;
+    return this;
+  }
+
+  Eval* Eval::with(Selector* c, Env* e, Backtrace* bt, Selector* p, Selector* ex) // for setting the env before eval'ing an expression
+  {
+    contextualize = contextualize->with(c, e, bt, p, ex);
     env = e;
     backtrace = bt;
     return this;
@@ -727,21 +736,15 @@ namespace Sass {
   }
 
   string Eval::interpolation(Expression* s) {
-
     if (String_Quoted* str_quoted = dynamic_cast<String_Quoted*>(s)) {
-
       if (str_quoted->quote_mark()) {
         return string_escape(str_quoted->value());
       } else {
         return evacuate_escapes(str_quoted->value());
       }
-
     } else if (String_Constant* str_constant = dynamic_cast<String_Constant*>(s)) {
-
       return evacuate_escapes(str_constant->value());
-
     } else if (String_Schema* str_schema = dynamic_cast<String_Schema*>(s)) {
-
       string res = "";
       for(auto i : str_schema->elements())
         res += (interpolation(i));
@@ -753,9 +756,7 @@ namespace Sass {
       } else {
         return evacuate_quotes(unq);
       }
-
     } else if (List* list = dynamic_cast<List*>(s)) {
-
       string acc = ""; // ToDo: different output styles
       string sep = list->separator() == List::Separator::COMMA ? "," : " ";
       if (ctx.output_style != COMPRESSED && sep == ",") sep += " ";
@@ -766,30 +767,24 @@ namespace Sass {
         initial = true;
       }
       return evacuate_quotes(acc);
-
     } else if (Variable* var = dynamic_cast<Variable*>(s)) {
-
       string name(var->name());
       if (!env->has(name)) error("Undefined variable: \"" + var->name() + "\".", var->pstate());
       Expression* value = static_cast<Expression*>((*env)[name]);
       return evacuate_quotes(interpolation(value));
-
     } else if (Binary_Expression* var = dynamic_cast<Binary_Expression*>(s)) {
-
-      Expression* ex = operator()(var);
+      Expression* ex = var->perform(this);
       return evacuate_quotes(interpolation(ex));
-
     } else if (Function_Call* var = dynamic_cast<Function_Call*>(s)) {
-
-      Expression* ex = operator()(var);
+      Expression* ex = var->perform(this);
       return evacuate_quotes(interpolation(ex));
-
+    } else if (Parent_Selector* var = dynamic_cast<Parent_Selector*>(s)) {
+      Expression* ex = var->perform(this);
+      return evacuate_quotes(interpolation(ex));
     } else {
-
       To_String to_string(&ctx);
       // to_string.in_decl_list = true;
       return evacuate_quotes(s->perform(&to_string));
-
     }
   }
 
@@ -936,6 +931,13 @@ namespace Sass {
   Expression* Eval::operator()(Comment* c)
   {
     return 0;
+  }
+
+  Expression* Eval::operator()(Parent_Selector* p)
+  {
+    Selector* s = p->perform(contextualize);
+    Expression* e = static_cast<Selector_List*>(s)->perform(listize);
+    return e;
   }
 
   inline Expression* Eval::fallback_impl(AST_Node* n)

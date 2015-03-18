@@ -7,8 +7,8 @@
 
 namespace Sass {
 
-  Contextualize::Contextualize(Context& ctx, Eval* eval, Env* env, Backtrace* bt, Selector* placeholder, Selector* extender)
-  : ctx(ctx), eval(eval), env(env), parent(0), backtrace(bt), placeholder(placeholder), extender(extender)
+  Contextualize::Contextualize(Context& ctx, Env* env, Backtrace* bt, Selector* placeholder, Selector* extender)
+  : ctx(ctx), env(env), backtrace(bt), parent(0), placeholder(placeholder), extender(extender)
   { }
 
   Contextualize::~Contextualize() { }
@@ -24,18 +24,6 @@ namespace Sass {
     placeholder = p;
     extender = ex;
     return this;
-  }
-
-  Selector* Contextualize::operator()(Selector_Schema* s)
-  {
-    To_String to_string(&ctx);
-    string result_str(s->contents()->perform(eval->with(env, backtrace))->perform(&to_string));
-    result_str += '{'; // the parser looks for a brace to end the selector
-    Parser p = Parser::from_c_str(result_str.c_str(), ctx, s->pstate());
-    p.block_stack.push_back(s->last_block());
-    p.last_media_block = s->media_block();
-    Selector* result_sel = p.parse_selector_group();
-    return result_sel->perform(this);
   }
 
   Selector* Contextualize::operator()(Selector_List* s)
@@ -126,18 +114,6 @@ namespace Sass {
   Selector* Contextualize::operator()(Pseudo_Selector* s)
   { return s; }
 
-  Selector* Contextualize::operator()(Attribute_Selector* s)
-  {
-    // the value might be interpolated; evaluate it
-    String* v = s->value();
-    if (v && eval) {
-      v = static_cast<String*>(v->perform(eval->with(env, backtrace)));
-    }
-    Attribute_Selector* ss = new (ctx.mem) Attribute_Selector(*s);
-    ss->value(v);
-    return ss;
-  }
-
   Selector* Contextualize::operator()(Selector_Qualifier* s)
   { return s; }
 
@@ -162,6 +138,4 @@ namespace Sass {
     ss->selector(parent);
     return ss;
   }
-
-
 }

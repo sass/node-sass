@@ -60,6 +60,7 @@ namespace Sass {
   class Feature_Query_Condition;
   class At_Root_Expression;
   class Null;
+  class Parent_Selector;
   // parameters and arguments
   class Parameter;
   class Parameters;

@@ -484,6 +484,7 @@ namespace Sass {
     const char* coefficient(const char* src);
     const char* binomial(const char* src);
     const char* percentage(const char* src);
+    const char* ampersand(const char* src);
     const char* dimension(const char* src);
     const char* hex(const char* src);
     const char* hexa(const char* src);

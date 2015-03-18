@@ -55,11 +55,13 @@ libsass_la_SOURCES = \
 	constants.cpp constants.hpp \
 	context.cpp context.hpp \
 	contextualize.cpp contextualize.hpp \
+	contextualize_eval.cpp contextualize_eval.hpp \
 	error_handling.cpp error_handling.hpp \
 	eval.cpp eval.hpp \
 	expand.cpp expand.hpp \
 	extend.cpp extend.hpp \
 	cssize.cpp cssize.hpp \
+	listize.cpp listize.hpp \
 	file.cpp file.hpp \
 	functions.cpp functions.hpp \
 	inspect.cpp inspect.hpp \
