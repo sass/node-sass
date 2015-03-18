@@ -212,6 +212,11 @@ namespace Sass {
 #endif
 
     void error(string msg, Position pos);
+    // generate message with given and expected sample
+    // text before and in the middle are configurable
+    void css_error(const string& msg,
+                   const string& prefix = " after ",
+                   const string& middle = ", was: ");
     void read_bom();
 
     Block* parse();
