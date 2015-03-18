@@ -762,7 +762,7 @@ describe('api', function() {
 
       delete require.cache[extensionsPath];
 
-      process.argv = argv.concat(['--binary-name', 'foo', '--binary-path', 'bar']);
+      process.argv = argv.concat(['--sass-binary-name', 'foo', '--sass-binary-path', 'bar']);
 
       require(extensionsPath);
 
