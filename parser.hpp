@@ -71,6 +71,7 @@ namespace Sass {
 
     bool peek_newline(const char* start = 0);
 
+    // skip over spaces, tabs and line comments
     template <prelexer mx>
     const char* sneak(const char* start = 0)
     {
@@ -98,6 +99,8 @@ namespace Sass {
 
     }
 
+    // peek will only skip over space, tabs and line comment
+    // return the position where the lexer match will occur
     template <prelexer mx>
     const char* peek(const char* start = 0)
     {
@@ -116,6 +119,7 @@ namespace Sass {
     // some matchers don't accept certain white-space
     // we do not support start arg, since we manipulate
     // sourcemap offset and we modify the position pointer!
+    // lex will only skip over space, tabs and line comment
     template <prelexer mx>
     const char* lex()
     {
@@ -149,7 +153,9 @@ namespace Sass {
 
     }
 
-    // skips over css comments
+    // lex_css skips over space, tabs, line and block comment
+    // all block comments will be consumed and thrown away
+    // source-map position will point to token after the comment
     template <prelexer mx>
     const char* lex_css()
     {
@@ -160,7 +166,7 @@ namespace Sass {
       return lex< mx >();
     }
 
-    // skips over css comments
+    // all block comments will be skipped and thrown away
     template <prelexer mx>
     const char* peek_css(const char* start = 0)
     {
