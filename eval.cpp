@@ -265,10 +265,7 @@ namespace Sass {
     }
 
     string result(unquote(message->perform(&to_string)));
-    Backtrace top(backtrace, e->pstate(), "");
-    cerr << "Error: " << result;
-    cerr << top.to_string(true);
-    cerr << endl << endl;
+    error(result, e->pstate());
     return 0;
   }
 
