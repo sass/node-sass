@@ -19,13 +19,18 @@ namespace Sass {
       Offset(const size_t line, const size_t column);
 
       // return new position, incremented by the given string
+      Offset add(const char* begin, const char* end);
       Offset inc(const char* begin, const char* end) const;
+
+      // init/create instance from const char substring
+      static Offset init(const char* beg, const char* end);
 
     public: // overload operators for position
       void operator+= (const Offset &pos);
       bool operator== (const Offset &pos) const;
       bool operator!= (const Offset &pos) const;
       Offset operator+ (const Offset &off) const;
+      Offset operator- (const Offset &off) const;
 
     public: // overload output stream operator
       // friend ostream& operator<<(ostream& strm, const Offset& off);
@@ -52,7 +57,9 @@ namespace Sass {
       bool operator== (const Position &pos) const;
       bool operator!= (const Position &pos) const;
       const Position operator+ (const Offset &off) const;
+      const Offset operator- (const Offset &off) const;
       // return new position, incremented by the given string
+      Position add(const char* begin, const char* end);
       Position inc(const char* begin, const char* end) const;
 
     public: // overload output stream operator
@@ -69,25 +76,19 @@ namespace Sass {
     const char* prefix;
     const char* begin;
     const char* end;
-    const char* suffix;
-    Position start;
-    Position stop;
 
     Token()
-    : prefix(0), begin(0), end(0), suffix(0), start(0), stop(0) { }
-    Token(const char* b, const char* e, const Position pos)
-    : prefix(b), begin(b), end(e), suffix(e), start(pos), stop(pos.inc(b, e)) { }
-    Token(const char* s, const Position pos)
-    : prefix(s), begin(s), end(s + strlen(s)), suffix(end), start(pos), stop(pos.inc(s, s + strlen(s))) { }
-    Token(const char* p, const char* b, const char* e, const char* s, const Position pos)
-    : prefix(p), begin(b), end(e), suffix(s), start(pos), stop(pos.inc(b, e)) { }
+    : prefix(0), begin(0), end(0) { }
+    Token(const char* b, const char* e)
+    : prefix(b), begin(b), end(e) { }
+    Token(const char* str)
+    : prefix(str), begin(str), end(str + strlen(str)) { }
+    Token(const char* p, const char* b, const char* e)
+    : prefix(p), begin(b), end(e) { }
 
     size_t length()    const { return end - begin; }
     string ws_before() const { return string(prefix, begin); }
     string to_string() const { return string(begin, end); }
-    string ws_after() const { return string(end, suffix); }
-
-    // string unquote() const;
 
     operator bool()   { return begin && end && begin >= end; }
     operator string() { return to_string(); }
@@ -98,10 +99,9 @@ namespace Sass {
   class ParserState : public Position {
 
     public: // c-tor
-      ParserState(string path);
-      ParserState(string path, const size_t file);
-      ParserState(string path, Position position, Offset offset = Offset(0, 0));
-      ParserState(string path, Token token, Position position, Offset offset = Offset(0, 0));
+      ParserState(string path, const char* src = 0, const size_t file = string::npos);
+      ParserState(string path, const char* src, Position position, Offset offset = Offset(0, 0));
+      ParserState(string path, const char* src, Token token, Position position, Offset offset = Offset(0, 0));
 
     public: // down casts
       Offset off() { return *this; };
@@ -109,6 +109,7 @@ namespace Sass {
 
     public:
       string path;
+      const char* src;
       Offset offset;
       Token token;
 

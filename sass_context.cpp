@@ -128,6 +128,7 @@ extern "C" {
     char* error_file;
     size_t error_line;
     size_t error_column;
+    const char* error_src;
 
     // report imported files
     char** included_files;
@@ -249,6 +250,29 @@ extern "C" {
       if (!got_newline) msg_stream << "\n";
       msg_stream << string(msg_prefix.size(), ' ');
       msg_stream << " on line " << e.pstate.line+1 << " of " << rel_path << "\n";
+
+      // now create the code trace (ToDo: maybe have util functions?)
+      if (e.pstate.line != string::npos && e.pstate.column != string::npos) {
+        size_t line = e.pstate.line;
+        const char* line_beg = e.pstate.src;
+        while (line_beg && *line_beg && line) {
+          if (*line_beg == '\n') -- line;
+          ++ line_beg;
+        }
+        const char* line_end = line_beg;
+        while (line_end && *line_end && *line_end != '\n') {
+          if (*line_end == '\n') break;
+          if (*line_end == '\r') break;
+          line_end ++;
+        }
+        size_t max_left = 42; size_t max_right = 78;
+        size_t move_in = e.pstate.column > max_left ? e.pstate.column - max_left : 0;
+        size_t shorten = (line_end - line_beg) - move_in > max_right ?
+                         (line_end - line_beg) - move_in - max_right : 0;
+        msg_stream << ">> " << string(line_beg + move_in, line_end - shorten) << "\n";
+        msg_stream << "   " << string(e.pstate.column - move_in, '-') << "^\n";
+      }
+
       c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
       c_ctx->error_text = strdup(e.message.c_str());
@@ -256,6 +280,7 @@ extern "C" {
       c_ctx->error_file = sass_strdup(e.pstate.path.c_str());
       c_ctx->error_line = e.pstate.line+1;
       c_ctx->error_column = e.pstate.column+1;
+      c_ctx->error_src = e.pstate.src;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
       json_delete(json_err);
@@ -406,9 +431,10 @@ extern "C" {
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
       // reset error position
+      c_ctx->error_src = 0;
       c_ctx->error_file = 0;
-      c_ctx->error_line = -1;
-      c_ctx->error_column = -1;
+      c_ctx->error_line = string::npos;
+      c_ctx->error_column = string::npos;
 
       // use to parse block
       return cpp_ctx;
@@ -757,6 +783,7 @@ extern "C" {
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_file);
   IMPLEMENT_SASS_CONTEXT_GETTER(size_t, error_line);
   IMPLEMENT_SASS_CONTEXT_GETTER(size_t, error_column);
+  IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_src);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, output_string);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, source_map_string);
   IMPLEMENT_SASS_CONTEXT_GETTER(char**, included_files);

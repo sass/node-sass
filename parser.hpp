@@ -71,138 +71,107 @@ namespace Sass {
 
     bool peek_newline(const char* start = 0);
 
+    // skip over spaces, tabs and line comments
+    template <prelexer mx>
+    const char* sneak(const char* start = 0)
+    {
+
+      // maybe use optional start position from arguments?
+      const char* it_position = start ? start : position;
+
+      // skip white-space?
+      if (mx == url ||
+          mx == spaces ||
+          mx == no_spaces ||
+          mx == css_comments ||
+          mx == css_whitespace ||
+          mx == optional_spaces ||
+          mx == optional_css_comments ||
+          mx == optional_css_whitespace
+      ) {
+        return it_position;
+      }
+
+      // skip over spaces, tabs and sass line comments
+      const char* pos = optional_css_whitespace(it_position);
+      // always return a valid position
+      return pos ? pos : it_position;
+
+    }
+
+    // peek will only skip over space, tabs and line comment
+    // return the position where the lexer match will occur
     template <prelexer mx>
     const char* peek(const char* start = 0)
     {
-      if (!start) start = position;
-      const char* it_before_token;
-      if (mx == block_comment) {
-        it_before_token = // start;
-          zero_plus< alternatives<spaces, line_comment> >(start);
-      }
-      else if (/*mx == ancestor_of ||*/ mx == no_spaces) {
-        it_before_token = position;
-      }
-      else if (mx == spaces) {
-        it_before_token = mx(start);
-        if (it_before_token) {
-          return it_before_token;
-        }
-        else {
-          return 0;
-        }
-      }
-      else if (mx == optional_spaces) {
-        it_before_token = optional_spaces(start);
-      }
-      else if (mx == line_comment_prefix || mx == block_comment_prefix) {
-        it_before_token = position;
-      }
-      else {
-        it_before_token = optional_spaces_and_comments(start);
-      }
-      const char* it_after_token = mx(it_before_token);
-      if (it_after_token) {
-        return it_after_token;
-      }
-      else {
-        return 0;
-      }
+
+      // sneak up to the actual token we want to lex
+      // this should skip over white-space if desired
+      const char* it_before_token = sneak < mx >(start);
+
+      // match the given prelexer
+      return mx(it_before_token);
+
     }
 
     // white-space handling is built into the lexer
     // this way you do not need to parse it yourself
     // some matchers don't accept certain white-space
+    // we do not support start arg, since we manipulate
+    // sourcemap offset and we modify the position pointer!
+    // lex will only skip over space, tabs and line comment
     template <prelexer mx>
     const char* lex()
     {
 
-      // remeber interesting position
-      const char* wspace_start = position;
-
-      // advance position for next call
-      before_token = after_token;
-
-      // after optional whitespace
-      const char* it_before_token;
-
-      if (mx == block_comment) {
-        // a block comment can be preceded by spaces and/or line comments
-        it_before_token = zero_plus< alternatives<spaces, line_comment> >(position);
-      }
-      else if (mx == url || mx == no_spaces) {
-        // parse everything literally
-        it_before_token = position;
-      }
-
-      else if (mx == spaces) {
-        it_before_token = spaces(position);
-        if (it_before_token) {
-          return position = it_before_token;
-        }
-        else {
-          return 0;
-        }
-      }
-
-      else if (mx == optional_spaces_and_comments) {
-        it_before_token = position;
-      }
-      else if (mx == spaces_and_comments) {
-        it_before_token = position;
-      }
-
-      else if (mx == optional_spaces) {
-        // ToDo: what are optiona_spaces ???
-        it_before_token = optional_spaces(position);
-      }
-      else {
-        // most can be preceded by spaces and comments
-        it_before_token = optional_spaces_and_comments(position);
-      }
+      // sneak up to the actual token we want to lex
+      // this should skip over white-space if desired
+      const char* it_before_token = sneak < mx >(position);
 
       // now call matcher to get position after token
       const char* it_after_token = mx(it_before_token);
+
       // assertion that we got a valid match
       if (it_after_token == 0) return 0;
+      // assertion that we actually lexed something
+      if (it_after_token == it_before_token) return 0;
 
-      // add whitespace after previous and before this token
-      while (position < it_before_token && *position) {
-        if (*position == '\n') {
-          ++ before_token.line;
-          before_token.column = 0;
-        } else {
-          ++ before_token.column;
-        }
-        ++position;
-      }
+      // create new lexed token object (holds all parse result information)
+      lexed = Token(position, it_before_token, it_after_token);
 
-      // copy position
-      after_token = before_token;
+      // advance position (add whitespace before current token)
+      before_token = after_token.add(position, it_before_token);
 
-      Offset size(0, 0);
+      // update after_token position for current token
+      after_token.add(it_before_token, it_after_token);
 
-      // increase position to include current token
-      while (position < it_after_token && *position) {
-        if (*position == '\n') {
-          ++ size.line;
-          size.column = 0;
-        } else {
-          ++ size.column;
-        }
-        ++position;
-      }
-
-      after_token = after_token + size;
-
-      // create parsed token string (public member)
-      lexed = Token(wspace_start, it_before_token, it_after_token, optional_spaces_and_comments(it_after_token) ? optional_spaces_and_comments(it_after_token) : it_after_token, before_token);
-      Position pos(before_token.file, before_token.line, before_token.column);
-      pstate = ParserState(path, lexed, pos, size);
+      // ToDo: could probably do this incremetal on original object (API wants offset?)
+      pstate = ParserState(path, source, lexed, before_token, after_token - before_token);
 
       // advance internal char iterator
       return position = it_after_token;
 
+    }
+
+    // lex_css skips over space, tabs, line and block comment
+    // all block comments will be consumed and thrown away
+    // source-map position will point to token after the comment
+    template <prelexer mx>
+    const char* lex_css()
+    {
+      // throw away comments
+      // update srcmap position
+      lex < css_comments >();
+      // now lex a token
+      return lex< mx >();
+    }
+
+    // all block comments will be skipped and thrown away
+    template <prelexer mx>
+    const char* peek_css(const char* start = 0)
+    {
+      // now peek a token (skip comments first)
+      return peek< mx >(peek < css_comments >(start));
     }
 
 #ifdef __clang__
@@ -286,6 +255,8 @@ namespace Sass {
     Warning* parse_warning();
     Error* parse_error();
     Debug* parse_debug();
+
+    void parse_block_comments(Block* block);
 
     Selector_Lookahead lookahead_for_selector(const char* start = 0);
     Selector_Lookahead lookahead_for_extension_target(const char* start = 0);

@@ -98,17 +98,24 @@ namespace Sass {
 
     // Whitespace handling.
     const char* optional_spaces(const char* src) { return optional<spaces>(src); }
-    // const char* optional_comment(const char* src) { return optional<comment>(src); }
-    const char* optional_spaces_and_comments(const char* src) {
+    const char* no_spaces(const char* src) { return negate< spaces >(src); }
+
+    // Match zero plus white-space or line_comments
+    const char* optional_css_whitespace(const char* src) {
       return zero_plus< alternatives<spaces, line_comment> >(src);
     }
-    const char* spaces_and_comments(const char* src) {
+    const char* css_whitespace(const char* src) {
       return one_plus< alternatives<spaces, line_comment> >(src);
     }
-    const char* no_spaces(const char* src) {
-      return negate< spaces >(src);
+    // Match optional_css_whitepace plus block_comments
+    const char* optional_css_comments(const char* src) {
+      return zero_plus< alternatives<spaces, line_comment, block_comment> >(src);
+    }
+    const char* css_comments(const char* src) {
+      return one_plus< alternatives<spaces, line_comment, block_comment> >(src);
     }
 
+    // Match one backslash escaped char /\\./
     const char* backslash_something(const char* src) {
       return sequence< exactly<'\\'>, any_char >(src);
     }
@@ -153,7 +160,7 @@ namespace Sass {
         exactly < '+' >,
         sequence <
           exactly < '-' >,
-          optional_spaces_and_comments,
+          optional_css_whitespace,
           exactly< '-' >
         >
       >(src);
@@ -315,7 +322,7 @@ namespace Sass {
     }
     const char* elseif_directive(const char* src) {
       return sequence< else_directive,
-                       optional_spaces_and_comments,
+                       optional_css_whitespace,
                        exactly< if_after_else_kwd > >(src);
     }
 
@@ -496,25 +503,25 @@ namespace Sass {
     // Match CSS "!important" keyword.
     const char* important(const char* src) {
       return sequence< exactly<'!'>,
-                       optional_spaces_and_comments,
+                       optional_css_whitespace,
                        exactly<important_kwd> >(src);
     }
     // Match CSS "!optional" keyword.
     const char* optional(const char* src) {
       return sequence< exactly<'!'>,
-      optional_spaces_and_comments,
+      optional_css_whitespace,
       exactly<optional_kwd> >(src);
     }
     // Match Sass "!default" keyword.
     const char* default_flag(const char* src) {
       return sequence< exactly<'!'>,
-                       optional_spaces_and_comments,
+                       optional_css_whitespace,
                        exactly<default_kwd> >(src);
     }
     // Match Sass "!global" keyword.
     const char* global_flag(const char* src) {
       return sequence< exactly<'!'>,
-                       optional_spaces_and_comments,
+                       optional_css_whitespace,
                        exactly<global_kwd> >(src);
     }
     // Match CSS pseudo-class/element prefixes.
@@ -613,27 +620,27 @@ namespace Sass {
         > >,
         zero_plus < sequence<
           exactly<'('>,
-          optional_spaces_and_comments,
+          optional_css_whitespace,
           optional < sequence<
             alternatives< variable, identifier_schema, identifier >,
-            optional_spaces_and_comments,
+            optional_css_whitespace,
             exactly<'='>,
-            optional_spaces_and_comments,
+            optional_css_whitespace,
             alternatives< variable, identifier_schema, identifier, quoted_string, number, hexa >,
             zero_plus< sequence<
-              optional_spaces_and_comments,
+              optional_css_whitespace,
               exactly<','>,
-              optional_spaces_and_comments,
+              optional_css_whitespace,
               sequence<
                 alternatives< variable, identifier_schema, identifier >,
-                optional_spaces_and_comments,
+                optional_css_whitespace,
                 exactly<'='>,
-                optional_spaces_and_comments,
+                optional_css_whitespace,
                 alternatives< variable, identifier_schema, identifier, quoted_string, number, hexa >
               >
             > >
           > >,
-          optional_spaces_and_comments,
+          optional_css_whitespace,
           exactly<')'>
         > >
       >(src);
@@ -647,15 +654,15 @@ namespace Sass {
 
     // const char* ie_args(const char* src) {
     //   return sequence< alternatives< ie_keyword_arg, value_schema, quoted_string, interpolant, number, identifier, delimited_by< '(', ')', true> >,
-    //                    zero_plus< sequence< optional_spaces_and_comments, exactly<','>, optional_spaces_and_comments, alternatives< ie_keyword_arg, value_schema, quoted_string, interpolant, number, identifier, delimited_by<'(', ')', true> > > > >(src);
+    //                    zero_plus< sequence< optional_css_whitespace, exactly<','>, optional_css_whitespace, alternatives< ie_keyword_arg, value_schema, quoted_string, interpolant, number, identifier, delimited_by<'(', ')', true> > > > >(src);
     // }
 
     const char* ie_keyword_arg(const char* src) {
       return sequence<
         alternatives< variable, identifier_schema, identifier >,
-        optional_spaces_and_comments,
+        optional_css_whitespace,
         exactly<'='>,
-        optional_spaces_and_comments,
+        optional_css_whitespace,
         alternatives< variable, identifier_schema, identifier, quoted_string, number, hexa >
       >(src);
     }
@@ -730,7 +737,7 @@ namespace Sass {
     const char* static_string(const char* src) {
       const char* pos = src;
       const char * s = quoted_string(pos);
-      Token t(pos, s, Position(0, 0));
+      Token t(pos, s);
       const unsigned int p = count_interval< interpolant >(t.begin, t.end);
       return (p == 0) ? t.end : 0;
     }

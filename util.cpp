@@ -332,7 +332,7 @@ namespace Sass {
         // don't be that strict
         return s;
         // this basically always means an internal error and not users fault
-        error("Unescaped delimiter in string to unquote found. [" + s + "]", ParserState("[UNQUOTE]", -1));
+        error("Unescaped delimiter in string to unquote found. [" + s + "]", ParserState("[UNQUOTE]"));
       }
       else {
         skipped = false;
@@ -404,10 +404,12 @@ namespace Sass {
 
   bool peek_linefeed(const char* start)
   {
-    if(*start == '\n' || *start == '\r') return true;;
-    const char* linefeed = Prelexer::wspaces(start);
-    if (linefeed == 0) return false;
-    return *linefeed == '\n' || *linefeed == '\r';
+    while (*start) {
+      if (*start == '\n' || *start == '\r') return true;
+      if (*start != ' ' && *start != '\t') return false;
+      ++ start;
+    }
+    return false;
   }
 
   namespace Util {

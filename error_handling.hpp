@@ -14,7 +14,6 @@ namespace Sass {
     enum Type { read, write, syntax, evaluation };
 
     Type type;
-    string path;
     ParserState pstate;
     string message;
 
