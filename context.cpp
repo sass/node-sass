@@ -316,7 +316,7 @@ namespace Sass {
       register_c_function(*this, &tge, c_functions[i]);
     }
     Contextualize contextualize(*this, &tge, &backtrace);
-    Listize listize(*this, &tge, &backtrace);
+    Listize listize(*this);
     Eval eval(*this, &contextualize, &listize, &tge, &backtrace);
     Contextualize_Eval contextualize_eval(*this, &eval, &tge, &backtrace);
     Expand expand(*this, &eval, &contextualize_eval, &tge, &backtrace);

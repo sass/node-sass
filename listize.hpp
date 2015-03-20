@@ -18,13 +18,11 @@ namespace Sass {
   class Listize : public Operation_CRTP<Expression*, Listize> {
 
     Context&            ctx;
-    Env*                env;
-    Backtrace*          backtrace;
 
     Expression* fallback_impl(AST_Node* n);
 
   public:
-    Listize(Context&, Env*, Backtrace*);
+    Listize(Context&);
     virtual ~Listize() { }
 
     using Operation<Expression*>::operator();
@@ -32,8 +30,6 @@ namespace Sass {
     Expression* operator()(Selector_List*);
     Expression* operator()(Complex_Selector*);
     Expression* operator()(Compound_Selector*);
-    Expression* operator()(Type_Selector*);
-    Expression* operator()(Selector_Qualifier*);
     Expression* operator()(Selector_Reference*);
 
     template <typename U>
