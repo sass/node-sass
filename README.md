@@ -87,7 +87,7 @@ When returning or calling `done()` with `{ file: "String" }`, the new file path 
 
 When returning or calling `done()` with `{ contents: "String" }`, the string value will be used as if the file was read in through an external source.
 
-`this` refers to a contextual scope for the immediate run of `sass.render` or `sass.renderSync`
+Starting from v3.0.0, `this` refers to a contextual scope for the immediate run of `sass.render` or `sass.renderSync`
 
 ### includePaths
 Type: `Array<String>`
@@ -197,17 +197,21 @@ sass.render({
   },
   includePaths: [ 'lib/', 'mod/' ],
   outputStyle: 'compressed'
-}, function(error, result) { // >= v3.0.0
+}, function(error, result) { // node-style callback from v3.0.0 onwards
   if (error) {
-    console.log(error.status); // use "code" <= v3.0.0
+    console.log(error.status); // used to be "code" in v2x and below
     console.log(error.column);
     console.log(error.message);
     console.log(error.line);
   }
   else {
     console.log(result.css.toString());
+
     console.log(result.stats);
-    console.log(result.map.toString()); // or console.log(JSON.stringify(result.map));
+
+    console.log(result.map.toString());
+    // or better
+    console.log(JSON.stringify(result.map)); // note, JSON.stringify accepts Buffer too
   }
 });
 // OR
