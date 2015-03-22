@@ -3,6 +3,7 @@
 
 #include <nan.h>
 #include <vector>
+#include <stdexcept>
 #include <sass_values.h>
 #include "value.h"
 #include "factory.h"

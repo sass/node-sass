@@ -11,7 +11,7 @@ namespace SassTypes
 
     if (raw_val.size() >= 1) {
       if (!raw_val[0]->IsString()) {
-        throw std::invalid_argument("Argument should be a string");
+        throw std::invalid_argument("Argument should be a string.");
       }
 
       value = CreateString(raw_val[0]);

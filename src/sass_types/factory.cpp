@@ -42,7 +42,7 @@ namespace SassTypes
         return new Error(v);
 
       default:
-        throw std::invalid_argument("Unknown type");
+        throw std::invalid_argument("Unknown type encountered.");
     }
   }
 
@@ -63,7 +63,7 @@ namespace SassTypes
   Value* Factory::unwrap(Handle<v8::Value> obj) {
     // Todo: non-SassValue objects could easily fall under that condition, need to be more specific.
     if (!obj->IsObject() || obj->ToObject()->InternalFieldCount() != 1) {
-      throw std::invalid_argument("A SassValue object was expected");
+      throw std::invalid_argument("A SassValue object was expected.");
     }
 
     return static_cast<Value*>(NanGetInternalFieldPointer(obj->ToObject(), 0));

@@ -12,14 +12,14 @@ namespace SassTypes
 
     if (raw_val.size() >= 1) {
       if (!raw_val[0]->IsNumber()) {
-        throw std::invalid_argument("First argument should be an integer");
+        throw std::invalid_argument("First argument should be an integer.");
       }
 
       length = raw_val[0]->ToInt32()->Value();
 
       if (raw_val.size() >= 2) {
         if (!raw_val[1]->IsBoolean()) {
-          throw std::invalid_argument("Second argument should be a boolean");
+          throw std::invalid_argument("Second argument should be a boolean.");
         }
 
         comma = raw_val[1]->ToBoolean()->Value();

@@ -11,7 +11,7 @@ namespace SassTypes
 
     if (raw_val.size() >= 1) {
       if (!raw_val[0]->IsBoolean()) {
-        throw std::invalid_argument("Argument should be a bool");
+        throw std::invalid_argument("Argument should be a bool.");
       }
 
       value = raw_val[0]->ToBoolean()->Value();

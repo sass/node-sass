@@ -13,7 +13,7 @@ namespace SassTypes
     switch (raw_val.size()) {
       case 1:
         if (!raw_val[0]->IsNumber()) {
-          throw std::invalid_argument("Only argument should be an integer");
+          throw std::invalid_argument("Only argument should be an integer.");
         }
 
         argb = raw_val[0]->ToInt32()->Value();
@@ -25,7 +25,7 @@ namespace SassTypes
 
       case 4:
         if (!raw_val[3]->IsNumber()) {
-          throw std::invalid_argument("Constructor arguments should be numbers exclusively");
+          throw std::invalid_argument("Constructor arguments should be numbers exclusively.");
         }
 
         a = raw_val[3]->ToNumber()->Value();
@@ -33,7 +33,7 @@ namespace SassTypes
 
       case 3:
         if (!raw_val[0]->IsNumber() || !raw_val[1]->IsNumber() || !raw_val[2]->IsNumber()) {
-          throw std::invalid_argument("Constructor arguments should be numbers exclusively");
+          throw std::invalid_argument("Constructor arguments should be numbers exclusively.");
         }
 
         r = raw_val[0]->ToNumber()->Value();
@@ -45,7 +45,7 @@ namespace SassTypes
         break;
 
       default:
-        throw std::invalid_argument("Constructor should be invoked with either 0, 1, 3 or 4 arguments");
+        throw std::invalid_argument("Constructor should be invoked with either 0, 1, 3 or 4 arguments.");
     }
 
     return sass_make_color(r, g, b, a);

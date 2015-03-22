@@ -12,14 +12,14 @@ namespace SassTypes
 
     if (raw_val.size() >= 1) {
       if (!raw_val[0]->IsNumber()) {
-        throw std::invalid_argument("First argument should be a number");
+        throw std::invalid_argument("First argument should be a number.");
       }
 
       value = raw_val[0]->ToNumber()->Value();
 
       if (raw_val.size() >= 2) {
         if (!raw_val[1]->IsString()) {
-          throw std::invalid_argument("Second argument should be a string");
+          throw std::invalid_argument("Second argument should be a string.");
         }
 
         unit = CreateString(raw_val[1]);

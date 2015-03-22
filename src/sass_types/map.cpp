@@ -11,7 +11,7 @@ namespace SassTypes
 
     if (raw_val.size() >= 1) {
       if (!raw_val[0]->IsNumber()) {
-        throw std::invalid_argument("First argument should be an integer");
+        throw std::invalid_argument("First argument should be an integer.");
       }
 
       length = raw_val[0]->ToInt32()->Value();

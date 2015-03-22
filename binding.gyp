@@ -28,31 +28,31 @@
               'libsass.gyp:libsass',
             ]
         }],
-	['libsass_ext == "auto"', {
-	  'cflags_cc': [
-	    '<!(pkg-config --cflags libsass)',
-	  ],
-	  'link_settings': {
-	    'ldflags': [
-	      '<!(pkg-config --libs-only-other --libs-only-L libsass)',
-	    ],
-	    'libraries': [
-	      '<!(pkg-config --libs-only-l libsass)',
-	    ],
-	  }
-	}],
-	['libsass_ext == "yes"', {
-	  'cflags_cc': [
-	    '<(libsass_cflags)',
-	  ],
-	  'link_settings': {
-	    'ldflags': [
-	      '<(libsass_ldflags)',
-	    ],
-	    'libraries': [
-	      '<(libsass_library)',
-	    ],
-	  }
+        ['libsass_ext == "auto"', {
+          'cflags_cc': [
+            '<!(pkg-config --cflags libsass)',
+          ],
+          'link_settings': {
+            'ldflags': [
+              '<!(pkg-config --libs-only-other --libs-only-L libsass)',
+            ],
+            'libraries': [
+              '<!(pkg-config --libs-only-l libsass)',
+            ],
+          }
+        }],
+        ['libsass_ext == "yes"', {
+          'cflags_cc': [
+            '<(libsass_cflags)',
+          ],
+          'link_settings': {
+            'ldflags': [
+              '<(libsass_ldflags)',
+            ],
+            'libraries': [
+              '<(libsass_library)',
+            ],
+          }
         }],
         ['OS=="mac"', {
           'xcode_settings': {
@@ -86,6 +86,7 @@
         }],
         ['OS!="win"', {
           'cflags_cc+': [
+            '-fexceptions',
             '-std=c++0x'
           ]
         }]
