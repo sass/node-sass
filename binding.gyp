@@ -4,7 +4,20 @@
       'target_name': 'binding',
       'sources': [
         'src/binding.cpp',
-        'src/sass_context_wrapper.cpp'
+        'src/create_string.cpp',
+        'src/custom_function_bridge.cpp',
+        'src/custom_importer_bridge.cpp',
+        'src/sass_context_wrapper.cpp',
+        'src/sass_types/boolean.cpp',
+        'src/sass_types/color.cpp',
+        'src/sass_types/error.cpp',
+        'src/sass_types/factory.cpp',
+        'src/sass_types/list.cpp',
+        'src/sass_types/map.cpp',
+        'src/sass_types/null.cpp',
+        'src/sass_types/number.cpp',
+        'src/sass_types/string.cpp',
+        'src/sass_types/value.cpp'
       ],
       'include_dirs': [
         '<!(node -e "require(\'nan\')")',
@@ -15,31 +28,31 @@
               'libsass.gyp:libsass',
             ]
         }],
-	['libsass_ext == "auto"', {
-	  'cflags_cc': [
-	    '<!(pkg-config --cflags libsass)',
-	  ],
-	  'link_settings': {
-	    'ldflags': [
-	      '<!(pkg-config --libs-only-other --libs-only-L libsass)',
-	    ],
-	    'libraries': [
-	      '<!(pkg-config --libs-only-l libsass)',
-	    ],
-	  }
-	}],
-	['libsass_ext == "yes"', {
-	  'cflags_cc': [
-	    '<(libsass_cflags)',
-	  ],
-	  'link_settings': {
-	    'ldflags': [
-	      '<(libsass_ldflags)',
-	    ],
-	    'libraries': [
-	      '<(libsass_library)',
-	    ],
-	  }
+        ['libsass_ext == "auto"', {
+          'cflags_cc': [
+            '<!(pkg-config --cflags libsass)',
+          ],
+          'link_settings': {
+            'ldflags': [
+              '<!(pkg-config --libs-only-other --libs-only-L libsass)',
+            ],
+            'libraries': [
+              '<!(pkg-config --libs-only-l libsass)',
+            ],
+          }
+        }],
+        ['libsass_ext == "yes"', {
+          'cflags_cc': [
+            '<(libsass_cflags)',
+          ],
+          'link_settings': {
+            'ldflags': [
+              '<(libsass_ldflags)',
+            ],
+            'libraries': [
+              '<(libsass_library)',
+            ],
+          }
         }],
         ['OS=="mac"', {
           'xcode_settings': {
@@ -73,6 +86,7 @@
         }],
         ['OS!="win"', {
           'cflags_cc+': [
+            '-fexceptions',
             '-std=c++0x'
           ]
         }]

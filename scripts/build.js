@@ -53,7 +53,7 @@ function afterBuild(options) {
  */
 
 function build(options) {
-  var arguments = [
+  var args = [
     path.join('node_modules', 'pangyp', 'bin', 'node-gyp'),
     'rebuild',
   ].concat(
@@ -63,9 +63,9 @@ function build(options) {
     })
   ).concat(options.args);
 
-  console.log(['Building:', process.sass.runtime.execPath].concat(arguments).join(' '));
+  console.log(['Building:', process.sass.runtime.execPath].concat(args).join(' '));
 
-  var proc = spawn(process.sass.runtime.execPath, arguments, {
+  var proc = spawn(process.sass.runtime.execPath, args, {
     stdio: [0, 1, 2]
   });
 

@@ -23,12 +23,7 @@ extern "C" {
   }
 
   sass_context_wrapper* sass_make_context_wrapper() {
-    sass_context_wrapper* ctx_w = (sass_context_wrapper*)calloc(1, sizeof(sass_context_wrapper));
-
-    ctx_w->importer_mutex = new std::mutex();
-    ctx_w->importer_condition_variable = new std::condition_variable();
-
-    return ctx_w;
+    return (sass_context_wrapper*)calloc(1, sizeof(sass_context_wrapper));
   }
 
   void sass_wrapper_dispose(struct sass_context_wrapper* ctx_w, char* string = 0) {
@@ -39,19 +34,23 @@ extern "C" {
       sass_delete_file_context(ctx_w->fctx);
     }
 
-    delete ctx_w->file;
-    delete ctx_w->prev;
     delete ctx_w->error_callback;
     delete ctx_w->success_callback;
-    delete ctx_w->importer_callback;
-
-    delete ctx_w->importer_mutex;
-    delete ctx_w->importer_condition_variable;
 
     NanDisposePersistent(ctx_w->result);
 
     if(string) {
       free(string);
+    }
+
+    if (!ctx_w->function_bridges.empty()) {
+      for (CustomFunctionBridge* bridge : ctx_w->function_bridges) {
+        delete bridge;
+      }
+    }
+
+    if (ctx_w->importer_bridge) {
+      delete ctx_w->importer_bridge;
     }
   }
 
