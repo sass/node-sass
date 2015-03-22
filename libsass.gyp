@@ -61,14 +61,12 @@
               '-std=c++11',
               '-stdlib=libc++'
             ],
-            'OTHER_LDFLAGS': [
-              '-stdlib=libc++'
-            ],
+            'OTHER_LDFLAGS': [],
             'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
             'GCC_ENABLE_CPP_RTTI': 'YES',
             'MACOSX_DEPLOYMENT_TARGET': '10.7'
           }
-         }],
+        }],
         ['OS=="win"', {
           'msvs_settings': {
             'VCCLCompilerTool': {
