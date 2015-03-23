@@ -1679,9 +1679,11 @@ namespace Sass {
           // check if both selectors have the same media block parent
           if (ext.first->media_block() == pComplexSelector->media_block()) continue;
           To_String to_string(&ctx);
-          if (ext.second->media_block() && ext.second->media_block()->media_queries() &&
-              pComplexSelector->media_block() && pComplexSelector->media_block()->media_queries())
-          {
+          if (ext.second->media_block() == 0) continue;
+          if (pComplexSelector->media_block() &&
+              ext.second->media_block()->media_queries() &&
+              pComplexSelector->media_block()->media_queries()
+          ) {
             string query_left(ext.second->media_block()->media_queries()->perform(&to_string));
             string query_right(pComplexSelector->media_block()->media_queries()->perform(&to_string));
             if (query_left == query_right) continue;
