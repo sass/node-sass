@@ -1,4 +1,5 @@
 #include <nan.h>
+#include <stdlib.h>
 #include <string.h>
 #include "create_string.h"
 
