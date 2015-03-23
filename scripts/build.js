@@ -54,7 +54,7 @@ function afterBuild(options) {
 
 function build(options) {
   var args = [
-    path.join('node_modules', 'pangyp', 'bin', 'node-gyp'),
+    path.join(require.resolve('pangyp'), '../../bin/node-gyp.js'),
     'rebuild',
   ].concat(
     [ 'libsass_ext', 'libsass_cflags',
