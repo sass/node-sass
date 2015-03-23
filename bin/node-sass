@@ -31,7 +31,10 @@ var cli = meow({
     '  -x, --omit-source-map-url  Omit source map URL comment from output',
     '  -i, --indented-syntax      Treat data from stdin as sass code (versus scss)',
     '  -v, --version              Prints version info',
-    '  --output-style             CSS output style (nested|expanded|compact|compressed)',
+    '  --output-style             CSS output style (nested | expanded | compact | compressed)',
+    '  --indent-type              Indent type for output CSS (space | tab)',
+    '  --indent-width             Indent width; number of spaces or tabs (maximum value: 10)',
+    '  --linefeed                 Linefeed style (cr | crlf | lf | lfcr)',
     '  --source-comments          Include debug info in output',
     '  --source-map               Emit source map',
     '  --source-map-embed         Embed sourceMappingUrl as data URI',
@@ -52,6 +55,8 @@ var cli = meow({
   ],
   string: [
     'include-path',
+    'indent-type',
+    'linefeed',
     'output',
     'output-style',
     'precision',
@@ -68,6 +73,9 @@ var cli = meow({
   },
   default: {
     'include-path': process.cwd(),
+    'indent-type': 'space',
+    'indent-width': 2,
+    linefeed: 'lf',
     'output-style': 'nested',
     precision: 5
   }

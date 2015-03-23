@@ -103,7 +103,7 @@ describe('api', function() {
       });
     });
 
-    it('should render with --precision option', function(done) {
+    it('should render with precision option', function(done) {
       var src = read(fixture('precision/index.scss'), 'utf8');
       var expected = read(fixture('precision/expected.css'), 'utf8').trim();
 
@@ -128,6 +128,27 @@ describe('api', function() {
         includePaths: [fixture('include-files')]
       }, function(error, result) {
         assert.deepEqual(result.stats.includedFiles, expected);
+        done();
+      });
+    });
+
+    it('should render with indentWidth and indentType options', function(done) {
+      sass.render({
+        data: 'div { color: transparent; }',
+        indentWidth: 7,
+        indentType: 'tab'
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), 'div {\n\t\t\t\t\t\t\tcolor: transparent; }');
+        done();
+      });
+    });
+
+    it('should render with linefeed option', function(done) {
+      sass.render({
+        data: 'div { color: transparent; }',
+        linefeed: 'lfcr'
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), 'div {\n\r  color: transparent; }');
         done();
       });
     });
@@ -441,7 +462,7 @@ describe('api', function() {
         functions: {
           'foo($a)': function(str) {
             var unquoted = str.getValue().replace(/['"]/g, '');
-            str.setValue('"' + unquoted + unquoted + '"'); 
+            str.setValue('"' + unquoted + unquoted + '"');
             return str;
           }
         }
@@ -472,8 +493,8 @@ describe('api', function() {
         }
       }, function(error, result) {
         assert.equal(
-          result.css.toString().trim(), 
-          'div {\n  color: rgba(255, 255, 0, 0.5);' + 
+          result.css.toString().trim(),
+          'div {\n  color: rgba(255, 255, 0, 0.5);' +
           '\n  background-color: rgba(255, 0, 255, 0.2);' +
           '\n  border-color: red; }'
         );
@@ -483,7 +504,7 @@ describe('api', function() {
 
     it('should properly convert boolean when calling custom functions', function(done) {
       sass.render({
-        data: 'div { color: if(foo(true, false), #fff, #000);' + 
+        data: 'div { color: if(foo(true, false), #fff, #000);' +
           '\n  background-color: if(foo(true, true), #fff, #000); }',
         functions: {
           'foo($a, $b)': function(a, b) {
@@ -535,7 +556,7 @@ describe('api', function() {
         }
       }, function(error, result) {
         assert.equal(
-          result.css.toString().trim(), 
+          result.css.toString().trim(),
           '.foo {\n  color: #fff; }\n\n.bar {\n  color: #fff; }\n\n.baz {\n  color: #fff; }'
         );
         done();
@@ -576,7 +597,7 @@ describe('api', function() {
 
     it('should properly convert null when calling custom functions', function(done) {
       sass.render({
-        data: 'div { color: if(foo("bar"), #fff, #000); } ' + 
+        data: 'div { color: if(foo("bar"), #fff, #000); } ' +
           'span { color: if(foo(null), #fff, #000); }' +
           'table { color: if(bar() == null, #fff, #000); }',
         functions: {
@@ -589,7 +610,7 @@ describe('api', function() {
         }
       }, function(error, result) {
         assert.equal(
-          result.css.toString().trim(), 
+          result.css.toString().trim(),
           'div {\n  color: #000; }\n\nspan {\n  color: #fff; }\n\ntable {\n  color: #fff; }'
         );
         done();
@@ -868,7 +889,7 @@ describe('api', function() {
           }
         });
       }, /This is a test error/);
-      
+
       done();
     });
 
@@ -883,7 +904,7 @@ describe('api', function() {
           }
         });
       }, /unexpected error/);
-      
+
       done();
     });
 
@@ -911,7 +932,7 @@ describe('api', function() {
           }
         });
       }, /Supplied value should be a string/);
-      
+
       done();
     });
   });

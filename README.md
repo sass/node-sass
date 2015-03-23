@@ -89,7 +89,7 @@ When returning or calling `done()` with `{ contents: "String" }`, the string val
 
 Starting from v3.0.0, `this` refers to a contextual scope for the immediate run of `sass.render` or `sass.renderSync`
 
-### functions
+### functions (>= v3.0.0)
 `functions` is an `Object` that holds a collection of custom functions that may be invoked by the sass files being compiled. They may take zero or more input parameters and must return a value either synchronously (`return ...;`) or asynchronously (`done();`). Those parameters will be instances of one of the constructors contained in the `require('node-sass').types` hash. The return value must be of one of these types as well. See the list of available types below:
 
 #### types.Number(value [, unit = ""])
@@ -162,6 +162,25 @@ Type: `Boolean`
 Default: `false`
 
 `true` values enable [Sass Indented Syntax](http://sass-lang.com/documentation/file.INDENTED_SYNTAX.html) for parsing the data string or file.
+
+### indentType (>= v3.0.0)
+Type: `String`
+Default: `space`
+
+Used to determine whether to use space or tab character for indentation.
+
+### indentWidth (>= v3.0.0)
+Type: `Number`
+Default: `2`
+Maximum: `10`
+
+Used to determine the number of spaces or tabs to be used for indentation.
+
+### linefeed (>= v3.0.0)
+Type: `String`
+Default: `lf`
+
+Used to determine whether to use `cr`, `crlf`, `lf` or `lfcr` sequence for line break.
 
 ### omitSourceMapUrl
 Type: `Boolean`
@@ -404,7 +423,8 @@ The interface for command-line usage is fairly simplistic at this stage, as seen
 Output will be saved with the same name as input SASS file into the current working directory if it's omitted.
 
 ### Usage
- `node-sass [options] <input.scss> [<output.css>]`
+ `node-sass [options] <input.scss> [output.css]`
+ `cat <input.scss> | node-sass > output.css`
 
  **Options:**
 
@@ -415,7 +435,10 @@ Output will be saved with the same name as input SASS file into the current work
     -x, --omit-source-map-url  Omit source map URL comment from output
     -i, --indented-syntax      Treat data from stdin as sass code (versus scss)
     -v, --version              Prints version info
-    --output-style             CSS output style (nested|expanded|compact|compressed)
+    --output-style             CSS output style (nested | expanded | compact | compressed)
+    --indent-type              Indent type for output CSS (space | tab)
+    --indent-width             Indent width; number of spaces or tabs (maximum value: 10)
+    --linefeed                 Linefeed style (cr | crlf | lf | lfcr)
     --source-comments          Include debug info in output
     --source-map               Emit source map
     --source-map-embed         Embed sourceMappingUrl as data URI

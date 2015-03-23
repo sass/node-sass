@@ -11,8 +11,8 @@ struct Sass_Import** sass_importer(const char* file, const char* prev, void* coo
   CustomImporterBridge& bridge = *(ctx_w->importer_bridge);
 
   std::vector<void*> argv;
-  argv.push_back((void*) file);
-  argv.push_back((void*) prev);
+  argv.push_back((void*)file);
+  argv.push_back((void*)prev);
 
   return bridge(argv);
 }
@@ -23,12 +23,13 @@ union Sass_Value* sass_custom_function(const union Sass_Value* s_args, void* coo
 
   std::vector<void*> argv;
   for (unsigned l = sass_list_get_length(s_args), i = 0; i < l; i++) {
-    argv.push_back((void*) sass_list_get_value(s_args, i));
+    argv.push_back((void*)sass_list_get_value(s_args, i));
   }
 
   try {
     return bridge(argv);
-  } catch (const std::exception& e) {
+  }
+  catch (const std::exception& e) {
     return sass_make_error(e.what());
   }
 }
@@ -72,19 +73,36 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
   }
 
   if (!is_file) {
-    sass_option_set_input_path(sass_options, create_string(options->Get(NanNew("file"))));
+    ctx_w->file = create_string(options->Get(NanNew("file")));
+    sass_option_set_input_path(sass_options, ctx_w->file);
   }
 
-  sass_option_set_output_path(sass_options, create_string(options->Get(NanNew("outFile"))));
+  int indent_len = options->Get(NanNew("indentWidth"))->Int32Value();
+
+  ctx_w->indent = (char*)malloc(indent_len + 1);
+
+  strcpy(ctx_w->indent, std::string(
+    indent_len,
+    options->Get(NanNew("indentType"))->Int32Value() == 1 ? '\t' : ' '
+    ).c_str());
+
+  ctx_w->linefeed = create_string(options->Get(NanNew("linefeed")));
+  ctx_w->include_path = create_string(options->Get(NanNew("includePaths")));
+  ctx_w->out_file = create_string(options->Get(NanNew("outFile")));
+  ctx_w->source_map = create_string(options->Get(NanNew("sourceMap")));
+
+  sass_option_set_output_path(sass_options, ctx_w->out_file);
   sass_option_set_output_style(sass_options, (Sass_Output_Style)options->Get(NanNew("style"))->Int32Value());
   sass_option_set_is_indented_syntax_src(sass_options, options->Get(NanNew("indentedSyntax"))->BooleanValue());
   sass_option_set_source_comments(sass_options, options->Get(NanNew("sourceComments"))->BooleanValue());
   sass_option_set_omit_source_map_url(sass_options, options->Get(NanNew("omitSourceMapUrl"))->BooleanValue());
   sass_option_set_source_map_embed(sass_options, options->Get(NanNew("sourceMapEmbed"))->BooleanValue());
   sass_option_set_source_map_contents(sass_options, options->Get(NanNew("sourceMapContents"))->BooleanValue());
-  sass_option_set_source_map_file(sass_options, create_string(options->Get(NanNew("sourceMap"))));
-  sass_option_set_include_path(sass_options, create_string(options->Get(NanNew("includePaths"))));
+  sass_option_set_source_map_file(sass_options, ctx_w->source_map);
+  sass_option_set_include_path(sass_options, ctx_w->include_path);
   sass_option_set_precision(sass_options, options->Get(NanNew("precision"))->Int32Value());
+  sass_option_set_indent(sass_options, ctx_w->indent);
+  sass_option_set_linefeed(sass_options, ctx_w->linefeed);
 
   Local<Object> custom_functions = Local<Object>::Cast(options->Get(NanNew("functions")));
 

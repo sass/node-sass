@@ -2,6 +2,7 @@ var assert = require('assert'),
     fs = require('fs'),
     path = require('path'),
     read = require('fs').readFileSync,
+    stream = require('stream'),
     spawn = require('cross-spawn'),
     cli = path.join(__dirname, '..', 'bin', 'node-sass'),
     fixture = path.join.bind(null, __dirname, 'fixtures');
@@ -58,6 +59,40 @@ describe('cli', function() {
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
         assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
+        done();
+      });
+
+      src.pipe(bin.stdin);
+    });
+
+    it('should render with indentWidth and indentType options', function(done) {
+      var src = new stream.Readable();
+      var bin = spawn(cli, ['--indent-width', 7, '--indent-type', 'tab']);
+
+      src._read = function() { };
+      src.push('div { color: transparent; }');
+      src.push(null);
+
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.once('data', function(data) {
+        assert.equal(data.trim(), 'div {\n\t\t\t\t\t\t\tcolor: transparent; }');
+        done();
+      });
+
+      src.pipe(bin.stdin);
+    });
+
+    it('should render with linefeed option', function(done) {
+      var src = new stream.Readable();
+      var bin = spawn(cli, ['--linefeed', 'lfcr']);
+
+      src._read = function() { };
+      src.push('div { color: transparent; }');
+      src.push(null);
+
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.once('data', function(data) {
+        assert.equal(data.trim(), 'div {\n\r  color: transparent; }');
         done();
       });
 
