@@ -22,4 +22,6 @@ install:
   - git submodule update --init --recursive
   - ps: npm install --msvs_version=2013
 
-test_script: npm test
+test_script:
+  - IF NOT %nodejs_version% == 1 npm test
+  - IF %nodejs_version% == 1 iojs node_modules\mocha\bin\_mocha -C -t 4000 test
