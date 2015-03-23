@@ -261,7 +261,7 @@ namespace Sass {
     const char* alnums(const char* src);
     const char* puncts(const char* src);
     // Match certain white-space charactes.
-    const char* wspaces(const char* src);
+    // const char* wspaces(const char* src);
     // const char* newline(const char* src);
     // const char* whitespace(const char* src);
 
