@@ -32,11 +32,8 @@
 
 #endif
 
-#ifndef LIBSASS_VERSION
-#define LIBSASS_VERSION "[NA]"
-#endif
-
 // include API headers
+#include "sass_version.h"
 #include "sass_values.h"
 #include "sass_functions.h"
 
