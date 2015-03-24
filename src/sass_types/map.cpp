@@ -33,7 +33,7 @@ namespace SassTypes
 
   NAN_METHOD(Map::GetValue) {
     NanScope();
-    
+
     if (args.Length() != 1) {
       return NanThrowError(NanNew("Expected just one argument"));
     }

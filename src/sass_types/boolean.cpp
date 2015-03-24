@@ -3,11 +3,9 @@
 #include "boolean.h"
 #include "sass_value_wrapper.h"
 
-
 using namespace v8;
 
-
-namespace SassTypes 
+namespace SassTypes
 {
   Persistent<Function> Boolean::constructor;
   bool Boolean::constructor_locked = false;
@@ -53,12 +51,13 @@ namespace SassTypes
 
   NAN_METHOD(Boolean::New) {
     NanScope();
-    
+
     if (args.IsConstructCall()) {
       if (constructor_locked) {
         return NanThrowError(NanNew("Cannot instantiate SassBoolean"));
       }
-    } else {
+    }
+    else {
       if (args.Length() != 1 || !args[0]->IsBoolean()) {
         return NanThrowError(NanNew("Expected one boolean argument"));
       }

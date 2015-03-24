@@ -3,24 +3,19 @@
 #include "null.h"
 #include "sass_value_wrapper.h"
 
-
 using namespace v8;
 
-
-namespace SassTypes 
+namespace SassTypes
 {
   Persistent<Function> Null::constructor;
   bool Null::constructor_locked = false;
 
-
   Null::Null() {}
-  
 
   Null& Null::get_singleton() {
     static Null singleton_instance;
     return singleton_instance;
   }
-
 
   Handle<Function> Null::get_constructor() {
     if (constructor.IsEmpty()) {
@@ -41,16 +36,13 @@ namespace SassTypes
     return NanNew(constructor);
   }
 
-
   Sass_Value* Null::get_sass_value() {
     return sass_make_null();
   }
 
-
   Local<Object> Null::get_js_object() {
     return NanNew(this->js_object);
   }
-
 
   NAN_METHOD(Null::New) {
     NanScope();
@@ -59,7 +51,8 @@ namespace SassTypes
       if (constructor_locked) {
         return NanThrowError(NanNew("Cannot instantiate SassNull"));
       }
-    } else {
+    }
+    else {
       NanReturnValue(NanNew(get_singleton().get_js_object()));
     }
 
