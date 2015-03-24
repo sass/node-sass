@@ -39,7 +39,13 @@ extern "C" {
 
     NanDisposePersistent(ctx_w->result);
 
-    if(string) {
+    free(ctx_w->include_path);
+    free(ctx_w->linefeed);
+    free(ctx_w->out_file);
+    free(ctx_w->source_map);
+    free(ctx_w->indent);
+
+    if (string) {
       free(string);
     }
 

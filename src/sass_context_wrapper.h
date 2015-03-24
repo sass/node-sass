@@ -23,6 +23,12 @@ extern "C" {
     // binding related
     bool is_sync;
     void* cookie;
+    char* file;
+    char* include_path;
+    char* out_file;
+    char* source_map;
+    char* linefeed;
+    char* indent;
 
     // libsass related
     Sass_Data_Context* dctx;
