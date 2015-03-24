@@ -795,6 +795,7 @@ extern "C" {
   IMPLEMENT_SASS_CONTEXT_TAKER(char*, error_file);
   IMPLEMENT_SASS_CONTEXT_TAKER(char*, output_string);
   IMPLEMENT_SASS_CONTEXT_TAKER(char*, source_map_string);
+  IMPLEMENT_SASS_CONTEXT_TAKER(char**, included_files);
 
   // Push function for include paths (no manipulation support for now)
   void ADDCALL sass_option_push_include_path(struct Sass_Options* options, const char* path)

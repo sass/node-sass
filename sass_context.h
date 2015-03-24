@@ -117,6 +117,7 @@ ADDAPI char* ADDCALL sass_context_take_error_message (struct Sass_Context* ctx);
 ADDAPI char* ADDCALL sass_context_take_error_file (struct Sass_Context* ctx);
 ADDAPI char* ADDCALL sass_context_take_output_string (struct Sass_Context* ctx);
 ADDAPI char* ADDCALL sass_context_take_source_map_string (struct Sass_Context* ctx);
+ADDAPI char** ADDCALL sass_context_take_included_files (struct Sass_Context* ctx);
 
 // Push function for paths (no manipulation support for now)
 ADDAPI void ADDCALL sass_option_push_plugin_path (struct Sass_Options* options, const char* path);
