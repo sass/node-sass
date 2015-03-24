@@ -14,41 +14,41 @@ namespace SassTypes
     unsigned argb;
 
     switch (raw_val.size()) {
-      case 1:
-        if (!raw_val[0]->IsNumber()) {
-          throw std::invalid_argument("Only argument should be an integer.");
-        }
+    case 1:
+      if (!raw_val[0]->IsNumber()) {
+        throw std::invalid_argument("Only argument should be an integer.");
+      }
 
-        argb = raw_val[0]->ToInt32()->Value();
-        a = (double) ((argb >> 030) & 0xff) / 0xff;
-        r = (double) ((argb >> 020) & 0xff);
-        g = (double) ((argb >> 010) & 0xff);
-        b = (double) (argb & 0xff);
-        break;
+      argb = raw_val[0]->ToInt32()->Value();
+      a = (double)((argb >> 030) & 0xff) / 0xff;
+      r = (double)((argb >> 020) & 0xff);
+      g = (double)((argb >> 010) & 0xff);
+      b = (double)(argb & 0xff);
+      break;
 
-      case 4:
-        if (!raw_val[3]->IsNumber()) {
-          throw std::invalid_argument("Constructor arguments should be numbers exclusively.");
-        }
+    case 4:
+      if (!raw_val[3]->IsNumber()) {
+        throw std::invalid_argument("Constructor arguments should be numbers exclusively.");
+      }
 
-        a = raw_val[3]->ToNumber()->Value();
-        // fall through vvv
+      a = raw_val[3]->ToNumber()->Value();
+      // fall through vvv
 
-      case 3:
-        if (!raw_val[0]->IsNumber() || !raw_val[1]->IsNumber() || !raw_val[2]->IsNumber()) {
-          throw std::invalid_argument("Constructor arguments should be numbers exclusively.");
-        }
+    case 3:
+      if (!raw_val[0]->IsNumber() || !raw_val[1]->IsNumber() || !raw_val[2]->IsNumber()) {
+        throw std::invalid_argument("Constructor arguments should be numbers exclusively.");
+      }
 
-        r = raw_val[0]->ToNumber()->Value();
-        g = raw_val[1]->ToNumber()->Value();
-        b = raw_val[2]->ToNumber()->Value();
-        break;
+      r = raw_val[0]->ToNumber()->Value();
+      g = raw_val[1]->ToNumber()->Value();
+      b = raw_val[2]->ToNumber()->Value();
+      break;
 
-      case 0:
-        break;
+    case 0:
+      break;
 
-      default:
-        throw std::invalid_argument("Constructor should be invoked with either 0, 1, 3 or 4 arguments.");
+    default:
+      throw std::invalid_argument("Constructor should be invoked with either 0, 1, 3 or 4 arguments.");
     }
 
     return sass_make_color(r, g, b, a);

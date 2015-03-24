@@ -3,7 +3,6 @@
 #include "custom_importer_bridge.h"
 #include "create_string.h"
 
-
 SassImportList CustomImporterBridge::post_process_return_value(Handle<Value> val) const {
   SassImportList imports;
   NanScope();

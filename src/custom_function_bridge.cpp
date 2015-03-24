@@ -3,7 +3,6 @@
 #include <sass_context.h>
 #include "sass_types/factory.h"
 
-
 Sass_Value* CustomFunctionBridge::post_process_return_value(Handle<Value> val) const {
   try {
     return SassTypes::Factory::unwrap(val)->get_sass_value();

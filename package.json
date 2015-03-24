@@ -54,7 +54,7 @@
     "npmconf": "^2.1.1",
     "pangyp": "^2.1.0",
     "request": "^2.53.0",
-    "sass-graph": "^1.0.3"
+    "sass-graph": "^1.2.0"
   },
   "devDependencies": {
     "coveralls": "^2.11.2",

@@ -17,32 +17,32 @@ namespace SassTypes
 {
   Value* Factory::create(Sass_Value* v) {
     switch (sass_value_get_tag(v)) {
-      case SASS_NUMBER:
-        return new Number(v);
+    case SASS_NUMBER:
+      return new Number(v);
 
-      case SASS_STRING:
-        return new String(v);
+    case SASS_STRING:
+      return new String(v);
 
-      case SASS_COLOR:
-        return new Color(v);
+    case SASS_COLOR:
+      return new Color(v);
 
-      case SASS_BOOLEAN:
-        return &Boolean::get_singleton(sass_boolean_get_value(v));
+    case SASS_BOOLEAN:
+      return &Boolean::get_singleton(sass_boolean_get_value(v));
 
-      case SASS_LIST:
-        return new List(v);
+    case SASS_LIST:
+      return new List(v);
 
-      case SASS_MAP:
-        return new Map(v);
+    case SASS_MAP:
+      return new Map(v);
 
-      case SASS_NULL:
-        return &Null::get_singleton();
+    case SASS_NULL:
+      return &Null::get_singleton();
 
-      case SASS_ERROR:
-        return new Error(v);
+    case SASS_ERROR:
+      return new Error(v);
 
-      default:
-        throw std::invalid_argument("Unknown type encountered.");
+    default:
+      throw std::invalid_argument("Unknown type encountered.");
     }
   }
 

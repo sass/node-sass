@@ -3,7 +3,6 @@
 #include <string.h>
 #include "create_string.h"
 
-
 char* create_string(Local<Value> value) {
   if (value->IsNull() || !value->IsString()) {
     return 0;
