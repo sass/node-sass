@@ -1,6 +1,6 @@
 {
   "name": "node-sass",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0-alpha.1",
   "libsass": "3.2.0-beta.2",
   "description": "Wrapper around libsass",
   "license": "MIT",
@@ -33,6 +33,7 @@
     "bin",
     "binding.gyp",
     "lib",
+    "libsass.gyp",
     "scripts",
     "src"
   ],
