@@ -1667,9 +1667,6 @@ namespace Sass {
         if (has_rest_parameter_) {
           error("functions and mixins cannot have more than one variable-length parameter", p->pstate());
         }
-        if (has_optional_parameters_) {
-          error("optional parameters may not be combined with variable-length parameters", p->pstate());
-        }
         has_rest_parameter_ = true;
       }
       else {
