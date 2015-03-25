@@ -63,6 +63,7 @@ namespace Sass {
       else                            return current_frame_[key];
     }
 
+#ifdef DEBUG
     void print()
     {
       for (typename map<string, T>::iterator i = current_frame_.begin(); i != current_frame_.end(); ++i) {
@@ -73,6 +74,8 @@ namespace Sass {
         parent_->print();
       }
     }
+#endif
+
   };
 }
 
