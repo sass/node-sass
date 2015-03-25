@@ -297,7 +297,9 @@ namespace Sass {
     double start = static_cast<Number*>(low)->value();
     double end = static_cast<Number*>(high)->value();
     Env new_env;
-    new_env[variable] = new (ctx.mem) Number(low->pstate(), start);
+    // only create iterator once in this environment
+    Number* it = new (new_env.mem) Number(low->pstate(), start);
+    new_env[variable] = it;
     new_env.link(env);
     env = &new_env;
     Block* body = f->block();
@@ -305,14 +307,14 @@ namespace Sass {
       if (f->is_inclusive()) ++end;
       for (double i = start;
            i < end;
-           (*env)[variable] = new (ctx.mem) Number(low->pstate(), ++i)) {
+           it->value(++i)) {
         append_block(body);
       }
     } else {
       if (f->is_inclusive()) --end;
       for (double i = start;
            i > end;
-           (*env)[variable] = new (ctx.mem) Number(low->pstate(), --i)) {
+           it->value(--i)) {
         append_block(body);
       }
     }
@@ -326,17 +328,17 @@ namespace Sass {
     Expression* expr = e->list()->perform(eval->with(env, backtrace));
     List* list = 0;
     Map* map = 0;
+    Env new_env;
     if (expr->concrete_type() == Expression::MAP) {
       map = static_cast<Map*>(expr);
     }
     else if (expr->concrete_type() != Expression::LIST) {
-      list = new (ctx.mem) List(expr->pstate(), 1, List::COMMA);
+      list = new (new_env.mem) List(expr->pstate(), 1, List::COMMA);
       *list << expr;
     }
     else {
       list = static_cast<List*>(expr);
     }
-    Env new_env;
     for (size_t i = 0, L = variables.size(); i < L; ++i) new_env[variables[i]] = 0;
     new_env.link(env);
     env = &new_env;
@@ -348,7 +350,7 @@ namespace Sass {
         Expression* v = map->at(key)->perform(eval->with(env, backtrace));
 
         if (variables.size() == 1) {
-          List* variable = new (ctx.mem) List(map->pstate(), 2, List::SPACE);
+          List* variable = new (new_env.mem) List(map->pstate(), 2, List::SPACE);
           *variable << k;
           *variable << v;
           (*env)[variables[0]] = variable;
@@ -363,7 +365,7 @@ namespace Sass {
       for (size_t i = 0, L = list->length(); i < L; ++i) {
         List* variable = 0;
         if ((*list)[i]->concrete_type() != Expression::LIST  || variables.size() == 1) {
-          variable = new (ctx.mem) List((*list)[i]->pstate(), 1, List::COMMA);
+          variable = new (new_env.mem) List((*list)[i]->pstate(), 1, List::COMMA);
           *variable << (*list)[i];
         }
         else {
@@ -374,7 +376,7 @@ namespace Sass {
             (*env)[variables[j]] = (*variable)[j]->perform(eval->with(env, backtrace));
           }
           else {
-            (*env)[variables[j]] = new (ctx.mem) Null(expr->pstate());
+            (*env)[variables[j]] = new (new_env.mem) Null(expr->pstate());
           }
         }
         append_block(body);

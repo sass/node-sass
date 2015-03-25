@@ -5,7 +5,9 @@
 #include <string>
 #include <iostream>
 
+#include "ast_fwd_decl.hpp"
 #include "ast_def_macros.hpp"
+#include "memory_manager.hpp"
 
 namespace Sass {
   using std::string;
@@ -20,6 +22,7 @@ namespace Sass {
     ADD_PROPERTY(Environment*, parent);
 
   public:
+    Memory_Manager<AST_Node> mem;
     Environment() : current_frame_(map<string, T>()), parent_(0) { }
 
     map<string, T>& current_frame() { return current_frame_; }
