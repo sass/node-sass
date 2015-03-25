@@ -143,6 +143,7 @@ namespace Sass {
       }
       else {
         lex< css_whitespace >();
+        before_token = after_token;
         if (position >= end) break;
         error("invalid top-level expression", pstate);
       }

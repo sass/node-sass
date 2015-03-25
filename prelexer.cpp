@@ -62,13 +62,14 @@ namespace Sass {
       return line_comment(src);
     }
 
+    /* not used anymore - remove?
     const char* wspaces(const char* src) {
       return
       alternatives<
         exactly<' '>,
         exactly<'\t'>
       >(src);
-    }
+    }*/
 
     /* not used anymore - remove?
     const char* newline(const char* src) {
