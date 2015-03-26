@@ -145,7 +145,9 @@ namespace Sass {
     static mt19937 rand(static_cast<unsigned int>(GetSeed()));
 
     // features
-    static set<string> features;
+    static set<string> features {
+      "global-variable-shadowing"
+    };
 
     ////////////////
     // RGB FUNCTIONS
