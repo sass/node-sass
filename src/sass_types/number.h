@@ -2,14 +2,12 @@
 #define SASS_TYPES_NUMBER_H
 
 #include <nan.h>
-#include <sass_values.h>
 #include "sass_value_wrapper.h"
 
-
-namespace SassTypes 
+namespace SassTypes
 {
   using namespace v8;
-  
+
   class Number : public SassValueWrapper<Number> {
     public:
       Number(Sass_Value*);

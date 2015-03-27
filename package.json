@@ -33,7 +33,6 @@
     "bin",
     "binding.gyp",
     "lib",
-    "libsass.gyp",
     "scripts",
     "src"
   ],

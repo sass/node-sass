@@ -2,7 +2,7 @@
 #define CUSTOM_IMPORTER_BRIDGE_H
 
 #include <nan.h>
-#include <sass_context.h>
+#include "libsass/sass_context.h"
 #include "callback_bridge.h"
 
 

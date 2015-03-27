@@ -2,13 +2,12 @@
 #define SASS_TYPES_VALUE_H
 
 #include <nan.h>
-#include <sass_values.h>
+#include "../libsass/sass_values.h"
 
-
-namespace SassTypes 
+namespace SassTypes
 {
   using namespace v8;
-  
+
   // This is the interface that all sass values must comply with
   class Value {
     public:
@@ -16,6 +15,5 @@ namespace SassTypes
       virtual Local<Object> get_js_object() =0;
   };
 }
-
 
 #endif

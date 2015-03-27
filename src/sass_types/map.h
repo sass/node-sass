@@ -2,14 +2,12 @@
 #define SASS_TYPES_MAP_H
 
 #include <nan.h>
-#include <sass_values.h>
 #include "sass_value_wrapper.h"
 
-
-namespace SassTypes 
+namespace SassTypes
 {
   using namespace v8;
-  
+
   class Map : public SassValueWrapper<Map> {
     public:
       Map(Sass_Value*);

@@ -1,6 +1,5 @@
 #include <nan.h>
 #include "custom_function_bridge.h"
-#include <sass_context.h>
 #include "sass_types/factory.h"
 
 Sass_Value* CustomFunctionBridge::post_process_return_value(Handle<Value> val) const {

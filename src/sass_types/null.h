@@ -2,14 +2,12 @@
 #define SASS_TYPES_NULL_H
 
 #include <nan.h>
-#include <sass_values.h>
 #include "value.h"
 
-
-namespace SassTypes 
+namespace SassTypes
 {
   using namespace v8;
-  
+
   class Null : public Value {
     public:
       static Null& get_singleton();
@@ -29,6 +27,5 @@ namespace SassTypes
       static bool constructor_locked;
   };
 }
-
 
 #endif

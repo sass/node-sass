@@ -2,14 +2,13 @@
 #define SASS_TYPES_BOOLEAN_H
 
 #include <nan.h>
-#include <sass_values.h>
 #include "value.h"
+#include "sass_value_wrapper.h"
 
-
-namespace SassTypes 
+namespace SassTypes
 {
   using namespace v8;
-  
+
   class Boolean : public Value {
     public:
       static Boolean& get_singleton(bool);
@@ -31,6 +30,5 @@ namespace SassTypes
       static bool constructor_locked;
   };
 }
-
 
 #endif

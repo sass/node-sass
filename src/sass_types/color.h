@@ -2,14 +2,12 @@
 #define SASS_TYPES_COLOR_H
 
 #include <nan.h>
-#include <sass_values.h>
 #include "sass_value_wrapper.h"
 
-
-namespace SassTypes 
+namespace SassTypes
 {
   using namespace v8;
-  
+
   class Color : public SassValueWrapper<Color> {
     public:
       Color(Sass_Value*);
@@ -28,6 +26,5 @@ namespace SassTypes
       static NAN_METHOD(SetA);
   };
 }
-
 
 #endif
