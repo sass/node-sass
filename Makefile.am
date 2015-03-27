@@ -65,6 +65,7 @@ libsass_la_SOURCES = \
 	file.cpp file.hpp \
 	functions.cpp functions.hpp \
 	inspect.cpp inspect.hpp \
+	lexer.cpp lexer.hpp \
 	node.cpp node.hpp \
 	json.cpp json.hpp \
 	emitter.cpp emitter.hpp \

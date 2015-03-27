@@ -41,7 +41,7 @@ namespace Sass {
     bool isPrintable(Feature_Block* r, Output_Style style = NESTED);
     bool isPrintable(Media_Block* r, Output_Style style = NESTED);
     bool isPrintable(Block* b, Output_Style style = NESTED);
-    bool isAscii(int ch);
+    bool isAscii(const char chr);
 
   }
 }

@@ -84,6 +84,9 @@
     <ClCompile Include="..\position.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\lexer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\prelexer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -243,6 +246,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\position.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lexer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\prelexer.hpp">

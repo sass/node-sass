@@ -27,7 +27,7 @@ namespace Sass {
     char separator = *(localeconv()->decimal_point);
     if(separator != '.'){
       // The current locale specifies another
-      // separator. convert the separator to the 
+      // separator. convert the separator to the
       // one understood by the locale if needed
       const char *found = strchr(str, '.');
       if(found != NULL){
@@ -619,8 +619,8 @@ namespace Sass {
       }
     }
 
-     bool isAscii(int ch) {
-         return ch >= 0 && ch < 128;
+     bool isAscii(const char chr) {
+       return unsigned(chr) < 128;
      }
 
   }
