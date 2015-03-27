@@ -123,7 +123,7 @@ function testBinary(options) {
 
   try {
     require('../').renderSync({
-      data: 's: { a: ss }'
+      data: 's { a: ss }'
     });
 
     console.log('Binary is fine; exiting.');
