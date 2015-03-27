@@ -1,8 +1,6 @@
 #include <nan.h>
-#include <sass_values.h>
 #include "string.h"
 #include "../create_string.h"
-#include "sass_value_wrapper.h"
 
 using namespace v8;
 

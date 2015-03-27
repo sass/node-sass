@@ -4,11 +4,10 @@
 #include <stdexcept>
 #include <vector>
 #include <nan.h>
-#include <sass_values.h>
 #include "value.h"
 #include "factory.h"
 
-namespace SassTypes 
+namespace SassTypes
 {
   using namespace v8;
 
@@ -43,7 +42,7 @@ namespace SassTypes
 
   template <class T>
   SassValueWrapper<T>::SassValueWrapper(Sass_Value* v) {
-    this->value = sass_clone_value(v); 
+    this->value = sass_clone_value(v);
   }
 
   template <class T>
@@ -53,8 +52,8 @@ namespace SassTypes
   }
 
   template <class T>
-  Sass_Value* SassValueWrapper<T>::get_sass_value() { 
-    return sass_clone_value(this->value); 
+  Sass_Value* SassValueWrapper<T>::get_sass_value() {
+    return sass_clone_value(this->value);
   }
 
   template <class T>

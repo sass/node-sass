@@ -2,8 +2,8 @@
 #define CUSTOM_FUNCTION_BRIDGE_H
 
 #include <nan.h>
+#include "libsass/sass_context.h"
 #include "callback_bridge.h"
-#include <sass_context.h>
 
 
 using namespace v8;

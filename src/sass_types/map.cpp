@@ -1,7 +1,5 @@
 #include <nan.h>
-#include <sass_values.h>
 #include "map.h"
-#include "sass_value_wrapper.h"
 
 using namespace v8;
 

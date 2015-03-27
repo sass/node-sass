@@ -2,14 +2,12 @@
 #define SASS_TYPES_ERROR_H
 
 #include <nan.h>
-#include <sass_values.h>
 #include "sass_value_wrapper.h"
 
-
-namespace SassTypes 
+namespace SassTypes
 {
   using namespace v8;
-  
+
   class Error : public SassValueWrapper<Error> {
     public:
       Error(Sass_Value*);
