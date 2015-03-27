@@ -7,15 +7,17 @@ AC_INIT([libsass], m4_esyscmd_s([./version.sh]), [support@moovweb.com])
 AC_CONFIG_SRCDIR([ast.hpp])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_FILES([sass_version.h])
 AC_CONFIG_AUX_DIR([script])
-AM_INIT_AUTOMAKE([foreign parallel-tests])
+# These are flags passed to automake
+# Though they look like gcc flags!
+AM_INIT_AUTOMAKE([foreign parallel-tests -Wall])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([no])])
-LT_INIT
 
 # Checks for programs.
 AC_PROG_CXX
-
 AC_LANG([C++])
+LT_INIT([dlopen])
 
 # Checks for header files.
 AC_CHECK_HEADERS([unistd.h])
@@ -30,6 +32,17 @@ AC_CHECK_FUNCS([floor getcwd strtol])
 # Checks for testing.
 AC_ARG_ENABLE(tests, AS_HELP_STRING([--enable-tests], [enable testing the build]),
               [enable_tests="$enableval"], [enable_tests=no])
+
+AS_CASE([$host], [*-*-mingw32], [is_mingw32=yes], [is_mingw32=no])
+AM_CONDITIONAL(COMPILER_IS_MINGW32, test "x$is_mingw32" = "xyes")
+
+dnl The dlopen() function is in the C library for *BSD and in
+dnl libdl on GLIBC-based systems
+if test "x$is_mingw32" != "xyes"; then
+  AC_SEARCH_LIBS([dlopen], [dl dld], [], [
+    AC_MSG_ERROR([unable to find the dlopen() function])
+  ])
+fi
 
 if test "x$enable_tests" = "xyes"; then
   AC_PROG_CC
@@ -107,8 +120,7 @@ fi
 
 AM_CONDITIONAL(ENABLE_COVERAGE, test "x$enable_cov" = "xyes")
 
-AS_CASE([$host], [*-*-mingw32], [is_mingw32=yes], [is_mingw32=no])
-AM_CONDITIONAL(COMPILER_IS_MINGW32, test "x$is_mingw32" = "xyes")
+AC_SUBST(PACKAGE_VERSION)
 
 AC_MSG_NOTICE([Building libsass ($VERSION)])
 
