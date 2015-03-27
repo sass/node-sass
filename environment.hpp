@@ -40,10 +40,27 @@ namespace Sass {
     bool current_frame_has(const string key) const
     { return !!current_frame_.count(key); }
 
+    void current_frame_set(const string key, T val)
+    { current_frame_[key] = val; }
+
+    void global_frame_set(const string key, T val)
+    { global_frame()->current_frame_[key] = val; }
+
     Environment* grandparent() const
     {
       if(parent_ && parent_->parent_) return parent_->parent_;
       else return 0;
+    }
+
+    Environment* global_frame()
+    {
+      Environment* cur = this;
+      // looks like global variables
+      // are in the second last parent
+      while (cur->grandparent()) {
+        cur = cur->parent_;
+      }
+      return cur;
     }
 
     bool global_frame_has(const string key) const
@@ -66,6 +83,7 @@ namespace Sass {
       else                            return current_frame_[key];
     }
 
+#ifdef DEBUG
     void print()
     {
       for (typename map<string, T>::iterator i = current_frame_.begin(); i != current_frame_.end(); ++i) {
@@ -76,6 +94,8 @@ namespace Sass {
         parent_->print();
       }
     }
+#endif
+
   };
 }
 

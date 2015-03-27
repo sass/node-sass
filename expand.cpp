@@ -219,12 +219,15 @@ namespace Sass {
   {
     string var(a->variable());
     Selector* p = selector_stack.size() <= 1 ? 0 : selector_stack.back();
-    if (env->has(var)) {
+    if (a->is_global()) {
+      env->global_frame_set(var, a->value()->perform(eval->with(p, env, backtrace)));
+    }
+    else if (env->has(var)) {
       Expression* v = static_cast<Expression*>((*env)[var]);
       if (!a->is_guarded() || v->concrete_type() == Expression::NULL_VAL) (*env)[var] = a->value()->perform(eval->with(p, env, backtrace));
     }
     else {
-      env->current_frame()[var] = a->value()->perform(eval->with(p, env, backtrace));
+      env->current_frame_set(var, a->value()->perform(eval->with(p, env, backtrace)));
     }
     return 0;
   }

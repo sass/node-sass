@@ -64,12 +64,15 @@ namespace Sass {
   Expression* Eval::operator()(Assignment* a)
   {
     string var(a->variable());
-    if (env->has(var)) {
+    if (a->is_global()) {
+      env->global_frame_set(var, a->value()->perform(this));
+    }
+    else if (env->has(var)) {
       Expression* v = static_cast<Expression*>((*env)[var]);
       if (!a->is_guarded() || v->concrete_type() == Expression::NULL_VAL) (*env)[var] = a->value()->perform(this);
     }
     else {
-      env->current_frame()[var] = a->value()->perform(this);
+      env->current_frame_set(var, a->value()->perform(this));
     }
     return 0;
   }
