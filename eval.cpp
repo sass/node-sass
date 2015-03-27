@@ -472,7 +472,8 @@ namespace Sass {
 
   Expression* Eval::operator()(Function_Call* c)
   {
-    string full_name(c->name() + "[f]");
+    string name(Util::normalize_underscores(c->name()));
+    string full_name(name + "[f]");
     Arguments* args = c->arguments();
     if (full_name != "if[f]") {
       args = static_cast<Arguments*>(args->perform(this));
