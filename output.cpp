@@ -134,7 +134,7 @@ namespace Sass {
             String_Constant* valConst = static_cast<String_Constant*>(dec->value());
             string val(valConst->value());
             if (dynamic_cast<String_Quoted*>(valConst)) {
-              if (val.empty()) {
+              if (!valConst->quote_mark() && val.empty()) {
                 bPrintExpression = false;
               }
             }

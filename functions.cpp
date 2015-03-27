@@ -942,7 +942,7 @@ namespace Sass {
         error(msg, pstate, backtrace);
       }
       catch (...) { throw; }
-      return new (ctx.mem) String_Constant(pstate, newstr);
+      return new (ctx.mem) String_Quoted(pstate, newstr);
     }
 
     Signature to_upper_case_sig = "to-upper-case($string)";
