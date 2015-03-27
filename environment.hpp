@@ -18,75 +18,140 @@ namespace Sass {
   template <typename T>
   class Environment {
     // TODO: test with unordered_map
-    map<string, T> current_frame_;
+    map<string, T> local_frame_;
     ADD_PROPERTY(Environment*, parent);
 
   public:
     Memory_Manager<AST_Node> mem;
-    Environment() : current_frame_(map<string, T>()), parent_(0) { }
+    Environment() : local_frame_(map<string, T>()), parent_(0) { }
 
-    map<string, T>& current_frame() { return current_frame_; }
-
+    // link parent to create a stack
     void link(Environment& env) { parent_ = &env; }
     void link(Environment* env) { parent_ = env; }
 
-    bool has(const string key) const
+    // this is used to find the global frame
+    // which is the second last on the stack
+    bool is_lexical() const
     {
-      if (current_frame_.count(key))  return true;
-      else if (parent_)               return parent_->has(key);
-      else                            return false;
+      return !! parent_ && parent_->parent_;
     }
 
-    bool current_frame_has(const string key) const
-    { return !!current_frame_.count(key); }
-
-    void current_frame_set(const string key, T val)
-    { current_frame_[key] = val; }
-
-    void global_frame_set(const string key, T val)
-    { global_frame()->current_frame_[key] = val; }
-
-    Environment* grandparent() const
+    // only match the real root scope
+    // there is still a parent around
+    // not sure what it is actually use for
+    // I guess we store functions etc. there
+    bool is_root_scope() const
     {
-      if(parent_ && parent_->parent_) return parent_->parent_;
-      else return 0;
+      return parent_ && ! parent_->parent_;
     }
 
-    Environment* global_frame()
+    // scope operates on the current frame
+
+    map<string, T>& local_frame() {
+      return local_frame_;
+    }
+
+    bool has_local(const string& key) const
+    { return local_frame_.count(key); }
+
+    T& get_local(const string& key)
+    { return local_frame_[key]; }
+
+    void set_local(const string& key, T val)
+    { local_frame_[key] = val; }
+
+    void del_local(const string& key)
+    { local_frame_.erase(key); }
+
+
+    // global operates on the global frame
+    // which is the second last on the stack
+
+    Environment* global_env()
     {
       Environment* cur = this;
-      // looks like global variables
-      // are in the second last parent
-      while (cur->grandparent()) {
+      while (cur->is_lexical()) {
         cur = cur->parent_;
       }
       return cur;
     }
 
-    bool global_frame_has(const string key) const
+    bool has_global(const string& key)
+    { return global_env()->has(key); }
+
+    T& get_global(const string& key)
+    { return (*global_env())[key]; }
+
+    void set_global(const string& key, T val)
+    { global_env()->local_frame_[key] = val; }
+
+    void del_global(const string& key)
+    { global_env()->local_frame_.erase(key); }
+
+    // see if we have a lexical variable
+    // move down the stack but stop before we
+    // reach the global frame (is not included)
+    bool has_lexical(const string& key) const
     {
-      if(parent_ && !grandparent()) {
-        return has(key);
+      auto cur = this;
+      while (cur->is_lexical()) {
+        if (cur->has_local(key)) return true;
+        cur = cur->parent_;
       }
-      else if(parent_) {
-        return parent_->global_frame_has(key);
+      return false;
+    }
+
+    // see if we have a lexical we could update
+    // either update already existing lexical value
+    // or if flag is set, we create one if no lexical found
+    void set_lexical(const string& key, T val, bool global = false)
+    {
+      auto cur = this;
+      while (cur->is_lexical()) {
+        if (cur->has_local(key)) {
+          cur->set_local(key, val);
+          return;
+        }
+        cur = cur->parent_;
       }
-      else {
-        return false;
+      if (global) {
+        set_global(key, val);
+      } else {
+        set_local(key, val);
       }
     }
 
-    T& operator[](const string key)
+    // look on the full stack for key
+    // include all scopes available
+    bool has(const string& key) const
     {
-      if (current_frame_.count(key))  return current_frame_[key];
-      else if (parent_)               return (*parent_)[key];
-      else                            return current_frame_[key];
+      auto cur = this;
+      while (cur) {
+        if (cur->has_local(key)) {
+          return true;
+        }
+        cur = cur->parent_;
+      }
+      return false;
     }
 
-#ifdef DEBUG
+    // use array access for getter and setter functions
+    T& operator[](const string& key)
+    {
+      auto cur = this;
+      while (cur) {
+        if (cur->has_local(key)) {
+          return cur->get_local(key);
+        }
+        cur = cur->parent_;
+      }
+      return get_local(key);
+    }
+
+    #ifdef DEBUG
     void print()
     {
-      for (typename map<string, T>::iterator i = current_frame_.begin(); i != current_frame_.end(); ++i) {
+      for (typename map<string, T>::iterator i = local_frame_.begin(); i != local_frame_.end(); ++i) {
         cerr << i->first << endl;
       }
       if (parent_) {
@@ -94,7 +159,7 @@ namespace Sass {
         parent_->print();
       }
     }
-#endif
+    #endif
 
   };
 }

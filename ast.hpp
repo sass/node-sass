@@ -460,14 +460,14 @@ namespace Sass {
   class Assignment : public Statement {
     ADD_PROPERTY(string, variable);
     ADD_PROPERTY(Expression*, value);
-    ADD_PROPERTY(bool, is_guarded);
+    ADD_PROPERTY(bool, is_default);
     ADD_PROPERTY(bool, is_global);
   public:
     Assignment(ParserState pstate,
                string var, Expression* val,
-               bool guarded = false,
-               bool global = false)
-    : Statement(pstate), variable_(var), value_(val), is_guarded_(guarded), is_global_(global)
+               bool is_default = false,
+               bool is_global = false)
+    : Statement(pstate), variable_(var), value_(val), is_default_(is_default), is_global_(is_global)
     { }
     ATTACH_OPERATIONS();
   };

@@ -1410,7 +1410,7 @@ namespace Sass {
     {
       string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
 
-      if(d_env.global_frame_has("$"+s)) {
+      if(d_env.has_global("$"+s)) {
         return new (ctx.mem) Boolean(pstate, true);
       }
       else {
@@ -1423,7 +1423,7 @@ namespace Sass {
     {
       string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
 
-      if(d_env.global_frame_has(s+"[f]")) {
+      if(d_env.has_global(s+"[f]")) {
         return new (ctx.mem) Boolean(pstate, true);
       }
       else {
@@ -1436,7 +1436,7 @@ namespace Sass {
     {
       string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
 
-      if(d_env.global_frame_has(s+"[m]")) {
+      if(d_env.has_global(s+"[m]")) {
         return new (ctx.mem) Boolean(pstate, true);
       }
       else {

@@ -181,6 +181,7 @@
     <ClCompile Include="..\parser.cpp" />
     <ClCompile Include="..\plugins.cpp" />
     <ClCompile Include="..\position.cpp" />
+    <ClCompile Include="..\lexer.cpp" />
     <ClCompile Include="..\prelexer.cpp" />
     <ClCompile Include="..\remove_placeholders.cpp" />
     <ClCompile Include="..\sass.cpp" />
@@ -234,6 +235,7 @@
     <ClInclude Include="..\plugins.hpp" />
     <ClInclude Include="..\paths.hpp" />
     <ClInclude Include="..\position.hpp" />
+    <ClInclude Include="..\lexer.hpp" />
     <ClInclude Include="..\prelexer.hpp" />
     <ClInclude Include="..\remove_placeholders.hpp" />
     <ClInclude Include="..\sass.h" />

@@ -9,50 +9,32 @@
 
 
 namespace Sass {
+  // using namespace Lexer;
   using namespace Constants;
 
   namespace Prelexer {
-    using std::ptrdiff_t;
-    // Matches zero characters (always succeeds without consuming input).
-    /* not used anymore - remove?
-    const char* epsilon(char *src) {
-      return src;
-    }*/
-    // Matches the empty string.
-    /* not used anymore - remove?
-    const char* empty(char *src) {
-      return *src ? 0 : src;
-    }*/
 
-    // Match any single character.
-    const char* any_char(const char* src) { return *src ? src+1 : src; }
-    // Match word boundary (look ahead)
-    const char* word_boundary(const char* src) { return !*src || isspace(*src) || ispunct(*src) || !Sass::Util::isAscii(*src) ? src : 0 ; }
 
-    // Match a single character satisfying the ctype predicates.
-    const char* space(const char* src) { return std::isspace(*src) ? src+1 : 0; }
-    const char* alpha(const char* src) { return std::isalpha(*src) || !Sass::Util::isAscii(*src) ? src+1 : 0; }
-    const char* digit(const char* src) { return std::isdigit(*src) ? src+1 : 0; }
-    const char* xdigit(const char* src) { return std::isxdigit(*src) ? src+1 : 0; }
-    const char* alnum(const char* src) { return std::isalnum(*src) || !Sass::Util::isAscii(*src) ? src+1 : 0; }
-    const char* punct(const char* src) { return std::ispunct(*src) ? src+1 : 0; }
-    // Match multiple ctype characters.
-    const char* spaces(const char* src) { return one_plus<space>(src); }
-    const char* alphas(const char* src) { return one_plus<alpha>(src); }
-    const char* digits(const char* src) { return one_plus<digit>(src); }
-    const char* xdigits(const char* src) { return one_plus<xdigit>(src); }
-    const char* alnums(const char* src) { return one_plus<alnum>(src); }
-    const char* puncts(const char* src) { return one_plus<punct>(src); }
-
-    // Match a line comment.
-    const char* line_comment(const char* src) { return to_endl<slash_slash>(src); }
-    // Match a line comment prefix.
-    const char* line_comment_prefix(const char* src) { return exactly<slash_slash>(src); }
-
+    // Match a line comment (/.*?(?=\n|\r\n?|\Z)/.
+    const char* line_comment(const char* src)
+    {
+      return sequence<
+               exactly <
+                 slash_slash
+               >,
+               non_greedy<
+                 any_char,
+                 end_of_line
+               >
+             >(src);
+    }
 
     // Match a block comment.
-    const char* block_comment(const char* src) {
-      return sequence< optional_spaces, delimited_by<slash_star, star_slash, false> >(src);
+    const char* block_comment(const char* src)
+    {
+      return sequence<
+               zero_plus < space >,
+               delimited_by<slash_star, star_slash, false> >(src);
     }
     const char* block_comment_prefix(const char* src) {
       return exactly<slash_star>(src);
@@ -61,45 +43,6 @@ namespace Sass {
     const char* comment(const char* src) {
       return line_comment(src);
     }
-
-    /* not used anymore - remove?
-    const char* wspaces(const char* src) {
-      return
-      alternatives<
-        exactly<' '>,
-        exactly<'\t'>
-      >(src);
-    }*/
-
-    /* not used anymore - remove?
-    const char* newline(const char* src) {
-      return
-      alternatives<
-        exactly<'\n'>,
-        sequence< exactly<'\r'>, exactly<'\n'> >,
-        exactly<'\r'>,
-        exactly<'\f'>
-      >(src);
-    }*/
-
-    /* not used anymore - remove?
-    const char* whitespace(const char* src) {
-      return spaces(src);
-    }*/
-
-    /* not used anymore - remove?
-    const char* escape(const char* src) {
-      return
-      sequence<
-        exactly<'\\'>,
-        any_char
-      >(src);
-    }*/
-
-
-    // Whitespace handling.
-    const char* optional_spaces(const char* src) { return optional<spaces>(src); }
-    const char* no_spaces(const char* src) { return negate< spaces >(src); }
 
     // Match zero plus white-space or line_comments
     const char* optional_css_whitespace(const char* src) {
@@ -117,42 +60,52 @@ namespace Sass {
     }
 
     // Match one backslash escaped char /\\./
-    const char* backslash_something(const char* src) {
-      return sequence< exactly<'\\'>, any_char >(src);
+    const char* escape_seq(const char* src)
+    {
+      return sequence<
+        exactly<'\\'>,
+        any_char
+      >(src);
+    }
+
+    // Match identifier start
+    const char* identifier_alpha(const char* src)
+    {
+      return alternatives<
+               alpha,
+               unicode,
+               exactly<'-'>,
+               exactly<'_'>,
+               escape_seq
+             >(src);
+    }
+
+    // Match identifier after start
+    const char* identifier_alnum(const char* src)
+    {
+      return alternatives<
+               alnum,
+               unicode,
+               exactly<'-'>,
+               exactly<'_'>,
+               escape_seq
+             >(src);
     }
 
     // Match CSS identifiers.
-    const char* identifier(const char* src) {
-      return sequence< optional< exactly<'-'> >,
-                       alternatives< alpha, exactly<'_'>, backslash_something >,
-                       zero_plus< alternatives< alnum,
-                                                exactly<'-'>,
-                                                exactly<'_'>,
-                                                backslash_something > > >(src);
+    const char* identifier(const char* src)
+    {
+      return sequence<
+               zero_plus< exactly<'-'> >,
+               one_plus < identifier_alpha >,
+               zero_plus < identifier_alnum >
+               // word_boundary not needed
+             >(src);
     }
 
-    const char* identifier_fragment(const char* src) {
-      return one_plus< alternatives< alnum,
-                                     exactly<'-'>,
-                                     exactly<'_'>,
-                                     backslash_something > >(src);
-    }
-
-    // Match CSS selectors.
-    /* not used anymore - remove?
-    const char* sel_ident(const char* src) {
-      return sequence< optional< alternatives< exactly<'-'>, exactly<'|'> > >,
-                       alternatives< alpha, exactly<'_'>, backslash_something, exactly<'|'> >,
-                       zero_plus< alternatives< alnum,
-                                                exactly<'-'>,
-                                                exactly<'_'>,
-                                                exactly<'|'>,
-                                                backslash_something > > >(src);
-    }*/
-
-    // Match CSS css variables.
-    const char* custom_property_name(const char* src) {
-      return sequence< exactly<'-'>, exactly<'-'>, identifier >(src);
+    const char* identifier_alnums(const char* src)
+    {
+      return one_plus< identifier_alnum >(src);
     }
 
     // Match number prefix ([\+\-]+)
@@ -189,11 +142,11 @@ namespace Sass {
         zero_plus <
           alternatives <
             // skip all escaped chars first
-            backslash_something,
+            escape_seq,
             // skip interpolants
             interpolant,
             // skip non delimiters
-            any_char_except < '\'' >
+            any_char_but < '\'' >
           >
         >,
         exactly <'\''>
@@ -208,11 +161,11 @@ namespace Sass {
         zero_plus <
           alternatives <
             // skip all escaped chars first
-            backslash_something,
+            escape_seq,
             // skip interpolants
             interpolant,
             // skip non delimiters
-            any_char_except < '"' >
+            any_char_but < '"' >
           >
         >,
         exactly <'"'>
@@ -234,12 +187,6 @@ namespace Sass {
                                  interpolant,
                                  zero_plus< alternatives< identifier, percentage, dimension, hex, number, quoted_string, exactly<'%'> > > > >(src);
     }
-    /* not used anymore - remove?
-    const char* filename_schema(const char* src) {
-      return one_plus< sequence< zero_plus< alternatives< identifier, number, exactly<'.'>, exactly<'/'> > >,
-                                 interpolant,
-                                 zero_plus< alternatives< identifier, number, exactly<'.'>, exactly<'/'> > > > >(src);
-    }*/
 
     const char* filename(const char* src) {
       return one_plus< alternatives< identifier, number, exactly<'.'> > >(src);
@@ -250,109 +197,94 @@ namespace Sass {
       return sequence<exactly<'@'>, identifier>(src);
     }
 
-    const char* import(const char* src) {
-      return exactly<import_kwd>(src);
+    const char* kwd_import(const char* src) {
+      return word<import_kwd>(src);
     }
 
-    const char* at_root(const char* src) {
-      return exactly<at_root_kwd>(src);
+    const char* kwd_at_root(const char* src) {
+      return word<at_root_kwd>(src);
     }
 
-    const char* with_directive(const char* src) {
-      return exactly<with_kwd>(src);
+    const char* kwd_with_directive(const char* src) {
+      return word<with_kwd>(src);
     }
 
-    const char* without_directive(const char* src) {
-      return exactly<without_kwd>(src);
+    const char* kwd_without_directive(const char* src) {
+      return word<without_kwd>(src);
     }
 
-    const char* media(const char* src) {
-      return exactly<media_kwd>(src);
+    const char* kwd_media(const char* src) {
+      return word<media_kwd>(src);
     }
 
-    const char* supports(const char* src) {
-      return exactly<supports_kwd>(src);
+    const char* kwd_supports(const char* src) {
+      return word<supports_kwd>(src);
     }
 
-    /* not used anymore - remove?
-    const char* keyframes(const char* src) {
-      return sequence< exactly<'@'>, optional< vendor_prefix >, exactly< keyframes_kwd > >(src);
-    } */
-
-    /* not used anymore - remove?
-    const char* vendor_prefix(const char* src) {
-      return alternatives< exactly< vendor_opera_kwd >, exactly< vendor_webkit_kwd >, exactly< vendor_mozilla_kwd >, exactly< vendor_ms_kwd >, exactly< vendor_khtml_kwd > >(src);
-    } */
-
-    /* not used anymore - remove?
-    const char* keyf(const char* src) {
-      return one_plus< alternatives< to, from, percentage > >(src);
-    } */
-
-    const char* mixin(const char* src) {
-      return exactly<mixin_kwd>(src);
+    const char* kwd_mixin(const char* src) {
+      return word<mixin_kwd>(src);
     }
 
-    const char* function(const char* src) {
-      return exactly<function_kwd>(src);
+    const char* kwd_function(const char* src) {
+      return word<function_kwd>(src);
     }
 
-    const char* return_directive(const char* src) {
-      return exactly<return_kwd>(src);
+    const char* kwd_return_directive(const char* src) {
+      return word<return_kwd>(src);
     }
 
-    const char* include(const char* src) {
-      return exactly<include_kwd>(src);
+    const char* kwd_include(const char* src) {
+      return word<include_kwd>(src);
     }
 
-    const char* content(const char* src) {
-      return exactly<content_kwd>(src);
+    const char* kwd_content(const char* src) {
+      return word<content_kwd>(src);
     }
 
-    const char* extend(const char* src) {
-      return sequence < exactly<extend_kwd>, word_boundary >(src);
+    const char* kwd_extend(const char* src) {
+      return word<extend_kwd>(src);
     }
 
 
-    const char* if_directive(const char* src) {
-      return exactly<if_kwd>(src);
+    const char* kwd_if_directive(const char* src) {
+      return word<if_kwd>(src);
     }
 
-    const char* else_directive(const char* src) {
-      return exactly<else_kwd>(src);
+    const char* kwd_else_directive(const char* src) {
+      return word<else_kwd>(src);
     }
     const char* elseif_directive(const char* src) {
-      return sequence< else_directive,
+      return sequence< kwd_else_directive,
                        optional_css_whitespace,
-                       exactly< if_after_else_kwd > >(src);
+                       word< if_after_else_kwd > >(src);
     }
 
-    const char* for_directive(const char* src) {
-      return exactly<for_kwd>(src);
+    const char* kwd_for_directive(const char* src) {
+      return word<for_kwd>(src);
     }
 
-    const char* from(const char* src) {
-      return exactly<from_kwd>(src);
+    const char* kwd_from(const char* src) {
+      return word<from_kwd>(src);
     }
 
-    const char* to(const char* src) {
-      return exactly<to_kwd>(src);
+    const char* kwd_to(const char* src) {
+      return word<to_kwd>(src);
     }
 
-    const char* through(const char* src) {
-      return exactly<through_kwd>(src);
+    const char* kwd_through(const char* src) {
+      return word<through_kwd>(src);
     }
 
-    const char* each_directive(const char* src) {
-      return exactly<each_kwd>(src);
+    const char* kwd_each_directive(const char* src) {
+      return word<each_kwd>(src);
     }
 
-    const char* in(const char* src) {
-      return exactly<in_kwd>(src);
+    const char* kwd_in(const char* src) {
+      return word<in_kwd>(src);
     }
 
-    const char* while_directive(const char* src) {
-      return exactly<while_kwd>(src);
+    const char* kwd_while_directive(const char* src) {
+      return word<while_kwd>(src);
     }
 
     const char* name(const char* src) {
@@ -362,16 +294,16 @@ namespace Sass {
                                      exactly<'\\'> > >(src);
     }
 
-    const char* warn(const char* src) {
-      return exactly<warn_kwd>(src);
+    const char* kwd_warn(const char* src) {
+      return word<warn_kwd>(src);
     }
 
-    const char* err(const char* src) {
-      return exactly<error_kwd>(src);
+    const char* kwd_err(const char* src) {
+      return word<error_kwd>(src);
     }
 
-    const char* dbg(const char* src) {
-      return exactly<debug_kwd>(src);
+    const char* kwd_dbg(const char* src) {
+      return word<debug_kwd>(src);
     }
 
     /* not used anymore - remove?
@@ -379,8 +311,8 @@ namespace Sass {
       return sequence< exactly<'@'>, identifier >(src);
     } */
 
-    const char* null(const char* src) {
-      return exactly<null_kwd>(src);
+    const char* kwd_null(const char* src) {
+      return word<null_kwd>(src);
     }
 
     // Match CSS type selectors
@@ -438,8 +370,10 @@ namespace Sass {
     const char* binomial(const char* src) {
       return sequence< optional<sign>,
                        optional<digits>,
-                       exactly<'n'>, optional_spaces,
-                       sign, optional_spaces,
+                       exactly<'n'>,
+                       zero_plus < space >,
+                       sign,
+                       zero_plus < space >,
                        digits >(src);
     }
     const char* percentage(const char* src) {
@@ -474,7 +408,7 @@ namespace Sass {
 
     /* no longer used - remove?
     const char* rgb_prefix(const char* src) {
-      return exactly<rgb_kwd>(src);
+      return word<rgb_kwd>(src);
     }*/
     // Match CSS uri specifiers.
 
@@ -505,25 +439,25 @@ namespace Sass {
     const char* important(const char* src) {
       return sequence< exactly<'!'>,
                        optional_css_whitespace,
-                       exactly<important_kwd> >(src);
+                       word<important_kwd> >(src);
     }
     // Match CSS "!optional" keyword.
     const char* optional(const char* src) {
       return sequence< exactly<'!'>,
       optional_css_whitespace,
-      exactly<optional_kwd> >(src);
+      word<optional_kwd> >(src);
     }
     // Match Sass "!default" keyword.
     const char* default_flag(const char* src) {
       return sequence< exactly<'!'>,
                        optional_css_whitespace,
-                       exactly<default_kwd> >(src);
+                       word<default_kwd> >(src);
     }
     // Match Sass "!global" keyword.
     const char* global_flag(const char* src) {
       return sequence< exactly<'!'>,
                        optional_css_whitespace,
-                       exactly<global_kwd> >(src);
+                       word<global_kwd> >(src);
     }
     // Match CSS pseudo-class/element prefixes.
     const char* pseudo_prefix(const char* src) {
@@ -538,14 +472,14 @@ namespace Sass {
     }
     // Match the CSS negation pseudo-class.
     const char* pseudo_not(const char* src) {
-      return exactly< pseudo_not_kwd >(src);
+      return word< pseudo_not_kwd >(src);
     }
     // Match CSS 'odd' and 'even' keywords for functional pseudo-classes.
     const char* even(const char* src) {
-      return exactly<even_kwd>(src);
+      return word<even_kwd>(src);
     }
     const char* odd(const char* src) {
-      return exactly<odd_kwd>(src);
+      return word<odd_kwd>(src);
     }
     // Match CSS attribute-matching operators.
     const char* exact_match(const char* src) { return exactly<'='>(src); }
@@ -575,44 +509,44 @@ namespace Sass {
     }
 
     // Match Sass boolean keywords.
-    const char* true_val(const char* src) {
-      return exactly<true_kwd>(src);
+    const char* kwd_true(const char* src) {
+      return word<true_kwd>(src);
     }
-    const char* false_val(const char* src) {
-      return exactly<false_kwd>(src);
+    const char* kwd_false(const char* src) {
+      return word<false_kwd>(src);
     }
-    const char* and_op(const char* src) {
-      return exactly<and_kwd>(src);
+    const char* kwd_and(const char* src) {
+      return word<and_kwd>(src);
     }
-    const char* or_op(const char* src) {
-      return exactly<or_kwd>(src);
+    const char* kwd_or(const char* src) {
+      return word<or_kwd>(src);
     }
-    const char* not_op(const char* src) {
-      return exactly<not_kwd>(src);
+    const char* kwd_not(const char* src) {
+      return word<not_kwd>(src);
     }
-    const char* eq_op(const char* src) {
-      return exactly<eq>(src);
+    const char* kwd_eq(const char* src) {
+      return word<eq>(src);
     }
-    const char* neq_op(const char* src) {
-      return exactly<neq>(src);
+    const char* kwd_neq(const char* src) {
+      return word<neq>(src);
     }
-    const char* gt_op(const char* src) {
-      return exactly<gt>(src);
+    const char* kwd_gt(const char* src) {
+      return word<gt>(src);
     }
-    const char* gte_op(const char* src) {
-      return exactly<gte>(src);
+    const char* kwd_gte(const char* src) {
+      return word<gte>(src);
     }
-    const char* lt_op(const char* src) {
-      return exactly<lt>(src);
+    const char* kwd_lt(const char* src) {
+      return word<lt>(src);
     }
-    const char* lte_op(const char* src) {
-      return exactly<lte>(src);
+    const char* kwd_lte(const char* src) {
+      return word<lte>(src);
     }
 
     // match specific IE syntax
     const char* ie_progid(const char* src) {
       return sequence <
-        exactly<progid_kwd>,
+        word<progid_kwd>,
         exactly<':'>,
         alternatives< identifier_schema, identifier >,
         zero_plus< sequence<
@@ -647,7 +581,7 @@ namespace Sass {
       >(src);
     }
     const char* ie_expression(const char* src) {
-      return sequence < exactly<expression_kwd>, delimited_by< '(', ')', true> >(src);
+      return sequence < word<expression_kwd>, delimited_by< '(', ')', true> >(src);
     }
     const char* ie_property(const char* src) {
       return alternatives < ie_expression, ie_progid >(src);
@@ -749,7 +683,7 @@ namespace Sass {
                            percentage,
                            hex,
                            number,
-                           sequence< exactly<'!'>, exactly<important_kwd> >
+                           sequence< exactly<'!'>, word<important_kwd> >
                           >(src);
     }
 

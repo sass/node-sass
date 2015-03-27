@@ -122,6 +122,7 @@ SOURCES = \
 	file.cpp \
 	functions.cpp \
 	inspect.cpp \
+	lexer.cpp \
 	node.cpp \
 	json.cpp \
 	emitter.cpp \

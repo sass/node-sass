@@ -20,7 +20,7 @@ namespace Sass {
       Parameter*  p = (*ps)[i];
       param_map[p->name()] = p;
       // if (p->default_value()) {
-      //   env->current_frame()[p->name()] = p->default_value()->perform(eval->with(env));
+      //   env->local_frame()[p->name()] = p->default_value()->perform(eval->with(env));
       // }
     }
 
@@ -41,12 +41,12 @@ namespace Sass {
       if (p->is_rest_parameter()) {
         if (a->is_rest_argument()) {
           // rest param and rest arg -- just add one to the other
-          if (env->current_frame_has(p->name())) {
-            *static_cast<List*>(env->current_frame()[p->name()])
+          if (env->has_local(p->name())) {
+            *static_cast<List*>(env->local_frame()[p->name()])
             += static_cast<List*>(a->value());
           }
           else {
-            env->current_frame()[p->name()] = a->value();
+            env->local_frame()[p->name()] = a->value();
           }
         } else {
 
@@ -55,7 +55,7 @@ namespace Sass {
                                              0,
                                              List::COMMA,
                                              true);
-          env->current_frame()[p->name()] = arglist;
+          env->local_frame()[p->name()] = arglist;
           while (ia < LA) {
             a = (*as)[ia];
             (*arglist) << new (ctx.mem) Argument(a->pstate(),
@@ -99,7 +99,7 @@ namespace Sass {
             msg << callee << " has no parameter named " << name;
             error(msg.str(), a->pstate());
           }
-          env->current_frame()[name] = argmap->at(key);
+          env->local_frame()[name] = argmap->at(key);
         }
         ++ia;
         continue;
@@ -108,14 +108,14 @@ namespace Sass {
       }
 
       if (a->name().empty()) {
-        if (env->current_frame_has(p->name())) {
+        if (env->has_local(p->name())) {
           stringstream msg;
           msg << "parameter " << p->name()
           << " provided more than once in call to " << callee;
           error(msg.str(), a->pstate());
         }
         // ordinal arg -- bind it to the next param
-        env->current_frame()[p->name()] = a->value();
+        env->local_frame()[p->name()] = a->value();
         ++ip;
       }
       else {
@@ -131,13 +131,13 @@ namespace Sass {
               << "cannot be used as named argument";
           error(msg.str(), a->pstate());
         }
-        if (env->current_frame_has(a->name())) {
+        if (env->has_local(a->name())) {
           stringstream msg;
           msg << "parameter " << p->name()
               << "provided more than once in call to " << callee;
           error(msg.str(), a->pstate());
         }
-        env->current_frame()[a->name()] = a->value();
+        env->local_frame()[a->name()] = a->value();
       }
     }
 
@@ -150,9 +150,9 @@ namespace Sass {
       // cerr << "env for default params:" << endl;
       // env->print();
       // cerr << "********" << endl;
-      if (!env->current_frame_has(leftover->name())) {
+      if (!env->has_local(leftover->name())) {
         if (leftover->is_rest_parameter()) {
-          env->current_frame()[leftover->name()] = new (ctx.mem) List(leftover->pstate(),
+          env->local_frame()[leftover->name()] = new (ctx.mem) List(leftover->pstate(),
                                                                       0,
                                                                       List::COMMA,
                                                                       true);
@@ -167,7 +167,7 @@ namespace Sass {
           eval->backtrace = old_bt;
           eval->contextualize = old_context;
           // dv->perform(&to_string);
-          env->current_frame()[leftover->name()] = dv;
+          env->local_frame()[leftover->name()] = dv;
         }
         else {
           // param is unbound and has no default value -- error
