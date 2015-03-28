@@ -20,6 +20,7 @@ Makefile.in
 /config.log
 /config.status
 /configure
+include/
 /libtool
 /m4/libtool.m4
 /m4/ltoptions.m4
