@@ -410,7 +410,7 @@ describe('cli', function() {
       });
     });
 
-    it('should return error on for invalid importer file path', function(done) {
+    it('should return error for invalid importer file path', function(done) {
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
         '--importer', fixture('non/existing/path')
@@ -418,6 +418,18 @@ describe('cli', function() {
 
       bin.once('close', function(code) {
         assert(code !== 0);
+        done();
+      });
+    });
+
+    it('should reflect user-defined Error', function(done) {
+      var bin = spawn(cli, [
+        src, '--output', path.dirname(dest),
+        '--importer', fixture('extras/my_custom_importer_error.js')
+      ]);
+
+      bin.stderr.once('data', function(code) {
+        assert.equal(JSON.parse(code).message, 'doesn\'t exist!');
         done();
       });
     });
