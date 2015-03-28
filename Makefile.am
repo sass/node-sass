@@ -82,7 +82,7 @@ libsass_la_SOURCES = \
 
 libsass_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 0:9:0
 
-include_HEADERS = sass2scss.h sass_context.h sass_functions.h sass_values.h sass.h
+include_HEADERS = sass2scss.h sass_context.h sass_functions.h sass_values.h sass.h sass_version.h
 
 if ENABLE_TESTS
 
