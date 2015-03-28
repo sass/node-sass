@@ -452,7 +452,8 @@ Output will be saved with the same name as input SASS file into the current work
     --source-map-root          Base path, will be emitted in source-map as is
     --include-path             Path to look for imported files
     --precision                The amount of precision allowed in decimal numbers
-    --importer                 Path to custom importer
+    --importer                 Path to .js file containing custom importer
+    --functions                Path to .js file containing custom functions
     --help                     Print usage info
 ```
 

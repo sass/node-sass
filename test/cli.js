@@ -400,4 +400,38 @@ describe('cli', function() {
       });
     });
   });
+
+  describe('functions', function() {
+    it('should let custom functions call setter methods on wrapped sass values (number)', function(done) {
+      var dest = fixture('custom-functions/setter.css');
+      var src = fixture('custom-functions/setter.scss');
+      var expected = read(fixture('custom-functions/setter-expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
+      var bin = spawn(cli, [
+        src, '--output', path.dirname(dest),
+        '--functions', fixture('extras/my_custom_functions_setter.js')
+      ]);
+
+      bin.once('close', function() {
+        assert.equal(read(dest, 'utf8').trim(), expected);
+        fs.unlinkSync(dest);
+        done();
+      });
+    });
+
+    it('should properly convert strings when calling custom functions', function(done) {
+      var dest = fixture('custom-functions/string-conversion.css');
+      var src = fixture('custom-functions/string-conversion.scss');
+      var expected = read(fixture('custom-functions/string-conversion-expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
+      var bin = spawn(cli, [
+        src, '--output', path.dirname(dest),
+        '--functions', fixture('extras/my_custom_functions_string_conversion.js')
+      ]);
+
+      bin.once('close', function() {
+        assert.equal(read(dest, 'utf8').trim(), expected);
+        fs.unlinkSync(dest);
+        done();
+      });
+    });
+  });
 });
