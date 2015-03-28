@@ -222,17 +222,23 @@ Default: `undefined`
 
 Enables the outputting of a source map during `render` and `renderSync`. When `sourceMap === true`, the value of `outFile` is used as the target output location for the source map. When `typeof sourceMap === "String"`, the value of `sourceMap` will be used as the writing location for the file.
 
+### sourceMapContents
+Type: `Boolean`
+Default: `false`
+
+`true` includes the `contents` in the source map information
+
 ### sourceMapEmbed
 Type: `Boolean`
 Default: `false`
 
 `true` embeds the source map as a data URI
 
-### sourceMapContents
-Type: `Boolean`
-Default: `false`
+### sourceMapRoot
+Type: `String`
+Default: `undefined`
 
-`true` includes the `contents` in the source map information
+the value will be emitted as `sourceRoot` in the source map information
 
 ## `render` Callback (>= v3.0.0)
 node-sass supports standard node style asynchronous callbacks with the signature of `function(err, result)`. In error conditions, the `error` argument is populated with the error object. In success conditions, the `result` object is populated with an object describing the result of the render call.
@@ -441,8 +447,9 @@ Output will be saved with the same name as input SASS file into the current work
     --linefeed                 Linefeed style (cr | crlf | lf | lfcr)
     --source-comments          Include debug info in output
     --source-map               Emit source map
-    --source-map-embed         Embed sourceMappingUrl as data URI
     --source-map-contents      Embed include contents in map
+    --source-map-embed         Embed sourceMappingUrl as data URI
+    --source-map-root          Base path, will be emitted in source-map as is
     --include-path             Path to look for imported files
     --precision                The amount of precision allowed in decimal numbers
     --importer                 Path to custom importer

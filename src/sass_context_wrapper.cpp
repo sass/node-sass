@@ -43,6 +43,7 @@ extern "C" {
     free(ctx_w->linefeed);
     free(ctx_w->out_file);
     free(ctx_w->source_map);
+    free(ctx_w->source_map_root);
     free(ctx_w->indent);
 
     if (string) {

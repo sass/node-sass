@@ -90,6 +90,7 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
   ctx_w->include_path = create_string(options->Get(NanNew("includePaths")));
   ctx_w->out_file = create_string(options->Get(NanNew("outFile")));
   ctx_w->source_map = create_string(options->Get(NanNew("sourceMap")));
+  ctx_w->source_map_root = create_string(options->Get(NanNew("sourceMapRoot")));
 
   sass_option_set_output_path(sass_options, ctx_w->out_file);
   sass_option_set_output_style(sass_options, (Sass_Output_Style)options->Get(NanNew("style"))->Int32Value());
@@ -99,6 +100,7 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
   sass_option_set_source_map_embed(sass_options, options->Get(NanNew("sourceMapEmbed"))->BooleanValue());
   sass_option_set_source_map_contents(sass_options, options->Get(NanNew("sourceMapContents"))->BooleanValue());
   sass_option_set_source_map_file(sass_options, ctx_w->source_map);
+  sass_option_set_source_map_root(sass_options, ctx_w->source_map_root);
   sass_option_set_include_path(sass_options, ctx_w->include_path);
   sass_option_set_precision(sass_options, options->Get(NanNew("precision"))->Int32Value());
   sass_option_set_indent(sass_options, ctx_w->indent);
