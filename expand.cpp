@@ -497,6 +497,7 @@ namespace Sass {
                                                    "@content",
                                                    new (ctx.mem) Parameters(c->pstate()),
                                                    c->block(),
+                                                   &ctx,
                                                    Definition::MIXIN);
       thunk->environment(env);
       new_env.local_frame()["@content[m]"] = thunk;

@@ -50,12 +50,14 @@ namespace Sass {
     this->source = source;
   }
 
-  inline bool sort_importers (const Sass_C_Importer_Call& i, const Sass_C_Importer_Call& j)
+  inline bool sort_importers (const Sass_Importer_Entry& i, const Sass_Importer_Entry& j)
   { return sass_importer_get_priority(i) < sass_importer_get_priority(j); }
 
   Context::Context(Context::Data initializers)
   : // Output(this),
     mem(Memory_Manager<AST_Node>()),
+    c_options               (initializers.c_options()),
+    c_compiler              (initializers.c_compiler()),
     source_c_str            (initializers.source_c_str()),
     sources                 (vector<const char*>()),
     plugin_paths            (initializers.plugin_paths()),
@@ -63,8 +65,8 @@ namespace Sass {
     queue                   (vector<Sass_Queued>()),
     style_sheets            (map<string, Block*>()),
     emitter (this),
-    c_functions             (vector<Sass_C_Function_Call>()),
-    c_importers             (vector<Sass_C_Importer_Call>()),
+    c_functions             (vector<Sass_Function_Entry>()),
+    c_importers             (vector<Sass_Importer_Entry>()),
     indent                  (initializers.indent()),
     linefeed                (initializers.linefeed()),
     input_path              (make_canonical_path(initializers.input_path())),
@@ -123,11 +125,11 @@ namespace Sass {
 
   }
 
-  void Context::add_c_function(Sass_C_Function_Call function)
+  void Context::add_c_function(Sass_Function_Entry function)
   {
     c_functions.push_back(function);
   }
-  void Context::add_c_importer(Sass_C_Importer_Call importer)
+  void Context::add_c_importer(Sass_Importer_Entry importer)
   {
     c_importers.push_back(importer);
     // need to sort the array afterwards (no big deal)
@@ -279,8 +281,8 @@ namespace Sass {
   void register_function(Context&, Signature sig, Native_Function f, size_t arity, Env* env);
   void register_overload_stub(Context&, string name, Env* env);
   void register_built_in_functions(Context&, Env* env);
-  void register_c_functions(Context&, Env* env, Sass_C_Function_List);
-  void register_c_function(Context&, Env* env, Sass_C_Function_Call);
+  void register_c_functions(Context&, Env* env, Sass_Function_List);
+  void register_c_function(Context&, Env* env, Sass_Function_Entry);
 
   char* Context::compile_block(Block* root)
   {
@@ -299,7 +301,7 @@ namespace Sass {
   {
     Block* root = 0;
     for (size_t i = 0; i < queue.size(); ++i) {
-      struct Sass_Import* import = sass_make_import(
+      Sass_Import_Entry import = sass_make_import(
         queue[i].load_path.c_str(),
         queue[i].abs_path.c_str(),
         0, 0
@@ -427,6 +429,7 @@ namespace Sass {
                                             name,
                                             0,
                                             0,
+                                            &ctx,
                                             true);
     (*env)[name + "[f]"] = stub;
   }
@@ -525,21 +528,16 @@ namespace Sass {
     register_function(ctx, unique_id_sig, unique_id, env);
   }
 
-  void register_c_functions(Context& ctx, Env* env, Sass_C_Function_List descrs)
+  void register_c_functions(Context& ctx, Env* env, Sass_Function_List descrs)
   {
     while (descrs && *descrs) {
       register_c_function(ctx, env, *descrs);
       ++descrs;
     }
   }
-  void register_c_function(Context& ctx, Env* env, Sass_C_Function_Call descr)
+  void register_c_function(Context& ctx, Env* env, Sass_Function_Entry descr)
   {
-    Definition* def = make_c_function(
-      sass_function_get_signature(descr),
-      sass_function_get_function(descr),
-      sass_function_get_cookie(descr),
-      ctx
-    );
+    Definition* def = make_c_function(descr, ctx);
     def->environment(env);
     (*env)[def->name() + "[f]"] = def;
   }

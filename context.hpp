@@ -18,7 +18,7 @@
 #include "plugins.hpp"
 #include "sass_functions.h"
 
-struct Sass_C_Function_Descriptor;
+struct Sass_Function;
 
 namespace Sass {
   using namespace std;
@@ -34,6 +34,8 @@ namespace Sass {
   public:
     Memory_Manager<AST_Node> mem;
 
+    struct Sass_Options* c_options;
+    struct Sass_Compiler* c_compiler;
     const char* source_c_str;
 
     // c-strs containing Sass file contents
@@ -52,11 +54,11 @@ namespace Sass {
     // SourceMap source_map;
     Output emitter;
 
-    vector<Sass_C_Function_Call> c_functions;
-    vector<Sass_C_Importer_Call> c_importers;
+    vector<Sass_Function_Entry> c_functions;
+    vector<Sass_Importer_Entry> c_importers;
 
-    void add_c_function(Sass_C_Function_Call function);
-    void add_c_importer(Sass_C_Importer_Call importer);
+    void add_c_function(Sass_Function_Entry function);
+    void add_c_importer(Sass_Importer_Entry importer);
 
     string       indent; // String to be used for indentation
     string       linefeed; // String to be used for line feeds
@@ -72,7 +74,7 @@ namespace Sass {
     bool         is_indented_syntax_src; // treat source string as sass
 
     // overload import calls
-    vector<struct Sass_Import*> import_stack;
+    vector<Sass_Import_Entry> import_stack;
 
     map<string, Color*> names_to_colors;
     map<int, string>    colors_to_names;
@@ -80,6 +82,8 @@ namespace Sass {
     size_t precision; // precision for outputting fractional numbers
 
     KWD_ARG_SET(Data) {
+      KWD_ARG(Data, struct Sass_Options*, c_options);
+      KWD_ARG(Data, struct Sass_Compiler*, c_compiler);
       KWD_ARG(Data, const char*,     source_c_str);
       KWD_ARG(Data, string,          entry_point);
       KWD_ARG(Data, string,          input_path);

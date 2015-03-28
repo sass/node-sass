@@ -14,6 +14,7 @@
 #include "context.hpp"
 #include "sass_values.h"
 #include "sass_context.h"
+#include "ast_fwd_decl.hpp"
 #include "error_handling.hpp"
 
 extern "C" {
@@ -99,10 +100,10 @@ extern "C" {
     char* source_map_root;
 
     // Custom functions that can be called from sccs code
-    Sass_C_Function_List c_functions;
+    Sass_Function_List c_functions;
 
     // Callback to overload imports
-    Sass_C_Importer_List c_importers;
+    Sass_Importer_List c_importers;
 
   };
 
@@ -151,13 +152,6 @@ extern "C" {
 
   };
 
-  // Compiler states
-  enum Sass_Compiler_State {
-    SASS_COMPILER_CREATED,
-    SASS_COMPILER_PARSED,
-    SASS_COMPILER_EXECUTED
-  };
-
   // link c and cpp context
   struct Sass_Compiler {
     // progress status
@@ -165,9 +159,9 @@ extern "C" {
     // original c context
     Sass_Context* c_ctx;
     // Sass::Context
-    void* cpp_ctx;
+    Context* cpp_ctx;
     // Sass::Block
-    void* root;
+    Block* root;
   };
 
   static void copy_options(struct Sass_Options* to, struct Sass_Options* from) { *to = *from; }
@@ -389,7 +383,9 @@ extern "C" {
       }
 
       // transfer the options to c++
-      cpp_opt.input_path(input_path)
+      cpp_opt.c_compiler(0)
+             .c_options(c_ctx)
+             .input_path(input_path)
              .output_path(output_path)
              .output_style((Output_Style) c_ctx->output_style)
              .is_indented_syntax_src(c_ctx->is_indented_syntax_src)
@@ -405,9 +401,9 @@ extern "C" {
              // .plugin_paths_array(plugin_paths)
              .include_paths(vector<string>())
              .plugin_paths(vector<string>())
-             .precision(c_ctx->precision ? c_ctx->precision : 5)
-             .linefeed(c_ctx->linefeed ? c_ctx->linefeed : LFEED)
-             .indent(c_ctx->indent ? c_ctx->indent : "  ");
+             .precision(c_ctx->precision)
+             .linefeed(c_ctx->linefeed)
+             .indent(c_ctx->indent);
 
       // create new c++ Context
       Context* cpp_ctx = new Context(cpp_opt);
@@ -525,9 +521,19 @@ extern "C" {
     return c_ctx->error_status;
   }
 
+  inline void init_options (struct Sass_Options* options)
+  {
+    options->precision = 5;
+    options->indent = "  ";
+    options->linefeed = LFEED;
+  }
+
   Sass_Options* ADDCALL sass_make_options (void)
   {
-    return (struct Sass_Options*) calloc(1, sizeof(struct Sass_Options));
+    struct Sass_Options* options = (struct Sass_Options*) calloc(1, sizeof(struct Sass_Options));
+    if (options == 0) { cerr << "Error allocating memory for options" << endl; return 0; }
+    init_options(options);
+    return options;
   }
 
   Sass_File_Context* ADDCALL sass_make_file_context(const char* input_path)
@@ -535,6 +541,7 @@ extern "C" {
     struct Sass_File_Context* ctx = (struct Sass_File_Context*) calloc(1, sizeof(struct Sass_File_Context));
     if (ctx == 0) { cerr << "Error allocating memory for file context" << endl; return 0; }
     ctx->type = SASS_CONTEXT_FILE;
+    init_options(ctx);
     try {
       if (input_path == 0) { throw(runtime_error("File context created without an input path")); }
       if (*input_path == 0) { throw(runtime_error("File context created with empty input path")); }
@@ -550,6 +557,7 @@ extern "C" {
     struct Sass_Data_Context* ctx = (struct Sass_Data_Context*) calloc(1, sizeof(struct Sass_Data_Context));
     if (ctx == 0) { cerr << "Error allocating memory for data context" << endl; return 0; }
     ctx->type = SASS_CONTEXT_DATA;
+    init_options(ctx);
     try {
       if (source_string == 0) { throw(runtime_error("Data context created without a source string")); }
       if (*source_string == 0) { throw(runtime_error("Data context created with empty source string")); }
@@ -570,6 +578,7 @@ extern "C" {
     Context::Data cpp_opt = Context::Data();
     cpp_opt.entry_point(c_ctx->input_path);
     compiler->cpp_ctx = sass_prepare_context(c_ctx, cpp_opt);
+    compiler->cpp_ctx->c_compiler = compiler;
     return compiler;
   }
 
@@ -583,6 +592,7 @@ extern "C" {
     Context::Data cpp_opt = Context::Data();
     cpp_opt.source_c_str(c_ctx->source_string);
     compiler->cpp_ctx = sass_prepare_context(c_ctx, cpp_opt);
+    compiler->cpp_ctx->c_compiler = compiler;
     return compiler;
   }
 
@@ -664,7 +674,7 @@ extern "C" {
     if (options == 0) return;
     // Deallocate custom functions
     if (options->c_functions) {
-      struct Sass_C_Function_Descriptor** this_func_data = options->c_functions;
+      struct Sass_Function** this_func_data = options->c_functions;
       while (this_func_data && *this_func_data) {
         free(*this_func_data);
         ++this_func_data;
@@ -672,7 +682,7 @@ extern "C" {
     }
     // Deallocate custom importers
     if (options->c_importers) {
-      struct Sass_C_Importer_Descriptor** this_imp_data = options->c_importers;
+      struct Sass_Importer** this_imp_data = options->c_importers;
       while (this_imp_data && *this_imp_data) {
         free(*this_imp_data);
         ++this_imp_data;
@@ -772,6 +782,14 @@ extern "C" {
   void ADDCALL sass_file_context_set_options (struct Sass_File_Context* ctx, struct Sass_Options* opt) { copy_options(ctx, opt); }
   void ADDCALL sass_data_context_set_options (struct Sass_Data_Context* ctx, struct Sass_Options* opt) { copy_options(ctx, opt); }
 
+  // Getters for Sass_Compiler options (get conected sass context)
+  enum Sass_Compiler_State ADDCALL sass_compiler_get_state(struct Sass_Compiler* compiler) { return compiler->state; }
+  struct Sass_Context* ADDCALL sass_compiler_get_context(struct Sass_Compiler* compiler) { return compiler->c_ctx; }
+  // Getters for Sass_Compiler options (query import stack)
+  size_t ADDCALL sass_compiler_get_import_stack_size(struct Sass_Compiler* compiler) { return compiler->cpp_ctx->import_stack.size(); }
+  Sass_Import_Entry ADDCALL sass_compiler_get_last_import(struct Sass_Compiler* compiler) { return compiler->cpp_ctx->import_stack.back(); }
+  Sass_Import_Entry ADDCALL sass_compiler_get_import_entry(struct Sass_Compiler* compiler, size_t idx) { return compiler->cpp_ctx->import_stack[idx]; }
+
   // Create getter and setters for options
   IMPLEMENT_SASS_OPTION_ACCESSOR(int, precision);
   IMPLEMENT_SASS_OPTION_ACCESSOR(enum Sass_Output_Style, output_style);
@@ -780,8 +798,8 @@ extern "C" {
   IMPLEMENT_SASS_OPTION_ACCESSOR(bool, source_map_contents);
   IMPLEMENT_SASS_OPTION_ACCESSOR(bool, omit_source_map_url);
   IMPLEMENT_SASS_OPTION_ACCESSOR(bool, is_indented_syntax_src);
-  IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_C_Function_List, c_functions);
-  IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_C_Importer_List, c_importers);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_Function_List, c_functions);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_Importer_List, c_importers);
   IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, indent);
   IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, linefeed);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, input_path);

@@ -256,12 +256,13 @@ namespace Sass {
       Definition* def = static_cast<Definition*>((*env)["@warn[f]"]);
       // Block*          body   = def->block();
       // Native_Function func   = def->native_function();
-      Sass_C_Function c_func = def->c_function();
+      Sass_Function_Entry c_cb = def->c_cb();
+      Sass_Function_Fn c_func = sass_function_get_function(c_cb);
 
       To_C to_c;
       union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
       sass_list_set_value(c_args, 0, message->perform(&to_c));
-      Sass_Value* c_val = c_func(c_args, def->cookie());
+      Sass_Value* c_val = c_func(c_args, c_cb, ctx.c_options);
       sass_delete_value(c_args);
       sass_delete_value(c_val);
       return 0;
@@ -287,12 +288,13 @@ namespace Sass {
       Definition* def = static_cast<Definition*>((*env)["@error[f]"]);
       // Block*          body   = def->block();
       // Native_Function func   = def->native_function();
-      Sass_C_Function c_func = def->c_function();
+      Sass_Function_Entry c_cb = def->c_cb();
+      Sass_Function_Fn c_func = sass_function_get_function(c_cb);
 
       To_C to_c;
       union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
       sass_list_set_value(c_args, 0, message->perform(&to_c));
-      Sass_Value* c_val = c_func(c_args, def->cookie());
+      Sass_Value* c_val = c_func(c_args, c_cb, ctx.c_options);
       sass_delete_value(c_args);
       sass_delete_value(c_val);
       return 0;
@@ -315,12 +317,13 @@ namespace Sass {
       Definition* def = static_cast<Definition*>((*env)["@debug[f]"]);
       // Block*          body   = def->block();
       // Native_Function func   = def->native_function();
-      Sass_C_Function c_func = def->c_function();
+      Sass_Function_Entry c_cb = def->c_cb();
+      Sass_Function_Fn c_func = sass_function_get_function(c_cb);
 
       To_C to_c;
       union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
       sass_list_set_value(c_args, 0, message->perform(&to_c));
-      Sass_Value* c_val = c_func(c_args, def->cookie());
+      Sass_Value* c_val = c_func(c_args, c_cb, ctx.c_options);
       sass_delete_value(c_args);
       sass_delete_value(c_val);
       return 0;
@@ -500,7 +503,7 @@ namespace Sass {
     Definition*     def    = static_cast<Definition*>((*env)[full_name]);
     Block*          body   = def->block();
     Native_Function func   = def->native_function();
-    Sass_C_Function c_func = def->c_function();
+    Sass_Function_Entry c_cb = def->c_cb();
 
     if (full_name != "if[f]") {
       for (size_t i = 0, L = args->length(); i < L; ++i) {
@@ -551,8 +554,9 @@ namespace Sass {
       env = old_env;
     }
     // else if it's a user-defined c function
-    else if (c_func) {
+    else if (c_cb) {
 
+      Sass_Function_Fn c_func = sass_function_get_function(c_cb);
       if (full_name == "*[f]") {
         String_Constant *str = new (ctx.mem) String_Constant(c->pstate(), c->name());
         Arguments* new_args = new (ctx.mem) Arguments(c->pstate());
@@ -577,7 +581,7 @@ namespace Sass {
         Expression* arg = static_cast<Expression*>(node);
         sass_list_set_value(c_args, i, arg->perform(&to_c));
       }
-      Sass_Value* c_val = c_func(c_args, def->cookie());
+      Sass_Value* c_val = c_func(c_args, c_cb, ctx.c_options);
       if (sass_value_get_tag(c_val) == SASS_ERROR) {
         error("error in C function " + c->name() + ": " + sass_error_get_message(c_val), c->pstate(), backtrace);
       } else if (sass_value_get_tag(c_val) == SASS_WARNING) {

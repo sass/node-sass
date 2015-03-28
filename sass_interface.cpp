@@ -130,7 +130,7 @@ extern "C" {
                        .linefeed(c_ctx->options.linefeed ? c_ctx->options.linefeed : LFEED)
       );
       if (c_ctx->c_functions) {
-        struct Sass_C_Function_Descriptor** this_func_data = c_ctx->c_functions;
+        struct Sass_Function** this_func_data = c_ctx->c_functions;
         while ((this_func_data) && (*this_func_data)) {
           cpp_ctx.c_functions.push_back(*this_func_data);
           ++this_func_data;
@@ -220,7 +220,7 @@ extern "C" {
                        .precision(c_ctx->options.precision ? c_ctx->options.precision : 5)
       );
       if (c_ctx->c_functions) {
-        struct Sass_C_Function_Descriptor** this_func_data = c_ctx->c_functions;
+        struct Sass_Function** this_func_data = c_ctx->c_functions;
         while ((this_func_data) && (*this_func_data)) {
           cpp_ctx.c_functions.push_back(*this_func_data);
           ++this_func_data;

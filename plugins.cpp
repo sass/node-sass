@@ -45,8 +45,8 @@ namespace Sass {
   {
 
     typedef const char* (*__plugin_version__)(void);
-    typedef Sass_C_Function_List (*__plugin_load_fns__)(void);
-    typedef Sass_C_Importer_List (*__plugin_load_imps__)(void);
+    typedef Sass_Function_List (*__plugin_load_fns__)(void);
+    typedef Sass_Importer_List (*__plugin_load_imps__)(void);
 
     if (LOAD_LIB(plugin, path))
     {
@@ -58,13 +58,13 @@ namespace Sass {
         // try to get import address for "libsass_load_functions"
         if (LOAD_LIB_FN(__plugin_load_fns__, plugin_load_functions, "libsass_load_functions"))
         {
-          Sass_C_Function_List fns = plugin_load_functions();
+          Sass_Function_List fns = plugin_load_functions();
           while (fns && *fns) { functions.push_back(*fns); ++ fns; }
         }
         // try to get import address for "libsass_load_importers"
         if (LOAD_LIB_FN(__plugin_load_imps__, plugin_load_importers, "libsass_load_importers"))
         {
-          Sass_C_Importer_List imps = plugin_load_importers();
+          Sass_Importer_List imps = plugin_load_importers();
           while (imps && *imps) { importers.push_back(*imps); ++ imps; }
         }
         // success

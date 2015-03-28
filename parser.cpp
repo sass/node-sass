@@ -202,20 +202,17 @@ namespace Sass {
       if (lex< quoted_string >()) {
         string import_path(lexed);
         bool has_custom_import = false;
-        Sass_Import* current = ctx.import_stack.back();
-        const char* cur_path = sass_import_get_path(current);
         string load_path = unquote(import_path);
         for (auto importer : ctx.c_importers) {
           if (has_custom_import) break;
-          Sass_C_Importer fn = sass_importer_get_function(importer);
+          Sass_Importer_Fn fn = sass_importer_get_function(importer);
           // int priority = sass_importer_get_priority(importer);
-          void* cookie = sass_importer_get_cookie(importer);
-          if (struct Sass_Import** includes =
-              fn(load_path.c_str(), cur_path, cookie)
+          if (Sass_Import_List includes =
+              fn(load_path.c_str(), importer, ctx.c_compiler)
           ) {
-            struct Sass_Import** list = includes;
+            Sass_Import_List list = includes;
             while (*includes) {
-              struct Sass_Import* include = *includes;
+              Sass_Import_Entry include = *includes;
               const char *file = sass_import_get_path(include);
               char* source = sass_import_take_source(include);
               size_t line = sass_import_get_error_line(include);
@@ -279,7 +276,7 @@ namespace Sass {
     else stack.push_back(function_def);
     Block* body = parse_block();
     stack.pop_back();
-    Definition* def = new (ctx.mem) Definition(source_position_of_def, name, params, body, which_type);
+    Definition* def = new (ctx.mem) Definition(source_position_of_def, name, params, body, &ctx, which_type);
     return def;
   }
 
