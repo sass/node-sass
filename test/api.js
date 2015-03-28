@@ -387,6 +387,30 @@ describe('api', function() {
         done();
       });
     });
+
+    it('should reflect user-defined error when returned as callback', function(done) {
+      sass.render({
+        data: src,
+        importer: function(url, prev, done) {
+          done(new Error('doesn\'t exist!'));
+        }
+      }, function(error) {
+        assert.equal(error.message, 'doesn\'t exist!');
+        done();
+      });
+    });
+
+    it('should reflect user-defined error with return', function(done) {
+      sass.render({
+        data: src,
+        importer: function() {
+          return new Error('doesn\'t exist!');
+        }
+      }, function(error) {
+        assert.equal(error.message, 'doesn\'t exist!');
+        done();
+      });
+    });
   });
 
   describe('.render(functions)', function() {
@@ -1136,6 +1160,20 @@ describe('api', function() {
       assert.equal(sync, true);
       done();
     });
+
+
+    it('should throw user-defined error', function(done) {
+      assert.throws(function() {
+        sass.renderSync({
+          data: src,
+          importer: function() {
+            return new Error('doesn\'t exist!');
+          }
+        });
+      }, /doesn\'t exist!/);
+
+      done();
+    });
   });
 
   describe('.render({stats: {}})', function() {
@@ -1390,14 +1428,10 @@ describe('api', function() {
       assert.throws(function() {
         fs.renameSync(originalBin, renamedBin);
         process.sass.getBinaryPath(true);
-      }, function(err) {
-        fs.renameSync(renamedBin, originalBin);
+      }, /`libsass` bindings not found. Try reinstalling `node-sass`?/);
 
-        if ((err instanceof Error) && /`libsass` bindings not found. Try reinstalling `node-sass`?/.test(err)) {
-          done();
-          return true;
-        }
-      });
+      fs.renameSync(renamedBin, originalBin);
+      done();
     });
   });
 });

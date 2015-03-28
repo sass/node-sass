@@ -16,15 +16,35 @@ SassImportList CustomImporterBridge::post_process_return_value(Handle<Value> val
     for (size_t i = 0; i < array->Length(); ++i) {
       Local<Value> value = array->Get(static_cast<uint32_t>(i));
 
-      if (!value->IsObject())
+      if (!value->IsObject()) {
         continue;
+      }
 
       Local<Object> object = Local<Object>::Cast(value);
-      char* path = create_string(object->Get(NanNew<String>("file")));
-      char* contents = create_string(object->Get(NanNew<String>("contents")));
 
-      imports[i] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
+      if (value->IsNativeError()) {
+        char* message = create_string(object->Get(NanNew<String>("message")));
+
+        imports[i] = sass_make_import_entry(0, 0, 0);
+
+        sass_import_set_error(imports[i], message, -1, -1);
+      }
+      else {
+        char* path = create_string(object->Get(NanNew<String>("file")));
+        char* contents = create_string(object->Get(NanNew<String>("contents")));
+
+        imports[i] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
+      }
     }
+  }
+  else if (returned_value->IsNativeError()) {
+    imports = sass_make_import_list(1);
+    Local<Object> object = Local<Object>::Cast(returned_value);
+    char* message = create_string(object->Get(NanNew<String>("message")));
+
+    imports[0] = sass_make_import_entry(0, 0, 0);
+
+    sass_import_set_error(imports[0], message, -1, -1);
   }
   else if (returned_value->IsObject()) {
     imports = sass_make_import_list(1);
@@ -46,7 +66,7 @@ std::vector<Handle<Value>> CustomImporterBridge::pre_process_args(std::vector<vo
   std::vector<Handle<Value>> out;
 
   for (void* ptr : in) {
-    out.push_back(NanNew<String>((char const*) ptr));
+    out.push_back(NanNew<String>((char const*)ptr));
   }
 
   return out;
