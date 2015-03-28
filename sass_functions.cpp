@@ -22,12 +22,12 @@ extern "C" {
 
   Sass_C_Function_List ADDCALL sass_make_function_list(size_t length)
   {
-    return (Sass_C_Function_List) calloc(length + 1, sizeof(Sass_C_Function_Callback));
+    return (Sass_C_Function_List) calloc(length + 1, sizeof(Sass_C_Function_Call));
   }
 
-  Sass_C_Function_Callback ADDCALL sass_make_function(const char* signature, Sass_C_Function function, void* cookie)
+  Sass_C_Function_Call ADDCALL sass_make_function(const char* signature, Sass_C_Function function, void* cookie)
   {
-    Sass_C_Function_Callback cb = (Sass_C_Function_Callback) calloc(1, sizeof(Sass_C_Function_Descriptor));
+    Sass_C_Function_Call cb = (Sass_C_Function_Call) calloc(1, sizeof(Sass_C_Function_Descriptor));
     if (cb == 0) return 0;
     cb->signature = signature;
     cb->function = function;
@@ -36,12 +36,12 @@ extern "C" {
   }
 
   // Setters and getters for callbacks on function lists
-  Sass_C_Function_Callback ADDCALL sass_function_get_list_entry(Sass_C_Function_List list, size_t pos) { return list[pos]; }
-  void sass_function_set_list_entry(Sass_C_Function_List list, size_t pos, Sass_C_Function_Callback cb) { list[pos] = cb; }
+  Sass_C_Function_Call ADDCALL sass_function_get_list_entry(Sass_C_Function_List list, size_t pos) { return list[pos]; }
+  void sass_function_set_list_entry(Sass_C_Function_List list, size_t pos, Sass_C_Function_Call cb) { list[pos] = cb; }
 
-  const char* ADDCALL sass_function_get_signature(Sass_C_Function_Callback fn) { return fn->signature; }
-  Sass_C_Function ADDCALL sass_function_get_function(Sass_C_Function_Callback fn) { return fn->function; }
-  void* ADDCALL sass_function_get_cookie(Sass_C_Function_Callback fn) { return fn->cookie; }
+  const char* ADDCALL sass_function_get_signature(Sass_C_Function_Call cb) { return cb->signature; }
+  Sass_C_Function ADDCALL sass_function_get_function(Sass_C_Function_Call cb) { return cb->function; }
+  void* ADDCALL sass_function_get_cookie(Sass_C_Function_Call cb) { return cb->cookie; }
 
   // External import entry
   struct Sass_Import {
@@ -56,27 +56,36 @@ extern "C" {
   };
 
   // Struct to hold importer callback
-  struct Sass_C_Import_Descriptor {
-    Sass_C_Import_Fn function;
-    void*            cookie;
+  struct Sass_C_Importer_Descriptor {
+    Sass_C_Importer importer;
+    double          priority;
+    void*           cookie;
   };
 
-  Sass_C_Import_Callback ADDCALL sass_make_importer(Sass_C_Import_Fn function, void* cookie)
+  Sass_C_Importer_Call ADDCALL sass_make_importer(Sass_C_Importer importer, double priority, void* cookie)
   {
-    Sass_C_Import_Callback cb = (Sass_C_Import_Callback) calloc(1, sizeof(Sass_C_Import_Descriptor));
+    Sass_C_Importer_Call cb = (Sass_C_Importer_Call) calloc(1, sizeof(Sass_C_Importer_Descriptor));
     if (cb == 0) return 0;
-    cb->function = function;
+    cb->importer = importer;
+    cb->priority = priority;
     cb->cookie = cookie;
     return cb;
   }
 
-  Sass_C_Import_Fn ADDCALL sass_import_get_function(Sass_C_Import_Callback fn) { return fn->function; }
-  void* ADDCALL sass_import_get_cookie(Sass_C_Import_Callback fn) { return fn->cookie; }
+  Sass_C_Importer ADDCALL sass_importer_get_function(Sass_C_Importer_Call cb) { return cb->importer; }
+  double ADDCALL sass_importer_get_priority (Sass_C_Importer_Call cb) { return cb->priority; }
+  void* ADDCALL sass_importer_get_cookie(Sass_C_Importer_Call cb) { return cb->cookie; }
 
   // Just in case we have some stray import structs
-  void ADDCALL sass_delete_importer (Sass_C_Import_Callback fn)
+  void ADDCALL sass_delete_importer (Sass_C_Importer_Call cb)
   {
-    free(fn);
+    free(cb);
+  }
+
+  // Creator for sass custom importer function list
+  Sass_C_Importer_List ADDCALL sass_make_importer_list(size_t length)
+  {
+    return (Sass_C_Importer_List) calloc(length + 1, sizeof(Sass_C_Importer_Call));
   }
 
   // Creator for sass custom importer return argument list

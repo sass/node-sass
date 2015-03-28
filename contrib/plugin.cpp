@@ -19,7 +19,7 @@ extern "C" const char* ADDCALL libsass_get_version() {
 extern "C" Sass_C_Function_List ADDCALL libsass_load_functions()
 {
   // allocate a custom function caller
-  Sass_C_Function_Callback fn_foo =
+  Sass_C_Function_Call fn_foo =
     sass_make_function("foo()", call_fn_foo, (void*)42);
   // create list of all custom functions
   Sass_C_Function_List fn_list = sass_make_function_list(1);

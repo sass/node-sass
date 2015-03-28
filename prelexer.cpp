@@ -197,6 +197,10 @@ namespace Sass {
       return sequence<exactly<'@'>, identifier>(src);
     }
 
+    const char* kwd_sel_deep(const char* src) {
+      return word<sel_deep_kwd>(src);
+    }
+
     const char* kwd_import(const char* src) {
       return word<import_kwd>(src);
     }

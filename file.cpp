@@ -57,8 +57,9 @@ namespace Sass {
         return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
                (!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY)));
       #else
-        struct stat buffer;
-        return (stat (path.c_str(), &buffer) == 0);
+        struct stat st_buf;
+        return (stat (path.c_str(), &st_buf) == 0) &&
+               (!S_ISDIR (st_buf.st_mode));
       #endif
     }
 
@@ -284,7 +285,7 @@ namespace Sass {
     {
       if (paths == 0) return string("");
       vector<string> includes(0);
-      includes.push_back(".");
+      // includes.push_back(".");
       const char** it = paths;
       while (it && *it) {
         includes.push_back(*it);

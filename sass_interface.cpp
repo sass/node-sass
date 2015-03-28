@@ -128,7 +128,6 @@ extern "C" {
                        .precision(c_ctx->options.precision ? c_ctx->options.precision : 5)
                        .indent(c_ctx->options.indent ? c_ctx->options.indent : "  ")
                        .linefeed(c_ctx->options.linefeed ? c_ctx->options.linefeed : LFEED)
-                       .importer(0)
       );
       if (c_ctx->c_functions) {
         struct Sass_C_Function_Descriptor** this_func_data = c_ctx->c_functions;

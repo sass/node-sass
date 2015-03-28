@@ -172,6 +172,8 @@ namespace Sass {
     const char* identifier_alnums(const char* src);
     // Match selector names.
     // const char* sel_ident(const char* src);
+    const char* kwd_sel_deep(const char* src);
+
     // Match interpolant schemas
     const char* identifier_schema(const char* src);
     const char* value_schema(const char* src);

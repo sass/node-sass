@@ -14,23 +14,28 @@ extern "C" {
 struct Sass_Import;
 
 // Forward declaration
-struct Sass_C_Import_Descriptor;
+struct Sass_C_Importer_Descriptor;
 
 // Typedef defining the custom importer callback
-typedef struct Sass_C_Import_Descriptor (*Sass_C_Import_Callback);
+typedef struct Sass_C_Importer_Descriptor (*Sass_C_Importer_Call);
+typedef struct Sass_C_Importer_Descriptor* (*Sass_C_Importer_List);
 // Typedef defining the importer c function prototype
-typedef struct Sass_Import** (*Sass_C_Import_Fn) (const char* url, const char* prev, void* cookie);
+typedef struct Sass_Import** (*Sass_C_Importer) (const char* url, const char* prev, void* cookie);
+
+// Creator for sass custom importer return argument list
+ADDAPI Sass_C_Importer_List ADDCALL sass_make_importer_list (size_t length);
 
 // Creators for custom importer callback (with some additional pointer)
 // The pointer is mostly used to store the callback into the actual binding
-ADDAPI Sass_C_Import_Callback ADDCALL sass_make_importer (Sass_C_Import_Fn, void* cookie);
+ADDAPI Sass_C_Importer_Call ADDCALL sass_make_importer (Sass_C_Importer importer, double priority, void* cookie);
 
 // Getters for import function descriptors
-ADDAPI Sass_C_Import_Fn ADDCALL sass_import_get_function (Sass_C_Import_Callback fn);
-ADDAPI void* ADDCALL sass_import_get_cookie (Sass_C_Import_Callback fn);
+ADDAPI Sass_C_Importer ADDCALL sass_importer_get_function (Sass_C_Importer_Call cb);
+ADDAPI double ADDCALL sass_importer_get_priority (Sass_C_Importer_Call cb);
+ADDAPI void* ADDCALL sass_importer_get_cookie (Sass_C_Importer_Call cb);
 
 // Deallocator for associated memory
-ADDAPI void ADDCALL sass_delete_importer (Sass_C_Import_Callback fn);
+ADDAPI void ADDCALL sass_delete_importer (Sass_C_Importer_Call cb);
 
 // Creator for sass custom importer return argument list
 ADDAPI struct Sass_Import** ADDCALL sass_make_import_list (size_t length);
@@ -69,24 +74,24 @@ ADDAPI void ADDCALL sass_delete_import (struct Sass_Import*);
 struct Sass_C_Function_Descriptor;
 
 // Typedef defining null terminated list of custom callbacks
+typedef struct Sass_C_Function_Descriptor (*Sass_C_Function_Call);
 typedef struct Sass_C_Function_Descriptor* (*Sass_C_Function_List);
-typedef struct Sass_C_Function_Descriptor (*Sass_C_Function_Callback);
 // Typedef defining custom function prototype and its return value type
 typedef union Sass_Value*(*Sass_C_Function) (const union Sass_Value*, void* cookie);
 
 
 // Creators for sass function list and function descriptors
 ADDAPI Sass_C_Function_List ADDCALL sass_make_function_list (size_t length);
-ADDAPI Sass_C_Function_Callback ADDCALL sass_make_function (const char* signature, Sass_C_Function fn, void* cookie);
+ADDAPI Sass_C_Function_Call ADDCALL sass_make_function (const char* signature, Sass_C_Function cb, void* cookie);
 
 // Setters and getters for callbacks on function lists
-ADDAPI Sass_C_Function_Callback ADDCALL sass_function_get_list_entry(Sass_C_Function_List list, size_t pos);
-ADDAPI void ADDCALL sass_function_set_list_entry(Sass_C_Function_List list, size_t pos, Sass_C_Function_Callback cb);
+ADDAPI Sass_C_Function_Call ADDCALL sass_function_get_list_entry(Sass_C_Function_List list, size_t pos);
+ADDAPI void ADDCALL sass_function_set_list_entry(Sass_C_Function_List list, size_t pos, Sass_C_Function_Call cb);
 
 // Getters for custom function descriptors
-ADDAPI const char* ADDCALL sass_function_get_signature (Sass_C_Function_Callback fn);
-ADDAPI Sass_C_Function ADDCALL sass_function_get_function (Sass_C_Function_Callback fn);
-ADDAPI void* ADDCALL sass_function_get_cookie (Sass_C_Function_Callback fn);
+ADDAPI const char* ADDCALL sass_function_get_signature (Sass_C_Function_Call cb);
+ADDAPI Sass_C_Function ADDCALL sass_function_get_function (Sass_C_Function_Call cb);
+ADDAPI void* ADDCALL sass_function_get_cookie (Sass_C_Function_Call cb);
 
 
 #ifdef __cplusplus

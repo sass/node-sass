@@ -102,7 +102,7 @@ extern "C" {
     Sass_C_Function_List c_functions;
 
     // Callback to overload imports
-    Sass_C_Import_Callback importer;
+    Sass_C_Importer_List c_importers;
 
   };
 
@@ -405,7 +405,6 @@ extern "C" {
              // .plugin_paths_array(plugin_paths)
              .include_paths(vector<string>())
              .plugin_paths(vector<string>())
-             .importer(c_ctx->importer)
              .precision(c_ctx->precision ? c_ctx->precision : 5)
              .linefeed(c_ctx->linefeed ? c_ctx->linefeed : LFEED)
              .indent(c_ctx->indent ? c_ctx->indent : "  ");
@@ -418,10 +417,19 @@ extern "C" {
 
       // register our custom functions
       if (c_ctx->c_functions) {
-        Sass_C_Function_List this_func_data = c_ctx->c_functions;
-        while ((this_func_data) && (*this_func_data)) {
-          cpp_ctx->c_functions.push_back((*this_func_data));
+        auto this_func_data = c_ctx->c_functions;
+        while (this_func_data && *this_func_data) {
+          cpp_ctx->add_c_function(*this_func_data);
           ++this_func_data;
+        }
+      }
+
+      // register our custom importers
+      if (c_ctx->c_importers) {
+        auto this_imp_data = c_ctx->c_importers;
+        while (this_imp_data && *this_imp_data) {
+          cpp_ctx->add_c_importer(*this_imp_data);
+          ++this_imp_data;
         }
       }
 
@@ -657,9 +665,17 @@ extern "C" {
     // Deallocate custom functions
     if (options->c_functions) {
       struct Sass_C_Function_Descriptor** this_func_data = options->c_functions;
-      while ((this_func_data) && (*this_func_data)) {
-        free((*this_func_data));
+      while (this_func_data && *this_func_data) {
+        free(*this_func_data);
         ++this_func_data;
+      }
+    }
+    // Deallocate custom importers
+    if (options->c_importers) {
+      struct Sass_C_Importer_Descriptor** this_imp_data = options->c_importers;
+      while (this_imp_data && *this_imp_data) {
+        free(*this_imp_data);
+        ++this_imp_data;
       }
     }
     // Deallocate inc paths
@@ -686,13 +702,13 @@ extern "C" {
         cur = next;
       }
     }
-    // Free custom importer
-    free(options->importer);
-    // Free the list container
+    // Free custom functions
     free(options->c_functions);
-    // Make it null terminated
-    options->importer = 0;
+    // Free custom importers
+    free(options->c_importers);
+    // Reset our pointers
     options->c_functions = 0;
+    options->c_importers = 0;
     options->plugin_paths = 0;
     options->include_paths = 0;
   }
@@ -765,7 +781,7 @@ extern "C" {
   IMPLEMENT_SASS_OPTION_ACCESSOR(bool, omit_source_map_url);
   IMPLEMENT_SASS_OPTION_ACCESSOR(bool, is_indented_syntax_src);
   IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_C_Function_List, c_functions);
-  IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_C_Import_Callback, importer);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_C_Importer_List, c_importers);
   IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, indent);
   IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, linefeed);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, input_path);

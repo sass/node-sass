@@ -50,6 +50,8 @@ namespace Sass {
     this->source = source;
   }
 
+  inline bool sort_importers (const Sass_C_Importer_Call& i, const Sass_C_Importer_Call& j)
+  { return sass_importer_get_priority(i) < sass_importer_get_priority(j); }
 
   Context::Context(Context::Data initializers)
   : // Output(this),
@@ -61,7 +63,8 @@ namespace Sass {
     queue                   (vector<Sass_Queued>()),
     style_sheets            (map<string, Block*>()),
     emitter (this),
-    c_functions             (vector<Sass_C_Function_Callback>()),
+    c_functions             (vector<Sass_C_Function_Call>()),
+    c_importers             (vector<Sass_C_Importer_Call>()),
     indent                  (initializers.indent()),
     linefeed                (initializers.linefeed()),
     input_path              (make_canonical_path(initializers.input_path())),
@@ -74,7 +77,6 @@ namespace Sass {
     source_map_contents     (initializers.source_map_contents()),
     omit_source_map_url     (initializers.omit_source_map_url()),
     is_indented_syntax_src  (initializers.is_indented_syntax_src()),
-    importer                (initializers.importer()),
     names_to_colors         (map<string, Color*>()),
     colors_to_names         (map<int, string>()),
     precision               (initializers.precision()),
@@ -104,7 +106,11 @@ namespace Sass {
     for(auto fn : plugins.get_functions()) {
       c_functions.push_back(fn);
     }
+    for(auto fn : plugins.get_importers()) {
+      c_importers.push_back(fn);
+    }
 
+    sort (c_importers.begin(), c_importers.end(), sort_importers);
     string entry_point = initializers.entry_point();
     if (!entry_point.empty()) {
       string result(add_file(entry_point));
@@ -115,6 +121,17 @@ namespace Sass {
 
     emitter.set_filename(resolve_relative_path(output_path, source_map_file, cwd));
 
+  }
+
+  void Context::add_c_function(Sass_C_Function_Call function)
+  {
+    c_functions.push_back(function);
+  }
+  void Context::add_c_importer(Sass_C_Importer_Call importer)
+  {
+    c_importers.push_back(importer);
+    // need to sort the array afterwards (no big deal)
+    sort (c_importers.begin(), c_importers.end(), sort_importers);
   }
 
   Context::~Context()
@@ -263,7 +280,7 @@ namespace Sass {
   void register_overload_stub(Context&, string name, Env* env);
   void register_built_in_functions(Context&, Env* env);
   void register_c_functions(Context&, Env* env, Sass_C_Function_List);
-  void register_c_function(Context&, Env* env, Sass_C_Function_Callback);
+  void register_c_function(Context&, Env* env, Sass_C_Function_Call);
 
   char* Context::compile_block(Block* root)
   {
@@ -515,7 +532,7 @@ namespace Sass {
       ++descrs;
     }
   }
-  void register_c_function(Context& ctx, Env* env, Sass_C_Function_Callback descr)
+  void register_c_function(Context& ctx, Env* env, Sass_C_Function_Call descr)
   {
     Definition* def = make_c_function(
       sass_function_get_signature(descr),

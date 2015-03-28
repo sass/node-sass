@@ -25,6 +25,7 @@ namespace Sass {
   class Parser : public ParserState {
   private:
     void add_single_file (Import* imp, string import_path);
+    void import_single_file (Import* imp, string import_path);
   public:
     class AST_Node;
 

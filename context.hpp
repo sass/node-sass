@@ -51,7 +51,12 @@ namespace Sass {
     map<string, Block*> style_sheets; // map of paths to ASTs
     // SourceMap source_map;
     Output emitter;
-    vector<Sass_C_Function_Callback> c_functions;
+
+    vector<Sass_C_Function_Call> c_functions;
+    vector<Sass_C_Importer_Call> c_importers;
+
+    void add_c_function(Sass_C_Function_Call function);
+    void add_c_importer(Sass_C_Importer_Call importer);
 
     string       indent; // String to be used for indentation
     string       linefeed; // String to be used for line feeds
@@ -67,7 +72,6 @@ namespace Sass {
     bool         is_indented_syntax_src; // treat source string as sass
 
     // overload import calls
-    Sass_C_Import_Callback importer;
     vector<struct Sass_Import*> import_stack;
 
     map<string, Color*> names_to_colors;
@@ -97,7 +101,6 @@ namespace Sass {
       KWD_ARG(Data, size_t,          precision);
       KWD_ARG(Data, bool,            source_map_embed);
       KWD_ARG(Data, bool,            source_map_contents);
-      KWD_ARG(Data, Sass_C_Import_Callback, importer);
     };
 
     Context(Data);
