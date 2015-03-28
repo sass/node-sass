@@ -628,6 +628,9 @@ namespace Sass {
     else if (lex< quoted_string >() || lex< number >()) {
       return new (ctx.mem) Type_Selector(pstate, unquote(lexed));
     }
+    else if (lex< exactly < sel_deep_kwd > >()) {
+      return new (ctx.mem) Type_Selector(pstate, unquote(lexed));
+    }
     else if (peek< pseudo_not >()) {
       return parse_negated_selector();
     }
@@ -1984,6 +1987,7 @@ namespace Sass {
            (q = peek< dimension >(p))                              ||
            (q = peek< quoted_string >(p))                          ||
            (q = peek< exactly<'*'> >(p))                           ||
+           (q = peek< exactly<sel_deep_kwd> >(p))                           ||
            (q = peek< exactly<'('> >(p))                           ||
            (q = peek< exactly<')'> >(p))                           ||
            (q = peek< exactly<'['> >(p))                           ||

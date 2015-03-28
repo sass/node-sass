@@ -78,6 +78,9 @@ namespace Sass {
     extern const char webkit_calc_kwd[]  = "-webkit-calc(";
     extern const char ms_calc_kwd[]      = "-ms-calc(";
 
+    // css selector keywords
+    extern const char sel_deep_kwd[] = "/deep/";
+
     // css attribute-matching operators
     extern const char tilde_equal[]  = "~=";
     extern const char pipe_equal[]   = "|=";
