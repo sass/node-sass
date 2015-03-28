@@ -57,13 +57,13 @@
     "request": "^2.53.0",
     "sass-graph": "^1.0.3",
     "semver": "^4.2.2",
-    "shelljs": "^0.3.0"
+    "shelljs": "^0.3.0",
+    "pangyp": "^2.1.0"
   },
   "devDependencies": {
     "coveralls": "^2.11.2",
     "jscoverage": "^0.5.9",
     "jshint": "^2.6.0",
-    "mocha-lcov-reporter": "^0.0.1",
-    "pangyp": "^2.1.0"
+    "mocha-lcov-reporter": "^0.0.1"
   }
 }
