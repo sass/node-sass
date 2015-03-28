@@ -42,7 +42,8 @@ var cli = meow({
     '  --source-map-root          Base path, will be emitted in source-map as is',
     '  --include-path             Path to look for imported files',
     '  --precision                The amount of precision allowed in decimal numbers',
-    '  --importer                 Path to custom importer',
+    '  --importer                 Path to .js file containing custom importer',
+    '  --functions                Path to .js file containing custom functions',
     '  --help                     Print usage info'
   ].join('\n')
 }, {
@@ -55,6 +56,8 @@ var cli = meow({
     'source-comments'
   ],
   string: [
+    'functions',
+    'importer',
     'include-path',
     'indent-type',
     'linefeed',
@@ -224,6 +227,14 @@ function run(options, emitter) {
       options.importer = require(options.importer);
     } else {
       options.importer = require(path.resolve(process.cwd(), options.importer));
+    }
+  }
+
+  if (options.functions) {
+    if ((path.resolve(options.functions) === path.normalize(options.functions).replace(/(.+)([\/|\\])$/, '$1'))) {
+      options.functions = require(options.functions);
+    } else {
+      options.functions = require(path.resolve(process.cwd(), options.functions));
     }
   }
 
