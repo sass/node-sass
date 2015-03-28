@@ -91,9 +91,9 @@ namespace Sass {
 
     include_paths.push_back(cwd);
     collect_include_paths(initializers.include_paths_c_str());
-    collect_include_paths(initializers.include_paths_array());
+    // collect_include_paths(initializers.include_paths_array());
     collect_plugin_paths(initializers.plugin_paths_c_str());
-    collect_plugin_paths(initializers.plugin_paths_array());
+    // collect_plugin_paths(initializers.plugin_paths_array());
 
     setup_color_map();
 
@@ -225,50 +225,37 @@ namespace Sass {
     include_links.push_back(resolve_relative_path(abs_path, source_map_file, cwd));
   }
 
-  string Context::add_file(string path)
+  // Add a new import file to the context
+  string Context::add_file(const string& file)
   {
     using namespace File;
-    char* contents = 0;
-    string real_path;
-    path = make_canonical_path(path);
-    for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
-      string full_path(join_paths(include_paths[i], path));
-      if (style_sheets.count(full_path)) return full_path;
-      contents = resolve_and_load(full_path, real_path);
-      if (contents) {
-        add_source(full_path, real_path, contents);
-        style_sheets[full_path] = 0;
-        return full_path;
-      }
+    string path(make_canonical_path(file));
+    string resolved(find_file(path, include_paths));
+    if (resolved == "") return resolved;
+    if (char* contents = read_file(resolved)) {
+      add_source(path, resolved, contents);
+      style_sheets[path] = 0;
+      return path;
     }
-    return string();
+    return string("");
   }
 
-  string Context::add_file(string dir, string rel_filepath)
+  // Add a new import file to the context
+  // This has some previous directory context
+  string Context::add_file(const string& base, const string& file)
   {
     using namespace File;
-    char* contents = 0;
-    string real_path;
-    rel_filepath = make_canonical_path(rel_filepath);
-    string full_path(join_paths(dir, rel_filepath));
-    if (style_sheets.count(full_path)) return full_path;
-    contents = resolve_and_load(full_path, real_path);
-    if (contents) {
-      add_source(full_path, real_path, contents);
-      style_sheets[full_path] = 0;
-      return full_path;
+    string path(make_canonical_path(file));
+    string base_file(join_paths(base, path));
+    string resolved(resolve_file(base_file));
+    if (style_sheets.count(base_file)) return base_file;
+    if (char* contents = read_file(resolved)) {
+      add_source(base_file, resolved, contents);
+      style_sheets[base_file] = 0;
+      return base_file;
     }
-    for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
-      string full_path(join_paths(include_paths[i], rel_filepath));
-      if (style_sheets.count(full_path)) return full_path;
-      contents = resolve_and_load(full_path, real_path);
-      if (contents) {
-        add_source(full_path, real_path, contents);
-        style_sheets[full_path] = 0;
-        return full_path;
-      }
-    }
-    return string();
+    // now go the regular code path
+    return add_file(path);
   }
 
   void register_function(Context&, Signature sig, Native_Function f, Env* env);

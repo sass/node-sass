@@ -84,8 +84,8 @@ namespace Sass {
       KWD_ARG(Data, string,          linefeed);
       KWD_ARG(Data, const char*,     include_paths_c_str);
       KWD_ARG(Data, const char*,     plugin_paths_c_str);
-      KWD_ARG(Data, const char**,    include_paths_array);
-      KWD_ARG(Data, const char**,    plugin_paths_array);
+      // KWD_ARG(Data, const char**,    include_paths_array);
+      // KWD_ARG(Data, const char**,    plugin_paths_array);
       KWD_ARG(Data, vector<string>,  include_paths);
       KWD_ARG(Data, vector<string>,  plugin_paths);
       KWD_ARG(Data, bool,            source_comments);
@@ -104,11 +104,15 @@ namespace Sass {
     ~Context();
     static string get_cwd();
     void setup_color_map();
-    string add_file(string);
+
     Block* parse_file();
-    string add_file(string, string);
     Block* parse_string();
     void add_source(string, string, const char*);
+
+    string add_file(const string& file);
+    string add_file(const string& base, const string& file);
+
+
     // allow to optionally overwrite the input path
     // default argument for input_path is string("stdin")
     // usefull to influence the source-map generating etc.

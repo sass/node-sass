@@ -123,7 +123,6 @@ ADDAPI char** ADDCALL sass_context_take_included_files (struct Sass_Context* ctx
 ADDAPI void ADDCALL sass_option_push_plugin_path (struct Sass_Options* options, const char* path);
 ADDAPI void ADDCALL sass_option_push_include_path (struct Sass_Options* options, const char* path);
 
-
 #ifdef __cplusplus
 } // __cplusplus defined.
 #endif

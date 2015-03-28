@@ -33,21 +33,85 @@ namespace Sass {
   namespace File {
     using namespace std;
 
+    // return the current directory
+    // always with forward slashes
     string get_cwd()
     {
       const size_t wd_len = 1024;
       char wd[wd_len];
       string cwd = getcwd(wd, wd_len);
-#ifdef _WIN32
-      //convert backslashes to forward slashes
-      replace(cwd.begin(), cwd.end(), '\\', '/');
-#endif
+      #ifdef _WIN32
+        //convert backslashes to forward slashes
+        replace(cwd.begin(), cwd.end(), '\\', '/');
+      #endif
       if (cwd[cwd.length() - 1] != '/') cwd += '/';
       return cwd;
     }
 
-    // no physical check on filesystem
-    // only a logical cleanup of a path
+    // test if path exists and is a file
+    bool file_exists(const string& path)
+    {
+      #ifdef _WIN32
+        wstring wpath = UTF_8::convert_to_utf16(path);
+        DWORD dwAttrib = GetFileAttributesW(wpath.c_str());
+        return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
+               (!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY)));
+      #else
+        struct stat buffer;
+        return (stat (path.c_str(), &buffer) == 0);
+      #endif
+    }
+
+    // return if given path is absolute
+    // works with *nix and windows paths
+    bool is_absolute_path(const string& path)
+    {
+      #ifdef _WIN32
+        if (path.length() >= 2 && isalpha(path[0]) && path[1] == ':') return true;
+      #endif
+      return path[0] == '/';
+    }
+
+    // helper function to find the last directory seperator
+    inline size_t find_last_folder_separator(const string& path, size_t limit = string::npos)
+    {
+      size_t pos = string::npos;
+      size_t pos_p = path.find_last_of('/', limit);
+      #ifdef _WIN32
+        size_t pos_w = path.find_last_of('\\', limit);
+      #else
+        size_t pos_w = string::npos;
+      #endif
+      if (pos_p != string::npos && pos_w != string::npos) {
+        pos = max(pos_p, pos_w);
+      }
+      else if (pos_p != string::npos) {
+        pos = pos_p;
+      }
+      else {
+        pos = pos_w;
+      }
+      return pos;
+    }
+
+    // return only the directory part of path
+    string dir_name(const string& path)
+    {
+      size_t pos = find_last_folder_separator(path);
+      if (pos == string::npos) return "";
+      else return path.substr(0, pos+1);
+    }
+
+    // return only the filename part of path
+    string base_name(const string& path)
+    {
+      size_t pos = find_last_folder_separator(path);
+      if (pos == string::npos) return path;
+      else return path.substr(pos+1);
+    }
+
+    // do a locigal clean up of the path
+    // no physical check on the filesystem
     string make_canonical_path (string path)
     {
 
@@ -73,47 +137,21 @@ namespace Sass {
 
     }
 
-    size_t find_last_folder_separator(const string& path, size_t limit = string::npos)
-    {
-      size_t pos = string::npos;
-      size_t pos_p = path.find_last_of('/', limit);
-      #ifdef _WIN32
-      size_t pos_w = path.find_last_of('\\', limit);
-      #else
-      size_t pos_w = string::npos;
-      #endif
-      if (pos_p != string::npos && pos_w != string::npos) {
-        pos = max(pos_p, pos_w);
-      }
-      else if (pos_p != string::npos) {
-        pos = pos_p;
-      }
-      else {
-        pos = pos_w;
-      }
-      return pos;
-    }
-
-    string base_name(string path)
-    {
-      size_t pos = find_last_folder_separator(path);
-      if (pos == string::npos) return path;
-      else                     return path.substr(pos+1);
-    }
-
-    string dir_name(string path)
-    {
-      size_t pos = find_last_folder_separator(path);
-      if (pos == string::npos) return "";
-      else                     return path.substr(0, pos+1);
-    }
-
+    // join two path segments cleanly together
+    // but only if right side is not absolute yet
     string join_paths(string l, string r)
     {
+
+      #ifdef _WIN32
+        // convert Windows backslashes to URL forward slashes
+        replace(l.begin(), l.end(), '\\', '/');
+        replace(r.begin(), r.end(), '\\', '/');
+      #endif
+
       if (l.empty()) return r;
       if (r.empty()) return l;
-      if (is_absolute_path(r)) return r;
 
+      if (is_absolute_path(r)) return r;
       if (l[l.length()-1] != '/') l += '/';
 
       while ((r.length() > 3) && ((r.substr(0, 3) == "../") || (r.substr(0, 3)) == "..\\")) {
@@ -125,21 +163,14 @@ namespace Sass {
       return l + r;
     }
 
-    bool is_absolute_path(const string& path)
-    {
-      if (path[0] == '/') return true;
-      // TODO: UN-HACKIFY THIS
-      #ifdef _WIN32
-      if (path.length() >= 2 && isalpha(path[0]) && path[1] == ':') return true;
-      #endif
-      return false;
-    }
-
+    // create an absolute path by resolving relative paths with cwd
     string make_absolute_path(const string& path, const string& cwd)
     {
       return make_canonical_path((is_absolute_path(path) ? path : join_paths(cwd, path)));
     }
 
+    // create a path that is relative to the given base directory
+    // path and base will first be resolved against cwd to make them absolute
     string resolve_relative_path(const string& uri, const string& base, const string& cwd)
     {
 
@@ -205,12 +236,15 @@ namespace Sass {
     // (2) underscore + given
     // (3) underscore + given + extension
     // (4) given + extension
-    string resolve_file_name(const string& base, const string& name)
+    string resolve_file(const string& filename)
     {
       // supported extensions
       const vector<string> exts = {
         ".scss", ".sass", ".css"
       };
+      // split the filename
+      string base(dir_name(filename));
+      string name(base_name(filename));
       // create full path (maybe relative)
       string path(join_paths(base, name));
       if (file_exists(path)) return path;
@@ -231,68 +265,70 @@ namespace Sass {
       return string("");
     }
 
-    char* resolve_and_load(string path, string& real_path)
+    // helper function to resolve a filename
+    string find_file(const string& file, const vector<string> paths)
     {
-      real_path = path;
-      char* contents = 0;
-      string base(dir_name(path));
-      string name(base_name(path));
-      string resolved = resolve_file_name(base, name);
-      if (resolved != "") {
-        real_path = resolved;
-        contents = read_file(resolved);
+      // search in every include path for a match
+      for (size_t i = 0, S = paths.size(); i < S; ++i)
+      {
+        string path(join_paths(paths[i], file));
+        string resolved(resolve_file(path));
+        if (resolved != "") return resolved;
       }
-#ifdef _WIN32
-      // convert Windows backslashes to URL forward slashes
-      replace(real_path.begin(), real_path.end(), '\\', '/');
-#endif
-      return contents;
+      // nothing found
+      return string("");
     }
 
-    bool file_exists(const string& path)
+    // inc paths can be directly passed from C code
+    string find_file(const string& file, const char* paths[])
     {
-#ifdef _WIN32
-      wstring wpath = UTF_8::convert_to_utf16(path);
-      DWORD dwAttrib = GetFileAttributesW(wpath.c_str());
-      return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
-             (!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY)));
-#else
-      struct stat buffer;
-      return (stat (path.c_str(), &buffer) == 0);
-#endif
+      if (paths == 0) return string("");
+      vector<string> includes(0);
+      includes.push_back(".");
+      const char** it = paths;
+      while (it && *it) {
+        includes.push_back(*it);
+        ++it;
+      }
+      return find_file(file, includes);
     }
 
-    char* read_file(string path)
+    // try to load the given filename
+    // returned memory must be freed
+    // will auto convert .sass files
+    char* read_file(const string& path)
     {
-#ifdef _WIN32
-      BYTE* pBuffer;
-      DWORD dwBytes;
-      // windows unicode filepaths are encoded in utf16
-      wstring wpath = UTF_8::convert_to_utf16(path);
-      HANDLE hFile = CreateFileW(wpath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
-      if (hFile == INVALID_HANDLE_VALUE) return 0;
-      DWORD dwFileLength = GetFileSize(hFile, NULL);
-      if (dwFileLength == INVALID_FILE_SIZE) return 0;
-      pBuffer = new BYTE[dwFileLength + 1];
-      ReadFile(hFile, pBuffer, dwFileLength, &dwBytes, NULL);
-      pBuffer[dwFileLength] = '\0';
-      CloseHandle(hFile);
-      // just convert from unsigned char*
-      char* contents = (char*) pBuffer;
-#else
-      struct stat st;
-      if (stat(path.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
-      ifstream file(path.c_str(), ios::in | ios::binary | ios::ate);
-      char* contents = 0;
-      if (file.is_open()) {
-        size_t size = file.tellg();
-        contents = new char[size + 1]; // extra byte for the null char
-        file.seekg(0, ios::beg);
-        file.read(contents, size);
-        contents[size] = '\0';
-        file.close();
-      }
-#endif
+      #ifdef _WIN32
+        BYTE* pBuffer;
+        DWORD dwBytes;
+        // windows unicode filepaths are encoded in utf16
+        wstring wpath = UTF_8::convert_to_utf16(path);
+        HANDLE hFile = CreateFileW(wpath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+        if (hFile == INVALID_HANDLE_VALUE) return 0;
+        DWORD dwFileLength = GetFileSize(hFile, NULL);
+        if (dwFileLength == INVALID_FILE_SIZE) return 0;
+        // allocate an extra byte for the null char
+        pBuffer = (BYTE*)malloc((dwFileLength+1)*sizeof(BYTE));
+        ReadFile(hFile, pBuffer, dwFileLength, &dwBytes, NULL);
+        pBuffer[dwFileLength] = '\0';
+        CloseHandle(hFile);
+        // just convert from unsigned char*
+        char* contents = (char*) pBuffer;
+      #else
+        struct stat st;
+        if (stat(path.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
+        ifstream file(path.c_str(), ios::in | ios::binary | ios::ate);
+        char* contents = 0;
+        if (file.is_open()) {
+          size_t size = file.tellg();
+          // allocate an extra byte for the null char
+          contents = (char*) malloc((size+1)*sizeof(char));
+          file.seekg(0, ios::beg);
+          file.read(contents, size);
+          contents[size] = '\0';
+          file.close();
+        }
+      #endif
       string extension;
       if (path.length() > 5) {
         extension = path.substr(path.length() - 5, 5);
@@ -301,7 +337,7 @@ namespace Sass {
         extension[i] = tolower(extension[i]);
       if (extension == ".sass" && contents != 0) {
         char * converted = sass2scss(contents, SASS2SCSS_PRETTIFY_1 | SASS2SCSS_KEEP_COMMENT);
-        delete[] contents; // free the indented contents
+        free(contents); // free the indented contents
         return converted; // should be freed by caller
       } else {
         return contents;
