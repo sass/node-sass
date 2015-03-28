@@ -200,56 +200,66 @@ namespace Sass {
       return result;
     }
 
+    // Resolution order for ambiguous imports:
+    // (1) filename as given
+    // (2) underscore + given
+    // (3) underscore + given + extension
+    // (4) given + extension
+    string resolve_file_name(const string& base, const string& name)
+    {
+      // supported extensions
+      const vector<string> exts = {
+        ".scss", ".sass", ".css"
+      };
+      // create full path (maybe relative)
+      string path(join_paths(base, name));
+      if (file_exists(path)) return path;
+      // next test variation with underscore
+      path = join_paths(base, "_" + name);
+      if (file_exists(path)) return path;
+      // next test exts plus underscore
+      for(auto ext : exts) {
+        path = join_paths(base, "_" + name + ext);
+        if (file_exists(path)) return path;
+      }
+      // next test plain name with exts
+      for(auto ext : exts) {
+        path = join_paths(base, name + ext);
+        if (file_exists(path)) return path;
+      }
+      // nothing found
+      return string("");
+    }
+
     char* resolve_and_load(string path, string& real_path)
     {
-      // Resolution order for ambiguous imports:
-      // (1) filename as given
-      // (2) underscore + given
-      // (3) underscore + given + extension
-      // (4) given + extension
-      char* contents = 0;
       real_path = path;
-      vector<string> exts(3);
-      exts[0] = ".scss";
-      exts[1] = ".sass";
-      exts[2] = ".css";
-
-      // if the file isn't found with the given filename (1)
-      if (!(contents = read_file(real_path))) {
-        string dir(dir_name(path));
-        string base(base_name(path));
-        real_path = dir + base;
-        // (2) underscore + given
-        string test_path(dir + "_" + base);
-        if ((contents = read_file(test_path))) {
-          real_path = test_path;
-        }
-        // (3) underscore + given + extension
-        if (!contents) {
-          for(auto ext : exts) {
-            test_path = dir + "_" + base + ext;
-            if ((contents = read_file(test_path))) {
-              real_path = test_path;
-              break;
-            }
-          }
-        }
-        // (4) given + extension
-        if (!contents) {
-          for(auto ext : exts) {
-            test_path = dir + base + ext;
-            if ((contents = read_file(test_path))) {
-              real_path = test_path;
-              break;
-            }
-          }
-        }
+      char* contents = 0;
+      string base(dir_name(path));
+      string name(base_name(path));
+      string resolved = resolve_file_name(base, name);
+      if (resolved != "") {
+        real_path = resolved;
+        contents = read_file(resolved);
       }
 #ifdef _WIN32
       // convert Windows backslashes to URL forward slashes
       replace(real_path.begin(), real_path.end(), '\\', '/');
 #endif
       return contents;
+    }
+
+    bool file_exists(const string& path)
+    {
+#ifdef _WIN32
+      wstring wpath = UTF_8::convert_to_utf16(path);
+      DWORD dwAttrib = GetFileAttributesW(wpath.c_str());
+      return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
+             (!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY)));
+#else
+      struct stat buffer;
+      return (stat (path.c_str(), &buffer) == 0);
+#endif
     }
 
     char* read_file(string path)
