@@ -107,7 +107,7 @@ namespace Sass {
 
           // convert the extracted hex string to code point value
           // ToDo: Maybe we could do this without creating a substring
-          uint32_t cp = strtol(s.substr (i + 1, len - 1).c_str(), 0, 16);
+          uint32_t cp = strtol(s.substr (i + 1, len - 1).c_str(), NULL, 16);
 
           if (cp == 0) cp = 0xFFFD;
 
@@ -401,7 +401,7 @@ namespace Sass {
 
           // convert the extracted hex string to code point value
           // ToDo: Maybe we could do this without creating a substring
-          uint32_t cp = strtol(s.substr (i + 1, len - 1).c_str(), 0, 16);
+          uint32_t cp = strtol(s.substr (i + 1, len - 1).c_str(), NULL, 16);
 
           if (s[i + len] == ' ') ++ len;
 
