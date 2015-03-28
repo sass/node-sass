@@ -1612,7 +1612,7 @@ namespace Sass {
   Function_Call* Parser::parse_function_call()
   {
     lex< identifier >();
-    string name(Util::normalize_underscores(lexed));
+    string name(lexed);
     ParserState source_position_of_call = pstate;
 
     Function_Call* the_call = new (ctx.mem) Function_Call(source_position_of_call, name, parse_arguments());
