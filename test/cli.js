@@ -256,6 +256,27 @@ describe('cli', function() {
         done();
       });
     });
+
+    it('should compile with the --source-root option', function(done) {
+      var src = fixture('source-map/index.scss');
+      var destCss = fixture('source-map/index.css');
+      var destMap = fixture('source-map/index.map');
+      var expectedCss = read(fixture('source-map/expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
+      var expectedUrl = 'http://test/';
+      var bin = spawn(cli, [
+        src, '--output', path.dirname(destCss),
+        '--source-map-root', expectedUrl,
+        '--source-map', destMap
+      ]);
+
+      bin.once('close', function() {
+        assert.equal(read(destCss, 'utf8').trim(), expectedCss);
+        assert.equal(JSON.parse(read(destMap, 'utf8')).sourceRoot, expectedUrl);
+        fs.unlinkSync(destCss);
+        fs.unlinkSync(destMap);
+        done();
+      });
+    });
   });
 
   describe('node-sass in.scss --output path/to/file/out.css', function() {

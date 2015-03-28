@@ -27,6 +27,7 @@ extern "C" {
     char* include_path;
     char* out_file;
     char* source_map;
+    char* source_map_root;
     char* linefeed;
     char* indent;
 

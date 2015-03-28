@@ -52,6 +52,18 @@ describe('api', function() {
       });
     });
 
+    it('should compile generate map with sourceMapRoot pass-through option', function(done) {
+      sass.render({
+        file: fixture('simple/index.scss'),
+        sourceMap: './deep/nested/index.map',
+        sourceMapRoot: 'http://test.com/',
+        outFile: './index-test.css'
+      }, function(error, result) {
+        assert.equal(JSON.parse(result.map).sourceRoot, 'http://test.com/');
+        done();
+      });
+    });
+
     it('should compile sass to css with data', function(done) {
       var src = read(fixture('simple/index.scss'), 'utf8');
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
@@ -976,6 +988,18 @@ describe('api', function() {
       });
 
       assert.equal(JSON.parse(result.map).file, '../../index-test.css');
+      done();
+    });
+
+    it('should compile generate map with sourceMapRoot pass-through option', function(done) {
+      var result = sass.renderSync({
+        file: fixture('simple/index.scss'),
+        sourceMap: './deep/nested/index.map',
+        sourceMapRoot: 'http://test.com/',
+        outFile: './index-test.css'
+      });
+
+      assert.equal(JSON.parse(result.map).sourceRoot, 'http://test.com/');
       done();
     });
 

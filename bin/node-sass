@@ -37,8 +37,9 @@ var cli = meow({
     '  --linefeed                 Linefeed style (cr | crlf | lf | lfcr)',
     '  --source-comments          Include debug info in output',
     '  --source-map               Emit source map',
-    '  --source-map-embed         Embed sourceMappingUrl as data URI',
     '  --source-map-contents      Embed include contents in map',
+    '  --source-map-embed         Embed sourceMappingUrl as data URI',
+    '  --source-map-root          Base path, will be emitted in source-map as is',
     '  --include-path             Path to look for imported files',
     '  --precision                The amount of precision allowed in decimal numbers',
     '  --importer                 Path to custom importer',
@@ -60,6 +61,7 @@ var cli = meow({
     'output',
     'output-style',
     'precision',
+    'source-map-root',
     'watch'
   ],
   alias: {
