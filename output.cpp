@@ -379,7 +379,7 @@ namespace Sass {
   void Output::operator()(String_Quoted* s)
   {
     if (s->quote_mark()) {
-      append_token(quote((s->value()), s->quote_mark()), s);
+      append_token(quote(s->value(), s->quote_mark()), s);
     } else if (!in_comment) {
       append_token(string_to_output(s->value()), s);
     } else {

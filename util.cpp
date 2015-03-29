@@ -349,11 +349,11 @@ namespace Sass {
   string quote(const string& s, char q)
   {
 
-    // return an empty quoted string
-    if (s.empty()) return string(2, q ? q : '"');
-
     // autodetect with fallback to given quote
     q = detect_best_quotemark(s.c_str(), q);
+
+    // return an empty quoted string
+    if (s.empty()) return string(2, q ? q : '"');
 
     string quoted;
     quoted.reserve(s.length()+2);
