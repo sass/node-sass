@@ -644,7 +644,7 @@ namespace Sass {
     ADD_PROPERTY(Env*, environment);
     ADD_PROPERTY(Type, type);
     ADD_PROPERTY(Native_Function, native_function);
-    ADD_PROPERTY(Sass_Function_Entry, c_cb);
+    ADD_PROPERTY(Sass_Function_Entry, c_function);
     ADD_PROPERTY(void*, cookie);
     ADD_PROPERTY(Context*, ctx);
     ADD_PROPERTY(bool, is_overload_stub);
@@ -662,7 +662,7 @@ namespace Sass {
       environment_(0),
       type_(t),
       native_function_(0),
-      c_cb_(0),
+      c_function_(0),
       cookie_(0),
       ctx_(ctx),
       is_overload_stub_(false),
@@ -681,7 +681,7 @@ namespace Sass {
       environment_(0),
       type_(FUNCTION),
       native_function_(func_ptr),
-      c_cb_(0),
+      c_function_(0),
       cookie_(0),
       ctx_(ctx),
       is_overload_stub_(overload_stub),
@@ -701,7 +701,7 @@ namespace Sass {
       environment_(0),
       type_(FUNCTION),
       native_function_(0),
-      c_cb_(c_func),
+      c_function_(c_func),
       cookie_(sass_function_get_cookie(c_func)),
       ctx_(ctx),
       is_overload_stub_(false),
