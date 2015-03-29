@@ -53,7 +53,8 @@ var cli = meow({
     'recursive',
     'source-map-embed',
     'source-map-contents',
-    'source-comments'
+    'source-comments',
+    'watch'
   ],
   string: [
     'functions',
@@ -64,8 +65,7 @@ var cli = meow({
     'output',
     'output-style',
     'precision',
-    'source-map-root',
-    'watch'
+    'source-map-root'
   ],
   alias: {
     c: 'source-comments',
@@ -82,7 +82,8 @@ var cli = meow({
     'indent-width': 2,
     linefeed: 'lf',
     'output-style': 'nested',
-    precision: 5
+    precision: 5,
+    recursive: true
   }
 });
 
@@ -139,7 +140,7 @@ function getEmitter() {
  */
 
 function getOptions(args, options) {
-  options.src = options.watch ? options.watch : args[0];
+  options.src = args[0];
 
   if (args[1]) {
     options.dest = path.resolve(process.cwd(), args[1]);
@@ -161,25 +162,19 @@ function getOptions(args, options) {
  */
 
 function watch(options, emitter) {
-  var dir = options.watch;
-  var gaze = new Gaze();
+  var glob = options.recursive ? '**/*.{sass,scss}' : '*.{sass,scss}';
+  var src = isSassFile(options.src) ? options.src : path.join(options.src, glob);
+  var graph = grapher.parseDir(path.resolve(path.dirname(src)), { loadPaths: options.includePath });
+  var watch = [];
 
-  if (dir === true) {
-    dir = [];
-  } else if (!Array.isArray(dir)) {
-    dir = [dir];
+  // Add all files to watch list
+  for (var i in graph.index) {
+    watch.push(i);
   }
 
-  dir.push(options.src);
-  dir = dir.map(function(d) {
-    var glob = options.recursive ? '**/*.{sass,scss}' : '*.{sass,scss}';
-    return isSassFile(d) ? d : path.join(d, glob);
-  });
-
-  gaze.add(dir);
+  var gaze = new Gaze();
+  gaze.add(watch);
   gaze.on('error', emitter.emit.bind(emitter, 'error'));
-
-  var graph = grapher.parseDir(options.src, { loadPaths: options.includePath });
 
   gaze.on('changed', function(file) {
     var files = [file];
