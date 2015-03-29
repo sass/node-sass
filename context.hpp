@@ -32,6 +32,7 @@ namespace Sass {
 
   class Context {
   public:
+    size_t head_imports;
     Memory_Manager<AST_Node> mem;
 
     struct Sass_Options* c_options;
@@ -54,11 +55,13 @@ namespace Sass {
     // SourceMap source_map;
     Output emitter;
 
-    vector<Sass_Function_Entry> c_functions;
+    vector<Sass_Importer_Entry> c_headers;
     vector<Sass_Importer_Entry> c_importers;
+    vector<Sass_Function_Entry> c_functions;
 
-    void add_c_function(Sass_Function_Entry function);
+    void add_c_header(Sass_Importer_Entry header);
     void add_c_importer(Sass_Importer_Entry importer);
+    void add_c_function(Sass_Function_Entry function);
 
     string       indent; // String to be used for indentation
     string       linefeed; // String to be used for line feeds

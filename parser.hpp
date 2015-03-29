@@ -30,6 +30,7 @@ namespace Sass {
     class AST_Node;
 
     enum Syntactic_Context { nothing, mixin_def, function_def };
+    bool do_import(const string& import_path, Import* imp, vector<Sass_Importer_Entry> importers, bool only_one = true);
 
     Context& ctx;
     vector<Block*> block_stack;

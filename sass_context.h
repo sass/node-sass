@@ -81,8 +81,9 @@ ADDAPI const char* ADDCALL sass_option_get_plugin_path (struct Sass_Options* opt
 ADDAPI const char* ADDCALL sass_option_get_include_path (struct Sass_Options* options);
 ADDAPI const char* ADDCALL sass_option_get_source_map_file (struct Sass_Options* options);
 ADDAPI const char* ADDCALL sass_option_get_source_map_root (struct Sass_Options* options);
-ADDAPI Sass_Function_List ADDCALL sass_option_get_c_functions (struct Sass_Options* options);
+ADDAPI Sass_Importer_List ADDCALL sass_option_get_c_headers (struct Sass_Options* options);
 ADDAPI Sass_Importer_List ADDCALL sass_option_get_c_importers (struct Sass_Options* options);
+ADDAPI Sass_Function_List ADDCALL sass_option_get_c_functions (struct Sass_Options* options);
 
 // Setters for Context_Option values
 ADDAPI void ADDCALL sass_option_set_precision (struct Sass_Options* options, int precision);
@@ -100,8 +101,9 @@ ADDAPI void ADDCALL sass_option_set_plugin_path (struct Sass_Options* options, c
 ADDAPI void ADDCALL sass_option_set_include_path (struct Sass_Options* options, const char* include_path);
 ADDAPI void ADDCALL sass_option_set_source_map_file (struct Sass_Options* options, const char* source_map_file);
 ADDAPI void ADDCALL sass_option_set_source_map_root (struct Sass_Options* options, const char* source_map_root);
-ADDAPI void ADDCALL sass_option_set_c_functions (struct Sass_Options* options, Sass_Function_List c_functions);
+ADDAPI void ADDCALL sass_option_set_c_headers (struct Sass_Options* options, Sass_Importer_List c_headers);
 ADDAPI void ADDCALL sass_option_set_c_importers (struct Sass_Options* options, Sass_Importer_List c_importers);
+ADDAPI void ADDCALL sass_option_set_c_functions (struct Sass_Options* options, Sass_Function_List c_functions);
 
 
 // Getters for Sass_Context values

@@ -67,6 +67,12 @@ namespace Sass {
           Sass_Importer_List imps = plugin_load_importers();
           while (imps && *imps) { importers.push_back(*imps); ++ imps; }
         }
+        // try to get import address for "libsass_load_headers"
+        if (LOAD_LIB_FN(__plugin_load_imps__, plugin_load_headers, "libsass_load_headers"))
+        {
+          Sass_Importer_List imps = plugin_load_headers();
+          while (imps && *imps) { headers.push_back(*imps); ++ imps; }
+        }
         // success
         return true;
       }

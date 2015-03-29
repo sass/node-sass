@@ -63,6 +63,20 @@ namespace Sass {
     block_stack.push_back(root);
     root->is_root(true);
     read_bom();
+
+    if (ctx.queue.size() == 1) {
+      Import* pre = new (ctx.mem) Import(pstate);
+      string load_path(ctx.queue[0].load_path);
+      do_import(load_path, pre, ctx.c_headers, false);
+      ctx.head_imports = ctx.queue.size() - 1;
+      if (!pre->urls().empty()) (*root) << pre;
+      if (!pre->files().empty()) {
+        for (size_t i = 0, S = pre->files().size(); i < S; ++i) {
+          (*root) << new (ctx.mem) Import_Stub(pstate, pre->files()[i]);
+        }
+      }
+    }
+
     lex< optional_spaces >();
     Selector_Lookahead lookahead_result;
     while (position < end) {
@@ -192,6 +206,52 @@ namespace Sass {
 
   }
 
+  bool Parser::do_import(const string& import_path, Import* imp, vector<Sass_Importer_Entry> importers, bool only_one)
+  {
+    bool has_import = false;
+    string load_path = unquote(import_path);
+    for (auto importer : importers) {
+      // int priority = sass_importer_get_priority(importer);
+      Sass_Importer_Fn fn = sass_importer_get_function(importer);
+      if (Sass_Import_List includes =
+          fn(load_path.c_str(), importer, ctx.c_compiler)
+      ) {
+        Sass_Import_List list = includes;
+        while (*includes) {
+          Sass_Import_Entry include = *includes;
+          const char *file = sass_import_get_path(include);
+          char* source = sass_import_take_source(include);
+          size_t line = sass_import_get_error_line(include);
+          size_t column = sass_import_get_error_column(include);
+          const char* message = sass_import_get_error_message(include);
+          if (message) {
+            if (line == string::npos && column == string::npos) error(message, pstate);
+            else error(message, ParserState(message, source, Position(line, column)));
+          } else if (source) {
+            if (file) {
+              ctx.add_source(file, load_path, source);
+              imp->files().push_back(file);
+            } else {
+              ctx.add_source(load_path, load_path, source);
+              imp->files().push_back(load_path);
+            }
+          } else if(file) {
+            import_single_file(imp, file);
+          }
+          ++includes;
+        }
+        // deallocate returned memory
+        sass_delete_import_list(list);
+        // set success flag
+        has_import = true;
+        // break import chain
+        if (only_one) return true;
+      }
+    }
+    // return result
+    return has_import;
+  }
+
   Import* Parser::parse_import()
   {
     lex< kwd_import >();
@@ -200,52 +260,11 @@ namespace Sass {
     do {
       while (lex< block_comment >());
       if (lex< quoted_string >()) {
-        string import_path(lexed);
-        bool has_custom_import = false;
-        string load_path = unquote(import_path);
-        for (auto importer : ctx.c_importers) {
-          if (has_custom_import) break;
-          Sass_Importer_Fn fn = sass_importer_get_function(importer);
-          // int priority = sass_importer_get_priority(importer);
-          if (Sass_Import_List includes =
-              fn(load_path.c_str(), importer, ctx.c_compiler)
-          ) {
-            Sass_Import_List list = includes;
-            while (*includes) {
-              Sass_Import_Entry include = *includes;
-              const char *file = sass_import_get_path(include);
-              char* source = sass_import_take_source(include);
-              size_t line = sass_import_get_error_line(include);
-              size_t column = sass_import_get_error_column(include);
-              const char* message = sass_import_get_error_message(include);
-              if (message) {
-                if (line == string::npos && column == string::npos) error(message, pstate);
-                else error(message, ParserState(message, source, Position(line, column)));
-              } else if (source) {
-                if (file) {
-                  ctx.add_source(file, load_path, source);
-                  imp->files().push_back(file);
-                } else {
-                  ctx.add_source(load_path, load_path, source);
-                  imp->files().push_back(load_path);
-                }
-              } else if(file) {
-                import_single_file(imp, file);
-              }
-              ++includes;
-            }
-            // deallocate returned memory
-            sass_delete_import_list(list);
-            // break import chain
-            has_custom_import = true;
-          }
-        }
-
-        if (!has_custom_import) {
+        if (!do_import(lexed, imp, ctx.c_importers, true))
+        {
           // push single file import
-          import_single_file(imp, import_path);
+          import_single_file(imp, lexed);
         }
-
       }
       else if (peek< uri_prefix >()) {
         imp->urls().push_back(parse_value());

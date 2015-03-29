@@ -102,8 +102,11 @@ extern "C" {
     // Custom functions that can be called from sccs code
     Sass_Function_List c_functions;
 
-    // Callback to overload imports
+    // List of custom importers
     Sass_Importer_List c_importers;
+
+    // List of custom headers
+    Sass_Importer_List c_headers;
 
   };
 
@@ -185,19 +188,19 @@ extern "C" {
     return str == NULL ? "" : str;
   }
 
-  static void copy_strings(const std::vector<std::string>& strings, char*** array, int skip = 0) throw() {
+  static void copy_strings(const std::vector<std::string>& strings, char*** array) throw() {
     int num = static_cast<int>(strings.size());
     char** arr = (char**) malloc(sizeof(char*) * (num + 1));
     if (arr == 0) throw(bad_alloc());
 
-    for(int i = skip; i < num; i++) {
-      arr[i-skip] = (char*) malloc(sizeof(char) * (strings[i].size() + 1));
-      if (arr[i-skip] == 0) throw(bad_alloc());
-      std::copy(strings[i].begin(), strings[i].end(), arr[i-skip]);
-      arr[i-skip][strings[i].size()] = '\0';
+    for(int i = 0; i < num; i++) {
+      arr[i] = (char*) malloc(sizeof(char) * (strings[i].size() + 1));
+      if (arr[i] == 0) throw(bad_alloc());
+      std::copy(strings[i].begin(), strings[i].end(), arr[i]);
+      arr[i][strings[i].size()] = '\0';
     }
 
-    arr[num-skip] = 0;
+    arr[num] = 0;
     *array = arr;
   }
 
@@ -420,6 +423,15 @@ extern "C" {
         }
       }
 
+      // register our custom headers
+      if (c_ctx->c_headers) {
+        auto this_head_data = c_ctx->c_headers;
+        while (this_head_data && *this_head_data) {
+          cpp_ctx->add_c_header(*this_head_data);
+          ++this_head_data;
+        }
+      }
+
       // register our custom importers
       if (c_ctx->c_importers) {
         auto this_imp_data = c_ctx->c_importers;
@@ -475,8 +487,11 @@ extern "C" {
         skip = 1; // skip first entry of includes
       }
 
+      // skip all prefixed files?
+      skip += cpp_ctx->head_imports;
+
       // copy the included files on to the context (dont forget to free)
-      if (root) copy_strings(cpp_ctx->get_included_files(skip), &c_ctx->included_files, skip);
+      if (root) copy_strings(cpp_ctx->get_included_files(skip), &c_ctx->included_files);
 
       // return parsed block
       return root;
@@ -674,15 +689,23 @@ extern "C" {
     if (options == 0) return;
     // Deallocate custom functions
     if (options->c_functions) {
-      struct Sass_Function** this_func_data = options->c_functions;
+      Sass_Function_List this_func_data = options->c_functions;
       while (this_func_data && *this_func_data) {
         free(*this_func_data);
         ++this_func_data;
       }
     }
+    // Deallocate custom headers
+    if (options->c_headers) {
+      Sass_Importer_List this_head_data = options->c_headers;
+      while (this_head_data && *this_head_data) {
+        free(*this_head_data);
+        ++this_head_data;
+      }
+    }
     // Deallocate custom importers
     if (options->c_importers) {
-      struct Sass_Importer** this_imp_data = options->c_importers;
+      Sass_Importer_List this_imp_data = options->c_importers;
       while (this_imp_data && *this_imp_data) {
         free(*this_imp_data);
         ++this_imp_data;
@@ -716,9 +739,11 @@ extern "C" {
     free(options->c_functions);
     // Free custom importers
     free(options->c_importers);
+    free(options->c_headers);
     // Reset our pointers
     options->c_functions = 0;
     options->c_importers = 0;
+    options->c_headers = 0;
     options->plugin_paths = 0;
     options->include_paths = 0;
   }
@@ -800,6 +825,7 @@ extern "C" {
   IMPLEMENT_SASS_OPTION_ACCESSOR(bool, is_indented_syntax_src);
   IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_Function_List, c_functions);
   IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_Importer_List, c_importers);
+  IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_Importer_List, c_headers);
   IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, indent);
   IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, linefeed);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, input_path);

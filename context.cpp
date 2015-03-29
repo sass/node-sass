@@ -51,10 +51,11 @@ namespace Sass {
   }
 
   inline bool sort_importers (const Sass_Importer_Entry& i, const Sass_Importer_Entry& j)
-  { return sass_importer_get_priority(i) < sass_importer_get_priority(j); }
+  { return sass_importer_get_priority(i) > sass_importer_get_priority(j); }
 
   Context::Context(Context::Data initializers)
   : // Output(this),
+    head_imports(0),
     mem(Memory_Manager<AST_Node>()),
     c_options               (initializers.c_options()),
     c_compiler              (initializers.c_compiler()),
@@ -65,8 +66,9 @@ namespace Sass {
     queue                   (vector<Sass_Queued>()),
     style_sheets            (map<string, Block*>()),
     emitter (this),
-    c_functions             (vector<Sass_Function_Entry>()),
+    c_headers               (vector<Sass_Importer_Entry>()),
     c_importers             (vector<Sass_Importer_Entry>()),
+    c_functions             (vector<Sass_Function_Entry>()),
     indent                  (initializers.indent()),
     linefeed                (initializers.linefeed()),
     input_path              (make_canonical_path(initializers.input_path())),
@@ -108,10 +110,14 @@ namespace Sass {
     for(auto fn : plugins.get_functions()) {
       c_functions.push_back(fn);
     }
+    for(auto fn : plugins.get_headers()) {
+      c_headers.push_back(fn);
+    }
     for(auto fn : plugins.get_importers()) {
       c_importers.push_back(fn);
     }
 
+    sort (c_headers.begin(), c_headers.end(), sort_importers);
     sort (c_importers.begin(), c_importers.end(), sort_importers);
     string entry_point = initializers.entry_point();
     if (!entry_point.empty()) {
@@ -128,6 +134,12 @@ namespace Sass {
   void Context::add_c_function(Sass_Function_Entry function)
   {
     c_functions.push_back(function);
+  }
+  void Context::add_c_header(Sass_Importer_Entry header)
+  {
+    c_headers.push_back(header);
+    // need to sort the array afterwards (no big deal)
+    sort (c_headers.begin(), c_headers.end(), sort_importers);
   }
   void Context::add_c_importer(Sass_Importer_Entry importer)
   {
@@ -394,7 +406,9 @@ namespace Sass {
   std::vector<std::string> Context::get_included_files(size_t skip)
   {
       vector<string> includes = included_files;
+      if (includes.size() == 0) return includes;
       std::sort( includes.begin() + skip, includes.end() );
+      includes.erase( includes.begin(), includes.begin() + skip );
       includes.erase( std::unique( includes.begin(), includes.end() ), includes.end() );
       // the skip solution seems more robust, as we may have real files named stdin
       // includes.erase( std::remove( includes.begin(), includes.end(), "stdin" ), includes.end() );
