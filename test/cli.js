@@ -207,6 +207,28 @@ describe('cli', function() {
         fs.appendFileSync(src, 'body{background:white}');
       }, 500);
     });
+
+    it('should watch the full sass dep tree for a single file', function(done) {
+      var src = fixture('watching/index.scss');
+      var foo = fixture('watching/foo.scss');
+
+      fs.writeFileSync(foo, '');
+
+      var bin = spawn(cli, [
+        '--output-style', 'compressed',
+        '--watch', src
+      ]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.once('data', function(data) {
+        assert(data.trim() === 'body{background:white}');
+        done();
+      });
+
+      setTimeout(function() {
+        fs.appendFileSync(foo, 'body{background:white}');
+      }, 500);
+    });
   });
 
   describe('node-sass in.scss --output out.css', function() {
