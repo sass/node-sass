@@ -969,8 +969,10 @@ namespace Sass {
   Expression* Eval::operator()(Parent_Selector* p)
   {
     Selector* s = p->perform(contextualize);
-    Expression* e = static_cast<Selector_List*>(s)->perform(listize);
-    return e;
+    // access to parent selector may return 0
+    Selector_List* l = static_cast<Selector_List*>(s);
+    if (!s) { l = new (ctx.mem) Selector_List(p->pstate()); }
+    return l->perform(listize);
   }
 
   inline Expression* Eval::fallback_impl(AST_Node* n)
