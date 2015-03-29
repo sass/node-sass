@@ -814,6 +814,9 @@ namespace Sass {
     } else if (Parent_Selector* var = dynamic_cast<Parent_Selector*>(s)) {
       Expression* ex = var->perform(this);
       return evacuate_quotes(interpolation(ex));
+    } else if (Selector* var = dynamic_cast<Selector*>(s)) {
+      Expression* ex = var->perform(this);
+      return evacuate_quotes(interpolation(ex));
     } else {
       To_String to_string(&ctx);
       // to_string.in_decl_list = true;

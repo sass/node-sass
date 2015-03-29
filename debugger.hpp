@@ -54,6 +54,12 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
 //    Expression* expression = dynamic_cast<Expression*>(node);
 //    cerr << ind << "Expression " << expression << " " << expression->concrete_type() << endl;
 
+  } else if (dynamic_cast<Parent_Selector*>(node)) {
+    Parent_Selector* selector = dynamic_cast<Parent_Selector*>(node);
+    cerr << ind << "Parent_Selector " << selector;
+    cerr << " <" << prettyprint(selector->pstate().token.ws_before()) << ">" << endl;
+    debug_ast(selector->selector(), ind + "->", env);
+
   } else if (dynamic_cast<Complex_Selector*>(node)) {
     Complex_Selector* selector = dynamic_cast<Complex_Selector*>(node);
     cerr << ind << "Complex_Selector " << selector
