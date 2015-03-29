@@ -53,7 +53,10 @@ function afterBuild(options) {
  */
 
 function build(options) {
-  var args = [path.join('node_modules', 'pangyp', 'bin', 'node-gyp'), 'rebuild'].concat(options.args);
+  var args = [path.join('node_modules', 'pangyp', 'bin', 'node-gyp'), 'rebuild'].concat(
+    ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function(subject) {
+      return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
+    })).concat(options.args);
 
   console.log(['Building:', process.sass.runtime.execPath].concat(args).join(' '));
 
