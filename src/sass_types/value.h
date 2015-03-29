@@ -2,7 +2,7 @@
 #define SASS_TYPES_VALUE_H
 
 #include <nan.h>
-#include "../libsass/sass_values.h"
+#include <sass_values.h>
 
 namespace SassTypes
 {

@@ -5,7 +5,7 @@
 #include <nan.h>
 #include <stdlib.h>
 #include <condition_variable>
-#include "libsass/sass_context.h"
+#include <sass_context.h>
 #include "custom_function_bridge.h"
 #include "custom_importer_bridge.h"
 

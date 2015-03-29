@@ -2,15 +2,12 @@
 #define CUSTOM_IMPORTER_BRIDGE_H
 
 #include <nan.h>
-#include "libsass/sass_context.h"
+#include <sass_context.h>
 #include "callback_bridge.h"
-
 
 using namespace v8;
 
-
 typedef Sass_Import** SassImportList;
-
 
 class CustomImporterBridge : public CallbackBridge<SassImportList> {
   public:
