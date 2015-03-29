@@ -14,7 +14,9 @@ namespace Sass {
   Contextualize_Eval::~Contextualize_Eval() { }
 
   Selector* Contextualize_Eval::fallback_impl(AST_Node* n)
-  { return Contextualize::fallback_impl(n); }
+  {
+    return Contextualize::fallback_impl(n);
+  }
 
   Contextualize_Eval* Contextualize_Eval::with(Selector* s, Env* e, Backtrace* bt, Selector* p, Selector* ex)
   {
@@ -53,14 +55,17 @@ namespace Sass {
   }
 
   Selector* Contextualize_Eval::operator()(Pseudo_Selector* s)
-  {     return Contextualize::operator ()(s); }
+  {
+    return Contextualize::operator ()(s);
+  }
 
   Selector* Contextualize_Eval::operator()(Attribute_Selector* s)
   {
     // the value might be interpolated; evaluate it
     String* v = s->value();
     if (v && eval) {
-     v = static_cast<String*>(v->perform(eval->with(env, backtrace)));
+     Eval* eval_with = eval->with(env, backtrace);
+     v = static_cast<String*>(v->perform(eval_with));
     }
     To_String toString;
     Attribute_Selector* ss = new (ctx.mem) Attribute_Selector(*s);
