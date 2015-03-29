@@ -138,10 +138,8 @@ void GetStats(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
   char** included_files = sass_context_get_included_files(ctx);
   Handle<Array> arr = NanNew<Array>();
 
-  if (included_files) {
-    for (int i = 0; included_files[i] != nullptr; ++i) {
-      arr->Set(i, NanNew<String>(included_files[i]));
-    }
+  for (int i = 0; included_files[i] != nullptr; ++i) {
+    arr->Set(i, NanNew<String>(included_files[i]));
   }
 
   NanNew(ctx_w->result)->Get(NanNew("stats"))->ToObject()->Set(NanNew("includedFiles"), arr);
