@@ -815,6 +815,10 @@ extern "C" {
   Sass_Import_Entry ADDCALL sass_compiler_get_last_import(struct Sass_Compiler* compiler) { return compiler->cpp_ctx->import_stack.back(); }
   Sass_Import_Entry ADDCALL sass_compiler_get_import_entry(struct Sass_Compiler* compiler, size_t idx) { return compiler->cpp_ctx->import_stack[idx]; }
 
+  // Calculate the size of the stored null terminated array
+  size_t ADDCALL sass_context_get_included_files_size (struct Sass_Context* ctx)
+  { size_t l = 0; auto i = ctx->included_files; while (i && *i) { ++i; ++l; } return l; }
+
   // Create getter and setters for options
   IMPLEMENT_SASS_OPTION_ACCESSOR(int, precision);
   IMPLEMENT_SASS_OPTION_ACCESSOR(enum Sass_Output_Style, output_style);

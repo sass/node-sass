@@ -119,6 +119,9 @@ ADDAPI size_t ADDCALL sass_context_get_error_column (struct Sass_Context* ctx);
 ADDAPI const char* ADDCALL sass_context_get_source_map_string (struct Sass_Context* ctx);
 ADDAPI char** ADDCALL sass_context_get_included_files (struct Sass_Context* ctx);
 
+// Calculate the size of the stored null terminated array
+ADDAPI size_t ADDCALL sass_context_get_included_files_size (struct Sass_Context* ctx);
+
 // Take ownership of memory (value on context is set to 0)
 ADDAPI char* ADDCALL sass_context_take_error_json (struct Sass_Context* ctx);
 ADDAPI char* ADDCALL sass_context_take_error_text (struct Sass_Context* ctx);
