@@ -436,26 +436,29 @@ namespace Sass {
     To_String to_string(&ctx);
     Selector_List* extender = static_cast<Selector_List*>(selector_stack.back());
     if (!extender) return 0;
-    Selector_List* org_extendee = static_cast<Selector_List*>(e->selector());
-    Selector_List* extendee = static_cast<Selector_List*>(org_extendee->perform(contextualize_eval->with(0, env, backtrace)));
-    if (extendee->length() != 1) {
-      error("selector groups may not be extended", extendee->pstate(), backtrace);
-    }
-    Complex_Selector* c = (*extendee)[0];
-    if (!c->head() || c->tail()) {
-      error("nested selectors may not be extended", c->pstate(), backtrace);
-    }
-    Compound_Selector* s = c->head();
-    s->is_optional(org_extendee->is_optional());
-    // // need to convert the compound selector into a by-value data structure
-    // vector<string> target_vec;
-    // for (size_t i = 0, L = s->length(); i < L; ++i)
-    // { target_vec.push_back((*s)[i]->perform(&to_string)); }
-
-    for (size_t i = 0, L = extender->length(); i < L; ++i) {
-      // let's test this out
-      // cerr << "REGISTERING EXTENSION REQUEST: " << (*extender)[i]->perform(&to_string) << " <- " << s->perform(&to_string) << endl;
-      ctx.subset_map.put(s->to_str_vec(), make_pair((*extender)[i], s));
+    Contextualize_Eval* eval = contextualize_eval->with(0, env, backtrace);
+    Selector_List* selector_list = static_cast<Selector_List*>(e->selector());
+    Selector_List* contextualized = static_cast<Selector_List*>(selector_list->perform(eval));
+    // ToDo: remove once feature proves stable!
+    // if (contextualized->length() != 1) {
+    //   error("selector groups may not be extended", extendee->pstate(), backtrace);
+    // }
+    for (auto complex_sel : contextualized->elements()) {
+      Complex_Selector* c = complex_sel;
+      if (!c->head() || c->tail()) {
+        error("nested selectors may not be extended", c->pstate(), backtrace);
+      }
+      Compound_Selector* compound_sel = c->head();
+      compound_sel->is_optional(selector_list->is_optional());
+      // // need to convert the compound selector into a by-value data structure
+      // vector<string> target_vec;
+      // for (size_t i = 0, L = compound_sel->length(); i < L; ++i)
+      // { target_vec.push_back((*compound_sel)[i]->perform(&to_string)); }
+      for (size_t i = 0, L = extender->length(); i < L; ++i) {
+        // let's test this out
+        // cerr << "REGISTERING EXTENSION REQUEST: " << (*extender)[i]->perform(&to_string) << " <- " << compound_sel->perform(&to_string) << endl;
+        ctx.subset_map.put(compound_sel->to_str_vec(), make_pair((*extender)[i], compound_sel));
+      }
     }
     return 0;
   }
