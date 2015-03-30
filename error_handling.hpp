@@ -21,8 +21,8 @@ namespace Sass {
 
   };
 
-  void error(string msg, ParserState pstate) throw(Sass_Error);
-  void error(string msg, ParserState pstate, Backtrace* bt) throw(Sass_Error);
+  void error(string msg, ParserState pstate);
+  void error(string msg, ParserState pstate, Backtrace* bt);
 
 }
 
