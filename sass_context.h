@@ -14,10 +14,17 @@ extern "C" {
 struct Sass_Compiler;
 
 // Forward declaration
-struct Sass_Options;
+struct Sass_Options; // base struct
 struct Sass_Context; // : Sass_Options
 struct Sass_File_Context; // : Sass_Context
 struct Sass_Data_Context; // : Sass_Context
+
+// Compiler states
+enum Sass_Compiler_State {
+  SASS_COMPILER_CREATED,
+  SASS_COMPILER_PARSED,
+  SASS_COMPILER_EXECUTED
+};
 
 // Create and initialize an option struct
 ADDAPI struct Sass_Options* ADDCALL sass_make_options (void);
@@ -74,8 +81,9 @@ ADDAPI const char* ADDCALL sass_option_get_plugin_path (struct Sass_Options* opt
 ADDAPI const char* ADDCALL sass_option_get_include_path (struct Sass_Options* options);
 ADDAPI const char* ADDCALL sass_option_get_source_map_file (struct Sass_Options* options);
 ADDAPI const char* ADDCALL sass_option_get_source_map_root (struct Sass_Options* options);
-ADDAPI Sass_C_Function_List ADDCALL sass_option_get_c_functions (struct Sass_Options* options);
-ADDAPI Sass_C_Import_Callback ADDCALL sass_option_get_importer (struct Sass_Options* options);
+ADDAPI Sass_Importer_List ADDCALL sass_option_get_c_headers (struct Sass_Options* options);
+ADDAPI Sass_Importer_List ADDCALL sass_option_get_c_importers (struct Sass_Options* options);
+ADDAPI Sass_Function_List ADDCALL sass_option_get_c_functions (struct Sass_Options* options);
 
 // Setters for Context_Option values
 ADDAPI void ADDCALL sass_option_set_precision (struct Sass_Options* options, int precision);
@@ -93,8 +101,9 @@ ADDAPI void ADDCALL sass_option_set_plugin_path (struct Sass_Options* options, c
 ADDAPI void ADDCALL sass_option_set_include_path (struct Sass_Options* options, const char* include_path);
 ADDAPI void ADDCALL sass_option_set_source_map_file (struct Sass_Options* options, const char* source_map_file);
 ADDAPI void ADDCALL sass_option_set_source_map_root (struct Sass_Options* options, const char* source_map_root);
-ADDAPI void ADDCALL sass_option_set_c_functions (struct Sass_Options* options, Sass_C_Function_List c_functions);
-ADDAPI void ADDCALL sass_option_set_importer (struct Sass_Options* options, Sass_C_Import_Callback importer);
+ADDAPI void ADDCALL sass_option_set_c_headers (struct Sass_Options* options, Sass_Importer_List c_headers);
+ADDAPI void ADDCALL sass_option_set_c_importers (struct Sass_Options* options, Sass_Importer_List c_importers);
+ADDAPI void ADDCALL sass_option_set_c_functions (struct Sass_Options* options, Sass_Function_List c_functions);
 
 
 // Getters for Sass_Context values
@@ -110,6 +119,9 @@ ADDAPI size_t ADDCALL sass_context_get_error_column (struct Sass_Context* ctx);
 ADDAPI const char* ADDCALL sass_context_get_source_map_string (struct Sass_Context* ctx);
 ADDAPI char** ADDCALL sass_context_get_included_files (struct Sass_Context* ctx);
 
+// Calculate the size of the stored null terminated array
+ADDAPI size_t ADDCALL sass_context_get_included_files_size (struct Sass_Context* ctx);
+
 // Take ownership of memory (value on context is set to 0)
 ADDAPI char* ADDCALL sass_context_take_error_json (struct Sass_Context* ctx);
 ADDAPI char* ADDCALL sass_context_take_error_text (struct Sass_Context* ctx);
@@ -119,10 +131,16 @@ ADDAPI char* ADDCALL sass_context_take_output_string (struct Sass_Context* ctx);
 ADDAPI char* ADDCALL sass_context_take_source_map_string (struct Sass_Context* ctx);
 ADDAPI char** ADDCALL sass_context_take_included_files (struct Sass_Context* ctx);
 
+// Getters for Sass_Compiler options
+ADDAPI enum Sass_Compiler_State ADDCALL sass_compiler_get_state(struct Sass_Compiler* compiler);
+ADDAPI struct Sass_Context* ADDCALL sass_compiler_get_context(struct Sass_Compiler* compiler);
+ADDAPI size_t ADDCALL sass_compiler_get_import_stack_size(struct Sass_Compiler* compiler);
+ADDAPI Sass_Import_Entry ADDCALL sass_compiler_get_last_import(struct Sass_Compiler* compiler);
+ADDAPI Sass_Import_Entry ADDCALL sass_compiler_get_import_entry(struct Sass_Compiler* compiler, size_t idx);
+
 // Push function for paths (no manipulation support for now)
 ADDAPI void ADDCALL sass_option_push_plugin_path (struct Sass_Options* options, const char* path);
 ADDAPI void ADDCALL sass_option_push_include_path (struct Sass_Options* options, const char* path);
-
 
 #ifdef __cplusplus
 } // __cplusplus defined.

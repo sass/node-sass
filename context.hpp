@@ -18,7 +18,7 @@
 #include "plugins.hpp"
 #include "sass_functions.h"
 
-struct Sass_C_Function_Descriptor;
+struct Sass_Function;
 
 namespace Sass {
   using namespace std;
@@ -32,8 +32,11 @@ namespace Sass {
 
   class Context {
   public:
+    size_t head_imports;
     Memory_Manager<AST_Node> mem;
 
+    struct Sass_Options* c_options;
+    struct Sass_Compiler* c_compiler;
     const char* source_c_str;
 
     // c-strs containing Sass file contents
@@ -51,7 +54,14 @@ namespace Sass {
     map<string, Block*> style_sheets; // map of paths to ASTs
     // SourceMap source_map;
     Output emitter;
-    vector<Sass_C_Function_Callback> c_functions;
+
+    vector<Sass_Importer_Entry> c_headers;
+    vector<Sass_Importer_Entry> c_importers;
+    vector<Sass_Function_Entry> c_functions;
+
+    void add_c_header(Sass_Importer_Entry header);
+    void add_c_importer(Sass_Importer_Entry importer);
+    void add_c_function(Sass_Function_Entry function);
 
     string       indent; // String to be used for indentation
     string       linefeed; // String to be used for line feeds
@@ -67,8 +77,7 @@ namespace Sass {
     bool         is_indented_syntax_src; // treat source string as sass
 
     // overload import calls
-    Sass_C_Import_Callback importer;
-    vector<struct Sass_Import*> import_stack;
+    vector<Sass_Import_Entry> import_stack;
 
     map<string, Color*> names_to_colors;
     map<int, string>    colors_to_names;
@@ -76,6 +85,8 @@ namespace Sass {
     size_t precision; // precision for outputting fractional numbers
 
     KWD_ARG_SET(Data) {
+      KWD_ARG(Data, struct Sass_Options*, c_options);
+      KWD_ARG(Data, struct Sass_Compiler*, c_compiler);
       KWD_ARG(Data, const char*,     source_c_str);
       KWD_ARG(Data, string,          entry_point);
       KWD_ARG(Data, string,          input_path);
@@ -84,8 +95,8 @@ namespace Sass {
       KWD_ARG(Data, string,          linefeed);
       KWD_ARG(Data, const char*,     include_paths_c_str);
       KWD_ARG(Data, const char*,     plugin_paths_c_str);
-      KWD_ARG(Data, const char**,    include_paths_array);
-      KWD_ARG(Data, const char**,    plugin_paths_array);
+      // KWD_ARG(Data, const char**,    include_paths_array);
+      // KWD_ARG(Data, const char**,    plugin_paths_array);
       KWD_ARG(Data, vector<string>,  include_paths);
       KWD_ARG(Data, vector<string>,  plugin_paths);
       KWD_ARG(Data, bool,            source_comments);
@@ -97,18 +108,21 @@ namespace Sass {
       KWD_ARG(Data, size_t,          precision);
       KWD_ARG(Data, bool,            source_map_embed);
       KWD_ARG(Data, bool,            source_map_contents);
-      KWD_ARG(Data, Sass_C_Import_Callback, importer);
     };
 
     Context(Data);
     ~Context();
     static string get_cwd();
     void setup_color_map();
-    string add_file(string);
+
     Block* parse_file();
-    string add_file(string, string);
     Block* parse_string();
     void add_source(string, string, const char*);
+
+    string add_file(const string& file);
+    string add_file(const string& base, const string& file);
+
+
     // allow to optionally overwrite the input path
     // default argument for input_path is string("stdin")
     // usefull to influence the source-map generating etc.

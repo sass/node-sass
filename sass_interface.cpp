@@ -121,17 +121,16 @@ extern "C" {
                        .omit_source_map_url(c_ctx->options.omit_source_map_url)
                        .include_paths_c_str(c_ctx->options.include_paths)
                        .plugin_paths_c_str(c_ctx->options.plugin_paths)
-                       .include_paths_array(0)
-                       .plugin_paths_array(0)
+                       // .include_paths_array(0)
+                       // .plugin_paths_array(0)
                        .include_paths(vector<string>())
                        .plugin_paths(vector<string>())
                        .precision(c_ctx->options.precision ? c_ctx->options.precision : 5)
                        .indent(c_ctx->options.indent ? c_ctx->options.indent : "  ")
                        .linefeed(c_ctx->options.linefeed ? c_ctx->options.linefeed : LFEED)
-                       .importer(0)
       );
       if (c_ctx->c_functions) {
-        struct Sass_C_Function_Descriptor** this_func_data = c_ctx->c_functions;
+        Sass_Function_List this_func_data = c_ctx->c_functions;
         while ((this_func_data) && (*this_func_data)) {
           cpp_ctx.c_functions.push_back(*this_func_data);
           ++this_func_data;
@@ -214,14 +213,16 @@ extern "C" {
                        .omit_source_map_url(c_ctx->options.omit_source_map_url)
                        .include_paths_c_str(c_ctx->options.include_paths)
                        .plugin_paths_c_str(c_ctx->options.plugin_paths)
-                       .include_paths_array(0)
-                       .plugin_paths_array(0)
+                       // .include_paths_array(0)
+                       // .plugin_paths_array(0)
                        .include_paths(vector<string>())
                        .plugin_paths(vector<string>())
                        .precision(c_ctx->options.precision ? c_ctx->options.precision : 5)
+                       .indent(c_ctx->options.indent ? c_ctx->options.indent : "  ")
+                       .linefeed(c_ctx->options.linefeed ? c_ctx->options.linefeed : LFEED)
       );
       if (c_ctx->c_functions) {
-        struct Sass_C_Function_Descriptor** this_func_data = c_ctx->c_functions;
+        Sass_Function_List this_func_data = c_ctx->c_functions;
         while ((this_func_data) && (*this_func_data)) {
           cpp_ctx.c_functions.push_back(*this_func_data);
           ++this_func_data;

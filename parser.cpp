@@ -63,6 +63,20 @@ namespace Sass {
     block_stack.push_back(root);
     root->is_root(true);
     read_bom();
+
+    if (ctx.queue.size() == 1) {
+      Import* pre = new (ctx.mem) Import(pstate);
+      string load_path(ctx.queue[0].load_path);
+      do_import(load_path, pre, ctx.c_headers, false);
+      ctx.head_imports = ctx.queue.size() - 1;
+      if (!pre->urls().empty()) (*root) << pre;
+      if (!pre->files().empty()) {
+        for (size_t i = 0, S = pre->files().size(); i < S; ++i) {
+          (*root) << new (ctx.mem) Import_Stub(pstate, pre->files()[i]);
+        }
+      }
+    }
+
     lex< optional_spaces >();
     Selector_Lookahead lookahead_result;
     while (position < end) {
@@ -178,6 +192,66 @@ namespace Sass {
 
   }
 
+  void Parser::import_single_file (Import* imp, string import_path) {
+
+    if (!unquote(import_path).substr(0, 7).compare("http://") ||
+        !unquote(import_path).substr(0, 8).compare("https://") ||
+        !unquote(import_path).substr(0, 2).compare("//"))
+    {
+      imp->urls().push_back(new (ctx.mem) String_Quoted(pstate, import_path));
+    }
+    else {
+      add_single_file(imp, import_path);
+    }
+
+  }
+
+  bool Parser::do_import(const string& import_path, Import* imp, vector<Sass_Importer_Entry> importers, bool only_one)
+  {
+    bool has_import = false;
+    string load_path = unquote(import_path);
+    for (auto importer : importers) {
+      // int priority = sass_importer_get_priority(importer);
+      Sass_Importer_Fn fn = sass_importer_get_function(importer);
+      if (Sass_Import_List includes =
+          fn(load_path.c_str(), importer, ctx.c_compiler)
+      ) {
+        Sass_Import_List list = includes;
+        while (*includes) {
+          Sass_Import_Entry include = *includes;
+          const char *file = sass_import_get_path(include);
+          char* source = sass_import_take_source(include);
+          size_t line = sass_import_get_error_line(include);
+          size_t column = sass_import_get_error_column(include);
+          const char* message = sass_import_get_error_message(include);
+          if (message) {
+            if (line == string::npos && column == string::npos) error(message, pstate);
+            else error(message, ParserState(message, source, Position(line, column)));
+          } else if (source) {
+            if (file) {
+              ctx.add_source(file, load_path, source);
+              imp->files().push_back(file);
+            } else {
+              ctx.add_source(load_path, load_path, source);
+              imp->files().push_back(load_path);
+            }
+          } else if(file) {
+            import_single_file(imp, file);
+          }
+          ++includes;
+        }
+        // deallocate returned memory
+        sass_delete_import_list(list);
+        // set success flag
+        has_import = true;
+        // break import chain
+        if (only_one) return true;
+      }
+    }
+    // return result
+    return has_import;
+  }
+
   Import* Parser::parse_import()
   {
     lex< kwd_import >();
@@ -186,64 +260,11 @@ namespace Sass {
     do {
       while (lex< block_comment >());
       if (lex< quoted_string >()) {
-        string import_path(lexed);
-
-        // struct Sass_Options opt = sass_context_get_options(ctx)
-        Sass_C_Import_Callback importer = ctx.importer;
-        // custom importer
-        if (importer) {
-          Sass_Import* current = ctx.import_stack.back();
-          Sass_C_Import_Fn fn = sass_import_get_function(importer);
-          void* cookie = sass_import_get_cookie(importer);
-          // create a new import entry
-          string inc_path = unquote(import_path);
-          struct Sass_Import** includes = fn(
-            inc_path.c_str(),
-            sass_import_get_path(current),
-            cookie);
-          if (includes) {
-            struct Sass_Import** list = includes;
-            while (*includes) {
-              struct Sass_Import* include = *includes;
-              const char *file = sass_import_get_path(include);
-              char* source = sass_import_take_source(include);
-              size_t line = sass_import_get_error_line(include);
-              size_t column = sass_import_get_error_column(include);
-              const char* message = sass_import_get_error_message(include);
-              // char *srcmap = sass_import_take_srcmap(include);
-              if (message) {
-                if (line == string::npos && column == string::npos) error(message, pstate);
-                else error(message, ParserState(message, source, Position(line, column)));
-              } else if (source) {
-                if (file) {
-                  ctx.add_source(file, inc_path, source);
-                  imp->files().push_back(file);
-                } else {
-                  ctx.add_source(inc_path, inc_path, source);
-                  imp->files().push_back(inc_path);
-                }
-              } else if(file) {
-                add_single_file(imp, file);
-              }
-              ++includes;
-            }
-            // deallocate returned memory
-            sass_delete_import_list(list);
-            // parse next import
-            continue;
-          }
-        }
-
-        if (!unquote(import_path).substr(0, 7).compare("http://") ||
-            !unquote(import_path).substr(0, 8).compare("https://") ||
-            !unquote(import_path).substr(0, 2).compare("//"))
+        if (!do_import(lexed, imp, ctx.c_importers, true))
         {
-          imp->urls().push_back(new (ctx.mem) String_Quoted(pstate, import_path));
+          // push single file import
+          import_single_file(imp, lexed);
         }
-        else {
-          add_single_file(imp, import_path);
-        }
-
       }
       else if (peek< uri_prefix >()) {
         imp->urls().push_back(parse_value());
@@ -274,7 +295,7 @@ namespace Sass {
     else stack.push_back(function_def);
     Block* body = parse_block();
     stack.pop_back();
-    Definition* def = new (ctx.mem) Definition(source_position_of_def, name, params, body, which_type);
+    Definition* def = new (ctx.mem) Definition(source_position_of_def, name, params, body, &ctx, which_type);
     return def;
   }
 
@@ -621,14 +642,14 @@ namespace Sass {
   Simple_Selector* Parser::parse_simple_selector()
   {
     lex < css_comments >();
-    if (lex< id_name >() || lex< class_name >()) {
+    if (lex< alternatives < id_name, class_name > >()) {
       return new (ctx.mem) Selector_Qualifier(pstate, unquote(lexed));
     }
-    else if (lex< quoted_string >() || lex< number >()) {
+    else if (lex< quoted_string >()) {
       return new (ctx.mem) Type_Selector(pstate, unquote(lexed));
     }
-    else if (lex< exactly < sel_deep_kwd > >()) {
-      return new (ctx.mem) Type_Selector(pstate, unquote(lexed));
+    else if (lex< alternatives < number, kwd_sel_deep > >()) {
+      return new (ctx.mem) Type_Selector(pstate, lexed);
     }
     else if (peek< pseudo_not >()) {
       return parse_negated_selector();

@@ -644,8 +644,9 @@ namespace Sass {
     ADD_PROPERTY(Env*, environment);
     ADD_PROPERTY(Type, type);
     ADD_PROPERTY(Native_Function, native_function);
-    ADD_PROPERTY(Sass_C_Function, c_function);
+    ADD_PROPERTY(Sass_Function_Entry, c_function);
     ADD_PROPERTY(void*, cookie);
+    ADD_PROPERTY(Context*, ctx);
     ADD_PROPERTY(bool, is_overload_stub);
     ADD_PROPERTY(Signature, signature);
   public:
@@ -653,6 +654,7 @@ namespace Sass {
                string n,
                Parameters* params,
                Block* b,
+               Context* ctx,
                Type t)
     : Has_Block(pstate, b),
       name_(n),
@@ -662,6 +664,7 @@ namespace Sass {
       native_function_(0),
       c_function_(0),
       cookie_(0),
+      ctx_(ctx),
       is_overload_stub_(false),
       signature_(0)
     { }
@@ -670,6 +673,7 @@ namespace Sass {
                string n,
                Parameters* params,
                Native_Function func_ptr,
+               Context* ctx,
                bool overload_stub = false)
     : Has_Block(pstate, 0),
       name_(n),
@@ -679,6 +683,7 @@ namespace Sass {
       native_function_(func_ptr),
       c_function_(0),
       cookie_(0),
+      ctx_(ctx),
       is_overload_stub_(overload_stub),
       signature_(sig)
     { }
@@ -686,8 +691,8 @@ namespace Sass {
                Signature sig,
                string n,
                Parameters* params,
-               Sass_C_Function func_ptr,
-               void* cookie,
+               Sass_Function_Entry c_func,
+               Context* ctx,
                bool whatever,
                bool whatever2)
     : Has_Block(pstate, 0),
@@ -696,8 +701,9 @@ namespace Sass {
       environment_(0),
       type_(FUNCTION),
       native_function_(0),
-      c_function_(func_ptr),
-      cookie_(cookie),
+      c_function_(c_func),
+      cookie_(sass_function_get_cookie(c_func)),
+      ctx_(ctx),
       is_overload_stub_(false),
       signature_(sig)
     { }

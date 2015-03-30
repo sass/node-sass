@@ -35,7 +35,7 @@ namespace Sass {
   using std::stringstream;
   using std::endl;
 
-  Definition* make_native_function(Signature sig, Native_Function f, Context& ctx)
+  Definition* make_native_function(Signature sig, Native_Function func, Context& ctx)
   {
     Parser sig_parser = Parser::from_c_str(sig, ctx, ParserState("[built-in function]"));
     sig_parser.lex<Prelexer::identifier>();
@@ -45,12 +45,14 @@ namespace Sass {
                                     sig,
                                     name,
                                     params,
-                                    f,
+                                    func,
+                                    &ctx,
                                     false);
   }
 
-  Definition* make_c_function(Signature sig, Sass_C_Function f, void* cookie, Context& ctx)
+  Definition* make_c_function(Sass_Function_Entry c_func, Context& ctx)
   {
+    const char* sig = sass_function_get_signature(c_func);
     Parser sig_parser = Parser::from_c_str(sig, ctx, ParserState("[c function]"));
     // allow to overload generic callback plus @warn, @error and @debug with custom functions
     sig_parser.lex < alternatives < identifier, exactly <'*'>,
@@ -64,8 +66,8 @@ namespace Sass {
                                     sig,
                                     name,
                                     params,
-                                    f,
-                                    cookie,
+                                    c_func,
+                                    &ctx,
                                     false, true);
   }
 

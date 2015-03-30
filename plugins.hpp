@@ -42,12 +42,14 @@ namespace Sass {
       size_t load_plugins(const string& path);
 
     public: // public accessors
-      // const vector<Sass_C_Import_Callback> get_importers(void) { return importers; };
-      const vector<Sass_C_Function_Callback> get_functions(void) { return functions; };
+      const vector<Sass_Importer_Entry> get_headers(void) { return headers; };
+      const vector<Sass_Importer_Entry> get_importers(void) { return importers; };
+      const vector<Sass_Function_Entry> get_functions(void) { return functions; };
 
     private: // private vars
-      // vector<Sass_C_Import_Callback> importers;
-      vector<Sass_C_Function_Callback> functions;
+      vector<Sass_Importer_Entry> headers;
+      vector<Sass_Importer_Entry> importers;
+      vector<Sass_Function_Entry> functions;
 
   };
 

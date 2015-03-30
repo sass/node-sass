@@ -25,10 +25,12 @@ namespace Sass {
   class Parser : public ParserState {
   private:
     void add_single_file (Import* imp, string import_path);
+    void import_single_file (Import* imp, string import_path);
   public:
     class AST_Node;
 
     enum Syntactic_Context { nothing, mixin_def, function_def };
+    bool do_import(const string& import_path, Import* imp, vector<Sass_Importer_Entry> importers, bool only_one = true);
 
     Context& ctx;
     vector<Block*> block_stack;

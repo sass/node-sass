@@ -50,10 +50,15 @@ namespace Sass {
     this->source = source;
   }
 
+  inline bool sort_importers (const Sass_Importer_Entry& i, const Sass_Importer_Entry& j)
+  { return sass_importer_get_priority(i) > sass_importer_get_priority(j); }
 
   Context::Context(Context::Data initializers)
   : // Output(this),
+    head_imports(0),
     mem(Memory_Manager<AST_Node>()),
+    c_options               (initializers.c_options()),
+    c_compiler              (initializers.c_compiler()),
     source_c_str            (initializers.source_c_str()),
     sources                 (vector<const char*>()),
     plugin_paths            (initializers.plugin_paths()),
@@ -61,7 +66,9 @@ namespace Sass {
     queue                   (vector<Sass_Queued>()),
     style_sheets            (map<string, Block*>()),
     emitter (this),
-    c_functions             (vector<Sass_C_Function_Callback>()),
+    c_headers               (vector<Sass_Importer_Entry>()),
+    c_importers             (vector<Sass_Importer_Entry>()),
+    c_functions             (vector<Sass_Function_Entry>()),
     indent                  (initializers.indent()),
     linefeed                (initializers.linefeed()),
     input_path              (make_canonical_path(initializers.input_path())),
@@ -74,7 +81,6 @@ namespace Sass {
     source_map_contents     (initializers.source_map_contents()),
     omit_source_map_url     (initializers.omit_source_map_url()),
     is_indented_syntax_src  (initializers.is_indented_syntax_src()),
-    importer                (initializers.importer()),
     names_to_colors         (map<string, Color*>()),
     colors_to_names         (map<int, string>()),
     precision               (initializers.precision()),
@@ -91,9 +97,9 @@ namespace Sass {
 
     include_paths.push_back(cwd);
     collect_include_paths(initializers.include_paths_c_str());
-    collect_include_paths(initializers.include_paths_array());
+    // collect_include_paths(initializers.include_paths_array());
     collect_plugin_paths(initializers.plugin_paths_c_str());
-    collect_plugin_paths(initializers.plugin_paths_array());
+    // collect_plugin_paths(initializers.plugin_paths_array());
 
     setup_color_map();
 
@@ -104,7 +110,15 @@ namespace Sass {
     for(auto fn : plugins.get_functions()) {
       c_functions.push_back(fn);
     }
+    for(auto fn : plugins.get_headers()) {
+      c_headers.push_back(fn);
+    }
+    for(auto fn : plugins.get_importers()) {
+      c_importers.push_back(fn);
+    }
 
+    sort (c_headers.begin(), c_headers.end(), sort_importers);
+    sort (c_importers.begin(), c_importers.end(), sort_importers);
     string entry_point = initializers.entry_point();
     if (!entry_point.empty()) {
       string result(add_file(entry_point));
@@ -115,6 +129,23 @@ namespace Sass {
 
     emitter.set_filename(resolve_relative_path(output_path, source_map_file, cwd));
 
+  }
+
+  void Context::add_c_function(Sass_Function_Entry function)
+  {
+    c_functions.push_back(function);
+  }
+  void Context::add_c_header(Sass_Importer_Entry header)
+  {
+    c_headers.push_back(header);
+    // need to sort the array afterwards (no big deal)
+    sort (c_headers.begin(), c_headers.end(), sort_importers);
+  }
+  void Context::add_c_importer(Sass_Importer_Entry importer)
+  {
+    c_importers.push_back(importer);
+    // need to sort the array afterwards (no big deal)
+    sort (c_importers.begin(), c_importers.end(), sort_importers);
   }
 
   Context::~Context()
@@ -225,58 +256,45 @@ namespace Sass {
     include_links.push_back(resolve_relative_path(abs_path, source_map_file, cwd));
   }
 
-  string Context::add_file(string path)
+  // Add a new import file to the context
+  string Context::add_file(const string& file)
   {
     using namespace File;
-    char* contents = 0;
-    string real_path;
-    path = make_canonical_path(path);
-    for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
-      string full_path(join_paths(include_paths[i], path));
-      if (style_sheets.count(full_path)) return full_path;
-      contents = resolve_and_load(full_path, real_path);
-      if (contents) {
-        add_source(full_path, real_path, contents);
-        style_sheets[full_path] = 0;
-        return full_path;
-      }
+    string path(make_canonical_path(file));
+    string resolved(find_file(path, include_paths));
+    if (resolved == "") return resolved;
+    if (char* contents = read_file(resolved)) {
+      add_source(path, resolved, contents);
+      style_sheets[path] = 0;
+      return path;
     }
-    return string();
+    return string("");
   }
 
-  string Context::add_file(string dir, string rel_filepath)
+  // Add a new import file to the context
+  // This has some previous directory context
+  string Context::add_file(const string& base, const string& file)
   {
     using namespace File;
-    char* contents = 0;
-    string real_path;
-    rel_filepath = make_canonical_path(rel_filepath);
-    string full_path(join_paths(dir, rel_filepath));
-    if (style_sheets.count(full_path)) return full_path;
-    contents = resolve_and_load(full_path, real_path);
-    if (contents) {
-      add_source(full_path, real_path, contents);
-      style_sheets[full_path] = 0;
-      return full_path;
+    string path(make_canonical_path(file));
+    string base_file(join_paths(base, path));
+    string resolved(resolve_file(base_file));
+    if (style_sheets.count(base_file)) return base_file;
+    if (char* contents = read_file(resolved)) {
+      add_source(base_file, resolved, contents);
+      style_sheets[base_file] = 0;
+      return base_file;
     }
-    for (size_t i = 0, S = include_paths.size(); i < S; ++i) {
-      string full_path(join_paths(include_paths[i], rel_filepath));
-      if (style_sheets.count(full_path)) return full_path;
-      contents = resolve_and_load(full_path, real_path);
-      if (contents) {
-        add_source(full_path, real_path, contents);
-        style_sheets[full_path] = 0;
-        return full_path;
-      }
-    }
-    return string();
+    // now go the regular code path
+    return add_file(path);
   }
 
   void register_function(Context&, Signature sig, Native_Function f, Env* env);
   void register_function(Context&, Signature sig, Native_Function f, size_t arity, Env* env);
   void register_overload_stub(Context&, string name, Env* env);
   void register_built_in_functions(Context&, Env* env);
-  void register_c_functions(Context&, Env* env, Sass_C_Function_List);
-  void register_c_function(Context&, Env* env, Sass_C_Function_Callback);
+  void register_c_functions(Context&, Env* env, Sass_Function_List);
+  void register_c_function(Context&, Env* env, Sass_Function_Entry);
 
   char* Context::compile_block(Block* root)
   {
@@ -295,7 +313,7 @@ namespace Sass {
   {
     Block* root = 0;
     for (size_t i = 0; i < queue.size(); ++i) {
-      struct Sass_Import* import = sass_make_import(
+      Sass_Import_Entry import = sass_make_import(
         queue[i].load_path.c_str(),
         queue[i].abs_path.c_str(),
         0, 0
@@ -388,7 +406,9 @@ namespace Sass {
   std::vector<std::string> Context::get_included_files(size_t skip)
   {
       vector<string> includes = included_files;
+      if (includes.size() == 0) return includes;
       std::sort( includes.begin() + skip, includes.end() );
+      includes.erase( includes.begin(), includes.begin() + skip );
       includes.erase( std::unique( includes.begin(), includes.end() ), includes.end() );
       // the skip solution seems more robust, as we may have real files named stdin
       // includes.erase( std::remove( includes.begin(), includes.end(), "stdin" ), includes.end() );
@@ -423,6 +443,7 @@ namespace Sass {
                                             name,
                                             0,
                                             0,
+                                            &ctx,
                                             true);
     (*env)[name + "[f]"] = stub;
   }
@@ -521,21 +542,16 @@ namespace Sass {
     register_function(ctx, unique_id_sig, unique_id, env);
   }
 
-  void register_c_functions(Context& ctx, Env* env, Sass_C_Function_List descrs)
+  void register_c_functions(Context& ctx, Env* env, Sass_Function_List descrs)
   {
     while (descrs && *descrs) {
       register_c_function(ctx, env, *descrs);
       ++descrs;
     }
   }
-  void register_c_function(Context& ctx, Env* env, Sass_C_Function_Callback descr)
+  void register_c_function(Context& ctx, Env* env, Sass_Function_Entry descr)
   {
-    Definition* def = make_c_function(
-      sass_function_get_signature(descr),
-      sass_function_get_function(descr),
-      sass_function_get_cookie(descr),
-      ctx
-    );
+    Definition* def = make_c_function(descr, ctx);
     def->environment(env);
     (*env)[def->name() + "[f]"] = def;
   }
