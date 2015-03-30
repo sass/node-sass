@@ -448,6 +448,7 @@ namespace Sass {
       sel = parse_selector_group();
     }
     bool old_in_at_root = in_at_root;
+    lex < css_comments >();
     in_at_root = false;
     ParserState r_source_position = pstate;
     if (!peek< exactly<'{'> >()) error("expected a '{' after the selector", pstate);
@@ -960,9 +961,9 @@ namespace Sass {
     else {
       error("invalid property name", pstate);
     }
-    if (!lex< one_plus< exactly<':'> > >()) error("property \"" + string(lexed) + "\" must be followed by a ':'", pstate);
-    if (peek< exactly<';'> >()) error("style declaration must contain a value", pstate);
-    if (peek< static_value >()) {
+    if (!lex_css< one_plus< exactly<':'> > >()) error("property \"" + string(lexed) + "\" must be followed by a ':'", pstate);
+    if (peek_css< exactly<';'> >()) error("style declaration must contain a value", pstate);
+    if (peek_css< static_value >()) {
       return new (ctx.mem) Declaration(prop->pstate(), prop, parse_static_value()/*, lex<important>()*/);
     }
     else {
