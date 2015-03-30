@@ -44,9 +44,8 @@ namespace Sass {
 
   void Inspect::operator()(Keyframe_Rule* rule)
   {
-    append_indentation();
-    if (rule->rules()) rule->rules()->perform(this);
-    rule->block()->perform(this);
+    if (rule->selector()) rule->selector()->perform(this);
+    if (rule->block()) rule->block()->perform(this);
   }
 
   void Inspect::operator()(Propset* propset)

@@ -431,10 +431,10 @@ namespace Sass {
   // Keyframe-rules -- the child blocks of "@keyframes" nodes.
   ///////////////////////////////////////////////////////////////////////
   class Keyframe_Rule : public Has_Block {
-    ADD_PROPERTY(String*, rules);
+    ADD_PROPERTY(Selector*, selector);
   public:
     Keyframe_Rule(ParserState pstate, Block* b)
-    : Has_Block(pstate, b), rules_(0)
+    : Has_Block(pstate, b), selector_(0)
     { statement_type(KEYFRAMERULE); }
     ATTACH_OPERATIONS();
   };

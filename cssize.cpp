@@ -87,7 +87,7 @@ namespace Sass {
 
     Keyframe_Rule* rr = new (ctx.mem) Keyframe_Rule(r->pstate(),
                                                     r->block()->perform(this)->block());
-    if (r->rules()) rr->rules(r->rules());
+    if (r->selector()) rr->selector(r->selector());
 
     return debubble(rr->block(), rr)->block();
   }

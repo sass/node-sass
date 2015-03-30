@@ -47,11 +47,7 @@ namespace Sass {
     if (in_keyframes) {
       To_String to_string;
       Keyframe_Rule* k = new (ctx.mem) Keyframe_Rule(r->pstate(), r->block()->perform(this)->block());
-      if (r->selector()) {
-        string s(r->selector()->perform(eval->with(env, backtrace))->perform(&to_string));
-        String_Constant* ss = new (ctx.mem) String_Constant(r->selector()->pstate(), s);
-        k->rules(ss);
-      }
+      if (r->selector()) k->selector(r->selector()->perform(contextualize_eval->with(0, env, backtrace)));
       in_at_root = old_in_at_root;
       old_in_at_root = false;
       return k;
