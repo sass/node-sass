@@ -9,10 +9,8 @@
 
 namespace Sass {
 
-  Listize::Listize(Context& ctx, Env* env, Backtrace* bt)
-  : ctx(ctx),
-    env(env),
-    backtrace(bt)
+  Listize::Listize(Context& ctx)
+  : ctx(ctx)
   {  }
 
   Expression* Listize::operator()(Selector_List* sel)
@@ -33,16 +31,6 @@ namespace Sass {
       if (e) str += e->perform(&to_string);
     }
     return new (ctx.mem) String_Constant(sel->pstate(), str);
-  }
-
-  Expression* Listize::operator()(Type_Selector* sel)
-  {
-    return new (ctx.mem) String_Constant(sel->pstate(), sel->name());
-  }
-
-  Expression* Listize::operator()(Selector_Qualifier* sel)
-  {
-    return new (ctx.mem) String_Constant(sel->pstate(), sel->name());
   }
 
   Expression* Listize::operator()(Complex_Selector* sel)
@@ -90,6 +78,6 @@ namespace Sass {
 
   Expression* Listize::fallback_impl(AST_Node* n)
   {
-    return 0;
+    return static_cast<Expression*>(n);
   }
 }
