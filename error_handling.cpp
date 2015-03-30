@@ -8,12 +8,12 @@ namespace Sass {
   : type(type), pstate(pstate), message(message)
   { }
 
-  void error(string msg, ParserState pstate) throw(Sass_Error)
+  void error(string msg, ParserState pstate)
   {
     throw Sass_Error(Sass_Error::syntax, pstate, msg);
   }
 
-  void error(string msg, ParserState pstate, Backtrace* bt) throw(Sass_Error)
+  void error(string msg, ParserState pstate, Backtrace* bt)
   {
 
     Backtrace top(bt, pstate, "");

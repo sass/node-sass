@@ -188,7 +188,7 @@ extern "C" {
     return str == NULL ? "" : str;
   }
 
-  static void copy_strings(const std::vector<std::string>& strings, char*** array) throw() {
+  static void copy_strings(const std::vector<std::string>& strings, char*** array) {
     int num = static_cast<int>(strings.size());
     char** arr = (char**) malloc(sizeof(char*) * (num + 1));
     if (arr == 0) throw(bad_alloc());
