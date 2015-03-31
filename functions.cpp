@@ -149,7 +149,8 @@ namespace Sass {
     // features
     static set<string> features {
       "global-variable-shadowing",
-      "at-error"
+      "at-error",
+      "units-level-3"
     };
 
     ////////////////
