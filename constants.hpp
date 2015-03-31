@@ -124,7 +124,7 @@ namespace Sass {
     extern const char sign_chars[];
     extern const char hyphen[];
     extern const char ellipsis[];
-    extern const char url_space_chars[];
+    // extern const char url_space_chars[];
     extern const char escape_chars[];
 
     // type names
@@ -138,6 +138,9 @@ namespace Sass {
     extern const char list_name[];
     extern const char map_name[];
     extern const char arglist_name[];
+
+    // constants for uri parsing (RFC 3986 Appendix A.)
+    extern const char uri_chars[];
 
     // some specific constant character classes
     // they must be static to be useable by lexer

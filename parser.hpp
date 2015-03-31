@@ -82,8 +82,7 @@ namespace Sass {
       const char* it_position = start ? start : position;
 
       // skip white-space?
-      if (mx == url ||
-          mx == spaces ||
+      if (mx == spaces ||
           mx == no_spaces ||
           mx == css_comments ||
           mx == css_whitespace ||
@@ -123,12 +122,17 @@ namespace Sass {
     // sourcemap offset and we modify the position pointer!
     // lex will only skip over space, tabs and line comment
     template <prelexer mx>
-    const char* lex()
+    const char* lex(bool lazy = true)
     {
+
+      // position considered before lexed token
+      // we can skip whitespace or comments for
+      // lazy developers (but we need control)
+      const char* it_before_token = position;
 
       // sneak up to the actual token we want to lex
       // this should skip over white-space if desired
-      const char* it_before_token = sneak < mx >(position);
+      if (lazy) it_before_token = sneak < mx >(position);
 
       // now call matcher to get position after token
       const char* it_after_token = mx(it_before_token);
@@ -196,8 +200,8 @@ namespace Sass {
     Parameters* parse_parameters();
     Parameter* parse_parameter();
     Mixin_Call* parse_mixin_call();
-    Arguments* parse_arguments();
-    Argument* parse_argument();
+    Arguments* parse_arguments(bool has_url = false);
+    Argument* parse_argument(bool has_url = false);
     Assignment* parse_assignment();
     // Propset* parse_propset();
     Ruleset* parse_ruleset(Selector_Lookahead lookahead);

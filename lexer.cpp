@@ -12,6 +12,20 @@ namespace Sass {
   namespace Prelexer {
 
     //####################################
+    // BASIC CHARACTER MATCHERS
+    //####################################
+
+    // Match standard control chars
+    const char* kwd_at(const char* src) { return exactly<'@'>(src); }
+    const char* kwd_dot(const char* src) { return exactly<'.'>(src); }
+    const char* kwd_comma(const char* src) { return exactly<','>(src); };
+    const char* kwd_colon(const char* src) { return exactly<':'>(src); };
+    const char* kwd_star(const char* src) { return exactly<'*'>(src); };
+    const char* kwd_plus(const char* src) { return exactly<'+'>(src); };
+    const char* kwd_minus(const char* src) { return exactly<'-'>(src); };
+    const char* kwd_slash(const char* src) { return exactly<'/'>(src); };
+
+    //####################################
     // implement some function that do exist in the standard
     // but those are locale aware which brought some trouble
     // this even seems to improve performance by quite a bit
@@ -69,7 +83,7 @@ namespace Sass {
     }
 
     //####################################
-    // BASIC CHARACTER MATCHERS
+    // BASIC CLASS MATCHERS
     //####################################
 
     // create matchers that advance the position

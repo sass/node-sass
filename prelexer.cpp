@@ -36,6 +36,7 @@ namespace Sass {
                zero_plus < space >,
                delimited_by<slash_star, star_slash, false> >(src);
     }
+    /* not use anymore - remove?
     const char* block_comment_prefix(const char* src) {
       return exactly<slash_star>(src);
     }
@@ -43,6 +44,7 @@ namespace Sass {
     const char* comment(const char* src) {
       return line_comment(src);
     }
+    */
 
     // Match zero plus white-space or line_comments
     const char* optional_css_whitespace(const char* src) {
@@ -188,9 +190,11 @@ namespace Sass {
                                  zero_plus< alternatives< identifier, percentage, dimension, hex, number, quoted_string, exactly<'%'> > > > >(src);
     }
 
+    /* not used anymore - remove?
     const char* filename(const char* src) {
       return one_plus< alternatives< identifier, number, exactly<'.'> > >(src);
     }
+    */
 
     // Match CSS '@' keywords.
     const char* at_keyword(const char* src) {
@@ -419,6 +423,18 @@ namespace Sass {
     const char* uri_prefix(const char* src) {
       return exactly<url_kwd>(src);
     }
+    const char* uri_value(const char* src)
+    {
+      return
+      zero_plus <
+        alternatives <
+          alnum,
+          exactly <'/'>,
+          class_char < uri_chars >
+        >
+      >(src);
+    }
+
     // TODO: rename the following two functions
     /* no longer used - remove?
     const char* uri(const char* src) {
@@ -615,7 +631,7 @@ namespace Sass {
     const char* folders(const char* src) {
       return zero_plus< folder >(src);
     }*/
-
+    /* not used anymore - remove?
     const char* chunk(const char* src) {
       char inside_str = 0;
       const char* p = src;
@@ -642,6 +658,7 @@ namespace Sass {
       // unreachable
       return 0;
     }
+    */
 
     // follow the CSS spec more closely and see if this helps us scan URLs correctly
     /* not used anymore - remove?
@@ -668,10 +685,6 @@ namespace Sass {
     const char* ESCAPE(const char* src) {
       return alternatives< unicode, class_char<escape_chars> >(src);
     }*/
-
-    const char* url(const char* src) {
-      return chunk(src);
-    }
 
     const char* static_string(const char* src) {
       const char* pos = src;

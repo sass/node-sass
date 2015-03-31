@@ -25,6 +25,16 @@ namespace Sass {
     const char* kwd_lt(const char* src);
     const char* kwd_lte(const char* src);
 
+    // Match standard control chars
+    const char* kwd_at(const char* src);
+    const char* kwd_dot(const char* src);
+    const char* kwd_comma(const char* src);
+    const char* kwd_colon(const char* src);
+    const char* kwd_slash(const char* src);
+    const char* kwd_star(const char* src);
+    const char* kwd_plus(const char* src);
+    const char* kwd_minus(const char* src);
+
     //####################################
     // SPECIAL "REGEX" CONSTRUCTS
     //####################################
@@ -177,7 +187,7 @@ namespace Sass {
     // Match interpolant schemas
     const char* identifier_schema(const char* src);
     const char* value_schema(const char* src);
-    const char* filename(const char* src);
+    // const char* filename(const char* src);
     // const char* filename_schema(const char* src);
     // const char* url_schema(const char* src);
     // const char* url_value(const char* src);
@@ -248,8 +258,7 @@ namespace Sass {
     // const char* rgb_prefix(const char* src);
     // Match CSS uri specifiers.
     const char* uri_prefix(const char* src);
-    // const char* uri(const char* src);
-    const char* url(const char* src);
+    const char* uri_value(const char* src);
     // Match CSS "!important" keyword.
     const char* important(const char* src);
     // Match CSS "!optional" keyword.
@@ -345,7 +354,6 @@ namespace Sass {
       return counter;
     }
 
-    const char* chunk(const char* src);
   }
 }
 

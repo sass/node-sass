@@ -10,6 +10,20 @@ namespace Sass {
     // BASIC CHARACTER MATCHERS
     //####################################
 
+    // Match standard control chars
+    const char* kwd_at(const char* src);
+    const char* kwd_dot(const char* src);
+    const char* kwd_comma(const char* src);
+    const char* kwd_colon(const char* src);
+    const char* kwd_star(const char* src);
+    const char* kwd_plus(const char* src);
+    const char* kwd_minus(const char* src);
+    const char* kwd_slash(const char* src);
+
+    //####################################
+    // BASIC CLASS MATCHERS
+    //####################################
+
     // These are locale independant
     const bool is_space(const char& src);
     const bool is_alpha(const char& src);
@@ -120,10 +134,10 @@ namespace Sass {
     // Aka. zero-width positive lookahead.
     // Regex equivalent: /(?=literal)/
     // just hangs around until we need it
-    // template <prelexer mx>
-    // const char* lookahead(const char* src) {
-    //   return mx(src) ? src : 0;
-    // }
+    template <prelexer mx>
+    const char* lookahead(const char* src) {
+      return mx(src) ? src : 0;
+    }
 
     // Tries supplied matchers in order.
     // Succeeds if one of them succeeds.

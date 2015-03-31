@@ -266,8 +266,18 @@ namespace Sass {
           import_single_file(imp, lexed);
         }
       }
-      else if (peek< uri_prefix >()) {
-        imp->urls().push_back(parse_value());
+      else if (lex< uri_prefix >()) {
+        Arguments* args = new (ctx.mem) Arguments(pstate);
+        Function_Call* result = new (ctx.mem) Function_Call(pstate, "url", args);
+        if (lex < uri_value >()) { // chunk seems to work too!
+          String* the_url = parse_interpolated_chunk(lexed);
+          *args << new (ctx.mem) Argument(the_url->pstate(), the_url);
+        }
+        else {
+          error("malformed URL", pstate);
+        }
+        if (!lex< exactly<')'> >()) error("URI is missing ')'", pstate);
+        imp->urls().push_back(result);
       }
       else {
         if (first) error("@import directive requires a url or quoted path", pstate);
@@ -301,16 +311,16 @@ namespace Sass {
 
   Parameters* Parser::parse_parameters()
   {
-    string name(lexed); // for the error message
+    string name(lexed);
+    Position position = after_token;
     Parameters* params = new (ctx.mem) Parameters(pstate);
-    if (lex< exactly<'('> >()) {
+    if (lex_css< exactly<'('> >()) {
       // if there's anything there at all
-      if (!peek< exactly<')'> >()) {
+      if (!peek_css< exactly<')'> >()) {
         do (*params) << parse_parameter();
         while (lex_css< exactly<','> >());
       }
-      while (lex< alternatives < spaces, block_comment > >()) {};
-      if (!lex< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name, pstate);
+      if (!lex_css< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name, position);
     }
     return params;
   }
@@ -351,34 +361,36 @@ namespace Sass {
     return the_call;
   }
 
-  Arguments* Parser::parse_arguments()
+  Arguments* Parser::parse_arguments(bool has_url)
   {
     string name(lexed);
+    Position position = after_token;
     Arguments* args = new (ctx.mem) Arguments(pstate);
-
-    if (lex< exactly<'('> >()) {
+    if (lex_css< exactly<'('> >()) {
       // if there's anything there at all
-      if (!peek< exactly<')'> >()) {
-        do (*args) << parse_argument();
+      if (!peek_css< exactly<')'> >()) {
+        do (*args) << parse_argument(has_url);
         while (lex_css< exactly<','> >());
       }
-      while (lex< block_comment >());
-      if (!lex< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name, pstate);
+      if (!lex_css< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name, position);
     }
-
     return args;
   }
 
-  Argument* Parser::parse_argument()
+  Argument* Parser::parse_argument(bool has_url)
   {
+
     Argument* arg;
-    while (lex< alternatives < spaces, block_comment > >());
-    if (peek< sequence < variable, zero_plus < alternatives < spaces, line_comment, block_comment > >, exactly<':'> > >()) {
-      lex< variable >();
+    // some urls can look like line comments (parse literally - chunk would not work)
+    if (has_url && lex< sequence < uri_value, lookahead < exactly<')'> > > >(false)) {
+      String* the_url = parse_interpolated_chunk(lexed);
+      arg = new (ctx.mem) Argument(the_url->pstate(), the_url);
+    }
+    else if (peek_css< sequence < variable, optional_css_comments, exactly<':'> > >()) {
+      lex_css< variable >();
       string name(Util::normalize_underscores(lexed));
       ParserState p = pstate;
-      while (lex< alternatives < spaces, block_comment > >()) {};
-      lex< exactly<':'> >();
+      lex_css< exactly<':'> >();
       Expression* val = parse_space_list();
       val->is_delayed(false);
       arg = new (ctx.mem) Argument(p, val, name);
@@ -388,7 +400,7 @@ namespace Sass {
       bool is_keyword = false;
       Expression* val = parse_space_list();
       val->is_delayed(false);
-      if (lex< exactly< ellipsis > >()) {
+      if (lex_css< exactly< ellipsis > >()) {
         if (val->concrete_type() == Expression::MAP) is_keyword = true;
         else is_arglist = true;
       }
@@ -1118,10 +1130,10 @@ namespace Sass {
   {
     Expression* conj1 = parse_conjunction();
     // if it's a singleton, return it directly; don't wrap it
-    if (!peek< sequence< kwd_or, negate< identifier > > >()) return conj1;
+    if (!peek_css< kwd_or >()) return conj1;
 
     vector<Expression*> operands;
-    while (lex< sequence< kwd_or, negate< identifier > > >())
+    while (lex_css< kwd_or >())
       operands.push_back(parse_conjunction());
 
     return fold_operands(conj1, operands, Binary_Expression::OR);
@@ -1131,10 +1143,10 @@ namespace Sass {
   {
     Expression* rel1 = parse_relation();
     // if it's a singleton, return it directly; don't wrap it
-    if (!peek< sequence< kwd_and, negate< identifier > > >()) return rel1;
+    if (!peek_css< kwd_and >()) return rel1;
 
     vector<Expression*> operands;
-    while (lex< sequence< kwd_and, negate< identifier > > >())
+    while (lex_css< kwd_and >())
       operands.push_back(parse_relation());
 
     return fold_operands(rel1, operands, Binary_Expression::AND);
@@ -1249,7 +1261,7 @@ namespace Sass {
     else if (peek< sequence< identifier_schema, negate< exactly<'%'> > > >()) {
       return parse_identifier_schema();
     }
-    else if (peek< functional >() && !peek< uri_prefix >()) {
+    else if (peek< functional >()) {
       return parse_function_call();
     }
     else if (lex< sequence< exactly<'+'>, optional_css_whitespace, negate< number > > >()) {
@@ -1272,45 +1284,7 @@ namespace Sass {
 
   Expression* Parser::parse_value()
   {
-    while (lex< block_comment >());
-    if (lex< uri_prefix >()) {
-      Arguments* args = new (ctx.mem) Arguments(pstate);
-      Function_Call* result = new (ctx.mem) Function_Call(pstate, "url", args);
-      const char* here = position;
-      Position here_p = before_token;
-      // Try to parse a SassScript expression. If it succeeds and we can munch
-      // a matching rparen, then that's our url. If we can't munch a matching
-      // rparen, or if the attempt to parse an expression fails, then try to
-      // munch a regular CSS url.
-      try {
-        // special case -- if there's a comment, treat it as part of a URL
-        lex<spaces>();
-        if (peek<line_comment>() || peek<block_comment_prefix>()) error("comment in URL", pstate); // doesn't really matter what we throw
-        Expression* expr = parse_list();
-        if (!lex< exactly<')'> >()) error("dangling expression in URL", pstate); // doesn't really matter what we throw
-        Argument* arg = new (ctx.mem) Argument(expr->pstate(), expr);
-        *args << arg;
-        return result;
-      }
-      catch (Sass_Error&) {
-        // back up so we can try again
-        position = here;
-        before_token = here_p;
-      }
-      catch (...) { throw; }
-      lex< spaces >();
-      if (lex< url >()) {
-        String* the_url = parse_interpolated_chunk(lexed);
-        Argument* arg = new (ctx.mem) Argument(the_url->pstate(), the_url);
-        *args << arg;
-      }
-      else {
-        error("malformed URL", pstate);
-      }
-      if (!lex< exactly<')'> >()) error("URI is missing ')'", pstate);
-      return result;
-    }
-
+    lex< css_comments >();
     if (lex< ampersand >())
     {
       return new (ctx.mem) Parent_Selector(pstate, parse_selector_group()); }
@@ -1322,13 +1296,13 @@ namespace Sass {
     if ((stop = peek< value_schema >()))
     { return parse_value_schema(stop); }
 
-    if (lex< sequence< kwd_true, negate< identifier > > >())
+    if (lex< kwd_true >())
     { return new (ctx.mem) Boolean(pstate, true); }
 
-    if (lex< sequence< kwd_false, negate< identifier > > >())
+    if (lex< kwd_false >())
     { return new (ctx.mem) Boolean(pstate, false); }
 
-    if (lex< sequence< kwd_null, negate< identifier > > >())
+    if (lex< kwd_null >())
     { return new (ctx.mem) Null(pstate); }
 
     if (lex< identifier >()) {
@@ -1634,10 +1608,8 @@ namespace Sass {
   {
     lex< identifier >();
     string name(lexed);
-    ParserState source_position_of_call = pstate;
-
-    Function_Call* the_call = new (ctx.mem) Function_Call(source_position_of_call, name, parse_arguments());
-    return the_call;
+    Arguments* args = parse_arguments(name == "url");
+    return new (ctx.mem) Function_Call(pstate, name, args);
   }
 
   Function_Call_Schema* Parser::parse_function_call_schema()
