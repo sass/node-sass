@@ -10,7 +10,8 @@ if [ "x$COVERAGE" = "xyes" ]; then
                              --exclude utf8 --exclude utf8_string.hpp
                              --exclude utf8.h --exclude utf8_string.cpp
                              --exclude sass2scss.h --exclude sass2scss.cpp
-                             --exclude test --exclude posix"
+                             --exclude test --exclude posix
+                             --exlcude debugger.hpp"
   # debug via gcovr
   gcov -v
   gcovr -r .
