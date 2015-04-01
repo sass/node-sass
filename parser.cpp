@@ -1190,31 +1190,28 @@ namespace Sass {
 
   Expression* Parser::parse_term()
   {
-    Expression* fact1 = parse_factor();
-
+    Expression* factor = parse_factor();
     // Special case: Ruby sass never tries to modulo if the lhs contains an interpolant
-    if (peek< exactly<'%'> >(position) && fact1->concrete_type() == Expression::STRING) {
-      String_Schema* ss = dynamic_cast<String_Schema*>(fact1);
-      if (ss && ss->has_interpolants()) return fact1;
+    if (peek_css< exactly<'%'> >(position) && factor->concrete_type() == Expression::STRING) {
+      String_Schema* ss = dynamic_cast<String_Schema*>(factor);
+      if (ss && ss->has_interpolants()) return factor;
     }
-
     // if it's a singleton, return it directly; don't wrap it
-    if (!(peek< exactly<'*'> >(position) ||
-          peek< exactly<'/'> >(position) ||
-          peek< exactly<'%'> >(position)))
-    { return fact1; }
-
-    while (lex< block_comment >());
-    vector<Expression*> operands;
-    vector<Binary_Expression::Type> operators;
-    while (lex< exactly<'*'> >() || lex< exactly<'/'> >() || lex< exactly<'%'> >()) {
-      if      (lexed.to_string() == "*") operators.push_back(Binary_Expression::MUL);
-      else if (lexed.to_string() == "/") operators.push_back(Binary_Expression::DIV);
-      else                   operators.push_back(Binary_Expression::MOD);
+    if (!peek< class_char< static_ops > >(position)) return factor;
+    // parse more factors and operators
+    vector<Expression*> operands; // factors
+    vector<Binary_Expression::Type> operators; // ops
+    while (lex_css< class_char< static_ops > >()) {
+      switch(*lexed.begin) {
+        case '*': operators.push_back(Binary_Expression::MUL); break;
+        case '/': operators.push_back(Binary_Expression::DIV); break;
+        case '%': operators.push_back(Binary_Expression::MOD); break;
+        default: throw runtime_error("unknown static op parsed"); break;
+      }
       operands.push_back(parse_factor());
     }
-
-    return fold_operands(fact1, operands, operators);
+    // operands and operators to binary expression
+    return fold_operands(factor, operands, operators);
   }
 
   Expression* Parser::parse_factor()

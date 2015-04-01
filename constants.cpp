@@ -127,6 +127,10 @@ namespace Sass {
     extern const char map_name[]        = "map";
     extern const char arglist_name[]    = "arglist";
 
+    // some specific constant character classes
+    // they must be static to be useable by lexer
+    extern const char static_ops[]      = "*/%";
+
     // byte order marks
     // (taken from http://en.wikipedia.org/wiki/Byte_order_mark)
     extern const unsigned char utf_8_bom[]      = { 0xEF, 0xBB, 0xBF };
