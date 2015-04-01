@@ -2,6 +2,7 @@
 #define SASS_CONTEXT_WRAPPER
 
 #include <vector>
+#include <memory>
 #include <nan.h>
 #include <stdlib.h>
 #include <condition_variable>
@@ -44,12 +45,11 @@ extern "C" {
     NanCallback* error_callback;
     NanCallback* success_callback;
 
-    std::vector<CustomFunctionBridge*> function_bridges;
-    CustomImporterBridge* importer_bridge;
+    std::vector<std::shared_ptr<CustomFunctionBridge>> function_bridges;
+    std::vector<std::shared_ptr<CustomImporterBridge>> importer_bridges;
   };
 
   struct sass_context_wrapper*      sass_make_context_wrapper(void);
-  void sass_wrapper_dispose(struct sass_context_wrapper*, char*);
   void sass_free_context_wrapper(struct sass_context_wrapper*);
 
 #ifdef __cplusplus

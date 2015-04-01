@@ -26,7 +26,7 @@ extern "C" {
     return (sass_context_wrapper*)calloc(1, sizeof(sass_context_wrapper));
   }
 
-  void sass_wrapper_dispose(struct sass_context_wrapper* ctx_w, char* string = 0) {
+  void sass_free_context_wrapper(sass_context_wrapper* ctx_w) {
     if (ctx_w->dctx) {
       sass_delete_data_context(ctx_w->dctx);
     }
@@ -46,23 +46,8 @@ extern "C" {
     free(ctx_w->source_map_root);
     free(ctx_w->indent);
 
-    if (string) {
-      free(string);
-    }
-
-    if (!ctx_w->function_bridges.empty()) {
-      for (CustomFunctionBridge* bridge : ctx_w->function_bridges) {
-        delete bridge;
-      }
-    }
-
-    if (ctx_w->importer_bridge) {
-      delete ctx_w->importer_bridge;
-    }
-  }
-
-  void sass_free_context_wrapper(sass_context_wrapper* ctx_w) {
-    sass_wrapper_dispose(ctx_w);
+    ctx_w->importer_bridges.resize(0);
+    ctx_w->function_bridges.resize(0);
 
     free(ctx_w);
   }

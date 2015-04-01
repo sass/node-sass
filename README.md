@@ -57,21 +57,21 @@ var result = sass.renderSync({
 
 ## Options
 ### file
-Type: `String | null`
+Type: `String`
 Default: `null`
 **Special**: `file` or `data` must be specified
 
 Path to a file for [libsass] to render.
 
 ### data
-Type: `String | null`
+Type: `String`
 Default: `null`
 **Special**: `file` or `data` must be specified
 
 A string to pass to [libsass] to render. It is recommended that you use `includePaths` in conjunction with this so that [libsass] can find files when using the `@import` directive.
 
 ### importer (>= v2.0.0)
-Type: `Function` signature `function(url, prev, done)`
+Type: `Function | Function[]` signature `function(url, prev, done)`
 Default: `undefined`
 
 Function Parameters and Information:
@@ -88,6 +88,8 @@ When returning or calling `done()` with `{ file: "String" }`, the new file path 
 When returning or calling `done()` with `{ contents: "String" }`, the string value will be used as if the file was read in through an external source.
 
 Starting from v3.0.0, `this` refers to a contextual scope for the immediate run of `sass.render` or `sass.renderSync`
+
+Starting from v3.0.0, importer can be an array of functions, which will be called by libsass in the order of their occurance in array. This helps user specify special importer for particular kind of path (filesystem, http). If the importer does not handle particular path, it should return `sass.NULL`. See [functions section](#functions) for more details on Sass types.
 
 ### functions (>= v3.0.0)
 `functions` is an `Object` that holds a collection of custom functions that may be invoked by the sass files being compiled. They may take zero or more input parameters and must return a value either synchronously (`return ...;`) or asynchronously (`done();`). Those parameters will be instances of one of the constructors contained in the `require('node-sass').types` hash. The return value must be of one of these types as well. See the list of available types below:
