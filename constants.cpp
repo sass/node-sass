@@ -2,7 +2,17 @@
 
 namespace Sass {
   namespace Constants {
-    extern const int SPECIFICITY_BASE = 1000;
+
+    // https://github.com/sass/libsass/issues/592
+    // https://developer.mozilla.org/en-US/docs/Web/CSS/Specificity
+    // https://github.com/sass/sass/issues/1495#issuecomment-61189114
+    extern const unsigned long Specificity_Star = 0;
+    extern const unsigned long Specificity_Universal = 1 << 0;
+    extern const unsigned long Specificity_Type = 1 << 8;
+    extern const unsigned long Specificity_Class = 1 << 16;
+    extern const unsigned long Specificity_Attr = 1 << 16;
+    extern const unsigned long Specificity_Pseudo = 1 << 16;
+    extern const unsigned long Specificity_ID = 1 << 24;
 
     // sass keywords
     extern const char at_root_kwd[]       = "@at-root";

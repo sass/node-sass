@@ -2,6 +2,7 @@
 #define SASS_DEBUGGER_H
 
 #include <string>
+#include <sstream>
 #include "ast_fwd_decl.hpp"
 
 using namespace std;
@@ -25,9 +26,15 @@ inline string prettyprint(const string& str) {
   return clean;
 }
 
+inline string longToHex(long long t) {
+  std::stringstream is;
+  is << std::hex << t;
+  return is.str();
+}
+
 inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
 {
-
+  if (node == 0) return;
   if (ind == "") cerr << "####################################################################\n";
   if (dynamic_cast<Bubble*>(node)) {
     Bubble* bubble = dynamic_cast<Bubble*>(node);
@@ -64,6 +71,7 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     Complex_Selector* selector = dynamic_cast<Complex_Selector*>(node);
     cerr << ind << "Complex_Selector " << selector
       << " [block:" << selector->last_block() << "]"
+      << " [weight:" << longToHex(selector->specificity()) << "]"
       << (selector->last_block() && selector->last_block()->is_root() ? " [root]" : "")
       << " [@media:" << selector->media_block() << "]"
       << (selector->is_optional() ? " [is_optional]": " -")
@@ -80,14 +88,15 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     debug_ast(selector->tail(), ind + "-", env);
   } else if (dynamic_cast<Compound_Selector*>(node)) {
     Compound_Selector* selector = dynamic_cast<Compound_Selector*>(node);
-    cerr << ind << "Compound_Selector " << selector
-      << " [block:" << selector->last_block() << "]"
-      << (selector->last_block() && selector->last_block()->is_root() ? " [root]" : "")
-      << " [@media:" << selector->media_block() << "]"
-      << (selector->is_optional() ? " [is_optional]": " -")
-      << (selector->has_line_break() ? " [line-break]": " -")
-      << (selector->has_line_feed() ? " [line-feed]": " -") <<
-      " <" << prettyprint(selector->pstate().token.ws_before()) << ">" << endl;
+    cerr << ind << "Compound_Selector " << selector;
+    cerr << " [block:" << selector->last_block() << "]";
+    cerr << " [weight:" << longToHex(selector->specificity()) << "]";
+    // cerr << (selector->last_block() && selector->last_block()->is_root() ? " [root]" : "");
+    cerr << " [@media:" << selector->media_block() << "]";
+    cerr << (selector->is_optional() ? " [is_optional]": " -");
+    cerr << (selector->has_line_break() ? " [line-break]": " -");
+    cerr << (selector->has_line_feed() ? " [line-feed]": " -");
+    cerr << " <" << prettyprint(selector->pstate().token.ws_before()) << ">" << endl;
     for(auto i : selector->elements()) { debug_ast(i, ind + " ", env); }
   } else if (dynamic_cast<Propset*>(node)) {
     Propset* selector = dynamic_cast<Propset*>(node);

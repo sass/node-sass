@@ -3,7 +3,16 @@
 
 namespace Sass {
   namespace Constants {
-    extern const int SPECIFICITY_BASE;
+
+    // https://developer.mozilla.org/en-US/docs/Web/CSS/Specificity
+    // The following list of selectors is by increasing specificity:
+    extern const unsigned long Specificity_Star;
+    extern const unsigned long Specificity_Universal;
+    extern const unsigned long Specificity_Type;
+    extern const unsigned long Specificity_Class;
+    extern const unsigned long Specificity_Attr;
+    extern const unsigned long Specificity_Pseudo;
+    extern const unsigned long Specificity_ID;
 
     // sass keywords
     extern const char at_root_kwd[];
