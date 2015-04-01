@@ -2,7 +2,7 @@ language: cpp
 
 os:
   - linux
-  # - osx
+  - osx
 
 compiler:
   - gcc
@@ -31,6 +31,8 @@ matrix:
   exclude:
     - compiler: clang
       env: AUTOTOOLS=yes COVERAGE=yes BUILD=static
+    - os: osx
+      compiler: gcc
 
 script: ./script/ci-build-libsass
 before_install: ./script/ci-install-deps
