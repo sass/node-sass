@@ -429,7 +429,7 @@ The interface for command-line usage is fairly simplistic at this stage, as seen
 Output will be saved with the same name as input SASS file into the current working directory if it's omitted.
 
 ### Usage
- `node-sass [options] <input.scss> [output.css]`
+ `node-sass [options] <input.scss> [output.css]`  
  `cat <input.scss> | node-sass > output.css`
 
  **Options:**
