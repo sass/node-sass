@@ -342,7 +342,7 @@ extern "C" {
   }
 
   // generic compilation function (not exported, use file/data compile instead)
-  static Context* sass_prepare_context (Sass_Context* c_ctx, Context::Data cpp_opt) throw()
+  static Sass_Compiler* sass_prepare_context (Sass_Context* c_ctx, Context::Data cpp_opt) throw()
   {
     try {
 
@@ -452,8 +452,17 @@ extern "C" {
       c_ctx->error_line = string::npos;
       c_ctx->error_column = string::npos;
 
+      // allocate a new compiler instance
+      Sass_Compiler* compiler = (struct Sass_Compiler*) calloc(1, sizeof(struct Sass_Compiler));
+      compiler->state = SASS_COMPILER_CREATED;
+
+      // store in sass compiler
+      compiler->c_ctx = c_ctx;
+      compiler->cpp_ctx = cpp_ctx;
+      cpp_ctx->c_compiler = compiler;
+
       // use to parse block
-      return cpp_ctx;
+      return compiler;
 
     }
     // pass errors to generic error handler
@@ -464,8 +473,18 @@ extern "C" {
 
   }
 
-  static Block* sass_parse_block (Sass_Context* c_ctx, Context* cpp_ctx) throw()
+  static Block* sass_parse_block (Sass_Compiler* compiler) throw()
   {
+
+    // assert valid pointer
+    if (compiler == 0) return 0;
+    // The cpp context must be set by now
+    Context* cpp_ctx = compiler->cpp_ctx;
+    Sass_Context* c_ctx = compiler->c_ctx;
+    // We will take care to wire up the rest
+    compiler->cpp_ctx->c_compiler = compiler;
+    compiler->state = SASS_COMPILER_PARSED;
+
     try {
 
       // get input/output path from options
@@ -509,29 +528,18 @@ extern "C" {
   static int sass_compile_context (Sass_Context* c_ctx, Context::Data cpp_opt)
   {
 
-    // first prepare the c++ context
-    Context* cpp_ctx = sass_prepare_context(c_ctx, cpp_opt);
+    // prepare sass compiler with context and options
+    Sass_Compiler* compiler = sass_prepare_context(c_ctx, cpp_opt);
 
-    // parse given context and return root block
-    Block* root = cpp_ctx ? sass_parse_block(c_ctx, cpp_ctx) : 0;
-
-    if (cpp_ctx && root) {
-
-      try {
-
-        // now compile the parsed root block
-        c_ctx->output_string = cpp_ctx->compile_block(root);
-
-        // generate source map json and store on context
-        c_ctx->source_map_string = cpp_ctx->generate_source_map();
-
-      }
-      // pass errors to generic error handler
-      catch (...) { handle_errors(c_ctx); }
-
+    try {
+      // call each compiler step
+      sass_compiler_parse(compiler);
+      sass_compiler_execute(compiler);
     }
+    // pass errors to generic error handler
+    catch (...) { handle_errors(c_ctx); }
 
-    delete cpp_ctx;
+    sass_delete_compiler(compiler);
 
     return c_ctx->error_status;
   }
@@ -586,29 +594,17 @@ extern "C" {
   struct Sass_Compiler* ADDCALL sass_make_file_compiler (struct Sass_File_Context* c_ctx)
   {
     if (c_ctx == 0) return 0;
-    struct Sass_Compiler* compiler = (struct Sass_Compiler*) calloc(1, sizeof(struct Sass_Compiler));
-    if (compiler == 0) { cerr << "Error allocating memory for file compiler" << endl; return 0; }
-    compiler->state = SASS_COMPILER_CREATED;
-    compiler->c_ctx = c_ctx;
     Context::Data cpp_opt = Context::Data();
     cpp_opt.entry_point(c_ctx->input_path);
-    compiler->cpp_ctx = sass_prepare_context(c_ctx, cpp_opt);
-    compiler->cpp_ctx->c_compiler = compiler;
-    return compiler;
+    return sass_prepare_context(c_ctx, cpp_opt);
   }
 
   struct Sass_Compiler* ADDCALL sass_make_data_compiler (struct Sass_Data_Context* c_ctx)
   {
     if (c_ctx == 0) return 0;
-    struct Sass_Compiler* compiler = (struct Sass_Compiler*) calloc(1, sizeof(struct Sass_Compiler));
-    if (compiler == 0) { cerr << "Error allocating memory for data compiler" << endl; return 0; }
-    compiler->state = SASS_COMPILER_CREATED;
-    compiler->c_ctx = c_ctx;
     Context::Data cpp_opt = Context::Data();
     cpp_opt.source_c_str(c_ctx->source_string);
-    compiler->cpp_ctx = sass_prepare_context(c_ctx, cpp_opt);
-    compiler->cpp_ctx->c_compiler = compiler;
-    return compiler;
+    return sass_prepare_context(c_ctx, cpp_opt);
   }
 
   int ADDCALL sass_compile_data_context(Sass_Data_Context* data_ctx)
@@ -652,10 +648,8 @@ extern "C" {
     if (compiler->cpp_ctx == NULL) return 1;
     if (compiler->c_ctx->error_status)
       return compiler->c_ctx->error_status;
-    compiler->state = SASS_COMPILER_PARSED;
-    Context* cpp_ctx = (Context*) compiler->cpp_ctx;
     // parse the context we have set up (file or data)
-    compiler->root = sass_parse_block(compiler->c_ctx, cpp_ctx);
+    compiler->root = sass_parse_block(compiler);
     // success
     return 0;
   }
