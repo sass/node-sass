@@ -103,9 +103,9 @@ namespace Sass {
     append_token(at_rule->keyword(), at_rule);
     if (at_rule->selector()) {
       append_mandatory_space();
-      in_at_rule = true;
+      in_wrapped = true;
       at_rule->selector()->perform(this);
-      in_at_rule = false;
+      in_wrapped = false;
     }
     if (at_rule->block()) {
       at_rule->block()->perform(this);
@@ -791,9 +791,12 @@ namespace Sass {
 
   void Inspect::operator()(Wrapped_Selector* s)
   {
+    bool was = in_wrapped;
+    in_wrapped = true;
     append_token(s->name(), s);
     s->selector()->perform(this);
     append_string(")");
+    in_wrapped = was;
   }
 
   void Inspect::operator()(Compound_Selector* s)
@@ -848,7 +851,7 @@ namespace Sass {
   {
     if (g->empty()) return;
     for (size_t i = 0, L = g->length(); i < L; ++i) {
-      if (!in_at_rule && i == 0) append_indentation();
+      if (!in_wrapped && i == 0) append_indentation();
       (*g)[i]->perform(this);
       if (i < L - 1) {
         append_comma_separator();
