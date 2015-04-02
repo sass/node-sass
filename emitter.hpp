@@ -38,7 +38,7 @@ namespace Sass {
 
     public:
       bool in_comment;
-      bool in_at_rule;
+      bool in_wrapped;
       bool in_media_block;
       bool in_declaration;
       bool in_declaration_list;

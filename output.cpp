@@ -337,9 +337,9 @@ namespace Sass {
     append_token(kwd, a);
     if (s) {
       append_mandatory_space();
-      in_at_rule = true;
+      in_wrapped = true;
       s->perform(this);
-      in_at_rule = false;
+      in_wrapped = false;
     }
     else if (v) {
       append_mandatory_space();
