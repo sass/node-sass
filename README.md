@@ -459,7 +459,9 @@ Output will be saved with the same name as input SASS file into the current work
     --help                     Print usage info
 ```
 
-Note `--importer` takes the (absolute or relative to pwd) path to a js file, which needs to have a default `module.exports` set to the importer function. See our test [fixtures](https://github.com/sass/node-sass/tree/974f93e76ddd08ea850e3e663cfe64bb6a059dd3/test/fixtures/extras) for example.
+Pass a directory as the input to compile multiple files. For example: `node-sass sass/ -o css/`. The `--output` flag is required and must be a directory when using multi-file compilation.
+
+Also, note `--importer` takes the (absolute or relative to pwd) path to a js file, which needs to have a default `module.exports` set to the importer function. See our test [fixtures](https://github.com/sass/node-sass/tree/974f93e76ddd08ea850e3e663cfe64bb6a059dd3/test/fixtures/extras) for example.
 
 ## Post-install Build
 

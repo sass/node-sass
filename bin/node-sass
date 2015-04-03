@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 
 var Emitter = require('events').EventEmitter,
+    forEach = require('async-foreach').forEach,
     Gaze = require('gaze'),
     grapher = require('sass-graph'),
     meow = require('meow'),
+    util = require('util'),
     path = require('path'),
+    glob = require('glob'),
     render = require('../lib/render'),
-    stdin = require('get-stdin');
+    stdin = require('get-stdin'),
+    fs = require('fs');
 
 /**
  * Initialize CLI
@@ -88,14 +92,34 @@ var cli = meow({
 });
 
 /**
- * Check if file is a Sass file
+ * Is a Directory
  *
- * @param {String} file
+ * @param {String} filePath
+ * @returns {Boolean}
  * @api private
  */
 
-function isSassFile(file) {
-  return file.match(/\.(sass|scss)/);
+function isDirectory(filePath) {
+  var isDir = false;
+  try {
+    var absolutePath = path.resolve(process.cwd(), filePath);
+    isDir = fs.lstatSync(absolutePath).isDirectory();
+  } catch (e) {
+    isDir = e.code === 'ENOENT';
+  }
+  return isDir;
+}
+
+/**
+ * Get correct glob pattern
+ *
+ * @param {Object} options
+ * @returns {String}
+ * @api private
+ */
+
+function globPattern(options) {
+  return options.recursive ? '**/*.{sass,scss}' : '*.{sass,scss}';
 }
 
 /**
@@ -123,7 +147,7 @@ function getEmitter() {
   });
 
   emitter.on('done', function() {
-    if (!options.watch) {
+    if (!options.watch && !options.directory) {
       process.exit;
     }
   });
@@ -150,6 +174,13 @@ function getOptions(args, options) {
       [path.basename(options.src, path.extname(options.src)), '.css'].join(''));  // replace ext.
   }
 
+  if (options.directory) {
+    var sassDir = path.resolve(process.cwd(), options.directory);
+    var file = path.relative(sassDir, args[0]);
+    var cssDir = path.resolve(process.cwd(), options.output);
+    options.dest = path.join(cssDir, file).replace(path.extname(file), '.css');
+  }
+
   return options;
 }
 
@@ -162,8 +193,7 @@ function getOptions(args, options) {
  */
 
 function watch(options, emitter) {
-  var glob = options.recursive ? '**/*.{sass,scss}' : '*.{sass,scss}';
-  var src = isSassFile(options.src) ? options.src : path.join(options.src, glob);
+  var src = options.directory ? path.join(options.directory, globPattern(options)) : options.src;
   var graph = grapher.parseDir(path.resolve(path.dirname(src)), { loadPaths: options.includePath });
   var watch = [];
 
@@ -181,12 +211,10 @@ function watch(options, emitter) {
     graph.visitAncestors(file, function(parent) {
       files.push(parent);
     });
-
     files.forEach(function(file) {
-      if (path.basename(file)[0] === '_') return;
-      options = getOptions([path.resolve(file)], options);
-      emitter.emit('warn', '=> changed: ' + file);
-      render(options, emitter);
+      if (path.basename(file)[0] !== '_') {
+        renderFile(file, options, emitter);
+      }
     });
   });
 }
@@ -202,6 +230,15 @@ function watch(options, emitter) {
 function run(options, emitter) {
   if (!Array.isArray(options.includePath)) {
     options.includePath = [options.includePath];
+  }
+
+  if (options.directory) {
+    if (!options.output) {
+      emitter.emit('error', 'Specify an output directory when using multi-file compilation');
+    }
+    if (!isDirectory(options.output)) {
+      emitter.emit('error', util.format('Multi-file compilation: requires destination %s to be a directory.', options.output));
+    }
   }
 
   if (options.sourceMap) {
@@ -235,9 +272,53 @@ function run(options, emitter) {
 
   if (options.watch) {
     watch(options, emitter);
+  } else if (options.directory) {
+    renderDir(options, emitter);
   } else {
     render(options, emitter);
   }
+}
+
+/**
+ * Render a file
+ *
+ * @param {String} file
+ * @param {Object} options
+ * @param {Object} emitter
+ * @api private
+ */
+function renderFile(file, options, emitter) {
+  options = getOptions([path.resolve(file)], options);
+  if (options.watch) {
+    emitter.emit('warn', util.format('=> changed: %s', file));
+  }
+  render(options, emitter);
+}
+
+/**
+ * Render all sass files in a directory
+ *
+ * @param {Object} options
+ * @param {Object} emitter
+ * @api private
+ */
+function renderDir(options, emitter) {
+  var globPath = path.resolve(process.cwd(), options.directory, globPattern(options));
+  glob(globPath, {ignore: '**/_*'}, function(err, files) {
+    if(err) {
+      return emitter.emit('error', util.format('You do not have permission to access this path: %s.', err.path));
+    } else if(!files.length) {
+      return emitter.emit('error', 'No input file was found.');
+    }
+    forEach(files, function(subject) {
+      emitter.once('done', this.async());
+      renderFile(subject, options, emitter);
+    }, function(successful, arr) {
+      var outputDir = path.join(process.cwd(), options.output);
+      emitter.emit('warn', util.format('Wrote %s CSS files to %s', arr.lenth, outputDir));
+      process.exit;
+    });
+  });
 }
 
 /**
@@ -266,6 +347,9 @@ if (!options.src && process.stdin.isTTY) {
  */
 
 if (options.src) {
+  if (isDirectory(options.src)){
+    options.directory = options.src;
+  }
   run(options, emitter);
 } else if (!process.stdin.isTTY) {
   stdin(function(data) {
