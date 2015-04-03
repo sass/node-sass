@@ -1742,7 +1742,9 @@ namespace Sass {
     { }
     virtual ~Selector() = 0;
     // virtual Selector_Placeholder* find_placeholder();
-    virtual int specificity() { return Constants::SPECIFICITY_BASE; }
+    virtual unsigned long specificity() {
+      return Constants::Specificity_Universal;
+    };
   };
   inline Selector::~Selector() { }
 
@@ -1770,6 +1772,7 @@ namespace Sass {
     virtual ~Simple_Selector() = 0;
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
     virtual bool is_pseudo_element() { return false; }
+    virtual bool is_pseudo_class() { return false; }
 
     bool operator==(const Simple_Selector& rhs) const;
     inline bool operator!=(const Simple_Selector& rhs) const { return !(*this == rhs); }
@@ -1787,10 +1790,10 @@ namespace Sass {
     Selector_Reference(ParserState pstate, Selector* r = 0)
     : Simple_Selector(pstate), selector_(r)
     { has_reference(true); }
-    virtual int specificity()
+    virtual unsigned long specificity()
     {
-      if (selector()) return selector()->specificity();
-      else            return 0;
+      if (!selector()) return 0;
+      return selector()->specificity();
     }
     ATTACH_OPERATIONS();
   };
@@ -1817,10 +1820,11 @@ namespace Sass {
     Type_Selector(ParserState pstate, string n)
     : Simple_Selector(pstate), name_(n)
     { }
-    virtual int specificity()
+    virtual unsigned long specificity()
     {
-      if (name() == "*") return 0;
-      else               return 1;
+      // ToDo: What is the specificity of the star selector?
+      if (name() == "*") return Constants::Specificity_Universal;
+      else               return Constants::Specificity_Type;
     }
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
     ATTACH_OPERATIONS();
@@ -1835,10 +1839,11 @@ namespace Sass {
     Selector_Qualifier(ParserState pstate, string n)
     : Simple_Selector(pstate), name_(n)
     { }
-    virtual int specificity()
+    virtual unsigned long specificity()
     {
-      if (name()[0] == '#') return Constants::SPECIFICITY_BASE * Constants::SPECIFICITY_BASE;
-      else                  return Constants::SPECIFICITY_BASE;
+      if (name()[0] == '#') return Constants::Specificity_ID;
+      if (name()[0] == '.') return Constants::Specificity_Class;
+      else                  return Constants::Specificity_Type;
     }
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
     ATTACH_OPERATIONS();
@@ -1855,12 +1860,28 @@ namespace Sass {
     Attribute_Selector(ParserState pstate, string n, string m, String* v)
     : Simple_Selector(pstate), name_(n), matcher_(m), value_(v)
     { }
+    virtual unsigned long specificity()
+    {
+      return Constants::Specificity_Attr;
+    }
     ATTACH_OPERATIONS();
   };
 
   //////////////////////////////////////////////////////////////////
   // Pseudo selectors -- e.g., :first-child, :nth-of-type(...), etc.
   //////////////////////////////////////////////////////////////////
+  /* '::' starts a pseudo-element, ':' a pseudo-class */
+  /* Except :first-line, :first-letter, :before and :after */
+  /* Note that pseudo-elements are restricted to one per selector */
+  /* and occur only in the last simple_selector_sequence. */
+  inline bool is_pseudo_class_element(const string& name)
+  {
+    return name == ":before"       ||
+           name == ":after"        ||
+           name == ":first-line"   ||
+           name == ":first-letter";
+  }
+
   class Pseudo_Selector : public Simple_Selector {
     ADD_PROPERTY(string, name);
     ADD_PROPERTY(String*, expression);
@@ -1868,29 +1889,33 @@ namespace Sass {
     Pseudo_Selector(ParserState pstate, string n, String* expr = 0)
     : Simple_Selector(pstate), name_(n), expression_(expr)
     { }
-    virtual int specificity()
+
+    // A pseudo-class always consists of a "colon" (:) followed by the name
+    // of the pseudo-class and optionally by a value between parentheses.
+    virtual bool is_pseudo_class()
     {
-      // TODO: clean up the pseudo-element checking
-      if (name() == ":before"       || name() == "::before"     ||
-          name() == ":after"        || name() == "::after"      ||
-          name() == ":first-line"   || name() == "::first-line" ||
-          name() == ":first-letter" || name() == "::first-letter")
-        return 1;
-      else
-        return Constants::SPECIFICITY_BASE;
+      return (name_[0] == ':' && name_[1] != ':')
+             && ! is_pseudo_class_element(name_);
     }
+
+    // A pseudo-element is made of two colons (::) followed by the name.
+    // The `::` notation is introduced by the current document in order to
+    // establish a discrimination between pseudo-classes and pseudo-elements.
+    // For compatibility with existing style sheets, user agents must also
+    // accept the previous one-colon notation for pseudo-elements introduced
+    // in CSS levels 1 and 2 (namely, :first-line, :first-letter, :before and
+    // :after). This compatibility is not allowed for the new pseudo-elements
+    // introduced in this specification.
     virtual bool is_pseudo_element()
     {
-      if (name() == ":before"       || name() == "::before"     ||
-          name() == ":after"        || name() == "::after"      ||
-          name() == ":first-line"   || name() == "::first-line" ||
-          name() == ":first-letter" || name() == "::first-letter") {
-        return true;
-      }
-      else {
-        // If it's not a known pseudo-element, check whether it looks like one. This is similar to the type method on the Pseudo class in ruby sass.
-        return name().find("::") == 0;
-      }
+      return (name_[0] == ':' && name_[1] == ':')
+             || is_pseudo_class_element(name_);
+    }
+    virtual unsigned long specificity()
+    {
+      if (is_pseudo_element())
+        return Constants::Specificity_Type;
+      return Constants::Specificity_Pseudo;
     }
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
     ATTACH_OPERATIONS();
@@ -1906,6 +1931,12 @@ namespace Sass {
     Wrapped_Selector(ParserState pstate, string n, Selector* sel)
     : Simple_Selector(pstate), name_(n), selector_(sel)
     { }
+    // Selectors inside the negation pseudo-class are counted like any
+    // other, but the negation itself does not count as a pseudo-class.
+    virtual unsigned long specificity()
+    {
+      return selector_ ? selector_->specificity() : 0;
+    }
     ATTACH_OPERATIONS();
   };
 
@@ -1946,7 +1977,7 @@ namespace Sass {
       return 0;
     }
     bool is_superselector_of(Compound_Selector* rhs);
-    virtual int specificity()
+    virtual unsigned long specificity()
     {
       int sum = 0;
       for (size_t i = 0, L = length(); i < L; ++i)
@@ -2007,7 +2038,7 @@ namespace Sass {
     // virtual Selector_Placeholder* find_placeholder();
     Combinator clear_innermost();
     void set_innermost(Complex_Selector*, Combinator);
-    virtual int specificity() const
+    virtual unsigned long specificity() const
     {
       int sum = 0;
       if (head()) sum += head()->specificity();
@@ -2088,9 +2119,9 @@ namespace Sass {
     : Selector(pstate), Vectorized<Complex_Selector*>(s), wspace_(0)
     { }
     // virtual Selector_Placeholder* find_placeholder();
-    virtual int specificity()
+    virtual unsigned long specificity()
     {
-      int sum = 0;
+      unsigned long sum = 0;
       for (size_t i = 0, L = length(); i < L; ++i)
       { sum += (*this)[i]->specificity(); }
       return sum;

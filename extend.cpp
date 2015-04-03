@@ -517,14 +517,14 @@ namespace Sass {
         // had an extra source that the ruby version did not have. Without a failing test case, this is going to be extra hard to find. My
         // best guess at this point is that we're cloning an object somewhere and maintaining the sources when we shouldn't be. This is purely
         // a guess though.
-        int maxSpecificity = 0;
+        unsigned long maxSpecificity = 0;
         SourcesSet sources = pSeq1->sources();
 
         DEBUG_PRINTLN(TRIM, "TRIMASDF SEQ1: " << seq1)
         DEBUG_EXEC(TRIM, printSourcesSet(sources, ctx, "TRIMASDF SOURCES: "))
 
         for (SourcesSet::iterator sourcesSetIterator = sources.begin(), sourcesSetIteratorEnd = sources.end(); sourcesSetIterator != sourcesSetIteratorEnd; ++sourcesSetIterator) {
-           const Complex_Selector* const pCurrentSelector = *sourcesSetIterator;
+          const Complex_Selector* const pCurrentSelector = *sourcesSetIterator;
           maxSpecificity = max(maxSpecificity, pCurrentSelector->specificity());
         }
 
