@@ -18,6 +18,9 @@
     "node": ">=0.10.0"
   },
   "main": "lib/index.js",
+  "nodeSassConfig": {
+    "binarySite": "https://github.com/sass/node-sass/releases/download"
+  },
   "bin": {
     "node-sass": "bin/node-sass"
   },
