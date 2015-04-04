@@ -260,7 +260,7 @@ describe('api', function() {
     it('should override imports with "data" as input and returns file', function(done) {
       sass.render({
         data: src,
-        importer: function(url, /* jshint unused:false */ prev) {
+        importer: function(url) {
           return {
             file: path.resolve(path.dirname(fixture('include-files/index.scss')), url + (path.extname(url) ? '' : '.scss'))
           };
@@ -414,7 +414,7 @@ describe('api', function() {
           done(new Error('doesn\'t exist!'));
         }
       }, function(error) {
-        assert.equal(error.message, 'doesn\'t exist!');
+        assert(/doesn\'t exist!/.test(error.message));
         done();
       });
     });
@@ -426,7 +426,19 @@ describe('api', function() {
           return new Error('doesn\'t exist!');
         }
       }, function(error) {
-        assert.equal(error.message, 'doesn\'t exist!');
+        assert(/doesn\'t exist!/.test(error.message));
+        done();
+      });
+    });
+
+    it('should throw exception when importer returns an invalid value', function(done) {
+      sass.render({
+        data: src,
+        importer: function() {
+          return { contents: new Buffer('i am not a string!') };
+        }
+      }, function(error) {
+        assert(/returned value of `contents` must be a string/.test(error.message));
         done();
       });
     });
@@ -851,6 +863,332 @@ describe('api', function() {
     });
   });
 
+  describe('.render({stats: {}})', function() {
+    var start = Date.now();
+
+    it('should provide a start timestamp', function(done) {
+      sass.render({
+        file: fixture('include-files/index.scss')
+      }, function(error, result) {
+        assert(!error);
+        assert(typeof result.stats.start === 'number');
+        assert(result.stats.start >= start);
+        done();
+      });
+    });
+
+    it('should provide an end timestamp', function(done) {
+      sass.render({
+        file: fixture('include-files/index.scss')
+      }, function(error, result) {
+        assert(!error);
+        assert(typeof result.stats.end === 'number');
+        assert(result.stats.end >= result.stats.start);
+        done();
+      });
+    });
+
+    it('should provide a duration', function(done) {
+      sass.render({
+        file: fixture('include-files/index.scss')
+      }, function(error, result) {
+        assert(!error);
+        assert(typeof result.stats.duration === 'number');
+        assert.equal(result.stats.end - result.stats.start, result.stats.duration);
+        done();
+      });
+    });
+
+    it('should contain the given entry file', function(done) {
+      sass.render({
+        file: fixture('include-files/index.scss')
+      }, function(error, result) {
+        assert(!error);
+        assert.equal(result.stats.entry, fixture('include-files/index.scss'));
+        done();
+      });
+    });
+
+    it('should contain an array of all included files', function(done) {
+      var expected = [
+        fixture('include-files/bar.scss').replace(/\\/g, '/'),
+        fixture('include-files/foo.scss').replace(/\\/g, '/'),
+        fixture('include-files/index.scss').replace(/\\/g, '/')
+      ];
+
+      sass.render({
+        file: fixture('include-files/index.scss')
+      }, function(error, result) {
+        assert(!error);
+        assert.deepEqual(result.stats.includedFiles, expected);
+        done();
+      });
+    });
+
+    it('should contain array with the entry if there are no import statements', function(done) {
+      var expected = fixture('simple/index.scss').replace(/\\/g, '/');
+
+      sass.render({
+        file: fixture('simple/index.scss')
+      }, function(error, result) {
+        assert.deepEqual(result.stats.includedFiles, [expected]);
+        done();
+      });
+    });
+
+    it('should state `data` as entry file', function(done) {
+      sass.render({
+        data: read(fixture('simple/index.scss'), 'utf8')
+      }, function(error, result) {
+        assert.equal(result.stats.entry, 'data');
+        done();
+      });
+    });
+
+    it('should contain an empty array as includedFiles', function(done) {
+      sass.render({
+        data: read(fixture('simple/index.scss'), 'utf8')
+      }, function(error, result) {
+        assert.deepEqual(result.stats.includedFiles, []);
+        done();
+      });
+    });
+  });
+
+  describe('.renderSync(options)', function() {
+    it('should compile sass to css with file', function(done) {
+      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
+      var result = sass.renderSync({ file: fixture('simple/index.scss') });
+
+      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should compile sass to css with outFile set to absolute url', function(done) {
+      var result = sass.renderSync({
+        file: fixture('simple/index.scss'),
+        sourceMap: true,
+        outFile: fixture('simple/index-test.css')
+      });
+
+      assert.equal(JSON.parse(result.map).file, 'index-test.css');
+      done();
+    });
+
+    it('should compile sass to css with outFile set to relative url', function(done) {
+      var result = sass.renderSync({
+        file: fixture('simple/index.scss'),
+        sourceMap: true,
+        outFile: './index-test.css'
+      });
+
+      assert.equal(JSON.parse(result.map).file, 'index-test.css');
+      done();
+    });
+
+    it('should compile sass to css with outFile and sourceMap set to relative url', function(done) {
+      var result = sass.renderSync({
+        file: fixture('simple/index.scss'),
+        sourceMap: './deep/nested/index.map',
+        outFile: './index-test.css'
+      });
+
+      assert.equal(JSON.parse(result.map).file, '../../index-test.css');
+      done();
+    });
+
+    it('should compile generate map with sourceMapRoot pass-through option', function(done) {
+      var result = sass.renderSync({
+        file: fixture('simple/index.scss'),
+        sourceMap: './deep/nested/index.map',
+        sourceMapRoot: 'http://test.com/',
+        outFile: './index-test.css'
+      });
+
+      assert.equal(JSON.parse(result.map).sourceRoot, 'http://test.com/');
+      done();
+    });
+
+    it('should compile sass to css with data', function(done) {
+      var src = read(fixture('simple/index.scss'), 'utf8');
+      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
+      var result = sass.renderSync({ data: src });
+
+      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should compile sass to css using indented syntax', function(done) {
+      var src = read(fixture('indent/index.sass'), 'utf8');
+      var expected = read(fixture('indent/expected.css'), 'utf8').trim();
+      var result = sass.renderSync({
+        data: src,
+        indentedSyntax: true
+      });
+
+      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should throw error for bad input', function(done) {
+      assert.throws(function() {
+        sass.renderSync({ data: '#navbar width 80%;' });
+      });
+
+      done();
+    });
+  });
+
+  describe('.renderSync(importer)', function() {
+    var src = read(fixture('include-files/index.scss'), 'utf8');
+
+    it('should override imports with "data" as input and returns file and contents', function(done) {
+      var result = sass.renderSync({
+        data: src,
+        importer: function(url, prev) {
+          return {
+            file: prev + url,
+            contents: 'div {color: yellow;}'
+          };
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
+    it('should override imports with "file" as input and returns file and contents', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function(url, prev) {
+          return {
+            file: prev + url,
+            contents: 'div {color: yellow;}'
+          };
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
+    it('should override imports with "data" as input and returns file', function(done) {
+      var result = sass.renderSync({
+        data: src,
+        importer: function(url) {
+          return {
+            file: path.resolve(path.dirname(fixture('include-files/index.scss')), url + (path.extname(url) ? '' : '.scss'))
+          };
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), '');
+      done();
+    });
+
+    it('should override imports with "file" as input and returns file', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function(url, prev) {
+          return {
+            file: path.resolve(path.dirname(prev), url + (path.extname(url) ? '' : '.scss'))
+          };
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), '');
+      done();
+    });
+
+    it('should override imports with "data" as input and returns contents', function(done) {
+      var result = sass.renderSync({
+        data: src,
+        importer: function() {
+          return {
+            contents: 'div {color: yellow;}'
+          };
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
+    it('should override imports with "file" as input and returns contents', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function() {
+          return {
+            contents: 'div {color: yellow;}'
+          };
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
+    it('should accept arrays of importers and return respect the order', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: [
+          function() {
+            return sass.NULL;
+          },
+          function() {
+            return {
+              contents: 'div {color: yellow;}'
+            };
+          }
+        ]
+      });
+
+      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
+    it('should be able to see its options in this.options', function(done) {
+      var fxt = fixture('include-files/index.scss');
+      var sync = false;
+      sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function() {
+          assert.equal(fxt, this.options.file);
+          sync = true;
+          return {};
+        }
+      });
+      assert.equal(sync, true);
+      done();
+    });
+
+    it('should throw user-defined error', function(done) {
+      assert.throws(function() {
+        sass.renderSync({
+          data: src,
+          importer: function() {
+            return new Error('doesn\'t exist!');
+          }
+        });
+      }, /doesn\'t exist!/);
+
+      done();
+    });
+
+    it('should throw exception when importer returns an invalid value', function(done) {
+      assert.throws(function() {
+        sass.renderSync({
+          data: src,
+          importer: function() {
+            return { contents: new Buffer('i am not a string!') };
+          }
+        });
+      }, /returned value of `contents` must be a string/);
+
+      done();
+    });
+  });
+
   describe('.renderSync(functions)', function() {
     it('should call custom function in sync mode', function(done) {
       var result = sass.renderSync({
@@ -992,319 +1330,6 @@ describe('api', function() {
     });
   });
 
-  describe('.renderSync(options)', function() {
-    it('should compile sass to css with file', function(done) {
-      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
-      var result = sass.renderSync({ file: fixture('simple/index.scss') });
-
-      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
-      done();
-    });
-
-    it('should compile sass to css with outFile set to absolute url', function(done) {
-      var result = sass.renderSync({
-        file: fixture('simple/index.scss'),
-        sourceMap: true,
-        outFile: fixture('simple/index-test.css')
-      });
-
-      assert.equal(JSON.parse(result.map).file, 'index-test.css');
-      done();
-    });
-
-    it('should compile sass to css with outFile set to relative url', function(done) {
-      var result = sass.renderSync({
-        file: fixture('simple/index.scss'),
-        sourceMap: true,
-        outFile: './index-test.css'
-      });
-
-      assert.equal(JSON.parse(result.map).file, 'index-test.css');
-      done();
-    });
-
-    it('should compile sass to css with outFile and sourceMap set to relative url', function(done) {
-      var result = sass.renderSync({
-        file: fixture('simple/index.scss'),
-        sourceMap: './deep/nested/index.map',
-        outFile: './index-test.css'
-      });
-
-      assert.equal(JSON.parse(result.map).file, '../../index-test.css');
-      done();
-    });
-
-    it('should compile generate map with sourceMapRoot pass-through option', function(done) {
-      var result = sass.renderSync({
-        file: fixture('simple/index.scss'),
-        sourceMap: './deep/nested/index.map',
-        sourceMapRoot: 'http://test.com/',
-        outFile: './index-test.css'
-      });
-
-      assert.equal(JSON.parse(result.map).sourceRoot, 'http://test.com/');
-      done();
-    });
-
-    it('should compile sass to css with data', function(done) {
-      var src = read(fixture('simple/index.scss'), 'utf8');
-      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
-      var result = sass.renderSync({ data: src });
-
-      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
-      done();
-    });
-
-    it('should compile sass to css using indented syntax', function(done) {
-      var src = read(fixture('indent/index.sass'), 'utf8');
-      var expected = read(fixture('indent/expected.css'), 'utf8').trim();
-      var result = sass.renderSync({
-        data: src,
-        indentedSyntax: true
-      });
-
-      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
-      done();
-    });
-
-    it('should throw error for bad input', function(done) {
-      assert.throws(function() {
-        sass.renderSync({ data: '#navbar width 80%;' });
-      });
-
-      done();
-    });
-  });
-
-  describe('.renderSync(importer)', function() {
-    var src = read(fixture('include-files/index.scss'), 'utf8');
-
-    it('should override imports with "data" as input and returns file and contents', function(done) {
-      var result = sass.renderSync({
-        data: src,
-        importer: function(url, prev) {
-          return {
-            file: prev + url,
-            contents: 'div {color: yellow;}'
-          };
-        }
-      });
-
-      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
-      done();
-    });
-
-    it('should override imports with "file" as input and returns file and contents', function(done) {
-      var result = sass.renderSync({
-        file: fixture('include-files/index.scss'),
-        importer: function(url, prev) {
-          return {
-            file: prev + url,
-            contents: 'div {color: yellow;}'
-          };
-        }
-      });
-
-      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
-      done();
-    });
-
-    it('should override imports with "data" as input and returns file', function(done) {
-      var result = sass.renderSync({
-        data: src,
-        importer: function(url, /* jshint unused:false */ prev) {
-          return {
-            file: path.resolve(path.dirname(fixture('include-files/index.scss')), url + (path.extname(url) ? '' : '.scss'))
-          };
-        }
-      });
-
-      assert.equal(result.css.toString().trim(), '');
-      done();
-    });
-
-    it('should override imports with "file" as input and returns file', function(done) {
-      var result = sass.renderSync({
-        file: fixture('include-files/index.scss'),
-        importer: function(url, prev) {
-          return {
-            file: path.resolve(path.dirname(prev), url + (path.extname(url) ? '' : '.scss'))
-          };
-        }
-      });
-
-      assert.equal(result.css.toString().trim(), '');
-      done();
-    });
-
-    it('should override imports with "data" as input and returns contents', function(done) {
-      var result = sass.renderSync({
-        data: src,
-        importer: function() {
-          return {
-            contents: 'div {color: yellow;}'
-          };
-        }
-      });
-
-      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
-      done();
-    });
-
-    it('should override imports with "file" as input and returns contents', function(done) {
-      var result = sass.renderSync({
-        file: fixture('include-files/index.scss'),
-        importer: function() {
-          return {
-            contents: 'div {color: yellow;}'
-          };
-        }
-      });
-
-      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
-      done();
-    });
-
-    it('should accept arrays of importers and return respect the order', function(done) {
-      var result = sass.renderSync({
-        file: fixture('include-files/index.scss'),
-        importer: [
-          function() {
-            return sass.NULL;
-          },
-          function() {
-            return {
-              contents: 'div {color: yellow;}'
-            };
-          }
-        ]
-      });
-
-      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
-      done();
-    });
-
-    it('should be able to see its options in this.options', function(done) {
-      var fxt = fixture('include-files/index.scss');
-      var sync = false;
-      sass.renderSync({
-        file: fixture('include-files/index.scss'),
-        importer: function() {
-          assert.equal(fxt, this.options.file);
-          sync = true;
-          return {};
-        }
-      });
-      assert.equal(sync, true);
-      done();
-    });
-
-    it('should throw user-defined error', function(done) {
-      assert.throws(function() {
-        sass.renderSync({
-          data: src,
-          importer: function() {
-            return new Error('doesn\'t exist!');
-          }
-        });
-      }, /doesn\'t exist!/);
-
-      done();
-    });
-  });
-
-  describe('.render({stats: {}})', function() {
-    var start = Date.now();
-
-    it('should provide a start timestamp', function(done) {
-      sass.render({
-        file: fixture('include-files/index.scss')
-      }, function(error, result) {
-        assert(!error);
-        assert(typeof result.stats.start === 'number');
-        assert(result.stats.start >= start);
-        done();
-      });
-    });
-
-    it('should provide an end timestamp', function(done) {
-      sass.render({
-        file: fixture('include-files/index.scss')
-      }, function(error, result) {
-        assert(!error);
-        assert(typeof result.stats.end === 'number');
-        assert(result.stats.end >= result.stats.start);
-        done();
-      });
-    });
-
-    it('should provide a duration', function(done) {
-      sass.render({
-        file: fixture('include-files/index.scss')
-      }, function(error, result) {
-        assert(!error);
-        assert(typeof result.stats.duration === 'number');
-        assert.equal(result.stats.end - result.stats.start, result.stats.duration);
-        done();
-      });
-    });
-
-    it('should contain the given entry file', function(done) {
-      sass.render({
-        file: fixture('include-files/index.scss')
-      }, function(error, result) {
-        assert(!error);
-        assert.equal(result.stats.entry, fixture('include-files/index.scss'));
-        done();
-      });
-    });
-
-    it('should contain an array of all included files', function(done) {
-      var expected = [
-        fixture('include-files/bar.scss').replace(/\\/g, '/'),
-        fixture('include-files/foo.scss').replace(/\\/g, '/'),
-        fixture('include-files/index.scss').replace(/\\/g, '/')
-      ];
-
-      sass.render({
-        file: fixture('include-files/index.scss')
-      }, function(error, result) {
-        assert(!error);
-        assert.deepEqual(result.stats.includedFiles, expected);
-        done();
-      });
-    });
-
-    it('should contain array with the entry if there are no import statements', function(done) {
-      var expected = fixture('simple/index.scss').replace(/\\/g, '/');
-
-      sass.render({
-        file: fixture('simple/index.scss')
-      }, function(error, result) {
-        assert.deepEqual(result.stats.includedFiles, [expected]);
-        done();
-      });
-    });
-
-    it('should state `data` as entry file', function(done) {
-      sass.render({
-        data: read(fixture('simple/index.scss'), 'utf8')
-      }, function(error, result) {
-        assert.equal(result.stats.entry, 'data');
-        done();
-      });
-    });
-
-    it('should contain an empty array as includedFiles', function(done) {
-      sass.render({
-        data: read(fixture('simple/index.scss'), 'utf8')
-      }, function(error, result) {
-        assert.deepEqual(result.stats.includedFiles, []);
-        done();
-      });
-    });
-  });
-
   describe('.renderSync({stats: {}})', function() {
     var start = Date.now();
     var result = sass.renderSync({
@@ -1377,7 +1402,7 @@ describe('api', function() {
     });
   });
 
-  describe('.info()', function() {
+  describe('.info', function() {
     var package = require('../package.json'),
         info = sass.info;
 

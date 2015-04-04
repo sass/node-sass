@@ -89,7 +89,7 @@ When returning or calling `done()` with `{ contents: "String" }`, the string val
 
 Starting from v3.0.0, `this` refers to a contextual scope for the immediate run of `sass.render` or `sass.renderSync`
 
-Starting from v3.0.0, importer can be an array of functions, which will be called by libsass in the order of their occurance in array. This helps user specify special importer for particular kind of path (filesystem, http). If the importer does not handle particular path, it should return `sass.NULL`. See [functions section](#functions) for more details on Sass types.
+Starting from v3.0.0, importer can be an array of functions, which will be called by libsass in the order of their occurance in array. This helps user specify special importer for particular kind of path (filesystem, http). If an importer does not want to handle a particular path, it should return `sass.NULL`. See [functions section](#functions--v300) for more details on Sass types.
 
 ### functions (>= v3.0.0)
 `functions` is an `Object` that holds a collection of custom functions that may be invoked by the sass files being compiled. They may take zero or more input parameters and must return a value either synchronously (`return ...;`) or asynchronously (`done();`). Those parameters will be instances of one of the constructors contained in the `require('node-sass').types` hash. The return value must be of one of these types as well. See the list of available types below:
@@ -431,7 +431,7 @@ The interface for command-line usage is fairly simplistic at this stage, as seen
 Output will be saved with the same name as input SASS file into the current working directory if it's omitted.
 
 ### Usage
- `node-sass [options] <input.scss> [output.css]`  
+ `node-sass [options] <input.scss> [output.css]`
  `cat <input.scss> | node-sass > output.css`
 
  **Options:**

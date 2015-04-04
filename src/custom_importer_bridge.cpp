@@ -17,7 +17,7 @@ SassImportList CustomImporterBridge::post_process_return_value(Handle<Value> val
       Local<Value> value = array->Get(static_cast<uint32_t>(i));
 
       if (!value->IsObject()) {
-        continue;
+        NanThrowError(NanNew("returned array must only contain object literals"));
       }
 
       Local<Object> object = Local<Object>::Cast(value);
@@ -30,11 +30,7 @@ SassImportList CustomImporterBridge::post_process_return_value(Handle<Value> val
         sass_import_set_error(imports[i], message, -1, -1);
       }
       else {
-        char* path = create_string(object->Get(NanNew<String>("file")));
-        char* contents = create_string(object->Get(NanNew<String>("contents")));
-        char* srcmap = create_string(object->Get(NanNew<String>("map")));
-
-        imports[i] = sass_make_import_entry(path, contents, srcmap);
+        imports[i] = get_importer_entry(object);
       }
     }
   }
@@ -49,15 +45,42 @@ SassImportList CustomImporterBridge::post_process_return_value(Handle<Value> val
   }
   else if (returned_value->IsObject()) {
     imports = sass_make_import_list(1);
-    Local<Object> object = Local<Object>::Cast(returned_value);
-    char* path = create_string(object->Get(NanNew<String>("file")));
-    char* contents = create_string(object->Get(NanNew<String>("contents")));
-    char* srcmap = create_string(object->Get(NanNew<String>("map")));
-
-    imports[0] = sass_make_import_entry(path, contents, srcmap);
+    imports[0] = get_importer_entry(Local<Object>::Cast(returned_value));
   }
 
   return imports;
+}
+
+Sass_Import* CustomImporterBridge::get_importer_entry(const Local<Object>& object) const {
+  auto returned_file = object->Get(NanNew<String>("file"));
+
+  if (!returned_file->IsUndefined() && !returned_file->IsString()) {
+    auto entry = sass_make_import_entry(0, 0, 0);
+    sass_import_set_error(entry, "returned value of `file` must be a string", -1, -1);
+    return entry;
+  }
+
+  auto returned_contents = object->Get(NanNew<String>("contents"));
+
+  if (!returned_contents->IsUndefined() && !returned_contents->IsString()) {
+    auto entry = sass_make_import_entry(0, 0, 0);
+    sass_import_set_error(entry, "returned value of `contents` must be a string", -1, -1);
+    return entry;
+  }
+
+  auto returned_map = object->Get(NanNew<String>("map"));
+
+  if (!returned_map->IsUndefined() && !returned_map->IsString()) {
+    auto entry = sass_make_import_entry(0, 0, 0);
+    sass_import_set_error(entry, "returned value of `map` must be a string", -1, -1);
+    return entry;
+  }
+
+  char* path = create_string(returned_file);
+  char* contents = create_string(returned_contents);
+  char* srcmap = create_string(returned_map);
+
+  return sass_make_import_entry(path, contents, srcmap);
 }
 
 std::vector<Handle<Value>> CustomImporterBridge::pre_process_args(std::vector<void*> in) const {
