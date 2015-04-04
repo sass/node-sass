@@ -58,14 +58,10 @@ namespace Sass {
   void Inspect::operator()(Bubble* bubble)
   {
     append_indentation();
-    append_token("Bubble", bubble);
-    append_optional_space();
-    append_string("(");
-    append_optional_space();
+    append_token("::BUBBLE", bubble);
+    append_scope_opener();
     bubble->node()->perform(this);
-    append_optional_space();
-    append_string(")");
-    append_optional_space();
+    append_scope_closer();
   }
 
   void Inspect::operator()(Media_Block* media_block)
