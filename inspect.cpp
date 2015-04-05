@@ -157,6 +157,10 @@ namespace Sass {
       }
 
       import->urls().front()->perform(this);
+      if (import->media_queries()) {
+        append_mandatory_space();
+        import->media_queries()->perform(this);
+      }
       append_delimiter();
       for (size_t i = 1, S = import->urls().size(); i < S; ++i) {
         append_mandatory_linefeed();
@@ -168,6 +172,10 @@ namespace Sass {
         }
 
         import->urls()[i]->perform(this);
+        if (import->media_queries()) {
+          append_mandatory_space();
+          import->media_queries()->perform(this);
+        }
         append_delimiter();
       }
     }

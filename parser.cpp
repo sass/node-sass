@@ -11,6 +11,7 @@
 #include "sass_functions.h"
 
 #include <typeinfo>
+#include <tuple>
 
 namespace Sass {
   using namespace std;
@@ -220,7 +221,8 @@ namespace Sass {
 
   void Parser::import_single_file (Import* imp, string import_path) {
 
-    if (!unquote(import_path).substr(0, 7).compare("http://") ||
+    if (imp->media_queries() ||
+        !unquote(import_path).substr(0, 7).compare("http://") ||
         !unquote(import_path).substr(0, 8).compare("https://") ||
         !unquote(import_path).substr(0, 2).compare("//"))
     {
@@ -282,6 +284,7 @@ namespace Sass {
   {
     lex< kwd_import >();
     Import* imp = new (ctx.mem) Import(pstate);
+    vector<pair<string,Function_Call*>> to_import;
     bool first = true;
     do {
       while (lex< block_comment >());
@@ -289,7 +292,8 @@ namespace Sass {
         if (!do_import(lexed, imp, ctx.c_importers, true))
         {
           // push single file import
-          import_single_file(imp, lexed);
+          // import_single_file(imp, lexed);
+          to_import.push_back(pair<string,Function_Call*>(string(lexed), 0));
         }
       }
       else if (lex< uri_prefix >()) {
@@ -311,7 +315,8 @@ namespace Sass {
           error("malformed URL", pstate);
         }
         if (!lex< exactly<')'> >()) error("URI is missing ')'", pstate);
-        imp->urls().push_back(result);
+        // imp->urls().push_back(result);
+        to_import.push_back(pair<string,Function_Call*>("", result));
       }
       else {
         if (first) error("@import directive requires a url or quoted path", pstate);
@@ -319,6 +324,20 @@ namespace Sass {
       }
       first = false;
     } while (lex_css< exactly<','> >());
+
+    if (!peek_css<alternatives<exactly<';'>,end_of_file>>()) {
+      List* media_queries = parse_media_queries();
+      imp->media_queries(media_queries);
+    }
+
+    for(auto location : to_import) {
+      if (location.second) {
+        imp->urls().push_back(location.second);
+      } else {
+        import_single_file(imp, location.first);
+      }
+    }
+
     return imp;
   }
 

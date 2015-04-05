@@ -65,7 +65,10 @@ namespace Sass {
     // Assert string boundaries (/\Z|\z|\A/)
     // There are zero-width positive lookaheads
     const char* end_of_line(const char* src);
-    // const char* end_of_string(const char* src);
+
+    // Assert end_of_file boundary (/\z/)
+    // This is a zero-width positive lookahead
+    const char* end_of_file(const char* src);
     // const char* start_of_string(const char* src);
 
     // Type definition for prelexer functions

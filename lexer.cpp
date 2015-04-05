@@ -129,5 +129,13 @@ namespace Sass {
       return *src == 0 || *src == '\n' || *src == '\r' ? src : 0;
     }
 
+    // Assert end_of_file boundary (/\z/)
+    // This is a zero-width positive lookahead
+    const char* end_of_file(const char* src)
+    {
+      // end of file or unix linefeed return here
+      return *src == 0 ? src : 0;
+    }
+
   }
 }
