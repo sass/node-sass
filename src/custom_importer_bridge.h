@@ -15,6 +15,7 @@ class CustomImporterBridge : public CallbackBridge<SassImportList> {
 
   private:
     SassImportList post_process_return_value(Handle<Value>) const;
+    Sass_Import* get_importer_entry(const Local<Object>&) const;
     std::vector<Handle<Value>> pre_process_args(std::vector<void*>) const;
 };
 
