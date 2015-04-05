@@ -268,6 +268,8 @@ namespace Sass {
                                                     m->feature_queries(),
                                                     wrapper_block);
 
+    mm->tabs(m->tabs());
+
     Bubble* bubble = new (ctx.mem) Bubble(mm->pstate(), mm);
     return bubble;
   }
