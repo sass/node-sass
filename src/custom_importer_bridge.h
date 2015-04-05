@@ -7,7 +7,7 @@
 
 using namespace v8;
 
-typedef Sass_Import** SassImportList;
+typedef Sass_Import_List SassImportList;
 
 class CustomImporterBridge : public CallbackBridge<SassImportList> {
   public:

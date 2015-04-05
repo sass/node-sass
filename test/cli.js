@@ -226,7 +226,7 @@ describe('cli', function() {
       });
 
       setTimeout(function() {
-        fs.appendFileSync(foo, 'body{background:white}');
+        fs.appendFileSync(foo, 'body{background:white}\n');
       }, 500);
     });
   });
@@ -401,6 +401,19 @@ describe('cli', function() {
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
         '--importer', fixture('extras/my_custom_importer_data.js')
+      ]);
+
+      bin.once('close', function() {
+        assert.equal(read(dest, 'utf8').trim(), expected);
+        fs.unlinkSync(dest);
+        done();
+      });
+    });
+
+    it('should accept arrays of importers and return respect the order', function(done) {
+      var bin = spawn(cli, [
+        src, '--output', path.dirname(dest),
+        '--importer', fixture('extras/my_custom_arrays_of_importers.js')
       ]);
 
       bin.once('close', function() {

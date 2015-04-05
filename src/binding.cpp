@@ -5,20 +5,24 @@
 #include "create_string.h"
 #include "sass_types/factory.h"
 
-struct Sass_Import** sass_importer(const char* file, const char* prev, void* cookie)
+Sass_Import_List sass_importer(const char* cur_path, Sass_Importer_Entry cb, struct Sass_Compiler* comp)
 {
+  void* cookie = sass_importer_get_cookie(cb);
+  struct Sass_Import* previous = sass_compiler_get_last_import(comp);
+  const char* prev_path = sass_import_get_path(previous);
   sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(cookie);
-  CustomImporterBridge& bridge = *(ctx_w->importer_bridge);
+  CustomImporterBridge& bridge = *(static_cast<CustomImporterBridge*>(cookie));
 
   std::vector<void*> argv;
-  argv.push_back((void*)file);
-  argv.push_back((void*)prev);
+  argv.push_back((void*)cur_path);
+  argv.push_back((void*)prev_path);
 
   return bridge(argv);
 }
 
-union Sass_Value* sass_custom_function(const union Sass_Value* s_args, void* cookie)
+union Sass_Value* sass_custom_function(const union Sass_Value* s_args, Sass_Function_Entry cb, struct Sass_Options* opts)
 {
+  void* cookie = sass_function_get_cookie(cb);
   CustomFunctionBridge& bridge = *(static_cast<CustomFunctionBridge*>(cookie));
 
   std::vector<void*> argv;
@@ -65,13 +69,6 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
     ctx_w->error_callback = new NanCallback(error_callback);
   }
 
-  Local<Function> importer_callback = Local<Function>::Cast(options->Get(NanNew("importer")));
-
-  if (importer_callback->IsFunction()) {
-    ctx_w->importer_bridge = new CustomImporterBridge(new NanCallback(importer_callback), ctx_w->is_sync);
-    sass_option_set_importer(sass_options, sass_make_importer(sass_importer, ctx_w));
-  }
-
   if (!is_file) {
     ctx_w->file = create_string(options->Get(NanNew("file")));
     sass_option_set_input_path(sass_options, ctx_w->file);
@@ -106,25 +103,58 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
   sass_option_set_indent(sass_options, ctx_w->indent);
   sass_option_set_linefeed(sass_options, ctx_w->linefeed);
 
-  Local<Object> custom_functions = Local<Object>::Cast(options->Get(NanNew("functions")));
+  Local<Value> importer_callback = options->Get(NanNew("importer"));
+
+  if (importer_callback->IsFunction()) {
+    Local<Function> importer = Local<Function>::Cast(importer_callback);
+    auto bridge = std::make_shared<CustomImporterBridge>(new NanCallback(importer), ctx_w->is_sync);
+    ctx_w->importer_bridges.push_back(bridge);
+
+    Sass_Importer_List c_importers = sass_make_importer_list(1);
+    c_importers[0] = sass_make_importer(sass_importer, 0, bridge.get());
+
+    sass_option_set_c_importers(sass_options, c_importers);
+  }
+  else if (importer_callback->IsArray()) {
+    Handle<Array> importers = Handle<Array>::Cast(importer_callback);
+    Sass_Importer_List c_importers = sass_make_importer_list(importers->Length());
+
+    for (size_t i = 0; i < importers->Length(); ++i) {
+      Local<Function> callback = Local<Function>::Cast(importers->Get(static_cast<uint32_t>(i)));
+
+      if (!callback->IsFunction()) {
+        NanThrowError(NanNew("options.importer must be set to a function or array of functions"));
+      }
+
+      auto bridge = std::make_shared<CustomImporterBridge>(new NanCallback(callback), ctx_w->is_sync);
+      ctx_w->importer_bridges.push_back(bridge);
+
+      c_importers[i] = sass_make_importer(sass_importer, importers->Length() - i - 1, bridge.get());
+    }
+
+    sass_option_set_c_importers(sass_options, c_importers);
+  }
+
+  Local<Value> custom_functions = options->Get(NanNew("functions"));
 
   if (custom_functions->IsObject()) {
-    Local<Array> signatures = custom_functions->GetOwnPropertyNames();
+    Local<Object> functions = Local<Object>::Cast(custom_functions);
+    Local<Array> signatures = functions->GetOwnPropertyNames();
     unsigned num_signatures = signatures->Length();
-    Sass_C_Function_List fn_list = sass_make_function_list(num_signatures);
+    Sass_Function_List fn_list = sass_make_function_list(num_signatures);
 
     for (unsigned i = 0; i < num_signatures; i++) {
       Local<String> signature = Local<String>::Cast(signatures->Get(NanNew(i)));
-      Local<Function> callback = Local<Function>::Cast(custom_functions->Get(signature));
+      Local<Function> callback = Local<Function>::Cast(functions->Get(signature));
 
       if (!signature->IsString() || !callback->IsFunction()) {
         NanThrowError(NanNew("options.functions must be a (signature -> function) hash"));
       }
 
-      CustomFunctionBridge* bridge = new CustomFunctionBridge(new NanCallback(callback), ctx_w->is_sync);
+      auto bridge = std::make_shared<CustomFunctionBridge>(new NanCallback(callback), ctx_w->is_sync);
       ctx_w->function_bridges.push_back(bridge);
 
-      Sass_C_Function_Callback fn = sass_make_function(create_string(signature), sass_custom_function, bridge);
+      Sass_Function_Entry fn = sass_make_function(create_string(signature), sass_custom_function, bridge.get());
       sass_function_set_list_entry(fn_list, i, fn);
     }
 
@@ -274,7 +304,8 @@ NAN_METHOD(render_file_sync) {
 
   int result = GetResult(ctx_w, ctx, true);
 
-  sass_wrapper_dispose(ctx_w, input_path);
+  free(input_path);
+  sass_free_context_wrapper(ctx_w);
 
   NanReturnValue(NanNew<Boolean>(result == 0));
 }

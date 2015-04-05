@@ -3,7 +3,7 @@
 #include "create_string.h"
 
 SassImportList CustomImporterBridge::post_process_return_value(Handle<Value> val) const {
-  SassImportList imports;
+  SassImportList imports = 0;
   NanScope();
 
   Local<Value> returned_value = NanNew(val);
@@ -32,8 +32,9 @@ SassImportList CustomImporterBridge::post_process_return_value(Handle<Value> val
       else {
         char* path = create_string(object->Get(NanNew<String>("file")));
         char* contents = create_string(object->Get(NanNew<String>("contents")));
+        char* srcmap = create_string(object->Get(NanNew<String>("map")));
 
-        imports[i] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
+        imports[i] = sass_make_import_entry(path, contents, srcmap);
       }
     }
   }
@@ -51,12 +52,9 @@ SassImportList CustomImporterBridge::post_process_return_value(Handle<Value> val
     Local<Object> object = Local<Object>::Cast(returned_value);
     char* path = create_string(object->Get(NanNew<String>("file")));
     char* contents = create_string(object->Get(NanNew<String>("contents")));
+    char* srcmap = create_string(object->Get(NanNew<String>("map")));
 
-    imports[0] = sass_make_import_entry(path, (!contents || contents[0] == '\0') ? 0 : strdup(contents), 0);
-  }
-  else {
-    imports = sass_make_import_list(1);
-    imports[0] = sass_make_import_entry((char const*) this->argv[0], 0, 0);
+    imports[0] = sass_make_import_entry(path, contents, srcmap);
   }
 
   return imports;

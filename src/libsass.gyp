@@ -11,6 +11,7 @@
         'libsass/constants.cpp',
         'libsass/context.cpp',
         'libsass/contextualize.cpp',
+        'libsass/contextualize_eval.cpp',
         'libsass/cssize.cpp',
         'libsass/emitter.cpp',
         'libsass/error_handling.cpp',
@@ -21,6 +22,8 @@
         'libsass/functions.cpp',
         'libsass/inspect.cpp',
         'libsass/json.cpp',
+        'libsass/lexer.cpp',
+        'libsass/listize.cpp',
         'libsass/node.cpp',
         'libsass/output.cpp',
         'libsass/parser.cpp',
@@ -72,7 +75,7 @@
             'VCCLCompilerTool': {
               'AdditionalOptions': [
                 '/GR',
-                '/EHsc'
+                '/EHs'
               ]
             }
           }

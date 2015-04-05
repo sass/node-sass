@@ -341,6 +341,25 @@ describe('api', function() {
       });
     });
 
+    it('should accept arrays of importers and return respect the order', function(done) {
+      sass.render({
+        file: fixture('include-files/index.scss'),
+        importer: [
+          function() {
+            return sass.NULL;
+          },
+          function() {
+            return {
+              contents: 'div {color: yellow;}'
+            };
+          }
+        ]
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        done();
+      });
+    });
+
     it('should be able to see its options in this.options', function(done) {
       var fxt = fixture('include-files/index.scss');
       sass.render({
@@ -1146,6 +1165,25 @@ describe('api', function() {
       done();
     });
 
+    it('should accept arrays of importers and return respect the order', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: [
+          function() {
+            return sass.NULL;
+          },
+          function() {
+            return {
+              contents: 'div {color: yellow;}'
+            };
+          }
+        ]
+      });
+
+      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
     it('should be able to see its options in this.options', function(done) {
       var fxt = fixture('include-files/index.scss');
       var sync = false;
@@ -1160,7 +1198,6 @@ describe('api', function() {
       assert.equal(sync, true);
       done();
     });
-
 
     it('should throw user-defined error', function(done) {
       assert.throws(function() {
