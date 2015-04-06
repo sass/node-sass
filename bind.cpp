@@ -47,14 +47,40 @@ namespace Sass {
 
       // If the current parameter is the rest parameter, process and break the loop
       if (p->is_rest_parameter()) {
+        // The next argument by coincidence provides a rest argument
         if (a->is_rest_argument()) {
-          // rest param and rest arg -- just add one to the other
-          if (env->has_local(p->name())) {
-            *static_cast<List*>(env->local_frame()[p->name()])
-            += static_cast<List*>(a->value());
+          // We should always get a list for rest arguments
+          if (List* rest = dynamic_cast<List*>(a->value())) {
+            // arg contains a list
+            List* args = rest;
+            // make sure it's an arglist
+            if (rest->is_arglist()) {
+              // can pass it through as it was
+              env->local_frame()[p->name()] = args;
+            }
+            // create a new list and wrap each item as an argument
+            // otherwise we will not be able to fetch it again
+            else {
+              // create a new list object for wrapped items
+              List* arglist = new (ctx.mem) List(p->pstate(),
+                                                 0,
+                                                 rest->separator(),
+                                                 true);
+              // wrap each item from list as an argument
+              for (Expression* item : rest->elements()) {
+                (*arglist) << new (ctx.mem) Argument(item->pstate(),
+                                                     item,
+                                                     "",
+                                                     false,
+                                                     false);
+              }
+              // assign new arglist to environment
+              env->local_frame()[p->name()] = arglist;
+            }
           }
+          // invalid state
           else {
-            env->local_frame()[p->name()] = a->value();
+            throw runtime_error("invalid state");
           }
         } else if (a->is_keyword_argument()) {
 
@@ -72,27 +98,36 @@ namespace Sass {
 
         } else {
 
-          // copy all remaining arguments into the rest parameter, preserving names
+          // create a new list object for wrapped items
           List* arglist = new (ctx.mem) List(p->pstate(),
                                              0,
                                              List::COMMA,
                                              true);
-          env->local_frame()[p->name()] = arglist;
+          // consume the next args
           while (ia < LA) {
-            a = (*as)[ia];
-            if (a->is_rest_argument()) {
-              if (List* rest = dynamic_cast<List*>(a->value())) {
-                arglist->separator(rest->separator());
-              }
-            }
+            // get and post inc
+            a = (*as)[ia++];
+            // wrap current argument into new object
             (*arglist) << new (ctx.mem) Argument(a->pstate(),
                                                  a->value(),
                                                  a->name(),
                                                  false);
-            ++ia;
+            // check if we have rest argument
+            if (a->is_rest_argument()) {
+              // preserve the list separator from rest args
+              if (List* rest = dynamic_cast<List*>(a->value())) {
+                arglist->separator(rest->separator());
+              }
+              // no more arguments
+              break;
+            }
           }
+          // assign new arglist to environment
+          env->local_frame()[p->name()] = arglist;
         }
+        // consumed parameter
         ++ip;
+        // no more paramaters
         break;
       }
 
@@ -167,6 +202,7 @@ namespace Sass {
         env->local_frame()[a->name()] = a->value();
       }
     }
+    // EO while ia
 
     // If we make it here, we're out of args but may have leftover params.
     // That's only okay if they have default values, or were already bound by
