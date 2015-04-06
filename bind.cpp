@@ -80,6 +80,11 @@ namespace Sass {
           env->local_frame()[p->name()] = arglist;
           while (ia < LA) {
             a = (*as)[ia];
+            if (a->is_rest_argument()) {
+              if (List* rest = dynamic_cast<List*>(a->value())) {
+                arglist->separator(rest->separator());
+              }
+            }
             (*arglist) << new (ctx.mem) Argument(a->pstate(),
                                                  a->value(),
                                                  a->name(),
