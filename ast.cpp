@@ -589,6 +589,114 @@ namespace Sass {
     return result;
   }*/
 
+  Number::Number(ParserState pstate, double val, string u, bool zero)
+  : Expression(pstate),
+    value_(val),
+    zero_(zero),
+    numerator_units_(vector<string>()),
+    denominator_units_(vector<string>()),
+    hash_(0)
+  {
+    if (!u.empty()) numerator_units_.push_back(u);
+    concrete_type(NUMBER);
+  }
+
+  string Number::unit() const
+  {
+    stringstream u;
+    for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
+      if (i) u << '*';
+      u << numerator_units_[i];
+    }
+    if (!denominator_units_.empty()) u << '/';
+    for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
+      if (i) u << '*';
+      u << denominator_units_[i];
+    }
+    return u.str();
+  }
+
+  bool Number::is_unitless()
+  { return numerator_units_.empty() && denominator_units_.empty(); }
+
+  void Number::normalize(string to)
+  {
+    // (multiple passes because I'm too tired to think up something clever)
+    // Find a unit to convert everything to, if one isn't provided.
+    if (to.empty()) {
+      for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
+        string u(numerator_units_[i]);
+        if (string_to_unit(u) == INCOMMENSURABLE) {
+          continue;
+        }
+        else {
+          to = u;
+          break;
+        }
+      }
+    }
+    if (to.empty()) {
+      for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
+        string u(denominator_units_[i]);
+        if (string_to_unit(u) == INCOMMENSURABLE) {
+          continue;
+        }
+        else {
+          to = u;
+          break;
+        }
+      }
+    }
+    // Now loop through again and do all the conversions.
+    for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
+      string from(numerator_units_[i]);
+      if (string_to_unit(from) == INCOMMENSURABLE) continue;
+      value_ *= conversion_factor(from, to);
+      numerator_units_[i] = to;
+    }
+    for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
+      string from(denominator_units_[i]);
+      if (string_to_unit(from) == INCOMMENSURABLE) continue;
+      value_ /= conversion_factor(from, to);
+      denominator_units_[i] = to;
+    }
+    // Now divide out identical units in the numerator and denominator.
+    vector<string> ncopy;
+    ncopy.reserve(numerator_units_.size());
+    for (vector<string>::iterator n = numerator_units_.begin();
+         n != numerator_units_.end();
+         ++n) {
+      vector<string>::iterator d = find(denominator_units_.begin(),
+                                        denominator_units_.end(),
+                                        *n);
+      if (d != denominator_units_.end()) {
+        denominator_units_.erase(d);
+      }
+      else {
+        ncopy.push_back(*n);
+      }
+    }
+    numerator_units_ = ncopy;
+    // Sort the units to make them pretty and, well, normal.
+    sort(numerator_units_.begin(), numerator_units_.end());
+    sort(denominator_units_.begin(), denominator_units_.end());
+  }
+
+  // useful for making one number compatible with another
+  string Number::find_convertible_unit() const
+  {
+    for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
+      string u(numerator_units_[i]);
+      if (string_to_unit(u) != INCOMMENSURABLE) return u;
+    }
+    for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
+      string u(denominator_units_[i]);
+      if (string_to_unit(u) != INCOMMENSURABLE) return u;
+    }
+    return string();
+  }
+
+
   Expression* Hashed::at(Expression* k) const
   {
     if (elements_.count(k))
