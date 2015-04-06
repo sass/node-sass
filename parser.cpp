@@ -1619,6 +1619,10 @@ namespace Sass {
   {
     lex< identifier >();
     string name(lexed);
+    if (name == "compact") {
+      warn("`compact` has been removed from libsass because it's not part of the Sass spec", pstate);
+    }
+
     ParserState call_pos = pstate;
     Arguments* args = parse_arguments(name == "url");
     return new (ctx.mem) Function_Call(call_pos, name, args);
