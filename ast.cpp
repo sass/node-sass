@@ -813,15 +813,42 @@ namespace Sass {
 
   bool Number::operator== (Expression* rhs) const
   {
-    Number l(pstate_, value_, unit());
-    Number& r = dynamic_cast<Number&>(*rhs);
-    l.normalize(find_convertible_unit());
-    r.normalize(find_convertible_unit());
-    return l.unit() == r.unit() &&
-           l.value() == r.value();
+    try
+    {
+      Number l(pstate_, value_, unit());
+      Number& r = dynamic_cast<Number&>(*rhs);
+      l.normalize(find_convertible_unit());
+      r.normalize(find_convertible_unit());
+      return l.unit() == r.unit() &&
+             l.value() == r.value();
+    }
+    catch (std::bad_cast&) {}
+    catch (...) { throw; }
+    return false;
   }
 
   bool Number::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool List::operator==(Expression* rhs) const
+  {
+    try
+    {
+      List* r = dynamic_cast<List*>(rhs);
+      if (!r || length() != r->length()) return false;
+      if (separator() != r->separator()) return false;
+      for (size_t i = 0, L = r->length(); i < L; ++i)
+        if (*elements()[i] != *(*r)[i]) return false;
+      return true;
+    }
+    catch (std::bad_cast&) {}
+    catch (...) { throw; }
+    return false;
+  }
+
+  bool List::operator== (Expression& rhs) const
   {
     return operator==(&rhs);
   }

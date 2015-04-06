@@ -435,8 +435,23 @@ namespace Sass {
     }
     // not a logical connective, so go ahead and eval the rhs
     Expression* rhs = b->right()->perform(this);
-    rhs->is_delayed(false);
-    while (typeid(*rhs) == typeid(Binary_Expression)) rhs = rhs->perform(this);
+    // maybe fully evaluate structure
+    if (op_type == Binary_Expression::EQ ||
+        op_type == Binary_Expression::NEQ ||
+        op_type == Binary_Expression::GT ||
+        op_type == Binary_Expression::GTE ||
+        op_type == Binary_Expression::LT ||
+        op_type == Binary_Expression::LTE)
+    {
+      rhs->is_expanded(false);
+      rhs->set_delayed(false);
+      rhs = rhs->perform(this);
+    }
+    else
+    {
+      rhs->is_delayed(false);
+      rhs = rhs->perform(this);
+    }
 
     // see if it's a relational expression
     switch(op_type) {

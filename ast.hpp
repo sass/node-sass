@@ -113,6 +113,7 @@ namespace Sass {
     static string type_name() { return ""; }
     virtual bool is_false() { return false; }
     virtual bool operator==( Expression& rhs) const { return false; }
+    virtual void set_delayed(bool delayed) { is_delayed(delayed); }
     virtual size_t hash() { return 0; }
   };
 }
@@ -756,23 +757,8 @@ namespace Sass {
     bool is_invisible() { return !length(); }
     Expression* value_at_index(size_t i);
 
-    virtual bool operator==(Expression& rhs) const
-    {
-      try
-      {
-        List& l = dynamic_cast<List&>(rhs);
-        if (!(l && length() == l.length() && separator() == l.separator())) return false;
-        for (size_t i = 0, L = l.length(); i < L; ++i)
-          if (!(*(elements()[i]) == *(l[i]))) return false;
-        return true;
-      }
-      catch (std::bad_cast&)
-      {
-        return false;
-      }
-      catch (...) { throw; }
-
-    }
+    virtual bool operator==(Expression& rhs) const;
+    virtual bool operator==(Expression* rhs) const;
 
     virtual size_t hash()
     {
@@ -784,6 +770,13 @@ namespace Sass {
         hash_ ^= (elements()[i])->hash();
 
       return hash_;
+    }
+
+    virtual void set_delayed(bool delayed)
+    {
+      for (size_t i = 0, L = length(); i < L; ++i)
+        (elements()[i])->set_delayed(delayed);
+      is_delayed(delayed);
     }
 
     ATTACH_OPERATIONS();
@@ -857,6 +850,31 @@ namespace Sass {
                       Type t, Expression* lhs, Expression* rhs)
     : Expression(pstate), type_(t), left_(lhs), right_(rhs), hash_(0)
     { }
+    const string type_name() {
+      switch (type_) {
+        case AND: return "and"; break;
+        case OR: return "or"; break;
+        case EQ: return "eq"; break;
+        case NEQ: return "neq"; break;
+        case GT: return "gt"; break;
+        case GTE: return "gte"; break;
+        case LT: return "lt"; break;
+        case LTE: return "lte"; break;
+        case ADD: return "add"; break;
+        case SUB: return "sub"; break;
+        case MUL: return "mul"; break;
+        case DIV: return "div"; break;
+        case MOD: return "mod"; break;
+        case NUM_OPS: return "num_ops"; break;
+        default: return "invalid"; break;
+      }
+    }
+    virtual void set_delayed(bool delayed)
+    {
+      right()->set_delayed(delayed);
+      left()->set_delayed(delayed);
+      is_delayed(delayed);
+    }
     virtual bool operator==(Expression& rhs) const
     {
       try
@@ -896,6 +914,14 @@ namespace Sass {
     Unary_Expression(ParserState pstate, Type t, Expression* o)
     : Expression(pstate), type_(t), operand_(o), hash_(0)
     { }
+    const string type_name() {
+      switch (type_) {
+        case PLUS: return "plus"; break;
+        case MINUS: return "minus"; break;
+        case NOT: return "not"; break;
+        default: return "invalid"; break;
+      }
+    }
     virtual bool operator==(Expression& rhs) const
     {
       try
