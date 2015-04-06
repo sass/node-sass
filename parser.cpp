@@ -973,7 +973,8 @@ namespace Sass {
     else {
       error("invalid property name", pstate);
     }
-    if (!lex_css< one_plus< exactly<':'> > >()) error("property \"" + string(lexed) + "\" must be followed by a ':'", pstate);
+    const string property(lexed);
+    if (!lex_css< one_plus< exactly<':'> > >()) error("property \"" + property + "\" must be followed by a ':'", pstate);
     if (peek_css< exactly<';'> >()) error("style declaration must contain a value", pstate);
     if (peek_css< static_value >()) {
       return new (ctx.mem) Declaration(prop->pstate(), prop, parse_static_value()/*, lex<important>()*/);
