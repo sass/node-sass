@@ -416,6 +416,7 @@ namespace Sass {
 
   void Inspect::operator()(Number* n)
   {
+    n->normalize();
     stringstream ss;
     ss.precision(ctx ? ctx->precision : 5);
     ss << fixed << n->value();

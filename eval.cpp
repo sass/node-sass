@@ -789,6 +789,7 @@ namespace Sass {
 
   Expression* Eval::operator()(Number* n)
   {
+    n->normalize();
     // behave according to as ruby sass (add leading zero)
     return new (ctx.mem) Number(n->pstate(),
                                 n->value(),
@@ -1055,13 +1056,8 @@ namespace Sass {
       } break;
 
       case Expression::NUMBER: {
-        Number* l = static_cast<Number*>(lhs);
-        Number* r = static_cast<Number*>(rhs);
-        Number tmp_r(*r);
-        tmp_r.normalize(l->find_convertible_unit());
-        return l->unit() == tmp_r.unit() && l->value() == tmp_r.value()
-               ? true
-               : false;
+        return *static_cast<Number*>(lhs) ==
+               *static_cast<Number*>(rhs);
       } break;
 
       case Expression::COLOR: {
@@ -1152,8 +1148,8 @@ namespace Sass {
       v->denominator_units() = r->denominator_units();
     }
 
-    v->value(ops[op](lv, tmp.value()));
     if (op == Binary_Expression::MUL) {
+      v->value(ops[op](lv, rv));
       for (size_t i = 0, S = r->numerator_units().size(); i < S; ++i) {
         v->numerator_units().push_back(r->numerator_units()[i]);
       }
@@ -1162,14 +1158,17 @@ namespace Sass {
       }
     }
     else if (op == Binary_Expression::DIV) {
+      v->value(ops[op](lv, rv));
       for (size_t i = 0, S = r->numerator_units().size(); i < S; ++i) {
         v->denominator_units().push_back(r->numerator_units()[i]);
       }
       for (size_t i = 0, S = r->denominator_units().size(); i < S; ++i) {
         v->numerator_units().push_back(r->denominator_units()[i]);
       }
+    } else {
+      v->value(ops[op](lv, tmp.value()));
     }
-    v->normalize();
+    // v->normalize();
     return v;
   }
 

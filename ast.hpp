@@ -1170,25 +1170,13 @@ namespace Sass {
     string unit() const;
 
     bool is_unitless();
-    void normalize(string to = "");
+    void convert(const string& unit = "");
+    void normalize(const string& unit = "");
     // useful for making one number compatible with another
     string find_convertible_unit() const;
 
-    virtual bool operator==(Expression& rhs) const
-    {
-      try
-      {
-        Number& e(dynamic_cast<Number&>(rhs));
-        if (!e) return false;
-        e.normalize(find_convertible_unit());
-        return unit() == e.unit() && value() == e.value();
-      }
-      catch (std::bad_cast&)
-      {
-        return false;
-      }
-      catch (...) { throw; }
-    }
+    virtual bool operator== (Expression& rhs) const;
+    virtual bool operator== (Expression* rhs) const;
 
     virtual size_t hash()
     {
