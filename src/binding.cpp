@@ -122,10 +122,6 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
     for (size_t i = 0; i < importers->Length(); ++i) {
       Local<Function> callback = Local<Function>::Cast(importers->Get(static_cast<uint32_t>(i)));
 
-      if (!callback->IsFunction()) {
-        NanThrowError(NanNew("options.importer must be set to a function or array of functions"));
-      }
-
       auto bridge = std::make_shared<CustomImporterBridge>(new NanCallback(callback), ctx_w->is_sync);
       ctx_w->importer_bridges.push_back(bridge);
 
@@ -146,10 +142,6 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
     for (unsigned i = 0; i < num_signatures; i++) {
       Local<String> signature = Local<String>::Cast(signatures->Get(NanNew(i)));
       Local<Function> callback = Local<Function>::Cast(functions->Get(signature));
-
-      if (!signature->IsString() || !callback->IsFunction()) {
-        NanThrowError(NanNew("options.functions must be a (signature -> function) hash"));
-      }
 
       auto bridge = std::make_shared<CustomFunctionBridge>(new NanCallback(callback), ctx_w->is_sync);
       ctx_w->function_bridges.push_back(bridge);
