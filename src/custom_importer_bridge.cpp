@@ -17,7 +17,9 @@ SassImportList CustomImporterBridge::post_process_return_value(Handle<Value> val
       Local<Value> value = array->Get(static_cast<uint32_t>(i));
 
       if (!value->IsObject()) {
-        NanThrowError(NanNew("returned array must only contain object literals"));
+        auto entry = sass_make_import_entry(0, 0, 0);
+        sass_import_set_error(entry, "returned array must only contain object literals", -1, -1);
+        continue;
       }
 
       Local<Object> object = Local<Object>::Cast(value);
