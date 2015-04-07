@@ -1729,10 +1729,27 @@ namespace Sass {
   // Abstract base class for simple selectors.
   ////////////////////////////////////////////
   class Simple_Selector : public Selector {
+    ADD_PROPERTY(string, ns);
+    ADD_PROPERTY(string, name)
   public:
-    Simple_Selector(ParserState pstate)
-    : Selector(pstate)
-    { }
+    Simple_Selector(ParserState pstate, string n = "")
+    : Selector(pstate), ns_(""), name_(n)
+    {
+      size_t pos = n.find('|');
+      // found some namespace
+      if (pos != string::npos) {
+        ns_ = n.substr(0, pos);
+        name_ = n.substr(pos + 1);
+      }
+    }
+    virtual string ns_name() const
+    {
+      string name("");
+      if (!ns_.empty())
+        name += ns_ + "|";
+      return name + name_;
+    }
+
     virtual ~Simple_Selector() = 0;
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
     virtual bool has_parent_ref() { return false; };
@@ -1745,6 +1762,7 @@ namespace Sass {
     inline bool operator!=(const Simple_Selector& rhs) const { return !(*this == rhs); }
 
     bool operator<(const Simple_Selector& rhs) const;
+    ATTACH_OPERATIONS();
   };
   inline Simple_Selector::~Simple_Selector() { }
 
@@ -1758,7 +1776,7 @@ namespace Sass {
   class Parent_Selector : public Simple_Selector {
   public:
     Parent_Selector(ParserState pstate)
-    : Simple_Selector(pstate)
+    : Simple_Selector(pstate, "&")
     { has_reference(true); }
     virtual bool has_parent_ref() { return true; };
     virtual unsigned long specificity()
@@ -1774,10 +1792,9 @@ namespace Sass {
   // Placeholder selectors (e.g., "%foo") for use in extend-only selectors.
   /////////////////////////////////////////////////////////////////////////
   class Selector_Placeholder : public Simple_Selector {
-    ADD_PROPERTY(string, name)
   public:
     Selector_Placeholder(ParserState pstate, string n)
-    : Simple_Selector(pstate), name_(n)
+    : Simple_Selector(pstate, n)
     { has_placeholder(true); }
     // virtual Selector_Placeholder* find_placeholder();
     ATTACH_OPERATIONS()
@@ -1787,10 +1804,9 @@ namespace Sass {
   // Type selectors (and the universal selector) -- e.g., div, span, *.
   /////////////////////////////////////////////////////////////////////
   class Type_Selector : public Simple_Selector {
-    ADD_PROPERTY(string, name)
   public:
     Type_Selector(ParserState pstate, string n)
-    : Simple_Selector(pstate), name_(n)
+    : Simple_Selector(pstate, n)
     { }
     virtual unsigned long specificity()
     {
@@ -1806,10 +1822,9 @@ namespace Sass {
   // Selector qualifiers -- i.e., classes and ids.
   ////////////////////////////////////////////////
   class Selector_Qualifier : public Simple_Selector {
-    ADD_PROPERTY(string, name)
   public:
     Selector_Qualifier(ParserState pstate, string n)
-    : Simple_Selector(pstate), name_(n)
+    : Simple_Selector(pstate, n)
     { }
     virtual unsigned long specificity()
     {
@@ -1825,12 +1840,11 @@ namespace Sass {
   // Attribute selectors -- e.g., [src*=".jpg"], etc.
   ///////////////////////////////////////////////////
   class Attribute_Selector : public Simple_Selector {
-    ADD_PROPERTY(string, name)
     ADD_PROPERTY(string, matcher)
     ADD_PROPERTY(String*, value) // might be interpolated
   public:
     Attribute_Selector(ParserState pstate, string n, string m, String* v)
-    : Simple_Selector(pstate), name_(n), matcher_(m), value_(v)
+    : Simple_Selector(pstate, n), matcher_(m), value_(v)
     { }
     virtual unsigned long specificity()
     {
@@ -1855,11 +1869,10 @@ namespace Sass {
   }
 
   class Pseudo_Selector : public Simple_Selector {
-    ADD_PROPERTY(string, name)
     ADD_PROPERTY(String*, expression)
   public:
     Pseudo_Selector(ParserState pstate, string n, String* expr = 0)
-    : Simple_Selector(pstate), name_(n), expression_(expr)
+    : Simple_Selector(pstate, n), expression_(expr)
     { }
 
     // A pseudo-class always consists of a "colon" (:) followed by the name
@@ -1897,11 +1910,10 @@ namespace Sass {
   // Wrapped selector -- pseudo selector that takes a list of selectors as argument(s) e.g., :not(:first-of-type), :-moz-any(ol p.blah, ul, menu, dir)
   /////////////////////////////////////////////////
   class Wrapped_Selector : public Simple_Selector {
-    ADD_PROPERTY(string, name)
     ADD_PROPERTY(Selector*, selector)
   public:
     Wrapped_Selector(ParserState pstate, string n, Selector* sel)
-    : Simple_Selector(pstate), name_(n), selector_(sel)
+    : Simple_Selector(pstate, n), selector_(sel)
     { }
     virtual bool is_superselector_of(Wrapped_Selector* sub);
     // Selectors inside the negation pseudo-class are counted like any

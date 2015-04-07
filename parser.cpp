@@ -2145,6 +2145,8 @@ namespace Sass {
             // main selector match
             sequence <
               // allow namespace prefix
+              optional < namespace_prefix >,
+              // modifiers prefixes
               alternatives <
                 sequence <
                   exactly <'#'>,
@@ -2157,14 +2159,13 @@ namespace Sass {
                 optional < pseudo_prefix >
               >,
               // accept hypens in token
-              optional < namespace_prefix >,
-              // accept hypens in token
               one_plus < sequence <
                 // can start with hyphens
                 zero_plus < exactly<'-'> >,
                 // now the main token
                 alternatives <
                   kwd_optional,
+                  exactly <'*'>,
                   quoted_string,
                   interpolant,
                   identifier,
