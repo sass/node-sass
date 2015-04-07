@@ -88,7 +88,6 @@ namespace Sass {
       if (i == '\\') {
         esc = ! esc;
       } else if (esc && i == '\r') {
-        out.resize (out.size () - 1);
         continue;
       } else if (esc && i == '\n') {
         out.resize (out.size () - 1);
