@@ -1630,12 +1630,13 @@ namespace Sass {
     if (!peek< exactly<'{'> >()) error("expected '{' after the predicate for @if", pstate);
     Block* consequent = parse_block();
     Block* alternative = 0;
-    if (lex< kwd_else_directive >()) {
-      if (peek< exactly<if_after_else_kwd> >()) {
-        alternative = new (ctx.mem) Block(pstate);
-        (*alternative) << parse_if_directive(true);
-      }
-      else if (!peek< exactly<'{'> >()) {
+
+    if (lex< elseif_directive >()) {
+      alternative = new (ctx.mem) Block(pstate);
+      (*alternative) << parse_if_directive(true);
+    }
+    else if (lex< kwd_else_directive >()) {
+      if (!peek< exactly<'{'> >()) {
         error("expected '{' after @else", pstate);
       }
       else {
