@@ -77,19 +77,19 @@ namespace Sass {
 
     // Match a single character literal.
     // Regex equivalent: /(?:literal)/
-    template <char pre>
+    template <char chr>
     const char* exactly(const char* src) {
-      return *src == pre ? src + 1 : 0;
+      return *src == chr ? src + 1 : 0;
     }
 
     // Match a string constant.
     // Regex equivalent: /[axy]/
-    template <const char* prefix>
+    template <const char* str>
     const char* exactly(const char* src) {
-      if (prefix == 0) return 0;
-      const char* pre = prefix;
+      if (str == 0) return 0;
+      const char* pre = str;
       if (src == 0) return 0;
-      // there is a small chance that the search prefix
+      // there is a small chance that the search string
       // is longer than the rest of the string to look at
       while (*pre && *src == *pre) {
         ++src, ++pre;
@@ -117,9 +117,9 @@ namespace Sass {
 
     // Match all except the supplied one.
     // Regex equivalent: /[^x]/
-    template <const char c>
+    template <const char chr>
     const char* any_char_but(const char* src) {
-      return (*src && *src != c) ? src + 1 : 0;
+      return (*src && *src != chr) ? src + 1 : 0;
     }
 
     // Succeeds if the matcher fails.
@@ -210,11 +210,26 @@ namespace Sass {
 
     // Match with word boundary rule.
     // Regex equivalent: /(?:$mx)\b/
-    template <const char* mx>
+    template <const char* str>
     const char* word(const char* src) {
       return sequence <
-               exactly < mx >,
+               exactly < str >,
                word_boundary
+             >(src);
+    }
+
+    template <char chr>
+    const char* loosely(const char* src) {
+      return sequence <
+               optional_spaces,
+               exactly < chr >
+             >(src);
+    }
+    template <const char* str>
+    const char* loosely(const char* src) {
+      return sequence <
+               optional_spaces,
+               exactly < str >
              >(src);
     }
 

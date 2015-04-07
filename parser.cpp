@@ -382,7 +382,7 @@ namespace Sass {
 
     Argument* arg;
     // some urls can look like line comments (parse literally - chunk would not work)
-    if (has_url && lex< sequence < uri_value, lookahead < exactly<')'> > > >(false)) {
+    if (has_url && lex< sequence < uri_value, lookahead < loosely<')'> > > >(false)) {
       String* the_url = parse_interpolated_chunk(lexed);
       arg = new (ctx.mem) Argument(the_url->pstate(), the_url);
     }
