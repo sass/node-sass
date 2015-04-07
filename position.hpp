@@ -106,6 +106,7 @@ namespace Sass {
     public: // down casts
       Offset off() { return *this; };
       Position pos() { return *this; };
+      ParserState pstate() { return *this; };
 
     public:
       string path;

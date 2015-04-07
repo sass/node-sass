@@ -460,9 +460,9 @@ namespace Sass {
       sel = parse_selector_group();
     }
     bool old_in_at_root = in_at_root;
+    ParserState r_source_position = pstate;
     lex < css_comments >();
     in_at_root = false;
-    ParserState r_source_position = pstate;
     if (!peek< exactly<'{'> >()) error("expected a '{' after the selector", pstate);
     Block* block = parse_block();
     in_at_root = old_in_at_root;
