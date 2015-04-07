@@ -2,6 +2,8 @@ var assert = require('assert'),
     fs = require('fs'),
     path = require('path'),
     read = require('fs').readFileSync,
+    glob = require('glob'),
+    rimraf = require('rimraf'),
     stream = require('stream'),
     spawn = require('cross-spawn'),
     cli = path.join(__dirname, '..', 'bin', 'node-sass'),
@@ -299,6 +301,88 @@ describe('cli', function() {
         done();
       });
     });
+  });
+
+  describe('node-sass sass/ --output css/', function() {
+    it('should create the output directory', function(done) {
+      var src = fixture('input-directory/sass');
+      var dest = fixture('input-directory/css');
+      var bin = spawn(cli, [src, '--output', dest]);
+
+      bin.once('close', function() {
+        assert(fs.existsSync(dest));
+        rimraf.sync(dest);
+        done();
+      });
+    });
+
+    it('it should compile all files in the folder', function(done) {
+      var src = fixture('input-directory/sass');
+      var dest = fixture('input-directory/css');
+      var bin = spawn(cli, [src, '--output', dest]);
+
+      bin.once('close', function() {
+        var files = fs.readdirSync(dest).sort();
+        assert.deepEqual(files, ['one.css', 'two.css', 'nested'].sort());
+        var nestedFiles = fs.readdirSync(path.join(dest, 'nested'));
+        assert.deepEqual(nestedFiles, ['three.css']);
+        rimraf.sync(dest);
+        done();
+      });
+    });
+
+    it('should skip files with an underscore', function(done) {
+      var src = fixture('input-directory/sass');
+      var dest = fixture('input-directory/css');
+      var bin = spawn(cli, [src, '--output', dest]);
+
+      bin.once('close', function() {
+        var files = fs.readdirSync(dest);
+        assert.equal(files.indexOf('_skipped.css'), -1);
+        rimraf.sync(dest);
+        done();
+      });
+    });
+
+    it('should ignore nested files if --recursive false', function(done) {
+      var src = fixture('input-directory/sass');
+      var dest = fixture('input-directory/css');
+      var bin = spawn(cli, [
+        src, '--output', dest,
+        '--recursive', false
+      ]);
+
+      bin.once('close', function() {
+        var files = fs.readdirSync(dest);
+        assert.deepEqual(files, ['one.css', 'two.css']);
+        rimraf.sync(dest);
+        done();
+      });
+    });
+
+    it('should error if no output directory is provided', function(done) {
+      var src = fixture('input-directory/sass');
+      var bin = spawn(cli, [src]);
+
+      bin.once('close', function(code) {
+        assert(code !== 0);
+        assert.equal(glob.sync(fixture('input-directory/**/*.css')).length, 0);
+        done();
+      });
+    });
+
+    it('should error if output directory is not a directory', function(done) {
+      var src = fixture('input-directory/sass');
+      var dest = fixture('input-directory/sass/one.scss');
+      var bin = spawn(cli, [src, '--output', dest]);
+
+      bin.once('close', function(code) {
+        assert(code !== 0);
+        assert.equal(glob.sync(fixture('input-directory/**/*.css')).length, 0);
+        done();
+      });
+    });
+
   });
 
   describe('node-sass in.scss --output path/to/file/out.css', function() {
