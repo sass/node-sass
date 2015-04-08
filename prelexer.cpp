@@ -545,22 +545,22 @@ namespace Sass {
       return word<not_kwd>(src);
     }
     const char* kwd_eq(const char* src) {
-      return word<eq>(src);
+      return exactly<eq>(src);
     }
     const char* kwd_neq(const char* src) {
-      return word<neq>(src);
+      return exactly<neq>(src);
     }
     const char* kwd_gt(const char* src) {
-      return word<gt>(src);
+      return exactly<gt>(src);
     }
     const char* kwd_gte(const char* src) {
-      return word<gte>(src);
+      return exactly<gte>(src);
     }
     const char* kwd_lt(const char* src) {
-      return word<lt>(src);
+      return exactly<lt>(src);
     }
     const char* kwd_lte(const char* src) {
-      return word<lte>(src);
+      return exactly<lte>(src);
     }
 
     // match specific IE syntax
