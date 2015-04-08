@@ -262,10 +262,9 @@ namespace Sass {
       return word<else_kwd>(src);
     }
     const char* elseif_directive(const char* src) {
-      return alternatives< word<else_kwd>,
-                           sequence< exactly< else_kwd >,
-                                     optional_css_whitespace,
-                                     word< if_after_else_kwd > > >(src);
+      return sequence< exactly< else_kwd >,
+                                optional_css_whitespace,
+                                word< if_after_else_kwd > >(src);
     }
 
     const char* kwd_for_directive(const char* src) {
