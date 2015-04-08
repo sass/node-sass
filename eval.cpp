@@ -818,6 +818,9 @@ namespace Sass {
     } else if (Parent_Selector* var = dynamic_cast<Parent_Selector*>(s)) {
       Expression* ex = var->perform(this);
       return evacuate_quotes(interpolation(ex));
+    } else if (Unary_Expression* var = dynamic_cast<Unary_Expression*>(s)) {
+      Expression* ex = var->perform(this);
+      return evacuate_quotes(interpolation(ex));
     } else if (Selector* var = dynamic_cast<Selector*>(s)) {
       Expression* ex = var->perform(this);
       return evacuate_quotes(interpolation(ex));
