@@ -1469,8 +1469,17 @@ namespace Sass {
 
       Arguments* args = new (ctx.mem) Arguments(pstate);
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
-        Argument* arg = new (ctx.mem) Argument(pstate, arglist->value_at_index(i));
-        *args << arg;
+        Expression* expr = arglist->value_at_index(i);
+        if (arglist->is_arglist()) {
+           Argument* arg = static_cast<Argument*>(expr);
+          *args << new (ctx.mem) Argument(pstate,
+                                          expr,
+                                          "",
+                                          arg->is_rest_argument(),
+                                          arg->is_keyword_argument());
+        } else {
+          *args << new (ctx.mem) Argument(pstate, expr);
+        }
       }
       Function_Call* func = new (ctx.mem) Function_Call(pstate, name, args);
       Contextualize contextualize(ctx, &d_env, backtrace);
