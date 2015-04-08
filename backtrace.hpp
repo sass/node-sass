@@ -41,7 +41,7 @@ namespace Sass {
              << "\t"
              << (++i == 0 ? "on" : "from")
              << " line "
-             << this_point->pstate.line
+             << this_point->pstate.line + 1
              << " of "
              << rel_path;
         } else {
@@ -49,7 +49,7 @@ namespace Sass {
              << "\t"
              << rel_path
              << ":"
-             << this_point->pstate.line
+             << this_point->pstate.line + 1
              << this_point->parent->caller;
         }
 
