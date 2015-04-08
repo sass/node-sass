@@ -169,15 +169,15 @@ describe('cli', function() {
       }, 100);
     });
 
-    it('should emit `warn` on file change when using --watch option', function(done) {
+    it('should emit `log` on file change when using --watch option', function(done) {
       var src = fixture('simple/tmp.scss');
 
       fs.writeFileSync(src, '');
 
       var bin = spawn(cli, ['--watch', src]);
 
-      bin.stderr.setEncoding('utf8');
-      bin.stderr.once('data', function(data) {
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.once('data', function(data) {
         assert(data.trim() === '=> changed: ' + src);
         fs.unlinkSync(src);
         done();
@@ -200,7 +200,7 @@ describe('cli', function() {
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
-        assert(data.trim() === 'body{background:white}');
+        assert(data.trim() === '=> changed: ' + src);
         fs.unlinkSync(src);
         done();
       });
@@ -223,7 +223,7 @@ describe('cli', function() {
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
-        assert(data.trim() === 'body{background:white}');
+        assert(data.trim() === '=> changed: ' + foo);
         done();
       });
 
