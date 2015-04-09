@@ -4,9 +4,15 @@ RM       ?= rm -f
 CP       ?= cp -a
 MKDIR    ?= mkdir
 WINDRES  ?= windres
-CFLAGS   ?= -Wall -O2
-CXXFLAGS ?= -Wall -O2
-LDFLAGS  ?= -Wall -O2 -Wl,--no-undefined
+CFLAGS   ?= -Wall
+CXXFLAGS ?= -Wall
+LDFLAGS  ?= -Wall
+ifneq "$(COVERAGE)" "yes"
+  CFLAGS   += -O2
+  CXXFLAGS += -O2
+  LDFLAGS  += -O2
+endif
+LDFLAGS  += -Wl,-undefined,error
 CAT      ?= $(if $(filter $(OS),Windows_NT),type,cat)
 
 ifneq (,$(findstring /cygdrive/,$(PATH)))

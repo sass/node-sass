@@ -14,9 +14,9 @@ if [ "x$SASS_SPEC_PATH" == "x" ]; then export SASS_SPEC_PATH=$(pwd)/sass-spec; f
 
 if [ "x$COVERAGE" == "xyes" ]; then
   COVERAGE_OPT="--enable-coverage"
-  export EXTRA_CFLAGS="-O0 --coverage"
-  export EXTRA_CXXFLAGS="-O0 --coverage"
-  export EXTRA_LDFLAGS="-O0 --coverage"
+  export EXTRA_CFLAGS="--coverage"
+  export EXTRA_CXXFLAGS="--coverage"
+  export EXTRA_LDFLAGS="--coverage"
 else
   COVERAGE_OPT="--disable-coverage"
 fi
