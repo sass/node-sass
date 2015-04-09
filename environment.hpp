@@ -104,7 +104,7 @@ namespace Sass {
     // see if we have a lexical we could update
     // either update already existing lexical value
     // or if flag is set, we create one if no lexical found
-    void set_lexical(const string& key, T val, bool global = false)
+    void set_lexical(const string& key, T val)
     {
       auto cur = this;
       while (cur->is_lexical()) {
@@ -114,11 +114,7 @@ namespace Sass {
         }
         cur = cur->parent_;
       }
-      if (global) {
-        set_global(key, val);
-      } else {
-        set_local(key, val);
-      }
+      set_local(key, val);
     }
 
     // look on the full stack for key
