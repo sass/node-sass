@@ -26,17 +26,17 @@ describe('runtime parameters', function() {
 
     describe('in package.json', function() {
       it('should use the binary path', function() {
-        require.cache[packagePath].exports.nodeSassConfig = { binaryPath: 'bar' };
+        require.cache[packagePath].exports.nodeSassConfig = { binaryPath: 'ccc' };
         require(extensionsPath);
 
-        assert.equal(process.sass.binaryPath, 'bar');
+        assert.equal(process.sass.binaryPath, 'ccc');
       });
 
       it('should use the binary file name', function() {
-        require.cache[packagePath].exports.nodeSassConfig = { binaryName: 'foo' };
+        require.cache[packagePath].exports.nodeSassConfig = { binaryName: 'ddd' };
         require(extensionsPath);
 
-        assert.equal(process.sass.binaryName, 'foo_binding.node');
+        assert.equal(process.sass.binaryName, 'ddd_binding.node');
       });
 
       it('should use both the binary path and the file name', function() {
@@ -46,6 +46,23 @@ describe('runtime parameters', function() {
         assert.equal(process.sass.binaryName, 'foo_binding.node');
         assert.equal(process.sass.binaryPath, 'bar');
       });
+
+      it('should use both the binary path and the file name', function() {
+        require.cache[packagePath].exports.nodeSassConfig = { binaryName: 'foo', binaryPath: 'bar' };
+        require(extensionsPath);
+
+        assert.equal(process.sass.binaryName, 'foo_binding.node');
+        assert.equal(process.sass.binaryPath, 'bar');
+      });
+
+      it('should use the distribution site URL', function() {
+        require.cache[packagePath].exports.nodeSassConfig = { binarySite: 'http://foo.example.com:9999' };
+        require(extensionsPath);
+
+        var URL = 'http://foo.example.com:9999/v';
+        assert.equal(process.sass.binaryUrl.substr(0, URL.length), URL);
+      });
+
     });
 
     describe('in the process environment variables', function() {
@@ -71,6 +88,14 @@ describe('runtime parameters', function() {
         assert.equal(process.sass.binaryName, 'foo_binding.node');
         assert.equal(process.sass.binaryPath, 'bar');
       });
+
+      it('should use the distribution site URL', function() {
+        process.env.SASS_BINARY_SITE = 'http://bar.example.com:9988';
+        require(extensionsPath);
+
+        var URL = 'http://bar.example.com:9988/v';
+        assert.equal(process.sass.binaryUrl.substr(0, URL.length), URL);
+      });
     });
 
     describe('using command line parameters', function() {
@@ -94,6 +119,80 @@ describe('runtime parameters', function() {
 
         assert.equal(process.sass.binaryName, 'foo_binding.node');
         assert.equal(process.sass.binaryPath, 'bar');
+      });
+
+      it('should use the distribution site URL', function() {
+        process.argv.push('--sass-binary-site', 'http://qqq.example.com:9977');
+        require(extensionsPath);
+
+        var URL = 'http://qqq.example.com:9977/v';
+        assert.equal(process.sass.binaryUrl.substr(0, URL.length), URL);
+      });
+    });
+    describe('checking if the command line parameter overrides environment', function() {
+      it('binary path', function() {
+        process.argv.push('--sass-binary-path', 'bbb');
+        process.env.SASS_BINARY_PATH = 'xxx';
+        require(extensionsPath);
+        assert.equal(process.sass.binaryPath, 'bbb');
+      });
+      it('binary name', function() {
+        process.argv.push('--sass-binary-name', 'ccc');
+        process.env.SASS_BINARY_NAME = 'yyy';
+        require(extensionsPath);
+        assert.equal(process.sass.binaryName, 'ccc_binding.node');
+      });
+      it('distribution site URL', function() {
+        process.argv.push('--sass-binary-site', 'http://qqq.example.com:9977');
+        process.env.SASS_BINARY_SITE = 'http://www.example.com:9988';
+        require(extensionsPath);
+
+        var URL = 'http://qqq.example.com:9977/v';
+        assert.equal(process.sass.binaryUrl.substr(0, URL.length), URL);
+      });
+    });
+    describe('checking if the command line parameter overrides package.json', function() {
+      it('binary path', function() {
+        process.argv.push('--sass-binary-path', 'ddd');
+        require.cache[packagePath].exports.nodeSassConfig = { binaryPath: 'yyy' };
+        require(extensionsPath);
+        assert.equal(process.sass.binaryPath, 'ddd');
+      });
+      it('binary name', function() {
+        process.argv.push('--sass-binary-name', 'eee');
+        require.cache[packagePath].exports.nodeSassConfig = { binaryName: 'zzz' };
+        require(extensionsPath);
+        assert.equal(process.sass.binaryName, 'eee_binding.node');
+      });
+      it('distribution site URL', function() {
+        process.argv.push('--sass-binary-site', 'http://yyy.example.com:9977');
+        require.cache[packagePath].exports.nodeSassConfig = { binarySite: 'http://ddd.example.com:8888' };
+        require(extensionsPath);
+
+        var URL = 'http://yyy.example.com:9977/v';
+        assert.equal(process.sass.binaryUrl.substr(0, URL.length), URL);
+      });
+    });
+    describe('checking if environment variable overrides package.json', function() {
+      it('binary path', function() {
+        process.env.SASS_BINARY_PATH = 'ggg';
+        require.cache[packagePath].exports.nodeSassConfig = { binaryPath: 'qqq' };
+        require(extensionsPath);
+        assert.equal(process.sass.binaryPath, 'ggg');
+      });
+      it('binary name', function() {
+        process.env.SASS_BINARY_NAME = 'hhh';
+        require.cache[packagePath].exports.nodeSassConfig = { binaryName: 'uuu' };
+        require(extensionsPath);
+        assert.equal(process.sass.binaryName, 'hhh_binding.node');
+      });
+      it('distribution site URL', function() {
+        require.cache[packagePath].exports.nodeSassConfig = { binarySite: 'http://ddd.example.com:8888' };
+        process.env.SASS_BINARY_SITE = 'http://iii.example.com:9988';
+        require(extensionsPath);
+
+        var URL = 'http://iii.example.com:9988/v';
+        assert.equal(process.sass.binaryUrl.substr(0, URL.length), URL);
       });
     });
 });
