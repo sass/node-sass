@@ -426,11 +426,16 @@ namespace Sass {
     const char* uri_value(const char* src)
     {
       return
-      zero_plus <
-        alternatives <
-          alnum,
-          exactly <'/'>,
-          class_char < uri_chars >
+      sequence <
+        negate <
+          exactly < '$' >
+        >,
+        zero_plus <
+          alternatives <
+            alnum,
+            exactly <'/'>,
+            class_char < uri_chars >
+          >
         >
       >(src);
     }
