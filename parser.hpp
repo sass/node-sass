@@ -165,11 +165,17 @@ namespace Sass {
     template <prelexer mx>
     const char* lex_css()
     {
+      // copy old token
+      Token prev = lexed;
       // throw away comments
       // update srcmap position
       lex < css_comments >();
-      // now lex a token
-      return lex< mx >();
+      // now lex a new token
+      const char* pos = lex< mx >();
+      // maybe restore prev token
+      if (pos == 0) lexed = prev;
+      // return match
+      return pos;
     }
 
     // all block comments will be skipped and thrown away
