@@ -87,9 +87,19 @@ When returning or calling `done()` with `{ file: "String" }`, the new file path 
 
 When returning or calling `done()` with `{ contents: "String" }`, the string value will be used as if the file was read in through an external source.
 
-Starting from v3.0.0, `this` refers to a contextual scope for the immediate run of `sass.render` or `sass.renderSync`
+Starting from v3.0.0:
 
-Starting from v3.0.0, importer can be an array of functions, which will be called by libsass in the order of their occurance in array. This helps user specify special importer for particular kind of path (filesystem, http). If an importer does not want to handle a particular path, it should return `sass.NULL`. See [functions section](#functions--v300) for more details on Sass types.
+* `this` refers to a contextual scope for the immediate run of `sass.render` or `sass.renderSync`
+
+* importers can return error and LibSass will emit that error in repsonse. For instance:
+
+  ```javascript
+  done(new Error('doesn\'t exist!'));
+  // or return synchornously
+  return new Error('nothing to do here');
+  ```
+
+* importer can be an array of functions, which will be called by libsass in the order of their occurance in array. This helps user specify special importer for particular kind of path (filesystem, http). If an importer does not want to handle a particular path, it should return `sass.NULL`. See [functions section](#functions--v300) for more details on Sass types.
 
 ### functions (>= v3.0.0)
 `functions` is an `Object` that holds a collection of custom functions that may be invoked by the sass files being compiled. They may take zero or more input parameters and must return a value either synchronously (`return ...;`) or asynchronously (`done();`). Those parameters will be instances of one of the constructors contained in the `require('node-sass').types` hash. The return value must be of one of these types as well. See the list of available types below:
