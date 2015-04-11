@@ -1051,7 +1051,7 @@ namespace Sass {
 
   Expression* Parser::parse_comma_list()
   {
-    if (peek< alternatives <
+    if (peek_css< alternatives <
           // exactly<'!'>,
           // exactly<':'>,
           exactly<';'>,
@@ -1063,14 +1063,14 @@ namespace Sass {
     { return new (ctx.mem) List(pstate, 0); }
     Expression* list1 = parse_space_list();
     // if it's a singleton, return it directly; don't wrap it
-    if (!peek< exactly<','> >(position)) return list1;
+    if (!peek_css< exactly<','> >(position)) return list1;
 
     List* comma_list = new (ctx.mem) List(pstate, 2, List::COMMA);
     (*comma_list) << list1;
 
-    while (lex< exactly<','> >())
+    while (lex_css< exactly<','> >())
     {
-      if (peek< alternatives <
+      if (peek_css< alternatives <
             // exactly<'!'>,
             exactly<';'>,
             exactly<'}'>,
@@ -1091,7 +1091,7 @@ namespace Sass {
   {
     Expression* disj1 = parse_disjunction();
     // if it's a singleton, return it directly; don't wrap it
-    if (peek< alternatives <
+    if (peek_css< alternatives <
           // exactly<'!'>,
           exactly<';'>,
           exactly<'}'>,
@@ -1108,7 +1108,7 @@ namespace Sass {
     List* space_list = new (ctx.mem) List(pstate, 2, List::SPACE);
     (*space_list) << disj1;
 
-    while (!(peek< alternatives <
+    while (!(peek_css< alternatives <
                // exactly<'!'>,
                exactly<';'>,
                exactly<'}'>,
@@ -1229,9 +1229,9 @@ namespace Sass {
 
   Expression* Parser::parse_factor()
   {
-    if (lex< exactly<'('> >()) {
+    if (lex_css< exactly<'('> >()) {
       Expression* value = parse_map();
-      if (!lex< exactly<')'> >()) error("unclosed parenthesis", pstate);
+      if (!lex_css< exactly<')'> >()) error("unclosed parenthesis", pstate);
       value->is_delayed(false);
       // make sure wrapped lists and division expressions are non-delayed within parentheses
       if (value->concrete_type() == Expression::LIST) {

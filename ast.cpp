@@ -8,6 +8,8 @@
 namespace Sass {
   using namespace std;
 
+  static Null sass_null(Sass::Null(ParserState("null")));
+
   bool Compound_Selector::operator<(const Compound_Selector& rhs) const
   {
     To_String to_string;
@@ -586,6 +588,13 @@ namespace Sass {
     }
     return result;
   }*/
+
+  Expression* Hashed::at(Expression* k) const
+  {
+    if (elements_.count(k))
+    { return elements_.at(k); }
+    else { return &sass_null; }
+  }
 
 }
 

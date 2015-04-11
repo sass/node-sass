@@ -210,9 +210,10 @@ namespace Sass {
     size_t length() const                  { return list_.size(); }
     bool empty() const                     { return list_.empty(); }
     bool has(Expression* k) const          { return elements_.count(k) == 1; }
-    Expression* at(Expression* k) const    { return elements_.at(k); }
+    Expression* at(Expression* k) const;
     bool has_duplicate_key() const         { return duplicate_key_ != 0; }
     Expression* get_duplicate_key() const  { return duplicate_key_; }
+    const unordered_map<Expression*, Expression*> elements() { return elements_; }
     Hashed& operator<<(pair<Expression*, Expression*> p)
     {
       reset_hash();

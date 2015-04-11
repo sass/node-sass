@@ -33,6 +33,8 @@ matrix:
       env: AUTOTOOLS=yes COVERAGE=yes BUILD=static
     - os: osx
       compiler: gcc
+    - os: osx
+      env: AUTOTOOLS=no COVERAGE=yes BUILD=static
 
 script: ./script/ci-build-libsass
 before_install: ./script/ci-install-deps
