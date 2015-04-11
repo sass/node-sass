@@ -50,7 +50,7 @@ namespace Sass {
 
     Parser(Context& ctx, const ParserState& pstate)
     : ParserState(pstate), ctx(ctx), block_stack(0), stack(0), last_media_block(0),
-      source(0), position(0), end(0), before_token(pstate), after_token(pstate), pstate("[NULL]"), indentation(0)
+      source(0), position(0), end(0), before_token(pstate), after_token(pstate), pstate(pstate), indentation(0)
     { in_at_root = false; stack.push_back(nothing); }
 
     // static Parser from_string(const string& src, Context& ctx, ParserState pstate = ParserState("[STRING]"));
