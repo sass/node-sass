@@ -216,17 +216,54 @@ namespace Sass {
     string var(a->variable());
     Selector* p = selector_stack.size() <= 1 ? 0 : selector_stack.back();
     if (a->is_global()) {
-      env->set_global(var, a->value()->perform(eval->with(p, env, backtrace)));
-    }
-    else if (a->is_default()) {
-      if (env->has_lexical(var)) return 0;
-      if (env->has_global(var)) {
-        Expression* e = static_cast<Expression*>(env->get_global(var));
-        if (e->concrete_type() == Expression::NULL_VAL) {
+      if (a->is_default()) {
+        if (env->has_global(var)) {
+          Expression* e = dynamic_cast<Expression*>(env->get_global(var));
+          if (!e || e->concrete_type() == Expression::NULL_VAL) {
+            env->set_global(var, a->value()->perform(eval->with(p, env, backtrace)));
+          }
+        }
+        else {
           env->set_global(var, a->value()->perform(eval->with(p, env, backtrace)));
         }
-      } else {
+      }
+      else {
         env->set_global(var, a->value()->perform(eval->with(p, env, backtrace)));
+      }
+    }
+    else if (a->is_default()) {
+      if (env->has_lexical(var)) {
+        auto cur = env;
+        while (cur && cur->is_lexical()) {
+          if (cur->has_local(var)) {
+            if (AST_Node* node = cur->get_local(var)) {
+              Expression* e = dynamic_cast<Expression*>(node);
+              if (!e || e->concrete_type() == Expression::NULL_VAL) {
+                cur->set_local(var, a->value()->perform(eval->with(p, env, backtrace)));
+              }
+            }
+            else {
+              throw runtime_error("Env not in sync");
+            }
+            return 0;
+          }
+          cur = cur->parent();
+        }
+        throw runtime_error("Env not in sync");
+      }
+      else if (env->has_global(var)) {
+        if (AST_Node* node = env->get_global(var)) {
+          Expression* e = dynamic_cast<Expression*>(node);
+          if (!e || e->concrete_type() == Expression::NULL_VAL) {
+            env->set_global(var, a->value()->perform(eval->with(p, env, backtrace)));
+          }
+        }
+      }
+      else if (env->is_lexical()) {
+        env->set_local(var, a->value()->perform(eval->with(p, env, backtrace)));
+      }
+      else {
+        env->set_local(var, a->value()->perform(eval->with(p, env, backtrace)));
       }
     }
     else {
@@ -315,7 +352,7 @@ namespace Sass {
     double end = sass_end->value();
     // only create iterator once in this environment
     Number* it = new (env->mem) Number(low->pstate(), start, sass_end->unit());
-    AST_Node* old_var = env->get_local(variable);
+    AST_Node* old_var = env->has_local(variable) ? env->get_local(variable) : 0;
     env->set_local(variable, it);
     Block* body = f->block();
     if (start < end) {
@@ -364,7 +401,7 @@ namespace Sass {
     // remember variables and then reset them
     vector<AST_Node*> old_vars(variables.size());
     for (size_t i = 0, L = variables.size(); i < L; ++i) {
-      old_vars[i] = env->get_local(variables[i]);
+      old_vars[i] = env->has_local(variables[i]) ? env->get_local(variables[i]) : 0;
       env->set_local(variables[i], 0);
     }
     Block* body = e->block();
