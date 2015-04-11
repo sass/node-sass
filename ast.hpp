@@ -851,11 +851,34 @@ namespace Sass {
     ADD_PROPERTY(Type, type);
     ADD_PROPERTY(Expression*, left);
     ADD_PROPERTY(Expression*, right);
+    size_t hash_;
   public:
     Binary_Expression(ParserState pstate,
                       Type t, Expression* lhs, Expression* rhs)
-    : Expression(pstate), type_(t), left_(lhs), right_(rhs)
+    : Expression(pstate), type_(t), left_(lhs), right_(rhs), hash_(0)
     { }
+    virtual bool operator==(Expression& rhs) const
+    {
+      try
+      {
+        Binary_Expression& m = dynamic_cast<Binary_Expression&>(rhs);
+        if (m == 0) return false;
+        return type() == m.type() &&
+               left() == m.left() &&
+               right() == m.right();
+      }
+      catch (std::bad_cast&)
+      {
+        return false;
+      }
+      catch (...) { throw; }
+    }
+    virtual size_t hash()
+    {
+      if (hash_ > 0) return hash_;
+      hash_ = left()->hash() ^ right()->hash() ^ std::hash<size_t>()(type_);
+      return hash_;
+    }
     ATTACH_OPERATIONS();
   };
 
@@ -868,10 +891,32 @@ namespace Sass {
   private:
     ADD_PROPERTY(Type, type);
     ADD_PROPERTY(Expression*, operand);
+    size_t hash_;
   public:
     Unary_Expression(ParserState pstate, Type t, Expression* o)
-    : Expression(pstate), type_(t), operand_(o)
+    : Expression(pstate), type_(t), operand_(o), hash_(0)
     { }
+    virtual bool operator==(Expression& rhs) const
+    {
+      try
+      {
+        Unary_Expression& m = dynamic_cast<Unary_Expression&>(rhs);
+        if (m == 0) return false;
+        return type() == m.type() &&
+               operand() == m.operand();
+      }
+      catch (std::bad_cast&)
+      {
+        return false;
+      }
+      catch (...) { throw; }
+    }
+    virtual size_t hash()
+    {
+      if (hash_ > 0) return hash_;
+      hash_ = operand()->hash() ^ std::hash<size_t>()(type_);
+      return hash_;
+    }
     ATTACH_OPERATIONS();
   };
 
@@ -899,7 +944,7 @@ namespace Sass {
       {
         Argument& m = dynamic_cast<Argument&>(rhs);
         if (!(m && name() == m.name())) return false;
-        return *value() == *value();
+        return *value() == *m.value();
       }
       catch (std::bad_cast&)
       {
