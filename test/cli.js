@@ -39,6 +39,20 @@ describe('cli', function() {
       src.pipe(bin.stdin);
     });
 
+    it('should compile with the --quiet option', function(done) {
+      var src = fs.createReadStream(fixture('simple/index.scss'));
+      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
+      var bin = spawn(cli, ['--quiet']);
+
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.once('data', function(data) {
+        assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
+        done();
+      });
+
+      src.pipe(bin.stdin);
+    });
+
     it('should compile with the --output-style option', function(done) {
       var src = fs.createReadStream(fixture('compressed/index.scss'));
       var expected = read(fixture('compressed/expected.css'), 'utf8').trim();
@@ -150,6 +164,45 @@ describe('cli', function() {
       });
     });
 
+    it('should compile silently using the --quiet option', function(done) {
+      process.chdir(fixture('simple'));
+
+      var src = fixture('simple/index.scss');
+      var dest = fixture('simple/index.css');
+      var bin = spawn(cli, [src, dest, '--quiet']);
+      var didEmit = false;
+
+      bin.stderr.once('data', function() {
+        didEmit = true;
+      });
+
+      bin.once('close', function() {
+        assert.equal(didEmit, false);
+        fs.unlinkSync(dest);
+        process.chdir(__dirname);
+        done();
+      });
+    });
+
+    it('should still report errors with the --quiet option', function(done) {
+      process.chdir(fixture('invalid'));
+
+      var src = fixture('invalid/index.scss');
+      var dest = fixture('invalid/index.css');
+      var bin = spawn(cli, [src, dest, '--quiet']);
+      var didEmit = false;
+
+      bin.stderr.once('data', function() {
+        didEmit = true;
+      });
+
+      bin.once('close', function() {
+        assert.equal(didEmit, true);
+        process.chdir(__dirname);
+        done();
+      });
+    });
+
     it('should not exit with the --watch option', function(done) {
       var src = fixture('simple/index.scss');
       var bin = spawn(cli, [src, '--watch']);
@@ -185,6 +238,28 @@ describe('cli', function() {
 
       setTimeout(function() {
         fs.appendFileSync(src, 'body {}');
+      }, 500);
+    });
+
+    it('should emit nothing on file change when using --watch and --quiet options', function(done) {
+      var src = fixture('simple/tmp.scss');
+      var didEmit = false;
+      fs.writeFileSync(src, '');
+
+      var bin = spawn(cli, ['--watch', '--quiet', src]);
+
+      bin.stderr.setEncoding('utf8');
+      bin.stderr.once('data', function() {
+        didEmit = true;
+      });
+
+      setTimeout(function() {
+        fs.appendFileSync(src, 'body {}');
+        setTimeout(function() {
+          assert.equal(didEmit, false);
+          done();
+          fs.unlinkSync(src);
+        }, 200);
       }, 500);
     });
 
