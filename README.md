@@ -481,7 +481,7 @@ Install runs only two Mocha tests to see if your machine can use the pre-built [
 
 This module is brought to you and maintained by the following people:
 
-* Adeel Mujahid - Project Lead ([Github](https://github.com/am11) / [Twitter](https://twitter.com/adeelbm))
+* Michael Mifsud - Project Lead ([Github](https://github.com/xzyfer) / [Twitter](https://twitter.com/xzyfer))
 * Andrew Nesbitt ([Github](https://github.com/andrew) / [Twitter](https://twitter.com/teabass))
 * Dean Mao ([Github](https://github.com/deanmao) / [Twitter](https://twitter.com/deanmao))
 * Brett Wilkins ([Github](https://github.com/bwilkins) / [Twitter](https://twitter.com/bjmaz))
@@ -489,6 +489,7 @@ This module is brought to you and maintained by the following people:
 * Laurent Goderre ([Github](https://github.com/laurentgoderre) / [Twitter](https://twitter.com/laurentgoderre))
 * Nick Schonning ([Github](https://github.com/nschonni) / [Twitter](https://twitter.com/nschonni))
 * Adam Yeats ([Github](https://github.com/adamyeats) / [Twitter](https://twitter.com/adamyeats))
+* Adeel Mujahid ([Github](https://github.com/am11) / [Twitter](https://twitter.com/adeelbm))
 
 ## Contributors
 
