@@ -28,8 +28,8 @@ extern "C" {
     Sass_File_Context* fctx;
 
     // libuv related
-    uv_async_t async;
-    uv_work_t request;
+    uv_async_t *async;
+    uv_work_t *request;
 
     // v8 and nan related
     Persistent<Object> result;
