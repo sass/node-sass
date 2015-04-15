@@ -475,6 +475,8 @@ namespace Sass {
           } else {
             hasDeclarations = true;
           }
+        } else if (Declaration* d = dynamic_cast<Declaration*>(stm)) {
+          return isPrintable(d, style);
         } else {
           hasDeclarations = true;
         }
@@ -485,6 +487,28 @@ namespace Sass {
       }
 
       return false;
+    }
+
+    bool isPrintable(String_Constant* s, Output_Style style)
+    {
+      return ! s->value().empty();
+    }
+
+    bool isPrintable(String_Quoted* s, Output_Style style)
+    {
+      return true;
+    }
+
+    bool isPrintable(Declaration* d, Output_Style style)
+    {
+      Expression* val = d->value();
+      if (String_Quoted* sq = dynamic_cast<String_Quoted*>(val)) return isPrintable(sq, style);
+      if (String_Constant* sc = dynamic_cast<String_Constant*>(val)) return isPrintable(sc, style);
+      return true;
+    }
+
+    bool isPrintable(Expression* e, Output_Style style) {
+      return isPrintable(e, style);
     }
 
     bool isPrintable(Feature_Block* f, Output_Style style) {
