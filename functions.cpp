@@ -1071,8 +1071,8 @@ namespace Sass {
     BUILT_IN(random)
     {
       Number* l = dynamic_cast<Number*>(env["$limit"]);
-      if (l && trunc(l->value()) != l->value()) error("argument $limit of `" + string(sig) + "` must be an integer", pstate);
       if (l) {
+        if (trunc(l->value()) != l->value() || l->value() == 0) error("argument $limit of `" + string(sig) + "` must be a positive integer", pstate);
         uniform_real_distribution<> distributor(1, l->value() + 1);
         uint_fast32_t distributed = static_cast<uint_fast32_t>(distributor(rand));
         return new (ctx.mem) Number(pstate, (double)distributed);
