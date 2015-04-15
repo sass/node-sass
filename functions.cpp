@@ -1079,8 +1079,8 @@ namespace Sass {
       }
       else {
         uniform_real_distribution<> distributor(0, 1);
-        uint_fast32_t distributed = static_cast<uint_fast32_t>(distributor(rand));
-        return new (ctx.mem) Number(pstate, trunc(distributed));
+        double distributed = static_cast<double>(distributor(rand));
+        return new (ctx.mem) Number(pstate, distributed);
      }
     }
 
