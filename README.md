@@ -452,6 +452,7 @@ Output will be saved with the same name as input SASS file into the current work
     -o, --output               Output directory
     -x, --omit-source-map-url  Omit source map URL comment from output
     -i, --indented-syntax      Treat data from stdin as sass code (versus scss)
+    -q, --quiet                Suppress log output except on error
     -v, --version              Prints version info
     --output-style             CSS output style (nested | expanded | compact | compressed)
     --indent-type              Indent type for output CSS (space | tab)

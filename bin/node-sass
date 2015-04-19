@@ -34,6 +34,7 @@ var cli = meow({
     '  -o, --output               Output directory',
     '  -x, --omit-source-map-url  Omit source map URL comment from output',
     '  -i, --indented-syntax      Treat data from stdin as sass code (versus scss)',
+    '  -q, --quiet                Suppress log output except on error',
     '  -v, --version              Prints version info',
     '  --output-style             CSS output style (nested | expanded | compact | compressed)',
     '  --indent-type              Indent type for output CSS (space | tab)',
@@ -54,6 +55,7 @@ var cli = meow({
   boolean: [
     'indented-syntax',
     'omit-source-map-url',
+    'quiet',
     'recursive',
     'source-map-embed',
     'source-map-contents',
@@ -74,6 +76,7 @@ var cli = meow({
   alias: {
     c: 'source-comments',
     i: 'indented-syntax',
+    q: 'quiet',
     o: 'output',
     r: 'recursive',
     x: 'omit-source-map-url',
@@ -87,6 +90,7 @@ var cli = meow({
     linefeed: 'lf',
     'output-style': 'nested',
     precision: 5,
+    quiet: false,
     recursive: true
   }
 });
@@ -139,7 +143,9 @@ function getEmitter() {
   });
 
   emitter.on('warn', function(data) {
-    console.warn(data);
+    if (!options.quiet) {
+      console.warn(data);
+    }
   });
 
   emitter.on('log', function(data) {
