@@ -55,7 +55,7 @@ function afterBuild(options) {
 
 function initSubmodules(cb) {
   var errorMsg = '';
-  var git = spawn(['LIBSASS_GIT_VERSION=', pkg.libsass, ' ./scripts/git.sh'].join());
+  var git = spawn(['LIBSASS_GIT_VERSION=', pkg.libsass, ' ./scripts/git.sh'].join(''));
   git.stderr.on('data', function(data) {
     errorMsg += data.toString();
   });
