@@ -47,6 +47,24 @@ function afterBuild(options) {
 }
 
 /**
+ * manageProcess
+ *
+ * @param {ChildProcess} proc
+ * @param {Function} cb
+ * @api private
+ */
+
+function manageProcess(proc, cb) {
+  var errorMsg = '';
+  proc.stderr.on('data', function(data) {
+    errorMsg += data.toString();
+  });
+  proc.on('close', function(code) {
+    cb(code === 0 ? null : { message: errorMsg });
+  });
+}
+
+/**
  * initSubmodules
  *
  * @param {Function} cb
@@ -54,17 +72,22 @@ function afterBuild(options) {
  */
 
 function initSubmodules(cb) {
-  var errorMsg = '';
-  var git = spawn(['LIBSASS_GIT_VERSION=', pkg.libsass, ' ./scripts/git.sh'].join(''));
-  git.stderr.on('data', function(data) {
-    errorMsg += data.toString();
-  });
-  git.on('close', function(code) {
-    var error;
-    if (code !== 0) {
-      error = { message: errorMsg + 'Unable to checkout the libSass submodule' };
+  console.log('Detected a git install');
+  console.log('Cloning libSass into src/libsass');
+
+  var clone = spawn('git', ['clone', 'git@github.com:sass/libsass.git', './src/libsass']);
+  manageProcess(clone, function(err) {
+    if (err) {
+      cb(err);
+      return;
     }
-    cb(error);
+
+    console.log('Checking out libsass to ' + pkg.libsass);
+
+    var checkout = spawn('git', ['checkout', pkg.libsass], { cwd: './src/libsass' });
+    manageProcess(checkout, function(err) {
+      cb(err);
+    });
   });
 }
 
