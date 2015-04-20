@@ -12,6 +12,7 @@ namespace Sass {
   double sass_atof(const char* str);
   string string_escape(const string& str);
   string string_unescape(const string& str);
+  string string_eval_escapes(const string& str);
   string read_css_string(const string& str);
   string evacuate_quotes(const string& str);
   string evacuate_escapes(const string& str);
