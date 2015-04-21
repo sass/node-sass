@@ -70,7 +70,10 @@ Default: `null`
 
 A string to pass to [libsass] to render. It is recommended that you use `includePaths` in conjunction with this so that [libsass] can find files when using the `@import` directive.
 
-### importer (>= v2.0.0)
+### importer (>= v2.0.0) - _experimental_
+
+**This is an experimental Libsass feature. Use with caution.**
+
 Type: `Function | Function[]` signature `function(url, prev, done)`
 Default: `undefined`
 
@@ -101,7 +104,10 @@ Starting from v3.0.0:
 
 * importer can be an array of functions, which will be called by libsass in the order of their occurance in array. This helps user specify special importer for particular kind of path (filesystem, http). If an importer does not want to handle a particular path, it should return `sass.NULL`. See [functions section](#functions--v300) for more details on Sass types.
 
-### functions (>= v3.0.0)
+### functions (>= v3.0.0) - _experimental_
+
+**This is an experimental Libsass feature. Use with caution.**
+
 `functions` is an `Object` that holds a collection of custom functions that may be invoked by the sass files being compiled. They may take zero or more input parameters and must return a value either synchronously (`return ...;`) or asynchronously (`done();`). Those parameters will be instances of one of the constructors contained in the `require('node-sass').types` hash. The return value must be of one of these types as well. See the list of available types below:
 
 #### types.Number(value [, unit = ""])
