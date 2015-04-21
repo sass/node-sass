@@ -98,10 +98,12 @@ function initSubmodules(cb) {
  * @api private
  */
 
-function installGitDependencies(cb) {
+function installGitDependencies(options, cb) {
   var libsassPath = './src/libsass';
 
-  if (fs.access) { // node 0.12+, iojs 1.0.0+
+  if (process.env.LIBSASS_EXT || options.libsassExt) {
+    cb();
+  } else if (fs.access) { // node 0.12+, iojs 1.0.0+
     fs.access(libsassPath, fs.R_OK, function(err) {
       err && err.code === 'ENOENT' ? initSubmodules(cb) : cb();
     });
@@ -120,7 +122,7 @@ function installGitDependencies(cb) {
  */
 
 function build(options) {
-  installGitDependencies(function(err) {
+  installGitDependencies(options, function(err) {
     if (err) {
       console.error(err.message);
       process.exit(1);
@@ -171,6 +173,8 @@ function parseArgs(args) {
       options.arch = arg.substring(14);
     } else if (arg === '-d' || arg === '--debug') {
       options.debug = true;
+    } else if (arg.substring(0, 13) === '--libsass_ext' && arg.substring(14) !== 'no') {
+      options.libsassExt = true;
     }
 
     return true;
