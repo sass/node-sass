@@ -7,7 +7,7 @@ by Aaron Leung ([@akhleung]) and Hampton Catlin ([@hcatlin])
 [![Windows CI](https://ci.appveyor.com/api/projects/status/github/sass/libsass?svg=true)](https://ci.appveyor.com/project/sass/libsass/branch/master)
 [![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=283068)](https://www.bountysource.com/trackers/283068-libsass?utm_source=283068&utm_medium=shield&utm_campaign=TRACKER_BADGE)
 [![Coverage Status](https://img.shields.io/coveralls/sass/libsass.svg)](https://coveralls.io/r/sass/libsass?branch=feature%2Ftest-travis-ci-3)
-[![Join us](https://still-ridge-9421.herokuapp.com/badge.svg)](https://still-ridge-9421.herokuapp.com/)
+[![Join us](https://libsass-slack.herokuapp.com/badge.svg)](https://libsass-slack.herokuapp.com/)
 
 https://github.com/sass/libsass
 
