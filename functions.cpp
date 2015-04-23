@@ -760,6 +760,10 @@ namespace Sass {
     Signature unquote_sig = "unquote($string)";
     BUILT_IN(sass_unquote)
     {
+      if (dynamic_cast<Null*>(env["$string"])) {
+        return new (ctx.mem) Null(pstate);
+      }
+
       To_String to_string(&ctx);
       AST_Node* arg = env["$string"];
       if (String_Quoted* string_quoted = dynamic_cast<String_Quoted*>(arg)) {
