@@ -233,6 +233,7 @@ describe('cli', function() {
       bin.stderr.once('data', function(data) {
         assert(data.trim() === '=> changed: ' + src);
         fs.unlinkSync(src);
+        bin.kill();
         done();
       });
 
@@ -257,6 +258,7 @@ describe('cli', function() {
         fs.appendFileSync(src, 'body {}');
         setTimeout(function() {
           assert.equal(didEmit, false);
+          bin.kill();
           done();
           fs.unlinkSync(src);
         }, 200);
@@ -277,6 +279,7 @@ describe('cli', function() {
       bin.stdout.once('data', function(data) {
         assert(data.trim() === 'body{background:white}');
         fs.unlinkSync(src);
+        bin.kill();
         done();
       });
 
@@ -299,6 +302,7 @@ describe('cli', function() {
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
         assert(data.trim() === 'body{background:white}');
+        bin.kill();
         done();
       });
 
