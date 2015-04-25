@@ -760,18 +760,17 @@ namespace Sass {
     Signature unquote_sig = "unquote($string)";
     BUILT_IN(sass_unquote)
     {
-      if (dynamic_cast<Null*>(env["$string"])) {
+      AST_Node* arg = env["$string"];
+      if (dynamic_cast<Null*>(arg)) {
         return new (ctx.mem) Null(pstate);
       }
-
-      To_String to_string(&ctx);
-      AST_Node* arg = env["$string"];
-      if (String_Quoted* string_quoted = dynamic_cast<String_Quoted*>(arg)) {
+      else if (String_Quoted* string_quoted = dynamic_cast<String_Quoted*>(arg)) {
         String_Constant* result = new (ctx.mem) String_Constant(pstate, string_quoted->value());
         // remember if the string was quoted (color tokens)
         result->sass_fix_1291(string_quoted->quote_mark() != 0);
         return result;
       }
+      To_String to_string(&ctx);
       return new (ctx.mem) String_Constant(pstate, string(arg->perform(&to_string)));
     }
 
