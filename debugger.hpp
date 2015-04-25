@@ -342,7 +342,12 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     Definition* block = dynamic_cast<Definition*>(node);
     cerr << ind << "Definition " << block;
     cerr << " (" << pstate_source_position(node) << ")";
+    cerr << " [name: " << block->name() << "] ";
+    cerr << " [type: " << (block->type() == Sass::Definition::Type::MIXIN ? "Mixin " : "Function ") << "] ";
+    cerr << " [signature: " << block->signature() << "] ";
+    cerr << " [native: " << block->native_function() << "] ";
     cerr << " " << block->tabs() << endl;
+    debug_ast(block->parameters(), ind + " params: ", env);
     if (block->block()) for(auto i : block->block()->elements()) { debug_ast(i, ind + " ", env); }
   } else if (dynamic_cast<Mixin_Call*>(node)) {
     Mixin_Call* block = dynamic_cast<Mixin_Call*>(node);
@@ -399,8 +404,26 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     Argument* expression = dynamic_cast<Argument*>(node);
     cerr << ind << "Argument " << expression;
     cerr << " (" << pstate_source_position(node) << ")";
-    cerr << " [" << expression->value() << "]" << endl;
+    cerr << " [" << expression->value() << "]";
+    cerr << " [name: " << expression->name() << "] ";
+    cerr << " [rest: " << expression->is_rest_argument() << "] ";
+    cerr << " [keyword: " << expression->is_keyword_argument() << "] " << endl;
     debug_ast(expression->value(), ind + " value: ", env);
+  } else if (dynamic_cast<Parameters*>(node)) {
+    Parameters* expression = dynamic_cast<Parameters*>(node);
+    cerr << ind << "Parameters " << expression;
+    cerr << " (" << pstate_source_position(node) << ")";
+    cerr << " [has_optional: " << expression->has_optional_parameters() << "] ";
+    cerr << " [has_rest: " << expression->has_rest_parameter() << "] ";
+    cerr << endl;
+    for(auto i : expression->elements()) { debug_ast(i, ind + " ", env); }
+  } else if (dynamic_cast<Parameter*>(node)) {
+    Parameter* expression = dynamic_cast<Parameter*>(node);
+    cerr << ind << "Parameter " << expression;
+    cerr << " (" << pstate_source_position(node) << ")";
+    cerr << " [name: " << expression->name() << "] ";
+    cerr << " [default: " << expression->default_value() << "] ";
+    cerr << " [rest: " << expression->is_rest_parameter() << "] " << endl;
   } else if (dynamic_cast<Unary_Expression*>(node)) {
     Unary_Expression* expression = dynamic_cast<Unary_Expression*>(node);
     cerr << ind << "Unary_Expression " << expression;
@@ -427,6 +450,7 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
       (expression->separator() == Sass::List::Separator::COMMA ? "Comma " : "Space ") <<
       " [delayed: " << expression->is_delayed() << "] " <<
       " [interpolant: " << expression->is_interpolant() << "] " <<
+      " [arglist: " << expression->is_arglist() << "] " <<
       endl;
     for(auto i : expression->elements()) { debug_ast(i, ind + " ", env); }
   } else if (dynamic_cast<Content*>(node)) {
