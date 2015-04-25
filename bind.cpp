@@ -28,14 +28,22 @@ namespace Sass {
     size_t ip = 0, LP = ps->length();
     size_t ia = 0, LA = as->length();
     while (ia < LA) {
+      Argument* a = (*as)[ia];
       if (ip >= LP) {
+        // skip empty rest arguments
+        if (a->is_rest_argument()) {
+          if (List* l = dynamic_cast<List*>(a->value())) {
+            if (l->length() == 0) {
+              ++ ia; continue;
+            }
+          }
+        }
         stringstream msg;
         msg << callee << " only takes " << LP << " arguments; "
             << "given " << LA;
         error(msg.str(), as->pstate());
       }
       Parameter* p = (*ps)[ip];
-      Argument*  a = (*as)[ia];
 
       // If the current parameter is the rest parameter, process and break the loop
       if (p->is_rest_parameter()) {
