@@ -1474,7 +1474,7 @@ namespace Sass {
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Expression* expr = arglist->value_at_index(i);
         if (arglist->is_arglist()) {
-           Argument* arg = static_cast<Argument*>(expr);
+          Argument* arg = static_cast<Argument*>((*arglist)[i]);
           *args << new (ctx.mem) Argument(pstate,
                                           expr,
                                           "",
