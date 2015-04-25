@@ -249,16 +249,16 @@ namespace Sass {
         h = s = 0; // achromatic
       }
       else {
-        if (l < 0.5) s = del / (2.0 * l);
-        else         s = del / (2.0 - 2.0 * l);
+        if (l < 0.5) s = del / (max + min);
+        else         s = del / (2.0 - max - min);
 
-        if      (r == max) h = 60 * (g - b) / del;
-        else if (g == max) h = 60 * (b - r) / del + 120;
-        else if (b == max) h = 60 * (r - g) / del + 240;
+        if      (r == max) h = (g - b) / del + (g < b ? 6 : 0);
+        else if (g == max) h = (b - r) / del + 2;
+        else if (b == max) h = (r - g) / del + 4;
       }
 
       HSL hsl_struct;
-      hsl_struct.h = h;
+      hsl_struct.h = h / 6 * 360;
       hsl_struct.s = s * 100;
       hsl_struct.l = l * 100;
 
