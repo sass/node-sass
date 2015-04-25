@@ -700,7 +700,11 @@ namespace Sass {
       if (auto str = dynamic_cast<String_Quoted*>(value)) {
         value = new (ctx.mem) String_Quoted(*str);
       } else if (auto str = dynamic_cast<String_Constant*>(value)) {
-        value = new (ctx.mem) String_Constant(*str);
+        if (str->quote_mark()) {
+          value = new (ctx.mem) String_Quoted(str->pstate(), str->perform(&to_string));
+        } else {
+          value = new (ctx.mem) String_Constant(str->pstate(), unquote(str->value()));
+        }
       }
     }
     else if (value->concrete_type() == Expression::LIST) {
@@ -812,12 +816,18 @@ namespace Sass {
   string Eval::interpolation(Expression* s) {
     if (String_Quoted* str_quoted = dynamic_cast<String_Quoted*>(s)) {
       if (str_quoted->quote_mark()) {
-        return string_escape(str_quoted->value());
+        if (str_quoted->quote_mark() == '*' || str_quoted->is_delayed()) {
+          return interpolation(new (ctx.mem) String_Constant(*str_quoted));
+        } else {
+          return string_escape(quote(str_quoted->value(), str_quoted->quote_mark()));
+        }
       } else {
         return evacuate_escapes(str_quoted->value());
       }
     } else if (String_Constant* str_constant = dynamic_cast<String_Constant*>(s)) {
-      return evacuate_escapes(str_constant->value());
+      string str = str_constant->value();
+      if (!str_constant->quote_mark()) str = unquote(str);
+      return evacuate_escapes(str);
     } else if (String_Schema* str_schema = dynamic_cast<String_Schema*>(s)) {
       string res = "";
       for(auto i : str_schema->elements())
