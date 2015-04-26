@@ -281,11 +281,18 @@ namespace Sass {
       s /= 100.0;
       l /= 100.0;
 
+      if (l < 0) l = 0;
+      if (s < 0) s = 0;
+      if (l > 1) l = 1;
+      if (s > 1) s = 1;
+      while (h < 0) h += 1;
+      while (h > 1) h -= 1;
+
       // Algorithm from the CSS3 spec: http://www.w3.org/TR/css3-color/#hsl-color.
       double m2;
       if (l <= 0.5) m2 = l*(s+1.0);
       else m2 = (l+s)-(l*s);
-      double m1 = (l*2)-m2;
+      double m1 = (l*2.0)-m2;
       // round the results -- consider moving this into the Color constructor
       double r = (h_to_rgb(m1, m2, h+1.0/3.0) * 255.0);
       double g = (h_to_rgb(m1, m2, h) * 255.0);
