@@ -1396,7 +1396,8 @@ namespace Sass {
     Token str(lexed);
     --str.end;
     --position;
-    String_Constant* str_node = new (ctx.mem) String_Constant(pstate, str);
+
+    String_Constant* str_node = new (ctx.mem) String_Constant(pstate, str.time_wspace());
     // str_node->is_delayed(true);
     return str_node;
   }

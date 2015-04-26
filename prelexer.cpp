@@ -710,7 +710,10 @@ namespace Sass {
     }
 
     const char* static_value(const char* src) {
-      return sequence< static_component,
+      return sequence< sequence<
+                         static_component,
+                         zero_plus< identifier >
+                       >,
                        zero_plus < sequence<
                                    alternatives<
                                      sequence< optional_spaces, alternatives<
@@ -722,6 +725,7 @@ namespace Sass {
                                    >,
                                    static_component
                        > >,
+                       optional_css_whitespace,
                        alternatives< exactly<';'>, exactly<'}'> >
                       >(src);
     }

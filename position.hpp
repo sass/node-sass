@@ -89,6 +89,11 @@ namespace Sass {
     size_t length()    const { return end - begin; }
     string ws_before() const { return string(prefix, begin); }
     string to_string() const { return string(begin, end); }
+    string time_wspace() const {
+      string str(to_string());
+      string whitespaces(" \t\f\v\n\r");
+      return str.erase(str.find_last_not_of(whitespaces)+1);
+    }
 
     operator bool()   { return begin && end && begin >= end; }
     operator string() { return to_string(); }
