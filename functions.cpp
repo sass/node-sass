@@ -771,7 +771,7 @@ namespace Sass {
         return result;
       }
       To_String to_string(&ctx);
-      return new (ctx.mem) String_Constant(pstate, string(arg->perform(&to_string)));
+      return new (ctx.mem) String_Constant(pstate, unquote(string(arg->perform(&to_string))));
     }
 
     Signature quote_sig = "quote($string)";

@@ -489,6 +489,7 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     cerr << " [" << prettyprint(expression->value()) << "]" <<
       (expression->is_delayed() ? " {delayed}" : "") <<
       (expression->sass_fix_1291() ? " {sass_fix_1291}" : "") <<
+      (expression->quote_mark() != 0 ? " {qm:" + string(1, expression->quote_mark()) + "}" : "") <<
       " <" << prettyprint(expression->pstate().token.ws_before()) << ">" << endl;
   } else if (dynamic_cast<String_Schema*>(node)) {
     String_Schema* expression = dynamic_cast<String_Schema*>(node);

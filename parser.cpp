@@ -1415,6 +1415,7 @@ namespace Sass {
     Token str(lexed);
     const char* i = str.begin;
     // see if there any interpolants
+    const char* q;
     const char* p = find_first_in_interval< exactly<hash_lbrace> >(str.begin, str.end);
     if (!p) {
       String_Constant* str_node = new (ctx.mem) String_Constant(pstate, normalize_wspace(string(str.begin, str.end)));
@@ -1424,8 +1425,16 @@ namespace Sass {
 
     String_Schema* schema = new (ctx.mem) String_Schema(pstate);
     while (i < str.end) {
+      q = find_first_in_interval< alternatives< exactly<'"'>, exactly<'\''> > >(i, str.end);
       p = find_first_in_interval< exactly<hash_lbrace> >(i, str.end);
-      if (p) {
+      if (q && (!p || p > q)) {
+        if (i < q) {
+          (*schema) << new (ctx.mem) String_Constant(pstate, string(i, q)); // accumulate the preceding segment if it's nonempty
+        }
+        (*schema) << new (ctx.mem) String_Constant(pstate, string(q, q+1)); // capture the quote mark separately
+        i = q+1;
+      }
+      else if (p) {
         if (i < p) {
           (*schema) << new (ctx.mem) String_Constant(pstate, string(i, p)); // accumulate the preceding segment if it's nonempty
         }
@@ -1499,7 +1508,7 @@ namespace Sass {
         (*schema) << new (ctx.mem) Textual(pstate, Textual::HEX, unquote(lexed));
       }
       else if (lex< quoted_string >()) {
-        (*schema) << new (ctx.mem) String_Constant(pstate, lexed);
+        (*schema) << new (ctx.mem) String_Quoted(pstate, lexed);
       }
       else if (lex< variable >()) {
         (*schema) << new (ctx.mem) Variable(pstate, Util::normalize_underscores(lexed));

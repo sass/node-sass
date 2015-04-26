@@ -330,12 +330,12 @@ namespace Sass {
       }
       // check for unexpected delimiter
       // be strict and throw error back
-      else if (!skipped && q == s[i]) {
-        // don't be that strict
-        return s;
-        // this basically always means an internal error and not users fault
-        error("Unescaped delimiter in string to unquote found. [" + s + "]", ParserState("[UNQUOTE]"));
-      }
+      // else if (!skipped && q == s[i]) {
+      //   // don't be that strict
+      //   return s;
+      //   // this basically always means an internal error and not users fault
+      //   error("Unescaped delimiter in string to unquote found. [" + s + "]", ParserState("[UNQUOTE]"));
+      // }
       else {
         skipped = false;
         unq.push_back(s[i]);
