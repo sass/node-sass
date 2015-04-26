@@ -177,6 +177,7 @@ namespace Sass {
   {
     string str = "";
     size_t has = 0;
+    char prev = 0;
     bool clean = false;
     for (auto i : text) {
       if (clean) {
@@ -188,7 +189,8 @@ namespace Sass {
         else {
           clean = false;
           str += ' ';
-          str += i;
+          if (prev == '*' && i == '/') str += "*/";
+          else str += i;
         }
       } else if (i == '\n') {
         clean = true;
@@ -197,6 +199,7 @@ namespace Sass {
       } else {
         str += i;
       }
+      prev = i;
     }
     if (has) return str;
     else return text;
