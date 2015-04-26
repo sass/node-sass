@@ -1619,8 +1619,9 @@ namespace Sass {
   {
     lex< identifier >();
     string name(lexed);
+    ParserState call_pos = pstate;
     Arguments* args = parse_arguments(name == "url");
-    return new (ctx.mem) Function_Call(pstate, name, args);
+    return new (ctx.mem) Function_Call(call_pos, name, args);
   }
 
   Function_Call_Schema* Parser::parse_function_call_schema()

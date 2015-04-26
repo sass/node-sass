@@ -344,7 +344,8 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     cerr << " (" << pstate_source_position(node) << ")";
     cerr << " [name: " << block->name() << "] ";
     cerr << " [type: " << (block->type() == Sass::Definition::Type::MIXIN ? "Mixin " : "Function ") << "] ";
-    cerr << " [signature: " << block->signature() << "] ";
+    // this seems to lead to segfaults some times?
+    // cerr << " [signature: " << block->signature() << "] ";
     cerr << " [native: " << block->native_function() << "] ";
     cerr << " " << block->tabs() << endl;
     debug_ast(block->parameters(), ind + " params: ", env);

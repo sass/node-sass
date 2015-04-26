@@ -44,6 +44,59 @@ namespace Sass {
     return atof(str);
   }
 
+  string string_eval_escapes(const string& s)
+  {
+
+    string out("");
+    bool esc = false;
+    for (size_t i = 0, L = s.length(); i < L; ++i) {
+      if(s[i] == '\\' && esc == false) {
+        esc = true;
+
+        // escape length
+        size_t len = 1;
+
+        // parse as many sequence chars as possible
+        // ToDo: Check if ruby aborts after possible max
+        while (i + len < L && s[i + len] && isxdigit(s[i + len])) ++ len;
+
+        // hex string?
+        if (len > 1) {
+
+          // convert the extracted hex string to code point value
+          // ToDo: Maybe we could do this without creating a substring
+          uint32_t cp = strtol(s.substr (i + 1, len - 1).c_str(), nullptr, 16);
+
+          if (cp == 0) cp = 0xFFFD;
+
+          // assert invalid code points
+          if (cp >= 1) {
+
+            // use a very simple approach to convert via utf8 lib
+            // maybe there is a more elegant way; maybe we shoud
+            // convert the whole output from string to a stream!?
+            // allocate memory for utf8 char and convert to utf8
+            unsigned char u[5] = {0,0,0,0,0}; utf8::append(cp, u);
+            for(size_t m = 0; u[m] && m < 5; m++) out.push_back(u[m]);
+
+            // skip some more chars?
+            i += len - 1; esc = false;
+            if (cp == 10) out += ' ';
+
+          }
+
+        }
+
+      }
+      else {
+        out += s[i];
+        esc = false;
+      }
+    }
+    return out;
+
+  }
+
   // double escape every escape sequences
   // escape unescaped quotes and backslashes
   string string_escape(const string& str)
