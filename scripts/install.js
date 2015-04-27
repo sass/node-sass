@@ -20,22 +20,25 @@ require('../lib/extensions');
  */
 
 function download(url, dest, cb) {
-  applyProxy({ rejectUnauthorized: false }, function(options) {
-    var returnError = function(err) {
-      cb(typeof err.message === 'string' ? err.message : err);
-    };
+  var returnError = function(err) {
+	cb(typeof err.message === 'string' ? err.message : err);
+  };
+  if (url) {
+	applyProxy({ rejectUnauthorized: false }, function(options) {
+	  request.get(url, options).on('response', function(response) {
+		if (response.statusCode < 200 || response.statusCode >= 300) {
+		  returnError(['Can not download file from:', url].join());
+		  return;
+		}
 
-    request.get(url, options).on('response', function(response) {
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        returnError(['Can not download file from:', url].join());
-        return;
-      }
+		response.pipe(fs.createWriteStream(dest));
 
-      response.pipe(fs.createWriteStream(dest));
-
-      cb();
-    }).on('error', returnError);
-  });
+		cb();
+	  }).on('error', returnError);
+	});
+  } else {
+    returnError('Download URL not defined, set SASS_BINARY_SITE in the environment to enable download.');
+  }
 }
 
 /**
