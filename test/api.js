@@ -1490,7 +1490,7 @@ describe('api', function() {
       assert.throws(function() {
         fs.renameSync(originalBin, renamedBin);
         process.sass.getBinaryPath(true);
-      }, /`libsass` bindings not found. Try reinstalling `node-sass`?/);
+      }, /`libsass` bindings not found/);
 
       fs.renameSync(renamedBin, originalBin);
       done();
