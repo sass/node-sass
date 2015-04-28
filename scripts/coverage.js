@@ -23,18 +23,18 @@ function coverage() {
             collector = new Collector();
         if (cov) {
           mkdirp(path.join('coverage', 'html'), function(err) {
-			if (err) { throw err; }
-			collector.add(cov);
-			summary.writeReport(collector);
-			html.writeReport(collector);
-			lcov.on('done', function() {
-			  fs.readFile(path.join('coverage', 'lcov.info'), function(err, data) {
-				 if (err) { console.error(err); }
-				 coveralls.handleInput(data.toString(),
-				   function (err) { if (err) { console.error(err); } });
-			  });
-			});
-			lcov.writeReport(collector);
+            if (err) { throw err; }
+            collector.add(cov);
+            summary.writeReport(collector, true);
+            html.writeReport(collector, true);
+            lcov.on('done', function() {
+              fs.readFile(path.join('coverage', 'lcov.info'), function(err, data) {
+                 if (err) { console.error(err); }
+                 coveralls.handleInput(data.toString(),
+                   function (err) { if (err) { console.error(err); } });
+              });
+            });
+            lcov.writeReport(collector, true);
           });
         } else {
           console.warn('No coverage');
@@ -44,19 +44,21 @@ function coverage() {
     var instrumenter = new Instrumenter();
     var instrumentedfiles = [];
     var processfile = function(source) {
-		 fs.readFile(path.join('lib', source), function(err, data) {
+         fs.readFile(path.join('lib', source), function(err, data) {
            if (err) { throw err; }
            mkdirp('lib-cov', function(err) {
              if (err) { throw err; }
-			 fs.writeFile(path.join('lib-cov', source),
-			   instrumenter.instrumentSync(data.toString(),
+             fs.writeFile(path.join('lib-cov', source),
+               instrumenter.instrumentSync(data.toString(),
                  path.join('lib', source)),
                function(err) {
                  if (err) { throw err; }
                  instrumentedfiles.push(source);
                  if (instrumentedfiles.length === sourcefiles.length) {
                    fs.readdirSync('test').filter(function(file){
-                     return file.substr(-6) === 'api.js';
+                     return file.substr(-6)  === 'api.js' ||
+                            file.substr(-11) === 'runtime.js' ||
+                            file.substr(-7)  === 'spec.js';
                    }).forEach(function(file){
                      mocha.addFile(
                        path.join('test', file)
@@ -69,9 +71,9 @@ function coverage() {
                      });
                    });
                  }
-			   });
+               });
            });
-		 });
+         });
        };
     for (var i in sourcefiles) {
       processfile(sourcefiles[i]);
