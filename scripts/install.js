@@ -6,7 +6,8 @@ var fs = require('fs'),
     mkdir = require('mkdirp'),
     npmconf = require('npmconf'),
     path = require('path'),
-    request = require('request');
+    request = require('request'),
+    package = require('../package.json');
 
 require('../lib/extensions');
 
@@ -21,21 +22,28 @@ require('../lib/extensions');
 
 function download(url, dest, cb) {
   var returnError = function(err) {
-	cb(typeof err.message === 'string' ? err.message : err);
+    cb(typeof err.message === 'string' ? err.message : err);
   };
+
   if (url) {
-	applyProxy({ rejectUnauthorized: false }, function(options) {
-	  request.get(url, options).on('response', function(response) {
-		if (response.statusCode < 200 || response.statusCode >= 300) {
-		  returnError(['Can not download file from:', url].join());
-		  return;
-		}
+    applyProxy({ rejectUnauthorized: false }, function(options) {
+      options.headers = {
+        'User-Agent': [
+          'node/', process.version, ' ',
+          'node-sass-installer/', package.version
+        ].join('')
+      };
+      request.get(url, options).on('response', function(response) {
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          returnError(['Can not download file from:', url].join());
+          return;
+        }
 
-		response.pipe(fs.createWriteStream(dest));
+        response.pipe(fs.createWriteStream(dest));
 
-		cb();
-	  }).on('error', returnError);
-	});
+        cb();
+      }).on('error', returnError);
+    });
   } else {
     returnError('Download URL not defined, set SASS_BINARY_SITE in the environment to enable download.');
   }
