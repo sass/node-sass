@@ -101,6 +101,7 @@ ADDAPI void ADDCALL sass_warning_set_message (union Sass_Value* v, char* msg);
 ADDAPI union Sass_Value* ADDCALL sass_make_null    (void);
 ADDAPI union Sass_Value* ADDCALL sass_make_boolean (bool val);
 ADDAPI union Sass_Value* ADDCALL sass_make_string  (const char* val);
+ADDAPI union Sass_Value* ADDCALL sass_make_qstring (const char* val);
 ADDAPI union Sass_Value* ADDCALL sass_make_number  (double val, const char* unit);
 ADDAPI union Sass_Value* ADDCALL sass_make_color   (double r, double g, double b, double a);
 ADDAPI union Sass_Value* ADDCALL sass_make_list    (size_t len, enum Sass_Separator sep);

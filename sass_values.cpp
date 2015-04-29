@@ -38,6 +38,7 @@ extern "C" {
 
   struct Sass_String {
     enum Sass_Tag tag;
+    bool          quoted;
     char*         value;
   };
 
@@ -110,6 +111,8 @@ extern "C" {
   // Getters and setters for Sass_String
   const char* ADDCALL sass_string_get_value(const union Sass_Value* v) { return v->string.value; }
   void ADDCALL sass_string_set_value(union Sass_Value* v, char* value) { v->string.value = value; }
+  const bool ADDCALL sass_string_is_quoted(const union Sass_Value* v) { return v->string.quoted; }
+  void ADDCALL sass_string_set_quoted(union Sass_Value* v, bool quoted) { v->string.quoted = quoted; }
 
   // Getters and setters for Sass_Boolean
   bool ADDCALL sass_boolean_get_value(const union Sass_Value* v) { return v->boolean.value; }
@@ -187,6 +190,18 @@ extern "C" {
   {
     Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
+    v->string.quoted = false;
+    v->string.tag = SASS_STRING;
+    v->string.value = val ? sass_strdup(val) : 0;
+    if (v->string.value == 0) { free(v); return 0; }
+    return v;
+  }
+
+  union Sass_Value* ADDCALL sass_make_qstring(const char* val)
+  {
+    Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    if (v == 0) return 0;
+    v->string.quoted = true;
     v->string.tag = SASS_STRING;
     v->string.value = val ? sass_strdup(val) : 0;
     if (v->string.value == 0) { free(v); return 0; }
