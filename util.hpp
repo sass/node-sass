@@ -1,6 +1,7 @@
 #ifndef SASS_UTIL_H
 #define SASS_UTIL_H
 
+#include <cstdio>
 #include <vector>
 #include <string>
 #include "ast_fwd_decl.hpp"
