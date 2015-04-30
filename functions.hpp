@@ -78,7 +78,6 @@ namespace Sass {
     extern Signature join_sig;
     extern Signature append_sig;
     extern Signature zip_sig;
-    extern Signature compact_sig;
     extern Signature list_separator_sig;
     extern Signature type_of_sig;
     extern Signature unit_sig;
@@ -153,7 +152,6 @@ namespace Sass {
     BUILT_IN(join);
     BUILT_IN(append);
     BUILT_IN(zip);
-    BUILT_IN(compact);
     BUILT_IN(list_separator);
     BUILT_IN(type_of);
     BUILT_IN(unit);

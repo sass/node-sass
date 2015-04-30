@@ -21,6 +21,9 @@ namespace Sass {
 
   };
 
+  void warn(string msg, ParserState pstate);
+  void warn(string msg, ParserState pstate, Backtrace* bt);
+
   void error(string msg, ParserState pstate);
   void error(string msg, ParserState pstate, Backtrace* bt);
 

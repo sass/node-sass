@@ -1251,13 +1251,6 @@ namespace Sass {
       return zippers;
     }
 
-    Signature compact_sig = "compact($values...)";
-    BUILT_IN(compact)
-    {
-      error("`compact` has been removed from libsass because it's not part of the Sass spec", pstate);
-      return 0; // suppress warning, error will exit anyway
-    }
-
     Signature list_separator_sig = "list_separator($list)";
     BUILT_IN(list_separator)
     {
