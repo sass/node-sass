@@ -113,6 +113,7 @@ namespace Sass {
     static string type_name() { return ""; }
     virtual bool is_false() { return false; }
     virtual bool operator==( Expression& rhs) const { return false; }
+    virtual void set_delayed(bool delayed) { is_delayed(delayed); }
     virtual size_t hash() { return 0; }
   };
 }
@@ -756,23 +757,8 @@ namespace Sass {
     bool is_invisible() { return !length(); }
     Expression* value_at_index(size_t i);
 
-    virtual bool operator==(Expression& rhs) const
-    {
-      try
-      {
-        List& l = dynamic_cast<List&>(rhs);
-        if (!(l && length() == l.length() && separator() == l.separator())) return false;
-        for (size_t i = 0, L = l.length(); i < L; ++i)
-          if (!(*(elements()[i]) == *(l[i]))) return false;
-        return true;
-      }
-      catch (std::bad_cast&)
-      {
-        return false;
-      }
-      catch (...) { throw; }
-
-    }
+    virtual bool operator==(Expression& rhs) const;
+    virtual bool operator==(Expression* rhs) const;
 
     virtual size_t hash()
     {
@@ -784,6 +770,13 @@ namespace Sass {
         hash_ ^= (elements()[i])->hash();
 
       return hash_;
+    }
+
+    virtual void set_delayed(bool delayed)
+    {
+      for (size_t i = 0, L = length(); i < L; ++i)
+        (elements()[i])->set_delayed(delayed);
+      is_delayed(delayed);
     }
 
     ATTACH_OPERATIONS();
@@ -857,6 +850,31 @@ namespace Sass {
                       Type t, Expression* lhs, Expression* rhs)
     : Expression(pstate), type_(t), left_(lhs), right_(rhs), hash_(0)
     { }
+    const string type_name() {
+      switch (type_) {
+        case AND: return "and"; break;
+        case OR: return "or"; break;
+        case EQ: return "eq"; break;
+        case NEQ: return "neq"; break;
+        case GT: return "gt"; break;
+        case GTE: return "gte"; break;
+        case LT: return "lt"; break;
+        case LTE: return "lte"; break;
+        case ADD: return "add"; break;
+        case SUB: return "sub"; break;
+        case MUL: return "mul"; break;
+        case DIV: return "div"; break;
+        case MOD: return "mod"; break;
+        case NUM_OPS: return "num_ops"; break;
+        default: return "invalid"; break;
+      }
+    }
+    virtual void set_delayed(bool delayed)
+    {
+      right()->set_delayed(delayed);
+      left()->set_delayed(delayed);
+      is_delayed(delayed);
+    }
     virtual bool operator==(Expression& rhs) const
     {
       try
@@ -896,6 +914,14 @@ namespace Sass {
     Unary_Expression(ParserState pstate, Type t, Expression* o)
     : Expression(pstate), type_(t), operand_(o), hash_(0)
     { }
+    const string type_name() {
+      switch (type_) {
+        case PLUS: return "plus"; break;
+        case MINUS: return "minus"; break;
+        case NOT: return "not"; break;
+        default: return "invalid"; break;
+      }
+    }
     virtual bool operator==(Expression& rhs) const
     {
       try
@@ -1161,129 +1187,22 @@ namespace Sass {
     vector<string> denominator_units_;
     size_t hash_;
   public:
-    Number(ParserState pstate, double val, string u = "", bool zero = true)
-    : Expression(pstate),
-      value_(val),
-      zero_(zero),
-      numerator_units_(vector<string>()),
-      denominator_units_(vector<string>()),
-      hash_(0)
-    {
-      if (!u.empty()) numerator_units_.push_back(u);
-      concrete_type(NUMBER);
-    }
+    Number(ParserState pstate, double val, string u = "", bool zero = true);
     bool            zero()              { return zero_; }
     vector<string>& numerator_units()   { return numerator_units_; }
     vector<string>& denominator_units() { return denominator_units_; }
     string type() { return "number"; }
     static string type_name() { return "number"; }
-    string unit() const
-    {
-      stringstream u;
-      for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
-        if (i) u << '*';
-        u << numerator_units_[i];
-      }
-      if (!denominator_units_.empty()) u << '/';
-      for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
-        if (i) u << '*';
-        u << denominator_units_[i];
-      }
-      return u.str();
-    }
-    bool is_unitless()
-    { return numerator_units_.empty() && denominator_units_.empty(); }
-    void normalize(string to = "")
-    {
-      // (multiple passes because I'm too tired to think up something clever)
-      // Find a unit to convert everything to, if one isn't provided.
-      if (to.empty()) {
-        for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
-          string u(numerator_units_[i]);
-          if (string_to_unit(u) == INCOMMENSURABLE) {
-            continue;
-          }
-          else {
-            to = u;
-            break;
-          }
-        }
-      }
-      if (to.empty()) {
-        for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
-          string u(denominator_units_[i]);
-          if (string_to_unit(u) == INCOMMENSURABLE) {
-            continue;
-          }
-          else {
-            to = u;
-            break;
-          }
-        }
-      }
-      // Now loop through again and do all the conversions.
-      for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
-        string from(numerator_units_[i]);
-        if (string_to_unit(from) == INCOMMENSURABLE) continue;
-        value_ *= conversion_factor(from, to);
-        numerator_units_[i] = to;
-      }
-      for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
-        string from(denominator_units_[i]);
-        if (string_to_unit(from) == INCOMMENSURABLE) continue;
-        value_ /= conversion_factor(from, to);
-        denominator_units_[i] = to;
-      }
-      // Now divide out identical units in the numerator and denominator.
-      vector<string> ncopy;
-      ncopy.reserve(numerator_units_.size());
-      for (vector<string>::iterator n = numerator_units_.begin();
-           n != numerator_units_.end();
-           ++n) {
-        vector<string>::iterator d = find(denominator_units_.begin(),
-                                          denominator_units_.end(),
-                                          *n);
-        if (d != denominator_units_.end()) {
-          denominator_units_.erase(d);
-        }
-        else {
-          ncopy.push_back(*n);
-        }
-      }
-      numerator_units_ = ncopy;
-      // Sort the units to make them pretty and, well, normal.
-      sort(numerator_units_.begin(), numerator_units_.end());
-      sort(denominator_units_.begin(), denominator_units_.end());
-    }
-    // useful for making one number compatible with another
-    string find_convertible_unit() const
-    {
-      for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
-        string u(numerator_units_[i]);
-        if (string_to_unit(u) != INCOMMENSURABLE) return u;
-      }
-      for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
-        string u(denominator_units_[i]);
-        if (string_to_unit(u) != INCOMMENSURABLE) return u;
-      }
-      return string();
-    }
+    string unit() const;
 
-    virtual bool operator==(Expression& rhs) const
-    {
-      try
-      {
-        Number& e(dynamic_cast<Number&>(rhs));
-        if (!e) return false;
-        e.normalize(find_convertible_unit());
-        return unit() == e.unit() && value() == e.value();
-      }
-      catch (std::bad_cast&)
-      {
-        return false;
-      }
-      catch (...) { throw; }
-    }
+    bool is_unitless();
+    void convert(const string& unit = "");
+    void normalize(const string& unit = "");
+    // useful for making one number compatible with another
+    string find_convertible_unit() const;
+
+    virtual bool operator== (Expression& rhs) const;
+    virtual bool operator== (Expression* rhs) const;
 
     virtual size_t hash()
     {

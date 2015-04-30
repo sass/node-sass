@@ -589,6 +589,270 @@ namespace Sass {
     return result;
   }*/
 
+  Number::Number(ParserState pstate, double val, string u, bool zero)
+  : Expression(pstate),
+    value_(val),
+    zero_(zero),
+    numerator_units_(vector<string>()),
+    denominator_units_(vector<string>()),
+    hash_(0)
+  {
+    size_t l = 0, r = 0;
+    if (!u.empty()) {
+      bool nominator = true;
+      while (true) {
+        r = u.find_first_of("*/", l);
+        string unit(u.substr(l, r - l));
+        if (nominator) numerator_units_.push_back(unit);
+        else denominator_units_.push_back(unit);
+        if (u[r] == '/') nominator = false;
+        if (r == string::npos) break;
+        else l = r + 1;
+      }
+    }
+    concrete_type(NUMBER);
+  }
+
+  string Number::unit() const
+  {
+    stringstream u;
+    for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
+      if (i) u << '*';
+      u << numerator_units_[i];
+    }
+    if (!denominator_units_.empty()) u << '/';
+    for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
+      if (i) u << '*';
+      u << denominator_units_[i];
+    }
+    return u.str();
+  }
+
+  bool Number::is_unitless()
+  { return numerator_units_.empty() && denominator_units_.empty(); }
+
+  void Number::normalize(const string& prefered)
+  {
+
+    // first make sure same units cancel each other out
+    // it seems that a map table will fit nicely to do this
+    // we basically construct exponents for each unit
+    // has the advantage that they will be pre-sorted
+    map<string, int> exponents;
+
+    // initialize by summing up occurences in unit vectors
+    for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) ++ exponents[numerator_units_[i]];
+    for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) -- exponents[denominator_units_[i]];
+
+    // the final conversion factor
+    double factor = 1;
+
+    // get the first entry of numerators
+    // forward it when entry is converted
+    vector<string>::iterator nom_it = numerator_units_.begin();
+    vector<string>::iterator nom_end = numerator_units_.end();
+    vector<string>::iterator denom_it = denominator_units_.begin();
+    vector<string>::iterator denom_end = denominator_units_.end();
+
+    // main normalization loop
+    // should be close to optimal
+    while (denom_it != denom_end)
+    {
+      // get and increment afterwards
+      const string denom = *(denom_it ++);
+      // skip already canceled out unit
+      if (exponents[denom] >= 0) continue;
+      // skip all units we don't know how to convert
+      if (string_to_unit(denom) == INCOMMENSURABLE) continue;
+      // now search for nominator
+      while (nom_it != nom_end)
+      {
+        // get and increment afterwards
+        const string nom = *(nom_it ++);
+        // skip already canceled out unit
+        if (exponents[nom] <= 0) continue;
+        // skip all units we don't know how to convert
+        if (string_to_unit(nom) == INCOMMENSURABLE) continue;
+        // we now have two convertable units
+        // add factor for current conversion
+        factor *= conversion_factor(nom, denom);
+        // update nominator/denominator exponent
+        -- exponents[nom]; ++ exponents[denom];
+        // inner loop done
+        break;
+      }
+    }
+
+    // now we can build up the new unit arrays
+    numerator_units_.clear();
+    denominator_units_.clear();
+
+    // build them by iterating over the exponents
+    for (auto exp : exponents)
+    {
+      // maybe there is more effecient way to push
+      // the same item multiple times to a vector?
+      for(size_t i = 0, S = abs(exp.second); i < S; ++i)
+      {
+        // opted to have these switches in the inner loop
+        // makes it more readable and should not cost much
+        if (exp.second < 0) denominator_units_.push_back(exp.first);
+        else if (exp.second > 0) numerator_units_.push_back(exp.first);
+      }
+    }
+
+    // apply factor to value_
+    // best precision this way
+    value_ *= factor;
+
+    // maybe convert to other unit
+    // easier implemented on its own
+    convert(prefered);
+
+  }
+
+  void Number::convert(const string& prefered)
+  {
+    // abort if unit is empty
+    if (prefered.empty()) return;
+
+    // first make sure same units cancel each other out
+    // it seems that a map table will fit nicely to do this
+    // we basically construct exponents for each unit
+    // has the advantage that they will be pre-sorted
+    map<string, int> exponents;
+
+    // initialize by summing up occurences in unit vectors
+    for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) ++ exponents[numerator_units_[i]];
+    for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) -- exponents[denominator_units_[i]];
+
+    // the final conversion factor
+    double factor = 1;
+
+    vector<string>::iterator denom_it = denominator_units_.begin();
+    vector<string>::iterator denom_end = denominator_units_.end();
+
+    // main normalization loop
+    // should be close to optimal
+    while (denom_it != denom_end)
+    {
+      // get and increment afterwards
+      const string denom = *(denom_it ++);
+      // check if conversion is needed
+      if (denom == prefered) continue;
+      // skip already canceled out unit
+      if (exponents[denom] >= 0) continue;
+      // skip all units we don't know how to convert
+      if (string_to_unit(denom) == INCOMMENSURABLE) continue;
+      // we now have two convertable units
+      // add factor for current conversion
+      factor *= conversion_factor(denom, prefered);
+      // update nominator/denominator exponent
+      ++ exponents[denom]; -- exponents[prefered];
+    }
+
+    vector<string>::iterator nom_it = numerator_units_.begin();
+    vector<string>::iterator nom_end = numerator_units_.end();
+
+    // now search for nominator
+    while (nom_it != nom_end)
+    {
+      // get and increment afterwards
+      const string nom = *(nom_it ++);
+      // check if conversion is needed
+      if (nom == prefered) continue;
+      // skip already canceled out unit
+      if (exponents[nom] <= 0) continue;
+      // skip all units we don't know how to convert
+      if (string_to_unit(nom) == INCOMMENSURABLE) continue;
+      // we now have two convertable units
+      // add factor for current conversion
+      factor *= conversion_factor(nom, prefered);
+      // update nominator/denominator exponent
+      -- exponents[nom]; ++ exponents[prefered];
+    }
+
+    // now we can build up the new unit arrays
+    numerator_units_.clear();
+    denominator_units_.clear();
+
+    // build them by iterating over the exponents
+    for (auto exp : exponents)
+    {
+      // maybe there is more effecient way to push
+      // the same item multiple times to a vector?
+      for(size_t i = 0, S = abs(exp.second); i < S; ++i)
+      {
+        // opted to have these switches in the inner loop
+        // makes it more readable and should not cost much
+        if (exp.second < 0) denominator_units_.push_back(exp.first);
+        else if (exp.second > 0) numerator_units_.push_back(exp.first);
+      }
+    }
+
+    // apply factor to value_
+    // best precision this way
+    value_ *= factor;
+
+  }
+
+  // useful for making one number compatible with another
+  string Number::find_convertible_unit() const
+  {
+    for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
+      string u(numerator_units_[i]);
+      if (string_to_unit(u) != INCOMMENSURABLE) return u;
+    }
+    for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
+      string u(denominator_units_[i]);
+      if (string_to_unit(u) != INCOMMENSURABLE) return u;
+    }
+    return string();
+  }
+
+
+  bool Number::operator== (Expression* rhs) const
+  {
+    try
+    {
+      Number l(pstate_, value_, unit());
+      Number& r = dynamic_cast<Number&>(*rhs);
+      l.normalize(find_convertible_unit());
+      r.normalize(find_convertible_unit());
+      return l.unit() == r.unit() &&
+             l.value() == r.value();
+    }
+    catch (std::bad_cast&) {}
+    catch (...) { throw; }
+    return false;
+  }
+
+  bool Number::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool List::operator==(Expression* rhs) const
+  {
+    try
+    {
+      List* r = dynamic_cast<List*>(rhs);
+      if (!r || length() != r->length()) return false;
+      if (separator() != r->separator()) return false;
+      for (size_t i = 0, L = r->length(); i < L; ++i)
+        if (*elements()[i] != *(*r)[i]) return false;
+      return true;
+    }
+    catch (std::bad_cast&) {}
+    catch (...) { throw; }
+    return false;
+  }
+
+  bool List::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
   Expression* Hashed::at(Expression* k) const
   {
     if (elements_.count(k))
