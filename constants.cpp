@@ -138,7 +138,7 @@ namespace Sass {
     extern const char arglist_name[]    = "arglist";
 
     // constants for uri parsing (RFC 3986 Appendix A.)
-    extern const char uri_chars[]  = ":;/?!$%&#@[]{}'\"*+-.,_=";
+    extern const char uri_chars[]  = ":;/?!$%&#@|[]{}'`^\"*+-.,_=~";
 
     // some specific constant character classes
     // they must be static to be useable by lexer
