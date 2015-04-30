@@ -8,8 +8,7 @@ namespace Sass {
   Output::Output(Context* ctx)
   : Inspect(Emitter(ctx)),
     charset(""),
-    top_imports(0),
-    top_comments(0)
+    top_nodes(0)
   {}
 
   Output::~Output() { }
@@ -21,7 +20,7 @@ namespace Sass {
 
   void Output::operator()(Import* imp)
   {
-    top_imports.push_back(imp);
+    top_nodes.push_back(imp);
   }
 
   OutputBuffer Output::get_buffer(void)
@@ -30,15 +29,9 @@ namespace Sass {
     Emitter emitter(ctx);
     Inspect inspect(emitter);
 
-    size_t size_com = top_comments.size();
-    for (size_t i = 0; i < size_com; i++) {
-      top_comments[i]->perform(&inspect);
-      inspect.append_mandatory_linefeed();
-    }
-
-    size_t size_imp = top_imports.size();
-    for (size_t i = 0; i < size_imp; i++) {
-      top_imports[i]->perform(&inspect);
+    size_t size_nodes = top_nodes.size();
+    for (size_t i = 0; i < size_nodes; i++) {
+      top_nodes[i]->perform(&inspect);
       inspect.append_mandatory_linefeed();
     }
 
@@ -79,8 +72,8 @@ namespace Sass {
     // if (indentation && txt == "/**/") return;
     bool important = c->is_important();
     if (output_style() != COMPRESSED || important) {
-      if (buffer().size() + top_imports.size() == 0) {
-        top_comments.push_back(c);
+      if (buffer().size() == 0) {
+        top_nodes.push_back(c);
       } else {
         in_comment = true;
         append_indentation();

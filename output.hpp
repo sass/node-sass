@@ -30,8 +30,7 @@ namespace Sass {
 
   protected:
     string charset;
-    vector<Import*> top_imports;
-    vector<Comment*> top_comments;
+    vector<AST_Node*> top_nodes;
 
   public:
     OutputBuffer get_buffer(void);
