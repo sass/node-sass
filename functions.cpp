@@ -916,28 +916,25 @@ namespace Sass {
       string newstr;
       try {
         String_Constant* s = ARG("$string", String_Constant);
-        Number* n = ARG("$start-at", Number);
-        Number* m = ARG("$end-at", Number);
+        double start_at = ARG("$start-at", Number)->value();
+        double end_at = ARG("$end-at", Number)->value();
 
         string str = unquote(s->value());
 
-        // normalize into 0-based indices
-        size_t start = UTF_8::offset_at_position(str, UTF_8::normalize_index(static_cast<int>(n->value()), UTF_8::code_point_count(str)));
-        size_t end = UTF_8::offset_at_position(str, UTF_8::normalize_index(static_cast<int>(m->value()), UTF_8::code_point_count(str)));
+        size_t size = utf8::distance(str.begin(), str.end());
+        if (end_at <= size * -1.0) { end_at += size; }
+        if (end_at < 0) { end_at += size + 1; }
+        if (end_at > size) { end_at = size; }
+        if (start_at < 0) { start_at += size + 1; }
+        else if (start_at == 0) { ++ start_at; }
 
-        // `str-slice` should always return an empty string when $end-at == 0
-        // `normalize_index` normalizes 1 -> 0 so we need to check the original value
-        if(m->value() == 0) {
-          if (String_Quoted* ss = dynamic_cast<String_Quoted*>(s)) {
-            if(!ss->quote_mark()) return new (ctx.mem) Null(pstate);
-          } else {
-            return new (ctx.mem) Null(pstate);
-          }
-          newstr = "";
-        } else if(start == end && m->value() != 0) {
-          newstr = str.substr(start, 1);
-        } else if(end > start) {
-          newstr = str.substr(start, end - start + UTF_8::code_point_size_at_offset(str, end));
+        if (start_at <= end_at)
+        {
+          string::iterator start = str.begin();
+          utf8::advance(start, start_at - 1, str.end());
+          string::iterator end = start;
+          utf8::advance(end, end_at - start_at + 1, str.end());
+          newstr = string(start, end);
         }
         if (String_Quoted* ss = dynamic_cast<String_Quoted*>(s)) {
           if(ss->quote_mark()) newstr = quote(newstr);
