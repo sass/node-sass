@@ -302,11 +302,17 @@ NAN_METHOD(render_file_sync) {
   NanReturnValue(NanNew<Boolean>(result == 0));
 }
 
+NAN_METHOD(libsass_version) {
+  NanScope();
+  NanReturnValue(NanNew<String>(libsass_version()));
+}
+
 void RegisterModule(v8::Handle<v8::Object> target) {
   NODE_SET_METHOD(target, "render", render);
   NODE_SET_METHOD(target, "renderSync", render_sync);
   NODE_SET_METHOD(target, "renderFile", render_file);
   NODE_SET_METHOD(target, "renderFileSync", render_file_sync);
+  NODE_SET_METHOD(target, "libsassVersion", libsass_version);
   SassTypes::Factory::initExports(target);
 }
 

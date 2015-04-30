@@ -1410,7 +1410,7 @@ describe('api', function() {
       assert(info.indexOf(package.version) > 0);
       assert(info.indexOf('(Wrapper)') > 0);
       assert(info.indexOf('[JavaScript]') > 0);
-      assert(info.indexOf(package.libsass) > 0);
+      assert(info.indexOf('[NA]') < 0);
       assert(info.indexOf('(Sass Compiler)') > 0);
       assert(info.indexOf('[C/C++]') > 0);
 
