@@ -424,8 +424,11 @@ namespace Sass {
     // if after applying precsision, the value gets
     // truncated to zero, sass emits 0.0 instead of 0
     bool nonzero = n->value() != 0;
-    for (size_t i = d.length()-1; d[i] == '0'; --i) {
-      d.resize(d.length()-1);
+    size_t decimal = d.find('.');
+    if (decimal != string::npos) {
+      for (size_t i = d.length()-1; d[i] == '0' && i >= decimal; --i) {
+        d.resize(d.length()-1);
+      }
     }
     if (d[d.length()-1] == '.') d.resize(d.length()-1);
     if (n->numerator_units().size() > 1 ||
@@ -444,6 +447,9 @@ namespace Sass {
     // use fractional output if we had
     // a value before it got truncated
     if (d == "0" && nonzero) d = "0.0";
+    // if the precision is 0 sass cast
+    // casts to a float with precision 1
+    if (ctx->precision == 0) d += ".0";
     // append number and unit
     append_token(d + n->unit(), n);
   }
