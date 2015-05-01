@@ -3,6 +3,8 @@
 namespace Sass {
   namespace Constants {
 
+    extern const unsigned long MaxCallStack = 1024;
+
     // https://github.com/sass/libsass/issues/592
     // https://developer.mozilla.org/en-US/docs/Web/CSS/Specificity
     // https://github.com/sass/sass/issues/1495#issuecomment-61189114
