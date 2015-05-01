@@ -4,6 +4,9 @@
 namespace Sass {
   namespace Constants {
 
+    // The maximum call stack that can be created
+    extern const unsigned long MaxCallStack;
+
     // https://developer.mozilla.org/en-US/docs/Web/CSS/Specificity
     // The following list of selectors is by increasing specificity:
     extern const unsigned long Specificity_Star;

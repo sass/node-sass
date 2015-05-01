@@ -527,6 +527,9 @@ namespace Sass {
 
   Expression* Eval::operator()(Function_Call* c)
   {
+    if (backtrace->parent != NULL && backtrace->depth() > Constants::MaxCallStack) {
+        error("Stack depth exceeded max of " + to_string(Constants::MaxCallStack), c->pstate(), backtrace);
+    }
     string name(Util::normalize_underscores(c->name()));
     string full_name(name + "[f]");
     Arguments* args = c->arguments();
