@@ -17,6 +17,7 @@ Guidelines for bug reports:
  latest `master` branch in the repository.
 3. **Isolate the problem** &mdash; ideally create an
  [SSCCE](http://www.sscce.org/) and a live example.
+4. Always consult the [Troubleshooting guide](/TROUBLESHOOTING.md) before opening a new issue.
 
 
 A good bug report shouldn't leave others needing to chase you up for more information. Please try to be as detailed as possible in your report. What is your environment? What steps will reproduce the issue? What browser(s) and OS experience the problem? Do other browsers show the bug differently? What would you expect to be the outcome? All these details will help people to fix any potential bugs.

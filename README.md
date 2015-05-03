@@ -40,6 +40,8 @@ Some users have reported issues installing on Ubuntu due to `node` being registe
 
 Compiling versions 0.9.4 and above on Windows machines requires [Visual Studio 2013 WD](http://www.visualstudio.com/downloads/download-visual-studio-vs#d-express-windows-desktop). If you have multiple VS versions, use ```npm install``` with the ```--msvs_version=2013``` flag also use this flag when rebuilding the module with node-gyp or nw-gyp.
 
+**Having installation troubles? Check out our [Troubleshooting guide](/TROUBLESHOOTING.md).**
+
 ## Usage
 
 ```javascript
