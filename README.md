@@ -354,7 +354,7 @@ console.log(result.stats);
 
 ### Version information (>= v2.0.0)
 
-Both `node-sass` and `libsass` version info is now present in `package.json` and is exposed via `info` method:
+Both `node-sass` and `libsass` version info is now exposed via the `info` method:
 
 ```javascript
 var sass = require('node-sass');
@@ -368,6 +368,8 @@ console.log(sass.info);
   libsass         3.1.0   (Sass Compiler) [C/C++]
 */
 ```
+
+Since node-sass >=v3.0.0 libsass version is determined at run time.
 
 ## Integrations
 

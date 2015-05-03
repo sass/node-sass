@@ -22,7 +22,7 @@
         '<!(node -e "require(\'nan\')")',
       ],
       'conditions': [
-        ['libsass_ext == ""', {
+        ['libsass_ext == "" or libsass_ext == "no"', {
           'dependencies': [
             'src/libsass.gyp:libsass',
           ]

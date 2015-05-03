@@ -3,6 +3,9 @@
     {
       'target_name': 'libsass',
       'type': 'static_library',
+      'defines': [
+         'LIBSASS_VERSION="<!(node -e "process.stdout.write(require(\'../package.json\').libsass)")"'
+      ],
       'sources': [
         'libsass/ast.cpp',
         'libsass/base64vlq.cpp',
@@ -52,7 +55,7 @@
       ],
       'cflags_cc': [
         '-fexceptions',
-        '-frtti'
+        '-frtti',
       ],
       'direct_dependent_settings': {
         'include_dirs': [ 'libsass' ],
