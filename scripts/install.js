@@ -21,32 +21,39 @@ require('../lib/extensions');
  */
 
 function download(url, dest, cb) {
-  var returnError = function(err) {
-    cb(typeof err.message === 'string' ? err.message : err);
+  var reportError = function(err) {
+    cb(['Cannot download "', url, '": ',
+      typeof err.message === 'string' ? err.message : err].join(''));
+  };
+  var successful = function(response) {
+    return response.statusCode >= 200 && response.statusCode < 300;
   };
 
-  if (url) {
-    applyProxy({ rejectUnauthorized: false }, function(options) {
-      options.headers = {
-        'User-Agent': [
-          'node/', process.version, ' ',
-          'node-sass-installer/', package.version
-        ].join('')
-      };
-      request.get(url, options).on('response', function(response) {
-        if (response.statusCode < 200 || response.statusCode >= 300) {
-          returnError(['Can not download file from:', url].join());
-          return;
+  applyProxy({ rejectUnauthorized: false }, function(options) {
+    options.headers = {
+      'User-Agent': [
+        'node/', process.version, ' ',
+        'node-sass-installer/', package.version
+      ].join('')
+    };
+    try {
+      request(url, options, function(err, response) {
+        if (err) {
+          reportError(err);
+        } else if (!successful(response)) {
+            reportError(['HTTP error', response.statusCode, response.statusMessage].join(' '));
+        } else {
+            cb();
         }
-
-        response.pipe(fs.createWriteStream(dest));
-
-        cb();
-      }).on('error', returnError);
-    });
-  } else {
-    returnError('Download URL not defined, set SASS_BINARY_SITE in the environment to enable download.');
-  }
+      }).on('response', function(response) {
+          if (successful(response)) {
+            response.pipe(fs.createWriteStream(dest));
+          }
+      });
+    } catch (err) {
+      cb(err);
+    }
+  });
 }
 
 /**
