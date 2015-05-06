@@ -2,6 +2,7 @@
   'targets': [
     {
       'target_name': 'binding',
+      'win_delay_load_hook': 'true',
       'sources': [
         'src/binding.cpp',
         'src/create_string.cpp',
