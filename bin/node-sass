@@ -22,7 +22,7 @@ var cli = meow({
   help: [
     'Usage',
     '  node-sass [options] <input.scss> [output.css]',
-    '  cat <input.scss> | node-sass > output.css',
+    '  cat <input.scss> | node-sass [options] > output.css',
     '',
     'Example',
     '  node-sass --output-style compressed foobar.scss foobar.css',
