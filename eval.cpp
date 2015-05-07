@@ -901,9 +901,9 @@ namespace Sass {
   {
     string acc;
     for (size_t i = 0, L = s->length(); i < L; ++i) {
-      if (String_Quoted* str_quoted = dynamic_cast<String_Quoted*>((*s)[i])) {
-        if (!str_quoted->is_delayed()) str_quoted->value(string_eval_escapes(str_quoted->value()));
-      }
+      // if (String_Quoted* str_quoted = dynamic_cast<String_Quoted*>((*s)[i])) {
+        // if (!str_quoted->is_delayed()) str_quoted->value(string_eval_escapes(str_quoted->value()));
+      // }
       acc += interpolation((*s)[i]);
     }
     String_Quoted* str = new (ctx.mem) String_Quoted(s->pstate(), acc);
