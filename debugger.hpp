@@ -264,6 +264,9 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     cerr << ind << "If " << block;
     cerr << " (" << pstate_source_position(node) << ")";
     cerr << " " << block->tabs() << endl;
+    debug_ast(block->predicate(), ind + " = ");
+    debug_ast(block->consequent(), ind + " <>");
+    debug_ast(block->alternative(), ind + " ><");
   } else if (dynamic_cast<Return*>(node)) {
     Return* block = dynamic_cast<Return*>(node);
     cerr << ind << "Return " << block;
