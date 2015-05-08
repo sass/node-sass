@@ -482,6 +482,9 @@ namespace Sass {
         // accumulate the preceding segment if the position has advanced
         if (i < p) (*schema) << new (ctx.mem) String_Quoted(pstate, string(i, p));
         // skip to the delimiter by skipping occurences in quoted strings
+        if (peek < sequence < optional_spaces, exactly<rbrace> > >(p+2)) { position = p+2;
+          css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
+        }
         const char* j = skip_over_scopes< exactly<hash_lbrace>, exactly<rbrace> >(p + 2, end_of_selector);
         Expression* interpolant = Parser::from_c_str(p+2, j, ctx, pstate).parse_list();
         interpolant->is_interpolant(true);
@@ -1387,6 +1390,9 @@ namespace Sass {
         }
         // we need to skip anything inside strings
         // create a new target in parser/prelexer
+        if (peek < sequence < optional_spaces, exactly<rbrace> > >(p+2)) { position = p+2;
+          css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
+        }
         const char* j = skip_over_scopes< exactly<hash_lbrace>, exactly<rbrace> >(p + 2, chunk.end); // find the closing brace
         if (j) { --j;
           // parse the interpolant and accumulate it
@@ -1458,6 +1464,9 @@ namespace Sass {
         if (i < p) {
           (*schema) << new (ctx.mem) String_Constant(pstate, string(i, p)); // accumulate the preceding segment if it's nonempty
         }
+        if (peek < sequence < optional_spaces, exactly<rbrace> > >(p+2)) { position = p+2;
+          css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
+        }
         const char* j = skip_over_scopes< exactly<hash_lbrace>, exactly<rbrace> >(p+2, str.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
@@ -1502,6 +1511,9 @@ namespace Sass {
   {
     String_Schema* schema = new (ctx.mem) String_Schema(pstate);
     size_t num_items = 0;
+    if (peek<exactly<'}'>>()) {
+      css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
+    }
     while (position < stop) {
       if (lex< interpolant >()) {
         Token insides(Token(lexed.begin + 2, lexed.end - 1));
@@ -1595,6 +1607,9 @@ namespace Sass {
         }
         // we need to skip anything inside strings
         // create a new target in parser/prelexer
+        if (peek < sequence < optional_spaces, exactly<rbrace> > >(p+2)) { position = p+2;
+          css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
+        }
         const char* j = skip_over_scopes< exactly<hash_lbrace>, exactly<rbrace> >(p+2, id.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
@@ -2229,14 +2244,16 @@ namespace Sass {
     const char* pos = peek < optional_spaces >();
     bool ellipsis_left = false;
     const char* pos_left(pos);
-    while (*pos_left && pos_left >= source) {
+    while (*pos_left && pos_left > source) {
       if (pos - pos_left > max_len) {
         ellipsis_left = true;
         break;
       }
-      if (*pos_left == '\r') break;
-      if (*pos_left == '\n') break;
-      -- pos_left;
+      const char* prev = pos_left - 1;
+      if (*prev == '\r') break;
+      if (*prev == '\n') break;
+      if (*prev == 10) break;
+      pos_left = prev;
     }
     bool ellipsis_right = false;
     const char* pos_right(pos);
@@ -2247,6 +2264,7 @@ namespace Sass {
       }
       if (*pos_right == '\r') break;
       if (*pos_right == '\n') break;
+      if (*pos_left == 10) break;
       ++ pos_right;
     }
     string left(pos_left, pos);
