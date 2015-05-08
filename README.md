@@ -219,9 +219,9 @@ Specify the intended location of the output file. Strongly recommended when outp
 ### outputStyle
 Type: `String`
 Default: `nested`
-Values: `nested`, `compressed`
+Values: `nested`, `expanded`, `compact`, `compressed`
 
-Determines the output format of the final CSS style. (`'expanded'` and `'compact'` are not currently supported by [libsass], but are planned in a future version.)
+Determines the output format of the final CSS style.
 
 ### precision
 Type: `Integer`
