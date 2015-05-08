@@ -1,3 +1,9 @@
+#include <cstdlib>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
+#include <typeinfo>
+
 #include "file.hpp"
 #include "eval.hpp"
 #include "ast.hpp"
@@ -10,12 +16,6 @@
 #include "backtrace.hpp"
 #include "prelexer.hpp"
 #include "parser.hpp"
-
-#include <cstdlib>
-#include <cmath>
-#include <iostream>
-#include <iomanip>
-#include <typeinfo>
 
 namespace Sass {
   using namespace std;

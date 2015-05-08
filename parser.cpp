@@ -980,13 +980,25 @@ namespace Sass {
       return new (ctx.mem) Declaration(prop->pstate(), prop, parse_static_value()/*, lex<important>()*/);
     }
     else {
-      Expression* list_ex = parse_list();
-      if (List* list = dynamic_cast<List*>(list_ex)) {
-        if (list->length() == 0 && !peek< exactly <'{'> >()) {
-          css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
+      Expression* value;
+      Selector_Lookahead lookahead = lookahead_for_value(position);
+      if (lookahead.found) {
+        if (lookahead.has_interpolants) {
+          value = parse_value_schema(lookahead.found);
+        } else {
+          value = parse_list();
         }
       }
-      return new (ctx.mem) Declaration(prop->pstate(), prop, list_ex/*, lex<important>()*/);
+      else {
+        value = parse_list();
+        if (List* list = dynamic_cast<List*>(value)) {
+          if (list->length() == 0 && !peek< exactly <'{'> >()) {
+            css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
+          }
+        }
+      }
+
+      return new (ctx.mem) Declaration(prop->pstate(), prop, value/*, lex<important>()*/);
     }
   }
 
@@ -1503,7 +1515,10 @@ namespace Sass {
     String_Schema* schema = new (ctx.mem) String_Schema(pstate);
     size_t num_items = 0;
     while (position < stop) {
-      if (lex< interpolant >()) {
+      if (lex< spaces >() && num_items) {
+        (*schema) << new (ctx.mem) String_Constant(pstate, " ");
+      }
+      else if (lex< interpolant >()) {
         Token insides(Token(lexed.begin + 2, lexed.end - 1));
         Expression* interp_node = Parser::from_token(insides, ctx, pstate).parse_list();
         interp_node->is_interpolant(true);
@@ -2008,6 +2023,7 @@ namespace Sass {
            (q = peek< class_name >(p))                             ||
            (q = peek< sequence< pseudo_prefix, identifier > >(p))  ||
            (q = peek< percentage >(p))                             ||
+           (q = peek< variable >(p))                            ||
            (q = peek< dimension >(p))                              ||
            (q = peek< quoted_string >(p))                          ||
            (q = peek< exactly<'*'> >(p))                           ||
@@ -2070,6 +2086,7 @@ namespace Sass {
            (q = peek< sequence< pseudo_prefix, identifier > >(p))  ||
            (q = peek< percentage >(p))                             ||
            (q = peek< dimension >(p))                              ||
+           (q = peek< variable >(p))                            ||
            (q = peek< quoted_string >(p))                          ||
            (q = peek< exactly<'*'> >(p))                           ||
            (q = peek< exactly<'('> >(p))                           ||
@@ -2099,6 +2116,55 @@ namespace Sass {
                                    prefix_match,
                                    suffix_match,
                                    substring_match> >(p))          ||
+           (q = peek< sequence< exactly<'.'>, interpolant > >(p))  ||
+           (q = peek< sequence< exactly<'#'>, interpolant > >(p))  ||
+           (q = peek< sequence< one_plus< exactly<'-'> >, interpolant > >(p))  ||
+           (q = peek< sequence< pseudo_prefix, interpolant > >(p)) ||
+           (q = peek< interpolant >(p))                            ||
+           (q = peek< optional >(p))) {
+      p = q;
+      if (*(p - 1) == '}') saw_interpolant = true;
+      saw_stuff = true;
+    }
+
+    Selector_Lookahead result;
+    result.found            = peek< alternatives< exactly<';'>, exactly<'}'>, exactly<'{'> > >(p) && saw_stuff ? p : 0;
+    result.has_interpolants = saw_interpolant;
+
+    return result;
+  }
+
+
+  Selector_Lookahead Parser::lookahead_for_value(const char* start)
+  {
+    const char* p = start ? start : position;
+    const char* q;
+    bool saw_interpolant = false;
+    bool saw_stuff = false;
+
+    while ((q = peek< identifier >(p))                             ||
+           (q = peek< percentage >(p))                             ||
+           (q = peek< dimension >(p))                              ||
+           (q = peek< quoted_string >(p))                          ||
+           (q = peek< variable >(p))                            ||
+           (q = peek< exactly<'*'> >(p))                           ||
+           (q = peek< exactly<'+'> >(p))                           ||
+           (q = peek< exactly<'~'> >(p))                           ||
+           (q = peek< exactly<'>'> >(p))                           ||
+           (q = peek< exactly<','> >(p))                           ||
+           (saw_stuff && (q = peek< exactly<'-'> >(p)))            ||
+           (q = peek< binomial >(p))                               ||
+           (q = peek< block_comment >(p))                          ||
+           (q = peek< sequence< optional<sign>,
+                                zero_plus<digit>,
+                                exactly<'n'> > >(p))               ||
+           (q = peek< sequence< optional<sign>,
+                                one_plus<digit> > >(p))                     ||
+           (q = peek< number >(p))                                 ||
+           (q = peek< sequence< exactly<'&'>,
+                                identifier_alnums > >(p))        ||
+           (q = peek< exactly<'&'> >(p))                           ||
+           (q = peek< exactly<'%'> >(p))                           ||
            (q = peek< sequence< exactly<'.'>, interpolant > >(p))  ||
            (q = peek< sequence< exactly<'#'>, interpolant > >(p))  ||
            (q = peek< sequence< one_plus< exactly<'-'> >, interpolant > >(p))  ||

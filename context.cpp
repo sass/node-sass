@@ -4,6 +4,13 @@
 #define PATH_SEP ':'
 #endif
 
+#include <string>
+#include <cstdlib>
+#include <cstring>
+#include <iomanip>
+#include <sstream>
+#include <iostream>
+
 #include "ast.hpp"
 #include "util.hpp"
 #include "sass.h"
@@ -28,13 +35,6 @@
 #include "sass2scss.h"
 #include "prelexer.hpp"
 #include "emitter.hpp"
-
-#include <string>
-#include <cstdlib>
-#include <cstring>
-#include <iomanip>
-#include <sstream>
-#include <iostream>
 
 namespace Sass {
   using namespace Constants;

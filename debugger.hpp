@@ -383,9 +383,6 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     cerr << endl;
   } else if (dynamic_cast<Variable*>(node)) {
     Variable* expression = dynamic_cast<Variable*>(node);
-    cerr << ind << "Variable " << expression << " [" << expression->name() << "]";
-    if (expression->is_delayed()) cerr << " [delayed]";
-    cerr << endl;
     cerr << ind << "Variable " << expression;
     cerr << " (" << pstate_source_position(node) << ")";
     cerr << " [" << expression->name() << "]" << endl;
@@ -486,55 +483,37 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     cerr << " [" << expression->value() << expression->unit() << "]" << endl;
   } else if (dynamic_cast<String_Quoted*>(node)) {
     String_Quoted* expression = dynamic_cast<String_Quoted*>(node);
-    cerr << ind << "String_Quoted : " << expression << " [";
-    cerr << prettyprint(expression->value()) << "]";
+    cerr << ind << "String_Quoted " << expression;
+    cerr << " (" << pstate_source_position(node) << ")";
+    cerr << " [" << prettyprint(expression->value()) << "]";
     if (expression->is_delayed()) cerr << " [delayed]";
     if (expression->sass_fix_1291()) cerr << " [sass_fix_1291]";
-    if (expression->quote_mark()) cerr << " [quote_mark]";
+    if (expression->quote_mark()) cerr << " [quote_mark: " << expression->quote_mark() << "]";
     cerr << " <" << prettyprint(expression->pstate().token.ws_before()) << ">" << endl;
-    cerr << ind << "String_Quoted : " << expression;
-    cerr << " (" << pstate_source_position(node) << ")";
-    cerr << " [" << prettyprint(expression->value()) << "]" <<
-      (expression->is_delayed() ? " {delayed}" : "") <<
-      (expression->sass_fix_1291() ? " {sass_fix_1291}" : "") <<
-      (expression->quote_mark() != 0 ? " {qm:" + string(1, expression->quote_mark()) + "}" : "") <<
-      " <" << prettyprint(expression->pstate().token.ws_before()) << ">" << endl;
   } else if (dynamic_cast<String_Constant*>(node)) {
     String_Constant* expression = dynamic_cast<String_Constant*>(node);
-    cerr << ind << "String_Constant : " << expression;
+    cerr << ind << "String_Constant " << expression;
+    cerr << " " << expression->concrete_type() <<
+    cerr << " (" << pstate_source_position(node) << ")";
     cerr << " [" << prettyprint(expression->value()) << "]";
     if (expression->is_delayed()) cerr << " [delayed]";
     if (expression->sass_fix_1291()) cerr << " [sass_fix_1291]";
     cerr << " <" << prettyprint(expression->pstate().token.ws_before()) << ">" << endl;
-    cerr << ind << "String_Constant : " << expression;
-    cerr << " (" << pstate_source_position(node) << ")";
-    cerr << " [" << prettyprint(expression->value()) << "]" <<
-      (expression->is_delayed() ? " {delayed}" : "") <<
-      (expression->sass_fix_1291() ? " {sass_fix_1291}" : "") <<
-      (expression->quote_mark() != 0 ? " {qm:" + string(1, expression->quote_mark()) + "}" : "") <<
-      " <" << prettyprint(expression->pstate().token.ws_before()) << ">" << endl;
   } else if (dynamic_cast<String_Schema*>(node)) {
     String_Schema* expression = dynamic_cast<String_Schema*>(node);
-    cerr << ind << "String_Schema " << expression << " [" << expression->concrete_type() << "]";
+    cerr << ind << "String_Schema " << expression;
+    cerr << " " << expression->concrete_type();
     if (expression->is_delayed()) cerr << " [delayed]";
     if (expression->has_interpolants()) cerr << " [has_interpolants]";
     cerr << " <" << prettyprint(expression->pstate().token.ws_before()) << ">" << endl;
-    cerr << ind << "String_Schema " << expression;
-    cerr << " (" << pstate_source_position(node) << ")";
-    cerr << " " << expression->concrete_type() <<
-      (expression->has_interpolants() ? " {has_interpolants}" : "") <<
-      endl;
     for(auto i : expression->elements()) { debug_ast(i, ind + " ", env); }
   } else if (dynamic_cast<String*>(node)) {
     String* expression = dynamic_cast<String*>(node);
-    cerr << ind << "String " << expression << expression->concrete_type();
+    cerr << ind << "String " << expression;
+    cerr << " " << expression->concrete_type();
+    cerr << " (" << pstate_source_position(node) << ")";
     if (expression->sass_fix_1291()) cerr << " [sass_fix_1291]";
     cerr << " <" << prettyprint(expression->pstate().token.ws_before()) << ">" << endl;
-    cerr << ind << "String " << expression;
-    cerr << " (" << pstate_source_position(node) << ")";
-    cerr << expression->concrete_type() <<
-      " " << (expression->sass_fix_1291() ? "{sass_fix_1291}" : "") <<
-      endl;
   } else if (dynamic_cast<Expression*>(node)) {
     Expression* expression = dynamic_cast<Expression*>(node);
     cerr << ind << "Expression " << expression;
