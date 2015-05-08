@@ -7,7 +7,7 @@ var fs = require('fs'),
     npmconf = require('npmconf'),
     path = require('path'),
     request = require('request'),
-    package = require('../package.json');
+    pkg = require('../package.json');
 
 require('../lib/extensions');
 
@@ -33,7 +33,7 @@ function download(url, dest, cb) {
     options.headers = {
       'User-Agent': [
         'node/', process.version, ' ',
-        'node-sass-installer/', package.version
+        'node-sass-installer/', pkg.version
       ].join('')
     };
     try {
