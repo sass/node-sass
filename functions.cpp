@@ -1554,7 +1554,7 @@ namespace Sass {
         Output_Style old_style;
         old_style = ctx.output_style;
         ctx.output_style = NESTED;
-        To_String to_string(&ctx);
+        To_String to_string(&ctx, false);
         string inspect = v->perform(&to_string);
         ctx.output_style = old_style;
         return new (ctx.mem) String_Constant(pstate, inspect);

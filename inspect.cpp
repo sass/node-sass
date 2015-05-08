@@ -114,6 +114,7 @@ namespace Sass {
   void Inspect::operator()(Declaration* dec)
   {
     if (dec->value()->concrete_type() == Expression::NULL_VAL) return;
+    bool was_decl = in_declaration;
     in_declaration = true;
     if (output_style() == NESTED)
       indentation += dec->tabs();
@@ -128,7 +129,7 @@ namespace Sass {
     append_delimiter();
     if (output_style() == NESTED)
       indentation -= dec->tabs();
-    in_declaration = false;
+    in_declaration = was_decl;
   }
 
   void Inspect::operator()(Assignment* assn)
@@ -346,7 +347,19 @@ namespace Sass {
     else if (in_media_block && sep != " ") sep += " "; // verified
     if (list->empty()) return;
     bool items_output = false;
-    in_declaration_list = in_declaration;
+
+    bool was_space_array = in_space_array;
+    bool was_comma_array = in_comma_array;
+    if (!in_declaration && (
+        (list->separator() == List::SPACE && in_space_array) ||
+        (list->separator() == List::COMMA && in_comma_array)
+    )) {
+      append_string("(");
+    }
+
+    if (list->separator() == List::SPACE) in_space_array = true;
+    else if (list->separator() == List::COMMA) in_comma_array = true;
+
     for (size_t i = 0, L = list->length(); i < L; ++i) {
       Expression* list_item = (*list)[i];
       if (list_item->is_invisible()) {
@@ -360,7 +373,16 @@ namespace Sass {
       list_item->perform(this);
       items_output = true;
     }
-    in_declaration_list = false;
+
+    in_comma_array = was_comma_array;
+    in_space_array = was_space_array;
+    if (!in_declaration && (
+        (list->separator() == List::SPACE && in_space_array) ||
+        (list->separator() == List::COMMA && in_comma_array)
+    )) {
+      append_string(")");
+    }
+
   }
 
   void Inspect::operator()(Binary_Expression* expr)

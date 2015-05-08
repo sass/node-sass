@@ -41,7 +41,8 @@ namespace Sass {
       bool in_wrapped;
       bool in_media_block;
       bool in_declaration;
-      bool in_declaration_list;
+      bool in_space_array;
+      bool in_comma_array;
 
     public:
       // return buffer as string
