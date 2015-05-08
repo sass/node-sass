@@ -2,7 +2,7 @@
 
 var Emitter = require('events').EventEmitter,
     forEach = require('async-foreach').forEach,
-    Gaze = require('gaze'),
+    chokidar = require('chokidar'),
     grapher = require('sass-graph'),
     meow = require('meow'),
     util = require('util'),
@@ -201,18 +201,17 @@ function getOptions(args, options) {
 function watch(options, emitter) {
   var src = options.directory ? path.join(options.directory, globPattern(options)) : options.src;
   var graph = grapher.parseDir(path.resolve(path.dirname(src)), { loadPaths: options.includePath });
-  var watch = [];
+  var paths = [];
 
   // Add all files to watch list
   for (var i in graph.index) {
-    watch.push(i);
+    paths.push(i);
   }
 
-  var gaze = new Gaze();
-  gaze.add(watch);
-  gaze.on('error', emitter.emit.bind(emitter, 'error'));
+  var watcher = chokidar.watch(paths);
+  watcher.on('error', emitter.emit.bind(emitter, 'error'));
 
-  gaze.on('changed', function(file) {
+  watcher.on('change', function(file) {
     var files = [file];
     graph.visitAncestors(file, function(parent) {
       files.push(parent);

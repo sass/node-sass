@@ -20,6 +20,5 @@ install:
   - node --version
   - npm --version
   - git submodule update --init --recursive
-  - ps: npm install --msvs_version=2013
 
 test_script: npm test
