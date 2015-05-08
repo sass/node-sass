@@ -111,7 +111,7 @@ extern "C" {
   // Getters and setters for Sass_String
   const char* ADDCALL sass_string_get_value(const union Sass_Value* v) { return v->string.value; }
   void ADDCALL sass_string_set_value(union Sass_Value* v, char* value) { v->string.value = value; }
-  const bool ADDCALL sass_string_is_quoted(const union Sass_Value* v) { return v->string.quoted; }
+  bool ADDCALL sass_string_is_quoted(const union Sass_Value* v) { return v->string.quoted; }
   void ADDCALL sass_string_set_quoted(union Sass_Value* v, bool quoted) { v->string.quoted = quoted; }
 
   // Getters and setters for Sass_Boolean
