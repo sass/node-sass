@@ -37,10 +37,15 @@ namespace Sass {
       bool scheduled_delimiter;
 
     public:
+      // output strings different in comments
       bool in_comment;
+      // selector list does not get linefeeds
       bool in_wrapped;
+      // lists always get a space after delimiter
       bool in_media_block;
+      // nested list must not have parentheses
       bool in_declaration;
+      // nested lists need parentheses
       bool in_space_array;
       bool in_comma_array;
 

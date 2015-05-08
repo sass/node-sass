@@ -349,11 +349,13 @@ namespace Sass {
 
     append_scope_opener();
 
+    bool format = kwd != "@font-face";;
+
     for (size_t i = 0, L = b->length(); i < L; ++i) {
       Statement* stm = (*b)[i];
       if (!stm->is_hoistable()) {
         stm->perform(this);
-        if (i < L - 1) append_special_linefeed();
+        if (i < L - 1 && format) append_special_linefeed();
       }
     }
 
@@ -361,7 +363,7 @@ namespace Sass {
       Statement* stm = (*b)[i];
       if (stm->is_hoistable()) {
         stm->perform(this);
-        if (i < L - 1) append_special_linefeed();
+        if (i < L - 1 && format) append_special_linefeed();
       }
     }
 

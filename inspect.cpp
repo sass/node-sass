@@ -1,13 +1,14 @@
-#include "inspect.hpp"
-#include "ast.hpp"
-#include "context.hpp"
-#include "utf8/checked.h"
 #include <cmath>
 #include <string>
 #include <iostream>
 #include <iomanip>
 #include <stdint.h>
 #include <stdint.h>
+
+#include "ast.hpp"
+#include "inspect.hpp"
+#include "context.hpp"
+#include "utf8/checked.h"
 
 namespace Sass {
   using namespace std;
@@ -99,9 +100,10 @@ namespace Sass {
     append_token(at_rule->keyword(), at_rule);
     if (at_rule->selector()) {
       append_mandatory_space();
+      bool was_wrapped = in_wrapped;
       in_wrapped = true;
       at_rule->selector()->perform(this);
-      in_wrapped = false;
+      in_wrapped = was_wrapped;
     }
     if (at_rule->block()) {
       at_rule->block()->perform(this);
