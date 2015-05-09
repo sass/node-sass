@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 #include <typeinfo>
 
@@ -528,7 +529,9 @@ namespace Sass {
   Expression* Eval::operator()(Function_Call* c)
   {
     if (backtrace->parent != NULL && backtrace->depth() > Constants::MaxCallStack) {
-        error("Stack depth exceeded max of " + to_string(Constants::MaxCallStack), c->pstate(), backtrace);
+        ostringstream stm;
+        stm << "Stack depth exceeded max of " << Constants::MaxCallStack;
+        error(stm.str(), c->pstate(), backtrace);
     }
     string name(Util::normalize_underscores(c->name()));
     string full_name(name + "[f]");
