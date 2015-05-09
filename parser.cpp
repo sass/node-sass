@@ -1231,6 +1231,11 @@ namespace Sass {
     }
     // if it's a singleton, return it directly; don't wrap it
     if (!peek< class_char< static_ops > >(position)) return factor;
+    return parse_operators(factor);
+  }
+
+  Expression* Parser::parse_operators(Expression* factor)
+  {
     // parse more factors and operators
     vector<Expression*> operands; // factors
     vector<Binary_Expression::Type> operators; // ops
@@ -1522,7 +1527,12 @@ namespace Sass {
         (*schema) << new (ctx.mem) Textual(pstate, Textual::DIMENSION, lexed);
       }
       else if (lex< number >()) {
-        (*schema) << new (ctx.mem) Textual(pstate, Textual::NUMBER, lexed);
+        Expression* factor = new (ctx.mem) Textual(pstate, Textual::NUMBER, lexed);
+        if (peek< class_char< static_ops > >()) {
+          (*schema) << parse_operators(factor);
+        } else {
+          (*schema) << factor;
+        }
       }
       else if (lex< hex >()) {
         (*schema) << new (ctx.mem) Textual(pstate, Textual::HEX, unquote(lexed));

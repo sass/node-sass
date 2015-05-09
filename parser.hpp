@@ -243,6 +243,7 @@ namespace Sass {
     String* parse_ie_property();
     String* parse_ie_keyword_arg();
     String_Schema* parse_value_schema(const char* stop);
+    Expression* parse_operators(Expression* factor);
     String* parse_identifier_schema();
     // String_Schema* parse_url_schema();
     If* parse_if_directive(bool else_if = false);
