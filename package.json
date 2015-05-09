@@ -57,7 +57,7 @@
     "mkdirp": "^0.5.0",
     "nan": "^1.8.4",
     "npmconf": "^2.1.1",
-    "pangyp": "am11/pangyp",
+    "pangyp": "https://github.com/am11/pangyp/archive/f13599f5198b853948429062c2b334010a337342.tar.gz",
     "request": "^2.55.0",
     "sass-graph": "^2.0.0"
   },
