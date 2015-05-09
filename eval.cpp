@@ -1048,9 +1048,13 @@ namespace Sass {
 
   Expression* Eval::operator()(Parent_Selector* p)
   {
+    // no idea why both calls are needed
     Selector* s = p->perform(contextualize);
+    if (!s) s = p->selector()->perform(contextualize);
     // access to parent selector may return 0
     Selector_List* l = static_cast<Selector_List*>(s);
+    // some spec tests cause this (might be a valid case!)
+    // if (!s) { cerr << "Parent Selector eval error" << endl; }
     if (!s) { l = new (ctx.mem) Selector_List(p->pstate()); }
     return l->perform(listize);
   }
