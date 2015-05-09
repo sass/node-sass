@@ -11,15 +11,15 @@
 namespace Sass {
   using namespace std;
 
-  To_String::To_String(Context* ctx)
-  : ctx(ctx) { }
+  To_String::To_String(Context* ctx, bool in_declaration)
+  : ctx(ctx), in_declaration(in_declaration) { }
   To_String::~To_String() { }
 
   inline string To_String::fallback_impl(AST_Node* n)
   {
     Emitter emitter(ctx);
     Inspect i(emitter);
-    i.in_declaration_list = true;
+    i.in_declaration = in_declaration;
     n->perform(&i);
     return i.get_buffer();
   }

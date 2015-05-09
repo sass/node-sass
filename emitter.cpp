@@ -18,7 +18,8 @@ namespace Sass {
     in_wrapped(false),
     in_media_block(false),
     in_declaration(false),
-    in_declaration_list(false)
+    in_space_array(false),
+    in_comma_array(false)
   { }
 
   // return buffer as string

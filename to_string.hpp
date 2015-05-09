@@ -18,9 +18,10 @@ namespace Sass {
     string fallback_impl(AST_Node* n);
 
     Context* ctx;
+    bool in_declaration;
 
   public:
-    To_String(Context* ctx = 0);
+    To_String(Context* ctx = 0, bool in_declaration = true);
     virtual ~To_String();
 
     string operator()(Null* n);
