@@ -54,8 +54,8 @@ namespace Sass {
     }
 
     Contextualize_Eval* contextual = contextualize_eval->with(selector_stack.back(), env, backtrace);
-    if (old_in_at_root && !r->selector()->has_reference())
-      contextual = contextualize_eval->with(at_root_selector_stack.back(), env, backtrace);
+    // if (old_in_at_root && !r->selector()->has_reference())
+    //   contextual = contextualize_eval->with(selector_stack.back(), env, backtrace);
 
     Selector* sel_ctx = r->selector()->perform(contextual);
     if (sel_ctx == 0) throw "Cannot expand null selector";

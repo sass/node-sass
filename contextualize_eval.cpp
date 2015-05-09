@@ -64,7 +64,7 @@ namespace Sass {
     // the value might be interpolated; evaluate it
     String* v = s->value();
     if (v && eval) {
-     Eval* eval_with = eval->with(env, backtrace);
+     Eval* eval_with = eval->with(parent, env, backtrace);
      v = static_cast<String*>(v->perform(eval_with));
     }
     To_String toString;
