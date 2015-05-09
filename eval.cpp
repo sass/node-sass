@@ -876,6 +876,7 @@ namespace Sass {
       Expression* value = static_cast<Expression*>((*env)[name]);
       return evacuate_quotes(interpolation(value));
     } else if (Binary_Expression* var = dynamic_cast<Binary_Expression*>(s)) {
+      var->is_delayed(false);
       Expression* ex = var->perform(this);
       return evacuate_quotes(interpolation(ex));
     } else if (Function_Call* var = dynamic_cast<Function_Call*>(s)) {
