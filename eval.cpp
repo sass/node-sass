@@ -1186,7 +1186,7 @@ namespace Sass {
     } else {
       v->value(ops[op](lv, tmp.value()));
     }
-    // v->normalize();
+    v->normalize();
     return v;
   }
 
