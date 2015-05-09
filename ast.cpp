@@ -663,7 +663,7 @@ namespace Sass {
       // skip already canceled out unit
       if (exponents[denom] >= 0) continue;
       // skip all units we don't know how to convert
-      if (string_to_unit(denom) == INCOMMENSURABLE) continue;
+      if (string_to_unit(denom) == UNKNOWN) continue;
       // now search for nominator
       while (nom_it != nom_end)
       {
@@ -672,7 +672,7 @@ namespace Sass {
         // skip already canceled out unit
         if (exponents[nom] <= 0) continue;
         // skip all units we don't know how to convert
-        if (string_to_unit(nom) == INCOMMENSURABLE) continue;
+        if (string_to_unit(nom) == UNKNOWN) continue;
         // we now have two convertable units
         // add factor for current conversion
         factor *= conversion_factor(nom, denom);
@@ -707,7 +707,10 @@ namespace Sass {
 
     // maybe convert to other unit
     // easier implemented on its own
-    convert(prefered);
+    try { convert(prefered); }
+    catch (incompatibleUnits& err)
+    { error(err.what(), pstate()); }
+    catch (...) { throw; }
 
   }
 
@@ -743,7 +746,7 @@ namespace Sass {
       // skip already canceled out unit
       if (exponents[denom] >= 0) continue;
       // skip all units we don't know how to convert
-      if (string_to_unit(denom) == INCOMMENSURABLE) continue;
+      if (string_to_unit(denom) == UNKNOWN) continue;
       // we now have two convertable units
       // add factor for current conversion
       factor *= conversion_factor(denom, prefered);
@@ -764,7 +767,7 @@ namespace Sass {
       // skip already canceled out unit
       if (exponents[nom] <= 0) continue;
       // skip all units we don't know how to convert
-      if (string_to_unit(nom) == INCOMMENSURABLE) continue;
+      if (string_to_unit(nom) == UNKNOWN) continue;
       // we now have two convertable units
       // add factor for current conversion
       factor *= conversion_factor(nom, prefered);
@@ -801,11 +804,11 @@ namespace Sass {
   {
     for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
       string u(numerator_units_[i]);
-      if (string_to_unit(u) != INCOMMENSURABLE) return u;
+      if (string_to_unit(u) != UNKNOWN) return u;
     }
     for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
       string u(denominator_units_[i]);
-      if (string_to_unit(u) != INCOMMENSURABLE) return u;
+      if (string_to_unit(u) != UNKNOWN) return u;
     }
     return string();
   }
