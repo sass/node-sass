@@ -1010,6 +1010,16 @@ namespace Sass {
   {
     To_String to_string(&ctx);
     Expression* key = parse_list();
+    if (String_Quoted* str = dynamic_cast<String_Quoted*>(key)) {
+      if (!str->quote_mark() && !str->is_delayed()) {
+        if (ctx.names_to_colors.count(str->value())) {
+          Color* c = new (ctx.mem) Color(*ctx.names_to_colors[str->value()]);
+          c->pstate(str->pstate());
+          c->disp(str->value());
+          key = c;
+        }
+      }
+    }
 
     // it's not a map so return the lexed value as a list value
     if (!peek< exactly<':'> >())
@@ -1029,6 +1039,16 @@ namespace Sass {
       { break; }
 
       Expression* key = parse_list();
+      if (String_Quoted* str = dynamic_cast<String_Quoted*>(key)) {
+        if (!str->quote_mark() && !str->is_delayed()) {
+          if (ctx.names_to_colors.count(str->value())) {
+            Color* c = new (ctx.mem) Color(*ctx.names_to_colors[str->value()]);
+            c->pstate(str->pstate());
+            c->disp(str->value());
+            key = c;
+          }
+        }
+      }
 
       if (!(lex< exactly<':'> >()))
       { error("invalid syntax", pstate); }
