@@ -32,12 +32,19 @@ namespace Sass {
     Selector_List* ss = 0;
     if (p) {
       ss = new (ctx.mem) Selector_List(s->pstate(), p->length() * s->length());
+      if (s->length() == 0) {
+          Complex_Selector* comb = static_cast<Complex_Selector*>(parent->perform(this));
+          if (parent->has_line_feed()) comb->has_line_feed(true);
+          if (comb) *ss << comb;
+          else cerr << "Warning: contextualize returned null" << endl;
+      }
       for (size_t i = 0, L = p->length(); i < L; ++i) {
         for (size_t j = 0, L = s->length(); j < L; ++j) {
           parent = (*p)[i];
           Complex_Selector* comb = static_cast<Complex_Selector*>((*s)[j]->perform(this));
           if (parent->has_line_feed()) comb->has_line_feed(true);
           if (comb) *ss << comb;
+          else cerr << "Warning: contextualize returned null" << endl;
         }
       }
     }
