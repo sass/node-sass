@@ -25,14 +25,14 @@ namespace Sass {
     //####################################
 
     // These are locale independant
-    const bool is_space(const char& src);
-    const bool is_alpha(const char& src);
-    const bool is_punct(const char& src);
-    const bool is_digit(const char& src);
-    const bool is_alnum(const char& src);
-    const bool is_xdigit(const char& src);
-    const bool is_unicode(const char& src);
-    const bool is_character(const char& src);
+    bool is_space(const char& src);
+    bool is_alpha(const char& src);
+    bool is_punct(const char& src);
+    bool is_digit(const char& src);
+    bool is_alnum(const char& src);
+    bool is_xdigit(const char& src);
+    bool is_unicode(const char& src);
+    bool is_character(const char& src);
 
     // Match a single ctype predicate.
     const char* space(const char* src);

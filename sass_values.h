@@ -57,7 +57,7 @@ ADDAPI void ADDCALL sass_number_set_unit (union Sass_Value* v, char* unit);
 // Getters and setters for Sass_String
 ADDAPI const char* ADDCALL sass_string_get_value (const union Sass_Value* v);
 ADDAPI void ADDCALL sass_string_set_value (union Sass_Value* v, char* value);
-ADDAPI const bool ADDCALL sass_string_is_quoted(const union Sass_Value* v);
+ADDAPI bool ADDCALL sass_string_is_quoted(const union Sass_Value* v);
 ADDAPI void ADDCALL sass_string_set_quoted(union Sass_Value* v, bool quoted);
 
 // Getters and setters for Sass_Boolean

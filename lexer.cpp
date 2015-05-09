@@ -31,25 +31,25 @@ namespace Sass {
     // this even seems to improve performance by quite a bit
     //####################################
 
-    const bool is_alpha(const char& chr)
+    bool is_alpha(const char& chr)
     {
       return unsigned(chr - 'A') <= 'Z' - 'A' ||
              unsigned(chr - 'a') <= 'z' - 'a';
     }
 
-    const bool is_space(const char& chr)
+    bool is_space(const char& chr)
     {
       // adapted the technique from is_alpha
       return chr == ' ' || unsigned(chr - '\t') <= '\r' - '\t';
     }
 
-    const bool is_digit(const char& chr)
+    bool is_digit(const char& chr)
     {
       // adapted the technique from is_alpha
       return unsigned(chr - '0') <= '9' - '0';
     }
 
-    const bool is_xdigit(const char& chr)
+    bool is_xdigit(const char& chr)
     {
       // adapted the technique from is_alpha
       return unsigned(chr - '0') <= '9' - '0' ||
@@ -57,26 +57,26 @@ namespace Sass {
              unsigned(chr - 'A') <= 'F' - 'A';
     }
 
-    const bool is_punct(const char& chr)
+    bool is_punct(const char& chr)
     {
       // locale independent
       return chr == '.';
     }
 
-    const bool is_alnum(const char& chr)
+    bool is_alnum(const char& chr)
     {
       return is_alpha(chr) || is_digit(chr);
     }
 
     // check if char is outside ascii range
-    const bool is_unicode(const char& chr)
+    bool is_unicode(const char& chr)
     {
       // check for unicode range
       return unsigned(chr) > 127;
     }
 
     // Match word character (look ahead)
-    const bool is_character(const char& chr)
+    bool is_character(const char& chr)
     {
       // valid alpha, numeric or unicode char (plus hyphen)
       return is_alnum(chr) || is_unicode(chr) || chr == '-';
