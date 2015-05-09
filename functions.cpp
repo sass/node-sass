@@ -1217,7 +1217,18 @@ namespace Sass {
       else if (sep_str == "comma") result->separator(List::COMMA);
       else if (sep_str != "auto") error("argument `$separator` of `" + string(sig) + "` must be `space`, `comma`, or `auto`", pstate);
       *result += l;
-      *result << v;
+      bool is_arglist = l->is_arglist();
+      result->is_arglist(is_arglist);
+      if (is_arglist) {
+        *result << new (ctx.mem) Argument(v->pstate(),
+                                          v,
+                                          "",
+                                          false,
+                                          false);
+
+      } else {
+        *result << v;
+      }
       return result;
     }
 
