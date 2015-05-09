@@ -416,43 +416,91 @@ namespace Sass {
 
   void Inspect::operator()(Number* n)
   {
+
+    string res;
+
+    // init stuff
     n->normalize();
+    int precision = 5;
+    double value = n->value();
+    // get option from optional context
+    if (ctx) precision = ctx->precision;
+
+    // check if the fractional part of the value equals to zero
+    // neat trick from http://stackoverflow.com/a/1521682/1550314
+    // double int_part; bool is_int = modf(value, &int_part) == 0.0;
+
+    // this all cannot be done with one run only, since fixed
+    // output differs from normal output and regular output
+    // can contain scientific notation which we do not want!
+
+    // first sample
     stringstream ss;
-    ss.precision(ctx ? ctx->precision : 5);
-    ss << fixed << n->value();
-    string d(ss.str());
-    // store if the value did not equal zero
-    // if after applying precsision, the value gets
-    // truncated to zero, sass emits 0.0 instead of 0
-    bool nonzero = n->value() != 0;
-    size_t decimal = d.find('.');
-    if (decimal != string::npos) {
-      for (size_t i = d.length()-1; d[i] == '0' && i >= decimal; --i) {
-        d.resize(d.length()-1);
-      }
+    ss.precision(12);
+    ss << value;
+
+    // check if we got scientific notation in result
+    if (ss.str().find_first_of("e") != string::npos) {
+      ss.clear(); ss.str(string());
+      ss.precision(max(12, precision));
+      ss << fixed << value;
     }
-    if (d[d.length()-1] == '.') d.resize(d.length()-1);
+
+    string tmp = ss.str();
+    size_t pos_point = tmp.find_first_of(".,");
+    size_t pos_fract = tmp.find_last_not_of("0");
+    bool is_int = pos_point == pos_fract ||
+                  pos_point == string::npos;
+
+    // reset stream for another run
+    ss.clear(); ss.str(string());
+
+    // take a shortcut for integers
+    if (is_int)
+    {
+      ss.precision(0);
+      ss << fixed << value;
+      res = string(ss.str());
+    }
+    // process floats
+    else
+    {
+      // do we have have too much precision?
+      if (pos_fract < precision + pos_point)
+      { precision = pos_fract - pos_point; }
+      // round value again
+      ss.precision(precision);
+      ss << fixed << value;
+      res = string(ss.str());
+      // maybe we truncated up to decimal point
+      size_t pos = res.find_last_not_of("0");
+      bool at_dec_point = res[pos] == '.' ||
+                          res[pos] == ',';
+      // don't leave a blank point
+      if (at_dec_point) ++ pos;
+      res.resize (pos + 1);
+    }
+
+    // some final cosmetics
+    if (res == "-0.0") res.erase(0, 1);
+    else if (res == "-0") res.erase(0, 1);
+
+    // add unit now
+    res += n->unit();
+
+    // check for a valid unit here
+    // includes result for reporting
     if (n->numerator_units().size() > 1 ||
         n->denominator_units().size() > 0 ||
         (n->numerator_units().size() && n->numerator_units()[0].find_first_of('/') != string::npos) ||
         (n->numerator_units().size() && n->numerator_units()[0].find_first_of('*') != string::npos)
     ) {
-      error(d + n->unit() + " isn't a valid CSS value.", n->pstate());
+      error(res + " isn't a valid CSS value.", n->pstate());
     }
-    if (!n->zero() && !in_declaration_list) {
-      if (d.substr(0, 3) == "-0.") d.erase(1, 1);
-      if (d.substr(0, 2) == "0.") d.erase(0, 1);
-    }
-    // remove the leading minus
-    if (d == "-0") d.erase(0, 1);
-    // use fractional output if we had
-    // a value before it got truncated
-    if (d == "0" && nonzero) d = "0.0";
-    // if the precision is 0 sass cast
-    // casts to a float with precision 1
-    if (ctx->precision == 0) d += ".0";
-    // append number and unit
-    append_token(d + n->unit(), n);
+
+    // output the final token
+    append_token(res, n);
+
   }
 
   // helper function for serializing colors
