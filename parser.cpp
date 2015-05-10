@@ -269,8 +269,16 @@ namespace Sass {
       else if (lex< uri_prefix >()) {
         Arguments* args = new (ctx.mem) Arguments(pstate);
         Function_Call* result = new (ctx.mem) Function_Call(pstate, "url", args);
-        if (lex < uri_value >()) { // chunk seems to work too!
+        if (lex< quoted_string >()) {
+          Expression* the_url = parse_string();
+          *args << new (ctx.mem) Argument(the_url->pstate(), the_url);
+        }
+        else if (lex < uri_value >(position)) { // chunk seems to work too!
           String* the_url = parse_interpolated_chunk(lexed);
+          *args << new (ctx.mem) Argument(the_url->pstate(), the_url);
+        }
+        else if (peek < skip_over_scopes < exactly < '(' >, exactly < ')' > > >(position)) {
+          Expression* the_url = parse_list(); // parse_interpolated_chunk(lexed);
           *args << new (ctx.mem) Argument(the_url->pstate(), the_url);
         }
         else {

@@ -148,7 +148,12 @@ namespace Sass {
         exactly <'\''>,
         zero_plus <
           alternatives <
-            // skip all escaped chars first
+            // skip escapes
+            sequence <
+              exactly < '\\' >,
+              exactly < '\r' >,
+              exactly < '\n' >
+            >,
             escape_seq,
             // skip interpolants
             interpolant,
@@ -167,7 +172,12 @@ namespace Sass {
         exactly <'"'>,
         zero_plus <
           alternatives <
-            // skip all escaped chars first
+            // skip escapes
+            sequence <
+              exactly < '\\' >,
+              exactly < '\r' >,
+              exactly < '\n' >
+            >,
             escape_seq,
             // skip interpolants
             interpolant,
