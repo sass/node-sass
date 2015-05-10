@@ -1107,7 +1107,7 @@ namespace Sass {
 
       List* list = dynamic_cast<List*>(env["$list"]);
       return new (ctx.mem) Number(pstate,
-                                  list ? list->length() : 1);
+                                  list ? list->size() : 1);
     }
 
     Signature nth_sig = "nth($list, $n)";
@@ -1356,13 +1356,10 @@ namespace Sass {
     {
       List* arglist = new (ctx.mem) List(*ARG("$args", List));
       Map* result = new (ctx.mem) Map(pstate, 1);
-      // The parser ensures the ordering of arguments so we can assert this
-      // isn't keyword argument list the first argument isn't a keyword argument
-      if (!(arglist->empty() || ((Argument*)(*arglist)[0])->is_keyword_argument())) return result;
-      for (size_t i = 0, L = arglist->length(); i < L; ++i) {
+      for (size_t i = arglist->size(), L = arglist->length(); i < L; ++i) {
         string name = string(((Argument*)(*arglist)[i])->name());
-        string sanitized_name = string(name, 1);
-        *result << make_pair(new (ctx.mem) String_Constant(pstate, sanitized_name),
+        name = name.erase(0, 1); // sanitize name (remove dollar sign)
+        *result << make_pair(new (ctx.mem) String_Constant(pstate, name),
                              ((Argument*)(*arglist)[i])->value());
       }
       return result;
@@ -1551,11 +1548,14 @@ namespace Sass {
       } else if (v->concrete_type() == Expression::STRING) {
         return v;
       } else {
+        bool parentheses = v->concrete_type() == Expression::MAP ||
+                           v->concrete_type() == Expression::LIST;
         Output_Style old_style;
         old_style = ctx.output_style;
         ctx.output_style = NESTED;
         To_String to_string(&ctx, false);
         string inspect = v->perform(&to_string);
+        if (inspect.empty() && parentheses) inspect = "()";
         ctx.output_style = old_style;
         return new (ctx.mem) String_Constant(pstate, inspect);
 

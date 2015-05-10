@@ -93,6 +93,7 @@ namespace Sass {
             (*arglist) << new (ctx.mem) Argument(key->pstate(),
                                                  argmap->at(key),
                                                  name,
+                                                 false,
                                                  false);
           }
 
@@ -111,6 +112,7 @@ namespace Sass {
             (*arglist) << new (ctx.mem) Argument(a->pstate(),
                                                  a->value(),
                                                  a->name(),
+                                                 false,
                                                  false);
             // check if we have rest argument
             if (a->is_rest_argument()) {
@@ -144,7 +146,11 @@ namespace Sass {
           a = static_cast<Argument*>((*arglist)[0]);
         } else {
           Expression* a_to_convert = (*arglist)[0];
-          a = new (ctx.mem) Argument(a_to_convert->pstate(), a_to_convert, "", false);
+          a = new (ctx.mem) Argument(a_to_convert->pstate(),
+                                     a_to_convert,
+                                     "",
+                                     false,
+                                     false);
         }
         arglist->elements().erase(arglist->elements().begin());
         if (!arglist->length() || (!arglist->is_arglist() && ip + 1 == LP)) {
