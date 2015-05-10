@@ -34,7 +34,12 @@ namespace Sass {
     {
       return sequence<
                zero_plus < space >,
-               delimited_by<slash_star, star_slash, false> >(src);
+               delimited_by<
+                 slash_star,
+                 star_slash,
+                 false
+               >
+             >(src);
     }
     /* not use anymore - remove?
     const char* block_comment_prefix(const char* src) {
@@ -606,7 +611,7 @@ namespace Sass {
       >(src);
     }
     const char* ie_expression(const char* src) {
-      return sequence < word<expression_kwd>, delimited_by< '(', ')', true> >(src);
+      return sequence < word<expression_kwd>, exactly<'('>, skip_over_scopes< exactly<'('>, exactly<')'> > >(src);
     }
     const char* ie_property(const char* src) {
       return alternatives < ie_expression, ie_progid >(src);
@@ -617,13 +622,38 @@ namespace Sass {
     //                    zero_plus< sequence< optional_css_whitespace, exactly<','>, optional_css_whitespace, alternatives< ie_keyword_arg, value_schema, quoted_string, interpolant, number, identifier, delimited_by<'(', ')', true> > > > >(src);
     // }
 
+    const char* ie_keyword_arg_property(const char* src) {
+      return alternatives <
+          variable,
+          identifier_schema,
+          identifier
+        >(src);
+    }
+    const char* ie_keyword_arg_value(const char* src) {
+      return alternatives <
+          variable,
+          identifier_schema,
+          identifier,
+          quoted_string,
+          number,
+          hexa,
+          sequence <
+            exactly < '(' >,
+            skip_over_scopes <
+              exactly < '(' >,
+              exactly < ')' >
+            >
+          >
+        >(src);
+    }
+
     const char* ie_keyword_arg(const char* src) {
-      return sequence<
-        alternatives< variable, identifier_schema, identifier >,
+      return sequence <
+        ie_keyword_arg_property,
         optional_css_whitespace,
         exactly<'='>,
         optional_css_whitespace,
-        alternatives< variable, identifier_schema, identifier, quoted_string, number, hexa >
+        ie_keyword_arg_value
       >(src);
     }
 

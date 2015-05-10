@@ -1018,8 +1018,7 @@ namespace Sass {
         is_rest_argument = false;
         is_keyword_argument = true;
       }
-      else
-      if(val->concrete_type() != Expression::LIST) {
+      else if(val->concrete_type() != Expression::LIST) {
         List* wrapper = new (ctx.mem) List(val->pstate(),
                                            0,
                                            List::COMMA,

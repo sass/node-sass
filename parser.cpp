@@ -1458,28 +1458,23 @@ namespace Sass {
     Token str(lexed);
     const char* i = str.begin;
     // see if there any interpolants
-    const char* q;
     const char* p = find_first_in_interval< exactly<hash_lbrace> >(str.begin, str.end);
     if (!p) {
       String_Constant* str_node = new (ctx.mem) String_Constant(pstate, normalize_wspace(string(str.begin, str.end)));
       str_node->is_delayed(true);
+      str_node->quote_mark('*');
       return str_node;
     }
 
     String_Schema* schema = new (ctx.mem) String_Schema(pstate);
     while (i < str.end) {
-      q = find_first_in_interval< alternatives< exactly<'"'>, exactly<'\''> > >(i, str.end);
       p = find_first_in_interval< exactly<hash_lbrace> >(i, str.end);
-      if (q && (!p || p > q)) {
-        if (i < q) {
-          (*schema) << new (ctx.mem) String_Constant(pstate, string(i, q)); // accumulate the preceding segment if it's nonempty
-        }
-        (*schema) << new (ctx.mem) String_Constant(pstate, string(q, q+1)); // capture the quote mark separately
-        i = q+1;
-      }
-      else if (p) {
+      if (p) {
         if (i < p) {
-          (*schema) << new (ctx.mem) String_Constant(pstate, string(i, p)); // accumulate the preceding segment if it's nonempty
+          String_Constant* part = new (ctx.mem) String_Constant(pstate, normalize_wspace(string(i, p))); // accumulate the preceding segment if it's nonempty
+          part->is_delayed(true);
+          part->quote_mark('*'); // avoid unquote in interpolation
+          (*schema) << part;
         }
         if (peek < sequence < optional_spaces, exactly<rbrace> > >(p+2)) { position = p+2;
           css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
@@ -1498,7 +1493,12 @@ namespace Sass {
         }
       }
       else { // no interpolants left; add the last segment if nonempty
-        if (i < str.end) (*schema) << new (ctx.mem) String_Constant(pstate, string(i, str.end));
+        if (i < str.end) {
+          String_Constant* part = new (ctx.mem) String_Constant(pstate, normalize_wspace(string(i, str.end)));
+          part->is_delayed(true);
+          part->quote_mark('*'); // avoid unquote in interpolation
+          (*schema) << part;
+        }
         break;
       }
     }
@@ -1512,15 +1512,13 @@ namespace Sass {
       *kwd_arg << new (ctx.mem) Variable(pstate, Util::normalize_underscores(lexed));
     } else {
       lex< alternatives< identifier_schema, identifier > >();
-      *kwd_arg << new (ctx.mem) String_Quoted(pstate, lexed);
+      *kwd_arg << new (ctx.mem) String_Constant(pstate, lexed);
     }
     lex< exactly<'='> >();
-    *kwd_arg << new (ctx.mem) String_Quoted(pstate, lexed);
+    *kwd_arg << new (ctx.mem) String_Constant(pstate, lexed);
     if (peek< variable >()) *kwd_arg << parse_list();
     else if (lex< number >()) *kwd_arg << new (ctx.mem) Textual(pstate, Textual::NUMBER, Util::normalize_decimals(lexed));
-    else if (lex< alternatives< identifier_schema, identifier, number, hexa, hex > >()) {
-      *kwd_arg << new (ctx.mem) String_Quoted(pstate, lexed);
-    }
+    else if (peek < ie_keyword_arg_value >()) { *kwd_arg << parse_list(); }
     return kwd_arg;
   }
 

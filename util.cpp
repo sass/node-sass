@@ -262,21 +262,15 @@ namespace Sass {
   {
     bool ws = false;
     bool esc = false;
-    char inside_str = 0;
     string text = "";
-    for(auto i : str) {
+    for(const char& i : str) {
       if (!esc && i == '\\') {
         esc = true;
+        ws = false;
         text += i;
       } else if (esc) {
         esc = false;
-        text += i;
-      } else if (!inside_str && (i == '"' || i == '\'')) {
-        inside_str = i;
-        text += i;
-      } else if (inside_str) {
-        if (i == inside_str)
-          inside_str = false;
+        ws = false;
         text += i;
       } else if (
         i == ' ' ||

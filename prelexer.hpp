@@ -58,7 +58,7 @@ namespace Sass {
     // recursive skip stuff delimited by start/stop
     // first start/opener must be consumed already!
     template<prelexer start, prelexer stop>
-    const char* skip_over_scopes(const char* src, const char* end = 0) {
+    const char* skip_over_scopes(const char* src, const char* end) {
 
       size_t level = 0;
       bool in_squote = false;
@@ -85,8 +85,9 @@ namespace Sass {
         }
 
         // find another opener inside?
-        else if (start(src)) {
-          ++ level; // increase counter
+        else if (const char* pos = start(src)) {
+          ++ level; // increase stack counter
+          src = pos - 1; // advance position
         }
 
         // look for the closer (maybe final, maybe not)
@@ -96,6 +97,8 @@ namespace Sass {
           // return position at end of stop
           // delimiter may be multiple chars
           else return final;
+          // advance position
+          src = final - 1;
         }
 
         // next
@@ -103,6 +106,15 @@ namespace Sass {
       }
 
       return 0;
+    }
+
+    // skip to delimiter (mx) inside given range
+    // this will savely skip over all quoted strings
+    // recursive skip stuff delimited by start/stop
+    // first start/opener must be consumed already!
+    template<prelexer start, prelexer stop>
+    const char* skip_over_scopes(const char* src) {
+      return skip_over_scopes<start, stop>(src, 0);
     }
 
     // Match a sequence of characters delimited by the supplied chars.
@@ -296,6 +308,8 @@ namespace Sass {
     const char* ie_expression(const char* src);
     const char* ie_property(const char* src);
     const char* ie_keyword_arg(const char* src);
+    const char* ie_keyword_arg_value(const char* src);
+    const char* ie_keyword_arg_property(const char* src);
 
     // match urls
     const char* url(const char* src);
