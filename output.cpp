@@ -385,10 +385,16 @@ namespace Sass {
   {
     if (String_Quoted* quoted = dynamic_cast<String_Quoted*>(s)) {
       return Output::operator()(quoted);
-    } else if (!in_comment) {
-      append_token(string_to_output(s->value()), s);
     } else {
-      append_token(s->value(), s);
+      string value(s->value());
+      if (s->can_compress_whitespace() && output_style() == COMPRESSED) {
+        value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
+      }
+      if (!in_comment) {
+        append_token(string_to_output(value), s);
+      } else {
+        append_token(value, s);
+      }
     }
   }
 
