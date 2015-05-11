@@ -362,7 +362,7 @@ namespace Sass {
     if (list->separator() == List::SPACE) in_space_array = true;
     else if (list->separator() == List::COMMA) in_comma_array = true;
 
-    for (size_t i = 0, L = list->length(); i < L; ++i) {
+    for (size_t i = 0, L = list->size(); i < L; ++i) {
       Expression* list_item = (*list)[i];
       if (list_item->is_invisible()) {
         continue;

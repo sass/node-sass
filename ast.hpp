@@ -757,6 +757,7 @@ namespace Sass {
     bool is_invisible() { return !length(); }
     Expression* value_at_index(size_t i);
 
+    virtual size_t size() const;
     virtual bool operator==(Expression& rhs) const;
     virtual bool operator==(Expression* rhs) const;
 

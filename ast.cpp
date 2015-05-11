@@ -856,6 +856,18 @@ namespace Sass {
     return operator==(&rhs);
   }
 
+  size_t List::size() const {
+    if (!is_arglist_) return length();
+    // arglist expects a list of arguments
+    // so we need to break before keywords
+    for (size_t i = 0, L = length(); i < L; ++i) {
+      if (Argument* arg = dynamic_cast<Argument*>((*this)[i])) {
+        if (!arg->name().empty()) return i;
+      }
+    }
+    return length();
+  }
+
   Expression* Hashed::at(Expression* k) const
   {
     if (elements_.count(k))
