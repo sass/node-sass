@@ -1360,21 +1360,22 @@ namespace Sass {
   ////////////////////////////////////////////////////////
   class String_Constant : public String {
     ADD_PROPERTY(char, quote_mark);
+    ADD_PROPERTY(bool, can_compress_whitespace);
     ADD_PROPERTY(string, value);
   protected:
     size_t hash_;
   public:
     String_Constant(ParserState pstate, string val)
-    : String(pstate), quote_mark_(0), value_(read_css_string(val)), hash_(0)
+    : String(pstate), quote_mark_(0), can_compress_whitespace_(false), value_(read_css_string(val)), hash_(0)
     { }
     String_Constant(ParserState pstate, const char* beg)
-    : String(pstate), quote_mark_(0), value_(read_css_string(string(beg))), hash_(0)
+    : String(pstate), quote_mark_(0), can_compress_whitespace_(false), value_(read_css_string(string(beg))), hash_(0)
     { }
     String_Constant(ParserState pstate, const char* beg, const char* end)
-    : String(pstate), quote_mark_(0), value_(read_css_string(string(beg, end-beg))), hash_(0)
+    : String(pstate), quote_mark_(0), can_compress_whitespace_(false), value_(read_css_string(string(beg, end-beg))), hash_(0)
     { }
     String_Constant(ParserState pstate, const Token& tok)
-    : String(pstate), quote_mark_(0), value_(read_css_string(string(tok.begin, tok.end))), hash_(0)
+    : String(pstate), quote_mark_(0), can_compress_whitespace_(false), value_(read_css_string(string(tok.begin, tok.end))), hash_(0)
     { }
     string type() { return "string"; }
     static string type_name() { return "string"; }

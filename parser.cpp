@@ -710,18 +710,9 @@ namespace Sass {
       if (lex< alternatives< even, odd > >()) {
         expr = new (ctx.mem) String_Quoted(p, lexed);
       }
-      else if (peek< binomial >(position)) {
-        lex< sequence< optional< coefficient >, exactly<'n'> > >();
-        String_Constant* var_coef = new (ctx.mem) String_Quoted(p, lexed);
-        lex< sign >();
-        String_Constant* op = new (ctx.mem) String_Quoted(p, lexed);
-        // Binary_Expression::Type op = (lexed == "+" ? Binary_Expression::ADD : Binary_Expression::SUB);
-        lex< one_plus < digit > >();
-        String_Constant* constant = new (ctx.mem) String_Quoted(p, lexed);
-        // expr = new (ctx.mem) Binary_Expression(p, op, var_coef, constant);
-        String_Schema* schema = new (ctx.mem) String_Schema(p, 3);
-        *schema << var_coef << op << constant;
-        expr = schema;
+      else if (lex< binomial >(position)) {
+        expr = new (ctx.mem) String_Constant(p, lexed);
+        ((String_Constant*)expr)->can_compress_whitespace(true);
       }
       else if (peek< sequence< optional<sign>,
                                zero_plus<digit>,

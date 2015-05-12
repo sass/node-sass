@@ -444,7 +444,7 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     Binary_Expression* expression = dynamic_cast<Binary_Expression*>(node);
     cerr << ind << "Binary_Expression " << expression;
     cerr << " (" << pstate_source_position(node) << ")";
-    cerr << " [" << expression->type() << "]" << endl;
+    cerr << " [" << expression->type_name() << "]" << endl;
     debug_ast(expression->left(), ind + " left:  ", env);
     debug_ast(expression->right(), ind + " right: ", env);
   } else if (dynamic_cast<Map*>(node)) {
