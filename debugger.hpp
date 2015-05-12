@@ -452,6 +452,10 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     cerr << ind << "Map " << expression;
     cerr << " (" << pstate_source_position(node) << ")";
     cerr << " [Hashed]" << endl;
+    // for (auto i : expression->elements()) {
+    //   debug_ast(i.first, ind + " key: ");
+    //   debug_ast(i.second, ind + " val: ");
+    // }
   } else if (dynamic_cast<List*>(node)) {
     List* expression = dynamic_cast<List*>(node);
     cerr << ind << "List " << expression;
