@@ -199,9 +199,15 @@ function getOptions(args, options) {
  */
 
 function watch(options, emitter) {
-  var src = options.directory ? path.join(options.directory, globPattern(options)) : options.src;
-  var graph = grapher.parseDir(path.resolve(path.dirname(src)), { loadPaths: options.includePath });
   var watch = [];
+
+  var graphOptions = {loadPaths: options.includePath};
+  var graph;
+  if (options.directory) {
+    graph = grapher.parseDir(options.directory, graphOptions);
+  } else {
+    graph = grapher.parseFile(options.src, graphOptions);
+  }
 
   // Add all files to watch list
   for (var i in graph.index) {
