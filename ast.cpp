@@ -26,29 +26,29 @@ namespace Sass {
   }
 
   bool Complex_Selector::operator==(const Complex_Selector& rhs) const {
-  	// TODO: We have to access the tail directly using tail_ since ADD_PROPERTY doesn't provide a const version.
+    // TODO: We have to access the tail directly using tail_ since ADD_PROPERTY doesn't provide a const version.
 
-  	const Complex_Selector* pOne = this;
+    const Complex_Selector* pOne = this;
     const Complex_Selector* pTwo = &rhs;
 
     // Consume any empty references at the beginning of the Complex_Selector
     if (pOne->combinator() == Complex_Selector::ANCESTOR_OF && pOne->head()->is_empty_reference()) {
-    	pOne = pOne->tail_;
+      pOne = pOne->tail_;
     }
     if (pTwo->combinator() == Complex_Selector::ANCESTOR_OF && pTwo->head()->is_empty_reference()) {
-    	pTwo = pTwo->tail_;
+      pTwo = pTwo->tail_;
     }
 
     while (pOne && pTwo) {
-    	if (pOne->combinator() != pTwo->combinator()) {
-      	return false;
+      if (pOne->combinator() != pTwo->combinator()) {
+        return false;
       }
 
       if (*(pOne->head()) != *(pTwo->head())) {
-      	return false;
+        return false;
       }
 
-    	pOne = pOne->tail_;
+      pOne = pOne->tail_;
       pTwo = pTwo->tail_;
     }
 
@@ -68,10 +68,10 @@ namespace Sass {
 
   bool Simple_Selector::operator==(const Simple_Selector& rhs) const
   {
-  	// Compare the string representations for equality.
+    // Compare the string representations for equality.
 
-  	// Cast away const here. To_String should take a const object, but it doesn't.
-  	Simple_Selector* pLHS = const_cast<Simple_Selector*>(this);
+    // Cast away const here. To_String should take a const object, but it doesn't.
+    Simple_Selector* pLHS = const_cast<Simple_Selector*>(this);
     Simple_Selector* pRHS = const_cast<Simple_Selector*>(&rhs);
 
     To_String to_string;
@@ -79,10 +79,10 @@ namespace Sass {
   }
 
   bool Simple_Selector::operator<(const Simple_Selector& rhs) const {
-		// Use the string representation for ordering.
+    // Use the string representation for ordering.
 
-  	// Cast away const here. To_String should take a const object, but it doesn't.
-  	Simple_Selector* pLHS = const_cast<Simple_Selector*>(this);
+    // Cast away const here. To_String should take a const object, but it doesn't.
+    Simple_Selector* pLHS = const_cast<Simple_Selector*>(this);
     Simple_Selector* pRHS = const_cast<Simple_Selector*>(&rhs);
 
     To_String to_string;
@@ -217,25 +217,25 @@ namespace Sass {
     set<string> lpsuedoset, rpsuedoset;
     for (size_t i = 0, L = length(); i < L; ++i)
     {
-    	if ((*this)[i]->is_pseudo_element()) {
-      	string pseudo((*this)[i]->perform(&to_string));
+      if ((*this)[i]->is_pseudo_element()) {
+        string pseudo((*this)[i]->perform(&to_string));
         pseudo = pseudo.substr(pseudo.find_first_not_of(":")); // strip off colons to ensure :after matches ::after since ruby sass is forgiving
-      	lpsuedoset.insert(pseudo);
+        lpsuedoset.insert(pseudo);
       }
     }
     for (size_t i = 0, L = rhs->length(); i < L; ++i)
     {
-    	if ((*rhs)[i]->is_pseudo_element()) {
-      	string pseudo((*rhs)[i]->perform(&to_string));
+      if ((*rhs)[i]->is_pseudo_element()) {
+        string pseudo((*rhs)[i]->perform(&to_string));
         pseudo = pseudo.substr(pseudo.find_first_not_of(":")); // strip off colons to ensure :after matches ::after since ruby sass is forgiving
-	    	rpsuedoset.insert(pseudo);
+        rpsuedoset.insert(pseudo);
       }
     }
-  	if (lpsuedoset != rpsuedoset) {
+    if (lpsuedoset != rpsuedoset) {
       return false;
     }
 
-		// Check the Simple_Selectors
+    // Check the Simple_Selectors
 
     set<string> lset, rset;
 
@@ -244,19 +244,17 @@ namespace Sass {
       for (size_t i = 0, L = length(); i < L; ++i)
       {
         Selector* lhs = (*this)[i];
+        // very special case for wrapped matches selector
         if (Wrapped_Selector* wrapped = dynamic_cast<Wrapped_Selector*>(lhs)) {
-          if (
-            wrapped->name() == ":matches(" ||
-            wrapped->name() == ":-moz-any("
-          ) {
-          lhs = wrapped->selector();
-          if (Selector_List* list = dynamic_cast<Selector_List*>(lhs)) {
-            if (Compound_Selector* comp = dynamic_cast<Compound_Selector*>(rhs)) {
-              if (list->is_superselector_of(comp)) return true;
+          if (wrapped->name() == ":matches(" || wrapped->name() == ":-moz-any(") {
+            if (Selector_List* list = dynamic_cast<Selector_List*>(wrapped->selector())) {
+              if (Compound_Selector* comp = dynamic_cast<Compound_Selector*>(rhs)) {
+                if (list->is_superselector_of(comp)) return true;
+              }
             }
           }
-          }
         }
+        // match from here on as strings
         lset.insert(lhs->perform(&to_string));
       }
       for (size_t i = 0, L = rhs->length(); i < L; ++i)
@@ -290,33 +288,33 @@ namespace Sass {
     set<string> lpsuedoset, rpsuedoset;
     for (size_t i = 0, L = length(); i < L; ++i)
     {
-    	if ((*this)[i]->is_pseudo_element()) {
-      	string pseudo((*this)[i]->perform(&to_string));
+      if ((*this)[i]->is_pseudo_element()) {
+        string pseudo((*this)[i]->perform(&to_string));
         pseudo = pseudo.substr(pseudo.find_first_not_of(":")); // strip off colons to ensure :after matches ::after since ruby sass is forgiving
-      	lpsuedoset.insert(pseudo);
+        lpsuedoset.insert(pseudo);
       }
     }
     for (size_t i = 0, L = rhs.length(); i < L; ++i)
     {
-    	if (rhs[i]->is_pseudo_element()) {
-      	string pseudo(rhs[i]->perform(&to_string));
+      if (rhs[i]->is_pseudo_element()) {
+        string pseudo(rhs[i]->perform(&to_string));
         pseudo = pseudo.substr(pseudo.find_first_not_of(":")); // strip off colons to ensure :after matches ::after since ruby sass is forgiving
-	    	rpsuedoset.insert(pseudo);
+        rpsuedoset.insert(pseudo);
       }
     }
-  	if (lpsuedoset != rpsuedoset) {
+    if (lpsuedoset != rpsuedoset) {
       return false;
     }
 
-		// Check the base
+    // Check the base
 
     const Simple_Selector* const lbase = base();
     const Simple_Selector* const rbase = rhs.base();
 
     if ((lbase && !rbase) ||
-    	(!lbase && rbase) ||
+      (!lbase && rbase) ||
       ((lbase && rbase) && (*lbase != *rbase))) {
-			return false;
+      return false;
     }
 
 
@@ -482,7 +480,7 @@ namespace Sass {
     Complex_Selector* cpy = new (ctx.mem) Complex_Selector(*this);
 
     if (head()) {
-    	cpy->head(head()->clone(ctx));
+      cpy->head(head()->clone(ctx));
     }
 
     if (tail()) {
