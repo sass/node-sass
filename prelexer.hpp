@@ -86,7 +86,7 @@ namespace Sass {
 
         // find another opener inside?
         else if (const char* pos = start(src)) {
-          ++ level; // increase stack counter
+          ++ level; // increase counter
           src = pos - 1; // advance position
         }
 
@@ -107,6 +107,10 @@ namespace Sass {
 
       return 0;
     }
+
+    // skip to a skip delimited by parentheses
+    // uses smart `skip_over_scopes` internally
+    const char* parenthese_scope(const char* src);
 
     // skip to delimiter (mx) inside given range
     // this will savely skip over all quoted strings

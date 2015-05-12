@@ -423,7 +423,13 @@ namespace Sass {
     string name(Util::normalize_underscores(lexed));
     ParserState var_source_position = pstate;
     if (!lex< exactly<':'> >()) error("expected ':' after " + name + " in assignment statement", pstate);
-    Expression* val = parse_list();
+    Expression* val;
+    Selector_Lookahead lookahead = lookahead_for_value(position);
+    if (lookahead.has_interpolants && lookahead.found) {
+      val = parse_value_schema(lookahead.found);
+    } else {
+      val = parse_list();
+    }
     val->is_delayed(false);
     bool is_default = false;
     bool is_global = false;
@@ -1568,11 +1574,17 @@ namespace Sass {
       else if (lex< hex >()) {
         (*schema) << new (ctx.mem) Textual(pstate, Textual::HEX, unquote(lexed));
       }
+      else if (lex < exactly < '-' > >()) {
+        (*schema) << new (ctx.mem) String_Constant(pstate, lexed);
+      }
       else if (lex< quoted_string >()) {
         (*schema) << new (ctx.mem) String_Quoted(pstate, lexed);
       }
       else if (lex< variable >()) {
         (*schema) << new (ctx.mem) Variable(pstate, Util::normalize_underscores(lexed));
+      }
+      else if (peek< parenthese_scope >()) {
+        (*schema) << parse_factor();
       }
       else {
         error("error parsing interpolated value", pstate);
@@ -2175,12 +2187,13 @@ namespace Sass {
            (q = peek< percentage >(p))                             ||
            (q = peek< dimension >(p))                              ||
            (q = peek< quoted_string >(p))                          ||
-           (q = peek< variable >(p))                            ||
+           (q = peek< variable >(p))                               ||
            (q = peek< exactly<'*'> >(p))                           ||
            (q = peek< exactly<'+'> >(p))                           ||
            (q = peek< exactly<'~'> >(p))                           ||
            (q = peek< exactly<'>'> >(p))                           ||
            (q = peek< exactly<','> >(p))                           ||
+           (q = peek< sequence<parenthese_scope, interpolant>>(p)) ||
            (saw_stuff && (q = peek< exactly<'-'> >(p)))            ||
            (q = peek< binomial >(p))                               ||
            (q = peek< block_comment >(p))                          ||
@@ -2188,10 +2201,10 @@ namespace Sass {
                                 zero_plus<digit>,
                                 exactly<'n'> > >(p))               ||
            (q = peek< sequence< optional<sign>,
-                                one_plus<digit> > >(p))                     ||
+                                one_plus<digit> > >(p))            ||
            (q = peek< number >(p))                                 ||
            (q = peek< sequence< exactly<'&'>,
-                                identifier_alnums > >(p))        ||
+                                identifier_alnums > >(p))          ||
            (q = peek< exactly<'&'> >(p))                           ||
            (q = peek< exactly<'%'> >(p))                           ||
            (q = peek< sequence< exactly<'.'>, interpolant > >(p))  ||

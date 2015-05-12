@@ -769,5 +769,16 @@ namespace Sass {
                        alternatives< exactly<';'>, exactly<'}'> >
                       >(src);
     }
+
+    const char* parenthese_scope(const char* src) {
+      return sequence <
+        exactly < '(' >,
+        skip_over_scopes <
+          exactly < '(' >,
+          exactly < ')' >
+        >
+      >(src);
+    }
+
   }
 }
