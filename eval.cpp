@@ -398,6 +398,13 @@ namespace Sass {
     for (auto key : m->keys()) {
       *mm << std::make_pair(key->perform(this), m->at(key)->perform(this));
     }
+
+    // check for duplicate keys
+    if (mm->has_duplicate_key()) {
+      To_String to_string(&ctx);
+      error("Duplicate key \"" + mm->get_duplicate_key()->perform(&to_string) + "\" in map " + m->perform(&to_string) + ".", m->pstate());
+    }
+
     mm->is_expanded(true);
     return mm;
   }

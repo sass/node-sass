@@ -1014,7 +1014,7 @@ namespace Sass {
 
   Expression* Parser::parse_map()
   {
-    To_String to_string(&ctx);
+    ParserState opstate = pstate;
     Expression* key = parse_list();
     if (String_Quoted* str = dynamic_cast<String_Quoted*>(key)) {
       if (!str->quote_mark() && !str->is_delayed()) {
@@ -1035,7 +1035,7 @@ namespace Sass {
 
     Expression* value = parse_space_list();
 
-    Map* map = new (ctx.mem) Map(pstate, 1);
+    Map* map = new (ctx.mem) Map(opstate, 1);
     (*map) << make_pair(key, value);
 
     while (lex_css< exactly<','> >())
@@ -1064,8 +1064,15 @@ namespace Sass {
       (*map) << make_pair(key, value);
     }
 
-    if (map->has_duplicate_key())
-    { error("Duplicate key \"" + map->get_duplicate_key()->perform(&to_string) + "\" in map " + map->perform(&to_string) + ".", pstate); }
+    // Check was moved to eval step
+    // if (map->has_duplicate_key()) {
+    //   To_String to_string(&ctx);
+    //   error("Duplicate key \"" + map->get_duplicate_key()->perform(&to_string) + "\" in map " + map->perform(&to_string) + ".", pstate);
+    // }
+
+    ParserState ps = map->pstate();
+    ps.offset = pstate - ps + pstate.offset;
+    map->pstate(ps);
 
     return map;
   }
