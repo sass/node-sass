@@ -395,7 +395,7 @@ namespace Sass {
 
   }
 
-  string quote(const string& s, char q)
+  string quote(const string& s, char q, bool keep_linefeed_whitespace)
   {
 
     // autodetect with fallback to given quote
@@ -424,6 +424,10 @@ namespace Sass {
       if (cp == 10) {
         quoted.push_back('\\');
         quoted.push_back('a');
+        // we hope we can remove this flag once we figure out
+        // why ruby sass has these different output behaviors
+        if (keep_linefeed_whitespace)
+          quoted.push_back(' ');
       } else if (cp < 127) {
         quoted.push_back((char) cp);
       } else {

@@ -21,7 +21,7 @@ namespace Sass {
   string comment_to_string(const string& text);
   string normalize_wspace(const string& str);
 
-  string quote(const string&, char q = 0);
+  string quote(const string&, char q = 0, bool keep_linefeed_whitespace = false);
   string unquote(const string&, char* q = 0);
   char detect_best_quotemark(const char* s, char qm = '"');
 

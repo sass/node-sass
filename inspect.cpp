@@ -641,7 +641,7 @@ namespace Sass {
   void Inspect::operator()(String_Quoted* s)
   {
     if (s->quote_mark()) {
-      append_token(quote(s->value(), s->quote_mark()), s);
+      append_token(quote(s->value(), s->quote_mark(), true), s);
     } else {
       append_token(s->value(), s);
     }
