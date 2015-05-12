@@ -1943,7 +1943,9 @@ namespace Sass {
         return (*this)[0];
       return 0;
     }
-    bool is_superselector_of(Compound_Selector* rhs);
+    bool is_superselector_of(Compound_Selector* sub);
+    // bool is_superselector_of(Complex_Selector* sub);
+    // bool is_superselector_of(Selector_List* sub);
     virtual unsigned long specificity()
     {
       int sum = 0;
@@ -2000,8 +2002,9 @@ namespace Sass {
     Complex_Selector* context(Context&);
     Complex_Selector* innermost();
     size_t length();
-    bool is_superselector_of(Compound_Selector*);
-    bool is_superselector_of(Complex_Selector*);
+    bool is_superselector_of(Compound_Selector* sub);
+    bool is_superselector_of(Complex_Selector* sub);
+    bool is_superselector_of(Selector_List* sub);
     // virtual Selector_Placeholder* find_placeholder();
     Combinator clear_innermost();
     void set_innermost(Complex_Selector*, Combinator);
@@ -2086,6 +2089,9 @@ namespace Sass {
     : Selector(pstate), Vectorized<Complex_Selector*>(s), wspace_(0)
     { }
     // virtual Selector_Placeholder* find_placeholder();
+    bool is_superselector_of(Compound_Selector* sub);
+    bool is_superselector_of(Complex_Selector* sub);
+    bool is_superselector_of(Selector_List* sub);
     virtual unsigned long specificity()
     {
       unsigned long sum = 0;

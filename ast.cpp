@@ -242,7 +242,23 @@ namespace Sass {
     if (!lbase) // no lbase; just see if the left-hand qualifiers are a subset of the right-hand selector
     {
       for (size_t i = 0, L = length(); i < L; ++i)
-      { lset.insert((*this)[i]->perform(&to_string)); }
+      {
+        Selector* lhs = (*this)[i];
+        if (Wrapped_Selector* wrapped = dynamic_cast<Wrapped_Selector*>(lhs)) {
+          if (
+            wrapped->name() == ":matches(" ||
+            wrapped->name() == ":-moz-any("
+          ) {
+          lhs = wrapped->selector();
+          if (Selector_List* list = dynamic_cast<Selector_List*>(lhs)) {
+            if (Compound_Selector* comp = dynamic_cast<Compound_Selector*>(rhs)) {
+              if (list->is_superselector_of(comp)) return true;
+            }
+          }
+          }
+        }
+        lset.insert(lhs->perform(&to_string));
+      }
       for (size_t i = 0, L = rhs->length(); i < L; ++i)
       { rset.insert((*rhs)[i]->perform(&to_string)); }
       return includes(rset.begin(), rset.end(), lset.begin(), lset.end());
@@ -326,8 +342,6 @@ namespace Sass {
 
   bool Complex_Selector::is_superselector_of(Compound_Selector* rhs)
   {
-    if (length() != 1)
-    { return false; }
     return base()->is_superselector_of(rhs);
   }
 
@@ -351,6 +365,16 @@ namespace Sass {
 
     if (l_len == 1)
     { return lhs->head()->is_superselector_of(rhs->base()); }
+
+    // we have to look one tail deeper, since we cary the
+    // combinator around for it (which is important here)
+    if (rhs->tail() && lhs->tail() && combinator() != Complex_Selector::ANCESTOR_OF) {
+      Complex_Selector* lhs_tail = lhs->tail();
+      Complex_Selector* rhs_tail = rhs->tail();
+      if (lhs_tail->combinator() != rhs_tail->combinator()) return false;
+      if (!lhs_tail->head()->is_superselector_of(rhs_tail->head())) return false;
+    }
+
 
     bool found = false;
     Complex_Selector* marker = rhs;
@@ -491,6 +515,50 @@ namespace Sass {
     To_String to_string;
     this->mCachedSelector(this->perform(&to_string));
 #endif
+  }
+
+  // it's a superselector if every selector of the right side
+  // list is a superselector of the given left side selector
+  bool Complex_Selector::is_superselector_of(Selector_List *sub)
+  {
+    // Check every rhs selector against left hand list
+    for(size_t i = 0, L = sub->length(); i < L; ++i) {
+      if (!is_superselector_of((*sub)[i])) return false;
+    }
+    return true;
+  }
+
+  // it's a superselector if every selector of the right side
+  // list is a superselector of the given left side selector
+  bool Selector_List::is_superselector_of(Selector_List *sub)
+  {
+    // Check every rhs selector against left hand list
+    for(size_t i = 0, L = sub->length(); i < L; ++i) {
+      if (!is_superselector_of((*sub)[i])) return false;
+    }
+    return true;
+  }
+
+  // it's a superselector if every selector on the right side
+  // is a superselector of any one of the left side selectors
+  bool Selector_List::is_superselector_of(Compound_Selector *sub)
+  {
+    // Check every lhs selector against right hand
+    for(size_t i = 0, L = length(); i < L; ++i) {
+      if ((*this)[i]->is_superselector_of(sub)) return true;
+    }
+    return false;
+  }
+
+  // it's a superselector if every selector on the right side
+  // is a superselector of any one of the left side selectors
+  bool Selector_List::is_superselector_of(Complex_Selector *sub)
+  {
+    // Check every lhs selector against right hand
+    for(size_t i = 0, L = length(); i < L; ++i) {
+      if ((*this)[i]->is_superselector_of(sub)) return true;
+    }
+    return false;
   }
 
   /* not used anymore - remove?

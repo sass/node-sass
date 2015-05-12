@@ -40,6 +40,14 @@ namespace Sass {
     return p;
   }
 
+  Selector_List* Parser::parse_selector(const char* src, Context& ctx, ParserState pstate)
+  {
+    Parser p = Parser::from_c_str(src, ctx, pstate);
+    // ToDo: ruby sass errors on parent references
+    // ToDo: remap the source-map entries somehow
+    return p.parse_selector_group();
+  }
+
   bool Parser::peek_newline(const char* start)
   {
     return peek_linefeed(start ? start : position);
