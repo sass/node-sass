@@ -101,6 +101,7 @@ namespace Sass {
     extern Signature keywords_sig;
     extern Signature set_nth_sig;
     extern Signature unique_id_sig;
+    extern Signature is_superselector_sig;
 
     BUILT_IN(rgb);
     BUILT_IN(rgba_4);
@@ -175,6 +176,7 @@ namespace Sass {
     BUILT_IN(keywords);
     BUILT_IN(set_nth);
     BUILT_IN(unique_id);
+    BUILT_IN(is_superselector);
 
   }
 }

@@ -1564,6 +1564,20 @@ namespace Sass {
       // return v;
     }
 
+    Signature is_superselector_sig = "is-superselector($super, $sub)";
+    BUILT_IN(is_superselector)
+    {
+      To_String to_string(&ctx, false);
+      Expression*  ex_sup = ARG("$super", Expression);
+      Expression*  ex_sub = ARG("$sub", Expression);
+      string sup_src = ex_sup->perform(&to_string) + "{";
+      string sub_src = ex_sub->perform(&to_string) + "{";
+      Selector_List* sel_sup = Parser::parse_selector(sup_src.c_str(), ctx);
+      Selector_List* sel_sub = Parser::parse_selector(sub_src.c_str(), ctx);
+      bool result = sel_sup->is_superselector_of(sel_sub);
+      return new (ctx.mem) Boolean(pstate, result);
+    }
+
     Signature unique_id_sig = "unique-id()";
     BUILT_IN(unique_id)
     {

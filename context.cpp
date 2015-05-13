@@ -539,6 +539,8 @@ namespace Sass {
     // Misc Functions
     register_function(ctx, inspect_sig, inspect, env);
     register_function(ctx, unique_id_sig, unique_id, env);
+    // Selector functions
+    register_function(ctx, is_superselector_sig, is_superselector, env);
   }
 
   void register_c_functions(Context& ctx, Env* env, Sass_Function_List descrs)
