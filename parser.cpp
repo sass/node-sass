@@ -636,7 +636,7 @@ namespace Sass {
     seq->media_block(last_media_block);
     seq->last_block(block_stack.back());
     bool sawsomething = false;
-    if (lex< exactly<'&'> >()) {
+    if (lex_css< exactly<'&'> >()) {
       // check if we have a parent selector on the root level block
       if (block_stack.back() && block_stack.back()->is_root()) {
         //error("Base-level rules cannot contain the parent-selector-referencing character '&'.", pstate);
