@@ -241,6 +241,7 @@ namespace Sass {
     Function_Call_Schema* parse_function_call_schema();
     String* parse_interpolated_chunk(Token, bool constant = false);
     String* parse_string();
+    String_Constant* parse_static_expression();
     String_Constant* parse_static_value();
     String* parse_ie_property();
     String* parse_ie_keyword_arg();

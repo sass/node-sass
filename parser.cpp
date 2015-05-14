@@ -1453,6 +1453,14 @@ namespace Sass {
     return schema;
   }
 
+  String_Constant* Parser::parse_static_expression()
+  {
+    if (peek< sequence< number, optional_spaces, exactly<'/'>, optional_spaces, number > >()) {
+      return parse_static_value();
+    }
+    return 0;
+  }
+
   String_Constant* Parser::parse_static_value()
   {
     lex< static_value >();
@@ -1555,8 +1563,12 @@ namespace Sass {
       }
       else if (lex< interpolant >()) {
         Token insides(Token(lexed.begin + 2, lexed.end - 1));
-        Expression* interp_node = Parser::from_token(insides, ctx, pstate).parse_list();
-        interp_node->is_interpolant(true);
+        Expression* interp_node;
+        Parser p = Parser::from_token(insides, ctx, pstate);
+        if (!(interp_node = p.parse_static_expression())) {
+          interp_node = p.parse_list();
+          interp_node->is_interpolant(true);
+        }
         (*schema) << interp_node;
       }
       else if (lex< exactly<'%'> >()) {
