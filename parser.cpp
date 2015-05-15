@@ -2147,7 +2147,6 @@ namespace Sass {
            (q = peek< sequence< pseudo_prefix, identifier > >(p))  ||
            (q = peek< percentage >(p))                             ||
            (q = peek< dimension >(p))                              ||
-           (q = peek< variable >(p))                            ||
            (q = peek< quoted_string >(p))                          ||
            (q = peek< exactly<'*'> >(p))                           ||
            (q = peek< exactly<'('> >(p))                           ||
