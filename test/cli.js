@@ -310,6 +310,31 @@ describe('cli', function() {
         fs.appendFileSync(foo, 'body{background:white}\n');
       }, 500);
     });
+
+    it('should watch whole directory', function(done) {
+      var destDir = fixture('watching-css-out/');
+      var srcDir = fixture('watching-dir/');
+      var srcFile = path.join(srcDir, 'index.scss');
+
+      fs.writeFileSync(srcFile, '');
+
+      var bin = spawn(cli, [
+        '--output-style', 'compressed',
+        '--output', destDir,
+        '--watch', srcDir
+      ]);
+
+      setTimeout(function () {
+        fs.appendFileSync(srcFile, 'a {color:green;}\n');
+        setTimeout(function () {
+          bin.kill();
+          var files = fs.readdirSync(destDir);
+          assert.deepEqual(files, ['index.css']);
+          rimraf.sync(destDir);
+          done();
+        }, 200);
+      }, 500);
+    });
   });
 
   describe('node-sass in.scss --output out.css', function() {
