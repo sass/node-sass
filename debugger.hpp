@@ -203,8 +203,8 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     cerr << " (" << pstate_source_position(node) << ")";
     cerr << (block->is_interpolated() ? " [is_interpolated]": " -")
     << endl;
-    debug_ast(block->feature(), ind + " f) ");
-    debug_ast(block->value(), ind + " v) ");
+    debug_ast(block->feature(), ind + " feature) ");
+    debug_ast(block->value(), ind + " value) ");
 
   } else if (dynamic_cast<Media_Query*>(node)) {
     Media_Query* block = dynamic_cast<Media_Query*>(node);

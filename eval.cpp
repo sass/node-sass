@@ -997,8 +997,16 @@ namespace Sass {
   {
     Expression* feature = e->feature();
     feature = (feature ? feature->perform(this) : 0);
+    if (feature && dynamic_cast<String_Quoted*>(feature)) {
+      feature = new (ctx.mem) String_Constant(feature->pstate(),
+                                              dynamic_cast<String_Quoted*>(feature)->value());
+    }
     Expression* value = e->value();
     value = (value ? value->perform(this) : 0);
+    if (value && dynamic_cast<String_Quoted*>(value)) {
+      value = new (ctx.mem) String_Constant(value->pstate(),
+                                            dynamic_cast<String_Quoted*>(value)->value());
+    }
     return new (ctx.mem) Media_Query_Expression(e->pstate(),
                                                 feature,
                                                 value,
