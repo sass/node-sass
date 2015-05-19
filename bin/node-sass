@@ -106,7 +106,7 @@ var cli = meow({
 function isDirectory(filePath) {
   var isDir = false;
   try {
-    var absolutePath = path.resolve(process.cwd(), filePath);
+    var absolutePath = path.resolve(filePath);
     isDir = fs.lstatSync(absolutePath).isDirectory();
   } catch (e) {
     isDir = e.code === 'ENOENT';
@@ -173,18 +173,42 @@ function getOptions(args, options) {
   options.src = args[0];
 
   if (args[1]) {
-    options.dest = path.resolve(process.cwd(), args[1]);
+    options.dest = path.resolve(args[1]);
   } else if (options.output) {
     options.dest = path.join(
-      path.resolve(process.cwd(), options.output),
+      path.resolve(options.output),
       [path.basename(options.src, path.extname(options.src)), '.css'].join(''));  // replace ext.
   }
 
   if (options.directory) {
-    var sassDir = path.resolve(process.cwd(), options.directory);
+    var sassDir = path.resolve(options.directory);
     var file = path.relative(sassDir, args[0]);
-    var cssDir = path.resolve(process.cwd(), options.output);
+    var cssDir = path.resolve(options.output);
     options.dest = path.join(cssDir, file).replace(path.extname(file), '.css');
+  }
+
+  if (options.sourceMap) {
+    if(!options.sourceMapOriginal) {
+      options.sourceMapOriginal = options.sourceMap;
+    }
+
+    // check if sourceMap path ends with .map to avoid isDirectory false-positive
+    var sourceMapIsDirectory = options.sourceMapOriginal.indexOf('.map', options.sourceMapOriginal.length - 4) === -1 && isDirectory(options.sourceMapOriginal);
+
+    if (options.sourceMapOriginal === 'true') {
+      options.sourceMap = options.dest + '.map';
+    } else if (!sourceMapIsDirectory) {
+      options.sourceMap = path.resolve(options.sourceMapOriginal);
+    } else if (sourceMapIsDirectory) {
+      if (!options.directory) {
+        options.sourceMap = path.resolve(options.sourceMapOriginal, path.basename(options.dest) + '.map');
+      } else {
+        var sassDir = path.resolve(options.directory);
+        var file = path.relative(sassDir, args[0]);
+        var mapDir = path.resolve(options.sourceMapOriginal);
+        options.sourceMap = path.join(mapDir, file).replace(path.extname(file), '.css.map');
+      }
+    }
   }
 
   return options;
@@ -201,7 +225,7 @@ function getOptions(args, options) {
 function watch(options, emitter) {
   var watch = [];
 
-  var graphOptions = {loadPaths: options.includePath};
+  var graphOptions = { loadPaths: options.includePath };
   var graph;
   if (options.directory) {
     graph = grapher.parseDir(options.directory, graphOptions);
@@ -253,24 +277,15 @@ function run(options, emitter) {
     }
   }
 
-  if (options.sourceMap) {
-    if (options.sourceMap === 'true') {
-      if (options.dest) {
-        options.sourceMap = options.dest + '.map';
-      } else {
-        // replace ext.
-        options.sourceMap = [path.basename(options.src, path.extname(options.src)), '.css.map'].join('');
-      }
-    } else {
-      options.sourceMap = path.resolve(process.cwd(), options.sourceMap);
-    }
+  if (options.sourceMapOriginal && options.directory && !isDirectory(options.sourceMapOriginal) && options.sourceMapOriginal !== 'true') {
+    emitter.emit('error', 'Multi-file compilation: requires sourceMap to be a directory or "true".');
   }
 
   if (options.importer) {
     if ((path.resolve(options.importer) === path.normalize(options.importer).replace(/(.+)([\/|\\])$/, '$1'))) {
       options.importer = require(options.importer);
     } else {
-      options.importer = require(path.resolve(process.cwd(), options.importer));
+      options.importer = require(path.resolve(options.importer));
     }
   }
 
@@ -278,7 +293,7 @@ function run(options, emitter) {
     if ((path.resolve(options.functions) === path.normalize(options.functions).replace(/(.+)([\/|\\])$/, '$1'))) {
       options.functions = require(options.functions);
     } else {
-      options.functions = require(path.resolve(process.cwd(), options.functions));
+      options.functions = require(path.resolve(options.functions));
     }
   }
 
@@ -315,13 +330,14 @@ function renderFile(file, options, emitter) {
  * @api private
  */
 function renderDir(options, emitter) {
-  var globPath = path.resolve(process.cwd(), options.directory, globPattern(options));
-  glob(globPath, {ignore: '**/_*'}, function(err, files) {
-    if(err) {
+  var globPath = path.resolve(options.directory, globPattern(options));
+  glob(globPath, { ignore: '**/_*' }, function(err, files) {
+    if (err) {
       return emitter.emit('error', util.format('You do not have permission to access this path: %s.', err.path));
-    } else if(!files.length) {
+    } else if (!files.length) {
       return emitter.emit('error', 'No input file was found.');
     }
+
     forEach(files, function(subject) {
       emitter.once('done', this.async());
       renderFile(subject, options, emitter);
@@ -359,7 +375,7 @@ if (!options.src && process.stdin.isTTY) {
  */
 
 if (options.src) {
-  if (isDirectory(options.src)){
+  if (isDirectory(options.src)) {
     options.directory = options.src;
   }
   run(options, emitter);

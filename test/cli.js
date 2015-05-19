@@ -324,9 +324,9 @@ describe('cli', function() {
         '--watch', srcDir
       ]);
 
-      setTimeout(function () {
+      setTimeout(function() {
         fs.appendFileSync(srcFile, 'a {color:green;}\n');
-        setTimeout(function () {
+        setTimeout(function() {
           bin.kill();
           var files = fs.readdirSync(destDir);
           assert.deepEqual(files, ['index.css']);
@@ -420,7 +420,7 @@ describe('cli', function() {
       });
     });
 
-    it('it should compile all files in the folder', function(done) {
+    it('should compile all files in the folder', function(done) {
       var src = fixture('input-directory/sass');
       var dest = fixture('input-directory/css');
       var bin = spawn(cli, [src, '--output', dest]);
@@ -431,6 +431,22 @@ describe('cli', function() {
         var nestedFiles = fs.readdirSync(path.join(dest, 'nested'));
         assert.deepEqual(nestedFiles, ['three.css']);
         rimraf.sync(dest);
+        done();
+      });
+    });
+
+    it('should compile with --source-map set to directory', function(done) {
+      var src = fixture('input-directory/sass');
+      var dest = fixture('input-directory/css');
+      var destMap = fixture('input-directory/map');
+      var bin = spawn(cli, [src, '--output', dest, '--source-map', destMap]);
+
+      bin.once('close', function() {
+        var map = JSON.parse(read(fixture('input-directory/map/nested/three.css.map'), 'utf8'));
+
+        assert.equal(map.file, '../../css/nested/three.css');
+        rimraf.sync(dest);
+        rimraf.sync(destMap);
         done();
       });
     });

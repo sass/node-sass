@@ -484,6 +484,8 @@ Pass a directory as the input to compile multiple files. For example: `node-sass
 
 Also, note `--importer` takes the (absolute or relative to pwd) path to a js file, which needs to have a default `module.exports` set to the importer function. See our test [fixtures](https://github.com/sass/node-sass/tree/974f93e76ddd08ea850e3e663cfe64bb6a059dd3/test/fixtures/extras) for example.
 
+The source-map option accepts `true` as value, in which case it replaces destination extension with `.css.map`. It also accepts path to `.map` file and even path to the desired directory. In case of multi-file compilation path to `.map` yields error.
+
 ## Post-install Build
 
 Install runs only two Mocha tests to see if your machine can use the pre-built [libsass] which will save some time during install. If any tests fail it will build from source.
