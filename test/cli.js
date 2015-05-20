@@ -335,6 +335,31 @@ describe('cli', function() {
         }, 200);
       }, 500);
     });
+
+    it('should compile all changed files in watched directory', function(done) {
+      var destDir = fixture('watching-css-out/');
+      var srcDir = fixture('watching/');
+      var srcFile = path.join(srcDir, 'foo.scss');
+
+      fs.writeFileSync(srcFile, '');
+
+      var bin = spawn(cli, [
+        '--output-style', 'compressed',
+        '--output', destDir,
+        '--watch', srcDir
+      ]);
+
+      setTimeout(function () {
+        fs.appendFileSync(srcFile, 'body{background:white}\n');
+        setTimeout(function () {
+          bin.kill();
+          var files = fs.readdirSync(destDir);
+          assert.deepEqual(files, ['foo.css', 'index.css']);
+          rimraf.sync(destDir);
+          done();
+        }, 200);
+      }, 500);
+    });
   });
 
   describe('node-sass in.scss --output out.css', function() {
