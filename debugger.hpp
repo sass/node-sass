@@ -499,7 +499,9 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
   } else if (dynamic_cast<String_Constant*>(node)) {
     String_Constant* expression = dynamic_cast<String_Constant*>(node);
     cerr << ind << "String_Constant " << expression;
-    cerr << " " << expression->concrete_type() <<
+    if (expression->concrete_type()) {
+      cerr << " " << expression->concrete_type();
+    }
     cerr << " (" << pstate_source_position(node) << ")";
     cerr << " [" << prettyprint(expression->value()) << "]";
     if (expression->is_delayed()) cerr << " [delayed]";
