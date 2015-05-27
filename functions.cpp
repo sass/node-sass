@@ -221,9 +221,9 @@ namespace Sass {
       double w2 = 1 - w1;
 
       return new (ctx.mem) Color(pstate,
-                                 std::floor(w1*color1->r() + w2*color2->r()),
-                                 std::floor(w1*color1->g() + w2*color2->g()),
-                                 std::floor(w1*color1->b() + w2*color2->b()),
+                                 std::round(w1*color1->r() + w2*color2->r()),
+                                 std::round(w1*color1->g() + w2*color2->g()),
+                                 std::round(w1*color1->b() + w2*color2->b()),
                                  color1->a()*p + color2->a()*(1-p));
     }
 
