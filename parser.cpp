@@ -85,6 +85,8 @@ namespace Sass {
       }
     }
 
+    bool semicolon = false;
+    string(error_message);
     lex< optional_spaces >();
     Selector_Lookahead lookahead_result;
     while (position < end) {
@@ -97,14 +99,16 @@ namespace Sass {
             (*root) << new (ctx.mem) Import_Stub(pstate, imp->files()[i]);
           }
         }
-        if (!lex< one_plus< exactly<';'> > >()) error("top-level @import directive must be terminated by ';'", pstate);
+        semicolon = true;
+        error_message = "top-level @import directive must be terminated by ';'";
       }
       else if (peek< kwd_mixin >() || peek< kwd_function >()) {
         (*root) << parse_definition();
       }
       else if (peek< variable >()) {
         (*root) << parse_assignment();
-        if (!lex< one_plus< exactly<';'> > >()) error("top-level variable binding must be terminated by ';'", pstate);
+        semicolon = true;
+        error_message = "top-level variable binding must be terminated by ';'";
       }
       /*else if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
         (*root) << parse_propset();
@@ -112,7 +116,10 @@ namespace Sass {
       else if (peek< kwd_include >() /* || peek< exactly<'+'> >() */) {
         Mixin_Call* mixin_call = parse_mixin_call();
         (*root) << mixin_call;
-        if (!mixin_call->block() && !lex< one_plus< exactly<';'> > >()) error("top-level @include directive must be terminated by ';'", pstate);
+        if (!mixin_call->block()) {
+          semicolon = true;
+          error_message = "top-level @include directive must be terminated by ';'";
+        }
       }
       else if (peek< kwd_if_directive >()) {
         (*root) << parse_if_directive();
@@ -137,15 +144,18 @@ namespace Sass {
       }
       else if (peek< kwd_warn >()) {
         (*root) << parse_warning();
-        if (!lex< one_plus< exactly<';'> > >()) error("top-level @warn directive must be terminated by ';'", pstate);
+        semicolon = true;
+        error_message = "top-level @warn directive must be terminated by ';'";
       }
       else if (peek< kwd_err >()) {
         (*root) << parse_error();
-        if (!lex< one_plus< exactly<';'> > >()) error("top-level @error directive must be terminated by ';'", pstate);
+        semicolon = true;
+        error_message = "top-level @error directive must be terminated by ';'";
       }
       else if (peek< kwd_dbg >()) {
         (*root) << parse_debug();
-        if (!lex< one_plus< exactly<';'> > >()) error("top-level @debug directive must be terminated by ';'", pstate);
+        semicolon = true;
+        error_message = "top-level @debug directive must be terminated by ';'";
       }
       // ignore the @charset directive for now
       else if (lex< exactly< charset_kwd > >()) {
@@ -155,7 +165,10 @@ namespace Sass {
       else if (peek< at_keyword >()) {
         At_Rule* at_rule = parse_at_rule();
         (*root) << at_rule;
-        if (!at_rule->block() && !lex< one_plus< exactly<';'> > >()) error("top-level directive must be terminated by ';'", pstate);
+        if (!at_rule->block()){
+          semicolon = true;
+          error_message = "top-level directive must be terminated by ';'";
+        }
       }
       else if ((lookahead_result = lookahead_for_selector(position)).found) {
         (*root) << parse_ruleset(lookahead_result);
@@ -167,6 +180,11 @@ namespace Sass {
         lex< css_whitespace >();
         if (position >= end) break;
         error("invalid top-level expression", after_token);
+      }
+      if (semicolon) {
+        if (!lex< one_plus< exactly<';'> > >() && peek_css< optional_css_whitespace >() != end)
+        { error(error_message, pstate); }
+        semicolon = false;
       }
       lex< optional_spaces >();
     }
@@ -1174,7 +1192,7 @@ namespace Sass {
                exactly<ellipsis>,
                default_flag,
                global_flag
-           > >(position))
+           > >(position)) && peek_css< optional_css_whitespace >() != end
     ) {
       (*space_list) << parse_disjunction();
     }
