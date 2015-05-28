@@ -1110,8 +1110,10 @@ namespace Sass {
       } break;
 
       case Expression::STRING: {
-        return unquote(static_cast<String_Constant*>(lhs)->value()) ==
-               unquote(static_cast<String_Constant*>(rhs)->value());
+        string slhs = static_cast<String_Quoted*>(lhs)->value();
+        string srhs = static_cast<String_Quoted*>(rhs)->value();
+        return unquote(slhs) == unquote(srhs) &&
+               (!(is_quoted(slhs) || is_quoted(srhs)) || slhs[0] == srhs[0]);
       } break;
 
       case Expression::LIST: {
