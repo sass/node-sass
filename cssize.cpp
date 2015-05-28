@@ -423,8 +423,10 @@ namespace Sass {
         else
         {
           List* mq = merge_media_queries(static_cast<Media_Block*>(b->node()), static_cast<Media_Block*>(parent));
-          static_cast<Media_Block*>(b->node())->media_queries(mq);
-          ss = b->node();
+          if (mq->length()) {
+            static_cast<Media_Block*>(b->node())->media_queries(mq);
+            ss = b->node();
+          }
         }
 
         if (!ss) continue;
