@@ -1105,12 +1105,6 @@ namespace Sass {
       (*map) << make_pair(key, value);
     }
 
-    // Check was moved to eval step
-    // if (map->has_duplicate_key()) {
-    //   To_String to_string(&ctx);
-    //   error("Duplicate key \"" + map->get_duplicate_key()->perform(&to_string) + "\" in map " + map->perform(&to_string) + ".", pstate);
-    // }
-
     ParserState ps = map->pstate();
     ps.offset = pstate - ps + pstate.offset;
     map->pstate(ps);
