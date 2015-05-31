@@ -1003,6 +1003,7 @@ namespace Sass {
     }
     else if (lex< sequence< optional< exactly<'*'> >, identifier > >()) {
       prop = new (ctx.mem) String_Quoted(pstate, lexed);
+      prop->is_delayed(true);
     }
     else {
       error("invalid property name", pstate);
@@ -1487,7 +1488,7 @@ namespace Sass {
     --position;
 
     String_Constant* str_node = new (ctx.mem) String_Constant(pstate, str.time_wspace());
-    // str_node->is_delayed(true);
+    str_node->is_delayed(true);
     return str_node;
   }
 

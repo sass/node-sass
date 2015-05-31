@@ -582,6 +582,8 @@ namespace Sass {
       hexlet << hex << setw(2) << static_cast<unsigned long>(b);
     }
 
+    if (want_short && !c->is_delayed()) name = "";
+
     // retain the originally specified color definition if unchanged
     if (name != "") {
       ss << name;

@@ -790,6 +790,10 @@ namespace Sass {
                                       zero);
         break;
       case Textual::HEX: {
+        if (t->value().substr(0, 1) != "#") {
+          result = new (ctx.mem) String_Constant(t->pstate(), t->value());
+          break;
+        }
         string hext(t->value().substr(1)); // chop off the '#'
         if (hext.length() == 6) {
           string r(hext.substr(0,2));
