@@ -393,16 +393,24 @@ namespace Sass {
   Expression* Eval::operator()(Map* m)
   {
     if (m->is_expanded()) return m;
+
+    // make sure we're not starting with duplicate keys.
+    // the duplicate key state will have been set in the parser phase.
+    if (m->has_duplicate_key()) {
+      To_String to_string(&ctx);
+      error("Duplicate key \"" + m->get_duplicate_key()->perform(&to_string) + "\" in map " + m->perform(&to_string) + ".", m->pstate());
+    }
+
     Map* mm = new (ctx.mem) Map(m->pstate(),
                                   m->length());
     for (auto key : m->keys()) {
-      *mm << std::make_pair(key->perform(this), m->at(key)->perform(this));
+      *mm << std::make_pair(key->perform(this), m->at(key)->perform(this));;
     }
 
-    // check for duplicate keys
+    // check the evaluated keys aren't duplicates.
     if (mm->has_duplicate_key()) {
       To_String to_string(&ctx);
-      error("Duplicate key \"" + mm->get_duplicate_key()->perform(&to_string) + "\" in map " + m->perform(&to_string) + ".", m->pstate());
+      error("Duplicate key \"" + mm->get_duplicate_key()->perform(&to_string) + "\" in map " + mm->perform(&to_string) + ".", mm->pstate());
     }
 
     mm->is_expanded(true);
@@ -927,6 +935,7 @@ namespace Sass {
     } else if (str->quote_mark()) {
       str->quote_mark('*');
     }
+    str->is_delayed(true);
     return str;
   }
 
