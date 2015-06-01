@@ -25,11 +25,13 @@ namespace Sass {
   inline double sub(double x, double y) { return x - y; }
   inline double mul(double x, double y) { return x * y; }
   inline double div(double x, double y) { return x / y; } // x/0 checked by caller
+  inline double mod(double x, double y) { return abs(fmod(x, y)); } // x/0 checked by caller
+
   typedef double (*bop)(double, double);
   bop ops[Binary_Expression::NUM_OPS] = {
     0, 0, // and, or
     0, 0, 0, 0, 0, 0, // eq, neq, gt, gte, lt, lte
-    add, sub, mul, div, fmod
+    add, sub, mul, div, mod
   };
 
   Eval::Eval(Context& ctx, Contextualize* contextualize, Listize* listize, Env* env, Backtrace* bt)
