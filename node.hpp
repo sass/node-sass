@@ -69,6 +69,7 @@ namespace Sass {
     static Node createCollection(const NodeDeque& values);
 
     static Node createNil();
+    static Node naiveTrim(Node& seqses, Context& ctx);
 
     Node clone(Context& ctx) const;
 

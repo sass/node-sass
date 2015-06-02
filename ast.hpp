@@ -175,6 +175,7 @@ namespace Sass {
     size_t length() const   { return elements_.size(); }
     bool empty() const      { return elements_.empty(); }
     T last()                { return elements_.back(); }
+    T first()                { return elements_.front(); }
     T& operator[](size_t i) { return elements_[i]; }
     const T& operator[](size_t i) const { return elements_[i]; }
     Vectorized& operator<<(T element)
@@ -2022,6 +2023,9 @@ namespace Sass {
     bool is_superselector_of(Complex_Selector* sub);
     bool is_superselector_of(Selector_List* sub);
     // virtual Selector_Placeholder* find_placeholder();
+    
+    Selector_List* unify_with(Complex_Selector* rhs, Context& ctx);
+
     Combinator clear_innermost();
     void set_innermost(Complex_Selector*, Combinator);
     virtual unsigned long specificity() const
@@ -2090,6 +2094,8 @@ namespace Sass {
 
   typedef deque<Complex_Selector*> ComplexSelectorDeque;
 
+  typedef Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> > ExtensionSubsetMap;
+
   ///////////////////////////////////
   // Comma-separated selector groups.
   ///////////////////////////////////
@@ -2108,6 +2114,10 @@ namespace Sass {
     bool is_superselector_of(Compound_Selector* sub);
     bool is_superselector_of(Complex_Selector* sub);
     bool is_superselector_of(Selector_List* sub);
+
+    Selector_List* unify_with(Selector_List*, Context&);
+    void populate_extends(Selector_List*, Context&, ExtensionSubsetMap&);
+    
     virtual unsigned long specificity()
     {
       unsigned long sum = 0;

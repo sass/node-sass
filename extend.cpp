@@ -1134,7 +1134,7 @@ namespace Sass {
         result
       end
   */
-  static Node subweave(Node& one, Node& two, Context& ctx) {
+  Node Extend::subweave(Node& one, Node& two, Context& ctx) {
     // Check for the simple cases
     if (one.collection()->size() == 0) {
       Node out = Node::createCollection();
@@ -1423,7 +1423,7 @@ namespace Sass {
       for (NodeDeque::iterator beforesIter = befores.collection()->begin(), beforesEndIter = befores.collection()->end(); beforesIter != beforesEndIter; beforesIter++) {
         Node& before = *beforesIter;
 
-        Node sub = subweave(before, current, ctx);
+        Node sub = Extend::subweave(before, current, ctx);
 
         DEBUG_PRINTLN(WEAVE, "SUB: " << sub)
 
@@ -1854,7 +1854,7 @@ namespace Sass {
   /*
    This is the equivalent of ruby's CommaSequence.do_extend.
   */
-  static Selector_List* extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subsetMap, bool& extendedSomething) {
+  Selector_List* Extend::extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subsetMap, bool isReplace, bool& extendedSomething) {
 
     To_String to_string(&ctx);
 
@@ -1886,7 +1886,10 @@ namespace Sass {
         }
       }
 
-      for (NodeDeque::iterator iterator = extendedSelectors.collection()->begin(), iteratorEnd = extendedSelectors.collection()->end(); iterator != iteratorEnd; ++iterator) {
+      for (NodeDeque::iterator iterator = extendedSelectors.collection()->begin(), iteratorBegin = extendedSelectors.collection()->begin(), iteratorEnd = extendedSelectors.collection()->end(); iterator != iteratorEnd; ++iterator) {
+        // When it is a replace, skip the first one, unless there is only one
+        if(isReplace && iterator == iteratorBegin && extendedSelectors.collection()->size() > 1 ) continue;
+        
         Node& childNode = *iterator;
         *pNewSelectors << nodeToComplexSelector(childNode, ctx);
       }
@@ -1943,7 +1946,7 @@ namespace Sass {
     }
 
     bool extendedSomething = false;
-    Selector_List* pNewSelectorList = extendSelectorList(static_cast<Selector_List*>(pObject->selector()), ctx, subsetMap, extendedSomething);
+    Selector_List* pNewSelectorList = Extend::extendSelectorList(static_cast<Selector_List*>(pObject->selector()), ctx, subsetMap, false, extendedSomething);
 
     if (extendedSomething && pNewSelectorList) {
       DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND ORIGINAL SELECTORS: " << static_cast<Selector_List*>(pObject->selector())->perform(&to_string))
