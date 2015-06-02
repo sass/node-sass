@@ -88,6 +88,9 @@ extern "C" {
     return (Sass_Importer_List) calloc(length + 1, sizeof(Sass_Importer_Entry));
   }
 
+  Sass_Importer_Entry ADDCALL sass_importer_get_list_entry(Sass_Importer_List list, size_t idx) { return list[idx]; }
+  void ADDCALL sass_importer_set_list_entry(Sass_Importer_List list, size_t idx, Sass_Importer_Entry cb) { list[idx] = cb; }
+
   // Creator for sass custom importer return argument list
   Sass_Import_List ADDCALL sass_make_import_list(size_t length)
   {
