@@ -142,26 +142,69 @@ namespace Sass {
     // Tries supplied matchers in order.
     // Succeeds if one of them succeeds.
     // Regex equivalent: /(?:FOO|BAR)/
-    template <prelexer... mxs>
+    template <const prelexer mx>
     const char* alternatives(const char* src) {
       const char* rslt;
-      for (prelexer mx : { mxs... }) {
-        if ((rslt = mx(src))) return rslt;
-      }
+      if ((rslt = mx(src))) return rslt;
       return 0;
+    }
+    template <const prelexer mx1, const prelexer mx2>
+    const char* alternatives(const char* src) {
+      const char* rslt;
+      if ((rslt = mx1(src))) return rslt;
+      if ((rslt = mx2(src))) return rslt;
+      return 0;
+    }
+    template <const prelexer mx1, const prelexer mx2, const prelexer mx3>
+    const char* alternatives(const char* src) {
+      const char* rslt;
+      if ((rslt = mx1(src))) return rslt;
+      if ((rslt = mx2(src))) return rslt;
+      if ((rslt = mx3(src))) return rslt;
+      return 0;
+    }
+    template <const prelexer mx1, const prelexer mx2, const prelexer mx3, const prelexer mx4, const prelexer... mxs>
+    const char* alternatives(const char* src) {
+      const char* rslt;
+      if ((rslt = mx1(src))) return rslt;
+      if ((rslt = mx2(src))) return rslt;
+      if ((rslt = mx3(src))) return rslt;
+      return alternatives<mx4, mxs...>(src);
     }
 
     // Tries supplied matchers in order.
     // Succeeds if all of them succeeds.
     // Regex equivalent: /(?:FOO)(?:BAR)/
-    template <prelexer... mxs>
+    template <const prelexer mx1>
     const char* sequence(const char* src) {
       const char* rslt = src;
-      for (prelexer mx : { mxs... }) {
-        if (!(rslt = mx(rslt))) return 0;
-      }
+      if (!(rslt = mx1(rslt))) return 0;
       return rslt;
     }
+    template <const prelexer mx1, const prelexer mx2>
+    const char* sequence(const char* src) {
+      const char* rslt = src;
+      if (!(rslt = mx1(rslt))) return 0;
+      if (!(rslt = mx2(rslt))) return 0;
+      return rslt;
+    }
+    template <const prelexer mx1, const prelexer mx2, const prelexer mx3>
+    const char* sequence(const char* src) {
+      const char* rslt = src;
+      if (!(rslt = mx1(rslt))) return 0;
+      if (!(rslt = mx2(rslt))) return 0;
+      if (!(rslt = mx3(rslt))) return 0;
+      return rslt;
+    }
+    template <const prelexer mx1, const prelexer mx2, const prelexer mx3, const prelexer mx4, const prelexer... mxs>
+    const char* sequence(const char* src) {
+      const char* rslt = src;
+      if (!(rslt = mx1(rslt))) return 0;
+      if (!(rslt = mx2(rslt))) return 0;
+      if (!(rslt = mx3(rslt))) return 0;
+      return sequence<mx4, mxs...>(rslt);
+    }
+
 
     // Match a pattern or not. Always succeeds.
     // Regex equivalent: /(?:literal)?/

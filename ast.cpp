@@ -681,17 +681,17 @@ namespace Sass {
 
   string Number::unit() const
   {
-    stringstream u;
+    string u;
     for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
-      if (i) u << '*';
-      u << numerator_units_[i];
+      if (i) u += '*';
+      u += numerator_units_[i];
     }
-    if (!denominator_units_.empty()) u << '/';
+    if (!denominator_units_.empty()) u += '/';
     for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
-      if (i) u << '*';
-      u << denominator_units_[i];
+      if (i) u += '*';
+      u += denominator_units_[i];
     }
-    return u.str();
+    return u;
   }
 
   bool Number::is_unitless()
@@ -882,17 +882,11 @@ namespace Sass {
 
   bool Number::operator== (Expression* rhs) const
   {
-    try
-    {
-      Number l(pstate_, value_, unit());
-      Number& r = dynamic_cast<Number&>(*rhs);
-      l.normalize(find_convertible_unit());
-      r.normalize(find_convertible_unit());
-      return l.unit() == r.unit() &&
-             l.value() == r.value();
+    if (Number* r = static_cast<Number*>(rhs)) {
+      return (value() == r->value()) &&
+             (numerator_units_ == r->numerator_units_) &&
+             (denominator_units_ == r->denominator_units_);
     }
-    catch (std::bad_cast&) {}
-    catch (...) { throw; }
     return false;
   }
 

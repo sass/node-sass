@@ -56,6 +56,7 @@ namespace Sass {
     // Statement* operator()(Definition*);
     // Statement* operator()(Mixin_Call*);
     // Statement* operator()(Content*);
+    Statement* operator()(Null*);
 
     Statement* parent();
     vector<pair<bool, Block*>> slice_by_bubble(Statement*);
