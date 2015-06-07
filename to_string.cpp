@@ -24,12 +24,21 @@ namespace Sass {
     return i.get_buffer();
   }
 
-  inline string To_String::operator()(String_Constant* s)
+  inline string To_String::operator()(String_Schema* s)
+  {
+    string acc("");
+    for (size_t i = 0, L = s->length(); i < L; ++i) {
+      acc += s->elements()[i]->perform(this);
+    }
+    return acc;
+  }
+
+  inline string To_String::operator()(String_Quoted* s)
   {
     return s->value();
   }
 
-  inline string To_String::operator()(String_Quoted* s)
+  inline string To_String::operator()(String_Constant* s)
   {
     return s->value();
   }

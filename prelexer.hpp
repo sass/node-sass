@@ -222,7 +222,8 @@ namespace Sass {
     const char* kwd_function(const char* src);
     const char* kwd_return_directive(const char* src);
     const char* kwd_include_directive(const char* src);
-    const char* kwd_content(const char* src);
+    const char* kwd_content_directive(const char* src);
+    const char* kwd_charset_directive(const char* src);
     const char* kwd_extend(const char* src);
 
     const char* kwd_if_directive(const char* src);
@@ -239,11 +240,18 @@ namespace Sass {
 
     const char* kwd_while_directive(const char* src);
 
+    const char* re_nothing(const char* src);
+    const char* re_type_selector2(const char* src);
+
+
     const char* kwd_warn(const char* src);
     const char* kwd_err(const char* src);
     const char* kwd_dbg(const char* src);
 
     const char* kwd_null(const char* src);
+
+    const char* re_type_selector(const char* src);
+    const char* re_static_expression(const char* src);
 
     // Match CSS type selectors
     const char* namespace_prefix(const char* src);
@@ -325,6 +333,7 @@ namespace Sass {
 
     const char* static_string(const char* src);
     const char* static_component(const char* src);
+    const char* static_property(const char* src);
     const char* static_value(const char* src);
 
     // Utility functions for finding and counting characters in a string.

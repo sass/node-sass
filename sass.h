@@ -1,10 +1,13 @@
 #ifndef SASS_H
 #define SASS_H
 
+// #define DEBUG 1
+
 #ifdef _MSC_VER
-#define _SCL_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
-#define _CRT_NONSTDC_NO_DEPRECATE
+  #pragma warning(disable : 4503)
+  #define _SCL_SECURE_NO_WARNINGS
+  #define _CRT_SECURE_NO_WARNINGS
+  #define _CRT_NONSTDC_NO_DEPRECATE
 #endif
 
 #include <stddef.h>
@@ -24,10 +27,10 @@
   /* You should define ADD_EXPORTS *only* when building the DLL. */
   #ifdef ADD_EXPORTS
     #define ADDAPI __declspec(dllexport)
-	#define ADDCALL __cdecl
+    #define ADDCALL __cdecl
   #else
     #define ADDAPI
-	#define ADDCALL
+    #define ADDCALL
   #endif
 
 #else /* _WIN32 not defined. */

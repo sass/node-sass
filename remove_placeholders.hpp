@@ -31,9 +31,6 @@ namespace Sass {
         void operator()(Media_Block*);
         void operator()(At_Rule*);
 
-        template <typename T>
-        void clean_selector_list(T r);
-
         template <typename U>
         void fallback(U x) { return fallback_impl(x); }
     };

@@ -12,12 +12,29 @@ namespace Sass {
 
   static Null sass_null(Sass::Null(ParserState("null")));
 
+  void AST_Node::update_pstate(const ParserState& pstate)
+  {
+    pstate_.offset += pstate - pstate_ + pstate.offset;
+  }
+
+
   bool Compound_Selector::operator<(const Compound_Selector& rhs) const
   {
     To_String to_string;
     // ugly
     return const_cast<Compound_Selector*>(this)->perform(&to_string) <
            const_cast<Compound_Selector&>(rhs).perform(&to_string);
+  }
+
+  bool Compound_Selector::has_parent_ref()
+  {
+    return has_parent_reference();
+  }
+
+  bool Complex_Selector::has_parent_ref()
+  {
+    return (head() && head()->has_parent_ref()) ||
+           (tail() && tail()->has_parent_ref());
   }
 
   bool Complex_Selector::operator<(const Complex_Selector& rhs) const
@@ -207,11 +224,41 @@ namespace Sass {
     return Simple_Selector::unify_with(rhs, ctx);
   }
 
-  bool Compound_Selector::is_superselector_of(Compound_Selector* rhs)
+  bool Wrapped_Selector::is_superselector_of(Wrapped_Selector* sub)
+  {
+    if (this->name() != sub->name()) return false;
+    if (this->name() == ":current") return false;
+    if (Selector_List* rhs_list = dynamic_cast<Selector_List*>(sub->selector())) {
+      if (Selector_List* lhs_list = dynamic_cast<Selector_List*>(selector())) {
+        return lhs_list->is_superselector_of(rhs_list);
+      }
+      error("is_superselector expected a Selector_List", sub->pstate());
+    } else {
+      error("is_superselector expected a Selector_List", sub->pstate());
+    }
+    return false;
+  }
+
+  bool Compound_Selector::is_superselector_of(Selector_List* rhs, string wrapped)
+  {
+    for (Complex_Selector* item : rhs->elements()) {
+      if (is_superselector_of(item, wrapped)) return true;
+    }
+    return false;
+  }
+
+  bool Compound_Selector::is_superselector_of(Complex_Selector* rhs, string wrapped)
+  {
+    if (rhs->head()) return is_superselector_of(rhs->head(), wrapped);
+    return false;
+  }
+
+  bool Compound_Selector::is_superselector_of(Compound_Selector* rhs, string wrapping)
   {
     To_String to_string;
 
-    Simple_Selector* lbase = base();
+    Compound_Selector* lhs = this;
+    Simple_Selector* lbase = lhs->base();
     Simple_Selector* rbase = rhs->base();
 
     // Check if pseudo-elements are the same between the selectors
@@ -237,49 +284,122 @@ namespace Sass {
       return false;
     }
 
-    // Check the Simple_Selectors
-
     set<string> lset, rset;
 
-    if (!lbase) // no lbase; just see if the left-hand qualifiers are a subset of the right-hand selector
+    if (lbase && rbase)
     {
-      for (size_t i = 0, L = length(); i < L; ++i)
-      {
-        Selector* lhs = (*this)[i];
-        // very special case for wrapped matches selector
-        if (Wrapped_Selector* wrapped = dynamic_cast<Wrapped_Selector*>(lhs)) {
-          if (wrapped->name() == ":matches(" || wrapped->name() == ":-moz-any(") {
-            if (Selector_List* list = dynamic_cast<Selector_List*>(wrapped->selector())) {
-              if (Compound_Selector* comp = dynamic_cast<Compound_Selector*>(rhs)) {
-                if (list->is_superselector_of(comp)) return true;
+      if (lbase->perform(&to_string) == rbase->perform(&to_string)) {
+        for (size_t i = 1, L = length(); i < L; ++i)
+        { lset.insert((*this)[i]->perform(&to_string)); }
+        for (size_t i = 1, L = rhs->length(); i < L; ++i)
+        { rset.insert((*rhs)[i]->perform(&to_string)); }
+        return includes(rset.begin(), rset.end(), lset.begin(), lset.end());
+      }
+      return false;
+    }
+
+    for (size_t i = 0, iL = length(); i < iL; ++i)
+    {
+      Selector* lhs = (*this)[i];
+      // very special case for wrapped matches selector
+      if (Wrapped_Selector* wrapped = dynamic_cast<Wrapped_Selector*>(lhs)) {
+        if (wrapped->name() == ":not") {
+          if (Selector_List* not_list = dynamic_cast<Selector_List*>(wrapped->selector())) {
+            if (not_list->is_superselector_of(rhs, wrapped->name())) return false;
+          } else {
+            throw runtime_error("wrapped not selector is not a list");
+          }
+        }
+        if (wrapped->name() == ":matches" || wrapped->name() == ":-moz-any") {
+          lhs = wrapped->selector();
+          if (Selector_List* list = dynamic_cast<Selector_List*>(wrapped->selector())) {
+            if (Compound_Selector* comp = dynamic_cast<Compound_Selector*>(rhs)) {
+              if (!wrapping.empty() && wrapping != wrapped->name()) return false;
+              if (wrapping.empty() || wrapping != wrapped->name()) {;
+                if (list->is_superselector_of(comp, wrapped->name())) return true;
               }
             }
           }
         }
-        // match from here on as strings
-        lset.insert(lhs->perform(&to_string));
-      }
-      for (size_t i = 0, L = rhs->length(); i < L; ++i)
-      { rset.insert((*rhs)[i]->perform(&to_string)); }
-      return includes(rset.begin(), rset.end(), lset.begin(), lset.end());
-    }
-    else { // there's an lbase
-      for (size_t i = 1, L = length(); i < L; ++i)
-      { lset.insert((*this)[i]->perform(&to_string)); }
-      if (rbase)
-      {
-        if (lbase->perform(&to_string) != rbase->perform(&to_string)) // if there's an rbase, make sure they match
-        { return false; }
-        else // the bases do match, so compare qualifiers
-        {
-          for (size_t i = 1, L = rhs->length(); i < L; ++i)
-          { rset.insert((*rhs)[i]->perform(&to_string)); }
-          return includes(rset.begin(), rset.end(), lset.begin(), lset.end());
+        Simple_Selector* rhs_sel = rhs->elements().size() > i ? (*rhs)[i] : 0;
+        if (Wrapped_Selector* wrapped_r = dynamic_cast<Wrapped_Selector*>(rhs_sel)) {
+          if (wrapped->name() == wrapped_r->name()) {
+          if (wrapped->is_superselector_of(wrapped_r)) {
+             continue;
+             rset.insert(lhs->perform(&to_string));
+
+          }}
         }
       }
+      // match from here on as strings
+      lset.insert(lhs->perform(&to_string));
     }
-    // catch-all
-    return false;
+
+    for (size_t n = 0, nL = rhs->length(); n < nL; ++n)
+    {
+      auto r = (*rhs)[n];
+      if (Wrapped_Selector* wrapped = dynamic_cast<Wrapped_Selector*>(r)) {
+        if (wrapped->name() == ":not") {
+          if (Selector_List* ls = dynamic_cast<Selector_List*>(wrapped->selector())) {
+            ls->remove_parent_selectors();
+            if (is_superselector_of(ls, wrapped->name())) return false;
+          }
+        }
+        if (wrapped->name() == ":matches" || wrapped->name() == ":-moz-any") {
+          if (!wrapping.empty()) {
+            if (wrapping != wrapped->name()) return false;
+          }
+          if (Selector_List* ls = dynamic_cast<Selector_List*>(wrapped->selector())) {
+            ls->remove_parent_selectors();
+            return (is_superselector_of(ls, wrapped->name()));
+          }
+        }
+      }
+      rset.insert(r->perform(&to_string));
+    }
+
+    //for (auto l : lset) { cerr << "l: " << l << endl; }
+    //for (auto r : rset) { cerr << "r: " << r << endl; }
+
+    if (lset.size() == 0) return true;
+    // return true if rset contains all the elements of lset
+    return includes(rset.begin(), rset.end(), lset.begin(), lset.end());
+
+  }
+
+  Selector_List* Complex_Selector::unify_with(Complex_Selector* other, Context& ctx) {
+    To_String to_string;
+    Compound_Selector* thisBase = last()->head();
+    Compound_Selector* rhsBase = other->last()->head();
+
+
+    if( thisBase == 0 || rhsBase == 0 ) return 0;
+
+    // Not sure about this check, but closest way I could check to see if this is a ruby 'SimpleSequence' equivalent
+    if(  tail()->combinator() != Combinator::ANCESTOR_OF || other->tail()->combinator() != Combinator::ANCESTOR_OF ) return 0;
+
+    Compound_Selector* unified = rhsBase->unify_with(thisBase, ctx);
+    if( unified == 0 ) return 0;
+
+    Node lhsNode = complexSelectorToNode(this, ctx);
+    Node rhsNode = complexSelectorToNode(other, ctx);
+
+    // Create a temp Complex_Selector, turn it into a Node, and combine it with the existing RHS node
+    Complex_Selector* fakeComplexSelector = new (ctx.mem) Complex_Selector(ParserState("[NODE]"), Complex_Selector::ANCESTOR_OF, unified, NULL);
+    Node unifiedNode = complexSelectorToNode(fakeComplexSelector, ctx);
+    rhsNode.plus(unifiedNode);
+
+    Node node = Extend::subweave(lhsNode, rhsNode, ctx);
+
+    Selector_List* result = new (ctx.mem) Selector_List(pstate());
+    for (NodeDeque::iterator iter = node.collection()->begin(), iterEnd = node.collection()->end(); iter != iterEnd; iter++) {
+      Node childNode = *iter;
+      childNode = Node::naiveTrim(childNode, ctx);
+
+      Complex_Selector* childNodeAsComplexSelector = nodeToComplexSelector(childNode, ctx);
+      if( childNodeAsComplexSelector ) { (*result) << childNodeAsComplexSelector; }
+    }
+    return result->length() ? result : 0;
   }
 
   bool Compound_Selector::operator==(const Compound_Selector& rhs) const {
@@ -308,18 +428,6 @@ namespace Sass {
       return false;
     }
 
-    // Check the base
-
-    const Simple_Selector* const lbase = base();
-    const Simple_Selector* const rbase = rhs.base();
-
-    if ((lbase && !rbase) ||
-      (!lbase && rbase) ||
-      ((lbase && rbase) && (*lbase != *rbase))) {
-      return false;
-    }
-
-
     // Check the rest of the SimpleSelectors
     // Use string representations. We can't create a set of Simple_Selector pointers because std::set == std::set is going to call ==
     // on the pointers to determine equality. I don't know of a way to pass in a comparison object. The one you can specify as part of
@@ -340,12 +448,12 @@ namespace Sass {
     return *pLeft < *pRight;
   }
 
-  bool Complex_Selector::is_superselector_of(Compound_Selector* rhs)
+  bool Complex_Selector::is_superselector_of(Compound_Selector* rhs, string wrapping)
   {
-    return base()->is_superselector_of(rhs);
+    return last()->head() && last()->head()->is_superselector_of(rhs, wrapping);
   }
 
-  bool Complex_Selector::is_superselector_of(Complex_Selector* rhs)
+  bool Complex_Selector::is_superselector_of(Complex_Selector* rhs, string wrapping)
   {
     Complex_Selector* lhs = this;
     To_String to_string;
@@ -353,10 +461,10 @@ namespace Sass {
     if (!lhs->head() || !rhs->head())
     { return false; }
     Complex_Selector* l_innermost = lhs->innermost();
-    if (l_innermost->combinator() != Complex_Selector::ANCESTOR_OF && !l_innermost->tail())
+    if (l_innermost->combinator() != Complex_Selector::ANCESTOR_OF)
     { return false; }
     Complex_Selector* r_innermost = rhs->innermost();
-    if (r_innermost->combinator() != Complex_Selector::ANCESTOR_OF && !r_innermost->tail())
+    if (r_innermost->combinator() != Complex_Selector::ANCESTOR_OF)
     { return false; }
     // more complex (i.e., longer) selectors are always more specific
     size_t l_len = lhs->length(), r_len = rhs->length();
@@ -364,7 +472,7 @@ namespace Sass {
     { return false; }
 
     if (l_len == 1)
-    { return lhs->head()->is_superselector_of(rhs->base()); }
+    { return lhs->head()->is_superselector_of(rhs->last()->head(), wrapping); }
 
     // we have to look one tail deeper, since we cary the
     // combinator around for it (which is important here)
@@ -372,16 +480,19 @@ namespace Sass {
       Complex_Selector* lhs_tail = lhs->tail();
       Complex_Selector* rhs_tail = rhs->tail();
       if (lhs_tail->combinator() != rhs_tail->combinator()) return false;
-      if (!lhs_tail->head()->is_superselector_of(rhs_tail->head())) return false;
+      if (lhs_tail->head() && !rhs_tail->head()) return false;
+      if (!lhs_tail->head() && rhs_tail->head()) return false;
+      if (lhs_tail->head() && lhs_tail->head()) {
+        if (!lhs_tail->head()->is_superselector_of(rhs_tail->head())) return false;
+      }
     }
-
 
     bool found = false;
     Complex_Selector* marker = rhs;
     for (size_t i = 0, L = rhs->length(); i < L; ++i) {
       if (i == L-1)
       { return false; }
-      if (lhs->head()->is_superselector_of(marker->head()))
+      if (lhs->head() && marker->head() && lhs->head()->is_superselector_of(marker->head(), wrapping))
       { found = true; break; }
       marker = marker->tail();
     }
@@ -423,54 +534,11 @@ namespace Sass {
     return false;
   }
 
-  Selector_List* Complex_Selector::unify_with(Complex_Selector* other, Context& ctx) {
-    To_String to_string;
-
-    Compound_Selector* thisBase = base();
-    Compound_Selector* rhsBase = other->base();
-
-    if( thisBase == 0 || rhsBase == 0 ) return 0;
-
-    // Not sure about this check, but closest way I could check to see if this is a ruby 'SimpleSequence' equivalent
-    if(  tail()->combinator() != Combinator::ANCESTOR_OF || other->tail()->combinator() != Combinator::ANCESTOR_OF ) return 0;
-
-    Compound_Selector* unified = rhsBase->unify_with(thisBase, ctx);
-    if( unified == 0 ) return 0;
-
-    Node lhsNode = complexSelectorToNode(this, ctx);
-    Node rhsNode = complexSelectorToNode(other, ctx);
-
-    // Create a temp Complex_Selector, turn it into a Node, and combine it with the existing RHS node
-    Complex_Selector* fakeComplexSelector = new (ctx.mem) Complex_Selector(ParserState("[NODE]"), Complex_Selector::ANCESTOR_OF, unified, NULL);
-    Node unifiedNode = complexSelectorToNode(fakeComplexSelector, ctx);
-    rhsNode.plus(unifiedNode);
-
-    Node node = Extend::subweave(lhsNode, rhsNode, ctx);
-
-    Selector_List* result = new (ctx.mem) Selector_List(pstate());
-    for (NodeDeque::iterator iter = node.collection()->begin(), iterEnd = node.collection()->end(); iter != iterEnd; iter++) {
-      Node childNode = *iter;
-      childNode = Node::naiveTrim(childNode, ctx);
-
-      Complex_Selector* childNodeAsComplexSelector = nodeToComplexSelector(childNode, ctx);
-      if( childNodeAsComplexSelector ) { (*result) << childNodeAsComplexSelector; }
-    }
-
-    return result->length() ? result : 0;
-  }
-
-
   size_t Complex_Selector::length()
   {
     // TODO: make this iterative
     if (!tail()) return 1;
     return 1 + tail()->length();
-  }
-
-  Compound_Selector* Complex_Selector::base()
-  {
-    if (!tail()) return head();
-    else return tail()->base();
   }
 
   Complex_Selector* Complex_Selector::context(Context& ctx)
@@ -479,8 +547,85 @@ namespace Sass {
     if (!head()) return tail()->context(ctx);
     Complex_Selector* cpy = new (ctx.mem) Complex_Selector(pstate(), combinator(), head(), tail()->context(ctx));
     cpy->media_block(media_block());
-    cpy->last_block(last_block());
     return cpy;
+  }
+
+  Selector_List* Selector_List::parentize(Selector_List* ps, Context& ctx)
+  {
+    Selector_List* ss = new (ctx.mem) Selector_List(pstate());
+    for (size_t pi = 0, pL = ps->length(); pi < pL; ++pi) {
+      for (size_t si = 0, sL = this->length(); si < sL; ++si) {
+        *ss << (*this)[si]->parentize((*ps)[pi], ctx);
+      }
+    }
+    // return selector
+    return ss;
+  }
+
+  Selector_List* Selector_List::parentize(Complex_Selector* p, Context& ctx)
+  {
+    Selector_List* ss = new (ctx.mem) Selector_List(pstate());
+    for (size_t i = 0, L = this->length(); i < L; ++i) {
+      *ss << (*this)[i]->parentize(p, ctx);
+    }
+    // return selector
+    return ss;
+  }
+
+  Selector_List* Complex_Selector::parentize(Selector_List* ps, Context& ctx)
+  {
+    Selector_List* ss = new (ctx.mem) Selector_List(pstate());
+    for (size_t i = 0, L = ps->length(); i < L; ++i) {
+      *ss << this->parentize((*ps)[i], ctx);
+    }
+    // return selector
+    return ss;
+  }
+
+  Complex_Selector* Complex_Selector::parentize(Complex_Selector* parent, Context& ctx)
+  {
+    Complex_Selector* pr = 0;
+    Compound_Selector* head = this->head();
+    // create a new complex selector to return a processed copy
+    Complex_Selector* ss = new (ctx.mem) Complex_Selector(pstate());
+
+    // Points to last complex selector
+    // Moved when resolving parent refs
+    Complex_Selector* cur = ss;
+
+    // check if compound selector has exactly one parent reference
+    // if so we need to connect the parent to the current selector
+    // then we also need to add the remaining simple selector to the new "parent"
+    if (head) {
+      // create a new compound and move originals if needed
+      // we may add the simple selector to the same selector
+      // with parent refs we may put them in different places
+      ss->head(new (ctx.mem) Compound_Selector(head->pstate()));
+      ss->head()->has_parent_reference(head->has_parent_reference());
+      ss->head()->has_line_break(head->has_line_break());
+      // process simple selectors sequence
+      for (size_t i = 0, L = head->length(); i < L; ++i) {
+        // we have a parent selector in a simple selector list
+        // mix parent complex selector into the compound list
+        if (dynamic_cast<Parent_Selector*>((*head)[i])) {
+          // clone the parent selector
+          pr = parent->cloneFully(ctx);
+          // assign head and tail
+          cur->head(pr->head());
+          cur->tail(pr->tail());
+          // move forward
+          cur = pr->last();
+        } else {
+          // just add simple selector
+          *cur->head() << (*head)[i];
+        }
+      }
+    }
+    if (cur->head()) cur->head(cur->head()->length() ? cur->head() : 0);
+    // parentize and assign trailing complex selector
+    if (this->tail()) cur->tail(this->tail()->parentize(parent, ctx));
+    // return selector
+    return ss;
   }
 
   Complex_Selector* Complex_Selector::innermost()
@@ -492,7 +637,7 @@ namespace Sass {
   Complex_Selector::Combinator Complex_Selector::clear_innermost()
   {
     Combinator c;
-    if (!tail() || tail()->length() == 1)
+    if (!tail() || tail()->tail() == 0)
     { c = combinator(); combinator(ANCESTOR_OF); tail(0); }
     else
     { c = tail()->clear_innermost(); }
@@ -543,10 +688,27 @@ namespace Sass {
     return 0;
   }*/
 
+  // remove parent selector references
+  // basically unwraps parsed selectors
+  void Selector_List::remove_parent_selectors()
+  {
+    // Check every rhs selector against left hand list
+    for(size_t i = 0, L = length(); i < L; ++i) {
+      if (!(*this)[i]->head()) continue;
+      if ((*this)[i]->combinator() != Complex_Selector::ANCESTOR_OF) continue;
+      if ((*this)[i]->head()->is_empty_reference()) {
+        Complex_Selector* tail = (*this)[i]->tail();
+        if ((*this)[i]->has_line_feed()) {
+          if (tail) tail->has_line_feed(true);
+        }
+        (*this)[i] = tail;
+      }
+    }
+  }
+
   void Selector_List::adjust_after_pushing(Complex_Selector* c)
   {
     if (c->has_reference())   has_reference(true);
-    if (c->has_placeholder()) has_placeholder(true);
 
 #ifdef DEBUG
     To_String to_string;
@@ -556,40 +718,40 @@ namespace Sass {
 
   // it's a superselector if every selector of the right side
   // list is a superselector of the given left side selector
-  bool Complex_Selector::is_superselector_of(Selector_List *sub)
+  bool Complex_Selector::is_superselector_of(Selector_List *sub, string wrapping)
   {
     // Check every rhs selector against left hand list
     for(size_t i = 0, L = sub->length(); i < L; ++i) {
-      if (!is_superselector_of((*sub)[i])) return false;
+      if (!is_superselector_of((*sub)[i], wrapping)) return false;
     }
     return true;
   }
 
   // it's a superselector if every selector of the right side
   // list is a superselector of the given left side selector
-  bool Selector_List::is_superselector_of(Selector_List *sub)
+  bool Selector_List::is_superselector_of(Selector_List *sub, string wrapping)
   {
     // Check every rhs selector against left hand list
     for(size_t i = 0, L = sub->length(); i < L; ++i) {
-      if (!is_superselector_of((*sub)[i])) return false;
+      if (!is_superselector_of((*sub)[i], wrapping)) return false;
     }
     return true;
   }
 
   // it's a superselector if every selector on the right side
   // is a superselector of any one of the left side selectors
-  bool Selector_List::is_superselector_of(Compound_Selector *sub)
+  bool Selector_List::is_superselector_of(Compound_Selector *sub, string wrapping)
   {
     // Check every lhs selector against right hand
     for(size_t i = 0, L = length(); i < L; ++i) {
-      if ((*this)[i]->is_superselector_of(sub)) return true;
+      if ((*this)[i]->is_superselector_of(sub, wrapping)) return true;
     }
     return false;
   }
 
   // it's a superselector if every selector on the right side
   // is a superselector of any one of the left side selectors
-  bool Selector_List::is_superselector_of(Complex_Selector *sub)
+  bool Selector_List::is_superselector_of(Complex_Selector *sub, string wrapping)
   {
     // Check every lhs selector against right hand
     for(size_t i = 0, L = length(); i < L; ++i) {
@@ -636,7 +798,7 @@ namespace Sass {
       Complex_Selector* pIter = complex_sel;
       while (pIter) {
         Compound_Selector* pHead = pIter->head();
-        if (pHead && dynamic_cast<Selector_Reference*>(pHead->elements()[0]) == NULL) {
+        if (pHead && dynamic_cast<Parent_Selector*>(pHead->elements()[0]) == NULL) {
           compound_sel = pHead;
           break;
         }
@@ -670,6 +832,7 @@ namespace Sass {
   {
     To_String to_string(&ctx);
     Compound_Selector* result = new (ctx.mem) Compound_Selector(pstate());
+    // result->has_parent_reference(has_parent_reference());
 
     // not very efficient because it needs to preserve order
     for (size_t i = 0, L = length(); i < L; ++i)

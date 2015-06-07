@@ -12,7 +12,18 @@ namespace Sass {
 
   void bind(string callee, Parameters* ps, Arguments* as, Context& ctx, Env* env, Eval* eval)
   {
+    Listize listize(ctx);
     map<string, Parameter*> param_map;
+
+    for (size_t i = 0, L = as->length(); i < L; ++i) {
+      if (auto str = dynamic_cast<String_Quoted*>((*as)[i]->value())) {
+        // force optional quotes (only if needed)
+        if (str->quote_mark()) {
+          str->quote_mark('*');
+          str->is_delayed(true);
+        }
+      }
+    }
 
     // Set up a map to ensure named arguments refer to actual parameters. Also
     // eval each default value left-to-right, wrt env, populating env as we go.
@@ -29,6 +40,8 @@ namespace Sass {
     size_t ia = 0, LA = as->length();
     while (ia < LA) {
       Argument* a = (*as)[ia];
+      // this is only needed for selectors
+      a->value(a->value()->perform(&listize));
       if (ip >= LP) {
         // skip empty rest arguments
         if (a->is_rest_argument()) {
@@ -225,15 +238,7 @@ namespace Sass {
                                                                       true);
         }
         else if (leftover->default_value()) {
-          // make sure to eval the default value in the env that we've been populating
-          Env* old_env = eval->env;
-          Backtrace* old_bt = eval->backtrace;
-          Contextualize* old_context = eval->contextualize;
-          Expression* dv = leftover->default_value()->perform(eval->with(env, eval->backtrace));
-          eval->env = old_env;
-          eval->backtrace = old_bt;
-          eval->contextualize = old_context;
-          // dv->perform(&to_string);
+          Expression* dv = leftover->default_value()->perform(eval);
           env->local_frame()[leftover->name()] = dv;
         }
         else {

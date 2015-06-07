@@ -25,6 +25,8 @@ namespace Sass {
     virtual ~To_String();
 
     string operator()(Null* n);
+    string operator()(String_Schema*);
+    string operator()(String_Quoted*);
     string operator()(String_Constant*);
 
     template <typename U>

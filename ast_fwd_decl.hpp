@@ -69,7 +69,6 @@ namespace Sass {
   // selectors
   class Selector;
   class Selector_Schema;
-  class Selector_Reference;
   class Selector_Placeholder;
   class Type_Selector;
   class Selector_Qualifier;

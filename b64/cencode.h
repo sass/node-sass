@@ -10,7 +10,7 @@ For details, see http://sourceforge.net/projects/libb64
 
 typedef enum
 {
-	step_A, step_B, step_C
+  step_A, step_B, step_C
 } base64_encodestep;
 
 typedef struct

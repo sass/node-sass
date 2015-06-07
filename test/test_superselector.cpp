@@ -13,7 +13,7 @@ Compound_Selector* compound_selector(string src)
 { return Parser::from_c_str(src.c_str(), ctx, "", Position()).parse_compound_selector(); }
 
 Complex_Selector* complex_selector(string src)
-{ return Parser::from_c_str(src.c_str(), ctx, "", Position()).parse_complex_selector(); }
+{ return Parser::from_c_str(src.c_str(), ctx, "", Position()).parse_complex_selector(false); }
 
 void check_compound(string s1, string s2)
 {

@@ -76,6 +76,8 @@ namespace Sass {
     virtual ~AST_Node() = 0;
     // virtual Block* block() { return 0; }
   public:
+    void update_pstate(const ParserState& pstate);
+  public:
     Offset off() { return pstate(); }
     Position pos() { return pstate(); }
     ATTACH_OPERATIONS()
@@ -180,6 +182,7 @@ namespace Sass {
     const T& operator[](size_t i) const { return elements_[i]; }
     Vectorized& operator<<(T element)
     {
+      if (!element) return *this;
       reset_hash();
       elements_.push_back(element);
       adjust_after_pushing(element);
@@ -300,6 +303,7 @@ namespace Sass {
   ////////////////////////
   class Block : public Statement, public Vectorized<Statement*> {
     ADD_PROPERTY(bool, is_root)
+    ADD_PROPERTY(bool, is_at_root);
     // needed for properly formatted CSS emission
     ADD_PROPERTY(bool, has_hoistable)
     ADD_PROPERTY(bool, has_non_hoistable)
@@ -313,7 +317,7 @@ namespace Sass {
     Block(ParserState pstate, size_t s = 0, bool r = false)
     : Statement(pstate),
       Vectorized<Statement*>(s),
-      is_root_(r), has_hoistable_(false), has_non_hoistable_(false)
+      is_root_(r), is_at_root_(false), has_hoistable_(false), has_non_hoistable_(false)
     { }
     Block* block() { return this; }
     ATTACH_OPERATIONS()
@@ -338,9 +342,10 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////////
   class Ruleset : public Has_Block {
     ADD_PROPERTY(Selector*, selector)
+    ADD_PROPERTY(bool, at_root);
   public:
-    Ruleset(ParserState pstate, Selector* s, Block* b)
-    : Has_Block(pstate, b), selector_(s)
+    Ruleset(ParserState pstate, Selector* s = 0, Block* b = 0)
+    : Has_Block(pstate, b), selector_(s), at_root_(false)
     { statement_type(RULESET); }
     bool is_invisible();
     // nested rulesets need to be hoisted out of their enclosing blocks
@@ -379,13 +384,12 @@ namespace Sass {
   /////////////////
   class Media_Block : public Has_Block {
     ADD_PROPERTY(List*, media_queries)
-    ADD_PROPERTY(Selector*, selector)
   public:
     Media_Block(ParserState pstate, List* mqs, Block* b)
-    : Has_Block(pstate, b), media_queries_(mqs), selector_(0)
+    : Has_Block(pstate, b), media_queries_(mqs)
     { statement_type(MEDIA); }
     Media_Block(ParserState pstate, List* mqs, Block* b, Selector* s)
-    : Has_Block(pstate, b), media_queries_(mqs), selector_(s)
+    : Has_Block(pstate, b), media_queries_(mqs)
     { statement_type(MEDIA); }
     bool bubbles() { return true; }
     bool is_hoistable() { return true; }
@@ -403,10 +407,9 @@ namespace Sass {
   //////////////////
   class Supports_Block : public Has_Block {
     ADD_PROPERTY(Supports_Query*, queries)
-    ADD_PROPERTY(Selector*, selector)
   public:
     Supports_Block(ParserState pstate, Supports_Query* queries = 0, Block* block = 0)
-    : Has_Block(pstate, block), queries_(queries), selector_(0)
+    : Has_Block(pstate, block), queries_(queries)
     { statement_type(SUPPORTS); }
     bool is_hoistable() { return true; }
     bool bubbles() { return true; }
@@ -422,8 +425,8 @@ namespace Sass {
     ADD_PROPERTY(Selector*, selector)
     ADD_PROPERTY(Expression*, value)
   public:
-    At_Rule(ParserState pstate, string kwd, Selector* sel = 0, Block* b = 0)
-    : Has_Block(pstate, b), keyword_(kwd), selector_(sel), value_(0) // set value manually if needed
+    At_Rule(ParserState pstate, string kwd, Selector* sel = 0, Block* b = 0, Expression* val = 0)
+    : Has_Block(pstate, b), keyword_(kwd), selector_(sel), value_(val) // set value manually if needed
     { statement_type(DIRECTIVE); }
     bool bubbles() { return is_keyframes() || is_media(); }
     bool is_media() {
@@ -460,10 +463,11 @@ namespace Sass {
     ADD_PROPERTY(String*, property)
     ADD_PROPERTY(Expression*, value)
     ADD_PROPERTY(bool, is_important)
+    ADD_PROPERTY(bool, is_indented)
   public:
     Declaration(ParserState pstate,
                 String* prop, Expression* val, bool i = false)
-    : Statement(pstate), property_(prop), value_(val), is_important_(i)
+    : Statement(pstate), property_(prop), value_(val), is_important_(i), is_indented_(false)
     { }
     ATTACH_OPERATIONS()
   };
@@ -774,7 +778,6 @@ namespace Sass {
       if (hash_ > 0) return hash_;
 
       hash_ = std::hash<string>()(separator() == COMMA ? "comma" : "space");
-
       for (size_t i = 0, L = length(); i < L; ++i)
         hash_combine(hash_, (elements()[i])->hash());
 
@@ -1676,22 +1679,6 @@ namespace Sass {
   //////////////////////////////////////////////////////////////////////////////////////////
   inline Expression* List::value_at_index(size_t i) { return is_arglist_ ? ((Argument*)(*this)[i])->value() : (*this)[i]; }
 
-  ////////////
-  // The Parent Selector Expression.
-  ////////////
-  class Parent_Selector : public Expression {
-    ADD_PROPERTY(Selector*, selector)
-  public:
-    Parent_Selector(ParserState pstate, Selector* r = 0)
-    : Expression(pstate), selector_(r)
-    { concrete_type(SELECTOR); }
-    virtual Selector* selector() { return selector_; }
-    string type() { return "selector"; }
-    static string type_name() { return "selector"; }
-
-    ATTACH_OPERATIONS()
-  };
-
   /////////////////////////////////////////
   // Abstract base class for CSS selectors.
   /////////////////////////////////////////
@@ -1705,7 +1692,6 @@ namespace Sass {
     // maybe we have optional flag
     ADD_PROPERTY(bool, is_optional)
     // parent block pointers
-    ADD_PROPERTY(Block*, last_block)
     ADD_PROPERTY(Media_Block*, media_block)
   public:
     Selector(ParserState pstate, bool r = false, bool h = false)
@@ -1731,9 +1717,10 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
   class Selector_Schema : public Selector {
     ADD_PROPERTY(String*, contents)
+    ADD_PROPERTY(bool, at_root);
   public:
     Selector_Schema(ParserState pstate, String* c)
-    : Selector(pstate), contents_(c)
+    : Selector(pstate), contents_(c), at_root_(false)
     { }
     ATTACH_OPERATIONS()
   };
@@ -1748,8 +1735,11 @@ namespace Sass {
     { }
     virtual ~Simple_Selector() = 0;
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
+    virtual bool has_parent_ref() { return false; };
     virtual bool is_pseudo_element() { return false; }
     virtual bool is_pseudo_class() { return false; }
+
+    virtual bool is_superselector_of(Compound_Selector* sub) { return false; }
 
     bool operator==(const Simple_Selector& rhs) const;
     inline bool operator!=(const Simple_Selector& rhs) const { return !(*this == rhs); }
@@ -1758,20 +1748,25 @@ namespace Sass {
   };
   inline Simple_Selector::~Simple_Selector() { }
 
-  /////////////////////////////////////
-  // Parent references (i.e., the "&").
-  /////////////////////////////////////
-  class Selector_Reference : public Simple_Selector {
-    ADD_PROPERTY(Selector*, selector)
+
+  //////////////////////////////////
+  // The Parent Selector Expression.
+  //////////////////////////////////
+  // parent selectors can occur in selectors but also
+  // inside strings in declarations (Compound_Selector).
+  // only one simple parent selector means the first case.
+  class Parent_Selector : public Simple_Selector {
   public:
-    Selector_Reference(ParserState pstate, Selector* r = 0)
-    : Simple_Selector(pstate), selector_(r)
+    Parent_Selector(ParserState pstate)
+    : Simple_Selector(pstate)
     { has_reference(true); }
+    virtual bool has_parent_ref() { return true; };
     virtual unsigned long specificity()
     {
-      if (!selector()) return 0;
-      return selector()->specificity();
+      return 0;
     }
+    string type() { return "selector"; }
+    static string type_name() { return "selector"; }
     ATTACH_OPERATIONS()
   };
 
@@ -1908,6 +1903,7 @@ namespace Sass {
     Wrapped_Selector(ParserState pstate, string n, Selector* sel)
     : Simple_Selector(pstate), name_(n), selector_(sel)
     { }
+    virtual bool is_superselector_of(Wrapped_Selector* sub);
     // Selectors inside the negation pseudo-class are counted like any
     // other, but the negation itself does not count as a pseudo-class.
     virtual unsigned long specificity()
@@ -1929,6 +1925,7 @@ namespace Sass {
   class Compound_Selector : public Selector, public Vectorized<Simple_Selector*> {
   private:
     SourcesSet sources_;
+    ADD_PROPERTY(bool, has_parent_reference);
   protected:
     void adjust_after_pushing(Simple_Selector* s)
     {
@@ -1938,23 +1935,33 @@ namespace Sass {
   public:
     Compound_Selector(ParserState pstate, size_t s = 0)
     : Selector(pstate),
-      Vectorized<Simple_Selector*>(s)
+      Vectorized<Simple_Selector*>(s),
+      has_parent_reference_(false)
     { }
+    bool contains_placeholder() {
+      for (size_t i = 0, L = length(); i < L; ++i) {
+        if ((*this)[i]->has_placeholder()) return true;
+      }
+      return false;
+    };
     Compound_Selector* unify_with(Compound_Selector* rhs, Context& ctx);
     // virtual Selector_Placeholder* find_placeholder();
+    virtual bool has_parent_ref();
     Simple_Selector* base()
     {
       // Implement non-const in terms of const. Safe to const_cast since this method is non-const
       return const_cast<Simple_Selector*>(static_cast<const Compound_Selector*>(this)->base());
     }
     const Simple_Selector* base() const {
-      if (length() > 0 && typeid(*(*this)[0]) == typeid(Type_Selector))
+      if (length() == 0) return 0;
+      if (typeid(*(*this)[0]) == typeid(Type_Selector))
         return (*this)[0];
+//      else cerr << "SERIOUSELY " << "\n";
       return 0;
     }
-    bool is_superselector_of(Compound_Selector* sub);
-    // bool is_superselector_of(Complex_Selector* sub);
-    // bool is_superselector_of(Selector_List* sub);
+    virtual bool is_superselector_of(Compound_Selector* sub, string wrapped = "");
+    virtual bool is_superselector_of(Complex_Selector* sub, string wrapped = "");
+    virtual bool is_superselector_of(Selector_List* sub, string wrapped = "");
     virtual unsigned long specificity()
     {
       int sum = 0;
@@ -1965,8 +1972,7 @@ namespace Sass {
     bool is_empty_reference()
     {
       return length() == 1 &&
-             typeid(*(*this)[0]) == typeid(Selector_Reference) &&
-             !static_cast<Selector_Reference*>((*this)[0])->selector();
+             typeid(*(*this)[0]) == typeid(Parent_Selector);
     }
     vector<string> to_str_vec(); // sometimes need to convert to a flat "by-value" data structure
 
@@ -1998,6 +2004,11 @@ namespace Sass {
     ADD_PROPERTY(Compound_Selector*, head)
     ADD_PROPERTY(Complex_Selector*, tail)
   public:
+    bool contains_placeholder() {
+      if (head() && head()->contains_placeholder()) return true;
+      if (tail() && tail()->contains_placeholder()) return true;
+      return false;
+    };
     Complex_Selector(ParserState pstate,
                      Combinator c = ANCESTOR_OF,
                      Compound_Selector* h = 0,
@@ -2007,17 +2018,25 @@ namespace Sass {
       if ((h && h->has_reference())   || (t && t->has_reference()))   has_reference(true);
       if ((h && h->has_placeholder()) || (t && t->has_placeholder())) has_placeholder(true);
     }
-    Compound_Selector* base();
+    virtual bool has_parent_ref();
     Complex_Selector* context(Context&);
     Complex_Selector* innermost();
+    Complex_Selector* last() { return innermost(); };
+    Complex_Selector* first() {
+      Complex_Selector* s = tail();
+      while (s && s->head() && s->head()->length() == 1 && dynamic_cast<Parent_Selector*>((*s->head())[0])) {
+        s = s->tail();
+      }
+      return s;
+    };
     size_t length();
-    bool is_superselector_of(Compound_Selector* sub);
-    bool is_superselector_of(Complex_Selector* sub);
-    bool is_superselector_of(Selector_List* sub);
+    Selector_List* parentize(Selector_List* parents, Context& ctx);
+    Complex_Selector* parentize(Complex_Selector* parent, Context& ctx);
+    virtual bool is_superselector_of(Compound_Selector* sub, string wrapping = "");
+    virtual bool is_superselector_of(Complex_Selector* sub, string wrapping = "");
+    virtual bool is_superselector_of(Selector_List* sub, string wrapping = "");
     // virtual Selector_Placeholder* find_placeholder();
-
     Selector_List* unify_with(Complex_Selector* rhs, Context& ctx);
-
     Combinator clear_innermost();
     void set_innermost(Complex_Selector*, Combinator);
     virtual unsigned long specificity() const
@@ -2101,19 +2120,27 @@ namespace Sass {
     Selector_List(ParserState pstate, size_t s = 0)
     : Selector(pstate), Vectorized<Complex_Selector*>(s), wspace_(0)
     { }
+    // remove parent selector references
+    // basically unwraps parsed selectors
+    void remove_parent_selectors();
     // virtual Selector_Placeholder* find_placeholder();
-    bool is_superselector_of(Compound_Selector* sub);
-    bool is_superselector_of(Complex_Selector* sub);
-    bool is_superselector_of(Selector_List* sub);
+    Selector_List* parentize(Selector_List* parents, Context& ctx);
+    Selector_List* parentize(Complex_Selector* parent, Context& ctx);
+    virtual bool is_superselector_of(Compound_Selector* sub, string wrapping = "");
+    virtual bool is_superselector_of(Complex_Selector* sub, string wrapping = "");
+    virtual bool is_superselector_of(Selector_List* sub, string wrapping = "");
 
     Selector_List* unify_with(Selector_List*, Context&);
     void populate_extends(Selector_List*, Context&, ExtensionSubsetMap&);
-
     virtual unsigned long specificity()
     {
       unsigned long sum = 0;
+      unsigned long specificity = 0;
       for (size_t i = 0, L = length(); i < L; ++i)
-      { sum += (*this)[i]->specificity(); }
+      {
+        specificity = (*this)[i]->specificity();
+        if (sum < specificity) sum = specificity;
+      }
       return sum;
     }
     // vector<Complex_Selector*> members() { return elements_; }

@@ -46,8 +46,6 @@ libsass_la_SOURCES = \
 	bind.cpp bind.hpp \
 	constants.cpp constants.hpp \
 	context.cpp context.hpp \
-	contextualize.cpp contextualize.hpp \
-	contextualize_eval.cpp contextualize_eval.hpp \
 	error_handling.cpp error_handling.hpp \
 	eval.cpp eval.hpp \
 	expand.cpp expand.hpp \

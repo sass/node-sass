@@ -1,10 +1,12 @@
-#include <stdint.h>
+#include "sass.h"
 #include "ast.hpp"
 #include "util.hpp"
 #include "lexer.hpp"
 #include "prelexer.hpp"
 #include "constants.hpp"
 #include "utf8/checked.h"
+
+#include <stdint.h>
 
 namespace Sass {
 
@@ -470,6 +472,7 @@ namespace Sass {
                  exactly <' '>,
                  exactly <'\t'>,
                  line_comment,
+                 block_comment,
                  delimited_by <
                    slash_star,
                    star_slash,
@@ -588,13 +591,13 @@ namespace Sass {
 
       Block* b = f->block();
 
-      bool hasSelectors = f->selector() && static_cast<Selector_List*>(f->selector())->length() > 0;
+//      bool hasSelectors = f->selector() && static_cast<Selector_List*>(f->selector())->length() > 0;
 
       bool hasDeclarations = false;
       bool hasPrintableChildBlocks = false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
-        if (!stm->is_hoistable() && f->selector() != NULL && !hasSelectors) {
+        if (!stm->is_hoistable()) {
           // If a statement isn't hoistable, the selectors apply to it. If there are no selectors (a selector list of length 0),
           // then those statements aren't considered printable. That means there was a placeholder that was removed. If the selector
           // is NULL, then that means there was never a wrapping selector and it is printable (think of a top level media block with
@@ -618,40 +621,19 @@ namespace Sass {
       return false;
     }
 
-    bool isPrintable(Media_Block* m, Output_Style style) {
-      if (m == NULL) {
-        return false;
-      }
-
+    bool isPrintable(Media_Block* m, Output_Style style)
+    {
+      if (m == 0) return false;
       Block* b = m->block();
-
-      bool hasSelectors = m->selector() && static_cast<Selector_List*>(m->selector())->length() > 0;
-
-      bool hasDeclarations = false;
-      bool hasPrintableChildBlocks = false;
+      if (b == 0) return false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
-        if (!stm->is_hoistable() && m->selector() != NULL && !hasSelectors) {
-          // If a statement isn't hoistable, the selectors apply to it. If there are no selectors (a selector list of length 0),
-          // then those statements aren't considered printable. That means there was a placeholder that was removed. If the selector
-          // is NULL, then that means there was never a wrapping selector and it is printable (think of a top level media block with
-          // a declaration in it).
-        }
-        else if (typeid(*stm) == typeid(Declaration) || typeid(*stm) == typeid(At_Rule)) {
-          hasDeclarations = true;
-        }
-        else if (dynamic_cast<Has_Block*>(stm)) {
-          Block* pChildBlock = ((Has_Block*)stm)->block();
-          if (isPrintable(pChildBlock, style)) {
-            hasPrintableChildBlocks = true;
-          }
-        }
-
-        if (hasDeclarations || hasPrintableChildBlocks) {
-          return true;
+        if (typeid(*stm) == typeid(At_Rule)) return true;
+        if (typeid(*stm) == typeid(Declaration)) return true;
+        if (Has_Block* child = dynamic_cast<Has_Block*>(stm)) {
+          if (isPrintable(child->block(), style)) return true;
         }
       }
-
       return false;
     }
 

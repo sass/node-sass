@@ -45,7 +45,7 @@ namespace Sass {
       NIL
     };
 
-		TYPE type() const { return mType; }
+    TYPE type() const { return mType; }
     bool isCombinator() const { return mType == COMBINATOR; }
     bool isSelector() const { return mType == SELECTOR; }
     bool isCollection() const { return mType == COLLECTION; }

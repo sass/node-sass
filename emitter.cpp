@@ -227,6 +227,7 @@ namespace Sass {
 
   void Emitter::append_scope_opener(AST_Node* node)
   {
+    scheduled_linefeed = 0;
     append_optional_space();
     flush_schedules();
     if (node) add_open_mapping(node);
