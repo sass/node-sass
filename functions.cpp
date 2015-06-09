@@ -1051,8 +1051,8 @@ namespace Sass {
       Number* least = 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Number* xi = dynamic_cast<Number*>(arglist->value_at_index(i));
+        if (!xi) error("`" + string(sig) + "` only takes numeric arguments", pstate);
         if (least) {
-          if (!xi) error("`" + string(sig) + "` only takes numeric arguments", pstate);
           if (lt(xi, least, ctx)) least = xi;
         } else least = xi;
       }
@@ -1066,8 +1066,8 @@ namespace Sass {
       Number* greatest = 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Number* xi = dynamic_cast<Number*>(arglist->value_at_index(i));
+        if (!xi) error("`" + string(sig) + "` only takes numeric arguments", pstate);
         if (greatest) {
-          if (!xi) error("`" + string(sig) + "` only takes numeric arguments", pstate);
           if (lt(greatest, xi, ctx)) greatest = xi;
         } else greatest = xi;
       }
