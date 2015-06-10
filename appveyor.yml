@@ -17,9 +17,10 @@ matrix:
 
 install:
   - ps: Install-Product node $env:nodejs_version
+  - npm -g install npm@2.7.5
   - node --version
   - npm --version
   - git submodule update --init --recursive
-  - ps: npm install --msvs_version=2013
+  - ps: C:\Users\appveyor\AppData\Roaming\npm\npm.cmd install --msvs_version=2013
 
 test_script: npm test
