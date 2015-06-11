@@ -86,7 +86,7 @@ Function Parameters and Information:
   * `file (String)` - an alternate path for [libsass] to use **OR**
   * `contents (String)` - the imported contents (for example, read from memory or the file system)
 
-Handles when [libsass] encounters the `@import` directive. A custom importer allows extension of the [libsass] engine in both a synchronous and asynchronous manner. In both cases, the goal is to either `return` or call `done()` with an object literal. Depending on the value of the object literal, one of two things will happen.
+Handles when [libsass] encounters the `@import` directive. A custom importer allows extension of the [libsass] engine in both a synchronous and asynchronous manner. In both cases, the goal is to call `done()` (or for purely synchonous imports to return) with an object literal. Depending on the value of the object literal, one of two things will happen.
 
 When returning or calling `done()` with `{ file: "String" }`, the new file path will be assumed for the `@import`. It's recommended to be mindful of the value of `prev` in instances where relative path resolution may be required.
 
@@ -95,6 +95,8 @@ When returning or calling `done()` with `{ contents: "String" }`, the string val
 Starting from v3.0.0:
 
 * `this` refers to a contextual scope for the immediate run of `sass.render` or `sass.renderSync`
+
+* `this.options.mode` denotes the current render mode as either `'sync'` or `'async'` allowing importers to tune implementation (or emit an error if needed).  Call `done()` in either mode or you can `return` results for synchronous operations if you prefer. 
 
 * importers can return error and LibSass will emit that error in repsonse. For instance:
 
