@@ -86,7 +86,7 @@ namespace Sass {
     }
 
     bool semicolon = false;
-    string(error_message);
+    string error_message;
     lex< optional_spaces >();
     Selector_Lookahead lookahead_result;
     while (position < end) {
