@@ -1274,7 +1274,22 @@ describe('api', function() {
       done();
     });
 
-    it('should throw exception when importer returns no value');
+    it('should throw exception when importer attempts async operation', function(done) {
+      assert.throws(function() {
+        sass.renderSync({
+          data: src,
+          importer: function(url, prev, done) {
+            setTimeout(function(){
+              done({
+                contents: 'div {color: yellow;}'
+              });
+            }, 10);
+          }
+        });
+      }, /no value returned by importer: possibly due to async operation/);
+
+      done();
+    });
   });
 
   describe('.renderSync(functions)', function() {
