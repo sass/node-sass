@@ -40,7 +40,7 @@ namespace Sass {
     bool containsAnyPrintableStatements(Block* b);
 
     bool isPrintable(Ruleset* r, Output_Style style = NESTED);
-    bool isPrintable(Feature_Block* r, Output_Style style = NESTED);
+    bool isPrintable(Supports_Block* r, Output_Style style = NESTED);
     bool isPrintable(Media_Block* r, Output_Style style = NESTED);
     bool isPrintable(Block* b, Output_Style style = NESTED);
     bool isPrintable(String_Constant* s, Output_Style style = NESTED);

@@ -215,13 +215,13 @@ namespace Sass {
     const char* kwd_with_directive(const char* src);
     const char* kwd_without_directive(const char* src);
     const char* kwd_media(const char* src);
-    const char* kwd_supports(const char* src);
+    const char* kwd_supports_directive(const char* src);
     // const char* keyframes(const char* src);
     // const char* keyf(const char* src);
     const char* kwd_mixin(const char* src);
     const char* kwd_function(const char* src);
     const char* kwd_return_directive(const char* src);
-    const char* kwd_include(const char* src);
+    const char* kwd_include_directive(const char* src);
     const char* kwd_content(const char* src);
     const char* kwd_extend(const char* src);
 
@@ -276,16 +276,16 @@ namespace Sass {
     const char* uri_prefix(const char* src);
     const char* uri_value(const char* src);
     // Match CSS "!important" keyword.
-    const char* important(const char* src);
+    const char* kwd_important(const char* src);
     // Match CSS "!optional" keyword.
-    const char* optional(const char* src);
+    const char* kwd_optional(const char* src);
     // Match Sass "!default" keyword.
     const char* default_flag(const char* src);
     const char* global_flag(const char* src);
     // Match CSS pseudo-class/element prefixes
     const char* pseudo_prefix(const char* src);
     // Match CSS function call openers.
-    const char* functional(const char* src);
+    const char* re_pseudo_selector(const char* src);
     const char* functional_schema(const char* src);
     const char* pseudo_not(const char* src);
     // Match CSS 'odd' and 'even' keywords for functional pseudo-classes.

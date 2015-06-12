@@ -10,10 +10,10 @@ Context ctx = Context(Context::Data());
 To_String to_string;
 
 Compound_Selector* compound_selector(string src)
-{ return Parser::from_c_str(src.c_str(), ctx, "", Position()).parse_simple_selector_sequence(); }
+{ return Parser::from_c_str(src.c_str(), ctx, "", Position()).parse_compound_selector(); }
 
 Complex_Selector* complex_selector(string src)
-{ return Parser::from_c_str(src.c_str(), ctx, "", Position()).parse_selector_combination(); }
+{ return Parser::from_c_str(src.c_str(), ctx, "", Position()).parse_complex_selector(); }
 
 void check_compound(string s1, string s2)
 {

@@ -1,7 +1,9 @@
-#include<stdint.h>
+#include <stdint.h>
 #include "ast.hpp"
 #include "util.hpp"
+#include "lexer.hpp"
 #include "prelexer.hpp"
+#include "constants.hpp"
 #include "utf8/checked.h"
 
 namespace Sass {
@@ -460,12 +462,23 @@ namespace Sass {
 
   bool peek_linefeed(const char* start)
   {
-    while (*start) {
-      if (*start == '\n' || *start == '\r') return true;
-      if (*start != ' ' && *start != '\t') return false;
-      ++ start;
-    }
-    return false;
+    using namespace Prelexer;
+    using namespace Constants;
+    return sequence <
+             zero_plus <
+               alternatives <
+                 exactly <' '>,
+                 exactly <'\t'>,
+                 line_comment,
+                 delimited_by <
+                   slash_star,
+                   star_slash,
+                   false
+                 >
+               >
+             >,
+             re_linebreak
+           >(start) != 0;
   }
 
   namespace Util {
@@ -568,7 +581,7 @@ namespace Sass {
       return isPrintable(e, style);
     }
 
-    bool isPrintable(Feature_Block* f, Output_Style style) {
+    bool isPrintable(Supports_Block* f, Output_Style style) {
       if (f == NULL) {
         return false;
       }
@@ -661,8 +674,8 @@ namespace Sass {
             return true;
           }
         }
-        else if (typeid(*stm) == typeid(Feature_Block)) {
-          Feature_Block* f = (Feature_Block*) stm;
+        else if (typeid(*stm) == typeid(Supports_Block)) {
+          Supports_Block* f = (Supports_Block*) stm;
           if (isPrintable(f, style)) {
             return true;
           }

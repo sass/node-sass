@@ -1596,7 +1596,6 @@ namespace Sass {
 
 
       if (pSelector && pSelector->has_line_feed()) pNewSelector->has_line_feed(true);
-
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
       DEBUG_PRINTLN(EXTEND_COMPOUND, "SOURCES SETTING ON NEW SEQ: " << complexSelectorToNode(pNewSelector, ctx))
 
@@ -1961,7 +1960,7 @@ namespace Sass {
           (pNewSelectorList->perform(&to_string) + ";").c_str(),
           ctx,
           pNewSelectorList->pstate()
-        ).parse_selector_group()
+        ).parse_selector_list()
       );
     } else {
       DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND DID NOT TRY TO EXTEND ANYTHING")
@@ -1988,7 +1987,7 @@ namespace Sass {
     pRuleset->block()->perform(this);
   }
 
-  void Extend::operator()(Feature_Block* pFeatureBlock)
+  void Extend::operator()(Supports_Block* pFeatureBlock)
   {
     if (pFeatureBlock->selector()) {
       extendObjectWithSelectorAndBlock(pFeatureBlock, ctx, subset_map);

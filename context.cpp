@@ -319,38 +319,55 @@ namespace Sass {
         0, 0
       );
       import_stack.push_back(import);
-      Parser p(Parser::from_c_str(queue[i].source, *this, ParserState(queue[i].abs_path, queue[i].source, i)));
+      const char* path = sass_strdup(queue[i].abs_path.c_str());
+      Parser p(Parser::from_c_str(queue[i].source, *this, ParserState(path, queue[i].source, i)));
       Block* ast = p.parse();
       sass_delete_import(import_stack.back());
       import_stack.pop_back();
       if (i == 0) root = ast;
+      // ToDo: we store by load_path, which can lead
+      // to duplicates if importer reports the same path
+      // Maybe we should add an error for duplicates!?
       style_sheets[queue[i].load_path] = ast;
     }
     if (root == 0) return 0;
-    Env tge;
+
+    Env global; // create root environment
+    // register built-in functions on env
+    register_built_in_functions(*this, &global);
+    // register custom functions (defined via C-API)
+    for (size_t i = 0, S = c_functions.size(); i < S; ++i)
+    { register_c_function(*this, &global, c_functions[i]); }
+    // create initial backtrace entry
     Backtrace backtrace(0, ParserState("", 0), "");
-    register_built_in_functions(*this, &tge);
-    for (size_t i = 0, S = c_functions.size(); i < S; ++i) {
-      register_c_function(*this, &tge, c_functions[i]);
-    }
-    Contextualize contextualize(*this, &tge, &backtrace);
+    Contextualize contextualize(*this, &global, &backtrace);
     Listize listize(*this);
-    Eval eval(*this, &contextualize, &listize, &tge, &backtrace);
-    Contextualize_Eval contextualize_eval(*this, &eval, &tge, &backtrace);
-    Expand expand(*this, &eval, &contextualize_eval, &tge, &backtrace);
-    Cssize cssize(*this, &tge, &backtrace);
+    Eval eval(*this, &contextualize, &listize, &global, &backtrace);
+    Contextualize_Eval contextualize_eval(*this, &eval, &global, &backtrace);
+    // create crtp visitor objects
+    Expand expand(*this, &eval, &contextualize_eval, &global, &backtrace);
+    Cssize cssize(*this, &backtrace);
+    // expand and eval the tree
     root = root->perform(&expand)->block();
+    // merge and bubble certain rules
     root = root->perform(&cssize)->block();
+    // should we extend something?
     if (!subset_map.empty()) {
+      // create crtp visitor object
       Extend extend(*this, subset_map);
+      // extend tree nodes
       root->perform(&extend);
     }
 
+    // clean up by removing empty placeholders
+    // ToDo: maybe we can do this somewhere else?
     Remove_Placeholders remove_placeholders(*this);
     root->perform(&remove_placeholders);
 
+    // return processed tree
     return root;
   }
+  // EO parse_file
 
   Block* Context::parse_string()
   {
@@ -439,12 +456,11 @@ namespace Sass {
   void register_overload_stub(Context& ctx, string name, Env* env)
   {
     Definition* stub = new (ctx.mem) Definition(ParserState("[built-in function]"),
-                                            0,
-                                            name,
-                                            0,
-                                            0,
-                                            &ctx,
-                                            true);
+                                                0,
+                                                name,
+                                                0,
+                                                0,
+                                                true);
     (*env)[name + "[f]"] = stub;
   }
 

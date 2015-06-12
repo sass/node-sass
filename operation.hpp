@@ -19,7 +19,7 @@ namespace Sass {
     virtual T operator()(Ruleset* x)                = 0;
     virtual T operator()(Propset* x)                = 0;
     virtual T operator()(Bubble* x)                 = 0;
-    virtual T operator()(Feature_Block* x)          = 0;
+    virtual T operator()(Supports_Block* x)          = 0;
     virtual T operator()(Media_Block* x)            = 0;
     virtual T operator()(At_Root_Block* x)          = 0;
     virtual T operator()(At_Rule* x)                = 0;
@@ -55,8 +55,8 @@ namespace Sass {
     virtual T operator()(Boolean* x)                = 0;
     virtual T operator()(String_Schema* x)          = 0;
     virtual T operator()(String_Constant* x)        = 0;
-    virtual T operator()(Feature_Query* x)          = 0;
-    virtual T operator()(Feature_Query_Condition* x)= 0;
+    virtual T operator()(Supports_Query* x)          = 0;
+    virtual T operator()(Supports_Condition* x)= 0;
     virtual T operator()(Media_Query* x)            = 0;
     virtual T operator()(Media_Query_Expression* x) = 0;
     virtual T operator()(At_Root_Expression* x)     = 0;
@@ -69,7 +69,6 @@ namespace Sass {
     virtual T operator()(Arguments* x)              = 0;
     // selectors
     virtual T operator()(Selector_Schema* x)        = 0;
-    virtual T operator()(Selector_Reference* x)     = 0;
     virtual T operator()(Selector_Placeholder* x)   = 0;
     virtual T operator()(Type_Selector* x)          = 0;
     virtual T operator()(Selector_Qualifier* x)     = 0;
@@ -94,7 +93,7 @@ namespace Sass {
     virtual T operator()(Ruleset* x)                { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Propset* x)                { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Bubble* x)                 { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Feature_Block* x)          { return static_cast<D*>(this)->fallback(x); }
+    virtual T operator()(Supports_Block* x)          { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Media_Block* x)            { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(At_Root_Block* x)          { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(At_Rule* x)                { return static_cast<D*>(this)->fallback(x); }
@@ -130,8 +129,8 @@ namespace Sass {
     virtual T operator()(Boolean* x)                { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(String_Schema* x)          { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(String_Constant* x)        { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Feature_Query* x)          { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Feature_Query_Condition* x){ return static_cast<D*>(this)->fallback(x); }
+    virtual T operator()(Supports_Query* x)         { return static_cast<D*>(this)->fallback(x); }
+    virtual T operator()(Supports_Condition* x)     { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Media_Query* x)            { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Media_Query_Expression* x) { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(At_Root_Expression* x)     { return static_cast<D*>(this)->fallback(x); }
@@ -144,7 +143,6 @@ namespace Sass {
     virtual T operator()(Arguments* x)              { return static_cast<D*>(this)->fallback(x); }
     // selectors
     virtual T operator()(Selector_Schema* x)        { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Selector_Reference* x)     { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Selector_Placeholder* x)   { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Type_Selector* x)          { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Selector_Qualifier* x)     { return static_cast<D*>(this)->fallback(x); }

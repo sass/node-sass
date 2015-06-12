@@ -76,12 +76,12 @@ namespace Sass {
     media_block->block()->perform(this);
   }
 
-  void Inspect::operator()(Feature_Block* feature_block)
+  void Inspect::operator()(Supports_Block* feature_block)
   {
     append_indentation();
     append_token("@supports", feature_block);
     append_mandatory_space();
-    feature_block->feature_queries()->perform(this);
+    feature_block->queries()->perform(this);
     feature_block->block()->perform(this);
   }
 
@@ -657,7 +657,7 @@ namespace Sass {
     }
   }
 
-  void Inspect::operator()(Feature_Query* fq)
+  void Inspect::operator()(Supports_Query* fq)
   {
     size_t i = 0;
     (*fq)[i++]->perform(this);
@@ -666,17 +666,17 @@ namespace Sass {
     }
   }
 
-  void Inspect::operator()(Feature_Query_Condition* fqc)
+  void Inspect::operator()(Supports_Condition* fqc)
   {
-    if (fqc->operand() == Feature_Query_Condition::AND) {
+    if (fqc->operand() == Supports_Condition::AND) {
       append_mandatory_space();
       append_token("and", fqc);
       append_mandatory_space();
-    } else if (fqc->operand() == Feature_Query_Condition::OR) {
+    } else if (fqc->operand() == Supports_Condition::OR) {
       append_mandatory_space();
       append_token("or", fqc);
       append_mandatory_space();
-    } else if (fqc->operand() == Feature_Query_Condition::NOT) {
+    } else if (fqc->operand() == Supports_Condition::NOT) {
       append_mandatory_space();
       append_token("not", fqc);
       append_mandatory_space();

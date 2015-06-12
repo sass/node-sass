@@ -34,7 +34,7 @@ namespace Sass {
   static Complex_Selector* createComplexSelector(string src) {
     string temp(src);
     temp += ";";
-    return (*Parser::from_c_str(temp.c_str(), ctx, "", Position()).parse_selector_group())[0];
+    return (*Parser::from_c_str(temp.c_str(), ctx, "", Position()).parse_selector_list())[0];
   }
   
   

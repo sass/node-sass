@@ -104,9 +104,9 @@ namespace Sass {
   class ParserState : public Position {
 
     public: // c-tor
-      ParserState(string path, const char* src = 0, const size_t file = string::npos);
-      ParserState(string path, const char* src, Position position, Offset offset = Offset(0, 0));
-      ParserState(string path, const char* src, Token token, Position position, Offset offset = Offset(0, 0));
+      ParserState(const char* path, const char* src = 0, const size_t file = string::npos);
+      ParserState(const char* path, const char* src, const Position& position, Offset offset = Offset(0, 0));
+      ParserState(const char* path, const char* src, const Token& token, const Position& position, Offset offset = Offset(0, 0));
 
     public: // down casts
       Offset off() { return *this; }
@@ -114,7 +114,7 @@ namespace Sass {
       ParserState pstate() { return *this; }
 
     public:
-      string path;
+      const char* path;
       const char* src;
       Offset offset;
       Token token;

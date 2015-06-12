@@ -110,7 +110,7 @@ namespace Sass {
     }
 
     // Match for members of char class.
-    // Regex equivalent: /[axy]/
+    // Regex equivalent: /[axy]+/
     template <const char* char_class>
     const char* class_chars(const char* src) {
       const char* p = src;

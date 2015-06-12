@@ -224,9 +224,9 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     debug_ast(block->media_queries(), ind + " =@ ");
     debug_ast(block->selector(), ind + " -@ ");
     if (block->block()) for(auto i : block->block()->elements()) { debug_ast(i, ind + " ", env); }
-  } else if (dynamic_cast<Feature_Block*>(node)) {
-    Feature_Block* block = dynamic_cast<Feature_Block*>(node);
-    cerr << ind << "Feature_Block " << block;
+  } else if (dynamic_cast<Supports_Block*>(node)) {
+    Supports_Block* block = dynamic_cast<Supports_Block*>(node);
+    cerr << ind << "Supports_Block " << block;
     cerr << " (" << pstate_source_position(node) << ")";
     cerr << " " << block->tabs() << endl;
     if (block->block()) for(auto i : block->block()->elements()) { debug_ast(i, ind + " ", env); }

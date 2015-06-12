@@ -20,7 +20,7 @@ namespace Sass {
     Emitter emitter(ctx);
     Inspect i(emitter);
     i.in_declaration = in_declaration;
-    n->perform(&i);
+    if (n) n->perform(&i);
     return i.get_buffer();
   }
 

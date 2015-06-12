@@ -11,8 +11,9 @@
 #include "position.hpp"
 #include "prelexer.hpp"
 
-struct Selector_Lookahead {
+struct Lookahead {
   const char* found;
+  const char* position;
   bool has_interpolants;
 };
 
@@ -27,7 +28,6 @@ namespace Sass {
     void add_single_file (Import* imp, string import_path);
     void import_single_file (Import* imp, string import_path);
   public:
-    class AST_Node;
 
     enum Syntactic_Context { nothing, mixin_def, function_def };
     bool do_import(const string& import_path, Import* imp, vector<Sass_Importer_Entry> importers, bool only_one = true);
@@ -144,7 +144,7 @@ namespace Sass {
       // assertion that we actually lexed something
       if (it_after_token == it_before_token) return 0;
 
-      // create new lexed token object (holds all parse result information)
+      // create new lexed token object (holds the parse results)
       lexed = Token(position, it_before_token, it_after_token);
 
       // advance position (add whitespace before current token)
@@ -207,16 +207,16 @@ namespace Sass {
     Definition* parse_definition();
     Parameters* parse_parameters();
     Parameter* parse_parameter();
-    Mixin_Call* parse_mixin_call();
+    Mixin_Call* parse_include_directive();
     Arguments* parse_arguments(bool has_url = false);
     Argument* parse_argument(bool has_url = false);
     Assignment* parse_assignment();
     // Propset* parse_propset();
-    Ruleset* parse_ruleset(Selector_Lookahead lookahead);
+    Ruleset* parse_ruleset(Lookahead lookahead);
     Selector_Schema* parse_selector_schema(const char* end_of_selector);
-    Selector_List* parse_selector_group();
-    Complex_Selector* parse_selector_combination();
-    Compound_Selector* parse_simple_selector_sequence();
+    Selector_List* parse_selector_list();
+    Complex_Selector* parse_complex_selector();
+    Compound_Selector* parse_compound_selector();
     Simple_Selector* parse_simple_selector();
     Wrapped_Selector* parse_negated_selector();
     Simple_Selector* parse_pseudo_selector();
@@ -233,7 +233,7 @@ namespace Sass {
     Expression* parse_conjunction();
     Expression* parse_relation();
     Expression* parse_expression();
-    Expression* parse_term();
+    Expression* parse_operators();
     Expression* parse_factor();
     Expression* parse_value();
     Function_Call* parse_calc_function();
@@ -253,18 +253,19 @@ namespace Sass {
     For* parse_for_directive();
     Each* parse_each_directive();
     While* parse_while_directive();
+    Return* parse_return_directive();
     Media_Block* parse_media_block();
     List* parse_media_queries();
     Media_Query* parse_media_query();
     Media_Query_Expression* parse_media_expression();
-    Feature_Block* parse_feature_block();
-    Feature_Query* parse_feature_queries();
-    Feature_Query_Condition* parse_feature_query();
-    Feature_Query_Condition* parse_feature_query_in_parens();
-    Feature_Query_Condition* parse_supports_negation();
-    Feature_Query_Condition* parse_supports_conjunction();
-    Feature_Query_Condition* parse_supports_disjunction();
-    Feature_Query_Condition* parse_supports_declaration();
+    Supports_Block* parse_supports_directive();
+    Supports_Query* parse_supports_queries();
+    Supports_Condition* parse_supports_query();
+    Supports_Condition* parse_feature_query_in_parens();
+    Supports_Condition* parse_supports_negation();
+    Supports_Condition* parse_supports_conjunction();
+    Supports_Condition* parse_supports_disjunction();
+    Supports_Condition* parse_supports_declaration();
     At_Root_Block* parse_at_root_block();
     At_Root_Expression* parse_at_root_expression();
     At_Rule* parse_at_rule();
@@ -274,9 +275,9 @@ namespace Sass {
 
     void parse_block_comments(Block* block);
 
-    Selector_Lookahead lookahead_for_value(const char* start = 0);
-    Selector_Lookahead lookahead_for_selector(const char* start = 0);
-    Selector_Lookahead lookahead_for_extension_target(const char* start = 0);
+    Lookahead lookahead_for_value(const char* start = 0);
+    Lookahead lookahead_for_selector(const char* start = 0);
+    Lookahead lookahead_for_include(const char* start = 0);
 
     Expression* fold_operands(Expression* base, vector<Expression*>& operands, Binary_Expression::Type op);
     Expression* fold_operands(Expression* base, vector<Expression*>& operands, vector<Binary_Expression::Type>& ops);

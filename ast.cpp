@@ -422,40 +422,40 @@ namespace Sass {
     // catch-all
     return false;
   }
-  
+
   Selector_List* Complex_Selector::unify_with(Complex_Selector* other, Context& ctx) {
     To_String to_string;
-    
+
     Compound_Selector* thisBase = base();
     Compound_Selector* rhsBase = other->base();
-    
+
     if( thisBase == 0 || rhsBase == 0 ) return 0;
-    
+
     // Not sure about this check, but closest way I could check to see if this is a ruby 'SimpleSequence' equivalent
     if(  tail()->combinator() != Combinator::ANCESTOR_OF || other->tail()->combinator() != Combinator::ANCESTOR_OF ) return 0;
-    
+
     Compound_Selector* unified = rhsBase->unify_with(thisBase, ctx);
     if( unified == 0 ) return 0;
-    
+
     Node lhsNode = complexSelectorToNode(this, ctx);
     Node rhsNode = complexSelectorToNode(other, ctx);
-    
+
     // Create a temp Complex_Selector, turn it into a Node, and combine it with the existing RHS node
     Complex_Selector* fakeComplexSelector = new (ctx.mem) Complex_Selector(ParserState("[NODE]"), Complex_Selector::ANCESTOR_OF, unified, NULL);
     Node unifiedNode = complexSelectorToNode(fakeComplexSelector, ctx);
     rhsNode.plus(unifiedNode);
-    
+
     Node node = Extend::subweave(lhsNode, rhsNode, ctx);
-    
+
     Selector_List* result = new (ctx.mem) Selector_List(pstate());
     for (NodeDeque::iterator iter = node.collection()->begin(), iterEnd = node.collection()->end(); iter != iterEnd; iter++) {
       Node childNode = *iter;
       childNode = Node::naiveTrim(childNode, ctx);
-      
+
       Complex_Selector* childNodeAsComplexSelector = nodeToComplexSelector(childNode, ctx);
       if( childNodeAsComplexSelector ) { (*result) << childNodeAsComplexSelector; }
     }
-    
+
     return result->length() ? result : 0;
   }
 
@@ -597,16 +597,15 @@ namespace Sass {
     }
     return false;
   }
-  
+
   Selector_List* Selector_List::unify_with(Selector_List* rhs, Context& ctx) {
-    
     vector<Complex_Selector*> unified_complex_selectors;
     // Unify all of children with RHS's children, storing the results in `unified_complex_selectors`
     for (size_t lhs_i = 0, lhs_L = length(); lhs_i < lhs_L; ++lhs_i) {
       Complex_Selector* seq1 = (*this)[lhs_i];
       for(size_t rhs_i = 0, rhs_L = rhs->length(); rhs_i < rhs_L; ++rhs_i) {
         Complex_Selector* seq2 = (*rhs)[rhs_i];
-        
+
         Selector_List* result = seq1->unify_with(seq2, ctx);
         if( result ) {
           for(size_t i = 0, L = result->length(); i < L; ++i) {
@@ -615,24 +614,23 @@ namespace Sass {
         }
       }
     }
-    
+
     // Creates the final Selector_List by combining all the complex selectors
     Selector_List* final_result = new (ctx.mem) Selector_List(pstate());
     for (auto itr = unified_complex_selectors.begin(); itr != unified_complex_selectors.end(); ++itr) {
       *final_result << *itr;
     }
-    
     return final_result;
   }
-  
+
   void Selector_List::populate_extends(Selector_List* extendee, Context& ctx, ExtensionSubsetMap& extends) {
     To_String to_string;
-    
+
     Selector_List* extender = this;
     for (auto complex_sel : extendee->elements()) {
       Complex_Selector* c = complex_sel;
-      
-      
+
+
       // Ignore any parent selectors, until we find the first non Selector_Reference head
       Compound_Selector* compound_sel = c->head();
       Complex_Selector* pIter = complex_sel;
@@ -642,63 +640,21 @@ namespace Sass {
           compound_sel = pHead;
           break;
         }
-        
+
         pIter = pIter->tail();
       }
-      
+
       if (!pIter->head() || pIter->tail()) {
         error("nested selectors may not be extended", c->pstate());
       }
-      
+
       compound_sel->is_optional(extendee->is_optional());
-      
+
       for (size_t i = 0, L = extender->length(); i < L; ++i) {
-        // let's test this out
-        cerr << "REGISTERING EXTENSION REQUEST: " << (*extender)[i]->perform(&to_string) << " <- " << compound_sel->perform(&to_string) << endl;
         extends.put(compound_sel->to_str_vec(), make_pair((*extender)[i], compound_sel));
       }
     }
   };
-  
-
-  /* not used anymore - remove?
-  Selector_Placeholder* Selector_List::find_placeholder()
-  {
-    if (has_placeholder()) {
-      for (size_t i = 0, L = length(); i < L; ++i) {
-        if ((*this)[i]->has_placeholder()) return (*this)[i]->find_placeholder();
-      }
-    }
-    return 0;
-  }*/
-
-  /* not used anymore - remove?
-  Selector_Placeholder* Complex_Selector::find_placeholder()
-  {
-    if (has_placeholder()) {
-      if (head() && head()->has_placeholder()) return head()->find_placeholder();
-      else if (tail() && tail()->has_placeholder()) return tail()->find_placeholder();
-    }
-    return 0;
-  }*/
-
-  /* not used anymore - remove?
-  Selector_Placeholder* Compound_Selector::find_placeholder()
-  {
-    if (has_placeholder()) {
-      for (size_t i = 0, L = length(); i < L; ++i) {
-        if ((*this)[i]->has_placeholder()) return (*this)[i]->find_placeholder();
-      }
-      // return this;
-    }
-    return 0;
-  }*/
-
-  /* not used anymore - remove?
-  Selector_Placeholder* Selector_Placeholder::find_placeholder()
-  {
-    return this;
-  }*/
 
   vector<string> Compound_Selector::to_str_vec()
   {

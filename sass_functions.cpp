@@ -124,7 +124,7 @@ extern "C" {
   {
     if (import == 0) return 0;
     if (import->error) free(import->error);
-    import->error = error ? strdup(error) : 0;
+    import->error = error ? sass_strdup(error) : 0;
     import->line = line ? line : -1;
     import->column = col ? col : -1;
     return import;

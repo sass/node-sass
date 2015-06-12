@@ -191,8 +191,6 @@ namespace Sass {
     BUILT_IN(is_superselector);
     BUILT_IN(simple_selectors);
     BUILT_IN(selector_parse);
-    
-
   }
 }
 

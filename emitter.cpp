@@ -171,7 +171,7 @@ namespace Sass {
 
   void Emitter::append_comma_separator()
   {
-    scheduled_space = 0;
+    // scheduled_space = 0;
     append_string(",");
     append_optional_space();
   }

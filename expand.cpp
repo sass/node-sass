@@ -72,7 +72,7 @@ namespace Sass {
     p.source   = str.c_str();
     p.position = str.c_str();
     p.end      = str.c_str() + strlen(str.c_str());
-    Selector_List* sel_lst = p.parse_selector_group();
+    Selector_List* sel_lst = p.parse_selector_list();
     // sel_lst->pstate(isp.remap(sel_lst->pstate()));
 
     for(size_t i = 0; i < sel_lst->length(); i++) {
@@ -137,11 +137,11 @@ namespace Sass {
     return 0;
   }
 
-  Statement* Expand::operator()(Feature_Block* f)
+  Statement* Expand::operator()(Supports_Block* f)
   {
-    Expression* feature_queries = f->feature_queries()->perform(eval->with(env, backtrace));
-    Feature_Block* ff = new (ctx.mem) Feature_Block(f->pstate(),
-                                                    static_cast<Feature_Query*>(feature_queries),
+    Expression* queries = f->queries()->perform(eval->with(env, backtrace));
+    Supports_Block* ff = new (ctx.mem) Supports_Block(f->pstate(),
+                                                    static_cast<Supports_Query*>(queries),
                                                     f->block()->perform(this)->block());
     ff->selector(selector_stack.back());
     return ff;
@@ -534,7 +534,6 @@ namespace Sass {
                                                    "@content",
                                                    new (ctx.mem) Parameters(c->pstate()),
                                                    c->block(),
-                                                   &ctx,
                                                    Definition::MIXIN);
       thunk->environment(env);
       new_env.local_frame()["@content[m]"] = thunk;
@@ -558,6 +557,7 @@ namespace Sass {
     return call->perform(this);
   }
 
+  // produce an error if something is not implemented
   inline Statement* Expand::fallback_impl(AST_Node* n)
   {
     error("unknown internal error; please contact the LibSass maintainers", n->pstate(), backtrace);

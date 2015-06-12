@@ -173,7 +173,7 @@ namespace Sass {
   # @param n [int] The number of levels to flatten
   # @return [NodeCollection] The flattened array
   */
-  Node flatten(const Node& arr, Context& ctx, int n = -1);
+  Node flatten(Node& arr, Context& ctx, int n = -1);
 
 
   /*

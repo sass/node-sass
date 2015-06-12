@@ -272,7 +272,7 @@ namespace Sass {
       RULESET,
       MEDIA,
       DIRECTIVE,
-      FEATURE,
+      SUPPORTS,
       ATROOT,
       BUBBLE,
       KEYFRAMERULE
@@ -398,16 +398,16 @@ namespace Sass {
     ATTACH_OPERATIONS()
   };
 
-  ///////////////////
-  // Feature queries.
-  ///////////////////
-  class Feature_Block : public Has_Block {
-    ADD_PROPERTY(Feature_Query*, feature_queries)
+  //////////////////
+  // Query features.
+  //////////////////
+  class Supports_Block : public Has_Block {
+    ADD_PROPERTY(Supports_Query*, queries)
     ADD_PROPERTY(Selector*, selector)
   public:
-    Feature_Block(ParserState pstate, Feature_Query* fqs, Block* b)
-    : Has_Block(pstate, b), feature_queries_(fqs), selector_(0)
-    { statement_type(FEATURE); }
+    Supports_Block(ParserState pstate, Supports_Query* queries = 0, Block* block = 0)
+    : Has_Block(pstate, block), queries_(queries), selector_(0)
+    { statement_type(SUPPORTS); }
     bool is_hoistable() { return true; }
     bool bubbles() { return true; }
     ATTACH_OPERATIONS()
@@ -663,7 +663,6 @@ namespace Sass {
     ADD_PROPERTY(Native_Function, native_function)
     ADD_PROPERTY(Sass_Function_Entry, c_function)
     ADD_PROPERTY(void*, cookie)
-    ADD_PROPERTY(Context*, ctx)
     ADD_PROPERTY(bool, is_overload_stub)
     ADD_PROPERTY(Signature, signature)
   public:
@@ -671,7 +670,6 @@ namespace Sass {
                string n,
                Parameters* params,
                Block* b,
-               Context* ctx,
                Type t)
     : Has_Block(pstate, b),
       name_(n),
@@ -681,7 +679,6 @@ namespace Sass {
       native_function_(0),
       c_function_(0),
       cookie_(0),
-      ctx_(ctx),
       is_overload_stub_(false),
       signature_(0)
     { }
@@ -690,7 +687,6 @@ namespace Sass {
                string n,
                Parameters* params,
                Native_Function func_ptr,
-               Context* ctx,
                bool overload_stub = false)
     : Has_Block(pstate, 0),
       name_(n),
@@ -700,7 +696,6 @@ namespace Sass {
       native_function_(func_ptr),
       c_function_(0),
       cookie_(0),
-      ctx_(ctx),
       is_overload_stub_(overload_stub),
       signature_(sig)
     { }
@@ -709,7 +704,6 @@ namespace Sass {
                string n,
                Parameters* params,
                Sass_Function_Entry c_func,
-               Context* ctx,
                bool whatever,
                bool whatever2)
     : Has_Block(pstate, 0),
@@ -720,7 +714,6 @@ namespace Sass {
       native_function_(0),
       c_function_(c_func),
       cookie_(sass_function_get_cookie(c_func)),
-      ctx_(ctx),
       is_overload_stub_(false),
       signature_(sig)
     { }
@@ -1472,10 +1465,10 @@ namespace Sass {
   ///////////////////
   // Feature queries.
   ///////////////////
-  class Feature_Query : public Expression, public Vectorized<Feature_Query_Condition*> {
+  class Supports_Query : public Expression, public Vectorized<Supports_Condition*> {
   public:
-    Feature_Query(ParserState pstate, size_t s = 0)
-    : Expression(pstate), Vectorized<Feature_Query_Condition*>(s)
+    Supports_Query(ParserState pstate, size_t s = 0)
+    : Expression(pstate), Vectorized<Supports_Condition*>(s)
     { }
     ATTACH_OPERATIONS()
   };
@@ -1483,7 +1476,7 @@ namespace Sass {
   ////////////////////////////////////////////////////////
   // Feature expressions (for use inside feature queries).
   ////////////////////////////////////////////////////////
-  class Feature_Query_Condition : public Expression, public Vectorized<Feature_Query_Condition*> {
+  class Supports_Condition : public Expression, public Vectorized<Supports_Condition*> {
   public:
     enum Operand { NONE, AND, OR, NOT };
   private:
@@ -1492,9 +1485,9 @@ namespace Sass {
     ADD_PROPERTY(Operand, operand)
     ADD_PROPERTY(bool, is_root)
   public:
-    Feature_Query_Condition(ParserState pstate, size_t s = 0, String* f = 0,
+    Supports_Condition(ParserState pstate, size_t s = 0, String* f = 0,
                             Expression* v = 0, Operand o = NONE, bool r = false)
-    : Expression(pstate), Vectorized<Feature_Query_Condition*>(s),
+    : Expression(pstate), Vectorized<Supports_Condition*>(s),
       feature_(f), value_(v), operand_(o), is_root_(r)
     { }
     ATTACH_OPERATIONS()
@@ -1567,7 +1560,7 @@ namespace Sass {
       {
         return expression()->exclude("rule");
       }
-      if (s->statement_type() == Statement::FEATURE)
+      if (s->statement_type() == Statement::SUPPORTS)
       {
         return expression()->exclude("supports");
       }
@@ -1947,7 +1940,6 @@ namespace Sass {
     : Selector(pstate),
       Vectorized<Simple_Selector*>(s)
     { }
-
     Compound_Selector* unify_with(Compound_Selector* rhs, Context& ctx);
     // virtual Selector_Placeholder* find_placeholder();
     Simple_Selector* base()
@@ -2007,9 +1999,9 @@ namespace Sass {
     ADD_PROPERTY(Complex_Selector*, tail)
   public:
     Complex_Selector(ParserState pstate,
-                     Combinator c,
-                     Compound_Selector* h,
-                     Complex_Selector* t)
+                     Combinator c = ANCESTOR_OF,
+                     Compound_Selector* h = 0,
+                     Complex_Selector* t = 0)
     : Selector(pstate), combinator_(c), head_(h), tail_(t)
     {
       if ((h && h->has_reference())   || (t && t->has_reference()))   has_reference(true);
@@ -2023,7 +2015,7 @@ namespace Sass {
     bool is_superselector_of(Complex_Selector* sub);
     bool is_superselector_of(Selector_List* sub);
     // virtual Selector_Placeholder* find_placeholder();
-    
+
     Selector_List* unify_with(Complex_Selector* rhs, Context& ctx);
 
     Combinator clear_innermost();
@@ -2093,7 +2085,6 @@ namespace Sass {
   };
 
   typedef deque<Complex_Selector*> ComplexSelectorDeque;
-
   typedef Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> > ExtensionSubsetMap;
 
   ///////////////////////////////////
@@ -2117,7 +2108,7 @@ namespace Sass {
 
     Selector_List* unify_with(Selector_List*, Context&);
     void populate_extends(Selector_List*, Context&, ExtensionSubsetMap&);
-    
+
     virtual unsigned long specificity()
     {
       unsigned long sum = 0;

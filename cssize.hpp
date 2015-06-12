@@ -18,7 +18,6 @@ namespace Sass {
   class Cssize : public Operation_CRTP<Statement*, Cssize> {
 
     Context&            ctx;
-    Env*                env;
     vector<Block*>      block_stack;
     vector<Statement*>  p_stack;
     Backtrace*          backtrace;
@@ -26,7 +25,7 @@ namespace Sass {
     Statement* fallback_impl(AST_Node* n);
 
   public:
-    Cssize(Context&, Env*, Backtrace*);
+    Cssize(Context&, Backtrace*);
     virtual ~Cssize() { }
 
     using Operation<Statement*>::operator();
@@ -36,7 +35,7 @@ namespace Sass {
     // Statement* operator()(Propset*);
     // Statement* operator()(Bubble*);
     Statement* operator()(Media_Block*);
-    Statement* operator()(Feature_Block*);
+    Statement* operator()(Supports_Block*);
     Statement* operator()(At_Root_Block*);
     Statement* operator()(At_Rule*);
     Statement* operator()(Keyframe_Rule*);
@@ -63,7 +62,7 @@ namespace Sass {
     Statement* bubble(At_Rule*);
     Statement* bubble(At_Root_Block*);
     Statement* bubble(Media_Block*);
-    Statement* bubble(Feature_Block*);
+    Statement* bubble(Supports_Block*);
     Statement* shallow_copy(Statement*);
     Statement* debubble(Block* children, Statement* parent = 0);
     Statement* flatten(Statement*);
