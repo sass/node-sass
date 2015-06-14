@@ -537,7 +537,9 @@ namespace Sass {
       bool hasPrintableChildBlocks = false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
-        if (dynamic_cast<Has_Block*>(stm)) {
+        if (dynamic_cast<At_Rule*>(stm)) {
+          return true;
+        } else if (dynamic_cast<Has_Block*>(stm)) {
           Block* pChildBlock = ((Has_Block*)stm)->block();
           if (isPrintable(pChildBlock, style)) {
             hasPrintableChildBlocks = true;

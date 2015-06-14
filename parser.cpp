@@ -2075,13 +2075,8 @@ namespace Sass {
     string kwd(lexed);
     At_Rule* at_rule = new (ctx.mem) At_Rule(pstate, kwd);
     Lookahead lookahead = lookahead_for_include(position);
-    if (lookahead.found) {
-      if (lookahead.has_interpolants) {
-        at_rule->selector(parse_selector_schema(lookahead.found));
-      }
-      else {
-        at_rule->selector(parse_selector_list());
-      }
+    if (lookahead.found && !lookahead.has_interpolants) {
+      at_rule->selector(parse_selector_list());
     }
 
     lex < css_comments >();
