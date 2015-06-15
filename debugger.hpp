@@ -462,6 +462,7 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
   } else if (dynamic_cast<Binary_Expression*>(node)) {
     Binary_Expression* expression = dynamic_cast<Binary_Expression*>(node);
     cerr << ind << "Binary_Expression " << expression;
+    cerr << " [delayed: " << expression->is_delayed() << "] ";
     cerr << " (" << pstate_source_position(node) << ")";
     cerr << " [" << expression->type_name() << "]" << endl;
     debug_ast(expression->left(), ind + " left:  ", env);
@@ -587,6 +588,7 @@ inline void debug_node(Node* node, string ind = "")
       case Complex_Selector::ADJACENT_TO: cerr << "{+} "; break;
       case Complex_Selector::PARENT_OF:   cerr << "{>} "; break;
       case Complex_Selector::PRECEDES:    cerr << "{~} "; break;
+      case Complex_Selector::REFERENCE:   cerr << "{@} "; break;
       case Complex_Selector::ANCESTOR_OF: cerr << "{ } "; break;
     }
     cerr << endl;

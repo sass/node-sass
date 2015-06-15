@@ -89,11 +89,11 @@ namespace Sass {
     static bool eq(Expression*, Expression*);
     static bool lt(Expression*, Expression*);
     // -- arithmetic on the combinations that matter
-    static Value* op_numbers(Context&, enum Sass_OP, Number*, Number*);
-    static Value* op_number_color(Context&, enum Sass_OP, Number*, Color*);
-    static Value* op_color_number(Context&, enum Sass_OP, Color*, Number*);
-    static Value* op_colors(Context&, enum Sass_OP, Color*, Color*);
-    static Value* op_strings(Context&, enum Sass_OP, Value*, Value*);
+    static Value* op_numbers(Context&, enum Sass_OP, Number*, Number*, bool compressed = false, int precision = 5);
+    static Value* op_number_color(Context&, enum Sass_OP, Number*, Color*, bool compressed = false, int precision = 5);
+    static Value* op_color_number(Context&, enum Sass_OP, Color*, Number*, bool compressed = false, int precision = 5);
+    static Value* op_colors(Context&, enum Sass_OP, Color*, Color*, bool compressed = false, int precision = 5);
+    static Value* op_strings(Context&, enum Sass_OP, Value*, Value*, bool compressed = false, int precision = 5);
 
   private:
     string interpolation(Expression* s);

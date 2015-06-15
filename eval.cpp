@@ -1167,7 +1167,7 @@ namespace Sass {
     return l->value() < tmp_r.value();
   }
 
-  Value* Eval::op_numbers(Context& ctx, enum Sass_OP op, Number* l, Number* r)
+  Value* Eval::op_numbers(Context& ctx, enum Sass_OP op, Number* l, Number* r, bool compressed, int precision)
   {
     double lv = l->value();
     double rv = r->value();
@@ -1217,7 +1217,7 @@ namespace Sass {
     return v;
   }
 
-  Value* Eval::op_number_color(Context& ctx, enum Sass_OP op, Number* l, Color* r)
+  Value* Eval::op_number_color(Context& ctx, enum Sass_OP op, Number* l, Color* r, bool compressed, int precision)
   {
     // TODO: currently SASS converts colors to standard form when adding to strings;
     // when https://github.com/nex3/sass/issues/363 is added this can be removed to
@@ -1236,14 +1236,11 @@ namespace Sass {
       case Sass_OP::SUB:
       case Sass_OP::DIV: {
         string sep(op == Sass_OP::SUB ? "-" : "/");
-        To_String to_string(&ctx);
-        string color(r->sixtuplet() && (ctx.output_style != COMPRESSED) ?
-                     r->perform(&to_string) :
-                     Util::normalize_sixtuplet(r->perform(&to_string)));
+        string color(r->to_string(compressed||!r->sixtuplet(), precision));
         return new (ctx.mem) String_Quoted(l->pstate(),
-                                             l->perform(&to_string)
-                                             + sep
-                                             + color);
+                                           l->to_string(compressed, precision)
+                                           + sep
+                                           + color);
       } break;
       case Sass_OP::MOD: {
         error("cannot divide a number by a color", r->pstate());
@@ -1254,7 +1251,7 @@ namespace Sass {
     return l;
   }
 
-  Value* Eval::op_color_number(Context& ctx, enum Sass_OP op, Color* l, Number* r)
+  Value* Eval::op_color_number(Context& ctx, enum Sass_OP op, Color* l, Number* r, bool compressed, int precision)
   {
     double rv = r->value();
     if (op == Sass_OP::DIV && !rv) error("division by zero", r->pstate());
@@ -1265,7 +1262,7 @@ namespace Sass {
                                l->a());
   }
 
-  Value* Eval::op_colors(Context& ctx, enum Sass_OP op, Color* l, Color* r)
+  Value* Eval::op_colors(Context& ctx, enum Sass_OP op, Color* l, Color* r, bool compressed, int precision)
   {
     if (l->a() != r->a()) {
       error("alpha channels must be equal when combining colors", r->pstate());
@@ -1281,14 +1278,17 @@ namespace Sass {
                                l->a());
   }
 
-  Value* Eval::op_strings(Context& ctx, enum Sass_OP op, Value* lhs, Value*rhs)
+  Value* Eval::op_strings(Context& ctx, enum Sass_OP op, Value* lhs, Value*rhs, bool compressed, int precision)
   {
     To_String to_string(&ctx);
     Expression::Concrete_Type ltype = lhs->concrete_type();
     Expression::Concrete_Type rtype = rhs->concrete_type();
 
-    string lstr(lhs->perform(&to_string));
-    string rstr(rhs->perform(&to_string));
+    String_Quoted* lqstr = dynamic_cast<String_Quoted*>(lhs);
+    String_Quoted* rqstr = dynamic_cast<String_Quoted*>(rhs);
+
+    string lstr(lqstr ? lqstr->value() : lhs->to_string(compressed, precision));
+    string rstr(rqstr ? rqstr->value() : rhs->to_string(compressed, precision));
 
     bool l_str_quoted = ((Sass::String*)lhs) && ((Sass::String*)lhs)->sass_fix_1291();
     bool r_str_quoted = ((Sass::String*)rhs) && ((Sass::String*)rhs)->sass_fix_1291();
