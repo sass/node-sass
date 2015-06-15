@@ -1402,8 +1402,11 @@ namespace Sass {
     bool parentized = false;
     Complex_Selector* tail = s->tail();
     Compound_Selector* head = s->head();
+    String* reference = s->reference();
     Complex_Selector::Combinator combinator = s->combinator();
     Selector_List* sl = new (ctx.mem) Selector_List(s->pstate());
+    if (reference) reference = (String*) reference->perform(this);
+
     if (head) {
       // check if we have a parent selector reference (expands to list)
       if (head->length() > 1 && dynamic_cast<Parent_Selector*>((*head)[0])) {
@@ -1418,6 +1421,7 @@ namespace Sass {
             for (size_t i = 1, L = head->length(); i < L; ++i) *lst_h << (*head)[i];
             lst_t->tail(tail); // now connect old tail back to new intermediate
             lst_t->combinator(combinator); // and dont forget the combinator
+            lst_t->reference(reference);
             // if (s->has_line_feed()) lst_t->has_line_feed(true); // and dont forget the combinator
           }
           return ns;
@@ -1450,6 +1454,7 @@ namespace Sass {
                 lst->tail(ins);
               } else {
                 lst->combinator(combinator);
+                lst->reference(reference);
               }
             }
             if (s->has_line_feed()) (*ns)[n]->has_line_feed(true);

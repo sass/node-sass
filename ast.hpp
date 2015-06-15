@@ -1979,11 +1979,12 @@ namespace Sass {
   ////////////////////////////////////////////////////////////////////////////
   class Complex_Selector : public Selector {
   public:
-    enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO };
+    enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO, REFERENCE };
   private:
     ADD_PROPERTY(Combinator, combinator)
     ADD_PROPERTY(Compound_Selector*, head)
     ADD_PROPERTY(Complex_Selector*, tail)
+    ADD_PROPERTY(String*, reference);
   public:
     bool contains_placeholder() {
       if (head() && head()->contains_placeholder()) return true;
@@ -1994,7 +1995,7 @@ namespace Sass {
                      Combinator c = ANCESTOR_OF,
                      Compound_Selector* h = 0,
                      Complex_Selector* t = 0)
-    : Selector(pstate), combinator_(c), head_(h), tail_(t)
+    : Selector(pstate), combinator_(c), head_(h), tail_(t), reference_(0)
     {
       if ((h && h->has_reference())   || (t && t->has_reference()))   has_reference(true);
       if ((h && h->has_placeholder()) || (t && t->has_placeholder())) has_placeholder(true);
