@@ -25,6 +25,8 @@ namespace SassTypes
   void String::initPrototype(Handle<ObjectTemplate> proto) {
     proto->Set(NanNew("getValue"), NanNew<FunctionTemplate>(GetValue)->GetFunction());
     proto->Set(NanNew("setValue"), NanNew<FunctionTemplate>(SetValue)->GetFunction());
+    proto->Set(NanNew("isQuoted"), NanNew<FunctionTemplate>(IsQuoted)->GetFunction());
+    proto->Set(NanNew("setQuoted"), NanNew<FunctionTemplate>(SetQuoted)->GetFunction());
   }
 
   NAN_METHOD(String::GetValue) {
@@ -42,6 +44,24 @@ namespace SassTypes
     }
 
     sass_string_set_value(unwrap(args.This())->value, create_string(args[0]));
+    NanReturnUndefined();
+  }
+
+  NAN_METHOD(String::IsQuoted) {
+    NanScope();
+    NanReturnValue(NanNew(sass_string_is_quoted(unwrap(args.This())->value)));
+  }
+
+  NAN_METHOD(String::SetQuoted) {
+    if (args.Length() != 1) {
+      return NanThrowError(NanNew("Expected just one argument"));
+    }
+
+    if (!args[0]->IsBoolean()) {
+      return NanThrowError(NanNew("Supplied value should be a boolean"));
+    }
+
+    sass_string_set_quoted(unwrap(args.This())->value, args[0]->ToBoolean()->Value());
     NanReturnUndefined();
   }
 }
