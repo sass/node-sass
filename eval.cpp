@@ -1358,7 +1358,11 @@ namespace Sass {
         e = new (ctx.mem) Color(pstate, sass_color_get_r(v), sass_color_get_g(v), sass_color_get_b(v), sass_color_get_a(v));
       } break;
       case SASS_STRING: {
-        e = new (ctx.mem) String_Constant(pstate, sass_string_get_value(v));
+        if (sass_string_is_quoted(v))
+          e = new (ctx.mem) String_Quoted(pstate, sass_string_get_value(v));
+        else {
+          e = new (ctx.mem) String_Constant(pstate, sass_string_get_value(v));
+        }
       } break;
       case SASS_LIST: {
         List* l = new (ctx.mem) List(pstate, sass_list_get_length(v), sass_list_get_separator(v) == SASS_COMMA ? List::COMMA : List::SPACE);
