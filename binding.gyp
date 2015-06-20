@@ -8,6 +8,7 @@
         'src/create_string.cpp',
         'src/custom_function_bridge.cpp',
         'src/custom_importer_bridge.cpp',
+        'src/debug.cpp',
         'src/sass_context_wrapper.cpp',
         'src/sass_types/boolean.cpp',
         'src/sass_types/color.cpp',
