@@ -77,7 +77,7 @@ namespace Sass {
         ss << "'" << unit_to_string(a) << "' and ";
         ss << "'" << unit_to_string(b) << "'";
         msg = ss.str().c_str();
-      };
+      }
       virtual const char* what() const throw()
       {
         return msg;

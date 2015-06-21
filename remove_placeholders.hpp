@@ -18,7 +18,7 @@ namespace Sass {
 
         Context&          ctx;
 
-        void fallback_impl(AST_Node* n) {};
+        void fallback_impl(AST_Node* n) {}
 
     public:
         Remove_Placeholders(Context&);

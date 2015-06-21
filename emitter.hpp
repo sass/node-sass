@@ -13,7 +13,7 @@ namespace Sass {
 
     public:
       Emitter(Context* ctx);
-      virtual ~Emitter() { };
+      virtual ~Emitter() { }
 
     protected:
       OutputBuffer wbuf;
