@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <vector>
 #include <nan.h>
+#include "../debug.h"
 #include "value.h"
 #include "factory.h"
 
@@ -27,6 +28,59 @@ namespace SassTypes
       static NAN_METHOD(New);
       static Sass_Value *fail(const char *, Sass_Value **);
 
+      static void print_value(Sass_Value *v) {
+        if (v) {
+          if (sass_value_is_null(v)) {
+            TRACEINST(v) << "#null";
+          } else if (sass_value_is_number(v)) {
+            TRACEINST(v) << "#number "
+                << sass_number_get_value(v)
+                << " unit=<" << sass_number_get_unit(v) << ">";
+          } else if (sass_value_is_string(v)) {
+            TRACEINST(v) << "#string "
+                << '"' << sass_string_get_value(v) << '"'
+                << ", quoted=" << (sass_string_is_quoted(v) ? 'Y' : 'N');
+          } else if (sass_value_is_boolean(v)) {
+            TRACEINST(v) << "#boolean " << sass_boolean_get_value(v);
+          } else if (sass_value_is_color(v)) {
+            TRACEINST(v) << "#color RGBA: <"
+                << sass_color_get_r(v) << ","
+                << sass_color_get_g(v) << ","
+                << sass_color_get_b(v) << ","
+                << sass_color_get_a(v) << ">";
+          } else if (sass_value_is_list(v)) {
+            enum Sass_Separator sep = sass_list_get_separator(v); 
+            size_t len = sass_list_get_length(v);
+            TRACEINST(v) << "#list "
+                << "separator=<" << (sep == SASS_COMMA ? ',' : ' ') << ">"
+                << "length=" << len;
+            for(size_t i = 0; i < len; i ++) {
+              TRACEINST(v) << "item(" << i << ")";
+              print_value(sass_list_get_value(v, i)); 
+            }
+            TRACEINST(v) << "#list end";
+          } else if (sass_value_is_map(v)) {
+            size_t len = sass_map_get_length(v);
+            TRACEINST(v) << "#map length=" << len;
+            for(size_t i = 0; i < len; i ++) {
+              TRACEINST(v) << "key(" << i << ")";
+              print_value(sass_map_get_key(v, i)); 
+              TRACEINST(v) << "value(" << i << ")";
+              print_value(sass_map_get_value(v, i)); 
+            }
+            TRACEINST(v) << "#map end";
+          } else if (sass_value_is_error(v)) {
+            TRACEINST(v) << "#error " << sass_error_get_message(v);
+          } else if (sass_value_is_warning(v)) {
+            TRACEINST(v) << "#warn " << sass_warning_get_message(v);
+          } else { 
+            TRACEINST(v) << "#unknown";
+          }
+        } else { 
+          TRACE() << "(null value)";
+        }
+      }
+
     protected:
       Sass_Value* value;
       static T* unwrap(v8::Local<v8::Object>);
@@ -42,6 +96,9 @@ namespace SassTypes
   template <class T>
   SassValueWrapper<T>::SassValueWrapper(Sass_Value* v) {
     this->value = sass_clone_value(v);
+    TRACEINST(this) << "ctor " << (void *)this->value << " := " << (void *)v;
+    print_value(v);
+    TRACEINST(this) << "done";
   }
 
   template <class T>
@@ -52,7 +109,11 @@ namespace SassTypes
 
   template <class T>
   Sass_Value* SassValueWrapper<T>::get_sass_value() {
-    return sass_clone_value(this->value);
+    Sass_Value *nv = sass_clone_value(this->value);
+    TRACEINST(this) << (void *)nv << " := " << (void *)this->value;
+    print_value(this->value);
+    TRACEINST(this) << "done";
+    return nv;
   }
 
   template <class T>
