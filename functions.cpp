@@ -777,8 +777,15 @@ namespace Sass {
         result->sass_fix_1291(string_quoted->quote_mark() != 0);
         return result;
       }
-      To_String to_string(&ctx);
-      return new (ctx.mem) String_Constant(pstate, unquote(string(arg->perform(&to_string))));
+      else if (dynamic_cast<String_Constant*>(arg)) {
+        return (Expression*) arg;
+      }
+      else {
+        To_String to_string(&ctx);
+        string val(arg->perform(&to_string));
+        deprecated("Passing " + val + ", a non-string value, to unquote()", pstate);
+        return (Expression*) arg;
+      }
     }
 
     Signature quote_sig = "quote($string)";
