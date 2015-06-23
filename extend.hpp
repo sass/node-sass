@@ -22,7 +22,7 @@ namespace Sass {
     Context&            ctx;
     ExtensionSubsetMap& subset_map;
 
-    void fallback_impl(AST_Node* n) { };
+    void fallback_impl(AST_Node* n) { }
 
   public:
     Extend(Context&, ExtensionSubsetMap&);

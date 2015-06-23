@@ -36,7 +36,7 @@ namespace Sass {
       // friend ostream& operator<<(ostream& strm, const Offset& off);
 
     public:
-      Offset off() { return *this; };
+      Offset off() { return *this; }
 
     public:
       size_t line;
@@ -109,9 +109,9 @@ namespace Sass {
       ParserState(string path, const char* src, Token token, Position position, Offset offset = Offset(0, 0));
 
     public: // down casts
-      Offset off() { return *this; };
-      Position pos() { return *this; };
-      ParserState pstate() { return *this; };
+      Offset off() { return *this; }
+      Position pos() { return *this; }
+      ParserState pstate() { return *this; }
 
     public:
       string path;

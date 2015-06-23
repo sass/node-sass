@@ -85,29 +85,29 @@ namespace Sass {
     size_t precision; // precision for outputting fractional numbers
 
     KWD_ARG_SET(Data) {
-      KWD_ARG(Data, struct Sass_Options*, c_options);
-      KWD_ARG(Data, struct Sass_Compiler*, c_compiler);
-      KWD_ARG(Data, const char*,     source_c_str);
-      KWD_ARG(Data, string,          entry_point);
-      KWD_ARG(Data, string,          input_path);
-      KWD_ARG(Data, string,          output_path);
-      KWD_ARG(Data, string,          indent);
-      KWD_ARG(Data, string,          linefeed);
-      KWD_ARG(Data, const char*,     include_paths_c_str);
-      KWD_ARG(Data, const char*,     plugin_paths_c_str);
-      // KWD_ARG(Data, const char**,    include_paths_array);
-      // KWD_ARG(Data, const char**,    plugin_paths_array);
-      KWD_ARG(Data, vector<string>,  include_paths);
-      KWD_ARG(Data, vector<string>,  plugin_paths);
-      KWD_ARG(Data, bool,            source_comments);
-      KWD_ARG(Data, Output_Style,    output_style);
-      KWD_ARG(Data, string,          source_map_file);
-      KWD_ARG(Data, string,          source_map_root);
-      KWD_ARG(Data, bool,            omit_source_map_url);
-      KWD_ARG(Data, bool,            is_indented_syntax_src);
-      KWD_ARG(Data, size_t,          precision);
-      KWD_ARG(Data, bool,            source_map_embed);
-      KWD_ARG(Data, bool,            source_map_contents);
+      KWD_ARG(Data, struct Sass_Options*, c_options)
+      KWD_ARG(Data, struct Sass_Compiler*, c_compiler)
+      KWD_ARG(Data, const char*,     source_c_str)
+      KWD_ARG(Data, string,          entry_point)
+      KWD_ARG(Data, string,          input_path)
+      KWD_ARG(Data, string,          output_path)
+      KWD_ARG(Data, string,          indent)
+      KWD_ARG(Data, string,          linefeed)
+      KWD_ARG(Data, const char*,     include_paths_c_str)
+      KWD_ARG(Data, const char*,     plugin_paths_c_str)
+      // KWD_ARG(Data, const char**,    include_paths_array)
+      // KWD_ARG(Data, const char**,    plugin_paths_array)
+      KWD_ARG(Data, vector<string>,  include_paths)
+      KWD_ARG(Data, vector<string>,  plugin_paths)
+      KWD_ARG(Data, bool,            source_comments)
+      KWD_ARG(Data, Output_Style,    output_style)
+      KWD_ARG(Data, string,          source_map_file)
+      KWD_ARG(Data, string,          source_map_root)
+      KWD_ARG(Data, bool,            omit_source_map_url)
+      KWD_ARG(Data, bool,            is_indented_syntax_src)
+      KWD_ARG(Data, size_t,          precision)
+      KWD_ARG(Data, bool,            source_map_embed)
+      KWD_ARG(Data, bool,            source_map_contents)
     };
 
     Context(Data);

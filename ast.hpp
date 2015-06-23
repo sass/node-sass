@@ -57,7 +57,7 @@ namespace Sass {
   // Abstract base class for all abstract syntax tree nodes.
   //////////////////////////////////////////////////////////
   class AST_Node {
-    ADD_PROPERTY(ParserState, pstate);
+    ADD_PROPERTY(ParserState, pstate)
   public:
     AST_Node(ParserState pstate)
     : pstate_(pstate)
@@ -65,9 +65,9 @@ namespace Sass {
     virtual ~AST_Node() = 0;
     // virtual Block* block() { return 0; }
   public:
-    Offset off() { return pstate(); };
-    Position pos() { return pstate(); };
-    ATTACH_OPERATIONS();
+    Offset off() { return pstate(); }
+    Position pos() { return pstate(); }
+    ATTACH_OPERATIONS()
   };
   inline AST_Node::~AST_Node() { }
 
@@ -93,10 +93,10 @@ namespace Sass {
     };
   private:
     // expressions in some contexts shouldn't be evaluated
-    ADD_PROPERTY(bool, is_delayed);
-    ADD_PROPERTY(bool, is_expanded);
-    ADD_PROPERTY(bool, is_interpolant);
-    ADD_PROPERTY(Concrete_Type, concrete_type);
+    ADD_PROPERTY(bool, is_delayed)
+    ADD_PROPERTY(bool, is_expanded)
+    ADD_PROPERTY(bool, is_interpolant)
+    ADD_PROPERTY(Concrete_Type, concrete_type)
   public:
     Expression(ParserState pstate,
                bool d = false, bool e = false, bool i = false, Concrete_Type ct = NONE)
@@ -107,7 +107,7 @@ namespace Sass {
       concrete_type_(ct)
     { }
     virtual operator bool() { return true; }
-    virtual ~Expression() { };
+    virtual ~Expression() { }
     virtual string type() { return ""; /* TODO: raise an error? */ }
     virtual bool is_invisible() { return false; }
     static string type_name() { return ""; }
@@ -266,10 +266,10 @@ namespace Sass {
       KEYFRAMERULE
     };
   private:
-    ADD_PROPERTY(Block*, block);
-    ADD_PROPERTY(Statement_Type, statement_type);
-    ADD_PROPERTY(size_t, tabs);
-    ADD_PROPERTY(bool, group_end);
+    ADD_PROPERTY(Block*, block)
+    ADD_PROPERTY(Statement_Type, statement_type)
+    ADD_PROPERTY(size_t, tabs)
+    ADD_PROPERTY(bool, group_end)
   public:
     Statement(ParserState pstate, Statement_Type st = NONE, size_t t = 0)
     : AST_Node(pstate), statement_type_(st), tabs_(t), group_end_(false)
@@ -287,16 +287,16 @@ namespace Sass {
   // Blocks of statements.
   ////////////////////////
   class Block : public Statement, public Vectorized<Statement*> {
-    ADD_PROPERTY(bool, is_root);
+    ADD_PROPERTY(bool, is_root)
     // needed for properly formatted CSS emission
-    ADD_PROPERTY(bool, has_hoistable);
-    ADD_PROPERTY(bool, has_non_hoistable);
+    ADD_PROPERTY(bool, has_hoistable)
+    ADD_PROPERTY(bool, has_non_hoistable)
   protected:
     void adjust_after_pushing(Statement* s)
     {
       if (s->is_hoistable()) has_hoistable_     = true;
       else                   has_non_hoistable_ = true;
-    };
+    }
   public:
     Block(ParserState pstate, size_t s = 0, bool r = false)
     : Statement(pstate),
@@ -304,14 +304,14 @@ namespace Sass {
       is_root_(r), has_hoistable_(false), has_non_hoistable_(false)
     { }
     Block* block() { return this; }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////////////////////////////////////////
   // Abstract base class for statements that contain blocks of statements.
   ////////////////////////////////////////////////////////////////////////
   class Has_Block : public Statement {
-    ADD_PROPERTY(Block*, block);
+    ADD_PROPERTY(Block*, block)
   public:
     Has_Block(ParserState pstate, Block* b)
     : Statement(pstate), block_(b)
@@ -325,7 +325,7 @@ namespace Sass {
   // of style declarations.
   /////////////////////////////////////////////////////////////////////////////
   class Ruleset : public Has_Block {
-    ADD_PROPERTY(Selector*, selector);
+    ADD_PROPERTY(Selector*, selector)
   public:
     Ruleset(ParserState pstate, Selector* s, Block* b)
     : Has_Block(pstate, b), selector_(s)
@@ -333,41 +333,41 @@ namespace Sass {
     bool is_invisible();
     // nested rulesets need to be hoisted out of their enclosing blocks
     bool is_hoistable() { return true; }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   /////////////////////////////////////////////////////////
   // Nested declaration sets (i.e., namespaced properties).
   /////////////////////////////////////////////////////////
   class Propset : public Has_Block {
-    ADD_PROPERTY(String*, property_fragment);
+    ADD_PROPERTY(String*, property_fragment)
   public:
     Propset(ParserState pstate, String* pf, Block* b = 0)
     : Has_Block(pstate, b), property_fragment_(pf)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   /////////////////
   // Bubble.
   /////////////////
   class Bubble : public Statement {
-    ADD_PROPERTY(Statement*, node);
-    ADD_PROPERTY(bool, group_end);
+    ADD_PROPERTY(Statement*, node)
+    ADD_PROPERTY(bool, group_end)
   public:
     Bubble(ParserState pstate, Statement* n, Statement* g = 0, size_t t = 0)
     : Statement(pstate, Statement::BUBBLE, t), node_(n), group_end_(g == 0)
     { }
     bool bubbles() { return true; }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   /////////////////
   // Media queries.
   /////////////////
   class Media_Block : public Has_Block {
-    ADD_PROPERTY(List*, media_queries);
-    ADD_PROPERTY(Selector*, selector);
+    ADD_PROPERTY(List*, media_queries)
+    ADD_PROPERTY(Selector*, selector)
   public:
     Media_Block(ParserState pstate, List* mqs, Block* b)
     : Has_Block(pstate, b), media_queries_(mqs), selector_(0)
@@ -383,22 +383,22 @@ namespace Sass {
         is_invisible &= (*block())[i]->is_invisible();
       return is_invisible;
     }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ///////////////////
   // Feature queries.
   ///////////////////
   class Feature_Block : public Has_Block {
-    ADD_PROPERTY(Feature_Query*, feature_queries);
-    ADD_PROPERTY(Selector*, selector);
+    ADD_PROPERTY(Feature_Query*, feature_queries)
+    ADD_PROPERTY(Selector*, selector)
   public:
     Feature_Block(ParserState pstate, Feature_Query* fqs, Block* b)
     : Has_Block(pstate, b), feature_queries_(fqs), selector_(0)
     { statement_type(FEATURE); }
     bool is_hoistable() { return true; }
     bool bubbles() { return true; }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ///////////////////////////////////////////////////////////////////////
@@ -406,9 +406,9 @@ namespace Sass {
   // optional statement block.
   ///////////////////////////////////////////////////////////////////////
   class At_Rule : public Has_Block {
-    ADD_PROPERTY(string, keyword);
-    ADD_PROPERTY(Selector*, selector);
-    ADD_PROPERTY(Expression*, value);
+    ADD_PROPERTY(string, keyword)
+    ADD_PROPERTY(Selector*, selector)
+    ADD_PROPERTY(Expression*, value)
   public:
     At_Rule(ParserState pstate, string kwd, Selector* sel = 0, Block* b = 0)
     : Has_Block(pstate, b), keyword_(kwd), selector_(sel), value_(0) // set value manually if needed
@@ -426,44 +426,44 @@ namespace Sass {
              keyword_.compare("@-o-keyframes") == 0 ||
              keyword_.compare("@keyframes") == 0;
     }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ///////////////////////////////////////////////////////////////////////
   // Keyframe-rules -- the child blocks of "@keyframes" nodes.
   ///////////////////////////////////////////////////////////////////////
   class Keyframe_Rule : public Has_Block {
-    ADD_PROPERTY(Selector*, selector);
+    ADD_PROPERTY(Selector*, selector)
   public:
     Keyframe_Rule(ParserState pstate, Block* b)
     : Has_Block(pstate, b), selector_(0)
     { statement_type(KEYFRAMERULE); }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////////////////////////////////////////
   // Declarations -- style rules consisting of a property name and values.
   ////////////////////////////////////////////////////////////////////////
   class Declaration : public Statement {
-    ADD_PROPERTY(String*, property);
-    ADD_PROPERTY(Expression*, value);
-    ADD_PROPERTY(bool, is_important);
+    ADD_PROPERTY(String*, property)
+    ADD_PROPERTY(Expression*, value)
+    ADD_PROPERTY(bool, is_important)
   public:
     Declaration(ParserState pstate,
                 String* prop, Expression* val, bool i = false)
     : Statement(pstate), property_(prop), value_(val), is_important_(i)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   /////////////////////////////////////
   // Assignments -- variable and value.
   /////////////////////////////////////
   class Assignment : public Statement {
-    ADD_PROPERTY(string, variable);
-    ADD_PROPERTY(Expression*, value);
-    ADD_PROPERTY(bool, is_default);
-    ADD_PROPERTY(bool, is_global);
+    ADD_PROPERTY(string, variable)
+    ADD_PROPERTY(Expression*, value)
+    ADD_PROPERTY(bool, is_default)
+    ADD_PROPERTY(bool, is_global)
   public:
     Assignment(ParserState pstate,
                string var, Expression* val,
@@ -471,7 +471,7 @@ namespace Sass {
                bool is_global = false)
     : Statement(pstate), variable_(var), value_(val), is_default_(is_default), is_global_(is_global)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -488,145 +488,145 @@ namespace Sass {
     { }
     vector<string>&         files() { return files_; }
     vector<Expression*>& urls()     { return urls_; }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   class Import_Stub : public Statement {
-    ADD_PROPERTY(string, file_name);
+    ADD_PROPERTY(string, file_name)
   public:
     Import_Stub(ParserState pstate, string f)
     : Statement(pstate), file_name_(f)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   //////////////////////////////
   // The Sass `@warn` directive.
   //////////////////////////////
   class Warning : public Statement {
-    ADD_PROPERTY(Expression*, message);
+    ADD_PROPERTY(Expression*, message)
   public:
     Warning(ParserState pstate, Expression* msg)
     : Statement(pstate), message_(msg)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ///////////////////////////////
   // The Sass `@error` directive.
   ///////////////////////////////
   class Error : public Statement {
-    ADD_PROPERTY(Expression*, message);
+    ADD_PROPERTY(Expression*, message)
   public:
     Error(ParserState pstate, Expression* msg)
     : Statement(pstate), message_(msg)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ///////////////////////////////
   // The Sass `@debug` directive.
   ///////////////////////////////
   class Debug : public Statement {
-    ADD_PROPERTY(Expression*, value);
+    ADD_PROPERTY(Expression*, value)
   public:
     Debug(ParserState pstate, Expression* val)
     : Statement(pstate), value_(val)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ///////////////////////////////////////////
   // CSS comments. These may be interpolated.
   ///////////////////////////////////////////
   class Comment : public Statement {
-    ADD_PROPERTY(String*, text);
-    ADD_PROPERTY(bool, is_important);
+    ADD_PROPERTY(String*, text)
+    ADD_PROPERTY(bool, is_important)
   public:
     Comment(ParserState pstate, String* txt, bool is_important)
     : Statement(pstate), text_(txt), is_important_(is_important)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////
   // The Sass `@if` control directive.
   ////////////////////////////////////
   class If : public Statement {
-    ADD_PROPERTY(Expression*, predicate);
-    ADD_PROPERTY(Block*, consequent);
-    ADD_PROPERTY(Block*, alternative);
+    ADD_PROPERTY(Expression*, predicate)
+    ADD_PROPERTY(Block*, consequent)
+    ADD_PROPERTY(Block*, alternative)
   public:
     If(ParserState pstate, Expression* pred, Block* con, Block* alt = 0)
     : Statement(pstate), predicate_(pred), consequent_(con), alternative_(alt)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   /////////////////////////////////////
   // The Sass `@for` control directive.
   /////////////////////////////////////
   class For : public Has_Block {
-    ADD_PROPERTY(string, variable);
-    ADD_PROPERTY(Expression*, lower_bound);
-    ADD_PROPERTY(Expression*, upper_bound);
-    ADD_PROPERTY(bool, is_inclusive);
+    ADD_PROPERTY(string, variable)
+    ADD_PROPERTY(Expression*, lower_bound)
+    ADD_PROPERTY(Expression*, upper_bound)
+    ADD_PROPERTY(bool, is_inclusive)
   public:
     For(ParserState pstate,
         string var, Expression* lo, Expression* hi, Block* b, bool inc)
     : Has_Block(pstate, b),
       variable_(var), lower_bound_(lo), upper_bound_(hi), is_inclusive_(inc)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   //////////////////////////////////////
   // The Sass `@each` control directive.
   //////////////////////////////////////
   class Each : public Has_Block {
-    ADD_PROPERTY(vector<string>, variables);
-    ADD_PROPERTY(Expression*, list);
+    ADD_PROPERTY(vector<string>, variables)
+    ADD_PROPERTY(Expression*, list)
   public:
     Each(ParserState pstate, vector<string> vars, Expression* lst, Block* b)
     : Has_Block(pstate, b), variables_(vars), list_(lst)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ///////////////////////////////////////
   // The Sass `@while` control directive.
   ///////////////////////////////////////
   class While : public Has_Block {
-    ADD_PROPERTY(Expression*, predicate);
+    ADD_PROPERTY(Expression*, predicate)
   public:
     While(ParserState pstate, Expression* pred, Block* b)
     : Has_Block(pstate, b), predicate_(pred)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   /////////////////////////////////////////////////////////////
   // The @return directive for use inside SassScript functions.
   /////////////////////////////////////////////////////////////
   class Return : public Statement {
-    ADD_PROPERTY(Expression*, value);
+    ADD_PROPERTY(Expression*, value)
   public:
     Return(ParserState pstate, Expression* val)
     : Statement(pstate), value_(val)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////
   // The Sass `@extend` directive.
   ////////////////////////////////
   class Extension : public Statement {
-    ADD_PROPERTY(Selector*, selector);
+    ADD_PROPERTY(Selector*, selector)
   public:
     Extension(ParserState pstate, Selector* s)
     : Statement(pstate), selector_(s)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   /////////////////////////////////////////////////////////////////////////////
@@ -641,16 +641,16 @@ namespace Sass {
   class Definition : public Has_Block {
   public:
     enum Type { MIXIN, FUNCTION };
-    ADD_PROPERTY(string, name);
-    ADD_PROPERTY(Parameters*, parameters);
-    ADD_PROPERTY(Env*, environment);
-    ADD_PROPERTY(Type, type);
-    ADD_PROPERTY(Native_Function, native_function);
-    ADD_PROPERTY(Sass_Function_Entry, c_function);
-    ADD_PROPERTY(void*, cookie);
-    ADD_PROPERTY(Context*, ctx);
-    ADD_PROPERTY(bool, is_overload_stub);
-    ADD_PROPERTY(Signature, signature);
+    ADD_PROPERTY(string, name)
+    ADD_PROPERTY(Parameters*, parameters)
+    ADD_PROPERTY(Env*, environment)
+    ADD_PROPERTY(Type, type)
+    ADD_PROPERTY(Native_Function, native_function)
+    ADD_PROPERTY(Sass_Function_Entry, c_function)
+    ADD_PROPERTY(void*, cookie)
+    ADD_PROPERTY(Context*, ctx)
+    ADD_PROPERTY(bool, is_overload_stub)
+    ADD_PROPERTY(Signature, signature)
   public:
     Definition(ParserState pstate,
                string n,
@@ -709,20 +709,20 @@ namespace Sass {
       is_overload_stub_(false),
       signature_(sig)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   //////////////////////////////////////
   // Mixin calls (i.e., `@include ...`).
   //////////////////////////////////////
   class Mixin_Call : public Has_Block {
-    ADD_PROPERTY(string, name);
-    ADD_PROPERTY(Arguments*, arguments);
+    ADD_PROPERTY(string, name)
+    ADD_PROPERTY(Arguments*, arguments)
   public:
     Mixin_Call(ParserState pstate, string n, Arguments* args, Block* b = 0)
     : Has_Block(pstate, b), name_(n), arguments_(args)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ///////////////////////////////////////////////////
@@ -731,7 +731,7 @@ namespace Sass {
   class Content : public Statement {
   public:
     Content(ParserState pstate) : Statement(pstate) { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ///////////////////////////////////////////////////////////////////////
@@ -743,8 +743,8 @@ namespace Sass {
   public:
     enum Separator { SPACE, COMMA };
   private:
-    ADD_PROPERTY(Separator, separator);
-    ADD_PROPERTY(bool, is_arglist);
+    ADD_PROPERTY(Separator, separator)
+    ADD_PROPERTY(bool, is_arglist)
   public:
     List(ParserState pstate,
          size_t size = 0, Separator sep = SPACE, bool argl = false)
@@ -780,7 +780,7 @@ namespace Sass {
       is_delayed(delayed);
     }
 
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ///////////////////////////////////////////////////////////////////////
@@ -825,7 +825,7 @@ namespace Sass {
       return hash_;
     }
 
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   //////////////////////////////////////////////////////////////////////////
@@ -842,9 +842,9 @@ namespace Sass {
       NUM_OPS                    // so we know how big to make the op table
     };
   private:
-    ADD_PROPERTY(Type, type);
-    ADD_PROPERTY(Expression*, left);
-    ADD_PROPERTY(Expression*, right);
+    ADD_PROPERTY(Type, type)
+    ADD_PROPERTY(Expression*, left)
+    ADD_PROPERTY(Expression*, right)
     size_t hash_;
   public:
     Binary_Expression(ParserState pstate,
@@ -898,7 +898,7 @@ namespace Sass {
       hash_ = left()->hash() ^ right()->hash() ^ std::hash<size_t>()(type_);
       return hash_;
     }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -908,8 +908,8 @@ namespace Sass {
   public:
     enum Type { PLUS, MINUS, NOT };
   private:
-    ADD_PROPERTY(Type, type);
-    ADD_PROPERTY(Expression*, operand);
+    ADD_PROPERTY(Type, type)
+    ADD_PROPERTY(Expression*, operand)
     size_t hash_;
   public:
     Unary_Expression(ParserState pstate, Type t, Expression* o)
@@ -944,17 +944,17 @@ namespace Sass {
       hash_ = operand()->hash() ^ std::hash<size_t>()(type_);
       return hash_;
     }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////////////////////////////
   // Individual argument objects for mixin and function calls.
   ////////////////////////////////////////////////////////////
   class Argument : public Expression {
-    ADD_PROPERTY(Expression*, value);
-    ADD_PROPERTY(string, name);
-    ADD_PROPERTY(bool, is_rest_argument);
-    ADD_PROPERTY(bool, is_keyword_argument);
+    ADD_PROPERTY(Expression*, value)
+    ADD_PROPERTY(string, name)
+    ADD_PROPERTY(bool, is_rest_argument)
+    ADD_PROPERTY(bool, is_keyword_argument)
     size_t hash_;
   public:
     Argument(ParserState pstate, Expression* val, string n = "", bool rest = false, bool keyword = false)
@@ -989,7 +989,7 @@ namespace Sass {
       return hash_;
     }
 
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////////////////////////////////////////
@@ -998,9 +998,9 @@ namespace Sass {
   // named arguments).
   ////////////////////////////////////////////////////////////////////////
   class Arguments : public Expression, public Vectorized<Argument*> {
-    ADD_PROPERTY(bool, has_named_arguments);
-    ADD_PROPERTY(bool, has_rest_argument);
-    ADD_PROPERTY(bool, has_keyword_argument);
+    ADD_PROPERTY(bool, has_named_arguments)
+    ADD_PROPERTY(bool, has_rest_argument)
+    ADD_PROPERTY(bool, has_keyword_argument)
   protected:
     void adjust_after_pushing(Argument* a)
     {
@@ -1042,16 +1042,16 @@ namespace Sass {
       has_rest_argument_(false),
       has_keyword_argument_(false)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   //////////////////
   // Function calls.
   //////////////////
   class Function_Call : public Expression {
-    ADD_PROPERTY(string, name);
-    ADD_PROPERTY(Arguments*, arguments);
-    ADD_PROPERTY(void*, cookie);
+    ADD_PROPERTY(string, name)
+    ADD_PROPERTY(Arguments*, arguments)
+    ADD_PROPERTY(void*, cookie)
     size_t hash_;
   public:
     Function_Call(ParserState pstate, string n, Arguments* args, void* cookie)
@@ -1090,27 +1090,27 @@ namespace Sass {
       return hash_;
     }
 
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   /////////////////////////
   // Function call schemas.
   /////////////////////////
   class Function_Call_Schema : public Expression {
-    ADD_PROPERTY(String*, name);
-    ADD_PROPERTY(Arguments*, arguments);
+    ADD_PROPERTY(String*, name)
+    ADD_PROPERTY(Arguments*, arguments)
   public:
     Function_Call_Schema(ParserState pstate, String* n, Arguments* args)
     : Expression(pstate), name_(n), arguments_(args)
     { concrete_type(STRING); }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ///////////////////////
   // Variable references.
   ///////////////////////
   class Variable : public Expression {
-    ADD_PROPERTY(string, name);
+    ADD_PROPERTY(string, name)
   public:
     Variable(ParserState pstate, string n)
     : Expression(pstate), name_(n)
@@ -1135,7 +1135,7 @@ namespace Sass {
       return std::hash<string>()(name());
     }
 
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -1146,8 +1146,8 @@ namespace Sass {
   public:
     enum Type { NUMBER, PERCENTAGE, DIMENSION, HEX };
   private:
-    ADD_PROPERTY(Type, type);
-    ADD_PROPERTY(string, value);
+    ADD_PROPERTY(Type, type)
+    ADD_PROPERTY(string, value)
     size_t hash_;
   public:
     Textual(ParserState pstate, Type t, string val)
@@ -1175,15 +1175,15 @@ namespace Sass {
       return hash_;
     }
 
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////////////////
   // Numbers, percentages, dimensions, and colors.
   ////////////////////////////////////////////////
   class Number : public Expression {
-    ADD_PROPERTY(double, value);
-    ADD_PROPERTY(bool, zero);
+    ADD_PROPERTY(double, value)
+    ADD_PROPERTY(bool, zero)
     vector<string> numerator_units_;
     vector<string> denominator_units_;
     size_t hash_;
@@ -1211,19 +1211,19 @@ namespace Sass {
       return hash_;
     }
 
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   //////////
   // Colors.
   //////////
   class Color : public Expression {
-    ADD_PROPERTY(double, r);
-    ADD_PROPERTY(double, g);
-    ADD_PROPERTY(double, b);
-    ADD_PROPERTY(double, a);
-    ADD_PROPERTY(bool, sixtuplet);
-    ADD_PROPERTY(string, disp);
+    ADD_PROPERTY(double, r)
+    ADD_PROPERTY(double, g)
+    ADD_PROPERTY(double, b)
+    ADD_PROPERTY(double, a)
+    ADD_PROPERTY(bool, sixtuplet)
+    ADD_PROPERTY(string, disp)
     size_t hash_;
   public:
     Color(ParserState pstate, double r, double g, double b, double a = 1, bool sixtuplet = true, const string disp = "")
@@ -1253,14 +1253,14 @@ namespace Sass {
       return hash_;
     }
 
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////
   // Booleans.
   ////////////
   class Boolean : public Expression {
-    ADD_PROPERTY(bool, value);
+    ADD_PROPERTY(bool, value)
     size_t hash_;
   public:
     Boolean(ParserState pstate, bool val)
@@ -1292,7 +1292,7 @@ namespace Sass {
       return hash_;
     }
 
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////////////////////////////////////////
@@ -1300,14 +1300,14 @@ namespace Sass {
   // "flat" strings.
   ////////////////////////////////////////////////////////////////////////
   class String : public Expression {
-    ADD_PROPERTY(bool, sass_fix_1291);
+    ADD_PROPERTY(bool, sass_fix_1291)
   public:
     String(ParserState pstate, bool delayed = false, bool sass_fix_1291 = false)
     : Expression(pstate, delayed), sass_fix_1291_(sass_fix_1291)
     { concrete_type(STRING); }
     static string type_name() { return "string"; }
     virtual ~String() = 0;
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
   inline String::~String() { };
 
@@ -1316,7 +1316,7 @@ namespace Sass {
   // evaluation phase.
   ///////////////////////////////////////////////////////////////////////
   class String_Schema : public String, public Vectorized<Expression*> {
-    ADD_PROPERTY(bool, has_interpolants);
+    ADD_PROPERTY(bool, has_interpolants)
     size_t hash_;
   public:
     String_Schema(ParserState pstate, size_t size = 0, bool has_interpolants = false)
@@ -1352,16 +1352,16 @@ namespace Sass {
       return hash_;
     }
 
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////////////////////////
   // Flat strings -- the lowest level of raw textual data.
   ////////////////////////////////////////////////////////
   class String_Constant : public String {
-    ADD_PROPERTY(char, quote_mark);
-    ADD_PROPERTY(bool, can_compress_whitespace);
-    ADD_PROPERTY(string, value);
+    ADD_PROPERTY(char, quote_mark)
+    ADD_PROPERTY(bool, can_compress_whitespace)
+    ADD_PROPERTY(string, value)
   protected:
     size_t hash_;
   public:
@@ -1404,7 +1404,7 @@ namespace Sass {
     static char double_quote() { return '"'; }
     static char single_quote() { return '\''; }
 
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////////////////////////
@@ -1417,7 +1417,7 @@ namespace Sass {
     {
       value_ = unquote(value_, &quote_mark_);
     }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   /////////////////
@@ -1425,31 +1425,31 @@ namespace Sass {
   /////////////////
   class Media_Query : public Expression,
                       public Vectorized<Media_Query_Expression*> {
-    ADD_PROPERTY(String*, media_type);
-    ADD_PROPERTY(bool, is_negated);
-    ADD_PROPERTY(bool, is_restricted);
+    ADD_PROPERTY(String*, media_type)
+    ADD_PROPERTY(bool, is_negated)
+    ADD_PROPERTY(bool, is_restricted)
   public:
     Media_Query(ParserState pstate,
                 String* t = 0, size_t s = 0, bool n = false, bool r = false)
     : Expression(pstate), Vectorized<Media_Query_Expression*>(s),
       media_type_(t), is_negated_(n), is_restricted_(r)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////////////////////
   // Media expressions (for use inside media queries).
   ////////////////////////////////////////////////////
   class Media_Query_Expression : public Expression {
-    ADD_PROPERTY(Expression*, feature);
-    ADD_PROPERTY(Expression*, value);
-    ADD_PROPERTY(bool, is_interpolated);
+    ADD_PROPERTY(Expression*, feature)
+    ADD_PROPERTY(Expression*, value)
+    ADD_PROPERTY(bool, is_interpolated)
   public:
     Media_Query_Expression(ParserState pstate,
                            Expression* f, Expression* v, bool i = false)
     : Expression(pstate), feature_(f), value_(v), is_interpolated_(i)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ///////////////////
@@ -1460,7 +1460,7 @@ namespace Sass {
     Feature_Query(ParserState pstate, size_t s = 0)
     : Expression(pstate), Vectorized<Feature_Query_Condition*>(s)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////////////////////////
@@ -1470,17 +1470,17 @@ namespace Sass {
   public:
     enum Operand { NONE, AND, OR, NOT };
   private:
-    ADD_PROPERTY(String*, feature);
-    ADD_PROPERTY(Expression*, value);
-    ADD_PROPERTY(Operand, operand);
-    ADD_PROPERTY(bool, is_root);
+    ADD_PROPERTY(String*, feature)
+    ADD_PROPERTY(Expression*, value)
+    ADD_PROPERTY(Operand, operand)
+    ADD_PROPERTY(bool, is_root)
   public:
     Feature_Query_Condition(ParserState pstate, size_t s = 0, String* f = 0,
                             Expression* v = 0, Operand o = NONE, bool r = false)
     : Expression(pstate), Vectorized<Feature_Query_Condition*>(s),
       feature_(f), value_(v), operand_(o), is_root_(r)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   /////////////////////////////////////////////////
@@ -1488,9 +1488,9 @@ namespace Sass {
   /////////////////////////////////////////////////
   class At_Root_Expression : public Expression {
   private:
-    ADD_PROPERTY(String*, feature);
-    ADD_PROPERTY(Expression*, value);
-    ADD_PROPERTY(bool, is_interpolated);
+    ADD_PROPERTY(String*, feature)
+    ADD_PROPERTY(Expression*, value)
+    ADD_PROPERTY(bool, is_interpolated)
   public:
     At_Root_Expression(ParserState pstate, String* f = 0, Expression* v = 0, bool i = false)
     : Expression(pstate), feature_(f), value_(v), is_interpolated_(i)
@@ -1523,14 +1523,14 @@ namespace Sass {
         return false;
       }
     }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ///////////
   // At-root.
   ///////////
   class At_Root_Block : public Has_Block {
-    ADD_PROPERTY(At_Root_Expression*, expression);
+    ADD_PROPERTY(At_Root_Expression*, expression)
   public:
     At_Root_Block(ParserState pstate, Block* b = 0, At_Root_Expression* e = 0)
     : Has_Block(pstate, b), expression_(e)
@@ -1560,7 +1560,7 @@ namespace Sass {
       }
       return false;
     }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   //////////////////
@@ -1585,15 +1585,15 @@ namespace Sass {
       return 0;
     }
 
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   /////////////////////////////////
   // Thunks for delayed evaluation.
   /////////////////////////////////
   class Thunk : public Expression {
-    ADD_PROPERTY(Expression*, expression);
-    ADD_PROPERTY(Env*, environment);
+    ADD_PROPERTY(Expression*, expression)
+    ADD_PROPERTY(Env*, environment)
   public:
     Thunk(ParserState pstate, Expression* exp, Env* env = 0)
     : Expression(pstate), expression_(exp), environment_(env)
@@ -1604,9 +1604,9 @@ namespace Sass {
   // Individual parameter objects for mixins and functions.
   /////////////////////////////////////////////////////////
   class Parameter : public AST_Node {
-    ADD_PROPERTY(string, name);
-    ADD_PROPERTY(Expression*, default_value);
-    ADD_PROPERTY(bool, is_rest_parameter);
+    ADD_PROPERTY(string, name)
+    ADD_PROPERTY(Expression*, default_value)
+    ADD_PROPERTY(bool, is_rest_parameter)
   public:
     Parameter(ParserState pstate,
               string n, Expression* def = 0, bool rest = false)
@@ -1616,7 +1616,7 @@ namespace Sass {
         error("variable-length parameter may not have a default value", pstate);
       }
     }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   /////////////////////////////////////////////////////////////////////////
@@ -1625,8 +1625,8 @@ namespace Sass {
   // required parameters).
   /////////////////////////////////////////////////////////////////////////
   class Parameters : public AST_Node, public Vectorized<Parameter*> {
-    ADD_PROPERTY(bool, has_optional_parameters);
-    ADD_PROPERTY(bool, has_rest_parameter);
+    ADD_PROPERTY(bool, has_optional_parameters)
+    ADD_PROPERTY(bool, has_rest_parameter)
   protected:
     void adjust_after_pushing(Parameter* p)
     {
@@ -1658,7 +1658,7 @@ namespace Sass {
       has_optional_parameters_(false),
       has_rest_parameter_(false)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   //////////////////////////////////////////////////////////////////////////////////////////
@@ -1670,7 +1670,7 @@ namespace Sass {
   // The Parent Selector Expression.
   ////////////
   class Parent_Selector : public Expression {
-    ADD_PROPERTY(Selector*, selector);
+    ADD_PROPERTY(Selector*, selector)
   public:
     Parent_Selector(ParserState pstate, Selector* r = 0)
     : Expression(pstate), selector_(r)
@@ -1679,24 +1679,24 @@ namespace Sass {
     string type() { return "selector"; }
     static string type_name() { return "selector"; }
 
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   /////////////////////////////////////////
   // Abstract base class for CSS selectors.
   /////////////////////////////////////////
   class Selector : public AST_Node {
-    ADD_PROPERTY(bool, has_reference);
-    ADD_PROPERTY(bool, has_placeholder);
+    ADD_PROPERTY(bool, has_reference)
+    ADD_PROPERTY(bool, has_placeholder)
     // line break before list separator
-    ADD_PROPERTY(bool, has_line_feed);
+    ADD_PROPERTY(bool, has_line_feed)
     // line break after list separator
-    ADD_PROPERTY(bool, has_line_break);
+    ADD_PROPERTY(bool, has_line_break)
     // maybe we have optional flag
-    ADD_PROPERTY(bool, is_optional);
+    ADD_PROPERTY(bool, is_optional)
     // parent block pointers
-    ADD_PROPERTY(Block*, last_block);
-    ADD_PROPERTY(Media_Block*, media_block);
+    ADD_PROPERTY(Block*, last_block)
+    ADD_PROPERTY(Media_Block*, media_block)
   public:
     Selector(ParserState pstate, bool r = false, bool h = false)
     : AST_Node(pstate),
@@ -1711,7 +1711,7 @@ namespace Sass {
     // virtual Selector_Placeholder* find_placeholder();
     virtual unsigned long specificity() {
       return Constants::Specificity_Universal;
-    };
+    }
   };
   inline Selector::~Selector() { }
 
@@ -1720,12 +1720,12 @@ namespace Sass {
   // re-parsed into a normal selector class.
   /////////////////////////////////////////////////////////////////////////
   class Selector_Schema : public Selector {
-    ADD_PROPERTY(String*, contents);
+    ADD_PROPERTY(String*, contents)
   public:
     Selector_Schema(ParserState pstate, String* c)
     : Selector(pstate), contents_(c)
     { }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////////////
@@ -1752,7 +1752,7 @@ namespace Sass {
   // Parent references (i.e., the "&").
   /////////////////////////////////////
   class Selector_Reference : public Simple_Selector {
-    ADD_PROPERTY(Selector*, selector);
+    ADD_PROPERTY(Selector*, selector)
   public:
     Selector_Reference(ParserState pstate, Selector* r = 0)
     : Simple_Selector(pstate), selector_(r)
@@ -1762,27 +1762,27 @@ namespace Sass {
       if (!selector()) return 0;
       return selector()->specificity();
     }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   /////////////////////////////////////////////////////////////////////////
   // Placeholder selectors (e.g., "%foo") for use in extend-only selectors.
   /////////////////////////////////////////////////////////////////////////
   class Selector_Placeholder : public Simple_Selector {
-    ADD_PROPERTY(string, name);
+    ADD_PROPERTY(string, name)
   public:
     Selector_Placeholder(ParserState pstate, string n)
     : Simple_Selector(pstate), name_(n)
     { has_placeholder(true); }
     // virtual Selector_Placeholder* find_placeholder();
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   /////////////////////////////////////////////////////////////////////
   // Type selectors (and the universal selector) -- e.g., div, span, *.
   /////////////////////////////////////////////////////////////////////
   class Type_Selector : public Simple_Selector {
-    ADD_PROPERTY(string, name);
+    ADD_PROPERTY(string, name)
   public:
     Type_Selector(ParserState pstate, string n)
     : Simple_Selector(pstate), name_(n)
@@ -1794,14 +1794,14 @@ namespace Sass {
       else               return Constants::Specificity_Type;
     }
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////////////////
   // Selector qualifiers -- i.e., classes and ids.
   ////////////////////////////////////////////////
   class Selector_Qualifier : public Simple_Selector {
-    ADD_PROPERTY(string, name);
+    ADD_PROPERTY(string, name)
   public:
     Selector_Qualifier(ParserState pstate, string n)
     : Simple_Selector(pstate), name_(n)
@@ -1813,16 +1813,16 @@ namespace Sass {
       else                  return Constants::Specificity_Type;
     }
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ///////////////////////////////////////////////////
   // Attribute selectors -- e.g., [src*=".jpg"], etc.
   ///////////////////////////////////////////////////
   class Attribute_Selector : public Simple_Selector {
-    ADD_PROPERTY(string, name);
-    ADD_PROPERTY(string, matcher);
-    ADD_PROPERTY(String*, value); // might be interpolated
+    ADD_PROPERTY(string, name)
+    ADD_PROPERTY(string, matcher)
+    ADD_PROPERTY(String*, value) // might be interpolated
   public:
     Attribute_Selector(ParserState pstate, string n, string m, String* v)
     : Simple_Selector(pstate), name_(n), matcher_(m), value_(v)
@@ -1831,7 +1831,7 @@ namespace Sass {
     {
       return Constants::Specificity_Attr;
     }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   //////////////////////////////////////////////////////////////////
@@ -1850,8 +1850,8 @@ namespace Sass {
   }
 
   class Pseudo_Selector : public Simple_Selector {
-    ADD_PROPERTY(string, name);
-    ADD_PROPERTY(String*, expression);
+    ADD_PROPERTY(string, name)
+    ADD_PROPERTY(String*, expression)
   public:
     Pseudo_Selector(ParserState pstate, string n, String* expr = 0)
     : Simple_Selector(pstate), name_(n), expression_(expr)
@@ -1885,15 +1885,15 @@ namespace Sass {
       return Constants::Specificity_Pseudo;
     }
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   /////////////////////////////////////////////////
   // Wrapped selector -- pseudo selector that takes a list of selectors as argument(s) e.g., :not(:first-of-type), :-moz-any(ol p.blah, ul, menu, dir)
   /////////////////////////////////////////////////
   class Wrapped_Selector : public Simple_Selector {
-    ADD_PROPERTY(string, name);
-    ADD_PROPERTY(Selector*, selector);
+    ADD_PROPERTY(string, name)
+    ADD_PROPERTY(Selector*, selector)
   public:
     Wrapped_Selector(ParserState pstate, string n, Selector* sel)
     : Simple_Selector(pstate), name_(n), selector_(sel)
@@ -1904,7 +1904,7 @@ namespace Sass {
     {
       return selector_ ? selector_->specificity() : 0;
     }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   struct Complex_Selector_Pointer_Compare {
@@ -1973,7 +1973,7 @@ namespace Sass {
     Compound_Selector* clone(Context&) const; // does not clone the Simple_Selector*s
 
     Compound_Selector* minus(Compound_Selector* rhs, Context& ctx);
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -1985,9 +1985,9 @@ namespace Sass {
   public:
     enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO };
   private:
-    ADD_PROPERTY(Combinator, combinator);
-    ADD_PROPERTY(Compound_Selector*, head);
-    ADD_PROPERTY(Complex_Selector*, tail);
+    ADD_PROPERTY(Combinator, combinator)
+    ADD_PROPERTY(Compound_Selector*, head)
+    ADD_PROPERTY(Complex_Selector*, tail)
   public:
     Complex_Selector(ParserState pstate,
                      Combinator c,
@@ -2069,7 +2069,7 @@ namespace Sass {
     Complex_Selector* clone(Context&) const;      // does not clone Compound_Selector*s
     Complex_Selector* cloneFully(Context&) const; // clones Compound_Selector*s
     // vector<Compound_Selector*> to_vector();
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   typedef deque<Complex_Selector*> ComplexSelectorDeque;
@@ -2079,9 +2079,9 @@ namespace Sass {
   ///////////////////////////////////
   class Selector_List : public Selector, public Vectorized<Complex_Selector*> {
 #ifdef DEBUG
-    ADD_PROPERTY(string, mCachedSelector);
+    ADD_PROPERTY(string, mCachedSelector)
 #endif
-    ADD_PROPERTY(vector<string>, wspace);
+    ADD_PROPERTY(vector<string>, wspace)
   protected:
     void adjust_after_pushing(Complex_Selector* c);
   public:
@@ -2100,7 +2100,7 @@ namespace Sass {
       return sum;
     }
     // vector<Complex_Selector*> members() { return elements_; }
-    ATTACH_OPERATIONS();
+    ATTACH_OPERATIONS()
   };
 
   inline bool Ruleset::is_invisible() {

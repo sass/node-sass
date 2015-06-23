@@ -19,7 +19,7 @@ namespace Sass {
   class Environment {
     // TODO: test with unordered_map
     map<string, T> local_frame_;
-    ADD_PROPERTY(Environment*, parent);
+    ADD_PROPERTY(Environment*, parent)
 
   public:
     Memory_Manager<AST_Node> mem;
