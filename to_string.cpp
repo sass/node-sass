@@ -29,6 +29,11 @@ namespace Sass {
     return s->value();
   }
 
+  inline string To_String::operator()(String_Quoted* s)
+  {
+    return s->value();
+  }
+
   inline string To_String::operator()(Null* n)
   { return ""; }
 }

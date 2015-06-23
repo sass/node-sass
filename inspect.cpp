@@ -642,9 +642,6 @@ namespace Sass {
 
   void Inspect::operator()(String_Constant* s)
   {
-    if (String_Quoted* quoted = dynamic_cast<String_Quoted*>(s)) {
-      return Inspect::operator()(quoted);
-    }
     append_token(s->value(), s);
   }
 

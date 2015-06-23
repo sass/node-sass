@@ -54,6 +54,7 @@ namespace Sass {
     virtual T operator()(Color* x)                  = 0;
     virtual T operator()(Boolean* x)                = 0;
     virtual T operator()(String_Schema* x)          = 0;
+    virtual T operator()(String_Quoted* x)          = 0;
     virtual T operator()(String_Constant* x)        = 0;
     virtual T operator()(Supports_Query* x)          = 0;
     virtual T operator()(Supports_Condition* x)= 0;
@@ -129,6 +130,7 @@ namespace Sass {
     virtual T operator()(Boolean* x)                { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(String_Schema* x)          { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(String_Constant* x)        { return static_cast<D*>(this)->fallback(x); }
+    virtual T operator()(String_Quoted* x)          { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Supports_Query* x)         { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Supports_Condition* x)     { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Media_Query* x)            { return static_cast<D*>(this)->fallback(x); }
