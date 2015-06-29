@@ -3,7 +3,10 @@
 script/branding
 
 if [ ! -d "sass-spec" ]; then
-  git clone https://github.com/sass/sass-spec.git
+  if [ -z "$SASS_SPEC_REPO" ]; then
+    SASS_SPEC_REPO=https://github.com/sass/sass-spec.git
+  fi
+  git clone $SASS_SPEC_REPO
 fi
 if [ ! -d "sassc" ]; then
   git clone https://github.com/sass/sassc.git
