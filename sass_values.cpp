@@ -322,7 +322,7 @@ extern "C" {
                 return sass_make_color(val->color.r, val->color.g, val->color.b, val->color.a);
         }   break;
         case SASS_STRING: {
-                return sass_make_string(val->string.value);
+                return sass_string_is_quoted(val) ? sass_make_qstring(val->string.value) : sass_make_string(val->string.value);
         }   break;
         case SASS_LIST: {
                 union Sass_Value* list = sass_make_list(val->list.length, val->list.separator);

@@ -29,6 +29,7 @@ namespace Sass {
     Sass_Value* operator()(Number*);
     Sass_Value* operator()(Color*);
     Sass_Value* operator()(String_Constant*);
+    Sass_Value* operator()(String_Quoted*);
     Sass_Value* operator()(List*);
     Sass_Value* operator()(Map*);
     Sass_Value* operator()(Null*);
