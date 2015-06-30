@@ -477,7 +477,7 @@ namespace Sass {
   /*
    - IMPROVEMENT: We could probably work directly in the output trimmed deque.
    */
-  static Node trim(Node& seqses, Context& ctx) {
+  static Node trim(Node& seqses, Context& ctx, bool isReplace) {
     // See the comments in the above ruby code before embarking on understanding this function.
 
     // Avoid poor performance in extreme cases.
@@ -520,7 +520,7 @@ namespace Sass {
         // had an extra source that the ruby version did not have. Without a failing test case, this is going to be extra hard to find. My
         // best guess at this point is that we're cloning an object somewhere and maintaining the sources when we shouldn't be. This is purely
         // a guess though.
-        unsigned long maxSpecificity = 0;
+        unsigned long maxSpecificity = isReplace ? pSeq1->specificity() : 0;
         SourcesSet sources = pSeq1->sources();
 
         DEBUG_PRINTLN(TRIM, "TRIMASDF SEQ1: " << seq1)
@@ -1461,7 +1461,7 @@ namespace Sass {
     Complex_Selector* pComplexSelector,
     Context& ctx,
     ExtensionSubsetMap& subset_map,
-    set<Compound_Selector> seen);
+    set<Compound_Selector> seen, bool isReplace);
 
 
 
@@ -1489,7 +1489,7 @@ namespace Sass {
     Compound_Selector* pSelector,
     Context& ctx,
     ExtensionSubsetMap& subset_map,
-    set<Compound_Selector> seen) {
+    set<Compound_Selector> seen, bool isReplace) {
 
     DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelector, "EXTEND COMPOUND: "))
 
@@ -1629,7 +1629,7 @@ namespace Sass {
 
 
       DEBUG_PRINTLN(EXTEND_COMPOUND, "RECURSING DO EXTEND: " << complexSelectorToNode(pNewSelector, ctx))
-      Node recurseExtendedSelectors = extendComplexSelector(pNewSelector, ctx, subset_map, recurseSeen);
+      Node recurseExtendedSelectors = extendComplexSelector(pNewSelector, ctx, subset_map, recurseSeen, isReplace);
 
       DEBUG_PRINTLN(EXTEND_COMPOUND, "RECURSING DO EXTEND RETURN: " << recurseExtendedSelectors)
 
@@ -1740,7 +1740,7 @@ namespace Sass {
     Complex_Selector* pComplexSelector,
     Context& ctx,
     ExtensionSubsetMap& subset_map,
-    set<Compound_Selector> seen) {
+    set<Compound_Selector> seen, bool isReplace) {
 
     Node complexSelector = complexSelectorToNode(pComplexSelector, ctx);
     DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTEND COMPLEX: " << complexSelector)
@@ -1766,7 +1766,7 @@ namespace Sass {
 
       Compound_Selector* pCompoundSelector = sseqOrOp.selector()->head();
 
-      Node extended = extendCompoundSelector(pCompoundSelector, ctx, subset_map, seen);
+      Node extended = extendCompoundSelector(pCompoundSelector, ctx, subset_map, seen, isReplace);
       if (sseqOrOp.got_line_feed) extended.got_line_feed = true;
       DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTENDED: " << extended)
 
@@ -1824,7 +1824,7 @@ namespace Sass {
 
 
     // Ruby Equivalent: trim
-    Node trimmed = trim(weaves, ctx);
+    Node trimmed = trim(weaves, ctx, isReplace);
 
     DEBUG_PRINTLN(EXTEND_COMPLEX, "TRIMMED: " << trimmed)
 
@@ -1871,7 +1871,7 @@ namespace Sass {
 
       set<Compound_Selector> seen;
 
-      Node extendedSelectors = extendComplexSelector(pSelector, ctx, subset_map, seen);
+      Node extendedSelectors = extendComplexSelector(pSelector, ctx, subset_map, seen, isReplace);
       if (!pSelector->has_placeholder()) {
         if (!extendedSelectors.contains(complexSelectorToNode(pSelector, ctx), true /*simpleSelectorOrderDependent*/)) {
           *pNewSelectors << pSelector;
