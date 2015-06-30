@@ -465,6 +465,7 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
       " [delayed: " << expression->is_delayed() << "] " <<
       " [interpolant: " << expression->is_interpolant() << "] " <<
       " [arglist: " << expression->is_arglist() << "] " <<
+      " [hash: " << expression->hash() << "] " <<
       endl;
     for(auto i : expression->elements()) { debug_ast(i, ind + " ", env); }
   } else if (dynamic_cast<Content*>(node)) {
