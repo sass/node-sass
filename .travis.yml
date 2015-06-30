@@ -23,10 +23,6 @@ env:
   - AUTOTOOLS=no COVERAGE=yes BUILD=static
   - AUTOTOOLS=yes COVERAGE=no BUILD=shared
 
-global:
-  - SASS_SPEC_REPO=https://github.com/sass/sass-spec.git
-  - SASS_SPEC_REPO_GITLOC=master
-
 # currenty there are various issues when
 # built with coverage, clang and autotools
 # - AUTOTOOLS=yes COVERAGE=yes BUILD=shared

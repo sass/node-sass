@@ -2,16 +2,4 @@
 
 script/bootstrap
 
-SASS_SPEC_REPO_GITLOC ?= master
-
-if [ -z "$SASS_SPEC_REPO_GITLOC" ]; then
-  SASS_SPEC_REPO_GITLOC=master
-fi
-
-echo "======================================================================"
-echo "Checking out sass-spec @ $SASS_SPEC_REPO_GITLOC"
-echo "======================================================================"
-
-(cd $SASS_SPEC_PATH; git checkout $SASS_SPEC_REPO_GITLOC)
-
 make $MAKE_OPTS test_build
