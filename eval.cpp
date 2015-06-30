@@ -1453,9 +1453,14 @@ namespace Sass {
       if (s->tail()) {
         Selector_List* tails = operator()(s->tail());
         for (size_t m = 0, mL = tails->length(); m < mL; ++m) {
-          Complex_Selector* ss = new (ctx.mem) Complex_Selector(*s);
-          ss->tail((*tails)[m]);
-          *sl << ss;
+          Complex_Selector* tailm = (*tails)[m];
+          if(head && head->is_superselector_of(tailm)) {
+            *sl << s;
+          } else {
+            Complex_Selector *ss = new(ctx.mem) Complex_Selector(*s);
+            ss->tail(tailm);
+            *sl << ss;
+          }
         }
       }
       else {
