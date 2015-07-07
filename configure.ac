@@ -13,10 +13,13 @@ AC_CONFIG_AUX_DIR([script])
 # Though they look like gcc flags!
 AM_INIT_AUTOMAKE([foreign parallel-tests -Wall])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([no])])
+# would fail with mingw otherwise
+m4_pattern_allow([AM_PROG_AR])
 
 # Checks for programs.
 AC_PROG_CXX
 AC_LANG([C++])
+AM_PROG_AR([])
 LT_INIT([dlopen])
 
 # Checks for header files.

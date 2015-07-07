@@ -5,6 +5,10 @@
 #include <string>
 #include <sstream>
 
+#ifdef __sun
+#undef SEC
+#endif
+
 namespace Sass {
   using namespace std;
 
@@ -59,9 +63,9 @@ namespace Sass {
   extern const double frequency_conversion_factors[2][2];
   extern const double resolution_conversion_factors[3][3];
 
-  SassUnit string_to_unit(const string&);
+  enum SassUnit string_to_unit(const string&);
   const char* unit_to_string(SassUnit unit);
-  SassUnitType get_unit_type(SassUnit unit);
+  enum SassUnitType get_unit_type(SassUnit unit);
   // throws incompatibleUnits exceptions
   double conversion_factor(const string&, const string&);
 
