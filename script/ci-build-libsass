@@ -74,11 +74,55 @@ echo successfully compiled libsass
 echo AUTOTOOLS=$AUTOTOOLS COVERAGE=$COVERAGE BUILD=$BUILD
 
 if [ "x$PREFIX" == "x" ]; then
-	if [ "x$TRAVIS_BUILD_DIR" == "x" ]; then
-		PREFIX=/usr/local
-	else
-		PREFIX=$TRAVIS_BUILD_DIR
-	fi
+  if [ "x$TRAVIS_BUILD_DIR" == "x" ]; then
+    PREFIX=/usr/local
+  else
+    PREFIX=$TRAVIS_BUILD_DIR
+  fi
 fi
 
-LD_LIBRARY_PATH="$PREFIX/lib/" script/spec
+if [ "$CONTINUOUS_INTEGRATION" == "true" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ "$TRAVIS_OS_NAME" == "linux" ];
+then
+  echo "Downloading jq"
+
+  curl http://stedolan.github.io/jq/download/linux64/jq > jq
+  chmod +x jq
+
+  echo "Fetching PR $TRAVIS_PULL_REQUEST"
+
+  JSON=$(curl -u xzyfer:882aeec2a5b847b7d67c61d7788c2721f011e2ea -sS https://api.github.com/repos/sass/libsass/pulls/$TRAVIS_PULL_REQUEST)
+
+  SPEC_PR=$(echo $JSON | jq -r .body)
+
+  BLAH="sass\/sass-spec(#|\/pull\/)([0-9]+)"
+
+  if [[ $SPEC_PR =~ $BLAH ]];
+  then
+    SPEC_PR="${BASH_REMATCH[2]}"
+
+    echo "Fetching Sass Spec PR $SPEC_PR"
+
+    JSON=$(curl -u xzyfer:882aeec2a5b847b7d67c61d7788c2721f011e2ea -sS https://api.github.com/repos/sass/sass-spec/pulls/$SPEC_PR)
+
+    SPEC_REMOTE=$(echo $JSON | jq -r .head.repo.clone_url)
+    SPEC_SHA=$(echo $JSON | jq -r .head.sha)
+
+    echo "Cloning $SPEC_REMOTE"
+
+    git clone $SPEC_REMOTE sass-spec-pr
+
+    echo "Checking out $SPEC_SHA"
+
+    cd sass-spec-pr
+    git checkout $SPEC_SHA
+
+    echo "Re-running Sass Spec"
+
+    cd ..
+    SASS_SPEC_PATH="sass-spec-pr" LD_LIBRARY_PATH="$PREFIX/lib/" make $MAKE_OPTS test_build
+  else
+    LD_LIBRARY_PATH="$PREFIX/lib/" script/spec
+  fi
+else
+  LD_LIBRARY_PATH="$PREFIX/lib/" script/spec
+fi
