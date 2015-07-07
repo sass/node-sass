@@ -47,7 +47,7 @@ struct sass_options {
 struct sass_context {
   const char* input_path;
   const char* output_path;
-  const char* source_string;
+  char* source_string;
   char* output_string;
   char* source_map_string;
   struct sass_options options;

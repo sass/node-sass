@@ -37,11 +37,13 @@ namespace Sass {
 
     struct Sass_Options* c_options;
     struct Sass_Compiler* c_compiler;
-    const char* source_c_str;
+    char* source_c_str;
 
     // c-strs containing Sass file contents
     // we will overtake ownership of memory
-    vector<const char*> sources;
+    vector<char*> sources;
+    // strings get freed with context
+    vector<char*> strings;
     // absolute paths to includes
     vector<string> included_files;
     // relative links to includes
@@ -87,7 +89,7 @@ namespace Sass {
     KWD_ARG_SET(Data) {
       KWD_ARG(Data, struct Sass_Options*, c_options)
       KWD_ARG(Data, struct Sass_Compiler*, c_compiler)
-      KWD_ARG(Data, const char*,     source_c_str)
+      KWD_ARG(Data, char*,           source_c_str)
       KWD_ARG(Data, string,          entry_point)
       KWD_ARG(Data, string,          input_path)
       KWD_ARG(Data, string,          output_path)
@@ -117,7 +119,7 @@ namespace Sass {
 
     Block* parse_file();
     Block* parse_string();
-    void add_source(string, string, const char*);
+    void add_source(string, string, char*);
 
     string add_file(const string& file);
     string add_file(const string& base, const string& file);
