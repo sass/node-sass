@@ -668,12 +668,15 @@ namespace Sass {
       bool nominator = true;
       while (true) {
         r = u.find_first_of("*/", l);
-        string unit(u.substr(l, r - l));
+        string unit(u.substr(l, r == string::npos ? r : r - l));
         if (nominator) numerator_units_.push_back(unit);
         else denominator_units_.push_back(unit);
-        if (u[r] == '/') nominator = false;
         if (r == string::npos) break;
-        else l = r + 1;
+        // ToDo: should error for multiple slashes
+        // if (!nominator && u[r] == '/') error(...)
+        if (u[r] == '/')
+          nominator = false;
+        l = r + 1;
       }
     }
     concrete_type(NUMBER);
