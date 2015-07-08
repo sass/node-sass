@@ -448,6 +448,7 @@ namespace Sass {
         zero_plus <
           alternatives <
             alnum,
+            interpolant,
             exactly <'/'>,
             class_char < uri_chars >
           >
