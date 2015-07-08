@@ -142,9 +142,7 @@ namespace Sass {
           break;
         }
         // otherwise move one of the rest args into the param, converting to argument if necessary
-        if (arglist->is_arglist()) {
-          a = static_cast<Argument*>((*arglist)[0]);
-        } else {
+        if (!(a = dynamic_cast<Argument*>((*arglist)[0]))) {
           Expression* a_to_convert = (*arglist)[0];
           a = new (ctx.mem) Argument(a_to_convert->pstate(),
                                      a_to_convert,
