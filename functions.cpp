@@ -822,7 +822,7 @@ namespace Sass {
         error(msg, pstate, backtrace);
       }
       catch (...) { throw; }
-      // return something even if we had an error (-1)
+      // handle any invalid utf8 errors
       return new (ctx.mem) Number(pstate, len);
     }
 
@@ -913,7 +913,7 @@ namespace Sass {
         error(msg, pstate, backtrace);
       }
       catch (...) { throw; }
-      // return something even if we had an error (-1)
+      // handle any invalid utf8 errors
       return new (ctx.mem) Number(pstate, index);
     }
 
@@ -1389,9 +1389,6 @@ namespace Sass {
       if (v->concrete_type() == Expression::STRING) {
         To_String to_string(&ctx);
         string str(v->perform(&to_string));
-        if (ctx.names_to_colors.count(str)) {
-          return new (ctx.mem) String_Constant(pstate, "color");
-        }
       }
       return new (ctx.mem) String_Constant(pstate, ARG("$value", Expression)->type());
     }
