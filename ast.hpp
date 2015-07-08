@@ -53,6 +53,17 @@
 namespace Sass {
   using namespace std;
 
+  // from boost (functional/hash):
+  // http://www.boost.org/doc/libs/1_35_0/doc/html/hash/combine.html
+  // Boost Software License - Version 1.0
+  // http://www.boost.org/users/license.html
+  template <typename T>
+  void hash_combine (std::size_t& seed, const T& val)
+  {
+    seed ^= std::hash<T>()(val) + 0x9e3779b9
+             + (seed<<6) + (seed>>2);
+  }
+
   //////////////////////////////////////////////////////////
   // Abstract base class for all abstract syntax tree nodes.
   //////////////////////////////////////////////////////////
@@ -137,7 +148,7 @@ namespace std {
   {
     bool operator()( Sass::Expression* lhs,  Sass::Expression* rhs) const
     {
-      return *lhs == *rhs;
+      return lhs->hash() == rhs->hash();
     }
   };
 }
@@ -768,7 +779,7 @@ namespace Sass {
       hash_ = std::hash<string>()(separator() == COMMA ? "comma" : "space");
 
       for (size_t i = 0, L = length(); i < L; ++i)
-        hash_ ^= (elements()[i])->hash();
+        hash_combine(hash_, (elements()[i])->hash());
 
       return hash_;
     }
@@ -819,8 +830,10 @@ namespace Sass {
     {
       if (hash_ > 0) return hash_;
 
-      for (auto key : keys())
-        hash_ ^= key->hash() ^ at(key)->hash();
+      for (auto key : keys()) {
+        hash_combine(hash_, key->hash());
+        hash_combine(hash_, at(key)->hash());
+      }
 
       return hash_;
     }
@@ -1085,7 +1098,7 @@ namespace Sass {
 
       hash_ = std::hash<string>()(name());
       for (auto argument : arguments()->elements())
-        hash_ ^= argument->hash();
+        hash_combine(hash_, argument->hash());
 
       return hash_;
     }
@@ -1347,7 +1360,7 @@ namespace Sass {
       if (hash_ > 0) return hash_;
 
       for (auto string : elements())
-        hash_ ^= string->hash();
+        hash_combine(hash_, string->hash());
 
       return hash_;
     }
