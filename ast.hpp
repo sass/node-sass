@@ -492,12 +492,15 @@ namespace Sass {
   class Import : public Statement {
     vector<string>         files_;
     vector<Expression*>    urls_;
+    ADD_PROPERTY(List*, media_queries);
   public:
     Import(ParserState pstate)
     : Statement(pstate),
-      files_(vector<string>()), urls_(vector<Expression*>())
+      files_(vector<string>()),
+      urls_(vector<Expression*>()),
+      media_queries_(0)
     { }
-    vector<string>&         files() { return files_; }
+    vector<string>&      files()    { return files_; }
     vector<Expression*>& urls()     { return urls_; }
     ATTACH_OPERATIONS()
   };
