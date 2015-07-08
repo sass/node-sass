@@ -221,10 +221,8 @@ namespace Sass {
     q->perform(this);
     append_scope_opener();
 
-    Selector* e = f->selector();
-    if (e && b->has_non_hoistable()) {
+    if (b->has_non_hoistable()) {
       // JMA - hoisted, output the non-hoistable in a nested block, followed by the hoistable
-      e->perform(this);
       append_scope_opener();
 
       for (size_t i = 0, L = b->length(); i < L; ++i) {

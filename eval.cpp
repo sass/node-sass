@@ -829,12 +829,7 @@ namespace Sass {
 
   Expression* Eval::operator()(Number* n)
   {
-    n->normalize();
-    // behave according to as ruby sass (add leading zero)
-    return new (ctx.mem) Number(n->pstate(),
-                                n->value(),
-                                n->unit(),
-                                true);
+    return n;
   }
 
   Expression* Eval::operator()(Boolean* b)
@@ -1109,8 +1104,11 @@ namespace Sass {
       } break;
 
       case Expression::NUMBER: {
-        return *static_cast<Number*>(lhs) ==
-               *static_cast<Number*>(rhs);
+        Number* l = static_cast<Number*>(lhs);
+        Number* r = static_cast<Number*>(rhs);
+        return (l->value() == r->value()) &&
+               (l->numerator_units() == r->numerator_units()) &&
+               (l->denominator_units() == r->denominator_units());
       } break;
 
       case Expression::COLOR: {

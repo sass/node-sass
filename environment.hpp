@@ -1,9 +1,9 @@
 #ifndef SASS_ENVIRONMENT_H
 #define SASS_ENVIRONMENT_H
 
-#include <map>
 #include <string>
 #include <iostream>
+#include <unordered_map>
 
 #include "ast_fwd_decl.hpp"
 #include "ast_def_macros.hpp"
@@ -11,19 +11,21 @@
 
 namespace Sass {
   using std::string;
-  using std::map;
+  using std::unordered_map;
   using std::cerr;
   using std::endl;
 
   template <typename T>
   class Environment {
     // TODO: test with unordered_map
-    map<string, T> local_frame_;
+    unordered_map<string, T> local_frame_;
     ADD_PROPERTY(Environment*, parent)
 
   public:
     Memory_Manager<AST_Node> mem;
-    Environment() : local_frame_(map<string, T>()), parent_(0) { }
+    Environment() : local_frame_(unordered_map<string, T>()), parent_(0) { }
+    Environment(Environment* env) : local_frame_(unordered_map<string, T>()), parent_(env) { }
+    Environment(Environment& env) : local_frame_(unordered_map<string, T>()), parent_(&env) { }
 
     // link parent to create a stack
     void link(Environment& env) { parent_ = &env; }
@@ -47,12 +49,12 @@ namespace Sass {
 
     // scope operates on the current frame
 
-    map<string, T>& local_frame() {
+    unordered_map<string, T>& local_frame() {
       return local_frame_;
     }
 
     bool has_local(const string& key) const
-    { return local_frame_.count(key); }
+    { return local_frame_.find(key) != local_frame_.end(); }
 
     T& get_local(const string& key)
     { return local_frame_[key]; }
@@ -147,7 +149,7 @@ namespace Sass {
     #ifdef DEBUG
     void print()
     {
-      for (typename map<string, T>::iterator i = local_frame_.begin(); i != local_frame_.end(); ++i) {
+      for (typename unordered_map<string, T>::iterator i = local_frame_.begin(); i != local_frame_.end(); ++i) {
         cerr << i->first << endl;
       }
       if (parent_) {

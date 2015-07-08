@@ -1698,7 +1698,7 @@ namespace Sass {
   /////////////////////////////////////////
   // Abstract base class for CSS selectors.
   /////////////////////////////////////////
-  class Selector : public AST_Node {
+  class Selector : public Expression {
     ADD_PROPERTY(bool, has_reference)
     ADD_PROPERTY(bool, has_placeholder)
     // line break before list separator
@@ -1712,14 +1712,14 @@ namespace Sass {
     ADD_PROPERTY(Media_Block*, media_block)
   public:
     Selector(ParserState pstate, bool r = false, bool h = false)
-    : AST_Node(pstate),
+    : Expression(pstate),
       has_reference_(r),
       has_placeholder_(h),
       has_line_feed_(false),
       has_line_break_(false),
       is_optional_(false),
       media_block_(0)
-    { }
+    { concrete_type(SELECTOR); }
     virtual ~Selector() = 0;
     // virtual Selector_Placeholder* find_placeholder();
     virtual unsigned long specificity() {
