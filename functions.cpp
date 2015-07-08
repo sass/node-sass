@@ -969,9 +969,12 @@ namespace Sass {
       }
 
       if (String_Quoted* ss = dynamic_cast<String_Quoted*>(s)) {
-        str = ss->quote_mark() ? quote(str) : str;
+        String_Quoted* cpy = new (ctx.mem) String_Quoted(*ss);
+        cpy->value(str);
+        return cpy;
+      } else {
+        return new (ctx.mem) String_Constant(pstate, str);
       }
-      return new (ctx.mem) String_Constant(pstate, str);
     }
 
     Signature to_lower_case_sig = "to-lower-case($string)";
@@ -987,9 +990,12 @@ namespace Sass {
       }
 
       if (String_Quoted* ss = dynamic_cast<String_Quoted*>(s)) {
-        str = ss->quote_mark() ? quote(str, '"') : str;
+        String_Quoted* cpy = new (ctx.mem) String_Quoted(*ss);
+        cpy->value(str);
+        return cpy;
+      } else {
+        return new (ctx.mem) String_Constant(pstate, str);
       }
-      return new (ctx.mem) String_Constant(pstate, str);
     }
 
     ///////////////////
