@@ -110,9 +110,9 @@ namespace Sass {
         semicolon = true;
         error_message = "top-level variable binding must be terminated by ';'";
       }
-      /*else if (peek< sequence< optional< exactly<'*'> >, alternatives< identifier_schema, identifier >, optional_spaces, exactly<':'>, optional_spaces, exactly<'{'> > >(position)) {
-        (*root) << parse_propset();
-      }*/
+      // parse comment blocks
+
+
       else if (peek< kwd_include >() /* || peek< exactly<'+'> >() */) {
         Mixin_Call* mixin_call = parse_mixin_call();
         (*root) << mixin_call;
@@ -467,29 +467,7 @@ namespace Sass {
     return var;
   }
 
-  /* not used anymore - remove?
-  Propset* Parser::parse_propset()
-  {
-    String* property_segment;
-    if (peek< sequence< optional< exactly<'*'> >, identifier_schema > >()) {
-      property_segment = parse_identifier_schema();
-    }
-    else {
-      lex< sequence< optional< exactly<'*'> >, identifier > >();
-      property_segment = new (ctx.mem) String_Quoted(pstate, lexed);
-    }
-    Propset* propset = new (ctx.mem) Propset(pstate, property_segment);
-    lex< exactly<':'> >();
-
-    if (!peek< exactly<'{'> >()) error("expected a '{' after namespaced property", pstate);
-
-    propset->block(parse_block());
-
-    propset->tabs(indentation);
-
-    return propset;
-  } */
-
+  // a ruleset connects a selector and a block
   Ruleset* Parser::parse_ruleset(Selector_Lookahead lookahead)
   {
     Selector* sel;
@@ -521,13 +499,13 @@ namespace Sass {
     const char* i = position;
     // selector schema re-uses string schema implementation
     String_Schema* schema = new (ctx.mem) String_Schema(pstate);
-    // process until end
+    // the selector schema is pretty much just a wrapper for the string schema
     while (i < end_of_selector) {
       // try to parse mutliple interpolants
       if (const char* p = find_first_in_interval< exactly<hash_lbrace> >(i, end_of_selector)) {
         // accumulate the preceding segment if the position has advanced
         if (i < p) (*schema) << new (ctx.mem) String_Quoted(pstate, string(i, p));
-        // skip to the delimiter by skipping occurences in quoted strings
+        // check if the interpolation only contains white-space (error out)
         if (peek < sequence < optional_spaces, exactly<rbrace> > >(p+2)) { position = p+2;
           css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
         }
@@ -625,7 +603,7 @@ namespace Sass {
           exactly<'~'>,
           exactly<'>'>
         > >())
-    // no selector before the combinator
+    // parse the left hand side
     { lhs = 0; }
     else {
       lhs = parse_simple_selector_sequence();
@@ -649,7 +627,7 @@ namespace Sass {
                 exactly<';'>,
                 optional
         > >())
-    // no selector after the combinator
+    // parse combinator between lhs and rhs
     { rhs = 0; }
     else {
       rhs = parse_selector_combination();
@@ -670,22 +648,22 @@ namespace Sass {
     seq->last_block(block_stack.back());
     bool sawsomething = false;
     if (lex_css< exactly<'&'> >()) {
-      // check if we have a parent selector on the root level block
+      // remove all block comments (don't skip white-space)
       if (block_stack.back() && block_stack.back()->is_root()) {
-        //error("Base-level rules cannot contain the parent-selector-referencing character '&'.", pstate);
+        // this produces a linefeed!?
       }
       (*seq) << new (ctx.mem) Selector_Reference(pstate);
       sawsomething = true;
-      // if you see a space after a &, then you're done
+      // parse type selector
       if(peek< spaces >() || peek< alternatives < spaces, exactly<';'> > >()) {
         return seq;
       }
     }
     if (sawsomething && lex_css< sequence< negate< functional >, alternatives< identifier_alnums, universal, quoted_string, dimension, percentage, number > > >()) {
-      // saw an ampersand, then allow type selectors with arbitrary number of hyphens at the beginning
+      // peek for abort conditions
       (*seq) << new (ctx.mem) Type_Selector(pstate, unquote(lexed));
     } else if (lex_css< sequence< negate< functional >, alternatives< type_selector, universal, quoted_string, dimension, percentage, number > > >()) {
-      // if you see a type selector
+      // otherwise parse another simple selector
       (*seq) << new (ctx.mem) Type_Selector(pstate, lexed);
       sawsomething = true;
     }
@@ -740,7 +718,7 @@ namespace Sass {
     else {
       error("invalid selector after " + lexed.to_string(), pstate);
     }
-    // unreachable statement
+    // failed
     return 0;
   }
 
@@ -1027,7 +1005,7 @@ namespace Sass {
     if (!lex_css< one_plus< exactly<':'> > >()) error("property \"" + property + "\" must be followed by a ':'", pstate);
     if (peek_css< exactly<';'> >()) error("style declaration must contain a value", pstate);
     if (peek_css< static_value >()) {
-      return new (ctx.mem) Declaration(prop->pstate(), prop, parse_static_value()/*, lex<important>()*/);
+      return new (ctx.mem) Declaration(prop->pstate(), prop, parse_static_value()/*, lex<kwd_important>()*/);
     }
     else {
       Expression* value;
@@ -1145,7 +1123,7 @@ namespace Sass {
         > >(position))
     { return new (ctx.mem) List(pstate, 0); }
     Expression* list1 = parse_space_list();
-    // if it's a singleton, return it directly; don't wrap it
+    // now try to parse a space list
     if (!peek_css< exactly<','> >(position)) return list1;
 
     List* comma_list = new (ctx.mem) List(pstate, 2, List::COMMA);
@@ -1173,7 +1151,7 @@ namespace Sass {
   Expression* Parser::parse_space_list()
   {
     Expression* disj1 = parse_disjunction();
-    // if it's a singleton, return it directly; don't wrap it
+    // if it's a singleton, return it (don't wrap it)
     if (peek_css< alternatives <
           // exactly<'!'>,
           exactly<';'>,
@@ -1213,7 +1191,7 @@ namespace Sass {
   Expression* Parser::parse_disjunction()
   {
     Expression* conj1 = parse_conjunction();
-    // if it's a singleton, return it directly; don't wrap it
+    // parse the left hand side conjunction
     if (!peek_css< kwd_or >()) return conj1;
 
     vector<Expression*> operands;
@@ -1226,7 +1204,7 @@ namespace Sass {
   Expression* Parser::parse_conjunction()
   {
     Expression* rel1 = parse_relation();
-    // if it's a singleton, return it directly; don't wrap it
+    // parse the left hand side relation
     if (!peek_css< kwd_and >()) return rel1;
 
     vector<Expression*> operands;
@@ -1239,7 +1217,7 @@ namespace Sass {
   Expression* Parser::parse_relation()
   {
     Expression* expr1 = parse_expression();
-    // if it's a singleton, return it directly; don't wrap it
+    // parse the left hand side expression
     if (!(peek< alternatives <
             kwd_eq,
             kwd_neq,
@@ -1267,7 +1245,7 @@ namespace Sass {
   Expression* Parser::parse_expression()
   {
     Expression* term1 = parse_term();
-    // if it's a singleton, return it directly; don't wrap it
+    // if it's a singleton, return it (don't wrap it)
     if (!(peek< exactly<'+'> >(position) ||
           (peek< no_spaces >(position) && peek< sequence< negate< unsigned_number >, exactly<'-'>, negate< space > > >(position)) ||
           (peek< sequence< negate< unsigned_number >, exactly<'-'>, negate< unsigned_number > > >(position))) ||
@@ -1292,7 +1270,7 @@ namespace Sass {
       String_Schema* ss = dynamic_cast<String_Schema*>(factor);
       if (ss && ss->has_interpolants()) return factor;
     }
-    // if it's a singleton, return it directly; don't wrap it
+    // if it's a singleton, return it (don't wrap it)
     if (!peek< class_char< static_ops > >(position)) return factor;
     return parse_operators(factor);
   }
@@ -1641,36 +1619,6 @@ namespace Sass {
     }
     return schema;
   }
-
-  /* not used anymore - remove?
-  String_Schema* Parser::parse_url_schema()
-  {
-    String_Schema* schema = new (ctx.mem) String_Schema(pstate);
-
-    while (position < end) {
-      if (position[0] == '/') {
-        lexed = Token(position, position+1, before_token);
-        (*schema) << new (ctx.mem) String_Quoted(pstate, lexed);
-        ++position;
-      }
-      else if (lex< interpolant >()) {
-        Token insides(Token(lexed.begin + 2, lexed.end - 1, before_token));
-        Expression* interp_node = Parser::from_token(insides, ctx, pstate).parse_list();
-        interp_node->is_interpolant(true);
-        (*schema) << interp_node;
-      }
-      else if (lex< sequence< identifier, exactly<':'> > >()) {
-        (*schema) << new (ctx.mem) String_Quoted(pstate, lexed);
-      }
-      else if (lex< filename >()) {
-        (*schema) << new (ctx.mem) String_Quoted(pstate, lexed);
-      }
-      else {
-        error("error parsing interpolated url", pstate);
-      }
-    }
-    return schema;
-  } */
 
   // this parses interpolation outside other strings
   // means the result must not be quoted again later
