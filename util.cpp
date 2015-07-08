@@ -216,11 +216,14 @@ namespace Sass {
   string string_to_output(const string& str)
   {
     string out("");
+    bool lf = false;
     for (auto i : str) {
       if (i == 10) {
         out += ' ';
-      } else {
+        lf = true;
+      } else if (!(lf && isspace(i))) {
         out += i;
+        lf = false;
       }
     }
     return out;
