@@ -342,7 +342,7 @@ var result = sass.renderSync({
     // OR
     var result = someSyncFunction(url, prev);
     return {file: result.path, contents: result.data};
-  },
+  }
 }));
 
 console.log(result.css);
