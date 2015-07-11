@@ -5,8 +5,6 @@ This document covers some common node-sass issues and how to resolve them. You s
 ## TOC
 
 - [Installation problems](#installation-problems)
-  - ["Module did not self-register"](#module-did-not-self-register)
-    - [Windows](#windows)
   - [Assertion failed: (handle->flags & UV_CLOSING), function uv__finish_close](#assertion-failed-handle-flags-&-uv_closing-function-uv__finish_close)
   - [Cannot find module '/root/<...>/install.js'](#cannot-find-module-rootinstalljs)
     - [Linux](#linux)
@@ -14,25 +12,10 @@ This document covers some common node-sass issues and how to resolve them. You s
   - [Which node runtime am I using?](#which-node-runtime-am-i-using)
   - [Which version of node am I using?](#which-version-of-node-am-i-using)
   - [Debugging installation issues.](#debugging-installation-issues)
-    - [Windows](#windows-1)
+    - [Windows](#windows)
     - [Linux/OSX](#linuxosx)
 
 ## Installation problems
-
-### "Module did not self-register"
-
-#### Windows
-
-This can happen if you are using io.js rather than node. Unfortunately this issue is due to an [issue with a library](https://github.com/iojs/io.js/issues/751) we depend on and such is currently out of our control. The problem is a side effect of iojs aliasing the `node.exe` binary to itself.
-
-To work around this now be sure to execute your node commands using `iojs` instead of `node` i.e.
-
-```sh
-$ iojs ./node_modules/.bin/node-sass --version
-```
-
-If this didn't solve your problem please open an issue with the output from [our debugging script](#debugging-installation-issues).
-
 
 ### Assertion failed: (handle->flags & UV_CLOSING), function uv__finish_close
 
@@ -85,7 +68,7 @@ The resulting value the version you are running.
 
 ### Debugging installation issues.
 
-Node sass runs some install scripts to make it as easy to use as possible, but some times there can be issues. Before opening a new issue please follow the instructions for [Windows](#windows-1) or [Linux/OSX](#linuxosx) and provide their output in you [GitHub issue](https://github.com/sass/node-sass/issues).
+Node sass runs some install scripts to make it as easy to use as possible, but some times there can be issues. Before opening a new issue please follow the instructions for [Windows](#windows) or [Linux/OSX](#linuxosx) and provide their output in you [GitHub issue](https://github.com/sass/node-sass/issues).
 
 **Remember to always search before opening a new issue**.
 
