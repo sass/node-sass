@@ -14,6 +14,7 @@ This document covers some common node-sass issues and how to resolve them. You s
   - [Debugging installation issues.](#debugging-installation-issues)
     - [Windows](#windows)
     - [Linux/OSX](#linuxosx)
+- [Using node-sass with Visual Studio 2015 Task Runner.](#using-node-sass-with-visual-studio-2015-task-runner)
 
 ## Installation problems
 
@@ -194,3 +195,9 @@ node -p "console.log(require('node-sass').info)"
 ```
 
 If this still produces an error please open an issue with the output from these steps.
+
+### Using node-sass with Visual Studio 2015 Task Runner.
+
+If you are using node-sass with VS2015 Task Runner Explorer, you need to make sure that the version of node.js (or io.js) is same as the one you installed node-sass with. This is because for each node.js runtime modules version (`node -p process.versions.modules`), we have a separate build of native binary. See [#532](https://github.com/sass/node-sass/issues/532).
+
+Alternatively, if you prefer using system-installed node.js (supposedly higher version than one bundles with VS2015), you may want to point Visual Studio 2015 to use it for task runner jobs by following the guidelines available at: http://blogs.msdn.com/b/webdev/archive/2015/03/19/customize-external-web-tools-in-visual-studio-2015.aspx.
