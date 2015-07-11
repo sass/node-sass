@@ -52,22 +52,22 @@
     "chalk": "^1.0.0",
     "gaze": "^0.5.1",
     "get-stdin": "^4.0.1",
-    "glob": "^5.0.3",
-    "meow": "^3.1.0",
-    "mkdirp": "^0.5.0",
+    "glob": "^5.0.13",
+    "meow": "^3.3.0",
+    "mkdirp": "^0.5.1",
     "nan": "^1.8.4",
-    "npmconf": "^2.1.1",
-    "pangyp": "^2.2.0",
-    "request": "^2.55.0",
+    "npmconf": "^2.1.2",
+    "pangyp": "^2.2.1",
+    "request": "^2.58.0",
     "sass-graph": "^2.0.0"
   },
   "devDependencies": {
     "coveralls": "^2.11.2",
-    "cross-spawn": "^0.2.8",
+    "cross-spawn": "^1.0.3",
     "jscoverage": "^0.5.9",
-    "jshint": "^2.6.3",
-    "mocha": "^2.2.1",
+    "jshint": "^2.8.0",
+    "mocha": "^2.2.5",
     "mocha-lcov-reporter": "^0.0.2",
-    "rimraf": "^2.3.2"
+    "rimraf": "^2.4.1"
   }
 }
