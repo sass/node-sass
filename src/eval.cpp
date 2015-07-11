@@ -1118,7 +1118,8 @@ namespace Sass {
     }
 
     Number tmp(r);
-    tmp.normalize(l.find_convertible_unit());
+    bool strict = op != Sass_OP::MUL && op != Sass_OP::DIV;
+    tmp.normalize(l.find_convertible_unit(), strict);
     string l_unit(l.unit());
     string r_unit(tmp.unit());
     if (l_unit != r_unit && !l_unit.empty() && !r_unit.empty() &&

@@ -1193,8 +1193,8 @@ namespace Sass {
     string unit() const;
 
     bool is_unitless();
-    void convert(const string& unit = "");
-    void normalize(const string& unit = "");
+    void convert(const string& unit = "", bool strict = false);
+    void normalize(const string& unit = "", bool strict = false);
     // useful for making one number compatible with another
     string find_convertible_unit() const;
 

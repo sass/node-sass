@@ -18,6 +18,24 @@ namespace Sass {
     return n->perform(this);
   }
 
+  void Output::operator()(Number* n)
+  {
+    // use values to_string facility
+    To_String to_string(ctx);
+    string res = n->perform(&to_string);
+    // check for a valid unit here
+    // includes result for reporting
+    if (n->numerator_units().size() > 1 ||
+        n->denominator_units().size() > 0 ||
+        (n->numerator_units().size() && n->numerator_units()[0].find_first_of('/') != string::npos) ||
+        (n->numerator_units().size() && n->numerator_units()[0].find_first_of('*') != string::npos)
+    ) {
+      error(res + " isn't a valid CSS value.", n->pstate());
+    }
+    // output the final token
+    append_token(res, n);
+  }
+
   void Output::operator()(Import* imp)
   {
     top_nodes.push_back(imp);
