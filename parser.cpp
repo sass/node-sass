@@ -1753,7 +1753,7 @@ namespace Sass {
     ParserState if_source_position = pstate;
     Expression* predicate = parse_list();
     predicate->is_delayed(false);
-    Block* consequent = parse_block();
+    Block* block = parse_block();
     Block* alternative = 0;
 
     if (lex< elseif_directive >()) {
@@ -1763,7 +1763,7 @@ namespace Sass {
     else if (lex< kwd_else_directive >()) {
       alternative = parse_block();
     }
-    return new (ctx.mem) If(if_source_position, predicate, consequent, alternative);
+    return new (ctx.mem) If(if_source_position, predicate, block, alternative);
   }
 
   For* Parser::parse_for_directive()

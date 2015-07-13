@@ -578,13 +578,12 @@ namespace Sass {
   ////////////////////////////////////
   // The Sass `@if` control directive.
   ////////////////////////////////////
-  class If : public Statement {
+  class If : public Has_Block {
     ADD_PROPERTY(Expression*, predicate)
-    ADD_PROPERTY(Block*, consequent)
     ADD_PROPERTY(Block*, alternative)
   public:
     If(ParserState pstate, Expression* pred, Block* con, Block* alt = 0)
-    : Statement(pstate), predicate_(pred), consequent_(con), alternative_(alt)
+    : Has_Block(pstate, con), predicate_(pred), alternative_(alt)
     { }
     ATTACH_OPERATIONS()
   };

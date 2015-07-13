@@ -242,7 +242,7 @@ namespace Sass {
     append_token("@if", cond);
     append_mandatory_space();
     cond->predicate()->perform(this);
-    cond->consequent()->perform(this);
+    cond->block()->perform(this);
     if (cond->alternative()) {
       append_optional_linefeed();
       append_indentation();

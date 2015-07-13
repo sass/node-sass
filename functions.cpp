@@ -1584,8 +1584,6 @@ namespace Sass {
         if (inspect.empty() && parentheses) inspect = "()";
         ctx.output_style = old_style;
         return new (ctx.mem) String_Quoted(pstate, inspect);
-
-
       }
       // return v;
     }

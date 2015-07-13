@@ -142,7 +142,7 @@ namespace Sass {
     Env env(exp.environment());
     exp.env_stack.push_back(&env);
     if (*i->predicate()->perform(this)) {
-      rv = i->consequent()->perform(this);
+      rv = i->block()->perform(this);
     }
     else {
       Block* alt = i->alternative();
