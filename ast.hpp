@@ -1598,7 +1598,7 @@ namespace Sass {
 
     virtual size_t hash()
     {
-      return 0;
+      return -1;
     }
 
     ATTACH_OPERATIONS()

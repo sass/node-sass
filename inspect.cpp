@@ -339,8 +339,6 @@ namespace Sass {
     bool items_output = false;
     append_string("(");
     for (auto key : map->keys()) {
-      if (key->is_invisible()) continue;
-      if (map->at(key)->is_invisible()) continue;
       if (items_output) append_comma_separator();
       key->perform(this);
       append_colon_separator();
