@@ -80,6 +80,7 @@ libsass_la_SOURCES = \
 	to_value.cpp to_value.hpp \
 	units.cpp units.hpp \
 	utf8_string.cpp utf8_string.hpp \
+	values.cpp values.hpp \
 	util.cpp util.hpp
 
 libsass_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 0:9:0

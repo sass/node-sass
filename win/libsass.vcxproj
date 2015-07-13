@@ -203,6 +203,7 @@
     <ClCompile Include="..\units.cpp" />
     <ClCompile Include="..\utf8_string.cpp" />
     <ClCompile Include="..\util.cpp" />
+    <ClCompile Include="..\values.cpp" />
     <ClCompile Include="..\sassc\sassc.c" />
   </ItemGroup>
   <ItemGroup>
@@ -262,6 +263,7 @@
     <ClInclude Include="..\utf8\unchecked.h" />
     <ClInclude Include="..\utf8_string.hpp" />
     <ClInclude Include="..\util.hpp" />
+    <ClInclude Include="..\values.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

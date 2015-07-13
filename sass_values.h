@@ -127,6 +127,12 @@ ADDAPI void ADDCALL sass_delete_value (union Sass_Value* val);
 // Make a deep cloned copy of the given sass value
 ADDAPI union Sass_Value* ADDCALL sass_clone_value (const union Sass_Value* val);
 
+// Stringify a Sass_Values and also return the result as a Sass_Value (of type STRING)
+ADDAPI union Sass_Value* ADDCALL sass_value_stringify (const union Sass_Value* a, bool compressed, int precision);
+
+// Execute an operation for two Sass_Values and return the result as a Sass_Value too
+ADDAPI union Sass_Value* ADDCALL sass_value_op (enum Sass_OP op, const union Sass_Value* a, const union Sass_Value* b);
+
 
 #ifdef __cplusplus
 } // __cplusplus defined.
