@@ -57,6 +57,8 @@ namespace Sass {
     virtual void operator()(Unary_Expression*);
     virtual void operator()(Function_Call*);
     virtual void operator()(Function_Call_Schema*);
+    // virtual void operator()(Custom_Warning*);
+    // virtual void operator()(Custom_Error*);
     virtual void operator()(Variable*);
     virtual void operator()(Textual*);
     virtual void operator()(Number*);

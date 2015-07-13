@@ -31,6 +31,8 @@ namespace Sass {
     Value* operator()(Color*);
     Value* operator()(String_Constant*);
     Value* operator()(String_Quoted*);
+    Value* operator()(Custom_Warning*);
+    Value* operator()(Custom_Error*);
     Value* operator()(List*);
     Value* operator()(Map*);
     Value* operator()(Null*);

@@ -15,6 +15,18 @@ namespace Sass {
     return 0;
   }
 
+  // Custom_Error is a valid value
+  Value* To_Value::operator()(Custom_Error* e)
+  {
+    return e;
+  }
+
+  // Custom_Warning is a valid value
+  Value* To_Value::operator()(Custom_Warning* w)
+  {
+    return w;
+  }
+
   // Boolean is a valid value
   Value* To_Value::operator()(Boolean* b)
   {

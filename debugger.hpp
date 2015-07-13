@@ -557,6 +557,8 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
       case Expression::Concrete_Type::MAP: cerr << " [MAP]"; break;
       case Expression::Concrete_Type::SELECTOR: cerr << " [SELECTOR]"; break;
       case Expression::Concrete_Type::NULL_VAL: cerr << " [NULL_VAL]"; break;
+      case Expression::Concrete_Type::C_WARNING: cerr << " [C_WARNING]"; break;
+      case Expression::Concrete_Type::C_ERROR: cerr << " [C_ERROR]"; break;
       case Expression::Concrete_Type::NUM_TYPES: cerr << " [NUM_TYPES]"; break;
     }
     cerr << endl;

@@ -1173,6 +1173,32 @@ namespace Sass {
     return string();
   }
 
+  bool Custom_Warning::operator== (Expression* rhs) const
+  {
+    if (Custom_Warning* r = dynamic_cast<Custom_Warning*>(rhs)) {
+      return message() == r->message();
+    }
+    return false;
+  }
+
+  bool Custom_Warning::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool Custom_Error::operator== (Expression* rhs) const
+  {
+    if (Custom_Error* r = dynamic_cast<Custom_Error*>(rhs)) {
+      return message() == r->message();
+    }
+    return false;
+  }
+
+  bool Custom_Error::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
   bool Number::operator== (Expression* rhs) const
   {
     if (Number* r = dynamic_cast<Number*>(rhs)) {
@@ -1583,6 +1609,15 @@ namespace Sass {
   string String_Constant::to_string(bool compressed, int precision) const
   {
     return quote_mark_ ? quote(value_, quote_mark_, true) : value_;
+  }
+
+  string Custom_Error::to_string(bool compressed, int precision) const
+  {
+    return message();
+  }
+  string Custom_Warning::to_string(bool compressed, int precision) const
+  {
+    return message();
   }
 
 }

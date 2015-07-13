@@ -103,6 +103,8 @@ namespace Sass {
       MAP,
       SELECTOR,
       NULL_VAL,
+      C_WARNING,
+      C_ERROR,
       NUM_TYPES
     };
   private:
@@ -1247,6 +1249,36 @@ namespace Sass {
     virtual bool operator== (Expression* rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
+    ATTACH_OPERATIONS()
+  };
+
+  //////////////////////////////
+  // Errors from Sass_Values.
+  //////////////////////////////
+  class Custom_Error : public Value {
+    ADD_PROPERTY(string, message)
+  public:
+    Custom_Error(ParserState pstate, string msg)
+    : Value(pstate), message_(msg)
+    { concrete_type(C_ERROR); }
+    virtual bool operator== (Expression& rhs) const;
+    virtual bool operator== (Expression* rhs) const;
+    virtual string to_string(bool compressed = false, int precision = 5) const;
+    ATTACH_OPERATIONS()
+  };
+
+  //////////////////////////////
+  // Warnings from Sass_Values.
+  //////////////////////////////
+  class Custom_Warning : public Value {
+    ADD_PROPERTY(string, message)
+  public:
+    Custom_Warning(ParserState pstate, string msg)
+    : Value(pstate), message_(msg)
+    { concrete_type(C_WARNING); }
+    virtual bool operator== (Expression& rhs) const;
+    virtual bool operator== (Expression* rhs) const;
+    virtual string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
 
