@@ -48,6 +48,7 @@
 
 #include "sass.h"
 #include "sass_values.h"
+#include "sass_context.h"
 #include "sass_functions.h"
 
 namespace Sass {
@@ -851,21 +852,14 @@ namespace Sass {
   // subclassing.
   //////////////////////////////////////////////////////////////////////////
   class Binary_Expression : public Expression {
-  public:
-    enum Type {
-      AND, OR,                   // logical connectives
-      EQ, NEQ, GT, GTE, LT, LTE, // arithmetic relations
-      ADD, SUB, MUL, DIV, MOD,   // arithmetic functions
-      NUM_OPS                    // so we know how big to make the op table
-    };
   private:
-    ADD_PROPERTY(Type, type)
+    ADD_PROPERTY(enum Sass_OP, type)
     ADD_PROPERTY(Expression*, left)
     ADD_PROPERTY(Expression*, right)
     size_t hash_;
   public:
     Binary_Expression(ParserState pstate,
-                      Type t, Expression* lhs, Expression* rhs)
+                      enum Sass_OP t, Expression* lhs, Expression* rhs)
     : Expression(pstate), type_(t), left_(lhs), right_(rhs), hash_(0)
     { }
     const string type_name() {

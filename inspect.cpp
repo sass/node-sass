@@ -409,19 +409,19 @@ namespace Sass {
   {
     expr->left()->perform(this);
     switch (expr->type()) {
-      case Binary_Expression::AND: append_string(" and "); break;
-      case Binary_Expression::OR:  append_string(" or ");  break;
-      case Binary_Expression::EQ:  append_string(" == ");  break;
-      case Binary_Expression::NEQ: append_string(" != ");  break;
-      case Binary_Expression::GT:  append_string(" > ");   break;
-      case Binary_Expression::GTE: append_string(" >= ");  break;
-      case Binary_Expression::LT:  append_string(" < ");   break;
-      case Binary_Expression::LTE: append_string(" <= ");  break;
-      case Binary_Expression::ADD: append_string(" + ");   break;
-      case Binary_Expression::SUB: append_string(" - ");   break;
-      case Binary_Expression::MUL: append_string(" * ");   break;
-      case Binary_Expression::DIV: append_string("/");     break;
-      case Binary_Expression::MOD: append_string(" % ");   break;
+      case Sass_OP::AND: append_string(" and "); break;
+      case Sass_OP::OR:  append_string(" or ");  break;
+      case Sass_OP::EQ:  append_string(" == ");  break;
+      case Sass_OP::NEQ: append_string(" != ");  break;
+      case Sass_OP::GT:  append_string(" > ");   break;
+      case Sass_OP::GTE: append_string(" >= ");  break;
+      case Sass_OP::LT:  append_string(" < ");   break;
+      case Sass_OP::LTE: append_string(" <= ");  break;
+      case Sass_OP::ADD: append_string(" + ");   break;
+      case Sass_OP::SUB: append_string(" - ");   break;
+      case Sass_OP::MUL: append_string(" * ");   break;
+      case Sass_OP::DIV: append_string("/");     break;
+      case Sass_OP::MOD: append_string(" % ");   break;
       default: break; // shouldn't get here
     }
     expr->right()->perform(this);
