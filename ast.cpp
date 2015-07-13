@@ -577,7 +577,7 @@ namespace Sass {
     // create a new complex selector to return a processed copy
     return this;
     Complex_Selector* ss = new (ctx.mem) Complex_Selector(this->pstate());
-    ss->has_line_feed(this->has_line_feed());
+    //ss->has_line_feed(this->has_line_feed());
     ss->combinator(this->combinator());
     if (this->tail()) {
       ss->tail(this->tail()->parentize(ctx));
@@ -624,7 +624,7 @@ namespace Sass {
     Compound_Selector* head = this->head();
     // create a new complex selector to return a processed copy
     Complex_Selector* ss = new (ctx.mem) Complex_Selector(pstate());
-    ss->has_line_feed(has_line_feed());
+    // ss->has_line_feed(has_line_feed());
     ss->has_line_break(has_line_break());
 
     // Points to last complex selector
@@ -749,9 +749,9 @@ namespace Sass {
       if ((*this)[i]->combinator() != Complex_Selector::ANCESTOR_OF) continue;
       if ((*this)[i]->head()->is_empty_reference()) {
         Complex_Selector* tail = (*this)[i]->tail();
-        if ((*this)[i]->has_line_feed()) {
-          if (tail) tail->has_line_feed(true);
-        }
+        // if ((*this)[i]->has_line_feed()) {
+          // if (tail) tail->has_line_feed(true);
+        // }
         (*this)[i] = tail;
       }
     }

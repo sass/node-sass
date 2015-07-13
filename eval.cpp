@@ -1447,7 +1447,7 @@ namespace Sass {
                 lst->combinator(combinator);
               }
             }
-            if (s->has_line_feed()) lst->has_line_feed(true);
+            if (s->has_line_feed()) (*ns)[n]->has_line_feed(true);
             if (s->has_line_break()) lst->has_line_break(true);
           }
           return ns;
@@ -1473,7 +1473,12 @@ namespace Sass {
     }
     else
     {
-      *sl << s;
+      Selector_List* l = operator()(s->tail());
+      for (size_t i = 0, L = l->length(); i < L; ++i) {
+        Complex_Selector* ss = s->clone(ctx);
+        ss->tail((*l)[i]);
+        *sl << ss;
+      }
       return sl;
     }
 
@@ -1501,9 +1506,9 @@ namespace Sass {
       if (!(*sl)[i]->head()) continue;
       if ((*sl)[i]->combinator() != Complex_Selector::ANCESTOR_OF) continue;
       if ((*sl)[i]->head()->is_empty_reference()) {
-        if ((*sl)[i]->has_line_feed()) {
-          if ((*sl)[i]->tail()) (*sl)[i]->tail()->has_line_feed(true);
-        }
+        // if ((*sl)[i]->has_line_feed()) {
+          // if ((*sl)[i]->tail()) (*sl)[i]->tail()->has_line_feed(true);
+        // }
         (*sl)[i] = (*sl)[i]->tail();
       }
 

@@ -249,7 +249,7 @@ namespace Sass {
 
       if (child.isSelector()) {
         pCurrent->tail(child.selector()->clone(ctx));   // JMA - need to clone the selector, because they can end up getting shared across Node collections, and can result in an infinite loop during the call to parentSuperselector()
-        if (child.got_line_feed) pCurrent->has_line_feed(child.got_line_feed);
+        // if (child.got_line_feed) pCurrent->has_line_feed(child.got_line_feed);
         pCurrent = pCurrent->tail();
       } else if (child.isCombinator()) {
         pCurrent->combinator(child.combinator());
