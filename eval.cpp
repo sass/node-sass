@@ -429,7 +429,9 @@ namespace Sass {
     Map* mm = new (ctx.mem) Map(m->pstate(),
                                   m->length());
     for (auto key : m->keys()) {
-      *mm << std::make_pair(key->perform(this), m->at(key)->perform(this));;
+      Expression* ex_key = key->perform(this);
+      Expression* ex_val = m->at(key)->perform(this);
+      *mm << std::make_pair(ex_key, ex_val);
     }
 
     // check the evaluated keys aren't duplicates.
@@ -677,7 +679,7 @@ namespace Sass {
       } else if (sass_value_get_tag(c_val) == SASS_WARNING) {
         error("warning in C function " + c->name() + ": " + sass_warning_get_message(c_val), c->pstate(), backtrace());
       }
-      result = cval_to_astnode(c_val, ctx, backtrace(), c->pstate());
+      result = cval_to_astnode(ctx.mem, c_val, ctx, backtrace(), c->pstate());
 
       exp.backtrace_stack.pop_back();
       sass_delete_value(c_args);
@@ -1269,46 +1271,46 @@ namespace Sass {
     return str;
   }
 
-  Expression* cval_to_astnode(Sass_Value* v, Context& ctx, Backtrace* backtrace, ParserState pstate)
+  Expression* cval_to_astnode(Memory_Manager<AST_Node>& mem, union Sass_Value* v, Context& ctx, Backtrace* backtrace, ParserState pstate)
   {
     using std::strlen;
     using std::strcpy;
     Expression* e = 0;
     switch (sass_value_get_tag(v)) {
       case SASS_BOOLEAN: {
-        e = new (ctx.mem) Boolean(pstate, !!sass_boolean_get_value(v));
+        e = new (mem) Boolean(pstate, !!sass_boolean_get_value(v));
       } break;
       case SASS_NUMBER: {
-        e = new (ctx.mem) Number(pstate, sass_number_get_value(v), sass_number_get_unit(v));
+        e = new (mem) Number(pstate, sass_number_get_value(v), sass_number_get_unit(v));
       } break;
       case SASS_COLOR: {
-        e = new (ctx.mem) Color(pstate, sass_color_get_r(v), sass_color_get_g(v), sass_color_get_b(v), sass_color_get_a(v));
+        e = new (mem) Color(pstate, sass_color_get_r(v), sass_color_get_g(v), sass_color_get_b(v), sass_color_get_a(v));
       } break;
       case SASS_STRING: {
         if (sass_string_is_quoted(v))
-          e = new (ctx.mem) String_Quoted(pstate, sass_string_get_value(v));
+          e = new (mem) String_Quoted(pstate, sass_string_get_value(v));
         else {
-          e = new (ctx.mem) String_Constant(pstate, sass_string_get_value(v));
+          e = new (mem) String_Constant(pstate, sass_string_get_value(v));
         }
       } break;
       case SASS_LIST: {
-        List* l = new (ctx.mem) List(pstate, sass_list_get_length(v), sass_list_get_separator(v));
+        List* l = new (mem) List(pstate, sass_list_get_length(v), sass_list_get_separator(v));
         for (size_t i = 0, L = sass_list_get_length(v); i < L; ++i) {
-          *l << cval_to_astnode(sass_list_get_value(v, i), ctx, backtrace, pstate);
+          *l << cval_to_astnode(mem, sass_list_get_value(v, i), ctx, backtrace, pstate);
         }
         e = l;
       } break;
       case SASS_MAP: {
-        Map* m = new (ctx.mem) Map(pstate);
+        Map* m = new (mem) Map(pstate);
         for (size_t i = 0, L = sass_map_get_length(v); i < L; ++i) {
           *m << std::make_pair(
-            cval_to_astnode(sass_map_get_key(v, i), ctx, backtrace, pstate),
-            cval_to_astnode(sass_map_get_value(v, i), ctx, backtrace, pstate));
+            cval_to_astnode(mem, sass_map_get_key(v, i), ctx, backtrace, pstate),
+            cval_to_astnode(mem, sass_map_get_value(v, i), ctx, backtrace, pstate));
         }
         e = m;
       } break;
       case SASS_NULL: {
-        e = new (ctx.mem) Null(pstate);
+        e = new (mem) Null(pstate);
       } break;
       case SASS_ERROR: {
         error("Error in C function: " + string(sass_error_get_message(v)), pstate, backtrace);

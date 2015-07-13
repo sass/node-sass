@@ -100,7 +100,7 @@ namespace Sass {
 
   };
 
-  Expression* cval_to_astnode(Sass_Value* v, Context& ctx, Backtrace* backtrace, ParserState pstate = ParserState("[AST]"));
+  Expression* cval_to_astnode(Memory_Manager<AST_Node>& mem, union Sass_Value* v, Context& ctx, Backtrace* backtrace, ParserState pstate = ParserState("[AST]"));
 
 }
 
