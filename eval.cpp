@@ -15,6 +15,7 @@
 #include "environment.hpp"
 #include "position.hpp"
 #include "sass_values.h"
+#include "to_value.hpp"
 #include "to_c.hpp"
 #include "context.hpp"
 #include "backtrace.hpp"
@@ -532,7 +533,10 @@ namespace Sass {
       return op_colors(ctx, op_type, l_c, r_c);
     }
 
-    Expression* ex = op_strings(ctx, op_type, lhs, rhs);
+    To_Value to_value(ctx, ctx.mem);
+    Value* v_l = dynamic_cast<Value*>(lhs->perform(&to_value));
+    Value* v_r = dynamic_cast<Value*>(rhs->perform(&to_value));
+    Value* ex = op_strings(ctx, op_type, v_l, v_r);
     if (String_Constant* str = dynamic_cast<String_Constant*>(ex))
     {
       if (str->concrete_type() != Expression::STRING) return ex;
@@ -1163,7 +1167,7 @@ namespace Sass {
     return l->value() < tmp_r.value();
   }
 
-  Expression* Eval::op_numbers(Context& ctx, enum Sass_OP op, Number* l, Number* r)
+  Value* Eval::op_numbers(Context& ctx, enum Sass_OP op, Number* l, Number* r)
   {
     double lv = l->value();
     double rv = r->value();
@@ -1213,7 +1217,7 @@ namespace Sass {
     return v;
   }
 
-  Expression* Eval::op_number_color(Context& ctx, enum Sass_OP op, Number* l, Color* r)
+  Value* Eval::op_number_color(Context& ctx, enum Sass_OP op, Number* l, Color* r)
   {
     // TODO: currently SASS converts colors to standard form when adding to strings;
     // when https://github.com/nex3/sass/issues/363 is added this can be removed to
@@ -1250,7 +1254,7 @@ namespace Sass {
     return l;
   }
 
-  Expression* Eval::op_color_number(Context& ctx, enum Sass_OP op, Color* l, Number* r)
+  Value* Eval::op_color_number(Context& ctx, enum Sass_OP op, Color* l, Number* r)
   {
     double rv = r->value();
     if (op == Sass_OP::DIV && !rv) error("division by zero", r->pstate());
@@ -1261,7 +1265,7 @@ namespace Sass {
                                l->a());
   }
 
-  Expression* Eval::op_colors(Context& ctx, enum Sass_OP op, Color* l, Color* r)
+  Value* Eval::op_colors(Context& ctx, enum Sass_OP op, Color* l, Color* r)
   {
     if (l->a() != r->a()) {
       error("alpha channels must be equal when combining colors", r->pstate());
@@ -1277,7 +1281,7 @@ namespace Sass {
                                l->a());
   }
 
-  Expression* Eval::op_strings(Context& ctx, enum Sass_OP op, Expression* lhs, Expression*rhs)
+  Value* Eval::op_strings(Context& ctx, enum Sass_OP op, Value* lhs, Value*rhs)
   {
     To_String to_string(&ctx);
     Expression::Concrete_Type ltype = lhs->concrete_type();

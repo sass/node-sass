@@ -199,6 +199,7 @@
     <ClCompile Include="..\source_map.cpp" />
     <ClCompile Include="..\to_c.cpp" />
     <ClCompile Include="..\to_string.cpp" />
+    <ClCompile Include="..\to_value.cpp" />
     <ClCompile Include="..\units.cpp" />
     <ClCompile Include="..\utf8_string.cpp" />
     <ClCompile Include="..\util.cpp" />
@@ -253,6 +254,7 @@
     <ClInclude Include="..\token.hpp" />
     <ClInclude Include="..\to_c.hpp" />
     <ClInclude Include="..\to_string.hpp" />
+    <ClInclude Include="..\to_value.hpp" />
     <ClInclude Include="..\units.hpp" />
     <ClInclude Include="..\utf8.h" />
     <ClInclude Include="..\utf8\checked.h" />

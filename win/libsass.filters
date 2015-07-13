@@ -120,6 +120,9 @@
     <ClCompile Include="..\to_string.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\to_value.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\units.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -279,6 +282,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\to_c.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\to_value.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\to_string.hpp">
