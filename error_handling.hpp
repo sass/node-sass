@@ -10,14 +10,14 @@ namespace Sass {
 
   struct Backtrace;
 
-  struct Sass_Error {
+  struct Error_Invalid {
     enum Type { read, write, syntax, evaluation };
 
     Type type;
     ParserState pstate;
     string message;
 
-    Sass_Error(Type type, ParserState pstate, string message);
+    Error_Invalid(Type type, ParserState pstate, string message);
 
   };
 
