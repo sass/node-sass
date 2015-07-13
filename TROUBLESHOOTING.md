@@ -5,8 +5,6 @@ This document covers some common node-sass issues and how to resolve them. You s
 ## TOC
 
 - [Installation problems](#installation-problems)
-  - ["Module did not self-register"](#module-did-not-self-register)
-    - [Windows](#windows)
   - [Assertion failed: (handle->flags & UV_CLOSING), function uv__finish_close](#assertion-failed-handle-flags-&-uv_closing-function-uv__finish_close)
   - [Cannot find module '/root/<...>/install.js'](#cannot-find-module-rootinstalljs)
     - [Linux](#linux)
@@ -14,25 +12,11 @@ This document covers some common node-sass issues and how to resolve them. You s
   - [Which node runtime am I using?](#which-node-runtime-am-i-using)
   - [Which version of node am I using?](#which-version-of-node-am-i-using)
   - [Debugging installation issues.](#debugging-installation-issues)
-    - [Windows](#windows-1)
+    - [Windows](#windows)
     - [Linux/OSX](#linuxosx)
+- [Using node-sass with Visual Studio 2015 Task Runner.](#using-node-sass-with-visual-studio-2015-task-runner)
 
 ## Installation problems
-
-### "Module did not self-register"
-
-#### Windows
-
-This can happen if you are using io.js rather than node. Unfortunately this issue is due to an [issue with a library](https://github.com/iojs/io.js/issues/751) we depend on and such is currently out of our control. The problem is a side effect of iojs aliasing the `node.exe` binary to itself.
-
-To work around this now be sure to execute your node commands using `iojs` instead of `node` i.e.
-
-```sh
-$ iojs ./node_modules/.bin/node-sass --version
-```
-
-If this didn't solve your problem please open an issue with the output from [our debugging script](#debugging-installation-issues).
-
 
 ### Assertion failed: (handle->flags & UV_CLOSING), function uv__finish_close
 
@@ -85,7 +69,7 @@ The resulting value the version you are running.
 
 ### Debugging installation issues.
 
-Node sass runs some install scripts to make it as easy to use as possible, but some times there can be issues. Before opening a new issue please follow the instructions for [Windows](#windows-1) or [Linux/OSX](#linuxosx) and provide their output in you [GitHub issue](https://github.com/sass/node-sass/issues).
+Node sass runs some install scripts to make it as easy to use as possible, but some times there can be issues. Before opening a new issue please follow the instructions for [Windows](#windows) or [Linux/OSX](#linuxosx) and provide their output in you [GitHub issue](https://github.com/sass/node-sass/issues).
 
 **Remember to always search before opening a new issue**.
 
@@ -211,3 +195,9 @@ node -p "console.log(require('node-sass').info)"
 ```
 
 If this still produces an error please open an issue with the output from these steps.
+
+### Using node-sass with Visual Studio 2015 Task Runner.
+
+If you are using node-sass with VS2015 Task Runner Explorer, you need to make sure that the version of node.js (or io.js) is same as the one you installed node-sass with. This is because for each node.js runtime modules version (`node -p process.versions.modules`), we have a separate build of native binary. See [#532](https://github.com/sass/node-sass/issues/532).
+
+Alternatively, if you prefer using system-installed node.js (supposedly higher version than one bundles with VS2015), you may want to point Visual Studio 2015 to use it for task runner jobs by following the guidelines available at: http://blogs.msdn.com/b/webdev/archive/2015/03/19/customize-external-web-tools-in-visual-studio-2015.aspx.
