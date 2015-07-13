@@ -322,7 +322,7 @@ namespace Sass {
   Statement* Expand::operator()(If* i)
   {
     if (*i->predicate()->perform(&eval)) {
-      append_block(i->consequent());
+      append_block(i->block());
     }
     else {
       Block* alt = i->alternative();
