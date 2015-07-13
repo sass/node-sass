@@ -117,8 +117,6 @@ SOURCES = \
 	bind.cpp \
 	constants.cpp \
 	context.cpp \
-	contextualize.cpp \
-	contextualize_eval.cpp \
 	cssize.cpp \
 	listize.cpp \
 	error_handling.cpp \

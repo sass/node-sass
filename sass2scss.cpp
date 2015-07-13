@@ -1,3 +1,8 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_NONSTDC_NO_DEPRECATE
+#endif
+
 // include library
 #include <stack>
 #include <string>

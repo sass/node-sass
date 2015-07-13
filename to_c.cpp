@@ -19,11 +19,11 @@ namespace Sass {
   { return sass_make_color(c->r(), c->g(), c->b(), c->a()); }
 
   Sass_Value* To_C::operator()(String_Constant* s)
-  { 
+  {
     if (s->quote_mark()) {
       return sass_make_qstring(s->value().c_str());
     } else {
-	  return sass_make_string(s->value().c_str());
+      return sass_make_string(s->value().c_str());
     }
   }
 

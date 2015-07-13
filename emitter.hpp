@@ -18,7 +18,7 @@ namespace Sass {
     protected:
       OutputBuffer wbuf;
     public:
-      const string buffer(void) { return wbuf.buffer; }
+      const string& buffer(void) { return wbuf.buffer; }
       const SourceMap smap(void) { return wbuf.smap; }
       const OutputBuffer output(void) { return wbuf; }
       // proxy methods for source maps

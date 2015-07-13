@@ -16,7 +16,7 @@ namespace Sass {
   class Propset;
   class Bubble;
   class Media_Block;
-  class Feature_Block;
+  class Supports_Block;
   class At_Rule;
   class Keyframe_Rule;
   class At_Root_Block;
@@ -56,8 +56,8 @@ namespace Sass {
   class String_Quoted;
   class Media_Query;
   class Media_Query_Expression;
-  class Feature_Query;
-  class Feature_Query_Condition;
+  class Supports_Query;
+  class Supports_Condition;
   class At_Root_Expression;
   class Null;
   class Parent_Selector;
@@ -69,7 +69,6 @@ namespace Sass {
   // selectors
   class Selector;
   class Selector_Schema;
-  class Selector_Reference;
   class Selector_Placeholder;
   class Type_Selector;
   class Selector_Qualifier;

@@ -4,16 +4,16 @@
 #include <stdint.h>
 
 enum dbg_lvl_t : uint32_t {
-	NONE = 0,
-	TRIM = 1,
-	CHUNKS = 2,
-	SUBWEAVE = 4,
-	WEAVE = 8,
-	EXTEND_COMPOUND = 16,
-	EXTEND_COMPLEX = 32,
-	LCS = 64,
+  NONE = 0,
+  TRIM = 1,
+  CHUNKS = 2,
+  SUBWEAVE = 4,
+  WEAVE = 8,
+  EXTEND_COMPOUND = 16,
+  EXTEND_COMPLEX = 32,
+  LCS = 64,
   EXTEND_OBJECT = 128,
-	ALL = UINT32_MAX
+  ALL = UINT32_MAX
 };
 
 #ifdef DEBUG

@@ -10,9 +10,13 @@ namespace Sass {
     : ctx(ctx)
     { }
 
-    template<typename T>
-    void Remove_Placeholders::clean_selector_list(T r) {
+    void Remove_Placeholders::operator()(Block* b) {
+        for (size_t i = 0, L = b->length(); i < L; ++i) {
+            (*b)[i]->perform(this);
+        }
+    }
 
+    void Remove_Placeholders::operator()(Ruleset* r) {
         // Create a new selector group without placeholders
         Selector_List* sl = static_cast<Selector_List*>(r->selector());
 
@@ -20,7 +24,7 @@ namespace Sass {
             Selector_List* new_sl = new (ctx.mem) Selector_List(sl->pstate());
 
             for (size_t i = 0, L = sl->length(); i < L; ++i) {
-                if (!(*sl)[i]->has_placeholder()) {
+                if (!(*sl)[i]->contains_placeholder()) {
                     *new_sl << (*sl)[i];
                 }
             }
@@ -33,23 +37,15 @@ namespace Sass {
         Block* b = r->block();
 
         for (size_t i = 0, L = b->length(); i < L; ++i) {
-            Statement* stm = (*b)[i];
-            stm->perform(this);
+            if ((*b)[i]) (*b)[i]->perform(this);
         }
-    }
-
-    void Remove_Placeholders::operator()(Block* b) {
-        for (size_t i = 0, L = b->length(); i < L; ++i) {
-            (*b)[i]->perform(this);
-        }
-    }
-
-    void Remove_Placeholders::operator()(Ruleset* r) {
-        clean_selector_list(r);
     }
 
     void Remove_Placeholders::operator()(Media_Block* m) {
-        clean_selector_list(m);
+        Block* b = m->block();
+        for (size_t i = 0, L = b->length(); i < L; ++i) {
+            if ((*b)[i]) (*b)[i]->perform(this);
+        }
     }
 
     void Remove_Placeholders::operator()(At_Rule* a) {

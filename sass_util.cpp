@@ -5,8 +5,8 @@ namespace Sass {
 
 
   /*
-		This is the equivalent of ruby's Sass::Util.paths.
-
+    # This is the equivalent of ruby's Sass::Util.paths.
+    #
     # Return an array of all possible paths through the given arrays.
     #
     # @param arrs [NodeCollection<NodeCollection<Node>>]
@@ -23,7 +23,7 @@ namespace Sass {
    should be able to drop it into ruby 3.2.19 and get the same results from ruby sass.
 
     def paths(arrs)
-     	// I changed the inject and maps to an iterative approach to make it easier to implement in C++
+        // I changed the inject and maps to an iterative approach to make it easier to implement in C++
       loopStart = [[]]
 
       for arr in arrs do
@@ -36,7 +36,7 @@ namespace Sass {
         loopStart = permutations
       end
     end
-	*/
+  */
   Node paths(const Node& arrs, Context& ctx) {
     To_String to_string(&ctx);
 
@@ -61,6 +61,7 @@ namespace Sass {
           Node& path = *loopStartIter;
 
           Node newPermutation = Node::createCollection();
+          newPermutation.got_line_feed = arr.got_line_feed;
           newPermutation.plus(path);
           newPermutation.collection()->push_back(e);
 
@@ -75,7 +76,7 @@ namespace Sass {
   }
 
 
-	/*
+  /*
   This is the equivalent of ruby sass' Sass::Util.flatten and [].flatten.
   Sass::Util.flatten requires the number of levels to flatten, while
   [].flatten doesn't and will flatten the entire array. This function
@@ -108,20 +109,37 @@ namespace Sass {
     return flattened
   end
   */
-  Node flatten(const Node& arr, Context& ctx, int n = -1) {
+  Node flatten(Node& arr, Context& ctx, int n = -1) {
     if (n != -1 && n == 0) {
       return arr;
     }
 
     Node flattened = Node::createCollection();
+    if (arr.got_line_feed) flattened.got_line_feed = true;
 
     for (NodeDeque::iterator iter = arr.collection()->begin(), iterEnd = arr.collection()->end();
     	iter != iterEnd; iter++) {
     	Node& e = *iter;
 
+      // e has the lf set
       if (e.isCollection()) {
+
+      	// e.collection().got_line_feed = e.got_line_feed;
       	Node recurseFlattened = flatten(e, ctx, n - 1);
-        flattened.collection()->insert(flattened.collection()->end(), recurseFlattened.collection()->begin(), recurseFlattened.collection()->end());
+
+      	if(e.got_line_feed) {
+      		 flattened.got_line_feed = e.got_line_feed;
+      	  recurseFlattened.got_line_feed = e.got_line_feed;
+      	}
+
+      	for(auto i : (*recurseFlattened.collection())) {
+          if (recurseFlattened.got_line_feed) {
+
+            i.got_line_feed = true;
+          }
+          flattened.collection()->push_back(i);
+      	}
+
       } else {
       	flattened.collection()->push_back(e);
       }

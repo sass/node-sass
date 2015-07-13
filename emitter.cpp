@@ -171,7 +171,7 @@ namespace Sass {
 
   void Emitter::append_comma_separator()
   {
-    scheduled_space = 0;
+    // scheduled_space = 0;
     append_string(",");
     append_optional_space();
   }
@@ -227,6 +227,7 @@ namespace Sass {
 
   void Emitter::append_scope_opener(AST_Node* node)
   {
+    scheduled_linefeed = 0;
     append_optional_space();
     flush_schedules();
     if (node) add_open_mapping(node);

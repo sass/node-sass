@@ -1,6 +1,31 @@
 #ifndef SASS_AST_DEF_MACROS_H
 #define SASS_AST_DEF_MACROS_H
 
+// Helper class to switch a flag and revert once we go out of scope
+template <class T>
+class LocalOption {
+  private:
+    T* var; // pointer to original variable
+    T orig; // copy of the original option
+  public:
+    LocalOption(T& var)
+    {
+      this->var = &var;
+      this->orig = var;
+    }
+    LocalOption(T& var, T orig)
+    {
+      this->var = &var;
+      this->orig = var;
+      *(this->var) = orig;
+    }
+    ~LocalOption() {
+      *(this->var) = this->orig;
+    }
+};
+
+#define LOCAL_FLAG(name,opt) LocalOption<bool> flag_##name(name, opt)
+
 #define ATTACH_OPERATIONS()\
 virtual void perform(Operation<void>* op) { (*op)(this); }\
 virtual AST_Node* perform(Operation<AST_Node*>* op) { return (*op)(this); }\

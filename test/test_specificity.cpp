@@ -12,7 +12,7 @@ Context ctx = Context::Data();
 To_String to_string;
 
 Selector* selector(string src)
-{ return Parser::from_c_str(src.c_str(), ctx, "", Position()).parse_selector_group(); }
+{ return Parser::from_c_str(src.c_str(), ctx, "", Position()).parse_selector_list(); }
 
 void spec(string sel)
 { cout << sel << "\t::\t" << selector(sel + ";")->specificity() << endl; }

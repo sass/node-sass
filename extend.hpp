@@ -14,6 +14,7 @@ namespace Sass {
   using namespace std;
 
   class Context;
+  class Node;
 
   typedef Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> > ExtensionSubsetMap;
 
@@ -25,6 +26,8 @@ namespace Sass {
     void fallback_impl(AST_Node* n) { }
 
   public:
+    static Node subweave(Node& one, Node& two, Context& ctx);
+    static Selector_List* extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, bool isReplace, bool& extendedSomething);
     Extend(Context&, ExtensionSubsetMap&);
     virtual ~Extend() { }
 
@@ -32,7 +35,7 @@ namespace Sass {
 
     void operator()(Block*);
     void operator()(Ruleset*);
-    void operator()(Feature_Block*);
+    void operator()(Supports_Block*);
     void operator()(Media_Block*);
     void operator()(At_Rule*);
 

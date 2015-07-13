@@ -42,7 +42,7 @@ namespace Sass {
     // there is still a parent around
     // not sure what it is actually use for
     // I guess we store functions etc. there
-    bool is_root_scope() const
+    bool is_global() const
     {
       return parent_ && ! parent_->parent_;
     }

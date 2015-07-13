@@ -20,8 +20,22 @@ namespace Sass {
     Emitter emitter(ctx);
     Inspect i(emitter);
     i.in_declaration = in_declaration;
-    n->perform(&i);
+    if (n) n->perform(&i);
     return i.get_buffer();
+  }
+
+  inline string To_String::operator()(String_Schema* s)
+  {
+    string acc("");
+    for (size_t i = 0, L = s->length(); i < L; ++i) {
+      acc += s->elements()[i]->perform(this);
+    }
+    return acc;
+  }
+
+  inline string To_String::operator()(String_Quoted* s)
+  {
+    return s->value();
   }
 
   inline string To_String::operator()(String_Constant* s)

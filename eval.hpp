@@ -2,38 +2,34 @@
 #define SASS_EVAL_H
 
 #include <iostream>
-
 #include "context.hpp"
-#include "position.hpp"
-#include "operation.hpp"
-#include "environment.hpp"
-#include "contextualize.hpp"
 #include "listize.hpp"
-#include "sass_values.h"
+#include "operation.hpp"
 
 namespace Sass {
   using namespace std;
 
-  typedef Environment<AST_Node*> Env;
-  struct Backtrace;
-  class Contextualize;
+  class Expand;
+  class Context;
   class Listize;
 
   class Eval : public Operation_CRTP<Expression*, Eval> {
 
-    Context&   ctx;
-
+   private:
     Expression* fallback_impl(AST_Node* n);
 
-  public:
-    Contextualize* contextualize;
-    Listize*   listize;
-    Env*       env;
-    Backtrace* backtrace;
-    Eval(Context&, Contextualize*, Listize*, Env*, Backtrace*);
+   public:
+    Expand&  exp;
+    Context& ctx;
+    Listize  listize;
+    Eval(Expand& exp);
     virtual ~Eval();
-    Eval* with(Env* e, Backtrace* bt); // for setting the env before eval'ing an expression
-    Eval* with(Selector* c, Env* e, Backtrace* bt, Selector* placeholder = 0, Selector* extender = 0); // for setting the env before eval'ing an expression
+
+    Env* environment();
+    Context& context();
+    Selector_List* selector();
+    Backtrace* backtrace();
+
     using Operation<Expression*>::operator();
 
     // for evaluating function bodies
@@ -59,17 +55,32 @@ namespace Sass {
     Expression* operator()(Number*);
     Expression* operator()(Boolean*);
     Expression* operator()(String_Schema*);
+    Expression* operator()(String_Quoted*);
     Expression* operator()(String_Constant*);
+    // Expression* operator()(Selector_List*);
     Expression* operator()(Media_Query*);
     Expression* operator()(Media_Query_Expression*);
     Expression* operator()(At_Root_Expression*);
-    Expression* operator()(Feature_Query*);
-    Expression* operator()(Feature_Query_Condition*);
+    Expression* operator()(Supports_Query*);
+    Expression* operator()(Supports_Condition*);
     Expression* operator()(Null*);
     Expression* operator()(Argument*);
     Expression* operator()(Arguments*);
     Expression* operator()(Comment*);
-    Expression* operator()(Parent_Selector* p);
+
+    // these will return selectors
+    Selector_List* operator()(Selector_List*);
+    Selector_List* operator()(Complex_Selector*);
+    Attribute_Selector* operator()(Attribute_Selector*);
+    // they don't have any specific implementatio (yet)
+    Type_Selector* operator()(Type_Selector* s) { return s; };
+    Pseudo_Selector* operator()(Pseudo_Selector* s) { return s; };
+    Wrapped_Selector* operator()(Wrapped_Selector* s) { return s; };
+    Selector_Qualifier* operator()(Selector_Qualifier* s) { return s; };
+    Selector_Placeholder* operator()(Selector_Placeholder* s) { return s; };
+    // actual evaluated selectors
+    Selector_List* operator()(Selector_Schema*);
+    Expression* operator()(Parent_Selector*);
 
     template <typename U>
     Expression* fallback(U x) { return fallback_impl(x); }

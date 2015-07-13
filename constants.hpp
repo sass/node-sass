@@ -148,6 +148,11 @@ namespace Sass {
     // some specific constant character classes
     // they must be static to be useable by lexer
     extern const char static_ops[];
+    extern const char selector_list_delims[];
+    extern const char complex_selector_delims[];
+    extern const char selector_combinator_ops[];
+    extern const char attribute_compare_modifiers[];
+    extern const char selector_lookahead_ops[];
 
     // byte order marks
     // (taken from http://en.wikipedia.org/wiki/Byte_order_mark)
