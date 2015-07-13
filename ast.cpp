@@ -1171,10 +1171,9 @@ namespace Sass {
     return string();
   }
 
-
   bool Number::operator== (Expression* rhs) const
   {
-    if (Number* r = static_cast<Number*>(rhs)) {
+    if (Number* r = dynamic_cast<Number*>(rhs)) {
       return (value() == r->value()) &&
              (numerator_units_ == r->numerator_units_) &&
              (denominator_units_ == r->denominator_units_);
@@ -1187,23 +1186,132 @@ namespace Sass {
     return operator==(&rhs);
   }
 
-  bool List::operator==(Expression* rhs) const
+  bool String_Quoted::operator== (Expression* rhs) const
   {
-    try
-    {
-      List* r = dynamic_cast<List*>(rhs);
-      if (!r || length() != r->length()) return false;
-      if (separator() != r->separator()) return false;
-      for (size_t i = 0, L = r->length(); i < L; ++i)
-        if (*elements()[i] != *(*r)[i]) return false;
+    if (String_Quoted* qstr = dynamic_cast<String_Quoted*>(rhs)) {
+      return (value() == qstr->value());
+    } else if (String_Constant* cstr = dynamic_cast<String_Constant*>(rhs)) {
+      return (value() == cstr->value());
+    }
+    return false;
+  }
+
+  bool String_Quoted::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool String_Constant::operator== (Expression* rhs) const
+  {
+    if (String_Quoted* qstr = dynamic_cast<String_Quoted*>(rhs)) {
+      return (value() == qstr->value());
+    } else if (String_Constant* cstr = dynamic_cast<String_Constant*>(rhs)) {
+      return (value() == cstr->value());
+    }
+    return false;
+  }
+
+  bool String_Constant::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool String_Schema::operator== (Expression* rhs) const
+  {
+    if (String_Schema* r = dynamic_cast<String_Schema*>(rhs)) {
+      if (length() != r->length()) return false;
+      for (size_t i = 0, L = length(); i < L; ++i) {
+        Expression* rv = (*r)[i];
+        Expression* lv = (*this)[i];
+        if (!lv || !rv) return false;
+        if (!(*lv == *rv)) return false;
+      }
       return true;
     }
-    catch (std::bad_cast&) {}
-    catch (...) { throw; }
+    return false;
+  }
+
+  bool String_Schema::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool Boolean::operator== (Expression* rhs) const
+  {
+    if (Boolean* r = dynamic_cast<Boolean*>(rhs)) {
+      return (value() == r->value());
+    }
+    return false;
+  }
+
+  bool Boolean::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool Color::operator== (Expression* rhs) const
+  {
+    if (Color* r = dynamic_cast<Color*>(rhs)) {
+      return r_ == r->r() &&
+             g_ == r->g() &&
+             b_ == r->b() &&
+             a_ == r->a();
+    }
+    return false;
+  }
+
+  bool Color::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool List::operator== (Expression* rhs) const
+  {
+    if (List* r = dynamic_cast<List*>(rhs)) {
+      if (length() != r->length()) return false;
+      if (separator() != r->separator()) return false;
+      for (size_t i = 0, L = length(); i < L; ++i) {
+        Expression* rv = (*r)[i];
+        Expression* lv = (*this)[i];
+        if (!lv || !rv) return false;
+        if (!(*lv == *rv)) return false;
+      }
+      return true;
+    }
     return false;
   }
 
   bool List::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool Map::operator== (Expression* rhs) const
+  {
+    if (Map* r = dynamic_cast<Map*>(rhs)) {
+      if (length() != r->length()) return false;
+      for (auto key : keys()) {
+        Expression* lv = at(key);
+        Expression* rv = r->at(key);
+        if (!rv || !lv) return false;
+        if (!(*lv == *rv)) return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  bool Map::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool Null::operator== (Expression* rhs) const
+  {
+    return rhs->concrete_type() == NULL_VAL;
+  }
+
+  bool Null::operator== (Expression& rhs) const
   {
     return operator==(&rhs);
   }
