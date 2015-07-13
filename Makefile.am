@@ -31,7 +31,7 @@ lib_LTLIBRARIES = libsass.la
 
 libsass_la_SOURCES = \
 	ast_fwd_decl.hpp ast_def_macros.hpp \
-	kwd_arg_macros.hpp memory_manager.hpp \
+	kwd_arg_macros.hpp \
 	position.cpp position.hpp \
 	operation.hpp \
 	subset_map.hpp mapping.hpp \
@@ -56,6 +56,7 @@ libsass_la_SOURCES = \
 	functions.cpp functions.hpp \
 	inspect.cpp inspect.hpp \
 	lexer.cpp lexer.hpp \
+	memory_manager.cpp memory_manager.hpp \
 	node.cpp node.hpp \
 	json.cpp json.hpp \
 	emitter.cpp emitter.hpp \

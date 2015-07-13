@@ -63,6 +63,9 @@
     <ClCompile Include="..\inspect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\memory_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\node.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

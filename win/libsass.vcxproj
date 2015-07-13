@@ -177,6 +177,7 @@
     <ClCompile Include="..\functions.cpp" />
     <ClCompile Include="..\inspect.cpp" />
     <ClCompile Include="..\json.cpp" />
+    <ClCompile Include="..\memory_manager.cpp" />
     <ClCompile Include="..\node.cpp" />
     <ClCompile Include="..\emitter.cpp" />
     <ClCompile Include="..\output.cpp" />

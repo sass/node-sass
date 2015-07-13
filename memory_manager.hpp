@@ -18,40 +18,25 @@ namespace Sass {
     vector<T*> nodes;
 
   public:
-    Memory_Manager(size_t size = 0) : nodes(vector<T*>())
-    { nodes.reserve(size); }
+    Memory_Manager(size_t size = 0);
+    ~Memory_Manager();
 
-    ~Memory_Manager()
-    {
-      for (size_t i = 0, S = nodes.size(); i < S; ++i) {
-        // cout << "deleting " << typeid(*nodes[i]).name() << endl;
-        delete nodes[i];
-      }
-    }
+    bool has(T* np);
+    T* allocate(size_t size);
+    void deallocate(T* np);
+    void remove(T* np);
+    void destroy(T* np);
+    T* operator()(T* np);
 
-    T* operator()(T* np)
-    {
-      nodes.push_back(np);
-      // cout << "registering " << typeid(*np).name() << endl;
-      return np;
-    }
-
-    void remove(T* np)
-    {
-      nodes.erase(find(nodes.begin(), nodes.end(), np));
-    }
   };
 }
 
 template <typename T>
-inline void* operator new(size_t size, Sass::Memory_Manager<T>& mem_mgr)
-{ return mem_mgr(static_cast<T*>(operator new(size))); }
+inline void* operator new(size_t size, Sass::Memory_Manager<T>& mem)
+{ return mem.allocate(size); }
 
 template <typename T>
-inline void operator delete(void *np, Sass::Memory_Manager<T>& mem_mgr)
-{
-  mem_mgr.remove(reinterpret_cast<T*>(np));
-  operator delete(np);
-}
+inline void operator delete(void *np, Sass::Memory_Manager<T>& mem)
+{ mem.destroy(reinterpret_cast<T*>(np)); }
 
 #endif
