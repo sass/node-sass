@@ -160,6 +160,7 @@ SOURCES = \
 	context.cpp \
 	cssize.cpp \
 	emitter.cpp \
+	environment.cpp \
 	error_handling.cpp \
 	eval.cpp \
 	expand.cpp \

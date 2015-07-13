@@ -37,7 +37,7 @@ libsass_la_SOURCES = \
 	subset_map.hpp mapping.hpp \
 	color_names.hpp backtrace.hpp \
 	cencode.c b64/cencode.h b64/encode.h \
-	token.hpp environment.hpp \
+	token.hpp \
 	paths.hpp debug.hpp \
 	utf8.h utf8/core.h \
 	utf8/checked.h utf8/unchecked.h \
@@ -46,6 +46,7 @@ libsass_la_SOURCES = \
 	bind.cpp bind.hpp \
 	constants.cpp constants.hpp \
 	context.cpp context.hpp \
+	environment.cpp environment.hpp \
 	error_handling.cpp error_handling.hpp \
 	eval.cpp eval.hpp \
 	expand.cpp expand.hpp \
