@@ -758,14 +758,12 @@ namespace Sass {
   ///////////////////////////////////////////////////////////////////////
   class List : public Expression, public Vectorized<Expression*> {
     void adjust_after_pushing(Expression* e) { is_expanded(false); }
-  public:
-    enum Separator { SPACE, COMMA };
   private:
-    ADD_PROPERTY(Separator, separator)
+    ADD_PROPERTY(enum Sass_Separator, separator)
     ADD_PROPERTY(bool, is_arglist)
   public:
     List(ParserState pstate,
-         size_t size = 0, Separator sep = SPACE, bool argl = false)
+         size_t size = 0, enum Sass_Separator sep = SASS_SPACE, bool argl = false)
     : Expression(pstate),
       Vectorized<Expression*>(size),
       separator_(sep), is_arglist_(argl)
@@ -783,7 +781,7 @@ namespace Sass {
     {
       if (hash_ > 0) return hash_;
 
-      hash_ = std::hash<string>()(separator() == COMMA ? "comma" : "space");
+      hash_ = std::hash<string>()(separator() == SASS_COMMA ? "comma" : "space");
       for (size_t i = 0, L = length(); i < L; ++i)
         hash_combine(hash_, (elements()[i])->hash());
 

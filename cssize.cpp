@@ -480,7 +480,7 @@ namespace Sass {
   {
     List* qq = new (ctx.mem) List(m1->media_queries()->pstate(),
                                   m1->media_queries()->length(),
-                                  List::COMMA);
+                                  SASS_COMMA);
 
     for (size_t i = 0, L = m1->media_queries()->length(); i < L; i++) {
       for (size_t j = 0, K = m2->media_queries()->length(); j < K; j++) {

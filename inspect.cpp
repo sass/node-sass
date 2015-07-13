@@ -362,7 +362,7 @@ namespace Sass {
 
   void Inspect::operator()(List* list)
   {
-    string sep(list->separator() == List::SPACE ? " " : ",");
+    string sep(list->separator() == SASS_SPACE ? " " : ",");
     if (output_style() != COMPRESSED && sep == ",") sep += " ";
     else if (in_media_block && sep != " ") sep += " "; // verified
     if (list->empty()) return;
@@ -371,14 +371,14 @@ namespace Sass {
     bool was_space_array = in_space_array;
     bool was_comma_array = in_comma_array;
     if (!in_declaration && (
-        (list->separator() == List::SPACE && in_space_array) ||
-        (list->separator() == List::COMMA && in_comma_array)
+        (list->separator() == SASS_SPACE && in_space_array) ||
+        (list->separator() == SASS_COMMA && in_comma_array)
     )) {
       append_string("(");
     }
 
-    if (list->separator() == List::SPACE) in_space_array = true;
-    else if (list->separator() == List::COMMA) in_comma_array = true;
+    if (list->separator() == SASS_SPACE) in_space_array = true;
+    else if (list->separator() == SASS_COMMA) in_comma_array = true;
 
     for (size_t i = 0, L = list->size(); i < L; ++i) {
       Expression* list_item = (*list)[i];
@@ -397,8 +397,8 @@ namespace Sass {
     in_comma_array = was_comma_array;
     in_space_array = was_space_array;
     if (!in_declaration && (
-        (list->separator() == List::SPACE && in_space_array) ||
-        (list->separator() == List::COMMA && in_comma_array)
+        (list->separator() == SASS_SPACE && in_space_array) ||
+        (list->separator() == SASS_COMMA && in_comma_array)
     )) {
       append_string(")");
     }

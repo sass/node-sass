@@ -223,7 +223,7 @@ namespace Sass {
       map = static_cast<Map*>(expr);
     }
     else if (expr->concrete_type() != Expression::LIST) {
-      list = new (ctx.mem) List(expr->pstate(), 1, List::COMMA);
+      list = new (ctx.mem) List(expr->pstate(), 1, SASS_COMMA);
       *list << expr;
     }
     else {
@@ -243,7 +243,7 @@ namespace Sass {
         Expression* value = map->at(key);
 
         if (variables.size() == 1) {
-          List* variable = new (ctx.mem) List(map->pstate(), 2, List::SPACE);
+          List* variable = new (ctx.mem) List(map->pstate(), 2, SASS_SPACE);
           *variable << key;
           *variable << value;
           env->set_local(variables[0], variable);
@@ -260,7 +260,7 @@ namespace Sass {
       for (size_t i = 0, L = list->length(); i < L; ++i) {
         List* variable = 0;
         if ((*list)[i]->concrete_type() != Expression::LIST || variables.size() == 1) {
-          variable = new (ctx.mem) List((*list)[i]->pstate(), 1, List::COMMA);
+          variable = new (ctx.mem) List((*list)[i]->pstate(), 1, SASS_COMMA);
           *variable << (*list)[i];
         }
         else {
@@ -867,7 +867,7 @@ namespace Sass {
       }
     } else if (List* list = dynamic_cast<List*>(s)) {
       string acc = ""; // ToDo: different output styles
-      string sep = list->separator() == List::Separator::COMMA ? "," : " ";
+      string sep = list->separator() == SASS_COMMA ? "," : " ";
       if (ctx.output_style != COMPRESSED && sep == ",") sep += " ";
       bool initial = false;
       for(auto item : list->elements()) {
@@ -1032,7 +1032,7 @@ namespace Sass {
       else if(val->concrete_type() != Expression::LIST) {
         List* wrapper = new (ctx.mem) List(val->pstate(),
                                            0,
-                                           List::COMMA,
+                                           SASS_COMMA,
                                            true);
         *wrapper << val;
         val = wrapper;
@@ -1338,7 +1338,7 @@ namespace Sass {
         }
       } break;
       case SASS_LIST: {
-        List* l = new (ctx.mem) List(pstate, sass_list_get_length(v), sass_list_get_separator(v) == SASS_COMMA ? List::COMMA : List::SPACE);
+        List* l = new (ctx.mem) List(pstate, sass_list_get_length(v), sass_list_get_separator(v));
         for (size_t i = 0, L = sass_list_get_length(v); i < L; ++i) {
           *l << cval_to_astnode(sass_list_get_value(v, i), ctx, backtrace, pstate);
         }

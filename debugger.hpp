@@ -480,7 +480,7 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     cerr << ind << "List " << expression;
     cerr << " (" << pstate_source_position(node) << ")";
     cerr << " (" << expression->length() << ") " <<
-      (expression->separator() == Sass::List::Separator::COMMA ? "Comma " : "Space ") <<
+      (expression->separator() == SASS_COMMA ? "Comma " : "Space ") <<
       " [delayed: " << expression->is_delayed() << "] " <<
       " [interpolant: " << expression->is_interpolant() << "] " <<
       " [arglist: " << expression->is_arglist() << "] " <<

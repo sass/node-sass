@@ -398,7 +398,7 @@ namespace Sass {
       map = static_cast<Map*>(expr);
     }
     else if (expr->concrete_type() != Expression::LIST) {
-      list = new (ctx.mem) List(expr->pstate(), 1, List::COMMA);
+      list = new (ctx.mem) List(expr->pstate(), 1, SASS_COMMA);
       *list << expr;
     }
     else {
@@ -419,7 +419,7 @@ namespace Sass {
         Expression* v = map->at(key)->perform(&eval);
 
         if (variables.size() == 1) {
-          List* variable = new (ctx.mem) List(map->pstate(), 2, List::SPACE);
+          List* variable = new (ctx.mem) List(map->pstate(), 2, SASS_SPACE);
           *variable << k;
           *variable << v;
           env->set_local(variables[0], variable);
@@ -434,7 +434,7 @@ namespace Sass {
       for (size_t i = 0, L = list->length(); i < L; ++i) {
         List* variable = 0;
         if ((*list)[i]->concrete_type() != Expression::LIST  || variables.size() == 1) {
-          variable = new (ctx.mem) List((*list)[i]->pstate(), 1, List::COMMA);
+          variable = new (ctx.mem) List((*list)[i]->pstate(), 1, SASS_COMMA);
           *variable << (*list)[i];
         }
         else {

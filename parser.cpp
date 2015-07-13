@@ -1133,7 +1133,7 @@ namespace Sass {
     if (!peek_css< exactly<','> >(position)) return list;
 
     // if we got so far, we actually do have a comma list
-    List* comma_list = new (ctx.mem) List(pstate, 2, List::COMMA);
+    List* comma_list = new (ctx.mem) List(pstate, 2, SASS_COMMA);
     // wrap the first expression
     (*comma_list) << list;
 
@@ -1178,7 +1178,7 @@ namespace Sass {
         > >(position)
     ) { return disj1; }
 
-    List* space_list = new (ctx.mem) List(pstate, 2, List::SPACE);
+    List* space_list = new (ctx.mem) List(pstate, 2, SASS_SPACE);
     (*space_list) << disj1;
 
     while (!(peek_css< alternatives <
@@ -1861,7 +1861,7 @@ namespace Sass {
 
   List* Parser::parse_media_queries()
   {
-    List* media_queries = new (ctx.mem) List(pstate, 0, List::COMMA);
+    List* media_queries = new (ctx.mem) List(pstate, 0, SASS_COMMA);
     if (!peek< exactly<'{'> >()) (*media_queries) << parse_media_query();
     while (lex< exactly<','> >()) (*media_queries) << parse_media_query();
     return media_queries;

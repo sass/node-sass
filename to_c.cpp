@@ -32,7 +32,7 @@ namespace Sass {
 
   Sass_Value* To_C::operator()(List* l)
   {
-    Sass_Value* v = sass_make_list(l->length(), l->separator() == List::COMMA ? SASS_COMMA : SASS_SPACE);
+    Sass_Value* v = sass_make_list(l->length(), l->separator());
     for (size_t i = 0, L = l->length(); i < L; ++i) {
       sass_list_set_value(v, i, (*l)[i]->perform(this));
     }
