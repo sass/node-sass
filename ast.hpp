@@ -122,7 +122,7 @@ namespace Sass {
     virtual operator bool() { return true; }
     virtual ~Expression() { }
     virtual string type() { return ""; /* TODO: raise an error? */ }
-    virtual bool is_invisible() { return false; }
+    virtual bool is_invisible() const { return false; }
     static string type_name() { return ""; }
     virtual bool is_false() { return false; }
     virtual bool operator==( Expression& rhs) const { return false; }
@@ -177,7 +177,7 @@ namespace Sass {
     size_t length() const   { return elements_.size(); }
     bool empty() const      { return elements_.empty(); }
     T last()                { return elements_.back(); }
-    T first()                { return elements_.front(); }
+    T first()               { return elements_.front(); }
     T& operator[](size_t i) { return elements_[i]; }
     const T& operator[](size_t i) const { return elements_[i]; }
     Vectorized& operator<<(T element)
@@ -259,6 +259,12 @@ namespace Sass {
     }
     const unordered_map<Expression*, Expression*>& pairs() const { return elements_; }
     const vector<Expression*>& keys() const { return list_; }
+
+    unordered_map<Expression*, Expression*>::iterator end() { return elements_.end(); }
+    unordered_map<Expression*, Expression*>::iterator begin() { return elements_.begin(); }
+    unordered_map<Expression*, Expression*>::const_iterator end() const { return elements_.end(); }
+    unordered_map<Expression*, Expression*>::const_iterator begin() const { return elements_.begin(); }
+
   };
   inline Hashed::~Hashed() { }
 
@@ -292,7 +298,7 @@ namespace Sass {
     virtual ~Statement() = 0;
     // needed for rearranging nested rulesets during CSS emission
     virtual bool   is_hoistable() { return false; }
-    virtual bool   is_invisible() { return false; }
+    virtual bool   is_invisible() const { return false; }
     virtual bool   bubbles() { return false; }
     virtual Block* block()  { return 0; }
   };
@@ -347,7 +353,7 @@ namespace Sass {
     Ruleset(ParserState pstate, Selector* s = 0, Block* b = 0)
     : Has_Block(pstate, b), selector_(s), at_root_(false)
     { statement_type(RULESET); }
-    bool is_invisible();
+    bool is_invisible() const;
     // nested rulesets need to be hoisted out of their enclosing blocks
     bool is_hoistable() { return true; }
     ATTACH_OPERATIONS()
@@ -393,7 +399,7 @@ namespace Sass {
     { statement_type(MEDIA); }
     bool bubbles() { return true; }
     bool is_hoistable() { return true; }
-    bool is_invisible() {
+    bool is_invisible() const {
       bool is_invisible = true;
       for (size_t i = 0, L = block()->length(); i < L && is_invisible; i++)
         is_invisible &= (*block())[i]->is_invisible();
@@ -766,7 +772,7 @@ namespace Sass {
     { concrete_type(LIST); }
     string type() { return is_arglist_ ? "arglist" : "list"; }
     static string type_name() { return "list"; }
-    bool is_invisible() { return !length(); }
+    bool is_invisible() const { return empty(); }
     Expression* value_at_index(size_t i);
 
     virtual size_t size() const;
@@ -807,7 +813,7 @@ namespace Sass {
     { concrete_type(MAP); }
     string type() { return "map"; }
     static string type_name() { return "map"; }
-    bool is_invisible() { return !length(); }
+    bool is_invisible() const { return empty(); }
 
     virtual bool operator==(Expression& rhs) const
     {
@@ -1553,7 +1559,7 @@ namespace Sass {
     Null(ParserState pstate) : Expression(pstate) { concrete_type(NULL_VAL); }
     string type() { return "null"; }
     static string type_name() { return "null"; }
-    bool is_invisible() { return true; }
+    bool is_invisible() const { return true; }
     operator bool() { return false; }
     bool is_false() { return true; }
 
@@ -2133,7 +2139,7 @@ namespace Sass {
     ATTACH_OPERATIONS()
   };
 
-  inline bool Ruleset::is_invisible() {
+  inline bool Ruleset::is_invisible() const {
     bool is_invisible = true;
     Selector_List* sl = static_cast<Selector_List*>(selector());
     for (size_t i = 0, L = sl->length(); i < L && is_invisible; ++i)
