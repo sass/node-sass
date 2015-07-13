@@ -572,9 +572,44 @@ namespace Sass {
     return ss;
   }
 
+  Complex_Selector* Complex_Selector::parentize(Context& ctx)
+  {
+    // create a new complex selector to return a processed copy
+    return this;
+    Complex_Selector* ss = new (ctx.mem) Complex_Selector(this->pstate());
+    ss->has_line_feed(this->has_line_feed());
+    ss->combinator(this->combinator());
+    if (this->tail()) {
+      ss->tail(this->tail()->parentize(ctx));
+    }
+    if (Compound_Selector* head = this->head()) {
+      // now add everything expect parent selectors to head
+      ss->head(new (ctx.mem) Compound_Selector(head->pstate()));
+      for (size_t i = 0, L = head->length(); i < L; ++i) {
+        if (!dynamic_cast<Parent_Selector*>((*head)[i])) {
+          *ss->head() << (*head)[i];
+        }
+      }
+      // if (ss->head()->empty()) ss->head(0);
+    }
+    // return copy
+    return ss;
+  }
+
+  Selector_List* Selector_List::parentize(Context& ctx)
+  {
+    Selector_List* ss = new (ctx.mem) Selector_List(pstate());
+    for (size_t i = 0, L = length(); i < L; ++i) {
+      *ss << (*this)[i]->parentize(ctx);
+    }
+    // return selector
+    return ss;
+  }
+
   Selector_List* Complex_Selector::parentize(Selector_List* ps, Context& ctx)
   {
     Selector_List* ss = new (ctx.mem) Selector_List(pstate());
+    if (ps == 0) { *ss << this->parentize(ctx); return ss; }
     for (size_t i = 0, L = ps->length(); i < L; ++i) {
       *ss << this->parentize((*ps)[i], ctx);
     }
@@ -584,10 +619,13 @@ namespace Sass {
 
   Complex_Selector* Complex_Selector::parentize(Complex_Selector* parent, Context& ctx)
   {
+    if (!parent) return parentize(ctx);
     Complex_Selector* pr = 0;
     Compound_Selector* head = this->head();
     // create a new complex selector to return a processed copy
     Complex_Selector* ss = new (ctx.mem) Complex_Selector(pstate());
+    ss->has_line_feed(has_line_feed());
+    ss->has_line_break(has_line_break());
 
     // Points to last complex selector
     // Moved when resolving parent refs
@@ -680,7 +718,20 @@ namespace Sass {
     return cpy;
   }
 
+  Selector_List* Selector_List::clone(Context& ctx) const
+  {
+    Selector_List* cpy = new (ctx.mem) Selector_List(*this);
+    return cpy;
+  }
 
+  Selector_List* Selector_List::cloneFully(Context& ctx) const
+  {
+    Selector_List* cpy = new (ctx.mem) Selector_List(pstate());
+    for (size_t i = 0, L = length(); i < L; ++i) {
+      *cpy << (*this)[i]->cloneFully(ctx);
+    }
+    return cpy;
+  }
 
   /* not used anymore - remove?
   Selector_Placeholder* Selector::find_placeholder()

@@ -2042,6 +2042,7 @@ namespace Sass {
       return s;
     };
     size_t length();
+    Complex_Selector* parentize(Context& ctx);
     Selector_List* parentize(Selector_List* parents, Context& ctx);
     Complex_Selector* parentize(Complex_Selector* parent, Context& ctx);
     virtual bool is_superselector_of(Compound_Selector* sub, string wrapping = "");
@@ -2136,6 +2137,7 @@ namespace Sass {
     // basically unwraps parsed selectors
     void remove_parent_selectors();
     // virtual Selector_Placeholder* find_placeholder();
+    Selector_List* parentize(Context& ctx);
     Selector_List* parentize(Selector_List* parents, Context& ctx);
     Selector_List* parentize(Complex_Selector* parent, Context& ctx);
     virtual bool is_superselector_of(Compound_Selector* sub, string wrapping = "");
@@ -2155,6 +2157,8 @@ namespace Sass {
       }
       return sum;
     }
+    Selector_List* clone(Context&) const;      // does not clone Compound_Selector*s
+    Selector_List* cloneFully(Context&) const; // clones Compound_Selector*s
     // vector<Complex_Selector*> members() { return elements_; }
     ATTACH_OPERATIONS()
   };

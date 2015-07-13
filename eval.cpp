@@ -1399,54 +1399,82 @@ namespace Sass {
     Compound_Selector* head = s->head();
     Complex_Selector::Combinator combinator = s->combinator();
     Selector_List* sl = new (ctx.mem) Selector_List(s->pstate());
-
     if (head) {
       // check if we have a parent selector reference (expands to list)
-      if (head->length() > 0 && dynamic_cast<Parent_Selector*>((*head)[0])) {
+      if (head->length() > 1 && dynamic_cast<Parent_Selector*>((*head)[0])) {
         // do we have any parents to interpolate
-        Selector_List* pr = selector();
-        if (pr && pr->length() > 0) {
-          for (size_t n = 0, nL = pr->length(); n < nL; ++n) {
-            if (tail) {
-              vector<Selector_List*> rv;
-              Selector_List* tails = operator()(tail);
-              for (size_t m = 0, mL = tails->length(); m < mL; ++m) {
-                Complex_Selector* ns = (*pr)[n]->cloneFully(ctx);
-                if (s->has_line_feed()) ns->has_line_feed(true);
-                Complex_Selector* tt = (*tails)[m];
-                Complex_Selector* last = ns->last();
-                if (combinator != Complex_Selector::ANCESTOR_OF) {
-                  Complex_Selector* cp = 0;
-                  cp = new (ctx.mem) Complex_Selector(s->pstate());
-                  cp->head(head); cp->tail(tt);
-                  cp->combinator(combinator);
-                  last->tail(cp);
-                } else {
-                  last->tail(tt);
-                }
-                for (size_t i = 1, iL = head->length(); i < iL; ++i) {
-                  // add simple selectors
-                  *last->head() << (*head)[i];
-                }
-                *sl << ns;
-              }
-              // EO foreach parentized tail
-            } else {
-              Complex_Selector* ns = (*pr)[n]->cloneFully(ctx);
-              Complex_Selector* last = ns->last();
-              ns->combinator(combinator);
-              for (size_t i = 1, iL = head->length(); i < iL; ++i) {
-                // add simple selectors
-                *last->head() << (*head)[i];
-              }
-              *sl << ns;
-            }
+        if (Selector_List* pr = selector()) {
+          // parent will be prefixed
+          Selector_List* ns = pr->cloneFully(ctx);
+          // the tail can be re-attached unchanged
+          for (size_t n = 0, nL = ns->length(); n < nL; ++n) {
+            Complex_Selector* lst_t = (*ns)[n]->last();
+            Compound_Selector* lst_h = lst_t->head();
+            for (size_t i = 1, L = head->length(); i < L; ++i) *lst_h << (*head)[i];
+            lst_t->tail(tail); // now connect old tail back to new intermediate
+            lst_t->combinator(combinator); // and dont forget the combinator
+            // if (s->has_line_feed()) lst_t->has_line_feed(true); // and dont forget the combinator
           }
-          parentized = true;
+          return ns;
+        }
+        else {
+          Complex_Selector* cpy = s->cloneFully(ctx);
+          cpy->head(new (ctx.mem) Compound_Selector(head->pstate()));
+          for (size_t i = 1, L = head->length(); i < L; ++i)
+            *cpy->head() << (*head)[i];
+          *sl << s;
+          return sl;
+        }
+      }
+
+      // have a simple
+      if (head->length() == 1 && dynamic_cast<Parent_Selector*>((*head)[0])) {
+        // do we have any parents to interpolate
+        if (Selector_List* pr = selector()) {
+          // parent will be prefixed
+          Selector_List* ns = pr->cloneFully(ctx);
+          // the tail can be re-attached unchanged
+          for (size_t n = 0, nL = ns->length(); n < nL; ++n) {
+            Complex_Selector* lst = (*ns)[n]->last();
+            lst->tail(tail);
+            if (combinator != Complex_Selector::ANCESTOR_OF) {
+              if (lst->combinator()!= Complex_Selector::ANCESTOR_OF) {
+                Complex_Selector* ins = s->clone(ctx);
+                ins->head(0);
+                ins->tail(tail);
+                lst->tail(ins);
+              } else {
+                lst->combinator(combinator);
+              }
+            }
+            if (s->has_line_feed()) lst->has_line_feed(true);
+            if (s->has_line_break()) lst->has_line_break(true);
+          }
+          return ns;
+        }
+        else {
+          Complex_Selector* ss = s->cloneFully(ctx);
+          // check if complex selector can be eliminated
+          if (s->combinator() == Complex_Selector::ANCESTOR_OF)
+          {
+            if (s->has_line_feed()) tail->has_line_feed(true);
+            if (s->has_line_break()) tail->has_line_break(true);
+            *sl << tail;
+          }
+          else
+          {
+            *sl << ss;
+          }
+          return sl;
         }
 
       }
 
+    }
+    else
+    {
+      *sl << s;
+      return sl;
     }
 
     if (parentized == false) {

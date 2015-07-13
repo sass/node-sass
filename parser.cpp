@@ -665,6 +665,7 @@ namespace Sass {
   {
     bool reloop = true;
     bool had_linefeed = false;
+    Complex_Selector* sel = 0;
     To_String to_string(&ctx);
     Selector_List* group = new (ctx.mem) Selector_List(pstate);
 
@@ -678,7 +679,7 @@ namespace Sass {
 
 
       // now parse the complex selector
-      Complex_Selector* sel = parse_complex_selector(in_root);
+      sel = parse_complex_selector(in_root);
 
       if (!sel) return group;
 
@@ -704,6 +705,7 @@ namespace Sass {
     }
     // update for end position
     group->update_pstate(pstate);
+    if (sel) sel->last()->has_line_break(false);
     return group;
   }
   // EO parse_selector_list

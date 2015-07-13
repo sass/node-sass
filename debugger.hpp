@@ -585,7 +585,6 @@ inline void debug_node(Node* node, string ind = "")
       case Complex_Selector::ADJACENT_TO: cerr << "{+} "; break;
       case Complex_Selector::PARENT_OF:   cerr << "{>} "; break;
       case Complex_Selector::PRECEDES:    cerr << "{~} "; break;
-      case Complex_Selector::REFERENCE:   cerr << "{@} "; break;
       case Complex_Selector::ANCESTOR_OF: cerr << "{ } "; break;
     }
     cerr << endl;
