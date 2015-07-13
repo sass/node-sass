@@ -512,31 +512,33 @@ namespace Sass {
     Expression::Concrete_Type l_type = lhs->concrete_type();
     Expression::Concrete_Type r_type = rhs->concrete_type();
 
+    int precision = ctx.precision;
+    bool compressed = ctx.output_style == COMPRESSED;
     if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
-      Number* l_n = dynamic_cast<Number*>(lhs);
-      Number* r_n = dynamic_cast<Number*>(rhs);
-      return op_numbers(ctx, op_type, l_n, r_n);
+      const Number* l_n = dynamic_cast<const Number*>(lhs);
+      const Number* r_n = dynamic_cast<const Number*>(rhs);
+      return op_numbers(ctx.mem, op_type, *l_n, *r_n, compressed, precision);
     }
     if (l_type == Expression::NUMBER && r_type == Expression::COLOR) {
-      Number* l_n = dynamic_cast<Number*>(lhs);
-      Color* r_c = dynamic_cast<Color*>(rhs);
-      return op_number_color(ctx, op_type, l_n, r_c);
+      const Number* l_n = dynamic_cast<const Number*>(lhs);
+      const Color* r_c = dynamic_cast<const Color*>(rhs);
+      return op_number_color(ctx.mem, op_type, *l_n, *r_c, compressed, precision);
     }
     if (l_type == Expression::COLOR && r_type == Expression::NUMBER) {
-      Color* l_c = dynamic_cast<Color*>(lhs);
-      Number* r_n = dynamic_cast<Number*>(rhs);
-      return op_color_number(ctx, op_type, l_c, r_n);
+      const Color* l_c = dynamic_cast<const Color*>(lhs);
+      const Number* r_n = dynamic_cast<const Number*>(rhs);
+      return op_color_number(ctx.mem, op_type, *l_c, *r_n, compressed, precision);
     }
     if (l_type == Expression::COLOR && r_type == Expression::COLOR) {
-      Color* l_c = dynamic_cast<Color*>(lhs);
-      Color* r_c = dynamic_cast<Color*>(rhs);
-      return op_colors(ctx, op_type, l_c, r_c);
+      const Color* l_c = dynamic_cast<const Color*>(lhs);
+      const Color* r_c = dynamic_cast<const Color*>(rhs);
+      return op_colors(ctx.mem, op_type, *l_c, *r_c, compressed, precision);
     }
 
     To_Value to_value(ctx, ctx.mem);
     Value* v_l = dynamic_cast<Value*>(lhs->perform(&to_value));
     Value* v_r = dynamic_cast<Value*>(rhs->perform(&to_value));
-    Value* ex = op_strings(ctx, op_type, v_l, v_r);
+    Value* ex = op_strings(ctx.mem, op_type, *v_l, *v_r, compressed, precision);
     if (String_Constant* str = dynamic_cast<String_Constant*>(ex))
     {
       if (str->concrete_type() != Expression::STRING) return ex;
@@ -1102,48 +1104,48 @@ namespace Sass {
     return *l < *r;
   }
 
-  Value* Eval::op_numbers(Context& ctx, enum Sass_OP op, Number* l, Number* r, bool compressed, int precision)
+  Value* Eval::op_numbers(Memory_Manager<AST_Node>& mem, enum Sass_OP op, const Number& l, const Number& r, bool compressed, int precision)
   {
-    double lv = l->value();
-    double rv = r->value();
+    double lv = l.value();
+    double rv = r.value();
     if (op == Sass_OP::DIV && !rv) {
-      return new (ctx.mem) String_Quoted(l->pstate(), "Infinity");
+      return new (mem) String_Quoted(l.pstate(), "Infinity");
     }
     if (op == Sass_OP::MOD && !rv) {
-      error("division by zero", r->pstate());
+      error("division by zero", r.pstate());
     }
 
-    Number tmp(*r);
-    tmp.normalize(l->find_convertible_unit());
-    string l_unit(l->unit());
+    Number tmp(r);
+    tmp.normalize(l.find_convertible_unit());
+    string l_unit(l.unit());
     string r_unit(tmp.unit());
     if (l_unit != r_unit && !l_unit.empty() && !r_unit.empty() &&
         (op == Sass_OP::ADD || op == Sass_OP::SUB)) {
-      error("Incompatible units: '"+r_unit+"' and '"+l_unit+"'.", l->pstate());
+      error("Incompatible units: '"+r_unit+"' and '"+l_unit+"'.", l.pstate());
     }
-    Number* v = new (ctx.mem) Number(*l);
-    v->pstate(l->pstate());
+    Number* v = new (mem) Number(l);
+    v->pstate(l.pstate());
     if (l_unit.empty() && (op == Sass_OP::ADD || op == Sass_OP::SUB || op == Sass_OP::MOD)) {
-      v->numerator_units() = r->numerator_units();
-      v->denominator_units() = r->denominator_units();
+      v->numerator_units() = r.numerator_units();
+      v->denominator_units() = r.denominator_units();
     }
 
     if (op == Sass_OP::MUL) {
       v->value(ops[op](lv, rv));
-      for (size_t i = 0, S = r->numerator_units().size(); i < S; ++i) {
-        v->numerator_units().push_back(r->numerator_units()[i]);
+      for (size_t i = 0, S = r.numerator_units().size(); i < S; ++i) {
+        v->numerator_units().push_back(r.numerator_units()[i]);
       }
-      for (size_t i = 0, S = r->denominator_units().size(); i < S; ++i) {
-        v->denominator_units().push_back(r->denominator_units()[i]);
+      for (size_t i = 0, S = r.denominator_units().size(); i < S; ++i) {
+        v->denominator_units().push_back(r.denominator_units()[i]);
       }
     }
     else if (op == Sass_OP::DIV) {
       v->value(ops[op](lv, rv));
-      for (size_t i = 0, S = r->numerator_units().size(); i < S; ++i) {
-        v->denominator_units().push_back(r->numerator_units()[i]);
+      for (size_t i = 0, S = r.numerator_units().size(); i < S; ++i) {
+        v->denominator_units().push_back(r.numerator_units()[i]);
       }
-      for (size_t i = 0, S = r->denominator_units().size(); i < S; ++i) {
-        v->numerator_units().push_back(r->denominator_units()[i]);
+      for (size_t i = 0, S = r.denominator_units().size(); i < S; ++i) {
+        v->numerator_units().push_back(r.denominator_units()[i]);
       }
     } else {
       v->value(ops[op](lv, tmp.value()));
@@ -1152,121 +1154,117 @@ namespace Sass {
     return v;
   }
 
-  Value* Eval::op_number_color(Context& ctx, enum Sass_OP op, Number* l, Color* r, bool compressed, int precision)
+  Value* Eval::op_number_color(Memory_Manager<AST_Node>& mem, enum Sass_OP op, const Number& l, const Color& rh, bool compressed, int precision)
   {
-    // TODO: currently SASS converts colors to standard form when adding to strings;
-    // when https://github.com/nex3/sass/issues/363 is added this can be removed to
-    // preserve the original value
-    r->disp("");
-    double lv = l->value();
+    Color r(rh);
+    r.disp("");
+    double lv = l.value();
     switch (op) {
       case Sass_OP::ADD:
       case Sass_OP::MUL: {
-        return new (ctx.mem) Color(l->pstate(),
-                                   ops[op](lv, r->r()),
-                                   ops[op](lv, r->g()),
-                                   ops[op](lv, r->b()),
-                                   r->a());
+        return new (mem) Color(l.pstate(),
+                               ops[op](lv, r.r()),
+                               ops[op](lv, r.g()),
+                               ops[op](lv, r.b()),
+                               r.a());
       } break;
       case Sass_OP::SUB:
       case Sass_OP::DIV: {
         string sep(op == Sass_OP::SUB ? "-" : "/");
-        string color(r->to_string(compressed||!r->sixtuplet(), precision));
-        return new (ctx.mem) String_Quoted(l->pstate(),
-                                           l->to_string(compressed, precision)
-                                           + sep
-                                           + color);
+        string color(r.to_string(compressed||!r.sixtuplet(), precision));
+        return new (mem) String_Quoted(l.pstate(),
+                                       l.to_string(compressed, precision)
+                                       + sep
+                                       + color);
       } break;
       case Sass_OP::MOD: {
-        error("cannot divide a number by a color", r->pstate());
+        error("cannot divide a number by a color", r.pstate());
       } break;
       default: break; // caller should ensure that we don't get here
     }
     // unreachable
-    return l;
+    return new (mem) Color(rh);
   }
 
-  Value* Eval::op_color_number(Context& ctx, enum Sass_OP op, Color* l, Number* r, bool compressed, int precision)
+  Value* Eval::op_color_number(Memory_Manager<AST_Node>& mem, enum Sass_OP op, const Color& l, const Number& r, bool compressed, int precision)
   {
-    double rv = r->value();
-    if (op == Sass_OP::DIV && !rv) error("division by zero", r->pstate());
-    return new (ctx.mem) Color(l->pstate(),
-                               ops[op](l->r(), rv),
-                               ops[op](l->g(), rv),
-                               ops[op](l->b(), rv),
-                               l->a());
+    double rv = r.value();
+    if (op == Sass_OP::DIV && !rv) error("division by zero", r.pstate());
+    return new (mem) Color(l.pstate(),
+                           ops[op](l.r(), rv),
+                           ops[op](l.g(), rv),
+                           ops[op](l.b(), rv),
+                           l.a());
   }
 
-  Value* Eval::op_colors(Context& ctx, enum Sass_OP op, Color* l, Color* r, bool compressed, int precision)
+  Value* Eval::op_colors(Memory_Manager<AST_Node>& mem, enum Sass_OP op, const Color& l, const Color& r, bool compressed, int precision)
   {
-    if (l->a() != r->a()) {
-      error("alpha channels must be equal when combining colors", r->pstate());
+    if (l.a() != r.a()) {
+      error("alpha channels must be equal when combining colors", r.pstate());
     }
-    if ((op == Sass_OP::DIV || op == Sass_OP::MOD) &&
-        (!r->r() || !r->g() ||!r->b())) {
-      error("division by zero", r->pstate());
+    if (op == Sass_OP::DIV && (!r.r() || !r.g() ||!r.b())) {
+      error("division by zero", r.pstate());
     }
-    return new (ctx.mem) Color(l->pstate(),
-                               ops[op](l->r(), r->r()),
-                               ops[op](l->g(), r->g()),
-                               ops[op](l->b(), r->b()),
-                               l->a());
+    return new (mem) Color(l.pstate(),
+                           ops[op](l.r(), r.r()),
+                           ops[op](l.g(), r.g()),
+                           ops[op](l.b(), r.b()),
+                           l.a());
   }
 
-  Value* Eval::op_strings(Context& ctx, enum Sass_OP op, Value* lhs, Value*rhs, bool compressed, int precision)
+  Value* Eval::op_strings(Memory_Manager<AST_Node>& mem, enum Sass_OP op, Value& lhs, Value& rhs, bool compressed, int precision)
   {
-    To_String to_string(&ctx);
-    Expression::Concrete_Type ltype = lhs->concrete_type();
-    Expression::Concrete_Type rtype = rhs->concrete_type();
+    Expression::Concrete_Type ltype = lhs.concrete_type();
+    Expression::Concrete_Type rtype = rhs.concrete_type();
 
-    String_Quoted* lqstr = dynamic_cast<String_Quoted*>(lhs);
-    String_Quoted* rqstr = dynamic_cast<String_Quoted*>(rhs);
+    String_Quoted* lqstr = dynamic_cast<String_Quoted*>(&lhs);
+    String_Quoted* rqstr = dynamic_cast<String_Quoted*>(&rhs);
 
-    string lstr(lqstr ? lqstr->value() : lhs->to_string(compressed, precision));
-    string rstr(rqstr ? rqstr->value() : rhs->to_string(compressed, precision));
+    string lstr(lqstr ? lqstr->value() : lhs.to_string(compressed, precision));
+    string rstr(rqstr ? rqstr->value() : rhs.to_string(compressed, precision));
 
-    bool l_str_quoted = ((Sass::String*)lhs) && ((Sass::String*)lhs)->sass_fix_1291();
-    bool r_str_quoted = ((Sass::String*)rhs) && ((Sass::String*)rhs)->sass_fix_1291();
+    bool l_str_quoted = ((Sass::String*)&lhs) && ((Sass::String*)&lhs)->sass_fix_1291();
+    bool r_str_quoted = ((Sass::String*)&rhs) && ((Sass::String*)&rhs)->sass_fix_1291();
     bool l_str_color = ltype == Expression::STRING && names_to_colors.count(lstr) && !l_str_quoted;
     bool r_str_color = rtype == Expression::STRING && names_to_colors.count(rstr) && !r_str_quoted;
 
     if (l_str_color && r_str_color) {
-      Color* l_c = name_to_color(lstr);
-      Color* r_c = name_to_color(rstr);
-      return op_colors(ctx, op, l_c, r_c);
+      const Color* c_l = name_to_color(lstr);
+      const Color* c_r = name_to_color(rstr);
+      return op_colors(mem, op,*c_l, *c_r, compressed, precision);
     }
     else if (l_str_color && rtype == Expression::COLOR) {
-      Color* l_c = name_to_color(lstr);
-      Color* r_c = dynamic_cast<Color*>(rhs);
-      return op_colors(ctx, op, l_c, r_c);
+      const Color* c_l = name_to_color(lstr);
+      const Color* c_r = dynamic_cast<const Color*>(&rhs);
+      return op_colors(mem, op, *c_l, *c_r, compressed, precision);
     }
     else if (ltype == Expression::COLOR && r_str_color) {
-      Color* l_c = dynamic_cast<Color*>(lhs);
-      Color* r_c = name_to_color(rstr);
-      return op_colors(ctx, op, l_c, r_c);
+      const Color* c_l = dynamic_cast<const Color*>(&lhs);
+      const Color* c_r = name_to_color(rstr);
+      return op_colors(mem, op, *c_l, *c_r, compressed, precision);
     }
     else if (l_str_color && rtype == Expression::NUMBER) {
-      Color* l_c = name_to_color(lstr);
-      Number* r_n = dynamic_cast<Number*>(rhs);
-      return op_color_number(ctx, op, l_c, r_n);
+      const Color* c_l = name_to_color(lstr);
+      const Number* n_r = dynamic_cast<const Number*>(&rhs);
+      return op_color_number(mem, op, *c_l, *n_r, compressed, precision);
     }
     else if (ltype == Expression::NUMBER && r_str_color) {
-      Number* l_n = dynamic_cast<Number*>(lhs);
-      Color* r_c = name_to_color(rstr);
-      return op_number_color(ctx, op, l_n, r_c);
+      const Number* n_l = dynamic_cast<const Number*>(&lhs);
+      const Color* c_r = name_to_color(rstr);
+      return op_number_color(mem, op, *n_l, *c_r, compressed, precision);
     }
-    if (op == Sass_OP::MUL) error("invalid operands for multiplication", lhs->pstate());
-    if (op == Sass_OP::MOD) error("invalid operands for modulo", lhs->pstate());
+    if (op == Sass_OP::MUL) error("invalid operands for multiplication", lhs.pstate());
+    if (op == Sass_OP::MOD) error("invalid operands for modulo", lhs.pstate());
     string sep;
     switch (op) {
       case Sass_OP::SUB: sep = "-"; break;
       case Sass_OP::DIV: sep = "/"; break;
       default:                         break;
     }
-    if (ltype == Expression::NULL_VAL) error("invalid null operation: \"null plus "+quote(unquote(rstr), '"')+"\".", lhs->pstate());
-    if (rtype == Expression::NULL_VAL) error("invalid null operation: \""+quote(unquote(lstr), '"')+" plus null\".", lhs->pstate());
+    if (ltype == Expression::NULL_VAL) error("invalid null operation: \"null plus "+quote(unquote(rstr), '"')+"\".", lhs.pstate());
+    if (rtype == Expression::NULL_VAL) error("invalid null operation: \""+quote(unquote(lstr), '"')+" plus null\".", rhs.pstate());
     string result((lstr) + sep + (rstr));
-    String_Quoted* str = new (ctx.mem) String_Quoted(lhs->pstate(), result);
+    String_Quoted* str = new (mem) String_Quoted(lhs.pstate(), result);
     str->quote_mark(0);
     return str;
   }

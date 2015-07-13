@@ -89,11 +89,11 @@ namespace Sass {
     static bool eq(Expression*, Expression*);
     static bool lt(Expression*, Expression*);
     // -- arithmetic on the combinations that matter
-    static Value* op_numbers(Context&, enum Sass_OP, Number*, Number*, bool compressed = false, int precision = 5);
-    static Value* op_number_color(Context&, enum Sass_OP, Number*, Color*, bool compressed = false, int precision = 5);
-    static Value* op_color_number(Context&, enum Sass_OP, Color*, Number*, bool compressed = false, int precision = 5);
-    static Value* op_colors(Context&, enum Sass_OP, Color*, Color*, bool compressed = false, int precision = 5);
-    static Value* op_strings(Context&, enum Sass_OP, Value*, Value*, bool compressed = false, int precision = 5);
+    static Value* op_numbers(Memory_Manager<AST_Node>&, enum Sass_OP, const Number&, const Number&, bool compressed = false, int precision = 5);
+    static Value* op_number_color(Memory_Manager<AST_Node>&, enum Sass_OP, const Number&, const Color&, bool compressed = false, int precision = 5);
+    static Value* op_color_number(Memory_Manager<AST_Node>&, enum Sass_OP, const Color&, const Number&, bool compressed = false, int precision = 5);
+    static Value* op_colors(Memory_Manager<AST_Node>&, enum Sass_OP, const Color&, const Color&, bool compressed = false, int precision = 5);
+    static Value* op_strings(Memory_Manager<AST_Node>&, enum Sass_OP, Value&, Value&, bool compressed = false, int precision = 5);
 
   private:
     string interpolation(Expression* s);
