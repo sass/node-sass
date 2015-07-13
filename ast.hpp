@@ -1192,6 +1192,8 @@ namespace Sass {
     // useful for making one number compatible with another
     string find_convertible_unit() const;
 
+    virtual bool operator< (Number& rhs) const;
+    virtual bool operator< (Number* rhs) const;
     virtual bool operator== (Expression& rhs) const;
     virtual bool operator== (Expression* rhs) const;
 
