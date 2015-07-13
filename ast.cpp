@@ -945,7 +945,7 @@ namespace Sass {
   }
 
   Number::Number(ParserState pstate, double val, string u, bool zero)
-  : Expression(pstate),
+  : Value(pstate),
     value_(val),
     zero_(zero),
     numerator_units_(vector<string>()),

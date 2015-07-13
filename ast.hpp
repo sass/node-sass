@@ -130,6 +130,18 @@ namespace Sass {
     virtual void set_delayed(bool delayed) { is_delayed(delayed); }
     virtual size_t hash() { return 0; }
   };
+
+  //////////////////////////////////////////////////////////////////////
+  // base class for values that support operations
+  //////////////////////////////////////////////////////////////////////
+  class Value : public Expression {
+  public:
+    Value(ParserState pstate,
+          bool d = false, bool e = false, bool i = false, Concrete_Type ct = NONE)
+    : Expression(pstate, d, e, i, ct)
+    { }
+    virtual bool operator== (Expression& rhs) const = 0;
+  };
 }
 
 
@@ -756,7 +768,7 @@ namespace Sass {
   // Lists of values, both comma- and space-separated (distinguished by a
   // type-tag.) Also used to represent variable-length argument lists.
   ///////////////////////////////////////////////////////////////////////
-  class List : public Expression, public Vectorized<Expression*> {
+  class List : public Value, public Vectorized<Expression*> {
     void adjust_after_pushing(Expression* e) { is_expanded(false); }
   private:
     ADD_PROPERTY(enum Sass_Separator, separator)
@@ -764,7 +776,7 @@ namespace Sass {
   public:
     List(ParserState pstate,
          size_t size = 0, enum Sass_Separator sep = SASS_SPACE, bool argl = false)
-    : Expression(pstate),
+    : Value(pstate),
       Vectorized<Expression*>(size),
       separator_(sep), is_arglist_(argl)
     { concrete_type(LIST); }
@@ -804,12 +816,12 @@ namespace Sass {
   ///////////////////////////////////////////////////////////////////////
   // Key value paris.
   ///////////////////////////////////////////////////////////////////////
-  class Map : public Expression, public Hashed {
+  class Map : public Value, public Hashed {
     void adjust_after_pushing(std::pair<Expression*, Expression*> p) { is_expanded(false); }
   public:
     Map(ParserState pstate,
          size_t size = 0)
-    : Expression(pstate),
+    : Value(pstate),
       Hashed(size)
     { concrete_type(MAP); }
     string type() { return "map"; }
@@ -1170,7 +1182,7 @@ namespace Sass {
   ////////////////////////////////////////////////
   // Numbers, percentages, dimensions, and colors.
   ////////////////////////////////////////////////
-  class Number : public Expression {
+  class Number : public Value {
     ADD_PROPERTY(double, value)
     ADD_PROPERTY(bool, zero)
     vector<string> numerator_units_;
@@ -1181,6 +1193,8 @@ namespace Sass {
     bool            zero()              { return zero_; }
     vector<string>& numerator_units()   { return numerator_units_; }
     vector<string>& denominator_units() { return denominator_units_; }
+    const vector<string>& numerator_units() const   { return numerator_units_; }
+    const vector<string>& denominator_units() const { return denominator_units_; }
     string type() { return "number"; }
     static string type_name() { return "number"; }
     string unit() const;
@@ -1208,7 +1222,7 @@ namespace Sass {
   //////////
   // Colors.
   //////////
-  class Color : public Expression {
+  class Color : public Value {
     ADD_PROPERTY(double, r)
     ADD_PROPERTY(double, g)
     ADD_PROPERTY(double, b)
@@ -1218,7 +1232,7 @@ namespace Sass {
     size_t hash_;
   public:
     Color(ParserState pstate, double r, double g, double b, double a = 1, bool sixtuplet = true, const string disp = "")
-    : Expression(pstate), r_(r), g_(g), b_(b), a_(a), sixtuplet_(sixtuplet), disp_(disp),
+    : Value(pstate), r_(r), g_(g), b_(b), a_(a), sixtuplet_(sixtuplet), disp_(disp),
       hash_(0)
     { concrete_type(COLOR); }
     string type() { return "color"; }
@@ -1255,12 +1269,12 @@ namespace Sass {
   ////////////
   // Booleans.
   ////////////
-  class Boolean : public Expression {
+  class Boolean : public Value {
     ADD_PROPERTY(bool, value)
     size_t hash_;
   public:
     Boolean(ParserState pstate, bool val)
-    : Expression(pstate), value_(val),
+    : Value(pstate), value_(val),
       hash_(0)
     { concrete_type(BOOLEAN); }
     virtual operator bool() { return value_; }
@@ -1297,11 +1311,11 @@ namespace Sass {
   // Abstract base class for Sass string values. Includes interpolated and
   // "flat" strings.
   ////////////////////////////////////////////////////////////////////////
-  class String : public Expression {
+  class String : public Value {
     ADD_PROPERTY(bool, sass_fix_1291)
   public:
     String(ParserState pstate, bool delayed = false, bool sass_fix_1291 = false)
-    : Expression(pstate, delayed), sass_fix_1291_(sass_fix_1291)
+    : Value(pstate, delayed), sass_fix_1291_(sass_fix_1291)
     { concrete_type(STRING); }
     static string type_name() { return "string"; }
     virtual ~String() = 0;
@@ -1565,9 +1579,9 @@ namespace Sass {
   //////////////////
   // The null value.
   //////////////////
-  class Null : public Expression {
+  class Null : public Value {
   public:
-    Null(ParserState pstate) : Expression(pstate) { concrete_type(NULL_VAL); }
+    Null(ParserState pstate) : Value(pstate) { concrete_type(NULL_VAL); }
     string type() { return "null"; }
     static string type_name() { return "null"; }
     bool is_invisible() const { return true; }
