@@ -142,6 +142,7 @@ namespace Sass {
     { }
     virtual bool operator== (Expression& rhs) const = 0;
     virtual bool operator== (Expression* rhs) const = 0;
+    virtual string to_string(bool compressed = false, int precision = 5) const = 0;
   };
 }
 
@@ -791,8 +792,6 @@ namespace Sass {
     Expression* value_at_index(size_t i);
 
     virtual size_t size() const;
-    virtual bool operator==(Expression& rhs) const;
-    virtual bool operator==(Expression* rhs) const;
 
     virtual size_t hash()
     {
@@ -810,6 +809,10 @@ namespace Sass {
         (elements()[i])->set_delayed(delayed);
       is_delayed(delayed);
     }
+
+    virtual bool operator==(Expression& rhs) const;
+    virtual bool operator==(Expression* rhs) const;
+    virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
   };
@@ -843,6 +846,7 @@ namespace Sass {
 
     virtual bool operator== (Expression& rhs) const;
     virtual bool operator== (Expression* rhs) const;
+    virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
   };
@@ -1192,11 +1196,6 @@ namespace Sass {
     // useful for making one number compatible with another
     string find_convertible_unit() const;
 
-    virtual bool operator< (Number& rhs) const;
-    virtual bool operator< (Number* rhs) const;
-    virtual bool operator== (Expression& rhs) const;
-    virtual bool operator== (Expression* rhs) const;
-
     virtual size_t hash()
     {
       if (hash_ == 0) {
@@ -1204,6 +1203,12 @@ namespace Sass {
       }
       return hash_;
     }
+
+    virtual bool operator< (Number& rhs) const;
+    virtual bool operator< (Number* rhs) const;
+    virtual bool operator== (Expression& rhs) const;
+    virtual bool operator== (Expression* rhs) const;
+    virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
   };
@@ -1240,6 +1245,7 @@ namespace Sass {
 
     virtual bool operator== (Expression& rhs) const;
     virtual bool operator== (Expression* rhs) const;
+    virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
   };
@@ -1270,6 +1276,7 @@ namespace Sass {
 
     virtual bool operator== (Expression& rhs) const;
     virtual bool operator== (Expression* rhs) const;
+    virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
   };
@@ -1288,6 +1295,7 @@ namespace Sass {
     virtual ~String() = 0;
     virtual bool operator==(Expression& rhs) const = 0;
     virtual bool operator==(Expression* rhs) const = 0;
+    virtual string to_string(bool compressed = false, int precision = 5) const = 0;
     ATTACH_OPERATIONS()
   };
   inline String::~String() { };
@@ -1317,6 +1325,7 @@ namespace Sass {
 
     virtual bool operator==(Expression& rhs) const;
     virtual bool operator==(Expression* rhs) const;
+    virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
   };
@@ -1356,6 +1365,7 @@ namespace Sass {
 
     virtual bool operator==(Expression& rhs) const;
     virtual bool operator==(Expression* rhs) const;
+    virtual string to_string(bool compressed = false, int precision = 5) const;
 
     // static char auto_quote() { return '*'; }
     static char double_quote() { return '"'; }
@@ -1376,6 +1386,7 @@ namespace Sass {
     }
     virtual bool operator==(Expression& rhs) const;
     virtual bool operator==(Expression* rhs) const;
+    virtual string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1534,13 +1545,14 @@ namespace Sass {
     operator bool() { return false; }
     bool is_false() { return true; }
 
-    virtual bool operator== (Expression& rhs) const;
-    virtual bool operator== (Expression* rhs) const;
-
     virtual size_t hash()
     {
       return -1;
     }
+
+    virtual bool operator== (Expression& rhs) const;
+    virtual bool operator== (Expression* rhs) const;
+    virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
   };
