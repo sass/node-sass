@@ -8,6 +8,7 @@
 #include "constants.hpp"
 #include "util.hpp"
 #include "prelexer.hpp"
+#include "color_maps.hpp"
 #include "sass_functions.h"
 #include "error_handling.hpp"
 
@@ -1048,8 +1049,8 @@ namespace Sass {
     Map* map = new (ctx.mem) Map(pstate, 1);
     if (String_Quoted* str = dynamic_cast<String_Quoted*>(key)) {
       if (!str->quote_mark() && !str->is_delayed()) {
-        if (ctx.names_to_colors.count(str->value())) {
-          Color* c = new (ctx.mem) Color(*ctx.names_to_colors[str->value()]);
+        if (names_to_colors.count(str->value())) {
+          Color* c = new (ctx.mem) Color(*name_to_color(str->value()));
           c->pstate(str->pstate());
           c->disp(str->value());
           key = c;
@@ -1076,8 +1077,8 @@ namespace Sass {
       Expression* key = parse_list();
       if (String_Quoted* str = dynamic_cast<String_Quoted*>(key)) {
         if (!str->quote_mark() && !str->is_delayed()) {
-          if (ctx.names_to_colors.count(str->value())) {
-            Color* c = new (ctx.mem) Color(*ctx.names_to_colors[str->value()]);
+          if (names_to_colors.count(str->value())) {
+            Color* c = new (ctx.mem) Color(*name_to_color(str->value()));
             c->pstate(str->pstate());
             c->disp(str->value());
             key = c;

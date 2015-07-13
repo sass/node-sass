@@ -22,6 +22,7 @@
 #include "prelexer.hpp"
 #include "parser.hpp"
 #include "expand.hpp"
+#include "color_maps.hpp"
 
 namespace Sass {
   using namespace std;
@@ -917,8 +918,8 @@ namespace Sass {
 
   Expression* Eval::operator()(String_Constant* s)
   {
-    if (!s->is_delayed() && ctx.names_to_colors.count(s->value())) {
-      Color* c = new (ctx.mem) Color(*ctx.names_to_colors[s->value()]);
+    if (!s->is_delayed() && names_to_colors.count(s->value())) {
+      Color* c = new (ctx.mem) Color(*name_to_color(s->value()));
       c->pstate(s->pstate());
       c->disp(s->value());
       return c;
@@ -1270,32 +1271,32 @@ namespace Sass {
 
     bool l_str_quoted = ((Sass::String*)lhs) && ((Sass::String*)lhs)->sass_fix_1291();
     bool r_str_quoted = ((Sass::String*)rhs) && ((Sass::String*)rhs)->sass_fix_1291();
-    bool l_str_color = ltype == Expression::STRING && ctx.names_to_colors.count(lstr) && !l_str_quoted;
-    bool r_str_color = rtype == Expression::STRING && ctx.names_to_colors.count(rstr) && !r_str_quoted;
+    bool l_str_color = ltype == Expression::STRING && names_to_colors.count(lstr) && !l_str_quoted;
+    bool r_str_color = rtype == Expression::STRING && names_to_colors.count(rstr) && !r_str_quoted;
 
     if (l_str_color && r_str_color) {
-      Color* l_c = ctx.names_to_colors[lstr];
-      Color* r_c = ctx.names_to_colors[rstr];
+      Color* l_c = name_to_color(lstr);
+      Color* r_c = name_to_color(rstr);
       return op_colors(ctx, op, l_c, r_c);
     }
     else if (l_str_color && rtype == Expression::COLOR) {
-      Color* l_c = ctx.names_to_colors[lstr];
+      Color* l_c = name_to_color(lstr);
       Color* r_c = dynamic_cast<Color*>(rhs);
       return op_colors(ctx, op, l_c, r_c);
     }
     else if (ltype == Expression::COLOR && r_str_color) {
       Color* l_c = dynamic_cast<Color*>(lhs);
-      Color* r_c = ctx.names_to_colors[rstr];
+      Color* r_c = name_to_color(rstr);
       return op_colors(ctx, op, l_c, r_c);
     }
     else if (l_str_color && rtype == Expression::NUMBER) {
-      Color* l_c = ctx.names_to_colors[lstr];
+      Color* l_c = name_to_color(lstr);
       Number* r_n = dynamic_cast<Number*>(rhs);
       return op_color_number(ctx, op, l_c, r_n);
     }
     else if (ltype == Expression::NUMBER && r_str_color) {
       Number* l_n = dynamic_cast<Number*>(lhs);
-      Color* r_c = ctx.names_to_colors[rstr];
+      Color* r_c = name_to_color(rstr);
       return op_number_color(ctx, op, l_n, r_c);
     }
     if (op == Sass_OP::MUL) error("invalid operands for multiplication", lhs->pstate());

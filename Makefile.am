@@ -44,6 +44,7 @@ libsass_la_SOURCES = \
 	ast.cpp ast.hpp \
 	base64vlq.cpp base64vlq.hpp \
 	bind.cpp bind.hpp \
+	color_maps.cpp color_maps.hpp \
 	constants.cpp constants.hpp \
 	context.cpp context.hpp \
 	environment.cpp environment.hpp \

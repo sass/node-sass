@@ -165,6 +165,7 @@
     <ClCompile Include="..\base64vlq.cpp" />
     <ClCompile Include="..\bind.cpp" />
     <ClCompile Include="..\cencode.c" />
+    <ClCompile Include="..\color_maps.cpp" />
     <ClCompile Include="..\constants.cpp" />
     <ClCompile Include="..\context.cpp" />
     <ClCompile Include="..\environment.cpp" />
@@ -211,7 +212,7 @@
     <ClInclude Include="..\backtrace.hpp" />
     <ClInclude Include="..\base64vlq.hpp" />
     <ClInclude Include="..\bind.hpp" />
-    <ClInclude Include="..\color_names.hpp" />
+    <ClInclude Include="..\color_maps.hpp" />
     <ClInclude Include="..\constants.hpp" />
     <ClInclude Include="..\context.hpp" />
     <ClInclude Include="..\debug.hpp" />

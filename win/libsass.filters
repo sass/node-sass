@@ -30,6 +30,9 @@
     <ClCompile Include="..\bind.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\color_maps.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\constants.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -173,7 +176,7 @@
     <ClInclude Include="..\bind.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\color_names.hpp">
+    <ClInclude Include="..\color_maps.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\constants.hpp">

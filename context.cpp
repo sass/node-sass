@@ -27,7 +27,6 @@
 #include "listize.hpp"
 #include "extend.hpp"
 #include "remove_placeholders.hpp"
-#include "color_names.hpp"
 #include "functions.hpp"
 #include "backtrace.hpp"
 #include "sass2scss.h"
@@ -80,8 +79,6 @@ namespace Sass {
     source_map_contents     (initializers.source_map_contents()),
     omit_source_map_url     (initializers.omit_source_map_url()),
     is_indented_syntax_src  (initializers.is_indented_syntax_src()),
-    names_to_colors         (map<string, Color*>()),
-    colors_to_names         (map<int, string>()),
     precision               (initializers.precision()),
     plugins(),
     subset_map              (Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> >())
@@ -99,8 +96,6 @@ namespace Sass {
     // collect_include_paths(initializers.include_paths_array());
     collect_plugin_paths(initializers.plugin_paths_c_str());
     // collect_plugin_paths(initializers.plugin_paths_array());
-
-    setup_color_map();
 
     for (size_t i = 0, S = plugin_paths.size(); i < S; ++i) {
       plugins.load_plugins(plugin_paths[i]);
@@ -159,28 +154,6 @@ namespace Sass {
     for (size_t m = 0; m < import_stack.size(); ++m) sass_delete_import(import_stack[m]);
     // clear inner structures (vectors) and input source
     sources.clear(); import_stack.clear(); source_c_str = 0;
-  }
-
-  void Context::setup_color_map()
-  {
-    size_t i = 0;
-    while (color_names[i]) {
-      string name(color_names[i]);
-      Color* value = new (mem) Color(ParserState("[COLOR TABLE]"),
-                                     color_values[i*4],
-                                     color_values[i*4+1],
-                                     color_values[i*4+2],
-                                     color_values[i*4+3]);
-      names_to_colors[name] = value;
-      // only map fully opaque colors
-      if (color_values[i*4+3] >= 1) {
-        int numval = static_cast<int>(color_values[i*4])*0x10000;
-        numval += static_cast<int>(color_values[i*4+1])*0x100;
-        numval += static_cast<int>(color_values[i*4+2]);
-        colors_to_names[numval] = name;
-      }
-      ++i;
-    }
   }
 
   void Context::collect_include_paths(const char* paths_str)

@@ -81,9 +81,6 @@ namespace Sass {
     // overload import calls
     vector<Sass_Import_Entry> import_stack;
 
-    map<string, Color*> names_to_colors;
-    map<int, string>    colors_to_names;
-
     size_t precision; // precision for outputting fractional numbers
 
     KWD_ARG_SET(Data) {
@@ -115,7 +112,6 @@ namespace Sass {
     Context(Data);
     ~Context();
     static string get_cwd();
-    void setup_color_map();
 
     Block* parse_file();
     Block* parse_string();
