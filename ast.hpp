@@ -1015,38 +1015,7 @@ namespace Sass {
     ADD_PROPERTY(bool, has_rest_argument)
     ADD_PROPERTY(bool, has_keyword_argument)
   protected:
-    void adjust_after_pushing(Argument* a)
-    {
-      if (!a->name().empty()) {
-        if (has_rest_argument_ || has_keyword_argument_) {
-          error("named arguments must precede variable-length argument", a->pstate());
-        }
-        has_named_arguments_ = true;
-      }
-      else if (a->is_rest_argument()) {
-        if (has_rest_argument_) {
-          error("functions and mixins may only be called with one variable-length argument", a->pstate());
-        }
-        if (has_keyword_argument_) {
-          error("only keyword arguments may follow variable arguments", a->pstate());
-        }
-        has_rest_argument_ = true;
-      }
-      else if (a->is_keyword_argument()) {
-        if (has_keyword_argument_) {
-          error("functions and mixins may only be called with one keyword argument", a->pstate());
-        }
-        has_keyword_argument_ = true;
-      }
-      else {
-        if (has_rest_argument_) {
-          error("ordinal arguments must precede variable-length arguments", a->pstate());
-        }
-        if (has_named_arguments_) {
-          error("ordinal arguments must precede named arguments", a->pstate());
-        }
-      }
-    }
+    void adjust_after_pushing(Argument* a);
   public:
     Arguments(ParserState pstate)
     : Expression(pstate),

@@ -911,21 +911,38 @@ namespace Sass {
     }
   }
 
-  /* not used anymore - remove?
-  vector<Compound_Selector*> Complex_Selector::to_vector()
+  void Arguments::adjust_after_pushing(Argument* a)
   {
-    vector<Compound_Selector*> result;
-    Compound_Selector* h = head();
-    Complex_Selector* t = tail();
-    if (h) result.push_back(h);
-    while (t)
-    {
-      h = t->head();
-      t = t->tail();
-      if (h) result.push_back(h);
+    if (!a->name().empty()) {
+      if (/* has_rest_argument_ || */ has_keyword_argument_) {
+        error("named arguments must precede variable-length argument", a->pstate());
+      }
+      has_named_arguments_ = true;
     }
-    return result;
-  }*/
+    else if (a->is_rest_argument()) {
+      if (has_rest_argument_) {
+        error("functions and mixins may only be called with one variable-length argument", a->pstate());
+      }
+      if (has_keyword_argument_) {
+        error("only keyword arguments may follow variable arguments", a->pstate());
+      }
+      has_rest_argument_ = true;
+    }
+    else if (a->is_keyword_argument()) {
+      if (has_keyword_argument_) {
+        error("functions and mixins may only be called with one keyword argument", a->pstate());
+      }
+      has_keyword_argument_ = true;
+    }
+    else {
+      if (has_rest_argument_) {
+        error("ordinal arguments must precede variable-length arguments", a->pstate());
+      }
+      if (has_named_arguments_) {
+        error("ordinal arguments must precede named arguments", a->pstate());
+      }
+    }
+  }
 
   Number::Number(ParserState pstate, double val, string u, bool zero)
   : Expression(pstate),

@@ -121,7 +121,11 @@ namespace Sass {
           while (ia < LA) {
             // get and post inc
             a = (*as)[ia++];
-            // wrap current argument into new object
+            // maybe we have another list as argument
+            List* ls = dynamic_cast<List*>(a->value());
+            // skip any list completely if empty
+            if (ls && ls->empty()) continue;
+            // check if we have rest argument
             (*arglist) << new (ctx.mem) Argument(a->pstate(),
                                                  a->value(),
                                                  a->name(),
