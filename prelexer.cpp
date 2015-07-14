@@ -514,6 +514,9 @@ namespace Sass {
       return src;
     }
 
+    const char* re_functional(const char* src) {
+      return sequence< identifier, optional < block_comment >, exactly<'('> >(src);
+    }
     const char* re_pseudo_selector(const char* src) {
       return sequence< identifier, optional < block_comment >, exactly<'('> >(src);
     }

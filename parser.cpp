@@ -1354,7 +1354,7 @@ namespace Sass {
     else if (lex< identifier_schema >()) {
       return parse_identifier_schema();
     }
-    else if (peek< re_pseudo_selector >()) {
+    else if (peek< re_functional >()) {
       return parse_function_call();
     }
     else if (lex< exactly<'+'> >()) {
@@ -1587,6 +1587,9 @@ namespace Sass {
       // parse space between tokens
       if (lex< spaces >() && num_items) {
         (*schema) << new (ctx.mem) String_Quoted(pstate, " ");
+      }
+      if (peek< re_functional >()) {
+        (*schema) << parse_function_call();
       }
       // lex an interpolant /#{...}/
       else if (lex< exactly < hash_lbrace > >()) {

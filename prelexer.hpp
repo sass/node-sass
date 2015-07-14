@@ -293,6 +293,7 @@ namespace Sass {
     // Match CSS pseudo-class/element prefixes
     const char* pseudo_prefix(const char* src);
     // Match CSS function call openers.
+    const char* re_functional(const char* src);
     const char* re_pseudo_selector(const char* src);
     const char* functional_schema(const char* src);
     const char* pseudo_not(const char* src);
