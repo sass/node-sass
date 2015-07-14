@@ -123,7 +123,9 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
         case Complex_Selector::PRECEDES:    del = "~"; break;
         case Complex_Selector::ADJACENT_TO: del = "+"; break;
         case Complex_Selector::ANCESTOR_OF: del = " "; break;
+        case Complex_Selector::REFERENCE:   del = "//"; break;
       }
+      // if (del = "/") del += selector->reference()->perform(&to_string) + "/";
     cerr << " <" << prettyprint(selector->pstate().token.ws_before()) << ">" << endl;
     debug_ast(selector->head(), ind + " " /* + "[" + del + "]" */, env);
     if (selector->tail()) {

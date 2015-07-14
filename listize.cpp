@@ -45,6 +45,9 @@ namespace Sass {
       if (hh) *l << hh;
     }
 
+    To_String to_string;
+    string reference = ! sel->reference() ? ""
+      : sel->reference()->perform(&to_string);
     switch(sel->combinator())
     {
       case Complex_Selector::PARENT_OF:
@@ -52,6 +55,9 @@ namespace Sass {
       break;
       case Complex_Selector::ADJACENT_TO:
         *l << new (ctx.mem) String_Quoted(sel->pstate(), "+");
+      break;
+      case Complex_Selector::REFERENCE:
+        *l << new (ctx.mem) String_Quoted(sel->pstate(), "/" + reference + "/");
       break;
       case Complex_Selector::PRECEDES:
         *l << new (ctx.mem) String_Quoted(sel->pstate(), "~");

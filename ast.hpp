@@ -1015,38 +1015,7 @@ namespace Sass {
     ADD_PROPERTY(bool, has_rest_argument)
     ADD_PROPERTY(bool, has_keyword_argument)
   protected:
-    void adjust_after_pushing(Argument* a)
-    {
-      if (!a->name().empty()) {
-        if (has_rest_argument_ || has_keyword_argument_) {
-          error("named arguments must precede variable-length argument", a->pstate());
-        }
-        has_named_arguments_ = true;
-      }
-      else if (a->is_rest_argument()) {
-        if (has_rest_argument_) {
-          error("functions and mixins may only be called with one variable-length argument", a->pstate());
-        }
-        if (has_keyword_argument_) {
-          error("only keyword arguments may follow variable arguments", a->pstate());
-        }
-        has_rest_argument_ = true;
-      }
-      else if (a->is_keyword_argument()) {
-        if (has_keyword_argument_) {
-          error("functions and mixins may only be called with one keyword argument", a->pstate());
-        }
-        has_keyword_argument_ = true;
-      }
-      else {
-        if (has_rest_argument_) {
-          error("ordinal arguments must precede variable-length arguments", a->pstate());
-        }
-        if (has_named_arguments_) {
-          error("ordinal arguments must precede named arguments", a->pstate());
-        }
-      }
-    }
+    void adjust_after_pushing(Argument* a);
   public:
     Arguments(ParserState pstate)
     : Expression(pstate),
@@ -2010,11 +1979,12 @@ namespace Sass {
   ////////////////////////////////////////////////////////////////////////////
   class Complex_Selector : public Selector {
   public:
-    enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO };
+    enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO, REFERENCE };
   private:
     ADD_PROPERTY(Combinator, combinator)
     ADD_PROPERTY(Compound_Selector*, head)
     ADD_PROPERTY(Complex_Selector*, tail)
+    ADD_PROPERTY(String*, reference);
   public:
     bool contains_placeholder() {
       if (head() && head()->contains_placeholder()) return true;
@@ -2025,7 +1995,7 @@ namespace Sass {
                      Combinator c = ANCESTOR_OF,
                      Compound_Selector* h = 0,
                      Complex_Selector* t = 0)
-    : Selector(pstate), combinator_(c), head_(h), tail_(t)
+    : Selector(pstate), combinator_(c), head_(h), tail_(t), reference_(0)
     {
       if ((h && h->has_reference())   || (t && t->has_reference()))   has_reference(true);
       if ((h && h->has_placeholder()) || (t && t->has_placeholder())) has_placeholder(true);

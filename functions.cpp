@@ -210,7 +210,7 @@ namespace Sass {
 
     inline double color_num(Number* n) {
       if (n->unit() == "%") {
-        return std::min(std::max(n->value(), 0.0), 1.0) * 255;
+        return std::min(std::max(n->value(), 0.0), 100.0) * 2.55;
       } else {
         return std::min(std::max(n->value(), 0.0), 255.0);
       }

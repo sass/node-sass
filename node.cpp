@@ -142,6 +142,7 @@ namespace Sass {
         case Complex_Selector::PARENT_OF:   os << "\">\""; break;
         case Complex_Selector::PRECEDES:    os << "\"~\""; break;
         case Complex_Selector::ADJACENT_TO: os << "\"+\""; break;
+        case Complex_Selector::REFERENCE: os    << "\"/\""; break;
       }
 
     } else if (node.isNil()) {

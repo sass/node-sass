@@ -19,7 +19,7 @@ namespace Sass {
 
     const bool include_sources = ctx.source_map_contents;
     const vector<string> includes = ctx.include_links;
-    const vector<const char*> sources = ctx.sources;
+    const vector<char*> sources = ctx.sources;
 
     JsonNode* json_srcmap = json_mkobject();
 

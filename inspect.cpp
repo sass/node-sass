@@ -925,6 +925,13 @@ namespace Sass {
         append_string("+");
         append_optional_space();
       break;
+      case Complex_Selector::REFERENCE:
+        append_mandatory_space();
+        append_string("/");
+        c->reference()->perform(this);
+        append_string("/");
+        append_mandatory_space();
+      break;
       case Complex_Selector::PRECEDES:
         if (is_empty) append_optional_space();
         else append_mandatory_space();

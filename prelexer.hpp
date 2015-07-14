@@ -196,9 +196,8 @@ namespace Sass {
     const char* identifier_alpha(const char* src);
     const char* identifier_alnum(const char* src);
     const char* identifier_alnums(const char* src);
-    // Match selector names.
-    // const char* sel_ident(const char* src);
-    const char* kwd_sel_deep(const char* src);
+    // Match reference selector.
+    const char* re_reference_selector(const char* src);
 
     // Match interpolant schemas
     const char* identifier_schema(const char* src);
@@ -293,6 +292,7 @@ namespace Sass {
     // Match CSS pseudo-class/element prefixes
     const char* pseudo_prefix(const char* src);
     // Match CSS function call openers.
+    const char* re_functional(const char* src);
     const char* re_pseudo_selector(const char* src);
     const char* functional_schema(const char* src);
     const char* pseudo_not(const char* src);

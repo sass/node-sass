@@ -23,6 +23,13 @@ namespace Sass {
     top_nodes.push_back(imp);
   }
 
+  void Output::operator()(Map* m)
+  {
+    To_String to_string(ctx);
+    string dbg(m->perform(&to_string));
+    error(dbg + " isn't a valid CSS value.", m->pstate());
+  }
+
   OutputBuffer Output::get_buffer(void)
   {
 
