@@ -393,7 +393,7 @@ namespace Sass {
           Expression* the_url = parse_string();
           *args << new (ctx.mem) Argument(the_url->pstate(), the_url);
         }
-        else if (lex < uri_value >(position != 0)) { // chunk seems to work too!
+        else if (lex < uri_value >(false)) { // don't skip comments
           String* the_url = parse_interpolated_chunk(lexed);
           *args << new (ctx.mem) Argument(the_url->pstate(), the_url);
         }
