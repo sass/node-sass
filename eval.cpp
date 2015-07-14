@@ -890,6 +890,11 @@ namespace Sass {
     } else if (dynamic_cast<Unary_Expression*>(s)) {
       Expression* ex = s->perform(this);
       return evacuate_quotes(interpolation(ex));
+    } else if (dynamic_cast<Map*>(s)) {
+      To_String to_string(&ctx);
+      string dbg(s->perform(&to_string));
+      error(dbg + " isn't a valid CSS value.", s->pstate());
+      return dbg;
     } else {
       To_String to_string(&ctx);
       return evacuate_quotes(s->perform(&to_string));
