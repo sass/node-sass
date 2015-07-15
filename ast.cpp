@@ -1466,8 +1466,8 @@ namespace Sass {
     double a = cap_channel<1>   (a_);
 
     // get color from given name (if one was given at all)
-    if (name != "" && names_to_colors.count(name)) {
-      Color* n = names_to_colors.find(name)->second;
+    if (name != "" && name_to_color(name)) {
+      const Color* n = name_to_color(name);
       r = round(cap_channel<0xff>(n->r()));
       g = round(cap_channel<0xff>(n->g()));
       b = round(cap_channel<0xff>(n->b()));
@@ -1475,9 +1475,9 @@ namespace Sass {
     }
     // otherwise get the possible resolved color name
     else {
-      int numval = static_cast<int>(r) * 0x10000 + static_cast<int>(g) * 0x100 + static_cast<int>(b);
-      if (colors_to_names.count(numval))
-        res_name = colors_to_names.find(numval)->second;
+      int numval = r * 0x10000 + g * 0x100 + b;
+      if (color_to_name(numval))
+        res_name = color_to_name(numval);
     }
 
     stringstream hexlet;

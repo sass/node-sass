@@ -943,7 +943,7 @@ namespace Sass {
 
   Expression* Eval::operator()(String_Constant* s)
   {
-    if (!s->is_delayed() && names_to_colors.count(s->value())) {
+    if (!s->is_delayed() && name_to_color(s->value())) {
       Color* c = new (ctx.mem) Color(*name_to_color(s->value()));
       c->pstate(s->pstate());
       c->disp(s->value());
@@ -1227,8 +1227,8 @@ namespace Sass {
 
     bool l_str_quoted = ((Sass::String*)&lhs) && ((Sass::String*)&lhs)->sass_fix_1291();
     bool r_str_quoted = ((Sass::String*)&rhs) && ((Sass::String*)&rhs)->sass_fix_1291();
-    bool l_str_color = ltype == Expression::STRING && names_to_colors.count(lstr) && !l_str_quoted;
-    bool r_str_color = rtype == Expression::STRING && names_to_colors.count(rstr) && !r_str_quoted;
+    bool l_str_color = ltype == Expression::STRING && name_to_color(lstr) && !l_str_quoted;
+    bool r_str_color = rtype == Expression::STRING && name_to_color(rstr) && !r_str_quoted;
 
     if (l_str_color && r_str_color) {
       const Color* c_l = name_to_color(lstr);
