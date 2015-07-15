@@ -497,12 +497,12 @@ namespace Sass {
 
     // see if it's a relational expression
     switch(op_type) {
-      case Sass_OP::EQ:  return new (ctx.mem) Boolean(b->pstate(), eq(lhs, rhs, ctx));
-      case Sass_OP::NEQ: return new (ctx.mem) Boolean(b->pstate(), !eq(lhs, rhs, ctx));
-      case Sass_OP::GT:  return new (ctx.mem) Boolean(b->pstate(), !lt(lhs, rhs, ctx) && !eq(lhs, rhs, ctx));
-      case Sass_OP::GTE: return new (ctx.mem) Boolean(b->pstate(), !lt(lhs, rhs, ctx));
-      case Sass_OP::LT:  return new (ctx.mem) Boolean(b->pstate(), lt(lhs, rhs, ctx));
-      case Sass_OP::LTE: return new (ctx.mem) Boolean(b->pstate(), lt(lhs, rhs, ctx) || eq(lhs, rhs, ctx));
+      case Sass_OP::EQ:  return new (ctx.mem) Boolean(b->pstate(), eq(lhs, rhs));
+      case Sass_OP::NEQ: return new (ctx.mem) Boolean(b->pstate(), !eq(lhs, rhs));
+      case Sass_OP::GT:  return new (ctx.mem) Boolean(b->pstate(), !lt(lhs, rhs) && !eq(lhs, rhs));
+      case Sass_OP::GTE: return new (ctx.mem) Boolean(b->pstate(), !lt(lhs, rhs));
+      case Sass_OP::LT:  return new (ctx.mem) Boolean(b->pstate(), lt(lhs, rhs));
+      case Sass_OP::LTE: return new (ctx.mem) Boolean(b->pstate(), lt(lhs, rhs) || eq(lhs, rhs));
 
       default:                     break;
     }
@@ -1065,7 +1065,7 @@ namespace Sass {
 
   // All the binary helpers.
 
-  bool Eval::eq(Expression* lhs, Expression* rhs, Context& ctx)
+  bool Eval::eq(Expression* lhs, Expression* rhs)
   {
     Expression::Concrete_Type ltype = lhs->concrete_type();
     Expression::Concrete_Type rtype = rhs->concrete_type();
@@ -1107,7 +1107,7 @@ namespace Sass {
         if (l->length() != r->length()) return false;
         if (l->separator() != r->separator()) return false;
         for (size_t i = 0, L = l->length(); i < L; ++i) {
-          if (!eq((*l)[i], (*r)[i], ctx)) return false;
+          if (!eq((*l)[i], (*r)[i])) return false;
         }
         return true;
       } break;
@@ -1117,7 +1117,7 @@ namespace Sass {
         Map* r = static_cast<Map*>(rhs);
         if (l->length() != r->length()) return false;
         for (auto key : l->keys())
-          if (!eq(l->at(key), r->at(key), ctx)) return false;
+          if (!eq(l->at(key), r->at(key))) return false;
         return true;
       } break;
       case Expression::NULL_VAL: {
@@ -1129,7 +1129,7 @@ namespace Sass {
     return false;
   }
 
-  bool Eval::lt(Expression* lhs, Expression* rhs, Context& ctx)
+  bool Eval::lt(Expression* lhs, Expression* rhs)
   {
     if (lhs->concrete_type() != Expression::NUMBER ||
         rhs->concrete_type() != Expression::NUMBER)
