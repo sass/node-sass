@@ -440,16 +440,6 @@ namespace Sass {
     return mm;
   }
 
-  // -- only need to define two comparisons, and the rest can be implemented in terms of them
-  bool eq(Expression*, Expression*, Context&, Eval*);
-  bool lt(Expression*, Expression*, Context&);
-  // -- arithmetic on the combinations that matter
-  Expression* op_numbers(Context&, Binary_Expression*, Expression*, Expression*);
-  Expression* op_number_color(Context&, enum Sass_OP, Expression*, Expression*);
-  Expression* op_color_number(Context&, enum Sass_OP, Expression*, Expression*);
-  Expression* op_colors(Context&, enum Sass_OP, Expression*, Expression*);
-  Expression* op_strings(Context&, enum Sass_OP, Expression*, Expression*);
-
   Expression* Eval::operator()(Binary_Expression* b)
   {
     enum Sass_OP op_type = b->type();
@@ -520,16 +510,24 @@ namespace Sass {
     Expression::Concrete_Type r_type = rhs->concrete_type();
 
     if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
-      return op_numbers(ctx, b, lhs, rhs);
+      Number* l_n = static_cast<Number*>(lhs);
+      Number* r_n = static_cast<Number*>(rhs);
+      return op_numbers(ctx, op_type, l_n, r_n);
     }
     if (l_type == Expression::NUMBER && r_type == Expression::COLOR) {
-      return op_number_color(ctx, op_type, lhs, rhs);
+      Number* l_n = static_cast<Number*>(lhs);
+      Color* r_c = static_cast<Color*>(rhs);
+      return op_number_color(ctx, op_type, l_n, r_c);
     }
     if (l_type == Expression::COLOR && r_type == Expression::NUMBER) {
-      return op_color_number(ctx, op_type, lhs, rhs);
+      Color* l_c = static_cast<Color*>(lhs);
+      Number* r_n = static_cast<Number*>(rhs);
+      return op_color_number(ctx, op_type, l_c, r_n);
     }
     if (l_type == Expression::COLOR && r_type == Expression::COLOR) {
-      return op_colors(ctx, op_type, lhs, rhs);
+      Color* l_c = static_cast<Color*>(lhs);
+      Color* r_c = static_cast<Color*>(rhs);
+      return op_colors(ctx, op_type, l_c, r_c);
     }
 
     Expression* ex = op_strings(ctx, op_type, lhs, rhs);
@@ -1066,7 +1064,7 @@ namespace Sass {
 
   // All the binary helpers.
 
-  bool eq(Expression* lhs, Expression* rhs, Context& ctx)
+  bool Eval::eq(Expression* lhs, Expression* rhs, Context& ctx)
   {
     Expression::Concrete_Type ltype = lhs->concrete_type();
     Expression::Concrete_Type rtype = rhs->concrete_type();
@@ -1130,7 +1128,7 @@ namespace Sass {
     return false;
   }
 
-  bool lt(Expression* lhs, Expression* rhs, Context& ctx)
+  bool Eval::lt(Expression* lhs, Expression* rhs, Context& ctx)
   {
     if (lhs->concrete_type() != Expression::NUMBER ||
         rhs->concrete_type() != Expression::NUMBER)
@@ -1147,13 +1145,10 @@ namespace Sass {
     return l->value() < tmp_r.value();
   }
 
-  Expression* op_numbers(Context& ctx, Binary_Expression* b, Expression* lhs, Expression* rhs)
+  Expression* Eval::op_numbers(Context& ctx, enum Sass_OP op, Number* l, Number* r)
   {
-    Number* l = static_cast<Number*>(lhs);
-    Number* r = static_cast<Number*>(rhs);
     double lv = l->value();
     double rv = r->value();
-    enum Sass_OP op = b->type();
     if (op == Sass_OP::DIV && !rv) {
       return new (ctx.mem) String_Quoted(l->pstate(), "Infinity");
     }
@@ -1170,7 +1165,7 @@ namespace Sass {
       error("Incompatible units: '"+r_unit+"' and '"+l_unit+"'.", l->pstate());
     }
     Number* v = new (ctx.mem) Number(*l);
-    v->pstate(b->pstate());
+    v->pstate(l->pstate());
     if (l_unit.empty() && (op == Sass_OP::ADD || op == Sass_OP::SUB || op == Sass_OP::MOD)) {
       v->numerator_units() = r->numerator_units();
       v->denominator_units() = r->denominator_units();
@@ -1200,10 +1195,8 @@ namespace Sass {
     return v;
   }
 
-  Expression* op_number_color(Context& ctx, enum Sass_OP op, Expression* lhs, Expression* rhs)
+  Expression* Eval::op_number_color(Context& ctx, enum Sass_OP op, Number* l, Color* r)
   {
-    Number* l = static_cast<Number*>(lhs);
-    Color* r = static_cast<Color*>(rhs);
     // TODO: currently SASS converts colors to standard form when adding to strings;
     // when https://github.com/nex3/sass/issues/363 is added this can be removed to
     // preserve the original value
@@ -1239,10 +1232,8 @@ namespace Sass {
     return l;
   }
 
-  Expression* op_color_number(Context& ctx, enum Sass_OP op, Expression* lhs, Expression* rhs)
+  Expression* Eval::op_color_number(Context& ctx, enum Sass_OP op, Color* l, Number* r)
   {
-    Color* l = static_cast<Color*>(lhs);
-    Number* r = static_cast<Number*>(rhs);
     double rv = r->value();
     if (op == Sass_OP::DIV && !rv) error("division by zero", r->pstate());
     return new (ctx.mem) Color(l->pstate(),
@@ -1252,10 +1243,8 @@ namespace Sass {
                                l->a());
   }
 
-  Expression* op_colors(Context& ctx, enum Sass_OP op, Expression* lhs, Expression* rhs)
+  Expression* Eval::op_colors(Context& ctx, enum Sass_OP op, Color* l, Color* r)
   {
-    Color* l = static_cast<Color*>(lhs);
-    Color* r = static_cast<Color*>(rhs);
     if (l->a() != r->a()) {
       error("alpha channels must be equal when combining colors", r->pstate());
     }
@@ -1270,7 +1259,7 @@ namespace Sass {
                                l->a());
   }
 
-  Expression* op_strings(Context& ctx, enum Sass_OP op, Expression* lhs, Expression*rhs)
+  Expression* Eval::op_strings(Context& ctx, enum Sass_OP op, Expression* lhs, Expression*rhs)
   {
     To_String to_string(&ctx);
     Expression::Concrete_Type ltype = lhs->concrete_type();
@@ -1285,19 +1274,29 @@ namespace Sass {
     bool r_str_color = rtype == Expression::STRING && ctx.names_to_colors.count(rstr) && !r_str_quoted;
 
     if (l_str_color && r_str_color) {
-      return op_colors(ctx, op, ctx.names_to_colors[lstr], ctx.names_to_colors[rstr]);
+      Color* l_c = ctx.names_to_colors[lstr];
+      Color* r_c = ctx.names_to_colors[rstr];
+      return op_colors(ctx, op, l_c, r_c);
     }
     else if (l_str_color && rtype == Expression::COLOR) {
-      return op_colors(ctx, op, ctx.names_to_colors[lstr], rhs);
-    }
-    else if (l_str_color && rtype == Expression::NUMBER) {
-      return op_color_number(ctx, op, ctx.names_to_colors[lstr], rhs);
+      Color* l_c = ctx.names_to_colors[lstr];
+      Color* r_c = dynamic_cast<Color*>(rhs);
+      return op_colors(ctx, op, l_c, r_c);
     }
     else if (ltype == Expression::COLOR && r_str_color) {
-      return op_number_color(ctx, op, lhs, ctx.names_to_colors[rstr]);
+      Color* l_c = dynamic_cast<Color*>(lhs);
+      Color* r_c = ctx.names_to_colors[rstr];
+      return op_colors(ctx, op, l_c, r_c);
+    }
+    else if (l_str_color && rtype == Expression::NUMBER) {
+      Color* l_c = ctx.names_to_colors[lstr];
+      Number* r_n = dynamic_cast<Number*>(rhs);
+      return op_color_number(ctx, op, l_c, r_n);
     }
     else if (ltype == Expression::NUMBER && r_str_color) {
-      return op_number_color(ctx, op, lhs, ctx.names_to_colors[rstr]);
+      Number* l_n = dynamic_cast<Number*>(lhs);
+      Color* r_c = ctx.names_to_colors[rstr];
+      return op_number_color(ctx, op, l_n, r_c);
     }
     if (op == Sass_OP::MUL) error("invalid operands for multiplication", lhs->pstate());
     if (op == Sass_OP::MOD) error("invalid operands for modulo", lhs->pstate());

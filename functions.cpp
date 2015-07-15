@@ -1077,7 +1077,7 @@ namespace Sass {
         Number* xi = dynamic_cast<Number*>(arglist->value_at_index(i));
         if (!xi) error("`" + string(sig) + "` only takes numeric arguments", pstate);
         if (least) {
-          if (lt(xi, least, ctx)) least = xi;
+          if (Eval::lt(xi, least, ctx)) least = xi;
         } else least = xi;
       }
       return least;
@@ -1092,7 +1092,7 @@ namespace Sass {
         Number* xi = dynamic_cast<Number*>(arglist->value_at_index(i));
         if (!xi) error("`" + string(sig) + "` only takes numeric arguments", pstate);
         if (greatest) {
-          if (lt(greatest, xi, ctx)) greatest = xi;
+          if (Eval::lt(greatest, xi, ctx)) greatest = xi;
         } else greatest = xi;
       }
       return greatest;
@@ -1202,7 +1202,7 @@ namespace Sass {
         *l << ARG("$list", Expression);
       }
       for (size_t i = 0, L = l->length(); i < L; ++i) {
-        if (eq(l->value_at_index(i), v, ctx)) return new (ctx.mem) Number(pstate, i+1);
+        if (Eval::eq(l->value_at_index(i), v, ctx)) return new (ctx.mem) Number(pstate, i+1);
       }
       return new (ctx.mem) Null(pstate);
     }
@@ -1377,7 +1377,7 @@ namespace Sass {
       for (auto key : m->keys()) {
         remove = false;
         for (size_t j = 0, K = arglist->length(); j < K && !remove; ++j) {
-          remove = eq(key, arglist->value_at_index(j), ctx);
+          remove = Eval::eq(key, arglist->value_at_index(j), ctx);
         }
         if (!remove) *result << make_pair(key, m->at(key));
       }
