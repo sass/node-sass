@@ -242,7 +242,7 @@ namespace Sass {
     append_token("@if", cond);
     append_mandatory_space();
     cond->predicate()->perform(this);
-    cond->consequent()->perform(this);
+    cond->block()->perform(this);
     if (cond->alternative()) {
       append_optional_linefeed();
       append_indentation();
@@ -362,7 +362,7 @@ namespace Sass {
 
   void Inspect::operator()(List* list)
   {
-    string sep(list->separator() == List::SPACE ? " " : ",");
+    string sep(list->separator() == SASS_SPACE ? " " : ",");
     if (output_style() != COMPRESSED && sep == ",") sep += " ";
     else if (in_media_block && sep != " ") sep += " "; // verified
     if (list->empty()) return;
@@ -371,14 +371,14 @@ namespace Sass {
     bool was_space_array = in_space_array;
     bool was_comma_array = in_comma_array;
     if (!in_declaration && (
-        (list->separator() == List::SPACE && in_space_array) ||
-        (list->separator() == List::COMMA && in_comma_array)
+        (list->separator() == SASS_SPACE && in_space_array) ||
+        (list->separator() == SASS_COMMA && in_comma_array)
     )) {
       append_string("(");
     }
 
-    if (list->separator() == List::SPACE) in_space_array = true;
-    else if (list->separator() == List::COMMA) in_comma_array = true;
+    if (list->separator() == SASS_SPACE) in_space_array = true;
+    else if (list->separator() == SASS_COMMA) in_comma_array = true;
 
     for (size_t i = 0, L = list->size(); i < L; ++i) {
       Expression* list_item = (*list)[i];
@@ -397,8 +397,8 @@ namespace Sass {
     in_comma_array = was_comma_array;
     in_space_array = was_space_array;
     if (!in_declaration && (
-        (list->separator() == List::SPACE && in_space_array) ||
-        (list->separator() == List::COMMA && in_comma_array)
+        (list->separator() == SASS_SPACE && in_space_array) ||
+        (list->separator() == SASS_COMMA && in_comma_array)
     )) {
       append_string(")");
     }
@@ -409,19 +409,19 @@ namespace Sass {
   {
     expr->left()->perform(this);
     switch (expr->type()) {
-      case Binary_Expression::AND: append_string(" and "); break;
-      case Binary_Expression::OR:  append_string(" or ");  break;
-      case Binary_Expression::EQ:  append_string(" == ");  break;
-      case Binary_Expression::NEQ: append_string(" != ");  break;
-      case Binary_Expression::GT:  append_string(" > ");   break;
-      case Binary_Expression::GTE: append_string(" >= ");  break;
-      case Binary_Expression::LT:  append_string(" < ");   break;
-      case Binary_Expression::LTE: append_string(" <= ");  break;
-      case Binary_Expression::ADD: append_string(" + ");   break;
-      case Binary_Expression::SUB: append_string(" - ");   break;
-      case Binary_Expression::MUL: append_string(" * ");   break;
-      case Binary_Expression::DIV: append_string("/");     break;
-      case Binary_Expression::MOD: append_string(" % ");   break;
+      case Sass_OP::AND: append_string(" and "); break;
+      case Sass_OP::OR:  append_string(" or ");  break;
+      case Sass_OP::EQ:  append_string(" == ");  break;
+      case Sass_OP::NEQ: append_string(" != ");  break;
+      case Sass_OP::GT:  append_string(" > ");   break;
+      case Sass_OP::GTE: append_string(" >= ");  break;
+      case Sass_OP::LT:  append_string(" < ");   break;
+      case Sass_OP::LTE: append_string(" <= ");  break;
+      case Sass_OP::ADD: append_string(" + ");   break;
+      case Sass_OP::SUB: append_string(" - ");   break;
+      case Sass_OP::MUL: append_string(" * ");   break;
+      case Sass_OP::DIV: append_string("/");     break;
+      case Sass_OP::MOD: append_string(" % ");   break;
       default: break; // shouldn't get here
     }
     expr->right()->perform(this);

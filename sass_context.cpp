@@ -221,7 +221,7 @@ extern "C" {
     try {
      throw;
     }
-    catch (Sass_Error& e) {
+    catch (Error_Invalid& e) {
       stringstream msg_stream;
       string cwd(Sass::File::get_cwd());
       JsonNode* json_err = json_mkobject();

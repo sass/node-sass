@@ -143,7 +143,7 @@ extern "C" {
 
       copy_strings(cpp_ctx.get_included_files(1), &c_ctx->included_files, 1);
     }
-    catch (Sass_Error& e) {
+    catch (Error_Invalid& e) {
       stringstream msg_stream;
       msg_stream << e.pstate.path << ":" << e.pstate.line << ": " << e.message << endl;
       c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
@@ -235,7 +235,7 @@ extern "C" {
 
       copy_strings(cpp_ctx.get_included_files(), &c_ctx->included_files);
     }
-    catch (Sass_Error& e) {
+    catch (Error_Invalid& e) {
       stringstream msg_stream;
       msg_stream << e.pstate.path << ":" << e.pstate.line << ": " << e.message << endl;
       c_ctx->error_message = sass_strdup(msg_stream.str().c_str());

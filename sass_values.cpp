@@ -156,7 +156,7 @@ extern "C" {
 
   union Sass_Value* ADDCALL sass_make_boolean(bool val)
   {
-    Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    union Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->boolean.tag = SASS_BOOLEAN;
     v->boolean.value = val;
@@ -165,7 +165,7 @@ extern "C" {
 
   union Sass_Value* ADDCALL sass_make_number(double val, const char* unit)
   {
-    Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    union Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->number.tag = SASS_NUMBER;
     v->number.value = val;
@@ -176,7 +176,7 @@ extern "C" {
 
   union Sass_Value* ADDCALL sass_make_color(double r, double g, double b, double a)
   {
-    Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    union Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->color.tag = SASS_COLOR;
     v->color.r = r;
@@ -188,7 +188,7 @@ extern "C" {
 
   union Sass_Value* ADDCALL sass_make_string(const char* val)
   {
-    Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    union Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->string.quoted = false;
     v->string.tag = SASS_STRING;
@@ -199,7 +199,7 @@ extern "C" {
 
   union Sass_Value* ADDCALL sass_make_qstring(const char* val)
   {
-    Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    union Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->string.quoted = true;
     v->string.tag = SASS_STRING;
@@ -210,7 +210,7 @@ extern "C" {
 
   union Sass_Value* ADDCALL sass_make_list(size_t len, enum Sass_Separator sep)
   {
-    Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    union Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->list.tag = SASS_LIST;
     v->list.length = len;
@@ -222,7 +222,7 @@ extern "C" {
 
   union Sass_Value* ADDCALL sass_make_map(size_t len)
   {
-    Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    union Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->map.tag = SASS_MAP;
     v->map.length = len;
@@ -233,7 +233,7 @@ extern "C" {
 
   union Sass_Value* ADDCALL sass_make_null(void)
   {
-    Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    union Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->null.tag = SASS_NULL;
     return v;
@@ -241,7 +241,7 @@ extern "C" {
 
   union Sass_Value* ADDCALL sass_make_error(const char* msg)
   {
-    Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    union Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->error.tag = SASS_ERROR;
     v->error.message = msg ? sass_strdup(msg) : 0;
@@ -251,7 +251,7 @@ extern "C" {
 
   union Sass_Value* ADDCALL sass_make_warning(const char* msg)
   {
-    Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
+    union Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->warning.tag = SASS_WARNING;
     v->warning.message = msg ? sass_strdup(msg) : 0;

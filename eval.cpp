@@ -32,7 +32,7 @@ namespace Sass {
   inline double div(double x, double y) { return x / y; } // x/0 checked by caller
   inline double mod(double x, double y) { return abs(fmod(x, y)); } // x/0 checked by caller
   typedef double (*bop)(double, double);
-  bop ops[Binary_Expression::NUM_OPS] = {
+  bop ops[Sass_OP::NUM_OPS] = {
     0, 0, // and, or
     0, 0, 0, 0, 0, 0, // eq, neq, gt, gte, lt, lte
     add, sub, mul, div, mod
@@ -142,7 +142,7 @@ namespace Sass {
     Env env(exp.environment());
     exp.env_stack.push_back(&env);
     if (*i->predicate()->perform(this)) {
-      rv = i->consequent()->perform(this);
+      rv = i->block()->perform(this);
     }
     else {
       Block* alt = i->alternative();
@@ -223,7 +223,7 @@ namespace Sass {
       map = static_cast<Map*>(expr);
     }
     else if (expr->concrete_type() != Expression::LIST) {
-      list = new (ctx.mem) List(expr->pstate(), 1, List::COMMA);
+      list = new (ctx.mem) List(expr->pstate(), 1, SASS_COMMA);
       *list << expr;
     }
     else {
@@ -243,7 +243,7 @@ namespace Sass {
         Expression* value = map->at(key);
 
         if (variables.size() == 1) {
-          List* variable = new (ctx.mem) List(map->pstate(), 2, List::SPACE);
+          List* variable = new (ctx.mem) List(map->pstate(), 2, SASS_SPACE);
           *variable << key;
           *variable << value;
           env->set_local(variables[0], variable);
@@ -260,7 +260,7 @@ namespace Sass {
       for (size_t i = 0, L = list->length(); i < L; ++i) {
         List* variable = 0;
         if ((*list)[i]->concrete_type() != Expression::LIST || variables.size() == 1) {
-          variable = new (ctx.mem) List((*list)[i]->pstate(), 1, List::COMMA);
+          variable = new (ctx.mem) List((*list)[i]->pstate(), 1, SASS_COMMA);
           *variable << (*list)[i];
         }
         else {
@@ -321,7 +321,7 @@ namespace Sass {
       To_C to_c;
       union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
       sass_list_set_value(c_args, 0, message->perform(&to_c));
-      Sass_Value* c_val = c_func(c_args, c_function, ctx.c_options);
+      union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_options);
       sass_delete_value(c_args);
       sass_delete_value(c_val);
       return 0;
@@ -354,7 +354,7 @@ namespace Sass {
       To_C to_c;
       union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
       sass_list_set_value(c_args, 0, message->perform(&to_c));
-      Sass_Value* c_val = c_func(c_args, c_function, ctx.c_options);
+      union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_options);
       sass_delete_value(c_args);
       sass_delete_value(c_val);
       return 0;
@@ -384,7 +384,7 @@ namespace Sass {
       To_C to_c;
       union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
       sass_list_set_value(c_args, 0, message->perform(&to_c));
-      Sass_Value* c_val = c_func(c_args, c_function, ctx.c_options);
+      union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_options);
       sass_delete_value(c_args);
       sass_delete_value(c_val);
       return 0;
@@ -440,21 +440,11 @@ namespace Sass {
     return mm;
   }
 
-  // -- only need to define two comparisons, and the rest can be implemented in terms of them
-  bool eq(Expression*, Expression*, Context&, Eval*);
-  bool lt(Expression*, Expression*, Context&);
-  // -- arithmetic on the combinations that matter
-  Expression* op_numbers(Context&, Binary_Expression*, Expression*, Expression*);
-  Expression* op_number_color(Context&, Binary_Expression::Type, Expression*, Expression*);
-  Expression* op_color_number(Context&, Binary_Expression::Type, Expression*, Expression*);
-  Expression* op_colors(Context&, Binary_Expression::Type, Expression*, Expression*);
-  Expression* op_strings(Context&, Binary_Expression::Type, Expression*, Expression*);
-
   Expression* Eval::operator()(Binary_Expression* b)
   {
-    Binary_Expression::Type op_type = b->type();
+    enum Sass_OP op_type = b->type();
     // don't eval delayed expressions (the '/' when used as a separator)
-    if (op_type == Binary_Expression::DIV && b->is_delayed()) return b;
+    if (op_type == Sass_OP::DIV && b->is_delayed()) return b;
     b->is_delayed(false);
     // if one of the operands is a '/' then make sure it's evaluated
     Expression* lhs = b->left()->perform(this);
@@ -462,11 +452,11 @@ namespace Sass {
     while (typeid(*lhs) == typeid(Binary_Expression)) lhs = lhs->perform(this);
 
     switch (op_type) {
-      case Binary_Expression::AND:
+      case Sass_OP::AND:
         return *lhs ? b->right()->perform(this) : lhs;
         break;
 
-      case Binary_Expression::OR:
+      case Sass_OP::OR:
         return *lhs ? lhs : b->right()->perform(this);
         break;
 
@@ -476,12 +466,12 @@ namespace Sass {
     // not a logical connective, so go ahead and eval the rhs
     Expression* rhs = b->right()->perform(this);
     // maybe fully evaluate structure
-    if (op_type == Binary_Expression::EQ ||
-        op_type == Binary_Expression::NEQ ||
-        op_type == Binary_Expression::GT ||
-        op_type == Binary_Expression::GTE ||
-        op_type == Binary_Expression::LT ||
-        op_type == Binary_Expression::LTE)
+    if (op_type == Sass_OP::EQ ||
+        op_type == Sass_OP::NEQ ||
+        op_type == Sass_OP::GT ||
+        op_type == Sass_OP::GTE ||
+        op_type == Sass_OP::LT ||
+        op_type == Sass_OP::LTE)
     {
       rhs->is_expanded(false);
       rhs->set_delayed(false);
@@ -494,7 +484,7 @@ namespace Sass {
     }
 
     // upgrade string to number if possible (issue #948)
-    if (op_type == Binary_Expression::DIV || op_type == Binary_Expression::MUL) {
+    if (op_type == Sass_OP::DIV || op_type == Sass_OP::MUL) {
       if (String_Constant* str = dynamic_cast<String_Constant*>(rhs)) {
         const char* start = str->value().c_str();
         if (Prelexer::sequence < Prelexer::number >(start) != 0) {
@@ -506,12 +496,12 @@ namespace Sass {
 
     // see if it's a relational expression
     switch(op_type) {
-      case Binary_Expression::EQ:  return new (ctx.mem) Boolean(b->pstate(), eq(lhs, rhs, ctx));
-      case Binary_Expression::NEQ: return new (ctx.mem) Boolean(b->pstate(), !eq(lhs, rhs, ctx));
-      case Binary_Expression::GT:  return new (ctx.mem) Boolean(b->pstate(), !lt(lhs, rhs, ctx) && !eq(lhs, rhs, ctx));
-      case Binary_Expression::GTE: return new (ctx.mem) Boolean(b->pstate(), !lt(lhs, rhs, ctx));
-      case Binary_Expression::LT:  return new (ctx.mem) Boolean(b->pstate(), lt(lhs, rhs, ctx));
-      case Binary_Expression::LTE: return new (ctx.mem) Boolean(b->pstate(), lt(lhs, rhs, ctx) || eq(lhs, rhs, ctx));
+      case Sass_OP::EQ:  return new (ctx.mem) Boolean(b->pstate(), eq(lhs, rhs, ctx));
+      case Sass_OP::NEQ: return new (ctx.mem) Boolean(b->pstate(), !eq(lhs, rhs, ctx));
+      case Sass_OP::GT:  return new (ctx.mem) Boolean(b->pstate(), !lt(lhs, rhs, ctx) && !eq(lhs, rhs, ctx));
+      case Sass_OP::GTE: return new (ctx.mem) Boolean(b->pstate(), !lt(lhs, rhs, ctx));
+      case Sass_OP::LT:  return new (ctx.mem) Boolean(b->pstate(), lt(lhs, rhs, ctx));
+      case Sass_OP::LTE: return new (ctx.mem) Boolean(b->pstate(), lt(lhs, rhs, ctx) || eq(lhs, rhs, ctx));
 
       default:                     break;
     }
@@ -520,16 +510,24 @@ namespace Sass {
     Expression::Concrete_Type r_type = rhs->concrete_type();
 
     if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
-      return op_numbers(ctx, b, lhs, rhs);
+      Number* l_n = static_cast<Number*>(lhs);
+      Number* r_n = static_cast<Number*>(rhs);
+      return op_numbers(ctx, op_type, l_n, r_n);
     }
     if (l_type == Expression::NUMBER && r_type == Expression::COLOR) {
-      return op_number_color(ctx, op_type, lhs, rhs);
+      Number* l_n = static_cast<Number*>(lhs);
+      Color* r_c = static_cast<Color*>(rhs);
+      return op_number_color(ctx, op_type, l_n, r_c);
     }
     if (l_type == Expression::COLOR && r_type == Expression::NUMBER) {
-      return op_color_number(ctx, op_type, lhs, rhs);
+      Color* l_c = static_cast<Color*>(lhs);
+      Number* r_n = static_cast<Number*>(rhs);
+      return op_color_number(ctx, op_type, l_c, r_n);
     }
     if (l_type == Expression::COLOR && r_type == Expression::COLOR) {
-      return op_colors(ctx, op_type, lhs, rhs);
+      Color* l_c = static_cast<Color*>(lhs);
+      Color* r_c = static_cast<Color*>(rhs);
+      return op_colors(ctx, op_type, l_c, r_c);
     }
 
     Expression* ex = op_strings(ctx, op_type, lhs, rhs);
@@ -665,7 +663,7 @@ namespace Sass {
         Expression* arg = static_cast<Expression*>(node);
         sass_list_set_value(c_args, i, arg->perform(&to_c));
       }
-      Sass_Value* c_val = c_func(c_args, c_function, ctx.c_options);
+      union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_options);
       if (sass_value_get_tag(c_val) == SASS_ERROR) {
         error("error in C function " + c->name() + ": " + sass_error_get_message(c_val), c->pstate(), backtrace());
       } else if (sass_value_get_tag(c_val) == SASS_WARNING) {
@@ -867,7 +865,7 @@ namespace Sass {
       }
     } else if (List* list = dynamic_cast<List*>(s)) {
       string acc = ""; // ToDo: different output styles
-      string sep = list->separator() == List::Separator::COMMA ? "," : " ";
+      string sep = list->separator() == SASS_COMMA ? "," : " ";
       if (ctx.output_style != COMPRESSED && sep == ",") sep += " ";
       bool initial = false;
       for(auto item : list->elements()) {
@@ -1032,7 +1030,7 @@ namespace Sass {
       else if(val->concrete_type() != Expression::LIST) {
         List* wrapper = new (ctx.mem) List(val->pstate(),
                                            0,
-                                           List::COMMA,
+                                           SASS_COMMA,
                                            true);
         *wrapper << val;
         val = wrapper;
@@ -1066,7 +1064,7 @@ namespace Sass {
 
   // All the binary helpers.
 
-  bool eq(Expression* lhs, Expression* rhs, Context& ctx)
+  bool Eval::eq(Expression* lhs, Expression* rhs, Context& ctx)
   {
     Expression::Concrete_Type ltype = lhs->concrete_type();
     Expression::Concrete_Type rtype = rhs->concrete_type();
@@ -1130,7 +1128,7 @@ namespace Sass {
     return false;
   }
 
-  bool lt(Expression* lhs, Expression* rhs, Context& ctx)
+  bool Eval::lt(Expression* lhs, Expression* rhs, Context& ctx)
   {
     if (lhs->concrete_type() != Expression::NUMBER ||
         rhs->concrete_type() != Expression::NUMBER)
@@ -1147,17 +1145,14 @@ namespace Sass {
     return l->value() < tmp_r.value();
   }
 
-  Expression* op_numbers(Context& ctx, Binary_Expression* b, Expression* lhs, Expression* rhs)
+  Expression* Eval::op_numbers(Context& ctx, enum Sass_OP op, Number* l, Number* r)
   {
-    Number* l = static_cast<Number*>(lhs);
-    Number* r = static_cast<Number*>(rhs);
     double lv = l->value();
     double rv = r->value();
-    Binary_Expression::Type op = b->type();
-    if (op == Binary_Expression::DIV && !rv) {
+    if (op == Sass_OP::DIV && !rv) {
       return new (ctx.mem) String_Quoted(l->pstate(), "Infinity");
     }
-    if (op == Binary_Expression::MOD && !rv) {
+    if (op == Sass_OP::MOD && !rv) {
       error("division by zero", r->pstate());
     }
 
@@ -1166,17 +1161,17 @@ namespace Sass {
     string l_unit(l->unit());
     string r_unit(tmp.unit());
     if (l_unit != r_unit && !l_unit.empty() && !r_unit.empty() &&
-        (op == Binary_Expression::ADD || op == Binary_Expression::SUB)) {
+        (op == Sass_OP::ADD || op == Sass_OP::SUB)) {
       error("Incompatible units: '"+r_unit+"' and '"+l_unit+"'.", l->pstate());
     }
     Number* v = new (ctx.mem) Number(*l);
-    v->pstate(b->pstate());
-    if (l_unit.empty() && (op == Binary_Expression::ADD || op == Binary_Expression::SUB || op == Binary_Expression::MOD)) {
+    v->pstate(l->pstate());
+    if (l_unit.empty() && (op == Sass_OP::ADD || op == Sass_OP::SUB || op == Sass_OP::MOD)) {
       v->numerator_units() = r->numerator_units();
       v->denominator_units() = r->denominator_units();
     }
 
-    if (op == Binary_Expression::MUL) {
+    if (op == Sass_OP::MUL) {
       v->value(ops[op](lv, rv));
       for (size_t i = 0, S = r->numerator_units().size(); i < S; ++i) {
         v->numerator_units().push_back(r->numerator_units()[i]);
@@ -1185,7 +1180,7 @@ namespace Sass {
         v->denominator_units().push_back(r->denominator_units()[i]);
       }
     }
-    else if (op == Binary_Expression::DIV) {
+    else if (op == Sass_OP::DIV) {
       v->value(ops[op](lv, rv));
       for (size_t i = 0, S = r->numerator_units().size(); i < S; ++i) {
         v->denominator_units().push_back(r->numerator_units()[i]);
@@ -1200,27 +1195,25 @@ namespace Sass {
     return v;
   }
 
-  Expression* op_number_color(Context& ctx, Binary_Expression::Type op, Expression* lhs, Expression* rhs)
+  Expression* Eval::op_number_color(Context& ctx, enum Sass_OP op, Number* l, Color* r)
   {
-    Number* l = static_cast<Number*>(lhs);
-    Color* r = static_cast<Color*>(rhs);
     // TODO: currently SASS converts colors to standard form when adding to strings;
     // when https://github.com/nex3/sass/issues/363 is added this can be removed to
     // preserve the original value
     r->disp("");
     double lv = l->value();
     switch (op) {
-      case Binary_Expression::ADD:
-      case Binary_Expression::MUL: {
+      case Sass_OP::ADD:
+      case Sass_OP::MUL: {
         return new (ctx.mem) Color(l->pstate(),
                                    ops[op](lv, r->r()),
                                    ops[op](lv, r->g()),
                                    ops[op](lv, r->b()),
                                    r->a());
       } break;
-      case Binary_Expression::SUB:
-      case Binary_Expression::DIV: {
-        string sep(op == Binary_Expression::SUB ? "-" : "/");
+      case Sass_OP::SUB:
+      case Sass_OP::DIV: {
+        string sep(op == Sass_OP::SUB ? "-" : "/");
         To_String to_string(&ctx);
         string color(r->sixtuplet() && (ctx.output_style != COMPRESSED) ?
                      r->perform(&to_string) :
@@ -1230,7 +1223,7 @@ namespace Sass {
                                              + sep
                                              + color);
       } break;
-      case Binary_Expression::MOD: {
+      case Sass_OP::MOD: {
         error("cannot divide a number by a color", r->pstate());
       } break;
       default: break; // caller should ensure that we don't get here
@@ -1239,12 +1232,10 @@ namespace Sass {
     return l;
   }
 
-  Expression* op_color_number(Context& ctx, Binary_Expression::Type op, Expression* lhs, Expression* rhs)
+  Expression* Eval::op_color_number(Context& ctx, enum Sass_OP op, Color* l, Number* r)
   {
-    Color* l = static_cast<Color*>(lhs);
-    Number* r = static_cast<Number*>(rhs);
     double rv = r->value();
-    if (op == Binary_Expression::DIV && !rv) error("division by zero", r->pstate());
+    if (op == Sass_OP::DIV && !rv) error("division by zero", r->pstate());
     return new (ctx.mem) Color(l->pstate(),
                                ops[op](l->r(), rv),
                                ops[op](l->g(), rv),
@@ -1252,14 +1243,12 @@ namespace Sass {
                                l->a());
   }
 
-  Expression* op_colors(Context& ctx, Binary_Expression::Type op, Expression* lhs, Expression* rhs)
+  Expression* Eval::op_colors(Context& ctx, enum Sass_OP op, Color* l, Color* r)
   {
-    Color* l = static_cast<Color*>(lhs);
-    Color* r = static_cast<Color*>(rhs);
     if (l->a() != r->a()) {
       error("alpha channels must be equal when combining colors", r->pstate());
     }
-    if ((op == Binary_Expression::DIV || op == Binary_Expression::MOD) &&
+    if ((op == Sass_OP::DIV || op == Sass_OP::MOD) &&
         (!r->r() || !r->g() ||!r->b())) {
       error("division by zero", r->pstate());
     }
@@ -1270,7 +1259,7 @@ namespace Sass {
                                l->a());
   }
 
-  Expression* op_strings(Context& ctx, Binary_Expression::Type op, Expression* lhs, Expression*rhs)
+  Expression* Eval::op_strings(Context& ctx, enum Sass_OP op, Expression* lhs, Expression*rhs)
   {
     To_String to_string(&ctx);
     Expression::Concrete_Type ltype = lhs->concrete_type();
@@ -1285,26 +1274,36 @@ namespace Sass {
     bool r_str_color = rtype == Expression::STRING && ctx.names_to_colors.count(rstr) && !r_str_quoted;
 
     if (l_str_color && r_str_color) {
-      return op_colors(ctx, op, ctx.names_to_colors[lstr], ctx.names_to_colors[rstr]);
+      Color* l_c = ctx.names_to_colors[lstr];
+      Color* r_c = ctx.names_to_colors[rstr];
+      return op_colors(ctx, op, l_c, r_c);
     }
     else if (l_str_color && rtype == Expression::COLOR) {
-      return op_colors(ctx, op, ctx.names_to_colors[lstr], rhs);
-    }
-    else if (l_str_color && rtype == Expression::NUMBER) {
-      return op_color_number(ctx, op, ctx.names_to_colors[lstr], rhs);
+      Color* l_c = ctx.names_to_colors[lstr];
+      Color* r_c = dynamic_cast<Color*>(rhs);
+      return op_colors(ctx, op, l_c, r_c);
     }
     else if (ltype == Expression::COLOR && r_str_color) {
-      return op_number_color(ctx, op, lhs, ctx.names_to_colors[rstr]);
+      Color* l_c = dynamic_cast<Color*>(lhs);
+      Color* r_c = ctx.names_to_colors[rstr];
+      return op_colors(ctx, op, l_c, r_c);
+    }
+    else if (l_str_color && rtype == Expression::NUMBER) {
+      Color* l_c = ctx.names_to_colors[lstr];
+      Number* r_n = dynamic_cast<Number*>(rhs);
+      return op_color_number(ctx, op, l_c, r_n);
     }
     else if (ltype == Expression::NUMBER && r_str_color) {
-      return op_number_color(ctx, op, lhs, ctx.names_to_colors[rstr]);
+      Number* l_n = dynamic_cast<Number*>(lhs);
+      Color* r_c = ctx.names_to_colors[rstr];
+      return op_number_color(ctx, op, l_n, r_c);
     }
-    if (op == Binary_Expression::MUL) error("invalid operands for multiplication", lhs->pstate());
-    if (op == Binary_Expression::MOD) error("invalid operands for modulo", lhs->pstate());
+    if (op == Sass_OP::MUL) error("invalid operands for multiplication", lhs->pstate());
+    if (op == Sass_OP::MOD) error("invalid operands for modulo", lhs->pstate());
     string sep;
     switch (op) {
-      case Binary_Expression::SUB: sep = "-"; break;
-      case Binary_Expression::DIV: sep = "/"; break;
+      case Sass_OP::SUB: sep = "-"; break;
+      case Sass_OP::DIV: sep = "/"; break;
       default:                         break;
     }
     if (ltype == Expression::NULL_VAL) error("invalid null operation: \"null plus "+quote(unquote(rstr), '"')+"\".", lhs->pstate());
@@ -1338,7 +1337,7 @@ namespace Sass {
         }
       } break;
       case SASS_LIST: {
-        List* l = new (ctx.mem) List(pstate, sass_list_get_length(v), sass_list_get_separator(v) == SASS_COMMA ? List::COMMA : List::SPACE);
+        List* l = new (ctx.mem) List(pstate, sass_list_get_length(v), sass_list_get_separator(v));
         for (size_t i = 0, L = sass_list_get_length(v); i < L; ++i) {
           *l << cval_to_astnode(sass_list_get_value(v, i), ctx, backtrace, pstate);
         }

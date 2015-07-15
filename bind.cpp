@@ -98,7 +98,7 @@ namespace Sass {
         } else if (a->is_keyword_argument()) {
 
           // expand keyword arguments into their parameters
-          List* arglist = new (ctx.mem) List(p->pstate(), 0, List::COMMA, true);
+          List* arglist = new (ctx.mem) List(p->pstate(), 0, SASS_COMMA, true);
           env->local_frame()[p->name()] = arglist;
           Map* argmap = static_cast<Map*>(a->value());
           for (auto key : argmap->keys()) {
@@ -115,7 +115,7 @@ namespace Sass {
           // create a new list object for wrapped items
           List* arglist = new (ctx.mem) List(p->pstate(),
                                              0,
-                                             List::COMMA,
+                                             SASS_COMMA,
                                              true);
           // consume the next args
           while (ia < LA) {
@@ -238,7 +238,7 @@ namespace Sass {
         if (leftover->is_rest_parameter()) {
           env->local_frame()[leftover->name()] = new (ctx.mem) List(leftover->pstate(),
                                                                       0,
-                                                                      List::COMMA,
+                                                                      SASS_COMMA,
                                                                       true);
         }
         else if (leftover->default_value()) {

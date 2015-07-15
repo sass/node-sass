@@ -159,7 +159,8 @@ SOURCES = \
 	constants.cpp \
 	context.cpp \
 	cssize.cpp \
-	listize.cpp \
+	emitter.cpp \
+	environment.cpp \
 	error_handling.cpp \
 	eval.cpp \
 	expand.cpp \
@@ -167,10 +168,11 @@ SOURCES = \
 	file.cpp \
 	functions.cpp \
 	inspect.cpp \
-	lexer.cpp \
-	node.cpp \
 	json.cpp \
-	emitter.cpp \
+	lexer.cpp \
+	listize.cpp \
+	memory_manager.cpp \
+	node.cpp \
 	output.cpp \
 	parser.cpp \
 	plugins.cpp \

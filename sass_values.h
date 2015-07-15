@@ -32,6 +32,14 @@ enum Sass_Separator {
   SASS_SPACE
 };
 
+// Value Operators
+enum Sass_OP {
+  AND, OR,                   // logical connectives
+  EQ, NEQ, GT, GTE, LT, LTE, // arithmetic relations
+  ADD, SUB, MUL, DIV, MOD,   // arithmetic functions
+  NUM_OPS                    // so we know how big to make the op table
+};
+
 // Return the sass tag for a generic sass value
 // Check is needed before accessing specific values!
 ADDAPI enum Sass_Tag ADDCALL sass_value_get_tag (const union Sass_Value* v);

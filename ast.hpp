@@ -48,6 +48,7 @@
 
 #include "sass.h"
 #include "sass_values.h"
+#include "sass_context.h"
 #include "sass_functions.h"
 
 namespace Sass {
@@ -122,7 +123,7 @@ namespace Sass {
     virtual operator bool() { return true; }
     virtual ~Expression() { }
     virtual string type() { return ""; /* TODO: raise an error? */ }
-    virtual bool is_invisible() { return false; }
+    virtual bool is_invisible() const { return false; }
     static string type_name() { return ""; }
     virtual bool is_false() { return false; }
     virtual bool operator==( Expression& rhs) const { return false; }
@@ -177,7 +178,7 @@ namespace Sass {
     size_t length() const   { return elements_.size(); }
     bool empty() const      { return elements_.empty(); }
     T last()                { return elements_.back(); }
-    T first()                { return elements_.front(); }
+    T first()               { return elements_.front(); }
     T& operator[](size_t i) { return elements_[i]; }
     const T& operator[](size_t i) const { return elements_[i]; }
     Vectorized& operator<<(T element)
@@ -259,6 +260,12 @@ namespace Sass {
     }
     const unordered_map<Expression*, Expression*>& pairs() const { return elements_; }
     const vector<Expression*>& keys() const { return list_; }
+
+    unordered_map<Expression*, Expression*>::iterator end() { return elements_.end(); }
+    unordered_map<Expression*, Expression*>::iterator begin() { return elements_.begin(); }
+    unordered_map<Expression*, Expression*>::const_iterator end() const { return elements_.end(); }
+    unordered_map<Expression*, Expression*>::const_iterator begin() const { return elements_.begin(); }
+
   };
   inline Hashed::~Hashed() { }
 
@@ -292,7 +299,7 @@ namespace Sass {
     virtual ~Statement() = 0;
     // needed for rearranging nested rulesets during CSS emission
     virtual bool   is_hoistable() { return false; }
-    virtual bool   is_invisible() { return false; }
+    virtual bool   is_invisible() const { return false; }
     virtual bool   bubbles() { return false; }
     virtual Block* block()  { return 0; }
   };
@@ -347,7 +354,7 @@ namespace Sass {
     Ruleset(ParserState pstate, Selector* s = 0, Block* b = 0)
     : Has_Block(pstate, b), selector_(s), at_root_(false)
     { statement_type(RULESET); }
-    bool is_invisible();
+    bool is_invisible() const;
     // nested rulesets need to be hoisted out of their enclosing blocks
     bool is_hoistable() { return true; }
     ATTACH_OPERATIONS()
@@ -393,7 +400,7 @@ namespace Sass {
     { statement_type(MEDIA); }
     bool bubbles() { return true; }
     bool is_hoistable() { return true; }
-    bool is_invisible() {
+    bool is_invisible() const {
       bool is_invisible = true;
       for (size_t i = 0, L = block()->length(); i < L && is_invisible; i++)
         is_invisible &= (*block())[i]->is_invisible();
@@ -571,13 +578,12 @@ namespace Sass {
   ////////////////////////////////////
   // The Sass `@if` control directive.
   ////////////////////////////////////
-  class If : public Statement {
+  class If : public Has_Block {
     ADD_PROPERTY(Expression*, predicate)
-    ADD_PROPERTY(Block*, consequent)
     ADD_PROPERTY(Block*, alternative)
   public:
     If(ParserState pstate, Expression* pred, Block* con, Block* alt = 0)
-    : Statement(pstate), predicate_(pred), consequent_(con), alternative_(alt)
+    : Has_Block(pstate, con), predicate_(pred), alternative_(alt)
     { }
     ATTACH_OPERATIONS()
   };
@@ -752,21 +758,19 @@ namespace Sass {
   ///////////////////////////////////////////////////////////////////////
   class List : public Expression, public Vectorized<Expression*> {
     void adjust_after_pushing(Expression* e) { is_expanded(false); }
-  public:
-    enum Separator { SPACE, COMMA };
   private:
-    ADD_PROPERTY(Separator, separator)
+    ADD_PROPERTY(enum Sass_Separator, separator)
     ADD_PROPERTY(bool, is_arglist)
   public:
     List(ParserState pstate,
-         size_t size = 0, Separator sep = SPACE, bool argl = false)
+         size_t size = 0, enum Sass_Separator sep = SASS_SPACE, bool argl = false)
     : Expression(pstate),
       Vectorized<Expression*>(size),
       separator_(sep), is_arglist_(argl)
     { concrete_type(LIST); }
     string type() { return is_arglist_ ? "arglist" : "list"; }
     static string type_name() { return "list"; }
-    bool is_invisible() { return !length(); }
+    bool is_invisible() const { return empty(); }
     Expression* value_at_index(size_t i);
 
     virtual size_t size() const;
@@ -777,7 +781,7 @@ namespace Sass {
     {
       if (hash_ > 0) return hash_;
 
-      hash_ = std::hash<string>()(separator() == COMMA ? "comma" : "space");
+      hash_ = std::hash<string>()(separator() == SASS_COMMA ? "comma" : "space");
       for (size_t i = 0, L = length(); i < L; ++i)
         hash_combine(hash_, (elements()[i])->hash());
 
@@ -807,7 +811,7 @@ namespace Sass {
     { concrete_type(MAP); }
     string type() { return "map"; }
     static string type_name() { return "map"; }
-    bool is_invisible() { return !length(); }
+    bool is_invisible() const { return empty(); }
 
     virtual bool operator==(Expression& rhs) const
     {
@@ -847,21 +851,14 @@ namespace Sass {
   // subclassing.
   //////////////////////////////////////////////////////////////////////////
   class Binary_Expression : public Expression {
-  public:
-    enum Type {
-      AND, OR,                   // logical connectives
-      EQ, NEQ, GT, GTE, LT, LTE, // arithmetic relations
-      ADD, SUB, MUL, DIV, MOD,   // arithmetic functions
-      NUM_OPS                    // so we know how big to make the op table
-    };
   private:
-    ADD_PROPERTY(Type, type)
+    ADD_PROPERTY(enum Sass_OP, type)
     ADD_PROPERTY(Expression*, left)
     ADD_PROPERTY(Expression*, right)
     size_t hash_;
   public:
     Binary_Expression(ParserState pstate,
-                      Type t, Expression* lhs, Expression* rhs)
+                      enum Sass_OP t, Expression* lhs, Expression* rhs)
     : Expression(pstate), type_(t), left_(lhs), right_(rhs), hash_(0)
     { }
     const string type_name() {
@@ -1553,7 +1550,7 @@ namespace Sass {
     Null(ParserState pstate) : Expression(pstate) { concrete_type(NULL_VAL); }
     string type() { return "null"; }
     static string type_name() { return "null"; }
-    bool is_invisible() { return true; }
+    bool is_invisible() const { return true; }
     operator bool() { return false; }
     bool is_false() { return true; }
 
@@ -2133,7 +2130,7 @@ namespace Sass {
     ATTACH_OPERATIONS()
   };
 
-  inline bool Ruleset::is_invisible() {
+  inline bool Ruleset::is_invisible() const {
     bool is_invisible = true;
     Selector_List* sl = static_cast<Selector_List*>(selector());
     for (size_t i = 0, L = sl->length(); i < L && is_invisible; ++i)

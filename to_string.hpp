@@ -21,6 +21,7 @@ namespace Sass {
     bool in_declaration;
 
   public:
+
     To_String(Context* ctx = 0, bool in_declaration = true);
     virtual ~To_String();
 

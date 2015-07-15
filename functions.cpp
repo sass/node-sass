@@ -1077,7 +1077,7 @@ namespace Sass {
         Number* xi = dynamic_cast<Number*>(arglist->value_at_index(i));
         if (!xi) error("`" + string(sig) + "` only takes numeric arguments", pstate);
         if (least) {
-          if (lt(xi, least, ctx)) least = xi;
+          if (Eval::lt(xi, least, ctx)) least = xi;
         } else least = xi;
       }
       return least;
@@ -1092,7 +1092,7 @@ namespace Sass {
         Number* xi = dynamic_cast<Number*>(arglist->value_at_index(i));
         if (!xi) error("`" + string(sig) + "` only takes numeric arguments", pstate);
         if (greatest) {
-          if (lt(greatest, xi, ctx)) greatest = xi;
+          if (Eval::lt(greatest, xi, ctx)) greatest = xi;
         } else greatest = xi;
       }
       return greatest;
@@ -1202,7 +1202,7 @@ namespace Sass {
         *l << ARG("$list", Expression);
       }
       for (size_t i = 0, L = l->length(); i < L; ++i) {
-        if (eq(l->value_at_index(i), v, ctx)) return new (ctx.mem) Number(pstate, i+1);
+        if (Eval::eq(l->value_at_index(i), v, ctx)) return new (ctx.mem) Number(pstate, i+1);
       }
       return new (ctx.mem) Null(pstate);
     }
@@ -1213,11 +1213,11 @@ namespace Sass {
       List* l1 = dynamic_cast<List*>(env["$list1"]);
       List* l2 = dynamic_cast<List*>(env["$list2"]);
       String_Constant* sep = ARG("$separator", String_Constant);
-      List::Separator sep_val = (l1 ? l1->separator() : List::SPACE);
+      enum Sass_Separator sep_val = (l1 ? l1->separator() : SASS_SPACE);
       if (!l1) {
         l1 = new (ctx.mem) List(pstate, 1);
         *l1 << ARG("$list1", Expression);
-        sep_val = (l2 ? l2->separator() : List::SPACE);
+        sep_val = (l2 ? l2->separator() : SASS_SPACE);
       }
       if (!l2) {
         l2 = new (ctx.mem) List(pstate, 1);
@@ -1225,8 +1225,8 @@ namespace Sass {
       }
       size_t len = l1->length() + l2->length();
       string sep_str = unquote(sep->value());
-      if (sep_str == "space") sep_val = List::SPACE;
-      else if (sep_str == "comma") sep_val = List::COMMA;
+      if (sep_str == "space") sep_val = SASS_SPACE;
+      else if (sep_str == "comma") sep_val = SASS_COMMA;
       else if (sep_str != "auto") error("argument `$separator` of `" + string(sig) + "` must be `space`, `comma`, or `auto`", pstate);
       List* result = new (ctx.mem) List(pstate, len, sep_val);
       *result += l1;
@@ -1246,8 +1246,8 @@ namespace Sass {
       }
       List* result = new (ctx.mem) List(pstate, l->length() + 1, l->separator());
       string sep_str(unquote(sep->value()));
-      if (sep_str == "space") result->separator(List::SPACE);
-      else if (sep_str == "comma") result->separator(List::COMMA);
+      if (sep_str == "space") result->separator(SASS_SPACE);
+      else if (sep_str == "comma") result->separator(SASS_COMMA);
       else if (sep_str != "auto") error("argument `$separator` of `" + string(sig) + "` must be `space`, `comma`, or `auto`", pstate);
       *result += l;
       bool is_arglist = l->is_arglist();
@@ -1283,7 +1283,7 @@ namespace Sass {
         }
         shortest = (i ? std::min(shortest, ith->length()) : ith->length());
       }
-      List* zippers = new (ctx.mem) List(pstate, shortest, List::COMMA);
+      List* zippers = new (ctx.mem) List(pstate, shortest, SASS_COMMA);
       size_t L = arglist->length();
       for (size_t i = 0; i < shortest; ++i) {
         List* zipper = new (ctx.mem) List(pstate, L);
@@ -1304,7 +1304,7 @@ namespace Sass {
         *l << ARG("$list", Expression);
       }
       return new (ctx.mem) String_Quoted(pstate,
-                                           l->separator() == List::COMMA ? "comma" : "space");
+                                           l->separator() == SASS_COMMA ? "comma" : "space");
     }
 
     /////////////////
@@ -1336,7 +1336,7 @@ namespace Sass {
     BUILT_IN(map_keys)
     {
       Map* m = ARGM("$map", Map, ctx);
-      List* result = new (ctx.mem) List(pstate, m->length(), List::COMMA);
+      List* result = new (ctx.mem) List(pstate, m->length(), SASS_COMMA);
       for ( auto key : m->keys()) {
         *result << key;
       }
@@ -1347,7 +1347,7 @@ namespace Sass {
     BUILT_IN(map_values)
     {
       Map* m = ARGM("$map", Map, ctx);
-      List* result = new (ctx.mem) List(pstate, m->length(), List::COMMA);
+      List* result = new (ctx.mem) List(pstate, m->length(), SASS_COMMA);
       for ( auto key : m->keys()) {
         *result << m->at(key);
       }
@@ -1377,7 +1377,7 @@ namespace Sass {
       for (auto key : m->keys()) {
         remove = false;
         for (size_t j = 0, K = arglist->length(); j < K && !remove; ++j) {
-          remove = eq(key, arglist->value_at_index(j), ctx);
+          remove = Eval::eq(key, arglist->value_at_index(j), ctx);
         }
         if (!remove) *result << make_pair(key, m->at(key));
       }
@@ -1584,8 +1584,6 @@ namespace Sass {
         if (inspect.empty() && parentheses) inspect = "()";
         ctx.output_style = old_style;
         return new (ctx.mem) String_Quoted(pstate, inspect);
-
-
       }
       // return v;
     }
@@ -1746,7 +1744,7 @@ namespace Sass {
       Compound_Selector* sel = ARGSEL("$selector", Compound_Selector, p_contextualize);
 
       To_String to_string;
-      List* l = new (ctx.mem) List(sel->pstate(), sel->length(), List::COMMA);
+      List* l = new (ctx.mem) List(sel->pstate(), sel->length(), SASS_COMMA);
 
       for (size_t i = 0, L = sel->length(); i < L; ++i) {
         Simple_Selector* ss = (*sel)[i];

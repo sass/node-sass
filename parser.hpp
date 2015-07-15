@@ -291,8 +291,8 @@ namespace Sass {
     Lookahead lookahead_for_selector(const char* start = 0);
     Lookahead lookahead_for_include(const char* start = 0);
 
-    Expression* fold_operands(Expression* base, vector<Expression*>& operands, Binary_Expression::Type op);
-    Expression* fold_operands(Expression* base, vector<Expression*>& operands, vector<Binary_Expression::Type>& ops);
+    Expression* fold_operands(Expression* base, vector<Expression*>& operands, Sass_OP op);
+    Expression* fold_operands(Expression* base, vector<Expression*>& operands, vector<Sass_OP>& ops);
 
     void throw_syntax_error(string message, size_t ln = 0);
     void throw_read_error(string message, size_t ln = 0);

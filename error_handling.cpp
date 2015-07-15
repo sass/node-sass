@@ -4,7 +4,7 @@
 
 namespace Sass {
 
-  Sass_Error::Sass_Error(Type type, ParserState pstate, string message)
+  Error_Invalid::Error_Invalid(Type type, ParserState pstate, string message)
   : type(type), pstate(pstate), message(message)
   { }
 
@@ -31,7 +31,7 @@ namespace Sass {
 
   void error(string msg, ParserState pstate)
   {
-    throw Sass_Error(Sass_Error::syntax, pstate, msg);
+    throw Error_Invalid(Error_Invalid::syntax, pstate, msg);
   }
 
   void error(string msg, ParserState pstate, Backtrace* bt)

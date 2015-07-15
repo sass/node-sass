@@ -167,6 +167,7 @@
     <ClCompile Include="..\cencode.c" />
     <ClCompile Include="..\constants.cpp" />
     <ClCompile Include="..\context.cpp" />
+    <ClCompile Include="..\environment.cpp" />
     <ClCompile Include="..\error_handling.cpp" />
     <ClCompile Include="..\eval.cpp" />
     <ClCompile Include="..\expand.cpp" />
@@ -177,6 +178,7 @@
     <ClCompile Include="..\functions.cpp" />
     <ClCompile Include="..\inspect.cpp" />
     <ClCompile Include="..\json.cpp" />
+    <ClCompile Include="..\memory_manager.cpp" />
     <ClCompile Include="..\node.cpp" />
     <ClCompile Include="..\emitter.cpp" />
     <ClCompile Include="..\output.cpp" />

@@ -37,7 +37,7 @@ namespace Sass {
     Definition<FUNCTION>* new_Function_Definition(string p, size_t l, string n, Parameters* params, Block* b);
     Mixin_Call* new_Mixin_Call(string p, size_t l, string n, Arguments* args, Block* b = 0);
     // expressions
-    List* new_List(string p, size_t l, size_t size = 0, List::Separator sep = List::space, bool argl = false);
+    List* new_List(string p, size_t l, size_t size = 0, enum Sass_Separator sep = List::space, bool argl = false);
     Map* new_Map(string p, size_t l, size_t size = 0);
     Binary_Expression<AND>* new_And(string p, size_t l, Expression* lhs, Expression* rhs);
     Binary_Expression<OR>* new_Or(string p, size_t l, Expression* lhs, Expression* rhs);
