@@ -156,6 +156,7 @@ SOURCES = \
 	ast.cpp \
 	base64vlq.cpp \
 	bind.cpp \
+	color_maps.cpp \
 	constants.cpp \
 	context.cpp \
 	cssize.cpp \

@@ -9,6 +9,7 @@
 #include "inspect.hpp"
 #include "context.hpp"
 #include "listize.hpp"
+#include "color_maps.hpp"
 #include "utf8/checked.h"
 
 namespace Sass {
@@ -573,8 +574,8 @@ namespace Sass {
     double a = cap_channel<1>   (c->a());
 
     // get color from given name (if one was given at all)
-    if (name != "" && ctx && ctx->names_to_colors.count(name)) {
-      Color* n = ctx->names_to_colors[name];
+    if (name != "" && names_to_colors.count(name)) {
+      Color* n = name_to_color(name);
       r = round(cap_channel<0xff>(n->r()));
       g = round(cap_channel<0xff>(n->g()));
       b = round(cap_channel<0xff>(n->b()));
@@ -583,8 +584,8 @@ namespace Sass {
     // otherwise get the possible resolved color name
     else {
       int numval = static_cast<int>(r) * 0x10000 + static_cast<int>(g) * 0x100 + static_cast<int>(b);
-      if (ctx && ctx->colors_to_names.count(numval))
-        res_name = ctx->colors_to_names[numval];
+      if (colors_to_names.count(numval))
+        res_name = color_to_name(numval);
     }
 
     stringstream hexlet;
