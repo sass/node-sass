@@ -86,8 +86,8 @@ namespace Sass {
     Expression* fallback(U x) { return fallback_impl(x); }
 
     // -- only need to define two comparisons, and the rest can be implemented in terms of them
-    static bool eq(Expression*, Expression*, Context&);
-    static bool lt(Expression*, Expression*, Context&);
+    static bool eq(Expression*, Expression*);
+    static bool lt(Expression*, Expression*);
     // -- arithmetic on the combinations that matter
     static Expression* op_numbers(Context&, enum Sass_OP, Number*, Number*);
     static Expression* op_number_color(Context&, enum Sass_OP, Number*, Color*);
