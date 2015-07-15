@@ -33,48 +33,74 @@ else
 	endif
 endif
 
-ifeq "$(LIBSASS_VERSION)" ""
-	ifneq "$(wildcard ./.git/ )" ""
+ifeq ($(LIBSASS_VERSION),)
+	ifneq ($(wildcard ./.git/ ),)
 		LIBSASS_VERSION ?= $(shell git describe --abbrev=4 --dirty --always --tags)
 	endif
 endif
 
-ifeq "$(LIBSASS_VERSION)" ""
-	ifneq ("$(wildcard VERSION)","")
+ifeq ($(LIBSASS_VERSION),)
+	ifneq ($(wildcard VERSION),)
 		LIBSASS_VERSION ?= $(shell $(CAT) VERSION)
 	endif
 endif
 
-ifneq "$(LIBSASS_VERSION)" ""
+ifneq ($(LIBSASS_VERSION),)
 	CFLAGS   += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
 	CXXFLAGS += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
 endif
 
 # enable mandatory flag
 ifeq (MinGW,$(UNAME))
+	ifneq ($(BUILD),shared)
+		STATIC_ALL     ?= 1
+	endif
+	STATIC_LIBGCC    ?= 1
+	STATIC_LIBSTDCPP ?= 1
 	CXXFLAGS += -std=gnu++0x
 	LDFLAGS  += -std=gnu++0x
 else
+	STATIC_ALL       ?= 0
+	STATIC_LIBGCC    ?= 0
+	STATIC_LIBSTDCPP ?= 0
 	CXXFLAGS += -std=c++0x
 	LDFLAGS  += -std=c++0x
 endif
 
-ifneq "$(SASS_LIBSASS_PATH)" ""
+ifneq ($(SASS_LIBSASS_PATH),)
 	CFLAGS   += -I $(SASS_LIBSASS_PATH)
 	CXXFLAGS += -I $(SASS_LIBSASS_PATH)
 endif
 
-ifneq "$(EXTRA_CFLAGS)" ""
+ifneq ($(EXTRA_CFLAGS),)
 	CFLAGS   += $(EXTRA_CFLAGS)
 endif
-ifneq "$(EXTRA_CXXFLAGS)" ""
+ifneq ($(EXTRA_CXXFLAGS),)
 	CXXFLAGS += $(EXTRA_CXXFLAGS)
 endif
-ifneq "$(EXTRA_LDFLAGS)" ""
+ifneq ($(EXTRA_LDFLAGS),)
 	LDFLAGS  += $(EXTRA_LDFLAGS)
 endif
 
-LDLIBS = -lstdc++ -lm
+LDLIBS = -lm
+
+ifneq ($(BUILD),shared)
+	LDLIBS += -lstdc++
+endif
+
+# link statically into lib
+# makes it a lot more portable
+# increases size by about 50KB
+ifeq ($(STATIC_ALL),1)
+	LDFLAGS += -static
+endif
+ifeq ($(STATIC_LIBGCC),1)
+	LDFLAGS += -static-libgcc
+endif
+ifeq ($(STATIC_LIBSTDCPP),1)
+	LDFLAGS += -static-libstdc++
+endif
+
 ifeq ($(UNAME),Darwin)
 	CFLAGS += -stdlib=libc++
 	CXXFLAGS += -stdlib=libc++
@@ -103,6 +129,21 @@ SASS_SPEC_PATH ?= sass-spec
 SASS_SPEC_SPEC_DIR ?= spec
 SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc
 RUBY_BIN = ruby
+
+LIB_STATIC = $(SASS_LIBSASS_PATH)/lib/libsass.a
+LIB_SHARED = $(SASS_LIBSASS_PATH)/lib/libsass.so
+
+ifeq (MinGW,$(UNAME))
+	ifeq (shared,$(BUILD))
+		CFLAGS     += -D ADD_EXPORTS
+		CXXFLAGS   += -D ADD_EXPORTS
+		LIB_SHARED  = $(SASS_LIBSASS_PATH)/lib/libsass.dll
+	endif
+else
+	CFLAGS   += -fPIC
+	CXXFLAGS += -fPIC
+	LDFLAGS  += -fPIC
+endif
 
 ifeq (MinGW,$(UNAME))
 	SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc.exe
@@ -225,9 +266,13 @@ install-shared: lib/libsass.so
 	install -pm0755 $< $(DESTDIR)$(PREFIX)/$<
 
 $(SASSC_BIN): $(BUILD)
-	cd $(SASS_SASSC_PATH) && $(MAKE)
+	$(MAKE) -C $(SASS_SASSC_PATH)
 
 sassc: $(SASSC_BIN)
+	$(SASSC_BIN) -v
+
+version: $(SASSC_BIN)
+	$(SASSC_BIN) -h
 	$(SASSC_BIN) -v
 
 test: $(SASSC_BIN)
@@ -242,5 +287,25 @@ test_issues: $(SASSC_BIN)
 clean:
 	$(RM) $(RCOBJECTS) $(COBJECTS) $(OBJECTS) $(LIBRARIES) lib/*.a lib/*.so lib/*.dll lib/*.la
 
+clean-all:
+	$(MAKE) -C $(SASS_SASSC_PATH) clean
 
-.PHONY: all debug debug-static debug-shared static shared install install-static install-shared sassc clean
+lib-file: lib-file-$(BUILD)
+lib-opts: lib-opts-$(BUILD)
+
+lib-file-static:
+	@echo $(LIB_STATIC)
+lib-file-shared:
+	@echo $(LIB_SHARED)
+lib-opts-static:
+	@echo -L"$(SASS_LIBSASS_PATH)/lib"
+lib-opts-shared:
+	@echo -L"$(SASS_LIBSASS_PATH)/lib -lsass"
+
+.PHONY: all static shared sassc \
+        version clean clean-all \
+        debug debug-static debug-shared \
+        install install-static install-shared \
+        lib-opts lib-opts-shared lib-opts-static \
+        lib-file lib-file-shared lib-file-static
+.DELETE_ON_ERROR:
