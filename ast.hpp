@@ -770,6 +770,10 @@ namespace Sass {
     { concrete_type(LIST); }
     string type() { return is_arglist_ ? "arglist" : "list"; }
     static string type_name() { return "list"; }
+    const char* sep_string(bool compressed = false) const {
+      return separator() == SASS_COMMA ?
+        (compressed ? "," : ", ") : " ";
+    }
     bool is_invisible() const { return empty(); }
     Expression* value_at_index(size_t i);
 
@@ -779,12 +783,11 @@ namespace Sass {
 
     virtual size_t hash()
     {
-      if (hash_ > 0) return hash_;
-
-      hash_ = std::hash<string>()(separator() == SASS_COMMA ? "comma" : "space");
-      for (size_t i = 0, L = length(); i < L; ++i)
-        hash_combine(hash_, (elements()[i])->hash());
-
+      if (hash_ == 0) {
+        hash_ = std::hash<string>()(sep_string());
+        for (size_t i = 0, L = length(); i < L; ++i)
+          hash_combine(hash_, (elements()[i])->hash());
+      }
       return hash_;
     }
 
@@ -832,11 +835,11 @@ namespace Sass {
 
     virtual size_t hash()
     {
-      if (hash_ > 0) return hash_;
-
-      for (auto key : keys()) {
-        hash_combine(hash_, key->hash());
-        hash_combine(hash_, at(key)->hash());
+      if (hash_ == 0) {
+        for (auto key : keys()) {
+          hash_combine(hash_, key->hash());
+          hash_combine(hash_, at(key)->hash());
+        }
       }
 
       return hash_;
@@ -904,8 +907,11 @@ namespace Sass {
     }
     virtual size_t hash()
     {
-      if (hash_ > 0) return hash_;
-      hash_ = left()->hash() ^ right()->hash() ^ std::hash<size_t>()(type_);
+      if (hash_ == 0) {
+        hash_ = std::hash<size_t>()(type_);
+        hash_combine(hash_, left()->hash());
+        hash_combine(hash_, right()->hash());
+      }
       return hash_;
     }
     ATTACH_OPERATIONS()
@@ -950,8 +956,10 @@ namespace Sass {
     }
     virtual size_t hash()
     {
-      if (hash_ > 0) return hash_;
-      hash_ = operand()->hash() ^ std::hash<size_t>()(type_);
+      if (hash_ == 0) {
+        hash_ = std::hash<size_t>()(type_);
+        hash_combine(hash_, operand()->hash());
+      };
       return hash_;
     }
     ATTACH_OPERATIONS()
@@ -992,10 +1000,10 @@ namespace Sass {
 
     virtual size_t hash()
     {
-      if (hash_ > 0) return hash_;
-
-      hash_ = std::hash<string>()(name()) ^ value()->hash();
-
+      if (hash_ == 0) {
+        hash_ = std::hash<string>()(name());
+        hash_combine(hash_, value()->hash());
+      }
       return hash_;
     }
 
@@ -1060,12 +1068,11 @@ namespace Sass {
 
     virtual size_t hash()
     {
-      if (hash_ > 0) return hash_;
-
-      hash_ = std::hash<string>()(name());
-      for (auto argument : arguments()->elements())
-        hash_combine(hash_, argument->hash());
-
+      if (hash_ == 0) {
+        hash_ = std::hash<string>()(name());
+        for (auto argument : arguments()->elements())
+          hash_combine(hash_, argument->hash());
+      }
       return hash_;
     }
 
@@ -1150,7 +1157,10 @@ namespace Sass {
 
     virtual size_t hash()
     {
-      if (hash_ == 0) hash_ = std::hash<string>()(value_) ^ std::hash<int>()(type_);
+      if (hash_ == 0) {
+        hash_ = std::hash<string>()(value_);
+        hash_combine(hash_, std::hash<int>()(type_));
+      }
       return hash_;
     }
 
@@ -1186,7 +1196,9 @@ namespace Sass {
 
     virtual size_t hash()
     {
-      if (hash_ == 0) hash_ = std::hash<double>()(value_);
+      if (hash_ == 0) {
+        hash_ = std::hash<double>()(value_);
+      }
       return hash_;
     }
 
@@ -1228,7 +1240,12 @@ namespace Sass {
 
     virtual size_t hash()
     {
-      if (hash_ == 0) hash_ = std::hash<double>()(r_) ^ std::hash<double>()(g_) ^ std::hash<double>()(b_) ^ std::hash<double>()(a_);
+      if (hash_ == 0) {
+        hash_ = std::hash<double>()(a_);
+        hash_combine(hash_, std::hash<double>()(r_));
+        hash_combine(hash_, std::hash<double>()(g_));
+        hash_combine(hash_, std::hash<double>()(b_));
+      }
       return hash_;
     }
 
@@ -1267,7 +1284,9 @@ namespace Sass {
 
     virtual size_t hash()
     {
-      if (hash_ == 0) hash_ = std::hash<bool>()(value_);
+      if (hash_ == 0) {
+        hash_ = std::hash<bool>()(value_);
+      }
       return hash_;
     }
 
@@ -1323,11 +1342,10 @@ namespace Sass {
 
     virtual size_t hash()
     {
-      if (hash_ > 0) return hash_;
-
-      for (auto string : elements())
-        hash_combine(hash_, string->hash());
-
+      if (hash_ == 0) {
+        for (auto string : elements())
+          hash_combine(hash_, string->hash());
+      }
       return hash_;
     }
 
@@ -1375,7 +1393,9 @@ namespace Sass {
 
     virtual size_t hash()
     {
-      if (hash_ == 0) hash_ = std::hash<string>()(value_);
+      if (hash_ == 0) {
+        hash_ = std::hash<string>()(value_);
+      }
       return hash_;
     }
 
