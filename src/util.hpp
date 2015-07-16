@@ -4,7 +4,10 @@
 #include <cstdio>
 #include <vector>
 #include <string>
+#include <assert.h>
 #include "ast_fwd_decl.hpp"
+
+#define SASS_ASSERT(cond, msg) assert(cond && msg)
 
 namespace Sass {
   using namespace std;

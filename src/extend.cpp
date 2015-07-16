@@ -628,6 +628,7 @@ namespace Sass {
 
     bool operator()(const Node& seq) const {
       // {|s| parent_superselector?(s.first, lcs.first)}
+      if (seq.collection()->size() == 0) return false;
       return parentSuperselector(seq.collection()->front(), mLcs.collection()->front(), mCtx);
     }
   };
@@ -676,7 +677,7 @@ namespace Sass {
   template<typename ChunkerType>
   static Node chunks(Node& seq1, Node& seq2, const ChunkerType& chunker) {
     Node chunk1 = Node::createCollection();
-    while (!chunker(seq1)) {
+    while (seq1.collection()->size() && !chunker(seq1)) {
       chunk1.collection()->push_back(seq1.collection()->front());
       seq1.collection()->pop_front();
     }
@@ -1236,8 +1237,8 @@ namespace Sass {
       seqLcs.collection()->pop_front();
       diff.collection()->push_back(lcsWrapper);
 
-      groupSeq1.collection()->pop_front();
-      groupSeq2.collection()->pop_front();
+      if (groupSeq1.collection()->size()) groupSeq1.collection()->pop_front();
+      if (groupSeq2.collection()->size()) groupSeq2.collection()->pop_front();
     }
 
     DEBUG_PRINTLN(SUBWEAVE, "DIFF POST LCS: " << diff)

@@ -285,20 +285,27 @@ namespace Sass {
   Node Node::naiveTrim(Node& seqses, Context& ctx) {
 
     SourcesSet sel_set;
-    Node result = Node::createCollection();
+
+    vector<Node*> res;
 
     // Add all selectors we don't already have, everything else just add it blindly
-    for (NodeDeque::iterator seqsesIter = seqses.collection()->begin(), seqsesIterEnd = seqses.collection()->end(); seqsesIter != seqsesIterEnd; ++seqsesIter) {
+    // We iterate from the back to the front, since in ruby we probably overwrite existing the items
+    for (NodeDeque::iterator seqsesIter = seqses.collection()->end() - 1, seqsesIterEnd = seqses.collection()->begin() - 1; seqsesIter != seqsesIterEnd; --seqsesIter) {
       Node& seqs1 = *seqsesIter;
       if( seqs1.isSelector() ) {
         auto found = sel_set.find( seqs1.selector() );
         if( found == sel_set.end() ) {
           sel_set.insert(seqs1.selector());
-          result.collection()->push_back(seqs1);
+          res.push_back(&seqs1);
         }
       } else {
-        result.collection()->push_back(seqs1);
+        res.push_back(&seqs1);
       }
+    }
+    Node result = Node::createCollection();
+
+    for (size_t i = res.size() - 1; i != string::npos; --i) {
+      result.collection()->push_back(*res[i]);
     }
 
     return result;
