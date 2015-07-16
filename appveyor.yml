@@ -1,17 +1,17 @@
 environment:
   CTEST_OUTPUT_ON_FAILURE: 1
   matrix:
-  - Compiler: mingw
-    Build: static
-    ruby_version: "21-x64"
-  - Compiler: mingw
-    Build: shared
-    ruby_version: "21-x64"
   - Compiler: msvc
     Config: Release
     ruby_version: "21-x64"
   - Compiler: msvc
     Config: Debug
+    ruby_version: "21-x64"
+  - Compiler: mingw
+    Build: static
+    ruby_version: "21-x64"
+  - Compiler: mingw
+    Build: shared
     ruby_version: "21-x64"
 
 cache:
@@ -21,7 +21,6 @@ install:
   - git clone https://github.com/sass/sassc.git
   - git clone https://github.com/sass/sass-spec.git
   - set PATH=C:\Ruby%ruby_version%\bin;%PATH%
-  - set SASS_LIBSASS_PATH=..
   - ps: |
       if(!(gem which minitest 2>$nul)) { gem install minitest }
       if ($env:Compiler -eq "mingw" -AND -Not (Test-Path "C:\mingw64")) {
