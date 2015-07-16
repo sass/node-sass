@@ -487,7 +487,8 @@ namespace Sass {
     // upgrade string to number if possible (issue #948)
     if (op_type == Sass_OP::DIV || op_type == Sass_OP::MUL) {
       if (String_Constant* str = dynamic_cast<String_Constant*>(rhs)) {
-        const char* start = str->value().c_str();
+        string value(str->value());
+        const char* start = value.c_str();
         if (Prelexer::sequence < Prelexer::number >(start) != 0) {
           rhs = new (ctx.mem) Textual(rhs->pstate(), Textual::DIMENSION, str->value());
           rhs->is_delayed(false); rhs = rhs->perform(this);
@@ -511,23 +512,23 @@ namespace Sass {
     Expression::Concrete_Type r_type = rhs->concrete_type();
 
     if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
-      Number* l_n = static_cast<Number*>(lhs);
-      Number* r_n = static_cast<Number*>(rhs);
+      Number* l_n = dynamic_cast<Number*>(lhs);
+      Number* r_n = dynamic_cast<Number*>(rhs);
       return op_numbers(ctx, op_type, l_n, r_n);
     }
     if (l_type == Expression::NUMBER && r_type == Expression::COLOR) {
-      Number* l_n = static_cast<Number*>(lhs);
-      Color* r_c = static_cast<Color*>(rhs);
+      Number* l_n = dynamic_cast<Number*>(lhs);
+      Color* r_c = dynamic_cast<Color*>(rhs);
       return op_number_color(ctx, op_type, l_n, r_c);
     }
     if (l_type == Expression::COLOR && r_type == Expression::NUMBER) {
-      Color* l_c = static_cast<Color*>(lhs);
-      Number* r_n = static_cast<Number*>(rhs);
+      Color* l_c = dynamic_cast<Color*>(lhs);
+      Number* r_n = dynamic_cast<Number*>(rhs);
       return op_color_number(ctx, op_type, l_c, r_n);
     }
     if (l_type == Expression::COLOR && r_type == Expression::COLOR) {
-      Color* l_c = static_cast<Color*>(lhs);
-      Color* r_c = static_cast<Color*>(rhs);
+      Color* l_c = dynamic_cast<Color*>(lhs);
+      Color* r_c = dynamic_cast<Color*>(rhs);
       return op_colors(ctx, op_type, l_c, r_c);
     }
 
