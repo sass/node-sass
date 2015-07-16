@@ -279,7 +279,10 @@ namespace Sass {
   Statement* Expand::operator()(Import* imp)
   {
     Import* result = new (ctx.mem) Import(imp->pstate());
-    result->media_queries(imp->media_queries());
+    if (imp->media_queries()) {
+      Expression* ex = imp->media_queries()->perform(&eval);
+      result->media_queries(dynamic_cast<List*>(ex));
+    }
     for ( size_t i = 0, S = imp->urls().size(); i < S; ++i) {
       result->urls().push_back(imp->urls()[i]->perform(&eval));
     }
