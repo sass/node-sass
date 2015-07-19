@@ -12,7 +12,8 @@ VERSION
 
 # Configuration stuff
 
-Makefile.in
+GNUmakefile.in
+GNUmakefile
 /aclocal.m4
 /autom4te.cache/
 /src/config.h
@@ -35,7 +36,8 @@ Makefile.in
 /script/ltmain.sh
 /script/missing
 /script/test-driver
-/stamp-h1
+/src/stamp-h1
+/src/Makefile.in
 /src/Makefile
 libsass/*
 
