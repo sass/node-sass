@@ -168,8 +168,8 @@ namespace Sass {
     for (typename map<string, T>::iterator i = local_frame_.begin(); i != local_frame_.end(); ++i) {
       if (!ends_with(i->first, "[f]") && !ends_with(i->first, "[f]4") && !ends_with(i->first, "[f]2")) {
         cerr << prefix << string(indent, ' ') << i->first << " "  << i->second;
-        // if (Value* val = dynamic_cast<Value*>(i->second))
-        // { cerr << " : " << val->to_string(true, 5); }
+        if (Value* val = dynamic_cast<Value*>(i->second))
+        { cerr << " : " << val->to_string(true, 5); }
         cerr << endl;
       }
     }

@@ -3,7 +3,9 @@
 #include "node.hpp"
 #include "extend.hpp"
 #include "to_string.hpp"
+#include "color_maps.hpp"
 #include <set>
+#include <iomanip>
 #include <algorithm>
 #include <iostream>
 
@@ -945,7 +947,7 @@ namespace Sass {
   }
 
   Number::Number(ParserState pstate, double val, string u, bool zero)
-  : Expression(pstate),
+  : Value(pstate),
     value_(val),
     zero_(zero),
     numerator_units_(vector<string>()),
@@ -1171,10 +1173,35 @@ namespace Sass {
     return string();
   }
 
+  bool Custom_Warning::operator== (Expression* rhs) const
+  {
+    if (Custom_Warning* r = dynamic_cast<Custom_Warning*>(rhs)) {
+      return message() == r->message();
+    }
+    return false;
+  }
+
+  bool Custom_Warning::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool Custom_Error::operator== (Expression* rhs) const
+  {
+    if (Custom_Error* r = dynamic_cast<Custom_Error*>(rhs)) {
+      return message() == r->message();
+    }
+    return false;
+  }
+
+  bool Custom_Error::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
 
   bool Number::operator== (Expression* rhs) const
   {
-    if (Number* r = static_cast<Number*>(rhs)) {
+    if (Number* r = dynamic_cast<Number*>(rhs)) {
       return (value() == r->value()) &&
              (numerator_units_ == r->numerator_units_) &&
              (denominator_units_ == r->denominator_units_);
@@ -1187,23 +1214,149 @@ namespace Sass {
     return operator==(&rhs);
   }
 
-  bool List::operator==(Expression* rhs) const
+  bool Number::operator< (Number* rhs) const
   {
-    try
-    {
-      List* r = dynamic_cast<List*>(rhs);
-      if (!r || length() != r->length()) return false;
-      if (separator() != r->separator()) return false;
-      for (size_t i = 0, L = r->length(); i < L; ++i)
-        if (*elements()[i] != *(*r)[i]) return false;
+    Number tmp_r(*rhs);
+    tmp_r.normalize(find_convertible_unit());
+    string l_unit(unit());
+    string r_unit(tmp_r.unit());
+    if (!l_unit.empty() && !r_unit.empty() && unit() != tmp_r.unit()) {
+      error("cannot compare numbers with incompatible units", pstate());
+    }
+    return value() < tmp_r.value();
+  }
+
+  bool Number::operator< (Number& rhs) const
+  {
+    return operator<(&rhs);
+  }
+
+  bool String_Quoted::operator== (Expression* rhs) const
+  {
+    if (String_Quoted* qstr = dynamic_cast<String_Quoted*>(rhs)) {
+      return (value() == qstr->value());
+    } else if (String_Constant* cstr = dynamic_cast<String_Constant*>(rhs)) {
+      return (value() == cstr->value());
+    }
+    return false;
+  }
+
+  bool String_Quoted::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool String_Constant::operator== (Expression* rhs) const
+  {
+    if (String_Quoted* qstr = dynamic_cast<String_Quoted*>(rhs)) {
+      return (value() == qstr->value());
+    } else if (String_Constant* cstr = dynamic_cast<String_Constant*>(rhs)) {
+      return (value() == cstr->value());
+    }
+    return false;
+  }
+
+  bool String_Constant::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool String_Schema::operator== (Expression* rhs) const
+  {
+    if (String_Schema* r = dynamic_cast<String_Schema*>(rhs)) {
+      if (length() != r->length()) return false;
+      for (size_t i = 0, L = length(); i < L; ++i) {
+        Expression* rv = (*r)[i];
+        Expression* lv = (*this)[i];
+        if (!lv || !rv) return false;
+        if (!(*lv == *rv)) return false;
+      }
       return true;
     }
-    catch (std::bad_cast&) {}
-    catch (...) { throw; }
+    return false;
+  }
+
+  bool String_Schema::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool Boolean::operator== (Expression* rhs) const
+  {
+    if (Boolean* r = dynamic_cast<Boolean*>(rhs)) {
+      return (value() == r->value());
+    }
+    return false;
+  }
+
+  bool Boolean::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool Color::operator== (Expression* rhs) const
+  {
+    if (Color* r = dynamic_cast<Color*>(rhs)) {
+      return r_ == r->r() &&
+             g_ == r->g() &&
+             b_ == r->b() &&
+             a_ == r->a();
+    }
+    return false;
+  }
+
+  bool Color::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool List::operator== (Expression* rhs) const
+  {
+    if (List* r = dynamic_cast<List*>(rhs)) {
+      if (length() != r->length()) return false;
+      if (separator() != r->separator()) return false;
+      for (size_t i = 0, L = length(); i < L; ++i) {
+        Expression* rv = (*r)[i];
+        Expression* lv = (*this)[i];
+        if (!lv || !rv) return false;
+        if (!(*lv == *rv)) return false;
+      }
+      return true;
+    }
     return false;
   }
 
   bool List::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool Map::operator== (Expression* rhs) const
+  {
+    if (Map* r = dynamic_cast<Map*>(rhs)) {
+      if (length() != r->length()) return false;
+      for (auto key : keys()) {
+        Expression* lv = at(key);
+        Expression* rv = r->at(key);
+        if (!rv || !lv) return false;
+        if (!(*lv == *rv)) return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  bool Map::operator== (Expression& rhs) const
+  {
+    return operator==(&rhs);
+  }
+
+  bool Null::operator== (Expression* rhs) const
+  {
+    return rhs->concrete_type() == NULL_VAL;
+  }
+
+  bool Null::operator== (Expression& rhs) const
   {
     return operator==(&rhs);
   }
@@ -1225,6 +1378,246 @@ namespace Sass {
     if (elements_.count(k))
     { return elements_.at(k); }
     else { return &sass_null; }
+  }
+
+  string Map::to_string(bool compressed, int precision) const
+  {
+    string res("");
+    if (empty()) return res;
+    if (is_invisible()) return res;
+    bool items_output = false;
+    for (auto key : keys()) {
+      if (key->is_invisible()) continue;
+      if (at(key)->is_invisible()) continue;
+      if (items_output) res += compressed ? "," : ", ";
+      Value* v_key = dynamic_cast<Value*>(key);
+      Value* v_val = dynamic_cast<Value*>(at(key));
+      if (v_key) res += v_key->to_string(compressed, precision);
+      res += compressed ? ":" : ": ";
+      if (v_val) res += v_val->to_string(compressed, precision);
+      items_output = true;
+    }
+    return res;
+  }
+
+  string List::to_string(bool compressed, int precision) const
+  {
+    string res("");
+    if (empty()) return res;
+    if (is_invisible()) return res;
+    bool items_output = false;
+    string sep = separator() == SASS_COMMA ? "," : " ";
+    if (!compressed && sep == ",") sep += " ";
+    for (size_t i = 0, L = size(); i < L; ++i) {
+      Expression* item = (*this)[i];
+      if (item->is_invisible()) continue;
+      if (items_output) res += sep;
+      if (Value* v_val = dynamic_cast<Value*>(item))
+      { res += v_val->to_string(compressed, precision); }
+      items_output = true;
+    }
+    return res;
+  }
+
+  string String_Schema::to_string(bool compressed, int precision) const
+  {
+    string res("");
+    for (size_t i = 0, L = length(); i < L; ++i) {
+      if ((*this)[i]->is_interpolant()) res += "#{";
+      if (Value* val = dynamic_cast<Value*>((*this)[i]))
+      { res += val->to_string(compressed, precision); }
+      if ((*this)[i]->is_interpolant()) res += "}";
+    }
+    return res;
+  }
+
+  string Null::to_string(bool compressed, int precision) const
+  {
+    return "null";
+  }
+
+  string Boolean::to_string(bool compressed, int precision) const
+  {
+    return value_ ? "true" : "false";
+  }
+
+  // helper function for serializing colors
+  template <size_t range>
+  static double cap_channel(double c) {
+    if      (c > range) return range;
+    else if (c < 0)     return 0;
+    else                return c;
+  }
+
+  string Color::to_string(bool compressed, int precision) const
+  {
+    stringstream ss;
+
+    // original color name
+    // maybe an unknown token
+    string name = disp();
+
+    // resolved color
+    string res_name = name;
+
+    double r = round(cap_channel<0xff>(r_));
+    double g = round(cap_channel<0xff>(g_));
+    double b = round(cap_channel<0xff>(b_));
+    double a = cap_channel<1>   (a_);
+
+    // get color from given name (if one was given at all)
+    if (name != "" && name_to_color(name)) {
+      const Color* n = name_to_color(name);
+      r = round(cap_channel<0xff>(n->r()));
+      g = round(cap_channel<0xff>(n->g()));
+      b = round(cap_channel<0xff>(n->b()));
+      a = cap_channel<1>   (n->a());
+    }
+    // otherwise get the possible resolved color name
+    else {
+      int numval = r * 0x10000 + g * 0x100 + b;
+      if (color_to_name(numval))
+        res_name = color_to_name(numval);
+    }
+
+    stringstream hexlet;
+    hexlet << '#' << setw(1) << setfill('0');
+    // create a short color hexlet if there is any need for it
+    if (compressed && is_color_doublet(r, g, b) && a == 1) {
+      hexlet << hex << setw(1) << (static_cast<unsigned long>(r) >> 4);
+      hexlet << hex << setw(1) << (static_cast<unsigned long>(g) >> 4);
+      hexlet << hex << setw(1) << (static_cast<unsigned long>(b) >> 4);
+    } else {
+      hexlet << hex << setw(2) << static_cast<unsigned long>(r);
+      hexlet << hex << setw(2) << static_cast<unsigned long>(g);
+      hexlet << hex << setw(2) << static_cast<unsigned long>(b);
+    }
+
+    if (compressed && !this->is_delayed()) name = "";
+
+    // retain the originally specified color definition if unchanged
+    if (name != "") {
+      ss << name;
+    }
+    else if (r == 0 && g == 0 && b == 0 && a == 0) {
+        ss << "transparent";
+    }
+    else if (a >= 1) {
+      if (res_name != "") {
+        if (compressed && hexlet.str().size() < res_name.size()) {
+          ss << hexlet.str();
+        } else {
+          ss << res_name;
+        }
+      }
+      else {
+        ss << hexlet.str();
+      }
+    }
+    else {
+      ss << "rgba(";
+      ss << static_cast<unsigned long>(r) << ",";
+      if (!compressed) ss << " ";
+      ss << static_cast<unsigned long>(g) << ",";
+      if (!compressed) ss << " ";
+      ss << static_cast<unsigned long>(b) << ",";
+      if (!compressed) ss << " ";
+      ss << a << ')';
+    }
+
+    return ss.str();
+
+  }
+
+  string Number::to_string(bool compressed, int precision) const
+  {
+
+    string res;
+
+    // check if the fractional part of the value equals to zero
+    // neat trick from http://stackoverflow.com/a/1521682/1550314
+    // double int_part; bool is_int = modf(value, &int_part) == 0.0;
+
+    // this all cannot be done with one run only, since fixed
+    // output differs from normal output and regular output
+    // can contain scientific notation which we do not want!
+
+    // first sample
+    stringstream ss;
+    ss.precision(12);
+    ss << value_;
+
+    // check if we got scientific notation in result
+    if (ss.str().find_first_of("e") != string::npos) {
+      ss.clear(); ss.str(string());
+      ss.precision(max(12, precision));
+      ss << fixed << value_;
+    }
+
+    string tmp = ss.str();
+    size_t pos_point = tmp.find_first_of(".,");
+    size_t pos_fract = tmp.find_last_not_of("0");
+    bool is_int = pos_point == pos_fract ||
+                  pos_point == string::npos;
+
+    // reset stream for another run
+    ss.clear(); ss.str(string());
+
+    // take a shortcut for integers
+    if (is_int)
+    {
+      ss.precision(0);
+      ss << fixed << value_;
+      res = string(ss.str());
+    }
+    // process floats
+    else
+    {
+      // do we have have too much precision?
+      if (pos_fract < precision + pos_point)
+      { precision = pos_fract - pos_point; }
+      // round value again
+      ss.precision(precision);
+      ss << fixed << value_;
+      res = string(ss.str());
+      // maybe we truncated up to decimal point
+      size_t pos = res.find_last_not_of("0");
+      bool at_dec_point = res[pos] == '.' ||
+                          res[pos] == ',';
+      // don't leave a blank point
+      if (at_dec_point) ++ pos;
+      res.resize (pos + 1);
+    }
+
+    // some final cosmetics
+    if (res == "-0.0") res.erase(0, 1);
+    else if (res == "-0") res.erase(0, 1);
+
+    // add unit now
+    res += unit();
+
+    // and return
+    return res;
+
+  }
+
+  string String_Quoted::to_string(bool compressed, int precision) const
+  {
+    return quote_mark_ ? quote(value_, quote_mark_, true) : value_;
+  }
+
+  string String_Constant::to_string(bool compressed, int precision) const
+  {
+    return quote_mark_ ? quote(value_, quote_mark_, true) : value_;
+  }
+
+  string Custom_Error::to_string(bool compressed, int precision) const
+  {
+    return message();
+  }
+  string Custom_Warning::to_string(bool compressed, int precision) const
+  {
+    return message();
   }
 
 }

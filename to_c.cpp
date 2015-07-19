@@ -7,13 +7,19 @@ namespace Sass {
   using namespace std;
 
   union Sass_Value* To_C::fallback_impl(AST_Node* n)
-  { return sass_make_null(); }
+  { return sass_make_error("unknown type for C-API"); }
 
   union Sass_Value* To_C::operator()(Boolean* b)
   { return sass_make_boolean(b->value()); }
 
   union Sass_Value* To_C::operator()(Number* n)
   { return sass_make_number(n->value(), n->unit().c_str()); }
+
+  union Sass_Value* To_C::operator()(Custom_Warning* w)
+  { return sass_make_warning(w->message().c_str()); }
+
+  union Sass_Value* To_C::operator()(Custom_Error* e)
+  { return sass_make_error(e->message().c_str()); }
 
   union Sass_Value* To_C::operator()(Color* c)
   { return sass_make_color(c->r(), c->g(), c->b(), c->a()); }

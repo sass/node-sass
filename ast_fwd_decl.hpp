@@ -38,6 +38,7 @@ namespace Sass {
   class Definition;
   class Mixin_Call;
   // expressions
+  class Value;
   class Expression;
   class List;
   class Map;
@@ -45,6 +46,8 @@ namespace Sass {
   class Unary_Expression;
   class Function_Call;
   class Function_Call_Schema;
+  class Custom_Warning;
+  class Custom_Error;
   class Variable;
   class Textual;
   class Number;

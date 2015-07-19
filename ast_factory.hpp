@@ -24,6 +24,8 @@ namespace Sass {
     Assignment* new_Assignment(string p, size_t l, string var, Expression* val, bool guarded = false);
     Import<Function_Call*>* new_CSS_Import(string p, size_t l, Function_Call* loc);
     Import<String*>* new_SASS_Import(string p, size_t l, String* loc);
+    Custom_Warning* new_Custom_Warning(string msg, size_t l, string msg);
+    Custom_Error* new_Custom_Error(string p, size_t l, string msg);
     Warning* new_Warning(string p, size_t l, Expression* msg);
     Error* new_Error(string p, size_t l, Expression* msg);
     Debug* new_Debug(string p, size_t l, Expression* val);

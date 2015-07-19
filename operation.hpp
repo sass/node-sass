@@ -48,6 +48,8 @@ namespace Sass {
     virtual T operator()(Unary_Expression* x)       = 0;
     virtual T operator()(Function_Call* x)          = 0;
     virtual T operator()(Function_Call_Schema* x)   = 0;
+    virtual T operator()(Custom_Warning* x)         = 0;
+    virtual T operator()(Custom_Error* x)           = 0;
     virtual T operator()(Variable* x)               = 0;
     virtual T operator()(Textual* x)                = 0;
     virtual T operator()(Number* x)                 = 0;
@@ -123,6 +125,8 @@ namespace Sass {
     virtual T operator()(Unary_Expression* x)       { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Function_Call* x)          { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Function_Call_Schema* x)   { return static_cast<D*>(this)->fallback(x); }
+    virtual T operator()(Custom_Warning* x)         { return static_cast<D*>(this)->fallback(x); }
+    virtual T operator()(Custom_Error* x)           { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Variable* x)               { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Textual* x)                { return static_cast<D*>(this)->fallback(x); }
     virtual T operator()(Number* x)                 { return static_cast<D*>(this)->fallback(x); }

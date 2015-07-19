@@ -1049,8 +1049,8 @@ namespace Sass {
     Map* map = new (ctx.mem) Map(pstate, 1);
     if (String_Quoted* str = dynamic_cast<String_Quoted*>(key)) {
       if (!str->quote_mark() && !str->is_delayed()) {
-        if (names_to_colors.count(str->value())) {
-          Color* c = new (ctx.mem) Color(*name_to_color(str->value()));
+        if (const Color* col = name_to_color(str->value())) {
+          Color* c = new (ctx.mem) Color(*col);
           c->pstate(str->pstate());
           c->disp(str->value());
           key = c;
@@ -1077,8 +1077,8 @@ namespace Sass {
       Expression* key = parse_list();
       if (String_Quoted* str = dynamic_cast<String_Quoted*>(key)) {
         if (!str->quote_mark() && !str->is_delayed()) {
-          if (names_to_colors.count(str->value())) {
-            Color* c = new (ctx.mem) Color(*name_to_color(str->value()));
+          if (const Color* col = name_to_color(str->value())) {
+            Color* c = new (ctx.mem) Color(*col);
             c->pstate(str->pstate());
             c->disp(str->value());
             key = c;

@@ -199,9 +199,11 @@
     <ClCompile Include="..\source_map.cpp" />
     <ClCompile Include="..\to_c.cpp" />
     <ClCompile Include="..\to_string.cpp" />
+    <ClCompile Include="..\to_value.cpp" />
     <ClCompile Include="..\units.cpp" />
     <ClCompile Include="..\utf8_string.cpp" />
     <ClCompile Include="..\util.cpp" />
+    <ClCompile Include="..\values.cpp" />
     <ClCompile Include="..\sassc\sassc.c" />
   </ItemGroup>
   <ItemGroup>
@@ -253,6 +255,7 @@
     <ClInclude Include="..\token.hpp" />
     <ClInclude Include="..\to_c.hpp" />
     <ClInclude Include="..\to_string.hpp" />
+    <ClInclude Include="..\to_value.hpp" />
     <ClInclude Include="..\units.hpp" />
     <ClInclude Include="..\utf8.h" />
     <ClInclude Include="..\utf8\checked.h" />
@@ -260,6 +263,7 @@
     <ClInclude Include="..\utf8\unchecked.h" />
     <ClInclude Include="..\utf8_string.hpp" />
     <ClInclude Include="..\util.hpp" />
+    <ClInclude Include="..\values.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

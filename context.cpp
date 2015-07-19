@@ -553,5 +553,4 @@ namespace Sass {
     (*env)[def->name() + "[f]"] = def;
   }
 
-
 }
