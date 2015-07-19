@@ -32,8 +32,9 @@ namespace Sass {
     union Sass_Value* operator()(Arguments*);
     union Sass_Value* operator()(Argument*);
 
-    template <typename U>
-    Sass_Value* fallback(U x) { return fallback_impl(x); }
+    // dispatch to fallback implementation
+    union Sass_Value* fallback(AST_Node* x)
+    { return fallback_impl(x); }
   };
 
 }
