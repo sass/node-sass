@@ -905,7 +905,23 @@ namespace Sass {
   {
     string acc;
     for (size_t i = 0, L = s->length(); i < L; ++i) {
-      if ((*s)[i]) acc += interpolation((*s)[i]);
+      // really a very special fix, but this is the logic I got from
+      // analyzing the ruby sass behavior and it actually seems to work
+      // https://github.com/sass/libsass/issues/1333
+      if (i == 0 && L > 1 && dynamic_cast<Function_Call*>((*s)[i])) {
+        Expression* ex = (*s)[i]->perform(this);
+        if (auto sq = dynamic_cast<String_Quoted*>(ex)) {
+          if (sq->is_delayed() && ! s->has_interpolants()) {
+            acc += string_escape(quote(sq->value(), sq->quote_mark()));
+          } else {
+            acc += interpolation((*s)[i]);
+          }
+        } else if (ex) {
+          acc += interpolation((*s)[i]);
+        }
+      } else if ((*s)[i]) {
+        acc += interpolation((*s)[i]);
+      }
     }
     String_Quoted* str = new (ctx.mem) String_Quoted(s->pstate(), acc);
     if (!str->quote_mark()) {
