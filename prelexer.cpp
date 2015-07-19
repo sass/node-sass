@@ -214,8 +214,56 @@ namespace Sass {
       return sequence<exactly<'@'>, identifier>(src);
     }
 
-    const char* re_reference_selector(const char* src) {
-      return sequence < exactly <'/'>, identifier, exactly <'/'> >(src);
+    const char* re_reference_combinator(const char* src) {
+      return sequence <
+        optional <
+          sequence <
+            zero_plus <
+              exactly <'-'>
+            >,
+            identifier,
+            exactly <'|'>
+          >
+        >,
+        zero_plus <
+          exactly <'-'>
+        >,
+        identifier
+      >(src);
+    }
+
+    const char* static_reference_combinator(const char* src) {
+      return sequence <
+        exactly <'/'>,
+        re_reference_combinator,
+        exactly <'/'>
+      >(src);
+    }
+
+    const char* schema_reference_combinator(const char* src) {
+      return sequence <
+        exactly <'/'>,
+        optional <
+          sequence <
+            zero_plus <
+              exactly <'-'>
+            >,
+            alternatives <
+              identifier,
+              interpolant
+            >,
+            exactly <'|'>
+          >
+        >,
+        zero_plus <
+          exactly <'-'>
+        >,
+        alternatives <
+          identifier,
+          interpolant
+        >,
+        exactly <'/'>
+      > (src);
     }
 
     const char* kwd_import(const char* src) {
@@ -754,6 +802,8 @@ namespace Sass {
                            static_string,
                            percentage,
                            hex,
+                           exactly<'|'>,
+                           // exactly<'+'>,
                            number,
                            sequence< exactly<'!'>, word<important_kwd> >
                           >(src);

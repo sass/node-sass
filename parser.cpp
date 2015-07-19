@@ -739,7 +739,7 @@ namespace Sass {
     else if (lex< sequence < exactly<'/'>, negate < exactly < '*' > > > >()) {
       // comments are allowed, but not spaces?
       combinator = Complex_Selector::REFERENCE;
-      if (!lex < identifier >()) return 0; // ToDo: error msg?
+      if (!lex < re_reference_combinator >()) return 0;
       reference = new (ctx.mem) String_Quoted(pstate, lexed);
       if (!lex < exactly < '/' > >()) return 0; // ToDo: error msg?
     }
@@ -851,7 +851,7 @@ namespace Sass {
     else if (lex< quoted_string >()) {
       return new (ctx.mem) Type_Selector(pstate, unquote(lexed));
     }
-    else if (lex< alternatives < variable, number, re_reference_selector > >()) {
+    else if (lex< alternatives < variable, number, static_reference_combinator > >()) {
       return new (ctx.mem) Type_Selector(pstate, lexed);
     }
     else if (peek< pseudo_not >()) {
@@ -2146,8 +2146,8 @@ namespace Sass {
             // consume whitespace and comments
             spaces, block_comment, line_comment,
             // match `/deep/` selector (pass-trough)
-            // there is no functionality for it yet
-            re_reference_selector,
+            // match reference /\/[^\/]+\//;
+            schema_reference_combinator,
             // match selector ops /[*&%,()\[\]]/
             class_char < selector_lookahead_ops >,
             // match selector combinators /[>+~]/

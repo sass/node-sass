@@ -197,7 +197,9 @@ namespace Sass {
     const char* identifier_alnum(const char* src);
     const char* identifier_alnums(const char* src);
     // Match reference selector.
-    const char* re_reference_selector(const char* src);
+    const char* re_reference_combinator(const char* src);
+    const char* static_reference_combinator(const char* src);
+    const char* schema_reference_combinator(const char* src);
 
     // Match interpolant schemas
     const char* identifier_schema(const char* src);
