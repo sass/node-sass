@@ -311,7 +311,7 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     cerr << ind << "Import " << block;
     cerr << " (" << pstate_source_position(node) << ")";
     cerr << " " << block->tabs() << endl;
-    // debug_ast(block->media_queries(), ind + " @ ");
+    debug_ast(block->media_queries(), ind + " @ ");
     // vector<string>         files_;
     for (auto imp : block->urls()) debug_ast(imp, "@ ", env);
   } else if (dynamic_cast<Assignment*>(node)) {
