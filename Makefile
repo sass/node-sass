@@ -4,6 +4,7 @@ RM       ?= rm -f
 CP       ?= cp -a
 MKDIR    ?= mkdir
 WINDRES  ?= windres
+INSTALL  ?= install
 CFLAGS   ?= -Wall
 CXXFLAGS ?= -Wall
 LDFLAGS  ?= -Wall
@@ -31,6 +32,10 @@ else
 			endif
 		endif
 	endif
+endif
+
+ifeq ($(SASS_LIBSASS_PATH),)
+	SASS_LIBSASS_PATH = $(abspath $(CURDIR))
 endif
 
 ifeq ($(LIBSASS_VERSION),)
@@ -68,8 +73,12 @@ else
 endif
 
 ifneq ($(SASS_LIBSASS_PATH),)
-	CFLAGS   += -I $(SASS_LIBSASS_PATH)
-	CXXFLAGS += -I $(SASS_LIBSASS_PATH)
+	CFLAGS   += -I $(SASS_LIBSASS_PATH)/include
+	CXXFLAGS += -I $(SASS_LIBSASS_PATH)/include
+else
+	# this is needed for mingw
+	CFLAGS   += -I include
+	CXXFLAGS += -I include
 endif
 
 ifneq ($(EXTRA_CFLAGS),)
@@ -152,62 +161,17 @@ ifeq (Windows,$(UNAME))
 	SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc.exe
 endif
 
-SOURCES = \
-	ast.cpp \
-	base64vlq.cpp \
-	bind.cpp \
-	color_maps.cpp \
-	constants.cpp \
-	context.cpp \
-	cssize.cpp \
-	emitter.cpp \
-	environment.cpp \
-	error_handling.cpp \
-	eval.cpp \
-	expand.cpp \
-	extend.cpp \
-	file.cpp \
-	functions.cpp \
-	inspect.cpp \
-	json.cpp \
-	lexer.cpp \
-	listize.cpp \
-	memory_manager.cpp \
-	node.cpp \
-	output.cpp \
-	parser.cpp \
-	plugins.cpp \
-	position.cpp \
-	prelexer.cpp \
-	remove_placeholders.cpp \
-	sass.cpp \
-	sass_util.cpp \
-	sass_values.cpp \
-	sass_context.cpp \
-	sass_functions.cpp \
-	sass_interface.cpp \
-	sass2scss.cpp \
-	source_map.cpp \
-	to_c.cpp \
-	to_string.cpp \
-	to_value.cpp \
-	units.cpp \
-	utf8_string.cpp \
-	values.cpp \
-	util.cpp
-
-CSOURCES = cencode.c
+include Makefile.conf
 
 RESOURCES =
-
-LIBRARIES = lib/libsass.so
-
+STATICLIB = lib/libsass.a
+SHAREDLIB = lib/libsass.so
 ifeq (MinGW,$(UNAME))
+	RESOURCES += res/resource.rc
+	SHAREDLIB  = lib/libsass.dll
 	ifeq (shared,$(BUILD))
 		CFLAGS    += -D ADD_EXPORTS
 		CXXFLAGS  += -D ADD_EXPORTS
-		LIBRARIES += lib/libsass.dll
-		RESOURCES += res/resource.rc
 	endif
 else
 	CFLAGS   += -fPIC
@@ -215,11 +179,17 @@ else
 	LDFLAGS  += -fPIC
 endif
 
-OBJECTS = $(SOURCES:.cpp=.o)
-COBJECTS = $(CSOURCES:.c=.o)
+OBJECTS = $(addprefix src/,$(SOURCES:.cpp=.o))
+COBJECTS = $(addprefix src/,$(CSOURCES:.c=.o))
 RCOBJECTS = $(RESOURCES:.rc=.o)
 
 DEBUG_LVL ?= NONE
+
+CLEANUPS ?=
+CLEANUPS += $(RCOBJECTS)
+CLEANUPS += $(COBJECTS)
+CLEANUPS += $(OBJECTS)
+CLEANUPS += $(LIBSASS_LIB)
 
 all: $(BUILD)
 
@@ -234,9 +204,6 @@ debug-shared: LDFLAGS := -g $(filter-out -O2,$(LDFLAGS))
 debug-shared: CFLAGS := -g -DDEBUG -DDEBUG_LVL="$(DEBUG_LVL)" $(filter-out -O2,$(CFLAGS))
 debug-shared: CXXFLAGS := -g -DDEBUG -DDEBUG_LVL="$(DEBUG_LVL)" $(filter-out -O2,$(CXXFLAGS))
 debug-shared: shared
-
-static: lib/libsass.a
-shared: $(LIBRARIES)
 
 lib:
 	$(MKDIR) lib
@@ -264,11 +231,44 @@ lib/libsass.dll: lib $(COBJECTS) $(OBJECTS) $(RCOBJECTS)
 
 install: install-$(BUILD)
 
-install-static: lib/libsass.a
-	install -pm0755 $< $(DESTDIR)$(PREFIX)/$<
+static: $(STATICLIB)
+shared: $(SHAREDLIB)
 
-install-shared: lib/libsass.so
-	install -pm0755 $< $(DESTDIR)$(PREFIX)/$<
+$(DESTDIR)$(PREFIX):
+	$(MKDIR) $(DESTDIR)$(PREFIX)
+
+$(DESTDIR)$(PREFIX)/lib: $(DESTDIR)$(PREFIX)
+	$(MKDIR) $(DESTDIR)$(PREFIX)/lib
+
+$(DESTDIR)$(PREFIX)/include: $(DESTDIR)$(PREFIX)
+	$(MKDIR) $(DESTDIR)$(PREFIX)/include
+
+$(DESTDIR)$(PREFIX)/include/%.h: include/%.h
+	$(INSTALL) -D -v -m0644 "$<" "$@"
+
+install-headers: $(DESTDIR)$(PREFIX)/include/sass.h \
+                 $(DESTDIR)$(PREFIX)/include/sass2scss.h \
+                 $(DESTDIR)$(PREFIX)/include/sass_values.h \
+                 $(DESTDIR)$(PREFIX)/include/sass_version.h \
+                 $(DESTDIR)$(PREFIX)/include/sass_context.h \
+                 $(DESTDIR)$(PREFIX)/include/sass_functions.h
+
+$(DESTDIR)$(PREFIX)/lib/%.a: lib/%.a \
+                             $(DESTDIR)$(PREFIX)/lib
+	@$(INSTALL) -D -v -m0755 "$<" "$@"
+
+$(DESTDIR)$(PREFIX)/lib/%.so: lib/%.so \
+                             $(DESTDIR)$(PREFIX)/lib
+	@$(INSTALL) -D -v -m0755 "$<" "$@"
+
+$(DESTDIR)$(PREFIX)/lib/%.dll: lib/%.dll \
+                               $(DESTDIR)$(PREFIX)/lib
+	@$(INSTALL) -D -v -m0755 "$<" "$@"
+
+install-static: $(DESTDIR)$(PREFIX)/lib/libsass.a
+
+install-shared: $(DESTDIR)$(PREFIX)/lib/libsass.so \
+                install-headers
 
 $(SASSC_BIN): $(BUILD)
 	$(MAKE) -C $(SASS_SASSC_PATH)
@@ -289,8 +289,10 @@ test_build: $(SASSC_BIN)
 test_issues: $(SASSC_BIN)
 	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues
 
-clean:
-	$(RM) $(RCOBJECTS) $(COBJECTS) $(OBJECTS) $(LIBRARIES) lib/*.a lib/*.so lib/*.dll lib/*.la
+clean-objects:
+	$(RM) lib/*.a lib/*.so lib/*.dll lib/*.la
+clean: clean-objects
+	$(RM) $(CLEANUPS)
 
 clean-all:
 	$(MAKE) -C $(SASS_SASSC_PATH) clean
@@ -308,7 +310,8 @@ lib-opts-shared:
 	@echo -L"$(SASS_LIBSASS_PATH)/lib -lsass"
 
 .PHONY: all static shared sassc \
-        version clean clean-all \
+        version install-headers \
+        clean clean-all clean-objects \
         debug debug-static debug-shared \
         install install-static install-shared \
         lib-opts lib-opts-shared lib-opts-static \

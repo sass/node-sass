@@ -1,4 +1,4 @@
-ACLOCAL_AMFLAGS = -I m4
+ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS} -I m4 -I script
 
 AM_COPT = -Wall -O2
 AM_COVLDFLAGS =
@@ -8,103 +8,40 @@ if ENABLE_COVERAGE
 	AM_COVLDFLAGS += -lgcov
 endif
 
-AM_CFLAGS =   $(AM_COPT)
+AM_CPPFLAGS = -I$(top_srcdir)/include
+AM_CFLAGS   = $(AM_COPT)
 AM_CXXFLAGS = $(AM_COPT)
-AM_LDFLAGS =  $(AM_COPT) $(AM_COVLDFLAGS)
+AM_LDFLAGS  = $(AM_COPT) $(AM_COVLDFLAGS)
 
+# only needed to support old source tree
+# we have moved the files to src folder
+AM_CPPFLAGS += -I$(top_srcdir)
+
+RESOURCES =
 if COMPILER_IS_MINGW32
+  RESOURCES += res/libsass.rc
   AM_CXXFLAGS += -std=gnu++0x
 else
   AM_CXXFLAGS += -std=c++0x
 endif
 
-EXTRA_DIST = \
-	COPYING \
-	INSTALL \
-	LICENSE \
-	Readme.md
-
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = support/libsass.pc
-
-lib_LTLIBRARIES = libsass.la
-
-libsass_la_SOURCES = \
-	ast_fwd_decl.hpp ast_def_macros.hpp \
-	kwd_arg_macros.hpp \
-	position.cpp position.hpp \
-	operation.hpp \
-	subset_map.hpp mapping.hpp \
-	color_names.hpp backtrace.hpp \
-	cencode.c b64/cencode.h b64/encode.h \
-	token.hpp \
-	paths.hpp debug.hpp \
-	utf8.h utf8/core.h \
-	utf8/checked.h utf8/unchecked.h \
-	ast.cpp ast.hpp \
-	base64vlq.cpp base64vlq.hpp \
-	bind.cpp bind.hpp \
-	color_maps.cpp color_maps.hpp \
-	constants.cpp constants.hpp \
-	context.cpp context.hpp \
-	environment.cpp environment.hpp \
-	error_handling.cpp error_handling.hpp \
-	eval.cpp eval.hpp \
-	expand.cpp expand.hpp \
-	extend.cpp extend.hpp \
-	cssize.cpp cssize.hpp \
-	listize.cpp listize.hpp \
-	file.cpp file.hpp \
-	functions.cpp functions.hpp \
-	inspect.cpp inspect.hpp \
-	lexer.cpp lexer.hpp \
-	memory_manager.cpp memory_manager.hpp \
-	node.cpp node.hpp \
-	json.cpp json.hpp \
-	emitter.cpp emitter.hpp \
-	output.cpp output.hpp \
-	parser.cpp parser.hpp \
-	plugins.cpp plugins.hpp \
-	prelexer.cpp prelexer.hpp \
-	remove_placeholders.cpp remove_placeholders.hpp \
-	sass.cpp sass.h \
-	sass_util.cpp sass_util.hpp \
-	sass_values.cpp sass_values.h \
-	sass_context.cpp sass_context.h \
-	sass_functions.cpp sass_functions.h \
-	sass_interface.cpp sass_interface.h \
-	sass2scss.cpp sass2scss.h \
-	source_map.cpp source_map.hpp \
-	to_c.cpp to_c.hpp \
-	to_string.cpp to_string.hpp \
-	to_value.cpp to_value.hpp \
-	units.cpp units.hpp \
-	utf8_string.cpp utf8_string.hpp \
-	values.cpp values.hpp \
-	util.cpp util.hpp
-
-libsass_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 0:9:0
-
-include_HEADERS = sass2scss.h sass_context.h sass_functions.h sass_values.h sass.h sass_version.h
-
 if ENABLE_TESTS
 
 noinst_PROGRAMS = tester
 
-tester_LDADD = libsass.la
+tester_LDADD = src/libsass.la
 tester_SOURCES = $(SASS_SASSC_PATH)/sassc.c
-SASSC_VERSION=`cd "$(SASS_SASSC_PATH)" && ./version.sh`
-tester_CFLAGS = $(AM_CFLAGS) -DSASSC_VERSION="\"$(SASSC_VERSION)\""
-tester_CXXFLAGS = $(AM_CXXFLAGS) -DSASSC_VERSION="\"$(SASSC_VERSION)\""
-tester_LDFLAGS = $(AM_LDFLAGS) -no-install
+tester_VERSION ?= `cd "$(SASS_SASSC_PATH)" && ./version.sh`
+tester_CFLAGS = $(AM_CFLAGS) -DSASSC_VERSION="\"$(tester_VERSION)\""
+tester_CXXFLAGS = $(AM_CXXFLAGS) -DSASSC_VERSION="\"$(tester_VERSION)\""
+tester_LDFLAGS = $(AM_LDFLAGS)
 
 if ENABLE_COVERAGE
 nodist_EXTRA_tester_SOURCES = non-existent-file-to-force-CXX-linking.cxx
-nodist_EXTRA_libsass_la_SOURCES = non-existent-file-to-force-CXX-linking.cxx
 endif
 
-SASS_SASSC_PATH ?= sassc
-SASS_SPEC_PATH ?= sass-spec
+SASS_SASSC_PATH ?= $(top_srcdir)/sassc
+SASS_SPEC_PATH ?= $(top_srcdir)/sass-spec
 
 TESTS = \
 	$(SASS_SPEC_PATH)/spec/basic \
@@ -147,3 +84,5 @@ test_issues:
 	$(SASS_TESTER) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues $(SASS_TEST_FLAGS)
 
 endif
+
+SUBDIRS = src

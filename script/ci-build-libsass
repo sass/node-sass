@@ -36,50 +36,50 @@ else
   MAKE_OPTS="$MAKE_OPTS -j3 V=1"
 fi
 
+if [ "x$PREFIX" == "x" ]; then
+  if [ "x$TRAVIS_BUILD_DIR" == "x" ]; then
+    PREFIX=$SASS_LIBSASS_PATH/build
+  else
+    PREFIX=$TRAVIS_BUILD_DIR/build
+  fi
+fi
+
+echo SASS_LIBSASS_PATH: $SASS_LIBSASS_PATH
+echo TRAVIS_BUILD_DIR: $TRAVIS_BUILD_DIR
+echo SASS_SASSC_PATH: $SASS_SASSC_PATH
+echo SASS_SPEC_PATH: $SASS_SPEC_PATH
+echo INSTALL_LOCATION: $PREFIX
+
 if [ "x$AUTOTOOLS" == "xyes" ]; then
 
   echo -en 'travis_fold:start:configure\r'
   autoreconf --force --install
   ./configure --enable-tests $COVERAGE_OPT \
-    --prefix=build \
     --disable-silent-rules \
     --with-sassc-dir=$SASS_SASSC_PATH \
     --with-sass-spec-dir=$SASS_SPEC_PATH \
-    --prefix=$TRAVIS_BUILD_DIR \
+    --prefix=$PREFIX \
     ${SHARED_OPT}
   echo -en 'travis_fold:end:configure\r'
 
-  make clean
+  make clean $MAKE_OPTS
 
-  make $MAKE_OPTS install
-
-  if [ -d build/lib ]; then
-    mkdir -p lib
-    cp -a build/lib/* lib/
-  fi
+  # install to prefix directory
+  PREFIX="$PREFIX" make install
 
 else
 
-  make clean
-
-  # does what $BUILD says
-  make $MAKE_OPTS
-
-  # sassc has static as dep
-  make $MAKE_OPTS $SASS_SASSC_PATH/bin/sassc
+  make clean $MAKE_OPTS
 
 fi
+
+# install to prefix directory
+PREFIX="$PREFIX" make install
+
+ls -la $PREFIX/*
 
 echo successfully compiled libsass
 echo AUTOTOOLS=$AUTOTOOLS COVERAGE=$COVERAGE BUILD=$BUILD
-
-if [ "x$PREFIX" == "x" ]; then
-  if [ "x$TRAVIS_BUILD_DIR" == "x" ]; then
-    PREFIX=/usr/local
-  else
-    PREFIX=$TRAVIS_BUILD_DIR
-  fi
-fi
 
 if [ "$CONTINUOUS_INTEGRATION" == "true" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ "$TRAVIS_OS_NAME" == "linux" ];
 then

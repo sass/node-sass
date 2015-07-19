@@ -4,22 +4,32 @@
 AC_PREREQ([2.61])
 
 AC_INIT([libsass], m4_esyscmd_s([./version.sh]), [support@moovweb.com])
-AC_CONFIG_SRCDIR([ast.hpp])
+AC_CONFIG_SRCDIR([src/ast.hpp])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([sass_version.h])
+AC_CONFIG_FILES([include/sass_version.h])
 AC_CONFIG_AUX_DIR([script])
 # These are flags passed to automake
 # Though they look like gcc flags!
 AM_INIT_AUTOMAKE([foreign parallel-tests -Wall])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([no])])
 # would fail with mingw otherwise
-m4_pattern_allow([AM_PROG_AR])
+# m4_pattern_allow([AM_PROG_AR])
 
 # Checks for programs.
+AC_PROG_CC
 AC_PROG_CXX
-AC_LANG([C++])
-AM_PROG_AR([])
+AC_LANG_PUSH([C])
+AC_LANG_PUSH([C++])
+AC_GNU_SOURCE
+# Check fails on Travis, but it works fine
+# AX_CXX_COMPILE_STDCXX_11([ext],[optional])
+AC_CHECK_TOOL([AR], [ar], [false])
+if test "x$is_mingw32" != "xyes"; then
+  AC_CHECK_TOOL([DLLTOOL], [dlltool], [false])
+  AC_CHECK_TOOL([DLLWRAP], [dllwrap], [false])
+  AC_CHECK_TOOL([WINDRES], [windres], [false])
+fi
 LT_INIT([dlopen])
 
 # Checks for header files.
@@ -127,5 +137,5 @@ AC_SUBST(PACKAGE_VERSION)
 
 AC_MSG_NOTICE([Building libsass ($VERSION)])
 
-AC_CONFIG_FILES([Makefile support/libsass.pc])
+AC_CONFIG_FILES([Makefile src/Makefile src/support/libsass.pc])
 AC_OUTPUT

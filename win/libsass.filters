@@ -18,309 +18,309 @@
     <ClCompile Include="..\sassc\sassc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\posix\getopt.c">
+    <ClCompile Include="..\src\posix\getopt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ast.cpp">
+    <ClCompile Include="..\src\ast.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\base64vlq.cpp">
+    <ClCompile Include="..\src\base64vlq.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\bind.cpp">
+    <ClCompile Include="..\src\bind.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\color_maps.cpp">
+    <ClCompile Include="..\src\color_maps.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\constants.cpp">
+    <ClCompile Include="..\src\constants.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\context.cpp">
+    <ClCompile Include="..\src\context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\environment.cpp">
+    <ClCompile Include="..\src\environment.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\error_handling.cpp">
+    <ClCompile Include="..\src\error_handling.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\eval.cpp">
+    <ClCompile Include="..\src\eval.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\expand.cpp">
+    <ClCompile Include="..\src\expand.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\cssize.cpp">
+    <ClCompile Include="..\src\cssize.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\listize.cpp">
+    <ClCompile Include="..\src\listize.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\extend.cpp">
+    <ClCompile Include="..\src\extend.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\file.cpp">
+    <ClCompile Include="..\src\file.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\functions.cpp">
+    <ClCompile Include="..\src\functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\inspect.cpp">
+    <ClCompile Include="..\src\inspect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\memory_manager.cpp">
+    <ClCompile Include="..\src\memory_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\node.cpp">
+    <ClCompile Include="..\src\node.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\output.cpp">
+    <ClCompile Include="..\src\output.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\emitter.cpp">
+    <ClCompile Include="..\src\emitter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\parser.cpp">
+    <ClCompile Include="..\src\parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\plugins.cpp">
+    <ClCompile Include="..\src\plugins.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\position.cpp">
+    <ClCompile Include="..\src\position.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\lexer.cpp">
+    <ClCompile Include="..\src\lexer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\prelexer.cpp">
+    <ClCompile Include="..\src\prelexer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\remove_placeholders.cpp">
+    <ClCompile Include="..\src\remove_placeholders.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sass.cpp">
+    <ClCompile Include="..\src\sass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sass_interface.cpp">
+    <ClCompile Include="..\src\sass_interface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sass_util.cpp">
+    <ClCompile Include="..\src\sass_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sass2scss.cpp">
+    <ClCompile Include="..\src\sass2scss.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\source_map.cpp">
+    <ClCompile Include="..\src\source_map.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\to_c.cpp">
+    <ClCompile Include="..\src\to_c.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\to_string.cpp">
+    <ClCompile Include="..\src\to_string.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\to_value.cpp">
+    <ClCompile Include="..\src\to_value.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\units.cpp">
+    <ClCompile Include="..\src\units.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\utf8_string.cpp">
+    <ClCompile Include="..\src\utf8_string.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\util.cpp">
+    <ClCompile Include="..\src\util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\values.cpp">
+    <ClCompile Include="..\src\values.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\cencode.c">
+    <ClCompile Include="..\src\cencode.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\json.cpp">
+    <ClCompile Include="..\src\json.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sass_context.cpp">
+    <ClCompile Include="..\src\sass_context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sass_functions.cpp">
+    <ClCompile Include="..\src\sass_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sass_values.cpp">
+    <ClCompile Include="..\src\sass_values.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\utf8\checked.h">
+    <ClInclude Include="..\src\utf8\checked.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\utf8\core.h">
+    <ClInclude Include="..\src\utf8\core.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\utf8\unchecked.h">
+    <ClInclude Include="..\src\utf8\unchecked.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ast.hpp">
+    <ClInclude Include="..\src\ast.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ast_def_macros.hpp">
+    <ClInclude Include="..\src\ast_def_macros.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ast_factory.hpp">
+    <ClInclude Include="..\src\ast_factory.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ast_fwd_decl.hpp">
+    <ClInclude Include="..\src\ast_fwd_decl.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\backtrace.hpp">
+    <ClInclude Include="..\src\backtrace.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\base64vlq.hpp">
+    <ClInclude Include="..\src\base64vlq.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\bind.hpp">
+    <ClInclude Include="..\src\bind.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\color_maps.hpp">
+    <ClInclude Include="..\src\color_maps.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\constants.hpp">
+    <ClInclude Include="..\src\constants.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\context.hpp">
+    <ClInclude Include="..\src\context.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\debug.hpp">
+    <ClInclude Include="..\src\debug.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\environment.hpp">
+    <ClInclude Include="..\src\environment.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\error_handling.hpp">
+    <ClInclude Include="..\src\error_handling.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\eval.hpp">
+    <ClInclude Include="..\src\eval.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\expand.hpp">
+    <ClInclude Include="..\src\expand.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\cssize.hpp">
+    <ClInclude Include="..\src\cssize.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\listize.hpp">
+    <ClInclude Include="..\src\listize.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\extend.hpp">
+    <ClInclude Include="..\src\extend.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\file.hpp">
+    <ClInclude Include="..\src\file.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\functions.hpp">
+    <ClInclude Include="..\src\functions.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\inspect.hpp">
+    <ClInclude Include="..\src\inspect.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\kwd_arg_macros.hpp">
+    <ClInclude Include="..\src\kwd_arg_macros.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\mapping.hpp">
+    <ClInclude Include="..\src\mapping.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\memory_manager.hpp">
+    <ClInclude Include="..\src\memory_manager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\node.hpp">
+    <ClInclude Include="..\src\node.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\operation.hpp">
+    <ClInclude Include="..\src\operation.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\output.hpp">
+    <ClInclude Include="..\src\output.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\emitter.hpp">
+    <ClInclude Include="..\src\emitter.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\parser.hpp">
+    <ClInclude Include="..\src\parser.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\plugins.hpp">
+    <ClInclude Include="..\src\plugins.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\paths.hpp">
+    <ClInclude Include="..\src\paths.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\position.hpp">
+    <ClInclude Include="..\src\position.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\lexer.hpp">
+    <ClInclude Include="..\src\lexer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\prelexer.hpp">
+    <ClInclude Include="..\src\prelexer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\remove_placeholders.hpp">
+    <ClInclude Include="..\src\remove_placeholders.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\sass.h">
+    <ClInclude Include="..\src\sass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\sass_interface.h">
+    <ClInclude Include="..\src\sass_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\sass_util.hpp">
+    <ClInclude Include="..\src\sass_util.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\sass2scss.h">
+    <ClInclude Include="..\src\sass2scss.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\source_map.hpp">
+    <ClInclude Include="..\src\source_map.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\subset_map.hpp">
+    <ClInclude Include="..\src\subset_map.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\to_c.hpp">
+    <ClInclude Include="..\src\to_c.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\to_value.hpp">
+    <ClInclude Include="..\src\to_value.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\to_string.hpp">
+    <ClInclude Include="..\src\to_string.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\token.hpp">
+    <ClInclude Include="..\src\token.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\units.hpp">
+    <ClInclude Include="..\src\units.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\utf8.h">
+    <ClInclude Include="..\src\utf8.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\utf8_string.hpp">
+    <ClInclude Include="..\src\utf8_string.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\util.hpp">
+    <ClInclude Include="..\src\util.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\values.hpp">
+    <ClInclude Include="..\src\values.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\json.hpp">
+    <ClInclude Include="..\src\json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\sass_context.h">
+    <ClInclude Include="..\src\sass_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\sass_functions.h">
+    <ClInclude Include="..\src\sass_functions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\sass_values.h">
+    <ClInclude Include="..\src\sass_values.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

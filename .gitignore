@@ -15,12 +15,11 @@ VERSION
 Makefile.in
 /aclocal.m4
 /autom4te.cache/
-/config.h
+/src/config.h
 /config.h.in
 /config.log
 /config.status
 /configure
-include/
 /libtool
 /m4/libtool.m4
 /m4/ltoptions.m4
@@ -37,7 +36,7 @@ include/
 /script/missing
 /script/test-driver
 /stamp-h1
-src/Makefile
+/src/Makefile
 libsass/*
 
 # Build stuff
@@ -67,8 +66,10 @@ win/bin
 
 sassc++
 libsass.la
-support/libsass.pc
+src/support/libsass.pc
 
 # Cloned testing dirs
 sassc/
 sass-spec/
+
+installer/

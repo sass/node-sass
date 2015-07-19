@@ -1,0 +1,50 @@
+ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS} -I m4 -I script
+
+AM_COPT = -Wall -O2
+AM_COVLDFLAGS =
+
+if ENABLE_COVERAGE
+	AM_COPT = -O0 --coverage
+	AM_COVLDFLAGS += -lgcov
+endif
+
+AM_CPPFLAGS = -I$(top_srcdir)/include
+AM_CFLAGS   = $(AM_COPT)
+AM_CXXFLAGS = $(AM_COPT)
+AM_LDFLAGS  = $(AM_COPT) $(AM_COVLDFLAGS)
+
+if COMPILER_IS_MINGW32
+  AM_CXXFLAGS += -std=gnu++0x
+else
+  AM_CXXFLAGS += -std=c++0x
+endif
+
+EXTRA_DIST = \
+	COPYING \
+	INSTALL \
+	LICENSE \
+	Readme.md
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = support/libsass.pc
+
+lib_LTLIBRARIES = libsass.la
+
+include $(top_srcdir)/Makefile.conf
+
+libsass_la_SOURCES = ${CSOURCES} ${SOURCES}
+
+libsass_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 0:9:0
+
+if ENABLE_TESTS
+if ENABLE_COVERAGE
+nodist_EXTRA_libsass_la_SOURCES = non-existent-file-to-force-CXX-linking.cxx
+endif
+endif
+
+include_HEADERS = $(top_srcdir)/include/sass.h \
+                  $(top_srcdir)/include/sass2scss.h \
+                  $(top_srcdir)/include/sass_values.h \
+                  $(top_srcdir)/include/sass_version.h \
+                  $(top_srcdir)/include/sass_context.h \
+                  $(top_srcdir)/include/sass_functions.h
