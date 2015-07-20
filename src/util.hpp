@@ -46,7 +46,6 @@ namespace Sass {
     bool isPrintable(String_Constant* s, Output_Style style = NESTED);
     bool isPrintable(String_Quoted* s, Output_Style style = NESTED);
     bool isPrintable(Declaration* d, Output_Style style = NESTED);
-    bool isPrintable(Expression* e, Output_Style style = NESTED);
     bool isAscii(const char chr);
 
   }
