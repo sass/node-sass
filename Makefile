@@ -3,6 +3,7 @@ CXX      ?= g++
 RM       ?= rm -f
 CP       ?= cp -a
 MKDIR    ?= mkdir
+RMDIR    ?= rmdir
 WINDRES  ?= windres
 INSTALL  ?= install
 CFLAGS   ?= -Wall
@@ -290,7 +291,8 @@ test_issues: $(SASSC_BIN)
 	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues
 
 clean-objects:
-	$(RM) lib/*.a lib/*.so lib/*.dll lib/*.la
+	-$(RM) lib/*.a lib/*.so lib/*.dll lib/*.la
+	-$(RMDIR) lib
 clean: clean-objects
 	$(RM) $(CLEANUPS)
 
