@@ -284,24 +284,31 @@ namespace Sass {
   // This is only used in Complex_Selector::unify_with for now, may need modifications to fit other needs
   Node Node::naiveTrim(Node& seqses, Context& ctx) {
 
-    SourcesSet sel_set;
-
     vector<Node*> res;
+    vector<Complex_Selector*> known;
 
-    // Add all selectors we don't already have, everything else just add it blindly
-    // We iterate from the back to the front, since in ruby we probably overwrite existing the items
-    for (NodeDeque::iterator seqsesIter = seqses.collection()->end() - 1, seqsesIterEnd = seqses.collection()->begin() - 1; seqsesIter != seqsesIterEnd; --seqsesIter) {
+    NodeDeque::reverse_iterator seqsesIter = seqses.collection()->rbegin(),
+                                seqsesIterEnd = seqses.collection()->rend();
+
+    for (; seqsesIter != seqsesIterEnd; ++seqsesIter)
+    {
       Node& seqs1 = *seqsesIter;
       if( seqs1.isSelector() ) {
-        auto found = sel_set.find( seqs1.selector() );
-        if( found == sel_set.end() ) {
-          sel_set.insert(seqs1.selector());
+        Complex_Selector* sel = seqs1.selector();
+        vector<Complex_Selector*>::iterator it;
+        bool found = false;
+        for (it = known.begin(); it != known.end(); ++it) {
+          if (**it == *sel) { found = true; break; }
+        }
+        if( !found ) {
+          known.push_back(seqs1.selector());
           res.push_back(&seqs1);
         }
       } else {
         res.push_back(&seqs1);
       }
     }
+
     Node result = Node::createCollection();
 
     for (size_t i = res.size() - 1; i != string::npos; --i) {
