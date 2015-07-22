@@ -109,7 +109,7 @@ namespace Sass {
     return flattened
   end
   */
-  Node flatten(Node& arr, Context& ctx, int n = -1) {
+  Node flatten(Node& arr, Context& ctx, int n) {
     if (n != -1 && n == 0) {
       return arr;
     }
