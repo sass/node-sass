@@ -11,8 +11,6 @@
 #include "output.hpp"
 #include "plugins.hpp"
 
-#define npos string::npos
-
 namespace Sass {
 
   Plugins::Plugins(void) { }
@@ -31,10 +29,10 @@ namespace Sass {
 
     // find the position of the second dot
     size_t pos = string(our_version).find('.', 0);
-    if (pos != npos) pos = string(our_version).find('.', pos + 1);
+    if (pos != string::npos) pos = string(our_version).find('.', pos + 1);
 
     // if we do not have two dots we fallback to compare complete string
-    if (pos == npos) { return strcmp(their_version, our_version) ? 0 : 1; }
+    if (pos == string::npos) { return strcmp(their_version, our_version) ? 0 : 1; }
     // otherwise only compare up to the second dot (major versions)
     else { return strncmp(their_version, our_version, pos) ? 0 : 1; }
 
@@ -165,4 +163,3 @@ namespace Sass {
   }
 
 }
-
