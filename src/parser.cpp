@@ -2160,7 +2160,7 @@ namespace Sass {
             // main selector match
             sequence <
               // allow namespace prefix
-              optional < namespace_prefix >,
+              optional < namespace_schema >,
               // modifiers prefixes
               alternatives <
                 sequence <

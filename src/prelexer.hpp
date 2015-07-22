@@ -254,7 +254,12 @@ namespace Sass {
     const char* re_type_selector(const char* src);
     const char* re_static_expression(const char* src);
 
+    // identifier that can start with hyphens
+    const char* css_identifier(const char* src);
+    const char* css_ip_identifier(const char* src);
+
     // Match CSS type selectors
+    const char* namespace_schema(const char* src);
     const char* namespace_prefix(const char* src);
     const char* type_selector(const char* src);
     const char* hyphens_and_identifier(const char* src);

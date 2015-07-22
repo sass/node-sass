@@ -244,7 +244,7 @@ $(DESTDIR)$(PREFIX)/include: $(DESTDIR)$(PREFIX)
 	$(MKDIR) $(DESTDIR)$(PREFIX)/include
 
 $(DESTDIR)$(PREFIX)/include/%.h: include/%.h
-	$(INSTALL) -D -v -m0644 "$<" "$@"
+	$(INSTALL) -v -m0644 "$<" "$@"
 
 install-headers: $(DESTDIR)$(PREFIX)/include/sass.h \
                  $(DESTDIR)$(PREFIX)/include/sass2scss.h \
@@ -255,15 +255,15 @@ install-headers: $(DESTDIR)$(PREFIX)/include/sass.h \
 
 $(DESTDIR)$(PREFIX)/lib/%.a: lib/%.a \
                              $(DESTDIR)$(PREFIX)/lib
-	@$(INSTALL) -D -v -m0755 "$<" "$@"
+	@$(INSTALL) -v -m0755 "$<" "$@"
 
 $(DESTDIR)$(PREFIX)/lib/%.so: lib/%.so \
                              $(DESTDIR)$(PREFIX)/lib
-	@$(INSTALL) -D -v -m0755 "$<" "$@"
+	@$(INSTALL) -v -m0755 "$<" "$@"
 
 $(DESTDIR)$(PREFIX)/lib/%.dll: lib/%.dll \
                                $(DESTDIR)$(PREFIX)/lib
-	@$(INSTALL) -D -v -m0755 "$<" "$@"
+	@$(INSTALL) -v -m0755 "$<" "$@"
 
 install-static: $(DESTDIR)$(PREFIX)/lib/libsass.a
 
