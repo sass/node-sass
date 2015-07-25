@@ -244,7 +244,8 @@ $(DESTDIR)$(PREFIX)/lib: $(DESTDIR)$(PREFIX)
 $(DESTDIR)$(PREFIX)/include: $(DESTDIR)$(PREFIX)
 	$(MKDIR) $(DESTDIR)$(PREFIX)/include
 
-$(DESTDIR)$(PREFIX)/include/%.h: include/%.h
+$(DESTDIR)$(PREFIX)/include/%.h: include/%.h \
+                                 $(DESTDIR)$(PREFIX)/include
 	$(INSTALL) -v -m0644 "$<" "$@"
 
 install-headers: $(DESTDIR)$(PREFIX)/include/sass.h \
