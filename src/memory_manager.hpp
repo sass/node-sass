@@ -33,7 +33,7 @@ namespace Sass {
 
 template <typename T>
 inline void* operator new(size_t size, Sass::Memory_Manager<T>& mem)
-{ return mem.allocate(size); }
+{ return mem(mem.allocate(size)); }
 
 template <typename T>
 inline void operator delete(void *np, Sass::Memory_Manager<T>& mem)
