@@ -118,10 +118,10 @@ ifeq ($(UNAME),Darwin)
 endif
 
 ifneq (MinGW,$(UNAME))
-  ifneq (FreeBSD,$(UNAME))
-    LDFLAGS += -ldl
-    LDLIBS += -ldl
-  endif
+	ifneq (FreeBSD,$(UNAME))
+		LDFLAGS += -ldl
+		LDLIBS += -ldl
+	endif
 endif
 
 ifneq ($(BUILD),shared)

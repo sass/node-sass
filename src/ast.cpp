@@ -1469,22 +1469,9 @@ namespace Sass {
     return string();
   }
 
-  bool Custom_Warning::operator== (const Expression* rhs) const
-  {
-    if (const Custom_Warning* r = dynamic_cast<const Custom_Warning*>(rhs)) {
-      return message() == r->message();
-    }
-    return false;
-  }
-
   bool Custom_Warning::operator== (const Expression& rhs) const
   {
-    return operator==(&rhs);
-  }
-
-  bool Custom_Error::operator== (const Expression* rhs) const
-  {
-    if (const Custom_Error* r = dynamic_cast<const Custom_Error*>(rhs)) {
+    if (const Custom_Warning* r = dynamic_cast<const Custom_Warning*>(&rhs)) {
       return message() == r->message();
     }
     return false;
@@ -1492,12 +1479,15 @@ namespace Sass {
 
   bool Custom_Error::operator== (const Expression& rhs) const
   {
-    return operator==(&rhs);
+    if (const Custom_Error* r = dynamic_cast<const Custom_Error*>(&rhs)) {
+      return message() == r->message();
+    }
+    return false;
   }
 
-  bool Number::operator== (const Expression* rhs) const
+  bool Number::operator== (const Expression& rhs) const
   {
-    if (const Number* r = dynamic_cast<const Number*>(rhs)) {
+    if (const Number* r = dynamic_cast<const Number*>(&rhs)) {
       return (value() == r->value()) &&
              (numerator_units_ == r->numerator_units_) &&
              (denominator_units_ == r->denominator_units_);
@@ -1505,14 +1495,9 @@ namespace Sass {
     return false;
   }
 
-  bool Number::operator== (const Expression& rhs) const
+  bool Number::operator< (const Number& rhs) const
   {
-    return operator==(&rhs);
-  }
-
-  bool Number::operator< (const Number* rhs) const
-  {
-    Number tmp_r(*rhs);
+    Number tmp_r(rhs);
     tmp_r.normalize(find_convertible_unit());
     string l_unit(unit());
     string r_unit(tmp_r.unit());
@@ -1522,31 +1507,11 @@ namespace Sass {
     return value() < tmp_r.value();
   }
 
-  bool Number::operator< (const Number& rhs) const
-  {
-    return operator<(&rhs);
-  }
-
-  bool String_Quoted::operator== (const Expression* rhs) const
-  {
-    if (const String_Quoted* qstr = dynamic_cast<const String_Quoted*>(rhs)) {
-      return (value() == qstr->value());
-    } else if (const String_Constant* cstr = dynamic_cast<const String_Constant*>(rhs)) {
-      return (value() == cstr->value());
-    }
-    return false;
-  }
-
   bool String_Quoted::operator== (const Expression& rhs) const
   {
-    return operator==(&rhs);
-  }
-
-  bool String_Constant::operator== (const Expression* rhs) const
-  {
-    if (const String_Quoted* qstr = dynamic_cast<const String_Quoted*>(rhs)) {
+    if (const String_Quoted* qstr = dynamic_cast<const String_Quoted*>(&rhs)) {
       return (value() == qstr->value());
-    } else if (const String_Constant* cstr = dynamic_cast<const String_Constant*>(rhs)) {
+    } else if (const String_Constant* cstr = dynamic_cast<const String_Constant*>(&rhs)) {
       return (value() == cstr->value());
     }
     return false;
@@ -1554,12 +1519,17 @@ namespace Sass {
 
   bool String_Constant::operator== (const Expression& rhs) const
   {
-    return operator==(&rhs);
+    if (const String_Quoted* qstr = dynamic_cast<const String_Quoted*>(&rhs)) {
+      return (value() == qstr->value());
+    } else if (const String_Constant* cstr = dynamic_cast<const String_Constant*>(&rhs)) {
+      return (value() == cstr->value());
+    }
+    return false;
   }
 
-  bool String_Schema::operator== (const Expression* rhs) const
+  bool String_Schema::operator== (const Expression& rhs) const
   {
-    if (const String_Schema* r = dynamic_cast<const String_Schema*>(rhs)) {
+    if (const String_Schema* r = dynamic_cast<const String_Schema*>(&rhs)) {
       if (length() != r->length()) return false;
       for (size_t i = 0, L = length(); i < L; ++i) {
         Expression* rv = (*r)[i];
@@ -1572,27 +1542,17 @@ namespace Sass {
     return false;
   }
 
-  bool String_Schema::operator== (const Expression& rhs) const
+  bool Boolean::operator== (const Expression& rhs) const
   {
-    return operator==(&rhs);
-  }
-
-  bool Boolean::operator== (const Expression* rhs) const
-  {
-    if (const Boolean* r = dynamic_cast<const Boolean*>(rhs)) {
+    if (const Boolean* r = dynamic_cast<const Boolean*>(&rhs)) {
       return (value() == r->value());
     }
     return false;
   }
 
-  bool Boolean::operator== (const Expression& rhs) const
+  bool Color::operator== (const Expression& rhs) const
   {
-    return operator==(&rhs);
-  }
-
-  bool Color::operator== (const Expression* rhs) const
-  {
-    if (const Color* r = dynamic_cast<const Color*>(rhs)) {
+    if (const Color* r = dynamic_cast<const Color*>(&rhs)) {
       return r_ == r->r() &&
              g_ == r->g() &&
              b_ == r->b() &&
@@ -1601,14 +1561,9 @@ namespace Sass {
     return false;
   }
 
-  bool Color::operator== (const Expression& rhs) const
+  bool List::operator== (const Expression& rhs) const
   {
-    return operator==(&rhs);
-  }
-
-  bool List::operator== (const Expression* rhs) const
-  {
-    if (const List* r = dynamic_cast<const List*>(rhs)) {
+    if (const List* r = dynamic_cast<const List*>(&rhs)) {
       if (length() != r->length()) return false;
       if (separator() != r->separator()) return false;
       for (size_t i = 0, L = length(); i < L; ++i) {
@@ -1622,14 +1577,9 @@ namespace Sass {
     return false;
   }
 
-  bool List::operator== (const Expression& rhs) const
+  bool Map::operator== (const Expression& rhs) const
   {
-    return operator==(&rhs);
-  }
-
-  bool Map::operator== (const Expression* rhs) const
-  {
-    if (const Map* r = dynamic_cast<const Map*>(rhs)) {
+    if (const Map* r = dynamic_cast<const Map*>(&rhs)) {
       if (length() != r->length()) return false;
       for (auto key : keys()) {
         Expression* lv = at(key);
@@ -1642,19 +1592,9 @@ namespace Sass {
     return false;
   }
 
-  bool Map::operator== (const Expression& rhs) const
-  {
-    return operator==(&rhs);
-  }
-
-  bool Null::operator== (const Expression* rhs) const
-  {
-    return rhs->concrete_type() == NULL_VAL;
-  }
-
   bool Null::operator== (const Expression& rhs) const
   {
-    return operator==(&rhs);
+    return rhs.concrete_type() == NULL_VAL;
   }
 
   size_t List::size() const {
