@@ -143,7 +143,6 @@ namespace Sass {
     : Expression(pstate, d, e, i, ct)
     { }
     virtual bool operator== (const Expression& rhs) const = 0;
-    virtual bool operator== (const Expression* rhs) const = 0;
     virtual string to_string(bool compressed = false, int precision = 5) const = 0;
   };
 }
@@ -819,7 +818,6 @@ namespace Sass {
     }
 
     virtual bool operator== (const Expression& rhs) const;
-    virtual bool operator== (const Expression* rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
@@ -853,7 +851,6 @@ namespace Sass {
     }
 
     virtual bool operator== (const Expression& rhs) const;
-    virtual bool operator== (const Expression* rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
@@ -1213,9 +1210,7 @@ namespace Sass {
     }
 
     virtual bool operator< (const Number& rhs) const;
-    virtual bool operator< (const Number* rhs) const;
     virtual bool operator== (const Expression& rhs) const;
-    virtual bool operator== (const Expression* rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
@@ -1252,7 +1247,6 @@ namespace Sass {
     }
 
     virtual bool operator== (const Expression& rhs) const;
-    virtual bool operator== (const Expression* rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
@@ -1268,7 +1262,6 @@ namespace Sass {
     : Value(pstate), message_(msg)
     { concrete_type(C_ERROR); }
     virtual bool operator== (const Expression& rhs) const;
-    virtual bool operator== (const Expression* rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
@@ -1283,7 +1276,6 @@ namespace Sass {
     : Value(pstate), message_(msg)
     { concrete_type(C_WARNING); }
     virtual bool operator== (const Expression& rhs) const;
-    virtual bool operator== (const Expression* rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
@@ -1313,7 +1305,6 @@ namespace Sass {
     }
 
     virtual bool operator== (const Expression& rhs) const;
-    virtual bool operator== (const Expression* rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
@@ -1332,7 +1323,6 @@ namespace Sass {
     static string type_name() { return "string"; }
     virtual ~String() = 0;
     virtual bool operator==(const Expression& rhs) const = 0;
-    virtual bool operator==(const Expression* rhs) const = 0;
     virtual string to_string(bool compressed = false, int precision = 5) const = 0;
     ATTACH_OPERATIONS()
   };
@@ -1362,7 +1352,6 @@ namespace Sass {
     }
 
     virtual bool operator==(const Expression& rhs) const;
-    virtual bool operator==(const Expression* rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
@@ -1402,7 +1391,6 @@ namespace Sass {
     }
 
     virtual bool operator==(const Expression& rhs) const;
-    virtual bool operator==(const Expression* rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
     // static char auto_quote() { return '*'; }
@@ -1423,7 +1411,6 @@ namespace Sass {
       value_ = unquote(value_, &quote_mark_);
     }
     virtual bool operator==(const Expression& rhs) const;
-    virtual bool operator==(const Expression* rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
@@ -1589,7 +1576,6 @@ namespace Sass {
     }
 
     virtual bool operator== (const Expression& rhs) const;
-    virtual bool operator== (const Expression* rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
