@@ -1711,7 +1711,7 @@ namespace Sass {
     }
     // otherwise get the possible resolved color name
     else {
-      int numval = r * 0x10000 + g * 0x100 + b;
+      double numval = r * 0x10000 + g * 0x100 + b;
       if (color_to_name(numval))
         res_name = color_to_name(numval);
     }
