@@ -50,8 +50,9 @@ namespace Sass {
         JsonNode *json_content = json_mkstring(content);
         json_append_element(json_contents, json_content);
       }
+      if (json_contents->children.head)
+        json_append_member(json_srcmap, "sourcesContent", json_contents);
     }
-    json_append_member(json_srcmap, "sourcesContent", json_contents);
 
     string mappings = serialize_mappings();
     JsonNode *json_mappings = json_mkstring(mappings.c_str());
