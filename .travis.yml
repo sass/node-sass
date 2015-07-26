@@ -16,10 +16,10 @@ compiler:
 # further speed up day by day travis-ci builds
 # re-enable this if you change the makefiles
 # this will still catch all coding errors!
-# - AUTOTOOLS=no COVERAGE=no BUILD=shared
 # - AUTOTOOLS=yes COVERAGE=no BUILD=static
 
 env:
+  - AUTOTOOLS=no COVERAGE=no BUILD=shared
   - AUTOTOOLS=no COVERAGE=yes BUILD=static
   - AUTOTOOLS=yes COVERAGE=no BUILD=shared
 
@@ -31,6 +31,8 @@ matrix:
   exclude:
     - compiler: clang
       env: AUTOTOOLS=yes COVERAGE=yes BUILD=static
+    - os: linux
+      env: AUTOTOOLS=no COVERAGE=no BUILD=shared
     - os: osx
       compiler: gcc
     - os: osx

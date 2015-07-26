@@ -137,5 +137,5 @@ AC_SUBST(PACKAGE_VERSION)
 
 AC_MSG_NOTICE([Building libsass ($VERSION)])
 
-AC_CONFIG_FILES([GNUmakefile src/Makefile src/support/libsass.pc])
+AC_CONFIG_FILES([GNUmakefile src/GNUmakefile src/support/libsass.pc])
 AC_OUTPUT

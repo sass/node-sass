@@ -43,8 +43,8 @@ namespace Sass {
     }
     json_append_member(json_srcmap, "sources", json_includes);
 
-    JsonNode *json_contents = json_mkarray();
     if (include_sources) {
+      JsonNode *json_contents = json_mkarray();
       for (size_t i = 0; i < source_index.size(); ++i) {
         const char *content = sources[source_index[i]];
         JsonNode *json_content = json_mkstring(content);
