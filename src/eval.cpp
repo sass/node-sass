@@ -879,9 +879,11 @@ namespace Sass {
       if (ctx.output_style != COMPRESSED && sep == ",") sep += " ";
       bool initial = false;
       for(auto item : list->elements()) {
-        if (initial) acc += sep;
-        acc += interpolation(item);
-        initial = true;
+        if (item->concrete_type() != Expression::NULL_VAL) {
+          if (initial) acc += sep;
+          acc += interpolation(item);
+          initial = true;
+        }
       }
       return evacuate_quotes(acc);
     } else if (Variable* var = dynamic_cast<Variable*>(s)) {
