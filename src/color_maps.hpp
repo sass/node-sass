@@ -326,6 +326,7 @@ namespace Sass {
   extern const Color* name_to_color(const std::string);
   extern const char* color_to_name(const int);
   extern const char* color_to_name(const Color&);
+  extern const char* color_to_name(const double);
 
 }
 

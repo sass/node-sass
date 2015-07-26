@@ -116,7 +116,7 @@
     <LinkIncremental>false</LinkIncremental>
     <TargetName>sassc</TargetName>
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <IntDir>$(SolutionDir)bin\obj</IntDir>
+    <IntDir>$(SolutionDir)bin\obj\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
