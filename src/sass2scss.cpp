@@ -777,7 +777,7 @@ namespace Sass
 	}
 
 	// the main converter function for c++
-	char* sass2scss (const string sass, const int options)
+	char* sass2scss (const string& sass, const int options)
 	{
 
 		// local variables

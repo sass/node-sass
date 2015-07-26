@@ -32,7 +32,7 @@ namespace Sass {
   bool Compound_Selector::operator< (const Compound_Selector& rhs) const
   {
     size_t L = std::min(length(), rhs.length());
-    for (size_t i = 0; i < L && i < L; ++i)
+    for (size_t i = 0; i < L; ++i)
     {
       Simple_Selector* l = (*this)[i];
       Simple_Selector* r = rhs[i];
@@ -568,7 +568,7 @@ namespace Sass {
     //for (auto l : lset) { cerr << "l: " << l << endl; }
     //for (auto r : rset) { cerr << "r: " << r << endl; }
 
-    if (lset.size() == 0) return true;
+    if (lset.empty()) return true;
     // return true if rset contains all the elements of lset
     return includes(rset.begin(), rset.end(), lset.begin(), lset.end());
 

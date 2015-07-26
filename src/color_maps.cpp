@@ -613,7 +613,7 @@ namespace Sass {
     return 0;
   }
 
-  const Color* name_to_color(const std::string key)
+  const Color* name_to_color(const std::string& key)
   {
     return name_to_color(key.c_str());
   }

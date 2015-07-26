@@ -80,7 +80,7 @@ namespace Sass
 	};
 
 	// function only available in c++ code
-	char* sass2scss (const string sass, const int options);
+	char* sass2scss (const string& sass, const int options);
 
 }
 // EO namespace
