@@ -357,8 +357,8 @@ static void to_surrogate_pair(uint32_t unicode, uint16_t *uc, uint16_t *lc)
   *lc = (n & 0x3FF) | 0xDC00;
 }
 
-static bool is_space        (const char& c);
-static bool is_digit        (const char& c);
+static bool is_space        (const char *c);
+static bool is_digit        (const char *c);
 static bool parse_value     (const char **sp, JsonNode        **out);
 static bool parse_string    (const char **sp, char            **out);
 static bool parse_number    (const char **sp, double           *out);
@@ -936,12 +936,12 @@ failed:
   return false;
 }
 
-bool is_space(const char& c) {
-  return ((c) == '\t' || (c) == '\n' || (c) == '\r' || (c) == ' ');
+bool is_space(const char *c) {
+  return ((*c) == '\t' || (*c) == '\n' || (*c) == '\r' || (*c) == ' ');
 }
 
-bool is_digit(const char& c){
-  return ((c) >= '0' && (c) <= '9');
+bool is_digit(const char *c){
+  return ((*c) >= '0' && (*c) <= '9');
 }
 
 /*
@@ -966,21 +966,21 @@ bool parse_number(const char **sp, double *out)
   if (*s == '0') {
     s++;
   } else {
-    if (!is_digit(*s))
+    if (!is_digit(s))
       return false;
     do {
       s++;
-    } while (is_digit(*s));
+    } while (is_digit(s));
   }
 
   /* ('.' [0-9]+)? */
   if (*s == '.') {
     s++;
-    if (!is_digit(*s))
+    if (!is_digit(s))
       return false;
     do {
       s++;
-    } while (is_digit(*s));
+    } while (is_digit(s));
   }
 
   /* ([Ee] [+-]? [0-9]+)? */
@@ -988,11 +988,11 @@ bool parse_number(const char **sp, double *out)
     s++;
     if (*s == '+' || *s == '-')
       s++;
-    if (!is_digit(*s))
+    if (!is_digit(s))
       return false;
     do {
       s++;
-    } while (is_digit(*s));
+    } while (is_digit(s));
   }
 
   if (out)
@@ -1005,7 +1005,7 @@ bool parse_number(const char **sp, double *out)
 static void skip_space(const char **sp)
 {
   const char *s = *sp;
-  while (is_space(*s))
+  while (is_space(s))
     s++;
   *sp = s;
 }
