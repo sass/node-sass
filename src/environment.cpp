@@ -4,11 +4,11 @@
 namespace Sass {
 
   template <typename T>
-  Environment<T>::Environment() : local_frame_(map<string, T>()), parent_(0) { }
+  Environment<T>::Environment() : local_frame_(std::map<std::string, T>()), parent_(0) { }
   template <typename T>
-  Environment<T>::Environment(Environment<T>* env) : local_frame_(map<string, T>()), parent_(env) { }
+  Environment<T>::Environment(Environment<T>* env) : local_frame_(std::map<std::string, T>()), parent_(env) { }
   template <typename T>
-  Environment<T>::Environment(Environment<T>& env) : local_frame_(map<string, T>()), parent_(&env) { }
+  Environment<T>::Environment(Environment<T>& env) : local_frame_(std::map<std::string, T>()), parent_(&env) { }
 
   // link parent to create a stack
   template <typename T>
@@ -35,26 +35,26 @@ namespace Sass {
   }
 
   template <typename T>
-  map<string, T>& Environment<T>::local_frame() {
+  std::map<std::string, T>& Environment<T>::local_frame() {
     return local_frame_;
   }
 
   template <typename T>
-  bool Environment<T>::has_local(const string& key) const
+  bool Environment<T>::has_local(const std::string& key) const
   { return local_frame_.find(key) != local_frame_.end(); }
 
   template <typename T>
-  T& Environment<T>::get_local(const string& key)
+  T& Environment<T>::get_local(const std::string& key)
   { return local_frame_[key]; }
 
   template <typename T>
-  void Environment<T>::set_local(const string& key, T val)
+  void Environment<T>::set_local(const std::string& key, T val)
   {
     local_frame_[key] = val;
   }
 
   template <typename T>
-  void Environment<T>::del_local(const string& key)
+  void Environment<T>::del_local(const std::string& key)
   { local_frame_.erase(key); }
 
   template <typename T>
@@ -68,25 +68,25 @@ namespace Sass {
   }
 
   template <typename T>
-  bool Environment<T>::has_global(const string& key)
+  bool Environment<T>::has_global(const std::string& key)
   { return global_env()->has(key); }
 
   template <typename T>
-  T& Environment<T>::get_global(const string& key)
+  T& Environment<T>::get_global(const std::string& key)
   { return (*global_env())[key]; }
 
   template <typename T>
-  void Environment<T>::set_global(const string& key, T val)
+  void Environment<T>::set_global(const std::string& key, T val)
   {
     global_env()->local_frame_[key] = val;
   }
 
   template <typename T>
-  void Environment<T>::del_global(const string& key)
+  void Environment<T>::del_global(const std::string& key)
   { global_env()->local_frame_.erase(key); }
 
   template <typename T>
-  Environment<T>* Environment<T>::lexical_env(const string& key)
+  Environment<T>* Environment<T>::lexical_env(const std::string& key)
   {
     Environment* cur = this;
     while (cur) {
@@ -102,7 +102,7 @@ namespace Sass {
   // move down the stack but stop before we
   // reach the global frame (is not included)
   template <typename T>
-  bool Environment<T>::has_lexical(const string& key) const
+  bool Environment<T>::has_lexical(const std::string& key) const
   {
     auto cur = this;
     while (cur->is_lexical()) {
@@ -116,7 +116,7 @@ namespace Sass {
   // either update already existing lexical value
   // or if flag is set, we create one if no lexical found
   template <typename T>
-  void Environment<T>::set_lexical(const string& key, T val)
+  void Environment<T>::set_lexical(const std::string& key, T val)
   {
     auto cur = this;
     while (cur->is_lexical()) {
@@ -132,7 +132,7 @@ namespace Sass {
   // look on the full stack for key
   // include all scopes available
   template <typename T>
-  bool Environment<T>::has(const string& key) const
+  bool Environment<T>::has(const std::string& key) const
   {
     auto cur = this;
     while (cur) {
@@ -146,7 +146,7 @@ namespace Sass {
 
   // use array access for getter and setter functions
   template <typename T>
-  T& Environment<T>::operator[](const string& key)
+  T& Environment<T>::operator[](const std::string& key)
   {
     auto cur = this;
     while (cur) {
@@ -160,17 +160,17 @@ namespace Sass {
 
   #ifdef DEBUG
   template <typename T>
-  size_t Environment<T>::print(string prefix)
+  size_t Environment<T>::print(std::string prefix)
   {
     size_t indent = 0;
     if (parent_) indent = parent_->print(prefix) + 1;
-    cerr << prefix << string(indent, ' ') << "== " << this << endl;
-    for (typename map<string, T>::iterator i = local_frame_.begin(); i != local_frame_.end(); ++i) {
+    std::cerr << prefix << std::string(indent, ' ') << "== " << this << std::endl;
+    for (typename std::map<std::string, T>::iterator i = local_frame_.begin(); i != local_frame_.end(); ++i) {
       if (!ends_with(i->first, "[f]") && !ends_with(i->first, "[f]4") && !ends_with(i->first, "[f]2")) {
-        cerr << prefix << string(indent, ' ') << i->first << " "  << i->second;
+        std::cerr << prefix << std::string(indent, ' ') << i->first << " "  << i->second;
         if (Value* val = dynamic_cast<Value*>(i->second))
-        { cerr << " : " << val->to_string(true, 5); }
-        cerr << endl;
+        { std::cerr << " : " << val->to_string(true, 5); }
+        std::cerr << std::endl;
       }
     }
     return indent ;

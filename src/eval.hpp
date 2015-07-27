@@ -1,13 +1,11 @@
 #ifndef SASS_EVAL_H
 #define SASS_EVAL_H
 
-#include <iostream>
 #include "context.hpp"
 #include "listize.hpp"
 #include "operation.hpp"
 
 namespace Sass {
-  using namespace std;
 
   class Expand;
   class Context;
@@ -98,7 +96,7 @@ namespace Sass {
     static Value* op_strings(Memory_Manager<AST_Node>&, enum Sass_OP, Value&, Value&, bool compressed = false, int precision = 5);
 
   private:
-    string interpolation(Expression* s);
+    std::string interpolation(Expression* s);
 
   };
 

@@ -1,9 +1,8 @@
 #ifndef SASS_PARSER_H
 #define SASS_PARSER_H
 
-#include <map>
+#include <string>
 #include <vector>
-#include <iostream>
 
 #include "ast.hpp"
 #include "position.hpp"
@@ -20,23 +19,19 @@ struct Lookahead {
 };
 
 namespace Sass {
-  using std::string;
-  using std::vector;
-  using std::map;
-  using namespace Prelexer;
 
   class Parser : public ParserState {
   private:
-    void add_single_file (Import* imp, string import_path);
-    void import_single_file (Import* imp, string import_path);
+    void add_single_file (Import* imp, std::string import_path);
+    void import_single_file (Import* imp, std::string import_path);
   public:
 
     enum Syntactic_Context { nothing, mixin_def, function_def };
-    bool do_import(const string& import_path, Import* imp, vector<Sass_Importer_Entry> importers, bool only_one = true);
+    bool do_import(const std::string& import_path, Import* imp, std::vector<Sass_Importer_Entry> importers, bool only_one = true);
 
     Context& ctx;
-    vector<Block*> block_stack;
-    vector<Syntactic_Context> stack;
+    std::vector<Block*> block_stack;
+    std::vector<Syntactic_Context> stack;
     const char* source;
     const char* position;
     const char* end;
@@ -54,7 +49,7 @@ namespace Sass {
       source(0), position(0), end(0), before_token(pstate), after_token(pstate), pstate(pstate), indentation(0)
     { in_at_root = false; stack.push_back(nothing); }
 
-    // static Parser from_string(const string& src, Context& ctx, ParserState pstate = ParserState("[STRING]"));
+    // static Parser from_string(const std::string& src, Context& ctx, ParserState pstate = ParserState("[STRING]"));
     static Parser from_c_str(const char* src, Context& ctx, ParserState pstate = ParserState("[CSTRING]"));
     static Parser from_c_str(const char* beg, const char* end, Context& ctx, ParserState pstate = ParserState("[CSTRING]"));
     static Parser from_token(Token t, Context& ctx, ParserState pstate = ParserState("[TOKEN]"));
@@ -77,9 +72,10 @@ namespace Sass {
     bool peek_newline(const char* start = 0);
 
     // skip over spaces, tabs and line comments
-    template <prelexer mx>
+    template <Prelexer::prelexer mx>
     const char* sneak(const char* start = 0)
     {
+      using namespace Prelexer;
 
       // maybe use optional start position from arguments?
       const char* it_position = start ? start : position;
@@ -105,7 +101,7 @@ namespace Sass {
 
     // peek will only skip over space, tabs and line comment
     // return the position where the lexer match will occur
-    template <prelexer mx>
+    template <Prelexer::prelexer mx>
     const char* peek(const char* start = 0)
     {
 
@@ -124,7 +120,7 @@ namespace Sass {
     // we do not support start arg, since we manipulate
     // sourcemap offset and we modify the position pointer!
     // lex will only skip over space, tabs and line comment
-    template <prelexer mx>
+    template <Prelexer::prelexer mx>
     const char* lex(bool lazy = true)
     {
 
@@ -165,14 +161,14 @@ namespace Sass {
     // lex_css skips over space, tabs, line and block comment
     // all block comments will be consumed and thrown away
     // source-map position will point to token after the comment
-    template <prelexer mx>
+    template <Prelexer::prelexer mx>
     const char* lex_css()
     {
       // copy old token
       Token prev = lexed;
       // throw away comments
       // update srcmap position
-      lex < css_comments >();
+      lex < Prelexer::css_comments >();
       // now lex a new token
       const char* pos = lex< mx >();
       // maybe restore prev token
@@ -182,11 +178,11 @@ namespace Sass {
     }
 
     // all block comments will be skipped and thrown away
-    template <prelexer mx>
+    template <Prelexer::prelexer mx>
     const char* peek_css(const char* start = 0)
     {
       // now peek a token (skip comments first)
-      return peek< mx >(peek < css_comments >(start));
+      return peek< mx >(peek < Prelexer::css_comments >(start));
     }
 
 #ifdef __clang__
@@ -195,12 +191,12 @@ namespace Sass {
 
 #endif
 
-    void error(string msg, Position pos);
+    void error(std::string msg, Position pos);
     // generate message with given and expected sample
     // text before and in the middle are configurable
-    void css_error(const string& msg,
-                   const string& prefix = " after ",
-                   const string& middle = ", was: ");
+    void css_error(const std::string& msg,
+                   const std::string& prefix = " after ",
+                   const std::string& middle = ", was: ");
     void read_bom();
 
     Block* parse();
@@ -290,11 +286,11 @@ namespace Sass {
     Lookahead lookahead_for_selector(const char* start = 0);
     Lookahead lookahead_for_include(const char* start = 0);
 
-    Expression* fold_operands(Expression* base, vector<Expression*>& operands, Sass_OP op);
-    Expression* fold_operands(Expression* base, vector<Expression*>& operands, vector<Sass_OP>& ops);
+    Expression* fold_operands(Expression* base, std::vector<Expression*>& operands, Sass_OP op);
+    Expression* fold_operands(Expression* base, std::vector<Expression*>& operands, std::vector<Sass_OP>& ops);
 
-    void throw_syntax_error(string message, size_t ln = 0);
-    void throw_read_error(string message, size_t ln = 0);
+    void throw_syntax_error(std::string message, size_t ln = 0);
+    void throw_read_error(std::string message, size_t ln = 0);
   };
 
   size_t check_bom_chars(const char* src, const char *end, const unsigned char* bom, size_t len);

@@ -5,54 +5,53 @@
 #include <vector>
 
 namespace Sass {
-  using namespace std;
   class Context;
   namespace File {
 
     // return the current directory
     // always with forward slashes
-    string get_cwd();
+    std::string get_cwd();
 
     // test if path exists and is a file
-    bool file_exists(const string& file);
+    bool file_exists(const std::string& file);
 
     // return if given path is absolute
     // works with *nix and windows paths
-    bool is_absolute_path(const string& path);
+    bool is_absolute_path(const std::string& path);
 
     // return only the directory part of path
-    string dir_name(const string& path);
+    std::string dir_name(const std::string& path);
 
     // return only the filename part of path
-    string base_name(const string&);
+    std::string base_name(const std::string&);
 
     // do a locigal clean up of the path
     // no physical check on the filesystem
-    string make_canonical_path (string path);
+    std::string make_canonical_path (std::string path);
 
     // join two path segments cleanly together
     // but only if right side is not absolute yet
-    string join_paths(string root, string name);
+    std::string join_paths(std::string root, std::string name);
 
     // create an absolute path by resolving relative paths with cwd
-    string make_absolute_path(const string& path, const string& cwd = ".");
+    std::string make_absolute_path(const std::string& path, const std::string& cwd = ".");
 
     // create a path that is relative to the given base directory
     // path and base will first be resolved against cwd to make them absolute
-    string resolve_relative_path(const string& path, const string& base, const string& cwd = ".");
+    std::string resolve_relative_path(const std::string& path, const std::string& base, const std::string& cwd = ".");
 
     // try to find/resolve the filename
-    string resolve_file(const string& file);
+    std::string resolve_file(const std::string& file);
 
     // helper function to resolve a filename
-    string find_file(const string& file, const vector<string> paths);
+    std::string find_file(const std::string& file, const std::vector<std::string> paths);
     // inc paths can be directly passed from C code
-    string find_file(const string& file, const char** paths);
+    std::string find_file(const std::string& file, const char** paths);
 
     // try to load the given filename
     // returned memory must be freed
     // will auto convert .sass files
-    char* read_file(const string& file);
+    char* read_file(const std::string& file);
 
   }
 }

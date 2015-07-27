@@ -31,8 +31,8 @@ namespace Sass {
 
 
 
-  static Complex_Selector* createComplexSelector(string src) {
-    string temp(src);
+  static Complex_Selector* createComplexSelector(std::string src) {
+    std::string temp(src);
     temp += ";";
     return (*Parser::from_c_str(temp.c_str(), ctx, "", Position()).parse_selector_list())[0];
   }
@@ -47,23 +47,23 @@ namespace Sass {
       pOrigSelector = createComplexSelector(toTest);
     }
 
-    string expected(pOrigSelector ? pOrigSelector->perform(&to_string) : "NULL");
+    std::string expected(pOrigSelector ? pOrigSelector->perform(&to_string) : "NULL");
 
 
     // Roundtrip the selector into a node and back
 
     Node node = complexSelectorToNode(pOrigSelector, ctx);
 
-    stringstream nodeStringStream;
+    std::stringstream nodeStringStream;
     nodeStringStream << node;
-    string nodeString = nodeStringStream.str();
+    std::string nodeString = nodeStringStream.str();
     cout << "ASNODE: " << node << endl;
 
     Complex_Selector* pNewSelector = nodeToComplexSelector(node, ctx);
 
     // Show the result
 
-    string result(pNewSelector ? pNewSelector->perform(&to_string) : "NULL");
+    std::string result(pNewSelector ? pNewSelector->perform(&to_string) : "NULL");
 
     cout << "SELECTOR: " << expected << endl;
     cout << "NEW SELECTOR:   " << result << endl;

@@ -1,9 +1,7 @@
 #ifndef SASS_EXPAND_H
 #define SASS_EXPAND_H
 
-#include <map>
 #include <vector>
-#include <iostream>
 
 #include "ast.hpp"
 #include "eval.hpp"
@@ -11,7 +9,6 @@
 #include "environment.hpp"
 
 namespace Sass {
-  using namespace std;
 
   class Listize;
   class Context;
@@ -31,11 +28,11 @@ namespace Sass {
     Eval              eval;
 
     // it's easier to work with vectors
-    vector<Env*>      env_stack;
-    vector<Block*>    block_stack;
-    vector<String*>   property_stack;
-    vector<Selector_List*> selector_stack;
-    vector<Backtrace*>backtrace_stack;
+    std::vector<Env*>      env_stack;
+    std::vector<Block*>    block_stack;
+    std::vector<String*>   property_stack;
+    std::vector<Selector_List*> selector_stack;
+    std::vector<Backtrace*>backtrace_stack;
     bool              in_keyframes;
 
     Statement* fallback_impl(AST_Node* n);

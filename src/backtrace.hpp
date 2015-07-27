@@ -8,36 +8,35 @@
 
 namespace Sass {
 
-  using namespace std;
 
   struct Backtrace {
 
     Backtrace*  parent;
     ParserState pstate;
-    string      caller;
+    std::string      caller;
 
-    Backtrace(Backtrace* prn, ParserState pstate, string c)
+    Backtrace(Backtrace* prn, ParserState pstate, std::string c)
     : parent(prn),
       pstate(pstate),
       caller(c)
     { }
 
-    string to_string(bool warning = false)
+    std::string to_string(bool warning = false)
     {
       size_t i = -1;
-      stringstream ss;
-      string cwd(Sass::File::get_cwd());
+      std::stringstream ss;
+      std::string cwd(Sass::File::get_cwd());
       Backtrace* this_point = this;
 
-      if (!warning) ss << endl << "Backtrace:";
+      if (!warning) ss << std::endl << "Backtrace:";
       // the first tracepoint (which is parent-less) is an empty placeholder
       while (this_point->parent) {
 
         // make path relative to the current directory
-        string rel_path(Sass::File::resolve_relative_path(this_point->pstate.path, cwd, cwd));
+        std::string rel_path(Sass::File::resolve_relative_path(this_point->pstate.path, cwd, cwd));
 
         if (warning) {
-          ss << endl
+          ss << std::endl
              << "\t"
              << (++i == 0 ? "on" : "from")
              << " line "
@@ -45,7 +44,7 @@ namespace Sass {
              << " of "
              << rel_path;
         } else {
-          ss << endl
+          ss << std::endl
              << "\t"
              << rel_path
              << ":"

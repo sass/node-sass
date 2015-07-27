@@ -2,10 +2,8 @@
 #define SASS_MEMORY_MANAGER_H
 
 #include <vector>
-#include <iostream>
 
 namespace Sass {
-  using namespace std;
   /////////////////////////////////////////////////////////////////////////////
   // A class for tracking allocations of AST_Node objects. The intended usage
   // is something like: Some_Node* n = new (mem_mgr) Some_Node(...);
@@ -15,7 +13,7 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////////
   template <typename T>
   class Memory_Manager {
-    vector<T*> nodes;
+    std::vector<T*> nodes;
 
   public:
     Memory_Manager(size_t size = 0);

@@ -26,7 +26,6 @@
 #include "color_maps.hpp"
 
 namespace Sass {
-  using namespace std;
 
   inline double add(double x, double y) { return x + y; }
   inline double sub(double x, double y) { return x - y; }
@@ -80,7 +79,7 @@ namespace Sass {
   Expression* Eval::operator()(Assignment* a)
   {
     Env* env = exp.environment();
-    string var(a->variable());
+    std::string var(a->variable());
     if (a->is_global()) {
       if (a->is_default()) {
         if (env->has_global(var)) {
@@ -109,13 +108,13 @@ namespace Sass {
               }
             }
             else {
-              throw runtime_error("Env not in sync");
+              throw std::runtime_error("Env not in sync");
             }
             return 0;
           }
           cur = cur->parent();
         }
-        throw runtime_error("Env not in sync");
+        throw std::runtime_error("Env not in sync");
       }
       else if (env->has_global(var)) {
         if (AST_Node* node = env->get_global(var)) {
@@ -158,7 +157,7 @@ namespace Sass {
   // But iteration vars are reset afterwards
   Expression* Eval::operator()(For* f)
   {
-    string variable(f->variable());
+    std::string variable(f->variable());
     Expression* low = f->lower_bound()->perform(this);
     if (low->concrete_type() != Expression::NUMBER) {
       error("lower bound of `@for` directive must be numeric", low->pstate());
@@ -171,7 +170,7 @@ namespace Sass {
     Number* sass_end = static_cast<Number*>(high);
     // check if units are valid for sequence
     if (sass_start->unit() != sass_end->unit()) {
-      stringstream msg; msg << "Incompatible units: '"
+      std::stringstream msg; msg << "Incompatible units: '"
         << sass_start->unit() << "' and '"
         << sass_end->unit() << "'.";
       error(msg.str(), low->pstate(), backtrace());
@@ -216,7 +215,7 @@ namespace Sass {
   // But iteration vars are reset afterwards
   Expression* Eval::operator()(Each* e)
   {
-    vector<string> variables(e->variables());
+    std::vector<std::string> variables(e->variables());
     Expression* expr = e->list()->perform(this);
     Env* env = exp.environment();
     List* list = 0;
@@ -232,7 +231,7 @@ namespace Sass {
       list = static_cast<List*>(expr);
     }
     // remember variables and then reset them
-    vector<AST_Node*> old_vars(variables.size());
+    std::vector<AST_Node*> old_vars(variables.size());
     for (size_t i = 0, L = variables.size(); i < L; ++i) {
       old_vars[i] = env->has_local(variables[i]) ? env->get_local(variables[i]) : 0;
       env->set_local(variables[i], 0);
@@ -330,11 +329,11 @@ namespace Sass {
 
     }
 
-    string result(unquote(message->perform(&to_string)));
+    std::string result(unquote(message->perform(&to_string)));
     Backtrace top(backtrace(), w->pstate(), "");
-    cerr << "WARNING: " << result;
-    cerr << top.to_string(true);
-    cerr << endl << endl;
+    std::cerr << "WARNING: " << result;
+    std::cerr << top.to_string(true);
+    std::cerr << std::endl << std::endl;
     return 0;
   }
 
@@ -363,7 +362,7 @@ namespace Sass {
 
     }
 
-    string result(unquote(message->perform(&to_string)));
+    std::string result(unquote(message->perform(&to_string)));
     error(result, e->pstate());
     return 0;
   }
@@ -393,11 +392,11 @@ namespace Sass {
 
     }
 
-    string cwd(ctx.get_cwd());
-    string result(unquote(message->perform(&to_string)));
-    string rel_path(Sass::File::resolve_relative_path(d->pstate().path, cwd, cwd));
-    cerr << rel_path << ":" << d->pstate().line << ":" << " DEBUG: " << result;
-    cerr << endl;
+    std::string cwd(ctx.get_cwd());
+    std::string result(unquote(message->perform(&to_string)));
+    std::string rel_path(Sass::File::resolve_relative_path(d->pstate().path, cwd, cwd));
+    std::cerr << rel_path << ":" << d->pstate().line << ":" << " DEBUG: " << result;
+    std::cerr << std::endl;
     return 0;
   }
 
@@ -490,7 +489,7 @@ namespace Sass {
     // upgrade string to number if possible (issue #948)
     if (op_type == Sass_OP::DIV || op_type == Sass_OP::MUL) {
       if (String_Constant* str = dynamic_cast<String_Constant*>(rhs)) {
-        string value(str->value());
+        std::string value(str->value());
         const char* start = value.c_str();
         if (Prelexer::sequence < Prelexer::number >(start) != 0) {
           rhs = new (ctx.mem) Textual(rhs->pstate(), Textual::DIMENSION, str->value());
@@ -587,12 +586,12 @@ namespace Sass {
   Expression* Eval::operator()(Function_Call* c)
   {
     if (backtrace()->parent != NULL && backtrace()->depth() > Constants::MaxCallStack) {
-        ostringstream stm;
+        std::ostringstream stm;
         stm << "Stack depth exceeded max of " << Constants::MaxCallStack;
         error(stm.str(), c->pstate(), backtrace());
     }
-    string name(Util::normalize_underscores(c->name()));
-    string full_name(name + "[f]");
+    std::string name(Util::normalize_underscores(c->name()));
+    std::string full_name(name + "[f]");
     Arguments* args = c->arguments();
     if (full_name != "if[f]") {
       args = static_cast<Arguments*>(args->perform(this));
@@ -617,12 +616,12 @@ namespace Sass {
     Definition* def = static_cast<Definition*>((*env)[full_name]);
 
     if (def->is_overload_stub()) {
-      stringstream ss;
+      std::stringstream ss;
       ss << full_name
          << args->length();
       full_name = ss.str();
-      string resolved_name(full_name);
-      if (!env->has(resolved_name)) error("overloaded function `" + string(c->name()) + "` given wrong number of arguments", c->pstate());
+      std::string resolved_name(full_name);
+      if (!env->has(resolved_name)) error("overloaded function `" + std::string(c->name()) + "` given wrong number of arguments", c->pstate());
       def = static_cast<Definition*>((*env)[resolved_name]);
     }
 
@@ -643,7 +642,7 @@ namespace Sass {
       if (body) result = body->perform(this);
       // if it's native, invoke the underlying CPP function
       else result = func(fn_env, *env, ctx, def->signature(), c->pstate(), backtrace());
-      if (!result) error(string("function ") + c->name() + " did not return a value", c->pstate());
+      if (!result) error(std::string("function ") + c->name() + " did not return a value", c->pstate());
       exp.backtrace_stack.pop_back();
     }
 
@@ -668,7 +667,7 @@ namespace Sass {
       To_C to_c;
       union Sass_Value* c_args = sass_make_list(params[0].length(), SASS_COMMA);
       for(size_t i = 0; i < params[0].length(); i++) {
-        string key = params[0][i]->name();
+        std::string key = params[0][i]->name();
         AST_Node* node = fn_env.get_local(key);
         Expression* arg = static_cast<Expression*>(node);
         sass_list_set_value(c_args, i, arg->perform(&to_c));
@@ -689,7 +688,7 @@ namespace Sass {
 
     // link back to function definition
     // only do this for custom functions
-    if (result->pstate().file == string::npos)
+    if (result->pstate().file == std::string::npos)
       result->pstate(c->pstate());
 
     result->is_delayed(result->concrete_type() == Expression::STRING);
@@ -710,12 +709,12 @@ namespace Sass {
   Expression* Eval::operator()(Variable* v)
   {
     To_String to_string(&ctx);
-    string name(v->name());
+    std::string name(v->name());
     Expression* value = 0;
     Env* env = environment();
     if (env->has(name)) value = static_cast<Expression*>((*env)[name]);
     else error("Undefined variable: \"" + v->name() + "\".", v->pstate());
-    // cerr << "name: " << v->name() << "; type: " << typeid(*value).name() << "; value: " << value->perform(&to_string) << endl;
+    // std::cerr << "name: " << v->name() << "; type: " << typeid(*value).name() << "; value: " << value->perform(&to_string) << std::endl;
     if (typeid(*value) == typeid(Argument)) value = static_cast<Argument*>(value)->value();
 
     // behave according to as ruby sass (add leading zero)
@@ -749,7 +748,7 @@ namespace Sass {
       value = value->perform(this)->perform(&listize);
     }
 
-    // cerr << "\ttype is now: " << typeid(*value).name() << endl << endl;
+    // std::cerr << "\ttype is now: " << typeid(*value).name() << std::endl << std::endl;
     return value;
   }
 
@@ -760,12 +759,12 @@ namespace Sass {
     bool zero = !( t->value().substr(0, 1) == "." ||
                    t->value().substr(0, 2) == "-." );
 
-    const string& text = t->value();
+    const std::string& text = t->value();
     size_t num_pos = text.find_first_not_of(" \n\r\t");
-    if (num_pos == string::npos) num_pos = text.length();
+    if (num_pos == std::string::npos) num_pos = text.length();
     size_t unit_pos = text.find_first_not_of("-+0123456789.", num_pos);
-    if (unit_pos == string::npos) unit_pos = text.length();
-    const string& num = text.substr(num_pos, unit_pos - num_pos);
+    if (unit_pos == std::string::npos) unit_pos = text.length();
+    const std::string& num = text.substr(num_pos, unit_pos - num_pos);
 
     switch (t->type())
     {
@@ -792,11 +791,11 @@ namespace Sass {
           result = new (ctx.mem) String_Quoted(t->pstate(), t->value());
           break;
         }
-        string hext(t->value().substr(1)); // chop off the '#'
+        std::string hext(t->value().substr(1)); // chop off the '#'
         if (hext.length() == 6) {
-          string r(hext.substr(0,2));
-          string g(hext.substr(2,2));
-          string b(hext.substr(4,2));
+          std::string r(hext.substr(0,2));
+          std::string g(hext.substr(2,2));
+          std::string b(hext.substr(4,2));
           result = new (ctx.mem) Color(t->pstate(),
                                        static_cast<double>(strtol(r.c_str(), NULL, 16)),
                                        static_cast<double>(strtol(g.c_str(), NULL, 16)),
@@ -806,9 +805,9 @@ namespace Sass {
         }
         else {
           result = new (ctx.mem) Color(t->pstate(),
-                                       static_cast<double>(strtol(string(2,hext[0]).c_str(), NULL, 16)),
-                                       static_cast<double>(strtol(string(2,hext[1]).c_str(), NULL, 16)),
-                                       static_cast<double>(strtol(string(2,hext[2]).c_str(), NULL, 16)),
+                                       static_cast<double>(strtol(std::string(2,hext[0]).c_str(), NULL, 16)),
+                                       static_cast<double>(strtol(std::string(2,hext[1]).c_str(), NULL, 16)),
+                                       static_cast<double>(strtol(std::string(2,hext[2]).c_str(), NULL, 16)),
                                        1, false,
                                        t->value());
         }
@@ -827,7 +826,7 @@ namespace Sass {
     return b;
   }
 
-  char is_quoted(string str)
+  char is_quoted(std::string str)
   {
     size_t len = str.length();
     if (len < 2) return 0;
@@ -839,7 +838,7 @@ namespace Sass {
     }
   }
 
-  string Eval::interpolation(Expression* s) {
+  std::string Eval::interpolation(Expression* s) {
     Env* env = environment();
     if (String_Quoted* str_quoted = dynamic_cast<String_Quoted*>(s)) {
       if (str_quoted->quote_mark()) {
@@ -862,7 +861,7 @@ namespace Sass {
       // To_String to_string(&ctx);
       // return evacuate_quotes(str_schema->perform(&to_string));
 
-      string res = "";
+      std::string res = "";
       for(auto i : str_schema->elements())
         res += (interpolation(i));
       //ToDo: do this in one step
@@ -874,8 +873,8 @@ namespace Sass {
         return evacuate_quotes(unq);
       }
     } else if (List* list = dynamic_cast<List*>(s)) {
-      string acc = ""; // ToDo: different output styles
-      string sep = list->separator() == SASS_COMMA ? "," : " ";
+      std::string acc = ""; // ToDo: different output styles
+      std::string sep = list->separator() == SASS_COMMA ? "," : " ";
       if (ctx.output_style != COMPRESSED && sep == ",") sep += " ";
       bool initial = false;
       for(auto item : list->elements()) {
@@ -887,7 +886,7 @@ namespace Sass {
       }
       return evacuate_quotes(acc);
     } else if (Variable* var = dynamic_cast<Variable*>(s)) {
-      string name(var->name());
+      std::string name(var->name());
       if (!env->has(name)) error("Undefined variable: \"" + var->name() + "\".", var->pstate());
       Expression* value = static_cast<Expression*>((*env)[name]);
       return evacuate_quotes(interpolation(value));
@@ -902,7 +901,7 @@ namespace Sass {
       return evacuate_quotes(interpolation(ex));
     } else if (dynamic_cast<Map*>(s)) {
       To_String to_string(&ctx);
-      string dbg(s->perform(&to_string));
+      std::string dbg(s->perform(&to_string));
       error(dbg + " isn't a valid CSS value.", s->pstate());
       return dbg;
     } else {
@@ -913,7 +912,7 @@ namespace Sass {
 
   Expression* Eval::operator()(String_Schema* s)
   {
-    string acc;
+    std::string acc;
     for (size_t i = 0, L = s->length(); i < L; ++i) {
       // really a very special fix, but this is the logic I got from
       // analyzing the ruby sass behavior and it actually seems to work
@@ -1132,8 +1131,8 @@ namespace Sass {
     Number tmp(r);
     bool strict = op != Sass_OP::MUL && op != Sass_OP::DIV;
     tmp.normalize(l.find_convertible_unit(), strict);
-    string l_unit(l.unit());
-    string r_unit(tmp.unit());
+    std::string l_unit(l.unit());
+    std::string r_unit(tmp.unit());
     if (l_unit != r_unit && !l_unit.empty() && !r_unit.empty() &&
         (op == Sass_OP::ADD || op == Sass_OP::SUB)) {
       error("Incompatible units: '"+r_unit+"' and '"+l_unit+"'.", l.pstate());
@@ -1185,8 +1184,8 @@ namespace Sass {
       } break;
       case Sass_OP::SUB:
       case Sass_OP::DIV: {
-        string sep(op == Sass_OP::SUB ? "-" : "/");
-        string color(r.to_string(compressed||!r.sixtuplet(), precision));
+        std::string sep(op == Sass_OP::SUB ? "-" : "/");
+        std::string color(r.to_string(compressed||!r.sixtuplet(), precision));
         return new (mem) String_Quoted(l.pstate(),
                                        l.to_string(compressed, precision)
                                        + sep
@@ -1235,8 +1234,8 @@ namespace Sass {
     String_Quoted* lqstr = dynamic_cast<String_Quoted*>(&lhs);
     String_Quoted* rqstr = dynamic_cast<String_Quoted*>(&rhs);
 
-    string lstr(lqstr ? lqstr->value() : lhs.to_string(compressed, precision));
-    string rstr(rqstr ? rqstr->value() : rhs.to_string(compressed, precision));
+    std::string lstr(lqstr ? lqstr->value() : lhs.to_string(compressed, precision));
+    std::string rstr(rqstr ? rqstr->value() : rhs.to_string(compressed, precision));
 
     bool l_str_quoted = ((Sass::String*)&lhs) && ((Sass::String*)&lhs)->sass_fix_1291();
     bool r_str_quoted = ((Sass::String*)&rhs) && ((Sass::String*)&rhs)->sass_fix_1291();
@@ -1270,7 +1269,7 @@ namespace Sass {
     }
     if (op == Sass_OP::MUL) error("invalid operands for multiplication", lhs.pstate());
     if (op == Sass_OP::MOD) error("invalid operands for modulo", lhs.pstate());
-    string sep;
+    std::string sep;
     switch (op) {
       case Sass_OP::SUB: sep = "-"; break;
       case Sass_OP::DIV: sep = "/"; break;
@@ -1278,7 +1277,7 @@ namespace Sass {
     }
     if (ltype == Expression::NULL_VAL) error("invalid null operation: \"null plus "+quote(unquote(rstr), '"')+"\".", lhs.pstate());
     if (rtype == Expression::NULL_VAL) error("invalid null operation: \""+quote(unquote(lstr), '"')+" plus null\".", rhs.pstate());
-    string result((lstr) + sep + (rstr));
+    std::string result((lstr) + sep + (rstr));
     String_Quoted* str = new (mem) String_Quoted(lhs.pstate(), result);
     str->quote_mark(0);
     return str;
@@ -1326,10 +1325,10 @@ namespace Sass {
         e = new (mem) Null(pstate);
       } break;
       case SASS_ERROR: {
-        error("Error in C function: " + string(sass_error_get_message(v)), pstate, backtrace);
+        error("Error in C function: " + std::string(sass_error_get_message(v)), pstate, backtrace);
       } break;
       case SASS_WARNING: {
-        error("Warning in C function: " + string(sass_warning_get_message(v)), pstate, backtrace);
+        error("Warning in C function: " + std::string(sass_warning_get_message(v)), pstate, backtrace);
       } break;
     }
     return e;
@@ -1337,7 +1336,7 @@ namespace Sass {
 
   Selector_List* Eval::operator()(Selector_List* s)
   {
-    vector<Selector_List*> rv;
+    std::vector<Selector_List*> rv;
     Selector_List* sl = new (ctx.mem) Selector_List(s->pstate());
     for (size_t i = 0, iL = s->length(); i < iL; ++i) {
       rv.push_back(operator()((*s)[i]));
@@ -1346,7 +1345,7 @@ namespace Sass {
     // we should actually permutate parent first
     // but here we have permutated the selector first
     size_t round = 0;
-    while (round != string::npos) {
+    while (round != std::string::npos) {
       bool abort = true;
       for (size_t i = 0, iL = rv.size(); i < iL; ++i) {
         if (rv[i]->length() > round) {
@@ -1355,7 +1354,7 @@ namespace Sass {
         }
       }
       if (abort) {
-        round = string::npos;
+        round = std::string::npos;
       } else {
         ++ round;
       }
@@ -1509,7 +1508,7 @@ namespace Sass {
   {
     To_String to_string;
     // the parser will look for a brace to end the selector
-    string result_str(s->contents()->perform(this)->perform(&to_string) + "{");
+    std::string result_str(s->contents()->perform(this)->perform(&to_string) + "{");
     Parser p = Parser::from_c_str(result_str.c_str(), ctx, s->pstate());
     return operator()(p.parse_selector_list(exp.block_stack.back()->is_root()));
   }

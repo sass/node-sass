@@ -41,7 +41,7 @@ namespace Sass {
   {
     Parser sig_parser = Parser::from_c_str(sig, ctx, ParserState("[built-in function]"));
     sig_parser.lex<Prelexer::identifier>();
-    string name(Util::normalize_underscores(sig_parser.lexed));
+    std::string name(Util::normalize_underscores(sig_parser.lexed));
     Parameters* params = sig_parser.parse_parameters();
     return new (ctx.mem) Definition(ParserState("[built-in function]"),
                                     sig,
@@ -53,6 +53,8 @@ namespace Sass {
 
   Definition* make_c_function(Sass_Function_Entry c_func, Context& ctx)
   {
+    using namespace Prelexer;
+
     const char* sig = sass_function_get_signature(c_func);
     Parser sig_parser = Parser::from_c_str(sig, ctx, ParserState("[c function]"));
     // allow to overload generic callback plus @warn, @error and @debug with custom functions
@@ -61,7 +63,7 @@ namespace Sass {
                                     exactly < Constants::error_kwd >,
                                     exactly < Constants::debug_kwd >
                    >              >();
-    string name(Util::normalize_underscores(sig_parser.lexed));
+    std::string name(Util::normalize_underscores(sig_parser.lexed));
     Parameters* params = sig_parser.parse_parameters();
     return new (ctx.mem) Definition(ParserState("[c function]"),
                                     sig,
@@ -85,27 +87,27 @@ namespace Sass {
        throw;
       }
       catch (utf8::invalid_code_point) {
-        string msg("utf8::invalid_code_point");
+        std::string msg("utf8::invalid_code_point");
         error(msg, pstate, backtrace);
       }
       catch (utf8::not_enough_room) {
-        string msg("utf8::not_enough_room");
+        std::string msg("utf8::not_enough_room");
         error(msg, pstate, backtrace);
       }
       catch (utf8::invalid_utf8) {
-        string msg("utf8::invalid_utf8");
+        std::string msg("utf8::invalid_utf8");
         error(msg, pstate, backtrace);
       }
       catch (...) { throw; }
     }
 
     template <typename T>
-    T* get_arg(const string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace)
+    T* get_arg(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace)
     {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
       T* val = dynamic_cast<T*>(env[argname]);
       if (!val) {
-        string msg("argument `");
+        std::string msg("argument `");
         msg += argname;
         msg += "` of `";
         msg += sig;
@@ -116,7 +118,7 @@ namespace Sass {
       return val;
     }
 
-    Map* get_arg_m(const string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx)
+    Map* get_arg_m(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx)
     {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
       Map* val = dynamic_cast<Map*>(env[argname]);
@@ -130,13 +132,13 @@ namespace Sass {
       return val;
     }
 
-    Number* get_arg_r(const string& argname, Env& env, Signature sig, ParserState pstate, double lo, double hi, Backtrace* backtrace)
+    Number* get_arg_r(const std::string& argname, Env& env, Signature sig, ParserState pstate, double lo, double hi, Backtrace* backtrace)
     {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
       Number* val = get_arg<Number>(argname, env, sig, pstate, backtrace);
       double v = val->value();
       if (!(lo <= v && v <= hi)) {
-        stringstream msg;
+        std::stringstream msg;
         msg << "argument `" << argname << "` of `" << sig << "` must be between ";
         msg << lo << " and " << hi;
         error(msg.str(), pstate, backtrace);
@@ -147,48 +149,48 @@ namespace Sass {
     #define ARGSEL(argname, seltype, contextualize) get_arg_sel<seltype>(argname, env, sig, pstate, backtrace, ctx)
 
     template <typename T>
-    T* get_arg_sel(const string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx);
+    T* get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx);
 
     template <>
-    Selector_List* get_arg_sel(const string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
+    Selector_List* get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
       To_String to_string(&ctx, false);
       Expression* exp = ARG(argname, Expression);
       if (exp->concrete_type() == Expression::NULL_VAL) {
-        stringstream msg;
+        std::stringstream msg;
         msg << argname << ": null is not a valid selector: it must be a string,\n";
         msg << "a list of strings, or a list of lists of strings for `" << function_name(sig) << "'";
         error(msg.str(), pstate);
       }
-      string exp_src = exp->perform(&to_string) + "{";
+      std::string exp_src = exp->perform(&to_string) + "{";
       return Parser::parse_selector(exp_src.c_str(), ctx);
     }
 
     template <>
-    Complex_Selector* get_arg_sel(const string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
+    Complex_Selector* get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
       To_String to_string(&ctx, false);
       Expression* exp = ARG(argname, Expression);
       if (exp->concrete_type() == Expression::NULL_VAL) {
-        stringstream msg;
+        std::stringstream msg;
         msg << argname << ": null is not a valid selector: it must be a string,\n";
         msg << "a list of strings, or a list of lists of strings for `" << function_name(sig) << "'";
         error(msg.str(), pstate);
       }
-      string exp_src = exp->perform(&to_string) + "{";
+      std::string exp_src = exp->perform(&to_string) + "{";
       Selector_List* sel_list = Parser::parse_selector(exp_src.c_str(), ctx);
       return (sel_list->length() > 0) ? sel_list->first() : 0;
     }
 
     template <>
-    Compound_Selector* get_arg_sel(const string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
+    Compound_Selector* get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
       To_String to_string(&ctx, false);
       Expression* exp = ARG(argname, Expression);
       if (exp->concrete_type() == Expression::NULL_VAL) {
-        stringstream msg;
+        std::stringstream msg;
         msg << argname << ": null is not a valid selector: it must be a string,\n";
         msg << "a list of strings, or a list of lists of strings for `" << function_name(sig) << "'";
         error(msg.str(), pstate);
       }
-      string exp_src = exp->perform(&to_string) + "{";
+      std::string exp_src = exp->perform(&to_string) + "{";
       Selector_List* sel_list = Parser::parse_selector(exp_src.c_str(), ctx);
       return (sel_list->length() > 0) ? sel_list->first()->tail()->head() : 0;
     }
@@ -208,7 +210,7 @@ namespace Sass {
       return seed;
     }
     #else
-    static random_device rd;
+    static std::random_device rd;
     uint64_t GetSeed()
     {
       return rd();
@@ -219,10 +221,10 @@ namespace Sass {
     // random_device degrades sharply once the entropy pool
     // is exhausted. For practical use, random_device is
     // generally only used to seed a PRNG such as mt19937.
-    static mt19937 rand(static_cast<unsigned int>(GetSeed()));
+    static std::mt19937 rand(static_cast<unsigned int>(GetSeed()));
 
     // features
-    static set<string> features {
+    static std::set<std::string> features {
       "global-variable-shadowing",
       "at-error",
       "units-level-3"
@@ -821,14 +823,14 @@ namespace Sass {
       double b = cap_channel<0xff>(c->b());
       double a = cap_channel<1>   (c->a()) * 255;
 
-      stringstream ss;
+      std::stringstream ss;
       ss << '#' << std::setw(2) << std::setfill('0');
       ss << std::hex << std::setw(2) << static_cast<unsigned long>(std::floor(a+0.5));
       ss << std::hex << std::setw(2) << static_cast<unsigned long>(std::floor(r+0.5));
       ss << std::hex << std::setw(2) << static_cast<unsigned long>(std::floor(g+0.5));
       ss << std::hex << std::setw(2) << static_cast<unsigned long>(std::floor(b+0.5));
 
-      string result(ss.str());
+      std::string result(ss.str());
       for (size_t i = 0, L = result.length(); i < L; ++i) {
         result[i] = std::toupper(result[i]);
       }
@@ -857,7 +859,7 @@ namespace Sass {
       }
       else {
         To_String to_string(&ctx);
-        string val(arg->perform(&to_string));
+        std::string val(arg->perform(&to_string));
         deprecated("Passing " + val + ", a non-string value, to unquote()", pstate);
         return (Expression*) arg;
       }
@@ -868,7 +870,7 @@ namespace Sass {
     {
       To_String to_string(&ctx);
       AST_Node* arg = env["$string"];
-      string str(quote(arg->perform(&to_string), String_Constant::double_quote()));
+      std::string str(quote(arg->perform(&to_string), String_Constant::double_quote()));
       String_Quoted* result = new (ctx.mem) String_Quoted(pstate, str);
       result->is_delayed(true);
       return result;
@@ -878,7 +880,7 @@ namespace Sass {
     Signature str_length_sig = "str-length($string)";
     BUILT_IN(str_length)
     {
-      size_t len = string::npos;
+      size_t len = std::string::npos;
       try {
         String_Constant* s = ARG("$string", String_Constant);
         len = UTF_8::code_point_count(s->value(), 0, s->value().size());
@@ -894,13 +896,13 @@ namespace Sass {
     Signature str_insert_sig = "str-insert($string, $insert, $index)";
     BUILT_IN(str_insert)
     {
-      string str;
+      std::string str;
       try {
         String_Constant* s = ARG("$string", String_Constant);
         str = s->value();
         str = unquote(str);
         String_Constant* i = ARG("$insert", String_Constant);
-        string ins = i->value();
+        std::string ins = i->value();
         ins = unquote(ins);
         Number* ind = ARG("$index", Number);
         double index = ind->value();
@@ -940,17 +942,17 @@ namespace Sass {
     Signature str_index_sig = "str-index($string, $substring)";
     BUILT_IN(str_index)
     {
-      size_t index = string::npos;
+      size_t index = std::string::npos;
       try {
         String_Constant* s = ARG("$string", String_Constant);
         String_Constant* t = ARG("$substring", String_Constant);
-        string str = s->value();
+        std::string str = s->value();
         str = unquote(str);
-        string substr = t->value();
+        std::string substr = t->value();
         substr = unquote(substr);
 
         size_t c_index = str.find(substr);
-        if(c_index == string::npos) {
+        if(c_index == std::string::npos) {
           return new (ctx.mem) Null(pstate);
         }
         index = UTF_8::code_point_count(str, 0, c_index) + 1;
@@ -965,13 +967,13 @@ namespace Sass {
     Signature str_slice_sig = "str-slice($string, $start-at, $end-at:-1)";
     BUILT_IN(str_slice)
     {
-      string newstr;
+      std::string newstr;
       try {
         String_Constant* s = ARG("$string", String_Constant);
         double start_at = ARG("$start-at", Number)->value();
         double end_at = ARG("$end-at", Number)->value();
 
-        string str = unquote(s->value());
+        std::string str = unquote(s->value());
 
         size_t size = utf8::distance(str.begin(), str.end());
         if (end_at <= size * -1.0) { end_at += size; }
@@ -982,11 +984,11 @@ namespace Sass {
 
         if (start_at <= end_at)
         {
-          string::iterator start = str.begin();
+          std::string::iterator start = str.begin();
           utf8::advance(start, start_at - 1, str.end());
-          string::iterator end = start;
+          std::string::iterator end = start;
           utf8::advance(end, end_at - start_at + 1, str.end());
-          newstr = string(start, end);
+          newstr = std::string(start, end);
         }
         if (String_Quoted* ss = dynamic_cast<String_Quoted*>(s)) {
           if(ss->quote_mark()) newstr = quote(newstr);
@@ -1002,7 +1004,7 @@ namespace Sass {
     BUILT_IN(to_upper_case)
     {
       String_Constant* s = ARG("$string", String_Constant);
-      string str = s->value();
+      std::string str = s->value();
 
       for (size_t i = 0, L = str.length(); i < L; ++i) {
         if (Sass::Util::isAscii(str[i])) {
@@ -1023,7 +1025,7 @@ namespace Sass {
     BUILT_IN(to_lower_case)
     {
       String_Constant* s = ARG("$string", String_Constant);
-      string str = s->value();
+      std::string str = s->value();
 
       for (size_t i = 0, L = str.length(); i < L; ++i) {
         if (Sass::Util::isAscii(str[i])) {
@@ -1048,7 +1050,7 @@ namespace Sass {
     BUILT_IN(percentage)
     {
       Number* n = ARG("$number", Number);
-      if (!n->is_unitless()) error("argument $number of `" + string(sig) + "` must be unitless", pstate);
+      if (!n->is_unitless()) error("argument $number of `" + std::string(sig) + "` must be unitless", pstate);
       return new (ctx.mem) Number(pstate, n->value() * 100, "%");
     }
 
@@ -1099,7 +1101,7 @@ namespace Sass {
       Number* least = 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Number* xi = dynamic_cast<Number*>(arglist->value_at_index(i));
-        if (!xi) error("`" + string(sig) + "` only takes numeric arguments", pstate);
+        if (!xi) error("`" + std::string(sig) + "` only takes numeric arguments", pstate);
         if (least) {
           if (Eval::lt(xi, least)) least = xi;
         } else least = xi;
@@ -1114,7 +1116,7 @@ namespace Sass {
       Number* greatest = 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Number* xi = dynamic_cast<Number*>(arglist->value_at_index(i));
-        if (!xi) error("`" + string(sig) + "` only takes numeric arguments", pstate);
+        if (!xi) error("`" + std::string(sig) + "` only takes numeric arguments", pstate);
         if (greatest) {
           if (Eval::lt(greatest, xi)) greatest = xi;
         } else greatest = xi;
@@ -1127,13 +1129,13 @@ namespace Sass {
     {
       Number* l = dynamic_cast<Number*>(env["$limit"]);
       if (l) {
-        if (trunc(l->value()) != l->value() || l->value() == 0) error("argument $limit of `" + string(sig) + "` must be a positive integer", pstate);
-        uniform_real_distribution<> distributor(1, l->value() + 1);
+        if (trunc(l->value()) != l->value() || l->value() == 0) error("argument $limit of `" + std::string(sig) + "` must be a positive integer", pstate);
+        std::uniform_real_distribution<> distributor(1, l->value() + 1);
         uint_fast32_t distributed = static_cast<uint_fast32_t>(distributor(rand));
         return new (ctx.mem) Number(pstate, (double)distributed);
       }
       else {
-        uniform_real_distribution<> distributor(0, 1);
+        std::uniform_real_distribution<> distributor(0, 1);
         double distributed = static_cast<double>(distributor(rand));
         return new (ctx.mem) Number(pstate, distributed);
      }
@@ -1173,7 +1175,7 @@ namespace Sass {
       Map* m = dynamic_cast<Map*>(env["$list"]);
       List* l = dynamic_cast<List*>(env["$list"]);
       Number* n = ARG("$n", Number);
-      if (n->value() == 0) error("argument `$n` of `" + string(sig) + "` must be non-zero", pstate);
+      if (n->value() == 0) error("argument `$n` of `" + std::string(sig) + "` must be non-zero", pstate);
       // if the argument isn't a list, then wrap it in a singleton list
       if (!m && !l) {
         l = new (ctx.mem) List(pstate, 1);
@@ -1181,9 +1183,9 @@ namespace Sass {
       }
       size_t len = m ? m->length() : l->length();
       bool empty = m ? m->empty() : l->empty();
-      if (empty) error("argument `$list` of `" + string(sig) + "` must not be empty", pstate);
+      if (empty) error("argument `$list` of `" + std::string(sig) + "` must not be empty", pstate);
       double index = std::floor(n->value() < 0 ? len + n->value() : n->value() - 1);
-      if (index < 0 || index > len - 1) error("index out of bounds for `" + string(sig) + "`", pstate);
+      if (index < 0 || index > len - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate);
 
       if (m) {
         l = new (ctx.mem) List(pstate, 1);
@@ -1206,9 +1208,9 @@ namespace Sass {
         l = new (ctx.mem) List(pstate, 1);
         *l << ARG("$list", Expression);
       }
-      if (l->empty()) error("argument `$list` of `" + string(sig) + "` must not be empty", pstate);
+      if (l->empty()) error("argument `$list` of `" + std::string(sig) + "` must not be empty", pstate);
       double index = std::floor(n->value() < 0 ? l->length() + n->value() : n->value() - 1);
-      if (index < 0 || index > l->length() - 1) error("index out of bounds for `" + string(sig) + "`", pstate);
+      if (index < 0 || index > l->length() - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate);
       List* result = new (ctx.mem) List(pstate, l->length(), l->separator());
       for (size_t i = 0, L = l->length(); i < L; ++i) {
         *result << ((i == index) ? v : (*l)[i]);
@@ -1248,10 +1250,10 @@ namespace Sass {
         *l2 << ARG("$list2", Expression);
       }
       size_t len = l1->length() + l2->length();
-      string sep_str = unquote(sep->value());
+      std::string sep_str = unquote(sep->value());
       if (sep_str == "space") sep_val = SASS_SPACE;
       else if (sep_str == "comma") sep_val = SASS_COMMA;
-      else if (sep_str != "auto") error("argument `$separator` of `" + string(sig) + "` must be `space`, `comma`, or `auto`", pstate);
+      else if (sep_str != "auto") error("argument `$separator` of `" + std::string(sig) + "` must be `space`, `comma`, or `auto`", pstate);
       List* result = new (ctx.mem) List(pstate, len, sep_val);
       *result += l1;
       *result += l2;
@@ -1269,10 +1271,10 @@ namespace Sass {
         *l << ARG("$list", Expression);
       }
       List* result = new (ctx.mem) List(pstate, l->length() + 1, l->separator());
-      string sep_str(unquote(sep->value()));
+      std::string sep_str(unquote(sep->value()));
       if (sep_str == "space") result->separator(SASS_SPACE);
       else if (sep_str == "comma") result->separator(SASS_COMMA);
-      else if (sep_str != "auto") error("argument `$separator` of `" + string(sig) + "` must be `space`, `comma`, or `auto`", pstate);
+      else if (sep_str != "auto") error("argument `$separator` of `" + std::string(sig) + "` must be `space`, `comma`, or `auto`", pstate);
       *result += l;
       bool is_arglist = l->is_arglist();
       result->is_arglist(is_arglist);
@@ -1403,7 +1405,7 @@ namespace Sass {
         for (size_t j = 0, K = arglist->length(); j < K && !remove; ++j) {
           remove = Eval::eq(key, arglist->value_at_index(j));
         }
-        if (!remove) *result << make_pair(key, m->at(key));
+        if (!remove) *result << std::make_pair(key, m->at(key));
       }
       return result;
     }
@@ -1414,9 +1416,9 @@ namespace Sass {
       List* arglist = new (ctx.mem) List(*ARG("$args", List));
       Map* result = new (ctx.mem) Map(pstate, 1);
       for (size_t i = arglist->size(), L = arglist->length(); i < L; ++i) {
-        string name = string(((Argument*)(*arglist)[i])->name());
+        std::string name = std::string(((Argument*)(*arglist)[i])->name());
         name = name.erase(0, 1); // sanitize name (remove dollar sign)
-        *result << make_pair(new (ctx.mem) String_Quoted(pstate, name),
+        *result << std::make_pair(new (ctx.mem) String_Quoted(pstate, name),
                              ((Argument*)(*arglist)[i])->value());
       }
       return result;
@@ -1432,7 +1434,7 @@ namespace Sass {
       Expression* v = ARG("$value", Expression);
       if (v->concrete_type() == Expression::STRING) {
         To_String to_string(&ctx);
-        string str(v->perform(&to_string));
+        std::string str(v->perform(&to_string));
       }
       return new (ctx.mem) String_Quoted(pstate, ARG("$value", Expression)->type());
     }
@@ -1461,7 +1463,7 @@ namespace Sass {
     Signature variable_exists_sig = "variable-exists($name)";
     BUILT_IN(variable_exists)
     {
-      string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
+      std::string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
 
       if(d_env.has("$"+s)) {
         return new (ctx.mem) Boolean(pstate, true);
@@ -1474,7 +1476,7 @@ namespace Sass {
     Signature global_variable_exists_sig = "global-variable-exists($name)";
     BUILT_IN(global_variable_exists)
     {
-      string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
+      std::string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
 
       if(d_env.has_global("$"+s)) {
         return new (ctx.mem) Boolean(pstate, true);
@@ -1487,7 +1489,7 @@ namespace Sass {
     Signature function_exists_sig = "function-exists($name)";
     BUILT_IN(function_exists)
     {
-      string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
+      std::string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
 
       if(d_env.has_global(s+"[f]")) {
         return new (ctx.mem) Boolean(pstate, true);
@@ -1500,7 +1502,7 @@ namespace Sass {
     Signature mixin_exists_sig = "mixin-exists($name)";
     BUILT_IN(mixin_exists)
     {
-      string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
+      std::string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
 
       if(d_env.has_global(s+"[m]")) {
         return new (ctx.mem) Boolean(pstate, true);
@@ -1513,7 +1515,7 @@ namespace Sass {
     Signature feature_exists_sig = "feature-exists($name)";
     BUILT_IN(feature_exists)
     {
-      string s = unquote(ARG("$name", String_Constant)->value());
+      std::string s = unquote(ARG("$name", String_Constant)->value());
 
       if(features.find(s) == features.end()) {
         return new (ctx.mem) Boolean(pstate, false);
@@ -1526,7 +1528,7 @@ namespace Sass {
     Signature call_sig = "call($name, $args...)";
     BUILT_IN(call)
     {
-      string name = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
+      std::string name = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
       List* arglist = new (ctx.mem) List(*ARG("$args", List));
 
       Arguments* args = new (ctx.mem) Arguments(pstate);
@@ -1604,7 +1606,7 @@ namespace Sass {
         old_style = ctx.output_style;
         ctx.output_style = NESTED;
         To_String to_string(&ctx, false);
-        string inspect = v->perform(&to_string);
+        std::string inspect = v->perform(&to_string);
         if (inspect.empty() && parentheses) inspect = "()";
         ctx.output_style = old_style;
         return new (ctx.mem) String_Quoted(pstate, inspect);
@@ -1622,16 +1624,16 @@ namespace Sass {
         error("$selectors: At least one selector must be passed", pstate);
 
       // Parse args into vector of selectors
-      vector<Selector_List*> parsedSelectors;
+      std::vector<Selector_List*> parsedSelectors;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Expression* exp = dynamic_cast<Expression*>(arglist->value_at_index(i));
         if (exp->concrete_type() == Expression::NULL_VAL) {
-          stringstream msg;
+          std::stringstream msg;
           msg << "$selectors: null is not a valid selector: it must be a string,\n";
           msg << "a list of strings, or a list of lists of strings for 'selector-nest'";
           error(msg.str(), pstate);
         }
-        string exp_src = exp->perform(&to_string) + "{";
+        std::string exp_src = exp->perform(&to_string) + "{";
         Selector_List* sel = Parser::parse_selector(exp_src.c_str(), ctx);
         parsedSelectors.push_back(sel);
       }
@@ -1648,7 +1650,7 @@ namespace Sass {
 
       for(;itr != parsedSelectors.end(); ++itr) {
         Selector_List* child = *itr;
-        vector<Complex_Selector*> exploded;
+        std::vector<Complex_Selector*> exploded;
 
         // For every COMPLEX_SELECTOR in `child`
         // For every COMPLEX_SELECTOR in `result`
@@ -1682,16 +1684,16 @@ namespace Sass {
         error("$selectors: At least one selector must be passed", pstate);
 
       // Parse args into vector of selectors
-      vector<Selector_List*> parsedSelectors;
+      std::vector<Selector_List*> parsedSelectors;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Expression* exp = dynamic_cast<Expression*>(arglist->value_at_index(i));
         if (exp->concrete_type() == Expression::NULL_VAL) {
-          stringstream msg;
+          std::stringstream msg;
           msg << "$selectors: null is not a valid selector: it must be a string,\n";
           msg << "a list of strings, or a list of lists of strings for 'selector-append'";
           error(msg.str(), pstate);
         }
-        string exp_src = exp->perform(&to_string) + "{";
+        std::string exp_src = exp->perform(&to_string) + "{";
         Selector_List* sel = Parser::parse_selector(exp_src.c_str(), ctx);
         parsedSelectors.push_back(sel);
       }
@@ -1708,7 +1710,7 @@ namespace Sass {
 
       for(;itr != parsedSelectors.end(); ++itr) {
         Selector_List* child = *itr;
-        vector<Complex_Selector*> newElements;
+        std::vector<Complex_Selector*> newElements;
 
         // For every COMPLEX_SELECTOR in `result`
         // For every COMPLEX_SELECTOR in `child`
@@ -1725,7 +1727,7 @@ namespace Sass {
 
             // Must be a simple sequence
             if( childSeq->combinator() != Complex_Selector::Combinator::ANCESTOR_OF ) {
-              string msg("Can't append  `");
+              std::string msg("Can't append  `");
               msg += childSeq->perform(&to_string);
               msg += "` to `";
               msg += parentSeqClone->perform(&to_string);;
@@ -1736,7 +1738,7 @@ namespace Sass {
             // Cannot be a Universal selector
             Type_Selector* pType = dynamic_cast<Type_Selector*>(base->head()->first());
             if(pType && pType->name() == "*") {
-              string msg("Can't append  `");
+              std::string msg("Can't append  `");
               msg += childSeq->perform(&to_string);
               msg += "` to `";
               msg += parentSeqClone->perform(&to_string);;
@@ -1784,7 +1786,7 @@ namespace Sass {
 
       for (size_t i = 0, L = sel->length(); i < L; ++i) {
         Simple_Selector* ss = (*sel)[i];
-        string ss_string = ss->perform(&to_string) ;
+        std::string ss_string = ss->perform(&to_string) ;
 
         *l << new (ctx.mem) String_Quoted(ss->pstate(), ss_string);
       }
@@ -1841,8 +1843,8 @@ namespace Sass {
       To_String to_string(&ctx, false);
       Expression*  ex_sup = ARG("$super", Expression);
       Expression*  ex_sub = ARG("$sub", Expression);
-      string sup_src = ex_sup->perform(&to_string) + "{";
-      string sub_src = ex_sub->perform(&to_string) + "{";
+      std::string sup_src = ex_sup->perform(&to_string) + "{";
+      std::string sub_src = ex_sub->perform(&to_string) + "{";
       Selector_List* sel_sup = Parser::parse_selector(sup_src.c_str(), ctx);
       Selector_List* sel_sub = Parser::parse_selector(sub_src.c_str(), ctx);
       bool result = sel_sup->is_superselector_of(sel_sub);
@@ -1853,9 +1855,9 @@ namespace Sass {
     BUILT_IN(unique_id)
     {
       std::stringstream ss;
-      uniform_real_distribution<> distributor(0, 4294967296); // 16^8
+      std::uniform_real_distribution<> distributor(0, 4294967296); // 16^8
       uint_fast32_t distributed = static_cast<uint_fast32_t>(distributor(rand));
-      ss << "u" << setfill('0') << setw(8) << std::hex << distributed;
+      ss << "u" << std::setfill('0') << std::setw(8) << std::hex << distributed;
       return new (ctx.mem) String_Quoted(pstate, ss.str());
     }
 

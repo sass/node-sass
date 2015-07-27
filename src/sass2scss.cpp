@@ -27,7 +27,6 @@
 #include "sass2scss.h"
 
 // using std::string
-using namespace std;
 
 // add namespace for c++
 namespace Sass
@@ -50,7 +49,7 @@ namespace Sass
 	#define IS_CSS_COMMENT(converter) (converter.comment == "/*" || (converter.comment == "//" && CONVERT_COMMENT(converter)))
 
 	// pretty printer helper function
-	static string closer (const converter& converter)
+	static std::string closer (const converter& converter)
 	{
 		return PRETTIFY(converter) == 0 ? " }" :
 		     PRETTIFY(converter) <= 1 ? " }" :
@@ -58,7 +57,7 @@ namespace Sass
 	}
 
 	// pretty printer helper function
-	static string opener (const converter& converter)
+	static std::string opener (const converter& converter)
 	{
 		return PRETTIFY(converter) == 0 ? " { " :
 		     PRETTIFY(converter) <= 2 ? " {" :
@@ -67,13 +66,13 @@ namespace Sass
 
 	// check if the given string is a pseudo selector
 	// needed to differentiate from sass property syntax
-	static bool isPseudoSelector (string& sel)
+	static bool isPseudoSelector (std::string& sel)
 	{
 
 		size_t len = sel.length();
 		if (len < 1) return false;
 		size_t pos = sel.find_first_not_of("abcdefghijklmnopqrstuvwxyz-ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1);
-		if (pos != string::npos) sel.erase(pos, string::npos);
+		if (pos != std::string::npos) sel.erase(pos, std::string::npos);
 		size_t i = sel.length();
 		while (i -- > 0) { sel.at(i) = tolower(sel.at(i)); }
 
@@ -153,7 +152,7 @@ namespace Sass
 
 	// check if there is some char data
 	// will ignore everything in comments
-	static bool hasCharData (string& sass)
+	static bool hasCharData (std::string& sass)
 	{
 
 		size_t col_pos = 0;
@@ -165,7 +164,7 @@ namespace Sass
 			col_pos = sass.find_first_not_of(" \t\n\v\f\r", col_pos);
 
 			// there was no meaningfull char found
-			if (col_pos == string::npos) return false;
+			if (col_pos == std::string::npos) return false;
 
 			// found a multiline comment opener
 			if (sass.substr(col_pos, 2) == "/*")
@@ -173,7 +172,7 @@ namespace Sass
 				// find the multiline comment closer
 				col_pos = sass.find("*/", col_pos);
 				// maybe we did not find the closer here
-				if (col_pos == string::npos) return false;
+				if (col_pos == std::string::npos) return false;
 				// skip closer
 				col_pos += 2;
 			}
@@ -189,7 +188,7 @@ namespace Sass
 
 	// find src comment opener
 	// correctly skips quoted strings
-	static size_t findCommentOpener (string& sass)
+	static size_t findCommentOpener (std::string& sass)
 	{
 
 		size_t col_pos = 0;
@@ -198,14 +197,14 @@ namespace Sass
 		bool comment = false;
 		size_t brackets = 0;
 
-		while (col_pos != string::npos)
+		while (col_pos != std::string::npos)
 		{
 
 			// process all interesting chars
 			col_pos = sass.find_first_of("\"\'/\\*()", col_pos);
 
 			// assertion for valid result
-			if (col_pos != string::npos)
+			if (col_pos != std::string::npos)
 			{
 				char character = sass.at(col_pos);
 
@@ -271,10 +270,10 @@ namespace Sass
 
 	// remove multiline comments from sass string
 	// correctly skips quoted strings
-	static string removeMultilineComment (string &sass)
+	static std::string removeMultilineComment (std::string &sass)
 	{
 
-		string clean = "";
+		std::string clean = "";
 		size_t col_pos = 0;
 		size_t open_pos = 0;
 		size_t close_pos = 0;
@@ -283,14 +282,14 @@ namespace Sass
 		bool comment = false;
 
 		// process sass til string end
-		while (col_pos != string::npos)
+		while (col_pos != std::string::npos)
 		{
 
 			// process all interesting chars
 			col_pos = sass.find_first_of("\"\'/\\*", col_pos);
 
 			// assertion for valid result
-			if (col_pos != string::npos)
+			if (col_pos != std::string::npos)
 			{
 				char character = sass.at(col_pos);
 
@@ -347,11 +346,11 @@ namespace Sass
 	// EO removeMultilineComment
 
 	// right trim a given string
-	string rtrim(const string &sass)
+	std::string rtrim(const std::string &sass)
 	{
-		string trimmed = sass;
+		std::string trimmed = sass;
 		size_t pos_ws = trimmed.find_last_not_of(" \t\n\v\f\r");
-		if (pos_ws != string::npos)
+		if (pos_ws != std::string::npos)
 		{ trimmed.erase(pos_ws + 1); }
 		else { trimmed.clear(); }
 		return trimmed;
@@ -360,11 +359,11 @@ namespace Sass
 
 	// flush whitespace and print additional text, but
 	// only print additional chars and buffer whitespace
-	string flush (string& sass, converter& converter)
+	std::string flush (std::string& sass, converter& converter)
 	{
 
 		// return flushed
-		string scss = "";
+		std::string scss = "";
 
 		// print whitespace buffer
 		scss += PRETTIFY(converter) > 0 ?
@@ -374,16 +373,16 @@ namespace Sass
 
 		// remove possible newlines from string
 		size_t pos_right = sass.find_last_not_of("\n\r");
-		if (pos_right == string::npos) return scss;
+		if (pos_right == std::string::npos) return scss;
 
 		// get the linefeeds from the string
-		string lfs = sass.substr(pos_right + 1);
+		std::string lfs = sass.substr(pos_right + 1);
 		sass = sass.substr(0, pos_right + 1);
 
 		// find some source comment opener
 		size_t comment_pos = findCommentOpener(sass);
 		// check if there was a source comment
-		if (comment_pos != string::npos)
+		if (comment_pos != std::string::npos)
 		{
 			// convert comment (but only outside other coments)
 			if (CONVERT_COMMENT(converter) && !IS_COMMENT(converter))
@@ -398,7 +397,7 @@ namespace Sass
 			{
 				// also include whitespace before the actual comment opener
 				size_t ws_pos = sass.find_last_not_of(SASS2SCSS_FIND_WHITESPACE, comment_pos - 1);
-				comment_pos = ws_pos == string::npos ? 0 : ws_pos + 1;
+				comment_pos = ws_pos == std::string::npos ? 0 : ws_pos + 1;
 			}
 			if (!STRIP_COMMENT(converter))
 			{
@@ -421,7 +420,7 @@ namespace Sass
 		{
 			// remove leading whitespace and update string
 			size_t pos_left = sass.find_first_not_of(SASS2SCSS_FIND_WHITESPACE);
-			if (pos_left != string::npos) sass = sass.substr(pos_left);
+			if (pos_left != std::string::npos) sass = sass.substr(pos_left);
 		}
 
 		// add flushed data
@@ -434,11 +433,11 @@ namespace Sass
 	// EO flush
 
 	// process a line of the sass text
-	string process (string& sass, converter& converter)
+	std::string process (std::string& sass, converter& converter)
 	{
 
 		// resulting string
-		string scss = "";
+		std::string scss = "";
 
 		// strip multi line comments
 		if (STRIP_COMMENT(converter))
@@ -456,7 +455,7 @@ namespace Sass
 		if (converter.end_of_file) pos_left = 0;
 
 		// maybe has only whitespace
-		if (pos_left == string::npos)
+		if (pos_left == std::string::npos)
 		{
 			// just add complete whitespace
 			converter.whitespace += sass + "\n";
@@ -466,10 +465,10 @@ namespace Sass
 		{
 
 			// extract and store indentation string
-			string indent = sass.substr(0, pos_left);
+			std::string indent = sass.substr(0, pos_left);
 
 			// check if current line starts a comment
-			string open = sass.substr(pos_left, 2);
+			std::string open = sass.substr(pos_left, 2);
 
 			// line has less or same indentation
 			// finalize previous open parser context
@@ -535,15 +534,15 @@ namespace Sass
 				// get postion of first whitespace char
 				size_t pos_wspace = sass.find_first_of(SASS2SCSS_FIND_WHITESPACE, pos_left);
 				// assertion check for valid result
-				if (pos_wspace != string::npos)
+				if (pos_wspace != std::string::npos)
 				{
 					// get the possible pseudo selector
-					string pseudo = sass.substr(pos_left, pos_wspace - pos_left);
+					std::string pseudo = sass.substr(pos_left, pos_wspace - pos_left);
 					// get position of the first real property value char
 					// pseudo selectors get this far, but have no actual value
 					size_t pos_value =  sass.find_first_not_of(SASS2SCSS_FIND_WHITESPACE, pos_wspace);
 					// assertion check for valid result
-					if (pos_value != string::npos)
+					if (pos_value != std::string::npos)
 					{
 						// only process if not (fallowed by a semicolon or is a pseudo selector)
 						if (!(sass.at(pos_value) == ':' || isPseudoSelector(pseudo)))
@@ -553,12 +552,12 @@ namespace Sass
 							// try to find a colon in the current line, but only ...
 							size_t pos_colon = sass.find_first_not_of(":", pos_left);
 							// assertion for valid result
-							if (pos_colon != string::npos)
+							if (pos_colon != std::string::npos)
 							{
 								// ... after the first word (skip begining colons)
 								pos_colon = sass.find_first_of(":", pos_colon);
 								// it is a selector if there was no colon found
-								converter.selector = pos_colon == string::npos;
+								converter.selector = pos_colon == std::string::npos;
 							}
 						}
 					}
@@ -594,7 +593,7 @@ namespace Sass
 						// get position of the last char on the line
 						size_t pos_end = sass.find_last_not_of(SASS2SCSS_FIND_WHITESPACE);
 						// assertion check for valid result
-						if (pos_end != string::npos)
+						if (pos_end != std::string::npos)
 						{
 							// add quotes around the full line after the import statement
 							sass = sass.substr(0, pos_quote) + "\"" + sass.substr(pos_quote, pos_end - pos_quote + 1) + "\"";
@@ -612,12 +611,12 @@ namespace Sass
 				// try to find a colon in the current line, but only ...
 				size_t pos_colon = sass.find_first_not_of(":", pos_left);
 				// assertion for valid result
-				if (pos_colon != string::npos)
+				if (pos_colon != std::string::npos)
 				{
 					// ... after the first word (skip begining colons)
 					pos_colon = sass.find_first_of(":", pos_colon);
 					// it is a selector if there was no colon found
-					converter.selector = pos_colon == string::npos;
+					converter.selector = pos_colon == std::string::npos;
 				}
 
 			}
@@ -707,11 +706,11 @@ namespace Sass
 			size_t pos_right = sass.find_last_not_of(SASS2SCSS_FIND_WHITESPACE);
 
 			// check for invalid result
-			if (pos_right != string::npos)
+			if (pos_right != std::string::npos)
 			{
 
 				// get the last meaningfull char
-				string close = sass.substr(pos_right, 1);
+				std::string close = sass.substr(pos_right, 1);
 
 				// check if next line should be concatenated (list mode)
 				converter.comma = IS_PARSING(converter) && close == ",";
@@ -723,7 +722,7 @@ namespace Sass
 				{
 
 					// get the last two chars from string
-					string close = sass.substr(pos_right - 1, 2);
+					std::string close = sass.substr(pos_right - 1, 2);
 					// update parser status for expicitly closed comment
 					if (close == "*/") converter.comment = "";
 
@@ -777,13 +776,13 @@ namespace Sass
 	}
 
 	// the main converter function for c++
-	char* sass2scss (const string& sass, const int options)
+	char* sass2scss (const std::string& sass, const int options)
 	{
 
 		// local variables
-		string line;
-		string scss = "";
-		stringstream stream(sass);
+		std::string line;
+		std::string scss = "";
+		std::stringstream stream(sass);
 
 		// create converter variable
 		converter converter;
@@ -803,7 +802,7 @@ namespace Sass
 		{ scss += process(line, converter); }
 
 		// create mutable string
-		string closer = "";
+		std::string closer = "";
 		// set the end of file flag
 		converter.end_of_file = true;
 		// process to close all open blocks

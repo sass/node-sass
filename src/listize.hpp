@@ -10,7 +10,6 @@
 #include "environment.hpp"
 
 namespace Sass {
-  using namespace std;
 
   typedef Environment<AST_Node*> Env;
   struct Backtrace;

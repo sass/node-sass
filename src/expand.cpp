@@ -18,11 +18,11 @@ namespace Sass {
   Expand::Expand(Context& ctx, Env* env, Backtrace* bt)
   : ctx(ctx),
     eval(Eval(*this)),
-    env_stack(vector<Env*>()),
-    block_stack(vector<Block*>()),
-    property_stack(vector<String*>()),
-    selector_stack(vector<Selector_List*>()),
-    backtrace_stack(vector<Backtrace*>()),
+    env_stack(std::vector<Env*>()),
+    block_stack(std::vector<Block*>()),
+    property_stack(std::vector<String*>()),
+    selector_stack(std::vector<Selector_List*>()),
+    backtrace_stack(std::vector<Backtrace*>()),
     in_keyframes(false)
   {
     env_stack.push_back(0);
@@ -98,7 +98,7 @@ namespace Sass {
 
     Expression* ex = r->selector()->perform(&eval);
     Selector_List* sel = dynamic_cast<Selector_List*>(ex);
-    if (sel == 0) throw runtime_error("Expanded null selector");
+    if (sel == 0) throw std::runtime_error("Expanded null selector");
 
     selector_stack.push_back(sel);
     Block* blk = r->block()->perform(this)->block();
@@ -217,7 +217,7 @@ namespace Sass {
   Statement* Expand::operator()(Assignment* a)
   {
     Env* env = environment();
-    string var(a->variable());
+    std::string var(a->variable());
     if (a->is_global()) {
       if (a->is_default()) {
         if (env->has_global(var)) {
@@ -246,13 +246,13 @@ namespace Sass {
               }
             }
             else {
-              throw runtime_error("Env not in sync");
+              throw std::runtime_error("Env not in sync");
             }
             return 0;
           }
           cur = cur->parent();
         }
-        throw runtime_error("Env not in sync");
+        throw std::runtime_error("Env not in sync");
       }
       else if (env->has_global(var)) {
         if (AST_Node* node = env->get_global(var)) {
@@ -337,7 +337,7 @@ namespace Sass {
   // But iteration vars are reset afterwards
   Statement* Expand::operator()(For* f)
   {
-    string variable(f->variable());
+    std::string variable(f->variable());
     Expression* low = f->lower_bound()->perform(&eval);
     if (low->concrete_type() != Expression::NUMBER) {
       error("lower bound of `@for` directive must be numeric", low->pstate(), backtrace());
@@ -350,7 +350,7 @@ namespace Sass {
     Number* sass_end = static_cast<Number*>(high);
     // check if units are valid for sequence
     if (sass_start->unit() != sass_end->unit()) {
-      stringstream msg; msg << "Incompatible units: '"
+      std::stringstream msg; msg << "Incompatible units: '"
         << sass_start->unit() << "' and '"
         << sass_end->unit() << "'.";
       error(msg.str(), low->pstate(), backtrace());
@@ -392,7 +392,7 @@ namespace Sass {
   // But iteration vars are reset afterwards
   Statement* Expand::operator()(Each* e)
   {
-    vector<string> variables(e->variables());
+    std::vector<std::string> variables(e->variables());
     Expression* expr = e->list()->perform(&eval);
     List* list = 0;
     Map* map = 0;
@@ -408,7 +408,7 @@ namespace Sass {
     }
     // remember variables and then reset them
     Env* env = environment();
-    vector<AST_Node*> old_vars(variables.size());
+    std::vector<AST_Node*> old_vars(variables.size());
     for (size_t i = 0, L = variables.size(); i < L; ++i) {
       old_vars[i] = env->has_local(variables[i]) ? env->get_local(variables[i]) : 0;
       env->set_local(variables[i], 0);
@@ -507,7 +507,7 @@ namespace Sass {
         sel = ssel;
         }
         if (c->has_line_feed()) sel->has_line_feed(true);
-        ctx.subset_map.put(placeholder->to_str_vec(), make_pair(sel, placeholder));
+        ctx.subset_map.put(placeholder->to_str_vec(), std::make_pair(sel, placeholder));
       }
     }
     selector_stack.pop_back();
@@ -529,7 +529,7 @@ namespace Sass {
   Statement* Expand::operator()(Mixin_Call* c)
   {
     Env* env = environment();
-    string full_name(c->name() + "[m]");
+    std::string full_name(c->name() + "[m]");
     if (!env->has(full_name)) {
       error("no mixin named " + c->name(), c->pstate(), backtrace());
     }
@@ -574,7 +574,7 @@ namespace Sass {
   // produce an error if something is not implemented
   inline Statement* Expand::fallback_impl(AST_Node* n)
   {
-    string err = string("`Expand` doesn't handle ") + typeid(*n).name();
+    std::string err =std:: string("`Expand` doesn't handle ") + typeid(*n).name();
     String_Quoted* msg = new (ctx.mem) String_Quoted(ParserState("[WARN]"), err);
     error("unknown internal error; please contact the LibSass maintainers", n->pstate(), backtrace());
     return new (ctx.mem) Warning(ParserState("[WARN]"), msg);

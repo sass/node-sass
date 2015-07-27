@@ -12,7 +12,6 @@
 #include "sass_values.h"
 
 extern "C" {
-  using namespace std;
   using namespace Sass;
 
   struct Sass_Unknown {
@@ -357,7 +356,7 @@ extern "C" {
   {
     Memory_Manager<AST_Node> mem;
     Value* val = sass_value_to_ast_node(mem, v);
-    string str(val->to_string(compressed, precision));
+    std::string str(val->to_string(compressed, precision));
     return sass_make_qstring(str.c_str());
   }
 

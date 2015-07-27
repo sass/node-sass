@@ -4,13 +4,12 @@
 #include "to_string.hpp"
 
 namespace Sass {
-  using namespace std;
 
   Value* To_Value::fallback_impl(AST_Node* n)
   {
     // throw a runtime error if this happens
     // we want a well defined set of possible nodes
-    throw runtime_error("invalid node for to_value");
+    throw std::runtime_error("invalid node for to_value");
     // mute warning
     return 0;
   }

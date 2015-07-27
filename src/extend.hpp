@@ -1,22 +1,18 @@
 #ifndef SASS_EXTEND_H
 #define SASS_EXTEND_H
 
-#include <map>
-#include <set>
-#include <vector>
-#include <iostream>
+#include <string>
 
 #include "ast.hpp"
 #include "operation.hpp"
 #include "subset_map.hpp"
 
 namespace Sass {
-  using namespace std;
 
   class Context;
   class Node;
 
-  typedef Subset_Map<string, pair<Complex_Selector*, Compound_Selector*> > ExtensionSubsetMap;
+  typedef Subset_Map<std::string, std::pair<Complex_Selector*, Compound_Selector*> > ExtensionSubsetMap;
 
   class Extend : public Operation_CRTP<void, Extend> {
 

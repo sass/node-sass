@@ -5,7 +5,6 @@
 #include "utf8_string.hpp"
 
 namespace Sass {
-  using namespace std;
 
   Emitter::Emitter(Context* ctx)
   : wbuf(),
@@ -23,7 +22,7 @@ namespace Sass {
   { }
 
   // return buffer as string
-  string Emitter::get_buffer(void)
+  std::string Emitter::get_buffer(void)
   {
     return wbuf.buffer;
   }
@@ -38,10 +37,10 @@ namespace Sass {
   void Emitter::add_source_index(size_t idx)
   { wbuf.smap.source_index.push_back(idx); }
 
-  string Emitter::generate_source_map(Context &ctx)
+  std::string Emitter::generate_source_map(Context &ctx)
   { return wbuf.smap.generate_source_map(ctx); }
 
-  void Emitter::set_filename(const string& str)
+  void Emitter::set_filename(const std::string& str)
   { wbuf.smap.file = str; }
 
   void Emitter::add_open_mapping(AST_Node* node)
@@ -67,7 +66,7 @@ namespace Sass {
   {
     // check the schedule
     if (scheduled_linefeed) {
-      string linefeeds = "";
+      std::string linefeeds = "";
 
       for (size_t i = 0; i < scheduled_linefeed; i++)
         linefeeds += ctx ? ctx->linefeed : "\n";
@@ -76,7 +75,7 @@ namespace Sass {
       append_string(linefeeds);
 
     } else if (scheduled_space) {
-      string spaces(scheduled_space, ' ');
+      std::string spaces(scheduled_space, ' ');
       scheduled_space = 0;
       append_string(spaces);
     }
@@ -94,21 +93,21 @@ namespace Sass {
   }
 
   // prepend some text or token to the buffer
-  void Emitter::prepend_string(const string& text)
+  void Emitter::prepend_string(const std::string& text)
   {
     wbuf.smap.prepend(Offset(text));
     wbuf.buffer = text + wbuf.buffer;
   }
 
   // append some text or token to the buffer
-  void Emitter::append_string(const string& text)
+  void Emitter::append_string(const std::string& text)
   {
     // write space/lf
     flush_schedules();
 
     if (in_comment && output_style() == COMPACT) {
       // unescape comment nodes
-      string out = comment_to_string(text);
+      std::string out = comment_to_string(text);
       // add to buffer
       wbuf.buffer += out;
       // account for data in source-maps
@@ -122,7 +121,7 @@ namespace Sass {
   }
 
   // append some white-space only text
-  void Emitter::append_wspace(const string& text)
+  void Emitter::append_wspace(const std::string& text)
   {
     if (text.empty()) return;
     if (peek_linefeed(text.c_str())) {
@@ -133,7 +132,7 @@ namespace Sass {
 
   // append some text or token to the buffer
   // this adds source-mappings for node start and end
-  void Emitter::append_token(const string& text, AST_Node* node)
+  void Emitter::append_token(const std::string& text, AST_Node* node)
   {
     flush_schedules();
     add_open_mapping(node);
@@ -149,7 +148,7 @@ namespace Sass {
     if (output_style() == COMPACT) return;
     if (scheduled_linefeed && indentation)
       scheduled_linefeed = 1;
-    string indent = "";
+    std::string indent = "";
     for (size_t i = 0; i < indentation; i++)
       indent += ctx ? ctx->indent : "  ";
     append_string(indent);

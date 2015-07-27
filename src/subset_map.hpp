@@ -6,15 +6,14 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
-#include <iostream>
-#include <sstream>
 
-// using namespace std;
 
+// #include <iostream>
+// #include <sstream>
 // template<typename T>
-// string vector_to_string(vector<T> v)
+// std::string vector_to_string(std::vector<T> v)
 // {
-//   stringstream buffer;
+//   std::stringstream buffer;
 //   buffer << "[";
 
 //   if (!v.empty())
@@ -34,11 +33,11 @@
 // }
 
 // template<typename T>
-// string set_to_string(set<T> v)
+// std::string set_to_string(set<T> v)
 // {
-//   stringstream buffer;
+//   std::stringstream buffer;
 //   buffer << "[";
-//   typename set<T>::iterator i = v.begin();
+//   typename std::set<T>::iterator i = v.begin();
 //   if (!v.empty())
 //   {  buffer << *i; }
 //   else
@@ -56,7 +55,6 @@
 // }
 
 namespace Sass {
-  using namespace std;
 
   template<typename F, typename S, typename T>
   struct triple {
@@ -74,24 +72,24 @@ namespace Sass {
   template<typename K, typename V>
   class Subset_Map {
   private:
-    vector<V> values_;
-    map<K, vector<triple<vector<K>, set<K>, size_t> > > hash_;
+    std::vector<V> values_;
+    std::map<K, std::vector<triple<std::vector<K>, std::set<K>, size_t> > > hash_;
   public:
-    void put(const vector<K>& s, const V& value);
-    vector<pair<V, vector<K> > > get_kv(const vector<K>& s);
-    vector<V> get_v(const vector<K>& s);
+    void put(const std::vector<K>& s, const V& value);
+    std::vector<std::pair<V, std::vector<K> > > get_kv(const std::vector<K>& s);
+    std::vector<V> get_v(const std::vector<K>& s);
     bool empty() { return values_.empty(); }
     void clear() { values_.clear(); hash_.clear(); }
-    const vector<V> values(void) { return values_; }
+    const std::vector<V> values(void) { return values_; }
   };
 
   template<typename K, typename V>
-  void Subset_Map<K, V>::put(const vector<K>& s, const V& value)
+  void Subset_Map<K, V>::put(const std::vector<K>& s, const V& value)
   {
     if (s.empty()) throw "internal error: subset map keys may not be empty";
     size_t index = values_.size();
     values_.push_back(value);
-    set<K> ss;
+    std::set<K> ss;
     for (size_t i = 0, S = s.size(); i < S; ++i)
     { ss.insert(s[i]); }
     for (size_t i = 0, S = s.size(); i < S; ++i)
@@ -102,42 +100,42 @@ namespace Sass {
   }
 
   template<typename K, typename V>
-  vector<pair<V, vector<K> > > Subset_Map<K, V>::get_kv(const vector<K>& s)
+  std::vector<std::pair<V, std::vector<K> > > Subset_Map<K, V>::get_kv(const std::vector<K>& s)
   {
-    vector<K> sorted = s;
+    std::vector<K> sorted = s;
     sort(sorted.begin(), sorted.end());
-    vector<pair<size_t, vector<K> > > indices;
+    std::vector<std::pair<size_t, std::vector<K> > > indices;
     for (size_t i = 0, S = s.size(); i < S; ++i) {
       if (!hash_.count(s[i])) {
         continue;
       }
-      vector<triple<vector<K>, set<K>, size_t> > subsets = hash_[s[i]];
-      // cerr << "length of subsets: " << subsets.size() << endl;
+      std::vector<triple<std::vector<K>, std::set<K>, size_t> > subsets = hash_[s[i]];
+      // std::cerr << "length of subsets: " << subsets.size() << std::endl;
       for (size_t j = 0, T = subsets.size(); j < T; ++j) {
         if (!includes(sorted.begin(), sorted.end(), subsets[j].second.begin(), subsets[j].second.end())) {
-          // cout << vector_to_string(s) << " doesn't include " << set_to_string(subsets[j].second) << endl;
+          // std::cout << vector_to_string(s) << " doesn't include " << set_to_string(subsets[j].second) << std::endl;
           continue;
         }
-        indices.push_back(make_pair(subsets[j].third, subsets[j].first));
-        // cerr << "pushed " << subsets[j].third << " and " << vector_to_string(subsets[j].first) << " onto indices" << endl;
+        indices.push_back(std::make_pair(subsets[j].third, subsets[j].first));
+        // std::cerr << "pushed " << subsets[j].third << " and " << vector_to_string(subsets[j].first) << " onto indices" << std::endl;
       }
     }
     sort(indices.begin(), indices.end());
-    typename vector<pair<size_t, vector<K> > >::iterator indices_end = unique(indices.begin(), indices.end());
+    typename std::vector<std::pair<size_t, std::vector<K> > >::iterator indices_end = unique(indices.begin(), indices.end());
     indices.resize(distance(indices.begin(), indices_end));
 
-    vector<pair<V, vector<K> > > results;
+    std::vector<std::pair<V, std::vector<K> > > results;
     for (size_t i = 0, S = indices.size(); i < S; ++i) {
-      results.push_back(make_pair(values_[indices[i].first], indices[i].second));
+      results.push_back(std::make_pair(values_[indices[i].first], indices[i].second));
     }
     return results;
   }
 
   template<typename K, typename V>
-  vector<V> Subset_Map<K, V>::get_v(const vector<K>& s)
+  std::vector<V> Subset_Map<K, V>::get_v(const std::vector<K>& s)
   {
-    vector<pair<V, vector<K> > > kvs = get_kv(s);
-    vector<V> results;
+    std::vector<std::pair<V, std::vector<K> > > kvs = get_kv(s);
+    std::vector<V> results;
     for (size_t i = 0, S = kvs.size(); i < S; ++i) results.push_back(kvs[i].first);
     return results;
   }

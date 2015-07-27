@@ -48,10 +48,10 @@ namespace Sass {
     return atof(str);
   }
 
-  string string_eval_escapes(const string& s)
+  std::string string_eval_escapes(const std::string& s)
   {
 
-    string out("");
+    std::string out("");
     bool esc = false;
     for (size_t i = 0, L = s.length(); i < L; ++i) {
       if(s[i] == '\\' && esc == false) {
@@ -103,9 +103,9 @@ namespace Sass {
 
   // double escape every escape sequences
   // escape unescaped quotes and backslashes
-  string string_escape(const string& str)
+  std::string string_escape(const std::string& str)
   {
-    string out("");
+    std::string out("");
     for (auto i : str) {
       // escape some characters
       if (i == '"') out += '\\';
@@ -118,9 +118,9 @@ namespace Sass {
 
   // unescape every escape sequence
   // only removes unescaped backslashes
-  string string_unescape(const string& str)
+  std::string string_unescape(const std::string& str)
   {
-    string out("");
+    std::string out("");
     bool esc = false;
     for (auto i : str) {
       if (esc || i != '\\') {
@@ -137,9 +137,9 @@ namespace Sass {
   }
 
   // read css string (handle multiline DELIM)
-  string read_css_string(const string& str)
+  std::string read_css_string(const std::string& str)
   {
-    string out("");
+    std::string out("");
     bool esc = false;
     for (auto i : str) {
       if (i == '\\') {
@@ -161,9 +161,9 @@ namespace Sass {
 
   // evacuate unescaped quoted
   // leave everything else untouched
-  string evacuate_quotes(const string& str)
+  std::string evacuate_quotes(const std::string& str)
   {
-    string out("");
+    std::string out("");
     bool esc = false;
     for (auto i : str) {
       if (!esc) {
@@ -183,9 +183,9 @@ namespace Sass {
 
   // double escape all escape sequences
   // keep unescaped quotes and backslashes
-  string evacuate_escapes(const string& str)
+  std::string evacuate_escapes(const std::string& str)
   {
-    string out("");
+    std::string out("");
     bool esc = false;
     for (auto i : str) {
       if (i == '\\' && !esc) {
@@ -217,9 +217,9 @@ namespace Sass {
   }
 
   // bell character is replaces with space
-  string string_to_output(const string& str)
+  std::string string_to_output(const std::string& str)
   {
-    string out("");
+    std::string out("");
     bool lf = false;
     for (auto i : str) {
       if (i == 10) {
@@ -233,9 +233,9 @@ namespace Sass {
     return out;
   }
 
-  string comment_to_string(const string& text)
+  std::string comment_to_string(const std::string& text)
   {
-    string str = "";
+    std::string str = "";
     size_t has = 0;
     char prev = 0;
     bool clean = false;
@@ -265,11 +265,11 @@ namespace Sass {
     else return text;
   }
 
-   string normalize_wspace(const string& str)
+   std::string normalize_wspace(const std::string& str)
   {
     bool ws = false;
     bool esc = false;
-    string text = "";
+    std::string text = "";
     for(const char& i : str) {
       if (!esc && i == '\\') {
         esc = true;
@@ -317,7 +317,7 @@ namespace Sass {
     return quote_mark;
   }
 
-  string unquote(const string& s, char* qd)
+  std::string unquote(const std::string& s, char* qd)
   {
 
     // not enough room for quotes
@@ -333,7 +333,7 @@ namespace Sass {
     else if (*s.begin() == '\'' && *s.rbegin() == '\'') q = '\'';
     else                                                return s;
 
-    string unq;
+    std::string unq;
     unq.reserve(s.length()-2);
 
     for (size_t i = 1, L = s.length() - 1; i < L; ++i) {
@@ -402,16 +402,16 @@ namespace Sass {
 
   }
 
-  string quote(const string& s, char q, bool keep_linefeed_whitespace)
+  std::string quote(const std::string& s, char q, bool keep_linefeed_whitespace)
   {
 
     // autodetect with fallback to given quote
     q = detect_best_quotemark(s.c_str(), q);
 
     // return an empty quoted string
-    if (s.empty()) return string(2, q ? q : '"');
+    if (s.empty()) return std::string(2, q ? q : '"');
 
-    string quoted;
+    std::string quoted;
     quoted.reserve(s.length()+2);
     quoted.push_back(q);
 
@@ -487,8 +487,8 @@ namespace Sass {
   namespace Util {
     using std::string;
 
-    string normalize_underscores(const string& str) {
-      string normalized = str;
+    std::string normalize_underscores(const std::string& str) {
+      std::string normalized = str;
       for(size_t i = 0, L = normalized.length(); i < L; ++i) {
         if(normalized[i] == '_') {
           normalized[i] = '-';
@@ -497,26 +497,26 @@ namespace Sass {
       return normalized;
     }
 
-    string normalize_decimals(const string& str) {
-      string prefix = "0";
-      string normalized = str;
+    std::string normalize_decimals(const std::string& str) {
+      std::string prefix = "0";
+      std::string normalized = str;
 
       return normalized[0] == '.' ? normalized.insert(0, prefix) : normalized;
     }
 
     // compress a color sixtuplet if possible
     // input: "#CC9900" -> output: "#C90"
-    string normalize_sixtuplet(const string& col) {
+    std::string normalize_sixtuplet(const std::string& col) {
       if(
         col.substr(1, 1) == col.substr(2, 1) &&
         col.substr(3, 1) == col.substr(4, 1) &&
         col.substr(5, 1) == col.substr(6, 1)
       ) {
-        return string("#" + col.substr(1, 1)
+        return std::string("#" + col.substr(1, 1)
                           + col.substr(3, 1)
                           + col.substr(5, 1));
       } else {
-        return string(col);
+        return std::string(col);
       }
     }
 
@@ -674,12 +674,12 @@ namespace Sass {
       return false;
     }
 
-    string vecJoin(const vector<string>& vec, const string& sep)
+    std::string vecJoin(const std::vector<std::string>& vec, const std::string& sep)
     {
       switch (vec.size())
       {
         case 0:
-            return string("");
+            return std::string("");
         case 1:
             return vec[0];
         default:

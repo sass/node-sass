@@ -1,5 +1,6 @@
 #include <iostream>
 #include <typeinfo>
+#include <string>
 
 #include "listize.hpp"
 #include "to_string.hpp"
@@ -26,7 +27,7 @@ namespace Sass {
   Expression* Listize::operator()(Compound_Selector* sel)
   {
     To_String to_string;
-    string str;
+    std::string str;
     for (size_t i = 0, L = sel->length(); i < L; ++i) {
       Expression* e = (*sel)[i]->perform(this);
       if (e) str += e->perform(&to_string);
@@ -46,7 +47,7 @@ namespace Sass {
     }
 
     To_String to_string;
-    string reference = ! sel->reference() ? ""
+    std::string reference = ! sel->reference() ? ""
       : sel->reference()->perform(&to_string);
     switch(sel->combinator())
     {
