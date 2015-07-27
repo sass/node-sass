@@ -357,9 +357,8 @@ static void to_surrogate_pair(uint32_t unicode, uint16_t *uc, uint16_t *lc)
   *lc = (n & 0x3FF) | 0xDC00;
 }
 
-#define is_space(c) ((c) == '\t' || (c) == '\n' || (c) == '\r' || (c) == ' ')
-#define is_digit(c) ((c) >= '0' && (c) <= '9')
-
+bool is_space        (const char *c);
+bool is_digit        (const char *c);
 static bool parse_value     (const char **sp, JsonNode        **out);
 static bool parse_string    (const char **sp, char            **out);
 static bool parse_number    (const char **sp, double           *out);
@@ -935,6 +934,14 @@ failed:
   if (out)
     sb_free(&sb);
   return false;
+}
+
+bool is_space(const char& c) {
+  return ((c) == '\t' || (c) == '\n' || (c) == '\r' || (c) == ' ');
+}
+
+bool is_digit(const char& c){
+  return ((c) >= '0' && (c) <= '9');
 }
 
 /*
