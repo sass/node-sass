@@ -1256,8 +1256,10 @@ namespace Sass {
       while (true) {
         r = u.find_first_of("*/", l);
         string unit(u.substr(l, r == string::npos ? r : r - l));
-        if (nominator) numerator_units_.push_back(unit);
-        else denominator_units_.push_back(unit);
+        if (!unit.empty()) {
+          if (nominator) numerator_units_.push_back(unit);
+          else denominator_units_.push_back(unit);
+        }
         if (r == string::npos) break;
         // ToDo: should error for multiple slashes
         // if (!nominator && u[r] == '/') error(...)
@@ -1287,7 +1289,7 @@ namespace Sass {
   bool Number::is_unitless()
   { return numerator_units_.empty() && denominator_units_.empty(); }
 
-  void Number::normalize(const string& prefered)
+  void Number::normalize(const string& prefered, bool strict)
   {
 
     // first make sure same units cancel each other out
@@ -1331,7 +1333,7 @@ namespace Sass {
         if (string_to_unit(nom) == UNKNOWN) continue;
         // we now have two convertable units
         // add factor for current conversion
-        factor *= conversion_factor(nom, denom);
+        factor *= conversion_factor(nom, denom, strict);
         // update nominator/denominator exponent
         -- exponents[nom]; ++ exponents[denom];
         // inner loop done
@@ -1352,8 +1354,10 @@ namespace Sass {
       {
         // opted to have these switches in the inner loop
         // makes it more readable and should not cost much
-        if (exp.second < 0) denominator_units_.push_back(exp.first);
-        else if (exp.second > 0) numerator_units_.push_back(exp.first);
+        if (!exp.first.empty()) {
+          if (exp.second < 0) denominator_units_.push_back(exp.first);
+          else if (exp.second > 0) numerator_units_.push_back(exp.first);
+        }
       }
     }
 
@@ -1363,14 +1367,14 @@ namespace Sass {
 
     // maybe convert to other unit
     // easier implemented on its own
-    try { convert(prefered); }
+    try { convert(prefered, strict); }
     catch (incompatibleUnits& err)
     { error(err.what(), pstate()); }
     catch (...) { throw; }
 
   }
 
-  void Number::convert(const string& prefered)
+  void Number::convert(const string& prefered, bool strict)
   {
     // abort if unit is empty
     if (prefered.empty()) return;
@@ -1405,7 +1409,7 @@ namespace Sass {
       if (string_to_unit(denom) == UNKNOWN) continue;
       // we now have two convertable units
       // add factor for current conversion
-      factor *= conversion_factor(denom, prefered);
+      factor *= conversion_factor(denom, prefered, strict);
       // update nominator/denominator exponent
       ++ exponents[denom]; -- exponents[prefered];
     }
@@ -1426,7 +1430,7 @@ namespace Sass {
       if (string_to_unit(nom) == UNKNOWN) continue;
       // we now have two convertable units
       // add factor for current conversion
-      factor *= conversion_factor(nom, prefered);
+      factor *= conversion_factor(nom, prefered, strict);
       // update nominator/denominator exponent
       -- exponents[nom]; ++ exponents[prefered];
     }
@@ -1444,8 +1448,10 @@ namespace Sass {
       {
         // opted to have these switches in the inner loop
         // makes it more readable and should not cost much
-        if (exp.second < 0) denominator_units_.push_back(exp.first);
-        else if (exp.second > 0) numerator_units_.push_back(exp.first);
+        if (!exp.first.empty()) {
+          if (exp.second < 0) denominator_units_.push_back(exp.first);
+          else if (exp.second > 0) numerator_units_.push_back(exp.first);
+        }
       }
     }
 

@@ -120,7 +120,7 @@ namespace Sass {
   }
 
   // throws incompatibleUnits exceptions
-  double conversion_factor(const string& s1, const string& s2)
+  double conversion_factor(const string& s1, const string& s2, bool strict)
   {
     // assert for same units
     if (s1 == s2) return 1;
@@ -135,7 +135,8 @@ namespace Sass {
     size_t i1 = u1 - t1;
     size_t i2 = u2 - t2;
     // error if units are not of the same group
-    if (t1 != t2) throw incompatibleUnits(u1, u2);
+    // don't error for multiplication and division
+    if (strict && t1 != t2) throw incompatibleUnits(u1, u2);
     // only process known units
     if (u1 != UNKNOWN && u2 != UNKNOWN) {
       switch (t1) {

@@ -44,6 +44,7 @@ namespace Sass {
     virtual void operator()(Keyframe_Rule*);
     virtual void operator()(Import*);
     virtual void operator()(Comment*);
+    virtual void operator()(Number*);
     virtual void operator()(String_Quoted*);
     virtual void operator()(String_Constant*);
 

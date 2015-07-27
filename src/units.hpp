@@ -67,7 +67,7 @@ namespace Sass {
   const char* unit_to_string(SassUnit unit);
   enum SassUnitType get_unit_type(SassUnit unit);
   // throws incompatibleUnits exceptions
-  double conversion_factor(const string&, const string&);
+  double conversion_factor(const string&, const string&, bool = true);
 
   class incompatibleUnits: public exception
   {
