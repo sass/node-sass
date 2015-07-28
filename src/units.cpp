@@ -52,70 +52,70 @@ namespace Sass {
   {
     switch (unit & 0xFF00)
     {
-      case SIZE: return SIZE; break;
-      case ANGLE: return ANGLE; break;
-      case TIME: return TIME; break;
-      case FREQUENCY: return FREQUENCY; break;
-      case RESOLUTION: return RESOLUTION; break;
-      default: return INCOMMENSURABLE; break;
+      case SassUnitType::SIZE:        return SassUnitType::SIZE; break;
+      case SassUnitType::ANGLE:       return SassUnitType::ANGLE; break;
+      case SassUnitType::TIME:        return SassUnitType::TIME; break;
+      case SassUnitType::FREQUENCY:   return SassUnitType::FREQUENCY; break;
+      case SassUnitType::RESOLUTION:  return SassUnitType::RESOLUTION; break;
+      default:                        return SassUnitType::INCOMMENSURABLE; break;
     }
   };
 
   SassUnit string_to_unit(const string& s)
   {
     // size units
-    if      (s == "px") return PX;
-    else if (s == "pt") return PT;
-    else if (s == "pc") return PC;
-    else if (s == "mm") return MM;
-    else if (s == "cm") return CM;
-    else if (s == "in") return IN;
+    if      (s == "px")   return SassUnit::PX;
+    else if (s == "pt")   return SassUnit::PT;
+    else if (s == "pc")   return SassUnit::PC;
+    else if (s == "mm")   return SassUnit::MM;
+    else if (s == "cm")   return SassUnit::CM;
+    else if (s == "in")   return SassUnit::IN;
     // angle units
-    else if (s == "deg") return DEG;
-    else if (s == "grad") return GRAD;
-    else if (s == "rad") return RAD;
-    else if (s == "turn") return TURN;
+    else if (s == "deg")  return SassUnit::DEG;
+    else if (s == "grad") return SassUnit::GRAD;
+    else if (s == "rad")  return SassUnit::RAD;
+    else if (s == "turn") return SassUnit::TURN;
     // time units
-    else if (s == "s") return SEC;
-    else if (s == "ms") return MSEC;
+    else if (s == "s")    return SassUnit::SEC;
+    else if (s == "ms")   return SassUnit::MSEC;
     // frequency units
-    else if (s == "Hz") return HERTZ;
-    else if (s == "kHz") return KHERTZ;
+    else if (s == "Hz")   return SassUnit::HERTZ;
+    else if (s == "kHz")  return SassUnit::KHERTZ;
     // resolutions units
-    else if (s == "dpi") return DPI;
-    else if (s == "dpcm") return DPCM;
-    else if (s == "dppx") return DPPX;
+    else if (s == "dpi")  return SassUnit::DPI;
+    else if (s == "dpcm") return SassUnit::DPCM;
+    else if (s == "dppx") return SassUnit::DPPX;
     // for unknown units
-    else return UNKNOWN;
+    else return SassUnit::UNKNOWN;
   }
 
   const char* unit_to_string(SassUnit unit)
   {
     switch (unit) {
       // size units
-      case PX: return "px"; break;
-      case PT: return "pt"; break;
-      case PC: return "pc"; break;
-      case MM: return "mm"; break;
-      case CM: return "cm"; break;
-      case IN: return "in"; break;
+      case SassUnit::PX:      return "px"; break;
+      case SassUnit::PT:      return "pt"; break;
+      case SassUnit::PC:      return "pc"; break;
+      case SassUnit::MM:      return "mm"; break;
+      case SassUnit::CM:      return "cm"; break;
+      case SassUnit::IN:      return "in"; break;
       // angle units
-      case DEG: return "deg"; break;
-      case GRAD: return "grad"; break;
-      case RAD: return "rad"; break;
-      case TURN: return "turn"; break;
+      case SassUnit::DEG:     return "deg"; break;
+      case SassUnit::GRAD:    return "grad"; break;
+      case SassUnit::RAD:     return "rad"; break;
+      case SassUnit::TURN:    return "turn"; break;
       // time units
-      case SEC: return "s"; break;
-      case MSEC: return "ms"; break;
+      case SassUnit::SEC:     return "s"; break;
+      case SassUnit::MSEC:    return "ms"; break;
       // frequency units
-      case HERTZ: return "Hz"; break;
-      case KHERTZ: return "kHz"; break;
+      case SassUnit::HERTZ:   return "Hz"; break;
+      case SassUnit::KHERTZ:  return "kHz"; break;
       // resolutions units
-      case DPI: return "dpi"; break;
-      case DPCM: return "dpcm"; break;
-      case DPPX: return "dppx"; break;
+      case SassUnit::DPI:     return "dpi"; break;
+      case SassUnit::DPCM:    return "dpcm"; break;
+      case SassUnit::DPPX:    return "dppx"; break;
       // for unknown units
-      default: return ""; break;;
+      default:                return ""; break;
     }
   }
 
@@ -140,13 +140,13 @@ namespace Sass {
     // only process known units
     if (u1 != UNKNOWN && u2 != UNKNOWN) {
       switch (t1) {
-        case SIZE: return size_conversion_factors[i1][i2]; break;
-        case ANGLE: return angle_conversion_factors[i1][i2]; break;
-        case TIME: return time_conversion_factors[i1][i2]; break;
-        case FREQUENCY: return frequency_conversion_factors[i1][i2]; break;
-        case RESOLUTION: return resolution_conversion_factors[i1][i2]; break;
+        case SassUnitType::SIZE:              return size_conversion_factors[i1][i2]; break;
+        case SassUnitType::ANGLE:             return angle_conversion_factors[i1][i2]; break;
+        case SassUnitType::TIME:              return time_conversion_factors[i1][i2]; break;
+        case SassUnitType::FREQUENCY:         return frequency_conversion_factors[i1][i2]; break;
+        case SassUnitType::RESOLUTION:        return resolution_conversion_factors[i1][i2]; break;
         // ToDo: should we throw error here?
-        case INCOMMENSURABLE: return 0; break;
+        case SassUnitType::INCOMMENSURABLE:   return 0; break;
       }
     }
     // fallback
