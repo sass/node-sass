@@ -444,20 +444,6 @@ namespace Sass {
     ATTACH_OPERATIONS()
   };
 
-  //////////////////
-  // Query features.
-  //////////////////
-  class Supports_Block : public Has_Block {
-    ADD_PROPERTY(Supports_Query*, queries)
-  public:
-    Supports_Block(ParserState pstate, Supports_Query* queries = 0, Block* block = 0)
-    : Has_Block(pstate, block), queries_(queries)
-    { statement_type(SUPPORTS); }
-    bool is_hoistable() { return true; }
-    bool bubbles() { return true; }
-    ATTACH_OPERATIONS()
-  };
-
   ///////////////////////////////////////////////////////////////////////
   // At-rules -- arbitrary directives beginning with "@" that may have an
   // optional statement block.
@@ -1461,34 +1447,90 @@ namespace Sass {
     ATTACH_OPERATIONS()
   };
 
-  ///////////////////
-  // Feature queries.
-  ///////////////////
-  class Supports_Query : public Expression, public Vectorized<Supports_Condition*> {
+  ////////////////////
+  // `@supports` rule.
+  ////////////////////
+  class Supports_Block : public Has_Block {
+    ADD_PROPERTY(Supports_Condition*, condition)
   public:
-    Supports_Query(ParserState pstate, size_t s = 0)
-    : Expression(pstate), Vectorized<Supports_Condition*>(s)
-    { }
+    Supports_Block(ParserState pstate, Supports_Condition* condition, Block* block = 0)
+    : Has_Block(pstate, block), condition_(condition)
+    { statement_type(SUPPORTS); }
+    bool is_hoistable() { return true; }
+    bool bubbles() { return true; }
     ATTACH_OPERATIONS()
   };
 
-  ////////////////////////////////////////////////////////
-  // Feature expressions (for use inside feature queries).
-  ////////////////////////////////////////////////////////
-  class Supports_Condition : public Expression, public Vectorized<Supports_Condition*> {
+  //////////////////////////////////////////////////////
+  // The abstract superclass of all Supports conditions.
+  //////////////////////////////////////////////////////
+  class Supports_Condition : public Expression {
   public:
-    enum Operand { NONE, AND, OR, NOT };
-  private:
-    ADD_PROPERTY(String*, feature)
-    ADD_PROPERTY(Expression*, value)
-    ADD_PROPERTY(Operand, operand)
-    ADD_PROPERTY(bool, is_root)
-  public:
-    Supports_Condition(ParserState pstate, size_t s = 0, String* f = 0,
-                            Expression* v = 0, Operand o = NONE, bool r = false)
-    : Expression(pstate), Vectorized<Supports_Condition*>(s),
-      feature_(f), value_(v), operand_(o), is_root_(r)
+    Supports_Condition(ParserState pstate)
+    : Expression(pstate)
     { }
+    virtual const bool needs_parens(Supports_Condition* cond) { return false; }
+    ATTACH_OPERATIONS()
+  };
+
+  ////////////////////////////////////////////////////////////
+  // An operator condition (e.g. `CONDITION1 and CONDITION2`).
+  ////////////////////////////////////////////////////////////
+  class Supports_Operator : public Supports_Condition {
+  public:
+    enum Operand { AND, OR };
+  private:
+    ADD_PROPERTY(Supports_Condition*, left);
+    ADD_PROPERTY(Supports_Condition*, right);
+    ADD_PROPERTY(Operand, operand);
+  public:
+    Supports_Operator(ParserState pstate, Supports_Condition* l, Supports_Condition* r, Operand o)
+    : Supports_Condition(pstate), left_(l), right_(r), operand_(o)
+    { }
+    virtual const bool needs_parens(Supports_Condition* cond);
+    ATTACH_OPERATIONS()
+  };
+
+  //////////////////////////////////////////
+  // A negation condition (`not CONDITION`).
+  //////////////////////////////////////////
+  class Supports_Negation : public Supports_Condition {
+  private:
+    ADD_PROPERTY(Supports_Condition*, condition);
+  public:
+    Supports_Negation(ParserState pstate, Supports_Condition* c)
+    : Supports_Condition(pstate), condition_(c)
+    { }
+    virtual const bool needs_parens(Supports_Condition* cond);
+    ATTACH_OPERATIONS()
+  };
+
+  /////////////////////////////////////////////////////
+  // A declaration condition (e.g. `(feature: value)`).
+  /////////////////////////////////////////////////////
+  class Supports_Declaration : public Supports_Condition {
+  private:
+    ADD_PROPERTY(Expression*, feature);
+    ADD_PROPERTY(Expression*, value);
+  public:
+    Supports_Declaration(ParserState pstate, Expression* f, Expression* v)
+    : Supports_Condition(pstate), feature_(f), value_(v)
+    { }
+    virtual const bool needs_parens(Supports_Condition* cond) { return false; }
+    ATTACH_OPERATIONS()
+  };
+
+  ///////////////////////////////////////////////
+  // An interpolation condition (e.g. `#{$var}`).
+  ///////////////////////////////////////////////
+  class Supports_Interpolation : public Supports_Condition {
+  private:
+    ADD_PROPERTY(Expression*, value);
+  public:
+    Supports_Interpolation(ParserState pstate, Expression* v)
+    : Supports_Condition(pstate), value_(v)
+    { }
+    virtual const bool needs_parens(Supports_Condition* cond) { return false; }
     ATTACH_OPERATIONS()
   };
 

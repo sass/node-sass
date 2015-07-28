@@ -146,11 +146,10 @@ namespace Sass {
 
   Statement* Expand::operator()(Supports_Block* f)
   {
-    Expression* queries = f->queries()->perform(&eval);
+    Expression* condition = f->condition()->perform(&eval);
     Supports_Block* ff = new (ctx.mem) Supports_Block(f->pstate(),
-                                                    static_cast<Supports_Query*>(queries),
+                                                    static_cast<Supports_Condition*>(condition),
                                                     f->block()->perform(this)->block());
-    // ff->selector(selector());
     return ff;
   }
 

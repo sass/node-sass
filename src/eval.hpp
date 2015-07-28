@@ -61,8 +61,10 @@ namespace Sass {
     Expression* operator()(Media_Query*);
     Expression* operator()(Media_Query_Expression*);
     Expression* operator()(At_Root_Expression*);
-    Expression* operator()(Supports_Query*);
-    Expression* operator()(Supports_Condition*);
+    Expression* operator()(Supports_Operator*);
+    Expression* operator()(Supports_Negation*);
+    Expression* operator()(Supports_Declaration*);
+    Expression* operator()(Supports_Interpolation*);
     Expression* operator()(Null*);
     Expression* operator()(Argument*);
     Expression* operator()(Arguments*);

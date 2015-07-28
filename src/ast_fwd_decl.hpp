@@ -59,8 +59,11 @@ namespace Sass {
   class String_Quoted;
   class Media_Query;
   class Media_Query_Expression;
-  class Supports_Query;
   class Supports_Condition;
+  class Supports_Operator;
+  class Supports_Negation;
+  class Supports_Declaration;
+  class Supports_Interpolation;
   class At_Root_Expression;
   class Null;
   class Parent_Selector;
