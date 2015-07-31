@@ -6,6 +6,8 @@
 #define LFEED "\n"
 #endif
 
+#include "sass.h"
+
 #include <string>
 #include <cstdlib>
 #include <cstring>

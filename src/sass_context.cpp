@@ -6,6 +6,8 @@
 #define LFEED "\n"
 #endif
 
+#include "sass.h"
+
 #include <cstring>
 #include <stdexcept>
 #include "file.hpp"
@@ -227,8 +229,8 @@ extern "C" {
       JsonNode* json_err = json_mkobject();
       json_append_member(json_err, "status", json_mknumber(1));
       json_append_member(json_err, "file", json_mkstring(e.pstate.path));
-      json_append_member(json_err, "line", json_mknumber(e.pstate.line+1));
-      json_append_member(json_err, "column", json_mknumber(e.pstate.column+1));
+      json_append_member(json_err, "line", json_mknumber((double)(e.pstate.line+1)));
+      json_append_member(json_err, "column", json_mknumber((double)(e.pstate.column+1)));
       json_append_member(json_err, "message", json_mkstring(e.message.c_str()));
       string rel_path(Sass::File::resolve_relative_path(e.pstate.path, cwd, cwd));
 

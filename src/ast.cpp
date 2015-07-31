@@ -1817,7 +1817,7 @@ namespace Sass {
     {
       // do we have have too much precision?
       if (pos_fract < precision + pos_point)
-      { precision = pos_fract - pos_point; }
+      { precision = (int)(pos_fract - pos_point); }
       // round value again
       ss.precision(precision);
       ss << fixed << value_;

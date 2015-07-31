@@ -461,7 +461,7 @@ namespace Sass {
   {
     // use values to_string facility
     bool compressed = ctx->output_style == COMPRESSED;
-    string res = n->to_string(compressed, ctx->precision);
+    string res = n->to_string(compressed, (int)ctx->precision);
     // output the final token
     append_token(res, n);
   }
@@ -470,7 +470,7 @@ namespace Sass {
   {
     // use values to_string facility
     bool compressed = ctx->output_style == COMPRESSED;
-    string res = c->to_string(compressed, ctx->precision);
+	string res = c->to_string(compressed, (int)ctx->precision);
     // output the final token
     append_token(res, c);
   }
@@ -479,7 +479,7 @@ namespace Sass {
   {
     // use values to_string facility
     bool compressed = ctx->output_style == COMPRESSED;
-    string res = b->to_string(compressed, ctx->precision);
+	string res = b->to_string(compressed, (int)ctx->precision);
     // output the final token
     append_token(res, b);
   }
@@ -498,7 +498,7 @@ namespace Sass {
   void Inspect::operator()(String_Constant* s)
   {
     // get options from optional? context
-    int precision = ctx ? ctx->precision : 5;
+    int precision = ctx ? (int)ctx->precision : 5;
     bool compressed = ctx ? ctx->output_style == COMPRESSED : false;
     // use values to_string facility
     string res(s->to_string(compressed, precision));
@@ -509,7 +509,7 @@ namespace Sass {
   void Inspect::operator()(String_Quoted* s)
   {
     // get options from optional? context
-    int precision = ctx ? ctx->precision : 5;
+    int precision = ctx ? (int)ctx->precision : 5;
     bool compressed = ctx ? ctx->output_style == COMPRESSED : false;
     // use values to_string facility
     string res(s->to_string(compressed, precision));
@@ -608,7 +608,7 @@ namespace Sass {
   {
     // use values to_string facility
     bool compressed = ctx->output_style == COMPRESSED;
-    string res = n->to_string(compressed, ctx->precision);
+    string res = n->to_string(compressed, (int)ctx->precision);
     // output the final token
     append_token(res, n);
   }
