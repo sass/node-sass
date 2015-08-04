@@ -33,7 +33,6 @@ namespace Sass {
     const char* block_comment(const char* src)
     {
       return sequence<
-               zero_plus < space >,
                delimited_by<
                  slash_star,
                  star_slash,
