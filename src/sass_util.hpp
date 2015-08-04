@@ -233,7 +233,7 @@ namespace Sass {
       KeyType key = keyFunc(e);
 
       if (grouped.find(key) == grouped.end()) {
-        order.insert(make_pair(order.size(), key));
+        order.insert(make_pair((unsigned int)order.size(), key));
 
         vector<EnumType> newCollection;
         newCollection.push_back(e);
