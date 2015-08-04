@@ -959,30 +959,40 @@ namespace Sass {
     return s;
   }
 
-  Expression* Eval::operator()(Supports_Query* q)
+  Expression* Eval::operator()(Supports_Operator* c)
   {
-    Supports_Query* qq = new (ctx.mem) Supports_Query(q->pstate(),
-                                                    q->length());
-    for (size_t i = 0, L = q->length(); i < L; ++i) {
-      *qq << static_cast<Supports_Condition*>((*q)[i]->perform(this));
-    }
-    return qq;
+    Expression* left = c->left()->perform(this);
+    Expression* right = c->right()->perform(this);
+    Supports_Operator* cc = new (ctx.mem) Supports_Operator(c->pstate(),
+                                                 static_cast<Supports_Condition*>(left),
+                                                 static_cast<Supports_Condition*>(right),
+                                                 c->operand());
+    return cc;
   }
 
-  Expression* Eval::operator()(Supports_Condition* c)
+  Expression* Eval::operator()(Supports_Negation* c)
   {
-    String* feature = c->feature();
-    Expression* value = c->value();
-    value = (value ? value->perform(this) : 0);
-    Supports_Condition* cc = new (ctx.mem) Supports_Condition(c->pstate(),
-                                                 c->length(),
+    Expression* condition = c->condition()->perform(this);
+    Supports_Negation* cc = new (ctx.mem) Supports_Negation(c->pstate(),
+                                                 static_cast<Supports_Condition*>(condition));
+    return cc;
+  }
+
+  Expression* Eval::operator()(Supports_Declaration* c)
+  {
+    Expression* feature = c->feature()->perform(this);
+    Expression* value = c->value()->perform(this);
+    Supports_Declaration* cc = new (ctx.mem) Supports_Declaration(c->pstate(),
                                                  feature,
-                                                 value,
-                                                 c->operand(),
-                                                 c->is_root());
-    for (size_t i = 0, L = c->length(); i < L; ++i) {
-      *cc << static_cast<Supports_Condition*>((*c)[i]->perform(this));
-    }
+                                                 value);
+    return cc;
+  }
+
+  Expression* Eval::operator()(Supports_Interpolation* c)
+  {
+    Expression* value = c->value()->perform(this);
+    Supports_Interpolation* cc = new (ctx.mem) Supports_Interpolation(c->pstate(),
+                                                 value);
     return cc;
   }
 

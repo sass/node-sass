@@ -225,7 +225,27 @@ inline void debug_ast(AST_Node* node, string ind = "", Env* env = 0)
     cerr << ind << "Supports_Block " << block;
     cerr << " (" << pstate_source_position(node) << ")";
     cerr << " " << block->tabs() << endl;
-    if (block->block()) for(auto i : block->block()->elements()) { debug_ast(i, ind + " ", env); }
+    debug_ast(block->condition(), ind + " =@ ");
+  } else if (dynamic_cast<Supports_Operator*>(node)) {
+    Supports_Operator* block = dynamic_cast<Supports_Operator*>(node);
+    cerr << ind << "Supports_Operator " << block;
+    cerr << " (" << pstate_source_position(node) << ")"
+    << endl;
+    debug_ast(block->left(), ind + " left) ");
+    debug_ast(block->right(), ind + " right) ");
+  } else if (dynamic_cast<Supports_Negation*>(node)) {
+    Supports_Negation* block = dynamic_cast<Supports_Negation*>(node);
+    cerr << ind << "Supports_Negation " << block;
+    cerr << " (" << pstate_source_position(node) << ")"
+    << endl;
+    debug_ast(block->condition(), ind + " condition) ");
+  } else if (dynamic_cast<Supports_Declaration*>(node)) {
+    Supports_Declaration* block = dynamic_cast<Supports_Declaration*>(node);
+    cerr << ind << "Supports_Declaration " << block;
+    cerr << " (" << pstate_source_position(node) << ")"
+    << endl;
+    debug_ast(block->feature(), ind + " feature) ");
+    debug_ast(block->value(), ind + " value) ");
   } else if (dynamic_cast<Block*>(node)) {
     Block* root_block = dynamic_cast<Block*>(node);
     cerr << ind << "Block " << root_block;

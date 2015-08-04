@@ -225,8 +225,8 @@ namespace Sass {
   {
     if (f->is_invisible()) return;
 
-    Supports_Query* q    = f->queries();
-    Block* b            = f->block();
+    Supports_Condition* c = f->condition();
+    Block* b              = f->block();
 
     // Filter out feature blocks that aren't printable (process its children though)
     if (!Util::isPrintable(f, output_style())) {
@@ -243,7 +243,7 @@ namespace Sass {
     append_indentation();
     append_token("@supports", f);
     append_mandatory_space();
-    q->perform(this);
+    c->perform(this);
     append_scope_opener();
 
     if (b->has_non_hoistable()) {

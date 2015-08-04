@@ -83,7 +83,7 @@ namespace Sass {
     append_indentation();
     append_token("@supports", feature_block);
     append_mandatory_space();
-    feature_block->queries()->perform(this);
+    feature_block->condition()->perform(this);
     feature_block->block()->perform(this);
   }
 
@@ -516,43 +516,49 @@ namespace Sass {
     // output the final token
     append_token(res, s);
   }
-
-  void Inspect::operator()(Supports_Query* fq)
+  void Inspect::operator()(Supports_Operator* so)
   {
-    size_t i = 0;
-    (*fq)[i++]->perform(this);
-    for (size_t L = fq->length(); i < L; ++i) {
-      (*fq)[i]->perform(this);
+
+    if (so->needs_parens(so->left())) append_string("(");
+    so->left()->perform(this);
+    if (so->needs_parens(so->left())) append_string(")");
+
+    if (so->operand() == Supports_Operator::AND) {
+      append_mandatory_space();
+      append_token("and", so);
+      append_mandatory_space();
+    } else if (so->operand() == Supports_Operator::OR) {
+      append_mandatory_space();
+      append_token("or", so);
+      append_mandatory_space();
     }
+
+    if (so->needs_parens(so->right())) append_string("(");
+    so->right()->perform(this);
+    if (so->needs_parens(so->right())) append_string(")");
   }
 
-  void Inspect::operator()(Supports_Condition* fqc)
+  void Inspect::operator()(Supports_Negation* sn)
   {
-    if (fqc->operand() == Supports_Condition::AND) {
-      append_mandatory_space();
-      append_token("and", fqc);
-      append_mandatory_space();
-    } else if (fqc->operand() == Supports_Condition::OR) {
-      append_mandatory_space();
-      append_token("or", fqc);
-      append_mandatory_space();
-    } else if (fqc->operand() == Supports_Condition::NOT) {
-      append_mandatory_space();
-      append_token("not", fqc);
-      append_mandatory_space();
-    }
+    append_token("not", sn);
+    append_mandatory_space();
+    if (sn->needs_parens(sn->condition())) append_string("(");
+    sn->condition()->perform(this);
+    if (sn->needs_parens(sn->condition())) append_string(")");
+  }
 
-    if (!fqc->is_root()) append_string("(");
+  void Inspect::operator()(Supports_Declaration* sd)
+  {
+    append_string("(");
+    sd->feature()->perform(this);
+    append_string(": ");
+    sd->value()->perform(this);
+    append_string(")");
+  }
 
-    if (!fqc->length()) {
-      fqc->feature()->perform(this);
-      append_string(": "); // verified
-      fqc->value()->perform(this);
-    }
-    for (size_t i = 0, L = fqc->length(); i < L; ++i)
-      (*fqc)[i]->perform(this);
-
-    if (!fqc->is_root()) append_string(")");
+  void Inspect::operator()(Supports_Interpolation* sd)
+  {
+    sd->value()->perform(this);
   }
 
   void Inspect::operator()(Media_Query* mq)

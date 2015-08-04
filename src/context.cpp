@@ -32,6 +32,7 @@
 #include "sass2scss.h"
 #include "prelexer.hpp"
 #include "emitter.hpp"
+#include "debugger.hpp"
 
 namespace Sass {
   using namespace Constants;

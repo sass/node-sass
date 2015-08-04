@@ -14,6 +14,17 @@ namespace Sass {
 
   static Null sass_null(Sass::Null(ParserState("null")));
 
+  const bool Supports_Operator::needs_parens(Supports_Condition* cond) {
+    return dynamic_cast<Supports_Negation*>(cond) ||
+          (dynamic_cast<Supports_Operator*>(cond) &&
+           dynamic_cast<Supports_Operator*>(cond)->operand() != operand());
+  }
+
+  const bool Supports_Negation::needs_parens(Supports_Condition* cond) {
+    return dynamic_cast<Supports_Negation*>(cond) ||
+          dynamic_cast<Supports_Operator*>(cond);
+  }
+
   void AST_Node::update_pstate(const ParserState& pstate)
   {
     pstate_.offset += pstate - pstate_ + pstate.offset;

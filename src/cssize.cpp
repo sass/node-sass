@@ -167,7 +167,7 @@ namespace Sass {
     p_stack.push_back(m);
 
     Supports_Block* mm = new (ctx.mem) Supports_Block(m->pstate(),
-                                                    m->queries(),
+                                                    m->condition(),
                                                     m->block()->perform(this)->block());
     mm->tabs(m->tabs());
 
@@ -264,7 +264,7 @@ namespace Sass {
     Block* wrapper_block = new (ctx.mem) Block(m->block()->pstate());
     *wrapper_block << new_rule;
     Supports_Block* mm = new (ctx.mem) Supports_Block(m->pstate(),
-                                                    m->queries(),
+                                                    m->condition(),
                                                     wrapper_block);
 
     mm->tabs(m->tabs());

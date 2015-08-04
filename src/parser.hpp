@@ -267,13 +267,12 @@ namespace Sass {
     Media_Query* parse_media_query();
     Media_Query_Expression* parse_media_expression();
     Supports_Block* parse_supports_directive();
-    Supports_Query* parse_supports_queries();
     Supports_Condition* parse_supports_condition();
     Supports_Condition* parse_supports_negation();
-    Supports_Condition* parse_supports_conjunction();
-    Supports_Condition* parse_supports_disjunction();
+    Supports_Condition* parse_supports_operator();
+    Supports_Condition* parse_supports_interpolation();
     Supports_Condition* parse_supports_declaration();
-    Supports_Condition* parse_supports_declaration_in_parens();
+    Supports_Condition* parse_supports_condition_in_parens();
     At_Root_Block* parse_at_root_block();
     At_Root_Expression* parse_at_root_expression();
     At_Rule* parse_at_rule();

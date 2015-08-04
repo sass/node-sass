@@ -1920,10 +1920,9 @@ namespace Sass {
   // these are very similar to media blocks
   Supports_Block* Parser::parse_supports_directive()
   {
+    Supports_Condition* cond = parse_supports_condition();
     // create the ast node object for the support queries
-    Supports_Block* query = new (ctx.mem) Supports_Block(pstate);
-    // now parse the support queries
-    query->queries(parse_supports_queries());
+    Supports_Block* query = new (ctx.mem) Supports_Block(pstate, cond);
     // additional block is mandatory
     // parse inner block
     query->block(parse_block());
@@ -1931,113 +1930,86 @@ namespace Sass {
     return query;
   }
 
-  // parse multiple queries for supports blocks
-  // these are very similar to media queries
-  Supports_Query* Parser::parse_supports_queries()
+  // parse one query operation
+  // may encounter nested queries
+  Supports_Condition* Parser::parse_supports_condition()
   {
-    // lex optional comments
     lex < css_whitespace >();
-    // create wrapper object and root condition
-    Supports_Query* sq = new (ctx.mem) Supports_Query(pstate);
-    Supports_Condition* cond = new (ctx.mem) Supports_Condition(pstate);
-    // first condition is the root
-    cond->is_root(true);
-    // loop until the abort condition
-    while (!peek < exactly <'{'> >())
-      (*cond) << parse_supports_condition();
-    // add condition
-    (*sq) << cond;
-    // at least one query is mandatory (ToDo: check for ruby sass compat)
-    if (sq->empty()) error("expected @supports condition (e.g. (display: flexbox))", pstate);
-    if (!peek_css < exactly <'{'> >()) error("expected \"{\" after @supports declaration", pstate);
-    // return ast node
-    return sq;
+    Supports_Condition* cond = parse_supports_negation();
+    if (!cond) cond = parse_supports_operator();
+    if (!cond) cond = parse_supports_interpolation();
+    return cond;
   }
-  // EO parse_supports_queries
 
   Supports_Condition* Parser::parse_supports_negation()
   {
-    Supports_Condition* cond = 0;
-    cond = parse_supports_condition();
-    cond->operand(Supports_Condition::NOT);
-    return cond;
+    if (!lex < kwd_not >()) return 0;
+
+    Supports_Condition* cond = parse_supports_condition_in_parens();
+    return new (ctx.mem) Supports_Negation(pstate, cond);
   }
 
-  Supports_Condition* Parser::parse_supports_conjunction()
+  Supports_Condition* Parser::parse_supports_operator()
   {
-    Supports_Condition* cond = 0;
-    cond = parse_supports_condition();
-    cond->operand(Supports_Condition::AND);
+    Supports_Condition* cond = parse_supports_condition_in_parens();
+    if (!cond) return 0;
+
+    while (lex < kwd_and >() || lex < kwd_or >()) {
+      Supports_Operator::Operand op = Supports_Operator::OR;
+      if (lexed.to_string() == "and") op = Supports_Operator::AND;
+
+      lex < css_whitespace >();
+      Supports_Condition* right = parse_supports_condition_in_parens();
+
+      // Supports_Condition* cc = new (ctx.mem) Supports_Condition(*static_cast<Supports_Condition*>(cond));
+      cond = new (ctx.mem) Supports_Operator(pstate, cond, right, op);
+    }
     return cond;
   }
 
-  Supports_Condition* Parser::parse_supports_disjunction()
+  Supports_Condition* Parser::parse_supports_interpolation()
   {
-    Supports_Condition* cond = 0;
-    cond = parse_supports_condition();
-    cond->operand(Supports_Condition::OR);
-    return cond;
+    if (!lex < interpolant >()) return 0;
+
+    String* interp = parse_interpolated_chunk(lexed);
+    if (!interp) return 0;
+
+    return new (ctx.mem) Supports_Interpolation(pstate, interp);
   }
 
+  // TODO: This needs some major work. Although feature conditions
+  // look like declarations their semantics differ siginificantly
   Supports_Condition* Parser::parse_supports_declaration()
   {
     Supports_Condition* cond = 0;
     // parse something declaration like
     Declaration* declaration = parse_declaration();
     if (!declaration) error("@supports condition expected declaration", pstate);
-    cond = new (ctx.mem) Supports_Condition(declaration->pstate(),
-                                        1,
+    cond = new (ctx.mem) Supports_Declaration(declaration->pstate(),
                                         declaration->property(),
                                         declaration->value());
     // ToDo: maybe we need an additional error condition?
     return cond;
   }
 
-  Supports_Condition* Parser::parse_supports_declaration_in_parens()
+  Supports_Condition* Parser::parse_supports_condition_in_parens()
   {
-    Supports_Condition* cond = 0;
-    // create the inner (parenthesis) condition
-    cond = new (ctx.mem) Supports_Condition(pstate);
-    // parse inner supports queries recursively
-    while (!peek < exactly <')'> >())
-      (*cond) << parse_supports_condition();
-    // at least one query is mandatory (ToDo: check for ruby sass compat)
-    if (cond->empty()) error("expected @supports condition (e.g. (display: flexbox))", pstate);
-    // the parenthesis closer is mandatory (ToDo: check for ruby sass compat)
-    if (!lex_css < exactly <')'> >()) error("unclosed parenthesis in @supports declaration", pstate);
-    // if we have just one query, we do not wrap it
-    return (cond->length() == 1) ? (*cond)[0] : cond;
-  }
+    Supports_Condition* interp = parse_supports_interpolation();
+    if (interp != 0) return interp;
 
-
-  // parse one query operation
-  // may encounter nested queries
-  Supports_Condition* Parser::parse_supports_condition()
-  {
-    // lex optional comments
+    if (!lex < exactly <'('> >()) return 0;
     lex < css_whitespace >();
-    // parse `not` query operator
-    if (lex < kwd_not >()) {
-      return parse_supports_negation();
+
+    Supports_Condition* cond = parse_supports_condition();
+    if (cond != 0) {
+      if (!lex < exactly <')'> >()) error("unclosed parenthesis in @supports declaration", pstate);
+    } else {
+      cond = parse_supports_declaration();
+      if (!lex < exactly <')'> >()) error("unclosed parenthesis in @supports declaration", pstate);
     }
-    // parse `and` query operator
-    else if (lex < kwd_and >()) {
-      return parse_supports_conjunction();
-    }
-    // parse `or` query operator
-    else if (lex < kwd_or >()) {
-      return parse_supports_disjunction();
-    }
-    // parse another list with queries
-    else if (lex < exactly <'('> >()) {
-      return parse_supports_declaration_in_parens();
-    }
-    // or parse something declaration like
-    else {
-      return parse_supports_declaration();
-    }
+    lex < css_whitespace >();
+    return cond;
   }
-  // EO parse_supports_condition
 
   At_Root_Block* Parser::parse_at_root_block()
   {
