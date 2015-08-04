@@ -316,7 +316,7 @@ namespace Sass {
       RETURN,
       EXTEND,
       ERROR,
-      DEBUG,
+      DEBUGSTMT,
       WHILE,
       EACH,
       FOR,
@@ -579,7 +579,7 @@ namespace Sass {
   public:
     Debug(ParserState pstate, Expression* val)
     : Statement(pstate), value_(val)
-    { statement_type(DEBUG); }
+    { statement_type(DEBUGSTMT); }
     ATTACH_OPERATIONS()
   };
 
