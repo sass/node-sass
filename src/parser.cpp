@@ -987,7 +987,7 @@ namespace Sass {
     if (lex< sequence< optional< exactly<'*'> >, identifier_schema > >()) {
       prop = parse_identifier_schema();
     }
-    else if (lex< sequence< optional< exactly<'*'> >, identifier > >()) {
+    else if (lex< sequence< optional< exactly<'*'> >, identifier, zero_plus< block_comment > > >()) {
       prop = new (ctx.mem) String_Constant(pstate, lexed);
       prop->is_delayed(true);
     }
@@ -997,6 +997,7 @@ namespace Sass {
     bool is_indented = true;
     const string property(lexed);
     if (!lex_css< one_plus< exactly<':'> > >()) error("property \"" + property + "\" must be followed by a ':'", pstate);
+    lex < optional_css_comments >();
     if (peek_css< exactly<';'> >()) error("style declaration must contain a value", pstate);
     if (peek_css< exactly<'{'> >()) is_indented = false; // don't indent if value is empty
     if (peek_css< static_value >()) {
