@@ -37,12 +37,12 @@ union Sass_Value* sass_custom_function(const union Sass_Value* s_args, Sass_Func
   }
 }
 
-void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx_w, bool is_file, bool is_sync) {
-  NanScope();
+void ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapper* ctx_w, bool is_file, bool is_sync) {
+  Nan::HandleScope scope;
 
   struct Sass_Context* ctx;
 
-  NanAssignPersistent(ctx_w->result, options->Get(NanNew("result"))->ToObject());
+  ctx_w->result.Reset(Nan::Get(options, Nan::New("result").ToLocalChecked()).ToLocalChecked()->ToObject());
 
   if (is_file) {
     ctx_w->fctx = (struct Sass_File_Context*) cptr;
@@ -61,52 +61,52 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
     ctx_w->request.data = ctx_w;
 
     // async (callback) style
-    Local<Function> success_callback = Local<Function>::Cast(options->Get(NanNew("success")));
-    Local<Function> error_callback = Local<Function>::Cast(options->Get(NanNew("error")));
+    v8::Local<v8::Function> success_callback = v8::Local<v8::Function>::Cast(Nan::Get(options, Nan::New("success").ToLocalChecked()).ToLocalChecked());
+    v8::Local<v8::Function> error_callback = v8::Local<v8::Function>::Cast(Nan::Get(options, Nan::New("error").ToLocalChecked()).ToLocalChecked());
 
-    ctx_w->success_callback = new NanCallback(success_callback);
-    ctx_w->error_callback = new NanCallback(error_callback);
+    ctx_w->success_callback = new Nan::Callback(success_callback);
+    ctx_w->error_callback = new Nan::Callback(error_callback);
   }
 
   if (!is_file) {
-    ctx_w->file = create_string(options->Get(NanNew("file")));
+    ctx_w->file = create_string(Nan::Get(options, Nan::New("file").ToLocalChecked()));
     sass_option_set_input_path(sass_options, ctx_w->file);
   }
 
-  int indent_len = options->Get(NanNew("indentWidth"))->Int32Value();
+  int indent_len = Nan::Get(options, Nan::New("indentWidth").ToLocalChecked()).ToLocalChecked()->Int32Value();
 
   ctx_w->indent = (char*)malloc(indent_len + 1);
 
   strcpy(ctx_w->indent, std::string(
     indent_len,
-    options->Get(NanNew("indentType"))->Int32Value() == 1 ? '\t' : ' '
+    Nan::Get(options, Nan::New("indentType").ToLocalChecked()).ToLocalChecked()->Int32Value() == 1 ? '\t' : ' '
     ).c_str());
 
-  ctx_w->linefeed = create_string(options->Get(NanNew("linefeed")));
-  ctx_w->include_path = create_string(options->Get(NanNew("includePaths")));
-  ctx_w->out_file = create_string(options->Get(NanNew("outFile")));
-  ctx_w->source_map = create_string(options->Get(NanNew("sourceMap")));
-  ctx_w->source_map_root = create_string(options->Get(NanNew("sourceMapRoot")));
+  ctx_w->linefeed = create_string(Nan::Get(options, Nan::New("linefeed").ToLocalChecked()));
+  ctx_w->include_path = create_string(Nan::Get(options, Nan::New("includePaths").ToLocalChecked()));
+  ctx_w->out_file = create_string(Nan::Get(options, Nan::New("outFile").ToLocalChecked()));
+  ctx_w->source_map = create_string(Nan::Get(options, Nan::New("sourceMap").ToLocalChecked()));
+  ctx_w->source_map_root = create_string(Nan::Get(options, Nan::New("sourceMapRoot").ToLocalChecked()));
 
   sass_option_set_output_path(sass_options, ctx_w->out_file);
-  sass_option_set_output_style(sass_options, (Sass_Output_Style)options->Get(NanNew("style"))->Int32Value());
-  sass_option_set_is_indented_syntax_src(sass_options, options->Get(NanNew("indentedSyntax"))->BooleanValue());
-  sass_option_set_source_comments(sass_options, options->Get(NanNew("sourceComments"))->BooleanValue());
-  sass_option_set_omit_source_map_url(sass_options, options->Get(NanNew("omitSourceMapUrl"))->BooleanValue());
-  sass_option_set_source_map_embed(sass_options, options->Get(NanNew("sourceMapEmbed"))->BooleanValue());
-  sass_option_set_source_map_contents(sass_options, options->Get(NanNew("sourceMapContents"))->BooleanValue());
+  sass_option_set_output_style(sass_options, (Sass_Output_Style)Nan::Get(options, Nan::New("style").ToLocalChecked()).ToLocalChecked()->Int32Value());
+  sass_option_set_is_indented_syntax_src(sass_options, Nan::Get(options, Nan::New("indentedSyntax").ToLocalChecked()).ToLocalChecked()->BooleanValue());
+  sass_option_set_source_comments(sass_options, Nan::Get(options, Nan::New("sourceComments").ToLocalChecked()).ToLocalChecked()->BooleanValue());
+  sass_option_set_omit_source_map_url(sass_options, Nan::Get(options, Nan::New("omitSourceMapUrl").ToLocalChecked()).ToLocalChecked()->BooleanValue());
+  sass_option_set_source_map_embed(sass_options, Nan::Get(options, Nan::New("sourceMapEmbed").ToLocalChecked()).ToLocalChecked()->BooleanValue());
+  sass_option_set_source_map_contents(sass_options, Nan::Get(options, Nan::New("sourceMapContents").ToLocalChecked()).ToLocalChecked()->BooleanValue());
   sass_option_set_source_map_file(sass_options, ctx_w->source_map);
   sass_option_set_source_map_root(sass_options, ctx_w->source_map_root);
   sass_option_set_include_path(sass_options, ctx_w->include_path);
-  sass_option_set_precision(sass_options, options->Get(NanNew("precision"))->Int32Value());
+  sass_option_set_precision(sass_options, Nan::Get(options, Nan::New("precision").ToLocalChecked()).ToLocalChecked()->Int32Value());
   sass_option_set_indent(sass_options, ctx_w->indent);
   sass_option_set_linefeed(sass_options, ctx_w->linefeed);
 
-  Local<Value> importer_callback = options->Get(NanNew("importer"));
+  v8::Local<v8::Value> importer_callback = Nan::Get(options, Nan::New("importer").ToLocalChecked()).ToLocalChecked();
 
   if (importer_callback->IsFunction()) {
-    Local<Function> importer = Local<Function>::Cast(importer_callback);
-    auto bridge = std::make_shared<CustomImporterBridge>(new NanCallback(importer), ctx_w->is_sync);
+    v8::Local<v8::Function> importer = v8::Local<v8::Function>::Cast(importer_callback);
+    auto bridge = std::make_shared<CustomImporterBridge>(new Nan::Callback(importer), ctx_w->is_sync);
     ctx_w->importer_bridges.push_back(bridge);
 
     Sass_Importer_List c_importers = sass_make_importer_list(1);
@@ -115,13 +115,13 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
     sass_option_set_c_importers(sass_options, c_importers);
   }
   else if (importer_callback->IsArray()) {
-    Handle<Array> importers = Handle<Array>::Cast(importer_callback);
+    v8::Local<v8::Array> importers = v8::Local<v8::Array>::Cast(importer_callback);
     Sass_Importer_List c_importers = sass_make_importer_list(importers->Length());
 
     for (size_t i = 0; i < importers->Length(); ++i) {
-      Local<Function> callback = Local<Function>::Cast(importers->Get(static_cast<uint32_t>(i)));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(Nan::Get(importers, static_cast<uint32_t>(i)).ToLocalChecked());
 
-      auto bridge = std::make_shared<CustomImporterBridge>(new NanCallback(callback), ctx_w->is_sync);
+      auto bridge = std::make_shared<CustomImporterBridge>(new Nan::Callback(callback), ctx_w->is_sync);
       ctx_w->importer_bridges.push_back(bridge);
 
       c_importers[i] = sass_make_importer(sass_importer, importers->Length() - i - 1, bridge.get());
@@ -130,19 +130,19 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
     sass_option_set_c_importers(sass_options, c_importers);
   }
 
-  Local<Value> custom_functions = options->Get(NanNew("functions"));
+  v8::Local<v8::Value> custom_functions = Nan::Get(options, Nan::New("functions").ToLocalChecked()).ToLocalChecked();
 
   if (custom_functions->IsObject()) {
-    Local<Object> functions = Local<Object>::Cast(custom_functions);
-    Local<Array> signatures = functions->GetOwnPropertyNames();
+    v8::Local<v8::Object> functions = v8::Local<v8::Object>::Cast(custom_functions);
+    v8::Local<v8::Array> signatures = Nan::GetOwnPropertyNames(functions).ToLocalChecked();
     unsigned num_signatures = signatures->Length();
     Sass_Function_List fn_list = sass_make_function_list(num_signatures);
 
     for (unsigned i = 0; i < num_signatures; i++) {
-      Local<String> signature = Local<String>::Cast(signatures->Get(NanNew(i)));
-      Local<Function> callback = Local<Function>::Cast(functions->Get(signature));
+      v8::Local<v8::String> signature = v8::Local<v8::String>::Cast(Nan::Get(signatures, Nan::New(i)).ToLocalChecked());
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(Nan::Get(functions, signature).ToLocalChecked());
 
-      auto bridge = std::make_shared<CustomFunctionBridge>(new NanCallback(callback), ctx_w->is_sync);
+      auto bridge = std::make_shared<CustomFunctionBridge>(new Nan::Callback(callback), ctx_w->is_sync);
       ctx_w->function_bridges.push_back(bridge);
 
       Sass_Function_Entry fn = sass_make_function(create_string(signature), sass_custom_function, bridge.get());
@@ -154,48 +154,51 @@ void ExtractOptions(Local<Object> options, void* cptr, sass_context_wrapper* ctx
 }
 
 void GetStats(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
-  NanScope();
+  Nan::HandleScope scope;
 
   char** included_files = sass_context_get_included_files(ctx);
-  Handle<Array> arr = NanNew<Array>();
+  v8::Local<v8::Array> arr = Nan::New<v8::Array>();
 
   if (included_files) {
     for (int i = 0; included_files[i] != nullptr; ++i) {
-      arr->Set(i, NanNew<String>(included_files[i]));
+      Nan::Set(arr, i, Nan::New<v8::String>(included_files[i]).ToLocalChecked());
     }
   }
 
-  NanNew(ctx_w->result)->Get(NanNew("stats"))->ToObject()->Set(NanNew("includedFiles"), arr);
+  Nan::Set(Nan::Get(Nan::New(ctx_w->result), Nan::New("stats").ToLocalChecked()).ToLocalChecked()->ToObject(), Nan::New("includedFiles").ToLocalChecked(), arr);
 }
 
 int GetResult(sass_context_wrapper* ctx_w, Sass_Context* ctx, bool is_sync = false) {
-  NanScope();
+  Nan::HandleScope scope;
+  v8::Local<v8::Object> result;
 
   int status = sass_context_get_error_status(ctx);
+
+  result = Nan::New(ctx_w->result);
 
   if (status == 0) {
     const char* css = sass_context_get_output_string(ctx);
     const char* map = sass_context_get_source_map_string(ctx);
 
-    NanNew(ctx_w->result)->Set(NanNew("css"), NanNewBufferHandle(css, static_cast<uint32_t>(strlen(css))));
+    Nan::Set(result, Nan::New("css").ToLocalChecked(), Nan::CopyBuffer(css, static_cast<uint32_t>(strlen(css))).ToLocalChecked());
 
     GetStats(ctx_w, ctx);
 
     if (map) {
-      NanNew(ctx_w->result)->Set(NanNew("map"), NanNewBufferHandle(map, static_cast<uint32_t>(strlen(map))));
+      Nan::Set(result, Nan::New("map").ToLocalChecked(), Nan::CopyBuffer(map, static_cast<uint32_t>(strlen(map))).ToLocalChecked());
     }
   }
   else if (is_sync) {
-    NanNew(ctx_w->result)->Set(NanNew("error"), NanNew<String>(sass_context_get_error_json(ctx)));
+    Nan::Set(result, Nan::New("error").ToLocalChecked(), Nan::New<v8::String>(sass_context_get_error_json(ctx)).ToLocalChecked());
   }
 
   return status;
 }
 
 void MakeCallback(uv_work_t* req) {
-  NanScope();
+  Nan::HandleScope scope;
 
-  TryCatch try_catch;
+  Nan::TryCatch try_catch;
   sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(req->data);
   struct Sass_Context* ctx;
 
@@ -215,23 +218,22 @@ void MakeCallback(uv_work_t* req) {
   else if (ctx_w->error_callback) {
     // if error, do callback(error)
     const char* err = sass_context_get_error_json(ctx);
-    Local<Value> argv[] = {
-      NanNew<String>(err)
+    v8::Local<v8::Value> argv[] = {
+      Nan::New<v8::String>(err).ToLocalChecked()
     };
     ctx_w->error_callback->Call(1, argv);
   }
   if (try_catch.HasCaught()) {
-    node::FatalException(try_catch);
+    Nan::FatalException(try_catch);
   }
 
   sass_free_context_wrapper(ctx_w);
 }
 
 NAN_METHOD(render) {
-  NanScope();
 
-  Local<Object> options = args[0]->ToObject();
-  char* source_string = create_string(options->Get(NanNew("data")));
+  v8::Local<v8::Object> options = info[0]->ToObject();
+  char* source_string = create_string(Nan::Get(options, Nan::New("data").ToLocalChecked()));
   struct Sass_Data_Context* dctx = sass_make_data_context(source_string);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
 
@@ -241,14 +243,13 @@ NAN_METHOD(render) {
 
   assert(status == 0);
 
-  NanReturnUndefined();
+  return;
 }
 
 NAN_METHOD(render_sync) {
-  NanScope();
 
-  Local<Object> options = args[0]->ToObject();
-  char* source_string = create_string(options->Get(NanNew("data")));
+  v8::Local<v8::Object> options = info[0]->ToObject();
+  char* source_string = create_string(Nan::Get(options, Nan::New("data").ToLocalChecked()));
   struct Sass_Data_Context* dctx = sass_make_data_context(source_string);
   struct Sass_Context* ctx = sass_data_context_get_context(dctx);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
@@ -261,14 +262,13 @@ NAN_METHOD(render_sync) {
 
   sass_free_context_wrapper(ctx_w);
 
-  NanReturnValue(NanNew<Boolean>(result == 0));
+  info.GetReturnValue().Set(Nan::New<v8::Boolean>(result == 0));
 }
 
 NAN_METHOD(render_file) {
-  NanScope();
 
-  Local<Object> options = args[0]->ToObject();
-  char* input_path = create_string(options->Get(NanNew("file")));
+  v8::Local<v8::Object> options = info[0]->ToObject();
+  char* input_path = create_string(Nan::Get(options, Nan::New("file").ToLocalChecked()));
   struct Sass_File_Context* fctx = sass_make_file_context(input_path);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
 
@@ -278,14 +278,13 @@ NAN_METHOD(render_file) {
 
   assert(status == 0);
 
-  NanReturnUndefined();
+  return;
 }
 
 NAN_METHOD(render_file_sync) {
-  NanScope();
 
-  Local<Object> options = args[0]->ToObject();
-  char* input_path = create_string(options->Get(NanNew("file")));
+  v8::Local<v8::Object> options = info[0]->ToObject();
+  char* input_path = create_string(Nan::Get(options, Nan::New("file").ToLocalChecked()));
   struct Sass_File_Context* fctx = sass_make_file_context(input_path);
   struct Sass_Context* ctx = sass_file_context_get_context(fctx);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
@@ -298,20 +297,19 @@ NAN_METHOD(render_file_sync) {
   free(input_path);
   sass_free_context_wrapper(ctx_w);
 
-  NanReturnValue(NanNew<Boolean>(result == 0));
+  info.GetReturnValue().Set(Nan::New<v8::Boolean>(result == 0));
 }
 
 NAN_METHOD(libsass_version) {
-  NanScope();
-  NanReturnValue(NanNew<String>(libsass_version()));
+  info.GetReturnValue().Set(Nan::New<v8::String>(libsass_version()).ToLocalChecked());
 }
 
-void RegisterModule(v8::Handle<v8::Object> target) {
-  NODE_SET_METHOD(target, "render", render);
-  NODE_SET_METHOD(target, "renderSync", render_sync);
-  NODE_SET_METHOD(target, "renderFile", render_file);
-  NODE_SET_METHOD(target, "renderFileSync", render_file_sync);
-  NODE_SET_METHOD(target, "libsassVersion", libsass_version);
+void RegisterModule(v8::Local<v8::Object> target) {
+  Nan::SetMethod(target, "render", render);
+  Nan::SetMethod(target, "renderSync", render_sync);
+  Nan::SetMethod(target, "renderFile", render_file);
+  Nan::SetMethod(target, "renderFileSync", render_file_sync);
+  Nan::SetMethod(target, "libsassVersion", libsass_version);
   SassTypes::Factory::initExports(target);
 }
 

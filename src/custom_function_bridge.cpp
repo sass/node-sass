@@ -2,7 +2,7 @@
 #include "custom_function_bridge.h"
 #include "sass_types/factory.h"
 
-Sass_Value* CustomFunctionBridge::post_process_return_value(Handle<Value> val) const {
+Sass_Value* CustomFunctionBridge::post_process_return_value(v8::Local<v8::Value> val) const {
   try {
     return SassTypes::Factory::unwrap(val)->get_sass_value();
   }
@@ -11,8 +11,8 @@ Sass_Value* CustomFunctionBridge::post_process_return_value(Handle<Value> val) c
   }
 }
 
-std::vector<Handle<Value>> CustomFunctionBridge::pre_process_args(std::vector<void*> in) const {
-  std::vector<Handle<Value>> argv = std::vector<Handle<Value>>();
+std::vector<v8::Local<v8::Value>> CustomFunctionBridge::pre_process_args(std::vector<void*> in) const {
+  std::vector<v8::Local<v8::Value>> argv = std::vector<v8::Local<v8::Value>>();
 
   for (void* value : in) {
     argv.push_back(SassTypes::Factory::create(static_cast<Sass_Value*>(value))->get_js_object());

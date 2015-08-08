@@ -1,13 +1,11 @@
 #include <nan.h>
 #include "color.h"
 
-using namespace v8;
-
 namespace SassTypes
 {
   Color::Color(Sass_Value* v) : SassValueWrapper(v) {}
 
-  Sass_Value* Color::construct(const std::vector<Local<v8::Value>> raw_val) {
+  Sass_Value* Color::construct(const std::vector<v8::Local<v8::Value>> raw_val) {
     double a = 1.0, r = 0, g = 0, b = 0;
     unsigned argb;
 
@@ -52,86 +50,82 @@ namespace SassTypes
     return sass_make_color(r, g, b, a);
   }
 
-  void Color::initPrototype(Handle<ObjectTemplate> proto) {
-    proto->Set(NanNew("getR"), NanNew<FunctionTemplate>(GetR)->GetFunction());
-    proto->Set(NanNew("getG"), NanNew<FunctionTemplate>(GetG)->GetFunction());
-    proto->Set(NanNew("getB"), NanNew<FunctionTemplate>(GetB)->GetFunction());
-    proto->Set(NanNew("getA"), NanNew<FunctionTemplate>(GetA)->GetFunction());
-    proto->Set(NanNew("setR"), NanNew<FunctionTemplate>(SetR)->GetFunction());
-    proto->Set(NanNew("setG"), NanNew<FunctionTemplate>(SetG)->GetFunction());
-    proto->Set(NanNew("setB"), NanNew<FunctionTemplate>(SetB)->GetFunction());
-    proto->Set(NanNew("setA"), NanNew<FunctionTemplate>(SetA)->GetFunction());
+  void Color::initPrototype(v8::Local<v8::FunctionTemplate> proto) {
+    Nan::SetPrototypeMethod(proto, "getR", GetR);
+    Nan::SetPrototypeMethod(proto, "getG", GetG);
+    Nan::SetPrototypeMethod(proto, "getB", GetB);
+    Nan::SetPrototypeMethod(proto, "getA", GetA);
+    Nan::SetPrototypeMethod(proto, "setR", SetR);
+    Nan::SetPrototypeMethod(proto, "setG", SetG);
+    Nan::SetPrototypeMethod(proto, "setB", SetB);
+    Nan::SetPrototypeMethod(proto, "setA", SetA);
   }
 
   NAN_METHOD(Color::GetR) {
-    NanScope();
-    NanReturnValue(NanNew(sass_color_get_r(unwrap(args.This())->value)));
+    info.GetReturnValue().Set(Nan::New(sass_color_get_r(unwrap(info.This())->value)));
   }
 
   NAN_METHOD(Color::GetG) {
-    NanScope();
-    NanReturnValue(NanNew(sass_color_get_g(unwrap(args.This())->value)));
+    info.GetReturnValue().Set(Nan::New(sass_color_get_g(unwrap(info.This())->value)));
   }
 
   NAN_METHOD(Color::GetB) {
-    NanScope();
-    NanReturnValue(NanNew(sass_color_get_b(unwrap(args.This())->value)));
+    info.GetReturnValue().Set(Nan::New(sass_color_get_b(unwrap(info.This())->value)));
   }
 
   NAN_METHOD(Color::GetA) {
-    NanScope();
-    NanReturnValue(NanNew(sass_color_get_a(unwrap(args.This())->value)));
+    info.GetReturnValue().Set(Nan::New(sass_color_get_a(unwrap(info.This())->value)));
   }
 
   NAN_METHOD(Color::SetR) {
-    if (args.Length() != 1) {
-      return NanThrowError(NanNew("Expected just one argument"));
+    if (info.Length() != 1) {
+      return Nan::ThrowError(Nan::New("Expected just one argument").ToLocalChecked());
     }
 
-    if (!args[0]->IsNumber()) {
-      return NanThrowError(NanNew("Supplied value should be a number"));
+    if (!info[0]->IsNumber()) {
+      return Nan::ThrowError(Nan::New("Supplied value should be a number").ToLocalChecked());
     }
 
-    sass_color_set_r(unwrap(args.This())->value, args[0]->ToNumber()->Value());
-    NanReturnUndefined();
+    sass_color_set_r(unwrap(info.This())->value, info[0]->ToNumber()->Value());
+    return;
   }
 
   NAN_METHOD(Color::SetG) {
-    if (args.Length() != 1) {
-      return NanThrowError(NanNew("Expected just one argument"));
+    if (info.Length() != 1) {
+      return Nan::ThrowError(Nan::New("Expected just one argument").ToLocalChecked());
     }
 
-    if (!args[0]->IsNumber()) {
-      return NanThrowError(NanNew("Supplied value should be a number"));
+    if (!info[0]->IsNumber()) {
+      return Nan::ThrowError(Nan::New("Supplied value should be a number").ToLocalChecked());
     }
 
-    sass_color_set_g(unwrap(args.This())->value, args[0]->ToNumber()->Value());
-    NanReturnUndefined();
+    sass_color_set_g(unwrap(info.This())->value, info[0]->ToNumber()->Value());
+    return;
   }
 
   NAN_METHOD(Color::SetB) {
-    if (args.Length() != 1) {
-      return NanThrowError(NanNew("Expected just one argument"));
+    if (info.Length() != 1) {
+      return Nan::ThrowError(Nan::New("Expected just one argument").ToLocalChecked());
     }
 
-    if (!args[0]->IsNumber()) {
-      return NanThrowError(NanNew("Supplied value should be a number"));
+    if (!info[0]->IsNumber()) {
+      return Nan::ThrowError(Nan::New("Supplied value should be a number").ToLocalChecked());
     }
 
-    sass_color_set_b(unwrap(args.This())->value, args[0]->ToNumber()->Value());
-    NanReturnUndefined();
+    sass_color_set_b(unwrap(info.This())->value, info[0]->ToNumber()->Value());
+    return;
   }
 
   NAN_METHOD(Color::SetA) {
-    if (args.Length() != 1) {
-      return NanThrowError(NanNew("Expected just one argument"));
+    if (info.Length() != 1) {
+      return Nan::ThrowError(Nan::New("Expected just one argument").ToLocalChecked());
     }
 
-    if (!args[0]->IsNumber()) {
-      return NanThrowError(NanNew("Supplied value should be a number"));
+    if (!info[0]->IsNumber()) {
+      return Nan::ThrowError(Nan::New("Supplied value should be a number").ToLocalChecked());
     }
 
-    sass_color_set_a(unwrap(args.This())->value, args[0]->ToNumber()->Value());
-    NanReturnUndefined();
+    sass_color_set_a(unwrap(info.This())->value, info[0]->ToNumber()->Value());
+    return;
   }
 }

@@ -14,8 +14,6 @@
 extern "C" {
 #endif
 
-  using namespace v8;
-
   void compile_data(struct Sass_Data_Context* dctx);
   void compile_file(struct Sass_File_Context* fctx);
   void compile_it(uv_work_t* req);
@@ -41,9 +39,9 @@ extern "C" {
     uv_work_t request;
 
     // v8 and nan related
-    Persistent<Object> result;
-    NanCallback* error_callback;
-    NanCallback* success_callback;
+    Nan::Persistent<v8::Object> result;
+    Nan::Callback* error_callback;
+    Nan::Callback* success_callback;
 
     std::vector<std::shared_ptr<CustomFunctionBridge>> function_bridges;
     std::vector<std::shared_ptr<CustomImporterBridge>> importer_bridges;
