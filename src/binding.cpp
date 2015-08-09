@@ -105,7 +105,7 @@ void ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrap
   v8::Local<v8::Value> importer_callback = Nan::Get(options, Nan::New("importer").ToLocalChecked()).ToLocalChecked();
 
   if (importer_callback->IsFunction()) {
-    v8::Local<v8::Function> importer = v8::Local<v8::Function>::Cast(importer_callback);
+    v8::Local<v8::Function> importer = importer_callback.As<v8::Function>();
     auto bridge = std::make_shared<CustomImporterBridge>(new Nan::Callback(importer), ctx_w->is_sync);
     ctx_w->importer_bridges.push_back(bridge);
 
@@ -115,7 +115,7 @@ void ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrap
     sass_option_set_c_importers(sass_options, c_importers);
   }
   else if (importer_callback->IsArray()) {
-    v8::Local<v8::Array> importers = v8::Local<v8::Array>::Cast(importer_callback);
+    v8::Local<v8::Array> importers = importer_callback.As<v8::Array>();
     Sass_Importer_List c_importers = sass_make_importer_list(importers->Length());
 
     for (size_t i = 0; i < importers->Length(); ++i) {
@@ -133,7 +133,7 @@ void ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrap
   v8::Local<v8::Value> custom_functions = Nan::Get(options, Nan::New("functions").ToLocalChecked()).ToLocalChecked();
 
   if (custom_functions->IsObject()) {
-    v8::Local<v8::Object> functions = v8::Local<v8::Object>::Cast(custom_functions);
+    v8::Local<v8::Object> functions = custom_functions.As<v8::Object>();
     v8::Local<v8::Array> signatures = Nan::GetOwnPropertyNames(functions).ToLocalChecked();
     unsigned num_signatures = signatures->Length();
     Sass_Function_List fn_list = sass_make_function_list(num_signatures);

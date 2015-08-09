@@ -7,7 +7,7 @@ SassImportList CustomImporterBridge::post_process_return_value(v8::Local<v8::Val
   Nan::HandleScope scope;
 
   if (returned_value->IsArray()) {
-    v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast(returned_value);
+    v8::Local<v8::Array> array = returned_value.As<v8::Array>();
 
     imports = sass_make_import_list(array->Length());
 
@@ -20,7 +20,7 @@ SassImportList CustomImporterBridge::post_process_return_value(v8::Local<v8::Val
         continue;
       }
 
-      v8::Local<v8::Object> object = v8::Local<v8::Object>::Cast(value);
+      v8::Local<v8::Object> object = value.As<v8::Object>();
 
       if (value->IsNativeError()) {
         char* message = create_string(Nan::Get(object, Nan::New<v8::String>("message").ToLocalChecked()));
@@ -36,7 +36,7 @@ SassImportList CustomImporterBridge::post_process_return_value(v8::Local<v8::Val
   }
   else if (returned_value->IsNativeError()) {
     imports = sass_make_import_list(1);
-    v8::Local<v8::Object> object = v8::Local<v8::Object>::Cast(returned_value);
+    v8::Local<v8::Object> object = returned_value.As<v8::Object>();
     char* message = create_string(Nan::Get(object, Nan::New<v8::String>("message").ToLocalChecked()));
 
     imports[0] = sass_make_import_entry(0, 0, 0);
@@ -45,7 +45,7 @@ SassImportList CustomImporterBridge::post_process_return_value(v8::Local<v8::Val
   }
   else if (returned_value->IsObject()) {
     imports = sass_make_import_list(1);
-    imports[0] = get_importer_entry(v8::Local<v8::Object>::Cast(returned_value));
+    imports[0] = get_importer_entry(returned_value.As<v8::Object>());
   }
 
   return imports;
