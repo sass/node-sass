@@ -62,19 +62,19 @@ namespace SassTypes
   }
 
   NAN_METHOD(Color::GetR) {
-    info.GetReturnValue().Set(Nan::New(sass_color_get_r(unwrap(info.This())->value)));
+    info.GetReturnValue().Set(sass_color_get_r(unwrap(info.This())->value));
   }
 
   NAN_METHOD(Color::GetG) {
-    info.GetReturnValue().Set(Nan::New(sass_color_get_g(unwrap(info.This())->value)));
+    info.GetReturnValue().Set(sass_color_get_g(unwrap(info.This())->value));
   }
 
   NAN_METHOD(Color::GetB) {
-    info.GetReturnValue().Set(Nan::New(sass_color_get_b(unwrap(info.This())->value)));
+    info.GetReturnValue().Set(sass_color_get_b(unwrap(info.This())->value));
   }
 
   NAN_METHOD(Color::GetA) {
-    info.GetReturnValue().Set(Nan::New(sass_color_get_a(unwrap(info.This())->value)));
+    info.GetReturnValue().Set(sass_color_get_a(unwrap(info.This())->value));
   }
 
   NAN_METHOD(Color::SetR) {

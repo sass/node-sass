@@ -76,7 +76,7 @@ namespace SassTypes
   }
 
   NAN_METHOD(List::GetSeparator) {
-    info.GetReturnValue().Set(Nan::New(sass_list_get_separator(unwrap(info.This())->value) == SASS_COMMA));
+    info.GetReturnValue().Set(sass_list_get_separator(unwrap(info.This())->value) == SASS_COMMA);
   }
 
   NAN_METHOD(List::SetSeparator) {

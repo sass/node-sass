@@ -262,7 +262,7 @@ NAN_METHOD(render_sync) {
 
   sass_free_context_wrapper(ctx_w);
 
-  info.GetReturnValue().Set(Nan::New<v8::Boolean>(result == 0));
+  info.GetReturnValue().Set(result == 0);
 }
 
 NAN_METHOD(render_file) {
@@ -297,7 +297,7 @@ NAN_METHOD(render_file_sync) {
   free(input_path);
   sass_free_context_wrapper(ctx_w);
 
-  info.GetReturnValue().Set(Nan::New<v8::Boolean>(result == 0));
+  info.GetReturnValue().Set(result == 0);
 }
 
 NAN_METHOD(libsass_version) {
