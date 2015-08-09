@@ -11,7 +11,7 @@ namespace SassTypes
   // to wrap a given Sass_Value object.
   class Factory {
     public:
-      static void initExports(v8::Local<v8::Object>);
+      static NAN_MODULE_INIT(initExports);
       static Value* create(Sass_Value*);
       static Value* unwrap(v8::Local<v8::Value>);
   };

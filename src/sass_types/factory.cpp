@@ -43,8 +43,8 @@ namespace SassTypes
     }
   }
 
-  void Factory::initExports(v8::Local<v8::Object> exports) {
-    Nan::EscapableHandleScope scope;
+  NAN_MODULE_INIT(Factory::initExports) {
+    Nan::HandleScope scope;
     v8::Local<v8::Object> types = Nan::New<v8::Object>();
 
     Nan::Set(types, Nan::New("Number").ToLocalChecked(), Number::get_constructor());
@@ -55,7 +55,7 @@ namespace SassTypes
     Nan::Set(types, Nan::New("Map").ToLocalChecked(), Map::get_constructor());
     Nan::Set(types, Nan::New("Null").ToLocalChecked(), Null::get_constructor());
     Nan::Set(types, Nan::New("Error").ToLocalChecked(), Error::get_constructor());
-    Nan::Set(exports, Nan::New<v8::String>("types").ToLocalChecked(), scope.Escape(types));
+    Nan::Set(target, Nan::New<v8::String>("types").ToLocalChecked(), types);
   }
 
   Value* Factory::unwrap(v8::Local<v8::Value> obj) {

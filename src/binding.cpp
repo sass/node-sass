@@ -304,7 +304,7 @@ NAN_METHOD(libsass_version) {
   info.GetReturnValue().Set(Nan::New<v8::String>(libsass_version()).ToLocalChecked());
 }
 
-void RegisterModule(v8::Local<v8::Object> target) {
+NAN_MODULE_INIT(RegisterModule) {
   Nan::SetMethod(target, "render", render);
   Nan::SetMethod(target, "renderSync", render_sync);
   Nan::SetMethod(target, "renderFile", render_file);
