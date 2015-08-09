@@ -72,7 +72,6 @@ namespace SassTypes
 
     Value* sass_value = Factory::unwrap(info[1]);
     sass_list_set_value(unwrap(info.This())->value, info[0]->ToInt32()->Value(), sass_value->get_sass_value());
-    return;
   }
 
   NAN_METHOD(List::GetSeparator) {
@@ -89,7 +88,6 @@ namespace SassTypes
     }
 
     sass_list_set_separator(unwrap(info.This())->value, info[0]->ToBoolean()->Value() ? SASS_COMMA : SASS_SPACE);
-    return;
   }
 
   NAN_METHOD(List::GetLength) {

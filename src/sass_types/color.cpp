@@ -87,7 +87,6 @@ namespace SassTypes
     }
 
     sass_color_set_r(unwrap(info.This())->value, info[0]->ToNumber()->Value());
-    return;
   }
 
   NAN_METHOD(Color::SetG) {
@@ -100,7 +99,6 @@ namespace SassTypes
     }
 
     sass_color_set_g(unwrap(info.This())->value, info[0]->ToNumber()->Value());
-    return;
   }
 
   NAN_METHOD(Color::SetB) {
@@ -113,7 +111,6 @@ namespace SassTypes
     }
 
     sass_color_set_b(unwrap(info.This())->value, info[0]->ToNumber()->Value());
-    return;
   }
 
   NAN_METHOD(Color::SetA) {
@@ -126,6 +123,5 @@ namespace SassTypes
     }
 
     sass_color_set_a(unwrap(info.This())->value, info[0]->ToNumber()->Value());
-    return;
   }
 }

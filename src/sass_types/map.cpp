@@ -63,7 +63,6 @@ namespace SassTypes
 
     Value* sass_value = Factory::unwrap(info[1]);
     sass_map_set_value(unwrap(info.This())->value, info[0]->ToInt32()->Value(), sass_value->get_sass_value());
-    return;
   }
 
   NAN_METHOD(Map::GetKey) {
@@ -102,7 +101,6 @@ namespace SassTypes
 
     Value* sass_value = Factory::unwrap(info[1]);
     sass_map_set_key(unwrap(info.This())->value, info[0]->ToInt32()->Value(), sass_value->get_sass_value());
-    return;
   }
 
   NAN_METHOD(Map::GetLength) {

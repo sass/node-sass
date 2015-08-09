@@ -55,7 +55,5 @@ namespace SassTypes
     else {
       info.GetReturnValue().Set(get_singleton().get_js_object());
     }
-
-    return;
   }
 }

@@ -242,8 +242,6 @@ NAN_METHOD(render) {
   int status = uv_queue_work(uv_default_loop(), &ctx_w->request, compile_it, (uv_after_work_cb)MakeCallback);
 
   assert(status == 0);
-
-  return;
 }
 
 NAN_METHOD(render_sync) {
@@ -277,8 +275,6 @@ NAN_METHOD(render_file) {
   int status = uv_queue_work(uv_default_loop(), &ctx_w->request, compile_it, (uv_after_work_cb)MakeCallback);
 
   assert(status == 0);
-
-  return;
 }
 
 NAN_METHOD(render_file_sync) {

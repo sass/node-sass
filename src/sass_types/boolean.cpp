@@ -65,8 +65,6 @@ namespace SassTypes
 
       info.GetReturnValue().Set((get_singleton(info[0]->ToBoolean()->Value()).get_js_object()));
     }
-
-    return;
   }
 
   NAN_METHOD(Boolean::GetValue) {

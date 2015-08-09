@@ -135,8 +135,6 @@ NAN_METHOD(CallbackBridge<T COMMA L>::ReturnCallback) {
   if (try_catch.HasCaught()) {
     Nan::FatalException(try_catch);
   }
-
-  return;
 }
 
 template <typename T, typename L>

@@ -55,7 +55,6 @@ namespace SassTypes
     }
 
     sass_number_set_value(unwrap(info.This())->value, info[0]->ToNumber()->Value());
-    return;
   }
 
   NAN_METHOD(Number::SetUnit) {
@@ -68,6 +67,5 @@ namespace SassTypes
     }
 
     sass_number_set_unit(unwrap(info.This())->value, create_string(info[0]));
-    return;
   }
 }

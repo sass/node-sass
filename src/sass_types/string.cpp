@@ -39,6 +39,5 @@ namespace SassTypes
     }
 
     sass_string_set_value(unwrap(info.This())->value, create_string(info[0]));
-    return;
   }
 }
