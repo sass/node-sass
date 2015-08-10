@@ -71,6 +71,12 @@ namespace Sass {
                                     false, true);
   }
 
+  std::string function_name(Signature sig)
+  {
+    std::string str(sig);
+    return str.substr(0, str.find('('));
+  }
+
   namespace Functions {
 
     inline void handle_utf8_error (const ParserState& pstate, Backtrace* backtrace)
@@ -147,6 +153,12 @@ namespace Sass {
     Selector_List* get_arg_sel(const string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
       To_String to_string(&ctx, false);
       Expression* exp = ARG(argname, Expression);
+      if (exp->concrete_type() == Expression::NULL_VAL) {
+        stringstream msg;
+        msg << argname << ": null is not a valid selector: it must be a string,\n";
+        msg << "a list of strings, or a list of lists of strings for `" << function_name(sig) << "'";
+        error(msg.str(), pstate);
+      }
       string exp_src = exp->perform(&to_string) + "{";
       return Parser::parse_selector(exp_src.c_str(), ctx);
     }
@@ -155,6 +167,12 @@ namespace Sass {
     Complex_Selector* get_arg_sel(const string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
       To_String to_string(&ctx, false);
       Expression* exp = ARG(argname, Expression);
+      if (exp->concrete_type() == Expression::NULL_VAL) {
+        stringstream msg;
+        msg << argname << ": null is not a valid selector: it must be a string,\n";
+        msg << "a list of strings, or a list of lists of strings for `" << function_name(sig) << "'";
+        error(msg.str(), pstate);
+      }
       string exp_src = exp->perform(&to_string) + "{";
       Selector_List* sel_list = Parser::parse_selector(exp_src.c_str(), ctx);
       return (sel_list->length() > 0) ? sel_list->first() : 0;
@@ -164,6 +182,12 @@ namespace Sass {
     Compound_Selector* get_arg_sel(const string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
       To_String to_string(&ctx, false);
       Expression* exp = ARG(argname, Expression);
+      if (exp->concrete_type() == Expression::NULL_VAL) {
+        stringstream msg;
+        msg << argname << ": null is not a valid selector: it must be a string,\n";
+        msg << "a list of strings, or a list of lists of strings for `" << function_name(sig) << "'";
+        error(msg.str(), pstate);
+      }
       string exp_src = exp->perform(&to_string) + "{";
       Selector_List* sel_list = Parser::parse_selector(exp_src.c_str(), ctx);
       return (sel_list->length() > 0) ? sel_list->first()->tail()->head() : 0;
@@ -1601,6 +1625,12 @@ namespace Sass {
       vector<Selector_List*> parsedSelectors;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Expression* exp = dynamic_cast<Expression*>(arglist->value_at_index(i));
+        if (exp->concrete_type() == Expression::NULL_VAL) {
+          stringstream msg;
+          msg << "$selectors: null is not a valid selector: it must be a string,\n";
+          msg << "a list of strings, or a list of lists of strings for 'selector-nest'";
+          error(msg.str(), pstate);
+        }
         string exp_src = exp->perform(&to_string) + "{";
         Selector_List* sel = Parser::parse_selector(exp_src.c_str(), ctx);
         parsedSelectors.push_back(sel);
@@ -1655,6 +1685,12 @@ namespace Sass {
       vector<Selector_List*> parsedSelectors;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Expression* exp = dynamic_cast<Expression*>(arglist->value_at_index(i));
+        if (exp->concrete_type() == Expression::NULL_VAL) {
+          stringstream msg;
+          msg << "$selectors: null is not a valid selector: it must be a string,\n";
+          msg << "a list of strings, or a list of lists of strings for 'selector-append'";
+          error(msg.str(), pstate);
+        }
         string exp_src = exp->perform(&to_string) + "{";
         Selector_List* sel = Parser::parse_selector(exp_src.c_str(), ctx);
         parsedSelectors.push_back(sel);
@@ -1759,8 +1795,6 @@ namespace Sass {
     Signature selector_extend_sig = "selector-extend($selector, $extendee, $extender)";
     BUILT_IN(selector_extend)
     {
-      To_String to_string;
-
       Selector_List*  selector = ARGSEL("$selector", Selector_List, p_contextualize);
       Selector_List*  extendee = ARGSEL("$extendee", Selector_List, p_contextualize);
       Selector_List*  extender = ARGSEL("$extender", Selector_List, p_contextualize);
@@ -1795,10 +1829,7 @@ namespace Sass {
     Signature selector_parse_sig = "selector-parse($selector)";
     BUILT_IN(selector_parse)
     {
-      To_String to_string(&ctx, false);
-      Expression*  exp = ARG("$selector", Expression);
-      string sel_src = exp->perform(&to_string) + "{";
-      Selector_List* sel = Parser::parse_selector(sel_src.c_str(), ctx);
+      Selector_List* sel = ARGSEL("$selector", Selector_List, p_contextualize);
 
       Listize listize(ctx);
       return sel->perform(&listize);
