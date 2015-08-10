@@ -769,6 +769,50 @@ describe('api', function() {
       });
     });
 
+    describe('should properly bubble up errors from sass color constructor', function() {
+      it('four booleans', function(done) {
+        sass.render({
+          data: 'div { color: foo(); }',
+          functions: {
+            'foo()': function() {
+              return new sass.types.Color(false, false, false, false);
+            }
+          }
+        }, function(error) {
+          assert.ok(/Constructor arguments should be numbers exclusively/.test(error.message));
+          done();
+        });
+      });
+
+      it('two arguments', function(done) {
+        sass.render({
+          data: 'div { color: foo(); }',
+          functions: {
+            'foo()': function() {
+              return sass.types.Color(2,3);
+            }
+          }
+        }, function(error) {
+          assert.ok(/Constructor should be invoked with either 0, 1, 3 or 4 arguments/.test(error.message));
+          done();
+        });
+      });
+
+      it('single string argument', function(done) {
+        sass.render({
+          data: 'div { color: foo(); }',
+          functions: {
+            'foo()': function() {
+              return sass.types.Color('foo');
+            }
+          }
+        }, function(error) {
+          assert.ok(/Only argument should be an integer/.test(error.message));
+          done();
+        });
+      });
+    });
+
     it('should properly bubble up errors from sass value constructors', function(done) {
       sass.render({
         data: 'div { color: foo(); }',
