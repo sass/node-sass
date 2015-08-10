@@ -1517,10 +1517,14 @@ namespace Sass {
   Expression* Eval::operator()(Parent_Selector* p)
   {
     Selector_List* pr = selector();
-    exp.selector_stack.pop_back();
-    if (pr) pr = operator()(pr);
-    exp.selector_stack.push_back(pr);
-    return pr;
+    if (pr) {
+      exp.selector_stack.pop_back();
+      pr = operator()(pr);
+      exp.selector_stack.push_back(pr);
+      return pr;
+    } else {
+      return new (ctx.mem) Null(p->pstate());
+    }
   }
 
 }
