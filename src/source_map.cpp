@@ -11,15 +11,14 @@
 #include "source_map.hpp"
 
 namespace Sass {
-  using std::ptrdiff_t;
   SourceMap::SourceMap() : current_position(0, 0, 0), file("stdin") { }
-  SourceMap::SourceMap(const string& file) : current_position(0, 0, 0), file(file) { }
+  SourceMap::SourceMap(const std::string& file) : current_position(0, 0, 0), file(file) { }
 
-  string SourceMap::generate_source_map(Context &ctx) {
+  std::string SourceMap::generate_source_map(Context &ctx) {
 
     const bool include_sources = ctx.source_map_contents;
-    const vector<string> includes = ctx.include_links;
-    const vector<char*> sources = ctx.sources;
+    const std::vector<std::string> includes = ctx.include_links;
+    const std::vector<char*> sources = ctx.sources;
 
     JsonNode* json_srcmap = json_mkobject();
 
@@ -54,7 +53,7 @@ namespace Sass {
         json_append_member(json_srcmap, "sourcesContent", json_contents);
     }
 
-    string mappings = serialize_mappings();
+    std::string mappings = serialize_mappings();
     JsonNode *json_mappings = json_mkstring(mappings.c_str());
     json_append_member(json_srcmap, "mappings", json_mappings);
 
@@ -64,14 +63,14 @@ namespace Sass {
     json_append_member(json_srcmap, "names", json_names);
 
     char *str = json_stringify(json_srcmap, "\t");
-    string result = string(str);
+    std::string result = std::string(str);
     free(str);
     json_delete(json_srcmap);
     return result;
   }
 
-  string SourceMap::serialize_mappings() {
-    string result = "";
+  std::string SourceMap::serialize_mappings() {
+    std::string result = "";
 
     size_t previous_generated_line = 0;
     size_t previous_generated_column = 0;
@@ -118,11 +117,11 @@ namespace Sass {
     Offset size(out.smap.current_position);
     for (Mapping mapping : out.smap.mappings) {
       if (mapping.generated_position.line > size.line) {
-        throw(runtime_error("prepend sourcemap has illegal line"));
+        throw(std::runtime_error("prepend sourcemap has illegal line"));
       }
       if (mapping.generated_position.line == size.line) {
         if (mapping.generated_position.column > size.column) {
-          throw(runtime_error("prepend sourcemap has illegal column"));
+          throw(std::runtime_error("prepend sourcemap has illegal column"));
         }
       }
     }

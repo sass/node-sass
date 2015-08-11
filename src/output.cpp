@@ -3,7 +3,6 @@
 #include "to_string.hpp"
 
 namespace Sass {
-  using namespace std;
 
   Output::Output(Context* ctx)
   : Inspect(Emitter(ctx)),
@@ -22,13 +21,13 @@ namespace Sass {
   {
     // use values to_string facility
     To_String to_string(ctx);
-    string res = n->perform(&to_string);
+    std::string res = n->perform(&to_string);
     // check for a valid unit here
     // includes result for reporting
     if (n->numerator_units().size() > 1 ||
         n->denominator_units().size() > 0 ||
-        (n->numerator_units().size() && n->numerator_units()[0].find_first_of('/') != string::npos) ||
-        (n->numerator_units().size() && n->numerator_units()[0].find_first_of('*') != string::npos)
+        (n->numerator_units().size() && n->numerator_units()[0].find_first_of('/') != std::string::npos) ||
+        (n->numerator_units().size() && n->numerator_units()[0].find_first_of('*') != std::string::npos)
     ) {
       error(res + " isn't a valid CSS value.", n->pstate());
     }
@@ -44,7 +43,7 @@ namespace Sass {
   void Output::operator()(Map* m)
   {
     To_String to_string(ctx);
-    string dbg(m->perform(&to_string));
+    std::string dbg(m->perform(&to_string));
     error(dbg + " isn't a valid CSS value.", m->pstate());
   }
 
@@ -93,7 +92,7 @@ namespace Sass {
   void Output::operator()(Comment* c)
   {
     To_String to_string(ctx);
-    string txt = c->text()->perform(&to_string);
+    std::string txt = c->text()->perform(&to_string);
     // if (indentation && txt == "/**/") return;
     bool important = c->is_important();
     if (output_style() != COMPRESSED || important) {
@@ -134,7 +133,7 @@ namespace Sass {
       decls = true;
       if (output_style() == NESTED) indentation += r->tabs();
       if (ctx && ctx->source_comments) {
-        stringstream ss;
+        std::stringstream ss;
         append_indentation();
         ss << "/* line " << r->pstate().line+1 << ", " << r->pstate().path << " */";
         append_string(ss.str());
@@ -150,7 +149,7 @@ namespace Sass {
           Declaration* dec = static_cast<Declaration*>(stm);
           if (dec->value()->concrete_type() == Expression::STRING) {
             String_Constant* valConst = static_cast<String_Constant*>(dec->value());
-            string val(valConst->value());
+            std::string val(valConst->value());
             if (auto qstr = dynamic_cast<String_Quoted*>(valConst)) {
               if (!qstr->quote_mark() && val.empty()) {
                 bPrintExpression = false;
@@ -318,7 +317,7 @@ namespace Sass {
 
   void Output::operator()(At_Rule* a)
   {
-    string      kwd   = a->keyword();
+    std::string      kwd   = a->keyword();
     Selector*   s     = a->selector();
     Expression* v     = a->value();
     Block*      b     = a->block();
@@ -380,7 +379,7 @@ namespace Sass {
 
   void Output::operator()(String_Constant* s)
   {
-    string value(s->value());
+    std::string value(s->value());
     if (s->can_compress_whitespace() && output_style() == COMPRESSED) {
       value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
     }

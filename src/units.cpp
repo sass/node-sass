@@ -65,7 +65,7 @@ namespace Sass {
     }
   };
 
-  SassUnit string_to_unit(const string& s)
+  SassUnit string_to_unit(const std::string& s)
   {
     // size units
     if      (s == "px")   return SassUnit::PX;
@@ -124,7 +124,7 @@ namespace Sass {
   }
 
   // throws incompatibleUnits exceptions
-  double conversion_factor(const string& s1, const string& s2, bool strict)
+  double conversion_factor(const std::string& s1, const std::string& s2, bool strict)
   {
     // assert for same units
     if (s1 == s2) return 1;

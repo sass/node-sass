@@ -1,8 +1,6 @@
 #ifndef SASS_FUNCTIONS_H
 #define SASS_FUNCTIONS_H
 
-#include <string>
-
 #include "position.hpp"
 #include "environment.hpp"
 #include "sass_functions.h"

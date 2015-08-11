@@ -1,5 +1,6 @@
 #include <iostream>
 #include <typeinfo>
+#include <vector>
 
 #include "cssize.hpp"
 #include "to_string.hpp"
@@ -10,8 +11,8 @@ namespace Sass {
 
   Cssize::Cssize(Context& ctx, Backtrace* bt)
   : ctx(ctx),
-    block_stack(vector<Block*>()),
-    p_stack(vector<Statement*>()),
+    block_stack(std::vector<Block*>()),
+    p_stack(std::vector<Statement*>()),
     backtrace(bt)
   {  }
 
@@ -325,9 +326,9 @@ namespace Sass {
     return result;
   }
 
-  vector<pair<bool, Block*>> Cssize::slice_by_bubble(Statement* b)
+  std::vector<std::pair<bool, Block*>> Cssize::slice_by_bubble(Statement* b)
   {
-    vector<pair<bool, Block*>> results;
+    std::vector<std::pair<bool, Block*>> results;
     for (size_t i = 0, L = b->block()->length(); i < L; ++i) {
       Statement* value = (*b->block())[i];
       bool key = value->statement_type() == Statement::BUBBLE;
@@ -341,7 +342,7 @@ namespace Sass {
       {
         Block* wrapper_block = new (ctx.mem) Block(value->pstate());
         *wrapper_block << value;
-        results.push_back(make_pair(key, wrapper_block));
+        results.push_back(std::make_pair(key, wrapper_block));
       }
     }
     return results;
@@ -368,7 +369,7 @@ namespace Sass {
       case Statement::NONE:
       default:
         error("unknown internal error; please contact the LibSass maintainers", s->pstate(), backtrace);
-        String_Quoted* msg = new (ctx.mem) String_Quoted(ParserState("[WARN]"), string("`CSSize` can't clone ") + typeid(*s).name());
+        String_Quoted* msg = new (ctx.mem) String_Quoted(ParserState("[WARN]"), std::string("`CSSize` can't clone ") + typeid(*s).name());
         return new (ctx.mem) Warning(ParserState("[WARN]"), msg);
     }
   }
@@ -376,7 +377,7 @@ namespace Sass {
   Statement* Cssize::debubble(Block* children, Statement* parent)
   {
     Has_Block* previous_parent = 0;
-    vector<pair<bool, Block*>> baz = slice_by_bubble(children);
+    std::vector<std::pair<bool, Block*>> baz = slice_by_bubble(children);
     Block* result = new (ctx.mem) Block(children->pstate());
 
     for (size_t i = 0, L = baz.size(); i < L; ++i) {
@@ -500,13 +501,13 @@ namespace Sass {
   {
     To_String to_string(&ctx);
 
-    string type;
-    string mod;
+    std::string type;
+    std::string mod;
 
-    string m1 = string(mq1->is_restricted() ? "only" : mq1->is_negated() ? "not" : "");
-    string t1 = mq1->media_type() ? mq1->media_type()->perform(&to_string) : "";
-    string m2 = string(mq2->is_restricted() ? "only" : mq1->is_negated() ? "not" : "");
-    string t2 = mq2->media_type() ? mq2->media_type()->perform(&to_string) : "";
+    std::string m1 = std::string(mq1->is_restricted() ? "only" : mq1->is_negated() ? "not" : "");
+    std::string t1 = mq1->media_type() ? mq1->media_type()->perform(&to_string) : "";
+    std::string m2 = std::string(mq2->is_restricted() ? "only" : mq1->is_negated() ? "not" : "");
+    std::string t2 = mq2->media_type() ? mq2->media_type()->perform(&to_string) : "";
 
 
     if (t1.empty()) t1 = t2;

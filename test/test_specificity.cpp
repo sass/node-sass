@@ -5,17 +5,16 @@
 #include <string>
 #include <iostream>
 
-using namespace std;
 using namespace Sass;
 
 Context ctx = Context::Data();
 To_String to_string;
 
-Selector* selector(string src)
+Selector* selector(std::string src)
 { return Parser::from_c_str(src.c_str(), ctx, "", Position()).parse_selector_list(); }
 
-void spec(string sel)
-{ cout << sel << "\t::\t" << selector(sel + ";")->specificity() << endl; }
+void spec(std::string sel)
+{ std::cout << sel << "\t::\t" << selector(sel + ";")->specificity() << std::endl; }
 
 int main()
 {

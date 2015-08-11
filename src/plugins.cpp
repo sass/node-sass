@@ -28,18 +28,18 @@ namespace Sass {
     if (!strcmp(our_version, "[na]")) return false;
 
     // find the position of the second dot
-    size_t pos = string(our_version).find('.', 0);
-    if (pos != string::npos) pos = string(our_version).find('.', pos + 1);
+    size_t pos = std::string(our_version).find('.', 0);
+    if (pos != std::string::npos) pos = std::string(our_version).find('.', pos + 1);
 
     // if we do not have two dots we fallback to compare complete string
-    if (pos == string::npos) { return strcmp(their_version, our_version) ? 0 : 1; }
+    if (pos == std::string::npos) { return strcmp(their_version, our_version) ? 0 : 1; }
     // otherwise only compare up to the second dot (major versions)
     else { return strncmp(their_version, our_version, pos) ? 0 : 1; }
 
   }
 
   // load one specific plugin
-  bool Plugins::load_plugin (const string& path)
+  bool Plugins::load_plugin (const std::string& path)
   {
 
     typedef const char* (*__plugin_version__)(void);
@@ -77,23 +77,23 @@ namespace Sass {
       else
       {
         // print debug message to stderr (should not happen)
-        cerr << "failed loading 'libsass_support' in <" << path << ">" << endl;
-        if (const char* dlsym_error = dlerror()) cerr << dlsym_error << endl;
+        std::cerr << "failed loading 'libsass_support' in <" << path << ">" << std::endl;
+        if (const char* dlsym_error = dlerror()) std::cerr << dlsym_error << std::endl;
         CLOSE_LIB(plugin);
       }
     }
     else
     {
       // print debug message to stderr (should not happen)
-      cerr << "failed loading plugin <" << path << ">" << endl;
-      if (const char* dlopen_error = dlerror()) cerr << dlopen_error << endl;
+      std::cerr << "failed loading plugin <" << path << ">" << std::endl;
+      if (const char* dlopen_error = dlerror()) std::cerr << dlopen_error << std::endl;
     }
 
     return false;
 
   }
 
-  size_t Plugins::load_plugins(const string& path)
+  size_t Plugins::load_plugins(const std::string& path)
   {
 
     // count plugins
@@ -107,9 +107,9 @@ namespace Sass {
         // use wchar (utf16)
         WIN32_FIND_DATAW data;
         // trailing slash is guaranteed
-        string globsrch(path + "*.dll");
+        std::string globsrch(path + "*.dll");
         // convert to wide chars (utf16) for system call
-        wstring wglobsrch(UTF_8::convert_to_utf16(globsrch));
+        std::wstring wglobsrch(UTF_8::convert_to_utf16(globsrch));
         HANDLE hFile = FindFirstFileW(wglobsrch.c_str(), &data);
         // check if system called returned a result
         // ToDo: maybe we should print a debug message
@@ -121,7 +121,7 @@ namespace Sass {
           try
           {
             // the system will report the filenames with wide chars (utf16)
-            string entry = UTF_8::convert_from_utf16(data.cFileName);
+            std::string entry = UTF_8::convert_from_utf16(data.cFileName);
             // check if file ending matches exactly
             if (!ends_with(entry, ".dll")) continue;
             // load the plugin and increase counter
@@ -135,7 +135,7 @@ namespace Sass {
           {
             // report the error to the console (should not happen)
             // seems like we got strange data from the system call?
-            cerr << "filename in plugin path has invalid utf8?" << endl;
+            std::cerr << "filename in plugin path has invalid utf8?" << std::endl;
           }
         }
       }
@@ -143,7 +143,7 @@ namespace Sass {
       {
         // report the error to the console (should not happen)
         // implementors should make sure to provide valid utf8
-        cerr << "plugin path contains invalid utf8" << endl;
+        std::cerr << "plugin path contains invalid utf8" << std::endl;
       }
 
     #else

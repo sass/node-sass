@@ -33,7 +33,6 @@
 #endif
 
 // using std::string
-using namespace std;
 
 // add namespace for c++
 namespace Sass
@@ -53,7 +52,7 @@ namespace Sass
 	const int SASS2SCSS_CONVERT_COMMENT = 128;
 
 	// String for finding something interesting
-	const string SASS2SCSS_FIND_WHITESPACE = " \t\n\v\f\r";
+	const std::string SASS2SCSS_FIND_WHITESPACE = " \t\n\v\f\r";
 
 	// converter struct
 	// holding all states
@@ -70,17 +69,17 @@ namespace Sass
 		// has semicolon
 		bool semicolon;
 		// comment context
-		string comment;
+		std::string comment;
 		// flag end of file
 		bool end_of_file;
 		// whitespace buffer
-		string whitespace;
+		std::string whitespace;
 		// context/block stack
-		stack<string> indents;
+		std::stack<std::string> indents;
 	};
 
 	// function only available in c++ code
-	char* sass2scss (const string& sass, const int options);
+	char* sass2scss (const std::string& sass, const int options);
 
 }
 // EO namespace

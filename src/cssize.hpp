@@ -1,26 +1,22 @@
 #ifndef SASS_CSSIZE_H
 #define SASS_CSSIZE_H
 
-#include <vector>
-#include <iostream>
-
 #include "ast.hpp"
 #include "context.hpp"
 #include "operation.hpp"
 #include "environment.hpp"
 
 namespace Sass {
-  using namespace std;
 
   typedef Environment<AST_Node*> Env;
   struct Backtrace;
 
   class Cssize : public Operation_CRTP<Statement*, Cssize> {
 
-    Context&            ctx;
-    vector<Block*>      block_stack;
-    vector<Statement*>  p_stack;
-    Backtrace*          backtrace;
+    Context&                 ctx;
+    std::vector<Block*>      block_stack;
+    std::vector<Statement*>  p_stack;
+    Backtrace*               backtrace;
 
     Statement* fallback_impl(AST_Node* n);
 
@@ -58,7 +54,7 @@ namespace Sass {
     Statement* operator()(Null*);
 
     Statement* parent();
-    vector<pair<bool, Block*>> slice_by_bubble(Statement*);
+    std::vector<std::pair<bool, Block*>> slice_by_bubble(Statement*);
     Statement* bubble(At_Rule*);
     Statement* bubble(At_Root_Block*);
     Statement* bubble(Media_Block*);

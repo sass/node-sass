@@ -2,7 +2,6 @@
 
 namespace Sass {
 
-  using namespace std;
 
   Offset::Offset(const char* string)
   : line(0), column(0)
@@ -10,7 +9,7 @@ namespace Sass {
     *this = inc(string, string + strlen(string));
   }
 
-  Offset::Offset(const string& text)
+  Offset::Offset(const std::string& text)
   : line(0), column(0)
   {
     *this = inc(text.c_str(), text.c_str() + text.size());

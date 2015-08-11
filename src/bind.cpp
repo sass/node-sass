@@ -8,12 +8,11 @@
 #include "to_string.hpp"
 
 namespace Sass {
-  using namespace std;
 
-  void bind(string callee, Parameters* ps, Arguments* as, Context& ctx, Env* env, Eval* eval)
+  void bind(std::string callee, Parameters* ps, Arguments* as, Context& ctx, Env* env, Eval* eval)
   {
     Listize listize(ctx);
-    map<string, Parameter*> param_map;
+    std::map<std::string, Parameter*> param_map;
 
     for (size_t i = 0, L = as->length(); i < L; ++i) {
       if (auto str = dynamic_cast<String_Quoted*>((*as)[i]->value())) {
@@ -51,7 +50,7 @@ namespace Sass {
             }
           }
         }
-        stringstream msg;
+        std::stringstream msg;
         msg << callee << " only takes " << LP << " arguments; "
             << "given " << LA;
         error(msg.str(), as->pstate());
@@ -93,7 +92,7 @@ namespace Sass {
           }
           // invalid state
           else {
-            throw runtime_error("invalid state");
+            throw std::runtime_error("invalid state");
           }
         } else if (a->is_keyword_argument()) {
 
@@ -102,7 +101,7 @@ namespace Sass {
           env->local_frame()[p->name()] = arglist;
           Map* argmap = static_cast<Map*>(a->value());
           for (auto key : argmap->keys()) {
-            string name = unquote(static_cast<String_Constant*>(key)->value());
+            std::string name = unquote(static_cast<String_Constant*>(key)->value());
             (*arglist) << new (ctx.mem) Argument(key->pstate(),
                                                  argmap->at(key),
                                                  name,
@@ -175,10 +174,10 @@ namespace Sass {
         Map* argmap = static_cast<Map*>(a->value());
 
         for (auto key : argmap->keys()) {
-          string name = "$" + unquote(static_cast<String_Constant*>(key)->value());
+          std::string name = "$" + unquote(static_cast<String_Constant*>(key)->value());
 
           if (!param_map.count(name)) {
-            stringstream msg;
+            std::stringstream msg;
             msg << callee << " has no parameter named " << name;
             error(msg.str(), a->pstate());
           }
@@ -192,7 +191,7 @@ namespace Sass {
 
       if (a->name().empty()) {
         if (env->has_local(p->name())) {
-          stringstream msg;
+          std::stringstream msg;
           msg << "parameter " << p->name()
           << " provided more than once in call to " << callee;
           error(msg.str(), a->pstate());
@@ -204,18 +203,18 @@ namespace Sass {
       else {
         // named arg -- bind it to the appropriately named param
         if (!param_map.count(a->name())) {
-          stringstream msg;
+          std::stringstream msg;
           msg << callee << " has no parameter named " << a->name();
           error(msg.str(), a->pstate());
         }
         if (param_map[a->name()]->is_rest_parameter()) {
-          stringstream msg;
+          std::stringstream msg;
           msg << "argument " << a->name() << " of " << callee
               << "cannot be used as named argument";
           error(msg.str(), a->pstate());
         }
         if (env->has_local(a->name())) {
-          stringstream msg;
+          std::stringstream msg;
           msg << "parameter " << p->name()
               << "provided more than once in call to " << callee;
           error(msg.str(), a->pstate());
@@ -247,7 +246,7 @@ namespace Sass {
         }
         else {
           // param is unbound and has no default value -- error
-          stringstream msg;
+          std::stringstream msg;
           msg << "required parameter " << leftover->name()
               << " is missing in call to " << callee;
           error(msg.str(), as->pstate());

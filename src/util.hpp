@@ -1,7 +1,6 @@
 #ifndef SASS_UTIL_H
 #define SASS_UTIL_H
 
-#include <cstdio>
 #include <vector>
 #include <string>
 #include <assert.h>
@@ -10,22 +9,21 @@
 #define SASS_ASSERT(cond, msg) assert(cond && msg)
 
 namespace Sass {
-  using namespace std;
 
   char* sass_strdup(const char* str);
   double sass_atof(const char* str);
-  string string_escape(const string& str);
-  string string_unescape(const string& str);
-  string string_eval_escapes(const string& str);
-  string read_css_string(const string& str);
-  string evacuate_quotes(const string& str);
-  string evacuate_escapes(const string& str);
-  string string_to_output(const string& str);
-  string comment_to_string(const string& text);
-  string normalize_wspace(const string& str);
+  std::string string_escape(const std::string& str);
+  std::string string_unescape(const std::string& str);
+  std::string string_eval_escapes(const std::string& str);
+  std::string read_css_string(const std::string& str);
+  std::string evacuate_quotes(const std::string& str);
+  std::string evacuate_escapes(const std::string& str);
+  std::string string_to_output(const std::string& str);
+  std::string comment_to_string(const std::string& text);
+  std::string normalize_wspace(const std::string& str);
 
-  string quote(const string&, char q = 0, bool keep_linefeed_whitespace = false);
-  string unquote(const string&, char* q = 0);
+  std::string quote(const std::string&, char q = 0, bool keep_linefeed_whitespace = false);
+  std::string unquote(const std::string&, char* q = 0);
   char detect_best_quotemark(const char* s, char qm = '"');
 
   bool is_hex_doublet(double n);
@@ -35,11 +33,11 @@ namespace Sass {
 
   namespace Util {
 
-    string normalize_underscores(const string& str);
-    string normalize_decimals(const string& str);
-    string normalize_sixtuplet(const string& col);
+    std::string normalize_underscores(const std::string& str);
+    std::string normalize_decimals(const std::string& str);
+    std::string normalize_sixtuplet(const std::string& col);
 
-    string vecJoin(const vector<string>& vec, const string& sep);
+    std::string vecJoin(const std::vector<std::string>& vec, const std::string& sep);
     bool containsAnyPrintableStatements(Block* b);
 
     bool isPrintable(Ruleset* r, Output_Style style = NESTED);

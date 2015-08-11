@@ -4,13 +4,12 @@
 #include <string>
 
 namespace Sass {
-  using std::string;
 
   class Base64VLQ {
 
   public:
 
-    string encode(const int number) const;
+    std::string encode(const int number) const;
 
   private:
 

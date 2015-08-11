@@ -9,32 +9,32 @@ using namespace Sass;
 Context ctx = Context(Context::Data());
 To_String to_string;
 
-Compound_Selector* compound_selector(string src)
+Compound_Selector* compound_selector(std::string src)
 { return Parser::from_c_str(src.c_str(), ctx, "", Position()).parse_compound_selector(); }
 
-Complex_Selector* complex_selector(string src)
+Complex_Selector* complex_selector(std::string src)
 { return Parser::from_c_str(src.c_str(), ctx, "", Position()).parse_complex_selector(false); }
 
-void check_compound(string s1, string s2)
+void check_compound(std::string s1, std::string s2)
 {
-  cout << "Is "
+  std::cout << "Is "
        << s1
        << " a superselector of "
        << s2
        << "?\t"
        << compound_selector(s1 + ";")->is_superselector_of(compound_selector(s2 + ";"))
-       << endl;
+       << std::endl;
 }
 
-void check_complex(string s1, string s2)
+void check_complex(std::string s1, std::string s2)
 {
-  cout << "Is "
+  std::cout << "Is "
        << s1
        << " a superselector of "
        << s2
        << "?\t"
        << complex_selector(s1 + ";")->is_superselector_of(complex_selector(s2 + ";"))
-       << endl;
+       << std::endl;
 }
 
 int main()
@@ -48,7 +48,7 @@ int main()
   check_compound("p.foo", "div.bar.foo");
   check_compound(".hux", ".mumble");
 
-  cout << endl;
+  std::cout << std::endl;
 
   check_complex(".foo ~ .bar", ".foo + .bar");
   check_complex(".foo .bar", ".foo + .bar");

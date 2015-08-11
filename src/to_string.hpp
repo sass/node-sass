@@ -6,16 +6,15 @@
 #include "operation.hpp"
 
 namespace Sass {
-  using namespace std;
 
   class Context;
   class Null;
 
-  class To_String : public Operation_CRTP<string, To_String> {
+  class To_String : public Operation_CRTP<std::string, To_String> {
     // import all the class-specific methods and override as desired
-    using Operation<string>::operator();
+    using Operation<std::string>::operator();
     // override this to define a catch-all
-    string fallback_impl(AST_Node* n);
+    std::string fallback_impl(AST_Node* n);
 
     Context* ctx;
     bool in_declaration;
@@ -25,13 +24,13 @@ namespace Sass {
     To_String(Context* ctx = 0, bool in_declaration = true);
     virtual ~To_String();
 
-    string operator()(Null* n);
-    string operator()(String_Schema*);
-    string operator()(String_Quoted*);
-    string operator()(String_Constant*);
+    std::string operator()(Null* n);
+    std::string operator()(String_Schema*);
+    std::string operator()(String_Quoted*);
+    std::string operator()(String_Constant*);
 
     template <typename U>
-    string fallback(U n) { return fallback_impl(n); }
+    std::string fallback(U n) { return fallback_impl(n); }
   };
 }
 

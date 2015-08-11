@@ -1,3 +1,6 @@
+#if defined(_MSC_VER)
+#define NOMINMAX
+#endif
 #include "ast.hpp"
 #include "context.hpp"
 #include "node.hpp"
@@ -10,7 +13,6 @@
 #include <iostream>
 
 namespace Sass {
-  using namespace std;
 
   static Null sass_null(Sass::Null(ParserState("null")));
 
@@ -30,7 +32,7 @@ namespace Sass {
     pstate_.offset += pstate - pstate_ + pstate.offset;
   }
 
-  inline bool is_ns_eq(const string& l, const string& r)
+  inline bool is_ns_eq(const std::string& l, const std::string& r)
   {
     if (l.empty() && r.empty()) return true;
     else if (l.empty() && r == "*") return true;
@@ -235,8 +237,8 @@ namespace Sass {
     size_t iL = length();
     size_t nL = rhs.length();
     // create temporary vectors and sort them
-    vector<Complex_Selector*> l_lst = this->elements();
-    vector<Complex_Selector*> r_lst = rhs.elements();
+    std::vector<Complex_Selector*> l_lst = this->elements();
+    std::vector<Complex_Selector*> r_lst = rhs.elements();
     std::sort(l_lst.begin(), l_lst.end(), cmp_complex_selector());
     std::sort(r_lst.begin(), r_lst.end(), cmp_complex_selector());
     // process loop
@@ -457,7 +459,7 @@ namespace Sass {
     return false;
   }
 
-  bool Compound_Selector::is_superselector_of(Selector_List* rhs, string wrapped)
+  bool Compound_Selector::is_superselector_of(Selector_List* rhs, std::string wrapped)
   {
     for (Complex_Selector* item : rhs->elements()) {
       if (is_superselector_of(item, wrapped)) return true;
@@ -465,13 +467,13 @@ namespace Sass {
     return false;
   }
 
-  bool Compound_Selector::is_superselector_of(Complex_Selector* rhs, string wrapped)
+  bool Compound_Selector::is_superselector_of(Complex_Selector* rhs, std::string wrapped)
   {
     if (rhs->head()) return is_superselector_of(rhs->head(), wrapped);
     return false;
   }
 
-  bool Compound_Selector::is_superselector_of(Compound_Selector* rhs, string wrapping)
+  bool Compound_Selector::is_superselector_of(Compound_Selector* rhs, std::string wrapping)
   {
     To_String to_string;
 
@@ -481,11 +483,11 @@ namespace Sass {
 
     // Check if pseudo-elements are the same between the selectors
 
-    set<string> lpsuedoset, rpsuedoset;
+    std::set<std::string> lpsuedoset, rpsuedoset;
     for (size_t i = 0, L = length(); i < L; ++i)
     {
       if ((*this)[i]->is_pseudo_element()) {
-        string pseudo((*this)[i]->perform(&to_string));
+        std::string pseudo((*this)[i]->perform(&to_string));
         pseudo = pseudo.substr(pseudo.find_first_not_of(":")); // strip off colons to ensure :after matches ::after since ruby sass is forgiving
         lpsuedoset.insert(pseudo);
       }
@@ -493,7 +495,7 @@ namespace Sass {
     for (size_t i = 0, L = rhs->length(); i < L; ++i)
     {
       if ((*rhs)[i]->is_pseudo_element()) {
-        string pseudo((*rhs)[i]->perform(&to_string));
+        std::string pseudo((*rhs)[i]->perform(&to_string));
         pseudo = pseudo.substr(pseudo.find_first_not_of(":")); // strip off colons to ensure :after matches ::after since ruby sass is forgiving
         rpsuedoset.insert(pseudo);
       }
@@ -502,7 +504,7 @@ namespace Sass {
       return false;
     }
 
-    set<string> lset, rset;
+    std::set<std::string> lset, rset;
 
     if (lbase && rbase)
     {
@@ -525,7 +527,7 @@ namespace Sass {
           if (Selector_List* not_list = dynamic_cast<Selector_List*>(wrapped->selector())) {
             if (not_list->is_superselector_of(rhs, wrapped->name())) return false;
           } else {
-            throw runtime_error("wrapped not selector is not a list");
+            throw std::runtime_error("wrapped not selector is not a list");
           }
         }
         if (wrapped->name() == ":matches" || wrapped->name() == ":-moz-any") {
@@ -670,8 +672,8 @@ namespace Sass {
     size_t iL = length();
     size_t nL = rhs.length();
     // create temporary vectors and sort them
-    vector<Simple_Selector*> l_lst = this->elements();
-    vector<Simple_Selector*> r_lst = rhs.elements();
+    std::vector<Simple_Selector*> l_lst = this->elements();
+    std::vector<Simple_Selector*> r_lst = rhs.elements();
     std::sort(l_lst.begin(), l_lst.end(), cmp_simple_selector());
     std::sort(r_lst.begin(), r_lst.end(), cmp_simple_selector());
     // process loop
@@ -700,12 +702,12 @@ namespace Sass {
     return *pLeft < *pRight;
   }
 
-  bool Complex_Selector::is_superselector_of(Compound_Selector* rhs, string wrapping)
+  bool Complex_Selector::is_superselector_of(Compound_Selector* rhs, std::string wrapping)
   {
     return last()->head() && last()->head()->is_superselector_of(rhs, wrapping);
   }
 
-  bool Complex_Selector::is_superselector_of(Complex_Selector* rhs, string wrapping)
+  bool Complex_Selector::is_superselector_of(Complex_Selector* rhs, std::string wrapping)
   {
     Complex_Selector* lhs = this;
     To_String to_string;
@@ -1078,7 +1080,7 @@ namespace Sass {
 
   // it's a superselector if every selector of the right side
   // list is a superselector of the given left side selector
-  bool Complex_Selector::is_superselector_of(Selector_List *sub, string wrapping)
+  bool Complex_Selector::is_superselector_of(Selector_List *sub, std::string wrapping)
   {
     // Check every rhs selector against left hand list
     for(size_t i = 0, L = sub->length(); i < L; ++i) {
@@ -1089,7 +1091,7 @@ namespace Sass {
 
   // it's a superselector if every selector of the right side
   // list is a superselector of the given left side selector
-  bool Selector_List::is_superselector_of(Selector_List *sub, string wrapping)
+  bool Selector_List::is_superselector_of(Selector_List *sub, std::string wrapping)
   {
     // Check every rhs selector against left hand list
     for(size_t i = 0, L = sub->length(); i < L; ++i) {
@@ -1100,7 +1102,7 @@ namespace Sass {
 
   // it's a superselector if every selector on the right side
   // is a superselector of any one of the left side selectors
-  bool Selector_List::is_superselector_of(Compound_Selector *sub, string wrapping)
+  bool Selector_List::is_superselector_of(Compound_Selector *sub, std::string wrapping)
   {
     // Check every lhs selector against right hand
     for(size_t i = 0, L = length(); i < L; ++i) {
@@ -1111,7 +1113,7 @@ namespace Sass {
 
   // it's a superselector if every selector on the right side
   // is a superselector of any one of the left side selectors
-  bool Selector_List::is_superselector_of(Complex_Selector *sub, string wrapping)
+  bool Selector_List::is_superselector_of(Complex_Selector *sub, std::string wrapping)
   {
     // Check every lhs selector against right hand
     for(size_t i = 0, L = length(); i < L; ++i) {
@@ -1121,7 +1123,7 @@ namespace Sass {
   }
 
   Selector_List* Selector_List::unify_with(Selector_List* rhs, Context& ctx) {
-    vector<Complex_Selector*> unified_complex_selectors;
+    std::vector<Complex_Selector*> unified_complex_selectors;
     // Unify all of children with RHS's children, storing the results in `unified_complex_selectors`
     for (size_t lhs_i = 0, lhs_L = length(); lhs_i < lhs_L; ++lhs_i) {
       Complex_Selector* seq1 = (*this)[lhs_i];
@@ -1173,15 +1175,15 @@ namespace Sass {
       compound_sel->is_optional(extendee->is_optional());
 
       for (size_t i = 0, L = extender->length(); i < L; ++i) {
-        extends.put(compound_sel->to_str_vec(), make_pair((*extender)[i], compound_sel));
+        extends.put(compound_sel->to_str_vec(), std::make_pair((*extender)[i], compound_sel));
       }
     }
   };
 
-  vector<string> Compound_Selector::to_str_vec()
+  std::vector<std::string> Compound_Selector::to_str_vec()
   {
     To_String to_string;
-    vector<string> result;
+    std::vector<std::string> result;
     result.reserve(length());
     for (size_t i = 0, L = length(); i < L; ++i)
     { result.push_back((*this)[i]->perform(&to_string)); }
@@ -1198,7 +1200,7 @@ namespace Sass {
     for (size_t i = 0, L = length(); i < L; ++i)
     {
       bool found = false;
-      string thisSelector((*this)[i]->perform(&to_string));
+      std::string thisSelector((*this)[i]->perform(&to_string));
       for (size_t j = 0, M = rhs->length(); j < M; ++j)
       {
         if (thisSelector == (*rhs)[j]->perform(&to_string))
@@ -1253,12 +1255,12 @@ namespace Sass {
     }
   }
 
-  Number::Number(ParserState pstate, double val, string u, bool zero)
+  Number::Number(ParserState pstate, double val, std::string u, bool zero)
   : Value(pstate),
     value_(val),
     zero_(zero),
-    numerator_units_(vector<string>()),
-    denominator_units_(vector<string>()),
+    numerator_units_(std::vector<std::string>()),
+    denominator_units_(std::vector<std::string>()),
     hash_(0)
   {
     size_t l = 0, r = 0;
@@ -1266,12 +1268,12 @@ namespace Sass {
       bool nominator = true;
       while (true) {
         r = u.find_first_of("*/", l);
-        string unit(u.substr(l, r == string::npos ? r : r - l));
+        std::string unit(u.substr(l, r == std::string::npos ? r : r - l));
         if (!unit.empty()) {
           if (nominator) numerator_units_.push_back(unit);
           else denominator_units_.push_back(unit);
         }
-        if (r == string::npos) break;
+        if (r == std::string::npos) break;
         // ToDo: should error for multiple slashes
         // if (!nominator && u[r] == '/') error(...)
         if (u[r] == '/')
@@ -1282,9 +1284,9 @@ namespace Sass {
     concrete_type(NUMBER);
   }
 
-  string Number::unit() const
+  std::string Number::unit() const
   {
-    string u;
+    std::string u;
     for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
       if (i) u += '*';
       u += numerator_units_[i];
@@ -1300,14 +1302,14 @@ namespace Sass {
   bool Number::is_unitless()
   { return numerator_units_.empty() && denominator_units_.empty(); }
 
-  void Number::normalize(const string& prefered, bool strict)
+  void Number::normalize(const std::string& prefered, bool strict)
   {
 
     // first make sure same units cancel each other out
     // it seems that a map table will fit nicely to do this
     // we basically construct exponents for each unit
     // has the advantage that they will be pre-sorted
-    map<string, int> exponents;
+    std::map<std::string, int> exponents;
 
     // initialize by summing up occurences in unit vectors
     for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) ++ exponents[numerator_units_[i]];
@@ -1318,17 +1320,17 @@ namespace Sass {
 
     // get the first entry of numerators
     // forward it when entry is converted
-    vector<string>::iterator nom_it = numerator_units_.begin();
-    vector<string>::iterator nom_end = numerator_units_.end();
-    vector<string>::iterator denom_it = denominator_units_.begin();
-    vector<string>::iterator denom_end = denominator_units_.end();
+    std::vector<std::string>::iterator nom_it = numerator_units_.begin();
+    std::vector<std::string>::iterator nom_end = numerator_units_.end();
+    std::vector<std::string>::iterator denom_it = denominator_units_.begin();
+    std::vector<std::string>::iterator denom_end = denominator_units_.end();
 
     // main normalization loop
     // should be close to optimal
     while (denom_it != denom_end)
     {
       // get and increment afterwards
-      const string denom = *(denom_it ++);
+      const std::string denom = *(denom_it ++);
       // skip already canceled out unit
       if (exponents[denom] >= 0) continue;
       // skip all units we don't know how to convert
@@ -1337,7 +1339,7 @@ namespace Sass {
       while (nom_it != nom_end)
       {
         // get and increment afterwards
-        const string nom = *(nom_it ++);
+        const std::string nom = *(nom_it ++);
         // skip already canceled out unit
         if (exponents[nom] <= 0) continue;
         // skip all units we don't know how to convert
@@ -1385,7 +1387,7 @@ namespace Sass {
 
   }
 
-  void Number::convert(const string& prefered, bool strict)
+  void Number::convert(const std::string& prefered, bool strict)
   {
     // abort if unit is empty
     if (prefered.empty()) return;
@@ -1394,7 +1396,7 @@ namespace Sass {
     // it seems that a map table will fit nicely to do this
     // we basically construct exponents for each unit
     // has the advantage that they will be pre-sorted
-    map<string, int> exponents;
+    std::map<std::string, int> exponents;
 
     // initialize by summing up occurences in unit vectors
     for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) ++ exponents[numerator_units_[i]];
@@ -1403,15 +1405,15 @@ namespace Sass {
     // the final conversion factor
     double factor = 1;
 
-    vector<string>::iterator denom_it = denominator_units_.begin();
-    vector<string>::iterator denom_end = denominator_units_.end();
+    std::vector<std::string>::iterator denom_it = denominator_units_.begin();
+    std::vector<std::string>::iterator denom_end = denominator_units_.end();
 
     // main normalization loop
     // should be close to optimal
     while (denom_it != denom_end)
     {
       // get and increment afterwards
-      const string denom = *(denom_it ++);
+      const std::string denom = *(denom_it ++);
       // check if conversion is needed
       if (denom == prefered) continue;
       // skip already canceled out unit
@@ -1425,14 +1427,14 @@ namespace Sass {
       ++ exponents[denom]; -- exponents[prefered];
     }
 
-    vector<string>::iterator nom_it = numerator_units_.begin();
-    vector<string>::iterator nom_end = numerator_units_.end();
+    std::vector<std::string>::iterator nom_it = numerator_units_.begin();
+    std::vector<std::string>::iterator nom_end = numerator_units_.end();
 
     // now search for nominator
     while (nom_it != nom_end)
     {
       // get and increment afterwards
-      const string nom = *(nom_it ++);
+      const std::string nom = *(nom_it ++);
       // check if conversion is needed
       if (nom == prefered) continue;
       // skip already canceled out unit
@@ -1473,17 +1475,17 @@ namespace Sass {
   }
 
   // useful for making one number compatible with another
-  string Number::find_convertible_unit() const
+  std::string Number::find_convertible_unit() const
   {
     for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
-      string u(numerator_units_[i]);
+      std::string u(numerator_units_[i]);
       if (string_to_unit(u) != UNKNOWN) return u;
     }
     for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
-      string u(denominator_units_[i]);
+      std::string u(denominator_units_[i]);
       if (string_to_unit(u) != UNKNOWN) return u;
     }
-    return string();
+    return std::string();
   }
 
   bool Custom_Warning::operator== (const Expression& rhs) const
@@ -1516,8 +1518,8 @@ namespace Sass {
   {
     Number tmp_r(rhs);
     tmp_r.normalize(find_convertible_unit());
-    string l_unit(unit());
-    string r_unit(tmp_r.unit());
+    std::string l_unit(unit());
+    std::string r_unit(tmp_r.unit());
     if (!l_unit.empty() && !r_unit.empty() && unit() != tmp_r.unit()) {
       error("cannot compare numbers with incompatible units", pstate());
     }
@@ -1633,9 +1635,9 @@ namespace Sass {
     else { return &sass_null; }
   }
 
-  string Map::to_string(bool compressed, int precision) const
+  std::string Map::to_string(bool compressed, int precision) const
   {
-    string res("");
+    std::string res("");
     if (empty()) return res;
     if (is_invisible()) return res;
     bool items_output = false;
@@ -1653,13 +1655,13 @@ namespace Sass {
     return res;
   }
 
-  string List::to_string(bool compressed, int precision) const
+  std::string List::to_string(bool compressed, int precision) const
   {
-    string res("");
+    std::string res("");
     if (empty()) return res;
     if (is_invisible()) return res;
     bool items_output = false;
-    string sep = separator() == SASS_COMMA ? "," : " ";
+    std::string sep = separator() == SASS_COMMA ? "," : " ";
     if (!compressed && sep == ",") sep += " ";
     for (size_t i = 0, L = size(); i < L; ++i) {
       Expression* item = (*this)[i];
@@ -1672,9 +1674,9 @@ namespace Sass {
     return res;
   }
 
-  string String_Schema::to_string(bool compressed, int precision) const
+  std::string String_Schema::to_string(bool compressed, int precision) const
   {
-    string res("");
+    std::string res("");
     for (size_t i = 0, L = length(); i < L; ++i) {
       if ((*this)[i]->is_interpolant()) res += "#{";
       if (Value* val = dynamic_cast<Value*>((*this)[i]))
@@ -1684,12 +1686,12 @@ namespace Sass {
     return res;
   }
 
-  string Null::to_string(bool compressed, int precision) const
+  std::string Null::to_string(bool compressed, int precision) const
   {
     return "null";
   }
 
-  string Boolean::to_string(bool compressed, int precision) const
+  std::string Boolean::to_string(bool compressed, int precision) const
   {
     return value_ ? "true" : "false";
   }
@@ -1702,16 +1704,16 @@ namespace Sass {
     else                return c;
   }
 
-  string Color::to_string(bool compressed, int precision) const
+  std::string Color::to_string(bool compressed, int precision) const
   {
-    stringstream ss;
+    std::stringstream ss;
 
     // original color name
     // maybe an unknown token
-    string name = disp();
+    std::string name = disp();
 
     // resolved color
-    string res_name = name;
+    std::string res_name = name;
 
     double r = round(cap_channel<0xff>(r_));
     double g = round(cap_channel<0xff>(g_));
@@ -1733,17 +1735,17 @@ namespace Sass {
         res_name = color_to_name(numval);
     }
 
-    stringstream hexlet;
-    hexlet << '#' << setw(1) << setfill('0');
+    std::stringstream hexlet;
+    hexlet << '#' << std::setw(1) << std::setfill('0');
     // create a short color hexlet if there is any need for it
     if (compressed && is_color_doublet(r, g, b) && a == 1) {
-      hexlet << hex << setw(1) << (static_cast<unsigned long>(r) >> 4);
-      hexlet << hex << setw(1) << (static_cast<unsigned long>(g) >> 4);
-      hexlet << hex << setw(1) << (static_cast<unsigned long>(b) >> 4);
+      hexlet << std::hex << std::setw(1) << (static_cast<unsigned long>(r) >> 4);
+      hexlet << std::hex << std::setw(1) << (static_cast<unsigned long>(g) >> 4);
+      hexlet << std::hex << std::setw(1) << (static_cast<unsigned long>(b) >> 4);
     } else {
-      hexlet << hex << setw(2) << static_cast<unsigned long>(r);
-      hexlet << hex << setw(2) << static_cast<unsigned long>(g);
-      hexlet << hex << setw(2) << static_cast<unsigned long>(b);
+      hexlet << std::hex << std::setw(2) << static_cast<unsigned long>(r);
+      hexlet << std::hex << std::setw(2) << static_cast<unsigned long>(g);
+      hexlet << std::hex << std::setw(2) << static_cast<unsigned long>(b);
     }
 
     if (compressed && !this->is_delayed()) name = "";
@@ -1782,10 +1784,10 @@ namespace Sass {
 
   }
 
-  string Number::to_string(bool compressed, int precision) const
+  std::string Number::to_string(bool compressed, int precision) const
   {
 
-    string res;
+    std::string res;
 
     // check if the fractional part of the value equals to zero
     // neat trick from http://stackoverflow.com/a/1521682/1550314
@@ -1796,32 +1798,32 @@ namespace Sass {
     // can contain scientific notation which we do not want!
 
     // first sample
-    stringstream ss;
+    std::stringstream ss;
     ss.precision(12);
     ss << value_;
 
     // check if we got scientific notation in result
-    if (ss.str().find_first_of("e") != string::npos) {
-      ss.clear(); ss.str(string());
-      ss.precision(max(12, precision));
-      ss << fixed << value_;
+    if (ss.str().find_first_of("e") != std::string::npos) {
+      ss.clear(); ss.str(std::string());
+      ss.precision(std::max(12, precision));
+      ss << std::fixed << value_;
     }
 
-    string tmp = ss.str();
+    std::string tmp = ss.str();
     size_t pos_point = tmp.find_first_of(".,");
     size_t pos_fract = tmp.find_last_not_of("0");
     bool is_int = pos_point == pos_fract ||
-                  pos_point == string::npos;
+                  pos_point == std::string::npos;
 
     // reset stream for another run
-    ss.clear(); ss.str(string());
+    ss.clear(); ss.str(std::string());
 
     // take a shortcut for integers
     if (is_int)
     {
       ss.precision(0);
-      ss << fixed << value_;
-      res = string(ss.str());
+      ss << std::fixed << value_;
+      res = std::string(ss.str());
     }
     // process floats
     else
@@ -1831,8 +1833,8 @@ namespace Sass {
       { precision = (int)(pos_fract - pos_point); }
       // round value again
       ss.precision(precision);
-      ss << fixed << value_;
-      res = string(ss.str());
+      ss << std::fixed << value_;
+      res = std::string(ss.str());
       // maybe we truncated up to decimal point
       size_t pos = res.find_last_not_of("0");
       bool at_dec_point = res[pos] == '.' ||
@@ -1854,21 +1856,21 @@ namespace Sass {
 
   }
 
-  string String_Quoted::to_string(bool compressed, int precision) const
+  std::string String_Quoted::to_string(bool compressed, int precision) const
   {
     return quote_mark_ ? quote(value_, quote_mark_, true) : value_;
   }
 
-  string String_Constant::to_string(bool compressed, int precision) const
+  std::string String_Constant::to_string(bool compressed, int precision) const
   {
     return quote_mark_ ? quote(value_, quote_mark_, true) : value_;
   }
 
-  string Custom_Error::to_string(bool compressed, int precision) const
+  std::string Custom_Error::to_string(bool compressed, int precision) const
   {
     return message();
   }
-  string Custom_Warning::to_string(bool compressed, int precision) const
+  std::string Custom_Warning::to_string(bool compressed, int precision) const
   {
     return message();
   }

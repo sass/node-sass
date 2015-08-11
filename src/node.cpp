@@ -1,3 +1,5 @@
+#include <vector>
+
 #include "node.hpp"
 #include "to_string.hpp"
 #include "context.hpp"
@@ -26,13 +28,13 @@ namespace Sass {
 
 
   Node Node::createCollection() {
-    NodeDequePtr pEmptyCollection = make_shared<NodeDeque>();
+    NodeDequePtr pEmptyCollection = std::make_shared<NodeDeque>();
     return Node(COLLECTION, Complex_Selector::ANCESTOR_OF, NULL /*pSelector*/, pEmptyCollection);
   }
 
 
   Node Node::createCollection(const NodeDeque& values) {
-    NodeDequePtr pShallowCopiedCollection = make_shared<NodeDeque>(values);
+    NodeDequePtr pShallowCopiedCollection = std::make_shared<NodeDeque>(values);
     return Node(COLLECTION, Complex_Selector::ANCESTOR_OF, NULL /*pSelector*/, pShallowCopiedCollection);
   }
 
@@ -49,7 +51,7 @@ namespace Sass {
 
 
   Node Node::clone(Context& ctx) const {
-    NodeDequePtr pNewCollection = make_shared<NodeDeque>();
+    NodeDequePtr pNewCollection = std::make_shared<NodeDeque>();
     if (mpCollection) {
       for (NodeDeque::iterator iter = mpCollection->begin(), iterEnd = mpCollection->end(); iter != iterEnd; iter++) {
         Node& toClone = *iter;
@@ -133,7 +135,7 @@ namespace Sass {
   }
 
 #ifdef DEBUG
-  ostream& operator<<(ostream& os, const Node& node) {
+  std::ostream& operator<<(std::ostream& os, const Node& node) {
 
     if (node.isCombinator()) {
 
@@ -235,7 +237,7 @@ namespace Sass {
 
     NodeDeque& childNodes = *toConvert.collection();
 
-    string noPath("");
+    std::string noPath("");
     Position noPosition(-1, -1, -1);
     Complex_Selector* pFirst = new (ctx.mem) Complex_Selector(ParserState("[NODE]"), Complex_Selector::ANCESTOR_OF, NULL, NULL);
 
@@ -284,8 +286,8 @@ namespace Sass {
   // This is only used in Complex_Selector::unify_with for now, may need modifications to fit other needs
   Node Node::naiveTrim(Node& seqses, Context& ctx) {
 
-    vector<Node*> res;
-    vector<Complex_Selector*> known;
+    std::vector<Node*> res;
+    std::vector<Complex_Selector*> known;
 
     NodeDeque::reverse_iterator seqsesIter = seqses.collection()->rbegin(),
                                 seqsesIterEnd = seqses.collection()->rend();
@@ -295,7 +297,7 @@ namespace Sass {
       Node& seqs1 = *seqsesIter;
       if( seqs1.isSelector() ) {
         Complex_Selector* sel = seqs1.selector();
-        vector<Complex_Selector*>::iterator it;
+        std::vector<Complex_Selector*>::iterator it;
         bool found = false;
         for (it = known.begin(); it != known.end(); ++it) {
           if (**it == *sel) { found = true; break; }
@@ -311,7 +313,7 @@ namespace Sass {
 
     Node result = Node::createCollection();
 
-    for (size_t i = res.size() - 1; i != string::npos; --i) {
+    for (size_t i = res.size() - 1; i != std::string::npos; --i) {
       result.collection()->push_back(*res[i]);
     }
 

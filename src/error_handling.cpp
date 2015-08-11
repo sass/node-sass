@@ -2,39 +2,41 @@
 #include "backtrace.hpp"
 #include "error_handling.hpp"
 
+#include <iostream>
+
 namespace Sass {
 
-  Error_Invalid::Error_Invalid(Type type, ParserState pstate, string message)
+  Error_Invalid::Error_Invalid(Type type, ParserState pstate, std::string message)
   : type(type), pstate(pstate), message(message)
   { }
 
-  void warn(string msg, ParserState pstate)
+  void warn(std::string msg, ParserState pstate)
   {
-    cerr << "Warning: " << msg<< endl;
+    std::cerr << "Warning: " << msg<< std::endl;
   }
 
-  void warn(string msg, ParserState pstate, Backtrace* bt)
+  void warn(std::string msg, ParserState pstate, Backtrace* bt)
   {
     Backtrace top(bt, pstate, "");
     msg += top.to_string();
     warn(msg, pstate);
   }
 
-  void deprecated(string msg, ParserState pstate)
+  void deprecated(std::string msg, ParserState pstate)
   {
-    string cwd(Sass::File::get_cwd());
-    cerr << "DEPRECATION WARNING: " << msg << endl;
-    cerr << "will be an error in future versions of Sass." << endl;
-    string rel_path(Sass::File::resolve_relative_path(pstate.path, cwd, cwd));
-    cerr << "        on line " << pstate.line+1 << " of " << rel_path << endl;
+    std::string cwd(Sass::File::get_cwd());
+    std::cerr << "DEPRECATION WARNING: " << msg << std::endl;
+    std::cerr << "will be an error in future versions of Sass." << std::endl;
+    std::string rel_path(Sass::File::resolve_relative_path(pstate.path, cwd, cwd));
+    std::cerr << "        on line " << pstate.line+1 << " of " << rel_path << std::endl;
   }
 
-  void error(string msg, ParserState pstate)
+  void error(std::string msg, ParserState pstate)
   {
     throw Error_Invalid(Error_Invalid::syntax, pstate, msg);
   }
 
-  void error(string msg, ParserState pstate, Backtrace* bt)
+  void error(std::string msg, ParserState pstate, Backtrace* bt)
   {
     Backtrace top(bt, pstate, "");
     msg += "\n" + top.to_string();

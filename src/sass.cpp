@@ -8,21 +8,19 @@
 #include "util.hpp"
 
 extern "C" {
-  using namespace std;
   using namespace Sass;
-  using namespace File;
 
   // caller must free the returned memory
   char* ADDCALL sass_string_quote (const char *str, const char quote_mark)
   {
-    string quoted = quote(str, quote_mark);
+    std::string quoted = quote(str, quote_mark);
     return sass_strdup(quoted.c_str());
   }
 
   // caller must free the returned memory
   char* ADDCALL sass_string_unquote (const char *str)
   {
-    string unquoted = unquote(str);
+    std::string unquoted = unquote(str);
     return sass_strdup(unquoted.c_str());
   }
 
@@ -30,7 +28,7 @@ extern "C" {
   // Incs array has to be null terminated!
   char* ADDCALL sass_resolve_file (const char* file, const char* paths[])
   {
-    string resolved(find_file(file, paths));
+    std::string resolved(File::find_file(file, paths));
     return sass_strdup(resolved.c_str());
   }
 

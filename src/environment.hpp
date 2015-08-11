@@ -2,7 +2,6 @@
 #define SASS_ENVIRONMENT_H
 
 #include <string>
-#include <iostream>
 #include <map>
 
 #include "ast_fwd_decl.hpp"
@@ -10,15 +9,11 @@
 #include "memory_manager.hpp"
 
 namespace Sass {
-  using std::string;
-  using std::map;
-  using std::cerr;
-  using std::endl;
 
   template <typename T>
   class Environment {
     // TODO: test with map
-    map<string, T> local_frame_;
+    std::map<std::string, T> local_frame_;
     ADD_PROPERTY(Environment*, parent)
 
   public:
@@ -43,52 +38,52 @@ namespace Sass {
 
     // scope operates on the current frame
 
-    map<string, T>& local_frame();
+    std::map<std::string, T>& local_frame();
 
-    bool has_local(const string& key) const;
+    bool has_local(const std::string& key) const;
 
-    T& get_local(const string& key);
+    T& get_local(const std::string& key);
 
     // set variable on the current frame
-    void set_local(const string& key, T val);
+    void set_local(const std::string& key, T val);
 
-    void del_local(const string& key);
+    void del_local(const std::string& key);
 
     // global operates on the global frame
     // which is the second last on the stack
     Environment* global_env();
     // get the env where the variable already exists
     // if it does not yet exist, we return current env
-    Environment* lexical_env(const string& key);
+    Environment* lexical_env(const std::string& key);
 
-    bool has_global(const string& key);
+    bool has_global(const std::string& key);
 
-    T& get_global(const string& key);
+    T& get_global(const std::string& key);
 
     // set a variable on the global frame
-    void set_global(const string& key, T val);
+    void set_global(const std::string& key, T val);
 
-    void del_global(const string& key);
+    void del_global(const std::string& key);
 
     // see if we have a lexical variable
     // move down the stack but stop before we
     // reach the global frame (is not included)
-    bool has_lexical(const string& key) const;
+    bool has_lexical(const std::string& key) const;
 
     // see if we have a lexical we could update
     // either update already existing lexical value
     // or we create a new one on the current frame
-    void set_lexical(const string& key, T val);
+    void set_lexical(const std::string& key, T val);
 
     // look on the full stack for key
     // include all scopes available
-    bool has(const string& key) const;
+    bool has(const std::string& key) const;
 
     // use array access for getter and setter functions
-    T& operator[](const string& key);
+    T& operator[](const std::string& key);
 
     #ifdef DEBUG
-    size_t print(string prefix = "");
+    size_t print(std::string prefix = "");
     #endif
 
   };

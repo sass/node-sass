@@ -10,7 +10,6 @@
 #include "sass_functions.h"
 
 extern "C" {
-  using namespace std;
   using namespace Sass;
 
   // Struct to hold custom function callback

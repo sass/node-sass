@@ -32,7 +32,7 @@ virtual AST_Node* perform(Operation<AST_Node*>* op) { return (*op)(this); }\
 virtual Statement* perform(Operation<Statement*>* op) { return (*op)(this); }\
 virtual Expression* perform(Operation<Expression*>* op) { return (*op)(this); }\
 virtual Selector* perform(Operation<Selector*>* op) { return (*op)(this); }\
-virtual string perform(Operation<string>* op) { return (*op)(this); }\
+virtual std::string perform(Operation<std::string>* op) { return (*op)(this); }\
 virtual union Sass_Value* perform(Operation<union Sass_Value*>* op) { return (*op)(this); }\
 virtual Value* perform(Operation<Value*>* op) { return (*op)(this); }
 

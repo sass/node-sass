@@ -9,13 +9,13 @@ using namespace Sass;
 Context ctx = Context(Context::Data());
 To_String to_string;
 
-Compound_Selector* selector(string src)
+Compound_Selector* selector(std::string src)
 { return Parser::from_c_str(src.c_str(), ctx, "", Position()).parse_compound_selector(); }
 
-void unify(string lhs, string rhs)
+void unify(std::string lhs, std::string rhs)
 {
   Compound_Selector* unified = selector(lhs + ";")->unify_with(selector(rhs + ";"), ctx);
-  cout << lhs << " UNIFIED WITH " << rhs << " =\t" << (unified ? unified->perform(&to_string) : "NOTHING") << endl;
+  std::cout << lhs << " UNIFIED WITH " << rhs << " =\t" << (unified ? unified->perform(&to_string) : "NOTHING") << std::endl;
 }
 
 int main()

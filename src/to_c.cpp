@@ -4,7 +4,6 @@
 #include "sass_values.h"
 
 namespace Sass {
-  using namespace std;
 
   union Sass_Value* To_C::fallback_impl(AST_Node* n)
   { return sass_make_error("unknown type for C-API"); }

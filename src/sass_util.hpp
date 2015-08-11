@@ -1,9 +1,9 @@
 #ifndef SASS_SASS_UTIL_H
 #define SASS_SASS_UTIL_H
 
-#include <deque>
-#include <iostream>
-
+#if defined(_MSC_VER)
+#define NOMINMAX
+#endif
 #include "ast.hpp"
 #include "node.hpp"
 #include "debug.hpp"
@@ -11,7 +11,6 @@
 namespace Sass {
 
 
-  using namespace std;
 
 
   /*
@@ -54,7 +53,7 @@ namespace Sass {
   };
 
 
-  typedef vector<vector<int> > LCSTable;
+  typedef std::vector<std::vector<int> > LCSTable;
 
 
   /*
@@ -106,7 +105,7 @@ namespace Sass {
     NodeDeque& xChildren = *(x.collection());
     NodeDeque& yChildren = *(y.collection());
 
-    LCSTable c(xChildren.size(), vector<int>(yChildren.size()));
+    LCSTable c(xChildren.size(), std::vector<int>(yChildren.size()));
 
     // These shouldn't be necessary since the vector will be initialized to 0 already.
     // x.size.times {|i| c[i][0] = 0}
@@ -119,7 +118,7 @@ namespace Sass {
         if (comparator(xChildren[i], yChildren[j], compareOut)) {
           c[i][j] = c[i - 1][j - 1] + 1;
         } else {
-          c[i][j] = max(c[i][j - 1], c[i - 1][j]);
+          c[i][j] = std::max(c[i][j - 1], c[i - 1][j]);
         }
       }
     }
@@ -221,34 +220,34 @@ namespace Sass {
 
   */
   template<typename EnumType, typename KeyType, typename KeyFunctorType>
-  void group_by_to_a(vector<EnumType>& enumeration, KeyFunctorType& keyFunc, vector<pair<KeyType, vector<EnumType> > >& arr /*out*/) {
+  void group_by_to_a(std::vector<EnumType>& enumeration, KeyFunctorType& keyFunc, std::vector<std::pair<KeyType, std::vector<EnumType> > >& arr /*out*/) {
 
-    map<unsigned int, KeyType> order;
+    std::map<unsigned int, KeyType> order;
 
-    map<KeyType, vector<EnumType> > grouped;
+    std::map<KeyType, std::vector<EnumType> > grouped;
 
-    for (typename vector<EnumType>::iterator enumIter = enumeration.begin(), enumIterEnd = enumeration.end(); enumIter != enumIterEnd; enumIter++) {
+    for (typename std::vector<EnumType>::iterator enumIter = enumeration.begin(), enumIterEnd = enumeration.end(); enumIter != enumIterEnd; enumIter++) {
       EnumType& e = *enumIter;
 
       KeyType key = keyFunc(e);
 
       if (grouped.find(key) == grouped.end()) {
-        order.insert(make_pair((unsigned int)order.size(), key));
+        order.insert(std::make_pair((unsigned int)order.size(), key));
 
-        vector<EnumType> newCollection;
+        std::vector<EnumType> newCollection;
         newCollection.push_back(e);
-        grouped.insert(make_pair(key, newCollection));
+        grouped.insert(std::make_pair(key, newCollection));
       } else {
-        vector<EnumType>& collection = grouped.at(key);
+        std::vector<EnumType>& collection = grouped.at(key);
         collection.push_back(e);
       }
     }
 
     for (unsigned int index = 0; index < order.size(); index++) {
       KeyType& key = order.at(index);
-      vector<EnumType>& values = grouped.at(key);
+      std::vector<EnumType>& values = grouped.at(key);
 
-      pair<KeyType, vector<EnumType> > grouping = make_pair(key, values);
+      std::pair<KeyType, std::vector<EnumType> > grouping = std::make_pair(key, values);
 
       arr.push_back(grouping);
     }

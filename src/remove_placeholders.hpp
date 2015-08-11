@@ -3,14 +3,11 @@
 
 #pragma once
 
-#include <iostream>
-
 #include "ast.hpp"
 #include "operation.hpp"
 
 namespace Sass {
 
-    using namespace std;
 
     class Context;
 

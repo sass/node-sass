@@ -1,6 +1,7 @@
 #ifndef SASS_SOURCE_MAP_H
 #define SASS_SOURCE_MAP_H
 
+#include <string>
 #include <vector>
 
 #include "ast_fwd_decl.hpp"
@@ -12,7 +13,6 @@
 #define VECTOR_UNSHIFT(vec, ins) vec.insert(vec.begin(), ins.begin(), ins.end())
 
 namespace Sass {
-  using std::vector;
 
   class Context;
   class OutputBuffer;
@@ -20,11 +20,11 @@ namespace Sass {
   class SourceMap {
 
   public:
-    vector<size_t> source_index;
+    std::vector<size_t> source_index;
     SourceMap();
-    SourceMap(const string& file);
+    SourceMap(const std::string& file);
 
-    void setFile(const string& str) {
+    void setFile(const std::string& str) {
       file = str;
     }
     void append(const Offset& offset);
@@ -34,17 +34,17 @@ namespace Sass {
     void add_open_mapping(AST_Node* node);
     void add_close_mapping(AST_Node* node);
 
-    string generate_source_map(Context &ctx);
+    std::string generate_source_map(Context &ctx);
     ParserState remap(const ParserState& pstate);
 
   private:
 
-    string serialize_mappings();
+    std::string serialize_mappings();
 
-    vector<Mapping> mappings;
+    std::vector<Mapping> mappings;
     Position current_position;
 public:
-    string file;
+    std::string file;
 private:
     Base64VLQ base64vlq;
   };
@@ -56,7 +56,7 @@ private:
         smap()
       { }
     public:
-      string buffer;
+      std::string buffer;
       SourceMap smap;
   };
 

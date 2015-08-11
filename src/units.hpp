@@ -5,12 +5,7 @@
 #include <string>
 #include <sstream>
 
-#ifdef __sun
-#undef SEC
-#endif
-
 namespace Sass {
-  using namespace std;
 
   const double PI = acos(-1);
 
@@ -63,20 +58,20 @@ namespace Sass {
   extern const double frequency_conversion_factors[2][2];
   extern const double resolution_conversion_factors[3][3];
 
-  enum SassUnit string_to_unit(const string&);
+  enum SassUnit string_to_unit(const std::string&);
   const char* unit_to_string(SassUnit unit);
   enum SassUnitType get_unit_type(SassUnit unit);
   // throws incompatibleUnits exceptions
-  double conversion_factor(const string&, const string&, bool = true);
+  double conversion_factor(const std::string&, const std::string&, bool = true);
 
-  class incompatibleUnits: public exception
+  class incompatibleUnits: public std::exception
   {
     public:
       const char* msg;
       incompatibleUnits(SassUnit a, SassUnit b)
       : exception()
       {
-        stringstream ss;
+        std::stringstream ss;
         ss << "Incompatible units: ";
         ss << "'" << unit_to_string(a) << "' and ";
         ss << "'" << unit_to_string(b) << "'";

@@ -2,11 +2,10 @@
 #include "memory_manager.hpp"
 
 namespace Sass {
-  using namespace std;
 
   template <typename T>
   Memory_Manager<T>::Memory_Manager(size_t size)
-  : nodes(vector<T*>())
+  : nodes(std::vector<T*>())
   {
     size_t init = size;
     if (init < 8) init = 8;

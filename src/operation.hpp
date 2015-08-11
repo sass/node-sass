@@ -1,13 +1,9 @@
 #ifndef SASS_OPERATION_H
 #define SASS_OPERATION_H
 
-#include <iostream>
-#include <typeinfo>
-
 #include "ast_fwd_decl.hpp"
 
 namespace Sass {
-  using namespace std;
 
   template<typename T>
   class Operation {
