@@ -1,4 +1,9 @@
 #ifdef _WIN32
+#ifdef __MINGW32__
+#ifndef off64_t
+#define off64_t _off64_t    /* Workaround for http://sourceforge.net/p/mingw/bugs/2024/ */
+#endif
+#endif
 #include <direct.h>
 #define getcwd _getcwd
 #define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
