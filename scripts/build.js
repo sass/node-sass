@@ -128,7 +128,7 @@ function build(options) {
       process.exit(1);
     }
 
-    var args = [path.join('node_modules', 'pangyp', 'bin', 'node-gyp'), 'rebuild'].concat(
+    var args = [require.resolve(path.join('pangyp', 'bin', 'node-gyp.js')), 'rebuild'].concat(
       ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function(subject) {
         return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
       })).concat(options.args);
