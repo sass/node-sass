@@ -92,10 +92,16 @@ node -p process.platform
 node -p process.arch
 ```
 
+Clean npm cache
+
+```sh
+npm cache clean
+```
+
 Install the latest node-sass
 
 ```sh
-npm install node-sass
+npm install -ddd node-sass > npm.log 2> npm.err
 ```
 
 Note which version was installed by opening the `package.json` file with a text editor.
@@ -107,6 +113,12 @@ Note which version was installed by opening the `package.json` file with a text 
   "libsass": "3.2.0",
 }
 ```
+
+If node-sass could not be installed successfully, please publish your `npm.log`
+and `npm.err` files for analysis.
+
+You can [download reference known-good logfiles](https://gist.github.com/saper/62b6e5ea41695c1883e3)
+to compare your log against.
 
 If node-sass install successfully lets gather some basic installation infomation.
 
