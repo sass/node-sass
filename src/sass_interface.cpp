@@ -1,11 +1,3 @@
-#ifdef _WIN32
-#include <io.h>
-#define LFEED "\n"
-#else
-#include <unistd.h>
-#define LFEED "\n"
-#endif
-
 #include "sass.h"
 
 #include <string>
@@ -20,6 +12,7 @@
 #include "error_handling.hpp"
 #include "sass_interface.h"
 
+#define LFEED "\n"
 
 extern "C" {
 

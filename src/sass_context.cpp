@@ -1,11 +1,3 @@
-#ifdef _WIN32
-#include <io.h>
-#define LFEED "\n"
-#else
-#include <unistd.h>
-#define LFEED "\n"
-#endif
-
 #include "sass.h"
 
 #include <cstring>
@@ -22,6 +14,8 @@
 #include "sass_context.h"
 #include "ast_fwd_decl.hpp"
 #include "error_handling.hpp"
+
+#define LFEED "\n"
 
 extern "C" {
   using namespace Sass;

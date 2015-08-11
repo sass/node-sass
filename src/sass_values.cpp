@@ -1,9 +1,3 @@
-#ifdef _WIN32
-#include <io.h>
-#else
-#include <unistd.h>
-#endif
-
 #include <cstdlib>
 #include <cstring>
 #include "util.hpp"
