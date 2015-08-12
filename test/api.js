@@ -956,6 +956,11 @@ describe('api', function() {
   });
 
   describe('.renderSync(options)', function() {
+    it('should not accept string as a parameter', function(done) {
+      var result = sass.renderSync('string');
+      assert.notEqual(result, 0, 'renderSync() returned success with string parameter');
+      done();
+    });
     it('should compile sass to css with file', function(done) {
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
       var result = sass.renderSync({ file: fixture('simple/index.scss') });
