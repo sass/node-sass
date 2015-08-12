@@ -1,17 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="GitVersion;Main"
-    xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-
+<Project ToolsVersion="14.0" DefaultTargets="GitVersion;Main" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <SASSC_VERSION>[NA]</SASSC_VERSION>
     <LIBSASS_VERSION>[NA]</LIBSASS_VERSION>
   </PropertyGroup>
-
   <Target Name="GitVersion">
-
-    <Exec Command="git -C .. describe --abbrev=4 --dirty --always --tags > libsass-version" />
-    <Exec Command="git -C ../sassc describe --abbrev=4 --dirty --always --tags > sassc-version" />
-
+    <Exec Command="git -C .. describe --abbrev=4 --dirty --always --tags &gt; libsass-version" />
+    <Exec Command="git -C ../sassc describe --abbrev=4 --dirty --always --tags &gt; sassc-version" />
     <ReadLinesFromFile File="sassc-version">
       <Output TaskParameter="Lines" PropertyName="SASSC_VERSION" />
     </ReadLinesFromFile>
@@ -19,21 +14,22 @@
       <Output TaskParameter="Lines" PropertyName="LIBSASS_VERSION" />
     </ReadLinesFromFile>
   </Target>
-
   <Target Name="VersionMacros">
     <ItemGroup>
-      <ClCompile><PreprocessorDefinitions>%(PreprocessorDefinitions);SASSC_VERSION="$(SASSC_VERSION)"</PreprocessorDefinitions></ClCompile>
-      <ClCompile><PreprocessorDefinitions>%(PreprocessorDefinitions);LIBSASS_VERSION="$(LIBSASS_VERSION)"</PreprocessorDefinitions></ClCompile>
+      <ClCompile>
+        <PreprocessorDefinitions>%(PreprocessorDefinitions);SASSC_VERSION="$(SASSC_VERSION)"</PreprocessorDefinitions>
+      </ClCompile>
+      <ClCompile>
+        <PreprocessorDefinitions>%(PreprocessorDefinitions);LIBSASS_VERSION="$(LIBSASS_VERSION)"</PreprocessorDefinitions>
+      </ClCompile>
     </ItemGroup>
   </Target>
-
   <Target Name="Main">
     <Message Text="sassc: $(SASSC_VERSION)" />
     <Message Text="libsass: $(LIBSASS_VERSION)" />
     <CallTarget Targets="VersionMacros" />
     <CallTarget Targets="Build" />
   </Target>
-
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -58,29 +54,31 @@
     <RootNamespace>libsass</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(VisualStudioVersion)' == '12.0'">
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(VisualStudioVersion)' == '14.0'">
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
