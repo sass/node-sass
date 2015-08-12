@@ -1032,6 +1032,9 @@ describe('api', function() {
 
     it('should throw error for bad input', function(done) {
       assert.throws(function() {
+         sass.renderSync('somestring');
+      });
+      assert.throws(function() {
         sass.renderSync({ data: '#navbar width 80%;' });
       });
 
