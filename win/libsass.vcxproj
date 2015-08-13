@@ -238,6 +238,9 @@
     <ClCompile Include="..\src\values.cpp" />
     <ClCompile Include="..\sassc\sassc.c" />
   </ItemGroup>
+  <ItemGroup Condition="$(VisualStudioVersion) &lt; 14.0">
+    <ClCompile Include="..\src\c99func.c" />
+  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ast.hpp" />
     <ClInclude Include="..\src\ast_def_macros.hpp" />
