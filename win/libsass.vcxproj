@@ -5,14 +5,12 @@
     <LIBSASS_VERSION>[NA]</LIBSASS_VERSION>
   </PropertyGroup>
   <Target Name="GitVersion">
-    <Exec Command="git -C .. describe --abbrev=4 --dirty --always --tags &gt; libsass-version" />
-    <Exec Command="git -C ../sassc describe --abbrev=4 --dirty --always --tags &gt; sassc-version" />
-    <ReadLinesFromFile File="sassc-version">
-      <Output TaskParameter="Lines" PropertyName="SASSC_VERSION" />
-    </ReadLinesFromFile>
-    <ReadLinesFromFile File="libsass-version">
-      <Output TaskParameter="Lines" PropertyName="LIBSASS_VERSION" />
-    </ReadLinesFromFile>
+    <Exec Command="git -C .. describe --abbrev=4 --dirty --always --tags" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="LIBSASS_VERSION" />
+    </Exec>
+    <Exec Command="git -C ../sassc describe --abbrev=4 --dirty --always --tags" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="SASSC_VERSION" />
+    </Exec>
   </Target>
   <Target Name="VersionMacros">
     <ItemGroup>
