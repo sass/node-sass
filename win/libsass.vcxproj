@@ -1,30 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="GitVersion;Main" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <SASSC_VERSION>[NA]</SASSC_VERSION>
     <LIBSASS_VERSION>[NA]</LIBSASS_VERSION>
+    <LIBSASS_SRC_DIR>..\src</LIBSASS_SRC_DIR>
+    <LIBSASS_HEADERS_DIR>..\src</LIBSASS_HEADERS_DIR>
   </PropertyGroup>
   <Target Name="GitVersion">
-    <Exec Command="git -C .. describe --abbrev=4 --dirty --always --tags" ConsoleToMSBuild="true">
+    <Exec Command="git -C .. describe --abbrev=4 --dirty --always --tags" LogStandardErrorAsError="true" ContinueOnError="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="LIBSASS_VERSION" />
-    </Exec>
-    <Exec Command="git -C ../sassc describe --abbrev=4 --dirty --always --tags" ConsoleToMSBuild="true">
-      <Output TaskParameter="ConsoleOutput" PropertyName="SASSC_VERSION" />
     </Exec>
   </Target>
   <Target Name="VersionMacros">
     <ItemGroup>
-      <ClCompile>
-        <PreprocessorDefinitions>%(PreprocessorDefinitions);SASSC_VERSION="$(SASSC_VERSION)"</PreprocessorDefinitions>
-      </ClCompile>
       <ClCompile>
         <PreprocessorDefinitions>%(PreprocessorDefinitions);LIBSASS_VERSION="$(LIBSASS_VERSION)"</PreprocessorDefinitions>
       </ClCompile>
     </ItemGroup>
   </Target>
   <Target Name="Main">
-    <Message Text="sassc: $(SASSC_VERSION)" />
     <Message Text="libsass: $(LIBSASS_VERSION)" />
+    <Message Condition="$(LIBSASS_STATIC_LIB) != ''" Text="Building Static LibSass" />
+    <Message Condition="$(LIBSASS_STATIC_LIB) == ''" Text="Building Dynamic LibSass" />
     <CallTarget Targets="VersionMacros" />
     <CallTarget Targets="Build" />
   </Target>
@@ -46,39 +42,41 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E4030474-AFC9-4CC6-BEB6-D846F631502B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>libsass</RootNamespace>
   </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(VisualStudioVersion)' == '12.0'">
+  <PropertyGroup Label="Common Properties">
+    <TargetName>libsass</TargetName>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(LIBSASS_STATIC_LIB) == ''">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(LIBSASS_STATIC_LIB) != ''">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Label="VS2013 toolset selection" Condition="'$(VisualStudioVersion)' == '12.0'">
     <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(VisualStudioVersion)' == '14.0'">
+  <PropertyGroup Label="VS2015 toolset selection" Condition="'$(VisualStudioVersion)' == '14.0'">
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -98,31 +96,27 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>sassc</TargetName>
     <OutDir>$(SolutionDir)bin\Debug\</OutDir>
     <IntDir>$(SolutionDir)bin\Debug\obj\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>sassc</TargetName>
     <OutDir>$(SolutionDir)bin\Debug\</OutDir>
     <IntDir>$(SolutionDir)bin\Debug\obj\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>sassc</TargetName>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(SolutionDir)bin\obj\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>sassc</TargetName>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(SolutionDir)bin\obj\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>..\include;..\src\posix;..\sassc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -189,115 +183,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\src\posix\getopt.c" />
-    <ClCompile Include="..\src\ast.cpp" />
-    <ClCompile Include="..\src\base64vlq.cpp" />
-    <ClCompile Include="..\src\bind.cpp" />
-    <ClCompile Include="..\src\cencode.c" />
-    <ClCompile Include="..\src\color_maps.cpp" />
-    <ClCompile Include="..\src\constants.cpp" />
-    <ClCompile Include="..\src\context.cpp" />
-    <ClCompile Include="..\src\environment.cpp" />
-    <ClCompile Include="..\src\error_handling.cpp" />
-    <ClCompile Include="..\src\eval.cpp" />
-    <ClCompile Include="..\src\expand.cpp" />
-    <ClCompile Include="..\src\cssize.cpp" />
-    <ClCompile Include="..\src\listize.cpp" />
-    <ClCompile Include="..\src\extend.cpp" />
-    <ClCompile Include="..\src\file.cpp" />
-    <ClCompile Include="..\src\functions.cpp" />
-    <ClCompile Include="..\src\inspect.cpp" />
-    <ClCompile Include="..\src\json.cpp" />
-    <ClCompile Include="..\src\memory_manager.cpp" />
-    <ClCompile Include="..\src\node.cpp" />
-    <ClCompile Include="..\src\emitter.cpp" />
-    <ClCompile Include="..\src\output.cpp" />
-    <ClCompile Include="..\src\parser.cpp" />
-    <ClCompile Include="..\src\plugins.cpp" />
-    <ClCompile Include="..\src\position.cpp" />
-    <ClCompile Include="..\src\lexer.cpp" />
-    <ClCompile Include="..\src\prelexer.cpp" />
-    <ClCompile Include="..\src\remove_placeholders.cpp" />
-    <ClCompile Include="..\src\sass.cpp" />
-    <ClCompile Include="..\src\sass2scss.cpp" />
-    <ClCompile Include="..\src\sass_interface.cpp" />
-    <ClCompile Include="..\src\sass_context.cpp" />
-    <ClCompile Include="..\src\sass_functions.cpp" />
-    <ClCompile Include="..\src\sass_values.cpp" />
-    <ClCompile Include="..\src\sass_util.cpp" />
-    <ClCompile Include="..\src\source_map.cpp" />
-    <ClCompile Include="..\src\to_c.cpp" />
-    <ClCompile Include="..\src\to_string.cpp" />
-    <ClCompile Include="..\src\to_value.cpp" />
-    <ClCompile Include="..\src\units.cpp" />
-    <ClCompile Include="..\src\utf8_string.cpp" />
-    <ClCompile Include="..\src\util.cpp" />
-    <ClCompile Include="..\src\values.cpp" />
-    <ClCompile Include="..\sassc\sassc.c" />
-  </ItemGroup>
-  <ItemGroup Condition="$(VisualStudioVersion) &lt; 14.0">
-    <ClCompile Include="..\src\c99func.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\src\ast.hpp" />
-    <ClInclude Include="..\src\ast_def_macros.hpp" />
-    <ClInclude Include="..\src\ast_factory.hpp" />
-    <ClInclude Include="..\src\ast_fwd_decl.hpp" />
-    <ClInclude Include="..\src\backtrace.hpp" />
-    <ClInclude Include="..\src\base64vlq.hpp" />
-    <ClInclude Include="..\src\bind.hpp" />
-    <ClInclude Include="..\src\color_maps.hpp" />
-    <ClInclude Include="..\src\constants.hpp" />
-    <ClInclude Include="..\src\context.hpp" />
-    <ClInclude Include="..\src\debug.hpp" />
-    <ClInclude Include="..\src\environment.hpp" />
-    <ClInclude Include="..\src\error_handling.hpp" />
-    <ClInclude Include="..\src\eval.hpp" />
-    <ClInclude Include="..\src\expand.hpp" />
-    <ClInclude Include="..\src\cssize.hpp" />
-    <ClInclude Include="..\src\listize.hpp" />
-    <ClInclude Include="..\src\extend.hpp" />
-    <ClInclude Include="..\src\file.hpp" />
-    <ClInclude Include="..\src\functions.hpp" />
-    <ClInclude Include="..\src\inspect.hpp" />
-    <ClInclude Include="..\src\json.hpp" />
-    <ClInclude Include="..\src\kwd_arg_macros.hpp" />
-    <ClInclude Include="..\src\mapping.hpp" />
-    <ClInclude Include="..\src\memory_manager.hpp" />
-    <ClInclude Include="..\src\node.hpp" />
-    <ClInclude Include="..\src\operation.hpp" />
-    <ClInclude Include="..\src\emitter.hpp" />
-    <ClInclude Include="..\src\output.hpp" />
-    <ClInclude Include="..\src\parser.hpp" />
-    <ClInclude Include="..\src\plugins.hpp" />
-    <ClInclude Include="..\src\paths.hpp" />
-    <ClInclude Include="..\src\position.hpp" />
-    <ClInclude Include="..\src\lexer.hpp" />
-    <ClInclude Include="..\src\prelexer.hpp" />
-    <ClInclude Include="..\src\remove_placeholders.hpp" />
-    <ClInclude Include="..\src\sass.h" />
-    <ClInclude Include="..\src\sass2scss.h" />
-    <ClInclude Include="..\src\sass_context.h" />
-    <ClInclude Include="..\src\sass_functions.h" />
-    <ClInclude Include="..\src\sass_interface.h" />
-    <ClInclude Include="..\src\sass_values.h" />
-    <ClInclude Include="..\src\sass_util.hpp" />
-    <ClInclude Include="..\src\source_map.hpp" />
-    <ClInclude Include="..\src\subset_map.hpp" />
-    <ClInclude Include="..\src\token.hpp" />
-    <ClInclude Include="..\src\to_c.hpp" />
-    <ClInclude Include="..\src\to_string.hpp" />
-    <ClInclude Include="..\src\to_value.hpp" />
-    <ClInclude Include="..\src\units.hpp" />
-    <ClInclude Include="..\src\utf8.h" />
-    <ClInclude Include="..\src\utf8\checked.h" />
-    <ClInclude Include="..\src\utf8\core.h" />
-    <ClInclude Include="..\src\utf8\unchecked.h" />
-    <ClInclude Include="..\src\utf8_string.hpp" />
-    <ClInclude Include="..\src\util.hpp" />
-    <ClInclude Include="..\src\values.hpp" />
-  </ItemGroup>
+  <Import Project="libsass.targets"/>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
