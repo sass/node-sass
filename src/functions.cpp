@@ -240,23 +240,31 @@ namespace Sass {
       }
     }
 
+    inline double alpha_num(Number* n) {
+      if (n->unit() == "%") {
+        return std::min(std::max(n->value(), 0.0), 100.0);
+      } else {
+        return std::min(std::max(n->value(), 0.0), 1.0);
+      }
+    }
+
     Signature rgb_sig = "rgb($red, $green, $blue)";
     BUILT_IN(rgb)
     {
       return new (ctx.mem) Color(pstate,
-                                 color_num(ARGR("$red",   Number, 0, 255)),
-                                 color_num(ARGR("$green", Number, 0, 255)),
-                                 color_num(ARGR("$blue",  Number, 0, 255)));
+                                 color_num(ARG("$red",   Number)),
+                                 color_num(ARG("$green", Number)),
+                                 color_num(ARG("$blue",  Number)));
     }
 
     Signature rgba_4_sig = "rgba($red, $green, $blue, $alpha)";
     BUILT_IN(rgba_4)
     {
       return new (ctx.mem) Color(pstate,
-                                 color_num(ARGR("$red",   Number, 0, 255)),
-                                 color_num(ARGR("$green", Number, 0, 255)),
-                                 color_num(ARGR("$blue",  Number, 0, 255)),
-                                 ARGR("$alpha", Number, 0, 1)->value());
+                                 color_num(ARG("$red",   Number)),
+                                 color_num(ARG("$green", Number)),
+                                 color_num(ARG("$blue",  Number)),
+                                 alpha_num(ARG("$alpha", Number)));
     }
 
     Signature rgba_2_sig = "rgba($color, $alpha)";
@@ -264,7 +272,7 @@ namespace Sass {
     {
       Color* c_arg = ARG("$color", Color);
       Color* new_c = new (ctx.mem) Color(*c_arg);
-      new_c->a(ARGR("$alpha", Number, 0, 1)->value());
+      new_c->a(alpha_num(ARG("$alpha", Number)));
       new_c->disp("");
       return new_c;
     }
