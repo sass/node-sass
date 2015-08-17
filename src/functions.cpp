@@ -236,9 +236,17 @@ namespace Sass {
 
     inline double color_num(Number* n) {
       if (n->unit() == "%") {
-        return std::min(std::max(n->value(), 0.0), 100.0) * 2.55;
+        return std::min(std::max(n->value() * 255 / 100.0, 0.0), 255.0);
       } else {
         return std::min(std::max(n->value(), 0.0), 255.0);
+      }
+    }
+
+    inline double alpha_num(Number* n) {
+      if (n->unit() == "%") {
+        return std::min(std::max(n->value(), 0.0), 100.0);
+      } else {
+        return std::min(std::max(n->value(), 0.0), 1.0);
       }
     }
 
@@ -246,19 +254,19 @@ namespace Sass {
     BUILT_IN(rgb)
     {
       return new (ctx.mem) Color(pstate,
-                                 color_num(ARGR("$red",   Number, 0, 255)),
-                                 color_num(ARGR("$green", Number, 0, 255)),
-                                 color_num(ARGR("$blue",  Number, 0, 255)));
+                                 color_num(ARG("$red",   Number)),
+                                 color_num(ARG("$green", Number)),
+                                 color_num(ARG("$blue",  Number)));
     }
 
     Signature rgba_4_sig = "rgba($red, $green, $blue, $alpha)";
     BUILT_IN(rgba_4)
     {
       return new (ctx.mem) Color(pstate,
-                                 color_num(ARGR("$red",   Number, 0, 255)),
-                                 color_num(ARGR("$green", Number, 0, 255)),
-                                 color_num(ARGR("$blue",  Number, 0, 255)),
-                                 ARGR("$alpha", Number, 0, 1)->value());
+                                 color_num(ARG("$red",   Number)),
+                                 color_num(ARG("$green", Number)),
+                                 color_num(ARG("$blue",  Number)),
+                                 alpha_num(ARG("$alpha", Number)));
     }
 
     Signature rgba_2_sig = "rgba($color, $alpha)";
@@ -266,7 +274,7 @@ namespace Sass {
     {
       Color* c_arg = ARG("$color", Color);
       Color* new_c = new (ctx.mem) Color(*c_arg);
-      new_c->a(ARGR("$alpha", Number, 0, 1)->value());
+      new_c->a(alpha_num(ARG("$alpha", Number)));
       new_c->disp("");
       return new_c;
     }
@@ -382,8 +390,8 @@ namespace Sass {
     BUILT_IN(hsl)
     {
       return hsla_impl(ARG("$hue", Number)->value(),
-                       ARGR("$saturation", Number, 0, 100)->value(),
-                       ARGR("$lightness", Number, 0, 100)->value(),
+                       ARG("$saturation", Number)->value(),
+                       ARG("$lightness",  Number)->value(),
                        1.0,
                        ctx,
                        pstate);
@@ -393,9 +401,9 @@ namespace Sass {
     BUILT_IN(hsla)
     {
       return hsla_impl(ARG("$hue", Number)->value(),
-                       ARGR("$saturation", Number, 0, 100)->value(),
-                       ARGR("$lightness", Number, 0, 100)->value(),
-                       ARGR("$alpha", Number, 0, 1)->value(),
+                       ARG("$saturation", Number)->value(),
+                       ARG("$lightness",  Number)->value(),
+                       ARG("$alpha",  Number)->value(),
                        ctx,
                        pstate);
     }
@@ -680,18 +688,25 @@ namespace Sass {
         error("cannot specify both RGB and HSL values for `adjust-color`", pstate);
       }
       if (rgb) {
+        double rr = r ? ARGR("$red",   Number, -255, 255)->value() : 0;
+        double gg = g ? ARGR("$green", Number, -255, 255)->value() : 0;
+        double bb = b ? ARGR("$blue",  Number, -255, 255)->value() : 0;
+        double aa = a ? ARGR("$alpha", Number, -1, 1)->value() : 0;
         return new (ctx.mem) Color(pstate,
-                                   color->r() + (r ? r->value() : 0),
-                                   color->g() + (g ? g->value() : 0),
-                                   color->b() + (b ? b->value() : 0),
-                                   color->a() + (a ? a->value() : 0));
+                                   color->r() + rr,
+                                   color->g() + gg,
+                                   color->b() + bb,
+                                   color->a() + aa);
       }
       if (hsl) {
         HSL hsl_struct = rgb_to_hsl(color->r(), color->g(), color->b());
+        double ss = s ? ARGR("$saturation", Number, -100, 100)->value() : 0;
+        double ll = l ? ARGR("$lightness",  Number, -100, 100)->value() : 0;
+        double aa = a ? ARGR("$alpha",      Number, -1, 1)->value() : 0;
         return hsla_impl(hsl_struct.h + (h ? h->value() : 0),
-                         hsl_struct.s + (s ? s->value() : 0),
-                         hsl_struct.l + (l ? l->value() : 0),
-                         color->a() + (a ? a->value() : 0),
+                         hsl_struct.s + ss,
+                         hsl_struct.l + ll,
+                         color->a() + aa,
                          ctx,
                          pstate);
       }
