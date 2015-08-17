@@ -67,7 +67,7 @@ namespace Sass {
     // remove from pool
     remove(np);
     // release memory
-    free(np);
+    delete np;
   }
 
   // compile implementation for AST_Node
