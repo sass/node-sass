@@ -46,7 +46,7 @@ AC_CHECK_FUNCS([floor getcwd strtol])
 AC_ARG_ENABLE(tests, AS_HELP_STRING([--enable-tests], [enable testing the build]),
               [enable_tests="$enableval"], [enable_tests=no])
 
-AS_CASE([$host], [*-*-mingw32], [is_mingw32=yes], [is_mingw32=no])
+AS_CASE([$target], [*-*-mingw32], [is_mingw32=yes], [is_mingw32=no])
 AM_CONDITIONAL(COMPILER_IS_MINGW32, test "x$is_mingw32" = "xyes")
 
 dnl The dlopen() function is in the C library for *BSD and in
