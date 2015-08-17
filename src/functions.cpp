@@ -388,8 +388,8 @@ namespace Sass {
     BUILT_IN(hsl)
     {
       return hsla_impl(ARG("$hue", Number)->value(),
-                       ARGR("$saturation", Number, 0, 100)->value(),
-                       ARGR("$lightness", Number, 0, 100)->value(),
+                       ARG("$saturation", Number)->value(),
+                       ARG("$lightness",  Number)->value(),
                        1.0,
                        ctx,
                        pstate);
@@ -399,9 +399,9 @@ namespace Sass {
     BUILT_IN(hsla)
     {
       return hsla_impl(ARG("$hue", Number)->value(),
-                       ARGR("$saturation", Number, 0, 100)->value(),
-                       ARGR("$lightness", Number, 0, 100)->value(),
-                       ARGR("$alpha", Number, 0, 1)->value(),
+                       ARG("$saturation", Number)->value(),
+                       ARG("$lightness",  Number)->value(),
+                       ARG("$alpha",  Number)->value(),
                        ctx,
                        pstate);
     }
