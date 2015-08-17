@@ -1,18 +1,18 @@
+os: Visual Studio 2015
+
 environment:
   CTEST_OUTPUT_ON_FAILURE: 1
+  ruby_version: 22-x64
+  TargetPath: sassc/bin/sassc
   matrix:
   - Compiler: msvc
     Config: Release
-    ruby_version: "21-x64"
   - Compiler: msvc
     Config: Debug
-    ruby_version: "21-x64"
   - Compiler: mingw
     Build: static
-    ruby_version: "21-x64"
   - Compiler: mingw
     Build: shared
-    ruby_version: "21-x64"
 
 cache:
   - C:\Ruby%ruby_version%\lib\ruby\gems
@@ -22,7 +22,7 @@ install:
   - git clone https://github.com/sass/sass-spec.git
   - set PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - ps: |
-      if(!(gem which minitest 2>$nul)) { gem install minitest }
+      if(!(gem which minitest 2>$nul)) { gem install minitest --no-ri --no-rdoc }
       if ($env:Compiler -eq "mingw" -AND -Not (Test-Path "C:\mingw64")) {
         # Install MinGW.
         $url  = "http://sourceforge.net/projects/mingw-w64/files/"
@@ -40,31 +40,16 @@ build_script:
       if ($env:Compiler -eq "mingw") {
         mingw32-make -j4 sassc
       } else {
-        msbuild /m:4 /p:Configuration=$env:Config win\libsass.sln
-      }
-  - ps: |
-      if ($env:Compiler -eq "mingw") {
-        sassc\bin\sassc.exe -v
-        ruby -v
-      } else {
-        if ($env:Config -eq "Debug") {
-          win\bin\Debug\sassc.exe -v
-          ruby -v
-        } else {
-          win\bin\sassc.exe -v
-          ruby -v
-        }
+        msbuild /m:4 /p:Configuration=$env:Config sassc\win\sassc.sln
       }
 
+      # print the branding art
+      mv script/branding script/branding.ps1
+      script/branding.ps1
+
+      # print the version info
+      &$env:TargetPath -v
+      ruby -v
+
 test_script:
-  - ps: |
-      if ($env:Compiler -eq "mingw") {
-        ruby sass-spec\sass-spec.rb -c sassc\bin\sassc.exe -s --ignore-todo sass-spec/spec
-      } else {
-        if ($env:Config -eq "Debug") {
-          echo "test runner in debug mode build via msvc will throw debug assertions"
-          echo ruby sass-spec\sass-spec.rb -c win\bin\Debug\sassc.exe -s --ignore-todo sass-spec/spec
-        } else {
-          ruby sass-spec\sass-spec.rb -c win\bin\sassc.exe -s --ignore-todo sass-spec/spec
-        }
-      }
+  - ps: ruby sass-spec/sass-spec.rb -c $env:TargetPath -s --ignore-todo sass-spec/spec
