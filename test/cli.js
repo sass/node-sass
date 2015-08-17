@@ -288,7 +288,7 @@ describe('cli', function() {
       }, 500);
     });
 
-    it('should watch the full sass dep tree for a single file', function(done) {
+    it('should watch the full scss dep tree for a single file', function(done) {
       var src = fixture('watching/index.scss');
       var foo = fixture('watching/foo.scss');
 
@@ -308,6 +308,29 @@ describe('cli', function() {
 
       setTimeout(function() {
         fs.appendFileSync(foo, 'body{background:white}\n');
+      }, 500);
+    });
+
+    it('should watch the full sass dep tree for a single file', function(done) {
+      var src = fixture('watching/index.sass');
+      var foo = fixture('watching/bar.sass');
+
+      fs.writeFileSync(foo, '');
+
+      var bin = spawn(cli, [
+        '--output-style', 'compressed',
+        '--watch', src
+      ]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.once('data', function(data) {
+        assert(data.trim() === 'body{background:white}');
+        bin.kill();
+        done();
+      });
+
+      setTimeout(function() {
+        fs.appendFileSync(foo, 'body\n\tbackground: white\n');
       }, 500);
     });
 
