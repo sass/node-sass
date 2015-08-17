@@ -686,18 +686,25 @@ namespace Sass {
         error("cannot specify both RGB and HSL values for `adjust-color`", pstate);
       }
       if (rgb) {
+        double rr = r ? ARGR("$red",   Number, -255, 255)->value() : 0;
+        double gg = g ? ARGR("$green", Number, -255, 255)->value() : 0;
+        double bb = b ? ARGR("$blue",  Number, -255, 255)->value() : 0;
+        double aa = a ? ARGR("$alpha", Number, -1, 1)->value() : 0;
         return new (ctx.mem) Color(pstate,
-                                   color->r() + (r ? r->value() : 0),
-                                   color->g() + (g ? g->value() : 0),
-                                   color->b() + (b ? b->value() : 0),
-                                   color->a() + (a ? a->value() : 0));
+                                   color->r() + rr,
+                                   color->g() + gg,
+                                   color->b() + bb,
+                                   color->a() + aa);
       }
       if (hsl) {
         HSL hsl_struct = rgb_to_hsl(color->r(), color->g(), color->b());
+        double ss = s ? ARGR("$saturation", Number, -100, 100)->value() : 0;
+        double ll = l ? ARGR("$lightness",  Number, -100, 100)->value() : 0;
+        double aa = a ? ARGR("$alpha",      Number, -1, 1)->value() : 0;
         return hsla_impl(hsl_struct.h + (h ? h->value() : 0),
-                         hsl_struct.s + (s ? s->value() : 0),
-                         hsl_struct.l + (l ? l->value() : 0),
-                         color->a() + (a ? a->value() : 0),
+                         hsl_struct.s + ss,
+                         hsl_struct.l + ll,
+                         color->a() + aa,
                          ctx,
                          pstate);
       }
