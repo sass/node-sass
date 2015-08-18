@@ -221,7 +221,7 @@ Specify the intended location of the output file. Strongly recommended when outp
 **Attention** enabling this option will **not** write the file on disk for you, it's for internal reference purpose only (to generate the map for example).
 
 Example on how to write it on the disk
-```
+```javascript
 sass.render({
     ...
     outFile: yourPathTotheFile,
