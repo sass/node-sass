@@ -183,7 +183,7 @@ Default: `false`
 
 `true` values enable [Sass Indented Syntax](http://sass-lang.com/documentation/file.INDENTED_SYNTAX.html) for parsing the data string or file.
 
-__Note:__ node-sass/libsass will compile a mixed library of scss and indented syntax (.sass) files with the Default setting (false) as long as .sass and .scss extensions are used in filenames.  
+__Note:__ node-sass/libsass will compile a mixed library of scss and indented syntax (.sass) files with the Default setting (false) as long as .sass and .scss extensions are used in filenames.
 
 ### indentType (>= v3.0.0)
 Type: `String`
@@ -217,6 +217,26 @@ Default: `null`
 **Special:** Required when `sourceMap` is a truthy value
 
 Specify the intended location of the output file. Strongly recommended when outputting source maps so that they can properly refer back to their intended files.
+
+**Attention** enabling this option will **not** write the file on disk for you, it's for internal reference purpose only (to generate the map for example).
+
+Example on how to write it on the disk
+```
+sass.render({
+    ...
+    outFile: yourPathTotheFile,
+  }, function(error, result) { // node-style callback from v3.0.0 onwards
+    if(!error){
+      // No errors during the compilation, write this result on the disk
+      fs.writeFile(yourPathTotheFile, result.css, function(err){
+        if(!err){
+          //f ile written on disk
+        }
+      });
+    }
+  });
+});
+```
 
 ### outputStyle
 Type: `String`
