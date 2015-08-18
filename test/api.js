@@ -1228,6 +1228,29 @@ describe('api', function() {
       done();
     });
 
+    it('should handle quoted strings', function(done) {
+      var result = sass.renderSync({
+        data: '.swapped { result: swap-quotes("asdf", qwerty); }',
+        functions: {
+          'swap-quotes($s1, $s2)': function(s1, s2) {
+            s1.setQuoted(!s1.isQuoted());
+            s2.setQuoted(!s2.isQuoted());
+            console.log("s1: " + s1.isQuoted());
+            console.log("s2: " + s2.isQuoted());
+            var list = new sass.types.List(2);
+            list.setValue(0, s1);
+            list.setValue(1, s2);
+            list.setSeparator(true);
+
+            return list;
+          }
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), '.swapped { result: asdf, "qwerty"; }');
+      done();
+    });
+
     it('should let custom function invoke sass types constructors without the `new` keyword', function(done) {
       var result = sass.renderSync({
         data: 'div { color: foo(); }',

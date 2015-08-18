@@ -18,6 +18,9 @@ namespace SassTypes
 
       static NAN_METHOD(GetValue);
       static NAN_METHOD(SetValue);
+
+      static NAN_METHOD(IsQuoted);
+      static NAN_METHOD(SetQuoted);
   };
 }
 
