@@ -23,14 +23,14 @@ namespace SassTypes
       tpl->InstanceTemplate()->SetInternalFieldCount(1);
       Nan::SetPrototypeTemplate(tpl, "getValue", Nan::GetFunction(Nan::New<v8::FunctionTemplate>(GetValue)).ToLocalChecked());
 
-      constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-      conslocal = Nan::New(constructor);
+      conslocal = Nan::GetFunction(tpl).ToLocalChecked();
+      constructor.Reset(conslocal);
 
-      get_singleton(false).js_object.Reset(conslocal->NewInstance());
+      get_singleton(false).js_object.Reset(Nan::NewInstance(conslocal).ToLocalChecked());
       Nan::SetInternalFieldPointer(Nan::New(get_singleton(false).js_object), 0, &get_singleton(false));
       Nan::Set(conslocal, Nan::New("FALSE").ToLocalChecked(), Nan::New(get_singleton(false).js_object));
 
-      get_singleton(true).js_object.Reset(conslocal->NewInstance());
+      get_singleton(true).js_object.Reset(Nan::NewInstance(conslocal).ToLocalChecked());
       Nan::SetInternalFieldPointer(Nan::New(get_singleton(true).js_object), 0, &get_singleton(true));
       Nan::Set(conslocal, Nan::New("TRUE").ToLocalChecked(), Nan::New(get_singleton(true).js_object));
 

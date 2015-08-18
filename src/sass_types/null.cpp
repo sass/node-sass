@@ -22,10 +22,10 @@ namespace SassTypes
       tpl->SetClassName(Nan::New("SassNull").ToLocalChecked());
       tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-      constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-      conslocal = Nan::New(constructor);
+      conslocal = Nan::GetFunction(tpl).ToLocalChecked();
+      constructor.Reset(conslocal);
 
-      get_singleton().js_object.Reset(conslocal->NewInstance());
+      get_singleton().js_object.Reset(Nan::NewInstance(conslocal).ToLocalChecked());
       Nan::SetInternalFieldPointer(Nan::New(get_singleton().js_object), 0, &get_singleton());
       Nan::Set(conslocal, Nan::New("NULL").ToLocalChecked(), Nan::New(get_singleton().js_object));
 
