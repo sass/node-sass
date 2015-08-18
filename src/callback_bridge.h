@@ -81,12 +81,12 @@ template <typename T, typename L>
 T CallbackBridge<T, L>::operator()(std::vector<void*> argv) {
   // argv.push_back(wrapper);
   if (this->is_sync) {
-    Nan::EscapableHandleScope scope;
+    Nan::HandleScope scope;
     std::vector<v8::Local<v8::Value>> argv_v8 = pre_process_args(argv);
     argv_v8.push_back(Nan::New(wrapper));
 
     return this->post_process_return_value(
-      scope.Escape(this->callback->Call(argv_v8.size(), &argv_v8[0]))
+      this->callback->Call(argv_v8.size(), &argv_v8[0])
     );
   }
 
