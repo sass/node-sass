@@ -47,8 +47,7 @@ namespace SassTypes
   }
 
   v8::Local<v8::Object> Boolean::get_js_object() {
-    Nan::EscapableHandleScope scope;
-    return scope.Escape(Nan::New(this->js_object));
+    return Nan::New(this->js_object);
   }
 
   NAN_METHOD(Boolean::New) {
