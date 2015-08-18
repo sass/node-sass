@@ -1,6 +1,3 @@
-#if defined(_MSC_VER)
-#define NOMINMAX
-#endif
 #include "ast.hpp"
 #include "context.hpp"
 #include "node.hpp"

@@ -1,6 +1,5 @@
 #ifdef _MSC_VER
 #pragma warning(disable : 4503)
-#define NOMINMAX
 #endif
 
 #include "extend.hpp"

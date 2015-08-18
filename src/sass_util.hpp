@@ -1,9 +1,6 @@
 #ifndef SASS_SASS_UTIL_H
 #define SASS_SASS_UTIL_H
 
-#if defined(_MSC_VER)
-#define NOMINMAX
-#endif
 #include "ast.hpp"
 #include "node.hpp"
 #include "debug.hpp"
