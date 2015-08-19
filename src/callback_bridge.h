@@ -59,6 +59,7 @@ CallbackBridge<T, L>::CallbackBridge(Nan::Callback* callback, bool is_sync) : ca
    * This is invoked from the main JavaScript thread.
    * V8 context is available.
    */
+  Nan::HandleScope scope;
   if (!is_sync) {
     this->async = new uv_async_t;
     this->async->data = (void*) this;
@@ -180,6 +181,7 @@ NAN_METHOD(CallbackBridge<T COMMA L>::ReturnCallback) {
 
 template <typename T, typename L>
 Nan::MaybeLocal<v8::Function> CallbackBridge<T, L>::get_wrapper_constructor() {
+  /* Uses handle scope created in the CallbackBridge<T, L> constructor */
   if (wrapper_constructor.IsEmpty()) {
     v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
     tpl->SetClassName(Nan::New("CallbackBridge").ToLocalChecked());
