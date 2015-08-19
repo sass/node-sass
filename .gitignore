@@ -63,6 +63,7 @@ bin/*
 .deps/
 .libs/
 win/bin
+*.user
 
 # Final results
 
