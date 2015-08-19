@@ -15,7 +15,7 @@ namespace SassTypes
         throw std::invalid_argument("Only argument should be an integer.");
       }
 
-      argb = raw_val[0]->ToInt32()->Value();
+      argb = Nan::To<int32_t>(raw_val[0]).FromJust();
       a = (double)((argb >> 030) & 0xff) / 0xff;
       r = (double)((argb >> 020) & 0xff);
       g = (double)((argb >> 010) & 0xff);
@@ -27,7 +27,7 @@ namespace SassTypes
         throw std::invalid_argument("Constructor arguments should be numbers exclusively.");
       }
 
-      a = raw_val[3]->ToNumber()->Value();
+      a = Nan::To<double>(raw_val[3]).FromJust();
       // fall through vvv
 
     case 3:
@@ -35,9 +35,9 @@ namespace SassTypes
         throw std::invalid_argument("Constructor arguments should be numbers exclusively.");
       }
 
-      r = raw_val[0]->ToNumber()->Value();
-      g = raw_val[1]->ToNumber()->Value();
-      b = raw_val[2]->ToNumber()->Value();
+      r = Nan::To<double>(raw_val[0]).FromJust();
+      g = Nan::To<double>(raw_val[1]).FromJust();
+      b = Nan::To<double>(raw_val[2]).FromJust();
       break;
 
     case 0:
@@ -86,7 +86,7 @@ namespace SassTypes
       return Nan::ThrowError(Nan::New("Supplied value should be a number").ToLocalChecked());
     }
 
-    sass_color_set_r(unwrap(info.This())->value, info[0]->ToNumber()->Value());
+    sass_color_set_r(unwrap(info.This())->value, Nan::To<double>(info[0]).FromJust());
   }
 
   NAN_METHOD(Color::SetG) {
@@ -98,7 +98,7 @@ namespace SassTypes
       return Nan::ThrowError(Nan::New("Supplied value should be a number").ToLocalChecked());
     }
 
-    sass_color_set_g(unwrap(info.This())->value, info[0]->ToNumber()->Value());
+    sass_color_set_g(unwrap(info.This())->value, Nan::To<double>(info[0]).FromJust());
   }
 
   NAN_METHOD(Color::SetB) {
@@ -110,7 +110,7 @@ namespace SassTypes
       return Nan::ThrowError(Nan::New("Supplied value should be a number").ToLocalChecked());
     }
 
-    sass_color_set_b(unwrap(info.This())->value, info[0]->ToNumber()->Value());
+    sass_color_set_b(unwrap(info.This())->value, Nan::To<double>(info[0]).FromJust());
   }
 
   NAN_METHOD(Color::SetA) {
@@ -122,6 +122,6 @@ namespace SassTypes
       return Nan::ThrowError(Nan::New("Supplied value should be a number").ToLocalChecked());
     }
 
-    sass_color_set_a(unwrap(info.This())->value, info[0]->ToNumber()->Value());
+    sass_color_set_a(unwrap(info.This())->value, Nan::To<double>(info[0]).FromJust());
   }
 }

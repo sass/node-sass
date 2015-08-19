@@ -15,7 +15,7 @@ namespace SassTypes
         throw std::invalid_argument("First argument should be a number.");
       }
 
-      value = raw_val[0]->ToNumber()->Value();
+      value = Nan::To<double>(raw_val[0]).FromJust();
 
       if (raw_val.size() >= 2) {
         if (!raw_val[1]->IsString()) {
@@ -54,7 +54,7 @@ namespace SassTypes
       return Nan::ThrowError(Nan::New("Supplied value should be a number").ToLocalChecked());
     }
 
-    sass_number_set_value(unwrap(info.This())->value, info[0]->ToNumber()->Value());
+    sass_number_set_value(unwrap(info.This())->value, Nan::To<double>(info[0]).FromJust());
   }
 
   NAN_METHOD(Number::SetUnit) {

@@ -62,7 +62,7 @@ namespace SassTypes
         return Nan::ThrowError(Nan::New("Expected one boolean argument").ToLocalChecked());
       }
 
-      info.GetReturnValue().Set((get_singleton(info[0]->ToBoolean()->Value()).get_js_object()));
+      info.GetReturnValue().Set(get_singleton(Nan::To<bool>(info[0]).FromJust()).get_js_object());
     }
   }
 

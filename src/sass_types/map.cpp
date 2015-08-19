@@ -13,7 +13,7 @@ namespace SassTypes
         throw std::invalid_argument("First argument should be an integer.");
       }
 
-      length = raw_val[0]->ToInt32()->Value();
+      length = Nan::To<uint32_t>(raw_val[0]).FromJust();
     }
 
     return sass_make_map(length);
@@ -38,14 +38,14 @@ namespace SassTypes
     }
 
     Sass_Value* map = unwrap(info.This())->value;
-    size_t index = info[0]->ToInt32()->Value();
+    size_t index = Nan::To<uint32_t>(info[0]).FromJust();
 
 
     if (index >= sass_map_get_length(map)) {
       return Nan::ThrowError(Nan::New("Out of bound index").ToLocalChecked());
     }
 
-    info.GetReturnValue().Set(Factory::create(sass_map_get_value(map, info[0]->ToInt32()->Value()))->get_js_object());
+    info.GetReturnValue().Set(Factory::create(sass_map_get_value(map, Nan::To<uint32_t>(info[0]).FromJust()))->get_js_object());
   }
 
   NAN_METHOD(Map::SetValue) {
@@ -62,7 +62,7 @@ namespace SassTypes
     }
 
     Value* sass_value = Factory::unwrap(info[1]);
-    sass_map_set_value(unwrap(info.This())->value, info[0]->ToInt32()->Value(), sass_value->get_sass_value());
+    sass_map_set_value(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
   }
 
   NAN_METHOD(Map::GetKey) {
@@ -76,14 +76,14 @@ namespace SassTypes
     }
 
     Sass_Value* map = unwrap(info.This())->value;
-    size_t index = info[0]->ToInt32()->Value();
+    size_t index = Nan::To<uint32_t>(info[0]).FromJust();
 
 
     if (index >= sass_map_get_length(map)) {
       return Nan::ThrowError(Nan::New("Out of bound index").ToLocalChecked());
     }
 
-    info.GetReturnValue().Set(Factory::create(sass_map_get_key(map, info[0]->ToInt32()->Value()))->get_js_object());
+    info.GetReturnValue().Set(Factory::create(sass_map_get_key(map, Nan::To<uint32_t>(info[0]).FromJust()))->get_js_object());
   }
 
   NAN_METHOD(Map::SetKey) {
@@ -100,7 +100,7 @@ namespace SassTypes
     }
 
     Value* sass_value = Factory::unwrap(info[1]);
-    sass_map_set_key(unwrap(info.This())->value, info[0]->ToInt32()->Value(), sass_value->get_sass_value());
+    sass_map_set_key(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
   }
 
   NAN_METHOD(Map::GetLength) {

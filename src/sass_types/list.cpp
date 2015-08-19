@@ -14,14 +14,14 @@ namespace SassTypes
         throw std::invalid_argument("First argument should be an integer.");
       }
 
-      length = raw_val[0]->ToInt32()->Value();
+      length = Nan::To<uint32_t>(raw_val[0]).FromJust();
 
       if (raw_val.size() >= 2) {
         if (!raw_val[1]->IsBoolean()) {
           throw std::invalid_argument("Second argument should be a boolean.");
         }
 
-        comma = raw_val[1]->ToBoolean()->Value();
+        comma = Nan::To<bool>(raw_val[1]).FromJust();
       }
     }
 
@@ -47,14 +47,14 @@ namespace SassTypes
     }
 
     Sass_Value* list = unwrap(info.This())->value;
-    size_t index = info[0]->ToInt32()->Value();
+    size_t index = Nan::To<uint32_t>(info[0]).FromJust();
 
 
     if (index >= sass_list_get_length(list)) {
       return Nan::ThrowError(Nan::New("Out of bound index").ToLocalChecked());
     }
 
-    info.GetReturnValue().Set(Factory::create(sass_list_get_value(list, info[0]->ToInt32()->Value()))->get_js_object());
+    info.GetReturnValue().Set(Factory::create(sass_list_get_value(list, Nan::To<uint32_t>(info[0]).FromJust()))->get_js_object());
   }
 
   NAN_METHOD(List::SetValue) {
@@ -71,7 +71,7 @@ namespace SassTypes
     }
 
     Value* sass_value = Factory::unwrap(info[1]);
-    sass_list_set_value(unwrap(info.This())->value, info[0]->ToInt32()->Value(), sass_value->get_sass_value());
+    sass_list_set_value(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
   }
 
   NAN_METHOD(List::GetSeparator) {
@@ -87,7 +87,7 @@ namespace SassTypes
       return Nan::ThrowError(Nan::New("Supplied value should be a boolean").ToLocalChecked());
     }
 
-    sass_list_set_separator(unwrap(info.This())->value, info[0]->ToBoolean()->Value() ? SASS_COMMA : SASS_SPACE);
+    sass_list_set_separator(unwrap(info.This())->value, Nan::To<bool>(info[0]).FromJust() ? SASS_COMMA : SASS_SPACE);
   }
 
   NAN_METHOD(List::GetLength) {
