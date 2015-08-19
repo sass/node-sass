@@ -2,13 +2,11 @@
 #include "error.h"
 #include "../create_string.h"
 
-using namespace v8;
-
 namespace SassTypes
 {
   Error::Error(Sass_Value* v) : SassValueWrapper(v) {}
 
-  Sass_Value* Error::construct(const std::vector<Local<v8::Value>> raw_val) {
+  Sass_Value* Error::construct(const std::vector<v8::Local<v8::Value>> raw_val) {
     char const* value = "";
 
     if (raw_val.size() >= 1) {
@@ -22,5 +20,5 @@ namespace SassTypes
     return sass_make_error(value);
   }
 
-  void Error::initPrototype(Handle<ObjectTemplate>) {}
+  void Error::initPrototype(v8::Local<v8::FunctionTemplate>) {}
 }

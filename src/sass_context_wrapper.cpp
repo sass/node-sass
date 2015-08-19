@@ -37,7 +37,7 @@ extern "C" {
     delete ctx_w->error_callback;
     delete ctx_w->success_callback;
 
-    NanDisposePersistent(ctx_w->result);
+    ctx_w->result.Reset();
 
     free(ctx_w->include_path);
     free(ctx_w->linefeed);
