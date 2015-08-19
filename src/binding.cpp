@@ -82,13 +82,21 @@ int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapp
     sass_option_set_input_path(sass_options, ctx_w->file);
   }
 
-  int indent_len = Nan::Get(options, Nan::New("indentWidth").ToLocalChecked()).ToLocalChecked()->Int32Value();
+  int indent_len = Nan::To<int32_t>(
+    Nan::Get(
+        options,
+        Nan::New("indentWidth").ToLocalChecked()
+    ).ToLocalChecked()).FromJust();
 
   ctx_w->indent = (char*)malloc(indent_len + 1);
 
   strcpy(ctx_w->indent, std::string(
     indent_len,
-    Nan::Get(options, Nan::New("indentType").ToLocalChecked()).ToLocalChecked()->Int32Value() == 1 ? '\t' : ' '
+    Nan::To<int32_t>(
+        Nan::Get(
+            options,
+            Nan::New("indentType").ToLocalChecked()
+        ).ToLocalChecked()).FromJust() == 1 ? '\t' : ' '
     ).c_str());
 
   ctx_w->linefeed = create_string(Nan::Get(options, Nan::New("linefeed").ToLocalChecked()));
@@ -98,16 +106,16 @@ int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapp
   ctx_w->source_map_root = create_string(Nan::Get(options, Nan::New("sourceMapRoot").ToLocalChecked()));
 
   sass_option_set_output_path(sass_options, ctx_w->out_file);
-  sass_option_set_output_style(sass_options, (Sass_Output_Style)Nan::Get(options, Nan::New("style").ToLocalChecked()).ToLocalChecked()->Int32Value());
-  sass_option_set_is_indented_syntax_src(sass_options, Nan::Get(options, Nan::New("indentedSyntax").ToLocalChecked()).ToLocalChecked()->BooleanValue());
-  sass_option_set_source_comments(sass_options, Nan::Get(options, Nan::New("sourceComments").ToLocalChecked()).ToLocalChecked()->BooleanValue());
-  sass_option_set_omit_source_map_url(sass_options, Nan::Get(options, Nan::New("omitSourceMapUrl").ToLocalChecked()).ToLocalChecked()->BooleanValue());
-  sass_option_set_source_map_embed(sass_options, Nan::Get(options, Nan::New("sourceMapEmbed").ToLocalChecked()).ToLocalChecked()->BooleanValue());
-  sass_option_set_source_map_contents(sass_options, Nan::Get(options, Nan::New("sourceMapContents").ToLocalChecked()).ToLocalChecked()->BooleanValue());
+  sass_option_set_output_style(sass_options, (Sass_Output_Style)Nan::To<int32_t>(Nan::Get(options, Nan::New("style").ToLocalChecked()).ToLocalChecked()).FromJust());
+  sass_option_set_is_indented_syntax_src(sass_options, Nan::To<bool>(Nan::Get(options, Nan::New("indentedSyntax").ToLocalChecked()).ToLocalChecked()).FromJust());
+  sass_option_set_source_comments(sass_options, Nan::To<bool>(Nan::Get(options, Nan::New("sourceComments").ToLocalChecked()).ToLocalChecked()).FromJust());
+  sass_option_set_omit_source_map_url(sass_options, Nan::To<bool>(Nan::Get(options, Nan::New("omitSourceMapUrl").ToLocalChecked()).ToLocalChecked()).FromJust());
+  sass_option_set_source_map_embed(sass_options, Nan::To<bool>(Nan::Get(options, Nan::New("sourceMapEmbed").ToLocalChecked()).ToLocalChecked()).FromJust());
+  sass_option_set_source_map_contents(sass_options, Nan::To<bool>(Nan::Get(options, Nan::New("sourceMapContents").ToLocalChecked()).ToLocalChecked()).FromJust());
   sass_option_set_source_map_file(sass_options, ctx_w->source_map);
   sass_option_set_source_map_root(sass_options, ctx_w->source_map_root);
   sass_option_set_include_path(sass_options, ctx_w->include_path);
-  sass_option_set_precision(sass_options, Nan::Get(options, Nan::New("precision").ToLocalChecked()).ToLocalChecked()->Int32Value());
+  sass_option_set_precision(sass_options, Nan::To<int32_t>(Nan::Get(options, Nan::New("precision").ToLocalChecked()).ToLocalChecked()).FromJust());
   sass_option_set_indent(sass_options, ctx_w->indent);
   sass_option_set_linefeed(sass_options, ctx_w->linefeed);
 

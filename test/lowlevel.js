@@ -94,4 +94,24 @@ describe('lowlevel', function() {
     }, /"result.stats" element is not an object/);
     done();
   });
+
+  it('options.indentWidth not provided', function(done) {
+    var options =  { data: 'div { width: 10px; } ',
+      sourceComments: false,
+      file: null,
+      outFile: null,
+      includePaths: '',
+      precision: 5,
+      sourceMap: null,
+      style: 0,
+      /* indentWidth */
+      indentType: 0,
+      linefeed: '\n',
+      result: { stats: {} } };
+
+      binding.renderSync(options);
+    done();
+  });
+
+
 }); // lowlevel
