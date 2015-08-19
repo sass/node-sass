@@ -31,11 +31,11 @@ namespace SassTypes
 
   NAN_METHOD(String::SetValue) {
     if (info.Length() != 1) {
-      return Nan::ThrowError(Nan::New("Expected just one argument").ToLocalChecked());
+      return Nan::ThrowTypeError(Nan::New("Expected just one argument").ToLocalChecked());
     }
 
     if (!info[0]->IsString()) {
-      return Nan::ThrowError(Nan::New("Supplied value should be a string").ToLocalChecked());
+      return Nan::ThrowTypeError(Nan::New("Supplied value should be a string").ToLocalChecked());
     }
 
     sass_string_set_value(unwrap(info.This())->value, create_string(info[0]));

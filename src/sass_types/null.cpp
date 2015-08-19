@@ -49,7 +49,7 @@ namespace SassTypes
 
     if (info.IsConstructCall()) {
       if (constructor_locked) {
-        return Nan::ThrowError(Nan::New("Cannot instantiate SassNull").ToLocalChecked());
+        return Nan::ThrowTypeError(Nan::New("Cannot instantiate SassNull").ToLocalChecked());
       }
     }
     else {

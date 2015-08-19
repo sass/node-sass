@@ -39,11 +39,11 @@ namespace SassTypes
   NAN_METHOD(List::GetValue) {
 
     if (info.Length() != 1) {
-      return Nan::ThrowError(Nan::New("Expected just one argument").ToLocalChecked());
+      return Nan::ThrowTypeError(Nan::New("Expected just one argument").ToLocalChecked());
     }
 
     if (!info[0]->IsNumber()) {
-      return Nan::ThrowError(Nan::New("Supplied index should be an integer").ToLocalChecked());
+      return Nan::ThrowTypeError(Nan::New("Supplied index should be an integer").ToLocalChecked());
     }
 
     Sass_Value* list = unwrap(info.This())->value;
@@ -51,7 +51,7 @@ namespace SassTypes
 
 
     if (index >= sass_list_get_length(list)) {
-      return Nan::ThrowError(Nan::New("Out of bound index").ToLocalChecked());
+      return Nan::ThrowRangeError(Nan::New("Out of bound index").ToLocalChecked());
     }
 
     info.GetReturnValue().Set(Factory::create(sass_list_get_value(list, Nan::To<uint32_t>(info[0]).FromJust()))->get_js_object());
@@ -59,15 +59,15 @@ namespace SassTypes
 
   NAN_METHOD(List::SetValue) {
     if (info.Length() != 2) {
-      return Nan::ThrowError(Nan::New("Expected two arguments").ToLocalChecked());
+      return Nan::ThrowTypeError(Nan::New("Expected two arguments").ToLocalChecked());
     }
 
     if (!info[0]->IsNumber()) {
-      return Nan::ThrowError(Nan::New("Supplied index should be an integer").ToLocalChecked());
+      return Nan::ThrowTypeError(Nan::New("Supplied index should be an integer").ToLocalChecked());
     }
 
     if (!info[1]->IsObject()) {
-      return Nan::ThrowError(Nan::New("Supplied value should be a SassValue object").ToLocalChecked());
+      return Nan::ThrowTypeError(Nan::New("Supplied value should be a SassValue object").ToLocalChecked());
     }
 
     Value* sass_value = Factory::unwrap(info[1]);
@@ -80,11 +80,11 @@ namespace SassTypes
 
   NAN_METHOD(List::SetSeparator) {
     if (info.Length() != 1) {
-      return Nan::ThrowError(Nan::New("Expected just one argument").ToLocalChecked());
+      return Nan::ThrowTypeError(Nan::New("Expected just one argument").ToLocalChecked());
     }
 
     if (!info[0]->IsBoolean()) {
-      return Nan::ThrowError(Nan::New("Supplied value should be a boolean").ToLocalChecked());
+      return Nan::ThrowTypeError(Nan::New("Supplied value should be a boolean").ToLocalChecked());
     }
 
     sass_list_set_separator(unwrap(info.This())->value, Nan::To<bool>(info[0]).FromJust() ? SASS_COMMA : SASS_SPACE);
