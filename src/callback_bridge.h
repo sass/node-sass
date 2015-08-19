@@ -55,7 +55,10 @@ Nan::Persistent<v8::Function> CallbackBridge<T, L>::wrapper_constructor;
 
 template <typename T, typename L>
 CallbackBridge<T, L>::CallbackBridge(Nan::Callback* callback, bool is_sync) : callback(callback), is_sync(is_sync) {
-  // This assumes the main thread will be the one instantiating the bridge
+  /* 
+   * This is invoked from the main JavaScript thread.
+   * V8 context is available.
+   */
   if (!is_sync) {
     this->async = new uv_async_t;
     this->async->data = (void*) this;
@@ -81,6 +84,14 @@ template <typename T, typename L>
 T CallbackBridge<T, L>::operator()(std::vector<void*> argv) {
   // argv.push_back(wrapper);
   if (this->is_sync) {
+    /* 
+     * This is invoked from the main JavaScript thread.
+     * V8 context is available.
+     *
+     * Establish Local<> scope for all functions
+     * from types invoked by pre_process_args() and
+     * post_process_args().
+     */
     Nan::HandleScope scope;
     std::vector<v8::Local<v8::Value>> argv_v8 = pre_process_args(argv);
     argv_v8.push_back(Nan::New(wrapper));
@@ -88,22 +99,45 @@ T CallbackBridge<T, L>::operator()(std::vector<void*> argv) {
     return this->post_process_return_value(
       this->callback->Call(argv_v8.size(), &argv_v8[0])
     );
+  } else {
+    /* 
+     * This is invoked from the worker thread.
+     * No V8 context and functions available.
+     * Just wait for response from asynchronously
+     * scheduled JavaScript code
+     *
+     * XXX Issue #1048: We block here even if the
+     *     event loop stops and the callback
+     *     would never be executed.
+     * XXX Issue #857: By waiting here we occupy
+     *     one of the threads taken from the
+     *     uv threadpool. Might deadlock if
+     *     async I/O executed from JavaScript callbacks.
+     */
+    this->argv = argv;
+
+    std::unique_lock<std::mutex> lock(this->cv_mutex);
+    this->has_returned = false;
+    uv_async_send(this->async);
+    this->condition_variable.wait(lock, [this] { return this->has_returned; });
+
+    return this->return_value;
   }
-
-  this->argv = argv;
-
-  std::unique_lock<std::mutex> lock(this->cv_mutex);
-  this->has_returned = false;
-  uv_async_send(this->async);
-  this->condition_variable.wait(lock, [this] { return this->has_returned; });
-
-  return this->return_value;
 }
 
 template <typename T, typename L>
 void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
   CallbackBridge* bridge = static_cast<CallbackBridge*>(req->data);
 
+  /* 
+   * Function scheduled via uv_async mechanism, therefore
+   * it is invoked from the main JavaScript thread.
+   * V8 context is available.
+   *
+   * Establish Local<> scope for all functions
+   * from types invoked by pre_process_args() and
+   * post_process_args().
+   */
   Nan::HandleScope scope;
   Nan::TryCatch try_catch;
 
@@ -120,6 +154,13 @@ void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
 template <typename T, typename L>
 NAN_METHOD(CallbackBridge<T COMMA L>::ReturnCallback) {
 
+  /* 
+   * Callback function invoked by the user code.
+   * It is invoked from the main JavaScript thread.
+   * V8 context is available.
+   *
+   * Implicit Local<> handle scope created by NAN_METHOD(.)
+   */
   CallbackBridge<T, L>* bridge = static_cast<CallbackBridge<T, L>*>(Nan::GetInternalFieldPointer(info.This(), 0));
   Nan::TryCatch try_catch;
 
