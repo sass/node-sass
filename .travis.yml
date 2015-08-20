@@ -11,8 +11,6 @@ node_js:
 
 matrix:
   fast_finish: true
-  allow_failures:
-    - node_js: iojs
 
 before_install:
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
