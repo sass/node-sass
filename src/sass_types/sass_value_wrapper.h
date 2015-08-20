@@ -106,8 +106,12 @@ namespace SassTypes
       }
     } else {
       v8::Local<v8::Function> cons = T::get_constructor();
-      v8::Local<v8::Object> inst = Nan::NewInstance(cons, info.Length(), &localArgs[0]).ToLocalChecked();
-      info.GetReturnValue().Set(inst);
+      v8::Local<v8::Object> inst;
+      if (Nan::NewInstance(cons, info.Length(), &localArgs[0]).ToLocal(&inst)) {
+        info.GetReturnValue().Set(inst);
+      } else {
+        info.GetReturnValue().Set(Nan::Undefined());
+      }
     }
   }
 
