@@ -3,7 +3,9 @@ var assert = require('assert'),
     exists = fs.existsSync,
     path = require('path'),
     read = fs.readFileSync,
-    sass = require('../lib'),
+    sass = process.env.NODESASS_COV
+      ? require('../lib-cov')
+      : require('../lib'),
     util = require('./util');
 
 describe('spec', function() {

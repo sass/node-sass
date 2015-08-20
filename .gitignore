@@ -5,3 +5,7 @@ build
 lib-cov
 node_modules
 vendor
+test/html-report
+test/lcov-report
+test/lcov.info
+coverage
