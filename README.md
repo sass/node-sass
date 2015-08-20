@@ -542,4 +542,4 @@ We <3 our contributors! A special thanks to all those who have clocked in some d
 
 Copyright (c) 2015 Andrew Nesbitt. See [LICENSE](https://github.com/sass/node-sass/blob/master/LICENSE) for details.
 
-[libsass]: https://github.com/hcatlin/libsass
+[libsass]: https://github.com/sass/libsass
