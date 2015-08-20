@@ -10,7 +10,7 @@ namespace Sass {
   const double PI = acos(-1);
 
   enum SassUnitType {
-    SIZE = 0x000,
+    LENGTH = 0x000,
     ANGLE = 0x100,
     TIME = 0x200,
     FREQUENCY = 0x300,
@@ -21,7 +21,7 @@ namespace Sass {
   enum SassUnit {
 
     // size units
-    IN = SIZE,
+    IN = SassUnitType::LENGTH,
     CM,
     PC,
     MM,

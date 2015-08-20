@@ -56,7 +56,7 @@ namespace Sass {
   {
     switch (unit & 0xFF00)
     {
-      case SassUnitType::SIZE:        return SassUnitType::SIZE; break;
+      case SassUnitType::LENGTH:      return SassUnitType::LENGTH; break;
       case SassUnitType::ANGLE:       return SassUnitType::ANGLE; break;
       case SassUnitType::TIME:        return SassUnitType::TIME; break;
       case SassUnitType::FREQUENCY:   return SassUnitType::FREQUENCY; break;
@@ -144,7 +144,7 @@ namespace Sass {
     // only process known units
     if (u1 != UNKNOWN && u2 != UNKNOWN) {
       switch (t1) {
-        case SassUnitType::SIZE:              return size_conversion_factors[i1][i2]; break;
+        case SassUnitType::LENGTH:              return size_conversion_factors[i1][i2]; break;
         case SassUnitType::ANGLE:             return angle_conversion_factors[i1][i2]; break;
         case SassUnitType::TIME:              return time_conversion_factors[i1][i2]; break;
         case SassUnitType::FREQUENCY:         return frequency_conversion_factors[i1][i2]; break;
