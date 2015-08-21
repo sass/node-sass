@@ -5,9 +5,12 @@ env: SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=true
 compiler: gcc
 
 node_js:
-  - 0.10
-  - node  # will fetch the latest node.js version
-  - iojs  # will fetch the latest io.js version
+  - "0.10"
+  - "0.12"
+  - "iojs-v1.0"
+  - "iojs-v1"
+  - "iojs-v2"
+  - "iojs-v3"
 
 matrix:
   fast_finish: true
