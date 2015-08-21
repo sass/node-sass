@@ -21,3 +21,12 @@ install:
   - npm install --msvs_version=2013
 
 test_script: npm test
+
+on_success:
+# Save artifact with full qualified names of binding.node
+# (which we use in node-sass-binaries repo)
+- ps: Get-ChildItem .\vendor\**\*.node | % `
+      {
+        Push-AppveyorArtifact $_.FullName -FileName
+        (($_.FullName.Split('\\') | Select-Object -Last 2) -join '_')
+      }
