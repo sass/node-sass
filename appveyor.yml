@@ -7,13 +7,11 @@ environment:
   matrix:
     # node.js
     - nodejs_version: 0.10
-    - nodejs_version: 0    # will fetch the latest node.js version
+    - nodejs_version: 0.12
     # io.js
-    - nodejs_version: 1    # will fetch the latest io.js version
-
-matrix:
-  allow_failures:
     - nodejs_version: 1
+    - nodejs_version: 2
+    - nodejs_version: 3
 
 install:
   - ps: Install-Product node $env:nodejs_version
@@ -23,3 +21,12 @@ install:
   - npm install --msvs_version=2013
 
 test_script: npm test
+
+on_success:
+# Save artifact with full qualified names of binding.node
+# (which we use in node-sass-binaries repo)
+- ps: Get-ChildItem .\vendor\**\*.node | % `
+      {
+        Push-AppveyorArtifact $_.FullName -FileName
+        (($_.FullName.Split('\\') | Select-Object -Last 2) -join '_')
+      }
