@@ -78,6 +78,7 @@ namespace Sass {
     const char* identifier_alpha(const char* src)
     {
       return alternatives<
+               unicode_seq,
                alpha,
                unicode,
                exactly<'-'>,
@@ -90,6 +91,7 @@ namespace Sass {
     const char* identifier_alnum(const char* src)
     {
       return alternatives<
+               unicode_seq,
                alnum,
                unicode,
                exactly<'-'>,
@@ -153,6 +155,7 @@ namespace Sass {
               re_linebreak
             >,
             escape_seq,
+            unicode_seq,
             // skip interpolants
             interpolant,
             // skip non delimiters
@@ -176,6 +179,7 @@ namespace Sass {
               re_linebreak
             >,
             escape_seq,
+            unicode_seq,
             // skip interpolants
             interpolant,
             // skip non delimiters
@@ -832,6 +836,20 @@ namespace Sass {
       return (p == 0) ? t.end : 0;
     }
 
+    const char* unicode_seq(const char* src) {
+      return sequence <
+        alternatives <
+          exactly< 'U' >,
+          exactly< 'u' >
+        >,
+        exactly< '+' >,
+        padded_token <
+          6, xdigit,
+          exactly < '?' >
+        >
+      >(src);
+    }
+
     const char* static_component(const char* src) {
       return alternatives< identifier,
                            static_string,
@@ -924,6 +942,22 @@ namespace Sass {
     }
     const char* re_static_expression(const char* src) {
       return sequence< number, optional_spaces, exactly<'/'>, optional_spaces, number >(src);
+    }
+
+    template <size_t size, prelexer mx, prelexer pad>
+    const char* padded_token(const char* src)
+    {
+      size_t got = 0;
+      const char* pos = src;
+      while (got < size) {
+        if (!mx(pos)) break;
+        ++ pos; ++ got;
+      }
+      while (got < size) {
+        if (!pad(pos)) break;
+        ++ pos; ++ got;
+      }
+      return got ? pos : 0;
     }
 
   }

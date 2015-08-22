@@ -227,6 +227,8 @@ namespace Sass {
     const char* kwd_charset_directive(const char* src);
     const char* kwd_extend(const char* src);
 
+    const char* unicode_seq(const char* src);
+
     const char* kwd_if_directive(const char* src);
     const char* kwd_else_directive(const char* src);
     const char* elseif_directive(const char* src);
@@ -387,6 +389,9 @@ namespace Sass {
       }
       return counter;
     }
+
+    template <size_t size, prelexer mx, prelexer pad>
+    const char* padded_token(const char* src);
 
   }
 }
