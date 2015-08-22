@@ -801,120 +801,170 @@ namespace Sass {
     return cpy;
   }
 
+  // append another complex selector at the end
+  // check if we need to append some headers
+  // then we need to check for the combinator
+  // only then we can safely set the new tail
+  void Complex_Selector::append(Context& ctx, Complex_Selector* ss)
+  {
+
+    Complex_Selector* t = ss->tail();
+    Combinator c = ss->combinator();
+    String* r = ss->reference();
+    Compound_Selector* h = ss->head();
+
+    if (ss->has_line_feed()) has_line_feed(true);
+    if (ss->has_line_break()) has_line_break(true);
+
+    // append old headers
+    if (h && h->length()) {
+      if (last()->combinator() != ANCESTOR_OF && c != ANCESTOR_OF) {
+        error("Invalid parent selector", pstate_);
+      } else {
+        *last()->head_ += h;
+      }
+    } else {
+      // std::cerr << "has no or empty head\n";
+    }
+
+    if (last()) {
+      if (last()->combinator() != ANCESTOR_OF && c != ANCESTOR_OF) {
+        Complex_Selector* inter = new (ctx.mem) Complex_Selector(pstate());
+        inter->reference(r);
+        inter->combinator(c);
+        inter->tail(t);
+        last()->tail(inter);
+      } else {
+        if (last()->combinator() == ANCESTOR_OF) {
+          last()->combinator(c);
+          last()->reference(r);
+        }
+        last()->tail(t);
+      }
+    }
+
+
+  }
+
   Selector_List* Selector_List::parentize(Selector_List* ps, Context& ctx)
   {
     Selector_List* ss = new (ctx.mem) Selector_List(pstate());
     for (size_t pi = 0, pL = ps->length(); pi < pL; ++pi) {
+      Selector_List* list = new (ctx.mem) Selector_List(pstate());
+      *list << (*ps)[pi];
       for (size_t si = 0, sL = this->length(); si < sL; ++si) {
-        *ss << (*this)[si]->parentize((*ps)[pi], ctx);
+        *ss += (*this)[si]->parentize(list, ctx);
       }
     }
-    // return selector
     return ss;
   }
 
-  Selector_List* Selector_List::parentize(Complex_Selector* p, Context& ctx)
+  Selector_List* Complex_Selector::parentize(Selector_List* parents, Context& ctx)
   {
-    Selector_List* ss = new (ctx.mem) Selector_List(pstate());
-    for (size_t i = 0, L = this->length(); i < L; ++i) {
-      *ss << (*this)[i]->parentize(p, ctx);
-    }
-    // return selector
-    return ss;
-  }
 
-  Complex_Selector* Complex_Selector::parentize(Context& ctx)
-  {
-    // create a new complex selector to return a processed copy
-    return this;
-    Complex_Selector* ss = new (ctx.mem) Complex_Selector(this->pstate());
-    //ss->has_line_feed(this->has_line_feed());
-    ss->combinator(this->combinator());
-    if (this->tail()) {
-      ss->tail(this->tail()->parentize(ctx));
-    }
-    if (Compound_Selector* head = this->head()) {
-      // now add everything expect parent selectors to head
-      ss->head(new (ctx.mem) Compound_Selector(head->pstate()));
-      for (size_t i = 0, L = head->length(); i < L; ++i) {
-        if (!dynamic_cast<Parent_Selector*>((*head)[i])) {
-          *ss->head() << (*head)[i];
-        }
-      }
-      // if (ss->head()->empty()) ss->head(0);
-    }
-    // return copy
-    return ss;
-  }
-
-  Selector_List* Selector_List::parentize(Context& ctx)
-  {
-    Selector_List* ss = new (ctx.mem) Selector_List(pstate());
-    for (size_t i = 0, L = length(); i < L; ++i) {
-      *ss << (*this)[i]->parentize(ctx);
-    }
-    // return selector
-    return ss;
-  }
-
-  Selector_List* Complex_Selector::parentize(Selector_List* ps, Context& ctx)
-  {
-    Selector_List* ss = new (ctx.mem) Selector_List(pstate());
-    if (ps == 0) { *ss << this->parentize(ctx); return ss; }
-    for (size_t i = 0, L = ps->length(); i < L; ++i) {
-      *ss << this->parentize((*ps)[i], ctx);
-    }
-    // return selector
-    return ss;
-  }
-
-  Complex_Selector* Complex_Selector::parentize(Complex_Selector* parent, Context& ctx)
-  {
-    if (!parent) return parentize(ctx);
-    Complex_Selector* pr = 0;
+    Complex_Selector* tail = this->tail();
     Compound_Selector* head = this->head();
-    // create a new complex selector to return a processed copy
-    Complex_Selector* ss = new (ctx.mem) Complex_Selector(pstate());
-    // ss->has_line_feed(has_line_feed());
-    ss->has_line_break(has_line_break());
 
-    // Points to last complex selector
-    // Moved when resolving parent refs
-    Complex_Selector* cur = ss;
+    // first parentize the tail (which may return an expanded list)
+    Selector_List* tails = tail ? tail->parentize(parents, ctx) : 0;
 
-    // check if compound selector has exactly one parent reference
-    // if so we need to connect the parent to the current selector
-    // then we also need to add the remaining simple selector to the new "parent"
-    if (head) {
-      // create a new compound and move originals if needed
-      // we may add the simple selector to the same selector
-      // with parent refs we may put them in different places
-      ss->head(new (ctx.mem) Compound_Selector(head->pstate()));
-      ss->head()->has_parent_reference(head->has_parent_reference());
-      ss->head()->has_line_break(head->has_line_break());
-      // process simple selectors sequence
-      for (size_t i = 0, L = head->length(); i < L; ++i) {
-        // we have a parent selector in a simple selector list
-        // mix parent complex selector into the compound list
-        if (dynamic_cast<Parent_Selector*>((*head)[i])) {
-          // clone the parent selector
-          pr = parent->cloneFully(ctx);
-          // assign head and tail
-          cur->head(pr->head());
-          cur->tail(pr->tail());
-          // move forward
-          cur = pr->last();
-        } else {
-          // just add simple selector
-          *cur->head() << (*head)[i];
+    if (head && head->length() > 0) {
+
+      // we have a parent selector in a simple compound list
+      // mix parent complex selector into the compound list
+      if (dynamic_cast<Parent_Selector*>((*head)[0])) {
+        if (parents && parents->length()) {
+          Selector_List* retval = new (ctx.mem) Selector_List(pstate());
+          if (tails && tails->length() > 0) {
+            for (size_t n = 0, nL = tails->length(); n < nL; ++n) {
+              for (size_t i = 0, iL = parents->length(); i < iL; ++i) {
+                Complex_Selector* t = (*tails)[n];
+                Complex_Selector* parent = (*parents)[i];
+                Complex_Selector* s = parent->cloneFully(ctx);
+                Complex_Selector* ss = this->clone(ctx);
+                ss->tail(t ? t->clone(ctx) : 0);
+                Compound_Selector* h = head_->clone(ctx);
+                if (h->length()) h->erase(h->begin());
+                ss->head(h->length() ? h : 0);
+                s->append(ctx, ss);
+                *retval << s;
+              }
+            }
+          }
+          // have no tails but parents
+          // loop above is inside out
+          else {
+            for (size_t i = 0, iL = parents->length(); i < iL; ++i) {
+              Complex_Selector* parent = (*parents)[i];
+              Complex_Selector* s = parent->cloneFully(ctx);
+              Complex_Selector* ss = this->clone(ctx);
+              ss->tail(tail ? tail->clone(ctx) : 0);
+              Compound_Selector* h = head_->clone(ctx);
+              if (h->length()) h->erase(h->begin());
+              ss->head(h->length() ? h : 0);
+              // \/ IMO ruby sass bug \/
+              ss->has_line_feed(false);
+              s->append(ctx, ss);
+              *retval << s;
+            }
+          }
+          return retval;
+        }
+        // have no parent but some tails
+        else {
+          Selector_List* retval = new (ctx.mem) Selector_List(pstate());
+          if (tails && tails->length() > 0) {
+            for (size_t n = 0, nL = tails->length(); n < nL; ++n) {
+              Complex_Selector* cpy = this->clone(ctx);
+              cpy->tail((*tails)[n]->cloneFully(ctx));
+              cpy->head(new (ctx.mem) Compound_Selector(head->pstate()));
+              for (size_t i = 1, L = this->head()->length(); i < L; ++i)
+                *cpy->head() << (*this->head())[i];
+              if (!cpy->head()->length()) cpy->head(0);
+              *retval << cpy->skip_empty_reference();
+            }
+          }
+          // have no parent and not tails
+          else {
+            Complex_Selector* cpy = this->clone(ctx);
+            cpy->head(new (ctx.mem) Compound_Selector(head->pstate()));
+            for (size_t i = 1, L = this->head()->length(); i < L; ++i)
+              *cpy->head() << (*this->head())[i];
+            if (!cpy->head()->length()) cpy->head(0);
+            *retval << cpy->skip_empty_reference();
+          }
+          return retval;
         }
       }
+      // no parent selector in head
+      else {
+        return this->tails(ctx, tails);
+      }
+
     }
-    if (cur->head()) cur->head(cur->head()->length() ? cur->head() : 0);
-    // parentize and assign trailing complex selector
-    if (this->tail()) cur->tail(this->tail()->parentize(parent, ctx));
-    // return selector
-    return ss;
+    // has no head
+    else {
+      return this->tails(ctx, tails);
+    }
+
+    // unreachable
+    return 0;
+  }
+
+  Selector_List* Complex_Selector::tails(Context& ctx, Selector_List* tails)
+  {
+    Selector_List* rv = new (ctx.mem) Selector_List(pstate_);
+    if (tails && tails->length()) {
+      for (size_t i = 0, iL = tails->length(); i < iL; ++i) {
+        Complex_Selector* pr = this->clone(ctx);
+        pr->tail((*tails)[i]);
+        *rv << pr;
+      }
+    }
+    else {
+      *rv << this;
+    }
+    return rv;
   }
 
   // return the last tail that is defined
@@ -1068,11 +1118,6 @@ namespace Sass {
   void Selector_List::adjust_after_pushing(Complex_Selector* c)
   {
     if (c->has_reference())   has_reference(true);
-
-#ifdef DEBUG
-    To_String to_string;
-    this->mCachedSelector(this->perform(&to_string));
-#endif
   }
 
   // it's a superselector if every selector of the right side

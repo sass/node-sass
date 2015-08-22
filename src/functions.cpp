@@ -1666,21 +1666,10 @@ namespace Sass {
       for(;itr != parsedSelectors.end(); ++itr) {
         Selector_List* child = *itr;
         std::vector<Complex_Selector*> exploded;
-
-        // For every COMPLEX_SELECTOR in `child`
-        // For every COMPLEX_SELECTOR in `result`
-            // let parentSeqClone equal a copy of result->elements[i]
-            // let childSeq equal child->elements[j]
-              // Set childSeq as the new innermost tail of parentSeqClone
-            // Add parentSeqClone to the newElements
-        // Replace result->elements with newElements
-        for (size_t i = 0, resultLen = result->length(); i < resultLen; ++i) {
-          for (size_t j = 0, childLen = child->length(); j < childLen; ++j) {
-            Complex_Selector* parent = (*result)[i]->cloneFully(ctx);
-            exploded.push_back((*child)[j]->parentize(parent, ctx));
-          }
+        Selector_List* rv = child->parentize(result, ctx);
+        for (size_t m = 0, mLen = rv->length(); m < mLen; ++m) {
+          exploded.push_back((*rv)[m]);
         }
-
         result->elements(exploded);
       }
 

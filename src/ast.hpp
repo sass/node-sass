@@ -219,6 +219,8 @@ namespace Sass {
     typename std::vector<T>::iterator begin() { return elements_.begin(); }
     typename std::vector<T>::const_iterator end() const { return elements_.end(); }
     typename std::vector<T>::const_iterator begin() const { return elements_.begin(); }
+    typename std::vector<T>::iterator erase(typename std::vector<T>::iterator el) { return elements_.erase(el); }
+    typename std::vector<T>::const_iterator erase(typename std::vector<T>::const_iterator el) { return elements_.erase(el); }
 
   };
   template <typename T>
@@ -2051,6 +2053,7 @@ namespace Sass {
       { sum += (*this)[i]->specificity(); }
       return sum;
     }
+
     bool is_empty_reference()
     {
       return length() == 1 &&
@@ -2095,13 +2098,26 @@ namespace Sass {
     Complex_Selector(ParserState pstate,
                      Combinator c = ANCESTOR_OF,
                      Compound_Selector* h = 0,
-                     Complex_Selector* t = 0)
-    : Selector(pstate), combinator_(c), head_(h), tail_(t), reference_(0)
+                     Complex_Selector* t = 0,
+                     String* r = 0)
+    : Selector(pstate), combinator_(c), head_(h), tail_(t), reference_(r)
     {
       if ((h && h->has_reference())   || (t && t->has_reference()))   has_reference(true);
       if ((h && h->has_placeholder()) || (t && t->has_placeholder())) has_placeholder(true);
     }
     virtual bool has_parent_ref();
+
+    Complex_Selector* skip_empty_reference()
+    {
+      if ((!head_ || !head_->length() || head_->is_empty_reference()) &&
+          combinator() == Combinator::ANCESTOR_OF)
+      {
+        tail_->has_line_feed_ = this->has_line_feed_;
+        // tail_->has_line_break_ = this->has_line_break_;
+        return tail_ ? tail_->skip_empty_reference() : 0;
+      }
+      return this;
+    }
 
     // can still have a tail
     bool is_empty_ancestor() const
@@ -2120,6 +2136,8 @@ namespace Sass {
     // last returns the last real tail
     const Complex_Selector* last() const;
 
+    Selector_List* tails(Context& ctx, Selector_List* tails);
+
     // unconstant accessors
     Complex_Selector* first();
     Complex_Selector* last();
@@ -2129,15 +2147,14 @@ namespace Sass {
     Complex_Selector* innermost() { return last(); };
 
     size_t length() const;
-    Complex_Selector* parentize(Context& ctx);
     Selector_List* parentize(Selector_List* parents, Context& ctx);
-    Complex_Selector* parentize(Complex_Selector* parent, Context& ctx);
     virtual bool is_superselector_of(Compound_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Selector_List* sub, std::string wrapping = "");
     // virtual Selector_Placeholder* find_placeholder();
     Selector_List* unify_with(Complex_Selector* rhs, Context& ctx);
     Combinator clear_innermost();
+    void append(Context&, Complex_Selector*);
     void set_innermost(Complex_Selector*, Combinator);
     virtual unsigned long specificity() const
     {
@@ -2210,9 +2227,6 @@ namespace Sass {
   // Comma-separated selector groups.
   ///////////////////////////////////
   class Selector_List : public Selector, public Vectorized<Complex_Selector*> {
-#ifdef DEBUG
-    ADD_PROPERTY(std::string, mCachedSelector)
-#endif
     ADD_PROPERTY(std::vector<std::string>, wspace)
   protected:
     void adjust_after_pushing(Complex_Selector* c);
@@ -2224,9 +2238,7 @@ namespace Sass {
     // basically unwraps parsed selectors
     void remove_parent_selectors();
     // virtual Selector_Placeholder* find_placeholder();
-    Selector_List* parentize(Context& ctx);
     Selector_List* parentize(Selector_List* parents, Context& ctx);
-    Selector_List* parentize(Complex_Selector* parent, Context& ctx);
     virtual bool is_superselector_of(Compound_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Selector_List* sub, std::string wrapping = "");

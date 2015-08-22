@@ -498,15 +498,17 @@ namespace Sass {
       for (size_t i = 0, L = extender->length(); i < L; ++i) {
         Complex_Selector* sel = (*extender)[i];
         if (!(sel->head() && sel->head()->length() > 0 &&
-            dynamic_cast<Parent_Selector*>((*sel->head())[0]))) {
-        Compound_Selector* hh = new (ctx.mem) Compound_Selector((*extender)[i]->pstate());
-        Complex_Selector* ssel = new (ctx.mem) Complex_Selector((*extender)[i]->pstate());
-        *hh << new (ctx.mem) Parent_Selector((*extender)[i]->pstate());
-        ssel->tail(sel);
-        ssel->head(hh);
-        sel = ssel;
+            dynamic_cast<Parent_Selector*>((*sel->head())[0])))
+        {
+          Compound_Selector* hh = new (ctx.mem) Compound_Selector((*extender)[i]->pstate());
+          Complex_Selector* ssel = new (ctx.mem) Complex_Selector((*extender)[i]->pstate());
+          if (sel->has_line_feed()) ssel->has_line_feed(true);
+          *hh << new (ctx.mem) Parent_Selector((*extender)[i]->pstate());
+          ssel->tail(sel);
+          ssel->head(hh);
+          sel = ssel;
         }
-        if (c->has_line_feed()) sel->has_line_feed(true);
+        // if (c->has_line_feed()) sel->has_line_feed(true);
         ctx.subset_map.put(placeholder->to_str_vec(), std::make_pair(sel, placeholder));
       }
     }
