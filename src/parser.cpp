@@ -349,8 +349,8 @@ namespace Sass {
             else error(message, ParserState(message, source, Position(line, column)));
           } else if (source) {
             if (file) {
-              ctx.add_source(file, load_path, source);
-              imp->files().push_back(file);
+              ctx.add_source(load_path, file, source);
+              imp->files().push_back(load_path);
             } else {
               ctx.add_source(load_path, load_path, source);
               imp->files().push_back(load_path);
