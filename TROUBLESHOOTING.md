@@ -32,6 +32,7 @@ If this didn't solve your problem please open an issue with the output from [our
 #### Linux
 
 This can happen if you are install node-sass as `root`, or globally with `sudo`. This is a security feature of `npm`. You should always avoid running `npm` as `sudo` because install scripts can be unintentionally malicious.
+Please check [npm documentation on fixing permissions](https://docs.npmjs.com/getting-started/fixing-npm-permissions).
 
 If you must however, you can work around this error by using the `--unsafe-perm` flag with npm install i.e.
 
