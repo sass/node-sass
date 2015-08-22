@@ -17,7 +17,7 @@ namespace Sass {
   Memory_Manager<T>::~Memory_Manager()
   {
     // release memory for all controlled nodes
-    // avoid calling erase for every single node 
+    // avoid calling erase for every single node
     for (size_t i = 0, S = nodes.size(); i < S; ++i) {
       deallocate(nodes[i]);
     }
@@ -26,11 +26,10 @@ namespace Sass {
   }
 
   template <typename T>
-  T* Memory_Manager<T>::operator()(T* np)
+  T* Memory_Manager<T>::add(T* np)
   {
-    // add to pool
-    nodes.push_back(np);
-    // return resource
+    void* heap = (char*)np - 1;
+    *((char*)((void*)heap)) = 1;
     return np;
   }
 
@@ -44,13 +43,25 @@ namespace Sass {
   template <typename T>
   T* Memory_Manager<T>::allocate(size_t size)
   {
-    return static_cast<T*>(operator new(size));
+    // need additional memory for status header
+    void* heap = malloc(sizeof(char) + size);
+    // init internal status to zero
+    *(static_cast<char*>(heap)) = 0;
+    // the object lives on char further
+    void* object = static_cast<char*>(heap) + 1;
+    // add the memory under our management
+    nodes.push_back(static_cast<T*>(object));
+    // cast object to its final type
+    return static_cast<T*>(object);
   }
 
   template <typename T>
   void Memory_Manager<T>::deallocate(T* np)
   {
-    delete np;
+    void* object = static_cast<void*>(np);
+    char* heap = static_cast<char*>(object) - 1;
+    if (heap[0]) np->~T();
+    free(heap);
   }
 
   template <typename T>
@@ -67,7 +78,7 @@ namespace Sass {
     // remove from pool
     remove(np);
     // release memory
-    delete np;
+    deallocate(np);
   }
 
   // compile implementation for AST_Node
