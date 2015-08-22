@@ -70,7 +70,15 @@ namespace Sass {
     {
       return sequence<
         exactly<'\\'>,
-        any_char
+        alternatives <
+          minmax_range<
+            3, 3, xdigit
+          >,
+          any_char
+        >,
+        optional <
+          exactly <' '>
+        >
       >(src);
     }
 
@@ -958,6 +966,20 @@ namespace Sass {
         ++ pos; ++ got;
       }
       return got ? pos : 0;
+    }
+
+    template <size_t min, size_t max, prelexer mx>
+    const char* minmax_range(const char* src)
+    {
+      size_t got = 0;
+      const char* pos = src;
+      while (got < max) {
+        if (!mx(pos)) break;
+        ++ pos; ++ got;
+      }
+      if (got < min) return 0;
+      if (got > min) return 0;
+      return pos;
     }
 
   }

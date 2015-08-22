@@ -393,6 +393,9 @@ namespace Sass {
     template <size_t size, prelexer mx, prelexer pad>
     const char* padded_token(const char* src);
 
+    template <size_t min, size_t max, prelexer mx>
+    const char* minmax_range(const char* src);
+
   }
 }
 
