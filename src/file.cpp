@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include "file.hpp"
 #include "context.hpp"
+#include "prelexer.hpp"
 #include "utf8_string.hpp"
 #include "sass2scss.h"
 
@@ -77,7 +78,14 @@ namespace Sass {
       #ifdef _WIN32
         if (path.length() >= 2 && isalpha(path[0]) && path[1] == ':') return true;
       #endif
-      return path[0] == '/';
+      size_t i = 0;
+      // check if we have a protocol
+      if (path[i] && Prelexer::is_alpha(path[i])) {
+        // skip over all alphanumeric characters
+        while (path[i] && Prelexer::is_alnum(path[i])) ++i;
+        i = i && path[i] == ':' ? i + 1 : 0;
+      }
+      return path[i] == '/';
     }
 
     // helper function to find the last directory seperator
@@ -138,7 +146,20 @@ namespace Sass {
       while(path.length() > 1 && path.substr(0, 2) == "./") path.erase(0, 2);
       while((pos = path.length()) > 1 && path.substr(pos - 2) == "/.") path.erase(pos - 2);
 
-      pos = 0; // collapse multiple delimiters into a single one
+
+      size_t proto = 0;
+      // check if we have a protocol
+      if (path[proto] && Prelexer::is_alpha(path[proto])) {
+        // skip over all alphanumeric characters
+        while (path[proto] && Prelexer::is_alnum(path[proto++])) {}
+        // then skip over the mandatory colon
+        if (proto && path[proto] == ':') ++ proto;
+      }
+
+      // then skip over start slashes
+      while (path[proto++] == '/') {}
+
+      pos = proto; // collapse multiple delimiters into a single one
       while((pos = path.find("//", pos)) != std::string::npos) path.erase(pos, 1);
 
       return path;
@@ -184,6 +205,17 @@ namespace Sass {
 
       std::string absolute_uri = make_absolute_path(uri, cwd);
       std::string absolute_base = make_absolute_path(base, cwd);
+
+      size_t proto = 0;
+      // check if we have a protocol
+      if (uri[proto] && Prelexer::is_alpha(uri[proto])) {
+        // skip over all alphanumeric characters
+        while (uri[proto] && Prelexer::is_alnum(uri[proto++])) {}
+        // then skip over the mandatory colon
+        if (proto && uri[proto] == ':') ++ proto;
+      }
+
+      if (proto && uri[proto++] == '/') return uri;
 
       #ifdef _WIN32
         // absolute link must have a drive letter, and we know that we
