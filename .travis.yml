@@ -29,6 +29,8 @@ after_success: npm run-script coverage
 
 cache:
   directories:
+    - $HOME/.node-gyp
+    - $HOME/.npm
     - node_modules
 
 notifications:
