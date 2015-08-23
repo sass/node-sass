@@ -1729,7 +1729,8 @@ namespace Sass {
     std::string name(lexed);
 
     ParserState call_pos = pstate;
-    Arguments* args = parse_arguments(name == "url");
+    bool expect_url = name == "url" || name == "url-prefix";
+    Arguments* args = parse_arguments(expect_url);
     return new (ctx.mem) Function_Call(call_pos, name, args);
   }
 
