@@ -16,18 +16,12 @@
 #include "subset_map.hpp"
 #include "output.hpp"
 #include "plugins.hpp"
+#include "file.hpp"
 #include "sass_functions.h"
 
 struct Sass_Function;
 
 namespace Sass {
-  struct Sass_Queued {
-    std::string abs_path;
-    std::string load_path;
-    const char* source;
-  public:
-    Sass_Queued(const std::string& load_path, const std::string& abs_path, const char* source);
-  };
 
   class Context {
   public:
@@ -117,7 +111,7 @@ namespace Sass {
     void add_source(std::string, std::string, char*);
 
     std::string add_file(const std::string& file);
-    std::string add_file(const std::string& base, const std::string& file);
+    std::string add_file(const std::string& base, const std::string& file, ParserState pstate);
 
 
     // allow to optionally overwrite the input path

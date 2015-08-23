@@ -304,7 +304,7 @@ namespace Sass {
     }
     else {
       std::string current_dir = File::dir_name(path);
-      std::string resolved(ctx.add_file(current_dir, unquoted));
+      std::string resolved(ctx.add_file(current_dir, unquoted, *this));
       if (resolved.empty()) error("file to import not found or unreadable: " + unquoted + "\nCurrent dir: " + current_dir, pstate);
       imp->files().push_back(resolved);
     }

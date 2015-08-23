@@ -248,17 +248,29 @@ namespace Sass {
 
   // Add a new import file to the context
   // This has some previous directory context
-  std::string Context::add_file(const std::string& base, const std::string& file)
+  std::string Context::add_file(const std::string& base, const std::string& file, ParserState pstate)
   {
     using namespace File;
     std::string path(make_canonical_path(file));
     std::string base_file(join_paths(base, path));
-    std::string resolved(resolve_file(base_file));
     if (style_sheets.count(base_file)) return base_file;
-    if (char* contents = read_file(resolved)) {
-      add_source(base_file, resolved, contents);
-      style_sheets[base_file] = 0;
-      return base_file;
+    std::vector<Sass_Queued> resolved(resolve_file(base, path));
+    if (resolved.size() > 1) {
+      std::stringstream msg_stream;
+      msg_stream << "It's not clear which file to import for ";
+      msg_stream << "'@import \"" << file << "\"'." << "\n";
+      msg_stream << "Candidates:" << "\n";
+      for (size_t i = 0, L = resolved.size(); i < L; ++i)
+      { msg_stream << "  " << resolved[i].load_path << "\n"; }
+      msg_stream << "Please delete or rename all but one of these files." << "\n";
+      error(msg_stream.str(), pstate);
+    }
+    if (resolved.size()) {
+      if (char* contents = read_file(resolved[0].abs_path)) {
+        add_source(base_file, resolved[0].abs_path, contents);
+        style_sheets[base_file] = 0;
+        return base_file;
+      }
     }
     // now go the regular code path
     return add_file(path);
