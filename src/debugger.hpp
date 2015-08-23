@@ -512,6 +512,7 @@ inline void debug_ast(AST_Node* node, std::string ind = "", Env* env = 0)
     std::cerr << " [" << prettyprint(expression->value()) << "]";
     if (expression->is_delayed()) std::cerr << " [delayed]";
     if (expression->sass_fix_1291()) std::cerr << " [sass_fix_1291]";
+    if (expression->is_interpolant()) std::cerr << " [interpolant]";
     if (expression->quote_mark()) std::cerr << " [quote_mark: " << expression->quote_mark() << "]";
     std::cerr << " <" << prettyprint(expression->pstate().token.ws_before()) << ">" << std::endl;
   } else if (dynamic_cast<String_Constant*>(node)) {
@@ -524,6 +525,7 @@ inline void debug_ast(AST_Node* node, std::string ind = "", Env* env = 0)
     std::cerr << " [" << prettyprint(expression->value()) << "]";
     if (expression->is_delayed()) std::cerr << " [delayed]";
     if (expression->sass_fix_1291()) std::cerr << " [sass_fix_1291]";
+    if (expression->is_interpolant()) std::cerr << " [interpolant]";
     std::cerr << " <" << prettyprint(expression->pstate().token.ws_before()) << ">" << std::endl;
   } else if (dynamic_cast<String_Schema*>(node)) {
     String_Schema* expression = dynamic_cast<String_Schema*>(node);
@@ -531,6 +533,7 @@ inline void debug_ast(AST_Node* node, std::string ind = "", Env* env = 0)
     std::cerr << " " << expression->concrete_type();
     if (expression->is_delayed()) std::cerr << " [delayed]";
     if (expression->has_interpolants()) std::cerr << " [has_interpolants]";
+    if (expression->is_interpolant()) std::cerr << " [interpolant]";
     std::cerr << " <" << prettyprint(expression->pstate().token.ws_before()) << ">" << std::endl;
     for(auto i : expression->elements()) { debug_ast(i, ind + " ", env); }
   } else if (dynamic_cast<String*>(node)) {
@@ -539,6 +542,7 @@ inline void debug_ast(AST_Node* node, std::string ind = "", Env* env = 0)
     std::cerr << " " << expression->concrete_type();
     std::cerr << " (" << pstate_source_position(node) << ")";
     if (expression->sass_fix_1291()) std::cerr << " [sass_fix_1291]";
+    if (expression->is_interpolant()) std::cerr << " [interpolant]";
     std::cerr << " <" << prettyprint(expression->pstate().token.ws_before()) << ">" << std::endl;
   } else if (dynamic_cast<Expression*>(node)) {
     Expression* expression = dynamic_cast<Expression*>(node);

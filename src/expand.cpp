@@ -121,7 +121,7 @@ namespace Sass {
       if (Declaration* dec = static_cast<Declaration*>(stm)) {
         String_Schema* combined_prop = new (ctx.mem) String_Schema(p->pstate());
         if (!property_stack.empty()) {
-          *combined_prop << property_stack.back()
+          *combined_prop << property_stack.back()->perform(&eval)
                          << new (ctx.mem) String_Quoted(p->pstate(), "-")
                          << dec->property(); // TODO: eval the prop into a string constant
         }
