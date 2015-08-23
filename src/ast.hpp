@@ -432,12 +432,7 @@ namespace Sass {
     { statement_type(MEDIA); }
     bool bubbles() { return true; }
     bool is_hoistable() { return true; }
-    bool is_invisible() const {
-      bool is_invisible = true;
-      for (size_t i = 0, L = block()->length(); i < L && is_invisible; i++)
-        is_invisible &= (*block())[i]->is_invisible();
-      return is_invisible;
-    }
+    bool is_invisible() const;
     ATTACH_OPERATIONS()
   };
 
@@ -590,6 +585,8 @@ namespace Sass {
     Comment(ParserState pstate, String* txt, bool is_important)
     : Statement(pstate), text_(txt), is_important_(is_important)
     { statement_type(COMMENT); }
+    virtual bool is_invisible() const
+    { return is_important() == false; }
     ATTACH_OPERATIONS()
   };
 
@@ -2249,15 +2246,6 @@ namespace Sass {
     virtual bool operator==(const Selector_List& rhs) const;
     ATTACH_OPERATIONS()
   };
-
-  inline bool Ruleset::is_invisible() const {
-    bool is_invisible = true;
-    Selector_List* sl = static_cast<Selector_List*>(selector());
-    for (size_t i = 0, L = sl->length(); i < L && is_invisible; ++i)
-      is_invisible &= (*sl)[i]->has_placeholder();
-    return is_invisible;
-  }
-
 
   template<typename SelectorType>
   bool selectors_equal(const SelectorType& one, const SelectorType& two, bool simpleSelectorOrderDependent) {

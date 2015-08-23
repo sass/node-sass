@@ -1252,6 +1252,20 @@ namespace Sass {
     }
   }
 
+  bool Ruleset::is_invisible() const {
+    Selector_List* sl = static_cast<Selector_List*>(selector());
+    for (size_t i = 0, L = sl->length(); i < L; ++i)
+      if (!(*sl)[i]->has_placeholder()) return false;
+    return true;
+  }
+
+  bool Media_Block::is_invisible() const {
+    for (size_t i = 0, L = block()->length(); i < L; ++i) {
+      if (!(*block())[i]->is_invisible()) return false;
+    }
+    return true;
+  }
+
   Number::Number(ParserState pstate, double val, std::string u, bool zero)
   : Value(pstate),
     value_(val),
