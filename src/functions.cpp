@@ -1447,11 +1447,7 @@ namespace Sass {
     BUILT_IN(type_of)
     {
       Expression* v = ARG("$value", Expression);
-      if (v->concrete_type() == Expression::STRING) {
-        To_String to_string(&ctx);
-        std::string str(v->perform(&to_string));
-      }
-      return new (ctx.mem) String_Quoted(pstate, ARG("$value", Expression)->type());
+      return new (ctx.mem) String_Quoted(pstate, v->type());
     }
 
     Signature unit_sig = "unit($number)";
