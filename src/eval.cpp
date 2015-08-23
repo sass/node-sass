@@ -605,8 +605,11 @@ namespace Sass {
                                                          c->name(),
                                                          args);
         To_String to_string(&ctx);
+        if (args->has_named_arguments()) {
+          error("Function " + c->name() + " doesn't support keyword arguments", c->pstate());
+        }
         return new (ctx.mem) String_Quoted(c->pstate(),
-                                             lit->perform(&to_string));
+                                           lit->perform(&to_string));
       } else {
         // call generic function
         full_name = "*[f]";
