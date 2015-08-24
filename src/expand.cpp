@@ -433,21 +433,32 @@ namespace Sass {
       }
     }
     else {
+      bool arglist = list->is_arglist();
       for (size_t i = 0, L = list->length(); i < L; ++i) {
-        List* variable = 0;
-        if ((*list)[i]->concrete_type() != Expression::LIST  || variables.size() == 1) {
-          variable = new (ctx.mem) List((*list)[i]->pstate(), 1, SASS_COMMA);
-          *variable << (*list)[i];
-        }
-        else {
-          variable = static_cast<List*>((*list)[i]);
-        }
-        for (size_t j = 0, K = variables.size(); j < K; ++j) {
-          if (j < variable->length()) {
-            env->set_local(variables[j], (*variable)[j]->perform(&eval));
+        Expression* e = (*list)[i];
+        // unwrap value if the expression is an argument
+        if (Argument* arg = dynamic_cast<Argument*>(e)) e = arg->value();
+        // check if we got passed a list of args (investigate)
+        if (List* scalars = dynamic_cast<List*>(e)) {
+          if (variables.size() == 1) {
+            Expression* var = scalars;
+            if (arglist) var = (*scalars)[0];
+            env->set_local(variables[0], var);
+          } else {
+            for (size_t j = 0, K = variables.size(); j < K; ++j) {
+              Expression* res = j >= scalars->length()
+                ? new (ctx.mem) Null(expr->pstate())
+                : (*scalars)[j]->perform(&eval);
+              env->set_local(variables[j], res);
+            }
           }
-          else {
-            env->set_local(variables[j], new (ctx.mem) Null(expr->pstate()));
+        } else {
+          if (variables.size() > 0) {
+            env->set_local(variables[0], e);
+            for (size_t j = 1, K = variables.size(); j < K; ++j) {
+              Expression* res = new (ctx.mem) Null(expr->pstate());
+              env->set_local(variables[j], res);
+            }
           }
         }
         append_block(body);
