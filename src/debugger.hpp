@@ -424,6 +424,9 @@ inline void debug_ast(AST_Node* node, std::string ind = "", Env* env = 0)
     std::cerr << ind << "Arguments " << expression;
     if (expression->is_delayed()) std::cerr << " [delayed]";
     std::cerr << " (" << pstate_source_position(node) << ")";
+    if (expression->has_named_arguments()) std::cerr << " [has_named_arguments]";
+    if (expression->has_rest_argument()) std::cerr << " [has_rest_argument]";
+    if (expression->has_keyword_argument()) std::cerr << " [has_keyword_argument]";
     std::cerr << std::endl;
     for(auto i : expression->elements()) { debug_ast(i, ind + " ", env); }
   } else if (dynamic_cast<Argument*>(node)) {
