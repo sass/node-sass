@@ -545,10 +545,13 @@ namespace Sass {
             hasPrintableChildBlocks = true;
           }
         } else if (Comment* c = dynamic_cast<Comment*>(stm)) {
-          if (style == COMPRESSED) {
-            hasDeclarations = c->is_important();
-          } else {
+          // keep for uncompressed
+          if (style != COMPRESSED) {
             hasDeclarations = true;
+          }
+          // output style compressed
+          if (c->is_important()) {
+            hasDeclarations = c->is_important();
           }
         } else if (Declaration* d = dynamic_cast<Declaration*>(stm)) {
           return isPrintable(d, style);
@@ -646,7 +649,15 @@ namespace Sass {
           return true;
         }
         else if (typeid(*stm) == typeid(Comment)) {
-
+          Comment* c = (Comment*) stm;
+          // keep for uncompressed
+          if (style != COMPRESSED) {
+            return true;
+          }
+          // output style compressed
+          if (c->is_important()) {
+            return true;
+          }
         }
         else if (typeid(*stm) == typeid(Ruleset)) {
           Ruleset* r = (Ruleset*) stm;
