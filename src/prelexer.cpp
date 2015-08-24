@@ -128,11 +128,31 @@ namespace Sass {
 
     // Match interpolant schemas
     const char* identifier_schema(const char* src) {
-      // follows this pattern: (x*ix*)+ ... well, not quite
-      return sequence< one_plus< sequence< zero_plus< alternatives< identifier, exactly<'-'> > >,
-                                 interpolant,
-                                 zero_plus< alternatives< identifier, number, exactly<'-'> > > > >,
-                       negate< exactly<'%'> > >(src);
+
+      return sequence <
+               one_plus <
+                 sequence <
+                   zero_plus <
+                     alternatives <
+                       identifier,
+                       exactly <'-'>
+                     >
+                   >,
+                   interpolant,
+                   zero_plus <
+                     alternatives <
+                       digits,
+                       identifier,
+                       exactly<'+'>,
+                       exactly<'-'>
+                     >
+                   >
+                 >
+               >,
+               negate <
+                 exactly<'%'>
+               >
+             > (src);
     }
 
     // interpolants can be recursive/nested
@@ -590,7 +610,35 @@ namespace Sass {
     }
     // Match CSS function call openers.
     const char* functional_schema(const char* src) {
-      return sequence< identifier_schema, lookahead < exactly<'('> > >(src);
+      return sequence <
+               one_plus <
+                 sequence <
+                   zero_plus <
+                     alternatives <
+                       identifier,
+                       exactly <'-'>
+                     >
+                   >,
+                   one_plus <
+                     sequence <
+                       interpolant,
+                       alternatives <
+                         digits,
+                         identifier,
+                         exactly<'+'>,
+                         exactly<'-'>
+                       >
+                     >
+                   >
+                 >
+               >,
+               negate <
+                 exactly <'%'>
+               >,
+               lookahead <
+                 exactly <'('>
+               >
+             > (src);
     }
 
     const char* re_nothing(const char* src) {
