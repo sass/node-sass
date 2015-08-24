@@ -821,6 +821,26 @@ namespace Sass {
     if (h && h->length()) {
       if (last()->combinator() != ANCESTOR_OF && c != ANCESTOR_OF) {
         error("Invalid parent selector", pstate_);
+      } else if (last()->head_ && last()->head_->length()) {
+        Compound_Selector* rh = last()->head();
+        size_t i = 0, L = h->length();
+        if (Type_Selector* ts = dynamic_cast<Type_Selector*>(h->first())) {
+          if (Selector_Qualifier* sq = dynamic_cast<Selector_Qualifier*>(rh->last())) {
+            Selector_Qualifier* sqs = new Selector_Qualifier(*sq);
+            sqs->name(sqs->name() + (*h)[0]->name());
+            (*rh)[rh->length()-1] = sqs;
+            for (i = 1; i < L; ++i) *rh << (*h)[i];
+          } else if (Type_Selector* ts = dynamic_cast<Type_Selector*>(rh->last())) {
+            Type_Selector* tss = new Type_Selector(*ts);
+            tss->name(tss->name() + (*h)[0]->name());
+            (*rh)[rh->length()-1] = tss;
+            for (i = 1; i < L; ++i) *rh << (*h)[i];
+          } else {
+            *last()->head_ += h;
+          }
+        } else {
+          *last()->head_ += h;
+        }
       } else {
         *last()->head_ += h;
       }
