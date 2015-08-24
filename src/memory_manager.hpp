@@ -29,14 +29,6 @@ namespace Sass {
   };
 }
 
-template <typename T>
-inline void* operator new(size_t size, Sass::Memory_Manager<T>& mem)
-{ return mem.add(mem.allocate(size)); }
-
-template <typename T>
-inline void operator delete(void *np, Sass::Memory_Manager<T>& mem)
-{ mem.destroy(reinterpret_cast<T*>(np)); }
-
 ///////////////////////////////////////////////////////////////////////////////
 // Use macros for the allocation task, since overloading operator `new`
 // has been proven to be flaky under certain compilers (see comment below).

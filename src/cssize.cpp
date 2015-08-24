@@ -23,7 +23,7 @@ namespace Sass {
 
   Statement* Cssize::operator()(Block* b)
   {
-    Block* bb = new (ctx.mem) Block(b->pstate(), b->length(), b->is_root());
+    Block* bb = SASS_MEMORY_NEW(ctx.mem, Block, b->pstate(), b->length(), b->is_root());
     // bb->tabs(b->tabs());
     block_stack.push_back(bb);
     append_block(b);
@@ -37,14 +37,15 @@ namespace Sass {
 
     if (parent()->statement_type() == Statement::RULESET)
     {
-      return (r->is_keyframes()) ? new (ctx.mem) Bubble(r->pstate(), r) : bubble(r);
+      return (r->is_keyframes()) ? SASS_MEMORY_NEW(ctx.mem, Bubble, r->pstate(), r) : bubble(r);
     }
 
     p_stack.push_back(r);
-    At_Rule* rr = new (ctx.mem) At_Rule(r->pstate(),
-                                        r->keyword(),
-                                        r->selector(),
-                                        r->block() ? r->block()->perform(this)->block() : 0);
+    At_Rule* rr = SASS_MEMORY_NEW(ctx.mem, At_Rule,
+                                  r->pstate(),
+                                  r->keyword(),
+                                  r->selector(),
+                                  r->block() ? r->block()->perform(this)->block() : 0);
     if (r->value()) rr->value(r->value());
     p_stack.pop_back();
 
@@ -61,15 +62,15 @@ namespace Sass {
 
     }
 
-    Block* result = new (ctx.mem) Block(rr->pstate());
+    Block* result = SASS_MEMORY_NEW(ctx.mem, Block, rr->pstate());
     if (!(directive_exists || rr->is_keyframes()))
     {
       At_Rule* empty_node = static_cast<At_Rule*>(rr);
-      empty_node->block(new (ctx.mem) Block(rr->block() ? rr->block()->pstate() : rr->pstate()));
+      empty_node->block(SASS_MEMORY_NEW(ctx.mem, Block, rr->block() ? rr->block()->pstate() : rr->pstate()));
       *result << empty_node;
     }
 
-    Statement* ss = debubble(rr->block() ? rr->block() : new (ctx.mem) Block(rr->pstate()), rr);
+    Statement* ss = debubble(rr->block() ? rr->block() : SASS_MEMORY_NEW(ctx.mem, Block, rr->pstate()), rr);
     for (size_t i = 0, L = ss->block()->length(); i < L; ++i) {
       *result << (*ss->block())[i];
     }
@@ -81,8 +82,9 @@ namespace Sass {
   {
     if (!r->block() || !r->block()->length()) return r;
 
-    Keyframe_Rule* rr = new (ctx.mem) Keyframe_Rule(r->pstate(),
-                                                    r->block()->perform(this)->block());
+    Keyframe_Rule* rr = SASS_MEMORY_NEW(ctx.mem, Keyframe_Rule,
+                                        r->pstate(),
+                                        r->block()->perform(this)->block());
     if (r->selector()) rr->selector(r->selector());
 
     return debubble(rr->block(), rr)->block();
@@ -91,14 +93,15 @@ namespace Sass {
   Statement* Cssize::operator()(Ruleset* r)
   {
     p_stack.push_back(r);
-    Ruleset* rr = new (ctx.mem) Ruleset(r->pstate(),
-                                        r->selector(),
-                                        r->block()->perform(this)->block());
+    Ruleset* rr = SASS_MEMORY_NEW(ctx.mem, Ruleset,
+                                  r->pstate(),
+                                  r->selector(),
+                                  r->block()->perform(this)->block());
     // rr->tabs(r->block()->tabs());
     p_stack.pop_back();
 
-    Block* props = new (ctx.mem) Block(rr->block()->pstate());
-    Block* rules = new (ctx.mem) Block(rr->block()->pstate());
+    Block* props = SASS_MEMORY_NEW(ctx.mem, Block, rr->block()->pstate());
+    Block* rules = SASS_MEMORY_NEW(ctx.mem, Block, rr->block()->pstate());
     for (size_t i = 0, L = rr->block()->length(); i < L; i++)
     {
       Statement* s = (*rr->block())[i];
@@ -108,7 +111,7 @@ namespace Sass {
 
     if (props->length())
     {
-      Block* bb = new (ctx.mem) Block(rr->block()->pstate());
+      Block* bb = SASS_MEMORY_NEW(ctx.mem, Block, rr->block()->pstate());
       *bb += props;
       rr->block(bb);
 
@@ -143,13 +146,14 @@ namespace Sass {
     { return bubble(m); }
 
     if (parent()->statement_type() == Statement::MEDIA)
-    { return new (ctx.mem) Bubble(m->pstate(), m); }
+    { return SASS_MEMORY_NEW(ctx.mem, Bubble, m->pstate(), m); }
 
     p_stack.push_back(m);
 
-    Media_Block* mm = new (ctx.mem) Media_Block(m->pstate(),
-                                                m->media_queries(),
-                                                m->block()->perform(this)->block());
+    Media_Block* mm = SASS_MEMORY_NEW(ctx.mem, Media_Block,
+                                      m->pstate(),
+                                      m->media_queries(),
+                                      m->block()->perform(this)->block());
     mm->tabs(m->tabs());
 
     p_stack.pop_back();
@@ -167,9 +171,10 @@ namespace Sass {
 
     p_stack.push_back(m);
 
-    Supports_Block* mm = new (ctx.mem) Supports_Block(m->pstate(),
-                                                    m->condition(),
-                                                    m->block()->perform(this)->block());
+    Supports_Block* mm = SASS_MEMORY_NEW(ctx.mem, Supports_Block,
+                                       m->pstate(),
+                                       m->condition(),
+                                       m->block()->perform(this)->block());
     mm->tabs(m->tabs());
 
     p_stack.pop_back();
@@ -198,7 +203,7 @@ namespace Sass {
 
     if (m->exclude_node(parent()))
     {
-      return new (ctx.mem) Bubble(m->pstate(), m);
+      return SASS_MEMORY_NEW(ctx.mem, Bubble, m->pstate(), m);
     }
 
     return bubble(m);
@@ -206,7 +211,7 @@ namespace Sass {
 
   Statement* Cssize::bubble(At_Rule* m)
   {
-    Block* bb = new (ctx.mem) Block(this->parent()->pstate());
+    Block* bb = SASS_MEMORY_NEW(ctx.mem, Block, this->parent()->pstate());
     Has_Block* new_rule = static_cast<Has_Block*>(shallow_copy(this->parent()));
     new_rule->block(bb);
     new_rule->tabs(this->parent()->tabs());
@@ -216,21 +221,22 @@ namespace Sass {
       *new_rule->block() << (*m->block())[i];
     }
 
-    Block* wrapper_block = new (ctx.mem) Block(m->block() ? m->block()->pstate() : m->pstate());
+    Block* wrapper_block = SASS_MEMORY_NEW(ctx.mem, Block, m->block() ? m->block()->pstate() : m->pstate());
     *wrapper_block << new_rule;
-    At_Rule* mm = new (ctx.mem) At_Rule(m->pstate(),
-                                        m->keyword(),
-                                        m->selector(),
-                                        wrapper_block);
+    At_Rule* mm = SASS_MEMORY_NEW(ctx.mem, At_Rule,
+                                  m->pstate(),
+                                  m->keyword(),
+                                  m->selector(),
+                                  wrapper_block);
     if (m->value()) mm->value(m->value());
 
-    Bubble* bubble = new (ctx.mem) Bubble(mm->pstate(), mm);
+    Bubble* bubble = SASS_MEMORY_NEW(ctx.mem, Bubble, mm->pstate(), mm);
     return bubble;
   }
 
   Statement* Cssize::bubble(At_Root_Block* m)
   {
-    Block* bb = new (ctx.mem) Block(this->parent()->pstate());
+    Block* bb = SASS_MEMORY_NEW(ctx.mem, Block, this->parent()->pstate());
     Has_Block* new_rule = static_cast<Has_Block*>(shallow_copy(this->parent()));
     new_rule->block(bb);
     new_rule->tabs(this->parent()->tabs());
@@ -239,12 +245,13 @@ namespace Sass {
       *new_rule->block() << (*m->block())[i];
     }
 
-    Block* wrapper_block = new (ctx.mem) Block(m->block()->pstate());
+    Block* wrapper_block = SASS_MEMORY_NEW(ctx.mem, Block, m->block()->pstate());
     *wrapper_block << new_rule;
-    At_Root_Block* mm = new (ctx.mem) At_Root_Block(m->pstate(),
-                                                    wrapper_block,
-                                                    m->expression());
-    Bubble* bubble = new (ctx.mem) Bubble(mm->pstate(), mm);
+    At_Root_Block* mm = SASS_MEMORY_NEW(ctx.mem, At_Root_Block,
+                                        m->pstate(),
+                                        wrapper_block,
+                                        m->expression());
+    Bubble* bubble = SASS_MEMORY_NEW(ctx.mem, Bubble, mm->pstate(), mm);
     return bubble;
   }
 
@@ -252,25 +259,27 @@ namespace Sass {
   {
     Ruleset* parent = static_cast<Ruleset*>(shallow_copy(this->parent()));
 
-    Block* bb = new (ctx.mem) Block(parent->block()->pstate());
-    Ruleset* new_rule = new (ctx.mem) Ruleset(parent->pstate(),
-                                              parent->selector(),
-                                              bb);
+    Block* bb = SASS_MEMORY_NEW(ctx.mem, Block, parent->block()->pstate());
+    Ruleset* new_rule = SASS_MEMORY_NEW(ctx.mem, Ruleset,
+                                        parent->pstate(),
+                                        parent->selector(),
+                                        bb);
     new_rule->tabs(parent->tabs());
 
     for (size_t i = 0, L = m->block()->length(); i < L; ++i) {
       *new_rule->block() << (*m->block())[i];
     }
 
-    Block* wrapper_block = new (ctx.mem) Block(m->block()->pstate());
+    Block* wrapper_block = SASS_MEMORY_NEW(ctx.mem, Block, m->block()->pstate());
     *wrapper_block << new_rule;
-    Supports_Block* mm = new (ctx.mem) Supports_Block(m->pstate(),
-                                                    m->condition(),
-                                                    wrapper_block);
+    Supports_Block* mm = SASS_MEMORY_NEW(ctx.mem, Supports_Block,
+                                       m->pstate(),
+                                       m->condition(),
+                                       wrapper_block);
 
     mm->tabs(m->tabs());
 
-    Bubble* bubble = new (ctx.mem) Bubble(mm->pstate(), mm);
+    Bubble* bubble = SASS_MEMORY_NEW(ctx.mem, Bubble, mm->pstate(), mm);
     return bubble;
   }
 
@@ -278,26 +287,28 @@ namespace Sass {
   {
     Ruleset* parent = static_cast<Ruleset*>(shallow_copy(this->parent()));
 
-    Block* bb = new (ctx.mem) Block(parent->block()->pstate());
-    Ruleset* new_rule = new (ctx.mem) Ruleset(parent->pstate(),
-                                              parent->selector(),
-                                              bb);
+    Block* bb = SASS_MEMORY_NEW(ctx.mem, Block, parent->block()->pstate());
+    Ruleset* new_rule = SASS_MEMORY_NEW(ctx.mem, Ruleset,
+                                        parent->pstate(),
+                                        parent->selector(),
+                                        bb);
     new_rule->tabs(parent->tabs());
 
     for (size_t i = 0, L = m->block()->length(); i < L; ++i) {
       *new_rule->block() << (*m->block())[i];
     }
 
-    Block* wrapper_block = new (ctx.mem) Block(m->block()->pstate());
+    Block* wrapper_block = SASS_MEMORY_NEW(ctx.mem, Block, m->block()->pstate());
     *wrapper_block << new_rule;
-    Media_Block* mm = new (ctx.mem) Media_Block(m->pstate(),
-                                                m->media_queries(),
-                                                wrapper_block,
-                                                0);
+    Media_Block* mm = SASS_MEMORY_NEW(ctx.mem, Media_Block,
+                                      m->pstate(),
+                                      m->media_queries(),
+                                      wrapper_block,
+                                      0);
 
     mm->tabs(m->tabs());
 
-    Bubble* bubble = new (ctx.mem) Bubble(mm->pstate(), mm);
+    Bubble* bubble = SASS_MEMORY_NEW(ctx.mem, Bubble, mm->pstate(), mm);
 
     return bubble;
   }
@@ -310,7 +321,7 @@ namespace Sass {
   Statement* Cssize::flatten(Statement* s)
   {
     Block* bb = s->block();
-    Block* result = new (ctx.mem) Block(bb->pstate(), 0, bb->is_root());
+    Block* result = SASS_MEMORY_NEW(ctx.mem, Block, bb->pstate(), 0, bb->is_root());
     for (size_t i = 0, L = bb->length(); i < L; ++i) {
       Statement* ss = (*bb)[i];
       if (ss->block()) {
@@ -340,7 +351,7 @@ namespace Sass {
       }
       else
       {
-        Block* wrapper_block = new (ctx.mem) Block(value->pstate());
+        Block* wrapper_block = SASS_MEMORY_NEW(ctx.mem, Block, value->pstate());
         *wrapper_block << value;
         results.push_back(std::make_pair(key, wrapper_block));
       }
@@ -353,24 +364,24 @@ namespace Sass {
     switch (s->statement_type())
     {
       case Statement::RULESET:
-        return new (ctx.mem) Ruleset(*static_cast<Ruleset*>(s));
+        return SASS_MEMORY_NEW(ctx.mem, Ruleset, *static_cast<Ruleset*>(s));
       case Statement::MEDIA:
-        return new (ctx.mem) Media_Block(*static_cast<Media_Block*>(s));
+        return SASS_MEMORY_NEW(ctx.mem, Media_Block, *static_cast<Media_Block*>(s));
       case Statement::BUBBLE:
-        return new (ctx.mem) Bubble(*static_cast<Bubble*>(s));
+        return SASS_MEMORY_NEW(ctx.mem, Bubble, *static_cast<Bubble*>(s));
       case Statement::DIRECTIVE:
-        return new (ctx.mem) At_Rule(*static_cast<At_Rule*>(s));
+        return SASS_MEMORY_NEW(ctx.mem, At_Rule, *static_cast<At_Rule*>(s));
       case Statement::SUPPORTS:
-        return new (ctx.mem) Supports_Block(*static_cast<Supports_Block*>(s));
+        return SASS_MEMORY_NEW(ctx.mem, Supports_Block, *static_cast<Supports_Block*>(s));
       case Statement::ATROOT:
-        return new (ctx.mem) At_Root_Block(*static_cast<At_Root_Block*>(s));
+        return SASS_MEMORY_NEW(ctx.mem, At_Root_Block, *static_cast<At_Root_Block*>(s));
       case Statement::KEYFRAMERULE:
-        return new (ctx.mem) Keyframe_Rule(*static_cast<Keyframe_Rule*>(s));
+        return SASS_MEMORY_NEW(ctx.mem, Keyframe_Rule, *static_cast<Keyframe_Rule*>(s));
       case Statement::NONE:
       default:
         error("unknown internal error; please contact the LibSass maintainers", s->pstate(), backtrace);
-        String_Quoted* msg = new (ctx.mem) String_Quoted(ParserState("[WARN]"), std::string("`CSSize` can't clone ") + typeid(*s).name());
-        return new (ctx.mem) Warning(ParserState("[WARN]"), msg);
+        String_Quoted* msg = SASS_MEMORY_NEW(ctx.mem, String_Quoted, ParserState("[WARN]"), std::string("`CSSize` can't clone ") + typeid(*s).name());
+        return SASS_MEMORY_NEW(ctx.mem, Warning, ParserState("[WARN]"), msg);
     }
   }
 
@@ -378,7 +389,7 @@ namespace Sass {
   {
     Has_Block* previous_parent = 0;
     std::vector<std::pair<bool, Block*>> baz = slice_by_bubble(children);
-    Block* result = new (ctx.mem) Block(children->pstate());
+    Block* result = SASS_MEMORY_NEW(ctx.mem, Block, children->pstate());
 
     for (size_t i = 0, L = baz.size(); i < L; ++i) {
       bool is_bubble = baz[i].first;
@@ -404,9 +415,10 @@ namespace Sass {
         continue;
       }
 
-      Block* wrapper_block = new (ctx.mem) Block(children->block()->pstate(),
-                                                 children->block()->length(),
-                                                 children->block()->is_root());
+      Block* wrapper_block = SASS_MEMORY_NEW(ctx.mem, Block,
+                                             children->block()->pstate(),
+                                             children->block()->length(),
+                                             children->block()->is_root());
 
       for (size_t j = 0, K = slice->length(); j < K; ++j)
       {
@@ -435,9 +447,10 @@ namespace Sass {
 
         if (!ss) continue;
 
-        Block* bb = new (ctx.mem) Block(children->block()->pstate(),
-                                        children->block()->length(),
-                                        children->block()->is_root());
+        Block* bb = SASS_MEMORY_NEW(ctx.mem, Block,
+                                    children->block()->pstate(),
+                                    children->block()->length(),
+                                    children->block()->is_root());
         *bb << ss->perform(this);
         Statement* wrapper = flatten(bb);
         *wrapper_block << wrapper;
@@ -479,9 +492,10 @@ namespace Sass {
 
   List* Cssize::merge_media_queries(Media_Block* m1, Media_Block* m2)
   {
-    List* qq = new (ctx.mem) List(m1->media_queries()->pstate(),
-                                  m1->media_queries()->length(),
-                                  SASS_COMMA);
+    List* qq = SASS_MEMORY_NEW(ctx.mem, List,
+                               m1->media_queries()->pstate(),
+                               m1->media_queries()->length(),
+                               SASS_COMMA);
 
     for (size_t i = 0, L = m1->media_queries()->length(); i < L; i++) {
       for (size_t j = 0, K = m2->media_queries()->length(); j < K; j++) {
@@ -534,13 +548,14 @@ namespace Sass {
       mod = m1.empty() ? m2 : m1;
     }
 
-    Media_Query* mm = new (ctx.mem) Media_Query(
-      mq1->pstate(), 0,
-      mq1->length() + mq2->length(), mod == "not", mod == "only"
-    );
+    Media_Query* mm = SASS_MEMORY_NEW(ctx.mem, Media_Query,
+
+mq1->pstate(), 0,
+mq1->length() + mq2->length(), mod == "not", mod == "only"
+);
 
     if (!type.empty()) {
-      mm->media_type(new (ctx.mem) String_Quoted(mq1->pstate(), type));
+      mm->media_type(SASS_MEMORY_NEW(ctx.mem, String_Quoted, mq1->pstate(), type));
     }
 
     *mm += mq2;
