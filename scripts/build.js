@@ -20,7 +20,9 @@ require('../lib/extensions');
 
 function afterBuild(options) {
   var install = process.sass.binaryPath;
-  var target = path.join(__dirname, '..', 'build', options.debug ? 'Debug' : 'Release', 'binding.node');
+  var target = path.join(__dirname, '..', 'build',
+    options.debug ? 'Debug' : process.config.target_defaults.default_configuration,
+    'binding.node');
 
   mkdir(path.dirname(install), function(err) {
     if (err && err.code !== 'EEXIST') {
