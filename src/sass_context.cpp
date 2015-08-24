@@ -325,6 +325,20 @@ extern "C" {
       c_ctx->source_map_string = 0;
       json_delete(json_err);
     }
+    catch (const char* e) {
+      std::stringstream msg_stream;
+      JsonNode* json_err = json_mkobject();
+      msg_stream << "Error: " << e << std::endl;
+      json_append_member(json_err, "status", json_mknumber(4));
+      json_append_member(json_err, "message", json_mkstring(e));
+      c_ctx->error_json = json_stringify(json_err, "  ");;
+      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_text = sass_strdup(e);
+      c_ctx->error_status = 4;
+      c_ctx->output_string = 0;
+      c_ctx->source_map_string = 0;
+      json_delete(json_err);
+    }
     catch (...) {
       std::stringstream msg_stream;
       JsonNode* json_err = json_mkobject();

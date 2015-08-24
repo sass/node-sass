@@ -75,7 +75,7 @@ extern "C" {
     struct Sass_Map     map;
     struct Sass_Null    null;
     struct Sass_Error   error;
-    struct Sass_Warning   warning;
+    struct Sass_Warning warning;
   };
 
   struct Sass_MapPair {
