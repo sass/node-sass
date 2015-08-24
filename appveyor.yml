@@ -25,12 +25,11 @@ install:
       if(!(gem which minitest 2>$nul)) { gem install minitest --no-ri --no-rdoc }
       if ($env:Compiler -eq "mingw" -AND -Not (Test-Path "C:\mingw64")) {
         # Install MinGW.
-        $url  = "http://sourceforge.net/projects/mingw-w64/files/"
-        $url += "Toolchains%20targetting%20Win64/Personal%20Builds/"
-        $url += "mingw-builds/4.9.2/threads-win32/seh/"
-        $url += "x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z/download"
-        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z
-        &7z x -oC:\ x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z > $null
+        $file = "x86_64-4.9.2-release-win32-seh-rt_v4-rev3.7z"
+        $url  = "https://bintray.com/artifact/download/drewwells/generic/"
+        $url += $file
+        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile $file
+        &7z x -oC:\ $file > $null
       }
   - set PATH=C:\mingw64\bin;%PATH%
   - set CC=gcc
