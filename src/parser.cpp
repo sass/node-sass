@@ -834,7 +834,9 @@ namespace Sass {
       }
     }
 
-    if (seq) seq->has_line_break(peek_newline());
+    if (seq && !peek_css<exactly<'{'>>()) {
+      seq->has_line_break(peek_newline());
+    }
 
     // EO while true
     return seq;
