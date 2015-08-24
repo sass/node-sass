@@ -363,6 +363,8 @@ namespace Sass {
           // ToDo: Maybe we could do this without creating a substring
           uint32_t cp = strtol(s.substr (i + 1, len - 1).c_str(), nullptr, 16);
 
+          if (s[i + len] == ' ') ++ len;
+
           // assert invalid code points
           if (cp == 0) cp = 0xFFFD;
           // replace bell character
