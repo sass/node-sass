@@ -67,29 +67,34 @@ namespace Sass {
   {
     switch (sass_value_get_tag(val)) {
       case SASS_NUMBER:
-        return new (mem) Number(ParserState("[C-VALUE]"),
-                                sass_number_get_value(val),
-                                sass_number_get_unit(val));
+        return SASS_MEMORY_NEW(mem, Number,
+                               ParserState("[C-VALUE]"),
+                               sass_number_get_value(val),
+                               sass_number_get_unit(val));
       break;
       case SASS_BOOLEAN:
-        return new (mem) Boolean(ParserState("[C-VALUE]"),
-                                 sass_boolean_get_value(val));
+        return SASS_MEMORY_NEW(mem, Boolean,
+                               ParserState("[C-VALUE]"),
+                               sass_boolean_get_value(val));
       break;
       case SASS_COLOR:
-        return new (mem) Color(ParserState("[C-VALUE]"),
+        return SASS_MEMORY_NEW(mem, Color,
+                               ParserState("[C-VALUE]"),
                                sass_color_get_r(val),
                                sass_color_get_g(val),
                                sass_color_get_b(val),
                                sass_color_get_a(val));
       break;
       case SASS_STRING:
-        return new (mem) String_Quoted(ParserState("[C-VALUE]"),
-                                       sass_string_get_value(val));
+        return SASS_MEMORY_NEW(mem, String_Quoted,
+                               ParserState("[C-VALUE]"),
+                               sass_string_get_value(val));
       break;
       case SASS_LIST: {
-        List* l = new (mem) List(ParserState("[C-VALUE]"),
-                                 sass_list_get_length(val),
-                                 sass_list_get_separator(val));
+        List* l = SASS_MEMORY_NEW(mem, List,
+                                  ParserState("[C-VALUE]"),
+                                  sass_list_get_length(val),
+                                  sass_list_get_separator(val));
         for (size_t i = 0, L = sass_list_get_length(val); i < L; ++i) {
           *l << sass_value_to_ast_node(mem, sass_list_get_value(val, i));
         }
@@ -97,7 +102,7 @@ namespace Sass {
       }
       break;
       case SASS_MAP: {
-        Map* m = new (mem) Map(ParserState("[C-VALUE]"));
+        Map* m = SASS_MEMORY_NEW(mem, Map, ParserState("[C-VALUE]"));
         for (size_t i = 0, L = sass_map_get_length(val); i < L; ++i) {
           *m << std::make_pair(
             sass_value_to_ast_node(mem, sass_map_get_key(val, i)),
@@ -107,15 +112,17 @@ namespace Sass {
       }
       break;
       case SASS_NULL:
-        return new (mem) Null(ParserState("[C-VALUE]"));
+        return SASS_MEMORY_NEW(mem, Null, ParserState("[C-VALUE]"));
       break;
       case SASS_ERROR:
-        return new (mem) Custom_Error(ParserState("[C-VALUE]"),
-                                      sass_error_get_message(val));
+        return SASS_MEMORY_NEW(mem, Custom_Error,
+                               ParserState("[C-VALUE]"),
+                               sass_error_get_message(val));
       break;
       case SASS_WARNING:
-        return new (mem) Custom_Warning(ParserState("[C-VALUE]"),
-                                        sass_warning_get_message(val));
+        return SASS_MEMORY_NEW(mem, Custom_Warning,
+                               ParserState("[C-VALUE]"),
+                               sass_warning_get_message(val));
       break;
     }
     return 0;

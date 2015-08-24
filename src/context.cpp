@@ -438,12 +438,13 @@ namespace Sass {
 
   void register_overload_stub(Context& ctx, std::string name, Env* env)
   {
-    Definition* stub = new (ctx.mem) Definition(ParserState("[built-in function]"),
-                                                0,
-                                                name,
-                                                0,
-                                                0,
-                                                true);
+    Definition* stub = SASS_MEMORY_NEW(ctx.mem, Definition,
+                                       ParserState("[built-in function]"),
+                                       0,
+                                       name,
+                                       0,
+                                       0,
+                                       true);
     (*env)[name + "[f]"] = stub;
   }
 

@@ -179,7 +179,7 @@ namespace Sass {
     double end = sass_end->value();
     // only create iterator once in this environment
     Env* env = exp.environment();
-    Number* it = new (env->mem) Number(low->pstate(), start, sass_end->unit());
+    Number* it = SASS_MEMORY_NEW(env->mem, Number, low->pstate(), start, sass_end->unit());
     AST_Node* old_var = env->has_local(variable) ? env->get_local(variable) : 0;
     env->set_local(variable, it);
     Block* body = f->block();
@@ -224,7 +224,7 @@ namespace Sass {
       map = static_cast<Map*>(expr);
     }
     else if (expr->concrete_type() != Expression::LIST) {
-      list = new (ctx.mem) List(expr->pstate(), 1, SASS_COMMA);
+      list = SASS_MEMORY_NEW(ctx.mem, List, expr->pstate(), 1, SASS_COMMA);
       *list << expr;
     }
     else {
@@ -244,7 +244,7 @@ namespace Sass {
         Expression* value = map->at(key);
 
         if (variables.size() == 1) {
-          List* variable = new (ctx.mem) List(map->pstate(), 2, SASS_SPACE);
+          List* variable = SASS_MEMORY_NEW(ctx.mem, List, map->pstate(), 2, SASS_SPACE);
           *variable << key;
           *variable << value;
           env->set_local(variables[0], variable);
@@ -272,7 +272,7 @@ namespace Sass {
           } else {
             for (size_t j = 0, K = variables.size(); j < K; ++j) {
               Expression* res = j >= scalars->length()
-                ? new (ctx.mem) Null(expr->pstate())
+                ? SASS_MEMORY_NEW(ctx.mem, Null, expr->pstate())
                 : (*scalars)[j];
               env->set_local(variables[j], res);
             }
@@ -281,7 +281,7 @@ namespace Sass {
           if (variables.size() > 0) {
             env->set_local(variables[0], e);
             for (size_t j = 1, K = variables.size(); j < K; ++j) {
-              Expression* res = new (ctx.mem) Null(expr->pstate());
+              Expression* res = SASS_MEMORY_NEW(ctx.mem, Null, expr->pstate());
               env->set_local(variables[j], res);
             }
           }
@@ -413,10 +413,11 @@ namespace Sass {
   Expression* Eval::operator()(List* l)
   {
     if (l->is_expanded()) return l;
-    List* ll = new (ctx.mem) List(l->pstate(),
-                                  l->length(),
-                                  l->separator(),
-                                  l->is_arglist());
+    List* ll = SASS_MEMORY_NEW(ctx.mem, List,
+                               l->pstate(),
+                               l->length(),
+                               l->separator(),
+                               l->is_arglist());
     for (size_t i = 0, L = l->length(); i < L; ++i) {
       *ll << (*l)[i]->perform(this);
     }
@@ -435,8 +436,9 @@ namespace Sass {
       error("Duplicate key \"" + m->get_duplicate_key()->perform(&to_string) + "\" in map " + m->perform(&to_string) + ".", m->pstate());
     }
 
-    Map* mm = new (ctx.mem) Map(m->pstate(),
-                                  m->length());
+    Map* mm = SASS_MEMORY_NEW(ctx.mem, Map,
+                                m->pstate(),
+                                m->length());
     for (auto key : m->keys()) {
       Expression* ex_key = key->perform(this);
       Expression* ex_val = m->at(key)->perform(this);
@@ -502,7 +504,7 @@ namespace Sass {
         std::string value(str->value());
         const char* start = value.c_str();
         if (Prelexer::sequence < Prelexer::number >(start) != 0) {
-          rhs = new (ctx.mem) Textual(rhs->pstate(), Textual::DIMENSION, str->value());
+          rhs = SASS_MEMORY_NEW(ctx.mem, Textual, rhs->pstate(), Textual::DIMENSION, str->value());
           rhs->is_delayed(false); rhs = rhs->perform(this);
         }
       }
@@ -510,12 +512,12 @@ namespace Sass {
 
     // see if it's a relational expression
     switch(op_type) {
-      case Sass_OP::EQ:  return new (ctx.mem) Boolean(b->pstate(), eq(lhs, rhs));
-      case Sass_OP::NEQ: return new (ctx.mem) Boolean(b->pstate(), !eq(lhs, rhs));
-      case Sass_OP::GT:  return new (ctx.mem) Boolean(b->pstate(), !lt(lhs, rhs) && !eq(lhs, rhs));
-      case Sass_OP::GTE: return new (ctx.mem) Boolean(b->pstate(), !lt(lhs, rhs));
-      case Sass_OP::LT:  return new (ctx.mem) Boolean(b->pstate(), lt(lhs, rhs));
-      case Sass_OP::LTE: return new (ctx.mem) Boolean(b->pstate(), lt(lhs, rhs) || eq(lhs, rhs));
+      case Sass_OP::EQ:  return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), eq(lhs, rhs));
+      case Sass_OP::NEQ: return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), !eq(lhs, rhs));
+      case Sass_OP::GT:  return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), !lt(lhs, rhs) && !eq(lhs, rhs));
+      case Sass_OP::GTE: return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), !lt(lhs, rhs));
+      case Sass_OP::LT:  return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), lt(lhs, rhs));
+      case Sass_OP::LTE: return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), lt(lhs, rhs) || eq(lhs, rhs));
 
       default:                     break;
     }
@@ -566,12 +568,12 @@ namespace Sass {
   {
     Expression* operand = u->operand()->perform(this);
     if (u->type() == Unary_Expression::NOT) {
-      Boolean* result = new (ctx.mem) Boolean(u->pstate(), (bool)*operand);
+      Boolean* result = SASS_MEMORY_NEW(ctx.mem, Boolean, u->pstate(), (bool)*operand);
       result->value(!result->value());
       return result;
     }
     else if (operand->concrete_type() == Expression::NUMBER) {
-      Number* result = new (ctx.mem) Number(*static_cast<Number*>(operand));
+      Number* result = SASS_MEMORY_NEW(ctx.mem, Number, *static_cast<Number*>(operand));
       result->value(u->type() == Unary_Expression::MINUS
                     ? -result->value()
                     :  result->value());
@@ -582,11 +584,12 @@ namespace Sass {
       // Special cases: +/- variables which evaluate to null ouput just +/-,
       // but +/- null itself outputs the string
       if (operand->concrete_type() == Expression::NULL_VAL && typeid(*(u->operand())) == typeid(Variable)) {
-        u->operand(new (ctx.mem) String_Quoted(u->pstate(), ""));
+        u->operand(SASS_MEMORY_NEW(ctx.mem, String_Quoted, u->pstate(), ""));
       }
       else u->operand(operand);
-      String_Constant* result = new (ctx.mem) String_Quoted(u->pstate(),
-                                                              u->perform(&to_string));
+      String_Constant* result = SASS_MEMORY_NEW(ctx.mem, String_Quoted,
+                                                  u->pstate(),
+                                                  u->perform(&to_string));
       return result;
     }
     // unreachable
@@ -611,15 +614,17 @@ namespace Sass {
     if (!env->has(full_name)) {
       if (!env->has("*[f]")) {
         // just pass it through as a literal
-        Function_Call* lit = new (ctx.mem) Function_Call(c->pstate(),
-                                                         c->name(),
-                                                         args);
+        Function_Call* lit = SASS_MEMORY_NEW(ctx.mem, Function_Call,
+                                             c->pstate(),
+                                             c->name(),
+                                             args);
         To_String to_string(&ctx);
         if (args->has_named_arguments()) {
           error("Function " + c->name() + " doesn't support keyword arguments", c->pstate());
         }
-        return new (ctx.mem) String_Quoted(c->pstate(),
-                                           lit->perform(&to_string));
+        return SASS_MEMORY_NEW(ctx.mem, String_Quoted,
+                               c->pstate(),
+                               lit->perform(&to_string));
       } else {
         // call generic function
         full_name = "*[f]";
@@ -664,9 +669,9 @@ namespace Sass {
     else if (c_function) {
       Sass_Function_Fn c_func = sass_function_get_function(c_function);
       if (full_name == "*[f]") {
-        String_Quoted *str = new (ctx.mem) String_Quoted(c->pstate(), c->name());
-        Arguments* new_args = new (ctx.mem) Arguments(c->pstate());
-        *new_args << new (ctx.mem) Argument(c->pstate(), str);
+        String_Quoted *str = SASS_MEMORY_NEW(ctx.mem, String_Quoted, c->pstate(), c->name());
+        Arguments* new_args = SASS_MEMORY_NEW(ctx.mem, Arguments, c->pstate());
+        *new_args << SASS_MEMORY_NEW(ctx.mem, Argument, c->pstate(), str);
         *new_args += args;
         args = new_args;
       }
@@ -714,7 +719,7 @@ namespace Sass {
   {
     Expression* evaluated_name = s->name()->perform(this);
     Expression* evaluated_args = s->arguments()->perform(this);
-    String_Schema* ss = new (ctx.mem) String_Schema(s->pstate(), 2);
+    String_Schema* ss = SASS_MEMORY_NEW(ctx.mem, String_Schema, s->pstate(), 2);
     (*ss) << evaluated_name << evaluated_args;
     return ss->perform(this);
   }
@@ -732,30 +737,30 @@ namespace Sass {
 
     // behave according to as ruby sass (add leading zero)
     if (value->concrete_type() == Expression::NUMBER) {
-      value = new (ctx.mem) Number(*static_cast<Number*>(value));
+      value = SASS_MEMORY_NEW(ctx.mem, Number, *static_cast<Number*>(value));
       static_cast<Number*>(value)->zero(true);
     }
     else if (value->concrete_type() == Expression::STRING) {
       if (auto str = dynamic_cast<String_Quoted*>(value)) {
-        value = new (ctx.mem) String_Quoted(*str);
+        value = SASS_MEMORY_NEW(ctx.mem, String_Quoted, *str);
       } else if (auto str = dynamic_cast<String_Constant*>(value)) {
-        value = new (ctx.mem) String_Quoted(str->pstate(), str->perform(&to_string));
+        value = SASS_MEMORY_NEW(ctx.mem, String_Quoted, str->pstate(), str->perform(&to_string));
       }
     }
     else if (value->concrete_type() == Expression::LIST) {
-      value = new (ctx.mem) List(*static_cast<List*>(value));
+      value = SASS_MEMORY_NEW(ctx.mem, List, *static_cast<List*>(value));
     }
     else if (value->concrete_type() == Expression::MAP) {
-      value = new (ctx.mem) Map(*static_cast<Map*>(value));
+      value = SASS_MEMORY_NEW(ctx.mem, Map, *static_cast<Map*>(value));
     }
     else if (value->concrete_type() == Expression::BOOLEAN) {
-      value = new (ctx.mem) Boolean(*static_cast<Boolean*>(value));
+      value = SASS_MEMORY_NEW(ctx.mem, Boolean, *static_cast<Boolean*>(value));
     }
     else if (value->concrete_type() == Expression::COLOR) {
-      value = new (ctx.mem) Color(*static_cast<Color*>(value));
+      value = SASS_MEMORY_NEW(ctx.mem, Color, *static_cast<Color*>(value));
     }
     else if (value->concrete_type() == Expression::NULL_VAL) {
-      value = new (ctx.mem) Null(value->pstate());
+      value = SASS_MEMORY_NEW(ctx.mem, Null, value->pstate());
     }
     else if (value->concrete_type() == Expression::SELECTOR) {
       value = value->perform(this)->perform(&listize);
@@ -782,26 +787,29 @@ namespace Sass {
     switch (t->type())
     {
       case Textual::NUMBER:
-        result = new (ctx.mem) Number(t->pstate(),
-                                      sass_atof(num.c_str()),
-                                      "",
-                                      zero);
+        result = SASS_MEMORY_NEW(ctx.mem, Number,
+                                 t->pstate(),
+                                 sass_atof(num.c_str()),
+                                 "",
+                                 zero);
         break;
       case Textual::PERCENTAGE:
-        result = new (ctx.mem) Number(t->pstate(),
-                                      sass_atof(num.c_str()),
-                                      "%",
-                                      zero);
+        result = SASS_MEMORY_NEW(ctx.mem, Number,
+                                 t->pstate(),
+                                 sass_atof(num.c_str()),
+                                 "%",
+                                 zero);
         break;
       case Textual::DIMENSION:
-        result = new (ctx.mem) Number(t->pstate(),
-                                      sass_atof(num.c_str()),
-                                      Token(number(text.c_str())),
-                                      zero);
+        result = SASS_MEMORY_NEW(ctx.mem, Number,
+                                 t->pstate(),
+                                 sass_atof(num.c_str()),
+                                 Token(number(text.c_str())),
+                                 zero);
         break;
       case Textual::HEX: {
         if (t->value().substr(0, 1) != "#") {
-          result = new (ctx.mem) String_Quoted(t->pstate(), t->value());
+          result = SASS_MEMORY_NEW(ctx.mem, String_Quoted, t->pstate(), t->value());
           break;
         }
         std::string hext(t->value().substr(1)); // chop off the '#'
@@ -809,20 +817,22 @@ namespace Sass {
           std::string r(hext.substr(0,2));
           std::string g(hext.substr(2,2));
           std::string b(hext.substr(4,2));
-          result = new (ctx.mem) Color(t->pstate(),
-                                       static_cast<double>(strtol(r.c_str(), NULL, 16)),
-                                       static_cast<double>(strtol(g.c_str(), NULL, 16)),
-                                       static_cast<double>(strtol(b.c_str(), NULL, 16)),
-                                       1, true,
-                                       t->value());
+          result = SASS_MEMORY_NEW(ctx.mem, Color,
+                                   t->pstate(),
+                                   static_cast<double>(strtol(r.c_str(), NULL, 16)),
+                                   static_cast<double>(strtol(g.c_str(), NULL, 16)),
+                                   static_cast<double>(strtol(b.c_str(), NULL, 16)),
+                                   1, true,
+                                   t->value());
         }
         else {
-          result = new (ctx.mem) Color(t->pstate(),
-                                       static_cast<double>(strtol(std::string(2,hext[0]).c_str(), NULL, 16)),
-                                       static_cast<double>(strtol(std::string(2,hext[1]).c_str(), NULL, 16)),
-                                       static_cast<double>(strtol(std::string(2,hext[2]).c_str(), NULL, 16)),
-                                       1, false,
-                                       t->value());
+          result = SASS_MEMORY_NEW(ctx.mem, Color,
+                                   t->pstate(),
+                                   static_cast<double>(strtol(std::string(2,hext[0]).c_str(), NULL, 16)),
+                                   static_cast<double>(strtol(std::string(2,hext[1]).c_str(), NULL, 16)),
+                                   static_cast<double>(strtol(std::string(2,hext[2]).c_str(), NULL, 16)),
+                                   1, false,
+                                   t->value());
         }
       } break;
     }
@@ -945,7 +955,7 @@ namespace Sass {
         acc += interpolation((*s)[i]);
       }
     }
-    String_Quoted* str = new (ctx.mem) String_Quoted(s->pstate(), acc);
+    String_Quoted* str = SASS_MEMORY_NEW(ctx.mem, String_Quoted, s->pstate(), acc);
     if (!str->quote_mark()) {
       str->value(string_unescape(str->value()));
     } else if (str->quote_mark()) {
@@ -958,7 +968,7 @@ namespace Sass {
   Expression* Eval::operator()(String_Constant* s)
   {
     if (!s->is_delayed() && name_to_color(s->value())) {
-      Color* c = new (ctx.mem) Color(*name_to_color(s->value()));
+      Color* c = SASS_MEMORY_NEW(ctx.mem, Color, *name_to_color(s->value()));
       c->pstate(s->pstate());
       c->disp(s->value());
       return c;
@@ -975,18 +985,20 @@ namespace Sass {
   {
     Expression* left = c->left()->perform(this);
     Expression* right = c->right()->perform(this);
-    Supports_Operator* cc = new (ctx.mem) Supports_Operator(c->pstate(),
-                                                 static_cast<Supports_Condition*>(left),
-                                                 static_cast<Supports_Condition*>(right),
-                                                 c->operand());
+    Supports_Operator* cc = SASS_MEMORY_NEW(ctx.mem, Supports_Operator,
+                                 c->pstate(),
+                                 static_cast<Supports_Condition*>(left),
+                                 static_cast<Supports_Condition*>(right),
+                                 c->operand());
     return cc;
   }
 
   Expression* Eval::operator()(Supports_Negation* c)
   {
     Expression* condition = c->condition()->perform(this);
-    Supports_Negation* cc = new (ctx.mem) Supports_Negation(c->pstate(),
-                                                 static_cast<Supports_Condition*>(condition));
+    Supports_Negation* cc = SASS_MEMORY_NEW(ctx.mem, Supports_Negation,
+                                 c->pstate(),
+                                 static_cast<Supports_Condition*>(condition));
     return cc;
   }
 
@@ -994,17 +1006,19 @@ namespace Sass {
   {
     Expression* feature = c->feature()->perform(this);
     Expression* value = c->value()->perform(this);
-    Supports_Declaration* cc = new (ctx.mem) Supports_Declaration(c->pstate(),
-                                                 feature,
-                                                 value);
+    Supports_Declaration* cc = SASS_MEMORY_NEW(ctx.mem, Supports_Declaration,
+                              c->pstate(),
+                              feature,
+                              value);
     return cc;
   }
 
   Expression* Eval::operator()(Supports_Interpolation* c)
   {
     Expression* value = c->value()->perform(this);
-    Supports_Interpolation* cc = new (ctx.mem) Supports_Interpolation(c->pstate(),
-                                                 value);
+    Supports_Interpolation* cc = SASS_MEMORY_NEW(ctx.mem, Supports_Interpolation,
+                            c->pstate(),
+                            value);
     return cc;
   }
 
@@ -1014,10 +1028,11 @@ namespace Sass {
     feature = (feature ? feature->perform(this) : 0);
     Expression* value = e->value();
     value = (value ? value->perform(this) : 0);
-    Expression* ee = new (ctx.mem) At_Root_Expression(e->pstate(),
-                                                      static_cast<String*>(feature),
-                                                      value,
-                                                      e->is_interpolated());
+    Expression* ee = SASS_MEMORY_NEW(ctx.mem, At_Root_Expression,
+                                     e->pstate(),
+                                     static_cast<String*>(feature),
+                                     value,
+                                     e->is_interpolated());
     return ee;
   }
 
@@ -1026,11 +1041,12 @@ namespace Sass {
     To_String to_string(&ctx);
     String* t = q->media_type();
     t = static_cast<String*>(t ? t->perform(this) : 0);
-    Media_Query* qq = new (ctx.mem) Media_Query(q->pstate(),
-                                                t,
-                                                q->length(),
-                                                q->is_negated(),
-                                                q->is_restricted());
+    Media_Query* qq = SASS_MEMORY_NEW(ctx.mem, Media_Query,
+                                      q->pstate(),
+                                      t,
+                                      q->length(),
+                                      q->is_negated(),
+                                      q->is_restricted());
     for (size_t i = 0, L = q->length(); i < L; ++i) {
       *qq << static_cast<Media_Query_Expression*>((*q)[i]->perform(this));
     }
@@ -1042,19 +1058,22 @@ namespace Sass {
     Expression* feature = e->feature();
     feature = (feature ? feature->perform(this) : 0);
     if (feature && dynamic_cast<String_Quoted*>(feature)) {
-      feature = new (ctx.mem) String_Quoted(feature->pstate(),
-                                              dynamic_cast<String_Quoted*>(feature)->value());
+      feature = SASS_MEMORY_NEW(ctx.mem, String_Quoted,
+                                  feature->pstate(),
+                                  dynamic_cast<String_Quoted*>(feature)->value());
     }
     Expression* value = e->value();
     value = (value ? value->perform(this) : 0);
     if (value && dynamic_cast<String_Quoted*>(value)) {
-      value = new (ctx.mem) String_Quoted(value->pstate(),
-                                            dynamic_cast<String_Quoted*>(value)->value());
+      value = SASS_MEMORY_NEW(ctx.mem, String_Quoted,
+                                value->pstate(),
+                                dynamic_cast<String_Quoted*>(value)->value());
     }
-    return new (ctx.mem) Media_Query_Expression(e->pstate(),
-                                                feature,
-                                                value,
-                                                e->is_interpolated());
+    return SASS_MEMORY_NEW(ctx.mem, Media_Query_Expression,
+                           e->pstate(),
+                           feature,
+                           value,
+                           e->is_interpolated());
   }
 
   Expression* Eval::operator()(Null* n)
@@ -1078,24 +1097,26 @@ namespace Sass {
         is_keyword_argument = true;
       }
       else if(val->concrete_type() != Expression::LIST) {
-        List* wrapper = new (ctx.mem) List(val->pstate(),
-                                           0,
-                                           SASS_COMMA,
-                                           true);
+        List* wrapper = SASS_MEMORY_NEW(ctx.mem, List,
+                                        val->pstate(),
+                                        0,
+                                        SASS_COMMA,
+                                        true);
         *wrapper << val;
         val = wrapper;
       }
     }
-    return new (ctx.mem) Argument(a->pstate(),
-                                  val,
-                                  a->name(),
-                                  is_rest_argument,
-                                  is_keyword_argument);
+    return SASS_MEMORY_NEW(ctx.mem, Argument,
+                           a->pstate(),
+                           val,
+                           a->name(),
+                           is_rest_argument,
+                           is_keyword_argument);
   }
 
   Expression* Eval::operator()(Arguments* a)
   {
-    Arguments* aa = new (ctx.mem) Arguments(a->pstate());
+    Arguments* aa = SASS_MEMORY_NEW(ctx.mem, Arguments, a->pstate());
     for (size_t i = 0, L = a->length(); i < L; ++i) {
       *aa << static_cast<Argument*>((*a)[i]->perform(this));
     }
@@ -1135,7 +1156,7 @@ namespace Sass {
     double lv = l.value();
     double rv = r.value();
     if (op == Sass_OP::DIV && !rv) {
-      return new (mem) String_Quoted(l.pstate(), "Infinity");
+      return SASS_MEMORY_NEW(mem, String_Quoted, l.pstate(), "Infinity");
     }
     if (op == Sass_OP::MOD && !rv) {
       error("division by zero", r.pstate());
@@ -1150,7 +1171,7 @@ namespace Sass {
         (op == Sass_OP::ADD || op == Sass_OP::SUB)) {
       error("Incompatible units: '"+r_unit+"' and '"+l_unit+"'.", l.pstate());
     }
-    Number* v = new (mem) Number(l);
+    Number* v = SASS_MEMORY_NEW(mem, Number, l);
     v->pstate(l.pstate());
     if (l_unit.empty() && (op == Sass_OP::ADD || op == Sass_OP::SUB || op == Sass_OP::MOD)) {
       v->numerator_units() = r.numerator_units();
@@ -1189,7 +1210,8 @@ namespace Sass {
     switch (op) {
       case Sass_OP::ADD:
       case Sass_OP::MUL: {
-        return new (mem) Color(l.pstate(),
+        return SASS_MEMORY_NEW(mem, Color,
+                               l.pstate(),
                                ops[op](lv, r.r()),
                                ops[op](lv, r.g()),
                                ops[op](lv, r.b()),
@@ -1199,10 +1221,11 @@ namespace Sass {
       case Sass_OP::DIV: {
         std::string sep(op == Sass_OP::SUB ? "-" : "/");
         std::string color(r.to_string(compressed||!r.sixtuplet(), precision));
-        return new (mem) String_Quoted(l.pstate(),
-                                       l.to_string(compressed, precision)
-                                       + sep
-                                       + color);
+        return SASS_MEMORY_NEW(mem, String_Quoted,
+                               l.pstate(),
+                               l.to_string(compressed, precision)
+                               + sep
+                               + color);
       } break;
       case Sass_OP::MOD: {
         error("cannot divide a number by a color", r.pstate());
@@ -1210,14 +1233,15 @@ namespace Sass {
       default: break; // caller should ensure that we don't get here
     }
     // unreachable
-    return new (mem) Color(rh);
+    return SASS_MEMORY_NEW(mem, Color, rh);
   }
 
   Value* Eval::op_color_number(Memory_Manager<AST_Node>& mem, enum Sass_OP op, const Color& l, const Number& r, bool compressed, int precision)
   {
     double rv = r.value();
     if (op == Sass_OP::DIV && !rv) error("division by zero", r.pstate());
-    return new (mem) Color(l.pstate(),
+    return SASS_MEMORY_NEW(mem, Color,
+                           l.pstate(),
                            ops[op](l.r(), rv),
                            ops[op](l.g(), rv),
                            ops[op](l.b(), rv),
@@ -1232,7 +1256,8 @@ namespace Sass {
     if (op == Sass_OP::DIV && (!r.r() || !r.g() ||!r.b())) {
       error("division by zero", r.pstate());
     }
-    return new (mem) Color(l.pstate(),
+    return SASS_MEMORY_NEW(mem, Color,
+                           l.pstate(),
                            ops[op](l.r(), r.r()),
                            ops[op](l.g(), r.g()),
                            ops[op](l.b(), r.b()),
@@ -1292,8 +1317,8 @@ namespace Sass {
     if (rtype == Expression::NULL_VAL) error("invalid null operation: \""+quote(unquote(lstr), '"')+" plus null\".", rhs.pstate());
 
     String_Constant* str = ltype == Expression::STRING || sep == ""
-      ? new (mem) String_Quoted(lhs.pstate(), (lstr) + sep + (rstr))
-      : new (mem) String_Constant(lhs.pstate(), (lstr) + sep + quote(rstr));
+      ? SASS_MEMORY_NEW(mem, String_Quoted, lhs.pstate(), (lstr) + sep + (rstr))
+      : SASS_MEMORY_NEW(mem, String_Constant, lhs.pstate(), (lstr) + sep + quote(rstr));
     str->quote_mark(0);
     return str;
   }
@@ -1305,30 +1330,30 @@ namespace Sass {
     Expression* e = 0;
     switch (sass_value_get_tag(v)) {
       case SASS_BOOLEAN: {
-        e = new (mem) Boolean(pstate, !!sass_boolean_get_value(v));
+        e = SASS_MEMORY_NEW(mem, Boolean, pstate, !!sass_boolean_get_value(v));
       } break;
       case SASS_NUMBER: {
-        e = new (mem) Number(pstate, sass_number_get_value(v), sass_number_get_unit(v));
+        e = SASS_MEMORY_NEW(mem, Number, pstate, sass_number_get_value(v), sass_number_get_unit(v));
       } break;
       case SASS_COLOR: {
-        e = new (mem) Color(pstate, sass_color_get_r(v), sass_color_get_g(v), sass_color_get_b(v), sass_color_get_a(v));
+        e = SASS_MEMORY_NEW(mem, Color, pstate, sass_color_get_r(v), sass_color_get_g(v), sass_color_get_b(v), sass_color_get_a(v));
       } break;
       case SASS_STRING: {
         if (sass_string_is_quoted(v))
-          e = new (mem) String_Quoted(pstate, sass_string_get_value(v));
+          e = SASS_MEMORY_NEW(mem, String_Quoted, pstate, sass_string_get_value(v));
         else {
-          e = new (mem) String_Constant(pstate, sass_string_get_value(v));
+          e = SASS_MEMORY_NEW(mem, String_Constant, pstate, sass_string_get_value(v));
         }
       } break;
       case SASS_LIST: {
-        List* l = new (mem) List(pstate, sass_list_get_length(v), sass_list_get_separator(v));
+        List* l = SASS_MEMORY_NEW(mem, List, pstate, sass_list_get_length(v), sass_list_get_separator(v));
         for (size_t i = 0, L = sass_list_get_length(v); i < L; ++i) {
           *l << cval_to_astnode(mem, sass_list_get_value(v, i), ctx, backtrace, pstate);
         }
         e = l;
       } break;
       case SASS_MAP: {
-        Map* m = new (mem) Map(pstate);
+        Map* m = SASS_MEMORY_NEW(mem, Map, pstate);
         for (size_t i = 0, L = sass_map_get_length(v); i < L; ++i) {
           *m << std::make_pair(
             cval_to_astnode(mem, sass_map_get_key(v, i), ctx, backtrace, pstate),
@@ -1337,7 +1362,7 @@ namespace Sass {
         e = m;
       } break;
       case SASS_NULL: {
-        e = new (mem) Null(pstate);
+        e = SASS_MEMORY_NEW(mem, Null, pstate);
       } break;
       case SASS_ERROR: {
         error("Error in C function: " + std::string(sass_error_get_message(v)), pstate, backtrace);
@@ -1352,7 +1377,7 @@ namespace Sass {
   Selector_List* Eval::operator()(Selector_List* s)
   {
     std::vector<Selector_List*> rv;
-    Selector_List* sl = new (ctx.mem) Selector_List(s->pstate());
+    Selector_List* sl = SASS_MEMORY_NEW(ctx.mem, Selector_List, s->pstate());
     for (size_t i = 0, iL = s->length(); i < iL; ++i) {
       rv.push_back(operator()((*s)[i]));
     }
@@ -1389,7 +1414,7 @@ namespace Sass {
   {
     String* attr = s->value();
     if (attr) { attr = static_cast<String*>(attr->perform(this)); }
-    Attribute_Selector* ss = new (ctx.mem) Attribute_Selector(*s);
+    Attribute_Selector* ss = SASS_MEMORY_NEW(ctx.mem, Attribute_Selector, *s);
     ss->value(attr);
     return ss;
   }
@@ -1412,7 +1437,7 @@ namespace Sass {
       exp.selector_stack.push_back(pr);
       return pr;
     } else {
-      return new (ctx.mem) Null(p->pstate());
+      return SASS_MEMORY_NEW(ctx.mem, Null, p->pstate());
     }
   }
 

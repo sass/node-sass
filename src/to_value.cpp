@@ -59,10 +59,11 @@ namespace Sass {
   // List is a valid value
   Value* To_Value::operator()(List* l)
   {
-    List* ll = new (mem) List(l->pstate(),
-                              l->length(),
-                              l->separator(),
-                              l->is_arglist());
+    List* ll = SASS_MEMORY_NEW(mem, List,
+                               l->pstate(),
+                               l->length(),
+                               l->separator(),
+                               l->is_arglist());
     for (size_t i = 0, L = l->length(); i < L; ++i) {
       *ll << (*l)[i]->perform(this);
     }
@@ -92,16 +93,18 @@ namespace Sass {
   Value* To_Value::operator()(Selector_List* s)
   {
     To_String to_string(&ctx);
-    return new (mem) String_Quoted(s->pstate(),
-                                   s->perform(&to_string));
+    return SASS_MEMORY_NEW(mem, String_Quoted,
+                           s->pstate(),
+                           s->perform(&to_string));
   }
 
   // Binary_Expression is converted to a string
   Value* To_Value::operator()(Binary_Expression* s)
   {
     To_String to_string(&ctx);
-    return new (mem) String_Quoted(s->pstate(),
-                                   s->perform(&to_string));
+    return SASS_MEMORY_NEW(mem, String_Quoted,
+                           s->pstate(),
+                           s->perform(&to_string));
   }
 
 };

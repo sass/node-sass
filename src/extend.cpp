@@ -1525,7 +1525,7 @@ namespace Sass {
       DEBUG_EXEC(EXTEND_COMPOUND, printComplexSelector(&seq, "SEQ: "))
 
 
-      Compound_Selector* pSels = new (ctx.mem) Compound_Selector(pSelector->pstate());
+      Compound_Selector* pSels = SASS_MEMORY_NEW(ctx.mem, Compound_Selector, pSelector->pstate());
       for (std::vector<ExtensionPair>::iterator groupIter = group.begin(), groupIterEnd = group.end(); groupIter != groupIterEnd; groupIter++) {
         ExtensionPair& pair = *groupIter;
         Compound_Selector* pCompound = pair.second;
@@ -1550,7 +1550,7 @@ namespace Sass {
       Compound_Selector* pUnifiedSelector = NULL;
 
       if (!pInnermostCompoundSelector) {
-        pInnermostCompoundSelector = new (ctx.mem) Compound_Selector(pSelector->pstate());
+        pInnermostCompoundSelector = SASS_MEMORY_NEW(ctx.mem, Compound_Selector, pSelector->pstate());
       }
 
       pUnifiedSelector = pInnermostCompoundSelector->unify_with(pSelectorWithoutExtendSelectors, ctx);
@@ -1573,7 +1573,7 @@ namespace Sass {
       // out and aren't operated on.
       Complex_Selector* pNewSelector = pExtComplexSelector->cloneFully(ctx); // ->first();
 
-      Complex_Selector* pNewInnerMost = new (ctx.mem) Complex_Selector(pSelector->pstate(), Complex_Selector::ANCESTOR_OF, pUnifiedSelector, NULL);
+      Complex_Selector* pNewInnerMost = SASS_MEMORY_NEW(ctx.mem, Complex_Selector, pSelector->pstate(), Complex_Selector::ANCESTOR_OF, pUnifiedSelector, NULL);
 
       Complex_Selector::Combinator combinator = pNewSelector->clear_innermost();
       pNewSelector->set_innermost(pNewInnerMost, combinator);
@@ -1853,7 +1853,7 @@ namespace Sass {
 
     To_String to_string(&ctx);
 
-    Selector_List* pNewSelectors = new (ctx.mem) Selector_List(pSelectorList->pstate(), pSelectorList->length());
+    Selector_List* pNewSelectors = SASS_MEMORY_NEW(ctx.mem, Selector_List, pSelectorList->pstate(), pSelectorList->length());
 
     extendedSomething = false;
 

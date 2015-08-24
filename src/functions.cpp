@@ -43,12 +43,13 @@ namespace Sass {
     sig_parser.lex<Prelexer::identifier>();
     std::string name(Util::normalize_underscores(sig_parser.lexed));
     Parameters* params = sig_parser.parse_parameters();
-    return new (ctx.mem) Definition(ParserState("[built-in function]"),
-                                    sig,
-                                    name,
-                                    params,
-                                    func,
-                                    false);
+    return SASS_MEMORY_NEW(ctx.mem, Definition,
+                           ParserState("[built-in function]"),
+                           sig,
+                           name,
+                           params,
+                           func,
+                           false);
   }
 
   Definition* make_c_function(Sass_Function_Entry c_func, Context& ctx)
@@ -65,12 +66,13 @@ namespace Sass {
                    >              >();
     std::string name(Util::normalize_underscores(sig_parser.lexed));
     Parameters* params = sig_parser.parse_parameters();
-    return new (ctx.mem) Definition(ParserState("[c function]"),
-                                    sig,
-                                    name,
-                                    params,
-                                    c_func,
-                                    false, true);
+    return SASS_MEMORY_NEW(ctx.mem, Definition,
+                           ParserState("[c function]"),
+                           sig,
+                           name,
+                           params,
+                           c_func,
+                           false, true);
   }
 
   std::string function_name(Signature sig)
@@ -125,7 +127,7 @@ namespace Sass {
       if (val) return val;
 
       List* lval = dynamic_cast<List*>(env[argname]);
-      if (lval && lval->length() == 0) return new (ctx.mem) Map(pstate, 0);
+      if (lval && lval->length() == 0) return SASS_MEMORY_NEW(ctx.mem, Map, pstate, 0);
 
       // fallback on get_arg for error handling
       val = get_arg<Map>(argname, env, sig, pstate, backtrace);
@@ -253,27 +255,29 @@ namespace Sass {
     Signature rgb_sig = "rgb($red, $green, $blue)";
     BUILT_IN(rgb)
     {
-      return new (ctx.mem) Color(pstate,
-                                 color_num(ARG("$red",   Number)),
-                                 color_num(ARG("$green", Number)),
-                                 color_num(ARG("$blue",  Number)));
+      return SASS_MEMORY_NEW(ctx.mem, Color,
+                             pstate,
+                             color_num(ARG("$red",   Number)),
+                             color_num(ARG("$green", Number)),
+                             color_num(ARG("$blue",  Number)));
     }
 
     Signature rgba_4_sig = "rgba($red, $green, $blue, $alpha)";
     BUILT_IN(rgba_4)
     {
-      return new (ctx.mem) Color(pstate,
-                                 color_num(ARG("$red",   Number)),
-                                 color_num(ARG("$green", Number)),
-                                 color_num(ARG("$blue",  Number)),
-                                 alpha_num(ARG("$alpha", Number)));
+      return SASS_MEMORY_NEW(ctx.mem, Color,
+                             pstate,
+                             color_num(ARG("$red",   Number)),
+                             color_num(ARG("$green", Number)),
+                             color_num(ARG("$blue",  Number)),
+                             alpha_num(ARG("$alpha", Number)));
     }
 
     Signature rgba_2_sig = "rgba($color, $alpha)";
     BUILT_IN(rgba_2)
     {
       Color* c_arg = ARG("$color", Color);
-      Color* new_c = new (ctx.mem) Color(*c_arg);
+      Color* new_c = SASS_MEMORY_NEW(ctx.mem, Color, *c_arg);
       new_c->a(alpha_num(ARG("$alpha", Number)));
       new_c->disp("");
       return new_c;
@@ -281,15 +285,15 @@ namespace Sass {
 
     Signature red_sig = "red($color)";
     BUILT_IN(red)
-    { return new (ctx.mem) Number(pstate, ARG("$color", Color)->r()); }
+    { return SASS_MEMORY_NEW(ctx.mem, Number, pstate, ARG("$color", Color)->r()); }
 
     Signature green_sig = "green($color)";
     BUILT_IN(green)
-    { return new (ctx.mem) Number(pstate, ARG("$color", Color)->g()); }
+    { return SASS_MEMORY_NEW(ctx.mem, Number, pstate, ARG("$color", Color)->g()); }
 
     Signature blue_sig = "blue($color)";
     BUILT_IN(blue)
-    { return new (ctx.mem) Number(pstate, ARG("$color", Color)->b()); }
+    { return SASS_MEMORY_NEW(ctx.mem, Number, pstate, ARG("$color", Color)->b()); }
 
     Signature mix_sig = "mix($color-1, $color-2, $weight: 50%)";
     BUILT_IN(mix)
@@ -305,11 +309,12 @@ namespace Sass {
       double w1 = (((w * a == -1) ? w : (w + a)/(1 + w*a)) + 1)/2.0;
       double w2 = 1 - w1;
 
-      return new (ctx.mem) Color(pstate,
-                                 std::round(w1*color1->r() + w2*color2->r()),
-                                 std::round(w1*color1->g() + w2*color2->g()),
-                                 std::round(w1*color1->b() + w2*color2->b()),
-                                 color1->a()*p + color2->a()*(1-p));
+      return SASS_MEMORY_NEW(ctx.mem, Color,
+                             pstate,
+                             std::round(w1*color1->r() + w2*color2->r()),
+                             std::round(w1*color1->g() + w2*color2->g()),
+                             std::round(w1*color1->b() + w2*color2->b()),
+                             color1->a()*p + color2->a()*(1-p));
     }
 
     ////////////////
@@ -383,7 +388,7 @@ namespace Sass {
       double g = (h_to_rgb(m1, m2, h) * 255.0);
       double b = (h_to_rgb(m1, m2, h-1.0/3.0) * 255.0);
 
-      return new (ctx.mem) Color(pstate, r, g, b, a);
+      return SASS_MEMORY_NEW(ctx.mem, Color, pstate, r, g, b, a);
     }
 
     Signature hsl_sig = "hsl($hue, $saturation, $lightness)";
@@ -415,7 +420,7 @@ namespace Sass {
       HSL hsl_color = rgb_to_hsl(rgb_color->r(),
                                  rgb_color->g(),
                                  rgb_color->b());
-      return new (ctx.mem) Number(pstate, hsl_color.h, "deg");
+      return SASS_MEMORY_NEW(ctx.mem, Number, pstate, hsl_color.h, "deg");
     }
 
     Signature saturation_sig = "saturation($color)";
@@ -425,7 +430,7 @@ namespace Sass {
       HSL hsl_color = rgb_to_hsl(rgb_color->r(),
                                  rgb_color->g(),
                                  rgb_color->b());
-      return new (ctx.mem) Number(pstate, hsl_color.s, "%");
+      return SASS_MEMORY_NEW(ctx.mem, Number, pstate, hsl_color.s, "%");
     }
 
     Signature lightness_sig = "lightness($color)";
@@ -435,7 +440,7 @@ namespace Sass {
       HSL hsl_color = rgb_to_hsl(rgb_color->r(),
                                  rgb_color->g(),
                                  rgb_color->b());
-      return new (ctx.mem) Number(pstate, hsl_color.l, "%");
+      return SASS_MEMORY_NEW(ctx.mem, Number, pstate, hsl_color.l, "%");
     }
 
     Signature adjust_hue_sig = "adjust-hue($color, $degrees)";
@@ -506,7 +511,7 @@ namespace Sass {
       Number* amount = dynamic_cast<Number*>(env["$amount"]);
       if (!amount) {
         To_String to_string(&ctx);
-        return new (ctx.mem) String_Quoted(pstate, "saturate(" + env["$color"]->perform(&to_string) + ")");
+        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "saturate(" + env["$color"]->perform(&to_string) + ")");
       }
 
       ARGR("$amount", Number, 0, 100);
@@ -567,7 +572,7 @@ namespace Sass {
       Number* amount = dynamic_cast<Number*>(env["$color"]);
       if (amount) {
         To_String to_string(&ctx);
-        return new (ctx.mem) String_Quoted(pstate, "grayscale(" + amount->perform(&to_string) + ")");
+        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "grayscale(" + amount->perform(&to_string) + ")");
       }
 
       Color* rgb_color = ARG("$color", Color);
@@ -604,15 +609,16 @@ namespace Sass {
       Number* amount = dynamic_cast<Number*>(env["$color"]);
       if (amount) {
         To_String to_string(&ctx);
-        return new (ctx.mem) String_Quoted(pstate, "invert(" + amount->perform(&to_string) + ")");
+        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "invert(" + amount->perform(&to_string) + ")");
       }
 
       Color* rgb_color = ARG("$color", Color);
-      return new (ctx.mem) Color(pstate,
-                                 255 - rgb_color->r(),
-                                 255 - rgb_color->g(),
-                                 255 - rgb_color->b(),
-                                 rgb_color->a());
+      return SASS_MEMORY_NEW(ctx.mem, Color,
+                             pstate,
+                             255 - rgb_color->r(),
+                             255 - rgb_color->g(),
+                             255 - rgb_color->b(),
+                             rgb_color->a());
     }
 
     ////////////////////
@@ -624,17 +630,17 @@ namespace Sass {
     {
       String_Constant* ie_kwd = dynamic_cast<String_Constant*>(env["$color"]);
       if (ie_kwd) {
-        return new (ctx.mem) String_Quoted(pstate, "alpha(" + ie_kwd->value() + ")");
+        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "alpha(" + ie_kwd->value() + ")");
       }
 
       // CSS3 filter function overload: pass literal through directly
       Number* amount = dynamic_cast<Number*>(env["$color"]);
       if (amount) {
         To_String to_string(&ctx);
-        return new (ctx.mem) String_Quoted(pstate, "opacity(" + amount->perform(&to_string) + ")");
+        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "opacity(" + amount->perform(&to_string) + ")");
       }
 
-      return new (ctx.mem) Number(pstate, ARG("$color", Color)->a());
+      return SASS_MEMORY_NEW(ctx.mem, Number, pstate, ARG("$color", Color)->a());
     }
 
     Signature opacify_sig = "opacify($color, $amount)";
@@ -644,11 +650,12 @@ namespace Sass {
       Color* color = ARG("$color", Color);
       double amount = ARGR("$amount", Number, 0, 1)->value();
       double alpha = std::min(color->a() + amount, 1.0);
-      return new (ctx.mem) Color(pstate,
-                                 color->r(),
-                                 color->g(),
-                                 color->b(),
-                                 alpha);
+      return SASS_MEMORY_NEW(ctx.mem, Color,
+                             pstate,
+                             color->r(),
+                             color->g(),
+                             color->b(),
+                             alpha);
     }
 
     Signature transparentize_sig = "transparentize($color, $amount)";
@@ -658,11 +665,12 @@ namespace Sass {
       Color* color = ARG("$color", Color);
       double amount = ARGR("$amount", Number, 0, 1)->value();
       double alpha = std::max(color->a() - amount, 0.0);
-      return new (ctx.mem) Color(pstate,
-                                 color->r(),
-                                 color->g(),
-                                 color->b(),
-                                 alpha);
+      return SASS_MEMORY_NEW(ctx.mem, Color,
+                             pstate,
+                             color->r(),
+                             color->g(),
+                             color->b(),
+                             alpha);
     }
 
     ////////////////////////
@@ -692,11 +700,12 @@ namespace Sass {
         double gg = g ? ARGR("$green", Number, -255, 255)->value() : 0;
         double bb = b ? ARGR("$blue",  Number, -255, 255)->value() : 0;
         double aa = a ? ARGR("$alpha", Number, -1, 1)->value() : 0;
-        return new (ctx.mem) Color(pstate,
-                                   color->r() + rr,
-                                   color->g() + gg,
-                                   color->b() + bb,
-                                   color->a() + aa);
+        return SASS_MEMORY_NEW(ctx.mem, Color,
+                               pstate,
+                               color->r() + rr,
+                               color->g() + gg,
+                               color->b() + bb,
+                               color->a() + aa);
       }
       if (hsl) {
         HSL hsl_struct = rgb_to_hsl(color->r(), color->g(), color->b());
@@ -711,11 +720,12 @@ namespace Sass {
                          pstate);
       }
       if (a) {
-        return new (ctx.mem) Color(pstate,
-                                   color->r(),
-                                   color->g(),
-                                   color->b(),
-                                   color->a() + (a ? a->value() : 0));
+        return SASS_MEMORY_NEW(ctx.mem, Color,
+                               pstate,
+                               color->r(),
+                               color->g(),
+                               color->b(),
+                               color->a() + (a ? a->value() : 0));
       }
       error("not enough arguments for `adjust-color`", pstate);
       // unreachable
@@ -745,11 +755,12 @@ namespace Sass {
         double gscale = (g ? ARGR("$green", Number, -100.0, 100.0)->value() : 0.0) / 100.0;
         double bscale = (b ? ARGR("$blue",  Number, -100.0, 100.0)->value() : 0.0) / 100.0;
         double ascale = (a ? ARGR("$alpha", Number, -100.0, 100.0)->value() : 0.0) / 100.0;
-        return new (ctx.mem) Color(pstate,
-                                   color->r() + rscale * (rscale > 0.0 ? 255 - color->r() : color->r()),
-                                   color->g() + gscale * (gscale > 0.0 ? 255 - color->g() : color->g()),
-                                   color->b() + bscale * (bscale > 0.0 ? 255 - color->b() : color->b()),
-                                   color->a() + ascale * (ascale > 0.0 ? 1.0 - color->a() : color->a()));
+        return SASS_MEMORY_NEW(ctx.mem, Color,
+                               pstate,
+                               color->r() + rscale * (rscale > 0.0 ? 255 - color->r() : color->r()),
+                               color->g() + gscale * (gscale > 0.0 ? 255 - color->g() : color->g()),
+                               color->b() + bscale * (bscale > 0.0 ? 255 - color->b() : color->b()),
+                               color->a() + ascale * (ascale > 0.0 ? 1.0 - color->a() : color->a()));
       }
       if (hsl) {
         double hscale = (h ? ARGR("$hue",        Number, -100.0, 100.0)->value() : 0.0) / 100.0;
@@ -765,11 +776,12 @@ namespace Sass {
       }
       if (a) {
         double ascale = (a ? ARGR("$alpha", Number, -100.0, 100.0)->value() : 0.0) / 100.0;
-        return new (ctx.mem) Color(pstate,
-                                   color->r(),
-                                   color->g(),
-                                   color->b(),
-                                   color->a() + ascale * (ascale > 0.0 ? 1.0 - color->a() : color->a()));
+        return SASS_MEMORY_NEW(ctx.mem, Color,
+                               pstate,
+                               color->r(),
+                               color->g(),
+                               color->b(),
+                               color->a() + ascale * (ascale > 0.0 ? 1.0 - color->a() : color->a()));
       }
       error("not enough arguments for `scale-color`", pstate);
       // unreachable
@@ -795,11 +807,12 @@ namespace Sass {
         error("cannot specify both RGB and HSL values for `change-color`", pstate);
       }
       if (rgb) {
-        return new (ctx.mem) Color(pstate,
-                                   r ? ARGR("$red",   Number, 0, 255)->value() : color->r(),
-                                   g ? ARGR("$green", Number, 0, 255)->value() : color->g(),
-                                   b ? ARGR("$blue",  Number, 0, 255)->value() : color->b(),
-                                   a ? ARGR("$alpha", Number, 0, 255)->value() : color->a());
+        return SASS_MEMORY_NEW(ctx.mem, Color,
+                               pstate,
+                               r ? ARGR("$red",   Number, 0, 255)->value() : color->r(),
+                               g ? ARGR("$green", Number, 0, 255)->value() : color->g(),
+                               b ? ARGR("$blue",  Number, 0, 255)->value() : color->b(),
+                               a ? ARGR("$alpha", Number, 0, 255)->value() : color->a());
       }
       if (hsl) {
         HSL hsl_struct = rgb_to_hsl(color->r(), color->g(), color->b());
@@ -811,11 +824,12 @@ namespace Sass {
       }
       if (a) {
         double alpha = a ? ARGR("$alpha", Number, 0, 1.0)->value() : color->a();
-        return new (ctx.mem) Color(pstate,
-                                   color->r(),
-                                   color->g(),
-                                   color->b(),
-                                   alpha);
+        return SASS_MEMORY_NEW(ctx.mem, Color,
+                               pstate,
+                               color->r(),
+                               color->g(),
+                               color->b(),
+                               alpha);
       }
       error("not enough arguments for `change-color`", pstate);
       // unreachable
@@ -849,7 +863,7 @@ namespace Sass {
       for (size_t i = 0, L = result.length(); i < L; ++i) {
         result[i] = std::toupper(result[i]);
       }
-      return new (ctx.mem) String_Quoted(pstate, result);
+      return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, result);
     }
 
     ///////////////////
@@ -861,10 +875,10 @@ namespace Sass {
     {
       AST_Node* arg = env["$string"];
       if (dynamic_cast<Null*>(arg)) {
-        return new (ctx.mem) Null(pstate);
+        return SASS_MEMORY_NEW(ctx.mem, Null, pstate);
       }
       else if (String_Quoted* string_quoted = dynamic_cast<String_Quoted*>(arg)) {
-        String_Quoted* result = new (ctx.mem) String_Quoted(pstate, string_quoted->value());
+        String_Quoted* result = SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, string_quoted->value());
         // remember if the string was quoted (color tokens)
         result->sass_fix_1291(string_quoted->quote_mark() != 0);
         return result;
@@ -886,7 +900,7 @@ namespace Sass {
       To_String to_string(&ctx);
       AST_Node* arg = env["$string"];
       std::string str(quote(arg->perform(&to_string), String_Constant::double_quote()));
-      String_Quoted* result = new (ctx.mem) String_Quoted(pstate, str);
+      String_Quoted* result = SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, str);
       result->is_delayed(true);
       return result;
     }
@@ -905,7 +919,7 @@ namespace Sass {
       // other errors will be re-thrown
       catch (...) { handle_utf8_error(pstate, backtrace); }
       // return something even if we had an error (-1)
-      return new (ctx.mem) Number(pstate, (double)len);
+      return SASS_MEMORY_NEW(ctx.mem, Number, pstate, (double)len);
     }
 
     Signature str_insert_sig = "str-insert($string, $insert, $index)";
@@ -951,7 +965,7 @@ namespace Sass {
       // handle any invalid utf8 errors
       // other errors will be re-thrown
       catch (...) { handle_utf8_error(pstate, backtrace); }
-      return new (ctx.mem) String_Quoted(pstate, str);
+      return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, str);
     }
 
     Signature str_index_sig = "str-index($string, $substring)";
@@ -968,7 +982,7 @@ namespace Sass {
 
         size_t c_index = str.find(substr);
         if(c_index == std::string::npos) {
-          return new (ctx.mem) Null(pstate);
+          return SASS_MEMORY_NEW(ctx.mem, Null, pstate);
         }
         index = UTF_8::code_point_count(str, 0, c_index) + 1;
       }
@@ -976,7 +990,7 @@ namespace Sass {
       // other errors will be re-thrown
       catch (...) { handle_utf8_error(pstate, backtrace); }
       // return something even if we had an error (-1)
-      return new (ctx.mem) Number(pstate, (double)index);
+      return SASS_MEMORY_NEW(ctx.mem, Number, pstate, (double)index);
     }
 
     Signature str_slice_sig = "str-slice($string, $start-at, $end-at:-1)";
@@ -1012,7 +1026,7 @@ namespace Sass {
       // handle any invalid utf8 errors
       // other errors will be re-thrown
       catch (...) { handle_utf8_error(pstate, backtrace); }
-      return new (ctx.mem) String_Quoted(pstate, newstr);
+      return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, newstr);
     }
 
     Signature to_upper_case_sig = "to-upper-case($string)";
@@ -1028,11 +1042,11 @@ namespace Sass {
       }
 
       if (String_Quoted* ss = dynamic_cast<String_Quoted*>(s)) {
-        String_Quoted* cpy = new (ctx.mem) String_Quoted(*ss);
+        String_Quoted* cpy = SASS_MEMORY_NEW(ctx.mem, String_Quoted, *ss);
         cpy->value(str);
         return cpy;
       } else {
-        return new (ctx.mem) String_Quoted(pstate, str);
+        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, str);
       }
     }
 
@@ -1049,11 +1063,11 @@ namespace Sass {
       }
 
       if (String_Quoted* ss = dynamic_cast<String_Quoted*>(s)) {
-        String_Quoted* cpy = new (ctx.mem) String_Quoted(*ss);
+        String_Quoted* cpy = SASS_MEMORY_NEW(ctx.mem, String_Quoted, *ss);
         cpy->value(str);
         return cpy;
       } else {
-        return new (ctx.mem) String_Quoted(pstate, str);
+        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, str);
       }
     }
 
@@ -1066,14 +1080,14 @@ namespace Sass {
     {
       Number* n = ARG("$number", Number);
       if (!n->is_unitless()) error("argument $number of `" + std::string(sig) + "` must be unitless", pstate);
-      return new (ctx.mem) Number(pstate, n->value() * 100, "%");
+      return SASS_MEMORY_NEW(ctx.mem, Number, pstate, n->value() * 100, "%");
     }
 
     Signature round_sig = "round($number)";
     BUILT_IN(round)
     {
       Number* n = ARG("$number", Number);
-      Number* r = new (ctx.mem) Number(*n);
+      Number* r = SASS_MEMORY_NEW(ctx.mem, Number, *n);
       r->pstate(pstate);
       r->value(std::floor(r->value() + 0.5));
       return r;
@@ -1083,7 +1097,7 @@ namespace Sass {
     BUILT_IN(ceil)
     {
       Number* n = ARG("$number", Number);
-      Number* r = new (ctx.mem) Number(*n);
+      Number* r = SASS_MEMORY_NEW(ctx.mem, Number, *n);
       r->pstate(pstate);
       r->value(std::ceil(r->value()));
       return r;
@@ -1093,7 +1107,7 @@ namespace Sass {
     BUILT_IN(floor)
     {
       Number* n = ARG("$number", Number);
-      Number* r = new (ctx.mem) Number(*n);
+      Number* r = SASS_MEMORY_NEW(ctx.mem, Number, *n);
       r->pstate(pstate);
       r->value(std::floor(r->value()));
       return r;
@@ -1103,7 +1117,7 @@ namespace Sass {
     BUILT_IN(abs)
     {
       Number* n = ARG("$number", Number);
-      Number* r = new (ctx.mem) Number(*n);
+      Number* r = SASS_MEMORY_NEW(ctx.mem, Number, *n);
       r->pstate(pstate);
       r->value(std::abs(r->value()));
       return r;
@@ -1147,12 +1161,12 @@ namespace Sass {
         if (trunc(l->value()) != l->value() || l->value() == 0) error("argument $limit of `" + std::string(sig) + "` must be a positive integer", pstate);
         std::uniform_real_distribution<> distributor(1, l->value() + 1);
         uint_fast32_t distributed = static_cast<uint_fast32_t>(distributor(rand));
-        return new (ctx.mem) Number(pstate, (double)distributed);
+        return SASS_MEMORY_NEW(ctx.mem, Number, pstate, (double)distributed);
       }
       else {
         std::uniform_real_distribution<> distributor(0, 1);
         double distributed = static_cast<double>(distributor(rand));
-        return new (ctx.mem) Number(pstate, distributed);
+        return SASS_MEMORY_NEW(ctx.mem, Number, pstate, distributed);
      }
     }
 
@@ -1166,22 +1180,24 @@ namespace Sass {
       Expression* v = ARG("$list", Expression);
       if (v->concrete_type() == Expression::MAP) {
         Map* map = dynamic_cast<Map*>(env["$list"]);
-        return new (ctx.mem) Number(pstate,
-										(double)(map ? map->length() : 1));
+        return SASS_MEMORY_NEW(ctx.mem, Number,
+     pstate,
+     (double)(map ? map->length() : 1));
       }
       if (v->concrete_type() == Expression::SELECTOR) {
         if (Compound_Selector* h = dynamic_cast<Compound_Selector*>(v)) {
-          return new (ctx.mem) Number(pstate, (double)h->length());
+          return SASS_MEMORY_NEW(ctx.mem, Number, pstate, (double)h->length());
         } else if (Selector_List* ls = dynamic_cast<Selector_List*>(v)) {
-          return new (ctx.mem) Number(pstate, (double)ls->length());
+          return SASS_MEMORY_NEW(ctx.mem, Number, pstate, (double)ls->length());
         } else {
-          return new (ctx.mem) Number(pstate, 1);
+          return SASS_MEMORY_NEW(ctx.mem, Number, pstate, 1);
         }
       }
 
       List* list = dynamic_cast<List*>(env["$list"]);
-      return new (ctx.mem) Number(pstate,
-                                  (double)(list ? list->size() : 1));
+      return SASS_MEMORY_NEW(ctx.mem, Number,
+                             pstate,
+                             (double)(list ? list->size() : 1));
     }
 
     Signature nth_sig = "nth($list, $n)";
@@ -1193,7 +1209,7 @@ namespace Sass {
       if (n->value() == 0) error("argument `$n` of `" + std::string(sig) + "` must be non-zero", pstate);
       // if the argument isn't a list, then wrap it in a singleton list
       if (!m && !l) {
-        l = new (ctx.mem) List(pstate, 1);
+        l = SASS_MEMORY_NEW(ctx.mem, List, pstate, 1);
         *l << ARG("$list", Expression);
       }
       size_t len = m ? m->length() : l->length();
@@ -1203,7 +1219,7 @@ namespace Sass {
       if (index < 0 || index > len - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate);
 
       if (m) {
-        l = new (ctx.mem) List(pstate, 1);
+        l = SASS_MEMORY_NEW(ctx.mem, List, pstate, 1);
         *l << m->keys()[static_cast<unsigned int>(index)];
         *l << m->at(m->keys()[static_cast<unsigned int>(index)]);
         return l;
@@ -1220,13 +1236,13 @@ namespace Sass {
       Number* n = ARG("$n", Number);
       Expression* v = ARG("$value", Expression);
       if (!l) {
-        l = new (ctx.mem) List(pstate, 1);
+        l = SASS_MEMORY_NEW(ctx.mem, List, pstate, 1);
         *l << ARG("$list", Expression);
       }
       if (l->empty()) error("argument `$list` of `" + std::string(sig) + "` must not be empty", pstate);
       double index = std::floor(n->value() < 0 ? l->length() + n->value() : n->value() - 1);
       if (index < 0 || index > l->length() - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate);
-      List* result = new (ctx.mem) List(pstate, l->length(), l->separator());
+      List* result = SASS_MEMORY_NEW(ctx.mem, List, pstate, l->length(), l->separator());
       for (size_t i = 0, L = l->length(); i < L; ++i) {
         *result << ((i == index) ? v : (*l)[i]);
       }
@@ -1239,13 +1255,13 @@ namespace Sass {
       List* l = dynamic_cast<List*>(env["$list"]);
       Expression* v = ARG("$value", Expression);
       if (!l) {
-        l = new (ctx.mem) List(pstate, 1);
+        l = SASS_MEMORY_NEW(ctx.mem, List, pstate, 1);
         *l << ARG("$list", Expression);
       }
       for (size_t i = 0, L = l->length(); i < L; ++i) {
-        if (Eval::eq(l->value_at_index(i), v)) return new (ctx.mem) Number(pstate, (double)(i+1));
+        if (Eval::eq(l->value_at_index(i), v)) return SASS_MEMORY_NEW(ctx.mem, Number, pstate, (double)(i+1));
       }
-      return new (ctx.mem) Null(pstate);
+      return SASS_MEMORY_NEW(ctx.mem, Null, pstate);
     }
 
     Signature join_sig = "join($list1, $list2, $separator: auto)";
@@ -1256,12 +1272,12 @@ namespace Sass {
       String_Constant* sep = ARG("$separator", String_Constant);
       enum Sass_Separator sep_val = (l1 ? l1->separator() : SASS_SPACE);
       if (!l1) {
-        l1 = new (ctx.mem) List(pstate, 1);
+        l1 = SASS_MEMORY_NEW(ctx.mem, List, pstate, 1);
         *l1 << ARG("$list1", Expression);
         sep_val = (l2 ? l2->separator() : SASS_SPACE);
       }
       if (!l2) {
-        l2 = new (ctx.mem) List(pstate, 1);
+        l2 = SASS_MEMORY_NEW(ctx.mem, List, pstate, 1);
         *l2 << ARG("$list2", Expression);
       }
       size_t len = l1->length() + l2->length();
@@ -1269,7 +1285,7 @@ namespace Sass {
       if (sep_str == "space") sep_val = SASS_SPACE;
       else if (sep_str == "comma") sep_val = SASS_COMMA;
       else if (sep_str != "auto") error("argument `$separator` of `" + std::string(sig) + "` must be `space`, `comma`, or `auto`", pstate);
-      List* result = new (ctx.mem) List(pstate, len, sep_val);
+      List* result = SASS_MEMORY_NEW(ctx.mem, List, pstate, len, sep_val);
       *result += l1;
       *result += l2;
       return result;
@@ -1282,10 +1298,10 @@ namespace Sass {
       Expression* v = ARG("$val", Expression);
       String_Constant* sep = ARG("$separator", String_Constant);
       if (!l) {
-        l = new (ctx.mem) List(pstate, 1);
+        l = SASS_MEMORY_NEW(ctx.mem, List, pstate, 1);
         *l << ARG("$list", Expression);
       }
-      List* result = new (ctx.mem) List(pstate, l->length() + 1, l->separator());
+      List* result = SASS_MEMORY_NEW(ctx.mem, List, pstate, l->length() + 1, l->separator());
       std::string sep_str(unquote(sep->value()));
       if (sep_str == "space") result->separator(SASS_SPACE);
       else if (sep_str == "comma") result->separator(SASS_COMMA);
@@ -1294,11 +1310,12 @@ namespace Sass {
       bool is_arglist = l->is_arglist();
       result->is_arglist(is_arglist);
       if (is_arglist) {
-        *result << new (ctx.mem) Argument(v->pstate(),
-                                          v,
-                                          "",
-                                          false,
-                                          false);
+        *result << SASS_MEMORY_NEW(ctx.mem, Argument,
+                                   v->pstate(),
+                                   v,
+                                   "",
+                                   false,
+                                   false);
 
       } else {
         *result << v;
@@ -1309,12 +1326,12 @@ namespace Sass {
     Signature zip_sig = "zip($lists...)";
     BUILT_IN(zip)
     {
-      List* arglist = new (ctx.mem) List(*ARG("$lists", List));
+      List* arglist = SASS_MEMORY_NEW(ctx.mem, List, *ARG("$lists", List));
       size_t shortest = 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         List* ith = dynamic_cast<List*>(arglist->value_at_index(i));
         if (!ith) {
-          ith = new (ctx.mem) List(pstate, 1);
+          ith = SASS_MEMORY_NEW(ctx.mem, List, pstate, 1);
           *ith << arglist->value_at_index(i);
           if (arglist->is_arglist()) {
             ((Argument*)(*arglist)[i])->value(ith);
@@ -1324,10 +1341,10 @@ namespace Sass {
         }
         shortest = (i ? std::min(shortest, ith->length()) : ith->length());
       }
-      List* zippers = new (ctx.mem) List(pstate, shortest, SASS_COMMA);
+      List* zippers = SASS_MEMORY_NEW(ctx.mem, List, pstate, shortest, SASS_COMMA);
       size_t L = arglist->length();
       for (size_t i = 0; i < shortest; ++i) {
-        List* zipper = new (ctx.mem) List(pstate, L);
+        List* zipper = SASS_MEMORY_NEW(ctx.mem, List, pstate, L);
         for (size_t j = 0; j < L; ++j) {
           *zipper << (*static_cast<List*>(arglist->value_at_index(j)))[i];
         }
@@ -1341,11 +1358,12 @@ namespace Sass {
     {
       List* l = dynamic_cast<List*>(env["$list"]);
       if (!l) {
-        l = new (ctx.mem) List(pstate, 1);
+        l = SASS_MEMORY_NEW(ctx.mem, List, pstate, 1);
         *l << ARG("$list", Expression);
       }
-      return new (ctx.mem) String_Quoted(pstate,
-                                           l->separator() == SASS_COMMA ? "comma" : "space");
+      return SASS_MEMORY_NEW(ctx.mem, String_Quoted,
+                               pstate,
+                               l->separator() == SASS_COMMA ? "comma" : "space");
     }
 
     /////////////////
@@ -1360,7 +1378,7 @@ namespace Sass {
       try {
         return m->at(v);
       } catch (const std::out_of_range&) {
-        return new (ctx.mem) Null(pstate);
+        return SASS_MEMORY_NEW(ctx.mem, Null, pstate);
       }
       catch (...) { throw; }
     }
@@ -1370,14 +1388,14 @@ namespace Sass {
     {
       Map* m = ARGM("$map", Map, ctx);
       Expression* v = ARG("$key", Expression);
-      return new (ctx.mem) Boolean(pstate, m->has(v));
+      return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, m->has(v));
     }
 
     Signature map_keys_sig = "map-keys($map)";
     BUILT_IN(map_keys)
     {
       Map* m = ARGM("$map", Map, ctx);
-      List* result = new (ctx.mem) List(pstate, m->length(), SASS_COMMA);
+      List* result = SASS_MEMORY_NEW(ctx.mem, List, pstate, m->length(), SASS_COMMA);
       for ( auto key : m->keys()) {
         *result << key;
       }
@@ -1388,7 +1406,7 @@ namespace Sass {
     BUILT_IN(map_values)
     {
       Map* m = ARGM("$map", Map, ctx);
-      List* result = new (ctx.mem) List(pstate, m->length(), SASS_COMMA);
+      List* result = SASS_MEMORY_NEW(ctx.mem, List, pstate, m->length(), SASS_COMMA);
       for ( auto key : m->keys()) {
         *result << m->at(key);
       }
@@ -1402,7 +1420,7 @@ namespace Sass {
       Map* m2 = ARGM("$map2", Map, ctx);
 
       size_t len = m1->length() + m2->length();
-      Map* result = new (ctx.mem) Map(pstate, len);
+      Map* result = SASS_MEMORY_NEW(ctx.mem, Map, pstate, len);
       *result += m1;
       *result += m2;
       return result;
@@ -1414,7 +1432,7 @@ namespace Sass {
       bool remove;
       Map* m = ARGM("$map", Map, ctx);
       List* arglist = ARG("$keys", List);
-      Map* result = new (ctx.mem) Map(pstate, 1);
+      Map* result = SASS_MEMORY_NEW(ctx.mem, Map, pstate, 1);
       for (auto key : m->keys()) {
         remove = false;
         for (size_t j = 0, K = arglist->length(); j < K && !remove; ++j) {
@@ -1428,13 +1446,14 @@ namespace Sass {
     Signature keywords_sig = "keywords($args)";
     BUILT_IN(keywords)
     {
-      List* arglist = new (ctx.mem) List(*ARG("$args", List));
-      Map* result = new (ctx.mem) Map(pstate, 1);
+      List* arglist = SASS_MEMORY_NEW(ctx.mem, List, *ARG("$args", List));
+      Map* result = SASS_MEMORY_NEW(ctx.mem, Map, pstate, 1);
       for (size_t i = arglist->size(), L = arglist->length(); i < L; ++i) {
         std::string name = std::string(((Argument*)(*arglist)[i])->name());
         name = name.erase(0, 1); // sanitize name (remove dollar sign)
-        *result << std::make_pair(new (ctx.mem) String_Quoted(pstate, name),
-                             ((Argument*)(*arglist)[i])->value());
+        *result << std::make_pair(SASS_MEMORY_NEW(ctx.mem, String_Quoted,
+                 pstate, name),
+                 ((Argument*)(*arglist)[i])->value());
       }
       return result;
     }
@@ -1447,16 +1466,16 @@ namespace Sass {
     BUILT_IN(type_of)
     {
       Expression* v = ARG("$value", Expression);
-      return new (ctx.mem) String_Quoted(pstate, v->type());
+      return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, v->type());
     }
 
     Signature unit_sig = "unit($number)";
     BUILT_IN(unit)
-    { return new (ctx.mem) String_Quoted(pstate, quote(ARG("$number", Number)->unit(), '"')); }
+    { return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, quote(ARG("$number", Number)->unit(), '"')); }
 
     Signature unitless_sig = "unitless($number)";
     BUILT_IN(unitless)
-    { return new (ctx.mem) Boolean(pstate, ARG("$number", Number)->is_unitless()); }
+    { return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, ARG("$number", Number)->is_unitless()); }
 
     Signature comparable_sig = "comparable($number-1, $number-2)";
     BUILT_IN(comparable)
@@ -1464,11 +1483,11 @@ namespace Sass {
       Number* n1 = ARG("$number-1", Number);
       Number* n2 = ARG("$number-2", Number);
       if (n1->is_unitless() || n2->is_unitless()) {
-        return new (ctx.mem) Boolean(pstate, true);
+        return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, true);
       }
       Number tmp_n2(*n2);
       tmp_n2.normalize(n1->find_convertible_unit());
-      return new (ctx.mem) Boolean(pstate, n1->unit() == tmp_n2.unit());
+      return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, n1->unit() == tmp_n2.unit());
     }
 
     Signature variable_exists_sig = "variable-exists($name)";
@@ -1477,10 +1496,10 @@ namespace Sass {
       std::string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
 
       if(d_env.has("$"+s)) {
-        return new (ctx.mem) Boolean(pstate, true);
+        return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, true);
       }
       else {
-        return new (ctx.mem) Boolean(pstate, false);
+        return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, false);
       }
     }
 
@@ -1490,10 +1509,10 @@ namespace Sass {
       std::string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
 
       if(d_env.has_global("$"+s)) {
-        return new (ctx.mem) Boolean(pstate, true);
+        return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, true);
       }
       else {
-        return new (ctx.mem) Boolean(pstate, false);
+        return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, false);
       }
     }
 
@@ -1503,10 +1522,10 @@ namespace Sass {
       std::string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
 
       if(d_env.has_global(s+"[f]")) {
-        return new (ctx.mem) Boolean(pstate, true);
+        return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, true);
       }
       else {
-        return new (ctx.mem) Boolean(pstate, false);
+        return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, false);
       }
     }
 
@@ -1516,10 +1535,10 @@ namespace Sass {
       std::string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
 
       if(d_env.has_global(s+"[m]")) {
-        return new (ctx.mem) Boolean(pstate, true);
+        return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, true);
       }
       else {
-        return new (ctx.mem) Boolean(pstate, false);
+        return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, false);
       }
     }
 
@@ -1529,10 +1548,10 @@ namespace Sass {
       std::string s = unquote(ARG("$name", String_Constant)->value());
 
       if(features.find(s) == features.end()) {
-        return new (ctx.mem) Boolean(pstate, false);
+        return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, false);
       }
       else {
-        return new (ctx.mem) Boolean(pstate, true);
+        return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, true);
       }
     }
 
@@ -1540,23 +1559,24 @@ namespace Sass {
     BUILT_IN(call)
     {
       std::string name = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
-      List* arglist = new (ctx.mem) List(*ARG("$args", List));
+      List* arglist = SASS_MEMORY_NEW(ctx.mem, List, *ARG("$args", List));
 
-      Arguments* args = new (ctx.mem) Arguments(pstate);
+      Arguments* args = SASS_MEMORY_NEW(ctx.mem, Arguments, pstate);
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Expression* expr = arglist->value_at_index(i);
         if (arglist->is_arglist()) {
           Argument* arg = static_cast<Argument*>((*arglist)[i]);
-          *args << new (ctx.mem) Argument(pstate,
-                                          expr,
-                                          "",
-                                          arg->is_rest_argument(),
-                                          arg->is_keyword_argument());
+          *args << SASS_MEMORY_NEW(ctx.mem, Argument,
+                                   pstate,
+                                   expr,
+                                   "",
+                                   arg->is_rest_argument(),
+                                   arg->is_keyword_argument());
         } else {
-          *args << new (ctx.mem) Argument(pstate, expr);
+          *args << SASS_MEMORY_NEW(ctx.mem, Argument, pstate, expr);
         }
       }
-      Function_Call* func = new (ctx.mem) Function_Call(pstate, name, args);
+      Function_Call* func = SASS_MEMORY_NEW(ctx.mem, Function_Call, pstate, name, args);
       Expand expand(ctx, &d_env, backtrace);
       return func->perform(&expand.eval);
 
@@ -1568,7 +1588,7 @@ namespace Sass {
 
     Signature not_sig = "not($value)";
     BUILT_IN(sass_not)
-    { return new (ctx.mem) Boolean(pstate, ARG("$value", Expression)->is_false()); }
+    { return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, ARG("$value", Expression)->is_false()); }
 
     Signature if_sig = "if($condition, $if-true, $if-false)";
     // BUILT_IN(sass_if)
@@ -1605,9 +1625,9 @@ namespace Sass {
     {
       Expression* v = ARG("$value", Expression);
       if (v->concrete_type() == Expression::NULL_VAL) {
-        return new (ctx.mem) String_Quoted(pstate, "null");
+        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "null");
       } else if (v->concrete_type() == Expression::BOOLEAN && *v == 0) {
-        return new (ctx.mem) String_Quoted(pstate, "false");
+        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "false");
       } else if (v->concrete_type() == Expression::STRING) {
         return v;
       } else {
@@ -1620,7 +1640,7 @@ namespace Sass {
         std::string inspect = v->perform(&to_string);
         if (inspect.empty() && parentheses) inspect = "()";
         ctx.output_style = old_style;
-        return new (ctx.mem) String_Quoted(pstate, inspect);
+        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, inspect);
       }
       // return v;
     }
@@ -1651,7 +1671,7 @@ namespace Sass {
 
       // Nothing to do
       if( parsedSelectors.empty() ) {
-        return new (ctx.mem) Null(pstate);
+        return SASS_MEMORY_NEW(ctx.mem, Null, pstate);
       }
 
       // Set the first element as the `result`, keep appending to as we go down the parsedSelector vector.
@@ -1700,7 +1720,7 @@ namespace Sass {
 
       // Nothing to do
       if( parsedSelectors.empty() ) {
-        return new (ctx.mem) Null(pstate);
+        return SASS_MEMORY_NEW(ctx.mem, Null, pstate);
       }
 
       // Set the first element as the `result`, keep appending to as we go down the parsedSelector vector.
@@ -1782,13 +1802,13 @@ namespace Sass {
       Compound_Selector* sel = ARGSEL("$selector", Compound_Selector, p_contextualize);
 
       To_String to_string;
-      List* l = new (ctx.mem) List(sel->pstate(), sel->length(), SASS_COMMA);
+      List* l = SASS_MEMORY_NEW(ctx.mem, List, sel->pstate(), sel->length(), SASS_COMMA);
 
       for (size_t i = 0, L = sel->length(); i < L; ++i) {
         Simple_Selector* ss = (*sel)[i];
         std::string ss_string = ss->perform(&to_string) ;
 
-        *l << new (ctx.mem) String_Quoted(ss->pstate(), ss_string);
+        *l << SASS_MEMORY_NEW(ctx.mem, String_Quoted, ss->pstate(), ss_string);
       }
 
       return l;
@@ -1848,7 +1868,7 @@ namespace Sass {
       Selector_List* sel_sup = Parser::parse_selector(sup_src.c_str(), ctx);
       Selector_List* sel_sub = Parser::parse_selector(sub_src.c_str(), ctx);
       bool result = sel_sup->is_superselector_of(sel_sub);
-      return new (ctx.mem) Boolean(pstate, result);
+      return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, result);
     }
 
     Signature unique_id_sig = "unique-id()";
@@ -1858,7 +1878,7 @@ namespace Sass {
       std::uniform_real_distribution<> distributor(0, 4294967296); // 16^8
       uint_fast32_t distributed = static_cast<uint_fast32_t>(distributor(rand));
       ss << "u" << std::setfill('0') << std::setw(8) << std::hex << distributed;
-      return new (ctx.mem) String_Quoted(pstate, ss.str());
+      return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, ss.str());
     }
 
   }
