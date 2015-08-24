@@ -1423,8 +1423,11 @@ namespace Sass {
     { return new (ctx.mem) Textual(pstate, Textual::PERCENTAGE, lexed); }
 
     // match hex number first because 0x000 looks like a number followed by an indentifier
-    if (lex< alternatives< hex, hex0 > >())
+    if (lex< sequence < alternatives< hex, hex0 >, negate < exactly<'-'> > > >())
     { return new (ctx.mem) Textual(pstate, Textual::HEX, lexed); }
+
+    if (lex< sequence < exactly <'#'>, identifier > >())
+    { return new (ctx.mem) String_Quoted(pstate, lexed); }
 
     // also handle the 10em- foo special case
     if (lex< sequence< dimension, optional< sequence< exactly<'-'>, negate< digit > > > > >())
@@ -1641,8 +1644,11 @@ namespace Sass {
         (*schema) <<  new (ctx.mem) Textual(pstate, Textual::NUMBER, lexed);
       }
       // lex hex color value
-      else if (lex< hex >()) {
+      else if (lex< sequence < hex, negate < exactly < '-' > > > >()) {
         (*schema) << new (ctx.mem) Textual(pstate, Textual::HEX, lexed);
+      }
+      else if (lex< sequence < exactly <'#'>, identifier > >()) {
+        (*schema) << new (ctx.mem) String_Quoted(pstate, lexed);
       }
       // lex a value in parentheses
       else if (peek< parenthese_scope >()) {
