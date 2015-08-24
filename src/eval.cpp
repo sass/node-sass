@@ -1290,8 +1290,10 @@ namespace Sass {
     }
     if (ltype == Expression::NULL_VAL) error("invalid null operation: \"null plus "+quote(unquote(rstr), '"')+"\".", lhs.pstate());
     if (rtype == Expression::NULL_VAL) error("invalid null operation: \""+quote(unquote(lstr), '"')+" plus null\".", rhs.pstate());
-    std::string result((lstr) + sep + (rstr));
-    String_Quoted* str = new (mem) String_Quoted(lhs.pstate(), result);
+
+    String_Constant* str = ltype == Expression::STRING || sep == ""
+      ? new (mem) String_Quoted(lhs.pstate(), (lstr) + sep + (rstr))
+      : new (mem) String_Constant(lhs.pstate(), (lstr) + sep + quote(rstr));
     str->quote_mark(0);
     return str;
   }
