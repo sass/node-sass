@@ -1337,7 +1337,7 @@ namespace Sass {
   public:
     String_Schema(ParserState pstate, size_t size = 0, bool has_interpolants = false)
     : String(pstate), Vectorized<Expression*>(size), has_interpolants_(has_interpolants), hash_(0)
-    { }
+    { concrete_type(STRING); }
     std::string type() { return "string"; }
     static std::string type_name() { return "string"; }
 
