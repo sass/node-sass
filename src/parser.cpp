@@ -1366,7 +1366,14 @@ namespace Sass {
       return parse_function_call_schema();
     }
     else if (lex< identifier_schema >()) {
-      return parse_identifier_schema();
+      String* string = parse_identifier_schema();
+      if (String_Schema* schema = dynamic_cast<String_Schema*>(string)) {
+        if (lex < exactly < '(' > >()) {
+          *schema << parse_list();
+          lex < exactly < ')' > >();
+        }
+      }
+      return string;
     }
     else if (peek< re_functional >()) {
       return parse_function_call();
@@ -1599,13 +1606,14 @@ namespace Sass {
       css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
     }
 
+    const char* e = 0;
     size_t num_items = 0;
     while (position < stop) {
       // parse space between tokens
       if (lex< spaces >() && num_items) {
         (*schema) << new (ctx.mem) String_Constant(pstate, " ");
       }
-      if (peek< re_functional >()) {
+      if ((e = peek< re_functional >()) && e < stop) {
         (*schema) << parse_function_call();
       }
       // lex an interpolant /#{...}/
@@ -1622,10 +1630,16 @@ namespace Sass {
       // lex some string constants
       else if (lex< alternatives < exactly<'%'>, exactly < '-' >, identifier > >()) {
         (*schema) << new (ctx.mem) String_Constant(pstate, lexed);
+        if (*position == '"' || *position == '\'') {
+          (*schema) << new (ctx.mem) String_Constant(pstate, " ");
+        }
       }
       // lex a quoted string
       else if (lex< quoted_string >()) {
-        (*schema) << new (ctx.mem) String_Quoted(pstate, lexed);
+        (*schema) << new (ctx.mem) String_Quoted(pstate, lexed, '"');
+        if (*position == '"' || *position == '\'' || alpha(position)) {
+          (*schema) << new (ctx.mem) String_Constant(pstate, " ");
+        }
       }
       // lex (normalized) variable
       else if (lex< variable >()) {
@@ -1681,7 +1695,9 @@ namespace Sass {
       if (p) {
         if (i < p) {
           // accumulate the preceding segment if it's nonempty
-          (*schema) << new (ctx.mem) String_Constant(pstate, std::string(i, p));
+          const char* o = position; position = i;
+          *schema << parse_value_schema(p);
+          position = o;
         }
         // we need to skip anything inside strings
         // create a new target in parser/prelexer
@@ -1703,7 +1719,11 @@ namespace Sass {
         }
       }
       else { // no interpolants left; add the last segment if nonempty
-        if (i < end) (*schema) << new (ctx.mem) String_Constant(pstate, std::string(i, id.end));
+        if (i < end) {
+          const char* o = position; position = i;
+          *schema << parse_value_schema(id.end);
+          position = o;
+        }
         break;
       }
     }

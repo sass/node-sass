@@ -153,6 +153,7 @@ namespace Sass {
                      alternatives <
                        digits,
                        identifier,
+                       quoted_string,
                        exactly<'+'>,
                        exactly<'-'>
                      >
