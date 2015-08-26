@@ -62,7 +62,7 @@
     "sass-graph": "^2.0.1"
   },
   "optionalDependencies": {
-    "fsevents": "0.3.7"
+    "fsevents": "0.3.8"
   },
   "devDependencies": {
     "coveralls": "^2.11.4",
