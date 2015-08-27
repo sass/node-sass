@@ -1,4 +1,5 @@
 #include <nan.h>
+#include <stdexcept>
 #include "custom_function_bridge.h"
 #include "sass_types/factory.h"
 
