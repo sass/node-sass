@@ -123,11 +123,12 @@ int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapp
 
   if (importer_callback->IsFunction()) {
     v8::Local<v8::Function> importer = importer_callback.As<v8::Function>();
-    auto bridge = std::make_shared<CustomImporterBridge>(new Nan::Callback(importer), ctx_w->is_sync);
+
+    CustomImporterBridge *bridge = new CustomImporterBridge(importer, ctx_w->is_sync);
     ctx_w->importer_bridges.push_back(bridge);
 
     Sass_Importer_List c_importers = sass_make_importer_list(1);
-    c_importers[0] = sass_make_importer(sass_importer, 0, bridge.get());
+    c_importers[0] = sass_make_importer(sass_importer, 0, bridge);
 
     sass_option_set_c_importers(sass_options, c_importers);
   }
@@ -138,10 +139,10 @@ int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapp
     for (size_t i = 0; i < importers->Length(); ++i) {
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(Nan::Get(importers, static_cast<uint32_t>(i)).ToLocalChecked());
 
-      auto bridge = std::make_shared<CustomImporterBridge>(new Nan::Callback(callback), ctx_w->is_sync);
+      CustomImporterBridge *bridge = new CustomImporterBridge(callback, ctx_w->is_sync);
       ctx_w->importer_bridges.push_back(bridge);
 
-      c_importers[i] = sass_make_importer(sass_importer, importers->Length() - i - 1, bridge.get());
+      c_importers[i] = sass_make_importer(sass_importer, importers->Length() - i - 1, bridge);
     }
 
     sass_option_set_c_importers(sass_options, c_importers);
@@ -159,10 +160,10 @@ int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapp
       v8::Local<v8::String> signature = v8::Local<v8::String>::Cast(Nan::Get(signatures, Nan::New(i)).ToLocalChecked());
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(Nan::Get(functions, signature).ToLocalChecked());
 
-      auto bridge = std::make_shared<CustomFunctionBridge>(new Nan::Callback(callback), ctx_w->is_sync);
+      CustomFunctionBridge *bridge = new CustomFunctionBridge(callback, ctx_w->is_sync);
       ctx_w->function_bridges.push_back(bridge);
 
-      Sass_Function_Entry fn = sass_make_function(create_string(signature), sass_custom_function, bridge.get());
+      Sass_Function_Entry fn = sass_make_function(create_string(signature), sass_custom_function, bridge);
       sass_function_set_list_entry(fn_list, i, fn);
     }
 

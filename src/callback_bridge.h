@@ -11,7 +11,7 @@
 template <typename T, typename L = void*>
 class CallbackBridge {
   public:
-    CallbackBridge(Nan::Callback*, bool);
+    CallbackBridge(v8::Local<v8::Function>, bool);
     virtual ~CallbackBridge();
 
     // Executes the callback
@@ -54,7 +54,7 @@ template <typename T, typename L>
 Nan::Persistent<v8::Function> CallbackBridge<T, L>::wrapper_constructor;
 
 template <typename T, typename L>
-CallbackBridge<T, L>::CallbackBridge(Nan::Callback* callback, bool is_sync) : callback(callback), is_sync(is_sync) {
+CallbackBridge<T, L>::CallbackBridge(v8::Local<v8::Function> callback, bool is_sync) : callback(new Nan::Callback(callback)), is_sync(is_sync) {
   /* 
    * This is invoked from the main JavaScript thread.
    * V8 context is available.

@@ -42,8 +42,8 @@ extern "C" {
     Nan::Callback* error_callback;
     Nan::Callback* success_callback;
 
-    std::vector<std::shared_ptr<CustomFunctionBridge>> function_bridges;
-    std::vector<std::shared_ptr<CustomImporterBridge>> importer_bridges;
+    std::vector<CustomFunctionBridge *> function_bridges;
+    std::vector<CustomImporterBridge *> importer_bridges;
   };
 
   struct sass_context_wrapper*      sass_make_context_wrapper(void);
