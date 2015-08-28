@@ -7,7 +7,7 @@
 
 class CustomFunctionBridge : public CallbackBridge<Sass_Value*> {
   public:
-    CustomFunctionBridge(Nan::Callback* cb, bool is_sync) : CallbackBridge<Sass_Value*>(cb, is_sync) {}
+    CustomFunctionBridge(v8::Local<v8::Function> cb, bool is_sync) : CallbackBridge<Sass_Value*>(cb, is_sync) {}
 
   private:
     Sass_Value* post_process_return_value(v8::Local<v8::Value>) const;

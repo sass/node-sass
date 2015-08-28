@@ -3,15 +3,15 @@
 
 #include <vector>
 #include <nan.h>
-#include <condition_variable>
 #include <algorithm>
+#include <uv.h>
 
 #define COMMA ,
 
 template <typename T, typename L = void*>
 class CallbackBridge {
   public:
-    CallbackBridge(Nan::Callback*, bool);
+    CallbackBridge(v8::Local<v8::Function>, bool);
     virtual ~CallbackBridge();
 
     // Executes the callback
@@ -42,8 +42,8 @@ class CallbackBridge {
     Nan::Callback* callback;
     bool is_sync;
 
-    std::mutex cv_mutex;
-    std::condition_variable condition_variable;
+    uv_mutex_t cv_mutex;
+    uv_cond_t condition_variable;
     uv_async_t *async;
     std::vector<L> argv;
     bool has_returned;
@@ -54,12 +54,14 @@ template <typename T, typename L>
 Nan::Persistent<v8::Function> CallbackBridge<T, L>::wrapper_constructor;
 
 template <typename T, typename L>
-CallbackBridge<T, L>::CallbackBridge(Nan::Callback* callback, bool is_sync) : callback(callback), is_sync(is_sync) {
+CallbackBridge<T, L>::CallbackBridge(v8::Local<v8::Function> callback, bool is_sync) : callback(new Nan::Callback(callback)), is_sync(is_sync) {
   /* 
    * This is invoked from the main JavaScript thread.
    * V8 context is available.
    */
   Nan::HandleScope scope;
+  uv_mutex_init(&this->cv_mutex);
+  uv_cond_init(&this->condition_variable);
   if (!is_sync) {
     this->async = new uv_async_t;
     this->async->data = (void*) this;
@@ -75,6 +77,8 @@ template <typename T, typename L>
 CallbackBridge<T, L>::~CallbackBridge() {
   delete this->callback;
   this->wrapper.Reset();
+  uv_cond_destroy(&this->condition_variable);
+  uv_mutex_destroy(&this->cv_mutex);
 
   if (!is_sync) {
     uv_close((uv_handle_t*)this->async, &async_gone);
@@ -117,11 +121,13 @@ T CallbackBridge<T, L>::operator()(std::vector<void*> argv) {
      */
     this->argv = argv;
 
-    std::unique_lock<std::mutex> lock(this->cv_mutex);
+    uv_mutex_lock(&this->cv_mutex);
     this->has_returned = false;
     uv_async_send(this->async);
-    this->condition_variable.wait(lock, [this] { return this->has_returned; });
-
+    while (!this->has_returned) {
+      uv_cond_wait(&this->condition_variable, &this->cv_mutex);
+    }
+    uv_mutex_unlock(&this->cv_mutex);
     return this->return_value;
   }
 }
@@ -168,11 +174,12 @@ NAN_METHOD(CallbackBridge<T COMMA L>::ReturnCallback) {
   bridge->return_value = bridge->post_process_return_value(info[0]);
 
   {
-    std::lock_guard<std::mutex> lock(bridge->cv_mutex);
+    uv_mutex_lock(&bridge->cv_mutex);
     bridge->has_returned = true;
+    uv_mutex_unlock(&bridge->cv_mutex);
   }
 
-  bridge->condition_variable.notify_all();
+  uv_cond_broadcast(&bridge->condition_variable);
 
   if (try_catch.HasCaught()) {
     Nan::FatalException(try_catch);
