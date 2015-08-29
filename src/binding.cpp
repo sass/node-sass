@@ -4,6 +4,7 @@
 #include "custom_function_bridge.h"
 #include "create_string.h"
 #include "sass_types/factory.h"
+#include "debug.h"
 
 Sass_Import_List sass_importer(const char* cur_path, Sass_Importer_Entry cb, struct Sass_Compiler* comp)
 {
@@ -16,6 +17,7 @@ Sass_Import_List sass_importer(const char* cur_path, Sass_Importer_Entry cb, str
   argv.push_back((void*)cur_path);
   argv.push_back((void*)prev_path);
 
+  TRACEINST(&bridge) << "Importer will be executed";
   return bridge(argv);
 }
 
@@ -29,6 +31,7 @@ union Sass_Value* sass_custom_function(const union Sass_Value* s_args, Sass_Func
     argv.push_back((void*)sass_list_get_value(s_args, i));
   }
 
+  TRACEINST(&bridge) << "Function will be executed";
   return bridge(argv);
 }
 
@@ -120,6 +123,7 @@ int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapp
     v8::Local<v8::Function> importer = importer_callback.As<v8::Function>();
 
     CustomImporterBridge *bridge = new CustomImporterBridge(importer, ctx_w->is_sync);
+    TRACEINST(bridge) << "Importer bridge created";
     ctx_w->importer_bridges.push_back(bridge);
 
     Sass_Importer_List c_importers = sass_make_importer_list(1);
@@ -135,6 +139,7 @@ int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapp
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(Nan::Get(importers, static_cast<uint32_t>(i)).ToLocalChecked());
 
       CustomImporterBridge *bridge = new CustomImporterBridge(callback, ctx_w->is_sync);
+      TRACEINST(bridge) << "Importer bridge created (item #" << i << ")";
       ctx_w->importer_bridges.push_back(bridge);
 
       c_importers[i] = sass_make_importer(sass_importer, importers->Length() - i - 1, bridge);
@@ -156,6 +161,7 @@ int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapp
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(Nan::Get(functions, signature).ToLocalChecked());
 
       CustomFunctionBridge *bridge = new CustomFunctionBridge(callback, ctx_w->is_sync);
+      TRACEINST(bridge) << "Custom function bridge created (item #" << i << ")";
       ctx_w->function_bridges.push_back(bridge);
 
       Sass_Function_Entry fn = sass_make_function(create_string(signature), sass_custom_function, bridge);

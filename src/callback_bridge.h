@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <uv.h>
 
+#include "debug.h"
+
 #define COMMA ,
 
 template <typename T, typename L = void*>
@@ -86,6 +88,7 @@ CallbackBridge<T, L>::operator= (const CallbackBridge<T,L>& other)
    * V8 context is available.
    */
    if (other != *this) {
+     TRACEINST(this) << "Instance will be copied over from " << (void *)&other;
      delete this->callback;
      this->wrapper.Reset();
      uv_cond_destroy(&this->condition_variable);
@@ -125,6 +128,7 @@ CallbackBridge<T, L>::init_wrapper(void) {
 
 template <typename T, typename L>
 CallbackBridge<T, L>::~CallbackBridge() {
+  TRACEINST(this) << "Instance shuts down";
   delete this->callback;
   this->wrapper.Reset();
   uv_cond_destroy(&this->condition_variable);
