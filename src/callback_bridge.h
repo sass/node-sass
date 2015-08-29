@@ -12,6 +12,8 @@ template <typename T, typename L = void*>
 class CallbackBridge {
   public:
     CallbackBridge(v8::Local<v8::Function>, bool);
+    CallbackBridge(const CallbackBridge<T,L> &);
+    CallbackBridge<T,L>& operator=(const CallbackBridge<T,L> &);
     virtual ~CallbackBridge();
 
     // Executes the callback
@@ -21,6 +23,8 @@ class CallbackBridge {
     // We will expose a bridge object to the JS callback that wraps this instance so we don't loose context.
     // This is the V8 constructor for such objects.
     static Nan::MaybeLocal<v8::Function> get_wrapper_constructor();
+    void init_uv(void);
+    void init_wrapper(void);
     static void async_gone(uv_handle_t *handle);
     static NAN_METHOD(New);
     static NAN_METHOD(ReturnCallback);
@@ -59,7 +63,48 @@ CallbackBridge<T, L>::CallbackBridge(v8::Local<v8::Function> callback, bool is_s
    * This is invoked from the main JavaScript thread.
    * V8 context is available.
    */
-  Nan::HandleScope scope;
+  init_uv();
+  init_wrapper();
+}
+
+template <typename T, typename L>
+CallbackBridge<T, L>::CallbackBridge(const CallbackBridge<T,L>& other) : callback(new Nan::Callback(other.callback->GetFunction())), is_sync(other.is_sync) {
+  /* 
+   * This is invoked from the main JavaScript thread.
+   * V8 context is available.
+   */
+  init_uv();
+  init_wrapper();
+}
+
+template <typename T, typename L>
+CallbackBridge<T, L>&
+CallbackBridge<T, L>::operator= (const CallbackBridge<T,L>& other)
+{
+  /* 
+   * This is invoked from the main JavaScript thread.
+   * V8 context is available.
+   */
+   if (other != *this) {
+     delete this->callback;
+     this->wrapper.Reset();
+     uv_cond_destroy(&this->condition_variable);
+     uv_mutex_destroy(&this->cv_mutex);
+     if (!is_sync) {
+       uv_close(this->async, &async_gone);
+     }
+
+     this->callback = new Nan::Callback(other.callback->GetFunction());
+     this->is_sync = other.is_sync;
+     init_uv();
+     init_wrapper();
+   }
+   return *this;
+}
+
+template <typename T, typename L>
+void
+CallbackBridge<T, L>::init_uv(void) {
   uv_mutex_init(&this->cv_mutex);
   uv_cond_init(&this->condition_variable);
   if (!is_sync) {
@@ -67,7 +112,12 @@ CallbackBridge<T, L>::CallbackBridge(v8::Local<v8::Function> callback, bool is_s
     this->async->data = (void*) this;
     uv_async_init(uv_default_loop(), this->async, (uv_async_cb) dispatched_async_uv_callback);
   }
+}
 
+template <typename T, typename L>
+void
+CallbackBridge<T, L>::init_wrapper(void) {
+  Nan::HandleScope scope;
   v8::Local<v8::Function> func = CallbackBridge<T, L>::get_wrapper_constructor().ToLocalChecked();
   wrapper.Reset(Nan::NewInstance(func).ToLocalChecked());
   Nan::SetInternalFieldPointer(Nan::New(wrapper), 0, this);
