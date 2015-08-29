@@ -824,7 +824,7 @@ namespace Sass {
       } else if (last()->head_ && last()->head_->length()) {
         Compound_Selector* rh = last()->head();
         size_t i = 0, L = h->length();
-        if (Type_Selector* ts = dynamic_cast<Type_Selector*>(h->first())) {
+        if (dynamic_cast<Type_Selector*>(h->first())) {
           if (Selector_Qualifier* sq = dynamic_cast<Selector_Qualifier*>(rh->last())) {
             Selector_Qualifier* sqs = new Selector_Qualifier(*sq);
             sqs->name(sqs->name() + (*h)[0]->name());
