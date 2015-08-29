@@ -1952,5 +1952,20 @@ namespace Sass {
     return message();
   }
 
+  //////////////////////////////////////////////////////////////////////////////////////////
+  // Additional method on Lists to retrieve values directly or from an encompassed Argument.
+  //////////////////////////////////////////////////////////////////////////////////////////
+  Expression* List::value_at_index(size_t i) {
+    if (is_arglist_) {
+      if (Argument* arg = dynamic_cast<Argument*>((*this)[i])) {
+        return arg->value();
+      } else {
+        return (*this)[i];
+      }
+    } else {
+      return (*this)[i];
+    }
+  }
+
 }
 
