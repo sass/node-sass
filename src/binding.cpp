@@ -18,7 +18,15 @@ Sass_Import_List sass_importer(const char* cur_path, Sass_Importer_Entry cb, str
   argv.push_back((void*)prev_path);
 
   TRACEINST(&bridge) << "Importer will be executed";
-  return bridge(argv);
+
+  Sass_Import_List retval = bridge(argv);
+  if (bridge.timedout) {
+    TRACEINST(&bridge) << "Importer timeout";
+    retval = sass_make_import_list(1);
+    retval[0] = sass_make_import_entry(0, 0, 0);
+    sass_import_set_error(retval[0], "Importer timed out or blocked (>2000ms)", -1, -1);
+  }
+  return retval; 
 }
 
 union Sass_Value* sass_custom_function(const union Sass_Value* s_args, Sass_Function_Entry cb, struct Sass_Options* opts)
@@ -32,7 +40,13 @@ union Sass_Value* sass_custom_function(const union Sass_Value* s_args, Sass_Func
   }
 
   TRACEINST(&bridge) << "Function will be executed";
-  return bridge(argv);
+  Sass_Value *retval = bridge(argv);
+  if (bridge.timedout) {
+    TRACEINST(&bridge) << "Function timeout";
+    return sass_make_error("Function timed out or blocked (>2000ms)");
+  } else {
+    return retval;
+  }
 }
 
 int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapper* ctx_w, bool is_file, bool is_sync) {
