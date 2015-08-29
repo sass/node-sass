@@ -9,19 +9,21 @@ Log::Log() {}
 
 std::ostringstream& Log::Get(TLogLevel level, void *p, const char *f, const char *filen, int lineno)
 {
-   os << "[NODESASS@" << uv_thread_self() << "] " << p << ":" << f << " " << filen << ":" << lineno << " ";
+   os << "[NODESASS@" << uv_thread_self() << "] " << p << ":" << filen << ":" << lineno << " ";
+   func = f;
    messageLevel = level;
    return os;
 }
 std::ostringstream& Log::Get(TLogLevel level, const char *f, const char *filen, int lineno)
 {
-   os << "[NODESASS@" << uv_thread_self() << "] " << f << " " << filen << ":" << lineno << " ";
+   os << "[NODESASS@" << uv_thread_self() << "] " << filen << ":" << lineno << " ";
+   func = f;
    messageLevel = level;
    return os;
 }
 Log::~Log()
 {
-   os << std::endl;
+   os << " (" << func << ")" << std::endl;
    fprintf(stderr, "%s", os.str().c_str());
    fflush(stderr);
 }

@@ -12,14 +12,13 @@ public:
   virtual ~Log();
   std::ostringstream& Get(TLogLevel level, void *p, const char *f, const char *filen, int lineno);
   std::ostringstream& Get(TLogLevel level, const char *f, const char *filen, int lineno);
-public:
 protected:
   std::ostringstream os;
 private:
   Log(const Log&);
   Log& operator =(const Log&);
-private:
   TLogLevel messageLevel;
+  const char *func;
 };
 
 // Visual Studio 2013 does not like __func__
