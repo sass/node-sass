@@ -72,7 +72,7 @@ namespace Sass {
         exactly<'\\'>,
         alternatives <
           minmax_range<
-            3, 3, xdigit
+            1, 3, xdigit
           >,
           any_char
         >,
@@ -1027,7 +1027,7 @@ namespace Sass {
         ++ pos; ++ got;
       }
       if (got < min) return 0;
-      if (got > min) return 0;
+      if (got > max) return 0;
       return pos;
     }
 
