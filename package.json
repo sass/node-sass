@@ -61,9 +61,6 @@
     "request": "^2.61.0",
     "sass-graph": "^2.0.1"
   },
-  "optionalDependencies": {
-    "fsevents": "0.3.7"
-  },
   "devDependencies": {
     "coveralls": "^2.11.4",
     "cross-spawn": "^2.0.0",
