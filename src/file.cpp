@@ -215,7 +215,9 @@ namespace Sass {
         if (proto && uri[proto] == ':') ++ proto;
       }
 
-      if (proto && uri[proto++] == '/') return uri;
+      // distinguish between windows absolute paths and valid protocols
+      // we assume that protocols must at least have two chars to be valid
+      if (proto && uri[proto++] == '/' && proto > 3) return uri;
 
       #ifdef _WIN32
         // absolute link must have a drive letter, and we know that we
