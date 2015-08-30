@@ -1316,7 +1316,8 @@ namespace Sass {
     if (ltype == Expression::NULL_VAL) error("invalid null operation: \"null plus "+quote(unquote(rstr), '"')+"\".", lhs.pstate());
     if (rtype == Expression::NULL_VAL) error("invalid null operation: \""+quote(unquote(lstr), '"')+" plus null\".", rhs.pstate());
 
-    String_Constant* str = ltype == Expression::STRING || sep == ""
+    String_Constant* str = (ltype == Expression::STRING || sep == "") &&
+                           (sep != "/" || !rqstr || !rqstr->quote_mark())
       ? SASS_MEMORY_NEW(mem, String_Quoted, lhs.pstate(), (lstr) + sep + (rstr))
       : SASS_MEMORY_NEW(mem, String_Constant, lhs.pstate(), (lstr) + sep + quote(rstr));
     str->quote_mark(0);
