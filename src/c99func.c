@@ -21,18 +21,11 @@
   THE SOFTWARE.
 */
 
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#define _CRT_NONSTDC_NO_DEPRECATE
-#endif
+#if defined(_MSC_VER) && _MSC_VER < 1900
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-
-#ifdef snprintf
-#undef snprintf
-#endif
 
 static int c99_vsnprintf(char* str, size_t size, const char* format, va_list ap)
 {
@@ -57,3 +50,5 @@ int snprintf(char* str, size_t size, const char* format, ...)
 
     return count;
 }
+
+#endif
