@@ -691,8 +691,7 @@ namespace Sass {
 
       while (peek_css< exactly<','> >())
       {
-        lex< spaces >();
-        lex< css_comments >();
+        lex< css_comments >(false);
         // consume everything up and including the comma speparator
         reloop = lex< exactly<','> >() != 0;
         // remember line break (also between some commas)
@@ -847,7 +846,7 @@ namespace Sass {
 
   Simple_Selector* Parser::parse_simple_selector()
   {
-    lex < css_comments >();
+    lex < css_comments >(false);
     if (lex< alternatives < id_name, class_name > >()) {
       return SASS_MEMORY_NEW(ctx.mem, Selector_Qualifier, pstate, lexed);
     }
@@ -1000,7 +999,7 @@ namespace Sass {
     bool is_indented = true;
     const std::string property(lexed);
     if (!lex_css< one_plus< exactly<':'> > >()) error("property \"" + property + "\" must be followed by a ':'", pstate);
-    lex < optional_css_comments >();
+    lex < css_comments >(false);
     if (peek_css< exactly<';'> >()) error("style declaration must contain a value", pstate);
     if (peek_css< exactly<'{'> >()) is_indented = false; // don't indent if value is empty
     if (peek_css< static_value >()) {
@@ -1024,7 +1023,7 @@ namespace Sass {
           }
         }
       }
-
+      lex < css_comments >(false);
       auto decl = SASS_MEMORY_NEW(ctx.mem, Declaration, prop->pstate(), prop, value/*, lex<kwd_important>()*/);
       decl->is_indented(is_indented);
       return decl;
@@ -1332,6 +1331,7 @@ namespace Sass {
   // called from parse_value_schema
   Expression* Parser::parse_factor()
   {
+    lex < css_comments >(false);
     if (lex_css< exactly<'('> >()) {
       // parse_map may return a list
       Expression* value = parse_map();
@@ -1399,7 +1399,7 @@ namespace Sass {
   // parse one value for a list
   Expression* Parser::parse_value()
   {
-    lex< css_comments >();
+    lex< css_comments >(false);
     if (lex< ampersand >())
     {
       return SASS_MEMORY_NEW(ctx.mem, Parent_Selector, pstate); }
@@ -2099,7 +2099,7 @@ namespace Sass {
       at_rule->selector(parse_selector_list());
     }
 
-    lex < css_comments >();
+    lex < css_comments >(false);
 
     if (lex < static_property >()) {
       at_rule->value(parse_interpolated_chunk(Token(lexed)));
@@ -2107,7 +2107,7 @@ namespace Sass {
       at_rule->value(parse_list());
     }
 
-    lex < css_comments >();
+    lex < css_comments >(false);
 
     if (peek< exactly<'{'> >()) {
       at_rule->block(parse_block());

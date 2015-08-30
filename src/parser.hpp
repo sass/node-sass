@@ -166,13 +166,18 @@ namespace Sass {
     {
       // copy old token
       Token prev = lexed;
+      // store previous pointer
+      const char* oldpos = position;
       // throw away comments
       // update srcmap position
       lex < Prelexer::css_comments >();
       // now lex a new token
       const char* pos = lex< mx >();
-      // maybe restore prev token
-      if (pos == 0) lexed = prev;
+      // maybe restore prev state
+      if (pos == 0) {
+        lexed = prev;
+        position = oldpos;
+      }
       // return match
       return pos;
     }
