@@ -420,7 +420,7 @@ namespace Sass {
       case Sass_OP::ADD: append_string(" + ");   break;
       case Sass_OP::SUB: append_string(" - ");   break;
       case Sass_OP::MUL: append_string(" * ");   break;
-      case Sass_OP::DIV: append_string("/");     break;
+      case Sass_OP::DIV: append_string(in_media_block ? " / " : "/"); break;
       case Sass_OP::MOD: append_string(" % ");   break;
       default: break; // shouldn't get here
     }
