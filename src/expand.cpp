@@ -558,6 +558,9 @@ namespace Sass {
     Block* body = def->block();
     Parameters* params = def->parameters();
 
+    if (c->block() && c->name() != "@content" && !body->has_content()) {
+      error("Mixin \"" + c->name() + "\" does not accept a content block.", c->pstate(), backtrace());
+    }
     Arguments* args = static_cast<Arguments*>(c->arguments()
                                                ->perform(&eval));
     Backtrace new_bt(backtrace(), c->pstate(), ", in mixin `" + c->name() + "`");
