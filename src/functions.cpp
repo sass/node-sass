@@ -1562,16 +1562,24 @@ namespace Sass {
       List* arglist = SASS_MEMORY_NEW(ctx.mem, List, *ARG("$args", List));
 
       Arguments* args = SASS_MEMORY_NEW(ctx.mem, Arguments, pstate);
+      std::string full_name(name + "[f]");
+      Definition* def = static_cast<Definition*>((d_env)[full_name]);
+      Parameters* params = def ? def->parameters() : 0;
+      size_t param_size = params ? params->length() : 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Expression* expr = arglist->value_at_index(i);
+        Parameter* p = param_size > i ? (*params)[i] : 0;
+        if (List* list = dynamic_cast<List*>(expr)) {
+          if (p && !p->is_rest_parameter()) expr = (*list)[0];
+        }
         if (arglist->is_arglist()) {
-          Argument* arg = static_cast<Argument*>((*arglist)[i]);
+          Argument* arg = dynamic_cast<Argument*>((*arglist)[i]);
           *args << SASS_MEMORY_NEW(ctx.mem, Argument,
                                    pstate,
                                    expr,
                                    "",
-                                   arg->is_rest_argument(),
-                                   arg->is_keyword_argument());
+                                   arg ? arg->is_rest_argument() : false,
+                                   arg ? arg->is_keyword_argument() : false);
         } else {
           *args << SASS_MEMORY_NEW(ctx.mem, Argument, pstate, expr);
         }

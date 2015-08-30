@@ -824,7 +824,7 @@ namespace Sass {
       } else if (last()->head_ && last()->head_->length()) {
         Compound_Selector* rh = last()->head();
         size_t i = 0, L = h->length();
-        if (Type_Selector* ts = dynamic_cast<Type_Selector*>(h->first())) {
+        if (dynamic_cast<Type_Selector*>(h->first())) {
           if (Selector_Qualifier* sq = dynamic_cast<Selector_Qualifier*>(rh->last())) {
             Selector_Qualifier* sqs = new Selector_Qualifier(*sq);
             sqs->name(sqs->name() + (*h)[0]->name());
@@ -1950,6 +1950,21 @@ namespace Sass {
   std::string Custom_Warning::to_string(bool compressed, int precision) const
   {
     return message();
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////
+  // Additional method on Lists to retrieve values directly or from an encompassed Argument.
+  //////////////////////////////////////////////////////////////////////////////////////////
+  Expression* List::value_at_index(size_t i) {
+    if (is_arglist_) {
+      if (Argument* arg = dynamic_cast<Argument*>((*this)[i])) {
+        return arg->value();
+      } else {
+        return (*this)[i];
+      }
+    } else {
+      return (*this)[i];
+    }
   }
 
 }
