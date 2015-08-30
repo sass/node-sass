@@ -305,6 +305,7 @@ namespace Sass {
       SUPPORTS,
       ATROOT,
       BUBBLE,
+      CONTENT,
       KEYFRAMERULE,
       DECLARATION,
       ASSIGNMENT,
@@ -336,6 +337,10 @@ namespace Sass {
     virtual bool   is_invisible() const { return false; }
     virtual bool   bubbles() { return false; }
     virtual Block* block()  { return 0; }
+    virtual bool has_content()
+    {
+      return statement_type_ == CONTENT;
+    }
   };
   inline Statement::~Statement() { }
 
@@ -358,8 +363,18 @@ namespace Sass {
     Block(ParserState pstate, size_t s = 0, bool r = false)
     : Statement(pstate),
       Vectorized<Statement*>(s),
-      is_root_(r), is_at_root_(false), has_hoistable_(false), has_non_hoistable_(false)
+      is_root_(r),
+      is_at_root_(false),
+      has_hoistable_(false),
+      has_non_hoistable_(false)
     { }
+    virtual bool has_content()
+    {
+      for (size_t i = 0, L = elements().size(); i < L; ++i) {
+        if (elements()[i]->has_content()) return true;
+      }
+      return Statement::has_content();
+    }
     Block* block() { return this; }
     ATTACH_OPERATIONS()
   };
@@ -373,6 +388,10 @@ namespace Sass {
     Has_Block(ParserState pstate, Block* b)
     : Statement(pstate), block_(b)
     { }
+    virtual bool has_content()
+    {
+      return block_->has_content() || Statement::has_content();
+    }
     virtual ~Has_Block() = 0;
   };
   inline Has_Block::~Has_Block() { }
@@ -765,7 +784,8 @@ namespace Sass {
   ///////////////////////////////////////////////////
   class Content : public Statement {
   public:
-    Content(ParserState pstate) : Statement(pstate) { }
+    Content(ParserState pstate) : Statement(pstate)
+    { statement_type(CONTENT); }
     ATTACH_OPERATIONS()
   };
 
