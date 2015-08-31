@@ -470,11 +470,11 @@ node scripts/build -f  # use -d switch for debug release
 
 The interface for command-line usage is fairly simplistic at this stage, as seen in the following usage section.
 
-Output will be saved with the same name as input SASS file into the current working directory if it's omitted.
+Output will be saved with the same name as input Sass file into the current working directory if the `--output` flag is omitted.
 
 ### Usage
- `node-sass [options] <input.scss> [output.css]`
- `cat <input.scss> | node-sass > output.css`
+ `node-sass [options] <input> [output]`
+ `cat <input> | node-sass > output`
 
  **Options:**
 
@@ -502,11 +502,12 @@ Output will be saved with the same name as input SASS file into the current work
     --help                     Print usage info
 ```
 
-Pass a directory as the input to compile multiple files. For example: `node-sass sass/ -o css/`. The `--output` flag is required and must be a directory when using multi-file compilation.
+The `input` can be either a single `.scss` or `.sass`, or a directory. If the input is a directory the `--output` flag must also be supplied.
 
 Also, note `--importer` takes the (absolute or relative to pwd) path to a js file, which needs to have a default `module.exports` set to the importer function. See our test [fixtures](https://github.com/sass/node-sass/tree/974f93e76ddd08ea850e3e663cfe64bb6a059dd3/test/fixtures/extras) for example.
 
-The source-map option accepts `true` as value, in which case it replaces destination extension with `.css.map`. It also accepts path to `.map` file and even path to the desired directory. In case of multi-file compilation path to `.map` yields error.
+The `--source-map` option accepts a boolean value, in which case it replaces destination extension with `.css.map`. It also accepts path to `.map` file and even path to the desired directory. 
+When compiling a directory `--source-map` can either be a boolean value or a directory.
 
 ## Post-install Build
 
