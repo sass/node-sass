@@ -1032,8 +1032,8 @@ namespace Sass {
         res.collection()->push_front(op2);
         res.collection()->push_front(sel2);
 
-        seq2.collection()->push_back(sel1);
-        seq2.collection()->push_back(op1);
+        seq1.collection()->push_back(sel1);
+        seq1.collection()->push_back(op1);
 
       } else if (op2.combinator() == Complex_Selector::PARENT_OF && (op1.combinator() == Complex_Selector::PRECEDES || op1.combinator() == Complex_Selector::ADJACENT_TO)) {
 
