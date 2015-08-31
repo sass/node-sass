@@ -2415,8 +2415,10 @@ namespace Sass {
   {
     int max_len = 14;
     const char* pos = peek < optional_spaces >();
+    // backup position to last significant char
+    while (!*pos || Prelexer::is_space(*pos)) -- pos;
     bool ellipsis_left = false;
-    const char* pos_left(pos - 1);
+    const char* pos_left(pos + 1);
     if (pos_left < source) pos_left = source;
     while (*pos_left && pos_left > source) {
       if (pos - pos_left > max_len) {
@@ -2426,11 +2428,10 @@ namespace Sass {
       const char* prev = pos_left - 1;
       if (*prev == '\r') break;
       if (*prev == '\n') break;
-      if (*prev == 10) break;
       pos_left = prev;
     }
     bool ellipsis_right = false;
-    const char* pos_right(pos);
+    const char* pos_right(pos + 1);
     while (*pos_right && pos_right <= end) {
       if (pos_right - pos > max_len) {
         ellipsis_right = true;
@@ -2438,11 +2439,10 @@ namespace Sass {
       }
       if (*pos_right == '\r') break;
       if (*pos_right == '\n') break;
-      if (*pos_left == 10) break;
       ++ pos_right;
     }
-    std::string left(pos_left, pos);
-    std::string right(pos, pos_right);
+    std::string left(pos_left, pos + 1);
+    std::string right(pos + 1, pos_right);
     if (ellipsis_left) left = ellipsis + left;
     if (ellipsis_right) right = right + ellipsis;
     // now pass new message to the more generic error function
