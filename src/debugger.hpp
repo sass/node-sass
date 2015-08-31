@@ -8,6 +8,18 @@
 
 using namespace Sass;
 
+inline void debug_ast(AST_Node* node, std::string ind = "", Env* env = 0);
+
+inline void debug_sources_set(SourcesSet& set, std::string ind = "")
+{
+  if (ind == "") std::cerr << "#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+  for(auto const &pair : set) {
+    debug_ast(pair, ind + "");
+    // debug_ast(set[pair], ind + "first: ");
+  }
+  if (ind == "") std::cerr << "#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+}
+
 inline std::string str_replace(std::string str, const std::string& oldStr, const std::string& newStr)
 {
   size_t pos = 0;
@@ -43,7 +55,7 @@ inline std::string pstate_source_position(AST_Node* node)
   return str.str();
 }
 
-inline void debug_ast(AST_Node* node, std::string ind = "", Env* env = 0)
+inline void debug_ast(AST_Node* node, std::string ind, Env* env)
 {
   if (node == 0) return;
   if (ind == "") std::cerr << "####################################################################\n";
@@ -110,6 +122,8 @@ inline void debug_ast(AST_Node* node, std::string ind = "", Env* env = 0)
     } else if(del != " ") {
       std::cerr << ind << " |" << del << "| {trailing op}" << std::endl;
     }
+    SourcesSet set = selector->sources();
+    // debug_sources_set(set, ind + "  @--> ");
   } else if (dynamic_cast<Compound_Selector*>(node)) {
     Compound_Selector* selector = dynamic_cast<Compound_Selector*>(node);
     std::cerr << ind << "Compound_Selector " << selector;
