@@ -228,6 +228,7 @@ namespace Sass {
     // features
     static std::set<std::string> features {
       "global-variable-shadowing",
+      "extend-selector-pseudoclass",
       "at-error",
       "units-level-3"
     };
