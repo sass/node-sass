@@ -38,8 +38,8 @@ extern "C" {
 
   // External import entry
   struct Sass_Import {
-    char* path;
-    char* base;
+    char* imp_path; // path as found in the import statement
+    char *abs_path; // path after importer has resolved it
     char* source;
     char* srcmap;
     // error handling
@@ -92,12 +92,12 @@ extern "C" {
 
   // Creator for a single import entry returned by the custom importer inside the list
   // We take ownership of the memory for source and srcmap (freed when context is destroyd)
-  Sass_Import_Entry ADDCALL sass_make_import(const char* path, const char* base, char* source, char* srcmap)
+  Sass_Import_Entry ADDCALL sass_make_import(const char* imp_path, const char* abs_path, char* source, char* srcmap)
   {
     Sass_Import* v = (Sass_Import*) calloc(1, sizeof(Sass_Import));
     if (v == 0) return 0;
-    v->path = path ? sass_strdup(path) : 0;
-    v->base = base ? sass_strdup(base) : 0;
+    v->imp_path = imp_path ? sass_strdup(imp_path) : 0;
+    v->abs_path = abs_path ? sass_strdup(abs_path) : 0;
     v->source = source;
     v->srcmap = srcmap;
     v->error = 0;
@@ -142,8 +142,8 @@ extern "C" {
   // Just in case we have some stray import structs
   void ADDCALL sass_delete_import(Sass_Import_Entry import)
   {
-    free(import->path);
-    free(import->base);
+    free(import->imp_path);
+    free(import->abs_path);
     free(import->source);
     free(import->srcmap);
     free(import->error);
@@ -151,8 +151,8 @@ extern "C" {
   }
 
   // Getter for import entry
-  const char* ADDCALL sass_import_get_path(Sass_Import_Entry entry) { return entry->path; }
-  const char* ADDCALL sass_import_get_base(Sass_Import_Entry entry) { return entry->base; }
+  const char* ADDCALL sass_import_get_imp_path(Sass_Import_Entry entry) { return entry->imp_path; }
+  const char* ADDCALL sass_import_get_abs_path(Sass_Import_Entry entry) { return entry->abs_path; }
   const char* ADDCALL sass_import_get_source(Sass_Import_Entry entry) { return entry->source; }
   const char* ADDCALL sass_import_get_srcmap(Sass_Import_Entry entry) { return entry->srcmap; }
 

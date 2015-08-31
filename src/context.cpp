@@ -403,15 +403,17 @@ namespace Sass {
   }
 
 
-  std::vector<std::string> Context::get_included_files(size_t skip)
+  // for data context we want to start after "stdin"
+  // we probably always want to skip the header includes?
+  std::vector<std::string> Context::get_included_files(bool skip, size_t headers)
   {
+      // create a copy of the vector for manupulations
       std::vector<std::string> includes = included_files;
       if (includes.size() == 0) return includes;
-      std::sort( includes.begin() + skip, includes.end() );
-      includes.erase( includes.begin(), includes.begin() + skip );
+      if (skip) { includes.erase( includes.begin(), includes.begin() + 1 + headers); }
+      else { includes.erase( includes.begin() + 1, includes.begin() + 1 + headers); }
       includes.erase( std::unique( includes.begin(), includes.end() ), includes.end() );
-      // the skip solution seems more robust, as we may have real files named stdin
-      // includes.erase( std::remove( includes.begin(), includes.end(), "stdin" ), includes.end() );
+      std::sort( includes.begin() + (skip ? 0 : 1), includes.end() );
       return includes;
   }
 
