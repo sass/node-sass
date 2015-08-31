@@ -76,6 +76,22 @@ describe('api', function() {
       });
     });
 
+    it('should NOT compile empty data string', function(done) {
+      sass.render({
+        data: ''
+      }, function(error) {
+        assert.equal(error.message, 'No input specified: provide a file name or a source string to process');
+        done();
+      });
+    });
+
+    it('should NOT compile without parameters', function(done) {
+      sass.render({ }, function(error) {
+        assert.equal(error.message, 'No input specified: provide a file name or a source string to process');
+        done();
+      });
+    });
+
     it('should compile sass to css using indented syntax', function(done) {
       var src = read(fixture('indent/index.sass'), 'utf8');
       var expected = read(fixture('indent/expected.css'), 'utf8').trim();
@@ -1071,6 +1087,20 @@ describe('api', function() {
       });
 
       assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should NOT compile empty data string', function(done) {
+      assert.throws(function() {
+        sass.renderSync({ data: '' });
+      }, /No input specified: provide a file name or a source string to process/ );
+      done();
+    });
+
+    it('should NOT compile without any input', function(done) {
+      assert.throws(function() {
+        sass.renderSync({});
+      }, /No input specified: provide a file name or a source string to process/);
       done();
     });
 
