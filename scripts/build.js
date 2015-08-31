@@ -7,7 +7,7 @@ var eol = require('os').EOL,
     fs = require('fs'),
     mkdir = require('mkdirp'),
     path = require('path'),
-    spawn = require('child_process').spawn;
+    spawn = require('cross-spawn');
 
 require('../lib/extensions');
 
