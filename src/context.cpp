@@ -289,8 +289,13 @@ namespace Sass {
     emitter.finalize();
     OutputBuffer emitted = emitter.get_buffer();
     std::string output = emitted.buffer;
-    if (source_map_file != "" && !omit_source_map_url) {
-      output += linefeed + format_source_mapping_url(source_map_file);
+    if (!omit_source_map_url) {
+      if (source_map_embed) {
+       output += linefeed + format_embedded_source_map();
+      }
+      else if (source_map_file != "") {
+        output += linefeed + format_source_mapping_url(source_map_file);
+      }
     }
     return sass_strdup(output.c_str());
   }
@@ -378,18 +383,21 @@ namespace Sass {
     return compile_block(parse_string());
   }
 
+  std::string Context::format_embedded_source_map()
+  {
+    std::string map = emitter.generate_source_map(*this);
+    std::istringstream is( map );
+    std::ostringstream buffer;
+    base64::encoder E;
+    E.encode(is, buffer);
+    std::string url = "data:application/json;base64," + buffer.str();
+    url.erase(url.size() - 1);
+    return "/*# sourceMappingURL=" + url + " */";
+  }
+
   std::string Context::format_source_mapping_url(const std::string& file)
   {
     std::string url = resolve_relative_path(file, output_path, cwd);
-    if (source_map_embed) {
-      std::string map = emitter.generate_source_map(*this);
-      std::istringstream is( map );
-      std::ostringstream buffer;
-      base64::encoder E;
-      E.encode(is, buffer);
-      url = "data:application/json;base64," + buffer.str();
-      url.erase(url.size() - 1);
-    }
     return "/*# sourceMappingURL=" + url + " */";
   }
 
