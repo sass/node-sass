@@ -394,6 +394,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " [indent: " << ruleset->tabs() << "]";
     std::cerr << (ruleset->at_root() ? " [@ROOT]" : "");
+    std::cerr << (ruleset->is_root() ? " [root]" : "");
     std::cerr << std::endl;
     debug_ast(ruleset->selector(), ind + ">");
     debug_ast(ruleset->block(), ind + " ");

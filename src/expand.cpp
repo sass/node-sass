@@ -97,6 +97,23 @@ namespace Sass {
       return k;
     }
 
+    // do some special checks for the base level rules
+    if (r->is_root()) {
+      if (Selector_List* selector_list = dynamic_cast<Selector_List*>(r->selector())) {
+        for (Complex_Selector* complex_selector : selector_list->elements()) {
+          Complex_Selector* tail = complex_selector;
+          while (tail) {
+            if (tail->head()) for (Simple_Selector* header : tail->head()->elements()) {
+              if (dynamic_cast<Parent_Selector*>(header) == NULL) continue; // skip all others
+              To_String to_string(&ctx); std::string sel_str(complex_selector->perform(&to_string));
+              error("Base-level rules cannot contain the parent-selector-referencing character '&'.", header->pstate(), backtrace());
+            }
+            tail = tail->tail();
+          }
+        }
+      }
+    }
+
     Expression* ex = r->selector()->perform(&eval);
     Selector_List* sel = dynamic_cast<Selector_List*>(ex);
     if (sel == 0) throw std::runtime_error("Expanded null selector");
@@ -499,21 +516,34 @@ namespace Sass {
   Statement* Expand::operator()(Extension* e)
   {
     To_String to_string(&ctx);
-    Selector_List* extender = static_cast<Selector_List*>(selector());
+    Selector_List* extender = dynamic_cast<Selector_List*>(selector());
     if (!extender) return 0;
     selector_stack.push_back(0);
-    // extender->remove_parent_selectors();
 
-    Selector_List* selector_list = static_cast<Selector_List*>(e->selector());
-    Selector_List* contextualized = static_cast<Selector_List*>(selector_list->perform(&eval));
-    // contextualized->remove_parent_selectors();
+    if (Selector_List* selector_list = dynamic_cast<Selector_List*>(e->selector())) {
+      for (Complex_Selector* complex_selector : selector_list->elements()) {
+        Complex_Selector* tail = complex_selector;
+        while (tail) {
+          if (tail->head()) for (Simple_Selector* header : tail->head()->elements()) {
+            if (dynamic_cast<Parent_Selector*>(header) == NULL) continue; // skip all others
+            To_String to_string(&ctx); std::string sel_str(complex_selector->perform(&to_string));
+            error("Can't extend " + sel_str + ": can't extend parent selectors", header->pstate(), backtrace());
+          }
+          tail = tail->tail();
+        }
+      }
+    }
+
+    Selector_List* contextualized = dynamic_cast<Selector_List*>(e->selector()->perform(&eval));
+    if (contextualized == NULL) return 0;
     for (auto complex_sel : contextualized->elements()) {
       Complex_Selector* c = complex_sel;
       if (!c->head() || c->tail()) {
-        error("nested selectors may not be extended", c->pstate(), backtrace());
+        To_String to_string(&ctx); std::string sel_str(contextualized->perform(&to_string));
+        error("Can't extend " + sel_str + ": can't extend nested selectors", c->pstate(), backtrace());
       }
       Compound_Selector* placeholder = c->head();
-      placeholder->is_optional(selector_list->is_optional());
+      placeholder->is_optional(e->selector()->is_optional());
       for (size_t i = 0, L = extender->length(); i < L; ++i) {
         Complex_Selector* sel = (*extender)[i];
         if (!(sel->head() && sel->head()->length() > 0 &&
@@ -531,6 +561,7 @@ namespace Sass {
         ctx.subset_map.put(placeholder->to_str_vec(), std::make_pair(sel, placeholder));
       }
     }
+
     selector_stack.pop_back();
 
     return 0;

@@ -223,7 +223,7 @@ namespace Sass {
     Argument* parse_argument(bool has_url = false);
     Assignment* parse_assignment();
     // Propset* parse_propset();
-    Ruleset* parse_ruleset(Lookahead lookahead);
+    Ruleset* parse_ruleset(Lookahead lookahead, bool is_root = false);
     Selector_Schema* parse_selector_schema(const char* end_of_selector);
     Selector_List* parse_selector_list(bool at_root = false);
     Complex_Selector* parse_complex_selector(bool in_root = true);
@@ -234,8 +234,8 @@ namespace Sass {
     Attribute_Selector* parse_attribute_selector();
     Block* parse_block(bool is_root = false);
     Block* parse_css_block(bool is_root = false);
-    bool parse_block_nodes();
-    bool parse_block_node();
+    bool parse_block_nodes(bool is_root = false);
+    bool parse_block_node(bool is_root = false);
 
     bool parse_number_prefix();
     Declaration* parse_declaration();

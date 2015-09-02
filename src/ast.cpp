@@ -1125,13 +1125,18 @@ namespace Sass {
     // Check every rhs selector against left hand list
     for(size_t i = 0, L = length(); i < L; ++i) {
       if (!(*this)[i]->head()) continue;
-      if ((*this)[i]->combinator() != Complex_Selector::ANCESTOR_OF) continue;
       if ((*this)[i]->head()->is_empty_reference()) {
-        Complex_Selector* tail = (*this)[i]->tail();
-        // if ((*this)[i]->has_line_feed()) {
-          // if (tail) tail->has_line_feed(true);
-        // }
-        (*this)[i] = tail;
+        // simply move to the next tail if we have "no" combinator
+        if ((*this)[i]->combinator() == Complex_Selector::ANCESTOR_OF) {
+          if ((*this)[i]->tail() && (*this)[i]->has_line_feed()) {
+            (*this)[i]->tail()->has_line_feed(true);
+          }
+          (*this)[i] = (*this)[i]->tail();
+        }
+        // otherwise remove the first item from head
+        else {
+          (*this)[i]->head()->erase((*this)[i]->head()->begin());
+        }
       }
     }
   }

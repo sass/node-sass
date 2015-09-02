@@ -2023,6 +2023,7 @@ namespace Sass {
     if (extendedSomething && pNewSelectorList) {
       DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND ORIGINAL SELECTORS: " << static_cast<Selector_List*>(pObject->selector())->perform(&to_string))
       DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND SETTING NEW SELECTORS: " << pNewSelectorList->perform(&to_string))
+      pNewSelectorList->remove_parent_selectors();
       pObject->selector(pNewSelectorList);
     } else {
       DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND DID NOT TRY TO EXTEND ANYTHING")
