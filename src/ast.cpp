@@ -13,13 +13,13 @@ namespace Sass {
 
   static Null sass_null(Sass::Null(ParserState("null")));
 
-  const bool Supports_Operator::needs_parens(Supports_Condition* cond) {
+  bool Supports_Operator::needs_parens(Supports_Condition* cond) const {
     return dynamic_cast<Supports_Negation*>(cond) ||
           (dynamic_cast<Supports_Operator*>(cond) &&
            dynamic_cast<Supports_Operator*>(cond)->operand() != operand());
   }
 
-  const bool Supports_Negation::needs_parens(Supports_Condition* cond) {
+  bool Supports_Negation::needs_parens(Supports_Condition* cond) const {
     return dynamic_cast<Supports_Negation*>(cond) ||
           dynamic_cast<Supports_Operator*>(cond);
   }
