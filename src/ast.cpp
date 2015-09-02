@@ -1584,9 +1584,9 @@ namespace Sass {
   bool Number::operator== (const Expression& rhs) const
   {
     if (const Number* r = dynamic_cast<const Number*>(&rhs)) {
-      return (value() == r->value()) &&
-             (numerator_units_ == r->numerator_units_) &&
-             (denominator_units_ == r->denominator_units_);
+      return (numerator_units_ == r->numerator_units_) &&
+             (denominator_units_ == r->denominator_units_) &&
+             std::fabs(value() - r->value()) < NUMBER_EPSILON;
     }
     return false;
   }

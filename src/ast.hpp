@@ -53,6 +53,8 @@
 
 namespace Sass {
 
+  const double NUMBER_EPSILON = 0.00000000000001;
+
   // from boost (functional/hash):
   // http://www.boost.org/doc/libs/1_35_0/doc/html/hash/combine.html
   // Boost Software License - Version 1.0
