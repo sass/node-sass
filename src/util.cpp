@@ -48,6 +48,44 @@ namespace Sass {
     return atof(str);
   }
 
+  // helper for safe access to c_ctx
+  const char* safe_str (const char* str) {
+    return str == NULL ? "" : str;
+  }
+
+  void free_string_array(char ** arr) {
+    if(!arr)
+        return;
+
+    char **it = arr;
+    while (it && (*it)) {
+      free(*it);
+      ++it;
+    }
+
+    free(arr);
+  }
+
+  char **copy_strings(const std::vector<std::string>& strings, char*** array, int skip) {
+    int num = static_cast<int>(strings.size()) - skip;
+    char** arr = (char**) calloc(num + 1, sizeof(char*));
+    if (arr == 0) 
+      return *array = (char **)NULL;
+
+    for(int i = 0; i < num; i++) {
+      arr[i] = (char*) malloc(sizeof(char) * (strings[i + skip].size() + 1));
+      if (arr[i] == 0) {
+        free_string_array(arr);
+        return *array = (char **)NULL;
+      }
+      std::copy(strings[i + skip].begin(), strings[i + skip].end(), arr[i]);
+      arr[i][strings[i + skip].size()] = '\0';
+    }
+
+    arr[num] = 0;
+    return *array = arr;
+  }
+
   std::string string_eval_escapes(const std::string& s)
   {
 

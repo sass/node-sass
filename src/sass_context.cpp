@@ -182,44 +182,6 @@ extern "C" {
     type sass_context_take_##option (struct Sass_Context* ctx) \
     { type foo = ctx->option; ctx->option = 0; return foo; }
 
-  // helper for safe access to c_ctx
-  static const char* safe_str (const char* str) {
-    return str == NULL ? "" : str;
-  }
-
-  static void free_string_array(char ** arr) {
-    if(!arr)
-        return;
-
-    char **it = arr;
-    while (it && (*it)) {
-      free(*it);
-      ++it;
-    }
-
-    free(arr);
-  }
-
-  static char **copy_strings(const std::vector<std::string>& strings, char*** array) {
-    int num = static_cast<int>(strings.size());
-    char** arr = (char**) calloc(num + 1, sizeof(char*));
-    if (arr == 0)
-      return *array = (char **)NULL;
-
-    for(int i = 0; i < num; i++) {
-      arr[i] = (char*) malloc(sizeof(char) * (strings[i].size() + 1));
-      if (arr[i] == 0) {
-        free_string_array(arr);
-        return *array = (char **)NULL;
-      }
-      std::copy(strings[i].begin(), strings[i].end(), arr[i]);
-      arr[i][strings[i].size()] = '\0';
-    }
-
-    arr[num] = 0;
-    return *array = arr;
-  }
-
   static int handle_errors(Sass_Context* c_ctx) {
     try {
      throw;
