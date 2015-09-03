@@ -1159,8 +1159,19 @@ namespace Sass {
     {
       Number* l = dynamic_cast<Number*>(env["$limit"]);
       if (l) {
-        if (trunc(l->value()) != l->value() || l->value() == 0) error("argument $limit of `" + std::string(sig) + "` must be a positive integer", pstate);
-        std::uniform_real_distribution<> distributor(1, l->value() + 1);
+        double v = l->value();
+        if (v < 1) {
+          stringstream err;
+          err << "$limit " << v << " must be greater than or equal to 1 for `random`";
+          error(err.str(), pstate);
+        }
+        bool eq_int = std::fabs(trunc(v) - v) < NUMBER_EPSILON;
+        if (!eq_int) {
+          stringstream err;
+          err << "Expected $limit to be an integer but got `" << v << "` for `random`";
+          error(err.str(), pstate);
+        }
+        std::uniform_real_distribution<> distributor(1, v + 1);
         uint_fast32_t distributed = static_cast<uint_fast32_t>(distributor(rand));
         return SASS_MEMORY_NEW(ctx.mem, Number, pstate, (double)distributed);
       }
