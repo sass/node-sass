@@ -2432,13 +2432,11 @@ namespace Sass {
     bool ellipsis_left = false;
     const char* pos_left(last_pos);
     const char* end_left(last_pos);
-    std::cerr << "we have " << int(*pos_left) << "\n";
     while (pos_left > source) {
       if (end_left - pos_left > max_len) {
         ellipsis_left = true;
         break;
       }
-    std::cerr << "back up\n";
 
       const char* prev = pos_left - 1;
       if (*prev == '\r') break;
@@ -2446,7 +2444,6 @@ namespace Sass {
       pos_left = prev;
     }
     if (pos_left < source) {
-      std::cerr << "NOW RESET\n";
       pos_left = source;
     }
 
