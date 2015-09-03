@@ -119,6 +119,42 @@ namespace Sass {
              >(src);
     }
 
+    const char* strict_identifier_alpha(const char* src)
+    {
+      return alternatives <
+               alpha,
+               unicode,
+               escape_seq,
+               exactly<'_'>
+             >(src);
+    }
+
+    const char* strict_identifier_alnum(const char* src)
+    {
+      return alternatives <
+               alnum,
+               unicode,
+               escape_seq,
+               exactly<'_'>
+             >(src);
+    }
+
+    // Match CSS unit identifier.
+    const char* unit_identifier(const char* src)
+    {
+      return sequence <
+               optional < exactly <'-'> >,
+               strict_identifier_alpha,
+               zero_plus < alternatives<
+                 strict_identifier_alnum,
+                 sequence <
+                   one_plus < exactly<'-'> >,
+                   strict_identifier_alpha
+                 >
+               > >
+             >(src);
+    }
+
     const char* identifier_alnums(const char* src)
     {
       return one_plus< identifier_alnum >(src);
@@ -528,7 +564,7 @@ namespace Sass {
       return sequence< number, exactly<em_kwd> >(src);
     } */
     const char* dimension(const char* src) {
-      return sequence<number, one_plus< alpha > >(src);
+      return sequence<number, unit_identifier >(src);
     }
     const char* hex(const char* src) {
       const char* p = sequence< exactly<'#'>, one_plus<xdigit> >(src);
