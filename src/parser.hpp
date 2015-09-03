@@ -121,7 +121,7 @@ namespace Sass {
     // sourcemap offset and we modify the position pointer!
     // lex will only skip over space, tabs and line comment
     template <Prelexer::prelexer mx>
-    const char* lex(bool lazy = true)
+    const char* lex(bool lazy = true, bool force = false)
     {
 
       // position considered before lexed token
@@ -136,10 +136,13 @@ namespace Sass {
       // now call matcher to get position after token
       const char* it_after_token = mx(it_before_token);
 
-      // assertion that we got a valid match
-      if (it_after_token == 0) return 0;
-      // assertion that we actually lexed something
-      if (it_after_token == it_before_token) return 0;
+      // maybe we want to update the parser state anyway?
+      if (force == false) {
+        // assertion that we got a valid match
+        if (it_after_token == 0) return 0;
+        // assertion that we actually lexed something
+        if (it_after_token == it_before_token) return 0;
+      }
 
       // create new lexed token object (holds the parse results)
       lexed = Token(position, it_before_token, it_after_token);
