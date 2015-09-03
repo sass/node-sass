@@ -332,6 +332,7 @@ namespace Sass {
     size_t i = 0;
     bool has_import = false;
     std::string load_path = unquote(import_path);
+    // std::cerr << "-- " << load_path << "\n";
     for (Sass_Importer_Entry& importer : importers) {
       // int priority = sass_importer_get_priority(importer);
       Sass_Importer_Fn fn = sass_importer_get_function(importer);
@@ -359,9 +360,13 @@ namespace Sass {
             if (abs_path) {
               ctx.add_source(uniq_path, abs_path, source);
               imp->files().push_back(uniq_path);
+              size_t i = ctx.queue.size() - 1;
+              ctx.process_queue_entry(ctx.queue[i], i);
             } else {
               ctx.add_source(uniq_path, uniq_path, source);
               imp->files().push_back(uniq_path);
+              size_t i = ctx.queue.size() - 1;
+              ctx.process_queue_entry(ctx.queue[i], i);
             }
           } else if(abs_path) {
             import_single_file(imp, abs_path);

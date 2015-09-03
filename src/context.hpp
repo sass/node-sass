@@ -113,6 +113,7 @@ namespace Sass {
     std::string add_file(const std::string& imp_path);
     std::string add_file(const std::string& imp_path, const std::string& abs_path, ParserState pstate);
 
+    void process_queue_entry(Sass_Queued& entry, size_t idx);
 
     // allow to optionally overwrite the input path
     // default argument for input_path is std::string("stdin")

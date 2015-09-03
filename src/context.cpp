@@ -240,6 +240,8 @@ namespace Sass {
     if (char* contents = read_file(resolved)) {
       add_source(path, resolved, contents);
       style_sheets[path] = 0;
+      size_t i = queue.size() - 1;
+      process_queue_entry(queue[i], i);
       return path;
     }
     return std::string("");
@@ -268,6 +270,8 @@ namespace Sass {
       if (char* contents = read_file(resolved[0].abs_path)) {
         add_source(base_file, resolved[0].abs_path, contents);
         style_sheets[base_file] = 0;
+        size_t i = queue.size() - 1;
+        process_queue_entry(queue[i], i);
         return base_file;
       }
     }
@@ -300,28 +304,34 @@ namespace Sass {
     return sass_strdup(output.c_str());
   }
 
+  void Context::process_queue_entry(Sass_Queued& entry, size_t i)
+  {
+    if (style_sheets[queue[i].load_path]) return;
+    Sass_Import_Entry import = sass_make_import(
+      queue[i].load_path.c_str(),
+      queue[i].abs_path.c_str(),
+      0, 0
+    );
+    import_stack.push_back(import);
+    // keep a copy of the path around (for parser states)
+    strings.push_back(sass_strdup(queue[i].abs_path.c_str()));
+    ParserState pstate(strings.back(), queue[i].source, i);
+    Parser p(Parser::from_c_str(queue[i].source, *this, pstate));
+    Block* ast = p.parse();
+    sass_delete_import(import_stack.back());
+    import_stack.pop_back();
+    // ToDo: we store by load_path, which can lead
+    // to duplicates if importer reports the same path
+    // Maybe we should add an error for duplicates!?
+    style_sheets[queue[i].load_path] = ast;
+  }
+
   Block* Context::parse_file()
   {
     Block* root = 0;
     for (size_t i = 0; i < queue.size(); ++i) {
-      Sass_Import_Entry import = sass_make_import(
-        queue[i].load_path.c_str(),
-        queue[i].abs_path.c_str(),
-        0, 0
-      );
-      import_stack.push_back(import);
-      // keep a copy of the path around (for parser states)
-      strings.push_back(sass_strdup(queue[i].abs_path.c_str()));
-      ParserState pstate(strings.back(), queue[i].source, i);
-      Parser p(Parser::from_c_str(queue[i].source, *this, pstate));
-      Block* ast = p.parse();
-      sass_delete_import(import_stack.back());
-      import_stack.pop_back();
-      if (i == 0) root = ast;
-      // ToDo: we store by load_path, which can lead
-      // to duplicates if importer reports the same path
-      // Maybe we should add an error for duplicates!?
-      style_sheets[queue[i].load_path] = ast;
+      process_queue_entry(queue[i], i);
+      if (i == 0) root = style_sheets[queue[i].load_path];
     }
     if (root == 0) return 0;
 
@@ -368,6 +378,8 @@ namespace Sass {
       return parse_file();
     }
     add_source(input_path, input_path, source_c_str);
+    size_t idx = queue.size() - 1;
+    process_queue_entry(queue[idx], idx);
     return parse_file();
   }
 
