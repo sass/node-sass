@@ -48,7 +48,7 @@ namespace Sass {
     Parser p = Parser::from_c_str(src, ctx, pstate);
     // ToDo: ruby sass errors on parent references
     // ToDo: remap the source-map entries somehow
-    return p.parse_selector_list();
+    return p.parse_selector_list(false);
   }
 
   bool Parser::peek_newline(const char* start)
@@ -72,10 +72,12 @@ namespace Sass {
   /* main entry point to parse root block */
   Block* Parser::parse()
   {
+    bool is_root = false;
     Block* root = SASS_MEMORY_NEW(ctx.mem, Block, pstate, 0, true);
     read_bom();
 
     if (ctx.queue.size() == 1) {
+      is_root = true;
       Import* pre = SASS_MEMORY_NEW(ctx.mem, Import, pstate);
       std::string load_path(ctx.queue[0].load_path);
       do_import(load_path, pre, ctx.c_headers, false);
@@ -89,7 +91,7 @@ namespace Sass {
     }
 
     block_stack.push_back(root);
-    /* bool rv = */ parse_block_nodes();
+    /* bool rv = */ parse_block_nodes(is_root);
     block_stack.pop_back();
 
     // update for end position
@@ -147,7 +149,7 @@ namespace Sass {
 
   // the main block parsing function
   // parses stuff between `{` and `}`
-  bool Parser::parse_block_nodes()
+  bool Parser::parse_block_nodes(bool is_root)
   {
 
     // loop until end of string
@@ -161,7 +163,7 @@ namespace Sass {
       if (peek < end_of_file >()) return true;
       if (peek < exactly<'}'> >()) return true;
 
-      if (parse_block_node()) continue;
+      if (parse_block_node(is_root)) continue;
 
       parse_block_comments();
 
@@ -178,7 +180,7 @@ namespace Sass {
 
   // parser for a single node in a block
   // semicolons must be lexed beforehand
-  bool Parser::parse_block_node() {
+  bool Parser::parse_block_node(bool is_root) {
 
     Block* block = block_stack.back();
 
@@ -237,13 +239,13 @@ namespace Sass {
       if (!lookahead.found) css_error("Invalid CSS", " after ", ": expected selector, was ");
       Selector* target;
       if (lookahead.has_interpolants) target = parse_selector_schema(lookahead.found);
-      else                            target = parse_selector_list();
+      else                            target = parse_selector_list(true);
       (*block) << SASS_MEMORY_NEW(ctx.mem, Extension, pstate, target);
     }
 
     // selector may contain interpolations which need delayed evaluation
     else if (!(lookahead_result = lookahead_for_selector(position)).error)
-    { (*block) << parse_ruleset(lookahead_result); }
+    { (*block) << parse_ruleset(lookahead_result, is_root); }
 
     // parse multiple specific keyword directives
     else if (lex < kwd_media >(true)) { (*block) << parse_media_block(); }
@@ -566,19 +568,22 @@ namespace Sass {
   }
 
   // a ruleset connects a selector and a block
-  Ruleset* Parser::parse_ruleset(Lookahead lookahead)
+  Ruleset* Parser::parse_ruleset(Lookahead lookahead, bool is_root)
   {
     // make sure to move up the the last position
     lex < optional_css_whitespace >(false, true);
     // create the connector object (add parts later)
     Ruleset* ruleset = SASS_MEMORY_NEW(ctx.mem, Ruleset, pstate);
     // parse selector static or as schema to be evaluated later
-    if (lookahead.parsable) ruleset->selector(parse_selector_list());
+    if (lookahead.parsable) ruleset->selector(parse_selector_list(is_root));
     else ruleset->selector(parse_selector_schema(lookahead.found));
     // then parse the inner block
     ruleset->block(parse_block());
     // update for end position
     ruleset->update_pstate(pstate);
+    // inherit is_root from parent block
+    // need this info for sanity checks
+    ruleset->is_root(is_root);
     // return AST Node
     return ruleset;
   }
@@ -768,7 +773,7 @@ namespace Sass {
     // check if we got the abort condition (ToDo: optimize)
     if (!peek_css< class_char < complex_selector_delims > >()) {
       // parse next selector in sequence
-      sel->tail(parse_complex_selector());
+      sel->tail(parse_complex_selector(true));
       if (sel->tail()) {
         // ToDo: move this logic below into tail setter
         if (sel->tail()->has_reference()) sel->has_reference(true);
@@ -889,7 +894,7 @@ namespace Sass {
     lex< pseudo_not >();
     std::string name(lexed);
     ParserState nsource_position = pstate;
-    Selector* negated = parse_selector_list();
+    Selector* negated = parse_selector_list(true);
     if (!lex< exactly<')'> >()) {
       error("negated selector is missing ')'", pstate);
     }
@@ -933,7 +938,7 @@ namespace Sass {
           return SASS_MEMORY_NEW(ctx.mem, Pseudo_Selector, p, name, expr);
         }
       }
-      else if (Selector* wrapped = parse_selector_list()) {
+      else if (Selector* wrapped = parse_selector_list(true)) {
         if (wrapped && lex_css< exactly<')'> >()) {
           return SASS_MEMORY_NEW(ctx.mem, Wrapped_Selector, p, name, wrapped);
         }
@@ -2066,7 +2071,7 @@ namespace Sass {
       body = parse_block(true);
     }
     else if ((lookahead_result = lookahead_for_selector(position)).found) {
-      Ruleset* r = parse_ruleset(lookahead_result);
+      Ruleset* r = parse_ruleset(lookahead_result, false);
       body = SASS_MEMORY_NEW(ctx.mem, Block, r->pstate(), 1, true);
       *body << r;
     }
@@ -2105,7 +2110,7 @@ namespace Sass {
     At_Rule* at_rule = SASS_MEMORY_NEW(ctx.mem, At_Rule, pstate, kwd);
     Lookahead lookahead = lookahead_for_include(position);
     if (lookahead.found && !lookahead.has_interpolants) {
-      at_rule->selector(parse_selector_list());
+      at_rule->selector(parse_selector_list(true));
     }
 
     lex < css_comments >(false);

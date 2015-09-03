@@ -768,7 +768,7 @@ namespace Sass {
       }
     }
 
-    if (head && !head->is_empty_reference()) head->perform(this);
+    if (head && head->length() != 0) head->perform(this);
     bool is_empty = !head || head->length() == 0 || head->is_empty_reference();
     bool is_tail = head && !head->is_empty_reference() && tail;
     if (output_style() == COMPRESSED && comb != Complex_Selector::ANCESTOR_OF) scheduled_space = 0;

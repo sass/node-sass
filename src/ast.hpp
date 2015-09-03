@@ -405,9 +405,10 @@ namespace Sass {
   class Ruleset : public Has_Block {
     ADD_PROPERTY(Selector*, selector)
     ADD_PROPERTY(bool, at_root);
+    ADD_PROPERTY(bool, is_root);
   public:
     Ruleset(ParserState pstate, Selector* s = 0, Block* b = 0)
-    : Has_Block(pstate, b), selector_(s), at_root_(false)
+    : Has_Block(pstate, b), selector_(s), at_root_(false), is_root_(false)
     { statement_type(RULESET); }
     bool is_invisible() const;
     // nested rulesets need to be hoisted out of their enclosing blocks
