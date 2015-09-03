@@ -2430,8 +2430,8 @@ namespace Sass {
     while ((!*last_pos || Prelexer::is_space(*last_pos)) && last_pos > source) -- last_pos;
 
     bool ellipsis_left = false;
-    const char* pos_left(last_pos);
-    const char* end_left(last_pos);
+    const char* pos_left(last_pos + 1);
+    const char* end_left(last_pos + 1);
     while (pos_left > source) {
       if (end_left - pos_left > max_len) {
         ellipsis_left = true;
