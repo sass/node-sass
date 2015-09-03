@@ -1486,7 +1486,7 @@ namespace Sass {
     Supports_Condition(ParserState pstate)
     : Expression(pstate)
     { }
-    virtual const bool needs_parens(Supports_Condition* cond) { return false; }
+    virtual bool needs_parens(Supports_Condition* cond) const { return false; }
     ATTACH_OPERATIONS()
   };
 
@@ -1504,7 +1504,7 @@ namespace Sass {
     Supports_Operator(ParserState pstate, Supports_Condition* l, Supports_Condition* r, Operand o)
     : Supports_Condition(pstate), left_(l), right_(r), operand_(o)
     { }
-    virtual const bool needs_parens(Supports_Condition* cond);
+    virtual bool needs_parens(Supports_Condition* cond) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1518,7 +1518,7 @@ namespace Sass {
     Supports_Negation(ParserState pstate, Supports_Condition* c)
     : Supports_Condition(pstate), condition_(c)
     { }
-    virtual const bool needs_parens(Supports_Condition* cond);
+    virtual bool needs_parens(Supports_Condition* cond) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1533,7 +1533,7 @@ namespace Sass {
     Supports_Declaration(ParserState pstate, Expression* f, Expression* v)
     : Supports_Condition(pstate), feature_(f), value_(v)
     { }
-    virtual const bool needs_parens(Supports_Condition* cond) { return false; }
+    virtual bool needs_parens(Supports_Condition* cond) const { return false; }
     ATTACH_OPERATIONS()
   };
 
@@ -1547,7 +1547,7 @@ namespace Sass {
     Supports_Interpolation(ParserState pstate, Expression* v)
     : Supports_Condition(pstate), value_(v)
     { }
-    virtual const bool needs_parens(Supports_Condition* cond) { return false; }
+    virtual bool needs_parens(Supports_Condition* cond) const { return false; }
     ATTACH_OPERATIONS()
   };
 
