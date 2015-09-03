@@ -110,8 +110,8 @@ namespace Sass {
     Block* parse_string();
     void add_source(std::string, std::string, char*);
 
-    std::string add_file(const std::string& file);
-    std::string add_file(const std::string& base, const std::string& file, ParserState pstate);
+    std::string add_file(const std::string& imp_path);
+    std::string add_file(const std::string& imp_path, const std::string& abs_path, ParserState pstate);
 
 
     // allow to optionally overwrite the input path
@@ -122,7 +122,7 @@ namespace Sass {
     char* compile_block(Block* root);
     char* generate_source_map();
 
-    std::vector<std::string> get_included_files(size_t skip = 0);
+    std::vector<std::string> get_included_files(bool skip = false, size_t headers = 0);
 
   private:
     void collect_plugin_paths(const char* paths_str);

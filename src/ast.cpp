@@ -1924,6 +1924,7 @@ namespace Sass {
     // some final cosmetics
     if (res == "-0.0") res.erase(0, 1);
     else if (res == "-0") res.erase(0, 1);
+    else if (res == "") res = "0";
 
     // add unit now
     res += unit();

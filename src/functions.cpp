@@ -1575,7 +1575,7 @@ namespace Sass {
 
       Arguments* args = SASS_MEMORY_NEW(ctx.mem, Arguments, pstate);
       std::string full_name(name + "[f]");
-      Definition* def = static_cast<Definition*>((d_env)[full_name]);
+      Definition* def = d_env.has(full_name) ? static_cast<Definition*>((d_env)[full_name]) : 0;
       Parameters* params = def ? def->parameters() : 0;
       size_t param_size = params ? params->length() : 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {

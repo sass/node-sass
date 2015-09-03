@@ -329,18 +329,25 @@ namespace Sass {
 
   bool Parser::do_import(const std::string& import_path, Import* imp, std::vector<Sass_Importer_Entry> importers, bool only_one)
   {
+    size_t i = 0;
     bool has_import = false;
     std::string load_path = unquote(import_path);
-    for (auto importer : importers) {
+    for (Sass_Importer_Entry& importer : importers) {
       // int priority = sass_importer_get_priority(importer);
       Sass_Importer_Fn fn = sass_importer_get_function(importer);
       if (Sass_Import_List includes =
           fn(load_path.c_str(), importer, ctx.c_compiler)
       ) {
         Sass_Import_List list = includes;
-        while (*includes) {
+        while (*includes) { ++i;
+          std::string uniq_path = load_path;
+          if (!only_one && i) {
+            std::stringstream pathstrm;
+            pathstrm << uniq_path << ":" << i;
+            uniq_path = pathstrm.str();
+          }
           Sass_Import_Entry include = *includes;
-          const char *file = sass_import_get_path(include);
+          const char *abs_path = sass_import_get_abs_path(include);
           char* source = sass_import_take_source(include);
           size_t line = sass_import_get_error_line(include);
           size_t column = sass_import_get_error_column(include);
@@ -349,15 +356,15 @@ namespace Sass {
             if (line == std::string::npos && column == std::string::npos) error(message, pstate);
             else error(message, ParserState(message, source, Position(line, column)));
           } else if (source) {
-            if (file) {
-              ctx.add_source(load_path, file, source);
-              imp->files().push_back(load_path);
+            if (abs_path) {
+              ctx.add_source(uniq_path, abs_path, source);
+              imp->files().push_back(uniq_path);
             } else {
-              ctx.add_source(load_path, load_path, source);
-              imp->files().push_back(load_path);
+              ctx.add_source(uniq_path, uniq_path, source);
+              imp->files().push_back(uniq_path);
             }
-          } else if(file) {
-            import_single_file(imp, file);
+          } else if(abs_path) {
+            import_single_file(imp, abs_path);
           }
           ++includes;
         }

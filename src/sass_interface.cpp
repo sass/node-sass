@@ -135,7 +135,7 @@ extern "C" {
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
 
-      copy_strings(cpp_ctx.get_included_files(1), &c_ctx->included_files, 1);
+      copy_strings(cpp_ctx.get_included_files(true), &c_ctx->included_files, 1);
     }
     catch (Error_Invalid& e) {
       std::stringstream msg_stream;
@@ -227,7 +227,7 @@ extern "C" {
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
 
-      copy_strings(cpp_ctx.get_included_files(), &c_ctx->included_files);
+      copy_strings(cpp_ctx.get_included_files(false), &c_ctx->included_files);
     }
     catch (Error_Invalid& e) {
       std::stringstream msg_stream;
