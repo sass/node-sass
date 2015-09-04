@@ -128,13 +128,37 @@ namespace Sass {
             List* ls = dynamic_cast<List*>(a->value());
             // skip any list completely if empty
             if (ls && ls->empty()) continue;
-            // check if we have rest argument
-            (*arglist) << SASS_MEMORY_NEW(ctx.mem, Argument,
-                                          a->pstate(),
-                                          a->value(),
-                                          a->name(),
-                                          false,
-                                          false);
+            // flatten all nested arglists
+            if (ls && ls->is_arglist()) {
+              for (size_t i = 0, L = ls->size(); i < L; ++i) {
+                // already have a wrapped argument
+                if (Argument* arg = dynamic_cast<Argument*>((*ls)[i])) {
+                  (*arglist) << SASS_MEMORY_NEW(ctx.mem, Argument, *arg);
+                }
+                // wrap all other value types into Argument
+                else {
+                  (*arglist) << SASS_MEMORY_NEW(ctx.mem, Argument,
+                                                (*ls)[i]->pstate(),
+                                                (*ls)[i],
+                                                "",
+                                                false,
+                                                false);
+                }
+              }
+            }
+            // already have a wrapped argument
+            else if (Argument* arg = dynamic_cast<Argument*>(a->value())) {
+              (*arglist) << SASS_MEMORY_NEW(ctx.mem, Argument, *arg);
+            }
+            // wrap all other value types into Argument
+            else {
+              (*arglist) << SASS_MEMORY_NEW(ctx.mem, Argument,
+                                            a->pstate(),
+                                            a->value(),
+                                            a->name(),
+                                            false,
+                                            false);
+            }
             // check if we have rest argument
             if (a->is_rest_argument()) {
               // preserve the list separator from rest args
