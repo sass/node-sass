@@ -195,6 +195,7 @@ namespace Sass {
     const char* identifier(const char* src);
     const char* identifier_alpha(const char* src);
     const char* identifier_alnum(const char* src);
+    const char* strict_identifier(const char* src);
     const char* strict_identifier_alpha(const char* src);
     const char* strict_identifier_alnum(const char* src);
     // Match a CSS unit identifier.
