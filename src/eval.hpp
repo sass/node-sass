@@ -96,7 +96,7 @@ namespace Sass {
     static Value* op_strings(Memory_Manager<AST_Node>&, enum Sass_OP, Value&, Value&, bool compressed = false, int precision = 5);
 
   private:
-    std::string interpolation(Expression* s);
+    std::string interpolation(Expression* s, bool into_quotes = false);
 
   };
 

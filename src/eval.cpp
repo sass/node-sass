@@ -861,7 +861,7 @@ namespace Sass {
     }
   }
 
-  std::string Eval::interpolation(Expression* s) {
+  std::string Eval::interpolation(Expression* s, bool into_quotes) {
     Env* env = environment();
     if (String_Quoted* str_quoted = dynamic_cast<String_Quoted*>(s)) {
       if (str_quoted->quote_mark()) {
@@ -874,6 +874,7 @@ namespace Sass {
         return evacuate_escapes(str_quoted->value());
       }
     } else if (String_Constant* str_constant = dynamic_cast<String_Constant*>(s)) {
+      if (into_quotes && !str_constant->is_interpolant()) return str_constant->value();
       return evacuate_escapes(str_constant->value());
     } else if (dynamic_cast<Parent_Selector*>(s)) {
       To_String to_string(&ctx);
@@ -936,7 +937,17 @@ namespace Sass {
   Expression* Eval::operator()(String_Schema* s)
   {
     std::string acc;
-    for (size_t i = 0, L = s->length(); i < L; ++i) {
+    bool into_quotes = false;
+    size_t L = s->length();
+    if (L > 1) {
+      if (String_Constant* l = dynamic_cast<String_Constant*>((*s)[0])) {
+        if (String_Constant* r = dynamic_cast<String_Constant*>((*s)[L - 1])) {
+          if (l->value()[0] == '"' && r->value()[r->value().size() - 1] == '"') into_quotes = true;
+          if (l->value()[0] == '\'' && r->value()[r->value().size() - 1] == '\'') into_quotes = true;
+        }
+      }
+    }
+    for (size_t i = 0; i < L; ++i) {
       // really a very special fix, but this is the logic I got from
       // analyzing the ruby sass behavior and it actually seems to work
       // https://github.com/sass/libsass/issues/1333
@@ -946,13 +957,13 @@ namespace Sass {
           if (sq->is_delayed() && ! s->has_interpolants()) {
             acc += string_escape(quote(sq->value(), sq->quote_mark()));
           } else {
-            acc += interpolation((*s)[i]);
+            acc += interpolation((*s)[i], into_quotes);
           }
         } else if (ex) {
-          acc += interpolation((*s)[i]);
+          acc += interpolation((*s)[i], into_quotes);
         }
       } else if ((*s)[i]) {
-        acc += interpolation((*s)[i]);
+        acc += interpolation((*s)[i], into_quotes);
       }
     }
     String_Quoted* str = SASS_MEMORY_NEW(ctx.mem, String_Quoted, s->pstate(), acc);
