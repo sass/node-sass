@@ -113,7 +113,7 @@ namespace Sass {
     sort (c_importers.begin(), c_importers.end(), sort_importers);
     std::string entry_point = initializers.entry_point();
     if (!entry_point.empty()) {
-      std::string result(add_file(entry_point));
+      std::string result(add_file(entry_point, true));
       if (result.empty()) {
         throw "File to read not found or unreadable: " + entry_point;
       }
@@ -231,7 +231,7 @@ namespace Sass {
   }
 
   // Add a new import file to the context
-  std::string Context::add_file(const std::string& file)
+  std::string Context::add_file(const std::string& file, bool delay)
   {
     using namespace File;
     std::string path(make_canonical_path(file));
@@ -240,8 +240,10 @@ namespace Sass {
     if (char* contents = read_file(resolved)) {
       add_source(path, resolved, contents);
       style_sheets[path] = 0;
-      size_t i = queue.size() - 1;
-      process_queue_entry(queue[i], i);
+      if (delay == false) {
+        size_t i = queue.size() - 1;
+        process_queue_entry(queue[i], i);
+      }
       return path;
     }
     return std::string("");

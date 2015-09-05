@@ -110,7 +110,7 @@ namespace Sass {
     Block* parse_string();
     void add_source(std::string, std::string, char*);
 
-    std::string add_file(const std::string& imp_path);
+    std::string add_file(const std::string& imp_path, bool delay = false);
     std::string add_file(const std::string& imp_path, const std::string& abs_path, ParserState pstate);
 
     void process_queue_entry(Sass_Queued& entry, size_t idx);
