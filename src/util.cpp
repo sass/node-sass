@@ -317,7 +317,7 @@ namespace Sass {
     return quote_mark;
   }
 
-  std::string unquote(const std::string& s, char* qd)
+  std::string unquote(const std::string& s, char* qd, bool keep_utf8_sequences)
   {
 
     // not enough room for quotes
@@ -357,7 +357,9 @@ namespace Sass {
         while (i + len < L && s[i + len] && isxdigit(s[i + len])) ++ len;
 
         // hex string?
-        if (len > 1) {
+        if (keep_utf8_sequences) {
+          unq.push_back(s[i]);
+        } else if (len > 1) {
 
           // convert the extracted hex string to code point value
           // ToDo: Maybe we could do this without creating a substring
