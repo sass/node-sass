@@ -2161,7 +2161,7 @@ namespace Sass {
   Lookahead Parser::lookahead_for_selector(const char* start)
   {
     // init result struct
-    Lookahead rv { 0 };
+    Lookahead rv = Lookahead();
     // get start position
     const char* p = start ? start : position;
     // match in one big "regex"
@@ -2278,7 +2278,7 @@ namespace Sass {
   Lookahead Parser::lookahead_for_value(const char* start)
   {
     // init result struct
-    Lookahead rv { 0 };
+    Lookahead rv = Lookahead();
     // get start position
     const char* p = start ? start : position;
     // match in one big "regex"
