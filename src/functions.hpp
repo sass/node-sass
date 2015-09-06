@@ -3,7 +3,7 @@
 
 #include "position.hpp"
 #include "environment.hpp"
-#include "sass_functions.h"
+#include "sass/functions.h"
 
 #define BUILT_IN(name) Expression*\
 name(Env& env, Env& d_env, Context& ctx, Signature sig, ParserState pstate, Backtrace* backtrace)

@@ -1,17 +1,14 @@
-#include "sass.h"
-
 #include <cstring>
 #include <stdexcept>
 #include <sstream>
 #include <string>
 #include <vector>
 
+#include "sass.h"
 #include "file.hpp"
 #include "json.hpp"
 #include "util.hpp"
 #include "context.hpp"
-#include "sass_values.h"
-#include "sass_context.h"
 #include "ast_fwd_decl.hpp"
 #include "error_handling.hpp"
 

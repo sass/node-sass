@@ -1,7 +1,7 @@
 #include <cstring>
 #include <iostream>
 #include <stdint.h>
-#include "sass_values.h"
+#include <sass.h>
 
 // gcc: g++ -shared plugin.cpp -o plugin.so -fPIC -Llib -lsass
 // mingw: g++ -shared plugin.cpp -o plugin.dll -Llib -lsass

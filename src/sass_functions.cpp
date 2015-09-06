@@ -1,7 +1,7 @@
 #include <cstring>
 #include "util.hpp"
 #include "context.hpp"
-#include "sass_functions.h"
+#include "sass/functions.h"
 
 extern "C" {
   using namespace Sass;

@@ -2,7 +2,7 @@
 #define SASS_TO_VALUE_H
 
 #include "operation.hpp"
-#include "sass_values.h"
+#include "sass/values.h"
 #include "ast_fwd_decl.hpp"
 
 namespace Sass {
