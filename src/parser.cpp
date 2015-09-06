@@ -1460,7 +1460,7 @@ namespace Sass {
     if (lex< sequence< dimension, optional< sequence< exactly<'-'>, negate< digit > > > > >())
     { return SASS_MEMORY_NEW(ctx.mem, Textual, pstate, Textual::DIMENSION, lexed); }
 
-    if (lex< sequence< static_component, one_plus< identifier > > >())
+    if (lex< sequence< static_component, one_plus< strict_identifier > > >())
     { return SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, lexed); }
 
     if (lex< number >())

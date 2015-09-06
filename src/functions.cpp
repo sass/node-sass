@@ -879,7 +879,7 @@ namespace Sass {
         return SASS_MEMORY_NEW(ctx.mem, Null, pstate);
       }
       else if (String_Quoted* string_quoted = dynamic_cast<String_Quoted*>(arg)) {
-        String_Quoted* result = SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, string_quoted->value());
+        String_Constant* result = SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, string_quoted->value());
         // remember if the string was quoted (color tokens)
         result->sass_fix_1291(string_quoted->quote_mark() != 0);
         return result;

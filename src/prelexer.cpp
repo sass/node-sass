@@ -109,6 +109,16 @@ namespace Sass {
     }
 
     // Match CSS identifiers.
+    const char* strict_identifier(const char* src)
+    {
+      return sequence<
+               one_plus < strict_identifier_alpha >,
+               zero_plus < strict_identifier_alnum >
+               // word_boundary not needed
+             >(src);
+    }
+
+    // Match CSS identifiers.
     const char* identifier(const char* src)
     {
       return sequence<
