@@ -43,9 +43,12 @@ endif
 endif
 
 include_HEADERS = $(top_srcdir)/include/sass.h \
-                  $(top_srcdir)/include/sass2scss.h \
-                  $(top_srcdir)/include/sass/base.h \
-                  $(top_srcdir)/include/sass/values.h \
-                  $(top_srcdir)/include/sass/version.h \
-                  $(top_srcdir)/include/sass/context.h \
-                  $(top_srcdir)/include/sass/functions.h
+                  $(top_srcdir)/include/sass2scss.h
+
+sass_includedir = $(includedir)/sass
+
+sass_include_HEADERS = $(top_srcdir)/include/sass/base.h \
+                       $(top_srcdir)/include/sass/values.h \
+                       $(top_srcdir)/include/sass/version.h \
+                       $(top_srcdir)/include/sass/context.h \
+                       $(top_srcdir)/include/sass/functions.h
