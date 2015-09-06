@@ -17,7 +17,7 @@
 #include "output.hpp"
 #include "plugins.hpp"
 #include "file.hpp"
-#include "sass_functions.h"
+#include "sass.h"
 
 struct Sass_Function;
 

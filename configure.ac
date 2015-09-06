@@ -7,7 +7,7 @@ AC_INIT([libsass], m4_esyscmd_s([./version.sh]), [support@moovweb.com])
 AC_CONFIG_SRCDIR([src/ast.hpp])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([src/config.h])
-AC_CONFIG_FILES([include/sass_version.h])
+AC_CONFIG_FILES([include/sass/version.h])
 AC_CONFIG_AUX_DIR([script])
 # These are flags passed to automake
 # Though they look like gcc flags!

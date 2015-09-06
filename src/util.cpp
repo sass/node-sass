@@ -69,7 +69,7 @@ namespace Sass {
   char **copy_strings(const std::vector<std::string>& strings, char*** array, int skip) {
     int num = static_cast<int>(strings.size()) - skip;
     char** arr = (char**) calloc(num + 1, sizeof(char*));
-    if (arr == 0) 
+    if (arr == 0)
       return *array = (char **)NULL;
 
     for(int i = 0; i < num; i++) {

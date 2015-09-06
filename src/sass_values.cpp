@@ -3,7 +3,7 @@
 #include "util.hpp"
 #include "eval.hpp"
 #include "values.hpp"
-#include "sass_values.h"
+#include "sass/values.h"
 
 extern "C" {
   using namespace Sass;

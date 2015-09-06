@@ -47,9 +47,6 @@
 #include "source_map.hpp"
 
 #include "sass.h"
-#include "sass_values.h"
-#include "sass_context.h"
-#include "sass_functions.h"
 
 namespace Sass {
 

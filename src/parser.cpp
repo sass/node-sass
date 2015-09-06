@@ -9,7 +9,7 @@
 #include "util.hpp"
 #include "prelexer.hpp"
 #include "color_maps.hpp"
-#include "sass_functions.h"
+#include "sass/functions.h"
 #include "error_handling.hpp"
 
 #include <typeinfo>

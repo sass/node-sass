@@ -246,16 +246,21 @@ $(DESTDIR)$(PREFIX)/lib: $(DESTDIR)$(PREFIX)
 $(DESTDIR)$(PREFIX)/include: $(DESTDIR)$(PREFIX)
 	$(MKDIR) $(DESTDIR)$(PREFIX)/include
 
+$(DESTDIR)$(PREFIX)/include/sass: $(DESTDIR)$(PREFIX)/include
+	$(MKDIR) $(DESTDIR)$(PREFIX)/include/sass
+
 $(DESTDIR)$(PREFIX)/include/%.h: include/%.h \
-                                 $(DESTDIR)$(PREFIX)/include
+                                 $(DESTDIR)$(PREFIX)/include \
+                                 $(DESTDIR)$(PREFIX)/include/sass
 	$(INSTALL) -v -m0644 "$<" "$@"
 
 install-headers: $(DESTDIR)$(PREFIX)/include/sass.h \
                  $(DESTDIR)$(PREFIX)/include/sass2scss.h \
-                 $(DESTDIR)$(PREFIX)/include/sass_values.h \
-                 $(DESTDIR)$(PREFIX)/include/sass_version.h \
-                 $(DESTDIR)$(PREFIX)/include/sass_context.h \
-                 $(DESTDIR)$(PREFIX)/include/sass_functions.h
+                 $(DESTDIR)$(PREFIX)/include/sass/base.h \
+                 $(DESTDIR)$(PREFIX)/include/sass/version.h \
+                 $(DESTDIR)$(PREFIX)/include/sass/values.h \
+                 $(DESTDIR)$(PREFIX)/include/sass/context.h \
+                 $(DESTDIR)$(PREFIX)/include/sass/functions.h
 
 $(DESTDIR)$(PREFIX)/lib/%.a: lib/%.a \
                              $(DESTDIR)$(PREFIX)/lib
@@ -293,7 +298,7 @@ test_build: $(SASSC_BIN)
 test_issues: $(SASSC_BIN)
 	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues
 
-clean-objects:
+clean-objects: lib
 	-$(RM) lib/*.a lib/*.so lib/*.dll lib/*.la
 	-$(RMDIR) lib
 clean: clean-objects

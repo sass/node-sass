@@ -1,8 +1,6 @@
 #include "to_c.hpp"
 #include "ast.hpp"
 
-#include "sass_values.h"
-
 namespace Sass {
 
   union Sass_Value* To_C::fallback_impl(AST_Node* n)

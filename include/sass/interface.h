@@ -1,9 +1,12 @@
 #ifndef SASS_C_INTERFACE_H
 #define SASS_C_INTERFACE_H
 
+// the API in this header has been deprecated
+// please use the new API from sass/context.h
+
 #include <stddef.h>
 #include <stdbool.h>
-#include "sass.h"
+#include <sass/base.h>
 
 #ifdef __cplusplus
 extern "C" {

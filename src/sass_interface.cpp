@@ -1,5 +1,3 @@
-#include "sass.h"
-
 #include <string>
 #include <cstdlib>
 #include <cstring>
@@ -10,7 +8,8 @@
 #include "context.hpp"
 #include "inspect.hpp"
 #include "error_handling.hpp"
-#include "sass_interface.h"
+#include "sass/base.h"
+#include "sass/interface.h"
 
 #define LFEED "\n"
 
