@@ -182,40 +182,6 @@ extern "C" {
     type sass_context_take_##option (struct Sass_Context* ctx) \
     { type foo = ctx->option; ctx->option = 0; return foo; }
 
-  // helper for safe access to c_ctx
-  static const char* safe_str (const char* str) {
-    return str == NULL ? "" : str;
-  }
-
-  static void copy_strings(const std::vector<std::string>& strings, char*** array) {
-    int num = static_cast<int>(strings.size());
-    char** arr = (char**) malloc(sizeof(char*) * (num + 1));
-    if (arr == 0) throw(std::bad_alloc());
-
-    for(int i = 0; i < num; i++) {
-      arr[i] = (char*) malloc(sizeof(char) * (strings[i].size() + 1));
-      if (arr[i] == 0) throw(std::bad_alloc());
-      std::copy(strings[i].begin(), strings[i].end(), arr[i]);
-      arr[i][strings[i].size()] = '\0';
-    }
-
-    arr[num] = 0;
-    *array = arr;
-  }
-
-  static void free_string_array(char ** arr) {
-    if(!arr)
-        return;
-
-    char **it = arr;
-    while (it && (*it)) {
-      free(*it);
-      ++it;
-    }
-
-    free(arr);
-  }
-
   static int handle_errors(Sass_Context* c_ctx) {
     try {
      throw;
@@ -528,7 +494,9 @@ extern "C" {
       size_t headers = cpp_ctx->head_imports;
 
       // copy the included files on to the context (dont forget to free)
-      if (root) copy_strings(cpp_ctx->get_included_files(skip, headers), &c_ctx->included_files);
+      if (root)
+        if (copy_strings(cpp_ctx->get_included_files(skip, headers), &c_ctx->included_files) == NULL)
+          throw(std::bad_alloc());
 
       // return parsed block
       return root;
