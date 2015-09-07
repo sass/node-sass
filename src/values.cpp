@@ -86,9 +86,15 @@ namespace Sass {
                                sass_color_get_a(val));
       break;
       case SASS_STRING:
-        return SASS_MEMORY_NEW(mem, String_Quoted,
-                               ParserState("[C-VALUE]"),
-                               sass_string_get_value(val));
+        if (sass_string_is_quoted(val)) {
+          return SASS_MEMORY_NEW(mem, String_Quoted,
+                                 ParserState("[C-VALUE]"),
+                                 sass_string_get_value(val));
+        } else {
+          return SASS_MEMORY_NEW(mem, String_Constant,
+                                 ParserState("[C-VALUE]"),
+                                 sass_string_get_value(val));
+        }
       break;
       case SASS_LIST: {
         List* l = SASS_MEMORY_NEW(mem, List,
