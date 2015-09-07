@@ -6,6 +6,9 @@
       'defines': [
          'LIBSASS_VERSION="<!(node -e "process.stdout.write(require(\'../package.json\').libsass)")"'
       ],
+      'defines!': [
+         'DEBUG'
+      ],
       'sources': [
         'libsass/ast.cpp',
         'libsass/base64vlq.cpp',
