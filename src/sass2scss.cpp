@@ -605,6 +605,7 @@ namespace Sass
 			else if (
 				sass.substr(pos_left, 7) != "@return" &&
 				sass.substr(pos_left, 7) != "@extend" &&
+				sass.substr(pos_left, 8) != "@include" &&
 				sass.substr(pos_left, 8) != "@content"
 			) {
 
