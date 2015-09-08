@@ -578,14 +578,14 @@ describe('cli', function() {
       var src = fixture('follow/input-dir');
       var dest = fixture('follow/output-dir');
 
-      fs.mkdirSync(src)
-      fs.symlinkSync(path.join(path.dirname(src), 'foo'), path.join(src, 'foo'), 'dir')
+      fs.mkdirSync(src);
+      fs.symlinkSync(path.join(path.dirname(src), 'foo'), path.join(src, 'foo'), 'dir');
 
       var bin = spawn(cli, [src, '--follow', '--output', dest]);
 
       bin.once('close', function() {
         var expected = path.join(dest, 'foo/bar/index.css');
-        fs.unlinkSync(path.join(path.dirname(src), 'foo'));
+        fs.unlinkSync(path.join(src, 'foo'));
         fs.rmdirSync(src);
         assert(fs.existsSync(expected));
         fs.unlinkSync(expected);
