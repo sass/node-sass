@@ -130,7 +130,7 @@ function build(options) {
       process.exit(1);
     }
 
-    var args = [require.resolve(path.join('pangyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose'].concat(
+    var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose'].concat(
       ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function(subject) {
         return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
       })).concat(options.args);
