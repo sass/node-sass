@@ -13,6 +13,7 @@ node_js:
   - "iojs-v1"
   - "iojs-v2"
   - "iojs-v3"
+  - "4"
 
 matrix:
   fast_finish: true
