@@ -25,6 +25,7 @@ namespace SassTypes
       static v8::Local<v8::Function> get_constructor();
       static v8::Local<v8::FunctionTemplate> get_constructor_template();
       static NAN_METHOD(New);
+      static Sass_Value *fail(const char *, Sass_Value **);
 
     protected:
       Sass_Value* value;
@@ -118,6 +119,12 @@ namespace SassTypes
   template <class T>
   T* SassValueWrapper<T>::unwrap(v8::Local<v8::Object> obj) {
     return static_cast<T*>(Factory::unwrap(obj));
+  }
+
+  template <class T>
+  Sass_Value *SassValueWrapper<T>::fail(const char *reason, Sass_Value **out) {
+    *out = sass_make_error(reason);
+    return NULL;
   }
 }
 
