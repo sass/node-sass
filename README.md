@@ -496,6 +496,7 @@ Output will be saved with the same name as input Sass file into the current work
     --source-map-embed         Embed sourceMappingUrl as data URI
     --source-map-root          Base path, will be emitted in source-map as is
     --include-path             Path to look for imported files
+    --follow                   Follow symlinked directories
     --precision                The amount of precision allowed in decimal numbers
     --importer                 Path to .js file containing custom importer
     --functions                Path to .js file containing custom functions
@@ -506,7 +507,7 @@ The `input` can be either a single `.scss` or `.sass`, or a directory. If the in
 
 Also, note `--importer` takes the (absolute or relative to pwd) path to a js file, which needs to have a default `module.exports` set to the importer function. See our test [fixtures](https://github.com/sass/node-sass/tree/974f93e76ddd08ea850e3e663cfe64bb6a059dd3/test/fixtures/extras) for example.
 
-The `--source-map` option accepts a boolean value, in which case it replaces destination extension with `.css.map`. It also accepts path to `.map` file and even path to the desired directory. 
+The `--source-map` option accepts a boolean value, in which case it replaces destination extension with `.css.map`. It also accepts path to `.map` file and even path to the desired directory.
 When compiling a directory `--source-map` can either be a boolean value or a directory.
 
 ## Post-install Build
