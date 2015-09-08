@@ -39,7 +39,9 @@ namespace SassTypes
       return new Error(v);
 
     default:
-      throw std::invalid_argument("Unknown type encountered.");
+      const char *msg = "Unknown type encountered.";
+      Nan::ThrowTypeError(Nan::New<v8::String>(msg).ToLocalChecked());
+      return new Error(sass_make_error(msg));
     }
   }
 

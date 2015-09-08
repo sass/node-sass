@@ -98,7 +98,12 @@ T CallbackBridge<T, L>::operator()(std::vector<void*> argv) {
      * post_process_args().
      */
     Nan::HandleScope scope;
+    Nan::TryCatch try_catch;
     std::vector<v8::Local<v8::Value>> argv_v8 = pre_process_args(argv);
+    if (try_catch.HasCaught()) {
+      Nan::FatalException(try_catch);
+    }
+
     argv_v8.push_back(Nan::New(wrapper));
 
     return this->post_process_return_value(
@@ -149,6 +154,9 @@ void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
   Nan::TryCatch try_catch;
 
   std::vector<v8::Local<v8::Value>> argv_v8 = bridge->pre_process_args(bridge->argv);
+  if (try_catch.HasCaught()) {
+    Nan::FatalException(try_catch);
+  }
   argv_v8.push_back(Nan::New(bridge->wrapper));
 
   bridge->callback->Call(argv_v8.size(), &argv_v8[0]);
