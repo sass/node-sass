@@ -5,18 +5,18 @@ namespace SassTypes
 {
   Map::Map(Sass_Value* v) : SassValueWrapper(v) {}
 
-  Sass_Value* Map::construct(const std::vector<v8::Local<v8::Value>> raw_val) {
+  Sass_Value* Map::construct(const std::vector<v8::Local<v8::Value>> raw_val, Sass_Value **out) {
     size_t length = 0;
 
     if (raw_val.size() >= 1) {
       if (!raw_val[0]->IsNumber()) {
-        throw std::invalid_argument("First argument should be an integer.");
+        return fail("First argument should be an integer.", out);
       }
 
       length = Nan::To<uint32_t>(raw_val[0]).FromJust();
     }
 
-    return sass_make_map(length);
+    return *out = sass_make_map(length);
   }
 
   void Map::initPrototype(v8::Local<v8::FunctionTemplate> proto) {

@@ -5,27 +5,27 @@ namespace SassTypes
 {
   List::List(Sass_Value* v) : SassValueWrapper(v) {}
 
-  Sass_Value* List::construct(const std::vector<v8::Local<v8::Value>> raw_val) {
+  Sass_Value* List::construct(const std::vector<v8::Local<v8::Value>> raw_val, Sass_Value **out) {
     size_t length = 0;
     bool comma = true;
 
     if (raw_val.size() >= 1) {
       if (!raw_val[0]->IsNumber()) {
-        throw std::invalid_argument("First argument should be an integer.");
+        return fail("First argument should be an integer.", out);
       }
 
       length = Nan::To<uint32_t>(raw_val[0]).FromJust();
 
       if (raw_val.size() >= 2) {
         if (!raw_val[1]->IsBoolean()) {
-          throw std::invalid_argument("Second argument should be a boolean.");
+          return fail("Second argument should be a boolean.", out);
         }
 
         comma = Nan::To<bool>(raw_val[1]).FromJust();
       }
     }
 
-    return sass_make_list(length, comma ? SASS_COMMA : SASS_SPACE);
+    return *out = sass_make_list(length, comma ? SASS_COMMA : SASS_SPACE);
   }
 
   void List::initPrototype(v8::Local<v8::FunctionTemplate> proto) {
