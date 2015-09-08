@@ -386,7 +386,8 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
   } else if (dynamic_cast<Mixin_Call*>(node)) {
     Mixin_Call* block = dynamic_cast<Mixin_Call*>(node);
     std::cerr << ind << "Mixin_Call " << block << " " << block->tabs();
-    std::cerr << " [" <<  block->name() << "]" << std::endl;
+    std::cerr << " [" <<  block->name() << "]";
+    std::cerr << " [has_content: " << block->has_content() << "] " << std::endl;
     debug_ast(block->arguments(), ind + " args: ");
     if (block->block()) for(auto i : block->block()->elements()) { debug_ast(i, ind + " ", env); }
   } else if (Ruleset* ruleset = dynamic_cast<Ruleset*>(node)) {

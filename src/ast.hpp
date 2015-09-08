@@ -389,7 +389,7 @@ namespace Sass {
     { }
     virtual bool has_content()
     {
-      return block_->has_content() || Statement::has_content();
+      return (block_ && block_->has_content()) || Statement::has_content();
     }
     virtual ~Has_Block() = 0;
   };
