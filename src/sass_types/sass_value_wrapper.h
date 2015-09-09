@@ -118,6 +118,7 @@ namespace SassTypes
 
   template <class T>
   T* SassValueWrapper<T>::unwrap(v8::Local<v8::Object> obj) {
+    /* This maybe NULL */
     return static_cast<T*>(Factory::unwrap(obj));
   }
 

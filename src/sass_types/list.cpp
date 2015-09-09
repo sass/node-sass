@@ -71,7 +71,11 @@ namespace SassTypes
     }
 
     Value* sass_value = Factory::unwrap(info[1]);
-    sass_list_set_value(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
+    if (sass_value) {
+      sass_list_set_value(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
+    } else {
+      Nan::ThrowTypeError(Nan::New<v8::String>("A SassValue is expected as the list item").ToLocalChecked());
+    }
   }
 
   NAN_METHOD(List::GetSeparator) {

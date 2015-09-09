@@ -29,12 +29,7 @@ union Sass_Value* sass_custom_function(const union Sass_Value* s_args, Sass_Func
     argv.push_back((void*)sass_list_get_value(s_args, i));
   }
 
-  try {
-    return bridge(argv);
-  }
-  catch (const std::exception& e) {
-    return sass_make_error(e.what());
-  }
+  return bridge(argv);
 }
 
 int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapper* ctx_w, bool is_file, bool is_sync) {

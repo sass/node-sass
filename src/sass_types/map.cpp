@@ -62,7 +62,11 @@ namespace SassTypes
     }
 
     Value* sass_value = Factory::unwrap(info[1]);
-    sass_map_set_value(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
+    if (sass_value) {
+      sass_map_set_value(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
+    } else {
+      Nan::ThrowTypeError(Nan::New<v8::String>("A SassValue is expected as a map value").ToLocalChecked());
+    }
   }
 
   NAN_METHOD(Map::GetKey) {
@@ -100,7 +104,11 @@ namespace SassTypes
     }
 
     Value* sass_value = Factory::unwrap(info[1]);
-    sass_map_set_key(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
+    if (sass_value) {
+      sass_map_set_key(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
+    } else {
+      Nan::ThrowTypeError(Nan::New<v8::String>("A SassValue is expected as a map key").ToLocalChecked());
+    }
   }
 
   NAN_METHOD(Map::GetLength) {
