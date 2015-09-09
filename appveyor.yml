@@ -16,6 +16,8 @@ environment:
     - nodejs_version: 1
     - nodejs_version: 2
     - nodejs_version: 3
+    # node
+    - nodejs_version: 4
 
 install:
   - ps: Install-Product node $env:nodejs_version
