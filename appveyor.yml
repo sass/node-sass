@@ -1,35 +1,86 @@
-version: "{build}"
+-
+  branches:
+    only:
+      - release
 
-build: off
+  configuration: release
 
-cache:  
-  - c:\Users\appveyor\.node-gyp
-  - '%AppData%\npm-cache'
+  platform:
+    - x64
+    - x86
 
-environment:
-  SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
-  matrix:
-    - nodejs_version: 0.10
-    - nodejs_version: 0.12
-    - nodejs_version: 1
-    - nodejs_version: 2
-    - nodejs_version: 3
-    - nodejs_version: 4
+  version: "{build}"
 
-install:
-  - ps: Install-Product node $env:nodejs_version
-  - node --version
-  - npm --version
-  - git submodule update --init --recursive
-  - npm install --msvs_version=2013
+  build: off
 
-test_script: npm test
+  cache:  
+    - '%userprofile%\.node-gyp'
+    - '%AppData%\npm-cache'
 
-on_success:
-# Save artifact with full qualified names of binding.node
-# (which we use in node-sass-binaries repo)
-- ps: Get-ChildItem .\vendor\**\*.node | % `
-      {
-        Push-AppveyorArtifact $_.FullName -FileName
-        (($_.FullName.Split('\\') | Select-Object -Last 2) -join '_')
-      }
+  environment:
+    SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
+    matrix:
+      - nodejs_version: 0.10
+      - nodejs_version: 0.12
+      - nodejs_version: 1
+      - nodejs_version: 2
+      - nodejs_version: 3
+      - nodejs_version: 4
+
+  install:
+    - ps: Install-Product node $env:nodejs_version $env:platform
+    - node --version
+    - npm --version
+    - git submodule update --init --recursive
+    - npm install --msvs_version=2013
+
+  test_script: npm test
+
+  before_deploy:
+    # Save artifact with full qualified names of binding.node
+    # (which we use in node-sass-binaries repo)
+    - ps: Get-ChildItem .\vendor\**\*.node | % { Push-AppveyorArtifact $_.FullName -FileName (($_.FullName.Split('\\') | Select-Object -Last 2) -join '_') }
+
+
+  deploy:
+    - provider: GitHub
+      description: $(APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)
+      artifact: /.*binding\.node/           # upload all NuGet packages to release assets
+      auth_token:
+        secure: tt+p58W9Q49faww/o0CODJI8e++YEX5THVlpXlRIigO4xHjE8NKigi0oxr1b2PJE
+      on:
+        branch: release               # release from master branch only
+        appveyor_repo_tag: true       # deploy on tag push only
+
+-
+  configuration: testing
+
+  platform:
+    - x86
+
+  version: "{build}"
+
+  build: off
+
+  cache:  
+    - '%userprofile%\.node-gyp'
+    - '%AppData%\npm-cache'
+
+  environment:
+    SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
+    matrix:
+      - nodejs_version: 0.10
+      - nodejs_version: 0.12
+      - nodejs_version: 1
+      - nodejs_version: 2
+      - nodejs_version: 3
+      - nodejs_version: 4
+
+  install:
+    - ps: Install-Product node $env:nodejs_version $env:platform
+    - node --version
+    - npm --version
+    - git submodule update --init --recursive
+    - npm install --msvs_version=2013
+
+  test_script: npm test
