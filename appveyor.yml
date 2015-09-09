@@ -9,14 +9,11 @@ cache:
 environment:
   SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
   matrix:
-    # node.js
     - nodejs_version: 0.10
     - nodejs_version: 0.12
-    # io.js
     - nodejs_version: 1
     - nodejs_version: 2
     - nodejs_version: 3
-    # node
     - nodejs_version: 4
 
 install:
