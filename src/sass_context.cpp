@@ -246,7 +246,7 @@ extern "C" {
       c_ctx->source_map_string = 0;
       json_delete(json_err);
     }
-    catch(std::bad_alloc& ba) {
+    catch (std::bad_alloc& ba) {
       std::stringstream msg_stream;
       JsonNode* json_err = json_mkobject();
       msg_stream << "Unable to allocate memory: " << ba.what() << std::endl;

@@ -359,51 +359,66 @@ extern "C" {
 
     Sass::Value* rv = 0;
     Memory_Manager<AST_Node> mem;
-    Value* lhs = sass_value_to_ast_node(mem, a);
-    Value* rhs = sass_value_to_ast_node(mem, b);
 
-    // see if it's a relational expression
-    switch(op) {
-      case Sass_OP::EQ:  return sass_make_boolean(Eval::eq(lhs, rhs));
-      case Sass_OP::NEQ: return sass_make_boolean(!Eval::eq(lhs, rhs));
-      case Sass_OP::GT:  return sass_make_boolean(!Eval::lt(lhs, rhs) && !Eval::eq(lhs, rhs));
-      case Sass_OP::GTE: return sass_make_boolean(!Eval::lt(lhs, rhs));
-      case Sass_OP::LT:  return sass_make_boolean(Eval::lt(lhs, rhs));
-      case Sass_OP::LTE: return sass_make_boolean(Eval::lt(lhs, rhs) || Eval::eq(lhs, rhs));
-      default:           break;
+    try {
+
+      Value* lhs = sass_value_to_ast_node(mem, a);
+      Value* rhs = sass_value_to_ast_node(mem, b);
+
+      // see if it's a relational expression
+      switch(op) {
+        case Sass_OP::EQ:  return sass_make_boolean(Eval::eq(lhs, rhs));
+        case Sass_OP::NEQ: return sass_make_boolean(!Eval::eq(lhs, rhs));
+        case Sass_OP::GT:  return sass_make_boolean(!Eval::lt(lhs, rhs) && !Eval::eq(lhs, rhs));
+        case Sass_OP::GTE: return sass_make_boolean(!Eval::lt(lhs, rhs));
+        case Sass_OP::LT:  return sass_make_boolean(Eval::lt(lhs, rhs));
+        case Sass_OP::LTE: return sass_make_boolean(Eval::lt(lhs, rhs) || Eval::eq(lhs, rhs));
+        default:           break;
+      }
+
+      if (sass_value_is_number(a) && sass_value_is_number(b)) {
+        const Number* l_n = dynamic_cast<const Number*>(lhs);
+        const Number* r_n = dynamic_cast<const Number*>(rhs);
+        rv = Eval::op_numbers(mem, op, *l_n, *r_n);
+      }
+      else if (sass_value_is_number(a) && sass_value_is_color(a)) {
+        const Number* l_n = dynamic_cast<const Number*>(lhs);
+        const Color* r_c = dynamic_cast<const Color*>(rhs);
+        rv = Eval::op_number_color(mem, op, *l_n, *r_c);
+      }
+      else if (sass_value_is_color(a) && sass_value_is_number(b)) {
+        const Color* l_c = dynamic_cast<const Color*>(lhs);
+        const Number* r_n = dynamic_cast<const Number*>(rhs);
+        rv = Eval::op_color_number(mem, op, *l_c, *r_n);
+      }
+      else if (sass_value_is_color(a) && sass_value_is_color(b)) {
+        const Color* l_c = dynamic_cast<const Color*>(lhs);
+        const Color* r_c = dynamic_cast<const Color*>(rhs);
+        rv = Eval::op_colors(mem, op, *l_c, *r_c);
+      }
+      else /* convert other stuff to string and apply operation */ {
+        Value* l_v = dynamic_cast<Value*>(lhs);
+        Value* r_v = dynamic_cast<Value*>(rhs);
+        rv = Eval::op_strings(mem, op, *l_v, *r_v);
+      }
+
+      // ToDo: maybe we should should return null value?
+      if (!rv) return sass_make_error("invalid return value");
+
+      // convert result back to ast node
+      return ast_node_to_sass_value(rv);
+
     }
 
-    if (sass_value_is_number(a) && sass_value_is_number(b)) {
-      const Number* l_n = dynamic_cast<const Number*>(lhs);
-      const Number* r_n = dynamic_cast<const Number*>(rhs);
-      rv = Eval::op_numbers(mem, op, *l_n, *r_n);
-    }
-    else if (sass_value_is_number(a) && sass_value_is_color(a)) {
-      const Number* l_n = dynamic_cast<const Number*>(lhs);
-      const Color* r_c = dynamic_cast<const Color*>(rhs);
-      rv = Eval::op_number_color(mem, op, *l_n, *r_c);
-    }
-    else if (sass_value_is_color(a) && sass_value_is_number(b)) {
-      const Color* l_c = dynamic_cast<const Color*>(lhs);
-      const Number* r_n = dynamic_cast<const Number*>(rhs);
-      rv = Eval::op_color_number(mem, op, *l_c, *r_n);
-    }
-    else if (sass_value_is_color(a) && sass_value_is_color(b)) {
-      const Color* l_c = dynamic_cast<const Color*>(lhs);
-      const Color* r_c = dynamic_cast<const Color*>(rhs);
-      rv = Eval::op_colors(mem, op, *l_c, *r_c);
-    }
-    else /* convert other stuff to string and apply operation */ {
-      Value* l_v = dynamic_cast<Value*>(lhs);
-      Value* r_v = dynamic_cast<Value*>(rhs);
-      rv = Eval::op_strings(mem, op, *l_v, *r_v);
-    }
+    // simply pass the error message back to the caller for now
+    catch (Error_Invalid& e) { return sass_make_error(e.message.c_str()); }
+    catch (std::bad_alloc& ba) { return sass_make_error("memory exhausted"); }
+    catch (std::exception& e) { return sass_make_error(e.what()); }
+    catch (std::string& e) { return sass_make_error(e.c_str()); }
+    catch (const char* e) { return sass_make_error(e); }
+    catch (...) { return sass_make_error("unknown"); }
 
-    // ToDo: maybe we should should return null value?
-    if (!rv) return sass_make_error("invalid return value");
-
-    // convert result back to ast node
-    return ast_node_to_sass_value(rv);
+    return 0;
 
   }
 
