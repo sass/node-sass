@@ -6,27 +6,27 @@ namespace SassTypes
 {
   Number::Number(Sass_Value* v) : SassValueWrapper(v) {}
 
-  Sass_Value* Number::construct(const std::vector<v8::Local<v8::Value>> raw_val) {
+  Sass_Value* Number::construct(const std::vector<v8::Local<v8::Value>> raw_val, Sass_Value **out) {
     double value = 0;
     char const* unit = "";
 
     if (raw_val.size() >= 1) {
       if (!raw_val[0]->IsNumber()) {
-        throw std::invalid_argument("First argument should be a number.");
+        return fail("First argument should be a number.", out);
       }
 
       value = Nan::To<double>(raw_val[0]).FromJust();
 
       if (raw_val.size() >= 2) {
         if (!raw_val[1]->IsString()) {
-          throw std::invalid_argument("Second argument should be a string.");
+          return fail("Second argument should be a string.", out);
         }
 
         unit = create_string(raw_val[1]);
       }
     }
 
-    return sass_make_number(value, unit);
+    return *out = sass_make_number(value, unit);
   }
 
   void Number::initPrototype(v8::Local<v8::FunctionTemplate> proto) {

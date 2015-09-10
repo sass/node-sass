@@ -67,6 +67,9 @@ namespace SassTypes
   }
 
   NAN_METHOD(Boolean::GetValue) {
-    info.GetReturnValue().Set(Nan::New(static_cast<Boolean*>(Factory::unwrap(info.This()))->value));
+    Boolean *out;
+    if ((out = static_cast<Boolean*>(Factory::unwrap(info.This())))) { 
+      info.GetReturnValue().Set(Nan::New(out->value));
+    }
   }
 }

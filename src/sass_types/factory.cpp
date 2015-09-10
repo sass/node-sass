@@ -39,7 +39,9 @@ namespace SassTypes
       return new Error(v);
 
     default:
-      throw std::invalid_argument("Unknown type encountered.");
+      const char *msg = "Unknown type encountered.";
+      Nan::ThrowTypeError(Nan::New<v8::String>(msg).ToLocalChecked());
+      return new Error(sass_make_error(msg));
     }
   }
 
@@ -61,7 +63,7 @@ namespace SassTypes
   Value* Factory::unwrap(v8::Local<v8::Value> obj) {
     // Todo: non-SassValue objects could easily fall under that condition, need to be more specific.
     if (!obj->IsObject() || obj.As<v8::Object>()->InternalFieldCount() != 1) {
-      throw std::invalid_argument("A SassValue object was expected.");
+      return NULL;
     }
 
     return static_cast<Value*>(Nan::GetInternalFieldPointer(obj.As<v8::Object>(), 0));

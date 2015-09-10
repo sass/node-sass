@@ -5,14 +5,14 @@ namespace SassTypes
 {
   Color::Color(Sass_Value* v) : SassValueWrapper(v) {}
 
-  Sass_Value* Color::construct(const std::vector<v8::Local<v8::Value>> raw_val) {
+  Sass_Value* Color::construct(const std::vector<v8::Local<v8::Value>> raw_val, Sass_Value **out) {
     double a = 1.0, r = 0, g = 0, b = 0;
     unsigned argb;
 
     switch (raw_val.size()) {
     case 1:
       if (!raw_val[0]->IsNumber()) {
-        throw std::invalid_argument("Only argument should be an integer.");
+        return fail("Only argument should be an integer.", out);
       }
 
       argb = Nan::To<int32_t>(raw_val[0]).FromJust();
@@ -24,7 +24,7 @@ namespace SassTypes
 
     case 4:
       if (!raw_val[3]->IsNumber()) {
-        throw std::invalid_argument("Constructor arguments should be numbers exclusively.");
+        return fail("Constructor arguments should be numbers exclusively.", out);
       }
 
       a = Nan::To<double>(raw_val[3]).FromJust();
@@ -32,7 +32,7 @@ namespace SassTypes
 
     case 3:
       if (!raw_val[0]->IsNumber() || !raw_val[1]->IsNumber() || !raw_val[2]->IsNumber()) {
-        throw std::invalid_argument("Constructor arguments should be numbers exclusively.");
+        return fail("Constructor arguments should be numbers exclusively.", out);
       }
 
       r = Nan::To<double>(raw_val[0]).FromJust();
@@ -44,10 +44,10 @@ namespace SassTypes
       break;
 
     default:
-      throw std::invalid_argument("Constructor should be invoked with either 0, 1, 3 or 4 arguments.");
+      return fail("Constructor should be invoked with either 0, 1, 3 or 4 arguments.", out);
     }
 
-    return sass_make_color(r, g, b, a);
+    return *out = sass_make_color(r, g, b, a);
   }
 
   void Color::initPrototype(v8::Local<v8::FunctionTemplate> proto) {

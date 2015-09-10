@@ -5,18 +5,18 @@ namespace SassTypes
 {
   Map::Map(Sass_Value* v) : SassValueWrapper(v) {}
 
-  Sass_Value* Map::construct(const std::vector<v8::Local<v8::Value>> raw_val) {
+  Sass_Value* Map::construct(const std::vector<v8::Local<v8::Value>> raw_val, Sass_Value **out) {
     size_t length = 0;
 
     if (raw_val.size() >= 1) {
       if (!raw_val[0]->IsNumber()) {
-        throw std::invalid_argument("First argument should be an integer.");
+        return fail("First argument should be an integer.", out);
       }
 
       length = Nan::To<uint32_t>(raw_val[0]).FromJust();
     }
 
-    return sass_make_map(length);
+    return *out = sass_make_map(length);
   }
 
   void Map::initPrototype(v8::Local<v8::FunctionTemplate> proto) {
@@ -62,7 +62,11 @@ namespace SassTypes
     }
 
     Value* sass_value = Factory::unwrap(info[1]);
-    sass_map_set_value(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
+    if (sass_value) {
+      sass_map_set_value(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
+    } else {
+      Nan::ThrowTypeError(Nan::New<v8::String>("A SassValue is expected as a map value").ToLocalChecked());
+    }
   }
 
   NAN_METHOD(Map::GetKey) {
@@ -100,7 +104,11 @@ namespace SassTypes
     }
 
     Value* sass_value = Factory::unwrap(info[1]);
-    sass_map_set_key(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
+    if (sass_value) {
+      sass_map_set_key(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
+    } else {
+      Nan::ThrowTypeError(Nan::New<v8::String>("A SassValue is expected as a map key").ToLocalChecked());
+    }
   }
 
   NAN_METHOD(Map::GetLength) {

@@ -859,6 +859,72 @@ describe('api', function() {
       });
     });
 
+    it('should fail when trying to set a bare number as the List item', function(done) {
+      sass.render({
+        data: 'div { color: foo(); }',
+        functions: {
+          'foo()': function() {
+            var out = new sass.types.List(1);
+            out.setValue(0, 2);
+            return out;
+          }
+        }
+      }, function(error) {
+        assert.ok(/Supplied value should be a SassValue object/.test(error.message));
+        done();
+      });
+    });
+
+    it('should fail when trying to set a bare Object as the List item', function(done) {
+      sass.render({
+        data: 'div { color: foo(); }',
+        functions: {
+          'foo()': function() {
+            var out = new sass.types.List(1);
+            out.setValue(0, {});
+            return out;
+          }
+        }
+      }, function(error) {
+        assert.ok(/A SassValue is expected as the list item/.test(error.message));
+        done();
+      });
+    });
+
+    it('should fail when trying to set a bare Object as the Map key', function(done) {
+      sass.render({
+        data: 'div { color: foo(); }',
+        functions: {
+          'foo()': function() {
+            var out = new sass.types.Map(1);
+            out.setKey(0, {});
+            out.setValue(0, new sass.types.String('aaa'));
+            return out;
+          }
+        }
+      }, function(error) {
+        assert.ok(/A SassValue is expected as a map key/.test(error.message));
+        done();
+      });
+    });
+
+    it('should fail when trying to set a bare Object as the Map value', function(done) {
+      sass.render({
+        data: 'div { color: foo(); }',
+        functions: {
+          'foo()': function() {
+            var out = new sass.types.Map(1);
+            out.setKey(0, new sass.types.String('aaa'));
+            out.setValue(0, {});
+            return out;
+          }
+        }
+      }, function(error) {
+        assert.ok(/A SassValue is expected as a map value/.test(error.message));
+        done();
+      });
+    });
+
     it('should always map null, true and false to the same (immutable) object', function(done) {
       var counter = 0;
 

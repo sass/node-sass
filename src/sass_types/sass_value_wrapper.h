@@ -25,6 +25,7 @@ namespace SassTypes
       static v8::Local<v8::Function> get_constructor();
       static v8::Local<v8::FunctionTemplate> get_constructor_template();
       static NAN_METHOD(New);
+      static Sass_Value *fail(const char *, Sass_Value **);
 
     protected:
       Sass_Value* value;
@@ -94,15 +95,15 @@ namespace SassTypes
       localArgs[i] = info[i];
     }
     if (info.IsConstructCall()) {
-      try {
-        Sass_Value* value = T::construct(localArgs);
+      Sass_Value* value;
+      if (T::construct(localArgs, &value) != NULL) {
         T* obj = new T(value);
         sass_delete_value(value);
 
         Nan::SetInternalFieldPointer(info.This(), 0, obj);
         obj->js_object.Reset(info.This());
-      } catch (const std::exception& e) {
-        return Nan::ThrowError(Nan::New<v8::String>(e.what()).ToLocalChecked());
+      } else {
+        return Nan::ThrowError(Nan::New<v8::String>(sass_error_get_message(value)).ToLocalChecked());
       }
     } else {
       v8::Local<v8::Function> cons = T::get_constructor();
@@ -117,7 +118,14 @@ namespace SassTypes
 
   template <class T>
   T* SassValueWrapper<T>::unwrap(v8::Local<v8::Object> obj) {
+    /* This maybe NULL */
     return static_cast<T*>(Factory::unwrap(obj));
+  }
+
+  template <class T>
+  Sass_Value *SassValueWrapper<T>::fail(const char *reason, Sass_Value **out) {
+    *out = sass_make_error(reason);
+    return NULL;
   }
 }
 
