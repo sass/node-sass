@@ -63,7 +63,7 @@ namespace Sass {
   }
 
   // convert value from C-API to C++ side
-  Value* sass_value_to_ast_node (Memory_Manager<AST_Node>& mem, const union Sass_Value* val)
+  Value* sass_value_to_ast_node (Memory_Manager& mem, const union Sass_Value* val)
   {
     switch (sass_value_get_tag(val)) {
       case SASS_NUMBER:

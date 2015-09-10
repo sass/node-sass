@@ -348,7 +348,7 @@ extern "C" {
 
   union Sass_Value* ADDCALL sass_value_stringify (const union Sass_Value* v, bool compressed, int precision)
   {
-    Memory_Manager<AST_Node> mem;
+    Memory_Manager mem;
     Value* val = sass_value_to_ast_node(mem, v);
     std::string str(val->to_string(compressed, precision));
     return sass_make_qstring(str.c_str());
@@ -358,7 +358,7 @@ extern "C" {
   {
 
     Sass::Value* rv = 0;
-    Memory_Manager<AST_Node> mem;
+    Memory_Manager mem;
 
     try {
 

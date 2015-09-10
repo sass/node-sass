@@ -1162,7 +1162,7 @@ namespace Sass {
     return *l < *r;
   }
 
-  Value* Eval::op_numbers(Memory_Manager<AST_Node>& mem, enum Sass_OP op, const Number& l, const Number& r, bool compressed, int precision)
+  Value* Eval::op_numbers(Memory_Manager& mem, enum Sass_OP op, const Number& l, const Number& r, bool compressed, int precision)
   {
     double lv = l.value();
     double rv = r.value();
@@ -1213,7 +1213,7 @@ namespace Sass {
     return v;
   }
 
-  Value* Eval::op_number_color(Memory_Manager<AST_Node>& mem, enum Sass_OP op, const Number& l, const Color& rh, bool compressed, int precision)
+  Value* Eval::op_number_color(Memory_Manager& mem, enum Sass_OP op, const Number& l, const Color& rh, bool compressed, int precision)
   {
     Color r(rh);
     r.disp("");
@@ -1247,7 +1247,7 @@ namespace Sass {
     return SASS_MEMORY_NEW(mem, Color, rh);
   }
 
-  Value* Eval::op_color_number(Memory_Manager<AST_Node>& mem, enum Sass_OP op, const Color& l, const Number& r, bool compressed, int precision)
+  Value* Eval::op_color_number(Memory_Manager& mem, enum Sass_OP op, const Color& l, const Number& r, bool compressed, int precision)
   {
     double rv = r.value();
     if (op == Sass_OP::DIV && !rv) error("division by zero", r.pstate());
@@ -1259,7 +1259,7 @@ namespace Sass {
                            l.a());
   }
 
-  Value* Eval::op_colors(Memory_Manager<AST_Node>& mem, enum Sass_OP op, const Color& l, const Color& r, bool compressed, int precision)
+  Value* Eval::op_colors(Memory_Manager& mem, enum Sass_OP op, const Color& l, const Color& r, bool compressed, int precision)
   {
     if (l.a() != r.a()) {
       error("alpha channels must be equal when combining colors", r.pstate());
@@ -1275,7 +1275,7 @@ namespace Sass {
                            l.a());
   }
 
-  Value* Eval::op_strings(Memory_Manager<AST_Node>& mem, enum Sass_OP op, Value& lhs, Value& rhs, bool compressed, int precision)
+  Value* Eval::op_strings(Memory_Manager& mem, enum Sass_OP op, Value& lhs, Value& rhs, bool compressed, int precision)
   {
     Expression::Concrete_Type ltype = lhs.concrete_type();
     Expression::Concrete_Type rtype = rhs.concrete_type();
@@ -1340,7 +1340,7 @@ namespace Sass {
     return SASS_MEMORY_NEW(mem, String_Constant, lhs.pstate(), (lstr) + sep + quote(rstr));
   }
 
-  Expression* cval_to_astnode(Memory_Manager<AST_Node>& mem, union Sass_Value* v, Context& ctx, Backtrace* backtrace, ParserState pstate)
+  Expression* cval_to_astnode(Memory_Manager& mem, union Sass_Value* v, Context& ctx, Backtrace* backtrace, ParserState pstate)
   {
     using std::strlen;
     using std::strcpy;

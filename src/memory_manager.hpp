@@ -4,6 +4,15 @@
 #include <vector>
 
 namespace Sass {
+
+  class Memory_Object {
+  friend class Memory_Manager;
+    long refcount;
+  public:
+    Memory_Object() { refcount = 0; };
+    virtual ~Memory_Object() {};
+  };
+
   /////////////////////////////////////////////////////////////////////////////
   // A class for tracking allocations of AST_Node objects. The intended usage
   // is something like: Some_Node* n = new (mem_mgr) Some_Node(...);
@@ -11,20 +20,19 @@ namespace Sass {
   // allocated nodes that have been passed to it.
   // In the future, this class may implement a custom allocator.
   /////////////////////////////////////////////////////////////////////////////
-  template <typename T>
   class Memory_Manager {
-    std::vector<T*> nodes;
+    std::vector<Memory_Object*> nodes;
 
   public:
     Memory_Manager(size_t size = 0);
     ~Memory_Manager();
 
-    bool has(T* np);
-    T* allocate(size_t size);
-    void deallocate(T* np);
-    void remove(T* np);
-    void destroy(T* np);
-    T* add(T* np);
+    bool has(Memory_Object* np);
+    Memory_Object* allocate(size_t size);
+    void deallocate(Memory_Object* np);
+    void remove(Memory_Object* np);
+    void destroy(Memory_Object* np);
+    Memory_Object* add(Memory_Object* np);
 
   };
 }

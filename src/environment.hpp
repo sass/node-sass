@@ -17,7 +17,7 @@ namespace Sass {
     ADD_PROPERTY(Environment*, parent)
 
   public:
-    Memory_Manager<AST_Node> mem;
+    Memory_Manager mem;
     Environment();
     Environment(Environment* env);
     Environment(Environment& env);

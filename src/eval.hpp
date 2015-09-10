@@ -89,18 +89,18 @@ namespace Sass {
     static bool eq(Expression*, Expression*);
     static bool lt(Expression*, Expression*);
     // -- arithmetic on the combinations that matter
-    static Value* op_numbers(Memory_Manager<AST_Node>&, enum Sass_OP, const Number&, const Number&, bool compressed = false, int precision = 5);
-    static Value* op_number_color(Memory_Manager<AST_Node>&, enum Sass_OP, const Number&, const Color&, bool compressed = false, int precision = 5);
-    static Value* op_color_number(Memory_Manager<AST_Node>&, enum Sass_OP, const Color&, const Number&, bool compressed = false, int precision = 5);
-    static Value* op_colors(Memory_Manager<AST_Node>&, enum Sass_OP, const Color&, const Color&, bool compressed = false, int precision = 5);
-    static Value* op_strings(Memory_Manager<AST_Node>&, enum Sass_OP, Value&, Value&, bool compressed = false, int precision = 5);
+    static Value* op_numbers(Memory_Manager&, enum Sass_OP, const Number&, const Number&, bool compressed = false, int precision = 5);
+    static Value* op_number_color(Memory_Manager&, enum Sass_OP, const Number&, const Color&, bool compressed = false, int precision = 5);
+    static Value* op_color_number(Memory_Manager&, enum Sass_OP, const Color&, const Number&, bool compressed = false, int precision = 5);
+    static Value* op_colors(Memory_Manager&, enum Sass_OP, const Color&, const Color&, bool compressed = false, int precision = 5);
+    static Value* op_strings(Memory_Manager&, enum Sass_OP, Value&, Value&, bool compressed = false, int precision = 5);
 
   private:
     std::string interpolation(Expression* s, bool into_quotes = false);
 
   };
 
-  Expression* cval_to_astnode(Memory_Manager<AST_Node>& mem, union Sass_Value* v, Context& ctx, Backtrace* backtrace, ParserState pstate = ParserState("[AST]"));
+  Expression* cval_to_astnode(Memory_Manager& mem, union Sass_Value* v, Context& ctx, Backtrace* backtrace, ParserState pstate = ParserState("[AST]"));
 
 }
 

@@ -66,7 +66,7 @@ namespace Sass {
   //////////////////////////////////////////////////////////
   // Abstract base class for all abstract syntax tree nodes.
   //////////////////////////////////////////////////////////
-  class AST_Node {
+  class AST_Node : public Memory_Object {
     ADD_PROPERTY(ParserState, pstate)
   public:
     AST_Node(ParserState pstate)
@@ -2040,7 +2040,7 @@ namespace Sass {
       return length() == 1 && (*this)[0]->is_universal();
     }
 
-    Complex_Selector* to_complex(Memory_Manager<AST_Node>& mem);
+    Complex_Selector* to_complex(Memory_Manager& mem);
     Compound_Selector* unify_with(Compound_Selector* rhs, Context& ctx);
     // virtual Selector_Placeholder* find_placeholder();
     virtual bool has_parent_ref();
