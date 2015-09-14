@@ -1,19 +1,22 @@
-language: node_js
-
-env: SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=true CC=gcc-4.7 CXX=g++-4.7 LINK=gcc-4.7 LINKXX=g++-4.7
-
+language: cpp
 compiler: gcc
-
 sudo: false
 
-node_js:
-  - "0.10"
-  - "0.12"
-  - "iojs-v1.0"
-  - "iojs-v1"
-  - "iojs-v2"
-  - "iojs-v3"
-  - "4"
+os:
+  - linux
+  - osx
+
+env:
+  global:
+    - SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=true
+  matrix:
+    - export NODE_VERSION="0.10"
+    - export NODE_VERSION="0.12"
+    - export NODE_VERSION="iojs-v1.0"
+    - export NODE_VERSION="iojs-v1"
+    - export NODE_VERSION="iojs-v2"
+    - export NODE_VERSION="iojs-v3"
+    - export NODE_VERSION="4"
 
 matrix:
   fast_finish: true
@@ -27,10 +30,29 @@ addons:
       - g++-4.7
 
 before_install:
-  - g++ --version
   - git submodule update --init --recursive
+  - git clone https://github.com/creationix/nvm.git ./.nvm
+  - source ./.nvm/nvm.sh
+  - nvm install $NODE_VERSION
+  - nvm use $NODE_VERSION
+  - npm config set python `which python`
+  - if [ $TRAVIS_OS_NAME == "linux" ]; then
+      export CC="gcc-4.7";
+      export CXX="g++-4.7";
+      export LINK="gcc-4.7";
+      export LINKXX="g++-4.7";
+    fi
+  - gcc --version
+  - g++ --version
 
-after_success: npm run-script coverage
+script:
+  - npm install
+  - npm test
+
+after_success:
+  - if [ $TRAVIS_OS_NAME == "linux" ] && [ $NODE_VERSION == "4" ]; then
+      npm run-script coverage;
+    fi
 
 cache:
   directories:
