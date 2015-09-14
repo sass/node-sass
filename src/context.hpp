@@ -26,7 +26,7 @@ namespace Sass {
   class Context {
   public:
     size_t head_imports;
-    Memory_Manager<AST_Node> mem;
+    Memory_Manager mem;
 
     struct Sass_Options* c_options;
     struct Sass_Compiler* c_compiler;

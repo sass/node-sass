@@ -14,11 +14,11 @@ namespace Sass {
   private:
 
     Context& ctx;
-    Memory_Manager<AST_Node>& mem;
+    Memory_Manager& mem;
 
   public:
 
-    To_Value(Context& ctx, Memory_Manager<AST_Node>& mem)
+    To_Value(Context& ctx, Memory_Manager& mem)
     : ctx(ctx), mem(mem)
     { }
     virtual ~To_Value() { }

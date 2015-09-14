@@ -51,7 +51,7 @@ namespace Sass {
   Context::Context(Context::Data initializers)
   : // Output(this),
     head_imports(0),
-    mem(Memory_Manager<AST_Node>()),
+    mem(Memory_Manager()),
     c_options               (initializers.c_options()),
     c_compiler              (initializers.c_compiler()),
     source_c_str            (initializers.source_c_str()),

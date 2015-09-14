@@ -585,7 +585,7 @@ namespace Sass {
   }
 
   // create complex selector (ancestor of) from compound selector
-  Complex_Selector* Compound_Selector::to_complex(Memory_Manager<AST_Node>& mem)
+  Complex_Selector* Compound_Selector::to_complex(Memory_Manager& mem)
   {
     // create an intermediate complex selector
     return SASS_MEMORY_NEW(mem, Complex_Selector,
