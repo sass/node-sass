@@ -5,7 +5,7 @@
 #include <memory>
 #include <nan.h>
 #include <stdlib.h>
-#include <sass_context.h>
+#include <sass/context.h>
 #include "custom_function_bridge.h"
 #include "custom_importer_bridge.h"
 

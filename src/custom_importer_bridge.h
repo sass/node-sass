@@ -2,7 +2,8 @@
 #define CUSTOM_IMPORTER_BRIDGE_H
 
 #include <nan.h>
-#include <sass_context.h>
+#include <sass/functions.h>
+#include <sass/values.h>
 #include "callback_bridge.h"
 
 typedef Sass_Import_List SassImportList;

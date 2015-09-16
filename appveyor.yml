@@ -8,6 +8,7 @@ cache:
 
 environment:
   SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
+  GYP_MSVS_VERSION: 2013
   matrix:
     - nodejs_version: 0.10
     - nodejs_version: 0.12
@@ -21,7 +22,7 @@ install:
   - node --version
   - npm --version
   - git submodule update --init --recursive
-  - npm install --msvs_version=2013
+  - npm install
 
 test_script: npm test
 

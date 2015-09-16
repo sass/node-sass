@@ -2,7 +2,8 @@
 #define CUSTOM_FUNCTION_BRIDGE_H
 
 #include <nan.h>
-#include <sass_context.h>
+#include <sass/values.h>
+#include <sass/functions.h>
 #include "callback_bridge.h"
 
 class CustomFunctionBridge : public CallbackBridge<Sass_Value*> {
