@@ -205,7 +205,7 @@ describe('library detection', function() {
     assert.throws(function() {
       fs.renameSync(originalBin, renamedBin);
       process.sass.getBinaryPath(true);
-    }, /`libsass` bindings not found/);
+    }, /The `libsass` binding was not found/);
 
     fs.renameSync(renamedBin, originalBin);
   });
