@@ -509,6 +509,28 @@ Also, note `--importer` takes the (absolute or relative to pwd) path to a js fil
 The `--source-map` option accepts a boolean value, in which case it replaces destination extension with `.css.map`. It also accepts path to `.map` file and even path to the desired directory. 
 When compiling a directory `--source-map` can either be a boolean value or a directory.
 
+## Binary configuration parameters
+
+node-sass supports different configuration parameters to change settings related to the sass binary such as binary name, binary path or alternative download path. Following parameters are supported by node-sass:
+
+Variable name    | .npmrc parameter | Process argument   | Value
+-----------------|------------------|--------------------|------
+SASS_BINARY_NAME | sass_binary_name | --sass-binary-name | path
+SASS_BINARY_SITE | sass_binary_site | --sass-binary-site | URL
+SASS_BINARY_PATH | sass_binary_path | --sass-binary-path | path
+
+These parameters can be used as environment variable:
+
+* E.g. `export SASS_BINARY_SITE=http://example.com/`
+
+As local or global [.npmrc](https://docs.npmjs.com/misc/config) configuration file:
+
+* E.g. `sass_binary_site=http://example.com/`
+
+As a process argument:
+
+* E.g. `npm install node-sass --SASS_BINARY_SITE=http://example.com/`
+
 ## Post-install Build
 
 Install runs only two Mocha tests to see if your machine can use the pre-built [libsass] which will save some time during install. If any tests fail it will build from source.
