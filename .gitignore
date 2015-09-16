@@ -8,4 +8,6 @@ vendor
 test/html-report
 test/lcov-report
 test/lcov.info
+test/fixtures/watching-css-out-01
+test/fixtures/watching-css-out-02
 coverage

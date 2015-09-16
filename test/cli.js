@@ -346,9 +346,11 @@ describe('cli', function() {
         fs.appendFileSync(foo, 'body\n\tbackground: white\n');
       }, 500);
     });
+  });
 
+  describe('node-sass --output directory', function() {
     it('should watch whole directory', function(done) {
-      var destDir = fixture('watching-css-out/');
+      var destDir = fixture('watching-css-out-01/');
       var srcDir = fixture('watching-dir/');
       var srcFile = path.join(srcDir, 'index.scss');
 
@@ -366,14 +368,13 @@ describe('cli', function() {
           bin.kill();
           var files = fs.readdirSync(destDir);
           assert.deepEqual(files, ['index.css']);
-          rimraf.sync(destDir);
-          done();
+          rimraf(destDir, done);
         }, 200);
       }, 500);
     });
 
     it('should compile all changed files in watched directory', function(done) {
-      var destDir = fixture('watching-css-out/');
+      var destDir = fixture('watching-css-out-02/');
       var srcDir = fixture('watching/');
       var srcFile = path.join(srcDir, 'foo.scss');
 
@@ -391,8 +392,7 @@ describe('cli', function() {
           bin.kill();
           var files = fs.readdirSync(destDir);
           assert.deepEqual(files, ['foo.css', 'index.css']);
-          rimraf.sync(destDir);
-          done();
+          rimraf(destDir, done);
         }, 200);
       }, 500);
     });
