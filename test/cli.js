@@ -301,9 +301,9 @@ describe('cli', function() {
       }, 500);
     });
 
-    it('should watch the full scss dep tree for a single file', function(done) {
+    it('should watch the full scss dep tree for a single file (scss)', function(done) {
       var src = fixture('watching/index.scss');
-      var foo = fixture('watching/foo.scss');
+      var foo = fixture('watching/white.scss');
 
       fs.writeFileSync(foo, '');
 
@@ -314,17 +314,17 @@ describe('cli', function() {
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
-        assert(data.trim() === 'body{background:white}');
+        assert.equal(data.trim(), 'body{background:blue}');
         bin.kill();
         done();
       });
 
       setTimeout(function() {
-        fs.appendFileSync(foo, 'body{background:white}\n');
+        fs.appendFileSync(foo, 'body{background:blue}\n');
       }, 500);
     });
 
-    it('should watch the full sass dep tree for a single file', function(done) {
+    it('should watch the full sass dep tree for a single file (sass)', function(done) {
       var src = fixture('watching/index.sass');
       var foo = fixture('watching/bar.sass');
 
@@ -337,13 +337,13 @@ describe('cli', function() {
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
-        assert(data.trim() === 'body{background:white}');
+        assert.equal(data.trim(), 'body{background:red}');
         bin.kill();
         done();
       });
 
       setTimeout(function() {
-        fs.appendFileSync(foo, 'body\n\tbackground: white\n');
+        fs.appendFileSync(foo, 'body\n\tbackground: red\n');
       }, 500);
     });
   });
@@ -351,7 +351,7 @@ describe('cli', function() {
   describe('node-sass --output directory', function() {
     it('should watch whole directory', function(done) {
       var destDir = fixture('watching-css-out-01/');
-      var srcDir = fixture('watching-dir/');
+      var srcDir = fixture('watching-dir-01/');
       var srcFile = path.join(srcDir, 'index.scss');
 
       fs.writeFileSync(srcFile, '');
@@ -375,7 +375,7 @@ describe('cli', function() {
 
     it('should compile all changed files in watched directory', function(done) {
       var destDir = fixture('watching-css-out-02/');
-      var srcDir = fixture('watching/');
+      var srcDir = fixture('watching-dir-02/');
       var srcFile = path.join(srcDir, 'foo.scss');
 
       fs.writeFileSync(srcFile, '');
