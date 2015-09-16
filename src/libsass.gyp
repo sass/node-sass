@@ -2,6 +2,7 @@
   'targets': [
     {
       'target_name': 'libsass',
+      'win_delay_load_hook': 'false',
       'type': 'static_library',
       'defines': [
          'LIBSASS_VERSION="<!(node -e "process.stdout.write(require(\'../package.json\').libsass)")"'
