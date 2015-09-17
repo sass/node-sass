@@ -3,6 +3,7 @@
  */
 
 var fs = require('fs'),
+    eol = require('os').EOL,
     mkdir = require('mkdirp'),
     npmconf = require('npmconf'),
     path = require('path'),
@@ -22,8 +23,13 @@ require('../lib/extensions');
 
 function download(url, dest, cb) {
   var reportError = function(err) {
-    cb(['Cannot download "', url, '": ',
-      typeof err.message === 'string' ? err.message : err].join(''));
+    cb(['Cannot download "', url, '": ', eol, eol,
+      typeof err.message === 'string' ? err.message : err, eol, eol,
+      'Hint: If github.com is not accessible in your location', eol,
+      '      try setting a proxy via HTTP_PROXY, e.g. ', eol, eol,
+      '      export HTTP_PROXY=http://example.com:1234',eol, eol,
+      'or configure npm proxy via', eol, eol,
+      '      npm config set proxy http://example.com:8080'].join(''));
   };
   var successful = function(response) {
     return response.statusCode >= 200 && response.statusCode < 300;
