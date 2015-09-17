@@ -22,6 +22,7 @@
     matrix:
       - nodejs_version: 0.10
       - nodejs_version: 0.12
+      - nodejs_version: 1.0
       - nodejs_version: 1
       - nodejs_version: 2
       - nodejs_version: 3
