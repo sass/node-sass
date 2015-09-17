@@ -301,7 +301,7 @@ describe('cli', function() {
       }, 500);
     });
 
-    it('should watch the full scss dep tree for a single file (scss)', function(done) {
+    it.skip('should watch the full scss dep tree for a single file (scss)', function(done) {
       var src = fixture('watching/index.scss');
       var foo = fixture('watching/white.scss');
 
@@ -324,7 +324,7 @@ describe('cli', function() {
       }, 500);
     });
 
-    it('should watch the full sass dep tree for a single file (sass)', function(done) {
+    it.skip('should watch the full sass dep tree for a single file (sass)', function(done) {
       var src = fixture('watching/index.sass');
       var foo = fixture('watching/bar.sass');
 
