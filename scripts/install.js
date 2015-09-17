@@ -23,7 +23,10 @@ require('../lib/extensions');
 function download(url, dest, cb) {
   var reportError = function(err) {
     cb(['Cannot download "', url, '": ',
-      typeof err.message === 'string' ? err.message : err].join(''));
+      typeof err.message === 'string' ? err.message : err,
+      " Hint: If you are in China, ",
+      "try setting a proxy via HTTP_PROXY, e.g. ",
+      "export HTTP_PROXY=http://server.com:1234"].join(''));
   };
   var successful = function(response) {
     return response.statusCode >= 200 && response.statusCode < 300;
