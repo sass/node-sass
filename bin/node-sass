@@ -46,6 +46,7 @@ var cli = meow({
     '  --source-map-embed         Embed sourceMappingUrl as data URI',
     '  --source-map-root          Base path, will be emitted in source-map as is',
     '  --include-path             Path to look for imported files',
+    '  --follow                   Follow symlinked directories',
     '  --precision                The amount of precision allowed in decimal numbers',
     '  --importer                 Path to .js file containing custom importer',
     '  --functions                Path to .js file containing custom functions',
@@ -54,6 +55,7 @@ var cli = meow({
 }, {
   boolean: [
     'indented-syntax',
+    'follow',
     'omit-source-map-url',
     'quiet',
     'recursive',
@@ -331,7 +333,7 @@ function renderFile(file, options, emitter) {
  */
 function renderDir(options, emitter) {
   var globPath = path.resolve(options.directory, globPattern(options));
-  glob(globPath, { ignore: '**/_*' }, function(err, files) {
+  glob(globPath, { ignore: '**/_*', follow: options.follow }, function(err, files) {
     if (err) {
       return emitter.emit('error', util.format('You do not have permission to access this path: %s.', err.path));
     } else if (!files.length) {

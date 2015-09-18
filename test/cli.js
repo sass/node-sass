@@ -590,6 +590,32 @@ describe('cli', function() {
 
   });
 
+  describe('node-sass --follow --output output-dir input-dir', function() {
+    it('should compile with the --follow option', function(done) {
+      var src = fixture('follow/input-dir');
+      var dest = fixture('follow/output-dir');
+
+      fs.mkdirSync(src);
+      fs.symlinkSync(path.join(path.dirname(src), 'foo'), path.join(src, 'foo'), 'dir');
+
+      var bin = spawn(cli, [src, '--follow', '--output', dest]);
+
+      bin.once('close', function() {
+        var expected = path.join(dest, 'foo/bar/index.css');
+        fs.unlinkSync(path.join(src, 'foo'));
+        fs.rmdirSync(src);
+        assert(fs.existsSync(expected));
+        fs.unlinkSync(expected);
+        expected = path.dirname(expected);
+        fs.rmdirSync(expected);
+        expected = path.dirname(expected);
+        fs.rmdirSync(expected);
+        fs.rmdirSync(dest);
+        done();
+      });
+    });
+  });
+
   describe('importer', function() {
     var dest = fixture('include-files/index.css');
     var src = fixture('include-files/index.scss');
