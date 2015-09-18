@@ -96,7 +96,7 @@ Starting from v3.0.0:
 
 * `this` refers to a contextual scope for the immediate run of `sass.render` or `sass.renderSync`
 
-* importers can return error and LibSass will emit that error in repsonse. For instance:
+* importers can return error and LibSass will emit that error in response. For instance:
 
   ```javascript
   done(new Error('doesn\'t exist!'));
