@@ -316,7 +316,7 @@ sass.render({
     // this.options contains this options hash, this.callback contains the node-style callback
     someAsyncFunction(url, prev, function(result){
       done({
-        file: result.path, // only one of them is required, see section Sepcial Behaviours.
+        file: result.path, // only one of them is required, see section Special Behaviours.
         contents: result.data
       });
     });
