@@ -2,7 +2,7 @@
 #define SASS_TYPES_FACTORY_H
 
 #include <nan.h>
-#include <sass_values.h>
+#include <sass/values.h>
 #include "value.h"
 
 namespace SassTypes
