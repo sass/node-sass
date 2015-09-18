@@ -1186,6 +1186,36 @@ describe('api', function() {
   describe('.renderSync(importer)', function() {
     var src = read(fixture('include-files/index.scss'), 'utf8');
 
+    it('should override imports with "data" as input and fires callback with file and contents', function(done) {
+      var result = sass.renderSync({
+        data: src,
+        importer: function(url, prev, done) {
+          done({
+            file: prev + url,
+            contents: 'div {color: yellow;}'
+          });
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
+    it('should override imports with "file" as input and fires callback with file and contents', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function(url, prev, done) {
+          done({
+            file: prev + url,
+            contents: 'div {color: yellow;}'
+          });
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
     it('should override imports with "data" as input and returns file and contents', function(done) {
       var result = sass.renderSync({
         data: src,
@@ -1216,6 +1246,34 @@ describe('api', function() {
       done();
     });
 
+    it('should override imports with "data" as input and fires callback with file', function(done) {
+      var result = sass.renderSync({
+        data: src,
+        importer: function(url, prev, done) {
+          done({
+            file: path.resolve(path.dirname(fixture('include-files/index.scss')), url + (path.extname(url) ? '' : '.scss'))
+          });
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), '');
+      done();
+    });
+
+    it('should override imports with "file" as input and fires callback with file', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function(url, prev, done) {
+          done({
+            file: path.resolve(path.dirname(prev), url + (path.extname(url) ? '' : '.scss'))
+          });
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), '');
+      done();
+    });
+
     it('should override imports with "data" as input and returns file', function(done) {
       var result = sass.renderSync({
         data: src,
@@ -1241,6 +1299,34 @@ describe('api', function() {
       });
 
       assert.equal(result.css.toString().trim(), '');
+      done();
+    });
+
+    it('should override imports with "data" as input and fires callback with contents', function(done) {
+      var result = sass.renderSync({
+        data: src,
+        importer: function(url, prev, done) {
+          done({
+            contents: 'div {color: yellow;}'
+          });
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
+    it('should override imports with "file" as input and fires callback with contents', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function(url, prev, done) {
+          done({
+            contents: 'div {color: yellow;}'
+          });
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
       done();
     });
 
@@ -1328,6 +1414,23 @@ describe('api', function() {
           }
         });
       }, /returned value of `contents` must be a string/);
+
+      done();
+    });
+
+    it('should throw exception when importer attempts async operation', function(done) {
+      assert.throws(function() {
+        sass.renderSync({
+          data: src,
+          importer: function(url, prev, done) {
+            setTimeout(function(){
+              done({
+                contents: 'div {color: yellow;}'
+              });
+            }, 10);
+          }
+        });
+      }, /no value returned by importer: possibly due to async operation/);
 
       done();
     });
