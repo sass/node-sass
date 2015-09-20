@@ -1324,8 +1324,8 @@ namespace Sass {
       case Sass_OP::DIV: sep = "/"; break;
       default:                         break;
     }
-    if (ltype == Expression::NULL_VAL) error("invalid null operation: \"null plus "+quote(unquote(rstr), '"')+"\".", lhs.pstate());
-    if (rtype == Expression::NULL_VAL) error("invalid null operation: \""+quote(unquote(lstr), '"')+" plus null\".", rhs.pstate());
+    if (ltype == Expression::NULL_VAL) error("Invalid null operation: \"null plus "+quote(unquote(rstr), '"')+"\".", lhs.pstate());
+    if (rtype == Expression::NULL_VAL) error("Invalid null operation: \""+quote(unquote(lstr), '"')+" plus null\".", rhs.pstate());
 
     if ( (ltype == Expression::STRING || sep == "") &&
          (sep != "/" || !rqstr || !rqstr->quote_mark())
