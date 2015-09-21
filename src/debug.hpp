@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#ifndef UINT32_MAX
+  #define UINT32_MAX 0xffffffffU
+#endif
+
 enum dbg_lvl_t : uint32_t {
   NONE = 0,
   TRIM = 1,
