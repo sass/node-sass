@@ -47,6 +47,7 @@ var cli = meow({
     '  --source-map-root          Base path, will be emitted in source-map as is',
     '  --include-path             Path to look for imported files',
     '  --follow                   Follow symlinked directories',
+    '  --poll-interval            The filesystem polling interval in ms when the watcher has to poll',
     '  --precision                The amount of precision allowed in decimal numbers',
     '  --importer                 Path to .js file containing custom importer',
     '  --functions                Path to .js file containing custom functions',
@@ -240,7 +241,11 @@ function watch(options, emitter) {
     watch.push(i);
   }
 
-  var gaze = new Gaze();
+  if (options.pollInterval && typeof options.pollInterval !== 'number') {
+    emitter.emit('error', 'The --poll-interval must be an integer.');
+  }
+
+  var gaze = new Gaze(null, { interval: options.pollInterval });
   gaze.add(watch);
   gaze.on('error', emitter.emit.bind(emitter, 'error'));
 

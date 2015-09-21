@@ -11,7 +11,7 @@ var assert = require('assert'),
     LIBSASS_VERSION = null;
 
 describe('cli', function() {
-  
+
   before(function(done) {
       var bin = spawn(cli, ['-v']);
       bin.stdout.setEncoding('utf8');
@@ -233,6 +233,21 @@ describe('cli', function() {
           done();
         }
       }, 100);
+    });
+
+    it.only('should error when watching and --poll-interval is not an integer', function(done) {
+      var src = fixture('simple/tmp.scss');
+      var bin = spawn(cli, ['--watch', src]);
+      var didEmit = false;
+
+      bin.stderr.once('data', function() {
+        didEmit = true;
+      });
+
+      bin.once('close', function() {
+        assert.equal(didEmit, true);
+        done();
+      });
     });
 
     it('should emit `warn` on file change when using --watch option', function(done) {
