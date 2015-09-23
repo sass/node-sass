@@ -188,8 +188,7 @@ namespace Sass {
       Expression* exp = ARG(argname, Expression);
       if (exp->concrete_type() == Expression::NULL_VAL) {
         std::stringstream msg;
-        msg << argname << ": null is not a valid selector: it must be a string,\n";
-        msg << "a list of strings, or a list of lists of strings for `" << function_name(sig) << "'";
+        msg << argname << ": null is not a string for `" << function_name(sig) << "'";
         error(msg.str(), pstate);
       }
       std::string exp_src = exp->perform(&to_string) + "{";
