@@ -1880,12 +1880,8 @@ namespace Sass {
     BUILT_IN(is_superselector)
     {
       To_String to_string(&ctx, false);
-      Expression*  ex_sup = ARG("$super", Expression);
-      Expression*  ex_sub = ARG("$sub", Expression);
-      std::string sup_src = ex_sup->perform(&to_string) + "{";
-      std::string sub_src = ex_sub->perform(&to_string) + "{";
-      Selector_List* sel_sup = Parser::parse_selector(sup_src.c_str(), ctx);
-      Selector_List* sel_sub = Parser::parse_selector(sub_src.c_str(), ctx);
+      Selector_List*  sel_sup = ARGSEL("$super", Selector_List, p_contextualize);
+      Selector_List*  sel_sub = ARGSEL("$sub", Selector_List, p_contextualize);
       bool result = sel_sup->is_superselector_of(sel_sub);
       return SASS_MEMORY_NEW(ctx.mem, Boolean, pstate, result);
     }
