@@ -27,6 +27,8 @@ var cli = meow({
     'Example',
     '  node-sass --output-style compressed foobar.scss foobar.css',
     '  cat foobar.scss | node-sass --output-style compressed > foobar.css',
+    '  node-sass --recursive  --output-style compact --source-map css/style.map',
+    '    --source-map-contents --output css --include-path sass css/style.css',
     '',
     'Options',
     '  -w, --watch                Watch a directory or file',
