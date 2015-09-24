@@ -20,13 +20,15 @@ var cli = meow({
   pkg: '../package.json',
   version: process.sass.versionInfo,
   help: [
-    'Usage',
+    'Usage:',
     '  node-sass [options] <input.scss> [output.css]',
     '  cat <input.scss> | node-sass [options] > output.css',
     '',
-    'Example',
+    'Examples:',
     '  node-sass --output-style compressed foobar.scss foobar.css',
     '  cat foobar.scss | node-sass --output-style compressed > foobar.css',
+    '  node-sass --recursive  --output-style compact --source-map css/style.map',
+    '    --source-map-contents --output css --include-path sass css/style.css',
     '',
     'Options',
     '  -w, --watch                Watch a directory or file',
@@ -366,9 +368,11 @@ if (!options.src && process.stdin.isTTY) {
   emitter.emit('error', [
     'Provide a Sass file to render',
     '',
-    '  Example',
+    '  Examples:',
     '    node-sass --output-style compressed foobar.scss foobar.css',
-    '    cat foobar.scss | node-sass --output-style compressed > foobar.css'
+    '    cat foobar.scss | node-sass --output-style compressed > foobar.css',
+    '    node-sass --recursive  --output-style compact --source-map css/style.map',
+    '      --source-map-contents --output css --include-path sass css/style.css',
   ].join('\n'));
 }
 
