@@ -960,6 +960,7 @@ namespace Sass {
                            hex,
                            exactly<'|'>,
                            // exactly<'+'>,
+                           sequence < number, identifier >,
                            number,
                            sequence< exactly<'!'>, word<important_kwd> >
                           >(src);
