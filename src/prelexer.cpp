@@ -1010,15 +1010,15 @@ namespace Sass {
                          zero_plus< identifier >
                        >,
                        zero_plus < sequence<
-                                   alternatives<
-                                     sequence< optional_spaces, alternatives<
-                                       exactly < '/' >,
-                                       exactly < ',' >,
-                                       exactly < ' ' >
-                                     >, optional_spaces >,
-                                     spaces
-                                   >,
-                                   static_component
+                                     alternatives<
+                                       sequence< optional_spaces, alternatives<
+                                         exactly < '/' >,
+                                         exactly < ',' >,
+                                         exactly < ' ' >
+                                       >, optional_spaces >,
+                                       spaces
+                                     >,
+                                     static_component
                        > >,
                        optional_css_whitespace,
                        alternatives< exactly<';'>, exactly<'}'> >
