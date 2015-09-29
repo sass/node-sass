@@ -2435,7 +2435,7 @@ namespace Sass {
   // print a css parsing error with actual context information from parsed source
   void Parser::css_error(const std::string& msg, const std::string& prefix, const std::string& middle)
   {
-    int max_len = 14;
+    int max_len = 18;
     const char* pos = peek < optional_spaces >();
 
     const char* last_pos(pos - 1);
@@ -2446,7 +2446,7 @@ namespace Sass {
     const char* pos_left(last_pos + 1);
     const char* end_left(last_pos + 1);
     while (pos_left > source) {
-      if (end_left - pos_left > max_len) {
+      if (end_left - pos_left >= max_len) {
         ellipsis_left = true;
         break;
       }
@@ -2476,8 +2476,8 @@ namespace Sass {
 
     std::string left(pos_left, end_left);
     std::string right(pos_right, end_right);
-    if (ellipsis_left) left = ellipsis + left;
-    if (ellipsis_right) right = right + ellipsis;
+    if (ellipsis_left) left = ellipsis + left.substr(left.size() - 15);
+    if (ellipsis_right) right = right.substr(right.size() - 15) + ellipsis;
     // now pass new message to the more generic error function
     error(msg + prefix + quote(left) + middle + quote(right), pstate);
   }
