@@ -519,6 +519,10 @@ namespace Sass {
 
   Argument* Parser::parse_argument(bool has_url)
   {
+    if (peek_css< sequence < exactly< hash_lbrace >, exactly< rbrace > > >()) {
+      position += 2;
+      css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
+    }
 
     Argument* arg;
     // some urls can look like line comments (parse literally - chunk would not work)
@@ -1723,7 +1727,7 @@ namespace Sass {
         }
         // we need to skip anything inside strings
         // create a new target in parser/prelexer
-        if (peek < sequence < optional_spaces, exactly<rbrace> > >(p+2)) { position = p+2;
+        if (peek < sequence < optional_spaces, exactly<rbrace> > >(p+2)) { position = p;
           css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
         }
         const char* j = skip_over_scopes< exactly<hash_lbrace>, exactly<rbrace> >(p+2, id.end); // find the closing brace
