@@ -1638,6 +1638,9 @@ namespace Sass {
       // lex an interpolant /#{...}/
       else if (lex< exactly < hash_lbrace > >()) {
         // Try to lex static expression first
+        if (peek< exactly< rbrace > >()) {
+          css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
+        }
         if (lex< re_static_expression >()) {
           (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, lexed);
         } else {
