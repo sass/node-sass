@@ -519,6 +519,10 @@ namespace Sass {
 
   Argument* Parser::parse_argument(bool has_url)
   {
+    if (peek_css< sequence < exactly< hash_lbrace >, exactly< rbrace > > >()) {
+      position += 2;
+      css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
+    }
 
     Argument* arg;
     // some urls can look like line comments (parse literally - chunk would not work)
@@ -1638,6 +1642,9 @@ namespace Sass {
       // lex an interpolant /#{...}/
       else if (lex< exactly < hash_lbrace > >()) {
         // Try to lex static expression first
+        if (peek< exactly< rbrace > >()) {
+          css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
+        }
         if (lex< re_static_expression >()) {
           (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, lexed);
         } else {
@@ -1720,7 +1727,7 @@ namespace Sass {
         }
         // we need to skip anything inside strings
         // create a new target in parser/prelexer
-        if (peek < sequence < optional_spaces, exactly<rbrace> > >(p+2)) { position = p+2;
+        if (peek < sequence < optional_spaces, exactly<rbrace> > >(p+2)) { position = p;
           css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
         }
         const char* j = skip_over_scopes< exactly<hash_lbrace>, exactly<rbrace> >(p+2, id.end); // find the closing brace
@@ -2432,7 +2439,7 @@ namespace Sass {
   // print a css parsing error with actual context information from parsed source
   void Parser::css_error(const std::string& msg, const std::string& prefix, const std::string& middle)
   {
-    int max_len = 14;
+    int max_len = 18;
     const char* pos = peek < optional_spaces >();
 
     const char* last_pos(pos - 1);
@@ -2443,7 +2450,7 @@ namespace Sass {
     const char* pos_left(last_pos + 1);
     const char* end_left(last_pos + 1);
     while (pos_left > source) {
-      if (end_left - pos_left > max_len) {
+      if (end_left - pos_left >= max_len) {
         ellipsis_left = true;
         break;
       }
@@ -2473,8 +2480,8 @@ namespace Sass {
 
     std::string left(pos_left, end_left);
     std::string right(pos_right, end_right);
-    if (ellipsis_left) left = ellipsis + left;
-    if (ellipsis_right) right = right + ellipsis;
+    if (ellipsis_left) left = ellipsis + left.substr(left.size() - 15);
+    if (ellipsis_right) right = right.substr(right.size() - 15) + ellipsis;
     // now pass new message to the more generic error function
     error(msg + prefix + quote(left) + middle + quote(right), pstate);
   }
