@@ -33,7 +33,7 @@ Developing
 As you may have noticed, the LibSass repo itself has
 no executables and no tests. Oh noes! How can you develop???
 
-Well, luckily, SassC is the official binary wrapper for
+Well, luckily, [SassC](http://github.com/sass/sassc) is the official binary wrapper for
 LibSass and is *always* kept in sync. SassC uses a git submodule
 to include LibSass. When developing LibSass, its best to actually
 check out SassC and develop in that directory with the SassC spec
