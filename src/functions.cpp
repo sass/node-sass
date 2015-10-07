@@ -1579,9 +1579,10 @@ namespace Sass {
       size_t param_size = params ? params->length() : 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Expression* expr = arglist->value_at_index(i);
-        Parameter* p = param_size > i ? (*params)[i] : 0;
-        if (List* list = dynamic_cast<List*>(expr)) {
-          if (p && !p->is_rest_parameter()) expr = (*list)[0];
+        if (params->has_rest_parameter()) {
+          Parameter* p = param_size > i ? (*params)[i] : 0;
+          List* list = dynamic_cast<List*>(expr);
+          if (list && p && !p->is_rest_parameter()) expr = (*list)[0];
         }
         if (arglist->is_arglist()) {
           Argument* arg = dynamic_cast<Argument*>((*arglist)[i]);
