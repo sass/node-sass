@@ -1589,7 +1589,7 @@ namespace Sass {
           *args << SASS_MEMORY_NEW(ctx.mem, Argument,
                                    pstate,
                                    expr,
-                                   "",
+                                   arg ? arg->name() : "",
                                    arg ? arg->is_rest_argument() : false,
                                    arg ? arg->is_keyword_argument() : false);
         } else {
