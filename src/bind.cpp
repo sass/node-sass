@@ -107,7 +107,7 @@ namespace Sass {
             (*arglist) << SASS_MEMORY_NEW(ctx.mem, Argument,
                                           key->pstate(),
                                           argmap->at(key),
-                                          name,
+                                          "$" + name,
                                           false,
                                           false);
           }

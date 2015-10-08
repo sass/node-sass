@@ -1579,7 +1579,7 @@ namespace Sass {
       size_t param_size = params ? params->length() : 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Expression* expr = arglist->value_at_index(i);
-        if (params->has_rest_parameter()) {
+        if (params && params->has_rest_parameter()) {
           Parameter* p = param_size > i ? (*params)[i] : 0;
           List* list = dynamic_cast<List*>(expr);
           if (list && p && !p->is_rest_parameter()) expr = (*list)[0];
@@ -1589,7 +1589,7 @@ namespace Sass {
           *args << SASS_MEMORY_NEW(ctx.mem, Argument,
                                    pstate,
                                    expr,
-                                   "",
+                                   arg ? arg->name() : "",
                                    arg ? arg->is_rest_argument() : false,
                                    arg ? arg->is_keyword_argument() : false);
         } else {
