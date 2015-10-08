@@ -16,6 +16,7 @@ environment:
 
 cache:
   - C:\Ruby%ruby_version%\lib\ruby\gems
+  - C:\mingw64
 
 install:
   - git clone https://github.com/sass/sassc.git
