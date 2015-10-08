@@ -12,7 +12,7 @@ Additionally, it is recommended to have `git` installed and available in `PATH`,
 
 On opening the `win\libsass.sln` solution and build (Ctrl+Shift+B) to build `libsass.dll`.
 
-To Build libsass as a static Library, it is recommended to set an environment variable `LIBSASS_STATIC_LIB` before launching the project:
+To Build LibSass as a static Library, it is recommended to set an environment variable `LIBSASS_STATIC_LIB` before launching the project:
 
 ```cmd
 cd path\to\libsass
@@ -30,7 +30,7 @@ Visual Studio will form the filtered source tree as shown below:
 
 `Header Files` contains the .h and .hpp files, while `Source Files` covers `.c` and `.cpp`. The other used headers/sources will appear under `External Dependencies`.
 
-If there is a libsass code file appearing under External Dependencies, it can be changed by altering the `win\libsass.vcxproj.filters` file or dragging in Solution Explorer.
+If there is a LibSass code file appearing under External Dependencies, it can be changed by altering the `win\libsass.vcxproj.filters` file or dragging in Solution Explorer.
 
 #### From Command Prompt:
 

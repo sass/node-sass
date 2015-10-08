@@ -52,7 +52,7 @@ char* input_path;
 ```
 ```C
 // The output path is used for source map
-// generating. Libsass will not write to
+// generating. LibSass will not write to
 // this file, it is just used to create
 // information in source-maps etc.
 char* output_path;

@@ -1,15 +1,15 @@
 ## Introduction
 
-Libsass wouldn't be much good without a way to interface with it. These interface documentations describe the various functions and data structures available to implementers. They are split up over three major components, which have all their own source files (plus some common functionality).
+LibSass wouldn't be much good without a way to interface with it. These interface documentations describe the various functions and data structures available to implementers. They are split up over three major components, which have all their own source files (plus some common functionality).
 
 - [Sass Context](api-context.md) - Trigger and handle the main Sass compilation
-- [Sass Value](api-value.md) - Exchange values and its format with libsass
-- [Sass Function](api-function.md) - Get invoked by libsass for function statments
-- [Sass Importer](api-importer.md) - Get invoked by libsass for @import statments
+- [Sass Value](api-value.md) - Exchange values and its format with LibSass
+- [Sass Function](api-function.md) - Get invoked by LibSass for function statments
+- [Sass Importer](api-importer.md) - Get invoked by LibSass for @import statments
 
 ### Basic usage
 
-First you will need to include the header file!  
+First you will need to include the header file!
 This will automatically load all other headers too!
 
 ```C
@@ -18,7 +18,7 @@ This will automatically load all other headers too!
 
 ### Deprecated usage
 
-The old API is kept in the source for backward compatibility.  
+The old API is kept in the source for backward compatibility.
 It's deprecated and incompatible with this documentation, use `sass/context.h`!
 
 ```C
@@ -33,7 +33,7 @@ It's deprecated and incompatible with this documentation, use `sass/context.h`!
 #include "sass/context.h"
 
 int main() {
-  puts(libsass_version());
+  puts(libsass_VERSION());
   return 0;
 }
 ```
@@ -51,7 +51,7 @@ gcc -Wall version.c -lsass -o version && ./version
 
 ## Compiling your code
 
-The most important is your sass file (or string of sass code).  With this, you will want to start a libsass compiler.  Here is some pseudocode describing the process.  The compiler has two different modes: direct input as a string with `Sass_Data_Context` or libsass will do file reading for you by using `Sass_File_Context`.  See the code for a list of options available [Sass_Options](https://github.com/sass/libsass/blob/36feef0/include/sass/interface.h#L18)
+The most important is your sass file (or string of sass code).  With this, you will want to start a LibSass compiler.  Here is some pseudocode describing the process.  The compiler has two different modes: direct input as a string with `Sass_Data_Context` or LibSass will do file reading for you by using `Sass_File_Context`.  See the code for a list of options available [Sass_Options](https://github.com/sass/libsass/blob/36feef0/include/sass/interface.h#L18)
 
 **Building a file compiler**
 
@@ -108,7 +108,7 @@ struct Sass_Data_context : Sass_Context;
 This mirrors very well how `libsass` uses these structures.
 
 - `Sass_Options` holds everything you feed in before the compilation. It also hosts `input_path` and `output_path` options, because they are used to generate/calculate relative links in source-maps. The `input_path` is shared with `Sass_File_Context`.
-- `Sass_Context` holds all the data returned by the compilation step. 
+- `Sass_Context` holds all the data returned by the compilation step.
 - `Sass_File_Context` is a specific implementation that requires no additional fields
 - `Sass_Data_Context` is a specific implementation that adds the `input_source` field
 
@@ -126,7 +126,7 @@ Be aware that `libsass` does not write the output file itself. This option merel
 
 ## Error Codes
 
-The `error_code` is integer value which indicates the type of error that occurred inside the libsass process. Following is the list of error codes along with the short description:
+The `error_code` is integer value which indicates the type of error that occurred inside the LibSass process. Following is the list of error codes along with the short description:
 
 * 1: normal errors like parsing or `eval` errors
 * 2: bad allocation error (memory error)
@@ -134,11 +134,11 @@ The `error_code` is integer value which indicates the type of error that occurre
 * 4: legacy string exceptions ( `throw const char*` or `std::string` )
 * 5: Some other unknown exception
 
-Although for the API consumer, error codes do not offer much value except indicating whether *any* error occurred during the compilation, it helps debugging the libsass internal code paths.
+Although for the API consumer, error codes do not offer much value except indicating whether *any* error occurred during the compilation, it helps debugging the LibSass internal code paths.
 
 ## Real-World Implementations
 
-The proof is in the pudding, so we have highlighted a few implementations that should be on par with the latest libsass interface version. Some of them may not have all features implemented!
+The proof is in the pudding, so we have highlighted a few implementations that should be on par with the latest LibSass interface version. Some of them may not have all features implemented!
 
 1. [Perl Example](https://github.com/sass/perl-libsass/blob/master/lib/CSS/Sass.xs)
 2. [Go Example](http://godoc.org/github.com/wellington/go-libsass#example-Context-Compile)
@@ -146,11 +146,11 @@ The proof is in the pudding, so we have highlighted a few implementations that s
 
 ## ABI forward compatibility
 
-We use a functional API to make dynamic linking more robust and future compatible. The API is not yet 100% stable, so we do not yet guarantee ABI forward compatibility. We will do so, once we increase the shared library version above 1.0.
+We use a functional API to make dynamic linking more robust and future compatible. The API is not yet 100% stable, so we do not yet guarantee [ABI](https://gcc.gnu.org/onlinedocs/libstdc++/manual/abi.html) forward compatibility. We will do so, once we increase the shared library version above 1.0.
 
 ## Plugins (experimental)
 
-Libsass can load plugins from directories. Just define `plugin_path` on context options to load all plugins from the given directories. To implement plugins, please consult the [[Wiki-Page for plugins|API-Plugins]].
+LibSass can load plugins from directories. Just define `plugin_path` on context options to load all plugins from the given directories. To implement plugins, please consult the [[Wiki-Page for plugins|API-Plugins]].
 
 ## Internal Structs
 

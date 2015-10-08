@@ -33,7 +33,7 @@ int main( int argc, const char* argv[] )
     sass_make_importer(sass_importer, 0, 0);
   // create list for all custom importers
   Sass_Importer_List imp_list = sass_make_importer_list(1);
-  // put the only importer on to the list
+  // put only the importer on to the list
   sass_importer_set_list_entry(imp_list, 0, c_imp);
   // register list on to the context options
   sass_option_set_c_importers(ctx_opt, imp_list);
@@ -66,12 +66,12 @@ echo "@import 'foobar';" > importer.scss
 
 ```C
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the import request
+  // let LibSass handle the import request
   return NULL;
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the request
+  // let LibSass handle the request
   // swallows »@import "http://…"« pass-through
   // (arguably a bug)
   Sass_Import_List list = sass_make_import_list(1);
@@ -89,7 +89,7 @@ Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass load the file identifed by the importer
+  // let LibSass load the file identifed by the importer
   Sass_Import_List list = sass_make_import_list(1);
   list[0] = sass_make_import_entry("/tmp/file.scss", 0, 0);
   return list;
@@ -178,12 +178,12 @@ echo "@import 'foobar';" > importer.scss
 
 ```C
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the import request
+  // let LibSass handle the import request
   return NULL;
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the request
+  // let LibSass handle the request
   // swallows »@import "http://…"« pass-through
   // (arguably a bug)
   Sass_Import_List list = sass_make_import_list(1);
@@ -201,7 +201,7 @@ Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass load the file identifed by the importer
+  // let LibSass load the file identifed by the importer
   Sass_Import_List list = sass_make_import_list(1);
   list[0] = sass_make_import_entry("/tmp/file.scss", 0, 0);
   return list;
@@ -290,12 +290,12 @@ echo "@import 'foobar';" > importer.scss
 
 ```C
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the import request
+  // let LibSass handle the import request
   return NULL;
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the request
+  // let LibSass handle the request
   // swallows »@import "http://…"« pass-through
   // (arguably a bug)
   Sass_Import_List list = sass_make_import_list(1);
@@ -313,7 +313,7 @@ Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass load the file identifed by the importer
+  // let LibSass load the file identifed by the importer
   Sass_Import_List list = sass_make_import_list(1);
   list[0] = sass_make_import_entry("/tmp/file.scss", 0, 0);
   return list;
@@ -402,12 +402,12 @@ echo "@import 'foobar';" > importer.scss
 
 ```C
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the import request
+  // let LibSass handle the import request
   return NULL;
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the request
+  // let LibSass handle the request
   // swallows »@import "http://…"« pass-through
   // (arguably a bug)
   Sass_Import_List list = sass_make_import_list(1);
@@ -425,7 +425,7 @@ Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass load the file identifed by the importer
+  // let LibSass load the file identifed by the importer
   Sass_Import_List list = sass_make_import_list(1);
   list[0] = sass_make_import_entry("/tmp/file.scss", 0, 0);
   return list;
@@ -514,12 +514,12 @@ echo "@import 'foobar';" > importer.scss
 
 ```C
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the import request
+  // let LibSass handle the import request
   return NULL;
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the request
+  // let LibSass handle the request
   // swallows »@import "http://…"« pass-through
   // (arguably a bug)
   Sass_Import_List list = sass_make_import_list(1);
@@ -537,7 +537,7 @@ Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass load the file identifed by the importer
+  // let LibSass load the file identifed by the importer
   Sass_Import_List list = sass_make_import_list(1);
   list[0] = sass_make_import_entry("/tmp/file.scss", 0, 0);
   return list;
@@ -626,12 +626,12 @@ echo "@import 'foobar';" > importer.scss
 
 ```C
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the import request
+  // let LibSass handle the import request
   return NULL;
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the request
+  // let LibSass handle the request
   // swallows »@import "http://…"« pass-through
   // (arguably a bug)
   Sass_Import_List list = sass_make_import_list(1);
@@ -649,7 +649,7 @@ Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass load the file identifed by the importer
+  // let LibSass load the file identifed by the importer
   Sass_Import_List list = sass_make_import_list(1);
   list[0] = sass_make_import_entry("/tmp/file.scss", 0, 0);
   return list;
@@ -738,12 +738,12 @@ echo "@import 'foobar';" > importer.scss
 
 ```C
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the import request
+  // let LibSass handle the import request
   return NULL;
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the request
+  // let LibSass handle the request
   // swallows »@import "http://…"« pass-through
   // (arguably a bug)
   Sass_Import_List list = sass_make_import_list(1);
@@ -761,7 +761,7 @@ Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass load the file identifed by the importer
+  // let LibSass load the file identifed by the importer
   Sass_Import_List list = sass_make_import_list(1);
   list[0] = sass_make_import_entry("/tmp/file.scss", 0, 0);
   return list;
@@ -850,12 +850,12 @@ echo "@import 'foobar';" > importer.scss
 
 ```C
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the import request
+  // let LibSass handle the import request
   return NULL;
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the request
+  // let LibSass handle the request
   // swallows »@import "http://…"« pass-through
   // (arguably a bug)
   Sass_Import_List list = sass_make_import_list(1);
@@ -873,7 +873,7 @@ Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass load the file identifed by the importer
+  // let LibSass load the file identifed by the importer
   Sass_Import_List list = sass_make_import_list(1);
   list[0] = sass_make_import_entry("/tmp/file.scss", 0, 0);
   return list;
@@ -962,12 +962,12 @@ echo "@import 'foobar';" > importer.scss
 
 ```C
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the import request
+  // let LibSass handle the import request
   return NULL;
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the request
+  // let LibSass handle the request
   // swallows »@import "http://…"« pass-through
   // (arguably a bug)
   Sass_Import_List list = sass_make_import_list(1);
@@ -985,7 +985,7 @@ Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass load the file identifed by the importer
+  // let LibSass load the file identifed by the importer
   Sass_Import_List list = sass_make_import_list(1);
   list[0] = sass_make_import_entry("/tmp/file.scss", 0, 0);
   return list;
@@ -1074,12 +1074,12 @@ echo "@import 'foobar';" > importer.scss
 
 ```C
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the import request
+  // let LibSass handle the import request
   return NULL;
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the request
+  // let LibSass handle the request
   // swallows »@import "http://…"« pass-through
   // (arguably a bug)
   Sass_Import_List list = sass_make_import_list(1);
@@ -1097,7 +1097,7 @@ Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass load the file identifed by the importer
+  // let LibSass load the file identifed by the importer
   Sass_Import_List list = sass_make_import_list(1);
   list[0] = sass_make_import_entry("/tmp/file.scss", 0, 0);
   return list;
@@ -1186,12 +1186,12 @@ echo "@import 'foobar';" > importer.scss
 
 ```C
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the import request
+  // let LibSass handle the import request
   return NULL;
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the request
+  // let LibSass handle the request
   // swallows »@import "http://…"« pass-through
   // (arguably a bug)
   Sass_Import_List list = sass_make_import_list(1);
@@ -1209,7 +1209,7 @@ Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass load the file identifed by the importer
+  // let LibSass load the file identifed by the importer
   Sass_Import_List list = sass_make_import_list(1);
   list[0] = sass_make_import_entry("/tmp/file.scss", 0, 0);
   return list;
@@ -1298,12 +1298,12 @@ echo "@import 'foobar';" > importer.scss
 
 ```C
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the import request
+  // let LibSass handle the import request
   return NULL;
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass handle the request
+  // let LibSass handle the request
   // swallows »@import "http://…"« pass-through
   // (arguably a bug)
   Sass_Import_List list = sass_make_import_list(1);
@@ -1321,7 +1321,7 @@ Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_
 }
 
 Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_Compiler* comp) {
-  // let libsass load the file identifed by the importer
+  // let LibSass load the file identifed by the importer
   Sass_Import_List list = sass_make_import_list(1);
   list[0] = sass_make_import_entry("/tmp/file.scss", 0, 0);
   return list;

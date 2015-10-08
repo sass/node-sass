@@ -18,7 +18,7 @@ struct Sass_C_Function_Descriptor {
 
 ### signature
 
-The signature defines how the function can be invoked. It also declares which arguments are required and which are optional.  Required arguments will be enforced by libsass and a SASS error is thrown in the event a call as missing an argument. Optional arguments only need to be present when you want to overwrite the default value.
+The signature defines how the function can be invoked. It also declares which arguments are required and which are optional.  Required arguments will be enforced by LibSass and a Sass error is thrown in the event a call as missing an argument. Optional arguments only need to be present when you want to overwrite the default value.
 
     foo($bar, $baz: 2)
 

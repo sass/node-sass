@@ -48,7 +48,7 @@ struct Sass_Options {
   char* input_path;
 
   // The output path is used for source map
-  // generation. Libsass will not write to
+  // generation. LibSass will not write to
   // this file, it is just used to create
   // information in source-maps etc.
   char* output_path;
@@ -60,7 +60,8 @@ struct Sass_Options {
 
   // Colon-separated list of paths
   // Semicolon-separated on Windows
-  // Maybe use array interface instead?
+  // Note: It may be better to use
+  // array interface instead
   char* include_path;
   char* plugin_path;
 

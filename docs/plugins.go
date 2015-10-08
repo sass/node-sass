@@ -1,4 +1,4 @@
-Plugins are shared object files (.so on *nix and .dll on win) that can be loaded by libsass on runtime. Currently we only provide a way to load internal/custom functions from plugins. In the future we probably will also add a way to provide custom importers via plugins (needs more refactoring to [support multiple importers with some kind of priority system](https://github.com/sass/libsass/issues/962)).
+Plugins are shared object files (.so on *nix and .dll on win) that can be loaded by LibSass on runtime. Currently we only provide a way to load internal/custom functions from plugins. In the future we probably will also add a way to provide custom importers via plugins (needs more refactoring to [support multiple importers with some kind of priority system](https://github.com/sass/libsass/issues/962)).
 
 ## plugin.cpp
 
@@ -32,7 +32,7 @@ extern "C" Sass_C_Function_List ADDCALL libsass_load_functions()
 }
 ```
 
-To compile the plugin you need to have libsass already built as a shared library (to link against it). The commands below expect the shared library in the `lib` sub-directory (`-Llib`). The plugin and the main libsass process should "consume" the same shared libsass library on runtime. It will propably also work if they use different libsass versions. In this case we check if the major versions are compatible (i.e. 3.1.3 and 3.1.1 would be considered compatible).
+To compile the plugin you need to have LibSass already built as a shared library (to link against it). The commands below expect the shared library in the `lib` sub-directory (`-Llib`). The plugin and the main LibSass process should "consume" the same shared LibSass library on runtime. It will propably also work if they use different LibSass versions. In this case we check if the major versions are compatible (i.e. 3.1.3 and 3.1.1 would be considered compatible).
 
 ## Compile with gcc on linux
 

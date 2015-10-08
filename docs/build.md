@@ -23,7 +23,7 @@ Windows build support was added very recently and should be considered experimen
 
 ### Building on Max OS X (untested)
 
-Works the same as on linux, but you can also install libsass via `homebrew`.
+Works the same as on linux, but you can also install LibSass via `homebrew`.
 
 - [Building on Mac OS X] [10]
 
@@ -55,7 +55,7 @@ gem install minitest
 gem install minitap
 ```
 
-Including the libsass version
+Including the LibSass version
 --
 
 There is a function in `libsass` to query the current version. This has to be defined at compile time. We use a C macro for this, which can be defined by calling `g++ -DLIBSASS_VERSION="\"x.y.z.\""`. The two quotes are necessary, since it needs to end up as a valid C string. Normally you do not need to do anything if you use the makefiles or autotools. They will try to fetch the version via git directly. If you only have the sources without the git repo, you can pass the version as an environment variable to `make` or `configure`:
@@ -69,9 +69,9 @@ Continuous Integration
 
 We use two CI services to automatically test all commits against the latest [spec test-suite] [5].
 
-- [Libsass on Travis-CI (linux)][7]
+- [LibSass on Travis-CI (linux)][7]
 [![Build Status](https://travis-ci.org/sass/libsass.png?branch=master)](https://travis-ci.org/sass/libsass)
-- [Libsass on AppVeyor (windows)][8]
+- [LibSass on AppVeyor (windows)][8]
 [![Build status](https://ci.appveyor.com/api/projects/status/github/sass/libsass?svg=true)](https://ci.appveyor.com/project/mgreter/libsass-513/branch/master)
 
 Why not using CMake?

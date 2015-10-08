@@ -72,9 +72,9 @@ mingw32-make -C libsass test_build
 ## Building via MingGW 64bit (makefiles)
 Building libass to dll on window 64bit.
 
-+ downloads  [MinGW64 for windows7 64bit](http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/4.9.2/threads-win32/seh/x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z/download) , and unzip to "C:\mingw64".
+Download [MinGW64 for windows7 64bit](http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/4.9.2/threads-win32/seh/x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z/download) and unzip to "C:\mingw64".
 
-+ Create a batch file with this content:
+Create a batch file with this content:
 
 ```bat
 @echo off
@@ -86,7 +86,7 @@ REM C:\MinGW\msys\1.0\msys.bat
 cmd
 ```
 
-+ By default , mingw64 dll will depends on "​m​i​n​g​w​m​1​0​.​d​l​l​、​ ​l​i​b​g​c​c​_​s​_​d​w​2​-​1​.​d​l​l​" , we can modify Makefile to fix this:(add "-static")
+By default, mingw64 dll will depends on "​m​i​n​g​w​m​1​0​.​d​l​l​、​ ​l​i​b​g​c​c​_​s​_​d​w​2​-​1​.​d​l​l​", we can modify Makefile to fix this:(add "-static")
 
 ``` bash
 lib/libsass.dll: $(COBJECTS) $(OBJECTS) $(RCOBJECTS)
@@ -94,13 +94,13 @@ lib/libsass.dll: $(COBJECTS) $(OBJECTS) $(RCOBJECTS)
 	$(CXX) -shared $(LDFLAGS) -o $@ $(COBJECTS) $(OBJECTS) $(RCOBJECTS) $(LDLIBS) -s -static -Wl,--subsystem,windows,--out-implib,lib/libsass.a
 ```
 
-+ Compile the library
+Compile the library
 
 ```bash
 mingw32-make -C libsass
 ```
 
-By the way , if you are using java jna , [JNAerator](http://jnaerator.googlecode.com/) is a good tool.
+By the way, if you are using java jna, [JNAerator](http://jnaerator.googlecode.com/) is a good tool.
 
 [1]: http://sourceforge.net/projects/mingw/files/latest/download?source=files
 [2]: https://msysgit.github.io/
