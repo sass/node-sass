@@ -1121,6 +1121,7 @@ namespace Sass {
   Complex_Selector* Complex_Selector::clone(Context& ctx) const
   {
     Complex_Selector* cpy = SASS_MEMORY_NEW(ctx.mem, Complex_Selector, *this);
+    cpy->media_block(this->media_block());
     if (tail()) cpy->tail(tail()->clone(ctx));
     return cpy;
   }
@@ -1143,12 +1144,14 @@ namespace Sass {
   Compound_Selector* Compound_Selector::clone(Context& ctx) const
   {
     Compound_Selector* cpy = SASS_MEMORY_NEW(ctx.mem, Compound_Selector, *this);
+    cpy->media_block(this->media_block());
     return cpy;
   }
 
   Selector_List* Selector_List::clone(Context& ctx) const
   {
     Selector_List* cpy = SASS_MEMORY_NEW(ctx.mem, Selector_List, *this);
+    cpy->media_block(this->media_block());
     return cpy;
   }
 

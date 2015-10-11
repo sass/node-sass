@@ -1395,6 +1395,7 @@ namespace Sass {
   {
     std::vector<Selector_List*> rv;
     Selector_List* sl = SASS_MEMORY_NEW(ctx.mem, Selector_List, s->pstate());
+    sl->media_block(s->media_block());
     for (size_t i = 0, iL = s->length(); i < iL; ++i) {
       rv.push_back(operator()((*s)[i]));
     }

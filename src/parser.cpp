@@ -609,6 +609,7 @@ namespace Sass {
     String_Schema* schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, pstate);
     // the selector schema is pretty much just a wrapper for the string schema
     Selector_Schema* selector_schema = SASS_MEMORY_NEW(ctx.mem, Selector_Schema, pstate, schema);
+    selector_schema->media_block(last_media_block);
 
     // process until end
     while (i < end_of_selector) {
@@ -693,6 +694,7 @@ namespace Sass {
     Complex_Selector* sel = 0;
     To_String to_string(&ctx);
     Selector_List* group = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate);
+    group->media_block(last_media_block);
 
     do {
       reloop = false;
@@ -774,6 +776,8 @@ namespace Sass {
     // source position of a complex selector points to the combinator
     // ToDo: make sure we update pstate for ancestor of (lex < zero >());
     Complex_Selector* sel = SASS_MEMORY_NEW(ctx.mem, Complex_Selector, pstate, combinator, lhs);
+    sel->media_block(last_media_block);
+
     if (combinator == Complex_Selector::REFERENCE) sel->reference(reference);
     // has linfeed after combinator?
     sel->has_line_break(peek_newline());
@@ -795,13 +799,18 @@ namespace Sass {
     if (!sel->has_reference() && !in_at_root && !in_root) {
       // create the objects to wrap parent selector reference
       Parent_Selector* parent = SASS_MEMORY_NEW(ctx.mem, Parent_Selector, pstate);
+      parent->media_block(last_media_block);
       Compound_Selector* head = SASS_MEMORY_NEW(ctx.mem, Compound_Selector, pstate);
+      head->media_block(last_media_block);
       // add simple selector
       (*head) << parent;
       // selector may not have any head yet
       if (!sel->head()) { sel->head(head); }
       // otherwise we need to create a new complex selector and set the old one as its tail
-      else { sel = SASS_MEMORY_NEW(ctx.mem, Complex_Selector, pstate, Complex_Selector::ANCESTOR_OF, head, sel); }
+      else {
+        sel = SASS_MEMORY_NEW(ctx.mem, Complex_Selector, pstate, Complex_Selector::ANCESTOR_OF, head, sel);
+        sel->media_block(last_media_block);
+      }
       // peek for linefeed and remember result on head
       // if (peek_newline()) head->has_line_break(true);
     }
@@ -818,6 +827,7 @@ namespace Sass {
   {
     // init an empty compound selector wrapper
     Compound_Selector* seq = SASS_MEMORY_NEW(ctx.mem, Compound_Selector, pstate);
+    seq->media_block(last_media_block);
 
     // skip initial white-space
     lex< css_whitespace >();
@@ -892,7 +902,9 @@ namespace Sass {
       return parse_attribute_selector();
     }
     else if (lex< placeholder >()) {
-      return SASS_MEMORY_NEW(ctx.mem, Selector_Placeholder, pstate, lexed);
+      Selector_Placeholder* sel = SASS_MEMORY_NEW(ctx.mem, Selector_Placeholder, pstate, lexed);
+      sel->media_block(last_media_block);
+      return sel;
     }
     // failed
     return 0;
@@ -1912,7 +1924,10 @@ namespace Sass {
     Media_Block* media_block = SASS_MEMORY_NEW(ctx.mem, Media_Block, pstate, 0, 0);
     media_block->media_queries(parse_media_queries());
 
+    Media_Block* prev_media_block = last_media_block;
+    last_media_block = media_block;
     media_block->block(parse_css_block());
+    last_media_block = prev_media_block;
 
     return media_block;
   }
