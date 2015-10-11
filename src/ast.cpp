@@ -205,6 +205,10 @@ namespace Sass {
 
   bool Simple_Selector::operator== (const Simple_Selector& rhs) const
   {
+    const Attribute_Selector* ll = dynamic_cast<const Attribute_Selector*>(this);
+    const Attribute_Selector* rr = dynamic_cast<const Attribute_Selector*>(&rhs);
+    if (ll && rr) return *ll == *rr;
+
     if (is_ns_eq(ns(), rhs.ns()))
     { return name() == rhs.name(); }
     return ns() == rhs.ns();
@@ -212,6 +216,10 @@ namespace Sass {
 
   bool Simple_Selector::operator< (const Simple_Selector& rhs) const
   {
+    const Attribute_Selector* ll = dynamic_cast<const Attribute_Selector*>(this);
+    const Attribute_Selector* rr = dynamic_cast<const Attribute_Selector*>(&rhs);
+    if (ll && rr) return *ll < *rr;
+
     if (is_ns_eq(ns(), rhs.ns()))
     { return name() < rhs.name(); }
     return ns() < rhs.ns();
@@ -421,6 +429,47 @@ namespace Sass {
       }
     }
     return Simple_Selector::unify_with(rhs, ctx);
+  }
+
+  bool Attribute_Selector::operator< (const Attribute_Selector& rhs) const
+  {
+    if (is_ns_eq(ns(), rhs.ns())) {
+      if (name() == rhs.name()) {
+        if (matcher() == rhs.matcher()) {
+          return value() < rhs.value();
+        } else { return matcher() < rhs.matcher(); }
+      } else { return name() < rhs.name(); }
+    }
+    else return false;
+  }
+
+  bool Attribute_Selector::operator< (const Simple_Selector& rhs) const
+  {
+    if (const Attribute_Selector* w = dynamic_cast<const Attribute_Selector*>(&rhs))
+    {
+      return *this < *w;
+    }
+    if (is_ns_eq(ns(), rhs.ns()))
+    { return name() < rhs.name(); }
+    return ns() < rhs.ns();
+  }
+
+  bool Attribute_Selector::operator== (const Attribute_Selector& rhs) const
+  {
+    if (is_ns_eq(ns(), rhs.ns()) && name() == rhs.name())
+    { return matcher() == rhs.matcher() && value() == rhs.value(); }
+    else return false;
+  }
+
+  bool Attribute_Selector::operator== (const Simple_Selector& rhs) const
+  {
+    if (const Attribute_Selector* w = dynamic_cast<const Attribute_Selector*>(&rhs))
+    {
+      return *this == *w;
+    }
+    if (is_ns_eq(ns(), rhs.ns()))
+    { return name() == rhs.name(); }
+    return ns() == rhs.ns();
   }
 
   bool Wrapped_Selector::operator== (const Wrapped_Selector& rhs) const

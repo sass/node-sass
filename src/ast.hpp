@@ -1926,6 +1926,10 @@ namespace Sass {
     {
       return Constants::Specificity_Attr;
     }
+    bool operator==(const Simple_Selector& rhs) const;
+    bool operator==(const Attribute_Selector& rhs) const;
+    bool operator<(const Simple_Selector& rhs) const;
+    bool operator<(const Attribute_Selector& rhs) const;
     ATTACH_OPERATIONS()
   };
 
