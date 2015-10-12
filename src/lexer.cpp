@@ -75,6 +75,24 @@ namespace Sass {
       return unsigned(chr) > 127;
     }
 
+    // check if char is outside ascii range
+    // but with specific ranges (copied from Ruby Sass)
+    bool is_nonascii(const char& chr)
+    {
+      return (
+        (unsigned(chr) > 127 && unsigned(chr) < 55296) ||
+        (unsigned(chr) > 57343 && unsigned(chr) < 65534) ||
+        (unsigned(chr) > 65535 && unsigned(chr) < 1114111)
+      );
+    }
+
+    // check if char is within a reduced ascii range
+    // valid in a uri (copied from Ruby Sass)
+    bool is_uri_character(const char& chr)
+    {
+      return unsigned(chr) > 41 && unsigned(chr) < 127;
+    }
+
     // Match word character (look ahead)
     bool is_character(const char& chr)
     {
@@ -90,11 +108,13 @@ namespace Sass {
     const char* space(const char* src) { return is_space(*src) ? src + 1 : 0; }
     const char* alpha(const char* src) { return is_alpha(*src) ? src + 1 : 0; }
     const char* unicode(const char* src) { return is_unicode(*src) ? src + 1 : 0; }
+    const char* nonascii(const char* src) { return is_nonascii(*src) ? src + 1 : 0; }
     const char* digit(const char* src) { return is_digit(*src) ? src + 1 : 0; }
     const char* xdigit(const char* src) { return is_xdigit(*src) ? src + 1 : 0; }
     const char* alnum(const char* src) { return is_alnum(*src) ? src + 1 : 0; }
     const char* punct(const char* src) { return is_punct(*src) ? src + 1 : 0; }
     const char* character(const char* src) { return is_character(*src) ? src + 1 : 0; }
+    const char* uri_character(const char* src) { return is_uri_character(*src) ? src + 1 : 0; }
 
     // Match multiple ctype characters.
     const char* spaces(const char* src) { return one_plus<space>(src); }

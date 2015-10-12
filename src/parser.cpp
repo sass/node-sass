@@ -501,7 +501,7 @@ namespace Sass {
     return p;
   }
 
-  Arguments* Parser::parse_arguments(bool has_url)
+  Arguments* Parser::parse_arguments()
   {
     std::string name(lexed);
     Position position = after_token;
@@ -509,7 +509,7 @@ namespace Sass {
     if (lex_css< exactly<'('> >()) {
       // if there's anything there at all
       if (!peek_css< exactly<')'> >()) {
-        do (*args) << parse_argument(has_url);
+        do (*args) << parse_argument();
         while (lex_css< exactly<','> >());
       }
       if (!lex_css< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name, position);
@@ -517,7 +517,7 @@ namespace Sass {
     return args;
   }
 
-  Argument* Parser::parse_argument(bool has_url)
+  Argument* Parser::parse_argument()
   {
     if (peek_css< sequence < exactly< hash_lbrace >, exactly< rbrace > > >()) {
       position += 2;
@@ -525,12 +525,7 @@ namespace Sass {
     }
 
     Argument* arg;
-    // some urls can look like line comments (parse literally - chunk would not work)
-    if (has_url && lex< sequence < uri_value, lookahead < loosely<')'> > > >(false)) {
-      String* the_url = parse_interpolated_chunk(lexed);
-      arg = SASS_MEMORY_NEW(ctx.mem, Argument, the_url->pstate(), the_url);
-    }
-    else if (peek_css< sequence < variable, optional_css_comments, exactly<':'> > >()) {
+    if (peek_css< sequence < variable, optional_css_comments, exactly<':'> > >()) {
       lex_css< variable >();
       std::string name(Util::normalize_underscores(lexed));
       ParserState p = pstate;
@@ -1410,6 +1405,9 @@ namespace Sass {
       }
       return string;
     }
+    else if (peek< real_uri_value >()) {
+      return parse_url_function_string();
+    }
     else if (peek< re_functional >()) {
       return parse_function_call();
     }
@@ -1790,14 +1788,19 @@ namespace Sass {
     return SASS_MEMORY_NEW(ctx.mem, Function_Call, call_pos, name, args);
   }
 
+  String* Parser::parse_url_function_string()
+  {
+    lex< real_uri_value >();
+    return SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, lexed);
+  }
+
   Function_Call* Parser::parse_function_call()
   {
     lex< identifier >();
     std::string name(lexed);
 
     ParserState call_pos = pstate;
-    bool expect_url = name == "url" || name == "url-prefix";
-    Arguments* args = parse_arguments(expect_url);
+    Arguments* args = parse_arguments();
     return SASS_MEMORY_NEW(ctx.mem, Function_Call, call_pos, name, args);
   }
 

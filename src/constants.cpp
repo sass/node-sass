@@ -141,6 +141,7 @@ namespace Sass {
 
     // constants for uri parsing (RFC 3986 Appendix A.)
     extern const char uri_chars[]  = ":;/?!%&#@|[]{}'`^\"*+-.,_=~";
+    extern const char real_uri_chars[]  = "#%&";
 
     // some specific constant character classes
     // they must be static to be useable by lexer
