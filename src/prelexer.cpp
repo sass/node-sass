@@ -951,23 +951,31 @@ namespace Sass {
     }
 
 
+    // const char* real_uri_prefix(const char* src) {
+    //   return alternatives<
+    //     exactly< url_kwd >,
+    //     exactly< url_prefix_kwd >
+    //   >(src);
+    // }
+
+    const char* real_uri_suffix(const char* src) {
+      return sequence< W, exactly< ')' > >(src);
+    }
+
     const char* real_uri_value(const char* src) {
       return
       sequence<
-        exactly< url_kwd >,
-        W,
-        zero_plus< alternatives<
-          class_char< real_uri_chars >,
-          uri_character,
-          NONASCII,
-          ESCAPE
-        > >,
-        alternatives<
-          sequence<
-            W,
-            exactly< ')' >
+        non_greedy<
+          alternatives<
+            class_char< real_uri_chars >,
+            uri_character,
+            NONASCII,
+            ESCAPE
           >,
-          exactly< hash_lbrace >
+          alternatives<
+            real_uri_suffix,
+            exactly< hash_lbrace >
+          >
         >
       >
       (src);

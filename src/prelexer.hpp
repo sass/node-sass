@@ -347,6 +347,8 @@ namespace Sass {
     const char* UUNICODE(const char* src);
     const char* NONASCII(const char* src);
     const char* ESCAPE(const char* src);
+    const char* real_uri_suffix(const char* src);
+    // const char* real_uri_prefix(const char* src);
     const char* real_uri_value(const char* src);
 
     // Path matching functions.

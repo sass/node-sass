@@ -1405,7 +1405,7 @@ namespace Sass {
       }
       return string;
     }
-    else if (peek< real_uri_value >()) {
+    else if (peek< sequence< uri_prefix, W, real_uri_value > >()) {
       return parse_url_function_string();
     }
     else if (peek< re_functional >()) {
@@ -1790,8 +1790,28 @@ namespace Sass {
 
   String* Parser::parse_url_function_string()
   {
-    lex< real_uri_value >();
-    return SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, lexed);
+    const char* p = position;
+
+    lex< uri_prefix >();
+    std::string prefix = lexed;
+
+    lex< real_uri_value >(false);
+    std::string uri = lexed;
+
+    if (peek< exactly< hash_lbrace > >()) {
+      const char* pp = position;
+      // TODO: error checking for unclosed interpolants
+      while (peek< exactly< hash_lbrace > >(pp)) {
+        pp = sequence< interpolant, real_uri_value >(pp);
+      }
+      position = peek< real_uri_suffix >(pp);
+      return parse_interpolated_chunk(Token(p, position));
+    } else {
+      lex< real_uri_suffix >();
+      std::string res = prefix + Util::rtrim(uri) + lexed.to_string();
+      return SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, res);
+    }
+
   }
 
   Function_Call* Parser::parse_function_call()
