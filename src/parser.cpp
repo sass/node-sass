@@ -1935,8 +1935,8 @@ namespace Sass {
   List* Parser::parse_media_queries()
   {
     List* media_queries = SASS_MEMORY_NEW(ctx.mem, List, pstate, 0, SASS_COMMA);
-    if (!peek< exactly<'{'> >()) (*media_queries) << parse_media_query();
-    while (lex< exactly<','> >()) (*media_queries) << parse_media_query();
+    if (!peek_css < exactly <'{'> >()) (*media_queries) << parse_media_query();
+    while (lex_css < exactly <','> >()) (*media_queries) << parse_media_query();
     return media_queries;
   }
 
@@ -1945,14 +1945,16 @@ namespace Sass {
   {
     Media_Query* media_query = SASS_MEMORY_NEW(ctx.mem, Media_Query, pstate);
 
-    if (lex< exactly< not_kwd > >()) media_query->is_negated(true);
-    else if (lex< exactly< only_kwd > >()) media_query->is_restricted(true);
+    lex < css_comments >(false);
+    if (lex < word < not_kwd > >()) media_query->is_negated(true);
+    else if (lex < word < only_kwd > >()) media_query->is_restricted(true);
 
-    if (lex < identifier_schema >()) media_query->media_type(parse_identifier_schema());
-    else if (lex< identifier >())    media_query->media_type(parse_interpolated_chunk(lexed));
+    lex < css_comments >(false);
+    if (lex < identifier_schema >())  media_query->media_type(parse_identifier_schema());
+    else if (lex < identifier >())    media_query->media_type(parse_interpolated_chunk(lexed));
     else                             (*media_query) << parse_media_expression();
 
-    while (lex< exactly< and_kwd > >()) (*media_query) << parse_media_expression();
+    while (lex_css < word < and_kwd > >()) (*media_query) << parse_media_expression();
     if (lex < identifier_schema >()) {
       String_Schema* schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, pstate);
       *schema << media_query->media_type();
@@ -1960,7 +1962,7 @@ namespace Sass {
       *schema << parse_identifier_schema();
       media_query->media_type(schema);
     }
-    while (lex< exactly< and_kwd > >()) (*media_query) << parse_media_expression();
+    while (lex_css < word < and_kwd > >()) (*media_query) << parse_media_expression();
     return media_query;
   }
 
@@ -1970,11 +1972,11 @@ namespace Sass {
       String* ss = parse_identifier_schema();
       return SASS_MEMORY_NEW(ctx.mem, Media_Query_Expression, pstate, ss, 0, true);
     }
-    if (!lex< exactly<'('> >()) {
+    if (!lex_css< exactly<'('> >()) {
       error("media query expression must begin with '('", pstate);
     }
     Expression* feature = 0;
-    if (peek< exactly<')'> >()) {
+    if (peek_css< exactly<')'> >()) {
       error("media feature required in media query expression", pstate);
     }
     feature = parse_expression();
