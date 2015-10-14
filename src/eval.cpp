@@ -761,7 +761,7 @@ namespace Sass {
       value = SASS_MEMORY_NEW(ctx.mem, Null, value->pstate());
     }
     else if (value->concrete_type() == Expression::SELECTOR) {
-      value = value->perform(this)->perform(&listize);
+      value = value->perform(this); // ->perform(&listize);
     }
 
     // std::cerr << "\ttype is now: " << typeid(*value).name() << std::endl << std::endl;

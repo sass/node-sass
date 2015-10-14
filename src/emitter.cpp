@@ -146,6 +146,7 @@ namespace Sass {
   {
     if (output_style() == COMPRESSED) return;
     if (output_style() == COMPACT) return;
+    if (in_declaration && in_comma_array) return;
     if (scheduled_linefeed && indentation)
       scheduled_linefeed = 1;
     std::string indent = "";
@@ -208,6 +209,7 @@ namespace Sass {
 
   void Emitter::append_optional_linefeed()
   {
+    if (in_declaration && in_comma_array) return;
     if (output_style() == COMPACT) {
       append_mandatory_space();
     } else {

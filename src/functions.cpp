@@ -1188,12 +1188,13 @@ namespace Sass {
     Signature length_sig = "length($list)";
     BUILT_IN(length)
     {
+      if (Selector_List* sl = dynamic_cast<Selector_List*>(env["$list"])) {
+        return SASS_MEMORY_NEW(ctx.mem, Number, pstate, (double)sl->length());
+      }
       Expression* v = ARG("$list", Expression);
       if (v->concrete_type() == Expression::MAP) {
         Map* map = dynamic_cast<Map*>(env["$list"]);
-        return SASS_MEMORY_NEW(ctx.mem, Number,
-     pstate,
-     (double)(map ? map->length() : 1));
+        return SASS_MEMORY_NEW(ctx.mem, Number, pstate, (double)(map ? map->length() : 1));
       }
       if (v->concrete_type() == Expression::SELECTOR) {
         if (Compound_Selector* h = dynamic_cast<Compound_Selector*>(v)) {
@@ -1214,9 +1215,19 @@ namespace Sass {
     Signature nth_sig = "nth($list, $n)";
     BUILT_IN(nth)
     {
-      Map* m = dynamic_cast<Map*>(env["$list"]);
-      List* l = dynamic_cast<List*>(env["$list"]);
       Number* n = ARG("$n", Number);
+      Map* m = dynamic_cast<Map*>(env["$list"]);
+      if (Selector_List* sl = dynamic_cast<Selector_List*>(env["$list"])) {
+        size_t len = m ? m->length() : sl->length();
+        bool empty = m ? m->empty() : sl->empty();
+        if (empty) error("argument `$list` of `" + std::string(sig) + "` must not be empty", pstate);
+        double index = std::floor(n->value() < 0 ? len + n->value() : n->value() - 1);
+        if (index < 0 || index > len - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate);
+        // return (*sl)[static_cast<int>(index)];
+        Listize listize(ctx);
+        return (*sl)[static_cast<int>(index)]->perform(&listize);
+      }
+      List* l = dynamic_cast<List*>(env["$list"]);
       if (n->value() == 0) error("argument `$n` of `" + std::string(sig) + "` must be non-zero", pstate);
       // if the argument isn't a list, then wrap it in a singleton list
       if (!m && !l) {
@@ -1307,6 +1318,10 @@ namespace Sass {
     {
       List* l = dynamic_cast<List*>(env["$list"]);
       Expression* v = ARG("$val", Expression);
+      if (Selector_List* sl = dynamic_cast<Selector_List*>(env["$list"])) {
+        Listize listize(ctx);
+        l = dynamic_cast<List*>(sl->perform(&listize));
+      }
       String_Constant* sep = ARG("$separator", String_Constant);
       if (!l) {
         l = SASS_MEMORY_NEW(ctx.mem, List, pstate, 1);

@@ -235,6 +235,16 @@ namespace Sass {
     return this == &rhs;
   }
 
+  // Selector lists can be compared to comma lists
+  bool Selector_List::operator==(const Expression& rhs) const
+  {
+    // solve the double dispatch problem by using RTTI information via dynamic cast
+    if (const List* ls = dynamic_cast<const List*>(&rhs)) { return *this == *ls; }
+    if (const Selector* ls = dynamic_cast<const Selector*>(&rhs)) { return *this == *ls; }
+    // compare invalid (maybe we should error?)
+    return false;
+  }
+
   bool Selector_List::operator== (const Selector_List& rhs) const
   {
     // for array access
@@ -258,10 +268,10 @@ namespace Sass {
       // skip nulls
       if (!l) ++i;
       else if (!r) ++n;
-      // do the check now
+      // do the check
       else if (*l != *r)
       { return false; }
-      // advance now
+      // advance
       ++i; ++n;
     }
     // no mismatch
