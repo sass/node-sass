@@ -42,6 +42,7 @@ module.exports.getSuites = function() {
 
       ret[suite][test] = {};
       ret[suite][test].src = join(testPath, 'input.scss');
+      ret[suite][test].error = fs.existsSync(join(testPath, 'error'));
       ret[suite][test].expected = join(testPath, 'expected_output.css');
       ret[suite][test].paths = [
         testPath,
