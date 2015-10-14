@@ -44,8 +44,14 @@ describe('spec', function() {
               file: t.src,
               includePaths: t.paths
             }, function(error, result) {
-              assert(!error);
-              assert.equal(util.normalize(result.css.toString()), expected);
+              if (t.error) {
+                assert(error);
+              } else {
+                assert(!error);
+              }
+              if (expected) {
+                assert.equal(util.normalize(result.css.toString()), expected);
+              }
               done();
             });
           });
