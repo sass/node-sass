@@ -220,8 +220,8 @@ namespace Sass {
     Parameters* parse_parameters();
     Parameter* parse_parameter();
     Mixin_Call* parse_include_directive();
-    Arguments* parse_arguments(bool has_url = false);
-    Argument* parse_argument(bool has_url = false);
+    Arguments* parse_arguments();
+    Argument* parse_argument();
     Assignment* parse_assignment();
     // Propset* parse_propset();
     Ruleset* parse_ruleset(Lookahead lookahead, bool is_root = false);
@@ -256,6 +256,7 @@ namespace Sass {
     Function_Call* parse_calc_function();
     Function_Call* parse_function_call();
     Function_Call_Schema* parse_function_call_schema();
+    String* parse_url_function_string();
     String* parse_interpolated_chunk(Token, bool constant = false);
     String* parse_string();
     String_Constant* parse_static_expression();

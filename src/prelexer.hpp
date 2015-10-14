@@ -340,6 +340,17 @@ namespace Sass {
     // match urls
     const char* url(const char* src);
 
+    // match url()
+    const char* H(const char* src);
+    const char* W(const char* src);
+    // `UNICODE` makes VS sad
+    const char* UUNICODE(const char* src);
+    const char* NONASCII(const char* src);
+    const char* ESCAPE(const char* src);
+    const char* real_uri_suffix(const char* src);
+    // const char* real_uri_prefix(const char* src);
+    const char* real_uri_value(const char* src);
+
     // Path matching functions.
     // const char* folder(const char* src);
     // const char* folders(const char* src);

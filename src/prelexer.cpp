@@ -914,22 +914,72 @@ namespace Sass {
                            exactly<'\f'> >(src);
     }*/
 
-    /* not used anymore - remove?
     const char* H(const char* src) {
       return std::isxdigit(*src) ? src+1 : 0;
-    }*/
+    }
 
-    /* not used anymore - remove?
-    const char* unicode(const char* src) {
+    const char* W(const char* src) {
+      return zero_plus< alternatives<
+        space,
+        exactly< '\t' >,
+        exactly< '\r' >,
+        exactly< '\n' >,
+        exactly< '\f' >
+      > >(src);
+    }
+
+    const char* UUNICODE(const char* src) {
       return sequence< exactly<'\\'>,
                        between<H, 1, 6>,
-                       optional< class_char<url_space_chars> > >(src);
-    }*/
+                       optional< W >
+                       >(src);
+    }
 
-    /* not used anymore - remove?
+    const char* NONASCII(const char* src) {
+      return nonascii(src);
+    }
+
     const char* ESCAPE(const char* src) {
-      return alternatives< unicode, class_char<escape_chars> >(src);
-    }*/
+      return alternatives<
+        UUNICODE,
+        sequence<
+          exactly<'\\'>,
+          NONASCII,
+          class_char< escape_chars >
+        >
+      >(src);
+    }
+
+
+    // const char* real_uri_prefix(const char* src) {
+    //   return alternatives<
+    //     exactly< url_kwd >,
+    //     exactly< url_prefix_kwd >
+    //   >(src);
+    // }
+
+    const char* real_uri_suffix(const char* src) {
+      return sequence< W, exactly< ')' > >(src);
+    }
+
+    const char* real_uri_value(const char* src) {
+      return
+      sequence<
+        non_greedy<
+          alternatives<
+            class_char< real_uri_chars >,
+            uri_character,
+            NONASCII,
+            ESCAPE
+          >,
+          alternatives<
+            real_uri_suffix,
+            exactly< hash_lbrace >
+          >
+        >
+      >
+      (src);
+    }
 
     const char* static_string(const char* src) {
       const char* pos = src;
