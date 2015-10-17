@@ -38,7 +38,7 @@ extern "C" {
     try {
      throw;
     }
-    catch (Error_Invalid& e) {
+    catch (Exception::Base& e) {
       std::stringstream msg_stream;
       std::string cwd(Sass::File::get_cwd());
       std::string rel_path(Sass::File::abs2rel(e.pstate.path, cwd, cwd));
@@ -46,16 +46,18 @@ extern "C" {
       std::string msg_prefix("Error: ");
       bool got_newline = false;
       msg_stream << msg_prefix;
-      for (char chr : e.message) {
-        if (chr == '\r') {
+      const char* msg = e.what();
+      while(msg && *msg) {
+        if (*msg == '\r') {
           got_newline = true;
-        } else if (chr == '\n') {
+        } else if (*msg == '\n') {
           got_newline = true;
         } else if (got_newline) {
           msg_stream << std::string(msg_prefix.size(), ' ');
           got_newline = false;
         }
-        msg_stream << chr;
+        msg_stream << *msg;
+        ++ msg;
       }
       if (!got_newline) msg_stream << "\n";
       msg_stream << std::string(msg_prefix.size(), ' ');
@@ -88,12 +90,12 @@ extern "C" {
       json_append_member(json_err, "file", json_mkstring(e.pstate.path));
       json_append_member(json_err, "line", json_mknumber((double)(e.pstate.line+1)));
       json_append_member(json_err, "column", json_mknumber((double)(e.pstate.column+1)));
-      json_append_member(json_err, "message", json_mkstring(e.message.c_str()));
+      json_append_member(json_err, "message", json_mkstring(e.what()));
       json_append_member(json_err, "formatted", json_mkstring(msg_stream.str().c_str()));
 
       c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
-      c_ctx->error_text = sass_strdup(e.message.c_str());
+      c_ctx->error_text = sass_strdup(e.what());
       c_ctx->error_status = 1;
       c_ctx->error_file = sass_strdup(e.pstate.path);
       c_ctx->error_line = e.pstate.line+1;

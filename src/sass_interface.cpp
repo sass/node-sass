@@ -88,9 +88,9 @@ extern "C" {
       if (copy_strings(cpp_ctx.get_included_files(true), &c_ctx->included_files, 1) == NULL)
         throw(std::bad_alloc());
     }
-    catch (Error_Invalid& e) {
+    catch (Exception::InvalidSass& e) {
       std::stringstream msg_stream;
-      msg_stream << e.pstate.path << ":" << e.pstate.line << ": " << e.message << std::endl;
+      msg_stream << e.pstate.path << ":" << e.pstate.line << ": " << e.what() << std::endl;
       c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
@@ -164,9 +164,9 @@ extern "C" {
       if (copy_strings(cpp_ctx.get_included_files(false), &c_ctx->included_files) == NULL)
         throw(std::bad_alloc());
     }
-    catch (Error_Invalid& e) {
+    catch (Exception::InvalidSass& e) {
       std::stringstream msg_stream;
-      msg_stream << e.pstate.path << ":" << e.pstate.line << ": " << e.message << std::endl;
+      msg_stream << e.pstate.path << ":" << e.pstate.line << ": " << e.what() << std::endl;
       c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;

@@ -983,6 +983,11 @@ namespace Sass {
               Complex_Selector* parent = (*parents)[i];
               Complex_Selector* s = parent->cloneFully(ctx);
               Complex_Selector* ss = this->clone(ctx);
+              // this is only if valid if the parent has no trailing op
+              // otherwise we cannot append more simple selectors to head
+              if (parent->last()->combinator() != ANCESTOR_OF) {
+                throw Exception::InvalidParent(parent, ss);
+              }
               ss->tail(tail ? tail->clone(ctx) : 0);
               Compound_Selector* h = head_->clone(ctx);
               if (h->length()) h->erase(h->begin());
@@ -1009,7 +1014,7 @@ namespace Sass {
               *retval << cpy->skip_empty_reference();
             }
           }
-          // have no parent and not tails
+          // have no parent nor tails
           else {
             Complex_Selector* cpy = this->clone(ctx);
             cpy->head(SASS_MEMORY_NEW(ctx.mem, Compound_Selector, head->pstate()));
@@ -2023,6 +2028,91 @@ namespace Sass {
   std::string Custom_Warning::to_string(bool compressed, int precision) const
   {
     return message();
+  }
+
+  std::string Selector_List::to_string(bool compressed, int precision) const
+  {
+    std::string str("");
+    auto end = this->end();
+    auto start = this->begin();
+    while (start < end && *start) {
+      Complex_Selector* sel = *start;
+      if (!str.empty()) str += ", ";
+      str += sel->to_string(compressed, precision);
+      ++ start;
+    }
+    return str;
+  }
+
+  std::string Compound_Selector::to_string(bool compressed, int precision) const
+  {
+    std::string str("");
+    auto end = this->end();
+    auto start = this->begin();
+    while (start < end && *start) {
+      Simple_Selector* sel = *start;
+      str += sel->to_string(compressed, precision);
+      ++ start;
+    }
+    return str;
+  }
+
+  std::string Complex_Selector::to_string(bool compressed, int precision) const
+  {
+    // first render head and tail if they are available
+    std::string str_head(head() ? head()->to_string(compressed, precision) : "");
+    std::string str_tail(tail() ? tail()->to_string(compressed, precision) : "");
+    std::string str_ref(reference() ? reference()->to_string(compressed, precision) : "");
+    // combinator in between
+    std::string str_op("");
+    // use a switch statement
+    switch (combinator()) {
+      case ANCESTOR_OF: str_op = " "; break;
+      case PARENT_OF:   str_op = ">"; break;
+      case PRECEDES:    str_op = "~"; break;
+      case ADJACENT_TO: str_op = "+"; break;
+      case REFERENCE:   str_op = "/" + str_ref + "/"; break;
+    }
+    // prettify for non ancestors
+    if (combinator() != ANCESTOR_OF) {
+      // no spaces needed for compressed
+      if (compressed == false) {
+        // make sure we add some spaces where needed
+        if (str_tail != "") str_op += " ";
+        if (str_head != "") str_head += " ";
+      }
+    }
+    // is ancestor with no tail
+    else if (str_tail == "") {
+      str_op = ""; // superflous
+    }
+    // now build the final result
+    return str_head + str_op + str_tail;
+  }
+
+  std::string Selector_Schema::to_string(bool compressed, int precision) const
+  {
+    return contents()->to_string(compressed, precision);
+  }
+
+  std::string Parent_Selector::to_string(bool compressed, int precision) const
+  {
+    return "&";
+  }
+
+  std::string Attribute_Selector::to_string(bool compressed, int precision) const
+  {
+    std::string val(value() ? value()->to_string(compressed, precision) : "");
+    return "[" + this->ns_name() + this->matcher() + val + "]";
+  }
+
+  std::string Wrapped_Selector::to_string(bool compressed, int precision) const
+  {
+    // first render the
+    std::string main(this->Simple_Selector::to_string(compressed, precision));
+    std::string wrapped(selector() ? selector()->to_string(compressed, precision) : "");
+    // now build the final result
+    return main + "(" + wrapped + ")";
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////
