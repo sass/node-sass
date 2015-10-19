@@ -210,7 +210,7 @@ extern "C" {
     v->list.tag = SASS_LIST;
     v->list.length = len;
     v->list.separator = sep;
-    v->list.values = (union Sass_Value**) calloc(len, sizeof(union Sass_Value));
+    v->list.values = (union Sass_Value**) calloc(len, sizeof(union Sass_Value*));
     if (v->list.values == 0) { free(v); return 0; }
     return v;
   }
