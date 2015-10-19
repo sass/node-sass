@@ -625,11 +625,18 @@ namespace Sass {
     Env* env = environment();
     // convert @content directives into mixin calls to the underlying thunk
     if (!env->has("@content[m]")) return 0;
+    if (block_stack.back()->is_root()) {
+      selector_stack.push_back(0);
+    }
     Mixin_Call* call = SASS_MEMORY_NEW(ctx.mem, Mixin_Call,
                                        c->pstate(),
                                        "@content",
                                        SASS_MEMORY_NEW(ctx.mem, Arguments, c->pstate()));
-    return call->perform(this);
+    Statement* stm = call->perform(this);
+    if (block_stack.back()->is_root()) {
+      selector_stack.pop_back();
+    }
+    return stm;
   }
 
   // produce an error if something is not implemented
