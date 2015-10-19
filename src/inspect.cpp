@@ -738,7 +738,10 @@ namespace Sass {
     in_wrapped = true;
     append_token(s->name(), s);
     append_string("(");
+    bool was_comma_array = in_comma_array;
+    in_comma_array = false;
     s->selector()->perform(this);
+    in_comma_array = was_comma_array;
     append_string(")");
     in_wrapped = was;
   }
@@ -816,6 +819,14 @@ namespace Sass {
   void Inspect::operator()(Selector_List* g)
   {
     if (g->empty()) return;
+
+    bool was_comma_array = in_comma_array;
+    if (!in_declaration && in_comma_array) {
+      append_string("(");
+    }
+
+    if (in_declaration) in_comma_array = true;
+
     for (size_t i = 0, L = g->length(); i < L; ++i) {
       if (!in_wrapped && i == 0) append_indentation();
       if ((*g)[i] == 0) continue;
@@ -825,6 +836,12 @@ namespace Sass {
         append_comma_separator();
       }
     }
+
+    in_comma_array = was_comma_array;
+    if (!in_declaration && in_comma_array) {
+      append_string(")");
+    }
+
   }
 
   void Inspect::fallback_impl(AST_Node* n)

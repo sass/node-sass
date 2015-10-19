@@ -191,6 +191,7 @@ namespace Sass {
     T last()                { return elements_.back(); }
     T first()               { return elements_.front(); }
     T& operator[](size_t i) { return elements_[i]; }
+    virtual const T& at(size_t i) const { return elements_.at(i); }
     const T& operator[](size_t i) const { return elements_[i]; }
     Vectorized& operator<<(T element)
     {
@@ -2251,6 +2252,7 @@ namespace Sass {
     Selector_List(ParserState pstate, size_t s = 0)
     : Selector(pstate), Vectorized<Complex_Selector*>(s), wspace_(0)
     { }
+    std::string type() { return "list"; }
     // remove parent selector references
     // basically unwraps parsed selectors
     void remove_parent_selectors();
@@ -2276,6 +2278,8 @@ namespace Sass {
     Selector_List* cloneFully(Context&) const; // clones Compound_Selector*s
     virtual bool operator==(const Selector& rhs) const;
     virtual bool operator==(const Selector_List& rhs) const;
+    // Selector Lists can be compared to comma lists
+    virtual bool operator==(const Expression& rhs) const;
     ATTACH_OPERATIONS()
   };
 
