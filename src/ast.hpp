@@ -2118,7 +2118,10 @@ namespace Sass {
                      Compound_Selector* h = 0,
                      Complex_Selector* t = 0,
                      String* r = 0)
-    : Selector(pstate), combinator_(c), head_(h), tail_(t), reference_(r)
+    : Selector(pstate),
+      combinator_(c),
+      head_(h), tail_(t),
+      reference_(r)
     {
       if ((h && h->has_reference())   || (t && t->has_reference()))   has_reference(true);
       if ((h && h->has_placeholder()) || (t && t->has_placeholder())) has_placeholder(true);

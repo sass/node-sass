@@ -71,7 +71,8 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " " << root_block->tabs();
     std::cerr << std::endl;
-    if (root_block->block()) for(auto i : root_block->block()->elements()) { debug_ast(i, ind + " ", env); }
+    debug_ast(root_block->expression(), ind + ":", env);
+    debug_ast(root_block->block(), ind + " ", env);
   } else if (dynamic_cast<Selector_List*>(node)) {
     Selector_List* selector = dynamic_cast<Selector_List*>(node);
     std::cerr << ind << "Selector_List " << selector;
