@@ -2331,7 +2331,7 @@ namespace Sass {
     // match in one big "regex"
     if (const char* q =
       peek <
-        one_plus <
+        non_greedy <
           alternatives <
             // consume whitespace
             block_comment, spaces,
@@ -2344,10 +2344,19 @@ namespace Sass {
               parenthese_scope,
               interpolant
             >
+          >,
+          sequence <
+            optional_spaces,
+            alternatives <
+              exactly<'{'>,
+              exactly<'}'>,
+              exactly<';'>
+            >
           >
         >
       >(p)
     ) {
+      if (p == q) return rv;
       while (p < q) {
         // did we have interpolations?
         if (*p == '#' && *(p+1) == '{') {
