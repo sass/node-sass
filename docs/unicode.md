@@ -1,4 +1,4 @@
-Libsass currently expects all input to be utf8 encoded (and outputs only utf8), if you actually have any unicode characters at all. We do not support conversion between encodings, even if you declare it with a `@charset` rule. The text below was originally posted as an [issue](https://github.com/sass/libsass/issues/381) on the libsass tracker.
+LibSass currently expects all input to be utf8 encoded (and outputs only utf8), if you actually have any unicode characters at all. We do not support conversion between encodings, even if you declare it with a `@charset` rule. The text below was originally posted as an [issue](https://github.com/sass/libsass/issues/381) on the LibSass tracker.
 
 ### [Declaring character encodings in CSS](http://www.w3.org/International/questions/qa-css-charset.en)
 
@@ -6,13 +6,13 @@ This [explains](http://www.w3.org/International/questions/qa-css-charset.en) how
 
 Since my tool is written in perl, I have a lot of utilities at hand to deal with different unicode charsets. I'm pretty sure that most OSS uses [libiconv](https://www.gnu.org/software/libiconv/) to convert between different encodings. But I have now idea how easy/hard this would be to integrate platform independent (it seems doable).
 
-### Current status on libsass unicode support
+### Current status on LibSass unicode support
 
-Currently libsass seems to handle the common UTF-8 case pretty well. I believe it should correctly support all ASCII compatible encodings (like UTF-8 or Latin-1). If all includes use the same encoding, the output should be correct (in the same encoding). It should also handle unicode chars in [selectors, variable names and other identifiers](https://github.com/hcatlin/libsass/issues/244#issuecomment-34681227). This is true for all ASCII compatible encodings. So the main incompatible encodings (I'm aware of) are UTF-16/UTF-32 (which could be converted to UTF-8 with libiconv).
+Currently LibSass seems to handle the common UTF-8 case pretty well. I believe it should correctly support all ASCII compatible encodings (like UTF-8 or Latin-1). If all includes use the same encoding, the output should be correct (in the same encoding). It should also handle unicode chars in [selectors, variable names and other identifiers](https://github.com/hcatlin/libsass/issues/244#issuecomment-34681227). This is true for all ASCII compatible encodings. So the main incompatible encodings (I'm aware of) are UTF-16/UTF-32 (which could be converted to UTF-8 with libiconv).
 
 ### Current encoding auto detection
 
-Libsass currently reads all kind of BOMs and will error out if it finds something it doesn't know how to handle! It seems that it throws away the optional UTF-8 BOM (if any is found). IMO it would be nice if users could configure that (also if a charset rule should be added to the output).
+LibSass currently reads all kind of BOMs and will error out if it finds something it doesn't know how to handle! It seems that it throws away the optional UTF-8 BOM (if any is found). IMO it would be nice if users could configure that (also if a charset rule should be added to the output).
 
 ### What is currently not supported
 

@@ -1,4 +1,4 @@
-To install libsass, make sure the OS X build tools are installed:
+To install LibSass, make sure the OS X build tools are installed:
 
     xcode-select --install
 
@@ -8,7 +8,7 @@ To install homebrew, see [http://brew.sh](http://brew.sh)
 
     ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
-You can install the latest version of libsass quite easily with brew.
+You can install the latest version of LibSass quite easily with brew.
 
     brew install --HEAD libsass
 

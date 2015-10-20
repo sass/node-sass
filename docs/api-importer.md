@@ -1,15 +1,15 @@
-Via custom importers you can implement any possible way to import sass stylesheets, like loading them from a remote server. This feature is experimental and is implemented differently than in ruby sass. Imports have to be relative from the parent import context. Therefore we need to pass this information to the importer callback. This is currently done by passing the complete import string/path of the previous import context.
+By using custom importers, Sass stylesheets can be implemented in any possible way, such as by being loaded via a remote server. Please note: this feature is experimental and is implemented differently than importers in Ruby Sass. Imports must be relative to the parent import context and therefore we need to pass this information to the importer callback. This is currently done by passing the complete import string/path of the previous import context.
 
 ## Return Imports
 
-You actually have to return a list of imports, since some importers may want to import multiple files from one import statement (ie. a glob/star importer).  The memory you pass with source and srcmap is taken over by libsass and freed automatically when the import is done. You are also allowed to return `0` instead of a list, which will tell libsass to handle the import by itself (as if no custom importer was in use).
+You actually have to return a list of imports, since some importers may want to import multiple files from one import statement (ie. a glob/star importer).  The memory you pass with source and srcmap is taken over by LibSass and freed automatically when the import is done. You are also allowed to return `0` instead of a list, which will tell LibSass to handle the import by itself (as if no custom importer was in use).
 
 ```C
 struct Sass_Import** rv = sass_make_import_list(1);
 rv[0] = sass_make_import(rel, abs, source, srcmap);
 ```
 
-Every import will then be included in libsass. You are allowed to only return a file path without any loaded source. This way you can ie. implement rewrite rules for import paths and leave the loading part for libsass.
+Every import will then be included in LibSass. You are allowed to only return a file path without any loaded source. This way you can ie. implement rewrite rules for import paths and leave the loading part for LibSass.
 
 ### Basic Usage
 

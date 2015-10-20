@@ -6,7 +6,7 @@ Both should be considered experimental (MinGW was better tested)!
 First grab the latest [MinGW for windows] [1] installer. Once it is installed, you can click on continue or open the Installation Manager via `bin\mingw-get.exe`.
 
 You need to have the following components installed:
-![](https://cloud.githubusercontent.com/assets/282293/5525466/947bf396-89e6-11e4-841d-4aa916f14de1.png)
+![Visualization of components installed in the interface](https://cloud.githubusercontent.com/assets/282293/5525466/947bf396-89e6-11e4-841d-4aa916f14de1.png)
 
 Next we need to install [git for windows] [2]. You probably want to check the option to add it to the global path, but you do not need to install the unix tools.
 

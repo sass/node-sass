@@ -8,7 +8,7 @@ Both macros simulate a string stream, so they can be used like this:
 
 produces:
 
-    [LIBSASS] parse_value parser.cpp:1384 Reached.
+    [LibSass] parse_value parser.cpp:1384 Reached.
 
 `TRACE()`
    logs function name, source filename, source file name to the standard error and the attached
@@ -21,6 +21,6 @@ produces:
 
 produces:
 
-    [LIBSASS] 0x8031ba980:String_Constant ./ast.hpp:1371 String_Constant created (0,"auto")
+    [LibSass] 0x8031ba980:String_Constant ./ast.hpp:1371 String_Constant created (0,"auto")
 
-The macros generate output only of `LIBSASS_TRACE` is set in the environment.
+The macros generate output only of `LibSass_TRACE` is set in the environment.

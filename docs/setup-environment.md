@@ -1,11 +1,11 @@
 ## Requirements
-In order to install and setup your local development environment, there are some prerequisites: 
+In order to install and setup your local development environment, there are some prerequisites:
 
 * git
 * gcc/clang/llvm (Linux: build tools, Mac OS X: XCode w/ Command Line Tools)
 * ruby w/ bundler
 
-OS X: 
+OS X:
 First you'll need to install XCode which you can now get from the AppStore installed on your mac. After you download that and run it, then run this on the command line:
 
 ````
@@ -14,7 +14,7 @@ xcode-select --install
 
 ## Cloning the Projects
 
-First, clone the project and then add a line to your `~/.bash_profile` that will let other programs know where the libsass dev files are.
+First, clone the project and then add a line to your `~/.bash_profile` that will let other programs know where the LibSass dev files are.
 
 ````
 git clone git@github.com:sass/libsass.git
@@ -31,7 +31,7 @@ Then, if you run the "bootstrap" script, it should clone all the other required 
 
 You should now have a `sass-spec` and `sassc` folder within the libsass folder. Both of these are clones of their respective git projects. If you want to do a pull request, remember to work in those folders. For instance, if you want to add a test (see other documentation for how to do that), make sure to commit it to your *fork* of the sass-spec github project. Also, whenever you are running tests, make sure to `pull` from the origin! We want to make sure we are testing against the newest libsass, sassc, and sass-spec!
 
-Now, try and see if you can build the project. We do that with the make command.
+Now, try and see if you can build the project. We do that with the `make` command.
 
 ````
 make
@@ -41,7 +41,7 @@ At this point, if you get an error, something is most likely wrong with your com
 
 ## Running The Spec Against LibSass
 
-Then, to run the spec against libsass, just run:
+Then, to run the spec against LibSass, just run:
 
 ````
 ./script/spec
@@ -64,5 +64,5 @@ bundle install
 ./sass-spec.rb
 ````
 
-Viola! Now you are testing against Sass too!
+Voila! Now you are testing against Sass too!
 
