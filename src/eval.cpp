@@ -523,33 +523,36 @@ namespace Sass {
     Expression::Concrete_Type l_type = lhs->concrete_type();
     Expression::Concrete_Type r_type = rhs->concrete_type();
 
+    // ToDo: throw error in op functions
+    // ToDo: then catch and re-throw them
+    ParserState pstate(b->pstate());
     int precision = (int)ctx.precision;
     bool compressed = ctx.output_style == COMPRESSED;
     if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
       const Number* l_n = dynamic_cast<const Number*>(lhs);
       const Number* r_n = dynamic_cast<const Number*>(rhs);
-      return op_numbers(ctx.mem, op_type, *l_n, *r_n, compressed, precision);
+      return op_numbers(ctx.mem, op_type, *l_n, *r_n, compressed, precision, &pstate);
     }
     if (l_type == Expression::NUMBER && r_type == Expression::COLOR) {
       const Number* l_n = dynamic_cast<const Number*>(lhs);
       const Color* r_c = dynamic_cast<const Color*>(rhs);
-      return op_number_color(ctx.mem, op_type, *l_n, *r_c, compressed, precision);
+      return op_number_color(ctx.mem, op_type, *l_n, *r_c, compressed, precision, &pstate);
     }
     if (l_type == Expression::COLOR && r_type == Expression::NUMBER) {
       const Color* l_c = dynamic_cast<const Color*>(lhs);
       const Number* r_n = dynamic_cast<const Number*>(rhs);
-      return op_color_number(ctx.mem, op_type, *l_c, *r_n, compressed, precision);
+      return op_color_number(ctx.mem, op_type, *l_c, *r_n, compressed, precision, &pstate);
     }
     if (l_type == Expression::COLOR && r_type == Expression::COLOR) {
       const Color* l_c = dynamic_cast<const Color*>(lhs);
       const Color* r_c = dynamic_cast<const Color*>(rhs);
-      return op_colors(ctx.mem, op_type, *l_c, *r_c, compressed, precision);
+      return op_colors(ctx.mem, op_type, *l_c, *r_c, compressed, precision, &pstate);
     }
 
     To_Value to_value(ctx, ctx.mem);
     Value* v_l = dynamic_cast<Value*>(lhs->perform(&to_value));
     Value* v_r = dynamic_cast<Value*>(rhs->perform(&to_value));
-    Value* ex = op_strings(ctx.mem, op_type, *v_l, *v_r, compressed, precision);
+    Value* ex = op_strings(ctx.mem, op_type, *v_l, *v_r, compressed, precision, &pstate);
     if (String_Constant* str = dynamic_cast<String_Constant*>(ex))
     {
       if (str->concrete_type() != Expression::STRING) return ex;
@@ -1160,15 +1163,15 @@ namespace Sass {
     return *l < *r;
   }
 
-  Value* Eval::op_numbers(Memory_Manager& mem, enum Sass_OP op, const Number& l, const Number& r, bool compressed, int precision)
+  Value* Eval::op_numbers(Memory_Manager& mem, enum Sass_OP op, const Number& l, const Number& r, bool compressed, int precision, ParserState* pstate)
   {
     double lv = l.value();
     double rv = r.value();
     if (op == Sass_OP::DIV && !rv) {
-      return SASS_MEMORY_NEW(mem, String_Quoted, l.pstate(), "Infinity");
+      return SASS_MEMORY_NEW(mem, String_Quoted, pstate ? *pstate : l.pstate(), "Infinity");
     }
     if (op == Sass_OP::MOD && !rv) {
-      error("division by zero", r.pstate());
+      error("division by zero", pstate ? *pstate : r.pstate());
     }
 
     Number tmp(r);
@@ -1178,10 +1181,10 @@ namespace Sass {
     std::string r_unit(tmp.unit());
     if (l_unit != r_unit && !l_unit.empty() && !r_unit.empty() &&
         (op == Sass_OP::ADD || op == Sass_OP::SUB)) {
-      error("Incompatible units: '"+r_unit+"' and '"+l_unit+"'.", l.pstate());
+      error("Incompatible units: '"+r_unit+"' and '"+l_unit+"'.", pstate ? *pstate : r.pstate());
     }
     Number* v = SASS_MEMORY_NEW(mem, Number, l);
-    v->pstate(l.pstate());
+    v->pstate(pstate ? *pstate : l.pstate());
     if (l_unit.empty() && (op == Sass_OP::ADD || op == Sass_OP::SUB || op == Sass_OP::MOD)) {
       v->numerator_units() = r.numerator_units();
       v->denominator_units() = r.denominator_units();
@@ -1211,7 +1214,7 @@ namespace Sass {
     return v;
   }
 
-  Value* Eval::op_number_color(Memory_Manager& mem, enum Sass_OP op, const Number& l, const Color& rh, bool compressed, int precision)
+  Value* Eval::op_number_color(Memory_Manager& mem, enum Sass_OP op, const Number& l, const Color& rh, bool compressed, int precision, ParserState* pstate)
   {
     Color r(rh);
     r.disp("");
@@ -1220,7 +1223,7 @@ namespace Sass {
       case Sass_OP::ADD:
       case Sass_OP::MUL: {
         return SASS_MEMORY_NEW(mem, Color,
-                               l.pstate(),
+                               pstate ? *pstate : l.pstate(),
                                ops[op](lv, r.r()),
                                ops[op](lv, r.g()),
                                ops[op](lv, r.b()),
@@ -1231,13 +1234,13 @@ namespace Sass {
         std::string sep(op == Sass_OP::SUB ? "-" : "/");
         std::string color(r.to_string(compressed||!r.sixtuplet(), precision));
         return SASS_MEMORY_NEW(mem, String_Quoted,
-                               l.pstate(),
+                               pstate ? *pstate : l.pstate(),
                                l.to_string(compressed, precision)
                                + sep
                                + color);
       } break;
       case Sass_OP::MOD: {
-        error("cannot divide a number by a color", r.pstate());
+        error("cannot divide a number by a color", pstate ? *pstate : r.pstate());
       } break;
       default: break; // caller should ensure that we don't get here
     }
@@ -1245,35 +1248,35 @@ namespace Sass {
     return SASS_MEMORY_NEW(mem, Color, rh);
   }
 
-  Value* Eval::op_color_number(Memory_Manager& mem, enum Sass_OP op, const Color& l, const Number& r, bool compressed, int precision)
+  Value* Eval::op_color_number(Memory_Manager& mem, enum Sass_OP op, const Color& l, const Number& r, bool compressed, int precision, ParserState* pstate)
   {
     double rv = r.value();
-    if (op == Sass_OP::DIV && !rv) error("division by zero", r.pstate());
+    if (op == Sass_OP::DIV && !rv) error("division by zero", pstate ? *pstate : r.pstate());
     return SASS_MEMORY_NEW(mem, Color,
-                           l.pstate(),
+                           pstate ? *pstate : l.pstate(),
                            ops[op](l.r(), rv),
                            ops[op](l.g(), rv),
                            ops[op](l.b(), rv),
                            l.a());
   }
 
-  Value* Eval::op_colors(Memory_Manager& mem, enum Sass_OP op, const Color& l, const Color& r, bool compressed, int precision)
+  Value* Eval::op_colors(Memory_Manager& mem, enum Sass_OP op, const Color& l, const Color& r, bool compressed, int precision, ParserState* pstate)
   {
     if (l.a() != r.a()) {
-      error("alpha channels must be equal when combining colors", r.pstate());
+      error("alpha channels must be equal when combining colors", pstate ? *pstate : r.pstate());
     }
     if (op == Sass_OP::DIV && (!r.r() || !r.g() ||!r.b())) {
-      error("division by zero", r.pstate());
+      error("division by zero", pstate ? *pstate : r.pstate());
     }
     return SASS_MEMORY_NEW(mem, Color,
-                           l.pstate(),
+                           pstate ? *pstate : l.pstate(),
                            ops[op](l.r(), r.r()),
                            ops[op](l.g(), r.g()),
                            ops[op](l.b(), r.b()),
                            l.a());
   }
 
-  Value* Eval::op_strings(Memory_Manager& mem, enum Sass_OP op, Value& lhs, Value& rhs, bool compressed, int precision)
+  Value* Eval::op_strings(Memory_Manager& mem, enum Sass_OP op, Value& lhs, Value& rhs, bool compressed, int precision, ParserState* pstate)
   {
     Expression::Concrete_Type ltype = lhs.concrete_type();
     Expression::Concrete_Type rtype = rhs.concrete_type();
