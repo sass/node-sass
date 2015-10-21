@@ -82,14 +82,14 @@ namespace Sass {
     //####################################
 
     // Match a single character literal.
-    // Regex equivalent: /(?:literal)/
+    // Regex equivalent: /(?:x)/
     template <char chr>
     const char* exactly(const char* src) {
       return *src == chr ? src + 1 : 0;
     }
 
-    // Match a string constant.
-    // Regex equivalent: /[axy]/
+    // Match the full string literal.
+    // Regex equivalent: /(?:literal)/
     template <const char* str>
     const char* exactly(const char* src) {
       if (str == 0) return 0;
@@ -100,7 +100,26 @@ namespace Sass {
       while (*pre && *src == *pre) {
         ++src, ++pre;
       }
-      return *pre ? 0 : src;
+      // did the matcher finish?
+      return *pre == 0 ? src : 0;
+    }
+
+
+    // Match the full string literal.
+    // Regex equivalent: /(?:literal)/i
+    // only define lower case alpha chars
+    template <const char* str>
+    const char* insensitive(const char* src) {
+      if (str == 0) return 0;
+      const char* pre = str;
+      if (src == 0) return 0;
+      // there is a small chance that the search string
+      // is longer than the rest of the string to look at
+      while (*pre && (*src == *pre || *src+32 == *pre)) {
+        ++src, ++pre;
+      }
+      // did the matcher finish?
+      return *pre == 0 ? src : 0;
     }
 
     // Match for members of char class.
@@ -222,6 +241,16 @@ namespace Sass {
     //####################################
     // ADVANCED "REGEX" CONSTRUCTORS
     //####################################
+
+    // Match with word boundary rule.
+    // Regex equivalent: /(?:$mx)\b/i
+    template <const char* str>
+    const char* keyword(const char* src) {
+      return sequence <
+               insensitive < str >,
+               word_boundary
+             >(src);
+    }
 
     // Match with word boundary rule.
     // Regex equivalent: /(?:$mx)\b/
