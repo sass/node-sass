@@ -330,7 +330,7 @@ namespace Sass {
       To_C to_c;
       union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
       sass_list_set_value(c_args, 0, message->perform(&to_c));
-      union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_options);
+      union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_compiler);
       sass_delete_value(c_args);
       sass_delete_value(c_val);
       return 0;
@@ -363,7 +363,7 @@ namespace Sass {
       To_C to_c;
       union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
       sass_list_set_value(c_args, 0, message->perform(&to_c));
-      union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_options);
+      union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_compiler);
       sass_delete_value(c_args);
       sass_delete_value(c_val);
       return 0;
@@ -393,7 +393,7 @@ namespace Sass {
       To_C to_c;
       union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
       sass_list_set_value(c_args, 0, message->perform(&to_c));
-      union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_options);
+      union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_compiler);
       sass_delete_value(c_args);
       sass_delete_value(c_val);
       return 0;
@@ -688,7 +688,7 @@ namespace Sass {
         Expression* arg = static_cast<Expression*>(node);
         sass_list_set_value(c_args, i, arg->perform(&to_c));
       }
-      union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_options);
+      union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_compiler);
       if (sass_value_get_tag(c_val) == SASS_ERROR) {
         error("error in C function " + c->name() + ": " + sass_error_get_message(c_val), c->pstate(), backtrace());
       } else if (sass_value_get_tag(c_val) == SASS_WARNING) {

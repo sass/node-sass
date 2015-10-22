@@ -32,7 +32,7 @@ typedef struct Sass_Function (*Sass_Function_Entry);
 typedef struct Sass_Function* (*Sass_Function_List);
 // Typedef defining function signature and return type
 typedef union Sass_Value* (*Sass_Function_Fn)
-  (const union Sass_Value*, Sass_Function_Entry cb, struct Sass_Options* options);
+  (const union Sass_Value*, Sass_Function_Entry cb, struct Sass_Compiler* compiler);
 
 
 // Creator for sass custom importer return argument list
