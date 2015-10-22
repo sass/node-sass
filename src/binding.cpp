@@ -19,7 +19,7 @@ Sass_Import_List sass_importer(const char* cur_path, Sass_Importer_Entry cb, str
   return bridge(argv);
 }
 
-union Sass_Value* sass_custom_function(const union Sass_Value* s_args, Sass_Function_Entry cb, struct Sass_Options* opts)
+union Sass_Value* sass_custom_function(const union Sass_Value* s_args, Sass_Function_Entry cb, struct Sass_Compiler* comp)
 {
   void* cookie = sass_function_get_cookie(cb);
   CustomFunctionBridge& bridge = *(static_cast<CustomFunctionBridge*>(cookie));
