@@ -1070,7 +1070,7 @@ namespace Sass {
                                      >,
                                      static_component
                        > >,
-                       optional_css_whitespace,
+                       zero_plus < spaces >,
                        alternatives< exactly<';'>, exactly<'}'> >
                       >(src);
     }
