@@ -2133,9 +2133,10 @@ namespace Sass {
       if ((!head_ || !head_->length() || head_->is_empty_reference()) &&
           combinator() == Combinator::ANCESTOR_OF)
       {
+        if (!tail_) return 0;
         tail_->has_line_feed_ = this->has_line_feed_;
         // tail_->has_line_break_ = this->has_line_break_;
-        return tail_ ? tail_->skip_empty_reference() : 0;
+        return tail_->skip_empty_reference();
       }
       return this;
     }
