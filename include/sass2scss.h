@@ -1,3 +1,9 @@
+/**
+ * sass2scss
+ * Licensed under the MIT License
+ * Copyright (c) Marcel Greter
+ */
+
 #ifndef SASS2SCSS_H
 #define SASS2SCSS_H
 
@@ -29,10 +35,10 @@
 #include <iostream>
 
 #ifndef SASS2SCSS_VERSION
-#define SASS2SCSS_VERSION "1.0.3"
+// Hardcode once the file is copied from
+// https://github.com/mgreter/sass2scss
+#define SASS2SCSS_VERSION "1.0.5"
 #endif
-
-// using std::string
 
 // add namespace for c++
 namespace Sass
