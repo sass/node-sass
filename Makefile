@@ -152,9 +152,11 @@ ifeq (MinGW,$(UNAME))
 		LIB_SHARED  = $(SASS_LIBSASS_PATH)/lib/libsass.dll
 	endif
 else
-	CFLAGS   += -fPIC
-	CXXFLAGS += -fPIC
-	LDFLAGS  += -fPIC
+	ifneq (Cygwin,$(UNAME))
+		CFLAGS   += -fPIC
+		CXXFLAGS += -fPIC
+		LDFLAGS  += -fPIC
+	endif
 endif
 
 ifeq (MinGW,$(UNAME))
@@ -177,9 +179,11 @@ ifeq (MinGW,$(UNAME))
 		CXXFLAGS  += -D ADD_EXPORTS
 	endif
 else
-	CFLAGS   += -fPIC
-	CXXFLAGS += -fPIC
-	LDFLAGS  += -fPIC
+	ifneq (Cygwin,$(UNAME))
+		CFLAGS   += -fPIC
+		CXXFLAGS += -fPIC
+		LDFLAGS  += -fPIC
+	endif
 endif
 
 OBJECTS = $(addprefix src/,$(SOURCES:.cpp=.o))
