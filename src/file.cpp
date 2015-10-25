@@ -193,9 +193,9 @@ namespace Sass {
     }
 
     // create an absolute path by resolving relative paths with cwd
-    std::string rel2abs(const std::string& path, const std::string& cwd)
+    std::string rel2abs(const std::string& path, const std::string& base, const std::string& cwd)
     {
-      return make_canonical_path((is_absolute_path(path) ? path : join_paths(cwd, path)));
+      return make_canonical_path(join_paths(join_paths(cwd, base), path));
     }
 
     // create a path that is relative to the given base directory
