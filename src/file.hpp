@@ -51,7 +51,7 @@ namespace Sass {
     std::string abs2rel(const std::string& path, const std::string& base, const std::string& cwd = ".");
 
     // try to find/resolve the filename
-    std::vector<Sass_Queued> resolve_file(const std::string& root, const std::string& file);
+    std::vector<Sass_Queued> resolve_includes(const std::string& root, const std::string& file);
 
     // helper function to resolve a filename
     std::string find_file(const std::string& file, const std::vector<std::string> paths);

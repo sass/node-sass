@@ -257,7 +257,7 @@ namespace Sass {
     std::string path(make_canonical_path(file));
     std::string base_file(join_paths(base, path));
     if (style_sheets.count(base_file)) return base_file;
-    std::vector<Sass_Queued> resolved(resolve_file(base, path));
+    std::vector<Sass_Queued> resolved(resolve_includes(base, path));
     if (resolved.size() > 1) {
       std::stringstream msg_stream;
       msg_stream << "It's not clear which file to import for ";
