@@ -69,10 +69,10 @@ namespace Sass {
     linefeed                (initializers.linefeed()),
     input_path              (make_canonical_path(initializers.input_path())),
     output_path             (make_canonical_path(initializers.output_path())),
-    source_comments         (initializers.source_comments()),
-    output_style            (initializers.output_style()),
     source_map_file         (make_canonical_path(initializers.source_map_file())),
     source_map_root         (initializers.source_map_root()), // pass-through
+    source_comments         (initializers.source_comments()),
+    output_style            (initializers.output_style()),
     source_map_embed        (initializers.source_map_embed()),
     source_map_contents     (initializers.source_map_contents()),
     omit_source_map_url     (initializers.omit_source_map_url()),
@@ -181,10 +181,9 @@ namespace Sass {
 
   void Context::collect_include_paths(const char** paths_array)
   {
-    if (paths_array) {
-      for (size_t i = 0; paths_array[i]; i++) {
-        collect_include_paths(paths_array[i]);
-      }
+    if (!paths_array) return;
+    for (size_t i = 0; paths_array[i]; i++) {
+      collect_include_paths(paths_array[i]);
     }
   }
 
@@ -215,10 +214,9 @@ namespace Sass {
 
   void Context::collect_plugin_paths(const char** paths_array)
   {
-    if (paths_array) {
-      for (size_t i = 0; paths_array[i]; i++) {
-        collect_plugin_paths(paths_array[i]);
-      }
+    if (!paths_array) return;
+    for (size_t i = 0; paths_array[i]; i++) {
+      collect_plugin_paths(paths_array[i]);
     }
   }
   void Context::add_source(std::string load_path, std::string abs_path, char* contents)

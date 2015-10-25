@@ -39,7 +39,7 @@ namespace Sass {
     std::vector<char*> strings;
     // absolute paths to includes
     std::vector<std::string> included_files;
-    // relative links to includes
+    // relative includes for sourcemap
     std::vector<std::string> srcmap_links;
     // vectors above have same size
 
@@ -58,14 +58,19 @@ namespace Sass {
     void add_c_importer(Sass_Importer_Entry importer);
     void add_c_function(Sass_Function_Entry function);
 
-    std::string       indent; // String to be used for indentation
-    std::string       linefeed; // String to be used for line feeds
-    std::string       input_path; // for relative paths in src-map
-    std::string       output_path; // for relative paths to the output
+    std::string indent; // String to be used for indentation
+    std::string linefeed; // String to be used for line feeds
+    std::string input_path; // for relative paths in src-map
+    std::string output_path; // for relative paths to the output
+    std::string source_map_file; // path to source map file (enables feature)
+    std::string source_map_root; // path for sourceRoot property (pass-through)
+
+    virtual ~Context();
+    virtual char* render(Block* root);
+    virtual char* render_srcmap();
+
     bool         source_comments; // for inline debug comments in css output
     Sass_Output_Style output_style; // output style for the generated css code
-    std::string       source_map_file; // path to source map file (enables feature)
-    std::string       source_map_root; // path for sourceRoot property (pass-through)
     bool         source_map_embed; // embed in sourceMappingUrl (as data-url)
     bool         source_map_contents; // insert included contents into source map
     bool         omit_source_map_url; // disable source map comment in css output
@@ -103,7 +108,6 @@ namespace Sass {
     };
 
     Context(Data);
-    ~Context();
     static std::string get_cwd();
 
     Block* parse_file();
@@ -120,8 +124,6 @@ namespace Sass {
     // usefull to influence the source-map generating etc.
     char* compile_file();
     char* compile_string();
-    char* render(Block* root);
-    char* render_srcmap();
 
     std::vector<std::string> get_included_files(bool skip = false, size_t headers = 0);
 
