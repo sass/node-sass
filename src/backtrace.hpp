@@ -33,7 +33,7 @@ namespace Sass {
       while (this_point->parent) {
 
         // make path relative to the current directory
-        std::string rel_path(Sass::File::resolve_relative_path(this_point->pstate.path, cwd, cwd));
+        std::string rel_path(Sass::File::abs2rel(this_point->pstate.path, cwd, cwd));
 
         if (warning) {
           ss << std::endl

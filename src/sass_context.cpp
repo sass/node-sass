@@ -186,7 +186,7 @@ extern "C" {
     catch (Error_Invalid& e) {
       std::stringstream msg_stream;
       std::string cwd(Sass::File::get_cwd());
-      std::string rel_path(Sass::File::resolve_relative_path(e.pstate.path, cwd, cwd));
+      std::string rel_path(Sass::File::abs2rel(e.pstate.path, cwd, cwd));
 
       std::string msg_prefix("Error: ");
       bool got_newline = false;

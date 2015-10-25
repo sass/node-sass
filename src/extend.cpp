@@ -1751,7 +1751,7 @@ namespace Sass {
           std::stringstream err;
           std::string cwd(Sass::File::get_cwd());
           ParserState pstate(ext.second->pstate());
-          std::string rel_path(Sass::File::resolve_relative_path(pstate.path, cwd, cwd));
+          std::string rel_path(Sass::File::abs2rel(pstate.path, cwd, cwd));
           err << "You may not @extend an outer selector from within @media.\n";
           err << "You may only @extend selectors within the same directive.\n";
           err << "From \"@extend " << ext.second->perform(&to_string) << "\"";

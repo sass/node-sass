@@ -200,7 +200,7 @@ namespace Sass {
 
     // create a path that is relative to the given base directory
     // path and base will first be resolved against cwd to make them absolute
-    std::string resolve_relative_path(const std::string& uri, const std::string& base, const std::string& cwd)
+    std::string abs2rel(const std::string& uri, const std::string& base, const std::string& cwd)
     {
 
       std::string absolute_uri = make_absolute_path(uri, cwd);

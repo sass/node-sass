@@ -48,7 +48,7 @@ namespace Sass {
 
     // create a path that is relative to the given base directory
     // path and base will first be resolved against cwd to make them absolute
-    std::string resolve_relative_path(const std::string& path, const std::string& base, const std::string& cwd = ".");
+    std::string abs2rel(const std::string& path, const std::string& base, const std::string& cwd = ".");
 
     // try to find/resolve the filename
     std::vector<Sass_Queued> resolve_file(const std::string& root, const std::string& file);

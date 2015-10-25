@@ -119,7 +119,7 @@ namespace Sass {
       }
     }
 
-    emitter.set_filename(resolve_relative_path(output_path, source_map_file, cwd));
+    emitter.set_filename(abs2rel(output_path, source_map_file, cwd));
 
   }
 
@@ -227,7 +227,7 @@ namespace Sass {
     included_files.push_back(abs_path);
     queue.push_back(Sass_Queued(load_path, abs_path, contents));
     emitter.add_source_index(sources.size() - 1);
-    include_links.push_back(resolve_relative_path(abs_path, source_map_file, cwd));
+    include_links.push_back(abs2rel(abs_path, source_map_file, cwd));
   }
 
   // Add a new import file to the context
@@ -411,7 +411,7 @@ namespace Sass {
 
   std::string Context::format_source_mapping_url(const std::string& file)
   {
-    std::string url = resolve_relative_path(file, output_path, cwd);
+    std::string url = abs2rel(file, output_path, cwd);
     return "/*# sourceMappingURL=" + url + " */";
   }
 
