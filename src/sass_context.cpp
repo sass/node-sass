@@ -370,7 +370,7 @@ extern "C" {
              .c_options(c_ctx)
              .input_path(input_path)
              .output_path(output_path)
-             .output_style((Output_Style) c_ctx->output_style)
+             .output_style((Sass_Output_Style) c_ctx->output_style)
              .is_indented_syntax_src(c_ctx->is_indented_syntax_src)
              .source_comments(c_ctx->source_comments)
              .source_map_file(safe_str(c_ctx->source_map_file))

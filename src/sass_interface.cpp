@@ -72,7 +72,7 @@ extern "C" {
       Context cpp_ctx(
         Context::Data().source_c_str(c_ctx->source_string)
                        .output_path(output_path)
-                       .output_style((Output_Style) c_ctx->options.output_style)
+                       .output_style((Sass_Output_Style) c_ctx->options.output_style)
                        .is_indented_syntax_src(c_ctx->options.is_indented_syntax_src)
                        .source_comments(c_ctx->options.source_comments)
                        .source_map_file(safe_str(c_ctx->options.source_map_file))
@@ -165,7 +165,7 @@ extern "C" {
       Context cpp_ctx(
         Context::Data().entry_point(input_path)
                        .output_path(output_path)
-                       .output_style((Output_Style) c_ctx->options.output_style)
+                       .output_style((Sass_Output_Style) c_ctx->options.output_style)
                        .is_indented_syntax_src(c_ctx->options.is_indented_syntax_src)
                        .source_comments(c_ctx->options.source_comments)
                        .source_map_file(safe_str(c_ctx->options.source_map_file))

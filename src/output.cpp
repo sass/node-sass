@@ -74,7 +74,7 @@ namespace Sass {
       // skip all ascii chars
       if (chr >= 0) continue;
       // declare the charset
-      if (output_style() != COMPRESSED)
+      if (output_style() != SASS_STYLE_COMPRESSED)
         charset = "@charset \"UTF-8\";"
                   + ctx->linefeed;
       else charset = "\xEF\xBB\xBF";
@@ -95,7 +95,7 @@ namespace Sass {
     std::string txt = c->text()->perform(&to_string);
     // if (indentation && txt == "/**/") return;
     bool important = c->is_important();
-    if (output_style() != COMPRESSED || important) {
+    if (output_style() != SASS_STYLE_COMPRESSED || important) {
       if (buffer().size() == 0) {
         top_nodes.push_back(c);
       } else {
@@ -131,7 +131,7 @@ namespace Sass {
 
     if (b->has_non_hoistable()) {
       decls = true;
-      if (output_style() == NESTED) indentation += r->tabs();
+      if (output_style() == SASS_STYLE_NESTED) indentation += r->tabs();
       if (ctx && ctx->source_comments) {
         std::stringstream ss;
         append_indentation();
@@ -171,7 +171,7 @@ namespace Sass {
           stm->perform(this);
         }
       }
-      if (output_style() == NESTED) indentation -= r->tabs();
+      if (output_style() == SASS_STYLE_NESTED) indentation -= r->tabs();
       append_scope_closer(b);
     }
 
@@ -238,7 +238,7 @@ namespace Sass {
       return;
     }
 
-    if (output_style() == NESTED) indentation += f->tabs();
+    if (output_style() == SASS_STYLE_NESTED) indentation += f->tabs();
     append_indentation();
     append_token("@supports", f);
     append_mandatory_space();
@@ -274,7 +274,7 @@ namespace Sass {
       }
     }
 
-    if (output_style() == NESTED) indentation -= f->tabs();
+    if (output_style() == SASS_STYLE_NESTED) indentation -= f->tabs();
 
     append_scope_closer();
 
@@ -297,7 +297,7 @@ namespace Sass {
       }
       return;
     }
-    if (output_style() == NESTED) indentation += m->tabs();
+    if (output_style() == SASS_STYLE_NESTED) indentation += m->tabs();
     append_indentation();
     append_token("@media", m);
     append_mandatory_space();
@@ -311,7 +311,7 @@ namespace Sass {
       if (i < L - 1) append_special_linefeed();
     }
 
-    if (output_style() == NESTED) indentation -= m->tabs();
+    if (output_style() == SASS_STYLE_NESTED) indentation -= m->tabs();
     append_scope_closer();
   }
 
@@ -380,7 +380,7 @@ namespace Sass {
   void Output::operator()(String_Constant* s)
   {
     std::string value(s->value());
-    if (s->can_compress_whitespace() && output_style() == COMPRESSED) {
+    if (s->can_compress_whitespace() && output_style() == SASS_STYLE_COMPRESSED) {
       value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
     }
     if (!in_comment) {

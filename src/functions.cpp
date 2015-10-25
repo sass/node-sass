@@ -1668,9 +1668,9 @@ namespace Sass {
       } else {
         bool parentheses = v->concrete_type() == Expression::MAP ||
                            v->concrete_type() == Expression::LIST;
-        Output_Style old_style;
+        Sass_Output_Style old_style;
         old_style = ctx.output_style;
-        ctx.output_style = NESTED;
+        ctx.output_style = SASS_STYLE_NESTED;
         To_String to_string(&ctx, false);
         std::string inspect = v->perform(&to_string);
         if (inspect.empty() && parentheses) inspect = "()";
