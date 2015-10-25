@@ -24,9 +24,6 @@ namespace Sass {
     SourceMap();
     SourceMap(const std::string& file);
 
-    void setFile(const std::string& str) {
-      file = str;
-    }
     void append(const Offset& offset);
     void prepend(const Offset& offset);
     void append(const OutputBuffer& out);
