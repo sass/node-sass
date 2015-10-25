@@ -44,7 +44,7 @@ namespace Sass {
     std::string join_paths(std::string root, std::string name);
 
     // create an absolute path by resolving relative paths with cwd
-    std::string make_absolute_path(const std::string& path, const std::string& cwd = ".");
+    std::string rel2abs(const std::string& path, const std::string& cwd = ".");
 
     // create a path that is relative to the given base directory
     // path and base will first be resolved against cwd to make them absolute

@@ -193,7 +193,7 @@ namespace Sass {
     }
 
     // create an absolute path by resolving relative paths with cwd
-    std::string make_absolute_path(const std::string& path, const std::string& cwd)
+    std::string rel2abs(const std::string& path, const std::string& cwd)
     {
       return make_canonical_path((is_absolute_path(path) ? path : join_paths(cwd, path)));
     }
@@ -203,8 +203,8 @@ namespace Sass {
     std::string abs2rel(const std::string& uri, const std::string& base, const std::string& cwd)
     {
 
-      std::string absolute_uri = make_absolute_path(uri, cwd);
-      std::string absolute_base = make_absolute_path(base, cwd);
+      std::string absolute_uri = rel2abs(uri, cwd);
+      std::string absolute_base = rel2abs(base, cwd);
 
       size_t proto = 0;
       // check if we have a protocol
