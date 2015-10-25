@@ -17,21 +17,15 @@ namespace Sass {
       exit(EXIT_FAILURE);                 \
     } while (0)
 
-  double round(double val)
+  double round(double val, size_t precision)
   {
+    // https://github.com/sass/sass/commit/4e3e1d5684cc29073a507578fc977434ff488c93
+    if (fmod(val, 1) - 0.5 > - std::pow(0.1, precision + 1)) return std::ceil(val);
+    else if (fmod(val, 1) - 0.5 > std::pow(0.1, precision)) return std::floor(val);
     // work around some compiler issue
     // cygwin has it not defined in std
     using namespace std;
-
-    // This was later repatched in 3.4.20
-    // which is as yet unreleased.
-    // https://github.com/sass/sass/commit/4e3e1d5684cc29073a507578fc977434ff488c93
-    if (fmod(val, 1) - 0.5 > -0.00001) return std::ceil(val);
     return ::round(val);
-
-    // Use this version once sass-spec is at 3.4.20
-    // if (fmod(val, 1) - 0.5 > -0.00001) return ::round(val);
-    // return value > 0 ? std::ceil(val) : std::floor(val);
   }
 
   /* Sadly, sass_strdup is not portable. */
