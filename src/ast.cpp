@@ -1864,17 +1864,17 @@ namespace Sass {
     // resolved color
     std::string res_name = name;
 
-    double r = round(cap_channel<0xff>(r_));
-    double g = round(cap_channel<0xff>(g_));
-    double b = round(cap_channel<0xff>(b_));
+    double r = Sass::round(cap_channel<0xff>(r_));
+    double g = Sass::round(cap_channel<0xff>(g_));
+    double b = Sass::round(cap_channel<0xff>(b_));
     double a = cap_channel<1>   (a_);
 
     // get color from given name (if one was given at all)
     if (name != "" && name_to_color(name)) {
       const Color* n = name_to_color(name);
-      r = round(cap_channel<0xff>(n->r()));
-      g = round(cap_channel<0xff>(n->g()));
-      b = round(cap_channel<0xff>(n->b()));
+      r = Sass::round(cap_channel<0xff>(n->r()));
+      g = Sass::round(cap_channel<0xff>(n->g()));
+      b = Sass::round(cap_channel<0xff>(n->b()));
       a = cap_channel<1>   (n->a());
     }
     // otherwise get the possible resolved color name
