@@ -6,6 +6,7 @@
 
 namespace Sass {
 
+  class Block;
   class Context;
 
   struct Sass_Queued {
@@ -50,9 +51,6 @@ namespace Sass {
     // path and base will first be resolved against cwd to make them absolute
     std::string abs2rel(const std::string& path, const std::string& base = ".", const std::string& cwd = get_cwd());
 
-    // try to find/resolve the filename
-    std::vector<Sass_Queued> resolve_includes(const std::string& root, const std::string& file);
-
     // helper function to resolve a filename
     std::string find_file(const std::string& file, const std::vector<std::string> paths);
     // inc paths can be directly passed from C code
@@ -64,6 +62,54 @@ namespace Sass {
     char* read_file(const std::string& file);
 
   }
+
+  class Importer {
+    public:
+      std::string imp_path;
+      std::string ctx_path;
+      std::string base_path;
+    public:
+      Importer(std::string imp_path, std::string ctx_path)
+      : imp_path(File::make_canonical_path(imp_path)),
+        ctx_path(File::make_canonical_path(ctx_path)),
+        base_path(File::dir_name(ctx_path))
+      { }
+  };
+
+  class Include : public Importer {
+    public:
+      std::string abs_path;
+    public:
+      Include(const Importer& imp, std::string abs_path)
+      : Importer(imp), abs_path(abs_path)
+      { }
+  };
+
+  class Resource {
+    public:
+      char* contents;
+      char* srcmap;
+    public:
+      Resource(char* contents, char* srcmap)
+      : contents(contents), srcmap(srcmap)
+      { }
+  };
+
+  class StyleSheet : public Resource {
+    public:
+      Block* root;
+    public:
+      StyleSheet(const Resource& res, Block* root)
+      : Resource(res), root(root)
+      { }
+  };
+
+  namespace File {
+
+    std::vector<Sass_Queued> resolve_includes(const std::string& root, const std::string& file);
+
+  }
+
 }
 
 #endif
