@@ -399,7 +399,7 @@ namespace Sass {
 
   std::string Context::format_embedded_source_map()
   {
-    std::string map = emitter.generate_source_map(*this);
+    std::string map = emitter.render_srcmap(*this);
     std::istringstream is( map );
     std::ostringstream buffer;
     base64::encoder E;
@@ -415,11 +415,11 @@ namespace Sass {
     return "/*# sourceMappingURL=" + url + " */";
   }
 
-  char* Context::generate_source_map()
+  char* Context::render_srcmap()
   {
     if (source_map_file == "") return 0;
     char* result = 0;
-    std::string map = emitter.generate_source_map(*this);
+    std::string map = emitter.render_srcmap(*this);
     result = sass_strdup(map.c_str());
     return result;
   }

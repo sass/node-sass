@@ -121,7 +121,7 @@ namespace Sass {
     char* compile_file();
     char* compile_string();
     char* compile_block(Block* root);
-    char* generate_source_map();
+    char* render_srcmap();
 
     std::vector<std::string> get_included_files(bool skip = false, size_t headers = 0);
 

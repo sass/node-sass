@@ -659,7 +659,7 @@ extern "C" {
     // pass catched errors to generic error handler
     catch (...) { return handle_errors(compiler->c_ctx) | 1; }
     // generate source map json and store on context
-    compiler->c_ctx->source_map_string = cpp_ctx->generate_source_map();
+    compiler->c_ctx->source_map_string = cpp_ctx->render_srcmap();
     // success
     return 0;
   }
