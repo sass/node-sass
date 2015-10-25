@@ -227,7 +227,7 @@ namespace Sass {
     included_files.push_back(abs_path);
     queue.push_back(Sass_Queued(load_path, abs_path, contents));
     emitter.add_source_index(sources.size() - 1);
-    include_links.push_back(abs2rel(abs_path, source_map_file, cwd));
+    srcmap_links.push_back(abs2rel(abs_path, source_map_file, cwd));
   }
 
   // Add a new import file to the context

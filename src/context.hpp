@@ -40,7 +40,7 @@ namespace Sass {
     // absolute paths to includes
     std::vector<std::string> included_files;
     // relative links to includes
-    std::vector<std::string> include_links;
+    std::vector<std::string> srcmap_links;
     // vectors above have same size
 
     std::vector<std::string> plugin_paths; // relative paths to load plugins
