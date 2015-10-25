@@ -23,10 +23,10 @@ extern "C" {
   #define IMPLEMENT_SASS_OPTION_ACCESSOR(type, option) \
     type ADDCALL sass_option_get_##option (struct Sass_Options* options) { return options->option; } \
     void ADDCALL sass_option_set_##option (struct Sass_Options* options, type option) { options->option = option; }
-  #define IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(type, option) \
-    type ADDCALL sass_option_get_##option (struct Sass_Options* options) { return options->option; } \
+  #define IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(type, option, def) \
+    type ADDCALL sass_option_get_##option (struct Sass_Options* options) { return safe_str(options->option, def); } \
     void ADDCALL sass_option_set_##option (struct Sass_Options* options, type option) \
-    { free(options->option); options->option = option ? sass_strdup(option) : 0; }
+    { free(options->option); options->option = option || def ? sass_strdup(option ? option : def) : 0; }
 
   #define IMPLEMENT_SASS_CONTEXT_GETTER(type, option) \
     type ADDCALL sass_context_get_##option (struct Sass_Context* ctx) { return ctx->option; }
@@ -684,12 +684,12 @@ extern "C" {
   IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_Importer_List, c_headers);
   IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, indent);
   IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, linefeed);
-  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, input_path);
-  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, output_path);
-  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, plugin_path);
-  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, include_path);
-  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, source_map_file);
-  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, source_map_root);
+  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, input_path, 0);
+  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, output_path, 0);
+  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, plugin_path, 0);
+  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, include_path, 0);
+  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, source_map_file, 0);
+  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, source_map_root, 0);
 
   // Create getter and setters for context
   IMPLEMENT_SASS_CONTEXT_GETTER(int, error_status);
