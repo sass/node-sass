@@ -120,7 +120,7 @@ namespace Sass {
     // usefull to influence the source-map generating etc.
     char* compile_file();
     char* compile_string();
-    char* compile_block(Block* root);
+    char* render(Block* root);
     char* render_srcmap();
 
     std::vector<std::string> get_included_files(bool skip = false, size_t headers = 0);

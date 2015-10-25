@@ -288,7 +288,7 @@ namespace Sass {
   void register_c_functions(Context&, Env* env, Sass_Function_List);
   void register_c_function(Context&, Env* env, Sass_Function_Entry);
 
-  char* Context::compile_block(Block* root)
+  char* Context::render(Block* root)
   {
     if (!root) return 0;
     root->perform(&emitter);
@@ -388,13 +388,13 @@ namespace Sass {
   char* Context::compile_file()
   {
     // returns NULL if something fails
-    return compile_block(parse_file());
+    return render(parse_file());
   }
 
   char* Context::compile_string()
   {
     // returns NULL if something fails
-    return compile_block(parse_string());
+    return render(parse_string());
   }
 
   std::string Context::format_embedded_source_map()
