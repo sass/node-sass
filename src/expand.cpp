@@ -317,7 +317,17 @@ namespace Sass {
 
   Statement* Expand::operator()(Import_Stub* i)
   {
-    append_block(ctx.style_sheets[i->file_name()]);
+    // we don't seem to need that actually afterall
+    Sass_Import_Entry import = sass_make_import(
+      i->imp_path().c_str(),
+      i->abs_path().c_str(),
+      0, 0
+    );
+    ctx.import_stack.push_back(import);
+    const std::string& abs_path(i->resource().abs_path);
+    append_block(ctx.sheets.at(abs_path).root);
+    sass_delete_import(ctx.import_stack.back());
+    ctx.import_stack.pop_back();
     return 0;
   }
 

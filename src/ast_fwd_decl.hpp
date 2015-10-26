@@ -83,6 +83,9 @@ namespace Sass {
   class Complex_Selector;
   class Selector_List;
 
+  // common classes
+  class Context;
+
 }
 
 #endif

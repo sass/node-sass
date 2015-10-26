@@ -9,14 +9,6 @@ namespace Sass {
   class Block;
   class Context;
 
-  struct Sass_Queued {
-    std::string abs_path;
-    std::string load_path;
-    const char* source;
-  public:
-    Sass_Queued(const std::string& load_path, const std::string& abs_path, const char* source);
-  };
-
   namespace File {
 
     // return the current directory
@@ -63,10 +55,15 @@ namespace Sass {
 
   }
 
+  // requested import
   class Importer {
     public:
+      // requested import path
       std::string imp_path;
+      // parent context path
       std::string ctx_path;
+      // base derived from context path
+      // this really just acts as a cache
       std::string base_path;
     public:
       Importer(std::string imp_path, std::string ctx_path)
@@ -76,8 +73,10 @@ namespace Sass {
       { }
   };
 
+  // a resolved include (final import)
   class Include : public Importer {
     public:
+      // resolved absolute path
       std::string abs_path;
     public:
       Include(const Importer& imp, std::string abs_path)
@@ -85,9 +84,12 @@ namespace Sass {
       { }
   };
 
+  // a loaded resource
   class Resource {
     public:
+      // the file contents
       char* contents;
+      // conected sourcemap
       char* srcmap;
     public:
       Resource(char* contents, char* srcmap)
@@ -95,8 +97,10 @@ namespace Sass {
       { }
   };
 
+  // parsed stylesheet from loaded resource
   class StyleSheet : public Resource {
     public:
+      // parsed root block
       Block* root;
     public:
       StyleSheet(const Resource& res, Block* root)
@@ -106,7 +110,7 @@ namespace Sass {
 
   namespace File {
 
-    std::vector<Sass_Queued> resolve_includes(const std::string& root, const std::string& file);
+    std::vector<Include> resolve_includes(const std::string& root, const std::string& file);
 
   }
 

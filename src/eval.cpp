@@ -400,7 +400,7 @@ namespace Sass {
 
     }
 
-    std::string cwd(ctx.get_cwd());
+    std::string cwd(ctx.cwd());
     std::string result(unquote(message->perform(&to_string)));
     std::string rel_path(Sass::File::abs2rel(d->pstate().path, cwd, cwd));
     std::cerr << rel_path << ":" << d->pstate().line+1 << " DEBUG: " << result;
@@ -530,8 +530,8 @@ namespace Sass {
     // ToDo: throw error in op functions
     // ToDo: then catch and re-throw them
     ParserState pstate(b->pstate());
-    int precision = (int)ctx.precision;
-    bool compressed = ctx.output_style == SASS_STYLE_COMPRESSED;
+    int precision = (int)ctx.c_options->precision;
+    bool compressed = ctx.output_style() == SASS_STYLE_COMPRESSED;
     if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
       const Number* l_n = dynamic_cast<const Number*>(lhs);
       const Number* r_n = dynamic_cast<const Number*>(rhs);
@@ -904,7 +904,7 @@ namespace Sass {
     } else if (List* list = dynamic_cast<List*>(s)) {
       std::string acc = ""; // ToDo: different output styles
       std::string sep = list->separator() == SASS_COMMA ? "," : " ";
-      if (ctx.output_style != SASS_STYLE_COMPRESSED && sep == ",") sep += " ";
+      if (ctx.output_style() != SASS_STYLE_COMPRESSED && sep == ",") sep += " ";
       bool initial = false;
       for(auto item : list->elements()) {
         if (item->concrete_type() != Expression::NULL_VAL) {

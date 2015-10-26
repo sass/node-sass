@@ -69,26 +69,8 @@ extern "C" {
       else {
           output_path = c_ctx->output_path;
       }
-      Context cpp_ctx(
-        Context::Data().source_c_str(c_ctx->source_string)
-                       .output_path(output_path)
-                       .output_style((Sass_Output_Style) c_ctx->options.output_style)
-                       .is_indented_syntax_src(c_ctx->options.is_indented_syntax_src)
-                       .source_comments(c_ctx->options.source_comments)
-                       .source_map_file(safe_str(c_ctx->options.source_map_file))
-                       .source_map_root(safe_str(c_ctx->options.source_map_root))
-                       .source_map_embed(c_ctx->options.source_map_embed)
-                       .source_map_contents(c_ctx->options.source_map_contents)
-                       .omit_source_map_url(c_ctx->options.omit_source_map_url)
-                       .include_paths_c_str(c_ctx->options.include_paths)
-                       .plugin_paths_c_str(c_ctx->options.plugin_paths)
-                       // .include_paths_array(0)
-                       // .plugin_paths_array(0)
-                       .include_paths(std::vector<std::string>())
-                       .plugin_paths(std::vector<std::string>())
-                       .precision(c_ctx->options.precision ? c_ctx->options.precision : 5)
-                       .indent(c_ctx->options.indent ? c_ctx->options.indent : "  ")
-                       .linefeed(c_ctx->options.linefeed ? c_ctx->options.linefeed : LFEED)
+      Data_Context cpp_ctx(
+        (Sass_Data_Context*) 0
       );
       if (c_ctx->c_functions) {
         Sass_Function_List this_func_data = c_ctx->c_functions;
@@ -97,7 +79,8 @@ extern "C" {
           ++this_func_data;
         }
       }
-      c_ctx->output_string = cpp_ctx.compile_string();
+      Block* root = cpp_ctx.parse();
+      c_ctx->output_string = cpp_ctx.render(root);
       c_ctx->source_map_string = cpp_ctx.render_srcmap();
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
@@ -162,26 +145,8 @@ extern "C" {
       else {
           output_path = c_ctx->output_path;
       }
-      Context cpp_ctx(
-        Context::Data().entry_point(input_path)
-                       .output_path(output_path)
-                       .output_style((Sass_Output_Style) c_ctx->options.output_style)
-                       .is_indented_syntax_src(c_ctx->options.is_indented_syntax_src)
-                       .source_comments(c_ctx->options.source_comments)
-                       .source_map_file(safe_str(c_ctx->options.source_map_file))
-                       .source_map_root(safe_str(c_ctx->options.source_map_root))
-                       .source_map_embed(c_ctx->options.source_map_embed)
-                       .source_map_contents(c_ctx->options.source_map_contents)
-                       .omit_source_map_url(c_ctx->options.omit_source_map_url)
-                       .include_paths_c_str(c_ctx->options.include_paths)
-                       .plugin_paths_c_str(c_ctx->options.plugin_paths)
-                       // .include_paths_array(0)
-                       // .plugin_paths_array(0)
-                       .include_paths(std::vector<std::string>())
-                       .plugin_paths(std::vector<std::string>())
-                       .precision(c_ctx->options.precision ? c_ctx->options.precision : 5)
-                       .indent(c_ctx->options.indent ? c_ctx->options.indent : "  ")
-                       .linefeed(c_ctx->options.linefeed ? c_ctx->options.linefeed : LFEED)
+      File_Context cpp_ctx(
+        (Sass_File_Context*) 0
       );
       if (c_ctx->c_functions) {
         Sass_Function_List this_func_data = c_ctx->c_functions;
@@ -190,7 +155,8 @@ extern "C" {
           ++this_func_data;
         }
       }
-      c_ctx->output_string = cpp_ctx.compile_file();
+      Block* root = cpp_ctx.parse();
+      c_ctx->output_string = cpp_ctx.render(root);
       c_ctx->source_map_string = cpp_ctx.render_srcmap();
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;

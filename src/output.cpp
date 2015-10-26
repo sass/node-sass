@@ -132,10 +132,11 @@ namespace Sass {
     if (b->has_non_hoistable()) {
       decls = true;
       if (output_style() == SASS_STYLE_NESTED) indentation += r->tabs();
-      if (ctx && ctx->source_comments) {
+      if (ctx && ctx->c_options->source_comments) {
         std::stringstream ss;
         append_indentation();
-        ss << "/* line " << r->pstate().line+1 << ", " << r->pstate().path << " */";
+        std::string path = Sass::File::abs2rel(r->pstate().path, ctx->cwd());
+        ss << "/* line " << r->pstate().line + 1 << ", " << path << " */";
         append_string(ss.str());
         append_optional_linefeed();
       }

@@ -16,9 +16,9 @@ namespace Sass {
 
   std::string SourceMap::render_srcmap(Context &ctx) {
 
-    const bool include_sources = ctx.source_map_contents;
+    const bool include_sources = ctx.c_options->source_map_contents;
     const std::vector<std::string> links = ctx.srcmap_links;
-    const std::vector<char*> sources = ctx.sources;
+    const std::vector<Resource>& sources(ctx.resources);
 
     JsonNode* json_srcmap = json_mkobject();
 
@@ -45,8 +45,8 @@ namespace Sass {
     if (include_sources) {
       JsonNode *json_contents = json_mkarray();
       for (size_t i = 0; i < source_index.size(); ++i) {
-        const char *content = sources[source_index[i]];
-        JsonNode *json_content = json_mkstring(content);
+        const Resource& resource(sources[source_index[i]]);
+        JsonNode *json_content = json_mkstring(resource.contents);
         json_append_element(json_contents, json_content);
       }
       if (json_contents->children.head)

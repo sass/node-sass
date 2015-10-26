@@ -21,13 +21,9 @@ struct Lookahead {
 namespace Sass {
 
   class Parser : public ParserState {
-  private:
-    void add_single_file (Import* imp, std::string import_path);
-    void import_single_file (Import* imp, std::string import_path);
   public:
 
     enum Syntactic_Context { nothing, mixin_def, function_def };
-    bool do_import(const std::string& import_path, Import* imp, std::vector<Sass_Importer_Entry> importers, bool only_one = true);
 
     Context& ctx;
     std::vector<Block*> block_stack;
