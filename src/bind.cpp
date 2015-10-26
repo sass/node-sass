@@ -125,7 +125,7 @@ namespace Sass {
             // maybe we have another list as argument
             List* ls = dynamic_cast<List*>(a->value());
             // skip any list completely if empty
-            if (ls && ls->empty()) continue;
+            if (ls && ls->empty() && a->is_rest_argument()) continue;
             // flatten all nested arglists
             if (ls && ls->is_arglist()) {
               for (size_t i = 0, L = ls->size(); i < L; ++i) {
