@@ -3,7 +3,7 @@
 <table>
   <tr>
     <td>
-      <img width="100%" alt="Sass logo" src="https://rawgit.com/sass/node-sass/master/media/logo.svg" />
+      <img width="77px" alt="Sass logo" src="https://rawgit.com/sass/node-sass/master/media/logo.svg" />
     </td>
     <td valign="bottom" align="right">
       <a href="https://nodei.co/npm/node-sass/">
