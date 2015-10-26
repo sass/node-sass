@@ -9,7 +9,7 @@ Sass_Import_List sass_importer(const char* cur_path, Sass_Importer_Entry cb, str
 {
   void* cookie = sass_importer_get_cookie(cb);
   struct Sass_Import* previous = sass_compiler_get_last_import(comp);
-  const char* prev_path = sass_import_get_imp_path(previous);
+  const char* prev_path = sass_import_get_abs_path(previous);
   CustomImporterBridge& bridge = *(static_cast<CustomImporterBridge*>(cookie));
 
   std::vector<void*> argv;
