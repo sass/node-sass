@@ -1325,6 +1325,12 @@ namespace Sass {
     if (ltype == Expression::NULL_VAL) error("Invalid null operation: \"null plus "+quote(unquote(rstr), '"')+"\".", lhs.pstate());
     if (rtype == Expression::NULL_VAL) error("Invalid null operation: \""+quote(unquote(lstr), '"')+" plus null\".", rhs.pstate());
 
+    if (ltype == Expression::NUMBER && sep == "/" && rtype == Expression::STRING)
+    {
+      return SASS_MEMORY_NEW(mem, String_Constant, lhs.pstate(),
+        lhs.to_string() + sep + rhs.to_string());
+    }
+
     if ( (ltype == Expression::STRING || sep == "") &&
          (sep != "/" || !rqstr || !rqstr->quote_mark())
     ) {
