@@ -91,6 +91,8 @@ namespace Sass {
                unicode,
                exactly<'-'>,
                exactly<'_'>,
+               NONASCII,
+               ESCAPE,
                escape_seq
              >(src);
     }
@@ -104,6 +106,8 @@ namespace Sass {
                unicode,
                exactly<'-'>,
                exactly<'_'>,
+               NONASCII,
+               ESCAPE,
                escape_seq
              >(src);
     }
@@ -944,8 +948,10 @@ namespace Sass {
         UUNICODE,
         sequence<
           exactly<'\\'>,
-          NONASCII,
-          class_char< escape_chars >
+          alternatives<
+            NONASCII,
+            escapable_character
+          >
         >
       >(src);
     }

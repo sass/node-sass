@@ -35,6 +35,7 @@ namespace Sass {
     bool is_nonascii(const char& src);
     bool is_character(const char& src);
     bool is_uri_character(const char& src);
+    bool escapable_character(const char& src);
 
     // Match a single ctype predicate.
     const char* space(const char* src);
@@ -47,6 +48,7 @@ namespace Sass {
     const char* nonascii(const char* src);
     const char* character(const char* src);
     const char* uri_character(const char* src);
+    const char* escapable_character(const char* src);
 
     // Match multiple ctype characters.
     const char* spaces(const char* src);
