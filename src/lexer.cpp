@@ -93,6 +93,13 @@ namespace Sass {
       return unsigned(chr) > 41 && unsigned(chr) < 127;
     }
 
+    // check if char is within a reduced ascii range
+    // valid for escaping (copied from Ruby Sass)
+    bool is_escapable_character(const char& chr)
+    {
+      return unsigned(chr) > 31 && unsigned(chr) < 127;
+    }
+
     // Match word character (look ahead)
     bool is_character(const char& chr)
     {
@@ -115,6 +122,7 @@ namespace Sass {
     const char* punct(const char* src) { return is_punct(*src) ? src + 1 : 0; }
     const char* character(const char* src) { return is_character(*src) ? src + 1 : 0; }
     const char* uri_character(const char* src) { return is_uri_character(*src) ? src + 1 : 0; }
+    const char* escapable_character(const char* src) { return is_escapable_character(*src) ? src + 1 : 0; }
 
     // Match multiple ctype characters.
     const char* spaces(const char* src) { return one_plus<space>(src); }

@@ -127,7 +127,6 @@ namespace Sass {
     extern const char hyphen[]          = "-";
     extern const char ellipsis[]        = "...";
     // extern const char url_space_chars[] = " \t\r\n\f";
-    extern const char escape_chars[]    = " -~"; // need to include unicode spaces too
     // type names
     extern const char numeric_name[]    = "numeric value";
     extern const char number_name[]     = "number";
