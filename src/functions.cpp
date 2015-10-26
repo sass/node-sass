@@ -1588,17 +1588,17 @@ namespace Sass {
       List* arglist = SASS_MEMORY_NEW(ctx.mem, List, *ARG("$args", List));
 
       Arguments* args = SASS_MEMORY_NEW(ctx.mem, Arguments, pstate);
-      std::string full_name(name + "[f]");
-      Definition* def = d_env.has(full_name) ? static_cast<Definition*>((d_env)[full_name]) : 0;
-      Parameters* params = def ? def->parameters() : 0;
-      size_t param_size = params ? params->length() : 0;
+      // std::string full_name(name + "[f]");
+      // Definition* def = d_env.has(full_name) ? static_cast<Definition*>((d_env)[full_name]) : 0;
+      // Parameters* params = def ? def->parameters() : 0;
+      // size_t param_size = params ? params->length() : 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Expression* expr = arglist->value_at_index(i);
-        if (params && params->has_rest_parameter()) {
-          Parameter* p = param_size > i ? (*params)[i] : 0;
-          List* list = dynamic_cast<List*>(expr);
-          if (list && p && !p->is_rest_parameter()) expr = (*list)[0];
-        }
+        // if (params && params->has_rest_parameter()) {
+        //   Parameter* p = param_size > i ? (*params)[i] : 0;
+        //   List* list = dynamic_cast<List*>(expr);
+        //   if (list && p && !p->is_rest_parameter()) expr = (*list)[0];
+        // }
         if (arglist->is_arglist()) {
           Argument* arg = dynamic_cast<Argument*>((*arglist)[i]);
           *args << SASS_MEMORY_NEW(ctx.mem, Argument,
