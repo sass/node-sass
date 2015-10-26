@@ -236,8 +236,10 @@ namespace Sass {
   // looks for alternatives and returns a list from one directory
   std::vector<Include> Context::find_includes(const Importer& import)
   {
+    // make sure we resolve against an absolute path
+    std::string base_path(rel2abs(import.base_path));
     // first try to resolve the load path relative to the base path
-    std::vector<Include> vec(resolve_includes(import.base_path, import.imp_path));
+    std::vector<Include> vec(resolve_includes(base_path, import.imp_path));
     // then search in every include path (but only if nothing found yet)
     for (size_t i = 0, S = include_paths.size(); vec.size() == 0 && i < S; ++i)
     {
@@ -533,6 +535,7 @@ namespace Sass {
     if (input_path.empty()) return 0;
 
     // create absolute path from input filename
+    // ToDo: this should be resolved via custom importers
     std::string abs_path(rel2abs(input_path, CWD));
 
     // try to load the entry file
@@ -590,10 +593,15 @@ namespace Sass {
     // remember entry path (defaults to stdin for string)
     entry_path = input_path.empty() ? "stdin" : input_path;
 
+    // ToDo: this may be resolved via custom importers
+    std::string abs_path(rel2abs(entry_path));
+    char* abs_path_c_str = sass_strdup(abs_path.c_str());
+    strings.push_back(abs_path_c_str);
+
     // create entry only for the import stack
     Sass_Import_Entry import = sass_make_import(
       entry_path.c_str(),
-      entry_path.c_str(),
+      abs_path_c_str,
       source_c_str,
       srcmap_c_str
     );
