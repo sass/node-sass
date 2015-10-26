@@ -1445,7 +1445,8 @@ namespace Sass {
   {
     To_String to_string;
     // the parser will look for a brace to end the selector
-    std::string result_str(s->contents()->perform(this)->perform(&to_string) + "{");
+    std::string result_str(s->contents()->perform(this)->perform(&to_string));
+    result_str = unquote(Util::rtrim(result_str)) + "{";
     Parser p = Parser::from_c_str(result_str.c_str(), ctx, s->pstate());
     return operator()(p.parse_selector_list(exp.block_stack.back()->is_root()));
   }
