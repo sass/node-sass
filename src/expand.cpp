@@ -28,6 +28,7 @@ namespace Sass {
     env_stack.push_back(0);
     env_stack.push_back(env);
     block_stack.push_back(0);
+    // import_stack.push_back(0);
     property_stack.push_back(0);
     selector_stack.push_back(0);
     backtrace_stack.push_back(0);

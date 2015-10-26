@@ -142,17 +142,23 @@ namespace Sass {
     // free all strings we kept alive during compiler execution
     for (size_t n = 0; n < strings.size(); ++n) free(strings[n]);
     // everything that gets put into sources will be freed by us
-    for (size_t m = 0; m < import_stack.size(); ++m) sass_delete_import(import_stack[m]);
+    // this shouldn't have anything in it anyway!?
+    for (size_t m = 0; m < import_stack.size(); ++m) {
+      sass_import_take_source(import_stack[m]);
+      sass_import_take_srcmap(import_stack[m]);
+      sass_delete_import(import_stack[m]);
+    }
     // clear inner structures (vectors) and input source
     resources.clear(); import_stack.clear();
   }
 
   Data_Context::~Data_Context()
   {
+    // --> this will be freed by resources
     // make sure we free the source even if not processed!
-    if (resources.size() == 0 && source_c_str) free(source_c_str);
-    if (resources.size() == 0 && srcmap_c_str) free(srcmap_c_str);
-    source_c_str = 0; srcmap_c_str = 0;
+    // if (resources.size() == 0 && source_c_str) free(source_c_str);
+    // if (resources.size() == 0 && srcmap_c_str) free(srcmap_c_str);
+    // source_c_str = 0; srcmap_c_str = 0;
   }
 
   File_Context::~File_Context()
@@ -272,7 +278,7 @@ namespace Sass {
     // add a relative link  to the source map output file
     srcmap_links.push_back(abs2rel(inc.abs_path, source_map_file, CWD));
 
-    // create entry only for import stack
+    // get pointer to the loaded content
     Sass_Import_Entry import = sass_make_import(
       inc.imp_path.c_str(),
       inc.abs_path.c_str(),
@@ -291,12 +297,11 @@ namespace Sass {
     ParserState pstate(strings.back(), contents, idx);
     // create a parser instance from the given c_str buffer
     Parser p(Parser::from_c_str(contents, *this, pstate));
-
-    // then parse the root block
+    // do not yet dispose these buffers
     sass_import_take_source(import);
-    Block* root = p.parse();
     sass_import_take_srcmap(import);
-
+    // then parse the root block
+    Block* root = p.parse();
     // delete memory of current stack frame
     sass_delete_import(import_stack.back());
     // remove current stack frame
@@ -306,7 +311,6 @@ namespace Sass {
       ast_pair(inc.abs_path, { res, root });
     // register resulting resource
     sheets.insert(ast_pair);
-
 
   }
 
@@ -348,9 +352,6 @@ namespace Sass {
     return { imp, "" };
 
   }
-
-
-
 
   void Context::import_url (Import* imp, std::string load_path, const std::string& ctx_path) {
 
@@ -482,28 +483,40 @@ namespace Sass {
 
   char* Context::render(Block* root)
   {
+    // check for valid block
     if (!root) return 0;
+    // start the render process
     root->perform(&emitter);
+    // finish emitter stream
     emitter.finalize();
+    // get the resulting buffer from stream
     OutputBuffer emitted = emitter.get_buffer();
-    std::string output = emitted.buffer;
+    // should we append a source map url?
     if (!c_options->omit_source_map_url) {
+      // generate an embeded source map
       if (c_options->source_map_embed) {
-       output += linefeed + format_embedded_source_map();
+        emitted.buffer += linefeed;
+        emitted.buffer += format_embedded_source_map();
       }
+      // or just link the generated one
       else if (source_map_file != "") {
-        output += linefeed + format_source_mapping_url(source_map_file);
+        emitted.buffer += linefeed;
+        emitted.buffer += format_source_mapping_url(source_map_file);
       }
     }
-    return sass_strdup(output.c_str());
+    // create a copy of the resulting buffer string
+    // this must be freed or taken over by implementor
+    return sass_strdup(emitted.buffer.c_str());
   }
 
   void Context::apply_custom_headers(Block* root, const char* ctx_path, ParserState pstate)
   {
+    // create a custom import to resolve headers
     Import* imp = SASS_MEMORY_NEW(mem, Import, pstate);
-    std::string load_path(entry_path);
-    call_headers(load_path, ctx_path, pstate, imp);
-    // increase head count for skip over
+    // dispatch headers which will add custom functions
+    // custom headers are added to the import instance
+    call_headers(entry_path, ctx_path, pstate, imp);
+    // increase head count to skip later
     head_imports += resources.size() - 1;
     // add the statement if we have urls
     if (!imp->urls().empty()) (*root) << imp;
@@ -519,9 +532,7 @@ namespace Sass {
     // check if entry file is given
     if (input_path.empty()) return 0;
 
-    // clear old root
-    // resources.clear();
-
+    // create absolute path from input filename
     std::string abs_path(rel2abs(input_path, CWD));
 
     // try to load the entry file
@@ -539,8 +550,18 @@ namespace Sass {
     // abort early if no content could be loaded (various reasons)
     if (!contents) throw "File to read not found or unreadable: " + input_path;
 
-    // remember entry path
+    // store entry path
     entry_path = abs_path;
+
+    // create entry only for import stack
+    Sass_Import_Entry import = sass_make_import(
+      input_path.c_str(),
+      entry_path.c_str(),
+      contents,
+      0
+    );
+    // add the entry to the stack
+    import_stack.push_back(import);
 
     // create the source entry for file entry
     register_resource({{ input_path, "." }, abs_path }, { contents, 0 });
@@ -556,9 +577,6 @@ namespace Sass {
     // check if source string is given
     if (!source_c_str) return 0;
 
-    // clear old root
-    // resources.clear();
-
     // convert indented sass syntax
     if(c_options->is_indented_syntax_src) {
       // call sass2scss to convert the string
@@ -572,9 +590,20 @@ namespace Sass {
     // remember entry path (defaults to stdin for string)
     entry_path = input_path.empty() ? "stdin" : input_path;
 
+    // create entry only for the import stack
+    Sass_Import_Entry import = sass_make_import(
+      entry_path.c_str(),
+      entry_path.c_str(),
+      source_c_str,
+      srcmap_c_str
+    );
+    // add the entry to the stack
+    import_stack.push_back(import);
+
     // register a synthetic resource (path does not really exist, skip in includes)
     register_resource({{ input_path, "." }, input_path }, { source_c_str, srcmap_c_str });
 
+    // create root ast tree node
     return compile();
   }
 

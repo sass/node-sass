@@ -13,7 +13,6 @@
 #include "utf8_string.hpp"
 #include "utf8.h"
 
-#include <atomic>
 #include <cstdlib>
 #include <cmath>
 #include <cctype>
