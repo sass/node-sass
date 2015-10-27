@@ -23,7 +23,7 @@ It's deprecated and incompatible with this documentation, use `sass/context.h`!
 
 ```C
 // deprecated interface
-#include "sass_interface.h"
+#include "sass/interface.h"
 ```
 
 ## Basic C Example

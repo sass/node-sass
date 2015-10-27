@@ -66,7 +66,7 @@ void sass_delete_value (const union Sass_Value* val);
 ```C
 #include <stdio.h>
 #include <stdint.h>
-#include "sass_context.h"
+#include "sass/context.h"
 
 union Sass_Value* call_fn_foo(const union Sass_Value* s_args, void* cookie)
 {

@@ -29,7 +29,7 @@ This should install these files
 # $ ls -la /usr/include/sass*
 /usr/include/sass.h
 /usr/include/sass2scss.h
-/usr/include/sass_context.h
-/usr/include/sass_functions.h
-/usr/include/sass_values.h
+/usr/include/sass/context.h
+/usr/include/sass/functions.h
+/usr/include/sass/values.h
 ```
