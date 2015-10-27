@@ -66,19 +66,19 @@ if [ "x$AUTOTOOLS" == "xyes" ]; then
     ${SHARED_OPT}
   echo -en 'travis_fold:end:configure\r'
 
-  make clean $MAKE_OPTS
+  make $MAKE_OPTS clean
 
   # install to prefix directory
-  PREFIX="$PREFIX" make install
+  PREFIX="$PREFIX" make $MAKE_OPTS install
 
 else
 
-  make clean $MAKE_OPTS
+  make $MAKE_OPTS clean
 
 fi
 
 # install to prefix directory
-PREFIX="$PREFIX" make install
+PREFIX="$PREFIX" make $MAKE_OPTS install
 
 ls -la $PREFIX/*
 

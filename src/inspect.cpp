@@ -460,7 +460,7 @@ namespace Sass {
   {
     // use values to_string facility
     bool compressed = ctx->output_style == COMPRESSED;
-    std::string res = n->to_string(compressed, (int)ctx->precision);
+    std::string res(n->to_string(compressed, (int)ctx->precision));
     // output the final token
     append_token(res, n);
   }
@@ -469,7 +469,7 @@ namespace Sass {
   {
     // use values to_string facility
     bool compressed = ctx->output_style == COMPRESSED;
-	std::string res = c->to_string(compressed, (int)ctx->precision);
+    std::string res(c->to_string(compressed, (int)ctx->precision));
     // output the final token
     append_token(res, c);
   }
@@ -478,7 +478,7 @@ namespace Sass {
   {
     // use values to_string facility
     bool compressed = ctx->output_style == COMPRESSED;
-	std::string res = b->to_string(compressed, (int)ctx->precision);
+    std::string res(b->to_string(compressed, (int)ctx->precision));
     // output the final token
     append_token(res, b);
   }
@@ -613,7 +613,7 @@ namespace Sass {
   {
     // use values to_string facility
     bool compressed = ctx->output_style == COMPRESSED;
-    std::string res = n->to_string(compressed, (int)ctx->precision);
+    std::string res(n->to_string(compressed, (int)ctx->precision));
     // output the final token
     append_token(res, n);
   }

@@ -399,7 +399,7 @@ namespace Sass {
         {
           // push single file import
           // import_single_file(imp, lexed);
-          to_import.push_back(std::pair<std::string,Function_Call*>(std::string(lexed), 0));
+          to_import.push_back(std::pair<std::string,Function_Call*>(std::string(lexed), (Function_Call*) 0));
         }
       }
       else if (lex< uri_prefix >()) {
