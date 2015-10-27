@@ -186,6 +186,29 @@ describe('api', function() {
   describe('.render(importer)', function() {
     var src = read(fixture('include-files/index.scss'), 'utf8');
 
+    it('should still call the next importer with the resolved prev path when the previous importer returned both a file and contents property - issue #1219', function(done) {
+      sass.render({
+        data: '@import "a";',
+        importer: function(url, prev, done) {
+          if (url === 'a') {
+            done({
+              file: '/Users/me/sass/lib/a.scss',
+              contents: '@import "b"'
+            });
+          } else {
+          console.log(prev);
+            assert.equal(prev, '/Users/me/sass/lib/a.scss');
+            done({
+              file: '/Users/me/sass/lib/b.scss',
+              contents: 'div {color: yellow;}'
+            });
+          }
+        }
+      }, function() {
+        done();
+      });
+    });
+
     it('should override imports with "data" as input and fires callback with file and contents', function(done) {
       sass.render({
         data: src,
