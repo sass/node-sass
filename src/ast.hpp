@@ -622,6 +622,10 @@ namespace Sass {
     If(ParserState pstate, Expression* pred, Block* con, Block* alt = 0)
     : Has_Block(pstate, con), predicate_(pred), alternative_(alt)
     { statement_type(IF); }
+    virtual bool has_content()
+    {
+      return Has_Block::has_content() || (alternative_ && alternative_->has_content());
+    }
     ATTACH_OPERATIONS()
   };
 
