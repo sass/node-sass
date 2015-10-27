@@ -113,6 +113,7 @@ namespace Sass {
 
     // parse comments before block
     // lex < optional_css_comments >();
+
     // lex mandatory opener or error out
     if (!lex_css < exactly<'{'> >()) {
       css_error("Invalid CSS", " after ", ": expected \"{\", was ");
@@ -130,7 +131,7 @@ namespace Sass {
     // update for end position
     block->update_pstate(pstate);
 
-    // parse comments before block
+    // parse comments after block
     // lex < optional_css_comments >();
 
     block_stack.pop_back();
@@ -1849,11 +1850,13 @@ namespace Sass {
     Block* block = parse_block();
     Block* alternative = 0;
 
-    if (lex< elseif_directive >()) {
+    // only throw away comment if we parse a case
+    // we want all other comments to be parsed
+    if (lex_css< elseif_directive >()) {
       alternative = SASS_MEMORY_NEW(ctx.mem, Block, pstate);
       (*alternative) << parse_if_directive(true);
     }
-    else if (lex< kwd_else_directive >()) {
+    else if (lex_css< kwd_else_directive >()) {
       alternative = parse_block();
     }
     return SASS_MEMORY_NEW(ctx.mem, If, if_source_position, predicate, block, alternative);

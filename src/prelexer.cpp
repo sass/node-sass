@@ -398,7 +398,7 @@ namespace Sass {
     }
     const char* elseif_directive(const char* src) {
       return sequence< exactly< else_kwd >,
-                                optional_css_whitespace,
+                                optional_css_comments,
                                 word< if_after_else_kwd > >(src);
     }
 
