@@ -15,6 +15,7 @@ namespace Sass {
     // Match Sass boolean keywords.
     const char* kwd_true(const char* src);
     const char* kwd_false(const char* src);
+    const char* kwd_only(const char* src);
     const char* kwd_and(const char* src);
     const char* kwd_or(const char* src);
     const char* kwd_not(const char* src);

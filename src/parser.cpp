@@ -1969,15 +1969,15 @@ namespace Sass {
     Media_Query* media_query = SASS_MEMORY_NEW(ctx.mem, Media_Query, pstate);
 
     lex < css_comments >(false);
-    if (lex < word < not_kwd > >()) media_query->is_negated(true);
-    else if (lex < word < only_kwd > >()) media_query->is_restricted(true);
+    if (lex < kwd_not >()) media_query->is_negated(true);
+    else if (lex < kwd_only >()) media_query->is_restricted(true);
 
     lex < css_comments >(false);
     if (lex < identifier_schema >())  media_query->media_type(parse_identifier_schema());
     else if (lex < identifier >())    media_query->media_type(parse_interpolated_chunk(lexed));
     else                             (*media_query) << parse_media_expression();
 
-    while (lex_css < word < and_kwd > >()) (*media_query) << parse_media_expression();
+    while (lex_css < kwd_and >()) (*media_query) << parse_media_expression();
     if (lex < identifier_schema >()) {
       String_Schema* schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, pstate);
       *schema << media_query->media_type();
@@ -1985,7 +1985,7 @@ namespace Sass {
       *schema << parse_identifier_schema();
       media_query->media_type(schema);
     }
-    while (lex_css < word < and_kwd > >()) (*media_query) << parse_media_expression();
+    while (lex_css < kwd_and >()) (*media_query) << parse_media_expression();
     return media_query;
   }
 
@@ -2051,9 +2051,10 @@ namespace Sass {
     Supports_Condition* cond = parse_supports_condition_in_parens();
     if (!cond) return 0;
 
-    while (lex < kwd_and >() || lex < kwd_or >()) {
+    while (true) {
       Supports_Operator::Operand op = Supports_Operator::OR;
-      if (lexed.to_string() == "and") op = Supports_Operator::AND;
+      if (lex < kwd_and >()) { op = Supports_Operator::AND; }
+      else if(!lex < kwd_or >()) { break; }
 
       lex < css_whitespace >();
       Supports_Condition* right = parse_supports_condition_in_parens();
