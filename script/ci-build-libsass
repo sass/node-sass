@@ -8,9 +8,13 @@ script/bootstrap
 export SASS_LIBSASS_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../ && pwd )"
 
 # use some defaults if not running under travis ci
-if [ "x$TRAVIS_BUILD_DIR" == "x" ]; then export TRAVIS_BUILD_DIR=$(pwd)/build; fi
+if [ "x$CONTINUOUS_INTEGRATION" == "x" ]; then export CONTINUOUS_INTEGRATION=true; fi
+if [ "x$TRAVIS_BUILD_DIR" == "x" ]; then export TRAVIS_BUILD_DIR=$(pwd); fi
 if [ "x$SASS_SASSC_PATH" == "x" ]; then export SASS_SASSC_PATH=$(pwd)/sassc; fi
 if [ "x$SASS_SPEC_PATH" == "x" ]; then export SASS_SPEC_PATH=$(pwd)/sass-spec; fi
+
+# try to get the os name from uname (and filter via perl - probably not the most portable way?)
+if [ "x$TRAVIS_OS_NAME" == "x" ]; then export TRAVIS_OS_NAME=`uname -s | perl -ne 'print lc \$1 if\(/^([a-zA-Z]+)/'\)`; fi
 
 if [ "x$COVERAGE" == "xyes" ]; then
   COVERAGE_OPT="--enable-coverage"
@@ -81,48 +85,26 @@ ls -la $PREFIX/*
 echo successfully compiled libsass
 echo AUTOTOOLS=$AUTOTOOLS COVERAGE=$COVERAGE BUILD=$BUILD
 
-if [ "$CONTINUOUS_INTEGRATION" == "true" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ "$TRAVIS_OS_NAME" == "linux" ];
+if [ "$CONTINUOUS_INTEGRATION" == "true" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ "x$TRAVIS_PULL_REQUEST" != "x" ] &&
+   ([ "$TRAVIS_OS_NAME" == "linux" ] || [ "$TRAVIS_OS_NAME" == "osx" ] || [ "$TRAVIS_OS_NAME" == "cygwin" ]);
 then
-  echo "Downloading jq"
-
-  curl http://stedolan.github.io/jq/download/linux64/jq > jq
-  chmod +x jq
 
   echo "Fetching PR $TRAVIS_PULL_REQUEST"
 
-  JSON=$(curl -u xzyfer:882aeec2a5b847b7d67c61d7788c2721f011e2ea -sS https://api.github.com/repos/sass/libsass/pulls/$TRAVIS_PULL_REQUEST)
+  JSON=$(curl -L -sS https://api.github.com/repos/sass/libsass/pulls/$TRAVIS_PULL_REQUEST)
 
-  SPEC_PR=$(echo $JSON | jq -r .body)
+  RE_SPEC_PR="sass\/sass-spec(#|\/pull\/)([0-9]+)"
 
-  BLAH="sass\/sass-spec(#|\/pull\/)([0-9]+)"
-
-  if [[ $SPEC_PR =~ $BLAH ]];
+  if [[ $JSON =~ $RE_SPEC_PR ]];
   then
     SPEC_PR="${BASH_REMATCH[2]}"
-
     echo "Fetching Sass Spec PR $SPEC_PR"
-
-    JSON=$(curl -u xzyfer:882aeec2a5b847b7d67c61d7788c2721f011e2ea -sS https://api.github.com/repos/sass/sass-spec/pulls/$SPEC_PR)
-
-    SPEC_REMOTE=$(echo $JSON | jq -r .head.repo.clone_url)
-    SPEC_SHA=$(echo $JSON | jq -r .head.sha)
-
-    echo "Cloning $SPEC_REMOTE"
-
-    git clone $SPEC_REMOTE sass-spec-pr
-
-    echo "Checking out $SPEC_SHA"
-
-    cd sass-spec-pr
-    git checkout $SPEC_SHA
-
-    echo "Re-running Sass Spec"
-
-    cd ..
-    SASS_SPEC_PATH="sass-spec-pr" LD_LIBRARY_PATH="$PREFIX/lib/" make $MAKE_OPTS test_build
+    git -C sass-spec fetch -u origin pull/$SPEC_PR/head:ci-spec-pr-$SPEC_PR
+    git -C sass-spec checkout --force ci-spec-pr-$SPEC_PR
+    LD_LIBRARY_PATH="$PREFIX/lib/" make $MAKE_OPTS test_build
   else
-    LD_LIBRARY_PATH="$PREFIX/lib/" script/spec
+    LD_LIBRARY_PATH="$PREFIX/lib/" make $MAKE_OPTS test_build
   fi
 else
-  LD_LIBRARY_PATH="$PREFIX/lib/" script/spec
+  LD_LIBRARY_PATH="$PREFIX/lib/" make $MAKE_OPTS test_build
 fi

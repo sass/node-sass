@@ -52,4 +52,19 @@ build_script:
       ruby -v
 
 test_script:
-  - ps: ruby sass-spec/sass-spec.rb -c $env:TargetPath -s --ignore-todo sass-spec/spec
+  - ps: |
+      $PRNR = [System.Environment]::ExpandEnvironmentVariables("%APPVEYOR_PULL_REQUEST_NUMBER%")
+      if ($PRNR -ne "") {
+        echo "Fetching info for PR $PRNR"
+        $request = (New-Object System.Net.WebClient)
+        $request.headers['User-Agent'] = "Mozilla/5.0"
+        $request.DownloadFile( "https://api.github.com/repos/sass/libsass/pulls/$PRNR", 'pr.json')
+        $json = [IO.File]::ReadAllText('pr.json')
+        $SPEC_PR = [regex]::match($json,'sass\/sass-spec(#|\/pull\/)([0-9]+)').Groups[2].Value
+        if ($SPEC_PR -ne "") {
+          echo "Checkout sass spec PR $SPEC_PR"
+          git -C sass-spec fetch -q -u origin pull/$SPEC_PR/head:ci-spec-pr-$SPEC_PR
+          git -C sass-spec checkout -q --force ci-spec-pr-$SPEC_PR
+        }
+      }
+      ruby sass-spec/sass-spec.rb -c $env:TargetPath -s --ignore-todo sass-spec/spec
