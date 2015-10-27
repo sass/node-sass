@@ -470,6 +470,26 @@ describe('cli', function() {
         done();
       });
     });
+
+    it('should compile with the --source-map-embed option and no outfile', function(done) {
+        var src = fixture('source-map-embed/index.scss');
+        var expectedCss = read(fixture('source-map-embed/expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
+        var result = '';
+        var bin = spawn(cli, [
+          src,
+          '--source-map-embed',
+          '--source-map', 'true'
+        ]);
+        
+        bin.stdout.on('data', function(data) {
+            result += data;
+        });
+
+        bin.once('close', function() {
+          assert.equal(result.trim().replace(/\r\n/g, '\n'), expectedCss);
+          done();
+        });
+    });
   });
 
   describe('node-sass sass/ --output css/', function() {
