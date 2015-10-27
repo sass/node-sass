@@ -204,7 +204,7 @@ describe('api', function() {
             });
           }
         }
-      }, function(error, result) {
+      }, function() {
         done();
       });
     });
