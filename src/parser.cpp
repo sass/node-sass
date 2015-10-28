@@ -2163,6 +2163,9 @@ namespace Sass {
   At_Rule* Parser::parse_at_rule()
   {
     std::string kwd(lexed);
+
+    if (lexed == "@else") error("Invalid CSS: @else must come after @if", pstate);
+
     At_Rule* at_rule = SASS_MEMORY_NEW(ctx.mem, At_Rule, pstate, kwd);
     Lookahead lookahead = lookahead_for_include(position);
     if (lookahead.found && !lookahead.has_interpolants) {
