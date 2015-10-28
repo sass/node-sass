@@ -2,6 +2,7 @@
 #define SASS_EMITTER_H
 
 #include <string>
+#include "sass/base.h"
 #include "source_map.hpp"
 #include "ast_fwd_decl.hpp"
 
@@ -52,7 +53,7 @@ namespace Sass {
       // return buffer as std::string
       std::string get_buffer(void);
       // flush scheduled space/linefeed
-      Output_Style output_style(void);
+      Sass_Output_Style output_style(void);
       // add outstanding linefeed
       void finalize(void);
       // flush scheduled space/linefeed

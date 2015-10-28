@@ -63,7 +63,7 @@ namespace Sass {
     std::string       input_path; // for relative paths in src-map
     std::string       output_path; // for relative paths to the output
     bool         source_comments; // for inline debug comments in css output
-    Output_Style output_style; // output style for the generated css code
+    Sass_Output_Style output_style; // output style for the generated css code
     std::string       source_map_file; // path to source map file (enables feature)
     std::string       source_map_root; // path for sourceRoot property (pass-through)
     bool         source_map_embed; // embed in sourceMappingUrl (as data-url)
@@ -92,7 +92,7 @@ namespace Sass {
       KWD_ARG(Data, std::vector<std::string>,  include_paths)
       KWD_ARG(Data, std::vector<std::string>,  plugin_paths)
       KWD_ARG(Data, bool,                      source_comments)
-      KWD_ARG(Data, Output_Style,              output_style)
+      KWD_ARG(Data, Sass_Output_Style,         output_style)
       KWD_ARG(Data, std::string,               source_map_file)
       KWD_ARG(Data, std::string,               source_map_root)
       KWD_ARG(Data, bool,                      omit_source_map_url)

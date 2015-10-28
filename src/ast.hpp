@@ -10,6 +10,7 @@
 #include <typeinfo>
 #include <algorithm>
 #include <unordered_map>
+#include "sass/base.h"
 
 #ifdef __clang__
 

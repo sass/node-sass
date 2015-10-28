@@ -571,7 +571,7 @@ namespace Sass {
       }
     }
 
-    bool isPrintable(Ruleset* r, Output_Style style) {
+    bool isPrintable(Ruleset* r, Sass_Output_Style style) {
       if (r == NULL) {
         return false;
       }
@@ -597,7 +597,7 @@ namespace Sass {
           }
         } else if (Comment* c = dynamic_cast<Comment*>(stm)) {
           // keep for uncompressed
-          if (style != COMPRESSED) {
+          if (style != SASS_STYLE_COMPRESSED) {
             hasDeclarations = true;
           }
           // output style compressed
@@ -618,17 +618,17 @@ namespace Sass {
       return false;
     }
 
-    bool isPrintable(String_Constant* s, Output_Style style)
+    bool isPrintable(String_Constant* s, Sass_Output_Style style)
     {
       return ! s->value().empty();
     }
 
-    bool isPrintable(String_Quoted* s, Output_Style style)
+    bool isPrintable(String_Quoted* s, Sass_Output_Style style)
     {
       return true;
     }
 
-    bool isPrintable(Declaration* d, Output_Style style)
+    bool isPrintable(Declaration* d, Sass_Output_Style style)
     {
       Expression* val = d->value();
       if (String_Quoted* sq = dynamic_cast<String_Quoted*>(val)) return isPrintable(sq, style);
@@ -636,7 +636,7 @@ namespace Sass {
       return true;
     }
 
-    bool isPrintable(Supports_Block* f, Output_Style style) {
+    bool isPrintable(Supports_Block* f, Sass_Output_Style style) {
       if (f == NULL) {
         return false;
       }
@@ -673,7 +673,7 @@ namespace Sass {
       return false;
     }
 
-    bool isPrintable(Media_Block* m, Output_Style style)
+    bool isPrintable(Media_Block* m, Sass_Output_Style style)
     {
       if (m == 0) return false;
       Block* b = m->block();
@@ -689,7 +689,7 @@ namespace Sass {
       return false;
     }
 
-    bool isPrintable(Block* b, Output_Style style) {
+    bool isPrintable(Block* b, Sass_Output_Style style) {
       if (b == NULL) {
         return false;
       }
@@ -702,7 +702,7 @@ namespace Sass {
         else if (typeid(*stm) == typeid(Comment)) {
           Comment* c = (Comment*) stm;
           // keep for uncompressed
-          if (style != COMPRESSED) {
+          if (style != SASS_STYLE_COMPRESSED) {
             return true;
           }
           // output style compressed
