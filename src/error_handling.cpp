@@ -27,7 +27,7 @@ namespace Sass {
     std::string cwd(Sass::File::get_cwd());
     std::cerr << "DEPRECATION WARNING: " << msg << std::endl;
     std::cerr << "will be an error in future versions of Sass." << std::endl;
-    std::string rel_path(Sass::File::resolve_relative_path(pstate.path, cwd, cwd));
+    std::string rel_path(Sass::File::abs2rel(pstate.path, cwd, cwd));
     std::cerr << "        on line " << pstate.line+1 << " of " << rel_path << std::endl;
   }
 

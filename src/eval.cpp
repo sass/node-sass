@@ -402,7 +402,7 @@ namespace Sass {
 
     std::string cwd(ctx.get_cwd());
     std::string result(unquote(message->perform(&to_string)));
-    std::string rel_path(Sass::File::resolve_relative_path(d->pstate().path, cwd, cwd));
+    std::string rel_path(Sass::File::abs2rel(d->pstate().path, cwd, cwd));
     std::cerr << rel_path << ":" << d->pstate().line+1 << " DEBUG: " << result;
     std::cerr << std::endl;
     return 0;

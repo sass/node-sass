@@ -119,7 +119,7 @@ namespace Sass {
       }
     }
 
-    emitter.set_filename(resolve_relative_path(output_path, source_map_file, cwd));
+    emitter.set_filename(abs2rel(output_path, source_map_file, cwd));
 
   }
 
@@ -227,7 +227,7 @@ namespace Sass {
     included_files.push_back(abs_path);
     queue.push_back(Sass_Queued(load_path, abs_path, contents));
     emitter.add_source_index(sources.size() - 1);
-    include_links.push_back(resolve_relative_path(abs_path, source_map_file, cwd));
+    srcmap_links.push_back(abs2rel(abs_path, source_map_file, cwd));
   }
 
   // Add a new import file to the context
@@ -257,7 +257,7 @@ namespace Sass {
     std::string path(make_canonical_path(file));
     std::string base_file(join_paths(base, path));
     if (style_sheets.count(base_file)) return base_file;
-    std::vector<Sass_Queued> resolved(resolve_file(base, path));
+    std::vector<Sass_Queued> resolved(resolve_includes(base, path));
     if (resolved.size() > 1) {
       std::stringstream msg_stream;
       msg_stream << "It's not clear which file to import for ";
@@ -288,7 +288,7 @@ namespace Sass {
   void register_c_functions(Context&, Env* env, Sass_Function_List);
   void register_c_function(Context&, Env* env, Sass_Function_Entry);
 
-  char* Context::compile_block(Block* root)
+  char* Context::render(Block* root)
   {
     if (!root) return 0;
     root->perform(&emitter);
@@ -388,18 +388,18 @@ namespace Sass {
   char* Context::compile_file()
   {
     // returns NULL if something fails
-    return compile_block(parse_file());
+    return render(parse_file());
   }
 
   char* Context::compile_string()
   {
     // returns NULL if something fails
-    return compile_block(parse_string());
+    return render(parse_string());
   }
 
   std::string Context::format_embedded_source_map()
   {
-    std::string map = emitter.generate_source_map(*this);
+    std::string map = emitter.render_srcmap(*this);
     std::istringstream is( map );
     std::ostringstream buffer;
     base64::encoder E;
@@ -411,15 +411,15 @@ namespace Sass {
 
   std::string Context::format_source_mapping_url(const std::string& file)
   {
-    std::string url = resolve_relative_path(file, output_path, cwd);
+    std::string url = abs2rel(file, output_path, cwd);
     return "/*# sourceMappingURL=" + url + " */";
   }
 
-  char* Context::generate_source_map()
+  char* Context::render_srcmap()
   {
     if (source_map_file == "") return 0;
     char* result = 0;
-    std::string map = emitter.generate_source_map(*this);
+    std::string map = emitter.render_srcmap(*this);
     result = sass_strdup(map.c_str());
     return result;
   }

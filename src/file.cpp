@@ -193,18 +193,18 @@ namespace Sass {
     }
 
     // create an absolute path by resolving relative paths with cwd
-    std::string make_absolute_path(const std::string& path, const std::string& cwd)
+    std::string rel2abs(const std::string& path, const std::string& base, const std::string& cwd)
     {
-      return make_canonical_path((is_absolute_path(path) ? path : join_paths(cwd, path)));
+      return make_canonical_path(join_paths(join_paths(cwd, base), path));
     }
 
     // create a path that is relative to the given base directory
     // path and base will first be resolved against cwd to make them absolute
-    std::string resolve_relative_path(const std::string& uri, const std::string& base, const std::string& cwd)
+    std::string abs2rel(const std::string& uri, const std::string& base, const std::string& cwd)
     {
 
-      std::string absolute_uri = make_absolute_path(uri, cwd);
-      std::string absolute_base = make_absolute_path(base, cwd);
+      std::string absolute_uri = rel2abs(uri, cwd);
+      std::string absolute_base = rel2abs(base, cwd);
 
       size_t proto = 0;
       // check if we have a protocol
@@ -278,7 +278,7 @@ namespace Sass {
     // (2) underscore + given
     // (3) underscore + given + extension
     // (4) given + extension
-    std::vector<Sass_Queued> resolve_file(const std::string& root, const std::string& file)
+    std::vector<Sass_Queued> resolve_includes(const std::string& root, const std::string& file)
     {
       std::string filename = join_paths(root, file);
       // supported extensions
@@ -288,29 +288,29 @@ namespace Sass {
       // split the filename
       std::string base(dir_name(file));
       std::string name(base_name(file));
-      std::vector<Sass_Queued> resolved;
+      std::vector<Sass_Queued> includes;
       // create full path (maybe relative)
       std::string rel_path(join_paths(base, name));
       std::string abs_path(join_paths(root, rel_path));
-      if (file_exists(abs_path)) resolved.push_back(Sass_Queued(rel_path, abs_path, 0));
+      if (file_exists(abs_path)) includes.push_back(Sass_Queued(rel_path, abs_path, 0));
       // next test variation with underscore
       rel_path = join_paths(base, "_" + name);
       abs_path = join_paths(root, rel_path);
-      if (file_exists(abs_path)) resolved.push_back(Sass_Queued(rel_path, abs_path, 0));
+      if (file_exists(abs_path)) includes.push_back(Sass_Queued(rel_path, abs_path, 0));
       // next test exts plus underscore
       for(auto ext : exts) {
         rel_path = join_paths(base, "_" + name + ext);
         abs_path = join_paths(root, rel_path);
-        if (file_exists(abs_path)) resolved.push_back(Sass_Queued(rel_path, abs_path, 0));
+        if (file_exists(abs_path)) includes.push_back(Sass_Queued(rel_path, abs_path, 0));
       }
       // next test plain name with exts
       for(auto ext : exts) {
         rel_path = join_paths(base, name + ext);
         abs_path = join_paths(root, rel_path);
-        if (file_exists(abs_path)) resolved.push_back(Sass_Queued(rel_path, abs_path, 0));
+        if (file_exists(abs_path)) includes.push_back(Sass_Queued(rel_path, abs_path, 0));
       }
       // nothing found
-      return resolved;
+      return includes;
     }
 
     // helper function to resolve a filename
@@ -319,7 +319,7 @@ namespace Sass {
       // search in every include path for a match
       for (size_t i = 0, S = paths.size(); i < S; ++i)
       {
-        std::vector<Sass_Queued> resolved(resolve_file(paths[i], file));
+        std::vector<Sass_Queued> resolved(resolve_includes(paths[i], file));
         if (resolved.size()) return resolved[0].abs_path;
       }
       // nothing found

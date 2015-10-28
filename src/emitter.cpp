@@ -37,8 +37,8 @@ namespace Sass {
   void Emitter::add_source_index(size_t idx)
   { wbuf.smap.source_index.push_back(idx); }
 
-  std::string Emitter::generate_source_map(Context &ctx)
-  { return wbuf.smap.generate_source_map(ctx); }
+  std::string Emitter::render_srcmap(Context &ctx)
+  { return wbuf.smap.render_srcmap(ctx); }
 
   void Emitter::set_filename(const std::string& str)
   { wbuf.smap.file = str; }

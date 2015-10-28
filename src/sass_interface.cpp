@@ -98,7 +98,7 @@ extern "C" {
         }
       }
       c_ctx->output_string = cpp_ctx.compile_string();
-      c_ctx->source_map_string = cpp_ctx.generate_source_map();
+      c_ctx->source_map_string = cpp_ctx.render_srcmap();
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
 
@@ -191,7 +191,7 @@ extern "C" {
         }
       }
       c_ctx->output_string = cpp_ctx.compile_file();
-      c_ctx->source_map_string = cpp_ctx.generate_source_map();
+      c_ctx->source_map_string = cpp_ctx.render_srcmap();
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
 
