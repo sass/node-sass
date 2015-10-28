@@ -2,16 +2,10 @@
 #include "util.hpp"
 #include "context.hpp"
 #include "sass/functions.h"
+#include "sass_functions.hpp"
 
 extern "C" {
   using namespace Sass;
-
-  // Struct to hold custom function callback
-  struct Sass_Function {
-    const char*      signature;
-    Sass_Function_Fn function;
-    void*            cookie;
-  };
 
   Sass_Function_List ADDCALL sass_make_function_list(size_t length)
   {
@@ -35,25 +29,6 @@ extern "C" {
   const char* ADDCALL sass_function_get_signature(Sass_Function_Entry cb) { return cb->signature; }
   Sass_Function_Fn ADDCALL sass_function_get_function(Sass_Function_Entry cb) { return cb->function; }
   void* ADDCALL sass_function_get_cookie(Sass_Function_Entry cb) { return cb->cookie; }
-
-  // External import entry
-  struct Sass_Import {
-    char* imp_path; // path as found in the import statement
-    char *abs_path; // path after importer has resolved it
-    char* source;
-    char* srcmap;
-    // error handling
-    char* error;
-    size_t line;
-    size_t column;
-  };
-
-  // Struct to hold importer callback
-  struct Sass_Importer {
-    Sass_Importer_Fn importer;
-    double           priority;
-    void*            cookie;
-  };
 
   Sass_Importer_Entry ADDCALL sass_make_importer(Sass_Importer_Fn importer, double priority, void* cookie)
   {
