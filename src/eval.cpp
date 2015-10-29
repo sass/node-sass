@@ -462,7 +462,11 @@ namespace Sass {
     // if one of the operands is a '/' then make sure it's evaluated
     Expression* lhs = b->left()->perform(this);
     lhs->is_delayed(false);
-    while (typeid(*lhs) == typeid(Binary_Expression)) lhs = lhs->perform(this);
+    while (typeid(*lhs) == typeid(Binary_Expression)) {
+      Binary_Expression* lhs_ex = static_cast<Binary_Expression*>(lhs);
+      if (lhs_ex->type() == Sass_OP::DIV && lhs_ex->is_delayed()) break;
+      lhs = Eval::operator()(lhs_ex);
+    }
 
     switch (op_type) {
       case Sass_OP::AND:
@@ -917,6 +921,12 @@ namespace Sass {
       return evacuate_quotes(interpolation(value));
     } else if (dynamic_cast<Binary_Expression*>(s)) {
       Expression* ex = s->perform(this);
+      // avoid recursive calls if same object gets returned
+      // since we will call interpolate again for the result
+      if (ex == s) {
+        To_String to_string(&ctx);
+        return evacuate_quotes(s->perform(&to_string));
+      }
       return evacuate_quotes(interpolation(ex));
     } else if (dynamic_cast<Function_Call*>(s)) {
       Expression* ex = s->perform(this);
