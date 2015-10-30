@@ -17,6 +17,7 @@ env:
     - export NODE_VERSION="iojs-v2"
     - export NODE_VERSION="iojs-v3"
     - export NODE_VERSION="4"
+    - export NODE_VERSION="5"
 
 matrix:
   fast_finish: true
