@@ -14,7 +14,7 @@ https://github.com/sass/libsass
 LibSass is just a library, but if you want to RUN LibSass,
 then go to https://github.com/sass/sassc or
 https://github.com/sass/ruby-libsass or
-[find your local implementer](https://github.com/sass/libsass/wiki/Implementations).
+[find your local implementer](docs/implementations.md).
 
 LibSass requires GCC 4.6+ or Clang/LLVM. If your OS is older, this version may not compile.
 
@@ -54,12 +54,12 @@ Library Usage
 While LibSass is a library primarily written in C++, it provides a simple
 C interface which should be used by most implementers. LibSass does not do
 much on its own without an implementer. This can be a command line tool, like
-[sassc](https://github.com/sass/sassc) or a [binding](https://github.com/sass/libsass/wiki/Implementations)
+[sassc](https://github.com/sass/sassc) or a [binding](docs/implementations.md)
 to your favorite programing language.
 
 If you want to build or interface with LibSass, we recommend to check out the
-wiki pages about [building LibSass](https://github.com/sass/libsass/wiki/building-libsass) and
-the [C-API documentation](https://github.com/sass/libsass/wiki/API-Documentation).
+wiki pages about [building LibSass](docs/build.md) and
+the [C-API documentation](docs/api-doc.md).
 
 About Sass
 ----------
