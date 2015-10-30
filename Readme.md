@@ -58,7 +58,7 @@ much on its own without an implementer. This can be a command line tool, like
 to your favorite programing language.
 
 If you want to build or interface with LibSass, we recommend to check out the
-wiki pages about [building LibSass](docs/build.md) and
+documentation pages about [building LibSass](docs/build.md) and
 the [C-API documentation](docs/api-doc.md).
 
 About Sass
