@@ -27,6 +27,7 @@
       - nodejs_version: 2
       - nodejs_version: 3
       - nodejs_version: 4
+      - nodejs_version: 5
 
   install:
     - ps: Install-Product node $env:nodejs_version $env:platform
