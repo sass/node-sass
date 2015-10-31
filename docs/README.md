@@ -1,4 +1,4 @@
-Welcome to the LibSass wiki!
+Welcome to the LibSass documentation!
 
 ## First Off
 LibSass is just a library. To run the code locally (i.e. to compile your stylesheets), you need an implementer. SassC (get it?) is an implementer written in C. There are a number of other implementations of LibSass - for example Node. We encourage you to write your own port - the whole point of LibSass is that we want to bring Sass to many other languages, not just Ruby!
