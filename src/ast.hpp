@@ -891,9 +891,9 @@ namespace Sass {
   //////////////////////////////////////////////////////////////////////////
   class Binary_Expression : public Expression {
   private:
-    ADD_PROPERTY(enum Sass_OP, type)
-    ADD_PROPERTY(Expression*, left)
-    ADD_PROPERTY(Expression*, right)
+    ADD_HASHED(enum Sass_OP, type)
+    ADD_HASHED(Expression*, left)
+    ADD_HASHED(Expression*, right)
     size_t hash_;
   public:
     Binary_Expression(ParserState pstate,
@@ -960,8 +960,8 @@ namespace Sass {
   public:
     enum Type { PLUS, MINUS, NOT };
   private:
-    ADD_PROPERTY(Type, type)
-    ADD_PROPERTY(Expression*, operand)
+    ADD_HASHED(Type, type)
+    ADD_HASHED(Expression*, operand)
     size_t hash_;
   public:
     Unary_Expression(ParserState pstate, Type t, Expression* o)
@@ -1005,8 +1005,8 @@ namespace Sass {
   // Individual argument objects for mixin and function calls.
   ////////////////////////////////////////////////////////////
   class Argument : public Expression {
-    ADD_PROPERTY(Expression*, value)
-    ADD_PROPERTY(std::string, name)
+    ADD_HASHED(Expression*, value)
+    ADD_HASHED(std::string, name)
     ADD_PROPERTY(bool, is_rest_argument)
     ADD_PROPERTY(bool, is_keyword_argument)
     size_t hash_;
@@ -1072,8 +1072,8 @@ namespace Sass {
   // Function calls.
   //////////////////
   class Function_Call : public Expression {
-    ADD_PROPERTY(std::string, name)
-    ADD_PROPERTY(Arguments*, arguments)
+    ADD_HASHED(std::string, name)
+    ADD_HASHED(Arguments*, arguments)
     ADD_PROPERTY(void*, cookie)
     size_t hash_;
   public:
@@ -1168,8 +1168,8 @@ namespace Sass {
   public:
     enum Type { NUMBER, PERCENTAGE, DIMENSION, HEX };
   private:
-    ADD_PROPERTY(Type, type)
-    ADD_PROPERTY(std::string, value)
+    ADD_HASHED(Type, type)
+    ADD_HASHED(std::string, value)
     size_t hash_;
   public:
     Textual(ParserState pstate, Type t, std::string val)
@@ -1207,7 +1207,7 @@ namespace Sass {
   // Numbers, percentages, dimensions, and colors.
   ////////////////////////////////////////////////
   class Number : public Value {
-    ADD_PROPERTY(double, value)
+    ADD_HASHED(double, value)
     ADD_PROPERTY(bool, zero)
     std::vector<std::string> numerator_units_;
     std::vector<std::string> denominator_units_;
@@ -1248,10 +1248,10 @@ namespace Sass {
   // Colors.
   //////////
   class Color : public Value {
-    ADD_PROPERTY(double, r)
-    ADD_PROPERTY(double, g)
-    ADD_PROPERTY(double, b)
-    ADD_PROPERTY(double, a)
+    ADD_HASHED(double, r)
+    ADD_HASHED(double, g)
+    ADD_HASHED(double, b)
+    ADD_HASHED(double, a)
     ADD_PROPERTY(bool, sixtuplet)
     ADD_PROPERTY(std::string, disp)
     size_t hash_;
@@ -1312,7 +1312,7 @@ namespace Sass {
   // Booleans.
   ////////////
   class Boolean : public Value {
-    ADD_PROPERTY(bool, value)
+    ADD_HASHED(bool, value)
     size_t hash_;
   public:
     Boolean(ParserState pstate, bool val)
@@ -1391,7 +1391,7 @@ namespace Sass {
   class String_Constant : public String {
     ADD_PROPERTY(char, quote_mark)
     ADD_PROPERTY(bool, can_compress_whitespace)
-    ADD_PROPERTY(std::string, value)
+    ADD_HASHED(std::string, value)
   protected:
     size_t hash_;
   public:
