@@ -5,8 +5,17 @@
 #include <stdint.h>
 #include "sass/context.h"
 
-union Sass_Value* call_fn_foo(const union Sass_Value* s_args, void* cookie)
+union Sass_Value* call_fn_foo(const union Sass_Value* s_args, Sass_Function_Entry cb, struct Sass_Compiler* comp)
 {
+  // get context/option struct associated with this compiler
+  struct Sass_Context* ctx = sass_compiler_get_context(comp);
+  struct Sass_Options* opts = sass_compiler_get_options(comp);
+  // get information about previous importer entry from the stack
+  struct Sass_Import* import = sass_compiler_get_last_import(comp);
+  const char* prev_abs_path = sass_import_get_abs_path(import);
+  const char* prev_imp_path = sass_import_get_imp_path(import);
+  // get the cookie from function descriptor
+  void* cookie = sass_function_get_cookie(cb);
   // we actually abuse the void* to store an "int"
   return sass_make_number((intptr_t)cookie, "px");
 }
@@ -23,11 +32,11 @@ int main( int argc, const char* argv[] )
   struct Sass_Options* ctx_opt = sass_context_get_options(ctx);
 
   // allocate a custom function caller
-  Sass_C_Function_Callback fn_foo =
+  Sass_Function_Entry fn_foo =
     sass_make_function("foo()", call_fn_foo, (void*)42);
 
   // create list of all custom functions
-  Sass_C_Function_List fn_list = sass_make_function_list(1);
+  Sass_Function_List fn_list = sass_make_function_list(1);
   sass_function_set_list_entry(fn_list, 0, fn_foo);
   sass_option_set_c_functions(ctx_opt, fn_list);
 
