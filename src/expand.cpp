@@ -626,7 +626,7 @@ namespace Sass {
       thunk->environment(env);
       new_env.local_frame()["@content[m]"] = thunk;
     }
-    bind("mixin " + c->name(), params, args, ctx, &new_env, &eval);
+    bind("mixin " + c->name(), params, args, &ctx, &new_env, &eval);
     append_block(body);
     backtrace_stack.pop_back();
     env_stack.pop_back();
