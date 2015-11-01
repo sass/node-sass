@@ -894,6 +894,11 @@ namespace Sass {
             tss->name(tss->name() + (*h)[0]->name());
             (*rh)[rh->length()-1] = tss;
             for (i = 1; i < L; ++i) *rh << (*h)[i];
+          } else if (Selector_Placeholder* ps = dynamic_cast<Selector_Placeholder*>(rh->last())) {
+            Selector_Placeholder* pss = new Selector_Placeholder(*ps);
+            pss->name(pss->name() + (*h)[0]->name());
+            (*rh)[rh->length()-1] = pss;
+            for (i = 1; i < L; ++i) *rh << (*h)[i];
           } else {
             *last()->head_ += h;
           }
