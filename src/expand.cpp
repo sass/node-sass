@@ -28,6 +28,7 @@ namespace Sass {
     env_stack.push_back(0);
     env_stack.push_back(env);
     block_stack.push_back(0);
+    // import_stack.push_back(0);
     property_stack.push_back(0);
     selector_stack.push_back(0);
     backtrace_stack.push_back(0);
@@ -303,19 +304,31 @@ namespace Sass {
   Statement* Expand::operator()(Import* imp)
   {
     Import* result = SASS_MEMORY_NEW(ctx.mem, Import, imp->pstate());
-    if (imp->media_queries()) {
+    if (imp->media_queries() && imp->media_queries()->size()) {
       Expression* ex = imp->media_queries()->perform(&eval);
       result->media_queries(dynamic_cast<List*>(ex));
     }
     for ( size_t i = 0, S = imp->urls().size(); i < S; ++i) {
       result->urls().push_back(imp->urls()[i]->perform(&eval));
     }
+    // all resources have been dropped for Input_Stubs
+    // for ( size_t i = 0, S = imp->incs().size(); i < S; ++i) {}
     return result;
   }
 
   Statement* Expand::operator()(Import_Stub* i)
   {
-    append_block(ctx.style_sheets[i->file_name()]);
+    // we don't seem to need that actually afterall
+    Sass_Import_Entry import = sass_make_import(
+      i->imp_path().c_str(),
+      i->abs_path().c_str(),
+      0, 0
+    );
+    ctx.import_stack.push_back(import);
+    const std::string& abs_path(i->resource().abs_path);
+    append_block(ctx.sheets.at(abs_path).root);
+    sass_delete_import(ctx.import_stack.back());
+    ctx.import_stack.pop_back();
     return 0;
   }
 

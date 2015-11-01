@@ -126,7 +126,7 @@ namespace Sass {
       else return path.substr(pos+1);
     }
 
-    // do a locigal clean up of the path
+    // do a logical clean up of the path
     // no physical check on the filesystem
     std::string make_canonical_path (std::string path)
     {
@@ -200,51 +200,51 @@ namespace Sass {
 
     // create a path that is relative to the given base directory
     // path and base will first be resolved against cwd to make them absolute
-    std::string abs2rel(const std::string& uri, const std::string& base, const std::string& cwd)
+    std::string abs2rel(const std::string& path, const std::string& base, const std::string& cwd)
     {
 
-      std::string absolute_uri = rel2abs(uri, cwd);
-      std::string absolute_base = rel2abs(base, cwd);
+      std::string abs_path = rel2abs(path, cwd);
+      std::string abs_base = rel2abs(base, cwd);
 
       size_t proto = 0;
       // check if we have a protocol
-      if (uri[proto] && Prelexer::is_alpha(uri[proto])) {
+      if (path[proto] && Prelexer::is_alpha(path[proto])) {
         // skip over all alphanumeric characters
-        while (uri[proto] && Prelexer::is_alnum(uri[proto++])) {}
+        while (path[proto] && Prelexer::is_alnum(path[proto++])) {}
         // then skip over the mandatory colon
-        if (proto && uri[proto] == ':') ++ proto;
+        if (proto && path[proto] == ':') ++ proto;
       }
 
       // distinguish between windows absolute paths and valid protocols
       // we assume that protocols must at least have two chars to be valid
-      if (proto && uri[proto++] == '/' && proto > 3) return uri;
+      if (proto && path[proto++] == '/' && proto > 3) return path;
 
       #ifdef _WIN32
         // absolute link must have a drive letter, and we know that we
         // can only create relative links if both are on the same drive
-        if (absolute_base[0] != absolute_uri[0]) return absolute_uri;
+        if (abs_base[0] != abs_path[0]) return abs_path;
       #endif
 
       std::string stripped_uri = "";
       std::string stripped_base = "";
 
       size_t index = 0;
-      size_t minSize = std::min(absolute_uri.size(), absolute_base.size());
+      size_t minSize = std::min(abs_path.size(), abs_base.size());
       for (size_t i = 0; i < minSize; ++i) {
         #ifdef FS_CASE_SENSITIVE
-          if (absolute_uri[i] != absolute_base[i]) break;
+          if (abs_path[i] != abs_base[i]) break;
         #else
           // compare the charactes in a case insensitive manner
           // windows fs is only case insensitive in ascii ranges
-          if (tolower(absolute_uri[i]) != tolower(absolute_base[i])) break;
+          if (tolower(abs_path[i]) != tolower(abs_base[i])) break;
         #endif
-        if (absolute_uri[i] == '/') index = i + 1;
+        if (abs_path[i] == '/') index = i + 1;
       }
-      for (size_t i = index; i < absolute_uri.size(); ++i) {
-        stripped_uri += absolute_uri[i];
+      for (size_t i = index; i < abs_path.size(); ++i) {
+        stripped_uri += abs_path[i];
       }
-      for (size_t i = index; i < absolute_base.size(); ++i) {
-        stripped_base += absolute_base[i];
+      for (size_t i = index; i < abs_base.size(); ++i) {
+        stripped_base += abs_base[i];
       }
 
       size_t left = 0;
@@ -278,7 +278,7 @@ namespace Sass {
     // (2) underscore + given
     // (3) underscore + given + extension
     // (4) given + extension
-    std::vector<Sass_Queued> resolve_includes(const std::string& root, const std::string& file)
+    std::vector<Include> resolve_includes(const std::string& root, const std::string& file)
     {
       std::string filename = join_paths(root, file);
       // supported extensions
@@ -288,26 +288,26 @@ namespace Sass {
       // split the filename
       std::string base(dir_name(file));
       std::string name(base_name(file));
-      std::vector<Sass_Queued> includes;
+      std::vector<Include> includes;
       // create full path (maybe relative)
       std::string rel_path(join_paths(base, name));
       std::string abs_path(join_paths(root, rel_path));
-      if (file_exists(abs_path)) includes.push_back(Sass_Queued(rel_path, abs_path, 0));
+      if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path });
       // next test variation with underscore
       rel_path = join_paths(base, "_" + name);
       abs_path = join_paths(root, rel_path);
-      if (file_exists(abs_path)) includes.push_back(Sass_Queued(rel_path, abs_path, 0));
+      if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path });
       // next test exts plus underscore
       for(auto ext : exts) {
         rel_path = join_paths(base, "_" + name + ext);
         abs_path = join_paths(root, rel_path);
-        if (file_exists(abs_path)) includes.push_back(Sass_Queued(rel_path, abs_path, 0));
+        if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path });
       }
       // next test plain name with exts
       for(auto ext : exts) {
         rel_path = join_paths(base, name + ext);
         abs_path = join_paths(root, rel_path);
-        if (file_exists(abs_path)) includes.push_back(Sass_Queued(rel_path, abs_path, 0));
+        if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path });
       }
       // nothing found
       return includes;
@@ -319,7 +319,7 @@ namespace Sass {
       // search in every include path for a match
       for (size_t i = 0, S = paths.size(); i < S; ++i)
       {
-        std::vector<Sass_Queued> resolved(resolve_includes(paths[i], file));
+        std::vector<Include> resolved(resolve_includes(paths[i], file));
         if (resolved.size()) return resolved[0].abs_path;
       }
       // nothing found

@@ -2,6 +2,8 @@
 #define SASS_SASS_CONTEXT_H
 
 #include "sass.h"
+#include "context.hpp"
+#include "ast_fwd_decl.hpp"
 
 // Input behaviours
 enum Sass_Input_Style {

@@ -13,7 +13,6 @@
 #include "utf8_string.hpp"
 #include "utf8.h"
 
-#include <atomic>
 #include <cstdlib>
 #include <cmath>
 #include <cctype>
@@ -1669,12 +1668,12 @@ namespace Sass {
         bool parentheses = v->concrete_type() == Expression::MAP ||
                            v->concrete_type() == Expression::LIST;
         Sass_Output_Style old_style;
-        old_style = ctx.output_style;
-        ctx.output_style = SASS_STYLE_NESTED;
+        old_style = ctx.c_options->output_style;
+        ctx.c_options->output_style = SASS_STYLE_NESTED;
         To_String to_string(&ctx, false);
         std::string inspect = v->perform(&to_string);
         if (inspect.empty() && parentheses) inspect = "()";
-        ctx.output_style = old_style;
+        ctx.c_options->output_style = old_style;
         return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, inspect);
       }
       // return v;

@@ -19,26 +19,28 @@ Note: The fallback implementation will be given the name of the called function 
 
 ```C
 // Forward declaration
-struct Sass_C_Function_Descriptor;
+struct Sass_Compiler;
+struct Sass_Function;
 
-// Typedef defining null terminated list of custom callbacks
-typedef struct Sass_C_Function_Descriptor* (*Sass_C_Function_List);
-typedef struct Sass_C_Function_Descriptor (*Sass_C_Function_Callback);
-// Typedef defining custom function prototype and its return value type
-typedef union Sass_Value*(*Sass_C_Function) (const union Sass_Value*, void* cookie);
+// Typedef helpers for custom functions lists
+typedef struct Sass_Function (*Sass_Function_Entry);
+typedef struct Sass_Function* (*Sass_Function_List);
+// Typedef defining function signature and return type
+typedef union Sass_Value* (*Sass_Function_Fn)
+  (const union Sass_Value*, Sass_Function_Entry cb, struct Sass_Compiler* compiler);
 
 // Creators for sass function list and function descriptors
-Sass_C_Function_List sass_make_function_list (size_t length);
-Sass_C_Function_Callback sass_make_function (const char* signature, Sass_C_Function fn, void* cookie);
+ADDAPI Sass_Function_List ADDCALL sass_make_function_list (size_t length);
+ADDAPI Sass_Function_Entry ADDCALL sass_make_function (const char* signature, Sass_Function_Fn cb, void* cookie);
 
 // Setters and getters for callbacks on function lists
-Sass_C_Function_Callback sass_function_get_list_entry(Sass_C_Function_List list, size_t pos);
-void sass_function_set_list_entry(Sass_C_Function_List list, size_t pos, Sass_C_Function_Callback cb);
+ADDAPI Sass_Function_Entry ADDCALL sass_function_get_list_entry(Sass_Function_List list, size_t pos);
+ADDAPI void ADDCALL sass_function_set_list_entry(Sass_Function_List list, size_t pos, Sass_Function_Entry cb);
 
 // Getters for custom function descriptors
-const char* sass_function_get_signature (Sass_C_Function_Callback fn);
-Sass_C_Function sass_function_get_function (Sass_C_Function_Callback fn);
-void* sass_function_get_cookie (Sass_C_Function_Callback fn);
+ADDAPI const char* ADDCALL sass_function_get_signature (Sass_Function_Entry cb);
+ADDAPI Sass_Function_Fn ADDCALL sass_function_get_function (Sass_Function_Entry cb);
+ADDAPI void* ADDCALL sass_function_get_cookie (Sass_Function_Entry cb);
 ```
 
 ### More links

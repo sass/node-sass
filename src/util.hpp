@@ -13,7 +13,7 @@ namespace Sass {
 
   char* sass_strdup(const char* str);
   double sass_atof(const char* str);
-  const char* safe_str(const char *);
+  const char* safe_str(const char *, const char* = "");
   void free_string_array(char **);
   char **copy_strings(const std::vector<std::string>&, char ***, int = 0);
   std::string string_escape(const std::string& str);

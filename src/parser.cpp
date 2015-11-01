@@ -76,18 +76,10 @@ namespace Sass {
     Block* root = SASS_MEMORY_NEW(ctx.mem, Block, pstate, 0, true);
     read_bom();
 
-    if (ctx.queue.size() == 1) {
-      is_root = true;
-      Import* pre = SASS_MEMORY_NEW(ctx.mem, Import, pstate);
-      std::string load_path(ctx.queue[0].load_path);
-      do_import(load_path, pre, ctx.c_headers, false);
-      ctx.head_imports = ctx.queue.size() - 1;
-      if (!pre->urls().empty()) (*root) << pre;
-      if (!pre->files().empty()) {
-        for (size_t i = 0, S = pre->files().size(); i < S; ++i) {
-          (*root) << SASS_MEMORY_NEW(ctx.mem, Import_Stub, pstate, pre->files()[i]);
-        }
-      }
+    // custom headers
+    if (ctx.resources.size() == 1) {
+    is_root = true;
+      ctx.apply_custom_headers(root, path, pstate);
     }
 
     block_stack.push_back(root);
@@ -223,11 +215,9 @@ namespace Sass {
       Import* imp = parse_import();
       // if it is a url, we only add the statement
       if (!imp->urls().empty()) (*block) << imp;
-      // if it is a file(s), we should process them
-      if (!imp->files().empty()) {
-        for (size_t i = 0, S = imp->files().size(); i < S; ++i) {
-          (*block) << SASS_MEMORY_NEW(ctx.mem, Import_Stub, pstate, imp->files()[i]);
-        }
+      // process all resources now (add Import_Stub nodes)
+      for (size_t i = 0, S = imp->incs().size(); i < S; ++i) {
+        (*block) << SASS_MEMORY_NEW(ctx.mem, Import_Stub, pstate, imp->incs()[i]);
       }
     }
 
@@ -289,105 +279,7 @@ namespace Sass {
   }
   // EO parse_block_nodes
 
-  void Parser::add_single_file (Import* imp, std::string import_path) {
-
-    std::string extension;
-    std::string unquoted(unquote(import_path));
-    if (unquoted.length() > 4) { // 2 quote marks + the 4 chars in .css
-      // a string constant is guaranteed to end with a quote mark, so make sure to skip it when indexing from the end
-      extension = unquoted.substr(unquoted.length() - 4, 4);
-    }
-
-    if (extension == ".css") {
-      String_Constant* loc = SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, unquote(import_path));
-      Argument* loc_arg = SASS_MEMORY_NEW(ctx.mem, Argument, pstate, loc);
-      Arguments* loc_args = SASS_MEMORY_NEW(ctx.mem, Arguments, pstate);
-      (*loc_args) << loc_arg;
-      Function_Call* new_url = SASS_MEMORY_NEW(ctx.mem, Function_Call, pstate, "url", loc_args);
-      imp->urls().push_back(new_url);
-    }
-    else {
-      std::string current_dir = File::dir_name(path);
-      std::string resolved(ctx.add_file(current_dir, unquoted, *this));
-      if (resolved.empty()) error("file to import not found or unreadable: " + unquoted + "\nCurrent dir: " + current_dir, pstate);
-      imp->files().push_back(resolved);
-    }
-
-  }
-
-  void Parser::import_single_file (Import* imp, std::string import_path) {
-
-    if (imp->media_queries() ||
-        !unquote(import_path).substr(0, 7).compare("http://") ||
-        !unquote(import_path).substr(0, 8).compare("https://") ||
-        !unquote(import_path).substr(0, 2).compare("//"))
-    {
-      imp->urls().push_back(SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, import_path));
-    }
-    else {
-      add_single_file(imp, import_path);
-    }
-
-  }
-
-  bool Parser::do_import(const std::string& import_path, Import* imp, std::vector<Sass_Importer_Entry> importers, bool only_one)
-  {
-    size_t i = 0;
-    bool has_import = false;
-    std::string load_path = unquote(import_path);
-    // std::cerr << "-- " << load_path << "\n";
-    for (Sass_Importer_Entry& importer : importers) {
-      // int priority = sass_importer_get_priority(importer);
-      Sass_Importer_Fn fn = sass_importer_get_function(importer);
-      if (Sass_Import_List includes =
-          fn(load_path.c_str(), importer, ctx.c_compiler)
-      ) {
-        Sass_Import_List list = includes;
-        while (*includes) { ++i;
-          std::string uniq_path = load_path;
-          if (!only_one && i) {
-            std::stringstream pathstrm;
-            pathstrm << uniq_path << ":" << i;
-            uniq_path = pathstrm.str();
-          }
-          Sass_Import_Entry include = *includes;
-          const char *abs_path = sass_import_get_abs_path(include);
-          char* source = sass_import_take_source(include);
-          size_t line = sass_import_get_error_line(include);
-          size_t column = sass_import_get_error_column(include);
-          const char* message = sass_import_get_error_message(include);
-          if (message) {
-            if (line == std::string::npos && column == std::string::npos) error(message, pstate);
-            else error(message, ParserState(message, source, Position(line, column)));
-          } else if (source) {
-            if (abs_path) {
-              ctx.add_source(uniq_path, abs_path, source);
-              imp->files().push_back(uniq_path);
-              size_t i = ctx.queue.size() - 1;
-              ctx.process_queue_entry(ctx.queue[i], i);
-            } else {
-              ctx.add_source(uniq_path, uniq_path, source);
-              imp->files().push_back(uniq_path);
-              size_t i = ctx.queue.size() - 1;
-              ctx.process_queue_entry(ctx.queue[i], i);
-            }
-          } else if(abs_path) {
-            import_single_file(imp, abs_path);
-          }
-          ++includes;
-        }
-        // deallocate returned memory
-        sass_delete_import_list(list);
-        // set success flag
-        has_import = true;
-        // break import chain
-        if (only_one) return true;
-      }
-    }
-    // return result
-    return has_import;
-  }
-
+  // parse imports inside the
   Import* Parser::parse_import()
   {
     Import* imp = SASS_MEMORY_NEW(ctx.mem, Import, pstate);
@@ -396,11 +288,11 @@ namespace Sass {
     do {
       while (lex< block_comment >());
       if (lex< quoted_string >()) {
-        if (!do_import(lexed, imp, ctx.c_importers, true))
+        if (!ctx.call_importers(unquote(std::string(lexed)), path, pstate, imp))
         {
           // push single file import
           // import_single_file(imp, lexed);
-          to_import.push_back(std::pair<std::string,Function_Call*>(std::string(lexed), (Function_Call*) 0));
+          to_import.push_back(std::pair<std::string,Function_Call*>(std::string(lexed), 0));
         }
       }
       else if (lex< uri_prefix >()) {
@@ -422,8 +314,7 @@ namespace Sass {
           error("malformed URL", pstate);
         }
         if (!lex< exactly<')'> >()) error("URI is missing ')'", pstate);
-        // imp->urls().push_back(result);
-        to_import.push_back(std::pair<std::string,Function_Call*>("", result));
+        to_import.push_back(std::pair<std::string, Function_Call*>("", result));
       }
       else {
         if (first) error("@import directive requires a url or quoted path", pstate);
@@ -441,7 +332,7 @@ namespace Sass {
       if (location.second) {
         imp->urls().push_back(location.second);
       } else {
-        import_single_file(imp, location.first);
+        ctx.import_url(imp, location.first, path);
       }
     }
 

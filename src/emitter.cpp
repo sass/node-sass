@@ -29,7 +29,7 @@ namespace Sass {
 
   Sass_Output_Style Emitter::output_style(void)
   {
-    return ctx ? ctx->output_style : SASS_STYLE_COMPRESSED;
+    return ctx ? ctx->output_style() : SASS_STYLE_COMPRESSED;
   }
 
   // PROXY METHODS FOR SOURCE MAPS

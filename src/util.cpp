@@ -49,8 +49,8 @@ namespace Sass {
   }
 
   // helper for safe access to c_ctx
-  const char* safe_str (const char* str) {
-    return str == NULL ? "" : str;
+  const char* safe_str (const char* str, const char* alt) {
+    return str == NULL ? alt : str;
   }
 
   void free_string_array(char ** arr) {
