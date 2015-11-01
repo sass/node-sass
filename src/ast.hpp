@@ -1233,6 +1233,10 @@ namespace Sass {
     {
       if (hash_ == 0) {
         hash_ = std::hash<double>()(value_);
+        for (const auto numerator : numerator_units())
+          hash_combine(hash_, std::hash<std::string>()(numerator));
+        for (const auto denominator : denominator_units())
+          hash_combine(hash_, std::hash<std::string>()(denominator));
       }
       return hash_;
     }
