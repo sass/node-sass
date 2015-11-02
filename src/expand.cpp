@@ -590,6 +590,21 @@ namespace Sass {
     Definition* dd = SASS_MEMORY_NEW(ctx.mem, Definition, *d);
     env->local_frame()[d->name() +
                         (d->type() == Definition::MIXIN ? "[m]" : "[f]")] = dd;
+
+    if (d->type() == Definition::FUNCTION && (
+      d->name() == "calc"       ||
+      d->name() == "element"    ||
+      d->name() == "expression" ||
+      d->name() == "url"
+    )) {
+      deprecated(
+        "Naming a function \"" + d->name() + "\" is disallowed",
+        "This name conflicts with an existing CSS function with special parse rules.",
+         d->pstate()
+      );
+    }
+
+
     // set the static link so we can have lexical scoping
     dd->environment(env);
     return 0;
