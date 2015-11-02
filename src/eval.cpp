@@ -661,14 +661,14 @@ namespace Sass {
     exp.env_stack.push_back(&fn_env);
 
     if (func || body) {
-      bind("function " + c->name(), params, args, &ctx, &fn_env, this);
+      bind("Function " + c->name(), params, args, &ctx, &fn_env, this);
       Backtrace here(backtrace(), c->pstate(), ", in function `" + c->name() + "`");
       exp.backtrace_stack.push_back(&here);
       // if it's user-defined, eval the body
       if (body) result = body->perform(this);
       // if it's native, invoke the underlying CPP function
       else result = func(fn_env, *env, ctx, def->signature(), c->pstate(), backtrace());
-      if (!result) error(std::string("function ") + c->name() + " did not return a value", c->pstate());
+      if (!result) error(std::string("Function ") + c->name() + " did not return a value", c->pstate());
       exp.backtrace_stack.pop_back();
     }
 
@@ -685,7 +685,7 @@ namespace Sass {
       }
 
       // populates env with default values for params
-      bind("function " + c->name(), params, args, &ctx, &fn_env, this);
+      bind("Function " + c->name(), params, args, &ctx, &fn_env, this);
 
       Backtrace here(backtrace(), c->pstate(), ", in function `" + c->name() + "`");
       exp.backtrace_stack.push_back(&here);
