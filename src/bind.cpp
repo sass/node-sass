@@ -49,9 +49,11 @@ namespace Sass {
           }
         }
         std::stringstream msg;
-        msg << callee << " only takes " << LP << " arguments; "
-            << "given " << LA;
-        error(msg.str(), as->pstate());
+        msg << callee << " takes " << LP;
+        msg << (LP == 1 ? " argument" : " arguments");
+        msg << " but " << LA;
+        msg << (LA == 1 ? " was passed" : " were passed.");
+        deprecated_bind(msg.str(), as->pstate());
       }
       Parameter* p = (*ps)[ip];
 
@@ -183,6 +185,16 @@ namespace Sass {
         // empty rest arg - treat all args as default values
         if (!arglist->length()) {
           break;
+        } else {
+          if (arglist->length() + ia > LP) {
+            int arg_count = (arglist->length() + LA - 1);
+            std::stringstream msg;
+            msg << callee << " takes " << LP;
+            msg << (LP == 1 ? " argument" : " arguments");
+            msg << " but " << arg_count;
+            msg << (arg_count == 1 ? " was passed" : " were passed.");
+            deprecated_bind(msg.str(), as->pstate());
+          }
         }
         // otherwise move one of the rest args into the param, converting to argument if necessary
         if (!(a = dynamic_cast<Argument*>((*arglist)[0]))) {
