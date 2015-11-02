@@ -44,5 +44,5 @@ namespace Sass {
   }
 
   inline std::string To_String::operator()(Null* n)
-  { return ""; }
+  { return in_debug ? "null" : ""; }
 }
