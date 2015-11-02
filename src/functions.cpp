@@ -883,11 +883,11 @@ namespace Sass {
         return (Expression*) arg;
       }
       else {
-        To_String to_string(&ctx);
+        To_String to_string(&ctx, false, true);
         std::string val(arg->perform(&to_string));
         val = dynamic_cast<Null*>(arg) ? "null" : val;
 
-        deprecated("Passing " + val + ", a non-string value, to unquote()", pstate);
+        deprecated_function("Passing " + val + ", a non-string value, to unquote()", pstate);
         return (Expression*) arg;
       }
     }
