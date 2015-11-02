@@ -36,6 +36,10 @@ namespace Sass {
     // but only if right side is not absolute yet
     std::string join_paths(std::string root, std::string name);
 
+    // if the relative path is outside of the cwd we want want to
+    // show the absolute path in console messages
+    std::string path_for_console(const std::string& rel_path, const std::string& abs_path, const std::string& orig_path);
+
     // create an absolute path by resolving relative paths with cwd
     std::string rel2abs(const std::string& path, const std::string& base = ".", const std::string& cwd = get_cwd());
 

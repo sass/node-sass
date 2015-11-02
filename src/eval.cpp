@@ -402,13 +402,9 @@ namespace Sass {
 
     std::string cwd(ctx.cwd());
     std::string result(unquote(message->perform(&to_string)));
+    std::string abs_path(Sass::File::rel2abs(d->pstate().path, cwd, cwd));
     std::string rel_path(Sass::File::abs2rel(d->pstate().path, cwd, cwd));
-    std::string output_path = rel_path;
-
-    // if the file is outside this directory show the absolute path
-    if (rel_path.substr(0, 3) == "../") {
-      output_path = d->pstate().path;
-    }
+    std::string output_path(Sass::File::path_for_console(rel_path, abs_path, d->pstate().path));
 
     std::cerr << output_path << ":" << d->pstate().line+1 << " DEBUG: " << result;
     std::cerr << std::endl;

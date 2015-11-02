@@ -192,6 +192,18 @@ namespace Sass {
       return l + r;
     }
 
+    std::string path_for_console(const std::string& rel_path, const std::string& abs_path, const std::string& orig_path)
+    {
+      // magic algorith goes here!!
+
+      // if the file is outside this directory show the absolute path
+      if (rel_path.substr(0, 3) == "../") {
+        return orig_path;
+      }
+      // this seems to work most of the time
+      return abs_path == orig_path ? abs_path : rel_path;
+    }
+
     // create an absolute path by resolving relative paths with cwd
     std::string rel2abs(const std::string& path, const std::string& base, const std::string& cwd)
     {
