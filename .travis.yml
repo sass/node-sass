@@ -33,6 +33,7 @@ addons:
 before_install:
   - git submodule update --init --recursive
   - git clone https://github.com/creationix/nvm.git ./.nvm
+  - git -C .nvm checkout "$(git -C .nvm describe --tags `git -C .nvm rev-list --tags --max-count=1`)"
   - source ./.nvm/nvm.sh
   - nvm install $NODE_VERSION
   - nvm use $NODE_VERSION
