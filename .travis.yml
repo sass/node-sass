@@ -44,6 +44,9 @@ before_install:
       export LINK="gcc-4.7";
       export LINKXX="g++-4.7";
     fi
+  - nvm --version
+  - node --version
+  - npm --version
   - gcc --version
   - g++ --version
 
