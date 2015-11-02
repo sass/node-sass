@@ -873,10 +873,7 @@ namespace Sass {
     BUILT_IN(sass_unquote)
     {
       AST_Node* arg = env["$string"];
-      if (dynamic_cast<Null*>(arg)) {
-        return SASS_MEMORY_NEW(ctx.mem, Null, pstate);
-      }
-      else if (String_Quoted* string_quoted = dynamic_cast<String_Quoted*>(arg)) {
+      if (String_Quoted* string_quoted = dynamic_cast<String_Quoted*>(arg)) {
         String_Constant* result = SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, string_quoted->value());
         // remember if the string was quoted (color tokens)
         result->sass_fix_1291(string_quoted->quote_mark() != 0);
@@ -888,6 +885,8 @@ namespace Sass {
       else {
         To_String to_string(&ctx);
         std::string val(arg->perform(&to_string));
+        val = dynamic_cast<Null*>(arg) ? "null" : val;
+
         deprecated("Passing " + val + ", a non-string value, to unquote()", pstate);
         return (Expression*) arg;
       }
