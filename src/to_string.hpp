@@ -18,10 +18,11 @@ namespace Sass {
 
     Context* ctx;
     bool in_declaration;
+    bool in_debug;
 
   public:
 
-    To_String(Context* ctx = 0, bool in_declaration = true);
+    To_String(Context* ctx = 0, bool in_declaration = true, bool in_debug = false);
     virtual ~To_String();
 
     std::string operator()(Null* n);

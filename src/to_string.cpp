@@ -10,8 +10,8 @@
 
 namespace Sass {
 
-  To_String::To_String(Context* ctx, bool in_declaration)
-  : ctx(ctx), in_declaration(in_declaration) { }
+  To_String::To_String(Context* ctx, bool in_declaration, bool in_debug)
+  : ctx(ctx), in_declaration(in_declaration), in_debug(in_debug) { }
   To_String::~To_String() { }
 
   inline std::string To_String::fallback_impl(AST_Node* n)
@@ -19,6 +19,7 @@ namespace Sass {
     Emitter emitter(ctx);
     Inspect i(emitter);
     i.in_declaration = in_declaration;
+    i.in_debug = in_debug;
     if (n) n->perform(&i);
     return i.get_buffer();
   }

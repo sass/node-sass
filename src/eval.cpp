@@ -378,7 +378,7 @@ namespace Sass {
   Expression* Eval::operator()(Debug* d)
   {
     Expression* message = d->value()->perform(this);
-    To_String to_string(&ctx);
+    To_String to_string(&ctx, false, true);
     Env* env = exp.environment();
 
     // try to use generic function
