@@ -378,7 +378,7 @@ namespace Sass {
   Expression* Eval::operator()(Debug* d)
   {
     Expression* message = d->value()->perform(this);
-    To_String to_string(&ctx);
+    To_String to_string(&ctx, false, true);
     Env* env = exp.environment();
 
     // try to use generic function
@@ -403,7 +403,14 @@ namespace Sass {
     std::string cwd(ctx.cwd());
     std::string result(unquote(message->perform(&to_string)));
     std::string rel_path(Sass::File::abs2rel(d->pstate().path, cwd, cwd));
-    std::cerr << rel_path << ":" << d->pstate().line+1 << " DEBUG: " << result;
+    std::string output_path = rel_path;
+
+    // if the file is outside this directory show the absolute path
+    if (rel_path.substr(0, 3) == "../") {
+      output_path = d->pstate().path;
+    }
+
+    std::cerr << output_path << ":" << d->pstate().line+1 << " DEBUG: " << result;
     std::cerr << std::endl;
     return 0;
   }
