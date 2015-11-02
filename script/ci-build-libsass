@@ -93,6 +93,13 @@ then
 
   JSON=$(curl -L -sS https://api.github.com/repos/sass/libsass/pulls/$TRAVIS_PULL_REQUEST)
 
+  if [[ $JSON =~ "API rate limit exceeded" ]];
+  then
+    echo "Travis rate limit on github exceeded"
+    echo "Retrying via 'special purpose proxy'"
+    JSON=$(curl -L -sS http://libsass.ocbnet.ch/libsass-spec-pr.psgi/$TRAVIS_PULL_REQUEST)
+  fi
+
   RE_SPEC_PR="sass\/sass-spec(#|\/pull\/)([0-9]+)"
 
   if [[ $JSON =~ $RE_SPEC_PR ]];
