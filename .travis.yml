@@ -33,6 +33,7 @@ addons:
 before_install:
   - git submodule update --init --recursive
   - git clone https://github.com/creationix/nvm.git ./.nvm
+  - git -C .nvm checkout "$(git -C .nvm describe --tags `git -C .nvm rev-list --tags --max-count=1`)"
   - source ./.nvm/nvm.sh
   - nvm install $NODE_VERSION
   - nvm use $NODE_VERSION
@@ -43,6 +44,9 @@ before_install:
       export LINK="gcc-4.7";
       export LINKXX="g++-4.7";
     fi
+  - nvm --version
+  - node --version
+  - npm --version
   - gcc --version
   - g++ --version
 
