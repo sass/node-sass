@@ -1,5 +1,6 @@
 #!/bin/bash
 if [ "x$COVERAGE" == "xyes" ]; then
+  pip install --user gcovr
   pip install --user cpp-coveralls
 else
   echo "no dependencies to install"
