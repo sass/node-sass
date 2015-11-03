@@ -186,7 +186,7 @@ namespace Sass {
         if (!arglist->length()) {
           break;
         } else {
-          if (arglist->length() + ia > LP) {
+          if (arglist->length() + ia > LP && !ps->has_rest_parameter()) {
             int arg_count = (arglist->length() + LA - 1);
             std::stringstream msg;
             msg << callee << " takes " << LP;
