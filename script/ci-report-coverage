@@ -15,12 +15,8 @@ if [ "x$COVERAGE" = "xyes" ]; then
   # debug via gcovr
   gcov -v
   gcovr -r .
-  # debug via coveralls (dump result for futher analyzing)
-  coveralls $EXCLUDE_COVERAGE --gcov-options '\-lp' --dump coveralls.json
-  # analyze the resulting json
-  ./script/coveralls-debug
   # generate and submit report to coveralls.io
-  coveralls $EXCLUDE_COVERAGE --gcov-options '\-lp'
+  coveralls $EXCLUDE_COVERAGE --root src/ --gcov-options '\-lp'
 
 else
   echo "skip coverage reporting"
