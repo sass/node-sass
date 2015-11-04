@@ -933,7 +933,7 @@ namespace Sass {
       return evacuate_quotes(interpolation(ex));
     } else if (dynamic_cast<Function_Call*>(s)) {
       Expression* ex = s->perform(this);
-      return evacuate_quotes(interpolation(ex));
+      return evacuate_quotes(unquote(interpolation(ex)));
     } else if (dynamic_cast<Unary_Expression*>(s)) {
       Expression* ex = s->perform(this);
       return evacuate_quotes(interpolation(ex));
