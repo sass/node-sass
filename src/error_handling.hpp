@@ -2,23 +2,62 @@
 #define SASS_ERROR_HANDLING_H
 
 #include <string>
-
+#include <sstream>
+#include <stdexcept>
 #include "position.hpp"
 
 namespace Sass {
 
   struct Backtrace;
 
-  struct Error_Invalid {
-    enum Type { read, write, syntax, evaluation };
+  namespace Exception {
 
-    Type type;
-    ParserState pstate;
-    std::string message;
+    const std::string def_msg = "Invalid sass";
 
-    Error_Invalid(Type type, ParserState pstate, std::string message);
+    class Base : public std::runtime_error {
+      protected:
+        std::string msg;
+      public:
+        ParserState pstate;
+      public:
+        Base(ParserState pstate, std::string msg = def_msg);
+        virtual const char* what() const throw();
+        virtual ~Base() throw() {};
+    };
 
-  };
+    class InvalidSass : public Base {
+      public:
+        InvalidSass(ParserState pstate, std::string msg);
+        virtual ~InvalidSass() throw() {};
+    };
+
+    class InvalidParent : public Base {
+      protected:
+        Selector* parent;
+        Selector* selector;
+      public:
+        InvalidParent(Selector* parent, Selector* selector);
+        virtual ~InvalidParent() throw() {};
+    };
+
+    class InvalidArgumentType : public Base {
+      protected:
+        std::string fn;
+        std::string arg;
+        std::string type;
+        const Value* value;
+      public:
+        InvalidArgumentType(ParserState pstate, std::string fn, std::string arg, std::string type, const Value* value = 0);
+        virtual ~InvalidArgumentType() throw() {};
+    };
+
+    class InvalidSyntax : public Base {
+      public:
+        InvalidSyntax(ParserState pstate, std::string msg);
+        virtual ~InvalidSyntax() throw() {};
+    };
+
+  }
 
   void warn(std::string msg, ParserState pstate);
   void warn(std::string msg, ParserState pstate, Backtrace* bt);

@@ -1,14 +1,55 @@
+#include "ast.hpp"
 #include "prelexer.hpp"
 #include "backtrace.hpp"
+#include "to_string.hpp"
 #include "error_handling.hpp"
 
 #include <iostream>
 
 namespace Sass {
 
-  Error_Invalid::Error_Invalid(Type type, ParserState pstate, std::string message)
-  : type(type), pstate(pstate), message(message)
-  { }
+  namespace Exception {
+
+    Base::Base(ParserState pstate, std::string msg)
+    : std::runtime_error(msg),
+      msg(msg), pstate(pstate)
+    { }
+
+    const char* Base::what() const throw()
+    {
+      return msg.c_str();
+    }
+
+    InvalidSass::InvalidSass(ParserState pstate, std::string msg)
+    : Base(pstate, msg)
+    { }
+
+
+    InvalidParent::InvalidParent(Selector* parent, Selector* selector)
+    : Base(selector->pstate()), parent(parent), selector(selector)
+    {
+      msg = "Invalid parent selector for \"";
+      msg += selector->to_string(false);
+      msg += "\": \"";
+      msg += parent->to_string(false);;
+      msg += "\"";
+    }
+
+    InvalidArgumentType::InvalidArgumentType(ParserState pstate, std::string fn, std::string arg, std::string type, const Value* value)
+    : Base(pstate), fn(fn), arg(arg), type(type), value(value)
+    {
+      msg  = arg + ": \"";
+      msg += value->to_string(true, 5);
+      msg += "\" is not a " + type;
+      msg += " for `" + fn + "'";
+    }
+
+    InvalidSyntax::InvalidSyntax(ParserState pstate, std::string msg)
+    : Base(pstate, msg)
+    { }
+
+  }
+
 
   void warn(std::string msg, ParserState pstate)
   {
@@ -63,7 +104,7 @@ namespace Sass {
 
   void error(std::string msg, ParserState pstate)
   {
-    throw Error_Invalid(Error_Invalid::syntax, pstate, msg);
+    throw Exception::InvalidSyntax(pstate, msg);
   }
 
   void error(std::string msg, ParserState pstate, Backtrace* bt)

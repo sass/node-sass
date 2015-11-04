@@ -1155,7 +1155,10 @@ namespace Sass {
     Signature random_sig = "random($limit:false)";
     BUILT_IN(random)
     {
-      Number* l = dynamic_cast<Number*>(env["$limit"]);
+      AST_Node* arg = env["$limit"];
+      Value* v = dynamic_cast<Value*>(arg);
+      Number* l = dynamic_cast<Number*>(arg);
+      Boolean* b = dynamic_cast<Boolean*>(arg);
       if (l) {
         double v = l->value();
         if (v < 1) {
@@ -1173,11 +1176,16 @@ namespace Sass {
         uint_fast32_t distributed = static_cast<uint_fast32_t>(distributor(rand));
         return SASS_MEMORY_NEW(ctx.mem, Number, pstate, (double)distributed);
       }
-      else {
+      else if (b) {
         std::uniform_real_distribution<> distributor(0, 1);
         double distributed = static_cast<double>(distributor(rand));
         return SASS_MEMORY_NEW(ctx.mem, Number, pstate, distributed);
-     }
+      } else if (v) {
+        throw Exception::InvalidArgumentType(pstate, "random", "$limit", "number", v);
+      } else {
+        throw Exception::InvalidArgumentType(pstate, "random", "$limit", "number");
+      }
+      return 0;
     }
 
     /////////////////

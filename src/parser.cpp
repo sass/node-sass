@@ -2380,7 +2380,7 @@ namespace Sass {
 
   void Parser::error(std::string msg, Position pos)
   {
-    throw Error_Invalid(Error_Invalid::syntax, ParserState(path, source, pos.line ? pos : before_token, Offset(0, 0)), msg);
+    throw Exception::InvalidSass(ParserState(path, source, pos.line ? pos : before_token, Offset(0, 0)), msg);
   }
 
   // print a css parsing error with actual context information from parsed source

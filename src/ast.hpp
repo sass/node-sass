@@ -1767,6 +1767,7 @@ namespace Sass {
     virtual unsigned long specificity() {
       return Constants::Specificity_Universal;
     }
+    virtual std::string to_string(bool compressed = false, int precision = 5) const = 0;
   };
   inline Selector::~Selector() { }
 
@@ -1781,6 +1782,7 @@ namespace Sass {
     Selector_Schema(ParserState pstate, String* c)
     : Selector(pstate), contents_(c), at_root_(false)
     { }
+    virtual std::string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1849,6 +1851,8 @@ namespace Sass {
     inline bool operator!=(const Simple_Selector& rhs) const { return !(*this == rhs); }
 
     bool operator<(const Simple_Selector& rhs) const;
+    // default implementation should work for most of the simple selectors (otherwise overload)
+    virtual std::string to_string(bool compressed = false, int precision = 5) const { return this->ns_name(); };
     ATTACH_OPERATIONS();
   };
   inline Simple_Selector::~Simple_Selector() { }
@@ -1872,6 +1876,7 @@ namespace Sass {
     }
     std::string type() { return "selector"; }
     static std::string type_name() { return "selector"; }
+    virtual std::string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1884,6 +1889,7 @@ namespace Sass {
     : Simple_Selector(pstate, n)
     { has_placeholder(true); }
     // virtual Selector_Placeholder* find_placeholder();
+    virtual ~Selector_Placeholder() {};
     ATTACH_OPERATIONS()
   };
 
@@ -1942,6 +1948,7 @@ namespace Sass {
     bool operator==(const Attribute_Selector& rhs) const;
     bool operator<(const Simple_Selector& rhs) const;
     bool operator<(const Attribute_Selector& rhs) const;
+    virtual std::string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
 
@@ -2016,6 +2023,7 @@ namespace Sass {
     }
     bool operator==(const Simple_Selector& rhs) const;
     bool operator==(const Wrapped_Selector& rhs) const;
+    virtual std::string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
 
@@ -2102,6 +2110,7 @@ namespace Sass {
     Compound_Selector* clone(Context&) const; // does not clone the Simple_Selector*s
 
     Compound_Selector* minus(Compound_Selector* rhs, Context& ctx);
+    virtual std::string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
 
@@ -2250,6 +2259,7 @@ namespace Sass {
     Complex_Selector* clone(Context&) const;      // does not clone Compound_Selector*s
     Complex_Selector* cloneFully(Context&) const; // clones Compound_Selector*s
     // std::vector<Compound_Selector*> to_vector();
+    virtual std::string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
 
@@ -2295,6 +2305,7 @@ namespace Sass {
     virtual bool operator==(const Selector_List& rhs) const;
     // Selector Lists can be compared to comma lists
     virtual bool operator==(const Expression& rhs) const;
+    virtual std::string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
 
