@@ -527,8 +527,55 @@ namespace Sass {
       default:                     break;
     }
 
+
     Expression::Concrete_Type l_type = lhs->concrete_type();
     Expression::Concrete_Type r_type = rhs->concrete_type();
+
+    // Is one of the operands an interpolant?
+    String_Schema* s1 = dynamic_cast<String_Schema*>(b->left());
+    String_Schema* s2 = dynamic_cast<String_Schema*>(b->right());
+
+    if ((s1 && s1->has_interpolants()) || (s2 && s2->has_interpolants())) {
+      std::string sep;
+      switch (op_type) {
+        case Sass_OP::SUB: sep = "-"; break;
+        case Sass_OP::DIV: sep = "/"; break;
+        case Sass_OP::ADD: sep = "+"; break;
+        case Sass_OP::MUL: sep = "*"; break;
+        default:                      break;
+      }
+
+      // If possible upgrade LHS to a number
+      if (op_type == Sass_OP::DIV || op_type == Sass_OP::MUL || op_type == Sass_OP::ADD || op_type == Sass_OP::SUB) {
+        if (String_Constant* str = dynamic_cast<String_Constant*>(lhs)) {
+          std::string value(str->value());
+          const char* start = value.c_str();
+          if (Prelexer::sequence < Prelexer::number >(start) != 0) {
+            lhs = SASS_MEMORY_NEW(ctx.mem, Textual, lhs->pstate(), Textual::DIMENSION, str->value());
+            lhs->is_delayed(false); lhs = lhs->perform(this);
+          }
+        }
+        if (String_Constant* str = dynamic_cast<String_Constant*>(rhs)) {
+          std::string value(str->value());
+          const char* start = value.c_str();
+          if (Prelexer::sequence < Prelexer::number >(start) != 0) {
+            rhs = SASS_MEMORY_NEW(ctx.mem, Textual, rhs->pstate(), Textual::DIMENSION, str->value());
+            rhs->is_delayed(false); rhs = rhs->perform(this);
+          }
+        }
+      }
+
+      To_Value to_value(ctx, ctx.mem);
+      Value* v_l = dynamic_cast<Value*>(lhs->perform(&to_value));
+      Value* v_r = dynamic_cast<Value*>(rhs->perform(&to_value));
+      Expression::Concrete_Type l_type = lhs->concrete_type();
+      Expression::Concrete_Type r_type = rhs->concrete_type();
+
+      if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
+        return SASS_MEMORY_NEW(ctx.mem, String_Constant, lhs->pstate(),
+          v_l->to_string() + " " + sep + " " + v_r->to_string());
+      }
+    }
 
     // ToDo: throw error in op functions
     // ToDo: then catch and re-throw them
@@ -1336,7 +1383,7 @@ namespace Sass {
     switch (op) {
       case Sass_OP::SUB: sep = "-"; break;
       case Sass_OP::DIV: sep = "/"; break;
-      default:                         break;
+      default:                      break;
     }
     if (ltype == Expression::NULL_VAL) error("Invalid null operation: \"null plus "+quote(unquote(rstr), '"')+"\".", lhs.pstate());
     if (rtype == Expression::NULL_VAL) error("Invalid null operation: \""+quote(unquote(lstr), '"')+" plus null\".", rhs.pstate());
