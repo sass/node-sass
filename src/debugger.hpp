@@ -524,7 +524,9 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     Number* expression = dynamic_cast<Number*>(node);
     std::cerr << ind << "Number " << expression;
     std::cerr << " (" << pstate_source_position(node) << ")";
-    std::cerr << " [" << expression->value() << expression->unit() << "]" << std::endl;
+    std::cerr << " [" << expression->value() << expression->unit() << "]" <<
+      " [hash: " << expression->hash() << "] " <<
+      std::endl;
   } else if (dynamic_cast<String_Quoted*>(node)) {
     String_Quoted* expression = dynamic_cast<String_Quoted*>(node);
     std::cerr << ind << "String_Quoted " << expression;

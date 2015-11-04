@@ -44,4 +44,12 @@ public:\
   type name(type name##__) { return name##_ = name##__; }\
 private:
 
+#define ADD_HASHED(type, name)\
+protected:\
+  type name##_;\
+public:\
+  type name() const        { return name##_; }\
+  type name(type name##__) { hash_ = 0; return name##_ = name##__; }\
+private:
+
 #endif
