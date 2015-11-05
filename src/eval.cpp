@@ -1185,8 +1185,49 @@ namespace Sass {
   {
     Arguments* aa = SASS_MEMORY_NEW(ctx.mem, Arguments, a->pstate());
     for (size_t i = 0, L = a->length(); i < L; ++i) {
-      *aa << static_cast<Argument*>((*a)[i]->perform(this));
+      Argument* arg = static_cast<Argument*>((*a)[i]->perform(this));
+      if (!(arg->is_rest_argument() || arg->is_keyword_argument())) {
+        *aa << arg;
+      }
     }
+
+    if (a->has_rest_argument()) {
+      Expression* splat = static_cast<Argument*>(
+                            a->get_rest_argument()->perform(this)
+                          )->value()->perform(this);
+
+      Sass_Separator separator = SASS_COMMA;
+      List* ls = dynamic_cast<List*>(splat);
+      Map* ms = dynamic_cast<Map*>(splat);
+
+      List* arglist = SASS_MEMORY_NEW(ctx.mem, List,
+                                      splat->pstate(),
+                                      0,
+                                      ls ? ls->separator() : separator,
+                                      true);
+
+      if (ls && ls->is_arglist()) {
+        for (auto as : *ls) *arglist << as;
+      } else if (ms) {
+        *aa << SASS_MEMORY_NEW(ctx.mem, Argument, splat->pstate(), ms, "", false, true);
+      } else if (ls) {
+        for (auto as : *ls) *arglist << as;
+      } else {
+        *arglist << splat;
+      }
+      if (arglist->length()) {
+        *aa << SASS_MEMORY_NEW(ctx.mem, Argument, splat->pstate(), arglist, "", true);
+      }
+    }
+
+    if (a->has_keyword_argument()) {
+      Expression* kwarg = static_cast<Argument*>(
+                            a->get_keyword_argument()->perform(this)
+                          )->value()->perform(this);
+
+      *aa << SASS_MEMORY_NEW(ctx.mem, Argument, kwarg->pstate(), kwarg, "", false, true);
+    }
+
     return aa;
   }
 

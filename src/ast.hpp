@@ -1113,6 +1113,10 @@ namespace Sass {
       has_rest_argument_(false),
       has_keyword_argument_(false)
     { }
+
+    Argument* get_rest_argument();
+    Argument* get_keyword_argument();
+
     ATTACH_OPERATIONS()
   };
 
