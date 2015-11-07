@@ -449,7 +449,7 @@ namespace Sass {
     // check the evaluated keys aren't duplicates.
     if (mm->has_duplicate_key()) {
       To_String to_string(&ctx);
-      error("Duplicate key \"" + mm->get_duplicate_key()->perform(&to_string) + "\" in map " + mm->perform(&to_string) + ".", mm->pstate());
+      error("Duplicate key \"" + mm->get_duplicate_key()->perform(&to_string) + "\" in map " + m->perform(&to_string) + ".", mm->pstate());
     }
 
     mm->is_expanded(true);
