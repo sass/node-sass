@@ -638,7 +638,7 @@ namespace Sass {
       To_String to_string(&ctx);
       // Special cases: +/- variables which evaluate to null ouput just +/-,
       // but +/- null itself outputs the string
-      if (operand->concrete_type() == Expression::NULL_VAL && typeid(*(u->operand())) == typeid(Variable)) {
+      if (operand->concrete_type() == Expression::NULL_VAL && dynamic_cast<Variable*>(u->operand())) {
         u->operand(SASS_MEMORY_NEW(ctx.mem, String_Quoted, u->pstate(), ""));
       }
       else u->operand(operand);
