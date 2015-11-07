@@ -1019,7 +1019,7 @@ namespace Sass {
                            hex,
                            exactly<'|'>,
                            // exactly<'+'>,
-                           sequence < number, identifier >,
+                           sequence < number, unit_identifier >,
                            number,
                            sequence< exactly<'!'>, word<important_kwd> >
                           >(src);
