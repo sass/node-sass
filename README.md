@@ -230,7 +230,7 @@ sass.render({
       // No errors during the compilation, write this result on the disk
       fs.writeFile(yourPathTotheFile, result.css, function(err){
         if(!err){
-          //f ile written on disk
+          //file written on disk
         }
       });
     }
