@@ -276,7 +276,7 @@ namespace Sass {
     resources.push_back(res);
 
     // add a relative link to the working directory
-    included_files.push_back(abs2rel(inc.abs_path, CWD));
+    included_files.push_back(inc.abs_path);
     // add a relative link  to the source map output file
     srcmap_links.push_back(abs2rel(inc.abs_path, source_map_file, CWD));
 
