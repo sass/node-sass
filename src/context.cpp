@@ -259,11 +259,11 @@ namespace Sass {
 
     // do not parse same resource twice
     // maybe raise an error in this case
-    if (sheets.count(inc.abs_path)) {
-      free(res.contents); free(res.srcmap);
-      throw std::runtime_error("duplicate resource registered");
-      return;
-    }
+    // if (sheets.count(inc.abs_path)) {
+    //   free(res.contents); free(res.srcmap);
+    //   throw std::runtime_error("duplicate resource registered");
+    //   return;
+    // }
 
     // get index for this resource
     size_t idx = resources.size();
