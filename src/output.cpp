@@ -135,8 +135,7 @@ namespace Sass {
       if (ctx && ctx->c_options->source_comments) {
         std::stringstream ss;
         append_indentation();
-        std::string path = Sass::File::abs2rel(r->pstate().path, ctx->cwd());
-        ss << "/* line " << r->pstate().line + 1 << ", " << path << " */";
+        ss << "/* line " << r->pstate().line + 1 << ", " << r->pstate().path << " */";
         append_string(ss.str());
         append_optional_linefeed();
       }
