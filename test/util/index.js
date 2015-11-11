@@ -39,10 +39,20 @@ module.exports.getSuites = function() {
 
     tests.forEach(function(test) {
       var testPath = join(suitePath, test);
+      var hasErrorFile = fs.existsSync(join(testPath, 'error'));
+      var hasError = false;
+      if (hasErrorFile) {
+        var errorFileContents = fs.readFileSync(join(testPath, 'error')).toString();
+        hasError = !(
+          errorFileContents.match(/^DEPRECATION WARNING/) ||
+          errorFileContents.match(/^WARNING:/) ||
+          errorFileContents.match(/^.*?\/input.scss:\d+ DEBUG:/)
+        );
+      }
 
       ret[suite][test] = {};
       ret[suite][test].src = join(testPath, 'input.scss');
-      ret[suite][test].error = fs.existsSync(join(testPath, 'error'));
+      ret[suite][test].error = hasErrorFile && hasError;
       ret[suite][test].expected = join(testPath, 'expected_output.css');
       ret[suite][test].paths = [
         testPath,
