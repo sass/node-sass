@@ -278,7 +278,7 @@ describe('cli', function() {
       }, 500);
     });
 
-    it('should render all watched files', function(done) {
+    it.skip('should render all watched files', function(done) {
       var src = fixture('simple/bar.scss');
 
       fs.writeFileSync(src, '');
