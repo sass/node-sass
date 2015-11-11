@@ -9,8 +9,9 @@
 
 namespace Sass {
 
-  void bind(std::string callee, Parameters* ps, Arguments* as, Context* ctx, Env* env, Eval* eval)
+  void bind(std::string type, std::string name, Parameters* ps, Arguments* as, Context* ctx, Env* env, Eval* eval)
   {
+    std::string callee(type + " " + name);
     Listize listize(*ctx);
     std::map<std::string, Parameter*> param_map;
 
@@ -49,11 +50,9 @@ namespace Sass {
           }
         }
         std::stringstream msg;
-        msg << callee << " takes " << LP;
-        msg << (LP == 1 ? " argument" : " arguments");
-        msg << " but " << LA;
-        msg << (LA == 1 ? " was passed" : " were passed.");
-        deprecated_bind(msg.str(), as->pstate());
+        msg << "wrong number of arguments (" << LA << " for " << LP << ")";
+        msg << " for `" << name << "'";
+        return error(msg.str(), as->pstate());
       }
       Parameter* p = (*ps)[ip];
 
