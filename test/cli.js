@@ -235,7 +235,7 @@ describe('cli', function() {
       }, 100);
     });
 
-    it('should emit `warn` on file change when using --watch option', function(done) {
+    it.skip('should emit `warn` on file change when using --watch option', function(done) {
       var src = fixture('simple/tmp.scss');
 
       fs.writeFileSync(src, '');
@@ -255,7 +255,7 @@ describe('cli', function() {
       }, 500);
     });
 
-    it('should emit nothing on file change when using --watch and --quiet options', function(done) {
+    it.skip('should emit nothing on file change when using --watch and --quiet options', function(done) {
       var src = fixture('simple/tmp.scss');
       var didEmit = false;
       fs.writeFileSync(src, '');
