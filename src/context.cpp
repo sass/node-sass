@@ -259,11 +259,11 @@ namespace Sass {
 
     // do not parse same resource twice
     // maybe raise an error in this case
-    if (sheets.count(inc.abs_path)) {
-      free(res.contents); free(res.srcmap);
-      throw std::runtime_error("duplicate resource registered");
-      return;
-    }
+    // if (sheets.count(inc.abs_path)) {
+    //   free(res.contents); free(res.srcmap);
+    //   throw std::runtime_error("duplicate resource registered");
+    //   return;
+    // }
 
     // get index for this resource
     size_t idx = resources.size();
@@ -276,7 +276,7 @@ namespace Sass {
     resources.push_back(res);
 
     // add a relative link to the working directory
-    included_files.push_back(abs2rel(inc.abs_path, CWD));
+    included_files.push_back(inc.abs_path);
     // add a relative link  to the source map output file
     srcmap_links.push_back(abs2rel(inc.abs_path, source_map_file, CWD));
 
