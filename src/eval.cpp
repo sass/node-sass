@@ -708,7 +708,7 @@ namespace Sass {
     exp.env_stack.push_back(&fn_env);
 
     if (func || body) {
-      bind("Function " + c->name(), params, args, &ctx, &fn_env, this);
+      bind(std::string("Function"), c->name(), params, args, &ctx, &fn_env, this);
       Backtrace here(backtrace(), c->pstate(), ", in function `" + c->name() + "`");
       exp.backtrace_stack.push_back(&here);
       // if it's user-defined, eval the body
@@ -732,7 +732,8 @@ namespace Sass {
       }
 
       // populates env with default values for params
-      bind("Function " + c->name(), params, args, &ctx, &fn_env, this);
+      std::string ff(c->name());
+      bind(std::string("Function"), c->name(), params, args, &ctx, &fn_env, this);
 
       Backtrace here(backtrace(), c->pstate(), ", in function `" + c->name() + "`");
       exp.backtrace_stack.push_back(&here);
