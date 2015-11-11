@@ -6,6 +6,9 @@
 #include "constants.hpp"
 #include "to_string.hpp"
 #include "inspect.hpp"
+#ifdef _WIN32
+#include "inttypes.h"
+#endif
 #include "extend.hpp"
 #include "eval.hpp"
 #include "util.hpp"

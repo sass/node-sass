@@ -36,7 +36,10 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\position.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\prelexer.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\remove_placeholders.hpp" />
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass_context.hpp" />
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass_functions.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass_util.hpp" />
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass_values.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\source_map.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\subset_map.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\to_c.hpp" />
