@@ -30,7 +30,8 @@
     "install": "node scripts/install.js",
     "postinstall": "node scripts/build.js",
     "pretest": "node_modules/.bin/jshint bin lib scripts test",
-    "test": "node_modules/.bin/mocha test"
+    "test": "node_modules/.bin/mocha test",
+    "build": "node scripts/build.js --force"
   },
   "files": [
     "bin",
