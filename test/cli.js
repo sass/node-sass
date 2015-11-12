@@ -215,7 +215,9 @@ describe('cli', function() {
         done();
       });
     });
+  });
 
+  describe.skip('using --watch option', function() {
     it('should not exit with the --watch option', function(done) {
       var src = fixture('simple/index.scss');
       var bin = spawn(cli, [src, '--watch']);
@@ -301,7 +303,7 @@ describe('cli', function() {
       }, 500);
     });
 
-    it.skip('should watch the full scss dep tree for a single file (scss)', function(done) {
+    it('should watch the full scss dep tree for a single file (scss)', function(done) {
       var src = fixture('watching/index.scss');
       var foo = fixture('watching/white.scss');
 
@@ -324,7 +326,7 @@ describe('cli', function() {
       }, 500);
     });
 
-    it.skip('should watch the full sass dep tree for a single file (sass)', function(done) {
+    it('should watch the full sass dep tree for a single file (sass)', function(done) {
       var src = fixture('watching/index.sass');
       var foo = fixture('watching/bar.sass');
 
@@ -347,8 +349,9 @@ describe('cli', function() {
       }, 500);
     });
   });
-
-  describe('node-sass --output directory', function() {
+ 
+  
+  describe.skip('node-sass watching --output directory', function() {
     it('should watch whole directory', function(done) {
       var destDir = fixture('watching-css-out-01/');
       var srcDir = fixture('watching-dir-01/');
