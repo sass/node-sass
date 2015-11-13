@@ -126,7 +126,16 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\remove_placeholders.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass_context.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass_functions.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass_util.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass_values.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\source_map.hpp">
