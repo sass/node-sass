@@ -6,9 +6,6 @@
 #include "constants.hpp"
 #include "to_string.hpp"
 #include "inspect.hpp"
-#ifdef _WIN32
-#include "inttypes.h"
-#endif
 #include "extend.hpp"
 #include "eval.hpp"
 #include "util.hpp"
@@ -26,6 +23,10 @@
 #include <iostream>
 #include <random>
 #include <set>
+
+#if defined(_MSC_VER) && _MSC_VER < 1900
+#include "inttypes.h"
+#endif
 
 #ifdef __MINGW32__
 #include "windows.h"
