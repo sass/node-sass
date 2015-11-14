@@ -189,8 +189,8 @@ namespace Sass {
     virtual ~Vectorized() = 0;
     size_t length() const   { return elements_.size(); }
     bool empty() const      { return elements_.empty(); }
-    T last()                { return elements_.back(); }
-    T first()               { return elements_.front(); }
+    T last() const          { return elements_.back(); }
+    T first() const         { return elements_.front(); }
     T& operator[](size_t i) { return elements_[i]; }
     virtual const T& at(size_t i) const { return elements_.at(i); }
     const T& operator[](size_t i) const { return elements_[i]; }
@@ -2079,9 +2079,9 @@ namespace Sass {
     }
     const Simple_Selector* base() const {
       if (length() == 0) return 0;
-      if (typeid(*(*this)[0]) == typeid(Type_Selector))
+      // ToDo: why is this needed?
+      if (dynamic_cast<Type_Selector*>((*this)[0]))
         return (*this)[0];
-//      else cerr << "SERIOUSELY " << "\n";
       return 0;
     }
     virtual bool is_superselector_of(Compound_Selector* sub, std::string wrapped = "");
@@ -2098,7 +2098,7 @@ namespace Sass {
     bool is_empty_reference()
     {
       return length() == 1 &&
-             typeid(*(*this)[0]) == typeid(Parent_Selector);
+             dynamic_cast<Parent_Selector*>((*this)[0]);
     }
     std::vector<std::string> to_str_vec(); // sometimes need to convert to a flat "by-value" data structure
 
