@@ -29,7 +29,8 @@ enum Sass_Tag {
 // Tags for denoting Sass list separators
 enum Sass_Separator {
   SASS_COMMA,
-  SASS_SPACE
+  SASS_SPACE,
+  SASS_HASH
 };
 
 // Value Operators

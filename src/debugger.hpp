@@ -539,7 +539,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << ind << "List " << expression;
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " (" << expression->length() << ") " <<
-      (expression->separator() == SASS_COMMA ? "Comma " : "Space ") <<
+      (expression->separator() == SASS_COMMA ? "Comma " : expression->separator() == SASS_HASH ? "Map" : "Space ") <<
       " [delayed: " << expression->is_delayed() << "] " <<
       " [interpolant: " << expression->is_interpolant() << "] " <<
       " [arglist: " << expression->is_arglist() << "] " <<
