@@ -205,10 +205,8 @@ namespace Sass {
 
   bool Simple_Selector::operator== (const Simple_Selector& rhs) const
   {
-    const Attribute_Selector* ll = dynamic_cast<const Attribute_Selector*>(this);
-    const Attribute_Selector* rr = dynamic_cast<const Attribute_Selector*>(&rhs);
-    if (ll && rr) return *ll == *rr;
-
+    if (const Wrapped_Selector* lw = dynamic_cast<const Wrapped_Selector*>(this)) return *lw == rhs;
+    if (const Attribute_Selector* la = dynamic_cast<const Attribute_Selector*>(this)) return *la == rhs;
     if (is_ns_eq(ns(), rhs.ns()))
     { return name() == rhs.name(); }
     return ns() == rhs.ns();
@@ -216,10 +214,8 @@ namespace Sass {
 
   bool Simple_Selector::operator< (const Simple_Selector& rhs) const
   {
-    const Attribute_Selector* ll = dynamic_cast<const Attribute_Selector*>(this);
-    const Attribute_Selector* rr = dynamic_cast<const Attribute_Selector*>(&rhs);
-    if (ll && rr) return *ll < *rr;
-
+    if (const Wrapped_Selector* lw = dynamic_cast<const Wrapped_Selector*>(this)) return *lw < rhs;
+    if (const Attribute_Selector* la = dynamic_cast<const Attribute_Selector*>(this)) return *la < rhs;
     if (is_ns_eq(ns(), rhs.ns()))
     { return name() < rhs.name(); }
     return ns() < rhs.ns();
@@ -498,6 +494,26 @@ namespace Sass {
     if (is_ns_eq(ns(), rhs.ns()))
     { return name() == rhs.name(); }
     return ns() == rhs.ns();
+  }
+
+  bool Wrapped_Selector::operator< (const Wrapped_Selector& rhs) const
+  {
+    if (is_ns_eq(ns(), rhs.ns()) && name() == rhs.name())
+    { return *(selector()) < *(rhs.selector()); }
+    if (is_ns_eq(ns(), rhs.ns()))
+    { return name() < rhs.name(); }
+    return ns() < rhs.ns();
+  }
+
+  bool Wrapped_Selector::operator< (const Simple_Selector& rhs) const
+  {
+    if (const Wrapped_Selector* w = dynamic_cast<const Wrapped_Selector*>(&rhs))
+    {
+      return *this < *w;
+    }
+    if (is_ns_eq(ns(), rhs.ns()))
+    { return name() < rhs.name(); }
+    return ns() < rhs.ns();
   }
 
   bool Wrapped_Selector::is_superselector_of(Wrapped_Selector* sub)
