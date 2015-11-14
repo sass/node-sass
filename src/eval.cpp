@@ -423,6 +423,7 @@ namespace Sass {
         Expression* key = (*l)[i+0]->perform(this);
         Expression* val = (*l)[i+1]->perform(this);
         // make sure the color key never displays its real name
+        key->is_delayed(true);
         *lm << std::make_pair(key, val);
       }
       if (lm->has_duplicate_key()) {
@@ -434,6 +435,7 @@ namespace Sass {
         }
       }
 
+      lm->is_interpolant(l->is_interpolant());
       return lm->perform(this);
     }
     // check if we should expand it
@@ -447,6 +449,7 @@ namespace Sass {
     for (size_t i = 0, L = l->length(); i < L; ++i) {
       *ll << (*l)[i]->perform(this);
     }
+    ll->is_interpolant(l->is_interpolant());
     ll->is_expanded(true);
     return ll;
   }
@@ -638,6 +641,7 @@ namespace Sass {
       if (String_Constant* org = lstr ? lstr : rstr)
       { str->quote_mark(org->quote_mark()); }
     }
+    ex->is_interpolant(b->is_interpolant());
     return ex;
 
   }
@@ -700,9 +704,11 @@ namespace Sass {
         if (args->has_named_arguments()) {
           error("Function " + c->name() + " doesn't support keyword arguments", c->pstate());
         }
-        return SASS_MEMORY_NEW(ctx.mem, String_Quoted,
-                               c->pstate(),
-                               lit->perform(&to_string));
+        String_Quoted* str = SASS_MEMORY_NEW(ctx.mem, String_Quoted,
+                                             c->pstate(),
+                                             lit->perform(&to_string));
+        str->is_interpolant(c->is_interpolant());
+        return str;
       } else {
         // call generic function
         full_name = "*[f]";
@@ -790,6 +796,7 @@ namespace Sass {
 
     result->is_delayed(result->concrete_type() == Expression::STRING);
     if (!result->is_delayed()) result = result->perform(this);
+    result->is_interpolant(c->is_interpolant());
     exp.env_stack.pop_back();
     return result;
   }
@@ -846,6 +853,7 @@ namespace Sass {
     }
 
     // std::cerr << "\ttype is now: " << typeid(*value).name() << std::endl << std::endl;
+    value->is_interpolant(v->is_interpolant());
     return value;
   }
 
@@ -915,6 +923,7 @@ namespace Sass {
         }
       } break;
     }
+    result->is_interpolant(t->is_interpolant());
     return result;
   }
 
@@ -940,126 +949,159 @@ namespace Sass {
     }
   }
 
-  std::string Eval::interpolation(Expression* s, bool into_quotes) {
-    Env* env = environment();
-    if (String_Quoted* str_quoted = dynamic_cast<String_Quoted*>(s)) {
-      if (str_quoted->quote_mark()) {
-        if (str_quoted->quote_mark() == '*' || str_quoted->is_delayed()) {
-          return evacuate_escapes(str_quoted->value());
-        } else {
-          return string_escape(quote(str_quoted->value(), str_quoted->quote_mark()));
-        }
-      } else {
-        return evacuate_escapes(str_quoted->value());
-      }
-    } else if (String_Constant* str_constant = dynamic_cast<String_Constant*>(s)) {
-      if (into_quotes && !str_constant->is_interpolant()) return str_constant->value();
-      return evacuate_escapes(str_constant->value());
-    } else if (dynamic_cast<Parent_Selector*>(s)) {
-      To_String to_string(&ctx);
-      Expression* sel = s->perform(this);
-      return evacuate_quotes(sel ? sel->perform(&to_string) : "");
+  void Eval::interpolation(Context& ctx, std::string& res, Expression* ex, bool into_quotes, bool was_itpl) {
+    int precision = (int)ctx.c_options->precision;
+    bool compressed = ctx.output_style() == SASS_STYLE_COMPRESSED;
+    bool needs_closing_brace = false;
 
-    } else if (String_Schema* str_schema = dynamic_cast<String_Schema*>(s)) {
-      // To_String to_string(&ctx);
-      // return evacuate_quotes(str_schema->perform(&to_string));
-
-      std::string res = "";
-      for(auto i : str_schema->elements())
-        res += (interpolation(i));
-      //ToDo: do this in one step
-      auto esc = evacuate_escapes(res);
-      auto unq = unquote(esc);
-      if (unq == esc) {
-        return string_to_output(res);
-      } else {
-        return evacuate_quotes(unq);
+// std::cerr << "IN\n";
+    if (Arguments* args = dynamic_cast<Arguments*>(ex)) {
+      List* ll = SASS_MEMORY_NEW(ctx.mem, List, args->pstate(), 0, SASS_COMMA);
+      for(auto arg : *args) {
+        *ll << arg->value();
       }
-    } else if (List* list = dynamic_cast<List*>(s)) {
-      std::string acc = ""; // ToDo: different output styles
-      std::string sep = list->separator() == SASS_COMMA ? "," : " ";
-      if (ctx.output_style() != SASS_STYLE_COMPRESSED && sep == ",") sep += " ";
-      bool initial = false;
-      for(auto item : list->elements()) {
-        if (item->concrete_type() != Expression::NULL_VAL) {
-          if (initial) acc += sep;
-          acc += interpolation(item);
-          initial = true;
-        }
-      }
-      return evacuate_quotes(acc);
-    } else if (Variable* var = dynamic_cast<Variable*>(s)) {
-      std::string name(var->name());
-      if (!env->has(name)) error("Undefined variable: \"" + var->name() + "\".", var->pstate());
-      Expression* value = static_cast<Expression*>((*env)[name]);
-      return evacuate_quotes(interpolation(value));
-    } else if (dynamic_cast<Binary_Expression*>(s)) {
-      Expression* ex = s->perform(this);
-      // avoid recursive calls if same object gets returned
-      // since we will call interpolate again for the result
-      if (ex == s) {
-        To_String to_string(&ctx);
-        return evacuate_quotes(s->perform(&to_string));
-      }
-      return evacuate_quotes(interpolation(ex));
-    } else if (dynamic_cast<Function_Call*>(s)) {
-      Expression* ex = s->perform(this);
-      return evacuate_quotes(unquote(interpolation(ex)));
-    } else if (dynamic_cast<Unary_Expression*>(s)) {
-      Expression* ex = s->perform(this);
-      return evacuate_quotes(interpolation(ex));
-    } else if (dynamic_cast<Map*>(s)) {
-      To_String to_string(&ctx);
-      std::string dbg(s->perform(&to_string));
-      error(dbg + " isn't a valid CSS value.", s->pstate());
-      return dbg;
-    } else {
-      To_String to_string(&ctx);
-      return evacuate_quotes(s->perform(&to_string));
+      ll->is_interpolant(args->is_interpolant());
+      needs_closing_brace = true;
+      res += "(";
+      ex = ll;
     }
+    if (Argument* arg = dynamic_cast<Argument*>(ex)) {
+      ex = arg->value();
+    }
+    if (String_Constant* sq = dynamic_cast<String_Quoted*>(ex)) {
+      if (was_itpl) {
+        bool was_interpolant = ex->is_interpolant();
+        ex = SASS_MEMORY_NEW(ctx.mem, String_Constant, sq->pstate(), sq->value());
+        ex->is_interpolant(was_interpolant);
+      }
+    }
+    if (dynamic_cast<Null*>(ex)) { return; }
+
+    if (List* l = dynamic_cast<List*>(ex)) {
+      List* ll = SASS_MEMORY_NEW(ctx.mem, List, l->pstate(), 0, l->separator());
+      for(auto item : *l) {
+        item->is_interpolant(l->is_interpolant());
+        std::string rl(""); interpolation(ctx, rl, item, into_quotes, l->is_interpolant());
+        if (rl != "") *ll << SASS_MEMORY_NEW(ctx.mem, String_Quoted, item->pstate(), rl);
+      }
+      To_String to_string(&ctx);
+      res += (ll->to_string(compressed, precision));
+      ll->is_interpolant(l->is_interpolant());
+    }
+
+    else if (String_Quoted* val = dynamic_cast<String_Quoted*>(ex)) {
+      To_String to_string(&ctx);
+      if (into_quotes && val->is_interpolant()) {
+        res += evacuate_escapes(val->to_string(compressed, precision));
+        // res += evacuate_escapes(val ? val->perform(&to_string) : "");
+      } else {
+        res += val->to_string(compressed, precision);
+        // res += val ? val->perform(&to_string) : "";
+      }
+    }
+    else if (String_Constant* val = dynamic_cast<String_Constant*>(ex)) {
+      To_String to_string(&ctx);
+      if (into_quotes && val->is_interpolant()) {
+        res += evacuate_escapes(val->to_string(compressed, precision));
+        // res += evacuate_escapes(val ? val->perform(&to_string) : "");
+      } else {
+        val->quote_mark(0);
+        res += val->to_string(compressed, precision);
+        // res += val ? val->perform(&to_string) : "";
+      }
+    }
+    else if (Value* val = dynamic_cast<Value*>(ex)) {
+      To_String to_string(&ctx);
+      if (into_quotes && val->is_interpolant()) {
+        res += evacuate_escapes(val->to_string(compressed, precision));
+        // res += evacuate_escapes(val ? val->perform(&to_string) : "");
+      } else {
+        res += val->to_string(compressed, precision);
+        // res += val ? val->perform(&to_string) : "";
+      }
+    }
+    else if (Textual* val = dynamic_cast<Textual*>(ex)) {
+      To_String to_string(&ctx);
+      if (into_quotes && val->is_interpolant()) {
+
+        res += evacuate_escapes(val ? val->perform(&to_string) : "");
+      } else {
+        res += val ? val->perform(&to_string) : "";
+      }
+    }
+    else if (Binary_Expression* val = dynamic_cast<Binary_Expression*>(ex)) {
+      To_String to_string(&ctx);
+      if (into_quotes && val->is_interpolant()) {
+
+        res += evacuate_escapes(val ? val->perform(&to_string) : "");
+      } else {
+        res += val ? val->perform(&to_string) : "";
+      }
+    }
+
+    else if (Parent_Selector* pr = dynamic_cast<Parent_Selector*>(ex)) {
+      To_String to_string(&ctx);
+      Expression* sel = pr->perform(this);
+      if (into_quotes && sel->is_interpolant()) {
+        res += evacuate_escapes(sel ? sel->perform(&to_string) : "");
+      } else {
+        res += sel ? sel->perform(&to_string) : "";
+      }
+    }
+    else if (Selector_List* sl = dynamic_cast<Selector_List*>(ex)) {
+
+      if (into_quotes) {
+        res += evacuate_escapes(sl->to_string(compressed, precision));
+      } else {
+        res += sl->to_string(compressed, precision);
+      }
+    }
+    else if (dynamic_cast<Function_Call*>(ex)) {
+      throw std::runtime_error("fn not handlerd");
+    }
+    else {
+      throw std::runtime_error(ex->type());
+    }
+
+    if (needs_closing_brace) res += ")";
+
+// std::cerr << "OUT\n";
   }
 
   Expression* Eval::operator()(String_Schema* s)
   {
-    std::string acc;
-    bool into_quotes = false;
     size_t L = s->length();
+    bool into_quotes = false;
     if (L > 1) {
+      if (!dynamic_cast<String_Quoted*>((*s)[0]) && !dynamic_cast<String_Quoted*>((*s)[L - 1])) {
       if (String_Constant* l = dynamic_cast<String_Constant*>((*s)[0])) {
         if (String_Constant* r = dynamic_cast<String_Constant*>((*s)[L - 1])) {
           if (l->value()[0] == '"' && r->value()[r->value().size() - 1] == '"') into_quotes = true;
           if (l->value()[0] == '\'' && r->value()[r->value().size() - 1] == '\'') into_quotes = true;
         }
       }
-    }
-    for (size_t i = 0; i < L; ++i) {
-      // really a very special fix, but this is the logic I got from
-      // analyzing the ruby sass behavior and it actually seems to work
-      // https://github.com/sass/libsass/issues/1333
-      if (i == 0 && L > 1 && dynamic_cast<Function_Call*>((*s)[i])) {
-        Expression* ex = (*s)[i]->perform(this);
-        if (auto sq = dynamic_cast<String_Quoted*>(ex)) {
-          if (sq->is_delayed() && ! s->has_interpolants()) {
-            acc += string_escape(quote(sq->value(), sq->quote_mark()));
-          } else {
-            acc += interpolation((*s)[i], into_quotes);
-          }
-        } else if (ex) {
-          acc += interpolation((*s)[i], into_quotes);
-        }
-      } else if ((*s)[i]) {
-        acc += interpolation((*s)[i], into_quotes);
       }
     }
-    String_Quoted* str = SASS_MEMORY_NEW(ctx.mem, String_Quoted, s->pstate(), acc);
-    if (!str->quote_mark()) {
-      str->value(string_unescape(str->value()));
-    } else if (str->quote_mark()) {
-      str->quote_mark('*');
+    std::string res("");
+    for (size_t i = 0; i < L; ++i) {
+      (*s)[i]->perform(this);
+      Expression* ex = (*s)[i]->is_delayed() ? (*s)[i] : (*s)[i]->perform(this);
+      interpolation(ctx, res, ex, into_quotes, ex->is_interpolant());
+
     }
-    str->is_delayed(true);
+    if (!s->is_interpolant()) {
+      if (res == "") return SASS_MEMORY_NEW(ctx.mem, Null, s->pstate());
+      return SASS_MEMORY_NEW(ctx.mem, String_Constant, s->pstate(), res);
+    }
+    String_Quoted* str = SASS_MEMORY_NEW(ctx.mem, String_Quoted, s->pstate(), res);
+    // if (s->is_interpolant()) str->quote_mark(0);
+    // String_Constant* str = SASS_MEMORY_NEW(ctx.mem, String_Constant, s->pstate(), res);
+    if (str->quote_mark()) str->quote_mark('*');
+    else if (!is_in_comment) str->value(string_to_output(str->value()));
+    str->is_interpolant(s->is_interpolant());
     return str;
   }
+
 
   Expression* Eval::operator()(String_Constant* s)
   {
@@ -1074,7 +1116,11 @@ namespace Sass {
 
   Expression* Eval::operator()(String_Quoted* s)
   {
-    return s;
+    String_Quoted* str = SASS_MEMORY_NEW(ctx.mem, String_Quoted, s->pstate(), "");
+    str->value(s->value());
+    str->quote_mark(s->quote_mark());
+    str->is_interpolant(s->is_interpolant());
+    return str;
   }
 
   Expression* Eval::operator()(Supports_Operator* c)

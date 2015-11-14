@@ -23,6 +23,8 @@ namespace Sass {
     Eval(Expand& exp);
     ~Eval();
 
+    bool is_in_comment;
+
     Env* environment();
     Context& context();
     Selector_List* selector();
@@ -94,7 +96,7 @@ namespace Sass {
     static Value* op_strings(Memory_Manager&, enum Sass_OP, Value&, Value&, bool compressed = false, int precision = 5, ParserState* pstate = 0);
 
   private:
-    std::string interpolation(Expression* s, bool into_quotes = false);
+    void interpolation(Context& ctx, std::string& res, Expression* ex, bool into_quotes, bool was_itpl = false);
 
   };
 

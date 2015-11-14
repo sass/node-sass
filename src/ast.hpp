@@ -1439,14 +1439,22 @@ namespace Sass {
   // evaluation phase.
   ///////////////////////////////////////////////////////////////////////
   class String_Schema : public String, public Vectorized<Expression*> {
-    ADD_PROPERTY(bool, has_interpolants)
+    // ADD_PROPERTY(bool, has_interpolants)
     size_t hash_;
   public:
     String_Schema(ParserState pstate, size_t size = 0, bool has_interpolants = false)
-    : String(pstate), Vectorized<Expression*>(size), has_interpolants_(has_interpolants), hash_(0)
+    : String(pstate), Vectorized<Expression*>(size), hash_(0)
     { concrete_type(STRING); }
     std::string type() { return "string"; }
     static std::string type_name() { return "string"; }
+
+    void has_interpolants(bool tc) { }
+    bool has_interpolants() {
+      for (auto el : elements()) {
+        if (el->is_interpolant()) return true;
+      }
+      return false;
+    }
 
     virtual size_t hash()
     {

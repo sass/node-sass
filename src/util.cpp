@@ -105,94 +105,6 @@ namespace Sass {
     return *array = arr;
   }
 
-  std::string string_eval_escapes(const std::string& s)
-  {
-
-    std::string out("");
-    bool esc = false;
-    for (size_t i = 0, L = s.length(); i < L; ++i) {
-      if(s[i] == '\\' && esc == false) {
-        esc = true;
-
-        // escape length
-        size_t len = 1;
-
-        // parse as many sequence chars as possible
-        // ToDo: Check if ruby aborts after possible max
-        while (i + len < L && s[i + len] && isxdigit(s[i + len])) ++ len;
-
-        // hex string?
-        if (len > 1) {
-
-          // convert the extracted hex string to code point value
-          // ToDo: Maybe we could do this without creating a substring
-          uint32_t cp = strtol(s.substr (i + 1, len - 1).c_str(), NULL, 16);
-
-          if (cp == 0) cp = 0xFFFD;
-
-          // assert invalid code points
-          if (cp >= 1) {
-
-            // use a very simple approach to convert via utf8 lib
-            // maybe there is a more elegant way; maybe we shoud
-            // convert the whole output from string to a stream!?
-            // allocate memory for utf8 char and convert to utf8
-            unsigned char u[5] = {0,0,0,0,0}; utf8::append(cp, u);
-            for(size_t m = 0; u[m] && m < 5; m++) out.push_back(u[m]);
-
-            // skip some more chars?
-            i += len - 1; esc = false;
-            if (cp == 10) out += ' ';
-
-          }
-
-        }
-
-      }
-      else {
-        out += s[i];
-        esc = false;
-      }
-    }
-    return out;
-
-  }
-
-  // double escape every escape sequences
-  // escape unescaped quotes and backslashes
-  std::string string_escape(const std::string& str)
-  {
-    std::string out("");
-    for (auto i : str) {
-      // escape some characters
-      if (i == '"') out += '\\';
-      if (i == '\'') out += '\\';
-      if (i == '\\') out += '\\';
-      out += i;
-    }
-    return out;
-  }
-
-  // unescape every escape sequence
-  // only removes unescaped backslashes
-  std::string string_unescape(const std::string& str)
-  {
-    std::string out("");
-    bool esc = false;
-    for (auto i : str) {
-      if (esc || i != '\\') {
-        esc = false;
-        out += i;
-      } else {
-        esc = true;
-      }
-    }
-    // open escape sequence at end
-    // maybe it should thow an error
-    if (esc) { out += '\\'; }
-    return out;
-  }
-
   // read css string (handle multiline DELIM)
   std::string read_css_string(const std::string& str)
   {
@@ -213,28 +125,6 @@ namespace Sass {
       out.push_back(i);
     }
     if (esc) out += '\\';
-    return out;
-  }
-
-  // evacuate unescaped quoted
-  // leave everything else untouched
-  std::string evacuate_quotes(const std::string& str)
-  {
-    std::string out("");
-    bool esc = false;
-    for (auto i : str) {
-      if (!esc) {
-        // ignore next character
-        if (i == '\\') esc = true;
-        // evacuate unescaped quotes
-        else if (i == '"') out += '\\';
-        else if (i == '\'') out += '\\';
-      }
-      // get escaped char now
-      else { esc = false; }
-      // remove nothing
-      out += i;
-    }
     return out;
   }
 
@@ -320,38 +210,6 @@ namespace Sass {
     }
     if (has) return str;
     else return text;
-  }
-
-   std::string normalize_wspace(const std::string& str)
-  {
-    bool ws = false;
-    bool esc = false;
-    std::string text = "";
-    for(const char& i : str) {
-      if (!esc && i == '\\') {
-        esc = true;
-        ws = false;
-        text += i;
-      } else if (esc) {
-        esc = false;
-        ws = false;
-        text += i;
-      } else if (
-        i == ' ' ||
-        i == '\r' ||
-        i == '\n' ||
-        i == '	'
-      ) {
-        // only add one space
-        if (!ws) text += ' ';
-        ws = true;
-      } else {
-        ws = false;
-        text += i;
-      }
-    }
-    if (esc) text += '\\';
-    return text;
   }
 
   // find best quote_mark by detecting if the string contains any single

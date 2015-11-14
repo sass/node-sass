@@ -368,8 +368,11 @@ namespace Sass {
 
   Statement* Expand::operator()(Comment* c)
   {
+    eval.is_in_comment = true;
+    auto rv = SASS_MEMORY_NEW(ctx.mem, Comment, c->pstate(), static_cast<String*>(c->text()->perform(&eval)), c->is_important());
+    eval.is_in_comment = false;
     // TODO: eval the text, once we're parsing/storing it as a String_Schema
-    return SASS_MEMORY_NEW(ctx.mem, Comment, c->pstate(), static_cast<String*>(c->text()->perform(&eval)), c->is_important());
+    return rv;
   }
 
   Statement* Expand::operator()(If* i)

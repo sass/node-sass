@@ -1430,6 +1430,7 @@ namespace Sass {
     }
 
     String_Schema* schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, pstate);
+    schema->is_interpolant(true);
     while (i < chunk.end) {
       p = constant ? find_first_in_interval< exactly<hash_lbrace> >(i, chunk.end) :
           find_first_in_interval< exactly<hash_lbrace>, block_comment >(i, chunk.end);
@@ -1578,11 +1579,14 @@ namespace Sass {
         if (peek< exactly< rbrace > >()) {
           css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
         }
+        Expression* ex = 0;
         if (lex< re_static_expression >()) {
-          (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, lexed);
+          ex = SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, lexed);
         } else {
-          (*schema) << parse_list();
+          ex = parse_list();
         }
+        ex->is_interpolant(true);
+        (*schema) << ex;
         // ToDo: no error check here?
         lex < exactly < rbrace > >();
       }

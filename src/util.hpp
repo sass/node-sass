@@ -17,15 +17,10 @@ namespace Sass {
   const char* safe_str(const char *, const char* = "");
   void free_string_array(char **);
   char **copy_strings(const std::vector<std::string>&, char ***, int = 0);
-  std::string string_escape(const std::string& str);
-  std::string string_unescape(const std::string& str);
-  std::string string_eval_escapes(const std::string& str);
   std::string read_css_string(const std::string& str);
-  std::string evacuate_quotes(const std::string& str);
   std::string evacuate_escapes(const std::string& str);
   std::string string_to_output(const std::string& str);
   std::string comment_to_string(const std::string& text);
-  std::string normalize_wspace(const std::string& str);
 
   std::string quote(const std::string&, char q = 0, bool keep_linefeed_whitespace = false);
   std::string unquote(const std::string&, char* q = 0, bool keep_utf8_sequences = false);
