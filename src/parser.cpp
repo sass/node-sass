@@ -1230,11 +1230,6 @@ namespace Sass {
   Expression* Parser::parse_operators()
   {
     Expression* factor = parse_factor();
-    // Special case: Ruby sass never tries to modulo if the lhs contains an interpolant
-    if (peek_css< exactly<'%'> >() && factor->concrete_type() == Expression::STRING) {
-      String_Schema* ss = dynamic_cast<String_Schema*>(factor);
-      if (ss && ss->has_interpolants()) return factor;
-    }
     // if it's a singleton, return it (don't wrap it)
     if (!peek_css< class_char< static_ops > >()) return factor;
     // parse more factors and operators

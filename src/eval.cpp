@@ -541,7 +541,7 @@ namespace Sass {
     if ((s1 && s1->has_interpolants()) || (s2 && s2->has_interpolants()))
     {
       // If possible upgrade LHS to a number
-      if (op_type == Sass_OP::DIV || op_type == Sass_OP::MUL || op_type == Sass_OP::ADD || op_type == Sass_OP::SUB) {
+      if (op_type == Sass_OP::DIV || op_type == Sass_OP::MUL || op_type == Sass_OP::MOD || op_type == Sass_OP::ADD || op_type == Sass_OP::SUB) {
         if (String_Constant* str = dynamic_cast<String_Constant*>(lhs)) {
           std::string value(str->value());
           const char* start = value.c_str();
