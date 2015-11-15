@@ -51,7 +51,22 @@
 
 namespace Sass {
 
+  // ToDo: should this really be hardcoded
+  // Note: most methods follow precision option
   const double NUMBER_EPSILON = 0.00000000000001;
+
+  // ToDo: where does this fit best?
+  // We don't share this with C-API?
+  class Operand {
+    public:
+      Operand(Sass_OP operand, bool ws_before = false, bool ws_after = false)
+      : operand(operand), ws_before(ws_before), ws_after(ws_after)
+      { }
+    public:
+      enum Sass_OP operand;
+      bool ws_before;
+      bool ws_after;
+  };
 
   // from boost (functional/hash):
   // http://www.boost.org/doc/libs/1_35_0/doc/html/hash/combine.html
@@ -891,17 +906,17 @@ namespace Sass {
   //////////////////////////////////////////////////////////////////////////
   class Binary_Expression : public Expression {
   private:
-    ADD_HASHED(enum Sass_OP, type)
+    ADD_HASHED(Operand, op)
     ADD_HASHED(Expression*, left)
     ADD_HASHED(Expression*, right)
     size_t hash_;
   public:
     Binary_Expression(ParserState pstate,
-                      enum Sass_OP t, Expression* lhs, Expression* rhs)
-    : Expression(pstate), type_(t), left_(lhs), right_(rhs), hash_(0)
+                      Operand op, Expression* lhs, Expression* rhs)
+    : Expression(pstate), op_(op), left_(lhs), right_(rhs), hash_(0)
     { }
     const std::string type_name() {
-      switch (type_) {
+      switch (type()) {
         case AND: return "and"; break;
         case OR: return "or"; break;
         case EQ: return "eq"; break;
@@ -944,12 +959,13 @@ namespace Sass {
     virtual size_t hash()
     {
       if (hash_ == 0) {
-        hash_ = std::hash<size_t>()(type_);
+        hash_ = std::hash<size_t>()(type());
         hash_combine(hash_, left()->hash());
         hash_combine(hash_, right()->hash());
       }
       return hash_;
     }
+    enum Sass_OP type() const { return op_.operand; }
     ATTACH_OPERATIONS()
   };
 
