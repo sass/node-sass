@@ -1565,8 +1565,9 @@ namespace Sass {
         // ToDo: no error check here?
         lex < exactly < rbrace > >();
       }
-      // lex some string constants
-      else if (lex< alternatives < exactly<'%'>, exactly < '-' >, identifier > >()) {
+      // lex some string constants or other valid token
+      // Note: [-+] chars are left over from ie. `#{3}+3`
+      else if (lex< alternatives < exactly<'%'>, exactly < '-' >, exactly < '+' >, identifier > >()) {
         (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, lexed);
         if (*position == '"' || *position == '\'') {
           (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, " ");
