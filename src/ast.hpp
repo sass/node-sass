@@ -930,7 +930,28 @@ namespace Sass {
         case MUL: return "mul"; break;
         case DIV: return "div"; break;
         case MOD: return "mod"; break;
-        case NUM_OPS: return "num_ops"; break;
+        // this is only used internally!
+        case NUM_OPS: return "[OPS]"; break;
+        default: return "invalid"; break;
+      }
+    }
+    const std::string separator() {
+      switch (type()) {
+        case AND: return "&&"; break;
+        case OR: return "||"; break;
+        case EQ: return "=="; break;
+        case NEQ: return "!="; break;
+        case GT: return ">"; break;
+        case GTE: return ">="; break;
+        case LT: return "<"; break;
+        case LTE: return "<="; break;
+        case ADD: return "+"; break;
+        case SUB: return "-"; break;
+        case MUL: return "*"; break;
+        case DIV: return "/"; break;
+        case MOD: return "%"; break;
+        // this is only used internally!
+        case NUM_OPS: return "[OPS]"; break;
         default: return "invalid"; break;
       }
     }
