@@ -566,6 +566,8 @@ namespace Sass {
     int precision = (int)ctx.c_options->precision;
     bool compressed = ctx.output_style() == SASS_STYLE_COMPRESSED;
 
+    bool schema_op = false;
+
     if ((s1 && s1->has_interpolants()) || (s2 && s2->has_interpolants()))
     {
       // If possible upgrade LHS to a number
@@ -591,10 +593,22 @@ namespace Sass {
       To_Value to_value(ctx, ctx.mem);
       Value* v_l = dynamic_cast<Value*>(lhs->perform(&to_value));
       Value* v_r = dynamic_cast<Value*>(rhs->perform(&to_value));
-      Expression::Concrete_Type l_type = lhs->concrete_type();
-      Expression::Concrete_Type r_type = rhs->concrete_type();
+      l_type = lhs->concrete_type();
+      r_type = rhs->concrete_type();
 
-      if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
+      if (s2 && s2->has_interpolants() && s2->length()) {
+        Textual* front = dynamic_cast<Textual*>(s2->elements().front());
+        if (front && !front->is_interpolant())
+        {
+          schema_op = true;
+          if (op_type == Sass_OP::DIV) {
+            delay_anyway = true;
+          }
+          rhs = front->perform(this);
+        }
+      }
+
+      if ((!schema_op || delay_anyway) && l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
         std::string str("");
         str += v_l->to_string(compressed, precision);
         if (b->op().ws_before) str += " ";
@@ -605,44 +619,59 @@ namespace Sass {
       }
     }
 
+    l_type = lhs->concrete_type();
+    r_type = rhs->concrete_type();
+
     // ToDo: throw error in op functions
     // ToDo: then catch and re-throw them
     ParserState pstate(b->pstate());
+    Expression* rv = 0;
     if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
       const Number* l_n = dynamic_cast<const Number*>(lhs);
       const Number* r_n = dynamic_cast<const Number*>(rhs);
-      return op_numbers(ctx.mem, op_type, *l_n, *r_n, compressed, precision, &pstate);
+      rv = op_numbers(ctx.mem, op_type, *l_n, *r_n, compressed, precision, &pstate);
     }
-    if (l_type == Expression::NUMBER && r_type == Expression::COLOR) {
+    else if (l_type == Expression::NUMBER && r_type == Expression::COLOR) {
       const Number* l_n = dynamic_cast<const Number*>(lhs);
       const Color* r_c = dynamic_cast<const Color*>(rhs);
-      return op_number_color(ctx.mem, op_type, *l_n, *r_c, compressed, precision, &pstate);
+      rv = op_number_color(ctx.mem, op_type, *l_n, *r_c, compressed, precision, &pstate);
     }
-    if (l_type == Expression::COLOR && r_type == Expression::NUMBER) {
+    else if (l_type == Expression::COLOR && r_type == Expression::NUMBER) {
       const Color* l_c = dynamic_cast<const Color*>(lhs);
       const Number* r_n = dynamic_cast<const Number*>(rhs);
-      return op_color_number(ctx.mem, op_type, *l_c, *r_n, compressed, precision, &pstate);
+      rv = op_color_number(ctx.mem, op_type, *l_c, *r_n, compressed, precision, &pstate);
     }
-    if (l_type == Expression::COLOR && r_type == Expression::COLOR) {
+    else if (l_type == Expression::COLOR && r_type == Expression::COLOR) {
       const Color* l_c = dynamic_cast<const Color*>(lhs);
       const Color* r_c = dynamic_cast<const Color*>(rhs);
-      return op_colors(ctx.mem, op_type, *l_c, *r_c, compressed, precision, &pstate);
+      rv = op_colors(ctx.mem, op_type, *l_c, *r_c, compressed, precision, &pstate);
+    }
+    else {
+      To_Value to_value(ctx, ctx.mem);
+      Value* v_l = dynamic_cast<Value*>(lhs->perform(&to_value));
+      Value* v_r = dynamic_cast<Value*>(rhs->perform(&to_value));
+      Value* ex = op_strings(ctx.mem, op_type, *v_l, *v_r, compressed, precision, &pstate);
+      if (String_Constant* str = dynamic_cast<String_Constant*>(ex))
+      {
+        if (str->concrete_type() == Expression::STRING)
+        {
+          String_Constant* lstr = dynamic_cast<String_Constant*>(lhs);
+          String_Constant* rstr = dynamic_cast<String_Constant*>(rhs);
+          if (String_Constant* org = lstr ? lstr : rstr)
+          { str->quote_mark(org->quote_mark()); }
+        }
+      }
+      ex->is_interpolant(b->is_interpolant());
+      rv = ex;
     }
 
-    To_Value to_value(ctx, ctx.mem);
-    Value* v_l = dynamic_cast<Value*>(lhs->perform(&to_value));
-    Value* v_r = dynamic_cast<Value*>(rhs->perform(&to_value));
-    Value* ex = op_strings(ctx.mem, op_type, *v_l, *v_r, compressed, precision, &pstate);
-    if (String_Constant* str = dynamic_cast<String_Constant*>(ex))
-    {
-      if (str->concrete_type() != Expression::STRING) return ex;
-      String_Constant* lstr = dynamic_cast<String_Constant*>(lhs);
-      String_Constant* rstr = dynamic_cast<String_Constant*>(rhs);
-      if (String_Constant* org = lstr ? lstr : rstr)
-      { str->quote_mark(org->quote_mark()); }
+    if (rv) {
+      if (schema_op) {
+        (*s2)[0] = rv;
+        rv = s2->perform(this);
+      }
     }
-    ex->is_interpolant(b->is_interpolant());
-    return ex;
+    return rv;
 
   }
 

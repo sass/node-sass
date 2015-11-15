@@ -453,6 +453,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     else if (expression->type() == Textual::DIMENSION) std::cerr << " [DIMENSION]";
     else if (expression->type() == Textual::HEX) std::cerr << " [HEX]";
     std::cerr << expression << " [" << expression->value() << "]";
+    std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
     if (expression->is_delayed()) std::cerr << " [delayed]";
     std::cerr << std::endl;
   } else if (dynamic_cast<Variable*>(node)) {
@@ -562,16 +563,19 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     Boolean* expression = dynamic_cast<Boolean*>(node);
     std::cerr << ind << "Boolean " << expression;
     std::cerr << " (" << pstate_source_position(node) << ")";
+    std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
     std::cerr << " [" << expression->value() << "]" << std::endl;
   } else if (dynamic_cast<Color*>(node)) {
     Color* expression = dynamic_cast<Color*>(node);
     std::cerr << ind << "Color " << expression;
     std::cerr << " (" << pstate_source_position(node) << ")";
+    std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
     std::cerr << " [" << expression->r() << ":"  << expression->g() << ":" << expression->b() << "@" << expression->a() << "]" << std::endl;
   } else if (dynamic_cast<Number*>(node)) {
     Number* expression = dynamic_cast<Number*>(node);
     std::cerr << ind << "Number " << expression;
     std::cerr << " (" << pstate_source_position(node) << ")";
+    std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
     std::cerr << " [" << expression->value() << expression->unit() << "]" <<
       " [hash: " << expression->hash() << "] " <<
       std::endl;
