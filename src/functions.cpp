@@ -215,9 +215,9 @@ namespace Sass {
       return seed;
     }
     #else
-    static std::random_device rd;
     uint64_t GetSeed()
     {
+      std::random_device rd;
       return rd();
     }
     #endif
