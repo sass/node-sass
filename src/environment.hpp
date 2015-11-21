@@ -15,12 +15,13 @@ namespace Sass {
     // TODO: test with map
     std::map<std::string, T> local_frame_;
     ADD_PROPERTY(Environment*, parent)
+    ADD_PROPERTY(bool, is_shadow)
 
   public:
     Memory_Manager mem;
-    Environment();
-    Environment(Environment* env);
-    Environment(Environment& env);
+    Environment(bool is_shadow = false);
+    Environment(Environment* env, bool is_shadow = false);
+    Environment(Environment& env, bool is_shadow = false);
 
     // link parent to create a stack
     void link(Environment& env);
@@ -87,6 +88,7 @@ namespace Sass {
     #endif
 
   };
+
 }
 
 #endif

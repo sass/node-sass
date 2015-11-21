@@ -178,10 +178,10 @@ namespace Sass {
     double start = sass_start->value();
     double end = sass_end->value();
     // only create iterator once in this environment
-    Env* env = exp.environment();
-    Number* it = SASS_MEMORY_NEW(env->mem, Number, low->pstate(), start, sass_end->unit());
-    AST_Node* old_var = env->has_local(variable) ? env->get_local(variable) : 0;
-    env->set_local(variable, it);
+    Env env(environment(), true);
+    exp.env_stack.push_back(&env);
+    Number* it = SASS_MEMORY_NEW(env.mem, Number, low->pstate(), start, sass_end->unit());
+    env.set_local(variable, it);
     Block* body = f->block();
     Expression* val = 0;
     if (start < end) {
@@ -190,7 +190,7 @@ namespace Sass {
            i < end;
            ++i) {
         it->value(i);
-        env->set_local(variable, it);
+        env.set_local(variable, it);
         val = body->perform(this);
         if (val) break;
       }
@@ -200,14 +200,12 @@ namespace Sass {
            i > end;
            --i) {
         it->value(i);
-        env->set_local(variable, it);
+        env.set_local(variable, it);
         val = body->perform(this);
         if (val) break;
       }
     }
-    // restore original environment
-    if (!old_var) env->del_local(variable);
-    else env->set_local(variable, old_var);
+    exp.env_stack.pop_back();
     return val;
   }
 
@@ -217,7 +215,8 @@ namespace Sass {
   {
     std::vector<std::string> variables(e->variables());
     Expression* expr = e->list()->perform(this);
-    Env* env = exp.environment();
+    Env env(environment(), true);
+    exp.env_stack.push_back(&env);
     List* list = 0;
     Map* map = 0;
     if (expr->concrete_type() == Expression::MAP) {
@@ -230,12 +229,7 @@ namespace Sass {
     else {
       list = static_cast<List*>(expr);
     }
-    // remember variables and then reset them
-    std::vector<AST_Node*> old_vars(variables.size());
-    for (size_t i = 0, L = variables.size(); i < L; ++i) {
-      old_vars[i] = env->has_local(variables[i]) ? env->get_local(variables[i]) : 0;
-      env->set_local(variables[i], 0);
-    }
+
     Block* body = e->block();
     Expression* val = 0;
 
@@ -247,10 +241,10 @@ namespace Sass {
           List* variable = SASS_MEMORY_NEW(ctx.mem, List, map->pstate(), 2, SASS_SPACE);
           *variable << key;
           *variable << value;
-          env->set_local(variables[0], variable);
+          env.set_local(variables[0], variable);
         } else {
-          env->set_local(variables[0], key);
-          env->set_local(variables[1], value);
+          env.set_local(variables[0], key);
+          env.set_local(variables[1], value);
         }
 
         val = body->perform(this);
@@ -266,21 +260,21 @@ namespace Sass {
         if (List* scalars = dynamic_cast<List*>(e)) {
           if (variables.size() == 1) {
             Expression* var = scalars;
-            env->set_local(variables[0], var);
+            env.set_local(variables[0], var);
           } else {
             for (size_t j = 0, K = variables.size(); j < K; ++j) {
               Expression* res = j >= scalars->length()
                 ? SASS_MEMORY_NEW(ctx.mem, Null, expr->pstate())
                 : (*scalars)[j];
-              env->set_local(variables[j], res);
+              env.set_local(variables[j], res);
             }
           }
         } else {
           if (variables.size() > 0) {
-            env->set_local(variables[0], e);
+            env.set_local(variables[0], e);
             for (size_t j = 1, K = variables.size(); j < K; ++j) {
               Expression* res = SASS_MEMORY_NEW(ctx.mem, Null, expr->pstate());
-              env->set_local(variables[j], res);
+              env.set_local(variables[j], res);
             }
           }
         }
@@ -288,11 +282,7 @@ namespace Sass {
         if (val) break;
       }
     }
-    // restore original environment
-    for (size_t j = 0, K = variables.size(); j < K; ++j) {
-      if(!old_vars[j]) env->del_local(variables[j]);
-      else env->set_local(variables[j], old_vars[j]);
-    }
+    exp.env_stack.pop_back();
     return val;
   }
 
@@ -300,10 +290,13 @@ namespace Sass {
   {
     Expression* pred = w->predicate();
     Block* body = w->block();
+    Env env(environment(), true);
+    exp.env_stack.push_back(&env);
     while (*pred->perform(this)) {
       Expression* val = body->perform(this);
       if (val) return val;
     }
+    exp.env_stack.pop_back();
     return 0;
   }
 
