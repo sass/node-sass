@@ -45,7 +45,7 @@
 #endif
 
 
-// some syntax sugar
+// output behaviours
 namespace Sass {
 
   // create some C++ aliases for the most used options
@@ -53,6 +53,73 @@ namespace Sass {
   const static Sass_Output_Style COMPACT = SASS_STYLE_COMPACT;
   const static Sass_Output_Style EXPANDED = SASS_STYLE_EXPANDED;
   const static Sass_Output_Style COMPRESSED = SASS_STYLE_COMPRESSED;
+
+};
+
+// input behaviours
+enum Sass_Input_Style {
+  SASS_CONTEXT_NULL,
+  SASS_CONTEXT_FILE,
+  SASS_CONTEXT_DATA,
+  SASS_CONTEXT_FOLDER
+};
+
+// simple linked list
+struct string_list {
+  string_list* next;
+  char* string;
+};
+
+// sass config options structure
+struct Sass_Inspect_Options {
+
+  // Precision for fractional numbers
+  int precision;
+
+  // Output style for the generated css code
+  // A value from above SASS_STYLE_* constants
+  enum Sass_Output_Style output_style;
+
+  // initialization list (constructor with defaults)
+  Sass_Inspect_Options(int precision = 5,
+                       Sass_Output_Style style = Sass::NESTED)
+  : precision(precision), output_style(style)
+  { }
+
+};
+
+// sass config options structure
+struct Sass_Output_Options : Sass_Inspect_Options {
+
+  // String to be used for indentation
+  const char* indent;
+  // String to be used to for line feeds
+  const char* linefeed;
+
+  // Emit comments in the generated CSS indicating
+  // the corresponding source line.
+  bool source_comments;
+
+  // initialization list (constructor with defaults)
+  Sass_Output_Options(struct Sass_Inspect_Options opt,
+                      const char* indent = "  ",
+                      const char* linefeed = "\n",
+                      bool source_comments = false)
+  : Sass_Inspect_Options(opt),
+    indent(indent), linefeed(linefeed),
+    source_comments(source_comments)
+  { }
+
+  // initialization list (constructor with defaults)
+  Sass_Output_Options(int precision = 5,
+                      Sass_Output_Style style = Sass::NESTED,
+                      const char* indent = "  ",
+                      const char* linefeed = "\n",
+                      bool source_comments = false)
+  : Sass_Inspect_Options(precision, style),
+    indent(indent), linefeed(linefeed),
+    source_comments(source_comments)
+  { }
 
 };
 
