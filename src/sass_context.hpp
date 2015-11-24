@@ -26,7 +26,7 @@ struct Sass_Options {
   int precision;
 
   // Output style for the generated css code
-  // A value from above SASS_STYLE_* constants
+  // A value from the SASS_STYLE_* constants
   enum Sass_Output_Style output_style;
 
   // Emit comments in the generated CSS indicating

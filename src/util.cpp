@@ -474,7 +474,7 @@ namespace Sass {
           }
         } else if (Comment* c = dynamic_cast<Comment*>(stm)) {
           // keep for uncompressed
-          if (style != SASS_STYLE_COMPRESSED) {
+          if (style != COMPRESSED) {
             hasDeclarations = true;
           }
           // output style compressed
@@ -579,7 +579,7 @@ namespace Sass {
         else if (typeid(*stm) == typeid(Comment)) {
           Comment* c = (Comment*) stm;
           // keep for uncompressed
-          if (style != SASS_STYLE_COMPRESSED) {
+          if (style != COMPRESSED) {
             return true;
           }
           // output style compressed

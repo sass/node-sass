@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <assert.h>
+#include "sass.hpp"
 #include "sass/base.h"
 #include "ast_fwd_decl.hpp"
 
@@ -42,13 +43,13 @@ namespace Sass {
     std::string vecJoin(const std::vector<std::string>& vec, const std::string& sep);
     bool containsAnyPrintableStatements(Block* b);
 
-    bool isPrintable(Ruleset* r, Sass_Output_Style style = SASS_STYLE_NESTED);
-    bool isPrintable(Supports_Block* r, Sass_Output_Style style = SASS_STYLE_NESTED);
-    bool isPrintable(Media_Block* r, Sass_Output_Style style = SASS_STYLE_NESTED);
-    bool isPrintable(Block* b, Sass_Output_Style style = SASS_STYLE_NESTED);
-    bool isPrintable(String_Constant* s, Sass_Output_Style style = SASS_STYLE_NESTED);
-    bool isPrintable(String_Quoted* s, Sass_Output_Style style = SASS_STYLE_NESTED);
-    bool isPrintable(Declaration* d, Sass_Output_Style style = SASS_STYLE_NESTED);
+    bool isPrintable(Ruleset* r, Sass_Output_Style style = NESTED);
+    bool isPrintable(Supports_Block* r, Sass_Output_Style style = NESTED);
+    bool isPrintable(Media_Block* r, Sass_Output_Style style = NESTED);
+    bool isPrintable(Block* b, Sass_Output_Style style = NESTED);
+    bool isPrintable(String_Constant* s, Sass_Output_Style style = NESTED);
+    bool isPrintable(String_Quoted* s, Sass_Output_Style style = NESTED);
+    bool isPrintable(Declaration* d, Sass_Output_Style style = NESTED);
     bool isAscii(const char chr);
 
   }

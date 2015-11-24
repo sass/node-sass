@@ -2,6 +2,9 @@
 #ifndef SASS_SASS_H
 #define SASS_SASS_H
 
+// include C-API header
+#include "sass/base.h"
+
 // undefine extensions macro to tell sys includes
 // that we do not want any macros to be exported
 // mainly fixes an issue on SmartOS (SEC macro)
@@ -40,5 +43,17 @@
 #  define PATH_SEP ':'
 # endif
 #endif
+
+
+// some syntax sugar
+namespace Sass {
+
+  // create some C++ aliases for the most used options
+  const static Sass_Output_Style NESTED = SASS_STYLE_NESTED;
+  const static Sass_Output_Style COMPACT = SASS_STYLE_COMPACT;
+  const static Sass_Output_Style EXPANDED = SASS_STYLE_EXPANDED;
+  const static Sass_Output_Style COMPRESSED = SASS_STYLE_COMPRESSED;
+
+};
 
 #endif

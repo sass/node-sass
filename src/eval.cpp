@@ -640,7 +640,7 @@ namespace Sass {
     Binary_Expression* b2 = dynamic_cast<Binary_Expression*>(b->right());
 
     int precision = (int)ctx.c_options.precision;
-    bool compressed = ctx.output_style() == SASS_STYLE_COMPRESSED;
+    bool compressed = ctx.output_style() == COMPRESSED;
 
     bool schema_op = false;
 
@@ -1095,7 +1095,7 @@ namespace Sass {
 
   void Eval::interpolation(Context& ctx, std::string& res, Expression* ex, bool into_quotes, bool was_itpl) {
     int precision = (int)ctx.c_options.precision;
-    bool compressed = ctx.output_style() == SASS_STYLE_COMPRESSED;
+    bool compressed = ctx.output_style() == COMPRESSED;
     bool needs_closing_brace = false;
 
     if (Arguments* args = dynamic_cast<Arguments*>(ex)) {

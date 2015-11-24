@@ -1687,7 +1687,7 @@ namespace Sass {
                            v->concrete_type() == Expression::LIST;
         Sass_Output_Style old_style;
         old_style = ctx.c_options.output_style;
-        ctx.c_options.output_style = SASS_STYLE_NESTED;
+        ctx.c_options.output_style = NESTED;
         To_String to_string(&ctx, false);
         std::string inspect = v->perform(&to_string);
         if (inspect.empty() && parentheses) inspect = "()";
