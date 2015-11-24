@@ -160,12 +160,12 @@ namespace Sass {
     current_position += offset;
   }
 
-  void SourceMap::add_open_mapping(AST_Node* node)
+  void SourceMap::add_open_mapping(const AST_Node* node)
   {
     mappings.push_back(Mapping(node->pstate(), current_position));
   }
 
-  void SourceMap::add_close_mapping(AST_Node* node)
+  void SourceMap::add_close_mapping(const AST_Node* node)
   {
     mappings.push_back(Mapping(node->pstate() + node->pstate().offset, current_position));
   }
