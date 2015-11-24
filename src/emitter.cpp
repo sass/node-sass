@@ -20,8 +20,7 @@ namespace Sass {
     in_media_block(false),
     in_declaration(false),
     in_space_array(false),
-    in_comma_array(false),
-    in_debug(false)
+    in_comma_array(false)
   { }
 
   // return buffer as string
@@ -204,7 +203,7 @@ namespace Sass {
 
   void Emitter::append_optional_space()
   {
-    if ((output_style() != COMPRESSED || in_debug) && buffer().size()) {
+    if ((output_style() != COMPRESSED) && buffer().size()) {
       char lst = buffer().at(buffer().length() - 1);
       if (!isspace(lst) || scheduled_delimiter) {
         append_mandatory_space();

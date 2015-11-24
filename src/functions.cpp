@@ -886,9 +886,12 @@ namespace Sass {
         return (Expression*) arg;
       }
       else {
-        To_String to_string(&ctx, false, true);
+        Sass_Output_Style oldstyle = ctx.c_options.output_style;
+        ctx.c_options.output_style = SASS_STYLE_NESTED;
+        To_String to_string(&ctx, false);
         std::string val(arg->perform(&to_string));
         val = dynamic_cast<Null*>(arg) ? "null" : val;
+        ctx.c_options.output_style = oldstyle;
 
         deprecated_function("Passing " + val + ", a non-string value, to unquote()", pstate);
         return (Expression*) arg;

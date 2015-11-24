@@ -4,12 +4,12 @@
 #include "context.hpp"
 #include "listize.hpp"
 #include "operation.hpp"
+#include "environment.hpp"
 
 namespace Sass {
 
   class Expand;
   class Context;
-  class Listize;
 
   class Eval : public Operation_CRTP<Expression*, Eval> {
 
@@ -19,7 +19,6 @@ namespace Sass {
    public:
     Expand&  exp;
     Context& ctx;
-    Listize  listize;
     Eval(Expand& exp);
     ~Eval();
 

@@ -365,7 +365,7 @@ namespace Sass {
   void Inspect::operator()(List* list)
   {
     std::string sep(list->separator() == SASS_SPACE ? " " : ",");
-    if ((output_style() != COMPRESSED || in_debug) && sep == ",") sep += " ";
+    if ((output_style() != COMPRESSED) && sep == ",") sep += " ";
     else if (in_media_block && sep != " ") sep += " "; // verified
     if (list->empty()) return;
     bool items_output = false;

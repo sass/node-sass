@@ -42,8 +42,7 @@ namespace Sass {
 
   Eval::Eval(Expand& exp)
   : exp(exp),
-    ctx(exp.ctx),
-    listize(ctx.mem)
+    ctx(exp.ctx)
   { }
   Eval::~Eval() { }
 
@@ -314,6 +313,8 @@ namespace Sass {
 
   Expression* Eval::operator()(Warning* w)
   {
+    Sass_Output_Style outstyle = ctx.c_options.output_style;
+    ctx.c_options.output_style = NESTED;
     Expression* message = w->message()->perform(this);
     To_String to_string(&ctx);
     Env* env = exp.environment();
@@ -331,6 +332,7 @@ namespace Sass {
       union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
       sass_list_set_value(c_args, 0, message->perform(&to_c));
       union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_compiler);
+      ctx.c_options.output_style = outstyle;
       sass_delete_value(c_args);
       sass_delete_value(c_val);
       return 0;
@@ -340,13 +342,16 @@ namespace Sass {
     std::string result(unquote(message->perform(&to_string)));
     Backtrace top(backtrace(), w->pstate(), "");
     std::cerr << "WARNING: " << result;
-    std::cerr << top.to_string(true);
+    std::cerr << top.to_string();
     std::cerr << std::endl << std::endl;
+    ctx.c_options.output_style = outstyle;
     return 0;
   }
 
   Expression* Eval::operator()(Error* e)
   {
+    Sass_Output_Style outstyle = ctx.c_options.output_style;
+    ctx.c_options.output_style = NESTED;
     Expression* message = e->message()->perform(this);
     To_String to_string(&ctx);
     Env* env = exp.environment();
@@ -364,6 +369,7 @@ namespace Sass {
       union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
       sass_list_set_value(c_args, 0, message->perform(&to_c));
       union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_compiler);
+      ctx.c_options.output_style = outstyle;
       sass_delete_value(c_args);
       sass_delete_value(c_val);
       return 0;
@@ -371,14 +377,17 @@ namespace Sass {
     }
 
     std::string result(unquote(message->perform(&to_string)));
+    ctx.c_options.output_style = outstyle;
     error(result, e->pstate());
     return 0;
   }
 
   Expression* Eval::operator()(Debug* d)
   {
+    Sass_Output_Style outstyle = ctx.c_options.output_style;
+    ctx.c_options.output_style = NESTED;
     Expression* message = d->value()->perform(this);
-    To_String to_string(&ctx, false, true);
+    To_String to_string(&ctx, false);
     Env* env = exp.environment();
 
     // try to use generic function
@@ -394,6 +403,7 @@ namespace Sass {
       union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
       sass_list_set_value(c_args, 0, message->perform(&to_c));
       union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_compiler);
+      ctx.c_options.output_style = outstyle;
       sass_delete_value(c_args);
       sass_delete_value(c_val);
       return 0;
@@ -405,6 +415,7 @@ namespace Sass {
     std::string abs_path(Sass::File::rel2abs(d->pstate().path, cwd, cwd));
     std::string rel_path(Sass::File::abs2rel(d->pstate().path, cwd, cwd));
     std::string output_path(Sass::File::path_for_console(rel_path, abs_path, d->pstate().path));
+    ctx.c_options.output_style = outstyle;
 
     std::cerr << output_path << ":" << d->pstate().line+1 << " DEBUG: " << result;
     std::cerr << std::endl;

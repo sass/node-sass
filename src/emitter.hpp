@@ -50,8 +50,6 @@ namespace Sass {
       // nested lists need parentheses
       bool in_space_array;
       bool in_comma_array;
-      // list separators don't get compressed in @debug
-      bool in_debug;
 
     public:
       // return buffer as std::string
