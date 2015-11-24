@@ -131,7 +131,8 @@ namespace Sass {
     append_colon_separator();
 
     if (dec->value()->concrete_type() == Expression::SELECTOR) {
-      Listize listize(*ctx);
+      Memory_Manager mem;
+      Listize listize(mem);
       dec->value()->perform(&listize)->perform(this);
     } else {
       dec->value()->perform(this);

@@ -43,7 +43,7 @@ namespace Sass {
   Eval::Eval(Expand& exp)
   : exp(exp),
     ctx(exp.ctx),
-    listize(exp.ctx)
+    listize(ctx.mem)
   { }
   Eval::~Eval() { }
 

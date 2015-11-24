@@ -1241,7 +1241,7 @@ namespace Sass {
         double index = std::floor(n->value() < 0 ? len + n->value() : n->value() - 1);
         if (index < 0 || index > len - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate);
         // return (*sl)[static_cast<int>(index)];
-        Listize listize(ctx);
+        Listize listize(ctx.mem);
         return (*sl)[static_cast<int>(index)]->perform(&listize);
       }
       List* l = dynamic_cast<List*>(env["$list"]);
@@ -1336,7 +1336,7 @@ namespace Sass {
       List* l = dynamic_cast<List*>(env["$list"]);
       Expression* v = ARG("$val", Expression);
       if (Selector_List* sl = dynamic_cast<Selector_List*>(env["$list"])) {
-        Listize listize(ctx);
+        Listize listize(ctx.mem);
         l = dynamic_cast<List*>(sl->perform(&listize));
       }
       String_Constant* sep = ARG("$separator", String_Constant);
@@ -1741,7 +1741,7 @@ namespace Sass {
         result->elements(exploded);
       }
 
-      Listize listize(ctx);
+      Listize listize(ctx.mem);
       return result->perform(&listize);
     }
 
@@ -1833,7 +1833,7 @@ namespace Sass {
         result->elements(newElements);
       }
 
-      Listize listize(ctx);
+      Listize listize(ctx.mem);
       return result->perform(&listize);
     }
 
@@ -1844,7 +1844,7 @@ namespace Sass {
       Selector_List* selector2 = ARGSEL("$selector2", Selector_List, p_contextualize);
 
       Selector_List* result = selector1->unify_with(selector2, ctx);
-      Listize listize(ctx);
+      Listize listize(ctx.mem);
       return result->perform(&listize);
     }
 
@@ -1879,7 +1879,7 @@ namespace Sass {
       bool extendedSomething;
       Selector_List* result = Extend::extendSelectorList(selector, ctx, subset_map, false, extendedSomething);
 
-      Listize listize(ctx);
+      Listize listize(ctx.mem);
       return result->perform(&listize);
     }
 
@@ -1896,7 +1896,7 @@ namespace Sass {
       bool extendedSomething;
       Selector_List* result = Extend::extendSelectorList(selector, ctx, subset_map, true, extendedSomething);
 
-      Listize listize(ctx);
+      Listize listize(ctx.mem);
       return result->perform(&listize);
     }
 
@@ -1905,7 +1905,7 @@ namespace Sass {
     {
       Selector_List* sel = ARGSEL("$selector", Selector_List, p_contextualize);
 
-      Listize listize(ctx);
+      Listize listize(ctx.mem);
       return sel->perform(&listize);
     }
 
