@@ -53,7 +53,7 @@ namespace Sass {
     std::vector<Sass_Import_Entry> import_stack;
 
     struct Sass_Compiler* c_compiler;
-    struct Sass_Options* c_options;
+    struct Sass_Options& c_options;
 
     // absolute paths to includes
     std::vector<std::string> included_files;
@@ -86,7 +86,7 @@ namespace Sass {
     const std::string source_map_root; // path for sourceRoot property (pass-through)
 
     virtual ~Context();
-    Context(struct Sass_Context*);
+    Context(struct Sass_Context&);
     virtual Block* parse() = 0;
     virtual Block* compile();
     virtual char* render(Block* root);
@@ -96,7 +96,7 @@ namespace Sass {
     std::vector<Include> find_includes(const Importer& import);
     Include load_import(const Importer&, ParserState pstate);
 
-    Sass_Output_Style output_style() { return c_options->output_style; };
+    Sass_Output_Style output_style() { return c_options.output_style; };
     std::vector<std::string> get_included_files(bool skip = false, size_t headers = 0);
 
   private:
@@ -119,7 +119,7 @@ namespace Sass {
 
   class File_Context : public Context {
   public:
-    File_Context(struct Sass_File_Context* ctx)
+    File_Context(struct Sass_File_Context& ctx)
     : Context(ctx)
     { }
     virtual ~File_Context();
@@ -130,13 +130,13 @@ namespace Sass {
   public:
     char* source_c_str;
     char* srcmap_c_str;
-    Data_Context(struct Sass_Data_Context* ctx)
+    Data_Context(struct Sass_Data_Context& ctx)
     : Context(ctx)
     {
-      source_c_str       = ctx->source_string;
-      srcmap_c_str       = ctx->srcmap_string;
-      ctx->source_string = 0; // passed away
-      ctx->srcmap_string = 0; // passed away
+      source_c_str       = ctx.source_string;
+      srcmap_c_str       = ctx.srcmap_string;
+      ctx.source_string = 0; // passed away
+      ctx.srcmap_string = 0; // passed away
     }
     virtual ~Data_Context();
     virtual Block* parse();

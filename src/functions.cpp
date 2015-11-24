@@ -313,9 +313,9 @@ namespace Sass {
 
       return SASS_MEMORY_NEW(ctx.mem, Color,
                              pstate,
-                             Sass::round(w1*color1->r() + w2*color2->r(), ctx.c_options->precision),
-                             Sass::round(w1*color1->g() + w2*color2->g(), ctx.c_options->precision),
-                             Sass::round(w1*color1->b() + w2*color2->b(), ctx.c_options->precision),
+                             Sass::round(w1*color1->r() + w2*color2->r(), ctx.c_options.precision),
+                             Sass::round(w1*color1->g() + w2*color2->g(), ctx.c_options.precision),
+                             Sass::round(w1*color1->b() + w2*color2->b(), ctx.c_options.precision),
                              color1->a()*p + color2->a()*(1-p));
     }
 
@@ -856,10 +856,10 @@ namespace Sass {
 
       std::stringstream ss;
       ss << '#' << std::setw(2) << std::setfill('0');
-      ss << std::hex << std::setw(2) << static_cast<unsigned long>(Sass::round(a, ctx.c_options->precision));
-      ss << std::hex << std::setw(2) << static_cast<unsigned long>(Sass::round(r, ctx.c_options->precision));
-      ss << std::hex << std::setw(2) << static_cast<unsigned long>(Sass::round(g, ctx.c_options->precision));
-      ss << std::hex << std::setw(2) << static_cast<unsigned long>(Sass::round(b, ctx.c_options->precision));
+      ss << std::hex << std::setw(2) << static_cast<unsigned long>(Sass::round(a, ctx.c_options.precision));
+      ss << std::hex << std::setw(2) << static_cast<unsigned long>(Sass::round(r, ctx.c_options.precision));
+      ss << std::hex << std::setw(2) << static_cast<unsigned long>(Sass::round(g, ctx.c_options.precision));
+      ss << std::hex << std::setw(2) << static_cast<unsigned long>(Sass::round(b, ctx.c_options.precision));
 
       std::string result(ss.str());
       for (size_t i = 0, L = result.length(); i < L; ++i) {
@@ -1090,7 +1090,7 @@ namespace Sass {
       Number* n = ARG("$number", Number);
       Number* r = SASS_MEMORY_NEW(ctx.mem, Number, *n);
       r->pstate(pstate);
-      r->value(Sass::round(r->value(), ctx.c_options->precision));
+      r->value(Sass::round(r->value(), ctx.c_options.precision));
       return r;
     }
 
@@ -1686,12 +1686,12 @@ namespace Sass {
         bool parentheses = v->concrete_type() == Expression::MAP ||
                            v->concrete_type() == Expression::LIST;
         Sass_Output_Style old_style;
-        old_style = ctx.c_options->output_style;
-        ctx.c_options->output_style = SASS_STYLE_NESTED;
+        old_style = ctx.c_options.output_style;
+        ctx.c_options.output_style = SASS_STYLE_NESTED;
         To_String to_string(&ctx, false);
         std::string inspect = v->perform(&to_string);
         if (inspect.empty() && parentheses) inspect = "()";
-        ctx.c_options->output_style = old_style;
+        ctx.c_options.output_style = old_style;
         return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, inspect);
       }
       // return v;

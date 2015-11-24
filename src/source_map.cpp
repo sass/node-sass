@@ -17,7 +17,7 @@ namespace Sass {
 
   std::string SourceMap::render_srcmap(Context &ctx) {
 
-    const bool include_sources = ctx.c_options->source_map_contents;
+    const bool include_sources = ctx.c_options.source_map_contents;
     const std::vector<std::string> links = ctx.srcmap_links;
     const std::vector<Resource>& sources(ctx.resources);
 

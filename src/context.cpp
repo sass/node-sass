@@ -58,7 +58,7 @@ namespace Sass {
     return safe_path == "" ? "stdout" : safe_path;
   }
 
-  Context::Context(struct Sass_Context* c_ctx)
+  Context::Context(struct Sass_Context& c_ctx)
   : CWD(File::get_cwd()),
     entry_path(""),
     head_imports(0),
@@ -78,13 +78,13 @@ namespace Sass {
     c_importers             (std::vector<Sass_Importer_Entry>()),
     c_functions             (std::vector<Sass_Function_Entry>()),
 
-    indent                  (safe_str(c_options->indent, "  ")),
-    linefeed                (safe_str(c_options->linefeed, "\n")),
+    indent                  (safe_str(c_options.indent, "  ")),
+    linefeed                (safe_str(c_options.linefeed, "\n")),
 
-    input_path              (make_canonical_path(safe_input(c_options->input_path))),
-    output_path             (make_canonical_path(safe_output(c_options->output_path, input_path))),
-    source_map_file         (make_canonical_path(safe_str(c_options->source_map_file, ""))),
-    source_map_root         (make_canonical_path(safe_str(c_options->source_map_root, "")))
+    input_path              (make_canonical_path(safe_input(c_options.input_path))),
+    output_path             (make_canonical_path(safe_output(c_options.output_path, input_path))),
+    source_map_file         (make_canonical_path(safe_str(c_options.source_map_file, ""))),
+    source_map_root         (make_canonical_path(safe_str(c_options.source_map_root, "")))
 
   {
 
@@ -92,10 +92,10 @@ namespace Sass {
     include_paths.push_back(CWD);
 
     // collect more paths from different options
-    collect_include_paths(sass_option_get_include_path(c_options));
-    // collect_include_paths(initializers.include_paths_array());
-    collect_plugin_paths(sass_option_get_plugin_path(c_options));
-    // collect_plugin_paths(initializers.plugin_paths_array());
+    collect_include_paths(c_options.include_path);
+    // collect_include_paths(c_options.include_paths);
+    collect_plugin_paths(c_options.plugin_path);
+    // collect_plugin_paths(c_options.plugin_paths);
 
     // load plugins and register custom behaviors
     for(auto plug : plugin_paths) plugins.load_plugins(plug);
@@ -505,9 +505,9 @@ namespace Sass {
     // get the resulting buffer from stream
     OutputBuffer emitted = emitter.get_buffer();
     // should we append a source map url?
-    if (!c_options->omit_source_map_url) {
+    if (!c_options.omit_source_map_url) {
       // generate an embeded source map
-      if (c_options->source_map_embed) {
+      if (c_options.source_map_embed) {
         emitted.buffer += linefeed;
         emitted.buffer += format_embedded_source_map();
       }
@@ -592,7 +592,7 @@ namespace Sass {
     if (!source_c_str) return 0;
 
     // convert indented sass syntax
-    if(c_options->is_indented_syntax_src) {
+    if(c_options.is_indented_syntax_src) {
       // call sass2scss to convert the string
       char * converted = sass2scss(source_c_str,
         // preserve the structure as much as possible

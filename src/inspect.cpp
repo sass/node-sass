@@ -480,7 +480,7 @@ namespace Sass {
   {
     // use values to_string facility
     bool compressed = ctx->output_style() == SASS_STYLE_COMPRESSED;
-    std::string res(n->to_string(compressed, (int)ctx->c_options->precision));
+    std::string res(n->to_string(compressed, (int)ctx->c_options.precision));
     // output the final token
     append_token(res, n);
   }
@@ -489,7 +489,7 @@ namespace Sass {
   {
     // use values to_string facility
     bool compressed = ctx->output_style() == SASS_STYLE_COMPRESSED;
-    std::string res(c->to_string(compressed, (int)ctx->c_options->precision));
+    std::string res(c->to_string(compressed, (int)ctx->c_options.precision));
     // output the final token
     append_token(res, c);
   }
@@ -498,7 +498,7 @@ namespace Sass {
   {
     // use values to_string facility
     bool compressed = ctx->output_style() == SASS_STYLE_COMPRESSED;
-    std::string res(b->to_string(compressed, (int)ctx->c_options->precision));
+    std::string res(b->to_string(compressed, (int)ctx->c_options.precision));
     // output the final token
     append_token(res, b);
   }
@@ -517,7 +517,7 @@ namespace Sass {
   void Inspect::operator()(String_Constant* s)
   {
     // get options from optional? context
-    int precision = ctx ? (int)ctx->c_options->precision : 5;
+    int precision = ctx ? (int)ctx->c_options.precision : 5;
     bool compressed = ctx ? ctx->output_style() == SASS_STYLE_COMPRESSED : false;
     // use values to_string facility
     std::string res(s->to_string(compressed, precision));
@@ -528,7 +528,7 @@ namespace Sass {
   void Inspect::operator()(String_Quoted* s)
   {
     // get options from optional? context
-    int precision = ctx ? (int)ctx->c_options->precision : 5;
+    int precision = ctx ? (int)ctx->c_options.precision : 5;
     bool compressed = ctx ? ctx->output_style() == SASS_STYLE_COMPRESSED : false;
     // use values to_string facility
     std::string res(s->to_string(compressed, precision));
@@ -633,7 +633,7 @@ namespace Sass {
   {
     // use values to_string facility
     bool compressed = output_style() == SASS_STYLE_COMPRESSED;
-    std::string res(n->to_string(compressed, (int)ctx->c_options->precision));
+    std::string res(n->to_string(compressed, (int)ctx->c_options.precision));
     // output the final token
     append_token(res, n);
   }

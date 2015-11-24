@@ -410,14 +410,14 @@ extern "C" {
   struct Sass_Compiler* ADDCALL sass_make_data_compiler (struct Sass_Data_Context* data_ctx)
   {
     if (data_ctx == 0) return 0;
-    Context* cpp_ctx = new Data_Context(data_ctx);
+    Context* cpp_ctx = new Data_Context(*data_ctx);
     return sass_prepare_context(data_ctx, cpp_ctx);
   }
 
   struct Sass_Compiler* ADDCALL sass_make_file_compiler (struct Sass_File_Context* file_ctx)
   {
     if (file_ctx == 0) return 0;
-    Context* cpp_ctx = new File_Context(file_ctx);
+    Context* cpp_ctx = new File_Context(*file_ctx);
     return sass_prepare_context(file_ctx, cpp_ctx);
   }
 
@@ -432,7 +432,7 @@ extern "C" {
       // if (*data_ctx->source_string == 0) { throw(std::runtime_error("Data context has empty source string")); }
     }
     catch (...) { return handle_errors(data_ctx) | 1; }
-    Context* cpp_ctx = new Data_Context(data_ctx);
+    Context* cpp_ctx = new Data_Context(*data_ctx);
     return sass_compile_context(data_ctx, cpp_ctx);
   }
 
@@ -446,7 +446,7 @@ extern "C" {
       if (*file_ctx->input_path == 0) { throw(std::runtime_error("File context has empty input path")); }
     }
     catch (...) { return handle_errors(file_ctx) | 1; }
-    Context* cpp_ctx = new File_Context(file_ctx);
+    Context* cpp_ctx = new File_Context(*file_ctx);
     return sass_compile_context(file_ctx, cpp_ctx);
   }
 
