@@ -1,6 +1,7 @@
 #ifndef SASS_FUNCTIONS_H
 #define SASS_FUNCTIONS_H
 
+#include "listize.hpp"
 #include "position.hpp"
 #include "environment.hpp"
 #include "sass/functions.h"

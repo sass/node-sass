@@ -11,13 +11,14 @@
 
 namespace Sass {
 
-  To_String::To_String(Context* ctx, bool in_declaration)
-  : ctx(ctx), in_declaration(in_declaration) { }
+  To_String::To_String(struct Sass_Output_Options opt, bool in_declaration)
+  : opt(opt), in_declaration(in_declaration) { }
+
   To_String::~To_String() { }
 
   inline std::string To_String::fallback_impl(AST_Node* n)
   {
-    Emitter emitter(ctx);
+    Emitter emitter(opt);
     Inspect i(emitter);
     i.in_declaration = in_declaration;
     if (n) n->perform(&i);

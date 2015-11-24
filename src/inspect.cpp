@@ -479,29 +479,20 @@ namespace Sass {
 
   void Inspect::operator()(Number* n)
   {
-    // use values to_string facility
-    bool compressed = ctx->output_style() == COMPRESSED;
-    std::string res(n->to_string(compressed, (int)ctx->c_options.precision));
     // output the final token
-    append_token(res, n);
+    append_token(n->to_string(opt), n);
   }
 
   void Inspect::operator()(Color* c)
   {
-    // use values to_string facility
-    bool compressed = ctx->output_style() == COMPRESSED;
-    std::string res(c->to_string(compressed, (int)ctx->c_options.precision));
     // output the final token
-    append_token(res, c);
+    append_token(c->to_string(opt), c);
   }
 
   void Inspect::operator()(Boolean* b)
   {
-    // use values to_string facility
-    bool compressed = ctx->output_style() == COMPRESSED;
-    std::string res(b->to_string(compressed, (int)ctx->c_options.precision));
     // output the final token
-    append_token(res, b);
+    append_token(b->to_string(opt), b);
   }
 
   void Inspect::operator()(String_Schema* ss)
@@ -517,24 +508,14 @@ namespace Sass {
 
   void Inspect::operator()(String_Constant* s)
   {
-    // get options from optional? context
-    int precision = ctx ? (int)ctx->c_options.precision : 5;
-    bool compressed = ctx ? ctx->output_style() == COMPRESSED : false;
-    // use values to_string facility
-    std::string res(s->to_string(compressed, precision));
     // output the final token
-    append_token(res, s);
+    append_token(s->to_string(opt), s);
   }
 
   void Inspect::operator()(String_Quoted* s)
   {
-    // get options from optional? context
-    int precision = ctx ? (int)ctx->c_options.precision : 5;
-    bool compressed = ctx ? ctx->output_style() == COMPRESSED : false;
-    // use values to_string facility
-    std::string res(s->to_string(compressed, precision));
     // output the final token
-    append_token(res, s);
+    append_token(s->to_string(opt), s);
   }
   void Inspect::operator()(Supports_Operator* so)
   {
@@ -632,11 +613,8 @@ namespace Sass {
 
   void Inspect::operator()(Null* n)
   {
-    // use values to_string facility
-    bool compressed = output_style() == COMPRESSED;
-    std::string res(n->to_string(compressed, (int)ctx->c_options.precision));
     // output the final token
-    append_token(res, n);
+    append_token(n->to_string(opt), n);
   }
 
   // parameters and arguments

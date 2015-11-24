@@ -148,8 +148,8 @@ namespace Sass {
     virtual bool has_interpolant() const { return is_interpolant(); }
     virtual bool is_left_interpolant() const { return is_interpolant(); }
     virtual bool is_right_interpolant() const { return is_interpolant(); }
-    virtual std::string inspect() const { return to_string(); } // defaults to to_string
-    virtual std::string to_string(bool compressed = false, int precision = 5) const = 0;
+    virtual std::string inspect() const { return to_string({ NESTED, 5 }); }
+    virtual std::string to_string(Sass_Inspect_Options opt) const = 0;
     virtual size_t hash() { return 0; }
   };
 
@@ -162,7 +162,7 @@ namespace Sass {
                bool d = false, bool e = false, bool i = false, Concrete_Type ct = NONE)
     : Expression(pstate, d, e, i, ct)
     { }
-    virtual std::string to_string(bool compressed = false, int precision = 5) const = 0;
+    virtual std::string to_string(Sass_Inspect_Options opt) const = 0;
     virtual ~PreValue() { }
   };
 
@@ -176,7 +176,7 @@ namespace Sass {
     : Expression(pstate, d, e, i, ct)
     { }
     virtual bool operator== (const Expression& rhs) const = 0;
-    virtual std::string to_string(bool compressed = false, int precision = 5) const = 0;
+    virtual std::string to_string(Sass_Inspect_Options opt) const = 0;
   };
 }
 
@@ -890,7 +890,7 @@ namespace Sass {
     }
 
     virtual bool operator== (const Expression& rhs) const;
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
 
     ATTACH_OPERATIONS()
   };
@@ -923,7 +923,7 @@ namespace Sass {
     }
 
     virtual bool operator== (const Expression& rhs) const;
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
 
     ATTACH_OPERATIONS()
   };
@@ -1043,7 +1043,7 @@ namespace Sass {
       }
       return hash_;
     }
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     enum Sass_OP type() const { return op_.operand; }
     ATTACH_OPERATIONS()
   };
@@ -1093,7 +1093,7 @@ namespace Sass {
       };
       return hash_;
     }
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1139,7 +1139,7 @@ namespace Sass {
       return hash_;
     }
 
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1162,7 +1162,7 @@ namespace Sass {
       has_rest_argument_(false),
       has_keyword_argument_(false)
     { }
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
 
     Argument* get_rest_argument();
     Argument* get_keyword_argument();
@@ -1214,7 +1214,7 @@ namespace Sass {
       return hash_;
     }
 
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1228,7 +1228,7 @@ namespace Sass {
     Function_Call_Schema(ParserState pstate, String* n, Arguments* args)
     : Expression(pstate), name_(n), arguments_(args)
     { concrete_type(STRING); }
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1260,7 +1260,7 @@ namespace Sass {
     {
       return std::hash<std::string>()(name());
     }
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
 
     ATTACH_OPERATIONS()
   };
@@ -1304,7 +1304,7 @@ namespace Sass {
       }
       return hash_;
     }
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
 
     ATTACH_OPERATIONS()
   };
@@ -1349,7 +1349,7 @@ namespace Sass {
 
     virtual bool operator< (const Number& rhs) const;
     virtual bool operator== (const Expression& rhs) const;
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
 
     ATTACH_OPERATIONS()
   };
@@ -1384,8 +1384,8 @@ namespace Sass {
     }
 
     virtual bool operator== (const Expression& rhs) const;
-    virtual std::string to_hex(bool compressed = false, int precision = 5) const;
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_hex(Sass_Inspect_Options opt) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
 
     ATTACH_OPERATIONS()
   };
@@ -1400,7 +1400,7 @@ namespace Sass {
     : Value(pstate), message_(msg)
     { concrete_type(C_ERROR); }
     virtual bool operator== (const Expression& rhs) const;
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1414,7 +1414,7 @@ namespace Sass {
     : Value(pstate), message_(msg)
     { concrete_type(C_WARNING); }
     virtual bool operator== (const Expression& rhs) const;
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1443,7 +1443,7 @@ namespace Sass {
     }
 
     virtual bool operator== (const Expression& rhs) const;
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
 
     ATTACH_OPERATIONS()
   };
@@ -1461,7 +1461,7 @@ namespace Sass {
     static std::string type_name() { return "string"; }
     virtual ~String() = 0;
     virtual bool operator==(const Expression& rhs) const = 0;
-    virtual std::string to_string(bool compressed = false, int precision = 5) const = 0;
+    virtual std::string to_string(Sass_Inspect_Options opt) const = 0;
     ATTACH_OPERATIONS()
   };
   inline String::~String() { };
@@ -1500,7 +1500,7 @@ namespace Sass {
     }
 
     virtual bool operator==(const Expression& rhs) const;
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
 
     ATTACH_OPERATIONS()
   };
@@ -1540,7 +1540,7 @@ namespace Sass {
 
     virtual bool operator==(const Expression& rhs) const;
     virtual std::string inspect() const; // quotes are forced on inspection
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
 
     // static char auto_quote() { return '*'; }
     static char double_quote() { return '"'; }
@@ -1562,7 +1562,7 @@ namespace Sass {
     }
     virtual bool operator==(const Expression& rhs) const;
     virtual std::string inspect() const; // quotes are forced on inspection
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1580,7 +1580,7 @@ namespace Sass {
     : Expression(pstate), Vectorized<Media_Query_Expression*>(s),
       media_type_(t), is_negated_(n), is_restricted_(r)
     { }
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1596,7 +1596,7 @@ namespace Sass {
                            Expression* f, Expression* v, bool i = false)
     : Expression(pstate), feature_(f), value_(v), is_interpolated_(i)
     { }
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1623,7 +1623,7 @@ namespace Sass {
     : Expression(pstate)
     { }
     virtual bool needs_parens(Supports_Condition* cond) const { return false; }
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1728,7 +1728,7 @@ namespace Sass {
         return false;
       }
     }
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1787,7 +1787,7 @@ namespace Sass {
     }
 
     virtual bool operator== (const Expression& rhs) const;
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
 
     ATTACH_OPERATIONS()
   };
@@ -1802,7 +1802,7 @@ namespace Sass {
     Thunk(ParserState pstate, Expression* exp, Env* env = 0)
     : Expression(pstate), expression_(exp), environment_(env)
     { }
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
   };
 
   /////////////////////////////////////////////////////////
@@ -1901,7 +1901,7 @@ namespace Sass {
     virtual unsigned long specificity() {
       return Constants::Specificity_Universal;
     }
-    virtual std::string to_string(bool compressed = false, int precision = 5) const = 0;
+    virtual std::string to_string(Sass_Inspect_Options opt) const = 0;
   };
   inline Selector::~Selector() { }
 
@@ -1922,7 +1922,7 @@ namespace Sass {
       }
       return hash_;
     }
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -2001,7 +2001,7 @@ namespace Sass {
 
     bool operator<(const Simple_Selector& rhs) const;
     // default implementation should work for most of the simple selectors (otherwise overload)
-    virtual std::string to_string(bool compressed = false, int precision = 5) const { return this->ns_name(); };
+    virtual std::string to_string(Sass_Inspect_Options opt) const { return this->ns_name(); };
     ATTACH_OPERATIONS();
   };
   inline Simple_Selector::~Simple_Selector() { }
@@ -2025,7 +2025,7 @@ namespace Sass {
     }
     std::string type() { return "selector"; }
     static std::string type_name() { return "selector"; }
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -2106,7 +2106,7 @@ namespace Sass {
     bool operator==(const Attribute_Selector& rhs) const;
     bool operator<(const Simple_Selector& rhs) const;
     bool operator<(const Attribute_Selector& rhs) const;
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -2205,7 +2205,7 @@ namespace Sass {
     bool operator==(const Wrapped_Selector& rhs) const;
     bool operator<(const Simple_Selector& rhs) const;
     bool operator<(const Wrapped_Selector& rhs) const;
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -2302,7 +2302,7 @@ namespace Sass {
     Compound_Selector* clone(Context&) const; // does not clone the Simple_Selector*s
 
     Compound_Selector* minus(Compound_Selector* rhs, Context& ctx);
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -2461,7 +2461,7 @@ namespace Sass {
     Complex_Selector* clone(Context&) const;      // does not clone Compound_Selector*s
     Complex_Selector* cloneFully(Context&) const; // clones Compound_Selector*s
     // std::vector<Compound_Selector*> to_vector();
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 
@@ -2516,7 +2516,7 @@ namespace Sass {
     virtual bool operator==(const Selector_List& rhs) const;
     // Selector Lists can be compared to comma lists
     virtual bool operator==(const Expression& rhs) const;
-    virtual std::string to_string(bool compressed = false, int precision = 5) const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
     ATTACH_OPERATIONS()
   };
 

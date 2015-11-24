@@ -38,6 +38,7 @@ namespace Sass {
 
   public:
     const std::string CWD;
+    struct Sass_Options& c_options;
     std::string entry_path;
     size_t head_imports;
     Memory_Manager mem;
@@ -53,7 +54,6 @@ namespace Sass {
     std::vector<Sass_Import_Entry> import_stack;
 
     struct Sass_Compiler* c_compiler;
-    struct Sass_Options& c_options;
 
     // absolute paths to includes
     std::vector<std::string> included_files;

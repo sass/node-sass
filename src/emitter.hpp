@@ -2,6 +2,7 @@
 #define SASS_EMITTER_H
 
 #include <string>
+#include "sass.hpp"
 #include "sass/base.h"
 #include "source_map.hpp"
 #include "ast_fwd_decl.hpp"
@@ -12,7 +13,7 @@ namespace Sass {
   class Emitter {
 
     public:
-      Emitter(Context* ctx);
+      Emitter(struct Sass_Output_Options& opt);
       virtual ~Emitter() { }
 
     protected:
@@ -31,7 +32,7 @@ namespace Sass {
       ParserState remap(const ParserState& pstate);
 
     public:
-      Context* ctx;
+      struct Sass_Output_Options& opt;
       size_t indentation;
       size_t scheduled_space;
       size_t scheduled_linefeed;

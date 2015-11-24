@@ -5,8 +5,8 @@
 
 namespace Sass {
 
-  Output::Output(Context* ctx)
-  : Inspect(Emitter(ctx)),
+  Output::Output(Sass_Output_Options& opt)
+  : Inspect(Emitter(opt)),
     charset(""),
     top_nodes(0)
   {}
@@ -21,7 +21,7 @@ namespace Sass {
   void Output::operator()(Number* n)
   {
     // use values to_string facility
-    To_String to_string(ctx);
+    To_String to_string(opt);
     std::string res = n->perform(&to_string);
     // check for a valid unit here
     // includes result for reporting
@@ -43,7 +43,7 @@ namespace Sass {
 
   void Output::operator()(Map* m)
   {
-    To_String to_string(ctx);
+    To_String to_string(opt);
     std::string dbg(m->perform(&to_string));
     error(dbg + " isn't a valid CSS value.", m->pstate());
   }
@@ -51,7 +51,7 @@ namespace Sass {
   OutputBuffer Output::get_buffer(void)
   {
 
-    Emitter emitter(ctx);
+    Emitter emitter(opt);
     Inspect inspect(emitter);
 
     size_t size_nodes = top_nodes.size();
@@ -66,9 +66,9 @@ namespace Sass {
     // prepend buffer on top
     prepend_output(inspect.output());
     // make sure we end with a linefeed
-    if (!ends_with(wbuf.buffer, ctx->linefeed)) {
+    if (!ends_with(wbuf.buffer, opt.linefeed)) {
       // if the output is not completely empty
-      if (!wbuf.buffer.empty()) append_string(ctx->linefeed);
+      if (!wbuf.buffer.empty()) append_string(opt.linefeed);
     }
 
     // search for unicode char
@@ -78,7 +78,7 @@ namespace Sass {
       // declare the charset
       if (output_style() != COMPRESSED)
         charset = "@charset \"UTF-8\";"
-                  + ctx->linefeed;
+                + std::string(opt.linefeed);
       else charset = "\xEF\xBB\xBF";
       // abort search
       break;
@@ -93,7 +93,7 @@ namespace Sass {
 
   void Output::operator()(Comment* c)
   {
-    To_String to_string(ctx);
+    To_String to_string(opt);
     std::string txt = c->text()->perform(&to_string);
     // if (indentation && txt == "/**/") return;
     bool important = c->is_important();
@@ -134,7 +134,7 @@ namespace Sass {
     if (b->has_non_hoistable()) {
       decls = true;
       if (output_style() == NESTED) indentation += r->tabs();
-      if (ctx && ctx->c_options.source_comments) {
+      if (opt.source_comments) {
         std::stringstream ss;
         append_indentation();
         ss << "/* line " << r->pstate().line + 1 << ", " << r->pstate().path << " */";

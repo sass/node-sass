@@ -1,8 +1,8 @@
 #ifndef SASS_EVAL_H
 #define SASS_EVAL_H
 
+#include "ast.hpp"
 #include "context.hpp"
-#include "listize.hpp"
 #include "operation.hpp"
 #include "environment.hpp"
 
@@ -88,11 +88,11 @@ namespace Sass {
     static bool eq(Expression*, Expression*);
     static bool lt(Expression*, Expression*, std::string op);
     // -- arithmetic on the combinations that matter
-    static Value* op_numbers(Memory_Manager&, enum Sass_OP, const Number&, const Number&, bool compressed = false, int precision = 5, ParserState* pstate = 0);
-    static Value* op_number_color(Memory_Manager&, enum Sass_OP, const Number&, const Color&, bool compressed = false, int precision = 5, ParserState* pstate = 0);
-    static Value* op_color_number(Memory_Manager&, enum Sass_OP, const Color&, const Number&, bool compressed = false, int precision = 5, ParserState* pstate = 0);
-    static Value* op_colors(Memory_Manager&, enum Sass_OP, const Color&, const Color&, bool compressed = false, int precision = 5, ParserState* pstate = 0);
-    static Value* op_strings(Memory_Manager&, Sass::Operand, Value&, Value&, bool compressed = false, int precision = 5, ParserState* pstate = 0, bool interpolant = false);
+    static Value* op_numbers(Memory_Manager&, enum Sass_OP, const Number&, const Number&, struct Sass_Inspect_Options opt, ParserState* pstate = 0);
+    static Value* op_number_color(Memory_Manager&, enum Sass_OP, const Number&, const Color&, struct Sass_Inspect_Options opt, ParserState* pstate = 0);
+    static Value* op_color_number(Memory_Manager&, enum Sass_OP, const Color&, const Number&, struct Sass_Inspect_Options opt, ParserState* pstate = 0);
+    static Value* op_colors(Memory_Manager&, enum Sass_OP, const Color&, const Color&, struct Sass_Inspect_Options opt, ParserState* pstate = 0);
+    static Value* op_strings(Memory_Manager&, Sass::Operand, Value&, Value&, struct Sass_Inspect_Options opt, ParserState* pstate = 0, bool interpolant = false);
 
   private:
     void interpolation(Context& ctx, std::string& res, Expression* ex, bool into_quotes, bool was_itpl = false);

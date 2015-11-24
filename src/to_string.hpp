@@ -16,12 +16,12 @@ namespace Sass {
     // override this to define a catch-all
     std::string fallback_impl(AST_Node* n);
 
-    Context* ctx;
+    struct Sass_Output_Options opt;
     bool in_declaration;
 
   public:
 
-    To_String(Context* ctx = 0, bool in_declaration = true);
+    To_String(struct Sass_Output_Options opt = Sass_Output_Options(), bool in_declaration = true);
     virtual ~To_String();
 
     std::string operator()(String_Schema*);

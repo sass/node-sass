@@ -60,19 +60,18 @@ namespace Sass {
 
   Context::Context(struct Sass_Context& c_ctx)
   : CWD(File::get_cwd()),
+    c_options(c_ctx),
     entry_path(""),
     head_imports(0),
     mem(Memory_Manager()),
     plugins(),
-    emitter(this),
+    emitter(c_options),
 
     strings(),
     resources(),
     sheets(),
     subset_map(),
     import_stack(),
-
-    c_options               (c_ctx),
 
     c_headers               (std::vector<Sass_Importer_Entry>()),
     c_importers             (std::vector<Sass_Importer_Entry>()),

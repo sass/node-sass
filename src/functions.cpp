@@ -157,7 +157,7 @@ namespace Sass {
 
     template <>
     Selector_List* get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
-      To_String to_string(&ctx, false);
+      To_String to_string(ctx.c_options, false);
       Expression* exp = ARG(argname, Expression);
       if (exp->concrete_type() == Expression::NULL_VAL) {
         std::stringstream msg;
@@ -171,7 +171,7 @@ namespace Sass {
 
     template <>
     Complex_Selector* get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
-      To_String to_string(&ctx, false);
+      To_String to_string(ctx.c_options, false);
       Expression* exp = ARG(argname, Expression);
       if (exp->concrete_type() == Expression::NULL_VAL) {
         std::stringstream msg;
@@ -186,7 +186,7 @@ namespace Sass {
 
     template <>
     Compound_Selector* get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
-      To_String to_string(&ctx, false);
+      To_String to_string(ctx.c_options, false);
       Expression* exp = ARG(argname, Expression);
       if (exp->concrete_type() == Expression::NULL_VAL) {
         std::stringstream msg;
@@ -512,7 +512,7 @@ namespace Sass {
       // CSS3 filter function overload: pass literal through directly
       Number* amount = dynamic_cast<Number*>(env["$amount"]);
       if (!amount) {
-        To_String to_string(&ctx);
+        To_String to_string(ctx.c_options);
         return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "saturate(" + env["$color"]->perform(&to_string) + ")");
       }
 
@@ -573,7 +573,7 @@ namespace Sass {
       // CSS3 filter function overload: pass literal through directly
       Number* amount = dynamic_cast<Number*>(env["$color"]);
       if (amount) {
-        To_String to_string(&ctx);
+        To_String to_string(ctx.c_options);
         return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "grayscale(" + amount->perform(&to_string) + ")");
       }
 
@@ -610,7 +610,7 @@ namespace Sass {
       // CSS3 filter function overload: pass literal through directly
       Number* amount = dynamic_cast<Number*>(env["$color"]);
       if (amount) {
-        To_String to_string(&ctx);
+        To_String to_string(ctx.c_options);
         return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "invert(" + amount->perform(&to_string) + ")");
       }
 
@@ -638,7 +638,7 @@ namespace Sass {
       // CSS3 filter function overload: pass literal through directly
       Number* amount = dynamic_cast<Number*>(env["$color"]);
       if (amount) {
-        To_String to_string(&ctx);
+        To_String to_string(ctx.c_options);
         return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "opacity(" + amount->perform(&to_string) + ")");
       }
 
@@ -888,7 +888,7 @@ namespace Sass {
       else {
         Sass_Output_Style oldstyle = ctx.c_options.output_style;
         ctx.c_options.output_style = SASS_STYLE_NESTED;
-        To_String to_string(&ctx, false);
+        To_String to_string(ctx.c_options, false);
         std::string val(arg->perform(&to_string));
         val = dynamic_cast<Null*>(arg) ? "null" : val;
         ctx.c_options.output_style = oldstyle;
@@ -901,7 +901,7 @@ namespace Sass {
     Signature quote_sig = "quote($string)";
     BUILT_IN(sass_quote)
     {
-      To_String to_string(&ctx);
+      To_String to_string(ctx.c_options);
       AST_Node* arg = env["$string"];
       std::string str(quote(arg->perform(&to_string), String_Constant::double_quote()));
       String_Quoted* result = SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, str);
@@ -1130,7 +1130,7 @@ namespace Sass {
     Signature min_sig = "min($numbers...)";
     BUILT_IN(min)
     {
-      To_String to_string(&ctx);
+      To_String to_string(ctx.c_options);
       List* arglist = ARG("$numbers", List);
       Number* least = 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
@@ -1149,7 +1149,7 @@ namespace Sass {
     Signature max_sig = "max($numbers...)";
     BUILT_IN(max)
     {
-      To_String to_string(&ctx);
+      To_String to_string(ctx.c_options);
       List* arglist = ARG("$numbers", List);
       Number* greatest = 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
@@ -1691,7 +1691,7 @@ namespace Sass {
         Sass_Output_Style old_style;
         old_style = ctx.c_options.output_style;
         ctx.c_options.output_style = NESTED;
-        To_String to_string(&ctx, false);
+        To_String to_string(ctx.c_options, false);
         std::string inspect = v->perform(&to_string);
         if (inspect.empty() && parentheses) inspect = "()";
         ctx.c_options.output_style = old_style;
@@ -1702,7 +1702,7 @@ namespace Sass {
     Signature selector_nest_sig = "selector-nest($selectors...)";
     BUILT_IN(selector_nest)
     {
-      To_String to_string(&ctx, false);
+      To_String to_string(ctx.c_options, false);
       List* arglist = ARG("$selectors", List);
 
       // Not enough parameters
@@ -1915,7 +1915,7 @@ namespace Sass {
     Signature is_superselector_sig = "is-superselector($super, $sub)";
     BUILT_IN(is_superselector)
     {
-      To_String to_string(&ctx, false);
+      To_String to_string(ctx.c_options, false);
       Selector_List*  sel_sup = ARGSEL("$super", Selector_List, p_contextualize);
       Selector_List*  sel_sub = ARGSEL("$sub", Selector_List, p_contextualize);
       bool result = sel_sup->is_superselector_of(sel_sub);

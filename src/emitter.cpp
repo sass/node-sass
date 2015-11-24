@@ -7,9 +7,9 @@
 
 namespace Sass {
 
-  Emitter::Emitter(Context* ctx)
+  Emitter::Emitter(struct Sass_Output_Options& opt)
   : wbuf(),
-    ctx(ctx),
+    opt(opt),
     indentation(0),
     scheduled_space(0),
     scheduled_linefeed(0),
@@ -31,7 +31,7 @@ namespace Sass {
 
   Sass_Output_Style Emitter::output_style(void) const
   {
-    return ctx ? ctx->output_style() : COMPRESSED;
+    return opt.output_style;
   }
 
   // PROXY METHODS FOR SOURCE MAPS
@@ -75,7 +75,7 @@ namespace Sass {
       std::string linefeeds = "";
 
       for (size_t i = 0; i < scheduled_linefeed; i++)
-        linefeeds += ctx ? ctx->linefeed : "\n";
+        linefeeds += opt.linefeed;
       scheduled_space = 0;
       scheduled_linefeed = 0;
       append_string(linefeeds);
@@ -164,7 +164,7 @@ namespace Sass {
       scheduled_linefeed = 1;
     std::string indent = "";
     for (size_t i = 0; i < indentation; i++)
-      indent += ctx ? ctx->indent : "  ";
+      indent += opt.indent;
     append_string(indent);
   }
 
@@ -216,7 +216,7 @@ namespace Sass {
     if (output_style() == COMPACT) {
       append_mandatory_linefeed();
       for (size_t p = 0; p < indentation; p++)
-        append_string(ctx ? ctx->indent : "  ");
+        append_string(opt.indent);
     }
   }
 
