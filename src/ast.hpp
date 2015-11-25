@@ -1267,12 +1267,11 @@ namespace Sass {
     ADD_HASHED(double, g)
     ADD_HASHED(double, b)
     ADD_HASHED(double, a)
-    ADD_PROPERTY(bool, sixtuplet)
     ADD_PROPERTY(std::string, disp)
     size_t hash_;
   public:
-    Color(ParserState pstate, double r, double g, double b, double a = 1, bool sixtuplet = true, const std::string disp = "")
-    : Value(pstate), r_(r), g_(g), b_(b), a_(a), sixtuplet_(sixtuplet), disp_(disp),
+    Color(ParserState pstate, double r, double g, double b, double a = 1, const std::string disp = "")
+    : Value(pstate), r_(r), g_(g), b_(b), a_(a), disp_(disp),
       hash_(0)
     { concrete_type(COLOR); }
     std::string type() { return "color"; }
