@@ -838,7 +838,10 @@ namespace Sass {
     for (size_t i = 0, L = g->length(); i < L; ++i) {
       if (!in_wrapped && i == 0) append_indentation();
       if ((*g)[i] == 0) continue;
+      schedule_mapping((*g)[i]->last());
+      // add_open_mapping((*g)[i]->last());
       (*g)[i]->perform(this);
+      // add_close_mapping((*g)[i]->last());
       if (i < L - 1) {
         scheduled_space = 0;
         append_comma_separator();
