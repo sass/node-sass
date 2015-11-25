@@ -528,18 +528,13 @@ namespace Sass {
     String_Schema* s1 = dynamic_cast<String_Schema*>(b->left());
     String_Schema* s2 = dynamic_cast<String_Schema*>(b->right());
 
-    if ((s1 && s1->has_interpolants()) || (s2 && s2->has_interpolants())) {
-      std::string sep;
-      switch (op_type) {
-        case Sass_OP::SUB: sep = "-"; break;
-        case Sass_OP::DIV: sep = "/"; break;
-        case Sass_OP::ADD: sep = "+"; break;
-        case Sass_OP::MUL: sep = "*"; break;
-        default:                      break;
-      }
+    int precision = (int)ctx.c_options->precision;
+    bool compressed = ctx.output_style() == SASS_STYLE_COMPRESSED;
 
+    if ((s1 && s1->has_interpolants()) || (s2 && s2->has_interpolants()))
+    {
       // If possible upgrade LHS to a number
-      if (op_type == Sass_OP::DIV || op_type == Sass_OP::MUL || op_type == Sass_OP::ADD || op_type == Sass_OP::SUB) {
+      if (op_type == Sass_OP::DIV || op_type == Sass_OP::MUL || op_type == Sass_OP::MOD || op_type == Sass_OP::ADD || op_type == Sass_OP::SUB) {
         if (String_Constant* str = dynamic_cast<String_Constant*>(lhs)) {
           std::string value(str->value());
           const char* start = value.c_str();
@@ -565,16 +560,19 @@ namespace Sass {
       Expression::Concrete_Type r_type = rhs->concrete_type();
 
       if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
-        return SASS_MEMORY_NEW(ctx.mem, String_Constant, lhs->pstate(),
-          v_l->to_string() + " " + sep + " " + v_r->to_string());
+        std::string str("");
+        str += v_l->to_string(compressed, precision);
+        if (b->op().ws_before) str += " ";
+        str += b->separator();
+        if (b->op().ws_after) str += " ";
+        str += v_r->to_string(compressed, precision);
+        return SASS_MEMORY_NEW(ctx.mem, String_Constant, lhs->pstate(), str);
       }
     }
 
     // ToDo: throw error in op functions
     // ToDo: then catch and re-throw them
     ParserState pstate(b->pstate());
-    int precision = (int)ctx.c_options->precision;
-    bool compressed = ctx.output_style() == SASS_STYLE_COMPRESSED;
     if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
       const Number* l_n = dynamic_cast<const Number*>(lhs);
       const Number* r_n = dynamic_cast<const Number*>(rhs);

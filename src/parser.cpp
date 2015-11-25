@@ -1140,7 +1140,7 @@ namespace Sass {
     // if it's a singleton, return it directly
     if (operands.size() == 0) return conj;
     // fold all operands into one binary expression
-    return fold_operands(conj, operands, Sass_OP::OR);
+    return fold_operands(conj, operands, { Sass_OP::OR });
   }
   // EO parse_disjunction
 
@@ -1156,7 +1156,7 @@ namespace Sass {
     // if it's a singleton, return it directly
     if (operands.size() == 0) return rel;
     // fold all operands into one binary expression
-    return fold_operands(rel, operands, Sass_OP::AND);
+    return fold_operands(rel, operands, { Sass_OP::AND });
   }
   // EO parse_conjunction
 
@@ -1176,6 +1176,8 @@ namespace Sass {
           > >(position)))
     { return lhs; }
     // parse the operator
+    bool left_ws = peek < css_comments >();
+    // parse the operator
     enum Sass_OP op
     = lex<kwd_eq>()  ? Sass_OP::EQ
     : lex<kwd_neq>() ? Sass_OP::NEQ
@@ -1186,9 +1188,11 @@ namespace Sass {
     // we checked the possibilites on top of fn
     :                  Sass_OP::EQ;
     // parse the right hand side expression
+    bool right_ws = peek < css_comments >();
+    // parse the right hand side expression
     Expression* rhs = parse_expression();
     // return binary expression with a left and a right hand side
-    return SASS_MEMORY_NEW(ctx.mem, Binary_Expression, lhs->pstate(), op, lhs, rhs);
+    return SASS_MEMORY_NEW(ctx.mem, Binary_Expression, lhs->pstate(), { op, left_ws, right_ws }, lhs, rhs);
   }
   // parse_relation
 
@@ -1209,10 +1213,13 @@ namespace Sass {
     { return lhs; }
 
     std::vector<Expression*> operands;
-    std::vector<Sass_OP> operators;
+    std::vector<Operand> operators;
+    bool left_ws = peek < css_comments >();
     while (lex< exactly<'+'> >() || lex< sequence< negate< digit >, exactly<'-'> > >()) {
-      operators.push_back(lexed.to_string() == "+" ? Sass_OP::ADD : Sass_OP::SUB);
+      bool right_ws = peek < css_comments >();
+      operators.push_back({ lexed.to_string() == "+" ? Sass_OP::ADD : Sass_OP::SUB, left_ws, right_ws });
       operands.push_back(parse_operators());
+      left_ws = peek < css_comments >();
     }
 
     if (operands.size() == 0) return lhs;
@@ -1223,25 +1230,23 @@ namespace Sass {
   Expression* Parser::parse_operators()
   {
     Expression* factor = parse_factor();
-    // Special case: Ruby sass never tries to modulo if the lhs contains an interpolant
-    if (peek_css< exactly<'%'> >() && factor->concrete_type() == Expression::STRING) {
-      String_Schema* ss = dynamic_cast<String_Schema*>(factor);
-      if (ss && ss->has_interpolants()) return factor;
-    }
     // if it's a singleton, return it (don't wrap it)
     if (!peek_css< class_char< static_ops > >()) return factor;
     // parse more factors and operators
     std::vector<Expression*> operands; // factors
-    std::vector<enum Sass_OP> operators; // ops
+    std::vector<Operand> operators; // ops
     // lex operations to apply to lhs
+    bool left_ws = peek < css_comments >();
     while (lex_css< class_char< static_ops > >()) {
+      bool right_ws = peek < css_comments >();
       switch(*lexed.begin) {
-        case '*': operators.push_back(Sass_OP::MUL); break;
-        case '/': operators.push_back(Sass_OP::DIV); break;
-        case '%': operators.push_back(Sass_OP::MOD); break;
+        case '*': operators.push_back({ Sass_OP::MUL, left_ws, right_ws }); break;
+        case '/': operators.push_back({ Sass_OP::DIV, left_ws, right_ws }); break;
+        case '%': operators.push_back({ Sass_OP::MOD, left_ws, right_ws }); break;
         default: throw std::runtime_error("unknown static op parsed"); break;
       }
       operands.push_back(parse_factor());
+      left_ws = peek < css_comments >();
     }
     // operands and operators to binary expression
     return fold_operands(factor, operands, operators);
@@ -1555,8 +1560,9 @@ namespace Sass {
         // ToDo: no error check here?
         lex < exactly < rbrace > >();
       }
-      // lex some string constants
-      else if (lex< alternatives < exactly<'%'>, exactly < '-' >, identifier > >()) {
+      // lex some string constants or other valid token
+      // Note: [-+] chars are left over from ie. `#{3}+3`
+      else if (lex< alternatives < exactly<'%'>, exactly < '-' >, exactly < '+' >, identifier > >()) {
         (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, lexed);
         if (*position == '"' || *position == '\'') {
           (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, " ");
@@ -2346,12 +2352,12 @@ namespace Sass {
   }
 
 
-  Expression* Parser::fold_operands(Expression* base, std::vector<Expression*>& operands, enum Sass_OP op)
+  Expression* Parser::fold_operands(Expression* base, std::vector<Expression*>& operands, Operand op)
   {
     for (size_t i = 0, S = operands.size(); i < S; ++i) {
       base = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, pstate, op, base, operands[i]);
       Binary_Expression* b = static_cast<Binary_Expression*>(base);
-      if (op == Sass_OP::DIV && b->left()->is_delayed() && b->right()->is_delayed()) {
+      if (op.operand == Sass_OP::DIV && b->left()->is_delayed() && b->right()->is_delayed()) {
         base->is_delayed(true);
       }
       else {
@@ -2362,12 +2368,12 @@ namespace Sass {
     return base;
   }
 
-  Expression* Parser::fold_operands(Expression* base, std::vector<Expression*>& operands, std::vector<enum Sass_OP>& ops)
+  Expression* Parser::fold_operands(Expression* base, std::vector<Expression*>& operands, std::vector<Operand>& ops)
   {
     for (size_t i = 0, S = operands.size(); i < S; ++i) {
       base = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, base->pstate(), ops[i], base, operands[i]);
       Binary_Expression* b = static_cast<Binary_Expression*>(base);
-      if (ops[i] == Sass_OP::DIV && b->left()->is_delayed() && b->right()->is_delayed()) {
+      if (ops[i].operand == Sass_OP::DIV && b->left()->is_delayed() && b->right()->is_delayed()) {
         base->is_delayed(true);
       }
       else {
