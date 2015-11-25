@@ -87,7 +87,7 @@ namespace Sass {
 
     // -- only need to define two comparisons, and the rest can be implemented in terms of them
     static bool eq(Expression*, Expression*);
-    static bool lt(Expression*, Expression*);
+    static bool lt(Expression*, Expression*, std::string op);
     // -- arithmetic on the combinations that matter
     static Value* op_numbers(Memory_Manager&, enum Sass_OP, const Number&, const Number&, bool compressed = false, int precision = 5, ParserState* pstate = 0);
     static Value* op_number_color(Memory_Manager&, enum Sass_OP, const Number&, const Color&, bool compressed = false, int precision = 5, ParserState* pstate = 0);

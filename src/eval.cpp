@@ -497,6 +497,22 @@ namespace Sass {
     Expression* lhs = b->left();
     Expression* rhs = b->right();
 
+    bool delay_lhs = false;
+    bool delay_rhs = false;
+
+    if (String_Schema* schema = dynamic_cast<String_Schema*>(lhs)) {
+      if (schema->has_right_interpolant()) {
+        b->is_delayed(true);
+        delay_lhs = true;
+      }
+    }
+    if (String_Schema* schema = dynamic_cast<String_Schema*>(rhs)) {
+      if (schema->has_left_interpolant()) {
+        b->is_delayed(true);
+        delay_rhs = true;
+      }
+    }
+
     // maybe fully evaluate structure
     if (op_type == Sass_OP::EQ ||
         op_type == Sass_OP::NEQ ||
@@ -505,6 +521,7 @@ namespace Sass {
         op_type == Sass_OP::LT ||
         op_type == Sass_OP::LTE)
     {
+
       if (String_Schema* schema = dynamic_cast<String_Schema*>(lhs)) {
         if (schema->has_interpolants()) {
           b->is_delayed(true);
@@ -533,6 +550,8 @@ namespace Sass {
       // rhs->set_delayed(false);
       // rhs = rhs->perform(this);
     }
+
+    // debug_ast(b);
 
     // if one of the operands is a '/' then make sure it's evaluated
     lhs = lhs->perform(this);
@@ -567,19 +586,6 @@ namespace Sass {
           rhs = SASS_MEMORY_NEW(ctx.mem, Textual, rhs->pstate(), Textual::DIMENSION, str->value());
           rhs->is_delayed(false); rhs = rhs->perform(this);
         }
-      }
-    }
-
-    // see if it's a relational expression
-    if (!b->is_delayed()) {
-      switch(op_type) {
-        case Sass_OP::EQ:  return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), eq(lhs, rhs));
-        case Sass_OP::NEQ: return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), !eq(lhs, rhs));
-        case Sass_OP::GT:  return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), !lt(lhs, rhs) && !eq(lhs, rhs));
-        case Sass_OP::GTE: return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), !lt(lhs, rhs));
-        case Sass_OP::LT:  return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), lt(lhs, rhs));
-        case Sass_OP::LTE: return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), lt(lhs, rhs) || eq(lhs, rhs));
-        default:                     break;
       }
     }
 
@@ -637,7 +643,9 @@ namespace Sass {
         }
       }
 
-      if ((!schema_op || delay_anyway) && (l_type == Expression::NUMBER || r_type == Expression::NUMBER)) {
+      // if (b->is_delayed()) delay_anyway = true;
+
+      if ((!schema_op || delay_anyway)) {
         std::string str("");
         str += v_l->to_string(compressed, precision);
         if (b->op().ws_before) str += " ";
@@ -648,50 +656,75 @@ namespace Sass {
       }
     }
 
+    // see if it's a relational expression
+    try {
+      switch(op_type) {
+        case Sass_OP::EQ:  return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), eq(lhs, rhs));
+        case Sass_OP::NEQ: return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), !eq(lhs, rhs));
+        case Sass_OP::GT:  return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), !lt(lhs, rhs, "gt") && !eq(lhs, rhs));
+        case Sass_OP::GTE: return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), !lt(lhs, rhs, "gte"));
+        case Sass_OP::LT:  return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), lt(lhs, rhs, "lt"));
+        case Sass_OP::LTE: return SASS_MEMORY_NEW(ctx.mem, Boolean, b->pstate(), lt(lhs, rhs, "lte") || eq(lhs, rhs));
+        default:                     break;
+      }
+    }
+    catch (Exception::OperationError& err)
+    {
+      // throw Exception::Base(b->pstate(), err.what());
+      throw Exception::SassValueError(b->pstate(), err);
+    }
+
     l_type = lhs->concrete_type();
     r_type = rhs->concrete_type();
 
     // ToDo: throw error in op functions
     // ToDo: then catch and re-throw them
-    ParserState pstate(b->pstate());
     Expression* rv = 0;
-    if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
-      const Number* l_n = dynamic_cast<const Number*>(lhs);
-      const Number* r_n = dynamic_cast<const Number*>(rhs);
-      rv = op_numbers(ctx.mem, op_type, *l_n, *r_n, compressed, precision, &pstate);
-    }
-    else if (l_type == Expression::NUMBER && r_type == Expression::COLOR) {
-      const Number* l_n = dynamic_cast<const Number*>(lhs);
-      const Color* r_c = dynamic_cast<const Color*>(rhs);
-      rv = op_number_color(ctx.mem, op_type, *l_n, *r_c, compressed, precision, &pstate);
-    }
-    else if (l_type == Expression::COLOR && r_type == Expression::NUMBER) {
-      const Color* l_c = dynamic_cast<const Color*>(lhs);
-      const Number* r_n = dynamic_cast<const Number*>(rhs);
-      rv = op_color_number(ctx.mem, op_type, *l_c, *r_n, compressed, precision, &pstate);
-    }
-    else if (l_type == Expression::COLOR && r_type == Expression::COLOR) {
-      const Color* l_c = dynamic_cast<const Color*>(lhs);
-      const Color* r_c = dynamic_cast<const Color*>(rhs);
-      rv = op_colors(ctx.mem, op_type, *l_c, *r_c, compressed, precision, &pstate);
-    }
-    else {
-      To_Value to_value(ctx, ctx.mem);
-      Value* v_l = dynamic_cast<Value*>(lhs->perform(&to_value));
-      Value* v_r = dynamic_cast<Value*>(rhs->perform(&to_value));
-      Value* ex = op_strings(ctx.mem, b->op(), *v_l, *v_r, compressed, precision, &pstate);
-      if (String_Constant* str = dynamic_cast<String_Constant*>(ex))
-      {
-        if (str->concrete_type() == Expression::STRING)
-        {
-          String_Constant* lstr = dynamic_cast<String_Constant*>(lhs);
-          String_Constant* rstr = dynamic_cast<String_Constant*>(rhs);
-          if (String_Constant* org = lstr ? lstr : rstr)
-          { str->quote_mark(org->quote_mark()); }
-        }
+    try {
+      ParserState pstate(b->pstate());
+      if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
+        const Number* l_n = dynamic_cast<const Number*>(lhs);
+        const Number* r_n = dynamic_cast<const Number*>(rhs);
+        rv = op_numbers(ctx.mem, op_type, *l_n, *r_n, compressed, precision, &pstate);
       }
-      ex->is_interpolant(b->is_interpolant());
-      rv = ex;
+      else if (l_type == Expression::NUMBER && r_type == Expression::COLOR) {
+        const Number* l_n = dynamic_cast<const Number*>(lhs);
+        const Color* r_c = dynamic_cast<const Color*>(rhs);
+        rv = op_number_color(ctx.mem, op_type, *l_n, *r_c, compressed, precision, &pstate);
+      }
+      else if (l_type == Expression::COLOR && r_type == Expression::NUMBER) {
+        const Color* l_c = dynamic_cast<const Color*>(lhs);
+        const Number* r_n = dynamic_cast<const Number*>(rhs);
+        rv = op_color_number(ctx.mem, op_type, *l_c, *r_n, compressed, precision, &pstate);
+      }
+      else if (l_type == Expression::COLOR && r_type == Expression::COLOR) {
+        const Color* l_c = dynamic_cast<const Color*>(lhs);
+        const Color* r_c = dynamic_cast<const Color*>(rhs);
+        rv = op_colors(ctx.mem, op_type, *l_c, *r_c, compressed, precision, &pstate);
+      }
+      else {
+        To_Value to_value(ctx, ctx.mem);
+        Value* v_l = dynamic_cast<Value*>(lhs->perform(&to_value));
+        Value* v_r = dynamic_cast<Value*>(rhs->perform(&to_value));
+        Value* ex = op_strings(ctx.mem, b->op(), *v_l, *v_r, compressed, precision, &pstate);
+        if (String_Constant* str = dynamic_cast<String_Constant*>(ex))
+        {
+          if (str->concrete_type() == Expression::STRING)
+          {
+            String_Constant* lstr = dynamic_cast<String_Constant*>(lhs);
+            String_Constant* rstr = dynamic_cast<String_Constant*>(rhs);
+            if (String_Constant* org = lstr ? lstr : rstr)
+            { str->quote_mark(org->quote_mark()); }
+          }
+        }
+        ex->is_interpolant(b->is_interpolant());
+        rv = ex;
+      }
+    }
+    catch (Exception::OperationError& err)
+    {
+      // throw Exception::Base(b->pstate(), err.what());
+      throw Exception::SassValueError(b->pstate(), err);
     }
 
     if (rv) {
@@ -1390,12 +1423,12 @@ namespace Sass {
     return lhs && rhs && *lhs == *rhs;
   }
 
-  bool Eval::lt(Expression* lhs, Expression* rhs)
+  bool Eval::lt(Expression* lhs, Expression* rhs, std::string op)
   {
     Number* l = dynamic_cast<Number*>(lhs);
     Number* r = dynamic_cast<Number*>(rhs);
-    if (!l) error("may only compare numbers", lhs->pstate());
-    if (!r) error("may only compare numbers", rhs->pstate());
+    // use compare operator from ast node
+    if (!l || !r) throw Exception::UndefinedOperation(lhs, rhs, op);
     // use compare operator from ast node
     return *l < *r;
   }
@@ -1404,11 +1437,11 @@ namespace Sass {
   {
     double lv = l.value();
     double rv = r.value();
-    if (op == Sass_OP::DIV && !rv) {
-      return SASS_MEMORY_NEW(mem, String_Quoted, pstate ? *pstate : l.pstate(), "Infinity");
+    if (op == Sass_OP::DIV && rv == 0) {
+      return SASS_MEMORY_NEW(mem, String_Quoted, pstate ? *pstate : l.pstate(), lv ? "Infinity" : "NaN");
     }
     if (op == Sass_OP::MOD && !rv) {
-      error("division by zero", pstate ? *pstate : r.pstate());
+      throw Exception::ZeroDivisionError(l, r);
     }
 
     Number tmp(r);
@@ -1418,7 +1451,7 @@ namespace Sass {
     std::string r_unit(tmp.unit());
     if (l_unit != r_unit && !l_unit.empty() && !r_unit.empty() &&
         (op == Sass_OP::ADD || op == Sass_OP::SUB)) {
-      error("Incompatible units: '"+r_unit+"' and '"+l_unit+"'.", pstate ? *pstate : r.pstate());
+      throw Exception::IncompatibleUnits(l, r);
     }
     Number* v = SASS_MEMORY_NEW(mem, Number, l);
     v->pstate(pstate ? *pstate : l.pstate());
@@ -1476,7 +1509,7 @@ namespace Sass {
                                + color);
       } break;
       case Sass_OP::MOD: {
-        error("cannot divide a number by a color", pstate ? *pstate : r.pstate());
+        throw Exception::UndefinedOperation(&l, &r, sass_op_to_name(op));
       } break;
       default: break; // caller should ensure that we don't get here
     }
@@ -1487,7 +1520,10 @@ namespace Sass {
   Value* Eval::op_color_number(Memory_Manager& mem, enum Sass_OP op, const Color& l, const Number& r, bool compressed, int precision, ParserState* pstate)
   {
     double rv = r.value();
-    if (op == Sass_OP::DIV && !rv) error("division by zero", pstate ? *pstate : r.pstate());
+    if (op == Sass_OP::DIV && !rv) {
+      // comparison of Fixnum with Float failed?
+      throw Exception::ZeroDivisionError(l, r);
+    }
     return SASS_MEMORY_NEW(mem, Color,
                            pstate ? *pstate : l.pstate(),
                            ops[op](l.r(), rv),
@@ -1499,10 +1535,11 @@ namespace Sass {
   Value* Eval::op_colors(Memory_Manager& mem, enum Sass_OP op, const Color& l, const Color& r, bool compressed, int precision, ParserState* pstate)
   {
     if (l.a() != r.a()) {
-      error("alpha channels must be equal when combining colors", pstate ? *pstate : r.pstate());
+      throw Exception::AlphaChannelsNotEqual(&l, &r, "+");
     }
     if (op == Sass_OP::DIV && (!r.r() || !r.g() ||!r.b())) {
-      error("division by zero", pstate ? *pstate : r.pstate());
+      // comparison of Fixnum with Float failed?
+      throw Exception::ZeroDivisionError(l, r);
     }
     return SASS_MEMORY_NEW(mem, Color,
                            pstate ? *pstate : l.pstate(),
@@ -1554,9 +1591,10 @@ namespace Sass {
       const Color* c_r = name_to_color(rstr);
       return op_number_color(mem, op, *n_l, *c_r, compressed, precision);
     }
-
-    // if (op == Sass_OP::MUL) error("invalid operands for multiplication", lhs.pstate());
-    // if (op == Sass_OP::MOD) error("invalid operands for modulo", lhs.pstate());
+    if (ltype == Expression::NULL_VAL) throw Exception::InvalidNullOperation(&lhs, &rhs, sass_op_to_name(op));
+    if (rtype == Expression::NULL_VAL) throw Exception::InvalidNullOperation(&lhs, &rhs, sass_op_to_name(op));
+    if (op == Sass_OP::MOD) throw Exception::UndefinedOperation(&lhs, &rhs, sass_op_to_name(op));
+    if (op == Sass_OP::MUL) throw Exception::UndefinedOperation(&lhs, &rhs, sass_op_to_name(op));
     std::string sep;
     switch (op) {
       case Sass_OP::SUB: sep = "-"; break;
@@ -1571,9 +1609,6 @@ namespace Sass {
       case Sass_OP::GTE:  sep = ">="; break;
       default:                      break;
     }
-    if (ltype == Expression::NULL_VAL) error("Invalid null operation: \"null plus "+quote(unquote(rstr), '"')+"\".", lhs.pstate());
-    if (rtype == Expression::NULL_VAL) error("Invalid null operation: \""+quote(unquote(lstr), '"')+" plus null\".", rhs.pstate());
-
     if (ltype == Expression::NUMBER && sep == "/" && rtype == Expression::STRING)
     {
       return SASS_MEMORY_NEW(mem, String_Constant, lhs.pstate(),

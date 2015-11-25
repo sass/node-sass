@@ -296,10 +296,10 @@ extern "C" {
       switch(op) {
         case Sass_OP::EQ:  return sass_make_boolean(Eval::eq(lhs, rhs));
         case Sass_OP::NEQ: return sass_make_boolean(!Eval::eq(lhs, rhs));
-        case Sass_OP::GT:  return sass_make_boolean(!Eval::lt(lhs, rhs) && !Eval::eq(lhs, rhs));
-        case Sass_OP::GTE: return sass_make_boolean(!Eval::lt(lhs, rhs));
-        case Sass_OP::LT:  return sass_make_boolean(Eval::lt(lhs, rhs));
-        case Sass_OP::LTE: return sass_make_boolean(Eval::lt(lhs, rhs) || Eval::eq(lhs, rhs));
+        case Sass_OP::GT:  return sass_make_boolean(!Eval::lt(lhs, rhs, "gt") && !Eval::eq(lhs, rhs));
+        case Sass_OP::GTE: return sass_make_boolean(!Eval::lt(lhs, rhs, "gte"));
+        case Sass_OP::LT:  return sass_make_boolean(Eval::lt(lhs, rhs, "lt"));
+        case Sass_OP::LTE: return sass_make_boolean(Eval::lt(lhs, rhs, "lte") || Eval::eq(lhs, rhs));
         default:           break;
       }
 

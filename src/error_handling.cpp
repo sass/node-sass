@@ -12,15 +12,10 @@ namespace Sass {
   namespace Exception {
 
     Base::Base(ParserState pstate, std::string msg, std::vector<Sass_Import_Entry>* import_stack)
-    : std::runtime_error(msg),
-      msg(msg), pstate(pstate),
+    : std::runtime_error(msg), msg(msg),
+      prefix("Error"), pstate(pstate),
       import_stack(import_stack)
     { }
-
-    const char* Base::what() const throw()
-    {
-      return msg.c_str();
-    }
 
     InvalidSass::InvalidSass(ParserState pstate, std::string msg)
     : Base(pstate, msg)
