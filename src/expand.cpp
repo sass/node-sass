@@ -477,7 +477,7 @@ namespace Sass {
       }
     }
     else {
-      bool arglist = list->is_arglist();
+      // bool arglist = list->is_arglist();
       for (size_t i = 0, L = list->length(); i < L; ++i) {
         Expression* e = (*list)[i];
         // unwrap value if the expression is an argument
@@ -486,7 +486,7 @@ namespace Sass {
         if (List* scalars = dynamic_cast<List*>(e)) {
           if (variables.size() == 1) {
             Expression* var = scalars;
-            if (arglist) var = (*scalars)[0];
+            // if (arglist) var = (*scalars)[0];
             env.set_local(variables[0], var);
           } else {
             for (size_t j = 0, K = variables.size(); j < K; ++j) {
