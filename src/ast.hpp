@@ -74,6 +74,7 @@ namespace Sass {
     : pstate_(pstate)
     { }
     virtual ~AST_Node() = 0;
+    virtual size_t hash() { return 0; }
     // virtual Block* block() { return 0; }
   public:
     void update_pstate(const ParserState& pstate);
@@ -215,6 +216,16 @@ namespace Sass {
     std::vector<T>& elements() { return elements_; }
     const std::vector<T>& elements() const { return elements_; }
     std::vector<T>& elements(std::vector<T>& e) { elements_ = e; return elements_; }
+
+    virtual size_t hash()
+    {
+      if (hash_ == 0) {
+        for (T& el : elements_) {
+          hash_combine(hash_, el->hash());
+        }
+      }
+      return hash_;
+    }
 
     typename std::vector<T>::iterator end() { return elements_.end(); }
     typename std::vector<T>::iterator begin() { return elements_.begin(); }
@@ -1757,6 +1768,8 @@ namespace Sass {
     ADD_PROPERTY(bool, is_optional)
     // parent block pointers
     ADD_PROPERTY(Media_Block*, media_block)
+  protected:
+    size_t hash_;
   public:
     Selector(ParserState pstate, bool r = false, bool h = false)
     : Expression(pstate),
@@ -1765,9 +1778,11 @@ namespace Sass {
       has_line_feed_(false),
       has_line_break_(false),
       is_optional_(false),
-      media_block_(0)
+      media_block_(0),
+      hash_(0)
     { concrete_type(SELECTOR); }
     virtual ~Selector() = 0;
+    virtual size_t hash() = 0;
     virtual unsigned long specificity() {
       return Constants::Specificity_Universal;
     }
@@ -1786,6 +1801,12 @@ namespace Sass {
     Selector_Schema(ParserState pstate, String* c)
     : Selector(pstate), contents_(c), at_root_(false)
     { }
+    virtual size_t hash() {
+      if (hash_ == 0) {
+        hash_combine(hash_, contents_->hash());
+      }
+      return hash_;
+    }
     virtual std::string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
@@ -1815,6 +1836,15 @@ namespace Sass {
       if (has_ns_)
         name += ns_ + "|";
       return name + name_;
+    }
+    virtual size_t hash()
+    {
+      if (hash_ == 0) {
+        hash_combine(hash_, std::hash<int>()(SELECTOR));
+        hash_combine(hash_, std::hash<std::string>()(ns()));
+        hash_combine(hash_, std::hash<std::string>()(name()));
+      }
+      return hash_;
     }
     // namespace query functions
     bool is_universal_ns() const
@@ -1944,6 +1974,15 @@ namespace Sass {
     Attribute_Selector(ParserState pstate, std::string n, std::string m, String* v)
     : Simple_Selector(pstate, n), matcher_(m), value_(v)
     { }
+    virtual size_t hash()
+    {
+      if (hash_ == 0) {
+        hash_combine(hash_, Simple_Selector::hash());
+        hash_combine(hash_, std::hash<std::string>()(matcher()));
+        if (value_) hash_combine(hash_, value_->hash());
+      }
+      return hash_;
+    }
     virtual unsigned long specificity()
     {
       return Constants::Specificity_Attr;
@@ -1971,6 +2010,7 @@ namespace Sass {
            name == ":first-letter";
   }
 
+  // Pseudo Selector cannot have any namespace?
   class Pseudo_Selector : public Simple_Selector {
     ADD_PROPERTY(String*, expression)
   public:
@@ -1999,6 +2039,14 @@ namespace Sass {
       return (name_[0] == ':' && name_[1] == ':')
              || is_pseudo_class_element(name_);
     }
+    virtual size_t hash()
+    {
+      if (hash_ == 0) {
+        hash_combine(hash_, Simple_Selector::hash());
+        if (expression_) hash_combine(hash_, expression_->hash());
+      }
+      return hash_;
+    }
     virtual unsigned long specificity()
     {
       if (is_pseudo_element())
@@ -2021,12 +2069,22 @@ namespace Sass {
     virtual bool is_superselector_of(Wrapped_Selector* sub);
     // Selectors inside the negation pseudo-class are counted like any
     // other, but the negation itself does not count as a pseudo-class.
+    virtual size_t hash()
+    {
+      if (hash_ == 0) {
+        hash_combine(hash_, Simple_Selector::hash());
+        if (selector_) hash_combine(hash_, selector_->hash());
+      }
+      return hash_;
+    }
     virtual unsigned long specificity()
     {
       return selector_ ? selector_->specificity() : 0;
     }
     bool operator==(const Simple_Selector& rhs) const;
     bool operator==(const Wrapped_Selector& rhs) const;
+    bool operator<(const Simple_Selector& rhs) const;
+    bool operator<(const Wrapped_Selector& rhs) const;
     virtual std::string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
@@ -2087,6 +2145,14 @@ namespace Sass {
     virtual bool is_superselector_of(Compound_Selector* sub, std::string wrapped = "");
     virtual bool is_superselector_of(Complex_Selector* sub, std::string wrapped = "");
     virtual bool is_superselector_of(Selector_List* sub, std::string wrapped = "");
+    virtual size_t hash()
+    {
+      if (Selector::hash_ == 0) {
+        hash_combine(Selector::hash_, std::hash<int>()(SELECTOR));
+        if (length()) hash_combine(Selector::hash_, Vectorized::hash());
+      }
+      return Selector::hash_;
+    }
     virtual unsigned long specificity()
     {
       int sum = 0;
@@ -2202,6 +2268,16 @@ namespace Sass {
     Combinator clear_innermost();
     void append(Context&, Complex_Selector*);
     void set_innermost(Complex_Selector*, Combinator);
+    virtual size_t hash()
+    {
+      if (hash_ == 0) {
+        hash_combine(hash_, std::hash<int>()(SELECTOR));
+        hash_combine(hash_, std::hash<int>()(combinator_));
+        if (head_) hash_combine(hash_, head_->hash());
+        if (tail_) hash_combine(hash_, tail_->hash());
+      }
+      return hash_;
+    }
     virtual unsigned long specificity() const
     {
       int sum = 0;
@@ -2292,6 +2368,14 @@ namespace Sass {
     virtual bool is_superselector_of(Selector_List* sub, std::string wrapping = "");
     Selector_List* unify_with(Selector_List*, Context&);
     void populate_extends(Selector_List*, Context&, ExtensionSubsetMap&);
+    virtual size_t hash()
+    {
+      if (Selector::hash_ == 0) {
+        hash_combine(Selector::hash_, std::hash<int>()(SELECTOR));
+        hash_combine(Selector::hash_, Vectorized::hash());
+      }
+      return Selector::hash_;
+    }
     virtual unsigned long specificity()
     {
       unsigned long sum = 0;
