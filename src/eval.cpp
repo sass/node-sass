@@ -878,7 +878,7 @@ namespace Sass {
                                    static_cast<double>(strtol(r.c_str(), NULL, 16)),
                                    static_cast<double>(strtol(g.c_str(), NULL, 16)),
                                    static_cast<double>(strtol(b.c_str(), NULL, 16)),
-                                   1, true,
+                                   1, // alpha channel
                                    t->value());
         }
         else {
@@ -887,7 +887,7 @@ namespace Sass {
                                    static_cast<double>(strtol(std::string(2,hext[0]).c_str(), NULL, 16)),
                                    static_cast<double>(strtol(std::string(2,hext[1]).c_str(), NULL, 16)),
                                    static_cast<double>(strtol(std::string(2,hext[2]).c_str(), NULL, 16)),
-                                   1, false,
+                                   1, // alpha channel
                                    t->value());
         }
       } break;
@@ -1278,7 +1278,6 @@ namespace Sass {
   Value* Eval::op_number_color(Memory_Manager& mem, enum Sass_OP op, const Number& l, const Color& rh, bool compressed, int precision, ParserState* pstate)
   {
     Color r(rh);
-    r.disp("");
     double lv = l.value();
     switch (op) {
       case Sass_OP::ADD:
@@ -1293,7 +1292,7 @@ namespace Sass {
       case Sass_OP::SUB:
       case Sass_OP::DIV: {
         std::string sep(op == Sass_OP::SUB ? "-" : "/");
-        std::string color(r.to_string(compressed||!r.sixtuplet(), precision));
+        std::string color(r.to_string(compressed, precision));
         return SASS_MEMORY_NEW(mem, String_Quoted,
                                pstate ? *pstate : l.pstate(),
                                l.to_string(compressed, precision)
