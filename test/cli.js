@@ -349,7 +349,7 @@ describe('cli', function() {
   });
 
   describe('node-sass --output directory', function() {
-    it('should watch whole directory', function(done) {
+    it.skip('should watch whole directory', function(done) {
       var destDir = fixture('watching-css-out-01/');
       var srcDir = fixture('watching-dir-01/');
       var srcFile = path.join(srcDir, 'index.scss');
@@ -373,7 +373,7 @@ describe('cli', function() {
       }, 500);
     });
 
-    it('should compile all changed files in watched directory', function(done) {
+    it.skip('should compile all changed files in watched directory', function(done) {
       var destDir = fixture('watching-css-out-02/');
       var srcDir = fixture('watching-dir-02/');
       var srcFile = path.join(srcDir, 'foo.scss');
