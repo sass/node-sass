@@ -26,6 +26,7 @@ namespace Sass {
       void set_filename(const std::string& str);
       void add_open_mapping(AST_Node* node);
       void add_close_mapping(AST_Node* node);
+      void schedule_mapping(AST_Node* node);
       std::string render_srcmap(Context &ctx);
       ParserState remap(const ParserState& pstate);
 
@@ -35,6 +36,7 @@ namespace Sass {
       size_t scheduled_space;
       size_t scheduled_linefeed;
       bool scheduled_delimiter;
+      AST_Node* scheduled_mapping;
 
     public:
       // output strings different in comments

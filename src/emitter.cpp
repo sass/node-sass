@@ -13,6 +13,7 @@ namespace Sass {
     scheduled_space(0),
     scheduled_linefeed(0),
     scheduled_delimiter(false),
+    scheduled_mapping(0),
     in_comment(false),
     in_wrapped(false),
     in_media_block(false),
@@ -44,6 +45,8 @@ namespace Sass {
   void Emitter::set_filename(const std::string& str)
   { wbuf.smap.file = str; }
 
+  void Emitter::schedule_mapping(AST_Node* node)
+  { scheduled_mapping = node; }
   void Emitter::add_open_mapping(AST_Node* node)
   { wbuf.smap.add_open_mapping(node); }
   void Emitter::add_close_mapping(AST_Node* node)
@@ -137,6 +140,12 @@ namespace Sass {
   {
     flush_schedules();
     add_open_mapping(node);
+    // hotfix for browser issues
+    // this is pretty ugly indeed
+    if (scheduled_mapping) {
+      add_open_mapping(scheduled_mapping);
+      scheduled_mapping = 0;
+    }
     append_string(text);
     add_close_mapping(node);
   }
