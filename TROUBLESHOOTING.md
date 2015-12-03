@@ -131,7 +131,7 @@ node -p "console.log(require('node-sass').info)"
 If the node-sass installation process produced an error, open the vendor folder.
 
 ```sh
-cd node_modules\node-sass\vendor
+cd node_modules\.bin\node-sass\vendor
 ```
 
 Then, using the version number we gather at the beginning, go to https://github.com/sass/node-sass-binaries/tree/v<your-version>.
