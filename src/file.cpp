@@ -5,7 +5,6 @@
 #endif
 #endif
 #include <direct.h>
-#define getcwd _getcwd
 #define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
 #else
 #include <unistd.h>
@@ -28,6 +27,23 @@
 
 #ifdef _WIN32
 #include <windows.h>
+
+#ifdef _MSC_VER
+#include <codecvt>
+inline static std::string wstring_to_string(const std::wstring& wstr)
+{
+    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> wchar_converter;
+    return wchar_converter.to_bytes(wstr);
+}
+#else // mingw(/gcc) does not support C++11's codecvt yet.
+inline static std::string wstring_to_string(const std::wstring &wstr)
+{
+    int size_needed = WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), NULL, 0, NULL, NULL);
+    std::string strTo(size_needed, 0);
+    WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), &strTo[0], size_needed, NULL, NULL);
+    return strTo;
+}
+#endif
 #endif
 
 #ifndef FS_CASE_SENSITIVE
@@ -46,9 +62,12 @@ namespace Sass {
     std::string get_cwd()
     {
       const size_t wd_len = 1024;
-      char wd[wd_len];
-      std::string cwd = getcwd(wd, wd_len);
-      #ifdef _WIN32
+      #ifndef _WIN32
+        char wd[wd_len];
+        std::string cwd = getcwd(wd, wd_len);
+      #else
+        wchar_t wd[wd_len];
+        std::string cwd = wstring_to_string(_wgetcwd(wd, wd_len));
         //convert backslashes to forward slashes
         replace(cwd.begin(), cwd.end(), '\\', '/');
       #endif
