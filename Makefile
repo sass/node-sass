@@ -1,10 +1,14 @@
+OS       ?= $(shell uname -s)
 CC       ?= gcc
 CXX      ?= g++
 RM       ?= rm -f
 CP       ?= cp -a
-MKDIR    ?= mkdir
+MKDIR    ?= mkdir -p
 RMDIR    ?= rmdir
 WINDRES  ?= windres
+ifeq ($(OS),SunOS)  # Solaris/Illumos flavors
+INSTALL  = ginstall
+endif
 INSTALL  ?= install
 CFLAGS   ?= -Wall
 CXXFLAGS ?= -Wall
