@@ -75,7 +75,7 @@ Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_
   // swallows »@import "http://…"« pass-through
   // (arguably a bug)
   Sass_Import_List list = sass_make_import_list(1);
-  list[0] = sass_make_import_entry(url, 0, 0);
+  list[0] = sass_make_import_entry(path, 0, 0);
   return list;
 }
 
@@ -83,7 +83,7 @@ Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_
   // return an error to halt execution
   Sass_Import_List list = sass_make_import_list(1);
   const char* message = "some error message";
-  list[0] = sass_make_import_entry(url, 0, 0);
+  list[0] = sass_make_import_entry(path, 0, 0);
   sass_import_set_error(list[0], strdup(message), 0, 0);
   return list;
 }
