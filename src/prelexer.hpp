@@ -282,6 +282,7 @@ namespace Sass {
     // Match placeholder selectors.
     const char* placeholder(const char* src);
     // Match CSS numeric constants.
+    const char* op(const char* src);
     const char* sign(const char* src);
     const char* unsigned_number(const char* src);
     const char* number(const char* src);

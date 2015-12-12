@@ -521,6 +521,9 @@ namespace Sass {
         op_type == Sass_OP::LT ||
         op_type == Sass_OP::LTE)
     {
+      lhs->is_expanded(false);
+      lhs->set_delayed(false);
+      lhs = lhs->perform(this);
       rhs->is_expanded(false);
       rhs->set_delayed(false);
       rhs = rhs->perform(this);
@@ -1008,6 +1011,8 @@ namespace Sass {
 
     if (List* l = dynamic_cast<List*>(ex)) {
       List* ll = SASS_MEMORY_NEW(ctx.mem, List, l->pstate(), 0, l->separator());
+      // this fixes an issue with bourbon sample, not really sure why
+      if (l->size() && dynamic_cast<Null*>((*l)[0])) { res += " "; }
       for(auto item : *l) {
         item->is_interpolant(l->is_interpolant());
         std::string rl(""); interpolation(ctx, rl, item, into_quotes, l->is_interpolant());

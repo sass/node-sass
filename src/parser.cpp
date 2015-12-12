@@ -1291,8 +1291,8 @@ namespace Sass {
       value->is_delayed(false);
       // make sure wrapped lists and division expressions are non-delayed within parentheses
       if (value->concrete_type() == Expression::LIST) {
-        List* l = static_cast<List*>(value);
-        if (!l->empty()) (*l)[0]->is_delayed(false);
+        // List* l = static_cast<List*>(value);
+        // if (!l->empty()) (*l)[0]->is_delayed(false);
       } else if (typeid(*value) == typeid(Binary_Expression)) {
         Binary_Expression* b = static_cast<Binary_Expression*>(value);
         Binary_Expression* lhs = static_cast<Binary_Expression*>(b->left());
@@ -1359,6 +1359,9 @@ namespace Sass {
 
     if (lex< kwd_important >())
     { return SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, "!important"); }
+
+    if (lex< sequence < number, lookahead< exactly<'+'> > > >())
+    { return SASS_MEMORY_NEW(ctx.mem, Textual, pstate, Textual::NUMBER, lexed); }
 
     if (const char* stop = peek< value_schema >())
     { return parse_value_schema(stop); }

@@ -2218,15 +2218,14 @@ namespace Sass {
     if (res == "0.0") res = "0";
     else if (res == "") res = "0";
     else if (res == "-0") res = "0";
+    else if (res == "-0.0") res = "0";
     else if (compressed)
     {
-      if (res == "-0.0") res = ".0";
       // check if handling negative nr
       size_t off = res[0] == '-' ? 1 : 0;
       // remove leading zero from floating point in compressed mode
       if (res[off] == '0' && res[off+1] == '.') res.erase(off, 1);
     }
-    else if (res == "-0.0") res = "0.0";
 
     // add unit now
     res += unit();
@@ -2299,6 +2298,7 @@ namespace Sass {
       case ADJACENT_TO: str_op = "+"; break;
       case REFERENCE:   str_op = "/" + str_ref + "/"; break;
     }
+
     // prettify for non ancestors
     if (combinator() != ANCESTOR_OF) {
       // no spaces needed for compressed
@@ -2311,6 +2311,12 @@ namespace Sass {
     // is ancestor with no tail
     else if (str_tail == "") {
       str_op = ""; // superflous
+    }
+    else if (compressed)
+    {
+      if (str_tail[0] == '-') {
+        str_op = ""; // superflous
+      }
     }
     // now build the final result
     return str_head + str_op + str_tail;
