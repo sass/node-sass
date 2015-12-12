@@ -21,14 +21,12 @@ namespace Sass {
     Context& ctx;
     Listize  listize;
     Eval(Expand& exp);
-    virtual ~Eval();
+    ~Eval();
 
     Env* environment();
     Context& context();
     Selector_List* selector();
     Backtrace* backtrace();
-
-    using Operation<Expression*>::operator();
 
     // for evaluating function bodies
     Expression* operator()(Block*);

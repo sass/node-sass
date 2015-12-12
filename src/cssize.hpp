@@ -22,9 +22,7 @@ namespace Sass {
 
   public:
     Cssize(Context&, Backtrace*);
-    virtual ~Cssize() { }
-
-    using Operation<Statement*>::operator();
+    ~Cssize() { }
 
     Statement* operator()(Block*);
     Statement* operator()(Ruleset*);

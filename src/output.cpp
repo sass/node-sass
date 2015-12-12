@@ -341,7 +341,8 @@ namespace Sass {
     }
 
     if (b->is_invisible() || b->length() == 0) {
-      return append_string(" {}");
+      append_optional_space();
+      return append_string("{}");
     }
 
     append_scope_opener();

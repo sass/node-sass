@@ -8,15 +8,13 @@
 namespace Sass {
 
   class To_C : public Operation_CRTP<union Sass_Value*, To_C> {
-    // import all the class-specific methods and override as desired
-    using Operation<union Sass_Value*>::operator();
     // override this to define a catch-all
     union Sass_Value* fallback_impl(AST_Node* n);
 
   public:
 
     To_C() { }
-    virtual ~To_C() { }
+    ~To_C() { }
 
     union Sass_Value* operator()(Boolean*);
     union Sass_Value* operator()(Number*);
