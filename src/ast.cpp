@@ -2260,9 +2260,10 @@ namespace Sass {
     std::string str("");
     auto end = this->end();
     auto start = this->begin();
+    std::string sep(compressed ? "," : ", ");
     while (start < end && *start) {
       Complex_Selector* sel = *start;
-      if (!str.empty()) str += ", ";
+      if (!str.empty()) str += sep;
       str += sel->to_string(compressed, precision);
       ++ start;
     }
