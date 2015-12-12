@@ -59,7 +59,7 @@ namespace Sass {
       // flush scheduled space/linefeed
       Sass_Output_Style output_style(void);
       // add outstanding linefeed
-      void finalize(void);
+      void finalize(bool final = true);
       // flush scheduled space/linefeed
       void flush_schedules(void);
       // prepend some text or token to the buffer

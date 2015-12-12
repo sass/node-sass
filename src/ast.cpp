@@ -2215,9 +2215,18 @@ namespace Sass {
     }
 
     // some final cosmetics
-    if (res == "-0.0") res.erase(0, 1);
-    else if (res == "-0") res.erase(0, 1);
+    if (res == "0.0") res = "0";
     else if (res == "") res = "0";
+    else if (res == "-0") res = "0";
+    else if (compressed)
+    {
+      if (res == "-0.0") res = ".0";
+      // check if handling negative nr
+      size_t off = res[0] == '-' ? 1 : 0;
+      // remove leading zero from floating point in compressed mode
+      if (res[off] == '0' && res[off+1] == '.') res.erase(off, 1);
+    }
+    else if (res == "-0.0") res = "0.0";
 
     // add unit now
     res += unit();
