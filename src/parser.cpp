@@ -1360,7 +1360,11 @@ namespace Sass {
     if (lex< kwd_important >())
     { return SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, "!important"); }
 
-    if (lex< sequence < number, lookahead< exactly<'+'> > > >())
+    // parse `10%4px` into separated items and not a schema
+    if (lex< sequence < percentage, lookahead < number > > >())
+    { return SASS_MEMORY_NEW(ctx.mem, Textual, pstate, Textual::PERCENTAGE, lexed); }
+
+    if (lex< sequence < number, lookahead< sequence < op, number > > > >())
     { return SASS_MEMORY_NEW(ctx.mem, Textual, pstate, Textual::NUMBER, lexed); }
 
     if (const char* stop = peek< value_schema >())

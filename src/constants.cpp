@@ -125,7 +125,7 @@ namespace Sass {
     extern const char rbrace[]          = "}";
     extern const char rparen[]          = ")";
     extern const char sign_chars[]      = "-+";
-    extern const char op_chars[]        = "-+*/%";
+    extern const char op_chars[]        = "-+";
     extern const char hyphen[]          = "-";
     extern const char ellipsis[]        = "...";
     // extern const char url_space_chars[] = " \t\r\n\f";
