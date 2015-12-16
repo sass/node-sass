@@ -266,9 +266,7 @@ function watch(options, emitter) {
  */
 
 function run(options, emitter) {
-  if (!Array.isArray(options.includePath)) {
-    options.includePath = [options.includePath];
-  }
+  parseIncludePath(options);
 
   if (options.directory) {
     if (!options.output) {
@@ -305,6 +303,37 @@ function run(options, emitter) {
     renderDir(options, emitter);
   } else {
     render(options, emitter);
+  }
+}
+
+/**
+ * Parses the include path, so it can be parsed to an array. The argument must be placed in quotes
+ * like this: --include-path "['abc/xyz, 'include/another/path', /or/without/any/single-quotes]"
+ *
+ * @param {Object} options
+ * @api private
+ */
+ 
+function parseIncludePath(options) {
+  if (typeof options.includePath == 'string' && options.includePath.length > 1 && options.includePath[0] == '[' && options.includePath[options.includePath.length - 1] == ']') {
+    var includePath = options.includePath.substr(1, options.includePath.length - 2);
+    var regex = /(?:\s*(?:(?:'(.*?)')|(?:"(.*?)")|([^,;]+))?)*/g;
+    var match;
+    var path;
+    var paths = [];
+    while ((match = regex.exec(includePath)) !== null) {
+      if (match.index === regex.lastIndex) {
+        regex.lastIndex++;
+      }
+      path = (match[1] ? match[1] : (match[2] ? match[2] : (match[3] ? match[3] : undefined)));
+      if (path) {
+        paths.push(path);
+      }
+    }
+    options.includePath = paths;
+  }
+  else if (!Array.isArray(options.includePath)) {
+    options.includePath = [options.includePath];
   }
 }
 
