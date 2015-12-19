@@ -244,7 +244,7 @@ describe('cli', function() {
 
       bin.stderr.setEncoding('utf8');
       bin.stderr.once('data', function(data) {
-        assert(data.trim() === '=> changed: ' + src);
+        assert.strictEqual(data.trim(), '=> changed: ' + src);
         fs.unlinkSync(src);
         bin.kill();
         done();
@@ -290,7 +290,7 @@ describe('cli', function() {
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
-        assert(data.trim() === 'body{background:white}');
+        assert.strictEqual(data.trim(), 'body{background:white}');
         fs.unlinkSync(src);
         bin.kill();
         done();
@@ -314,7 +314,7 @@ describe('cli', function() {
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
-        assert.equal(data.trim(), 'body{background:blue}');
+        assert.strictEqual(data.trim(), 'body{background:blue}');
         bin.kill();
         done();
       });
@@ -337,7 +337,7 @@ describe('cli', function() {
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
-        assert.equal(data.trim(), 'body{background:red}');
+        assert.strictEqual(data.trim(), 'body{background:red}');
         bin.kill();
         done();
       });
@@ -442,7 +442,7 @@ describe('cli', function() {
       ]);
 
       bin.once('close', function() {
-        assert(read(dest, 'utf8').indexOf('sourceMappingURL') === -1);
+        assert.strictEqual(read(dest, 'utf8').indexOf('sourceMappingURL'), -1);
         assert(fs.existsSync(map));
         fs.unlinkSync(map);
         fs.unlinkSync(dest);
@@ -570,8 +570,8 @@ describe('cli', function() {
       var bin = spawn(cli, [src]);
 
       bin.once('close', function(code) {
-        assert(code !== 0);
-        assert.equal(glob.sync(fixture('input-directory/**/*.css')).length, 0);
+        assert.notStrictEqual(code, 0);
+        assert.strictEqual(glob.sync(fixture('input-directory/**/*.css')).length, 0);
         done();
       });
     });
@@ -582,7 +582,7 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', dest]);
 
       bin.once('close', function(code) {
-        assert(code !== 0);
+        assert.notStrictEqual(code, 0);
         assert.equal(glob.sync(fixture('input-directory/**/*.css')).length, 0);
         done();
       });
@@ -745,7 +745,7 @@ describe('cli', function() {
       ]);
 
       bin.once('close', function(code) {
-        assert(code !== 0);
+        assert.notStrictEqual(code, 0);
         done();
       });
     });

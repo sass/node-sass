@@ -956,26 +956,25 @@ describe('api', function() {
         data: 'div { color: foo(bar(null)); background-color: baz("foo" == "bar"); }',
         functions: {
           foo: function(a) {
-            assert.ok(
-              'Supplied value should be the same instance as sass.TRUE',
-              a === sass.TRUE
+            assert.strictEqual(a, sass.TRUE,
+              'Supplied value should be the same instance as sass.TRUE'
             );
 
-            assert.ok(
-              'sass.types.Boolean(true) should return a singleton',
-              sass.types.Boolean(true) === sass.types.Boolean(true) &&
-              sass.types.Boolean(true) === sass.TRUE
-            );
+            assert.strictEqual(
+              sass.types.Boolean(true), sass.types.Boolean(true),
+              'sass.types.Boolean(true) should return a singleton');
+
+            assert.strictEqual(
+              sass.types.Boolean(true), sass.TRUE,
+              'sass.types.Boolean(true) should be the same instance as sass.TRUE');
 
             counter++;
 
             return sass.types.String('foo');
           },
           bar: function(a) {
-            assert.ok(
-              'Supplied value should be the same instance as sass.NULL',
-              a === sass.NULL
-            );
+            assert.strictEqual(a, sass.NULL, 
+                'Supplied value should be the same instance as sass.NULL');
 
             assert.throws(function() {
               return new sass.types.Null();
@@ -986,20 +985,20 @@ describe('api', function() {
             return sass.TRUE;
           },
           baz: function(a) {
-            assert.ok(
-              'Supplied value should be the same instance as sass.FALSE',
-              a === sass.FALSE
-            );
+            assert.strictEqual(a, sass.FALSE,
+              'Supplied value should be the same instance as sass.FALSE');
 
             assert.throws(function() {
               return new sass.types.Boolean(false);
             }, /Cannot instantiate SassBoolean/);
 
-            assert.ok(
-              'sass.types.Boolean(false) should return a singleton',
-              sass.types.Boolean(false) === sass.types.Boolean(false) &&
-              sass.types.Boolean(false) === sass.FALSE
-            );
+            assert.strictEqual(
+              sass.types.Boolean(false), sass.types.Boolean(false),
+              'sass.types.Boolean(false) should return a singleton');
+
+            assert.strictEqual(
+              sass.types.Boolean(false), sass.FALSE,
+              'sass.types.Boolean(false) should return singleton identical to sass.FALSE');
 
             counter++;
 
@@ -1007,7 +1006,7 @@ describe('api', function() {
           }
         }
       }, function() {
-        assert.ok(counter === 3);
+        assert.strictEqual(counter, 3);
         done();
       });
     });
@@ -1021,7 +1020,7 @@ describe('api', function() {
         file: fixture('include-files/index.scss')
       }, function(error, result) {
         assert(!error);
-        assert(typeof result.stats.start === 'number');
+        assert.strictEqual(typeof result.stats.start, 'number');
         assert(result.stats.start >= start);
         done();
       });
@@ -1032,7 +1031,7 @@ describe('api', function() {
         file: fixture('include-files/index.scss')
       }, function(error, result) {
         assert(!error);
-        assert(typeof result.stats.end === 'number');
+        assert.strictEqual(typeof result.stats.end, 'number');
         assert(result.stats.end >= result.stats.start);
         done();
       });
@@ -1043,7 +1042,7 @@ describe('api', function() {
         file: fixture('include-files/index.scss')
       }, function(error, result) {
         assert(!error);
-        assert(typeof result.stats.duration === 'number');
+        assert.strictEqual(typeof result.stats.duration, 'number');
         assert.equal(result.stats.end - result.stats.start, result.stats.duration);
         done();
       });
@@ -1504,19 +1503,19 @@ describe('api', function() {
     });
 
     it('should provide a start timestamp', function(done) {
-      assert(typeof result.stats.start === 'number');
+      assert.strictEqual(typeof result.stats.start, 'number');
       assert(result.stats.start >= start);
       done();
     });
 
     it('should provide an end timestamp', function(done) {
-      assert(typeof result.stats.end === 'number');
+      assert.strictEqual(typeof result.stats.end, 'number');
       assert(result.stats.end >= result.stats.start);
       done();
     });
 
     it('should provide a duration', function(done) {
-      assert(typeof result.stats.duration === 'number');
+      assert.strictEqual(typeof result.stats.duration, 'number');
       assert.equal(result.stats.end - result.stats.start, result.stats.duration);
       done();
     });
