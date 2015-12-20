@@ -54,12 +54,12 @@ namespace SassTypes
 
     if (info.IsConstructCall()) {
       if (constructor_locked) {
-        return Nan::ThrowTypeError(Nan::New("Cannot instantiate SassBoolean").ToLocalChecked());
+        return Nan::ThrowTypeError("Cannot instantiate SassBoolean");
       }
     }
     else {
       if (info.Length() != 1 || !info[0]->IsBoolean()) {
-        return Nan::ThrowTypeError(Nan::New("Expected one boolean argument").ToLocalChecked());
+        return Nan::ThrowTypeError("Expected one boolean argument");
       }
 
       info.GetReturnValue().Set(get_singleton(Nan::To<bool>(info[0]).FromJust()).get_js_object());
