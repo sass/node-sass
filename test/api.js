@@ -978,7 +978,7 @@ describe('api', function() {
 
             assert.throws(function() {
               return new sass.types.Null();
-            }, /Cannot instantiate SassNull/);
+            });
 
             counter++;
 
