@@ -54,7 +54,12 @@ namespace SassTypes
       return Nan::ThrowRangeError(Nan::New("Out of bound index").ToLocalChecked());
     }
 
-    info.GetReturnValue().Set(Factory::create(sass_list_get_value(list, Nan::To<uint32_t>(info[0]).FromJust()))->get_js_object());
+    Sass_Value *item = sass_list_get_value(list, Nan::To<uint32_t>(info[0]).FromJust());
+    if (sass_value_is_null(item)) {
+      info.GetReturnValue().Set(Nan::Null());
+    } else {
+      info.GetReturnValue().Set(Factory::create(item)->get_js_object());
+    }
   }
 
   NAN_METHOD(List::SetValue) {
@@ -66,6 +71,10 @@ namespace SassTypes
       return Nan::ThrowTypeError("Supplied index should be an integer");
     }
 
+    if (info[1]->IsNull()) {
+      sass_list_set_value(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_make_null());
+      return;
+    }
     if (!info[1]->IsObject()) {
       return Nan::ThrowTypeError("Supplied value should be a SassValue object");
     }
