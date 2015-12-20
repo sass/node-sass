@@ -40,7 +40,7 @@ namespace SassTypes
 
     default:
       const char *msg = "Unknown type encountered.";
-      Nan::ThrowTypeError(Nan::New<v8::String>(msg).ToLocalChecked());
+      Nan::ThrowTypeError(msg);
       return new Error(sass_make_error(msg));
     }
   }
