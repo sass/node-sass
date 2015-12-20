@@ -325,6 +325,17 @@ describe('api', function() {
       });
     });
 
+    it('should fallback to default import behaviour if importer returns sass.NULL', function(done) {
+      sass.render({
+        file: fixture('include-files/index.scss'),
+        importer: function(url, prev, done) {
+          done(sass.NULL);
+        }
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+        done();
+      });
+    });
 
     it('should fallback to default import behaviour if importer returns null for backwards compatibility', function(done) {
       sass.render({
@@ -1010,7 +1021,7 @@ describe('api', function() {
             return sass.types.String('foo');
           },
           bar: function(a) {
-            assert.strictEqual(a, sass.NULL, 
+            assert.strictEqual(a, sass.NULL,
                 'Supplied value should be the same instance as sass.NULL');
 
             assert.throws(function() {
