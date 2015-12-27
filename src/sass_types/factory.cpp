@@ -47,6 +47,9 @@ namespace SassTypes
 
   NAN_MODULE_INIT(Factory::initExports) {
     Nan::HandleScope scope;
+    v8::Local<v8::Object> fake_null = Nan::New<v8::Object>();
+    Nan::Set(fake_null, Nan::New("NULL").ToLocalChecked(), Nan::Null());
+
     v8::Local<v8::Object> types = Nan::New<v8::Object>();
 
     Nan::Set(types, Nan::New("Number").ToLocalChecked(), Number::get_constructor());
@@ -55,7 +58,7 @@ namespace SassTypes
     Nan::Set(types, Nan::New("Boolean").ToLocalChecked(), Boolean::get_constructor());
     Nan::Set(types, Nan::New("List").ToLocalChecked(), List::get_constructor());
     Nan::Set(types, Nan::New("Map").ToLocalChecked(), Map::get_constructor());
-    Nan::Set(types, Nan::New("Null").ToLocalChecked(), Null::get_constructor());
+    Nan::Set(types, Nan::New("Null").ToLocalChecked(), fake_null);
     Nan::Set(types, Nan::New("Error").ToLocalChecked(), Error::get_constructor());
     Nan::Set(target, Nan::New<v8::String>("types").ToLocalChecked(), types);
   }
