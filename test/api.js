@@ -278,7 +278,7 @@ describe('api', function() {
           });
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), '');
+        assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
         done();
       });
     });
@@ -292,7 +292,7 @@ describe('api', function() {
           });
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), '');
+        assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
         done();
       });
     });
@@ -306,7 +306,7 @@ describe('api', function() {
           };
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), '');
+        assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
         done();
       });
     });
@@ -320,7 +320,44 @@ describe('api', function() {
           };
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), '');
+        assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+        done();
+      });
+    });
+
+
+    it('should fallback to default import behaviour if importer returns null for backwards compatibility', function(done) {
+      sass.render({
+        file: fixture('include-files/index.scss'),
+        importer: function(url, prev, done) {
+          done(null);
+        }
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+        done();
+      });
+    });
+
+    it('should fallback to default import behaviour if importer returns undefined for backwards compatibility', function(done) {
+      sass.render({
+        file: fixture('include-files/index.scss'),
+        importer: function(url, prev, done) {
+          done(undefined);
+        }
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+        done();
+      });
+    });
+
+    it('should fallback to default import behaviour if importer returns false for backwards compatibility', function(done) {
+      sass.render({
+        file: fixture('include-files/index.scss'),
+        importer: function(url, prev, done) {
+          done(false);
+        }
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
         done();
       });
     });
@@ -1248,7 +1285,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.toString().trim(), '');
+      assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
       done();
     });
 
@@ -1262,7 +1299,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.toString().trim(), '');
+      assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
       done();
     });
 
@@ -1291,6 +1328,56 @@ describe('api', function() {
       });
 
       assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      done();
+    });
+
+
+
+    it('should fallback to default import behaviour if importer returns sass.NULL', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function() {
+          return sass.NULL;
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+      done();
+    });
+
+    it('should fallback to default import behaviour if importer returns null for backwards compatibility', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function() {
+          return null;
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+      done();
+    });
+
+    it('should fallback to default import behaviour if importer returns undefined for backwards compatibility', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function() {
+          return undefined;
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+      done();
+    });
+
+    it('should fallback to default import behaviour if importer returns false for backwards compatibility', function(done) {
+      var result = sass.renderSync({
+        file: fixture('include-files/index.scss'),
+        importer: function() {
+          return false;
+        }
+      });
+
+      assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
       done();
     });
 
