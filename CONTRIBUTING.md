@@ -29,6 +29,26 @@ If you are facing binary related issues, please create a gist (see [Creating gis
 
 If this project is missing an API or command line flag that has been added to [libsass], then please open an issue here. We will then look at updating our [libsass] submodule and create a new release. You can help us create the new release by rebuilding binaries, and then creating a pull request to the [node-sass-binaries](https://github.com/sass/node-sass-binaries) repo.
 
+### Testing a bugfix:
+
+1. Ensure the `master` branch is up-to-date with: `git checkout master; git pull`
+2. Create a new Git branch and make your changes. `git checkout -b name-of-new-branch`
+3. Install all the node.js dependencies of node-sass with: `npm install`
+4. The Sass test spec and LibSass are Git submodules, so get their codebase with: `git submodule update --init`
+5. Ensure the tests pass with: `npm test`
+
+If the bug fix requires modifying any of the C++ files in the src/ directory, you'll need to re-build the bindings to libSass.
+
+1. Build the libSass bindings for node-sass with: `npm run-script build`
+
+Alternatively, the `scripts/build.js` build script has several different command line flags that can be passed by running: `node scripts/build.js -[flag]`
+
+If the bug fix requires updating the version of libSass, you'll need to update its git submodule.
+
+1. Move into node-sass's libSass directory with: `cd src/libsass`
+2. Look for a new version of libSass with: `git tag` and check it out with: `git checkout [tag]`
+3. Then return to root of the node-sass repository and add the change to your feature branch.
+
 ## Reporting Sass compilation and syntax issues
 
 Please check for [issues on the libsass repo](https://github.com/hcatlin/libsass/issues) (as there is a good chance that it may already be an issue there for it), and otherwise [create a new issue there](https://github.com/sass/libsass/issues/new).
