@@ -1,3 +1,4 @@
+OS       ?= $(shell uname -s)
 CC       ?= gcc
 CXX      ?= g++
 RM       ?= rm -f
@@ -5,6 +6,10 @@ CP       ?= cp -a
 MKDIR    ?= mkdir
 RMDIR    ?= rmdir
 WINDRES  ?= windres
+ifeq ($(OS),SunOS)  # Solaris/Illumos flavors
+INSTALL  = ginstall
+PREFIX   = /opt/local
+endif
 INSTALL  ?= install
 CFLAGS   ?= -Wall
 CXXFLAGS ?= -Wall
@@ -128,13 +133,12 @@ ifneq ($(BUILD),shared)
 	BUILD = static
 endif
 
-ifeq (,$(PREFIX))
-	ifeq (,$(TRAVIS_BUILD_DIR))
-		PREFIX = /usr/local
-	else
-		PREFIX = $(TRAVIS_BUILD_DIR)
-	endif
+ifeq (,$(TRAVIS_BUILD_DIR))
+	PREFIX ?= /usr/local
+else
+	PREFIX ?= $(TRAVIS_BUILD_DIR)
 endif
+
 
 SASS_SASSC_PATH ?= sassc
 SASS_SPEC_PATH ?= sass-spec
