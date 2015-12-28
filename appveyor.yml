@@ -55,7 +55,7 @@ test_script:
       if ($PRNR) {
         echo "Fetching info for PR $PRNR"
         wget https://api.github.com/repos/sass/libsass/pulls/$PRNR -OutFile pr.json
-        $json = Get-Content pr.json -Raw
+        $json = cat pr.json -Raw
         $SPEC_PR = [regex]::match($json,'sass\/sass-spec(#|\/pull\/)([0-9]+)').Groups[2].Value
         if ($SPEC_PR) {
           echo "Checkout sass spec PR $SPEC_PR"
