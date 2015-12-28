@@ -54,21 +54,21 @@
     "cross-spawn": "^2.0.0",
     "gaze": "^0.5.1",
     "get-stdin": "^4.0.1",
-    "glob": "^5.0.14",
+    "glob": "^6.0.2",
     "meow": "^3.3.0",
     "mkdirp": "^0.5.1",
     "nan": "^2.0.8",
-    "npmconf": "^2.1.2",
     "node-gyp": "^3.0.1",
+    "npmconf": "^2.1.2",
     "request": "^2.61.0",
     "sass-graph": "^2.0.1"
   },
   "devDependencies": {
     "coveralls": "^2.11.4",
-    "istanbul": "^0.3.18",
+    "istanbul": "^0.4.1",
     "jshint": "^2.8.0",
     "mocha": "^2.3.4",
-    "mocha-lcov-reporter": "^0.0.2",
+    "mocha-lcov-reporter": "^1.0.0",
     "rimraf": "^2.4.2"
   }
 }
