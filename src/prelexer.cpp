@@ -605,23 +605,6 @@ namespace Sass {
     const char* uri_prefix(const char* src) {
       return exactly<url_kwd>(src);
     }
-    const char* uri_value(const char* src)
-    {
-      return
-      sequence <
-        negate <
-          exactly < '$' >
-        >,
-        zero_plus <
-          alternatives <
-            alnum,
-            interpolant,
-            exactly <'/'>,
-            class_char < uri_chars >
-          >
-        >
-      >(src);
-    }
 
     // TODO: rename the following two functions
     /* no longer used - remove?

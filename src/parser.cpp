@@ -298,12 +298,12 @@ namespace Sass {
       else if (lex< uri_prefix >()) {
         Arguments* args = SASS_MEMORY_NEW(ctx.mem, Arguments, pstate);
         Function_Call* result = SASS_MEMORY_NEW(ctx.mem, Function_Call, pstate, "url", args);
+
         if (lex< quoted_string >()) {
           Expression* the_url = parse_string();
           *args << SASS_MEMORY_NEW(ctx.mem, Argument, the_url->pstate(), the_url);
         }
-        else if (lex < uri_value >(false)) { // don't skip comments
-          String* the_url = parse_interpolated_chunk(lexed);
+        else if (String* the_url = parse_url_function_argument()) {
           *args << SASS_MEMORY_NEW(ctx.mem, Argument, the_url->pstate(), the_url);
         }
         else if (peek < skip_over_scopes < exactly < '(' >, exactly < ')' > > >(position)) {
@@ -1688,13 +1688,38 @@ namespace Sass {
 
   String* Parser::parse_url_function_string()
   {
+    std::string prefix("");
+    if (lex< uri_prefix >()) {
+      prefix = std::string(lexed);
+    }
+
+    String* url_string = parse_url_function_argument();
+
+    std::string suffix("");
+    if (lex< real_uri_suffix >()) {
+      suffix = std::string(lexed);
+    }
+
+    if (String_Schema* schema = dynamic_cast<String_Schema*>(url_string)) {
+      String_Schema* res = SASS_MEMORY_NEW(ctx.mem, String_Schema, pstate);
+      (*res) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, prefix);
+      (*res) += schema;
+      (*res) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, suffix);
+      return res;
+    } else {
+      std::string res = prefix + url_string->to_string() + suffix;
+      return SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, res);
+    }
+  }
+
+  String* Parser::parse_url_function_argument()
+  {
     const char* p = position;
 
-    lex< uri_prefix >();
-    std::string prefix = lexed;
-
-    lex< real_uri_value >(false);
-    std::string uri = lexed;
+    std::string uri("");
+    if (lex< real_uri_value >(false)) {
+      uri = lexed.to_string();
+    }
 
     if (peek< exactly< hash_lbrace > >()) {
       const char* pp = position;
@@ -1702,14 +1727,15 @@ namespace Sass {
       while (peek< exactly< hash_lbrace > >(pp)) {
         pp = sequence< interpolant, real_uri_value >(pp);
       }
-      position = peek< real_uri_suffix >(pp);
+      position = pp;
       return parse_interpolated_chunk(Token(p, position));
-    } else {
-      lex< real_uri_suffix >();
-      std::string res = prefix + Util::rtrim(uri) + lexed.to_string();
+    }
+    else if (uri != "") {
+      std::string res = Util::rtrim(uri);
       return SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, res);
     }
 
+    return 0;
   }
 
   Function_Call* Parser::parse_function_call()
