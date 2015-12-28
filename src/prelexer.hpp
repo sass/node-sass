@@ -296,7 +296,6 @@ namespace Sass {
     // const char* rgb_prefix(const char* src);
     // Match CSS uri specifiers.
     const char* uri_prefix(const char* src);
-    const char* uri_value(const char* src);
     // Match CSS "!important" keyword.
     const char* kwd_important(const char* src);
     // Match CSS "!optional" keyword.
