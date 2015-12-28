@@ -1,4 +1,4 @@
-os: Visual Studio 2015
+﻿os: Visual Studio 2015
 
 environment:
   CTEST_OUTPUT_ON_FAILURE: 1
@@ -27,8 +27,7 @@ install:
       if ($env:Compiler -eq "mingw" -AND -Not (Test-Path "C:\mingw64")) {
         # Install MinGW.
         $file = "x86_64-4.9.2-release-win32-seh-rt_v4-rev3.7z"
-        $url  = "https://bintray.com/artifact/download/drewwells/generic/"
-        $url += $file
+        $url  = "https://bintray.com/artifact/download/drewwells/generic/$file"
         Invoke-WebRequest -UserAgent wget -Uri $url -OutFile $file
         &7z x -oC:\ $file > $null
       }
@@ -53,7 +52,7 @@ build_script:
 
 test_script:
   - ps: |
-      $PRNR = [System.Environment]::ExpandEnvironmentVariables("%APPVEYOR_PULL_REQUEST_NUMBER%")
+      $PRNR = $env:APPVEYOR_PULL_REQUEST_NUMBER
       if ($PRNR -ne "") {
         echo "Fetching info for PR $PRNR"
         $request = (New-Object System.Net.WebClient)
@@ -68,3 +67,14 @@ test_script:
         }
       }
       ruby sass-spec/sass-spec.rb -c $env:TargetPath -s --ignore-todo sass-spec/spec
+
+      Write-Host "Explicitly testing the case when cwd has Cyrillic characters: " -nonewline
+      # See comments in gh-1774 for details.
+      $env:TargetPath =  Join-Path $pwd.Path $env:TargetPath
+      cd sass-spec/spec/libsass/Sáss-UŢF8/
+      &$env:TargetPath ./input.scss 2>&1>$null
+      if(-not($?)) {
+        echo "Failed!"
+      } else {
+        echo "Success!"
+      }
