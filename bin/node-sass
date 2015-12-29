@@ -109,7 +109,7 @@ function isDirectory(filePath) {
   var isDir = false;
   try {
     var absolutePath = path.resolve(filePath);
-    isDir = fs.lstatSync(absolutePath).isDirectory();
+    isDir = fs.statSync(absolutePath).isDirectory();
   } catch (e) {
     isDir = e.code === 'ENOENT';
   }
