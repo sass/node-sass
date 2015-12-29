@@ -50,6 +50,7 @@ libsass/*
 *.a
 *.suo
 *.sdf
+*.opendb
 *.opensdf
 a.out
 libsass.js

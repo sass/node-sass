@@ -27,8 +27,7 @@ install:
       if ($env:Compiler -eq "mingw" -AND -Not (Test-Path "C:\mingw64")) {
         # Install MinGW.
         $file = "x86_64-4.9.2-release-win32-seh-rt_v4-rev3.7z"
-        $url  = "https://bintray.com/artifact/download/drewwells/generic/$file"
-        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile $file
+        wget https://bintray.com/artifact/download/drewwells/generic/$file -OutFile $file
         &7z x -oC:\ $file > $null
       }
   - set PATH=C:\mingw64\bin;%PATH%
@@ -53,14 +52,12 @@ build_script:
 test_script:
   - ps: |
       $PRNR = $env:APPVEYOR_PULL_REQUEST_NUMBER
-      if ($PRNR -ne "") {
+      if ($PRNR) {
         echo "Fetching info for PR $PRNR"
-        $request = (New-Object System.Net.WebClient)
-        $request.headers['User-Agent'] = "Mozilla/5.0"
-        $request.DownloadFile( "https://api.github.com/repos/sass/libsass/pulls/$PRNR", 'pr.json')
-        $json = [IO.File]::ReadAllText('pr.json')
+        wget https://api.github.com/repos/sass/libsass/pulls/$PRNR -OutFile pr.json
+        $json = Get-Content pr.json -Raw
         $SPEC_PR = [regex]::match($json,'sass\/sass-spec(#|\/pull\/)([0-9]+)').Groups[2].Value
-        if ($SPEC_PR -ne "") {
+        if ($SPEC_PR) {
           echo "Checkout sass spec PR $SPEC_PR"
           git -C sass-spec fetch -q -u origin pull/$SPEC_PR/head:ci-spec-pr-$SPEC_PR
           git -C sass-spec checkout -q --force ci-spec-pr-$SPEC_PR
@@ -75,6 +72,7 @@ test_script:
       &$env:TargetPath ./input.scss 2>&1>$null
       if(-not($?)) {
         echo "Failed!"
+        exit 1
       } else {
         echo "Success!"
       }
