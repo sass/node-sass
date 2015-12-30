@@ -488,6 +488,12 @@ namespace Sass {
 
       int cp = utf8::next(it, end);
 
+      // in case of \r, check if the next in sequence
+      // is \n and then advance the iterator.
+      if (cp == '\r' && it < end && utf8::peek_next(it, end) == '\n') {
+        cp = utf8::next(it, end);
+      }
+
       if (cp == '\n') {
         quoted.push_back('\\');
         quoted.push_back('a');
