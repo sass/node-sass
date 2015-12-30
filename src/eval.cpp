@@ -294,7 +294,10 @@ namespace Sass {
     exp.env_stack.push_back(&env);
     while (*pred->perform(this)) {
       Expression* val = body->perform(this);
-      if (val) return val;
+      if (val) {
+        exp.env_stack.pop_back();
+        return val;
+      }
     }
     exp.env_stack.pop_back();
     return 0;
