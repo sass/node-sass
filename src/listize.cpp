@@ -21,7 +21,8 @@ namespace Sass {
       if (!(*sel)[i]) continue;
       *l << (*sel)[i]->perform(this);
     }
-    return l;
+    if (l->length()) return l;
+    return SASS_MEMORY_NEW(ctx.mem, Null, l->pstate());
   }
 
   Expression* Listize::operator()(Compound_Selector* sel)
