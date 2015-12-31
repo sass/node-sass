@@ -514,6 +514,7 @@ namespace Sass {
         Expression* interpolant = Parser::from_c_str(p+2, j, ctx, pstate).parse_list();
         // set status on the list expression
         interpolant->is_interpolant(true);
+        schema->has_interpolants(true);
         // add to the string schema
         (*schema) << interpolant;
         // advance position
