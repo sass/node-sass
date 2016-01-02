@@ -588,6 +588,24 @@ describe('cli', function() {
       });
     });
 
+    it('should not error if output directory is a symlink', function(done) {
+      var outputDir = fixture('input-directory/css');
+      var src = fixture('input-directory/sass');
+      var symlink = fixture('symlinked-css');
+      fs.mkdirSync(outputDir);
+      fs.symlinkSync(outputDir, symlink);
+      var bin = spawn(cli, [src, '--output', symlink]);
+
+      bin.once('close', function() {
+        var files = fs.readdirSync(outputDir).sort();
+        assert.deepEqual(files, ['one.css', 'two.css', 'nested'].sort());
+        var nestedFiles = fs.readdirSync(path.join(outputDir, 'nested'));
+        assert.deepEqual(nestedFiles, ['three.css']);
+        rimraf.sync(outputDir);
+        fs.unlinkSync(symlink);
+        done();
+      });
+    });
   });
 
   describe('node-sass in.scss --output path/to/file/out.css', function() {
