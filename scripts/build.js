@@ -135,9 +135,9 @@ function build(options) {
         return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
       })).concat(options.args);
 
-    console.log(['Building:', process.sass.runtime.execPath].concat(args).join(' '));
+    console.log(['Building:', process.execPath].concat(args).join(' '));
 
-    var proc = spawn(process.sass.runtime.execPath, args, {
+    var proc = spawn(process.execPath, args, {
       stdio: [0, 1, 2]
     });
 
