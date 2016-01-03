@@ -528,6 +528,8 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << ind << "Binary_Expression " << expression;
     std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
     std::cerr << " [delayed: " << expression->is_delayed() << "] ";
+    std::cerr << " [ws_before: " << expression->op().ws_before << "] ";
+    std::cerr << " [ws_after: " << expression->op().ws_after << "] ";
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " [" << expression->type_name() << "]" << std::endl;
     debug_ast(expression->left(), ind + " left:  ", env);

@@ -1188,34 +1188,38 @@ namespace Sass {
   {
     // parse the left hand side expression
     Expression* lhs = parse_expression();
+    std::vector<Expression*> operands;
+    std::vector<Operand> operators;
     // if it's a singleton, return it (don't wrap it)
-    if (!(peek< alternatives <
+    while (peek< alternatives <
             kwd_eq,
             kwd_neq,
             kwd_gte,
             kwd_gt,
             kwd_lte,
             kwd_lt
-          > >(position)))
-    { return lhs; }
+          > >(position))
+    {
+      // is directly adjancent to expression?
+      bool left_ws = peek < css_comments >();
+      // parse the operator
+      enum Sass_OP op
+      = lex<kwd_eq>()  ? Sass_OP::EQ
+      : lex<kwd_neq>() ? Sass_OP::NEQ
+      : lex<kwd_gte>() ? Sass_OP::GTE
+      : lex<kwd_lte>() ? Sass_OP::LTE
+      : lex<kwd_gt>()  ? Sass_OP::GT
+      : lex<kwd_lt>()  ? Sass_OP::LT
+      // we checked the possibilites on top of fn
+      :                  Sass_OP::EQ;
+      // is directly adjancent to expression?
+      bool right_ws = peek < css_comments >();
+      operators.push_back({ op, left_ws, right_ws });
+      operands.push_back(parse_expression());
+      left_ws = peek < css_comments >();
+    }
     // parse the operator
-    const char* left_ws = peek < css_comments >();
-    // parse the operator
-    enum Sass_OP op
-    = lex<kwd_eq>()  ? Sass_OP::EQ
-    : lex<kwd_neq>() ? Sass_OP::NEQ
-    : lex<kwd_gte>() ? Sass_OP::GTE
-    : lex<kwd_lte>() ? Sass_OP::LTE
-    : lex<kwd_gt>()  ? Sass_OP::GT
-    : lex<kwd_lt>()  ? Sass_OP::LT
-    // we checked the possibilites on top of fn
-    :                  Sass_OP::EQ;
-    // parse the right hand side expression
-    const char* right_ws = peek < css_comments >();
-    // parse the right hand side expression
-    Expression* rhs = parse_expression();
-    // return binary expression with a left and a right hand side
-    return SASS_MEMORY_NEW(ctx.mem, Binary_Expression, lhs->pstate(), { op, left_ws != 0, right_ws != 0 }, lhs, rhs);
+    return fold_operands(lhs, operands, operators);
   }
   // parse_relation
 
@@ -1254,8 +1258,6 @@ namespace Sass {
   {
     Expression* factor = parse_factor();
     // if it's a singleton, return it (don't wrap it)
-    if (!peek_css< class_char< static_ops > >()) return factor;
-    // parse more factors and operators
     std::vector<Expression*> operands; // factors
     std::vector<Operand> operators; // ops
     // lex operations to apply to lhs
@@ -1288,15 +1290,14 @@ namespace Sass {
       // lex the expected closing parenthesis
       if (!lex_css< exactly<')'> >()) error("unclosed parenthesis", pstate);
       // expression can be evaluated
-      value->is_delayed(false);
+      // make sure wrapped lists and division expressions are non-delayed within parentheses
       // make sure wrapped lists and division expressions are non-delayed within parentheses
       if (value->concrete_type() == Expression::LIST) {
         // List* l = static_cast<List*>(value);
         // if (!l->empty()) (*l)[0]->is_delayed(false);
       } else if (typeid(*value) == typeid(Binary_Expression)) {
         Binary_Expression* b = static_cast<Binary_Expression*>(value);
-        Binary_Expression* lhs = static_cast<Binary_Expression*>(b->left());
-        if (lhs && lhs->type() == Sass_OP::DIV) lhs->is_delayed(false);
+        if (b && b->type() == Sass_OP::DIV) b->is_delayed(false);
       }
       return value;
     }
@@ -2480,19 +2481,68 @@ namespace Sass {
     return base;
   }
 
-  Expression* Parser::fold_operands(Expression* base, std::vector<Expression*>& operands, std::vector<Operand>& ops)
+  Expression* Parser::fold_operands(Expression* base, std::vector<Expression*>& operands, std::vector<Operand>& ops, size_t i)
   {
-    for (size_t i = 0, S = operands.size(); i < S; ++i) {
-      base = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, base->pstate(), ops[i], base, operands[i]);
+// std::cerr << "in\n";
+
+    if (String_Schema* schema = dynamic_cast<String_Schema*>(base)) {
+      // return schema;
+      if (schema->has_interpolants()) {
+        if (i + 1 < operands.size() && (
+             (ops[0].operand == Sass_OP::EQ)
+          || (ops[0].operand == Sass_OP::ADD)
+          || (ops[0].operand == Sass_OP::DIV)
+          || (ops[0].operand == Sass_OP::MUL)
+          || (ops[0].operand == Sass_OP::NEQ)
+          || (ops[0].operand == Sass_OP::LT)
+          || (ops[0].operand == Sass_OP::GT)
+          || (ops[0].operand == Sass_OP::LTE)
+          || (ops[0].operand == Sass_OP::GTE)
+        )) {
+          Expression* rhs = fold_operands(operands[0], operands, ops, 1);
+          rhs = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, base->pstate(), ops[0], schema, rhs);
+          rhs->set_delayed(false);
+          rhs->is_delayed(true);
+          return rhs;
+        }
+        // return schema;
+      }
+    }
+
+    for (size_t S = operands.size(); i < S; ++i) {
+      if (String_Schema* schema = dynamic_cast<String_Schema*>(operands[i])) {
+        if (schema->has_interpolants()) {
+          if (i + 1 < S) {
+// std::cerr << "fold\n";
+            Expression* rhs = fold_operands(operands[i+1], operands, ops, i + 2);
+            rhs = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, base->pstate(), ops[i], schema, rhs);
+            base = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, base->pstate(), ops[i], base, rhs);
+            rhs->is_delayed(true);
+            base->is_delayed(true);
+   //        std::cerr << "out\n";
+            return base;
+          }
+          base = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, base->pstate(), ops[i], base, operands[i]);
+          if (ops[i].operand != Sass_OP::DIV) base->is_delayed(true);
+      //     std::cerr << "out\n";
+          return base;
+        } else {
+          base = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, base->pstate(), ops[i], base, operands[i]);
+        }
+      } else {
+        base = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, base->pstate(), ops[i], base, operands[i]);
+      }
       Binary_Expression* b = static_cast<Binary_Expression*>(base);
-      if (ops[i].operand == Sass_OP::DIV && b->left()->is_delayed() && b->right()->is_delayed()) {
+      if (b && ops[i].operand == Sass_OP::DIV && b->left()->is_delayed() && b->right()->is_delayed()) {
         base->is_delayed(true);
       }
-      else {
+      else if (b) {
         b->left()->is_delayed(false);
         b->right()->is_delayed(false);
       }
+
     }
+//           std::cerr << "out\n";
     return base;
   }
 
