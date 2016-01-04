@@ -10,6 +10,6 @@ insert_final_newline = true
 indent_style = spaces
 indent_size = 2
 
-[{Makefile, Makefile.am}]
+[{Makefile, GNUmakefile.am}]
 indent_style = tab
 indent_size = 4
