@@ -971,11 +971,12 @@ namespace Sass {
 
     if (head && head->length() > 0) {
 
+      Selector_List* retval = 0;
       // we have a parent selector in a simple compound list
       // mix parent complex selector into the compound list
       if (dynamic_cast<Parent_Selector*>((*head)[0])) {
+        retval = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate());
         if (parents && parents->length()) {
-          Selector_List* retval = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate());
           if (tails && tails->length() > 0) {
             for (size_t n = 0, nL = tails->length(); n < nL; ++n) {
               for (size_t i = 0, iL = parents->length(); i < iL; ++i) {
@@ -1014,11 +1015,9 @@ namespace Sass {
               *retval << s;
             }
           }
-          return retval;
         }
         // have no parent but some tails
         else {
-          Selector_List* retval = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate());
           if (tails && tails->length() > 0) {
             for (size_t n = 0, nL = tails->length(); n < nL; ++n) {
               Complex_Selector* cpy = this->clone(ctx);
@@ -1039,13 +1038,22 @@ namespace Sass {
             if (!cpy->head()->length()) cpy->head(0);
             *retval << cpy->skip_empty_reference();
           }
-          return retval;
         }
       }
       // no parent selector in head
       else {
-        return this->tails(ctx, tails);
+        retval = this->tails(ctx, tails);
       }
+
+      for (Simple_Selector* ss : *head) {
+        if (Wrapped_Selector* ws = dynamic_cast<Wrapped_Selector*>(ss)) {
+          if (Selector_List* sl = dynamic_cast<Selector_List*>(ws->selector())) {
+            if (parents) ws->selector(sl->parentize(parents, ctx));
+          }
+        }
+      }
+
+      return retval;
 
     }
     // has no head

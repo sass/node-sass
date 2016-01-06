@@ -534,15 +534,11 @@ namespace Sass {
     return 0;
   }
 
-  Statement* Expand::operator()(Extension* e)
-  {
-    To_String to_string(&ctx);
-    Selector_List* extender = dynamic_cast<Selector_List*>(selector());
-    if (!extender) return 0;
-    selector_stack.push_back(0);
 
-    if (Selector_List* selector_list = dynamic_cast<Selector_List*>(e->selector())) {
-      for (Complex_Selector* complex_selector : selector_list->elements()) {
+  void Expand::expand_selector_list(Selector* s, Selector_List* extender) {
+
+    if (Selector_List* sl = dynamic_cast<Selector_List*>(s)) {
+      for (Complex_Selector* complex_selector : sl->elements()) {
         Complex_Selector* tail = complex_selector;
         while (tail) {
           if (tail->head()) for (Simple_Selector* header : tail->head()->elements()) {
@@ -555,8 +551,9 @@ namespace Sass {
       }
     }
 
-    Selector_List* contextualized = dynamic_cast<Selector_List*>(e->selector()->perform(&eval));
-    if (contextualized == NULL) return 0;
+
+    Selector_List* contextualized = dynamic_cast<Selector_List*>(s->perform(&eval));
+    if (contextualized == NULL) return;
     for (auto complex_sel : contextualized->elements()) {
       Complex_Selector* c = complex_sel;
       if (!c->head() || c->tail()) {
@@ -564,7 +561,7 @@ namespace Sass {
         error("Can't extend " + sel_str + ": can't extend nested selectors", c->pstate(), backtrace());
       }
       Compound_Selector* placeholder = c->head();
-      placeholder->is_optional(e->selector()->is_optional());
+      placeholder->is_optional(s->is_optional());
       for (size_t i = 0, L = extender->length(); i < L; ++i) {
         Complex_Selector* sel = (*extender)[i];
         if (!(sel->head() && sel->head()->length() > 0 &&
@@ -587,8 +584,16 @@ namespace Sass {
       }
     }
 
-    selector_stack.pop_back();
+  }
 
+  Statement* Expand::operator()(Extension* e)
+  {
+    if (Selector_List* extender = dynamic_cast<Selector_List*>(selector())) {
+      selector_stack.push_back(0);
+      Selector* s = e->selector();
+      expand_selector_list(s, extender);
+      selector_stack.pop_back();
+    }
     return 0;
   }
 
