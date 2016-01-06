@@ -203,8 +203,10 @@ namespace Sass {
       if (l[l.length()-1] != '/') l += '/';
 
       while ((r.length() > 3) && ((r.substr(0, 3) == "../") || (r.substr(0, 3)) == "..\\")) {
-        r = r.substr(3);
-        size_t pos = find_last_folder_separator(l, l.length() - 2);
+        size_t L = l.length(), pos = find_last_folder_separator(l, L - 2);
+        bool is_slash = pos + 2 == L && (l[pos+1] == '/' || l[pos+1] == '\\');
+        bool is_self = pos + 3 == L && (l[pos+1] == '.');
+        if (!is_self && !is_slash) r = r.substr(3);
         l = l.substr(0, pos == std::string::npos ? pos : pos + 1);
       }
 
