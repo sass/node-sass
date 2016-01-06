@@ -2146,57 +2146,68 @@ namespace Sass {
     rv.error = p;
     if (const char* q =
       peek <
-        one_plus <
-          alternatives <
-            // consume whitespace and comments
-            spaces, block_comment, line_comment,
-            // match `/deep/` selector (pass-trough)
-            // there is no functionality for it yet
-            schema_reference_combinator,
-            // match selector ops /[*&%,()\[\]]/
-            class_char < selector_lookahead_ops >,
-            // match selector combinators /[>+~]/
-            class_char < selector_combinator_ops >,
-            // match attribute compare operators
-            alternatives <
-              exact_match, class_match, dash_match,
-              prefix_match, suffix_match, substring_match
+        alternatives <
+          // partial bem selector
+          sequence <
+            ampersand,
+            one_plus <
+              exactly < '-' >
             >,
-            // main selector match
-            sequence <
-              // allow namespace prefix
-              optional < namespace_schema >,
-              // modifiers prefixes
+            word_boundary
+          >,
+          // main selector matching
+          one_plus <
+            alternatives <
+              // consume whitespace and comments
+              spaces, block_comment, line_comment,
+              // match `/deep/` selector (pass-trough)
+              // there is no functionality for it yet
+              schema_reference_combinator,
+              // match selector ops /[*&%,()\[\]]/
+              class_char < selector_lookahead_ops >,
+              // match selector combinators /[>+~]/
+              class_char < selector_combinator_ops >,
+              // match attribute compare operators
               alternatives <
-                sequence <
-                  exactly <'#'>,
-                  // not for interpolation
-                  negate < exactly <'{'> >
-                >,
-                // class match
-                exactly <'.'>,
-                // single or double colon
-                optional < pseudo_prefix >
+                exact_match, class_match, dash_match,
+                prefix_match, suffix_match, substring_match
               >,
-              // accept hypens in token
-              one_plus < sequence <
-                // can start with hyphens
-                zero_plus < exactly<'-'> >,
-                // now the main token
+              // main selector match
+              sequence <
+                // allow namespace prefix
+                optional < namespace_schema >,
+                // modifiers prefixes
                 alternatives <
-                  kwd_optional,
-                  exactly <'*'>,
-                  quoted_string,
-                  interpolant,
-                  identifier,
-                  percentage,
-                  dimension,
-                  variable,
-                  alnum
-                >
-              > >,
-              // can also end with hyphens
-              zero_plus < exactly<'-'> >
+                  sequence <
+                    exactly <'#'>,
+                    // not for interpolation
+                    negate < exactly <'{'> >
+                  >,
+                  // class match
+                  exactly <'.'>,
+                  // single or double colon
+                  optional < pseudo_prefix >
+                >,
+                // accept hypens in token
+                one_plus < sequence <
+                  // can start with hyphens
+                  zero_plus < exactly<'-'> >,
+                  // now the main token
+                  alternatives <
+                    kwd_optional,
+                    exactly <'*'>,
+                    quoted_string,
+                    interpolant,
+                    identifier,
+                    percentage,
+                    dimension,
+                    variable,
+                    alnum
+                  >
+                > >,
+                // can also end with hyphens
+                zero_plus < exactly<'-'> >
+              >
             >
           >
         >
