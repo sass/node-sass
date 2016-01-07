@@ -1736,9 +1736,12 @@ namespace Sass {
           if (Wrapped_Selector* ws = dynamic_cast<Wrapped_Selector*>(pSimple)) {
             if (Selector_List* sl = dynamic_cast<Selector_List*>(ws->selector())) {
               for (Complex_Selector* cs : sl->elements()) {
-                if (complexSelectorHasExtension(cs, ctx, subset_map)) {
-                  hasExtension = true;
-                  break;
+                while (cs) {
+                  if (complexSelectorHasExtension(cs, ctx, subset_map)) {
+                    hasExtension = true;
+                    break;
+                  }
+                  cs = cs->tail();
                 }
               }
             }

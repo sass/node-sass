@@ -58,7 +58,10 @@ namespace Sass {
 
   bool Compound_Selector::has_parent_ref()
   {
-    return has_parent_reference();
+    for (Simple_Selector* s : *this) {
+      if (s->has_parent_ref()) return true;
+    }
+    return false;
   }
 
   bool Complex_Selector::has_parent_ref()
@@ -1237,9 +1240,17 @@ namespace Sass {
     }
   }
 
+  bool Selector_List::has_parent_ref()
+  {
+    for (Complex_Selector* s : *this) {
+      if (s->has_parent_ref()) return true;
+    }
+    return false;
+  }
+
   void Selector_List::adjust_after_pushing(Complex_Selector* c)
   {
-    if (c->has_reference())   has_reference(true);
+    // if (c->has_reference())   has_reference(true);
   }
 
   // it's a superselector if every selector of the right side

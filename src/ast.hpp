@@ -1798,7 +1798,7 @@ namespace Sass {
   // Abstract base class for CSS selectors.
   /////////////////////////////////////////
   class Selector : public Expression {
-    ADD_PROPERTY(bool, has_reference)
+    // ADD_PROPERTY(bool, has_reference)
     ADD_PROPERTY(bool, has_placeholder)
     // line break before list separator
     ADD_PROPERTY(bool, has_line_feed)
@@ -1813,7 +1813,7 @@ namespace Sass {
   public:
     Selector(ParserState pstate, bool r = false, bool h = false)
     : Expression(pstate),
-      has_reference_(r),
+      // has_reference_(r),
       has_placeholder_(h),
       has_line_feed_(false),
       has_line_break_(false),
@@ -1823,6 +1823,9 @@ namespace Sass {
     { concrete_type(SELECTOR); }
     virtual ~Selector() = 0;
     virtual size_t hash() = 0;
+    virtual bool has_parent_ref() {
+      return false;
+    }
     virtual unsigned long specificity() {
       return Constants::Specificity_Universal;
     }
@@ -1942,7 +1945,7 @@ namespace Sass {
   public:
     Parent_Selector(ParserState pstate)
     : Simple_Selector(pstate, "&")
-    { has_reference(true); }
+    { /* has_reference(true); */ }
     virtual bool has_parent_ref() { return true; };
     virtual unsigned long specificity()
     {
@@ -2106,6 +2109,11 @@ namespace Sass {
     Wrapped_Selector(ParserState pstate, std::string n, Selector* sel)
     : Simple_Selector(pstate, n), selector_(sel)
     { }
+    virtual bool has_parent_ref() {
+      // if (has_reference()) return true;
+      if (!selector()) return false;
+      return selector()->has_parent_ref();
+    }
     virtual bool is_superselector_of(Wrapped_Selector* sub);
     // Selectors inside the negation pseudo-class are counted like any
     // other, but the negation itself does not count as a pseudo-class.
@@ -2145,7 +2153,7 @@ namespace Sass {
   protected:
     void adjust_after_pushing(Simple_Selector* s)
     {
-      if (s->has_reference())   has_reference(true);
+      // if (s->has_reference())   has_reference(true);
       if (s->has_placeholder()) has_placeholder(true);
     }
   public:
@@ -2253,7 +2261,7 @@ namespace Sass {
       head_(h), tail_(t),
       reference_(r)
     {
-      if ((h && h->has_reference())   || (t && t->has_reference()))   has_reference(true);
+      // if ((h && h->has_reference())   || (t && t->has_reference()))   has_reference(true);
       if ((h && h->has_placeholder()) || (t && t->has_placeholder())) has_placeholder(true);
     }
     virtual bool has_parent_ref();
@@ -2400,6 +2408,7 @@ namespace Sass {
     std::string type() { return "list"; }
     // remove parent selector references
     // basically unwraps parsed selectors
+    virtual bool has_parent_ref();
     void remove_parent_selectors();
     // virtual Selector_Placeholder* find_placeholder();
     Selector_List* parentize(Selector_List* parents, Context& ctx);
