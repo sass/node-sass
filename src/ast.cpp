@@ -1773,6 +1773,15 @@ namespace Sass {
     return false;
   }
 
+  bool String_Schema::has_left_interpolant(void) const
+  {
+    return length() && first()->is_interpolant();
+  }
+  bool String_Schema::has_right_interpolant(void) const
+  {
+    return length() && last()->is_interpolant();
+  }
+
   bool String_Schema::operator== (const Expression& rhs) const
   {
     if (const String_Schema* r = dynamic_cast<const String_Schema*>(&rhs)) {
@@ -2235,9 +2244,19 @@ namespace Sass {
 
   }
 
+  std::string String_Quoted::inspect() const
+  {
+    return quote(value_, '*', true);
+  }
+
   std::string String_Quoted::to_string(bool compressed, int precision) const
   {
     return quote_mark_ ? quote(value_, quote_mark_, true) : value_;
+  }
+
+  std::string String_Constant::inspect() const
+  {
+    return quote(value_, '*', true);
   }
 
   std::string String_Constant::to_string(bool compressed, int precision) const

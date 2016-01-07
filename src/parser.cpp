@@ -525,7 +525,7 @@ namespace Sass {
         Expression* interpolant = Parser::from_c_str(p+2, j, ctx, pstate).parse_list();
         // set status on the list expression
         interpolant->is_interpolant(true);
-        schema->has_interpolants(true);
+        // schema->has_interpolants(true);
         // add to the string schema
         (*schema) << interpolant;
         // advance position
@@ -1682,7 +1682,7 @@ namespace Sass {
           Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, pstate).parse_list();
           interp_node->is_interpolant(true);
           (*schema) << interp_node;
-          schema->has_interpolants(true);
+          // schema->has_interpolants(true);
           i = j;
         }
         else {
