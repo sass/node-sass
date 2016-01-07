@@ -1,4 +1,4 @@
-﻿os: Visual Studio 2015
+os: Visual Studio 2013
 
 environment:
   CTEST_OUTPUT_ON_FAILURE: 1
