@@ -526,7 +526,9 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
   } else if (dynamic_cast<Binary_Expression*>(node)) {
     Binary_Expression* expression = dynamic_cast<Binary_Expression*>(node);
     std::cerr << ind << "Binary_Expression " << expression;
-    std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
+    if (expression->is_interpolant()) std::cerr << " [is interpolant] ";
+    if (expression->is_left_interpolant()) std::cerr << " [left interpolant] ";
+    if (expression->is_right_interpolant()) std::cerr << " [right interpolant] ";
     std::cerr << " [delayed: " << expression->is_delayed() << "] ";
     std::cerr << " [ws_before: " << expression->op().ws_before << "] ";
     std::cerr << " [ws_after: " << expression->op().ws_after << "] ";
@@ -608,8 +610,10 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << ind << "String_Schema " << expression;
     std::cerr << " " << expression->concrete_type();
     if (expression->is_delayed()) std::cerr << " [delayed]";
-    if (expression->has_interpolants()) std::cerr << " [has_interpolants]";
-    if (expression->is_interpolant()) std::cerr << " [interpolant]";
+    if (expression->is_interpolant()) std::cerr << " [is interpolant]";
+    if (expression->has_interpolant()) std::cerr << " [has interpolant]";
+    if (expression->is_left_interpolant()) std::cerr << " [left interpolant] ";
+    if (expression->is_right_interpolant()) std::cerr << " [right interpolant] ";
     std::cerr << " <" << prettyprint(expression->pstate().token.ws_before()) << ">" << std::endl;
     for(auto i : expression->elements()) { debug_ast(i, ind + " ", env); }
   } else if (dynamic_cast<String*>(node)) {

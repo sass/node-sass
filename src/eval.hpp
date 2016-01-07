@@ -93,7 +93,7 @@ namespace Sass {
     static Value* op_number_color(Memory_Manager&, enum Sass_OP, const Number&, const Color&, bool compressed = false, int precision = 5, ParserState* pstate = 0);
     static Value* op_color_number(Memory_Manager&, enum Sass_OP, const Color&, const Number&, bool compressed = false, int precision = 5, ParserState* pstate = 0);
     static Value* op_colors(Memory_Manager&, enum Sass_OP, const Color&, const Color&, bool compressed = false, int precision = 5, ParserState* pstate = 0);
-    static Value* op_strings(Memory_Manager&, Sass::Operand, Value&, Value&, bool compressed = false, int precision = 5, ParserState* pstate = 0);
+    static Value* op_strings(Memory_Manager&, Sass::Operand, Value&, Value&, bool compressed = false, int precision = 5, ParserState* pstate = 0, bool interpolant = false);
 
   private:
     void interpolation(Context& ctx, std::string& res, Expression* ex, bool into_quotes, bool was_itpl = false);

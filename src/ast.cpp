@@ -1773,13 +1773,13 @@ namespace Sass {
     return false;
   }
 
-  bool String_Schema::has_left_interpolant(void) const
+  bool String_Schema::is_left_interpolant(void) const
   {
-    return length() && first()->is_interpolant();
+    return length() && first()->is_left_interpolant();
   }
-  bool String_Schema::has_right_interpolant(void) const
+  bool String_Schema::is_right_interpolant(void) const
   {
-    return length() && last()->is_interpolant();
+    return length() && last()->is_right_interpolant();
   }
 
   bool String_Schema::operator== (const Expression& rhs) const
@@ -1937,6 +1937,15 @@ namespace Sass {
   std::string Argument::to_string(bool compressed, int precision) const
   {
     return value()->to_string(compressed, precision);
+  }
+
+  bool Binary_Expression::is_left_interpolant(void) const
+  {
+    return is_interpolant() || (left() && left()->is_left_interpolant());
+  }
+  bool Binary_Expression::is_right_interpolant(void) const
+  {
+    return is_interpolant() || (right() && right()->is_right_interpolant());
   }
 
   std::string Binary_Expression::to_string(bool compressed, int precision) const

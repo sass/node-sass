@@ -1230,21 +1230,35 @@ namespace Sass {
   // parse addition and subtraction operations
   Expression* Parser::parse_expression()
   {
+    // parses multiple add and subtract operations
+    // NOTE: make sure that identifiers starting with
+    // NOTE: dashes do NOT count as subtract operation
     Expression* lhs = parse_operators();
+    // if it's a singleton, return it (don't wrap it)
     // if it's a singleton, return it (don't wrap it)
     if (!(peek_css< exactly<'+'> >(position) ||
           // condition is a bit misterious, but some combinations should not be counted as operations
           (peek< no_spaces >(position) && peek< sequence< negate< unsigned_number >, exactly<'-'>, negate< space > > >(position)) ||
           (peek< sequence< negate< unsigned_number >, exactly<'-'>, negate< unsigned_number > > >(position))) ||
-          peek< identifier >(position))
+          peek< sequence < zero_plus < exactly <'-' > >, identifier > >(position))
     { return lhs; }
 
     std::vector<Expression*> operands;
     std::vector<Operand> operators;
-    const char* left_ws = peek < css_comments >();
-    while (lex_css< exactly<'+'> >() || lex< sequence< negate< digit >, exactly<'-'> > >()) {
-      const char* right_ws = peek < css_comments >();
-      operators.push_back({ lexed.to_string() == "+" ? Sass_OP::ADD : Sass_OP::SUB, left_ws != 0, right_ws != 0 });
+    bool left_ws = peek < css_comments >();
+    while (
+      lex_css< exactly<'+'> >() ||
+
+      (
+      ! peek_css< sequence < zero_plus < exactly <'-' > >, identifier > >(position)
+      && lex_css< sequence< negate< digit >, exactly<'-'> > >()
+      )
+
+    ) {
+
+
+      bool right_ws = peek < css_comments >();
+      operators.push_back({ lexed.to_string() == "+" ? Sass_OP::ADD : Sass_OP::SUB, left_ws, right_ws });
       operands.push_back(parse_operators());
       left_ws = peek < css_comments >();
     }
@@ -1297,10 +1311,14 @@ namespace Sass {
         // if (!l->empty()) (*l)[0]->is_delayed(false);
       } else if (typeid(*value) == typeid(Binary_Expression)) {
         Binary_Expression* b = static_cast<Binary_Expression*>(value);
-        if (b && b->type() == Sass_OP::DIV) b->is_delayed(false);
+        if (b && b->type() == Sass_OP::DIV) b->set_delayed(false);
       }
       return value;
     }
+    // string may be interpolated
+    // if (lex< quoted_string >()) {
+    //   return parse_string();
+    // }
     else if (peek< ie_property >()) {
       return parse_ie_property();
     }
@@ -1367,6 +1385,10 @@ namespace Sass {
 
     if (lex< sequence < number, lookahead< sequence < op, number > > > >())
     { return SASS_MEMORY_NEW(ctx.mem, Textual, pstate, Textual::NUMBER, lexed); }
+
+    // string may be interpolated
+    if (lex< sequence < quoted_string, lookahead < exactly <'-'> > > >())
+    { return parse_string(); }
 
     if (const char* stop = peek< value_schema >())
     { return parse_value_schema(stop); }
@@ -1612,6 +1634,7 @@ namespace Sass {
         if (*position == '"' || *position == '\'' || alpha(position)) {
           (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, " ");
         }
+        if (peek < exactly < '-' > >()) return schema;
       }
       // lex (normalized) variable
       else if (lex< variable >()) {
@@ -2473,7 +2496,7 @@ namespace Sass {
       if (op.operand == Sass_OP::DIV && b->left()->is_delayed() && b->right()->is_delayed()) {
         base->is_delayed(true);
       }
-      else {
+      else if (b && b->op().operand != Sass_OP::DIV) {
         b->left()->is_delayed(false);
         b->right()->is_delayed(false);
       }

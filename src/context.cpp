@@ -650,7 +650,6 @@ namespace Sass {
     Expand expand(*this, &global, &backtrace);
     Cssize cssize(*this, &backtrace);
     // expand and eval the tree
-    // debug_ast(root);
     root = root->perform(&expand)->block();
     // merge and bubble certain rules
     root = root->perform(&cssize)->block();

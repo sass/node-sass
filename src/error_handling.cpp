@@ -50,13 +50,13 @@ namespace Sass {
     {
       msg  = def_op_msg + ": \"";
       if (const Value* l = dynamic_cast<const Value*>(lhs)) {
-        msg += l->inspect();
+        msg += l->to_string();
       } else if (lhs) {
         msg += "[EXPRESSION]";
       }
       msg += " " + op + " ";
       if (const Value* r = dynamic_cast<const Value*>(rhs)) {
-        msg += r->inspect();
+        msg += r->to_string();
       } else if (rhs) {
         msg += "[EXPRESSION]";
       }

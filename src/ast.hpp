@@ -145,6 +145,9 @@ namespace Sass {
     virtual bool is_false() { return false; }
     virtual bool operator== (const Expression& rhs) const { return false; }
     virtual void set_delayed(bool delayed) { is_delayed(delayed); }
+    virtual bool has_interpolant() const { return is_interpolant(); }
+    virtual bool is_left_interpolant() const { return is_interpolant(); }
+    virtual bool is_right_interpolant() const { return is_interpolant(); }
     virtual std::string inspect() const { return to_string(); } // defaults to to_string
     virtual std::string to_string(bool compressed = false, int precision = 5) const = 0;
     virtual size_t hash() { return 0; }
@@ -1002,6 +1005,13 @@ namespace Sass {
         default: return "invalid"; break;
       }
     }
+    bool is_left_interpolant(void) const;
+    bool is_right_interpolant(void) const;
+    bool has_interpolant() const
+    {
+      return is_left_interpolant() ||
+             is_right_interpolant();
+    }
     virtual void set_delayed(bool delayed)
     {
       right()->set_delayed(delayed);
@@ -1470,8 +1480,8 @@ namespace Sass {
     std::string type() { return "string"; }
     static std::string type_name() { return "string"; }
 
-    bool has_left_interpolant(void) const;
-    bool has_right_interpolant(void) const;
+    bool is_left_interpolant(void) const;
+    bool is_right_interpolant(void) const;
     // void has_interpolants(bool tc) { }
     bool has_interpolants() {
       for (auto el : elements()) {

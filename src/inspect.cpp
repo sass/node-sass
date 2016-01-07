@@ -413,7 +413,12 @@ namespace Sass {
     expr->left()->perform(this);
     if ( in_media_block || (
           expr->op().ws_before
-          && !expr->is_delayed()
+          && (!expr->is_interpolant())
+          && (!expr->is_delayed() ||
+          expr->is_left_interpolant() ||
+          expr->is_right_interpolant()
+          )
+
     )) append_string(" ");
     switch (expr->type()) {
       case Sass_OP::AND: append_string("&&"); break;
@@ -433,7 +438,11 @@ namespace Sass {
     }
     if ( in_media_block || (
           expr->op().ws_after
-          && !expr->is_delayed()
+          && (!expr->is_interpolant())
+          && (!expr->is_delayed()
+              || expr->is_left_interpolant()
+              || expr->is_right_interpolant()
+          )
     )) append_string(" ");
     expr->right()->perform(this);
   }
