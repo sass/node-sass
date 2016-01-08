@@ -1734,6 +1734,12 @@ namespace Sass {
   bool Number::operator== (const Expression& rhs) const
   {
     if (const Number* r = dynamic_cast<const Number*>(&rhs)) {
+      size_t lhs_units = numerator_units_.size() + denominator_units_.size();
+      size_t rhs_units = r->numerator_units_.size() + r->denominator_units_.size();
+      // unitless and only having one unit seems equivalent (will change in future)
+      if (!lhs_units || !rhs_units) {
+        return std::fabs(value() - r->value()) < NUMBER_EPSILON;
+      }
       return (numerator_units_ == r->numerator_units_) &&
              (denominator_units_ == r->denominator_units_) &&
              std::fabs(value() - r->value()) < NUMBER_EPSILON;
@@ -1743,11 +1749,18 @@ namespace Sass {
 
   bool Number::operator< (const Number& rhs) const
   {
+    size_t lhs_units = numerator_units_.size() + denominator_units_.size();
+    size_t rhs_units = rhs.numerator_units_.size() + rhs.denominator_units_.size();
+    // unitless and only having one unit seems equivalent (will change in future)
+    if (!lhs_units || !rhs_units) {
+      return value() < rhs.value();
+    }
+
     Number tmp_r(rhs);
     tmp_r.normalize(find_convertible_unit());
     std::string l_unit(unit());
     std::string r_unit(tmp_r.unit());
-    if (!l_unit.empty() && !r_unit.empty() && unit() != tmp_r.unit()) {
+    if (unit() != tmp_r.unit()) {
       error("cannot compare numbers with incompatible units", pstate());
     }
     return value() < tmp_r.value();

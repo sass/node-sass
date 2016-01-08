@@ -210,6 +210,7 @@ namespace Sass {
     // Match interpolant schemas
     const char* identifier_schema(const char* src);
     const char* value_schema(const char* src);
+    const char* sass_value(const char* src);
     // const char* filename(const char* src);
     // const char* filename_schema(const char* src);
     // const char* url_schema(const char* src);

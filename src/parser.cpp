@@ -1421,7 +1421,8 @@ namespace Sass {
     { return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, lexed); }
 
     // also handle the 10em- foo special case
-    if (lex< sequence< dimension, optional< sequence< exactly<'-'>, negate< digit > > > > >())
+    // alternatives < exactly < '.' >, .. > -- `1.5em-.75em` is split into a list, not a binary expression
+    if (lex< sequence< dimension, optional< sequence< exactly<'-'>, lookahead< alternatives < exactly < '.' >, space > > > > > >())
     { return SASS_MEMORY_NEW(ctx.mem, Textual, pstate, Textual::DIMENSION, lexed); }
 
     if (lex< sequence< static_component, one_plus< strict_identifier > > >())
@@ -1595,9 +1596,14 @@ namespace Sass {
 
     const char* e = 0;
     size_t num_items = 0;
+    bool need_space = false;
     while (position < stop) {
       // parse space between tokens
       if (lex< spaces >() && num_items) {
+        need_space = true;
+      }
+      if (need_space) {
+        need_space = false;
         (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, " ");
       }
       if ((e = peek< re_functional >()) && e < stop) {
@@ -1622,17 +1628,20 @@ namespace Sass {
       }
       // lex some string constants or other valid token
       // Note: [-+] chars are left over from ie. `#{3}+3`
-      else if (lex< alternatives < exactly<'%'>, exactly < '-' >, exactly < '+' >, identifier > >()) {
+      else if (lex< alternatives < exactly<'%'>, exactly < '-' >, exactly < '+' > > >()) {
         (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, lexed);
-        if (*position == '"' || *position == '\'') {
-          (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, " ");
+      }
+      else if (lex< sequence < identifier > >()) {
+        (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, lexed);
+        if ((*position == '"' || *position == '\'') || peek < alternatives < alpha > >()) {
+          need_space = true;
         }
       }
       // lex a quoted string
       else if (lex< quoted_string >()) {
         (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, lexed, '"');
-        if (*position == '"' || *position == '\'' || alpha(position)) {
-          (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, " ");
+        if ((*position == '"' || *position == '\'') || peek < alternatives < alpha > >()) {
+          need_space = true;
         }
         if (peek < exactly < '-' > >()) return schema;
       }
