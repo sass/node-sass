@@ -20,33 +20,33 @@ namespace Sass {
   using namespace Constants;
   using namespace Prelexer;
 
-  Parser Parser::from_c_str(const char* str, Context& ctx, ParserState pstate)
+  Parser Parser::from_c_str(const char* beg, Context& ctx, ParserState pstate, const char* source)
   {
     Parser p(ctx, pstate);
-    p.source   = str;
-    p.position = p.source;
-    p.end      = str + strlen(str);
+    p.source   = source ? source : beg;
+    p.position = beg ? beg : p.source;
+    p.end      = p.position + strlen(p.position);
     Block* root = SASS_MEMORY_NEW(ctx.mem, Block, pstate);
     p.block_stack.push_back(root);
     root->is_root(true);
     return p;
   }
 
-  Parser Parser::from_c_str(const char* beg, const char* end, Context& ctx, ParserState pstate)
+  Parser Parser::from_c_str(const char* beg, const char* end, Context& ctx, ParserState pstate, const char* source)
   {
     Parser p(ctx, pstate);
-    p.source   = beg;
-    p.position = p.source;
-    p.end      = end;
+    p.source   = source ? source : beg;
+    p.position = beg ? beg : p.source;
+    p.end      = end ? end : p.position + strlen(p.position);
     Block* root = SASS_MEMORY_NEW(ctx.mem, Block, pstate);
     p.block_stack.push_back(root);
     root->is_root(true);
     return p;
   }
 
-  Selector_List* Parser::parse_selector(const char* src, Context& ctx, ParserState pstate)
+  Selector_List* Parser::parse_selector(const char* beg, Context& ctx, ParserState pstate, const char* source)
   {
-    Parser p = Parser::from_c_str(src, ctx, pstate);
+    Parser p = Parser::from_c_str(beg, ctx, pstate, source);
     // ToDo: ruby sass errors on parent references
     // ToDo: remap the source-map entries somehow
     return p.parse_selector_list(false);
@@ -58,12 +58,12 @@ namespace Sass {
            && ! peek_css<exactly<'{'>>(start);
   }
 
-  Parser Parser::from_token(Token t, Context& ctx, ParserState pstate)
+  Parser Parser::from_token(Token t, Context& ctx, ParserState pstate, const char* source)
   {
     Parser p(ctx, pstate);
-    p.source   = t.begin;
-    p.position = p.source;
-    p.end      = t.end;
+    p.source   = source ? source : t.begin;
+    p.position = t.begin ? t.begin : p.source;
+    p.end      = t.end ? t.end : p.position + strlen(p.position);
     Block* root = SASS_MEMORY_NEW(ctx.mem, Block, pstate);
     p.block_stack.push_back(root);
     root->is_root(true);
@@ -1438,7 +1438,7 @@ namespace Sass {
     if (lex< sequence< exactly<'%'>, optional< percentage > > >())
     { return SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, lexed); }
 
-    error("error reading values after " + lexed.to_string(), pstate);
+    css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
 
     // unreachable statement
     return 0;
@@ -1478,7 +1478,7 @@ namespace Sass {
         const char* j = skip_over_scopes< exactly<hash_lbrace>, exactly<rbrace> >(p + 2, chunk.end); // find the closing brace
         if (j) { --j;
           // parse the interpolant and accumulate it
-          Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, pstate).parse_list();
+          Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, pstate, source).parse_list();
           interp_node->is_interpolant(true);
           (*schema) << interp_node;
           i = j;
@@ -1548,7 +1548,7 @@ namespace Sass {
         const char* j = skip_over_scopes< exactly<hash_lbrace>, exactly<rbrace> >(p+2, str.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
-          Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, pstate).parse_list();
+          Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, pstate, source).parse_list();
           interp_node->is_interpolant(true);
           (*schema) << interp_node;
           i = j;
@@ -1711,7 +1711,7 @@ namespace Sass {
         const char* j = skip_over_scopes< exactly<hash_lbrace>, exactly<rbrace> >(p+2, id.end); // find the closing brace
         if (j) {
           // parse the interpolant and accumulate it
-          Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, pstate).parse_list();
+          Expression* interp_node = Parser::from_token(Token(p+2, j), ctx, pstate, source).parse_list();
           interp_node->is_interpolant(true);
           (*schema) << interp_node;
           // schema->has_interpolants(true);
@@ -2515,7 +2515,6 @@ namespace Sass {
 
   Expression* Parser::fold_operands(Expression* base, std::vector<Expression*>& operands, std::vector<Operand>& ops, size_t i)
   {
-// std::cerr << "in\n";
 
     if (String_Schema* schema = dynamic_cast<String_Schema*>(base)) {
       // return schema;
@@ -2545,18 +2544,15 @@ namespace Sass {
       if (String_Schema* schema = dynamic_cast<String_Schema*>(operands[i])) {
         if (schema->has_interpolants()) {
           if (i + 1 < S) {
-// std::cerr << "fold\n";
             Expression* rhs = fold_operands(operands[i+1], operands, ops, i + 2);
             rhs = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, base->pstate(), ops[i], schema, rhs);
             base = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, base->pstate(), ops[i], base, rhs);
             rhs->is_delayed(true);
             base->is_delayed(true);
-   //        std::cerr << "out\n";
             return base;
           }
           base = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, base->pstate(), ops[i], base, operands[i]);
           if (ops[i].operand != Sass_OP::DIV) base->is_delayed(true);
-      //     std::cerr << "out\n";
           return base;
         } else {
           base = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, base->pstate(), ops[i], base, operands[i]);
@@ -2574,7 +2570,6 @@ namespace Sass {
       }
 
     }
-//           std::cerr << "out\n";
     return base;
   }
 
@@ -2598,7 +2593,8 @@ namespace Sass {
     const char* end_left(last_pos + 1);
     while (pos_left > source) {
       if (end_left - pos_left >= max_len) {
-        ellipsis_left = true;
+        ellipsis_left = *(pos_left-1) != '\n' &&
+                        *(pos_left-1) != '\r';
         break;
       }
 
@@ -2614,16 +2610,17 @@ namespace Sass {
     bool ellipsis_right = false;
     const char* end_right(pos);
     const char* pos_right(pos);
-    while (end_right <= end) {
+    while (*end_right != 0) {
       if (end_right - pos_right > max_len) {
-        ellipsis_right = true;
+        ellipsis_left = *(pos_right) != '\n' &&
+                        *(pos_right) != '\r';
         break;
       }
       if (*end_right == '\r') break;
       if (*end_right == '\n') break;
       ++ end_right;
     }
-    if (end_right > end) end_right = end;
+    // if (*end_right == 0) end_right ++;
 
     std::string left(pos_left, end_left);
     std::string right(pos_right, end_right);
