@@ -177,11 +177,7 @@ namespace Sass {
 
     Block* block = block_stack.back();
 
-    while (lex< block_comment >()) {
-      bool is_important = lexed.begin[2] == '!';
-      String*  contents = parse_interpolated_chunk(lexed);
-      (*block) << SASS_MEMORY_NEW(ctx.mem, Comment, pstate, contents, is_important);
-    }
+    parse_block_comments();
 
     // throw away white-space
     // includes line comments
@@ -501,7 +497,7 @@ namespace Sass {
     // process until end
     while (i < end_of_selector) {
       // try to parse mutliple interpolants
-      if (const char* p = find_first_in_interval< exactly<hash_lbrace> >(i, end_of_selector)) {
+      if (const char* p = find_first_in_interval< exactly<hash_lbrace>, block_comment >(i, end_of_selector)) {
         // accumulate the preceding segment if the position has advanced
         if (i < p) (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, std::string(i, p));
         // check if the interpolation only contains white-space (error out)
@@ -902,7 +898,8 @@ namespace Sass {
     Block* block = block_stack.back();
     while (lex< block_comment >()) {
       bool is_important = lexed.begin[2] == '!';
-      String*  contents = parse_interpolated_chunk(lexed);
+      // flag on second param is to skip loosely over comments
+      String*  contents = parse_interpolated_chunk(lexed, true);
       (*block) << SASS_MEMORY_NEW(ctx.mem, Comment, pstate, contents, is_important);
     }
   }
@@ -1397,7 +1394,9 @@ namespace Sass {
   {
     const char* i = chunk.begin;
     // see if there any interpolants
-    const char* p = find_first_in_interval< exactly<hash_lbrace> >(i, chunk.end);
+    const char* p = constant ? find_first_in_interval< exactly<hash_lbrace> >(i, chunk.end) :
+                    find_first_in_interval< exactly<hash_lbrace>, block_comment >(i, chunk.end);
+
     if (!p) {
       String_Quoted* str_quoted = SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, std::string(i, chunk.end));
       if (!constant && str_quoted->quote_mark()) str_quoted->quote_mark('*');
@@ -1407,7 +1406,8 @@ namespace Sass {
 
     String_Schema* schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, pstate);
     while (i < chunk.end) {
-      p = find_first_in_interval< exactly<hash_lbrace> >(i, chunk.end);
+      p = constant ? find_first_in_interval< exactly<hash_lbrace> >(i, chunk.end) :
+          find_first_in_interval< exactly<hash_lbrace>, block_comment >(i, chunk.end);
       if (p) {
         if (i < p) {
           // accumulate the preceding segment if it's nonempty
@@ -1473,14 +1473,14 @@ namespace Sass {
     Token str(lexed);
     const char* i = str.begin;
     // see if there any interpolants
-    const char* p = find_first_in_interval< exactly<hash_lbrace> >(str.begin, str.end);
+    const char* p = find_first_in_interval< exactly<hash_lbrace>, block_comment >(str.begin, str.end);
     if (!p) {
       return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, std::string(str.begin, str.end));
     }
 
     String_Schema* schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, pstate);
     while (i < str.end) {
-      p = find_first_in_interval< exactly<hash_lbrace> >(i, str.end);
+      p = find_first_in_interval< exactly<hash_lbrace>, block_comment >(i, str.end);
       if (p) {
         if (i < p) {
           (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, std::string(i, p)); // accumulate the preceding segment if it's nonempty
@@ -1619,14 +1619,14 @@ namespace Sass {
     Token id(lexed);
     const char* i = id.begin;
     // see if there any interpolants
-    const char* p = find_first_in_interval< exactly<hash_lbrace> >(id.begin, id.end);
+    const char* p = find_first_in_interval< exactly<hash_lbrace>, block_comment >(id.begin, id.end);
     if (!p) {
       return SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, std::string(id.begin, id.end));
     }
 
     String_Schema* schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, pstate);
     while (i < id.end) {
-      p = find_first_in_interval< exactly<hash_lbrace> >(i, id.end);
+      p = find_first_in_interval< exactly<hash_lbrace>, block_comment >(i, id.end);
       if (p) {
         if (i < p) {
           // accumulate the preceding segment if it's nonempty
