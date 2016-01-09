@@ -982,10 +982,8 @@ namespace Sass {
     }
 
     // it's not a map so return the lexed value as a list value
-    if (!peek< exactly<':'> >())
+    if (!lex_css< exactly<':'> >())
     { return key; }
-
-    lex< exactly<':'> >();
 
     Expression* value = parse_space_list();
 
@@ -1931,10 +1929,10 @@ namespace Sass {
     }
     feature = parse_expression();
     Expression* expression = 0;
-    if (lex< exactly<':'> >()) {
+    if (lex_css< exactly<':'> >()) {
       expression = parse_list();
     }
-    if (!lex< exactly<')'> >()) {
+    if (!lex_css< exactly<')'> >()) {
       error("unclosed parenthesis in media query expression", pstate);
     }
     return SASS_MEMORY_NEW(ctx.mem, Media_Query_Expression, feature->pstate(), feature, expression);
