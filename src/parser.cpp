@@ -2624,8 +2624,10 @@ namespace Sass {
 
     std::string left(pos_left, end_left);
     std::string right(pos_right, end_right);
-    if (ellipsis_left) left = ellipsis + left.substr(left.size() - 15);
-    if (ellipsis_right) right = right.substr(right.size() - 15) + ellipsis;
+    size_t left_subpos = left.size() > 15 ? left.size() - 15 : 0;
+    size_t right_subpos = right.size() > 15 ? right.size() - 15 : 0;
+    if (left_subpos && ellipsis_left) left = ellipsis + left.substr(left_subpos);
+    if (right_subpos && ellipsis_right) right = right.substr(right_subpos) + ellipsis;
     // now pass new message to the more generic error function
     error(msg + prefix + quote(left) + middle + quote(right), pstate);
   }
