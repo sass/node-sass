@@ -92,7 +92,7 @@ namespace Sass {
     virtual char* render(Block* root);
     virtual char* render_srcmap();
 
-    void register_resource(const Include&, const Resource&);
+    void register_resource(const Include&, const Resource&, ParserState* = 0);
     std::vector<Include> find_includes(const Importer& import);
     Include load_import(const Importer&, ParserState pstate);
 

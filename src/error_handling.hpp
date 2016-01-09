@@ -19,8 +19,9 @@ namespace Sass {
         std::string msg;
       public:
         ParserState pstate;
+        std::vector<Sass_Import_Entry>* import_stack;
       public:
-        Base(ParserState pstate, std::string msg = def_msg);
+        Base(ParserState pstate, std::string msg = def_msg, std::vector<Sass_Import_Entry>* import_stack = 0);
         virtual const char* what() const throw();
         virtual ~Base() throw() {};
     };
@@ -53,7 +54,7 @@ namespace Sass {
 
     class InvalidSyntax : public Base {
       public:
-        InvalidSyntax(ParserState pstate, std::string msg);
+        InvalidSyntax(ParserState pstate, std::string msg, std::vector<Sass_Import_Entry>* import_stack = 0);
         virtual ~InvalidSyntax() throw() {};
     };
 
