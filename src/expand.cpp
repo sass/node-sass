@@ -442,7 +442,7 @@ namespace Sass {
   {
     std::vector<std::string> variables(e->variables());
     Expression* expr = e->list()->perform(&eval);
-    List* list = 0;
+    Vectorized<Expression*>* list = 0;
     Map* map = 0;
     if (expr->concrete_type() == Expression::MAP) {
       map = static_cast<Map*>(expr);
@@ -478,6 +478,9 @@ namespace Sass {
     }
     else {
       // bool arglist = list->is_arglist();
+      if (list->length() == 1 && dynamic_cast<Selector_List*>(list)) {
+        list = dynamic_cast<Vectorized<Expression*>*>(list);
+      }
       for (size_t i = 0, L = list->length(); i < L; ++i) {
         Expression* e = (*list)[i];
         // unwrap value if the expression is an argument
