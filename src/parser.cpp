@@ -732,6 +732,18 @@ namespace Sass {
         // this produces a linefeed!?
         seq->has_parent_reference(true);
         (*seq) << SASS_MEMORY_NEW(ctx.mem, Parent_Selector, pstate);
+        // parent selector only allowed at start
+        // upcoming sass may allow also trailing
+        if (seq->length() > 1) {
+          ParserState state(pstate);
+          Simple_Selector* cur = (*seq)[seq->length()-1];
+          Simple_Selector* prev = (*seq)[seq->length()-2];
+          std::string sel(prev->to_string(false, 5));
+          std::string found(cur->to_string(false, 5));
+          if (lex < identifier >()) { found += std::string(lexed); }
+          error("Invalid CSS after \"" + sel + "\": expected \"{\", was \"" + found + "\"\n\n"
+            "\"" + found + "\" may only be used at the beginning of a compound selector.", state);
+        }
       }
       // parse type selector
       else if (lex< re_type_selector >(false))
