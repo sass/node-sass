@@ -1880,17 +1880,112 @@ namespace Sass {
     if (empty()) return res;
     if (is_invisible()) return res;
     bool items_output = false;
-    std::string sep = separator() == SASS_COMMA ? "," : " ";
+    std::string sep = separator() == SASS_SPACE ? " " : ",";
     if (!compressed && sep == ",") sep += " ";
     for (size_t i = 0, L = size(); i < L; ++i) {
+      if (separator_ == SASS_HASH)
+      { sep[0] = i % 2 ? ':' : ','; }
       Expression* item = (*this)[i];
       if (item->is_invisible()) continue;
       if (items_output) res += sep;
-      if (Value* v_val = dynamic_cast<Value*>(item))
-      { res += v_val->to_string(compressed, precision); }
+      if (Expression* ex = dynamic_cast<Expression*>(item))
+      { res += ex->to_string(compressed, precision); }
+      // else if (Function_Call* v_fn = dynamic_cast<Function_Call*>(item))
+      // { res += v_fn->to_string(compressed, precision); }
+      else { res += "[unknown type]"; }
       items_output = true;
     }
     return res;
+  }
+
+  std::string Function_Call::to_string(bool compressed, int precision) const
+  {
+    std::string str(name());
+    str += "(";
+    str += arguments()->to_string(compressed, precision);
+    str += ")";
+    return str;
+  }
+
+  std::string Arguments::to_string(bool compressed, int precision) const
+  {
+    std::string str("");
+    for(auto arg : elements()) {
+      if (str != "") str += compressed ? "," : ", ";
+      str += arg->to_string(compressed, precision);
+    }
+    return str;
+  }
+
+  std::string Argument::to_string(bool compressed, int precision) const
+  {
+    return value()->to_string(compressed, precision);
+  }
+
+  std::string Binary_Expression::to_string(bool compressed, int precision) const
+  {
+    std::string str("");
+    str += left()->to_string(compressed, precision);
+    if (!compressed) str += " ";
+    switch (type()) {
+      case Sass_OP::AND: str += "and"; break;
+      case Sass_OP::OR:  str += "or";  break;
+      case Sass_OP::EQ:  str += "==";  break;
+      case Sass_OP::NEQ: str += "!=";  break;
+      case Sass_OP::GT:  str += ">";   break;
+      case Sass_OP::GTE: str += ">=";  break;
+      case Sass_OP::LT:  str += "<";   break;
+      case Sass_OP::LTE: str += "<=";  break;
+      case Sass_OP::ADD: str += "+";   break;
+      case Sass_OP::SUB: str += "-";   break;
+      case Sass_OP::MUL: str += "*";   break;
+      case Sass_OP::DIV: str += "/"; break;
+      case Sass_OP::MOD: str += "%";   break;
+      default: break; // shouldn't get here
+    }
+    if (!compressed) str += " ";
+    str += right()->to_string(compressed, precision);
+    return str;
+  }
+  std::string Textual::to_string(bool compressed, int precision) const
+  {
+    return value();
+  }
+  std::string Variable::to_string(bool compressed, int precision) const
+  {
+    return name();
+  }
+
+  // For now it seems easiest to just implement these, since we need it to
+  // ie. report the values as is for error reporting (like duplicate keys).
+  // We cannot use inspect since we do not always have a context object.
+  std::string Unary_Expression::to_string(bool compressed, int precision) const
+  {
+    return "[Unary_Expression.to_string not implemented]";
+  }
+  std::string Function_Call_Schema::to_string(bool compressed, int precision) const
+  {
+    return "[Function_Call_Schema.to_string not implemented]";
+  }
+  std::string Media_Query::to_string(bool compressed, int precision) const
+  {
+    return "[Media_Query.to_string not implemented]";
+  }
+  std::string Media_Query_Expression::to_string(bool compressed, int precision) const
+  {
+    return "[Media_Query_Expression.to_string not implemented]";
+  }
+  std::string Supports_Condition::to_string(bool compressed, int precision) const
+  {
+    return "[Supports_Condition.to_string not implemented]";
+  }
+  std::string At_Root_Expression::to_string(bool compressed, int precision) const
+  {
+    return "[At_Root_Expression.to_string not implemented]";
+  }
+  std::string Thunk::to_string(bool compressed, int precision) const
+  {
+    return "[Thunk.to_string not implemented]";
   }
 
   std::string String_Schema::to_string(bool compressed, int precision) const
@@ -1923,6 +2018,54 @@ namespace Sass {
     else                return c;
   }
 
+  std::string Color::to_hex(bool compressed, int precision) const
+  {
+
+    std::stringstream ss;
+
+    // original color name
+    // maybe an unknown token
+    std::string name = disp();
+
+    // resolved color
+    std::string res_name = name;
+
+    double r = Sass::round(cap_channel<0xff>(r_));
+    double g = Sass::round(cap_channel<0xff>(g_));
+    double b = Sass::round(cap_channel<0xff>(b_));
+    double a = cap_channel<1>   (a_);
+
+    // get color from given name (if one was given at all)
+    if (name != "" && name_to_color(name)) {
+      const Color* n = name_to_color(name);
+      r = Sass::round(cap_channel<0xff>(n->r()));
+      g = Sass::round(cap_channel<0xff>(n->g()));
+      b = Sass::round(cap_channel<0xff>(n->b()));
+      a = cap_channel<1>   (n->a());
+    }
+    // otherwise get the possible resolved color name
+    else {
+      double numval = r * 0x10000 + g * 0x100 + b;
+      if (color_to_name(numval))
+        res_name = color_to_name(numval);
+    }
+
+    std::stringstream hexlet;
+    hexlet << '#' << std::setw(1) << std::setfill('0');
+    // create a short color hexlet if there is any need for it
+    if (compressed && is_color_doublet(r, g, b) && a == 1) {
+      hexlet << std::hex << std::setw(1) << (static_cast<unsigned long>(r) >> 4);
+      hexlet << std::hex << std::setw(1) << (static_cast<unsigned long>(g) >> 4);
+      hexlet << std::hex << std::setw(1) << (static_cast<unsigned long>(b) >> 4);
+    } else {
+      hexlet << std::hex << std::setw(2) << static_cast<unsigned long>(r);
+      hexlet << std::hex << std::setw(2) << static_cast<unsigned long>(g);
+      hexlet << std::hex << std::setw(2) << static_cast<unsigned long>(b);
+    }
+
+    return hexlet.str();
+
+  }
   std::string Color::to_string(bool compressed, int precision) const
   {
     std::stringstream ss;

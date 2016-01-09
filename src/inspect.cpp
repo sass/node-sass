@@ -381,6 +381,8 @@ namespace Sass {
     else if (list->separator() == SASS_COMMA) in_comma_array = true;
 
     for (size_t i = 0, L = list->size(); i < L; ++i) {
+      if (list->separator() == SASS_HASH)
+      { sep[0] = i % 2 ? ':' : ','; }
       Expression* list_item = (*list)[i];
       if (list_item->is_invisible()) {
         continue;

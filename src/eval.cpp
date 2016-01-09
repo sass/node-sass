@@ -412,7 +412,32 @@ namespace Sass {
 
   Expression* Eval::operator()(List* l)
   {
+    // special case for unevaluated map
+    if (l->separator() == SASS_HASH) {
+      Map* lm = SASS_MEMORY_NEW(ctx.mem, Map,
+                                l->pstate(),
+                                l->length() / 2);
+      for (size_t i = 0, L = l->length(); i < L; i += 2)
+      {
+        Expression* key = (*l)[i+0]->perform(this);
+        Expression* val = (*l)[i+1]->perform(this);
+        // make sure the color key never displays its real name
+        *lm << std::make_pair(key, val);
+      }
+      if (lm->has_duplicate_key()) {
+        To_String to_string(&ctx);
+        if (Color* col = dynamic_cast<Color*>(lm->get_duplicate_key())) {
+          error("Duplicate key " + col->to_hex() + " in map (" + l->to_string() + ").", lm->pstate());
+        } else {
+          error("Duplicate key \"" + lm->get_duplicate_key()->perform(&to_string) + "\" in map (" + l->to_string() + ").", lm->pstate());
+        }
+      }
+
+      return lm->perform(this);
+    }
+    // check if we should expand it
     if (l->is_expanded()) return l;
+    // regular case for unevaluated lists
     List* ll = SASS_MEMORY_NEW(ctx.mem, List,
                                l->pstate(),
                                l->length(),
