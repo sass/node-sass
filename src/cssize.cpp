@@ -100,6 +100,10 @@ namespace Sass {
     // rr->tabs(r->block()->tabs());
     p_stack.pop_back();
 
+    if (!rr->block()) {
+      error("Illegal nesting: Only properties may be nested beneath properties.", r->block()->pstate());
+    }
+
     Block* props = SASS_MEMORY_NEW(ctx.mem, Block, rr->block()->pstate());
     Block* rules = SASS_MEMORY_NEW(ctx.mem, Block, rr->block()->pstate());
     for (size_t i = 0, L = rr->block()->length(); i < L; i++)
