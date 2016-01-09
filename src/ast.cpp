@@ -2255,7 +2255,7 @@ namespace Sass {
       // check if handling negative nr
       size_t off = res[0] == '-' ? 1 : 0;
       // remove leading zero from floating point in compressed mode
-      if (res[off] == '0' && res[off+1] == '.') res.erase(off, 1);
+      if (zero() && res[off] == '0' && res[off+1] == '.') res.erase(off, 1);
     }
 
     // add unit now

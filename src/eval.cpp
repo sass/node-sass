@@ -497,7 +497,7 @@ namespace Sass {
       return b;
     }
 
-    // if we have a schema on the left side, we also return a string
+    // only the last item will be used to eval the binary expression
     if (String_Schema* s_1 = dynamic_cast<String_Schema*>(b->left())) {
       if (!s_1->is_right_interpolant()) {
         ret_schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, s_1->pstate());
@@ -1002,8 +1002,12 @@ namespace Sass {
   {
     using Prelexer::number;
     Expression* result = 0;
-    bool zero = !( t->value().substr(0, 1) == "." ||
-                   t->value().substr(0, 2) == "-." );
+    size_t L = t->value().length();
+    bool zero = !( (L > 0 && t->value().substr(0, 1) == ".") ||
+                   (L > 1 && t->value().substr(0, 2) == "0.") ||
+                   (L > 1 && t->value().substr(0, 2) == "-.")  ||
+                   (L > 2 && t->value().substr(0, 3) == "-0.")
+                 );
 
     const std::string& text = t->value();
     size_t num_pos = text.find_first_not_of(" \n\r\t");
@@ -1026,7 +1030,7 @@ namespace Sass {
                                  t->pstate(),
                                  sass_atof(num.c_str()),
                                  "%",
-                                 zero);
+                                 true);
         break;
       case Textual::DIMENSION:
         result = SASS_MEMORY_NEW(ctx.mem, Number,

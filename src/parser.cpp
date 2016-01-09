@@ -1422,7 +1422,7 @@ namespace Sass {
 
     // also handle the 10em- foo special case
     // alternatives < exactly < '.' >, .. > -- `1.5em-.75em` is split into a list, not a binary expression
-    if (lex< sequence< dimension, optional< sequence< exactly<'-'>, lookahead< alternatives < exactly < '.' >, space > > > > > >())
+    if (lex< sequence< dimension, optional< sequence< exactly<'-'>, lookahead< alternatives < space > > > > > >())
     { return SASS_MEMORY_NEW(ctx.mem, Textual, pstate, Textual::DIMENSION, lexed); }
 
     if (lex< sequence< static_component, one_plus< strict_identifier > > >())
