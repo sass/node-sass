@@ -1732,6 +1732,21 @@ namespace Sass {
       Compound_Selector* pHead = pIter->head();
 
       if (pHead) {
+        for (Simple_Selector* pSimple : *pHead) {
+          if (Wrapped_Selector* ws = dynamic_cast<Wrapped_Selector*>(pSimple)) {
+            if (Selector_List* sl = dynamic_cast<Selector_List*>(ws->selector())) {
+              for (Complex_Selector* cs : sl->elements()) {
+                while (cs) {
+                  if (complexSelectorHasExtension(cs, ctx, subset_map)) {
+                    hasExtension = true;
+                    break;
+                  }
+                  cs = cs->tail();
+                }
+              }
+            }
+          }
+        }
         SubsetMapEntries entries = subset_map.get_v(pHead->to_str_vec());
         for (ExtensionPair ext : entries) {
           // check if both selectors have the same media block parent
@@ -1967,6 +1982,21 @@ namespace Sass {
       }
     }
 
+    for (Complex_Selector* cs : *pNewSelectors) {
+      while (cs) {
+        if (cs->head()) {
+        for (Simple_Selector* ss : *cs->head()) {
+          if (Wrapped_Selector* ws = dynamic_cast<Wrapped_Selector*>(ss)) {
+            if (Selector_List* sl = dynamic_cast<Selector_List*>(ws->selector())) {
+              bool extended = false;
+              ws->selector(extendSelectorList(sl, ctx, subset_map, false, extended));
+            }
+          }
+        }
+        }
+        cs = cs->tail();
+      }
+    }
     return pNewSelectors;
 
   }

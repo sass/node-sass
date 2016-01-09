@@ -673,14 +673,14 @@ namespace Sass {
       sel->tail(parse_complex_selector(true));
       if (sel->tail()) {
         // ToDo: move this logic below into tail setter
-        if (sel->tail()->has_reference()) sel->has_reference(true);
+        // if (sel->tail()->has_reference()) sel->has_reference(true);
         if (sel->tail()->has_placeholder()) sel->has_placeholder(true);
       }
     }
 
     // add a parent selector if we are not in a root
     // also skip adding parent ref if we only have refs
-    if (!sel->has_reference() && !in_at_root && !in_root) {
+    if (!sel->has_parent_ref() && !in_at_root && !in_root) {
       // create the objects to wrap parent selector reference
       Parent_Selector* parent = SASS_MEMORY_NEW(ctx.mem, Parent_Selector, pstate);
       parent->media_block(last_media_block);
