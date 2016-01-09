@@ -253,6 +253,7 @@ namespace Sass {
     const char* re_nothing(const char* src);
     const char* re_type_selector2(const char* src);
 
+    const char* re_special_fun(const char* src);
 
     const char* kwd_warn(const char* src);
     const char* kwd_err(const char* src);
@@ -422,6 +423,9 @@ namespace Sass {
 
     template <size_t min, size_t max, prelexer mx>
     const char* minmax_range(const char* src);
+
+    template <char min, char max>
+    const char* char_range(const char* src);
 
   }
 }

@@ -296,7 +296,7 @@ namespace Sass {
       bool was_number = false;
       const char* pos = src;
       while (src) {
-        if (pos = alternatives < quoted_string, identifier, percentage, hex >(src)) {
+        if ((pos = alternatives < quoted_string, identifier, percentage, hex >(src))) {
           was_number = false;
           src = pos;
         } else if (!was_number && !exactly<'+'>(src) && (pos = alternatives < dimension, number >(src))) {
@@ -1129,6 +1129,41 @@ namespace Sass {
       return sequence< number, optional_spaces, exactly<'/'>, optional_spaces, number >(src);
     }
 
+    // lexer special_fn: these functions cannot be overloaded
+    // (/((-[\w-]+-)?(calc|element)|expression|progid:[a-z\.]*)\(/i)
+    const char* re_special_fun(const char* src) {
+      return sequence <
+        optional <
+          sequence <
+            exactly <'-'>,
+            one_plus <
+              alternatives <
+                alpha,
+                exactly <'+'>,
+                exactly <'-'>
+              >
+            >
+          >
+        >,
+        alternatives <
+          exactly < calc_fn_kwd >,
+          exactly < expression_kwd >,
+          sequence <
+            sequence <
+              exactly < progid_kwd >,
+              exactly <':'>
+            >,
+            zero_plus <
+              alternatives <
+                char_range <'a', 'z'>,
+                exactly <'.'>
+              >
+            >
+          >
+        >
+      >(src);
+    }
+
     template <size_t size, prelexer mx, prelexer pad>
     const char* padded_token(const char* src)
     {
@@ -1157,6 +1192,14 @@ namespace Sass {
       if (got < min) return 0;
       if (got > max) return 0;
       return pos;
+    }
+
+    template <char min, char max>
+    const char* char_range(const char* src)
+    {
+      if (*src < min) return 0;
+      if (*src > max) return 0;
+      return src + 1;
     }
 
   }
