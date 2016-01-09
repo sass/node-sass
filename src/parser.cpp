@@ -2306,9 +2306,10 @@ namespace Sass {
                     quoted_string,
                     interpolant,
                     identifier,
-                    percentage,
-                    dimension,
                     variable,
+                    percentage,
+                    binomial,
+                    dimension,
                     alnum
                   >
                 > >,
