@@ -1,6 +1,5 @@
 #ifndef SASS_UNITS_H
 #define SASS_UNITS_H
-#undef SEC
 
 #include <cmath>
 #include <string>

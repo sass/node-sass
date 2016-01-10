@@ -2,10 +2,6 @@
 #include <stdexcept>
 #include "units.hpp"
 
-#ifdef IN
-#undef IN
-#endif
-
 namespace Sass {
 
   /* the conversion matrix can be readed the following way */
