@@ -7,6 +7,7 @@
 #include <dlfcn.h>
 #endif
 
+#include "sass.hpp"
 #include <iostream>
 #include "output.hpp"
 #include "plugins.hpp"

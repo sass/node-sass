@@ -1,3 +1,4 @@
+#include "sass.hpp"
 #include "constants.hpp"
 
 namespace Sass {

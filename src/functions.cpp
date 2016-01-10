@@ -1,3 +1,4 @@
+#include "sass.hpp"
 #include "functions.hpp"
 #include "ast.hpp"
 #include "context.hpp"

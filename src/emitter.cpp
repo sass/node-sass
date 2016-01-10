@@ -1,3 +1,4 @@
+#include "sass.hpp"
 #include "util.hpp"
 #include "context.hpp"
 #include "output.hpp"

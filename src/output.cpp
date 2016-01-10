@@ -1,3 +1,4 @@
+#include "sass.hpp"
 #include "ast.hpp"
 #include "output.hpp"
 #include "to_string.hpp"

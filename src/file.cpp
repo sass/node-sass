@@ -13,6 +13,7 @@
 #define NOMINMAX
 #endif
 
+#include "sass.hpp"
 #include <iostream>
 #include <fstream>
 #include <cctype>
