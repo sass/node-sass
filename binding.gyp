@@ -19,6 +19,11 @@
         'src/sass_types/number.cpp',
         'src/sass_types/string.cpp'
       ],
+      'msvs_settings': {
+        'VCLinkerTool': {
+           'SetChecksum': 'true'
+        }
+      },
       'include_dirs': [
         '<!(node -e "require(\'nan\')")',
       ],
