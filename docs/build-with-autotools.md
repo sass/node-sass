@@ -7,6 +7,16 @@ git clone https://github.com/sass/sassc.git libsass/sassc
 git clone https://github.com/sass/sass-spec.git libsass/sass-spec
 ```
 
+### Prerequisites
+
+In order to run autotools you need a few tools installed on your system.
+```bash
+yum install automake libtool # RedHat Linux
+emerge -a automake libtool # Gentoo Linux
+pkgin install automake libtool # SmartOS
+```
+
+
 ### Create configure script
 ```bash
 cd libsass
