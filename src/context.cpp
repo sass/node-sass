@@ -384,10 +384,7 @@ namespace Sass {
     if (const char* proto = sequence< identifier, exactly<':'>, exactly<'/'>, exactly<'/'> >(imp_path.c_str())) {
 
       protocol = std::string(imp_path.c_str(), proto - 3);
-      // std::cerr << "==================== " << protocol << "\n";
-      if (protocol.compare("file") && true) {
-
-      }
+      // if (protocol.compare("file") && true) { }
     }
 
     // add urls (protocol other than file) and urls without procotol to `urls` member

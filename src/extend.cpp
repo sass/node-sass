@@ -1591,6 +1591,7 @@ namespace Sass {
         for (size_t index = 0; index < pCompound->length(); index++) {
           Simple_Selector* pSimpleSelector = (*pCompound)[index];
           (*pSels) << pSimpleSelector;
+          pCompound->extended(true);
         }
       }
 
@@ -1777,29 +1778,6 @@ namespace Sass {
       }
 
       pIter = pIter->tail();
-    }
-
-    if (!hasExtension) {
-      /* ToDo: don't break stuff
-      std::stringstream err;
-      To_String to_string(&ctx);
-      std::string cwd(Sass::File::get_cwd());
-      std::string sel1(pComplexSelector->perform(&to_string));
-      Compound_Selector* pExtendSelector = 0;
-      for (auto i : subset_map.values()) {
-        if (i.first == pComplexSelector) {
-          pExtendSelector = i.second;
-          break;
-        }
-      }
-      if (!pExtendSelector || !pExtendSelector->is_optional()) {
-        std::string sel2(pExtendSelector ? pExtendSelector->perform(&to_string) : "[unknown]");
-        err << "\"" << sel1 << "\" failed to @extend \"" << sel2 << "\"\n";
-        err << "The selector \"" << sel2 << "\" was not found.\n";
-        err << "Use \"@extend " << sel2 << " !optional\" if the extend should be able to fail.";
-        error(err.str(), pExtendSelector ? pExtendSelector->pstate() : pComplexSelector->pstate());
-      }
-      */
     }
 
     return hasExtension;
@@ -2071,6 +2049,25 @@ namespace Sass {
     for (size_t i = 0, L = b->length(); i < L; ++i) {
       (*b)[i]->perform(this);
     }
+    // do final check if everything was extended
+    // we set `extended` flag on extended selectors
+    if (b->is_root()) {
+      // debug_subset_map(subset_map);
+      for(auto const &it : subset_map.values()) {
+        Complex_Selector* sel = it.first ? it.first->first() : NULL;
+        Compound_Selector* ext = it.second ? it.second : NULL;
+        if (ext && (ext->extended() || ext->is_optional())) continue;
+        std::string str_sel(sel->to_string());
+        std::string str_ext(ext->to_string());
+        // debug_ast(sel, "sel: ");
+        // debug_ast(ext, "ext: ");
+        error("\"" + str_sel + "\" failed to @extend \"" + str_ext + "\".\n"
+              "The selector \"" + str_ext + "\" was not found.\n"
+              "Use \"@extend " + str_ext + " !optional\" if the"
+                " extend should be able to fail.", ext->pstate());
+      }
+    }
+
   }
 
   void Extend::operator()(Ruleset* pRuleset)

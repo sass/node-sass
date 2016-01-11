@@ -15,7 +15,7 @@ namespace Sass {
     virtual T operator()(Ruleset* x)                = 0;
     virtual T operator()(Propset* x)                = 0;
     virtual T operator()(Bubble* x)                 = 0;
-    virtual T operator()(Supports_Block* x)          = 0;
+    virtual T operator()(Supports_Block* x)         = 0;
     virtual T operator()(Media_Block* x)            = 0;
     virtual T operator()(At_Root_Block* x)          = 0;
     virtual T operator()(At_Rule* x)                = 0;
