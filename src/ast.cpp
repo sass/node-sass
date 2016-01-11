@@ -1168,6 +1168,7 @@ namespace Sass {
   Complex_Selector* Complex_Selector::clone(Context& ctx) const
   {
     Complex_Selector* cpy = SASS_MEMORY_NEW(ctx.mem, Complex_Selector, *this);
+    cpy->is_optional(this->is_optional());
     cpy->media_block(this->media_block());
     if (tail()) cpy->tail(tail()->clone(ctx));
     return cpy;
@@ -1176,7 +1177,8 @@ namespace Sass {
   Complex_Selector* Complex_Selector::cloneFully(Context& ctx) const
   {
     Complex_Selector* cpy = SASS_MEMORY_NEW(ctx.mem, Complex_Selector, *this);
-
+    cpy->is_optional(this->is_optional());
+    cpy->media_block(this->media_block());
     if (head()) {
       cpy->head(head()->clone(ctx));
     }
@@ -1191,13 +1193,16 @@ namespace Sass {
   Compound_Selector* Compound_Selector::clone(Context& ctx) const
   {
     Compound_Selector* cpy = SASS_MEMORY_NEW(ctx.mem, Compound_Selector, *this);
+    cpy->is_optional(this->is_optional());
     cpy->media_block(this->media_block());
+    cpy->extended(this->extended());
     return cpy;
   }
 
   Selector_List* Selector_List::clone(Context& ctx) const
   {
     Selector_List* cpy = SASS_MEMORY_NEW(ctx.mem, Selector_List, *this);
+    cpy->is_optional(this->is_optional());
     cpy->media_block(this->media_block());
     return cpy;
   }
@@ -1205,6 +1210,8 @@ namespace Sass {
   Selector_List* Selector_List::cloneFully(Context& ctx) const
   {
     Selector_List* cpy = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate());
+    cpy->is_optional(this->is_optional());
+    cpy->media_block(this->media_block());
     for (size_t i = 0, L = length(); i < L; ++i) {
       *cpy << (*this)[i]->cloneFully(ctx);
     }

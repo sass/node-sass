@@ -2177,6 +2177,7 @@ namespace Sass {
   class Compound_Selector : public Selector, public Vectorized<Simple_Selector*> {
   private:
     SourcesSet sources_;
+    ADD_PROPERTY(bool, extended);
     ADD_PROPERTY(bool, has_parent_reference);
   protected:
     void adjust_after_pushing(Simple_Selector* s)
@@ -2188,6 +2189,7 @@ namespace Sass {
     Compound_Selector(ParserState pstate, size_t s = 0)
     : Selector(pstate),
       Vectorized<Simple_Selector*>(s),
+      extended_(false),
       has_parent_reference_(false)
     { }
     bool contains_placeholder() {
