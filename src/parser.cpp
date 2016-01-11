@@ -1199,7 +1199,7 @@ namespace Sass {
           > >(position)))
     { return lhs; }
     // parse the operator
-    bool left_ws = peek < css_comments >();
+    const char* left_ws = peek < css_comments >();
     // parse the operator
     enum Sass_OP op
     = lex<kwd_eq>()  ? Sass_OP::EQ
@@ -1211,11 +1211,11 @@ namespace Sass {
     // we checked the possibilites on top of fn
     :                  Sass_OP::EQ;
     // parse the right hand side expression
-    bool right_ws = peek < css_comments >();
+    const char* right_ws = peek < css_comments >();
     // parse the right hand side expression
     Expression* rhs = parse_expression();
     // return binary expression with a left and a right hand side
-    return SASS_MEMORY_NEW(ctx.mem, Binary_Expression, lhs->pstate(), { op, left_ws, right_ws }, lhs, rhs);
+    return SASS_MEMORY_NEW(ctx.mem, Binary_Expression, lhs->pstate(), { op, left_ws != 0, right_ws != 0 }, lhs, rhs);
   }
   // parse_relation
 
@@ -1237,10 +1237,10 @@ namespace Sass {
 
     std::vector<Expression*> operands;
     std::vector<Operand> operators;
-    bool left_ws = peek < css_comments >();
+    const char* left_ws = peek < css_comments >();
     while (lex_css< exactly<'+'> >() || lex< sequence< negate< digit >, exactly<'-'> > >()) {
-      bool right_ws = peek < css_comments >();
-      operators.push_back({ lexed.to_string() == "+" ? Sass_OP::ADD : Sass_OP::SUB, left_ws, right_ws });
+      const char* right_ws = peek < css_comments >();
+      operators.push_back({ lexed.to_string() == "+" ? Sass_OP::ADD : Sass_OP::SUB, left_ws != 0, right_ws != 0 });
       operands.push_back(parse_operators());
       left_ws = peek < css_comments >();
     }
@@ -1259,13 +1259,13 @@ namespace Sass {
     std::vector<Expression*> operands; // factors
     std::vector<Operand> operators; // ops
     // lex operations to apply to lhs
-    bool left_ws = peek < css_comments >();
+    const char* left_ws = peek < css_comments >();
     while (lex_css< class_char< static_ops > >()) {
-      bool right_ws = peek < css_comments >();
+      const char* right_ws = peek < css_comments >();
       switch(*lexed.begin) {
-        case '*': operators.push_back({ Sass_OP::MUL, left_ws, right_ws }); break;
-        case '/': operators.push_back({ Sass_OP::DIV, left_ws, right_ws }); break;
-        case '%': operators.push_back({ Sass_OP::MOD, left_ws, right_ws }); break;
+        case '*': operators.push_back({ Sass_OP::MUL, left_ws != 0, right_ws != 0 }); break;
+        case '/': operators.push_back({ Sass_OP::DIV, left_ws != 0, right_ws != 0 }); break;
+        case '%': operators.push_back({ Sass_OP::MOD, left_ws != 0, right_ws != 0 }); break;
         default: throw std::runtime_error("unknown static op parsed"); break;
       }
       operands.push_back(parse_factor());
@@ -1903,7 +1903,7 @@ namespace Sass {
     call->predicate(predicate);
     // parse mandatory block
     call->block(parse_block());
-    // remove from stack
+    // return ast node
     stack.pop_back();
     // return ast node
     return call;
