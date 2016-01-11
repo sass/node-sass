@@ -1216,7 +1216,7 @@ namespace Sass {
   {
     Expression* lhs = parse_operators();
     // if it's a singleton, return it (don't wrap it)
-    if (!(peek< exactly<'+'> >(position) ||
+    if (!(peek_css< exactly<'+'> >(position) ||
           // condition is a bit misterious, but some combinations should not be counted as operations
           (peek< no_spaces >(position) && peek< sequence< negate< unsigned_number >, exactly<'-'>, negate< space > > >(position)) ||
           (peek< sequence< negate< unsigned_number >, exactly<'-'>, negate< unsigned_number > > >(position))) ||
@@ -1226,7 +1226,7 @@ namespace Sass {
     std::vector<Expression*> operands;
     std::vector<Operand> operators;
     bool left_ws = peek < css_comments >();
-    while (lex< exactly<'+'> >() || lex< sequence< negate< digit >, exactly<'-'> > >()) {
+    while (lex_css< exactly<'+'> >() || lex< sequence< negate< digit >, exactly<'-'> > >()) {
       bool right_ws = peek < css_comments >();
       operators.push_back({ lexed.to_string() == "+" ? Sass_OP::ADD : Sass_OP::SUB, left_ws, right_ws });
       operands.push_back(parse_operators());
