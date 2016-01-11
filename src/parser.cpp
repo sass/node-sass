@@ -199,14 +199,17 @@ namespace Sass {
     else if (lex < kwd_return_directive >(true)) { (*block) << parse_return_directive(); }
 
     // abort if we are in function context and have nothing parsed yet
-    else if (stack.back() == function_def) {
+    else if (stack.back() == Scope::Function) {
       error("Functions can only contain variable declarations and control directives", pstate);
     }
 
     // parse imports to process later
     else if (lex < kwd_import >(true)) {
-      if (stack.back() == mixin_def || stack.back() == function_def) {
-        error("Import directives may not be used within control directives or mixins.", pstate);
+      Scope parent = stack.back();
+      if (parent != Scope::Function && parent != Scope::Root && parent != Scope::Media) {
+        if (! peek_css< uri_prefix >(position)) { // this seems to go in ruby sass 3.4.20
+          error("Import directives may not be used within control directives or mixins.", pstate);
+        }
       }
       Import* imp = parse_import();
       // if it is a url, we only add the statement
@@ -344,8 +347,8 @@ namespace Sass {
     { error("Invalid function name \"" + name + "\".", pstate); }
     ParserState source_position_of_def = pstate;
     Parameters* params = parse_parameters();
-    if (which_type == Definition::MIXIN) stack.push_back(mixin_def);
-    else stack.push_back(function_def);
+    if (which_type == Definition::MIXIN) stack.push_back(Scope::Mixin);
+    else stack.push_back(Scope::Function);
     Block* body = parse_block();
     stack.pop_back();
     Definition* def = SASS_MEMORY_NEW(ctx.mem, Definition, source_position_of_def, name, params, body, which_type);
@@ -1773,7 +1776,14 @@ namespace Sass {
 
   Content* Parser::parse_content_directive()
   {
-    if (stack.back() != mixin_def) {
+    bool missing_mixin_parent = true;
+    for (auto parent : stack) {
+      if (parent == Scope::Mixin) {
+        missing_mixin_parent = false;
+        break;
+      }
+    }
+    if (missing_mixin_parent) {
       error("@content may only be used within a mixin", pstate);
     }
     return SASS_MEMORY_NEW(ctx.mem, Content, pstate);
@@ -1781,6 +1791,7 @@ namespace Sass {
 
   If* Parser::parse_if_directive(bool else_if)
   {
+    stack.push_back(Scope::Other);
     ParserState if_source_position = pstate;
     Expression* predicate = parse_list();
     predicate->is_delayed(false);
@@ -1796,11 +1807,13 @@ namespace Sass {
     else if (lex_css< kwd_else_directive >()) {
       alternative = parse_block();
     }
+    stack.pop_back();
     return SASS_MEMORY_NEW(ctx.mem, If, if_source_position, predicate, block, alternative);
   }
 
   For* Parser::parse_for_directive()
   {
+    stack.push_back(Scope::Other);
     ParserState for_source_position = pstate;
     lex_variable();
     std::string var(Util::normalize_underscores(lexed));
@@ -1814,6 +1827,7 @@ namespace Sass {
     Expression* upper_bound = parse_expression();
     upper_bound->is_delayed(false);
     Block* body = parse_block();
+    stack.pop_back();
     return SASS_MEMORY_NEW(ctx.mem, For, for_source_position, var, lower_bound, upper_bound, body, inclusive);
   }
 
@@ -1845,6 +1859,7 @@ namespace Sass {
 
   Each* Parser::parse_each_directive()
   {
+    stack.push_back(Scope::Other);
     ParserState each_source_position = pstate;
     std::vector<std::string> vars;
     lex_variable();
@@ -1863,12 +1878,14 @@ namespace Sass {
       }
     }
     Block* body = parse_block();
+    stack.pop_back();
     return SASS_MEMORY_NEW(ctx.mem, Each, each_source_position, vars, list, body);
   }
 
   // called after parsing `kwd_while_directive`
   While* Parser::parse_while_directive()
   {
+    stack.push_back(Scope::Other);
     // create the initial while call object
     While* call = SASS_MEMORY_NEW(ctx.mem, While, pstate, 0, 0);
     // parse mandatory predicate
@@ -1877,6 +1894,8 @@ namespace Sass {
     call->predicate(predicate);
     // parse mandatory block
     call->block(parse_block());
+    // remove from stack
+    stack.pop_back();
     // return ast node
     return call;
   }
@@ -1884,6 +1903,7 @@ namespace Sass {
   // EO parse_while_directive
   Media_Block* Parser::parse_media_block()
   {
+    stack.push_back(Scope::Media);
     Media_Block* media_block = SASS_MEMORY_NEW(ctx.mem, Media_Block, pstate, 0, 0);
     media_block->media_queries(parse_media_queries());
 
@@ -1891,7 +1911,7 @@ namespace Sass {
     last_media_block = media_block;
     media_block->block(parse_css_block());
     last_media_block = prev_media_block;
-
+    stack.pop_back();
     return media_block;
   }
 

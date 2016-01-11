@@ -23,11 +23,11 @@ namespace Sass {
   class Parser : public ParserState {
   public:
 
-    enum Syntactic_Context { nothing, mixin_def, function_def };
+    enum Scope { Root, Mixin, Function, Media, Other };
 
     Context& ctx;
     std::vector<Block*> block_stack;
-    std::vector<Syntactic_Context> stack;
+    std::vector<Scope> stack;
     Media_Block* last_media_block;
     const char* source;
     const char* position;
@@ -44,7 +44,7 @@ namespace Sass {
     Parser(Context& ctx, const ParserState& pstate)
     : ParserState(pstate), ctx(ctx), block_stack(0), stack(0), last_media_block(0),
       source(0), position(0), end(0), before_token(pstate), after_token(pstate), pstate(pstate), indentation(0)
-    { in_at_root = false; stack.push_back(nothing); }
+    { in_at_root = false; stack.push_back(Scope::Root); }
 
     // static Parser from_string(const std::string& src, Context& ctx, ParserState pstate = ParserState("[STRING]"));
     static Parser from_c_str(const char* src, Context& ctx, ParserState pstate = ParserState("[CSTRING]"));

@@ -20,6 +20,7 @@ namespace Sass {
     eval(Eval(*this)),
     env_stack(std::vector<Env*>()),
     block_stack(std::vector<Block*>()),
+    call_stack(std::vector<AST_Node*>()),
     property_stack(std::vector<String*>()),
     selector_stack(std::vector<Selector_List*>()),
     backtrace_stack(std::vector<Backtrace*>()),
@@ -28,6 +29,7 @@ namespace Sass {
     env_stack.push_back(0);
     env_stack.push_back(env);
     block_stack.push_back(0);
+    call_stack.push_back(0);
     // import_stack.push_back(0);
     property_stack.push_back(0);
     selector_stack.push_back(0);
@@ -327,6 +329,11 @@ namespace Sass {
 
   Statement* Expand::operator()(Import_Stub* i)
   {
+    // get parent node from call stack
+    AST_Node* parent = call_stack.back();
+    if (parent && dynamic_cast<Block*>(parent) == NULL) {
+      error("Import directives may not be used within control directives or mixins.", i->pstate());
+    }
     // we don't seem to need that actually afterall
     Sass_Import_Entry import = sass_make_import(
       i->imp_path().c_str(),
@@ -372,6 +379,7 @@ namespace Sass {
   {
     Env env(environment(), true);
     env_stack.push_back(&env);
+    call_stack.push_back(i);
     if (*i->predicate()->perform(&eval)) {
       append_block(i->block());
     }
@@ -379,6 +387,7 @@ namespace Sass {
       Block* alt = i->alternative();
       if (alt) append_block(alt);
     }
+    call_stack.pop_back();
     env_stack.pop_back();
     return 0;
   }
@@ -410,6 +419,7 @@ namespace Sass {
     // only create iterator once in this environment
     Env env(environment(), true);
     env_stack.push_back(&env);
+    call_stack.push_back(f);
     Number* it = SASS_MEMORY_NEW(env.mem, Number, low->pstate(), start, sass_end->unit());
     env.set_local(variable, it);
     Block* body = f->block();
@@ -432,6 +442,7 @@ namespace Sass {
         append_block(body);
       }
     }
+    call_stack.pop_back();
     env_stack.pop_back();
     return 0;
   }
@@ -457,6 +468,7 @@ namespace Sass {
     // remember variables and then reset them
     Env env(environment(), true);
     env_stack.push_back(&env);
+    call_stack.push_back(e);
     Block* body = e->block();
 
     if (map) {
@@ -511,6 +523,7 @@ namespace Sass {
         append_block(body);
       }
     }
+    call_stack.pop_back();
     env_stack.pop_back();
     return 0;
   }
@@ -521,9 +534,11 @@ namespace Sass {
     Block* body = w->block();
     Env env(environment(), true);
     env_stack.push_back(&env);
+    call_stack.push_back(w);
     while (*pred->perform(&eval)) {
       append_block(body);
     }
+    call_stack.pop_back();
     env_stack.pop_back();
     return 0;
   }
@@ -693,10 +708,12 @@ namespace Sass {
   // process and add to last block on stack
   inline void Expand::append_block(Block* b)
   {
+    if (b->is_root()) call_stack.push_back(b);
     for (size_t i = 0, L = b->length(); i < L; ++i) {
       Statement* ith = (*b)[i]->perform(this);
       if (ith) *block_stack.back() << ith;
     }
+    if (b->is_root()) call_stack.pop_back();
   }
 
 }

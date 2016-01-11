@@ -30,6 +30,7 @@ namespace Sass {
     // it's easier to work with vectors
     std::vector<Env*>      env_stack;
     std::vector<Block*>    block_stack;
+    std::vector<AST_Node*> call_stack;
     std::vector<String*>   property_stack;
     std::vector<Selector_List*> selector_stack;
     std::vector<Backtrace*>backtrace_stack;
