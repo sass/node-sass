@@ -205,7 +205,7 @@ namespace Sass {
 
     // parse imports to process later
     else if (lex < kwd_import >(true)) {
-      Scope parent = stack.back();
+      Scope parent = stack.empty() ? Scope::Other : stack.back();
       if (parent != Scope::Function && parent != Scope::Root && parent != Scope::Media) {
         if (! peek_css< uri_prefix >(position)) { // this seems to go in ruby sass 3.4.20
           error("Import directives may not be used within control directives or mixins.", pstate);
@@ -340,6 +340,10 @@ namespace Sass {
 
   Definition* Parser::parse_definition(Definition::Type which_type)
   {
+    Scope parent = stack.empty() ? Scope::Other : stack.back();
+    if (parent != Scope::Root && parent != Scope::Function) {
+      error("Functions may not be defined within control directives or other mixins.", pstate);
+    }
     std::string which_str(lexed);
     if (!lex< identifier >()) error("invalid name in " + which_str + " definition", pstate);
     std::string name(Util::normalize_underscores(lexed));
