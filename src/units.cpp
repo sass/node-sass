@@ -49,72 +49,72 @@ namespace Sass {
     /* dppx */ { 1/96.0,    2.54/96,   1        }
   };
 
-  SassUnitType get_unit_type(SassUnit unit)
+  UnitClass get_unit_type(UnitType unit)
   {
     switch (unit & 0xFF00)
     {
-      case SassUnitType::LENGTH:      return SassUnitType::LENGTH; break;
-      case SassUnitType::ANGLE:       return SassUnitType::ANGLE; break;
-      case SassUnitType::TIME:        return SassUnitType::TIME; break;
-      case SassUnitType::FREQUENCY:   return SassUnitType::FREQUENCY; break;
-      case SassUnitType::RESOLUTION:  return SassUnitType::RESOLUTION; break;
-      default:                        return SassUnitType::INCOMMENSURABLE; break;
+      case UnitClass::LENGTH:      return UnitClass::LENGTH; break;
+      case UnitClass::ANGLE:       return UnitClass::ANGLE; break;
+      case UnitClass::TIME:        return UnitClass::TIME; break;
+      case UnitClass::FREQUENCY:   return UnitClass::FREQUENCY; break;
+      case UnitClass::RESOLUTION:  return UnitClass::RESOLUTION; break;
+      default:                     return UnitClass::INCOMMENSURABLE; break;
     }
   };
 
-  SassUnit string_to_unit(const std::string& s)
+  UnitType string_to_unit(const std::string& s)
   {
     // size units
-    if      (s == "px")   return SassUnit::PX;
-    else if (s == "pt")   return SassUnit::PT;
-    else if (s == "pc")   return SassUnit::PC;
-    else if (s == "mm")   return SassUnit::MM;
-    else if (s == "cm")   return SassUnit::CM;
-    else if (s == "in")   return SassUnit::IN;
+    if      (s == "px")   return UnitType::PX;
+    else if (s == "pt")   return UnitType::PT;
+    else if (s == "pc")   return UnitType::PC;
+    else if (s == "mm")   return UnitType::MM;
+    else if (s == "cm")   return UnitType::CM;
+    else if (s == "in")   return UnitType::IN;
     // angle units
-    else if (s == "deg")  return SassUnit::DEG;
-    else if (s == "grad") return SassUnit::GRAD;
-    else if (s == "rad")  return SassUnit::RAD;
-    else if (s == "turn") return SassUnit::TURN;
+    else if (s == "deg")  return UnitType::DEG;
+    else if (s == "grad") return UnitType::GRAD;
+    else if (s == "rad")  return UnitType::RAD;
+    else if (s == "turn") return UnitType::TURN;
     // time units
-    else if (s == "s")    return SassUnit::SEC;
-    else if (s == "ms")   return SassUnit::MSEC;
+    else if (s == "s")    return UnitType::SEC;
+    else if (s == "ms")   return UnitType::MSEC;
     // frequency units
-    else if (s == "Hz")   return SassUnit::HERTZ;
-    else if (s == "kHz")  return SassUnit::KHERTZ;
+    else if (s == "Hz")   return UnitType::HERTZ;
+    else if (s == "kHz")  return UnitType::KHERTZ;
     // resolutions units
-    else if (s == "dpi")  return SassUnit::DPI;
-    else if (s == "dpcm") return SassUnit::DPCM;
-    else if (s == "dppx") return SassUnit::DPPX;
+    else if (s == "dpi")  return UnitType::DPI;
+    else if (s == "dpcm") return UnitType::DPCM;
+    else if (s == "dppx") return UnitType::DPPX;
     // for unknown units
-    else return SassUnit::UNKNOWN;
+    else return UnitType::UNKNOWN;
   }
 
-  const char* unit_to_string(SassUnit unit)
+  const char* unit_to_string(UnitType unit)
   {
     switch (unit) {
       // size units
-      case SassUnit::PX:      return "px"; break;
-      case SassUnit::PT:      return "pt"; break;
-      case SassUnit::PC:      return "pc"; break;
-      case SassUnit::MM:      return "mm"; break;
-      case SassUnit::CM:      return "cm"; break;
-      case SassUnit::IN:      return "in"; break;
+      case UnitType::PX:      return "px"; break;
+      case UnitType::PT:      return "pt"; break;
+      case UnitType::PC:      return "pc"; break;
+      case UnitType::MM:      return "mm"; break;
+      case UnitType::CM:      return "cm"; break;
+      case UnitType::IN:      return "in"; break;
       // angle units
-      case SassUnit::DEG:     return "deg"; break;
-      case SassUnit::GRAD:    return "grad"; break;
-      case SassUnit::RAD:     return "rad"; break;
-      case SassUnit::TURN:    return "turn"; break;
+      case UnitType::DEG:     return "deg"; break;
+      case UnitType::GRAD:    return "grad"; break;
+      case UnitType::RAD:     return "rad"; break;
+      case UnitType::TURN:    return "turn"; break;
       // time units
-      case SassUnit::SEC:     return "s"; break;
-      case SassUnit::MSEC:    return "ms"; break;
+      case UnitType::SEC:     return "s"; break;
+      case UnitType::MSEC:    return "ms"; break;
       // frequency units
-      case SassUnit::HERTZ:   return "Hz"; break;
-      case SassUnit::KHERTZ:  return "kHz"; break;
+      case UnitType::HERTZ:   return "Hz"; break;
+      case UnitType::KHERTZ:  return "kHz"; break;
       // resolutions units
-      case SassUnit::DPI:     return "dpi"; break;
-      case SassUnit::DPCM:    return "dpcm"; break;
-      case SassUnit::DPPX:    return "dppx"; break;
+      case UnitType::DPI:     return "dpi"; break;
+      case UnitType::DPCM:    return "dpcm"; break;
+      case UnitType::DPPX:    return "dppx"; break;
       // for unknown units
       default:                return ""; break;
     }
@@ -126,11 +126,11 @@ namespace Sass {
     // assert for same units
     if (s1 == s2) return 1;
     // get unit enum from string
-    SassUnit u1 = string_to_unit(s1);
-    SassUnit u2 = string_to_unit(s2);
+    UnitType u1 = string_to_unit(s1);
+    UnitType u2 = string_to_unit(s2);
     // query unit group types
-    SassUnitType t1 = get_unit_type(u1);
-    SassUnitType t2 = get_unit_type(u2);
+    UnitClass t1 = get_unit_type(u1);
+    UnitClass t2 = get_unit_type(u2);
     // get absolute offset
     // used for array acces
     size_t i1 = u1 - t1;
@@ -141,13 +141,13 @@ namespace Sass {
     // only process known units
     if (u1 != UNKNOWN && u2 != UNKNOWN) {
       switch (t1) {
-        case SassUnitType::LENGTH:              return size_conversion_factors[i1][i2]; break;
-        case SassUnitType::ANGLE:             return angle_conversion_factors[i1][i2]; break;
-        case SassUnitType::TIME:              return time_conversion_factors[i1][i2]; break;
-        case SassUnitType::FREQUENCY:         return frequency_conversion_factors[i1][i2]; break;
-        case SassUnitType::RESOLUTION:        return resolution_conversion_factors[i1][i2]; break;
+        case UnitClass::LENGTH:            return size_conversion_factors[i1][i2]; break;
+        case UnitClass::ANGLE:             return angle_conversion_factors[i1][i2]; break;
+        case UnitClass::TIME:              return time_conversion_factors[i1][i2]; break;
+        case UnitClass::FREQUENCY:         return frequency_conversion_factors[i1][i2]; break;
+        case UnitClass::RESOLUTION:        return resolution_conversion_factors[i1][i2]; break;
         // ToDo: should we throw error here?
-        case SassUnitType::INCOMMENSURABLE:   return 0; break;
+        case UnitClass::INCOMMENSURABLE:   return 0; break;
       }
     }
     // fallback
