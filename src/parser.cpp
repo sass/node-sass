@@ -205,8 +205,8 @@ namespace Sass {
 
     // parse imports to process later
     else if (lex < kwd_import >(true)) {
-      Scope parent = stack.empty() ? Scope::Other : stack.back();
-      if (parent != Scope::Function && parent != Scope::Root && parent != Scope::Media) {
+      Scope parent = stack.empty() ? Scope::Rules : stack.back();
+      if (parent != Scope::Function && parent != Scope::Root && parent != Scope::Rules && parent != Scope::Media) {
         if (! peek_css< uri_prefix >(position)) { // this seems to go in ruby sass 3.4.20
           error("Import directives may not be used within control directives or mixins.", pstate);
         }
@@ -269,7 +269,9 @@ namespace Sass {
       if (peek< exactly<'{'> >()) {
         if (decl->is_indented()) ++ indentation;
         // parse a propset that rides on the declaration's property
+        stack.push_back(Scope::Properties);
         (*block) << SASS_MEMORY_NEW(ctx.mem, Propset, pstate, decl->property(), parse_block());
+        stack.pop_back();
         if (decl->is_indented()) -- indentation;
       }
     }
@@ -340,8 +342,8 @@ namespace Sass {
 
   Definition* Parser::parse_definition(Definition::Type which_type)
   {
-    Scope parent = stack.empty() ? Scope::Other : stack.back();
-    if (parent != Scope::Root && parent != Scope::Function) {
+    Scope parent = stack.empty() ? Scope::Rules : stack.back();
+    if (parent != Scope::Root && parent != Scope::Rules && parent != Scope::Function) {
       error("Functions may not be defined within control directives or other mixins.", pstate);
     }
     std::string which_str(lexed);
@@ -480,7 +482,9 @@ namespace Sass {
     if (lookahead.parsable) ruleset->selector(parse_selector_list(is_root));
     else ruleset->selector(parse_selector_schema(lookahead.found));
     // then parse the inner block
+    stack.push_back(Scope::Rules);
     ruleset->block(parse_block());
+    stack.pop_back();
     // update for end position
     ruleset->update_pstate(pstate);
     // inherit is_root from parent block
@@ -1795,7 +1799,7 @@ namespace Sass {
 
   If* Parser::parse_if_directive(bool else_if)
   {
-    stack.push_back(Scope::Other);
+    stack.push_back(Scope::Control);
     ParserState if_source_position = pstate;
     Expression* predicate = parse_list();
     predicate->is_delayed(false);
@@ -1817,7 +1821,7 @@ namespace Sass {
 
   For* Parser::parse_for_directive()
   {
-    stack.push_back(Scope::Other);
+    stack.push_back(Scope::Control);
     ParserState for_source_position = pstate;
     lex_variable();
     std::string var(Util::normalize_underscores(lexed));
@@ -1863,7 +1867,7 @@ namespace Sass {
 
   Each* Parser::parse_each_directive()
   {
-    stack.push_back(Scope::Other);
+    stack.push_back(Scope::Control);
     ParserState each_source_position = pstate;
     std::vector<std::string> vars;
     lex_variable();
@@ -1889,7 +1893,7 @@ namespace Sass {
   // called after parsing `kwd_while_directive`
   While* Parser::parse_while_directive()
   {
-    stack.push_back(Scope::Other);
+    stack.push_back(Scope::Control);
     // create the initial while call object
     While* call = SASS_MEMORY_NEW(ctx.mem, While, pstate, 0, 0);
     // parse mandatory predicate
@@ -2152,16 +2156,37 @@ namespace Sass {
 
   Warning* Parser::parse_warning()
   {
+    if (stack.back() != Scope::Root &&
+        stack.back() != Scope::Function &&
+        stack.back() != Scope::Mixin &&
+        stack.back() != Scope::Control &&
+        stack.back() != Scope::Rules) {
+      error("Illegal nesting: Only properties may be nested beneath properties.", pstate);
+    }
     return SASS_MEMORY_NEW(ctx.mem, Warning, pstate, parse_list());
   }
 
   Error* Parser::parse_error()
   {
+    if (stack.back() != Scope::Root &&
+        stack.back() != Scope::Function &&
+        stack.back() != Scope::Mixin &&
+        stack.back() != Scope::Control &&
+        stack.back() != Scope::Rules) {
+      error("Illegal nesting: Only properties may be nested beneath properties.", pstate);
+    }
     return SASS_MEMORY_NEW(ctx.mem, Error, pstate, parse_list());
   }
 
   Debug* Parser::parse_debug()
   {
+    if (stack.back() != Scope::Root &&
+        stack.back() != Scope::Function &&
+        stack.back() != Scope::Mixin &&
+        stack.back() != Scope::Control &&
+        stack.back() != Scope::Rules) {
+      error("Illegal nesting: Only properties may be nested beneath properties.", pstate);
+    }
     return SASS_MEMORY_NEW(ctx.mem, Debug, pstate, parse_list());
   }
 
