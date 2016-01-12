@@ -1,7 +1,4 @@
-#ifdef _MSC_VER
-#pragma warning(disable : 4503)
-#endif
-
+#include "sass.hpp"
 #include <iostream>
 #include <typeinfo>
 

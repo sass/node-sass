@@ -6,9 +6,10 @@ CP       ?= cp -a
 MKDIR    ?= mkdir
 RMDIR    ?= rmdir
 WINDRES  ?= windres
-ifeq ($(OS),SunOS)  # Solaris/Illumos flavors
-INSTALL  = ginstall
-PREFIX   = /opt/local
+# Solaris/Illumos flavors
+# ginstall from coreutils
+ifeq ($(OS),SunOS)
+INSTALL  ?= ginstall
 endif
 INSTALL  ?= install
 CFLAGS   ?= -Wall
@@ -134,7 +135,11 @@ ifneq ($(BUILD),shared)
 endif
 
 ifeq (,$(TRAVIS_BUILD_DIR))
-	PREFIX ?= /usr/local
+	ifeq ($(OS),SunOS)
+		PREFIX ?= /opt/local
+	else
+		PREFIX ?= /usr/local
+	endif
 else
 	PREFIX ?= $(TRAVIS_BUILD_DIR)
 endif

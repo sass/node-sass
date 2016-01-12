@@ -32,6 +32,24 @@ $ ls libsass/lib
 libsass.a libsass.so
 ```
 
+### Install onto the system
+
+We recommend to use [autotools to install](build-with-autotools.md) libsass onto the
+system, since that brings all the benefits of using libtools as the main install method.
+If you still want to install libsass via the makefile, you need to make sure that gnu
+`install` utility (or compatible) is installed on your system.
+```bash
+yum install coreutils # RedHat Linux
+emerge -a coreutils # Gentoo Linux
+pkgin install coreutils # SmartOS
+```
+
+You can set the install location by setting `PREFIX`
+```bash
+PREFIX="/opt/local" make install
+```
+
+
 ### Compling sassc
 
 ```bash

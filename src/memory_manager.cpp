@@ -1,3 +1,4 @@
+#include "sass.hpp"
 #include "ast.hpp"
 #include "memory_manager.hpp"
 

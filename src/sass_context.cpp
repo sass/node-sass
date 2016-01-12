@@ -1,3 +1,4 @@
+#include "sass.hpp"
 #include <cstring>
 #include <stdexcept>
 #include <sstream>

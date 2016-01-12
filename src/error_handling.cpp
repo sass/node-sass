@@ -1,3 +1,4 @@
+#include "sass.hpp"
 #include "ast.hpp"
 #include "prelexer.hpp"
 #include "backtrace.hpp"

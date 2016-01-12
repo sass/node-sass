@@ -1,3 +1,4 @@
+#include "sass.hpp"
 #include "remove_placeholders.hpp"
 #include "context.hpp"
 #include "inspect.hpp"

@@ -1,3 +1,4 @@
+#include "sass.hpp"
 #include <cstring>
 #include "util.hpp"
 #include "context.hpp"

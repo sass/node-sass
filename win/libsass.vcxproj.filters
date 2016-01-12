@@ -27,9 +27,6 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_fwd_decl.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\b64\cencode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\backtrace.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -177,6 +174,12 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\values.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\sass.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\b64\cencode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup Label="Sources">
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast.cpp">
@@ -306,6 +309,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\values.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\c99func.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

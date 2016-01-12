@@ -1,3 +1,4 @@
+#include "sass.hpp"
 #include "ast.hpp"
 #include "to_value.hpp"
 #include "to_string.hpp"

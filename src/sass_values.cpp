@@ -1,3 +1,4 @@
+#include "sass.hpp"
 #include <cstdlib>
 #include <cstring>
 #include "util.hpp"
