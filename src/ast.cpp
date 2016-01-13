@@ -1734,6 +1734,12 @@ namespace Sass {
   bool Number::operator== (const Expression& rhs) const
   {
     if (const Number* r = dynamic_cast<const Number*>(&rhs)) {
+      size_t lhs_units = numerator_units_.size() + denominator_units_.size();
+      size_t rhs_units = r->numerator_units_.size() + r->denominator_units_.size();
+      // unitless and only having one unit seems equivalent (will change in future)
+      if (!lhs_units || !rhs_units) {
+        return std::fabs(value() - r->value()) < NUMBER_EPSILON;
+      }
       return (numerator_units_ == r->numerator_units_) &&
              (denominator_units_ == r->denominator_units_) &&
              std::fabs(value() - r->value()) < NUMBER_EPSILON;
@@ -1743,11 +1749,18 @@ namespace Sass {
 
   bool Number::operator< (const Number& rhs) const
   {
+    size_t lhs_units = numerator_units_.size() + denominator_units_.size();
+    size_t rhs_units = rhs.numerator_units_.size() + rhs.denominator_units_.size();
+    // unitless and only having one unit seems equivalent (will change in future)
+    if (!lhs_units || !rhs_units) {
+      return value() < rhs.value();
+    }
+
     Number tmp_r(rhs);
     tmp_r.normalize(find_convertible_unit());
     std::string l_unit(unit());
     std::string r_unit(tmp_r.unit());
-    if (!l_unit.empty() && !r_unit.empty() && unit() != tmp_r.unit()) {
+    if (unit() != tmp_r.unit()) {
       error("cannot compare numbers with incompatible units", pstate());
     }
     return value() < tmp_r.value();
@@ -1771,6 +1784,15 @@ namespace Sass {
       return (value() == cstr->value());
     }
     return false;
+  }
+
+  bool String_Schema::is_left_interpolant(void) const
+  {
+    return length() && first()->is_left_interpolant();
+  }
+  bool String_Schema::is_right_interpolant(void) const
+  {
+    return length() && last()->is_right_interpolant();
   }
 
   bool String_Schema::operator== (const Expression& rhs) const
@@ -1928,6 +1950,15 @@ namespace Sass {
   std::string Argument::to_string(bool compressed, int precision) const
   {
     return value()->to_string(compressed, precision);
+  }
+
+  bool Binary_Expression::is_left_interpolant(void) const
+  {
+    return is_interpolant() || (left() && left()->is_left_interpolant());
+  }
+  bool Binary_Expression::is_right_interpolant(void) const
+  {
+    return is_interpolant() || (right() && right()->is_right_interpolant());
   }
 
   std::string Binary_Expression::to_string(bool compressed, int precision) const
@@ -2215,9 +2246,17 @@ namespace Sass {
     }
 
     // some final cosmetics
-    if (res == "-0.0") res.erase(0, 1);
-    else if (res == "-0") res.erase(0, 1);
+    if (res == "0.0") res = "0";
     else if (res == "") res = "0";
+    else if (res == "-0") res = "0";
+    else if (res == "-0.0") res = "0";
+    else if (compressed)
+    {
+      // check if handling negative nr
+      size_t off = res[0] == '-' ? 1 : 0;
+      // remove leading zero from floating point in compressed mode
+      if (zero() && res[off] == '0' && res[off+1] == '.') res.erase(off, 1);
+    }
 
     // add unit now
     res += unit();
@@ -2227,9 +2266,19 @@ namespace Sass {
 
   }
 
+  std::string String_Quoted::inspect() const
+  {
+    return quote(value_, '*', true);
+  }
+
   std::string String_Quoted::to_string(bool compressed, int precision) const
   {
     return quote_mark_ ? quote(value_, quote_mark_, true) : value_;
+  }
+
+  std::string String_Constant::inspect() const
+  {
+    return quote(value_, '*', true);
   }
 
   std::string String_Constant::to_string(bool compressed, int precision) const
@@ -2251,9 +2300,10 @@ namespace Sass {
     std::string str("");
     auto end = this->end();
     auto start = this->begin();
+    std::string sep(compressed ? "," : ", ");
     while (start < end && *start) {
       Complex_Selector* sel = *start;
-      if (!str.empty()) str += ", ";
+      if (!str.empty()) str += sep;
       str += sel->to_string(compressed, precision);
       ++ start;
     }
@@ -2289,6 +2339,7 @@ namespace Sass {
       case ADJACENT_TO: str_op = "+"; break;
       case REFERENCE:   str_op = "/" + str_ref + "/"; break;
     }
+
     // prettify for non ancestors
     if (combinator() != ANCESTOR_OF) {
       // no spaces needed for compressed
@@ -2301,6 +2352,12 @@ namespace Sass {
     // is ancestor with no tail
     else if (str_tail == "") {
       str_op = ""; // superflous
+    }
+    else if (compressed)
+    {
+      if (str_tail[0] == '-') {
+        str_op = ""; // superflous
+      }
     }
     // now build the final result
     return str_head + str_op + str_tail;

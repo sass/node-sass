@@ -88,84 +88,83 @@ namespace Sass {
   template <typename T, typename D>
   class Operation_CRTP : public Operation<T> {
   public:
-    virtual T operator()(AST_Node* x)               { return static_cast<D*>(this)->fallback(x); }
-    virtual ~Operation_CRTP()                       = 0;
+    D& impl() { return static_cast<D&>(*this); }
+  public:
+    T operator()(AST_Node* x)               { return static_cast<D*>(this)->fallback(x); }
     // statements
-    virtual T operator()(Block* x)                  { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Ruleset* x)                { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Propset* x)                { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Bubble* x)                 { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Supports_Block* x)          { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Media_Block* x)            { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(At_Root_Block* x)          { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(At_Rule* x)                { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Keyframe_Rule* x)          { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Declaration* x)            { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Assignment* x)             { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Import* x)                 { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Import_Stub* x)            { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Warning* x)                { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Error* x)                  { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Debug* x)                  { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Comment* x)                { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(If* x)                     { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(For* x)                    { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Each* x)                   { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(While* x)                  { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Return* x)                 { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Content* x)                { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Extension* x)              { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Definition* x)             { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Mixin_Call* x)             { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Block* x)                  { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Ruleset* x)                { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Propset* x)                { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Bubble* x)                 { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Supports_Block* x)         { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Media_Block* x)            { return static_cast<D*>(this)->fallback(x); }
+    T operator()(At_Root_Block* x)          { return static_cast<D*>(this)->fallback(x); }
+    T operator()(At_Rule* x)                { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Keyframe_Rule* x)          { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Declaration* x)            { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Assignment* x)             { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Import* x)                 { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Import_Stub* x)            { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Warning* x)                { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Error* x)                  { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Debug* x)                  { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Comment* x)                { return static_cast<D*>(this)->fallback(x); }
+    T operator()(If* x)                     { return static_cast<D*>(this)->fallback(x); }
+    T operator()(For* x)                    { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Each* x)                   { return static_cast<D*>(this)->fallback(x); }
+    T operator()(While* x)                  { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Return* x)                 { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Content* x)                { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Extension* x)              { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Definition* x)             { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Mixin_Call* x)             { return static_cast<D*>(this)->fallback(x); }
     // expressions
-    virtual T operator()(List* x)                   { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Map* x)                    { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Binary_Expression* x)      { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Unary_Expression* x)       { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Function_Call* x)          { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Function_Call_Schema* x)   { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Custom_Warning* x)         { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Custom_Error* x)           { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Variable* x)               { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Textual* x)                { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Number* x)                 { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Color* x)                  { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Boolean* x)                { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(String_Schema* x)          { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(String_Constant* x)        { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(String_Quoted* x)          { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Supports_Condition* x)     { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Supports_Operator* x)      { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Supports_Negation* x)      { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Supports_Declaration* x)   { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Supports_Interpolation* x) { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Media_Query* x)            { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Media_Query_Expression* x) { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(At_Root_Expression* x)     { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Null* x)                   { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Parent_Selector* x)        { return static_cast<D*>(this)->fallback(x); }
+    T operator()(List* x)                   { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Map* x)                    { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Binary_Expression* x)      { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Unary_Expression* x)       { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Function_Call* x)          { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Function_Call_Schema* x)   { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Custom_Warning* x)         { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Custom_Error* x)           { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Variable* x)               { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Textual* x)                { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Number* x)                 { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Color* x)                  { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Boolean* x)                { return static_cast<D*>(this)->fallback(x); }
+    T operator()(String_Schema* x)          { return static_cast<D*>(this)->fallback(x); }
+    T operator()(String_Constant* x)        { return static_cast<D*>(this)->fallback(x); }
+    T operator()(String_Quoted* x)          { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Supports_Condition* x)     { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Supports_Operator* x)      { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Supports_Negation* x)      { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Supports_Declaration* x)   { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Supports_Interpolation* x) { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Media_Query* x)            { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Media_Query_Expression* x) { return static_cast<D*>(this)->fallback(x); }
+    T operator()(At_Root_Expression* x)     { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Null* x)                   { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Parent_Selector* x)        { return static_cast<D*>(this)->fallback(x); }
     // parameters and arguments
-    virtual T operator()(Parameter* x)              { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Parameters* x)             { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Argument* x)               { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Arguments* x)              { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Parameter* x)              { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Parameters* x)             { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Argument* x)               { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Arguments* x)              { return static_cast<D*>(this)->fallback(x); }
     // selectors
-    virtual T operator()(Selector_Schema* x)        { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Selector_Placeholder* x)   { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Type_Selector* x)          { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Selector_Qualifier* x)     { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Attribute_Selector* x)     { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Pseudo_Selector* x)        { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Wrapped_Selector* x)       { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Compound_Selector* x)      { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Complex_Selector* x)       { return static_cast<D*>(this)->fallback(x); }
-    virtual T operator()(Selector_List* x)          { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Selector_Schema* x)        { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Selector_Placeholder* x)   { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Type_Selector* x)          { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Selector_Qualifier* x)     { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Attribute_Selector* x)     { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Pseudo_Selector* x)        { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Wrapped_Selector* x)       { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Compound_Selector* x)      { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Complex_Selector* x)       { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Selector_List* x)          { return static_cast<D*>(this)->fallback(x); }
 
     template <typename U>
     T fallback(U x)                                 { return T(); }
   };
-  template<typename T, typename D>
-  inline Operation_CRTP<T, D>::~Operation_CRTP()    { }
 
 }
 

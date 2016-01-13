@@ -61,7 +61,8 @@ namespace Sass {
     }
 
     // flush scheduled outputs
-    inspect.finalize();
+    // maybe omit semicolon if possible
+    inspect.finalize(wbuf.buffer.size() == 0);
     // prepend buffer on top
     prepend_output(inspect.output());
     // make sure we end with a linefeed
@@ -341,7 +342,8 @@ namespace Sass {
     }
 
     if (b->is_invisible() || b->length() == 0) {
-      return append_string(" {}");
+      append_optional_space();
+      return append_string("{}");
     }
 
     append_scope_opener();

@@ -25,9 +25,7 @@ namespace Sass {
     static Node subweave(Node& one, Node& two, Context& ctx);
     static Selector_List* extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, bool isReplace, bool& extendedSomething);
     Extend(Context&, ExtensionSubsetMap&);
-    virtual ~Extend() { }
-
-    using Operation<void>::operator();
+    ~Extend() { }
 
     void operator()(Block*);
     void operator()(Ruleset*);

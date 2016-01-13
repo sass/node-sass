@@ -1137,7 +1137,7 @@ namespace Sass {
           error("\"" + val->perform(&to_string) + "\" is not a number for `min'", pstate);
         }
         if (least) {
-          if (Eval::lt(xi, least)) least = xi;
+          if (*xi < *least) least = xi;
         } else least = xi;
       }
       return least;
@@ -1156,7 +1156,7 @@ namespace Sass {
           error("\"" + val->perform(&to_string) + "\" is not a number for `max'", pstate);
         }
         if (greatest) {
-          if (Eval::lt(greatest, xi)) greatest = xi;
+          if (*greatest < *xi) greatest = xi;
         } else greatest = xi;
       }
       return greatest;

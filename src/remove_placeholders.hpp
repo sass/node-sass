@@ -22,9 +22,7 @@ namespace Sass {
 
     public:
         Remove_Placeholders(Context&);
-        virtual ~Remove_Placeholders() { }
-
-        using Operation<void>::operator();
+        ~Remove_Placeholders() { }
 
         void operator()(Block*);
         void operator()(Ruleset*);

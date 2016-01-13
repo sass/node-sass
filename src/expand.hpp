@@ -43,9 +43,7 @@ namespace Sass {
 
   public:
     Expand(Context&, Env*, Backtrace*);
-    virtual ~Expand() { }
-
-    using Operation<Statement*>::operator();
+    ~Expand() { }
 
     Statement* operator()(Block*);
     Statement* operator()(Ruleset*);

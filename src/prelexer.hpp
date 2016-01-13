@@ -210,6 +210,7 @@ namespace Sass {
     // Match interpolant schemas
     const char* identifier_schema(const char* src);
     const char* value_schema(const char* src);
+    const char* sass_value(const char* src);
     // const char* filename(const char* src);
     // const char* filename_schema(const char* src);
     // const char* url_schema(const char* src);
@@ -252,6 +253,7 @@ namespace Sass {
     const char* re_nothing(const char* src);
     const char* re_type_selector2(const char* src);
 
+    const char* re_special_fun(const char* src);
 
     const char* kwd_warn(const char* src);
     const char* kwd_err(const char* src);
@@ -282,6 +284,7 @@ namespace Sass {
     // Match placeholder selectors.
     const char* placeholder(const char* src);
     // Match CSS numeric constants.
+    const char* op(const char* src);
     const char* sign(const char* src);
     const char* unsigned_number(const char* src);
     const char* number(const char* src);
@@ -420,6 +423,9 @@ namespace Sass {
 
     template <size_t min, size_t max, prelexer mx>
     const char* minmax_range(const char* src);
+
+    template <char min, char max>
+    const char* char_range(const char* src);
 
   }
 }

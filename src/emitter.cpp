@@ -58,9 +58,11 @@ namespace Sass {
   // MAIN BUFFER MANIPULATION
 
   // add outstanding delimiter
-  void Emitter::finalize(void)
+  void Emitter::finalize(bool final)
   {
     scheduled_space = 0;
+    if (output_style() == SASS_STYLE_COMPRESSED)
+      if (final) scheduled_delimiter = false;
     if (scheduled_linefeed)
       scheduled_linefeed = 1;
     flush_schedules();
@@ -107,6 +109,7 @@ namespace Sass {
   // append some text or token to the buffer
   void Emitter::append_string(const std::string& text)
   {
+
     // write space/lf
     flush_schedules();
 

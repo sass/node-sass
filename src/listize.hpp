@@ -22,9 +22,7 @@ namespace Sass {
 
   public:
     Listize(Context&);
-    virtual ~Listize() { }
-
-    using Operation<Expression*>::operator();
+    ~Listize() { }
 
     Expression* operator()(Selector_List*);
     Expression* operator()(Complex_Selector*);

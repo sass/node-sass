@@ -12,15 +12,10 @@ namespace Sass {
   namespace Exception {
 
     Base::Base(ParserState pstate, std::string msg, std::vector<Sass_Import_Entry>* import_stack)
-    : std::runtime_error(msg),
-      msg(msg), pstate(pstate),
+    : std::runtime_error(msg), msg(msg),
+      prefix("Error"), pstate(pstate),
       import_stack(import_stack)
     { }
-
-    const char* Base::what() const throw()
-    {
-      return msg.c_str();
-    }
 
     InvalidSass::InvalidSass(ParserState pstate, std::string msg)
     : Base(pstate, msg)
@@ -49,6 +44,84 @@ namespace Sass {
     InvalidSyntax::InvalidSyntax(ParserState pstate, std::string msg, std::vector<Sass_Import_Entry>* import_stack)
     : Base(pstate, msg, import_stack)
     { }
+
+    UndefinedOperation::UndefinedOperation(const Expression* lhs, const Expression* rhs, const std::string& op)
+    : lhs(lhs), rhs(rhs), op(op)
+    {
+      msg  = def_op_msg + ": \"";
+      if (const Value* l = dynamic_cast<const Value*>(lhs)) {
+        msg += l->to_string();
+      } else if (lhs) {
+        msg += "[EXPRESSION]";
+      }
+      msg += " " + op + " ";
+      if (const Value* r = dynamic_cast<const Value*>(rhs)) {
+        msg += r->to_string();
+      } else if (rhs) {
+        msg += "[EXPRESSION]";
+      }
+      msg += "\".";
+    }
+
+    InvalidNullOperation::InvalidNullOperation(const Expression* lhs, const Expression* rhs, const std::string& op)
+    : UndefinedOperation(lhs, rhs, op)
+    {
+      msg  = def_op_null_msg + ": \"";
+      if (const Value* l = dynamic_cast<const Value*>(lhs)) {
+        msg += l->inspect();
+      } else if (lhs) {
+        msg += "[EXPRESSION]";
+      }
+      msg += " " + op + " ";
+      if (const Value* r = dynamic_cast<const Value*>(rhs)) {
+        msg += r->inspect();
+      } else if (rhs) {
+        msg += "[EXPRESSION]";
+      }
+      msg += "\".";
+    }
+
+    ZeroDivisionError::ZeroDivisionError(const Expression& lhs, const Expression& rhs)
+    : lhs(lhs), rhs(rhs)
+    {
+      msg  = "divided by 0";
+    }
+
+    IncompatibleUnits::IncompatibleUnits(const Number& lhs, const Number& rhs)
+    : lhs(lhs), rhs(rhs)
+    {
+      msg  = "Incompatible units: '";
+      msg += rhs.unit();
+      msg += "' and '";
+      msg += lhs.unit();
+      msg += "'.";
+    }
+
+    AlphaChannelsNotEqual::AlphaChannelsNotEqual(const Expression* lhs, const Expression* rhs, const std::string& op)
+    : lhs(lhs), rhs(rhs), op(op)
+    {
+      msg  = "Alpha channels must be equal: ";
+      if (const Value* l = dynamic_cast<const Value*>(lhs)) {
+        msg += l->to_string();
+      } else if (lhs) {
+        msg += "[EXPRESSION]";
+      }
+      msg += " " + op + " ";
+      if (const Value* r = dynamic_cast<const Value*>(rhs)) {
+        msg += r->to_string();
+      } else if (rhs) {
+        msg += "[EXPRESSION]";
+      }
+      msg += ".";
+    }
+
+
+    SassValueError::SassValueError(ParserState pstate, OperationError& err)
+    : Base(pstate, err.what())
+    {
+      msg = err.what();
+      prefix = err.errtype();
+    }
 
   }
 

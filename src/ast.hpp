@@ -145,6 +145,10 @@ namespace Sass {
     virtual bool is_false() { return false; }
     virtual bool operator== (const Expression& rhs) const { return false; }
     virtual void set_delayed(bool delayed) { is_delayed(delayed); }
+    virtual bool has_interpolant() const { return is_interpolant(); }
+    virtual bool is_left_interpolant() const { return is_interpolant(); }
+    virtual bool is_right_interpolant() const { return is_interpolant(); }
+    virtual std::string inspect() const { return to_string(); } // defaults to to_string
     virtual std::string to_string(bool compressed = false, int precision = 5) const = 0;
     virtual size_t hash() { return 0; }
   };
@@ -924,6 +928,27 @@ namespace Sass {
     ATTACH_OPERATIONS()
   };
 
+  inline static const std::string sass_op_to_name(enum Sass_OP op) {
+    switch (op) {
+      case AND: return "and"; break;
+      case OR: return "or"; break;
+      case EQ: return "eq"; break;
+      case NEQ: return "neq"; break;
+      case GT: return "gt"; break;
+      case GTE: return "gte"; break;
+      case LT: return "lt"; break;
+      case LTE: return "lte"; break;
+      case ADD: return "plus"; break;
+      case SUB: return "sub"; break;
+      case MUL: return "times"; break;
+      case DIV: return "div"; break;
+      case MOD: return "mod"; break;
+      // this is only used internally!
+      case NUM_OPS: return "[OPS]"; break;
+      default: return "invalid"; break;
+    }
+  }
+
   //////////////////////////////////////////////////////////////////////////
   // Binary expressions. Represents logical, relational, and arithmetic
   // operations. Templatized to avoid large switch statements and repetitive
@@ -979,6 +1004,13 @@ namespace Sass {
         case NUM_OPS: return "[OPS]"; break;
         default: return "invalid"; break;
       }
+    }
+    bool is_left_interpolant(void) const;
+    bool is_right_interpolant(void) const;
+    bool has_interpolant() const
+    {
+      return is_left_interpolant() ||
+             is_right_interpolant();
     }
     virtual void set_delayed(bool delayed)
     {
@@ -1439,14 +1471,24 @@ namespace Sass {
   // evaluation phase.
   ///////////////////////////////////////////////////////////////////////
   class String_Schema : public String, public Vectorized<Expression*> {
-    ADD_PROPERTY(bool, has_interpolants)
+    // ADD_PROPERTY(bool, has_interpolants)
     size_t hash_;
   public:
     String_Schema(ParserState pstate, size_t size = 0, bool has_interpolants = false)
-    : String(pstate), Vectorized<Expression*>(size), has_interpolants_(has_interpolants), hash_(0)
+    : String(pstate), Vectorized<Expression*>(size), hash_(0)
     { concrete_type(STRING); }
     std::string type() { return "string"; }
     static std::string type_name() { return "string"; }
+
+    bool is_left_interpolant(void) const;
+    bool is_right_interpolant(void) const;
+    // void has_interpolants(bool tc) { }
+    bool has_interpolants() {
+      for (auto el : elements()) {
+        if (el->is_interpolant()) return true;
+      }
+      return false;
+    }
 
     virtual size_t hash()
     {
@@ -1497,6 +1539,7 @@ namespace Sass {
     }
 
     virtual bool operator==(const Expression& rhs) const;
+    virtual std::string inspect() const; // quotes are forced on inspection
     virtual std::string to_string(bool compressed = false, int precision = 5) const;
 
     // static char auto_quote() { return '*'; }
@@ -1518,6 +1561,7 @@ namespace Sass {
       if (q && quote_mark_) quote_mark_ = q;
     }
     virtual bool operator==(const Expression& rhs) const;
+    virtual std::string inspect() const; // quotes are forced on inspection
     virtual std::string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };

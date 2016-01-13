@@ -205,7 +205,6 @@ namespace Sass {
                        digits,
                        identifier,
                        quoted_string,
-                       exactly<'+'>,
                        exactly<'-'>
                      >
                    >
@@ -279,18 +278,54 @@ namespace Sass {
       >(src);
     }
 
-    const char* value_schema(const char* src) {
-      // follows this pattern: ([xyz]*i[xyz]*)+
-      return one_plus< sequence< zero_plus< alternatives< identifier, percentage, dimension, hex, number, quoted_string > >,
-                                 interpolant,
-                                 zero_plus< alternatives< identifier, percentage, dimension, hex, number, quoted_string, exactly<'%'> > > > >(src);
+    const char* sass_value(const char* src) {
+      return alternatives <
+        quoted_string,
+        identifier,
+        percentage,
+        hex,
+        dimension,
+        number
+      >(src);
     }
 
-    /* not used anymore - remove?
-    const char* filename(const char* src) {
-      return one_plus< alternatives< identifier, number, exactly<'.'> > >(src);
+    // this is basically `one_plus < sass_value >`
+    // takes care to not parse invalid combinations
+    const char* value_combinations(const char* src) {
+      // `2px-2px` is invalid combo
+      bool was_number = false;
+      const char* pos = src;
+      while (src) {
+        if ((pos = alternatives < quoted_string, identifier, percentage, hex >(src))) {
+          was_number = false;
+          src = pos;
+        } else if (!was_number && !exactly<'+'>(src) && (pos = alternatives < dimension, number >(src))) {
+          was_number = true;
+          src = pos;
+        } else {
+          break;
+        }
+      }
+      return src;
     }
-    */
+
+    // must be at least one interpolant
+    // can be surrounded by sass values
+    // make sure to never parse (dim)(dim)
+    // since this wrongly consumes `2px-1px`
+    // `2px1px` is valid number (unit `px1px`)
+    const char* value_schema(const char* src)
+    {
+      return sequence <
+        one_plus <
+          sequence <
+            optional < value_combinations >,
+            interpolant,
+            optional < value_combinations >
+          >
+        >
+      >(src);
+    }
 
     // Match CSS '@' keywords.
     const char* at_keyword(const char* src) {
@@ -540,6 +575,9 @@ namespace Sass {
     }
     // Match CSS numeric constants.
 
+    const char* op(const char* src) {
+      return class_char<op_chars>(src);
+    }
     const char* sign(const char* src) {
       return class_char<sign_chars>(src);
     }
@@ -1091,6 +1129,41 @@ namespace Sass {
       return sequence< number, optional_spaces, exactly<'/'>, optional_spaces, number >(src);
     }
 
+    // lexer special_fn: these functions cannot be overloaded
+    // (/((-[\w-]+-)?(calc|element)|expression|progid:[a-z\.]*)\(/i)
+    const char* re_special_fun(const char* src) {
+      return sequence <
+        optional <
+          sequence <
+            exactly <'-'>,
+            one_plus <
+              alternatives <
+                alpha,
+                exactly <'+'>,
+                exactly <'-'>
+              >
+            >
+          >
+        >,
+        alternatives <
+          exactly < calc_fn_kwd >,
+          exactly < expression_kwd >,
+          sequence <
+            sequence <
+              exactly < progid_kwd >,
+              exactly <':'>
+            >,
+            zero_plus <
+              alternatives <
+                char_range <'a', 'z'>,
+                exactly <'.'>
+              >
+            >
+          >
+        >
+      >(src);
+    }
+
     template <size_t size, prelexer mx, prelexer pad>
     const char* padded_token(const char* src)
     {
@@ -1119,6 +1192,14 @@ namespace Sass {
       if (got < min) return 0;
       if (got > max) return 0;
       return pos;
+    }
+
+    template <char min, char max>
+    const char* char_range(const char* src)
+    {
+      if (*src < min) return 0;
+      if (*src > max) return 0;
+      return src + 1;
     }
 
   }
