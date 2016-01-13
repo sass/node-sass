@@ -412,7 +412,8 @@ namespace Sass {
   void Inspect::operator()(Binary_Expression* expr)
   {
     expr->left()->perform(this);
-    if ( in_media_block || (
+    if ( in_media_block ||
+         (output_style() == INSPECT) || (
           expr->op().ws_before
           && (!expr->is_interpolant())
           && (!expr->is_delayed() ||
@@ -437,7 +438,8 @@ namespace Sass {
       case Sass_OP::MOD: append_string("%");   break;
       default: break; // shouldn't get here
     }
-    if ( in_media_block || (
+    if ( in_media_block ||
+         (output_style() == INSPECT) || (
           expr->op().ws_after
           && (!expr->is_interpolant())
           && (!expr->is_delayed()

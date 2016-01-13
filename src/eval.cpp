@@ -438,10 +438,11 @@ namespace Sass {
         *lm << std::make_pair(key, val);
       }
       if (lm->has_duplicate_key()) {
+        To_String to_string({ INSPECT, 5 }, true);
         if (Color* col = dynamic_cast<Color*>(lm->get_duplicate_key())) {
-          error("Duplicate key " + col->to_hex({ NESTED, 5 }) + " in map (" + l->inspect() + ").", lm->pstate());
+          error("Duplicate key " + col->to_hex({ INSPECT, 5 }) + " in map (" + l->to_string({ INSPECT, 5 }) + ").", lm->pstate());
         } else {
-          error("Duplicate key " + lm->get_duplicate_key()->inspect() + " in map (" + l->inspect() + ").", lm->pstate());
+          error("Duplicate key \"" + lm->get_duplicate_key()->perform(&to_string) + "\" in map (" + l->perform(&to_string) + ").", lm->pstate());
         }
       }
 
@@ -471,7 +472,8 @@ namespace Sass {
     // make sure we're not starting with duplicate keys.
     // the duplicate key state will have been set in the parser phase.
     if (m->has_duplicate_key()) {
-      error("Duplicate key " + m->get_duplicate_key()->inspect() + " in map " + m->inspect() + ".", m->pstate());
+      To_String to_string({ INSPECT, 5 }, false);
+      error("Duplicate key \"" + m->get_duplicate_key()->perform(&to_string) + "\" in map " + m->perform(&to_string) + ".", m->pstate());
     }
 
     Map* mm = SASS_MEMORY_NEW(ctx.mem, Map,
@@ -485,7 +487,8 @@ namespace Sass {
 
     // check the evaluated keys aren't duplicates.
     if (mm->has_duplicate_key()) {
-      error("Duplicate key " + mm->get_duplicate_key()->inspect() + " in map " + m->inspect() + ".", mm->pstate());
+      To_String to_string({ INSPECT, 5 }, false);
+      error("Duplicate key \"" + mm->get_duplicate_key()->perform(&to_string) + "\" in map " + m->perform(&to_string) + ".", mm->pstate());
     }
 
     mm->is_expanded(true);
