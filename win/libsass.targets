@@ -1,5 +1,16 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup Label="LibSass Header files">
+  <ItemGroup Label="LibSass Include Headers">
+    <ClInclude Include="$(LIBSASS_INCLUDES_DIR)\sass.h" />
+    <ClInclude Include="$(LIBSASS_INCLUDES_DIR)\sass2scss.h" />
+    <ClInclude Include="$(LIBSASS_INCLUDES_DIR)\sass\base.h" />
+    <ClInclude Include="$(LIBSASS_INCLUDES_DIR)\sass\context.h" />
+    <ClInclude Include="$(LIBSASS_INCLUDES_DIR)\sass\functions.h" />
+    <ClInclude Include="$(LIBSASS_INCLUDES_DIR)\sass\interface.h" />
+    <ClInclude Include="$(LIBSASS_INCLUDES_DIR)\sass\values.h" />
+    <ClInclude Include="$(LIBSASS_INCLUDES_DIR)\sass\version.h" />
+    <ClInclude Include="$(LIBSASS_INCLUDES_DIR)\sass\version.h.in" />
+  </ItemGroup>
+  <ItemGroup Label="LibSass Headers">
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_def_macros.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_factory.hpp" />
@@ -7,6 +18,7 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\backtrace.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\base64vlq.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\bind.hpp" />
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\b64\cencode.h" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\color_maps.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\constants.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\context.hpp" />
@@ -36,6 +48,7 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\position.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\prelexer.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\remove_placeholders.hpp" />
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass_context.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass_functions.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass_util.hpp" />
@@ -54,8 +67,7 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\util.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\values.hpp" />
   </ItemGroup>
-
-  <ItemGroup Label="LibSass Source files">
+  <ItemGroup Label="LibSass Sources">
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\base64vlq.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\bind.cpp" />

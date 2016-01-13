@@ -4,6 +4,7 @@
     <LIBSASS_VERSION>[NA]</LIBSASS_VERSION>
     <LIBSASS_SRC_DIR>..\src</LIBSASS_SRC_DIR>
     <LIBSASS_HEADERS_DIR>..\src</LIBSASS_HEADERS_DIR>
+    <LIBSASS_INCLUDES_DIR>..\include</LIBSASS_INCLUDES_DIR>
   </PropertyGroup>
   <Target Name="GitVersion">
     <Exec Command="git -C .. describe --abbrev=4 --dirty --always --tags" LogStandardErrorAsError="true" ContinueOnError="true" ConsoleToMSBuild="true">
@@ -180,7 +181,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <Import Project="libsass.targets"/>
+  <Import Project="libsass.targets" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
