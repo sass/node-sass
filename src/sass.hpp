@@ -17,7 +17,10 @@
 # define NOGDI
 // we do not want the min/max macro
 # define NOMINMAX
+// we do not want the IN/OUT macro
+# define _NO_W32_PSEUDO_MODIFIERS
 #endif
+
 
 // should we be case insensitive
 // when dealing with files or paths
