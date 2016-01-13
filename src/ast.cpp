@@ -2116,17 +2116,17 @@ namespace Sass {
     // resolved color
     std::string res_name = name;
 
-    double r = Sass::round(cap_channel<0xff>(r_));
-    double g = Sass::round(cap_channel<0xff>(g_));
-    double b = Sass::round(cap_channel<0xff>(b_));
+    double r = Sass::round(cap_channel<0xff>(r_), precision);
+    double g = Sass::round(cap_channel<0xff>(g_), precision);
+    double b = Sass::round(cap_channel<0xff>(b_), precision);
     double a = cap_channel<1>   (a_);
 
     // get color from given name (if one was given at all)
     if (name != "" && name_to_color(name)) {
       const Color* n = name_to_color(name);
-      r = Sass::round(cap_channel<0xff>(n->r()));
-      g = Sass::round(cap_channel<0xff>(n->g()));
-      b = Sass::round(cap_channel<0xff>(n->b()));
+      r = Sass::round(cap_channel<0xff>(n->r()), precision);
+      g = Sass::round(cap_channel<0xff>(n->g()), precision);
+      b = Sass::round(cap_channel<0xff>(n->b()), precision);
       a = cap_channel<1>   (n->a());
     }
     // otherwise get the possible resolved color name
@@ -2238,11 +2238,16 @@ namespace Sass {
       res = std::string(ss.str());
       // maybe we truncated up to decimal point
       size_t pos = res.find_last_not_of("0");
-      bool at_dec_point = res[pos] == '.' ||
-                          res[pos] == ',';
-      // don't leave a blank point
-      if (at_dec_point) ++ pos;
-      res.resize (pos + 1);
+      // handle case where we have a "0"
+      if (pos == std::string::npos) {
+        res = "0.0";
+      } else {
+        bool at_dec_point = res[pos] == '.' ||
+                            res[pos] == ',';
+        // don't leave a blank point
+        if (at_dec_point) ++ pos;
+        res.resize (pos + 1);
+      }
     }
 
     // some final cosmetics
