@@ -23,8 +23,7 @@ namespace Sass {
     using Inspect::operator();
 
   public:
-    // change to Emitter
-    Output(Context* ctx);
+    Output(Sass_Output_Options& opt);
     virtual ~Output();
 
   protected:

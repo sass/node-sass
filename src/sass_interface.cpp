@@ -70,9 +70,8 @@ extern "C" {
       else {
           output_path = c_ctx->output_path;
       }
-      Data_Context cpp_ctx(
-        (Sass_Data_Context*) 0
-      );
+      struct Sass_Data_Context opt;
+      Data_Context cpp_ctx(opt);
       if (c_ctx->c_functions) {
         Sass_Function_List this_func_data = c_ctx->c_functions;
         while ((this_func_data) && (*this_func_data)) {
@@ -146,9 +145,8 @@ extern "C" {
       else {
           output_path = c_ctx->output_path;
       }
-      File_Context cpp_ctx(
-        (Sass_File_Context*) 0
-      );
+      struct Sass_File_Context opt;
+      File_Context cpp_ctx(opt);
       if (c_ctx->c_functions) {
         Sass_Function_List this_func_data = c_ctx->c_functions;
         while ((this_func_data) && (*this_func_data)) {

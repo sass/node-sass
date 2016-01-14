@@ -2,6 +2,7 @@
 #define SASS_EMITTER_H
 
 #include <string>
+#include "sass.hpp"
 #include "sass/base.h"
 #include "source_map.hpp"
 #include "ast_fwd_decl.hpp"
@@ -12,7 +13,7 @@ namespace Sass {
   class Emitter {
 
     public:
-      Emitter(Context* ctx);
+      Emitter(struct Sass_Output_Options& opt);
       virtual ~Emitter() { }
 
     protected:
@@ -24,19 +25,19 @@ namespace Sass {
       // proxy methods for source maps
       void add_source_index(size_t idx);
       void set_filename(const std::string& str);
-      void add_open_mapping(AST_Node* node);
-      void add_close_mapping(AST_Node* node);
-      void schedule_mapping(AST_Node* node);
+      void add_open_mapping(const AST_Node* node);
+      void add_close_mapping(const AST_Node* node);
+      void schedule_mapping(const AST_Node* node);
       std::string render_srcmap(Context &ctx);
       ParserState remap(const ParserState& pstate);
 
     public:
-      Context* ctx;
+      struct Sass_Output_Options& opt;
       size_t indentation;
       size_t scheduled_space;
       size_t scheduled_linefeed;
       bool scheduled_delimiter;
-      AST_Node* scheduled_mapping;
+      const AST_Node* scheduled_mapping;
 
     public:
       // output strings different in comments
@@ -50,14 +51,12 @@ namespace Sass {
       // nested lists need parentheses
       bool in_space_array;
       bool in_comma_array;
-      // list separators don't get compressed in @debug
-      bool in_debug;
 
     public:
       // return buffer as std::string
       std::string get_buffer(void);
       // flush scheduled space/linefeed
-      Sass_Output_Style output_style(void);
+      Sass_Output_Style output_style(void) const;
       // add outstanding linefeed
       void finalize(bool final = true);
       // flush scheduled space/linefeed
@@ -71,7 +70,7 @@ namespace Sass {
       void append_wspace(const std::string& text);
       // append some text or token to the buffer
       // this adds source-mappings for node start and end
-      void append_token(const std::string& text, AST_Node* node);
+      void append_token(const std::string& text, const AST_Node* node);
 
     public: // syntax sugar
       void append_indentation();

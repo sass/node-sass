@@ -2,36 +2,12 @@
 #define SASS_SASS_CONTEXT_H
 
 #include "sass.h"
+#include "sass.hpp"
 #include "context.hpp"
 #include "ast_fwd_decl.hpp"
 
-// Input behaviours
-enum Sass_Input_Style {
-  SASS_CONTEXT_NULL,
-  SASS_CONTEXT_FILE,
-  SASS_CONTEXT_DATA,
-  SASS_CONTEXT_FOLDER
-};
-
-// simple linked list
-struct string_list {
-  string_list* next;
-  char* string;
-};
-
 // sass config options structure
-struct Sass_Options {
-
-  // Precision for fractional numbers
-  int precision;
-
-  // Output style for the generated css code
-  // A value from above SASS_STYLE_* constants
-  enum Sass_Output_Style output_style;
-
-  // Emit comments in the generated CSS indicating
-  // the corresponding source line.
-  bool source_comments;
+struct Sass_Options : Sass_Output_Options {
 
   // embed sourceMappingUrl as data uri
   bool source_map_embed;
@@ -58,11 +34,6 @@ struct Sass_Options {
   // this file, it is just used to create
   // information in source-maps etc.
   char* output_path;
-
-  // String to be used for indentation
-  const char* indent;
-  // String to be used to for line feeds
-  const char* linefeed;
 
   // Colon-separated list of paths
   // Semicolon-separated on Windows

@@ -17,7 +17,7 @@ namespace Sass {
 
   std::string SourceMap::render_srcmap(Context &ctx) {
 
-    const bool include_sources = ctx.c_options->source_map_contents;
+    const bool include_sources = ctx.c_options.source_map_contents;
     const std::vector<std::string> links = ctx.srcmap_links;
     const std::vector<Resource>& sources(ctx.resources);
 
@@ -160,12 +160,12 @@ namespace Sass {
     current_position += offset;
   }
 
-  void SourceMap::add_open_mapping(AST_Node* node)
+  void SourceMap::add_open_mapping(const AST_Node* node)
   {
     mappings.push_back(Mapping(node->pstate(), current_position));
   }
 
-  void SourceMap::add_close_mapping(AST_Node* node)
+  void SourceMap::add_close_mapping(const AST_Node* node)
   {
     mappings.push_back(Mapping(node->pstate() + node->pstate().offset, current_position));
   }

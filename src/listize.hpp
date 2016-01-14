@@ -16,12 +16,12 @@ namespace Sass {
 
   class Listize : public Operation_CRTP<Expression*, Listize> {
 
-    Context&            ctx;
+    Memory_Manager& mem;
 
     Expression* fallback_impl(AST_Node* n);
 
   public:
-    Listize(Context&);
+    Listize(Memory_Manager&);
     ~Listize() { }
 
     Expression* operator()(Selector_List*);

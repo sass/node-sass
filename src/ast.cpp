@@ -280,7 +280,7 @@ namespace Sass {
 
   Compound_Selector* Simple_Selector::unify_with(Compound_Selector* rhs, Context& ctx)
   {
-    To_String to_string(&ctx);
+    To_String to_string(ctx.c_options);
     for (size_t i = 0, L = rhs->length(); i < L; ++i)
     { if (perform(&to_string) == (*rhs)[i]->perform(&to_string)) return rhs; }
 
@@ -1375,7 +1375,7 @@ namespace Sass {
 
   Compound_Selector* Compound_Selector::minus(Compound_Selector* rhs, Context& ctx)
   {
-    To_String to_string(&ctx);
+    To_String to_string(ctx.c_options);
     Compound_Selector* result = SASS_MEMORY_NEW(ctx.mem, Compound_Selector, pstate());
     // result->has_parent_reference(has_parent_reference());
 
@@ -1884,7 +1884,7 @@ namespace Sass {
     else { return &sass_null; }
   }
 
-  std::string Map::to_string(bool compressed, int precision) const
+  std::string Map::to_string(Sass_Inspect_Options opt) const
   {
     std::string res("");
     if (empty()) return res;
@@ -1893,24 +1893,26 @@ namespace Sass {
     for (auto key : keys()) {
       if (key->is_invisible()) continue;
       if (at(key)->is_invisible()) continue;
+      bool compressed = opt.output_style == COMPRESSED;
       if (items_output) res += compressed ? "," : ", ";
       Value* v_key = dynamic_cast<Value*>(key);
       Value* v_val = dynamic_cast<Value*>(at(key));
-      if (v_key) res += v_key->to_string(compressed, precision);
+      if (v_key) res += v_key->to_string(opt);
       res += compressed ? ":" : ": ";
-      if (v_val) res += v_val->to_string(compressed, precision);
+      if (v_val) res += v_val->to_string(opt);
       items_output = true;
     }
     return res;
   }
 
-  std::string List::to_string(bool compressed, int precision) const
+  std::string List::to_string(Sass_Inspect_Options opt) const
   {
     std::string res("");
     if (empty()) return res;
     if (is_invisible()) return res;
     bool items_output = false;
     std::string sep = separator() == SASS_SPACE ? " " : ",";
+    bool compressed = opt.output_style == COMPRESSED;
     if (!compressed && sep == ",") sep += " ";
     for (size_t i = 0, L = size(); i < L; ++i) {
       if (separator_ == SASS_HASH)
@@ -1919,37 +1921,38 @@ namespace Sass {
       if (item->is_invisible()) continue;
       if (items_output) res += sep;
       if (Expression* ex = dynamic_cast<Expression*>(item))
-      { res += ex->to_string(compressed, precision); }
+      { res += ex->to_string(opt); }
       // else if (Function_Call* v_fn = dynamic_cast<Function_Call*>(item))
-      // { res += v_fn->to_string(compressed, precision); }
+      // { res += v_fn->to_string(opt); }
       else { res += "[unknown type]"; }
       items_output = true;
     }
     return res;
   }
 
-  std::string Function_Call::to_string(bool compressed, int precision) const
+  std::string Function_Call::to_string(Sass_Inspect_Options opt) const
   {
     std::string str(name());
     str += "(";
-    str += arguments()->to_string(compressed, precision);
+    str += arguments()->to_string(opt);
     str += ")";
     return str;
   }
 
-  std::string Arguments::to_string(bool compressed, int precision) const
+  std::string Arguments::to_string(Sass_Inspect_Options opt) const
   {
     std::string str("");
+    bool compressed = opt.output_style == COMPRESSED;
     for(auto arg : elements()) {
       if (str != "") str += compressed ? "," : ", ";
-      str += arg->to_string(compressed, precision);
+      str += arg->to_string(opt);
     }
     return str;
   }
 
-  std::string Argument::to_string(bool compressed, int precision) const
+  std::string Argument::to_string(Sass_Inspect_Options opt) const
   {
-    return value()->to_string(compressed, precision);
+    return value()->to_string(opt);
   }
 
   bool Binary_Expression::is_left_interpolant(void) const
@@ -1961,36 +1964,17 @@ namespace Sass {
     return is_interpolant() || (right() && right()->is_right_interpolant());
   }
 
-  std::string Binary_Expression::to_string(bool compressed, int precision) const
+  std::string Binary_Expression::to_string(Sass_Inspect_Options opt) const
   {
-    std::string str("");
-    str += left()->to_string(compressed, precision);
-    if (!compressed) str += " ";
-    switch (type()) {
-      case Sass_OP::AND: str += "and"; break;
-      case Sass_OP::OR:  str += "or";  break;
-      case Sass_OP::EQ:  str += "==";  break;
-      case Sass_OP::NEQ: str += "!=";  break;
-      case Sass_OP::GT:  str += ">";   break;
-      case Sass_OP::GTE: str += ">=";  break;
-      case Sass_OP::LT:  str += "<";   break;
-      case Sass_OP::LTE: str += "<=";  break;
-      case Sass_OP::ADD: str += "+";   break;
-      case Sass_OP::SUB: str += "-";   break;
-      case Sass_OP::MUL: str += "*";   break;
-      case Sass_OP::DIV: str += "/"; break;
-      case Sass_OP::MOD: str += "%";   break;
-      default: break; // shouldn't get here
-    }
-    if (!compressed) str += " ";
-    str += right()->to_string(compressed, precision);
-    return str;
+    To_String to_string(opt);
+    Binary_Expression ex(*this);
+    return ex.perform(&to_string);
   }
-  std::string Textual::to_string(bool compressed, int precision) const
+  std::string Textual::to_string(Sass_Inspect_Options opt) const
   {
     return value();
   }
-  std::string Variable::to_string(bool compressed, int precision) const
+  std::string Variable::to_string(Sass_Inspect_Options opt) const
   {
     return name();
   }
@@ -1998,53 +1982,67 @@ namespace Sass {
   // For now it seems easiest to just implement these, since we need it to
   // ie. report the values as is for error reporting (like duplicate keys).
   // We cannot use inspect since we do not always have a context object.
-  std::string Unary_Expression::to_string(bool compressed, int precision) const
+  std::string Unary_Expression::to_string(Sass_Inspect_Options opt) const
   {
-    return "[Unary_Expression.to_string not implemented]";
+    To_String to_string(opt);
+    Unary_Expression ex(*this);
+    return ex.perform(&to_string);
   }
-  std::string Function_Call_Schema::to_string(bool compressed, int precision) const
+  std::string Function_Call_Schema::to_string(Sass_Inspect_Options opt) const
   {
-    return "[Function_Call_Schema.to_string not implemented]";
+    To_String to_string(opt);
+    Function_Call_Schema ex(*this);
+    return ex.perform(&to_string);
   }
-  std::string Media_Query::to_string(bool compressed, int precision) const
+  std::string Media_Query::to_string(Sass_Inspect_Options opt) const
   {
-    return "[Media_Query.to_string not implemented]";
+    To_String to_string(opt);
+    Media_Query ex(*this);
+    return ex.perform(&to_string);
   }
-  std::string Media_Query_Expression::to_string(bool compressed, int precision) const
+  std::string Media_Query_Expression::to_string(Sass_Inspect_Options opt) const
   {
-    return "[Media_Query_Expression.to_string not implemented]";
+    To_String to_string(opt);
+    Media_Query_Expression ex(*this);
+    return ex.perform(&to_string);
   }
-  std::string Supports_Condition::to_string(bool compressed, int precision) const
+  std::string Supports_Condition::to_string(Sass_Inspect_Options opt) const
   {
-    return "[Supports_Condition.to_string not implemented]";
+    To_String to_string(opt);
+    Supports_Condition ex(*this);
+    return ex.perform(&to_string);
   }
-  std::string At_Root_Expression::to_string(bool compressed, int precision) const
+  std::string At_Root_Expression::to_string(Sass_Inspect_Options opt) const
   {
-    return "[At_Root_Expression.to_string not implemented]";
+    To_String to_string(opt);
+    At_Root_Expression ex(*this);
+    return ex.perform(&to_string);
   }
-  std::string Thunk::to_string(bool compressed, int precision) const
+  std::string Thunk::to_string(Sass_Inspect_Options opt) const
   {
-    return "[Thunk.to_string not implemented]";
+    To_String to_string(opt);
+    Thunk ex(*this);
+    return ex.perform(&to_string);
   }
 
-  std::string String_Schema::to_string(bool compressed, int precision) const
+  std::string String_Schema::to_string(Sass_Inspect_Options opt) const
   {
     std::string res("");
     for (size_t i = 0, L = length(); i < L; ++i) {
       if ((*this)[i]->is_interpolant()) res += "#{";
       if (Value* val = dynamic_cast<Value*>((*this)[i]))
-      { res += val->to_string(compressed, precision); }
+      { res += val->to_string(opt); }
       if ((*this)[i]->is_interpolant()) res += "}";
     }
     return res;
   }
 
-  std::string Null::to_string(bool compressed, int precision) const
+  std::string Null::to_string(Sass_Inspect_Options opt) const
   {
     return "null";
   }
 
-  std::string Boolean::to_string(bool compressed, int precision) const
+  std::string Boolean::to_string(Sass_Inspect_Options opt) const
   {
     return value_ ? "true" : "false";
   }
@@ -2057,7 +2055,7 @@ namespace Sass {
     else                return c;
   }
 
-  std::string Color::to_hex(bool compressed, int precision) const
+  std::string Color::to_hex(Sass_Inspect_Options opt) const
   {
 
     std::stringstream ss;
@@ -2068,6 +2066,8 @@ namespace Sass {
 
     // resolved color
     std::string res_name = name;
+
+    bool compressed = opt.output_style == COMPRESSED;
 
     double r = Sass::round(cap_channel<0xff>(r_));
     double g = Sass::round(cap_channel<0xff>(g_));
@@ -2105,7 +2105,7 @@ namespace Sass {
     return hexlet.str();
 
   }
-  std::string Color::to_string(bool compressed, int precision) const
+  std::string Color::to_string(Sass_Inspect_Options opt) const
   {
     std::stringstream ss;
 
@@ -2116,17 +2116,17 @@ namespace Sass {
     // resolved color
     std::string res_name = name;
 
-    double r = Sass::round(cap_channel<0xff>(r_), precision);
-    double g = Sass::round(cap_channel<0xff>(g_), precision);
-    double b = Sass::round(cap_channel<0xff>(b_), precision);
+    double r = Sass::round(cap_channel<0xff>(r_), opt.precision);
+    double g = Sass::round(cap_channel<0xff>(g_), opt.precision);
+    double b = Sass::round(cap_channel<0xff>(b_), opt.precision);
     double a = cap_channel<1>   (a_);
 
     // get color from given name (if one was given at all)
     if (name != "" && name_to_color(name)) {
       const Color* n = name_to_color(name);
-      r = Sass::round(cap_channel<0xff>(n->r()), precision);
-      g = Sass::round(cap_channel<0xff>(n->g()), precision);
-      b = Sass::round(cap_channel<0xff>(n->b()), precision);
+      r = Sass::round(cap_channel<0xff>(n->r()), opt.precision);
+      g = Sass::round(cap_channel<0xff>(n->g()), opt.precision);
+      b = Sass::round(cap_channel<0xff>(n->b()), opt.precision);
       a = cap_channel<1>   (n->a());
     }
     // otherwise get the possible resolved color name
@@ -2137,6 +2137,7 @@ namespace Sass {
     }
 
     std::stringstream hexlet;
+    bool compressed = opt.output_style == COMPRESSED;
     hexlet << '#' << std::setw(1) << std::setfill('0');
     // create a short color hexlet if there is any need for it
     if (compressed && is_color_doublet(r, g, b) && a == 1) {
@@ -2185,7 +2186,7 @@ namespace Sass {
 
   }
 
-  std::string Number::to_string(bool compressed, int precision) const
+  std::string Number::to_string(Sass_Inspect_Options opt) const
   {
 
     std::string res;
@@ -2206,7 +2207,7 @@ namespace Sass {
     // check if we got scientific notation in result
     if (ss.str().find_first_of("e") != std::string::npos) {
       ss.clear(); ss.str(std::string());
-      ss.precision(std::max(12, precision));
+      ss.precision(std::max(12, opt.precision));
       ss << std::fixed << value_;
     }
 
@@ -2230,10 +2231,10 @@ namespace Sass {
     else
     {
       // do we have have too much precision?
-      if (pos_fract < precision + pos_point)
-      { precision = (int)(pos_fract - pos_point); }
+      if (pos_fract < opt.precision + pos_point)
+      { ss.precision((int)(pos_fract - pos_point)); }
+      else { ss.precision(opt.precision); }
       // round value again
-      ss.precision(precision);
       ss << std::fixed << value_;
       res = std::string(ss.str());
       // maybe we truncated up to decimal point
@@ -2255,7 +2256,7 @@ namespace Sass {
     else if (res == "") res = "0";
     else if (res == "-0") res = "0";
     else if (res == "-0.0") res = "0";
-    else if (compressed)
+    else if (opt.output_style == COMPRESSED)
     {
       // check if handling negative nr
       size_t off = res[0] == '-' ? 1 : 0;
@@ -2276,7 +2277,7 @@ namespace Sass {
     return quote(value_, '*', true);
   }
 
-  std::string String_Quoted::to_string(bool compressed, int precision) const
+  std::string String_Quoted::to_string(Sass_Inspect_Options opt) const
   {
     return quote_mark_ ? quote(value_, quote_mark_, true) : value_;
   }
@@ -2286,54 +2287,56 @@ namespace Sass {
     return quote(value_, '*', true);
   }
 
-  std::string String_Constant::to_string(bool compressed, int precision) const
+  std::string String_Constant::to_string(Sass_Inspect_Options opt) const
   {
     return quote_mark_ ? quote(value_, quote_mark_, true) : value_;
   }
 
-  std::string Custom_Error::to_string(bool compressed, int precision) const
+  std::string Custom_Error::to_string(Sass_Inspect_Options opt) const
   {
     return message();
   }
-  std::string Custom_Warning::to_string(bool compressed, int precision) const
+  std::string Custom_Warning::to_string(Sass_Inspect_Options opt) const
   {
     return message();
   }
 
-  std::string Selector_List::to_string(bool compressed, int precision) const
+  std::string Selector_List::to_string(Sass_Inspect_Options opt) const
   {
     std::string str("");
     auto end = this->end();
     auto start = this->begin();
+    bool compressed = opt.output_style == COMPRESSED;
     std::string sep(compressed ? "," : ", ");
     while (start < end && *start) {
       Complex_Selector* sel = *start;
       if (!str.empty()) str += sep;
-      str += sel->to_string(compressed, precision);
+      str += sel->to_string(opt);
       ++ start;
     }
     return str;
   }
 
-  std::string Compound_Selector::to_string(bool compressed, int precision) const
+  std::string Compound_Selector::to_string(Sass_Inspect_Options opt) const
   {
     std::string str("");
     auto end = this->end();
     auto start = this->begin();
     while (start < end && *start) {
       Simple_Selector* sel = *start;
-      str += sel->to_string(compressed, precision);
+      str += sel->to_string(opt);
       ++ start;
     }
     return str;
   }
 
-  std::string Complex_Selector::to_string(bool compressed, int precision) const
+  std::string Complex_Selector::to_string(Sass_Inspect_Options opt) const
   {
     // first render head and tail if they are available
-    std::string str_head(head() ? head()->to_string(compressed, precision) : "");
-    std::string str_tail(tail() ? tail()->to_string(compressed, precision) : "");
-    std::string str_ref(reference() ? reference()->to_string(compressed, precision) : "");
+    std::string str_head(head() ? head()->to_string(opt) : "");
+    std::string str_tail(tail() ? tail()->to_string(opt) : "");
+    std::string str_ref(reference() ? reference()->to_string(opt) : "");
+    bool compressed = opt.output_style == COMPRESSED;
     // combinator in between
     std::string str_op("");
     // use a switch statement
@@ -2368,27 +2371,27 @@ namespace Sass {
     return str_head + str_op + str_tail;
   }
 
-  std::string Selector_Schema::to_string(bool compressed, int precision) const
+  std::string Selector_Schema::to_string(Sass_Inspect_Options opt) const
   {
-    return contents()->to_string(compressed, precision);
+    return contents()->to_string(opt);
   }
 
-  std::string Parent_Selector::to_string(bool compressed, int precision) const
+  std::string Parent_Selector::to_string(Sass_Inspect_Options opt) const
   {
     return "&";
   }
 
-  std::string Attribute_Selector::to_string(bool compressed, int precision) const
+  std::string Attribute_Selector::to_string(Sass_Inspect_Options opt) const
   {
-    std::string val(value() ? value()->to_string(compressed, precision) : "");
+    std::string val(value() ? value()->to_string(opt) : "");
     return "[" + this->ns_name() + this->matcher() + val + "]";
   }
 
-  std::string Wrapped_Selector::to_string(bool compressed, int precision) const
+  std::string Wrapped_Selector::to_string(Sass_Inspect_Options opt) const
   {
     // first render the
-    std::string main(this->Simple_Selector::to_string(compressed, precision));
-    std::string wrapped(selector() ? selector()->to_string(compressed, precision) : "");
+    std::string main(this->Simple_Selector::to_string(opt));
+    std::string wrapped(selector() ? selector()->to_string(opt) : "");
     // now build the final result
     return main + "(" + wrapped + ")";
   }

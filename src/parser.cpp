@@ -591,7 +591,7 @@ namespace Sass {
     bool reloop = true;
     bool had_linefeed = false;
     Complex_Selector* sel = 0;
-    To_String to_string(&ctx);
+    To_String to_string(ctx.c_options);
     Selector_List* group = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate);
     group->media_block(last_media_block);
 
@@ -753,8 +753,8 @@ namespace Sass {
           ParserState state(pstate);
           Simple_Selector* cur = (*seq)[seq->length()-1];
           Simple_Selector* prev = (*seq)[seq->length()-2];
-          std::string sel(prev->to_string(false, 5));
-          std::string found(cur->to_string(false, 5));
+          std::string sel(prev->to_string({ NESTED, 5 }));
+          std::string found(cur->to_string({ NESTED, 5 }));
           if (lex < identifier >()) { found += std::string(lexed); }
           error("Invalid CSS after \"" + sel + "\": expected \"{\", was \"" + found + "\"\n\n"
             "\"" + found + "\" may only be used at the beginning of a compound selector.", state);
@@ -1777,7 +1777,7 @@ namespace Sass {
       (*res) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, suffix);
       return res;
     } else {
-      std::string res = prefix + url_string->to_string() + suffix;
+      std::string res = prefix + url_string->to_string({ NESTED, 5 }) + suffix;
       return SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, res);
     }
   }

@@ -14,7 +14,7 @@ namespace Sass {
   {
     std::string callee(type + " " + name);
 
-    Listize listize(*ctx);
+    Listize listize(ctx->mem);
     std::map<std::string, Parameter*> param_map;
 
     for (size_t i = 0, L = as->length(); i < L; ++i) {
@@ -259,7 +259,7 @@ namespace Sass {
     // That's only okay if they have default values, or were already bound by
     // named arguments, or if it's a single rest-param.
     for (size_t i = ip; i < LP; ++i) {
-      To_String to_string(ctx);
+      To_String to_string(ctx->c_options);
       Parameter* leftover = (*ps)[i];
       // cerr << "env for default params:" << endl;
       // env->print();

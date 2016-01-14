@@ -26,9 +26,9 @@ namespace Sass {
     : Base(selector->pstate()), parent(parent), selector(selector)
     {
       msg = "Invalid parent selector for \"";
-      msg += selector->to_string(false);
+      msg += selector->to_string(Sass_Inspect_Options());
       msg += "\": \"";
-      msg += parent->to_string(false);;
+      msg += parent->to_string(Sass_Inspect_Options());
       msg += "\"";
     }
 
@@ -36,7 +36,7 @@ namespace Sass {
     : Base(pstate), fn(fn), arg(arg), type(type), value(value)
     {
       msg  = arg + ": \"";
-      msg += value->to_string(true, 5);
+      msg += value->to_string(Sass_Inspect_Options());
       msg += "\" is not a " + type;
       msg += " for `" + fn + "'";
     }
@@ -50,13 +50,13 @@ namespace Sass {
     {
       msg  = def_op_msg + ": \"";
       if (const Value* l = dynamic_cast<const Value*>(lhs)) {
-        msg += l->to_string();
+        msg += l->to_string({ NESTED, 5 });
       } else if (lhs) {
         msg += "[EXPRESSION]";
       }
       msg += " " + op + " ";
       if (const Value* r = dynamic_cast<const Value*>(rhs)) {
-        msg += r->to_string();
+        msg += r->to_string({ NESTED, 5 });
       } else if (rhs) {
         msg += "[EXPRESSION]";
       }
@@ -102,13 +102,13 @@ namespace Sass {
     {
       msg  = "Alpha channels must be equal: ";
       if (const Value* l = dynamic_cast<const Value*>(lhs)) {
-        msg += l->to_string();
+        msg += l->to_string({ NESTED, 5 });
       } else if (lhs) {
         msg += "[EXPRESSION]";
       }
       msg += " " + op + " ";
       if (const Value* r = dynamic_cast<const Value*>(rhs)) {
-        msg += r->to_string();
+        msg += r->to_string({ NESTED, 5 });
       } else if (rhs) {
         msg += "[EXPRESSION]";
       }

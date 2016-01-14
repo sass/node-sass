@@ -518,7 +518,7 @@ namespace Sass {
 
   Media_Query* Cssize::merge_media_query(Media_Query* mq1, Media_Query* mq2)
   {
-    To_String to_string(&ctx);
+    To_String to_string(ctx.c_options);
 
     std::string type;
     std::string mod;

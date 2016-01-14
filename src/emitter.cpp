@@ -7,9 +7,9 @@
 
 namespace Sass {
 
-  Emitter::Emitter(Context* ctx)
+  Emitter::Emitter(struct Sass_Output_Options& opt)
   : wbuf(),
-    ctx(ctx),
+    opt(opt),
     indentation(0),
     scheduled_space(0),
     scheduled_linefeed(0),
@@ -20,8 +20,7 @@ namespace Sass {
     in_media_block(false),
     in_declaration(false),
     in_space_array(false),
-    in_comma_array(false),
-    in_debug(false)
+    in_comma_array(false)
   { }
 
   // return buffer as string
@@ -30,9 +29,9 @@ namespace Sass {
     return wbuf.buffer;
   }
 
-  Sass_Output_Style Emitter::output_style(void)
+  Sass_Output_Style Emitter::output_style(void) const
   {
-    return ctx ? ctx->output_style() : SASS_STYLE_COMPRESSED;
+    return opt.output_style;
   }
 
   // PROXY METHODS FOR SOURCE MAPS
@@ -46,11 +45,11 @@ namespace Sass {
   void Emitter::set_filename(const std::string& str)
   { wbuf.smap.file = str; }
 
-  void Emitter::schedule_mapping(AST_Node* node)
+  void Emitter::schedule_mapping(const AST_Node* node)
   { scheduled_mapping = node; }
-  void Emitter::add_open_mapping(AST_Node* node)
+  void Emitter::add_open_mapping(const AST_Node* node)
   { wbuf.smap.add_open_mapping(node); }
-  void Emitter::add_close_mapping(AST_Node* node)
+  void Emitter::add_close_mapping(const AST_Node* node)
   { wbuf.smap.add_close_mapping(node); }
   ParserState Emitter::remap(const ParserState& pstate)
   { return wbuf.smap.remap(pstate); }
@@ -76,7 +75,7 @@ namespace Sass {
       std::string linefeeds = "";
 
       for (size_t i = 0; i < scheduled_linefeed; i++)
-        linefeeds += ctx ? ctx->linefeed : "\n";
+        linefeeds += opt.linefeed;
       scheduled_space = 0;
       scheduled_linefeed = 0;
       append_string(linefeeds);
@@ -113,7 +112,7 @@ namespace Sass {
     // write space/lf
     flush_schedules();
 
-    if (in_comment && output_style() == SASS_STYLE_COMPACT) {
+    if (in_comment && output_style() == COMPACT) {
       // unescape comment nodes
       std::string out = comment_to_string(text);
       // add to buffer
@@ -140,7 +139,7 @@ namespace Sass {
 
   // append some text or token to the buffer
   // this adds source-mappings for node start and end
-  void Emitter::append_token(const std::string& text, AST_Node* node)
+  void Emitter::append_token(const std::string& text, const AST_Node* node)
   {
     flush_schedules();
     add_open_mapping(node);
@@ -158,27 +157,27 @@ namespace Sass {
 
   void Emitter::append_indentation()
   {
-    if (output_style() == SASS_STYLE_COMPRESSED) return;
-    if (output_style() == SASS_STYLE_COMPACT) return;
+    if (output_style() == COMPRESSED) return;
+    if (output_style() == COMPACT) return;
     if (in_declaration && in_comma_array) return;
     if (scheduled_linefeed && indentation)
       scheduled_linefeed = 1;
     std::string indent = "";
     for (size_t i = 0; i < indentation; i++)
-      indent += ctx ? ctx->indent : "  ";
+      indent += opt.indent;
     append_string(indent);
   }
 
   void Emitter::append_delimiter()
   {
     scheduled_delimiter = true;
-    if (output_style() == SASS_STYLE_COMPACT) {
+    if (output_style() == COMPACT) {
       if (indentation == 0) {
         append_mandatory_linefeed();
       } else {
         append_mandatory_space();
       }
-    } else if (output_style() != SASS_STYLE_COMPRESSED) {
+    } else if (output_style() != COMPRESSED) {
       append_optional_linefeed();
     }
   }
@@ -204,7 +203,7 @@ namespace Sass {
 
   void Emitter::append_optional_space()
   {
-    if ((output_style() != SASS_STYLE_COMPRESSED || in_debug) && buffer().size()) {
+    if ((output_style() != COMPRESSED) && buffer().size()) {
       char lst = buffer().at(buffer().length() - 1);
       if (!isspace(lst) || scheduled_delimiter) {
         append_mandatory_space();
@@ -214,17 +213,17 @@ namespace Sass {
 
   void Emitter::append_special_linefeed()
   {
-    if (output_style() == SASS_STYLE_COMPACT) {
+    if (output_style() == COMPACT) {
       append_mandatory_linefeed();
       for (size_t p = 0; p < indentation; p++)
-        append_string(ctx ? ctx->indent : "  ");
+        append_string(opt.indent);
     }
   }
 
   void Emitter::append_optional_linefeed()
   {
     if (in_declaration && in_comma_array) return;
-    if (output_style() == SASS_STYLE_COMPACT) {
+    if (output_style() == COMPACT) {
       append_mandatory_space();
     } else {
       append_mandatory_linefeed();
@@ -233,7 +232,7 @@ namespace Sass {
 
   void Emitter::append_mandatory_linefeed()
   {
-    if (output_style() != SASS_STYLE_COMPRESSED) {
+    if (output_style() != COMPRESSED) {
       scheduled_linefeed = 1;
       scheduled_space = 0;
       // flush_schedules();
@@ -255,9 +254,9 @@ namespace Sass {
   {
     -- indentation;
     scheduled_linefeed = 0;
-    if (output_style() == SASS_STYLE_COMPRESSED)
+    if (output_style() == COMPRESSED)
       scheduled_delimiter = false;
-    if (output_style() == SASS_STYLE_EXPANDED) {
+    if (output_style() == EXPANDED) {
       append_optional_linefeed();
       append_indentation();
     } else {
@@ -267,7 +266,7 @@ namespace Sass {
     if (node) add_close_mapping(node);
     append_optional_linefeed();
     if (indentation != 0) return;
-    if (output_style() != SASS_STYLE_COMPRESSED)
+    if (output_style() != COMPRESSED)
       scheduled_linefeed = 2;
   }
 

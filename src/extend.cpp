@@ -1749,7 +1749,7 @@ namespace Sass {
         for (ExtensionPair ext : entries) {
           // check if both selectors have the same media block parent
           if (ext.first->media_block() == pComplexSelector->media_block()) continue;
-          To_String to_string(&ctx);
+          To_String to_string(ctx.c_options);
           if (ext.second->media_block() == 0) continue;
           if (pComplexSelector->media_block() &&
               ext.second->media_block()->media_queries() &&
@@ -1918,7 +1918,7 @@ namespace Sass {
   */
   Selector_List* Extend::extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, bool isReplace, bool& extendedSomething) {
 
-    To_String to_string(&ctx);
+    To_String to_string(ctx.c_options);
 
     Selector_List* pNewSelectors = SASS_MEMORY_NEW(ctx.mem, Selector_List, pSelectorList->pstate(), pSelectorList->length());
 
@@ -2011,7 +2011,7 @@ namespace Sass {
   // Extend a ruleset by extending the selectors and updating them on the ruleset. The block's rules don't need to change.
   template <typename ObjectType>
   static void extendObjectWithSelectorAndBlock(ObjectType* pObject, Context& ctx, ExtensionSubsetMap& subset_map) {
-    To_String to_string(&ctx);
+    To_String to_string(ctx.c_options);
 
     DEBUG_PRINTLN(EXTEND_OBJECT, "FOUND SELECTOR: " << static_cast<Selector_List*>(pObject->selector())->perform(&to_string))
 
@@ -2054,8 +2054,8 @@ namespace Sass {
         Complex_Selector* sel = it.first ? it.first->first() : NULL;
         Compound_Selector* ext = it.second ? it.second : NULL;
         if (ext && (ext->extended() || ext->is_optional())) continue;
-        std::string str_sel(sel->to_string());
-        std::string str_ext(ext->to_string());
+        std::string str_sel(sel->to_string({ NESTED, 5 }));
+        std::string str_ext(ext->to_string({ NESTED, 5 }));
         // debug_ast(sel, "sel: ");
         // debug_ast(ext, "ext: ");
         error("\"" + str_sel + "\" failed to @extend \"" + str_ext + "\".\n"
