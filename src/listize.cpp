@@ -4,7 +4,6 @@
 #include <string>
 
 #include "listize.hpp"
-#include "to_string.hpp"
 #include "context.hpp"
 #include "backtrace.hpp"
 #include "error_handling.hpp"
@@ -28,11 +27,10 @@ namespace Sass {
 
   Expression* Listize::operator()(Compound_Selector* sel)
   {
-    To_String to_string;
     std::string str;
     for (size_t i = 0, L = sel->length(); i < L; ++i) {
       Expression* e = (*sel)[i]->perform(this);
-      if (e) str += e->perform(&to_string);
+      if (e) str += e->to_string();
     }
     return SASS_MEMORY_NEW(mem, String_Quoted, sel->pstate(), str);
   }
@@ -48,9 +46,8 @@ namespace Sass {
       if (hh) *l << hh;
     }
 
-    To_String to_string;
     std::string reference = ! sel->reference() ? ""
-      : sel->reference()->perform(&to_string);
+      : sel->reference()->to_string();
     switch(sel->combinator())
     {
       case Complex_Selector::PARENT_OF:

@@ -55,6 +55,7 @@ namespace Sass {
   const static Sass_Output_Style COMPRESSED = SASS_STYLE_COMPRESSED;
   // only used internal to trigger ruby inspect behavior
   const static Sass_Output_Style INSPECT = SASS_STYLE_INSPECT;
+  const static Sass_Output_Style TO_SASS = SASS_STYLE_TO_SASS;
 
 };
 

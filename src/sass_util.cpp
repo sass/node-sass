@@ -1,6 +1,5 @@
 #include "sass.hpp"
 #include "node.hpp"
-#include "to_string.hpp"
 
 namespace Sass {
 
@@ -39,7 +38,6 @@ namespace Sass {
     end
   */
   Node paths(const Node& arrs, Context& ctx) {
-    To_String to_string(ctx.c_options);
 
     Node loopStart = Node::createCollection();
     loopStart.collection()->push_back(Node::createCollection());

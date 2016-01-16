@@ -56,7 +56,6 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\source_map.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\subset_map.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\to_c.hpp" />
-    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\to_string.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\to_value.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\units.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\utf8.h" />
@@ -106,7 +105,6 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\sass2scss.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\source_map.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\to_c.cpp" />
-    <ClCompile Include="$(LIBSASS_SRC_DIR)\to_string.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\to_value.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\units.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\utf8_string.cpp" />

@@ -2,7 +2,6 @@
 #include <sstream>
 
 #include "node.hpp"
-#include "to_string.hpp"
 #include "parser.hpp"
 
 
@@ -12,9 +11,6 @@
 namespace Sass {
 
   Context ctx = Context::Data();
-
-  To_String to_string;
-
 
   const char* const ROUNDTRIP_TESTS[] = {
     NULL,
@@ -47,7 +43,7 @@ namespace Sass {
       pOrigSelector = createComplexSelector(toTest);
     }
 
-    std::string expected(pOrigSelector ? pOrigSelector->perform(&to_string) : "NULL");
+    std::string expected(pOrigSelector ? pOrigSelector->to_string() : "NULL");
 
 
     // Roundtrip the selector into a node and back
@@ -63,7 +59,7 @@ namespace Sass {
 
     // Show the result
 
-    std::string result(pNewSelector ? pNewSelector->perform(&to_string) : "NULL");
+    std::string result(pNewSelector ? pNewSelector->to_string() : "NULL");
 
     cout << "SELECTOR: " << expected << endl;
     cout << "NEW SELECTOR:   " << result << endl;

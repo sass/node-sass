@@ -5,7 +5,6 @@
 #include "parser.hpp"
 #include "file.hpp"
 #include "inspect.hpp"
-#include "to_string.hpp"
 #include "constants.hpp"
 #include "util.hpp"
 #include "prelexer.hpp"
@@ -591,7 +590,6 @@ namespace Sass {
     bool reloop = true;
     bool had_linefeed = false;
     Complex_Selector* sel = 0;
-    To_String to_string(ctx.c_options);
     Selector_List* group = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate);
     group->media_block(last_media_block);
 
