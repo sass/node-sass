@@ -81,6 +81,13 @@ namespace Sass {
       msg += ").";
     }
 
+    InvalidValue::InvalidValue(const Expression& val)
+    : Base(val.pstate()), val(val)
+    {
+      msg  = val.to_string();
+      msg += " isn't a valid CSS value.";
+    }
+
     IncompatibleUnits::IncompatibleUnits(const Number& lhs, const Number& rhs)
     : lhs(lhs), rhs(rhs)
     {

@@ -23,12 +23,8 @@ namespace Sass {
     std::string res = n->to_string(opt);
     // check for a valid unit here
     // includes result for reporting
-    if (n->numerator_units().size() > 1 ||
-        n->denominator_units().size() > 0 ||
-        (n->numerator_units().size() && n->numerator_units()[0].find_first_of('/') != std::string::npos) ||
-        (n->numerator_units().size() && n->numerator_units()[0].find_first_of('*') != std::string::npos)
-    ) {
-      error(res + " isn't a valid CSS value.", n->pstate());
+    if (!n->is_valid_css_unit()) {
+      throw Exception::InvalidValue(*n);
     }
     // output the final token
     append_token(res, n);

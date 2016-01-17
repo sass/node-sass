@@ -1520,6 +1520,12 @@ namespace Sass {
     return u;
   }
 
+  bool Number::is_valid_css_unit() const
+  {
+    return numerator_units().size() <= 1 &&
+           denominator_units().size() == 0;
+  }
+
   bool Number::is_unitless()
   { return numerator_units_.empty() && denominator_units_.empty(); }
 
