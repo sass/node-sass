@@ -221,7 +221,8 @@ namespace Sass {
     }
 
     else if (lex < kwd_extend >(true)) {
-      if (block->is_root()) {
+      Scope parent = stack.empty() ? Scope::Rules : stack.back();
+      if (parent == Scope::Root) {
         error("Extend directives may only be used within rules.", pstate);
       }
 
@@ -2131,6 +2132,7 @@ namespace Sass {
     Block* body = 0;
     At_Root_Expression* expr = 0;
     Lookahead lookahead_result;
+    // stack.push_back(Scope::Root);
     LOCAL_FLAG(in_at_root, true);
     if (lex< exactly<'('> >()) {
       expr = parse_at_root_expression();
@@ -2145,6 +2147,7 @@ namespace Sass {
     }
     At_Root_Block* at_root = SASS_MEMORY_NEW(ctx.mem, At_Root_Block, at_source_position, body);
     if (expr) at_root->expression(expr);
+    // stack.pop_back();
     return at_root;
   }
 
