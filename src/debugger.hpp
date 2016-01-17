@@ -363,9 +363,9 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << ind << "Import " << block;
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " " << block->tabs() << std::endl;
-    debug_ast(block->media_queries(), ind + " @ ");
     // std::vector<std::string>         files_;
-    for (auto imp : block->urls()) debug_ast(imp, "@ ", env);
+    for (auto imp : block->urls()) debug_ast(imp, ind + "@: ", env);
+    debug_ast(block->media_queries(), ind + "@@ ");
   } else if (dynamic_cast<Assignment*>(node)) {
     Assignment* block = dynamic_cast<Assignment*>(node);
     std::cerr << ind << "Assignment " << block;
