@@ -71,7 +71,7 @@ namespace Sass {
     }
 
     DuplicateKeyError::DuplicateKeyError(const Map& dup, const Expression& org)
-    : dup(dup), org(org)
+    : Base(org.pstate()), dup(dup), org(org)
     {
       msg  = "Duplicate key ";
       dup.get_duplicate_key()->is_delayed(false);
@@ -82,7 +82,7 @@ namespace Sass {
     }
 
     TypeMismatch::TypeMismatch(const Expression& var, const std::string type)
-    : var(var), type(type)
+    : Base(var.pstate()), var(var), type(type)
     {
       msg  = var.to_string();
       msg += " is not an ";

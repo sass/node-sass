@@ -123,6 +123,7 @@ extern "C" {
       msg_stream << "Unable to allocate memory: " << ba.what() << std::endl;
       json_append_member(json_err, "status", json_mknumber(2));
       json_append_member(json_err, "message", json_mkstring(ba.what()));
+      json_append_member(json_err, "formatted", json_mkstring(msg_stream.str().c_str()));
       c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
       c_ctx->error_text = sass_strdup(ba.what());
@@ -134,9 +135,10 @@ extern "C" {
     catch (std::exception& e) {
       std::stringstream msg_stream;
       JsonNode* json_err = json_mkobject();
-      msg_stream << "Error: " << e.what() << std::endl;
+      msg_stream << "Internal Error: " << e.what() << std::endl;
       json_append_member(json_err, "status", json_mknumber(3));
       json_append_member(json_err, "message", json_mkstring(e.what()));
+      json_append_member(json_err, "formatted", json_mkstring(msg_stream.str().c_str()));
       c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
       c_ctx->error_text = sass_strdup(e.what());
@@ -148,9 +150,10 @@ extern "C" {
     catch (std::string& e) {
       std::stringstream msg_stream;
       JsonNode* json_err = json_mkobject();
-      msg_stream << "Error: " << e << std::endl;
+      msg_stream << "Internal Error: " << e << std::endl;
       json_append_member(json_err, "status", json_mknumber(4));
       json_append_member(json_err, "message", json_mkstring(e.c_str()));
+      json_append_member(json_err, "formatted", json_mkstring(msg_stream.str().c_str()));
       c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
       c_ctx->error_text = sass_strdup(e.c_str());
@@ -162,9 +165,10 @@ extern "C" {
     catch (const char* e) {
       std::stringstream msg_stream;
       JsonNode* json_err = json_mkobject();
-      msg_stream << "Error: " << e << std::endl;
+      msg_stream << "Internal Error: " << e << std::endl;
       json_append_member(json_err, "status", json_mknumber(4));
       json_append_member(json_err, "message", json_mkstring(e));
+      json_append_member(json_err, "formatted", json_mkstring(msg_stream.str().c_str()));
       c_ctx->error_json = json_stringify(json_err, "  ");;
       c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
       c_ctx->error_text = sass_strdup(e);

@@ -86,23 +86,23 @@ namespace Sass {
         virtual ~ZeroDivisionError() throw() {};
     };
 
-    class DuplicateKeyError : public OperationError {
+    class DuplicateKeyError : public Base {
       protected:
         const Map& dup;
         const Expression& org;
       public:
         DuplicateKeyError(const Map& dup, const Expression& org);
-        virtual const char* errtype() const { return "DuplicateKeyError"; }
+        virtual const char* errtype() const { return "Error"; }
         virtual ~DuplicateKeyError() throw() {};
     };
 
-    class TypeMismatch : public OperationError {
+    class TypeMismatch : public Base {
       protected:
         const Expression& var;
         const std::string type;
       public:
         TypeMismatch(const Expression& var, const std::string type);
-        virtual const char* errtype() const { return "TypeMismatch"; }
+        virtual const char* errtype() const { return "Error"; }
         virtual ~TypeMismatch() throw() {};
     };
 
