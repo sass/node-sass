@@ -3,7 +3,7 @@
 #include "context.hpp"
 #include "node.hpp"
 #include "extend.hpp"
-#include "to_string.hpp"
+#include "emitter.hpp"
 #include "color_maps.hpp"
 #include <set>
 #include <iomanip>
@@ -280,9 +280,8 @@ namespace Sass {
 
   Compound_Selector* Simple_Selector::unify_with(Compound_Selector* rhs, Context& ctx)
   {
-    To_String to_string(ctx.c_options);
     for (size_t i = 0, L = rhs->length(); i < L; ++i)
-    { if (perform(&to_string) == (*rhs)[i]->perform(&to_string)) return rhs; }
+    { if (to_string(ctx.c_options) == (*rhs)[i]->to_string(ctx.c_options)) return rhs; }
 
     // check for pseudo elements because they are always last
     size_t i, L;
@@ -551,8 +550,6 @@ namespace Sass {
 
   bool Compound_Selector::is_superselector_of(Compound_Selector* rhs, std::string wrapping)
   {
-    To_String to_string;
-
     Compound_Selector* lhs = this;
     Simple_Selector* lbase = lhs->base();
     Simple_Selector* rbase = rhs->base();
@@ -563,7 +560,7 @@ namespace Sass {
     for (size_t i = 0, L = length(); i < L; ++i)
     {
       if ((*this)[i]->is_pseudo_element()) {
-        std::string pseudo((*this)[i]->perform(&to_string));
+        std::string pseudo((*this)[i]->to_string());
         pseudo = pseudo.substr(pseudo.find_first_not_of(":")); // strip off colons to ensure :after matches ::after since ruby sass is forgiving
         lpsuedoset.insert(pseudo);
       }
@@ -571,7 +568,7 @@ namespace Sass {
     for (size_t i = 0, L = rhs->length(); i < L; ++i)
     {
       if ((*rhs)[i]->is_pseudo_element()) {
-        std::string pseudo((*rhs)[i]->perform(&to_string));
+        std::string pseudo((*rhs)[i]->to_string());
         pseudo = pseudo.substr(pseudo.find_first_not_of(":")); // strip off colons to ensure :after matches ::after since ruby sass is forgiving
         rpsuedoset.insert(pseudo);
       }
@@ -584,11 +581,11 @@ namespace Sass {
 
     if (lbase && rbase)
     {
-      if (lbase->perform(&to_string) == rbase->perform(&to_string)) {
+      if (lbase->to_string() == rbase->to_string()) {
         for (size_t i = 1, L = length(); i < L; ++i)
-        { lset.insert((*this)[i]->perform(&to_string)); }
+        { lset.insert((*this)[i]->to_string()); }
         for (size_t i = 1, L = rhs->length(); i < L; ++i)
-        { rset.insert((*rhs)[i]->perform(&to_string)); }
+        { rset.insert((*rhs)[i]->to_string()); }
         return includes(rset.begin(), rset.end(), lset.begin(), lset.end());
       }
       return false;
@@ -622,13 +619,13 @@ namespace Sass {
           if (wrapped->name() == wrapped_r->name()) {
           if (wrapped->is_superselector_of(wrapped_r)) {
              continue;
-             rset.insert(lhs->perform(&to_string));
+             rset.insert(lhs->to_string());
 
           }}
         }
       }
       // match from here on as strings
-      lset.insert(lhs->perform(&to_string));
+      lset.insert(lhs->to_string());
     }
 
     for (size_t n = 0, nL = rhs->length(); n < nL; ++n)
@@ -651,7 +648,7 @@ namespace Sass {
           }
         }
       }
-      rset.insert(r->perform(&to_string));
+      rset.insert(r->to_string());
     }
 
     //for (auto l : lset) { cerr << "l: " << l << endl; }
@@ -787,7 +784,6 @@ namespace Sass {
   bool Complex_Selector::is_superselector_of(Complex_Selector* rhs, std::string wrapping)
   {
     Complex_Selector* lhs = this;
-    To_String to_string;
     // check for selectors with leading or trailing combinators
     if (!lhs->head() || !rhs->head())
     { return false; }
@@ -1330,8 +1326,8 @@ namespace Sass {
     return final_result;
   }
 
-  void Selector_List::populate_extends(Selector_List* extendee, Context& ctx, ExtensionSubsetMap& extends) {
-    To_String to_string;
+  void Selector_List::populate_extends(Selector_List* extendee, Context& ctx, ExtensionSubsetMap& extends)
+  {
 
     Selector_List* extender = this;
     for (auto complex_sel : extendee->elements()) {
@@ -1365,17 +1361,15 @@ namespace Sass {
 
   std::vector<std::string> Compound_Selector::to_str_vec()
   {
-    To_String to_string;
     std::vector<std::string> result;
     result.reserve(length());
     for (size_t i = 0, L = length(); i < L; ++i)
-    { result.push_back((*this)[i]->perform(&to_string)); }
+    { result.push_back((*this)[i]->to_string()); }
     return result;
   }
 
   Compound_Selector* Compound_Selector::minus(Compound_Selector* rhs, Context& ctx)
   {
-    To_String to_string(ctx.c_options);
     Compound_Selector* result = SASS_MEMORY_NEW(ctx.mem, Compound_Selector, pstate());
     // result->has_parent_reference(has_parent_reference());
 
@@ -1383,10 +1377,10 @@ namespace Sass {
     for (size_t i = 0, L = length(); i < L; ++i)
     {
       bool found = false;
-      std::string thisSelector((*this)[i]->perform(&to_string));
+      std::string thisSelector((*this)[i]->to_string(ctx.c_options));
       for (size_t j = 0, M = rhs->length(); j < M; ++j)
       {
-        if (thisSelector == (*rhs)[j]->perform(&to_string))
+        if (thisSelector == (*rhs)[j]->to_string(ctx.c_options))
         {
           found = true;
           break;
@@ -1884,77 +1878,6 @@ namespace Sass {
     else { return &sass_null; }
   }
 
-  std::string Map::to_string(Sass_Inspect_Options opt) const
-  {
-    std::string res("");
-    if (empty()) return res;
-    if (is_invisible()) return res;
-    bool items_output = false;
-    for (auto key : keys()) {
-      if (key->is_invisible()) continue;
-      if (at(key)->is_invisible()) continue;
-      bool compressed = opt.output_style == COMPRESSED;
-      if (items_output) res += compressed ? "," : ", ";
-      Value* v_key = dynamic_cast<Value*>(key);
-      Value* v_val = dynamic_cast<Value*>(at(key));
-      if (v_key) res += v_key->to_string(opt);
-      res += compressed ? ":" : ": ";
-      if (v_val) res += v_val->to_string(opt);
-      items_output = true;
-    }
-    return res;
-  }
-
-  std::string List::to_string(Sass_Inspect_Options opt) const
-  {
-    std::string res("");
-    if (empty()) return res;
-    if (is_invisible()) return res;
-    bool items_output = false;
-    std::string sep = separator() == SASS_SPACE ? " " : ",";
-    bool compressed = opt.output_style == COMPRESSED;
-    if (!compressed && sep == ",") sep += " ";
-    for (size_t i = 0, L = size(); i < L; ++i) {
-      if (separator_ == SASS_HASH)
-      { sep[0] = i % 2 ? ':' : ','; }
-      Expression* item = (*this)[i];
-      if (item->is_invisible()) continue;
-      if (items_output) res += sep;
-      if (Expression* ex = dynamic_cast<Expression*>(item))
-      { res += ex->to_string(opt); }
-      // else if (Function_Call* v_fn = dynamic_cast<Function_Call*>(item))
-      // { res += v_fn->to_string(opt); }
-      else { res += "[unknown type]"; }
-      items_output = true;
-    }
-    return res;
-  }
-
-  std::string Function_Call::to_string(Sass_Inspect_Options opt) const
-  {
-    std::string str(name());
-    str += "(";
-    str += arguments()->to_string(opt);
-    str += ")";
-    return str;
-  }
-
-  std::string Arguments::to_string(Sass_Inspect_Options opt) const
-  {
-    std::string str("");
-    bool compressed = opt.output_style == COMPRESSED;
-    for(auto arg : elements()) {
-      if (str != "") str += compressed ? "," : ", ";
-      str += arg->to_string(opt);
-    }
-    return str;
-  }
-
-  std::string Argument::to_string(Sass_Inspect_Options opt) const
-  {
-    return value()->to_string(opt);
-  }
-
   bool Binary_Expression::is_left_interpolant(void) const
   {
     return is_interpolant() || (left() && left()->is_left_interpolant());
@@ -1964,87 +1887,20 @@ namespace Sass {
     return is_interpolant() || (right() && right()->is_right_interpolant());
   }
 
-  std::string Binary_Expression::to_string(Sass_Inspect_Options opt) const
+  std::string AST_Node::to_string(Sass_Inspect_Options opt) const
   {
-    To_String to_string(opt);
-    Binary_Expression ex(*this);
-    return ex.perform(&to_string);
-  }
-  std::string Textual::to_string(Sass_Inspect_Options opt) const
-  {
-    return value();
-  }
-  std::string Variable::to_string(Sass_Inspect_Options opt) const
-  {
-    return name();
+    Sass_Output_Options out(opt);
+    Emitter emitter(out);
+    Inspect i(emitter);
+    i.in_declaration = true;
+    // ToDo: inspect should be const
+    const_cast<AST_Node*>(this)->perform(&i);
+    return i.get_buffer();
   }
 
-  // For now it seems easiest to just implement these, since we need it to
-  // ie. report the values as is for error reporting (like duplicate keys).
-  // We cannot use inspect since we do not always have a context object.
-  std::string Unary_Expression::to_string(Sass_Inspect_Options opt) const
+  std::string AST_Node::to_string() const
   {
-    To_String to_string(opt);
-    Unary_Expression ex(*this);
-    return ex.perform(&to_string);
-  }
-  std::string Function_Call_Schema::to_string(Sass_Inspect_Options opt) const
-  {
-    To_String to_string(opt);
-    Function_Call_Schema ex(*this);
-    return ex.perform(&to_string);
-  }
-  std::string Media_Query::to_string(Sass_Inspect_Options opt) const
-  {
-    To_String to_string(opt);
-    Media_Query ex(*this);
-    return ex.perform(&to_string);
-  }
-  std::string Media_Query_Expression::to_string(Sass_Inspect_Options opt) const
-  {
-    To_String to_string(opt);
-    Media_Query_Expression ex(*this);
-    return ex.perform(&to_string);
-  }
-  std::string Supports_Condition::to_string(Sass_Inspect_Options opt) const
-  {
-    To_String to_string(opt);
-    Supports_Condition ex(*this);
-    return ex.perform(&to_string);
-  }
-  std::string At_Root_Expression::to_string(Sass_Inspect_Options opt) const
-  {
-    To_String to_string(opt);
-    At_Root_Expression ex(*this);
-    return ex.perform(&to_string);
-  }
-  std::string Thunk::to_string(Sass_Inspect_Options opt) const
-  {
-    To_String to_string(opt);
-    Thunk ex(*this);
-    return ex.perform(&to_string);
-  }
-
-  std::string String_Schema::to_string(Sass_Inspect_Options opt) const
-  {
-    std::string res("");
-    for (size_t i = 0, L = length(); i < L; ++i) {
-      if ((*this)[i]->is_interpolant()) res += "#{";
-      if (Value* val = dynamic_cast<Value*>((*this)[i]))
-      { res += val->to_string(opt); }
-      if ((*this)[i]->is_interpolant()) res += "}";
-    }
-    return res;
-  }
-
-  std::string Null::to_string(Sass_Inspect_Options opt) const
-  {
-    return "null";
-  }
-
-  std::string Boolean::to_string(Sass_Inspect_Options opt) const
-  {
-    return value_ ? "true" : "false";
+    return to_string({ NESTED, 5 });
   }
 
   // helper function for serializing colors
@@ -2055,345 +1911,14 @@ namespace Sass {
     else                return c;
   }
 
-  std::string Color::to_hex(Sass_Inspect_Options opt) const
-  {
-
-    std::stringstream ss;
-
-    // original color name
-    // maybe an unknown token
-    std::string name = disp();
-
-    // resolved color
-    std::string res_name = name;
-
-    bool compressed = opt.output_style == COMPRESSED;
-
-    double r = Sass::round(cap_channel<0xff>(r_));
-    double g = Sass::round(cap_channel<0xff>(g_));
-    double b = Sass::round(cap_channel<0xff>(b_));
-    double a = cap_channel<1>   (a_);
-
-    // get color from given name (if one was given at all)
-    if (name != "" && name_to_color(name)) {
-      const Color* n = name_to_color(name);
-      r = Sass::round(cap_channel<0xff>(n->r()));
-      g = Sass::round(cap_channel<0xff>(n->g()));
-      b = Sass::round(cap_channel<0xff>(n->b()));
-      a = cap_channel<1>   (n->a());
-    }
-    // otherwise get the possible resolved color name
-    else {
-      double numval = r * 0x10000 + g * 0x100 + b;
-      if (color_to_name(numval))
-        res_name = color_to_name(numval);
-    }
-
-    std::stringstream hexlet;
-    hexlet << '#' << std::setw(1) << std::setfill('0');
-    // create a short color hexlet if there is any need for it
-    if (compressed && is_color_doublet(r, g, b) && a == 1) {
-      hexlet << std::hex << std::setw(1) << (static_cast<unsigned long>(r) >> 4);
-      hexlet << std::hex << std::setw(1) << (static_cast<unsigned long>(g) >> 4);
-      hexlet << std::hex << std::setw(1) << (static_cast<unsigned long>(b) >> 4);
-    } else {
-      hexlet << std::hex << std::setw(2) << static_cast<unsigned long>(r);
-      hexlet << std::hex << std::setw(2) << static_cast<unsigned long>(g);
-      hexlet << std::hex << std::setw(2) << static_cast<unsigned long>(b);
-    }
-
-    return hexlet.str();
-
-  }
-  std::string Color::to_string(Sass_Inspect_Options opt) const
-  {
-    std::stringstream ss;
-
-    // original color name
-    // maybe an unknown token
-    std::string name = disp();
-
-    // resolved color
-    std::string res_name = name;
-
-    double r = Sass::round(cap_channel<0xff>(r_), opt.precision);
-    double g = Sass::round(cap_channel<0xff>(g_), opt.precision);
-    double b = Sass::round(cap_channel<0xff>(b_), opt.precision);
-    double a = cap_channel<1>   (a_);
-
-    // get color from given name (if one was given at all)
-    if (name != "" && name_to_color(name)) {
-      const Color* n = name_to_color(name);
-      r = Sass::round(cap_channel<0xff>(n->r()), opt.precision);
-      g = Sass::round(cap_channel<0xff>(n->g()), opt.precision);
-      b = Sass::round(cap_channel<0xff>(n->b()), opt.precision);
-      a = cap_channel<1>   (n->a());
-    }
-    // otherwise get the possible resolved color name
-    else {
-      double numval = r * 0x10000 + g * 0x100 + b;
-      if (color_to_name(numval))
-        res_name = color_to_name(numval);
-    }
-
-    std::stringstream hexlet;
-    bool compressed = opt.output_style == COMPRESSED;
-    hexlet << '#' << std::setw(1) << std::setfill('0');
-    // create a short color hexlet if there is any need for it
-    if (compressed && is_color_doublet(r, g, b) && a == 1) {
-      hexlet << std::hex << std::setw(1) << (static_cast<unsigned long>(r) >> 4);
-      hexlet << std::hex << std::setw(1) << (static_cast<unsigned long>(g) >> 4);
-      hexlet << std::hex << std::setw(1) << (static_cast<unsigned long>(b) >> 4);
-    } else {
-      hexlet << std::hex << std::setw(2) << static_cast<unsigned long>(r);
-      hexlet << std::hex << std::setw(2) << static_cast<unsigned long>(g);
-      hexlet << std::hex << std::setw(2) << static_cast<unsigned long>(b);
-    }
-
-    if (compressed && !this->is_delayed()) name = "";
-
-    // retain the originally specified color definition if unchanged
-    if (name != "") {
-      ss << name;
-    }
-    else if (r == 0 && g == 0 && b == 0 && a == 0) {
-        ss << "transparent";
-    }
-    else if (a >= 1) {
-      if (res_name != "") {
-        if (compressed && hexlet.str().size() < res_name.size()) {
-          ss << hexlet.str();
-        } else {
-          ss << res_name;
-        }
-      }
-      else {
-        ss << hexlet.str();
-      }
-    }
-    else {
-      ss << "rgba(";
-      ss << static_cast<unsigned long>(r) << ",";
-      if (!compressed) ss << " ";
-      ss << static_cast<unsigned long>(g) << ",";
-      if (!compressed) ss << " ";
-      ss << static_cast<unsigned long>(b) << ",";
-      if (!compressed) ss << " ";
-      ss << a << ')';
-    }
-
-    return ss.str();
-
-  }
-
-  std::string Number::to_string(Sass_Inspect_Options opt) const
-  {
-
-    std::string res;
-
-    // check if the fractional part of the value equals to zero
-    // neat trick from http://stackoverflow.com/a/1521682/1550314
-    // double int_part; bool is_int = modf(value, &int_part) == 0.0;
-
-    // this all cannot be done with one run only, since fixed
-    // output differs from normal output and regular output
-    // can contain scientific notation which we do not want!
-
-    // first sample
-    std::stringstream ss;
-    ss.precision(12);
-    ss << value_;
-
-    // check if we got scientific notation in result
-    if (ss.str().find_first_of("e") != std::string::npos) {
-      ss.clear(); ss.str(std::string());
-      ss.precision(std::max(12, opt.precision));
-      ss << std::fixed << value_;
-    }
-
-    std::string tmp = ss.str();
-    size_t pos_point = tmp.find_first_of(".,");
-    size_t pos_fract = tmp.find_last_not_of("0");
-    bool is_int = pos_point == pos_fract ||
-                  pos_point == std::string::npos;
-
-    // reset stream for another run
-    ss.clear(); ss.str(std::string());
-
-    // take a shortcut for integers
-    if (is_int)
-    {
-      ss.precision(0);
-      ss << std::fixed << value_;
-      res = std::string(ss.str());
-    }
-    // process floats
-    else
-    {
-      // do we have have too much precision?
-      if (pos_fract < opt.precision + pos_point)
-      { ss.precision((int)(pos_fract - pos_point)); }
-      else { ss.precision(opt.precision); }
-      // round value again
-      ss << std::fixed << value_;
-      res = std::string(ss.str());
-      // maybe we truncated up to decimal point
-      size_t pos = res.find_last_not_of("0");
-      // handle case where we have a "0"
-      if (pos == std::string::npos) {
-        res = "0.0";
-      } else {
-        bool at_dec_point = res[pos] == '.' ||
-                            res[pos] == ',';
-        // don't leave a blank point
-        if (at_dec_point) ++ pos;
-        res.resize (pos + 1);
-      }
-    }
-
-    // some final cosmetics
-    if (res == "0.0") res = "0";
-    else if (res == "") res = "0";
-    else if (res == "-0") res = "0";
-    else if (res == "-0.0") res = "0";
-    else if (opt.output_style == COMPRESSED)
-    {
-      // check if handling negative nr
-      size_t off = res[0] == '-' ? 1 : 0;
-      // remove leading zero from floating point in compressed mode
-      if (zero() && res[off] == '0' && res[off+1] == '.') res.erase(off, 1);
-    }
-
-    // add unit now
-    res += unit();
-
-    // and return
-    return res;
-
-  }
-
   std::string String_Quoted::inspect() const
   {
     return quote(value_, '*', true);
   }
 
-  std::string String_Quoted::to_string(Sass_Inspect_Options opt) const
-  {
-    return quote_mark_ ? quote(value_, quote_mark_, true) : value_;
-  }
-
   std::string String_Constant::inspect() const
   {
     return quote(value_, '*', true);
-  }
-
-  std::string String_Constant::to_string(Sass_Inspect_Options opt) const
-  {
-    return quote_mark_ ? quote(value_, quote_mark_, true) : value_;
-  }
-
-  std::string Custom_Error::to_string(Sass_Inspect_Options opt) const
-  {
-    return message();
-  }
-  std::string Custom_Warning::to_string(Sass_Inspect_Options opt) const
-  {
-    return message();
-  }
-
-  std::string Selector_List::to_string(Sass_Inspect_Options opt) const
-  {
-    std::string str("");
-    auto end = this->end();
-    auto start = this->begin();
-    bool compressed = opt.output_style == COMPRESSED;
-    std::string sep(compressed ? "," : ", ");
-    while (start < end && *start) {
-      Complex_Selector* sel = *start;
-      if (!str.empty()) str += sep;
-      str += sel->to_string(opt);
-      ++ start;
-    }
-    return str;
-  }
-
-  std::string Compound_Selector::to_string(Sass_Inspect_Options opt) const
-  {
-    std::string str("");
-    auto end = this->end();
-    auto start = this->begin();
-    while (start < end && *start) {
-      Simple_Selector* sel = *start;
-      str += sel->to_string(opt);
-      ++ start;
-    }
-    return str;
-  }
-
-  std::string Complex_Selector::to_string(Sass_Inspect_Options opt) const
-  {
-    // first render head and tail if they are available
-    std::string str_head(head() ? head()->to_string(opt) : "");
-    std::string str_tail(tail() ? tail()->to_string(opt) : "");
-    std::string str_ref(reference() ? reference()->to_string(opt) : "");
-    bool compressed = opt.output_style == COMPRESSED;
-    // combinator in between
-    std::string str_op("");
-    // use a switch statement
-    switch (combinator()) {
-      case ANCESTOR_OF: str_op = " "; break;
-      case PARENT_OF:   str_op = ">"; break;
-      case PRECEDES:    str_op = "~"; break;
-      case ADJACENT_TO: str_op = "+"; break;
-      case REFERENCE:   str_op = "/" + str_ref + "/"; break;
-    }
-
-    // prettify for non ancestors
-    if (combinator() != ANCESTOR_OF) {
-      // no spaces needed for compressed
-      if (compressed == false) {
-        // make sure we add some spaces where needed
-        if (str_tail != "") str_op += " ";
-        if (str_head != "") str_head += " ";
-      }
-    }
-    // is ancestor with no tail
-    else if (str_tail == "") {
-      str_op = ""; // superflous
-    }
-    else if (compressed)
-    {
-      if (str_tail[0] == '-') {
-        str_op = ""; // superflous
-      }
-    }
-    // now build the final result
-    return str_head + str_op + str_tail;
-  }
-
-  std::string Selector_Schema::to_string(Sass_Inspect_Options opt) const
-  {
-    return contents()->to_string(opt);
-  }
-
-  std::string Parent_Selector::to_string(Sass_Inspect_Options opt) const
-  {
-    return "&";
-  }
-
-  std::string Attribute_Selector::to_string(Sass_Inspect_Options opt) const
-  {
-    std::string val(value() ? value()->to_string(opt) : "");
-    return "[" + this->ns_name() + this->matcher() + val + "]";
-  }
-
-  std::string Wrapped_Selector::to_string(Sass_Inspect_Options opt) const
-  {
-    // first render the
-    std::string main(this->Simple_Selector::to_string(opt));
-    std::string wrapped(selector() ? selector()->to_string(opt) : "");
-    // now build the final result
-    return main + "(" + wrapped + ")";
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////

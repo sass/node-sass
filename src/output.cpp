@@ -1,7 +1,6 @@
 #include "sass.hpp"
 #include "ast.hpp"
 #include "output.hpp"
-#include "to_string.hpp"
 
 namespace Sass {
 
@@ -21,8 +20,7 @@ namespace Sass {
   void Output::operator()(Number* n)
   {
     // use values to_string facility
-    To_String to_string(opt);
-    std::string res = n->perform(&to_string);
+    std::string res = n->to_string(opt);
     // check for a valid unit here
     // includes result for reporting
     if (n->numerator_units().size() > 1 ||
@@ -43,8 +41,7 @@ namespace Sass {
 
   void Output::operator()(Map* m)
   {
-    To_String to_string(opt);
-    std::string dbg(m->perform(&to_string));
+    std::string dbg(m->to_string(opt));
     error(dbg + " isn't a valid CSS value.", m->pstate());
   }
 
@@ -93,8 +90,7 @@ namespace Sass {
 
   void Output::operator()(Comment* c)
   {
-    To_String to_string(opt);
-    std::string txt = c->text()->perform(&to_string);
+    std::string txt = c->text()->to_string(opt);
     // if (indentation && txt == "/**/") return;
     bool important = c->is_important();
     if (output_style() != COMPRESSED || important) {

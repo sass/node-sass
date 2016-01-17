@@ -1,7 +1,6 @@
 #include "sass.hpp"
 #include "ast.hpp"
 #include "to_value.hpp"
-#include "to_string.hpp"
 
 namespace Sass {
 
@@ -92,19 +91,17 @@ namespace Sass {
   // Selector_List is converted to a string
   Value* To_Value::operator()(Selector_List* s)
   {
-    To_String to_string(ctx.c_options);
     return SASS_MEMORY_NEW(mem, String_Quoted,
                            s->pstate(),
-                           s->perform(&to_string));
+                           s->to_string(ctx.c_options));
   }
 
   // Binary_Expression is converted to a string
   Value* To_Value::operator()(Binary_Expression* s)
   {
-    To_String to_string(ctx.c_options);
     return SASS_MEMORY_NEW(mem, String_Quoted,
                            s->pstate(),
-                           s->perform(&to_string));
+                           s->to_string(ctx.c_options));
   }
 
 };

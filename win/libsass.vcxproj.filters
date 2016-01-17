@@ -177,9 +177,6 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\to_c.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\to_string.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\to_value.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -327,9 +324,6 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\to_c.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="$(LIBSASS_SRC_DIR)\to_string.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\to_value.cpp">

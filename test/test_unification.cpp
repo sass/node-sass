@@ -1,13 +1,11 @@
 #include "../ast.hpp"
 #include "../context.hpp"
 #include "../parser.hpp"
-#include "../to_string.hpp"
 #include <string>
 
 using namespace Sass;
 
 Context ctx = Context(Context::Data());
-To_String to_string;
 
 Compound_Selector* selector(std::string src)
 { return Parser::from_c_str(src.c_str(), ctx, "", Position()).parse_compound_selector(); }
@@ -15,7 +13,7 @@ Compound_Selector* selector(std::string src)
 void unify(std::string lhs, std::string rhs)
 {
   Compound_Selector* unified = selector(lhs + ";")->unify_with(selector(rhs + ";"), ctx);
-  std::cout << lhs << " UNIFIED WITH " << rhs << " =\t" << (unified ? unified->perform(&to_string) : "NOTHING") << std::endl;
+  std::cout << lhs << " UNIFIED WITH " << rhs << " =\t" << (unified ? unified->to_string() : "NOTHING") << std::endl;
 }
 
 int main()

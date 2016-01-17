@@ -1,13 +1,11 @@
 #include "../ast.hpp"
 #include "../context.hpp"
 #include "../parser.hpp"
-#include "../to_string.hpp"
 #include <string>
 
 using namespace Sass;
 
 Context ctx = Context(Context::Data());
-To_String to_string;
 
 Compound_Selector* compound_selector(std::string src)
 { return Parser::from_c_str(src.c_str(), ctx, "", Position()).parse_compound_selector(); }

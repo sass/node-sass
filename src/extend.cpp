@@ -1,7 +1,6 @@
 #include "sass.hpp"
 #include "extend.hpp"
 #include "context.hpp"
-#include "to_string.hpp"
 #include "backtrace.hpp"
 #include "paths.hpp"
 #include "parser.hpp"
@@ -82,23 +81,20 @@ namespace Sass {
 
 
   std::ostream& operator<<(std::ostream& os, Compound_Selector& compoundSelector) {
-    To_String to_string;
     for (size_t i = 0, L = compoundSelector.length(); i < L; ++i) {
       if (i > 0) os << ", ";
-      os << compoundSelector[i]->perform(&to_string);
+      os << compoundSelector[i]->to_string();
     }
     return os;
   }
 
   std::ostream& operator<<(std::ostream& os, Simple_Selector& simpleSelector) {
-    To_String to_string;
-    os << simpleSelector.perform(&to_string);
+    os << simpleSelector.to_string();
     return os;
   }
 
   // Print a string representation of a Compound_Selector
   static void printSimpleSelector(Simple_Selector* pSimpleSelector, const char* message=NULL, bool newline=true) {
-    To_String to_string;
 
     if (message) {
       std::cerr << message;
@@ -122,7 +118,6 @@ namespace Sass {
 
   // Print a string representation of a Compound_Selector
   static void printCompoundSelector(Compound_Selector* pCompoundSelector, const char* message=NULL, bool newline=true) {
-    To_String to_string;
 
     if (message) {
       std::cerr << message;
@@ -141,7 +136,6 @@ namespace Sass {
 
 
   std::ostream& operator<<(std::ostream& os, Complex_Selector& complexSelector) {
-    To_String to_string;
 
     os << "[";
     Complex_Selector* pIter = &complexSelector;
@@ -161,7 +155,7 @@ namespace Sass {
       first = false;
 
       if (pIter->head()) {
-        os << pIter->head()->perform(&to_string);
+        os << pIter->head()->to_string();
       } else {
         os << "NULL_HEAD";
       }
@@ -176,7 +170,6 @@ namespace Sass {
 
   // Print a string representation of a Complex_Selector
   static void printComplexSelector(Complex_Selector* pComplexSelector, const char* message=NULL, bool newline=true) {
-    To_String to_string;
 
     if (message) {
       std::cerr << message;
@@ -194,7 +187,6 @@ namespace Sass {
   }
 
   static void printSelsNewSeqPairCollection(SelsNewSeqPairCollection& collection, const char* message=NULL, bool newline=true) {
-    To_String to_string;
 
     if (message) {
       std::cerr << message;
@@ -222,7 +214,6 @@ namespace Sass {
 
   // Print a string representation of a SourcesSet
   static void printSourcesSet(SourcesSet& sources, Context& ctx, const char* message=NULL, bool newline=true) {
-    To_String to_string;
 
     if (message) {
       std::cerr << message;
@@ -1555,8 +1546,6 @@ namespace Sass {
     Node extendedSelectors = Node::createCollection();
     // extendedSelectors.got_line_feed = true;
 
-    To_String to_string;
-
     SubsetMapEntries entries = subset_map.get_v(pSelector->to_str_vec());
 
     typedef std::vector<std::pair<Complex_Selector, std::vector<ExtensionPair> > > GroupedByToAResult;
@@ -1749,14 +1738,13 @@ namespace Sass {
         for (ExtensionPair ext : entries) {
           // check if both selectors have the same media block parent
           if (ext.first->media_block() == pComplexSelector->media_block()) continue;
-          To_String to_string(ctx.c_options);
           if (ext.second->media_block() == 0) continue;
           if (pComplexSelector->media_block() &&
               ext.second->media_block()->media_queries() &&
               pComplexSelector->media_block()->media_queries()
           ) {
-            std::string query_left(ext.second->media_block()->media_queries()->perform(&to_string));
-            std::string query_right(pComplexSelector->media_block()->media_queries()->perform(&to_string));
+            std::string query_left(ext.second->media_block()->media_queries()->to_string(ctx.c_options));
+            std::string query_right(pComplexSelector->media_block()->media_queries()->to_string(ctx.c_options));
             if (query_left == query_right) continue;
           }
 
@@ -1767,7 +1755,7 @@ namespace Sass {
           std::string rel_path(Sass::File::abs2rel(pstate.path, cwd, cwd));
           err << "You may not @extend an outer selector from within @media.\n";
           err << "You may only @extend selectors within the same directive.\n";
-          err << "From \"@extend " << ext.second->perform(&to_string) << "\"";
+          err << "From \"@extend " << ext.second->to_string(ctx.c_options) << "\"";
           err << " on line " << pstate.line+1 << " of " << rel_path << "\n";
           error(err.str(), pComplexSelector->pstate());
         }
@@ -1918,8 +1906,6 @@ namespace Sass {
   */
   Selector_List* Extend::extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, bool isReplace, bool& extendedSomething) {
 
-    To_String to_string(ctx.c_options);
-
     Selector_List* pNewSelectors = SASS_MEMORY_NEW(ctx.mem, Selector_List, pSelectorList->pstate(), pSelectorList->length());
 
     extendedSomething = false;
@@ -2011,9 +1997,8 @@ namespace Sass {
   // Extend a ruleset by extending the selectors and updating them on the ruleset. The block's rules don't need to change.
   template <typename ObjectType>
   static void extendObjectWithSelectorAndBlock(ObjectType* pObject, Context& ctx, ExtensionSubsetMap& subset_map) {
-    To_String to_string(ctx.c_options);
 
-    DEBUG_PRINTLN(EXTEND_OBJECT, "FOUND SELECTOR: " << static_cast<Selector_List*>(pObject->selector())->perform(&to_string))
+    DEBUG_PRINTLN(EXTEND_OBJECT, "FOUND SELECTOR: " << static_cast<Selector_List*>(pObject->selector())->to_string(ctx.c_options))
 
     // Ruby sass seems to filter nodes that don't have any content well before we get here. I'm not sure the repercussions
     // of doing so, so for now, let's just not extend things that won't be output later.
@@ -2026,8 +2011,8 @@ namespace Sass {
     Selector_List* pNewSelectorList = Extend::extendSelectorList(static_cast<Selector_List*>(pObject->selector()), ctx, subset_map, false, extendedSomething);
 
     if (extendedSomething && pNewSelectorList) {
-      DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND ORIGINAL SELECTORS: " << static_cast<Selector_List*>(pObject->selector())->perform(&to_string))
-      DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND SETTING NEW SELECTORS: " << pNewSelectorList->perform(&to_string))
+      DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND ORIGINAL SELECTORS: " << static_cast<Selector_List*>(pObject->selector())->to_string(ctx.c_options))
+      DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND SETTING NEW SELECTORS: " << pNewSelectorList->to_string(ctx.c_options))
       pNewSelectorList->remove_parent_selectors();
       pObject->selector(pNewSelectorList);
     } else {

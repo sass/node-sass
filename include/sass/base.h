@@ -57,8 +57,9 @@ enum Sass_Output_Style {
   SASS_STYLE_EXPANDED,
   SASS_STYLE_COMPACT,
   SASS_STYLE_COMPRESSED,
-  // only used internal
-  SASS_STYLE_INSPECT
+  // only used internaly
+  SASS_STYLE_INSPECT,
+  SASS_STYLE_TO_SASS
 };
 
 // Some convenient string helper function

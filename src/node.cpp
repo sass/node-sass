@@ -2,7 +2,6 @@
 #include <vector>
 
 #include "node.hpp"
-#include "to_string.hpp"
 #include "context.hpp"
 #include "parser.hpp"
 
@@ -154,8 +153,7 @@ namespace Sass {
 
     } else if (node.isSelector()){
 
-      To_String to_string;
-      os << node.selector()->head()->perform(&to_string);
+      os << node.selector()->head()->to_string();
 
     } else if (node.isCollection()) {
 

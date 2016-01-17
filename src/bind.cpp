@@ -6,7 +6,6 @@
 #include <map>
 #include <iostream>
 #include <sstream>
-#include "to_string.hpp"
 
 namespace Sass {
 
@@ -259,7 +258,6 @@ namespace Sass {
     // That's only okay if they have default values, or were already bound by
     // named arguments, or if it's a single rest-param.
     for (size_t i = ip; i < LP; ++i) {
-      To_String to_string(ctx->c_options);
       Parameter* leftover = (*ps)[i];
       // cerr << "env for default params:" << endl;
       // env->print();

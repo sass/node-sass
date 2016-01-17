@@ -86,6 +86,16 @@ namespace Sass {
         virtual ~ZeroDivisionError() throw() {};
     };
 
+    class DuplicateKeyError : public OperationError {
+      protected:
+        const Map& dup;
+        const Expression& org;
+      public:
+        DuplicateKeyError(const Map& dup, const Expression& org);
+        virtual const char* errtype() const { return "DuplicateKeyError"; }
+        virtual ~DuplicateKeyError() throw() {};
+    };
+
     class IncompatibleUnits : public OperationError {
       protected:
         const Number& lhs;

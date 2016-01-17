@@ -2,7 +2,6 @@
 #include "remove_placeholders.hpp"
 #include "context.hpp"
 #include "inspect.hpp"
-#include "to_string.hpp"
 #include <iostream>
 
 namespace Sass {

@@ -5,7 +5,6 @@
 #include "backtrace.hpp"
 #include "parser.hpp"
 #include "constants.hpp"
-#include "to_string.hpp"
 #include "inspect.hpp"
 #include "extend.hpp"
 #include "eval.hpp"
@@ -157,7 +156,6 @@ namespace Sass {
 
     template <>
     Selector_List* get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
-      To_String to_string(ctx.c_options, false);
       Expression* exp = ARG(argname, Expression);
       if (exp->concrete_type() == Expression::NULL_VAL) {
         std::stringstream msg;
@@ -165,13 +163,15 @@ namespace Sass {
         msg << "a list of strings, or a list of lists of strings for `" << function_name(sig) << "'";
         error(msg.str(), pstate);
       }
-      std::string exp_src = exp->perform(&to_string) + "{";
+      if (String_Constant* str =dynamic_cast<String_Constant*>(exp)) {
+        str->quote_mark(0);
+      }
+      std::string exp_src = exp->to_string(ctx.c_options) + "{";
       return Parser::parse_selector(exp_src.c_str(), ctx);
     }
 
     template <>
     Complex_Selector* get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
-      To_String to_string(ctx.c_options, false);
       Expression* exp = ARG(argname, Expression);
       if (exp->concrete_type() == Expression::NULL_VAL) {
         std::stringstream msg;
@@ -179,21 +179,26 @@ namespace Sass {
         msg << "a list of strings, or a list of lists of strings for `" << function_name(sig) << "'";
         error(msg.str(), pstate);
       }
-      std::string exp_src = exp->perform(&to_string) + "{";
+      if (String_Constant* str =dynamic_cast<String_Constant*>(exp)) {
+        str->quote_mark(0);
+      }
+      std::string exp_src = exp->to_string(ctx.c_options) + "{";
       Selector_List* sel_list = Parser::parse_selector(exp_src.c_str(), ctx);
       return (sel_list->length() > 0) ? sel_list->first() : 0;
     }
 
     template <>
     Compound_Selector* get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
-      To_String to_string(ctx.c_options, false);
       Expression* exp = ARG(argname, Expression);
       if (exp->concrete_type() == Expression::NULL_VAL) {
         std::stringstream msg;
         msg << argname << ": null is not a string for `" << function_name(sig) << "'";
         error(msg.str(), pstate);
       }
-      std::string exp_src = exp->perform(&to_string) + "{";
+      if (String_Constant* str =dynamic_cast<String_Constant*>(exp)) {
+        str->quote_mark(0);
+      }
+      std::string exp_src = exp->to_string(ctx.c_options) + "{";
       Selector_List* sel_list = Parser::parse_selector(exp_src.c_str(), ctx);
       return (sel_list->length() > 0) ? sel_list->first()->tail()->head() : 0;
     }
@@ -512,8 +517,7 @@ namespace Sass {
       // CSS3 filter function overload: pass literal through directly
       Number* amount = dynamic_cast<Number*>(env["$amount"]);
       if (!amount) {
-        To_String to_string(ctx.c_options);
-        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "saturate(" + env["$color"]->perform(&to_string) + ")");
+        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "saturate(" + env["$color"]->to_string(ctx.c_options) + ")");
       }
 
       ARGR("$amount", Number, 0, 100);
@@ -573,8 +577,7 @@ namespace Sass {
       // CSS3 filter function overload: pass literal through directly
       Number* amount = dynamic_cast<Number*>(env["$color"]);
       if (amount) {
-        To_String to_string(ctx.c_options);
-        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "grayscale(" + amount->perform(&to_string) + ")");
+        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "grayscale(" + amount->to_string(ctx.c_options) + ")");
       }
 
       Color* rgb_color = ARG("$color", Color);
@@ -610,8 +613,7 @@ namespace Sass {
       // CSS3 filter function overload: pass literal through directly
       Number* amount = dynamic_cast<Number*>(env["$color"]);
       if (amount) {
-        To_String to_string(ctx.c_options);
-        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "invert(" + amount->perform(&to_string) + ")");
+        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "invert(" + amount->to_string(ctx.c_options) + ")");
       }
 
       Color* rgb_color = ARG("$color", Color);
@@ -638,8 +640,7 @@ namespace Sass {
       // CSS3 filter function overload: pass literal through directly
       Number* amount = dynamic_cast<Number*>(env["$color"]);
       if (amount) {
-        To_String to_string(ctx.c_options);
-        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "opacity(" + amount->perform(&to_string) + ")");
+        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, "opacity(" + amount->to_string(ctx.c_options) + ")");
       }
 
       return SASS_MEMORY_NEW(ctx.mem, Number, pstate, ARG("$color", Color)->a());
@@ -888,8 +889,7 @@ namespace Sass {
       else {
         Sass_Output_Style oldstyle = ctx.c_options.output_style;
         ctx.c_options.output_style = SASS_STYLE_NESTED;
-        To_String to_string(ctx.c_options, false);
-        std::string val(arg->perform(&to_string));
+        std::string val(arg->to_string(ctx.c_options));
         val = dynamic_cast<Null*>(arg) ? "null" : val;
         ctx.c_options.output_style = oldstyle;
 
@@ -901,9 +901,8 @@ namespace Sass {
     Signature quote_sig = "quote($string)";
     BUILT_IN(sass_quote)
     {
-      To_String to_string(ctx.c_options);
       AST_Node* arg = env["$string"];
-      std::string str(quote(arg->perform(&to_string), String_Constant::double_quote()));
+      std::string str(quote(arg->to_string(ctx.c_options), String_Constant::double_quote()));
       String_Quoted* result = SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, str);
       result->is_delayed(true);
       return result;
@@ -1130,14 +1129,13 @@ namespace Sass {
     Signature min_sig = "min($numbers...)";
     BUILT_IN(min)
     {
-      To_String to_string(ctx.c_options);
       List* arglist = ARG("$numbers", List);
       Number* least = 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Expression* val = arglist->value_at_index(i);
         Number* xi = dynamic_cast<Number*>(val);
         if (!xi) {
-          error("\"" + val->perform(&to_string) + "\" is not a number for `min'", pstate);
+          error("\"" + val->to_string(ctx.c_options) + "\" is not a number for `min'", pstate);
         }
         if (least) {
           if (*xi < *least) least = xi;
@@ -1149,14 +1147,13 @@ namespace Sass {
     Signature max_sig = "max($numbers...)";
     BUILT_IN(max)
     {
-      To_String to_string(ctx.c_options);
       List* arglist = ARG("$numbers", List);
       Number* greatest = 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Expression* val = arglist->value_at_index(i);
         Number* xi = dynamic_cast<Number*>(val);
         if (!xi) {
-          error("\"" + val->perform(&to_string) + "\" is not a number for `max'", pstate);
+          error("\"" + val->to_string(ctx.c_options) + "\" is not a number for `max'", pstate);
         }
         if (greatest) {
           if (*greatest < *xi) greatest = xi;
@@ -1675,6 +1672,9 @@ namespace Sass {
     // MISCELLANEOUS FUNCTIONS
     //////////////////////////
 
+    // value.check_deprecated_interp if value.is_a?(Sass::Script::Value::String)
+    // unquoted_string(value.to_sass)
+
     Signature inspect_sig = "inspect($value)";
     BUILT_IN(inspect)
     {
@@ -1686,23 +1686,23 @@ namespace Sass {
       } else if (v->concrete_type() == Expression::STRING) {
         return v;
       } else {
-        bool parentheses = v->concrete_type() == Expression::MAP ||
-                           v->concrete_type() == Expression::LIST;
+        // ToDo: fix to_sass for nested parentheses
         Sass_Output_Style old_style;
         old_style = ctx.c_options.output_style;
-        ctx.c_options.output_style = NESTED;
-        To_String to_string(ctx.c_options, false);
-        std::string inspect = v->perform(&to_string);
-        if (inspect.empty() && parentheses) inspect = "()";
+        ctx.c_options.output_style = TO_SASS;
+        Sass_Output_Options out(ctx.c_options);
+        Emitter emitter(ctx.c_options);
+        Inspect i(emitter);
+        i.in_declaration = false;
+        v->perform(&i);
         ctx.c_options.output_style = old_style;
-        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, inspect);
+        return SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, i.get_buffer());
       }
       // return v;
     }
     Signature selector_nest_sig = "selector-nest($selectors...)";
     BUILT_IN(selector_nest)
     {
-      To_String to_string(ctx.c_options, false);
       List* arglist = ARG("$selectors", List);
 
       // Not enough parameters
@@ -1719,7 +1719,10 @@ namespace Sass {
           msg << "a list of strings, or a list of lists of strings for 'selector-nest'";
           error(msg.str(), pstate);
         }
-        std::string exp_src = exp->perform(&to_string) + "{";
+        if (String_Constant* str =dynamic_cast<String_Constant*>(exp)) {
+          str->quote_mark(0);
+        }
+        std::string exp_src = exp->to_string(ctx.c_options) + "{";
         Selector_List* sel = Parser::parse_selector(exp_src.c_str(), ctx);
         parsedSelectors.push_back(sel);
       }
@@ -1751,7 +1754,6 @@ namespace Sass {
     Signature selector_append_sig = "selector-append($selectors...)";
     BUILT_IN(selector_append)
     {
-      To_String to_string;
       List* arglist = ARG("$selectors", List);
 
       // Not enough parameters
@@ -1768,7 +1770,10 @@ namespace Sass {
           msg << "a list of strings, or a list of lists of strings for 'selector-append'";
           error(msg.str(), pstate);
         }
-        std::string exp_src = exp->perform(&to_string) + "{";
+        if (String_Constant* str =dynamic_cast<String_Constant*>(exp)) {
+          str->quote_mark(0);
+        }
+        std::string exp_src = exp->to_string() + "{";
         Selector_List* sel = Parser::parse_selector(exp_src.c_str(), ctx);
         parsedSelectors.push_back(sel);
       }
@@ -1803,9 +1808,9 @@ namespace Sass {
             // Must be a simple sequence
             if( childSeq->combinator() != Complex_Selector::Combinator::ANCESTOR_OF ) {
               std::string msg("Can't append  `");
-              msg += childSeq->perform(&to_string);
+              msg += childSeq->to_string();
               msg += "` to `";
-              msg += parentSeqClone->perform(&to_string);;
+              msg += parentSeqClone->to_string();
               msg += "`";
               error(msg, pstate, backtrace);
             }
@@ -1814,9 +1819,9 @@ namespace Sass {
             Type_Selector* pType = dynamic_cast<Type_Selector*>(base->head()->first());
             if(pType && pType->name() == "*") {
               std::string msg("Can't append  `");
-              msg += childSeq->perform(&to_string);
+              msg += childSeq->to_string();
               msg += "` to `";
-              msg += parentSeqClone->perform(&to_string);;
+              msg += parentSeqClone->to_string();
               msg += "`";
               error(msg, pstate, backtrace);
             }
@@ -1856,12 +1861,11 @@ namespace Sass {
     {
       Compound_Selector* sel = ARGSEL("$selector", Compound_Selector, p_contextualize);
 
-      To_String to_string;
       List* l = SASS_MEMORY_NEW(ctx.mem, List, sel->pstate(), sel->length(), SASS_COMMA);
 
       for (size_t i = 0, L = sel->length(); i < L; ++i) {
         Simple_Selector* ss = (*sel)[i];
-        std::string ss_string = ss->perform(&to_string) ;
+        std::string ss_string = ss->to_string() ;
 
         *l << SASS_MEMORY_NEW(ctx.mem, String_Quoted, ss->pstate(), ss_string);
       }
@@ -1915,7 +1919,6 @@ namespace Sass {
     Signature is_superselector_sig = "is-superselector($super, $sub)";
     BUILT_IN(is_superselector)
     {
-      To_String to_string(ctx.c_options, false);
       Selector_List*  sel_sup = ARGSEL("$super", Selector_List, p_contextualize);
       Selector_List*  sel_sub = ARGSEL("$sub", Selector_List, p_contextualize);
       bool result = sel_sup->is_superselector_of(sel_sub);
