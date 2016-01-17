@@ -1068,6 +1068,7 @@ namespace Sass {
           exactly<'{'>,
           exactly<')'>,
           exactly<':'>,
+          exactly<0>,
           exactly<ellipsis>,
           default_flag,
           global_flag
@@ -1093,6 +1094,7 @@ namespace Sass {
             exactly<'{'>,
             exactly<')'>,
             exactly<':'>,
+            exactly<0>,
             exactly<ellipsis>,
             default_flag,
             global_flag
@@ -1119,6 +1121,7 @@ namespace Sass {
           exactly<')'>,
           exactly<','>,
           exactly<':'>,
+          exactly<0>,
           exactly<ellipsis>,
           default_flag,
           global_flag
@@ -1136,6 +1139,7 @@ namespace Sass {
                exactly<')'>,
                exactly<','>,
                exactly<':'>,
+               exactly<0>,
                exactly<ellipsis>,
                default_flag,
                global_flag
