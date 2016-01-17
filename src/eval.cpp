@@ -159,11 +159,11 @@ namespace Sass {
     std::string variable(f->variable());
     Expression* low = f->lower_bound()->perform(this);
     if (low->concrete_type() != Expression::NUMBER) {
-      error("lower bound of `@for` directive must be numeric", low->pstate());
+      throw Exception::TypeMismatch(*low, "integer");
     }
     Expression* high = f->upper_bound()->perform(this);
     if (high->concrete_type() != Expression::NUMBER) {
-      error("upper bound of `@for` directive must be numeric", high->pstate());
+      throw Exception::TypeMismatch(*high, "integer");
     }
     Number* sass_start = static_cast<Number*>(low);
     Number* sass_end = static_cast<Number*>(high);
@@ -268,6 +268,7 @@ namespace Sass {
             Expression* var = scalars;
             env.set_local(variables[0], var);
           } else {
+            // XXX: this is never hit via spec tests
             for (size_t j = 0, K = variables.size(); j < K; ++j) {
               Expression* res = j >= scalars->length()
                 ? SASS_MEMORY_NEW(ctx.mem, Null, expr->pstate())
@@ -279,6 +280,7 @@ namespace Sass {
           if (variables.size() > 0) {
             env.set_local(variables[0], e);
             for (size_t j = 1, K = variables.size(); j < K; ++j) {
+              // XXX: this is never hit via spec tests
               Expression* res = SASS_MEMORY_NEW(ctx.mem, Null, expr->pstate());
               env.set_local(variables[j], res);
             }
@@ -683,6 +685,7 @@ namespace Sass {
         Textual* front = dynamic_cast<Textual*>(s2->elements().front());
         if (front && !front->is_interpolant())
         {
+          // XXX: this is never hit via spec tests
           schema_op = true;
           rhs = front->perform(this);
         }
@@ -781,6 +784,7 @@ namespace Sass {
 
     if (rv) {
       if (schema_op) {
+        // XXX: this is never hit via spec tests
         (*s2)[0] = rv;
         rv = s2->perform(this);
       }
@@ -823,6 +827,7 @@ namespace Sass {
   Expression* Eval::operator()(Function_Call* c)
   {
     if (backtrace()->parent != NULL && backtrace()->depth() > Constants::MaxCallStack) {
+        // XXX: this is never hit via spec tests
         std::ostringstream stm;
         stm << "Stack depth exceeded max of " << Constants::MaxCallStack;
         error(stm.str(), c->pstate(), backtrace());
@@ -1079,18 +1084,6 @@ namespace Sass {
     return b;
   }
 
-  char is_quoted(std::string str)
-  {
-    size_t len = str.length();
-    if (len < 2) return 0;
-    if ((str[0] == '"' && str[len-1] == '"') || (str[0] == '\'' && str[len-1] == '\'')) {
-      return str[0];
-    }
-    else {
-      return 0;
-    }
-  }
-
   void Eval::interpolation(Context& ctx, std::string& res, Expression* ex, bool into_quotes, bool was_itpl) {
 
     bool needs_closing_brace = false;
@@ -1113,7 +1106,7 @@ namespace Sass {
     if (Argument* arg = dynamic_cast<Argument*>(ex)) {
       ex = arg->value();
     }
-    if (String_Constant* sq = dynamic_cast<String_Quoted*>(ex)) {
+    if (String_Quoted* sq = dynamic_cast<String_Quoted*>(ex)) {
       if (was_itpl) {
         bool was_interpolant = ex->is_interpolant();
         ex = SASS_MEMORY_NEW(ctx.mem, String_Constant, sq->pstate(), sq->value());
@@ -1125,6 +1118,7 @@ namespace Sass {
 
     // parent selector needs another go
     if (dynamic_cast<Parent_Selector*>(ex)) {
+      // XXX: this is never hit via spec tests
       ex = ex->perform(this);
     }
 
@@ -1300,6 +1294,7 @@ namespace Sass {
     Expression* value = e->value();
     value = (value ? value->perform(this) : 0);
     if (value && dynamic_cast<String_Quoted*>(value)) {
+      // XXX: this is never hit via spec tests
       value = SASS_MEMORY_NEW(ctx.mem, String_Quoted,
                                 value->pstate(),
                                 dynamic_cast<String_Quoted*>(value)->value());
@@ -1432,9 +1427,11 @@ namespace Sass {
     double lv = l.value();
     double rv = r.value();
     if (op == Sass_OP::DIV && rv == 0) {
+      // XXX: this is never hit via spec tests
       return SASS_MEMORY_NEW(mem, String_Quoted, pstate ? *pstate : l.pstate(), lv ? "Infinity" : "NaN");
     }
     if (op == Sass_OP::MOD && !rv) {
+      // XXX: this is never hit via spec tests
       throw Exception::ZeroDivisionError(l, r);
     }
 
@@ -1687,6 +1684,7 @@ namespace Sass {
 
   }
 
+  // XXX: this is never hit via spec tests
   Attribute_Selector* Eval::operator()(Attribute_Selector* s)
   {
     String* attr = s->value();

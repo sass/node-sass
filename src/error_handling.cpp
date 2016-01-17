@@ -81,6 +81,15 @@ namespace Sass {
       msg += ").";
     }
 
+    TypeMismatch::TypeMismatch(const Expression& var, const std::string type)
+    : var(var), type(type)
+    {
+      msg  = var.to_string();
+      msg += " is not an ";
+      msg += type;
+      msg += ".";
+    }
+
     InvalidValue::InvalidValue(const Expression& val)
     : Base(val.pstate()), val(val)
     {
