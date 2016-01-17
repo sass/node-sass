@@ -171,9 +171,11 @@ namespace Sass {
       }
 
       import->urls().front()->perform(this);
-      if (import->media_queries()) {
-        append_mandatory_space();
-        import->media_queries()->perform(this);
+      if (import->urls().size() == 1) {
+        if (import->media_queries()) {
+          append_mandatory_space();
+          import->media_queries()->perform(this);
+        }
       }
       append_delimiter();
       for (size_t i = 1, S = import->urls().size(); i < S; ++i) {
@@ -186,9 +188,11 @@ namespace Sass {
         }
 
         import->urls()[i]->perform(this);
-        if (import->media_queries()) {
-          append_mandatory_space();
-          import->media_queries()->perform(this);
+        if (import->urls().size() - 1 == i) {
+          if (import->media_queries()) {
+            append_mandatory_space();
+            import->media_queries()->perform(this);
+          }
         }
         append_delimiter();
       }
