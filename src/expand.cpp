@@ -456,6 +456,10 @@ namespace Sass {
     if (expr->concrete_type() == Expression::MAP) {
       map = static_cast<Map*>(expr);
     }
+    else if (Selector_List* ls = dynamic_cast<Selector_List*>(expr)) {
+      Listize listize(ctx.mem);
+      list = dynamic_cast<List*>(ls->perform(&listize));
+    }
     else if (expr->concrete_type() != Expression::LIST) {
       list = SASS_MEMORY_NEW(ctx.mem, List, expr->pstate(), 1, SASS_COMMA);
       *list << expr;
