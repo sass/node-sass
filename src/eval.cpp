@@ -1088,6 +1088,7 @@ namespace Sass {
   }
 
   void Eval::interpolation(Context& ctx, std::string& res, Expression* ex, bool into_quotes, bool was_itpl) {
+
     bool needs_closing_brace = false;
 
     if (Arguments* args = dynamic_cast<Arguments*>(ex)) {
@@ -1110,7 +1111,13 @@ namespace Sass {
         ex->is_interpolant(was_interpolant);
       }
     }
+
     if (dynamic_cast<Null*>(ex)) { return; }
+
+    // parent selector needs another go
+    if (dynamic_cast<Parent_Selector*>(ex)) {
+      ex = ex->perform(this);
+    }
 
     if (List* l = dynamic_cast<List*>(ex)) {
       List* ll = SASS_MEMORY_NEW(ctx.mem, List, l->pstate(), 0, l->separator());
@@ -1125,64 +1132,21 @@ namespace Sass {
       ll->is_interpolant(l->is_interpolant());
     }
 
-    else if (String_Quoted* val = dynamic_cast<String_Quoted*>(ex)) {
-      if (into_quotes && val->is_interpolant()) {
-        res += evacuate_escapes(val->to_string(ctx.c_options));
-      } else {
-        res += val->to_string(ctx.c_options);
-      }
-    }
-    else if (String_Constant* val = dynamic_cast<String_Constant*>(ex)) {
-      if (into_quotes && val->is_interpolant()) {
-        res += evacuate_escapes(val->to_string(ctx.c_options));
-      } else {
-        val->quote_mark(0);
-        res += val->to_string(ctx.c_options);
-      }
-    }
-    else if (Value* val = dynamic_cast<Value*>(ex)) {
-      if (into_quotes && val->is_interpolant()) {
-        res += evacuate_escapes(val->to_string(ctx.c_options));
-      } else {
-        res += val->to_string(ctx.c_options);
-      }
-    }
-    else if (Textual* val = dynamic_cast<Textual*>(ex)) {
-      if (into_quotes && val->is_interpolant()) {
-        res += evacuate_escapes(val ? val->to_string(ctx.c_options) : "");
-      } else {
-        res += val ? val->to_string(ctx.c_options) : "";
-      }
-    }
-    else if (Binary_Expression* val = dynamic_cast<Binary_Expression*>(ex)) {
-      if (into_quotes && val->is_interpolant()) {
-        res += evacuate_escapes(val ? val->to_string(ctx.c_options) : "");
-      } else {
-        res += val ? val->to_string(ctx.c_options) : "";
-      }
-    }
-
-    else if (Parent_Selector* pr = dynamic_cast<Parent_Selector*>(ex)) {
-      Expression* sel = pr->perform(this);
-      if (into_quotes && sel->is_interpolant()) {
-        res += evacuate_escapes(sel ? sel->to_string(ctx.c_options) : "");
-      } else {
-        res += sel ? sel->to_string(ctx.c_options) : "";
-      }
-    }
-    else if (Selector_List* sl = dynamic_cast<Selector_List*>(ex)) {
-
-      if (into_quotes) {
-        res += evacuate_escapes(sl->to_string(ctx.c_options));
-      } else {
-        res += sl->to_string(ctx.c_options);
-      }
-    }
-    else if (dynamic_cast<Function_Call*>(ex)) {
-      throw std::runtime_error("fn not handlerd");
-    }
+    // Value
+    // Textual
+    // Function_Call
+    // Selector_List
+    // String_Quoted
+    // String_Constant
+    // Parent_Selector
+    // Binary_Expression
     else {
-      throw std::runtime_error(ex->type());
+      // ex = ex->perform(this);
+      if (into_quotes && ex->is_interpolant()) {
+        res += evacuate_escapes(ex ? ex->to_string(ctx.c_options) : "");
+      } else {
+        res += ex ? ex->to_string(ctx.c_options) : "";
+      }
     }
 
     if (needs_closing_brace) res += ")";
@@ -1582,36 +1546,6 @@ namespace Sass {
     std::string lstr(lqstr ? lqstr->value() : lhs.to_string(opt));
     std::string rstr(rqstr ? rqstr->value() : rhs.to_string(opt));
 
-    bool l_str_quoted = ((Sass::String*)&lhs) && ((Sass::String*)&lhs)->sass_fix_1291();
-    bool r_str_quoted = ((Sass::String*)&rhs) && ((Sass::String*)&rhs)->sass_fix_1291();
-    bool l_str_color = ltype == Expression::STRING && name_to_color(lstr) && !l_str_quoted;
-    bool r_str_color = rtype == Expression::STRING && name_to_color(rstr) && !r_str_quoted;
-
-    if (l_str_color && r_str_color) {
-      const Color* c_l = name_to_color(lstr);
-      const Color* c_r = name_to_color(rstr);
-      return op_colors(mem, op,*c_l, *c_r, opt);
-    }
-    else if (l_str_color && rtype == Expression::COLOR) {
-      const Color* c_l = name_to_color(lstr);
-      const Color* c_r = dynamic_cast<const Color*>(&rhs);
-      return op_colors(mem, op, *c_l, *c_r, opt);
-    }
-    else if (ltype == Expression::COLOR && r_str_color) {
-      const Color* c_l = dynamic_cast<const Color*>(&lhs);
-      const Color* c_r = name_to_color(rstr);
-      return op_colors(mem, op, *c_l, *c_r, opt);
-    }
-    else if (l_str_color && rtype == Expression::NUMBER) {
-      const Color* c_l = name_to_color(lstr);
-      const Number* n_r = dynamic_cast<const Number*>(&rhs);
-      return op_color_number(mem, op, *c_l, *n_r, opt);
-    }
-    else if (ltype == Expression::NUMBER && r_str_color) {
-      const Number* n_l = dynamic_cast<const Number*>(&lhs);
-      const Color* c_r = name_to_color(rstr);
-      return op_number_color(mem, op, *n_l, *c_r, opt);
-    }
     if (ltype == Expression::NULL_VAL) throw Exception::InvalidNullOperation(&lhs, &rhs, sass_op_to_name(op));
     if (rtype == Expression::NULL_VAL) throw Exception::InvalidNullOperation(&lhs, &rhs, sass_op_to_name(op));
     if (op == Sass_OP::MOD) throw Exception::UndefinedOperation(&lhs, &rhs, sass_op_to_name(op));
