@@ -337,7 +337,7 @@ namespace Sass {
 
     }
 
-    std::string result(unquote(message->to_string(ctx.c_options)));
+    std::string result(unquote(message->to_sass()));
     Backtrace top(backtrace(), w->pstate(), "");
     std::cerr << "WARNING: " << result;
     std::cerr << top.to_string();
@@ -373,7 +373,7 @@ namespace Sass {
 
     }
 
-    std::string result(unquote(message->to_string(ctx.c_options)));
+    std::string result(unquote(message->to_sass()));
     ctx.c_options.output_style = outstyle;
     error(result, e->pstate());
     return 0;
@@ -407,7 +407,7 @@ namespace Sass {
     }
 
     std::string cwd(ctx.cwd());
-    std::string result(unquote(message->to_string(ctx.c_options)));
+    std::string result(unquote(message->to_sass()));
     std::string abs_path(Sass::File::rel2abs(d->pstate().path, cwd, cwd));
     std::string rel_path(Sass::File::abs2rel(d->pstate().path, cwd, cwd));
     std::string output_path(Sass::File::path_for_console(rel_path, abs_path, d->pstate().path));

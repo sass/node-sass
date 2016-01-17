@@ -400,8 +400,10 @@ namespace Sass {
       if (list->separator() == SASS_HASH)
       { sep[0] = i % 2 ? ':' : ','; }
       Expression* list_item = (*list)[i];
-      if (list_item->is_invisible()) {
-        continue;
+      if (output_style() != TO_SASS) {
+        if (list_item->is_invisible()) {
+          continue;
+        }
       }
       if (items_output) {
         append_string(sep);
