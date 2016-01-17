@@ -195,7 +195,12 @@ namespace Sass {
                  sequence <
                    zero_plus <
                      alternatives <
-                       identifier,
+                       sequence <
+                         optional <
+                           exactly <'$'>
+                         >,
+                         identifier
+                       >,
                        exactly <'-'>
                      >
                    >,
@@ -203,7 +208,12 @@ namespace Sass {
                    zero_plus <
                      alternatives <
                        digits,
-                       identifier,
+                       sequence <
+                         optional <
+                           exactly <'$'>
+                         >,
+                         identifier
+                       >,
                        quoted_string,
                        exactly<'-'>
                      >
