@@ -735,7 +735,7 @@ namespace Sass {
       // remove all block comments (don't skip white-space)
       lex< delimited_by< slash_star, star_slash, false > >(false);
       // parse functional
-      if (peek < re_pseudo_selector >())
+      if (match < re_pseudo_selector >())
       {
         (*seq) << parse_simple_selector();
       }
