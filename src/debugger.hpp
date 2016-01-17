@@ -321,6 +321,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << ind << "Debug " << block;
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " " << block->tabs() << std::endl;
+    debug_ast(block->value(), ind + " ");
   } else if (dynamic_cast<Comment*>(node)) {
     Comment* block = dynamic_cast<Comment*>(node);
     std::cerr << ind << "Comment " << block;
