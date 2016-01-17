@@ -397,11 +397,11 @@ namespace Sass {
     std::string variable(f->variable());
     Expression* low = f->lower_bound()->perform(&eval);
     if (low->concrete_type() != Expression::NUMBER) {
-      error("lower bound of `@for` directive must be numeric", low->pstate(), backtrace());
+      throw Exception::TypeMismatch(*low, "integer");
     }
     Expression* high = f->upper_bound()->perform(&eval);
     if (high->concrete_type() != Expression::NUMBER) {
-      error("upper bound of `@for` directive must be numeric", high->pstate(), backtrace());
+      throw Exception::TypeMismatch(*high, "integer");
     }
     Number* sass_start = static_cast<Number*>(low);
     Number* sass_end = static_cast<Number*>(high);

@@ -96,6 +96,16 @@ namespace Sass {
         virtual ~DuplicateKeyError() throw() {};
     };
 
+    class TypeMismatch : public OperationError {
+      protected:
+        const Expression& var;
+        const std::string type;
+      public:
+        TypeMismatch(const Expression& var, const std::string type);
+        virtual const char* errtype() const { return "TypeMismatch"; }
+        virtual ~TypeMismatch() throw() {};
+    };
+
     class InvalidValue : public Base {
       protected:
         const Expression& val;
