@@ -1068,7 +1068,7 @@ namespace Sass {
           exactly<'{'>,
           exactly<')'>,
           exactly<':'>,
-          exactly<0>,
+          end_of_file,
           exactly<ellipsis>,
           default_flag,
           global_flag
@@ -1094,7 +1094,7 @@ namespace Sass {
             exactly<'{'>,
             exactly<')'>,
             exactly<':'>,
-            exactly<0>,
+            end_of_file,
             exactly<ellipsis>,
             default_flag,
             global_flag
@@ -1121,7 +1121,7 @@ namespace Sass {
           exactly<')'>,
           exactly<','>,
           exactly<':'>,
-          exactly<0>,
+          end_of_file,
           exactly<ellipsis>,
           default_flag,
           global_flag
@@ -1139,7 +1139,7 @@ namespace Sass {
                exactly<')'>,
                exactly<','>,
                exactly<':'>,
-               exactly<0>,
+               end_of_file,
                exactly<ellipsis>,
                default_flag,
                global_flag
@@ -1203,7 +1203,7 @@ namespace Sass {
           > >(position))
     {
       // is directly adjancent to expression?
-      bool left_ws = peek < css_comments >();
+      bool left_ws = peek < css_comments >() != NULL;
       // parse the operator
       enum Sass_OP op
       = lex<kwd_eq>()  ? Sass_OP::EQ
@@ -1215,10 +1215,10 @@ namespace Sass {
       // we checked the possibilites on top of fn
       :                  Sass_OP::EQ;
       // is directly adjancent to expression?
-      bool right_ws = peek < css_comments >();
+      bool right_ws = peek < css_comments >() != NULL;
       operators.push_back({ op, left_ws, right_ws });
       operands.push_back(parse_expression());
-      left_ws = peek < css_comments >();
+      left_ws = peek < css_comments >() != NULL;
     }
     // parse the operator
     return fold_operands(lhs, operands, operators);
@@ -1247,7 +1247,7 @@ namespace Sass {
 
     std::vector<Expression*> operands;
     std::vector<Operand> operators;
-    bool left_ws = peek < css_comments >();
+    bool left_ws = peek < css_comments >() != NULL;
     while (
       lex_css< exactly<'+'> >() ||
 
@@ -1259,10 +1259,10 @@ namespace Sass {
     ) {
 
 
-      bool right_ws = peek < css_comments >();
+      bool right_ws = peek < css_comments >() != NULL;
       operators.push_back({ lexed.to_string() == "+" ? Sass_OP::ADD : Sass_OP::SUB, left_ws, right_ws });
       operands.push_back(parse_operators());
-      left_ws = peek < css_comments >();
+      left_ws = peek < css_comments >() != NULL;
     }
 
     if (operands.size() == 0) return lhs;
