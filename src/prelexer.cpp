@@ -642,7 +642,20 @@ namespace Sass {
     // Match CSS uri specifiers.
 
     const char* uri_prefix(const char* src) {
-      return exactly<url_kwd>(src);
+      return sequence <
+        exactly <
+          url_kwd
+        >,
+        zero_plus <
+          sequence <
+            exactly <'-'>,
+            one_plus <
+              alpha
+            >
+          >
+        >,
+        exactly <'('>
+      >(src);
     }
 
     // TODO: rename the following two functions

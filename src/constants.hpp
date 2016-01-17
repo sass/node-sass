@@ -81,7 +81,6 @@ namespace Sass {
     extern const char rgb_kwd[];
     extern const char url_kwd[];
     // extern const char url_prefix_kwd[];
-    extern const char image_url_kwd[];
     extern const char important_kwd[];
     extern const char pseudo_not_kwd[];
     extern const char even_kwd[];
