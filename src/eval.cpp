@@ -1090,7 +1090,7 @@ namespace Sass {
   void Eval::interpolation(Context& ctx, std::string& res, Expression* ex, bool into_quotes, bool was_itpl) {
 
     bool needs_closing_brace = false;
-
+//debug_ast(ex);
     if (Arguments* args = dynamic_cast<Arguments*>(ex)) {
       List* ll = SASS_MEMORY_NEW(ctx.mem, List, args->pstate(), 0, SASS_COMMA);
       for(auto arg : *args) {
@@ -1100,6 +1100,11 @@ namespace Sass {
       needs_closing_brace = true;
       res += "(";
       ex = ll;
+    }
+    if (Number* nr = dynamic_cast<Number*>(ex)) {
+      if (!nr->is_valid_css_unit()) {
+        throw Exception::InvalidValue(*nr);
+      }
     }
     if (Argument* arg = dynamic_cast<Argument*>(ex)) {
       ex = arg->value();

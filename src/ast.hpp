@@ -1311,7 +1311,8 @@ namespace Sass {
     size_t hash_;
   public:
     Number(ParserState pstate, double val, std::string u = "", bool zero = true);
-    bool            zero()              { return zero_; }
+    bool zero() { return zero_; }
+    bool is_valid_css_unit() const;
     std::vector<std::string>& numerator_units()   { return numerator_units_; }
     std::vector<std::string>& denominator_units() { return denominator_units_; }
     const std::vector<std::string>& numerator_units() const   { return numerator_units_; }

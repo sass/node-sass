@@ -96,6 +96,15 @@ namespace Sass {
         virtual ~DuplicateKeyError() throw() {};
     };
 
+    class InvalidValue : public Base {
+      protected:
+        const Expression& val;
+      public:
+        InvalidValue(const Expression& val);
+        virtual const char* errtype() const { return "Error"; }
+        virtual ~InvalidValue() throw() {};
+    };
+
     class IncompatibleUnits : public OperationError {
       protected:
         const Number& lhs;
