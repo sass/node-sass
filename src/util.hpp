@@ -23,7 +23,7 @@ namespace Sass {
   std::string string_to_output(const std::string& str);
   std::string comment_to_string(const std::string& text);
 
-  std::string quote(const std::string&, char q = 0, bool keep_linefeed_whitespace = false);
+  std::string quote(const std::string&, char q = 0);
   std::string unquote(const std::string&, char* q = 0, bool keep_utf8_sequences = false);
   char detect_best_quotemark(const char* s, char qm = '"');
 
