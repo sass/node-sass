@@ -326,7 +326,8 @@ namespace Sass {
     }
     if (v) {
       append_mandatory_space();
-      v->perform(this);
+      // ruby sass bug? should use options?
+      append_token(v->to_string(/* opt */), v);
     }
     if (!b) {
       append_delimiter();
