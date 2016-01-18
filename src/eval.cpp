@@ -1440,10 +1440,6 @@ namespace Sass {
     tmp.normalize(l.find_convertible_unit(), strict);
     std::string l_unit(l.unit());
     std::string r_unit(tmp.unit());
-    if (l_unit != r_unit && !l_unit.empty() && !r_unit.empty() &&
-        (op == Sass_OP::ADD || op == Sass_OP::SUB)) {
-      throw Exception::IncompatibleUnits(l, r);
-    }
     Number* v = SASS_MEMORY_NEW(mem, Number, l);
     v->pstate(pstate ? *pstate : l.pstate());
     if (l_unit.empty() && (op == Sass_OP::ADD || op == Sass_OP::SUB || op == Sass_OP::MOD)) {
@@ -1469,6 +1465,11 @@ namespace Sass {
         v->numerator_units().push_back(r.denominator_units()[i]);
       }
     } else {
+      Number rh(r);
+      v->value(ops[op](lv, rh.value() * r.convert_factor(l)));
+      // v->normalize();
+      return v;
+
       v->value(ops[op](lv, tmp.value()));
     }
     v->normalize();

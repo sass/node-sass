@@ -1321,8 +1321,9 @@ namespace Sass {
     static std::string type_name() { return "number"; }
     std::string unit() const;
 
-    bool is_unitless();
-    void convert(const std::string& unit = "", bool strict = false);
+    bool is_unitless() const;
+    double convert_factor(const Number&) const;
+    bool convert(const std::string& unit = "", bool strict = false);
     void normalize(const std::string& unit = "", bool strict = false);
     // useful for making one number compatible with another
     std::string find_convertible_unit() const;
