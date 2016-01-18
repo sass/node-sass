@@ -2040,12 +2040,12 @@ namespace Sass {
 
   std::string String_Quoted::inspect() const
   {
-    return quote(value_, '*', true);
+    return quote(value_, '*');
   }
 
   std::string String_Constant::inspect() const
   {
-    return quote(value_, '*', true);
+    return quote(value_, '*');
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////
