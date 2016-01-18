@@ -154,8 +154,8 @@ namespace Sass {
              >(src);
     }
 
-    // Match CSS unit identifier.
-    const char* unit_identifier(const char* src)
+    // Match a single CSS unit
+    const char* one_unit(const char* src)
     {
       return sequence <
                optional < exactly <'-'> >,
@@ -168,6 +168,34 @@ namespace Sass {
                  >
                > >
              >(src);
+    }
+
+    // Match numerator/denominator CSS units
+    const char* multiple_units(const char* src)
+    {
+      return
+        sequence <
+          one_unit,
+          zero_plus <
+            sequence <
+              exactly <'*'>,
+              one_unit
+            >
+          >
+        >(src);
+    }
+
+    // Match complex CSS unit identifiers
+    const char* unit_identifier(const char* src)
+    {
+      return sequence <
+        multiple_units,
+        optional <
+          sequence <
+          exactly <'/'>,
+          multiple_units
+        > >
+      >(src);
     }
 
     const char* identifier_alnums(const char* src)
