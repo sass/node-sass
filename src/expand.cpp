@@ -188,7 +188,7 @@ namespace Sass {
     mq = Parser::from_c_str(mq->to_string(ctx.c_options).c_str(), ctx, mq->pstate()).parse_media_queries();
     Media_Block* mm = SASS_MEMORY_NEW(ctx.mem, Media_Block,
                                       m->pstate(),
-                                      static_cast<List*>(mq),
+                                      static_cast<List*>(mq->perform(&eval)),
                                       m->block()->perform(this)->block(),
                                       0);
     mm->tabs(m->tabs());

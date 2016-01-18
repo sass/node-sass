@@ -200,6 +200,8 @@ namespace Sass {
     const char* strict_identifier_alpha(const char* src);
     const char* strict_identifier_alnum(const char* src);
     // Match a CSS unit identifier.
+    const char* one_unit(const char* src);
+    const char* multiple_units(const char* src);
     const char* unit_identifier(const char* src);
     // const char* strict_identifier_alnums(const char* src);
     // Match reference selector.
