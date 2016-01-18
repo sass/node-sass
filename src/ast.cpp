@@ -1629,8 +1629,8 @@ namespace Sass {
     std::vector<std::string> l_miss_nums(0);
     std::vector<std::string> l_miss_dens(0);
     // create copy since we need these for state keeping
-    std::vector<std::string> r_nums = n.numerator_units_;
-    std::vector<std::string> r_dens = n.denominator_units_;
+    std::vector<std::string> r_nums(n.numerator_units_);
+    std::vector<std::string> r_dens(n.denominator_units_);
 
     std::vector<std::string>::const_iterator l_num_it = numerator_units_.begin();
     std::vector<std::string>::const_iterator l_num_end = numerator_units_.end();
@@ -1650,6 +1650,7 @@ namespace Sass {
       std::vector<std::string>::iterator r_num_it = r_nums.begin();
       std::vector<std::string>::iterator r_num_end = r_nums.end();
 
+      bool found = false;
       // search for compatible numerator
       while (r_num_it != r_num_end)
       {
@@ -1666,14 +1667,13 @@ namespace Sass {
         factor *= conversion;
         // remove item from vector
         r_nums.erase(r_num_it);
-        // found it
+        // found numerator
+        found = true;
         break;
       }
       // maybe we did not find any
-      if (r_num_it == r_num_end) {
-        // left numerator is leftover
-        l_miss_nums.push_back(l_num);
-      }
+      // left numerator is leftover
+      if (!found) l_miss_nums.push_back(l_num);
     }
 
     std::vector<std::string>::const_iterator l_den_it = denominator_units_.begin();
@@ -1688,6 +1688,7 @@ namespace Sass {
       std::vector<std::string>::iterator r_den_it = r_dens.begin();
       std::vector<std::string>::iterator r_den_end = r_dens.end();
 
+      bool found = false;
       // search for compatible denominator
       while (r_den_it != r_den_end)
       {
@@ -1704,14 +1705,13 @@ namespace Sass {
         factor *= conversion;
         // remove item from vector
         r_dens.erase(r_den_it);
-        // found it
+        // found denominator
+        found = true;
         break;
       }
       // maybe we did not find any
-      if (r_den_it == r_den_end) {
-        // left denominator is leftover
-        l_miss_dens.push_back(l_den);
-      }
+      // left denominator is leftover
+      if (!found) l_miss_dens.push_back(l_den);
     }
 
     // check left-overs (ToDo: might cancel out)
