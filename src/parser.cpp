@@ -2588,23 +2588,37 @@ namespace Sass {
   void Parser::css_error(const std::string& msg, const std::string& prefix, const std::string& middle)
   {
     int max_len = 18;
+    const char* end = this->end;
+    while (*end != 0) ++ end;
     const char* pos = peek < optional_spaces >();
 
-    const char* last_pos(pos - 1);
+    const char* last_pos(pos);
+    if (last_pos > source) {
+      utf8::prior(last_pos, source);
+    }
     // backup position to last significant char
-    while ((!*last_pos || Prelexer::is_space(*last_pos)) && last_pos > source) -- last_pos;
+    while (last_pos > source && last_pos < end) {
+      if (!Prelexer::is_space(*last_pos)) break;
+      utf8::prior(last_pos, source);
+    }
 
     bool ellipsis_left = false;
-    const char* pos_left(last_pos + 1);
-    const char* end_left(last_pos + 1);
+    const char* pos_left(last_pos);
+    const char* end_left(last_pos);
+
+    utf8::next(pos_left, end);
+    utf8::next(end_left, end);
     while (pos_left > source) {
-      if (end_left - pos_left >= max_len) {
-        ellipsis_left = *(pos_left-1) != '\n' &&
-                        *(pos_left-1) != '\r';
+      if (utf8::distance(pos_left, end_left) >= max_len) {
+        utf8::prior(pos_left, source);
+        ellipsis_left = *(pos_left) != '\n' &&
+                        *(pos_left) != '\r';
+        utf8::next(pos_left, end);
         break;
       }
 
-      const char* prev = pos_left - 1;
+      const char* prev = pos_left;
+      utf8::prior(prev, source);
       if (*prev == '\r') break;
       if (*prev == '\n') break;
       pos_left = prev;
@@ -2616,15 +2630,15 @@ namespace Sass {
     bool ellipsis_right = false;
     const char* end_right(pos);
     const char* pos_right(pos);
-    while (*end_right != 0) {
-      if (end_right - pos_right > max_len) {
+    while (end_right < end) {
+      if (utf8::distance(pos_right, end_right) > max_len) {
         ellipsis_left = *(pos_right) != '\n' &&
                         *(pos_right) != '\r';
         break;
       }
       if (*end_right == '\r') break;
       if (*end_right == '\n') break;
-      ++ end_right;
+      utf8::next(end_right, end);
     }
     // if (*end_right == 0) end_right ++;
 
