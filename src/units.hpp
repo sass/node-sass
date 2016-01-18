@@ -61,6 +61,8 @@ namespace Sass {
   enum Sass::UnitType string_to_unit(const std::string&);
   const char* unit_to_string(Sass::UnitType unit);
   enum Sass::UnitClass get_unit_type(Sass::UnitType unit);
+  std::string get_unit_class(Sass::UnitType unit);
+  std::string unit_to_class(const std::string&);
   // throws incompatibleUnits exceptions
   double conversion_factor(const std::string&, const std::string&, bool = true);
 

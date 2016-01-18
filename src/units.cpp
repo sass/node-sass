@@ -62,6 +62,19 @@ namespace Sass {
     }
   };
 
+  std::string get_unit_class(UnitType unit)
+  {
+    switch (unit & 0xFF00)
+    {
+      case UnitClass::LENGTH:      return "LENGTH"; break;
+      case UnitClass::ANGLE:       return "ANGLE"; break;
+      case UnitClass::TIME:        return "TIME"; break;
+      case UnitClass::FREQUENCY:   return "FREQUENCY"; break;
+      case UnitClass::RESOLUTION:  return "RESOLUTION"; break;
+      default:                     return "INCOMMENSURABLE"; break;
+    }
+  };
+
   UnitType string_to_unit(const std::string& s)
   {
     // size units
@@ -120,6 +133,33 @@ namespace Sass {
     }
   }
 
+  std::string unit_to_class(const std::string& s)
+  {
+    if      (s == "px")   return "LENGTH";
+    else if (s == "pt")   return "LENGTH";
+    else if (s == "pc")   return "LENGTH";
+    else if (s == "mm")   return "LENGTH";
+    else if (s == "cm")   return "LENGTH";
+    else if (s == "in")   return "LENGTH";
+    // angle units
+    else if (s == "deg")  return "ANGLE";
+    else if (s == "grad") return "ANGLE";
+    else if (s == "rad")  return "ANGLE";
+    else if (s == "turn") return "ANGLE";
+    // time units
+    else if (s == "s")    return "TIME";
+    else if (s == "ms")   return "TIME";
+    // frequency units
+    else if (s == "Hz")   return "FREQUENCY";
+    else if (s == "kHz")  return "FREQUENCY";
+    // resolutions units
+    else if (s == "dpi")  return "RESOLUTION";
+    else if (s == "dpcm") return "RESOLUTION";
+    else if (s == "dppx") return "RESOLUTION";
+    // for unknown units
+    return "CUSTOM:" + s;
+  }
+
   // throws incompatibleUnits exceptions
   double conversion_factor(const std::string& s1, const std::string& s2, bool strict)
   {
@@ -151,7 +191,7 @@ namespace Sass {
       }
     }
     // fallback
-    return 1;
+    return 0;
   }
 
 }

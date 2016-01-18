@@ -1526,7 +1526,7 @@ namespace Sass {
            denominator_units().size() == 0;
   }
 
-  bool Number::is_unitless()
+  bool Number::is_unitless() const
   { return numerator_units_.empty() && denominator_units_.empty(); }
 
   void Number::normalize(const std::string& prefered, bool strict)
@@ -1614,10 +1614,128 @@ namespace Sass {
 
   }
 
-  void Number::convert(const std::string& prefered, bool strict)
+  // this does not cover all cases (multiple prefered units)
+  double Number::convert_factor(const Number& n) const
   {
-    // abort if unit is empty
-    if (prefered.empty()) return;
+
+    // first make sure same units cancel each other out
+    // it seems that a map table will fit nicely to do this
+    // we basically construct exponents for each unit class
+    // std::map<std::string, int> exponents;
+    // initialize by summing up occurences in unit vectors
+    // for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) ++ exponents[unit_to_class(numerator_units_[i])];
+    // for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) -- exponents[unit_to_class(denominator_units_[i])];
+
+    std::vector<std::string> l_miss_nums(0);
+    std::vector<std::string> l_miss_dens(0);
+    // create copy since we need these for state keeping
+    std::vector<std::string> r_nums = n.numerator_units_;
+    std::vector<std::string> r_dens = n.denominator_units_;
+
+    std::vector<std::string>::const_iterator l_num_it = numerator_units_.begin();
+    std::vector<std::string>::const_iterator l_num_end = numerator_units_.end();
+
+    bool l_unitless = is_unitless();
+    bool r_unitless = n.is_unitless();
+
+    // overall conversion
+    double factor = 1;
+
+    // process all left numerators
+    while (l_num_it != l_num_end)
+    {
+      // get and increment afterwards
+      const std::string l_num = *(l_num_it ++);
+
+      std::vector<std::string>::iterator r_num_it = r_nums.begin();
+      std::vector<std::string>::iterator r_num_end = r_nums.end();
+
+      // search for compatible numerator
+      while (r_num_it != r_num_end)
+      {
+        // get and increment afterwards
+        const std::string r_num = *(r_num_it);
+        // get possible converstion factor for units
+        double conversion = conversion_factor(l_num, r_num, false);
+        // skip incompatible numerator
+        if (conversion == 0) {
+          ++ r_num_it;
+          continue;
+        }
+        // apply to global factor
+        factor *= conversion;
+        // remove item from vector
+        r_nums.erase(r_num_it);
+        // found it
+        break;
+      }
+      // maybe we did not find any
+      if (r_num_it == r_num_end) {
+        // left numerator is leftover
+        l_miss_nums.push_back(l_num);
+      }
+    }
+
+    std::vector<std::string>::const_iterator l_den_it = denominator_units_.begin();
+    std::vector<std::string>::const_iterator l_den_end = denominator_units_.end();
+
+    // process all left denominators
+    while (l_den_it != l_den_end)
+    {
+      // get and increment afterwards
+      const std::string l_den = *(l_den_it ++);
+
+      std::vector<std::string>::iterator r_den_it = r_dens.begin();
+      std::vector<std::string>::iterator r_den_end = r_dens.end();
+
+      // search for compatible denominator
+      while (r_den_it != r_den_end)
+      {
+        // get and increment afterwards
+        const std::string r_den = *(r_den_it);
+        // get possible converstion factor for units
+        double conversion = conversion_factor(l_den, r_den, false);
+        // skip incompatible denominator
+        if (conversion == 0) {
+          ++ r_den_it;
+          continue;
+        }
+        // apply to global factor
+        factor *= conversion;
+        // remove item from vector
+        r_dens.erase(r_den_it);
+        // found it
+        break;
+      }
+      // maybe we did not find any
+      if (r_den_it == r_den_end) {
+        // left denominator is leftover
+        l_miss_dens.push_back(l_den);
+      }
+    }
+
+    // check left-overs (ToDo: might cancel out)
+    if (l_miss_nums.size() > 0 && !r_unitless) {
+      throw Exception::IncompatibleUnits(n, *this);
+    }
+    if (l_miss_dens.size() > 0 && !r_unitless) {
+      throw Exception::IncompatibleUnits(n, *this);
+    }
+    if (r_nums.size() > 0 && !l_unitless) {
+      throw Exception::IncompatibleUnits(n, *this);
+    }
+    if (r_dens.size() > 0 && !l_unitless) {
+      throw Exception::IncompatibleUnits(n, *this);
+    }
+
+    return factor;
+  }
+
+  // this does not cover all cases (multiple prefered units)
+  bool Number::convert(const std::string& prefered, bool strict)
+  {
+    // no conversion if unit is empty
+    if (prefered.empty()) return true;
 
     // first make sure same units cancel each other out
     // it seems that a map table will fit nicely to do this
@@ -1698,6 +1816,9 @@ namespace Sass {
     // apply factor to value_
     // best precision this way
     value_ *= factor;
+
+    // success?
+    return true;
 
   }
 
