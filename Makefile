@@ -26,14 +26,14 @@ CAT      ?= $(if $(filter $(OS),Windows_NT),type,cat)
 ifneq (,$(findstring /cygdrive/,$(PATH)))
 	UNAME := Cygwin
 else
-	ifneq (,$(findstring WINDOWS,$(PATH)))
+	ifneq (,$(findstring Windows_NT,$(OS)))
 		UNAME := Windows
 	else
 		ifneq (,$(findstring mingw32,$(MAKE)))
-			UNAME := MinGW
+			UNAME := Windows
 		else
 			ifneq (,$(findstring MINGW32,$(shell uname -s)))
-				UNAME = MinGW
+				UNAME = Windows
 			else
 				UNAME := $(shell uname -s)
 			endif
@@ -63,7 +63,7 @@ ifneq ($(LIBSASS_VERSION),)
 endif
 
 # enable mandatory flag
-ifeq (MinGW,$(UNAME))
+ifeq (Windows,$(UNAME))
 	ifneq ($(BUILD),shared)
 		STATIC_ALL     ?= 1
 	endif
@@ -123,7 +123,7 @@ ifeq ($(UNAME),Darwin)
 	LDFLAGS += -stdlib=libc++
 endif
 
-ifneq (MinGW,$(UNAME))
+ifneq (Windows,$(UNAME))
 	ifneq (FreeBSD,$(UNAME))
 		LDFLAGS += -ldl
 		LDLIBS += -ldl
@@ -154,7 +154,7 @@ RUBY_BIN = ruby
 LIB_STATIC = $(SASS_LIBSASS_PATH)/lib/libsass.a
 LIB_SHARED = $(SASS_LIBSASS_PATH)/lib/libsass.so
 
-ifeq (MinGW,$(UNAME))
+ifeq (Windows,$(UNAME))
 	ifeq (shared,$(BUILD))
 		CFLAGS     += -D ADD_EXPORTS
 		CXXFLAGS   += -D ADD_EXPORTS
@@ -168,9 +168,6 @@ else
 	endif
 endif
 
-ifeq (MinGW,$(UNAME))
-	SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc.exe
-endif
 ifeq (Windows,$(UNAME))
 	SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc.exe
 endif
@@ -180,7 +177,7 @@ include Makefile.conf
 RESOURCES =
 STATICLIB = lib/libsass.a
 SHAREDLIB = lib/libsass.so
-ifeq (MinGW,$(UNAME))
+ifeq (Windows,$(UNAME))
 	RESOURCES += res/resource.rc
 	SHAREDLIB  = lib/libsass.dll
 	ifeq (shared,$(BUILD))
