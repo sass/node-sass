@@ -1773,6 +1773,11 @@ namespace Sass {
       suffix = std::string(lexed);
     }
 
+    std::string uri("");
+    if (url_string) {
+      uri = url_string->to_string({ NESTED, 5 });
+    }
+
     if (String_Schema* schema = dynamic_cast<String_Schema*>(url_string)) {
       String_Schema* res = SASS_MEMORY_NEW(ctx.mem, String_Schema, pstate);
       (*res) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, prefix);
@@ -1780,7 +1785,7 @@ namespace Sass {
       (*res) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, suffix);
       return res;
     } else {
-      std::string res = prefix + url_string->to_string({ NESTED, 5 }) + suffix;
+      std::string res = prefix + uri + suffix;
       return SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, res);
     }
   }
