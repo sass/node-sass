@@ -22,7 +22,7 @@
 [![Inline docs](http://inch-ci.org/github/sass/node-sass.svg?branch=master)](http://inch-ci.org/github/sass/node-sass)
 [![Gitter chat](https://img.shields.io/badge/gitter-sass/node--sass-brightgreen.svg)](https://gitter.im/sass/node-sass)
 
-Node-sass is a library that provides binding for Node.js to [libsass], the C version of the popular stylesheet preprocessor, Sass.
+Node-sass is a library that provides binding for Node.js to [LibSass], the C version of the popular stylesheet preprocessor, Sass.
 
 It allows you to natively compile .scss files to css at incredible speed and automatically via a connect middleware.
 
@@ -63,30 +63,30 @@ Type: `String`
 Default: `null`
 **Special**: `file` or `data` must be specified
 
-Path to a file for [libsass] to render.
+Path to a file for [LibSass] to render.
 
 ### data
 Type: `String`
 Default: `null`
 **Special**: `file` or `data` must be specified
 
-A string to pass to [libsass] to render. It is recommended that you use `includePaths` in conjunction with this so that [libsass] can find files when using the `@import` directive.
+A string to pass to [LibSass] to render. It is recommended that you use `includePaths` in conjunction with this so that [LibSass] can find files when using the `@import` directive.
 
 ### importer (>= v2.0.0) - _experimental_
 
-**This is an experimental Libsass feature. Use with caution.**
+**This is an experimental LibSass feature. Use with caution.**
 
 Type: `Function | Function[]` signature `function(url, prev, done)`
 Default: `undefined`
 
 Function Parameters and Information:
-* `url (String)` - the path in import **as-is**, which [libsass] encountered
+* `url (String)` - the path in import **as-is**, which [LibSass] encountered
 * `prev (String)` - the previously resolved path
 * `done (Function)` - a callback function to invoke on async completion, takes an object literal containing
-  * `file (String)` - an alternate path for [libsass] to use **OR**
+  * `file (String)` - an alternate path for [LibSass] to use **OR**
   * `contents (String)` - the imported contents (for example, read from memory or the file system)
 
-Handles when [libsass] encounters the `@import` directive. A custom importer allows extension of the [libsass] engine in both a synchronous and asynchronous manner. In both cases, the goal is to either `return` or call `done()` with an object literal. Depending on the value of the object literal, one of two things will happen.
+Handles when [LibSass] encounters the `@import` directive. A custom importer allows extension of the [LibSass] engine in both a synchronous and asynchronous manner. In both cases, the goal is to either `return` or call `done()` with an object literal. Depending on the value of the object literal, one of two things will happen.
 
 When returning or calling `done()` with `{ file: "String" }`, the new file path will be assumed for the `@import`. It's recommended to be mindful of the value of `prev` in instances where relative path resolution may be required.
 
@@ -104,11 +104,11 @@ Starting from v3.0.0:
   return new Error('nothing to do here');
   ```
 
-* importer can be an array of functions, which will be called by libsass in the order of their occurrence in array. This helps user specify special importer for particular kind of path (filesystem, http). If an importer does not want to handle a particular path, it should return `sass.NULL`. See [functions section](#functions--v300) for more details on Sass types.
+* importer can be an array of functions, which will be called by LibSass in the order of their occurrence in array. This helps user specify special importer for particular kind of path (filesystem, http). If an importer does not want to handle a particular path, it should return `sass.NULL`. See [functions section](#functions--v300) for more details on Sass types.
 
 ### functions (>= v3.0.0) - _experimental_
 
-**This is an experimental Libsass feature. Use with caution.**
+**This is an experimental LibSass feature. Use with caution.**
 
 `functions` is an `Object` that holds a collection of custom functions that may be invoked by the sass files being compiled. They may take zero or more input parameters and must return a value either synchronously (`return ...;`) or asynchronously (`done();`). Those parameters will be instances of one of the constructors contained in the `require('node-sass').types` hash. The return value must be of one of these types as well. See the list of available types below:
 
@@ -175,7 +175,7 @@ sass.renderSync({
 Type: `Array<String>`
 Default: `[]`
 
-An array of paths that [libsass] can look in to attempt to resolve your `@import` declarations. When using `data`, it is recommended that you use this.
+An array of paths that [LibSass] can look in to attempt to resolve your `@import` declarations. When using `data`, it is recommended that you use this.
 
 ### indentedSyntax
 Type: `Boolean`
@@ -310,7 +310,7 @@ sass.render({
   file: '/path/to/myFile.scss',
   data: 'body{background:blue; a{color:black;}}',
   importer: function(url, prev, done) {
-    // url is the path in import as is, which libsass encountered.
+    // url is the path in import as is, which LibSass encountered.
     // prev is the previously resolved path.
     // done is an optional callback, either consume it or return value synchronously.
     // this.options contains this options hash, this.callback contains the node-style callback
@@ -351,7 +351,7 @@ var result = sass.renderSync({
   outFile: '/to/my/output.css',
   sourceMap: true, // or an absolute or relative (to outFile) path
   importer: function(url, prev, done) {
-    // url is the path in import as is, which libsass encountered.
+    // url is the path in import as is, which LibSass encountered.
     // prev is the previously resolved path.
     // done is an optional callback, either consume it or return value synchronously.
     // this.options contains this options hash
@@ -393,7 +393,7 @@ console.log(sass.info);
 */
 ```
 
-Since node-sass >=v3.0.0 libsass version is determined at run time.
+Since node-sass >=v3.0.0 LibSass version is determined at run time.
 
 ## Integrations
 
@@ -534,7 +534,7 @@ As a process argument:
 
 ## Post-install Build
 
-Install runs only two Mocha tests to see if your machine can use the pre-built [libsass] which will save some time during install. If any tests fail it will build from source.
+Install runs only two Mocha tests to see if your machine can use the pre-built [LibSass] which will save some time during install. If any tests fail it will build from source.
 
 ## Maintainers
 
@@ -566,4 +566,4 @@ We <3 our contributors! A special thanks to all those who have clocked in some d
 
 Copyright (c) 2015 Andrew Nesbitt. See [LICENSE](https://github.com/sass/node-sass/blob/master/LICENSE) for details.
 
-[libsass]: https://github.com/sass/libsass
+[LibSass]: https://github.com/sass/libsass
