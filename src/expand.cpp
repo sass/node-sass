@@ -185,7 +185,11 @@ namespace Sass {
   Statement* Expand::operator()(Media_Block* m)
   {
     Expression* mq = m->media_queries()->perform(&eval);
-    mq = Parser::from_c_str(mq->to_string(ctx.c_options).c_str(), ctx, mq->pstate()).parse_media_queries();
+    std::string str_mq(mq->to_string(ctx.c_options));
+    char* str = sass_strdup(str_mq.c_str());
+    ctx.strings.push_back(str);
+    Parser p(Parser::from_c_str(str, ctx, mq->pstate()));
+    mq = p.parse_media_queries();
     Media_Block* mm = SASS_MEMORY_NEW(ctx.mem, Media_Block,
                                       m->pstate(),
                                       static_cast<List*>(mq->perform(&eval)),
