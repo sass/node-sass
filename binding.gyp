@@ -64,6 +64,16 @@
             'MACOSX_DEPLOYMENT_TARGET': '10.7'
           }
         }],
+        ['OS=="win" and MSVS_VERSION == "2015"', {
+          'msvs_settings': {
+            'VCCLCompilerTool': {
+              'AdditionalOptions': [
+                # disable Thread-Safe "Magic" for local static variables
+                '/Zc:threadSafeInit-',
+              ],
+            },
+          },
+        }],
         ['OS!="win"', {
           'cflags_cc+': [
             '-std=c++0x'
