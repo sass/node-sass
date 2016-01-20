@@ -39,7 +39,7 @@ module.exports.getSuites = function() {
 
     tests.forEach(function(test) {
       var testPath = join(suitePath, test);
-      var hasErrorFile = fs.existsSync(join(testPath, 'error'));
+      var hasErrorFile = fs.existsSync(join(testPath, 'error')) && !fs.statSync(join(testPath, 'error')).isDirectory();
       var hasError = false;
       if (hasErrorFile) {
         var errorFileContents = fs.readFileSync(join(testPath, 'error')).toString();
