@@ -15,6 +15,15 @@
 
   build: off
 
+  clone_folder: c:\projects\node_modules\node-sass
+
+  # http://www.wintellect.com/devcenter/jrobbins/pdb-files-what-every-developer-must-know
+  # http://help.appveyor.com/discussions/kb/32-how-to-build-on-logical-drive-created-by-subst
+  init:
+    - cmd: >-
+        subst s: c:\projects
+    - ps: set-location -path s:\node_modules\node-sass
+
   cache:
     - '%userprofile%\.node-gyp'
     - '%AppData%\npm-cache'
@@ -41,15 +50,23 @@
   test_script: npm test
 
   before_deploy:
-    # Save artifact with full qualified names of binding.node
+    # Save artifacts with full qualified names of binding.node and binding.pdb
     # (which we use in node-sass-binaries repo)
-    - ps: Get-ChildItem .\vendor\**\*.node | % { Push-AppveyorArtifact $_.FullName -FileName (($_.FullName.Split('\\') | Select-Object -Last 2) -join '_') }
-
+    - ps: >-
+        Get-ChildItem .\vendor\**\*.node | % {
+           ( $BindingName = $_.FullName ).Split('\\') |
+             Select-Object -Last 2 | Select-Object -First 1 } |
+               .{ process { (
+                  @( $BindingName,
+                       ( ( $_, "binding.node" ) -join '_' ) ),
+                  @( ".\build\Release\binding.pdb", 
+                       ( ( $_, "binding.pdb" ) -join '_' ) )
+               ) } } | % { Push-AppveyorArtifact $_[0] -FileName $_[1] }
 
   deploy:
     - provider: GitHub
       description: $(APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)
-      artifact: /.*binding\.node/           # upload all NuGet packages to release assets
+      artifact:
       auth_token:
         secure: tt+p58W9Q49faww/o0CODJI8e++YEX5THVlpXlRIigO4xHjE8NKigi0oxr1b2PJE
       on:
@@ -68,6 +85,13 @@
 
   build: off
 
+  clone_folder: c:\projects\node_modules\node-sass
+
+  init:
+    - cmd: >-
+        subst s: c:\projects
+    - ps: set-location -path s:\node_modules\node-sass
+
   cache:
     - '%userprofile%\.node-gyp'
     - '%AppData%\npm-cache'
@@ -81,6 +105,7 @@
       - nodejs_version: 2
       - nodejs_version: 3
       - nodejs_version: 4
+      - nodejs_version: 5
 
   install:
     - ps: Install-Product node $env:nodejs_version $env:platform

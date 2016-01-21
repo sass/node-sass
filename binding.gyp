@@ -19,6 +19,19 @@
         'src/sass_types/number.cpp',
         'src/sass_types/string.cpp'
       ],
+      'msvs_settings': {
+        'VCLinkerTool': {
+           'SetChecksum': 'true'
+        }
+      },
+      'xcode_settings': {
+        'OTHER_CPLUSPLUSFLAGS': [
+          '-std=c++11'
+        ],
+        'OTHER_LDFLAGS': [],
+        'GCC_ENABLE_CPP_EXCEPTIONS': 'NO',
+        'MACOSX_DEPLOYMENT_TARGET': '10.7'
+      },
       'include_dirs': [
         '<!(node -e "require(\'nan\')")',
       ],
@@ -52,16 +65,6 @@
             'libraries': [
               '<(libsass_library)',
             ],
-          }
-        }],
-        ['OS=="mac"', {
-          'xcode_settings': {
-            'OTHER_CPLUSPLUSFLAGS': [
-              '-std=c++11'
-            ],
-            'OTHER_LDFLAGS': [],
-            'GCC_ENABLE_CPP_EXCEPTIONS': 'NO',
-            'MACOSX_DEPLOYMENT_TARGET': '10.7'
           }
         }],
         ['OS=="win" and MSVS_VERSION == "2015"', {
