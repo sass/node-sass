@@ -250,7 +250,7 @@ namespace Sass {
     else if (lex< kwd_charset_directive >(true)) { parse_charset_directive(); }
 
     // generic at keyword (keep last)
-    else if (lex< at_keyword >(true)) { (*block) << parse_at_rule(); }
+    else if (lex< re_special_directive >(true)) { (*block) << parse_special_directive(); }
 
     else if (block->is_root()) {
       lex< css_whitespace >();
@@ -2140,11 +2140,11 @@ namespace Sass {
   {
     ParserState at_source_position = pstate;
     Block* body = 0;
-    At_Root_Expression* expr = 0;
+    At_Root_Query* expr = 0;
     Lookahead lookahead_result;
     LOCAL_FLAG(in_at_root, true);
     if (lex< exactly<'('> >()) {
-      expr = parse_at_root_expression();
+      expr = parse_at_root_query();
     }
     if (peek < exactly<'{'> >()) {
       body = parse_block(true);
@@ -2159,7 +2159,7 @@ namespace Sass {
     return at_root;
   }
 
-  At_Root_Expression* Parser::parse_at_root_expression()
+  At_Root_Query* Parser::parse_at_root_query()
   {
     if (peek< exactly<')'> >()) error("at-root feature required in at-root expression", pstate);
 
@@ -2175,7 +2175,7 @@ namespace Sass {
     }
     else *value << declaration->value();
 
-    At_Root_Expression* cond = SASS_MEMORY_NEW(ctx.mem, At_Root_Expression,
+    At_Root_Query* cond = SASS_MEMORY_NEW(ctx.mem, At_Root_Query,
                                                declaration->pstate(),
                                                declaration->property(),
                                                value);
@@ -2183,13 +2183,13 @@ namespace Sass {
     return cond;
   }
 
-  At_Rule* Parser::parse_at_rule()
+  Directive* Parser::parse_special_directive()
   {
     std::string kwd(lexed);
 
     if (lexed == "@else") error("Invalid CSS: @else must come after @if", pstate);
 
-    At_Rule* at_rule = SASS_MEMORY_NEW(ctx.mem, At_Rule, pstate, kwd);
+    Directive* at_rule = SASS_MEMORY_NEW(ctx.mem, Directive, pstate, kwd);
     Lookahead lookahead = lookahead_for_include(position);
     if (lookahead.found && !lookahead.has_interpolants) {
       at_rule->selector(parse_selector_list(true));
@@ -2266,72 +2266,7 @@ namespace Sass {
     rv.error = p;
     if (const char* q =
       peek <
-        alternatives <
-          // partial BEM selector
-          sequence <
-            ampersand,
-            one_plus <
-              exactly < '-' >
-            >,
-            word_boundary
-          >,
-          // main selector matching
-          one_plus <
-            alternatives <
-              // consume whitespace and comments
-              spaces, block_comment, line_comment,
-              // match `/deep/` selector (pass-trough)
-              // there is no functionality for it yet
-              schema_reference_combinator,
-              // match selector ops /[*&%,()\[\]]/
-              class_char < selector_lookahead_ops >,
-              // match selector combinators /[>+~]/
-              class_char < selector_combinator_ops >,
-              // match attribute compare operators
-              alternatives <
-                exact_match, class_match, dash_match,
-                prefix_match, suffix_match, substring_match
-              >,
-              // main selector match
-              sequence <
-                // allow namespace prefix
-                optional < namespace_schema >,
-                // modifiers prefixes
-                alternatives <
-                  sequence <
-                    exactly <'#'>,
-                    // not for interpolation
-                    negate < exactly <'{'> >
-                  >,
-                  // class match
-                  exactly <'.'>,
-                  // single or double colon
-                  optional < pseudo_prefix >
-                >,
-                // accept hyphens in token
-                one_plus < sequence <
-                  // can start with hyphens
-                  zero_plus < exactly<'-'> >,
-                  // now the main token
-                  alternatives <
-                    kwd_optional,
-                    exactly <'*'>,
-                    quoted_string,
-                    interpolant,
-                    identifier,
-                    variable,
-                    percentage,
-                    binomial,
-                    dimension,
-                    alnum
-                  >
-                > >,
-                // can also end with hyphens
-                zero_plus < exactly<'-'> >
-              >
-            >
-          >
-        >
+        re_selector_list
       >(p)
     ) {
       while (p < q) {
@@ -2364,7 +2299,7 @@ namespace Sass {
   }
   // EO lookahead_for_selector
 
-  // used in parse_block_nodes and parse_at_rule
+  // used in parse_block_nodes and parse_special_directive
   // ToDo: actual usage is still not really clear to me?
   Lookahead Parser::lookahead_for_include(const char* start)
   {

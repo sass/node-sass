@@ -298,8 +298,8 @@ namespace Sass {
     Supports_Condition* parse_supports_declaration();
     Supports_Condition* parse_supports_condition_in_parens();
     At_Root_Block* parse_at_root_block();
-    At_Root_Expression* parse_at_root_expression();
-    At_Rule* parse_at_rule();
+    At_Root_Query* parse_at_root_query();
+    Directive* parse_special_directive();
     Warning* parse_warning();
     Error* parse_error();
     Debug* parse_debug();

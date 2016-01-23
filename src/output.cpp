@@ -310,7 +310,7 @@ namespace Sass {
     append_scope_closer();
   }
 
-  void Output::operator()(At_Rule* a)
+  void Output::operator()(Directive* a)
   {
     std::string      kwd   = a->keyword();
     Selector*   s     = a->selector();

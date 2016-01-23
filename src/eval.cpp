@@ -1280,17 +1280,16 @@ namespace Sass {
     return cc;
   }
 
-  Expression* Eval::operator()(At_Root_Expression* e)
+  Expression* Eval::operator()(At_Root_Query* e)
   {
     Expression* feature = e->feature();
     feature = (feature ? feature->perform(this) : 0);
     Expression* value = e->value();
     value = (value ? value->perform(this) : 0);
-    Expression* ee = SASS_MEMORY_NEW(ctx.mem, At_Root_Expression,
+    Expression* ee = SASS_MEMORY_NEW(ctx.mem, At_Root_Query,
                                      e->pstate(),
                                      static_cast<String*>(feature),
-                                     value,
-                                     e->is_interpolated());
+                                     value);
     return ee;
   }
 
@@ -1682,6 +1681,7 @@ namespace Sass {
   {
     std::vector<Selector_List*> rv;
     Selector_List* sl = SASS_MEMORY_NEW(ctx.mem, Selector_List, s->pstate());
+    sl->is_optional(s->is_optional());
     sl->media_block(s->media_block());
     sl->is_optional(s->is_optional());
     for (size_t i = 0, iL = s->length(); i < iL; ++i) {

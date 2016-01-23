@@ -91,7 +91,8 @@ namespace Sass {
     // valid in a uri (copied from Ruby Sass)
     bool is_uri_character(const char& chr)
     {
-      return unsigned(chr) > 41 && unsigned(chr) < 127;
+      return (unsigned(chr) > 41 && unsigned(chr) < 127) ||
+             unsigned(chr) == ':' || unsigned(chr) == '/';
     }
 
     // check if char is within a reduced ascii range

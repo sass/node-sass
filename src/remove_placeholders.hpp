@@ -28,7 +28,7 @@ namespace Sass {
         void operator()(Ruleset*);
         void operator()(Media_Block*);
         void operator()(Supports_Block*);
-        void operator()(At_Rule*);
+        void operator()(Directive*);
 
         template <typename U>
         void fallback(U x) { return fallback_impl(x); }

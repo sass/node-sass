@@ -388,9 +388,9 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << " " << has_block->tabs() << std::endl;
     if (has_block->selector()) debug_ast(has_block->selector(), ind + "@");
     if (has_block->block()) for(auto i : has_block->block()->elements()) { debug_ast(i, ind + " ", env); }
-  } else if (dynamic_cast<At_Rule*>(node)) {
-    At_Rule* block = dynamic_cast<At_Rule*>(node);
-    std::cerr << ind << "At_Rule " << block;
+  } else if (dynamic_cast<Directive*>(node)) {
+    Directive* block = dynamic_cast<Directive*>(node);
+    std::cerr << ind << "Directive " << block;
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " [" << block->keyword() << "] " << block->tabs() << std::endl;
     debug_ast(block->selector(), ind + "~", env);

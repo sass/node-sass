@@ -15,7 +15,7 @@ namespace Sass {
   class Bubble;
   class Media_Block;
   class Supports_Block;
-  class At_Rule;
+  class Directive;
   class Keyframe_Rule;
   class At_Root_Block;
   class Declaration;
@@ -62,7 +62,7 @@ namespace Sass {
   class Supports_Negation;
   class Supports_Declaration;
   class Supports_Interpolation;
-  class At_Root_Expression;
+  class At_Root_Query;
   class Null;
   class Parent_Selector;
   // parameters and arguments

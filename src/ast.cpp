@@ -60,7 +60,7 @@ namespace Sass {
   bool Compound_Selector::has_parent_ref()
   {
     for (Simple_Selector* s : *this) {
-      if (s->has_parent_ref()) return true;
+      if (s && s->has_parent_ref()) return true;
     }
     return false;
   }
@@ -1293,7 +1293,7 @@ namespace Sass {
   bool Selector_List::has_parent_ref()
   {
     for (Complex_Selector* s : *this) {
-      if (s->has_parent_ref()) return true;
+      if (s && s->has_parent_ref()) return true;
     }
     return false;
   }

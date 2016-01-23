@@ -28,7 +28,7 @@ namespace Sass {
     virtual void operator()(Supports_Block*);
     virtual void operator()(Media_Block*);
     virtual void operator()(At_Root_Block*);
-    virtual void operator()(At_Rule*);
+    virtual void operator()(Directive*);
     virtual void operator()(Keyframe_Rule*);
     virtual void operator()(Declaration*);
     virtual void operator()(Assignment*);
@@ -72,7 +72,7 @@ namespace Sass {
     virtual void operator()(Supports_Interpolation*);
     virtual void operator()(Media_Query*);
     virtual void operator()(Media_Query_Expression*);
-    virtual void operator()(At_Root_Expression*);
+    virtual void operator()(At_Root_Query*);
     virtual void operator()(Null*);
     virtual void operator()(Parent_Selector* p);
     // parameters and arguments

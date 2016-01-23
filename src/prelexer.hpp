@@ -217,7 +217,7 @@ namespace Sass {
     // const char* url_value(const char* src);
     const char* vendor_prefix(const char* src);
     // Match CSS '@' keywords.
-    const char* at_keyword(const char* src);
+    const char* re_special_directive(const char* src);
     const char* kwd_import(const char* src);
     const char* kwd_at_root(const char* src);
     const char* kwd_with_directive(const char* src);
@@ -261,6 +261,7 @@ namespace Sass {
 
     const char* kwd_null(const char* src);
 
+    const char* re_selector_list(const char* src);
     const char* re_type_selector(const char* src);
     const char* re_static_expression(const char* src);
 
