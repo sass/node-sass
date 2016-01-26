@@ -7,7 +7,7 @@ var fs = require('fs'),
     mkdir = require('mkdirp'),
     npmconf = require('npmconf'),
     path = require('path'),
-    request = require('request'),
+    got = require('got'),
     pkg = require('../package.json');
 
 require('../lib/extensions');
@@ -31,9 +31,6 @@ function download(url, dest, cb) {
       'or configure npm proxy via', eol, eol,
       '      npm config set proxy http://example.com:8080'].join(''));
   };
-  var successful = function(response) {
-    return response.statusCode >= 200 && response.statusCode < 300;
-  };
 
   applyProxy({ rejectUnauthorized: false }, function(options) {
     options.headers = {
@@ -43,19 +40,14 @@ function download(url, dest, cb) {
       ].join('')
     };
     try {
-      request(url, options, function(err, response) {
-        if (err) {
-          reportError(err);
-        } else if (!successful(response)) {
-            reportError(['HTTP error', response.statusCode, response.statusMessage].join(' '));
-        } else {
-            cb();
-        }
-      }).on('response', function(response) {
-          if (successful(response)) {
-            response.pipe(fs.createWriteStream(dest));
-          }
-      });
+      got.stream(url, options)
+        .on('error', function(error) {
+          reportError(error);
+        })
+        .on('end', function() {
+          cb();
+        })
+        .pipe(fs.createWriteStream(dest));
     } catch (err) {
       cb(err);
     }

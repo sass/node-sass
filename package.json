@@ -55,12 +55,12 @@
     "gaze": "^0.5.1",
     "get-stdin": "^4.0.1",
     "glob": "^6.0.2",
+    "got": "^5.4.1",
     "meow": "^3.3.0",
     "mkdirp": "^0.5.1",
     "nan": "^2.0.8",
     "node-gyp": "^3.0.1",
     "npmconf": "^2.1.2",
-    "request": "^2.61.0",
     "sass-graph": "^2.0.1"
   },
   "devDependencies": {
