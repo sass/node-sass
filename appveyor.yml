@@ -68,7 +68,7 @@
       description: $(APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)
       artifact:
       auth_token:
-        secure: tt+p58W9Q49faww/o0CODJI8e++YEX5THVlpXlRIigO4xHjE8NKigi0oxr1b2PJE
+        secure: IZIifH990iABY3PQUtkRscTU/NOyYYwptGB6B1y2b618vpphV/2KD/4IWJzSAYAi
       on:
         branch: release               # release from master branch only
         appveyor_repo_tag: true       # deploy on tag push only
