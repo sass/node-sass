@@ -470,7 +470,7 @@ node scripts/build -f  # use -d switch for debug release
 
 The interface for command-line usage is fairly simplistic at this stage, as seen in the following usage section.
 
-Output will be saved with the same name as input Sass file into the current working directory if the `--output` flag is omitted.
+Output will be sent to stdout if the `--output` flag is omitted.
 
 ### Usage
  `node-sass [options] <input> [output]`
