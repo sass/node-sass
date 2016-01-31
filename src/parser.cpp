@@ -615,7 +615,7 @@ namespace Sass {
       while (peek_css< exactly<','> >())
       {
         lex< css_comments >(false);
-        // consume everything up and including the comma speparator
+        // consume everything up and including the comma separator
         reloop = lex< exactly<','> >() != 0;
         // remember line break (also between some commas)
         had_linefeed = had_linefeed || peek_newline();
@@ -719,7 +719,7 @@ namespace Sass {
   // EO parse_complex_selector
 
   // parse one compound selector, which is basically
-  // a list of simple selectors (directly adjancent)
+  // a list of simple selectors (directly adjacent)
   // lex them exactly (without skipping white-space)
   Compound_Selector* Parser::parse_compound_selector()
   {
@@ -747,7 +747,7 @@ namespace Sass {
         seq->has_parent_reference(true);
         (*seq) << SASS_MEMORY_NEW(ctx.mem, Parent_Selector, pstate);
         // parent selector only allowed at start
-        // upcoming sass may allow also trailing
+        // upcoming Sass may allow also trailing
         if (seq->length() > 1) {
           ParserState state(pstate);
           Simple_Selector* cur = (*seq)[seq->length()-1];
@@ -834,7 +834,7 @@ namespace Sass {
   }
 
   // a pseudo selector often starts with one or two colons
-  // it can contain more selectors inside parantheses
+  // it can contain more selectors inside parentheses
   Simple_Selector* Parser::parse_pseudo_selector() {
     if (lex< sequence<
           optional < pseudo_prefix >,
@@ -1213,9 +1213,9 @@ namespace Sass {
       : lex<kwd_lte>() ? Sass_OP::LTE
       : lex<kwd_gt>()  ? Sass_OP::GT
       : lex<kwd_lt>()  ? Sass_OP::LT
-      // we checked the possibilites on top of fn
+      // we checked the possibilities on top of fn
       :                  Sass_OP::EQ;
-      // is directly adjancent to expression?
+      // is directly adjacent to expression?
       bool right_ws = peek < css_comments >() != NULL;
       operators.push_back({ op, left_ws, right_ws });
       operands.push_back(parse_expression());
@@ -1237,7 +1237,6 @@ namespace Sass {
     // NOTE: make sure that identifiers starting with
     // NOTE: dashes do NOT count as subtract operation
     Expression* lhs = parse_operators();
-    // if it's a singleton, return it (don't wrap it)
     // if it's a singleton, return it (don't wrap it)
     if (!(peek_css< exactly<'+'> >(position) ||
           // condition is a bit misterious, but some combinations should not be counted as operations
@@ -1307,7 +1306,6 @@ namespace Sass {
       // lex the expected closing parenthesis
       if (!lex_css< exactly<')'> >()) error("unclosed parenthesis", pstate);
       // expression can be evaluated
-      // make sure wrapped lists and division expressions are non-delayed within parentheses
       // make sure wrapped lists and division expressions are non-delayed within parentheses
       if (value->concrete_type() == Expression::LIST) {
         // List* l = static_cast<List*>(value);
@@ -1416,7 +1414,7 @@ namespace Sass {
     if (lex< percentage >())
     { return SASS_MEMORY_NEW(ctx.mem, Textual, pstate, Textual::PERCENTAGE, lexed); }
 
-    // match hex number first because 0x000 looks like a number followed by an indentifier
+    // match hex number first because 0x000 looks like a number followed by an identifier
     if (lex< sequence < alternatives< hex, hex0 >, negate < exactly<'-'> > > >())
     { return SASS_MEMORY_NEW(ctx.mem, Textual, pstate, Textual::HEX, lexed); }
 
@@ -1630,7 +1628,7 @@ namespace Sass {
         lex < exactly < rbrace > >();
       }
       // lex some string constants or other valid token
-      // Note: [-+] chars are left over from ie. `#{3}+3`
+      // Note: [-+] chars are left over from i.e. `#{3}+3`
       else if (lex< alternatives < exactly<'%'>, exactly < '-' >, exactly < '+' > > >()) {
         (*schema) << SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, lexed);
       }
@@ -1899,7 +1897,7 @@ namespace Sass {
     if (!peek< exactly <'$'> >()) {
       css_error("Invalid CSS", " after ", ": expected \"$\", was ");
     }
-    // we expect a simple identfier as the call name
+    // we expect a simple identifier as the call name
     if (!lex< sequence < exactly <'$'>, identifier > >()) {
       lex< exactly <'$'> >(); // move pstate and position up
       css_error("Invalid CSS", " after ", ": expected identifier, was ");
@@ -1910,7 +1908,7 @@ namespace Sass {
   // helper to parse identifier
   Token Parser::lex_identifier()
   {
-    // we expect a simple identfier as the call name
+    // we expect a simple identifier as the call name
     if (!lex< identifier >()) { // ToDo: pstate wrong?
       css_error("Invalid CSS", " after ", ": expected identifier, was ");
     }
@@ -2097,7 +2095,7 @@ namespace Sass {
   }
 
   // TODO: This needs some major work. Although feature conditions
-  // look like declarations their semantics differ siginificantly
+  // look like declarations their semantics differ significantly
   Supports_Condition* Parser::parse_supports_declaration()
   {
     Supports_Condition* cond = 0;
@@ -2264,7 +2262,7 @@ namespace Sass {
     if (const char* q =
       peek <
         alternatives <
-          // partial bem selector
+          // partial BEM selector
           sequence <
             ampersand,
             one_plus <
@@ -2305,7 +2303,7 @@ namespace Sass {
                   // single or double colon
                   optional < pseudo_prefix >
                 >,
-                // accept hypens in token
+                // accept hyphens in token
                 one_plus < sequence <
                   // can start with hyphens
                   zero_plus < exactly<'-'> >,
@@ -2429,7 +2427,7 @@ namespace Sass {
       // ToDo: remove
       rv.position = q;
       // check expected opening bracket
-      // only after successfull matching
+      // only after successful matching
       if (peek < exactly<'{'> >(q)) rv.found = q;
       else if (peek < exactly<';'> >(q)) rv.found = q;
       else if (peek < exactly<'}'> >(q)) rv.found = q;
