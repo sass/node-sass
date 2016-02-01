@@ -2030,14 +2030,6 @@ namespace Sass {
     return to_string({ NESTED, 5 });
   }
 
-  // helper function for serializing colors
-  template <size_t range>
-  static double cap_channel(double c) {
-    if      (c > range) return range;
-    else if (c < 0)     return 0;
-    else                return c;
-  }
-
   std::string String_Quoted::inspect() const
   {
     return quote(value_, '*');
@@ -2064,4 +2056,3 @@ namespace Sass {
   }
 
 }
-
