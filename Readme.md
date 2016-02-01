@@ -68,20 +68,16 @@ Sass is a CSS pre-processor language to add on exciting, new,
 awesome features to CSS. Sass was the first language of its kind
 and by far the most mature and up to date codebase.
 
-Sass was originally created by the co-creator of this library,
-Hampton Catlin ([@hcatlin]). The extension and continuing evolution
-of the language has all been the result of years of work by Natalie
-Weizenbaum ([@nex3]) and Chris Eppstein ([@chriseppstein]).
+Sass was originally concieved of by the co-creator of this library,
+Hampton Catlin ([@hcatlin]). Most of the language has been the result of years 
+of work by Natalie Weizenbaum ([@nex3]) and Chris Eppstein ([@chriseppstein]).
 
 For more information about Sass itself, please visit http://sass-lang.com
 
-Contribution Agreement
-----------------------
+Initial development of libsass by Aaron Leung and Hampton Catlin was supported by [Moovweb](http://www.moovweb.com).
 
-Any contribution to the project are seen as copyright assigned to Hampton Catlin, a
-human on the planet earth. Your contribution warrants that you have the right to
-assign copyright on your work. The intention here is to ensure that the project
-remains totally free (liberal, like).
+Licensing
+---------
 
 Our MIT license is designed to be as simple, and liberal as possible.
 
@@ -94,4 +90,3 @@ Our MIT license is designed to be as simple, and liberal as possible.
 
 sass2scss was originally written by [Marcel Greter](@mgreter)
 and he happily agreed to have it merged into the project.
-
