@@ -476,6 +476,10 @@ Output will be sent to stdout if the `--output` flag is omitted.
  `node-sass [options] <input> [output]`
  `cat <input> | node-sass > output`
 
+Example:
+
+`node-sass src/style.scss dest/style.css`
+
  **Options:**
 
 ```bash
