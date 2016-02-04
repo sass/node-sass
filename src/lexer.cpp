@@ -137,7 +137,7 @@ namespace Sass {
     const char* any_char(const char* src) { return *src ? src + 1 : src; }
 
     // Match word boundary (zero-width lookahead).
-    const char* word_boundary(const char* src) { return is_character(*src) ? 0 : src; }
+    const char* word_boundary(const char* src) { return is_character(*src) || *src == '#' ? 0 : src; }
 
     // Match linefeed /(?:\n|\r\n?)/
     const char* re_linebreak(const char* src)
