@@ -67,7 +67,8 @@ namespace Sass {
     // search for unicode char
     for(const char& chr : wbuf.buffer) {
       // skip all ascii chars
-      if (chr >= 0) continue;
+      // static cast to unsigned to handle `char` being signed / unsigned
+      if (static_cast<unsigned>(chr) < 128) continue;
       // declare the charset
       if (output_style() != COMPRESSED)
         charset = "@charset \"UTF-8\";"
