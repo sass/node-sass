@@ -13,7 +13,7 @@ https://github.com/sass/libsass
 
 LibSass is just a library, but if you want to RUN LibSass,
 then go to https://github.com/sass/sassc or
-https://github.com/sass/ruby-libsass or
+https://github.com/sass/sassc-ruby or
 [find your local implementer](docs/implementations.md).
 
 LibSass requires GCC 4.6+ or Clang/LLVM. If your OS is older, this version may not compile.
@@ -69,7 +69,7 @@ awesome features to CSS. Sass was the first language of its kind
 and by far the most mature and up to date codebase.
 
 Sass was originally concieved of by the co-creator of this library,
-Hampton Catlin ([@hcatlin]). Most of the language has been the result of years 
+Hampton Catlin ([@hcatlin]). Most of the language has been the result of years
 of work by Natalie Weizenbaum ([@nex3]) and Chris Eppstein ([@chriseppstein]).
 
 For more information about Sass itself, please visit http://sass-lang.com
