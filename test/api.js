@@ -186,6 +186,29 @@ describe('api', function() {
   describe('.render(importer)', function() {
     var src = read(fixture('include-files/index.scss'), 'utf8');
 
+    it('should respect the order of chained imports when using custom importers and one file is custom imported and the other is not.', function(done) {
+      sass.render({
+        file: fixture('include-files/chained-imports-with-custom-importer.scss'),
+        importer: function(url, prev, done) {
+          if (url !== 'file-processed-by-loader') {
+            return sass.NULL;
+          }
+          done({
+            file: fixture('include-files/file-processed-by-loader.scss')
+          });
+        }
+      }, function(err, data) {
+        assert.equal(err, null);
+
+        assert.equal(
+          data.css.toString().trim(),
+          'body {\n  color: "red"; }'
+        );
+
+        done();
+      });
+    });
+
     it('should still call the next importer with the resolved prev path when the previous importer returned both a file and contents property - issue #1219', function(done) {
       sass.render({
         data: '@import "a";',
