@@ -544,42 +544,50 @@ JsonNode *json_mkobject(void)
 
 static void append_node(JsonNode *parent, JsonNode *child)
 {
-  child->parent = parent;
-  child->prev = parent->children.tail;
-  child->next = NULL;
-
-  if (parent->children.tail != NULL)
-    parent->children.tail->next = child;
-  else
-    parent->children.head = child;
-  parent->children.tail = child;
+  if (child != NULL && parent != NULL) {
+      child->parent = parent;
+      child->prev = parent->children.tail;
+      child->next = NULL;
+      
+      if (parent->children.tail != NULL)
+          parent->children.tail->next = child;
+      else
+          parent->children.head = child;
+      parent->children.tail = child;
+  }
 }
 
 static void prepend_node(JsonNode *parent, JsonNode *child)
 {
-  child->parent = parent;
-  child->prev = NULL;
-  child->next = parent->children.head;
-
-  if (parent->children.head != NULL)
-    parent->children.head->prev = child;
-  else
-    parent->children.tail = child;
-  parent->children.head = child;
+  if (child != NULL && parent != NULL) {
+      child->parent = parent;
+      child->prev = NULL;
+      child->next = parent->children.head;
+      
+      if (parent->children.head != NULL)
+          parent->children.head->prev = child;
+      else
+          parent->children.tail = child;
+      parent->children.head = child;
+  }
 }
 
 static void append_member(JsonNode *object, char *key, JsonNode *value)
 {
-  value->key = key;
-  append_node(object, value);
+  if (value != NULL && object != NULL) {
+      value->key = key;
+      append_node(object, value);
+  }
 }
 
 void json_append_element(JsonNode *array, JsonNode *element)
 {
-  assert(array->tag == JSON_ARRAY);
-  assert(element->parent == NULL);
-
-  append_node(array, element);
+  if (array != NULL && element !=NULL) {
+      assert(array->tag == JSON_ARRAY);
+      assert(element->parent == NULL);
+      
+      append_node(array, element);
+  }
 }
 
 void json_prepend_element(JsonNode *array, JsonNode *element)
@@ -592,40 +600,47 @@ void json_prepend_element(JsonNode *array, JsonNode *element)
 
 void json_append_member(JsonNode *object, const char *key, JsonNode *value)
 {
-  assert(object->tag == JSON_OBJECT);
-  assert(value->parent == NULL);
-
-  append_member(object, json_strdup(key), value);
+  if (object != NULL && key != NULL && value != NULL) {
+      assert(object->tag == JSON_OBJECT);
+      assert(value->parent == NULL);
+      
+      append_member(object, json_strdup(key), value);
+  }
 }
 
 void json_prepend_member(JsonNode *object, const char *key, JsonNode *value)
 {
-  assert(object->tag == JSON_OBJECT);
-  assert(value->parent == NULL);
-
-  value->key = json_strdup(key);
-  prepend_node(object, value);
+  if (object != NULL && key != NULL && value != NULL) {
+      assert(object->tag == JSON_OBJECT);
+      assert(value->parent == NULL);
+      
+      value->key = json_strdup(key);
+      prepend_node(object, value);
+  }
 }
 
 void json_remove_from_parent(JsonNode *node)
 {
-  JsonNode *parent = node->parent;
-
-  if (parent != NULL) {
-    if (node->prev != NULL)
-      node->prev->next = node->next;
-    else
-      parent->children.head = node->next;
-    if (node->next != NULL)
-      node->next->prev = node->prev;
-    else
-      parent->children.tail = node->prev;
-
-    free(node->key);
-
-    node->parent = NULL;
-    node->prev = node->next = NULL;
-    node->key = NULL;
+  if (node != NULL) {
+      JsonNode *parent = node->parent;
+      
+      if (parent != NULL) {
+          if (node->prev != NULL)
+              node->prev->next = node->next;
+          else
+              parent->children.head = node->next;
+		  
+          if (node->next != NULL)
+              node->next->prev = node->prev;
+          else
+              parent->children.tail = node->prev;
+          
+          free(node->key);
+          
+          node->parent = NULL;
+          node->prev = node->next = NULL;
+          node->key = NULL;
+      }
   }
 }
 
