@@ -190,11 +190,22 @@ describe('api', function() {
       sass.render({
         file: fixture('include-files/chained-imports-with-custom-importer.scss'),
         importer: function(url, prev, done) {
+          // NOTE: to see that this test failure is only due to the stated
+          // issue do each of the following and see that the tests pass.
+          //
+          //   a) add `return sass.NULL;` as the first line in this function to
+          //      cause non-custom importers to always be used.
+          //   b) comment out the conditional below to force our custom
+          //      importer to always be used.
+          //
+          //  You will notice that the tests pass when either all native, or
+          //  all custom importers are used, but not when a native + custom
+          //  import chain is used.
           if (url !== 'file-processed-by-loader') {
             return sass.NULL;
           }
           done({
-            file: fixture('include-files/file-processed-by-loader.scss')
+            file: fixture('include-files/' + url + '.scss')
           });
         }
       }, function(err, data) {
