@@ -32,14 +32,16 @@
     "postinstall": "node scripts/build.js",
     "pretest": "node_modules/.bin/jshint bin lib scripts test",
     "test": "node_modules/.bin/mocha test",
-    "build": "node scripts/build.js --force"
+    "build": "node scripts/build.js --force",
+    "prepublish": "not-in-install && node scripts/prepublish.js || in-install"
   },
   "files": [
     "bin",
     "binding.gyp",
     "lib",
     "scripts",
-    "src"
+    "src",
+    "vendor"
   ],
   "keywords": [
     "css",
@@ -57,6 +59,7 @@
     "get-stdin": "^4.0.1",
     "glob": "^6.0.2",
     "got": "^5.4.1",
+    "in-publish": "^2.0.0",
     "meow": "^3.3.0",
     "mkdirp": "^0.5.1",
     "nan": "^2.0.8",
