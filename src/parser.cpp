@@ -290,12 +290,7 @@ namespace Sass {
     do {
       while (lex< block_comment >());
       if (lex< quoted_string >()) {
-        if (!ctx.call_importers(unquote(std::string(lexed)), path, pstate, imp))
-        {
-          // push single file import
-          // import_single_file(imp, lexed);
-          to_import.push_back(std::pair<std::string,Function_Call*>(std::string(lexed), 0));
-        }
+        to_import.push_back(std::pair<std::string,Function_Call*>(std::string(lexed), 0));
       }
       else if (lex< uri_prefix >()) {
         Arguments* args = SASS_MEMORY_NEW(ctx.mem, Arguments, pstate);
@@ -333,7 +328,7 @@ namespace Sass {
     for(auto location : to_import) {
       if (location.second) {
         imp->urls().push_back(location.second);
-      } else {
+      } else if (!ctx.call_importers(unquote(location.first), path, pstate, imp)) {
         ctx.import_url(imp, location.first, path);
       }
     }
