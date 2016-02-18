@@ -857,6 +857,28 @@ describe('api', function() {
       });
     });
 
+    it('should call custom functions with correct context', function(done) {
+      function assertExpected(result) {
+        assert.equal(result.css.toString().trim(), 'div {\n  foo1: 1;\n  foo2: 2; }');
+      }
+      var options = {
+        data: 'div { foo1: foo(); foo2: foo(); }',
+        functions: {
+          // foo() is stateful and will persist an incrementing counter
+          'foo()': function() {
+            assert(this);
+            this.fooCounter = (this.fooCounter || 0) + 1;
+            return new sass.types.Number(this.fooCounter);
+          }
+        }
+      };
+
+      sass.render(options, function(error, result) {
+        assertExpected(result);
+        done();
+      });
+    });
+
     describe('should properly bubble up errors from sass color constructor', function() {
       it('four booleans', function(done) {
         sass.render({
@@ -1590,6 +1612,25 @@ describe('api', function() {
         });
       }, /Supplied value should be a string/);
 
+      done();
+    });
+
+    it('should call custom functions with correct context', function(done) {
+      function assertExpected(result) {
+        assert.equal(result.css.toString().trim(), 'div {\n  foo1: 1;\n  foo2: 2; }');
+      }
+      var options = {
+        data: 'div { foo1: foo(); foo2: foo(); }',
+        functions: {
+          // foo() is stateful and will persist an incrementing counter
+          'foo()': function() {
+            assert(this);
+            this.fooCounter = (this.fooCounter || 0) + 1;
+            return new sass.types.Number(this.fooCounter);
+          }
+        }
+      };
+      assertExpected(sass.renderSync(options));
       done();
     });
   });
