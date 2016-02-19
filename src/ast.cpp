@@ -949,6 +949,7 @@ namespace Sass {
 
   Selector_List* Selector_List::parentize(Selector_List* ps, Context& ctx)
   {
+    if (!this->has_parent_ref()) return this;
     Selector_List* ss = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate());
     for (size_t pi = 0, pL = ps->length(); pi < pL; ++pi) {
       Selector_List* list = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate());
@@ -1895,6 +1896,10 @@ namespace Sass {
       return (value() == cstr->value());
     }
     return false;
+  }
+
+  bool String_Constant::is_invisible() const {
+    return value_.empty() && quote_mark_ == 0;
   }
 
   bool String_Constant::operator== (const Expression& rhs) const

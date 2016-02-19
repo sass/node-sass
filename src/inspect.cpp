@@ -406,7 +406,10 @@ namespace Sass {
       Expression* list_item = (*list)[i];
       if (output_style() != TO_SASS) {
         if (list_item->is_invisible()) {
-          continue;
+          // this fixes an issue with "" in a list
+          if (!dynamic_cast<String_Constant*>(list_item)) {
+            continue;
+          }
         }
       }
       if (items_output) {

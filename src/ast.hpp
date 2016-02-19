@@ -1514,6 +1514,7 @@ namespace Sass {
     { }
     std::string type() { return "string"; }
     static std::string type_name() { return "string"; }
+    virtual bool is_invisible() const;
 
     virtual size_t hash()
     {
