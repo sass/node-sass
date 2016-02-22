@@ -1086,18 +1086,16 @@ namespace Sass {
   Complex_Selector* Complex_Selector::first()
   {
     // declare variables used in loop
-    Complex_Selector* cur = this->tail_;
-    const Compound_Selector* head = head_;
+    Complex_Selector* cur = this;
+    const Compound_Selector* head;
     // processing loop
     while (cur)
     {
       // get the head
       head = cur->head_;
-      // check for single parent ref
-      if (head && head->length() == 1)
-      {
-        // abort (and return) if it is not a parent selector
-        if (!dynamic_cast<Parent_Selector*>((*head)[0])) break;
+      // abort (and return) if it is not a parent selector
+      if (!head || head->length() != 1 || !dynamic_cast<Parent_Selector*>((*head)[0])) {
+        break;
       }
       // advance to next
       cur = cur->tail_;
