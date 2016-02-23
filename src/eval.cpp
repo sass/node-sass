@@ -519,7 +519,7 @@ namespace Sass {
       }
     }
     if (String_Schema* s_r = dynamic_cast<String_Schema*>(b->right())) {
-      if (!s_r->is_left_interpolant() || op_type == Sass_OP::DIV) {
+      if (!s_r->has_interpolant() && (!s_r->is_left_interpolant() || op_type == Sass_OP::DIV)) {
         ret_schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, s_r->pstate());
         Binary_Expression* bin_ex = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, b->pstate(),
                                                     b->op(), b->left(), s_r->first());
@@ -691,7 +691,7 @@ namespace Sass {
         }
       }
 
-    if (force_delay) {
+      if (force_delay) {
         std::string str("");
         str += v_l->to_string(ctx.c_options);
         if (b->op().ws_before) str += " ";
