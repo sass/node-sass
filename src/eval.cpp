@@ -504,15 +504,15 @@ namespace Sass {
     }
 
     // only the last item will be used to eval the binary expression
-    if (String_Schema* s_1 = dynamic_cast<String_Schema*>(b->left())) {
-      if (!s_1->is_right_interpolant()) {
-        ret_schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, s_1->pstate());
+    if (String_Schema* s_l = dynamic_cast<String_Schema*>(b->left())) {
+      if (!s_l->has_interpolant() && (!s_l->is_right_interpolant())) {
+        ret_schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, s_l->pstate());
         Binary_Expression* bin_ex = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, b->pstate(),
-                                                    b->op(), s_1->last(), b->right());
+                                                    b->op(), s_l->last(), b->right());
         bin_ex->is_delayed(b->left()->is_delayed() || b->right()->is_delayed());
         // bin_ex->is_interpolant(b->left()->is_interpolant());
-        for (size_t i = 0; i < s_1->length() - 1; ++i) {
-          *ret_schema << s_1->at(i)->perform(this);
+        for (size_t i = 0; i < s_l->length() - 1; ++i) {
+          *ret_schema << s_l->at(i)->perform(this);
         }
         *ret_schema << bin_ex->perform(this);
         return ret_schema->perform(this);
