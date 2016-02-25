@@ -436,7 +436,7 @@ namespace Sass {
           // query data from the current include
           Sass_Import_Entry include = *it_includes;
           char* source = sass_import_take_source(include);
-          char* srcmap = sass_import_take_source(include);
+          char* srcmap = sass_import_take_srcmap(include);
           size_t line = sass_import_get_error_line(include);
           size_t column = sass_import_get_error_column(include);
           const char *abs_path = sass_import_get_abs_path(include);
