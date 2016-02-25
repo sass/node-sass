@@ -357,6 +357,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     Import_Stub* block = dynamic_cast<Import_Stub*>(node);
     std::cerr << ind << "Import_Stub " << block;
     std::cerr << " (" << pstate_source_position(node) << ")";
+    std::cerr << " [" << block->imp_path() << "] ";
     std::cerr << " " << block->tabs() << std::endl;
   } else if (dynamic_cast<Import*>(node)) {
     Import* block = dynamic_cast<Import*>(node);
