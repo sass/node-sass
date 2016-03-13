@@ -1690,7 +1690,6 @@ namespace Sass {
         Sass_Output_Style old_style;
         old_style = ctx.c_options.output_style;
         ctx.c_options.output_style = TO_SASS;
-        Sass_Output_Options out(ctx.c_options);
         Emitter emitter(ctx.c_options);
         Inspect i(emitter);
         i.in_declaration = false;
