@@ -5,7 +5,6 @@
 var fs = require('fs'),
     eol = require('os').EOL,
     mkdir = require('mkdirp'),
-    npmconf = require('npmconf'),
     path = require('path'),
     got = require('got'),
     pkg = require('../package.json');
@@ -63,25 +62,17 @@ function download(url, dest, cb) {
  */
 
 function applyProxy(options, cb) {
-  npmconf.load({}, function (er, conf) {
-    var proxyUrl;
+  var env = process.env;
 
-    if (!er) {
-      proxyUrl = conf.get('https-proxy') ||
-                 conf.get('proxy') ||
-                 conf.get('http-proxy');
-    }
+  options.proxy = env.npm_config_https_proxy ||
+                  env.npm_config_proxy ||
+                  env.npm_config_http_proxy ||
+                  env.HTTPS_PROXY ||
+                  env.https_proxy ||
+                  env.HTTP_PROXY ||
+                  env.http_proxy;
 
-    var env = process.env;
-
-    options.proxy = proxyUrl ||
-                    env.HTTPS_PROXY ||
-                    env.https_proxy ||
-                    env.HTTP_PROXY ||
-                    env.http_proxy;
-
-    cb(options);
-  });
+  cb(options);
 }
 
 /**
@@ -123,7 +114,7 @@ if (process.env.SKIP_SASS_BINARY_DOWNLOAD_FOR_CI) {
 }
 
 /**
- * If binary does not exsit, download it
+ * If binary does not exist, download it
  */
 
 checkAndDownloadBinary();
