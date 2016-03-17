@@ -117,6 +117,17 @@ namespace Sass {
     Selector_List* sel = dynamic_cast<Selector_List*>(ex);
     if (sel == 0) throw std::runtime_error("Expanded null selector");
 
+    if (sel->length() == 0 || sel->has_parent_ref()) {
+      bool has_parent_selector = false;
+      for (size_t i = 0, L = selector_stack.size(); i < L && !has_parent_selector; i++) {
+        Selector_List* ll = selector_stack.at(i);
+        has_parent_selector = ll != 0 && ll->length() > 0;
+      }
+      if (!has_parent_selector) {
+        error("Base-level rules cannot contain the parent-selector-referencing character '&'.", sel->pstate(), backtrace());
+      }
+    }
+
     selector_stack.push_back(sel);
     Env* env = 0;
     if (block_stack.back()->is_root()) {
