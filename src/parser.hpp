@@ -116,7 +116,10 @@ namespace Sass {
       const char* it_before_token = sneak < mx >(start);
 
       // match the given prelexer
-      return mx(it_before_token);
+      const char* match = mx(it_before_token);
+
+      // check if match is in valid range
+      return match <= end ? match : 0;
 
     }
 
@@ -141,6 +144,9 @@ namespace Sass {
 
       // now call matcher to get position after token
       const char* it_after_token = mx(it_before_token);
+
+      // check if match is in valid range
+      if (it_after_token > end) return 0;
 
       // maybe we want to update the parser state anyway?
       if (force == false) {
