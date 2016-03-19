@@ -186,6 +186,40 @@ describe('api', function() {
   describe('.render(importer)', function() {
     var src = read(fixture('include-files/index.scss'), 'utf8');
 
+    it('should respect the order of chained imports when using custom importers and one file is custom imported and the other is not.', function(done) {
+      sass.render({
+        file: fixture('include-files/chained-imports-with-custom-importer.scss'),
+        importer: function(url, prev, done) {
+          // NOTE: to see that this test failure is only due to the stated
+          // issue do each of the following and see that the tests pass.
+          //
+          //   a) add `return sass.NULL;` as the first line in this function to
+          //      cause non-custom importers to always be used.
+          //   b) comment out the conditional below to force our custom
+          //      importer to always be used.
+          //
+          //  You will notice that the tests pass when either all native, or
+          //  all custom importers are used, but not when a native + custom
+          //  import chain is used.
+          if (url !== 'file-processed-by-loader') {
+            return sass.NULL;
+          }
+          done({
+            file: fixture('include-files/' + url + '.scss')
+          });
+        }
+      }, function(err, data) {
+        assert.equal(err, null);
+
+        assert.equal(
+          data.css.toString().trim(),
+          'body {\n  color: "red"; }'
+        );
+
+        done();
+      });
+    });
+
     it('should still call the next importer with the resolved prev path when the previous importer returned both a file and contents property - issue #1219', function(done) {
       sass.render({
         data: '@import "a";',
