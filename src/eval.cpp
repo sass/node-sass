@@ -1176,7 +1176,6 @@ namespace Sass {
     std::string res("");
     for (size_t i = 0; i < L; ++i) {
       bool is_quoted = dynamic_cast<String_Quoted*>((*s)[i]) != NULL;
-      (*s)[i]->perform(this);
       if (was_quoted && !(*s)[i]->is_interpolant() && !was_interpolant) { res += " "; }
       else if (i > 0 && is_quoted && !(*s)[i]->is_interpolant() && !was_interpolant) { res += " "; }
       Expression* ex = (*s)[i]->is_delayed() ? (*s)[i] : (*s)[i]->perform(this);
