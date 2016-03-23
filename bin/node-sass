@@ -20,13 +20,17 @@ var cli = meow({
   pkg: '../package.json',
   version: process.sass.versionInfo,
   help: [
-    'Usage',
-    '  node-sass [options] <input.scss> [output.css]',
+    'Usage:',
+    '  node-sass [options] <input.scss>',
     '  cat <input.scss> | node-sass [options] > output.css',
     '',
-    'Example',
-    '  node-sass --output-style compressed foobar.scss foobar.css',
+    'Example: Compile foobar.scss to foobar.css',
+    '  node-sass --output-style compressed foobar.scss > foobar.css',
     '  cat foobar.scss | node-sass --output-style compressed > foobar.css',
+    '',
+    'Example: Watch the sass directory for changes, compile with sourcemaps to the css directory',
+    '  node-sass --watch --recursive --output css',
+    '    --source-map true --source-map-contents sass',
     '',
     'Options',
     '  -w, --watch                Watch a directory or file',
@@ -366,9 +370,13 @@ if (!options.src && process.stdin.isTTY) {
   emitter.emit('error', [
     'Provide a Sass file to render',
     '',
-    '  Example',
-    '    node-sass --output-style compressed foobar.scss foobar.css',
-    '    cat foobar.scss | node-sass --output-style compressed > foobar.css'
+    'Example: Compile foobar.scss to foobar.css',
+    '  node-sass --output-style compressed foobar.scss > foobar.css',
+    '  cat foobar.scss | node-sass --output-style compressed > foobar.css',
+    '',
+    'Example: Watch the sass directory for changes, compile with sourcemaps to the css directory',
+    '  node-sass --watch --recursive --output css',
+    '    --source-map true --source-map-contents sass',
   ].join('\n'));
 }
 
