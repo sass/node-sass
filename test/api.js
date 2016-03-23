@@ -258,6 +258,26 @@ describe('api', function() {
       });
     });
 
+    it('should should resolve imports depth first', function (done) {
+      var actualImportOrder = [];
+      var expectedImportOrder = [
+        'a', '_common', 'vars', 'struct', 'a1', 'common', 'vars', 'struct', 'b', 'b1'
+      ];
+      var expected = read(fixture('depth-first/expected.css'));
+
+      sass.render({
+        file: fixture('depth-first/index.scss'),
+        importer: function (url, prev, done) {
+          actualImportOrder.push(url);
+          done();
+        }
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), expected);
+        assert.deepEqual(actualImportOrder, expectedImportOrder);
+        done();
+      });
+    });
+
     it('should override imports with "file" as input and fires callback with file and contents', function(done) {
       sass.render({
         file: fixture('include-files/index.scss'),
