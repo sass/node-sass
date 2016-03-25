@@ -7,9 +7,8 @@ var fs = require('fs'),
     mkdir = require('mkdirp'),
     path = require('path'),
     got = require('got'),
-    pkg = require('../package.json');
-
-require('../lib/extensions');
+    pkg = require('../package.json'),
+    sass = require('../lib/extensions');
 
 /**
  * Download file, if succeeds save, if not delete
@@ -82,24 +81,23 @@ function applyProxy(options, cb) {
  */
 
 function checkAndDownloadBinary() {
-  try {
-    process.sass.getBinaryPath(true);
+  if (sass.getBinaryPath()) {
     return;
-  } catch (e) { }
+  }
 
-  mkdir(path.dirname(process.sass.binaryPath), function(err) {
+  mkdir(path.dirname(sass.getBinaryPath()), function(err) {
     if (err) {
       console.error(err);
       return;
     }
 
-    download(process.sass.binaryUrl, process.sass.binaryPath, function(err) {
+    download(sass.getBinaryUrl(), sass.getBinaryPath(), function(err) {
       if (err) {
         console.error(err);
         return;
       }
 
-      console.log('Binary downloaded and installed at', process.sass.binaryPath);
+      console.log('Binary downloaded and installed at', sass.binaryPath());
     });
   });
 }

@@ -11,7 +11,7 @@ var assert = require('assert'),
     LIBSASS_VERSION = null;
 
 describe('cli', function() {
-  
+
   before(function(done) {
       var bin = spawn(cli, ['-v']);
       bin.stdout.setEncoding('utf8');
@@ -480,7 +480,7 @@ describe('cli', function() {
           '--source-map-embed',
           '--source-map', 'true'
         ]);
-        
+
         bin.stdout.on('data', function(data) {
             result += data;
         });
