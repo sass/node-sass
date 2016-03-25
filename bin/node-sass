@@ -8,6 +8,7 @@ var Emitter = require('events').EventEmitter,
     util = require('util'),
     path = require('path'),
     glob = require('glob'),
+    sass = require('../lib'),
     render = require('../lib/render'),
     stdin = require('get-stdin'),
     fs = require('fs');
@@ -18,7 +19,7 @@ var Emitter = require('events').EventEmitter,
 
 var cli = meow({
   pkg: '../package.json',
-  version: process.sass.versionInfo,
+  version: sass.info,
   help: [
     'Usage:',
     '  node-sass [options] <input.scss>',

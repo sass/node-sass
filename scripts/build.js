@@ -7,9 +7,8 @@ var eol = require('os').EOL,
     fs = require('fs'),
     mkdir = require('mkdirp'),
     path = require('path'),
-    spawn = require('cross-spawn-async');
-
-require('../lib/extensions');
+    spawn = require('cross-spawn-async'),
+    sass = require('../lib/extensions');
 
 /**
  * After build
@@ -19,7 +18,7 @@ require('../lib/extensions');
  */
 
 function afterBuild(options) {
-  var install = process.sass.binaryPath;
+  var install = sass.getBinaryPath();
   var target = path.join(__dirname, '..', 'build',
     options.debug ? 'Debug' : process.config.target_defaults.default_configuration,
     'binding.node');
@@ -197,13 +196,11 @@ function testBinary(options) {
     return build(options);
   }
 
-  try {
-    process.sass.getBinaryPath(true);
-  } catch (e) {
+  if (!sass.getBinaryPath()) {
     return build(options);
   }
 
-  console.log('`', process.sass.binaryPath, '` exists.', eol, 'testing binary.');
+  console.log('`', sass.getBinaryPath(), '` exists.', eol, 'testing binary.');
 
   try {
     require('../').renderSync({

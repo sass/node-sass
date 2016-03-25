@@ -1,11 +1,11 @@
 var assert = require('assert'),
-    fs = require('fs');
+    fs = require('fs'),
+    extensionsPath = process.env.NODESASS_COV
+      ? require.resolve('../lib-cov/extensions')
+      : require.resolve('../lib/extensions');
 
 describe('runtime parameters', function() {
     var packagePath = require.resolve('../package'),
-        extensionsPath = process.env.NODESASS_COV
-          ? require.resolve('../lib-cov/extensions')
-          : require.resolve('../lib/extensions'),
         // Let's use JSON to fake a deep copy
         savedArgv = JSON.stringify(process.argv),
         savedEnv = JSON.stringify(process.env);
@@ -21,7 +21,6 @@ describe('runtime parameters', function() {
       process.argv = JSON.parse(savedArgv);
       process.env = JSON.parse(savedEnv);
       require(packagePath);
-      require(extensionsPath);
     });
 
     describe('configuration precedence should be respected', function() {
@@ -35,29 +34,29 @@ describe('runtime parameters', function() {
         });
 
         it('command line argument', function() {
-          require(extensionsPath);
-          assert.equal(process.sass.binaryName, 'aaa_binding.node');
+          var sass = require(extensionsPath);
+          assert.equal(sass.getBinaryName(), 'aaa_binding.node');
         });
 
         it('environment variable', function() {
           process.argv = [];
-          require(extensionsPath);
-          assert.equal(process.sass.binaryName, 'bbb_binding.node');
+          var sass = require(extensionsPath);
+          assert.equal(sass.getBinaryName(), 'bbb_binding.node');
         });
 
         it('npm config variable', function() {
           process.argv = [];
           process.env.SASS_BINARY_NAME = null;
-          require(extensionsPath);
-          assert.equal(process.sass.binaryName, 'ccc_binding.node');
+          var sass = require(extensionsPath);
+          assert.equal(sass.getBinaryName(), 'ccc_binding.node');
         });
 
         it('package.json', function() {
           process.argv = [];
           process.env.SASS_BINARY_NAME = null;
           process.env.npm_config_sass_binary_name = null;
-          require(extensionsPath);
-          assert.equal(process.sass.binaryName, 'ddd_binding.node');
+          var sass = require(extensionsPath);
+          assert.equal(sass.getBinaryName(), 'ddd_binding.node');
         });
       });
 
@@ -70,33 +69,33 @@ describe('runtime parameters', function() {
         });
 
         it('command line argument', function() {
-          require(extensionsPath);
+          var sass = require(extensionsPath);
           var URL = 'http://aaa.example.com:9999';
-          assert.equal(process.sass.binaryUrl.substr(0, URL.length), URL);
+          assert.equal(sass.getBinaryUrl().substr(0, URL.length), URL);
         });
 
         it('environment variable', function() {
           process.argv = [];
-          require(extensionsPath);
+          var sass = require(extensionsPath);
           var URL = 'http://bbb.example.com:8888';
-          assert.equal(process.sass.binaryUrl.substr(0, URL.length), URL);
+          assert.equal(sass.getBinaryUrl().substr(0, URL.length), URL);
         });
 
         it('npm config variable', function() {
           process.argv = [];
           process.env.SASS_BINARY_SITE = null;
-          require(extensionsPath);
+          var sass = require(extensionsPath);
           var URL = 'http://ccc.example.com:7777';
-          assert.equal(process.sass.binaryUrl.substr(0, URL.length), URL);
+          assert.equal(sass.getBinaryUrl().substr(0, URL.length), URL);
         });
 
         it('package.json', function() {
           process.argv = [];
           process.env.SASS_BINARY_SITE = null;
           process.env.npm_config_sass_binary_site = null;
-          require(extensionsPath);
+          var sass = require(extensionsPath);
           var URL = 'http://ddd.example.com:6666';
-          assert.equal(process.sass.binaryUrl.substr(0, URL.length), URL);
+          assert.equal(sass.getBinaryUrl().substr(0, URL.length), URL);
         });
       });
 
@@ -109,29 +108,29 @@ describe('runtime parameters', function() {
         });
 
         it('command line argument', function() {
-          require(extensionsPath);
-          assert.equal(process.sass.binaryPath, 'aaa_binding.node');
+          var sass = require(extensionsPath);
+          assert.equal(sass.getBinaryPath(), 'aaa_binding.node');
         });
 
         it('environment variable', function() {
           process.argv = [];
-          require(extensionsPath);
-          assert.equal(process.sass.binaryPath, 'bbb_binding.node');
+          var sass = require(extensionsPath);
+          assert.equal(sass.getBinaryPath(), 'bbb_binding.node');
         });
 
         it('npm config variable', function() {
           process.argv = [];
           process.env.SASS_BINARY_PATH = null;
-          require(extensionsPath);
-          assert.equal(process.sass.binaryPath, 'ccc_binding.node');
+          var sass = require(extensionsPath);
+          assert.equal(sass.getBinaryPath(), 'ccc_binding.node');
         });
 
         it('package.json', function() {
           process.argv = [];
           process.env.SASS_BINARY_PATH = null;
           process.env.npm_config_sass_binary_path = null;
-          require(extensionsPath);
-          assert.equal(process.sass.binaryPath, 'ddd_binding.node');
+          var sass = require(extensionsPath);
+          assert.equal(sass.getBinaryPath(), 'ddd_binding.node');
         });
       });
 
@@ -140,12 +139,13 @@ describe('runtime parameters', function() {
 
 describe('library detection', function() {
   it('should throw error when libsass binary is missing.', function() {
-    var originalBin = process.sass.binaryPath,
+    var sass = require(extensionsPath),
+        originalBin = sass.getBinaryPath(),
         renamedBin = [originalBin, '_moved'].join('');
 
     assert.throws(function() {
       fs.renameSync(originalBin, renamedBin);
-      process.sass.getBinaryPath(true);
+      sass.getBinaryPath(true);
     }, /The `libsass` binding was not found/);
 
     fs.renameSync(renamedBin, originalBin);

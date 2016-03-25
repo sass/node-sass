@@ -1,7 +1,8 @@
 process.env.NODESASS_COV ? require('../lib-cov') : require('../lib');
 
 var assert = require('assert'),
-    binding = require(process.sass.binaryPath);
+    sass = require('../lib/extensions'),
+    binding = require(sass.getBinaryPath());
 
 describe('lowlevel', function() {
   it('fail with options not an object', function(done) {
@@ -13,7 +14,7 @@ describe('lowlevel', function() {
   });
 
   it('data context with options.data not provided', function(done) {
-    var options =  { 
+    var options =  {
       /* data: */
       sourceComments: false,
       file: null,
@@ -28,13 +29,13 @@ describe('lowlevel', function() {
       result: { stats: {} } };
 
     binding.renderSync(options);
-    assert(/Data context created without a source string/.test(options.result.error), 
+    assert(/Data context created without a source string/.test(options.result.error),
           'Should fail with error message "Data context created without a source string"');
     done();
   });
 
   it('data context with both options.data and options.file not provided', function(done) {
-    var options =  { 
+    var options =  {
       /* data: */
       sourceComments: false,
       /* file: null, */
@@ -49,13 +50,13 @@ describe('lowlevel', function() {
       result: { stats: {} } };
 
     binding.renderSync(options);
-    assert(/Data context created without a source string/.test(options.result.error), 
+    assert(/Data context created without a source string/.test(options.result.error),
           'Should fail with error message "Data context created without a source string"');
     done();
   });
 
   it('file context with both options.data and options.file not provided', function(done) {
-    var options =  { 
+    var options =  {
       /* data: */
       sourceComments: false,
       /* file: null, */
@@ -70,13 +71,13 @@ describe('lowlevel', function() {
       result: { stats: {} } };
 
     binding.renderFileSync(options);
-    assert(/File context created without an input path/.test(options.result.error), 
+    assert(/File context created without an input path/.test(options.result.error),
           'Should fail with error message "File context created without an input path"');
     done();
   });
 
   it('file context with options.file not provided, options.data given', function(done) {
-    var options =  { 
+    var options =  {
       data: 'div { width: 10px; } ',
       sourceComments: false,
       /* file: null, */
@@ -91,7 +92,7 @@ describe('lowlevel', function() {
       result: { stats: {} } };
 
     binding.renderFileSync(options);
-    assert(/File context created without an input path/.test(options.result.error), 
+    assert(/File context created without an input path/.test(options.result.error),
           'Should fail with error message "File context created without an input path"');
     done();
   });
@@ -213,14 +214,14 @@ describe('lowlevel', function() {
       result: { stats: {} } };
 
       binding.renderSync(options);
-      assert(/empty source string/.test(options.result.error), 
+      assert(/empty source string/.test(options.result.error),
           'Should fail with error message "Data context created with empty source string"');
     done();
   });
 
 
   it('empty file string', function(done) {
-    var options =  { 
+    var options =  {
       sourceComments: false,
       file: '',
       outFile: null,
@@ -234,7 +235,7 @@ describe('lowlevel', function() {
       result: { stats: {} } };
 
       binding.renderFileSync(options);
-      assert(/empty input path/.test(options.result.error), 
+      assert(/empty input path/.test(options.result.error),
           'Should fail with error message "File context created with empty input path"');
     done();
   });
