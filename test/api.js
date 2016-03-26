@@ -2,7 +2,10 @@ var assert = require('assert'),
     fs = require('fs'),
     path = require('path'),
     read = fs.readFileSync,
-    sass = process.env.NODESASS_COV ? require('../lib-cov') : require('../lib'),
+    sassPath = process.env.NODESASS_COV
+      ? require.resolve('../lib-cov')
+      : require.resolve('../lib'),
+    sass = require(sassPath),
     fixture = path.join.bind(null, __dirname, 'fixtures'),
     resolveFixture = path.resolve.bind(null, __dirname, 'fixtures');
 
@@ -1775,6 +1778,101 @@ describe('api', function() {
       assert(info.indexOf('[C/C++]') > 0);
 
       done();
+    });
+  });
+
+  describe('binding', function() {
+    beforeEach(function() {
+      delete require.cache[sassPath];
+    });
+
+    afterEach(function() {
+      delete require.cache[sassPath];
+    });
+
+    describe('missing error', function() {
+      beforeEach(function() {
+        process.env.SASS_BINARY_NAME = [
+          (process.platform === 'win32' ? 'Linux' : 'Windows'), '-',
+          process.arch, '-',
+          process.versions.modules
+        ].join('');
+      });
+
+      afterEach(function() {
+        delete process.env.SASS_BINARY_NAME;
+      });
+
+      it('should be useful', function() {
+        assert.throws(
+          function() { require(sassPath); },
+          new RegExp('Missing binding.*?\\' + path.sep + 'vendor\\' + path.sep)
+        );
+      });
+
+      it('should list currently installed bindings', function() {
+        assert.throws(
+          function() { require(sassPath); },
+          function(err) {
+            var etx = require('../lib/extensions');
+
+            delete process.env.SASS_BINARY_NAME;
+
+            if ((err instanceof Error)) {
+              return err.message.indexOf(
+                etx.getHumanEnvironment(etx.getBinaryName())
+              ) !== -1;
+            }
+          }
+        );
+      });
+    });
+
+    describe('on unsupported environment', function() {
+      it('should error for unsupported architecture', function() {
+        var prevValue = process.arch;
+
+        Object.defineProperty(process, 'arch', {
+          get: function () { return 'foo'; }
+        });
+
+        assert.throws(
+          function() { require(sassPath); },
+          'Node Sass does not yet support your current environment'
+        );
+
+        process.arch = prevValue;
+      });
+
+      it('should error for unsupported platform', function() {
+        var prevValue = process.platform;
+
+        Object.defineProperty(process, 'platform', {
+          get: function () { return 'foo'; }
+        });
+
+        assert.throws(
+          function() { require(sassPath); },
+          'Node Sass does not yet support your current environment'
+        );
+
+        process.platform = prevValue;
+      });
+
+      it('should error for unsupported runtime', function() {
+        var prevValue = process.versions.modules;
+
+        Object.defineProperty(process.versions, 'modules', {
+          get: function () { return 'foo'; }
+        });
+
+        assert.throws(
+          function() { require(sassPath); },
+          'Node Sass does not yet support your current environment'
+        );
+
+        process.versions.modules = prevValue;
+      });
     });
   });
 });

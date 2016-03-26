@@ -1,5 +1,4 @@
 var assert = require('assert'),
-    fs = require('fs'),
     extensionsPath = process.env.NODESASS_COV
       ? require.resolve('../lib-cov/extensions')
       : require.resolve('../lib/extensions');
@@ -137,17 +136,17 @@ describe('runtime parameters', function() {
     });
 });
 
-describe('library detection', function() {
-  it('should throw error when libsass binary is missing.', function() {
-    var sass = require(extensionsPath),
-        originalBin = sass.getBinaryPath(),
-        renamedBin = [originalBin, '_moved'].join('');
+// describe('library detection', function() {
+//   it('should throw error when libsass binary is missing.', function() {
+//     var sass = require(extensionsPath),
+//         originalBin = sass.getBinaryPath(),
+//         renamedBin = [originalBin, '_moved'].join('');
 
-    assert.throws(function() {
-      fs.renameSync(originalBin, renamedBin);
-      sass.getBinaryPath(true);
-    }, /The `libsass` binding was not found/);
+//     assert.throws(function() {
+//       fs.renameSync(originalBin, renamedBin);
+//       sass.getBinaryPath(true);
+//     }, /The `libsass` binding was not found/);
 
-    fs.renameSync(renamedBin, originalBin);
-  });
-});
+//     fs.renameSync(renamedBin, originalBin);
+//   });
+// });
