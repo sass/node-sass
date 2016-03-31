@@ -81,7 +81,7 @@ function applyProxy(options, cb) {
  */
 
 function checkAndDownloadBinary() {
-  if (sass.getBinaryPath()) {
+  if (sass.hasBinary(sass.getBinaryPath())) {
     return;
   }
 
@@ -97,7 +97,7 @@ function checkAndDownloadBinary() {
         return;
       }
 
-      console.log('Binary downloaded and installed at', sass.binaryPath());
+      console.log('Binary downloaded and installed at', sass.getBinaryPath());
     });
   });
 }
