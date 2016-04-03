@@ -180,7 +180,7 @@ namespace Sass {
       if (!ends_with(i->first, "[f]") && !ends_with(i->first, "[f]4") && !ends_with(i->first, "[f]2")) {
         std::cerr << prefix << std::string(indent, ' ') << i->first << " "  << i->second;
         if (Value* val = dynamic_cast<Value*>(i->second))
-        { std::cerr << " : " << val->to_string(true, 5); }
+        { std::cerr << " : " << val->to_string(); }
         std::cerr << std::endl;
       }
     }
