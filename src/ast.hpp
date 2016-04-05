@@ -660,7 +660,7 @@ namespace Sass {
     : Statement(pstate), text_(txt), is_important_(is_important)
     { statement_type(COMMENT); }
     virtual bool is_invisible() const
-    { return is_important() == false; }
+    { return /* is_important() == */ false; }
     ATTACH_OPERATIONS()
   };
 
