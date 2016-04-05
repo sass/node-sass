@@ -596,7 +596,7 @@ namespace Sass {
     }
     // Match CSS id names.
     const char* id_name(const char* src) {
-      return sequence<exactly<'#'>, name>(src);
+      return sequence<exactly<'#'>, identifier>(src);
     }
     // Match CSS class names.
     const char* class_name(const char* src) {
