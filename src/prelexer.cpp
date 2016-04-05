@@ -1197,8 +1197,8 @@ namespace Sass {
           >
         >,
         alternatives <
-          exactly < calc_fn_kwd >,
-          exactly < expression_kwd >,
+          word < calc_fn_kwd >,
+          word < expression_kwd >,
           sequence <
             sequence <
               exactly < progid_kwd >,
