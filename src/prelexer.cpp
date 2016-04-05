@@ -508,7 +508,7 @@ namespace Sass {
       return one_plus< alternatives< alnum,
                                      exactly<'-'>,
                                      exactly<'_'>,
-                                     exactly<'\\'> > >(src);
+                                     escape_seq > >(src);
     }
 
     const char* kwd_warn(const char* src) {
