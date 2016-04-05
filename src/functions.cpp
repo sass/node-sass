@@ -902,9 +902,16 @@ namespace Sass {
     BUILT_IN(sass_quote)
     {
       AST_Node* arg = env["$string"];
+      // only set quote mark to true if already a string
+      if (String_Quoted* qstr = dynamic_cast<String_Quoted*>(arg)) {
+        qstr->quote_mark('*');
+        return qstr;
+      }
+      // all other nodes must be converted to a string node
       std::string str(quote(arg->to_string(ctx.c_options), String_Constant::double_quote()));
       String_Quoted* result = SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, str);
       result->is_delayed(true);
+      result->quote_mark('*');
       return result;
     }
 
