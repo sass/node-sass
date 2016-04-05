@@ -46,6 +46,7 @@ namespace Sass {
     bool isPrintable(Ruleset* r, Sass_Output_Style style = NESTED);
     bool isPrintable(Supports_Block* r, Sass_Output_Style style = NESTED);
     bool isPrintable(Media_Block* r, Sass_Output_Style style = NESTED);
+    bool isPrintable(Comment* b, Sass_Output_Style style = NESTED);
     bool isPrintable(Block* b, Sass_Output_Style style = NESTED);
     bool isPrintable(String_Constant* s, Sass_Output_Style style = NESTED);
     bool isPrintable(String_Quoted* s, Sass_Output_Style style = NESTED);

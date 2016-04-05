@@ -566,13 +566,51 @@ namespace Sass {
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
         if (typeid(*stm) == typeid(At_Rule)) return true;
-        if (typeid(*stm) == typeid(Declaration)) return true;
-        if (Has_Block* child = dynamic_cast<Has_Block*>(stm)) {
-          if (isPrintable(child->block(), style)) return true;
+        else if (typeid(*stm) == typeid(Declaration)) return true;
+        else if (typeid(*stm) == typeid(Comment)) {
+          Comment* c = (Comment*) stm;
+          if (isPrintable(c, style)) {
+            return true;
+          }
+        }
+        else if (typeid(*stm) == typeid(Ruleset)) {
+          Ruleset* r = (Ruleset*) stm;
+          if (isPrintable(r, style)) {
+            return true;
+          }
+        }
+        else if (typeid(*stm) == typeid(Supports_Block)) {
+          Supports_Block* f = (Supports_Block*) stm;
+          if (isPrintable(f, style)) {
+            return true;
+          }
+        }
+        else if (typeid(*stm) == typeid(Media_Block)) {
+          Media_Block* m = (Media_Block*) stm;
+          if (isPrintable(m, style)) {
+            return true;
+          }
+        }
+        else if (dynamic_cast<Has_Block*>(stm) && isPrintable(((Has_Block*)stm)->block(), style)) {
+          return true;
         }
       }
       return false;
     }
+
+    bool isPrintable(Comment* c, Sass_Output_Style style)
+    {
+      // keep for uncompressed
+      if (style != COMPRESSED) {
+        return true;
+      }
+      // output style compressed
+      if (c->is_important()) {
+        return true;
+      }
+      // not printable
+      return false;
+    };
 
     bool isPrintable(Block* b, Sass_Output_Style style) {
       if (b == NULL) {
@@ -586,12 +624,7 @@ namespace Sass {
         }
         else if (typeid(*stm) == typeid(Comment)) {
           Comment* c = (Comment*) stm;
-          // keep for uncompressed
-          if (style != COMPRESSED) {
-            return true;
-          }
-          // output style compressed
-          if (c->is_important()) {
+          if (isPrintable(c, style)) {
             return true;
           }
         }
