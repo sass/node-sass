@@ -1806,10 +1806,11 @@ namespace Sass {
       uri = lexed.to_string();
     }
 
+    lex < css_whitespace >();
     if (peek< exactly< hash_lbrace > >()) {
       const char* pp = position;
       // TODO: error checking for unclosed interpolants
-      while (peek< exactly< hash_lbrace > >(pp)) {
+      while (pp && peek< exactly< hash_lbrace > >(pp)) {
         pp = sequence< interpolant, real_uri_value >(pp);
       }
       position = pp;
