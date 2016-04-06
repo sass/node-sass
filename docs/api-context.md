@@ -88,7 +88,7 @@ char* source_map_file;
 char* source_map_root;
 ```
 ```C
-// Custom functions that can be called from sccs code
+// Custom functions that can be called from Sass code
 Sass_C_Function_List c_functions;
 ```
 ```C
@@ -168,12 +168,12 @@ struct Sass_Compiler* sass_make_data_compiler (struct Sass_Data_Context* data_ct
 
 // Execute the different compilation steps individually
 // Usefull if you only want to query the included files
-int sass_compiler_parse(struct Sass_Compiler* compiler);
-int sass_compiler_execute(struct Sass_Compiler* compiler);
+int sass_compiler_parse (struct Sass_Compiler* compiler);
+int sass_compiler_execute (struct Sass_Compiler* compiler);
 
 // Release all memory allocated with the compiler
 // This does _not_ include any contexts or options
-void sass_delete_compiler(struct Sass_Compiler* compiler);
+void sass_delete_compiler (struct Sass_Compiler* compiler);
 
 // Release all memory allocated and also ourself
 void sass_delete_file_context (struct Sass_File_Context* ctx);

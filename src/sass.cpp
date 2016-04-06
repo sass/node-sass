@@ -11,6 +11,30 @@
 extern "C" {
   using namespace Sass;
 
+  // Allocate libsass heap memory
+  // Don't forget string termination!
+  void* ADDCALL sass_alloc_memory(size_t size)
+  {
+    void* ptr = malloc(size);
+    if (ptr == NULL)
+      out_of_memory();
+    return ptr;
+  }
+
+  char* ADDCALL sass_copy_c_string(const char* str)
+  {
+    size_t len = strlen(str) + 1;
+    char* cpy = (char*) sass_alloc_memory(len);
+    std::memcpy(cpy, str, len);
+    return cpy;
+  }
+
+  // Deallocate libsass heap memory
+  void ADDCALL sass_free_memory(void* ptr)
+  {
+    if (ptr) free (ptr);
+  }
+
   // caller must free the returned memory
   char* ADDCALL sass_string_quote (const char *str, const char quote_mark)
   {

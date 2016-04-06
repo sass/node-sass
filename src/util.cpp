@@ -12,11 +12,6 @@
 
 namespace Sass {
 
-  #define out_of_memory() do {            \
-      std::cerr << "Out of memory.\n";    \
-      exit(EXIT_FAILURE);                 \
-    } while (0)
-
   double round(double val, size_t precision)
   {
     // https://github.com/sass/sass/commit/4e3e1d5684cc29073a507578fc977434ff488c93
