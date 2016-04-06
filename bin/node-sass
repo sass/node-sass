@@ -304,12 +304,14 @@ function run(options, emitter) {
     }
   }
 
-  if (options.watch) {
-    watch(options, emitter);
-  } else if (options.directory) {
+  if (options.directory) {
     renderDir(options, emitter);
   } else {
     render(options, emitter);
+  }
+
+  if (options.watch) {
+    watch(options, emitter);
   }
 }
 
