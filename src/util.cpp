@@ -118,7 +118,10 @@ namespace Sass {
       }
       out.push_back(i);
     }
-    if (esc) out += '\\';
+    // happens when parsing does not correctly skip
+    // over escaped sequences for ie. interpolations
+    // one example: foo\#{interpolate}
+    // if (esc) out += '\\';
     return out;
   }
 
