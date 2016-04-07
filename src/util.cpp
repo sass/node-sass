@@ -23,16 +23,6 @@ namespace Sass {
     return ::round(val);
   }
 
-  /* Sadly, sass_strdup is not portable. */
-  char *sass_strdup(const char *str)
-  {
-    char *ret = (char*) malloc(strlen(str) + 1);
-    if (ret == NULL)
-      out_of_memory();
-    strcpy(ret, str);
-    return ret;
-  }
-
   /* Locale unspecific atof function. */
   double sass_atof(const char *str)
   {
@@ -45,7 +35,7 @@ namespace Sass {
       if(found != NULL){
         // substitution is required. perform the substitution on a copy
         // of the string. This is slower but it is thread safe.
-        char *copy = sass_strdup(str);
+        char *copy = sass_copy_c_string(str);
         *(copy + (found - str)) = separator;
         double res = atof(copy);
         free(copy);

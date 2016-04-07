@@ -91,7 +91,7 @@ extern "C" {
     catch (Exception::InvalidSass& e) {
       std::stringstream msg_stream;
       msg_stream << e.pstate.path << ":" << e.pstate.line << ": " << e.what() << std::endl;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -99,7 +99,7 @@ extern "C" {
     catch(std::bad_alloc& ba) {
       std::stringstream msg_stream;
       msg_stream << "Unable to allocate memory: " << ba.what() << std::endl;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -107,7 +107,7 @@ extern "C" {
     catch (std::exception& e) {
       std::stringstream msg_stream;
       msg_stream << "Error: " << e.what() << std::endl;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -115,7 +115,7 @@ extern "C" {
     catch (std::string& e) {
       std::stringstream msg_stream;
       msg_stream << "Error: " << e << std::endl;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -124,7 +124,7 @@ extern "C" {
       // couldn't find the specified file in the include paths; report an error
       std::stringstream msg_stream;
       msg_stream << "Unknown error occurred" << std::endl;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -166,7 +166,7 @@ extern "C" {
     catch (Exception::InvalidSass& e) {
       std::stringstream msg_stream;
       msg_stream << e.pstate.path << ":" << e.pstate.line << ": " << e.what() << std::endl;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -174,7 +174,7 @@ extern "C" {
     catch(std::bad_alloc& ba) {
       std::stringstream msg_stream;
       msg_stream << "Unable to allocate memory: " << ba.what() << std::endl;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -182,7 +182,7 @@ extern "C" {
     catch (std::exception& e) {
       std::stringstream msg_stream;
       msg_stream << "Error: " << e.what() << std::endl;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -190,7 +190,7 @@ extern "C" {
     catch (std::string& e) {
       std::stringstream msg_stream;
       msg_stream << "Error: " << e << std::endl;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -199,7 +199,7 @@ extern "C" {
       // couldn't find the specified file in the include paths; report an error
       std::stringstream msg_stream;
       msg_stream << "Unknown error occurred" << std::endl;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
       c_ctx->error_status = 1;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;

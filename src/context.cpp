@@ -289,7 +289,7 @@ namespace Sass {
     const char* contents = resources[idx].contents;
     // keep a copy of the path around (for parserstates)
     // ToDo: we clean it, but still not very elegant!?
-    strings.push_back(sass_strdup(inc.abs_path.c_str()));
+    strings.push_back(sass_copy_c_string(inc.abs_path.c_str()));
     // create the initial parser state from resource
     ParserState pstate(strings.back(), contents, idx);
 
@@ -519,7 +519,7 @@ namespace Sass {
     }
     // create a copy of the resulting buffer string
     // this must be freed or taken over by implementor
-    return sass_strdup(emitted.buffer.c_str());
+    return sass_copy_c_string(emitted.buffer.c_str());
   }
 
   void Context::apply_custom_headers(Block* root, const char* ctx_path, ParserState pstate)
@@ -606,7 +606,7 @@ namespace Sass {
 
     // ToDo: this may be resolved via custom importers
     std::string abs_path(rel2abs(entry_path));
-    char* abs_path_c_str = sass_strdup(abs_path.c_str());
+    char* abs_path_c_str = sass_copy_c_string(abs_path.c_str());
     strings.push_back(abs_path_c_str);
 
     // create entry only for the import stack
@@ -693,7 +693,7 @@ namespace Sass {
     if (source_map_file == "") return 0;
     char* result = 0;
     std::string map = emitter.render_srcmap(*this);
-    result = sass_strdup(map.c_str());
+    result = sass_copy_c_string(map.c_str());
     return result;
   }
 

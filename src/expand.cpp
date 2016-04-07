@@ -197,7 +197,7 @@ namespace Sass {
   {
     Expression* mq = m->media_queries()->perform(&eval);
     std::string str_mq(mq->to_string(ctx.c_options));
-    char* str = sass_strdup(str_mq.c_str());
+    char* str = sass_copy_c_string(str_mq.c_str());
     ctx.strings.push_back(str);
     Parser p(Parser::from_c_str(str, ctx, mq->pstate()));
     mq = p.parse_media_queries();
