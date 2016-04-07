@@ -34,9 +34,6 @@
     <ClInclude Include="$(LIBSASS_INCLUDES_DIR)\sass\functions.h">
       <Filter>Include Headers</Filter>
     </ClInclude>
-    <ClInclude Include="$(LIBSASS_INCLUDES_DIR)\sass\interface.h">
-      <Filter>Include Headers</Filter>
-    </ClInclude>
     <ClInclude Include="$(LIBSASS_INCLUDES_DIR)\sass\values.h">
       <Filter>Include Headers</Filter>
     </ClInclude>
@@ -300,9 +297,6 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\sass.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="$(LIBSASS_SRC_DIR)\sass_interface.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\sass_context.cpp">
