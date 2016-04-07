@@ -204,7 +204,7 @@ namespace Sass {
   void Emitter::append_optional_space()
   {
     if ((output_style() != COMPRESSED) && buffer().size()) {
-      char lst = buffer().at(buffer().length() - 1);
+      unsigned char lst = buffer().at(buffer().length() - 1);
       if (!isspace(lst) || scheduled_delimiter) {
         append_mandatory_space();
       }
