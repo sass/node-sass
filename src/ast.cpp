@@ -1233,7 +1233,9 @@ namespace Sass {
           if ((*this)[i]->tail() && (*this)[i]->has_line_feed()) {
             (*this)[i]->tail()->has_line_feed(true);
           }
-          (*this)[i] = (*this)[i]->tail();
+          if ((*this)[i]->tail() != NULL) {
+            (*this)[i] = (*this)[i]->tail();
+          }
         }
         // otherwise remove the first item from head
         else {
