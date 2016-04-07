@@ -16,16 +16,6 @@ This will automatically load all other headers too!
 #include "sass/context.h"
 ```
 
-### Deprecated usage
-
-The old API is kept in the source for backward compatibility.
-It's deprecated and incompatible with this documentation, use `sass/context.h`!
-
-```C
-// deprecated interface
-#include "sass/interface.h"
-```
-
 ## Basic C Example
 
 ```C
@@ -33,7 +23,7 @@ It's deprecated and incompatible with this documentation, use `sass/context.h`!
 #include "sass/context.h"
 
 int main() {
-  puts(libsass_VERSION());
+  puts(libsass_version());
   return 0;
 }
 ```
@@ -113,6 +103,34 @@ This mirrors very well how `libsass` uses these structures.
 - `Sass_Data_Context` is a specific implementation that adds the `input_source` field
 
 Structs can be down-casted to access `context` or `options`!
+
+## Memory handling and life-cycles
+
+We keep memory around for as long as the main [context](api-context.md) object is not destroyed (`sass_delete_context`). LibSass will create copies of most inputs/options beside the main sass code.
+You need to allocate and fill that buffer before passing it to LibSass. You may also overtake memory management from libsass for certain return values (i.e. `sass_context_take_output_string`).
+
+```C
+// to allocate buffer to be filled
+void* sass_alloc_memory(size_t size);
+// to allocate a buffer from existing string
+char* sass_copy_c_string(const char* str);
+// to free overtaken memory when done
+void sass_free_memory(void* ptr);
+```
+
+## Miscellaneous API functions
+
+```C
+// Some convenient string helper function
+char* sass_string_unquote (const char* str);
+char* sass_string_quote (const char* str, const char quote_mark);
+
+// Resolve a file via the given include paths in the include char* array
+char* sass_resolve_file (const char* path, const char* incs[]);
+
+// Get compiled libsass version
+const char* libsass_version(void);
+```
 
 ## Common Pitfalls
 
