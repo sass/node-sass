@@ -832,17 +832,34 @@ namespace Sass {
         stm << "Stack depth exceeded max of " << Constants::MaxCallStack;
         error(stm.str(), c->pstate(), backtrace());
     }
+
     std::string name(Util::normalize_underscores(c->name()));
     std::string full_name(name + "[f]");
     Arguments* args = c->arguments();
-    if (full_name != "if[f]") {
-      args = static_cast<Arguments*>(args->perform(this));
+
+    // handle call here if valid arg
+    // otherwise we eval arguments to early
+    if (name == "call" && args->length() > 0) {
+      Expression* redirect = args->at(0)->perform(this);
+      args->erase(args->begin());
+      Function_Call* lit = SASS_MEMORY_NEW(ctx.mem, Function_Call,
+                                           c->pstate(),
+                                           unquote(redirect->to_string()),
+                                           args);
+      return operator()(lit);
     }
 
     Env* env = environment();
     if (!env->has(full_name)) {
       if (!env->has("*[f]")) {
         // just pass it through as a literal
+        for (Argument* arg : *args) {
+          if (Binary_Expression* b = dynamic_cast<Binary_Expression*>(arg->value())) {
+            b->reset_whitespace();
+            arg->is_delayed(b->can_delay()); // delay
+          }
+        }
+        args = static_cast<Arguments*>(args->perform(this));
         Function_Call* lit = SASS_MEMORY_NEW(ctx.mem, Function_Call,
                                              c->pstate(),
                                              c->name(),
@@ -859,6 +876,10 @@ namespace Sass {
         // call generic function
         full_name = "*[f]";
       }
+    }
+
+    if (full_name != "if[f]") {
+      args = static_cast<Arguments*>(args->perform(this));
     }
 
     Definition* def = static_cast<Definition*>((*env)[full_name]);
@@ -1321,7 +1342,8 @@ namespace Sass {
   Expression* Eval::operator()(Argument* a)
   {
     Expression* val = a->value();
-    val->is_delayed(false);
+    // delay missin function arguments?
+    val->is_delayed(a->is_delayed());
     val = val->perform(this);
     val->is_delayed(false);
 

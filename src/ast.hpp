@@ -1011,6 +1011,12 @@ namespace Sass {
       return is_left_interpolant() ||
              is_right_interpolant();
     }
+    virtual bool can_delay() const;
+    void reset_whitespace()
+    {
+      op_.ws_before = false;
+      op_.ws_after = false;
+    }
     virtual void set_delayed(bool delayed)
     {
       right()->set_delayed(delayed);
