@@ -10,10 +10,10 @@ Sass_Import_List sass_importer(const char* path, Sass_Importer_Entry cb, struct 
   // get the cookie from importer descriptor
   void* cookie = sass_importer_get_cookie(cb);
   Sass_Import_List list = sass_make_import_list(2);
-  const char* local = "local { color: green; }";
-  const char* remote = "remote { color: red; }";
-  list[0] = sass_make_import_entry("/tmp/styles.scss", strdup(local), 0);
-  list[1] = sass_make_import_entry("http://www.example.com", strdup(remote), 0);
+  char* local = sass_copy_c_string("local { color: green; }");
+  char* remote = sass_copy_c_string("remote { color: red; }");
+  list[0] = sass_make_import_entry("/tmp/styles.scss", local, 0);
+  list[1] = sass_make_import_entry("http://www.example.com", remote, 0);
   return list;
 }
 
@@ -84,7 +84,7 @@ Sass_Import_List importer(const char* path, Sass_Importer_Entry cb, struct Sass_
   Sass_Import_List list = sass_make_import_list(1);
   const char* message = "some error message";
   list[0] = sass_make_import_entry(path, 0, 0);
-  sass_import_set_error(list[0], strdup(message), 0, 0);
+  sass_import_set_error(list[0], sass_copy_c_string(message), 0, 0);
   return list;
 }
 

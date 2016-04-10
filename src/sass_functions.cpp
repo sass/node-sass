@@ -72,8 +72,8 @@ extern "C" {
   {
     Sass_Import* v = (Sass_Import*) calloc(1, sizeof(Sass_Import));
     if (v == 0) return 0;
-    v->imp_path = imp_path ? sass_strdup(imp_path) : 0;
-    v->abs_path = abs_path ? sass_strdup(abs_path) : 0;
+    v->imp_path = imp_path ? sass_copy_c_string(imp_path) : 0;
+    v->abs_path = abs_path ? sass_copy_c_string(abs_path) : 0;
     v->source = source;
     v->srcmap = srcmap;
     v->error = 0;
@@ -93,7 +93,7 @@ extern "C" {
   {
     if (import == 0) return 0;
     if (import->error) free(import->error);
-    import->error = error ? sass_strdup(error) : 0;
+    import->error = error ? sass_copy_c_string(error) : 0;
     import->line = line ? line : -1;
     import->column = col ? col : -1;
     return import;

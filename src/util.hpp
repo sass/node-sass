@@ -12,8 +12,12 @@
 
 namespace Sass {
 
+  #define out_of_memory() do {            \
+      std::cerr << "Out of memory.\n";    \
+      exit(EXIT_FAILURE);                 \
+    } while (0)
+
   double round(double val, size_t precision = 0);
-  char* sass_strdup(const char* str);
   double sass_atof(const char* str);
   const char* safe_str(const char *, const char* = "");
   void free_string_array(char **);

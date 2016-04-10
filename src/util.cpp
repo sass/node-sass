@@ -12,11 +12,6 @@
 
 namespace Sass {
 
-  #define out_of_memory() do {            \
-      std::cerr << "Out of memory.\n";    \
-      exit(EXIT_FAILURE);                 \
-    } while (0)
-
   double round(double val, size_t precision)
   {
     // https://github.com/sass/sass/commit/4e3e1d5684cc29073a507578fc977434ff488c93
@@ -26,16 +21,6 @@ namespace Sass {
     // cygwin has it not defined in std
     using namespace std;
     return ::round(val);
-  }
-
-  /* Sadly, sass_strdup is not portable. */
-  char *sass_strdup(const char *str)
-  {
-    char *ret = (char*) malloc(strlen(str) + 1);
-    if (ret == NULL)
-      out_of_memory();
-    strcpy(ret, str);
-    return ret;
   }
 
   /* Locale unspecific atof function. */
@@ -50,7 +35,7 @@ namespace Sass {
       if(found != NULL){
         // substitution is required. perform the substitution on a copy
         // of the string. This is slower but it is thread safe.
-        char *copy = sass_strdup(str);
+        char *copy = sass_copy_c_string(str);
         *(copy + (found - str)) = separator;
         double res = atof(copy);
         free(copy);

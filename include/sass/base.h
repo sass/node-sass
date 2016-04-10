@@ -62,6 +62,13 @@ enum Sass_Output_Style {
   SASS_STYLE_TO_SASS
 };
 
+// to allocate buffer to be filled
+void* sass_alloc_memory(size_t size);
+// to allocate a buffer from existing string
+char* sass_copy_c_string(const char* str);
+// to free overtaken memory when done
+void sass_free_memory(void* ptr);
+
 // Some convenient string helper function
 ADDAPI char* ADDCALL sass_string_quote (const char* str, const char quote_mark);
 ADDAPI char* ADDCALL sass_string_unquote (const char* str);

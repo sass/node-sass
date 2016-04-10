@@ -28,7 +28,7 @@ extern "C" {
   #define IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(type, option, def) \
     type ADDCALL sass_option_get_##option (struct Sass_Options* options) { return safe_str(options->option, def); } \
     void ADDCALL sass_option_set_##option (struct Sass_Options* options, type option) \
-    { free(options->option); options->option = option || def ? sass_strdup(option ? option : def) : 0; }
+    { free(options->option); options->option = option || def ? sass_copy_c_string(option ? option : def) : 0; }
 
   #define IMPLEMENT_SASS_CONTEXT_GETTER(type, option) \
     type ADDCALL sass_context_get_##option (struct Sass_Context* ctx) { return ctx->option; }
@@ -106,10 +106,10 @@ extern "C" {
       json_append_member(json_err, "formatted", json_mkstring(msg_stream.str().c_str()));
 
       c_ctx->error_json = json_stringify(json_err, "  ");;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
-      c_ctx->error_text = sass_strdup(e.what());
+      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
+      c_ctx->error_text = sass_copy_c_string(e.what());
       c_ctx->error_status = 1;
-      c_ctx->error_file = sass_strdup(e.pstate.path);
+      c_ctx->error_file = sass_copy_c_string(e.pstate.path);
       c_ctx->error_line = e.pstate.line+1;
       c_ctx->error_column = e.pstate.column+1;
       c_ctx->error_src = e.pstate.src;
@@ -125,8 +125,8 @@ extern "C" {
       json_append_member(json_err, "message", json_mkstring(ba.what()));
       json_append_member(json_err, "formatted", json_mkstring(msg_stream.str().c_str()));
       c_ctx->error_json = json_stringify(json_err, "  ");;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
-      c_ctx->error_text = sass_strdup(ba.what());
+      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
+      c_ctx->error_text = sass_copy_c_string(ba.what());
       c_ctx->error_status = 2;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -140,8 +140,8 @@ extern "C" {
       json_append_member(json_err, "message", json_mkstring(e.what()));
       json_append_member(json_err, "formatted", json_mkstring(msg_stream.str().c_str()));
       c_ctx->error_json = json_stringify(json_err, "  ");;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
-      c_ctx->error_text = sass_strdup(e.what());
+      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
+      c_ctx->error_text = sass_copy_c_string(e.what());
       c_ctx->error_status = 3;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -155,8 +155,8 @@ extern "C" {
       json_append_member(json_err, "message", json_mkstring(e.c_str()));
       json_append_member(json_err, "formatted", json_mkstring(msg_stream.str().c_str()));
       c_ctx->error_json = json_stringify(json_err, "  ");;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
-      c_ctx->error_text = sass_strdup(e.c_str());
+      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
+      c_ctx->error_text = sass_copy_c_string(e.c_str());
       c_ctx->error_status = 4;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -170,8 +170,8 @@ extern "C" {
       json_append_member(json_err, "message", json_mkstring(e));
       json_append_member(json_err, "formatted", json_mkstring(msg_stream.str().c_str()));
       c_ctx->error_json = json_stringify(json_err, "  ");;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
-      c_ctx->error_text = sass_strdup(e);
+      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
+      c_ctx->error_text = sass_copy_c_string(e);
       c_ctx->error_status = 4;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -184,8 +184,8 @@ extern "C" {
       json_append_member(json_err, "status", json_mknumber(5));
       json_append_member(json_err, "message", json_mkstring("unknown"));
       c_ctx->error_json = json_stringify(json_err, "  ");;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
-      c_ctx->error_text = sass_strdup("unknown");
+      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
+      c_ctx->error_text = sass_copy_c_string("unknown");
       c_ctx->error_status = 5;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -565,7 +565,7 @@ extern "C" {
   static void sass_clear_context (struct Sass_Context* ctx)
   {
     if (ctx == 0) return;
-    // release the allocated memory (mostly via sass_strdup)
+    // release the allocated memory (mostly via sass_copy_c_string)
     if (ctx->output_string)     free(ctx->output_string);
     if (ctx->source_map_string) free(ctx->source_map_string);
     if (ctx->error_message)     free(ctx->error_message);
@@ -695,7 +695,7 @@ extern "C" {
 
     struct string_list* include_path = (struct string_list*) calloc(1, sizeof(struct string_list));
     if (include_path == 0) return;
-    include_path->string = path ? sass_strdup(path) : 0;
+    include_path->string = path ? sass_copy_c_string(path) : 0;
     struct string_list* last = options->include_paths;
     if (!options->include_paths) {
       options->include_paths = include_path;
@@ -713,7 +713,7 @@ extern "C" {
 
     struct string_list* plugin_path = (struct string_list*) calloc(1, sizeof(struct string_list));
     if (plugin_path == 0) return;
-    plugin_path->string = path ? sass_strdup(path) : 0;
+    plugin_path->string = path ? sass_copy_c_string(path) : 0;
     struct string_list* last = options->plugin_paths;
     if (!options->plugin_paths) {
       options->plugin_paths = plugin_path;
