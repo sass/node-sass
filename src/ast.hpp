@@ -2146,6 +2146,10 @@ namespace Sass {
         return Constants::Specificity_Type;
       return Constants::Specificity_Pseudo;
     }
+    bool operator==(const Simple_Selector& rhs) const;
+    bool operator==(const Pseudo_Selector& rhs) const;
+    bool operator<(const Simple_Selector& rhs) const;
+    bool operator<(const Pseudo_Selector& rhs) const;
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
     ATTACH_OPERATIONS()
   };

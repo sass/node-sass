@@ -209,6 +209,7 @@ namespace Sass {
 
   bool Simple_Selector::operator== (const Simple_Selector& rhs) const
   {
+    if (const Pseudo_Selector* lp = dynamic_cast<const Pseudo_Selector*>(this)) return *lp == rhs;
     if (const Wrapped_Selector* lw = dynamic_cast<const Wrapped_Selector*>(this)) return *lw == rhs;
     if (const Attribute_Selector* la = dynamic_cast<const Attribute_Selector*>(this)) return *la == rhs;
     if (is_ns_eq(ns(), rhs.ns()))
@@ -218,6 +219,7 @@ namespace Sass {
 
   bool Simple_Selector::operator< (const Simple_Selector& rhs) const
   {
+    if (const Pseudo_Selector* lp = dynamic_cast<const Pseudo_Selector*>(this)) return *lp == rhs;
     if (const Wrapped_Selector* lw = dynamic_cast<const Wrapped_Selector*>(this)) return *lw < rhs;
     if (const Attribute_Selector* la = dynamic_cast<const Attribute_Selector*>(this)) return *la < rhs;
     if (is_ns_eq(ns(), rhs.ns()))
@@ -479,6 +481,49 @@ namespace Sass {
     if (is_ns_eq(ns(), rhs.ns()))
     { return name() == rhs.name(); }
     return ns() == rhs.ns();
+  }
+
+  bool Pseudo_Selector::operator== (const Pseudo_Selector& rhs) const
+  {
+    if (is_ns_eq(ns(), rhs.ns()) && name() == rhs.name())
+    {
+      Expression* lhs_ex = expression();
+      Expression* rhs_ex = rhs.expression();
+      if (rhs_ex && lhs_ex) return *lhs_ex == *rhs_ex;
+      else return lhs_ex == rhs_ex;
+    }
+    else return false;
+  }
+
+  bool Pseudo_Selector::operator== (const Simple_Selector& rhs) const
+  {
+    if (const Pseudo_Selector* w = dynamic_cast<const Pseudo_Selector*>(&rhs))
+    {
+      return *this == *w;
+    }
+    if (is_ns_eq(ns(), rhs.ns()))
+    { return name() == rhs.name(); }
+    return ns() == rhs.ns();
+  }
+
+  bool Pseudo_Selector::operator< (const Pseudo_Selector& rhs) const
+  {
+    if (is_ns_eq(ns(), rhs.ns()) && name() == rhs.name())
+    { return *(expression()) < *(rhs.expression()); }
+    if (is_ns_eq(ns(), rhs.ns()))
+    { return name() < rhs.name(); }
+    return ns() < rhs.ns();
+  }
+
+  bool Pseudo_Selector::operator< (const Simple_Selector& rhs) const
+  {
+    if (const Pseudo_Selector* w = dynamic_cast<const Pseudo_Selector*>(&rhs))
+    {
+      return *this < *w;
+    }
+    if (is_ns_eq(ns(), rhs.ns()))
+    { return name() < rhs.name(); }
+    return ns() < rhs.ns();
   }
 
   bool Wrapped_Selector::operator== (const Wrapped_Selector& rhs) const
