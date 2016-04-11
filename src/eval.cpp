@@ -835,7 +835,7 @@ namespace Sass {
 
     std::string name(Util::normalize_underscores(c->name()));
     std::string full_name(name + "[f]");
-    Arguments* args = c->arguments();
+    Arguments* args = SASS_MEMORY_NEW(ctx.mem, Arguments, *c->arguments());
 
     // handle call here if valid arg
     // otherwise we eval arguments to early
@@ -1376,6 +1376,7 @@ namespace Sass {
   Expression* Eval::operator()(Arguments* a)
   {
     Arguments* aa = SASS_MEMORY_NEW(ctx.mem, Arguments, a->pstate());
+    if (a->length() == 0) return aa;
     for (size_t i = 0, L = a->length(); i < L; ++i) {
       Argument* arg = static_cast<Argument*>((*a)[i]->perform(this));
       if (!(arg->is_rest_argument() || arg->is_keyword_argument())) {
