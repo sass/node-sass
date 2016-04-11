@@ -92,9 +92,9 @@ namespace Sass {
 
     // collect more paths from different options
     collect_include_paths(c_options.include_path);
-    // collect_include_paths(c_options.include_paths);
+    collect_include_paths(c_options.include_paths);
     collect_plugin_paths(c_options.plugin_path);
-    // collect_plugin_paths(c_options.plugin_paths);
+    collect_plugin_paths(c_options.plugin_paths);
 
     // load plugins and register custom behaviors
     for(auto plug : plugin_paths) plugins.load_plugins(plug);
@@ -162,7 +162,6 @@ namespace Sass {
 
   void Context::collect_include_paths(const char* paths_str)
   {
-
     if (paths_str) {
       const char* beg = paths_str;
       const char* end = Prelexer::find_first<PATH_SEP>(beg);
@@ -185,17 +184,17 @@ namespace Sass {
     }
   }
 
-  void Context::collect_include_paths(const char** paths_array)
+  void Context::collect_include_paths(string_list* paths_array)
   {
-    if (!paths_array) return;
-    for (size_t i = 0; paths_array[i]; i++) {
-      collect_include_paths(paths_array[i]);
+    while (paths_array)
+    {
+      collect_include_paths(paths_array->string);
+      paths_array = paths_array->next;
     }
   }
 
   void Context::collect_plugin_paths(const char* paths_str)
   {
-
     if (paths_str) {
       const char* beg = paths_str;
       const char* end = Prelexer::find_first<PATH_SEP>(beg);
@@ -218,14 +217,14 @@ namespace Sass {
     }
   }
 
-  void Context::collect_plugin_paths(const char** paths_array)
+  void Context::collect_plugin_paths(string_list* paths_array)
   {
-    if (!paths_array) return;
-    for (size_t i = 0; paths_array[i]; i++) {
-      collect_plugin_paths(paths_array[i]);
+    while (paths_array)
+    {
+      collect_plugin_paths(paths_array->string);
+      paths_array = paths_array->next;
     }
   }
-
 
   // resolve the imp_path in base_path or include_paths
   // looks for alternatives and returns a list from one directory

@@ -198,44 +198,6 @@ extern "C" {
   static Sass_Compiler* sass_prepare_context (Sass_Context* c_ctx, Context* cpp_ctx) throw()
   {
     try {
-
-      // convert include path linked list to static array
-      struct string_list* inc = c_ctx->include_paths;
-      // very poor loop to get the length of the linked list
-      size_t inc_size = 0; while (inc) { inc_size ++; inc = inc->next; }
-      // create char* array to hold all paths plus null terminator
-      const char** include_paths = (const char**) calloc(inc_size + 1, sizeof(char*));
-      if (include_paths == 0) throw(std::bad_alloc());
-      // reset iterator
-      inc = c_ctx->include_paths;
-      // copy over the paths
-      for (size_t i = 0; inc; i++) {
-        include_paths[i] = inc->string;
-        inc = inc->next;
-      }
-
-      // convert plugin path linked list to static array
-      struct string_list* imp = c_ctx->plugin_paths;
-      // very poor loop to get the length of the linked list
-      size_t imp_size = 0; while (imp) { imp_size ++; imp = imp->next; }
-      // create char* array to hold all paths plus null terminator
-      const char** plugin_paths = (const char**) calloc(imp_size + 1, sizeof(char*));
-      if (plugin_paths == 0) {
-          free(include_paths); //free include_paths before throw
-          throw(std::bad_alloc());
-      }
-      // reset iterator
-      imp = c_ctx->plugin_paths;
-      // copy over the paths
-      for (size_t i = 0; imp; i++) {
-        plugin_paths[i] = imp->string;
-        imp = imp->next;
-      }
-
-      // free intermediate data
-      free(include_paths);
-      free(plugin_paths);
-
       // register our custom functions
       if (c_ctx->c_functions) {
         auto this_func_data = c_ctx->c_functions;

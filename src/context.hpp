@@ -101,9 +101,9 @@ namespace Sass {
 
   private:
     void collect_plugin_paths(const char* paths_str);
-    void collect_plugin_paths(const char** paths_array);
+    void collect_plugin_paths(string_list* paths_array);
     void collect_include_paths(const char* paths_str);
-    void collect_include_paths(const char** paths_array);
+    void collect_include_paths(string_list* paths_array);
     std::string format_embedded_source_map();
     std::string format_source_mapping_url(const std::string& out_path);
 
