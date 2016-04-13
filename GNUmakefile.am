@@ -57,9 +57,9 @@ TESTS = \
 	$(SASS_SPEC_PATH)/spec/scss-tests \
 	$(SASS_SPEC_PATH)/spec/types
 
-SASS_TEST_FLAGS = -V 3.4
+SASS_TEST_FLAGS = -V 3.4 --impl libsass
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) ./script/tap-driver
-AM_LOG_FLAGS = -c ./tester --ignore-todo $(LOG_FLAGS)
+AM_LOG_FLAGS = -c ./tester $(LOG_FLAGS)
 if USE_TAP
 	AM_LOG_FLAGS += -t
 	SASS_TEST_FLAGS += -t | tapout
@@ -72,16 +72,16 @@ SASS_TESTER = $(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb
 SASS_TESTER += -c $(SASS_LIBSASS_PATH)/tester$(EXEEXT)
 
 test:
-	$(SASS_TESTER) --ignore-todo $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
-
-test_build:
-	$(SASS_TESTER) --ignore-todo $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
-
-test_full:
 	$(SASS_TESTER) $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
 
+test_build:
+	$(SASS_TESTER) $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
+
+test_full:
+	$(SASS_TESTER) --run-todo $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
+
 test_issues:
-	$(SASS_TESTER) $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues $(SASS_TEST_FLAGS)
+	$(SASS_TESTER) --run-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues $(SASS_TEST_FLAGS)
 
 endif
 
