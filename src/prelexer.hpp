@@ -164,11 +164,9 @@ namespace Sass {
 
     // Match a line comment.
     const char* line_comment(const char* src);
-    const char* line_comment_prefix(const char* src);
 
     // Match a block comment.
     const char* block_comment(const char* src);
-    const char* block_comment_prefix(const char* src);
     // Match either.
     const char* comment(const char* src);
     // Match double- and single-quoted strings.
