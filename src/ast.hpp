@@ -277,8 +277,24 @@ namespace Sass {
   // extra <std::vector> internally to maintain insertion order for interation.
   /////////////////////////////////////////////////////////////////////////////
   class Hashed {
+  struct HashExpression {
+    size_t operator() (Expression* ex) const {
+      return ex ? ex->hash() : 0;
+    }
+  };
+  struct CompareExpression {
+    bool operator()(const Expression* lhs, const Expression* rhs) const {
+      return lhs && rhs && *lhs == *rhs;
+    }
+  };
+  typedef std::unordered_map<
+    Expression*, // key
+    Expression*, // value
+    HashExpression, // hasher
+    CompareExpression // compare
+  > ExpressionMap;
   private:
-    std::unordered_map<Expression*, Expression*> elements_;
+    ExpressionMap elements_;
     std::vector<Expression*> list_;
   protected:
     size_t hash_;
@@ -287,7 +303,7 @@ namespace Sass {
     void reset_duplicate_key() { duplicate_key_ = 0; }
     virtual void adjust_after_pushing(std::pair<Expression*, Expression*> p) { }
   public:
-    Hashed(size_t s = 0) : elements_(std::unordered_map<Expression*, Expression*>(s)), list_(std::vector<Expression*>())
+    Hashed(size_t s = 0) : elements_(ExpressionMap(s)), list_(std::vector<Expression*>())
     { elements_.reserve(s); list_.reserve(s); reset_duplicate_key(); }
     virtual ~Hashed();
     size_t length() const                  { return list_.size(); }
@@ -296,7 +312,7 @@ namespace Sass {
     Expression* at(Expression* k) const;
     bool has_duplicate_key() const         { return duplicate_key_ != 0; }
     Expression* get_duplicate_key() const  { return duplicate_key_; }
-    const std::unordered_map<Expression*, Expression*> elements() { return elements_; }
+    const ExpressionMap elements() { return elements_; }
     Hashed& operator<<(std::pair<Expression*, Expression*> p)
     {
       reset_hash();
@@ -324,7 +340,7 @@ namespace Sass {
       reset_duplicate_key();
       return *this;
     }
-    const std::unordered_map<Expression*, Expression*>& pairs() const { return elements_; }
+    const ExpressionMap& pairs() const { return elements_; }
     const std::vector<Expression*>& keys() const { return list_; }
 
     std::unordered_map<Expression*, Expression*>::iterator end() { return elements_.end(); }
