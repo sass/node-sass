@@ -1108,7 +1108,7 @@ namespace Sass {
   void Eval::interpolation(Context& ctx, std::string& res, Expression* ex, bool into_quotes, bool was_itpl) {
 
     bool needs_closing_brace = false;
-//debug_ast(ex);
+
     if (Arguments* args = dynamic_cast<Arguments*>(ex)) {
       List* ll = SASS_MEMORY_NEW(ctx.mem, List, args->pstate(), 0, SASS_COMMA);
       for(auto arg : *args) {
@@ -1731,6 +1731,7 @@ namespace Sass {
     std::string result_str(s->contents()->perform(this)->to_string(ctx.c_options));
     result_str = unquote(Util::rtrim(result_str)) + "\n{";
     Parser p = Parser::from_c_str(result_str.c_str(), ctx, s->pstate());
+    p.last_media_block = s->media_block();
     return operator()(p.parse_selector_list(exp.block_stack.back()->is_root()));
   }
 
