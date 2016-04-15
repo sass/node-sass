@@ -1729,7 +1729,7 @@ namespace Sass {
   {
     // the parser will look for a brace to end the selector
     std::string result_str(s->contents()->perform(this)->to_string(ctx.c_options));
-    result_str = unquote(Util::rtrim(result_str)) + "{";
+    result_str = unquote(Util::rtrim(result_str)) + "\n{";
     Parser p = Parser::from_c_str(result_str.c_str(), ctx, s->pstate());
     return operator()(p.parse_selector_list(exp.block_stack.back()->is_root()));
   }
