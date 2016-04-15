@@ -89,6 +89,8 @@ namespace Sass {
     extern const char expression_kwd[]   = "expression";
     extern const char calc_fn_kwd[]      = "calc";
 
+    extern const char almost_any_value_class[] = "\"'#!;{}";
+
     // css selector keywords
     extern const char sel_deep_kwd[] = "/deep/";
 

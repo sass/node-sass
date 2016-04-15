@@ -1,5 +1,8 @@
 # Miscellaneous stuff
 
+/sassc
+/sass-spec
+
 VERSION
 .DS_Store
 .sass-cache

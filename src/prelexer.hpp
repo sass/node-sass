@@ -162,6 +162,14 @@ namespace Sass {
       return src;
     }
 
+    // equivalent of STRING_REGULAR_EXPRESSIONS
+    const char* re_string_double_open(const char* src);
+    const char* re_string_double_close(const char* src);
+    const char* re_string_single_open(const char* src);
+    const char* re_string_single_close(const char* src);
+    const char* re_string_uri_open(const char* src);
+    const char* re_string_uri_close(const char* src);
+
     // Match a line comment.
     const char* line_comment(const char* src);
 
@@ -216,8 +224,13 @@ namespace Sass {
     // const char* url_schema(const char* src);
     // const char* url_value(const char* src);
     const char* vendor_prefix(const char* src);
-    // Match CSS '@' keywords.
+
     const char* re_special_directive(const char* src);
+    const char* re_prefixed_directive(const char* src);
+    const char* re_almost_any_value_token(const char* src);
+
+    // Match CSS '@' keywords.
+    const char* at_keyword(const char* src);
     const char* kwd_import(const char* src);
     const char* kwd_at_root(const char* src);
     const char* kwd_with_directive(const char* src);

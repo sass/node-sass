@@ -1471,6 +1471,9 @@ namespace Sass {
     { concrete_type(STRING); }
     static std::string type_name() { return "string"; }
     virtual ~String() = 0;
+    virtual void rtrim() = 0;
+    virtual void ltrim() = 0;
+    virtual void trim() = 0;
     virtual bool operator==(const Expression& rhs) const = 0;
     ATTACH_OPERATIONS()
   };
@@ -1499,6 +1502,9 @@ namespace Sass {
       }
       return false;
     }
+    virtual void rtrim();
+    virtual void ltrim();
+    virtual void trim();
 
     virtual size_t hash()
     {
@@ -1539,6 +1545,9 @@ namespace Sass {
     std::string type() { return "string"; }
     static std::string type_name() { return "string"; }
     virtual bool is_invisible() const;
+    virtual void rtrim();
+    virtual void ltrim();
+    virtual void trim();
 
     virtual size_t hash()
     {
@@ -1698,40 +1707,13 @@ namespace Sass {
   /////////////////////////////////////////////////
   class At_Root_Query : public Expression {
   private:
-    ADD_PROPERTY(String*, feature)
+    ADD_PROPERTY(Expression*, feature)
     ADD_PROPERTY(Expression*, value)
-    ADD_PROPERTY(bool, is_interpolated)
   public:
-    At_Root_Query(ParserState pstate, String* f = 0, Expression* v = 0, bool i = false)
-    : Expression(pstate), feature_(f), value_(v), is_interpolated_(i)
+    At_Root_Query(ParserState pstate, Expression* f = 0, Expression* v = 0, bool i = false)
+    : Expression(pstate), feature_(f), value_(v)
     { }
-    bool exclude(std::string str)
-    {
-      bool with = feature() && unquote(feature()->to_string()).compare("with") == 0;
-      List* l = static_cast<List*>(value());
-      std::string v;
-
-      if (with)
-      {
-        if (!l || l->length() == 0) return str.compare("rule") != 0;
-        for (size_t i = 0, L = l->length(); i < L; ++i)
-        {
-          v = unquote((*l)[i]->to_string());
-          if (v.compare("all") == 0 || v == str) return false;
-        }
-        return true;
-      }
-      else
-      {
-        if (!l || !l->length()) return str.compare("rule") == 0;
-        for (size_t i = 0, L = l->length(); i < L; ++i)
-        {
-          v = unquote((*l)[i]->to_string());
-          if (v.compare("all") == 0 || v == str) return true;
-        }
-        return false;
-      }
-    }
+    bool exclude(std::string str);
     ATTACH_OPERATIONS()
   };
 

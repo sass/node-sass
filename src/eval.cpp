@@ -1186,8 +1186,10 @@ namespace Sass {
       if (!dynamic_cast<String_Quoted*>((*s)[0]) && !dynamic_cast<String_Quoted*>((*s)[L - 1])) {
       if (String_Constant* l = dynamic_cast<String_Constant*>((*s)[0])) {
         if (String_Constant* r = dynamic_cast<String_Constant*>((*s)[L - 1])) {
-          if (l->value()[0] == '"' && r->value()[r->value().size() - 1] == '"') into_quotes = true;
-          if (l->value()[0] == '\'' && r->value()[r->value().size() - 1] == '\'') into_quotes = true;
+          if (r->value().size() > 0) {
+            if (l->value()[0] == '"' && r->value()[r->value().size() - 1] == '"') into_quotes = true;
+            if (l->value()[0] == '\'' && r->value()[r->value().size() - 1] == '\'') into_quotes = true;
+          }
         }
       }
       }
