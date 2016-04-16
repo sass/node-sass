@@ -1298,6 +1298,14 @@ namespace Sass {
     return false;
   }
 
+  bool Selector_Schema::has_parent_ref()
+  {
+    if (String_Schema* schema = dynamic_cast<String_Schema*>(contents())) {
+      return schema->length() > 0 && dynamic_cast<Parent_Selector*>(schema->at(0)) != NULL;
+    }
+    return false;
+  }
+
   void Selector_List::adjust_after_pushing(Complex_Selector* c)
   {
     // if (c->has_reference())   has_reference(true);

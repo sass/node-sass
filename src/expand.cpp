@@ -621,8 +621,11 @@ namespace Sass {
   Statement* Expand::operator()(Extension* e)
   {
     if (Selector_List* extender = dynamic_cast<Selector_List*>(selector())) {
-      selector_stack.push_back(0);
       Selector* s = e->selector();
+      if (Selector_Schema* schema = dynamic_cast<Selector_Schema*>(s)) {
+        if (schema->has_parent_ref()) s = eval(schema);
+      }
+      selector_stack.push_back(0);
       expand_selector_list(s, extender);
       selector_stack.pop_back();
     }
