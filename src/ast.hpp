@@ -1914,6 +1914,7 @@ namespace Sass {
     Selector_Schema(ParserState pstate, String* c)
     : Selector(pstate), contents_(c), at_root_(false)
     { }
+    virtual bool has_parent_ref();
     virtual size_t hash() {
       if (hash_ == 0) {
         hash_combine(hash_, contents_->hash());
