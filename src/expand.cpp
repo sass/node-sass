@@ -19,6 +19,7 @@ namespace Sass {
     call_stack(std::vector<AST_Node*>()),
     property_stack(std::vector<String*>()),
     selector_stack(std::vector<Selector_List*>()),
+    media_block_stack(std::vector<Media_Block*>()),
     backtrace_stack(std::vector<Backtrace*>()),
     in_keyframes(false)
   {
@@ -29,6 +30,7 @@ namespace Sass {
     // import_stack.push_back(0);
     property_stack.push_back(0);
     selector_stack.push_back(0);
+    media_block_stack.push_back(0);
     backtrace_stack.push_back(0);
     backtrace_stack.push_back(bt);
   }
@@ -195,6 +197,7 @@ namespace Sass {
 
   Statement* Expand::operator()(Media_Block* m)
   {
+    media_block_stack.push_back(m);
     Expression* mq = m->media_queries()->perform(&eval);
     std::string str_mq(mq->to_string(ctx.c_options));
     char* str = sass_copy_c_string(str_mq.c_str());
@@ -206,6 +209,7 @@ namespace Sass {
                                       static_cast<List*>(mq->perform(&eval)),
                                       m->block()->perform(this)->block(),
                                       0);
+    media_block_stack.pop_back();
     mm->tabs(m->tabs());
     return mm;
   }
@@ -624,6 +628,13 @@ namespace Sass {
       Selector* s = e->selector();
       if (Selector_Schema* schema = dynamic_cast<Selector_Schema*>(s)) {
         if (schema->has_parent_ref()) s = eval(schema);
+      }
+      if (Selector_List* sl = dynamic_cast<Selector_List*>(s)) {
+        for (Complex_Selector* cs : *sl) {
+          if (cs != NULL && cs->head() != NULL) {
+            cs->head()->media_block(media_block_stack.back());
+          }
+        }
       }
       selector_stack.push_back(0);
       expand_selector_list(s, extender);
