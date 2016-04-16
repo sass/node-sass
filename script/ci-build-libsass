@@ -48,6 +48,18 @@ if [ "x$PREFIX" == "x" ]; then
   fi
 fi
 
+# enable address sanitation
+# https://en.wikipedia.org/wiki/AddressSanitizer
+if [ "x$CC" == "xclang" ]; then
+  if [ "x$COVERAGE" != "xyes" ]; then
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      export EXTRA_CFLAGS="$EXTRA_CFLAGS -fsanitize=address"
+      export EXTRA_CXXFLAGS="$EXTRA_CXXFLAGS -fsanitize=address"
+      export EXTRA_LDFLAGS="$EXTRA_LDFLAGS -fsanitize=address"
+    fi
+  fi
+fi
+
 echo SASS_LIBSASS_PATH: $SASS_LIBSASS_PATH
 echo TRAVIS_BUILD_DIR: $TRAVIS_BUILD_DIR
 echo SASS_SASSC_PATH: $SASS_SASSC_PATH
