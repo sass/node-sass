@@ -593,7 +593,7 @@ namespace Sass {
         error("Can't extend " + sel_str + ": can't extend nested selectors", c->pstate(), backtrace());
       }
       Compound_Selector* placeholder = c->head();
-      placeholder->is_optional(s->is_optional());
+      if (contextualized->is_optional()) placeholder->is_optional(true);
       for (size_t i = 0, L = extender->length(); i < L; ++i) {
         Complex_Selector* sel = (*extender)[i];
         if (!(sel->head() && sel->head()->length() > 0 &&
