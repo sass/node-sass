@@ -136,6 +136,7 @@ namespace Sass {
       env = new Env(environment());
       env_stack.push_back(env);
     }
+    sel->set_media_block(media_block_stack.back());
     Block* blk = r->block()->perform(this)->block();
     Ruleset* rr = SASS_MEMORY_NEW(ctx.mem, Ruleset,
                                   r->pstate(),

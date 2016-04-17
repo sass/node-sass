@@ -1901,6 +1901,9 @@ namespace Sass {
     virtual unsigned long specificity() {
       return Constants::Specificity_Universal;
     }
+    virtual void set_media_block(Media_Block* mb) {
+      media_block(mb);
+    }
   };
   inline Selector::~Selector() { }
 
@@ -2405,6 +2408,11 @@ namespace Sass {
       if (tail()) sum += tail()->specificity();
       return sum;
     }
+    virtual void set_media_block(Media_Block* mb) {
+      media_block(mb);
+      if (tail_) tail_->set_media_block(mb);
+      if (head_) head_->set_media_block(mb);
+    }
     bool operator<(const Complex_Selector& rhs) const;
     bool operator==(const Complex_Selector& rhs) const;
     inline bool operator!=(const Complex_Selector& rhs) const { return !(*this == rhs); }
@@ -2506,6 +2514,12 @@ namespace Sass {
         if (sum < specificity) sum = specificity;
       }
       return sum;
+    }
+    virtual void set_media_block(Media_Block* mb) {
+      media_block(mb);
+      for (Complex_Selector* cs : elements()) {
+        cs->set_media_block(mb);
+      }
     }
     Selector_List* clone(Context&) const;      // does not clone Compound_Selector*s
     Selector_List* cloneFully(Context&) const; // clones Compound_Selector*s
