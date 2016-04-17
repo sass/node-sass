@@ -1737,7 +1737,7 @@ namespace Sass {
         SubsetMapEntries entries = subset_map.get_v(pHead->to_str_vec());
         for (ExtensionPair ext : entries) {
           // check if both selectors have the same media block parent
-          if (ext.first->media_block() == pComplexSelector->media_block()) continue;
+          // if (ext.first->media_block() == pComplexSelector->media_block()) continue;
           if (ext.second->media_block() == 0) continue;
           if (pComplexSelector->media_block() &&
               ext.second->media_block()->media_queries() &&

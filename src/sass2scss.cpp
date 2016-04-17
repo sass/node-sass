@@ -528,6 +528,13 @@ namespace Sass
 			// reset converter state
 			converter.selector = false;
 
+			// looks like some undocumented behavior ...
+			// https://github.com/mgreter/sass2scss/issues/29
+			if (sass.substr(pos_left, 1) == "\\") {
+				converter.selector = true;
+				sass[pos_left] = ' ';
+			}
+
 			// check if we have sass property syntax
 			if (sass.substr(pos_left, 1) == ":" && sass.substr(pos_left, 2) != "::")
 			{

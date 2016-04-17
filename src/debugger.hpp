@@ -352,6 +352,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     Content* block = dynamic_cast<Content*>(node);
     std::cerr << ind << "Content " << block;
     std::cerr << " (" << pstate_source_position(node) << ")";
+    std::cerr << " [@media:" << block->media_block() << "]";
     std::cerr << " " << block->tabs() << std::endl;
   } else if (dynamic_cast<Import_Stub*>(node)) {
     Import_Stub* block = dynamic_cast<Import_Stub*>(node);
@@ -564,6 +565,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     Content* expression = dynamic_cast<Content*>(node);
     std::cerr << ind << "Content " << expression;
     std::cerr << " (" << pstate_source_position(node) << ")";
+    std::cerr << " [@media:" << expression->media_block() << "]";
     std::cerr << " [Statement]" << std::endl;
   } else if (dynamic_cast<Boolean*>(node)) {
     Boolean* expression = dynamic_cast<Boolean*>(node);

@@ -1275,10 +1275,10 @@ namespace Sass {
       if ((*this)[i]->head()->is_empty_reference()) {
         // simply move to the next tail if we have "no" combinator
         if ((*this)[i]->combinator() == Complex_Selector::ANCESTOR_OF) {
-          if ((*this)[i]->tail() && (*this)[i]->has_line_feed()) {
-            (*this)[i]->tail()->has_line_feed(true);
-          }
           if ((*this)[i]->tail() != NULL) {
+            if ((*this)[i]->has_line_feed()) {
+              (*this)[i]->tail()->has_line_feed(true);
+            }
             (*this)[i] = (*this)[i]->tail();
           }
         }
