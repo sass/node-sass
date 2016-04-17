@@ -64,7 +64,10 @@ test_script:
         }
       }
       ruby sass-spec/sass-spec.rb -V 3.4 --impl libsass -c $env:TargetPath -s sass-spec/spec
-
+      if(-not($?)) {
+        echo "sass-spec tests failed"
+        exit 1
+      }
       Write-Host "Explicitly testing the case when cwd has Cyrillic characters: " -nonewline
       # See comments in gh-1774 for details.
       $env:TargetPath =  Join-Path $pwd.Path $env:TargetPath
