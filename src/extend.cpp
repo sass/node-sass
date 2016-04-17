@@ -1739,12 +1739,12 @@ namespace Sass {
           // check if both selectors have the same media block parent
           // if (ext.first->media_block() == pComplexSelector->media_block()) continue;
           if (ext.second->media_block() == 0) continue;
-          if (pComplexSelector->media_block() &&
+          if (pHead->media_block() &&
               ext.second->media_block()->media_queries() &&
-              pComplexSelector->media_block()->media_queries()
+              pHead->media_block()->media_queries()
           ) {
             std::string query_left(ext.second->media_block()->media_queries()->to_string(ctx.c_options));
-            std::string query_right(pComplexSelector->media_block()->media_queries()->to_string(ctx.c_options));
+            std::string query_right(pHead->media_block()->media_queries()->to_string(ctx.c_options));
             if (query_left == query_right) continue;
           }
 
