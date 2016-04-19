@@ -41,7 +41,7 @@ function afterBuild(options) {
           return;
         }
 
-        console.log('Installed in `', install, '`');
+        console.log('Installed in "' + install + '"');
       });
     });
   });
@@ -196,11 +196,11 @@ function testBinary(options) {
     return build(options);
   }
 
-  if (!sass.getBinaryPath()) {
+  if (!sass.hasBinary(sass.getBinaryPath())) {
     return build(options);
   }
 
-  console.log('`', sass.getBinaryPath(), '` exists.', eol, 'testing binary.');
+  console.log('"' + sass.getBinaryPath() + '" exists.', eol, 'testing binary.');
 
   try {
     require('../').renderSync({
