@@ -196,7 +196,7 @@ function testBinary(options) {
     return build(options);
   }
 
-  if (!sass.getBinaryPath()) {
+  if (!sass.hasBinary(sass.getBinaryPath())) {
     return build(options);
   }
 
