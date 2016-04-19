@@ -2,6 +2,9 @@
   branches:
     only:
       - release
+      - /v\d\.\d\.\d/
+    except:
+      - master
 
   os: Visual Studio 2013
 
@@ -70,7 +73,6 @@
       auth_token:
         secure: IZIifH990iABY3PQUtkRscTU/NOyYYwptGB6B1y2b618vpphV/2KD/4IWJzSAYAi
       on:
-        branch: release               # release from master branch only
         appveyor_repo_tag: true       # deploy on tag push only
 
 -
