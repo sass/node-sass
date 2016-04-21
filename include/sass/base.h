@@ -79,6 +79,9 @@ ADDAPI char* ADDCALL sass_resolve_file (const char* path, const char* incs[]);
 // Get compiled libsass version
 ADDAPI const char* ADDCALL libsass_version(void);
 
+// Get compiled libsass language
+ADDAPI const char* ADDCALL libsass_language_version(void);
+
 #ifdef __cplusplus
 } // __cplusplus defined.
 #endif
