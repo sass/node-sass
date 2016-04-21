@@ -7,7 +7,7 @@ var fs = require('fs'),
     mkdir = require('mkdirp'),
     npmconf = require('npmconf'),
     path = require('path'),
-    sass = require('../lib/extensions');
+    sass = require('../lib/extensions'),
     request = require('request'),
     pkg = require('../package.json');
 
