@@ -28,6 +28,10 @@
 
 #include "json.hpp"
 
+// include utf8 library used by libsass
+// ToDo: replace internal json utf8 code
+#include "utf8.h"
+
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -1140,6 +1144,13 @@ void emit_string(SB *out, const char *str)
   bool escape_unicode = false;
   const char *s = str;
   char *b;
+
+// make assertion catchable
+#ifndef NDEBUG
+  if (!utf8_validate(str)) {
+    throw utf8::invalid_utf8(0);
+  }
+#endif
 
   assert(utf8_validate(str));
 
