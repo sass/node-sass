@@ -1463,6 +1463,7 @@ namespace Sass {
       Node current = afters.collection()->front().clone(ctx);
       afters.collection()->pop_front();
       DEBUG_PRINTLN(WEAVE, "CURRENT: " << current)
+      if (current.collection()->size() == 0) continue;
 
       Node last_current = Node::createCollection();
       last_current.collection()->push_back(current.collection()->back());
