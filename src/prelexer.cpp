@@ -825,6 +825,22 @@ namespace Sass {
       return sequence<exactly<'$'>, identifier>(src);
     }
 
+    // parse `calc`, `-a-calc` and `--b-c-calc`
+    // but do not parse `foocalc` or `foo-calc`
+    const char* calc_fn_call(const char* src) {
+      return sequence <
+        optional < sequence <
+          hyphens,
+          one_plus < sequence <
+            strict_identifier,
+            hyphens
+          > >
+        > >,
+        exactly < calc_fn_kwd >,
+        word_boundary
+      >(src);
+    }
+
     // Match Sass boolean keywords.
     const char* kwd_true(const char* src) {
       return word<true_kwd>(src);
@@ -1183,6 +1199,12 @@ namespace Sass {
     // lexer special_fn: these functions cannot be overloaded
     // (/((-[\w-]+-)?(calc|element)|expression|progid:[a-z\.]*)\(/i)
     const char* re_special_fun(const char* src) {
+
+      // match this first as we test prefix hyphens
+      if (const char* calc = calc_fn_call(src)) {
+        return calc;
+      }
+
       return sequence <
         optional <
           sequence <
@@ -1197,7 +1219,6 @@ namespace Sass {
           >
         >,
         alternatives <
-          word < calc_fn_kwd >,
           word < expression_kwd >,
           sequence <
             sequence <

@@ -1325,10 +1325,7 @@ namespace Sass {
     else if (peek< ie_keyword_arg >()) {
       return parse_ie_keyword_arg();
     }
-    else if (peek< exactly< calc_kwd > >() ||
-             peek< exactly< moz_calc_kwd > >() ||
-             peek< exactly< ms_calc_kwd > >() ||
-             peek< exactly< webkit_calc_kwd > >()) {
+    else if (peek< sequence < calc_fn_call, exactly <'('> > >()) {
       return parse_calc_function();
     }
     else if (lex < functional_schema >()) {
