@@ -652,7 +652,7 @@ namespace Sass {
                         (d->type() == Definition::MIXIN ? "[m]" : "[f]")] = dd;
 
     if (d->type() == Definition::FUNCTION && (
-      d->name() == "calc"       ||
+      Prelexer::calc_fn_call(d->name().c_str()) ||
       d->name() == "element"    ||
       d->name() == "expression" ||
       d->name() == "url"

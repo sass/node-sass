@@ -44,6 +44,7 @@ namespace Sass {
     const char* xdigit(const char* src);
     const char* alnum(const char* src);
     const char* punct(const char* src);
+    const char* hyphen(const char* src);
     const char* unicode(const char* src);
     const char* nonascii(const char* src);
     const char* character(const char* src);
@@ -53,6 +54,7 @@ namespace Sass {
     // Match multiple ctype characters.
     const char* spaces(const char* src);
     const char* digits(const char* src);
+    const char* hyphens(const char* src);
 
     // Whitespace handling.
     const char* no_spaces(const char* src);

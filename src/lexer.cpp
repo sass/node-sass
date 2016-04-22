@@ -121,6 +121,7 @@ namespace Sass {
     const char* xdigit(const char* src) { return is_xdigit(*src) ? src + 1 : 0; }
     const char* alnum(const char* src) { return is_alnum(*src) ? src + 1 : 0; }
     const char* punct(const char* src) { return is_punct(*src) ? src + 1 : 0; }
+    const char* hyphen(const char* src) { return *src && *src == '-' ? src + 1 : 0; }
     const char* character(const char* src) { return is_character(*src) ? src + 1 : 0; }
     const char* uri_character(const char* src) { return is_uri_character(*src) ? src + 1 : 0; }
     const char* escapable_character(const char* src) { return is_escapable_character(*src) ? src + 1 : 0; }
@@ -128,6 +129,7 @@ namespace Sass {
     // Match multiple ctype characters.
     const char* spaces(const char* src) { return one_plus<space>(src); }
     const char* digits(const char* src) { return one_plus<digit>(src); }
+    const char* hyphens(const char* src) { return one_plus<hyphen>(src); }
 
     // Whitespace handling.
     const char* no_spaces(const char* src) { return negate< space >(src); }
