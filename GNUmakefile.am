@@ -80,8 +80,8 @@ test_build:
 test_full:
 	$(SASS_TESTER) --run-todo $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
 
-test_issues:
-	$(SASS_TESTER) --run-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues $(SASS_TEST_FLAGS)
+test_probe:
+	$(SASS_TESTER) --probe-todo $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
 
 endif
 

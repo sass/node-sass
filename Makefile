@@ -300,13 +300,16 @@ version: $(SASSC_BIN)
 	$(SASSC_BIN) -v
 
 test: $(SASSC_BIN)
-	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -V 3.4 -c $(SASSC_BIN) --impl libsass -s --run-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
+	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -V 3.4 -c $(SASSC_BIN) --impl libsass $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
 
 test_build: $(SASSC_BIN)
-	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -V 3.4 -c $(SASSC_BIN) --impl libsass -s $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
+	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -V 3.4 -c $(SASSC_BIN) --impl libsass $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
 
-test_issues: $(SASSC_BIN)
-	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -V 3.4 -c $(SASSC_BIN) --impl libsass --run-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)/spec/issues
+test_full: $(SASSC_BIN)
+	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -V 3.4 -c $(SASSC_BIN) --impl libsass --run-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
+
+test_probe: $(SASSC_BIN)
+	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -V 3.4 -c $(SASSC_BIN) --impl libsass --probe-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
 
 clean-objects: lib
 	-$(RM) lib/*.a lib/*.so lib/*.dll lib/*.la
