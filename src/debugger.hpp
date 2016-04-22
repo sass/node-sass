@@ -557,6 +557,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
       (expression->separator() == SASS_COMMA ? "Comma " : expression->separator() == SASS_HASH ? "Map" : "Space ") <<
       " [delayed: " << expression->is_delayed() << "] " <<
       " [interpolant: " << expression->is_interpolant() << "] " <<
+      " [listized: " << expression->from_selector() << "] " <<
       " [arglist: " << expression->is_arglist() << "] " <<
       " [hash: " << expression->hash() << "] " <<
       std::endl;

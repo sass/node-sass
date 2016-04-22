@@ -458,6 +458,7 @@ namespace Sass {
       *ll << (*l)[i]->perform(this);
     }
     ll->is_interpolant(l->is_interpolant());
+    ll->from_selector(l->from_selector());
     ll->is_expanded(true);
     return ll;
   }
@@ -832,7 +833,6 @@ namespace Sass {
         stm << "Stack depth exceeded max of " << Constants::MaxCallStack;
         error(stm.str(), c->pstate(), backtrace());
     }
-
     std::string name(Util::normalize_underscores(c->name()));
     std::string full_name(name + "[f]");
     Arguments* args = SASS_MEMORY_NEW(ctx.mem, Arguments, *c->arguments());

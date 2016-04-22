@@ -385,9 +385,12 @@ namespace Sass {
     bool was_space_array = in_space_array;
     bool was_comma_array = in_comma_array;
     // probably ruby sass eqivalent of element_needs_parens
-    if (output_style() == TO_SASS && list->length() == 1 &&
-      (!dynamic_cast<List*>((*list)[0]) &&
-       !dynamic_cast<Selector_List*>((*list)[0]))) {
+    if (output_style() == TO_SASS &&
+        list->length() == 1 &&
+        !list->from_selector() &&
+        !dynamic_cast<List*>((*list)[0]) &&
+        !dynamic_cast<List*>((*list)[0]) &&
+        !dynamic_cast<Selector_List*>((*list)[0])) {
       append_string("(");
     }
     else if (!in_declaration && (list->separator() == SASS_HASH ||
@@ -424,9 +427,12 @@ namespace Sass {
     in_comma_array = was_comma_array;
     in_space_array = was_space_array;
     // probably ruby sass eqivalent of element_needs_parens
-    if (output_style() == TO_SASS && list->length() == 1 &&
-      (!dynamic_cast<List*>((*list)[0]) &&
-       !dynamic_cast<Selector_List*>((*list)[0]))) {
+    if (output_style() == TO_SASS &&
+        list->length() == 1 &&
+        !list->from_selector() &&
+        !dynamic_cast<List*>((*list)[0]) &&
+        !dynamic_cast<List*>((*list)[0]) &&
+        !dynamic_cast<Selector_List*>((*list)[0])) {
       append_string(",)");
     }
     else if (!in_declaration && (list->separator() == SASS_HASH ||

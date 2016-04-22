@@ -17,6 +17,7 @@ namespace Sass {
   Expression* Listize::operator()(Selector_List* sel)
   {
     List* l = SASS_MEMORY_NEW(mem, List, sel->pstate(), sel->length(), SASS_COMMA);
+    l->from_selector(true);
     for (size_t i = 0, L = sel->length(); i < L; ++i) {
       if (!(*sel)[i]) continue;
       *l << (*sel)[i]->perform(this);
@@ -38,7 +39,7 @@ namespace Sass {
   Expression* Listize::operator()(Complex_Selector* sel)
   {
     List* l = SASS_MEMORY_NEW(mem, List, sel->pstate(), 2);
-
+    l->from_selector(true);
     Compound_Selector* head = sel->head();
     if (head && !head->is_empty_reference())
     {

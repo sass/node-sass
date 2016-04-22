@@ -872,6 +872,7 @@ namespace Sass {
   private:
     ADD_PROPERTY(enum Sass_Separator, separator)
     ADD_PROPERTY(bool, is_arglist)
+    ADD_PROPERTY(bool, from_selector)
   public:
     List(ParserState pstate,
          size_t size = 0, enum Sass_Separator sep = SASS_SPACE, bool argl = false)
