@@ -586,7 +586,7 @@ namespace Sass {
     }
 
     const char* hyphens_and_identifier(const char* src) {
-      return sequence< zero_plus< exactly< '-' > >, identifier >(src);
+      return sequence< zero_plus< exactly< '-' > >, identifier_alnums >(src);
     }
     const char* hyphens_and_name(const char* src) {
       return sequence< zero_plus< exactly< '-' > >, name >(src);
@@ -596,11 +596,11 @@ namespace Sass {
     }
     // Match CSS id names.
     const char* id_name(const char* src) {
-      return sequence<exactly<'#'>, identifier>(src);
+      return sequence<exactly<'#'>, identifier_alnums >(src);
     }
     // Match CSS class names.
     const char* class_name(const char* src) {
-      return sequence<exactly<'.'>, identifier>(src);
+      return sequence<exactly<'.'>, identifier_alnums >(src);
     }
     // Attribute name in an attribute selector.
     const char* attribute_name(const char* src) {
@@ -609,7 +609,7 @@ namespace Sass {
     }
     // match placeholder selectors
     const char* placeholder(const char* src) {
-      return sequence<exactly<'%'>, identifier>(src);
+      return sequence<exactly<'%'>, identifier_alnums >(src);
     }
     // Match CSS numeric constants.
 
