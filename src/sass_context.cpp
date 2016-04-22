@@ -36,7 +36,7 @@ extern "C" {
     type sass_context_take_##option (struct Sass_Context* ctx) \
     { type foo = ctx->option; ctx->option = 0; return foo; }
 
-  static int handle_errors(Sass_Context* c_ctx) {
+  static int handle_error(Sass_Context* c_ctx) {
     try {
      throw;
     }
@@ -191,6 +191,14 @@ extern "C" {
       c_ctx->source_map_string = 0;
       json_delete(json_err);
     }
+    return c_ctx->error_status;
+  }
+
+  // allow one error handler to throw another error
+  // this can happen with invalid utf8 and json lib
+  static int handle_errors(Sass_Context* c_ctx) {
+    try { return handle_error(c_ctx); }
+    catch (...) { return handle_error(c_ctx); }
     return c_ctx->error_status;
   }
 

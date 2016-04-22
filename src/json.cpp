@@ -28,6 +28,10 @@
 
 #include "json.hpp"
 
+// include utf8 library used by libsass
+// ToDo: replace internal json utf8 code
+#include "utf8.h"
+
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -548,7 +552,7 @@ static void append_node(JsonNode *parent, JsonNode *child)
       child->parent = parent;
       child->prev = parent->children.tail;
       child->next = NULL;
-      
+
       if (parent->children.tail != NULL)
           parent->children.tail->next = child;
       else
@@ -563,7 +567,7 @@ static void prepend_node(JsonNode *parent, JsonNode *child)
       child->parent = parent;
       child->prev = NULL;
       child->next = parent->children.head;
-      
+
       if (parent->children.head != NULL)
           parent->children.head->prev = child;
       else
@@ -585,7 +589,7 @@ void json_append_element(JsonNode *array, JsonNode *element)
   if (array != NULL && element !=NULL) {
       assert(array->tag == JSON_ARRAY);
       assert(element->parent == NULL);
-      
+
       append_node(array, element);
   }
 }
@@ -603,7 +607,7 @@ void json_append_member(JsonNode *object, const char *key, JsonNode *value)
   if (object != NULL && key != NULL && value != NULL) {
       assert(object->tag == JSON_OBJECT);
       assert(value->parent == NULL);
-      
+
       append_member(object, json_strdup(key), value);
   }
 }
@@ -613,7 +617,7 @@ void json_prepend_member(JsonNode *object, const char *key, JsonNode *value)
   if (object != NULL && key != NULL && value != NULL) {
       assert(object->tag == JSON_OBJECT);
       assert(value->parent == NULL);
-      
+
       value->key = json_strdup(key);
       prepend_node(object, value);
   }
@@ -623,20 +627,20 @@ void json_remove_from_parent(JsonNode *node)
 {
   if (node != NULL) {
       JsonNode *parent = node->parent;
-      
+
       if (parent != NULL) {
           if (node->prev != NULL)
               node->prev->next = node->next;
           else
               parent->children.head = node->next;
-		  
+
           if (node->next != NULL)
               node->next->prev = node->prev;
           else
               parent->children.tail = node->prev;
-          
+
           free(node->key);
-          
+
           node->parent = NULL;
           node->prev = node->next = NULL;
           node->key = NULL;
@@ -1140,6 +1144,13 @@ void emit_string(SB *out, const char *str)
   bool escape_unicode = false;
   const char *s = str;
   char *b;
+
+// make assertion catchable
+#ifndef NDEBUG
+  if (!utf8_validate(str)) {
+    throw utf8::invalid_utf8(0);
+  }
+#endif
 
   assert(utf8_validate(str));
 
