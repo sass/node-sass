@@ -17,7 +17,7 @@ namespace Sass {
 
         void fallback_impl(AST_Node* n) {}
 
-    private:
+    public:
       Selector_List* remove_placeholders(Selector_List*);
 
     public:

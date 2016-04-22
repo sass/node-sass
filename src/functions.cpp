@@ -1889,8 +1889,7 @@ namespace Sass {
       ExtensionSubsetMap subset_map;
       extender->populate_extends(extendee, ctx, subset_map);
 
-      bool extendedSomething;
-      Selector_List* result = Extend::extendSelectorList(selector, ctx, subset_map, false, extendedSomething);
+      Selector_List* result = Extend::extendSelectorList(selector, ctx, subset_map, false);
 
       Listize listize(ctx.mem);
       return result->perform(&listize);
@@ -1906,8 +1905,7 @@ namespace Sass {
       ExtensionSubsetMap subset_map;
       replacement->populate_extends(original, ctx, subset_map);
 
-      bool extendedSomething;
-      Selector_List* result = Extend::extendSelectorList(selector, ctx, subset_map, true, extendedSomething);
+      Selector_List* result = Extend::extendSelectorList(selector, ctx, subset_map, true);
 
       Listize listize(ctx.mem);
       return result->perform(&listize);
