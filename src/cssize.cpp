@@ -97,6 +97,7 @@ namespace Sass {
                                   r->pstate(),
                                   r->selector(),
                                   r->block()->perform(this)->block());
+    rr->is_root(r->is_root());
     // rr->tabs(r->block()->tabs());
     p_stack.pop_back();
 

@@ -147,6 +147,7 @@ namespace Sass {
       env_stack.pop_back();
       delete env;
     }
+    rr->is_root(r->is_root());
     rr->tabs(r->tabs());
 
     return rr;
