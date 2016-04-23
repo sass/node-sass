@@ -24,6 +24,10 @@ namespace Sass {
   public:
     static Node subweave(Node& one, Node& two, Context& ctx);
     static Selector_List* extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, bool isReplace, bool& extendedSomething);
+    static Selector_List* extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, bool isReplace = false) {
+      bool extendedSomething = false;
+      return extendSelectorList(pSelectorList, ctx, subset_map, isReplace, extendedSomething);
+    }
     Extend(Context&, ExtensionSubsetMap&);
     ~Extend() { }
 
