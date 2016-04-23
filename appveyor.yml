@@ -63,7 +63,7 @@ test_script:
           git -C sass-spec checkout -q --force ci-spec-pr-$SPEC_PR
         }
       }
-      ruby sass-spec/sass-spec.rb -V 3.4 --impl libsass -c $env:TargetPath -s sass-spec/spec
+      ruby sass-spec/sass-spec.rb -V 3.4 --probe-todo --impl libsass -c $env:TargetPath -s sass-spec/spec
       if(-not($?)) {
         echo "sass-spec tests failed"
         exit 1
