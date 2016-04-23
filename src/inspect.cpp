@@ -96,7 +96,7 @@ namespace Sass {
     at_root_block->block()->perform(this);
   }
 
-  void Inspect::operator()(At_Rule* at_rule)
+  void Inspect::operator()(Directive* at_rule)
   {
     append_indentation();
     append_token(at_rule->keyword(), at_rule);
@@ -812,20 +812,15 @@ namespace Sass {
     }
   }
 
-  void Inspect::operator()(At_Root_Expression* ae)
+  void Inspect::operator()(At_Root_Query* ae)
   {
-    if (ae->is_interpolated()) {
-      ae->feature()->perform(this);
+    append_string("(");
+    ae->feature()->perform(this);
+    if (ae->value()) {
+      append_colon_separator();
+      ae->value()->perform(this);
     }
-    else {
-      append_string("(");
-      ae->feature()->perform(this);
-      if (ae->value()) {
-        append_colon_separator();
-        ae->value()->perform(this);
-      }
-      append_string(")");
-    }
+    append_string(")");
   }
 
   void Inspect::operator()(Null* n)
@@ -979,6 +974,11 @@ namespace Sass {
     Compound_Selector*           head = c->head();
     Complex_Selector*            tail = c->tail();
     Complex_Selector::Combinator comb = c->combinator();
+
+    if (comb == Complex_Selector::ANCESTOR_OF && (!head || head->empty())) {
+      if (tail) tail->perform(this);
+      return;
+    }
 
     if (c->has_line_feed()) {
       if (!(c->has_parent_ref())) {

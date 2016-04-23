@@ -17,7 +17,7 @@ namespace Sass {
     Supports_Query* new_Supports_Query(std::string p, size_t l, Supports_Query* f, Block* b);
     Media_Query* new_Media_Query(std::string p, size_t l, List* q, Block* b);
     At_Root_Block* new_At_Root_Block(std::string p, size_t l, Selector* sel, Block* b);
-    At_Rule* new_At_Rule(std::string p, size_t l, std::string kwd, Selector* sel, Block* b);
+    Directive* new_At_Rule(std::string p, size_t l, std::string kwd, Selector* sel, Block* b);
     Keyframe_Rule* new_Keyframe_Rule(std::string p, size_t l, Block* b);
     Declaration* new_Declaration(std::string p, size_t l, String* prop, List* vals);
     Assignment* new_Assignment(std::string p, size_t l, std::string var, Expression* val, bool guarded = false);

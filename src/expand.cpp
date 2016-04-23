@@ -222,17 +222,17 @@ namespace Sass {
     // if (ab) ab->is_root(true);
     Expression* ae = a->expression();
     if (ae) ae = ae->perform(&eval);
-    else ae = SASS_MEMORY_NEW(ctx.mem, At_Root_Expression, a->pstate());
+    else ae = SASS_MEMORY_NEW(ctx.mem, At_Root_Query, a->pstate());
     Block* bb = ab ? ab->perform(this)->block() : 0;
     At_Root_Block* aa = SASS_MEMORY_NEW(ctx.mem, At_Root_Block,
                                         a->pstate(),
                                         bb,
-                                        static_cast<At_Root_Expression*>(ae));
+                                        static_cast<At_Root_Query*>(ae));
     // aa->block()->is_root(true);
     return aa;
   }
 
-  Statement* Expand::operator()(At_Rule* a)
+  Statement* Expand::operator()(Directive* a)
   {
     LOCAL_FLAG(in_keyframes, a->is_keyframes());
     Block* ab = a->block();
@@ -243,7 +243,7 @@ namespace Sass {
     if (as) as = dynamic_cast<Selector*>(as->perform(&eval));
     selector_stack.pop_back();
     Block* bb = ab ? ab->perform(this)->block() : 0;
-    At_Rule* aa = SASS_MEMORY_NEW(ctx.mem, At_Rule,
+    Directive* aa = SASS_MEMORY_NEW(ctx.mem, Directive,
                                   a->pstate(),
                                   a->keyword(),
                                   as,

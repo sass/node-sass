@@ -524,12 +524,12 @@ namespace Sass {
   // At-rules -- arbitrary directives beginning with "@" that may have an
   // optional statement block.
   ///////////////////////////////////////////////////////////////////////
-  class At_Rule : public Has_Block {
+  class Directive : public Has_Block {
     ADD_PROPERTY(std::string, keyword)
     ADD_PROPERTY(Selector*, selector)
     ADD_PROPERTY(Expression*, value)
   public:
-    At_Rule(ParserState pstate, std::string kwd, Selector* sel = 0, Block* b = 0, Expression* val = 0)
+    Directive(ParserState pstate, std::string kwd, Selector* sel = 0, Block* b = 0, Expression* val = 0)
     : Has_Block(pstate, b), keyword_(kwd), selector_(sel), value_(val) // set value manually if needed
     { statement_type(DIRECTIVE); }
     bool bubbles() { return is_keyframes() || is_media(); }
@@ -1471,6 +1471,9 @@ namespace Sass {
     { concrete_type(STRING); }
     static std::string type_name() { return "string"; }
     virtual ~String() = 0;
+    virtual void rtrim() = 0;
+    virtual void ltrim() = 0;
+    virtual void trim() = 0;
     virtual bool operator==(const Expression& rhs) const = 0;
     ATTACH_OPERATIONS()
   };
@@ -1499,6 +1502,9 @@ namespace Sass {
       }
       return false;
     }
+    virtual void rtrim();
+    virtual void ltrim();
+    virtual void trim();
 
     virtual size_t hash()
     {
@@ -1539,6 +1545,9 @@ namespace Sass {
     std::string type() { return "string"; }
     static std::string type_name() { return "string"; }
     virtual bool is_invisible() const;
+    virtual void rtrim();
+    virtual void ltrim();
+    virtual void trim();
 
     virtual size_t hash()
     {
@@ -1696,42 +1705,15 @@ namespace Sass {
   /////////////////////////////////////////////////
   // At root expressions (for use inside @at-root).
   /////////////////////////////////////////////////
-  class At_Root_Expression : public Expression {
+  class At_Root_Query : public Expression {
   private:
-    ADD_PROPERTY(String*, feature)
+    ADD_PROPERTY(Expression*, feature)
     ADD_PROPERTY(Expression*, value)
-    ADD_PROPERTY(bool, is_interpolated)
   public:
-    At_Root_Expression(ParserState pstate, String* f = 0, Expression* v = 0, bool i = false)
-    : Expression(pstate), feature_(f), value_(v), is_interpolated_(i)
+    At_Root_Query(ParserState pstate, Expression* f = 0, Expression* v = 0, bool i = false)
+    : Expression(pstate), feature_(f), value_(v)
     { }
-    bool exclude(std::string str)
-    {
-      bool with = feature() && unquote(feature()->to_string()).compare("with") == 0;
-      List* l = static_cast<List*>(value());
-      std::string v;
-
-      if (with)
-      {
-        if (!l || l->length() == 0) return str.compare("rule") != 0;
-        for (size_t i = 0, L = l->length(); i < L; ++i)
-        {
-          v = unquote((*l)[i]->to_string());
-          if (v.compare("all") == 0 || v == str) return false;
-        }
-        return true;
-      }
-      else
-      {
-        if (!l || !l->length()) return str.compare("rule") == 0;
-        for (size_t i = 0, L = l->length(); i < L; ++i)
-        {
-          v = unquote((*l)[i]->to_string());
-          if (v.compare("all") == 0 || v == str) return true;
-        }
-        return false;
-      }
-    }
+    bool exclude(std::string str);
     ATTACH_OPERATIONS()
   };
 
@@ -1739,9 +1721,9 @@ namespace Sass {
   // At-root.
   ///////////
   class At_Root_Block : public Has_Block {
-    ADD_PROPERTY(At_Root_Expression*, expression)
+    ADD_PROPERTY(At_Root_Query*, expression)
   public:
-    At_Root_Block(ParserState pstate, Block* b = 0, At_Root_Expression* e = 0)
+    At_Root_Block(ParserState pstate, Block* b = 0, At_Root_Query* e = 0)
     : Has_Block(pstate, b), expression_(e)
     { statement_type(ATROOT); }
     bool is_hoistable() { return true; }
@@ -1749,7 +1731,7 @@ namespace Sass {
     bool exclude_node(Statement* s) {
       if (s->statement_type() == Statement::DIRECTIVE)
       {
-        return expression()->exclude(static_cast<At_Rule*>(s)->keyword().erase(0, 1));
+        return expression()->exclude(static_cast<Directive*>(s)->keyword().erase(0, 1));
       }
       if (s->statement_type() == Statement::MEDIA)
       {
@@ -1763,7 +1745,7 @@ namespace Sass {
       {
         return expression()->exclude("supports");
       }
-      if (static_cast<At_Rule*>(s)->is_keyframes())
+      if (static_cast<Directive*>(s)->is_keyframes())
       {
         return expression()->exclude("keyframes");
       }

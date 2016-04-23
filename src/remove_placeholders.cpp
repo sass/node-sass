@@ -74,7 +74,7 @@ namespace Sass {
         operator()(m->block());
     }
 
-    void Remove_Placeholders::operator()(At_Rule* a) {
+    void Remove_Placeholders::operator()(Directive* a) {
         if (a->block()) a->block()->perform(this);
     }
 

@@ -38,7 +38,7 @@ namespace Sass {
     // virtual void operator()(Propset*);
     virtual void operator()(Supports_Block*);
     virtual void operator()(Media_Block*);
-    virtual void operator()(At_Rule*);
+    virtual void operator()(Directive*);
     virtual void operator()(Keyframe_Rule*);
     virtual void operator()(Import*);
     virtual void operator()(Comment*);

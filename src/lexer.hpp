@@ -144,6 +144,25 @@ namespace Sass {
       return p == src ? 0 : p;
     }
 
+    // Match for members of char class.
+    // Regex equivalent: /[^axy]/
+    template <const char* neg_char_class>
+    const char* neg_class_char(const char* src) {
+      if (*src == 0) return 0;
+      const char* cc = neg_char_class;
+      while (*cc && *src != *cc) ++cc;
+      return *cc ? 0 : src + 1;
+    }
+
+    // Match for members of char class.
+    // Regex equivalent: /[^axy]+/
+    template <const char* neg_char_class>
+    const char* neg_class_chars(const char* src) {
+      const char* p = src;
+      while (neg_class_char<neg_char_class>(p)) ++p;
+      return p == src ? 0 : p;
+    }
+
     // Match all except the supplied one.
     // Regex equivalent: /[^x]/
     template <const char chr>

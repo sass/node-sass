@@ -461,7 +461,7 @@ namespace Sass {
       bool hasPrintableChildBlocks = false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
-        if (dynamic_cast<At_Rule*>(stm)) {
+        if (dynamic_cast<Directive*>(stm)) {
           return true;
         } else if (dynamic_cast<Has_Block*>(stm)) {
           Block* pChildBlock = ((Has_Block*)stm)->block();
@@ -528,7 +528,7 @@ namespace Sass {
           // is NULL, then that means there was never a wrapping selector and it is printable (think of a top level media block with
           // a declaration in it).
         }
-        else if (typeid(*stm) == typeid(Declaration) || typeid(*stm) == typeid(At_Rule)) {
+        else if (typeid(*stm) == typeid(Declaration) || typeid(*stm) == typeid(Directive)) {
           hasDeclarations = true;
         }
         else if (dynamic_cast<Has_Block*>(stm)) {
@@ -553,7 +553,7 @@ namespace Sass {
       if (b == 0) return false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
-        if (typeid(*stm) == typeid(At_Rule)) return true;
+        if (typeid(*stm) == typeid(Directive)) return true;
         else if (typeid(*stm) == typeid(Declaration)) return true;
         else if (typeid(*stm) == typeid(Comment)) {
           Comment* c = (Comment*) stm;
@@ -607,7 +607,7 @@ namespace Sass {
 
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
-        if (typeid(*stm) == typeid(Declaration) || typeid(*stm) == typeid(At_Rule)) {
+        if (typeid(*stm) == typeid(Declaration) || typeid(*stm) == typeid(Directive)) {
           return true;
         }
         else if (typeid(*stm) == typeid(Comment)) {

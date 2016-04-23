@@ -7,8 +7,11 @@
 #include "color_maps.hpp"
 #include <set>
 #include <iomanip>
-#include <algorithm>
 #include <iostream>
+#include <algorithm>
+#include <functional>
+#include <cctype>
+#include <locale>
 
 namespace Sass {
 
@@ -23,6 +26,80 @@ namespace Sass {
   bool Supports_Negation::needs_parens(Supports_Condition* cond) const {
     return dynamic_cast<Supports_Negation*>(cond) ||
           dynamic_cast<Supports_Operator*>(cond);
+  }
+
+  std::string & str_ltrim(std::string & str)
+  {
+    auto it2 =  std::find_if( str.begin() , str.end() , [](char ch){ return !std::isspace<char>(ch , std::locale::classic() ) ; } );
+    str.erase( str.begin() , it2);
+    return str;
+  }
+
+  std::string & str_rtrim(std::string & str)
+  {
+    auto it1 =  std::find_if( str.rbegin() , str.rend() , [](char ch){ return !std::isspace<char>(ch , std::locale::classic() ) ; } );
+    str.erase( it1.base() , str.end() );
+    return str;
+  }
+
+  void String_Constant::rtrim()
+  {
+    value_ = str_rtrim(value_);
+  }
+  void String_Constant::ltrim()
+  {
+    value_ = str_ltrim(value_);
+  }
+  void String_Constant::trim()
+  {
+    rtrim();
+    ltrim();
+  }
+
+  void String_Schema::rtrim()
+  {
+    if (!empty()) {
+      if (String* str = dynamic_cast<String*>(last())) str->rtrim();
+    }
+  }
+  void String_Schema::ltrim()
+  {
+    if (!empty()) {
+      if (String* str = dynamic_cast<String*>(first())) str->ltrim();
+    }
+  }
+  void String_Schema::trim()
+  {
+    rtrim();
+    ltrim();
+  }
+
+  bool At_Root_Query::exclude(std::string str)
+  {
+    bool with = feature() && unquote(feature()->to_string()).compare("with") == 0;
+    List* l = static_cast<List*>(value());
+    std::string v;
+
+    if (with)
+    {
+      if (!l || l->length() == 0) return str.compare("rule") != 0;
+      for (size_t i = 0, L = l->length(); i < L; ++i)
+      {
+        v = unquote((*l)[i]->to_string());
+        if (v.compare("all") == 0 || v == str) return false;
+      }
+      return true;
+    }
+    else
+    {
+      if (!l || !l->length()) return str.compare("rule") == 0;
+      for (size_t i = 0, L = l->length(); i < L; ++i)
+      {
+        v = unquote((*l)[i]->to_string());
+        if (v.compare("all") == 0 || v == str) return true;
+      }
+      return false;
+    }
   }
 
   void AST_Node::update_pstate(const ParserState& pstate)
@@ -60,7 +137,7 @@ namespace Sass {
   bool Compound_Selector::has_parent_ref()
   {
     for (Simple_Selector* s : *this) {
-      if (s->has_parent_ref()) return true;
+      if (s && s->has_parent_ref()) return true;
     }
     return false;
   }
@@ -1293,7 +1370,7 @@ namespace Sass {
   bool Selector_List::has_parent_ref()
   {
     for (Complex_Selector* s : *this) {
-      if (s->has_parent_ref()) return true;
+      if (s && s->has_parent_ref()) return true;
     }
     return false;
   }
