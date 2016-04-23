@@ -600,7 +600,7 @@ namespace Sass {
     }
     // Match CSS class names.
     const char* class_name(const char* src) {
-      return sequence<exactly<'.'>, identifier_alnums >(src);
+      return sequence<exactly<'.'>, identifier >(src);
     }
     // Attribute name in an attribute selector.
     const char* attribute_name(const char* src) {
