@@ -5,4 +5,8 @@
 #define LIBSASS_VERSION "[NA]"
 #endif
 
+#ifndef LIBSASS_LANGUAGE_VERSION
+#define LIBSASS_LANGUAGE_VERSION "[NA]"
+#endif
+
 #endif

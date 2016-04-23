@@ -63,4 +63,10 @@ extern "C" {
     return LIBSASS_VERSION;
   }
 
+  // Get compiled libsass version
+  const char* ADDCALL libsass_language_version(void)
+  {
+    return LIBSASS_LANGUAGE_VERSION;
+  }
+
 }
