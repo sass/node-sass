@@ -878,7 +878,9 @@ namespace Sass {
          size_t size = 0, enum Sass_Separator sep = SASS_SPACE, bool argl = false)
     : Value(pstate),
       Vectorized<Expression*>(size),
-      separator_(sep), is_arglist_(argl)
+      separator_(sep),
+      is_arglist_(argl),
+      from_selector_(false)
     { concrete_type(LIST); }
     std::string type() { return is_arglist_ ? "arglist" : "list"; }
     static std::string type_name() { return "list"; }
