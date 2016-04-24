@@ -172,7 +172,7 @@ namespace Sass {
           break;
         } else {
           if (arglist->length() > LP - ip && !ps->has_rest_parameter()) {
-            int arg_count = (arglist->length() + LA - 1);
+            size_t arg_count = (arglist->length() + LA - 1);
             std::stringstream msg;
             msg << callee << " takes " << LP;
             msg << (LP == 1 ? " argument" : " arguments");
