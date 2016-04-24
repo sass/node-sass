@@ -77,7 +77,9 @@ namespace Sass {
         ss << "Incompatible units: ";
         ss << "'" << unit_to_string(a) << "' and ";
         ss << "'" << unit_to_string(b) << "'";
-        msg = ss.str().c_str();
+        // hold on to string on stack!
+        std::string str(ss.str());
+        msg = str.c_str();
       }
       virtual const char* what() const throw()
       {

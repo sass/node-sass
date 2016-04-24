@@ -17,6 +17,17 @@
 
 #define LFEED "\n"
 
+// C++ helper
+namespace Sass {
+  // see sass_copy_c_string(std::string str)
+  static inline JsonNode* json_mkstream(const std::stringstream& stream)
+  {
+    // hold on to string on stack!
+    std::string str(stream.str());
+    return json_mkstring(str.c_str());
+  }
+}
+
 extern "C" {
   using namespace Sass;
 
@@ -103,10 +114,9 @@ extern "C" {
       json_append_member(json_err, "line", json_mknumber((double)(e.pstate.line+1)));
       json_append_member(json_err, "column", json_mknumber((double)(e.pstate.column+1)));
       json_append_member(json_err, "message", json_mkstring(e.what()));
-      json_append_member(json_err, "formatted", json_mkstring(msg_stream.str().c_str()));
-
+      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
       try { c_ctx->error_json = json_stringify(json_err, "  "); } catch(...) {}
-      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
+      c_ctx->error_message = sass_copy_string(msg_stream.str());
       c_ctx->error_text = sass_copy_c_string(e.what());
       c_ctx->error_status = 1;
       c_ctx->error_file = sass_copy_c_string(e.pstate.path);
@@ -123,9 +133,9 @@ extern "C" {
       msg_stream << "Unable to allocate memory: " << ba.what() << std::endl;
       json_append_member(json_err, "status", json_mknumber(2));
       json_append_member(json_err, "message", json_mkstring(ba.what()));
-      json_append_member(json_err, "formatted", json_mkstring(msg_stream.str().c_str()));
+      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
       try { c_ctx->error_json = json_stringify(json_err, "  "); } catch(...) {}
-      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
+      c_ctx->error_message = sass_copy_string(msg_stream.str());
       c_ctx->error_text = sass_copy_c_string(ba.what());
       c_ctx->error_status = 2;
       c_ctx->output_string = 0;
@@ -138,9 +148,9 @@ extern "C" {
       msg_stream << "Internal Error: " << e.what() << std::endl;
       json_append_member(json_err, "status", json_mknumber(3));
       json_append_member(json_err, "message", json_mkstring(e.what()));
-      json_append_member(json_err, "formatted", json_mkstring(msg_stream.str().c_str()));
+      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
       try { c_ctx->error_json = json_stringify(json_err, "  "); } catch(...) {}
-      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
+      c_ctx->error_message = sass_copy_string(msg_stream.str());
       c_ctx->error_text = sass_copy_c_string(e.what());
       c_ctx->error_status = 3;
       c_ctx->output_string = 0;
@@ -153,9 +163,9 @@ extern "C" {
       msg_stream << "Internal Error: " << e << std::endl;
       json_append_member(json_err, "status", json_mknumber(4));
       json_append_member(json_err, "message", json_mkstring(e.c_str()));
-      json_append_member(json_err, "formatted", json_mkstring(msg_stream.str().c_str()));
+      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
       try { c_ctx->error_json = json_stringify(json_err, "  "); } catch(...) {}
-      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
+      c_ctx->error_message = sass_copy_string(msg_stream.str());
       c_ctx->error_text = sass_copy_c_string(e.c_str());
       c_ctx->error_status = 4;
       c_ctx->output_string = 0;
@@ -168,9 +178,9 @@ extern "C" {
       msg_stream << "Internal Error: " << e << std::endl;
       json_append_member(json_err, "status", json_mknumber(4));
       json_append_member(json_err, "message", json_mkstring(e));
-      json_append_member(json_err, "formatted", json_mkstring(msg_stream.str().c_str()));
+      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
       try { c_ctx->error_json = json_stringify(json_err, "  "); } catch(...) {}
-      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
+      c_ctx->error_message = sass_copy_string(msg_stream.str());
       c_ctx->error_text = sass_copy_c_string(e);
       c_ctx->error_status = 4;
       c_ctx->output_string = 0;
@@ -184,7 +194,7 @@ extern "C" {
       json_append_member(json_err, "status", json_mknumber(5));
       json_append_member(json_err, "message", json_mkstring("unknown"));
       try { c_ctx->error_json = json_stringify(json_err, "  "); } catch(...) {}
-      c_ctx->error_message = sass_copy_c_string(msg_stream.str().c_str());
+      c_ctx->error_message = sass_copy_string(msg_stream.str());
       c_ctx->error_text = sass_copy_c_string("unknown");
       c_ctx->error_status = 5;
       c_ctx->output_string = 0;
