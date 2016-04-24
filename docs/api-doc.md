@@ -130,6 +130,10 @@ char* sass_resolve_file (const char* path, const char* incs[]);
 
 // Get compiled libsass version
 const char* libsass_version(void);
+
+// Implemented sass language version
+// Hardcoded version 3.4 for time being
+const char* libsass_language_version(void);
 ```
 
 ## Common Pitfalls

@@ -30,6 +30,8 @@ enum Sass_Tag {
 enum Sass_Separator {
   SASS_COMMA,
   SASS_SPACE,
+  // only used internally to represent a hash map before evaluation
+  // otherwise we would be too early to check for duplicate keys
   SASS_HASH
 };
 
@@ -40,6 +42,32 @@ enum Sass_OP {
   ADD, SUB, MUL, DIV, MOD,   // arithmetic functions
   NUM_OPS                    // so we know how big to make the op table
 };
+
+// Creator functions for all value types
+ADDAPI union Sass_Value* ADDCALL sass_make_null    (void);
+ADDAPI union Sass_Value* ADDCALL sass_make_boolean (bool val);
+ADDAPI union Sass_Value* ADDCALL sass_make_string  (const char* val);
+ADDAPI union Sass_Value* ADDCALL sass_make_qstring (const char* val);
+ADDAPI union Sass_Value* ADDCALL sass_make_number  (double val, const char* unit);
+ADDAPI union Sass_Value* ADDCALL sass_make_color   (double r, double g, double b, double a);
+ADDAPI union Sass_Value* ADDCALL sass_make_list    (size_t len, enum Sass_Separator sep);
+ADDAPI union Sass_Value* ADDCALL sass_make_map     (size_t len);
+ADDAPI union Sass_Value* ADDCALL sass_make_error   (const char* msg);
+ADDAPI union Sass_Value* ADDCALL sass_make_warning (const char* msg);
+
+// Generic destructor function for all types
+// Will release memory of all associated Sass_Values
+// Means we will delete recursively for lists and maps
+ADDAPI void ADDCALL sass_delete_value (union Sass_Value* val);
+
+// Make a deep cloned copy of the given sass value
+ADDAPI union Sass_Value* ADDCALL sass_clone_value (const union Sass_Value* val);
+
+// Execute an operation for two Sass_Values and return the result as a Sass_Value too
+ADDAPI union Sass_Value* ADDCALL sass_value_op (enum Sass_OP op, const union Sass_Value* a, const union Sass_Value* b);
+
+// Stringify a Sass_Values and also return the result as a Sass_Value (of type STRING)
+ADDAPI union Sass_Value* ADDCALL sass_value_stringify (const union Sass_Value* a, bool compressed, int precision);
 
 // Return the sass tag for a generic sass value
 // Check is needed before accessing specific values!
@@ -107,33 +135,6 @@ ADDAPI void ADDCALL sass_error_set_message (union Sass_Value* v, char* msg);
 // Getters and setters for Sass_Warning
 ADDAPI char* ADDCALL sass_warning_get_message (const union Sass_Value* v);
 ADDAPI void ADDCALL sass_warning_set_message (union Sass_Value* v, char* msg);
-
-// Creator functions for all value types
-ADDAPI union Sass_Value* ADDCALL sass_make_null    (void);
-ADDAPI union Sass_Value* ADDCALL sass_make_boolean (bool val);
-ADDAPI union Sass_Value* ADDCALL sass_make_string  (const char* val);
-ADDAPI union Sass_Value* ADDCALL sass_make_qstring (const char* val);
-ADDAPI union Sass_Value* ADDCALL sass_make_number  (double val, const char* unit);
-ADDAPI union Sass_Value* ADDCALL sass_make_color   (double r, double g, double b, double a);
-ADDAPI union Sass_Value* ADDCALL sass_make_list    (size_t len, enum Sass_Separator sep);
-ADDAPI union Sass_Value* ADDCALL sass_make_map     (size_t len);
-ADDAPI union Sass_Value* ADDCALL sass_make_error   (const char* msg);
-ADDAPI union Sass_Value* ADDCALL sass_make_warning (const char* msg);
-
-// Generic destructor function for all types
-// Will release memory of all associated Sass_Values
-// Means we will delete recursively for lists and maps
-ADDAPI void ADDCALL sass_delete_value (union Sass_Value* val);
-
-// Make a deep cloned copy of the given sass value
-ADDAPI union Sass_Value* ADDCALL sass_clone_value (const union Sass_Value* val);
-
-// Stringify a Sass_Values and also return the result as a Sass_Value (of type STRING)
-ADDAPI union Sass_Value* ADDCALL sass_value_stringify (const union Sass_Value* a, bool compressed, int precision);
-
-// Execute an operation for two Sass_Values and return the result as a Sass_Value too
-ADDAPI union Sass_Value* ADDCALL sass_value_op (enum Sass_OP op, const union Sass_Value* a, const union Sass_Value* b);
-
 
 #ifdef __cplusplus
 } // __cplusplus defined.

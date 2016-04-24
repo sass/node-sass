@@ -1,4 +1,11 @@
-`Sass_Values` are used to pass values and their types between the implementer and LibSass. Sass knows various different value types (including nested arrays and hash-maps). If you implement a binding to another programming language, you have to find a way to convert `Sass_Values` between the targeted language and C. `Sass_Values` are currently only used by custom functions.
+`Sass_Values` are used to pass values and their types between the implementer
+and LibSass. Sass knows various different value types (including nested arrays
+and hash-maps). If you implement a binding to another programming language, you
+have to find a way to [marshal] [1] (convert) `Sass_Values` between the target
+language and C. `Sass_Values` are currently only used by custom functions, but
+it should also be possible to use them without a compiler context.
+
+[1]: https://en.wikipedia.org/wiki/Marshalling_%28computer_science%29
 
 ### Basic Usage
 
@@ -23,7 +30,18 @@ enum Sass_Tag {
 // Tags for denoting Sass list separators
 enum Sass_Separator {
   SASS_COMMA,
-  SASS_SPACE
+  SASS_SPACE,
+  // only used internally to represent a hash map before evaluation
+  // otherwise we would be too early to check for duplicate keys
+  SASS_HASH
+};
+
+// Value Operators
+enum Sass_OP {
+  AND, OR,                   // logical connectives
+  EQ, NEQ, GT, GTE, LT, LTE, // arithmetic relations
+  ADD, SUB, MUL, DIV, MOD,   // arithmetic functions
+  NUM_OPS                    // so we know how big to make the op table
 };
 ```
 
@@ -32,6 +50,32 @@ enum Sass_Separator {
 ```C
 // Forward declaration
 union Sass_Value;
+
+// Creator functions for all value types
+union Sass_Value* sass_make_null    (void);
+union Sass_Value* sass_make_boolean (bool val);
+union Sass_Value* sass_make_string  (const char* val);
+union Sass_Value* sass_make_qstring (const char* val);
+union Sass_Value* sass_make_number  (double val, const char* unit);
+union Sass_Value* sass_make_color   (double r, double g, double b, double a);
+union Sass_Value* sass_make_list    (size_t len, enum Sass_Separator sep);
+union Sass_Value* sass_make_map     (size_t len);
+union Sass_Value* sass_make_error   (const char* msg);
+union Sass_Value* sass_make_warning (const char* msg);
+
+// Generic destructor function for all types
+// Will release memory of all associated Sass_Values
+// Means we will delete recursively for lists and maps
+void sass_delete_value (union Sass_Value* val);
+
+// Make a deep cloned copy of the given sass value
+union Sass_Value* sass_clone_value (const union Sass_Value* val);
+
+// Stringify a Sass_Values and also return the result as a Sass_Value (of type STRING)
+union Sass_Value* sass_value_stringify (const union Sass_Value* a, bool compressed, int precision);
+
+// Execute an operation for two Sass_Values and return the result as a Sass_Value too
+union Sass_Value* sass_value_op (enum Sass_OP op, const union Sass_Value* a, const union Sass_Value* b);
 
 // Return the sass tag for a generic sass value
 // Check is needed before accessing specific values!
@@ -58,6 +102,8 @@ void sass_number_set_unit (union Sass_Value* v, char* unit);
 // Getters and setters for Sass_String
 const char* sass_string_get_value (const union Sass_Value* v);
 void sass_string_set_value (union Sass_Value* v, char* value);
+bool sass_string_is_quoted(const union Sass_Value* v);
+void sass_string_set_quoted(union Sass_Value* v, bool quoted);
 
 // Getters and setters for Sass_Boolean
 bool sass_boolean_get_value (const union Sass_Value* v);
@@ -84,7 +130,7 @@ void sass_list_set_value (union Sass_Value* v, size_t i, union Sass_Value* value
 
 // Getter for the number of items in map
 size_t sass_map_get_length (const union Sass_Value* v);
-// Getters and setters for Sass_List keys and values
+// Getters and setters for Sass_Map keys and values
 union Sass_Value* sass_map_get_key (const union Sass_Value* v, size_t i);
 void sass_map_set_key (union Sass_Value* v, size_t i, union Sass_Value*);
 union Sass_Value* sass_map_get_value (const union Sass_Value* v, size_t i);
@@ -97,25 +143,6 @@ void sass_error_set_message (union Sass_Value* v, char* msg);
 // Getters and setters for Sass_Warning
 char* sass_warning_get_message (const union Sass_Value* v);
 void sass_warning_set_message (union Sass_Value* v, char* msg);
-
-// Creator functions for all value types
-union Sass_Value* sass_make_null    (void);
-union Sass_Value* sass_make_boolean (bool val);
-union Sass_Value* sass_make_string  (const char* val);
-union Sass_Value* sass_make_number  (double val, const char* unit);
-union Sass_Value* sass_make_color   (double r, double g, double b, double a);
-union Sass_Value* sass_make_list    (size_t len, enum Sass_Separator sep);
-union Sass_Value* sass_make_map     (size_t len);
-union Sass_Value* sass_make_error   (const char* msg);
-union Sass_Value* sass_make_warning (const char* msg);
-
-// Generic destructor function for all types
-// Will release memory of all associated Sass_Values
-// Means we will delete recursively for lists and maps
-void sass_delete_value (union Sass_Value* val);
-
-// Make a deep cloned copy of the given sass value
-union Sass_Value* sass_clone_value (const union Sass_Value* val);
 ```
 
 ### More links
