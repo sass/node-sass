@@ -16,7 +16,7 @@ direction for corners that lack test coverage). Foremost we rely on good and con
 - [ ] Check if you can reproduce the issue via [SourceMap Inspector] [5] (updated regularly).
 - [ ] Validate official ruby sass compiler via [SassMeister] [6] produces your expected result.
 - [ ] Search for similar issue in [LibSass] [1] and [node-sass] [2] (include closed tickets)
-- [ ] Optionally test your code directly with [sass] [7] or [sassc] [2] ([installer] [4])
+- [ ] Optionally test your code directly with [sass] [7] or [sassc] [3] ([installer] [4])
 
 ## Precheck: My build/install fails
 - [ ] Problems with building or installing libsass should be directed to implementors first!
