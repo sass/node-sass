@@ -70,3 +70,24 @@ extern "C" {
   }
 
 }
+
+namespace Sass {
+
+  // helper to aid dreaded MSVC debug mode
+  char* sass_copy_string(std::string str)
+  {
+    // In MSVC the following can lead to segfault:
+    // sass_copy_c_string(stream.str().c_str());
+    // Reason is that the string returned by str() is disposed before
+    // sass_copy_c_string is invoked. The string is actually a stack
+    // object, so indeed nobody is holding on to it. So it seems
+    // perfectly fair to release it right away. So the const char*
+    // by c_str will point to invalid memory. I'm not sure if this is
+    // the behavior for all compiler, but I'm pretty sure we would
+    // have gotten more issues reported if that would be the case.
+    // Wrapping it in a functions seems the cleanest approach as the
+    // function must hold on to the stack variable until it's done.
+    return sass_copy_c_string(str.c_str());
+  }
+
+}
