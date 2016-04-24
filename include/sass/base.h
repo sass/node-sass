@@ -76,7 +76,8 @@ ADDAPI char* ADDCALL sass_string_unquote (const char* str);
 // Resolve a file via the given include paths in the include char* array
 ADDAPI char* ADDCALL sass_resolve_file (const char* path, const char* incs[]);
 
-// Get compiled libsass version
+// Implemented sass language version
+// Hardcoded version 3.4 for time being
 ADDAPI const char* ADDCALL libsass_version(void);
 
 // Get compiled libsass language
