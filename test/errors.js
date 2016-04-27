@@ -34,7 +34,7 @@ describe('binary errors', function() {
 
     it('links to supported environment documentation', function() {
       var message = errors.unsupportedEnvironment();
-      assert.ok(message.indexOf('TODO URL') !== -1);
+      assert.ok(message.indexOf('https://github.com/sass/node-sass/releases/tag/v') !== -1);
     });
   });
 
