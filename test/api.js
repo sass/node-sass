@@ -1829,49 +1829,94 @@ describe('api', function() {
     });
 
     describe('on unsupported environment', function() {
-      it('should error for unsupported architecture', function() {
-        var prevValue = process.arch;
+      describe('with an unsupported architecture', function() {
+        var prevValue;
 
-        Object.defineProperty(process, 'arch', {
-          get: function () { return 'foo'; }
+        beforeEach(function() {
+          prevValue = process.arch;
+
+          Object.defineProperty(process, 'arch', {
+            get: function () { return 'foo'; }
+          });
         });
 
-        assert.throws(
-          function() { require(sassPath); },
-          'Node Sass does not yet support your current environment'
-        );
+        afterEach(function() {
+          process.arch = prevValue;
+        });
 
-        process.arch = prevValue;
+        it('should error', function() {
+          assert.throws(
+            function() { require(sassPath); },
+            'Node Sass does not yet support your current environment'
+          );
+        });
+
+        it('should inform the user the architecture is unsupported', function() {
+          assert.throws(
+            function() { require(sassPath); },
+            'Unsupported architecture (foo)'
+          );
+        });
       });
 
-      it('should error for unsupported platform', function() {
-        var prevValue = process.platform;
+      describe.only('with an unsupported platform', function() {
+        var prevValue;
 
-        Object.defineProperty(process, 'platform', {
-          get: function () { return 'foo'; }
+        beforeEach(function() {
+          prevValue = process.platform;
+
+          Object.defineProperty(process, 'platform', {
+            get: function () { return 'bar'; }
+          });
         });
 
-        assert.throws(
-          function() { require(sassPath); },
-          'Node Sass does not yet support your current environment'
-        );
+        afterEach(function() {
+          process.platform = prevValue;
+        });
 
-        process.platform = prevValue;
+        it('should error', function() {
+          assert.throws(
+            function() { require(sassPath); },
+            'Node Sass does not yet support your current environment'
+          );
+        });
+
+        it('should inform the user the platform is unsupported', function() {
+          assert.throws(
+            function() { require(sassPath); },
+            'Unsupported platform (bar)'
+          );
+        });
       });
 
-      it('should error for unsupported runtime', function() {
-        var prevValue = process.versions.modules;
+      describe('with an unsupported platform', function() {
+        var prevValue;
 
-        Object.defineProperty(process.versions, 'modules', {
-          get: function () { return 'foo'; }
+        beforeEach(function() {
+          prevValue = process.versions.modules;
+
+          Object.defineProperty(process.versions, 'modules', {
+            get: function () { return 'baz'; }
+          });
         });
 
-        assert.throws(
-          function() { require(sassPath); },
-          'Node Sass does not yet support your current environment'
-        );
+        afterEach(function() {
+          process.versions.modules = prevValue;
+        });
 
-        process.versions.modules = prevValue;
+        it('should error', function() {
+          assert.throws(
+            function() { require(sassPath); },
+            'Node Sass does not yet support your current environment'
+          );
+        });
+
+        it('should inform the user the runtime is unsupported', function() {
+          assert.throws(
+            function() { require(sassPath); },
+            'Unsupported runtime (baz)'
+          );
+        });
       });
     });
   });
