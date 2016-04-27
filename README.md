@@ -1,5 +1,7 @@
 # node-sass
 
+#### Supported Node.js versions 0.10, 0.12, 1, 2, 3, 4, and 5.
+
 <table>
   <tr>
     <td>
