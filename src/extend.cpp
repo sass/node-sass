@@ -1942,6 +1942,7 @@ namespace Sass {
       if (!pSelector->has_placeholder()) {
         if (!extendedSelectors.contains(complexSelectorToNode(pSelector, ctx), true /*simpleSelectorOrderDependent*/)) {
           *pNewSelectors << pSelector;
+          continue;
         }
       }
 
@@ -1987,7 +1988,12 @@ namespace Sass {
                       Wrapped_Selector* cpy_ws = SASS_MEMORY_NEW(ctx.mem, Wrapped_Selector, *ws);
                       Selector_List* cpy_ws_sl = SASS_MEMORY_NEW(ctx.mem, Selector_List, sl->pstate());
                       // remove parent selectors from inner selector
-                      if (ext_cs->first()) *cpy_ws_sl << ext_cs->first();
+                      if (ext_cs->first()) {
+                        if (ext_cs->first()->has_wrapped_selector()) {
+                          continue; // ignore this case for now
+                        }
+                        *cpy_ws_sl << ext_cs->first();
+                      }
                       // assign list to clone
                       cpy_ws->selector(cpy_ws_sl);
                       // append the clone
