@@ -42,6 +42,7 @@
       - nodejs_version: 3
       - nodejs_version: 4
       - nodejs_version: 5
+      - nodejs_version: 6
 
   install:
     - ps: Install-Product node $env:nodejs_version $env:platform
@@ -62,7 +63,7 @@
                .{ process { (
                   @( $BindingName,
                        ( ( $_, "binding.node" ) -join '_' ) ),
-                  @( ".\build\Release\binding.pdb", 
+                  @( ".\build\Release\binding.pdb",
                        ( ( $_, "binding.pdb" ) -join '_' ) )
                ) } } | % { Push-AppveyorArtifact $_[0] -FileName $_[1] }
 
@@ -105,6 +106,7 @@
       - nodejs_version: 0.12
       - nodejs_version: 4
       - nodejs_version: 5
+      - nodejs_version: 6
 
   install:
     - ps: Install-Product node $env:nodejs_version $env:platform
