@@ -21,7 +21,7 @@ namespace SassTypes
 
       tpl->SetClassName(Nan::New("SassBoolean").ToLocalChecked());
       tpl->InstanceTemplate()->SetInternalFieldCount(1);
-      Nan::SetPrototypeTemplate(tpl, "getValue", Nan::GetFunction(Nan::New<v8::FunctionTemplate>(GetValue)).ToLocalChecked());
+      Nan::SetPrototypeTemplate(tpl, "getValue", Nan::New<v8::FunctionTemplate>(GetValue));
 
       conslocal = Nan::GetFunction(tpl).ToLocalChecked();
       constructor.Reset(conslocal);
