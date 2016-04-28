@@ -74,7 +74,6 @@ namespace Sass {
     : Base(org.pstate()), dup(dup), org(org)
     {
       msg  = "Duplicate key ";
-      dup.get_duplicate_key()->is_delayed(false);
       msg += dup.get_duplicate_key()->inspect();
       msg += " in map (";
       msg += org.inspect();

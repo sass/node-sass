@@ -41,7 +41,9 @@ namespace Sass {
 
   Eval::Eval(Expand& exp)
   : exp(exp),
-    ctx(exp.ctx)
+    ctx(exp.ctx),
+    force(false),
+    is_in_comment(false)
   { }
   Eval::~Eval() { }
 
@@ -436,7 +438,7 @@ namespace Sass {
         Expression* key = (*l)[i+0]->perform(this);
         Expression* val = (*l)[i+1]->perform(this);
         // make sure the color key never displays its real name
-        key->is_delayed(true);
+        key->is_delayed(true); // verified
         *lm << std::make_pair(key, val);
       }
       if (lm->has_duplicate_key()) {
@@ -497,21 +499,13 @@ namespace Sass {
     String_Schema* ret_schema = 0;
     enum Sass_OP op_type = b->type();
 
-    // don't eval delayed expressions (the '/' when used as a separator)
-    if (op_type == Sass_OP::DIV && b->is_delayed()) {
-      b->right(b->right()->perform(this));
-      b->left(b->left()->perform(this));
-      return b;
-    }
-
     // only the last item will be used to eval the binary expression
     if (String_Schema* s_l = dynamic_cast<String_Schema*>(b->left())) {
       if (!s_l->has_interpolant() && (!s_l->is_right_interpolant())) {
         ret_schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, s_l->pstate());
         Binary_Expression* bin_ex = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, b->pstate(),
                                                     b->op(), s_l->last(), b->right());
-        bin_ex->is_delayed(b->left()->is_delayed() || b->right()->is_delayed());
-        // bin_ex->is_interpolant(b->left()->is_interpolant());
+        bin_ex->is_delayed(b->left()->is_delayed() || b->right()->is_delayed()); // unverified
         for (size_t i = 0; i < s_l->length() - 1; ++i) {
           *ret_schema << s_l->at(i)->perform(this);
         }
@@ -524,8 +518,7 @@ namespace Sass {
         ret_schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, s_r->pstate());
         Binary_Expression* bin_ex = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, b->pstate(),
                                                     b->op(), b->left(), s_r->first());
-        bin_ex->is_delayed(b->left()->is_delayed() || b->right()->is_delayed());
-        // if (op_type == Sass_OP::SUB && b->is_right_interpolant()) bin_ex->is_interpolant(true);
+        bin_ex->is_delayed(b->left()->is_delayed() || b->right()->is_delayed()); // verified
         *ret_schema << bin_ex->perform(this);
         for (size_t i = 1; i < s_r->length(); ++i) {
           *ret_schema << s_r->at(i)->perform(this);
@@ -536,33 +529,16 @@ namespace Sass {
 
 
     // don't eval delayed expressions (the '/' when used as a separator)
-    if (op_type == Sass_OP::DIV && b->is_delayed()) {
+    if (!force && op_type == Sass_OP::DIV && b->is_delayed()) {
       b->right(b->right()->perform(this));
       b->left(b->left()->perform(this));
       return b;
     }
 
-    // b->is_delayed(false);
     Expression* lhs = b->left();
     Expression* rhs = b->right();
 
-    // bool delay_lhs = false;
-    // bool delay_rhs = false;
-
-    if (String_Schema* schema = dynamic_cast<String_Schema*>(lhs)) {
-      if (schema->is_right_interpolant()) {
-        b->is_delayed(true);
-        // delay_lhs = true;
-      }
-    }
-    if (String_Schema* schema = dynamic_cast<String_Schema*>(rhs)) {
-      if (schema->is_left_interpolant()) {
-        b->is_delayed(true);
-        // delay_rhs = true;
-      }
-    }
-
-    // maybe fully evaluate structure
+    // fully evaluate their values
     if (op_type == Sass_OP::EQ ||
         op_type == Sass_OP::NEQ ||
         op_type == Sass_OP::GT ||
@@ -570,43 +546,16 @@ namespace Sass {
         op_type == Sass_OP::LT ||
         op_type == Sass_OP::LTE)
     {
-
-      if (String_Schema* schema = dynamic_cast<String_Schema*>(lhs)) {
-        if (schema->has_interpolants()) {
-          b->is_delayed(true);
-        }
-      }
-      if (String_Schema* schema = dynamic_cast<String_Schema*>(rhs)) {
-        if (schema->has_interpolants()) {
-          b->is_delayed(true);
-        }
-      }
-      lhs->is_expanded(false);
-      lhs->set_delayed(false);
-      lhs = lhs->perform(this);
+      LOCAL_FLAG(force, true);
       lhs->is_expanded(false);
       lhs->set_delayed(false);
       lhs = lhs->perform(this);
       rhs->is_expanded(false);
       rhs->set_delayed(false);
       rhs = rhs->perform(this);
-      rhs->is_expanded(false);
-      rhs->set_delayed(false);
-      rhs = rhs->perform(this);
     }
-    else
-    {
-      // rhs->set_delayed(false);
-      // rhs = rhs->perform(this);
-    }
-
-    // if one of the operands is a '/' then make sure it's evaluated
-    lhs = lhs->perform(this);
-    lhs->is_delayed(false);
-    while (typeid(*lhs) == typeid(Binary_Expression)) {
-      Binary_Expression* lhs_ex = static_cast<Binary_Expression*>(lhs);
-      if (lhs_ex->type() == Sass_OP::DIV && lhs_ex->is_delayed()) break;
-      lhs = Eval::operator()(lhs_ex);
+    else {
+      lhs = lhs->perform(this);
     }
 
     switch (op_type) {
@@ -623,19 +572,6 @@ namespace Sass {
     }
     // not a logical connective, so go ahead and eval the rhs
     rhs = rhs->perform(this);
-
-    // upgrade string to number if possible (issue #948)
-    if (op_type == Sass_OP::DIV || op_type == Sass_OP::MUL) {
-      if (String_Constant* str = dynamic_cast<String_Constant*>(rhs)) {
-        std::string value(str->value());
-        const char* start = value.c_str();
-        if (Prelexer::sequence < Prelexer::number >(start) != 0) {
-          rhs = SASS_MEMORY_NEW(ctx.mem, Textual, rhs->pstate(), Textual::DIMENSION, str->value());
-          rhs->is_delayed(false); rhs = rhs->perform(this);
-        }
-      }
-    }
-
 
     Expression::Concrete_Type l_type = lhs->concrete_type();
     Expression::Concrete_Type r_type = rhs->concrete_type();
@@ -663,7 +599,7 @@ namespace Sass {
           const char* start = value.c_str();
           if (Prelexer::sequence < Prelexer::dimension, Prelexer::end_of_file >(start) != 0) {
             lhs = SASS_MEMORY_NEW(ctx.mem, Textual, lhs->pstate(), Textual::DIMENSION, str->value());
-            lhs->is_delayed(false); lhs = lhs->perform(this);
+            lhs = lhs->perform(this);
           }
         }
         if (String_Constant* str = dynamic_cast<String_Constant*>(rhs)) {
@@ -671,7 +607,7 @@ namespace Sass {
           const char* start = value.c_str();
           if (Prelexer::sequence < Prelexer::number >(start) != 0) {
             rhs = SASS_MEMORY_NEW(ctx.mem, Textual, rhs->pstate(), Textual::DIMENSION, str->value());
-            rhs->is_delayed(false); rhs = rhs->perform(this);
+            rhs = rhs->perform(this);
           }
         }
       }
@@ -837,28 +773,9 @@ namespace Sass {
     std::string full_name(name + "[f]");
     Arguments* args = SASS_MEMORY_NEW(ctx.mem, Arguments, *c->arguments());
 
-    // handle call here if valid arg
-    // otherwise we eval arguments to early
-    if (name == "call" && args->length() > 0) {
-      Expression* redirect = args->at(0)->perform(this);
-      args->erase(args->begin());
-      Function_Call* lit = SASS_MEMORY_NEW(ctx.mem, Function_Call,
-                                           c->pstate(),
-                                           unquote(redirect->to_string()),
-                                           args);
-      return operator()(lit);
-    }
-
     Env* env = environment();
     if (!env->has(full_name)) {
       if (!env->has("*[f]")) {
-        // just pass it through as a literal
-        for (Argument* arg : *args) {
-          if (Binary_Expression* b = dynamic_cast<Binary_Expression*>(arg->value())) {
-            b->reset_whitespace();
-            arg->is_delayed(b->can_delay()); // delay
-          }
-        }
         args = static_cast<Arguments*>(args->perform(this));
         Function_Call* lit = SASS_MEMORY_NEW(ctx.mem, Function_Call,
                                              c->pstate(),
@@ -878,10 +795,13 @@ namespace Sass {
       }
     }
 
+    // further delay for calls
+    if (full_name != "call[f]") {
+      args->set_delayed(false); // verified
+    }
     if (full_name != "if[f]") {
       args = static_cast<Arguments*>(args->perform(this));
     }
-
     Definition* def = static_cast<Definition*>((*env)[full_name]);
 
     if (def->is_overload_stub()) {
@@ -960,8 +880,7 @@ namespace Sass {
     if (result->pstate().file == std::string::npos)
       result->pstate(c->pstate());
 
-    result->is_delayed(result->concrete_type() == Expression::STRING);
-    if (!result->is_delayed()) result = result->perform(this);
+    result = result->perform(this);
     result->is_interpolant(c->is_interpolant());
     exp.env_stack.pop_back();
     return result;
@@ -1018,6 +937,7 @@ namespace Sass {
 
     value->is_interpolant(v->is_interpolant());
     value->is_expanded(false);
+    value->set_delayed(false); // verified
     return value->perform(this);
   }
 
@@ -1093,6 +1013,11 @@ namespace Sass {
     }
     result->is_interpolant(t->is_interpolant());
     return result;
+  }
+
+  Expression* Eval::operator()(Color* c)
+  {
+    return c;
   }
 
   Expression* Eval::operator()(Number* n)
@@ -1201,7 +1126,7 @@ namespace Sass {
       bool is_quoted = dynamic_cast<String_Quoted*>((*s)[i]) != NULL;
       if (was_quoted && !(*s)[i]->is_interpolant() && !was_interpolant) { res += " "; }
       else if (i > 0 && is_quoted && !(*s)[i]->is_interpolant() && !was_interpolant) { res += " "; }
-      Expression* ex = (*s)[i]->is_delayed() ? (*s)[i] : (*s)[i]->perform(this);
+      Expression* ex = (*s)[i]->perform(this);
       interpolation(ctx, res, ex, into_quotes, ex->is_interpolant());
       was_quoted = dynamic_cast<String_Quoted*>((*s)[i]) != NULL;
       was_interpolant = (*s)[i]->is_interpolant();
@@ -1227,6 +1152,7 @@ namespace Sass {
       Color* c = SASS_MEMORY_NEW(ctx.mem, Color, *name_to_color(s->value()));
       c->pstate(s->pstate());
       c->disp(s->value());
+      c->is_delayed(true);
       return c;
     }
     return s;
@@ -1343,10 +1269,7 @@ namespace Sass {
   Expression* Eval::operator()(Argument* a)
   {
     Expression* val = a->value();
-    // delay missin function arguments?
-    val->is_delayed(a->is_delayed());
     val = val->perform(this);
-    val->is_delayed(false);
 
     bool is_rest_argument = a->is_rest_argument();
     bool is_keyword_argument = a->is_keyword_argument();

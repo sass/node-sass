@@ -151,7 +151,7 @@ namespace Sass {
     std::string out("");
     bool lf = false;
     for (auto i : str) {
-      if (i == 10) {
+      if (i == '\n') {
         out += ' ';
         lf = true;
       } else if (!(lf && isspace(i))) {
@@ -267,7 +267,7 @@ namespace Sass {
           // assert invalid code points
           if (cp == 0) cp = 0xFFFD;
           // replace bell character
-          // if (cp == 10) cp = 32;
+          // if (cp == '\n') cp = 32;
 
           // use a very simple approach to convert via utf8 lib
           // maybe there is a more elegant way; maybe we shoud
@@ -330,7 +330,7 @@ namespace Sass {
       int cp = utf8::next(it, end);
 
       // in case of \r, check if the next in sequence
-      // is \n and then advance the iterator.
+      // is \n and then advance the iterator and skip \r
       if (cp == '\r' && it < end && utf8::peek_next(it, end) == '\n') {
         cp = utf8::next(it, end);
       }

@@ -74,6 +74,21 @@ namespace Sass {
     ltrim();
   }
 
+  void Argument::set_delayed(bool delayed)
+  {
+    if (value_) value_->set_delayed(delayed);
+    is_delayed(delayed);
+  }
+
+  void Arguments::set_delayed(bool delayed)
+  {
+    for (Argument* arg : elements()) {
+      if (arg) arg->set_delayed(delayed);
+    }
+    is_delayed(delayed);
+  }
+
+
   bool At_Root_Query::exclude(std::string str)
   {
     bool with = feature() && unquote(feature()->to_string()).compare("with") == 0;
@@ -2147,29 +2162,6 @@ namespace Sass {
   bool Binary_Expression::is_right_interpolant(void) const
   {
     return is_interpolant() || (right() && right()->is_right_interpolant());
-  }
-
-  // delay binary expressions in function arguments
-  // https://github.com/sass/libsass/issues/1417
-  bool Binary_Expression::can_delay(void) const
-  {
-    bool l_delay = false;
-    bool r_delay = false;
-    if (op().operand == Sass_OP::DIV) {
-      if (Textual* tl = dynamic_cast<Textual*>(left())) {
-        l_delay = tl->type() == Textual::NUMBER ||
-                  tl->type() == Textual::DIMENSION;
-      } else {
-        l_delay = dynamic_cast<Number*>(left()) != NULL;
-      }
-      if (Textual* tr = dynamic_cast<Textual*>(right())) {
-        r_delay = tr->type() == Textual::NUMBER ||
-                  tr->type() == Textual::DIMENSION;
-      } else {
-        r_delay = dynamic_cast<Number*>(right()) != NULL;
-      }
-    }
-    return l_delay && r_delay;
   }
 
   std::string AST_Node::to_string(Sass_Inspect_Options opt) const

@@ -311,6 +311,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << ind << "Warning " << block;
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " " << block->tabs() << std::endl;
+    debug_ast(block->message(), ind + " : ");
   } else if (dynamic_cast<Error*>(node)) {
     Error* block = dynamic_cast<Error*>(node);
     std::cerr << ind << "Error " << block;
@@ -578,6 +579,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     Color* expression = dynamic_cast<Color*>(node);
     std::cerr << ind << "Color " << expression;
     std::cerr << " (" << pstate_source_position(node) << ")";
+    std::cerr << " [delayed: " << expression->is_delayed() << "] ";
     std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
     std::cerr << " [" << expression->r() << ":"  << expression->g() << ":" << expression->b() << "@" << expression->a() << "]" << std::endl;
   } else if (dynamic_cast<Number*>(node)) {
@@ -594,7 +596,6 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " [" << prettyprint(expression->value()) << "]";
     if (expression->is_delayed()) std::cerr << " [delayed]";
-    if (expression->sass_fix_1291()) std::cerr << " [sass_fix_1291]";
     if (expression->is_interpolant()) std::cerr << " [interpolant]";
     if (expression->quote_mark()) std::cerr << " [quote_mark: " << expression->quote_mark() << "]";
     std::cerr << " <" << prettyprint(expression->pstate().token.ws_before()) << ">" << std::endl;
@@ -607,7 +608,6 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " [" << prettyprint(expression->value()) << "]";
     if (expression->is_delayed()) std::cerr << " [delayed]";
-    if (expression->sass_fix_1291()) std::cerr << " [sass_fix_1291]";
     if (expression->is_interpolant()) std::cerr << " [interpolant]";
     std::cerr << " <" << prettyprint(expression->pstate().token.ws_before()) << ">" << std::endl;
   } else if (dynamic_cast<String_Schema*>(node)) {
@@ -626,7 +626,6 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << ind << "String " << expression;
     std::cerr << " " << expression->concrete_type();
     std::cerr << " (" << pstate_source_position(node) << ")";
-    if (expression->sass_fix_1291()) std::cerr << " [sass_fix_1291]";
     if (expression->is_interpolant()) std::cerr << " [interpolant]";
     std::cerr << " <" << prettyprint(expression->pstate().token.ws_before()) << ">" << std::endl;
   } else if (dynamic_cast<Expression*>(node)) {
