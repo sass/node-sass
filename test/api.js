@@ -1859,7 +1859,7 @@ describe('api', function() {
         });
       });
 
-      describe.only('with an unsupported platform', function() {
+      describe('with an unsupported platform', function() {
         var prevValue;
 
         beforeEach(function() {
