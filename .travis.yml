@@ -1,4 +1,11 @@
-language: cpp
+language: node_js
+node_js:
+  - "5"
+  - "4"
+  - "0.12"
+  - "0.10"
+  - "iojs"
+
 compiler: gcc
 sudo: false
 
@@ -9,11 +16,6 @@ os:
 env:
   global:
     - SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=true
-  matrix:
-    - export NODE_VERSION="0.10"
-    - export NODE_VERSION="0.12"
-    - export NODE_VERSION="4"
-    - export NODE_VERSION="5"
 
 matrix:
   fast_finish: true
@@ -28,11 +30,6 @@ addons:
 
 before_install:
   - git submodule update --init --recursive
-  - git clone https://github.com/creationix/nvm.git ./.nvm
-  - git -C .nvm checkout "$(git -C .nvm describe --tags `git -C .nvm rev-list --tags --max-count=1`)"
-  - source ./.nvm/nvm.sh
-  - nvm install $NODE_VERSION
-  - nvm use $NODE_VERSION
   - npm config set python `which python`
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
       export CC="gcc-4.7";
