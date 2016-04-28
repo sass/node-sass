@@ -203,7 +203,7 @@ Nan::MaybeLocal<v8::Function> CallbackBridge<T, L>::get_wrapper_constructor() {
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
     Nan::SetPrototypeTemplate(tpl, "success",
-      Nan::GetFunction(Nan::New<v8::FunctionTemplate>(ReturnCallback)).ToLocalChecked()
+      Nan::New<v8::FunctionTemplate>(ReturnCallback)
     );
 
     wrapper_constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
