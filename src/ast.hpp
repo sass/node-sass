@@ -1889,6 +1889,9 @@ namespace Sass {
     virtual void set_media_block(Media_Block* mb) {
       media_block(mb);
     }
+    virtual bool has_wrapped_selector() {
+      return false;
+    }
   };
   inline Selector::~Selector() { }
 
@@ -2185,6 +2188,10 @@ namespace Sass {
       }
       return hash_;
     }
+    virtual bool has_wrapped_selector()
+    {
+      return true;
+    }
     virtual unsigned long specificity()
     {
       return selector_ ? selector_->specificity() : 0;
@@ -2268,6 +2275,15 @@ namespace Sass {
       for (size_t i = 0, L = length(); i < L; ++i)
       { sum += (*this)[i]->specificity(); }
       return sum;
+    }
+
+    virtual bool has_wrapped_selector()
+    {
+      if (length() == 0) return false;
+      if (Simple_Selector* ss = elements().front()) {
+        if (ss->has_wrapped_selector()) return true;
+      }
+      return false;
     }
 
     bool is_empty_reference()
@@ -2398,6 +2414,11 @@ namespace Sass {
       if (tail_) tail_->set_media_block(mb);
       if (head_) head_->set_media_block(mb);
     }
+    virtual bool has_wrapped_selector() {
+      if (head_ && head_->has_wrapped_selector()) return true;
+      if (tail_ && tail_->has_wrapped_selector()) return true;
+      return false;
+    }
     bool operator<(const Complex_Selector& rhs) const;
     bool operator==(const Complex_Selector& rhs) const;
     inline bool operator!=(const Complex_Selector& rhs) const { return !(*this == rhs); }
@@ -2505,6 +2526,12 @@ namespace Sass {
       for (Complex_Selector* cs : elements()) {
         cs->set_media_block(mb);
       }
+    }
+    virtual bool has_wrapped_selector() {
+      for (Complex_Selector* cs : elements()) {
+        if (cs->has_wrapped_selector()) return true;
+      }
+      return false;
     }
     Selector_List* clone(Context&) const;      // does not clone Compound_Selector*s
     Selector_List* cloneFully(Context&) const; // clones Compound_Selector*s

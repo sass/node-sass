@@ -2,6 +2,7 @@
 #define SASS_EXTEND_H
 
 #include <string>
+#include <set>
 
 #include "ast.hpp"
 #include "operation.hpp"
@@ -23,10 +24,16 @@ namespace Sass {
 
   public:
     static Node subweave(Node& one, Node& two, Context& ctx);
+    static Selector_List* extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, bool isReplace, bool& extendedSomething, std::set<Compound_Selector>& seen);
     static Selector_List* extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, bool isReplace, bool& extendedSomething);
     static Selector_List* extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, bool isReplace = false) {
       bool extendedSomething = false;
       return extendSelectorList(pSelectorList, ctx, subset_map, isReplace, extendedSomething);
+    }
+    static Selector_List* extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, std::set<Compound_Selector>& seen) {
+      bool isReplace = false;
+      bool extendedSomething = false;
+      return extendSelectorList(pSelectorList, ctx, subset_map, isReplace, extendedSomething, seen);
     }
     Extend(Context&, ExtensionSubsetMap&);
     ~Extend() { }

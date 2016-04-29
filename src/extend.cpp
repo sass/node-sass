@@ -1711,7 +1711,8 @@ namespace Sass {
   static bool complexSelectorHasExtension(
     Complex_Selector* pComplexSelector,
     Context& ctx,
-    ExtensionSubsetMap& subset_map) {
+    ExtensionSubsetMap& subset_map,
+    std::set<Compound_Selector>& seen) {
 
     bool hasExtension = false;
 
@@ -1721,16 +1722,18 @@ namespace Sass {
       Compound_Selector* pHead = pIter->head();
 
       if (pHead) {
-        for (Simple_Selector* pSimple : *pHead) {
-          if (Wrapped_Selector* ws = dynamic_cast<Wrapped_Selector*>(pSimple)) {
-            if (Selector_List* sl = dynamic_cast<Selector_List*>(ws->selector())) {
-              for (Complex_Selector* cs : sl->elements()) {
-                while (cs) {
-                  if (complexSelectorHasExtension(cs, ctx, subset_map)) {
-                    hasExtension = true;
-                    break;
+        if (seen.find(*pHead) == seen.end()) {
+          for (Simple_Selector* pSimple : *pHead) {
+            if (Wrapped_Selector* ws = dynamic_cast<Wrapped_Selector*>(pSimple)) {
+              if (Selector_List* sl = dynamic_cast<Selector_List*>(ws->selector())) {
+                for (Complex_Selector* cs : sl->elements()) {
+                  while (cs) {
+                    if (complexSelectorHasExtension(cs, ctx, subset_map, seen)) {
+                      hasExtension = true;
+                      break;
+                    }
+                    cs = cs->tail();
                   }
-                  cs = cs->tail();
                 }
               }
             }
@@ -1907,6 +1910,14 @@ namespace Sass {
    This is the equivalent of ruby's CommaSequence.do_extend.
   */
   Selector_List* Extend::extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, bool isReplace, bool& extendedSomething) {
+    std::set<Compound_Selector> seen;
+    return extendSelectorList(pSelectorList, ctx, subset_map, isReplace, extendedSomething, seen);
+  }
+
+  /*
+   This is the equivalent of ruby's CommaSequence.do_extend.
+  */
+  Selector_List* Extend::extendSelectorList(Selector_List* pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, bool isReplace, bool& extendedSomething, std::set<Compound_Selector>& seen) {
 
     Selector_List* pNewSelectors = SASS_MEMORY_NEW(ctx.mem, Selector_List, pSelectorList->pstate(), pSelectorList->length());
 
@@ -1920,19 +1931,18 @@ namespace Sass {
       // run through the extend code (which does a data model transformation), check if there is anything to extend before doing
       // the extend. We might be able to optimize extendComplexSelector, but this approach keeps us closer to ruby sass (which helps
       // when debugging).
-      if (!complexSelectorHasExtension(pSelector, ctx, subset_map)) {
+      if (!complexSelectorHasExtension(pSelector, ctx, subset_map, seen)) {
         *pNewSelectors << pSelector;
         continue;
       }
 
       extendedSomething = true;
 
-      std::set<Compound_Selector> seen;
-
       Node extendedSelectors = extendComplexSelector(pSelector, ctx, subset_map, seen, isReplace, true);
       if (!pSelector->has_placeholder()) {
         if (!extendedSelectors.contains(complexSelectorToNode(pSelector, ctx), true /*simpleSelectorOrderDependent*/)) {
           *pNewSelectors << pSelector;
+          continue;
         }
       }
 
@@ -1955,7 +1965,9 @@ namespace Sass {
       // process tails
       while (cur) {
         // process header
-        if (cur->head()) {
+        if (cur->head() && seen.find(*cur->head()) == seen.end()) {
+          std::set<Compound_Selector> recseen(seen);
+          recseen.insert(*cur->head());
           // create a copy since we add multiple items if stuff get unwrapped
           Compound_Selector* cpy_head = SASS_MEMORY_NEW(ctx.mem, Compound_Selector, cur->pstate());
           for (Simple_Selector* hs : *cur->head()) {
@@ -1969,14 +1981,19 @@ namespace Sass {
                 // has wrapped selectors
                 else {
                   // extend the inner list of wrapped selector
-                  Selector_List* ext_sl = extendSelectorList(sl, ctx, subset_map);
+                  Selector_List* ext_sl = extendSelectorList(sl, ctx, subset_map, recseen);
                   for (size_t i = 0; i < ext_sl->length(); i += 1) {
                     if (Complex_Selector* ext_cs = ext_sl->at(i)) {
                       // create clones for wrapped selector and the inner list
                       Wrapped_Selector* cpy_ws = SASS_MEMORY_NEW(ctx.mem, Wrapped_Selector, *ws);
                       Selector_List* cpy_ws_sl = SASS_MEMORY_NEW(ctx.mem, Selector_List, sl->pstate());
                       // remove parent selectors from inner selector
-                      if (ext_cs->first()) *cpy_ws_sl << ext_cs->first();
+                      if (ext_cs->first()) {
+                        if (ext_cs->first()->has_wrapped_selector()) {
+                          continue; // ignore this case for now
+                        }
+                        *cpy_ws_sl << ext_cs->first();
+                      }
                       // assign list to clone
                       cpy_ws->selector(cpy_ws_sl);
                       // append the clone
