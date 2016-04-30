@@ -30,8 +30,7 @@
     "coverage": "node scripts/coverage.js",
     "install": "node scripts/install.js",
     "postinstall": "node scripts/build.js",
-    "pretest": "node_modules/.bin/jshint bin lib scripts test",
-    "test": "node_modules/.bin/mocha test",
+    "test": "node_modules/.bin/mocha test.js",
     "build": "node scripts/build.js --force",
     "prepublish": "not-in-install && node scripts/prepublish.js || in-install"
   },
