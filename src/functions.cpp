@@ -880,7 +880,7 @@ namespace Sass {
       if (String_Quoted* string_quoted = dynamic_cast<String_Quoted*>(arg)) {
         String_Constant* result = SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, string_quoted->value());
         // remember if the string was quoted (color tokens)
-        result->sass_fix_1291(string_quoted->quote_mark() != 0);
+        result->is_delayed(true); // delay colors
         return result;
       }
       else if (dynamic_cast<String_Constant*>(arg)) {
@@ -910,7 +910,6 @@ namespace Sass {
       // all other nodes must be converted to a string node
       std::string str(quote(arg->to_string(ctx.c_options), String_Constant::double_quote()));
       String_Quoted* result = SASS_MEMORY_NEW(ctx.mem, String_Quoted, pstate, str);
-      result->is_delayed(true);
       result->quote_mark('*');
       return result;
     }
@@ -1271,7 +1270,9 @@ namespace Sass {
         return l;
       }
       else {
-        return l->value_at_index(static_cast<int>(index));
+        Expression* rv = l->value_at_index(static_cast<int>(index));
+        rv->set_delayed(false);
+        return rv;
       }
     }
 
@@ -1656,12 +1657,10 @@ namespace Sass {
     {
       Expand expand(ctx, &d_env, backtrace);
       bool is_true = !ARG("$condition", Expression)->perform(&expand.eval)->is_false();
-      if (is_true) {
-        return ARG("$if-true", Expression)->perform(&expand.eval);
-      }
-      else {
-        return ARG("$if-false", Expression)->perform(&expand.eval);
-      }
+      Expression* res = ARG(is_true ? "$if-true" : "$if-false", Expression);
+      res = res->perform(&expand.eval);
+      res->set_delayed(false); // clone?
+      return res;
     }
 
     ////////////////

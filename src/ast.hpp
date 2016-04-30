@@ -50,6 +50,9 @@
 
 namespace Sass {
 
+  // easier to search with name
+  const bool DELAYED = true;
+
   // ToDo: should this really be hardcoded
   // Note: most methods follow precision option
   const double NUMBER_EPSILON = 0.00000000000001;
@@ -67,7 +70,8 @@ namespace Sass {
       bool ws_after;
   };
 
-  // from boost (functional/hash):
+  //////////////////////////////////////////////////////////
+  // `hash_combine` comes from boost (functional/hash):
   // http://www.boost.org/doc/libs/1_35_0/doc/html/hash/combine.html
   // Boost Software License - Version 1.0
   // http://www.boost.org/users/license.html
@@ -77,6 +81,7 @@ namespace Sass {
     seed ^= std::hash<T>()(val) + 0x9e3779b9
              + (seed<<6) + (seed>>2);
   }
+  //////////////////////////////////////////////////////////
 
   //////////////////////////////////////////////////////////
   // Abstract base class for all abstract syntax tree nodes.
@@ -391,7 +396,7 @@ namespace Sass {
     ADD_PROPERTY(bool, group_end)
   public:
     Statement(ParserState pstate, Statement_Type st = NONE, size_t t = 0)
-    : AST_Node(pstate), statement_type_(st), tabs_(t), group_end_(false)
+    : AST_Node(pstate), block_(0), statement_type_(st), tabs_(t), group_end_(false)
      { }
     virtual ~Statement() = 0;
     // needed for rearranging nested rulesets during CSS emission
@@ -905,9 +910,8 @@ namespace Sass {
 
     virtual void set_delayed(bool delayed)
     {
-      for (size_t i = 0, L = length(); i < L; ++i)
-        (elements()[i])->set_delayed(delayed);
       is_delayed(delayed);
+      // don't set children
     }
 
     virtual bool operator== (const Expression& rhs) const;
@@ -1031,12 +1035,6 @@ namespace Sass {
       return is_left_interpolant() ||
              is_right_interpolant();
     }
-    virtual bool can_delay() const;
-    void reset_whitespace()
-    {
-      op_.ws_before = false;
-      op_.ws_after = false;
-    }
     virtual void set_delayed(bool delayed)
     {
       right()->set_delayed(delayed);
@@ -1138,6 +1136,7 @@ namespace Sass {
       }
     }
 
+    virtual void set_delayed(bool delayed);
     virtual bool operator==(const Expression& rhs) const
     {
       try
@@ -1184,6 +1183,8 @@ namespace Sass {
       has_rest_argument_(false),
       has_keyword_argument_(false)
     { }
+
+    virtual void set_delayed(bool delayed);
 
     Argument* get_rest_argument();
     Argument* get_keyword_argument();
@@ -1296,7 +1297,7 @@ namespace Sass {
     size_t hash_;
   public:
     Textual(ParserState pstate, Type t, std::string val)
-    : Expression(pstate, true), type_(t), value_(val),
+    : Expression(pstate, DELAYED), type_(t), value_(val),
       hash_(0)
     { }
 
@@ -1466,10 +1467,9 @@ namespace Sass {
   // "flat" strings.
   ////////////////////////////////////////////////////////////////////////
   class String : public Value {
-    ADD_PROPERTY(bool, sass_fix_1291)
   public:
-    String(ParserState pstate, bool delayed = false, bool sass_fix_1291 = false)
-    : Value(pstate, delayed), sass_fix_1291_(sass_fix_1291)
+    String(ParserState pstate, bool delayed = false)
+    : Value(pstate, delayed)
     { concrete_type(STRING); }
     static std::string type_name() { return "string"; }
     virtual ~String() = 0;
@@ -1515,6 +1515,10 @@ namespace Sass {
           hash_combine(hash_, string->hash());
       }
       return hash_;
+    }
+
+    virtual void set_delayed(bool delayed) {
+      is_delayed(delayed);
     }
 
     virtual bool operator==(const Expression& rhs) const;

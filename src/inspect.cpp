@@ -166,10 +166,6 @@ namespace Sass {
       append_token("@import", import);
       append_mandatory_space();
 
-      if (String_Quoted* strq = dynamic_cast<String_Quoted*>(import->urls().front())) {
-        strq->is_delayed(false);
-      }
-
       import->urls().front()->perform(this);
       if (import->urls().size() == 1) {
         if (import->media_queries()) {
@@ -182,10 +178,6 @@ namespace Sass {
         append_mandatory_linefeed();
         append_token("@import", import);
         append_mandatory_space();
-
-        if (String_Quoted* strq = dynamic_cast<String_Quoted*>(import->urls()[i])) {
-          strq->is_delayed(false);
-        }
 
         import->urls()[i]->perform(this);
         if (import->urls().size() - 1 == i) {
@@ -451,10 +443,8 @@ namespace Sass {
          (output_style() == INSPECT) || (
           expr->op().ws_before
           && (!expr->is_interpolant())
-          && (!expr->is_delayed() ||
-          expr->is_left_interpolant() ||
-          expr->is_right_interpolant()
-          )
+          && (expr->is_left_interpolant() ||
+              expr->is_right_interpolant())
 
     )) append_string(" ");
     switch (expr->type()) {
@@ -477,10 +467,8 @@ namespace Sass {
          (output_style() == INSPECT) || (
           expr->op().ws_after
           && (!expr->is_interpolant())
-          && (!expr->is_delayed()
-              || expr->is_left_interpolant()
-              || expr->is_right_interpolant()
-          )
+          && (expr->is_left_interpolant() ||
+              expr->is_right_interpolant())
     )) append_string(" ");
     expr->right()->perform(this);
   }

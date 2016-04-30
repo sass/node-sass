@@ -102,10 +102,20 @@ namespace Sass {
   {
     p_stack.push_back(r);
     s_stack.push_back(dynamic_cast<Selector_List*>(r->selector()));
+    // this can return a string schema
+    // string schema is not a statement!
+    // r->block() is already a string schema
+    // and that is comming from propset expand
+    Statement* stmt = r->block()->perform(this);
+    // this should protect us (at least a bit) from our mess
+    // fixing this properly is harder that it should be ...
+    if (dynamic_cast<Statement*>((AST_Node*)stmt) == NULL) {
+      error("Illegal nesting: Only properties may be nested beneath properties.", r->block()->pstate());
+    }
     Ruleset* rr = SASS_MEMORY_NEW(ctx.mem, Ruleset,
                                   r->pstate(),
                                   r->selector(),
-                                  r->block()->perform(this)->block());
+                                  stmt->block());
     rr->is_root(r->is_root());
     // rr->tabs(r->block()->tabs());
     s_stack.pop_back();

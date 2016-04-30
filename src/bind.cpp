@@ -21,7 +21,6 @@ namespace Sass {
         // force optional quotes (only if needed)
         if (str->quote_mark()) {
           str->quote_mark('*');
-          str->is_delayed(true);
         }
       }
     }

@@ -22,6 +22,7 @@ namespace Sass {
     Eval(Expand& exp);
     ~Eval();
 
+    bool force;
     bool is_in_comment;
 
     Env* environment();
@@ -50,6 +51,7 @@ namespace Sass {
     Expression* operator()(Variable*);
     Expression* operator()(Textual*);
     Expression* operator()(Number*);
+    Expression* operator()(Color*);
     Expression* operator()(Boolean*);
     Expression* operator()(String_Schema*);
     Expression* operator()(String_Quoted*);
