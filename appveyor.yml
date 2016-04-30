@@ -89,11 +89,6 @@
 
   clone_folder: c:\projects\node_modules\node-sass
 
-  init:
-    - cmd: >-
-        subst s: c:\projects
-    - ps: set-location -path s:\node_modules\node-sass
-
   cache:
     - '%userprofile%\.node-gyp'
     - '%AppData%\npm-cache'
@@ -101,9 +96,7 @@
   environment:
     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
     matrix:
-      - nodejs_version: 0.10
-      - nodejs_version: 0.12
-      - nodejs_version: 4
+      - nodejs_version: 6
       - nodejs_version: 5
 
   install:
