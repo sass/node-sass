@@ -153,20 +153,24 @@ namespace Sass {
     return rr;
   }
 
+  // this is not properly implemented
+  // mixes string_schema and statement
   Statement* Expand::operator()(Propset* p)
   {
     property_stack.push_back(p->property_fragment());
     Block* expanded_block = p->block()->perform(this)->block();
-
     for (size_t i = 0, L = expanded_block->length(); i < L; ++i) {
       Statement* stm = (*expanded_block)[i];
       if (Declaration* dec = static_cast<Declaration*>(stm)) {
+        // dec = SASS_MEMORY_NEW(ctx.mem, Declaration, *dec);
         String_Schema* combined_prop = SASS_MEMORY_NEW(ctx.mem, String_Schema, p->pstate());
         if (!property_stack.empty()) {
-          *combined_prop << property_stack.back()->perform(&eval)
-                         << SASS_MEMORY_NEW(ctx.mem, String_Quoted,
-             p->pstate(), "-")
-             << dec->property(); // TODO: eval the prop into a string constant
+          *combined_prop << property_stack.back()->perform(&eval);
+          *combined_prop << SASS_MEMORY_NEW(ctx.mem, String_Quoted, p->pstate(), "-");
+          if (dec->property()) {
+            // we cannot directly add block (from dec->property()) to string schema (combined_prop)
+            *combined_prop << SASS_MEMORY_NEW(ctx.mem, String_Quoted, dec->pstate(), dec->property()->to_string());
+          }
         }
         else {
           *combined_prop << dec->property();

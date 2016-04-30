@@ -396,7 +396,7 @@ namespace Sass {
     ADD_PROPERTY(bool, group_end)
   public:
     Statement(ParserState pstate, Statement_Type st = NONE, size_t t = 0)
-    : AST_Node(pstate), statement_type_(st), tabs_(t), group_end_(false)
+    : AST_Node(pstate), block_(0), statement_type_(st), tabs_(t), group_end_(false)
      { }
     virtual ~Statement() = 0;
     // needed for rearranging nested rulesets during CSS emission
