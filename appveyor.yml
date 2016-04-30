@@ -90,9 +90,7 @@
   clone_folder: c:\projects\node_modules\node-sass
 
   init:
-    - cmd: >-
-        subst s: c:\projects
-    - ps: set-location -path s:\node_modules\node-sass
+    - ps: set-location -path c:\projects\node_modules\node-sass
 
   cache:
     - '%userprofile%\.node-gyp'
