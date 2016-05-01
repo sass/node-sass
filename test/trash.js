@@ -1,3 +1,5 @@
+console.log('trash.js:', __dirname);
+
 var assert = require('assert'),
     fs = require('fs'),
     path = require('path'),
@@ -8,6 +10,8 @@ var assert = require('assert'),
 describe('trash', function() {
   describe('importer', function() {
     it('should not error', function(done) {
+      console.log('cli', cli);
+
       var bin = spawn(cli, [
         'test.scss', '--importer', 'importer.js'
       ]);

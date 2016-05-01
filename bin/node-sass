@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+console.log('node-sass:', __dirname);
+
 var Emitter = require('events').EventEmitter,
     forEach = require('async-foreach').forEach,
     Gaze = require('gaze'),
@@ -290,9 +292,13 @@ function run(options, emitter) {
 
   if (options.importer) {
     if ((path.resolve(options.importer) === path.normalize(options.importer).replace(/(.+)([\/|\\])$/, '$1'))) {
+      console.log('[1] requiring importer:', options.importer);
       options.importer = require(options.importer);
+      console.log('[1] required importer');
     } else {
+      console.log('[2] requiring importer:', path.resolve(options.importer));
       options.importer = require(path.resolve(options.importer));
+      console.log('[2] required importer');
     }
   }
 
