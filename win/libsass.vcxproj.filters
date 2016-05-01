@@ -66,6 +66,9 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\bind.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\check_nesting.hpp">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\color_maps.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -222,6 +225,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\cencode.c">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\check_nesting.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\color_maps.cpp">

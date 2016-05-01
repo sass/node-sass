@@ -18,6 +18,7 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\base64vlq.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\bind.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\b64\cencode.h" />
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\check_nesting.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\color_maps.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\constants.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\context.hpp" />
@@ -71,6 +72,7 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\bind.cpp" />
     <ClCompile Condition="$(VisualStudioVersion) &lt; 14.0" Include="$(LIBSASS_SRC_DIR)\c99func.c" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\cencode.c" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\check_nesting.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\color_maps.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\constants.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\context.cpp" />
