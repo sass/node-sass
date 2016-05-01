@@ -13,8 +13,6 @@ AC_CONFIG_AUX_DIR([script])
 # Though they look like gcc flags!
 AM_INIT_AUTOMAKE([foreign parallel-tests -Wall])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([no])])
-# would fail with mingw otherwise
-# m4_pattern_allow([AM_PROG_AR])
 
 # Checks for programs.
 AC_PROG_CC
@@ -25,11 +23,10 @@ AC_GNU_SOURCE
 # Check fails on Travis, but it works fine
 # AX_CXX_COMPILE_STDCXX_11([ext],[optional])
 AC_CHECK_TOOL([AR], [ar], [false])
-if test "x$is_mingw32" != "xyes"; then
-  AC_CHECK_TOOL([DLLTOOL], [dlltool], [false])
-  AC_CHECK_TOOL([DLLWRAP], [dllwrap], [false])
-  AC_CHECK_TOOL([WINDRES], [windres], [false])
-fi
+AC_CHECK_TOOL([DLLTOOL], [dlltool], [false])
+AC_CHECK_TOOL([DLLWRAP], [dllwrap], [false])
+AC_CHECK_TOOL([WINDRES], [windres], [false])
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 LT_INIT([dlopen])
 
 # Checks for header files.
@@ -46,7 +43,7 @@ AC_CHECK_FUNCS([floor getcwd strtol])
 AC_ARG_ENABLE(tests, AS_HELP_STRING([--enable-tests], [enable testing the build]),
               [enable_tests="$enableval"], [enable_tests=no])
 
-AS_CASE([$target], [*-*-mingw32], [is_mingw32=yes], [is_mingw32=no])
+AS_CASE([$host], [*-*-mingw*], [is_mingw32=yes], [is_mingw32=no])
 AM_CONDITIONAL(COMPILER_IS_MINGW32, test "x$is_mingw32" = "xyes")
 
 dnl The dlopen() function is in the C library for *BSD and in
