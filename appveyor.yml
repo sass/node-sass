@@ -79,6 +79,13 @@
         appveyor_repo_tag: true       # deploy on tag push only
 
 -
+  branches:
+    except:
+      - release
+      - /v\d\.\d\.\d/
+
+  skip_tags: true
+
   os: Visual Studio 2013
 
   configuration: testing
