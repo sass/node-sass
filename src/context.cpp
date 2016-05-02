@@ -18,6 +18,7 @@
 #include "output.hpp"
 #include "expand.hpp"
 #include "eval.hpp"
+#include "check_nesting.hpp"
 #include "cssize.hpp"
 #include "listize.hpp"
 #include "extend.hpp"
@@ -648,8 +649,13 @@ namespace Sass {
     // create crtp visitor objects
     Expand expand(*this, &global, &backtrace);
     Cssize cssize(*this, &backtrace);
+    CheckNesting check_nesting(*this);
+    // check nesting
+    root = root->perform(&check_nesting)->block();
     // expand and eval the tree
     root = root->perform(&expand)->block();
+    // check nesting
+    root = root->perform(&check_nesting)->block();
     // merge and bubble certain rules
     root = root->perform(&cssize)->block();
     // should we extend something?
