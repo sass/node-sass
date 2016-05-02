@@ -42,6 +42,7 @@
       - nodejs_version: 3
       - nodejs_version: 4
       - nodejs_version: 5
+      - nodejs_version: 6
 
   install:
     - ps: Install-Product node $env:nodejs_version $env:platform
@@ -50,7 +51,9 @@
     - git submodule update --init --recursive
     - npm install --msvs_version=2013
 
-  test_script: npm test
+  test_script:
+    - ps: set-location -path c:\projects\node_modules\node-sass
+    - npm test
 
   before_deploy:
     # Save artifacts with full qualified names of binding.node and binding.pdb
@@ -105,6 +108,7 @@
       - nodejs_version: 0.12
       - nodejs_version: 4
       - nodejs_version: 5
+      - nodejs_version: 6
 
   install:
     - ps: Install-Product node $env:nodejs_version $env:platform
@@ -113,4 +117,6 @@
     - git submodule update --init --recursive
     - npm install --msvs_version=2013
 
-  test_script: npm test
+  test_script:
+    - ps: set-location -path c:\projects\node_modules\node-sass
+    - npm test
