@@ -1029,7 +1029,7 @@ namespace Sass {
       if (peek_css< exactly<')'> >(position))
       { break; }
 
-      Expression* key = parse_list();
+      Expression* key = parse_space_list();
       if (String_Quoted* str = dynamic_cast<String_Quoted*>(key)) {
         if (!str->quote_mark() && !str->is_delayed()) {
           if (const Color* col = name_to_color(str->value())) {
@@ -1042,7 +1042,7 @@ namespace Sass {
       }
 
       if (!(lex< exactly<':'> >()))
-      { error("invalid syntax", pstate); }
+      { css_error("Invalid CSS", " after ", ": expected \":\", was "); }
 
       Expression* value = parse_space_list();
 
