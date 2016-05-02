@@ -22,7 +22,11 @@ namespace Sass {
   Statement* CheckNesting::operator()(Block* b)
   {
     parent_stack.push_back(b);
-    append_block(b);
+
+    for (auto n : *b) {
+      n->perform(this);
+    }
+
     parent_stack.pop_back();
     return b;
   }
@@ -52,15 +56,5 @@ namespace Sass {
            dynamic_cast<Propset*>(p) ||
            dynamic_cast<Directive*>(p) ||
            dynamic_cast<Mixin_Call*>(p);
-  }
-
-  void CheckNesting::append_block(Block* b)
-  {
-    for (size_t i = 0, L = b->length(); i < L; ++i) {
-      Statement* ith = (*b)[i]->perform(this);
-      if (ith) {
-        (*b)[i] = ith;
-      }
-    }
   }
 }

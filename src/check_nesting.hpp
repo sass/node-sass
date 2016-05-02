@@ -30,7 +30,6 @@ namespace Sass {
     Statement* fallback(U x) { return fallback_impl(x); }
 
     bool is_valid_prop_parent(AST_Node*);
-    void append_block(Block*);
   };
 
 }
