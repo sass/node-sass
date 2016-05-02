@@ -2,14 +2,11 @@
 #include <vector>
 
 #include "check_nesting.hpp"
-#include "context.hpp"
-// #include "debugger.hpp"
 
 namespace Sass {
 
-  CheckNesting::CheckNesting(Context& ctx)
-  : ctx(ctx),
-    parent_stack(std::vector<AST_Node*>())
+  CheckNesting::CheckNesting()
+  : parent_stack(std::vector<AST_Node*>())
   { }
 
   AST_Node* CheckNesting::parent()

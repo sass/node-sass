@@ -649,7 +649,7 @@ namespace Sass {
     // create crtp visitor objects
     Expand expand(*this, &global, &backtrace);
     Cssize cssize(*this, &backtrace);
-    CheckNesting check_nesting(*this);
+    CheckNesting check_nesting;
     // check nesting
     root = root->perform(&check_nesting)->block();
     // expand and eval the tree
