@@ -651,11 +651,11 @@ namespace Sass {
     Cssize cssize(*this, &backtrace);
     CheckNesting check_nesting;
     // check nesting
-    root = root->perform(&check_nesting)->block();
+    root->perform(&check_nesting)->block();
     // expand and eval the tree
     root = root->perform(&expand)->block();
     // check nesting
-    root = root->perform(&check_nesting)->block();
+    root->perform(&check_nesting)->block();
     // merge and bubble certain rules
     root = root->perform(&cssize)->block();
     // should we extend something?
