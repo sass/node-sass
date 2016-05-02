@@ -6,6 +6,8 @@
     except:
       - master
 
+  skip_non_tags: true
+
   os: Visual Studio 2013
 
   configuration: release
@@ -79,6 +81,12 @@
         appveyor_repo_tag: true       # deploy on tag push only
 
 -
+  branches:
+    except:
+      - release
+
+  skip_non_tags: false
+
   os: Visual Studio 2013
 
   configuration: testing
