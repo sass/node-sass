@@ -275,10 +275,7 @@ namespace Sass {
         }
         else {
           // param is unbound and has no default value -- error
-          std::stringstream msg;
-          msg << "required parameter " << leftover->name()
-              << " is missing in call to " << callee;
-          error(msg.str(), as->pstate());
+          throw Exception::MissingArgument(as->pstate(), name, leftover->name(), type);
         }
       }
     }
