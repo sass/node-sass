@@ -145,7 +145,14 @@ namespace Sass {
     return out;
   }
 
-  // bell character is replaces with space
+  // bell characters are replaced with spaces
+  void newline_to_space(std::string& str)
+  {
+    std::replace(str.begin(), str.end(), '\n', ' ');
+  }
+
+  // bell characters are replaced with spaces
+  // also eats spaces after line-feeds (ltrim)
   std::string string_to_output(const std::string& str)
   {
     std::string out("");

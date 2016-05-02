@@ -1078,7 +1078,16 @@ namespace Sass {
         bool is_null = dynamic_cast<Null*>(item) != 0; // rl != ""
         if (!is_null) *ll << SASS_MEMORY_NEW(ctx.mem, String_Quoted, item->pstate(), rl);
       }
-      res += (ll->to_string(ctx.c_options));
+      // Check indicates that we probably should not get a list
+      // here. Normally single list items are already unwrapped.
+      if (l->size() > 1) {
+        // string_to_output would fail "#{'_\a' '_\a'}";
+        std::string str(ll->to_string(ctx.c_options));
+        newline_to_space(str); // replace directly
+        res += str; // append to result string
+      } else {
+        res += (ll->to_string(ctx.c_options));
+      }
       ll->is_interpolant(l->is_interpolant());
     }
 
