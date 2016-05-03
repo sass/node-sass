@@ -2,7 +2,6 @@
 #define SASS_CHECK_NESTING_H
 
 #include "ast.hpp"
-#include "context.hpp"
 #include "operation.hpp"
 
 namespace Sass {
@@ -11,8 +10,6 @@ namespace Sass {
 
   class CheckNesting : public Operation_CRTP<Statement*, CheckNesting> {
 
-    Context&                 ctx;
-    std::vector<Block*>      block_stack;
     std::vector<AST_Node*>   parent_stack;
 
     AST_Node* parent();
@@ -20,7 +17,7 @@ namespace Sass {
     Statement* fallback_impl(AST_Node* n);
 
   public:
-    CheckNesting(Context&);
+    CheckNesting();
     ~CheckNesting() { }
 
     Statement* operator()(Block*);
