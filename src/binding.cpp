@@ -331,12 +331,17 @@ NAN_METHOD(libsass_version) {
   info.GetReturnValue().Set(Nan::New<v8::String>(libsass_version()).ToLocalChecked());
 }
 
+NAN_METHOD(libsass_language_version) {
+  info.GetReturnValue().Set(Nan::New<v8::String>(libsass_language_version()).ToLocalChecked());
+}
+
 NAN_MODULE_INIT(RegisterModule) {
   Nan::SetMethod(target, "render", render);
   Nan::SetMethod(target, "renderSync", render_sync);
   Nan::SetMethod(target, "renderFile", render_file);
   Nan::SetMethod(target, "renderFileSync", render_file_sync);
   Nan::SetMethod(target, "libsassVersion", libsass_version);
+  Nan::SetMethod(target, "languageVersion", libsass_language_version);
   SassTypes::Factory::initExports(target);
 }
 

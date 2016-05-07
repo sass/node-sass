@@ -1,15 +1,17 @@
 /*eslint new-cap: ["error", {"capIsNewExceptions": ["Color"]}]*/
 
 var assert = require('assert'),
-  fs = require('fs'),
-  path = require('path'),
-  read = fs.readFileSync,
-  sassPath = process.env.NODESASS_COV
-      ? require.resolve('../lib-cov')
-      : require.resolve('../lib'),
-  sass = require(sassPath),
-  fixture = path.join.bind(null, __dirname, 'fixtures'),
-  resolveFixture = path.resolve.bind(null, __dirname, 'fixtures');
+    eol = require('os').EOL,
+    fs = require('fs'),
+    path = require('path'),
+    sassPath = process.env.NODESASS_COV
+             ? require.resolve('../lib-cov')
+             : require.resolve('../lib');
+
+var fixture = path.join.bind(null, __dirname, 'fixtures'),
+    read = fs.readFileSync,
+    resolveFixture = path.resolve.bind(null, __dirname, 'fixtures')
+    sass = require(sassPath);
 
 describe('api', function() {
 
@@ -1829,12 +1831,15 @@ describe('api', function() {
       info = sass.info;
 
     it('should return a correct version info', function(done) {
-      assert(info.indexOf(package.version) > 0);
-      assert(info.indexOf('(Wrapper)') > 0);
+      var lines = info.split(eol);
+      
+      assert.equal(lines[0], ['node-sass', package.version, '(Wrapper)', '[JavaScript]'].join('\t'));
+
+      assert(info.indexOf('[C/C++]') > 0);
       assert(info.indexOf('[JavaScript]') > 0);
       assert(info.indexOf('[NA]') < 0);
       assert(info.indexOf('(Sass Compiler)') > 0);
-      assert(info.indexOf('[C/C++]') > 0);
+      assert(info.indexOf('(Sass Language)') > 0);
 
       done();
     });
