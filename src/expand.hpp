@@ -28,14 +28,15 @@ namespace Sass {
     Eval              eval;
 
     // it's easier to work with vectors
-    std::vector<Env*>      env_stack;
-    std::vector<Block*>    block_stack;
-    std::vector<AST_Node*> call_stack;
-    std::vector<String*>   property_stack;
+    std::vector<Env*>           env_stack;
+    std::vector<Block*>         block_stack;
+    std::vector<AST_Node*>      call_stack;
+    std::vector<String*>        property_stack;
     std::vector<Selector_List*> selector_stack;
-    std::vector<Media_Block*> media_block_stack;
-    std::vector<Backtrace*>backtrace_stack;
-    bool              in_keyframes;
+    std::vector<Media_Block*>   media_block_stack;
+    std::vector<Backtrace*>     backtrace_stack;
+    bool                        in_keyframes;
+    bool                        at_root_without_rule;
 
     Statement* fallback_impl(AST_Node* n);
 
