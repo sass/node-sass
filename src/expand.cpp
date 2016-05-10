@@ -87,9 +87,6 @@ namespace Sass {
 
   Statement* Expand::operator()(Ruleset* r)
   {
-    bool old_at_root_without_rule = this->at_root_without_rule;
-    // reset when leaving scope
-
     if (in_keyframes) {
       Keyframe_Rule* k = SASS_MEMORY_NEW(ctx.mem, Keyframe_Rule, r->pstate(), r->block()->perform(this)->block());
       if (r->selector()) {
@@ -100,7 +97,8 @@ namespace Sass {
       return k;
     }
 
-    this->at_root_without_rule = false;
+    // reset when leaving scope
+    LOCAL_FLAG(at_root_without_rule, false);
 
     // do some special checks for the base level rules
     if (r->is_root()) {
@@ -153,8 +151,6 @@ namespace Sass {
     }
     rr->is_root(r->is_root());
     rr->tabs(r->tabs());
-
-    this->at_root_without_rule = old_at_root_without_rule;
 
     return rr;
   }
