@@ -230,15 +230,23 @@ function getOptions(args, options) {
  */
 
 function watch(options, emitter) {
-  var watch = [];
+  var buildGraph = function(options) {
+    var graphOptions = {
+      loadPaths: options.includePath,
+      extensions: ['scss', 'sass', 'css']
+    };
 
-  var graphOptions = { loadPaths: options.includePath, extensions: ['scss', 'sass', 'css'] };
-  var graph;
-  if (options.directory) {
-    graph = grapher.parseDir(options.directory, graphOptions);
-  } else {
-    graph = grapher.parseFile(options.src, graphOptions);
+    if (options.directory) {
+      var graph = grapher.parseDir(options.directory, graphOptions);
+    } else {
+      var graph = grapher.parseFile(options.src, graphOptions);
+    }
+
+    return graph;
   }
+
+  var watch = [];
+  var graph = buildGraph(options);
 
   // Add all files to watch list
   for (var i in graph.index) {
@@ -259,6 +267,14 @@ function watch(options, emitter) {
         renderFile(file, options, emitter);
       }
     });
+  });
+
+  gaze.on('added', function(file) {
+    graph = buildGraph(options);
+  });
+
+  gaze.on('deleted', function(file) {
+    graph = buildGraph(options);
   });
 }
 
