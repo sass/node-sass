@@ -192,21 +192,14 @@ namespace Sass {
     if (ae) ae = ae->perform(&eval);
     else ae = SASS_MEMORY_NEW(ctx.mem, At_Root_Query, a->pstate());
 
-    bool old_at_root_without_rule = this->at_root_without_rule;
-    bool old_in_keyframes = this->in_keyframes;
-
-    this->at_root_without_rule = true;
-    this->in_keyframes = false;
+    LOCAL_FLAG(at_root_without_rule, true);
+    LOCAL_FLAG(in_keyframes, false);
 
     Block* bb = ab ? ab->perform(this)->block() : 0;
     At_Root_Block* aa = SASS_MEMORY_NEW(ctx.mem, At_Root_Block,
                                         a->pstate(),
                                         bb,
                                         static_cast<At_Root_Query*>(ae));
-
-    this->at_root_without_rule = old_at_root_without_rule;
-    this->in_keyframes = old_in_keyframes;
-
     return aa;
   }
 
