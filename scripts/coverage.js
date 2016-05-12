@@ -7,20 +7,18 @@ var Mocha = require('mocha'),
   path = require('path'),
   mkdirp = require('mkdirp'),
   coveralls = require('coveralls'),
-  Instrumenter = require('istanbul').Instrumenter,
-  Report = require('istanbul').Report,
-  Collector = new require('istanbul').Collector,
-  sourcefiles = ['index.js', 'extensions.js', 'render.js', 'errors.js'],
-  summary= Report.create('text-summary'),
-  lcov = Report.create('lcovonly', { dir: path.join('coverage') }),
-  html = Report.create('html', { dir: path.join('coverage', 'html') });
+  istanbul = require('istanbul'),
+  sourcefiles = ['index.js', 'extensions.js', 'render.js'],
+  summary= istanbul.Report.create('text-summary'),
+  lcov = istanbul.Report.create('lcovonly', { dir: path.join('coverage') }),
+  html = istanbul.Report.create('html', { dir: path.join('coverage', 'html') });
 
 function coverage() {
   var mocha = new Mocha();
   var rep = function(runner) {
     runner.on('end', function(){
       var cov = global.__coverage__,
-        collector = new Collector();
+        collector = new istanbul.Collector();
       if (cov) {
         mkdirp(path.join('coverage', 'html'), function(err) {
           if (err) { throw err; }
@@ -41,7 +39,7 @@ function coverage() {
       }
     });
   };
-  var instrumenter = new Instrumenter();
+  var instrumenter = new istanbul.Instrumenter();
   var instrumentedfiles = [];
   var processfile = function(source) {
     fs.readFile(path.join('lib', source), function(err, data) {

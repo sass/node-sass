@@ -1,3 +1,5 @@
+/*eslint new-cap: ["error", {"capIsNewExceptions": ["Color"]}]*/
+
 var assert = require('assert'),
   fs = require('fs'),
   path = require('path'),
