@@ -1,12 +1,12 @@
 var assert = require('assert'),
-    fs = require('fs'),
-    exists = fs.existsSync,
-    path = require('path'),
-    read = fs.readFileSync,
-    sass = process.env.NODESASS_COV
+  fs = require('fs'),
+  exists = fs.existsSync,
+  path = require('path'),
+  read = fs.readFileSync,
+  sass = process.env.NODESASS_COV
       ? require('../lib-cov')
       : require('../lib'),
-    util = require('./util');
+  util = require('./util');
 
 describe('spec', function() {
   this.timeout(0);

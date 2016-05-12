@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
 var Emitter = require('events').EventEmitter,
-    forEach = require('async-foreach').forEach,
-    Gaze = require('gaze'),
-    grapher = require('sass-graph'),
-    meow = require('meow'),
-    util = require('util'),
-    path = require('path'),
-    glob = require('glob'),
-    sass = require('../lib'),
-    render = require('../lib/render'),
-    stdin = require('get-stdin'),
-    fs = require('fs');
+  forEach = require('async-foreach').forEach,
+  Gaze = require('gaze'),
+  grapher = require('sass-graph'),
+  meow = require('meow'),
+  util = require('util'),
+  path = require('path'),
+  glob = require('glob'),
+  sass = require('../lib'),
+  render = require('../lib/render'),
+  stdin = require('get-stdin'),
+  fs = require('fs');
 
 /**
  * Initialize CLI
