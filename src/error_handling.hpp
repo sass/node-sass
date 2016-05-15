@@ -45,6 +45,16 @@ namespace Sass {
         virtual ~InvalidParent() throw() {};
     };
 
+    class MissingArgument : public Base {
+      protected:
+        std::string fn;
+        std::string arg;
+        std::string fntype;
+      public:
+        MissingArgument(ParserState pstate, std::string fn, std::string arg, std::string fntype);
+        virtual ~MissingArgument() throw() {};
+    };
+
     class InvalidArgumentType : public Base {
       protected:
         std::string fn;
