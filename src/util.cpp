@@ -470,6 +470,8 @@ namespace Sass {
         Statement* stm = (*b)[i];
         if (dynamic_cast<Directive*>(stm)) {
           return true;
+        } else if (Declaration* d = dynamic_cast<Declaration*>(stm)) {
+          return isPrintable(d, style);
         } else if (dynamic_cast<Has_Block*>(stm)) {
           Block* pChildBlock = ((Has_Block*)stm)->block();
           if (isPrintable(pChildBlock, style)) {
@@ -484,8 +486,6 @@ namespace Sass {
           if (c->is_important()) {
             hasDeclarations = c->is_important();
           }
-        } else if (Declaration* d = dynamic_cast<Declaration*>(stm)) {
-          return isPrintable(d, style);
         } else {
           hasDeclarations = true;
         }

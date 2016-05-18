@@ -284,7 +284,7 @@ namespace Sass {
         if (decl->is_indented()) ++ indentation;
         // parse a propset that rides on the declaration's property
         stack.push_back(Scope::Properties);
-        (*block) << SASS_MEMORY_NEW(ctx.mem, Propset, pstate, decl->property(), parse_block());
+        decl->block(parse_block());
         stack.pop_back();
         if (decl->is_indented()) -- indentation;
       }

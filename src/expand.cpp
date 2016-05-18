@@ -157,6 +157,15 @@ namespace Sass {
   // mixes string_schema and statement
   Statement* Expand::operator()(Propset* p)
   {
+    String* fragment = dynamic_cast<String*>(p->property_fragment()->perform(&eval));
+    Propset* prop = SASS_MEMORY_NEW(ctx.mem, Propset,
+                                        p->pstate(),
+                                        fragment,
+                                        p->block()->perform(this)->block());
+    prop->tabs(p->tabs());
+    return prop;
+
+
     property_stack.push_back(p->property_fragment());
     Block* expanded_block = p->block()->perform(this)->block();
     for (size_t i = 0, L = expanded_block->length(); i < L; ++i) {
@@ -258,15 +267,20 @@ namespace Sass {
 
   Statement* Expand::operator()(Declaration* d)
   {
+    Block* ab = d->block();
     String* old_p = d->property();
     String* new_p = static_cast<String*>(old_p->perform(&eval));
     Expression* value = d->value()->perform(&eval);
-    if (!value || (value->is_invisible() && !d->is_important())) return 0;
+    Block* bb = ab ? ab->perform(this)->block() : 0;
+    if (!bb) {
+      if (!value || (value->is_invisible() && !d->is_important())) return 0;
+    }
     Declaration* decl = SASS_MEMORY_NEW(ctx.mem, Declaration,
                                         d->pstate(),
                                         new_p,
                                         value,
-                                        d->is_important());
+                                        d->is_important(),
+                                        bb);
     decl->tabs(d->tabs());
     return decl;
   }

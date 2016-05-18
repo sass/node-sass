@@ -13,11 +13,11 @@ namespace Sass {
 
   class Cssize : public Operation_CRTP<Statement*, Cssize> {
 
-    Context&                 ctx;
-    std::vector<Block*>      block_stack;
-    std::vector<Statement*>  p_stack;
+    Context&                    ctx;
+    std::vector<Block*>         block_stack;
+    std::vector<Statement*>     p_stack;
     std::vector<Selector_List*> s_stack;
-    Backtrace*               backtrace;
+    Backtrace*                  backtrace;
 
     Statement* fallback_impl(AST_Node* n);
 
@@ -37,7 +37,7 @@ namespace Sass {
     Statement* operator()(Directive*);
     Statement* operator()(Keyframe_Rule*);
     Statement* operator()(Trace*);
-    // Statement* operator()(Declaration*);
+    Statement* operator()(Declaration*);
     // Statement* operator()(Assignment*);
     // Statement* operator()(Import*);
     // Statement* operator()(Import_Stub*);

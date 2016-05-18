@@ -42,7 +42,7 @@ namespace Sass {
     return static_cast<Statement*>(n);
   }
 
-  bool CheckNesting::is_valid_prop_parent(AST_Node* p) 
+  bool CheckNesting::is_valid_prop_parent(AST_Node* p)
   {
     if (Definition* def = dynamic_cast<Definition*>(p)) {
       return def->type() == Definition::MIXIN;
@@ -50,7 +50,7 @@ namespace Sass {
 
     return dynamic_cast<Ruleset*>(p) ||
            dynamic_cast<Keyframe_Rule*>(p) ||
-           dynamic_cast<Propset*>(p) ||
+           dynamic_cast<Declaration*>(p) ||
            dynamic_cast<Directive*>(p) ||
            dynamic_cast<Mixin_Call*>(p);
   }

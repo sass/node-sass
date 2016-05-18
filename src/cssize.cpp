@@ -44,6 +44,45 @@ namespace Sass {
     return t->block()->perform(this);
   }
 
+  Statement* Cssize::operator()(Declaration* d)
+  {
+    String* property = dynamic_cast<String*>(d->property());
+
+    if (Declaration* dd = dynamic_cast<Declaration*>(parent())) {
+      String* parent_property = dynamic_cast<String*>(dd->property());
+      property = SASS_MEMORY_NEW(ctx.mem, String_Constant,
+                                 d->property()->pstate(),
+                                 parent_property->to_string() + "-" + property->to_string());
+      if (!dd->value()) {
+        d->tabs(dd->tabs() + 1);
+      }
+    }
+
+    Declaration* dd = SASS_MEMORY_NEW(ctx.mem, Declaration,
+                                      d->pstate(),
+                                      property,
+                                      d->value(),
+                                      d->is_important());
+    dd->is_indented(d->is_indented());
+    dd->tabs(d->tabs());
+
+    p_stack.push_back(dd);
+    Block* bb = d->block() ? d->block()->perform(this)->block() : 0;
+    p_stack.pop_back();
+
+    if (bb && bb->length()) {
+      if (dd->value() && !dd->value()->is_invisible()) {
+        bb->unshift(dd);
+      }
+      return bb;
+    }
+    else if (dd->value() && !dd->value()->is_invisible()) {
+      return dd;
+    }
+
+    return 0;
+  }
+
   Statement* Cssize::operator()(Directive* r)
   {
     if (!r->block() || !r->block()->length()) return r;
