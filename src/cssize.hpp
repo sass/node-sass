@@ -29,7 +29,6 @@ namespace Sass {
 
     Statement* operator()(Block*);
     Statement* operator()(Ruleset*);
-    // Statement* operator()(Propset*);
     // Statement* operator()(Bubble*);
     Statement* operator()(Media_Block*);
     Statement* operator()(Supports_Block*);

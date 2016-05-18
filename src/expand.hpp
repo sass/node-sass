@@ -48,7 +48,6 @@ namespace Sass {
 
     Statement* operator()(Block*);
     Statement* operator()(Ruleset*);
-    Statement* operator()(Propset*);
     Statement* operator()(Media_Block*);
     Statement* operator()(Supports_Block*);
     Statement* operator()(At_Root_Block*);

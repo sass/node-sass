@@ -236,7 +236,6 @@ namespace Sass {
     Arguments* parse_arguments();
     Argument* parse_argument();
     Assignment* parse_assignment();
-    // Propset* parse_propset();
     Ruleset* parse_ruleset(Lookahead lookahead, bool is_root = false);
     Selector_Schema* parse_selector_schema(const char* end_of_selector);
     Selector_List* parse_selector_list(bool at_root = false);

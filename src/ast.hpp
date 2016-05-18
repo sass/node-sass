@@ -481,18 +481,6 @@ namespace Sass {
     ATTACH_OPERATIONS()
   };
 
-  /////////////////////////////////////////////////////////
-  // Nested declaration sets (i.e., namespaced properties).
-  /////////////////////////////////////////////////////////
-  class Propset : public Has_Block {
-    ADD_PROPERTY(String*, property_fragment)
-  public:
-    Propset(ParserState pstate, String* pf, Block* b = 0)
-    : Has_Block(pstate, b), property_fragment_(pf)
-    { }
-    ATTACH_OPERATIONS()
-  };
-
   /////////////////
   // Bubble.
   /////////////////

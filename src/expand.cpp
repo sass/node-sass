@@ -153,53 +153,6 @@ namespace Sass {
     return rr;
   }
 
-  // this is not properly implemented
-  // mixes string_schema and statement
-  Statement* Expand::operator()(Propset* p)
-  {
-    String* fragment = dynamic_cast<String*>(p->property_fragment()->perform(&eval));
-    Propset* prop = SASS_MEMORY_NEW(ctx.mem, Propset,
-                                        p->pstate(),
-                                        fragment,
-                                        p->block()->perform(this)->block());
-    prop->tabs(p->tabs());
-    return prop;
-
-
-    property_stack.push_back(p->property_fragment());
-    Block* expanded_block = p->block()->perform(this)->block();
-    for (size_t i = 0, L = expanded_block->length(); i < L; ++i) {
-      Statement* stm = (*expanded_block)[i];
-      if (Declaration* dec = static_cast<Declaration*>(stm)) {
-        // dec = SASS_MEMORY_NEW(ctx.mem, Declaration, *dec);
-        String_Schema* combined_prop = SASS_MEMORY_NEW(ctx.mem, String_Schema, p->pstate());
-        if (!property_stack.empty()) {
-          *combined_prop << property_stack.back()->perform(&eval);
-          *combined_prop << SASS_MEMORY_NEW(ctx.mem, String_Quoted, p->pstate(), "-");
-          if (dec->property()) {
-            // we cannot directly add block (from dec->property()) to string schema (combined_prop)
-            *combined_prop << SASS_MEMORY_NEW(ctx.mem, String_Quoted, dec->pstate(), dec->property()->to_string());
-          }
-        }
-        else {
-          *combined_prop << dec->property();
-        }
-        dec->property(combined_prop);
-        *block_stack.back() << dec;
-      }
-      else if (typeid(*stm) == typeid(Comment)) {
-        // drop comments in propsets
-      }
-      else {
-        error("contents of namespaced properties must result in style declarations only", stm->pstate(), backtrace());
-      }
-    }
-
-    property_stack.pop_back();
-
-    return 0;
-  }
-
   Statement* Expand::operator()(Supports_Block* f)
   {
     Expression* condition = f->condition()->perform(&eval);

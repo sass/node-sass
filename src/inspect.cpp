@@ -51,13 +51,6 @@ namespace Sass {
     if (rule->block()) rule->block()->perform(this);
   }
 
-  void Inspect::operator()(Propset* propset)
-  {
-    propset->property_fragment()->perform(this);
-    append_colon_separator();
-    propset->block()->perform(this);
-  }
-
   void Inspect::operator()(Bubble* bubble)
   {
     append_indentation();

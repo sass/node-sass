@@ -23,7 +23,6 @@ namespace Sass {
     // statements
     virtual void operator()(Block*);
     virtual void operator()(Ruleset*);
-    virtual void operator()(Propset*);
     virtual void operator()(Bubble*);
     virtual void operator()(Supports_Block*);
     virtual void operator()(Media_Block*);
