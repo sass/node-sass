@@ -508,6 +508,18 @@ namespace Sass {
   };
 
   /////////////////
+  // Trace.
+  /////////////////
+  class Trace : public Has_Block {
+    ADD_PROPERTY(std::string, name)
+  public:
+    Trace(ParserState pstate, std::string n, Block* b = 0)
+    : Has_Block(pstate, b), name_(n)
+    { }
+    ATTACH_OPERATIONS()
+  };
+
+  /////////////////
   // Media queries.
   /////////////////
   class Media_Block : public Has_Block {

@@ -65,6 +65,13 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " " << bubble->tabs();
     std::cerr << std::endl;
+  } else if (dynamic_cast<Trace*>(node)) {
+    Trace* trace = dynamic_cast<Trace*>(node);
+    std::cerr << ind << "Trace " << trace;
+    std::cerr << " (" << pstate_source_position(node) << ")"
+    << " [name:" << trace->name() << "]"
+    << std::endl;
+    debug_ast(trace->block(), ind + " ", env);
   } else if (dynamic_cast<At_Root_Block*>(node)) {
     At_Root_Block* root_block = dynamic_cast<At_Root_Block*>(node);
     std::cerr << ind << "At_Root_Block " << root_block;
@@ -426,14 +433,14 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << " [native: " << block->native_function() << "] ";
     std::cerr << " " << block->tabs() << std::endl;
     debug_ast(block->parameters(), ind + " params: ", env);
-    if (block->block()) for(auto i : block->block()->elements()) { debug_ast(i, ind + " ", env); }
+    if (block->block()) debug_ast(block->block(), ind + " ", env);
   } else if (dynamic_cast<Mixin_Call*>(node)) {
     Mixin_Call* block = dynamic_cast<Mixin_Call*>(node);
     std::cerr << ind << "Mixin_Call " << block << " " << block->tabs();
     std::cerr << " [" <<  block->name() << "]";
     std::cerr << " [has_content: " << block->has_content() << "] " << std::endl;
     debug_ast(block->arguments(), ind + " args: ");
-    if (block->block()) for(auto i : block->block()->elements()) { debug_ast(i, ind + " ", env); }
+    if (block->block()) debug_ast(block->block(), ind + " ", env);
   } else if (Ruleset* ruleset = dynamic_cast<Ruleset*>(node)) {
     std::cerr << ind << "Ruleset " << ruleset;
     std::cerr << " (" << pstate_source_position(node) << ")";
