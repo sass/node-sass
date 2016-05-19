@@ -13,6 +13,7 @@ namespace Sass {
   class Ruleset;
   class Propset;
   class Bubble;
+  class Trace;
   class Media_Block;
   class Supports_Block;
   class Directive;

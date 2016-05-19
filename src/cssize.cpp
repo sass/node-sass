@@ -39,6 +39,11 @@ namespace Sass {
     return bb;
   }
 
+  Statement* Cssize::operator()(Trace* t)
+  {
+    return t->block()->perform(this);
+  }
+
   Statement* Cssize::operator()(Directive* r)
   {
     if (!r->block() || !r->block()->length()) return r;
