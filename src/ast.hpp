@@ -1747,6 +1747,11 @@ namespace Sass {
     bool is_hoistable() { return true; }
     bool bubbles() { return true; }
     bool exclude_node(Statement* s) {
+      if (expression() == 0)
+      {
+        return true;
+      }
+
       if (s->statement_type() == Statement::DIRECTIVE)
       {
         return expression()->exclude(static_cast<Directive*>(s)->keyword().erase(0, 1));
