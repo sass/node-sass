@@ -13,13 +13,12 @@ namespace Sass {
     // statements
     Block* new_Block(std::string p, size_t l, size_t s = 0, bool r = false);
     Ruleset* new_Ruleset(std::string p, size_t l, Selector* s, Block* b);
-    Propset* new_Propset(std::string p, size_t l, String* pf, Block* b);
     Supports_Query* new_Supports_Query(std::string p, size_t l, Supports_Query* f, Block* b);
     Media_Query* new_Media_Query(std::string p, size_t l, List* q, Block* b);
     At_Root_Block* new_At_Root_Block(std::string p, size_t l, Selector* sel, Block* b);
     Directive* new_At_Rule(std::string p, size_t l, std::string kwd, Selector* sel, Block* b);
     Keyframe_Rule* new_Keyframe_Rule(std::string p, size_t l, Block* b);
-    Declaration* new_Declaration(std::string p, size_t l, String* prop, List* vals);
+    Declaration* new_Declaration(std::string p, size_t l, String* prop, List* vals, Block* b);
     Assignment* new_Assignment(std::string p, size_t l, std::string var, Expression* val, bool guarded = false);
     Import<Function_Call*>* new_CSS_Import(std::string p, size_t l, Function_Call* loc);
     Import<String*>* new_SASS_Import(std::string p, size_t l, String* loc);

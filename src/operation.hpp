@@ -13,7 +13,6 @@ namespace Sass {
     // statements
     virtual T operator()(Block* x)                  = 0;
     virtual T operator()(Ruleset* x)                = 0;
-    virtual T operator()(Propset* x)                = 0;
     virtual T operator()(Bubble* x)                 = 0;
     virtual T operator()(Trace* x)                  = 0;
     virtual T operator()(Supports_Block* x)         = 0;
@@ -95,7 +94,6 @@ namespace Sass {
     // statements
     T operator()(Block* x)                  { return static_cast<D*>(this)->fallback(x); }
     T operator()(Ruleset* x)                { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Propset* x)                { return static_cast<D*>(this)->fallback(x); }
     T operator()(Bubble* x)                 { return static_cast<D*>(this)->fallback(x); }
     T operator()(Trace* x)                  { return static_cast<D*>(this)->fallback(x); }
     T operator()(Supports_Block* x)         { return static_cast<D*>(this)->fallback(x); }

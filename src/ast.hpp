@@ -481,18 +481,6 @@ namespace Sass {
     ATTACH_OPERATIONS()
   };
 
-  /////////////////////////////////////////////////////////
-  // Nested declaration sets (i.e., namespaced properties).
-  /////////////////////////////////////////////////////////
-  class Propset : public Has_Block {
-    ADD_PROPERTY(String*, property_fragment)
-  public:
-    Propset(ParserState pstate, String* pf, Block* b = 0)
-    : Has_Block(pstate, b), property_fragment_(pf)
-    { }
-    ATTACH_OPERATIONS()
-  };
-
   /////////////////
   // Bubble.
   /////////////////
@@ -580,15 +568,15 @@ namespace Sass {
   ////////////////////////////////////////////////////////////////////////
   // Declarations -- style rules consisting of a property name and values.
   ////////////////////////////////////////////////////////////////////////
-  class Declaration : public Statement {
+  class Declaration : public Has_Block {
     ADD_PROPERTY(String*, property)
     ADD_PROPERTY(Expression*, value)
     ADD_PROPERTY(bool, is_important)
     ADD_PROPERTY(bool, is_indented)
   public:
     Declaration(ParserState pstate,
-                String* prop, Expression* val, bool i = false)
-    : Statement(pstate), property_(prop), value_(val), is_important_(i), is_indented_(false)
+                String* prop, Expression* val, bool i = false, Block* b = 0)
+    : Has_Block(pstate, b), property_(prop), value_(val), is_important_(i), is_indented_(false)
     { statement_type(DECLARATION); }
     ATTACH_OPERATIONS()
   };

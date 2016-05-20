@@ -151,12 +151,6 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << (selector->has_line_feed() ? " [line-feed]": " -");
     std::cerr << " <" << prettyprint(selector->pstate().token.ws_before()) << ">" << std::endl;
     for(auto i : selector->elements()) { debug_ast(i, ind + " ", env); }
-  } else if (dynamic_cast<Propset*>(node)) {
-    Propset* selector = dynamic_cast<Propset*>(node);
-    std::cerr << ind << "Propset " << selector;
-    std::cerr << " (" << pstate_source_position(node) << ")";
-    std::cerr << " " << selector->tabs() << std::endl;
-    if (selector->block()) for(auto i : selector->block()->elements()) { debug_ast(i, ind + " ", env); }
   } else if (dynamic_cast<Wrapped_Selector*>(node)) {
     Wrapped_Selector* selector = dynamic_cast<Wrapped_Selector*>(node);
     std::cerr << ind << "Wrapped_Selector " << selector;
@@ -389,6 +383,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << " " << block->tabs() << std::endl;
     debug_ast(block->property(), ind + " prop: ", env);
     debug_ast(block->value(), ind + " value: ", env);
+    debug_ast(block->block(), ind + " ", env);
   } else if (dynamic_cast<Keyframe_Rule*>(node)) {
     Keyframe_Rule* has_block = dynamic_cast<Keyframe_Rule*>(node);
     std::cerr << ind << "Keyframe_Rule " << has_block;

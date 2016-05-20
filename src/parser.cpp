@@ -284,7 +284,7 @@ namespace Sass {
         if (decl->is_indented()) ++ indentation;
         // parse a propset that rides on the declaration's property
         stack.push_back(Scope::Properties);
-        (*block) << SASS_MEMORY_NEW(ctx.mem, Propset, pstate, decl->property(), parse_block());
+        decl->block(parse_block());
         stack.pop_back();
         if (decl->is_indented()) -- indentation;
       }
@@ -1851,16 +1851,6 @@ namespace Sass {
 
   Content* Parser::parse_content_directive()
   {
-    bool missing_mixin_parent = true;
-    for (auto parent : stack) {
-      if (parent == Scope::Mixin) {
-        missing_mixin_parent = false;
-        break;
-      }
-    }
-    if (missing_mixin_parent) {
-      error("@content may only be used within a mixin", pstate);
-    }
     return SASS_MEMORY_NEW(ctx.mem, Content, pstate);
   }
 

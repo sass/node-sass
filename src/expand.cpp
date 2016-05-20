@@ -21,7 +21,8 @@ namespace Sass {
     selector_stack(std::vector<Selector_List*>()),
     media_block_stack(std::vector<Media_Block*>()),
     backtrace_stack(std::vector<Backtrace*>()),
-    in_keyframes(false)
+    in_keyframes(false),
+    at_root_without_rule(false)
   {
     env_stack.push_back(0);
     env_stack.push_back(env);
@@ -86,8 +87,6 @@ namespace Sass {
 
   Statement* Expand::operator()(Ruleset* r)
   {
-    // reset when leaving scope
-
     if (in_keyframes) {
       Keyframe_Rule* k = SASS_MEMORY_NEW(ctx.mem, Keyframe_Rule, r->pstate(), r->block()->perform(this)->block());
       if (r->selector()) {
@@ -97,6 +96,9 @@ namespace Sass {
       }
       return k;
     }
+
+    // reset when leaving scope
+    LOCAL_FLAG(at_root_without_rule, false);
 
     // do some special checks for the base level rules
     if (r->is_root()) {
@@ -153,44 +155,6 @@ namespace Sass {
     return rr;
   }
 
-  // this is not properly implemented
-  // mixes string_schema and statement
-  Statement* Expand::operator()(Propset* p)
-  {
-    property_stack.push_back(p->property_fragment());
-    Block* expanded_block = p->block()->perform(this)->block();
-    for (size_t i = 0, L = expanded_block->length(); i < L; ++i) {
-      Statement* stm = (*expanded_block)[i];
-      if (Declaration* dec = static_cast<Declaration*>(stm)) {
-        // dec = SASS_MEMORY_NEW(ctx.mem, Declaration, *dec);
-        String_Schema* combined_prop = SASS_MEMORY_NEW(ctx.mem, String_Schema, p->pstate());
-        if (!property_stack.empty()) {
-          *combined_prop << property_stack.back()->perform(&eval);
-          *combined_prop << SASS_MEMORY_NEW(ctx.mem, String_Quoted, p->pstate(), "-");
-          if (dec->property()) {
-            // we cannot directly add block (from dec->property()) to string schema (combined_prop)
-            *combined_prop << SASS_MEMORY_NEW(ctx.mem, String_Quoted, dec->pstate(), dec->property()->to_string());
-          }
-        }
-        else {
-          *combined_prop << dec->property();
-        }
-        dec->property(combined_prop);
-        *block_stack.back() << dec;
-      }
-      else if (typeid(*stm) == typeid(Comment)) {
-        // drop comments in propsets
-      }
-      else {
-        error("contents of namespaced properties must result in style declarations only", stm->pstate(), backtrace());
-      }
-    }
-
-    property_stack.pop_back();
-
-    return 0;
-  }
-
   Statement* Expand::operator()(Supports_Block* f)
   {
     Expression* condition = f->condition()->perform(&eval);
@@ -223,16 +187,19 @@ namespace Sass {
   Statement* Expand::operator()(At_Root_Block* a)
   {
     Block* ab = a->block();
-    // if (ab) ab->is_root(true);
     Expression* ae = a->expression();
+
     if (ae) ae = ae->perform(&eval);
     else ae = SASS_MEMORY_NEW(ctx.mem, At_Root_Query, a->pstate());
+
+    LOCAL_FLAG(at_root_without_rule, true);
+    LOCAL_FLAG(in_keyframes, false);
+
     Block* bb = ab ? ab->perform(this)->block() : 0;
     At_Root_Block* aa = SASS_MEMORY_NEW(ctx.mem, At_Root_Block,
                                         a->pstate(),
                                         bb,
                                         static_cast<At_Root_Query*>(ae));
-    // aa->block()->is_root(true);
     return aa;
   }
 
@@ -258,15 +225,20 @@ namespace Sass {
 
   Statement* Expand::operator()(Declaration* d)
   {
+    Block* ab = d->block();
     String* old_p = d->property();
     String* new_p = static_cast<String*>(old_p->perform(&eval));
     Expression* value = d->value()->perform(&eval);
-    if (!value || (value->is_invisible() && !d->is_important())) return 0;
+    Block* bb = ab ? ab->perform(this)->block() : 0;
+    if (!bb) {
+      if (!value || (value->is_invisible() && !d->is_important())) return 0;
+    }
     Declaration* decl = SASS_MEMORY_NEW(ctx.mem, Declaration,
                                         d->pstate(),
                                         new_p,
                                         value,
-                                        d->is_important());
+                                        d->is_important(),
+                                        bb);
     decl->tabs(d->tabs());
     return decl;
   }
@@ -708,10 +680,22 @@ namespace Sass {
     }
 
     bind(std::string("Mixin"), c->name(), params, args, &ctx, &new_env, &eval);
-    append_block(body);
-    backtrace_stack.pop_back();
+
+    Block* trace_block = SASS_MEMORY_NEW(ctx.mem, Block, c->pstate());
+    Trace* trace = SASS_MEMORY_NEW(ctx.mem, Trace, c->pstate(), c->name(), trace_block);
+
+
+    block_stack.push_back(trace_block);
+    for (auto bb : *body) {
+      Statement* ith = bb->perform(this);
+      if (ith) *trace->block() << ith;
+    }
+    block_stack.pop_back();
+
     env_stack.pop_back();
-    return 0;
+    backtrace_stack.pop_back();
+
+    return trace;
   }
 
   Statement* Expand::operator()(Content* c)
@@ -719,18 +703,23 @@ namespace Sass {
     Env* env = environment();
     // convert @content directives into mixin calls to the underlying thunk
     if (!env->has("@content[m]")) return 0;
+
     if (block_stack.back()->is_root()) {
       selector_stack.push_back(0);
     }
+
     Mixin_Call* call = SASS_MEMORY_NEW(ctx.mem, Mixin_Call,
                                        c->pstate(),
                                        "@content",
                                        SASS_MEMORY_NEW(ctx.mem, Arguments, c->pstate()));
-    Statement* stm = call->perform(this);
+
+    Trace* trace = dynamic_cast<Trace*>(call->perform(this));
+
     if (block_stack.back()->is_root()) {
       selector_stack.pop_back();
     }
-    return stm;
+
+    return trace;
   }
 
   // produce an error if something is not implemented

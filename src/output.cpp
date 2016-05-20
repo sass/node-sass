@@ -118,7 +118,9 @@ namespace Sass {
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement* stm = (*b)[i];
         if (dynamic_cast<Has_Block*>(stm)) {
-          stm->perform(this);
+          if (typeid(*stm) != typeid(Declaration)) {
+            stm->perform(this);
+          }
         }
       }
       return;

@@ -35,7 +35,6 @@ namespace Sass {
 
     virtual void operator()(Map*);
     virtual void operator()(Ruleset*);
-    // virtual void operator()(Propset*);
     virtual void operator()(Supports_Block*);
     virtual void operator()(Media_Block*);
     virtual void operator()(Directive*);

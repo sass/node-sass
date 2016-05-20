@@ -11,7 +11,6 @@ namespace Sass {
   class Statement;
   class Block;
   class Ruleset;
-  class Propset;
   class Bubble;
   class Trace;
   class Media_Block;
