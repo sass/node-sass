@@ -13,20 +13,12 @@ namespace Sass {
   : ctx(ctx),
     block_stack(std::vector<Block*>()),
     p_stack(std::vector<Statement*>()),
-    s_stack(std::vector<Selector_List*>()),
     backtrace(bt)
-  {
-    s_stack.push_back(NULL);
-  }
+  { }
 
   Statement* Cssize::parent()
   {
     return p_stack.size() ? p_stack.back() : block_stack.front();
-  }
-
-  Selector_List* Cssize::selector()
-  {
-    return s_stack.size() ? s_stack.back() : NULL;
   }
 
   Statement* Cssize::operator()(Block* b)
@@ -145,7 +137,6 @@ namespace Sass {
   Statement* Cssize::operator()(Ruleset* r)
   {
     p_stack.push_back(r);
-    s_stack.push_back(dynamic_cast<Selector_List*>(r->selector()));
     // this can return a string schema
     // string schema is not a statement!
     // r->block() is already a string schema
@@ -162,7 +153,6 @@ namespace Sass {
                                   stmt->block());
     rr->is_root(r->is_root());
     // rr->tabs(r->block()->tabs());
-    s_stack.pop_back();
     p_stack.pop_back();
 
     if (!rr->block()) {

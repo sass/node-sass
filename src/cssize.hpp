@@ -16,7 +16,6 @@ namespace Sass {
     Context&                    ctx;
     std::vector<Block*>         block_stack;
     std::vector<Statement*>     p_stack;
-    std::vector<Selector_List*> s_stack;
     Backtrace*                  backtrace;
 
     Statement* fallback_impl(AST_Node* n);
