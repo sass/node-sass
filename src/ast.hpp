@@ -1737,7 +1737,7 @@ namespace Sass {
     bool exclude_node(Statement* s) {
       if (expression() == 0)
       {
-        return true;
+        return s->statement_type() == Statement::RULESET;
       }
 
       if (s->statement_type() == Statement::DIRECTIVE)
