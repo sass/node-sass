@@ -65,6 +65,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " " << bubble->tabs();
     std::cerr << std::endl;
+    debug_ast(bubble->node(), ind + " ", env);
   } else if (dynamic_cast<Trace*>(node)) {
     Trace* trace = dynamic_cast<Trace*>(node);
     std::cerr << ind << "Trace " << trace;
@@ -293,6 +294,13 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(node) << ")"
     << std::endl;
     debug_ast(block->condition(), ind + " condition) ");
+  } else if (dynamic_cast<At_Root_Query*>(node)) {
+    At_Root_Query* block = dynamic_cast<At_Root_Query*>(node);
+    std::cerr << ind << "At_Root_Query " << block;
+    std::cerr << " (" << pstate_source_position(node) << ")"
+    << std::endl;
+    debug_ast(block->feature(), ind + " feature) ");
+    debug_ast(block->value(), ind + " value) ");
   } else if (dynamic_cast<Supports_Declaration*>(node)) {
     Supports_Declaration* block = dynamic_cast<Supports_Declaration*>(node);
     std::cerr << ind << "Supports_Declaration " << block;
