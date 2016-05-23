@@ -1821,7 +1821,7 @@ namespace Sass {
             }
 
             // Cannot be a Universal selector
-            Type_Selector* pType = dynamic_cast<Type_Selector*>(childSeq->head()->first());
+            Element_Selector* pType = dynamic_cast<Element_Selector*>(childSeq->head()->first());
             if(pType && pType->name() == "*") {
               std::string msg("Can't append  `");
               msg += childSeq->to_string();

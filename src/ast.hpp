@@ -2048,17 +2048,17 @@ namespace Sass {
   };
 
   /////////////////////////////////////////////////////////////////////
-  // Type selectors (and the universal selector) -- e.g., div, span, *.
+  // Element selectors (and the universal selector) -- e.g., div, span, *.
   /////////////////////////////////////////////////////////////////////
-  class Type_Selector : public Simple_Selector {
+  class Element_Selector : public Simple_Selector {
   public:
-    Type_Selector(ParserState pstate, std::string n)
+    Element_Selector(ParserState pstate, std::string n)
     : Simple_Selector(pstate, n)
     { }
     virtual unsigned long specificity()
     {
       if (name() == "*") return 0;
-      else               return Constants::Specificity_Type;
+      else               return Constants::Specificity_Element;
     }
     virtual Simple_Selector* unify_with(Simple_Selector*, Context&);
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
@@ -2082,7 +2082,7 @@ namespace Sass {
     {
       if (name()[0] == '#') return Constants::Specificity_ID;
       if (name()[0] == '.') return Constants::Specificity_Class;
-      else                  return Constants::Specificity_Type;
+      else                  return Constants::Specificity_Element;
     }
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
     ATTACH_OPERATIONS()
@@ -2173,7 +2173,7 @@ namespace Sass {
     virtual unsigned long specificity()
     {
       if (is_pseudo_element())
-        return Constants::Specificity_Type;
+        return Constants::Specificity_Element;
       return Constants::Specificity_Pseudo;
     }
     bool operator==(const Simple_Selector& rhs) const;
@@ -2275,7 +2275,7 @@ namespace Sass {
     const Simple_Selector* base() const {
       if (length() == 0) return 0;
       // ToDo: why is this needed?
-      if (dynamic_cast<Type_Selector*>((*this)[0]))
+      if (dynamic_cast<Element_Selector*>((*this)[0]))
         return (*this)[0];
       return 0;
     }

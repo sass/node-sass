@@ -11,7 +11,7 @@ namespace Sass {
     // https://github.com/sass/sass/issues/1495#issuecomment-61189114
     extern const unsigned long Specificity_Star = 0;
     extern const unsigned long Specificity_Universal = 0;
-    extern const unsigned long Specificity_Type = 1;
+    extern const unsigned long Specificity_Element = 1;
     extern const unsigned long Specificity_Base = 1000;
     extern const unsigned long Specificity_Class = 1000;
     extern const unsigned long Specificity_Attr = 1000;

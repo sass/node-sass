@@ -771,7 +771,7 @@ namespace Sass {
       // parse type selector
       else if (lex< re_type_selector >(false))
       {
-        (*seq) << SASS_MEMORY_NEW(ctx.mem, Type_Selector, pstate, lexed);
+        (*seq) << SASS_MEMORY_NEW(ctx.mem, Element_Selector, pstate, lexed);
       }
       // peek for abort conditions
       else if (peek< spaces >()) break;
@@ -803,10 +803,10 @@ namespace Sass {
       return SASS_MEMORY_NEW(ctx.mem, Selector_Qualifier, pstate, lexed);
     }
     else if (lex< quoted_string >()) {
-      return SASS_MEMORY_NEW(ctx.mem, Type_Selector, pstate, unquote(lexed));
+      return SASS_MEMORY_NEW(ctx.mem, Element_Selector, pstate, unquote(lexed));
     }
     else if (lex< alternatives < variable, number, static_reference_combinator > >()) {
-      return SASS_MEMORY_NEW(ctx.mem, Type_Selector, pstate, lexed);
+      return SASS_MEMORY_NEW(ctx.mem, Element_Selector, pstate, lexed);
     }
     else if (peek< pseudo_not >()) {
       return parse_negated_selector();

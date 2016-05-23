@@ -74,7 +74,7 @@ namespace Sass {
     Selector_List* operator()(Complex_Selector*);
     Attribute_Selector* operator()(Attribute_Selector*);
     // they don't have any specific implementatio (yet)
-    Type_Selector* operator()(Type_Selector* s) { return s; };
+    Element_Selector* operator()(Element_Selector* s) { return s; };
     Pseudo_Selector* operator()(Pseudo_Selector* s) { return s; };
     Wrapped_Selector* operator()(Wrapped_Selector* s) { return s; };
     Selector_Qualifier* operator()(Selector_Qualifier* s) { return s; };
