@@ -1893,7 +1893,7 @@ namespace Sass {
       return false;
     }
     virtual unsigned long specificity() {
-      return Constants::Specificity_Universal;
+      return 0;
     }
     virtual void set_media_block(Media_Block* mb) {
       media_block(mb);
@@ -2034,6 +2034,10 @@ namespace Sass {
     Selector_Placeholder(ParserState pstate, std::string n)
     : Simple_Selector(pstate, n)
     { has_placeholder(true); }
+    virtual unsigned long specificity()
+    {
+      return Constants::Specificity_Base;
+    }
     // virtual Selector_Placeholder* find_placeholder();
     virtual ~Selector_Placeholder() {};
     ATTACH_OPERATIONS()
@@ -2049,8 +2053,7 @@ namespace Sass {
     { }
     virtual unsigned long specificity()
     {
-      // ToDo: What is the specificity of the star selector?
-      if (name() == "*") return Constants::Specificity_Universal;
+      if (name() == "*") return 0;
       else               return Constants::Specificity_Type;
     }
     virtual Simple_Selector* unify_with(Simple_Selector*, Context&);
