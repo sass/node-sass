@@ -1944,6 +1944,10 @@ namespace Sass {
         name_ = n.substr(pos + 1);
       }
     }
+    virtual bool unique() const
+    {
+      return false;
+    }
     virtual std::string ns_name() const
     {
       std::string name("");
@@ -2066,6 +2070,11 @@ namespace Sass {
     Selector_Qualifier(ParserState pstate, std::string n)
     : Simple_Selector(pstate, n)
     { }
+    virtual bool unique() const
+    {
+      if (name()[0] == '#') return true;
+      else return false;
+    }
     virtual unsigned long specificity()
     {
       if (name()[0] == '#') return Constants::Specificity_ID;
