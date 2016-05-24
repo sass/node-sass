@@ -7,7 +7,7 @@ var eol = require('os').EOL,
     fs = require('fs'),
     mkdir = require('mkdirp'),
     path = require('path'),
-    spawn = require('cross-spawn-async'),
+    spawn = require('cross-spawn'),
     sass = require('../lib/extensions');
 
 /**
