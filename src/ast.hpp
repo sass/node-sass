@@ -2404,7 +2404,7 @@ namespace Sass {
     Complex_Selector* innermost() { return last(); };
 
     size_t length() const;
-    Selector_List* parentize(Selector_List* parents, Context& ctx, bool implicit_parent = true);
+    Selector_List* resolve_parent_refs(Context& ctx, Selector_List* parents, bool implicit_parent);
     virtual bool is_superselector_of(Compound_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Selector_List* sub, std::string wrapping = "");
@@ -2517,7 +2517,7 @@ namespace Sass {
     virtual bool has_parent_ref();
     void remove_parent_selectors();
     // virtual Selector_Placeholder* find_placeholder();
-    Selector_List* parentize(Selector_List* parents, Context& ctx, bool implicit_parent);
+    Selector_List* resolve_parent_refs(Context& ctx, Selector_List* parents, bool implicit_parent = true);
     virtual bool is_superselector_of(Compound_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Selector_List* sub, std::string wrapping = "");

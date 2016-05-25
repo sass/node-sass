@@ -1084,28 +1084,27 @@ namespace Sass {
 
   }
 
-  Selector_List* Selector_List::parentize(Selector_List* ps, Context& ctx, bool implicit_parent = true)
+  Selector_List* Selector_List::resolve_parent_refs(Context& ctx, Selector_List* ps, bool implicit_parent)
   {
+    if (!this->has_parent_ref()/* && !implicit_parent*/) return this;
     Selector_List* ss = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate());
     for (size_t pi = 0, pL = ps->length(); pi < pL; ++pi) {
       Selector_List* list = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate());
       *list << (*ps)[pi];
       for (size_t si = 0, sL = this->length(); si < sL; ++si) {
-        *ss += (*this)[si]->parentize(list, ctx, implicit_parent);
+        *ss += (*this)[si]->resolve_parent_refs(ctx, list, implicit_parent);
       }
     }
     return ss;
   }
 
-  Selector_List* Complex_Selector::parentize(Selector_List* parents, Context& ctx, bool implicit_parent)
+  Selector_List* Complex_Selector::resolve_parent_refs(Context& ctx, Selector_List* parents, bool implicit_parent)
   {
-    if (!this->has_parent_ref()/* && !implicit_parent*/) return this;
-
     Complex_Selector* tail = this->tail();
     Compound_Selector* head = this->head();
 
-    // first parentize the tail (which may return an expanded list)
-    Selector_List* tails = tail ? tail->parentize(parents, ctx, implicit_parent) : 0;
+    // first resolve_parent_refs the tail (which may return an expanded list)
+    Selector_List* tails = tail ? tail->resolve_parent_refs(ctx, parents, implicit_parent) : 0;
 
     if (head && head->length() > 0) {
 
@@ -1186,7 +1185,7 @@ namespace Sass {
       for (Simple_Selector* ss : *head) {
         if (Wrapped_Selector* ws = dynamic_cast<Wrapped_Selector*>(ss)) {
           if (Selector_List* sl = dynamic_cast<Selector_List*>(ws->selector())) {
-            if (parents) ws->selector(sl->parentize(parents, ctx, implicit_parent));
+            if (parents) ws->selector(sl->resolve_parent_refs(ctx, parents, implicit_parent));
           }
         }
       }
