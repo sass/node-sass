@@ -22,7 +22,8 @@ namespace Sass {
     media_block_stack(std::vector<Media_Block*>()),
     backtrace_stack(std::vector<Backtrace*>()),
     in_keyframes(false),
-    at_root_without_rule(false)
+    at_root_without_rule(false),
+    old_at_root_without_rule(false)
   {
     env_stack.push_back(0);
     env_stack.push_back(env);
@@ -87,6 +88,8 @@ namespace Sass {
 
   Statement* Expand::operator()(Ruleset* r)
   {
+    LOCAL_FLAG(old_at_root_without_rule, at_root_without_rule);
+
     if (in_keyframes) {
       Keyframe_Rule* k = SASS_MEMORY_NEW(ctx.mem, Keyframe_Rule, r->pstate(), r->block()->perform(this)->block());
       if (r->selector()) {

@@ -1745,7 +1745,7 @@ namespace Sass {
       for(;itr != parsedSelectors.end(); ++itr) {
         Selector_List* child = *itr;
         std::vector<Complex_Selector*> exploded;
-        Selector_List* rv = child->parentize(result, ctx);
+        Selector_List* rv = child->parentize(result, ctx, true);
         for (size_t m = 0, mLen = rv->length(); m < mLen; ++m) {
           exploded.push_back((*rv)[m]);
         }

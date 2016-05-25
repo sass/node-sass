@@ -37,6 +37,7 @@ namespace Sass {
     std::vector<Backtrace*>     backtrace_stack;
     bool                        in_keyframes;
     bool                        at_root_without_rule;
+    bool                        old_at_root_without_rule;
 
     Statement* fallback_impl(AST_Node* n);
 

@@ -1646,7 +1646,8 @@ namespace Sass {
 
   Selector_List* Eval::operator()(Complex_Selector* s)
   {
-    return s->parentize(selector(), ctx);
+    bool implicit_parent = !exp.old_at_root_without_rule;
+    return s->parentize(selector(), ctx, implicit_parent);
 
   }
 
