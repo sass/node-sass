@@ -3,7 +3,6 @@
  */
 
 var fs = require('fs'),
-    fsextra = require('fs-extra'),
     eol = require('os').EOL,
     mkdir = require('mkdirp'),
     path = require('path'),
@@ -146,7 +145,7 @@ function getTempPath(binaryName) {
     var candidatePath = path.join(candidateTmpDirs[i], 'node-sass');
 
     try {
-      fsextra.mkdirsSync(candidatePath, '0777');
+      mkdir.sync(candidatePath);
       return path.join(candidatePath, binaryName);
     } catch (err) {
       console.error(candidatePath, 'is not writable:', err.message);
