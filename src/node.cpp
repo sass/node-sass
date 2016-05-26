@@ -271,8 +271,8 @@ namespace Sass {
       }
     }
 
-    // Put the dummy Compound_Selector in the first position, for consistency with the rest of libsass
-    Compound_Selector* fakeHead = SASS_MEMORY_NEW(ctx.mem, Compound_Selector, ParserState("[NODE]"), 1);
+    // Put the dummy SimpleSequence_Selector in the first position, for consistency with the rest of libsass
+    SimpleSequence_Selector* fakeHead = SASS_MEMORY_NEW(ctx.mem, SimpleSequence_Selector, ParserState("[NODE]"), 1);
     Parent_Selector* selectorRef = SASS_MEMORY_NEW(ctx.mem, Parent_Selector, ParserState("[NODE]"));
     fakeHead->elements().push_back(selectorRef);
     if (toConvert.got_line_feed) pFirst->has_line_feed(toConvert.got_line_feed);

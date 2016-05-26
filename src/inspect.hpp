@@ -87,7 +87,7 @@ namespace Sass {
     virtual void operator()(Attribute_Selector*);
     virtual void operator()(Pseudo_Selector*);
     virtual void operator()(Wrapped_Selector*);
-    virtual void operator()(Compound_Selector*);
+    virtual void operator()(SimpleSequence_Selector*);
     virtual void operator()(Sequence_Selector*);
     virtual void operator()(CommaSequence_Selector*);
 

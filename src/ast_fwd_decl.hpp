@@ -79,7 +79,7 @@ namespace Sass {
   class Attribute_Selector;
   class Pseudo_Selector;
   class Wrapped_Selector;
-  class Compound_Selector;
+  class SimpleSequence_Selector;
   class Sequence_Selector;
   class CommaSequence_Selector;
 

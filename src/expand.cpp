@@ -577,14 +577,14 @@ namespace Sass {
         std::string sel_str(contextualized->to_string(ctx.c_options));
         error("Can't extend " + sel_str + ": can't extend nested selectors", c->pstate(), backtrace());
       }
-      Compound_Selector* placeholder = c->head();
+      SimpleSequence_Selector* placeholder = c->head();
       if (contextualized->is_optional()) placeholder->is_optional(true);
       for (size_t i = 0, L = extender->length(); i < L; ++i) {
         Sequence_Selector* sel = (*extender)[i];
         if (!(sel->head() && sel->head()->length() > 0 &&
             dynamic_cast<Parent_Selector*>((*sel->head())[0])))
         {
-          Compound_Selector* hh = SASS_MEMORY_NEW(ctx.mem, Compound_Selector, (*extender)[i]->pstate());
+          SimpleSequence_Selector* hh = SASS_MEMORY_NEW(ctx.mem, SimpleSequence_Selector, (*extender)[i]->pstate());
           hh->media_block((*extender)[i]->media_block());
           Sequence_Selector* ssel = SASS_MEMORY_NEW(ctx.mem, Sequence_Selector, (*extender)[i]->pstate());
           ssel->media_block((*extender)[i]->media_block());

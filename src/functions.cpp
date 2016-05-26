@@ -188,7 +188,7 @@ namespace Sass {
     }
 
     template <>
-    Compound_Selector* get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
+    SimpleSequence_Selector* get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
       Expression* exp = ARG(argname, Expression);
       if (exp->concrete_type() == Expression::NULL_VAL) {
         std::stringstream msg;
@@ -1220,7 +1220,7 @@ namespace Sass {
         return SASS_MEMORY_NEW(ctx.mem, Number, pstate, (double)(map ? map->length() : 1));
       }
       if (v->concrete_type() == Expression::SELECTOR) {
-        if (Compound_Selector* h = dynamic_cast<Compound_Selector*>(v)) {
+        if (SimpleSequence_Selector* h = dynamic_cast<SimpleSequence_Selector*>(v)) {
           return SASS_MEMORY_NEW(ctx.mem, Number, pstate, (double)h->length());
         } else if (CommaSequence_Selector* ls = dynamic_cast<CommaSequence_Selector*>(v)) {
           return SASS_MEMORY_NEW(ctx.mem, Number, pstate, (double)ls->length());
@@ -1864,7 +1864,7 @@ namespace Sass {
     Signature simple_selectors_sig = "simple-selectors($selector)";
     BUILT_IN(simple_selectors)
     {
-      Compound_Selector* sel = ARGSEL("$selector", Compound_Selector, p_contextualize);
+      SimpleSequence_Selector* sel = ARGSEL("$selector", SimpleSequence_Selector, p_contextualize);
 
       List* l = SASS_MEMORY_NEW(ctx.mem, List, sel->pstate(), sel->length(), SASS_COMMA);
 

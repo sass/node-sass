@@ -138,9 +138,9 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     }
     SourcesSet set = selector->sources();
     // debug_sources_set(set, ind + "  @--> ");
-  } else if (dynamic_cast<Compound_Selector*>(node)) {
-    Compound_Selector* selector = dynamic_cast<Compound_Selector*>(node);
-    std::cerr << ind << "Compound_Selector " << selector;
+  } else if (dynamic_cast<SimpleSequence_Selector*>(node)) {
+    SimpleSequence_Selector* selector = dynamic_cast<SimpleSequence_Selector*>(node);
+    std::cerr << ind << "SimpleSequence_Selector " << selector;
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " <" << selector->hash() << ">";
     std::cerr << " [weight:" << longToHex(selector->specificity()) << "]";
@@ -742,7 +742,7 @@ inline void debug_subset_map(Sass::ExtensionSubsetMap& map, std::string ind = ""
   if (ind == "") std::cerr << "#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
 }
 
-typedef std::pair<Sequence_Selector*, Compound_Selector*> ExtensionPair;
+typedef std::pair<Sequence_Selector*, SimpleSequence_Selector*> ExtensionPair;
 typedef std::vector<ExtensionPair> SubsetMapEntries;
 
 inline void debug_subset_entries(SubsetMapEntries* entries, std::string ind = "")

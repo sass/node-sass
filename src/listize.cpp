@@ -26,7 +26,7 @@ namespace Sass {
     return SASS_MEMORY_NEW(mem, Null, l->pstate());
   }
 
-  Expression* Listize::operator()(Compound_Selector* sel)
+  Expression* Listize::operator()(SimpleSequence_Selector* sel)
   {
     std::string str;
     for (size_t i = 0, L = sel->length(); i < L; ++i) {
@@ -40,7 +40,7 @@ namespace Sass {
   {
     List* l = SASS_MEMORY_NEW(mem, List, sel->pstate(), 2);
     l->from_selector(true);
-    Compound_Selector* head = sel->head();
+    SimpleSequence_Selector* head = sel->head();
     if (head && !head->is_empty_reference())
     {
       Expression* hh = head->perform(this);

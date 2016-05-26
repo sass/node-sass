@@ -653,7 +653,7 @@ namespace Sass {
     String* reference = 0;
     lex < block_comment >();
     // parse the left hand side
-    Compound_Selector* lhs = 0;
+    SimpleSequence_Selector* lhs = 0;
     // special case if it starts with combinator ([+~>])
     if (!peek_css< class_char < selector_combinator_ops > >()) {
       // parse the left hand side
@@ -707,7 +707,7 @@ namespace Sass {
       // create the objects to wrap parent selector reference
       Parent_Selector* parent = SASS_MEMORY_NEW(ctx.mem, Parent_Selector, pstate);
       parent->media_block(last_media_block);
-      Compound_Selector* head = SASS_MEMORY_NEW(ctx.mem, Compound_Selector, pstate);
+      SimpleSequence_Selector* head = SASS_MEMORY_NEW(ctx.mem, SimpleSequence_Selector, pstate);
       head->media_block(last_media_block);
       // add simple selector
       (*head) << parent;
@@ -730,10 +730,10 @@ namespace Sass {
   // parse one compound selector, which is basically
   // a list of simple selectors (directly adjacent)
   // lex them exactly (without skipping white-space)
-  Compound_Selector* Parser::parse_compound_selector()
+  SimpleSequence_Selector* Parser::parse_compound_selector()
   {
     // init an empty compound selector wrapper
-    Compound_Selector* seq = SASS_MEMORY_NEW(ctx.mem, Compound_Selector, pstate);
+    SimpleSequence_Selector* seq = SASS_MEMORY_NEW(ctx.mem, SimpleSequence_Selector, pstate);
     seq->media_block(last_media_block);
 
     // skip initial white-space
