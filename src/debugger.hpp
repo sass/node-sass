@@ -211,10 +211,10 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << (selector->has_line_feed() ? " [line-feed]": " -");
     std::cerr << " <" << prettyprint(selector->pstate().token.ws_before()) << ">";
     std::cerr << std::endl;
-  } else if (dynamic_cast<Selector_Placeholder*>(node)) {
+  } else if (dynamic_cast<Placeholder_Selector*>(node)) {
 
-    Selector_Placeholder* selector = dynamic_cast<Selector_Placeholder*>(node);
-    std::cerr << ind << "Selector_Placeholder [" << selector->ns_name() << "] " << selector
+    Placeholder_Selector* selector = dynamic_cast<Placeholder_Selector*>(node);
+    std::cerr << ind << "Placeholder_Selector [" << selector->ns_name() << "] " << selector
       << " <" << selector->hash() << ">"
       << " [@media:" << selector->media_block() << "]"
       << (selector->is_optional() ? " [is_optional]": " -")

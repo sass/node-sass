@@ -2033,17 +2033,17 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
   // Placeholder selectors (e.g., "%foo") for use in extend-only selectors.
   /////////////////////////////////////////////////////////////////////////
-  class Selector_Placeholder : public Simple_Selector {
+  class Placeholder_Selector : public Simple_Selector {
   public:
-    Selector_Placeholder(ParserState pstate, std::string n)
+    Placeholder_Selector(ParserState pstate, std::string n)
     : Simple_Selector(pstate, n)
     { has_placeholder(true); }
     virtual unsigned long specificity()
     {
       return Constants::Specificity_Base;
     }
-    // virtual Selector_Placeholder* find_placeholder();
-    virtual ~Selector_Placeholder() {};
+    // virtual Placeholder_Selector* find_placeholder();
+    virtual ~Placeholder_Selector() {};
     ATTACH_OPERATIONS()
   };
 
@@ -2265,7 +2265,7 @@ namespace Sass {
 
     Complex_Selector* to_complex(Memory_Manager& mem);
     Compound_Selector* unify_with(Compound_Selector* rhs, Context& ctx);
-    // virtual Selector_Placeholder* find_placeholder();
+    // virtual Placeholder_Selector* find_placeholder();
     virtual bool has_parent_ref();
     Simple_Selector* base()
     {
@@ -2408,7 +2408,7 @@ namespace Sass {
     virtual bool is_superselector_of(Compound_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Selector_List* sub, std::string wrapping = "");
-    // virtual Selector_Placeholder* find_placeholder();
+    // virtual Placeholder_Selector* find_placeholder();
     Selector_List* unify_with(Complex_Selector* rhs, Context& ctx);
     Combinator clear_innermost();
     void append(Context&, Complex_Selector*);
@@ -2516,7 +2516,7 @@ namespace Sass {
     // basically unwraps parsed selectors
     virtual bool has_parent_ref();
     void remove_parent_selectors();
-    // virtual Selector_Placeholder* find_placeholder();
+    // virtual Placeholder_Selector* find_placeholder();
     Selector_List* resolve_parent_refs(Context& ctx, Selector_List* parents, bool implicit_parent = true);
     virtual bool is_superselector_of(Compound_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector* sub, std::string wrapping = "");

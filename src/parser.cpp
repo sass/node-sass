@@ -821,7 +821,7 @@ namespace Sass {
       return parse_attribute_selector();
     }
     else if (lex< placeholder >()) {
-      Selector_Placeholder* sel = SASS_MEMORY_NEW(ctx.mem, Selector_Placeholder, pstate, lexed);
+      Placeholder_Selector* sel = SASS_MEMORY_NEW(ctx.mem, Placeholder_Selector, pstate, lexed);
       sel->media_block(last_media_block);
       return sel;
     }

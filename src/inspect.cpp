@@ -879,7 +879,7 @@ namespace Sass {
     append_string("&");
   }
 
-  void Inspect::operator()(Selector_Placeholder* s)
+  void Inspect::operator()(Placeholder_Selector* s)
   {
     append_token(s->name(), s);
     if (s->has_line_break()) append_optional_linefeed();

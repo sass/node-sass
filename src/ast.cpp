@@ -1047,8 +1047,8 @@ namespace Sass {
             tss->name(tss->name() + (*h)[0]->name());
             (*rh)[rh->length()-1] = tss;
             for (i = 1; i < L; ++i) *rh << (*h)[i];
-          } else if (Selector_Placeholder* ps = dynamic_cast<Selector_Placeholder*>(rh->last())) {
-            Selector_Placeholder* pss = new Selector_Placeholder(*ps);
+          } else if (Placeholder_Selector* ps = dynamic_cast<Placeholder_Selector*>(rh->last())) {
+            Placeholder_Selector* pss = new Placeholder_Selector(*ps);
             pss->name(pss->name() + (*h)[0]->name());
             (*rh)[rh->length()-1] = pss;
             for (i = 1; i < L; ++i) *rh << (*h)[i];
@@ -1351,7 +1351,7 @@ namespace Sass {
   }
 
   /* not used anymore - remove?
-  Selector_Placeholder* Selector::find_placeholder()
+  Placeholder_Selector* Selector::find_placeholder()
   {
     return 0;
   }*/
