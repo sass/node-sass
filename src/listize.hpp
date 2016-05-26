@@ -25,7 +25,7 @@ namespace Sass {
     ~Listize() { }
 
     Expression* operator()(CommaSequence_Selector*);
-    Expression* operator()(Complex_Selector*);
+    Expression* operator()(Sequence_Selector*);
     Expression* operator()(Compound_Selector*);
 
     template <typename U>

@@ -2224,15 +2224,15 @@ namespace Sass {
     ATTACH_OPERATIONS()
   };
 
-  struct Complex_Selector_Pointer_Compare {
-    bool operator() (const Complex_Selector* const pLeft, const Complex_Selector* const pRight) const;
+  struct Sequence_Selector_Pointer_Compare {
+    bool operator() (const Sequence_Selector* const pLeft, const Sequence_Selector* const pRight) const;
   };
 
   ////////////////////////////////////////////////////////////////////////////
   // Simple selector sequences. Maintains flags indicating whether it contains
   // any parent references or placeholders, to simplify expansion.
   ////////////////////////////////////////////////////////////////////////////
-  typedef std::set<Complex_Selector*, Complex_Selector_Pointer_Compare> SourcesSet;
+  typedef std::set<Sequence_Selector*, Sequence_Selector_Pointer_Compare> SourcesSet;
   class Compound_Selector : public Selector, public Vectorized<Simple_Selector*> {
   private:
     SourcesSet sources_;
@@ -2263,7 +2263,7 @@ namespace Sass {
       return length() == 1 && (*this)[0]->is_universal();
     }
 
-    Complex_Selector* to_complex(Memory_Manager& mem);
+    Sequence_Selector* to_complex(Memory_Manager& mem);
     Compound_Selector* unify_with(Compound_Selector* rhs, Context& ctx);
     // virtual Placeholder_Selector* find_placeholder();
     virtual bool has_parent_ref();
@@ -2280,7 +2280,7 @@ namespace Sass {
       return 0;
     }
     virtual bool is_superselector_of(Compound_Selector* sub, std::string wrapped = "");
-    virtual bool is_superselector_of(Complex_Selector* sub, std::string wrapped = "");
+    virtual bool is_superselector_of(Sequence_Selector* sub, std::string wrapped = "");
     virtual bool is_superselector_of(CommaSequence_Selector* sub, std::string wrapped = "");
     virtual size_t hash()
     {
@@ -2334,13 +2334,13 @@ namespace Sass {
   // CSS selector combinators (">", "+", "~", and whitespace). Essentially a
   // linked list.
   ////////////////////////////////////////////////////////////////////////////
-  class Complex_Selector : public Selector {
+  class Sequence_Selector : public Selector {
   public:
     enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO, REFERENCE };
   private:
     ADD_PROPERTY(Combinator, combinator)
     ADD_PROPERTY(Compound_Selector*, head)
-    ADD_PROPERTY(Complex_Selector*, tail)
+    ADD_PROPERTY(Sequence_Selector*, tail)
     ADD_PROPERTY(String*, reference);
   public:
     bool contains_placeholder() {
@@ -2348,10 +2348,10 @@ namespace Sass {
       if (tail() && tail()->contains_placeholder()) return true;
       return false;
     };
-    Complex_Selector(ParserState pstate,
+    Sequence_Selector(ParserState pstate,
                      Combinator c = ANCESTOR_OF,
                      Compound_Selector* h = 0,
-                     Complex_Selector* t = 0,
+                     Sequence_Selector* t = 0,
                      String* r = 0)
     : Selector(pstate),
       combinator_(c),
@@ -2363,7 +2363,7 @@ namespace Sass {
     }
     virtual bool has_parent_ref();
 
-    Complex_Selector* skip_empty_reference()
+    Sequence_Selector* skip_empty_reference()
     {
       if ((!head_ || !head_->length() || head_->is_empty_reference()) &&
           combinator() == Combinator::ANCESTOR_OF)
@@ -2383,36 +2383,36 @@ namespace Sass {
              combinator() == Combinator::ANCESTOR_OF;
     }
 
-    Complex_Selector* context(Context&);
+    Sequence_Selector* context(Context&);
 
 
     // front returns the first real tail
     // skips over parent and empty ones
-    const Complex_Selector* first() const;
+    const Sequence_Selector* first() const;
 
     // last returns the last real tail
-    const Complex_Selector* last() const;
+    const Sequence_Selector* last() const;
 
     CommaSequence_Selector* tails(Context& ctx, CommaSequence_Selector* tails);
 
     // unconstant accessors
-    Complex_Selector* first();
-    Complex_Selector* last();
+    Sequence_Selector* first();
+    Sequence_Selector* last();
 
     // some shortcuts that should be removed
-    const Complex_Selector* innermost() const { return last(); };
-    Complex_Selector* innermost() { return last(); };
+    const Sequence_Selector* innermost() const { return last(); };
+    Sequence_Selector* innermost() { return last(); };
 
     size_t length() const;
     CommaSequence_Selector* resolve_parent_refs(Context& ctx, CommaSequence_Selector* parents, bool implicit_parent);
     virtual bool is_superselector_of(Compound_Selector* sub, std::string wrapping = "");
-    virtual bool is_superselector_of(Complex_Selector* sub, std::string wrapping = "");
+    virtual bool is_superselector_of(Sequence_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(CommaSequence_Selector* sub, std::string wrapping = "");
     // virtual Placeholder_Selector* find_placeholder();
-    CommaSequence_Selector* unify_with(Complex_Selector* rhs, Context& ctx);
+    CommaSequence_Selector* unify_with(Sequence_Selector* rhs, Context& ctx);
     Combinator clear_innermost();
-    void append(Context&, Complex_Selector*);
-    void set_innermost(Complex_Selector*, Combinator);
+    void append(Context&, Sequence_Selector*);
+    void set_innermost(Sequence_Selector*, Combinator);
     virtual size_t hash()
     {
       if (hash_ == 0) {
@@ -2440,9 +2440,9 @@ namespace Sass {
       if (tail_ && tail_->has_wrapped_selector()) return true;
       return false;
     }
-    bool operator<(const Complex_Selector& rhs) const;
-    bool operator==(const Complex_Selector& rhs) const;
-    inline bool operator!=(const Complex_Selector& rhs) const { return !(*this == rhs); }
+    bool operator<(const Sequence_Selector& rhs) const;
+    bool operator==(const Sequence_Selector& rhs) const;
+    inline bool operator!=(const Sequence_Selector& rhs) const { return !(*this == rhs); }
     SourcesSet sources()
     {
       //s = Set.new
@@ -2452,7 +2452,7 @@ namespace Sass {
       SourcesSet srcs;
 
       Compound_Selector* pHead = head();
-      Complex_Selector*  pTail = tail();
+      Sequence_Selector*  pTail = tail();
 
       if (pHead) {
         SourcesSet& headSources = pHead->sources();
@@ -2468,7 +2468,7 @@ namespace Sass {
     }
     void addSources(SourcesSet& sources, Context& ctx) {
       // members.map! {|m| m.is_a?(SimpleSequence) ? m.with_more_sources(sources) : m}
-      Complex_Selector* pIter = this;
+      Sequence_Selector* pIter = this;
       while (pIter) {
         Compound_Selector* pHead = pIter->head();
 
@@ -2480,7 +2480,7 @@ namespace Sass {
       }
     }
     void clearSources() {
-      Complex_Selector* pIter = this;
+      Sequence_Selector* pIter = this;
       while (pIter) {
         Compound_Selector* pHead = pIter->head();
 
@@ -2491,25 +2491,25 @@ namespace Sass {
         pIter = pIter->tail();
       }
     }
-    Complex_Selector* clone(Context&) const;      // does not clone Compound_Selector*s
-    Complex_Selector* cloneFully(Context&) const; // clones Compound_Selector*s
+    Sequence_Selector* clone(Context&) const;      // does not clone Compound_Selector*s
+    Sequence_Selector* cloneFully(Context&) const; // clones Compound_Selector*s
     // std::vector<Compound_Selector*> to_vector();
     ATTACH_OPERATIONS()
   };
 
-  typedef std::deque<Complex_Selector*> ComplexSelectorDeque;
-  typedef Subset_Map<std::string, std::pair<Complex_Selector*, Compound_Selector*> > ExtensionSubsetMap;
+  typedef std::deque<Sequence_Selector*> ComplexSelectorDeque;
+  typedef Subset_Map<std::string, std::pair<Sequence_Selector*, Compound_Selector*> > ExtensionSubsetMap;
 
   ///////////////////////////////////
   // Comma-separated selector groups.
   ///////////////////////////////////
-  class CommaSequence_Selector : public Selector, public Vectorized<Complex_Selector*> {
+  class CommaSequence_Selector : public Selector, public Vectorized<Sequence_Selector*> {
     ADD_PROPERTY(std::vector<std::string>, wspace)
   protected:
-    void adjust_after_pushing(Complex_Selector* c);
+    void adjust_after_pushing(Sequence_Selector* c);
   public:
     CommaSequence_Selector(ParserState pstate, size_t s = 0)
-    : Selector(pstate), Vectorized<Complex_Selector*>(s), wspace_(0)
+    : Selector(pstate), Vectorized<Sequence_Selector*>(s), wspace_(0)
     { }
     std::string type() { return "list"; }
     // remove parent selector references
@@ -2519,7 +2519,7 @@ namespace Sass {
     // virtual Placeholder_Selector* find_placeholder();
     CommaSequence_Selector* resolve_parent_refs(Context& ctx, CommaSequence_Selector* parents, bool implicit_parent = true);
     virtual bool is_superselector_of(Compound_Selector* sub, std::string wrapping = "");
-    virtual bool is_superselector_of(Complex_Selector* sub, std::string wrapping = "");
+    virtual bool is_superselector_of(Sequence_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(CommaSequence_Selector* sub, std::string wrapping = "");
     CommaSequence_Selector* unify_with(CommaSequence_Selector*, Context&);
     void populate_extends(CommaSequence_Selector*, Context&, ExtensionSubsetMap&);
@@ -2544,12 +2544,12 @@ namespace Sass {
     }
     virtual void set_media_block(Media_Block* mb) {
       media_block(mb);
-      for (Complex_Selector* cs : elements()) {
+      for (Sequence_Selector* cs : elements()) {
         cs->set_media_block(mb);
       }
     }
     virtual bool has_wrapped_selector() {
-      for (Complex_Selector* cs : elements()) {
+      for (Sequence_Selector* cs : elements()) {
         if (cs->has_wrapped_selector()) return true;
       }
       return false;
@@ -2573,7 +2573,7 @@ namespace Sass {
     // members of a SimpleSequence (Compound_Selector)).
     //
     // Due to the reliance on operator== and operater< behavior, this templated method is currently only intended for
-    // use with Compound_Selector and Complex_Selector objects.
+    // use with Compound_Selector and Sequence_Selector objects.
     if (simpleSelectorOrderDependent) {
       return !(one < two) && !(two < one);
     } else {
@@ -2582,7 +2582,7 @@ namespace Sass {
   }
 
   // compare function for sorting and probably other other uses
-  struct cmp_complex_selector { inline bool operator() (const Complex_Selector* l, const Complex_Selector* r) { return (*l < *r); } };
+  struct cmp_complex_selector { inline bool operator() (const Sequence_Selector* l, const Sequence_Selector* r) { return (*l < *r); } };
   struct cmp_compound_selector { inline bool operator() (const Compound_Selector* l, const Compound_Selector* r) { return (*l < *r); } };
   struct cmp_simple_selector { inline bool operator() (const Simple_Selector* l, const Simple_Selector* r) { return (*l < *r); } };
 

@@ -71,7 +71,7 @@ namespace Sass {
 
     // these will return selectors
     CommaSequence_Selector* operator()(CommaSequence_Selector*);
-    CommaSequence_Selector* operator()(Complex_Selector*);
+    CommaSequence_Selector* operator()(Sequence_Selector*);
     Attribute_Selector* operator()(Attribute_Selector*);
     // they don't have any specific implementatio (yet)
     Element_Selector* operator()(Element_Selector* s) { return s; };

@@ -13,7 +13,7 @@ namespace Sass {
   class Context;
   class Node;
 
-  typedef Subset_Map<std::string, std::pair<Complex_Selector*, Compound_Selector*> > ExtensionSubsetMap;
+  typedef Subset_Map<std::string, std::pair<Sequence_Selector*, Compound_Selector*> > ExtensionSubsetMap;
 
   class Extend : public Operation_CRTP<void, Extend> {
 

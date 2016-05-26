@@ -239,7 +239,7 @@ namespace Sass {
     Ruleset* parse_ruleset(Lookahead lookahead, bool is_root = false);
     Selector_Schema* parse_selector_schema(const char* end_of_selector);
     CommaSequence_Selector* parse_selector_list(bool at_root = false);
-    Complex_Selector* parse_complex_selector(bool in_root = true);
+    Sequence_Selector* parse_complex_selector(bool in_root = true);
     Compound_Selector* parse_compound_selector();
     Simple_Selector* parse_simple_selector();
     Wrapped_Selector* parse_negated_selector();

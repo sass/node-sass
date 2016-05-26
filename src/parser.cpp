@@ -599,7 +599,7 @@ namespace Sass {
   {
     bool reloop = true;
     bool had_linefeed = false;
-    Complex_Selector* sel = 0;
+    Sequence_Selector* sel = 0;
     CommaSequence_Selector* group = SASS_MEMORY_NEW(ctx.mem, CommaSequence_Selector, pstate);
     group->media_block(last_media_block);
 
@@ -647,7 +647,7 @@ namespace Sass {
   // complex selector, with one of four combinator operations.
   // the compound selector (head) is optional, since the combinator
   // can come first in the whole selector sequence (like `> DIV').
-  Complex_Selector* Parser::parse_complex_selector(bool in_root)
+  Sequence_Selector* Parser::parse_complex_selector(bool in_root)
   {
 
     String* reference = 0;
@@ -664,28 +664,28 @@ namespace Sass {
     if (peek < end_of_file >()) return 0;
 
     // parse combinator between lhs and rhs
-    Complex_Selector::Combinator combinator;
-    if      (lex< exactly<'+'> >()) combinator = Complex_Selector::ADJACENT_TO;
-    else if (lex< exactly<'~'> >()) combinator = Complex_Selector::PRECEDES;
-    else if (lex< exactly<'>'> >()) combinator = Complex_Selector::PARENT_OF;
+    Sequence_Selector::Combinator combinator;
+    if      (lex< exactly<'+'> >()) combinator = Sequence_Selector::ADJACENT_TO;
+    else if (lex< exactly<'~'> >()) combinator = Sequence_Selector::PRECEDES;
+    else if (lex< exactly<'>'> >()) combinator = Sequence_Selector::PARENT_OF;
     else if (lex< sequence < exactly<'/'>, negate < exactly < '*' > > > >()) {
       // comments are allowed, but not spaces?
-      combinator = Complex_Selector::REFERENCE;
+      combinator = Sequence_Selector::REFERENCE;
       if (!lex < re_reference_combinator >()) return 0;
       reference = SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, lexed);
       if (!lex < exactly < '/' > >()) return 0; // ToDo: error msg?
     }
-    else /* if (lex< zero >()) */   combinator = Complex_Selector::ANCESTOR_OF;
+    else /* if (lex< zero >()) */   combinator = Sequence_Selector::ANCESTOR_OF;
 
-    if (!lhs && combinator == Complex_Selector::ANCESTOR_OF) return 0;
+    if (!lhs && combinator == Sequence_Selector::ANCESTOR_OF) return 0;
 
     // lex < block_comment >();
     // source position of a complex selector points to the combinator
     // ToDo: make sure we update pstate for ancestor of (lex < zero >());
-    Complex_Selector* sel = SASS_MEMORY_NEW(ctx.mem, Complex_Selector, pstate, combinator, lhs);
+    Sequence_Selector* sel = SASS_MEMORY_NEW(ctx.mem, Sequence_Selector, pstate, combinator, lhs);
     sel->media_block(last_media_block);
 
-    if (combinator == Complex_Selector::REFERENCE) sel->reference(reference);
+    if (combinator == Sequence_Selector::REFERENCE) sel->reference(reference);
     // has linfeed after combinator?
     sel->has_line_break(peek_newline());
     // sel->has_line_feed(has_line_feed);
@@ -715,7 +715,7 @@ namespace Sass {
       if (!sel->head()) { sel->head(head); }
       // otherwise we need to create a new complex selector and set the old one as its tail
       else {
-        sel = SASS_MEMORY_NEW(ctx.mem, Complex_Selector, pstate, Complex_Selector::ANCESTOR_OF, head, sel);
+        sel = SASS_MEMORY_NEW(ctx.mem, Sequence_Selector, pstate, Sequence_Selector::ANCESTOR_OF, head, sel);
         sel->media_block(last_media_block);
       }
       // peek for linefeed and remember result on head

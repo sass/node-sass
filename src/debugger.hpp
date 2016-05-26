@@ -108,9 +108,9 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << " <" << prettyprint(selector->pstate().token.ws_before()) << ">" << std::endl;
 //    debug_ast(selector->selector(), ind + "->", env);
 
-  } else if (dynamic_cast<Complex_Selector*>(node)) {
-    Complex_Selector* selector = dynamic_cast<Complex_Selector*>(node);
-    std::cerr << ind << "Complex_Selector " << selector
+  } else if (dynamic_cast<Sequence_Selector*>(node)) {
+    Sequence_Selector* selector = dynamic_cast<Sequence_Selector*>(node);
+    std::cerr << ind << "Sequence_Selector " << selector
       << " (" << pstate_source_position(node) << ")"
       << " <" << selector->hash() << ">"
       << " [weight:" << longToHex(selector->specificity()) << "]"
@@ -122,11 +122,11 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
       << " -- ";
       std::string del;
       switch (selector->combinator()) {
-        case Complex_Selector::PARENT_OF:   del = ">"; break;
-        case Complex_Selector::PRECEDES:    del = "~"; break;
-        case Complex_Selector::ADJACENT_TO: del = "+"; break;
-        case Complex_Selector::ANCESTOR_OF: del = " "; break;
-        case Complex_Selector::REFERENCE:   del = "//"; break;
+        case Sequence_Selector::PARENT_OF:   del = ">"; break;
+        case Sequence_Selector::PRECEDES:    del = "~"; break;
+        case Sequence_Selector::ADJACENT_TO: del = "+"; break;
+        case Sequence_Selector::ANCESTOR_OF: del = " "; break;
+        case Sequence_Selector::REFERENCE:   del = "//"; break;
       }
       // if (del = "/") del += selector->reference()->perform(&to_string) + "/";
     std::cerr << " <" << prettyprint(selector->pstate().token.ws_before()) << ">" << std::endl;
@@ -682,11 +682,11 @@ inline void debug_node(Node* node, std::string ind = "")
     std::cerr << node << " ";
     if (node->got_line_feed) std::cerr << "[LF] ";
     switch (node->combinator()) {
-      case Complex_Selector::ADJACENT_TO: std::cerr << "{+} "; break;
-      case Complex_Selector::PARENT_OF:   std::cerr << "{>} "; break;
-      case Complex_Selector::PRECEDES:    std::cerr << "{~} "; break;
-      case Complex_Selector::REFERENCE:   std::cerr << "{@} "; break;
-      case Complex_Selector::ANCESTOR_OF: std::cerr << "{ } "; break;
+      case Sequence_Selector::ADJACENT_TO: std::cerr << "{+} "; break;
+      case Sequence_Selector::PARENT_OF:   std::cerr << "{>} "; break;
+      case Sequence_Selector::PRECEDES:    std::cerr << "{~} "; break;
+      case Sequence_Selector::REFERENCE:   std::cerr << "{@} "; break;
+      case Sequence_Selector::ANCESTOR_OF: std::cerr << "{ } "; break;
     }
     std::cerr << std::endl;
     // debug_ast(node->combinator(), ind + "  ");
@@ -742,7 +742,7 @@ inline void debug_subset_map(Sass::ExtensionSubsetMap& map, std::string ind = ""
   if (ind == "") std::cerr << "#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
 }
 
-typedef std::pair<Complex_Selector*, Compound_Selector*> ExtensionPair;
+typedef std::pair<Sequence_Selector*, Compound_Selector*> ExtensionPair;
 typedef std::vector<ExtensionPair> SubsetMapEntries;
 
 inline void debug_subset_entries(SubsetMapEntries* entries, std::string ind = "")

@@ -1644,7 +1644,7 @@ namespace Sass {
   }
 
 
-  CommaSequence_Selector* Eval::operator()(Complex_Selector* s)
+  CommaSequence_Selector* Eval::operator()(Sequence_Selector* s)
   {
     bool implicit_parent = !exp.old_at_root_without_rule;
     return s->resolve_parent_refs(ctx, selector(), implicit_parent);
