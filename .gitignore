@@ -1,4 +1,5 @@
 *.log
+.idea
 .DS_Store
 .sass-cache
 build
