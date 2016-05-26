@@ -319,10 +319,10 @@ namespace Sass {
     return ns() < rhs.ns();
   }
 
-  bool Selector_List::operator== (const Selector& rhs) const
+  bool CommaSequence_Selector::operator== (const Selector& rhs) const
   {
     // solve the double dispatch problem by using RTTI information via dynamic cast
-    if (const Selector_List* ls = dynamic_cast<const Selector_List*>(&rhs)) { return *this == *ls; }
+    if (const CommaSequence_Selector* ls = dynamic_cast<const CommaSequence_Selector*>(&rhs)) { return *this == *ls; }
     else if (const Complex_Selector* ls = dynamic_cast<const Complex_Selector*>(&rhs)) { return *this == *ls; }
     else if (const Compound_Selector* ls = dynamic_cast<const Compound_Selector*>(&rhs)) { return *this == *ls; }
     // no compare method
@@ -330,7 +330,7 @@ namespace Sass {
   }
 
   // Selector lists can be compared to comma lists
-  bool Selector_List::operator==(const Expression& rhs) const
+  bool CommaSequence_Selector::operator==(const Expression& rhs) const
   {
     // solve the double dispatch problem by using RTTI information via dynamic cast
     if (const List* ls = dynamic_cast<const List*>(&rhs)) { return *this == *ls; }
@@ -339,7 +339,7 @@ namespace Sass {
     return false;
   }
 
-  bool Selector_List::operator== (const Selector_List& rhs) const
+  bool CommaSequence_Selector::operator== (const CommaSequence_Selector& rhs) const
   {
     // for array access
     size_t i = 0, n = 0;
@@ -660,18 +660,18 @@ namespace Sass {
   {
     if (this->name() != sub->name()) return false;
     if (this->name() == ":current") return false;
-    if (Selector_List* rhs_list = dynamic_cast<Selector_List*>(sub->selector())) {
-      if (Selector_List* lhs_list = dynamic_cast<Selector_List*>(selector())) {
+    if (CommaSequence_Selector* rhs_list = dynamic_cast<CommaSequence_Selector*>(sub->selector())) {
+      if (CommaSequence_Selector* lhs_list = dynamic_cast<CommaSequence_Selector*>(selector())) {
         return lhs_list->is_superselector_of(rhs_list);
       }
-      error("is_superselector expected a Selector_List", sub->pstate());
+      error("is_superselector expected a CommaSequence_Selector", sub->pstate());
     } else {
-      error("is_superselector expected a Selector_List", sub->pstate());
+      error("is_superselector expected a CommaSequence_Selector", sub->pstate());
     }
     return false;
   }
 
-  bool Compound_Selector::is_superselector_of(Selector_List* rhs, std::string wrapped)
+  bool Compound_Selector::is_superselector_of(CommaSequence_Selector* rhs, std::string wrapped)
   {
     for (Complex_Selector* item : rhs->elements()) {
       if (is_superselector_of(item, wrapped)) return true;
@@ -734,7 +734,7 @@ namespace Sass {
       // very special case for wrapped matches selector
       if (Wrapped_Selector* wrapped = dynamic_cast<Wrapped_Selector*>(lhs)) {
         if (wrapped->name() == ":not") {
-          if (Selector_List* not_list = dynamic_cast<Selector_List*>(wrapped->selector())) {
+          if (CommaSequence_Selector* not_list = dynamic_cast<CommaSequence_Selector*>(wrapped->selector())) {
             if (not_list->is_superselector_of(rhs, wrapped->name())) return false;
           } else {
             throw std::runtime_error("wrapped not selector is not a list");
@@ -742,7 +742,7 @@ namespace Sass {
         }
         if (wrapped->name() == ":matches" || wrapped->name() == ":-moz-any") {
           lhs = wrapped->selector();
-          if (Selector_List* list = dynamic_cast<Selector_List*>(wrapped->selector())) {
+          if (CommaSequence_Selector* list = dynamic_cast<CommaSequence_Selector*>(wrapped->selector())) {
             if (Compound_Selector* comp = dynamic_cast<Compound_Selector*>(rhs)) {
               if (!wrapping.empty() && wrapping != wrapped->name()) return false;
               if (wrapping.empty() || wrapping != wrapped->name()) {;
@@ -770,7 +770,7 @@ namespace Sass {
       auto r = (*rhs)[n];
       if (Wrapped_Selector* wrapped = dynamic_cast<Wrapped_Selector*>(r)) {
         if (wrapped->name() == ":not") {
-          if (Selector_List* ls = dynamic_cast<Selector_List*>(wrapped->selector())) {
+          if (CommaSequence_Selector* ls = dynamic_cast<CommaSequence_Selector*>(wrapped->selector())) {
             ls->remove_parent_selectors();
             if (is_superselector_of(ls, wrapped->name())) return false;
           }
@@ -779,7 +779,7 @@ namespace Sass {
           if (!wrapping.empty()) {
             if (wrapping != wrapped->name()) return false;
           }
-          if (Selector_List* ls = dynamic_cast<Selector_List*>(wrapped->selector())) {
+          if (CommaSequence_Selector* ls = dynamic_cast<CommaSequence_Selector*>(wrapped->selector())) {
             ls->remove_parent_selectors();
             return (is_superselector_of(ls, wrapped->name()));
           }
@@ -808,7 +808,7 @@ namespace Sass {
                            0);
   }
 
-  Selector_List* Complex_Selector::unify_with(Complex_Selector* other, Context& ctx)
+  CommaSequence_Selector* Complex_Selector::unify_with(Complex_Selector* other, Context& ctx)
   {
 
     // get last tails (on the right side)
@@ -866,7 +866,7 @@ namespace Sass {
 
     // do some magic we inherit from node and extend
     Node node = Extend::subweave(lhsNode, rhsNode, ctx);
-    Selector_List* result = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate());
+    CommaSequence_Selector* result = SASS_MEMORY_NEW(ctx.mem, CommaSequence_Selector, pstate());
     NodeDequePtr col = node.collection(); // move from collection to list
     for (NodeDeque::iterator it = col->begin(), end = col->end(); it != end; it++)
     { (*result) << nodeToComplexSelector(Node::naiveTrim(*it, ctx), ctx); }
@@ -1084,12 +1084,12 @@ namespace Sass {
 
   }
 
-  Selector_List* Selector_List::resolve_parent_refs(Context& ctx, Selector_List* ps, bool implicit_parent)
+  CommaSequence_Selector* CommaSequence_Selector::resolve_parent_refs(Context& ctx, CommaSequence_Selector* ps, bool implicit_parent)
   {
     if (!this->has_parent_ref()/* && !implicit_parent*/) return this;
-    Selector_List* ss = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate());
+    CommaSequence_Selector* ss = SASS_MEMORY_NEW(ctx.mem, CommaSequence_Selector, pstate());
     for (size_t pi = 0, pL = ps->length(); pi < pL; ++pi) {
-      Selector_List* list = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate());
+      CommaSequence_Selector* list = SASS_MEMORY_NEW(ctx.mem, CommaSequence_Selector, pstate());
       *list << (*ps)[pi];
       for (size_t si = 0, sL = this->length(); si < sL; ++si) {
         *ss += (*this)[si]->resolve_parent_refs(ctx, list, implicit_parent);
@@ -1098,21 +1098,21 @@ namespace Sass {
     return ss;
   }
 
-  Selector_List* Complex_Selector::resolve_parent_refs(Context& ctx, Selector_List* parents, bool implicit_parent)
+  CommaSequence_Selector* Complex_Selector::resolve_parent_refs(Context& ctx, CommaSequence_Selector* parents, bool implicit_parent)
   {
     Complex_Selector* tail = this->tail();
     Compound_Selector* head = this->head();
 
     // first resolve_parent_refs the tail (which may return an expanded list)
-    Selector_List* tails = tail ? tail->resolve_parent_refs(ctx, parents, implicit_parent) : 0;
+    CommaSequence_Selector* tails = tail ? tail->resolve_parent_refs(ctx, parents, implicit_parent) : 0;
 
     if (head && head->length() > 0) {
 
-      Selector_List* retval = 0;
+      CommaSequence_Selector* retval = 0;
       // we have a parent selector in a simple compound list
       // mix parent complex selector into the compound list
       if (dynamic_cast<Parent_Selector*>((*head)[0])) {
-        retval = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate());
+        retval = SASS_MEMORY_NEW(ctx.mem, CommaSequence_Selector, pstate());
         if (parents && parents->length()) {
           if (tails && tails->length() > 0) {
             for (size_t n = 0, nL = tails->length(); n < nL; ++n) {
@@ -1184,7 +1184,7 @@ namespace Sass {
 
       for (Simple_Selector* ss : *head) {
         if (Wrapped_Selector* ws = dynamic_cast<Wrapped_Selector*>(ss)) {
-          if (Selector_List* sl = dynamic_cast<Selector_List*>(ws->selector())) {
+          if (CommaSequence_Selector* sl = dynamic_cast<CommaSequence_Selector*>(ws->selector())) {
             if (parents) ws->selector(sl->resolve_parent_refs(ctx, parents, implicit_parent));
           }
         }
@@ -1202,9 +1202,9 @@ namespace Sass {
     return 0;
   }
 
-  Selector_List* Complex_Selector::tails(Context& ctx, Selector_List* tails)
+  CommaSequence_Selector* Complex_Selector::tails(Context& ctx, CommaSequence_Selector* tails)
   {
-    Selector_List* rv = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate_);
+    CommaSequence_Selector* rv = SASS_MEMORY_NEW(ctx.mem, CommaSequence_Selector, pstate_);
     if (tails && tails->length()) {
       for (size_t i = 0, iL = tails->length(); i < iL; ++i) {
         Complex_Selector* pr = this->clone(ctx);
@@ -1331,17 +1331,17 @@ namespace Sass {
     return cpy;
   }
 
-  Selector_List* Selector_List::clone(Context& ctx) const
+  CommaSequence_Selector* CommaSequence_Selector::clone(Context& ctx) const
   {
-    Selector_List* cpy = SASS_MEMORY_NEW(ctx.mem, Selector_List, *this);
+    CommaSequence_Selector* cpy = SASS_MEMORY_NEW(ctx.mem, CommaSequence_Selector, *this);
     cpy->is_optional(this->is_optional());
     cpy->media_block(this->media_block());
     return cpy;
   }
 
-  Selector_List* Selector_List::cloneFully(Context& ctx) const
+  CommaSequence_Selector* CommaSequence_Selector::cloneFully(Context& ctx) const
   {
-    Selector_List* cpy = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate());
+    CommaSequence_Selector* cpy = SASS_MEMORY_NEW(ctx.mem, CommaSequence_Selector, pstate());
     cpy->is_optional(this->is_optional());
     cpy->media_block(this->media_block());
     for (size_t i = 0, L = length(); i < L; ++i) {
@@ -1358,7 +1358,7 @@ namespace Sass {
 
   // remove parent selector references
   // basically unwraps parsed selectors
-  void Selector_List::remove_parent_selectors()
+  void CommaSequence_Selector::remove_parent_selectors()
   {
     // Check every rhs selector against left hand list
     for(size_t i = 0, L = length(); i < L; ++i) {
@@ -1381,7 +1381,7 @@ namespace Sass {
     }
   }
 
-  bool Selector_List::has_parent_ref()
+  bool CommaSequence_Selector::has_parent_ref()
   {
     for (Complex_Selector* s : *this) {
       if (s && s->has_parent_ref()) return true;
@@ -1397,14 +1397,14 @@ namespace Sass {
     return false;
   }
 
-  void Selector_List::adjust_after_pushing(Complex_Selector* c)
+  void CommaSequence_Selector::adjust_after_pushing(Complex_Selector* c)
   {
     // if (c->has_reference())   has_reference(true);
   }
 
   // it's a superselector if every selector of the right side
   // list is a superselector of the given left side selector
-  bool Complex_Selector::is_superselector_of(Selector_List *sub, std::string wrapping)
+  bool Complex_Selector::is_superselector_of(CommaSequence_Selector *sub, std::string wrapping)
   {
     // Check every rhs selector against left hand list
     for(size_t i = 0, L = sub->length(); i < L; ++i) {
@@ -1415,7 +1415,7 @@ namespace Sass {
 
   // it's a superselector if every selector of the right side
   // list is a superselector of the given left side selector
-  bool Selector_List::is_superselector_of(Selector_List *sub, std::string wrapping)
+  bool CommaSequence_Selector::is_superselector_of(CommaSequence_Selector *sub, std::string wrapping)
   {
     // Check every rhs selector against left hand list
     for(size_t i = 0, L = sub->length(); i < L; ++i) {
@@ -1426,7 +1426,7 @@ namespace Sass {
 
   // it's a superselector if every selector on the right side
   // is a superselector of any one of the left side selectors
-  bool Selector_List::is_superselector_of(Compound_Selector *sub, std::string wrapping)
+  bool CommaSequence_Selector::is_superselector_of(Compound_Selector *sub, std::string wrapping)
   {
     // Check every lhs selector against right hand
     for(size_t i = 0, L = length(); i < L; ++i) {
@@ -1437,7 +1437,7 @@ namespace Sass {
 
   // it's a superselector if every selector on the right side
   // is a superselector of any one of the left side selectors
-  bool Selector_List::is_superselector_of(Complex_Selector *sub, std::string wrapping)
+  bool CommaSequence_Selector::is_superselector_of(Complex_Selector *sub, std::string wrapping)
   {
     // Check every lhs selector against right hand
     for(size_t i = 0, L = length(); i < L; ++i) {
@@ -1446,7 +1446,7 @@ namespace Sass {
     return false;
   }
 
-  Selector_List* Selector_List::unify_with(Selector_List* rhs, Context& ctx) {
+  CommaSequence_Selector* CommaSequence_Selector::unify_with(CommaSequence_Selector* rhs, Context& ctx) {
     std::vector<Complex_Selector*> unified_complex_selectors;
     // Unify all of children with RHS's children, storing the results in `unified_complex_selectors`
     for (size_t lhs_i = 0, lhs_L = length(); lhs_i < lhs_L; ++lhs_i) {
@@ -1454,7 +1454,7 @@ namespace Sass {
       for(size_t rhs_i = 0, rhs_L = rhs->length(); rhs_i < rhs_L; ++rhs_i) {
         Complex_Selector* seq2 = (*rhs)[rhs_i];
 
-        Selector_List* result = seq1->unify_with(seq2, ctx);
+        CommaSequence_Selector* result = seq1->unify_with(seq2, ctx);
         if( result ) {
           for(size_t i = 0, L = result->length(); i < L; ++i) {
             unified_complex_selectors.push_back( (*result)[i] );
@@ -1463,18 +1463,18 @@ namespace Sass {
       }
     }
 
-    // Creates the final Selector_List by combining all the complex selectors
-    Selector_List* final_result = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate());
+    // Creates the final CommaSequence_Selector by combining all the complex selectors
+    CommaSequence_Selector* final_result = SASS_MEMORY_NEW(ctx.mem, CommaSequence_Selector, pstate());
     for (auto itr = unified_complex_selectors.begin(); itr != unified_complex_selectors.end(); ++itr) {
       *final_result << *itr;
     }
     return final_result;
   }
 
-  void Selector_List::populate_extends(Selector_List* extendee, Context& ctx, ExtensionSubsetMap& extends)
+  void CommaSequence_Selector::populate_extends(CommaSequence_Selector* extendee, Context& ctx, ExtensionSubsetMap& extends)
   {
 
-    Selector_List* extender = this;
+    CommaSequence_Selector* extender = this;
     for (auto complex_sel : extendee->elements()) {
       Complex_Selector* c = complex_sel;
 
@@ -1608,7 +1608,7 @@ namespace Sass {
   }
 
   bool Ruleset::is_invisible() const {
-    Selector_List* sl = static_cast<Selector_List*>(selector());
+    CommaSequence_Selector* sl = static_cast<CommaSequence_Selector*>(selector());
     for (size_t i = 0, L = sl->length(); i < L; ++i)
       if (!(*sl)[i]->has_placeholder()) return false;
     return true;

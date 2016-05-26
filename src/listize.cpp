@@ -14,7 +14,7 @@ namespace Sass {
   : mem(mem)
   {  }
 
-  Expression* Listize::operator()(Selector_List* sel)
+  Expression* Listize::operator()(CommaSequence_Selector* sel)
   {
     List* l = SASS_MEMORY_NEW(mem, List, sel->pstate(), sel->length(), SASS_COMMA);
     l->from_selector(true);

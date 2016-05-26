@@ -37,7 +37,7 @@ namespace Sass {
     Value* operator()(Null*);
 
     // convert to string via `To_String`
-    Value* operator()(Selector_List*);
+    Value* operator()(CommaSequence_Selector*);
     Value* operator()(Binary_Expression*);
 
     // fallback throws error

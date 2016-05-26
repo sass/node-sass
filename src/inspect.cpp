@@ -375,7 +375,7 @@ namespace Sass {
         !list->from_selector() &&
         !dynamic_cast<List*>((*list)[0]) &&
         !dynamic_cast<List*>((*list)[0]) &&
-        !dynamic_cast<Selector_List*>((*list)[0])) {
+        !dynamic_cast<CommaSequence_Selector*>((*list)[0])) {
       append_string("(");
     }
     else if (!in_declaration && (list->separator() == SASS_HASH ||
@@ -417,7 +417,7 @@ namespace Sass {
         !list->from_selector() &&
         !dynamic_cast<List*>((*list)[0]) &&
         !dynamic_cast<List*>((*list)[0]) &&
-        !dynamic_cast<Selector_List*>((*list)[0])) {
+        !dynamic_cast<CommaSequence_Selector*>((*list)[0])) {
       append_string(",)");
     }
     else if (!in_declaration && (list->separator() == SASS_HASH ||
@@ -1013,7 +1013,7 @@ namespace Sass {
     }
   }
 
-  void Inspect::operator()(Selector_List* g)
+  void Inspect::operator()(CommaSequence_Selector* g)
   {
 
     if (g->empty()) {
@@ -1028,7 +1028,7 @@ namespace Sass {
     // probably ruby sass eqivalent of element_needs_parens
     if (output_style() == TO_SASS && g->length() == 1 &&
       (!dynamic_cast<List*>((*g)[0]) &&
-       !dynamic_cast<Selector_List*>((*g)[0]))) {
+       !dynamic_cast<CommaSequence_Selector*>((*g)[0]))) {
       append_string("(");
     }
     else if (!in_declaration && in_comma_array) {
@@ -1054,7 +1054,7 @@ namespace Sass {
     // probably ruby sass eqivalent of element_needs_parens
     if (output_style() == TO_SASS && g->length() == 1 &&
       (!dynamic_cast<List*>((*g)[0]) &&
-       !dynamic_cast<Selector_List*>((*g)[0]))) {
+       !dynamic_cast<CommaSequence_Selector*>((*g)[0]))) {
       append_string(",)");
     }
     else if (!in_declaration && in_comma_array) {

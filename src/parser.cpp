@@ -55,7 +55,7 @@ namespace Sass {
     return p;
   }
 
-  Selector_List* Parser::parse_selector(const char* beg, Context& ctx, ParserState pstate, const char* source)
+  CommaSequence_Selector* Parser::parse_selector(const char* beg, Context& ctx, ParserState pstate, const char* source)
   {
     Parser p = Parser::from_c_str(beg, ctx, pstate, source);
     // ToDo: ruby sass errors on parent references
@@ -595,12 +595,12 @@ namespace Sass {
 
   // parse a list of complex selectors
   // this is the main entry point for most
-  Selector_List* Parser::parse_selector_list(bool in_root)
+  CommaSequence_Selector* Parser::parse_selector_list(bool in_root)
   {
     bool reloop = true;
     bool had_linefeed = false;
     Complex_Selector* sel = 0;
-    Selector_List* group = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate);
+    CommaSequence_Selector* group = SASS_MEMORY_NEW(ctx.mem, CommaSequence_Selector, pstate);
     group->media_block(last_media_block);
 
     do {

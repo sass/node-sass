@@ -88,8 +88,8 @@ namespace Sass {
     return arg->value()->perform(this);
   }
 
-  // Selector_List is converted to a string
-  Value* To_Value::operator()(Selector_List* s)
+  // CommaSequence_Selector is converted to a string
+  Value* To_Value::operator()(CommaSequence_Selector* s)
   {
     return SASS_MEMORY_NEW(mem, String_Quoted,
                            s->pstate(),

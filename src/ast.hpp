@@ -2281,7 +2281,7 @@ namespace Sass {
     }
     virtual bool is_superselector_of(Compound_Selector* sub, std::string wrapped = "");
     virtual bool is_superselector_of(Complex_Selector* sub, std::string wrapped = "");
-    virtual bool is_superselector_of(Selector_List* sub, std::string wrapped = "");
+    virtual bool is_superselector_of(CommaSequence_Selector* sub, std::string wrapped = "");
     virtual size_t hash()
     {
       if (Selector::hash_ == 0) {
@@ -2393,7 +2393,7 @@ namespace Sass {
     // last returns the last real tail
     const Complex_Selector* last() const;
 
-    Selector_List* tails(Context& ctx, Selector_List* tails);
+    CommaSequence_Selector* tails(Context& ctx, CommaSequence_Selector* tails);
 
     // unconstant accessors
     Complex_Selector* first();
@@ -2404,12 +2404,12 @@ namespace Sass {
     Complex_Selector* innermost() { return last(); };
 
     size_t length() const;
-    Selector_List* resolve_parent_refs(Context& ctx, Selector_List* parents, bool implicit_parent);
+    CommaSequence_Selector* resolve_parent_refs(Context& ctx, CommaSequence_Selector* parents, bool implicit_parent);
     virtual bool is_superselector_of(Compound_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector* sub, std::string wrapping = "");
-    virtual bool is_superselector_of(Selector_List* sub, std::string wrapping = "");
+    virtual bool is_superselector_of(CommaSequence_Selector* sub, std::string wrapping = "");
     // virtual Placeholder_Selector* find_placeholder();
-    Selector_List* unify_with(Complex_Selector* rhs, Context& ctx);
+    CommaSequence_Selector* unify_with(Complex_Selector* rhs, Context& ctx);
     Combinator clear_innermost();
     void append(Context&, Complex_Selector*);
     void set_innermost(Complex_Selector*, Combinator);
@@ -2503,12 +2503,12 @@ namespace Sass {
   ///////////////////////////////////
   // Comma-separated selector groups.
   ///////////////////////////////////
-  class Selector_List : public Selector, public Vectorized<Complex_Selector*> {
+  class CommaSequence_Selector : public Selector, public Vectorized<Complex_Selector*> {
     ADD_PROPERTY(std::vector<std::string>, wspace)
   protected:
     void adjust_after_pushing(Complex_Selector* c);
   public:
-    Selector_List(ParserState pstate, size_t s = 0)
+    CommaSequence_Selector(ParserState pstate, size_t s = 0)
     : Selector(pstate), Vectorized<Complex_Selector*>(s), wspace_(0)
     { }
     std::string type() { return "list"; }
@@ -2517,12 +2517,12 @@ namespace Sass {
     virtual bool has_parent_ref();
     void remove_parent_selectors();
     // virtual Placeholder_Selector* find_placeholder();
-    Selector_List* resolve_parent_refs(Context& ctx, Selector_List* parents, bool implicit_parent = true);
+    CommaSequence_Selector* resolve_parent_refs(Context& ctx, CommaSequence_Selector* parents, bool implicit_parent = true);
     virtual bool is_superselector_of(Compound_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector* sub, std::string wrapping = "");
-    virtual bool is_superselector_of(Selector_List* sub, std::string wrapping = "");
-    Selector_List* unify_with(Selector_List*, Context&);
-    void populate_extends(Selector_List*, Context&, ExtensionSubsetMap&);
+    virtual bool is_superselector_of(CommaSequence_Selector* sub, std::string wrapping = "");
+    CommaSequence_Selector* unify_with(CommaSequence_Selector*, Context&);
+    void populate_extends(CommaSequence_Selector*, Context&, ExtensionSubsetMap&);
     virtual size_t hash()
     {
       if (Selector::hash_ == 0) {
@@ -2554,10 +2554,10 @@ namespace Sass {
       }
       return false;
     }
-    Selector_List* clone(Context&) const;      // does not clone Compound_Selector*s
-    Selector_List* cloneFully(Context&) const; // clones Compound_Selector*s
+    CommaSequence_Selector* clone(Context&) const;      // does not clone Compound_Selector*s
+    CommaSequence_Selector* cloneFully(Context&) const; // clones Compound_Selector*s
     virtual bool operator==(const Selector& rhs) const;
-    virtual bool operator==(const Selector_List& rhs) const;
+    virtual bool operator==(const CommaSequence_Selector& rhs) const;
     // Selector Lists can be compared to comma lists
     virtual bool operator==(const Expression& rhs) const;
     ATTACH_OPERATIONS()
