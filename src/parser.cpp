@@ -55,7 +55,7 @@ namespace Sass {
     return p;
   }
 
-  Selector_List* Parser::parse_selector(const char* beg, Context& ctx, ParserState pstate, const char* source)
+  CommaSequence_Selector* Parser::parse_selector(const char* beg, Context& ctx, ParserState pstate, const char* source)
   {
     Parser p = Parser::from_c_str(beg, ctx, pstate, source);
     // ToDo: ruby sass errors on parent references
@@ -595,12 +595,12 @@ namespace Sass {
 
   // parse a list of complex selectors
   // this is the main entry point for most
-  Selector_List* Parser::parse_selector_list(bool in_root)
+  CommaSequence_Selector* Parser::parse_selector_list(bool in_root)
   {
     bool reloop = true;
     bool had_linefeed = false;
-    Complex_Selector* sel = 0;
-    Selector_List* group = SASS_MEMORY_NEW(ctx.mem, Selector_List, pstate);
+    Sequence_Selector* sel = 0;
+    CommaSequence_Selector* group = SASS_MEMORY_NEW(ctx.mem, CommaSequence_Selector, pstate);
     group->media_block(last_media_block);
 
     do {
@@ -647,13 +647,13 @@ namespace Sass {
   // complex selector, with one of four combinator operations.
   // the compound selector (head) is optional, since the combinator
   // can come first in the whole selector sequence (like `> DIV').
-  Complex_Selector* Parser::parse_complex_selector(bool in_root)
+  Sequence_Selector* Parser::parse_complex_selector(bool in_root)
   {
 
     String* reference = 0;
     lex < block_comment >();
     // parse the left hand side
-    Compound_Selector* lhs = 0;
+    SimpleSequence_Selector* lhs = 0;
     // special case if it starts with combinator ([+~>])
     if (!peek_css< class_char < selector_combinator_ops > >()) {
       // parse the left hand side
@@ -664,28 +664,28 @@ namespace Sass {
     if (peek < end_of_file >()) return 0;
 
     // parse combinator between lhs and rhs
-    Complex_Selector::Combinator combinator;
-    if      (lex< exactly<'+'> >()) combinator = Complex_Selector::ADJACENT_TO;
-    else if (lex< exactly<'~'> >()) combinator = Complex_Selector::PRECEDES;
-    else if (lex< exactly<'>'> >()) combinator = Complex_Selector::PARENT_OF;
+    Sequence_Selector::Combinator combinator;
+    if      (lex< exactly<'+'> >()) combinator = Sequence_Selector::ADJACENT_TO;
+    else if (lex< exactly<'~'> >()) combinator = Sequence_Selector::PRECEDES;
+    else if (lex< exactly<'>'> >()) combinator = Sequence_Selector::PARENT_OF;
     else if (lex< sequence < exactly<'/'>, negate < exactly < '*' > > > >()) {
       // comments are allowed, but not spaces?
-      combinator = Complex_Selector::REFERENCE;
+      combinator = Sequence_Selector::REFERENCE;
       if (!lex < re_reference_combinator >()) return 0;
       reference = SASS_MEMORY_NEW(ctx.mem, String_Constant, pstate, lexed);
       if (!lex < exactly < '/' > >()) return 0; // ToDo: error msg?
     }
-    else /* if (lex< zero >()) */   combinator = Complex_Selector::ANCESTOR_OF;
+    else /* if (lex< zero >()) */   combinator = Sequence_Selector::ANCESTOR_OF;
 
-    if (!lhs && combinator == Complex_Selector::ANCESTOR_OF) return 0;
+    if (!lhs && combinator == Sequence_Selector::ANCESTOR_OF) return 0;
 
     // lex < block_comment >();
     // source position of a complex selector points to the combinator
     // ToDo: make sure we update pstate for ancestor of (lex < zero >());
-    Complex_Selector* sel = SASS_MEMORY_NEW(ctx.mem, Complex_Selector, pstate, combinator, lhs);
+    Sequence_Selector* sel = SASS_MEMORY_NEW(ctx.mem, Sequence_Selector, pstate, combinator, lhs);
     sel->media_block(last_media_block);
 
-    if (combinator == Complex_Selector::REFERENCE) sel->reference(reference);
+    if (combinator == Sequence_Selector::REFERENCE) sel->reference(reference);
     // has linfeed after combinator?
     sel->has_line_break(peek_newline());
     // sel->has_line_feed(has_line_feed);
@@ -707,7 +707,7 @@ namespace Sass {
       // create the objects to wrap parent selector reference
       Parent_Selector* parent = SASS_MEMORY_NEW(ctx.mem, Parent_Selector, pstate);
       parent->media_block(last_media_block);
-      Compound_Selector* head = SASS_MEMORY_NEW(ctx.mem, Compound_Selector, pstate);
+      SimpleSequence_Selector* head = SASS_MEMORY_NEW(ctx.mem, SimpleSequence_Selector, pstate);
       head->media_block(last_media_block);
       // add simple selector
       (*head) << parent;
@@ -715,7 +715,7 @@ namespace Sass {
       if (!sel->head()) { sel->head(head); }
       // otherwise we need to create a new complex selector and set the old one as its tail
       else {
-        sel = SASS_MEMORY_NEW(ctx.mem, Complex_Selector, pstate, Complex_Selector::ANCESTOR_OF, head, sel);
+        sel = SASS_MEMORY_NEW(ctx.mem, Sequence_Selector, pstate, Sequence_Selector::ANCESTOR_OF, head, sel);
         sel->media_block(last_media_block);
       }
       // peek for linefeed and remember result on head
@@ -730,10 +730,10 @@ namespace Sass {
   // parse one compound selector, which is basically
   // a list of simple selectors (directly adjacent)
   // lex them exactly (without skipping white-space)
-  Compound_Selector* Parser::parse_compound_selector()
+  SimpleSequence_Selector* Parser::parse_compound_selector()
   {
     // init an empty compound selector wrapper
-    Compound_Selector* seq = SASS_MEMORY_NEW(ctx.mem, Compound_Selector, pstate);
+    SimpleSequence_Selector* seq = SASS_MEMORY_NEW(ctx.mem, SimpleSequence_Selector, pstate);
     seq->media_block(last_media_block);
 
     // skip initial white-space
@@ -771,7 +771,7 @@ namespace Sass {
       // parse type selector
       else if (lex< re_type_selector >(false))
       {
-        (*seq) << SASS_MEMORY_NEW(ctx.mem, Type_Selector, pstate, lexed);
+        (*seq) << SASS_MEMORY_NEW(ctx.mem, Element_Selector, pstate, lexed);
       }
       // peek for abort conditions
       else if (peek< spaces >()) break;
@@ -799,14 +799,17 @@ namespace Sass {
   Simple_Selector* Parser::parse_simple_selector()
   {
     lex < css_comments >(false);
-    if (lex< alternatives < id_name, class_name > >()) {
-      return SASS_MEMORY_NEW(ctx.mem, Selector_Qualifier, pstate, lexed);
+    if (lex< class_name >()) {
+      return SASS_MEMORY_NEW(ctx.mem, Class_Selector, pstate, lexed);
+    }
+    else if (lex< id_name >()) {
+      return SASS_MEMORY_NEW(ctx.mem, Id_Selector, pstate, lexed);
     }
     else if (lex< quoted_string >()) {
-      return SASS_MEMORY_NEW(ctx.mem, Type_Selector, pstate, unquote(lexed));
+      return SASS_MEMORY_NEW(ctx.mem, Element_Selector, pstate, unquote(lexed));
     }
     else if (lex< alternatives < variable, number, static_reference_combinator > >()) {
-      return SASS_MEMORY_NEW(ctx.mem, Type_Selector, pstate, lexed);
+      return SASS_MEMORY_NEW(ctx.mem, Element_Selector, pstate, lexed);
     }
     else if (peek< pseudo_not >()) {
       return parse_negated_selector();
@@ -821,7 +824,7 @@ namespace Sass {
       return parse_attribute_selector();
     }
     else if (lex< placeholder >()) {
-      Selector_Placeholder* sel = SASS_MEMORY_NEW(ctx.mem, Selector_Placeholder, pstate, lexed);
+      Placeholder_Selector* sel = SASS_MEMORY_NEW(ctx.mem, Placeholder_Selector, pstate, lexed);
       sel->media_block(last_media_block);
       return sel;
     }

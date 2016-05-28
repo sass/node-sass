@@ -71,15 +71,16 @@ namespace Sass {
     virtual T operator()(Arguments* x)              = 0;
     // selectors
     virtual T operator()(Selector_Schema* x)        = 0;
-    virtual T operator()(Selector_Placeholder* x)   = 0;
-    virtual T operator()(Type_Selector* x)          = 0;
-    virtual T operator()(Selector_Qualifier* x)     = 0;
+    virtual T operator()(Placeholder_Selector* x)   = 0;
+    virtual T operator()(Element_Selector* x)       = 0;
+    virtual T operator()(Class_Selector* x)         = 0;
+    virtual T operator()(Id_Selector* x)            = 0;
     virtual T operator()(Attribute_Selector* x)     = 0;
     virtual T operator()(Pseudo_Selector* x)        = 0;
     virtual T operator()(Wrapped_Selector* x)       = 0;
-    virtual T operator()(Compound_Selector* x)      = 0;
-    virtual T operator()(Complex_Selector* x)       = 0;
-    virtual T operator()(Selector_List* x)          = 0;
+    virtual T operator()(SimpleSequence_Selector* x)= 0;
+    virtual T operator()(Sequence_Selector* x)      = 0;
+    virtual T operator()(CommaSequence_Selector* x) = 0;
 
     template <typename U>
     T fallback(U x) { return T(); }
@@ -152,15 +153,16 @@ namespace Sass {
     T operator()(Arguments* x)              { return static_cast<D*>(this)->fallback(x); }
     // selectors
     T operator()(Selector_Schema* x)        { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Selector_Placeholder* x)   { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Type_Selector* x)          { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Selector_Qualifier* x)     { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Placeholder_Selector* x)   { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Element_Selector* x)       { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Class_Selector* x)         { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Id_Selector* x)            { return static_cast<D*>(this)->fallback(x); }
     T operator()(Attribute_Selector* x)     { return static_cast<D*>(this)->fallback(x); }
     T operator()(Pseudo_Selector* x)        { return static_cast<D*>(this)->fallback(x); }
     T operator()(Wrapped_Selector* x)       { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Compound_Selector* x)      { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Complex_Selector* x)       { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Selector_List* x)          { return static_cast<D*>(this)->fallback(x); }
+    T operator()(SimpleSequence_Selector* x){ return static_cast<D*>(this)->fallback(x); }
+    T operator()(Sequence_Selector* x)      { return static_cast<D*>(this)->fallback(x); }
+    T operator()(CommaSequence_Selector* x) { return static_cast<D*>(this)->fallback(x); }
 
     template <typename U>
     T fallback(U x)                         { return T(); }

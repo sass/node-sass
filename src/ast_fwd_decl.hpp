@@ -73,15 +73,16 @@ namespace Sass {
   // selectors
   class Selector;
   class Selector_Schema;
-  class Selector_Placeholder;
-  class Type_Selector;
-  class Selector_Qualifier;
+  class Placeholder_Selector;
+  class Element_Selector;
+  class Class_Selector;
+  class Id_Selector;
   class Attribute_Selector;
   class Pseudo_Selector;
   class Wrapped_Selector;
-  class Compound_Selector;
-  class Complex_Selector;
-  class Selector_List;
+  class SimpleSequence_Selector;
+  class Sequence_Selector;
+  class CommaSequence_Selector;
 
   // common classes
   class Context;

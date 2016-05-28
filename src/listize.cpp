@@ -14,7 +14,7 @@ namespace Sass {
   : mem(mem)
   {  }
 
-  Expression* Listize::operator()(Selector_List* sel)
+  Expression* Listize::operator()(CommaSequence_Selector* sel)
   {
     List* l = SASS_MEMORY_NEW(mem, List, sel->pstate(), sel->length(), SASS_COMMA);
     l->from_selector(true);
@@ -26,7 +26,7 @@ namespace Sass {
     return SASS_MEMORY_NEW(mem, Null, l->pstate());
   }
 
-  Expression* Listize::operator()(Compound_Selector* sel)
+  Expression* Listize::operator()(SimpleSequence_Selector* sel)
   {
     std::string str;
     for (size_t i = 0, L = sel->length(); i < L; ++i) {
@@ -36,11 +36,11 @@ namespace Sass {
     return SASS_MEMORY_NEW(mem, String_Quoted, sel->pstate(), str);
   }
 
-  Expression* Listize::operator()(Complex_Selector* sel)
+  Expression* Listize::operator()(Sequence_Selector* sel)
   {
     List* l = SASS_MEMORY_NEW(mem, List, sel->pstate(), 2);
     l->from_selector(true);
-    Compound_Selector* head = sel->head();
+    SimpleSequence_Selector* head = sel->head();
     if (head && !head->is_empty_reference())
     {
       Expression* hh = head->perform(this);
@@ -51,23 +51,23 @@ namespace Sass {
       : sel->reference()->to_string();
     switch(sel->combinator())
     {
-      case Complex_Selector::PARENT_OF:
+      case Sequence_Selector::PARENT_OF:
         *l << SASS_MEMORY_NEW(mem, String_Quoted, sel->pstate(), ">");
       break;
-      case Complex_Selector::ADJACENT_TO:
+      case Sequence_Selector::ADJACENT_TO:
         *l << SASS_MEMORY_NEW(mem, String_Quoted, sel->pstate(), "+");
       break;
-      case Complex_Selector::REFERENCE:
+      case Sequence_Selector::REFERENCE:
         *l << SASS_MEMORY_NEW(mem, String_Quoted, sel->pstate(), "/" + reference + "/");
       break;
-      case Complex_Selector::PRECEDES:
+      case Sequence_Selector::PRECEDES:
         *l << SASS_MEMORY_NEW(mem, String_Quoted, sel->pstate(), "~");
       break;
-      case Complex_Selector::ANCESTOR_OF:
+      case Sequence_Selector::ANCESTOR_OF:
       break;
     }
 
-    Complex_Selector* tail = sel->tail();
+    Sequence_Selector* tail = sel->tail();
     if (tail)
     {
       Expression* tt = tail->perform(this);

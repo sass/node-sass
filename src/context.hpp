@@ -50,7 +50,7 @@ namespace Sass {
     std::vector<char*> strings;
     std::vector<Resource> resources;
     std::map<const std::string, const StyleSheet> sheets;
-    Subset_Map<std::string, std::pair<Complex_Selector*, Compound_Selector*> > subset_map;
+    Subset_Map<std::string, std::pair<Sequence_Selector*, SimpleSequence_Selector*> > subset_map;
     std::vector<Sass_Import_Entry> import_stack;
 
     struct Sass_Compiler* c_compiler;

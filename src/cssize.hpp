@@ -24,7 +24,7 @@ namespace Sass {
     Cssize(Context&, Backtrace*);
     ~Cssize() { }
 
-    Selector_List* selector();
+    CommaSequence_Selector* selector();
 
     Statement* operator()(Block*);
     Statement* operator()(Ruleset*);
