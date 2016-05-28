@@ -12,6 +12,7 @@ namespace Sass {
     extern const unsigned long Specificity_Star;
     extern const unsigned long Specificity_Universal;
     extern const unsigned long Specificity_Type;
+    extern const unsigned long Specificity_Base;
     extern const unsigned long Specificity_Class;
     extern const unsigned long Specificity_Attr;
     extern const unsigned long Specificity_Pseudo;
