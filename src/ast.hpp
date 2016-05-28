@@ -2066,23 +2066,40 @@ namespace Sass {
   };
 
   ////////////////////////////////////////////////
-  // Selector qualifiers -- i.e., classes and ids.
+  // Class selectors  -- i.e., .foo.
   ////////////////////////////////////////////////
-  class Selector_Qualifier : public Simple_Selector {
+  class Class_Selector : public Simple_Selector {
   public:
-    Selector_Qualifier(ParserState pstate, std::string n)
+    Class_Selector(ParserState pstate, std::string n)
     : Simple_Selector(pstate, n)
     { }
     virtual bool unique() const
     {
-      if (name()[0] == '#') return true;
-      else return false;
+      return false;
     }
     virtual unsigned long specificity()
     {
-      if (name()[0] == '#') return Constants::Specificity_ID;
-      if (name()[0] == '.') return Constants::Specificity_Class;
-      else                  return Constants::Specificity_Element;
+      return Constants::Specificity_Class;
+    }
+    virtual SimpleSequence_Selector* unify_with(SimpleSequence_Selector*, Context&);
+    ATTACH_OPERATIONS()
+  };
+
+  ////////////////////////////////////////////////
+  // ID selectors -- i.e., #foo.
+  ////////////////////////////////////////////////
+  class Id_Selector : public Simple_Selector {
+  public:
+    Id_Selector(ParserState pstate, std::string n)
+    : Simple_Selector(pstate, n)
+    { }
+    virtual bool unique() const
+    {
+      return true;
+    }
+    virtual unsigned long specificity()
+    {
+      return Constants::Specificity_ID;
     }
     virtual SimpleSequence_Selector* unify_with(SimpleSequence_Selector*, Context&);
     ATTACH_OPERATIONS()

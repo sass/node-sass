@@ -469,7 +469,7 @@ namespace Sass {
         (*cpy)[0] = this->unify_with(ts, ctx);
         return cpy;
       }
-      else if (dynamic_cast<Selector_Qualifier*>(rhs_0)) {
+      else if (dynamic_cast<Class_Selector*>(rhs_0) || dynamic_cast<Id_Selector*>(rhs_0)) {
         // qualifier is `.class`, so we can prefix with `ns|*.class`
         SimpleSequence_Selector* cpy = SASS_MEMORY_NEW(ctx.mem, SimpleSequence_Selector, rhs->pstate());
         if (has_ns() && !rhs_0->has_ns()) {
@@ -501,17 +501,19 @@ namespace Sass {
     return cpy;
   }
 
-  SimpleSequence_Selector* Selector_Qualifier::unify_with(SimpleSequence_Selector* rhs, Context& ctx)
+  SimpleSequence_Selector* Class_Selector::unify_with(SimpleSequence_Selector* rhs, Context& ctx)
   {
-    if (name()[0] == '#')
+    rhs->has_line_break(has_line_break());
+    return Simple_Selector::unify_with(rhs, ctx);
+  }
+
+  SimpleSequence_Selector* Id_Selector::unify_with(SimpleSequence_Selector* rhs, Context& ctx)
+  {
+    for (size_t i = 0, L = rhs->length(); i < L; ++i)
     {
-      for (size_t i = 0, L = rhs->length(); i < L; ++i)
-      {
-        Simple_Selector* rhs_i = (*rhs)[i];
-        if (typeid(*rhs_i) == typeid(Selector_Qualifier) &&
-            static_cast<Selector_Qualifier*>(rhs_i)->name()[0] == '#' &&
-            static_cast<Selector_Qualifier*>(rhs_i)->name() != name())
-          return 0;
+      Simple_Selector* rhs_i = (*rhs)[i];
+      if (typeid(*rhs_i) == typeid(Id_Selector) && static_cast<Id_Selector*>(rhs_i)->name() != name()) {
+        return 0;
       }
     }
     rhs->has_line_break(has_line_break());
@@ -1037,8 +1039,13 @@ namespace Sass {
         SimpleSequence_Selector* rh = last()->head();
         size_t i = 0, L = h->length();
         if (dynamic_cast<Element_Selector*>(h->first())) {
-          if (Selector_Qualifier* sq = dynamic_cast<Selector_Qualifier*>(rh->last())) {
-            Selector_Qualifier* sqs = new Selector_Qualifier(*sq);
+          if (Class_Selector* sq = dynamic_cast<Class_Selector*>(rh->last())) {
+            Class_Selector* sqs = new Class_Selector(*sq);
+            sqs->name(sqs->name() + (*h)[0]->name());
+            (*rh)[rh->length()-1] = sqs;
+            for (i = 1; i < L; ++i) *rh << (*h)[i];
+          } else if (Id_Selector* sq = dynamic_cast<Id_Selector*>(rh->last())) {
+            Id_Selector* sqs = new Id_Selector(*sq);
             sqs->name(sqs->name() + (*h)[0]->name());
             (*rh)[rh->length()-1] = sqs;
             for (i = 1; i < L; ++i) *rh << (*h)[i];

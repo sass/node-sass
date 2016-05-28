@@ -188,9 +188,20 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << (selector->has_line_feed() ? " [line-feed]": " -");
     std::cerr << std::endl;
     debug_ast(selector->value(), ind + "[" + selector->matcher() + "] ", env);
-  } else if (dynamic_cast<Selector_Qualifier*>(node)) {
-    Selector_Qualifier* selector = dynamic_cast<Selector_Qualifier*>(node);
-    std::cerr << ind << "Selector_Qualifier " << selector;
+  } else if (dynamic_cast<Class_Selector*>(node)) {
+    Class_Selector* selector = dynamic_cast<Class_Selector*>(node);
+    std::cerr << ind << "Class_Selector " << selector;
+    std::cerr << " (" << pstate_source_position(node) << ")";
+    std::cerr << " <" << selector->hash() << ">";
+    std::cerr << " <<" << selector->ns_name() << ">>";
+    std::cerr << (selector->is_optional() ? " [is_optional]": " -");
+    std::cerr << (selector->has_parent_ref() ? " [has-parent]": " -");
+    std::cerr << (selector->has_line_break() ? " [line-break]": " -");
+    std::cerr << (selector->has_line_feed() ? " [line-feed]": " -");
+    std::cerr << std::endl;
+  } else if (dynamic_cast<Id_Selector*>(node)) {
+    Id_Selector* selector = dynamic_cast<Id_Selector*>(node);
+    std::cerr << ind << "Id_Selector " << selector;
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " <" << selector->hash() << ">";
     std::cerr << " <<" << selector->ns_name() << ">>";

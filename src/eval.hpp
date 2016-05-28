@@ -77,7 +77,8 @@ namespace Sass {
     Element_Selector* operator()(Element_Selector* s) { return s; };
     Pseudo_Selector* operator()(Pseudo_Selector* s) { return s; };
     Wrapped_Selector* operator()(Wrapped_Selector* s) { return s; };
-    Selector_Qualifier* operator()(Selector_Qualifier* s) { return s; };
+    Class_Selector* operator()(Class_Selector* s) { return s; };
+    Id_Selector* operator()(Id_Selector* s) { return s; };
     Placeholder_Selector* operator()(Placeholder_Selector* s) { return s; };
     // actual evaluated selectors
     CommaSequence_Selector* operator()(Selector_Schema*);

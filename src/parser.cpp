@@ -799,8 +799,11 @@ namespace Sass {
   Simple_Selector* Parser::parse_simple_selector()
   {
     lex < css_comments >(false);
-    if (lex< alternatives < id_name, class_name > >()) {
-      return SASS_MEMORY_NEW(ctx.mem, Selector_Qualifier, pstate, lexed);
+    if (lex< class_name >()) {
+      return SASS_MEMORY_NEW(ctx.mem, Class_Selector, pstate, lexed);
+    }
+    else if (lex< id_name >()) {
+      return SASS_MEMORY_NEW(ctx.mem, Id_Selector, pstate, lexed);
     }
     else if (lex< quoted_string >()) {
       return SASS_MEMORY_NEW(ctx.mem, Element_Selector, pstate, unquote(lexed));
