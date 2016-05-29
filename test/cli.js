@@ -520,6 +520,21 @@ describe('cli', function() {
       });
     });
 
+    it('should compile all files in a folder that starts with dot', function(done) {
+      var src = fixture('.input-directory/sass');
+      var dest = fixture('.input-directory/css');
+      var bin = spawn(cli, [src, '--output', dest]);
+
+      bin.once('close', function() {
+        var files = fs.readdirSync(dest).sort();
+        assert.deepEqual(files, ['one.css', 'two.css', 'nested'].sort());
+        var nestedFiles = fs.readdirSync(path.join(dest, 'nested'));
+        assert.deepEqual(nestedFiles, ['three.css']);
+        rimraf.sync(dest);
+        done();
+      });
+    });
+
     it('should compile with --source-map set to directory', function(done) {
       var src = fixture('input-directory/sass');
       var dest = fixture('input-directory/css');
@@ -539,6 +554,19 @@ describe('cli', function() {
     it('should skip files with an underscore', function(done) {
       var src = fixture('input-directory/sass');
       var dest = fixture('input-directory/css');
+      var bin = spawn(cli, [src, '--output', dest]);
+
+      bin.once('close', function() {
+        var files = fs.readdirSync(dest);
+        assert.equal(files.indexOf('_skipped.css'), -1);
+        rimraf.sync(dest);
+        done();
+      });
+    });
+
+    it('should skip files with an underscore in a directory starting with dot', function(done) {
+      var src = fixture('.input-directory/sass');
+      var dest = fixture('.input-directory/css');
       var bin = spawn(cli, [src, '--output', dest]);
 
       bin.once('close', function() {
