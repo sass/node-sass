@@ -5,6 +5,7 @@
 var fs = require('fs'),
     eol = require('os').EOL,
     mkdir = require('mkdirp'),
+    tmpdir = require('os-tmpdir'),
     path = require('path'),
     sass = require('../lib/extensions'),
     request = require('request'),
@@ -109,7 +110,7 @@ function checkAndDownloadBinary() {
       return;
     }
 
-    var tmpPath = getTempPath(sass.getBinaryName());
+    var tmpPath = getTempPath();
     if (!(sass.hasBinary(tmpPath))) { // download and install
       download(sass.getBinaryUrl(), tmpPath, function(err) {
         if (err) {
@@ -117,11 +118,14 @@ function checkAndDownloadBinary() {
           return;
         }
         console.log('Binary downloaded at', tmpPath);
-        copyBinary(tmpPath, sass.getBinaryPath());
+        //copy only, if not already in vendor
+        if (tmpPath !== sass.getBinaryPath()) {
+          copyBinary(tmpPath);
+        }
       });
 
     } else { // install only
-      copyBinary(tmpPath, sass.getBinaryPath());
+      copyBinary(tmpPath);
     }
   });
 }
@@ -129,40 +133,32 @@ function checkAndDownloadBinary() {
 /**
  * Find a temp folder for file
  *
- * @param {String} binaryName
- * @returns {string}
+ * @returns {string} temp folder including binary file name
  * @api private
  */
 
-function getTempPath(binaryName) {
-  var candidateTmpDirs = [
-    process.env.TMPDIR || process.env.TEMP || process.env.npm_config_tmp,
-    '/tmp',
-    path.join(process.cwd(), 'tmp')
-  ];
+function getTempPath() {
+  var candidateTmpDir = tmpdir() || process.env.npm_config_tmp;
+  var candidatePath = path.join(candidateTmpDir, 'node-sass', 'releases', 'download', 'v' + pkg.version);
 
-  for (var i = 0; i < candidateTmpDirs.length; i++) {
-    var candidatePath = path.join(candidateTmpDirs[i], 'node-sass', 'releases', 'download', 'v' + pkg.version);
-
-    try {
-      mkdir.sync(candidatePath);
-      return path.join(candidatePath, binaryName);
-    } catch (err) {
-      console.error(candidatePath, 'is not writable:', err.message);
-    }
+  try {
+    mkdir.sync(candidatePath);
+    return path.join(candidatePath, sass.getBinaryName());
+  } catch (err) {
+    console.error(candidatePath, 'is not writable:', err.message);
+    return sass.getBinaryPath(); //fallback to vendor
   }
 }
 
 /**
  * Copy file
  *
- * @param tmp
- * @param dest
+ * @param from
  * @api private
  */
-function copyBinary(tmp, dest) {
+function copyBinary(from) {
   try {
-    fs.createReadStream(tmp).pipe(fs.createWriteStream(dest));
+    fs.createReadStream(from).pipe(fs.createWriteStream(sass.getBinaryPath()));
 
     console.log('Binary installed at', sass.getBinaryPath());
   } catch (err) {
