@@ -142,7 +142,7 @@ function getTempPath(binaryName) {
   ];
 
   for (var i = 0; i < candidateTmpDirs.length; i++) {
-    var candidatePath = path.join(candidateTmpDirs[i], 'node-sass', "v" + pkg.version);
+    var candidatePath = path.join(candidateTmpDirs[i], 'node-sass', 'releases', 'download', 'v' + pkg.version);
 
     try {
       mkdir.sync(candidatePath);
