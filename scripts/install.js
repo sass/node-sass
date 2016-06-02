@@ -13,15 +13,15 @@ var fs = require('fs'),
 /**
  * Download file, if succeeds save, if not delete
  *
- * @param {String} url
+ * @param {String} src
  * @param {String} dest
  * @param {Function} cb
  * @api private
  */
 
-function download(url, dest, cb) {
+function copy(src, dest, cb) {
   var reportError = function(err) {
-    cb(['Cannot download "', url, '": ', eol, eol,
+    cb(['Cannot copy "', src, '": ', eol, eol,
       typeof err.message === 'string' ? err.message : err, eol, eol,
       'Hint: If github.com is not accessible in your location', eol,
       '      try setting a proxy via HTTP_PROXY, e.g. ', eol, eol,
@@ -30,48 +30,13 @@ function download(url, dest, cb) {
       '      npm config set proxy http://example.com:8080'].join(''));
   };
 
-  var successful = function(response) {
-    return response.statusCode >= 200 && response.statusCode < 300;
-  };
-
-  var options = { 
-    rejectUnauthorized: false,
-    proxy: getProxy(),
-    headers: {
-      'User-Agent': getUserAgent(),
-    }
-  };
-
   try {
-    request(url, options, function(err, response) {
-      if (err) {
-        reportError(err);
-      } else if (!successful(response)) {
-          reportError(['HTTP error', response.statusCode, response.statusMessage].join(' '));
-      } else {
-          cb();
-      }
-    })
-    .on('response', function(response) {
-        if (successful(response)) {
-          response.pipe(fs.createWriteStream(dest));
-        }
-    });
+    fs.createReadStream(src)
+      .pipe(fs.createWriteStream(dest));
+    cb();
   } catch (err) {
     cb(err);
   }
-}
-
-/**
- * A custom user agent use for binary downloads.
- *
- * @api private
- */
-function getUserAgent() {
-  return [
-    'node/', process.version, ' ',
-    'node-sass-installer/', pkg.version
-  ].join('');
 }
 
 /**
@@ -93,12 +58,12 @@ function getProxy() {
 }
 
 /**
- * Check and download binary
+ * Check and copy binary
  *
  * @api private
  */
 
-function checkAndDownloadBinary() {
+function checkAndCopyBinary() {
   if (sass.hasBinary(sass.getBinaryPath())) {
     return;
   }
@@ -109,13 +74,13 @@ function checkAndDownloadBinary() {
       return;
     }
 
-    download(sass.getBinaryUrl(), sass.getBinaryPath(), function(err) {
+    copy(sass.getBindingPath(), sass.getBinaryPath(), function(err) {
       if (err) {
         console.error(err);
         return;
       }
 
-      console.log('Binary downloaded and installed at', sass.getBinaryPath());
+      console.log('Binary copied and installed at', sass.getBinaryPath());
     });
   });
 }
@@ -125,12 +90,12 @@ function checkAndDownloadBinary() {
  */
 
 if (process.env.SKIP_SASS_BINARY_DOWNLOAD_FOR_CI) {
-  console.log('Skipping downloading binaries on CI builds');
+  console.log('Skipping copying binaries on CI builds');
   return;
 }
 
 /**
- * If binary does not exist, download it
+ * If binary does not exist, copy it
  */
 
-checkAndDownloadBinary();
+checkAndCopyBinary();
