@@ -1,6 +1,6 @@
 {
-  "name": "node-sass",
-  "version": "3.7.0",
+  "name": "node-sass-prebuilt",
+  "version": "3.7.1",
   "libsass": "3.3.6",
   "description": "Wrapper around libsass",
   "license": "MIT",
@@ -37,6 +37,7 @@
   },
   "files": [
     "bin",
+    "bindings",
     "binding.gyp",
     "lib",
     "scripts",
