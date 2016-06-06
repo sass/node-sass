@@ -143,8 +143,11 @@ function getEmitter() {
   var emitter = new Emitter();
 
   emitter.on('error', function(err) {
-    console.error(err);
-    if (!options.watch) {
+    if (options.watch) {
+      // add the bell character, to make an audible noise
+      console.error(err + '\x07');
+    } else {
+      console.error(err);
       process.exit(1);
     }
   });
