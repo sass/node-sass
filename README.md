@@ -504,6 +504,7 @@ Example:
     --include-path             Path to look for imported files
     --follow                   Follow symlinked directories
     --precision                The amount of precision allowed in decimal numbers
+    --error-bell               Output a bell character on errors
     --importer                 Path to .js file containing custom importer
     --functions                Path to .js file containing custom functions
     --help                     Print usage info
