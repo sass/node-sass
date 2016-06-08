@@ -53,14 +53,16 @@ var cli = meow({
     '  --include-path             Path to look for imported files',
     '  --follow                   Follow symlinked directories',
     '  --precision                The amount of precision allowed in decimal numbers',
+    '  --error-bell               Output a bell character on errors',
     '  --importer                 Path to .js file containing custom importer',
     '  --functions                Path to .js file containing custom functions',
     '  --help                     Print usage info'
   ].join('\n')
 }, {
   boolean: [
-    'indented-syntax',
+    'error-bell',
     'follow',
+    'indented-syntax',
     'omit-source-map-url',
     'quiet',
     'recursive',
@@ -143,6 +145,9 @@ function getEmitter() {
   var emitter = new Emitter();
 
   emitter.on('error', function(err) {
+    if (options.errorBell) {
+      err += '\x07';
+    }
     console.error(err);
     if (!options.watch) {
       process.exit(1);
