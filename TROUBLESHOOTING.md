@@ -81,6 +81,7 @@ Firstly create a clean work space.
 ```sh
 mkdir \temp1
 cd \temp1
+npm init
 ```
 
 Gather some basic diagnostic information.
@@ -102,7 +103,7 @@ npm cache clean
 Install the latest node-sass
 
 ```sh
-npm install -ddd node-sass > npm.log 2> npm.err
+npm install -ddd node-sass > npm.log 2> npm.err --save
 ```
 
 Note which version was installed by opening the `package.json` file with a text editor.
