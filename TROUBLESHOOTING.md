@@ -81,7 +81,6 @@ Firstly create a clean work space.
 ```sh
 mkdir \temp1
 cd \temp1
-npm init
 ```
 
 Gather some basic diagnostic information.
@@ -103,17 +102,13 @@ npm cache clean
 Install the latest node-sass
 
 ```sh
-npm install -ddd node-sass > npm.log 2> npm.err --save
+npm install -ddd node-sass > npm.log 2> npm.err
 ```
 
-Note which version was installed by opening the `package.json` file with a text editor.
+Note which version was installed by running
 
-```json
-{
-  "name": "node-sass",
-  "version": "3.0.0",
-  "libsass": "3.2.0",
-}
+```sh
+npm ls node-sass
 ```
 
 If node-sass could not be installed successfully, please publish your `npm.log`
@@ -174,14 +169,10 @@ Install the latest node-sass
 npm install node-sass
 ```
 
-Note which version was installed by opening the `package.json` file with a text editor.
+Note which version was installed by running
 
-```json
-{
-  "name": "node-sass",
-  "version": "3.0.0",
-  "libsass": "3.2.0",
-}
+```sh
+npm ls node-sass
 ```
 
 If node-sass install successfully lets gather some basic installation infomation.
