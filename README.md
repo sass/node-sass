@@ -475,7 +475,8 @@ The interface for command-line usage is fairly simplistic at this stage, as seen
 Output will be sent to stdout if the `--output` flag is omitted.
 
 ### Usage
- `node-sass [options] <input> [output]`
+ `node-sass [options] <input> [output]`  
+ Or:  
  `cat <input> | node-sass > output`
 
 Example:
