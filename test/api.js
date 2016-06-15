@@ -535,19 +535,18 @@ describe('api', function() {
       });
     });
 
-    it('should copy all options properties', function(done) {
+    it('should wrap importer options', function(done) {
       var options;
       options = {
         data: src,
         importer: function() {
-          assert.strictEqual(this.options.importer, options.importer);
+          assert.notStrictEqual(this.options.importer, options.importer);
           return {
             contents: 'div {color: yellow;}'
           };
         }
       };
       sass.render(options, function() {
-        assert.strictEqual(this.options, options);
         done();
       });
     });
