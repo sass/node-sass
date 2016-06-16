@@ -196,6 +196,7 @@ namespace Sass {
         bool is_slash = pos + 2 == L && (l[pos+1] == '/' || l[pos+1] == '\\');
         bool is_self = pos + 3 == L && (l[pos+1] == '.');
         if (!is_self && !is_slash) r = r.substr(3);
+        else if (pos == std::string::npos) break;
         l = l.substr(0, pos == std::string::npos ? pos : pos + 1);
       }
 
