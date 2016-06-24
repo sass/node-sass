@@ -819,7 +819,7 @@ namespace Sass {
       }
       if (hsl) {
         HSL hsl_struct = rgb_to_hsl(color->r(), color->g(), color->b());
-        if (h) hsl_struct.h = static_cast<double>(((static_cast<int>(h->value()) % 360) + 360) % 360) / 360.0;
+        if (h) hsl_struct.h = std::fmod(h->value(), 360.0);
         if (s) hsl_struct.s = ARGR("$saturation", Number, 0, 100)->value();
         if (l) hsl_struct.l = ARGR("$lightness",  Number, 0, 100)->value();
         double alpha = a ? ARGR("$alpha", Number, 0, 1.0)->value() : color->a();
