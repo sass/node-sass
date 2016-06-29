@@ -274,7 +274,7 @@ function watch(options, emitter) {
         renderFile(file, options, emitter);
       }
     });
-  }, 10));
+  }, 50));
 
   gaze.on('added', function(file) {
     graph = buildGraph(options);
