@@ -276,13 +276,13 @@ function watch(options, emitter) {
     });
   }, 300));
 
-  gaze.on('added', function(file) {
+  gaze.on('added', debounce(function(file) {
     graph = buildGraph(options);
-  });
+  }, 300));
 
-  gaze.on('deleted', function(file) {
+  gaze.on('deleted', debounce(function(file) {
     graph = buildGraph(options);
-  });
+  }, 300));
 }
 
 /**
