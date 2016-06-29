@@ -12,7 +12,7 @@ var Emitter = require('events').EventEmitter,
     render = require('../lib/render'),
     stdin = require('get-stdin'),
     fs = require('fs'),
-    _ = require('lodash');
+    debounce = require('lodash.debounce');
 
 /**
  * Initialize CLI
@@ -264,7 +264,7 @@ function watch(options, emitter) {
   gaze.on('error', emitter.emit.bind(emitter, 'error'));
 
   // git checkouts are not atomic, so we must debounce to ensure completion.
-  gaze.on('changed', _.debounce(function(file) {
+  gaze.on('changed', debounce(function(file) {
     var files = [file];
     graph.visitAncestors(file, function(parent) {
       files.push(parent);
