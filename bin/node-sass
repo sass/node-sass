@@ -56,13 +56,11 @@ var cli = meow({
     '  --error-bell               Output a bell character on errors',
     '  --importer                 Path to .js file containing custom importer',
     '  --functions                Path to .js file containing custom functions',
-    '  --eyeglass                 Use eyeglass (requires that eyeglass is installed)',
     '  --help                     Print usage info'
   ].join('\n')
 }, {
   boolean: [
     'error-bell',
-    'eyeglass',
     'follow',
     'indented-syntax',
     'omit-source-map-url',
@@ -225,11 +223,6 @@ function getOptions(args, options) {
     }
   }
 
-  if (options.eyeglass) {
-    var eyeglass = require("eyeglass");
-    options = eyeglass(options);
-  }
-
   return options;
 }
 
@@ -316,7 +309,7 @@ function run(options, emitter) {
     emitter.emit('error', 'The --source-map option must be either a boolean or directory when compiling a directory');
   }
 
-  if (options.importer && typeof options.importer === 'string') {
+  if (options.importer) {
     if ((path.resolve(options.importer) === path.normalize(options.importer).replace(/(.+)([\/|\\])$/, '$1'))) {
       options.importer = require(options.importer);
     } else {
@@ -324,7 +317,7 @@ function run(options, emitter) {
     }
   }
 
-  if (options.functions && typeof options.functions === 'string') {
+  if (options.functions) {
     if ((path.resolve(options.functions) === path.normalize(options.functions).replace(/(.+)([\/|\\])$/, '$1'))) {
       options.functions = require(options.functions);
     } else {
