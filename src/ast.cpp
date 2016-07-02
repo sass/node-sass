@@ -2004,6 +2004,21 @@ namespace Sass {
     return false;
   }
 
+  bool Number::eq (const Expression& rhs) const
+  {
+    if (const Number* r = dynamic_cast<const Number*>(&rhs)) {
+      size_t lhs_units = numerator_units_.size() + denominator_units_.size();
+      size_t rhs_units = r->numerator_units_.size() + r->denominator_units_.size();
+      if (!lhs_units && !rhs_units) {
+        return std::fabs(value() - r->value()) < NUMBER_EPSILON;
+      }
+      return (numerator_units_ == r->numerator_units_) &&
+             (denominator_units_ == r->denominator_units_) &&
+             std::fabs(value() - r->value()) < NUMBER_EPSILON;
+    }
+    return false;
+  }
+
   bool Number::operator== (const Expression& rhs) const
   {
     if (const Number* r = dynamic_cast<const Number*>(&rhs)) {
