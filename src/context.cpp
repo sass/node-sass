@@ -399,7 +399,7 @@ namespace Sass {
       const Importer importer(imp_path, ctx_path);
       Include include(load_import(importer, pstate));
       if (include.abs_path.empty()) {
-        error("File to import not found or unreadable: " + imp_path + "\nParent style sheet: " + ctx_path, pstate);
+        error("File to import not found or unreadable: " + imp_path + ".\nParent style sheet: " + ctx_path, pstate);
       }
       imp->incs().push_back(include);
     }
