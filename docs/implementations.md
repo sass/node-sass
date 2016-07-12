@@ -32,6 +32,7 @@ There are several implementations of `libsass` for a variety of languages. Here 
 
 ### PHP
 * [sassphp](https://github.com/sensational/sassphp)
+* [php-sass](https://github.com/lesstif/php-sass)
 
 ### Python
 * [libsass-python](https://github.com/dahlia/libsass-python)
