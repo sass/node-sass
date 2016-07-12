@@ -7,8 +7,7 @@ node_js:
   - "0.10"
   - "iojs"
 
-compiler: gcc
-sudo: false
+sudo: required
 
 os:
   - linux
@@ -20,6 +19,9 @@ env:
 
 matrix:
   fast_finish: true
+
+services:
+  - docker
 
 addons:
   apt:
@@ -37,6 +39,9 @@ before_install:
       export CXX="g++-4.7";
       export LINK="gcc-4.7";
       export LINKXX="g++-4.7";
+      export DOCKER_COPY="/tmp/alpine";
+      cp -r $TRAVIS_BUILD_DIR $DOCKER_COPY;
+      docker pull mhart/alpine-node:$TRAVIS_NODE_VERSION;
     fi
   - nvm --version
   - node --version
@@ -47,6 +52,9 @@ before_install:
 script:
   - npm install
   - npm test
+  - if [ $TRAVIS_OS_NAME == "linux" ]; then
+      docker run --rm -i --env SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=true -v $DOCKER_COPY:/tmp/node-sass -w /tmp/node-sass mhart/alpine-node:$TRAVIS_NODE_VERSION /bin/sh -c "apk add --no-cache python=2.7.12-r0 make gcc g++ && npm install --unsafe-perm && npm test";
+    fi
 
 after_success:
   - if [ $TRAVIS_OS_NAME == "linux" ] && [ $TRAVIS_NODE_VERSION == "4" ]; then
