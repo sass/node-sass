@@ -19,9 +19,10 @@ var eol = require('os').EOL,
 
 function afterBuild(options) {
   var install = sass.getBinaryPath();
-  var target = path.join(__dirname, '..', 'build',
-    options.debug ? 'Debug' : process.config.target_defaults.default_configuration,
-    'binding.node');
+  var targetDefaults = process.config.target_defaults;
+  var defaultConfig = targetDefaults ? targetDefaults.default_configuration : 'Release';
+  var targetConfig = options.debug ? 'Debug' : defaultConfig;
+  var target = path.join(__dirname, '..', 'build', targetConfig, 'binding.node');
 
   mkdir(path.dirname(install), function(err) {
     if (err && err.code !== 'EEXIST') {
