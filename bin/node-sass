@@ -274,11 +274,11 @@ function watch(options, emitter) {
     });
   });
 
-  gaze.on('added', function(file) {
+  gaze.on('added', function() {
     graph = buildGraph(options);
   });
 
-  gaze.on('deleted', function(file) {
+  gaze.on('deleted', function() {
     graph = buildGraph(options);
   });
 }
