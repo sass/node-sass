@@ -88,11 +88,12 @@ namespace Sass {
     }
 
     // check if char is within a reduced ascii range
-    // valid in a uri (copied from Ruby Sass)
+    // valid in a uri (and also unicode octets)
     bool is_uri_character(const char& chr)
     {
-      return (unsigned(chr) > 41 && unsigned(chr) < 127) ||
-             unsigned(chr) == ':' || unsigned(chr) == '/';
+      return unsigned(chr) > 41 ||
+             unsigned(chr) == ':' ||
+             unsigned(chr) == '/';
     }
 
     // check if char is within a reduced ascii range
