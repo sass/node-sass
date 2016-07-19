@@ -11,7 +11,7 @@
 
 namespace Sass {
 
-  Expand::Expand(Context& ctx, Env* env, Backtrace* bt)
+  Expand::Expand(Context& ctx, Env* env, Backtrace* bt, std::vector<CommaSequence_Selector*>* stack)
   : ctx(ctx),
     eval(Eval(*this)),
     env_stack(std::vector<Env*>()),
@@ -31,7 +31,8 @@ namespace Sass {
     call_stack.push_back(0);
     // import_stack.push_back(0);
     property_stack.push_back(0);
-    selector_stack.push_back(0);
+    if (stack == NULL) { selector_stack.push_back(0); }
+    else { selector_stack.insert(selector_stack.end(), stack->begin(), stack->end()); }
     media_block_stack.push_back(0);
     backtrace_stack.push_back(0);
     backtrace_stack.push_back(bt);
