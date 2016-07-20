@@ -1,4 +1,7 @@
 {
+  'variables': {
+      'libsass_ext%': '',
+  },
   'targets': [
     {
       'target_name': 'binding',
