@@ -1637,7 +1637,7 @@ namespace Sass {
         }
       }
       Function_Call* func = SASS_MEMORY_NEW(ctx.mem, Function_Call, pstate, name, args);
-      Expand expand(ctx, &d_env, backtrace);
+      Expand expand(ctx, &d_env, backtrace, &selector_stack);
       return func->perform(&expand.eval);
 
     }
@@ -1655,7 +1655,7 @@ namespace Sass {
     // { return ARG("$condition", Expression)->is_false() ? ARG("$if-false", Expression) : ARG("$if-true", Expression); }
     BUILT_IN(sass_if)
     {
-      Expand expand(ctx, &d_env, backtrace);
+      Expand expand(ctx, &d_env, backtrace, &selector_stack);
       bool is_true = !ARG("$condition", Expression)->perform(&expand.eval)->is_false();
       Expression* res = ARG(is_true ? "$if-true" : "$if-false", Expression);
       res = res->perform(&expand.eval);

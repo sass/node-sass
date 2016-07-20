@@ -7,7 +7,7 @@
 #include "sass/functions.h"
 
 #define BUILT_IN(name) Expression*\
-name(Env& env, Env& d_env, Context& ctx, Signature sig, ParserState pstate, Backtrace* backtrace)
+name(Env& env, Env& d_env, Context& ctx, Signature sig, ParserState pstate, Backtrace* backtrace, std::vector<CommaSequence_Selector*> selector_stack)
 
 namespace Sass {
   class Context;
@@ -17,7 +17,7 @@ namespace Sass {
   class Definition;
   typedef Environment<AST_Node*> Env;
   typedef const char* Signature;
-  typedef Expression* (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtrace*);
+  typedef Expression* (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtrace*, std::vector<CommaSequence_Selector*>);
 
   Definition* make_native_function(Signature, Native_Function, Context& ctx);
   Definition* make_c_function(Sass_Function_Entry c_func, Context& ctx);

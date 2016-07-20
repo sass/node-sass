@@ -45,7 +45,7 @@ namespace Sass {
     void expand_selector_list(Selector*, CommaSequence_Selector* extender);
 
   public:
-    Expand(Context&, Env*, Backtrace*);
+    Expand(Context&, Env*, Backtrace*, std::vector<CommaSequence_Selector*>* stack = NULL);
     ~Expand() { }
 
     Statement* operator()(Block*);
