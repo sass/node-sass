@@ -5,6 +5,7 @@
 var fs = require('fs'),
     eol = require('os').EOL,
     mkdir = require('mkdirp'),
+    tmpdir = require('os-tmpdir'),
     path = require('path'),
     sass = require('../lib/extensions'),
     request = require('request'),
@@ -34,7 +35,7 @@ function download(url, dest, cb) {
     return response.statusCode >= 200 && response.statusCode < 300;
   };
 
-  var options = { 
+  var options = {
     rejectUnauthorized: false,
     proxy: getProxy(),
     headers: {
@@ -109,15 +110,60 @@ function checkAndDownloadBinary() {
       return;
     }
 
-    download(sass.getBinaryUrl(), sass.getBinaryPath(), function(err) {
-      if (err) {
-        console.error(err);
-        return;
-      }
+    var tmpPath = getTempPath();
+    if (!(sass.hasBinary(tmpPath))) { // download and install
+      download(sass.getBinaryUrl(), tmpPath, function(err) {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        console.log('Binary downloaded at', tmpPath);
+        //copy only, if not already in vendor
+        if (tmpPath !== sass.getBinaryPath()) {
+          copyBinary(tmpPath);
+        }
+      });
 
-      console.log('Binary downloaded and installed at', sass.getBinaryPath());
-    });
+    } else { // install only
+      copyBinary(tmpPath);
+    }
   });
+}
+
+/**
+ * Find a temp folder for file
+ *
+ * @returns {string} temp folder including binary file name
+ * @api private
+ */
+
+function getTempPath() {
+  var candidateTmpDir = tmpdir() || process.env.npm_config_tmp;
+  var candidatePath = path.join(candidateTmpDir, 'node-sass', 'releases', 'download', 'v' + pkg.version);
+
+  try {
+    mkdir.sync(candidatePath);
+    return path.join(candidatePath, sass.getBinaryName());
+  } catch (err) {
+    console.error(candidatePath, 'is not writable:', err.message);
+    return sass.getBinaryPath(); //fallback to vendor
+  }
+}
+
+/**
+ * Copy file
+ *
+ * @param from
+ * @api private
+ */
+function copyBinary(from) {
+  try {
+    fs.createReadStream(from).pipe(fs.createWriteStream(sass.getBinaryPath()));
+
+    console.log('Binary installed at', sass.getBinaryPath());
+  } catch (err) {
+    console.err('Cannot install binary', err.message);
+  }
 }
 
 /**
