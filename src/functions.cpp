@@ -1020,8 +1020,14 @@ namespace Sass {
         std::string str = unquote(s->value());
 
         size_t size = utf8::distance(str.begin(), str.end());
-        if (end_at <= size * -1.0) { end_at += size; }
-        if (end_at < 0) { end_at += size + 1; }
+        if (end_at <= size * -1.0 && size > 1) {
+          end_at += size;
+          if (end_at == 0) end_at = 1;
+        }
+        if (end_at < 0) {
+          end_at += size + 1;
+          if (end_at == 0) end_at = 1;
+        }
         if (end_at > size) { end_at = (double)size; }
         if (start_at < 0) { start_at += size + 1; }
         else if (start_at == 0) { ++ start_at; }
