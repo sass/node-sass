@@ -829,7 +829,7 @@ namespace Sass {
       exp.backtrace_stack.push_back(&here);
       // eval the body if user-defined or special, invoke underlying CPP function if native
       if (body && !Prelexer::re_special_fun(name.c_str())) { result = body->perform(this); }
-      else if (func) { result = func(fn_env, *env, ctx, def->signature(), c->pstate(), backtrace()); }
+      else if (func) { result = func(fn_env, *env, ctx, def->signature(), c->pstate(), backtrace(), exp.selector_stack); }
       if (!result) error(std::string("Function ") + c->name() + " did not return a value", c->pstate());
       exp.backtrace_stack.pop_back();
     }
