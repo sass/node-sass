@@ -8,6 +8,7 @@ var fs = require('fs'),
   path = require('path'),
   sass = require('../lib/extensions'),
   request = require('request'),
+  ProgressBar = require('progress'),
   pkg = require('../package.json');
 
 /**
@@ -50,11 +51,13 @@ function download(url, dest, cb) {
   var options = {
     rejectUnauthorized: false,
     proxy: getProxy(),
-    timeout: 1000,
+    timeout: 60000,
     headers: {
       'User-Agent': getUserAgent(),
     }
   };
+
+  console.log('Start downloading binary at', url);
 
   try {
     request(url, options, function(err, response) {
@@ -69,6 +72,22 @@ function download(url, dest, cb) {
     .on('response', function(response) {
       if (successful(response)) {
         response.pipe(fs.createWriteStream(dest));
+      }
+
+      // The `progress` is true by default. However if it has not
+      // been explicitly set it's `undefined` which is considered
+      // as far as npm is concerned.
+      if (process.env.npm_config_progress !== false) {
+        var bar = new ProgressBar('Total :total [:bar] :current :percent :etas', {
+          complete: '=',
+          incomplete: ' ',
+          width: 25,
+          total: parseInt(response.headers['content-length'])
+        });
+
+        response.on('data', function(chunk) {
+          bar.tick(chunk.length);
+        });
       }
     });
   } catch (err) {
