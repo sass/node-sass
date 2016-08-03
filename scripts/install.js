@@ -44,7 +44,7 @@ function download(url, dest, cb) {
   };
 
   try {
-    console.log("Start downloading binary at", url);
+    console.log('Start downloading binary at', url);
     request(url, options, function(err, response) {
       if (err) {
         reportError(err);
@@ -63,7 +63,7 @@ function download(url, dest, cb) {
           complete: '=',
           incomplete: ' ',
           width: 25,
-          total: parseInt(response.headers["content-length"])
+          total: parseInt(response.headers['content-length'])
         });
 
         response.on('data', function(chunk) {
