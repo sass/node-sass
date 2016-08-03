@@ -152,6 +152,7 @@ namespace Sass {
     static std::string type_name() { return ""; }
     virtual bool is_false() { return false; }
     virtual bool operator== (const Expression& rhs) const { return false; }
+    virtual bool eq(const Expression& rhs) const { return *this == rhs; };
     virtual void set_delayed(bool delayed) { is_delayed(delayed); }
     virtual bool has_interpolant() const { return is_interpolant(); }
     virtual bool is_left_interpolant() const { return is_interpolant(); }
@@ -289,7 +290,7 @@ namespace Sass {
   };
   struct CompareExpression {
     bool operator()(const Expression* lhs, const Expression* rhs) const {
-      return lhs && rhs && *lhs == *rhs;
+      return lhs && rhs && lhs->eq(*rhs);
     }
   };
   typedef std::unordered_map<
@@ -1369,6 +1370,7 @@ namespace Sass {
 
     virtual bool operator< (const Number& rhs) const;
     virtual bool operator== (const Expression& rhs) const;
+    virtual bool eq(const Expression& rhs) const;
 
     ATTACH_OPERATIONS()
   };
