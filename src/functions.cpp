@@ -385,6 +385,12 @@ namespace Sass {
       while (h < 0) h += 1;
       while (h > 1) h -= 1;
 
+      // if saturation is exacly zero, we loose
+      // information for hue, since it will evaluate
+      // to zero if converted back from rgb. Setting
+      // saturation to a very tiny number solves this.
+      if (s == 0) s = 1e-10;
+
       // Algorithm from the CSS3 spec: http://www.w3.org/TR/css3-color/#hsl-color.
       double m2;
       if (l <= 0.5) m2 = l*(s+1.0);
