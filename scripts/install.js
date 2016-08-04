@@ -63,7 +63,7 @@ function download(url, dest, cb) {
           complete: '=',
           incomplete: ' ',
           width: 25,
-          total: parseInt(response.headers['content-length'])
+          total: parseInt(response.headers['content-length'], 10)
         });
 
         response.on('data', function(chunk) {
