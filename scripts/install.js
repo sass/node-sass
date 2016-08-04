@@ -8,6 +8,7 @@ var fs = require('fs'),
     path = require('path'),
     sass = require('../lib/extensions'),
     request = require('request'),
+    ProgressBar = require('progress'),
     pkg = require('../package.json');
 
 /**
@@ -43,6 +44,7 @@ function download(url, dest, cb) {
   };
 
   try {
+    console.log('Start downloading binary at', url);
     request(url, options, function(err, response) {
       if (err) {
         reportError(err);
@@ -56,6 +58,17 @@ function download(url, dest, cb) {
         if (successful(response)) {
           response.pipe(fs.createWriteStream(dest));
         }
+
+        var bar = new ProgressBar('Total :total [:bar] :current :percent :etas', {
+          complete: '=',
+          incomplete: ' ',
+          width: 25,
+          total: parseInt(response.headers['content-length'], 10)
+        });
+
+        response.on('data', function(chunk) {
+          bar.tick(chunk.length);
+        });
     });
   } catch (err) {
     cb(err);
