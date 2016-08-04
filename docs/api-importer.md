@@ -11,6 +11,8 @@ rv[0] = sass_make_import(rel, abs, source, srcmap);
 
 Every import will then be included in LibSass. You are allowed to only return a file path without any loaded source. This way you can ie. implement rewrite rules for import paths and leave the loading part for LibSass.
 
+Please note that LibSass doesn't use the srcmap parameter yet. It has been added to not deprecate the C-API once support has been implemented. It will be used to re-map the actual sourcemap with the provided ones.
+
 ### Basic Usage
 
 ```C
