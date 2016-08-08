@@ -3,6 +3,9 @@ There are several implementations of `libsass` for a variety of languages. Here 
 ### C
 * [sassc](https://github.com/hcatlin/sassc)
 
+### Elixir
+* [sass.ex](https://github.com/scottdavis/sass.ex)
+
 ### Go
 * [go-libsass](https://github.com/wellington/go-libsass)
 * [go_sass](https://github.com/suapapa/go_sass)
