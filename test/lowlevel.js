@@ -1,8 +1,8 @@
 process.env.NODESASS_COV ? require('../lib-cov') : require('../lib');
 
 var assert = require('assert'),
-    sass = require('../lib/extensions'),
-    binding = require(sass.getBinaryPath());
+  sass = require('../lib/extensions'),
+  binding = require(sass.getBinaryPath());
 
 describe('lowlevel', function() {
   it('fail with options not an object', function(done) {
@@ -194,8 +194,8 @@ describe('lowlevel', function() {
       linefeed: '\n',
       result: { stats: {} } };
 
-      binding.renderSync(options);
-      assert(options.result.css);
+    binding.renderSync(options);
+    assert(options.result.css);
     done();
   });
 
@@ -213,8 +213,8 @@ describe('lowlevel', function() {
       linefeed: '\n',
       result: { stats: {} } };
 
-      binding.renderSync(options);
-      assert(/empty source string/.test(options.result.error),
+    binding.renderSync(options);
+    assert(/empty source string/.test(options.result.error),
           'Should fail with error message "Data context created with empty source string"');
     done();
   });
@@ -234,8 +234,8 @@ describe('lowlevel', function() {
       linefeed: '\n',
       result: { stats: {} } };
 
-      binding.renderFileSync(options);
-      assert(/empty input path/.test(options.result.error),
+    binding.renderFileSync(options);
+    assert(/empty input path/.test(options.result.error),
           'Should fail with error message "File context created with empty input path"');
     done();
   });

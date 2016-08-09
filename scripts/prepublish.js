@@ -3,7 +3,7 @@
  */
 
 var path = require('path'),
-    rimraf = require('rimraf');
+  rimraf = require('rimraf');
 
 function prepublish() {
   var vendorPath = path.resolve(__dirname, '..', 'vendor');

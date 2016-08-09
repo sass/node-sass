@@ -3,12 +3,12 @@
  */
 
 var eol = require('os').EOL,
-    pkg = require('../package.json'),
-    fs = require('fs'),
-    mkdir = require('mkdirp'),
-    path = require('path'),
-    spawn = require('cross-spawn'),
-    sass = require('../lib/extensions');
+  pkg = require('../package.json'),
+  fs = require('fs'),
+  mkdir = require('mkdirp'),
+  path = require('path'),
+  spawn = require('cross-spawn'),
+  sass = require('../lib/extensions');
 
 /**
  * After build

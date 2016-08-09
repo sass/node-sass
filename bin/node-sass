@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
 var Emitter = require('events').EventEmitter,
-    forEach = require('async-foreach').forEach,
-    Gaze = require('gaze'),
-    grapher = require('sass-graph'),
-    meow = require('meow'),
-    util = require('util'),
-    path = require('path'),
-    glob = require('glob'),
-    sass = require('../lib'),
-    render = require('../lib/render'),
-    stdin = require('get-stdin'),
-    fs = require('fs');
+  forEach = require('async-foreach').forEach,
+  Gaze = require('gaze'),
+  grapher = require('sass-graph'),
+  meow = require('meow'),
+  util = require('util'),
+  path = require('path'),
+  glob = require('glob'),
+  sass = require('../lib'),
+  render = require('../lib/render'),
+  stdin = require('get-stdin'),
+  fs = require('fs');
 
 /**
  * Initialize CLI
@@ -166,7 +166,7 @@ function getEmitter() {
 
   emitter.on('done', function() {
     if (!options.watch && !options.directory) {
-      process.exit;
+      process.exit();
     }
   });
 
@@ -274,11 +274,11 @@ function watch(options, emitter) {
     });
   });
 
-  gaze.on('added', function(file) {
+  gaze.on('added', function() {
     graph = buildGraph(options);
   });
 
-  gaze.on('deleted', function(file) {
+  gaze.on('deleted', function() {
     graph = buildGraph(options);
   });
 }
@@ -372,7 +372,7 @@ function renderDir(options, emitter) {
     }, function(successful, arr) {
       var outputDir = path.join(process.cwd(), options.output);
       emitter.emit('warn', util.format('Wrote %s CSS files to %s', arr.length, outputDir));
-      process.exit;
+      process.exit();
     });
   });
 }

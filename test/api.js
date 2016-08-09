@@ -1,13 +1,15 @@
+/*eslint new-cap: ["error", {"capIsNewExceptions": ["Color"]}]*/
+
 var assert = require('assert'),
-    fs = require('fs'),
-    path = require('path'),
-    read = fs.readFileSync,
-    sassPath = process.env.NODESASS_COV
+  fs = require('fs'),
+  path = require('path'),
+  read = fs.readFileSync,
+  sassPath = process.env.NODESASS_COV
       ? require.resolve('../lib-cov')
       : require.resolve('../lib'),
-    sass = require(sassPath),
-    fixture = path.join.bind(null, __dirname, 'fixtures'),
-    resolveFixture = path.resolve.bind(null, __dirname, 'fixtures');
+  sass = require(sassPath),
+  fixture = path.join.bind(null, __dirname, 'fixtures'),
+  resolveFixture = path.resolve.bind(null, __dirname, 'fixtures');
 
 describe('api', function() {
 
@@ -233,7 +235,7 @@ describe('api', function() {
               contents: '@import "b"'
             });
           } else {
-          console.log(prev);
+            console.log(prev);
             assert.equal(prev, '/Users/me/sass/lib/a.scss');
             done({
               file: '/Users/me/sass/lib/b.scss',
@@ -1321,7 +1323,7 @@ describe('api', function() {
 
     it('should throw error for bad input', function(done) {
       assert.throws(function() {
-         sass.renderSync('somestring');
+        sass.renderSync('somestring');
       });
       assert.throws(function() {
         sass.renderSync({ data: '#navbar width 80%;' });
@@ -1555,7 +1557,7 @@ describe('api', function() {
         functions: {
           'headings($from: 0, $to: 6)': function(from, to) {
             var i, f = from.getValue(), t = to.getValue(),
-                list = new sass.types.List(t - f + 1);
+              list = new sass.types.List(t - f + 1);
 
             for (i = f; i <= t; i++) {
               list.setValue(i - f, new sass.types.String('h' + i));
@@ -1766,7 +1768,7 @@ describe('api', function() {
 
   describe('.info', function() {
     var package = require('../package.json'),
-        info = sass.info;
+      info = sass.info;
 
     it('should return a correct version info', function(done) {
       assert(info.indexOf(package.version) > 0);

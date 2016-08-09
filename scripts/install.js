@@ -3,12 +3,12 @@
  */
 
 var fs = require('fs'),
-    eol = require('os').EOL,
-    mkdir = require('mkdirp'),
-    path = require('path'),
-    sass = require('../lib/extensions'),
-    request = require('request'),
-    pkg = require('../package.json');
+  eol = require('os').EOL,
+  mkdir = require('mkdirp'),
+  path = require('path'),
+  sass = require('../lib/extensions'),
+  request = require('request'),
+  pkg = require('../package.json');
 
 /**
  * Download file, if succeeds save, if not delete
@@ -47,15 +47,15 @@ function download(url, dest, cb) {
       if (err) {
         reportError(err);
       } else if (!successful(response)) {
-          reportError(['HTTP error', response.statusCode, response.statusMessage].join(' '));
+        reportError(['HTTP error', response.statusCode, response.statusMessage].join(' '));
       } else {
-          cb();
+        cb();
       }
     })
     .on('response', function(response) {
-        if (successful(response)) {
-          response.pipe(fs.createWriteStream(dest));
-        }
+      if (successful(response)) {
+        response.pipe(fs.createWriteStream(dest));
+      }
     });
   } catch (err) {
     cb(err);
