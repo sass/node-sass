@@ -50,6 +50,7 @@ script:
 
 after_success:
   - if [ $TRAVIS_OS_NAME == "linux" ] && [ $TRAVIS_NODE_VERSION == "4" ]; then
+      npm run lint;
       npm run-script coverage;
     fi
 
