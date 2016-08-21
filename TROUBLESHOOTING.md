@@ -83,6 +83,14 @@ mkdir \temp1
 cd \temp1
 ```
 
+Check your `COMSPEC` environment variable.
+
+```sh
+node -p process.env.comspec
+```
+
+Please make sure the variable points to `C:\WINDOWS\System32\cmd.exe`
+
 Gather some basic diagnostic information.
 
 ```sh
