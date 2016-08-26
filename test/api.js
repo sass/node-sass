@@ -14,6 +14,11 @@ var assert = require('assert'),
 describe('api', function() {
 
   describe('.render(options, callback)', function() {
+
+    beforeEach(function() {
+      delete process.env.SASS_PATH;
+    });
+
     it('should compile sass to css with file', function(done) {
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
 
@@ -133,6 +138,59 @@ describe('api', function() {
         ]
       }, function(error, result) {
         assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+        done();
+      });
+    });
+
+    it('should check SASS_PATH in the specified order', function(done) {
+      var src = read(fixture('sass-path/index.scss'), 'utf8');
+      var expectedRed = read(fixture('sass-path/expected-red.css'), 'utf8').trim();
+      var expectedOrange = read(fixture('sass-path/expected-orange.css'), 'utf8').trim();
+
+      envIncludes = [
+        fixture('sass-path/red'),
+        fixture('sass-path/orange')
+      ];
+
+      process.env.SASS_PATH = envIncludes.join(path.delimiter);
+      sass.render({
+        data: src,
+        includePaths: []
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), expectedRed.replace(/\r\n/g, '\n'));
+      });
+
+      process.env.SASS_PATH = envIncludes.reverse().join(path.delimiter);
+      sass.render({
+        data: src,
+        includePaths: []
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), expectedOrange.replace(/\r\n/g, '\n'));
+        done();
+      });
+    });
+
+    it('should prefer include path over SASS_PATH', function(done) {
+      var src = read(fixture('sass-path/index.scss'), 'utf8');
+      var expectedRed = read(fixture('sass-path/expected-red.css'), 'utf8').trim();
+      var expectedOrange = read(fixture('sass-path/expected-orange.css'), 'utf8').trim();
+
+      envIncludes = [
+        fixture('sass-path/red')
+      ];
+      process.env.SASS_PATH = envIncludes.join(path.delimiter);
+
+      sass.render({
+        data: src,
+        includePaths: []
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), expectedRed.replace(/\r\n/g, '\n'));
+      });
+      sass.render({
+        data: src,
+        includePaths: [fixture('sass-path/orange')]
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), expectedOrange.replace(/\r\n/g, '\n'));
         done();
       });
     });
