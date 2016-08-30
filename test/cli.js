@@ -10,27 +10,47 @@ var assert = require('assert'),
   fixture = path.join.bind(null, __dirname, 'fixtures'),
   LIBSASS_VERSION = null;
 
-describe('cli', function() {
+var Time = require('time-diff');
+var time = new Time();
 
+describe('cli', function() {
   before(function(done) {
+    var diff = time.diff('before');
+
+    diff('before spawn');
     var bin = spawn(cli, ['-v']);
     bin.stdout.setEncoding('utf8');
-    bin.stdout.once('data', function(data) {
+    bin.stdout.on('data', function(data) {
+      diff('stdout.data');
+      console.log('stdout.data', data);
+
       LIBSASS_VERSION = data.trim().split(['\n'])
           .filter(function(a) { return a.substr(0,7) === 'libsass'; })[0]
           .split('\t')[1];
       done();
     });
+
+    bin.once('close', function() {
+      diff('bin.close');
+    });
   });
 
   describe('node-sass < in.scss', function() {
+    var diff;
+
+    beforeEach(function() {
+      diff = time.diff('spec');
+    });
+
     it('should read data from stdin', function(done) {
       var src = fs.createReadStream(fixture('simple/index.scss'));
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
+      diff('before spawn');
       var bin = spawn(cli);
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
+        diff('stdout.data');
         assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
@@ -41,10 +61,12 @@ describe('cli', function() {
     it('should compile sass using the --indented-syntax option', function(done) {
       var src = fs.createReadStream(fixture('indent/index.sass'));
       var expected = read(fixture('indent/expected.css'), 'utf8').trim();
+      diff('before spawn');
       var bin = spawn(cli, ['--indented-syntax']);
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
+        diff('stdout.data');
         assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
@@ -55,10 +77,12 @@ describe('cli', function() {
     it('should compile with the --quiet option', function(done) {
       var src = fs.createReadStream(fixture('simple/index.scss'));
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
+      diff('before spawn');
       var bin = spawn(cli, ['--quiet']);
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
+        diff('stdout.data');
         assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
@@ -69,10 +93,12 @@ describe('cli', function() {
     it('should compile with the --output-style option', function(done) {
       var src = fs.createReadStream(fixture('compressed/index.scss'));
       var expected = read(fixture('compressed/expected.css'), 'utf8').trim();
+      diff('before spawn');
       var bin = spawn(cli, ['--output-style', 'compressed']);
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
+        diff('stdout.data');
         assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
@@ -83,10 +109,12 @@ describe('cli', function() {
     it('should compile with the --source-comments option', function(done) {
       var src = fs.createReadStream(fixture('source-comments/index.scss'));
       var expected = read(fixture('source-comments/expected.css'), 'utf8').trim();
+      diff('before spawn');
       var bin = spawn(cli, ['--source-comments']);
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
+        diff('stdout.data');
         assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
@@ -96,6 +124,7 @@ describe('cli', function() {
 
     it('should render with indentWidth and indentType options', function(done) {
       var src = new stream.Readable();
+      diff('before spawn');
       var bin = spawn(cli, ['--indent-width', 7, '--indent-type', 'tab']);
 
       src._read = function() { };
@@ -104,6 +133,7 @@ describe('cli', function() {
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
+        diff('stdout.data');
         assert.equal(data.trim(), 'div {\n\t\t\t\t\t\t\tcolor: transparent; }');
         done();
       });
@@ -113,6 +143,7 @@ describe('cli', function() {
 
     it('should render with linefeed option', function(done) {
       var src = new stream.Readable();
+      diff('before spawn');
       var bin = spawn(cli, ['--linefeed', 'lfcr']);
 
       src._read = function() { };
@@ -121,6 +152,7 @@ describe('cli', function() {
 
       bin.stdout.setEncoding('utf8');
       bin.stdout.once('data', function(data) {
+        diff('stdout.data');
         assert.equal(data.trim(), 'div {\n\r  color: transparent; }');
         done();
       });
@@ -130,11 +162,18 @@ describe('cli', function() {
   });
 
   describe('node-sass in.scss', function() {
+    var diff;
+
+    beforeEach(function() {
+      diff = time.diff('spec');
+    });
+
     it('should compile a scss file', function(done) {
       process.chdir(fixture('simple'));
 
       var src = fixture('simple/index.scss');
       var dest = fixture('simple/index.css');
+      diff('before spawn');
       var bin = spawn(cli, [src, dest]);
 
       bin.once('close', function() {
@@ -150,6 +189,7 @@ describe('cli', function() {
 
       var src = fixture('simple/index.scss');
       var dest = fixture('simple/index-custom.css');
+      diff('before spawn');
       var bin = spawn(cli, [src, dest]);
 
       bin.once('close', function() {
@@ -168,6 +208,7 @@ describe('cli', function() {
 
       var src = fixture('include-path/index.scss');
       var expected = read(fixture('include-path/expected.css'), 'utf8').trim();
+      diff('before spawn');
       var bin = spawn(cli, [src].concat(includePaths));
 
       bin.stdout.setEncoding('utf8');
@@ -182,6 +223,7 @@ describe('cli', function() {
 
       var src = fixture('simple/index.scss');
       var dest = fixture('simple/index.css');
+      diff('before spawn');
       var bin = spawn(cli, [src, dest, '--quiet']);
       var didEmit = false;
 
@@ -202,6 +244,7 @@ describe('cli', function() {
 
       var src = fixture('invalid/index.scss');
       var dest = fixture('invalid/index.css');
+      diff('before spawn');
       var bin = spawn(cli, [src, dest, '--quiet']);
       var didEmit = false;
 
@@ -218,6 +261,7 @@ describe('cli', function() {
 
     it('should not exit with the --watch option', function(done) {
       var src = fixture('simple/index.scss');
+      diff('before spawn');
       var bin = spawn(cli, [src, '--watch']);
       var exited;
 
@@ -348,65 +392,74 @@ describe('cli', function() {
     });
   });
 
-  describe('node-sass --output directory', function() {
-    it.skip('should watch whole directory', function(done) {
-      var destDir = fixture('watching-css-out-01/');
-      var srcDir = fixture('watching-dir-01/');
-      var srcFile = path.join(srcDir, 'index.scss');
+  // describe('node-sass --output directory', function() {
+  //   it.skip('should watch whole directory', function(done) {
+  //     var destDir = fixture('watching-css-out-01/');
+  //     var srcDir = fixture('watching-dir-01/');
+  //     var srcFile = path.join(srcDir, 'index.scss');
 
-      fs.writeFileSync(srcFile, '');
+  //     fs.writeFileSync(srcFile, '');
 
-      var bin = spawn(cli, [
-        '--output-style', 'compressed',
-        '--output', destDir,
-        '--watch', srcDir
-      ]);
+  //     var bin = spawn(cli, [
+  //       '--output-style', 'compressed',
+  //       '--output', destDir,
+  //       '--watch', srcDir
+  //     ]);
 
-      setTimeout(function() {
-        fs.appendFileSync(srcFile, 'a {color:green;}\n');
-        setTimeout(function() {
-          bin.kill();
-          var files = fs.readdirSync(destDir);
-          assert.deepEqual(files, ['index.css']);
-          rimraf(destDir, done);
-        }, 200);
-      }, 500);
-    });
+  //     setTimeout(function() {
+  //       fs.appendFileSync(srcFile, 'a {color:green;}\n');
+  //       setTimeout(function() {
+  //         bin.kill();
+  //         var files = fs.readdirSync(destDir);
+  //         assert.deepEqual(files, ['index.css']);
+  //         rimraf(destDir, done);
+  //       }, 200);
+  //     }, 500);
+  //   });
 
-    it.skip('should compile all changed files in watched directory', function(done) {
-      var destDir = fixture('watching-css-out-02/');
-      var srcDir = fixture('watching-dir-02/');
-      var srcFile = path.join(srcDir, 'foo.scss');
+  //   it.skip('should compile all changed files in watched directory', function(done) {
+  //     var destDir = fixture('watching-css-out-02/');
+  //     var srcDir = fixture('watching-dir-02/');
+  //     var srcFile = path.join(srcDir, 'foo.scss');
 
-      fs.writeFileSync(srcFile, '');
+  //     fs.writeFileSync(srcFile, '');
 
-      var bin = spawn(cli, [
-        '--output-style', 'compressed',
-        '--output', destDir,
-        '--watch', srcDir
-      ]);
+  //     var bin = spawn(cli, [
+  //       '--output-style', 'compressed',
+  //       '--output', destDir,
+  //       '--watch', srcDir
+  //     ]);
 
-      setTimeout(function () {
-        fs.appendFileSync(srcFile, 'body{background:white}\n');
-        setTimeout(function () {
-          bin.kill();
-          var files = fs.readdirSync(destDir);
-          assert.deepEqual(files, ['foo.css', 'index.css']);
-          rimraf(destDir, done);
-        }, 200);
-      }, 500);
-    });
-  });
+  //     setTimeout(function () {
+  //       fs.appendFileSync(srcFile, 'body{background:white}\n');
+  //       setTimeout(function () {
+  //         bin.kill();
+  //         var files = fs.readdirSync(destDir);
+  //         assert.deepEqual(files, ['foo.css', 'index.css']);
+  //         rimraf(destDir, done);
+  //       }, 200);
+  //     }, 500);
+  //   });
+  // });
 
   describe('node-sass in.scss --output out.css', function() {
+    var diff;
+
+    beforeEach(function() {
+      diff = time.diff('spec');
+    });
+
     it('should compile a scss file to build.css', function(done) {
       var src = fixture('simple/index.scss');
       var dest = fixture('simple/index.css');
+      diff('before spawn');
       var bin = spawn(cli, [src, '--output', path.dirname(dest)]);
 
       bin.once('close', function() {
+        diff('bin.close');
         assert(fs.existsSync(dest));
         fs.unlinkSync(dest);
+        diff('bin.close.cleanup');
         done();
       });
     });
@@ -421,13 +474,16 @@ describe('cli', function() {
       var destMap = fixture('source-map/index.map');
       var expectedCss = read(fixture('source-map/expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
       var expectedMap = read(fixture('source-map/expected.map'), 'utf8').trim().replace(/\r\n/g, '\n');
+      diff('before spawn');
       var bin = spawn(cli, [src, '--output', path.dirname(destCss), '--source-map', destMap]);
 
       bin.once('close', function() {
+        diff('bin.close');
         assert.equal(read(destCss, 'utf8').trim(), expectedCss);
         assert.equal(read(destMap, 'utf8').trim(), expectedMap);
         fs.unlinkSync(destCss);
         fs.unlinkSync(destMap);
+        diff('bin.close.cleanup');
         done();
       });
     });
@@ -436,16 +492,19 @@ describe('cli', function() {
       var src = fixture('source-map/index.scss');
       var dest = fixture('source-map/index.css');
       var map = fixture('source-map/index.map');
+      diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
         '--source-map', map, '--omit-source-map-url'
       ]);
 
       bin.once('close', function() {
+        diff('bin.close');
         assert.strictEqual(read(dest, 'utf8').indexOf('sourceMappingURL'), -1);
         assert(fs.existsSync(map));
         fs.unlinkSync(map);
         fs.unlinkSync(dest);
+        diff('bin.close.cleanup');
         done();
       });
     });
@@ -456,6 +515,7 @@ describe('cli', function() {
       var destMap = fixture('source-map/index.map');
       var expectedCss = read(fixture('source-map/expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
       var expectedUrl = 'http://test/';
+      diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(destCss),
         '--source-map-root', expectedUrl,
@@ -463,10 +523,12 @@ describe('cli', function() {
       ]);
 
       bin.once('close', function() {
+        diff('bin.close');
         assert.equal(read(destCss, 'utf8').trim(), expectedCss);
         assert.equal(JSON.parse(read(destMap, 'utf8')).sourceRoot, expectedUrl);
         fs.unlinkSync(destCss);
         fs.unlinkSync(destMap);
+        diff('bin.close.cleanup');
         done();
       });
     });
@@ -475,6 +537,7 @@ describe('cli', function() {
       var src = fixture('source-map-embed/index.scss');
       var expectedCss = read(fixture('source-map-embed/expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
       var result = '';
+      diff('before spawn');
       var bin = spawn(cli, [
         src,
         '--source-map-embed',
@@ -482,25 +545,37 @@ describe('cli', function() {
       ]);
 
       bin.stdout.on('data', function(data) {
+        diff('stdout.data');
         result += data;
       });
 
       bin.once('close', function() {
+        diff('bin.close');
         assert.equal(result.trim().replace(/\r\n/g, '\n'), expectedCss);
+        diff('bin.close.cleanup');
         done();
       });
     });
   });
 
   describe('node-sass sass/ --output css/', function() {
+    var diff;
+
+    beforeEach(function() {
+      diff = time.diff('spec');
+    });
+
     it('should create the output directory', function(done) {
       var src = fixture('input-directory/sass');
       var dest = fixture('input-directory/css');
+      diff('before spawn');
       var bin = spawn(cli, [src, '--output', dest]);
 
       bin.once('close', function() {
+        diff('bin.close');
         assert(fs.existsSync(dest));
         rimraf.sync(dest);
+        diff('bin.close.cleanup');
         done();
       });
     });
@@ -508,14 +583,17 @@ describe('cli', function() {
     it('should compile all files in the folder', function(done) {
       var src = fixture('input-directory/sass');
       var dest = fixture('input-directory/css');
+      diff('before spawn');
       var bin = spawn(cli, [src, '--output', dest]);
 
       bin.once('close', function() {
+        diff('bin.close');
         var files = fs.readdirSync(dest).sort();
         assert.deepEqual(files, ['one.css', 'two.css', 'nested'].sort());
         var nestedFiles = fs.readdirSync(path.join(dest, 'nested'));
         assert.deepEqual(nestedFiles, ['three.css']);
         rimraf.sync(dest);
+        diff('bin.close.cleanup');
         done();
       });
     });
@@ -524,14 +602,17 @@ describe('cli', function() {
       var src = fixture('input-directory/sass');
       var dest = fixture('input-directory/css');
       var destMap = fixture('input-directory/map');
+      diff('before spawn');
       var bin = spawn(cli, [src, '--output', dest, '--source-map', destMap]);
 
       bin.once('close', function() {
+        diff('bin.close');
         var map = JSON.parse(read(fixture('input-directory/map/nested/three.css.map'), 'utf8'));
 
         assert.equal(map.file, '../../css/nested/three.css');
         rimraf.sync(dest);
         rimraf.sync(destMap);
+        diff('bin.close.cleanup');
         done();
       });
     });
@@ -539,12 +620,15 @@ describe('cli', function() {
     it('should skip files with an underscore', function(done) {
       var src = fixture('input-directory/sass');
       var dest = fixture('input-directory/css');
+      diff('before spawn');
       var bin = spawn(cli, [src, '--output', dest]);
 
       bin.once('close', function() {
+        diff('bin.close');
         var files = fs.readdirSync(dest);
         assert.equal(files.indexOf('_skipped.css'), -1);
         rimraf.sync(dest);
+        diff('bin.close.cleanup');
         done();
       });
     });
@@ -552,26 +636,32 @@ describe('cli', function() {
     it('should ignore nested files if --recursive false', function(done) {
       var src = fixture('input-directory/sass');
       var dest = fixture('input-directory/css');
+      diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', dest,
         '--recursive', false
       ]);
 
       bin.once('close', function() {
+        diff('bin.close');
         var files = fs.readdirSync(dest);
         assert.deepEqual(files, ['one.css', 'two.css']);
         rimraf.sync(dest);
+        diff('bin.close.cleanup');
         done();
       });
     });
 
     it('should error if no output directory is provided', function(done) {
       var src = fixture('input-directory/sass');
+      diff('before spawn');
       var bin = spawn(cli, [src]);
 
       bin.once('close', function(code) {
+        diff('bin.close');
         assert.notStrictEqual(code, 0);
         assert.strictEqual(glob.sync(fixture('input-directory/**/*.css')).length, 0);
+        diff('bin.close.cleanup');
         done();
       });
     });
@@ -579,11 +669,14 @@ describe('cli', function() {
     it('should error if output directory is not a directory', function(done) {
       var src = fixture('input-directory/sass');
       var dest = fixture('input-directory/sass/one.scss');
+      diff('before spawn');
       var bin = spawn(cli, [src, '--output', dest]);
 
       bin.once('close', function(code) {
+        diff('bin.close');
         assert.notStrictEqual(code, 0);
         assert.equal(glob.sync(fixture('input-directory/**/*.css')).length, 0);
+        diff('bin.close.cleanup');
         done();
       });
     });
@@ -594,27 +687,38 @@ describe('cli', function() {
       var symlink = fixture('symlinked-css');
       fs.mkdirSync(outputDir);
       fs.symlinkSync(outputDir, symlink);
+      diff('before spawn');
       var bin = spawn(cli, [src, '--output', symlink]);
 
       bin.once('close', function() {
+        diff('bin.close');
         var files = fs.readdirSync(outputDir).sort();
         assert.deepEqual(files, ['one.css', 'two.css', 'nested'].sort());
         var nestedFiles = fs.readdirSync(path.join(outputDir, 'nested'));
         assert.deepEqual(nestedFiles, ['three.css']);
         rimraf.sync(outputDir);
         fs.unlinkSync(symlink);
+        diff('bin.close.cleanup');
         done();
       });
     });
   });
 
   describe('node-sass in.scss --output path/to/file/out.css', function() {
+    var diff;
+
+    beforeEach(function() {
+      diff = time.diff('spec');
+    });
+
     it('should create the output directory', function(done) {
       var src = fixture('output-directory/index.scss');
       var dest = fixture('output-directory/path/to/file/index.css');
+      diff('before spawn');
       var bin = spawn(cli, [src, '--output', path.dirname(dest)]);
 
       bin.once('close', function() {
+        diff('bin.close');
         assert(fs.existsSync(path.dirname(dest)));
         fs.unlinkSync(dest);
         fs.rmdirSync(path.dirname(dest));
@@ -622,6 +726,7 @@ describe('cli', function() {
         fs.rmdirSync(path.dirname(dest));
         dest = path.dirname(dest);
         fs.rmdirSync(path.dirname(dest));
+        diff('bin.close.cleanup');
         done();
       });
     });
@@ -629,6 +734,12 @@ describe('cli', function() {
   });
 
   describe('node-sass --follow --output output-dir input-dir', function() {
+    var diff;
+
+    beforeEach(function() {
+      diff = time.diff('spec');
+    });
+
     it('should compile with the --follow option', function(done) {
       var src = fixture('follow/input-dir');
       var dest = fixture('follow/output-dir');
@@ -636,9 +747,11 @@ describe('cli', function() {
       fs.mkdirSync(src);
       fs.symlinkSync(path.join(path.dirname(src), 'foo'), path.join(src, 'foo'), 'dir');
 
+      diff('before spawn');
       var bin = spawn(cli, [src, '--follow', '--output', dest]);
 
       bin.once('close', function() {
+        diff('bin.close');
         var expected = path.join(dest, 'foo/bar/index.css');
         fs.unlinkSync(path.join(src, 'foo'));
         fs.rmdirSync(src);
@@ -649,151 +762,194 @@ describe('cli', function() {
         expected = path.dirname(expected);
         fs.rmdirSync(expected);
         fs.rmdirSync(dest);
+        diff('bin.close.cleanup');
         done();
       });
     });
   });
 
   describe('importer', function() {
+    var diff;
+
+    beforeEach(function() {
+      diff = time.diff('spec');
+    });
+
     var dest = fixture('include-files/index.css');
     var src = fixture('include-files/index.scss');
     var expected = read(fixture('include-files/expected-importer.css'), 'utf8').trim().replace(/\r\n/g, '\n');
 
     it('should override imports and fire callback with file and contents', function(done) {
+      diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
         '--importer', fixture('extras/my_custom_importer_file_and_data_cb.js')
       ]);
 
       bin.once('close', function() {
+        diff('bin.close');
         assert.equal(read(dest, 'utf8').trim(), expected);
         fs.unlinkSync(dest);
+        diff('bin.close.cleanup');
         done();
       });
     });
 
     it('should override imports and fire callback with file', function(done) {
+      diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
         '--importer', fixture('extras/my_custom_importer_file_cb.js')
       ]);
 
       bin.once('close', function() {
+        diff('bin.close');
         if (fs.existsSync(dest)) {
           assert.equal(read(dest, 'utf8').trim(), '');
           fs.unlinkSync(dest);
         }
 
+        diff('bin.close.cleanup');
         done();
       });
     });
 
     it('should override imports and fire callback with data', function(done) {
+      diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
         '--importer', fixture('extras/my_custom_importer_data_cb.js')
       ]);
 
       bin.once('close', function() {
+        diff('bin.close');
         assert.equal(read(dest, 'utf8').trim(), expected);
         fs.unlinkSync(dest);
+        diff('bin.close.cleanup');
         done();
       });
     });
 
     it('should override imports and return file and contents', function(done) {
+      diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
         '--importer', fixture('extras/my_custom_importer_file_and_data.js')
       ]);
 
       bin.once('close', function() {
+        diff('bin.close');
         assert.equal(read(dest, 'utf8').trim(), expected);
         fs.unlinkSync(dest);
+        diff('bin.close.cleanup');
         done();
       });
     });
 
     it('should override imports and return file', function(done) {
+      diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
         '--importer', fixture('extras/my_custom_importer_file.js')
       ]);
 
       bin.once('close', function() {
+        diff('bin.close');
         if (fs.existsSync(dest)) {
           assert.equal(read(dest, 'utf8').trim(), '');
           fs.unlinkSync(dest);
         }
 
+        diff('bin.close.cleanup');
         done();
       });
     });
 
     it('should override imports and return data', function(done) {
+      diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
         '--importer', fixture('extras/my_custom_importer_data.js')
       ]);
 
       bin.once('close', function() {
+        diff('bin.close');
         assert.equal(read(dest, 'utf8').trim(), expected);
         fs.unlinkSync(dest);
+        diff('bin.close.cleanup');
         done();
       });
     });
 
     it('should accept arrays of importers and return respect the order', function(done) {
+      diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
         '--importer', fixture('extras/my_custom_arrays_of_importers.js')
       ]);
 
       bin.once('close', function() {
+        diff('bin.close');
         assert.equal(read(dest, 'utf8').trim(), expected);
         fs.unlinkSync(dest);
+        diff('bin.close.cleanup');
         done();
       });
     });
 
     it('should return error for invalid importer file path', function(done) {
+      diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
         '--importer', fixture('non/existing/path')
       ]);
 
       bin.once('close', function(code) {
+        diff('bin.close');
         assert.notStrictEqual(code, 0);
+        diff('bin.close.cleanup');
         done();
       });
     });
 
     it('should reflect user-defined Error', function(done) {
+      diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
         '--importer', fixture('extras/my_custom_importer_error.js')
       ]);
 
       bin.stderr.once('data', function(code) {
+        diff('stderr.data');
         assert.equal(JSON.parse(code).message, 'doesn\'t exist!');
+        diff('bin.close.cleanup');
         done();
       });
     });
   });
 
   describe('functions', function() {
+    var diff;
+
+    beforeEach(function() {
+      diff = time.diff('spec');
+    });
+
     it('should let custom functions call setter methods on wrapped sass values (number)', function(done) {
       var dest = fixture('custom-functions/setter.css');
       var src = fixture('custom-functions/setter.scss');
       var expected = read(fixture('custom-functions/setter-expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
+      diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
         '--functions', fixture('extras/my_custom_functions_setter.js')
       ]);
 
       bin.once('close', function() {
+        diff('bin.close');
         assert.equal(read(dest, 'utf8').trim(), expected);
         fs.unlinkSync(dest);
+        diff('bin.close.cleanup');
         done();
       });
     });
@@ -802,14 +958,17 @@ describe('cli', function() {
       var dest = fixture('custom-functions/string-conversion.css');
       var src = fixture('custom-functions/string-conversion.scss');
       var expected = read(fixture('custom-functions/string-conversion-expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
+      diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
         '--functions', fixture('extras/my_custom_functions_string_conversion.js')
       ]);
 
       bin.once('close', function() {
+        diff('bin.close');
         assert.equal(read(dest, 'utf8').trim(), expected);
         fs.unlinkSync(dest);
+        diff('bin.close.cleanup');
         done();
       });
     });
