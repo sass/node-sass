@@ -15,6 +15,7 @@ var time = new Time();
 
 describe('cli', function() {
   before(function(done) {
+    var fin = false;
     var diff = time.diff('before');
 
     diff('before spawn');
@@ -27,11 +28,27 @@ describe('cli', function() {
       LIBSASS_VERSION = data.trim().split(['\n'])
           .filter(function(a) { return a.substr(0,7) === 'libsass'; })[0]
           .split('\t')[1];
-      done();
+      if (!fin) {
+        fin = true
+        done();
+      }
+    });
+
+    bin.stderr.on('data', function(data) {
+      diff('stderr.data');
+      console.log('stderr.data', data);
+      if (!fin) {
+        fin = true
+        done();
+      }
     });
 
     bin.once('close', function() {
       diff('bin.close');
+      if (!fin) {
+        fin = true
+        done();
+      }
     });
   });
 
