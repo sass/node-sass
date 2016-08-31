@@ -36,13 +36,8 @@ describe('cli', function() {
   });
 
   describe('node-sass < in.scss', function() {
-    var diff;
-
-    beforeEach(function() {
-      diff = time.diff('spec');
-    });
-
     it('should read data from stdin', function(done) {
+      var diff = time.diff('should read data from stdin');
       var src = fs.createReadStream(fixture('simple/index.scss'));
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
       diff('before spawn');
@@ -59,6 +54,7 @@ describe('cli', function() {
     });
 
     it('should compile sass using the --indented-syntax option', function(done) {
+      var diff = time.diff('should compile sass using the --indented-syntax option');
       var src = fs.createReadStream(fixture('indent/index.sass'));
       var expected = read(fixture('indent/expected.css'), 'utf8').trim();
       diff('before spawn');
@@ -75,6 +71,7 @@ describe('cli', function() {
     });
 
     it('should compile with the --quiet option', function(done) {
+      var diff = time.diff('should compile with the --quiet option');
       var src = fs.createReadStream(fixture('simple/index.scss'));
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
       diff('before spawn');
@@ -91,6 +88,7 @@ describe('cli', function() {
     });
 
     it('should compile with the --output-style option', function(done) {
+      var diff = time.diff('should compile with the --output-style option');
       var src = fs.createReadStream(fixture('compressed/index.scss'));
       var expected = read(fixture('compressed/expected.css'), 'utf8').trim();
       diff('before spawn');
@@ -107,6 +105,7 @@ describe('cli', function() {
     });
 
     it('should compile with the --source-comments option', function(done) {
+      var diff = time.diff('should compile with the --source-comments option');
       var src = fs.createReadStream(fixture('source-comments/index.scss'));
       var expected = read(fixture('source-comments/expected.css'), 'utf8').trim();
       diff('before spawn');
@@ -123,6 +122,7 @@ describe('cli', function() {
     });
 
     it('should render with indentWidth and indentType options', function(done) {
+      var diff = time.diff('should render with indentWidth and indentType options');
       var src = new stream.Readable();
       diff('before spawn');
       var bin = spawn(cli, ['--indent-width', 7, '--indent-type', 'tab']);
@@ -142,6 +142,7 @@ describe('cli', function() {
     });
 
     it('should render with linefeed option', function(done) {
+      var diff = time.diff('should render with linefeed option');
       var src = new stream.Readable();
       diff('before spawn');
       var bin = spawn(cli, ['--linefeed', 'lfcr']);
@@ -162,13 +163,8 @@ describe('cli', function() {
   });
 
   describe('node-sass in.scss', function() {
-    var diff;
-
-    beforeEach(function() {
-      diff = time.diff('spec');
-    });
-
     it('should compile a scss file', function(done) {
+      var diff = time.diff('should compile a scss file');
       process.chdir(fixture('simple'));
 
       var src = fixture('simple/index.scss');
@@ -185,6 +181,7 @@ describe('cli', function() {
     });
 
     it('should compile a scss file to custom destination', function(done) {
+      var diff = time.diff('should compile a scss file to custom destination');
       process.chdir(fixture('simple'));
 
       var src = fixture('simple/index.scss');
@@ -201,6 +198,7 @@ describe('cli', function() {
     });
 
     it('should compile with the --include-path option', function(done) {
+      var diff = time.diff('should compile with the --include-path option');
       var includePaths = [
         '--include-path', fixture('include-path/functions'),
         '--include-path', fixture('include-path/lib')
@@ -219,6 +217,7 @@ describe('cli', function() {
     });
 
     it('should compile silently using the --quiet option', function(done) {
+      var diff = time.diff('should compile silently using the --quiet option');
       process.chdir(fixture('simple'));
 
       var src = fixture('simple/index.scss');
@@ -240,6 +239,7 @@ describe('cli', function() {
     });
 
     it('should still report errors with the --quiet option', function(done) {
+      var diff = time.diff('should still report errors with the --quiet option');
       process.chdir(fixture('invalid'));
 
       var src = fixture('invalid/index.scss');
@@ -260,6 +260,7 @@ describe('cli', function() {
     });
 
     it('should not exit with the --watch option', function(done) {
+      var diff = time.diff('should not exit with the --watch option');
       var src = fixture('simple/index.scss');
       diff('before spawn');
       var bin = spawn(cli, [src, '--watch']);
@@ -450,6 +451,7 @@ describe('cli', function() {
     });
 
     it('should compile a scss file to build.css', function(done) {
+      var diff = time.diff('should compile a scss file to build.css');
       var src = fixture('simple/index.scss');
       var dest = fixture('simple/index.css');
       diff('before spawn');
@@ -465,6 +467,7 @@ describe('cli', function() {
     });
 
     it('should compile with the --source-map option', function(done) {
+      var diff = time.diff('should compile with the --source-map option');
       if (LIBSASS_VERSION < '3.3') {
         this.skip('Source map functionality broken in libsass < 3.3');
       }
@@ -489,6 +492,7 @@ describe('cli', function() {
     });
 
     it('should omit sourceMappingURL if --omit-source-map-url flag is used', function(done) {
+      var diff = time.diff('should omit sourceMappingURL if --omit-source-map-url flag is used');
       var src = fixture('source-map/index.scss');
       var dest = fixture('source-map/index.css');
       var map = fixture('source-map/index.map');
@@ -510,6 +514,7 @@ describe('cli', function() {
     });
 
     it('should compile with the --source-root option', function(done) {
+      var diff = time.diff('should compile with the --source-root option');
       var src = fixture('source-map/index.scss');
       var destCss = fixture('source-map/index.css');
       var destMap = fixture('source-map/index.map');
@@ -534,6 +539,7 @@ describe('cli', function() {
     });
 
     it('should compile with the --source-map-embed option and no outfile', function(done) {
+      var diff = time.diff('should compile with the --source-map-embed option and no outfile');
       var src = fixture('source-map-embed/index.scss');
       var expectedCss = read(fixture('source-map-embed/expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
       var result = '';
@@ -559,13 +565,8 @@ describe('cli', function() {
   });
 
   describe('node-sass sass/ --output css/', function() {
-    var diff;
-
-    beforeEach(function() {
-      diff = time.diff('spec');
-    });
-
     it('should create the output directory', function(done) {
+      var diff = time.diff('should create the output directory');
       var src = fixture('input-directory/sass');
       var dest = fixture('input-directory/css');
       diff('before spawn');
@@ -581,6 +582,7 @@ describe('cli', function() {
     });
 
     it('should compile all files in the folder', function(done) {
+      var diff = time.diff('should compile all files in the folder');
       var src = fixture('input-directory/sass');
       var dest = fixture('input-directory/css');
       diff('before spawn');
@@ -599,6 +601,7 @@ describe('cli', function() {
     });
 
     it('should compile with --source-map set to directory', function(done) {
+      var diff = time.diff('should compile with --source-map set to directory');
       var src = fixture('input-directory/sass');
       var dest = fixture('input-directory/css');
       var destMap = fixture('input-directory/map');
@@ -618,6 +621,7 @@ describe('cli', function() {
     });
 
     it('should skip files with an underscore', function(done) {
+      var diff = time.diff('should skip files with an underscore');
       var src = fixture('input-directory/sass');
       var dest = fixture('input-directory/css');
       diff('before spawn');
@@ -634,6 +638,7 @@ describe('cli', function() {
     });
 
     it('should ignore nested files if --recursive false', function(done) {
+      var diff = time.diff('should ignore nested files if --recursive false');
       var src = fixture('input-directory/sass');
       var dest = fixture('input-directory/css');
       diff('before spawn');
@@ -653,6 +658,7 @@ describe('cli', function() {
     });
 
     it('should error if no output directory is provided', function(done) {
+      var diff = time.diff('should error if no output directory is provided');
       var src = fixture('input-directory/sass');
       diff('before spawn');
       var bin = spawn(cli, [src]);
@@ -667,6 +673,7 @@ describe('cli', function() {
     });
 
     it('should error if output directory is not a directory', function(done) {
+      var diff = time.diff('should error if output directory is not a directory');
       var src = fixture('input-directory/sass');
       var dest = fixture('input-directory/sass/one.scss');
       diff('before spawn');
@@ -682,6 +689,7 @@ describe('cli', function() {
     });
 
     it('should not error if output directory is a symlink', function(done) {
+      var diff = time.diff('should not error if output directory is a symlink');
       var outputDir = fixture('input-directory/css');
       var src = fixture('input-directory/sass');
       var symlink = fixture('symlinked-css');
@@ -705,13 +713,8 @@ describe('cli', function() {
   });
 
   describe('node-sass in.scss --output path/to/file/out.css', function() {
-    var diff;
-
-    beforeEach(function() {
-      diff = time.diff('spec');
-    });
-
     it('should create the output directory', function(done) {
+      var diff = time.diff('should create the output directory');
       var src = fixture('output-directory/index.scss');
       var dest = fixture('output-directory/path/to/file/index.css');
       diff('before spawn');
@@ -734,13 +737,8 @@ describe('cli', function() {
   });
 
   describe('node-sass --follow --output output-dir input-dir', function() {
-    var diff;
-
-    beforeEach(function() {
-      diff = time.diff('spec');
-    });
-
     it('should compile with the --follow option', function(done) {
+      var diff = time.diff('should compile with the --follow option');
       var src = fixture('follow/input-dir');
       var dest = fixture('follow/output-dir');
 
@@ -769,17 +767,12 @@ describe('cli', function() {
   });
 
   describe('importer', function() {
-    var diff;
-
-    beforeEach(function() {
-      diff = time.diff('spec');
-    });
-
     var dest = fixture('include-files/index.css');
     var src = fixture('include-files/index.scss');
     var expected = read(fixture('include-files/expected-importer.css'), 'utf8').trim().replace(/\r\n/g, '\n');
 
     it('should override imports and fire callback with file and contents', function(done) {
+      var diff = time.diff('should override imports and fire callback with file and contents');
       diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
@@ -796,6 +789,7 @@ describe('cli', function() {
     });
 
     it('should override imports and fire callback with file', function(done) {
+      var diff = time.diff('should override imports and fire callback with file');
       diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
@@ -815,6 +809,7 @@ describe('cli', function() {
     });
 
     it('should override imports and fire callback with data', function(done) {
+      var diff = time.diff('should override imports and fire callback with data');
       diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
@@ -831,6 +826,7 @@ describe('cli', function() {
     });
 
     it('should override imports and return file and contents', function(done) {
+      var diff = time.diff('should override imports and return file and contents');
       diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
@@ -847,6 +843,7 @@ describe('cli', function() {
     });
 
     it('should override imports and return file', function(done) {
+      var diff = time.diff('should override imports and return file');
       diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
@@ -866,6 +863,7 @@ describe('cli', function() {
     });
 
     it('should override imports and return data', function(done) {
+      var diff = time.diff('should override imports and return data');
       diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
@@ -882,6 +880,7 @@ describe('cli', function() {
     });
 
     it('should accept arrays of importers and return respect the order', function(done) {
+      var diff = time.diff('should accept arrays of importers and return respect the order');
       diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
@@ -898,6 +897,7 @@ describe('cli', function() {
     });
 
     it('should return error for invalid importer file path', function(done) {
+      var diff = time.diff('should return error for invalid importer file path');
       diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
@@ -913,6 +913,7 @@ describe('cli', function() {
     });
 
     it('should reflect user-defined Error', function(done) {
+      var diff = time.diff('should reflect user-defined Error');
       diff('before spawn');
       var bin = spawn(cli, [
         src, '--output', path.dirname(dest),
@@ -929,13 +930,8 @@ describe('cli', function() {
   });
 
   describe('functions', function() {
-    var diff;
-
-    beforeEach(function() {
-      diff = time.diff('spec');
-    });
-
     it('should let custom functions call setter methods on wrapped sass values (number)', function(done) {
+      var diff = time.diff('should let custom functions call setter methods on wrapped sass values (number)');
       var dest = fixture('custom-functions/setter.css');
       var src = fixture('custom-functions/setter.scss');
       var expected = read(fixture('custom-functions/setter-expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
@@ -955,6 +951,7 @@ describe('cli', function() {
     });
 
     it('should properly convert strings when calling custom functions', function(done) {
+      var diff = time.diff('should properly convert strings when calling custom functions');
       var dest = fixture('custom-functions/string-conversion.css');
       var src = fixture('custom-functions/string-conversion.scss');
       var expected = read(fixture('custom-functions/string-conversion-expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
