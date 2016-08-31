@@ -61,6 +61,11 @@ describe('cli', function() {
       var bin = spawn(cli);
 
       bin.stdout.setEncoding('utf8');
+
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.stdout.once('data', function(data) {
         diff('stdout.data');
         assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
@@ -78,6 +83,11 @@ describe('cli', function() {
       var bin = spawn(cli, ['--indented-syntax']);
 
       bin.stdout.setEncoding('utf8');
+
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.stdout.once('data', function(data) {
         diff('stdout.data');
         assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
@@ -95,6 +105,11 @@ describe('cli', function() {
       var bin = spawn(cli, ['--quiet']);
 
       bin.stdout.setEncoding('utf8');
+
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.stdout.once('data', function(data) {
         diff('stdout.data');
         assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
@@ -112,6 +127,11 @@ describe('cli', function() {
       var bin = spawn(cli, ['--output-style', 'compressed']);
 
       bin.stdout.setEncoding('utf8');
+
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.stdout.once('data', function(data) {
         diff('stdout.data');
         assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
@@ -129,6 +149,11 @@ describe('cli', function() {
       var bin = spawn(cli, ['--source-comments']);
 
       bin.stdout.setEncoding('utf8');
+
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.stdout.once('data', function(data) {
         diff('stdout.data');
         assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
@@ -149,6 +174,11 @@ describe('cli', function() {
       src.push(null);
 
       bin.stdout.setEncoding('utf8');
+
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.stdout.once('data', function(data) {
         diff('stdout.data');
         assert.equal(data.trim(), 'div {\n\t\t\t\t\t\t\tcolor: transparent; }');
@@ -169,6 +199,11 @@ describe('cli', function() {
       src.push(null);
 
       bin.stdout.setEncoding('utf8');
+
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.stdout.once('data', function(data) {
         diff('stdout.data');
         assert.equal(data.trim(), 'div {\n\r  color: transparent; }');
@@ -227,6 +262,11 @@ describe('cli', function() {
       var bin = spawn(cli, [src].concat(includePaths));
 
       bin.stdout.setEncoding('utf8');
+
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.stdout.once('data', function(data) {
         assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
         done();
@@ -351,6 +391,11 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.stdout.once('data', function(data) {
         assert.strictEqual(data.trim(), 'body{background:white}');
         fs.unlinkSync(src);
@@ -375,6 +420,11 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.stdout.once('data', function(data) {
         assert.strictEqual(data.trim(), 'body{background:blue}');
         bin.kill();
@@ -398,6 +448,11 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.stdout.once('data', function(data) {
         assert.strictEqual(data.trim(), 'body{background:red}');
         bin.kill();
@@ -474,6 +529,10 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', path.dirname(dest)]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         assert(fs.existsSync(dest));
@@ -497,6 +556,10 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', path.dirname(destCss), '--source-map', destMap]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         assert.equal(read(destCss, 'utf8').trim(), expectedCss);
@@ -519,6 +582,10 @@ describe('cli', function() {
         '--source-map', map, '--omit-source-map-url'
       ]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         assert.strictEqual(read(dest, 'utf8').indexOf('sourceMappingURL'), -1);
@@ -544,6 +611,10 @@ describe('cli', function() {
         '--source-map', destMap
       ]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         assert.equal(read(destCss, 'utf8').trim(), expectedCss);
@@ -572,6 +643,10 @@ describe('cli', function() {
         result += data;
       });
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         assert.equal(result.trim().replace(/\r\n/g, '\n'), expectedCss);
@@ -589,6 +664,10 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', dest]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         assert(fs.existsSync(dest));
@@ -605,6 +684,10 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', dest]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         var files = fs.readdirSync(dest).sort();
@@ -625,6 +708,10 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', dest, '--source-map', destMap]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         var map = JSON.parse(read(fixture('input-directory/map/nested/three.css.map'), 'utf8'));
@@ -644,6 +731,10 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', dest]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         var files = fs.readdirSync(dest);
@@ -664,6 +755,10 @@ describe('cli', function() {
         '--recursive', false
       ]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         var files = fs.readdirSync(dest);
@@ -680,6 +775,10 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function(code) {
         diff('bin.close');
         assert.notStrictEqual(code, 0);
@@ -696,6 +795,10 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', dest]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function(code) {
         diff('bin.close');
         assert.notStrictEqual(code, 0);
@@ -715,6 +818,10 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', symlink]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         var files = fs.readdirSync(outputDir).sort();
@@ -737,6 +844,10 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', path.dirname(dest)]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         assert(fs.existsSync(path.dirname(dest)));
@@ -765,6 +876,10 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, '--follow', '--output', dest]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         var expected = path.join(dest, 'foo/bar/index.css');
@@ -796,6 +911,10 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_file_and_data_cb.js')
       ]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         assert.equal(read(dest, 'utf8').trim(), expected);
@@ -813,6 +932,10 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_file_cb.js')
       ]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         if (fs.existsSync(dest)) {
@@ -833,6 +956,10 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_data_cb.js')
       ]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         assert.equal(read(dest, 'utf8').trim(), expected);
@@ -850,6 +977,10 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_file_and_data.js')
       ]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         assert.equal(read(dest, 'utf8').trim(), expected);
@@ -867,6 +998,10 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_file.js')
       ]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         if (fs.existsSync(dest)) {
@@ -887,6 +1022,10 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_data.js')
       ]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         assert.equal(read(dest, 'utf8').trim(), expected);
@@ -904,6 +1043,10 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_arrays_of_importers.js')
       ]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         assert.equal(read(dest, 'utf8').trim(), expected);
@@ -921,6 +1064,10 @@ describe('cli', function() {
         '--importer', fixture('non/existing/path')
       ]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function(code) {
         diff('bin.close');
         assert.notStrictEqual(code, 0);
@@ -958,6 +1105,10 @@ describe('cli', function() {
         '--functions', fixture('extras/my_custom_functions_setter.js')
       ]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         assert.equal(read(dest, 'utf8').trim(), expected);
@@ -978,6 +1129,10 @@ describe('cli', function() {
         '--functions', fixture('extras/my_custom_functions_string_conversion.js')
       ]);
 
+      bin.stderr.on('data', function(data) {
+        console.log('stderr.data', data);
+        diff('stderr.data');
+      });
       bin.once('close', function() {
         diff('bin.close');
         assert.equal(read(dest, 'utf8').trim(), expected);
