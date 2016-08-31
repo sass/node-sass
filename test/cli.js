@@ -36,7 +36,7 @@ describe('cli', function() {
 
     bin.stderr.on('data', function(data) {
       diff('stderr.data');
-      console.log('stderr.data', data);
+      console.log('stderr.data', data.toString());
       if (!fin) {
         fin = true
         done();
@@ -63,7 +63,7 @@ describe('cli', function() {
       bin.stdout.setEncoding('utf8');
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.stdout.once('data', function(data) {
@@ -85,7 +85,7 @@ describe('cli', function() {
       bin.stdout.setEncoding('utf8');
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.stdout.once('data', function(data) {
@@ -107,7 +107,7 @@ describe('cli', function() {
       bin.stdout.setEncoding('utf8');
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.stdout.once('data', function(data) {
@@ -129,7 +129,7 @@ describe('cli', function() {
       bin.stdout.setEncoding('utf8');
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.stdout.once('data', function(data) {
@@ -151,7 +151,7 @@ describe('cli', function() {
       bin.stdout.setEncoding('utf8');
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.stdout.once('data', function(data) {
@@ -176,7 +176,7 @@ describe('cli', function() {
       bin.stdout.setEncoding('utf8');
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.stdout.once('data', function(data) {
@@ -201,7 +201,7 @@ describe('cli', function() {
       bin.stdout.setEncoding('utf8');
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.stdout.once('data', function(data) {
@@ -264,7 +264,7 @@ describe('cli', function() {
       bin.stdout.setEncoding('utf8');
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.stdout.once('data', function(data) {
@@ -393,7 +393,7 @@ describe('cli', function() {
       bin.stdout.setEncoding('utf8');
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.stdout.once('data', function(data) {
@@ -422,7 +422,7 @@ describe('cli', function() {
       bin.stdout.setEncoding('utf8');
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.stdout.once('data', function(data) {
@@ -450,7 +450,7 @@ describe('cli', function() {
       bin.stdout.setEncoding('utf8');
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.stdout.once('data', function(data) {
@@ -530,7 +530,7 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', path.dirname(dest)]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -557,7 +557,7 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', path.dirname(destCss), '--source-map', destMap]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -583,7 +583,7 @@ describe('cli', function() {
       ]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -612,7 +612,7 @@ describe('cli', function() {
       ]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -644,7 +644,7 @@ describe('cli', function() {
       });
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -665,7 +665,7 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', dest]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -685,7 +685,7 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', dest]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -709,7 +709,7 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', dest, '--source-map', destMap]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -732,7 +732,7 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', dest]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -756,7 +756,7 @@ describe('cli', function() {
       ]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -776,7 +776,7 @@ describe('cli', function() {
       var bin = spawn(cli, [src]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function(code) {
@@ -796,7 +796,7 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', dest]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function(code) {
@@ -819,7 +819,7 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', symlink]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -845,7 +845,7 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', path.dirname(dest)]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -877,7 +877,7 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--follow', '--output', dest]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -912,7 +912,7 @@ describe('cli', function() {
       ]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -933,7 +933,7 @@ describe('cli', function() {
       ]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -957,7 +957,7 @@ describe('cli', function() {
       ]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -978,7 +978,7 @@ describe('cli', function() {
       ]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -999,7 +999,7 @@ describe('cli', function() {
       ]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -1023,7 +1023,7 @@ describe('cli', function() {
       ]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -1044,7 +1044,7 @@ describe('cli', function() {
       ]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -1065,7 +1065,7 @@ describe('cli', function() {
       ]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function(code) {
@@ -1106,7 +1106,7 @@ describe('cli', function() {
       ]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
@@ -1130,7 +1130,7 @@ describe('cli', function() {
       ]);
 
       bin.stderr.on('data', function(data) {
-        console.log('stderr.data', data);
+        console.log('stderr.data', data.toString());
         diff('stderr.data');
       });
       bin.once('close', function() {
