@@ -21,8 +21,21 @@ var fs = require('fs'),
 
 function download(url, dest, cb) {
   var reportError = function(err) {
+    var timeoutMessge;
+
+    if (err.code === 'ETIMEDOUT') {
+      if (err.connect === true) {
+        // timeout is hit while your client is attempting to establish a connection to a remote machine
+        timeoutMessge = 'Timed out attemping to establish a remote connection';
+      } else {
+        timeoutMessge = 'Timed out whilst downloading the prebuilt binary';
+        // occurs any time the server is too slow to send back a part of the response
+      }
+
+    }
     cb(['Cannot download "', url, '": ', eol, eol,
       typeof err.message === 'string' ? err.message : err, eol, eol,
+      timeoutMessge ? timeoutMessge + eol + eol : timeoutMessge,
       'Hint: If github.com is not accessible in your location', eol,
       '      try setting a proxy via HTTP_PROXY, e.g. ', eol, eol,
       '      export HTTP_PROXY=http://example.com:1234',eol, eol,
@@ -34,9 +47,10 @@ function download(url, dest, cb) {
     return response.statusCode >= 200 && response.statusCode < 300;
   };
 
-  var options = { 
+  var options = {
     rejectUnauthorized: false,
     proxy: getProxy(),
+    timeout: 1000,
     headers: {
       'User-Agent': getUserAgent(),
     }
