@@ -13,6 +13,8 @@ var assert = require('assert'),
 describe('cli', function() {
 
   before(function(done) {
+    // The CLI tests can be flakey on CI, so don't timeout for 10 minutes
+    this.timeout(600000);
     var bin = spawn(cli, ['-v']);
     bin.stdout.setEncoding('utf8');
     bin.stdout.once('data', function(data) {
