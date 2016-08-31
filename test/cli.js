@@ -11,6 +11,9 @@ var assert = require('assert'),
   LIBSASS_VERSION = null;
 
 describe('cli', function() {
+  // For some reason we experience random timeout failures in CI
+  // due to spawn hanging/failing silently. See #1692.
+  this.retries(4);
 
   before(function(done) {
     var bin = spawn(cli, ['-v']);
