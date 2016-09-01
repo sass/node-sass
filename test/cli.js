@@ -21,6 +21,10 @@ describe('cli', function() {
     diff('before spawn');
     var bin = spawn(cli, ['-v']);
     bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -69,6 +73,10 @@ describe('cli', function() {
       var bin = spawn(cli);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -99,6 +107,10 @@ describe('cli', function() {
       var bin = spawn(cli, ['--indented-syntax']);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -129,6 +141,10 @@ describe('cli', function() {
       var bin = spawn(cli, ['--quiet']);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -159,6 +175,10 @@ describe('cli', function() {
       var bin = spawn(cli, ['--output-style', 'compressed']);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -189,6 +209,10 @@ describe('cli', function() {
       var bin = spawn(cli, ['--source-comments']);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -222,6 +246,10 @@ describe('cli', function() {
       src.push(null);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -255,6 +283,10 @@ describe('cli', function() {
       src.push(null);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -289,6 +321,10 @@ describe('cli', function() {
       var bin = spawn(cli, [src, dest]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -316,6 +352,10 @@ describe('cli', function() {
       var bin = spawn(cli, [src, dest]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -346,6 +386,10 @@ describe('cli', function() {
       var bin = spawn(cli, [src].concat(includePaths));
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -376,6 +420,10 @@ describe('cli', function() {
       var didEmit = false;
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -408,6 +456,10 @@ describe('cli', function() {
       var didEmit = false;
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -436,6 +488,10 @@ describe('cli', function() {
       var exited;
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -467,6 +523,10 @@ describe('cli', function() {
       var bin = spawn(cli, ['--watch', src]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -524,6 +584,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -561,6 +625,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -597,6 +665,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -687,6 +759,10 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', path.dirname(dest)]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -724,6 +800,10 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', path.dirname(destCss), '--source-map', destMap]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -760,6 +840,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -799,6 +883,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -836,6 +924,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -872,6 +964,10 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', dest]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -902,6 +998,10 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', dest]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -936,6 +1036,10 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', dest, '--source-map', destMap]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -969,6 +1073,10 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', dest]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1003,6 +1111,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1033,6 +1145,10 @@ describe('cli', function() {
       var bin = spawn(cli, [src]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1063,6 +1179,10 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', dest]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1096,6 +1216,10 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', symlink]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1132,6 +1256,10 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--output', path.dirname(dest)]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1174,6 +1302,10 @@ describe('cli', function() {
       var bin = spawn(cli, [src, '--follow', '--output', dest]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1219,6 +1351,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1250,6 +1386,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1284,6 +1424,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1315,6 +1459,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1346,6 +1494,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1380,6 +1532,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1411,6 +1567,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1442,6 +1602,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1472,6 +1636,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1503,6 +1671,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
@@ -1537,6 +1709,10 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('disconnect', function(err) {
+        console.log('disconnect', err);
+        diff('disconnect');
+      });
       bin.on('exit', function(code, signal) {
         console.log('exit', code, signal);
         diff('exit');
