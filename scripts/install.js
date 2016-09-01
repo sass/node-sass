@@ -50,7 +50,7 @@ function download(url, dest, cb) {
   var options = {
     rejectUnauthorized: false,
     proxy: getProxy(),
-    timeout: 1000,
+    timeout: 60000,
     headers: {
       'User-Agent': getUserAgent(),
     }
