@@ -8,7 +8,7 @@ var fs = require('fs'),
   path = require('path'),
   sass = require('../lib/extensions'),
   request = require('request'),
-  ProgressBar = require('progress'),
+  log = require('npmlog'),
   pkg = require('../package.json');
 
 /**
@@ -51,7 +51,7 @@ function download(url, dest, cb) {
   var options = {
     rejectUnauthorized: false,
     proxy: getProxy(),
-    timeout: 60000,
+    timeout: 1000,
     headers: {
       'User-Agent': getUserAgent(),
     }
@@ -70,6 +70,9 @@ function download(url, dest, cb) {
       }
     })
     .on('response', function(response) {
+      var length = parseInt(response.headers['content-length'], 10);
+      var progress = log.newItem(url, length);
+
       if (successful(response)) {
         response.pipe(fs.createWriteStream(dest));
       }
@@ -78,16 +81,12 @@ function download(url, dest, cb) {
       // been explicitly set it's `undefined` which is considered
       // as far as npm is concerned.
       if (process.env.npm_config_progress !== false) {
-        var bar = new ProgressBar('Total :total [:bar] :current :percent :etas', {
-          complete: '=',
-          incomplete: ' ',
-          width: 25,
-          total: parseInt(response.headers['content-length'])
-        });
+        log.enableProgress();
 
         response.on('data', function(chunk) {
-          bar.tick(chunk.length);
-        });
+          progress.completeWork(chunk.length);
+        })
+        .on('end', progress.finish);
       }
     });
   } catch (err) {
