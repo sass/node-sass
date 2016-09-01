@@ -21,6 +21,14 @@ describe('cli', function() {
     diff('before spawn');
     var bin = spawn(cli, ['-v']);
     bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
     bin.stdout.on('data', function(data) {
       diff('stdout.data');
       console.log('stdout.data', data);
@@ -61,6 +69,14 @@ describe('cli', function() {
       var bin = spawn(cli);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -83,6 +99,14 @@ describe('cli', function() {
       var bin = spawn(cli, ['--indented-syntax']);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -105,6 +129,14 @@ describe('cli', function() {
       var bin = spawn(cli, ['--quiet']);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -127,6 +159,14 @@ describe('cli', function() {
       var bin = spawn(cli, ['--output-style', 'compressed']);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -149,6 +189,14 @@ describe('cli', function() {
       var bin = spawn(cli, ['--source-comments']);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -174,6 +222,14 @@ describe('cli', function() {
       src.push(null);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -199,6 +255,14 @@ describe('cli', function() {
       src.push(null);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -224,6 +288,16 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, dest]);
 
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
+
       bin.once('close', function() {
         assert(fs.existsSync(dest));
         fs.unlinkSync(dest);
@@ -240,6 +314,16 @@ describe('cli', function() {
       var dest = fixture('simple/index-custom.css');
       diff('before spawn');
       var bin = spawn(cli, [src, dest]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.once('close', function() {
         assert(fs.existsSync(dest));
@@ -262,6 +346,14 @@ describe('cli', function() {
       var bin = spawn(cli, [src].concat(includePaths));
 
       bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -282,6 +374,16 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, dest, '--quiet']);
       var didEmit = false;
+
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.once('data', function() {
         didEmit = true;
@@ -305,6 +407,16 @@ describe('cli', function() {
       var bin = spawn(cli, [src, dest, '--quiet']);
       var didEmit = false;
 
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
+
       bin.stderr.once('data', function() {
         didEmit = true;
       });
@@ -322,6 +434,16 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, '--watch']);
       var exited;
+
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.once('close', function() {
         exited = true;
@@ -344,6 +466,16 @@ describe('cli', function() {
 
       var bin = spawn(cli, ['--watch', src]);
 
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
+
       bin.stderr.setEncoding('utf8');
       bin.stderr.once('data', function(data) {
         assert.strictEqual(data.trim(), '=> changed: ' + src);
@@ -365,6 +497,7 @@ describe('cli', function() {
       var bin = spawn(cli, ['--watch', '--quiet', src]);
 
       bin.stderr.setEncoding('utf8');
+
       bin.stderr.once('data', function() {
         didEmit = true;
       });
@@ -391,6 +524,14 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -420,6 +561,14 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -448,6 +597,14 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -529,6 +686,16 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', path.dirname(dest)]);
 
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
+
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
         diff('stderr.data');
@@ -556,6 +723,16 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', path.dirname(destCss), '--source-map', destMap]);
 
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
+
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
         diff('stderr.data');
@@ -581,6 +758,16 @@ describe('cli', function() {
         src, '--output', path.dirname(dest),
         '--source-map', map, '--omit-source-map-url'
       ]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -611,6 +798,16 @@ describe('cli', function() {
         '--source-map', destMap
       ]);
 
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
+
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
         diff('stderr.data');
@@ -638,6 +835,16 @@ describe('cli', function() {
         '--source-map', 'true'
       ]);
 
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
+
       bin.stdout.on('data', function(data) {
         diff('stdout.data');
         result += data;
@@ -664,6 +871,16 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', dest]);
 
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
+
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
         diff('stderr.data');
@@ -683,6 +900,16 @@ describe('cli', function() {
       var dest = fixture('input-directory/css');
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', dest]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -708,6 +935,16 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', dest, '--source-map', destMap]);
 
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
+
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
         diff('stderr.data');
@@ -730,6 +967,16 @@ describe('cli', function() {
       var dest = fixture('input-directory/css');
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', dest]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -755,6 +1002,16 @@ describe('cli', function() {
         '--recursive', false
       ]);
 
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
+
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
         diff('stderr.data');
@@ -775,6 +1032,16 @@ describe('cli', function() {
       diff('before spawn');
       var bin = spawn(cli, [src]);
 
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
+
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
         diff('stderr.data');
@@ -794,6 +1061,16 @@ describe('cli', function() {
       var dest = fixture('input-directory/sass/one.scss');
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', dest]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -817,6 +1094,16 @@ describe('cli', function() {
       fs.symlinkSync(outputDir, symlink);
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', symlink]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -843,6 +1130,16 @@ describe('cli', function() {
       var dest = fixture('output-directory/path/to/file/index.css');
       diff('before spawn');
       var bin = spawn(cli, [src, '--output', path.dirname(dest)]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -875,6 +1172,16 @@ describe('cli', function() {
 
       diff('before spawn');
       var bin = spawn(cli, [src, '--follow', '--output', dest]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -911,6 +1218,16 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_file_and_data_cb.js')
       ]);
 
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
+
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
         diff('stderr.data');
@@ -931,6 +1248,16 @@ describe('cli', function() {
         src, '--output', path.dirname(dest),
         '--importer', fixture('extras/my_custom_importer_file_cb.js')
       ]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -956,6 +1283,16 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_data_cb.js')
       ]);
 
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
+
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
         diff('stderr.data');
@@ -977,6 +1314,16 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_file_and_data.js')
       ]);
 
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
+
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
         diff('stderr.data');
@@ -997,6 +1344,16 @@ describe('cli', function() {
         src, '--output', path.dirname(dest),
         '--importer', fixture('extras/my_custom_importer_file.js')
       ]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -1022,6 +1379,16 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_data.js')
       ]);
 
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
+
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
         diff('stderr.data');
@@ -1042,6 +1409,16 @@ describe('cli', function() {
         src, '--output', path.dirname(dest),
         '--importer', fixture('extras/my_custom_arrays_of_importers.js')
       ]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -1064,6 +1441,16 @@ describe('cli', function() {
         '--importer', fixture('non/existing/path')
       ]);
 
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
+
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
         diff('stderr.data');
@@ -1083,6 +1470,16 @@ describe('cli', function() {
         src, '--output', path.dirname(dest),
         '--importer', fixture('extras/my_custom_importer_error.js')
       ]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.once('data', function(code) {
         diff('stderr.data');
@@ -1104,6 +1501,16 @@ describe('cli', function() {
         src, '--output', path.dirname(dest),
         '--functions', fixture('extras/my_custom_functions_setter.js')
       ]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
@@ -1128,6 +1535,16 @@ describe('cli', function() {
         src, '--output', path.dirname(dest),
         '--functions', fixture('extras/my_custom_functions_string_conversion.js')
       ]);
+
+      bin.stdout.setEncoding('utf8');
+      bin.on('exit', function(code, signal) {
+        console.log('exit', code, signal);
+        diff('exit');
+      });
+      bin.on('error', function(data) {
+        console.log('error', data.toString());
+        diff('error');
+      });
 
       bin.stderr.on('data', function(data) {
         console.log('stderr.data', data.toString());
