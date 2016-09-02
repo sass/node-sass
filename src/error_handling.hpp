@@ -125,6 +125,15 @@ namespace Sass {
         virtual ~InvalidValue() throw() {};
     };
 
+    class StackError : public Base {
+      protected:
+        const AST_Node& node;
+      public:
+        StackError(const AST_Node& node);
+        virtual const char* errtype() const { return "SystemStackError"; }
+        virtual ~StackError() throw() {};
+    };
+
     class IncompatibleUnits : public OperationError {
       protected:
         const Number& lhs;

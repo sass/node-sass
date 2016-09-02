@@ -11,6 +11,10 @@
 
 namespace Sass {
 
+  // simple endless recursion protection
+  const unsigned int maxRecursion = 500;
+  static unsigned int recursions = 0;
+
   Expand::Expand(Context& ctx, Env* env, Backtrace* bt, std::vector<CommaSequence_Selector*>* stack)
   : ctx(ctx),
     eval(Eval(*this)),
@@ -653,6 +657,12 @@ namespace Sass {
 
   Statement* Expand::operator()(Mixin_Call* c)
   {
+    recursions ++;
+
+    if (recursions > maxRecursion) {
+      throw Exception::StackError(*c);
+    }
+
     Env* env = environment();
     std::string full_name(c->name() + "[m]");
     if (!env->has(full_name)) {
@@ -699,6 +709,7 @@ namespace Sass {
     env_stack.pop_back();
     backtrace_stack.pop_back();
 
+    recursions --;
     return trace;
   }
 
