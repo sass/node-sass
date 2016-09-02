@@ -696,6 +696,13 @@ namespace Sass {
                            b->is_interpolant();
         if (op_type == Sass_OP::SUB) interpolant = false;
         // if (op_type == Sass_OP::DIV) interpolant = true;
+        // check for type violations
+        if (l_type == Expression::MAP) {
+          throw Exception::InvalidValue(*v_l);
+        }
+        if (r_type == Expression::MAP) {
+          throw Exception::InvalidValue(*v_r);
+        }
         Value* ex = op_strings(ctx.mem, b->op(), *v_l, *v_r, ctx.c_options, &pstate, !interpolant); // pass true to compress
         if (String_Constant* str = dynamic_cast<String_Constant*>(ex))
         {
