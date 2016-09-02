@@ -2627,7 +2627,7 @@ namespace Sass {
           || (ops[0].operand == Sass_OP::LTE)
           || (ops[0].operand == Sass_OP::GTE)
         )) {
-          Expression* rhs = fold_operands(operands[0], operands, ops, 1);
+          Expression* rhs = fold_operands(operands[0], operands, ops, i + 1);
           rhs = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, base->pstate(), ops[0], schema, rhs);
           return rhs;
         }
