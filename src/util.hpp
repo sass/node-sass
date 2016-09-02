@@ -29,7 +29,7 @@ namespace Sass {
   void newline_to_space(std::string& str);
 
   std::string quote(const std::string&, char q = 0);
-  std::string unquote(const std::string&, char* q = 0, bool keep_utf8_sequences = false);
+  std::string unquote(const std::string&, char* q = 0, bool keep_utf8_sequences = false, bool strict = true);
   char detect_best_quotemark(const char* s, char qm = '"');
 
   bool is_hex_doublet(double n);

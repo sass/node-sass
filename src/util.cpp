@@ -221,7 +221,7 @@ namespace Sass {
     return quote_mark;
   }
 
-  std::string unquote(const std::string& s, char* qd, bool keep_utf8_sequences)
+  std::string unquote(const std::string& s, char* qd, bool keep_utf8_sequences, bool strict)
   {
 
     // not enough room for quotes
@@ -299,6 +299,9 @@ namespace Sass {
       //   error("Unescaped delimiter in string to unquote found. [" + s + "]", ParserState("[UNQUOTE]"));
       // }
       else {
+        if (strict && !skipped) {
+          if (s[i] == q) return s;
+        }
         skipped = false;
         unq.push_back(s[i]);
       }
