@@ -1580,10 +1580,14 @@ namespace Sass {
   ////////////////////////////////////////////////////////
   class String_Quoted : public String_Constant {
   public:
-    String_Quoted(ParserState pstate, std::string val, char q = 0, bool keep_utf8_escapes = false)
+    String_Quoted(ParserState pstate, std::string val, char q = 0,
+    	bool keep_utf8_escapes = false, bool skip_unquoting = false,
+    	bool strict_unquoting = true)
     : String_Constant(pstate, val)
     {
-      value_ = unquote(value_, &quote_mark_, keep_utf8_escapes);
+      if (skip_unquoting == false) {
+        value_ = unquote(value_, &quote_mark_, keep_utf8_escapes, strict_unquoting);
+      }
       if (q && quote_mark_) quote_mark_ = q;
     }
     virtual bool operator==(const Expression& rhs) const;

@@ -1145,7 +1145,8 @@ namespace Sass {
       if (s->length() > 1 && res == "") return SASS_MEMORY_NEW(ctx.mem, Null, s->pstate());
       return SASS_MEMORY_NEW(ctx.mem, String_Constant, s->pstate(), res);
     }
-    String_Quoted* str = SASS_MEMORY_NEW(ctx.mem, String_Quoted, s->pstate(), res);
+    // string schema seems to have a special unquoting behavior (also handles "nested" quotes)
+    String_Quoted* str = SASS_MEMORY_NEW(ctx.mem, String_Quoted, s->pstate(), res, 0, false, false, false);
     // if (s->is_interpolant()) str->quote_mark(0);
     // String_Constant* str = SASS_MEMORY_NEW(ctx.mem, String_Constant, s->pstate(), res);
     if (str->quote_mark()) str->quote_mark('*');
@@ -1538,12 +1539,8 @@ namespace Sass {
     if ( (sep == "") /* &&
          (sep != "/" || !rqstr || !rqstr->quote_mark()) */
     ) {
-      char quote_mark = 0;
-      std::string unq(unquote(lstr + sep + rstr, &quote_mark, true));
-      if (quote_mark && quote_mark != '*') {
-        return SASS_MEMORY_NEW(mem, String_Constant, lhs.pstate(), quote_mark + unq + quote_mark);
-      }
-      return SASS_MEMORY_NEW(mem, String_Quoted, lhs.pstate(), lstr + sep + rstr);
+      // create a new string that might be quoted on output (but do not unquote what we pass)
+      return SASS_MEMORY_NEW(mem, String_Quoted, lhs.pstate(), lstr + rstr, 0, false, true);
     }
 
     if (sep != "" && !delayed) {
@@ -1554,10 +1551,9 @@ namespace Sass {
     if (op == Sass_OP::SUB || op == Sass_OP::DIV) {
       if (lqstr && lqstr->quote_mark()) lstr = quote(lstr);
       if (rqstr && rqstr->quote_mark()) rstr = quote(rstr);
-      return SASS_MEMORY_NEW(mem, String_Constant, lhs.pstate(), lstr + sep + rstr);
     }
 
-    return SASS_MEMORY_NEW(mem, String_Constant, lhs.pstate(), (lstr) + sep + (rstr));
+    return SASS_MEMORY_NEW(mem, String_Constant, lhs.pstate(), lstr + sep + rstr);
   }
 
   Expression* cval_to_astnode(Memory_Manager& mem, union Sass_Value* v, Context& ctx, Backtrace* backtrace, ParserState pstate)
