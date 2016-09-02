@@ -366,7 +366,7 @@ namespace Sass {
 
   bool CheckNesting::is_at_root_node(Statement* n)
   {
-    return dynamic_cast<At_Root_Block*>(n);
+    return dynamic_cast<At_Root_Block*>(n) != NULL;
   }
 
   bool CheckNesting::is_directive_node(Statement* n)
