@@ -292,6 +292,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " " << block->tabs() << std::endl;
     debug_ast(block->condition(), ind + " =@ ");
+    debug_ast(block->block(), ind + " <>");
   } else if (dynamic_cast<Supports_Operator*>(node)) {
     Supports_Operator* block = dynamic_cast<Supports_Operator*>(node);
     std::cerr << ind << "Supports_Operator " << block;
