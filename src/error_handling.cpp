@@ -104,6 +104,12 @@ namespace Sass {
       msg += " isn't a valid CSS value.";
     }
 
+    StackError::StackError(const AST_Node& node)
+    : Base(node.pstate()), node(node)
+    {
+      msg  = "stack level too deep";
+    }
+
     IncompatibleUnits::IncompatibleUnits(const Number& lhs, const Number& rhs)
     : lhs(lhs), rhs(rhs)
     {
