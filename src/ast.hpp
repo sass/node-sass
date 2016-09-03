@@ -401,7 +401,6 @@ namespace Sass {
      { }
     virtual ~Statement() = 0;
     // needed for rearranging nested rulesets during CSS emission
-    virtual bool   is_hoistable() { return false; }
     virtual bool   is_invisible() const { return false; }
     virtual bool   bubbles() { return false; }
     virtual Block* block()  { return 0; }
@@ -419,22 +418,16 @@ namespace Sass {
     ADD_PROPERTY(bool, is_root)
     ADD_PROPERTY(bool, is_at_root);
     // needed for properly formatted CSS emission
-    ADD_PROPERTY(bool, has_hoistable)
-    ADD_PROPERTY(bool, has_non_hoistable)
   protected:
     void adjust_after_pushing(Statement* s)
     {
-      if (s->is_hoistable()) has_hoistable_     = true;
-      else                   has_non_hoistable_ = true;
     }
   public:
     Block(ParserState pstate, size_t s = 0, bool r = false)
     : Statement(pstate),
       Vectorized<Statement*>(s),
       is_root_(r),
-      is_at_root_(false),
-      has_hoistable_(false),
-      has_non_hoistable_(false)
+      is_at_root_(false)
     { }
     virtual bool has_content()
     {
@@ -477,8 +470,6 @@ namespace Sass {
     : Has_Block(pstate, b), selector_(s), at_root_(false), is_root_(false)
     { statement_type(RULESET); }
     bool is_invisible() const;
-    // nested rulesets need to be hoisted out of their enclosing blocks
-    bool is_hoistable() { return true; }
     ATTACH_OPERATIONS()
   };
 
@@ -521,7 +512,6 @@ namespace Sass {
     : Has_Block(pstate, b), media_queries_(mqs)
     { statement_type(MEDIA); }
     bool bubbles() { return true; }
-    bool is_hoistable() { return true; }
     bool is_invisible() const;
     ATTACH_OPERATIONS()
   };
@@ -1636,7 +1626,6 @@ namespace Sass {
     Supports_Block(ParserState pstate, Supports_Condition* condition, Block* block = 0)
     : Has_Block(pstate, block), condition_(condition)
     { statement_type(SUPPORTS); }
-    bool is_hoistable() { return true; }
     bool bubbles() { return true; }
     ATTACH_OPERATIONS()
   };
@@ -1738,7 +1727,6 @@ namespace Sass {
     At_Root_Block(ParserState pstate, Block* b = 0, At_Root_Query* e = 0)
     : Has_Block(pstate, b), expression_(e)
     { statement_type(ATROOT); }
-    bool is_hoistable() { return true; }
     bool bubbles() { return true; }
     bool exclude_node(Statement* s) {
       if (expression() == 0)
