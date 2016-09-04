@@ -51,9 +51,7 @@
     - git submodule update --init --recursive
     - npm install --msvs_version=2013
 
-  test_script:
-    - ps: set-location -path c:\projects\node_modules\node-sass
-    - npm test
+  test: off
 
   before_deploy:
     # Save artifacts with full qualified names of binding.node and binding.pdb
