@@ -8,6 +8,7 @@ var fs = require('fs'),
   path = require('path'),
   sass = require('../lib/extensions'),
   request = require('request'),
+  log = require('npmlog'),
   pkg = require('../package.json');
 
 /**
@@ -56,6 +57,8 @@ function download(url, dest, cb) {
     }
   };
 
+  console.log('Start downloading binary at', url);
+
   try {
     request(url, options, function(err, response) {
       if (err) {
@@ -67,8 +70,23 @@ function download(url, dest, cb) {
       }
     })
     .on('response', function(response) {
+      var length = parseInt(response.headers['content-length'], 10);
+      var progress = log.newItem(url, length);
+
       if (successful(response)) {
         response.pipe(fs.createWriteStream(dest));
+      }
+
+      // The `progress` is true by default. However if it has not
+      // been explicitly set it's `undefined` which is considered
+      // as far as npm is concerned.
+      if (process.env.npm_config_progress !== false) {
+        log.enableProgress();
+
+        response.on('data', function(chunk) {
+          progress.completeWork(chunk.length);
+        })
+        .on('end', progress.finish);
       }
     });
   } catch (err) {
