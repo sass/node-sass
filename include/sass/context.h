@@ -50,6 +50,7 @@ ADDAPI int ADDCALL sass_compiler_execute(struct Sass_Compiler* compiler);
 // Release all memory allocated with the compiler
 // This does _not_ include any contexts or options
 ADDAPI void ADDCALL sass_delete_compiler(struct Sass_Compiler* compiler);
+ADDAPI void ADDCALL sass_delete_options(struct Sass_Options* options);
 
 // Release all memory allocated and also ourself
 ADDAPI void ADDCALL sass_delete_file_context (struct Sass_File_Context* ctx);
