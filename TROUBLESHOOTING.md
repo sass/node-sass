@@ -94,7 +94,7 @@ Please make sure the variable points to `C:\WINDOWS\System32\cmd.exe`
 Gather some basic diagnostic information.
 
 ```sh
-npm -v              
+npm -v
 node -v
 node -p process.versions
 node -p process.platform
@@ -113,14 +113,14 @@ Install the latest node-sass
 npm install -ddd node-sass > npm.log 2> npm.err
 ```
 
-Note which version was installed by opening the `package.json` file with a text editor.
+Note which version was installed by running
 
-```json
-{
-  "name": "node-sass",
-  "version": "3.0.0",
-  "libsass": "3.2.0",
-}
+```sh
+npm ls node-sass
+```
+```sh
+y@1.0.0 /tmp
+└── node-sass@3.8.0
 ```
 
 If node-sass could not be installed successfully, please publish your `npm.log`
@@ -132,8 +132,11 @@ to compare your log against.
 If node-sass install successfully lets gather some basic installation infomation.
 
 ```sh
-.\node_modules\.bin\node-sass --version
-node -p "console.log(require('node-sass').info)"
+node -p "require('node-sass').info"
+```
+```sh
+node-sass       3.8.0   (Wrapper)       [JavaScript]
+libsass         3.3.6   (Sass Compiler) [C/C++]
 ```
 
 If the node-sass installation process produced an error, open the vendor folder.
@@ -142,15 +145,18 @@ If the node-sass installation process produced an error, open the vendor folder.
 cd node_modules\node-sass\vendor
 ```
 
-Then, using the version number we gather at the beginning, go to https://github.com/sass/node-sass-binaries/tree/v<your-version>.
+Then, using the version number we gather at the beginning, go to https://github.com/sass/node-sass/releases/tag/v<your-version>.
 
 There you should see a folder with same name as the one in the `vendor` folder. Download the `binding.node` file from that folder and replace your own with it.
 
 Test if that worked by gathering some basic installation infomation.
 
 ```sh
-.\node_modules\.bin\node-sass --version
-node -p "console.log(require('node-sass').info)"
+node -p "require('node-sass').info"
+```
+```sh
+node-sass       3.8.0   (Wrapper)       [JavaScript]
+libsass         3.3.6   (Sass Compiler) [C/C++]
 ```
 
 If this still produces an error please open an issue with the output from these steps.
@@ -168,7 +174,7 @@ cd ~/temp1
 Gather some basic diagnostic information.
 
 ```sh
-npm -v              
+npm -v
 node -v
 node -p process.versions
 node -p process.platform
@@ -181,21 +187,24 @@ Install the latest node-sass
 npm install node-sass
 ```
 
-Note which version was installed by opening the `package.json` file with a text editor.
+Note which version was installed by running
 
-```json
-{
-  "name": "node-sass",
-  "version": "3.0.0",
-  "libsass": "3.2.0",
-}
+```sh
+npm ls node-sass
+```
+```sh
+y@1.0.0 /tmp
+└── node-sass@3.8.0
 ```
 
 If node-sass install successfully lets gather some basic installation infomation.
 
 ```sh
-./node_modules/.bin/node-sass --version
-node -p "console.log(require('node-sass').info)"
+node -p "require('node-sass').info"
+```
+```sh
+node-sass       3.8.0   (Wrapper)       [JavaScript]
+libsass         3.3.6   (Sass Compiler) [C/C++]
 ```
 
 If the node-sass installation process produced an error, open the vendor folder.
@@ -204,15 +213,18 @@ If the node-sass installation process produced an error, open the vendor folder.
 cd node_modules/node-sass/vendor
 ```
 
-Then, using the version number we gather at the beginning, go to https://github.com/sass/node-sass-binaries/tree/v<your-version>.
+Then, using the version number we gather at the beginning, go to https://github.com/sass/node-sass/releases/tag/v<your-version>.
 
 There you should see a folder with same name as the one in the `vendor` folder. Download the `binding.node` file from that folder and replace your own with it.
 
 Test if that worked by gathering some basic installation infomation.
 
 ```sh
-.\node_modules\.bin\node-sass --version
-node -p "console.log(require('node-sass').info)"
+node -p "require('node-sass').info"
+```
+```sh
+node-sass       3.8.0   (Wrapper)       [JavaScript]
+libsass         3.3.6   (Sass Compiler) [C/C++]
 ```
 
 If this still produces an error please open an issue with the output from these steps.
