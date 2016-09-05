@@ -63,7 +63,7 @@
                .{ process { (
                   @( $BindingName,
                        ( ( $_, "binding.node" ) -join '_' ) ),
-                  @( ".\build\Release\binding.pdb", 
+                  @( ".\build\Release\binding.pdb",
                        ( ( $_, "binding.pdb" ) -join '_' ) )
                ) } } | % { Push-AppveyorArtifact $_[0] -FileName $_[1] }
 
