@@ -491,6 +491,7 @@ Example:
     -o, --output               Output directory
     -x, --omit-source-map-url  Omit source map URL comment from output
     -i, --indented-syntax      Treat data from stdin as sass code (versus scss)
+    -f, --flatten              Flattens the output directory
     -q, --quiet                Suppress log output except on error
     -v, --version              Prints version info
     --output-style             CSS output style (nested | expanded | compact | compressed)

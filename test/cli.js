@@ -551,6 +551,20 @@ describe('cli', function() {
         done();
       });
     });
+    
+    it('should be flattened output if --flatten true', function(done) {
+      var src = fixture('input-directory/sass');
+      var dest = fixture('input-directory/css');
+      var bin = spawn(cli, [src, '--output -', dest, '--flatten']);
+      
+      
+      bin.once('close', function() {
+        var files = fs.readdirSync(dest).sort();
+        assert.deepEqual(files, ['one.css', 'two.css', 'three.css'].sort());
+        rimraf.sync(dest);
+        done();
+      });
+    });
 
     it('should error if no output directory is provided', function(done) {
       var src = fixture('input-directory/sass');

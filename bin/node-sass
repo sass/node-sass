@@ -41,6 +41,7 @@ var cli = meow({
     '  -i, --indented-syntax      Treat data from stdin as sass code (versus scss)',
     '  -q, --quiet                Suppress log output except on error',
     '  -v, --version              Prints version info',
+    '  -f, --flatten              Flattens output directory',
     '  --output-style             CSS output style (nested | expanded | compact | compressed)',
     '  --indent-type              Indent type for output CSS (space | tab)',
     '  --indent-width             Indent width; number of spaces or tabs (maximum value: 10)',
@@ -85,6 +86,7 @@ var cli = meow({
   alias: {
     c: 'source-comments',
     i: 'indented-syntax',
+    f: 'flatten',
     q: 'quiet',
     o: 'output',
     r: 'recursive',
@@ -96,6 +98,7 @@ var cli = meow({
     'include-path': process.cwd(),
     'indent-type': 'space',
     'indent-width': 2,
+    flatten: false,
     linefeed: 'lf',
     'output-style': 'nested',
     precision: 5,
@@ -196,7 +199,11 @@ function getOptions(args, options) {
     var sassDir = path.resolve(options.directory);
     var file = path.relative(sassDir, args[0]);
     var cssDir = path.resolve(options.output);
-    options.dest = path.join(cssDir, file).replace(path.extname(file), '.css');
+    if (options.flatten){
+      options.dest = path.join(cssDir, path.basename(file)).replace(path.extname(file), '.css');
+    } else {
+      options.dest = path.join(cssDir, file).replace(path.extname(file), '.css');
+    }
   }
 
   if (options.sourceMap) {
