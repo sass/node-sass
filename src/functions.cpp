@@ -1304,7 +1304,7 @@ namespace Sass {
       if (l->empty()) error("argument `$list` of `" + std::string(sig) + "` must not be empty", pstate);
       double index = std::floor(n->value() < 0 ? l->length() + n->value() : n->value() - 1);
       if (index < 0 || index > l->length() - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate);
-      List_Ptr result = SASS_MEMORY_NEW(List, pstate, l->length(), l->separator());
+      List_Ptr result = SASS_MEMORY_NEW(List, pstate, l->length(), l->separator(), false, l->delimiter());
       for (size_t i = 0, L = l->length(); i < L; ++i) {
         result->append(((i == index) ? v : (*l)[i]));
       }
