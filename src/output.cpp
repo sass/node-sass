@@ -155,7 +155,7 @@ namespace Sass {
             Expression_Ptr item = &list->at(list_i);
             if (!item->is_invisible()) all_invisible = false;
           }
-          if (all_invisible) bPrintExpression = false;
+          if (all_invisible && !list->is_bracketed()) bPrintExpression = false;
         }
       }
       // Print if OK
