@@ -182,6 +182,7 @@ function getEmitter() {
  */
 
 function getOptions(args, options) {
+  var cssDir, sassDir, file, mapDir;
   options.src = args[0];
 
   if (args[1]) {
@@ -193,9 +194,9 @@ function getOptions(args, options) {
   }
 
   if (options.directory) {
-    var sassDir = path.resolve(options.directory);
-    var file = path.relative(sassDir, args[0]);
-    var cssDir = path.resolve(options.output);
+    sassDir = path.resolve(options.directory);
+    file = path.relative(sassDir, args[0]);
+    cssDir = path.resolve(options.output);
     options.dest = path.join(cssDir, file).replace(path.extname(file), '.css');
   }
 
@@ -215,9 +216,9 @@ function getOptions(args, options) {
       if (!options.directory) {
         options.sourceMap = path.resolve(options.sourceMapOriginal, path.basename(options.dest) + '.map');
       } else {
-        var sassDir = path.resolve(options.directory);
-        var file = path.relative(sassDir, args[0]);
-        var mapDir = path.resolve(options.sourceMapOriginal);
+        sassDir = path.resolve(options.directory);
+        file = path.relative(sassDir, args[0]);
+        mapDir = path.resolve(options.sourceMapOriginal);
         options.sourceMap = path.join(mapDir, file).replace(path.extname(file), '.css.map');
       }
     }
@@ -236,19 +237,20 @@ function getOptions(args, options) {
 
 function watch(options, emitter) {
   var buildGraph = function(options) {
+    var graph;
     var graphOptions = {
       loadPaths: options.includePath,
       extensions: ['scss', 'sass', 'css']
     };
 
     if (options.directory) {
-      var graph = grapher.parseDir(options.directory, graphOptions);
+      graph = grapher.parseDir(options.directory, graphOptions);
     } else {
-      var graph = grapher.parseFile(options.src, graphOptions);
+      graph = grapher.parseFile(options.src, graphOptions);
     }
 
     return graph;
-  }
+  };
 
   var watch = [];
   var graph = buildGraph(options);

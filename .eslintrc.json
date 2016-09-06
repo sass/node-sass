@@ -3,6 +3,7 @@
     "node": true
   },
   "globals": {},
+  "extends": "eslint:recommended",
   "rules": {
     "no-bitwise": 2,
     "camelcase": 0,
@@ -35,6 +36,11 @@
     ],
     "strict": 0,
     "no-undef": 2,
-    "no-unused-vars": 2
+    "no-unused-vars": 2,
+    "semi": 2,
+    "no-extra-semi": 2,
+    "no-redeclare": 2,
+    "block-scoped-var": 2,
+    "no-console": 0
   }
 }
