@@ -9,6 +9,7 @@ var assert = require('assert'),
   readYaml = require('read-yaml'),
   objectMerge = require('object-merge'),
   glob = require('glob'),
+  specPath = require('sass-spec').dirname.replace(/\\/g, '/'),
   impl = 'libsass',
   version = 3.4;
 
@@ -17,7 +18,6 @@ var normalize = function(str) {
   return str.replace(/\s+/g, '');
 };
 
-var specPath = join(__dirname, 'fixtures/spec/spec').replace(/\\/g, '/');
 var inputs = glob.sync(specPath + '/**/input.*');
 
 var initialize = function(inputCss, options) {
