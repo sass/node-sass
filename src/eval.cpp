@@ -528,6 +528,7 @@ namespace Sass {
     }
 
 
+    b = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, *b);
     // don't eval delayed expressions (the '/' when used as a separator)
     if (!force && op_type == Sass_OP::DIV && b->is_delayed()) {
       b->right(b->right()->perform(this));
@@ -916,36 +917,13 @@ namespace Sass {
       value = SASS_MEMORY_NEW(ctx.mem, Number, *static_cast<Number*>(value));
       static_cast<Number*>(value)->zero(true);
     }
-    else if (value->concrete_type() == Expression::STRING) {
-      if (auto str = dynamic_cast<String_Quoted*>(value)) {
-        value = SASS_MEMORY_NEW(ctx.mem, String_Quoted, *str);
-      } else if (auto str = dynamic_cast<String_Constant*>(value)) {
-        value = SASS_MEMORY_NEW(ctx.mem, String_Quoted, str->pstate(), str->value());
-      }
-    }
-    else if (value->concrete_type() == Expression::LIST) {
-      value = SASS_MEMORY_NEW(ctx.mem, List, *static_cast<List*>(value));
-    }
-    else if (value->concrete_type() == Expression::MAP) {
-      value = SASS_MEMORY_NEW(ctx.mem, Map, *static_cast<Map*>(value));
-    }
-    else if (value->concrete_type() == Expression::BOOLEAN) {
-      value = SASS_MEMORY_NEW(ctx.mem, Boolean, *static_cast<Boolean*>(value));
-    }
-    else if (value->concrete_type() == Expression::COLOR) {
-      value = SASS_MEMORY_NEW(ctx.mem, Color, *static_cast<Color*>(value));
-    }
-    else if (value->concrete_type() == Expression::NULL_VAL) {
-      value = SASS_MEMORY_NEW(ctx.mem, Null, value->pstate());
-    }
-    else if (value->concrete_type() == Expression::SELECTOR) {
-      value = value->perform(this); // ->perform(&listize);
-    }
 
     value->is_interpolant(v->is_interpolant());
-    value->is_expanded(false);
+    if (force) value->is_expanded(false);
     value->set_delayed(false); // verified
-    return value->perform(this);
+    value = value->perform(this);
+    if(!force) (*env)[name] = value;
+    return value;
   }
 
   Expression* Eval::operator()(Textual* t)
