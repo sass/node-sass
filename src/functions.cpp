@@ -1995,5 +1995,12 @@ namespace Sass {
       return SASS_MEMORY_NEW(String_Quoted, pstate, ss.str());
     }
 
+    Signature is_bracketed_sig = "is-bracketed($list)";
+    BUILT_IN(is_bracketed)
+    {
+      Value_Obj value = ARG("$list", Value);
+      List_Obj list = SASS_MEMORY_CAST(List, value);
+      return SASS_MEMORY_NEW(Boolean, pstate, list && list->is_bracketed());
+    }
   }
 }
