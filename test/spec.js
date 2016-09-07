@@ -6,28 +6,12 @@ var assert = require('assert'),
   sass = process.env.NODESASS_COV
       ? require('../lib-cov')
       : require('../lib'),
-  util = require('./util');
+  util = require('./util')
+  spec = require('sass-spec').dirname;
 
 describe('spec', function() {
   this.timeout(0);
   var suites = util.getSuites();
-
-  describe('test/sass-spec directory', function() {
-    it('should be a cloned into place', function(done) {
-      fs.exists(path.join(__dirname, 'fixtures', 'spec'), function(exists) {
-        if (!exists) {
-          throw new Error([
-            'test/fixtures/spec directory missing. Please clone it into place by',
-            'executing `git submodule update --init --recursive test/fixtures/spec`',
-            'from the project\'s root directory.'
-          ].join(' '));
-        }
-
-        assert(exists);
-        done();
-      });
-    });
-  });
 
   Object.keys(suites).forEach(function(suite) {
     var tests = Object.keys(suites[suite]);
