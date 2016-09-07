@@ -147,7 +147,7 @@ describe('api', function() {
       var expectedRed = read(fixture('sass-path/expected-red.css'), 'utf8').trim();
       var expectedOrange = read(fixture('sass-path/expected-orange.css'), 'utf8').trim();
 
-      envIncludes = [
+      var envIncludes = [
         fixture('sass-path/red'),
         fixture('sass-path/orange')
       ];
@@ -175,7 +175,7 @@ describe('api', function() {
       var expectedRed = read(fixture('sass-path/expected-red.css'), 'utf8').trim();
       var expectedOrange = read(fixture('sass-path/expected-orange.css'), 'utf8').trim();
 
-      envIncludes = [
+      var envIncludes = [
         fixture('sass-path/red')
       ];
       process.env.SASS_PATH = envIncludes.join(path.delimiter);
