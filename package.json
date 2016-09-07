@@ -59,6 +59,7 @@
     "get-stdin": "^4.0.1",
     "glob": "^7.0.3",
     "in-publish": "^2.0.0",
+    "lodash.assign": "^4.2.0",
     "lodash.clonedeep": "^4.3.2",
     "meow": "^3.7.0",
     "mkdirp": "^0.5.1",
