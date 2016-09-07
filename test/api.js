@@ -1832,14 +1832,14 @@ describe('api', function() {
 
     it('should return a correct version info', function(done) {
       var lines = info.split(eol);
-      
+
       assert.equal(lines[0], ['node-sass', package.version, '(Wrapper)', '[JavaScript]'].join('\t'));
 
-      assert(info.indexOf('[C/C++]') > 0);
-      assert(info.indexOf('[JavaScript]') > 0);
-      assert(info.indexOf('[NA]') < 0);
-      assert(info.indexOf('(Sass Compiler)') > 0);
-      assert(info.indexOf('(Sass Language)') > 0);
+      assert(info.indexOf('[C/C++]') > 0, 'Version info does not contain "[C/C++]" LibSass identifier.');
+      assert(info.indexOf('[JavaScript]') > 0, 'Version info does not contain "[JavaScript]" node-sass identifier.');;
+      assert(info.indexOf('[NA]') < 0, 'Version info contains "[NA]" indicating a missing version.');
+      assert(info.indexOf('(Sass Compiler)') > 0, 'Version info does not contain "(Sass Compiler)" LibSass identifier.');
+      assert(info.indexOf('(Sass Language)') > 0, 'Version info does not contain "(Sass Language)" identifier.');
 
       done();
     });
