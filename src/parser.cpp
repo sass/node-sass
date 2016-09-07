@@ -460,6 +460,9 @@ namespace Sass {
     std::string name(Util::normalize_underscores(lexed));
     ParserState var_source_position = pstate;
     if (!lex< exactly<':'> >()) error("expected ':' after " + name + " in assignment statement", pstate);
+    if (peek_css< alternatives < exactly<';'>, end_of_file > >()) {
+      css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
+    }
     Expression* val;
     Lookahead lookahead = lookahead_for_value(position);
     if (lookahead.has_interpolants && lookahead.found) {
