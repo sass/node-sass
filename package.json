@@ -74,6 +74,9 @@
     "istanbul": "^0.4.2",
     "mocha": "^2.4.5",
     "mocha-lcov-reporter": "^1.2.0",
-    "rimraf": "^2.5.2"
+    "object-merge": "^2.5.1",
+    "read-yaml": "^1.0.0",
+    "rimraf": "^2.5.2",
+    "sass-spec": "^3.3.6-3"
   }
 }
