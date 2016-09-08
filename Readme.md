@@ -3,7 +3,7 @@ LibSass
 
 by Aaron Leung ([@akhleung]), Hampton Catlin ([@hcatlin]), Marcel Greter ([@mgreter]) and Michael Mifsud ([@xzyfer])
 
-[![Linux CI](https://travis-ci.org/sass/libsass.svg?branch=master)](https://travis-ci.org/sass/libsass)
+[![Unix CI](https://travis-ci.org/sass/libsass.svg?branch=master)](https://travis-ci.org/sass/libsass)
 [![Windows CI](https://ci.appveyor.com/api/projects/status/github/sass/libsass?svg=true)](https://ci.appveyor.com/project/sass/libsass/branch/master)
 [![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=283068)](https://www.bountysource.com/trackers/283068-libsass?utm_source=283068&utm_medium=shield&utm_campaign=TRACKER_BADGE)
 [![Coverage Status](https://img.shields.io/coveralls/sass/libsass.svg)](https://coveralls.io/r/sass/libsass?branch=feature%2Ftest-travis-ci-3)
@@ -34,9 +34,9 @@ As you may have noticed, the LibSass repo itself has
 no executables and no tests. Oh noes! How can you develop???
 
 Well, luckily, [SassC](http://github.com/sass/sassc) is the official binary wrapper for
-LibSass and is *always* kept in sync. SassC uses a git submodule
-to include LibSass. When developing LibSass, its best to actually
-check out SassC and develop in that directory with the SassC spec
+LibSass and is *always* kept in sync. SassC is used by continous integration systems in
+LibSass repository. When developing LibSass, it is best to actually
+checkout SassC and develop in that directory with the SassC spec
 and tests there.
 
 We even run Travis tests for SassC!
