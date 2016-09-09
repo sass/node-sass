@@ -134,6 +134,29 @@ describe('runtime parameters', function() {
     });
 
   });
+
+  describe('Sass Binary Cache', function() {
+    var npmCacheDir;
+    before(function() {
+      npmCacheDir = process.env.npm_config_cache;
+    });
+
+    beforeEach(function() {
+      delete process.env.npm_config_sass_binary_cache;
+    });
+
+    it('npm config variable', function() {
+      var overridenCachePath = '/foo/bar/';
+      process.env.npm_config_sass_binary_cache = overridenCachePath;
+      var sass = require(extensionsPath);
+      assert.equal(sass.getCachePath(), overridenCachePath);
+    });
+
+    it('With no value, falls back to NPM cache', function() {
+      var sass = require(extensionsPath);
+      assert.equal(sass.getCachePath(), npmCacheDir);
+    });
+  });
 });
 
 // describe('library detection', function() {
