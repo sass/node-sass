@@ -48,6 +48,12 @@ Since LibSass is a pure library, tests are run through the [SassSpec](https://gi
 
 To run tests against LibSass while developing, you can run `./script/spec`. This will clone SassC and Sass-Spec under the project folder and then run the Sass-Spec test suite. You may want to update the clones to ensure you have the latest version.
 
+### DEBUG builds
+
+Set the environment variable `DEBUG` to `1` to enable debug builds that can be debugged
+with `gdb`, `lldb` and others. E.g.: use `$ DEBUG=1 ./script/spec` to run the tests with
+a debug build.
+
 Library Usage
 -------------
 
