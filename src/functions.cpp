@@ -1330,6 +1330,8 @@ namespace Sass {
     Signature join_sig = "join($list1, $list2, $separator: auto)";
     BUILT_IN(join)
     {
+      Map* m1 = dynamic_cast<Map*>(env["$list1"]);
+      Map* m2 = dynamic_cast<Map*>(env["$list2"]);
       List* l1 = dynamic_cast<List*>(env["$list1"]);
       List* l2 = dynamic_cast<List*>(env["$list2"]);
       String_Constant* sep = ARG("$separator", String_Constant);
@@ -1342,6 +1344,13 @@ namespace Sass {
       if (!l2) {
         l2 = SASS_MEMORY_NEW(ctx.mem, List, pstate, 1);
         *l2 << ARG("$list2", Expression);
+      }
+      if (m1) {
+        l1 = m1->to_list(ctx, pstate);
+        sep_val = SASS_COMMA;
+      }
+      if (m2) {
+        l2 = m2->to_list(ctx, pstate);
       }
       size_t len = l1->length() + l2->length();
       std::string sep_str = unquote(sep->value());
