@@ -1,17 +1,24 @@
+/*eslint new-cap: ["error", {"capIsNewExceptions": ["Color"]}]*/
+
 var assert = require('assert'),
-    fs = require('fs'),
-    path = require('path'),
-    read = fs.readFileSync,
-    sassPath = process.env.NODESASS_COV
+  fs = require('fs'),
+  path = require('path'),
+  read = fs.readFileSync,
+  sassPath = process.env.NODESASS_COV
       ? require.resolve('../lib-cov')
       : require.resolve('../lib'),
-    sass = require(sassPath),
-    fixture = path.join.bind(null, __dirname, 'fixtures'),
-    resolveFixture = path.resolve.bind(null, __dirname, 'fixtures');
+  sass = require(sassPath),
+  fixture = path.join.bind(null, __dirname, 'fixtures'),
+  resolveFixture = path.resolve.bind(null, __dirname, 'fixtures');
 
 describe('api', function() {
 
   describe('.render(options, callback)', function() {
+
+    beforeEach(function() {
+      delete process.env.SASS_PATH;
+    });
+
     it('should compile sass to css with file', function(done) {
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
 
@@ -135,6 +142,59 @@ describe('api', function() {
       });
     });
 
+    it('should check SASS_PATH in the specified order', function(done) {
+      var src = read(fixture('sass-path/index.scss'), 'utf8');
+      var expectedRed = read(fixture('sass-path/expected-red.css'), 'utf8').trim();
+      var expectedOrange = read(fixture('sass-path/expected-orange.css'), 'utf8').trim();
+
+      var envIncludes = [
+        fixture('sass-path/red'),
+        fixture('sass-path/orange')
+      ];
+
+      process.env.SASS_PATH = envIncludes.join(path.delimiter);
+      sass.render({
+        data: src,
+        includePaths: []
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), expectedRed.replace(/\r\n/g, '\n'));
+      });
+
+      process.env.SASS_PATH = envIncludes.reverse().join(path.delimiter);
+      sass.render({
+        data: src,
+        includePaths: []
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), expectedOrange.replace(/\r\n/g, '\n'));
+        done();
+      });
+    });
+
+    it('should prefer include path over SASS_PATH', function(done) {
+      var src = read(fixture('sass-path/index.scss'), 'utf8');
+      var expectedRed = read(fixture('sass-path/expected-red.css'), 'utf8').trim();
+      var expectedOrange = read(fixture('sass-path/expected-orange.css'), 'utf8').trim();
+
+      var envIncludes = [
+        fixture('sass-path/red')
+      ];
+      process.env.SASS_PATH = envIncludes.join(path.delimiter);
+
+      sass.render({
+        data: src,
+        includePaths: []
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), expectedRed.replace(/\r\n/g, '\n'));
+      });
+      sass.render({
+        data: src,
+        includePaths: [fixture('sass-path/orange')]
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), expectedOrange.replace(/\r\n/g, '\n'));
+        done();
+      });
+    });
+
     it('should render with precision option', function(done) {
       var src = read(fixture('precision/index.scss'), 'utf8');
       var expected = read(fixture('precision/expected.css'), 'utf8').trim();
@@ -233,7 +293,7 @@ describe('api', function() {
               contents: '@import "b"'
             });
           } else {
-          console.log(prev);
+            console.log(prev);
             assert.equal(prev, '/Users/me/sass/lib/a.scss');
             done({
               file: '/Users/me/sass/lib/b.scss',
@@ -1321,7 +1381,7 @@ describe('api', function() {
 
     it('should throw error for bad input', function(done) {
       assert.throws(function() {
-         sass.renderSync('somestring');
+        sass.renderSync('somestring');
       });
       assert.throws(function() {
         sass.renderSync({ data: '#navbar width 80%;' });
@@ -1579,7 +1639,7 @@ describe('api', function() {
         functions: {
           'headings($from: 0, $to: 6)': function(from, to) {
             var i, f = from.getValue(), t = to.getValue(),
-                list = new sass.types.List(t - f + 1);
+              list = new sass.types.List(t - f + 1);
 
             for (i = f; i <= t; i++) {
               list.setValue(i - f, new sass.types.String('h' + i));
@@ -1790,7 +1850,7 @@ describe('api', function() {
 
   describe('.info', function() {
     var package = require('../package.json'),
-        info = sass.info;
+      info = sass.info;
 
     it('should return a correct version info', function(done) {
       assert(info.indexOf(package.version) > 0);

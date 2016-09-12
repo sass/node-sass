@@ -1,6 +1,6 @@
 var assert = require('assert'),
-    path = require('path'),
-    errors = require('../lib/errors');
+  path = require('path'),
+  errors = require('../lib/errors');
 
 describe('binary errors', function() {
 

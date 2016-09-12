@@ -3,52 +3,50 @@
  */
 
 var Mocha = require('mocha'),
-    fs = require('fs'),
-    path = require('path'),
-    mkdirp = require('mkdirp'),
-    coveralls = require('coveralls'),
-    Instrumenter = require('istanbul').Instrumenter,
-    Report = require('istanbul').Report,
-    Collector = new require('istanbul').Collector,
-    sourcefiles = ['index.js', 'extensions.js', 'render.js', 'errors.js'],
-    summary= Report.create('text-summary'),
-    lcov = Report.create('lcovonly', { dir: path.join('coverage') }),
-    html = Report.create('html', { dir: path.join('coverage', 'html') });
+  fs = require('fs'),
+  path = require('path'),
+  mkdirp = require('mkdirp'),
+  coveralls = require('coveralls'),
+  istanbul = require('istanbul'),
+  sourcefiles = ['index.js', 'extensions.js', 'render.js', 'errors.js'],
+  summary= istanbul.Report.create('text-summary'),
+  lcov = istanbul.Report.create('lcovonly', { dir: path.join('coverage') }),
+  html = istanbul.Report.create('html', { dir: path.join('coverage', 'html') });
 
 function coverage() {
-    var mocha = new Mocha();
-    var rep = function(runner) {
-      runner.on('end', function(){
-        var cov = global.__coverage__,
-            collector = new Collector();
-        if (cov) {
-          mkdirp(path.join('coverage', 'html'), function(err) {
-            if (err) { throw err; }
-            collector.add(cov);
-            summary.writeReport(collector, true);
-            html.writeReport(collector, true);
-            lcov.on('done', function() {
-              fs.readFile(path.join('coverage', 'lcov.info'), function(err, data) {
-                 if (err) { console.error(err); }
-                 coveralls.handleInput(data.toString(),
+  var mocha = new Mocha();
+  var rep = function(runner) {
+    runner.on('end', function(){
+      var cov = global.__coverage__,
+        collector = new istanbul.Collector();
+      if (cov) {
+        mkdirp(path.join('coverage', 'html'), function(err) {
+          if (err) { throw err; }
+          collector.add(cov);
+          summary.writeReport(collector, true);
+          html.writeReport(collector, true);
+          lcov.on('done', function() {
+            fs.readFile(path.join('coverage', 'lcov.info'), function(err, data) {
+              if (err) { console.error(err); }
+              coveralls.handleInput(data.toString(),
                    function (err) { if (err) { console.error(err); } });
-              });
             });
-            lcov.writeReport(collector, true);
           });
-        } else {
-          console.warn('No coverage');
-        }
-      });
-    };
-    var instrumenter = new Instrumenter();
-    var instrumentedfiles = [];
-    var processfile = function(source) {
-         fs.readFile(path.join('lib', source), function(err, data) {
-           if (err) { throw err; }
-           mkdirp('lib-cov', function(err) {
-             if (err) { throw err; }
-             fs.writeFile(path.join('lib-cov', source),
+          lcov.writeReport(collector, true);
+        });
+      } else {
+        console.warn('No coverage');
+      }
+    });
+  };
+  var instrumenter = new istanbul.Instrumenter();
+  var instrumentedfiles = [];
+  var processfile = function(source) {
+    fs.readFile(path.join('lib', source), function(err, data) {
+      if (err) { throw err; }
+      mkdirp('lib-cov', function(err) {
+        if (err) { throw err; }
+        fs.writeFile(path.join('lib-cov', source),
                instrumenter.instrumentSync(data.toString(),
                  path.join('lib', source)),
                function(err) {
@@ -72,12 +70,12 @@ function coverage() {
                    });
                  }
                });
-           });
-         });
-       };
-    for (var i in sourcefiles) {
-      processfile(sourcefiles[i]);
-    }
+      });
+    });
+  };
+  for (var i in sourcefiles) {
+    processfile(sourcefiles[i]);
+  }
 }
 
 /**

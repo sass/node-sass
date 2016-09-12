@@ -1,0 +1,46 @@
+{
+  "env": {
+    "node": true
+  },
+  "globals": {},
+  "extends": "eslint:recommended",
+  "rules": {
+    "no-bitwise": 2,
+    "camelcase": 0,
+    "curly": 2,
+    "eqeqeq": 2,
+    "no-unused-expressions": [
+      2,
+      {
+        "allowTernary": true
+      }
+    ],
+    "wrap-iife": [
+      2,
+      "any"
+    ],
+    "indent": [
+      2,
+      2,
+      {
+        "SwitchCase": 1
+      }
+    ],
+    "linebreak-style": 2,
+    "no-multi-str": 2,
+    "new-cap": 2,
+    "no-caller": 2,
+    "quotes": [
+      2,
+      "single"
+    ],
+    "strict": 0,
+    "no-undef": 2,
+    "no-unused-vars": 2,
+    "semi": 2,
+    "no-extra-semi": 2,
+    "no-redeclare": 2,
+    "block-scoped-var": 2,
+    "no-console": 0
+  }
+}

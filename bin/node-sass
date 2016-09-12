@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
 var Emitter = require('events').EventEmitter,
-    forEach = require('async-foreach').forEach,
-    Gaze = require('gaze'),
-    grapher = require('sass-graph'),
-    meow = require('meow'),
-    util = require('util'),
-    path = require('path'),
-    glob = require('glob'),
-    sass = require('../lib'),
-    render = require('../lib/render'),
-    stdin = require('get-stdin'),
-    fs = require('fs');
+  forEach = require('async-foreach').forEach,
+  Gaze = require('gaze'),
+  grapher = require('sass-graph'),
+  meow = require('meow'),
+  util = require('util'),
+  path = require('path'),
+  glob = require('glob'),
+  sass = require('../lib'),
+  render = require('../lib/render'),
+  stdin = require('get-stdin'),
+  fs = require('fs');
 
 /**
  * Initialize CLI
@@ -168,7 +168,7 @@ function getEmitter() {
 
   emitter.on('done', function() {
     if (!options.watch && !options.directory) {
-      process.exit;
+      process.exit();
     }
   });
 
@@ -184,6 +184,7 @@ function getEmitter() {
  */
 
 function getOptions(args, options) {
+  var cssDir, sassDir, file, mapDir;
   options.src = args[0];
 
   if (args[1]) {
@@ -195,9 +196,9 @@ function getOptions(args, options) {
   }
 
   if (options.directory) {
-    var sassDir = path.resolve(options.directory);
-    var file = path.relative(sassDir, args[0]);
-    var cssDir = path.resolve(options.output);
+    sassDir = path.resolve(options.directory);
+    file = path.relative(sassDir, args[0]);
+    cssDir = path.resolve(options.output);
     options.dest = path.join(cssDir, file).replace(path.extname(file), '.css');
   }
 
@@ -217,9 +218,9 @@ function getOptions(args, options) {
       if (!options.directory) {
         options.sourceMap = path.resolve(options.sourceMapOriginal, path.basename(options.dest) + '.map');
       } else {
-        var sassDir = path.resolve(options.directory);
-        var file = path.relative(sassDir, args[0]);
-        var mapDir = path.resolve(options.sourceMapOriginal);
+        sassDir = path.resolve(options.directory);
+        file = path.relative(sassDir, args[0]);
+        mapDir = path.resolve(options.sourceMapOriginal);
         options.sourceMap = path.join(mapDir, file).replace(path.extname(file), '.css.map');
       }
     }
@@ -241,19 +242,20 @@ function getOptions(args, options) {
 
 function watch(options, emitter) {
   var buildGraph = function(options) {
+    var graph;
     var graphOptions = {
       loadPaths: options.includePath,
       extensions: ['scss', 'sass', 'css']
     };
 
     if (options.directory) {
-      var graph = grapher.parseDir(options.directory, graphOptions);
+      graph = grapher.parseDir(options.directory, graphOptions);
     } else {
-      var graph = grapher.parseFile(options.src, graphOptions);
+      graph = grapher.parseFile(options.src, graphOptions);
     }
 
     return graph;
-  }
+  };
 
   var watch = [];
   var graph = buildGraph(options);
@@ -279,11 +281,11 @@ function watch(options, emitter) {
     });
   });
 
-  gaze.on('added', function(file) {
+  gaze.on('added', function() {
     graph = buildGraph(options);
   });
 
-  gaze.on('deleted', function(file) {
+  gaze.on('deleted', function() {
     graph = buildGraph(options);
   });
 }
@@ -377,7 +379,7 @@ function renderDir(options, emitter) {
     }, function(successful, arr) {
       var outputDir = path.join(process.cwd(), options.output);
       emitter.emit('warn', util.format('Wrote %s CSS files to %s', arr.length, outputDir));
-      process.exit;
+      process.exit();
     });
   });
 }

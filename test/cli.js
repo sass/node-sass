@@ -1,27 +1,18 @@
 var assert = require('assert'),
-    fs = require('fs'),
-    path = require('path'),
-    read = require('fs').readFileSync,
-    glob = require('glob'),
-    rimraf = require('rimraf'),
-    stream = require('stream'),
-    spawn = require('cross-spawn'),
-    cli = path.join(__dirname, '..', 'bin', 'node-sass'),
-    fixture = path.join.bind(null, __dirname, 'fixtures'),
-    LIBSASS_VERSION = null;
+  fs = require('fs'),
+  path = require('path'),
+  read = require('fs').readFileSync,
+  glob = require('glob'),
+  rimraf = require('rimraf'),
+  stream = require('stream'),
+  spawn = require('cross-spawn'),
+  cli = path.join(__dirname, '..', 'bin', 'node-sass'),
+  fixture = path.join.bind(null, __dirname, 'fixtures');
 
 describe('cli', function() {
-
-  before(function(done) {
-      var bin = spawn(cli, ['-v']);
-      bin.stdout.setEncoding('utf8');
-      bin.stdout.once('data', function(data) {
-        LIBSASS_VERSION = data.trim().split(['\n'])
-          .filter(function(a) { return a.substr(0,7) === 'libsass'; })[0]
-          .split('\t')[1];
-        done();
-      });
-  });
+  // For some reason we experience random timeout failures in CI
+  // due to spawn hanging/failing silently. See #1692.
+  this.retries(4);
 
   describe('node-sass < in.scss', function() {
     it('should read data from stdin', function(done) {
@@ -412,10 +403,6 @@ describe('cli', function() {
     });
 
     it('should compile with the --source-map option', function(done) {
-      if (LIBSASS_VERSION < '3.3') {
-        this.skip('Source map functionality broken in libsass < 3.3');
-      }
-
       var src = fixture('source-map/index.scss');
       var destCss = fixture('source-map/index.css');
       var destMap = fixture('source-map/index.map');
@@ -472,23 +459,23 @@ describe('cli', function() {
     });
 
     it('should compile with the --source-map-embed option and no outfile', function(done) {
-        var src = fixture('source-map-embed/index.scss');
-        var expectedCss = read(fixture('source-map-embed/expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
-        var result = '';
-        var bin = spawn(cli, [
-          src,
-          '--source-map-embed',
-          '--source-map', 'true'
-        ]);
+      var src = fixture('source-map-embed/index.scss');
+      var expectedCss = read(fixture('source-map-embed/expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
+      var result = '';
+      var bin = spawn(cli, [
+        src,
+        '--source-map-embed',
+        '--source-map', 'true'
+      ]);
 
-        bin.stdout.on('data', function(data) {
-            result += data;
-        });
+      bin.stdout.on('data', function(data) {
+        result += data;
+      });
 
-        bin.once('close', function() {
-          assert.equal(result.trim().replace(/\r\n/g, '\n'), expectedCss);
-          done();
-        });
+      bin.once('close', function() {
+        assert.equal(result.trim().replace(/\r\n/g, '\n'), expectedCss);
+        done();
+      });
     });
   });
 
