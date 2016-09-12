@@ -131,7 +131,10 @@ ifneq (Windows,$(UNAME))
 endif
 
 ifneq ($(BUILD),shared)
-	BUILD = static
+	BUILD := static
+endif
+ifeq ($(DEBUG),1)
+	BUILD := debug-$(BUILD)
 endif
 
 ifeq (,$(TRAVIS_BUILD_DIR))
