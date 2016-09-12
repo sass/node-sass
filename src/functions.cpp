@@ -1357,6 +1357,7 @@ namespace Sass {
     Signature append_sig = "append($list, $val, $separator: auto)";
     BUILT_IN(append)
     {
+      Map* m = dynamic_cast<Map*>(env["$list"]);
       List* l = dynamic_cast<List*>(env["$list"]);
       Expression* v = ARG("$val", Expression);
       if (CommaSequence_Selector* sl = dynamic_cast<CommaSequence_Selector*>(env["$list"])) {
@@ -1367,6 +1368,9 @@ namespace Sass {
       if (!l) {
         l = SASS_MEMORY_NEW(ctx.mem, List, pstate, 1);
         *l << ARG("$list", Expression);
+      }
+      if (m) {
+        l = m->to_list(ctx, pstate);
       }
       List* result = SASS_MEMORY_NEW(ctx.mem, List, pstate, l->length() + 1, l->separator());
       std::string sep_str(unquote(sep->value()));
