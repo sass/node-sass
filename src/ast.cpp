@@ -2226,4 +2226,20 @@ namespace Sass {
     }
   }
 
+  //////////////////////////////////////////////////////////////////////////////////////////
+  // Convert map to (key, value) list.
+  //////////////////////////////////////////////////////////////////////////////////////////
+  List* Map::to_list(Context& ctx, ParserState& pstate) {
+    List* ret = SASS_MEMORY_NEW(ctx.mem, List, pstate, length(), SASS_COMMA);
+
+    for (auto key : keys()) {
+      List* l = SASS_MEMORY_NEW(ctx.mem, List, pstate, 2);
+      *l << key;
+      *l << at(key);
+      *ret << l;
+    }
+
+    return ret;
+  }
+
 }

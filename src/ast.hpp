@@ -924,6 +924,7 @@ namespace Sass {
     std::string type() { return "map"; }
     static std::string type_name() { return "map"; }
     bool is_invisible() const { return empty(); }
+    List* to_list(Context& ctx, ParserState& pstate);
 
     virtual size_t hash()
     {
