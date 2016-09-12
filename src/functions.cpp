@@ -1414,9 +1414,14 @@ namespace Sass {
       size_t shortest = 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         List* ith = dynamic_cast<List*>(arglist->value_at_index(i));
+        Map* mith = dynamic_cast<Map*>(arglist->value_at_index(i));
         if (!ith) {
-          ith = SASS_MEMORY_NEW(ctx.mem, List, pstate, 1);
-          *ith << arglist->value_at_index(i);
+          if (mith) {
+            ith = mith->to_list(ctx, pstate);
+          } else {
+            ith = SASS_MEMORY_NEW(ctx.mem, List, pstate, 1);
+            *ith << arglist->value_at_index(i);
+          }
           if (arglist->is_arglist()) {
             ((Argument*)(*arglist)[i])->value(ith);
           } else {
