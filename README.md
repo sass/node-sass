@@ -34,6 +34,8 @@ Follow @nodesass on twitter for release updates: https://twitter.com/nodesass
 
 ## Install
 
+Before beginning, ensure that [libsass](http://libsass.org/) is installed on your system.
+
 ```
 npm install node-sass
 ```
