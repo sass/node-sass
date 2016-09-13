@@ -1,3 +1,19 @@
+## v3.10.0
+
+https://github.com/sass/node-sass/releases/tag/v3.10.0
+
+## v3.9.3
+
+https://github.com/sass/node-sass/releases/tag/v3.9.3
+
+## v3.9.2
+
+(removed)
+
+## v3.9.1
+
+(removed)
+
 ## v3.9.0
 
 https://github.com/sass/node-sass/releases/tag/v3.9.0
