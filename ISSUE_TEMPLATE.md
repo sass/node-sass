@@ -1,11 +1,23 @@
-## Reporting an installation issue
-1. I'm running on a [supported platform](https://github.com/sass/node-sass-binaries/blob/master/README.md#compatibility)
-1. Have you recently installed a new version of Node? Native bindings are downloading for the specific version of Node when you install `node-sass`. Delete your `node_modules` and then re-install.
-1. Create [Gist](https://gist.github.com/) with the npm.log file and add it to this issue
-1. I've [searched for existing issues](https://github.com/sass/node-sass/search?type=Issues)
-1. I've followed the [Troubleshooting Guide](TROUBLESHOOTING.md)
+Before opening an issue:
+- Read the common workarounds in the [TROUBLESHOOTING.md](https://github.com/sass/node-sass/blob/master/TROUBLESHOOTING.md)
+- [Search for duplicate or closed issues](https://github.com/sass/node-sass/issues?utf8=%E2%9C%93&q=is%3Aissue)
+- [Validate](http://sassmeister.com/) that it runs with both Ruby Sass and LibSass
+- Prepare a [reduced test case](https://css-tricks.com/reduced-test-cases/) for any bugs
+- Read the [contributing guidelines](https://github.com/sass/node-sass/blob/master/CONTRIBUTING.md)
 
-## My Sass isn't compiling
-1. My code compiles on [SassMeister](http://www.sassmeister.com/) when using the Ruby Sass complier
-1. Try the Beta version of `node-sass` to see if the latest `libsass` fixes this
-1. Create a reproducible sample, and [open an issue on `libsass`](https://github.com/sass/libsass/issues/new). Compiler issues need to be fixed there, not here.
+When reporting an bug, **you must provide this information**:
+
+- NPM version (`npm -v`):
+- Node version (`node -v`):
+- Node Process (`node -p process.versions`):
+- Node Platform (`node -p process.platform`):
+- Node architecture (`node -p process.arch`):
+- node-sass version (`node -p "require('node-sass').info"`):
+- npm node-sass versions (`npm ls node-sass`):
+
+When encountering a syntax, or compilation issue:
+
+- [Open an issue on `LibSass`](https://github.com/sass/LibSass/issues/new). You
+may link it back here, but any change will be required there, not here
+
+*If you delete this text without following it, your issue will be closed.*
