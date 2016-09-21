@@ -7,8 +7,17 @@ else
 fi
 
 if [ "x$AUTOTOOLS" == "xyes" ]; then
-  sudo add-apt-repository -y ppa:rbose-debianizer/automake &> /dev/null
-  sudo apt-get -qq update
-  sudo apt-get -qq install automake
   AUTOTOOLS=yes
+
+  if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+    sudo add-apt-repository -y ppa:rbose-debianizer/automake &> /dev/null
+    sudo apt-get -qq update
+    sudo apt-get -qq install automake
+  fi
+
+  # https://github.com/sass/libsass/pull/2183
+  if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+    brew uninstall libtool
+    brew install libtool
+  fi
 fi
