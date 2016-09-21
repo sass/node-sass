@@ -463,21 +463,15 @@ namespace Sass {
         }
         else {
           previous_parent = static_cast<Has_Block*>(shallow_copy(parent));
+          previous_parent->block(slice);
           previous_parent->tabs(parent->tabs());
 
-          Has_Block* new_parent = static_cast<Has_Block*>(shallow_copy(parent));
-          new_parent->block(slice);
-          new_parent->tabs(parent->tabs());
+          Has_Block* new_parent = previous_parent;
 
           *result << new_parent;
         }
         continue;
       }
-
-      Block* wrapper_block = SASS_MEMORY_NEW(ctx.mem, Block,
-                                             children->block()->pstate(),
-                                             children->block()->length(),
-                                             children->block()->is_root());
 
       for (size_t j = 0, K = slice->length(); j < K; ++j)
       {
@@ -511,16 +505,22 @@ namespace Sass {
                                     children->block()->length(),
                                     children->block()->is_root());
         *bb << ss->perform(this);
+
+        Block* wrapper_block = SASS_MEMORY_NEW(ctx.mem, Block,
+                                              children->block()->pstate(),
+                                              children->block()->length(),
+                                              children->block()->is_root());
+
         Statement* wrapper = flatten(bb);
         *wrapper_block << wrapper;
 
         if (wrapper->block()->length()) {
           previous_parent = 0;
         }
-      }
 
-      if (wrapper_block) {
-        *result << flatten(wrapper_block);
+        if (wrapper_block) {
+          *result << wrapper_block;
+        }
       }
     }
 
