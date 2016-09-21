@@ -476,27 +476,27 @@ namespace Sass {
       for (size_t j = 0, K = slice->length(); j < K; ++j)
       {
         Statement* ss = 0;
-        Bubble* b = static_cast<Bubble*>((*slice)[j]);
+        Bubble* node = static_cast<Bubble*>((*slice)[j]);
 
         if (!parent ||
             parent->statement_type() != Statement::MEDIA ||
-            b->node()->statement_type() != Statement::MEDIA ||
-            static_cast<Media_Block*>(b->node())->media_queries() == static_cast<Media_Block*>(parent)->media_queries())
+            node->node()->statement_type() != Statement::MEDIA ||
+            static_cast<Media_Block*>(node->node())->media_queries() == static_cast<Media_Block*>(parent)->media_queries())
         {
-          ss = b->node();
+          ss = node->node();
         }
         else
         {
-          List* mq = merge_media_queries(static_cast<Media_Block*>(b->node()), static_cast<Media_Block*>(parent));
+          List* mq = merge_media_queries(static_cast<Media_Block*>(node->node()), static_cast<Media_Block*>(parent));
           if (!mq->length()) continue;
-          static_cast<Media_Block*>(b->node())->media_queries(mq);
-          ss = b->node();
+          static_cast<Media_Block*>(node->node())->media_queries(mq);
+          ss = node->node();
         }
 
         if (!ss) continue;
 
-        ss->tabs(ss->tabs() + b->tabs());
-        ss->group_end(b->group_end());
+        ss->tabs(ss->tabs() + node->tabs());
+        ss->group_end(node->group_end());
 
         if (!ss) continue;
 
