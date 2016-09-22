@@ -463,46 +463,40 @@ namespace Sass {
         }
         else {
           previous_parent = static_cast<Has_Block*>(shallow_copy(parent));
+          previous_parent->block(slice);
           previous_parent->tabs(parent->tabs());
 
-          Has_Block* new_parent = static_cast<Has_Block*>(shallow_copy(parent));
-          new_parent->block(slice);
-          new_parent->tabs(parent->tabs());
+          Has_Block* new_parent = previous_parent;
 
           *result << new_parent;
         }
         continue;
       }
 
-      Block* wrapper_block = SASS_MEMORY_NEW(ctx.mem, Block,
-                                             children->block()->pstate(),
-                                             children->block()->length(),
-                                             children->block()->is_root());
-
       for (size_t j = 0, K = slice->length(); j < K; ++j)
       {
         Statement* ss = 0;
-        Bubble* b = static_cast<Bubble*>((*slice)[j]);
+        Bubble* node = static_cast<Bubble*>((*slice)[j]);
 
         if (!parent ||
             parent->statement_type() != Statement::MEDIA ||
-            b->node()->statement_type() != Statement::MEDIA ||
-            static_cast<Media_Block*>(b->node())->media_queries() == static_cast<Media_Block*>(parent)->media_queries())
+            node->node()->statement_type() != Statement::MEDIA ||
+            static_cast<Media_Block*>(node->node())->media_queries() == static_cast<Media_Block*>(parent)->media_queries())
         {
-          ss = b->node();
+          ss = node->node();
         }
         else
         {
-          List* mq = merge_media_queries(static_cast<Media_Block*>(b->node()), static_cast<Media_Block*>(parent));
+          List* mq = merge_media_queries(static_cast<Media_Block*>(node->node()), static_cast<Media_Block*>(parent));
           if (!mq->length()) continue;
-          static_cast<Media_Block*>(b->node())->media_queries(mq);
-          ss = b->node();
+          static_cast<Media_Block*>(node->node())->media_queries(mq);
+          ss = node->node();
         }
 
         if (!ss) continue;
 
-        ss->tabs(ss->tabs() + b->tabs());
-        ss->group_end(b->group_end());
+        ss->tabs(ss->tabs() + node->tabs());
+        ss->group_end(node->group_end());
 
         if (!ss) continue;
 
@@ -511,16 +505,22 @@ namespace Sass {
                                     children->block()->length(),
                                     children->block()->is_root());
         *bb << ss->perform(this);
+
+        Block* wrapper_block = SASS_MEMORY_NEW(ctx.mem, Block,
+                                              children->block()->pstate(),
+                                              children->block()->length(),
+                                              children->block()->is_root());
+
         Statement* wrapper = flatten(bb);
         *wrapper_block << wrapper;
 
         if (wrapper->block()->length()) {
           previous_parent = 0;
         }
-      }
 
-      if (wrapper_block) {
-        *result << flatten(wrapper_block);
+        if (wrapper_block) {
+          *result << wrapper_block;
+        }
       }
     }
 
