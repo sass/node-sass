@@ -96,21 +96,25 @@ function download(url, dest, cb) {
 }
 
 /**
- * Determine local proxy settings
+ * Determine the proxy settings configured by npm
  *
- * @param {Object} options
- * @param {Function} cb
+ * It's possible to configure npm to use a proxy different
+ * from the system defined proxy. This can be done via the
+ * `npm config` CLI or the `.npmrc` config file.
+ *
+ * If a proxy has been configured in this way we must
+ * tell request explicitly to use it.
+ *
+ * Otherwise we can trust request to the right thing.
+ *
+ * @return {String} the proxy configured by npm or an empty string
  * @api private
  */
-
 function getProxy() {
-  return process.env.npm_config_https_proxy ||
-         process.env.npm_config_proxy ||
-         process.env.npm_config_http_proxy ||
-         process.env.HTTPS_PROXY ||
-         process.env.https_proxy ||
-         process.env.HTTP_PROXY ||
-         process.env.http_proxy;
+  return '' ||
+    process.env.npm_config_https_proxy ||
+    process.env.npm_config_proxy ||
+    process.env.npm_config_http_proxy;
 }
 
 /**
