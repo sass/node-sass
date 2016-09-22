@@ -81,19 +81,18 @@ namespace Sass {
     bool is_nonascii(const char& chr)
     {
       return (
-        (unsigned(chr) > 127 && unsigned(chr) < 55296) ||
-        (unsigned(chr) > 57343 && unsigned(chr) < 65534) ||
-        (unsigned(chr) > 65535 && unsigned(chr) < 1114111)
+        (unsigned(chr) >= 128 && unsigned(chr) <= 15572911) ||
+        (unsigned(chr) >= 15630464 && unsigned(chr) <= 15712189) ||
+        (unsigned(chr) >= 4036001920)
       );
     }
 
     // check if char is within a reduced ascii range
-    // valid in a uri (and also unicode octets)
+    // valid in a uri (copied from Ruby Sass)
     bool is_uri_character(const char& chr)
     {
-      return unsigned(chr) > 41 ||
-             unsigned(chr) == ':' ||
-             unsigned(chr) == '/';
+      return (unsigned(chr) > 41 && unsigned(chr) < 127) ||
+             unsigned(chr) == ':' || unsigned(chr) == '/';
     }
 
     // check if char is within a reduced ascii range
