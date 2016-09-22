@@ -81,9 +81,9 @@ namespace Sass {
     bool is_nonascii(const char& chr)
     {
       return (
-        (unsigned(chr) > 127 && unsigned(chr) < 55296) ||
-        (unsigned(chr) > 57343 && unsigned(chr) < 65534) ||
-        (unsigned(chr) > 65535 && unsigned(chr) < 1114111)
+        (unsigned(chr) >= 128 && unsigned(chr) <= 15572911) ||
+        (unsigned(chr) >= 15630464 && unsigned(chr) <= 15712189) ||
+        (unsigned(chr) >= 4036001920)
       );
     }
 
