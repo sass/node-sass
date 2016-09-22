@@ -316,6 +316,10 @@ namespace Sass {
         else if (String* the_url = parse_url_function_argument()) {
           *args << SASS_MEMORY_NEW(ctx.mem, Argument, the_url->pstate(), the_url);
         }
+        else if (peek < skip_over_scopes < exactly < '(' >, exactly < ')' > > >(position)) {
+          Expression* the_url = parse_list(); // parse_interpolated_chunk(lexed);
+          *args << SASS_MEMORY_NEW(ctx.mem, Argument, the_url->pstate(), the_url);
+        }
         else {
           error("malformed URL", pstate);
         }
