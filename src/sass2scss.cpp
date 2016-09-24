@@ -574,6 +574,12 @@ namespace Sass
 					}
 				}
 
+				// check if we have a BEM property (one colon and no selector)
+				if (sass.substr(pos_left, 1) == ":" && converter.selector == true) {
+					size_t pos_wspace = sass.find_first_of(SASS2SCSS_FIND_WHITESPACE, pos_left);
+					sass = indent + sass.substr(pos_left + 1, pos_wspace) + ":";
+				}
+
 			}
 
 			// terminate some statements immediately
@@ -584,10 +590,15 @@ namespace Sass
 				sass.substr(pos_left, 8) == "@charset"
 			) { sass = indent + sass.substr(pos_left); }
 			// replace some specific sass shorthand directives (if not fallowed by a white space character)
-			else if (sass.substr(pos_left, 1) == "=" && sass.find_first_of(SASS2SCSS_FIND_WHITESPACE, pos_left) != pos_left + 1)
+			else if (sass.substr(pos_left, 1) == "=")
 			{ sass = indent + "@mixin " + sass.substr(pos_left + 1); }
-			else if (sass.substr(pos_left, 1) == "+" && sass.find_first_of(SASS2SCSS_FIND_WHITESPACE, pos_left) != pos_left + 1)
-			{ sass = indent + "@include " + sass.substr(pos_left + 1); }
+			else if (sass.substr(pos_left, 1) == "+")
+			{
+				// must be followed by a mixin call (no whitespace afterwards or at ending directly)
+				if (sass[pos_left+1] != 0 && sass[pos_left+1] != ' ' && sass[pos_left+1] != '\t') {
+					sass = indent + "@include " + sass.substr(pos_left + 1);
+				}
+			}
 
 			// add quotes for import if needed
 			else if (sass.substr(pos_left, 7) == "@import")
