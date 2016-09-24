@@ -266,7 +266,7 @@ namespace Sass {
     else if (lex< re_prefixed_directive >(true)) { (*block) << parse_prefixed_directive(); }
     else if (lex< at_keyword >(true)) { (*block) << parse_directive(); }
 
-    else if (block->is_root()) {
+    else if (is_root /* && block->is_root() */) {
       lex< css_whitespace >();
       if (position >= end) return true;
       css_error("Invalid CSS", " after ", ": expected 1 selector or at-rule, was ");
@@ -1864,8 +1864,9 @@ namespace Sass {
   {
     stack.push_back(Scope::Control);
     ParserState if_source_position = pstate;
+    bool root = block_stack.back()->is_root();
     Expression* predicate = parse_list();
-    Block* block = parse_block();
+    Block* block = parse_block(root);
     Block* alternative = 0;
 
     // only throw away comment if we parse a case
@@ -1875,7 +1876,7 @@ namespace Sass {
       (*alternative) << parse_if_directive(true);
     }
     else if (lex_css< kwd_else_directive >()) {
-      alternative = parse_block();
+      alternative = parse_block(root);
     }
     stack.pop_back();
     return SASS_MEMORY_NEW(ctx.mem, If, if_source_position, predicate, block, alternative);
@@ -1885,6 +1886,7 @@ namespace Sass {
   {
     stack.push_back(Scope::Control);
     ParserState for_source_position = pstate;
+    bool root = block_stack.back()->is_root();
     lex_variable();
     std::string var(Util::normalize_underscores(lexed));
     if (!lex< kwd_from >()) error("expected 'from' keyword in @for directive", pstate);
@@ -1894,7 +1896,7 @@ namespace Sass {
     else if (lex< kwd_to >()) inclusive = false;
     else                  error("expected 'through' or 'to' keyword in @for directive", pstate);
     Expression* upper_bound = parse_expression();
-    Block* body = parse_block();
+    Block* body = parse_block(root);
     stack.pop_back();
     return SASS_MEMORY_NEW(ctx.mem, For, for_source_position, var, lower_bound, upper_bound, body, inclusive);
   }
@@ -1929,6 +1931,7 @@ namespace Sass {
   {
     stack.push_back(Scope::Control);
     ParserState each_source_position = pstate;
+    bool root = block_stack.back()->is_root();
     std::vector<std::string> vars;
     lex_variable();
     vars.push_back(Util::normalize_underscores(lexed));
@@ -1938,7 +1941,7 @@ namespace Sass {
     }
     if (!lex< kwd_in >()) error("expected 'in' keyword in @each directive", pstate);
     Expression* list = parse_list();
-    Block* body = parse_block();
+    Block* body = parse_block(root);
     stack.pop_back();
     return SASS_MEMORY_NEW(ctx.mem, Each, each_source_position, vars, list, body);
   }
@@ -1947,13 +1950,14 @@ namespace Sass {
   While* Parser::parse_while_directive()
   {
     stack.push_back(Scope::Control);
+    bool root = block_stack.back()->is_root();
     // create the initial while call object
     While* call = SASS_MEMORY_NEW(ctx.mem, While, pstate, 0, 0);
     // parse mandatory predicate
     Expression* predicate = parse_list();
     call->predicate(predicate);
     // parse mandatory block
-    call->block(parse_block());
+    call->block(parse_block(root));
     // return ast node
     stack.pop_back();
     // return ast node
