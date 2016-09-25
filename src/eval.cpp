@@ -759,7 +759,20 @@ namespace Sass {
       if (operand->concrete_type() == Expression::NULL_VAL && dynamic_cast<Variable*>(u->operand())) {
         u->operand(SASS_MEMORY_NEW(ctx.mem, String_Quoted, u->pstate(), ""));
       }
-      else u->operand(operand);
+      // Never apply unary opertions on colors @see #2140
+      else if (operand->concrete_type() == Expression::COLOR) {
+        Color* c = dynamic_cast<Color*>(operand);
+
+        // Use the color name if this was eval with one
+        if (c->disp().length() > 0) {
+          operand = SASS_MEMORY_NEW(ctx.mem, String_Constant, operand->pstate(), c->disp());
+          u->operand(operand);
+        }
+      }
+      else {
+        u->operand(operand);
+      }
+
       String_Constant* result = SASS_MEMORY_NEW(ctx.mem, String_Quoted,
                                                   u->pstate(),
                                                   u->inspect());
