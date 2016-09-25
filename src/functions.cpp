@@ -285,13 +285,7 @@ namespace Sass {
     BUILT_IN(blue)
     { return SASS_MEMORY_NEW(Number, pstate, ARG("$color", Color)->b()); }
 
-    Signature mix_sig = "mix($color-1, $color-2, $weight: 50%)";
-    BUILT_IN(mix)
-    {
-      Color_Ptr  color1 = ARG("$color-1", Color);
-      Color_Ptr  color2 = ARG("$color-2", Color);
-      Number_Ptr weight = ARGR("$weight", Number, 0, 100);
-
+    Color* colormix(Context& ctx, ParserState& pstate, Color* color1, Color* color2, Number* weight) {
       double p = weight->value()/100;
       double w = 2*p - 1;
       double a = color1->a() - color2->a();
@@ -305,6 +299,16 @@ namespace Sass {
                              Sass::round(w1*color1->g() + w2*color2->g(), ctx.c_options.precision),
                              Sass::round(w1*color1->b() + w2*color2->b(), ctx.c_options.precision),
                              color1->a()*p + color2->a()*(1-p));
+    }
+
+    Signature mix_sig = "mix($color-1, $color-2, $weight: 50%)";
+    BUILT_IN(mix)
+    {
+      Color_Obj  color1 = ARG("$color-1", Color);
+      Color_Obj  color2 = ARG("$color-2", Color);
+      Number_Obj weight = ARGR("$weight", Number, 0, 100);
+      return colormix(ctx, pstate, &color1, &color2, &weight);
+
     }
 
     ////////////////
@@ -596,7 +600,7 @@ namespace Sass {
                        pstate);
     }
 
-    Signature invert_sig = "invert($color)";
+    Signature invert_sig = "invert($color, $weight: 100%)";
     BUILT_IN(invert)
     {
       // CSS3 filter function overload: pass literal through directly
@@ -605,13 +609,15 @@ namespace Sass {
         return SASS_MEMORY_NEW(String_Quoted, pstate, "invert(" + amount->to_string(ctx.c_options) + ")");
       }
 
+      Number_Obj weight = ARGR("$weight", Number, 0, 100);
       Color_Ptr rgb_color = ARG("$color", Color);
-      return SASS_MEMORY_NEW(Color,
+      Color_Obj inv = SASS_MEMORY_NEW(Color,
                              pstate,
                              255 - rgb_color->r(),
                              255 - rgb_color->g(),
                              255 - rgb_color->b(),
                              rgb_color->a());
+      return colormix(ctx, pstate, &inv, rgb_color, &weight);
     }
 
     ////////////////////
