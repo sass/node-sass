@@ -1360,17 +1360,25 @@ namespace Sass {
       return parse_function_call();
     }
     else if (lex< exactly<'+'> >()) {
-      return SASS_MEMORY_NEW(ctx.mem, Unary_Expression, pstate, Unary_Expression::PLUS, parse_factor());
+      Unary_Expression* ex = SASS_MEMORY_NEW(ctx.mem, Unary_Expression, pstate, Unary_Expression::PLUS, parse_factor());
+      if (ex && ex->operand()) ex->is_delayed(ex->operand()->is_delayed());
+      return ex;
     }
     else if (lex< exactly<'-'> >()) {
-      return SASS_MEMORY_NEW(ctx.mem, Unary_Expression, pstate, Unary_Expression::MINUS, parse_factor());
+      Unary_Expression* ex = SASS_MEMORY_NEW(ctx.mem, Unary_Expression, pstate, Unary_Expression::MINUS, parse_factor());
+      if (ex && ex->operand()) ex->is_delayed(ex->operand()->is_delayed());
+      return ex;
     }
     else if (lex< sequence< kwd_not > >()) {
-      return SASS_MEMORY_NEW(ctx.mem, Unary_Expression, pstate, Unary_Expression::NOT, parse_factor());
+      Unary_Expression* ex = SASS_MEMORY_NEW(ctx.mem, Unary_Expression, pstate, Unary_Expression::NOT, parse_factor());
+      if (ex && ex->operand()) ex->is_delayed(ex->operand()->is_delayed());
+      return ex;
     }
     else if (peek < sequence < one_plus < alternatives < css_whitespace, exactly<'-'>, exactly<'+'> > >, number > >()) {
       if (parse_number_prefix()) return parse_value(); // prefix is positive
-      return SASS_MEMORY_NEW(ctx.mem, Unary_Expression, pstate, Unary_Expression::MINUS, parse_value());
+      Unary_Expression* ex = SASS_MEMORY_NEW(ctx.mem, Unary_Expression, pstate, Unary_Expression::MINUS, parse_value());;
+      if (ex->operand()) ex->is_delayed(ex->operand()->is_delayed());
+      return ex;
     }
     else {
       return parse_value();
