@@ -697,11 +697,6 @@ namespace Sass {
     if (!peek_css< class_char < complex_selector_delims > >()) {
       // parse next selector in sequence
       sel->tail(parse_complex_selector(true));
-      if (sel->tail()) {
-        // ToDo: move this logic below into tail setter
-        // if (sel->tail()->has_reference()) sel->has_reference(true);
-        if (sel->tail()->has_placeholder()) sel->has_placeholder(true);
-      }
     }
 
     // add a parent selector if we are not in a root

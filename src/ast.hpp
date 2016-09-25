@@ -1860,7 +1860,6 @@ namespace Sass {
   /////////////////////////////////////////
   class Selector : public Expression {
     // ADD_PROPERTY(bool, has_reference)
-    ADD_PROPERTY(bool, has_placeholder)
     // line break before list separator
     ADD_PROPERTY(bool, has_line_feed)
     // line break after list separator
@@ -1875,7 +1874,6 @@ namespace Sass {
     Selector(ParserState pstate, bool r = false, bool h = false)
     : Expression(pstate),
       // has_reference_(r),
-      has_placeholder_(h),
       has_line_feed_(false),
       has_line_break_(false),
       is_optional_(false),
@@ -1884,9 +1882,6 @@ namespace Sass {
     { concrete_type(SELECTOR); }
     virtual ~Selector() = 0;
     virtual size_t hash() = 0;
-    virtual bool has_parent_ref() {
-      return false;
-    }
     virtual unsigned long specificity() {
       return 0;
     }
@@ -1894,6 +1889,12 @@ namespace Sass {
       media_block(mb);
     }
     virtual bool has_wrapped_selector() {
+      return false;
+    }
+    virtual bool has_placeholder() {
+      return false;
+    }
+    virtual bool has_parent_ref() {
       return false;
     }
   };
@@ -2032,10 +2033,13 @@ namespace Sass {
   public:
     Placeholder_Selector(ParserState pstate, std::string n)
     : Simple_Selector(pstate, n)
-    { has_placeholder(true); }
+    { }
     virtual unsigned long specificity()
     {
       return Constants::Specificity_Base;
+    }
+    virtual bool has_placeholder() {
+      return true;
     }
     // virtual Placeholder_Selector* find_placeholder();
     virtual ~Placeholder_Selector() {};
@@ -2205,11 +2209,6 @@ namespace Sass {
     Wrapped_Selector(ParserState pstate, std::string n, Selector* sel)
     : Simple_Selector(pstate, n), selector_(sel)
     { }
-    virtual bool has_parent_ref() {
-      // if (has_reference()) return true;
-      if (!selector()) return false;
-      return selector()->has_parent_ref();
-    }
     virtual bool is_superselector_of(Wrapped_Selector* sub);
     // Selectors inside the negation pseudo-class are counted like any
     // other, but the negation itself does not count as a pseudo-class.
@@ -2220,6 +2219,11 @@ namespace Sass {
         if (selector_) hash_combine(hash_, selector_->hash());
       }
       return hash_;
+    }
+    virtual bool has_parent_ref() {
+      // if (has_reference()) return true;
+      if (!selector()) return false;
+      return selector()->has_parent_ref();
     }
     virtual bool has_wrapped_selector()
     {
@@ -2254,7 +2258,7 @@ namespace Sass {
     void adjust_after_pushing(Simple_Selector* s)
     {
       // if (s->has_reference())   has_reference(true);
-      if (s->has_placeholder()) has_placeholder(true);
+      // if (s->has_placeholder()) has_placeholder(true);
     }
   public:
     SimpleSequence_Selector(ParserState pstate, size_t s = 0)
@@ -2319,6 +2323,15 @@ namespace Sass {
       return false;
     }
 
+    virtual bool has_placeholder()
+    {
+      if (length() == 0) return false;
+      if (Simple_Selector* ss = elements().front()) {
+        if (ss->has_placeholder()) return true;
+      }
+      return false;
+    }
+
     bool is_empty_reference()
     {
       return length() == 1 &&
@@ -2371,7 +2384,7 @@ namespace Sass {
       reference_(r)
     {
       // if ((h && h->has_reference())   || (t && t->has_reference()))   has_reference(true);
-      if ((h && h->has_placeholder()) || (t && t->has_placeholder())) has_placeholder(true);
+      // if ((h && h->has_placeholder()) || (t && t->has_placeholder())) has_placeholder(true);
     }
     virtual bool has_parent_ref();
 
@@ -2450,6 +2463,11 @@ namespace Sass {
     virtual bool has_wrapped_selector() {
       if (head_ && head_->has_wrapped_selector()) return true;
       if (tail_ && tail_->has_wrapped_selector()) return true;
+      return false;
+    }
+    virtual bool has_placeholder() {
+      if (head_ && head_->has_placeholder()) return true;
+      if (tail_ && tail_->has_placeholder()) return true;
       return false;
     }
     bool operator<(const Sequence_Selector& rhs) const;
@@ -2563,6 +2581,12 @@ namespace Sass {
     virtual bool has_wrapped_selector() {
       for (Sequence_Selector* cs : elements()) {
         if (cs->has_wrapped_selector()) return true;
+      }
+      return false;
+    }
+    virtual bool has_placeholder() {
+      for (Sequence_Selector* cs : elements()) {
+        if (cs->has_placeholder()) return true;
       }
       return false;
     }

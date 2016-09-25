@@ -87,6 +87,8 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " <" << selector->hash() << ">";
     std::cerr << " [@media:" << selector->media_block() << "]";
+    std::cerr << (selector->is_invisible() ? " [INVISIBLE]": " -");
+    std::cerr << (selector->has_placeholder() ? " [PLACEHOLDER]": " -");
     std::cerr << (selector->is_optional() ? " [is_optional]": " -");
     std::cerr << (selector->has_parent_ref() ? " [has-parent]": " -");
     std::cerr << (selector->has_line_break() ? " [line-break]": " -");
@@ -115,6 +117,8 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
       << " <" << selector->hash() << ">"
       << " [weight:" << longToHex(selector->specificity()) << "]"
       << " [@media:" << selector->media_block() << "]"
+      << (selector->is_invisible() ? " [INVISIBLE]": " -")
+      << (selector->has_placeholder() ? " [PLACEHOLDER]": " -")
       << (selector->is_optional() ? " [is_optional]": " -")
       << (selector->has_parent_ref() ? " [has parent]": " -")
       << (selector->has_line_feed() ? " [line-feed]": " -")
@@ -460,6 +464,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << ind << "Ruleset " << ruleset;
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " [indent: " << ruleset->tabs() << "]";
+    std::cerr << (ruleset->is_invisible() ? " [INVISIBLE]" : "");
     std::cerr << (ruleset->at_root() ? " [@ROOT]" : "");
     std::cerr << (ruleset->is_root() ? " [root]" : "");
     std::cerr << std::endl;
@@ -469,6 +474,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     Block* block = dynamic_cast<Block*>(node);
     std::cerr << ind << "Block " << block;
     std::cerr << " (" << pstate_source_position(node) << ")";
+    std::cerr << (block->is_invisible() ? " [INVISIBLE]" : "");
     std::cerr << " [indent: " << block->tabs() << "]" << std::endl;
     for(auto i : block->elements()) { debug_ast(i, ind + " ", env); }
   } else if (dynamic_cast<Textual*>(node)) {
