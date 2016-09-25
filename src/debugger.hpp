@@ -552,6 +552,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     Unary_Expression* expression = dynamic_cast<Unary_Expression*>(node);
     std::cerr << ind << "Unary_Expression " << expression;
     std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
+    std::cerr << " [delayed: " << expression->is_delayed() << "] ";
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " [" << expression->type() << "]" << std::endl;
     debug_ast(expression->operand(), ind + " operand: ", env);
