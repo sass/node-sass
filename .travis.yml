@@ -2,10 +2,6 @@ language: node_js
 
 compiler: gcc
 
-env:
-  global:
-    - SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=true
-
 jobs:
   include:
     - stage: test
@@ -65,6 +61,7 @@ install:
   - npm install
 
 script:
+  - npm run build --force
   - npm test
 
 cache:

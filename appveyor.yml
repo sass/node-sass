@@ -32,7 +32,6 @@
     - '%AppData%\npm-cache'
 
   environment:
-    SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
     matrix:
       - nodejs_version: 10
         GYP_MSVS_VERSION: 2017
@@ -50,6 +49,7 @@
     - node --version
     - npm --version
     - npm install
+    - npm run build --force
 
   test: off
 
@@ -108,7 +108,6 @@
     - '%AppData%\npm-cache'
 
   environment:
-    SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
     matrix:
       - nodejs_version: 10
         GYP_MSVS_VERSION: 2017
@@ -126,6 +125,7 @@
     - node --version
     - npm --version
     - npm install
+    - npm run build --force
 
   test_script:
     - ps: set-location -path c:\projects\node_modules\node-sass

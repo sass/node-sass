@@ -96,11 +96,6 @@ function download(url, dest, cb) {
  */
 
 function checkAndDownloadBinary() {
-  if (process.env.SKIP_SASS_BINARY_DOWNLOAD_FOR_CI) {
-    console.log('Skipping downloading binaries on CI builds');
-    return;
-  }
-
   var cachedBinary = sass.getCachedBinary(),
     cachePath = sass.getBinaryCachePath(),
     binaryPath = sass.getBinaryPath();
