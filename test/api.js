@@ -1850,19 +1850,8 @@ describe('api', function() {
     });
 
     describe('missing error', function() {
-      beforeEach(function() {
-        process.env.SASS_BINARY_NAME = [
-          (process.platform === 'win32' ? 'Linux' : 'Windows'), '-',
-          process.arch, '-',
-          process.versions.modules
-        ].join('');
-      });
-
-      afterEach(function() {
-        delete process.env.SASS_BINARY_NAME;
-      });
-
       it('should be useful', function() {
+        process.env.SASS_BINARY_NAME = 'Linux-x64-48';
         assert.throws(
           function() { require(sassPath); },
           new RegExp('Missing binding.*?\\' + path.sep + 'vendor\\' + path.sep)
