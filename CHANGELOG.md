@@ -1,3 +1,7 @@
+## v3.10.1
+
+https://github.com/sass/node-sass/releases/tag/v3.10.1
+
 ## v3.10.0
 
 https://github.com/sass/node-sass/releases/tag/v3.10.0
