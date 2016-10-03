@@ -9,7 +9,7 @@ var fs = require('fs'),
   sass = require('../lib/extensions'),
   request = require('request'),
   log = require('npmlog'),
-  pkg = require('../package.json');
+  userAgent = require('./util/useragent');
 
 /**
  * Download file, if succeeds save, if not delete
@@ -53,7 +53,7 @@ function download(url, dest, cb) {
     proxy: getProxy(),
     timeout: 60000,
     headers: {
-      'User-Agent': getUserAgent(),
+      'User-Agent': userAgent(),
     }
   };
 
@@ -92,18 +92,6 @@ function download(url, dest, cb) {
   } catch (err) {
     cb(err);
   }
-}
-
-/**
- * A custom user agent use for binary downloads.
- *
- * @api private
- */
-function getUserAgent() {
-  return [
-    'node/', process.version, ' ',
-    'node-sass-installer/', pkg.version
-  ].join('');
 }
 
 /**
