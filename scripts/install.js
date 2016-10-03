@@ -9,6 +9,7 @@ var fs = require('fs'),
   sass = require('../lib/extensions'),
   request = require('request'),
   log = require('npmlog'),
+  pkg = require('../package.json'),
   userAgent = require('./util/useragent');
 
 /**
