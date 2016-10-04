@@ -1615,9 +1615,10 @@ namespace Sass {
   }
 
   bool Ruleset::is_invisible() const {
-    CommaSequence_Selector* sl = static_cast<CommaSequence_Selector*>(selector());
-    for (size_t i = 0, L = sl->length(); i < L; ++i)
-      if (!(*sl)[i]->has_placeholder()) return false;
+    if (CommaSequence_Selector* sl = dynamic_cast<CommaSequence_Selector*>(selector())) {
+      for (size_t i = 0, L = sl->length(); i < L; ++i)
+        if (!(*sl)[i]->has_placeholder()) return false;
+    }
     return true;
   }
 
