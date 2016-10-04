@@ -1897,6 +1897,9 @@ namespace Sass {
     virtual bool has_parent_ref() {
       return false;
     }
+    virtual bool has_real_parent_ref() {
+      return false;
+    }
   };
   inline Selector::~Selector() { }
 
@@ -1912,6 +1915,7 @@ namespace Sass {
     : Selector(pstate), contents_(c), at_root_(false)
     { }
     virtual bool has_parent_ref();
+    virtual bool has_real_parent_ref();
     virtual size_t hash() {
       if (hash_ == 0) {
         hash_combine(hash_, contents_->hash());
@@ -1990,6 +1994,7 @@ namespace Sass {
     virtual ~Simple_Selector() = 0;
     virtual SimpleSequence_Selector* unify_with(SimpleSequence_Selector*, Context&);
     virtual bool has_parent_ref() { return false; };
+    virtual bool has_real_parent_ref() { return false; };
     virtual bool is_pseudo_element() { return false; }
     virtual bool is_pseudo_class() { return false; }
 
@@ -2012,11 +2017,14 @@ namespace Sass {
   // inside strings in declarations (SimpleSequence_Selector).
   // only one simple parent selector means the first case.
   class Parent_Selector : public Simple_Selector {
+    ADD_PROPERTY(bool, real)
   public:
-    Parent_Selector(ParserState pstate)
-    : Simple_Selector(pstate, "&")
+    Parent_Selector(ParserState pstate, bool r = true)
+    : Simple_Selector(pstate, "&"), real_(r)
     { /* has_reference(true); */ }
+    bool is_real_parent_ref() { return real(); };
     virtual bool has_parent_ref() { return true; };
+    virtual bool has_real_parent_ref() { return is_real_parent_ref(); };
     virtual unsigned long specificity()
     {
       return 0;
@@ -2225,6 +2233,11 @@ namespace Sass {
       if (!selector()) return false;
       return selector()->has_parent_ref();
     }
+    virtual bool has_real_parent_ref() {
+      // if (has_reference()) return true;
+      if (!selector()) return false;
+      return selector()->has_real_parent_ref();
+    }
     virtual bool has_wrapped_selector()
     {
       return true;
@@ -2283,6 +2296,7 @@ namespace Sass {
     SimpleSequence_Selector* unify_with(SimpleSequence_Selector* rhs, Context& ctx);
     // virtual Placeholder_Selector* find_placeholder();
     virtual bool has_parent_ref();
+    virtual bool has_real_parent_ref();
     Simple_Selector* base()
     {
       // Implement non-const in terms of const. Safe to const_cast since this method is non-const
@@ -2387,6 +2401,7 @@ namespace Sass {
       // if ((h && h->has_placeholder()) || (t && t->has_placeholder())) has_placeholder(true);
     }
     virtual bool has_parent_ref();
+    virtual bool has_real_parent_ref();
 
     Sequence_Selector* skip_empty_reference()
     {
@@ -2429,7 +2444,7 @@ namespace Sass {
     Sequence_Selector* innermost() { return last(); };
 
     size_t length() const;
-    CommaSequence_Selector* resolve_parent_refs(Context& ctx, CommaSequence_Selector* parents, bool implicit_parent);
+    CommaSequence_Selector* resolve_parent_refs(Context& ctx, CommaSequence_Selector* parents, bool implicit_parent = true);
     virtual bool is_superselector_of(SimpleSequence_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Sequence_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(CommaSequence_Selector* sub, std::string wrapping = "");
@@ -2545,6 +2560,7 @@ namespace Sass {
     // remove parent selector references
     // basically unwraps parsed selectors
     virtual bool has_parent_ref();
+    virtual bool has_real_parent_ref();
     void remove_parent_selectors();
     // virtual Placeholder_Selector* find_placeholder();
     CommaSequence_Selector* resolve_parent_refs(Context& ctx, CommaSequence_Selector* parents, bool implicit_parent = true);

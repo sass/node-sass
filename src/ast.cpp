@@ -157,10 +157,24 @@ namespace Sass {
     return false;
   }
 
+  bool SimpleSequence_Selector::has_real_parent_ref()
+  {
+    for (Simple_Selector* s : *this) {
+      if (s && s->has_real_parent_ref()) return true;
+    }
+    return false;
+  }
+
   bool Sequence_Selector::has_parent_ref()
   {
     return (head() && head()->has_parent_ref()) ||
            (tail() && tail()->has_parent_ref());
+  }
+
+  bool Sequence_Selector::has_real_parent_ref()
+  {
+    return (head() && head()->has_real_parent_ref()) ||
+           (tail() && tail()->has_real_parent_ref());
   }
 
   bool Sequence_Selector::operator< (const Sequence_Selector& rhs) const
@@ -1110,6 +1124,12 @@ namespace Sass {
     Sequence_Selector* tail = this->tail();
     SimpleSequence_Selector* head = this->head();
 
+    if (!this->has_real_parent_ref() && !implicit_parent) {
+      CommaSequence_Selector* retval = SASS_MEMORY_NEW(ctx.mem, CommaSequence_Selector, pstate());
+      *retval << this;
+      return retval;
+    }
+
     // first resolve_parent_refs the tail (which may return an expanded list)
     CommaSequence_Selector* tails = tail ? tail->resolve_parent_refs(ctx, parents, implicit_parent) : 0;
 
@@ -1396,10 +1416,27 @@ namespace Sass {
     return false;
   }
 
+  bool CommaSequence_Selector::has_real_parent_ref()
+  {
+    for (Sequence_Selector* s : *this) {
+      if (s && s->has_real_parent_ref()) return true;
+    }
+    return false;
+  }
+
   bool Selector_Schema::has_parent_ref()
   {
     if (String_Schema* schema = dynamic_cast<String_Schema*>(contents())) {
       return schema->length() > 0 && dynamic_cast<Parent_Selector*>(schema->at(0)) != NULL;
+    }
+    return false;
+  }
+
+  bool Selector_Schema::has_real_parent_ref()
+  {
+    if (String_Schema* schema = dynamic_cast<String_Schema*>(contents())) {
+      Parent_Selector* p = dynamic_cast<Parent_Selector*>(schema->at(0));
+      return schema->length() > 0 && p != NULL && p->is_real_parent_ref();
     }
     return false;
   }
