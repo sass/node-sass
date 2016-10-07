@@ -1,4 +1,4 @@
-### Title: Be as meaningfull as possible in 60 chars if possible
+### Title: Be as meaningful as possible in 60 chars if possible
 
 input.scss
 ```scss
