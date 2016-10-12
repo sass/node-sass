@@ -538,7 +538,7 @@ As local or global [.npmrc](https://docs.npmjs.com/misc/config) configuration fi
 
 As a process argument:
 
-* E.g. `npm install node-sass --SASS_BINARY_SITE=http://example.com/`
+* E.g. `npm install node-sass --sass-binary-site=http://example.com/`
 
 ## Post-install Build
 
