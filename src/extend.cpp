@@ -1722,23 +1722,6 @@ namespace Sass {
       SimpleSequence_Selector* pHead = pIter->head();
 
       if (pHead) {
-        if (seen.find(*pHead) == seen.end()) {
-          for (Simple_Selector* pSimple : *pHead) {
-            if (Wrapped_Selector* ws = dynamic_cast<Wrapped_Selector*>(pSimple)) {
-              if (CommaSequence_Selector* sl = dynamic_cast<CommaSequence_Selector*>(ws->selector())) {
-                for (Sequence_Selector* cs : sl->elements()) {
-                  while (cs) {
-                    if (complexSelectorHasExtension(cs, ctx, subset_map, seen)) {
-                      hasExtension = true;
-                      break;
-                    }
-                    cs = cs->tail();
-                  }
-                }
-              }
-            }
-          }
-        }
         SubsetMapEntries entries = subset_map.get_v(pHead->to_str_vec());
         for (ExtensionPair ext : entries) {
           // check if both selectors have the same media block parent
@@ -1989,8 +1972,15 @@ namespace Sass {
                       CommaSequence_Selector* cpy_ws_sl = SASS_MEMORY_NEW(ctx.mem, CommaSequence_Selector, sl->pstate());
                       // remove parent selectors from inner selector
                       if (ext_cs->first()) {
-                        if (ext_cs->first()->has_wrapped_selector()) {
-                          continue; // ignore this case for now
+                        Wrapped_Selector* ext_ws = dynamic_cast<Wrapped_Selector*>(ext_cs->first()->head()->first());
+                        if (ext_ws/* && ext_cs->length() == 1*/) {
+                          CommaSequence_Selector* ws_cs = dynamic_cast<CommaSequence_Selector*>(ext_ws->selector());
+                          SimpleSequence_Selector* ws_ss = ws_cs->first()->head();
+                          if (!(
+                            dynamic_cast<Pseudo_Selector*>(ws_ss->first()) ||
+                            dynamic_cast<Element_Selector*>(ws_ss->first()) ||
+                            dynamic_cast<Placeholder_Selector*>(ws_ss->first())
+                          )) continue;
                         }
                         *cpy_ws_sl << ext_cs->first();
                       }

@@ -116,6 +116,7 @@ inline void debug_ast(AST_Node* node, std::string ind, Env* env)
     std::cerr << ind << "Sequence_Selector " << selector
       << " (" << pstate_source_position(node) << ")"
       << " <" << selector->hash() << ">"
+      << " [length:" << longToHex(selector->length()) << "]"
       << " [weight:" << longToHex(selector->specificity()) << "]"
       << " [@media:" << selector->media_block() << "]"
       << (selector->is_invisible() ? " [INVISIBLE]": " -")
