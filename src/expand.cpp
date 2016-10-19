@@ -141,10 +141,9 @@ namespace Sass {
     }
 
     selector_stack.push_back(sel);
-    Env* env = 0;
+    Env env(environment());
     if (block_stack.back()->is_root()) {
-      env = new Env(environment());
-      env_stack.push_back(env);
+      env_stack.push_back(&env);
     }
     sel->set_media_block(media_block_stack.back());
     Block* blk = r->block()->perform(this)->block();
@@ -155,8 +154,8 @@ namespace Sass {
     selector_stack.pop_back();
     if (block_stack.back()->is_root()) {
       env_stack.pop_back();
-      delete env;
     }
+
     rr->is_root(r->is_root());
     rr->tabs(r->tabs());
 
