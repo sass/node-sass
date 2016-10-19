@@ -1054,22 +1054,22 @@ namespace Sass {
         size_t i = 0, L = h->length();
         if (dynamic_cast<Element_Selector*>(h->first())) {
           if (Class_Selector* sq = dynamic_cast<Class_Selector*>(rh->last())) {
-            Class_Selector* sqs = new Class_Selector(*sq);
+            Class_Selector* sqs = SASS_MEMORY_NEW(ctx.mem, Class_Selector, *sq);
             sqs->name(sqs->name() + (*h)[0]->name());
             (*rh)[rh->length()-1] = sqs;
             for (i = 1; i < L; ++i) *rh << (*h)[i];
           } else if (Id_Selector* sq = dynamic_cast<Id_Selector*>(rh->last())) {
-            Id_Selector* sqs = new Id_Selector(*sq);
+            Id_Selector* sqs = SASS_MEMORY_NEW(ctx.mem, Id_Selector, *sq);
             sqs->name(sqs->name() + (*h)[0]->name());
             (*rh)[rh->length()-1] = sqs;
             for (i = 1; i < L; ++i) *rh << (*h)[i];
           } else if (Element_Selector* ts = dynamic_cast<Element_Selector*>(rh->last())) {
-            Element_Selector* tss = new Element_Selector(*ts);
+            Element_Selector* tss = SASS_MEMORY_NEW(ctx.mem, Element_Selector, *ts);
             tss->name(tss->name() + (*h)[0]->name());
             (*rh)[rh->length()-1] = tss;
             for (i = 1; i < L; ++i) *rh << (*h)[i];
           } else if (Placeholder_Selector* ps = dynamic_cast<Placeholder_Selector*>(rh->last())) {
-            Placeholder_Selector* pss = new Placeholder_Selector(*ps);
+            Placeholder_Selector* pss = SASS_MEMORY_NEW(ctx.mem, Placeholder_Selector, *ps);
             pss->name(pss->name() + (*h)[0]->name());
             (*rh)[rh->length()-1] = pss;
             for (i = 1; i < L; ++i) *rh << (*h)[i];
