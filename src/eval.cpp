@@ -827,8 +827,15 @@ namespace Sass {
 
     if (def->is_overload_stub()) {
       std::stringstream ss;
-      ss << full_name
-         << args->length();
+      size_t L = args->length();
+      // account for rest arguments
+      if (args->has_rest_argument() && args->length() > 0) {
+        // get the rest arguments list
+        List* rest = dynamic_cast<List*>(args->last()->value());
+        // arguments before rest argument plus rest
+        if (rest) L += rest->length() - 1;
+      }
+      ss << full_name << L;
       full_name = ss.str();
       std::string resolved_name(full_name);
       if (!env->has(resolved_name)) error("overloaded function `" + std::string(c->name()) + "` given wrong number of arguments", c->pstate());
