@@ -125,8 +125,10 @@ endif
 
 ifneq (Windows,$(UNAME))
 	ifneq (FreeBSD,$(UNAME))
-		LDFLAGS += -ldl
-		LDLIBS += -ldl
+		ifneq (OpenBSD,$(UNAME))
+			LDFLAGS += -ldl
+			LDLIBS += -ldl
+		endif
 	endif
 endif
 
