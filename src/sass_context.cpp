@@ -31,7 +31,16 @@ namespace Sass {
 extern "C" {
   using namespace Sass;
 
-  static void copy_options(struct Sass_Options* to, struct Sass_Options* from) { *to = *from; }
+  static void sass_clear_options (struct Sass_Options* options);
+  static void sass_reset_options (struct Sass_Options* options);
+  static void copy_options(struct Sass_Options* to, struct Sass_Options* from) {
+    // free assigned memory
+    sass_clear_options(to);
+    // move memory
+    *to = *from;
+    // Reset pointers on source
+    sass_reset_options(from);
+  }
 
   #define IMPLEMENT_SASS_OPTION_ACCESSOR(type, option) \
     type ADDCALL sass_option_get_##option (struct Sass_Options* options) { return options->option; } \
@@ -476,6 +485,24 @@ extern "C" {
   }
 
   // helper function, not exported, only accessible locally
+  static void sass_reset_options (struct Sass_Options* options)
+  {
+    // free pointer before
+    // or copy/move them
+    options->input_path = 0;
+    options->output_path = 0;
+    options->plugin_path = 0;
+    options->include_path = 0;
+    options->source_map_file = 0;
+    options->source_map_root = 0;
+    options->c_functions = 0;
+    options->c_importers = 0;
+    options->c_headers = 0;
+    options->plugin_paths = 0;
+    options->include_paths = 0;
+  }
+
+  // helper function, not exported, only accessible locally
   static void sass_clear_options (struct Sass_Options* options)
   {
     if (options == 0) return;
@@ -527,12 +554,25 @@ extern "C" {
         cur = next;
       }
     }
+    // Free options strings
+    free(options->input_path);
+    free(options->output_path);
+    free(options->plugin_path);
+    free(options->include_path);
+    free(options->source_map_file);
+    free(options->source_map_root);
     // Free custom functions
     free(options->c_functions);
     // Free custom importers
     free(options->c_importers);
     free(options->c_headers);
     // Reset our pointers
+    options->input_path = 0;
+    options->output_path = 0;
+    options->plugin_path = 0;
+    options->include_path = 0;
+    options->source_map_file = 0;
+    options->source_map_root = 0;
     options->c_functions = 0;
     options->c_importers = 0;
     options->c_headers = 0;
@@ -552,12 +592,6 @@ extern "C" {
     if (ctx->error_text)        free(ctx->error_text);
     if (ctx->error_json)        free(ctx->error_json);
     if (ctx->error_file)        free(ctx->error_file);
-    if (ctx->input_path)        free(ctx->input_path);
-    if (ctx->output_path)       free(ctx->output_path);
-    if (ctx->plugin_path)       free(ctx->plugin_path);
-    if (ctx->include_path)      free(ctx->include_path);
-    if (ctx->source_map_file)   free(ctx->source_map_file);
-    if (ctx->source_map_root)   free(ctx->source_map_root);
     free_string_array(ctx->included_files);
     // play safe and reset properties
     ctx->output_string = 0;
@@ -566,11 +600,6 @@ extern "C" {
     ctx->error_text = 0;
     ctx->error_json = 0;
     ctx->error_file = 0;
-    ctx->input_path = 0;
-    ctx->output_path = 0;
-    ctx->include_path = 0;
-    ctx->source_map_file = 0;
-    ctx->source_map_root = 0;
     ctx->included_files = 0;
     // now clear the options
     sass_clear_options(ctx);
@@ -585,6 +614,11 @@ extern "C" {
     if (cpp_ctx) delete(cpp_ctx);
     compiler->cpp_ctx = 0;
     free(compiler);
+  }
+
+  void ADDCALL sass_delete_options (struct Sass_Options* options)
+  {
+    sass_clear_options(options); free(options);
   }
 
   // Deallocate all associated memory with file context
