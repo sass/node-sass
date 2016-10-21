@@ -187,18 +187,6 @@ function getEmitter(options) {
 
 function getOptions(args, options) {
   var config, cssDir, sassDir, file, mapDir;
-  if (options.config) {
-    config = path.resolve(options.config);
-    try {
-      config = require(config);
-    } catch (error) {
-      getEmitter(options).emit('error', util.format(
-        'Unable to load config from "%s": %s',
-        options.config, error
-      ));
-    }
-    options = Object.assign(options, config);
-  }
   options.src = args[0];
 
   if (args[1]) {
@@ -241,6 +229,36 @@ function getOptions(args, options) {
   }
 
   return options;
+}
+
+
+/**
+ * Resolve
+ *
+ * @param {String} file
+ * @param {String} name
+ * @api private
+ */
+
+function resolve(file, name) {
+  var normalized = path.normalize(file)
+    .replace(/(.+)([\/|\\])$/, '$1');
+
+  var resolved;
+  try {
+    if (path.resolve(file) === normalized) {
+      resolved = require(file);
+    } else {
+      resolved = require(path.resolve(file));
+    }
+  } catch (error) {
+    emitter.emit('error', util.format(
+      'Unable to resolve %s "%s": %s',
+      name, file, error
+    ));
+  }
+
+  return resolved;
 }
 
 /**
@@ -327,20 +345,17 @@ function run(options, emitter) {
     emitter.emit('error', 'The --source-map option must be either a boolean or directory when compiling a directory');
   }
 
-  if (options.importer) {
-    if ((path.resolve(options.importer) === path.normalize(options.importer).replace(/(.+)([\/|\\])$/, '$1'))) {
-      options.importer = require(options.importer);
-    } else {
-      options.importer = require(path.resolve(options.importer));
-    }
+  if (options.importer && typeof options.importer === 'string') {
+    options.importer = resolve(options.importer, 'importer');
   }
 
-  if (options.functions) {
-    if ((path.resolve(options.functions) === path.normalize(options.functions).replace(/(.+)([\/|\\])$/, '$1'))) {
-      options.functions = require(options.functions);
-    } else {
-      options.functions = require(path.resolve(options.functions));
-    }
+  if (options.functions && typeof options.functions === 'string') {
+    options.functions = resolve(options.functions, 'functions');
+  }
+
+  if (options.config) {
+    var config = resolve(options.config, 'config');
+    options = Object.assign(options, config);
   }
 
   if (options.watch) {
