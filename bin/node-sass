@@ -145,7 +145,7 @@ function globPattern(options) {
  * @api private
  */
 
-function getEmitter(options) {
+function getEmitter() {
   var emitter = new Emitter();
 
   emitter.on('error', function(err) {
@@ -415,7 +415,7 @@ function renderDir(options, emitter) {
  */
 
 var options = getOptions(cli.input, cli.flags);
-var emitter = getEmitter(options);
+var emitter = getEmitter();
 
 /**
  * Show usage if no arguments are supplied
