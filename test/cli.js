@@ -693,7 +693,7 @@ describe('cli', function() {
       var bin = spawn(cli, args);
       bin.stderr.once('data', function(data) {
         var error = data.toString();
-        assert.ok(/^Unable to load config/.test(error), error);
+        assert.ok(/^Unable to resolve config/.test(error), error);
       });
       bin.on('exit', function(status) {
         assert.equal(status, 1, 'non-1 status: ' + status);
