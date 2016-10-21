@@ -653,15 +653,14 @@ describe('cli', function() {
       var result = '';
       var bin = spawn(cli, args);
 
-      bin.stdout
-        .setEncoding('utf8')
-        .on('data', function(data) {
-          result += data.trim();
-        })
-        .once('end', function() {
-          assert.equal(result, expected);
-          done();
-        });
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.on('data', function(data) {
+        result += data;
+      });
+      bin.stdout.once('end', function() {
+        assert.equal(result.trim(), expected);
+        done();
+      });
     });
 
     it('should respect --config options in a .js file', function(done) {
@@ -674,15 +673,14 @@ describe('cli', function() {
       var result = '';
       var bin = spawn(cli, args);
 
-      bin.stdout
-        .setEncoding('utf8')
-        .on('data', function(data) {
-          result += data.trim();
-        })
-        .once('end', function() {
-          assert.equal(result, expected);
-          done();
-        });
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.on('data', function(data) {
+        result += data;
+      });
+      bin.stdout.once('end', function() {
+        assert.equal(result.trim(), expected);
+        done();
+      });
     });
 
     it('resolves an importer defined in .json', function() {
@@ -695,15 +693,14 @@ describe('cli', function() {
       var result = '';
       var bin = spawn(cli, args);
 
-      bin.stdout
-        .setEncoding('utf8')
-        .on('data', function(data) {
-          result += data.trim();
-        })
-        .once('end', function() {
-          assert.equal(result, expected);
-          done();
-        });
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.on('data', function(data) {
+        result += data;
+      });
+      bin.stdout.once('end', function() {
+        assert.equal(result.trim(), expected);
+        done();
+      });
     });
 
     it('does not attempt to resolve an importer function defined in .js', function() {
@@ -716,15 +713,14 @@ describe('cli', function() {
       var result = '';
       var bin = spawn(cli, args);
 
-      bin.stdout
-        .setEncoding('utf8')
-        .on('data', function(data) {
-          result += data.trim();
-        })
-        .once('end', function() {
-          assert.equal(result, expected);
-          done();
-        });
+      bin.stdout.setEncoding('utf8')
+      bin.stdout.on('data', function(data) {
+        result += data;
+      });
+      bin.stdout.once('end', function() {
+        assert.equal(result.trim(), expected);
+        done();
+      });
     });
 
     it('exits with an error when --config does not resolve', function(done) {
