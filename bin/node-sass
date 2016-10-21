@@ -186,7 +186,7 @@ function getEmitter() {
  */
 
 function getOptions(args, options) {
-  var config, cssDir, sassDir, file, mapDir;
+  var cssDir, sassDir, file, mapDir;
   options.src = args[0];
 
   if (args[1]) {
