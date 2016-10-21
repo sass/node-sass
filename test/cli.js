@@ -664,31 +664,11 @@ describe('cli', function() {
       });
     });
 
-    it('should respect --config options in a .js file', function(done) {
+    it('should respect basic --config options in a .json file', function(done) {
 
-      var src = fixture('include-path/index.scss');
-      var args = [src, '--config', fixture('config/include-path.js')];
-      var expected = read(fixture('include-path/expected.css'), 'utf8')
-        .trim()
-        .replace(/\r\n/g, '\n');
-      var result = '';
-      var bin = spawn(cli, args);
-
-      bin.stdout.setEncoding('utf8');
-      bin.stdout.on('data', function(data) {
-        result += data;
-      });
-      bin.on('exit', function(status) {
-        assert.equal(status, 0, 'non-zero status: ' + status);
-        assert.equal(result.trim(), expected);
-        done();
-      });
-    });
-
-    it('resolves an importer defined in .json', function(done) {
-      var src = fixture('include-files/index.scss');
-      var args = [src, '--config', fixture('config/importer.json')];
-      var expected = read(fixture('include-files/expected-importer.css'), 'utf8')
+      var src = fixture('indent/index.sass');
+      var args = [src, '--config', fixture('config/indent.json')];
+      var expected = read(fixture('indent/expected.css'), 'utf8')
         .trim()
         .replace(/\r\n/g, '\n');
       var result = '';
