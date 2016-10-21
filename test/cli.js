@@ -641,6 +641,68 @@ describe('cli', function() {
     });
   });
 
+  describe('config', function() {
+
+    it('should respect options defined in JSON', function(done) {
+
+      var src = fixture('include-path/index.scss');
+      var args = [src, '--config', fixture('config/include-path.json')];
+      var expected = read(fixture('include-path/expected.css'), 'utf8')
+        .trim()
+        .replace(/\r\n/g, '\n');
+      var result;
+      var bin = spawn(cli, args);
+
+      bin.stdout
+        .setEncoding('utf8')
+        .once('data', function(data) {
+          result = data.trim();
+        })
+        .once('end', function() {
+          assert.equal(result, expected);
+          done();
+        });
+    });
+
+    it('should respect options defined in .js', function(done) {
+
+      var src = fixture('include-path/index.scss');
+      var args = [src, '--config', fixture('config/include-path.js')];
+      var expected = read(fixture('include-path/expected.css'), 'utf8')
+        .trim()
+        .replace(/\r\n/g, '\n');
+      var result;
+      var bin = spawn(cli, args);
+
+      bin.stdout
+        .setEncoding('utf8')
+        .once('data', function(data) {
+          result = data.trim();
+        })
+        .once('end', function() {
+          assert.equal(result, expected);
+          done();
+        });
+    });
+
+    it('exits with an error when --config does not resolve', function(done) {
+      var args = [
+        fixture('include-path/index.scss'),
+        '--config', 'non-existent-config.json'
+      ];
+      var bin = spawn(cli, args);
+      bin.stderr.once('data', function(data) {
+        var error = data.toString();
+        assert.ok(/^Unable to load config/.test(error), error);
+      });
+      bin.on('exit', function(status) {
+        assert.equal(status, 1, 'non-1 status: ' + status);
+        done();
+      });
+    });
+
+  });
+
   describe('importer', function() {
     var dest = fixture('include-files/index.css');
     var src = fixture('include-files/index.scss');

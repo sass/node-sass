@@ -1,0 +1,6 @@
+{
+  "includePath": [
+    "test/fixtures/include-path/functions",
+    "test/fixtures/include-path/lib"
+  ]
+}
