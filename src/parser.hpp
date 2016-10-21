@@ -66,6 +66,10 @@ namespace Sass {
 #endif
 
 
+    // skip current token and next whitespace
+    // moves ParserState right before next token
+    void advanceToNextToken();
+
     bool peek_newline(const char* start = 0);
 
     // skip over spaces, tabs and line comments
