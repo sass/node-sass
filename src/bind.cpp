@@ -13,7 +13,6 @@ namespace Sass {
   {
     std::string callee(type + " " + name);
 
-    Listize listize(ctx->mem);
     std::map<std::string, Parameter*> param_map;
 
     for (size_t i = 0, L = as->length(); i < L; ++i) {

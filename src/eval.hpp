@@ -3,6 +3,7 @@
 
 #include "ast.hpp"
 #include "context.hpp"
+#include "listize.hpp"
 #include "operation.hpp"
 #include "environment.hpp"
 

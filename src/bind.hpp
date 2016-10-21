@@ -2,7 +2,6 @@
 #define SASS_BIND_H
 
 #include <string>
-#include "listize.hpp"
 #include "environment.hpp"
 
 namespace Sass {
