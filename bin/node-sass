@@ -242,7 +242,7 @@ function getOptions(args, options) {
 
 function resolve(file, name) {
   var normalized = path.normalize(file)
-    .replace(/(.+)([\/|\\])$/, '$1');
+    .replace(/[\/|\\]$/, '');
 
   var resolved;
   try {
