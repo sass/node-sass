@@ -643,20 +643,20 @@ describe('cli', function() {
 
   describe('config', function() {
 
-    it('should respect options defined in JSON', function(done) {
+    it('should respect --config options in a .json file', function(done) {
 
       var src = fixture('include-path/index.scss');
       var args = [src, '--config', fixture('config/include-path.json')];
       var expected = read(fixture('include-path/expected.css'), 'utf8')
         .trim()
         .replace(/\r\n/g, '\n');
-      var result;
+      var result = '';
       var bin = spawn(cli, args);
 
       bin.stdout
         .setEncoding('utf8')
-        .once('data', function(data) {
-          result = data.trim();
+        .on('data', function(data) {
+          result += data.trim();
         })
         .once('end', function() {
           assert.equal(result, expected);
@@ -664,20 +664,20 @@ describe('cli', function() {
         });
     });
 
-    it('should respect options defined in .js', function(done) {
+    it('should respect --config options in a .js file', function(done) {
 
       var src = fixture('include-path/index.scss');
       var args = [src, '--config', fixture('config/include-path.js')];
       var expected = read(fixture('include-path/expected.css'), 'utf8')
         .trim()
         .replace(/\r\n/g, '\n');
-      var result;
+      var result = '';
       var bin = spawn(cli, args);
 
       bin.stdout
         .setEncoding('utf8')
-        .once('data', function(data) {
-          result = data.trim();
+        .on('data', function(data) {
+          result += data.trim();
         })
         .once('end', function() {
           assert.equal(result, expected);
