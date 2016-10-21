@@ -345,17 +345,17 @@ function run(options, emitter) {
     emitter.emit('error', 'The --source-map option must be either a boolean or directory when compiling a directory');
   }
 
+  if (options.config) {
+    var config = resolve(options.config, 'config');
+    options = Object.assign(options, config);
+  }
+
   if (options.importer && typeof options.importer === 'string') {
     options.importer = resolve(options.importer, 'importer');
   }
 
   if (options.functions && typeof options.functions === 'string') {
     options.functions = resolve(options.functions, 'functions');
-  }
-
-  if (options.config) {
-    var config = resolve(options.config, 'config');
-    options = Object.assign(options, config);
   }
 
   if (options.watch) {
