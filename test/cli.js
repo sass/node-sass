@@ -657,7 +657,8 @@ describe('cli', function() {
       bin.stdout.on('data', function(data) {
         result += data;
       });
-      bin.stdout.once('end', function() {
+      bin.on('exit', function(status) {
+        assert.equal(status, 0, 'non-zero status: ' + status);
         assert.equal(result.trim(), expected);
         done();
       });
@@ -677,15 +678,15 @@ describe('cli', function() {
       bin.stdout.on('data', function(data) {
         result += data;
       });
-      bin.stdout.once('end', function() {
+      bin.on('exit', function(status) {
+        assert.equal(status, 0, 'non-zero status: ' + status);
         assert.equal(result.trim(), expected);
         done();
       });
     });
 
-    it('resolves an importer defined in .json', function() {
-
-      var src = fixture('include-path/index.scss');
+    it('resolves an importer defined in .json', function(done) {
+      var src = fixture('include-files/index.scss');
       var args = [src, '--config', fixture('config/importer.json')];
       var expected = read(fixture('include-files/expected-importer.css'), 'utf8')
         .trim()
@@ -697,15 +698,15 @@ describe('cli', function() {
       bin.stdout.on('data', function(data) {
         result += data;
       });
-      bin.stdout.once('end', function() {
+      bin.on('exit', function(status) {
+        assert.equal(status, 0, 'non-zero status: ' + status);
         assert.equal(result.trim(), expected);
         done();
       });
     });
 
-    it('does not attempt to resolve an importer function defined in .js', function() {
-
-      var src = fixture('include-path/index.scss');
+    it('does not attempt to resolve an importer function defined in .js', function(done) {
+      var src = fixture('include-files/index.scss');
       var args = [src, '--config', fixture('config/importer.js')];
       var expected = read(fixture('include-files/expected-importer.css'), 'utf8')
         .trim()
@@ -713,11 +714,12 @@ describe('cli', function() {
       var result = '';
       var bin = spawn(cli, args);
 
-      bin.stdout.setEncoding('utf8')
+      bin.stdout.setEncoding('utf8');
       bin.stdout.on('data', function(data) {
         result += data;
       });
-      bin.stdout.once('end', function() {
+      bin.on('exit', function(status) {
+        assert.equal(status, 0, 'non-zero status: ' + status);
         assert.equal(result.trim(), expected);
         done();
       });
