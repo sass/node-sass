@@ -4,4 +4,4 @@ module.exports = {
     path.join(__dirname, '..', 'include-path', 'functions'),
     path.join(__dirname, '..', 'include-path', 'lib')
   ]
-}
+};
