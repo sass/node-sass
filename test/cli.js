@@ -643,10 +643,10 @@ describe('cli', function() {
 
   describe('node-sass --config', function() {
 
-    it('should respect --config options in a .json file', function(done) {
+    it('should respect --config options in a .js file', function(done) {
 
       var src = fixture('include-path/index.scss');
-      var args = [src, '--config', fixture('config/include-path.json')];
+      var args = [src, '--config', fixture('config/include-path.js')];
       var expected = read(fixture('include-path/expected.css'), 'utf8')
         .trim()
         .replace(/\r\n/g, '\n');
