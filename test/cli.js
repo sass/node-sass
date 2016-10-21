@@ -685,6 +685,48 @@ describe('cli', function() {
         });
     });
 
+    it('resolves an importer defined in .json', function() {
+
+      var src = fixture('include-path/index.scss');
+      var args = [src, '--config', fixture('config/importer.json')];
+      var expected = read(fixture('include-files/expected-importer.css'), 'utf8')
+        .trim()
+        .replace(/\r\n/g, '\n');
+      var result = '';
+      var bin = spawn(cli, args);
+
+      bin.stdout
+        .setEncoding('utf8')
+        .on('data', function(data) {
+          result += data.trim();
+        })
+        .once('end', function() {
+          assert.equal(result, expected);
+          done();
+        });
+    });
+
+    it('does not attempt to resolve an importer function defined in .js', function() {
+
+      var src = fixture('include-path/index.scss');
+      var args = [src, '--config', fixture('config/importer.js')];
+      var expected = read(fixture('include-files/expected-importer.css'), 'utf8')
+        .trim()
+        .replace(/\r\n/g, '\n');
+      var result = '';
+      var bin = spawn(cli, args);
+
+      bin.stdout
+        .setEncoding('utf8')
+        .on('data', function(data) {
+          result += data.trim();
+        })
+        .once('end', function() {
+          assert.equal(result, expected);
+          done();
+        });
+    });
+
     it('exits with an error when --config does not resolve', function(done) {
       var args = [
         fixture('include-path/index.scss'),
