@@ -34,6 +34,7 @@ var cli = meow({
     '    --source-map true --source-map-contents sass',
     '',
     'Options',
+    '  -c, --config               Specify configuration options via JSON or .js file',
     '  -w, --watch                Watch a directory or file',
     '  -r, --recursive            Recursively watch directories or files',
     '  -o, --output               Output directory',
@@ -72,6 +73,7 @@ var cli = meow({
     'watch'
   ],
   string: [
+    'config',
     'functions',
     'importer',
     'include-path',
@@ -83,7 +85,8 @@ var cli = meow({
     'source-map-root'
   ],
   alias: {
-    c: 'source-comments',
+    c: 'config',
+    s: 'source-comments',
     i: 'indented-syntax',
     q: 'quiet',
     o: 'output',
@@ -93,6 +96,7 @@ var cli = meow({
     w: 'watch'
   },
   default: {
+    config: false,
     'include-path': process.cwd(),
     'indent-type': 'space',
     'indent-width': 2,
@@ -141,7 +145,7 @@ function globPattern(options) {
  * @api private
  */
 
-function getEmitter() {
+function getEmitter(options) {
   var emitter = new Emitter();
 
   emitter.on('error', function(err) {
@@ -182,7 +186,19 @@ function getEmitter() {
  */
 
 function getOptions(args, options) {
-  var cssDir, sassDir, file, mapDir;
+  var config, cssDir, sassDir, file, mapDir;
+  if (options.config) {
+    config = path.resolve(options.config);
+    try {
+      config = require(config);
+    } catch (error) {
+      getEmitter(options).emit('error', util.format(
+        'Unable to load config from "%s": %s',
+        options.config, error
+      ));
+    }
+    options = Object.assign(options, config);
+  }
   options.src = args[0];
 
   if (args[1]) {
@@ -384,7 +400,7 @@ function renderDir(options, emitter) {
  */
 
 var options = getOptions(cli.input, cli.flags);
-var emitter = getEmitter();
+var emitter = getEmitter(options);
 
 /**
  * Show usage if no arguments are supplied
