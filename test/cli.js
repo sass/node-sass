@@ -641,7 +641,7 @@ describe('cli', function() {
     });
   });
 
-  describe('config', function() {
+  describe('node-sass --config', function() {
 
     it('should respect --config options in a .json file', function(done) {
 
