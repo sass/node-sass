@@ -34,6 +34,10 @@ bool source_map_embed;
 bool source_map_contents;
 ```
 ```C
+// create file urls for sources
+bool source_map_file_urls;
+```
+```C
 // Disable sourceMappingUrl in css output
 bool omit_source_map_url;
 ```
@@ -225,6 +229,7 @@ enum Sass_Output_Style sass_option_get_output_style (struct Sass_Options* option
 bool sass_option_get_source_comments (struct Sass_Options* options);
 bool sass_option_get_source_map_embed (struct Sass_Options* options);
 bool sass_option_get_source_map_contents (struct Sass_Options* options);
+bool sass_option_get_source_map_file_urls (struct Sass_Options* options);
 bool sass_option_get_omit_source_map_url (struct Sass_Options* options);
 bool sass_option_get_is_indented_syntax_src (struct Sass_Options* options);
 const char* sass_option_get_indent (struct Sass_Options* options);
@@ -244,6 +249,7 @@ void sass_option_set_output_style (struct Sass_Options* options, enum Sass_Outpu
 void sass_option_set_source_comments (struct Sass_Options* options, bool source_comments);
 void sass_option_set_source_map_embed (struct Sass_Options* options, bool source_map_embed);
 void sass_option_set_source_map_contents (struct Sass_Options* options, bool source_map_contents);
+void sass_option_set_source_map_file_urls (struct Sass_Options* options, bool source_map_file_urls);
 void sass_option_set_omit_source_map_url (struct Sass_Options* options, bool omit_source_map_url);
 void sass_option_set_is_indented_syntax_src (struct Sass_Options* options, bool is_indented_syntax_src);
 void sass_option_set_indent (struct Sass_Options* options, const char* indent);
