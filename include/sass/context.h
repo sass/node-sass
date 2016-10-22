@@ -74,6 +74,7 @@ ADDAPI enum Sass_Output_Style ADDCALL sass_option_get_output_style (struct Sass_
 ADDAPI bool ADDCALL sass_option_get_source_comments (struct Sass_Options* options);
 ADDAPI bool ADDCALL sass_option_get_source_map_embed (struct Sass_Options* options);
 ADDAPI bool ADDCALL sass_option_get_source_map_contents (struct Sass_Options* options);
+ADDAPI bool ADDCALL sass_option_get_source_map_file_urls (struct Sass_Options* options);
 ADDAPI bool ADDCALL sass_option_get_omit_source_map_url (struct Sass_Options* options);
 ADDAPI bool ADDCALL sass_option_get_is_indented_syntax_src (struct Sass_Options* options);
 ADDAPI const char* ADDCALL sass_option_get_indent (struct Sass_Options* options);
@@ -94,6 +95,7 @@ ADDAPI void ADDCALL sass_option_set_output_style (struct Sass_Options* options, 
 ADDAPI void ADDCALL sass_option_set_source_comments (struct Sass_Options* options, bool source_comments);
 ADDAPI void ADDCALL sass_option_set_source_map_embed (struct Sass_Options* options, bool source_map_embed);
 ADDAPI void ADDCALL sass_option_set_source_map_contents (struct Sass_Options* options, bool source_map_contents);
+ADDAPI void ADDCALL sass_option_set_source_map_file_urls (struct Sass_Options* options, bool source_map_file_urls);
 ADDAPI void ADDCALL sass_option_set_omit_source_map_url (struct Sass_Options* options, bool omit_source_map_url);
 ADDAPI void ADDCALL sass_option_set_is_indented_syntax_src (struct Sass_Options* options, bool is_indented_syntax_src);
 ADDAPI void ADDCALL sass_option_set_indent (struct Sass_Options* options, const char* indent);

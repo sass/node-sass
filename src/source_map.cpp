@@ -37,8 +37,20 @@ namespace Sass {
 
     JsonNode *json_includes = json_mkarray();
     for (size_t i = 0; i < source_index.size(); ++i) {
-      const char *include = links[source_index[i]].c_str();
-      JsonNode *json_include = json_mkstring(include);
+      std::string include(links[source_index[i]]);
+      if (ctx.c_options.source_map_file_urls) {
+        include = File::rel2abs(include);
+        // check for windows abs path
+        if (include[0] == '/') {
+          // ends up with three slashes
+          include = "file://" + include;
+        } else {
+          // needs an additional slash
+          include = "file:///" + include;
+        }
+      }
+      const char* inc = include.c_str();
+      JsonNode *json_include = json_mkstring(inc);
       json_append_element(json_includes, json_include);
     }
     json_append_member(json_srcmap, "sources", json_includes);

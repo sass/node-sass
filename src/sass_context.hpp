@@ -15,6 +15,9 @@ struct Sass_Options : Sass_Output_Options {
   // embed include contents in maps
   bool source_map_contents;
 
+  // create file urls for sources
+  bool source_map_file_urls;
+
   // Disable sourceMappingUrl in css output
   bool omit_source_map_url;
 
