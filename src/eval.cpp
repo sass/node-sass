@@ -797,6 +797,11 @@ namespace Sass {
     Env* env = environment();
     if (!env->has(full_name)) {
       if (!env->has("*[f]")) {
+        for (Argument* arg : args->elements()) {
+          if (List* ls = dynamic_cast<List*>(arg->value())) {
+            if (ls->size() == 0) error("() isn't a valid CSS value.", c->pstate());
+          }
+        }
         args = static_cast<Arguments*>(args->perform(this));
         Function_Call* lit = SASS_MEMORY_NEW(ctx.mem, Function_Call,
                                              c->pstate(),
