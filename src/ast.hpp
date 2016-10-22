@@ -1737,7 +1737,12 @@ namespace Sass {
 
       if (s->statement_type() == Statement::DIRECTIVE)
       {
-        return expression()->exclude(static_cast<Directive*>(s)->keyword().erase(0, 1));
+        if (Directive* dir = dynamic_cast<Directive*>(s))
+        {
+          std::string keyword(dir->keyword());
+          if (keyword.length() > 0) keyword.erase(0, 1);
+          return expression()->exclude(keyword);
+        }
       }
       if (s->statement_type() == Statement::MEDIA)
       {
@@ -1751,9 +1756,9 @@ namespace Sass {
       {
         return expression()->exclude("supports");
       }
-      if (static_cast<Directive*>(s)->is_keyframes())
+      if (Directive* dir = dynamic_cast<Directive*>(s))
       {
-        return expression()->exclude("keyframes");
+        if (dir->is_keyframes()) return expression()->exclude("keyframes");
       }
       return false;
     }
