@@ -1971,7 +1971,7 @@ namespace Sass {
                       Wrapped_Selector* cpy_ws = SASS_MEMORY_NEW(ctx.mem, Wrapped_Selector, *ws);
                       CommaSequence_Selector* cpy_ws_sl = SASS_MEMORY_NEW(ctx.mem, CommaSequence_Selector, sl->pstate());
                       // remove parent selectors from inner selector
-                      if (ext_cs->first()) {
+                      if (ext_cs->first() && ext_cs->first()->head()->length() > 0) {
                         Wrapped_Selector* ext_ws = dynamic_cast<Wrapped_Selector*>(ext_cs->first()->head()->first());
                         if (ext_ws/* && ext_cs->length() == 1*/) {
                           CommaSequence_Selector* ws_cs = dynamic_cast<CommaSequence_Selector*>(ext_ws->selector());
