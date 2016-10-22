@@ -502,7 +502,7 @@ namespace Sass {
     // only the last item will be used to eval the binary expression
     if (String_Schema* s_l = dynamic_cast<String_Schema*>(b->left())) {
       if (!s_l->has_interpolant() && (!s_l->is_right_interpolant())) {
-        ret_schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, s_l->pstate());
+        ret_schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, b->pstate());
         Binary_Expression* bin_ex = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, b->pstate(),
                                                     b->op(), s_l->last(), b->right());
         bin_ex->is_delayed(b->left()->is_delayed() || b->right()->is_delayed()); // unverified
@@ -515,7 +515,7 @@ namespace Sass {
     }
     if (String_Schema* s_r = dynamic_cast<String_Schema*>(b->right())) {
       if (!s_r->has_interpolant() && (!s_r->is_left_interpolant() || op_type == Sass_OP::DIV)) {
-        ret_schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, s_r->pstate());
+        ret_schema = SASS_MEMORY_NEW(ctx.mem, String_Schema, b->pstate());
         Binary_Expression* bin_ex = SASS_MEMORY_NEW(ctx.mem, Binary_Expression, b->pstate(),
                                                     b->op(), b->left(), s_r->first());
         bin_ex->is_delayed(b->left()->is_delayed() || b->right()->is_delayed()); // verified
@@ -599,7 +599,7 @@ namespace Sass {
           std::string value(str->value());
           const char* start = value.c_str();
           if (Prelexer::sequence < Prelexer::dimension, Prelexer::end_of_file >(start) != 0) {
-            lhs = SASS_MEMORY_NEW(ctx.mem, Textual, lhs->pstate(), Textual::DIMENSION, str->value());
+            lhs = SASS_MEMORY_NEW(ctx.mem, Textual, b->pstate(), Textual::DIMENSION, str->value());
             lhs = lhs->perform(this);
           }
         }
@@ -607,7 +607,7 @@ namespace Sass {
           std::string value(str->value());
           const char* start = value.c_str();
           if (Prelexer::sequence < Prelexer::number >(start) != 0) {
-            rhs = SASS_MEMORY_NEW(ctx.mem, Textual, rhs->pstate(), Textual::DIMENSION, str->value());
+            rhs = SASS_MEMORY_NEW(ctx.mem, Textual, b->pstate(), Textual::DIMENSION, str->value());
             rhs = rhs->perform(this);
           }
         }
@@ -636,7 +636,7 @@ namespace Sass {
         str += b->separator();
         if (b->op().ws_after) str += " ";
         str += v_r->to_string(ctx.c_options);
-        String_Constant* val = SASS_MEMORY_NEW(ctx.mem, String_Constant, lhs->pstate(), str);
+        String_Constant* val = SASS_MEMORY_NEW(ctx.mem, String_Constant, b->pstate(), str);
         val->is_interpolant(b->left()->has_interpolant());
         return val;
       }
@@ -1545,7 +1545,7 @@ namespace Sass {
          (sep != "/" || !rqstr || !rqstr->quote_mark()) */
     ) {
       // create a new string that might be quoted on output (but do not unquote what we pass)
-      return SASS_MEMORY_NEW(mem, String_Quoted, lhs.pstate(), lstr + rstr, 0, false, true);
+      return SASS_MEMORY_NEW(mem, String_Quoted, pstate ? *pstate : lhs.pstate(), lstr + rstr, 0, false, true);
     }
 
     if (sep != "" && !delayed) {
@@ -1558,7 +1558,7 @@ namespace Sass {
       if (rqstr && rqstr->quote_mark()) rstr = quote(rstr);
     }
 
-    return SASS_MEMORY_NEW(mem, String_Constant, lhs.pstate(), lstr + sep + rstr);
+    return SASS_MEMORY_NEW(mem, String_Constant, pstate ? *pstate : lhs.pstate(), lstr + sep + rstr);
   }
 
   Expression* cval_to_astnode(Memory_Manager& mem, union Sass_Value* v, Context& ctx, Backtrace* backtrace, ParserState pstate)

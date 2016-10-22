@@ -101,6 +101,7 @@ namespace Sass {
     // virtual Block* block() { return 0; }
   public:
     void update_pstate(const ParserState& pstate);
+    void set_pstate_offset(const Offset& offset);
   public:
     Offset off() { return pstate(); }
     Position pos() { return pstate(); }
@@ -235,7 +236,7 @@ namespace Sass {
     T& operator[](size_t i) { return elements_[i]; }
     virtual const T& at(size_t i) const { return elements_.at(i); }
     const T& operator[](size_t i) const { return elements_[i]; }
-    Vectorized& operator<<(T element)
+    virtual Vectorized& operator<<(T element)
     {
       if (!element) return *this;
       reset_hash();
@@ -2291,6 +2292,8 @@ namespace Sass {
       }
       return false;
     };
+
+    SimpleSequence_Selector& operator<<(Simple_Selector* element);
 
     bool is_universal() const
     {
