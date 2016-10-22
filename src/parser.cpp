@@ -2254,8 +2254,6 @@ namespace Sass {
     directive->value(val);
     if (peek< exactly<'{'> >()) {
       directive->block(parse_block());
-    } else if (!val) {
-      css_error("most def");
     }
     return directive;
   }
