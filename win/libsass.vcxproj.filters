@@ -48,6 +48,9 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\memory\SharedPtr.hpp">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_def_macros.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -124,9 +127,6 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\mapping.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\memory_manager.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\node.hpp">
@@ -215,6 +215,9 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\memory\SharedPtr.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\base64vlq.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -276,9 +279,6 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\listize.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="$(LIBSASS_SRC_DIR)\memory_manager.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\node.cpp">

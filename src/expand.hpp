@@ -13,15 +13,15 @@ namespace Sass {
   class Listize;
   class Context;
   class Eval;
-  typedef Environment<AST_Node*> Env;
+  typedef Environment<AST_Node_Obj> Env;
   struct Backtrace;
 
-  class Expand : public Operation_CRTP<Statement*, Expand> {
+  class Expand : public Operation_CRTP<Statement_Ptr, Expand> {
   public:
 
     Env* environment();
     Context& context();
-    CommaSequence_Selector* selector();
+    Selector_List_Obj selector();
     Backtrace* backtrace();
 
     Context&          ctx;
@@ -29,53 +29,52 @@ namespace Sass {
 
     // it's easier to work with vectors
     std::vector<Env*>           env_stack;
-    std::vector<Block*>         block_stack;
-    std::vector<AST_Node*>      call_stack;
-    std::vector<String*>        property_stack;
-    std::vector<CommaSequence_Selector*> selector_stack;
-    std::vector<Media_Block*>   media_block_stack;
+    std::vector<Block_Ptr>         block_stack;
+    std::vector<AST_Node_Obj>      call_stack;
+    std::vector<Selector_List_Obj> selector_stack;
+    std::vector<Media_Block_Ptr>   media_block_stack;
     std::vector<Backtrace*>     backtrace_stack;
     bool                        in_keyframes;
     bool                        at_root_without_rule;
     bool                        old_at_root_without_rule;
 
-    Statement* fallback_impl(AST_Node* n);
+    Statement_Ptr fallback_impl(AST_Node_Ptr n);
 
   private:
-    void expand_selector_list(Selector*, CommaSequence_Selector* extender);
+    void expand_selector_list(Selector_Obj, Selector_List_Obj extender);
 
   public:
-    Expand(Context&, Env*, Backtrace*, std::vector<CommaSequence_Selector*>* stack = NULL);
+    Expand(Context&, Env*, Backtrace*, std::vector<Selector_List_Obj>* stack = NULL);
     ~Expand() { }
 
-    Statement* operator()(Block*);
-    Statement* operator()(Ruleset*);
-    Statement* operator()(Media_Block*);
-    Statement* operator()(Supports_Block*);
-    Statement* operator()(At_Root_Block*);
-    Statement* operator()(Directive*);
-    Statement* operator()(Declaration*);
-    Statement* operator()(Assignment*);
-    Statement* operator()(Import*);
-    Statement* operator()(Import_Stub*);
-    Statement* operator()(Warning*);
-    Statement* operator()(Error*);
-    Statement* operator()(Debug*);
-    Statement* operator()(Comment*);
-    Statement* operator()(If*);
-    Statement* operator()(For*);
-    Statement* operator()(Each*);
-    Statement* operator()(While*);
-    Statement* operator()(Return*);
-    Statement* operator()(Extension*);
-    Statement* operator()(Definition*);
-    Statement* operator()(Mixin_Call*);
-    Statement* operator()(Content*);
+    Block_Ptr operator()(Block_Ptr);
+    Statement_Ptr operator()(Ruleset_Ptr);
+    Statement_Ptr operator()(Media_Block_Ptr);
+    Statement_Ptr operator()(Supports_Block_Ptr);
+    Statement_Ptr operator()(At_Root_Block_Ptr);
+    Statement_Ptr operator()(Directive_Ptr);
+    Statement_Ptr operator()(Declaration_Ptr);
+    Statement_Ptr operator()(Assignment_Ptr);
+    Statement_Ptr operator()(Import_Ptr);
+    Statement_Ptr operator()(Import_Stub_Ptr);
+    Statement_Ptr operator()(Warning_Ptr);
+    Statement_Ptr operator()(Error_Ptr);
+    Statement_Ptr operator()(Debug_Ptr);
+    Statement_Ptr operator()(Comment_Ptr);
+    Statement_Ptr operator()(If_Ptr);
+    Statement_Ptr operator()(For_Ptr);
+    Statement_Ptr operator()(Each_Ptr);
+    Statement_Ptr operator()(While_Ptr);
+    Statement_Ptr operator()(Return_Ptr);
+    Statement_Ptr operator()(Extension_Ptr);
+    Statement_Ptr operator()(Definition_Ptr);
+    Statement_Ptr operator()(Mixin_Call_Ptr);
+    Statement_Ptr operator()(Content_Ptr);
 
     template <typename U>
-    Statement* fallback(U x) { return fallback_impl(x); }
+    Statement_Ptr fallback(U x) { return fallback_impl(x); }
 
-    void append_block(Block*);
+    void append_block(Block_Ptr);
   };
 
 }

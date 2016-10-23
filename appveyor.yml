@@ -3,7 +3,7 @@ os: Visual Studio 2013
 environment:
   CTEST_OUTPUT_ON_FAILURE: 1
   ruby_version: 22-x64
-  TargetPath: sassc/bin/sassc
+  TargetPath: sassc/bin/sassc.exe
   matrix:
   - Compiler: msvc
     Config: Release
@@ -63,14 +63,19 @@ test_script:
           git -C sass-spec checkout -q --force ci-spec-pr-$SPEC_PR
         }
       }
-      ruby sass-spec/sass-spec.rb -V 3.4 --probe-todo --impl libsass -c $env:TargetPath -s sass-spec/spec
-      if(-not($?)) {
-        echo "sass-spec tests failed"
+      $env:TargetPath = Join-Path $pwd.Path $env:TargetPath
+      If (Test-Path "$env:TargetPath") {
+        ruby sass-spec/sass-spec.rb -V 3.4 --probe-todo --impl libsass -c $env:TargetPath -s sass-spec/spec
+        if(-not($?)) {
+          echo "sass-spec tests failed"
+          exit 1
+        }
+      } else {
+        echo "spec runner not found (compile error?)"
         exit 1
       }
       Write-Host "Explicitly testing the case when cwd has Cyrillic characters: " -nonewline
       # See comments in gh-1774 for details.
-      $env:TargetPath =  Join-Path $pwd.Path $env:TargetPath
       cd sass-spec/spec/libsass/Sáss-UŢF8/
       &$env:TargetPath ./input.scss 2>&1>$null
       if(-not($?)) {

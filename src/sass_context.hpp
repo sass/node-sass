@@ -124,7 +124,7 @@ struct Sass_Compiler {
   // Sass::Context
   Sass::Context* cpp_ctx;
   // Sass::Block
-  Sass::Block* root;
+  Sass::Block_Obj root;
 };
 
 #endif

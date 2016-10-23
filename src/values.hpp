@@ -5,8 +5,8 @@
 
 namespace Sass {
 
-  union Sass_Value* ast_node_to_sass_value (const Expression* val);
-  Value* sass_value_to_ast_node (Memory_Manager& mem, const union Sass_Value* val);
+  union Sass_Value* ast_node_to_sass_value (const Expression_Ptr val);
+  Value_Ptr sass_value_to_ast_node (const union Sass_Value* val);
 
 }
 #endif

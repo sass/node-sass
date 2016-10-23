@@ -10,78 +10,76 @@
 
 namespace Sass {
 
-  Listize::Listize(Memory_Manager& mem)
-  : mem(mem)
+  Listize::Listize()
   {  }
 
-  Expression* Listize::operator()(CommaSequence_Selector* sel)
+  Expression_Ptr Listize::operator()(Selector_List_Ptr sel)
   {
-    List* l = SASS_MEMORY_NEW(mem, List, sel->pstate(), sel->length(), SASS_COMMA);
+    List_Obj l = SASS_MEMORY_NEW(List, sel->pstate(), sel->length(), SASS_COMMA);
     l->from_selector(true);
     for (size_t i = 0, L = sel->length(); i < L; ++i) {
-      if (!(*sel)[i]) continue;
-      *l << (*sel)[i]->perform(this);
+      if (!sel->at(i)) continue;
+      l->append(sel->at(i)->perform(this));
     }
-    if (l->length()) return l;
-    return SASS_MEMORY_NEW(mem, Null, l->pstate());
+    if (l->length()) return l.detach();
+    return SASS_MEMORY_NEW(Null, l->pstate());
   }
 
-  Expression* Listize::operator()(SimpleSequence_Selector* sel)
+  Expression_Ptr Listize::operator()(Compound_Selector_Ptr sel)
   {
     std::string str;
     for (size_t i = 0, L = sel->length(); i < L; ++i) {
-      Expression* e = (*sel)[i]->perform(this);
+      Expression_Ptr e = (*sel)[i]->perform(this);
       if (e) str += e->to_string();
     }
-    return SASS_MEMORY_NEW(mem, String_Quoted, sel->pstate(), str);
+    return SASS_MEMORY_NEW(String_Quoted, sel->pstate(), str);
   }
 
-  Expression* Listize::operator()(Sequence_Selector* sel)
+  Expression_Ptr Listize::operator()(Complex_Selector_Ptr sel)
   {
-    List* l = SASS_MEMORY_NEW(mem, List, sel->pstate(), 2);
+    List_Obj l = SASS_MEMORY_NEW(List, sel->pstate(), 2);
     l->from_selector(true);
-    SimpleSequence_Selector* head = sel->head();
+    Compound_Selector_Obj head = sel->head();
     if (head && !head->is_empty_reference())
     {
-      Expression* hh = head->perform(this);
-      if (hh) *l << hh;
+      Expression_Ptr hh = head->perform(this);
+      if (hh) l->append(hh);
     }
 
     std::string reference = ! sel->reference() ? ""
       : sel->reference()->to_string();
     switch(sel->combinator())
     {
-      case Sequence_Selector::PARENT_OF:
-        *l << SASS_MEMORY_NEW(mem, String_Quoted, sel->pstate(), ">");
+      case Complex_Selector::PARENT_OF:
+        l->append(SASS_MEMORY_NEW(String_Quoted, sel->pstate(), ">"));
       break;
-      case Sequence_Selector::ADJACENT_TO:
-        *l << SASS_MEMORY_NEW(mem, String_Quoted, sel->pstate(), "+");
+      case Complex_Selector::ADJACENT_TO:
+        l->append(SASS_MEMORY_NEW(String_Quoted, sel->pstate(), "+"));
       break;
-      case Sequence_Selector::REFERENCE:
-        *l << SASS_MEMORY_NEW(mem, String_Quoted, sel->pstate(), "/" + reference + "/");
+      case Complex_Selector::REFERENCE:
+        l->append(SASS_MEMORY_NEW(String_Quoted, sel->pstate(), "/" + reference + "/"));
       break;
-      case Sequence_Selector::PRECEDES:
-        *l << SASS_MEMORY_NEW(mem, String_Quoted, sel->pstate(), "~");
+      case Complex_Selector::PRECEDES:
+        l->append(SASS_MEMORY_NEW(String_Quoted, sel->pstate(), "~"));
       break;
-      case Sequence_Selector::ANCESTOR_OF:
+      case Complex_Selector::ANCESTOR_OF:
       break;
     }
 
-    Sequence_Selector* tail = sel->tail();
+    Complex_Selector_Obj tail = sel->tail();
     if (tail)
     {
-      Expression* tt = tail->perform(this);
-      if (tt && tt->concrete_type() == Expression::LIST)
-      { *l += static_cast<List*>(tt); }
-      else if (tt) *l << static_cast<List*>(tt);
+      Expression_Obj tt = tail->perform(this);
+      if (List_Ptr ls = SASS_MEMORY_CAST(List, tt))
+      { l->concat(ls); }
     }
     if (l->length() == 0) return 0;
-    return l;
+    return l.detach();
   }
 
-  Expression* Listize::fallback_impl(AST_Node* n)
+  Expression_Ptr Listize::fallback_impl(AST_Node_Ptr n)
   {
-    return dynamic_cast<Expression*>(n);
+    return dynamic_cast<Expression_Ptr>(n);
   }
 
 }

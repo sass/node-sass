@@ -46,16 +46,15 @@ namespace Sass {
     std::string normalize_sixtuplet(const std::string& col);
 
     std::string vecJoin(const std::vector<std::string>& vec, const std::string& sep);
-    bool containsAnyPrintableStatements(Block* b);
 
-    bool isPrintable(Ruleset* r, Sass_Output_Style style = NESTED);
-    bool isPrintable(Supports_Block* r, Sass_Output_Style style = NESTED);
-    bool isPrintable(Media_Block* r, Sass_Output_Style style = NESTED);
-    bool isPrintable(Comment* b, Sass_Output_Style style = NESTED);
-    bool isPrintable(Block* b, Sass_Output_Style style = NESTED);
-    bool isPrintable(String_Constant* s, Sass_Output_Style style = NESTED);
-    bool isPrintable(String_Quoted* s, Sass_Output_Style style = NESTED);
-    bool isPrintable(Declaration* d, Sass_Output_Style style = NESTED);
+    bool isPrintable(Ruleset_Ptr r, Sass_Output_Style style = NESTED);
+    bool isPrintable(Supports_Block_Ptr r, Sass_Output_Style style = NESTED);
+    bool isPrintable(Media_Block_Ptr r, Sass_Output_Style style = NESTED);
+    bool isPrintable(Comment_Ptr b, Sass_Output_Style style = NESTED);
+    bool isPrintable(Block_Obj b, Sass_Output_Style style = NESTED);
+    bool isPrintable(String_Constant_Ptr s, Sass_Output_Style style = NESTED);
+    bool isPrintable(String_Quoted_Ptr s, Sass_Output_Style style = NESTED);
+    bool isPrintable(Declaration_Ptr d, Sass_Output_Style style = NESTED);
     bool isAscii(const char chr);
 
   }

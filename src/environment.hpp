@@ -6,7 +6,6 @@
 
 #include "ast_fwd_decl.hpp"
 #include "ast_def_macros.hpp"
-#include "memory_manager.hpp"
 
 namespace Sass {
 
@@ -18,7 +17,6 @@ namespace Sass {
     ADD_PROPERTY(bool, is_shadow)
 
   public:
-    Memory_Manager mem;
     Environment(bool is_shadow = false);
     Environment(Environment* env, bool is_shadow = false);
     Environment(Environment& env, bool is_shadow = false);

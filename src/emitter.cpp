@@ -45,11 +45,11 @@ namespace Sass {
   void Emitter::set_filename(const std::string& str)
   { wbuf.smap.file = str; }
 
-  void Emitter::schedule_mapping(const AST_Node* node)
+  void Emitter::schedule_mapping(const AST_Node_Ptr node)
   { scheduled_mapping = node; }
-  void Emitter::add_open_mapping(const AST_Node* node)
+  void Emitter::add_open_mapping(const AST_Node_Ptr node)
   { wbuf.smap.add_open_mapping(node); }
-  void Emitter::add_close_mapping(const AST_Node* node)
+  void Emitter::add_close_mapping(const AST_Node_Ptr node)
   { wbuf.smap.add_close_mapping(node); }
   ParserState Emitter::remap(const ParserState& pstate)
   { return wbuf.smap.remap(pstate); }
@@ -139,7 +139,7 @@ namespace Sass {
 
   // append some text or token to the buffer
   // this adds source-mappings for node start and end
-  void Emitter::append_token(const std::string& text, const AST_Node* node)
+  void Emitter::append_token(const std::string& text, const AST_Node_Ptr node)
   {
     flush_schedules();
     add_open_mapping(node);
@@ -239,7 +239,7 @@ namespace Sass {
     }
   }
 
-  void Emitter::append_scope_opener(AST_Node* node)
+  void Emitter::append_scope_opener(AST_Node_Ptr node)
   {
     scheduled_linefeed = 0;
     append_optional_space();
@@ -250,7 +250,7 @@ namespace Sass {
     // append_optional_space();
     ++ indentation;
   }
-  void Emitter::append_scope_closer(AST_Node* node)
+  void Emitter::append_scope_closer(AST_Node_Ptr node)
   {
     -- indentation;
     scheduled_linefeed = 0;

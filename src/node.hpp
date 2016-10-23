@@ -17,7 +17,7 @@ namespace Sass {
   /*
    There are a lot of stumbling blocks when trying to port the ruby extend code to C++. The biggest is the choice of
    data type. The ruby code will pretty seamlessly switch types between an Array<SimpleSequence or Op> (libsass'
-   equivalent is the Sequence_Selector) to a Sequence, which contains more metadata about the sequence than just the
+   equivalent is the Complex_Selector) to a Sequence, which contains more metadata about the sequence than just the
    selector info. They also have the ability to have arbitrary nestings of arrays like [1, [2]], which is hard to
    implement using Array equivalents in C++ (like the deque or vector). They also have the ability to include nil
    in the arrays, like [1, nil, 3], which has potential semantic differences than an empty array [1, [], 3]. To be
@@ -26,7 +26,7 @@ namespace Sass {
    more closely match the ruby code, which is a huge benefit when attempting to implement an complex algorithm like
    the Extend operator.
 
-   Note that the current libsass data model also pairs the combinator with the Sequence_Selector that follows it, but
+   Note that the current libsass data model also pairs the combinator with the Complex_Selector that follows it, but
    ruby sass has no such restriction, so we attempt to create a data structure that can handle them split apart.
    */
 
@@ -50,18 +50,18 @@ namespace Sass {
     bool isNil() const { return mType == NIL; }
     bool got_line_feed;
 
-    Sequence_Selector::Combinator combinator() const { return mCombinator; }
+    Complex_Selector::Combinator combinator() const { return mCombinator; }
 
-    Sequence_Selector* selector() { return mpSelector; }
-    const Sequence_Selector* selector() const { return mpSelector; }
+    Complex_Selector_Obj selector() { return mpSelector; }
+    Complex_Selector_Obj selector() const { return mpSelector; }
 
     NodeDequePtr collection() { return mpCollection; }
     const NodeDequePtr collection() const { return mpCollection; }
 
-    static Node createCombinator(const Sequence_Selector::Combinator& combinator);
+    static Node createCombinator(const Complex_Selector::Combinator& combinator);
 
-    // This method will clone the selector, stripping off the tail and combinator
-    static Node createSelector(Sequence_Selector* pSelector, Context& ctx);
+    // This method will klone the selector, stripping off the tail and combinator
+    static Node createSelector(Complex_Selector_Ptr pSelector, Context& ctx);
 
     static Node createCollection();
     static Node createCollection(const NodeDeque& values);
@@ -69,7 +69,7 @@ namespace Sass {
     static Node createNil();
     static Node naiveTrim(Node& seqses, Context& ctx);
 
-    Node clone(Context& ctx) const;
+    Node klone(Context& ctx) const;
 
     bool operator==(const Node& rhs) const;
     inline bool operator!=(const Node& rhs) const { return !(*this == rhs); }
@@ -79,7 +79,7 @@ namespace Sass {
     COLLECTION FUNCTIONS
 
     Most types don't need any helper methods (nil and combinator due to their simplicity and
-    selector due to the fact that we leverage the non-node selector code on the Sequence_Selector
+    selector due to the fact that we leverage the non-node selector code on the Complex_Selector
     whereever possible). The following methods are intended to be called on Node objects whose
     type is COLLECTION only.
     */
@@ -97,21 +97,21 @@ namespace Sass {
     // Private constructor; Use the static methods (like createCombinator and createSelector)
     // to instantiate this object. This is more expressive, and it allows us to break apart each
     // case into separate functions.
-    Node(const TYPE& type, Sequence_Selector::Combinator combinator, Sequence_Selector* pSelector, NodeDequePtr& pCollection);
+    Node(const TYPE& type, Complex_Selector::Combinator combinator, Complex_Selector_Ptr pSelector, NodeDequePtr& pCollection);
 
     TYPE mType;
 
     // TODO: can we union these to save on memory?
-    Sequence_Selector::Combinator mCombinator;
-    Sequence_Selector* mpSelector; // this is an AST_Node, so it will be handled by the Memory_Manager
+    Complex_Selector::Combinator mCombinator;
+    Complex_Selector_Obj mpSelector;
     NodeDequePtr mpCollection;
   };
 
 #ifdef DEBUG
   std::ostream& operator<<(std::ostream& os, const Node& node);
 #endif
-  Node complexSelectorToNode(Sequence_Selector* pToConvert, Context& ctx);
-  Sequence_Selector* nodeToComplexSelector(const Node& toConvert, Context& ctx);
+  Node complexSelectorToNode(Complex_Selector_Ptr pToConvert, Context& ctx);
+  Complex_Selector_Ptr nodeToComplexSelector(const Node& toConvert, Context& ctx);
 
   bool nodesEqual(const Node& one, const Node& two, bool simpleSelectorOrderDependent);
 

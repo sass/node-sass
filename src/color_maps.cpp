@@ -452,7 +452,7 @@ namespace Sass {
     { 102 * 0x10000 +  51 * 0x100 + 153, ColorNames::rebeccapurple }
   };
 
-  const std::map<const char*, const Color*, map_cmp_str> names_to_colors
+  const std::map<const char*, Color_Ptr_Const, map_cmp_str> names_to_colors
   {
     { ColorNames::aliceblue, &Colors::aliceblue },
     { ColorNames::antiquewhite, &Colors::antiquewhite },
@@ -605,7 +605,7 @@ namespace Sass {
     { ColorNames::transparent, &Colors::transparent }
   };
 
-  const Color* name_to_color(const char* key)
+  Color_Ptr_Const name_to_color(const char* key)
   {
     auto p = names_to_colors.find(key);
     if (p != names_to_colors.end()) {
@@ -614,7 +614,7 @@ namespace Sass {
     return 0;
   }
 
-  const Color* name_to_color(const std::string& key)
+  Color_Ptr_Const name_to_color(const std::string& key)
   {
     return name_to_color(key.c_str());
   }

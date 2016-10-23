@@ -10,19 +10,20 @@ namespace Sass {
     : ctx(ctx)
     { }
 
-    void Remove_Placeholders::operator()(Block* b) {
+    void Remove_Placeholders::operator()(Block_Ptr b) {
         for (size_t i = 0, L = b->length(); i < L; ++i) {
-            (*b)[i]->perform(this);
+            Statement_Ptr st = &b->at(i);
+            st->perform(this);
         }
     }
 
-    CommaSequence_Selector* Remove_Placeholders::remove_placeholders(CommaSequence_Selector* sl)
+    Selector_List_Ptr Remove_Placeholders::remove_placeholders(Selector_List_Ptr sl)
     {
-      CommaSequence_Selector* new_sl = SASS_MEMORY_NEW(ctx.mem, CommaSequence_Selector, sl->pstate());
+      Selector_List_Ptr new_sl = SASS_MEMORY_NEW(Selector_List, sl->pstate());
 
       for (size_t i = 0, L = sl->length(); i < L; ++i) {
-          if (!(*sl)[i]->contains_placeholder()) {
-              *new_sl << (*sl)[i];
+          if (!sl->at(i)->contains_placeholder()) {
+              new_sl->append(sl->at(i));
           }
       }
 
@@ -31,21 +32,21 @@ namespace Sass {
     }
 
 
-    void Remove_Placeholders::operator()(Ruleset* r) {
+    void Remove_Placeholders::operator()(Ruleset_Ptr r) {
         // Create a new selector group without placeholders
-        CommaSequence_Selector* sl = static_cast<CommaSequence_Selector*>(r->selector());
+        Selector_List_Obj sl = SASS_MEMORY_CAST(Selector_List, r->selector());
 
         if (sl) {
           // Set the new placeholder selector list
-          r->selector(remove_placeholders(sl));
+          r->selector(remove_placeholders(&sl));
           // Remove placeholders in wrapped selectors
-          for (Sequence_Selector* cs : *sl) {
+          for (Complex_Selector_Obj cs : sl->elements()) {
             while (cs) {
               if (cs->head()) {
-                for (Simple_Selector* ss : *cs->head()) {
-                  if (Wrapped_Selector* ws = dynamic_cast<Wrapped_Selector*>(ss)) {
-                    if (CommaSequence_Selector* sl = dynamic_cast<CommaSequence_Selector*>(ws->selector())) {
-                      CommaSequence_Selector* clean = remove_placeholders(sl);
+                for (Simple_Selector_Obj& ss : cs->head()->elements()) {
+                  if (Wrapped_Selector_Ptr ws = SASS_MEMORY_CAST(Wrapped_Selector, ss)) {
+                    if (Selector_List_Ptr sl = SASS_MEMORY_CAST(Selector_List, ws->selector())) {
+                      Selector_List_Ptr clean = remove_placeholders(sl);
                       // also clean superflous parent selectors
                       // probably not really the correct place
                       clean->remove_parent_selectors();
@@ -60,21 +61,24 @@ namespace Sass {
         }
 
         // Iterate into child blocks
-        Block* b = r->block();
+        Block_Obj b = r->block();
 
         for (size_t i = 0, L = b->length(); i < L; ++i) {
-            if ((*b)[i]) (*b)[i]->perform(this);
+            if (b->at(i)) {
+                Statement_Obj st = b->at(i);
+                st->perform(this);
+            }
         }
     }
 
-    void Remove_Placeholders::operator()(Media_Block* m) {
-        operator()(m->block());
+    void Remove_Placeholders::operator()(Media_Block_Ptr m) {
+        operator()(&m->block());
     }
-    void Remove_Placeholders::operator()(Supports_Block* m) {
-        operator()(m->block());
+    void Remove_Placeholders::operator()(Supports_Block_Ptr m) {
+        operator()(&m->block());
     }
 
-    void Remove_Placeholders::operator()(Directive* a) {
+    void Remove_Placeholders::operator()(Directive_Ptr a) {
         if (a->block()) a->block()->perform(this);
     }
 
