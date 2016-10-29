@@ -56,14 +56,20 @@ function afterBuild(options) {
  */
 
 function build(options) {
-  var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose'].concat(
-    ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function(subject) {
-      return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
-    })).concat(options.args);
+  var nodeGyp = resolveNodeGyp();
+  var nodeGypArgs = nodeGyp.args.concat([
+    'rebuild',
+    '--verbose',
+    '--libsass_ext=' + (process.env['LIBSASS_EXT'] || ''),
+    '--libsass_cflags=' + (process.env['LIBSASS_CFLAGS'] || ''),
+    '--libsass_ldflags=' + (process.env['LIBSASS_LDFLAGS'] || ''),
+    '--libsass_library=' + (process.env['LIBSASS_LIBRARY'] || ''),
+  ])
+  .concat(options.args);
 
-  console.log('Building:', [process.execPath].concat(args).join(' '));
+  console.log(['Building:', nodeGyp.exeName].concat(nodeGypArgs).join(' '));
 
-  var proc = spawn(process.execPath, args, {
+  var proc = spawn(nodeGyp.exeName, nodeGypArgs, {
     stdio: [0, 1, 2]
   });
 
@@ -83,6 +89,40 @@ function build(options) {
   });
 }
 
+/**
+ * Resolve node-gyp command to invoke
+ *
+ * @api private
+ */
+function resolveNodeGyp() {
+  if (process.jsEngine === 'chakracore') {
+    // For node-chakracore, check if node-gyp is in the path.
+    // If yes, use it instead of using node-gyp directly from
+    // node_modules because the one in node_modules is not
+    // compatible with node-chakracore.
+    var nodePath = path.dirname(process.execPath);
+    var nodeGypName = process.platform === 'win32' ? 'node-gyp.cmd' : 'node-gyp';
+    var globalNodeGypBin = process.env.Path.split(';').filter(function(envPath) {
+      return envPath.startsWith(nodePath) &&
+               envPath.endsWith('node-gyp-bin') &&
+               fs.existsSync(path.resolve(envPath, nodeGypName));
+    });
+
+    if (globalNodeGypBin.length !== 0) {
+      return { exeName: 'node-gyp', args: [] };
+    }
+
+    console.error('node-gyp incompatible with node-chakracore! Please use node-gyp installed with node-chakracore.');
+    process.exit(1);
+  }
+
+  var localNodeGypBin = require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js'));
+
+  return {
+    exeName: process.execPath,
+    args: [localNodeGypBin],
+  };
+}
 /**
  * Parse arguments
  *
