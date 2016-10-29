@@ -106,6 +106,11 @@ function checkAndDownloadBinary() {
   if (sass.hasBinary(sass.getBinaryPath())) {
     return;
   }
+  
+  if (process.jsEngine && process.jsEngine === 'chakracore') {
+      console.log('Installing using node-chakracore. Need rebuild of binary.');
+      return;
+  }
 
   mkdir(path.dirname(sass.getBinaryPath()), function(err) {
     if (err) {
