@@ -132,14 +132,31 @@ function build(options) {
       process.exit(1);
     }
 
-    var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose'].concat(
-      ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function(subject) {
+    var args = ['rebuild', '--verbose'].concat(
+      ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function (subject) {
         return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
       })).concat(options.args);
 
-    console.log(['Building:', process.execPath].concat(args).join(' '));
+    // To make node-chakracore work, check if node-gyp is in the path.
+    // If yes, use it instead of using node-gyp directly from node_modules because it might not be
+    // compatible with node-chakracore.
+    var nodePath = path.dirname(process.execPath);
+    var useInstalledNodeGyp = process.jsEngine && process.jsEngine === 'chakracore' &&
+      process.env.Path.split(';').find(function (path) {
+        return path.startsWith(nodePath) &&
+        path.endsWith('node-gyp-bin');
+      }) != undefined;
 
-    var proc = spawn(process.execPath, args, {
+    var exeName = process.execPath;
+    if (useInstalledNodeGyp) {
+      exeName = 'node-gyp';
+    } else {
+      args.unshift(require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')));
+    }
+
+    console.log(['Building:', exeName].concat(args).join(' '));
+
+    var proc = spawn(exeName, args, {
       stdio: [0, 1, 2]
     });
 
