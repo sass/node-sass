@@ -145,7 +145,7 @@ function build(options) {
       process.env.Path.split(';').find(function (path) {
         return path.startsWith(nodePath) &&
         path.endsWith('node-gyp-bin');
-      }) != undefined;
+      }) !== 'undefined';
 
     var exeName = process.execPath;
     if (useInstalledNodeGyp) {
