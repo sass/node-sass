@@ -10,6 +10,7 @@ var fs = require('fs'),
   request = require('request'),
   log = require('npmlog'),
   pkg = require('../package.json'),
+  proxy = require('./util/proxy'),
   userAgent = require('./util/useragent');
 
 /**
@@ -51,7 +52,7 @@ function download(url, dest, cb) {
 
   var options = {
     rejectUnauthorized: false,
-    proxy: getProxy(),
+    proxy: proxy(),
     timeout: 60000,
     headers: {
       'User-Agent': userAgent(),
@@ -93,24 +94,6 @@ function download(url, dest, cb) {
   } catch (err) {
     cb(err);
   }
-}
-
-/**
- * Determine local proxy settings
- *
- * @param {Object} options
- * @param {Function} cb
- * @api private
- */
-
-function getProxy() {
-  return process.env.npm_config_https_proxy ||
-         process.env.npm_config_proxy ||
-         process.env.npm_config_http_proxy ||
-         process.env.HTTPS_PROXY ||
-         process.env.https_proxy ||
-         process.env.HTTP_PROXY ||
-         process.env.http_proxy;
 }
 
 /**
