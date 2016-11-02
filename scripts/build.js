@@ -134,6 +134,8 @@ function build(options) {
 
     var nodeGyp = resolveNodeGyp(options);
     
+    console.log(['Building:', nodeGyp.exeName].concat(nodeGyp.args).join(' '));
+
     var proc = spawn(nodeGyp.exeName, nodeGyp.args, {
       stdio: [0, 1, 2]
     });
@@ -177,7 +179,6 @@ function resolveNodeGyp(options) {
     args.unshift(require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')));
   }
 
-  console.log(['Building:', exeName].concat(args).join(' '));
   return {exeName : exeName, args: args};
 }
 /**
