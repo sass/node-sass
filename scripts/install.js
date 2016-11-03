@@ -48,7 +48,7 @@ function download(url, dest, cb) {
     return response.statusCode >= 200 && response.statusCode < 300;
   };
 
-  console.log('Start downloading binary at', url);
+  log.http('Start downloading binary at', url);
 
   try {
     request(url, downloadOptions(), function(err, response) {
@@ -98,17 +98,17 @@ function checkAndDownloadBinary() {
 
   mkdir(path.dirname(sass.getBinaryPath()), function(err) {
     if (err) {
-      console.error(err);
+      log.error(err);
       return;
     }
 
     download(sass.getBinaryUrl(), sass.getBinaryPath(), function(err) {
       if (err) {
-        console.error(err);
+        log.error(err);
         return;
       }
 
-      console.log('Binary downloaded and installed at', sass.getBinaryPath());
+      log.info('Binary downloaded and installed at', sass.getBinaryPath());
     });
   });
 }
@@ -118,7 +118,7 @@ function checkAndDownloadBinary() {
  */
 
 if (process.env.SKIP_SASS_BINARY_DOWNLOAD_FOR_CI) {
-  console.log('Skipping downloading binaries on CI builds');
+  log.info('Skipping downloading binaries on CI builds');
   return;
 }
 
