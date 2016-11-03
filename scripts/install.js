@@ -94,44 +94,51 @@ function download(url, dest, cb) {
 
 function checkAndDownloadBinary() {
   if (process.env.SKIP_SASS_BINARY_DOWNLOAD_FOR_CI) {
-    console.log('Skipping downloading binaries on CI builds');
+    log.info('node-sass install', 'Skipping downloading binaries on CI builds');
     return;
   }
-  var binaryPath = sass.getBinaryPath();
+
+  var cachedBinary = sass.getCachedBinary(),
+    cachePath = sass.getBinaryCachePath(),
+    binaryPath = sass.getBinaryPath();
 
   if (sass.hasBinary(binaryPath)) {
+    log.info('node-sass build', 'Binary found at %s', binaryPath);
     return;
   }
 
-  mkdir(path.dirname(binaryPath), function(err) {
+  try {
+    mkdir.sync(path.dirname(binaryPath));
+  } catch (err) {
+    log.error('node-sass install', 'Unable to save binary to %s: %s', path.dirname(binaryPath), err);
+    return;
+  }
+
+  if (cachedBinary) {
+    log.info('node-sass install', 'Cached binary found at %s', cachedBinary);
+    fs.createReadStream(cachedBinary).pipe(fs.createWriteStream(binaryPath));
+    return;
+  }
+
+  download(sass.getBinaryUrl(), binaryPath, function(err) {
     if (err) {
       log.error('node-sass install', err);
       return;
     }
 
-    var cachePath = path.join(sass.getCachePath(), pkg.name, pkg.version);
-    var cacheBinary = path.join(cachePath, sass.getBinaryName());
-    if (fs.existsSync(cacheBinary)) {
-      console.log('Found existing binary in ' + cacheBinary);
-      fs.createReadStream(cacheBinary).pipe(fs.createWriteStream(binaryPath));
-    } else {
-      // In case the cache path doesn't exist
-      mkdir(cachePath, function(err) {
-        if (err) {
-          console.error(err);
-          return;
-        }
+    log.info('node-sass install', 'Binary saved at %s', binaryPath);
 
-        download(sass.getBinaryUrl(), cacheBinary, function(err) {
-          if (err) {
-            console.error(err);
-            return;
-          }
+    cachedBinary = path.join(cachePath, sass.getBinaryName());
 
-          console.log('Binary downloaded to ' + cacheBinary);
-          fs.createReadStream(cacheBinary).pipe(fs.createWriteStream(binaryPath));
-        });
-      });
+    if (cachePath) {
+      log.info('node-sass install', 'Caching binary to %s', cachedBinary);
+
+      try {
+        mkdir.sync(path.dirname(cachedBinary));
+        fs.createReadStream(binaryPath).pipe(fs.createWriteStream(cachedBinary));
+      } catch (err) {
+        log.error('node-sass install', 'Failed to cache binary: %s', err);
+      }
     }
   });
 }
