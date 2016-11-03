@@ -93,34 +93,47 @@ function download(url, dest, cb) {
  */
 
 function checkAndDownloadBinary() {
-  if (sass.hasBinary(sass.getBinaryPath())) {
+  if (process.env.SKIP_SASS_BINARY_DOWNLOAD_FOR_CI) {
+    console.log('Skipping downloading binaries on CI builds');
+    return;
+  }
+  var binaryPath = sass.getBinaryPath();
+
+  if (sass.hasBinary(binaryPath)) {
     return;
   }
 
-  mkdir(path.dirname(sass.getBinaryPath()), function(err) {
+  mkdir(path.dirname(binaryPath), function(err) {
     if (err) {
       log.error('node-sass install', err);
       return;
     }
 
-    download(sass.getBinaryUrl(), sass.getBinaryPath(), function(err) {
-      if (err) {
-        log.error('node-sass install', err);
-        return;
-      }
+    var cachePath = path.join(sass.getCachePath(), pkg.name, pkg.version);
+    var cacheBinary = path.join(cachePath, sass.getBinaryName());
+    if (fs.existsSync(cacheBinary)) {
+      console.log('Found existing binary in ' + cacheBinary);
+      fs.createReadStream(cacheBinary).pipe(fs.createWriteStream(binaryPath));
+    } else {
+      // In case the cache path doesn't exist
+      mkdir(cachePath, function(err) {
+        if (err) {
+          console.error(err);
+          return;
+        }
 
-      log.info('node-sass install', 'Binary saved at %s', sass.getBinaryPath());
-    });
+        download(sass.getBinaryUrl(), cacheBinary, function(err) {
+          if (err) {
+            console.error(err);
+            return;
+          }
+
+          console.log('Binary downloaded to ' + cacheBinary);
+          fs.createReadStream(cacheBinary).pipe(fs.createWriteStream(binaryPath));
+        });
+      });
+    }
   });
-}
-
-/**
- * Skip if CI
- */
-
-if (process.env.SKIP_SASS_BINARY_DOWNLOAD_FOR_CI) {
-  log.info('node-sass install', 'Skipping downloading binaries on CI builds');
-  return;
 }
 
 /**
