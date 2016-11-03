@@ -26,6 +26,15 @@
     - cmd: >-
         subst s: c:\projects
     - ps: set-location -path s:\node_modules\node-sass
+    - ps: Uninstall-Product node 4 $env:platform
+    - ps: Write-Host "Installing node-chakracore..." -ForegroundColor Cyan
+    - ps: Write-Host "Downloading..."
+    - ps: $msiPath = "$env:USERPROFILE\node-chakracore-$env:platform.msi"
+    - ps: $file = "https://github.com/nodejs/node-chakracore/releases/download/node-chakracore-7.0.0-pre9/node-chakracore-$($env:platform).msi"
+    - ps: (New-Object Net.WebClient).DownloadFile($file, $msiPath)
+    - ps: Write-Host "Installing..."
+    - ps: cmd /c start /wait msiexec /i $msiPath /quiet
+    - ps: Write-Host "node-chakracore installed" -ForegroundColor Green
 
   cache:
     - '%userprofile%\.node-gyp'
@@ -44,9 +53,21 @@
       - nodejs_version: 5
       - nodejs_version: 6
       - nodejs_version: 7
+      - nodejs_version: chakracore
 
   install:
-    - ps: Install-Product node $env:nodejs_version $env:platform
+    - ps: >-
+        if ($env:nodejs_version -eq "chakracore") {
+          if ($env:platform -eq "x86") {
+            cmd /c C:\"Program Files (x86)\nodejs (chakracore)\nodevars.bat"
+            $env:Path = "%APPDATA%\npm;C:\Program Files (x86)\nodejs (chakracore);$($env:Path)"
+          } else {
+            cmd /c C:\"Program Files\nodejs (chakracore)\nodevars.bat"
+            $env:Path = "%APPDATA%\npm;C:\Program Files\nodejs (chakracore);$($env:Path)"
+          }
+        } else {
+          Install-Product node $env:nodejs_version $env:platform
+        }
     - node --version
     - npm --version
     - git submodule update --init --recursive
@@ -102,6 +123,15 @@
     - cmd: >-
         subst s: c:\projects
     - ps: set-location -path s:\node_modules\node-sass
+    - ps: Uninstall-Product node 4 $env:platform
+    - ps: Write-Host "Installing node-chakracore..." -ForegroundColor Cyan
+    - ps: Write-Host "Downloading..."
+    - ps: $msiPath = "$env:USERPROFILE\node-chakracore-$env:platform.msi"
+    - ps: $file = "https://github.com/nodejs/node-chakracore/releases/download/node-chakracore-7.0.0-pre9/node-chakracore-$($env:platform).msi"
+    - ps: (New-Object Net.WebClient).DownloadFile($file, $msiPath)
+    - ps: Write-Host "Installing..."
+    - ps: cmd /c start /wait msiexec /i $msiPath /quiet
+    - ps: Write-Host "node-chakracore installed" -ForegroundColor Green
 
   cache:
     - '%userprofile%\.node-gyp'
@@ -115,10 +145,23 @@
       - nodejs_version: 4
       - nodejs_version: 6
       - nodejs_version: 7
+      - nodejs_version: chakracore
 
   install:
-    - ps: Install-Product node $env:nodejs_version $env:platform
+    - ps: >-
+        if ($env:nodejs_version -eq "chakracore") {
+          if ($env:platform -eq "x86") {
+            cmd /c C:\"Program Files (x86)\nodejs (chakracore)\nodevars.bat"
+            $env:Path = "%APPDATA%\npm;C:\Program Files (x86)\nodejs (chakracore);$($env:Path)"
+          } else {
+            cmd /c C:\"Program Files\nodejs (chakracore)\nodevars.bat"
+            $env:Path = "%APPDATA%\npm;C:\Program Files\nodejs (chakracore);$($env:Path)"
+          }
+        } else {
+          Install-Product node $env:nodejs_version $env:platform
+        }
     - node --version
+    - node -p process.versions
     - npm --version
     - git submodule update --init --recursive
     - npm install --msvs_version=2013
