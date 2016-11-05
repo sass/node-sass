@@ -9,9 +9,7 @@ var fs = require('fs'),
   sass = require('../lib/extensions'),
   request = require('request'),
   log = require('npmlog'),
-  pkg = require('../package.json'),
-  proxy = require('./util/proxy'),
-  userAgent = require('./util/useragent');
+  downloadOptions = require('./util/downloadoptions');
 
 /**
  * Download file, if succeeds save, if not delete
@@ -50,19 +48,10 @@ function download(url, dest, cb) {
     return response.statusCode >= 200 && response.statusCode < 300;
   };
 
-  var options = {
-    rejectUnauthorized: false,
-    proxy: proxy(),
-    timeout: 60000,
-    headers: {
-      'User-Agent': userAgent(),
-    }
-  };
-
   console.log('Start downloading binary at', url);
 
   try {
-    request(url, options, function(err, response) {
+    request(url, downloadOptions(), function(err, response) {
       if (err) {
         reportError(err);
       } else if (!successful(response)) {
