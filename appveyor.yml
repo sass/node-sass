@@ -83,6 +83,7 @@
       - release
       - /v\d\.\d\.\d/
 
+  skip_branch_with_pr: true
   skip_tags: true
 
   os: Visual Studio 2013
