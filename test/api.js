@@ -1937,7 +1937,7 @@ describe('api', function() {
         });
       });
 
-      describe('with an unsupported platform', function() {
+      describe('with an unsupported runtime', function() {
         var prevValue;
 
         beforeEach(function() {
