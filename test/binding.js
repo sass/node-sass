@@ -48,7 +48,7 @@ describe('binding', function() {
         prevValue = process.arch;
 
         Object.defineProperty(process, 'arch', {
-          get: function () { return 'foo'; }
+          value: 'foo',
         });
       });
 
@@ -78,7 +78,7 @@ describe('binding', function() {
         prevValue = process.platform;
 
         Object.defineProperty(process, 'platform', {
-          get: function () { return 'bar'; }
+          value: 'bar',
         });
       });
 
@@ -108,7 +108,7 @@ describe('binding', function() {
         prevValue = process.versions.modules;
 
         Object.defineProperty(process.versions, 'modules', {
-          get: function () { return 'baz'; }
+          value: 'baz',
         });
       });
 
