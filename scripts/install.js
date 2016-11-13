@@ -71,7 +71,7 @@ function download(url, dest, cb) {
       // The `progress` is true by default. However if it has not
       // been explicitly set it's `undefined` which is considered
       // as far as npm is concerned.
-      if (process.env.npm_config_progress !== false) {
+      if (process.env.npm_config_progress === 'true') {
         log.enableProgress();
 
         response.on('data', function(chunk) {
