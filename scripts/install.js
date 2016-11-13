@@ -93,34 +93,54 @@ function download(url, dest, cb) {
  */
 
 function checkAndDownloadBinary() {
-  if (sass.hasBinary(sass.getBinaryPath())) {
+  if (process.env.SKIP_SASS_BINARY_DOWNLOAD_FOR_CI) {
+    log.info('node-sass install', 'Skipping downloading binaries on CI builds');
     return;
   }
 
-  mkdir(path.dirname(sass.getBinaryPath()), function(err) {
+  var cachedBinary = sass.getCachedBinary(),
+    cachePath = sass.getBinaryCachePath(),
+    binaryPath = sass.getBinaryPath();
+
+  if (sass.hasBinary(binaryPath)) {
+    log.info('node-sass build', 'Binary found at %s', binaryPath);
+    return;
+  }
+
+  try {
+    mkdir.sync(path.dirname(binaryPath));
+  } catch (err) {
+    log.error('node-sass install', 'Unable to save binary to %s: %s', path.dirname(binaryPath), err);
+    return;
+  }
+
+  if (cachedBinary) {
+    log.info('node-sass install', 'Cached binary found at %s', cachedBinary);
+    fs.createReadStream(cachedBinary).pipe(fs.createWriteStream(binaryPath));
+    return;
+  }
+
+  download(sass.getBinaryUrl(), binaryPath, function(err) {
     if (err) {
       log.error('node-sass install', err);
       return;
     }
 
-    download(sass.getBinaryUrl(), sass.getBinaryPath(), function(err) {
-      if (err) {
-        log.error('node-sass install', err);
-        return;
+    log.info('node-sass install', 'Binary saved at %s', binaryPath);
+
+    cachedBinary = path.join(cachePath, sass.getBinaryName());
+
+    if (cachePath) {
+      log.info('node-sass install', 'Caching binary to %s', cachedBinary);
+
+      try {
+        mkdir.sync(path.dirname(cachedBinary));
+        fs.createReadStream(binaryPath).pipe(fs.createWriteStream(cachedBinary));
+      } catch (err) {
+        log.error('node-sass install', 'Failed to cache binary: %s', err);
       }
-
-      log.info('node-sass install', 'Binary saved at %s', sass.getBinaryPath());
-    });
+    }
   });
-}
-
-/**
- * Skip if CI
- */
-
-if (process.env.SKIP_SASS_BINARY_DOWNLOAD_FOR_CI) {
-  log.info('node-sass install', 'Skipping downloading binaries on CI builds');
-  return;
 }
 
 /**
