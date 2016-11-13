@@ -48,7 +48,7 @@ function download(url, dest, cb) {
     return response.statusCode >= 200 && response.statusCode < 300;
   };
 
-  log.http('node-sass install', 'Start downloading binary at' + url);
+  log.http('node-sass install', 'Start downloading binary at ' + url);
 
   try {
     request(url, downloadOptions(), function(err, response) {
@@ -108,7 +108,7 @@ function checkAndDownloadBinary() {
         return;
       }
 
-      log.info('node-sass install', 'Binary downloaded and installed at' + sass.getBinaryPath());
+      log.info('node-sass install', 'Binary downloaded and installed at ' + sass.getBinaryPath());
     });
   });
 }
