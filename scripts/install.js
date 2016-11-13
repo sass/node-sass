@@ -48,7 +48,7 @@ function download(url, dest, cb) {
     return response.statusCode >= 200 && response.statusCode < 300;
   };
 
-  log.http('node-sass install', 'Start downloading binary at ' + url);
+  log.http('node-sass install', 'Downloading binary from %s', url);
 
   try {
     request(url, downloadOptions(), function(err, response) {
@@ -57,12 +57,13 @@ function download(url, dest, cb) {
       } else if (!successful(response)) {
         reportError(['HTTP error', response.statusCode, response.statusMessage].join(' '));
       } else {
+        log.http('node-sass install', 'Download complete');
         cb();
       }
     })
     .on('response', function(response) {
       var length = parseInt(response.headers['content-length'], 10);
-      var progress = log.newItem(url, length);
+      var progress = log.newItem('', length);
 
       if (successful(response)) {
         response.pipe(fs.createWriteStream(dest));
@@ -108,7 +109,7 @@ function checkAndDownloadBinary() {
         return;
       }
 
-      log.info('node-sass install', 'Binary downloaded and installed at ' + sass.getBinaryPath());
+      log.info('node-sass install', 'Binary saved at %s', sass.getBinaryPath());
     });
   });
 }
