@@ -53,7 +53,9 @@ describe('binding', function() {
       });
 
       afterEach(function() {
-        process.arch = prevValue;
+        Object.defineProperty(process, 'arch', {
+          value: prevValue,
+        });
       });
 
       it('should error', function() {
@@ -83,7 +85,9 @@ describe('binding', function() {
       });
 
       afterEach(function() {
-        process.platform = prevValue;
+        Object.defineProperty(process, 'platform', {
+          value: prevValue,
+        });
       });
 
       it('should error', function() {
@@ -113,7 +117,9 @@ describe('binding', function() {
       });
 
       afterEach(function() {
-        process.versions.modules = prevValue;
+        Object.defineProperty(process.versions, 'modules', {
+          value: prevValue,
+        });
       });
 
       it('should error', function() {
