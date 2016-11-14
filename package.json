@@ -62,6 +62,8 @@
     "in-publish": "^2.0.0",
     "lodash.assign": "^4.2.0",
     "lodash.clonedeep": "^4.3.2",
+    "lodash.isarray": "^4.0.0",
+    "lodash.mergewith": "^4.6.0",
     "meow": "^3.7.0",
     "mkdirp": "^0.5.1",
     "nan": "^2.3.2",
