@@ -135,7 +135,9 @@ function checkAndDownloadBinary() {
 
       try {
         mkdir.sync(path.dirname(cachedBinary));
-        fs.createReadStream(binaryPath).pipe(fs.createWriteStream(cachedBinary));
+        fs.createReadStream(binaryPath)
+          .pipe(fs.createWriteStream(cachedBinary))
+          .on('error', function (e) { throw e; });
       } catch (err) {
         log.error('node-sass install', 'Failed to cache binary: %s', err);
       }
