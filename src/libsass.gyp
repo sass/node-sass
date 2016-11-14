@@ -15,6 +15,7 @@
         'libsass/src/base64vlq.cpp',
         'libsass/src/bind.cpp',
         'libsass/src/cencode.c',
+        'libsass/src/check_nesting.cpp',
         'libsass/src/color_maps.cpp',
         'libsass/src/constants.cpp',
         'libsass/src/context.cpp',
