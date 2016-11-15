@@ -7,7 +7,6 @@ var pkg = require('../package.json'),
   mkdir = require('mkdirp'),
   path = require('path'),
   spawn = require('cross-spawn'),
-  log = require('npmlog'),
   sass = require('../lib/extensions');
 
 /**
@@ -28,23 +27,23 @@ function afterBuild(options) {
 
   mkdir(path.dirname(install), function(err) {
     if (err && err.code !== 'EEXIST') {
-      log.error('node-sass build', err.message);
+      console.error(err.message);
       return;
     }
 
     fs.stat(target, function(err) {
       if (err) {
-        log.error('node-sass build', 'Build succeeded but target not found');
+        console.error('Build succeeded but target not found');
         return;
       }
 
       fs.rename(target, install, function(err) {
         if (err) {
-          log.error('node-sass build', err.message);
+          console.error(err.message);
           return;
         }
 
-        log.info('node-sass build', 'Installed to %s', install);
+        console.log('Installed to', install);
       });
     });
   });
@@ -76,8 +75,8 @@ function manageProcess(proc, cb) {
  */
 
 function initSubmodules(cb) {
-  log.info('node-sass build', 'Detected a git install');
-  log.info('node-sass build', 'Cloning LibSass into src/libsass');
+  console.log('Detected a git install');
+  console.log('Cloning LibSass into src/libsass');
 
   var clone = spawn('git', ['clone', 'https://github.com/sass/libsass.git', './src/libsass']);
   manageProcess(clone, function(err) {
@@ -86,7 +85,7 @@ function initSubmodules(cb) {
       return;
     }
 
-    log.info('node-sass build', 'Checking out LibSass to %s', pkg.libsass);
+    console.log('Checking out LibSass to', pkg.libsass);
 
     var checkout = spawn('git', ['checkout', pkg.libsass], { cwd: './src/libsass' });
     manageProcess(checkout, function(err) {
@@ -128,7 +127,7 @@ function installGitDependencies(options, cb) {
 function build(options) {
   installGitDependencies(options, function(err) {
     if (err) {
-      log.error('node-sass build', err.message);
+      console.error(err.message);
       process.exit(1);
     }
 
@@ -137,7 +136,7 @@ function build(options) {
         return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
       })).concat(options.args);
 
-    log.info('node-sass build', [process.execPath].concat(args).join(' '));
+    console.log('Building:', [process.execPath].concat(args).join(' '));
 
     var proc = spawn(process.execPath, args, {
       stdio: [0, 1, 2]
@@ -150,9 +149,9 @@ function build(options) {
       }
 
       if (errorCode === 127 ) {
-        log.error('node-sass build', 'node-gyp not found!');
+        console.error('node-gyp not found!');
       } else {
-        log.error('node-sass build', 'Build failed with error code: %d', errorCode);
+        console.error('Build failed with error code:', errorCode);
       }
 
       process.exit(1);
@@ -207,18 +206,18 @@ function testBinary(options) {
     return build(options);
   }
 
-  log.info('node-sass build', 'Binary found at %s', sass.getBinaryPath());
-  log.info('node-sass build', 'Testing binary');
+  console.log('Binary found at', sass.getBinaryPath());
+  console.log('Testing binary');
 
   try {
     require('../').renderSync({
       data: 's { a: ss }'
     });
 
-    log.info('node-sass build', 'Binary is fine');
+    console.log('Binary is fine');
   } catch (e) {
-    log.error('node-sass build', 'Binary has a problem: %s', e);
-    log.info('node-sass build', 'Building the binary locally');
+    console.log('Binary has a problem:', e);
+    console.log('Building the binary locally');
 
     return build(options);
   }
