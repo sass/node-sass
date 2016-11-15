@@ -29,8 +29,6 @@ function afterBuild(options) {
     'binding.node');
 
   mkdir(path.dirname(install), function(err) {
-    log.stream = process.stderr;
-
     if (err && err.code !== 'EEXIST') {
       log.error('node-sass build', err.message);
       return;
@@ -48,7 +46,6 @@ function afterBuild(options) {
           return;
         }
 
-        log.stream = process.stdout;
         log.info('node-sass build', 'Installed to %s', install);
       });
     });
@@ -133,7 +130,6 @@ function installGitDependencies(options, cb) {
 function build(options) {
   installGitDependencies(options, function(err) {
     if (err) {
-      log.stream = process.stderr;
       log.error('node-sass build', err.message);
       process.exit(1);
     }
@@ -154,8 +150,6 @@ function build(options) {
         afterBuild(options);
         return;
       }
-
-      log.stream = process.stderr;
 
       if (errorCode === 127) {
         log.error('node-sass build', 'node-gyp not found!');
