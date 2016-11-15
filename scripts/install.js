@@ -112,6 +112,7 @@ function checkAndDownloadBinary() {
   try {
     mkdir.sync(path.dirname(binaryPath));
   } catch (err) {
+    log.stream = process.stderr;
     log.error('node-sass install', 'Unable to save binary to %s: %s', path.dirname(binaryPath), err);
     return;
   }
@@ -124,6 +125,7 @@ function checkAndDownloadBinary() {
 
   download(sass.getBinaryUrl(), binaryPath, function(err) {
     if (err) {
+      log.stream = process.stderr;
       log.error('node-sass install', err);
       return;
     }
