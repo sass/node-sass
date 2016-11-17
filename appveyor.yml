@@ -74,7 +74,7 @@
       auth_token:
         secure: IZIifH990iABY3PQUtkRscTU/NOyYYwptGB6B1y2b618vpphV/2KD/4IWJzSAYAi
       on:
-        appveyor_repo_tag: true       # deploy on tag push only
+        appveyor_repo_tag: false       # deploy on tag push only
 
 -
   branches:
