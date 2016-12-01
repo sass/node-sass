@@ -257,7 +257,7 @@ Used to determine how many digits after the decimal will be allowed. For instanc
 Type: `Boolean`
 Default: `false`
 
-`true` enables additional debugging information in the output file as CSS comments
+`true` enables additional debugging information (line number and source scss file reference, similar to :line_comments in compass) in the output file as CSS comments
 
 ### sourceMap
 Type: `Boolean | String | undefined`
@@ -351,7 +351,8 @@ var result = sass.renderSync({
   data: 'body{background:blue; a{color:black;}}',
   outputStyle: 'compressed',
   outFile: '/to/my/output.css',
-  sourceMap: true, // or an absolute or relative (to outFile) path
+  sourceMap: true, // or an absolute or relative (to outFile) path,
+  sourceComments: true,  
   importer: function(url, prev, done) {
     // url is the path in import as is, which LibSass encountered.
     // prev is the previously resolved path.
