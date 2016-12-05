@@ -345,7 +345,7 @@ namespace Sass {
       first = false;
     } while (lex_css< exactly<','> >());
 
-    if (!peek_css<alternatives<exactly<';'>,end_of_file>>()) {
+    if (!peek_css< alternatives< exactly<';'>, exactly<'}'>, end_of_file > >()) {
       List* media_queries = parse_media_queries();
       imp->media_queries(media_queries);
     }
