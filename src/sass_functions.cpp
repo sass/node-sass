@@ -126,6 +126,13 @@ extern "C" {
     free(import);
   }
 
+  // Getter for callee entry
+  const char* ADDCALL sass_callee_get_name(Sass_Callee_Entry entry) { return entry->name; }
+  const char* ADDCALL sass_callee_get_path(Sass_Callee_Entry entry) { return entry->path; }
+  size_t ADDCALL sass_callee_get_line(Sass_Callee_Entry entry) { return entry->line; }
+  size_t ADDCALL sass_callee_get_column(Sass_Callee_Entry entry) { return entry->column; }
+  enum Sass_Callee_Type ADDCALL sass_callee_get_type(Sass_Callee_Entry entry) { return entry->type; }
+
   // Getter for import entry
   const char* ADDCALL sass_import_get_imp_path(Sass_Import_Entry entry) { return entry->imp_path; }
   const char* ADDCALL sass_import_get_abs_path(Sass_Import_Entry entry) { return entry->abs_path; }

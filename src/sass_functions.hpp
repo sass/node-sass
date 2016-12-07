@@ -22,6 +22,15 @@ struct Sass_Import {
   size_t column;
 };
 
+// External call entry
+struct Sass_Callee {
+  const char* name;
+  const char* path;
+  size_t line;
+  size_t column;
+  enum Sass_Callee_Type type;
+};
+
 // Struct to hold importer callback
 struct Sass_Importer {
   Sass_Importer_Fn importer;
