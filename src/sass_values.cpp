@@ -300,6 +300,8 @@ extern "C" {
         case Sass_OP::GTE: return sass_make_boolean(!Eval::lt(&lhs, &rhs, "gte"));
         case Sass_OP::LT:  return sass_make_boolean(Eval::lt(&lhs, &rhs, "lt"));
         case Sass_OP::LTE: return sass_make_boolean(Eval::lt(&lhs, &rhs, "lte") || Eval::eq(&lhs, &rhs));
+        case Sass_OP::AND: return ast_node_to_sass_value(lhs->is_false() ? &lhs : &rhs);
+        case Sass_OP::OR:  return ast_node_to_sass_value(lhs->is_false() ? &rhs : &lhs);
         default:           break;
       }
 

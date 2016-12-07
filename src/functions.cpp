@@ -1937,7 +1937,7 @@ namespace Sass {
       Selector_List_Obj  extendee = ARGSEL("$extendee", Selector_List_Obj, p_contextualize);
       Selector_List_Obj  extender = ARGSEL("$extender", Selector_List_Obj, p_contextualize);
 
-      ExtensionSubsetMap subset_map;
+      Subset_Map subset_map;
       extender->populate_extends(extendee, ctx, subset_map);
 
       Selector_List_Obj result = Extend::extendSelectorList(selector, ctx, subset_map, false);
@@ -1952,7 +1952,7 @@ namespace Sass {
       Selector_List_Obj selector = ARGSEL("$selector", Selector_List_Obj, p_contextualize);
       Selector_List_Obj original = ARGSEL("$original", Selector_List_Obj, p_contextualize);
       Selector_List_Obj replacement = ARGSEL("$replacement", Selector_List_Obj, p_contextualize);
-      ExtensionSubsetMap subset_map;
+      Subset_Map subset_map;
       replacement->populate_extends(original, ctx, subset_map);
 
       Selector_List_Obj result = Extend::extendSelectorList(selector, ctx, subset_map, true);

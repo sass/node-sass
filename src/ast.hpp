@@ -9,8 +9,8 @@
 #include <iostream>
 #include <typeinfo>
 #include <algorithm>
-#include <unordered_map>
 #include "sass/base.h"
+#include "ast_fwd_decl.hpp"
 
 #ifdef DEBUG_SHARED_PTR
 
@@ -155,6 +155,12 @@ namespace Sass {
       C_ERROR,
       FUNCTION,
       NUM_TYPES
+    };
+    enum Simple_Type {
+      SIMPLE,
+      ATTR_SEL,
+      PSEUDO_SEL,
+      WRAPPED_SEL,
     };
   private:
     // expressions in some contexts shouldn't be evaluated
@@ -327,22 +333,6 @@ namespace Sass {
   // extra <std::vector> internally to maintain insertion order for interation.
   /////////////////////////////////////////////////////////////////////////////
   class Hashed {
-  struct HashExpression {
-    size_t operator() (Expression_Obj ex) const {
-      return ex ? ex->hash() : 0;
-    }
-  };
-  struct CompareExpression {
-    bool operator()(const Expression_Obj lhs, const Expression_Obj rhs) const {
-      return lhs && rhs && lhs->eq(*rhs);
-    }
-  };
-  typedef std::unordered_map<
-    Expression_Obj, // key
-    Expression_Obj, // value
-    HashExpression, // hasher
-    CompareExpression // compare
-  > ExpressionMap;
   private:
     ExpressionMap elements_;
     std::vector<Expression_Obj> list_;
@@ -1771,6 +1761,9 @@ namespace Sass {
     virtual void ltrim() = 0;
     virtual void trim() = 0;
     virtual bool operator==(const Expression& rhs) const = 0;
+    virtual bool operator<(const Expression& rhs) const {
+      return this->to_string() < rhs.to_string();
+    };
     ATTACH_VIRTUAL_AST_OPERATIONS(String);
     ATTACH_OPERATIONS()
   };
@@ -2312,6 +2305,9 @@ namespace Sass {
     virtual bool has_real_parent_ref() {
       return false;
     }
+    // dispatch to correct handlers
+    virtual bool operator<(const Selector& rhs) const;
+    virtual bool operator==(const Selector& rhs) const;
     ATTACH_VIRTUAL_AST_OPERATIONS(Selector);
   };
   inline Selector::~Selector() { }
@@ -2348,13 +2344,15 @@ namespace Sass {
   // Abstract base class for simple selectors.
   ////////////////////////////////////////////
   class Simple_Selector : public Selector {
-    ADD_PROPERTY(std::string, ns);
+    ADD_PROPERTY(std::string, ns)
     ADD_PROPERTY(std::string, name)
+    ADD_PROPERTY(Simple_Type, simple_type)
     ADD_PROPERTY(bool, has_ns)
   public:
     Simple_Selector(ParserState pstate, std::string n = "")
     : Selector(pstate), ns_(""), name_(n), has_ns_(false)
     {
+      simple_type(SIMPLE);
       size_t pos = n.find('|');
       // found some namespace
       if (pos != std::string::npos) {
@@ -2368,7 +2366,7 @@ namespace Sass {
       ns_(ptr->ns_),
       name_(ptr->name_),
       has_ns_(ptr->has_ns_)
-    { }
+    { simple_type(SIMPLE); }
     virtual bool unique() const
     {
       return false;
@@ -2425,9 +2423,11 @@ namespace Sass {
 
     virtual bool is_superselector_of(Compound_Selector_Obj sub) { return false; }
 
-    bool operator==(const Simple_Selector& rhs) const;
+    virtual bool operator==(const Selector& rhs) const;
+    virtual bool operator==(const Simple_Selector& rhs) const;
     inline bool operator!=(const Simple_Selector& rhs) const { return !(*this == rhs); }
 
+    bool operator<(const Selector& rhs) const;
     bool operator<(const Simple_Selector& rhs) const;
     // default implementation should work for most of the simple selectors (otherwise overload)
     ATTACH_VIRTUAL_AST_OPERATIONS(Simple_Selector);
@@ -2567,12 +2567,12 @@ namespace Sass {
   public:
     Attribute_Selector(ParserState pstate, std::string n, std::string m, String_Obj v)
     : Simple_Selector(pstate, n), matcher_(m), value_(v)
-    { }
+    { simple_type(ATTR_SEL); }
     Attribute_Selector(const Attribute_Selector* ptr)
     : Simple_Selector(ptr),
       matcher_(ptr->matcher_),
       value_(ptr->value_)
-    { }
+    { simple_type(ATTR_SEL); }
     virtual size_t hash()
     {
       if (hash_ == 0) {
@@ -2586,10 +2586,10 @@ namespace Sass {
     {
       return Constants::Specificity_Attr;
     }
-    bool operator==(const Simple_Selector& rhs) const;
-    bool operator==(const Attribute_Selector& rhs) const;
-    bool operator<(const Simple_Selector& rhs) const;
-    bool operator<(const Attribute_Selector& rhs) const;
+    virtual bool operator==(const Simple_Selector& rhs) const;
+    virtual bool operator==(const Attribute_Selector& rhs) const;
+    virtual bool operator<(const Simple_Selector& rhs) const;
+    virtual bool operator<(const Attribute_Selector& rhs) const;
     ATTACH_AST_OPERATIONS(Attribute_Selector)
     ATTACH_OPERATIONS()
   };
@@ -2615,10 +2615,10 @@ namespace Sass {
   public:
     Pseudo_Selector(ParserState pstate, std::string n, String_Obj expr = 0)
     : Simple_Selector(pstate, n), expression_(expr)
-    { }
+    { simple_type(PSEUDO_SEL); }
     Pseudo_Selector(const Pseudo_Selector* ptr)
     : Simple_Selector(ptr), expression_(ptr->expression_)
-    { }
+    { simple_type(PSEUDO_SEL); }
 
     // A pseudo-class always consists of a "colon" (:) followed by the name
     // of the pseudo-class and optionally by a value between parentheses.
@@ -2655,10 +2655,10 @@ namespace Sass {
         return Constants::Specificity_Element;
       return Constants::Specificity_Pseudo;
     }
-    bool operator==(const Simple_Selector& rhs) const;
-    bool operator==(const Pseudo_Selector& rhs) const;
-    bool operator<(const Simple_Selector& rhs) const;
-    bool operator<(const Pseudo_Selector& rhs) const;
+    virtual bool operator==(const Simple_Selector& rhs) const;
+    virtual bool operator==(const Pseudo_Selector& rhs) const;
+    virtual bool operator<(const Simple_Selector& rhs) const;
+    virtual bool operator<(const Pseudo_Selector& rhs) const;
     virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr, Context&);
     ATTACH_AST_OPERATIONS(Pseudo_Selector)
     ATTACH_OPERATIONS()
@@ -2672,10 +2672,10 @@ namespace Sass {
   public:
     Wrapped_Selector(ParserState pstate, std::string n, Selector_Obj sel)
     : Simple_Selector(pstate, n), selector_(sel)
-    { }
+    { simple_type(WRAPPED_SEL); }
     Wrapped_Selector(const Wrapped_Selector* ptr)
     : Simple_Selector(ptr), selector_(ptr->selector_)
-    { }
+    { simple_type(WRAPPED_SEL); }
     virtual bool is_superselector_of(Wrapped_Selector_Obj sub);
     // Selectors inside the negation pseudo-class are counted like any
     // other, but the negation itself does not count as a pseudo-class.
@@ -2705,10 +2705,10 @@ namespace Sass {
     {
       return selector_ ? selector_->specificity() : 0;
     }
-    bool operator==(const Simple_Selector& rhs) const;
-    bool operator==(const Wrapped_Selector& rhs) const;
-    bool operator<(const Simple_Selector& rhs) const;
-    bool operator<(const Wrapped_Selector& rhs) const;
+    virtual bool operator==(const Simple_Selector& rhs) const;
+    virtual bool operator==(const Wrapped_Selector& rhs) const;
+    virtual bool operator<(const Simple_Selector& rhs) const;
+    virtual bool operator<(const Wrapped_Selector& rhs) const;
     virtual void cloneChildren();
     ATTACH_AST_OPERATIONS(Wrapped_Selector)
     ATTACH_OPERATIONS()
@@ -2820,11 +2820,10 @@ namespace Sass {
       return length() == 1 &&
              SASS_MEMORY_CAST(Parent_Selector, (*this)[0]);
     }
-    std::vector<std::string> to_str_vec(); // sometimes need to convert to a flat "by-value" data structure
+    std::vector<Subset_Map_Key> to_str_vec(); // sometimes need to convert to a flat "by-value" data structure
 
-    bool operator<(const Compound_Selector& rhs) const;
-
-    bool operator==(const Compound_Selector& rhs) const;
+    virtual bool operator<(const Compound_Selector& rhs) const;
+    virtual bool operator==(const Compound_Selector& rhs) const;
     inline bool operator!=(const Compound_Selector& rhs) const { return !(*this == rhs); }
 
     SourcesSet& sources() { return sources_; }
@@ -2950,8 +2949,8 @@ namespace Sass {
       if (tail_ && tail_->has_placeholder()) return true;
       return false;
     }
-    bool operator<(const Complex_Selector& rhs) const;
-    bool operator==(const Complex_Selector& rhs) const;
+    virtual bool operator<(const Complex_Selector& rhs) const;
+    virtual bool operator==(const Complex_Selector& rhs) const;
     inline bool operator!=(const Complex_Selector& rhs) const { return !(*this == rhs); }
     SourcesSet sources()
     {
@@ -3008,7 +3007,6 @@ namespace Sass {
   };
 
   typedef std::deque<Complex_Selector_Obj> ComplexSelectorDeque;
-  typedef Subset_Map<std::string, std::pair<Complex_Selector_Obj, Compound_Selector_Obj> > ExtensionSubsetMap;
 
   ///////////////////////////////////
   // Comma-separated selector groups.
@@ -3037,7 +3035,7 @@ namespace Sass {
     virtual bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Selector_List_Obj sub, std::string wrapping = "");
     Selector_List_Ptr unify_with(Selector_List_Ptr, Context&);
-    void populate_extends(Selector_List_Obj, Context&, ExtensionSubsetMap&);
+    void populate_extends(Selector_List_Obj, Context&, Subset_Map&);
     virtual size_t hash()
     {
       if (Selector::hash_ == 0) {
@@ -3075,7 +3073,9 @@ namespace Sass {
       }
       return false;
     }
+    virtual bool operator<(const Selector& rhs) const;
     virtual bool operator==(const Selector& rhs) const;
+    virtual bool operator<(const Selector_List& rhs) const;
     virtual bool operator==(const Selector_List& rhs) const;
     // Selector Lists can be compared to comma lists
     virtual bool operator==(const Expression& rhs) const;
