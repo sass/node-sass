@@ -31,7 +31,14 @@ namespace Sass {
   inline double sub(double x, double y) { return x - y; }
   inline double mul(double x, double y) { return x * y; }
   inline double div(double x, double y) { return x / y; } // x/0 checked by caller
-  inline double mod(double x, double y) { return std::abs(std::fmod(x, y)); } // x/0 checked by caller
+  inline double mod(double x, double y) { // x/0 checked by caller
+    if ((x > 0 && y < 0) || (x < 0 && y > 0)) {
+      double ret = std::fmod(x, y);
+      return ret ? ret + y : ret;
+    } else {
+      return std::fmod(x, y);
+    }
+  }
   typedef double (*bop)(double, double);
   bop ops[Sass_OP::NUM_OPS] = {
     0, 0, // and, or
