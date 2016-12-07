@@ -207,6 +207,15 @@ size_t sass_context_get_error_column (struct Sass_Context* ctx);
 const char* sass_context_get_source_map_string (struct Sass_Context* ctx);
 char** sass_context_get_included_files (struct Sass_Context* ctx);
 
+// Getters for Sass_Compiler options (query import stack)
+size_t sass_compiler_get_import_stack_size(struct Sass_Compiler* compiler);
+Sass_Import_Entry sass_compiler_get_last_import(struct Sass_Compiler* compiler);
+Sass_Import_Entry sass_compiler_get_import_entry(struct Sass_Compiler* compiler, size_t idx);
+// Getters for Sass_Compiler options (query function stack)
+size_t sass_compiler_get_callee_stack_size(struct Sass_Compiler* compiler);
+Sass_Callee_Entry sass_compiler_get_last_callee(struct Sass_Compiler* compiler);
+Sass_Callee_Entry sass_compiler_get_callee_entry(struct Sass_Compiler* compiler, size_t idx);
+
 // Take ownership of memory (value on context is set to 0)
 char* sass_context_take_error_json (struct Sass_Context* ctx);
 char* sass_context_take_error_text (struct Sass_Context* ctx);

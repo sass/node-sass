@@ -11,7 +11,7 @@ union Sass_Value* call_fn_foo(const union Sass_Value* s_args, Sass_Function_Entr
   struct Sass_Context* ctx = sass_compiler_get_context(comp);
   struct Sass_Options* opts = sass_compiler_get_options(comp);
   // get information about previous importer entry from the stack
-  struct Sass_Import* import = sass_compiler_get_last_import(comp);
+  Sass_Import_Entry import = sass_compiler_get_last_import(comp);
   const char* prev_abs_path = sass_import_get_abs_path(import);
   const char* prev_imp_path = sass_import_get_imp_path(import);
   // get the cookie from function descriptor
