@@ -428,5 +428,3 @@ if (options.src) {
     run(options, emitter);
   });
 }
-
-return emitter;
