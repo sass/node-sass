@@ -1,7 +1,7 @@
 {
   "name": "node-sass",
   "version": "3.13.1",
-  "libsass": "3.3.6",
+  "libsass": "3.4.0",
   "description": "Wrapper around libsass",
   "license": "MIT",
   "bugs": "https://github.com/sass/node-sass/issues",
@@ -62,6 +62,8 @@
     "in-publish": "^2.0.0",
     "lodash.assign": "^4.2.0",
     "lodash.clonedeep": "^4.3.2",
+    "lodash.isarray": "^4.0.0",
+    "lodash.mergewith": "^4.6.0",
     "meow": "^3.7.0",
     "mkdirp": "^0.5.1",
     "nan": "^2.3.2",
@@ -79,6 +81,6 @@
     "object-merge": "^2.5.1",
     "read-yaml": "^1.0.0",
     "rimraf": "^2.5.2",
-    "sass-spec": "^3.3.6-5"
+    "sass-spec": "^3.4.0"
   }
 }
