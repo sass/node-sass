@@ -145,7 +145,9 @@ namespace Sass {
     }
 
     // update for end position
-    block->update_pstate(pstate);
+    // this seems to be done somewhere else
+    // but that fixed selector schema issue
+    // block->update_pstate(pstate);
 
     // parse comments after block
     // lex < optional_css_comments >();
@@ -491,6 +493,7 @@ namespace Sass {
     stack.pop_back();
     // update for end position
     ruleset->update_pstate(pstate);
+    ruleset->block()->update_pstate(pstate);
     // inherit is_root from parent block
     // need this info for sanity checks
     ruleset->is_root(is_root);
@@ -517,7 +520,14 @@ namespace Sass {
       // try to parse mutliple interpolants
       if (const char* p = find_first_in_interval< exactly<hash_lbrace>, block_comment >(i, end_of_selector)) {
         // accumulate the preceding segment if the position has advanced
-        if (i < p) schema->append(SASS_MEMORY_NEW(String_Constant, pstate, std::string(i, p)));
+        if (i < p) {
+          std::string parsed(i, p);
+          String_Constant_Obj str = SASS_MEMORY_NEW(String_Constant, pstate, parsed);
+          pstate += Offset(parsed);
+          str->update_pstate(pstate);
+          schema->append(&str);
+        }
+
         // check if the interpolation only contains white-space (error out)
         if (peek < sequence < optional_spaces, exactly<rbrace> > >(p+2)) { position = p+2;
           css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
@@ -525,12 +535,15 @@ namespace Sass {
         // skip over all nested inner interpolations up to our own delimiter
         const char* j = skip_over_scopes< exactly<hash_lbrace>, exactly<rbrace> >(p + 2, end_of_selector);
         // pass inner expression to the parser to resolve nested interpolations
+        pstate.add(p, p+2);
         Expression_Obj interpolant = Parser::from_c_str(p+2, j, ctx, pstate).parse_list();
         // set status on the list expression
         interpolant->is_interpolant(true);
         // schema->has_interpolants(true);
         // add to the string schema
         schema->append(&interpolant);
+        // advance parser state
+        pstate.add(p+2, j);
         // advance position
         i = j;
       }
@@ -538,9 +551,15 @@ namespace Sass {
       // add the last segment if there is one
       else {
         // make sure to add the last bits of the string up to the end (if any)
-        if (i < end_of_selector) schema->append(SASS_MEMORY_NEW(String_Constant, pstate, std::string(i, end_of_selector)));
+        if (i < end_of_selector) {
+          std::string parsed(i, end_of_selector);
+          String_Constant_Obj str = SASS_MEMORY_NEW(String_Constant, pstate, parsed);
+          pstate += Offset(parsed);
+          str->update_pstate(pstate);
+          i = end_of_selector;
+          schema->append(&str);
+        }
         // exit loop
-        i = end_of_selector;
       }
     }
     // EO until eos
@@ -550,6 +569,9 @@ namespace Sass {
 
     // update for end position
     selector_schema->update_pstate(pstate);
+    schema->update_pstate(pstate);
+
+    after_token = before_token = pstate;
 
     // return parsed result
     return selector_schema;
@@ -645,6 +667,7 @@ namespace Sass {
 
     String_Ptr reference = 0;
     lex < block_comment >();
+    advanceToNextToken();
     Complex_Selector_Obj sel = SASS_MEMORY_NEW(Complex_Selector, pstate);
 
     // parse the left hand side
@@ -974,6 +997,7 @@ namespace Sass {
       lex < css_comments >(false);
       Declaration_Obj decl = SASS_MEMORY_NEW(Declaration, prop->pstate(), prop, value/*, lex<kwd_important>()*/);
       decl->is_indented(is_indented);
+      decl->update_pstate(pstate);
       return decl;
     }
   }
