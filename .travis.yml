@@ -65,7 +65,6 @@ after_success:
 cache:
   directories:
     - $HOME/.node-gyp
-    - $HOME/.npm
     - node_modules
 
 notifications:

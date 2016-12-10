@@ -29,7 +29,6 @@
 
   cache:
     - '%userprofile%\.node-gyp'
-    - '%AppData%\npm-cache'
 
   environment:
     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
@@ -106,7 +105,6 @@
 
   cache:
     - '%userprofile%\.node-gyp'
-    - '%AppData%\npm-cache'
 
   environment:
     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
