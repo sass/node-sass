@@ -9,7 +9,6 @@ var assert = require('assert'),
   readYaml = require('read-yaml'),
   mergeWith = require('lodash.mergewith'),
   assign = require('lodash.assign'),
-  isArray = require('lodash.isarray'),
   glob = require('glob'),
   specPath = require('sass-spec').dirname.replace(/\\/g, '/'),
   impl = 'libsass',
@@ -116,7 +115,7 @@ var specSuite = {
 };
 
 function customizer(objValue, srcValue) {
-  if (isArray(objValue)) {
+  if (Array.isArray(objValue)) {
     return objValue.concat(srcValue);
   }
 }
