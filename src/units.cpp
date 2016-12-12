@@ -44,9 +44,9 @@ namespace Sass {
   const double resolution_conversion_factors[3][3] =
   {
              /*  dpi        dpcm       dppx     */
-    /* dpi  */ { 1,         2.54,      96       },
-    /* dpcm */ { 1/2.54,    1,         96/2.54  },
-    /* dppx */ { 1/96.0,    2.54/96,   1        }
+    /* dpi  */ { 1,         1/2.54,    1/96.0   },
+    /* dpcm */ { 2.54,      1,         2.54/96  },
+    /* dppx */ { 96,        96/2.54,   1        }
   };
 
   UnitClass get_unit_type(UnitType unit)
