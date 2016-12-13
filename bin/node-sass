@@ -10,6 +10,7 @@ var Emitter = require('events').EventEmitter,
   glob = require('glob'),
   sass = require('../lib'),
   render = require('../lib/render'),
+  stdout = require('../lib/stdout');
   stdin = require('get-stdin'),
   fs = require('fs');
 
@@ -143,6 +144,7 @@ function globPattern(options) {
 
 function getEmitter() {
   var emitter = new Emitter();
+  var asyncWaiting = false;
 
   emitter.on('error', function(err) {
     if (options.errorBell) {
@@ -161,11 +163,17 @@ function getEmitter() {
   });
 
   emitter.on('log', function(data) {
-    console.log(data);
+    // If we need to outout large size buffer,
+    // keep waiting until buffer outputted completely.
+    asyncWaiting = true;
+
+    // In nodejs <= 7.1.0, console.log cannot write output larger than 8275 bytes data.
+    // So that, we output partial strings manually with some asynchronous way.
+    stdout(data);
   });
 
   emitter.on('done', function() {
-    if (!options.watch && !options.directory) {
+    if (!options.watch && !options.directory && !asyncWaiting) {
       process.exit();
     }
   });
