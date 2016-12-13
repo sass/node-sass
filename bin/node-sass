@@ -162,14 +162,7 @@ function getEmitter() {
     }
   });
 
-  emitter.on('log', function(data) {
-    // In nodejs <= 7.1.0, console.log cannot write output larger than 8275 bytes data.
-    stdout.write(data);
-  });
-
-  emitter.on('done', function() {
-    // noop
-  });
+  emitter.on('log', stdout.write.bind(stdout));
 
   return emitter;
 }
