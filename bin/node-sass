@@ -10,7 +10,7 @@ var Emitter = require('events').EventEmitter,
   glob = require('glob'),
   sass = require('../lib'),
   render = require('../lib/render'),
-  stdout = require('../lib/stdout'),
+  stdout = require('stdout-stream'),
   stdin = require('get-stdin'),
   fs = require('fs');
 
@@ -169,7 +169,7 @@ function getEmitter() {
 
     // In nodejs <= 7.1.0, console.log cannot write output larger than 8275 bytes data.
     // So that, we output partial strings manually with some asynchronous way.
-    stdout(data);
+    stdout.write(data);
   });
 
   emitter.on('done', function() {
