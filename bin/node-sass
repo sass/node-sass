@@ -12,7 +12,6 @@ var Emitter = require('events').EventEmitter,
   render = require('../lib/render'),
   stdout = require('stdout-stream'),
   stdin = require('get-stdin'),
-  exit = require('exit'),
   fs = require('fs');
 
 /**
