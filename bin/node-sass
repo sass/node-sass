@@ -10,6 +10,7 @@ var Emitter = require('events').EventEmitter,
   glob = require('glob'),
   sass = require('../lib'),
   render = require('../lib/render'),
+  stdout = require('stdout-stream'),
   stdin = require('get-stdin'),
   fs = require('fs');
 
@@ -160,15 +161,7 @@ function getEmitter() {
     }
   });
 
-  emitter.on('log', function(data) {
-    console.log(data);
-  });
-
-  emitter.on('done', function() {
-    if (!options.watch && !options.directory) {
-      process.exit();
-    }
-  });
+  emitter.on('log', stdout.write.bind(stdout));
 
   return emitter;
 }
