@@ -10,7 +10,7 @@ var Emitter = require('events').EventEmitter,
   glob = require('glob'),
   sass = require('../lib'),
   render = require('../lib/render'),
-  stdout = require('../lib/stdout');
+  stdout = require('../lib/stdout'),
   stdin = require('get-stdin'),
   fs = require('fs');
 
