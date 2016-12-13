@@ -152,7 +152,7 @@ function getEmitter() {
     }
     console.error(err);
     if (!options.watch) {
-      exit(1);
+      process.exit(1);
     }
   });
 
