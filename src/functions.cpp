@@ -1021,7 +1021,7 @@ namespace Sass {
 
         size_t size = utf8::distance(str.begin(), str.end());
 
-        if (end_at <= size * -1.0 && size > 1) {
+        if (end_at < size * -1.0 && size > 1) {
           end_at = 0;
         }
         if (end_at < 0) {
