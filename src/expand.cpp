@@ -611,18 +611,29 @@ namespace Sass {
   {
     if (CommaSequence_Selector* extender = dynamic_cast<CommaSequence_Selector*>(selector())) {
       Selector* s = e->selector();
-      if (Selector_Schema* schema = dynamic_cast<Selector_Schema*>(s)) {
-        if (schema->has_parent_ref()) s = eval(schema);
+      CommaSequence_Selector* sl = NULL;
+      // check if we already have a valid selector list
+      if ((sl = dynamic_cast<CommaSequence_Selector*>(s))) {}
+      // convert selector schema to a selector list
+      else if (Selector_Schema* schema = dynamic_cast<Selector_Schema*>(s)) {
+        if (schema->has_real_parent_ref()) {
+          sl = eval(schema);
+        } else {
+          selector_stack.push_back(0);
+          sl = eval(schema);
+          sl->remove_parent_selectors();
+          selector_stack.pop_back();
+        }
       }
-      if (CommaSequence_Selector* sl = dynamic_cast<CommaSequence_Selector*>(s)) {
-        for (Sequence_Selector* cs : *sl) {
-          if (cs != NULL && cs->head() != NULL) {
-            cs->head()->media_block(media_block_stack.back());
-          }
+      // abort on invalid selector
+      if (sl == NULL) return NULL;
+      for (Sequence_Selector* cs : *sl) {
+        if (cs != NULL && cs->head() != NULL) {
+          cs->head()->media_block(media_block_stack.back());
         }
       }
       selector_stack.push_back(0);
-      expand_selector_list(s, extender);
+      expand_selector_list(sl, extender);
       selector_stack.pop_back();
     }
     return 0;
