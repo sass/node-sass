@@ -21,7 +21,7 @@ namespace Sass {
     { }
 
 
-    InvalidParent::InvalidParent(Selector* parent, Selector* selector)
+    InvalidParent::InvalidParent(Selector_Ptr parent, Selector_Ptr selector)
     : Base(selector->pstate()), parent(parent), selector(selector)
     {
       msg = "Invalid parent selector for \"";
@@ -31,7 +31,7 @@ namespace Sass {
       msg += "\"";
     }
 
-    InvalidArgumentType::InvalidArgumentType(ParserState pstate, std::string fn, std::string arg, std::string type, const Value* value)
+    InvalidArgumentType::InvalidArgumentType(ParserState pstate, std::string fn, std::string arg, std::string type, const Value_Ptr value)
     : Base(pstate), fn(fn), arg(arg), type(type), value(value)
     {
       msg  = arg + ": \"";
@@ -52,7 +52,7 @@ namespace Sass {
     : Base(pstate, msg, import_stack)
     { }
 
-    UndefinedOperation::UndefinedOperation(const Expression* lhs, const Expression* rhs, const std::string& op)
+    UndefinedOperation::UndefinedOperation(Expression_Ptr_Const lhs, Expression_Ptr_Const rhs, const std::string& op)
     : lhs(lhs), rhs(rhs), op(op)
     {
       msg  = def_op_msg + ": \"";
@@ -62,7 +62,7 @@ namespace Sass {
       msg += "\".";
     }
 
-    InvalidNullOperation::InvalidNullOperation(const Expression* lhs, const Expression* rhs, const std::string& op)
+    InvalidNullOperation::InvalidNullOperation(Expression_Ptr_Const lhs, Expression_Ptr_Const rhs, const std::string& op)
     : UndefinedOperation(lhs, rhs, op)
     {
       msg  = def_op_null_msg + ": \"";
@@ -120,7 +120,7 @@ namespace Sass {
       msg += "'.";
     }
 
-    AlphaChannelsNotEqual::AlphaChannelsNotEqual(const Expression* lhs, const Expression* rhs, const std::string& op)
+    AlphaChannelsNotEqual::AlphaChannelsNotEqual(Expression_Ptr_Const lhs, Expression_Ptr_Const rhs, const std::string& op)
     : lhs(lhs), rhs(rhs), op(op)
     {
       msg  = "Alpha channels must be equal: ";

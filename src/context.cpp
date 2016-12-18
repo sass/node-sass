@@ -64,7 +64,6 @@ namespace Sass {
     c_options(c_ctx),
     entry_path(""),
     head_imports(0),
-    mem(Memory_Manager()),
     plugins(),
     emitter(c_options),
 
@@ -146,6 +145,7 @@ namespace Sass {
     }
     // clear inner structures (vectors) and input source
     resources.clear(); import_stack.clear();
+    subset_map.clear(), sheets.clear();
   }
 
   Data_Context::~Data_Context()
@@ -316,13 +316,13 @@ namespace Sass {
     sass_import_take_source(import);
     sass_import_take_srcmap(import);
     // then parse the root block
-    Block* root = p.parse();
+    Block_Obj root = p.parse();
     // delete memory of current stack frame
     sass_delete_import(import_stack.back());
     // remove current stack frame
     import_stack.pop_back();
     // create key/value pair for ast node
-    std::pair<const std::string, const StyleSheet>
+    std::pair<const std::string, StyleSheet>
       ast_pair(inc.abs_path, { res, root });
     // register resulting resource
     sheets.insert(ast_pair);
@@ -369,7 +369,7 @@ namespace Sass {
 
   }
 
-  void Context::import_url (Import* imp, std::string load_path, const std::string& ctx_path) {
+  void Context::import_url (Import_Ptr imp, std::string load_path, const std::string& ctx_path) {
 
     ParserState pstate(imp->pstate());
     std::string imp_path(unquote(load_path));
@@ -384,15 +384,15 @@ namespace Sass {
 
     // add urls (protocol other than file) and urls without procotol to `urls` member
     // ToDo: if ctx_path is already a file resource, we should not add it here?
-    if (imp->media_queries() || protocol != "file" || imp_path.substr(0, 2) == "//") {
-      imp->urls().push_back(SASS_MEMORY_NEW(mem, String_Quoted, imp->pstate(), load_path));
+    if (imp->import_queries() || protocol != "file" || imp_path.substr(0, 2) == "//") {
+      imp->urls().push_back(SASS_MEMORY_NEW(String_Quoted, imp->pstate(), load_path));
     }
     else if (imp_path.length() > 4 && imp_path.substr(imp_path.length() - 4, 4) == ".css") {
-      String_Constant* loc = SASS_MEMORY_NEW(mem, String_Constant, pstate, unquote(load_path));
-      Argument* loc_arg = SASS_MEMORY_NEW(mem, Argument, pstate, loc);
-      Arguments* loc_args = SASS_MEMORY_NEW(mem, Arguments, pstate);
-      (*loc_args) << loc_arg;
-      Function_Call* new_url = SASS_MEMORY_NEW(mem, Function_Call, pstate, "url", loc_args);
+      String_Constant_Ptr loc = SASS_MEMORY_NEW(String_Constant, pstate, unquote(load_path));
+      Argument_Obj loc_arg = SASS_MEMORY_NEW(Argument, pstate, loc);
+      Arguments_Obj loc_args = SASS_MEMORY_NEW(Arguments, pstate);
+      loc_args->append(&loc_arg);
+      Function_Call_Ptr new_url = SASS_MEMORY_NEW(Function_Call, pstate, "url", &loc_args);
       imp->urls().push_back(new_url);
     }
     else {
@@ -408,7 +408,7 @@ namespace Sass {
 
 
   // call custom importers on the given (unquoted) load_path and eventually parse the resulting style_sheet
-  bool Context::call_loader(const std::string& load_path, const char* ctx_path, ParserState& pstate, Import* imp, std::vector<Sass_Importer_Entry> importers, bool only_one)
+  bool Context::call_loader(const std::string& load_path, const char* ctx_path, ParserState& pstate, Import_Ptr imp, std::vector<Sass_Importer_Entry> importers, bool only_one)
   {
     // unique counter
     size_t count = 0;
@@ -494,7 +494,7 @@ namespace Sass {
   void register_c_functions(Context&, Env* env, Sass_Function_List);
   void register_c_function(Context&, Env* env, Sass_Function_Entry);
 
-  char* Context::render(Block* root)
+  char* Context::render(Block_Obj root)
   {
     // check for valid block
     if (!root) return 0;
@@ -522,24 +522,24 @@ namespace Sass {
     return sass_copy_c_string(emitted.buffer.c_str());
   }
 
-  void Context::apply_custom_headers(Block* root, const char* ctx_path, ParserState pstate)
+  void Context::apply_custom_headers(Block_Obj root, const char* ctx_path, ParserState pstate)
   {
     // create a custom import to resolve headers
-    Import* imp = SASS_MEMORY_NEW(mem, Import, pstate);
+    Import_Obj imp = SASS_MEMORY_NEW(Import, pstate);
     // dispatch headers which will add custom functions
     // custom headers are added to the import instance
-    call_headers(entry_path, ctx_path, pstate, imp);
+    call_headers(entry_path, ctx_path, pstate, &imp);
     // increase head count to skip later
     head_imports += resources.size() - 1;
     // add the statement if we have urls
-    if (!imp->urls().empty()) (*root) << imp;
+    if (!imp->urls().empty()) root->append(&imp);
     // process all other resources (add Import_Stub nodes)
     for (size_t i = 0, S = imp->incs().size(); i < S; ++i) {
-      (*root) << SASS_MEMORY_NEW(mem, Import_Stub, pstate, imp->incs()[i]);
+      root->append(SASS_MEMORY_NEW(Import_Stub, pstate, imp->incs()[i]));
     }
   }
 
-  Block* File_Context::parse()
+  Block_Obj File_Context::parse()
   {
 
     // check if entry file is given
@@ -585,7 +585,7 @@ namespace Sass {
 
   }
 
-  Block* Data_Context::parse()
+  Block_Obj Data_Context::parse()
   {
 
     // check if source string is given
@@ -629,15 +629,14 @@ namespace Sass {
 
 
   // parse root block from includes
-  Block* Context::compile()
+  Block_Obj Context::compile()
   {
     // abort if there is no data
     if (resources.size() == 0) return 0;
     // get root block from the first style sheet
-    Block* root = sheets.at(entry_path).root;
+    Block_Obj root = sheets.at(entry_path).root;
     // abort on invalid root
-    if (root == 0) return 0;
-
+    if (root.isNull()) return 0;
     Env global; // create root environment
     // register built-in functions on env
     register_built_in_functions(*this, &global);
@@ -651,19 +650,19 @@ namespace Sass {
     Cssize cssize(*this, &backtrace);
     CheckNesting check_nesting;
     // check nesting
-    root->perform(&check_nesting)->block();
+    check_nesting(&root);
     // expand and eval the tree
-    root = root->perform(&expand)->block();
+    root = expand(&root);
     // check nesting
-    root->perform(&check_nesting)->block();
+    check_nesting(&root);
     // merge and bubble certain rules
-    root = root->perform(&cssize)->block();
+    root = cssize(&root);
     // should we extend something?
     if (!subset_map.empty()) {
       // create crtp visitor object
       Extend extend(*this, subset_map);
       // extend tree nodes
-      root->perform(&extend);
+      extend(&root);
     }
 
     // clean up by removing empty placeholders
@@ -719,14 +718,14 @@ namespace Sass {
 
   void register_function(Context& ctx, Signature sig, Native_Function f, Env* env)
   {
-    Definition* def = make_native_function(sig, f, ctx);
+    Definition_Ptr def = make_native_function(sig, f, ctx);
     def->environment(env);
     (*env)[def->name() + "[f]"] = def;
   }
 
   void register_function(Context& ctx, Signature sig, Native_Function f, size_t arity, Env* env)
   {
-    Definition* def = make_native_function(sig, f, ctx);
+    Definition_Ptr def = make_native_function(sig, f, ctx);
     std::stringstream ss;
     ss << def->name() << "[f]" << arity;
     def->environment(env);
@@ -735,7 +734,7 @@ namespace Sass {
 
   void register_overload_stub(Context& ctx, std::string name, Env* env)
   {
-    Definition* stub = SASS_MEMORY_NEW(ctx.mem, Definition,
+    Definition_Ptr stub = SASS_MEMORY_NEW(Definition,
                                        ParserState("[built-in function]"),
                                        0,
                                        name,
@@ -856,7 +855,7 @@ namespace Sass {
   }
   void register_c_function(Context& ctx, Env* env, Sass_Function_Entry descr)
   {
-    Definition* def = make_c_function(descr, ctx);
+    Definition_Ptr def = make_c_function(descr, ctx);
     def->environment(env);
     (*env)[def->name() + "[f]"] = def;
   }

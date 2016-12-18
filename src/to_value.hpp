@@ -7,42 +7,41 @@
 
 namespace Sass {
 
-  class To_Value : public Operation_CRTP<Value*, To_Value> {
+  class To_Value : public Operation_CRTP<Value_Ptr, To_Value> {
 
-    Value* fallback_impl(AST_Node* n);
+    Value_Ptr fallback_impl(AST_Node_Ptr n);
 
   private:
 
     Context& ctx;
-    Memory_Manager& mem;
 
   public:
 
-    To_Value(Context& ctx, Memory_Manager& mem)
-    : ctx(ctx), mem(mem)
+    To_Value(Context& ctx)
+    : ctx(ctx)
     { }
     ~To_Value() { }
-    using Operation<Value*>::operator();
+    using Operation<Value_Ptr>::operator();
 
-    Value* operator()(Argument*);
-    Value* operator()(Boolean*);
-    Value* operator()(Number*);
-    Value* operator()(Color*);
-    Value* operator()(String_Constant*);
-    Value* operator()(String_Quoted*);
-    Value* operator()(Custom_Warning*);
-    Value* operator()(Custom_Error*);
-    Value* operator()(List*);
-    Value* operator()(Map*);
-    Value* operator()(Null*);
+    Value_Ptr operator()(Argument_Ptr);
+    Value_Ptr operator()(Boolean_Ptr);
+    Value_Ptr operator()(Number_Ptr);
+    Value_Ptr operator()(Color_Ptr);
+    Value_Ptr operator()(String_Constant_Ptr);
+    Value_Ptr operator()(String_Quoted_Ptr);
+    Value_Ptr operator()(Custom_Warning_Ptr);
+    Value_Ptr operator()(Custom_Error_Ptr);
+    Value_Ptr operator()(List_Ptr);
+    Value_Ptr operator()(Map_Ptr);
+    Value_Ptr operator()(Null_Ptr);
 
     // convert to string via `To_String`
-    Value* operator()(CommaSequence_Selector*);
-    Value* operator()(Binary_Expression*);
+    Value_Ptr operator()(Selector_List_Ptr);
+    Value_Ptr operator()(Binary_Expression_Ptr);
 
     // fallback throws error
     template <typename U>
-    Value* fallback(U x) { return fallback_impl(x); }
+    Value_Ptr fallback(U x) { return fallback_impl(x); }
   };
 
 }

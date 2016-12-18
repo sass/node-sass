@@ -9,14 +9,14 @@
 
 namespace Sass {
 
-  void bind(std::string type, std::string name, Parameters* ps, Arguments* as, Context* ctx, Env* env, Eval* eval)
+  void bind(std::string type, std::string name, Parameters_Obj ps, Arguments_Obj as, Context* ctx, Env* env, Eval* eval)
   {
     std::string callee(type + " " + name);
 
-    std::map<std::string, Parameter*> param_map;
+    std::map<std::string, Parameter_Obj> param_map;
 
     for (size_t i = 0, L = as->length(); i < L; ++i) {
-      if (auto str = dynamic_cast<String_Quoted*>((*as)[i]->value())) {
+      if (auto str = SASS_MEMORY_CAST(String_Quoted, (*as)[i]->value())) {
         // force optional quotes (only if needed)
         if (str->quote_mark()) {
           str->quote_mark('*');
@@ -27,7 +27,7 @@ namespace Sass {
     // Set up a map to ensure named arguments refer to actual parameters. Also
     // eval each default value left-to-right, wrt env, populating env as we go.
     for (size_t i = 0, L = ps->length(); i < L; ++i) {
-      Parameter*  p = (*ps)[i];
+      Parameter_Obj  p = ps->at(i);
       param_map[p->name()] = p;
       // if (p->default_value()) {
       //   env->local_frame()[p->name()] = p->default_value()->perform(eval->with(env));
@@ -38,11 +38,11 @@ namespace Sass {
     size_t ip = 0, LP = ps->length();
     size_t ia = 0, LA = as->length();
     while (ia < LA) {
-      Argument* a = (*as)[ia];
+      Argument_Obj a = as->at(ia);
       if (ip >= LP) {
         // skip empty rest arguments
         if (a->is_rest_argument()) {
-          if (List* l = dynamic_cast<List*>(a->value())) {
+          if (List_Obj l = SASS_MEMORY_CAST(List, a->value())) {
             if (l->length() == 0) {
               ++ ia; continue;
             }
@@ -53,7 +53,7 @@ namespace Sass {
         msg << " for `" << name << "'";
         return error(msg.str(), as->pstate());
       }
-      Parameter* p = (*ps)[ip];
+      Parameter_Obj p = ps->at(ip);
 
       // If the current parameter is the rest parameter, process and break the loop
       if (p->is_rest_parameter()) {
@@ -61,24 +61,24 @@ namespace Sass {
         if (a->is_rest_argument()) {
 
           // We should always get a list for rest arguments
-          if (List* rest = dynamic_cast<List*>(a->value())) {
+          if (List_Obj rest = SASS_MEMORY_CAST(List, a->value())) {
               // create a new list object for wrapped items
-              List* arglist = SASS_MEMORY_NEW(ctx->mem, List,
+              List_Ptr arglist = SASS_MEMORY_NEW(List,
                                               p->pstate(),
                                               0,
                                               rest->separator(),
                                               true);
               // wrap each item from list as an argument
-              for (Expression* item : rest->elements()) {
-                if (Argument* arg = dynamic_cast<Argument*>(item)) {
-                  (*arglist) << SASS_MEMORY_NEW(ctx->mem, Argument, *arg);
+              for (Expression_Obj item : rest->elements()) {
+                if (Argument_Obj arg = SASS_MEMORY_CAST(Argument, item)) {
+                  arglist->append(SASS_MEMORY_COPY(arg)); // copy
                 } else {
-                  (*arglist) << SASS_MEMORY_NEW(ctx->mem, Argument,
-                                                item->pstate(),
-                                                item,
-                                                "",
-                                                false,
-                                                false);
+                  arglist->append(SASS_MEMORY_NEW(Argument,
+                                                  item->pstate(),
+                                                  &item,
+                                                  "",
+                                                  false,
+                                                  false));
                 }
               }
               // assign new arglist to environment
@@ -91,23 +91,23 @@ namespace Sass {
         } else if (a->is_keyword_argument()) {
 
           // expand keyword arguments into their parameters
-          List* arglist = SASS_MEMORY_NEW(ctx->mem, List, p->pstate(), 0, SASS_COMMA, true);
+          List_Ptr arglist = SASS_MEMORY_NEW(List, p->pstate(), 0, SASS_COMMA, true);
           env->local_frame()[p->name()] = arglist;
-          Map* argmap = static_cast<Map*>(a->value());
+          Map_Obj argmap = SASS_MEMORY_CAST(Map, a->value());
           for (auto key : argmap->keys()) {
-            std::string name = unquote(static_cast<String_Constant*>(key)->value());
-            (*arglist) << SASS_MEMORY_NEW(ctx->mem, Argument,
-                                          key->pstate(),
-                                          argmap->at(key),
-                                          "$" + name,
-                                          false,
-                                          false);
+            std::string name = unquote(SASS_MEMORY_CAST(String_Constant, key)->value());
+            arglist->append(SASS_MEMORY_NEW(Argument,
+                                            key->pstate(),
+                                            argmap->at(key),
+                                            "$" + name,
+                                            false,
+                                            false));
           }
 
         } else {
 
           // create a new list object for wrapped items
-          List* arglist = SASS_MEMORY_NEW(ctx->mem, List,
+          List_Obj arglist = SASS_MEMORY_NEW(List,
                                           p->pstate(),
                                           0,
                                           SASS_COMMA,
@@ -117,26 +117,28 @@ namespace Sass {
             // get and post inc
             a = (*as)[ia++];
             // maybe we have another list as argument
-            List* ls = dynamic_cast<List*>(a->value());
+            List_Obj ls = SASS_MEMORY_CAST(List, a->value());
             // skip any list completely if empty
             if (ls && ls->empty() && a->is_rest_argument()) continue;
 
-            if (Argument* arg = dynamic_cast<Argument*>(a->value())) {
-              (*arglist) << SASS_MEMORY_NEW(ctx->mem, Argument, *arg);
+            Expression_Obj value = a->value();
+            if (Argument_Obj arg = SASS_MEMORY_CAST(Argument, value)) {
+              arglist->append(&arg);
             }
             // check if we have rest argument
             else if (a->is_rest_argument()) {
               // preserve the list separator from rest args
-              if (List* rest = dynamic_cast<List*>(a->value())) {
+              if (List_Obj rest = SASS_MEMORY_CAST(List, a->value())) {
                 arglist->separator(rest->separator());
 
                 for (size_t i = 0, L = rest->size(); i < L; ++i) {
-                  (*arglist) << SASS_MEMORY_NEW(ctx->mem, Argument,
-                                                (*rest)[i]->pstate(),
-                                                (*rest)[i],
+                  Expression_Obj obj = rest->at(i);
+                  arglist->append(SASS_MEMORY_NEW(Argument,
+                                                obj->pstate(),
+                                                &obj,
                                                 "",
                                                 false,
-                                                false);
+                                                false));
                 }
               }
               // no more arguments
@@ -144,16 +146,16 @@ namespace Sass {
             }
             // wrap all other value types into Argument
             else {
-              (*arglist) << SASS_MEMORY_NEW(ctx->mem, Argument,
+              arglist->append(SASS_MEMORY_NEW(Argument,
                                             a->pstate(),
                                             a->value(),
                                             a->name(),
                                             false,
-                                            false);
+                                            false));
             }
           }
           // assign new arglist to environment
-          env->local_frame()[p->name()] = arglist;
+          env->local_frame()[p->name()] = &arglist;
         }
         // consumed parameter
         ++ip;
@@ -164,7 +166,7 @@ namespace Sass {
       // If the current argument is the rest argument, extract a value for processing
       else if (a->is_rest_argument()) {
         // normal param and rest arg
-        List* arglist = static_cast<List*>(a->value());
+        List_Obj arglist = SASS_MEMORY_CAST(List, a->value());
         // empty rest arg - treat all args as default values
         if (!arglist->length()) {
           break;
@@ -184,9 +186,10 @@ namespace Sass {
           }
         }
         // otherwise move one of the rest args into the param, converting to argument if necessary
-        if (!(a = dynamic_cast<Argument*>((*arglist)[0]))) {
-          Expression* a_to_convert = (*arglist)[0];
-          a = SASS_MEMORY_NEW(ctx->mem, Argument,
+        Expression_Obj obj = arglist->at(0);
+        if (!(a = SASS_MEMORY_CAST(Argument, obj))) {
+          Expression_Ptr a_to_convert = &obj;
+          a = SASS_MEMORY_NEW(Argument,
                               a_to_convert->pstate(),
                               a_to_convert,
                               "",
@@ -199,17 +202,17 @@ namespace Sass {
         }
 
       } else if (a->is_keyword_argument()) {
-        Map* argmap = static_cast<Map*>(a->value());
+        Map_Obj argmap = SASS_MEMORY_CAST(Map, a->value());
 
         for (auto key : argmap->keys()) {
-          std::string name = "$" + unquote(static_cast<String_Constant*>(key)->value());
+          std::string name = "$" + unquote(SASS_MEMORY_CAST(String_Constant, key)->value());
 
           if (!param_map.count(name)) {
             std::stringstream msg;
             msg << callee << " has no parameter named " << name;
             error(msg.str(), a->pstate());
           }
-          env->local_frame()[name] = argmap->at(key);
+          env->local_frame()[name] = &argmap->at(&key);
         }
         ++ia;
         continue;
@@ -225,7 +228,7 @@ namespace Sass {
           error(msg.str(), a->pstate());
         }
         // ordinal arg -- bind it to the next param
-        env->local_frame()[p->name()] = a->value();
+        env->local_frame()[p->name()] = &a->value();
         ++ip;
       }
       else {
@@ -247,7 +250,7 @@ namespace Sass {
               << "provided more than once in call to " << callee;
           error(msg.str(), a->pstate());
         }
-        env->local_frame()[a->name()] = a->value();
+        env->local_frame()[a->name()] = &a->value();
       }
     }
     // EO while ia
@@ -256,20 +259,20 @@ namespace Sass {
     // That's only okay if they have default values, or were already bound by
     // named arguments, or if it's a single rest-param.
     for (size_t i = ip; i < LP; ++i) {
-      Parameter* leftover = (*ps)[i];
+      Parameter_Obj leftover = ps->at(i);
       // cerr << "env for default params:" << endl;
       // env->print();
       // cerr << "********" << endl;
       if (!env->has_local(leftover->name())) {
         if (leftover->is_rest_parameter()) {
-          env->local_frame()[leftover->name()] = SASS_MEMORY_NEW(ctx->mem, List,
+          env->local_frame()[leftover->name()] = SASS_MEMORY_NEW(List,
                                                                    leftover->pstate(),
                                                                    0,
                                                                    SASS_COMMA,
                                                                    true);
         }
         else if (leftover->default_value()) {
-          Expression* dv = leftover->default_value()->perform(eval);
+          Expression_Ptr dv = leftover->default_value()->perform(eval);
           env->local_frame()[leftover->name()] = dv;
         }
         else {

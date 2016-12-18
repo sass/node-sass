@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "sass.h"
+#include "ast.hpp"
 #include "file.hpp"
 #include "json.hpp"
 #include "util.hpp"
@@ -26,6 +27,230 @@ namespace Sass {
     std::string str(stream.str());
     return json_mkstring(str.c_str());
   }
+
+  static int handle_error(Sass_Context* c_ctx) {
+    try {
+      throw;
+    }
+    catch (Exception::Base& e) {
+      std::stringstream msg_stream;
+      std::string cwd(Sass::File::get_cwd());
+
+      std::string msg_prefix(e.errtype());
+      bool got_newline = false;
+      msg_stream << msg_prefix << ": ";
+      const char* msg = e.what();
+      while (msg && *msg) {
+        if (*msg == '\r') {
+          got_newline = true;
+        }
+        else if (*msg == '\n') {
+          got_newline = true;
+        }
+        else if (got_newline) {
+          msg_stream << std::string(msg_prefix.size() + 2, ' ');
+          got_newline = false;
+        }
+        msg_stream << *msg;
+        ++msg;
+      }
+      if (!got_newline) msg_stream << "\n";
+      if (e.import_stack) {
+        for (size_t i = 1; i < e.import_stack->size() - 1; ++i) {
+          std::string path((*e.import_stack)[i]->imp_path);
+          std::string rel_path(Sass::File::abs2rel(path, cwd, cwd));
+          msg_stream << std::string(msg_prefix.size() + 2, ' ');
+          msg_stream << (i == 1 ? " on line " : " from line ");
+          msg_stream << e.pstate.line + 1 << " of " << rel_path << "\n";
+        }
+      }
+      else {
+        std::string rel_path(Sass::File::abs2rel(e.pstate.path, cwd, cwd));
+        msg_stream << std::string(msg_prefix.size() + 2, ' ');
+        msg_stream << " on line " << e.pstate.line + 1 << " of " << rel_path << "\n";
+      }
+
+      // now create the code trace (ToDo: maybe have util functions?)
+      if (e.pstate.line != std::string::npos && e.pstate.column != std::string::npos) {
+        size_t line = e.pstate.line;
+        const char* line_beg = e.pstate.src;
+        while (line_beg && *line_beg && line) {
+          if (*line_beg == '\n') --line;
+          ++line_beg;
+        }
+        const char* line_end = line_beg;
+        while (line_end && *line_end && *line_end != '\n') {
+          if (*line_end == '\n') break;
+          if (*line_end == '\r') break;
+          line_end++;
+        }
+        size_t max_left = 42; size_t max_right = 78;
+        size_t move_in = e.pstate.column > max_left ? e.pstate.column - max_left : 0;
+        size_t shorten = (line_end - line_beg) - move_in > max_right ?
+          (line_end - line_beg) - move_in - max_right : 0;
+        msg_stream << ">> " << std::string(line_beg + move_in, line_end - shorten) << "\n";
+        msg_stream << "   " << std::string(e.pstate.column - move_in, '-') << "^\n";
+      }
+
+      JsonNode* json_err = json_mkobject();
+      json_append_member(json_err, "status", json_mknumber(1));
+      json_append_member(json_err, "file", json_mkstring(e.pstate.path));
+      json_append_member(json_err, "line", json_mknumber((double)(e.pstate.line + 1)));
+      json_append_member(json_err, "column", json_mknumber((double)(e.pstate.column + 1)));
+      json_append_member(json_err, "message", json_mkstring(e.what()));
+      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
+      try { c_ctx->error_json = json_stringify(json_err, "  "); }
+      catch (...) {}
+      c_ctx->error_message = sass_copy_string(msg_stream.str());
+      c_ctx->error_text = sass_copy_c_string(e.what());
+      c_ctx->error_status = 1;
+      c_ctx->error_file = sass_copy_c_string(e.pstate.path);
+      c_ctx->error_line = e.pstate.line + 1;
+      c_ctx->error_column = e.pstate.column + 1;
+      c_ctx->error_src = e.pstate.src;
+      c_ctx->output_string = 0;
+      c_ctx->source_map_string = 0;
+      json_delete(json_err);
+    }
+    catch (std::bad_alloc& ba) {
+      std::stringstream msg_stream;
+      JsonNode* json_err = json_mkobject();
+      msg_stream << "Unable to allocate memory: " << ba.what() << std::endl;
+      json_append_member(json_err, "status", json_mknumber(2));
+      json_append_member(json_err, "message", json_mkstring(ba.what()));
+      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
+      try { c_ctx->error_json = json_stringify(json_err, "  "); }
+      catch (...) {}
+      c_ctx->error_message = sass_copy_string(msg_stream.str());
+      c_ctx->error_text = sass_copy_c_string(ba.what());
+      c_ctx->error_status = 2;
+      c_ctx->output_string = 0;
+      c_ctx->source_map_string = 0;
+      json_delete(json_err);
+    }
+    catch (std::exception& e) {
+      std::stringstream msg_stream;
+      JsonNode* json_err = json_mkobject();
+      msg_stream << "Internal Error: " << e.what() << std::endl;
+      json_append_member(json_err, "status", json_mknumber(3));
+      json_append_member(json_err, "message", json_mkstring(e.what()));
+      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
+      try { c_ctx->error_json = json_stringify(json_err, "  "); }
+      catch (...) {}
+      c_ctx->error_message = sass_copy_string(msg_stream.str());
+      c_ctx->error_text = sass_copy_c_string(e.what());
+      c_ctx->error_status = 3;
+      c_ctx->output_string = 0;
+      c_ctx->source_map_string = 0;
+      json_delete(json_err);
+    }
+    catch (std::string& e) {
+      std::stringstream msg_stream;
+      JsonNode* json_err = json_mkobject();
+      msg_stream << "Internal Error: " << e << std::endl;
+      json_append_member(json_err, "status", json_mknumber(4));
+      json_append_member(json_err, "message", json_mkstring(e.c_str()));
+      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
+      try { c_ctx->error_json = json_stringify(json_err, "  "); }
+      catch (...) {}
+      c_ctx->error_message = sass_copy_string(msg_stream.str());
+      c_ctx->error_text = sass_copy_c_string(e.c_str());
+      c_ctx->error_status = 4;
+      c_ctx->output_string = 0;
+      c_ctx->source_map_string = 0;
+      json_delete(json_err);
+    }
+    catch (const char* e) {
+      std::stringstream msg_stream;
+      JsonNode* json_err = json_mkobject();
+      msg_stream << "Internal Error: " << e << std::endl;
+      json_append_member(json_err, "status", json_mknumber(4));
+      json_append_member(json_err, "message", json_mkstring(e));
+      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
+      try { c_ctx->error_json = json_stringify(json_err, "  "); }
+      catch (...) {}
+      c_ctx->error_message = sass_copy_string(msg_stream.str());
+      c_ctx->error_text = sass_copy_c_string(e);
+      c_ctx->error_status = 4;
+      c_ctx->output_string = 0;
+      c_ctx->source_map_string = 0;
+      json_delete(json_err);
+    }
+    catch (...) {
+      std::stringstream msg_stream;
+      JsonNode* json_err = json_mkobject();
+      msg_stream << "Unknown error occurred" << std::endl;
+      json_append_member(json_err, "status", json_mknumber(5));
+      json_append_member(json_err, "message", json_mkstring("unknown"));
+      try { c_ctx->error_json = json_stringify(json_err, "  "); }
+      catch (...) {}
+      c_ctx->error_message = sass_copy_string(msg_stream.str());
+      c_ctx->error_text = sass_copy_c_string("unknown");
+      c_ctx->error_status = 5;
+      c_ctx->output_string = 0;
+      c_ctx->source_map_string = 0;
+      json_delete(json_err);
+    }
+    return c_ctx->error_status;
+  }
+
+  // allow one error handler to throw another error
+  // this can happen with invalid utf8 and json lib
+  static int handle_errors(Sass_Context* c_ctx) {
+    try { return handle_error(c_ctx); }
+    catch (...) { return handle_error(c_ctx); }
+    return c_ctx->error_status;
+  }
+
+  static Block_Obj sass_parse_block(Sass_Compiler* compiler) throw()
+  {
+
+    // assert valid pointer
+    if (compiler == 0) return 0;
+    // The cpp context must be set by now
+    Context* cpp_ctx = compiler->cpp_ctx;
+    Sass_Context* c_ctx = compiler->c_ctx;
+    // We will take care to wire up the rest
+    compiler->cpp_ctx->c_compiler = compiler;
+    compiler->state = SASS_COMPILER_PARSED;
+
+    try {
+
+      // get input/output path from options
+      std::string input_path = safe_str(c_ctx->input_path);
+      std::string output_path = safe_str(c_ctx->output_path);
+
+      // maybe skip some entries of included files
+      // we do not include stdin for data contexts
+      bool skip = c_ctx->type == SASS_CONTEXT_DATA;
+
+      // dispatch parse call
+      Block_Obj root(cpp_ctx->parse());
+      // abort on errors
+      if (!root) return 0;
+
+      // skip all prefixed files? (ToDo: check srcmap)
+      // IMO source-maps should point to headers already
+      // therefore don't skip it for now. re-enable or
+      // remove completely once this is tested
+      size_t headers = cpp_ctx->head_imports;
+
+      // copy the included files on to the context (dont forget to free later)
+      if (copy_strings(cpp_ctx->get_included_files(skip, headers), &c_ctx->included_files) == NULL)
+        throw(std::bad_alloc());
+
+      // return parsed block
+      return root;
+
+    }
+    // pass errors to generic error handler
+    catch (...) { handle_errors(c_ctx); }
+
+    // error
+    return 0;
+
+  }
+
 }
 
 extern "C" {
@@ -56,170 +281,6 @@ extern "C" {
     type sass_context_take_##option (struct Sass_Context* ctx) \
     { type foo = ctx->option; ctx->option = 0; return foo; }
 
-  static int handle_error(Sass_Context* c_ctx) {
-    try {
-     throw;
-    }
-    catch (Exception::Base& e) {
-      std::stringstream msg_stream;
-      std::string cwd(Sass::File::get_cwd());
-
-      std::string msg_prefix(e.errtype());
-      bool got_newline = false;
-      msg_stream << msg_prefix << ": ";
-      const char* msg = e.what();
-      while(msg && *msg) {
-        if (*msg == '\r') {
-          got_newline = true;
-        } else if (*msg == '\n') {
-          got_newline = true;
-        } else if (got_newline) {
-          msg_stream << std::string(msg_prefix.size() + 2, ' ');
-          got_newline = false;
-        }
-        msg_stream << *msg;
-        ++ msg;
-      }
-      if (!got_newline) msg_stream << "\n";
-      if (e.import_stack) {
-        for (size_t i = 1; i < e.import_stack->size() - 1; ++i) {
-          std::string path((*e.import_stack)[i]->imp_path);
-          std::string rel_path(Sass::File::abs2rel(path, cwd, cwd));
-          msg_stream << std::string(msg_prefix.size() + 2, ' ');
-          msg_stream << (i == 1 ? " on line " : " from line ");
-          msg_stream << e.pstate.line+1 << " of " << rel_path << "\n";
-        }
-      } else {
-        std::string rel_path(Sass::File::abs2rel(e.pstate.path, cwd, cwd));
-        msg_stream << std::string(msg_prefix.size() + 2, ' ');
-        msg_stream << " on line " << e.pstate.line+1 << " of " << rel_path << "\n";
-      }
-
-      // now create the code trace (ToDo: maybe have util functions?)
-      if (e.pstate.line != std::string::npos && e.pstate.column != std::string::npos) {
-        size_t line = e.pstate.line;
-        const char* line_beg = e.pstate.src;
-        while (line_beg && *line_beg && line) {
-          if (*line_beg == '\n') -- line;
-          ++ line_beg;
-        }
-        const char* line_end = line_beg;
-        while (line_end && *line_end && *line_end != '\n') {
-          if (*line_end == '\n') break;
-          if (*line_end == '\r') break;
-          line_end ++;
-        }
-        size_t max_left = 42; size_t max_right = 78;
-        size_t move_in = e.pstate.column > max_left ? e.pstate.column - max_left : 0;
-        size_t shorten = (line_end - line_beg) - move_in > max_right ?
-                         (line_end - line_beg) - move_in - max_right : 0;
-        msg_stream << ">> " << std::string(line_beg + move_in, line_end - shorten) << "\n";
-        msg_stream << "   " << std::string(e.pstate.column - move_in, '-') << "^\n";
-      }
-
-      JsonNode* json_err = json_mkobject();
-      json_append_member(json_err, "status", json_mknumber(1));
-      json_append_member(json_err, "file", json_mkstring(e.pstate.path));
-      json_append_member(json_err, "line", json_mknumber((double)(e.pstate.line+1)));
-      json_append_member(json_err, "column", json_mknumber((double)(e.pstate.column+1)));
-      json_append_member(json_err, "message", json_mkstring(e.what()));
-      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
-      try { c_ctx->error_json = json_stringify(json_err, "  "); } catch(...) {}
-      c_ctx->error_message = sass_copy_string(msg_stream.str());
-      c_ctx->error_text = sass_copy_c_string(e.what());
-      c_ctx->error_status = 1;
-      c_ctx->error_file = sass_copy_c_string(e.pstate.path);
-      c_ctx->error_line = e.pstate.line+1;
-      c_ctx->error_column = e.pstate.column+1;
-      c_ctx->error_src = e.pstate.src;
-      c_ctx->output_string = 0;
-      c_ctx->source_map_string = 0;
-      json_delete(json_err);
-    }
-    catch (std::bad_alloc& ba) {
-      std::stringstream msg_stream;
-      JsonNode* json_err = json_mkobject();
-      msg_stream << "Unable to allocate memory: " << ba.what() << std::endl;
-      json_append_member(json_err, "status", json_mknumber(2));
-      json_append_member(json_err, "message", json_mkstring(ba.what()));
-      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
-      try { c_ctx->error_json = json_stringify(json_err, "  "); } catch(...) {}
-      c_ctx->error_message = sass_copy_string(msg_stream.str());
-      c_ctx->error_text = sass_copy_c_string(ba.what());
-      c_ctx->error_status = 2;
-      c_ctx->output_string = 0;
-      c_ctx->source_map_string = 0;
-      json_delete(json_err);
-    }
-    catch (std::exception& e) {
-      std::stringstream msg_stream;
-      JsonNode* json_err = json_mkobject();
-      msg_stream << "Internal Error: " << e.what() << std::endl;
-      json_append_member(json_err, "status", json_mknumber(3));
-      json_append_member(json_err, "message", json_mkstring(e.what()));
-      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
-      try { c_ctx->error_json = json_stringify(json_err, "  "); } catch(...) {}
-      c_ctx->error_message = sass_copy_string(msg_stream.str());
-      c_ctx->error_text = sass_copy_c_string(e.what());
-      c_ctx->error_status = 3;
-      c_ctx->output_string = 0;
-      c_ctx->source_map_string = 0;
-      json_delete(json_err);
-    }
-    catch (std::string& e) {
-      std::stringstream msg_stream;
-      JsonNode* json_err = json_mkobject();
-      msg_stream << "Internal Error: " << e << std::endl;
-      json_append_member(json_err, "status", json_mknumber(4));
-      json_append_member(json_err, "message", json_mkstring(e.c_str()));
-      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
-      try { c_ctx->error_json = json_stringify(json_err, "  "); } catch(...) {}
-      c_ctx->error_message = sass_copy_string(msg_stream.str());
-      c_ctx->error_text = sass_copy_c_string(e.c_str());
-      c_ctx->error_status = 4;
-      c_ctx->output_string = 0;
-      c_ctx->source_map_string = 0;
-      json_delete(json_err);
-    }
-    catch (const char* e) {
-      std::stringstream msg_stream;
-      JsonNode* json_err = json_mkobject();
-      msg_stream << "Internal Error: " << e << std::endl;
-      json_append_member(json_err, "status", json_mknumber(4));
-      json_append_member(json_err, "message", json_mkstring(e));
-      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
-      try { c_ctx->error_json = json_stringify(json_err, "  "); } catch(...) {}
-      c_ctx->error_message = sass_copy_string(msg_stream.str());
-      c_ctx->error_text = sass_copy_c_string(e);
-      c_ctx->error_status = 4;
-      c_ctx->output_string = 0;
-      c_ctx->source_map_string = 0;
-      json_delete(json_err);
-    }
-    catch (...) {
-      std::stringstream msg_stream;
-      JsonNode* json_err = json_mkobject();
-      msg_stream << "Unknown error occurred" << std::endl;
-      json_append_member(json_err, "status", json_mknumber(5));
-      json_append_member(json_err, "message", json_mkstring("unknown"));
-      try { c_ctx->error_json = json_stringify(json_err, "  "); } catch(...) {}
-      c_ctx->error_message = sass_copy_string(msg_stream.str());
-      c_ctx->error_text = sass_copy_c_string("unknown");
-      c_ctx->error_status = 5;
-      c_ctx->output_string = 0;
-      c_ctx->source_map_string = 0;
-      json_delete(json_err);
-    }
-    return c_ctx->error_status;
-  }
-
-  // allow one error handler to throw another error
-  // this can happen with invalid utf8 and json lib
-  static int handle_errors(Sass_Context* c_ctx) {
-    try { return handle_error(c_ctx); }
-    catch (...) { return handle_error(c_ctx); }
-    return c_ctx->error_status;
-  }
 
   // generic compilation function (not exported, use file/data compile instead)
   static Sass_Compiler* sass_prepare_context (Sass_Context* c_ctx, Context* cpp_ctx) throw()
@@ -284,58 +345,6 @@ extern "C" {
 
   }
 
-  static Block* sass_parse_block (Sass_Compiler* compiler) throw()
-  {
-
-    // assert valid pointer
-    if (compiler == 0) return 0;
-    // The cpp context must be set by now
-    Context* cpp_ctx = compiler->cpp_ctx;
-    Sass_Context* c_ctx = compiler->c_ctx;
-    // We will take care to wire up the rest
-    compiler->cpp_ctx->c_compiler = compiler;
-    compiler->state = SASS_COMPILER_PARSED;
-
-    try {
-
-      // get input/output path from options
-      std::string input_path = safe_str(c_ctx->input_path);
-      std::string output_path = safe_str(c_ctx->output_path);
-
-      // parsed root block
-      Block* root = 0;
-
-      // maybe skip some entries of included files
-      // we do not include stdin for data contexts
-      bool skip = c_ctx->type == SASS_CONTEXT_DATA;
-
-      // dispatch parse call
-      root = cpp_ctx->parse();
-      // abort on errors
-      if (!root) return 0;
-
-      // skip all prefixed files? (ToDo: check srcmap)
-      // IMO source-maps should point to headers already
-      // therefore don't skip it for now. re-enable or
-      // remove completely once this is tested
-      size_t headers = cpp_ctx->head_imports;
-
-      // copy the included files on to the context (dont forget to free later)
-      if (copy_strings(cpp_ctx->get_included_files(skip, headers), &c_ctx->included_files) == NULL)
-        throw(std::bad_alloc());
-
-      // return parsed block
-      return root;
-
-    }
-    // pass errors to generic error handler
-    catch (...) { handle_errors(c_ctx); }
-
-    // error
-    return 0;
-
-  }
-
   // generic compilation function (not exported, use file/data compile instead)
   static int sass_compile_context (Sass_Context* c_ctx, Context* cpp_ctx)
   {
@@ -373,6 +382,7 @@ extern "C" {
 
   Sass_File_Context* ADDCALL sass_make_file_context(const char* input_path)
   {
+    SharedObj::setTaint(true); // needed for static colors
     struct Sass_File_Context* ctx = (struct Sass_File_Context*) calloc(1, sizeof(struct Sass_File_Context));
     if (ctx == 0) { std::cerr << "Error allocating memory for file context" << std::endl; return 0; }
     ctx->type = SASS_CONTEXT_FILE;
@@ -456,7 +466,7 @@ extern "C" {
     if (compiler->c_ctx->error_status)
       return compiler->c_ctx->error_status;
     // parse the context we have set up (file or data)
-    compiler->root = sass_parse_block(compiler);
+    compiler->root = &sass_parse_block(compiler);
     // success
     return 0;
   }
@@ -468,12 +478,12 @@ extern "C" {
     if (compiler->state != SASS_COMPILER_PARSED) return -1;
     if (compiler->c_ctx == NULL) return 1;
     if (compiler->cpp_ctx == NULL) return 1;
-    if (compiler->root == NULL) return 1;
+    if (compiler->root.isNull()) return 1;
     if (compiler->c_ctx->error_status)
       return compiler->c_ctx->error_status;
     compiler->state = SASS_COMPILER_EXECUTED;
     Context* cpp_ctx = compiler->cpp_ctx;
-    Block* root = compiler->root;
+    Block_Obj root = compiler->root;
     // compile the parsed root block
     try { compiler->c_ctx->output_string = cpp_ctx->render(root); }
     // pass catched errors to generic error handler
@@ -601,6 +611,10 @@ extern "C" {
     ctx->error_json = 0;
     ctx->error_file = 0;
     ctx->included_files = 0;
+    // debug leaked memory
+    #ifdef DEBUG_SHARED_PTR
+      SharedObj::dumpMemLeaks();
+    #endif
     // now clear the options
     sass_clear_options(ctx);
   }
@@ -612,7 +626,9 @@ extern "C" {
     }
     Context* cpp_ctx = compiler->cpp_ctx;
     if (cpp_ctx) delete(cpp_ctx);
-    compiler->cpp_ctx = 0;
+    compiler->cpp_ctx = NULL;
+    compiler->c_ctx = NULL;
+    compiler->root = NULL;
     free(compiler);
   }
 

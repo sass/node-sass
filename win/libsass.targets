@@ -12,6 +12,7 @@
   <ItemGroup Label="LibSass Headers">
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_def_macros.hpp" />
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\memory\SharedPtr.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_factory.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_fwd_decl.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\backtrace.hpp" />
@@ -38,7 +39,6 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\lexer.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\listize.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\mapping.hpp" />
-    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\memory_manager.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\node.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\operation.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\output.hpp" />
@@ -68,6 +68,7 @@
   </ItemGroup>
   <ItemGroup Label="LibSass Sources">
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\memory\SharedPtr.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\base64vlq.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\bind.cpp" />
     <ClCompile Condition="$(VisualStudioVersion) &lt; 14.0" Include="$(LIBSASS_SRC_DIR)\c99func.c" />
@@ -89,7 +90,6 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\json.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\lexer.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\listize.cpp" />
-    <ClCompile Include="$(LIBSASS_SRC_DIR)\memory_manager.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\node.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\output.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\parser.cpp" />

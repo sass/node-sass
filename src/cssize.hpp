@@ -8,69 +8,69 @@
 
 namespace Sass {
 
-  typedef Environment<AST_Node*> Env;
+  typedef Environment<AST_Node_Obj> Env;
   struct Backtrace;
 
-  class Cssize : public Operation_CRTP<Statement*, Cssize> {
+  class Cssize : public Operation_CRTP<Statement_Ptr, Cssize> {
 
     Context&                    ctx;
-    std::vector<Block*>         block_stack;
-    std::vector<Statement*>     p_stack;
+    std::vector<Block_Ptr>         block_stack;
+    std::vector<Statement_Ptr>     p_stack;
     Backtrace*                  backtrace;
 
-    Statement* fallback_impl(AST_Node* n);
+    Statement_Ptr fallback_impl(AST_Node_Ptr n);
 
   public:
     Cssize(Context&, Backtrace*);
     ~Cssize() { }
 
-    CommaSequence_Selector* selector();
+    Selector_List_Ptr selector();
 
-    Statement* operator()(Block*);
-    Statement* operator()(Ruleset*);
-    // Statement* operator()(Bubble*);
-    Statement* operator()(Media_Block*);
-    Statement* operator()(Supports_Block*);
-    Statement* operator()(At_Root_Block*);
-    Statement* operator()(Directive*);
-    Statement* operator()(Keyframe_Rule*);
-    Statement* operator()(Trace*);
-    Statement* operator()(Declaration*);
-    // Statement* operator()(Assignment*);
-    // Statement* operator()(Import*);
-    // Statement* operator()(Import_Stub*);
-    // Statement* operator()(Warning*);
-    // Statement* operator()(Error*);
-    // Statement* operator()(Comment*);
-    // Statement* operator()(If*);
-    // Statement* operator()(For*);
-    // Statement* operator()(Each*);
-    // Statement* operator()(While*);
-    // Statement* operator()(Return*);
-    // Statement* operator()(Extension*);
-    // Statement* operator()(Definition*);
-    // Statement* operator()(Mixin_Call*);
-    // Statement* operator()(Content*);
-    Statement* operator()(Null*);
+    Block_Ptr operator()(Block_Ptr);
+    Statement_Ptr operator()(Ruleset_Ptr);
+    // Statement_Ptr operator()(Bubble_Ptr);
+    Statement_Ptr operator()(Media_Block_Ptr);
+    Statement_Ptr operator()(Supports_Block_Ptr);
+    Statement_Ptr operator()(At_Root_Block_Ptr);
+    Statement_Ptr operator()(Directive_Ptr);
+    Statement_Ptr operator()(Keyframe_Rule_Ptr);
+    Statement_Ptr operator()(Trace_Ptr);
+    Statement_Ptr operator()(Declaration_Ptr);
+    // Statement_Ptr operator()(Assignment_Ptr);
+    // Statement_Ptr operator()(Import_Ptr);
+    // Statement_Ptr operator()(Import_Stub_Ptr);
+    // Statement_Ptr operator()(Warning_Ptr);
+    // Statement_Ptr operator()(Error_Ptr);
+    // Statement_Ptr operator()(Comment_Ptr);
+    // Statement_Ptr operator()(If_Ptr);
+    // Statement_Ptr operator()(For_Ptr);
+    // Statement_Ptr operator()(Each_Ptr);
+    // Statement_Ptr operator()(While_Ptr);
+    // Statement_Ptr operator()(Return_Ptr);
+    // Statement_Ptr operator()(Extension_Ptr);
+    // Statement_Ptr operator()(Definition_Ptr);
+    // Statement_Ptr operator()(Mixin_Call_Ptr);
+    // Statement_Ptr operator()(Content_Ptr);
+    Statement_Ptr operator()(Null_Ptr);
 
-    Statement* parent();
-    std::vector<std::pair<bool, Block*>> slice_by_bubble(Statement*);
-    Statement* bubble(Directive*);
-    Statement* bubble(At_Root_Block*);
-    Statement* bubble(Media_Block*);
-    Statement* bubble(Supports_Block*);
-    Statement* shallow_copy(Statement*);
-    Statement* debubble(Block* children, Statement* parent = 0);
-    Statement* flatten(Statement*);
-    bool bubblable(Statement*);
+    Statement_Ptr parent();
+    std::vector<std::pair<bool, Block_Obj>> slice_by_bubble(Block_Ptr);
+    Statement_Ptr bubble(Directive_Ptr);
+    Statement_Ptr bubble(At_Root_Block_Ptr);
+    Statement_Ptr bubble(Media_Block_Ptr);
+    Statement_Ptr bubble(Supports_Block_Ptr);
 
-    List* merge_media_queries(Media_Block*, Media_Block*);
-    Media_Query* merge_media_query(Media_Query*, Media_Query*);
+    Block_Ptr debubble(Block_Ptr children, Statement_Ptr parent = 0);
+    Block_Ptr flatten(Block_Ptr);
+    bool bubblable(Statement_Ptr);
+
+    List_Ptr merge_media_queries(Media_Block_Ptr, Media_Block_Ptr);
+    Media_Query_Ptr merge_media_query(Media_Query_Ptr, Media_Query_Ptr);
 
     template <typename U>
-    Statement* fallback(U x) { return fallback_impl(x); }
+    Statement_Ptr fallback(U x) { return fallback_impl(x); }
 
-    void append_block(Block*);
+    void append_block(Block_Ptr, Block_Ptr);
   };
 
 }

@@ -320,10 +320,10 @@ namespace Sass {
   }
 
   extern const std::map<const int, const char*> colors_to_names;
-  extern const std::map<const char*, const Color*, map_cmp_str> names_to_colors;
+  extern const std::map<const char*, Color_Ptr_Const, map_cmp_str> names_to_colors;
 
-  extern const Color* name_to_color(const char*);
-  extern const Color* name_to_color(const std::string&);
+  extern Color_Ptr_Const name_to_color(const char*);
+  extern Color_Ptr_Const name_to_color(const std::string&);
   extern const char* color_to_name(const int);
   extern const char* color_to_name(const Color&);
   extern const char* color_to_name(const double);

@@ -1,6 +1,8 @@
 #ifndef SASS_BASE_H
 #define SASS_BASE_H
 
+// #define DEBUG_SHARED_PTR
+
 #ifdef _MSC_VER
   #pragma warning(disable : 4503)
   #ifndef _SCL_SECURE_NO_WARNINGS

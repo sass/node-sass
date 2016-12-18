@@ -28,24 +28,24 @@ namespace Sass {
 
   protected:
     std::string charset;
-    std::vector<AST_Node*> top_nodes;
+    std::vector<AST_Node_Ptr> top_nodes;
 
   public:
     OutputBuffer get_buffer(void);
 
-    virtual void operator()(Map*);
-    virtual void operator()(Ruleset*);
-    virtual void operator()(Supports_Block*);
-    virtual void operator()(Media_Block*);
-    virtual void operator()(Directive*);
-    virtual void operator()(Keyframe_Rule*);
-    virtual void operator()(Import*);
-    virtual void operator()(Comment*);
-    virtual void operator()(Number*);
-    virtual void operator()(String_Quoted*);
-    virtual void operator()(String_Constant*);
+    virtual void operator()(Map_Ptr);
+    virtual void operator()(Ruleset_Ptr);
+    virtual void operator()(Supports_Block_Ptr);
+    virtual void operator()(Media_Block_Ptr);
+    virtual void operator()(Directive_Ptr);
+    virtual void operator()(Keyframe_Rule_Ptr);
+    virtual void operator()(Import_Ptr);
+    virtual void operator()(Comment_Ptr);
+    virtual void operator()(Number_Ptr);
+    virtual void operator()(String_Quoted_Ptr);
+    virtual void operator()(String_Constant_Ptr);
 
-    void fallback_impl(AST_Node* n);
+    void fallback_impl(AST_Node_Ptr n);
 
   };
 

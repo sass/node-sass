@@ -12,12 +12,12 @@ namespace Sass {
 
   Output::~Output() { }
 
-  void Output::fallback_impl(AST_Node* n)
+  void Output::fallback_impl(AST_Node_Ptr n)
   {
     return n->perform(this);
   }
 
-  void Output::operator()(Number* n)
+  void Output::operator()(Number_Ptr n)
   {
     // use values to_string facility
     std::string res = n->to_string(opt);
@@ -30,12 +30,12 @@ namespace Sass {
     append_token(res, n);
   }
 
-  void Output::operator()(Import* imp)
+  void Output::operator()(Import_Ptr imp)
   {
     top_nodes.push_back(imp);
   }
 
-  void Output::operator()(Map* m)
+  void Output::operator()(Map_Ptr m)
   {
     std::string dbg(m->to_string(opt));
     error(dbg + " isn't a valid CSS value.", m->pstate());
@@ -85,7 +85,7 @@ namespace Sass {
 
   }
 
-  void Output::operator()(Comment* c)
+  void Output::operator()(Comment_Ptr c)
   {
     std::string txt = c->text()->to_string(opt);
     // if (indentation && txt == "/**/") return;
@@ -107,17 +107,17 @@ namespace Sass {
     }
   }
 
-  void Output::operator()(Ruleset* r)
+  void Output::operator()(Ruleset_Ptr r)
   {
-    Selector* s     = r->selector();
-    Block*    b     = r->block();
+    Selector_Obj s     = r->selector();
+    Block_Obj    b     = r->block();
 
     // Filter out rulesets that aren't printable (process its children though)
     if (!Util::isPrintable(r, output_style())) {
       for (size_t i = 0, L = b->length(); i < L; ++i) {
-        Statement* stm = (*b)[i];
-        if (dynamic_cast<Has_Block*>(stm)) {
-          if (typeid(*stm) != typeid(Declaration)) {
+        const Statement_Obj& stm = b->at(i);
+        if (dynamic_cast<Has_Block_Ptr>(&stm)) {
+          if (!dynamic_cast<Declaration_Ptr>(&stm)) {
             stm->perform(this);
           }
         }
@@ -134,28 +134,25 @@ namespace Sass {
       append_string(ss.str());
       append_optional_linefeed();
     }
-    s->perform(this);
-    append_scope_opener(b);
+    if (s) s->perform(this);
+    append_scope_opener(&b);
     for (size_t i = 0, L = b->length(); i < L; ++i) {
-      Statement* stm = (*b)[i];
+      Statement_Obj stm = b->at(i);
       bool bPrintExpression = true;
       // Check print conditions
-      if (typeid(*stm) == typeid(Declaration)) {
-        Declaration* dec = static_cast<Declaration*>(stm);
-        if (dec->value()->concrete_type() == Expression::STRING) {
-          String_Constant* valConst = static_cast<String_Constant*>(dec->value());
+      if (Declaration_Ptr dec = SASS_MEMORY_CAST(Declaration, stm)) {
+        if (String_Constant_Ptr valConst = SASS_MEMORY_CAST(String_Constant, dec->value())) {
           std::string val(valConst->value());
-          if (auto qstr = dynamic_cast<String_Quoted*>(valConst)) {
+          if (String_Quoted_Ptr qstr = SASS_MEMORY_CAST_PTR(String_Quoted, valConst)) {
             if (!qstr->quote_mark() && val.empty()) {
               bPrintExpression = false;
             }
           }
         }
-        else if (dec->value()->concrete_type() == Expression::LIST) {
-          List* list = static_cast<List*>(dec->value());
+        else if (List_Ptr list = SASS_MEMORY_CAST(List, dec->value())) {
           bool all_invisible = true;
           for (size_t list_i = 0, list_L = list->length(); list_i < list_L; ++list_i) {
-            Expression* item = (*list)[list_i];
+            Expression_Ptr item = &list->at(list_i);
             if (!item->is_invisible()) all_invisible = false;
           }
           if (all_invisible) bPrintExpression = false;
@@ -167,15 +164,15 @@ namespace Sass {
       }
     }
     if (output_style() == NESTED) indentation -= r->tabs();
-    append_scope_closer(b);
+    append_scope_closer(&b);
 
   }
-  void Output::operator()(Keyframe_Rule* r)
+  void Output::operator()(Keyframe_Rule_Ptr r)
   {
-    Block* b = r->block();
-    Selector* v = r->selector();
+    Block_Obj b = r->block();
+    Selector_Obj v = r->name();
 
-    if (v) {
+    if (&v) {
       v->perform(this);
     }
 
@@ -186,25 +183,25 @@ namespace Sass {
 
     append_scope_opener();
     for (size_t i = 0, L = b->length(); i < L; ++i) {
-      Statement* stm = (*b)[i];
+      Statement_Obj stm = b->at(i);
       stm->perform(this);
       if (i < L - 1) append_special_linefeed();
     }
     append_scope_closer();
   }
 
-  void Output::operator()(Supports_Block* f)
+  void Output::operator()(Supports_Block_Ptr f)
   {
     if (f->is_invisible()) return;
 
-    Supports_Condition* c = f->condition();
-    Block* b              = f->block();
+    Supports_Condition_Obj c = f->condition();
+    Block_Obj b              = f->block();
 
     // Filter out feature blocks that aren't printable (process its children though)
     if (!Util::isPrintable(f, output_style())) {
       for (size_t i = 0, L = b->length(); i < L; ++i) {
-        Statement* stm = (*b)[i];
-        if (dynamic_cast<Has_Block*>(stm)) {
+        Statement_Obj stm = b->at(i);
+        if (dynamic_cast<Has_Block_Ptr>(&stm)) {
           stm->perform(this);
         }
       }
@@ -219,7 +216,7 @@ namespace Sass {
     append_scope_opener();
 
     for (size_t i = 0, L = b->length(); i < L; ++i) {
-      Statement* stm = (*b)[i];
+      Statement_Obj stm = b->at(i);
       stm->perform(this);
       if (i < L - 1) append_special_linefeed();
     }
@@ -230,18 +227,17 @@ namespace Sass {
 
   }
 
-  void Output::operator()(Media_Block* m)
+  void Output::operator()(Media_Block_Ptr m)
   {
     if (m->is_invisible()) return;
 
-    List*  q     = m->media_queries();
-    Block* b     = m->block();
+    Block_Obj b     = m->block();
 
     // Filter out media blocks that aren't printable (process its children though)
     if (!Util::isPrintable(m, output_style())) {
       for (size_t i = 0, L = b->length(); i < L; ++i) {
-        Statement* stm = (*b)[i];
-        if (dynamic_cast<Has_Block*>(stm)) {
+        Statement_Obj stm = b->at(i);
+        if (dynamic_cast<Has_Block_Ptr>(&stm)) {
           stm->perform(this);
         }
       }
@@ -252,12 +248,15 @@ namespace Sass {
     append_token("@media", m);
     append_mandatory_space();
     in_media_block = true;
-    q->perform(this);
+    m->media_queries()->perform(this);
     in_media_block = false;
     append_scope_opener();
 
     for (size_t i = 0, L = b->length(); i < L; ++i) {
-      if ((*b)[i]) (*b)[i]->perform(this);
+      if (b->at(i)) {
+      Statement_Obj stm = b->at(i);
+        stm->perform(this);
+      }
       if (i < L - 1) append_special_linefeed();
     }
 
@@ -265,12 +264,12 @@ namespace Sass {
     append_scope_closer();
   }
 
-  void Output::operator()(Directive* a)
+  void Output::operator()(Directive_Ptr a)
   {
     std::string      kwd   = a->keyword();
-    Selector*   s     = a->selector();
-    Expression* v     = a->value();
-    Block*      b     = a->block();
+    Selector_Obj   s     = a->selector();
+    Expression_Obj v     = a->value();
+    Block_Obj      b     = a->block();
 
     append_indentation();
     append_token(kwd, a);
@@ -283,7 +282,7 @@ namespace Sass {
     if (v) {
       append_mandatory_space();
       // ruby sass bug? should use options?
-      append_token(v->to_string(/* opt */), v);
+      append_token(v->to_string(/* opt */), &v);
     }
     if (!b) {
       append_delimiter();
@@ -300,7 +299,7 @@ namespace Sass {
     bool format = kwd != "@font-face";;
 
     for (size_t i = 0, L = b->length(); i < L; ++i) {
-      Statement* stm = (*b)[i];
+      Statement_Obj stm = b->at(i);
       stm->perform(this);
       if (i < L - 1 && format) append_special_linefeed();
     }
@@ -308,7 +307,7 @@ namespace Sass {
     append_scope_closer();
   }
 
-  void Output::operator()(String_Quoted* s)
+  void Output::operator()(String_Quoted_Ptr s)
   {
     if (s->quote_mark()) {
       append_token(quote(s->value(), s->quote_mark()), s);
@@ -319,7 +318,7 @@ namespace Sass {
     }
   }
 
-  void Output::operator()(String_Constant* s)
+  void Output::operator()(String_Constant_Ptr s)
   {
     std::string value(s->value());
     if (s->can_compress_whitespace() && output_style() == COMPRESSED) {
