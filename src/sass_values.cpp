@@ -275,7 +275,7 @@ extern "C" {
 
   union Sass_Value* ADDCALL sass_value_stringify (const union Sass_Value* v, bool compressed, int precision)
   {
-    Value_Ptr val = sass_value_to_ast_node(v);
+    Value_Obj val = sass_value_to_ast_node(v);
     Sass_Inspect_Options options(compressed ? COMPRESSED : NESTED, precision);
     std::string str(val->to_string(options));
     return sass_make_qstring(str.c_str());
@@ -288,44 +288,44 @@ extern "C" {
 
     try {
 
-      Value_Ptr lhs = sass_value_to_ast_node(a);
-      Value_Ptr rhs = sass_value_to_ast_node(b);
+      Value_Obj lhs = sass_value_to_ast_node(a);
+      Value_Obj rhs = sass_value_to_ast_node(b);
       struct Sass_Inspect_Options options(NESTED, 5);
 
       // see if it's a relational expression
       switch(op) {
-        case Sass_OP::EQ:  return sass_make_boolean(Eval::eq(lhs, rhs));
-        case Sass_OP::NEQ: return sass_make_boolean(!Eval::eq(lhs, rhs));
-        case Sass_OP::GT:  return sass_make_boolean(!Eval::lt(lhs, rhs, "gt") && !Eval::eq(lhs, rhs));
-        case Sass_OP::GTE: return sass_make_boolean(!Eval::lt(lhs, rhs, "gte"));
-        case Sass_OP::LT:  return sass_make_boolean(Eval::lt(lhs, rhs, "lt"));
-        case Sass_OP::LTE: return sass_make_boolean(Eval::lt(lhs, rhs, "lte") || Eval::eq(lhs, rhs));
+        case Sass_OP::EQ:  return sass_make_boolean(Eval::eq(&lhs, &rhs));
+        case Sass_OP::NEQ: return sass_make_boolean(!Eval::eq(&lhs, &rhs));
+        case Sass_OP::GT:  return sass_make_boolean(!Eval::lt(&lhs, &rhs, "gt") && !Eval::eq(&lhs, &rhs));
+        case Sass_OP::GTE: return sass_make_boolean(!Eval::lt(&lhs, &rhs, "gte"));
+        case Sass_OP::LT:  return sass_make_boolean(Eval::lt(&lhs, &rhs, "lt"));
+        case Sass_OP::LTE: return sass_make_boolean(Eval::lt(&lhs, &rhs, "lte") || Eval::eq(&lhs, &rhs));
         default:           break;
       }
 
       if (sass_value_is_number(a) && sass_value_is_number(b)) {
-        Number_Ptr_Const l_n = dynamic_cast<Number_Ptr_Const>(lhs);
-        Number_Ptr_Const r_n = dynamic_cast<Number_Ptr_Const>(rhs);
+        Number_Ptr_Const l_n = SASS_MEMORY_CAST(Number, lhs);
+        Number_Ptr_Const r_n = SASS_MEMORY_CAST(Number, rhs);
         rv = Eval::op_numbers(op, *l_n, *r_n, options);
       }
       else if (sass_value_is_number(a) && sass_value_is_color(a)) {
-        Number_Ptr_Const l_n = dynamic_cast<Number_Ptr_Const>(lhs);
-        Color_Ptr_Const r_c = dynamic_cast<Color_Ptr_Const>(rhs);
+        Number_Ptr_Const l_n = SASS_MEMORY_CAST(Number, lhs);
+        Color_Ptr_Const r_c = SASS_MEMORY_CAST(Color, rhs);
         rv = Eval::op_number_color(op, *l_n, *r_c, options);
       }
       else if (sass_value_is_color(a) && sass_value_is_number(b)) {
-        Color_Ptr_Const l_c = dynamic_cast<Color_Ptr_Const>(lhs);
-        Number_Ptr_Const r_n = dynamic_cast<Number_Ptr_Const>(rhs);
+        Color_Ptr_Const l_c = SASS_MEMORY_CAST(Color, lhs);
+        Number_Ptr_Const r_n = SASS_MEMORY_CAST(Number, rhs);
         rv = Eval::op_color_number(op, *l_c, *r_n, options);
       }
       else if (sass_value_is_color(a) && sass_value_is_color(b)) {
-        Color_Ptr_Const l_c = dynamic_cast<Color_Ptr_Const>(lhs);
-        Color_Ptr_Const r_c = dynamic_cast<Color_Ptr_Const>(rhs);
+        Color_Ptr_Const l_c = SASS_MEMORY_CAST(Color, lhs);
+        Color_Ptr_Const r_c = SASS_MEMORY_CAST(Color, rhs);
         rv = Eval::op_colors(op, *l_c, *r_c, options);
       }
       else /* convert other stuff to string and apply operation */ {
-        Value_Ptr l_v = dynamic_cast<Value_Ptr>(lhs);
-        Value_Ptr r_v = dynamic_cast<Value_Ptr>(rhs);
+        Value_Ptr l_v = SASS_MEMORY_CAST(Value, lhs);
+        Value_Ptr r_v = SASS_MEMORY_CAST(Value, rhs);
         rv = Eval::op_strings(op, *l_v, *r_v, options);
       }
 
