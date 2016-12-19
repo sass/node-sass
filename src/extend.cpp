@@ -848,7 +848,7 @@ namespace Sass {
     DefaultLcsComparator lcsDefaultComparator;
     Node opsLcs = lcs(ops1, ops2, lcsDefaultComparator, ctx);
 
-    if (!(opsLcs == ops1 || opsLcs == ops2)) {
+    if (!(nodesEqual(opsLcs, ops1, true) || nodesEqual(opsLcs, ops2, true))) {
       return Node::createNil();
     }
 
@@ -945,7 +945,7 @@ namespace Sass {
 
       // If there are multiple operators, something hacky's going on. If one is a supersequence of the other, use that, otherwise give up.
 
-      if (!(opsLcs == ops1 || opsLcs == ops2)) {
+      if (!(nodesEqual(opsLcs, ops1, true) || nodesEqual(opsLcs, ops2, true))) {
         return Node::createNil();
       }
 
@@ -1510,7 +1510,7 @@ namespace Sass {
   static Node extendComplexSelector(
     Complex_Selector_Ptr pComplexSelector,
     Context& ctx,
-    ExtensionSubsetMap& subset_map,
+    Subset_Map& subset_map,
     std::set<Compound_Selector> seen, bool isReplace, bool isOriginal);
 
 
@@ -1532,13 +1532,13 @@ namespace Sass {
   public:
     KeyType operator()(ExtensionPair& extPair) const {
       Complex_Selector_Obj pSelector = extPair.first;
-      return *pSelector;
+      return &pSelector;
     }
   };
   static Node extendCompoundSelector(
     Compound_Selector_Ptr pSelector,
     Context& ctx,
-    ExtensionSubsetMap& subset_map,
+    Subset_Map& subset_map,
     std::set<Compound_Selector> seen, bool isReplace) {
 
     DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelector, "EXTEND COMPOUND: "))
@@ -1547,11 +1547,11 @@ namespace Sass {
     Node extendedSelectors = Node::createCollection();
     // extendedSelectors.got_line_feed = true;
 
-    SubsetMapEntries entries = subset_map.get_v(pSelector->to_str_vec());
+    SubsetMapEntries entries = subset_map.get_v(pSelector);
 
-    typedef std::vector<std::pair<Complex_Selector, std::vector<ExtensionPair> > > GroupedByToAResult;
+    typedef std::vector<std::pair<Complex_Selector_Obj, std::vector<ExtensionPair> > > GroupedByToAResult;
 
-    GroupByToAFunctor<Complex_Selector> extPairKeyFunctor;
+    GroupByToAFunctor<Complex_Selector_Obj> extPairKeyFunctor;
     GroupedByToAResult arr;
     group_by_to_a(entries, extPairKeyFunctor, arr);
 
@@ -1563,9 +1563,9 @@ namespace Sass {
 
 
     for (GroupedByToAResult::iterator groupedIter = arr.begin(), groupedIterEnd = arr.end(); groupedIter != groupedIterEnd; groupedIter++) {
-      std::pair<Complex_Selector, std::vector<ExtensionPair> >& groupedPair = *groupedIter;
+      std::pair<Complex_Selector_Obj, std::vector<ExtensionPair> >& groupedPair = *groupedIter;
 
-      Complex_Selector& seq = groupedPair.first;
+      Complex_Selector_Obj seq = groupedPair.first;
       std::vector<ExtensionPair>& group = groupedPair.second;
 
       DEBUG_EXEC(EXTEND_COMPOUND, printComplexSelector(&seq, "SEQ: "))
@@ -1706,7 +1706,7 @@ namespace Sass {
   static bool complexSelectorHasExtension(
     Complex_Selector_Ptr pComplexSelector,
     Context& ctx,
-    ExtensionSubsetMap& subset_map,
+    Subset_Map& subset_map,
     std::set<Compound_Selector>& seen) {
 
     bool hasExtension = false;
@@ -1717,7 +1717,7 @@ namespace Sass {
       Compound_Selector_Obj pHead = pIter->head();
 
       if (pHead) {
-        SubsetMapEntries entries = subset_map.get_v(pHead->to_str_vec());
+        SubsetMapEntries entries = subset_map.get_v(pHead);
         for (ExtensionPair ext : entries) {
           // check if both selectors have the same media block parent
           // if (ext.first->media_block() == pComplexSelector->media_block()) continue;
@@ -1766,7 +1766,7 @@ namespace Sass {
   static Node extendComplexSelector(
     Complex_Selector_Ptr pComplexSelector,
     Context& ctx,
-    ExtensionSubsetMap& subset_map,
+    Subset_Map& subset_map,
     std::set<Compound_Selector> seen, bool isReplace, bool isOriginal) {
 
     Node complexSelector = complexSelectorToNode(pComplexSelector, ctx);
@@ -1887,7 +1887,7 @@ namespace Sass {
   /*
    This is the equivalent of ruby's CommaSequence.do_extend.
   */
-  Selector_List_Ptr Extend::extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, bool isReplace, bool& extendedSomething) {
+  Selector_List_Ptr Extend::extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, Subset_Map& subset_map, bool isReplace, bool& extendedSomething) {
     std::set<Compound_Selector> seen;
     return extendSelectorList(pSelectorList, ctx, subset_map, isReplace, extendedSomething, seen);
   }
@@ -1895,7 +1895,7 @@ namespace Sass {
   /*
    This is the equivalent of ruby's CommaSequence.do_extend.
   */
-  Selector_List_Ptr Extend::extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, bool isReplace, bool& extendedSomething, std::set<Compound_Selector>& seen) {
+  Selector_List_Ptr Extend::extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, Subset_Map& subset_map, bool isReplace, bool& extendedSomething, std::set<Compound_Selector>& seen) {
 
     Selector_List_Obj pNewSelectors = SASS_MEMORY_NEW(Selector_List, pSelectorList->pstate(), pSelectorList->length());
 
@@ -2039,7 +2039,7 @@ namespace Sass {
 
   // Extend a ruleset by extending the selectors and updating them on the ruleset. The block's rules don't need to change.
   template <typename ObjectType>
-  static void extendObjectWithSelectorAndBlock(ObjectType* pObject, Context& ctx, ExtensionSubsetMap& subset_map) {
+  static void extendObjectWithSelectorAndBlock(ObjectType* pObject, Context& ctx, Subset_Map& subset_map) {
 
     DEBUG_PRINTLN(EXTEND_OBJECT, "FOUND SELECTOR: " << static_cast<Selector_List_Ptr>(pObject->selector())->to_string(ctx.c_options))
 
@@ -2065,7 +2065,7 @@ namespace Sass {
 
 
 
-  Extend::Extend(Context& ctx, ExtensionSubsetMap& ssm)
+  Extend::Extend(Context& ctx, Subset_Map& ssm)
   : ctx(ctx), subset_map(ssm)
   { }
 

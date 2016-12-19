@@ -771,7 +771,7 @@ inline void debug_node(const Node* node, std::string ind = "")
   debug_node(const_cast<Node*>(node), ind);
 }
 
-inline void debug_subset_map(Sass::ExtensionSubsetMap& map, std::string ind = "")
+inline void debug_subset_map(Sass::Subset_Map& map, std::string ind = "")
 {
   if (ind == "") std::cerr << "#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
   for(auto const &it : map.values()) {

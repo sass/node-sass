@@ -104,6 +104,7 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\sass_values.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\sass2scss.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\source_map.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\subset_map.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\to_c.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\to_value.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\units.cpp" />

@@ -323,6 +323,9 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\source_map.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\subset_map.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\to_c.cpp">
       <Filter>Sources</Filter>
     </ClCompile>

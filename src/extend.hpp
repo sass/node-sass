@@ -13,29 +13,27 @@ namespace Sass {
   class Context;
   class Node;
 
-  typedef Subset_Map<std::string, std::pair<Complex_Selector_Obj, Compound_Selector_Obj> > ExtensionSubsetMap;
-
   class Extend : public Operation_CRTP<void, Extend> {
 
     Context&            ctx;
-    ExtensionSubsetMap& subset_map;
+    Subset_Map& subset_map;
 
     void fallback_impl(AST_Node_Ptr n) { }
 
   public:
     static Node subweave(Node& one, Node& two, Context& ctx);
-    static Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, bool isReplace, bool& extendedSomething, std::set<Compound_Selector>& seen);
-    static Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, bool isReplace, bool& extendedSomething);
-    static Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, bool isReplace = false) {
+    static Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, Subset_Map& subset_map, bool isReplace, bool& extendedSomething, std::set<Compound_Selector>& seen);
+    static Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, Subset_Map& subset_map, bool isReplace, bool& extendedSomething);
+    static Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, Subset_Map& subset_map, bool isReplace = false) {
       bool extendedSomething = false;
       return extendSelectorList(pSelectorList, ctx, subset_map, isReplace, extendedSomething);
     }
-    static Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, ExtensionSubsetMap& subset_map, std::set<Compound_Selector>& seen) {
+    static Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, Subset_Map& subset_map, std::set<Compound_Selector>& seen) {
       bool isReplace = false;
       bool extendedSomething = false;
       return extendSelectorList(pSelectorList, ctx, subset_map, isReplace, extendedSomething, seen);
     }
-    Extend(Context&, ExtensionSubsetMap&);
+    Extend(Context&, Subset_Map&);
     ~Extend() { }
 
     void operator()(Block_Ptr);

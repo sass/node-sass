@@ -4,6 +4,8 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <unordered_map>
+#include <unordered_set>
 #include "memory/SharedPtr.hpp"
 
 /////////////////////////////////////////////
@@ -350,6 +352,38 @@ namespace Sass {
   IMPL_MEM_OBJ(Compound_Selector);
   IMPL_MEM_OBJ(Complex_Selector);
   IMPL_MEM_OBJ(Selector_List);
+
+
+  struct HashExpression {
+    size_t operator() (Expression_Obj ex) const;
+  };
+  struct CompareExpression {
+    bool operator()(const Expression_Obj& lhs, const Expression_Obj& rhs) const;
+  };
+
+  struct HashSimpleSelector {
+    size_t operator() (Simple_Selector_Obj ex) const;
+  };
+
+  struct CompareSimpleSelector {
+    bool operator()(Simple_Selector_Obj lhs, Simple_Selector_Obj rhs) const;
+  };
+
+  typedef std::unordered_map<
+    Expression_Obj, // key
+    Expression_Obj, // value
+    HashExpression, // hasher
+    CompareExpression // compare
+  > ExpressionMap;
+  typedef std::unordered_set<
+    Expression_Obj, // value
+    HashExpression, // hasher
+    CompareExpression // compare
+  > ExpressionSet;
+
+  typedef std::string Subset_Map_Key;
+  typedef std::vector<size_t> Subset_Map_Arr;
+  typedef std::pair<Complex_Selector_Obj, Compound_Selector_Obj> Subset_Map_Val;
 
 }
 

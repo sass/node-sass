@@ -619,7 +619,7 @@ namespace Sass {
           sel = ssel;
         }
         // if (c->has_line_feed()) sel->has_line_feed(true);
-        ctx.subset_map.put(placeholder->to_str_vec(), std::make_pair(sel, placeholder));
+        ctx.subset_map.put(placeholder, std::make_pair(sel, placeholder));
       }
     }
 

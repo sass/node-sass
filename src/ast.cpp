@@ -30,6 +30,23 @@ namespace Sass {
            SASS_MEMORY_CAST(Supports_Operator, cond);
   }
 
+  size_t HashExpression::operator() (Expression_Obj ex) const {
+    return ex ? ex->hash() : 0;
+  }
+
+  size_t HashSimpleSelector::operator() (Simple_Selector_Obj ex) const {
+    return ex ? ex->hash() : 0;
+  }
+
+
+  bool CompareExpression::operator()(const Expression_Obj& lhs, const Expression_Obj& rhs) const {
+    return lhs && rhs && lhs->eq(*rhs);
+  }
+
+  bool CompareSimpleSelector::operator()(Simple_Selector_Obj lhs, Simple_Selector_Obj rhs) const {
+    return &lhs && &rhs && *lhs == *rhs;
+  }
+
   std::string & str_ltrim(std::string & str)
   {
     auto it2 =  std::find_if( str.begin() , str.end() , [](char ch){ return !std::isspace<char>(ch , std::locale::classic() ) ; } );
@@ -286,11 +303,11 @@ namespace Sass {
         l_h = l ? &l->head() : 0;
         r_h = r ? &r->head() : 0;
       }
-      // fail if only one is null
-      else if (!r_h) return !l_h;
-      else if (!l_h) return !r_h;
-      // heads ok and equal
-      else if (*l_h == *r_h)
+      // equals if other head is empty
+      else if ((!l_h && !r_h) ||
+               (!l_h && r_h->empty()) ||
+               (!r_h && l_h->empty()) ||
+               (*l_h == *r_h))
       {
         // check combinator after heads
         if (l->combinator() != r->combinator())
@@ -321,24 +338,68 @@ namespace Sass {
     return unified.detach();
   }
 
+  bool Selector::operator== (const Selector& rhs) const
+  {
+    if (Selector_List_Ptr_Const sl = dynamic_cast<Selector_List_Ptr_Const>(this)) return *sl == rhs;
+    if (Simple_Selector_Ptr_Const sp = dynamic_cast<Simple_Selector_Ptr_Const>(this)) return *sp == rhs;
+    throw "invalid selector base classes to compare";
+    return false;
+  }
+
+  bool Selector::operator< (const Selector& rhs) const
+  {
+    if (Selector_List_Ptr_Const sl = dynamic_cast<Selector_List_Ptr_Const>(this)) return *sl < rhs;
+    if (Simple_Selector_Ptr_Const sp = dynamic_cast<Simple_Selector_Ptr_Const>(this)) return *sp < rhs;
+    throw "invalid selector base classes to compare";
+    return false;
+  }
+
+  bool Simple_Selector::operator== (const Selector& rhs) const
+  {
+    if (Simple_Selector_Ptr_Const sp = dynamic_cast<Simple_Selector_Ptr_Const>(&rhs)) return *this == *sp;
+    return false;
+  }
+
+  bool Simple_Selector::operator< (const Selector& rhs) const
+  {
+    if (Simple_Selector_Ptr_Const sp = dynamic_cast<Simple_Selector_Ptr_Const>(&rhs)) return *this < *sp;
+    return false;
+  }
+
   bool Simple_Selector::operator== (const Simple_Selector& rhs) const
   {
-    if (Pseudo_Selector_Ptr_Const lp = dynamic_cast<Pseudo_Selector_Ptr_Const>(this)) return *lp == rhs;
-    if (Wrapped_Selector_Ptr_Const lw = dynamic_cast<Wrapped_Selector_Ptr_Const>(this)) return *lw == rhs;
-    if (Attribute_Selector_Ptr_Const la = dynamic_cast<Attribute_Selector_Ptr_Const>(this)) return *la == rhs;
-    if (is_ns_eq(ns(), rhs.ns()))
-    { return name() == rhs.name(); }
-    return ns() == rhs.ns();
+    Simple_Type type = simple_type();
+    // dynamic cast is a bottleneck - use concrete type as types are final
+    if (type == PSEUDO_SEL /* Pseudo_Selector_Ptr_Const lp = dynamic_cast<Pseudo_Selector_Ptr_Const>(this) */) {
+      return *static_cast<Pseudo_Selector_Ptr_Const>(this) == rhs;
+    }
+    else if (type == WRAPPED_SEL /* Wrapped_Selector_Ptr_Const lw = dynamic_cast<Wrapped_Selector_Ptr_Const>(this) */) {
+      return *static_cast<Wrapped_Selector_Ptr_Const>(this) == rhs;
+    }
+    else if (type == ATTR_SEL /* Attribute_Selector_Ptr_Const la = dynamic_cast<Attribute_Selector_Ptr_Const>(this) */) {
+      return *static_cast<Attribute_Selector_Ptr_Const>(this) == rhs;
+    }
+    else if (name_ == rhs.name_)
+    { return is_ns_eq(ns_, rhs.ns_); }
+    else return false;
   }
 
   bool Simple_Selector::operator< (const Simple_Selector& rhs) const
   {
-    if (Pseudo_Selector_Ptr_Const lp = dynamic_cast<Pseudo_Selector_Ptr_Const>(this)) return *lp == rhs;
-    if (Wrapped_Selector_Ptr_Const lw = dynamic_cast<Wrapped_Selector_Ptr_Const>(this)) return *lw < rhs;
-    if (Attribute_Selector_Ptr_Const la = dynamic_cast<Attribute_Selector_Ptr_Const>(this)) return *la < rhs;
-    if (is_ns_eq(ns(), rhs.ns()))
-    { return name() < rhs.name(); }
-    return ns() < rhs.ns();
+    Simple_Type type = simple_type();
+    // dynamic cast is a bottleneck - use concrete type as types are final
+    if (type == PSEUDO_SEL /* Pseudo_Selector_Ptr_Const lp = dynamic_cast<Pseudo_Selector_Ptr_Const>(this) */) {
+      return *static_cast<Pseudo_Selector_Ptr_Const>(this) < rhs;
+    }
+    else if (type == WRAPPED_SEL /* Wrapped_Selector_Ptr_Const lw = dynamic_cast<Wrapped_Selector_Ptr_Const>(this) */) {
+      return *static_cast<Wrapped_Selector_Ptr_Const>(this) < rhs;
+    }
+    else if (type == ATTR_SEL /* Attribute_Selector_Ptr_Const la = dynamic_cast<Attribute_Selector_Ptr_Const>(this) */) {
+      return *static_cast<Attribute_Selector_Ptr_Const>(this) < rhs;
+    }
+    if (is_ns_eq(ns_, rhs.ns_))
+    { return name_ < rhs.name_; }
+    return ns_ < rhs.ns_;
   }
 
   bool Selector_List::operator== (const Selector& rhs) const
@@ -391,6 +452,21 @@ namespace Sass {
       ++i; ++n;
     }
     // no mismatch
+    return true;
+  }
+
+  bool Selector_List::operator< (const Selector& rhs) const
+  {
+    if (Selector_List_Ptr_Const sp = dynamic_cast<Selector_List_Ptr_Const>(&rhs)) return *this < *sp;
+    return false;
+  }
+
+  bool Selector_List::operator< (const Selector_List& rhs) const
+  {
+    if (this->length() != rhs.length()) return false;
+    for (size_t i = 0; i < rhs.length(); i ++) {
+      if (!(*at(i) < *rhs.at(i))) return false;
+    }
     return true;
   }
 
@@ -539,12 +615,17 @@ namespace Sass {
 
   bool Attribute_Selector::operator< (const Attribute_Selector& rhs) const
   {
-
     if (is_ns_eq(ns(), rhs.ns())) {
       if (name() == rhs.name()) {
         if (matcher() == rhs.matcher()) {
-          return &value() && &rhs.value() &&
-                 *value() < *rhs.value();
+          bool no_lhs_val = value().isNull();
+          bool no_rhs_val = rhs.value().isNull();
+          if (no_lhs_val && no_rhs_val) {
+            return true;
+          }
+          if (!no_lhs_val && !no_rhs_val) {
+            return *value() < *rhs.value();
+          }
         } else { return matcher() < rhs.matcher(); }
       } else { return name() < rhs.name(); }
     }
@@ -564,11 +645,25 @@ namespace Sass {
 
   bool Attribute_Selector::operator== (const Attribute_Selector& rhs) const
   {
-    return (name() == rhs.name())
+    // get optional value state
+    bool no_lhs_val = value().isNull();
+    bool no_rhs_val = rhs.value().isNull();
+    // both are null, therefore equal
+    if (no_lhs_val && no_rhs_val) {
+      return (name() == rhs.name())
+        && (matcher() == rhs.matcher())
+        && (is_ns_eq(ns(), rhs.ns()));
+    }
+    // both are defined, evaluate
+    if (no_lhs_val == no_rhs_val) {
+      return (name() == rhs.name())
         && (matcher() == rhs.matcher())
         && (is_ns_eq(ns(), rhs.ns()))
-        && (&value() && &rhs.value())
         && (*value() == *rhs.value());
+    }
+    // not equal
+    return false;
+
   }
 
   bool Attribute_Selector::operator== (const Simple_Selector& rhs) const
@@ -1471,7 +1566,7 @@ namespace Sass {
     return final_result;
   }
 
-  void Selector_List::populate_extends(Selector_List_Obj extendee, Context& ctx, ExtensionSubsetMap& extends)
+  void Selector_List::populate_extends(Selector_List_Obj extendee, Context& ctx, Subset_Map& extends)
   {
 
     Selector_List_Ptr extender = this;
@@ -1499,7 +1594,7 @@ namespace Sass {
       compound_sel->is_optional(extendee->is_optional());
 
       for (size_t i = 0, L = extender->length(); i < L; ++i) {
-        extends.put(compound_sel->to_str_vec(), std::make_pair(&(*extender)[i], &compound_sel));
+        extends.put(compound_sel, std::make_pair(&(*extender)[i], &compound_sel));
       }
     }
   };
