@@ -53,6 +53,15 @@ const char* sass_callee_get_path (Sass_Callee_Entry);
 size_t sass_callee_get_line (Sass_Callee_Entry);
 size_t sass_callee_get_column (Sass_Callee_Entry);
 enum Sass_Callee_Type sass_callee_get_type (Sass_Callee_Entry);
+Sass_Env_Frame sass_callee_get_env (Sass_Callee_Entry);
+
+// Getters and Setters for environments (lexical, local and global)
+union Sass_Value* sass_env_get_lexical (Sass_Env_Frame, const char*);
+void sass_env_set_lexical (Sass_Env_Frame, const char*, union Sass_Value*);
+union Sass_Value* sass_env_get_local (Sass_Env_Frame, const char*);
+void sass_env_set_local (Sass_Env_Frame, const char*, union Sass_Value*);
+union Sass_Value* sass_env_get_global (Sass_Env_Frame, const char*);
+void sass_env_set_global (Sass_Env_Frame, const char*, union Sass_Value*);
 ```
 
 ### More links
