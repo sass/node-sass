@@ -1016,14 +1016,21 @@ namespace Sass {
         String_Constant_Ptr s = ARG("$string", String_Constant);
         double start_at = ARG("$start-at", Number)->value();
         double end_at = ARG("$end-at", Number)->value();
+        String_Quoted_Ptr ss = SASS_MEMORY_CAST_PTR(String_Quoted, s);
 
         std::string str = unquote(s->value());
 
         size_t size = utf8::distance(str.begin(), str.end());
 
-        if (end_at < size * -1.0 && size > 1) {
-          end_at = 0;
+        if (!SASS_MEMORY_CAST(Number, env["$end-at"])) {
+          end_at = -1;
         }
+
+        if (end_at == 0 || (end_at + size) < 0) {
+          if (ss && ss->quote_mark()) newstr = quote("");
+          return SASS_MEMORY_NEW(String_Quoted, pstate, newstr);
+        }
+
         if (end_at < 0) {
           end_at += size + 1;
           if (end_at == 0) end_at = 1;
@@ -1043,7 +1050,7 @@ namespace Sass {
           utf8::advance(end, end_at - start_at + 1, str.end());
           newstr = std::string(start, end);
         }
-        if (String_Quoted_Ptr ss = SASS_MEMORY_CAST_PTR(String_Quoted, s)) {
+        if (ss) {
           if(ss->quote_mark()) newstr = quote(newstr);
         }
       }
