@@ -81,6 +81,6 @@
     "object-merge": "^2.5.1",
     "read-yaml": "^1.0.0",
     "rimraf": "^2.5.2",
-    "sass-spec": "^3.4.0"
+    "sass-spec": "3.4.0"
   }
 }
