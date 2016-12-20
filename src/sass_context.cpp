@@ -259,6 +259,8 @@ extern "C" {
   static void sass_clear_options (struct Sass_Options* options);
   static void sass_reset_options (struct Sass_Options* options);
   static void copy_options(struct Sass_Options* to, struct Sass_Options* from) {
+    // do not overwrite ourself
+    if (to == from) return;
     // free assigned memory
     sass_clear_options(to);
     // move memory
