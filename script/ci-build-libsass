@@ -37,7 +37,7 @@ fi
 if [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
   MAKE_OPTS="$MAKE_OPTS -j1 V=1"
 else
-  MAKE_OPTS="$MAKE_OPTS -j3 V=1"
+  MAKE_OPTS="$MAKE_OPTS -j5 V=1"
 fi
 
 if [ "x$PREFIX" == "x" ]; then

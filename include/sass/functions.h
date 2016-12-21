@@ -51,6 +51,7 @@ enum Sass_Callee_Type {
 ADDAPI Sass_Importer_List ADDCALL sass_make_importer_list (size_t length);
 ADDAPI Sass_Importer_Entry ADDCALL sass_importer_get_list_entry (Sass_Importer_List list, size_t idx);
 ADDAPI void ADDCALL sass_importer_set_list_entry (Sass_Importer_List list, size_t idx, Sass_Importer_Entry entry);
+ADDAPI void ADDCALL sass_delete_importer_list (Sass_Importer_List list);
 
 
 // Creators for custom importer callback (with some additional pointer)
@@ -118,6 +119,8 @@ ADDAPI void ADDCALL sass_delete_import (Sass_Import_Entry);
 // Creators for sass function list and function descriptors
 ADDAPI Sass_Function_List ADDCALL sass_make_function_list (size_t length);
 ADDAPI Sass_Function_Entry ADDCALL sass_make_function (const char* signature, Sass_Function_Fn cb, void* cookie);
+ADDAPI void ADDCALL sass_delete_function (Sass_Function_Entry entry);
+ADDAPI void ADDCALL sass_delete_function_list (Sass_Function_List list);
 
 // Setters and getters for callbacks on function lists
 ADDAPI Sass_Function_Entry ADDCALL sass_function_get_list_entry(Sass_Function_List list, size_t pos);

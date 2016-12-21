@@ -1012,8 +1012,8 @@ namespace Sass {
       value = SASS_MEMORY_CAST(Expression, (*env)[name]);
     }
     else error("Undefined variable: \"" + v->name() + "\".", v->pstate());
-    if (typeid(*value) == typeid(Argument)) {
-      value = SASS_MEMORY_CAST(Argument, value)->value();
+    if (Argument* arg = SASS_MEMORY_CAST(Argument, value)) {
+      value = arg->value();
     }
 
     // behave according to as ruby sass (add leading zero)

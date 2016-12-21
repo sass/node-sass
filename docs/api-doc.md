@@ -125,9 +125,6 @@ void sass_free_memory(void* ptr);
 char* sass_string_unquote (const char* str);
 char* sass_string_quote (const char* str, const char quote_mark);
 
-// Resolve a file via the given include paths in the include char* array
-char* sass_resolve_file (const char* path, const char* incs[]);
-
 // Get compiled libsass version
 const char* libsass_version(void);
 

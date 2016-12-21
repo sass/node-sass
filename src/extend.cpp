@@ -1933,7 +1933,7 @@ namespace Sass {
       }
     }
 
-    Remove_Placeholders remove_placeholders(ctx);
+    Remove_Placeholders remove_placeholders;
     // it seems that we have to remove the place holders early here
     // normally we do this as the very last step (compare to ruby sass)
     pNewSelectors = remove_placeholders.remove_placeholders(&pNewSelectors);

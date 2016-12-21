@@ -699,8 +699,6 @@ extern "C" {
   IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, linefeed);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, input_path, 0);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, output_path, 0);
-  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, plugin_path, 0);
-  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, include_path, 0);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, source_map_file, 0);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, source_map_root, 0);
 
@@ -742,6 +740,23 @@ extern "C" {
       last->next = include_path;
     }
 
+  }
+
+  // Push function for include paths (no manipulation support for now)
+  size_t ADDCALL sass_option_get_include_path_size(struct Sass_Options* options)
+  {
+    size_t len = 0;
+    struct string_list* cur = options->include_paths;
+    while (cur) { len ++; cur = cur->next; }
+    return len;
+  }
+
+  // Push function for include paths (no manipulation support for now)
+  const char* ADDCALL sass_option_get_include_path(struct Sass_Options* options, size_t i)
+  {
+    struct string_list* cur = options->include_paths;
+    while (i) { i--; cur = cur->next; }
+    return cur->string;
   }
 
   // Push function for plugin paths (no manipulation support for now)

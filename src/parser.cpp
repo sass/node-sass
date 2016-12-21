@@ -1,7 +1,4 @@
 #include "sass.hpp"
-#include <cstdlib>
-#include <iostream>
-#include <vector>
 #include "parser.hpp"
 #include "file.hpp"
 #include "inspect.hpp"
@@ -24,8 +21,10 @@
 // Another case with delayed values are colors. In compressed mode
 // only processed values get compressed (other are left as written).
 
+#include <cstdlib>
+#include <iostream>
+#include <vector>
 #include <typeinfo>
-#include <tuple>
 
 namespace Sass {
   using namespace Constants;

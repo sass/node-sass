@@ -223,10 +223,6 @@ char* sass_context_take_error_message (struct Sass_Context* ctx);
 char* sass_context_take_error_file (struct Sass_Context* ctx);
 char* sass_context_take_output_string (struct Sass_Context* ctx);
 char* sass_context_take_source_map_string (struct Sass_Context* ctx);
-
-// Push function for plugin/include paths (no manipulation support for now)
-void sass_option_push_plugin_path (struct Sass_Options* options, const char* path);
-void sass_option_push_include_path (struct Sass_Options* options, const char* path);
 ```
 
 ### Sass Options API
@@ -245,12 +241,14 @@ const char* sass_option_get_indent (struct Sass_Options* options);
 const char* sass_option_get_linefeed (struct Sass_Options* options);
 const char* sass_option_get_input_path (struct Sass_Options* options);
 const char* sass_option_get_output_path (struct Sass_Options* options);
-const char* sass_option_get_plugin_path (struct Sass_Options* options);
-const char* sass_option_get_include_path (struct Sass_Options* options);
 const char* sass_option_get_source_map_file (struct Sass_Options* options);
 const char* sass_option_get_source_map_root (struct Sass_Options* options);
 Sass_C_Function_List sass_option_get_c_functions (struct Sass_Options* options);
 Sass_C_Import_Callback sass_option_get_importer (struct Sass_Options* options);
+
+// Getters for Context_Option include path array
+size_t sass_option_get_include_path_size(struct Sass_Options* options);
+const char* sass_option_get_include_path(struct Sass_Options* options, size_t i);
 
 // Setters for Context_Option values
 void sass_option_set_precision (struct Sass_Options* options, int precision);
@@ -275,6 +273,16 @@ void sass_option_set_importer (struct Sass_Options* options, Sass_C_Import_Callb
 // Push function for paths (no manipulation support for now)
 void sass_option_push_plugin_path (struct Sass_Options* options, const char* path);
 void sass_option_push_include_path (struct Sass_Options* options, const char* path);
+
+// Resolve a file via the given include paths in the sass option struct
+// find_file looks for the exact file name while find_include does a regular sass include
+char* sass_find_file (const char* path, struct Sass_Options* opt);
+char* sass_find_include (const char* path, struct Sass_Options* opt);
+
+// Resolve a file relative to last import or include paths in the sass option struct
+// find_file looks for the exact file name while find_include does a regular sass include
+char* sass_compiler_find_file (const char* path, struct Sass_Compiler* compiler);
+char* sass_compiler_find_include (const char* path, struct Sass_Compiler* compiler);
 ```
 
 ### More links

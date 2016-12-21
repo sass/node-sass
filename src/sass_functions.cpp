@@ -24,6 +24,23 @@ extern "C" {
     return cb;
   }
 
+  void ADDCALL sass_delete_function(Sass_Function_Entry entry)
+  {
+    free(entry);
+  }
+
+  // Deallocator for the allocated memory
+  void ADDCALL sass_delete_function_list(Sass_Function_List list)
+  {
+    Sass_Function_List it = list;
+    if (list == 0) return;
+    while(*list) {
+      sass_delete_function(*list);
+      ++list;
+    }
+    free(it);
+  }
+
   // Setters and getters for callbacks on function lists
   Sass_Function_Entry ADDCALL sass_function_get_list_entry(Sass_Function_List list, size_t pos) { return list[pos]; }
   void sass_function_set_list_entry(Sass_Function_List list, size_t pos, Sass_Function_Entry cb) { list[pos] = cb; }
@@ -56,6 +73,18 @@ extern "C" {
   Sass_Importer_List ADDCALL sass_make_importer_list(size_t length)
   {
     return (Sass_Importer_List) calloc(length + 1, sizeof(Sass_Importer_Entry));
+  }
+
+  // Deallocator for the allocated memory
+  void ADDCALL sass_delete_importer_list(Sass_Importer_List list)
+  {
+    Sass_Importer_List it = list;
+    if (list == 0) return;
+    while(*list) {
+      sass_delete_importer(*list);
+      ++list;
+    }
+    free(it);
   }
 
   Sass_Importer_Entry ADDCALL sass_importer_get_list_entry(Sass_Importer_List list, size_t idx) { return list[idx]; }
