@@ -1804,7 +1804,9 @@ namespace Sass {
       for(;itr != parsedSelectors.end(); ++itr) {
         Selector_List_Obj child = *itr;
         std::vector<Complex_Selector_Obj> exploded;
-        Selector_List_Obj rv = child->resolve_parent_refs(ctx, &result);
+        selector_stack.push_back(&result);
+        Selector_List_Obj rv = child->resolve_parent_refs(ctx, selector_stack);
+        selector_stack.pop_back();
         for (size_t m = 0, mLen = rv->length(); m < mLen; ++m) {
           exploded.push_back((*rv)[m]);
         }
