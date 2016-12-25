@@ -243,16 +243,19 @@ namespace Sass {
         exactly <'l'>,
         exactly <'('>,
         W,
-        non_greedy<
-          alternatives<
-            class_char< real_uri_chars >,
-            uri_character,
-            NONASCII,
-            ESCAPE
-          >,
-          alternatives<
-            sequence < W, exactly <')'> >,
-            exactly< hash_lbrace >
+        alternatives<
+          quoted_string,
+          non_greedy<
+            alternatives<
+              class_char< real_uri_chars >,
+              uri_character,
+              NONASCII,
+              ESCAPE
+            >,
+            alternatives<
+              sequence < W, exactly <')'> >,
+              exactly< hash_lbrace >
+            >
           >
         >
       >(src);
