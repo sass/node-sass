@@ -2909,7 +2909,7 @@ namespace Sass {
     Complex_Selector_Obj innermost() { return last(); };
 
     size_t length() const;
-    Selector_List_Ptr resolve_parent_refs(Context& ctx, Selector_List_Ptr parents, bool implicit_parent = true);
+    Selector_List_Ptr resolve_parent_refs(Context& ctx, std::vector<Selector_List_Obj>& pstack, bool implicit_parent = true);
     virtual bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Selector_List_Obj sub, std::string wrapping = "");
@@ -3030,7 +3030,7 @@ namespace Sass {
     virtual bool has_parent_ref();
     virtual bool has_real_parent_ref();
     void remove_parent_selectors();
-    Selector_List_Ptr resolve_parent_refs(Context& ctx, Selector_List_Ptr parents, bool implicit_parent = true);
+    Selector_List_Ptr resolve_parent_refs(Context& ctx, std::vector<Selector_List_Obj>& pstack, bool implicit_parent = true);
     virtual bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Selector_List_Obj sub, std::string wrapping = "");
