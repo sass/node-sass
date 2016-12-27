@@ -342,7 +342,7 @@ namespace Sass {
   {
     if (Selector_List_Ptr_Const sl = dynamic_cast<Selector_List_Ptr_Const>(this)) return *sl == rhs;
     if (Simple_Selector_Ptr_Const sp = dynamic_cast<Simple_Selector_Ptr_Const>(this)) return *sp == rhs;
-    throw "invalid selector base classes to compare";
+    throw std::runtime_error("invalid selector base classes to compare");
     return false;
   }
 
@@ -350,7 +350,7 @@ namespace Sass {
   {
     if (Selector_List_Ptr_Const sl = dynamic_cast<Selector_List_Ptr_Const>(this)) return *sl < rhs;
     if (Simple_Selector_Ptr_Const sp = dynamic_cast<Simple_Selector_Ptr_Const>(this)) return *sp < rhs;
-    throw "invalid selector base classes to compare";
+    throw std::runtime_error("invalid selector base classes to compare");
     return false;
   }
 

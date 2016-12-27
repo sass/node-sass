@@ -1627,11 +1627,11 @@ namespace Sass {
       SourcesSet debugSet;
       debugSet = pNewSelector->sources();
       if (debugSet.size() > 0) {
-        throw "The new selector should start with no sources. Something needs to be cloned to fix this.";
+        throw std::runtime_error("The new selector should start with no sources. Something needs to be cloned to fix this.");
       }
       debugSet = pExtComplexSelector->sources();
       if (debugSet.size() > 0) {
-        throw "The extension selector from our subset map should not have sources. These will bleed to the new selector. Something needs to be cloned to fix this.";
+        throw std::runtime_error("The extension selector from our subset map should not have sources. These will bleed to the new selector. Something needs to be cloned to fix this.");
       }
 #endif
 
