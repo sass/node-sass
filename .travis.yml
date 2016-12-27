@@ -39,7 +39,12 @@ matrix:
     - os: osx
       env: AUTOTOOLS=no BUILD=static
 
-script: ./script/ci-build-libsass
+script:
+  - ./script/ci-build-libsass
+  - ./script/ci-build-plugin math
+  - ./script/ci-build-plugin glob
+  - ./script/ci-build-plugin digest
+  - ./script/ci-build-plugin tests
 before_install: ./script/ci-install-deps
 install: ./script/ci-install-compiler
 after_success: ./script/ci-report-coverage

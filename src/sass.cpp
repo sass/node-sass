@@ -69,7 +69,6 @@ extern "C" {
   char* ADDCALL sass_compiler_find_include (const char* file, struct Sass_Compiler* compiler)
   {
     // get the last import entry to get current base directory
-    // struct Sass_Options* options = sass_compiler_get_options(compiler);
     Sass_Import_Entry import = sass_compiler_get_last_import(compiler);
     const std::vector<std::string>& incs = compiler->cpp_ctx->include_paths;
     // create the vector with paths to lookup
@@ -84,7 +83,6 @@ extern "C" {
   char* ADDCALL sass_compiler_find_file (const char* file, struct Sass_Compiler* compiler)
   {
     // get the last import entry to get current base directory
-    // struct Sass_Options* options = sass_compiler_get_options(compiler);
     Sass_Import_Entry import = sass_compiler_get_last_import(compiler);
     const std::vector<std::string>& incs = compiler->cpp_ctx->include_paths;
     // create the vector with paths to lookup
