@@ -685,7 +685,7 @@ namespace Sass {
       bool hsl = h || s || l;
 
       if (rgb && hsl) {
-        error("cannot specify both RGB and HSL values for `adjust-color`", pstate);
+        error("Cannot specify HSL and RGB values for a color at the same time for `adjust-color'", pstate);
       }
       if (rgb) {
         double rr = r ? ARGR("$red",   Number, -255, 255)->value() : 0;
@@ -719,7 +719,7 @@ namespace Sass {
                                color->b(),
                                color->a() + (a ? a->value() : 0));
       }
-      error("not enough arguments for `adjust-color`", pstate);
+      error("not enough arguments for `adjust-color'", pstate);
       // unreachable
       return color;
     }
@@ -740,7 +740,7 @@ namespace Sass {
       bool hsl = h || s || l;
 
       if (rgb && hsl) {
-        error("cannot specify both RGB and HSL values for `scale-color`", pstate);
+        error("Cannot specify HSL and RGB values for a color at the same time for `scale-color'", pstate);
       }
       if (rgb) {
         double rscale = (r ? ARGR("$red",   Number, -100.0, 100.0)->value() : 0.0) / 100.0;
@@ -775,7 +775,7 @@ namespace Sass {
                                color->b(),
                                color->a() + ascale * (ascale > 0.0 ? 1.0 - color->a() : color->a()));
       }
-      error("not enough arguments for `scale-color`", pstate);
+      error("not enough arguments for `scale-color'", pstate);
       // unreachable
       return color;
     }
@@ -796,7 +796,7 @@ namespace Sass {
       bool hsl = h || s || l;
 
       if (rgb && hsl) {
-        error("cannot specify both RGB and HSL values for `change-color`", pstate);
+        error("Cannot specify HSL and RGB values for a color at the same time for `change-color'", pstate);
       }
       if (rgb) {
         return SASS_MEMORY_NEW(Color,
@@ -823,7 +823,7 @@ namespace Sass {
                                color->b(),
                                alpha);
       }
-      error("not enough arguments for `change-color`", pstate);
+      error("not enough arguments for `change-color'", pstate);
       // unreachable
       return color;
     }
@@ -1184,13 +1184,13 @@ namespace Sass {
         double v = l->value();
         if (v < 1) {
           stringstream err;
-          err << "$limit " << v << " must be greater than or equal to 1 for `random`";
+          err << "$limit " << v << " must be greater than or equal to 1 for `random'";
           error(err.str(), pstate);
         }
         bool eq_int = std::fabs(trunc(v) - v) < NUMBER_EPSILON;
         if (!eq_int) {
           stringstream err;
-          err << "Expected $limit to be an integer but got `" << v << "` for `random`";
+          err << "Expected $limit to be an integer but got " << v << " for `random'";
           error(err.str(), pstate);
         }
         std::uniform_real_distribution<> distributor(1, v + 1);
@@ -1754,7 +1754,7 @@ namespace Sass {
 
       // Not enough parameters
       if( arglist->length() == 0 )
-        error("$selectors: At least one selector must be passed", pstate);
+        error("$selectors: At least one selector must be passed for `selector-nest'", pstate);
 
       // Parse args into vector of selectors
       std::vector<Selector_List_Obj> parsedSelectors;
@@ -1807,7 +1807,7 @@ namespace Sass {
 
       // Not enough parameters
       if( arglist->length() == 0 )
-        error("$selectors: At least one selector must be passed", pstate);
+        error("$selectors: At least one selector must be passed for `selector-append'", pstate);
 
       // Parse args into vector of selectors
       std::vector<Selector_List_Obj> parsedSelectors;
@@ -1856,22 +1856,22 @@ namespace Sass {
 
             // Must be a simple sequence
             if( childSeq->combinator() != Complex_Selector::Combinator::ANCESTOR_OF ) {
-              std::string msg("Can't append  `");
+              std::string msg("Can't append \"");
               msg += childSeq->to_string();
-              msg += "` to `";
+              msg += "\" to \"";
               msg += parentSeqClone->to_string();
-              msg += "`";
+              msg += "\" for `selector-append'";
               error(msg, pstate, backtrace);
             }
 
             // Cannot be a Universal selector
             Element_Selector_Obj pType = SASS_MEMORY_CAST(Element_Selector, childSeq->head()->first());
             if(pType && pType->name() == "*") {
-              std::string msg("Can't append  `");
+              std::string msg("Can't append \"");
               msg += childSeq->to_string();
-              msg += "` to `";
+              msg += "\" to \"";
               msg += parentSeqClone->to_string();
-              msg += "`";
+              msg += "\" for `selector-append'";
               error(msg, pstate, backtrace);
             }
 

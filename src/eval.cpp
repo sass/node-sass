@@ -175,8 +175,8 @@ namespace Sass {
     // check if units are valid for sequence
     if (sass_start->unit() != sass_end->unit()) {
       std::stringstream msg; msg << "Incompatible units: '"
-        << sass_start->unit() << "' and '"
-        << sass_end->unit() << "'.";
+        << sass_end->unit() << "' and '"
+        << sass_start->unit() << "'.";
       error(msg.str(), low->pstate(), backtrace());
     }
     double start = sass_start->value();
