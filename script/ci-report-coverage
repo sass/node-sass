@@ -3,7 +3,8 @@
 if [ "x$COVERAGE" = "xyes" ]; then
 
   # exclude some directories from profiling (.libs is from autotools)
-  export EXCLUDE_COVERAGE="--exclude src/sassc
+  export EXCLUDE_COVERAGE="--exclude plugins
+                           --exclude sassc/sassc.c
                            --exclude src/sass-spec
                            --exclude src/.libs
                            --exclude src/debug.hpp
