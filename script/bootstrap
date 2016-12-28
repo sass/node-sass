@@ -2,9 +2,12 @@
 
 script/branding
 
-if [ ! -d "sass-spec" ]; then
-  git clone https://github.com/sass/sass-spec.git
+: ${SASS_SPEC_PATH:="sass-spec"}
+: ${SASS_SASSC_PATH:="sassc" }
+
+if [ ! -d $SASS_SPEC_PATH ]; then
+  git clone https://github.com/sass/sass-spec.git $SASS_SPEC_PATH
 fi
-if [ ! -d "sassc" ]; then
-  git clone https://github.com/sass/sassc.git
+if [ ! -d $SASS_SASSC_PATH ]; then
+  git clone https://github.com/sass/sassc.git $SASS_SASSC_PATH
 fi
