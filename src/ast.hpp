@@ -924,7 +924,6 @@ namespace Sass {
   typedef Environment<AST_Node_Obj> Env;
   typedef const char* Signature;
   typedef Expression_Ptr (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtrace*, std::vector<Selector_List_Obj>);
-  typedef const char* Signature;
   class Definition : public Has_Block {
   public:
     enum Type { MIXIN, FUNCTION };
@@ -2293,12 +2292,6 @@ namespace Sass {
     virtual void set_media_block(Media_Block_Ptr mb) {
       media_block(mb);
     }
-    virtual bool has_wrapped_selector() {
-      return false;
-    }
-    virtual bool has_placeholder() {
-      return false;
-    }
     virtual bool has_parent_ref() {
       return false;
     }
@@ -2412,6 +2405,10 @@ namespace Sass {
     bool is_universal() const
     {
       return name_ == "*";
+    }
+
+    virtual bool has_placeholder() {
+      return false;
     }
 
     virtual ~Simple_Selector() = 0;
@@ -2697,10 +2694,6 @@ namespace Sass {
       if (!selector()) return false;
       return selector()->has_real_parent_ref();
     }
-    virtual bool has_wrapped_selector()
-    {
-      return true;
-    }
     virtual unsigned long specificity()
     {
       return selector_ ? selector_->specificity() : 0;
@@ -2795,15 +2788,6 @@ namespace Sass {
       for (size_t i = 0, L = length(); i < L; ++i)
       { sum += (*this)[i]->specificity(); }
       return sum;
-    }
-
-    virtual bool has_wrapped_selector()
-    {
-      if (length() == 0) return false;
-      if (Simple_Selector_Obj ss = elements().front()) {
-        if (ss->has_wrapped_selector()) return true;
-      }
-      return false;
     }
 
     virtual bool has_placeholder()
@@ -2939,11 +2923,6 @@ namespace Sass {
       if (tail_) tail_->set_media_block(mb);
       if (head_) head_->set_media_block(mb);
     }
-    virtual bool has_wrapped_selector() {
-      if (head_ && head_->has_wrapped_selector()) return true;
-      if (tail_ && tail_->has_wrapped_selector()) return true;
-      return false;
-    }
     virtual bool has_placeholder() {
       if (head_ && head_->has_placeholder()) return true;
       if (tail_ && tail_->has_placeholder()) return true;
@@ -3060,12 +3039,6 @@ namespace Sass {
       for (Complex_Selector_Obj cs : elements()) {
         cs->set_media_block(mb);
       }
-    }
-    virtual bool has_wrapped_selector() {
-      for (Complex_Selector_Obj cs : elements()) {
-        if (cs->has_wrapped_selector()) return true;
-      }
-      return false;
     }
     virtual bool has_placeholder() {
       for (Complex_Selector_Obj cs : elements()) {

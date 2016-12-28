@@ -438,22 +438,6 @@ namespace Sass {
       return normalized[0] == '.' ? normalized.insert(0, prefix) : normalized;
     }
 
-    // compress a color sixtuplet if possible
-    // input: "#CC9900" -> output: "#C90"
-    std::string normalize_sixtuplet(const std::string& col) {
-      if(
-        col.substr(1, 1) == col.substr(2, 1) &&
-        col.substr(3, 1) == col.substr(4, 1) &&
-        col.substr(5, 1) == col.substr(6, 1)
-      ) {
-        return std::string("#" + col.substr(1, 1)
-                          + col.substr(3, 1)
-                          + col.substr(5, 1));
-      } else {
-        return std::string(col);
-      }
-    }
-
     bool isPrintable(Ruleset_Ptr r, Sass_Output_Style style) {
       if (r == NULL) {
         return false;
@@ -647,27 +631,9 @@ namespace Sass {
       return false;
     }
 
-    std::string vecJoin(const std::vector<std::string>& vec, const std::string& sep)
-    {
-      switch (vec.size())
-      {
-        case 0:
-            return std::string("");
-        case 1:
-            return vec[0];
-        default:
-            std::ostringstream os;
-            os << vec[0];
-            for (size_t i = 1; i < vec.size(); i++) {
-              os << sep << vec[i];
-            }
-            return os.str();
-      }
+    bool isAscii(const char chr) {
+      return unsigned(chr) < 128;
     }
-
-     bool isAscii(const char chr) {
-       return unsigned(chr) < 128;
-     }
 
   }
 }
