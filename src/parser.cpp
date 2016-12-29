@@ -363,15 +363,6 @@ namespace Sass {
 
   Definition_Obj Parser::parse_definition(Definition::Type which_type)
   {
-    Scope parent = stack.empty() ? Scope::Rules : stack.back();
-    if (parent != Scope::Root && parent != Scope::Rules && parent != Scope::Function) {
-      if (which_type == Definition::FUNCTION) {
-        error("Functions may not be defined within control directives or other mixins.", pstate);
-      } else {
-        error("Mixins may not be defined within control directives or other mixins.", pstate);
-      }
-
-    }
     std::string which_str(lexed);
     if (!lex< identifier >()) error("invalid name in " + which_str + " definition", pstate);
     std::string name(Util::normalize_underscores(lexed));

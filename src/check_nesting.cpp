@@ -11,13 +11,8 @@ namespace Sass {
     current_mixin_definition(0)
   { }
 
-  Statement_Ptr CheckNesting::before(Statement_Ptr s) {
-      if (this->should_visit(s)) return s;
-      return NULL;
-  }
-
-  Statement_Ptr CheckNesting::visit_children(Statement_Ptr parent) {
-
+  Statement_Ptr CheckNesting::visit_children(Statement_Ptr parent)
+  {
     Statement_Ptr old_parent = this->parent;
 
     if (At_Root_Block_Ptr root = SASS_MEMORY_CAST_PTR(At_Root_Block, parent)) {
@@ -86,6 +81,7 @@ namespace Sass {
 
   Statement_Ptr CheckNesting::operator()(Definition_Ptr n)
   {
+    if (!this->should_visit(n)) return NULL;
     if (!is_mixin(n)) return n;
 
     Definition_Ptr old_mixin_definition = this->current_mixin_definition;

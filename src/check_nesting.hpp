@@ -27,7 +27,11 @@ namespace Sass {
 
     template <typename U>
     Statement_Ptr fallback(U x) {
-        return fallback_impl(this->before(SASS_MEMORY_CAST_PTR(Statement, x)));
+      Statement_Ptr n = SASS_MEMORY_CAST_PTR(Statement, x);
+      if (this->should_visit(n)) {
+        return fallback_impl(n);
+      }
+      return NULL;
     }
 
   private:
