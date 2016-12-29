@@ -222,11 +222,6 @@ namespace Sass {
     else if (lex < kwd_while_directive >(true)) { block->append(&parse_while_directive()); }
     else if (lex < kwd_return_directive >(true)) { block->append(&parse_return_directive()); }
 
-    // abort if we are in function context and have nothing parsed yet
-    else if (stack.back() == Scope::Function) {
-      error("Functions can only contain variable declarations and control directives.", pstate);
-    }
-
     // parse imports to process later
     else if (lex < kwd_import >(true)) {
       Scope parent = stack.empty() ? Scope::Rules : stack.back();
@@ -245,10 +240,6 @@ namespace Sass {
     }
 
     else if (lex < kwd_extend >(true)) {
-      if (block->is_root()) {
-        error("Extend directives may only be used within rules.", pstate);
-      }
-
       Lookahead lookahead = lookahead_for_include(position);
       if (!lookahead.found) css_error("Invalid CSS", " after ", ": expected selector, was ");
       Selector_Obj target;
