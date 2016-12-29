@@ -6,7 +6,7 @@ namespace Sass {
 
   void Subset_Map::put(const Compound_Selector_Obj& sel, const Subset_Map_Val& value)
   {
-    if (sel->empty()) throw "internal error: subset map keys may not be empty";
+    if (sel->empty()) throw std::runtime_error("internal error: subset map keys may not be empty");
     size_t index = values_.size();
     values_.push_back(value);
     for (size_t i = 0, S = sel->length(); i < S; ++i)

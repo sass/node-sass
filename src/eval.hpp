@@ -27,9 +27,8 @@ namespace Sass {
     bool is_in_comment;
 
     Env* environment();
-    Context& context();
-    Selector_List_Obj selector();
     Backtrace* backtrace();
+    Selector_List_Obj selector();
 
     // for evaluating function bodies
     Expression_Ptr operator()(Block_Ptr);
@@ -103,7 +102,7 @@ namespace Sass {
 
   };
 
-  Expression_Ptr cval_to_astnode(union Sass_Value* v, Context& ctx, Backtrace* backtrace, ParserState pstate = ParserState("[AST]"));
+  Expression_Ptr cval_to_astnode(union Sass_Value* v, Backtrace* backtrace, ParserState pstate = ParserState("[AST]"));
 
 }
 

@@ -562,7 +562,7 @@ namespace Sass {
     }
 
     // abort early if no content could be loaded (various reasons)
-    if (!contents) throw "File to read not found or unreadable: " + input_path;
+    if (!contents) throw std::runtime_error("File to read not found or unreadable: " + input_path);
 
     // store entry path
     entry_path = abs_path;

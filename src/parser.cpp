@@ -1016,16 +1016,6 @@ namespace Sass {
   {
     Expression_Obj key = parse_list();
     List_Obj map = SASS_MEMORY_NEW(List, pstate, 0, SASS_HASH);
-    if (String_Quoted_Ptr str = SASS_MEMORY_CAST(String_Quoted, key)) {
-      if (!str->quote_mark() && !str->is_delayed()) {
-        if (Color_Ptr_Const col = name_to_color(str->value())) {
-          Color_Ptr c = SASS_MEMORY_NEW(Color, col); // copy
-          c->pstate(str->pstate());
-          c->disp(str->value());
-          key = c;
-        }
-      }
-    }
 
     // it's not a map so return the lexed value as a list value
     if (!lex_css< exactly<':'> >())
@@ -1043,16 +1033,6 @@ namespace Sass {
       { break; }
 
       Expression_Obj key = parse_space_list();
-      if (String_Quoted_Ptr str = SASS_MEMORY_CAST(String_Quoted, key)) {
-        if (!str->quote_mark() && !str->is_delayed()) {
-          if (Color_Ptr_Const col = name_to_color(str->value())) {
-            Color_Ptr c = SASS_MEMORY_NEW(Color, col); // copy
-            c->pstate(str->pstate());
-            c->disp(str->value());
-            key = c;
-          }
-        }
-      }
 
       if (!(lex< exactly<':'> >()))
       { css_error("Invalid CSS", " after ", ": expected \":\", was "); }

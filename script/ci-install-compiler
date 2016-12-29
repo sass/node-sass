@@ -2,3 +2,5 @@
 
 gem install minitest
 gem install minitap
+
+pip install --user 'requests[security]'
