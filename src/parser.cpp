@@ -222,11 +222,6 @@ namespace Sass {
     else if (lex < kwd_while_directive >(true)) { block->append(&parse_while_directive()); }
     else if (lex < kwd_return_directive >(true)) { block->append(&parse_return_directive()); }
 
-    // abort if we are in function context and have nothing parsed yet
-    else if (stack.back() == Scope::Function) {
-      error("Functions can only contain variable declarations and control directives.", pstate);
-    }
-
     // parse imports to process later
     else if (lex < kwd_import >(true)) {
       Scope parent = stack.empty() ? Scope::Rules : stack.back();

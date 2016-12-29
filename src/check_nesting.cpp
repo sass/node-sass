@@ -82,7 +82,10 @@ namespace Sass {
   Statement_Ptr CheckNesting::operator()(Definition_Ptr n)
   {
     if (!this->should_visit(n)) return NULL;
-    if (!is_mixin(n)) return n;
+    if (!is_mixin(n)) {
+      visit_children(n);
+      return n;
+    }
 
     Definition_Ptr old_mixin_definition = this->current_mixin_definition;
     this->current_mixin_definition = n;
@@ -129,9 +132,8 @@ namespace Sass {
     if (SASS_MEMORY_CAST_PTR(Declaration, node))
     { this->invalid_prop_parent(this->parent); }
 
-    if (
-      SASS_MEMORY_CAST_PTR(Declaration, this->parent)
-    ) { this->invalid_prop_child(node); }
+    if (SASS_MEMORY_CAST_PTR(Declaration, this->parent))
+    { this->invalid_prop_child(node); }
 
     if (SASS_MEMORY_CAST_PTR(Return, node))
     { this->invalid_return_parent(this->parent); }
@@ -258,6 +260,8 @@ namespace Sass {
         SASS_MEMORY_CAST_PTR(Debug, child) ||
         SASS_MEMORY_CAST_PTR(Return, child) ||
         SASS_MEMORY_CAST_PTR(Variable, child) ||
+        // Ruby Sass doesn't distinguish variables and assignments
+        SASS_MEMORY_CAST_PTR(Assignment, child) ||
         SASS_MEMORY_CAST_PTR(Warning, child) ||
         SASS_MEMORY_CAST_PTR(Error, child)
     )) {
