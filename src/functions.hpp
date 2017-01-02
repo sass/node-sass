@@ -107,6 +107,7 @@ namespace Sass {
     extern Signature is_superselector_sig;
     extern Signature simple_selectors_sig;
     extern Signature selector_parse_sig;
+    extern Signature is_bracketed_sig;
 
     BUILT_IN(rgb);
     BUILT_IN(rgba_4);
@@ -189,6 +190,7 @@ namespace Sass {
     BUILT_IN(is_superselector);
     BUILT_IN(simple_selectors);
     BUILT_IN(selector_parse);
+    BUILT_IN(is_bracketed);
   }
 }
 
