@@ -54,6 +54,8 @@ extern "C" {
   size_t ADDCALL sass_list_get_length(const union Sass_Value* v) { return v->list.length; }
   enum Sass_Separator ADDCALL sass_list_get_separator(const union Sass_Value* v) { return v->list.separator; }
   void ADDCALL sass_list_set_separator(union Sass_Value* v, enum Sass_Separator separator) { v->list.separator = separator; }
+  bool ADDCALL sass_list_get_is_bracketed(const union Sass_Value* v) { return v->list.is_bracketed; }
+  void ADDCALL sass_list_set_is_bracketed(union Sass_Value* v, bool is_bracketed) { v->list.is_bracketed = is_bracketed; }
   // Getters and setters for Sass_List values
   union Sass_Value* ADDCALL sass_list_get_value(const union Sass_Value* v, size_t i) { return v->list.values[i]; }
   void ADDCALL sass_list_set_value(union Sass_Value* v, size_t i, union Sass_Value* value) { v->list.values[i] = value; }
@@ -130,13 +132,14 @@ extern "C" {
     return v;
   }
 
-  union Sass_Value* ADDCALL sass_make_list(size_t len, enum Sass_Separator sep)
+  union Sass_Value* ADDCALL sass_make_list(size_t len, enum Sass_Separator sep, bool is_bracketed)
   {
     union Sass_Value* v = (Sass_Value*) calloc(1, sizeof(Sass_Value));
     if (v == 0) return 0;
     v->list.tag = SASS_LIST;
     v->list.length = len;
     v->list.separator = sep;
+    v->list.is_bracketed = is_bracketed;
     v->list.values = (union Sass_Value**) calloc(len, sizeof(union Sass_Value*));
     if (v->list.values == 0) { free(v); return 0; }
     return v;
@@ -247,7 +250,7 @@ extern "C" {
                 return sass_string_is_quoted(val) ? sass_make_qstring(val->string.value) : sass_make_string(val->string.value);
         }   break;
         case SASS_LIST: {
-                union Sass_Value* list = sass_make_list(val->list.length, val->list.separator);
+                union Sass_Value* list = sass_make_list(val->list.length, val->list.separator, val->list.is_bracketed);
                 for (i = 0; i < list->list.length; i++) {
                     list->list.values[i] = sass_clone_value(val->list.values[i]);
                 }
