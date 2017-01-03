@@ -1013,12 +1013,10 @@ namespace Sass {
       } else if (((op1.combinator() == Complex_Selector::PRECEDES && op2.combinator() == Complex_Selector::ADJACENT_TO)) || ((op1.combinator() == Complex_Selector::ADJACENT_TO && op2.combinator() == Complex_Selector::PRECEDES))) {
 
           Node tildeSel = sel1;
-          Node tildeOp = op1;
           Node plusSel = sel2;
           Node plusOp = op2;
           if (op1.combinator() != Complex_Selector::PRECEDES) {
             tildeSel = sel2;
-            tildeOp = op2;
             plusSel = sel1;
             plusOp = op1;
           }

@@ -696,10 +696,8 @@ namespace Sass {
   char* Context::render_srcmap()
   {
     if (source_map_file == "") return 0;
-    char* result = 0;
     std::string map = emitter.render_srcmap(*this);
-    result = sass_copy_c_string(map.c_str());
-    return result;
+    return sass_copy_c_string(map.c_str());
   }
 
 

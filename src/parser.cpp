@@ -633,7 +633,7 @@ namespace Sass {
   // this is the main entry point for most
   Selector_List_Obj Parser::parse_selector_list(bool chroot)
   {
-    bool reloop = true;
+    bool reloop;
     bool had_linefeed = false;
     Complex_Selector_Obj sel;
     Selector_List_Obj group = SASS_MEMORY_NEW(Selector_List, pstate);
@@ -1662,7 +1662,7 @@ namespace Sass {
       css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
     }
 
-    const char* e = 0;
+    const char* e;
     const char* ee = end;
     end = stop;
     size_t num_items = 0;
@@ -1685,7 +1685,7 @@ namespace Sass {
         if (peek< exactly< rbrace > >()) {
           css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
         }
-        Expression_Obj ex = 0;
+        Expression_Obj ex;
         if (lex< re_static_expression >()) {
           ex = SASS_MEMORY_NEW(String_Constant, pstate, lexed);
         } else {
@@ -2083,7 +2083,7 @@ namespace Sass {
     if (!lex_css< exactly<'('> >()) {
       error("media query expression must begin with '('", pstate);
     }
-    Expression_Obj feature = 0;
+    Expression_Obj feature;
     if (peek_css< exactly<')'> >()) {
       error("media feature required in media query expression", pstate);
     }
@@ -2117,7 +2117,7 @@ namespace Sass {
   Supports_Condition_Obj Parser::parse_supports_condition()
   {
     lex < css_whitespace >();
-    Supports_Condition_Obj cond = 0;
+    Supports_Condition_Obj cond;
     if ((cond = parse_supports_negation())) return cond;
     if ((cond = parse_supports_operator())) return cond;
     if ((cond = parse_supports_interpolation())) return cond;
@@ -2164,7 +2164,7 @@ namespace Sass {
   // look like declarations their semantics differ significantly
   Supports_Condition_Obj Parser::parse_supports_declaration()
   {
-    Supports_Condition_Ptr cond = 0;
+    Supports_Condition_Ptr cond;
     // parse something declaration like
     Declaration_Obj declaration = parse_declaration();
     if (!declaration) error("@supports condition expected declaration", pstate);
@@ -2334,7 +2334,7 @@ namespace Sass {
 
   Expression_Obj Parser::lex_interp_string()
   {
-    Expression_Obj rv = 0;
+    Expression_Obj rv;
     if ((rv = lex_interp< re_string_double_open, re_string_double_close >())) return rv;
     if ((rv = lex_interp< re_string_single_open, re_string_single_close >())) return rv;
     return rv;
@@ -2394,7 +2394,7 @@ namespace Sass {
 
   Expression_Obj Parser::lex_almost_any_value_token()
   {
-    Expression_Obj rv = 0;
+    Expression_Obj rv;
     if (*position == 0) return 0;
     if ((rv = lex_almost_any_value_chars())) return rv;
     // if ((rv = lex_block_comment())) return rv;

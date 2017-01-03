@@ -1115,7 +1115,8 @@ namespace Sass {
         error("Invalid parent selector", pstate_);
       } else if (last()->head_ && last()->head_->length()) {
         Compound_Selector_Obj rh = last()->head();
-        size_t i = 0, L = h->length();
+        size_t i;
+        size_t L = h->length();
         if (Cast<Element_Selector>(h->first())) {
           if (Class_Selector_Ptr sq = Cast<Class_Selector>(rh->last())) {
             Class_Selector_Ptr sqs = SASS_MEMORY_COPY(sq);
@@ -1745,7 +1746,8 @@ namespace Sass {
     denominator_units_(std::vector<std::string>()),
     hash_(0)
   {
-    size_t l = 0, r = 0;
+    size_t l = 0;
+    size_t r;
     if (!u.empty()) {
       bool nominator = true;
       while (true) {

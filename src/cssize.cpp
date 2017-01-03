@@ -442,7 +442,7 @@ namespace Sass {
 
       for (size_t j = 0, K = slice->length(); j < K; ++j)
       {
-        Statement_Ptr ss = NULL;
+        Statement_Ptr ss;
         Statement_Obj stm = slice->at(j);
         // this has to go now here (too bad)
         Bubble_Obj node = Cast<Bubble>(stm);

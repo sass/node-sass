@@ -328,7 +328,9 @@ namespace Sass {
       double min = std::min(r, std::min(g, b));
       double delta = max - min;
 
-      double h = 0, s = 0, l = (max + min) / 2.0;
+      double h = 0;
+      double s;
+      double l = (max + min) / 2.0;
 
       if (max == min) {
         h = s = 0; // achromatic

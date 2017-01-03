@@ -3001,7 +3001,7 @@ namespace Sass {
     virtual unsigned long specificity() const
     {
       unsigned long sum = 0;
-      unsigned long specificity = 0;
+      unsigned long specificity;
       for (size_t i = 0, L = length(); i < L; ++i)
       {
         specificity = (*this)[i]->specificity();
