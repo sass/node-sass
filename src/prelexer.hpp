@@ -46,7 +46,7 @@ namespace Sass {
       src = exactly<beg>(src);
       if (!src) return 0;
       const char* stop;
-      while (1) {
+      while (true) {
         if (!*src) return 0;
         stop = exactly<end>(src);
         if (stop && (!esc || *(src - 1) != '\\')) return stop;
@@ -139,7 +139,7 @@ namespace Sass {
       src = exactly<beg>(src);
       if (!src) return 0;
       const char* stop;
-      while (1) {
+      while (true) {
         if (!*src) return 0;
         stop = exactly<end>(src);
         if (stop && (!esc || *(src - 1) != '\\')) return stop;
