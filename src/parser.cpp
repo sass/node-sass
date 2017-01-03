@@ -1350,7 +1350,7 @@ namespace Sass {
         case '*': operators.push_back({ Sass_OP::MUL, left_ws != 0, right_ws != 0 }); break;
         case '/': operators.push_back({ Sass_OP::DIV, left_ws != 0, right_ws != 0 }); break;
         case '%': operators.push_back({ Sass_OP::MOD, left_ws != 0, right_ws != 0 }); break;
-        default: throw std::runtime_error("unknown static op parsed"); break;
+        default: throw std::runtime_error("unknown static op parsed");
       }
       operands.push_back(parse_factor());
       left_ws = peek < css_comments >();
