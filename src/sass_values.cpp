@@ -221,6 +221,7 @@ extern "C" {
         case SASS_WARNING: {
                 free(val->error.message);
         }   break;
+        default: break;
     }
 
     free(val);
@@ -270,6 +271,7 @@ extern "C" {
         case SASS_WARNING: {
                 return sass_make_warning(val->warning.message);
         }
+        default: break;
     }
 
     return 0;

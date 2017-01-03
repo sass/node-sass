@@ -123,6 +123,7 @@ namespace Sass {
         return SASS_MEMORY_NEW(Custom_Warning,
                                ParserState("[C-VALUE]"),
                                sass_warning_get_message(val));
+      default: break;
     }
     return 0;
   }

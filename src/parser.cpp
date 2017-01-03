@@ -2659,6 +2659,7 @@ namespace Sass {
       skip = check_bom_chars(source, end, gb_18030_bom, 4);
       encoding = "GB-18030";
       break;
+    default: break;
     }
     if (skip > 0 && !utf_8) error("only UTF-8 documents are currently supported; your document appears to be " + encoding, pstate);
     position += skip;
