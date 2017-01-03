@@ -325,15 +325,15 @@ namespace Sass {
         Function_Call_Obj result = SASS_MEMORY_NEW(Function_Call, pstate, "url", args);
 
         if (lex< quoted_string >()) {
-          Expression_Obj the_url = parse_string();
-          args->append(SASS_MEMORY_NEW(Argument, the_url->pstate(), the_url));
+          Expression_Obj quoted_url = parse_string();
+          args->append(SASS_MEMORY_NEW(Argument, quoted_url->pstate(), quoted_url));
         }
-        else if (String_Obj the_url = parse_url_function_argument()) {
-          args->append(SASS_MEMORY_NEW(Argument, the_url->pstate(), the_url));
+        else if (String_Obj string_url = parse_url_function_argument()) {
+          args->append(SASS_MEMORY_NEW(Argument, string_url->pstate(), string_url));
         }
         else if (peek < skip_over_scopes < exactly < '(' >, exactly < ')' > > >(position)) {
-          Expression_Obj the_url = parse_list(); // parse_interpolated_chunk(lexed);
-          args->append(SASS_MEMORY_NEW(Argument, the_url->pstate(), the_url));
+          Expression_Obj braced_url = parse_list(); // parse_interpolated_chunk(lexed);
+          args->append(SASS_MEMORY_NEW(Argument, braced_url->pstate(), braced_url));
         }
         else {
           error("malformed URL", pstate);
@@ -1062,12 +1062,12 @@ namespace Sass {
       if (peek_css< exactly<')'> >(position))
       { break; }
 
-      Expression_Obj key = parse_space_list();
+      key = parse_space_list();
 
       if (!(lex< exactly<':'> >()))
       { css_error("Invalid CSS", " after ", ": expected \":\", was "); }
 
-      Expression_Obj value = parse_space_list();
+      value = parse_space_list();
 
       map->append(key);
       map->append(value);

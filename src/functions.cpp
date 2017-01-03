@@ -1191,19 +1191,19 @@ namespace Sass {
       Number_Ptr l = Cast<Number>(arg);
       Boolean_Ptr b = Cast<Boolean>(arg);
       if (l) {
-        double v = l->value();
-        if (v < 1) {
+        double lv = l->value();
+        if (lv < 1) {
           stringstream err;
-          err << "$limit " << v << " must be greater than or equal to 1 for `random'";
+          err << "$limit " << lv << " must be greater than or equal to 1 for `random'";
           error(err.str(), pstate);
         }
-        bool eq_int = std::fabs(trunc(v) - v) < NUMBER_EPSILON;
+        bool eq_int = std::fabs(trunc(lv) - lv) < NUMBER_EPSILON;
         if (!eq_int) {
           stringstream err;
-          err << "Expected $limit to be an integer but got " << v << " for `random'";
+          err << "Expected $limit to be an integer but got " << lv << " for `random'";
           error(err.str(), pstate);
         }
-        std::uniform_real_distribution<> distributor(1, v + 1);
+        std::uniform_real_distribution<> distributor(1, lv + 1);
         uint_fast32_t distributed = static_cast<uint_fast32_t>(distributor(rand));
         return SASS_MEMORY_NEW(Number, pstate, (double)distributed);
       }

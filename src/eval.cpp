@@ -266,11 +266,11 @@ namespace Sass {
         list = Cast<List>(list);
       }
       for (size_t i = 0, L = list->length(); i < L; ++i) {
-        Expression_Ptr e = list->at(i);
+        Expression_Ptr item = list->at(i);
         // unwrap value if the expression is an argument
-        if (Argument_Ptr arg = Cast<Argument>(e)) e = arg->value();
+        if (Argument_Ptr arg = Cast<Argument>(item)) item = arg->value();
         // check if we got passed a list of args (investigate)
-        if (List_Ptr scalars = Cast<List>(e)) {
+        if (List_Ptr scalars = Cast<List>(item)) {
           if (variables.size() == 1) {
             Expression_Ptr var = scalars;
             env.set_local(variables[0], var);
@@ -285,7 +285,7 @@ namespace Sass {
           }
         } else {
           if (variables.size() > 0) {
-            env.set_local(variables.at(0), e);
+            env.set_local(variables.at(0), item);
             for (size_t j = 1, K = variables.size(); j < K; ++j) {
               // XXX: this is never hit via spec tests
               Expression_Ptr res = SASS_MEMORY_NEW(Null, expr->pstate());

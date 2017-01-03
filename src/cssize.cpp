@@ -174,9 +174,9 @@ namespace Sass {
 
     if (props->length())
     {
-      Block_Obj bb = SASS_MEMORY_NEW(Block, rr->block()->pstate());
-      bb->concat(props);
-      rr->block(bb);
+      Block_Obj pb = SASS_MEMORY_NEW(Block, rr->block()->pstate());
+      pb->concat(props);
+      rr->block(pb);
 
       for (size_t i = 0, L = rules->length(); i < L; i++)
       {
