@@ -1036,9 +1036,7 @@ namespace Sass {
   {
     // check if we have an empty list
     // return the empty list as such
-    if (peek_css<
-          exactly<']'>
-       >(position))
+    if (peek_css< list_terminator >(position))
     {
       // return an empty list (nothing to delay)
       return SASS_MEMORY_NEW(List, pstate, 0, SASS_SPACE, false, true);
@@ -1068,18 +1066,7 @@ namespace Sass {
     while (lex_css< exactly<','> >())
     {
       // check for abort condition
-      if (peek_css< alternatives <
-            exactly<';'>,
-            exactly<'}'>,
-            exactly<'{'>,
-            exactly<')'>,
-            exactly<']'>,
-            exactly<':'>,
-            end_of_file,
-            exactly<ellipsis>,
-            default_flag,
-            global_flag
-          > >(position)
+      if (peek_css< list_terminator >(position)
       ) { break; }
       // otherwise add another expression
       bracketed_list->append(parse_space_list());
@@ -1101,19 +1088,7 @@ namespace Sass {
   {
     // check if we have an empty list
     // return the empty list as such
-    if (peek_css< alternatives <
-          // exactly<'!'>,
-          exactly<';'>,
-          exactly<'}'>,
-          exactly<'{'>,
-          exactly<')'>,
-          exactly<']'>,
-          exactly<':'>,
-          end_of_file,
-          exactly<ellipsis>,
-          default_flag,
-          global_flag
-        > >(position))
+    if (peek_css< list_terminator >(position))
     {
       // return an empty list (nothing to delay)
       return SASS_MEMORY_NEW(List, pstate, 0);
@@ -1137,18 +1112,7 @@ namespace Sass {
     while (lex_css< exactly<','> >())
     {
       // check for abort condition
-      if (peek_css< alternatives <
-            exactly<';'>,
-            exactly<'}'>,
-            exactly<'{'>,
-            exactly<')'>,
-            exactly<']'>,
-            exactly<':'>,
-            end_of_file,
-            exactly<ellipsis>,
-            default_flag,
-            global_flag
-          > >(position)
+      if (peek_css< list_terminator >(position)
       ) { break; }
       // otherwise add another expression
       comma_list->append(parse_space_list());
@@ -1163,39 +1127,16 @@ namespace Sass {
   {
     Expression_Obj disj1 = parse_disjunction();
     // if it's a singleton, return it (don't wrap it)
-    if (peek_css< alternatives <
-          // exactly<'!'>,
-          exactly<';'>,
-          exactly<'}'>,
-          exactly<'{'>,
-          exactly<')'>,
-          exactly<']'>,
-          exactly<','>,
-          exactly<':'>,
-          end_of_file,
-          exactly<ellipsis>,
-          default_flag,
-          global_flag
-        > >(position)
-    ) { return disj1; }
+    if (peek_css< space_list_terminator >(position)
+    ) {
+      return disj1; }
 
     List_Obj space_list = SASS_MEMORY_NEW(List, pstate, 2, SASS_SPACE);
     space_list->append(disj1);
 
-    while (!(peek_css< alternatives <
-               // exactly<'!'>,
-               exactly<';'>,
-               exactly<'}'>,
-               exactly<'{'>,
-               exactly<')'>,
-               exactly<']'>,
-               exactly<','>,
-               exactly<':'>,
-               end_of_file,
-               exactly<ellipsis>,
-               default_flag,
-               global_flag
-           > >(position)) && peek_css< optional_css_whitespace >() != end
+    while (
+      !(peek_css< space_list_terminator >(position)) &&
+      peek_css< optional_css_whitespace >() != end
     ) {
       // the space is parsed implicitly?
       space_list->append(parse_disjunction());
