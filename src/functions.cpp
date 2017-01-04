@@ -1304,7 +1304,7 @@ namespace Sass {
       if (l->empty()) error("argument `$list` of `" + std::string(sig) + "` must not be empty", pstate);
       double index = std::floor(n->value() < 0 ? l->length() + n->value() : n->value() - 1);
       if (index < 0 || index > l->length() - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate);
-      List_Ptr result = SASS_MEMORY_NEW(List, pstate, l->length(), l->separator(), false, l->delimiter());
+      List_Ptr result = SASS_MEMORY_NEW(List, pstate, l->length(), l->separator(), false, l->is_bracketed());
       for (size_t i = 0, L = l->length(); i < L; ++i) {
         result->append(((i == index) ? v : (*l)[i]));
       }
@@ -1340,12 +1340,12 @@ namespace Sass {
       String_Constant_Obj sep = ARG("$separator", String_Constant);
       enum Sass_Separator sep_val = (l1 ? l1->separator() : SASS_SPACE);
       Value* bracketed = ARG("$bracketed", Value);
-      enum Sass_List_Delimiter delimiter = (l1 ? l1->delimiter() : SASS_NO_DELIMITER);
+      bool is_bracketed = (l1 ? l1->is_bracketed() : false);
       if (!l1) {
         l1 = SASS_MEMORY_NEW(List, pstate, 1);
         l1->append(ARG("$list1", Expression));
         sep_val = (l2 ? l2->separator() : SASS_SPACE);
-        delimiter = (l2 ? l2->delimiter() : SASS_NO_DELIMITER);
+        is_bracketed = (l2 ? l2->is_bracketed() : false);
       }
       if (!l2) {
         l2 = SASS_MEMORY_NEW(List, pstate, 1);
@@ -1366,9 +1366,9 @@ namespace Sass {
       String_Constant_Obj bracketed_as_str = SASS_MEMORY_CAST_PTR(String_Constant, bracketed);
       bool bracketed_is_auto = bracketed_as_str && unquote(bracketed_as_str->value()) == "auto";
       if (!bracketed_is_auto) {
-        delimiter = bracketed->is_false() ? SASS_NO_DELIMITER : SASS_BRACKETS;
+        is_bracketed = !bracketed->is_false();
       }
-      List_Obj result = SASS_MEMORY_NEW(List, pstate, len, sep_val, false, delimiter);
+      List_Obj result = SASS_MEMORY_NEW(List, pstate, len, sep_val, false, is_bracketed);
       result->concat(&l1);
       result->concat(&l2);
       return result.detach();
