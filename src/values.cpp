@@ -22,7 +22,7 @@ namespace Sass {
     else if (val->concrete_type() == Expression::LIST)
     {
       List_Ptr_Const l = dynamic_cast<List_Ptr_Const>(val);
-      union Sass_Value* list = sass_make_list(l->size(), l->separator());
+      union Sass_Value* list = sass_make_list(l->size(), l->separator(), l->is_bracketed());
       for (size_t i = 0, L = l->length(); i < L; ++i) {
         Expression_Obj obj = l->at(i);
         auto val = ast_node_to_sass_value(&obj);
@@ -106,6 +106,7 @@ namespace Sass {
         for (size_t i = 0, L = sass_list_get_length(val); i < L; ++i) {
           l->append(sass_value_to_ast_node(sass_list_get_value(val, i)));
         }
+        l->is_bracketed(sass_list_get_is_bracketed(val));
         return l;
       }
       break;

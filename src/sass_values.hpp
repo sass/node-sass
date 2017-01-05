@@ -35,6 +35,7 @@ struct Sass_String {
 struct Sass_List {
   enum Sass_Tag       tag;
   enum Sass_Separator separator;
+  bool                is_bracketed;
   size_t              length;
   // null terminated "array"
   union Sass_Value**  values;
