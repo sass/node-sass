@@ -355,6 +355,10 @@ namespace Sass {
     const char* ie_keyword_arg_value(const char* src);
     const char* ie_keyword_arg_property(const char* src);
 
+    // characters that terminate parsing of a list
+    const char* list_terminator(const char* src);
+    const char* space_list_terminator(const char* src);
+
     // match url()
     const char* H(const char* src);
     const char* W(const char* src);

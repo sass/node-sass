@@ -257,6 +257,7 @@ namespace Sass {
     bool parse_number_prefix();
     Declaration_Obj parse_declaration();
     Expression_Obj parse_map();
+    Expression_Obj parse_bracket_list();
     Expression_Obj parse_list(bool delayed = false);
     Expression_Obj parse_comma_list(bool delayed = false);
     Expression_Obj parse_space_list();
