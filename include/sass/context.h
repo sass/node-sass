@@ -81,8 +81,6 @@ ADDAPI const char* ADDCALL sass_option_get_indent (struct Sass_Options* options)
 ADDAPI const char* ADDCALL sass_option_get_linefeed (struct Sass_Options* options);
 ADDAPI const char* ADDCALL sass_option_get_input_path (struct Sass_Options* options);
 ADDAPI const char* ADDCALL sass_option_get_output_path (struct Sass_Options* options);
-ADDAPI const char* ADDCALL sass_option_get_plugin_path (struct Sass_Options* options);
-ADDAPI const char* ADDCALL sass_option_get_include_path (struct Sass_Options* options);
 ADDAPI const char* ADDCALL sass_option_get_source_map_file (struct Sass_Options* options);
 ADDAPI const char* ADDCALL sass_option_get_source_map_root (struct Sass_Options* options);
 ADDAPI Sass_Importer_List ADDCALL sass_option_get_c_headers (struct Sass_Options* options);
@@ -124,6 +122,10 @@ ADDAPI size_t ADDCALL sass_context_get_error_column (struct Sass_Context* ctx);
 ADDAPI const char* ADDCALL sass_context_get_source_map_string (struct Sass_Context* ctx);
 ADDAPI char** ADDCALL sass_context_get_included_files (struct Sass_Context* ctx);
 
+// Getters for options include path array
+ADDAPI size_t ADDCALL sass_option_get_include_path_size(struct Sass_Options* options);
+ADDAPI const char* ADDCALL sass_option_get_include_path(struct Sass_Options* options, size_t i);
+
 // Calculate the size of the stored null terminated array
 ADDAPI size_t ADDCALL sass_context_get_included_files_size (struct Sass_Context* ctx);
 
@@ -143,10 +145,23 @@ ADDAPI struct Sass_Options* ADDCALL sass_compiler_get_options(struct Sass_Compil
 ADDAPI size_t ADDCALL sass_compiler_get_import_stack_size(struct Sass_Compiler* compiler);
 ADDAPI Sass_Import_Entry ADDCALL sass_compiler_get_last_import(struct Sass_Compiler* compiler);
 ADDAPI Sass_Import_Entry ADDCALL sass_compiler_get_import_entry(struct Sass_Compiler* compiler, size_t idx);
+ADDAPI size_t ADDCALL sass_compiler_get_callee_stack_size(struct Sass_Compiler* compiler);
+ADDAPI Sass_Callee_Entry ADDCALL sass_compiler_get_last_callee(struct Sass_Compiler* compiler);
+ADDAPI Sass_Callee_Entry ADDCALL sass_compiler_get_callee_entry(struct Sass_Compiler* compiler, size_t idx);
 
 // Push function for paths (no manipulation support for now)
 ADDAPI void ADDCALL sass_option_push_plugin_path (struct Sass_Options* options, const char* path);
 ADDAPI void ADDCALL sass_option_push_include_path (struct Sass_Options* options, const char* path);
+
+// Resolve a file via the given include paths in the sass option struct
+// find_file looks for the exact file name while find_include does a regular sass include
+ADDAPI char* ADDCALL sass_find_file (const char* path, struct Sass_Options* opt);
+ADDAPI char* ADDCALL sass_find_include (const char* path, struct Sass_Options* opt);
+
+// Resolve a file relative to last import or include paths in the sass option struct
+// find_file looks for the exact file name while find_include does a regular sass include
+ADDAPI char* ADDCALL sass_compiler_find_file (const char* path, struct Sass_Compiler* compiler);
+ADDAPI char* ADDCALL sass_compiler_find_include (const char* path, struct Sass_Compiler* compiler);
 
 #ifdef __cplusplus
 } // __cplusplus defined.

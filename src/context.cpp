@@ -87,8 +87,9 @@ namespace Sass {
 
   {
 
-    // add cwd to include paths
-    include_paths.push_back(CWD);
+    // Sass 3.4: The current working directory will no longer be placed onto the Sass load path by default.
+    // If you need the current working directory to be available, set SASS_PATH=. in your shell's environment.
+    // include_paths.push_back(CWD);
 
     // collect more paths from different options
     collect_include_paths(c_options.include_path);
@@ -667,7 +668,7 @@ namespace Sass {
 
     // clean up by removing empty placeholders
     // ToDo: maybe we can do this somewhere else?
-    Remove_Placeholders remove_placeholders(*this);
+    Remove_Placeholders remove_placeholders;
     root->perform(&remove_placeholders);
     // return processed tree
     return root;

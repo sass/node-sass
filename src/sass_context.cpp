@@ -674,6 +674,10 @@ extern "C" {
   size_t ADDCALL sass_compiler_get_import_stack_size(struct Sass_Compiler* compiler) { return compiler->cpp_ctx->import_stack.size(); }
   Sass_Import_Entry ADDCALL sass_compiler_get_last_import(struct Sass_Compiler* compiler) { return compiler->cpp_ctx->import_stack.back(); }
   Sass_Import_Entry ADDCALL sass_compiler_get_import_entry(struct Sass_Compiler* compiler, size_t idx) { return compiler->cpp_ctx->import_stack[idx]; }
+  // Getters for Sass_Compiler options (query function stack)
+  size_t ADDCALL sass_compiler_get_callee_stack_size(struct Sass_Compiler* compiler) { return compiler->cpp_ctx->callee_stack.size(); }
+  Sass_Callee_Entry ADDCALL sass_compiler_get_last_callee(struct Sass_Compiler* compiler) { return &compiler->cpp_ctx->callee_stack.back(); }
+  Sass_Callee_Entry ADDCALL sass_compiler_get_callee_entry(struct Sass_Compiler* compiler, size_t idx) { return &compiler->cpp_ctx->callee_stack[idx]; }
 
   // Calculate the size of the stored null terminated array
   size_t ADDCALL sass_context_get_included_files_size (struct Sass_Context* ctx)
@@ -695,8 +699,6 @@ extern "C" {
   IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, linefeed);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, input_path, 0);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, output_path, 0);
-  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, plugin_path, 0);
-  IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, include_path, 0);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, source_map_file, 0);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, source_map_root, 0);
 
@@ -738,6 +740,23 @@ extern "C" {
       last->next = include_path;
     }
 
+  }
+
+  // Push function for include paths (no manipulation support for now)
+  size_t ADDCALL sass_option_get_include_path_size(struct Sass_Options* options)
+  {
+    size_t len = 0;
+    struct string_list* cur = options->include_paths;
+    while (cur) { len ++; cur = cur->next; }
+    return len;
+  }
+
+  // Push function for include paths (no manipulation support for now)
+  const char* ADDCALL sass_option_get_include_path(struct Sass_Options* options, size_t i)
+  {
+    struct string_list* cur = options->include_paths;
+    while (i) { i--; cur = cur->next; }
+    return cur->string;
   }
 
   // Push function for plugin paths (no manipulation support for now)

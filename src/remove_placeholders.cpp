@@ -6,8 +6,7 @@
 
 namespace Sass {
 
-    Remove_Placeholders::Remove_Placeholders(Context& ctx)
-    : ctx(ctx)
+    Remove_Placeholders::Remove_Placeholders()
     { }
 
     void Remove_Placeholders::operator()(Block_Ptr b) {

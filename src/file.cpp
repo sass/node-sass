@@ -20,6 +20,7 @@
 #include "context.hpp"
 #include "prelexer.hpp"
 #include "utf8_string.hpp"
+#include "sass_functions.hpp"
 #include "sass2scss.h"
 
 #ifdef _WIN32
@@ -301,13 +302,9 @@ namespace Sass {
     // (2) underscore + given
     // (3) underscore + given + extension
     // (4) given + extension
-    std::vector<Include> resolve_includes(const std::string& root, const std::string& file)
+    std::vector<Include> resolve_includes(const std::string& root, const std::string& file, const std::vector<std::string>& exts)
     {
       std::string filename = join_paths(root, file);
-      // supported extensions
-      const std::vector<std::string> exts = {
-        ".scss", ".sass", ".css"
-      };
       // split the filename
       std::string base(dir_name(file));
       std::string name(base_name(file));
@@ -336,8 +333,41 @@ namespace Sass {
       return includes;
     }
 
-    // helper function to resolve a filename
+    std::vector<std::string> find_files(const std::string& file, const std::vector<std::string> paths)
+    {
+      std::vector<std::string> includes;
+      for (std::string path : paths) {
+        std::string abs_path(join_paths(path, file));
+        if (file_exists(abs_path)) includes.push_back(abs_path);
+      }
+      return includes;
+    }
+
+    std::vector<std::string> find_files(const std::string& file, struct Sass_Compiler* compiler)
+    {
+      // get the last import entry to get current base directory
+      // struct Sass_Options* options = sass_compiler_get_options(compiler);
+      Sass_Import_Entry import = sass_compiler_get_last_import(compiler);
+      const std::vector<std::string>& incs = compiler->cpp_ctx->include_paths;
+      // create the vector with paths to lookup
+      std::vector<std::string> paths(1 + incs.size());
+      paths.push_back(dir_name(import->abs_path));
+      paths.insert(paths.end(), incs.begin(), incs.end());
+      // dispatch to find files in paths
+      return find_files(file, paths);
+    }
+
+    // helper function to search one file in all include paths
+    // this is normally not used internally by libsass (C-API sugar)
     std::string find_file(const std::string& file, const std::vector<std::string> paths)
+    {
+      if (file.empty()) return file;
+      auto res = find_files(file, paths);
+      return res.empty() ? "" : res.front();
+    }
+
+    // helper function to resolve a filename
+    std::string find_include(const std::string& file, const std::vector<std::string> paths)
     {
       // search in every include path for a match
       for (size_t i = 0, S = paths.size(); i < S; ++i)
@@ -347,20 +377,6 @@ namespace Sass {
       }
       // nothing found
       return std::string("");
-    }
-
-    // inc paths can be directly passed from C code
-    std::string find_file(const std::string& file, const char* paths[])
-    {
-      if (paths == 0) return std::string("");
-      std::vector<std::string> includes(0);
-      // includes.push_back(".");
-      const char** it = paths;
-      while (it && *it) {
-        includes.push_back(*it);
-        ++it;
-      }
-      return find_file(file, includes);
     }
 
     // try to load the given filename
@@ -412,6 +428,26 @@ namespace Sass {
       } else {
         return contents;
       }
+    }
+
+    // split a path string delimited by semicolons or colons (OS dependent)
+    std::vector<std::string> split_path_list(const char* str)
+    {
+      std::vector<std::string> paths;
+      if (str == NULL) return paths;
+      // find delimiter via prelexer (return zero at end)
+      const char* end = Prelexer::find_first<PATH_SEP>(str);
+      // search until null delimiter
+      while (end) {
+        // add path from current position to delimiter
+        paths.push_back(std::string(str, end - str));
+        str = end + 1; // skip delimiter
+        end = Prelexer::find_first<PATH_SEP>(str);
+      }
+      // add path from current position to end
+      paths.push_back(std::string(str));
+      // return back
+      return paths;
     }
 
   }

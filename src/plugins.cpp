@@ -1,3 +1,8 @@
+#include "sass.hpp"
+#include <iostream>
+#include "output.hpp"
+#include "plugins.hpp"
+
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -7,15 +12,21 @@
 #include <dlfcn.h>
 #endif
 
-#include "sass.hpp"
-#include <iostream>
-#include "output.hpp"
-#include "plugins.hpp"
-
 namespace Sass {
 
   Plugins::Plugins(void) { }
-  Plugins::~Plugins(void) { }
+  Plugins::~Plugins(void)
+  {
+    for (auto function : functions) {
+      sass_delete_function(function);
+    }
+    for (auto importer : importers) {
+      sass_delete_importer(importer);
+    }
+    for (auto header : headers) {
+      sass_delete_importer(header);
+    }
+  }
 
   // check if plugin is compatible with this version
   // plugins may be linked static against libsass
@@ -57,20 +68,23 @@ namespace Sass {
         // try to get import address for "libsass_load_functions"
         if (LOAD_LIB_FN(__plugin_load_fns__, plugin_load_functions, "libsass_load_functions"))
         {
-          Sass_Function_List fns = plugin_load_functions();
+          Sass_Function_List fns = plugin_load_functions(), _p = fns;
           while (fns && *fns) { functions.push_back(*fns); ++ fns; }
+          sass_free_memory(_p); // only delete the container, items not yet
         }
         // try to get import address for "libsass_load_importers"
         if (LOAD_LIB_FN(__plugin_load_imps__, plugin_load_importers, "libsass_load_importers"))
         {
-          Sass_Importer_List imps = plugin_load_importers();
+          Sass_Importer_List imps = plugin_load_importers(), _p = imps;
           while (imps && *imps) { importers.push_back(*imps); ++ imps; }
+          sass_free_memory(_p); // only delete the container, items not yet
         }
         // try to get import address for "libsass_load_headers"
         if (LOAD_LIB_FN(__plugin_load_imps__, plugin_load_headers, "libsass_load_headers"))
         {
-          Sass_Importer_List imps = plugin_load_headers();
+          Sass_Importer_List imps = plugin_load_headers(), _p = imps;
           while (imps && *imps) { headers.push_back(*imps); ++ imps; }
+          sass_free_memory(_p); // only delete the container, items not yet
         }
         // success
         return true;
@@ -153,7 +167,11 @@ namespace Sass {
       struct dirent *dirp;
       if((dp  = opendir(path.c_str())) == NULL) return -1;
       while ((dirp = readdir(dp)) != NULL) {
-        if (!ends_with(dirp->d_name, ".so")) continue;
+        #if __APPLE__
+          if (!ends_with(dirp->d_name, ".dylib")) continue;
+        #else
+          if (!ends_with(dirp->d_name, ".so")) continue;
+        #endif
         if (load_plugin(path + dirp->d_name)) ++ loaded;
       }
       closedir(dp);

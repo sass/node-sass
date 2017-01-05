@@ -9,6 +9,7 @@
 #include "backtrace.hpp"
 #include "context.hpp"
 #include "parser.hpp"
+#include "sass_functions.hpp"
 
 namespace Sass {
 
@@ -706,6 +707,15 @@ namespace Sass {
     Arguments_Obj args = SASS_MEMORY_CAST(Arguments, rv);
     Backtrace new_bt(backtrace(), c->pstate(), ", in mixin `" + c->name() + "`");
     backtrace_stack.push_back(&new_bt);
+    ctx.callee_stack.push_back({
+      c->name().c_str(),
+      c->pstate().path,
+      c->pstate().line + 1,
+      c->pstate().column + 1,
+      SASS_CALLEE_MIXIN,
+      { env }
+    });
+
     Env new_env(def->environment());
     env_stack.push_back(&new_env);
     if (c->block()) {
@@ -735,6 +745,7 @@ namespace Sass {
 
     env_stack.pop_back();
     backtrace_stack.pop_back();
+    ctx.callee_stack.pop_back();
 
     recursions --;
     return trace.detach();

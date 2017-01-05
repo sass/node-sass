@@ -9,11 +9,7 @@
 namespace Sass {
 
 
-    class Context;
-
     class Remove_Placeholders : public Operation_CRTP<void, Remove_Placeholders> {
-
-        Context&          ctx;
 
         void fallback_impl(AST_Node_Ptr n) {}
 
@@ -21,7 +17,7 @@ namespace Sass {
       Selector_List_Ptr remove_placeholders(Selector_List_Ptr);
 
     public:
-        Remove_Placeholders(Context&);
+        Remove_Placeholders();
         ~Remove_Placeholders() { }
 
         void operator()(Block_Ptr);

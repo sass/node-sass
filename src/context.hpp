@@ -50,6 +50,7 @@ namespace Sass {
     std::map<const std::string, StyleSheet> sheets;
     Subset_Map subset_map;
     std::vector<Sass_Import_Entry> import_stack;
+    std::vector<Sass_Callee> callee_stack;
 
     struct Sass_Compiler* c_compiler;
 
