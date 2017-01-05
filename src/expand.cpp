@@ -14,21 +14,21 @@
 namespace Sass {
 
   // simple endless recursion protection
-  const unsigned int maxRecursion = 500;
-  static unsigned int recursions = 0;
+  const size_t maxRecursion = 500;
 
   Expand::Expand(Context& ctx, Env* env, Backtrace* bt, std::vector<Selector_List_Obj>* stack)
   : ctx(ctx),
     eval(Eval(*this)),
+    recursions(0),
+    in_keyframes(false),
+    at_root_without_rule(false),
+    old_at_root_without_rule(false),
     env_stack(std::vector<Env*>()),
     block_stack(std::vector<Block_Ptr>()),
     call_stack(std::vector<AST_Node_Obj>()),
     selector_stack(std::vector<Selector_List_Obj>()),
     media_block_stack(std::vector<Media_Block_Ptr>()),
-    backtrace_stack(std::vector<Backtrace*>()),
-    in_keyframes(false),
-    at_root_without_rule(false),
-    old_at_root_without_rule(false)
+    backtrace_stack(std::vector<Backtrace*>())
   {
     env_stack.push_back(0);
     env_stack.push_back(env);
@@ -685,11 +685,12 @@ namespace Sass {
 
   Statement_Ptr Expand::operator()(Mixin_Call_Ptr c)
   {
-    recursions ++;
 
     if (recursions > maxRecursion) {
       throw Exception::StackError(*c);
     }
+
+    recursions ++;
 
     Env* env = environment();
     std::string full_name(c->name() + "[m]");
