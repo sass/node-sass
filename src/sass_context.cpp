@@ -272,10 +272,14 @@ extern "C" {
   #define IMPLEMENT_SASS_OPTION_ACCESSOR(type, option) \
     type ADDCALL sass_option_get_##option (struct Sass_Options* options) { return options->option; } \
     void ADDCALL sass_option_set_##option (struct Sass_Options* options, type option) { options->option = option; }
-  #define IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(type, option, def) \
-    type ADDCALL sass_option_get_##option (struct Sass_Options* options) { return safe_str(options->option, def); } \
+  #define IMPLEMENT_SASS_OPTION_STRING_GETTER(type, option, def) \
+    type ADDCALL sass_option_get_##option (struct Sass_Options* options) { return safe_str(options->option, def); }
+  #define IMPLEMENT_SASS_OPTION_STRING_SETTER(type, option, def) \
     void ADDCALL sass_option_set_##option (struct Sass_Options* options, type option) \
     { free(options->option); options->option = option || def ? sass_copy_c_string(option ? option : def) : 0; }
+  #define IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(type, option, def) \
+    IMPLEMENT_SASS_OPTION_STRING_GETTER(type, option, def) \
+    IMPLEMENT_SASS_OPTION_STRING_SETTER(type, option, def)
 
   #define IMPLEMENT_SASS_CONTEXT_GETTER(type, option) \
     type ADDCALL sass_context_get_##option (struct Sass_Context* ctx) { return ctx->option; }
@@ -697,6 +701,8 @@ extern "C" {
   IMPLEMENT_SASS_OPTION_ACCESSOR(Sass_Importer_List, c_headers);
   IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, indent);
   IMPLEMENT_SASS_OPTION_ACCESSOR(const char*, linefeed);
+  IMPLEMENT_SASS_OPTION_STRING_SETTER(const char*, plugin_path, 0);
+  IMPLEMENT_SASS_OPTION_STRING_SETTER(const char*, include_path, 0);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, input_path, 0);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, output_path, 0);
   IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(const char*, source_map_file, 0);
