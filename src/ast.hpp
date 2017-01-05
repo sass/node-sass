@@ -1082,6 +1082,7 @@ namespace Sass {
     {
       if (hash_ == 0) {
         hash_ = std::hash<std::string>()(sep_string());
+        hash_combine(hash_, std::hash<bool>()(is_bracketed()));
         for (size_t i = 0, L = length(); i < L; ++i)
           hash_combine(hash_, (elements()[i])->hash());
       }

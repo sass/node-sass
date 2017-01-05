@@ -2225,6 +2225,7 @@ namespace Sass {
     if (List_Ptr_Const r = dynamic_cast<List_Ptr_Const>(&rhs)) {
       if (length() != r->length()) return false;
       if (separator() != r->separator()) return false;
+      if (is_bracketed() != r->is_bracketed()) return false;
       for (size_t i = 0, L = length(); i < L; ++i) {
         Expression_Obj rv = r->at(i);
         Expression_Obj lv = this->at(i);
