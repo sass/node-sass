@@ -12,6 +12,8 @@ VERSION
 .cproject
 .project
 .settings/
+*.db
+*.aps
 
 # Configuration stuff
 
