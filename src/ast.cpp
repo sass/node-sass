@@ -703,7 +703,12 @@ namespace Sass {
   bool Pseudo_Selector::operator< (const Pseudo_Selector& rhs) const
   {
     if (is_ns_eq(ns(), rhs.ns()) && name() == rhs.name())
-    { return *(expression()) < *(rhs.expression()); }
+    {
+      String_Obj lhs_ex = expression();
+      String_Obj rhs_ex = rhs.expression();
+      if (rhs_ex && lhs_ex) return *lhs_ex < *rhs_ex;
+      else return lhs_ex < rhs_ex;
+    }
     if (is_ns_eq(ns(), rhs.ns()))
     { return name() < rhs.name(); }
     return ns() < rhs.ns();
