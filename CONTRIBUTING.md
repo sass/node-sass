@@ -42,11 +42,6 @@ If the bug fix requires modifying any of the C++ files in the src/ directory, yo
 
 Alternatively, the `scripts/build.js` build script has several different command line flags that can be passed by running: `node scripts/build.js -[flag]`
 
-If the bug fix requires updating the version of libSass, you'll need to update its git submodule.
-
-1. Move into node-sass's libSass directory with: `cd src/libsass`
-2. Look for a new version of libSass with: `git tag` and check it out with: `git checkout [tag]`
-3. Then return to root of the node-sass repository and add the change to your feature branch.
 
 ## Reporting Sass compilation and syntax issues
 
