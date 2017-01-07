@@ -34,8 +34,7 @@ If this project is missing an API or command line flag that has been added to [l
 1. Ensure the `master` branch is up-to-date with: `git checkout master; git pull`
 2. Create a new Git branch and make your changes. `git checkout -b name-of-new-branch`
 3. Install all the node.js dependencies of node-sass with: `npm install`
-4. The Sass test spec and LibSass are Git submodules, so get their codebase with: `git submodule update --init`
-5. Ensure the tests pass with: `npm test`
+4. Ensure the tests pass with: `npm test`
 
 If the bug fix requires modifying any of the C++ files in the src/ directory, you'll need to re-build the bindings to libSass.
 
