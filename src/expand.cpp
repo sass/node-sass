@@ -636,7 +636,11 @@ namespace Sass {
       // convert selector schema to a selector list
       else if (Selector_Schema_Obj schema = SASS_MEMORY_CAST(Selector_Schema, s)) {
         if (schema->has_real_parent_ref()) {
+          // put root block on stack again (ignore parents)
+          // selector schema must not connect in eval!
+          block_stack.push_back(block_stack.at(1));
           sl = eval(&schema);
+          block_stack.pop_back();
         } else {
           selector_stack.push_back(0);
           sl = eval(&schema);
