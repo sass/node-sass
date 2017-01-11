@@ -1748,8 +1748,8 @@ namespace Sass {
     result_str = unquote(Util::rtrim(result_str)) + "\n{";
     Parser p = Parser::from_c_str(result_str.c_str(), ctx, s->pstate());
     p.last_media_block = s->media_block();
-    Selector_List_Obj sl = p.parse_selector_list(exp.block_stack.back()->is_root());
-    if (s->has_parent_ref()) sl->remove_parent_selectors();
+    bool root = exp.block_stack.back()->is_root();
+    Selector_List_Obj sl = p.parse_selector_list(root);
     return operator()(&sl);
   }
 
