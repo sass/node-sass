@@ -1065,7 +1065,7 @@ namespace Sass {
       return SASS_MEMORY_NEW(List, pstate, 0, SASS_SPACE, false, true);
     }
 
-    bool has_paren = peek_css< exactly<'('> >();
+    bool has_paren = peek_css< exactly<'('> >() != NULL;
 
     // now try to parse a space list
     Expression_Obj list = parse_space_list();
@@ -1077,8 +1077,8 @@ namespace Sass {
         bracketed_list->append(&list);
         return &bracketed_list;
       }
-        l->is_bracketed(&list);
-        return &l;
+      l->is_bracketed(true);
+      return &l;
     }
 
     // if we got so far, we actually do have a comma list
