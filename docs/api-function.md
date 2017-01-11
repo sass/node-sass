@@ -32,6 +32,9 @@ typedef union Sass_Value* (*Sass_Function_Fn)
 // Creators for sass function list and function descriptors
 Sass_Function_List sass_make_function_list (size_t length);
 Sass_Function_Entry sass_make_function (const char* signature, Sass_Function_Fn cb, void* cookie);
+// In case you need to free them yourself
+void sass_delete_function (Sass_Function_Entry entry);
+void sass_delete_function_list (Sass_Function_List list);
 
 // Setters and getters for callbacks on function lists
 Sass_Function_Entry sass_function_get_list_entry(Sass_Function_List list, size_t pos);
