@@ -49,7 +49,6 @@
     - ps: Install-Product node $env:nodejs_version $env:platform
     - node --version
     - npm --version
-    - git submodule update --init --recursive
     - npm install --msvs_version=2013
 
   test: off
@@ -121,7 +120,6 @@
     - ps: Install-Product node $env:nodejs_version $env:platform
     - node --version
     - npm --version
-    - git submodule update --init --recursive
     - npm install --msvs_version=2013
 
   test_script:
