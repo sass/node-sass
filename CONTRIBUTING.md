@@ -1,7 +1,7 @@
 ## Contributing
  * Fork the project.
  * Make your feature addition or bug fix.
- * Add documentation if necessary. 
+ * Add documentation if necessary.
  * Add tests for it. This is important so I don't break it in a future version unintentionally.
  * Send a pull request. Bonus points for topic branches.
 
@@ -34,8 +34,7 @@ If this project is missing an API or command line flag that has been added to [l
 1. Ensure the `master` branch is up-to-date with: `git checkout master; git pull`
 2. Create a new Git branch and make your changes. `git checkout -b name-of-new-branch`
 3. Install all the node.js dependencies of node-sass with: `npm install`
-4. The Sass test spec and LibSass are Git submodules, so get their codebase with: `git submodule update --init`
-5. Ensure the tests pass with: `npm test`
+4. Ensure the tests pass with: `npm test`
 
 If the bug fix requires modifying any of the C++ files in the src/ directory, you'll need to re-build the bindings to libSass.
 
@@ -43,11 +42,6 @@ If the bug fix requires modifying any of the C++ files in the src/ directory, yo
 
 Alternatively, the `scripts/build.js` build script has several different command line flags that can be passed by running: `node scripts/build.js -[flag]`
 
-If the bug fix requires updating the version of libSass, you'll need to update its git submodule.
-
-1. Move into node-sass's libSass directory with: `cd src/libsass`
-2. Look for a new version of libSass with: `git tag` and check it out with: `git checkout [tag]`
-3. Then return to root of the node-sass repository and add the change to your feature branch.
 
 ## Reporting Sass compilation and syntax issues
 

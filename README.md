@@ -257,7 +257,7 @@ Used to determine how many digits after the decimal will be allowed. For instanc
 Type: `Boolean`
 Default: `false`
 
-`true` Enables the line number and file where a selector is defined to be emitted into the compiled CSS as a comment. Useful for debugging, especially when using imports and mixins. 
+`true` Enables the line number and file where a selector is defined to be emitted into the compiled CSS as a comment. Useful for debugging, especially when using imports and mixins.
 
 ### sourceMap
 Type: `Boolean | String | undefined`
@@ -351,7 +351,7 @@ var result = sass.renderSync({
   data: 'body{background:blue; a{color:black;}}',
   outputStyle: 'compressed',
   outFile: '/to/my/output.css',
-  sourceMap: true, // or an absolute or relative (to outFile) path 
+  sourceMap: true, // or an absolute or relative (to outFile) path
   importer: function(url, prev, done) {
     // url is the path in import as is, which LibSass encountered.
     // prev is the previously resolved path.
@@ -461,7 +461,6 @@ Check out the project:
 ```bash
 git clone --recursive https://github.com/sass/node-sass.git
 cd node-sass
-git submodule update --init --recursive
 npm install
 node scripts/build -f  # use -d switch for debug release
 # if succeeded, it will generate and move
@@ -475,8 +474,8 @@ The interface for command-line usage is fairly simplistic at this stage, as seen
 Output will be sent to stdout if the `--output` flag is omitted.
 
 ### Usage
- `node-sass [options] <input> [output]`  
- Or:  
+ `node-sass [options] <input> [output]`
+ Or:
  `cat <input> | node-sass > output`
 
 Example:
