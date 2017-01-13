@@ -166,7 +166,7 @@ namespace Sass {
       if (String_Constant_Ptr str = SASS_MEMORY_CAST(String_Constant, exp)) {
         str->quote_mark(0);
       }
-      std::string exp_src = exp->to_string(ctx.c_options) + "{";
+      std::string exp_src = exp->to_string(ctx.c_options);
       return Parser::parse_selector(exp_src.c_str(), ctx);
     }
 
@@ -181,7 +181,7 @@ namespace Sass {
       if (String_Constant_Ptr str = SASS_MEMORY_CAST(String_Constant, exp)) {
         str->quote_mark(0);
       }
-      std::string exp_src = exp->to_string(ctx.c_options) + "{";
+      std::string exp_src = exp->to_string(ctx.c_options);
       Selector_List_Obj sel_list = Parser::parse_selector(exp_src.c_str(), ctx);
       return (sel_list->length() > 0) ? &sel_list->first()->tail()->head() : 0;
     }
@@ -1772,7 +1772,7 @@ namespace Sass {
         if (String_Constant_Obj str = SASS_MEMORY_CAST(String_Constant, exp)) {
           str->quote_mark(0);
         }
-        std::string exp_src = exp->to_string(ctx.c_options) + "{";
+        std::string exp_src = exp->to_string(ctx.c_options);
         Selector_List_Obj sel = Parser::parse_selector(exp_src.c_str(), ctx);
         parsedSelectors.push_back(&sel);
       }
@@ -1825,7 +1825,7 @@ namespace Sass {
         if (String_Constant_Ptr str = SASS_MEMORY_CAST(String_Constant, exp)) {
           str->quote_mark(0);
         }
-        std::string exp_src = exp->to_string() + "{";
+        std::string exp_src = exp->to_string();
         Selector_List_Obj sel = Parser::parse_selector(exp_src.c_str(), ctx);
         parsedSelectors.push_back(&sel);
       }
