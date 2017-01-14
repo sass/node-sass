@@ -11,7 +11,6 @@
 
 namespace Sass {
 
-  typedef Environment<AST_Node_Obj> Env;
   struct Backtrace;
 
   class Listize : public Operation_CRTP<Expression_Ptr, Listize> {

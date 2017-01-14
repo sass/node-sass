@@ -787,10 +787,7 @@ inline void debug_subset_map(Sass::Subset_Map& map, std::string ind = "")
   if (ind == "") std::cerr << "#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
 }
 
-typedef std::pair<Complex_Selector_Obj, Compound_Selector_Obj> ExtensionPair;
-typedef std::vector<ExtensionPair> SubsetMapEntries;
-
-inline void debug_subset_entries(SubsetMapEntries* entries, std::string ind = "")
+inline void debug_subset_entries(SubSetMapPairs* entries, std::string ind = "")
 {
   if (ind == "") std::cerr << "#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
   for(auto const &pair : *entries) {

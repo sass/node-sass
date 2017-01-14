@@ -916,7 +916,6 @@ namespace Sass {
   // by a type tag.
   /////////////////////////////////////////////////////////////////////////////
   struct Backtrace;
-  typedef Environment<AST_Node_Obj> Env;
   typedef const char* Signature;
   typedef Expression_Ptr (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtrace*, std::vector<Selector_List_Obj>);
   class Definition : public Has_Block {
@@ -2708,15 +2707,10 @@ namespace Sass {
     ATTACH_OPERATIONS()
   };
 
-  struct Complex_Selector_Pointer_Compare {
-    bool operator() (const Complex_Selector_Obj& pLeft, const Complex_Selector_Obj& pRight) const;
-  };
-
   ////////////////////////////////////////////////////////////////////////////
   // Simple selector sequences. Maintains flags indicating whether it contains
   // any parent references or placeholders, to simplify expansion.
   ////////////////////////////////////////////////////////////////////////////
-  typedef std::set<Complex_Selector_Obj, Complex_Selector_Pointer_Compare> SourcesSet;
   class Compound_Selector : public Selector, public Vectorized<Simple_Selector_Obj> {
   private:
     SourcesSet sources_;
@@ -2805,7 +2799,7 @@ namespace Sass {
       return length() == 1 &&
              SASS_MEMORY_CAST(Parent_Selector, (*this)[0]);
     }
-    std::vector<Subset_Map_Key> to_str_vec(); // sometimes need to convert to a flat "by-value" data structure
+    SubSetMapKeys to_str_vec(); // sometimes need to convert to a flat "by-value" data structure
 
     virtual bool operator<(const Compound_Selector& rhs) const;
     virtual bool operator==(const Compound_Selector& rhs) const;
@@ -2949,7 +2943,7 @@ namespace Sass {
       }
 
       if (pTail) {
-        SourcesSet tailSources = pTail->sources();
+        const SourcesSet& tailSources = pTail->sources();
         srcs.insert(tailSources.begin(), tailSources.end());
       }
 
@@ -2985,8 +2979,6 @@ namespace Sass {
     ATTACH_AST_OPERATIONS(Complex_Selector)
     ATTACH_OPERATIONS()
   };
-
-  typedef std::deque<Complex_Selector_Obj> ComplexSelectorDeque;
 
   ///////////////////////////////////
   // Comma-separated selector groups.

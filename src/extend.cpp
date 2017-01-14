@@ -61,8 +61,6 @@
 namespace Sass {
 
 
-  typedef std::pair<Complex_Selector_Obj, Compound_Selector_Obj> ExtensionPair;
-  typedef std::vector<ExtensionPair> SubsetMapEntries;
 
 #ifdef DEBUG
 
@@ -110,11 +108,6 @@ namespace Sass {
       std::cerr << std::endl;
     }
   }
-
-  // Print a string representation of a Compound_Selector
-    typedef std::pair<Compound_Selector_Obj, Complex_Selector_Obj> SelsNewSeqPair;
-    typedef std::vector<SelsNewSeqPair> SelsNewSeqPairCollection;
-
 
   // Print a string representation of a Compound_Selector
   static void printCompoundSelector(Compound_Selector_Ptr pCompoundSelector, const char* message=NULL, bool newline=true) {
@@ -186,14 +179,14 @@ namespace Sass {
     }
   }
 
-  static void printSelsNewSeqPairCollection(SelsNewSeqPairCollection& collection, const char* message=NULL, bool newline=true) {
+  static void printSelsNewSeqPairCollection(SubSetMapLookups& collection, const char* message=NULL, bool newline=true) {
 
     if (message) {
       std::cerr << message;
     }
     bool first = true;
     std::cerr << "[";
-    for(SelsNewSeqPair& pair : collection) {
+    for(SubSetMapLookup& pair : collection) {
       if (first) {
         first = false;
       } else {
@@ -249,10 +242,10 @@ namespace Sass {
   }
 
 
-  std::ostream& operator<<(std::ostream& os, SubsetMapEntries& entries) {
+  std::ostream& operator<<(std::ostream& os, SubSetMapPairs& entries) {
     os << "SUBSET_MAP_ENTRIES[";
 
-    for (SubsetMapEntries::iterator iterator = entries.begin(), endIterator = entries.end(); iterator != endIterator; ++iterator) {
+    for (SubSetMapPairs::iterator iterator = entries.begin(), endIterator = entries.end(); iterator != endIterator; ++iterator) {
       Complex_Selector_Obj pExtComplexSelector = iterator->first;    // The selector up to where the @extend is (ie, the thing to merge)
       Compound_Selector_Obj pExtCompoundSelector = iterator->second; // The stuff after the @extend
 
@@ -1530,7 +1523,7 @@ namespace Sass {
   template<typename KeyType>
   class GroupByToAFunctor {
   public:
-    KeyType operator()(ExtensionPair& extPair) const {
+    KeyType operator()(SubSetMapPair& extPair) const {
       Complex_Selector_Obj pSelector = extPair.first;
       return &pSelector;
     }
@@ -1547,33 +1540,27 @@ namespace Sass {
     Node extendedSelectors = Node::createCollection();
     // extendedSelectors.got_line_feed = true;
 
-    SubsetMapEntries entries = subset_map.get_v(pSelector);
-
-    typedef std::vector<std::pair<Complex_Selector_Obj, std::vector<ExtensionPair> > > GroupedByToAResult;
+    SubSetMapPairs entries = subset_map.get_v(pSelector);
 
     GroupByToAFunctor<Complex_Selector_Obj> extPairKeyFunctor;
-    GroupedByToAResult arr;
+    SubSetMapResults arr;
     group_by_to_a(entries, extPairKeyFunctor, arr);
 
-    typedef std::pair<Compound_Selector_Obj, Complex_Selector_Obj> SelsNewSeqPair;
-    typedef std::vector<SelsNewSeqPair> SelsNewSeqPairCollection;
+    SubSetMapLookups holder;
 
 
-    SelsNewSeqPairCollection holder;
-
-
-    for (GroupedByToAResult::iterator groupedIter = arr.begin(), groupedIterEnd = arr.end(); groupedIter != groupedIterEnd; groupedIter++) {
-      std::pair<Complex_Selector_Obj, std::vector<ExtensionPair> >& groupedPair = *groupedIter;
+    for (SubSetMapResults::iterator groupedIter = arr.begin(), groupedIterEnd = arr.end(); groupedIter != groupedIterEnd; groupedIter++) {
+      SubSetMapResult& groupedPair = *groupedIter;
 
       Complex_Selector_Obj seq = groupedPair.first;
-      std::vector<ExtensionPair>& group = groupedPair.second;
+      SubSetMapPairs& group = groupedPair.second;
 
       DEBUG_EXEC(EXTEND_COMPOUND, printComplexSelector(&seq, "SEQ: "))
 
 // changing this makes aua
       Compound_Selector_Obj pSels = SASS_MEMORY_NEW(Compound_Selector, pSelector->pstate());
-      for (std::vector<ExtensionPair>::iterator groupIter = group.begin(), groupIterEnd = group.end(); groupIter != groupIterEnd; groupIter++) {
-        ExtensionPair& pair = *groupIter;
+      for (SubSetMapPairs::iterator groupIter = group.begin(), groupIterEnd = group.end(); groupIter != groupIterEnd; groupIter++) {
+        SubSetMapPair& pair = *groupIter;
         Compound_Selector_Obj pCompound = pair.second;
         for (size_t index = 0; index < pCompound->length(); index++) {
           Simple_Selector_Obj pSimpleSelector = (*pCompound)[index];
@@ -1642,6 +1629,7 @@ namespace Sass {
 
       DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet oldSet = pNewSelector->sources(); printSourcesSet(oldSet, ctx, "SOURCES NEW SEQ BEGIN: "))
 
+      // I actually want to create a copy here (performance!)
       SourcesSet newSourcesSet = pSelector->sources();
       DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, ctx, "SOURCES THIS EXTEND: "))
 
@@ -1661,8 +1649,8 @@ namespace Sass {
     }
 
 
-    for (SelsNewSeqPairCollection::iterator holderIter = holder.begin(), holderIterEnd = holder.end(); holderIter != holderIterEnd; holderIter++) {
-      SelsNewSeqPair& pair = *holderIter;
+    for (SubSetMapLookups::iterator holderIter = holder.begin(), holderIterEnd = holder.end(); holderIter != holderIterEnd; holderIter++) {
+      SubSetMapLookup& pair = *holderIter;
 
       Compound_Selector_Obj pSels = pair.first;
       Complex_Selector_Obj pNewSelector = pair.second;
@@ -1717,8 +1705,8 @@ namespace Sass {
       Compound_Selector_Obj pHead = pIter->head();
 
       if (pHead) {
-        SubsetMapEntries entries = subset_map.get_v(pHead);
-        for (ExtensionPair ext : entries) {
+        SubSetMapPairs entries = subset_map.get_v(pHead);
+        for (SubSetMapPair ext : entries) {
           // check if both selectors have the same media block parent
           // if (ext.first->media_block() == pComplexSelector->media_block()) continue;
           if (ext.second->media_block() == 0) continue;

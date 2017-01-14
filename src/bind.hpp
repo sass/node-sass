@@ -6,7 +6,6 @@
 #include "ast_fwd_decl.hpp"
 
 namespace Sass {
-  typedef Environment<AST_Node_Obj> Env;
 
   void bind(std::string type, std::string name, Parameters_Obj, Arguments_Obj, Context*, Env*, Eval*);
 }

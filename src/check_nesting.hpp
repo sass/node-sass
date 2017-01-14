@@ -6,8 +6,6 @@
 
 namespace Sass {
 
-  typedef Environment<AST_Node_Obj> Env;
-
   class CheckNesting : public Operation_CRTP<Statement_Ptr, CheckNesting> {
 
     std::vector<Statement_Ptr>  parents;

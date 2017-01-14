@@ -1,6 +1,9 @@
 #ifndef SASS_AST_FWD_DECL_H
 #define SASS_AST_FWD_DECL_H
 
+#include <map>
+#include <set>
+#include <deque>
 #include <vector>
 #include <iostream>
 #include <algorithm>
@@ -353,37 +356,60 @@ namespace Sass {
   IMPL_MEM_OBJ(Complex_Selector);
   IMPL_MEM_OBJ(Selector_List);
 
+  // ###########################################################################
+  // Implement compare, order and hashing operations for AST Nodes
+  // ###########################################################################
 
-  struct HashExpression {
-    size_t operator() (Expression_Obj ex) const;
+  struct HashNodes {
+    template <class T>
+    size_t operator() (const T& ex) const {
+      return ex.isNull() ? 0 : ex->hash();
+    }
   };
-  struct CompareExpression {
-    bool operator()(const Expression_Obj& lhs, const Expression_Obj& rhs) const;
+  struct OrderNodes {
+    template <class T>
+    bool operator() (const T& lhs, const T& rhs) const {
+      return !lhs.isNull() && !rhs.isNull() && *lhs < *rhs;
+    }
+  };
+  struct CompareNodes {
+    template <class T>
+    bool operator() (const T& lhs, const T& rhs) const {
+      return !lhs.isNull() && !rhs.isNull() && *lhs == *rhs;
+    }
   };
 
-  struct HashSimpleSelector {
-    size_t operator() (Simple_Selector_Obj ex) const;
-  };
-
-  struct CompareSimpleSelector {
-    bool operator()(Simple_Selector_Obj lhs, Simple_Selector_Obj rhs) const;
-  };
+  // ###########################################################################
+  // some often used typedefs
+  // ###########################################################################
 
   typedef std::unordered_map<
     Expression_Obj, // key
     Expression_Obj, // value
-    HashExpression, // hasher
-    CompareExpression // compare
+    HashNodes, // hasher
+    CompareNodes // compare
   > ExpressionMap;
   typedef std::unordered_set<
     Expression_Obj, // value
-    HashExpression, // hasher
-    CompareExpression // compare
+    HashNodes, // hasher
+    CompareNodes // compare
   > ExpressionSet;
 
-  typedef std::string Subset_Map_Key;
-  typedef std::vector<size_t> Subset_Map_Arr;
-  typedef std::pair<Complex_Selector_Obj, Compound_Selector_Obj> Subset_Map_Val;
+  typedef std::string SubSetMapKey;
+  typedef std::vector<std::string> SubSetMapKeys;
+
+  typedef std::pair<Complex_Selector_Obj, Compound_Selector_Obj> SubSetMapPair;
+  typedef std::pair<Compound_Selector_Obj, Complex_Selector_Obj> SubSetMapLookup;
+  typedef std::vector<SubSetMapPair> SubSetMapPairs;
+  typedef std::vector<SubSetMapLookup> SubSetMapLookups;
+
+  typedef std::pair<Complex_Selector_Obj, SubSetMapPairs> SubSetMapResult;
+  typedef std::vector<SubSetMapResult> SubSetMapResults;
+
+  typedef std::deque<Complex_Selector_Obj> ComplexSelectorDeque;
+  typedef std::set<Simple_Selector_Obj, OrderNodes> SimpleSelectorSet;
+  typedef std::set<Complex_Selector_Obj, OrderNodes> SourcesSet;
+  typedef std::unordered_set<Simple_Selector_Obj, HashNodes, CompareNodes> SimpleSelectorDict;
 
 }
 
