@@ -10,6 +10,10 @@ using namespace Sass;
 
 inline void debug_ast(AST_Node_Ptr node, std::string ind = "", Env* env = 0);
 
+inline void debug_ast(const AST_Node* node, std::string ind = "", Env* env = 0) {
+  debug_ast(const_cast<AST_Node*>(node), ind, env);
+}
+
 inline void debug_sources_set(SourcesSet& set, std::string ind = "")
 {
   if (ind == "") std::cerr << "#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
