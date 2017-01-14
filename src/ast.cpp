@@ -620,16 +620,13 @@ namespace Sass {
         if (matcher() == rhs.matcher()) {
           bool no_lhs_val = value().isNull();
           bool no_rhs_val = rhs.value().isNull();
-          if (no_lhs_val && no_rhs_val) {
-            return true;
-          }
-          if (!no_lhs_val && !no_rhs_val) {
-            return *value() < *rhs.value();
-          }
+          if (no_lhs_val && no_rhs_val) return false; // equal
+          else if (no_lhs_val) return true; // lhs is null
+          else if (no_rhs_val) return false; // rhs is null
+          return *value() < *rhs.value(); // both are given
         } else { return matcher() < rhs.matcher(); }
       } else { return name() < rhs.name(); }
-    }
-    return false;
+    } else { return ns() < rhs.ns(); }
   }
 
   bool Attribute_Selector::operator< (const Simple_Selector& rhs) const
