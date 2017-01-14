@@ -89,7 +89,6 @@ namespace Sass {
     extern Signature call_sig;
     extern Signature not_sig;
     extern Signature if_sig;
-    extern Signature image_url_sig;
     extern Signature map_get_sig;
     extern Signature map_merge_sig;
     extern Signature map_remove_sig;
@@ -172,7 +171,6 @@ namespace Sass {
     BUILT_IN(call);
     BUILT_IN(sass_not);
     BUILT_IN(sass_if);
-    BUILT_IN(image_url);
     BUILT_IN(map_get);
     BUILT_IN(map_merge);
     BUILT_IN(map_remove);
