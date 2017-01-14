@@ -1238,8 +1238,8 @@ namespace Sass {
         Binary_Expression_Ptr_Const m = dynamic_cast<Binary_Expression_Ptr_Const>(&rhs);
         if (m == 0) return false;
         return type() == m->type() &&
-               left() == m->left() &&
-               right() == m->right();
+               *left() == *m->left() &&
+               *right() == *m->right();
       }
       catch (std::bad_cast&)
       {
@@ -1296,7 +1296,7 @@ namespace Sass {
         Unary_Expression_Ptr_Const m = dynamic_cast<Unary_Expression_Ptr_Const>(&rhs);
         if (m == 0) return false;
         return type() == m->type() &&
-               operand() == m->operand();
+               *operand() == *m->operand();
       }
       catch (std::bad_cast&)
       {
@@ -1444,7 +1444,7 @@ namespace Sass {
         if (!(m && name() == m->name())) return false;
         if (!(m && arguments()->length() == m->arguments()->length())) return false;
         for (size_t i =0, L = arguments()->length(); i < L; ++i)
-          if (!((*arguments())[i] == (*m->arguments())[i])) return false;
+          if (!(*(*arguments())[i] == *(*m->arguments())[i])) return false;
         return true;
       }
       catch (std::bad_cast&)

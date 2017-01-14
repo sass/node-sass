@@ -684,7 +684,7 @@ namespace Sass {
       String_Obj lhs_ex = expression();
       String_Obj rhs_ex = rhs.expression();
       if (rhs_ex && lhs_ex) return *lhs_ex == *rhs_ex;
-      else return lhs_ex == rhs_ex;
+      else return &lhs_ex == &rhs_ex;
     }
     else return false;
   }
@@ -707,7 +707,7 @@ namespace Sass {
       String_Obj lhs_ex = expression();
       String_Obj rhs_ex = rhs.expression();
       if (rhs_ex && lhs_ex) return *lhs_ex < *rhs_ex;
-      else return lhs_ex < rhs_ex;
+      else return &lhs_ex < &rhs_ex;
     }
     if (is_ns_eq(ns(), rhs.ns()))
     { return name() < rhs.name(); }
@@ -1403,7 +1403,7 @@ namespace Sass {
   Complex_Selector_Obj Complex_Selector::last()
   {
     // ToDo: implement with a while loop
-    return tail_? tail_->last() : this;
+    return &tail_ ? &tail_->last() : this;
   }
 
   Complex_Selector::Combinator Complex_Selector::clear_innermost()
