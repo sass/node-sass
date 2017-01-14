@@ -1745,11 +1745,12 @@ namespace Sass {
     // the parser will look for a brace to end the selector
     Expression_Obj sel = s->contents()->perform(this);
     std::string result_str(sel->to_string(ctx.c_options));
-    result_str = unquote(Util::rtrim(result_str)) + "\n{";
+    result_str = unquote(Util::rtrim(result_str));
     Parser p = Parser::from_c_str(result_str.c_str(), ctx, s->pstate());
     p.last_media_block = s->media_block();
-    bool root = exp.block_stack.back()->is_root();
-    Selector_List_Obj sl = p.parse_selector_list(root);
+    // a selector schema may or may not connect to parent?
+    bool chroot = s->connect_parent() == false;
+    Selector_List_Obj sl = p.parse_selector_list(chroot);
     return operator()(&sl);
   }
 

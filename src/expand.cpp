@@ -109,14 +109,27 @@ namespace Sass {
     // reset when leaving scope
     LOCAL_FLAG(at_root_without_rule, false);
 
-    // do some special checks for the base level rules
+    // `&` is allowed in `@at-root`!
+    bool has_parent_selector = false;
+    for (size_t i = 0, L = selector_stack.size(); i < L && !has_parent_selector; i++) {
+      Selector_List_Obj ll = selector_stack.at(i);
+      has_parent_selector = ll != 0 && ll->length() > 0;
+    }
+
+    Expression_Obj ex = 0;
+    if (r->selector()) ex = r->selector()->perform(&eval);
+    Selector_List_Obj sel = SASS_MEMORY_CAST(Selector_List, ex);
+    if (sel == 0) throw std::runtime_error("Expanded null selector");
+
+    // check for parent selectors in base level rules
     if (r->is_root()) {
       if (Selector_List_Ptr selector_list = SASS_MEMORY_CAST(Selector_List, r->selector())) {
         for (Complex_Selector_Obj complex_selector : selector_list->elements()) {
           Complex_Selector_Ptr tail = &complex_selector;
           while (tail) {
             if (tail->head()) for (Simple_Selector_Obj header : tail->head()->elements()) {
-              if (SASS_MEMORY_CAST(Parent_Selector, header) == NULL) continue; // skip all others
+              Parent_Selector_Ptr ptr = SASS_MEMORY_CAST(Parent_Selector, header);
+              if (ptr == NULL || (!ptr->real() || has_parent_selector)) continue;
               std::string sel_str(complex_selector->to_string(ctx.c_options));
               error("Base-level rules cannot contain the parent-selector-referencing character '&'.", header->pstate(), backtrace());
             }
@@ -125,20 +138,11 @@ namespace Sass {
         }
       }
     }
-
-    Expression_Obj ex = 0;
-    if (r->selector()) ex = r->selector()->perform(&eval);
-    Selector_List_Obj sel = SASS_MEMORY_CAST(Selector_List, ex);
-    if (sel == 0) throw std::runtime_error("Expanded null selector");
-
-    if (sel->length() == 0 || sel->has_parent_ref()) {
-      bool has_parent_selector = false;
-      for (size_t i = 0, L = selector_stack.size(); i < L && !has_parent_selector; i++) {
-        Selector_List_Obj ll = selector_stack.at(i);
-        has_parent_selector = ll != 0 && ll->length() > 0;
-      }
-      if (sel->has_real_parent_ref() && !has_parent_selector) {
-        error("Base-level rules cannot contain the parent-selector-referencing character '&'.", sel->pstate(), backtrace());
+    else {
+      if (sel->length() == 0 || sel->has_parent_ref()) {
+        if (sel->has_real_parent_ref() && !has_parent_selector) {
+          error("Base-level rules cannot contain the parent-selector-referencing character '&'.", sel->pstate(), backtrace());
+        }
       }
     }
 

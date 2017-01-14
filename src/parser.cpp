@@ -95,21 +95,25 @@ namespace Sass {
   /* main entry point to parse root block */
   Block_Obj Parser::parse()
   {
-    bool is_root = false;
-    Block_Obj root = SASS_MEMORY_NEW(Block, pstate, 0, true);
+
+    // consume unicode BOM
     read_bom();
 
-    // custom headers
+    // create a block AST node to hold children
+    Block_Obj root = SASS_MEMORY_NEW(Block, pstate, 0, true);
+
+    // check seems a bit esoteric but works
     if (ctx.resources.size() == 1) {
-    is_root = true;
+      // apply headers only on very first include
       ctx.apply_custom_headers(&root, path, pstate);
     }
 
+    // parse children nodes
     block_stack.push_back(root);
-    /* bool rv = */ parse_block_nodes(is_root);
+    parse_block_nodes(true);
     block_stack.pop_back();
 
-    // update for end position
+    // update final position
     root->update_pstate(pstate);
 
     if (position != end) {
@@ -137,7 +141,7 @@ namespace Sass {
     Block_Obj block = SASS_MEMORY_NEW(Block, pstate, 0, is_root);
     block_stack.push_back(block);
 
-    if (!parse_block_nodes()) css_error("Invalid CSS", " after ", ": expected \"}\", was ");
+    if (!parse_block_nodes(is_root)) css_error("Invalid CSS", " after ", ": expected \"}\", was ");
 
     if (!lex_css < exactly<'}'> >()) {
       css_error("Invalid CSS", " after ", ": expected \"}\", was ");
@@ -161,7 +165,6 @@ namespace Sass {
   // also updates the `in_at_root` flag
   Block_Obj Parser::parse_block(bool is_root)
   {
-    LOCAL_FLAG(in_at_root, is_root);
     return parse_css_block(is_root);
   }
 
@@ -231,6 +234,8 @@ namespace Sass {
           error("Import directives may not be used within control directives or mixins.", pstate);
         }
       }
+      // this puts the parsed doc into sheets
+      // import stub will fetch this in expand
       Import_Obj imp = parse_import();
       // if it is a url, we only add the statement
       if (!imp->urls().empty()) block->append(&imp);
@@ -244,14 +249,14 @@ namespace Sass {
       Lookahead lookahead = lookahead_for_include(position);
       if (!lookahead.found) css_error("Invalid CSS", " after ", ": expected selector, was ");
       Selector_Obj target;
-      if (lookahead.has_interpolants) target = &parse_selector_schema(lookahead.found);
+      if (lookahead.has_interpolants) target = &parse_selector_schema(lookahead.found, true);
       else                            target = &parse_selector_list(true);
       block->append(SASS_MEMORY_NEW(Extension, pstate, &target));
     }
 
     // selector may contain interpolations which need delayed evaluation
     else if (!(lookahead_result = lookahead_for_selector(position)).error)
-    { block->append(&parse_ruleset(lookahead_result, is_root)); }
+    { block->append(&parse_ruleset(lookahead_result)); }
 
     // parse multiple specific keyword directives
     else if (lex < kwd_media >(true)) { block->append(&parse_media_block()); }
@@ -345,7 +350,10 @@ namespace Sass {
     for(auto location : to_import) {
       if (location.second) {
         imp->urls().push_back(&location.second);
-      } else if (!ctx.call_importers(unquote(location.first), path, pstate, &imp)) {
+      }
+      // check if custom importers want to take over the handling
+      else if (!ctx.call_importers(unquote(location.first), path, pstate, &imp)) {
+        // nobody wants it, so we do our import
         ctx.import_url(&imp, location.first, path);
       }
     }
@@ -477,15 +485,18 @@ namespace Sass {
   }
 
   // a ruleset connects a selector and a block
-  Ruleset_Obj Parser::parse_ruleset(Lookahead lookahead, bool is_root)
+  Ruleset_Obj Parser::parse_ruleset(Lookahead lookahead)
   {
+    // inherit is_root from parent block
+    Block_Obj parent = block_stack.back();
+    bool is_root = parent && parent->is_root();
     // make sure to move up the the last position
     lex < optional_css_whitespace >(false, true);
     // create the connector object (add parts later)
     Ruleset_Obj ruleset = SASS_MEMORY_NEW(Ruleset, pstate);
     // parse selector static or as schema to be evaluated later
-    if (lookahead.parsable) ruleset->selector(&parse_selector_list(is_root));
-    else ruleset->selector(&parse_selector_schema(lookahead.found));
+    if (lookahead.parsable) ruleset->selector(&parse_selector_list(false));
+    else ruleset->selector(&parse_selector_schema(lookahead.found, false));
     // then parse the inner block
     stack.push_back(Scope::Rules);
     ruleset->block(parse_block());
@@ -493,7 +504,6 @@ namespace Sass {
     // update for end position
     ruleset->update_pstate(pstate);
     ruleset->block()->update_pstate(pstate);
-    // inherit is_root from parent block
     // need this info for sanity checks
     ruleset->is_root(is_root);
     // return AST Node
@@ -503,7 +513,7 @@ namespace Sass {
   // parse a selector schema that will be evaluated in the eval stage
   // uses a string schema internally to do the actual schema handling
   // in the eval stage we will be re-parse it into an actual selector
-  Selector_Schema_Obj Parser::parse_selector_schema(const char* end_of_selector)
+  Selector_Schema_Obj Parser::parse_selector_schema(const char* end_of_selector, bool chroot)
   {
     // move up to the start
     lex< optional_spaces >();
@@ -512,6 +522,7 @@ namespace Sass {
     String_Schema_Ptr schema = SASS_MEMORY_NEW(String_Schema, pstate);
     // the selector schema is pretty much just a wrapper for the string schema
     Selector_Schema_Ptr selector_schema = SASS_MEMORY_NEW(Selector_Schema, pstate, schema);
+    selector_schema->connect_parent(chroot == false);
     selector_schema->media_block(last_media_block);
 
     // process until end
@@ -610,24 +621,28 @@ namespace Sass {
 
   // parse a list of complex selectors
   // this is the main entry point for most
-  Selector_List_Obj Parser::parse_selector_list(bool in_root)
+  Selector_List_Obj Parser::parse_selector_list(bool chroot)
   {
     bool reloop = true;
     bool had_linefeed = false;
     Complex_Selector_Obj sel;
     Selector_List_Obj group = SASS_MEMORY_NEW(Selector_List, pstate);
     group->media_block(last_media_block);
+
+    if (peek_css< alternatives < end_of_file, exactly <'{'> > >()) {
+      css_error("Invalid CSS", " after ", ": expected selector, was ");
+    }
+
     do {
       reloop = false;
 
       had_linefeed = had_linefeed || peek_newline();
 
-      if (peek_css< class_char < selector_list_delims > >())
+      if (peek_css< alternatives < class_char < selector_list_delims > > >())
         break; // in case there are superfluous commas at the end
 
-
       // now parse the complex selector
-      sel = parse_complex_selector(in_root);
+      sel = parse_complex_selector(chroot);
 
       if (!sel) return group.detach();
 
@@ -661,13 +676,15 @@ namespace Sass {
   // complex selector, with one of four combinator operations.
   // the compound selector (head) is optional, since the combinator
   // can come first in the whole selector sequence (like `> DIV').
-  Complex_Selector_Obj Parser::parse_complex_selector(bool in_root)
+  Complex_Selector_Obj Parser::parse_complex_selector(bool chroot)
   {
 
     String_Ptr reference = 0;
     lex < block_comment >();
     advanceToNextToken();
     Complex_Selector_Obj sel = SASS_MEMORY_NEW(Complex_Selector, pstate);
+
+    if (peek < end_of_file >()) return 0;
 
     // parse the left hand side
     Compound_Selector_Obj lhs;
@@ -677,11 +694,9 @@ namespace Sass {
       lhs = parse_compound_selector();
     }
 
-    // check for end of file condition
-    if (peek < end_of_file >()) return 0;
 
     // parse combinator between lhs and rhs
-    Complex_Selector::Combinator combinator;
+    Complex_Selector::Combinator combinator = Complex_Selector::ANCESTOR_OF;
     if      (lex< exactly<'+'> >()) combinator = Complex_Selector::ADJACENT_TO;
     else if (lex< exactly<'~'> >()) combinator = Complex_Selector::PRECEDES;
     else if (lex< exactly<'>'> >()) combinator = Complex_Selector::PARENT_OF;
@@ -692,7 +707,6 @@ namespace Sass {
       reference = SASS_MEMORY_NEW(String_Constant, pstate, lexed);
       if (!lex < exactly < '/' > >()) return 0; // ToDo: error msg?
     }
-    else /* if (lex< zero >()) */   combinator = Complex_Selector::ANCESTOR_OF;
 
     if (!lhs && combinator == Complex_Selector::ANCESTOR_OF) return 0;
 
@@ -714,7 +728,7 @@ namespace Sass {
 
     // add a parent selector if we are not in a root
     // also skip adding parent ref if we only have refs
-    if (!sel->has_parent_ref() && !in_at_root && !in_root) {
+    if (!sel->has_parent_ref() && !chroot) {
       // create the objects to wrap parent selector reference
       Compound_Selector_Obj head = SASS_MEMORY_NEW(Compound_Selector, pstate);
       Parent_Selector_Ptr parent = SASS_MEMORY_NEW(Parent_Selector, pstate, false);
@@ -798,7 +812,7 @@ namespace Sass {
       }
     }
 
-    if (seq && !peek_css<exactly<'{'>>()) {
+    if (seq && !peek_css<alternatives<end_of_file,exactly<'{'>>>()) {
       seq->has_line_break(peek_newline());
     }
 
@@ -2175,7 +2189,6 @@ namespace Sass {
     Block_Obj body = 0;
     At_Root_Query_Obj expr;
     Lookahead lookahead_result;
-    LOCAL_FLAG(in_at_root, true);
     if (lex_css< exactly<'('> >()) {
       expr = parse_at_root_query();
     }
@@ -2184,7 +2197,7 @@ namespace Sass {
       body = &parse_block(true);
     }
     else if ((lookahead_result = lookahead_for_selector(position)).found) {
-      Ruleset_Obj r = parse_ruleset(lookahead_result, false);
+      Ruleset_Obj r = parse_ruleset(lookahead_result);
       body = SASS_MEMORY_NEW(Block, r->pstate(), 1, true);
       body->append(&r);
     }
@@ -2228,7 +2241,7 @@ namespace Sass {
     Directive_Ptr at_rule = SASS_MEMORY_NEW(Directive, pstate, kwd);
     Lookahead lookahead = lookahead_for_include(position);
     if (lookahead.found && !lookahead.has_interpolants) {
-      at_rule->selector(&parse_selector_list(true));
+      at_rule->selector(&parse_selector_list(false));
     }
 
     lex < css_comments >(false);
@@ -2257,7 +2270,7 @@ namespace Sass {
     Directive_Obj at_rule = SASS_MEMORY_NEW(Directive, pstate, kwd);
     Lookahead lookahead = lookahead_for_include(position);
     if (lookahead.found && !lookahead.has_interpolants) {
-      at_rule->selector(&parse_selector_list(true));
+      at_rule->selector(&parse_selector_list(false));
     }
 
     lex < css_comments >(false);
@@ -2476,6 +2489,7 @@ namespace Sass {
       // check expected opening bracket
       // only after successfull matching
       if (peek < exactly<'{'> >(q)) rv.found = q;
+      // else if (peek < end_of_file >(q)) rv.found = q;
       else if (peek < exactly<'('> >(q)) rv.found = q;
       // else if (peek < exactly<';'> >(q)) rv.found = q;
       // else if (peek < exactly<'}'> >(q)) rv.found = q;
@@ -2545,6 +2559,7 @@ namespace Sass {
           sequence <
             // optional_spaces,
             alternatives <
+              // end_of_file,
               exactly<'{'>,
               exactly<'}'>,
               exactly<';'>
@@ -2734,8 +2749,8 @@ namespace Sass {
     const char* pos_left(last_pos);
     const char* end_left(last_pos);
 
-    utf8::next(pos_left, end);
-    utf8::next(end_left, end);
+    if (*pos_left) utf8::next(pos_left, end);
+    if (*end_left) utf8::next(end_left, end);
     while (pos_left > source) {
       if (utf8::distance(pos_left, end_left) >= max_len) {
         utf8::prior(pos_left, source);

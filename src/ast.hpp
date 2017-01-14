@@ -454,7 +454,6 @@ namespace Sass {
   ////////////////////////
   class Block : public Statement, public Vectorized<Statement_Obj> {
     ADD_PROPERTY(bool, is_root)
-    ADD_PROPERTY(bool, is_at_root);
     // needed for properly formatted CSS emission
   protected:
     void adjust_after_pushing(Statement_Obj s)
@@ -464,14 +463,12 @@ namespace Sass {
     Block(ParserState pstate, size_t s = 0, bool r = false)
     : Statement(pstate),
       Vectorized<Statement_Obj>(s),
-      is_root_(r),
-      is_at_root_(false)
+      is_root_(r)
     { }
     Block(const Block* ptr)
     : Statement(ptr),
       Vectorized<Statement_Obj>(*ptr),
-      is_root_(ptr->is_root_),
-      is_at_root_(ptr->is_at_root_)
+      is_root_(ptr->is_root_)
     { }
     virtual bool has_content()
     {
@@ -510,16 +507,14 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////////
   class Ruleset : public Has_Block {
     ADD_PROPERTY(Selector_Obj, selector)
-    ADD_PROPERTY(bool, at_root);
     ADD_PROPERTY(bool, is_root);
   public:
     Ruleset(ParserState pstate, Selector_Obj s = 0, Block_Obj b = 0)
-    : Has_Block(pstate, b), selector_(s), at_root_(false), is_root_(false)
+    : Has_Block(pstate, b), selector_(s), is_root_(false)
     { statement_type(RULESET); }
     Ruleset(const Ruleset* ptr)
     : Has_Block(ptr),
       selector_(ptr->selector_),
-      at_root_(ptr->at_root_),
       is_root_(ptr->is_root_)
     { statement_type(RULESET); }
     bool is_invisible() const;
@@ -2315,15 +2310,17 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
   class Selector_Schema : public Selector {
     ADD_PROPERTY(String_Obj, contents)
-    ADD_PROPERTY(bool, at_root);
+    ADD_PROPERTY(bool, connect_parent);
   public:
     Selector_Schema(ParserState pstate, String_Obj c)
-    : Selector(pstate), contents_(c), at_root_(false)
+    : Selector(pstate),
+      contents_(c),
+      connect_parent_(true)
     { }
     Selector_Schema(const Selector_Schema* ptr)
     : Selector(ptr),
       contents_(ptr->contents_),
-      at_root_(ptr->at_root_)
+      connect_parent_(ptr->connect_parent_)
     { }
     virtual bool has_parent_ref();
     virtual bool has_real_parent_ref();

@@ -255,8 +255,8 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     Selector_Schema_Ptr selector = dynamic_cast<Selector_Schema_Ptr>(node);
     std::cerr << ind << "Selector_Schema " << selector;
     std::cerr << " (" << pstate_source_position(node) << ")"
-      << (selector->at_root() && selector->at_root() ? " [@ROOT]" : "")
       << " [@media:" << selector->media_block() << "]"
+      << (selector->connect_parent() ? " [connect-parent]": " -")
       << (selector->has_line_break() ? " [line-break]": " -")
       << (selector->has_line_feed() ? " [line-feed]": " -")
     << std::endl;
@@ -474,7 +474,6 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " [indent: " << ruleset->tabs() << "]";
     std::cerr << (ruleset->is_invisible() ? " [INVISIBLE]" : "");
-    std::cerr << (ruleset->at_root() ? " [@ROOT]" : "");
     std::cerr << (ruleset->is_root() ? " [root]" : "");
     std::cerr << std::endl;
     debug_ast(&ruleset->selector(), ind + ">");
