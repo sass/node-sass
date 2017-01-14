@@ -114,13 +114,10 @@ namespace Sass {
     // destructor
     ~SharedPtr();
   public:
-    SharedObj* obj () {
-      return node;
-    };
     SharedObj* obj () const {
       return node;
     };
-    SharedObj* operator-> () {
+    SharedObj* operator-> () const {
       return node;
     };
     bool isNull () {
@@ -129,18 +126,11 @@ namespace Sass {
     bool isNull () const {
       return node == NULL;
     };
-    SharedObj* detach() {
-      node->detached = true;
-      return node;
-    };
     SharedObj* detach() const {
       if (node) {
         node->detached = true;
       }
       return node;
-    };
-    operator bool() {
-      return node != NULL;
     };
     operator bool() const {
       return node != NULL;
@@ -148,50 +138,49 @@ namespace Sass {
 
   };
 
-  template < typename T >
+  template < class T >
   class SharedImpl : private SharedPtr {
   public:
     SharedImpl()
     : SharedPtr(NULL) {};
     SharedImpl(T* node)
     : SharedPtr(node) {};
+    template < class U >
+    SharedImpl(SharedImpl<U> obj)
+    : SharedPtr(static_cast<T*>(obj.ptr())) {}
     SharedImpl(T&& node)
     : SharedPtr(node) {};
     SharedImpl(const T& node)
     : SharedPtr(node) {};
     ~SharedImpl() {};
   public:
-    T* operator& () {
-      return static_cast<T*>(this->obj());
-    };
+
     T* operator& () const {
       return static_cast<T*>(this->obj());
     };
-    T& operator* () {
+    operator T*() const {
+      return static_cast<T*>(this->obj());
+    }
+    operator T&() const {
       return *static_cast<T*>(this->obj());
-    };
+    }
+
     T& operator* () const {
       return *static_cast<T*>(this->obj());
-    };
-    T* operator-> () {
-      return static_cast<T*>(this->obj());
     };
     T* operator-> () const {
       return static_cast<T*>(this->obj());
     };
-    T* ptr () {
+    T* ptr () const {
       return static_cast<T*>(this->obj());
     };
-    T* detach() {
+    T* detach() const {
       if (this->obj() == NULL) return NULL;
       return static_cast<T*>(SharedPtr::detach());
     }
-    bool isNull() {
+    bool isNull() const {
       return this->obj() == NULL;
     }
-    operator bool() {
-      return this->obj() != NULL;
-    };
     operator bool() const {
       return this->obj() != NULL;
     };
