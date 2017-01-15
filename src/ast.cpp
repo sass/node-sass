@@ -363,17 +363,10 @@ namespace Sass {
 
   bool Simple_Selector::operator== (const Simple_Selector& rhs) const
   {
-    Simple_Type type = simple_type();
-    // dynamic cast is a bottleneck - use concrete type as types are final
-    if (type == PSEUDO_SEL /* Pseudo_Selector_Ptr_Const lp = Cast<Pseudo_Selector>(this) */) {
-      return *static_cast<Pseudo_Selector_Ptr_Const>(this) == rhs;
-    }
-    else if (type == WRAPPED_SEL /* Wrapped_Selector_Ptr_Const lw = Cast<Wrapped_Selector>(this) */) {
-      return *static_cast<Wrapped_Selector_Ptr_Const>(this) == rhs;
-    }
-    else if (type == ATTR_SEL /* Attribute_Selector_Ptr_Const la = Cast<Attribute_Selector>(this) */) {
-      return *static_cast<Attribute_Selector_Ptr_Const>(this) == rhs;
-    }
+    // solve the double dispatch problem by using RTTI information via dynamic cast
+    if (const Pseudo_Selector* lhs = Cast<Pseudo_Selector>(this)) {return *lhs == rhs; }
+    else if (const Wrapped_Selector* lhs = Cast<Wrapped_Selector>(this)) {return *lhs == rhs; }
+    else if (const Attribute_Selector* lhs = Cast<Attribute_Selector>(this)) {return *lhs == rhs; }
     else if (name_ == rhs.name_)
     { return is_ns_eq(ns_, rhs.ns_); }
     else return false;
@@ -381,17 +374,10 @@ namespace Sass {
 
   bool Simple_Selector::operator< (const Simple_Selector& rhs) const
   {
-    Simple_Type type = simple_type();
-    // dynamic cast is a bottleneck - use concrete type as types are final
-    if (type == PSEUDO_SEL /* Pseudo_Selector_Ptr_Const lp = Cast<Pseudo_Selector>(this) */) {
-      return *static_cast<Pseudo_Selector_Ptr_Const>(this) < rhs;
-    }
-    else if (type == WRAPPED_SEL /* Wrapped_Selector_Ptr_Const lw = Cast<Wrapped_Selector>(this) */) {
-      return *static_cast<Wrapped_Selector_Ptr_Const>(this) < rhs;
-    }
-    else if (type == ATTR_SEL /* Attribute_Selector_Ptr_Const la = Cast<Attribute_Selector>(this) */) {
-      return *static_cast<Attribute_Selector_Ptr_Const>(this) < rhs;
-    }
+    // solve the double dispatch problem by using RTTI information via dynamic cast
+    if (const Pseudo_Selector* lhs = Cast<Pseudo_Selector>(this)) {return *lhs < rhs; }
+    else if (const Wrapped_Selector* lhs = Cast<Wrapped_Selector>(this)) {return *lhs < rhs; }
+    else if (const Attribute_Selector* lhs = Cast<Attribute_Selector>(this)) {return *lhs < rhs; }
     if (is_ns_eq(ns_, rhs.ns_))
     { return name_ < rhs.name_; }
     return ns_ < rhs.ns_;

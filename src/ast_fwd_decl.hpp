@@ -5,6 +5,7 @@
 #include <set>
 #include <deque>
 #include <vector>
+#include <typeinfo>
 #include <iostream>
 #include <algorithm>
 #include <unordered_map>
@@ -416,14 +417,34 @@ namespace Sass {
   // ###########################################################################
 
   template<class T>
-  T* Cast(AST_Node* ptr) {
-    return dynamic_cast<T*>(ptr);
-  };
+  T* Cast(AST_Node* ptr);
 
   template<class T>
-  const T* Cast(const AST_Node* ptr) {
-    return dynamic_cast<const T*>(ptr);
-  };
+  const T* Cast(const AST_Node* ptr);
+
+  // sometimes you know the class you want to cast to is final
+  // in this case a simple typeid check is faster and safe to use
+
+  #define DECLARE_BASE_CAST(T) \
+  template<> T* Cast(AST_Node* ptr); \
+  template<> const T* Cast(const AST_Node* ptr); \
+
+  // ###########################################################################
+  // implement specialization for final classes
+  // ###########################################################################
+
+  DECLARE_BASE_CAST(AST_Node)
+  DECLARE_BASE_CAST(Expression)
+  DECLARE_BASE_CAST(Statement)
+  DECLARE_BASE_CAST(Has_Block)
+  DECLARE_BASE_CAST(PreValue)
+  DECLARE_BASE_CAST(Value)
+  DECLARE_BASE_CAST(List)
+  DECLARE_BASE_CAST(String)
+  DECLARE_BASE_CAST(String_Constant)
+  DECLARE_BASE_CAST(Supports_Condition)
+  DECLARE_BASE_CAST(Selector)
+  DECLARE_BASE_CAST(Simple_Selector)
 
 }
 

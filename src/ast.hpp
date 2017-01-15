@@ -1,6 +1,7 @@
 #ifndef SASS_AST_H
 #define SASS_AST_H
 
+#include "sass.hpp"
 #include <set>
 #include <deque>
 #include <vector>
@@ -133,6 +134,21 @@ namespace Sass {
   };
   inline AST_Node::~AST_Node() { }
 
+  //////////////////////////////////////////////////////////////////////
+  // define cast template now (need complete type)
+  //////////////////////////////////////////////////////////////////////
+
+  template<class T>
+  T* Cast(AST_Node* ptr) {
+    return ptr && typeid(T) == typeid(*ptr) ?
+           static_cast<T*>(ptr) : NULL;
+  };
+
+  template<class T>
+  const T* Cast(const AST_Node* ptr) {
+    return ptr && typeid(T) == typeid(*ptr) ?
+           static_cast<const T*>(ptr) : NULL;
+  };
 
   //////////////////////////////////////////////////////////////////////
   // Abstract base class for expressions. This side of the AST hierarchy
@@ -2754,12 +2770,7 @@ namespace Sass {
     // virtual Placeholder_Selector_Ptr find_placeholder();
     virtual bool has_parent_ref();
     virtual bool has_real_parent_ref();
-    Simple_Selector_Ptr base()
-    {
-      // Implement non-const in terms of const. Safe to const_cast since this method is non-const
-      return const_cast<Simple_Selector_Ptr>(static_cast<Compound_Selector_Ptr_Const>(this)->base());
-    }
-    Simple_Selector_Ptr_Const base() const {
+    Simple_Selector_Ptr base() const {
       if (length() == 0) return 0;
       // ToDo: why is this needed?
       if (Cast<Element_Selector>((*this)[0]))

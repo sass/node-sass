@@ -282,7 +282,7 @@ namespace Sass {
   Statement_Ptr Cssize::bubble(Directive_Ptr m)
   {
     Block_Ptr bb = SASS_MEMORY_NEW(Block, this->parent()->pstate());
-    Has_Block_Obj new_rule = static_cast<Has_Block_Ptr>(SASS_MEMORY_COPY(this->parent()));
+    Has_Block_Obj new_rule = Cast<Has_Block>(SASS_MEMORY_COPY(this->parent()));
     new_rule->block(bb);
     new_rule->tabs(this->parent()->tabs());
     new_rule->block()->concat(m->block());
@@ -303,7 +303,7 @@ namespace Sass {
   Statement_Ptr Cssize::bubble(At_Root_Block_Ptr m)
   {
     Block_Ptr bb = SASS_MEMORY_NEW(Block, this->parent()->pstate());
-    Has_Block_Obj new_rule = static_cast<Has_Block_Ptr>(SASS_MEMORY_COPY(this->parent()));
+    Has_Block_Obj new_rule = Cast<Has_Block>(SASS_MEMORY_COPY(this->parent()));
     new_rule->block(bb);
     new_rule->tabs(this->parent()->tabs());
     new_rule->block()->concat(m->block());
@@ -320,7 +320,7 @@ namespace Sass {
 
   Statement_Ptr Cssize::bubble(Supports_Block_Ptr m)
   {
-    Ruleset_Obj parent = static_cast<Ruleset_Ptr>(SASS_MEMORY_COPY(this->parent()));
+    Ruleset_Obj parent = Cast<Ruleset>(SASS_MEMORY_COPY(this->parent()));
 
     Block_Ptr bb = SASS_MEMORY_NEW(Block, parent->block()->pstate());
     Ruleset_Ptr new_rule = SASS_MEMORY_NEW(Ruleset,
@@ -345,7 +345,7 @@ namespace Sass {
 
   Statement_Ptr Cssize::bubble(Media_Block_Ptr m)
   {
-    Ruleset_Obj parent = static_cast<Ruleset_Ptr>(SASS_MEMORY_COPY(this->parent()));
+    Ruleset_Obj parent = Cast<Ruleset>(SASS_MEMORY_COPY(this->parent()));
 
     Block_Ptr bb = SASS_MEMORY_NEW(Block, parent->block()->pstate());
     Ruleset_Ptr new_rule = SASS_MEMORY_NEW(Ruleset,
@@ -432,7 +432,7 @@ namespace Sass {
           previous_parent->block()->concat(slice);
         }
         else {
-          previous_parent = static_cast<Has_Block_Ptr>(SASS_MEMORY_COPY(parent));
+          previous_parent = Cast<Has_Block>(SASS_MEMORY_COPY(parent));
           previous_parent->block(slice);
           previous_parent->tabs(parent->tabs());
 

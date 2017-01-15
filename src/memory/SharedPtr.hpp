@@ -17,7 +17,7 @@ namespace Sass {
   #ifdef DEBUG_SHARED_PTR
 
     #define SASS_MEMORY_NEW(Class, ...) \
-      static_cast<Class##_Ptr>((new Class(__VA_ARGS__))->trace(__FILE__, __LINE__)) \
+      ((new Class(__VA_ARGS__))->trace(__FILE__, __LINE__)) \
 
     #define SASS_MEMORY_COPY(obj) \
       ((obj)->copy(__FILE__, __LINE__)) \

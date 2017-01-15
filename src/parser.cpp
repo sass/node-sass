@@ -2709,7 +2709,7 @@ namespace Sass {
       } else {
         base = SASS_MEMORY_NEW(Binary_Expression, base->pstate(), ops[i], base, operands[i]);
       }
-      Binary_Expression_Ptr b = static_cast<Binary_Expression_Ptr>(base.ptr());
+      Binary_Expression_Ptr b = Cast<Binary_Expression>(base.ptr());
       if (b && ops[i].operand == Sass_OP::DIV && b->left()->is_delayed() && b->right()->is_delayed()) {
         base->is_delayed(true);
       }
