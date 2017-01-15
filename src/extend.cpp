@@ -334,7 +334,7 @@ namespace Sass {
         end
       */
 
-      if (selectors_equal(*pOne, *pTwo, true /*simpleSelectorOrderDependent*/)) {
+      if (*pOne == *pTwo) {
         pOut = pOne;
         return true;
       }

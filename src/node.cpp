@@ -66,7 +66,7 @@ namespace Sass {
 
 
   bool Node::contains(const Node& potentialChild, bool simpleSelectorOrderDependent) const {
-  	bool found = false;
+    bool found = false;
 
     for (NodeDeque::iterator iter = mpCollection->begin(), iterEnd = mpCollection->end(); iter != iterEnd; iter++) {
       Node& toTest = *iter;
@@ -82,7 +82,7 @@ namespace Sass {
 
 
   bool Node::operator==(const Node& rhs) const {
-  	return nodesEqual(*this, rhs, true /*simpleSelectorOrderDependent*/);
+    return nodesEqual(*this, rhs, true /*simpleSelectorOrderDependent*/);
   }
 
 
@@ -93,7 +93,7 @@ namespace Sass {
 
     if (lhs.isCombinator()) {
 
-    	return lhs.combinator() == rhs.combinator();
+      return lhs.combinator() == rhs.combinator();
 
     } else if (lhs.isNil()) {
 
@@ -101,7 +101,7 @@ namespace Sass {
 
     } else if (lhs.isSelector()){
 
-      return selectors_equal(*lhs.selector().ptr(), *rhs.selector().ptr(), simpleSelectorOrderDependent); // XXX
+      return *lhs.selector() == *rhs.selector();
 
     } else if (lhs.isCollection()) {
 
@@ -128,10 +128,10 @@ namespace Sass {
 
 
   void Node::plus(Node& rhs) {
-  	if (!this->isCollection() || !rhs.isCollection()) {
-    	throw "Both the current node and rhs must be collections.";
+    if (!this->isCollection() || !rhs.isCollection()) {
+      throw "Both the current node and rhs must be collections.";
     }
-  	this->collection()->insert(this->collection()->end(), rhs.collection()->begin(), rhs.collection()->end());
+    this->collection()->insert(this->collection()->end(), rhs.collection()->begin(), rhs.collection()->end());
   }
 
 #ifdef DEBUG

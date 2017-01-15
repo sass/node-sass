@@ -3050,24 +3050,6 @@ namespace Sass {
     ATTACH_OPERATIONS()
   };
 
-  template<typename SelectorType>
-  bool selectors_equal(const SelectorType& one, const SelectorType& two, bool simpleSelectorOrderDependent) {
-    // Test for equality among selectors while differentiating between checks that demand the underlying Simple_Selector
-    // ordering to be the same or not. This works because operator< (which doesn't make a whole lot of sense for selectors, but
-    // is required for proper stl collection ordering) is implemented using string comparision. This gives stable sorting
-    // behavior, and can be used to determine if the selectors would have exactly idential output. operator== matches the
-    // ruby sass implementations for eql, which sometimes perform order independent comparisions (like set comparisons of the
-    // members of a SimpleSequence (Compound_Selector)).
-    //
-    // Due to the reliance on operator== and operater< behavior, this templated method is currently only intended for
-    // use with Compound_Selector and Complex_Selector objects.
-    if (simpleSelectorOrderDependent) {
-      return !(one < two) && !(two < one);
-    } else {
-      return one == two;
-    }
-  }
-
   // compare function for sorting and probably other other uses
   struct cmp_complex_selector { inline bool operator() (const Complex_Selector_Obj l, const Complex_Selector_Obj r) { return (*l < *r); } };
   struct cmp_compound_selector { inline bool operator() (const Compound_Selector_Obj l, const Compound_Selector_Obj r) { return (*l < *r); } };
