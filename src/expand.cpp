@@ -156,7 +156,7 @@ namespace Sass {
     if (r->block()) blk = operator()(r->block());
     Ruleset_Ptr rr = SASS_MEMORY_NEW(Ruleset,
                                   r->pstate(),
-                                  sel.ptr(),
+                                  sel,
                                   blk);
     selector_stack.pop_back();
     if (block_stack.back()->is_root()) {
@@ -187,7 +187,7 @@ namespace Sass {
     char* str = sass_copy_c_string(str_mq.c_str());
     ctx.strings.push_back(str);
     Parser p(Parser::from_c_str(str, ctx, mq->pstate()));
-    mq = p.parse_media_queries().ptr(); // re-assign now
+    mq = p.parse_media_queries(); // re-assign now
     List_Obj ls = Cast<List>(mq->perform(&eval));
     Block_Obj blk = operator()(m->block());
     Media_Block_Ptr mm = SASS_MEMORY_NEW(Media_Block,
@@ -203,7 +203,7 @@ namespace Sass {
   Statement_Ptr Expand::operator()(At_Root_Block_Ptr a)
   {
     Block_Obj ab = a->block();
-    Expression_Obj ae = a->expression().ptr();
+    Expression_Obj ae = a->expression();
 
     if (ae) ae = ae->perform(&eval);
     else ae = SASS_MEMORY_NEW(At_Root_Query, a->pstate());
@@ -441,7 +441,7 @@ namespace Sass {
     env_stack.push_back(&env);
     call_stack.push_back(f);
     Number_Obj it = SASS_MEMORY_NEW(Number, low->pstate(), start, sass_end->unit());
-    env.set_local(variable, it.ptr());
+    env.set_local(variable, it);
     Block_Ptr body = f->block();
     if (start < end) {
       if (f->is_inclusive()) ++end;
@@ -450,7 +450,7 @@ namespace Sass {
            ++i) {
         it = SASS_MEMORY_COPY(it);
         it->value(i);
-        env.set_local(variable, it.ptr());
+        env.set_local(variable, it);
         append_block(body);
       }
     } else {
@@ -460,7 +460,7 @@ namespace Sass {
            --i) {
         it = SASS_MEMORY_COPY(it);
         it->value(i);
-        env.set_local(variable, it.ptr());
+        env.set_local(variable, it);
         append_block(body);
       }
     }
@@ -507,10 +507,10 @@ namespace Sass {
           List_Obj variable = SASS_MEMORY_NEW(List, map->pstate(), 2, SASS_SPACE);
           variable->append(k);
           variable->append(v);
-          env.set_local(variables[0], variable.ptr());
+          env.set_local(variables[0], variable);
         } else {
-          env.set_local(variables[0], k.ptr());
-          env.set_local(variables[1], v.ptr());
+          env.set_local(variables[0], k);
+          env.set_local(variables[1], v);
         }
         append_block(body);
       }
@@ -529,21 +529,21 @@ namespace Sass {
           if (variables.size() == 1) {
             List_Obj var = scalars;
             // if (arglist) var = (*scalars)[0];
-            env.set_local(variables[0], var.ptr());
+            env.set_local(variables[0], var);
           } else {
             for (size_t j = 0, K = variables.size(); j < K; ++j) {
               Expression_Obj res = j >= scalars->length()
                 ? SASS_MEMORY_NEW(Null, expr->pstate())
                 : (*scalars)[j]->perform(&eval);
-              env.set_local(variables[j], res.ptr());
+              env.set_local(variables[j], res);
             }
           }
         } else {
           if (variables.size() > 0) {
-            env.set_local(variables.at(0), e.ptr());
+            env.set_local(variables.at(0), e);
             for (size_t j = 1, K = variables.size(); j < K; ++j) {
               Expression_Obj res = SASS_MEMORY_NEW(Null, expr->pstate());
-              env.set_local(variables[j], res.ptr());
+              env.set_local(variables[j], res);
             }
           }
         }
@@ -660,7 +660,7 @@ namespace Sass {
         }
       }
       selector_stack.push_back(0);
-      expand_selector_list(sl.ptr(), extender);
+      expand_selector_list(sl, extender);
       selector_stack.pop_back();
     }
     return 0;
@@ -671,7 +671,7 @@ namespace Sass {
     Env* env = environment();
     Definition_Obj dd = SASS_MEMORY_COPY(d);
     env->local_frame()[d->name() +
-                        (d->type() == Definition::MIXIN ? "[m]" : "[f]")] = dd.ptr();
+                        (d->type() == Definition::MIXIN ? "[m]" : "[f]")] = dd;
 
     if (d->type() == Definition::FUNCTION && (
       Prelexer::calc_fn_call(d->name().c_str()) ||
@@ -736,7 +736,7 @@ namespace Sass {
                                           c->block(),
                                           Definition::MIXIN);
       thunk->environment(env);
-      new_env.local_frame()["@content[m]"] = thunk.ptr();
+      new_env.local_frame()["@content[m]"] = thunk;
     }
 
     bind(std::string("Mixin"), c->name(), params, args, &ctx, &new_env, &eval);
@@ -790,7 +790,7 @@ namespace Sass {
     std::string err =std:: string("`Expand` doesn't handle ") + typeid(*n).name();
     String_Quoted_Obj msg = SASS_MEMORY_NEW(String_Quoted, ParserState("[WARN]"), err);
     error("unknown internal error; please contact the LibSass maintainers", n->pstate(), backtrace());
-    return SASS_MEMORY_NEW(Warning, ParserState("[WARN]"), msg.ptr());
+    return SASS_MEMORY_NEW(Warning, ParserState("[WARN]"), msg);
   }
 
   // process and add to last block on stack

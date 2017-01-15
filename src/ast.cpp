@@ -829,7 +829,7 @@ namespace Sass {
 
     for (size_t i = 0, iL = length(); i < iL; ++i)
     {
-      Selector_Obj lhs = (*this)[i].ptr();
+      Selector_Obj lhs = (*this)[i];
       // very special case for wrapped matches selector
       if (Wrapped_Selector_Obj wrapped = Cast<Wrapped_Selector>(lhs)) {
         if (wrapped->name() == ":not") {
@@ -867,7 +867,7 @@ namespace Sass {
 
     for (size_t n = 0, nL = rhs->length(); n < nL; ++n)
     {
-      Selector_Obj r = (*rhs)[n].ptr();
+      Selector_Obj r = (*rhs)[n];
       if (Wrapped_Selector_Obj wrapped = Cast<Wrapped_Selector>(r)) {
         if (wrapped->name() == ":not") {
           if (Selector_List_Obj ls = Cast<Selector_List>(wrapped->selector())) {
@@ -2346,7 +2346,7 @@ namespace Sass {
       List_Obj l = SASS_MEMORY_NEW(List, pstate, 2);
       l->append(key);
       l->append(at(key));
-      ret->append(l.ptr());
+      ret->append(l);
     }
 
     return ret;

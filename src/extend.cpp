@@ -285,7 +285,7 @@ namespace Sass {
     Position noPosition(-1, -1, -1);
     Element_Selector_Obj fakeParent = SASS_MEMORY_NEW(Element_Selector, ParserState("[FAKE]"), "temp");
     Compound_Selector_Obj fakeHead = SASS_MEMORY_NEW(Compound_Selector, ParserState("[FAKE]"), 1 /*size*/);
-    fakeHead->elements().push_back(fakeParent.ptr());
+    fakeHead->elements().push_back(fakeParent);
     Complex_Selector_Obj fakeParentContainer = SASS_MEMORY_NEW(Complex_Selector, ParserState("[FAKE]"), Complex_Selector::ANCESTOR_OF, fakeHead /*head*/, NULL /*tail*/);
 
     pOne->set_innermost(fakeParentContainer, Complex_Selector::ANCESTOR_OF);
@@ -648,7 +648,7 @@ namespace Sass {
     Position noPosition(-1, -1, -1);
     Element_Selector_Obj fakeParent = SASS_MEMORY_NEW(Element_Selector, ParserState("[FAKE]"), "temp");
     Compound_Selector_Obj fakeHead = SASS_MEMORY_NEW(Compound_Selector, ParserState("[FAKE]"), 1 /*size*/);
-    fakeHead->elements().push_back(fakeParent.ptr());
+    fakeHead->elements().push_back(fakeParent);
     Complex_Selector_Obj fakeParentContainer = SASS_MEMORY_NEW(Complex_Selector, ParserState("[FAKE]"), Complex_Selector::ANCESTOR_OF, fakeHead /*head*/, NULL /*tail*/);
 
     Complex_Selector_Obj pOneWithFakeParent = nodeToComplexSelector(one, ctx);
@@ -1969,7 +1969,7 @@ namespace Sass {
                         cpy_ws_sl->append(ext_cs->first());
                       }
                       // assign list to clone
-                      cpy_ws->selector(cpy_ws_sl.ptr());
+                      cpy_ws->selector(cpy_ws_sl);
                       // append the clone
                       cpy_head->append(cpy_ws);
                     }
@@ -2046,7 +2046,7 @@ namespace Sass {
       DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND ORIGINAL SELECTORS: " << static_cast<Selector_List_Ptr>(pObject->selector())->to_string(ctx.c_options))
       DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND SETTING NEW SELECTORS: " << pNewSelectorList->to_string(ctx.c_options))
       pNewSelectorList->remove_parent_selectors();
-      pObject->selector(pNewSelectorList.ptr());
+      pObject->selector(pNewSelectorList);
     } else {
       DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND DID NOT TRY TO EXTEND ANYTHING")
     }

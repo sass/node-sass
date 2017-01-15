@@ -533,7 +533,7 @@ namespace Sass {
     // increase head count to skip later
     head_imports += resources.size() - 1;
     // add the statement if we have urls
-    if (!imp->urls().empty()) root->append(imp.ptr());
+    if (!imp->urls().empty()) root->append(imp);
     // process all other resources (add Import_Stub nodes)
     for (size_t i = 0, S = imp->incs().size(); i < S; ++i) {
       root->append(SASS_MEMORY_NEW(Import_Stub, pstate, imp->incs()[i]));

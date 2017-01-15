@@ -123,7 +123,7 @@ namespace Sass {
 
             Expression_Obj value = a->value();
             if (Argument_Obj arg = Cast<Argument>(value)) {
-              arglist->append(arg.ptr());
+              arglist->append(arg);
             }
             // check if we have rest argument
             else if (a->is_rest_argument()) {
@@ -155,7 +155,7 @@ namespace Sass {
             }
           }
           // assign new arglist to environment
-          env->local_frame()[p->name()] = arglist.ptr();
+          env->local_frame()[p->name()] = arglist;
         }
         // consumed parameter
         ++ip;
@@ -212,7 +212,7 @@ namespace Sass {
             msg << callee << " has no parameter named " << name;
             error(msg.str(), a->pstate());
           }
-          env->local_frame()[name] = argmap->at(key).ptr();
+          env->local_frame()[name] = argmap->at(key);
         }
         ++ia;
         continue;
@@ -228,7 +228,7 @@ namespace Sass {
           error(msg.str(), a->pstate());
         }
         // ordinal arg -- bind it to the next param
-        env->local_frame()[p->name()] = a->value().ptr();
+        env->local_frame()[p->name()] = a->value();
         ++ip;
       }
       else {
@@ -250,7 +250,7 @@ namespace Sass {
               << "provided more than once in call to " << callee;
           error(msg.str(), a->pstate());
         }
-        env->local_frame()[a->name()] = a->value().ptr();
+        env->local_frame()[a->name()] = a->value();
       }
     }
     // EO while ia

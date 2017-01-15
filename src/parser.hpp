@@ -348,7 +348,7 @@ namespace Sass {
               Expression_Obj itpl = lex_interpolation();
               if (!itpl.isNull()) schema->append(itpl);
             } else {
-              return schema.ptr();
+              return schema;
             }
           }
         } else {

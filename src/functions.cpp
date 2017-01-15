@@ -108,7 +108,7 @@ namespace Sass {
     T* get_arg(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace)
     {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
-      T* val = dynamic_cast<T*>(env[argname].ptr());
+      T* val = Cast<T>(env[argname]);
       if (!val) {
         std::string msg("argument `");
         msg += argname;
@@ -1432,9 +1432,9 @@ namespace Sass {
           }
           if (arglist->is_arglist()) {
             Argument_Obj arg = (Argument_Ptr)(arglist->at(i).ptr()); // XXX
-            arg->value(ith.ptr());
+            arg->value(ith);
           } else {
-            (*arglist)[i] = ith.ptr();
+            (*arglist)[i] = ith;
           }
         }
         shortest = (i ? std::min(shortest, ith->length()) : ith->length());

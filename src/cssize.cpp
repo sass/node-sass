@@ -64,7 +64,7 @@ namespace Sass {
 
     if (bb && bb->length()) {
       if (dd->value() && !dd->value()->is_invisible()) {
-        bb->unshift(dd.ptr());
+        bb->unshift(dd);
       }
       return bb.detach();
     }
@@ -184,7 +184,7 @@ namespace Sass {
         stm->tabs(stm->tabs() + 1);
       }
 
-      rules->unshift(rr.ptr());
+      rules->unshift(rr);
     }
 
     Block_Ptr ptr = rules;
@@ -288,7 +288,7 @@ namespace Sass {
     new_rule->block()->concat(m->block());
 
     Block_Obj wrapper_block = SASS_MEMORY_NEW(Block, m->block() ? m->block()->pstate() : m->pstate());
-    wrapper_block->append(new_rule.ptr());
+    wrapper_block->append(new_rule);
     Directive_Obj mm = SASS_MEMORY_NEW(Directive,
                                   m->pstate(),
                                   m->keyword(),
@@ -296,7 +296,7 @@ namespace Sass {
                                   wrapper_block);
     if (m->value()) mm->value(m->value());
 
-    Bubble_Ptr bubble = SASS_MEMORY_NEW(Bubble, mm->pstate(), mm.ptr());
+    Bubble_Ptr bubble = SASS_MEMORY_NEW(Bubble, mm->pstate(), mm);
     return bubble;
   }
 
@@ -309,7 +309,7 @@ namespace Sass {
     new_rule->block()->concat(m->block());
 
     Block_Ptr wrapper_block = SASS_MEMORY_NEW(Block, m->block()->pstate());
-    wrapper_block->append(new_rule.ptr());
+    wrapper_block->append(new_rule);
     At_Root_Block_Ptr mm = SASS_MEMORY_NEW(At_Root_Block,
                                         m->pstate(),
                                         wrapper_block,
@@ -365,7 +365,7 @@ namespace Sass {
 
     mm->tabs(m->tabs());
 
-    return SASS_MEMORY_NEW(Bubble, mm->pstate(), mm.ptr());
+    return SASS_MEMORY_NEW(Bubble, mm->pstate(), mm);
   }
 
   bool Cssize::bubblable(Statement_Ptr s)
@@ -426,7 +426,7 @@ namespace Sass {
 
       if (!is_bubble) {
         if (!parent) {
-          result->append(slice.ptr());
+          result->append(slice);
         }
         else if (previous_parent) {
           previous_parent->block()->concat(slice);
@@ -436,7 +436,7 @@ namespace Sass {
           previous_parent->block(slice);
           previous_parent->tabs(parent->tabs());
 
-          result->append(previous_parent.ptr());
+          result->append(previous_parent);
         }
         continue;
       }
@@ -498,7 +498,7 @@ namespace Sass {
         }
 
         if (wrapper_block) {
-          result->append(wrapper_block.ptr());
+          result->append(wrapper_block);
         }
       }
     }
