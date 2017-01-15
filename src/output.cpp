@@ -116,8 +116,8 @@ namespace Sass {
     if (!Util::isPrintable(r, output_style())) {
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         const Statement_Obj& stm = b->at(i);
-        if (SASS_MEMORY_CAST(Has_Block, stm)) {
-          if (!SASS_MEMORY_CAST(Declaration, stm)) {
+        if (Cast<Has_Block>(stm)) {
+          if (!Cast<Declaration>(stm)) {
             stm->perform(this);
           }
         }
@@ -140,16 +140,16 @@ namespace Sass {
       Statement_Obj stm = b->at(i);
       bool bPrintExpression = true;
       // Check print conditions
-      if (Declaration_Ptr dec = SASS_MEMORY_CAST(Declaration, stm)) {
-        if (String_Constant_Ptr valConst = SASS_MEMORY_CAST(String_Constant, dec->value())) {
+      if (Declaration_Ptr dec = Cast<Declaration>(stm)) {
+        if (String_Constant_Ptr valConst = Cast<String_Constant>(dec->value())) {
           std::string val(valConst->value());
-          if (String_Quoted_Ptr qstr = SASS_MEMORY_CAST_PTR(String_Quoted, valConst)) {
+          if (String_Quoted_Ptr qstr = Cast<String_Quoted>(valConst)) {
             if (!qstr->quote_mark() && val.empty()) {
               bPrintExpression = false;
             }
           }
         }
-        else if (List_Ptr list = SASS_MEMORY_CAST(List, dec->value())) {
+        else if (List_Ptr list = Cast<List>(dec->value())) {
           bool all_invisible = true;
           for (size_t list_i = 0, list_L = list->length(); list_i < list_L; ++list_i) {
             Expression_Ptr item = list->at(list_i);
@@ -201,7 +201,7 @@ namespace Sass {
     if (!Util::isPrintable(f, output_style())) {
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
-        if (SASS_MEMORY_CAST(Has_Block, stm)) {
+        if (Cast<Has_Block>(stm)) {
           stm->perform(this);
         }
       }
@@ -237,7 +237,7 @@ namespace Sass {
     if (!Util::isPrintable(m, output_style())) {
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
-        if (SASS_MEMORY_CAST(Has_Block, stm)) {
+        if (Cast<Has_Block>(stm)) {
           stm->perform(this);
         }
       }

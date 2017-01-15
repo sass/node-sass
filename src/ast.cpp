@@ -19,15 +19,15 @@ namespace Sass {
   static Null sass_null(ParserState("null"));
 
   bool Supports_Operator::needs_parens(Supports_Condition_Obj cond) const {
-    if (Supports_Operator_Obj op = SASS_MEMORY_CAST(Supports_Operator, cond)) {
+    if (Supports_Operator_Obj op = Cast<Supports_Operator>(cond)) {
       return op->operand() != operand();
     }
-    return SASS_MEMORY_CAST(Supports_Negation, cond) != NULL;
+    return Cast<Supports_Negation>(cond) != NULL;
   }
 
   bool Supports_Negation::needs_parens(Supports_Condition_Obj cond) const {
-    return SASS_MEMORY_CAST(Supports_Negation, cond) ||
-           SASS_MEMORY_CAST(Supports_Operator, cond);
+    return Cast<Supports_Negation>(cond) ||
+           Cast<Supports_Operator>(cond);
   }
 
   std::string & str_ltrim(std::string & str)
@@ -61,13 +61,13 @@ namespace Sass {
   void String_Schema::rtrim()
   {
     if (!empty()) {
-      if (String_Ptr str = SASS_MEMORY_CAST(String, last())) str->rtrim();
+      if (String_Ptr str = Cast<String>(last())) str->rtrim();
     }
   }
   void String_Schema::ltrim()
   {
     if (!empty()) {
-      if (String_Ptr str = SASS_MEMORY_CAST(String, first())) str->ltrim();
+      if (String_Ptr str = Cast<String>(first())) str->ltrim();
     }
   }
   void String_Schema::trim()
@@ -477,7 +477,7 @@ namespace Sass {
     {
       for (i = 0, L = rhs->length(); i < L; ++i)
       {
-        if ((SASS_MEMORY_CAST(Pseudo_Selector, (*rhs)[i]) || SASS_MEMORY_CAST(Wrapped_Selector, (*rhs)[i])) && (*rhs)[L-1]->is_pseudo_element())
+        if ((Cast<Pseudo_Selector>((*rhs)[i]) || Cast<Wrapped_Selector>((*rhs)[i])) && (*rhs)[L-1]->is_pseudo_element())
         { found = true; break; }
       }
     }
@@ -485,7 +485,7 @@ namespace Sass {
     {
       for (i = 0, L = rhs->length(); i < L; ++i)
       {
-        if (SASS_MEMORY_CAST(Pseudo_Selector, (*rhs)[i]) || SASS_MEMORY_CAST(Wrapped_Selector, (*rhs)[i]))
+        if (Cast<Pseudo_Selector>((*rhs)[i]) || Cast<Wrapped_Selector>((*rhs)[i]))
         { found = true; break; }
       }
     }
@@ -546,11 +546,11 @@ namespace Sass {
       if (typeid(*rhs_0) == typeid(Element_Selector))
       {
         // if rhs is universal, just return this tagname + rhs's qualifiers
-        Element_Selector_Ptr ts = SASS_MEMORY_CAST_PTR(Element_Selector, rhs_0);
+        Element_Selector_Ptr ts = Cast<Element_Selector>(rhs_0);
         rhs->at(0) = this->unify_with(ts, ctx);
         return rhs;
       }
-      else if (SASS_MEMORY_CAST_PTR(Class_Selector, rhs_0) || SASS_MEMORY_CAST_PTR(Id_Selector, rhs_0)) {
+      else if (Cast<Class_Selector>(rhs_0) || Cast<Id_Selector>(rhs_0)) {
         // qualifier is `.class`, so we can prefix with `ns|*.class`
         if (has_ns() && !rhs_0->has_ns()) {
           if (ns() != "*") rhs->elements().insert(rhs->begin(), this);
@@ -586,7 +586,7 @@ namespace Sass {
   {
     for (size_t i = 0, L = rhs->length(); i < L; ++i)
     {
-      if (Id_Selector_Ptr sel = SASS_MEMORY_CAST(Id_Selector, rhs->at(i))) {
+      if (Id_Selector_Ptr sel = Cast<Id_Selector>(rhs->at(i))) {
         if (sel->name() != name()) return 0;
       }
     }
@@ -600,7 +600,7 @@ namespace Sass {
     {
       for (size_t i = 0, L = rhs->length(); i < L; ++i)
       {
-        if (Pseudo_Selector_Ptr sel = SASS_MEMORY_CAST(Pseudo_Selector, rhs->at(i))) {
+        if (Pseudo_Selector_Ptr sel = Cast<Pseudo_Selector>(rhs->at(i))) {
           if (sel->is_pseudo_element() && sel->name() != name()) return 0;
         }
       }
@@ -759,8 +759,8 @@ namespace Sass {
   {
     if (this->name() != sub->name()) return false;
     if (this->name() == ":current") return false;
-    if (Selector_List_Obj rhs_list = SASS_MEMORY_CAST(Selector_List, sub->selector())) {
-      if (Selector_List_Obj lhs_list = SASS_MEMORY_CAST(Selector_List, selector())) {
+    if (Selector_List_Obj rhs_list = Cast<Selector_List>(sub->selector())) {
+      if (Selector_List_Obj lhs_list = Cast<Selector_List>(selector())) {
         return lhs_list->is_superselector_of(rhs_list);
       }
       error("is_superselector expected a Selector_List", sub->pstate());
@@ -831,9 +831,9 @@ namespace Sass {
     {
       Selector_Obj lhs = (*this)[i].ptr();
       // very special case for wrapped matches selector
-      if (Wrapped_Selector_Obj wrapped = SASS_MEMORY_CAST(Wrapped_Selector, lhs)) {
+      if (Wrapped_Selector_Obj wrapped = Cast<Wrapped_Selector>(lhs)) {
         if (wrapped->name() == ":not") {
-          if (Selector_List_Obj not_list = SASS_MEMORY_CAST(Selector_List, wrapped->selector())) {
+          if (Selector_List_Obj not_list = Cast<Selector_List>(wrapped->selector())) {
             if (not_list->is_superselector_of(rhs, wrapped->name())) return false;
           } else {
             throw std::runtime_error("wrapped not selector is not a list");
@@ -841,8 +841,8 @@ namespace Sass {
         }
         if (wrapped->name() == ":matches" || wrapped->name() == ":-moz-any") {
           lhs = wrapped->selector();
-          if (Selector_List_Obj list = SASS_MEMORY_CAST(Selector_List, wrapped->selector())) {
-            if (Compound_Selector_Obj comp = SASS_MEMORY_CAST(Compound_Selector, rhs)) {
+          if (Selector_List_Obj list = Cast<Selector_List>(wrapped->selector())) {
+            if (Compound_Selector_Obj comp = Cast<Compound_Selector>(rhs)) {
               if (!wrapping.empty() && wrapping != wrapped->name()) return false;
               if (wrapping.empty() || wrapping != wrapped->name()) {;
                 if (list->is_superselector_of(comp, wrapped->name())) return true;
@@ -868,9 +868,9 @@ namespace Sass {
     for (size_t n = 0, nL = rhs->length(); n < nL; ++n)
     {
       Selector_Obj r = (*rhs)[n].ptr();
-      if (Wrapped_Selector_Obj wrapped = SASS_MEMORY_CAST(Wrapped_Selector, r)) {
+      if (Wrapped_Selector_Obj wrapped = Cast<Wrapped_Selector>(r)) {
         if (wrapped->name() == ":not") {
-          if (Selector_List_Obj ls = SASS_MEMORY_CAST(Selector_List, wrapped->selector())) {
+          if (Selector_List_Obj ls = Cast<Selector_List>(wrapped->selector())) {
             ls->remove_parent_selectors();
             if (is_superselector_of(ls, wrapped->name())) return false;
           }
@@ -879,7 +879,7 @@ namespace Sass {
           if (!wrapping.empty()) {
             if (wrapping != wrapped->name()) return false;
           }
-          if (Selector_List_Obj ls = SASS_MEMORY_CAST(Selector_List, wrapped->selector())) {
+          if (Selector_List_Obj ls = Cast<Selector_List>(wrapped->selector())) {
             ls->remove_parent_selectors();
             return (is_superselector_of(ls, wrapped->name()));
           }
@@ -1132,29 +1132,29 @@ namespace Sass {
       } else if (last()->head_ && last()->head_->length()) {
         Compound_Selector_Obj rh = last()->head();
         size_t i = 0, L = h->length();
-        if (SASS_MEMORY_CAST(Element_Selector, h->first())) {
-          if (Class_Selector_Ptr sq = SASS_MEMORY_CAST(Class_Selector, rh->last())) {
+        if (Cast<Element_Selector>(h->first())) {
+          if (Class_Selector_Ptr sq = Cast<Class_Selector>(rh->last())) {
             Class_Selector_Ptr sqs = SASS_MEMORY_COPY(sq);
             sqs->name(sqs->name() + (*h)[0]->name());
             sqs->pstate((*h)[0]->pstate());
             (*rh)[rh->length()-1] = sqs;
             rh->pstate(h->pstate());
             for (i = 1; i < L; ++i) rh->append((*h)[i]);
-          } else if (Id_Selector_Ptr sq = SASS_MEMORY_CAST(Id_Selector, rh->last())) {
+          } else if (Id_Selector_Ptr sq = Cast<Id_Selector>(rh->last())) {
             Id_Selector_Ptr sqs = SASS_MEMORY_COPY(sq);
             sqs->name(sqs->name() + (*h)[0]->name());
             sqs->pstate((*h)[0]->pstate());
             (*rh)[rh->length()-1] = sqs;
             rh->pstate(h->pstate());
             for (i = 1; i < L; ++i) rh->append((*h)[i]);
-          } else if (Element_Selector_Ptr ts = SASS_MEMORY_CAST(Element_Selector, rh->last())) {
+          } else if (Element_Selector_Ptr ts = Cast<Element_Selector>(rh->last())) {
             Element_Selector_Ptr tss = SASS_MEMORY_COPY(ts);
             tss->name(tss->name() + (*h)[0]->name());
             tss->pstate((*h)[0]->pstate());
             (*rh)[rh->length()-1] = tss;
             rh->pstate(h->pstate());
             for (i = 1; i < L; ++i) rh->append((*h)[i]);
-          } else if (Placeholder_Selector_Ptr ps = SASS_MEMORY_CAST(Placeholder_Selector, rh->last())) {
+          } else if (Placeholder_Selector_Ptr ps = Cast<Placeholder_Selector>(rh->last())) {
             Placeholder_Selector_Ptr pss = SASS_MEMORY_COPY(ps);
             pss->name(pss->name() + (*h)[0]->name());
             pss->pstate((*h)[0]->pstate());
@@ -1227,7 +1227,7 @@ namespace Sass {
       Selector_List_Obj retval;
       // we have a parent selector in a simple compound list
       // mix parent complex selector into the compound list
-      if (SASS_MEMORY_CAST(Parent_Selector, (*head)[0])) {
+      if (Cast<Parent_Selector>((*head)[0])) {
         retval = SASS_MEMORY_NEW(Selector_List, pstate());
 
         // it turns out that real parent references reach
@@ -1339,8 +1339,8 @@ namespace Sass {
       }
 
       for (Simple_Selector_Obj ss : head->elements()) {
-        if (Wrapped_Selector_Ptr ws = SASS_MEMORY_CAST(Wrapped_Selector, ss)) {
-          if (Selector_List_Ptr sl = SASS_MEMORY_CAST(Selector_List, ws->selector())) {
+        if (Wrapped_Selector_Ptr ws = Cast<Wrapped_Selector>(ss)) {
+          if (Selector_List_Ptr sl = Cast<Selector_List>(ws->selector())) {
             if (parents) ws->selector(sl->resolve_parent_refs(ctx, pstack, implicit_parent));
           }
         }
@@ -1386,7 +1386,7 @@ namespace Sass {
       // get the head
       head = cur->head_;
       // abort (and return) if it is not a parent selector
-      if (!head || head->length() != 1 || !SASS_MEMORY_CAST(Parent_Selector, (*head)[0])) {
+      if (!head || head->length() != 1 || !Cast<Parent_Selector>((*head)[0])) {
         break;
       }
       // advance to next
@@ -1495,16 +1495,16 @@ namespace Sass {
 
   bool Selector_Schema::has_parent_ref()
   {
-    if (String_Schema_Obj schema = SASS_MEMORY_CAST(String_Schema, contents())) {
-      return schema->length() > 0 && SASS_MEMORY_CAST(Parent_Selector, schema->at(0)) != NULL;
+    if (String_Schema_Obj schema = Cast<String_Schema>(contents())) {
+      return schema->length() > 0 && Cast<Parent_Selector>(schema->at(0)) != NULL;
     }
     return false;
   }
 
   bool Selector_Schema::has_real_parent_ref()
   {
-    if (String_Schema_Obj schema = SASS_MEMORY_CAST(String_Schema, contents())) {
-      Parent_Selector_Obj p = SASS_MEMORY_CAST(Parent_Selector, schema->at(0));
+    if (String_Schema_Obj schema = Cast<String_Schema>(contents())) {
+      Parent_Selector_Obj p = Cast<Parent_Selector>(schema->at(0));
       return schema->length() > 0 && p && p->is_real_parent_ref();
     }
     return false;
@@ -1597,7 +1597,7 @@ namespace Sass {
       Complex_Selector_Obj pIter = complex_sel;
       while (pIter) {
         Compound_Selector_Obj pHead = pIter->head();
-        if (pHead && SASS_MEMORY_CAST(Parent_Selector, pHead->elements()[0]) == NULL) {
+        if (pHead && Cast<Parent_Selector>(pHead->elements()[0]) == NULL) {
           compound_sel = pHead;
           break;
         }
@@ -1720,7 +1720,7 @@ namespace Sass {
   }
 
   bool Ruleset::is_invisible() const {
-    if (Selector_List_Ptr sl = SASS_MEMORY_CAST(Selector_List, selector())) {
+    if (Selector_List_Ptr sl = Cast<Selector_List>(selector())) {
       for (size_t i = 0, L = sl->length(); i < L; ++i)
         if (!(*sl)[i]->has_placeholder()) return false;
     }
@@ -2271,7 +2271,7 @@ namespace Sass {
     // so we need to break before keywords
     for (size_t i = 0, L = length(); i < L; ++i) {
       Expression_Obj obj = this->at(i);
-      if (Argument_Ptr arg = SASS_MEMORY_CAST(Argument, obj)) {
+      if (Argument_Ptr arg = Cast<Argument>(obj)) {
         if (!arg->name().empty()) return i;
       }
     }
@@ -2326,7 +2326,7 @@ namespace Sass {
   Expression_Obj List::value_at_index(size_t i) {
     Expression_Obj obj = this->at(i);
     if (is_arglist_) {
-      if (Argument_Ptr arg = SASS_MEMORY_CAST(Argument, obj)) {
+      if (Argument_Ptr arg = Cast<Argument>(obj)) {
         return arg->value();
       } else {
         return obj;

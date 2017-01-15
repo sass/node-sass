@@ -508,7 +508,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " [" << expression->name() << "]" << std::endl;
     std::string name(expression->name());
-    if (env && env->has(name)) debug_ast(SASS_MEMORY_CAST(Expression, (*env)[name]), ind + " -> ", env);
+    if (env && env->has(name)) debug_ast(Cast<Expression>((*env)[name]), ind + " -> ", env);
   } else if (dynamic_cast<Function_Call_Schema_Ptr>(node)) {
     Function_Call_Schema_Ptr expression = dynamic_cast<Function_Call_Schema_Ptr>(node);
     std::cerr << ind << "Function_Call_Schema " << expression;

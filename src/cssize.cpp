@@ -38,10 +38,10 @@ namespace Sass {
 
   Statement_Ptr Cssize::operator()(Declaration_Ptr d)
   {
-    String_Obj property = SASS_MEMORY_CAST(String, d->property());
+    String_Obj property = Cast<String>(d->property());
 
     if (Declaration_Ptr dd = dynamic_cast<Declaration_Ptr>(parent())) {
-      String_Obj parent_property = SASS_MEMORY_CAST(String, dd->property());
+      String_Obj parent_property = Cast<String>(dd->property());
       property = SASS_MEMORY_NEW(String_Constant,
                                  d->property()->pstate(),
                                  parent_property->to_string() + "-" + property->to_string());
@@ -99,10 +99,10 @@ namespace Sass {
       Statement_Obj s = r->block()->at(i);
       if (s->statement_type() != Statement::BUBBLE) directive_exists = true;
       else {
-        Bubble_Obj s_obj = SASS_MEMORY_CAST(Bubble, s);
+        Bubble_Obj s_obj = Cast<Bubble>(s);
         s = s_obj->node();
         if (s->statement_type() != Statement::DIRECTIVE) directive_exists = false;
-        else directive_exists = (SASS_MEMORY_CAST(Directive, s)->keyword() == rr->keyword());
+        else directive_exists = (Cast<Directive>(s)->keyword() == rr->keyword());
       }
 
     }
@@ -110,7 +110,7 @@ namespace Sass {
     Block_Ptr result = SASS_MEMORY_NEW(Block, rr->pstate());
     if (!(directive_exists || rr->is_keyframes()))
     {
-      Directive_Ptr empty_node = SASS_MEMORY_CAST(Directive, rr);
+      Directive_Ptr empty_node = Cast<Directive>(rr);
       empty_node->block(SASS_MEMORY_NEW(Block, rr->block() ? rr->block()->pstate() : rr->pstate()));
       result->append(empty_node);
     }
@@ -378,7 +378,7 @@ namespace Sass {
     Block_Ptr result = SASS_MEMORY_NEW(Block, b->pstate(), 0, b->is_root());
     for (size_t i = 0, L = b->length(); i < L; ++i) {
       Statement_Ptr ss = b->at(i);
-      if (Block_Ptr bb = SASS_MEMORY_CAST_PTR(Block, ss)) {
+      if (Block_Ptr bb = Cast<Block>(ss)) {
         Block_Obj bs = flatten(bb);
         for (size_t j = 0, K = bs->length(); j < K; ++j) {
           result->append(bs->at(j));
@@ -397,7 +397,7 @@ namespace Sass {
 
     for (size_t i = 0, L = b->length(); i < L; ++i) {
       Statement_Obj value = b->at(i);
-      bool key = SASS_MEMORY_CAST(Bubble, value) != NULL;
+      bool key = Cast<Bubble>(value) != NULL;
 
       if (!results.empty() && results.back().first == key)
       {
@@ -446,11 +446,11 @@ namespace Sass {
         Statement_Ptr ss = NULL;
         Statement_Obj stm = slice->at(j);
         // this has to go now here (too bad)
-        Bubble_Obj node = SASS_MEMORY_CAST(Bubble, stm);
+        Bubble_Obj node = Cast<Bubble>(stm);
         Media_Block_Ptr m1 = NULL;
         Media_Block_Ptr m2 = NULL;
-        if (parent) m1 = SASS_MEMORY_CAST_PTR(Media_Block, parent);
-        if (node) m2 = SASS_MEMORY_CAST(Media_Block, node->node());
+        if (parent) m1 = Cast<Media_Block>(parent);
+        if (node) m2 = Cast<Media_Block>(node->node());
         if (!parent ||
             parent->statement_type() != Statement::MEDIA ||
             node->node()->statement_type() != Statement::MEDIA ||
@@ -462,11 +462,11 @@ namespace Sass {
         else
         {
           List_Obj mq = merge_media_queries(
-            SASS_MEMORY_CAST(Media_Block, node->node()),
-            SASS_MEMORY_CAST_PTR(Media_Block, parent)
+            Cast<Media_Block>(node->node()),
+            Cast<Media_Block>(parent)
           );
           if (!mq->length()) continue;
-          if (Media_Block* b = SASS_MEMORY_CAST(Media_Block, node->node())) {
+          if (Media_Block* b = Cast<Media_Block>(node->node())) {
             b->media_queries(mq);
           }
           ss = node->node();
@@ -515,7 +515,7 @@ namespace Sass {
   {
     for (size_t i = 0, L = b->length(); i < L; ++i) {
       Statement_Obj ith = b->at(i)->perform(this);
-      if (Block_Ptr bb = SASS_MEMORY_CAST(Block, ith)) {
+      if (Block_Ptr bb = Cast<Block>(ith)) {
         for (size_t j = 0, K = bb->length(); j < K; ++j) {
           cur->append(bb->at(j));
         }
@@ -537,8 +537,8 @@ namespace Sass {
       for (size_t j = 0, K = m2->media_queries()->length(); j < K; j++) {
         Expression_Obj l1 = m1->media_queries()->at(i);
         Expression_Obj l2 = m2->media_queries()->at(j);
-        Media_Query_Ptr mq1 = SASS_MEMORY_CAST(Media_Query, l1);
-        Media_Query_Ptr mq2 = SASS_MEMORY_CAST(Media_Query, l2);
+        Media_Query_Ptr mq1 = Cast<Media_Query>(l1);
+        Media_Query_Ptr mq2 = Cast<Media_Query>(l2);
         Media_Query_Ptr mq = merge_media_query(mq1, mq2);
         if (mq) qq->append(mq);
       }

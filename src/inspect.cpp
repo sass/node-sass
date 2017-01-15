@@ -391,8 +391,8 @@ namespace Sass {
     else if (output_style() == TO_SASS &&
         list->length() == 1 &&
         !list->from_selector() &&
-        !SASS_MEMORY_CAST(List, list->at(0)) &&
-        !SASS_MEMORY_CAST(Selector_List, list->at(0))
+        !Cast<List>(list->at(0)) &&
+        !Cast<Selector_List>(list->at(0))
     ) {
       append_string(lbracket(list));
     }
@@ -413,7 +413,7 @@ namespace Sass {
       if (output_style() != TO_SASS) {
         if (list_item->is_invisible()) {
           // this fixes an issue with "" in a list
-          if (!SASS_MEMORY_CAST(String_Constant, list_item)) {
+          if (!Cast<String_Constant>(list_item)) {
             continue;
           }
         }
@@ -441,8 +441,8 @@ namespace Sass {
     else if (output_style() == TO_SASS &&
         list->length() == 1 &&
         !list->from_selector() &&
-        !SASS_MEMORY_CAST(List, list->at(0)) &&
-        !SASS_MEMORY_CAST(Selector_List, list->at(0))
+        !Cast<List>(list->at(0)) &&
+        !Cast<Selector_List>(list->at(0))
     ) {
       append_string(",");
       append_string(rbracket(list));
@@ -875,7 +875,7 @@ namespace Sass {
       return;
     }
     if (a->value()->concrete_type() == Expression::STRING) {
-      String_Constant_Ptr s = SASS_MEMORY_CAST(String_Constant, a->value());
+      String_Constant_Ptr s = Cast<String_Constant>(a->value());
       if (s) s->perform(this);
     } else {
       a->value()->perform(this);
@@ -1064,8 +1064,8 @@ namespace Sass {
     bool was_comma_array = in_comma_array;
     // probably ruby sass eqivalent of element_needs_parens
     if (output_style() == TO_SASS && g->length() == 1 &&
-      (!SASS_MEMORY_CAST(List, (*g)[0]) &&
-       !SASS_MEMORY_CAST(Selector_List, (*g)[0]))) {
+      (!Cast<List>((*g)[0]) &&
+       !Cast<Selector_List>((*g)[0]))) {
       append_string("(");
     }
     else if (!in_declaration && in_comma_array) {
@@ -1090,8 +1090,8 @@ namespace Sass {
     in_comma_array = was_comma_array;
     // probably ruby sass eqivalent of element_needs_parens
     if (output_style() == TO_SASS && g->length() == 1 &&
-      (!SASS_MEMORY_CAST(List, (*g)[0]) &&
-       !SASS_MEMORY_CAST(Selector_List, (*g)[0]))) {
+      (!Cast<List>((*g)[0]) &&
+       !Cast<Selector_List>((*g)[0]))) {
       append_string(",)");
     }
     else if (!in_declaration && in_comma_array) {

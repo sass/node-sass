@@ -38,12 +38,6 @@ namespace Sass {
 
   #endif
 
-  #define SASS_MEMORY_CAST(Class, obj) \
-    (dynamic_cast<Class##_Ptr>((obj).ptr())) \
-
-  #define SASS_MEMORY_CAST_PTR(Class, ptr) \
-    (dynamic_cast<Class##_Ptr>(ptr)) \
-
   class SharedObj {
   protected:
   friend class SharedPtr;

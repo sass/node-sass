@@ -33,7 +33,7 @@ namespace Sass {
 
     void Remove_Placeholders::operator()(Ruleset_Ptr r) {
         // Create a new selector group without placeholders
-        Selector_List_Obj sl = SASS_MEMORY_CAST(Selector_List, r->selector());
+        Selector_List_Obj sl = Cast<Selector_List>(r->selector());
 
         if (sl) {
           // Set the new placeholder selector list
@@ -43,8 +43,8 @@ namespace Sass {
             while (cs) {
               if (cs->head()) {
                 for (Simple_Selector_Obj& ss : cs->head()->elements()) {
-                  if (Wrapped_Selector_Ptr ws = SASS_MEMORY_CAST(Wrapped_Selector, ss)) {
-                    if (Selector_List_Ptr sl = SASS_MEMORY_CAST(Selector_List, ws->selector())) {
+                  if (Wrapped_Selector_Ptr ws = Cast<Wrapped_Selector>(ss)) {
+                    if (Selector_List_Ptr sl = Cast<Selector_List>(ws->selector())) {
                       Selector_List_Ptr clean = remove_placeholders(sl);
                       // also clean superflous parent selectors
                       // probably not really the correct place

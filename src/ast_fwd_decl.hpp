@@ -411,6 +411,20 @@ namespace Sass {
   typedef std::set<Complex_Selector_Obj, OrderNodes> ComplexSelectorSet;
   typedef std::unordered_set<Simple_Selector_Obj, HashNodes, CompareNodes> SimpleSelectorDict;
 
+  // ###########################################################################
+  // explicit type conversion functions
+  // ###########################################################################
+
+  template<class T>
+  T* Cast(AST_Node* ptr) {
+    return dynamic_cast<T*>(ptr);
+  };
+
+  template<class T>
+  const T* Cast(const AST_Node* ptr) {
+    return dynamic_cast<const T*>(ptr);
+  };
+
 }
 
 #endif

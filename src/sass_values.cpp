@@ -309,28 +309,28 @@ extern "C" {
       }
 
       if (sass_value_is_number(a) && sass_value_is_number(b)) {
-        Number_Ptr_Const l_n = SASS_MEMORY_CAST(Number, lhs);
-        Number_Ptr_Const r_n = SASS_MEMORY_CAST(Number, rhs);
+        Number_Ptr_Const l_n = Cast<Number>(lhs);
+        Number_Ptr_Const r_n = Cast<Number>(rhs);
         rv = Eval::op_numbers(op, *l_n, *r_n, options);
       }
       else if (sass_value_is_number(a) && sass_value_is_color(a)) {
-        Number_Ptr_Const l_n = SASS_MEMORY_CAST(Number, lhs);
-        Color_Ptr_Const r_c = SASS_MEMORY_CAST(Color, rhs);
+        Number_Ptr_Const l_n = Cast<Number>(lhs);
+        Color_Ptr_Const r_c = Cast<Color>(rhs);
         rv = Eval::op_number_color(op, *l_n, *r_c, options);
       }
       else if (sass_value_is_color(a) && sass_value_is_number(b)) {
-        Color_Ptr_Const l_c = SASS_MEMORY_CAST(Color, lhs);
-        Number_Ptr_Const r_n = SASS_MEMORY_CAST(Number, rhs);
+        Color_Ptr_Const l_c = Cast<Color>(lhs);
+        Number_Ptr_Const r_n = Cast<Number>(rhs);
         rv = Eval::op_color_number(op, *l_c, *r_n, options);
       }
       else if (sass_value_is_color(a) && sass_value_is_color(b)) {
-        Color_Ptr_Const l_c = SASS_MEMORY_CAST(Color, lhs);
-        Color_Ptr_Const r_c = SASS_MEMORY_CAST(Color, rhs);
+        Color_Ptr_Const l_c = Cast<Color>(lhs);
+        Color_Ptr_Const r_c = Cast<Color>(rhs);
         rv = Eval::op_colors(op, *l_c, *r_c, options);
       }
       else /* convert other stuff to string and apply operation */ {
-        Value_Ptr l_v = SASS_MEMORY_CAST(Value, lhs);
-        Value_Ptr r_v = SASS_MEMORY_CAST(Value, rhs);
+        Value_Ptr l_v = Cast<Value>(lhs);
+        Value_Ptr r_v = Cast<Value>(rhs);
         rv = Eval::op_strings(op, *l_v, *r_v, options);
       }
 

@@ -16,7 +16,7 @@ namespace Sass {
     std::map<std::string, Parameter_Obj> param_map;
 
     for (size_t i = 0, L = as->length(); i < L; ++i) {
-      if (auto str = SASS_MEMORY_CAST(String_Quoted, (*as)[i]->value())) {
+      if (auto str = Cast<String_Quoted>((*as)[i]->value())) {
         // force optional quotes (only if needed)
         if (str->quote_mark()) {
           str->quote_mark('*');
@@ -42,7 +42,7 @@ namespace Sass {
       if (ip >= LP) {
         // skip empty rest arguments
         if (a->is_rest_argument()) {
-          if (List_Obj l = SASS_MEMORY_CAST(List, a->value())) {
+          if (List_Obj l = Cast<List>(a->value())) {
             if (l->length() == 0) {
               ++ ia; continue;
             }
@@ -61,7 +61,7 @@ namespace Sass {
         if (a->is_rest_argument()) {
 
           // We should always get a list for rest arguments
-          if (List_Obj rest = SASS_MEMORY_CAST(List, a->value())) {
+          if (List_Obj rest = Cast<List>(a->value())) {
               // create a new list object for wrapped items
               List_Ptr arglist = SASS_MEMORY_NEW(List,
                                               p->pstate(),
@@ -70,7 +70,7 @@ namespace Sass {
                                               true);
               // wrap each item from list as an argument
               for (Expression_Obj item : rest->elements()) {
-                if (Argument_Obj arg = SASS_MEMORY_CAST(Argument, item)) {
+                if (Argument_Obj arg = Cast<Argument>(item)) {
                   arglist->append(SASS_MEMORY_COPY(arg)); // copy
                 } else {
                   arglist->append(SASS_MEMORY_NEW(Argument,
@@ -93,9 +93,9 @@ namespace Sass {
           // expand keyword arguments into their parameters
           List_Ptr arglist = SASS_MEMORY_NEW(List, p->pstate(), 0, SASS_COMMA, true);
           env->local_frame()[p->name()] = arglist;
-          Map_Obj argmap = SASS_MEMORY_CAST(Map, a->value());
+          Map_Obj argmap = Cast<Map>(a->value());
           for (auto key : argmap->keys()) {
-            std::string name = unquote(SASS_MEMORY_CAST(String_Constant, key)->value());
+            std::string name = unquote(Cast<String_Constant>(key)->value());
             arglist->append(SASS_MEMORY_NEW(Argument,
                                             key->pstate(),
                                             argmap->at(key),
@@ -117,18 +117,18 @@ namespace Sass {
             // get and post inc
             a = (*as)[ia++];
             // maybe we have another list as argument
-            List_Obj ls = SASS_MEMORY_CAST(List, a->value());
+            List_Obj ls = Cast<List>(a->value());
             // skip any list completely if empty
             if (ls && ls->empty() && a->is_rest_argument()) continue;
 
             Expression_Obj value = a->value();
-            if (Argument_Obj arg = SASS_MEMORY_CAST(Argument, value)) {
+            if (Argument_Obj arg = Cast<Argument>(value)) {
               arglist->append(arg.ptr());
             }
             // check if we have rest argument
             else if (a->is_rest_argument()) {
               // preserve the list separator from rest args
-              if (List_Obj rest = SASS_MEMORY_CAST(List, a->value())) {
+              if (List_Obj rest = Cast<List>(a->value())) {
                 arglist->separator(rest->separator());
 
                 for (size_t i = 0, L = rest->size(); i < L; ++i) {
@@ -166,7 +166,7 @@ namespace Sass {
       // If the current argument is the rest argument, extract a value for processing
       else if (a->is_rest_argument()) {
         // normal param and rest arg
-        List_Obj arglist = SASS_MEMORY_CAST(List, a->value());
+        List_Obj arglist = Cast<List>(a->value());
         // empty rest arg - treat all args as default values
         if (!arglist->length()) {
           break;
@@ -187,7 +187,7 @@ namespace Sass {
         }
         // otherwise move one of the rest args into the param, converting to argument if necessary
         Expression_Obj obj = arglist->at(0);
-        if (!(a = SASS_MEMORY_CAST(Argument, obj))) {
+        if (!(a = Cast<Argument>(obj))) {
           Expression_Ptr a_to_convert = obj;
           a = SASS_MEMORY_NEW(Argument,
                               a_to_convert->pstate(),
@@ -202,10 +202,10 @@ namespace Sass {
         }
 
       } else if (a->is_keyword_argument()) {
-        Map_Obj argmap = SASS_MEMORY_CAST(Map, a->value());
+        Map_Obj argmap = Cast<Map>(a->value());
 
         for (auto key : argmap->keys()) {
-          std::string name = "$" + unquote(SASS_MEMORY_CAST(String_Constant, key)->value());
+          std::string name = "$" + unquote(Cast<String_Constant>(key)->value());
 
           if (!param_map.count(name)) {
             std::stringstream msg;

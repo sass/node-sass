@@ -1937,9 +1937,9 @@ namespace Sass {
           // create a copy since we add multiple items if stuff get unwrapped
           Compound_Selector_Obj cpy_head = SASS_MEMORY_NEW(Compound_Selector, cur->pstate());
           for (Simple_Selector_Obj hs : *cur->head()) {
-            if (Wrapped_Selector_Obj ws = SASS_MEMORY_CAST(Wrapped_Selector, hs)) {
+            if (Wrapped_Selector_Obj ws = Cast<Wrapped_Selector>(hs)) {
               ws->selector(SASS_MEMORY_CLONE(ws->selector()));
-              if (Selector_List_Obj sl = SASS_MEMORY_CAST(Selector_List, ws->selector())) {
+              if (Selector_List_Obj sl = Cast<Selector_List>(ws->selector())) {
                 // special case for ruby ass
                 if (sl->empty()) {
                   // this seems inconsistent but it is how ruby sass seems to remove parentheses
@@ -1956,14 +1956,14 @@ namespace Sass {
                       Selector_List_Obj cpy_ws_sl = SASS_MEMORY_NEW(Selector_List, sl->pstate());
                       // remove parent selectors from inner selector
                       if (ext_cs->first() && ext_cs->first()->head()->length() > 0) {
-                        Wrapped_Selector_Ptr ext_ws = SASS_MEMORY_CAST(Wrapped_Selector, ext_cs->first()->head()->first());
+                        Wrapped_Selector_Ptr ext_ws = Cast<Wrapped_Selector>(ext_cs->first()->head()->first());
                         if (ext_ws/* && ext_cs->length() == 1*/) {
-                          Selector_List_Obj ws_cs = SASS_MEMORY_CAST(Selector_List, ext_ws->selector());
+                          Selector_List_Obj ws_cs = Cast<Selector_List>(ext_ws->selector());
                           Compound_Selector_Obj ws_ss = ws_cs->first()->head();
                           if (!(
-                            SASS_MEMORY_CAST(Pseudo_Selector, ws_ss->first()) ||
-                            SASS_MEMORY_CAST(Element_Selector, ws_ss->first()) ||
-                            SASS_MEMORY_CAST(Placeholder_Selector, ws_ss->first())
+                            Cast<Pseudo_Selector>(ws_ss->first()) ||
+                            Cast<Element_Selector>(ws_ss->first()) ||
+                            Cast<Placeholder_Selector>(ws_ss->first())
                           )) continue;
                         }
                         cpy_ws_sl->append(ext_cs->first());
@@ -2012,7 +2012,7 @@ namespace Sass {
     for (size_t i = 0, L = b->length(); i < L; ++i) {
       Statement_Obj stm = b->at(i);
 
-      if (SASS_MEMORY_CAST(Ruleset, stm)) {
+      if (Cast<Ruleset>(stm)) {
         // Do nothing. This doesn't count as a statement that causes extension since we'll
         // iterate over this rule set in a future visit and try to extend it.
       }
@@ -2040,7 +2040,7 @@ namespace Sass {
     }
 
     bool extendedSomething = false;
-    Selector_List_Obj pNewSelectorList = Extend::extendSelectorList(SASS_MEMORY_CAST(Selector_List, pObject->selector()), ctx, subset_map, false, extendedSomething);
+    Selector_List_Obj pNewSelectorList = Extend::extendSelectorList(Cast<Selector_List>(pObject->selector()), ctx, subset_map, false, extendedSomething);
 
     if (extendedSomething && pNewSelectorList) {
       DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND ORIGINAL SELECTORS: " << static_cast<Selector_List_Ptr>(pObject->selector())->to_string(ctx.c_options))
