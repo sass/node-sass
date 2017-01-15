@@ -562,7 +562,7 @@ namespace Sass {
   // Trace.
   /////////////////
   class Trace : public Has_Block {
-    ADD_PROPERTY(std::string, name)
+    ADD_CONSTREF(std::string, name)
   public:
     Trace(ParserState pstate, std::string n, Block_Obj b = 0)
     : Has_Block(pstate, b), name_(n)
@@ -601,7 +601,7 @@ namespace Sass {
   // optional statement block.
   ///////////////////////////////////////////////////////////////////////
   class Directive : public Has_Block {
-    ADD_PROPERTY(std::string, keyword)
+    ADD_CONSTREF(std::string, keyword)
     ADD_PROPERTY(Selector_Obj, selector)
     ADD_PROPERTY(Expression_Obj, value)
   public:
@@ -677,7 +677,7 @@ namespace Sass {
   // Assignments -- variable and value.
   /////////////////////////////////////
   class Assignment : public Statement {
-    ADD_PROPERTY(std::string, variable)
+    ADD_CONSTREF(std::string, variable)
     ADD_PROPERTY(Expression_Obj, value)
     ADD_PROPERTY(bool, is_default)
     ADD_PROPERTY(bool, is_global)
@@ -841,7 +841,7 @@ namespace Sass {
   // The Sass `@for` control directive.
   /////////////////////////////////////
   class For : public Has_Block {
-    ADD_PROPERTY(std::string, variable)
+    ADD_CONSTREF(std::string, variable)
     ADD_PROPERTY(Expression_Obj, lower_bound)
     ADD_PROPERTY(Expression_Obj, upper_bound)
     ADD_PROPERTY(bool, is_inclusive)
@@ -937,7 +937,7 @@ namespace Sass {
   class Definition : public Has_Block {
   public:
     enum Type { MIXIN, FUNCTION };
-    ADD_PROPERTY(std::string, name)
+    ADD_CONSTREF(std::string, name)
     ADD_PROPERTY(Parameters_Obj, parameters)
     ADD_PROPERTY(Env*, environment)
     ADD_PROPERTY(Type, type)
@@ -1019,7 +1019,7 @@ namespace Sass {
   // Mixin calls (i.e., `@include ...`).
   //////////////////////////////////////
   class Mixin_Call : public Has_Block {
-    ADD_PROPERTY(std::string, name)
+    ADD_CONSTREF(std::string, name)
     ADD_PROPERTY(Arguments_Obj, arguments)
   public:
     Mixin_Call(ParserState pstate, std::string n, Arguments_Obj args, Block_Obj b = 0)
@@ -1177,9 +1177,9 @@ namespace Sass {
   //////////////////////////////////////////////////////////////////////////
   class Binary_Expression : public PreValue {
   private:
-    ADD_HASHED(Operand, op)
-    ADD_HASHED(Expression_Obj, left)
-    ADD_HASHED(Expression_Obj, right)
+    HASH_PROPERTY(Operand, op)
+    HASH_PROPERTY(Expression_Obj, left)
+    HASH_PROPERTY(Expression_Obj, right)
     size_t hash_;
   public:
     Binary_Expression(ParserState pstate,
@@ -1283,8 +1283,8 @@ namespace Sass {
   public:
     enum Type { PLUS, MINUS, NOT };
   private:
-    ADD_HASHED(Type, type)
-    ADD_HASHED(Expression_Obj, operand)
+    HASH_PROPERTY(Type, type)
+    HASH_PROPERTY(Expression_Obj, operand)
     size_t hash_;
   public:
     Unary_Expression(ParserState pstate, Type t, Expression_Obj o)
@@ -1335,8 +1335,8 @@ namespace Sass {
   // Individual argument objects for mixin and function calls.
   ////////////////////////////////////////////////////////////
   class Argument : public Expression {
-    ADD_HASHED(Expression_Obj, value)
-    ADD_HASHED(std::string, name)
+    HASH_PROPERTY(Expression_Obj, value)
+    HASH_CONSTREF(std::string, name)
     ADD_PROPERTY(bool, is_rest_argument)
     ADD_PROPERTY(bool, is_keyword_argument)
     size_t hash_;
@@ -1430,8 +1430,8 @@ namespace Sass {
   // Function calls.
   //////////////////
   class Function_Call : public PreValue {
-    ADD_HASHED(std::string, name)
-    ADD_HASHED(Arguments_Obj, arguments)
+    HASH_CONSTREF(std::string, name)
+    HASH_PROPERTY(Arguments_Obj, arguments)
     ADD_PROPERTY(bool, via_call)
     ADD_PROPERTY(void*, cookie)
     size_t hash_;
@@ -1505,7 +1505,7 @@ namespace Sass {
   // Variable references.
   ///////////////////////
   class Variable : public PreValue {
-    ADD_PROPERTY(std::string, name)
+    ADD_CONSTREF(std::string, name)
   public:
     Variable(ParserState pstate, std::string n)
     : PreValue(pstate), name_(n)
@@ -1545,8 +1545,8 @@ namespace Sass {
   public:
     enum Type { NUMBER, PERCENTAGE, DIMENSION, HEX };
   private:
-    ADD_HASHED(Type, type)
-    ADD_HASHED(std::string, value)
+    HASH_PROPERTY(Type, type)
+    HASH_CONSTREF(std::string, value)
     size_t hash_;
   public:
     Textual(ParserState pstate, Type t, std::string val)
@@ -1591,7 +1591,7 @@ namespace Sass {
   // Numbers, percentages, dimensions, and colors.
   ////////////////////////////////////////////////
   class Number : public Value {
-    ADD_HASHED(double, value)
+    HASH_PROPERTY(double, value)
     ADD_PROPERTY(bool, zero)
     std::vector<std::string> numerator_units_;
     std::vector<std::string> denominator_units_;
@@ -1647,11 +1647,11 @@ namespace Sass {
   // Colors.
   //////////
   class Color : public Value {
-    ADD_HASHED(double, r)
-    ADD_HASHED(double, g)
-    ADD_HASHED(double, b)
-    ADD_HASHED(double, a)
-    ADD_PROPERTY(std::string, disp)
+    HASH_PROPERTY(double, r)
+    HASH_PROPERTY(double, g)
+    HASH_PROPERTY(double, b)
+    HASH_PROPERTY(double, a)
+    ADD_CONSTREF(std::string, disp)
     size_t hash_;
   public:
     Color(ParserState pstate, double r, double g, double b, double a = 1, const std::string disp = "")
@@ -1691,7 +1691,7 @@ namespace Sass {
   // Errors from Sass_Values.
   //////////////////////////////
   class Custom_Error : public Value {
-    ADD_PROPERTY(std::string, message)
+    ADD_CONSTREF(std::string, message)
   public:
     Custom_Error(ParserState pstate, std::string msg)
     : Value(pstate), message_(msg)
@@ -1708,7 +1708,7 @@ namespace Sass {
   // Warnings from Sass_Values.
   //////////////////////////////
   class Custom_Warning : public Value {
-    ADD_PROPERTY(std::string, message)
+    ADD_CONSTREF(std::string, message)
   public:
     Custom_Warning(ParserState pstate, std::string msg)
     : Value(pstate), message_(msg)
@@ -1725,7 +1725,7 @@ namespace Sass {
   // Booleans.
   ////////////
   class Boolean : public Value {
-    ADD_HASHED(bool, value)
+    HASH_PROPERTY(bool, value)
     size_t hash_;
   public:
     Boolean(ParserState pstate, bool val)
@@ -1839,7 +1839,7 @@ namespace Sass {
   class String_Constant : public String {
     ADD_PROPERTY(char, quote_mark)
     ADD_PROPERTY(bool, can_compress_whitespace)
-    ADD_HASHED(std::string, value)
+    HASH_CONSTREF(std::string, value)
   protected:
     size_t hash_;
   public:
@@ -2186,7 +2186,7 @@ namespace Sass {
   // Individual parameter objects for mixins and functions.
   /////////////////////////////////////////////////////////
   class Parameter : public AST_Node {
-    ADD_PROPERTY(std::string, name)
+    ADD_CONSTREF(std::string, name)
     ADD_PROPERTY(Expression_Obj, default_value)
     ADD_PROPERTY(bool, is_rest_parameter)
   public:
@@ -2353,8 +2353,8 @@ namespace Sass {
   // Abstract base class for simple selectors.
   ////////////////////////////////////////////
   class Simple_Selector : public Selector {
-    ADD_PROPERTY(std::string, ns)
-    ADD_PROPERTY(std::string, name)
+    ADD_CONSTREF(std::string, ns)
+    ADD_CONSTREF(std::string, name)
     ADD_PROPERTY(Simple_Type, simple_type)
     ADD_PROPERTY(bool, has_ns)
   public:
@@ -2574,7 +2574,7 @@ namespace Sass {
   // Attribute selectors -- e.g., [src*=".jpg"], etc.
   ///////////////////////////////////////////////////
   class Attribute_Selector : public Simple_Selector {
-    ADD_PROPERTY(std::string, matcher)
+    ADD_CONSTREF(std::string, matcher)
     // this cannot be changed to obj atm!!!!!!????!!!!!!!
     ADD_PROPERTY(String_Obj, value) // might be interpolated
   public:
@@ -2835,10 +2835,10 @@ namespace Sass {
   public:
     enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO, REFERENCE };
   private:
-    ADD_PROPERTY(Combinator, combinator)
-    ADD_PROPERTY(Compound_Selector_Obj, head)
-    ADD_PROPERTY(Complex_Selector_Obj, tail)
-    ADD_PROPERTY(String_Obj, reference);
+    HASH_CONSTREF(Combinator, combinator)
+    HASH_PROPERTY(Compound_Selector_Obj, head)
+    HASH_PROPERTY(Complex_Selector_Obj, tail)
+    HASH_PROPERTY(String_Obj, reference);
   public:
     bool contains_placeholder() {
       if (head() && head()->contains_placeholder()) return true;
@@ -2995,7 +2995,7 @@ namespace Sass {
   // Comma-separated selector groups.
   ///////////////////////////////////
   class Selector_List : public Selector, public Vectorized<Complex_Selector_Obj> {
-    ADD_PROPERTY(std::vector<std::string>, wspace)
+    ADD_CONSTREF(std::vector<std::string>, wspace)
   protected:
     void adjust_after_pushing(Complex_Selector_Obj c);
   public:
