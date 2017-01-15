@@ -1016,6 +1016,7 @@ namespace Sass {
   }
 
   // parse +/- and return false if negative
+  // this is never hit via spec tests
   bool Parser::parse_number_prefix()
   {
     bool positive = true;
@@ -1420,6 +1421,7 @@ namespace Sass {
       if (ex && ex->operand()) ex->is_delayed(ex->operand()->is_delayed());
       return ex;
     }
+    // this whole branch is never hit via spec tests
     else if (peek < sequence < one_plus < alternatives < css_whitespace, exactly<'-'>, exactly<'+'> > >, number > >()) {
       if (parse_number_prefix()) return parse_value(); // prefix is positive
       Unary_Expression_Ptr ex = SASS_MEMORY_NEW(Unary_Expression, pstate, Unary_Expression::MINUS, parse_value());
@@ -2238,6 +2240,8 @@ namespace Sass {
 
     if (lexed == "@else") error("Invalid CSS: @else must come after @if", pstate);
 
+    // this whole branch is never hit via spec tests
+
     Directive_Ptr at_rule = SASS_MEMORY_NEW(Directive, pstate, kwd);
     Lookahead lookahead = lookahead_for_include(position);
     if (lookahead.found && !lookahead.has_interpolants) {
@@ -2261,6 +2265,7 @@ namespace Sass {
     return at_rule;
   }
 
+  // this whole branch is never hit via spec tests
   Directive_Obj Parser::parse_prefixed_directive()
   {
     std::string kwd(lexed);
@@ -2696,6 +2701,7 @@ namespace Sass {
       if (String_Schema_Ptr schema = Cast<String_Schema>(operands[i])) {
         if (schema->has_interpolants()) {
           if (i + 1 < S) {
+            // this whole branch is never hit via spec tests
             Expression_Obj rhs = fold_operands(operands[i+1], operands, ops, i + 2);
             rhs = SASS_MEMORY_NEW(Binary_Expression, base->pstate(), ops[i], schema, rhs);
             base = SASS_MEMORY_NEW(Binary_Expression, base->pstate(), ops[i], base, rhs);

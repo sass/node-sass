@@ -48,32 +48,12 @@ namespace Sass {
   {
     value_ = str_rtrim(value_);
   }
-  void String_Constant::ltrim()
-  {
-    value_ = str_ltrim(value_);
-  }
-  void String_Constant::trim()
-  {
-    rtrim();
-    ltrim();
-  }
 
   void String_Schema::rtrim()
   {
     if (!empty()) {
       if (String_Ptr str = Cast<String>(last())) str->rtrim();
     }
-  }
-  void String_Schema::ltrim()
-  {
-    if (!empty()) {
-      if (String_Ptr str = Cast<String>(first())) str->ltrim();
-    }
-  }
-  void String_Schema::trim()
-  {
-    rtrim();
-    ltrim();
   }
 
   void Argument::set_delayed(bool delayed)
@@ -122,11 +102,6 @@ namespace Sass {
   void AST_Node::update_pstate(const ParserState& pstate)
   {
     pstate_.offset += pstate - pstate_ + pstate.offset;
-  }
-
-  void AST_Node::set_pstate_offset(const Offset& offset)
-  {
-    pstate_.offset = offset;
   }
 
   bool Simple_Selector::is_ns_eq(const Simple_Selector& r) const
@@ -655,9 +630,8 @@ namespace Sass {
     {
       return *this == *w;
     }
-    if (is_ns_eq(rhs))
-    { return name() == rhs.name(); }
-    return ns() == rhs.ns();
+    return is_ns_eq(rhs) &&
+           name() == rhs.name();
   }
 
   bool Pseudo_Selector::operator== (const Pseudo_Selector& rhs) const
@@ -678,9 +652,8 @@ namespace Sass {
     {
       return *this == *w;
     }
-    if (is_ns_eq(rhs))
-    { return name() == rhs.name(); }
-    return ns() == rhs.ns();
+    return is_ns_eq(rhs) &&
+           name() == rhs.name();
   }
 
   bool Pseudo_Selector::operator< (const Pseudo_Selector& rhs) const
@@ -721,9 +694,8 @@ namespace Sass {
     {
       return *this == *w;
     }
-    if (is_ns_eq(rhs))
-    { return name() == rhs.name(); }
-    return ns() == rhs.ns();
+    return is_ns_eq(rhs) &&
+           name() == rhs.name();
   }
 
   bool Wrapped_Selector::operator< (const Wrapped_Selector& rhs) const
@@ -754,10 +726,8 @@ namespace Sass {
       if (Selector_List_Obj lhs_list = Cast<Selector_List>(selector())) {
         return lhs_list->is_superselector_of(rhs_list);
       }
-      error("is_superselector expected a Selector_List", sub->pstate());
-    } else {
-      error("is_superselector expected a Selector_List", sub->pstate());
     }
+    error("is_superselector expected a Selector_List", sub->pstate());
     return false;
   }
 
@@ -1093,15 +1063,6 @@ namespace Sass {
     // TODO: make this iterative
     if (!tail()) return 1;
     return 1 + tail()->length();
-  }
-
-  Complex_Selector_Obj Complex_Selector::context(Context& ctx)
-  {
-    if (!tail()) return 0;
-    if (!head()) return tail()->context(ctx);
-    Complex_Selector_Obj cpy = SASS_MEMORY_NEW(Complex_Selector, pstate(), combinator(), head(), tail()->context(ctx));
-    cpy->media_block(media_block());
-    return cpy;
   }
 
   // append another complex selector at the end
@@ -1611,14 +1572,6 @@ namespace Sass {
     }
   };
 
-  std::vector<std::string> Compound_Selector::to_str_vec()
-  {
-    std::vector<std::string> result(length());
-    for (size_t i = 0, L = length(); i < L; ++i)
-    { result.push_back((*this)[i]->to_string()); }
-    return result;
-  }
-
   void Compound_Selector::append(Simple_Selector_Ptr element)
   {
     Vectorized<Simple_Selector_Obj>::append(element);
@@ -2101,21 +2054,6 @@ namespace Sass {
   {
     if (Custom_Error_Ptr_Const r = Cast<Custom_Error>(&rhs)) {
       return message() == r->message();
-    }
-    return false;
-  }
-
-  bool Number::eq (const Expression& rhs) const
-  {
-    if (Number_Ptr_Const r = Cast<Number>(&rhs)) {
-      size_t lhs_units = numerator_units_.size() + denominator_units_.size();
-      size_t rhs_units = r->numerator_units_.size() + r->denominator_units_.size();
-      if (!lhs_units && !rhs_units) {
-        return std::fabs(value() - r->value()) < NUMBER_EPSILON;
-      }
-      return (numerator_units_ == r->numerator_units_) &&
-             (denominator_units_ == r->denominator_units_) &&
-             std::fabs(value() - r->value()) < NUMBER_EPSILON;
     }
     return false;
   }

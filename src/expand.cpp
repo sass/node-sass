@@ -41,11 +41,6 @@ namespace Sass {
     backtrace_stack.push_back(bt);
   }
 
-  Context& Expand::context()
-  {
-    return ctx;
-  }
-
   Env* Expand::environment()
   {
     if (env_stack.size() > 0)

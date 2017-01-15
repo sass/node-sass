@@ -19,7 +19,6 @@ namespace Sass {
   public:
 
     Env* environment();
-    Context& context();
     Selector_List_Obj selector();
     Backtrace* backtrace();
 
