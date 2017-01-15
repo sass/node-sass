@@ -1628,9 +1628,9 @@ namespace Sass {
     return result;
   }
 
-  void Compound_Selector::mergeSources(SourcesSet& sources, Context& ctx)
+  void Compound_Selector::mergeSources(ComplexSelectorSet& sources, Context& ctx)
   {
-    for (SourcesSet::iterator iterator = sources.begin(), endIterator = sources.end(); iterator != endIterator; ++iterator) {
+    for (ComplexSelectorSet::iterator iterator = sources.begin(), endIterator = sources.end(); iterator != endIterator; ++iterator) {
       this->sources_.insert(SASS_MEMORY_CLONE(*iterator));
     }
   }

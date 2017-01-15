@@ -14,7 +14,7 @@ inline void debug_ast(const AST_Node* node, std::string ind = "", Env* env = 0) 
   debug_ast(const_cast<AST_Node*>(node), ind, env);
 }
 
-inline void debug_sources_set(SourcesSet& set, std::string ind = "")
+inline void debug_sources_set(ComplexSelectorSet& set, std::string ind = "")
 {
   if (ind == "") std::cerr << "#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
   for(auto const &pair : set) {
@@ -151,7 +151,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     } else if(del != " ") {
       std::cerr << ind << " |" << del << "| {trailing op}" << std::endl;
     }
-    SourcesSet set = selector->sources();
+    ComplexSelectorSet set = selector->sources();
     // debug_sources_set(set, ind + "  @--> ");
   } else if (dynamic_cast<Compound_Selector_Ptr>(node)) {
     Compound_Selector_Ptr selector = dynamic_cast<Compound_Selector_Ptr>(node);

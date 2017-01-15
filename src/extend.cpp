@@ -205,8 +205,8 @@ namespace Sass {
     }
   }
 
-  // Print a string representation of a SourcesSet
-  static void printSourcesSet(SourcesSet& sources, Context& ctx, const char* message=NULL, bool newline=true) {
+  // Print a string representation of a ComplexSelectorSet
+  static void printSourcesSet(ComplexSelectorSet& sources, Context& ctx, const char* message=NULL, bool newline=true) {
 
     if (message) {
       std::cerr << message;
@@ -216,7 +216,7 @@ namespace Sass {
     // the differences we see when debug printing.
     typedef std::deque<std::string> SourceStrings;
     SourceStrings sourceStrings;
-    for (SourcesSet::iterator iterator = sources.begin(), iteratorEnd = sources.end(); iterator != iteratorEnd; ++iterator) {
+    for (ComplexSelectorSet::iterator iterator = sources.begin(), iteratorEnd = sources.end(); iterator != iteratorEnd; ++iterator) {
       Complex_Selector_Ptr pSource = *iterator;
       std::stringstream sstream;
       sstream << complexSelectorToNode(pSource, ctx);
@@ -226,7 +226,7 @@ namespace Sass {
     // Sort to get consistent output
     std::sort(sourceStrings.begin(), sourceStrings.end());
 
-    std::cerr << "SourcesSet[";
+    std::cerr << "ComplexSelectorSet[";
     for (SourceStrings::iterator iterator = sourceStrings.begin(), iteratorEnd = sourceStrings.end(); iterator != iteratorEnd; ++iterator) {
       std::string source = *iterator;
       if (iterator != sourceStrings.begin()) {
@@ -562,12 +562,12 @@ namespace Sass {
         // best guess at this point is that we're cloning an object somewhere and maintaining the sources when we shouldn't be. This is purely
         // a guess though.
         unsigned long maxSpecificity = isReplace ? pSeq1->specificity() : 0;
-        SourcesSet sources = pSeq1->sources();
+        ComplexSelectorSet sources = pSeq1->sources();
 
         DEBUG_PRINTLN(TRIM, "TRIM SEQ1: " << seq1)
         DEBUG_EXEC(TRIM, printSourcesSet(sources, ctx, "TRIM SOURCES: "))
 
-        for (SourcesSet::iterator sourcesSetIterator = sources.begin(), sourcesSetIteratorEnd = sources.end(); sourcesSetIterator != sourcesSetIteratorEnd; ++sourcesSetIterator) {
+        for (ComplexSelectorSet::iterator sourcesSetIterator = sources.begin(), sourcesSetIteratorEnd = sources.end(); sourcesSetIterator != sourcesSetIteratorEnd; ++sourcesSetIterator) {
           const Complex_Selector_Obj& pCurrentSelector = *sourcesSetIterator;
           maxSpecificity = std::max(maxSpecificity, pCurrentSelector->specificity());
         }
@@ -1611,7 +1611,7 @@ namespace Sass {
       pNewSelector->set_innermost(&pNewInnerMost, combinator);
 
 #ifdef DEBUG
-      SourcesSet debugSet;
+      ComplexSelectorSet debugSet;
       debugSet = pNewSelector->sources();
       if (debugSet.size() > 0) {
         throw std::runtime_error("The new selector should start with no sources. Something needs to be cloned to fix this.");
@@ -1627,10 +1627,10 @@ namespace Sass {
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
       DEBUG_PRINTLN(EXTEND_COMPOUND, "SOURCES SETTING ON NEW SEQ: " << complexSelectorToNode(pNewSelector, ctx))
 
-      DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet oldSet = pNewSelector->sources(); printSourcesSet(oldSet, ctx, "SOURCES NEW SEQ BEGIN: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, ComplexSelectorSet oldSet = pNewSelector->sources(); printSourcesSet(oldSet, ctx, "SOURCES NEW SEQ BEGIN: "))
 
       // I actually want to create a copy here (performance!)
-      SourcesSet newSourcesSet = pSelector->sources();
+      ComplexSelectorSet newSourcesSet = pSelector->sources(); // XXX
       DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, ctx, "SOURCES THIS EXTEND: "))
 
       newSourcesSet.insert(pExtComplexSelector);
@@ -1639,7 +1639,7 @@ namespace Sass {
       // RUBY: new_seq.add_sources!(sources + [seq])
       pNewSelector->addSources(newSourcesSet, ctx);
 
-      DEBUG_EXEC(EXTEND_COMPOUND, SourcesSet newSet = pNewSelector->sources(); printSourcesSet(newSet, ctx, "SOURCES ON NEW SELECTOR AFTER ADD: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, ComplexSelectorSet newSet = pNewSelector->sources(); printSourcesSet(newSet, ctx, "SOURCES ON NEW SELECTOR AFTER ADD: "))
       DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(pSelector->sources(), ctx, "SOURCES THIS EXTEND WHICH SHOULD BE SAME STILL: "))
 
 
@@ -1798,7 +1798,7 @@ namespace Sass {
 
       // RUBY: extended.first.add_sources!([self]) if original && !has_placeholder?
       if (isOriginal && !pComplexSelector->has_placeholder()) {
-        SourcesSet srcset;
+        ComplexSelectorSet srcset;
         srcset.insert(pComplexSelector);
         pJustCurrentCompoundSelector->addSources(srcset, ctx);
         DEBUG_PRINTLN(EXTEND_COMPLEX, "ADD SOURCES: " << *pComplexSelector)

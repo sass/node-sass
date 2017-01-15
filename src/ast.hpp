@@ -2713,7 +2713,7 @@ namespace Sass {
   ////////////////////////////////////////////////////////////////////////////
   class Compound_Selector : public Selector, public Vectorized<Simple_Selector_Obj> {
   private:
-    SourcesSet sources_;
+    ComplexSelectorSet sources_;
     ADD_PROPERTY(bool, extended);
     ADD_PROPERTY(bool, has_parent_reference);
   protected:
@@ -2805,9 +2805,9 @@ namespace Sass {
     virtual bool operator==(const Compound_Selector& rhs) const;
     inline bool operator!=(const Compound_Selector& rhs) const { return !(*this == rhs); }
 
-    SourcesSet& sources() { return sources_; }
+    ComplexSelectorSet& sources() { return sources_; }
     void clearSources() { sources_.clear(); }
-    void mergeSources(SourcesSet& sources, Context& ctx);
+    void mergeSources(ComplexSelectorSet& sources, Context& ctx);
 
     Compound_Selector_Ptr minus(Compound_Selector_Ptr rhs, Context& ctx);
     virtual void cloneChildren();
@@ -2926,30 +2926,30 @@ namespace Sass {
     virtual bool operator<(const Complex_Selector& rhs) const;
     virtual bool operator==(const Complex_Selector& rhs) const;
     inline bool operator!=(const Complex_Selector& rhs) const { return !(*this == rhs); }
-    SourcesSet sources()
+    const ComplexSelectorSet sources()
     {
       //s = Set.new
       //seq.map {|sseq_or_op| s.merge sseq_or_op.sources if sseq_or_op.is_a?(SimpleSequence)}
       //s
 
-      SourcesSet srcs;
+      ComplexSelectorSet srcs;
 
       Compound_Selector_Obj pHead = head();
       Complex_Selector_Obj  pTail = tail();
 
       if (pHead) {
-        SourcesSet& headSources = pHead->sources();
+        const ComplexSelectorSet& headSources = pHead->sources();
         srcs.insert(headSources.begin(), headSources.end());
       }
 
       if (pTail) {
-        const SourcesSet& tailSources = pTail->sources();
+        const ComplexSelectorSet& tailSources = pTail->sources();
         srcs.insert(tailSources.begin(), tailSources.end());
       }
 
       return srcs;
     }
-    void addSources(SourcesSet& sources, Context& ctx) {
+    void addSources(ComplexSelectorSet& sources, Context& ctx) {
       // members.map! {|m| m.is_a?(SimpleSequence) ? m.with_more_sources(sources) : m}
       Complex_Selector_Ptr pIter = this;
       while (pIter) {
