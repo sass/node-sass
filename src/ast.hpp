@@ -2396,6 +2396,8 @@ namespace Sass {
       }
       return hash_;
     }
+    // namespace compare functions
+    bool is_ns_eq(const Simple_Selector& r) const;
     // namespace query functions
     bool is_universal_ns() const
     {

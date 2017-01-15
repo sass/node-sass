@@ -129,15 +129,19 @@ namespace Sass {
     pstate_.offset = offset;
   }
 
-  inline bool is_ns_eq(const std::string& l, const std::string& r)
+  bool Simple_Selector::is_ns_eq(const Simple_Selector& r) const
   {
-    if (l.empty() && r.empty()) return true;
-    else if (l.empty() && r == "*") return true;
-    else if (r.empty() && l == "*") return true;
-    else return l == r;
+    // https://github.com/sass/sass/issues/2229
+    if ((has_ns_ == r.has_ns_) ||
+        (has_ns_ && ns_.empty()) ||
+        (r.has_ns_ && r.ns_.empty())
+    ) {
+      if (ns_.empty() && r.ns() == "*") return false;
+      else if (r.ns().empty() && ns() == "*") return false;
+      else return ns() == r.ns();
+    }
+    return false;
   }
-
-
 
   bool Compound_Selector::operator< (const Compound_Selector& rhs) const
   {
@@ -368,7 +372,7 @@ namespace Sass {
     else if (const Wrapped_Selector* lhs = Cast<Wrapped_Selector>(this)) {return *lhs == rhs; }
     else if (const Attribute_Selector* lhs = Cast<Attribute_Selector>(this)) {return *lhs == rhs; }
     else if (name_ == rhs.name_)
-    { return is_ns_eq(ns_, rhs.ns_); }
+    { return is_ns_eq(rhs); }
     else return false;
   }
 
@@ -378,7 +382,7 @@ namespace Sass {
     if (const Pseudo_Selector* lhs = Cast<Pseudo_Selector>(this)) {return *lhs < rhs; }
     else if (const Wrapped_Selector* lhs = Cast<Wrapped_Selector>(this)) {return *lhs < rhs; }
     else if (const Attribute_Selector* lhs = Cast<Attribute_Selector>(this)) {return *lhs < rhs; }
-    if (is_ns_eq(ns_, rhs.ns_))
+    if (is_ns_eq(rhs))
     { return name_ < rhs.name_; }
     return ns_ < rhs.ns_;
   }
@@ -444,11 +448,12 @@ namespace Sass {
 
   bool Selector_List::operator< (const Selector_List& rhs) const
   {
-    if (this->length() != rhs.length()) return false;
-    for (size_t i = 0; i < rhs.length(); i ++) {
-      if (!(*at(i) < *rhs.at(i))) return false;
+    size_t l = rhs.length();
+    if (length() < l) l = length();
+    for (size_t i = 0; i < l; i ++) {
+      if (*at(i) < *rhs.at(i)) return true;
     }
-    return true;
+    return false;
   }
 
   Compound_Selector_Ptr Simple_Selector::unify_with(Compound_Selector_Ptr rhs, Context& ctx)
@@ -596,7 +601,7 @@ namespace Sass {
 
   bool Attribute_Selector::operator< (const Attribute_Selector& rhs) const
   {
-    if (is_ns_eq(ns(), rhs.ns())) {
+    if (is_ns_eq(rhs)) {
       if (name() == rhs.name()) {
         if (matcher() == rhs.matcher()) {
           bool no_lhs_val = value().isNull();
@@ -616,7 +621,7 @@ namespace Sass {
     {
       return *this < *w;
     }
-    if (is_ns_eq(ns(), rhs.ns()))
+    if (is_ns_eq(rhs))
     { return name() < rhs.name(); }
     return ns() < rhs.ns();
   }
@@ -630,13 +635,13 @@ namespace Sass {
     if (no_lhs_val && no_rhs_val) {
       return (name() == rhs.name())
         && (matcher() == rhs.matcher())
-        && (is_ns_eq(ns(), rhs.ns()));
+        && (is_ns_eq(rhs));
     }
     // both are defined, evaluate
     if (no_lhs_val == no_rhs_val) {
       return (name() == rhs.name())
         && (matcher() == rhs.matcher())
-        && (is_ns_eq(ns(), rhs.ns()))
+        && (is_ns_eq(rhs))
         && (*value() == *rhs.value());
     }
     // not equal
@@ -650,14 +655,14 @@ namespace Sass {
     {
       return *this == *w;
     }
-    if (is_ns_eq(ns(), rhs.ns()))
+    if (is_ns_eq(rhs))
     { return name() == rhs.name(); }
     return ns() == rhs.ns();
   }
 
   bool Pseudo_Selector::operator== (const Pseudo_Selector& rhs) const
   {
-    if (is_ns_eq(ns(), rhs.ns()) && name() == rhs.name())
+    if (is_ns_eq(rhs) && name() == rhs.name())
     {
       String_Obj lhs_ex = expression();
       String_Obj rhs_ex = rhs.expression();
@@ -673,21 +678,21 @@ namespace Sass {
     {
       return *this == *w;
     }
-    if (is_ns_eq(ns(), rhs.ns()))
+    if (is_ns_eq(rhs))
     { return name() == rhs.name(); }
     return ns() == rhs.ns();
   }
 
   bool Pseudo_Selector::operator< (const Pseudo_Selector& rhs) const
   {
-    if (is_ns_eq(ns(), rhs.ns()) && name() == rhs.name())
+    if (is_ns_eq(rhs) && name() == rhs.name())
     {
       String_Obj lhs_ex = expression();
       String_Obj rhs_ex = rhs.expression();
       if (rhs_ex && lhs_ex) return *lhs_ex < *rhs_ex;
       else return lhs_ex.ptr() < rhs_ex.ptr();
     }
-    if (is_ns_eq(ns(), rhs.ns()))
+    if (is_ns_eq(rhs))
     { return name() < rhs.name(); }
     return ns() < rhs.ns();
   }
@@ -698,14 +703,14 @@ namespace Sass {
     {
       return *this < *w;
     }
-    if (is_ns_eq(ns(), rhs.ns()))
+    if (is_ns_eq(rhs))
     { return name() < rhs.name(); }
     return ns() < rhs.ns();
   }
 
   bool Wrapped_Selector::operator== (const Wrapped_Selector& rhs) const
   {
-    if (is_ns_eq(ns(), rhs.ns()) && name() == rhs.name())
+    if (is_ns_eq(rhs) && name() == rhs.name())
     { return *(selector()) == *(rhs.selector()); }
     else return false;
   }
@@ -716,16 +721,16 @@ namespace Sass {
     {
       return *this == *w;
     }
-    if (is_ns_eq(ns(), rhs.ns()))
+    if (is_ns_eq(rhs))
     { return name() == rhs.name(); }
     return ns() == rhs.ns();
   }
 
   bool Wrapped_Selector::operator< (const Wrapped_Selector& rhs) const
   {
-    if (is_ns_eq(ns(), rhs.ns()) && name() == rhs.name())
+    if (is_ns_eq(rhs) && name() == rhs.name())
     { return *(selector()) < *(rhs.selector()); }
-    if (is_ns_eq(ns(), rhs.ns()))
+    if (is_ns_eq(rhs))
     { return name() < rhs.name(); }
     return ns() < rhs.ns();
   }
@@ -736,7 +741,7 @@ namespace Sass {
     {
       return *this < *w;
     }
-    if (is_ns_eq(ns(), rhs.ns()))
+    if (is_ns_eq(rhs))
     { return name() < rhs.name(); }
     return ns() < rhs.ns();
   }
@@ -799,6 +804,9 @@ namespace Sass {
       return false;
     }
 
+    // would like to replace this without stringification
+    // https://github.com/sass/sass/issues/2229
+    // SimpleSelectorSet lset, rset;
     std::set<std::string> lset, rset;
 
     if (lbase && rbase)

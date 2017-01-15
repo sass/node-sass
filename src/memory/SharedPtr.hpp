@@ -170,6 +170,9 @@ namespace Sass {
     bool isNull() const {
       return this->obj() == NULL;
     }
+    bool operator<(const T& rhs) const {
+      return *this->ptr() < rhs;
+    };
     operator bool() const {
       return this->obj() != NULL;
     };
