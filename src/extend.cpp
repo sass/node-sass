@@ -841,7 +841,7 @@ namespace Sass {
     DefaultLcsComparator lcsDefaultComparator;
     Node opsLcs = lcs(ops1, ops2, lcsDefaultComparator, ctx);
 
-    if (!(nodesEqual(opsLcs, ops1, true) || nodesEqual(opsLcs, ops2, true))) {
+    if (!(opsLcs == ops1 || opsLcs == ops2)) {
       return Node::createNil();
     }
 
@@ -938,7 +938,7 @@ namespace Sass {
 
       // If there are multiple operators, something hacky's going on. If one is a supersequence of the other, use that, otherwise give up.
 
-      if (!(nodesEqual(opsLcs, ops1, true) || nodesEqual(opsLcs, ops2, true))) {
+      if (!(opsLcs == ops1 || opsLcs == ops2)) {
         return Node::createNil();
       }
 

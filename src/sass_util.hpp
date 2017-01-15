@@ -40,7 +40,7 @@ namespace Sass {
     bool operator()(const Node& one, const Node& two, Node& out) const {
       // TODO: Is this the correct C++ interpretation?
       // block ||= proc {|a, b| a == b && a}
-      if (nodesEqual(one, two, true)) {
+      if (one == two) {
         out = one;
         return true;
       }

@@ -71,7 +71,7 @@ namespace Sass {
     for (NodeDeque::iterator iter = mpCollection->begin(), iterEnd = mpCollection->end(); iter != iterEnd; iter++) {
       Node& toTest = *iter;
 
-      if (nodesEqual(toTest, potentialChild, simpleSelectorOrderDependent)) {
+      if (toTest == potentialChild) {
         found = true;
         break;
       }
@@ -82,37 +82,32 @@ namespace Sass {
 
 
   bool Node::operator==(const Node& rhs) const {
-    return nodesEqual(*this, rhs, true /*simpleSelectorOrderDependent*/);
-  }
-
-
-  bool nodesEqual(const Node& lhs, const Node& rhs, bool simpleSelectorOrderDependent) {
-    if (lhs.type() != rhs.type()) {
+    if (this->type() != rhs.type()) {
       return false;
     }
 
-    if (lhs.isCombinator()) {
+    if (this->isCombinator()) {
 
-      return lhs.combinator() == rhs.combinator();
+      return this->combinator() == rhs.combinator();
 
-    } else if (lhs.isNil()) {
+    } else if (this->isNil()) {
 
       return true; // no state to check
 
-    } else if (lhs.isSelector()){
+    } else if (this->isSelector()){
 
-      return *lhs.selector() == *rhs.selector();
+      return *this->selector() == *rhs.selector();
 
-    } else if (lhs.isCollection()) {
+    } else if (this->isCollection()) {
 
-      if (lhs.collection()->size() != rhs.collection()->size()) {
+      if (this->collection()->size() != rhs.collection()->size()) {
         return false;
       }
 
-      for (NodeDeque::iterator lhsIter = lhs.collection()->begin(), lhsIterEnd = lhs.collection()->end(),
+      for (NodeDeque::iterator lhsIter = this->collection()->begin(), lhsIterEnd = this->collection()->end(),
            rhsIter = rhs.collection()->begin(); lhsIter != lhsIterEnd; lhsIter++, rhsIter++) {
 
-        if (!nodesEqual(*lhsIter, *rhsIter, simpleSelectorOrderDependent)) {
+        if (*lhsIter != *rhsIter) {
           return false;
         }
 
