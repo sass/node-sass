@@ -230,7 +230,7 @@ namespace Sass {
     else if (Selector_List_Ptr ls = SASS_MEMORY_CAST(Selector_List, expr)) {
       Listize listize;
       Expression_Obj rv = ls->perform(&listize);
-      list = dynamic_cast<List_Ptr>(&rv);
+      list = SASS_MEMORY_CAST(List, rv);
     }
     else if (expr->concrete_type() != Expression::LIST) {
       list = SASS_MEMORY_NEW(List, expr->pstate(), 1, SASS_COMMA);
@@ -253,8 +253,8 @@ namespace Sass {
           variable->append(value);
           env.set_local(variables[0], variable);
         } else {
-          env.set_local(variables[0], &key);
-          env.set_local(variables[1], &value);
+          env.set_local(variables[0], key.ptr());
+          env.set_local(variables[1], value.ptr());
         }
 
         val = body->perform(this);
@@ -266,9 +266,9 @@ namespace Sass {
         list = SASS_MEMORY_CAST(List, list);
       }
       for (size_t i = 0, L = list->length(); i < L; ++i) {
-        Expression_Ptr e = &list->at(i);
+        Expression_Ptr e = list->at(i);
         // unwrap value if the expression is an argument
-        if (Argument_Ptr arg = SASS_MEMORY_CAST_PTR(Argument, e)) e = &arg->value();
+        if (Argument_Ptr arg = SASS_MEMORY_CAST_PTR(Argument, e)) e = arg->value();
         // check if we got passed a list of args (investigate)
         if (List_Ptr scalars = SASS_MEMORY_CAST_PTR(List, e)) {
           if (variables.size() == 1) {
@@ -279,7 +279,7 @@ namespace Sass {
             for (size_t j = 0, K = variables.size(); j < K; ++j) {
               Expression_Ptr res = j >= scalars->length()
                 ? SASS_MEMORY_NEW(Null, expr->pstate())
-                : &scalars->at(j);
+                : scalars->at(j);
               env.set_local(variables[j], res);
             }
           }
@@ -546,7 +546,7 @@ namespace Sass {
       if (!s_l->has_interpolant() && (!s_l->is_right_interpolant())) {
         ret_schema = SASS_MEMORY_NEW(String_Schema, b->pstate());
         Binary_Expression_Obj bin_ex = SASS_MEMORY_NEW(Binary_Expression, b->pstate(),
-                                                    b->op(), &s_l->last(), b->right());
+                                                    b->op(), s_l->last(), b->right());
         bin_ex->is_delayed(b->left()->is_delayed() || b->right()->is_delayed()); // unverified
         for (size_t i = 0; i < s_l->length() - 1; ++i) {
           ret_schema->append(s_l->at(i)->perform(this));
@@ -560,7 +560,7 @@ namespace Sass {
       if (!s_r->has_interpolant() && (!s_r->is_left_interpolant() || op_type == Sass_OP::DIV)) {
         ret_schema = SASS_MEMORY_NEW(String_Schema, b->pstate());
         Binary_Expression_Obj bin_ex = SASS_MEMORY_NEW(Binary_Expression, b->pstate(),
-                                                    b->op(), b->left(), &s_r->first());
+                                                    b->op(), b->left(), s_r->first());
         bin_ex->is_delayed(b->left()->is_delayed() || b->right()->is_delayed()); // verified
         ret_schema->append(bin_ex->perform(this));
         for (size_t i = 1; i < s_r->length(); ++i) {
@@ -615,8 +615,8 @@ namespace Sass {
     }
     // not a logical connective, so go ahead and eval the rhs
     rhs = rhs->perform(this);
-    AST_Node_Obj lu = &lhs;
-    AST_Node_Obj ru = &rhs;
+    AST_Node_Obj lu = lhs.ptr();
+    AST_Node_Obj ru = rhs.ptr();
 
     Expression::Concrete_Type l_type = lhs->concrete_type();
     Expression::Concrete_Type r_type = rhs->concrete_type();
@@ -794,7 +794,7 @@ namespace Sass {
       return result;
     }
     else if (operand->concrete_type() == Expression::NUMBER) {
-      Number_Ptr result = SASS_MEMORY_NEW(Number, static_cast<Number_Ptr>(&operand));
+      Number_Ptr result = SASS_MEMORY_NEW(Number, static_cast<Number_Ptr>(operand.ptr()));
       result->value(u->type() == Unary_Expression::MINUS
                     ? -result->value()
                     :  result->value());
@@ -808,7 +808,7 @@ namespace Sass {
       }
       // Never apply unary opertions on colors @see #2140
       else if (operand->concrete_type() == Expression::COLOR) {
-        Color_Ptr c = dynamic_cast<Color_Ptr>(&operand);
+        Color_Ptr c = static_cast<Color_Ptr>(operand.ptr());
 
         // Use the color name if this was eval with one
         if (c->disp().length() > 0) {
@@ -854,7 +854,7 @@ namespace Sass {
         Function_Call_Obj lit = SASS_MEMORY_NEW(Function_Call,
                                              c->pstate(),
                                              c->name(),
-                                             &args);
+                                             args);
         if (args->has_named_arguments()) {
           error("Function " + c->name() + " doesn't support keyword arguments", c->pstate());
         }
@@ -938,8 +938,8 @@ namespace Sass {
       if (full_name == "*[f]") {
         String_Quoted_Obj str = SASS_MEMORY_NEW(String_Quoted, c->pstate(), c->name());
         Arguments_Obj new_args = SASS_MEMORY_NEW(Arguments, c->pstate());
-        new_args->append(SASS_MEMORY_NEW(Argument, c->pstate(), &str));
-        new_args->concat(&args);
+        new_args->append(SASS_MEMORY_NEW(Argument, c->pstate(), str.ptr()));
+        new_args->concat(args);
         args = new_args;
       }
 
@@ -1025,7 +1025,7 @@ namespace Sass {
     if (force) value->is_expanded(false);
     value->set_delayed(false); // verified
     value = value->perform(this);
-    if(!force) (*env)[name] = &value;
+    if(!force) (*env)[name] = value.ptr();
     return value.detach();
   }
 
@@ -1138,7 +1138,7 @@ namespace Sass {
       }
     }
     if (Argument_Ptr arg = SASS_MEMORY_CAST(Argument, ex)) {
-      ex = &arg->value();
+      ex = arg->value();
     }
     if (String_Quoted_Ptr sq = SASS_MEMORY_CAST(String_Quoted, ex)) {
       if (was_itpl) {
@@ -1162,8 +1162,8 @@ namespace Sass {
       // if (l->size() && dynamic_cast<Null_Ptr>((*l)[0])) { res += ""; }
       for(Expression_Obj item : *l) {
         item->is_interpolant(l->is_interpolant());
-        std::string rl(""); interpolation(ctx, rl, &item, into_quotes, l->is_interpolant());
-        bool is_null = dynamic_cast<Null_Ptr>(&item) != 0; // rl != ""
+        std::string rl(""); interpolation(ctx, rl, item, into_quotes, l->is_interpolant());
+        bool is_null = SASS_MEMORY_CAST(Null, item) != 0; // rl != ""
         if (!is_null) ll->append(SASS_MEMORY_NEW(String_Quoted, item->pstate(), rl));
       }
       // Check indicates that we probably should not get a list
@@ -1314,7 +1314,7 @@ namespace Sass {
     value = (value ? value->perform(this) : 0);
     Expression_Ptr ee = SASS_MEMORY_NEW(At_Root_Query,
                                      e->pstate(),
-                                     dynamic_cast<String_Ptr>(&feature),
+                                     SASS_MEMORY_CAST(String, feature),
                                      value);
     return ee;
   }
@@ -1322,10 +1322,10 @@ namespace Sass {
   Expression_Ptr Eval::operator()(Media_Query_Ptr q)
   {
     String_Obj t = q->media_type();
-    t = static_cast<String_Ptr>(&t ? t->perform(this) : 0);
+    t = static_cast<String_Ptr>(t.isNull() ? 0 : t->perform(this));
     Media_Query_Obj qq = SASS_MEMORY_NEW(Media_Query,
                                       q->pstate(),
-                                      &t,
+                                      t,
                                       q->length(),
                                       q->is_negated(),
                                       q->is_restricted());
@@ -1382,7 +1382,7 @@ namespace Sass {
                                         SASS_COMMA,
                                         true);
         wrapper->append(val);
-        val = &wrapper;
+        val = wrapper.ptr();
       }
     }
     return SASS_MEMORY_NEW(Argument,
@@ -1429,7 +1429,7 @@ namespace Sass {
         arglist->append(splat);
       }
       if (arglist->length()) {
-        aa->append(SASS_MEMORY_NEW(Argument, splat->pstate(), &arglist, "", true));
+        aa->append(SASS_MEMORY_NEW(Argument, splat->pstate(), arglist.ptr(), "", true));
       }
     }
 
@@ -1466,7 +1466,7 @@ namespace Sass {
     Number_Obj l = SASS_MEMORY_CAST(Number, lhs);
     Number_Obj r = SASS_MEMORY_CAST(Number, rhs);
     // use compare operator from ast node
-    if (!l || !r) throw Exception::UndefinedOperation(&lhs, &rhs, op);
+    if (!l || !r) throw Exception::UndefinedOperation(lhs, rhs, op);
     // use compare operator from ast node
     return *l < *r;
   }
@@ -1699,7 +1699,7 @@ namespace Sass {
     sl->media_block(s->media_block());
     sl->is_optional(s->is_optional());
     for (size_t i = 0, iL = s->length(); i < iL; ++i) {
-      rv.push_back(operator()(&(*s)[i]));
+      rv.push_back(operator()((*s)[i]));
     }
 
     // we should actually permutate parent first
@@ -1751,14 +1751,14 @@ namespace Sass {
     // a selector schema may or may not connect to parent?
     bool chroot = s->connect_parent() == false;
     Selector_List_Obj sl = p.parse_selector_list(chroot);
-    return operator()(&sl);
+    return operator()(sl);
   }
 
   Expression_Ptr Eval::operator()(Parent_Selector_Ptr p)
   {
     if (Selector_List_Obj pr = selector()) {
       exp.selector_stack.pop_back();
-      Selector_List_Obj rv = operator()(&pr);
+      Selector_List_Obj rv = operator()(pr);
       exp.selector_stack.push_back(rv);
       return rv.detach();
     } else {

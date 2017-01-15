@@ -11,7 +11,7 @@ namespace Sass {
     values_.push_back(value);
     for (size_t i = 0, S = sel->length(); i < S; ++i)
     {
-      hash_[(*sel)[i]].push_back(std::make_pair(&sel, index));
+      hash_[(*sel)[i]].push_back(std::make_pair(sel, index));
     }
   }
 

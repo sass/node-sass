@@ -108,7 +108,7 @@ namespace Sass {
     T* get_arg(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace)
     {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
-      T* val = dynamic_cast<T*>(&env[argname]);
+      T* val = dynamic_cast<T*>(env[argname].ptr());
       if (!val) {
         std::string msg("argument `");
         msg += argname;
@@ -183,7 +183,8 @@ namespace Sass {
       }
       std::string exp_src = exp->to_string(ctx.c_options);
       Selector_List_Obj sel_list = Parser::parse_selector(exp_src.c_str(), ctx);
-      return (sel_list->length() > 0) ? &sel_list->first()->tail()->head() : 0;
+      if (sel_list->length() == 0) return NULL;
+      return sel_list->first()->tail()->head();
     }
 
     #ifdef __MINGW32__
@@ -307,7 +308,7 @@ namespace Sass {
       Color_Obj  color1 = ARG("$color-1", Color);
       Color_Obj  color2 = ARG("$color-2", Color);
       Number_Obj weight = ARGR("$weight", Number, 0, 100);
-      return colormix(ctx, pstate, &color1, &color2, &weight);
+      return colormix(ctx, pstate, color1, color2, weight);
 
     }
 
@@ -617,7 +618,7 @@ namespace Sass {
                              255 - rgb_color->g(),
                              255 - rgb_color->b(),
                              rgb_color->a());
-      return colormix(ctx, pstate, &inv, rgb_color, &weight);
+      return colormix(ctx, pstate, inv, rgb_color, weight);
     }
 
     ////////////////////
@@ -878,10 +879,10 @@ namespace Sass {
         result->is_delayed(true); // delay colors
         return result;
       }
-      else if (SASS_MEMORY_CAST(String_Constant, arg)) {
-        return (Expression_Ptr) &arg;
+      else if (String_Constant_Ptr str = SASS_MEMORY_CAST(String_Constant, arg)) {
+        return str;
       }
-      else {
+      else if (Expression_Ptr ex = SASS_MEMORY_CAST(Expression, arg)) {
         Sass_Output_Style oldstyle = ctx.c_options.output_style;
         ctx.c_options.output_style = SASS_STYLE_NESTED;
         std::string val(arg->to_string(ctx.c_options));
@@ -889,8 +890,9 @@ namespace Sass {
         ctx.c_options.output_style = oldstyle;
 
         deprecated_function("Passing " + val + ", a non-string value, to unquote()", pstate);
-        return (Expression_Ptr) &arg;
+        return ex;
       }
+      throw std::runtime_error("Invalid Data Type for unquote");
     }
 
     Signature quote_sig = "quote($string)";
@@ -1369,8 +1371,8 @@ namespace Sass {
         is_bracketed = !bracketed->is_false();
       }
       List_Obj result = SASS_MEMORY_NEW(List, pstate, len, sep_val, false, is_bracketed);
-      result->concat(&l1);
-      result->concat(&l2);
+      result->concat(l1);
+      result->concat(l2);
       return result.detach();
     }
 
@@ -1429,10 +1431,10 @@ namespace Sass {
             ith->append(arglist->value_at_index(i));
           }
           if (arglist->is_arglist()) {
-            Argument_Obj arg = (Argument_Ptr)(&arglist->at(i));
-            arg->value(&ith);
+            Argument_Obj arg = (Argument_Ptr)(arglist->at(i).ptr()); // XXX
+            arg->value(ith.ptr());
           } else {
-            (*arglist)[i] = &ith;
+            (*arglist)[i] = ith.ptr();
           }
         }
         shortest = (i ? std::min(shortest, ith->length()) : ith->length());
@@ -1521,8 +1523,8 @@ namespace Sass {
       size_t len = m1->length() + m2->length();
       Map_Ptr result = SASS_MEMORY_NEW(Map, pstate, len);
       // concat not implemented for maps
-      *result += &m1;
-      *result += &m2;
+      *result += m1;
+      *result += m2;
       return result;
     }
 
@@ -1550,7 +1552,7 @@ namespace Sass {
       Map_Obj result = SASS_MEMORY_NEW(Map, pstate, 1);
       for (size_t i = arglist->size(), L = arglist->length(); i < L; ++i) {
         Expression_Obj obj = arglist->at(i);
-        Argument_Obj arg = (Argument_Ptr)&obj;
+        Argument_Obj arg = (Argument_Ptr) obj.ptr(); // XXX
         std::string name = std::string(arg->name());
         name = name.erase(0, 1); // sanitize name (remove dollar sign)
         *result << std::make_pair(SASS_MEMORY_NEW(String_Quoted,
@@ -1677,7 +1679,7 @@ namespace Sass {
         // }
         if (arglist->is_arglist()) {
           Expression_Obj obj = arglist->at(i);
-          Argument_Obj arg = (Argument_Ptr)&obj;
+          Argument_Obj arg = (Argument_Ptr) obj.ptr(); // XXX
           args->append(SASS_MEMORY_NEW(Argument,
                                        pstate,
                                        expr,
@@ -1688,7 +1690,7 @@ namespace Sass {
           args->append(SASS_MEMORY_NEW(Argument, pstate, expr));
         }
       }
-      Function_Call_Obj func = SASS_MEMORY_NEW(Function_Call, pstate, name, &args);
+      Function_Call_Obj func = SASS_MEMORY_NEW(Function_Call, pstate, name, args);
       Expand expand(ctx, &d_env, backtrace, &selector_stack);
       func->via_call(true); // calc invoke is allowed
       return func->perform(&expand.eval);
@@ -1774,7 +1776,7 @@ namespace Sass {
         }
         std::string exp_src = exp->to_string(ctx.c_options);
         Selector_List_Obj sel = Parser::parse_selector(exp_src.c_str(), ctx);
-        parsedSelectors.push_back(&sel);
+        parsedSelectors.push_back(sel);
       }
 
       // Nothing to do
@@ -1790,7 +1792,7 @@ namespace Sass {
       for(;itr != parsedSelectors.end(); ++itr) {
         Selector_List_Obj child = *itr;
         std::vector<Complex_Selector_Obj> exploded;
-        selector_stack.push_back(&result);
+        selector_stack.push_back(result);
         Selector_List_Obj rv = child->resolve_parent_refs(ctx, selector_stack);
         selector_stack.pop_back();
         for (size_t m = 0, mLen = rv->length(); m < mLen; ++m) {
@@ -1827,7 +1829,7 @@ namespace Sass {
         }
         std::string exp_src = exp->to_string();
         Selector_List_Obj sel = Parser::parse_selector(exp_src.c_str(), ctx);
-        parsedSelectors.push_back(&sel);
+        parsedSelectors.push_back(sel);
       }
 
       // Nothing to do
@@ -1881,12 +1883,12 @@ namespace Sass {
             // TODO: Add check for namespace stuff
 
             // append any selectors in childSeq's head
-            parentSeqClone->innermost()->head()->concat(&base->head());
+            parentSeqClone->innermost()->head()->concat(base->head());
 
             // Set parentSeqClone new tail
             parentSeqClone->innermost()->tail( base->tail() );
 
-            newElements.push_back(&parentSeqClone);
+            newElements.push_back(parentSeqClone);
           }
         }
 
@@ -1903,7 +1905,7 @@ namespace Sass {
       Selector_List_Obj selector1 = ARGSEL("$selector1", Selector_List_Obj, p_contextualize);
       Selector_List_Obj selector2 = ARGSEL("$selector2", Selector_List_Obj, p_contextualize);
 
-      Selector_List_Obj result = selector1->unify_with(&selector2, ctx);
+      Selector_List_Obj result = selector1->unify_with(selector2, ctx);
       Listize listize;
       return result->perform(&listize);
     }

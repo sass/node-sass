@@ -806,7 +806,7 @@ namespace Sass {
     ADD_PROPERTY(Block_Obj, alternative)
   public:
     If(ParserState pstate, Expression_Obj pred, Block_Obj con, Block_Obj alt = 0)
-    : Has_Block(pstate, &con), predicate_(pred), alternative_(alt)
+    : Has_Block(pstate, con), predicate_(pred), alternative_(alt)
     { statement_type(IF); }
     If(const If* ptr)
     : Has_Block(ptr),
@@ -2763,7 +2763,7 @@ namespace Sass {
       if (length() == 0) return 0;
       // ToDo: why is this needed?
       if (SASS_MEMORY_CAST(Element_Selector, (*this)[0]))
-        return &(*this)[0];
+        return (*this)[0];
       return 0;
     }
     virtual bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapped = "");
@@ -2953,25 +2953,25 @@ namespace Sass {
       // members.map! {|m| m.is_a?(SimpleSequence) ? m.with_more_sources(sources) : m}
       Complex_Selector_Ptr pIter = this;
       while (pIter) {
-        Compound_Selector_Ptr pHead = &pIter->head();
+        Compound_Selector_Ptr pHead = pIter->head();
 
         if (pHead) {
           pHead->mergeSources(sources, ctx);
         }
 
-        pIter = &pIter->tail();
+        pIter = pIter->tail();
       }
     }
     void clearSources() {
       Complex_Selector_Ptr pIter = this;
       while (pIter) {
-        Compound_Selector_Ptr pHead = &pIter->head();
+        Compound_Selector_Ptr pHead = pIter->head();
 
         if (pHead) {
           pHead->clearSources();
         }
 
-        pIter = &pIter->tail();
+        pIter = pIter->tail();
       }
     }
 

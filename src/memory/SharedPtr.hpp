@@ -39,7 +39,7 @@ namespace Sass {
   #endif
 
   #define SASS_MEMORY_CAST(Class, obj) \
-    (dynamic_cast<Class##_Ptr>(&obj)) \
+    (dynamic_cast<Class##_Ptr>((obj).ptr())) \
 
   #define SASS_MEMORY_CAST_PTR(Class, ptr) \
     (dynamic_cast<Class##_Ptr>(ptr)) \
@@ -154,17 +154,12 @@ namespace Sass {
     : SharedPtr(node) {};
     ~SharedImpl() {};
   public:
-
-    T* operator& () const {
-      return static_cast<T*>(this->obj());
-    };
     operator T*() const {
       return static_cast<T*>(this->obj());
     }
     operator T&() const {
       return *static_cast<T*>(this->obj());
     }
-
     T& operator* () const {
       return *static_cast<T*>(this->obj());
     };

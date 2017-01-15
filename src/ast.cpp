@@ -94,7 +94,7 @@ namespace Sass {
   bool At_Root_Query::exclude(std::string str)
   {
     bool with = feature() && unquote(feature()->to_string()).compare("with") == 0;
-    List_Ptr l = static_cast<List_Ptr>(&value());
+    List_Ptr l = static_cast<List_Ptr>(value().ptr());
     std::string v;
 
     if (with)
@@ -189,23 +189,27 @@ namespace Sass {
     // const iterators for tails
     Complex_Selector_Ptr_Const l = this;
     Complex_Selector_Ptr_Const r = &rhs;
-    Compound_Selector_Ptr l_h = l ? &l->head() : 0;
-    Compound_Selector_Ptr r_h = r ? &r->head() : 0;
+    Compound_Selector_Ptr l_h = NULL;
+    Compound_Selector_Ptr r_h = NULL;
+    if (l) l_h = l->head();
+    if (r) r_h = r->head();
     // process all tails
     while (true)
     {
       // skip empty ancestor first
       if (l && l->is_empty_ancestor())
       {
-        l = &l->tail();
-        l_h = l ? &l->head() : 0;
+        l_h = NULL;
+        l = l->tail();
+        if(l) l_h = l->head();
         continue;
       }
       // skip empty ancestor first
       if (r && r->is_empty_ancestor())
       {
-        r = &r->tail();
-        r_h = r ? &r->head() : 0;
+        r_h = NULL;
+        r = r->tail();
+        if (r) r_h = r->head();
         continue;
       }
       // check for valid selectors
@@ -218,11 +222,12 @@ namespace Sass {
         if (l->combinator() != r->combinator())
         { return l->combinator() < r->combinator(); }
         // advance to next tails
-        l = &l->tail();
-        r = &r->tail();
+        l = l->tail();
+        r = r->tail();
         // fetch the next headers
-        l_h = l ? &l->head() : 0;
-        r_h = r ? &r->head() : 0;
+        l_h = NULL; r_h = NULL;
+        if (l) l_h = l->head();
+        if (r) r_h = r->head();
       }
       // one side is null
       else if (!r_h) return true;
@@ -234,11 +239,12 @@ namespace Sass {
         if (l->combinator() != r->combinator())
         { return l->combinator() < r->combinator(); }
         // advance to next tails
-        l = &l->tail();
-        r = &r->tail();
+        l = l->tail();
+        r = r->tail();
         // fetch the next headers
-        l_h = l ? &l->head() : 0;
-        r_h = r ? &r->head() : 0;
+        l_h = NULL; r_h = NULL;
+        if (l) l_h = l->head();
+        if (r) r_h = r->head();
       }
       // heads are not equal
       else return *l_h < *r_h;
@@ -251,23 +257,27 @@ namespace Sass {
     // const iterators for tails
     Complex_Selector_Ptr_Const l = this;
     Complex_Selector_Ptr_Const r = &rhs;
-    Compound_Selector_Ptr l_h = l ? &l->head() : 0;
-    Compound_Selector_Ptr r_h = r ? &r->head() : 0;
+    Compound_Selector_Ptr l_h = NULL;
+    Compound_Selector_Ptr r_h = NULL;
+    if (l) l_h = l->head();
+    if (r) r_h = r->head();
     // process all tails
     while (true)
     {
       // skip empty ancestor first
       if (l && l->is_empty_ancestor())
       {
-        l = &l->tail();
-        l_h = l ? &l->head() : 0;
+        l_h = NULL;
+        l = l->tail();
+        if (l) l_h = l->head();
         continue;
       }
       // skip empty ancestor first
       if (r && r->is_empty_ancestor())
       {
-        r = &r->tail();
-        r_h = r ? &r->head() : 0;
+        r_h = NULL;
+        r = r->tail();
+        if (r) r_h = r->head();
         continue;
       }
       // check the pointers
@@ -280,11 +290,12 @@ namespace Sass {
         if (l->combinator() != r->combinator())
         { return l->combinator() < r->combinator(); }
         // advance to next tails
-        l = &l->tail();
-        r = &r->tail();
+        l = l->tail();
+        r = r->tail();
         // fetch the next heads
-        l_h = l ? &l->head() : 0;
-        r_h = r ? &r->head() : 0;
+        l_h = NULL; r_h = NULL;
+        if (l) l_h = l->head();
+        if (r) r_h = r->head();
       }
       // equals if other head is empty
       else if ((!l_h && !r_h) ||
@@ -296,11 +307,12 @@ namespace Sass {
         if (l->combinator() != r->combinator())
         { return l->combinator() == r->combinator(); }
         // advance to next tails
-        l = &l->tail();
-        r = &r->tail();
+        l = l->tail();
+        r = r->tail();
         // fetch the next heads
-        l_h = l ? &l->head() : 0;
-        r_h = r ? &r->head() : 0;
+        l_h = NULL; r_h = NULL;
+        if (l) l_h = l->head();
+        if (r) r_h = r->head();
       }
       // abort
       else break;
@@ -316,7 +328,7 @@ namespace Sass {
     for (size_t i = 0, L = length(); i < L; ++i)
     {
       if (unified.isNull()) break;
-      unified = at(i)->unify_with(&unified, ctx);
+      unified = at(i)->unify_with(unified, ctx);
     }
     return unified.detach();
   }
@@ -527,7 +539,7 @@ namespace Sass {
       return rhs;
     }
 
-    Simple_Selector_Ptr rhs_0 = &rhs->at(0);
+    Simple_Selector_Ptr rhs_0 = rhs->at(0);
     // otherwise, this is a tag name
     if (name() == "*")
     {
@@ -664,7 +676,7 @@ namespace Sass {
       String_Obj lhs_ex = expression();
       String_Obj rhs_ex = rhs.expression();
       if (rhs_ex && lhs_ex) return *lhs_ex == *rhs_ex;
-      else return &lhs_ex == &rhs_ex;
+      else return lhs_ex.ptr() == rhs_ex.ptr();
     }
     else return false;
   }
@@ -687,7 +699,7 @@ namespace Sass {
       String_Obj lhs_ex = expression();
       String_Obj rhs_ex = rhs.expression();
       if (rhs_ex && lhs_ex) return *lhs_ex < *rhs_ex;
-      else return &lhs_ex < &rhs_ex;
+      else return lhs_ex.ptr() < rhs_ex.ptr();
     }
     if (is_ns_eq(ns(), rhs.ns()))
     { return name() < rhs.name(); }
@@ -761,14 +773,14 @@ namespace Sass {
   bool Compound_Selector::is_superselector_of(Selector_List_Obj rhs, std::string wrapped)
   {
     for (Complex_Selector_Obj item : rhs->elements()) {
-      if (is_superselector_of(&item, wrapped)) return true;
+      if (is_superselector_of(item, wrapped)) return true;
     }
     return false;
   }
 
   bool Compound_Selector::is_superselector_of(Complex_Selector_Obj rhs, std::string wrapped)
   {
-    if (rhs->head()) return is_superselector_of(&rhs->head(), wrapped);
+    if (rhs->head()) return is_superselector_of(rhs->head(), wrapped);
     return false;
   }
 
@@ -817,7 +829,7 @@ namespace Sass {
 
     for (size_t i = 0, iL = length(); i < iL; ++i)
     {
-      Selector_Obj lhs = &(*this)[i];
+      Selector_Obj lhs = (*this)[i].ptr();
       // very special case for wrapped matches selector
       if (Wrapped_Selector_Obj wrapped = SASS_MEMORY_CAST(Wrapped_Selector, lhs)) {
         if (wrapped->name() == ":not") {
@@ -838,7 +850,8 @@ namespace Sass {
             }
           }
         }
-        Simple_Selector_Ptr rhs_sel = rhs->elements().size() > i ? &(*rhs)[i] : 0;
+        Simple_Selector_Ptr rhs_sel = NULL;
+        if (rhs->elements().size() > i) rhs_sel = (*rhs)[i];
         if (Wrapped_Selector_Ptr wrapped_r = dynamic_cast<Wrapped_Selector_Ptr>(rhs_sel)) {
           if (wrapped->name() == wrapped_r->name()) {
           if (wrapped->is_superselector_of(wrapped_r)) {
@@ -854,7 +867,7 @@ namespace Sass {
 
     for (size_t n = 0, nL = rhs->length(); n < nL; ++n)
     {
-      Selector_Obj r = &(*rhs)[n];
+      Selector_Obj r = (*rhs)[n].ptr();
       if (Wrapped_Selector_Obj wrapped = SASS_MEMORY_CAST(Wrapped_Selector, r)) {
         if (wrapped->name() == ":not") {
           if (Selector_List_Obj ls = SASS_MEMORY_CAST(Selector_List, wrapped->selector())) {
@@ -921,7 +934,7 @@ namespace Sass {
     SASS_ASSERT(r_last_head, "rhs head is null");
 
     // get the unification of the last compound selectors
-    Compound_Selector_Obj unified = r_last_head->unify_with(&l_last_head, ctx);
+    Compound_Selector_Obj unified = r_last_head->unify_with(l_last_head, ctx);
 
     // abort if we could not unify heads
     if (unified == 0) return 0;
@@ -946,7 +959,7 @@ namespace Sass {
     {
       // create some temporaries to convert to node
       Complex_Selector_Obj fake = unified->to_complex();
-      Node unified_node = complexSelectorToNode(&fake, ctx);
+      Node unified_node = complexSelectorToNode(fake, ctx);
       // add to permutate the list?
       rhsNode.plus(unified_node);
     }
@@ -1019,7 +1032,7 @@ namespace Sass {
     { return false; }
 
     if (l_len == 1)
-    { return lhs->head()->is_superselector_of(&rhs->last()->head(), wrapping); }
+    { return lhs->head()->is_superselector_of(rhs->last()->head(), wrapping); }
 
     // we have to look one tail deeper, since we cary the
     // combinator around for it (which is important here)
@@ -1030,7 +1043,7 @@ namespace Sass {
       if (lhs_tail->head() && !rhs_tail->head()) return false;
       if (!lhs_tail->head() && rhs_tail->head()) return false;
       if (lhs_tail->head() && rhs_tail->head()) {
-        if (!lhs_tail->head()->is_superselector_of(&rhs_tail->head())) return false;
+        if (!lhs_tail->head()->is_superselector_of(rhs_tail->head())) return false;
       }
     }
 
@@ -1039,7 +1052,7 @@ namespace Sass {
     for (size_t i = 0, L = rhs->length(); i < L; ++i) {
       if (i == L-1)
       { return false; }
-      if (lhs->head() && marker->head() && lhs->head()->is_superselector_of(&marker->head(), wrapping))
+      if (lhs->head() && marker->head() && lhs->head()->is_superselector_of(marker->head(), wrapping))
       { found = true; break; }
       marker = marker->tail();
     }
@@ -1065,17 +1078,17 @@ namespace Sass {
       { return false; }
       if (!(lhs->combinator() == Complex_Selector::PRECEDES ? marker->combinator() != Complex_Selector::PARENT_OF : lhs->combinator() == marker->combinator()))
       { return false; }
-      return lhs->tail()->is_superselector_of(&marker->tail());
+      return lhs->tail()->is_superselector_of(marker->tail());
     }
     else if (marker->combinator() != Complex_Selector::ANCESTOR_OF)
     {
       if (marker->combinator() != Complex_Selector::PARENT_OF)
       { return false; }
-      return lhs->tail()->is_superselector_of(&marker->tail());
+      return lhs->tail()->is_superselector_of(marker->tail());
     }
     else
     {
-      return lhs->tail()->is_superselector_of(&marker->tail());
+      return lhs->tail()->is_superselector_of(marker->tail());
     }
     // catch-all
     return false;
@@ -1126,36 +1139,36 @@ namespace Sass {
             sqs->pstate((*h)[0]->pstate());
             (*rh)[rh->length()-1] = sqs;
             rh->pstate(h->pstate());
-            for (i = 1; i < L; ++i) rh->append(&(*h)[i]);
+            for (i = 1; i < L; ++i) rh->append((*h)[i]);
           } else if (Id_Selector_Ptr sq = SASS_MEMORY_CAST(Id_Selector, rh->last())) {
             Id_Selector_Ptr sqs = SASS_MEMORY_COPY(sq);
             sqs->name(sqs->name() + (*h)[0]->name());
             sqs->pstate((*h)[0]->pstate());
             (*rh)[rh->length()-1] = sqs;
             rh->pstate(h->pstate());
-            for (i = 1; i < L; ++i) rh->append(&(*h)[i]);
+            for (i = 1; i < L; ++i) rh->append((*h)[i]);
           } else if (Element_Selector_Ptr ts = SASS_MEMORY_CAST(Element_Selector, rh->last())) {
             Element_Selector_Ptr tss = SASS_MEMORY_COPY(ts);
             tss->name(tss->name() + (*h)[0]->name());
             tss->pstate((*h)[0]->pstate());
             (*rh)[rh->length()-1] = tss;
             rh->pstate(h->pstate());
-            for (i = 1; i < L; ++i) rh->append(&(*h)[i]);
+            for (i = 1; i < L; ++i) rh->append((*h)[i]);
           } else if (Placeholder_Selector_Ptr ps = SASS_MEMORY_CAST(Placeholder_Selector, rh->last())) {
             Placeholder_Selector_Ptr pss = SASS_MEMORY_COPY(ps);
             pss->name(pss->name() + (*h)[0]->name());
             pss->pstate((*h)[0]->pstate());
             (*rh)[rh->length()-1] = pss;
             rh->pstate(h->pstate());
-            for (i = 1; i < L; ++i) rh->append(&(*h)[i]);
+            for (i = 1; i < L; ++i) rh->append((*h)[i]);
           } else {
-            last()->head_->concat(&h);
+            last()->head_->concat(h);
           }
         } else {
-          last()->head_->concat(&h);
+          last()->head_->concat(h);
         }
       } else {
-        last()->head_->concat(&h);
+        last()->head_->concat(h);
       }
     } else {
       // std::cerr << "has no or empty head\n";
@@ -1184,11 +1197,11 @@ namespace Sass {
   {
     if (!this->has_parent_ref()) return this;
     Selector_List_Ptr ss = SASS_MEMORY_NEW(Selector_List, pstate());
-    Selector_List_Ptr ps = &pstack.back();
+    Selector_List_Ptr ps = pstack.back();
     for (size_t pi = 0, pL = ps->length(); pi < pL; ++pi) {
       for (size_t si = 0, sL = this->length(); si < sL; ++si) {
         Selector_List_Obj rv = at(si)->resolve_parent_refs(ctx, pstack, implicit_parent);
-        ss->concat(&rv);
+        ss->concat(rv);
       }
     }
     return ss;
@@ -1198,7 +1211,7 @@ namespace Sass {
   {
     Complex_Selector_Obj tail = this->tail();
     Compound_Selector_Obj head = this->head();
-    Selector_List_Ptr parents = &pstack.back();
+    Selector_List_Ptr parents = pstack.back();
 
     if (!this->has_real_parent_ref() && !implicit_parent) {
       Selector_List_Ptr retval = SASS_MEMORY_NEW(Selector_List, pstate());
@@ -1222,7 +1235,7 @@ namespace Sass {
         if (parents == NULL && head->has_real_parent_ref()) {
           int i = pstack.size() - 1;
           while (!parents && i > -1) {
-            parents = &pstack.at(i--);
+            parents = pstack.at(i--);
           }
         }
 
@@ -1234,11 +1247,11 @@ namespace Sass {
                 Complex_Selector_Obj parent = (*parents)[i];
                 Complex_Selector_Obj s = SASS_MEMORY_CLONE(parent);
                 Complex_Selector_Obj ss = SASS_MEMORY_CLONE(this);
-                ss->tail(t ? SASS_MEMORY_CLONE(t) : 0);
+                ss->tail(t ? SASS_MEMORY_CLONE(t) : NULL);
                 Compound_Selector_Obj h = SASS_MEMORY_COPY(head_);
                 // remove parent selector from sequence
                 if (h->length()) h->erase(h->begin());
-                ss->head(h->length() ? &h : 0);
+                ss->head(h->length() ? h.ptr() : NULL);
                 // adjust for parent selector (1 char)
                 if (h->length()) {
                   ParserState state(h->at(0)->pstate());
@@ -1264,13 +1277,13 @@ namespace Sass {
               // this is only if valid if the parent has no trailing op
               // otherwise we cannot append more simple selectors to head
               if (parent->last()->combinator() != ANCESTOR_OF) {
-                throw Exception::InvalidParent(&parent, &ss);
+                throw Exception::InvalidParent(parent, ss);
               }
-              ss->tail(tail ? SASS_MEMORY_CLONE(tail) : 0);
+              ss->tail(tail ? SASS_MEMORY_CLONE(tail) : NULL);
               Compound_Selector_Obj h = SASS_MEMORY_COPY(head_);
               // remove parent selector from sequence
               if (h->length()) h->erase(h->begin());
-              ss->head(h->length() ? &h : 0);
+              ss->head(h->length() ? h.ptr() : NULL);
               // \/ IMO ruby sass bug \/
               ss->has_line_feed(false);
               // adjust for parent selector (1 char)
@@ -1283,7 +1296,7 @@ namespace Sass {
               // keep old parser state
               s->pstate(pstate());
               // append new tail
-              s->append(ctx, &ss);
+              s->append(ctx, ss);
               retval->append(s);
             }
           }
@@ -1296,7 +1309,7 @@ namespace Sass {
               cpy->tail(SASS_MEMORY_CLONE(tails->at(n)));
               cpy->head(SASS_MEMORY_NEW(Compound_Selector, head->pstate()));
               for (size_t i = 1, L = this->head()->length(); i < L; ++i)
-                cpy->head()->append(&(*this->head())[i]);
+                cpy->head()->append((*this->head())[i]);
               if (!cpy->head()->length()) cpy->head(0);
               retval->append(cpy->skip_empty_reference());
             }
@@ -1306,7 +1319,7 @@ namespace Sass {
             Complex_Selector_Obj cpy = SASS_MEMORY_CLONE(this);
             cpy->head(SASS_MEMORY_NEW(Compound_Selector, head->pstate()));
             for (size_t i = 1, L = this->head()->length(); i < L; ++i)
-              cpy->head()->append(&(*this->head())[i]);
+              cpy->head()->append((*this->head())[i]);
             if (!cpy->head()->length()) cpy->head(0);
             retval->append(cpy->skip_empty_reference());
           }
@@ -1314,7 +1327,7 @@ namespace Sass {
       }
       // no parent selector in head
       else {
-        retval = this->tails(ctx, &tails);
+        retval = this->tails(ctx, tails);
       }
 
       for (Simple_Selector_Obj ss : head->elements()) {
@@ -1330,7 +1343,7 @@ namespace Sass {
     }
     // has no head
     else {
-      return this->tails(ctx, &tails);
+      return this->tails(ctx, tails);
     }
 
     // unreachable
@@ -1372,14 +1385,20 @@ namespace Sass {
       cur = cur->tail_;
     }
     // result
-    return &cur;
+    return cur;
   }
 
   // return the last tail that is defined
   Complex_Selector_Obj Complex_Selector::last()
   {
-    // ToDo: implement with a while loop
-    return &tail_ ? &tail_->last() : this;
+    Complex_Selector_Ptr cur = this;
+    Complex_Selector_Ptr nxt = cur;
+    // loop until last
+    while (nxt) {
+      cur = nxt;
+      nxt = cur->tail();
+    }
+    return cur;
   }
 
   Complex_Selector::Combinator Complex_Selector::clear_innermost()
@@ -1494,7 +1513,7 @@ namespace Sass {
   {
     // Check every rhs selector against left hand list
     for(size_t i = 0, L = sub->length(); i < L; ++i) {
-      if (!is_superselector_of(&(*sub)[i], wrapping)) return false;
+      if (!is_superselector_of((*sub)[i], wrapping)) return false;
     }
     return true;
   }
@@ -1505,7 +1524,7 @@ namespace Sass {
   {
     // Check every rhs selector against left hand list
     for(size_t i = 0, L = sub->length(); i < L; ++i) {
-      if (!is_superselector_of(&(*sub)[i], wrapping)) return false;
+      if (!is_superselector_of((*sub)[i], wrapping)) return false;
     }
     return true;
   }
@@ -1538,12 +1557,12 @@ namespace Sass {
     for (size_t lhs_i = 0, lhs_L = length(); lhs_i < lhs_L; ++lhs_i) {
       Complex_Selector_Obj seq1 = (*this)[lhs_i];
       for(size_t rhs_i = 0, rhs_L = rhs->length(); rhs_i < rhs_L; ++rhs_i) {
-        Complex_Selector_Ptr seq2 = &rhs->at(rhs_i);
+        Complex_Selector_Ptr seq2 = rhs->at(rhs_i);
 
         Selector_List_Obj result = seq1->unify_with(seq2, ctx);
         if( result ) {
           for(size_t i = 0, L = result->length(); i < L; ++i) {
-            unified_complex_selectors.push_back( &(*result)[i] );
+            unified_complex_selectors.push_back( (*result)[i] );
           }
         }
       }
@@ -1585,7 +1604,7 @@ namespace Sass {
       compound_sel->is_optional(extendee->is_optional());
 
       for (size_t i = 0, L = extender->length(); i < L; ++i) {
-        extends.put(compound_sel, std::make_pair(&(*extender)[i], &compound_sel));
+        extends.put(compound_sel, std::make_pair((*extender)[i], compound_sel));
       }
     }
   };
@@ -1622,7 +1641,7 @@ namespace Sass {
           break;
         }
       }
-      if (!found) result->append(&(*this)[i]);
+      if (!found) result->append((*this)[i]);
     }
 
     return result;
@@ -2244,7 +2263,7 @@ namespace Sass {
     // so we need to break before keywords
     for (size_t i = 0, L = length(); i < L; ++i) {
       Expression_Obj obj = this->at(i);
-      if (Argument* arg = dynamic_cast<Argument*>(&obj)) {
+      if (Argument_Ptr arg = SASS_MEMORY_CAST(Argument, obj)) {
         if (!arg->name().empty()) return i;
       }
     }
@@ -2299,13 +2318,13 @@ namespace Sass {
   Expression_Obj List::value_at_index(size_t i) {
     Expression_Obj obj = this->at(i);
     if (is_arglist_) {
-      if (Argument* arg = dynamic_cast<Argument*>(&obj)) {
+      if (Argument_Ptr arg = SASS_MEMORY_CAST(Argument, obj)) {
         return arg->value();
       } else {
-        return &obj;
+        return obj;
       }
     } else {
-      return &obj;
+      return obj;
     }
   }
 
@@ -2317,9 +2336,9 @@ namespace Sass {
 
     for (auto key : keys()) {
       List_Obj l = SASS_MEMORY_NEW(List, pstate, 2);
-      l->append(&key);
+      l->append(key);
       l->append(at(key));
-      ret->append(&l);
+      ret->append(l.ptr());
     }
 
     return ret;

@@ -40,7 +40,7 @@ namespace Sass {
       }
 
       At_Root_Block_Ptr ar = SASS_MEMORY_CAST_PTR(At_Root_Block, parent);
-      Statement_Ptr ret = this->visit_children(&ar->block());
+      Statement_Ptr ret = this->visit_children(ar->block());
 
       this->parent = old_parent;
       this->parents = old_parents;
@@ -57,8 +57,8 @@ namespace Sass {
     Block_Ptr b = SASS_MEMORY_CAST_PTR(Block, parent);
 
     if (!b) {
-      if (Has_Block_Ptr bb = SASS_MEMORY_CAST(Has_Block, *parent)) {
-        b = &bb->block();
+      if (Has_Block_Ptr bb = SASS_MEMORY_CAST_PTR(Has_Block, parent)) {
+        b = bb->block();
       }
     }
 

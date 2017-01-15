@@ -25,7 +25,7 @@ namespace Sass {
       union Sass_Value* list = sass_make_list(l->size(), l->separator(), l->is_bracketed());
       for (size_t i = 0, L = l->length(); i < L; ++i) {
         Expression_Obj obj = l->at(i);
-        auto val = ast_node_to_sass_value(&obj);
+        auto val = ast_node_to_sass_value(obj);
         sass_list_set_value(list, i, val);
       }
       return list;
@@ -35,8 +35,8 @@ namespace Sass {
       Map_Ptr_Const m = dynamic_cast<Map_Ptr_Const>(val);
       union Sass_Value* map = sass_make_map(m->length());
       size_t i = 0; for (Expression_Obj key : m->keys()) {
-        sass_map_set_key(map, i, ast_node_to_sass_value(&key));
-        sass_map_set_value(map, i, ast_node_to_sass_value(&m->at(key)));
+        sass_map_set_key(map, i, ast_node_to_sass_value(key));
+        sass_map_set_value(map, i, ast_node_to_sass_value(m->at(key)));
         ++ i;
       }
       return map;

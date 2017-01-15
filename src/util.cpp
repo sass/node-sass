@@ -456,16 +456,16 @@ namespace Sass {
       bool hasPrintableChildBlocks = false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
-        if (dynamic_cast<Directive_Ptr>(&stm)) {
+        if (SASS_MEMORY_CAST(Directive, stm)) {
           return true;
-        } else if (Declaration_Ptr d = dynamic_cast<Declaration_Ptr>(&stm)) {
+        } else if (Declaration_Ptr d = SASS_MEMORY_CAST(Declaration, stm)) {
           return isPrintable(d, style);
-        } else if (dynamic_cast<Has_Block_Ptr>(&stm)) {
-          Block_Obj pChildBlock = ((Has_Block_Ptr)&stm)->block();
-          if (isPrintable(&pChildBlock, style)) {
+        } else if (SASS_MEMORY_CAST(Has_Block, stm)) {
+          Block_Obj pChildBlock = ((Has_Block_Ptr)stm.ptr())->block(); // XXX
+          if (isPrintable(pChildBlock, style)) {
             hasPrintableChildBlocks = true;
           }
-        } else if (Comment_Ptr c = dynamic_cast<Comment_Ptr>(&stm)) {
+        } else if (Comment_Ptr c = SASS_MEMORY_CAST(Comment, stm)) {
           // keep for uncompressed
           if (style != COMPRESSED) {
             hasDeclarations = true;
@@ -499,8 +499,8 @@ namespace Sass {
     bool isPrintable(Declaration_Ptr d, Sass_Output_Style style)
     {
       Expression_Obj val = d->value();
-      if (String_Quoted_Obj sq = SASS_MEMORY_CAST(String_Quoted, val)) return isPrintable(&sq, style);
-      if (String_Constant_Obj sc = SASS_MEMORY_CAST(String_Constant, val)) return isPrintable(&sc, style);
+      if (String_Quoted_Obj sq = SASS_MEMORY_CAST(String_Quoted, val)) return isPrintable(sq, style);
+      if (String_Constant_Obj sc = SASS_MEMORY_CAST(String_Constant, val)) return isPrintable(sc, style);
       return true;
     }
 
@@ -511,18 +511,16 @@ namespace Sass {
 
       Block_Obj b = f->block();
 
-//      bool hasSelectors = f->selector() && static_cast<Selector_List_Ptr>(f->selector())->length() > 0;
-
       bool hasDeclarations = false;
       bool hasPrintableChildBlocks = false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
-        if (dynamic_cast<Declaration_Ptr>(&stm) || dynamic_cast<Directive_Ptr>(&stm)) {
+        if (SASS_MEMORY_CAST(Declaration, stm) || SASS_MEMORY_CAST(Directive, stm)) {
           hasDeclarations = true;
         }
-        else if (dynamic_cast<Has_Block_Ptr>(&stm)) {
-          Block_Obj pChildBlock = ((Has_Block_Ptr)&stm)->block();
-          if (isPrintable(&pChildBlock, style)) {
+        else if (SASS_MEMORY_CAST(Has_Block, stm)) {
+          Block_Obj pChildBlock = ((Has_Block_Ptr)stm.ptr())->block(); // XXX
+          if (isPrintable(pChildBlock, style)) {
             hasPrintableChildBlocks = true;
           }
         }
@@ -542,34 +540,32 @@ namespace Sass {
       if (b == 0) return false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
-        if (dynamic_cast<Directive_Ptr>(&stm)) return true;
-        else if (dynamic_cast<Declaration_Ptr>(&stm)) return true;
-        else if (dynamic_cast<Comment_Ptr>(&stm)) {
-          Comment_Ptr c = (Comment_Ptr) &stm;
+        if (SASS_MEMORY_CAST(Directive, stm)) return true;
+        else if (SASS_MEMORY_CAST(Declaration, stm)) return true;
+        else if (Comment_Ptr c = SASS_MEMORY_CAST(Comment, stm)) {
           if (isPrintable(c, style)) {
             return true;
           }
         }
-        else if (dynamic_cast<Ruleset_Ptr>(&stm)) {
-          Ruleset_Ptr r = (Ruleset_Ptr) &stm;
+        else if (Ruleset_Ptr r = SASS_MEMORY_CAST(Ruleset, stm)) {
           if (isPrintable(r, style)) {
             return true;
           }
         }
-        else if (dynamic_cast<Supports_Block_Ptr>(&stm)) {
-          Supports_Block_Ptr f = (Supports_Block_Ptr) &stm;
+        else if (Supports_Block_Ptr f = SASS_MEMORY_CAST(Supports_Block, stm)) {
           if (isPrintable(f, style)) {
             return true;
           }
         }
-        else if (dynamic_cast<Media_Block_Ptr>(&stm)) {
-          Media_Block_Ptr m = (Media_Block_Ptr) &stm;
+        else if (Media_Block_Ptr m = SASS_MEMORY_CAST(Media_Block, stm)) {
           if (isPrintable(m, style)) {
             return true;
           }
         }
-        else if (dynamic_cast<Has_Block_Ptr>(&stm) && isPrintable(((Has_Block_Ptr)&stm)->block(), style)) {
-          return true;
+        else if (Has_Block_Ptr b = SASS_MEMORY_CAST(Has_Block, stm)) {
+          if (isPrintable(b->block(), style)) {
+            return true;
+          }
         }
       }
       return false;
@@ -596,35 +592,33 @@ namespace Sass {
 
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
-        if (dynamic_cast<Declaration_Ptr>(&stm) || dynamic_cast<Directive_Ptr>(&stm)) {
+        if (SASS_MEMORY_CAST(Declaration, stm) || SASS_MEMORY_CAST(Directive, stm)) {
           return true;
         }
-        else if (dynamic_cast<Comment_Ptr>(&stm)) {
-          Comment_Ptr c = (Comment_Ptr) &stm;
+        else if (Comment_Ptr c = SASS_MEMORY_CAST(Comment, stm)) {
           if (isPrintable(c, style)) {
             return true;
           }
         }
-        else if (dynamic_cast<Ruleset_Ptr>(&stm)) {
-          Ruleset_Ptr r = (Ruleset_Ptr) &stm;
+        else if (Ruleset_Ptr r = SASS_MEMORY_CAST(Ruleset, stm)) {
           if (isPrintable(r, style)) {
             return true;
           }
         }
-        else if (dynamic_cast<Supports_Block_Ptr>(&stm)) {
-          Supports_Block_Ptr f = (Supports_Block_Ptr) &stm;
+        else if (Supports_Block_Ptr f = SASS_MEMORY_CAST(Supports_Block, stm)) {
           if (isPrintable(f, style)) {
             return true;
           }
         }
-        else if (dynamic_cast<Media_Block_Ptr>(&stm)) {
-          Media_Block_Ptr m = (Media_Block_Ptr) &stm;
+        else if (Media_Block_Ptr m = SASS_MEMORY_CAST(Media_Block, stm)) {
           if (isPrintable(m, style)) {
             return true;
           }
         }
-        else if (dynamic_cast<Has_Block_Ptr>(&stm) && isPrintable(((Has_Block_Ptr)&stm)->block(), style)) {
-          return true;
+        else if (Has_Block_Ptr b = SASS_MEMORY_CAST(Has_Block, stm)) {
+          if (isPrintable(b->block(), style)) {
+            return true;
+          }
         }
       }
 

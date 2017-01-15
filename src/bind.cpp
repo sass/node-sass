@@ -75,7 +75,7 @@ namespace Sass {
                 } else {
                   arglist->append(SASS_MEMORY_NEW(Argument,
                                                   item->pstate(),
-                                                  &item,
+                                                  item,
                                                   "",
                                                   false,
                                                   false));
@@ -123,7 +123,7 @@ namespace Sass {
 
             Expression_Obj value = a->value();
             if (Argument_Obj arg = SASS_MEMORY_CAST(Argument, value)) {
-              arglist->append(&arg);
+              arglist->append(arg.ptr());
             }
             // check if we have rest argument
             else if (a->is_rest_argument()) {
@@ -135,7 +135,7 @@ namespace Sass {
                   Expression_Obj obj = rest->at(i);
                   arglist->append(SASS_MEMORY_NEW(Argument,
                                                 obj->pstate(),
-                                                &obj,
+                                                obj,
                                                 "",
                                                 false,
                                                 false));
@@ -155,7 +155,7 @@ namespace Sass {
             }
           }
           // assign new arglist to environment
-          env->local_frame()[p->name()] = &arglist;
+          env->local_frame()[p->name()] = arglist.ptr();
         }
         // consumed parameter
         ++ip;
@@ -188,7 +188,7 @@ namespace Sass {
         // otherwise move one of the rest args into the param, converting to argument if necessary
         Expression_Obj obj = arglist->at(0);
         if (!(a = SASS_MEMORY_CAST(Argument, obj))) {
-          Expression_Ptr a_to_convert = &obj;
+          Expression_Ptr a_to_convert = obj;
           a = SASS_MEMORY_NEW(Argument,
                               a_to_convert->pstate(),
                               a_to_convert,
@@ -212,7 +212,7 @@ namespace Sass {
             msg << callee << " has no parameter named " << name;
             error(msg.str(), a->pstate());
           }
-          env->local_frame()[name] = &argmap->at(&key);
+          env->local_frame()[name] = argmap->at(key).ptr();
         }
         ++ia;
         continue;
@@ -228,7 +228,7 @@ namespace Sass {
           error(msg.str(), a->pstate());
         }
         // ordinal arg -- bind it to the next param
-        env->local_frame()[p->name()] = &a->value();
+        env->local_frame()[p->name()] = a->value().ptr();
         ++ip;
       }
       else {
@@ -250,7 +250,7 @@ namespace Sass {
               << "provided more than once in call to " << callee;
           error(msg.str(), a->pstate());
         }
-        env->local_frame()[a->name()] = &a->value();
+        env->local_frame()[a->name()] = a->value().ptr();
       }
     }
     // EO while ia
