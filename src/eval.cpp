@@ -659,8 +659,8 @@ namespace Sass {
       }
 
       To_Value to_value(ctx);
-      Value_Obj v_l = dynamic_cast<Value_Ptr>(lhs->perform(&to_value));
-      Value_Obj v_r = dynamic_cast<Value_Ptr>(rhs->perform(&to_value));
+      Value_Obj v_l = Cast<Value>(lhs->perform(&to_value));
+      Value_Obj v_r = Cast<Value>(rhs->perform(&to_value));
       l_type = lhs->concrete_type();
       r_type = rhs->concrete_type();
 
@@ -751,7 +751,7 @@ namespace Sass {
           throw Exception::InvalidValue(*v_r);
         }
         Value_Ptr ex = op_strings(b->op(), *v_l, *v_r, ctx.c_options, &pstate, !interpolant); // pass true to compress
-        if (String_Constant_Ptr str = dynamic_cast<String_Constant_Ptr>(ex))
+        if (String_Constant_Ptr str = Cast<String_Constant>(ex))
         {
           if (str->concrete_type() == Expression::STRING)
           {
@@ -1159,7 +1159,7 @@ namespace Sass {
     if (List_Ptr l = Cast<List>(ex)) {
       List_Obj ll = SASS_MEMORY_NEW(List, l->pstate(), 0, l->separator());
       // this fixes an issue with bourbon sample, not really sure why
-      // if (l->size() && dynamic_cast<Null_Ptr>((*l)[0])) { res += ""; }
+      // if (l->size() && Cast<Null>((*l)[0])) { res += ""; }
       for(Expression_Obj item : *l) {
         item->is_interpolant(l->is_interpolant());
         std::string rl(""); interpolation(ctx, rl, item, into_quotes, l->is_interpolant());
@@ -1271,8 +1271,8 @@ namespace Sass {
     Expression_Ptr right = c->right()->perform(this);
     Supports_Operator_Ptr cc = SASS_MEMORY_NEW(Supports_Operator,
                                  c->pstate(),
-                                 dynamic_cast<Supports_Condition_Ptr>(left),
-                                 dynamic_cast<Supports_Condition_Ptr>(right),
+                                 Cast<Supports_Condition>(left),
+                                 Cast<Supports_Condition>(right),
                                  c->operand());
     return cc;
   }
@@ -1282,7 +1282,7 @@ namespace Sass {
     Expression_Ptr condition = c->condition()->perform(this);
     Supports_Negation_Ptr cc = SASS_MEMORY_NEW(Supports_Negation,
                                  c->pstate(),
-                                 dynamic_cast<Supports_Condition_Ptr>(condition));
+                                 Cast<Supports_Condition>(condition));
     return cc;
   }
 
@@ -1594,8 +1594,8 @@ namespace Sass {
     Expression::Concrete_Type rtype = rhs.concrete_type();
     enum Sass_OP op = operand.operand;
 
-    String_Quoted_Ptr lqstr = dynamic_cast<String_Quoted_Ptr>(&lhs);
-    String_Quoted_Ptr rqstr = dynamic_cast<String_Quoted_Ptr>(&rhs);
+    String_Quoted_Ptr lqstr = Cast<String_Quoted>(&lhs);
+    String_Quoted_Ptr rqstr = Cast<String_Quoted>(&rhs);
 
     std::string lstr(lqstr ? lqstr->value() : lhs.to_string(opt));
     std::string rstr(rqstr ? rqstr->value() : rhs.to_string(opt));

@@ -79,7 +79,7 @@ namespace Sass {
 
   Expression_Ptr Listize::fallback_impl(AST_Node_Ptr n)
   {
-    return dynamic_cast<Expression_Ptr>(n);
+    return Cast<Expression>(n);
   }
 
 }

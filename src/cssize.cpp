@@ -40,7 +40,7 @@ namespace Sass {
   {
     String_Obj property = Cast<String>(d->property());
 
-    if (Declaration_Ptr dd = dynamic_cast<Declaration_Ptr>(parent())) {
+    if (Declaration_Ptr dd = Cast<Declaration>(parent())) {
       String_Obj parent_property = Cast<String>(dd->property());
       property = SASS_MEMORY_NEW(String_Constant,
                                  d->property()->pstate(),
@@ -147,7 +147,7 @@ namespace Sass {
     Block_Ptr bb = operator()(r->block());
     // this should protect us (at least a bit) from our mess
     // fixing this properly is harder that it should be ...
-    if (dynamic_cast<Statement_Ptr>(bb) == NULL) {
+    if (Cast<Statement>(bb) == NULL) {
       error("Illegal nesting: Only properties may be nested beneath properties.", r->block()->pstate());
     }
     Ruleset_Obj rr = SASS_MEMORY_NEW(Ruleset,
@@ -370,7 +370,7 @@ namespace Sass {
 
   bool Cssize::bubblable(Statement_Ptr s)
   {
-    return dynamic_cast<Ruleset_Ptr>(s) || s->bubbles();
+    return Cast<Ruleset>(s) || s->bubbles();
   }
 
   Block_Ptr Cssize::flatten(Block_Ptr b)

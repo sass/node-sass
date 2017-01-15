@@ -335,29 +335,29 @@ namespace Sass {
 
   bool Selector::operator== (const Selector& rhs) const
   {
-    if (Selector_List_Ptr_Const sl = dynamic_cast<Selector_List_Ptr_Const>(this)) return *sl == rhs;
-    if (Simple_Selector_Ptr_Const sp = dynamic_cast<Simple_Selector_Ptr_Const>(this)) return *sp == rhs;
+    if (const Selector_List* sl = Cast<Selector_List>(this)) return *sl == rhs;
+    if (Simple_Selector_Ptr_Const sp = Cast<Simple_Selector>(this)) return *sp == rhs;
     throw std::runtime_error("invalid selector base classes to compare");
     return false;
   }
 
   bool Selector::operator< (const Selector& rhs) const
   {
-    if (Selector_List_Ptr_Const sl = dynamic_cast<Selector_List_Ptr_Const>(this)) return *sl < rhs;
-    if (Simple_Selector_Ptr_Const sp = dynamic_cast<Simple_Selector_Ptr_Const>(this)) return *sp < rhs;
+    if (Selector_List_Ptr_Const sl = Cast<Selector_List>(this)) return *sl < rhs;
+    if (Simple_Selector_Ptr_Const sp = Cast<Simple_Selector>(this)) return *sp < rhs;
     throw std::runtime_error("invalid selector base classes to compare");
     return false;
   }
 
   bool Simple_Selector::operator== (const Selector& rhs) const
   {
-    if (Simple_Selector_Ptr_Const sp = dynamic_cast<Simple_Selector_Ptr_Const>(&rhs)) return *this == *sp;
+    if (Simple_Selector_Ptr_Const sp = Cast<Simple_Selector>(&rhs)) return *this == *sp;
     return false;
   }
 
   bool Simple_Selector::operator< (const Selector& rhs) const
   {
-    if (Simple_Selector_Ptr_Const sp = dynamic_cast<Simple_Selector_Ptr_Const>(&rhs)) return *this < *sp;
+    if (Simple_Selector_Ptr_Const sp = Cast<Simple_Selector>(&rhs)) return *this < *sp;
     return false;
   }
 
@@ -365,13 +365,13 @@ namespace Sass {
   {
     Simple_Type type = simple_type();
     // dynamic cast is a bottleneck - use concrete type as types are final
-    if (type == PSEUDO_SEL /* Pseudo_Selector_Ptr_Const lp = dynamic_cast<Pseudo_Selector_Ptr_Const>(this) */) {
+    if (type == PSEUDO_SEL /* Pseudo_Selector_Ptr_Const lp = Cast<Pseudo_Selector>(this) */) {
       return *static_cast<Pseudo_Selector_Ptr_Const>(this) == rhs;
     }
-    else if (type == WRAPPED_SEL /* Wrapped_Selector_Ptr_Const lw = dynamic_cast<Wrapped_Selector_Ptr_Const>(this) */) {
+    else if (type == WRAPPED_SEL /* Wrapped_Selector_Ptr_Const lw = Cast<Wrapped_Selector>(this) */) {
       return *static_cast<Wrapped_Selector_Ptr_Const>(this) == rhs;
     }
-    else if (type == ATTR_SEL /* Attribute_Selector_Ptr_Const la = dynamic_cast<Attribute_Selector_Ptr_Const>(this) */) {
+    else if (type == ATTR_SEL /* Attribute_Selector_Ptr_Const la = Cast<Attribute_Selector>(this) */) {
       return *static_cast<Attribute_Selector_Ptr_Const>(this) == rhs;
     }
     else if (name_ == rhs.name_)
@@ -383,13 +383,13 @@ namespace Sass {
   {
     Simple_Type type = simple_type();
     // dynamic cast is a bottleneck - use concrete type as types are final
-    if (type == PSEUDO_SEL /* Pseudo_Selector_Ptr_Const lp = dynamic_cast<Pseudo_Selector_Ptr_Const>(this) */) {
+    if (type == PSEUDO_SEL /* Pseudo_Selector_Ptr_Const lp = Cast<Pseudo_Selector>(this) */) {
       return *static_cast<Pseudo_Selector_Ptr_Const>(this) < rhs;
     }
-    else if (type == WRAPPED_SEL /* Wrapped_Selector_Ptr_Const lw = dynamic_cast<Wrapped_Selector_Ptr_Const>(this) */) {
+    else if (type == WRAPPED_SEL /* Wrapped_Selector_Ptr_Const lw = Cast<Wrapped_Selector>(this) */) {
       return *static_cast<Wrapped_Selector_Ptr_Const>(this) < rhs;
     }
-    else if (type == ATTR_SEL /* Attribute_Selector_Ptr_Const la = dynamic_cast<Attribute_Selector_Ptr_Const>(this) */) {
+    else if (type == ATTR_SEL /* Attribute_Selector_Ptr_Const la = Cast<Attribute_Selector>(this) */) {
       return *static_cast<Attribute_Selector_Ptr_Const>(this) < rhs;
     }
     if (is_ns_eq(ns_, rhs.ns_))
@@ -400,9 +400,9 @@ namespace Sass {
   bool Selector_List::operator== (const Selector& rhs) const
   {
     // solve the double dispatch problem by using RTTI information via dynamic cast
-    if (Selector_List_Ptr_Const ls = dynamic_cast<Selector_List_Ptr_Const>(&rhs)) { return *this == *ls; }
-    else if (Complex_Selector_Ptr_Const ls = dynamic_cast<Complex_Selector_Ptr_Const>(&rhs)) { return *this == *ls; }
-    else if (Compound_Selector_Ptr_Const ls = dynamic_cast<Compound_Selector_Ptr_Const>(&rhs)) { return *this == *ls; }
+    if (Selector_List_Ptr_Const ls = Cast<Selector_List>(&rhs)) { return *this == *ls; }
+    else if (Complex_Selector_Ptr_Const ls = Cast<Complex_Selector>(&rhs)) { return *this == *ls; }
+    else if (Compound_Selector_Ptr_Const ls = Cast<Compound_Selector>(&rhs)) { return *this == *ls; }
     // no compare method
     return this == &rhs;
   }
@@ -411,8 +411,8 @@ namespace Sass {
   bool Selector_List::operator==(const Expression& rhs) const
   {
     // solve the double dispatch problem by using RTTI information via dynamic cast
-    if (List_Ptr_Const ls = dynamic_cast<List_Ptr_Const>(&rhs)) { return *this == *ls; }
-    if (Selector_Ptr_Const ls = dynamic_cast<Selector_Ptr_Const>(&rhs)) { return *this == *ls; }
+    if (List_Ptr_Const ls = Cast<List>(&rhs)) { return *this == *ls; }
+    if (Selector_Ptr_Const ls = Cast<Selector>(&rhs)) { return *this == *ls; }
     // compare invalid (maybe we should error?)
     return false;
   }
@@ -452,7 +452,7 @@ namespace Sass {
 
   bool Selector_List::operator< (const Selector& rhs) const
   {
-    if (Selector_List_Ptr_Const sp = dynamic_cast<Selector_List_Ptr_Const>(&rhs)) return *this < *sp;
+    if (Selector_List_Ptr_Const sp = Cast<Selector_List>(&rhs)) return *this < *sp;
     return false;
   }
 
@@ -626,7 +626,7 @@ namespace Sass {
 
   bool Attribute_Selector::operator< (const Simple_Selector& rhs) const
   {
-    if (Attribute_Selector_Ptr_Const w = dynamic_cast<Attribute_Selector_Ptr_Const>(&rhs))
+    if (Attribute_Selector_Ptr_Const w = Cast<Attribute_Selector>(&rhs))
     {
       return *this < *w;
     }
@@ -660,7 +660,7 @@ namespace Sass {
 
   bool Attribute_Selector::operator== (const Simple_Selector& rhs) const
   {
-    if (Attribute_Selector_Ptr_Const w = dynamic_cast<Attribute_Selector_Ptr_Const>(&rhs))
+    if (Attribute_Selector_Ptr_Const w = Cast<Attribute_Selector>(&rhs))
     {
       return *this == *w;
     }
@@ -683,7 +683,7 @@ namespace Sass {
 
   bool Pseudo_Selector::operator== (const Simple_Selector& rhs) const
   {
-    if (Pseudo_Selector_Ptr_Const w = dynamic_cast<Pseudo_Selector_Ptr_Const>(&rhs))
+    if (Pseudo_Selector_Ptr_Const w = Cast<Pseudo_Selector>(&rhs))
     {
       return *this == *w;
     }
@@ -708,7 +708,7 @@ namespace Sass {
 
   bool Pseudo_Selector::operator< (const Simple_Selector& rhs) const
   {
-    if (Pseudo_Selector_Ptr_Const w = dynamic_cast<Pseudo_Selector_Ptr_Const>(&rhs))
+    if (Pseudo_Selector_Ptr_Const w = Cast<Pseudo_Selector>(&rhs))
     {
       return *this < *w;
     }
@@ -726,7 +726,7 @@ namespace Sass {
 
   bool Wrapped_Selector::operator== (const Simple_Selector& rhs) const
   {
-    if (Wrapped_Selector_Ptr_Const w = dynamic_cast<Wrapped_Selector_Ptr_Const>(&rhs))
+    if (Wrapped_Selector_Ptr_Const w = Cast<Wrapped_Selector>(&rhs))
     {
       return *this == *w;
     }
@@ -746,7 +746,7 @@ namespace Sass {
 
   bool Wrapped_Selector::operator< (const Simple_Selector& rhs) const
   {
-    if (Wrapped_Selector_Ptr_Const w = dynamic_cast<Wrapped_Selector_Ptr_Const>(&rhs))
+    if (Wrapped_Selector_Ptr_Const w = Cast<Wrapped_Selector>(&rhs))
     {
       return *this < *w;
     }
@@ -852,7 +852,7 @@ namespace Sass {
         }
         Simple_Selector_Ptr rhs_sel = NULL;
         if (rhs->elements().size() > i) rhs_sel = (*rhs)[i];
-        if (Wrapped_Selector_Ptr wrapped_r = dynamic_cast<Wrapped_Selector_Ptr>(rhs_sel)) {
+        if (Wrapped_Selector_Ptr wrapped_r = Cast<Wrapped_Selector>(rhs_sel)) {
           if (wrapped->name() == wrapped_r->name()) {
           if (wrapped->is_superselector_of(wrapped_r)) {
              continue;
@@ -2097,7 +2097,7 @@ namespace Sass {
 
   bool Custom_Warning::operator== (const Expression& rhs) const
   {
-    if (Custom_Warning_Ptr_Const r = dynamic_cast<Custom_Warning_Ptr_Const>(&rhs)) {
+    if (Custom_Warning_Ptr_Const r = Cast<Custom_Warning>(&rhs)) {
       return message() == r->message();
     }
     return false;
@@ -2105,7 +2105,7 @@ namespace Sass {
 
   bool Custom_Error::operator== (const Expression& rhs) const
   {
-    if (Custom_Error_Ptr_Const r = dynamic_cast<Custom_Error_Ptr_Const>(&rhs)) {
+    if (Custom_Error_Ptr_Const r = Cast<Custom_Error>(&rhs)) {
       return message() == r->message();
     }
     return false;
@@ -2113,7 +2113,7 @@ namespace Sass {
 
   bool Number::eq (const Expression& rhs) const
   {
-    if (Number_Ptr_Const r = dynamic_cast<Number_Ptr_Const>(&rhs)) {
+    if (Number_Ptr_Const r = Cast<Number>(&rhs)) {
       size_t lhs_units = numerator_units_.size() + denominator_units_.size();
       size_t rhs_units = r->numerator_units_.size() + r->denominator_units_.size();
       if (!lhs_units && !rhs_units) {
@@ -2128,7 +2128,7 @@ namespace Sass {
 
   bool Number::operator== (const Expression& rhs) const
   {
-    if (Number_Ptr_Const r = dynamic_cast<Number_Ptr_Const>(&rhs)) {
+    if (Number_Ptr_Const r = Cast<Number>(&rhs)) {
       size_t lhs_units = numerator_units_.size() + denominator_units_.size();
       size_t rhs_units = r->numerator_units_.size() + r->denominator_units_.size();
       // unitless and only having one unit seems equivalent (will change in future)
@@ -2163,9 +2163,9 @@ namespace Sass {
 
   bool String_Quoted::operator== (const Expression& rhs) const
   {
-    if (String_Quoted_Ptr_Const qstr = dynamic_cast<String_Quoted_Ptr_Const>(&rhs)) {
+    if (String_Quoted_Ptr_Const qstr = Cast<String_Quoted>(&rhs)) {
       return (value() == qstr->value());
-    } else if (String_Constant_Ptr_Const cstr = dynamic_cast<String_Constant_Ptr_Const>(&rhs)) {
+    } else if (String_Constant_Ptr_Const cstr = Cast<String_Constant>(&rhs)) {
       return (value() == cstr->value());
     }
     return false;
@@ -2177,9 +2177,9 @@ namespace Sass {
 
   bool String_Constant::operator== (const Expression& rhs) const
   {
-    if (String_Quoted_Ptr_Const qstr = dynamic_cast<String_Quoted_Ptr_Const>(&rhs)) {
+    if (String_Quoted_Ptr_Const qstr = Cast<String_Quoted>(&rhs)) {
       return (value() == qstr->value());
-    } else if (String_Constant_Ptr_Const cstr = dynamic_cast<String_Constant_Ptr_Const>(&rhs)) {
+    } else if (String_Constant_Ptr_Const cstr = Cast<String_Constant>(&rhs)) {
       return (value() == cstr->value());
     }
     return false;
@@ -2196,7 +2196,7 @@ namespace Sass {
 
   bool String_Schema::operator== (const Expression& rhs) const
   {
-    if (String_Schema_Ptr_Const r = dynamic_cast<String_Schema_Ptr_Const>(&rhs)) {
+    if (String_Schema_Ptr_Const r = Cast<String_Schema>(&rhs)) {
       if (length() != r->length()) return false;
       for (size_t i = 0, L = length(); i < L; ++i) {
         Expression_Obj rv = (*r)[i];
@@ -2211,7 +2211,7 @@ namespace Sass {
 
   bool Boolean::operator== (const Expression& rhs) const
   {
-    if (Boolean_Ptr_Const r = dynamic_cast<Boolean_Ptr_Const>(&rhs)) {
+    if (Boolean_Ptr_Const r = Cast<Boolean>(&rhs)) {
       return (value() == r->value());
     }
     return false;
@@ -2219,7 +2219,7 @@ namespace Sass {
 
   bool Color::operator== (const Expression& rhs) const
   {
-    if (Color_Ptr_Const r = dynamic_cast<Color_Ptr_Const>(&rhs)) {
+    if (Color_Ptr_Const r = Cast<Color>(&rhs)) {
       return r_ == r->r() &&
              g_ == r->g() &&
              b_ == r->b() &&
@@ -2230,7 +2230,7 @@ namespace Sass {
 
   bool List::operator== (const Expression& rhs) const
   {
-    if (List_Ptr_Const r = dynamic_cast<List_Ptr_Const>(&rhs)) {
+    if (List_Ptr_Const r = Cast<List>(&rhs)) {
       if (length() != r->length()) return false;
       if (separator() != r->separator()) return false;
       if (is_bracketed() != r->is_bracketed()) return false;
@@ -2247,7 +2247,7 @@ namespace Sass {
 
   bool Map::operator== (const Expression& rhs) const
   {
-    if (Map_Ptr_Const r = dynamic_cast<Map_Ptr_Const>(&rhs)) {
+    if (Map_Ptr_Const r = Cast<Map>(&rhs)) {
       if (length() != r->length()) return false;
       for (auto key : keys()) {
         Expression_Obj lv = at(key);

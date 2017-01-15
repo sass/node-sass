@@ -1233,7 +1233,7 @@ namespace Sass {
         return SASS_MEMORY_NEW(Number, pstate, (double)(map ? map->length() : 1));
       }
       if (v->concrete_type() == Expression::SELECTOR) {
-        if (Compound_Selector_Ptr h = dynamic_cast<Compound_Selector_Ptr>(v)) {
+        if (Compound_Selector_Ptr h = Cast<Compound_Selector>(v)) {
           return SASS_MEMORY_NEW(Number, pstate, (double)h->length());
         } else if (Selector_List_Ptr ls = Cast<Selector_List>(v)) {
           return SASS_MEMORY_NEW(Number, pstate, (double)ls->length());

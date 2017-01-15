@@ -2030,7 +2030,7 @@ namespace Sass {
   template <typename ObjectType>
   static void extendObjectWithSelectorAndBlock(ObjectType* pObject, Context& ctx, Subset_Map& subset_map) {
 
-    DEBUG_PRINTLN(EXTEND_OBJECT, "FOUND SELECTOR: " << static_cast<Selector_List_Ptr>(pObject->selector())->to_string(ctx.c_options))
+    DEBUG_PRINTLN(EXTEND_OBJECT, "FOUND SELECTOR: " << Cast<Selector_List>(pObject->selector())->to_string(ctx.c_options))
 
     // Ruby sass seems to filter nodes that don't have any content well before we get here. I'm not sure the repercussions
     // of doing so, so for now, let's just not extend things that won't be output later.
@@ -2043,7 +2043,7 @@ namespace Sass {
     Selector_List_Obj pNewSelectorList = Extend::extendSelectorList(Cast<Selector_List>(pObject->selector()), ctx, subset_map, false, extendedSomething);
 
     if (extendedSomething && pNewSelectorList) {
-      DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND ORIGINAL SELECTORS: " << static_cast<Selector_List_Ptr>(pObject->selector())->to_string(ctx.c_options))
+      DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND ORIGINAL SELECTORS: " << Cast<Selector_List>(pObject->selector())->to_string(ctx.c_options))
       DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND SETTING NEW SELECTORS: " << pNewSelectorList->to_string(ctx.c_options))
       pNewSelectorList->remove_parent_selectors();
       pObject->selector(pNewSelectorList);
@@ -2105,7 +2105,7 @@ namespace Sass {
 
   void Extend::operator()(Directive_Ptr a)
   {
-    // Selector_List_Ptr ls = dynamic_cast<Selector_List_Ptr>(a->selector());
+    // Selector_List_Ptr ls = Cast<Selector_List>(a->selector());
     // selector_stack.push_back(ls);
     if (a->block()) a->block()->perform(this);
     // exp.selector_stack.pop_back();
