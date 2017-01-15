@@ -1250,8 +1250,12 @@ namespace Sass {
                 ss->tail(t ? SASS_MEMORY_CLONE(t) : NULL);
                 Compound_Selector_Obj h = SASS_MEMORY_COPY(head_);
                 // remove parent selector from sequence
-                if (h->length()) h->erase(h->begin());
-                ss->head(h->length() ? h.ptr() : NULL);
+                if (h->length()) {
+                  h->erase(h->begin());
+                  ss->head(h);
+                } else {
+                  ss->head(NULL);
+                }
                 // adjust for parent selector (1 char)
                 if (h->length()) {
                   ParserState state(h->at(0)->pstate());
@@ -1282,8 +1286,12 @@ namespace Sass {
               ss->tail(tail ? SASS_MEMORY_CLONE(tail) : NULL);
               Compound_Selector_Obj h = SASS_MEMORY_COPY(head_);
               // remove parent selector from sequence
-              if (h->length()) h->erase(h->begin());
-              ss->head(h->length() ? h.ptr() : NULL);
+              if (h->length()) {
+                h->erase(h->begin());
+                ss->head(h);
+              } else {
+                ss->head(NULL);
+              }
               // \/ IMO ruby sass bug \/
               ss->has_line_feed(false);
               // adjust for parent selector (1 char)

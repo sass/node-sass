@@ -793,12 +793,15 @@ namespace Sass {
       result->value(!result->value());
       return result;
     }
-    else if (operand->concrete_type() == Expression::NUMBER) {
-      Number_Ptr result = SASS_MEMORY_NEW(Number, static_cast<Number_Ptr>(operand.ptr()));
-      result->value(u->type() == Unary_Expression::MINUS
-                    ? -result->value()
-                    :  result->value());
-      return result;
+    else if (Number_Obj nr = Cast<Number>(operand)) {
+      // negate value for minus unary expression
+      if (u->type() == Unary_Expression::MINUS) {
+        Number_Obj cpy = SASS_MEMORY_COPY(nr);
+        cpy->value( - cpy->value() ); // negate value
+        return cpy.detach(); // return the copy
+      }
+      // nothing for positive
+      return nr.detach();
     }
     else {
       // Special cases: +/- variables which evaluate to null ouput just +/-,
@@ -807,12 +810,10 @@ namespace Sass {
         u->operand(SASS_MEMORY_NEW(String_Quoted, u->pstate(), ""));
       }
       // Never apply unary opertions on colors @see #2140
-      else if (operand->concrete_type() == Expression::COLOR) {
-        Color_Ptr c = static_cast<Color_Ptr>(operand.ptr());
-
+      else if (Color_Ptr color = Cast<Color>(operand)) {
         // Use the color name if this was eval with one
-        if (c->disp().length() > 0) {
-          operand = SASS_MEMORY_NEW(String_Constant, operand->pstate(), c->disp());
+        if (color->disp().length() > 0) {
+          operand = SASS_MEMORY_NEW(String_Constant, operand->pstate(), color->disp());
           u->operand(operand);
         }
       }
@@ -820,10 +821,9 @@ namespace Sass {
         u->operand(operand);
       }
 
-      String_Constant_Ptr result = SASS_MEMORY_NEW(String_Quoted,
-                                                  u->pstate(),
-                                                  u->inspect());
-      return result;
+      return SASS_MEMORY_NEW(String_Quoted,
+                             u->pstate(),
+                             u->inspect());
     }
     // unreachable
     return u;

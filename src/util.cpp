@@ -460,8 +460,8 @@ namespace Sass {
           return true;
         } else if (Declaration_Ptr d = SASS_MEMORY_CAST(Declaration, stm)) {
           return isPrintable(d, style);
-        } else if (SASS_MEMORY_CAST(Has_Block, stm)) {
-          Block_Obj pChildBlock = ((Has_Block_Ptr)stm.ptr())->block(); // XXX
+        } else if (Has_Block_Ptr p = SASS_MEMORY_CAST(Has_Block, stm)) {
+          Block_Obj pChildBlock = p->block();
           if (isPrintable(pChildBlock, style)) {
             hasPrintableChildBlocks = true;
           }
@@ -518,8 +518,8 @@ namespace Sass {
         if (SASS_MEMORY_CAST(Declaration, stm) || SASS_MEMORY_CAST(Directive, stm)) {
           hasDeclarations = true;
         }
-        else if (SASS_MEMORY_CAST(Has_Block, stm)) {
-          Block_Obj pChildBlock = ((Has_Block_Ptr)stm.ptr())->block(); // XXX
+        else if (Has_Block_Ptr b = SASS_MEMORY_CAST(Has_Block, stm)) {
+          Block_Obj pChildBlock = b->block();
           if (isPrintable(pChildBlock, style)) {
             hasPrintableChildBlocks = true;
           }
