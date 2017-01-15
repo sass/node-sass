@@ -121,8 +121,8 @@ namespace Sass {
     ATTACH_VIRTUAL_AST_OPERATIONS(AST_Node);
     virtual std::string inspect() const { return to_string({ INSPECT, 5 }); }
     virtual std::string to_sass() const { return to_string({ TO_SASS, 5 }); }
-    virtual std::string to_string(Sass_Inspect_Options opt) const;
-    virtual std::string to_string() const;
+    virtual const std::string to_string(Sass_Inspect_Options opt) const;
+    virtual const std::string to_string() const;
     virtual void cloneChildren() {};
   public:
     void update_pstate(const ParserState& pstate);
