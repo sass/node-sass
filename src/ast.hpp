@@ -2427,7 +2427,6 @@ namespace Sass {
     virtual bool has_parent_ref() { return false; };
     virtual bool has_real_parent_ref() { return false; };
     virtual bool is_pseudo_element() const { return false; }
-    virtual bool is_pseudo_class() { return false; }
 
     virtual bool is_superselector_of(Compound_Selector_Obj sub) { return false; }
 
@@ -2619,14 +2618,6 @@ namespace Sass {
     Pseudo_Selector(const Pseudo_Selector* ptr)
     : Simple_Selector(ptr), expression_(ptr->expression_)
     { simple_type(PSEUDO_SEL); }
-
-    // A pseudo-class always consists of a "colon" (:) followed by the name
-    // of the pseudo-class and optionally by a value between parentheses.
-    virtual bool is_pseudo_class()
-    {
-      return (name_[0] == ':' && name_[1] != ':')
-             && ! is_pseudo_class_element(name_);
-    }
 
     // A pseudo-element is made of two colons (::) followed by the name.
     // The `::` notation is introduced by the current document in order to
