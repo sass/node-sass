@@ -188,8 +188,7 @@ namespace Sass {
     Media_Block_Ptr mm = SASS_MEMORY_NEW(Media_Block,
                                       m->pstate(),
                                       ls,
-                                      blk,
-                                      0);
+                                      blk);
     media_block_stack.pop_back();
     mm->tabs(m->tabs());
     return mm;

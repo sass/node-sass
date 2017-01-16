@@ -583,9 +583,6 @@ namespace Sass {
     Media_Block(ParserState pstate, List_Obj mqs, Block_Obj b)
     : Has_Block(pstate, b), media_queries_(mqs)
     { statement_type(MEDIA); }
-    Media_Block(ParserState pstate, List_Obj mqs, Block_Obj b, Selector_Obj s)
-    : Has_Block(pstate, b), media_queries_(mqs)
-    { statement_type(MEDIA); }
     Media_Block(const Media_Block* ptr)
     : Has_Block(ptr), media_queries_(ptr->media_queries_)
     { statement_type(MEDIA); }

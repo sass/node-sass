@@ -360,8 +360,7 @@ namespace Sass {
     Media_Block_Obj mm = SASS_MEMORY_NEW(Media_Block,
                                       m->pstate(),
                                       m->media_queries(),
-                                      wrapper_block,
-                                      0);
+                                      wrapper_block);
 
     mm->tabs(m->tabs());
 
