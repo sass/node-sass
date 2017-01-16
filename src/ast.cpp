@@ -2,6 +2,7 @@
 #include "ast.hpp"
 #include "context.hpp"
 #include "node.hpp"
+#include "eval.hpp"
 #include "extend.hpp"
 #include "emitter.hpp"
 #include "color_maps.hpp"
@@ -1185,7 +1186,14 @@ namespace Sass {
       }
     }
 
+  }
 
+  Selector_List_Obj Selector_List::eval(Eval& eval)
+  {
+    Selector_List_Obj list = schema() ?
+      eval(schema()) : eval(this);
+    list->schema(schema());
+    return list;
   }
 
   Selector_List_Ptr Selector_List::resolve_parent_refs(Context& ctx, std::vector<Selector_List_Obj>& pstack, bool implicit_parent)
@@ -1471,6 +1479,30 @@ namespace Sass {
       }
     }
   }
+
+  size_t Wrapped_Selector::hash()
+  {
+    if (hash_ == 0) {
+      hash_combine(hash_, Simple_Selector::hash());
+      if (selector_) hash_combine(hash_, selector_->hash());
+    }
+    return hash_;
+  }
+  bool Wrapped_Selector::has_parent_ref() {
+    // if (has_reference()) return true;
+    if (!selector()) return false;
+    return selector()->has_parent_ref();
+  }
+  bool Wrapped_Selector::has_real_parent_ref() {
+    // if (has_reference()) return true;
+    if (!selector()) return false;
+    return selector()->has_real_parent_ref();
+  }
+  unsigned long Wrapped_Selector::specificity() const
+  {
+    return selector_ ? selector_->specificity() : 0;
+  }
+
 
   bool Selector_List::has_parent_ref()
   {

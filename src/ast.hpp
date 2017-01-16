@@ -521,10 +521,10 @@ namespace Sass {
   // of style declarations.
   /////////////////////////////////////////////////////////////////////////////
   class Ruleset : public Has_Block {
-    ADD_PROPERTY(Selector_Obj, selector)
+    ADD_PROPERTY(Selector_List_Obj, selector)
     ADD_PROPERTY(bool, is_root);
   public:
-    Ruleset(ParserState pstate, Selector_Obj s = 0, Block_Obj b = 0)
+    Ruleset(ParserState pstate, Selector_List_Obj s = 0, Block_Obj b = 0)
     : Has_Block(pstate, b), selector_(s), is_root_(false)
     { statement_type(RULESET); }
     Ruleset(const Ruleset* ptr)
@@ -598,10 +598,10 @@ namespace Sass {
   ///////////////////////////////////////////////////////////////////////
   class Directive : public Has_Block {
     ADD_CONSTREF(std::string, keyword)
-    ADD_PROPERTY(Selector_Obj, selector)
+    ADD_PROPERTY(Selector_List_Obj, selector)
     ADD_PROPERTY(Expression_Obj, value)
   public:
-    Directive(ParserState pstate, std::string kwd, Selector_Obj sel = 0, Block_Obj b = 0, Expression_Obj val = 0)
+    Directive(ParserState pstate, std::string kwd, Selector_List_Obj sel = 0, Block_Obj b = 0, Expression_Obj val = 0)
     : Has_Block(pstate, b), keyword_(kwd), selector_(sel), value_(val) // set value manually if needed
     { statement_type(DIRECTIVE); }
     Directive(const Directive* ptr)
@@ -633,7 +633,7 @@ namespace Sass {
   class Keyframe_Rule : public Has_Block {
     // according to css spec, this should be <keyframes-name>
     // <keyframes-name> = <custom-ident> | <string>
-    ADD_PROPERTY(Selector_Obj, name)
+    ADD_PROPERTY(Selector_List_Obj, name)
   public:
     Keyframe_Rule(ParserState pstate, Block_Obj b)
     : Has_Block(pstate, b), name_()
@@ -911,9 +911,9 @@ namespace Sass {
   // The Sass `@extend` directive.
   ////////////////////////////////
   class Extension : public Statement {
-    ADD_PROPERTY(Selector_Obj, selector)
+    ADD_PROPERTY(Selector_List_Obj, selector)
   public:
-    Extension(ParserState pstate, Selector_Obj s)
+    Extension(ParserState pstate, Selector_List_Obj s)
     : Statement(pstate), selector_(s)
     { statement_type(EXTEND); }
     Extension(const Extension* ptr)
@@ -2313,19 +2313,26 @@ namespace Sass {
   // Interpolated selectors -- the interpolated String will be expanded and
   // re-parsed into a normal selector class.
   /////////////////////////////////////////////////////////////////////////
-  class Selector_Schema : public Selector {
+  class Selector_Schema : public AST_Node {
     ADD_PROPERTY(String_Obj, contents)
     ADD_PROPERTY(bool, connect_parent);
+    // must not be a reference counted object
+    // otherwise we create circular references
+    ADD_PROPERTY(Media_Block_Ptr, media_block)
+    // store computed hash
+    size_t hash_;
   public:
     Selector_Schema(ParserState pstate, String_Obj c)
-    : Selector(pstate),
+    : AST_Node(pstate),
       contents_(c),
-      connect_parent_(true)
+      connect_parent_(true),
+      media_block_(NULL)
     { }
     Selector_Schema(const Selector_Schema* ptr)
-    : Selector(ptr),
+    : AST_Node(ptr),
       contents_(ptr->contents_),
-      connect_parent_(ptr->connect_parent_)
+      connect_parent_(ptr->connect_parent_),
+      media_block_(ptr->media_block_)
     { }
     virtual bool has_parent_ref();
     virtual bool has_real_parent_ref();
@@ -2657,9 +2664,9 @@ namespace Sass {
   // Wrapped selector -- pseudo selector that takes a list of selectors as argument(s) e.g., :not(:first-of-type), :-moz-any(ol p.blah, ul, menu, dir)
   /////////////////////////////////////////////////
   class Wrapped_Selector : public Simple_Selector {
-    ADD_PROPERTY(Selector_Obj, selector)
+    ADD_PROPERTY(Selector_List_Obj, selector)
   public:
-    Wrapped_Selector(ParserState pstate, std::string n, Selector_Obj sel)
+    Wrapped_Selector(ParserState pstate, std::string n, Selector_List_Obj sel)
     : Simple_Selector(pstate, n), selector_(sel)
     { simple_type(WRAPPED_SEL); }
     Wrapped_Selector(const Wrapped_Selector* ptr)
@@ -2668,28 +2675,10 @@ namespace Sass {
     virtual bool is_superselector_of(Wrapped_Selector_Obj sub);
     // Selectors inside the negation pseudo-class are counted like any
     // other, but the negation itself does not count as a pseudo-class.
-    virtual size_t hash()
-    {
-      if (hash_ == 0) {
-        hash_combine(hash_, Simple_Selector::hash());
-        if (selector_) hash_combine(hash_, selector_->hash());
-      }
-      return hash_;
-    }
-    virtual bool has_parent_ref() {
-      // if (has_reference()) return true;
-      if (!selector()) return false;
-      return selector()->has_parent_ref();
-    }
-    virtual bool has_real_parent_ref() {
-      // if (has_reference()) return true;
-      if (!selector()) return false;
-      return selector()->has_real_parent_ref();
-    }
-    virtual unsigned long specificity() const
-    {
-      return selector_ ? selector_->specificity() : 0;
-    }
+    virtual size_t hash();
+    virtual bool has_parent_ref();
+    virtual bool has_real_parent_ref();
+    virtual unsigned long specificity() const;
     virtual bool operator==(const Simple_Selector& rhs) const;
     virtual bool operator==(const Wrapped_Selector& rhs) const;
     virtual bool operator<(const Simple_Selector& rhs) const;
@@ -2971,16 +2960,21 @@ namespace Sass {
   // Comma-separated selector groups.
   ///////////////////////////////////
   class Selector_List : public Selector, public Vectorized<Complex_Selector_Obj> {
+    ADD_PROPERTY(Selector_Schema_Obj, schema)
     ADD_CONSTREF(std::vector<std::string>, wspace)
   protected:
     void adjust_after_pushing(Complex_Selector_Obj c);
   public:
     Selector_List(ParserState pstate, size_t s = 0)
-    : Selector(pstate), Vectorized<Complex_Selector_Obj>(s), wspace_(0)
+    : Selector(pstate),
+      Vectorized<Complex_Selector_Obj>(s),
+      schema_(NULL),
+      wspace_(0)
     { }
     Selector_List(const Selector_List* ptr)
     : Selector(ptr),
       Vectorized<Complex_Selector_Obj>(*ptr),
+      schema_(ptr->schema_),
       wspace_(ptr->wspace_)
     { }
     std::string type() { return "list"; }
@@ -2995,6 +2989,7 @@ namespace Sass {
     virtual bool is_superselector_of(Selector_List_Obj sub, std::string wrapping = "");
     Selector_List_Ptr unify_with(Selector_List_Ptr, Context&);
     void populate_extends(Selector_List_Obj, Context&, Subset_Map&);
+    Selector_List_Obj eval(Eval& eval);
     virtual size_t hash()
     {
       if (Selector::hash_ == 0) {

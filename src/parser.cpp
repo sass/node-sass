@@ -248,9 +248,15 @@ namespace Sass {
     else if (lex < kwd_extend >(true)) {
       Lookahead lookahead = lookahead_for_include(position);
       if (!lookahead.found) css_error("Invalid CSS", " after ", ": expected selector, was ");
-      Selector_Obj target;
-      if (lookahead.has_interpolants) target = parse_selector_schema(lookahead.found, true);
-      else                            target = parse_selector_list(true);
+      Selector_List_Obj target;
+      if (!lookahead.has_interpolants) {
+        target = parse_selector_list(true);
+      }
+      else {
+        target = SASS_MEMORY_NEW(Selector_List, pstate);
+        target->schema(parse_selector_schema(lookahead.found, true));
+      }
+
       block->append(SASS_MEMORY_NEW(Extension, pstate, target));
     }
 
@@ -496,7 +502,11 @@ namespace Sass {
     Ruleset_Obj ruleset = SASS_MEMORY_NEW(Ruleset, pstate);
     // parse selector static or as schema to be evaluated later
     if (lookahead.parsable) ruleset->selector(parse_selector_list(false));
-    else ruleset->selector(parse_selector_schema(lookahead.found, false));
+    else {
+      Selector_List_Obj list = SASS_MEMORY_NEW(Selector_List, pstate);
+      list->schema(parse_selector_schema(lookahead.found, false));
+      ruleset->selector(list);
+    }
     // then parse the inner block
     stack.push_back(Scope::Rules);
     ruleset->block(parse_block());
