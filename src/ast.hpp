@@ -2307,8 +2307,8 @@ namespace Sass {
       return false;
     }
     // dispatch to correct handlers
-    virtual bool operator<(const Selector& rhs) const;
-    virtual bool operator==(const Selector& rhs) const;
+    virtual bool operator<(const Selector& rhs) const = 0;
+    virtual bool operator==(const Selector& rhs) const = 0;
     ATTACH_VIRTUAL_AST_OPERATIONS(Selector);
   };
   inline Selector::~Selector() { }
@@ -2333,6 +2333,8 @@ namespace Sass {
     { }
     virtual bool has_parent_ref();
     virtual bool has_real_parent_ref();
+    virtual bool operator<(const Selector& rhs) const;
+    virtual bool operator==(const Selector& rhs) const;
     // selector schema is not yet a final selector, so we do not
     // have a specificity for it yet. We need to
     virtual unsigned long specificity() const { return 0; }
@@ -2789,6 +2791,8 @@ namespace Sass {
              Cast<Parent_Selector>((*this)[0]);
     }
 
+    virtual bool operator<(const Selector& rhs) const;
+    virtual bool operator==(const Selector& rhs) const;
     virtual bool operator<(const Compound_Selector& rhs) const;
     virtual bool operator==(const Compound_Selector& rhs) const;
     inline bool operator!=(const Compound_Selector& rhs) const { return !(*this == rhs); }
@@ -2908,6 +2912,8 @@ namespace Sass {
       if (tail_ && tail_->has_placeholder()) return true;
       return false;
     }
+    virtual bool operator<(const Selector& rhs) const;
+    virtual bool operator==(const Selector& rhs) const;
     virtual bool operator<(const Complex_Selector& rhs) const;
     virtual bool operator==(const Complex_Selector& rhs) const;
     inline bool operator!=(const Complex_Selector& rhs) const { return !(*this == rhs); }

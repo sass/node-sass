@@ -307,18 +307,63 @@ namespace Sass {
     return unified.detach();
   }
 
-  bool Selector::operator== (const Selector& rhs) const
+  bool Complex_Selector::operator== (const Selector& rhs) const
   {
-    if (const Selector_List* sl = Cast<Selector_List>(this)) return *sl == rhs;
-    if (Simple_Selector_Ptr_Const sp = Cast<Simple_Selector>(this)) return *sp == rhs;
+    if (const Selector_List* sl = Cast<Selector_List>(&rhs)) return *this == *sl;
+    if (const Simple_Selector* sp = Cast<Simple_Selector>(&rhs)) return *this == *sp;
+    if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this == *cs;
+    if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this == *ch;
     throw std::runtime_error("invalid selector base classes to compare");
     return false;
   }
 
-  bool Selector::operator< (const Selector& rhs) const
+
+  bool Complex_Selector::operator< (const Selector& rhs) const
   {
-    if (Selector_List_Ptr_Const sl = Cast<Selector_List>(this)) return *sl < rhs;
-    if (Simple_Selector_Ptr_Const sp = Cast<Simple_Selector>(this)) return *sp < rhs;
+    if (const Selector_List* sl = Cast<Selector_List>(&rhs)) return *this < *sl;
+    if (const Simple_Selector* sp = Cast<Simple_Selector>(&rhs)) return *this < *sp;
+    if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this < *cs;
+    if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this < *ch;
+    throw std::runtime_error("invalid selector base classes to compare");
+    return false;
+  }
+
+  bool Compound_Selector::operator== (const Selector& rhs) const
+  {
+    if (const Selector_List* sl = Cast<Selector_List>(&rhs)) return *this == *sl;
+    if (const Simple_Selector* sp = Cast<Simple_Selector>(&rhs)) return *this == *sp;
+    if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this == *cs;
+    if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this == *ch;
+    throw std::runtime_error("invalid selector base classes to compare");
+    return false;
+  }
+
+  bool Compound_Selector::operator< (const Selector& rhs) const
+  {
+    if (const Selector_List* sl = Cast<Selector_List>(&rhs)) return *this < *sl;
+    if (const Simple_Selector* sp = Cast<Simple_Selector>(&rhs)) return *this < *sp;
+    if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this < *cs;
+    if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this < *ch;
+    throw std::runtime_error("invalid selector base classes to compare");
+    return false;
+  }
+
+  bool Selector_Schema::operator== (const Selector& rhs) const
+  {
+    if (const Selector_List* sl = Cast<Selector_List>(&rhs)) return *this == *sl;
+    if (const Simple_Selector* sp = Cast<Simple_Selector>(&rhs)) return *this == *sp;
+    if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this == *cs;
+    if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this == *ch;
+    throw std::runtime_error("invalid selector base classes to compare");
+    return false;
+  }
+
+  bool Selector_Schema::operator< (const Selector& rhs) const
+  {
+    if (const Selector_List* sl = Cast<Selector_List>(&rhs)) return *this < *sl;
+    if (const Simple_Selector* sp = Cast<Simple_Selector>(&rhs)) return *this < *sp;
+    if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this < *cs;
+    if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this < *ch;
     throw std::runtime_error("invalid selector base classes to compare");
     return false;
   }
