@@ -30,23 +30,14 @@ namespace Sass {
            Cast<Supports_Operator>(cond);
   }
 
-  std::string & str_ltrim(std::string & str)
+  void str_rtrim(std::string& str, const std::string& delimiters = " \f\n\r\t\v")
   {
-    auto it2 =  std::find_if( str.begin() , str.end() , [](char ch){ return !std::isspace<char>(ch , std::locale::classic() ) ; } );
-    str.erase( str.begin() , it2);
-    return str;
-  }
-
-  std::string & str_rtrim(std::string & str)
-  {
-    auto it1 =  std::find_if( str.rbegin() , str.rend() , [](char ch){ return !std::isspace<char>(ch , std::locale::classic() ) ; } );
-    str.erase( it1.base() , str.end() );
-    return str;
+    str.erase( str.find_last_not_of( delimiters ) + 1 );
   }
 
   void String_Constant::rtrim()
   {
-    value_ = str_rtrim(value_);
+    str_rtrim(value_);
   }
 
   void String_Schema::rtrim()
