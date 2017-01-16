@@ -2292,9 +2292,7 @@ namespace Sass {
     { concrete_type(SELECTOR); }
     virtual ~Selector() = 0;
     virtual size_t hash() = 0;
-    virtual unsigned long specificity() const {
-      return 0;
-    }
+    virtual unsigned long specificity() const = 0;
     virtual void set_media_block(Media_Block_Ptr mb) {
       media_block(mb);
     }
@@ -2331,6 +2329,9 @@ namespace Sass {
     { }
     virtual bool has_parent_ref();
     virtual bool has_real_parent_ref();
+    // selector schema is not yet a final selector, so we do not
+    // have a specificity for it yet. We need to
+    virtual unsigned long specificity() const { return 0; }
     virtual size_t hash() {
       if (hash_ == 0) {
         hash_combine(hash_, contents_->hash());
@@ -2368,10 +2369,6 @@ namespace Sass {
       name_(ptr->name_),
       has_ns_(ptr->has_ns_)
     { simple_type(SIMPLE); }
-    virtual bool unique() const
-    {
-      return false;
-    }
     virtual std::string ns_name() const
     {
       std::string name("");
@@ -2527,10 +2524,6 @@ namespace Sass {
     Class_Selector(const Class_Selector* ptr)
     : Simple_Selector(ptr)
     { }
-    virtual bool unique() const
-    {
-      return false;
-    }
     virtual unsigned long specificity() const
     {
       return Constants::Specificity_Class;
@@ -2551,10 +2544,6 @@ namespace Sass {
     Id_Selector(const Id_Selector* ptr)
     : Simple_Selector(ptr)
     { }
-    virtual bool unique() const
-    {
-      return true;
-    }
     virtual unsigned long specificity() const
     {
       return Constants::Specificity_ID;
