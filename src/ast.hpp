@@ -2186,9 +2186,11 @@ namespace Sass {
               std::string n, Expression_Obj def = 0, bool rest = false)
     : AST_Node(pstate), name_(n), default_value_(def), is_rest_parameter_(rest)
     {
-      if (default_value_ && is_rest_parameter_) {
-        error("variable-length parameter may not have a default value", pstate_);
-      }
+      // tried to come up with a spec test for this, but it does no longer
+      // get  past the parser (it error out earlier). A spec test was added!
+      // if (default_value_ && is_rest_parameter_) {
+      //   error("variable-length parameter may not have a default value", pstate_);
+      // }
     }
     Parameter(const Parameter* ptr)
     : AST_Node(ptr),
@@ -2196,9 +2198,11 @@ namespace Sass {
       default_value_(ptr->default_value_),
       is_rest_parameter_(ptr->is_rest_parameter_)
     {
-      if (default_value_ && is_rest_parameter_) {
-        error("variable-length parameter may not have a default value", pstate_);
-      }
+      // tried to come up with a spec test for this, but it does no longer
+      // get  past the parser (it error out earlier). A spec test was added!
+      // if (default_value_ && is_rest_parameter_) {
+      //   error("variable-length parameter may not have a default value", pstate_);
+      // }
     }
     ATTACH_AST_OPERATIONS(Parameter)
     ATTACH_OPERATIONS()
