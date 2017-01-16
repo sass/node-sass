@@ -166,6 +166,7 @@ namespace Sass {
     // process all tails
     while (true)
     {
+      #ifdef DEBUG
       // skip empty ancestor first
       if (l && l->is_empty_ancestor())
       {
@@ -182,6 +183,7 @@ namespace Sass {
         if (r) r_h = r->head();
         continue;
       }
+      #endif
       // check for valid selectors
       if (!l) return !!r;
       if (!r) return false;
@@ -234,6 +236,7 @@ namespace Sass {
     // process all tails
     while (true)
     {
+      #ifdef DEBUG
       // skip empty ancestor first
       if (l && l->is_empty_ancestor())
       {
@@ -250,6 +253,7 @@ namespace Sass {
         if (r) r_h = r->head();
         continue;
       }
+      #endif
       // check the pointers
       if (!r) return !l;
       if (!l) return !r;
