@@ -1034,7 +1034,7 @@ namespace Sass {
   // The @content directive for mixin content blocks.
   ///////////////////////////////////////////////////
   class Content : public Statement {
-    ADD_PROPERTY(Media_Block_Obj, media_block)
+    ADD_PROPERTY(Media_Block_Ptr, media_block)
   public:
     Content(ParserState pstate) : Statement(pstate)
     { statement_type(CONTENT); }
