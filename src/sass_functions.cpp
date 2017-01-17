@@ -18,7 +18,7 @@ extern "C" {
   {
     Sass_Function_Entry cb = (Sass_Function_Entry) calloc(1, sizeof(Sass_Function));
     if (cb == 0) return 0;
-    cb->signature = signature;
+    cb->signature = strdup(signature);
     cb->function = function;
     cb->cookie = cookie;
     return cb;

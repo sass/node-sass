@@ -4,7 +4,7 @@ AM_COPT = -Wall -O2
 AM_COVLDFLAGS =
 
 if ENABLE_COVERAGE
-	AM_COPT = -O0 --coverage
+	AM_COPT = -Wall -O1 -fno-omit-frame-pointer --coverage
 	AM_COVLDFLAGS += -lgcov
 endif
 

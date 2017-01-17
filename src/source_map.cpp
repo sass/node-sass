@@ -2,7 +2,6 @@
 #include <string>
 #include <sstream>
 #include <iostream>
-#include <cstddef>
 #include <iomanip>
 
 #include "ast.hpp"

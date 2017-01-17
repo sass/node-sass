@@ -19,6 +19,19 @@ if [ "x$1" == "x" ] ; then
   exit 1
 fi
 
+if [ "x$COVERAGE" == "0" ] ; then
+  unset COVERAGE
+fi
+
+export EXTRA_CFLAGS=""
+export EXTRA_CXXFLAGS=""
+if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+  # osx doesn't seem to know gcov lib?
+  export EXTRA_LDFLAGS="--coverage"
+else
+  export EXTRA_LDFLAGS="-lgcov --coverage"
+fi
+
 mkdir -p plugins
 if [ ! -d plugins/libsass-${PLUGIN} ] ; then
   git clone https://github.com/mgreter/libsass-${PLUGIN} plugins/libsass-${PLUGIN}
@@ -26,10 +39,13 @@ fi
 if [ ! -d plugins/libsass-${PLUGIN}/build ] ; then
   mkdir plugins/libsass-${PLUGIN}/build
 fi
+RETVAL=$?; if [ "$RETVAL" != "0" ]; then exit $RETVAL; fi
 
 cd plugins/libsass-${PLUGIN}/build
 cmake -G "Unix Makefiles" -D LIBSASS_DIR="../../.." ..
-make -j2
+RETVAL=$?; if [ "$RETVAL" != "0" ]; then exit $RETVAL; fi
+make VERBOSE=1 -j2
+RETVAL=$?; if [ "$RETVAL" != "0" ]; then exit $RETVAL; fi
 cd ../../..
 
 # glob only works on paths relative to imports
@@ -40,5 +56,7 @@ else
   cat ${SASS_SPEC_SPEC_DIR}/basic/input.scss | ${SASSC_BIN} --plugin-path plugins/libsass-${PLUGIN}/build -I ${SASS_SPEC_SPEC_DIR}/basic > ${SASS_SPEC_SPEC_DIR}/basic/result.css
   cat ${SASS_SPEC_SPEC_DIR}/basic/input.scss | ${SASSC_BIN} --plugin-path plugins/libsass-${PLUGIN}/build -I ${SASS_SPEC_SPEC_DIR}/basic --sourcemap > /dev/null
 fi
+RETVAL=$?; if [ "$RETVAL" != "0" ]; then exit $RETVAL; fi
 
 diff ${SASS_SPEC_SPEC_DIR}/basic/expected_output.css ${SASS_SPEC_SPEC_DIR}/basic/result.css
+RETVAL=$?; if [ "$RETVAL" != "0" ]; then exit $RETVAL; fi
