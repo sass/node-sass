@@ -390,7 +390,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     Content_Ptr block = Cast<Content>(node);
     std::cerr << ind << "Content " << block;
     std::cerr << " (" << pstate_source_position(node) << ")";
-    std::cerr << " [@media:" << block->media_block().ptr() << "]";
+    std::cerr << " [@media:" << block->media_block() << "]";
     std::cerr << " " << block->tabs() << std::endl;
   } else if (Cast<Import_Stub>(node)) {
     Import_Stub_Ptr block = Cast<Import_Stub>(node);
@@ -611,7 +611,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     Content_Ptr expression = Cast<Content>(node);
     std::cerr << ind << "Content " << expression;
     std::cerr << " (" << pstate_source_position(node) << ")";
-    std::cerr << " [@media:" << expression->media_block().ptr() << "]";
+    std::cerr << " [@media:" << expression->media_block() << "]";
     std::cerr << " [Statement]" << std::endl;
   } else if (Cast<Boolean>(node)) {
     Boolean_Ptr expression = Cast<Boolean>(node);
