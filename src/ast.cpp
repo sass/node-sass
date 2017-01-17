@@ -127,7 +127,7 @@ namespace Sass {
     return length() < rhs.length();
   }
 
-  bool Compound_Selector::has_parent_ref()
+  bool Compound_Selector::has_parent_ref() const
   {
     for (Simple_Selector_Obj s : *this) {
       if (s && s->has_parent_ref()) return true;
@@ -135,7 +135,7 @@ namespace Sass {
     return false;
   }
 
-  bool Compound_Selector::has_real_parent_ref()
+  bool Compound_Selector::has_real_parent_ref() const
   {
     for (Simple_Selector_Obj s : *this) {
       if (s && s->has_real_parent_ref()) return true;
@@ -143,13 +143,13 @@ namespace Sass {
     return false;
   }
 
-  bool Complex_Selector::has_parent_ref()
+  bool Complex_Selector::has_parent_ref() const
   {
     return (head() && head()->has_parent_ref()) ||
            (tail() && tail()->has_parent_ref());
   }
 
-  bool Complex_Selector::has_real_parent_ref()
+  bool Complex_Selector::has_real_parent_ref() const
   {
     return (head() && head()->has_real_parent_ref()) ||
            (tail() && tail()->has_real_parent_ref());
@@ -1488,12 +1488,12 @@ namespace Sass {
     }
     return hash_;
   }
-  bool Wrapped_Selector::has_parent_ref() {
+  bool Wrapped_Selector::has_parent_ref() const {
     // if (has_reference()) return true;
     if (!selector()) return false;
     return selector()->has_parent_ref();
   }
-  bool Wrapped_Selector::has_real_parent_ref() {
+  bool Wrapped_Selector::has_real_parent_ref() const {
     // if (has_reference()) return true;
     if (!selector()) return false;
     return selector()->has_real_parent_ref();
@@ -1504,7 +1504,7 @@ namespace Sass {
   }
 
 
-  bool Selector_List::has_parent_ref()
+  bool Selector_List::has_parent_ref() const
   {
     for (Complex_Selector_Obj s : elements()) {
       if (s && s->has_parent_ref()) return true;
@@ -1512,7 +1512,7 @@ namespace Sass {
     return false;
   }
 
-  bool Selector_List::has_real_parent_ref()
+  bool Selector_List::has_real_parent_ref() const
   {
     for (Complex_Selector_Obj s : elements()) {
       if (s && s->has_real_parent_ref()) return true;
@@ -1520,7 +1520,7 @@ namespace Sass {
     return false;
   }
 
-  bool Selector_Schema::has_parent_ref()
+  bool Selector_Schema::has_parent_ref() const
   {
     if (String_Schema_Obj schema = Cast<String_Schema>(contents())) {
       return schema->length() > 0 && Cast<Parent_Selector>(schema->at(0)) != NULL;
@@ -1528,7 +1528,7 @@ namespace Sass {
     return false;
   }
 
-  bool Selector_Schema::has_real_parent_ref()
+  bool Selector_Schema::has_real_parent_ref() const
   {
     if (String_Schema_Obj schema = Cast<String_Schema>(contents())) {
       Parent_Selector_Obj p = Cast<Parent_Selector>(schema->at(0));
