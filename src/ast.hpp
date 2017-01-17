@@ -2276,9 +2276,8 @@ namespace Sass {
   protected:
     size_t hash_;
   public:
-    Selector(ParserState pstate, bool r = false, bool h = false)
+    Selector(ParserState pstate)
     : Expression(pstate),
-      // has_reference_(r),
       has_line_feed_(false),
       has_line_break_(false),
       is_optional_(false),
