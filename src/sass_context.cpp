@@ -472,7 +472,7 @@ extern "C" {
     if (compiler->c_ctx->error_status)
       return compiler->c_ctx->error_status;
     // parse the context we have set up (file or data)
-    compiler->root = &sass_parse_block(compiler);
+    compiler->root = sass_parse_block(compiler);
     // success
     return 0;
   }

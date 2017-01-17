@@ -69,6 +69,7 @@
   <ItemGroup Label="LibSass Sources">
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\memory\SharedPtr.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_fwd_decl.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\base64vlq.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\bind.cpp" />
     <ClCompile Condition="$(VisualStudioVersion) &lt; 14.0" Include="$(LIBSASS_SRC_DIR)\c99func.c" />

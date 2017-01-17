@@ -8,7 +8,6 @@
 
 namespace Sass {
 
-  typedef Environment<AST_Node_Obj> Env;
   struct Backtrace;
 
   class Cssize : public Operation_CRTP<Statement_Ptr, Cssize> {

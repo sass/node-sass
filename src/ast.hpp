@@ -1,6 +1,7 @@
 #ifndef SASS_AST_H
 #define SASS_AST_H
 
+#include "sass.hpp"
 #include <set>
 #include <deque>
 #include <vector>
@@ -120,12 +121,11 @@ namespace Sass {
     ATTACH_VIRTUAL_AST_OPERATIONS(AST_Node);
     virtual std::string inspect() const { return to_string({ INSPECT, 5 }); }
     virtual std::string to_sass() const { return to_string({ TO_SASS, 5 }); }
-    virtual std::string to_string(Sass_Inspect_Options opt) const;
-    virtual std::string to_string() const;
+    virtual const std::string to_string(Sass_Inspect_Options opt) const;
+    virtual const std::string to_string() const;
     virtual void cloneChildren() {};
   public:
     void update_pstate(const ParserState& pstate);
-    void set_pstate_offset(const Offset& offset);
   public:
     Offset off() { return pstate(); }
     Position pos() { return pstate(); }
@@ -133,6 +133,21 @@ namespace Sass {
   };
   inline AST_Node::~AST_Node() { }
 
+  //////////////////////////////////////////////////////////////////////
+  // define cast template now (need complete type)
+  //////////////////////////////////////////////////////////////////////
+
+  template<class T>
+  T* Cast(AST_Node* ptr) {
+    return ptr && typeid(T) == typeid(*ptr) ?
+           static_cast<T*>(ptr) : NULL;
+  };
+
+  template<class T>
+  const T* Cast(const AST_Node* ptr) {
+    return ptr && typeid(T) == typeid(*ptr) ?
+           static_cast<const T*>(ptr) : NULL;
+  };
 
   //////////////////////////////////////////////////////////////////////
   // Abstract base class for expressions. This side of the AST hierarchy
@@ -546,7 +561,7 @@ namespace Sass {
   // Trace.
   /////////////////
   class Trace : public Has_Block {
-    ADD_PROPERTY(std::string, name)
+    ADD_CONSTREF(std::string, name)
   public:
     Trace(ParserState pstate, std::string n, Block_Obj b = 0)
     : Has_Block(pstate, b), name_(n)
@@ -568,9 +583,6 @@ namespace Sass {
     Media_Block(ParserState pstate, List_Obj mqs, Block_Obj b)
     : Has_Block(pstate, b), media_queries_(mqs)
     { statement_type(MEDIA); }
-    Media_Block(ParserState pstate, List_Obj mqs, Block_Obj b, Selector_Obj s)
-    : Has_Block(pstate, b), media_queries_(mqs)
-    { statement_type(MEDIA); }
     Media_Block(const Media_Block* ptr)
     : Has_Block(ptr), media_queries_(ptr->media_queries_)
     { statement_type(MEDIA); }
@@ -585,7 +597,7 @@ namespace Sass {
   // optional statement block.
   ///////////////////////////////////////////////////////////////////////
   class Directive : public Has_Block {
-    ADD_PROPERTY(std::string, keyword)
+    ADD_CONSTREF(std::string, keyword)
     ADD_PROPERTY(Selector_Obj, selector)
     ADD_PROPERTY(Expression_Obj, value)
   public:
@@ -661,7 +673,7 @@ namespace Sass {
   // Assignments -- variable and value.
   /////////////////////////////////////
   class Assignment : public Statement {
-    ADD_PROPERTY(std::string, variable)
+    ADD_CONSTREF(std::string, variable)
     ADD_PROPERTY(Expression_Obj, value)
     ADD_PROPERTY(bool, is_default)
     ADD_PROPERTY(bool, is_global)
@@ -806,7 +818,7 @@ namespace Sass {
     ADD_PROPERTY(Block_Obj, alternative)
   public:
     If(ParserState pstate, Expression_Obj pred, Block_Obj con, Block_Obj alt = 0)
-    : Has_Block(pstate, &con), predicate_(pred), alternative_(alt)
+    : Has_Block(pstate, con), predicate_(pred), alternative_(alt)
     { statement_type(IF); }
     If(const If* ptr)
     : Has_Block(ptr),
@@ -825,7 +837,7 @@ namespace Sass {
   // The Sass `@for` control directive.
   /////////////////////////////////////
   class For : public Has_Block {
-    ADD_PROPERTY(std::string, variable)
+    ADD_CONSTREF(std::string, variable)
     ADD_PROPERTY(Expression_Obj, lower_bound)
     ADD_PROPERTY(Expression_Obj, upper_bound)
     ADD_PROPERTY(bool, is_inclusive)
@@ -916,13 +928,12 @@ namespace Sass {
   // by a type tag.
   /////////////////////////////////////////////////////////////////////////////
   struct Backtrace;
-  typedef Environment<AST_Node_Obj> Env;
   typedef const char* Signature;
   typedef Expression_Ptr (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtrace*, std::vector<Selector_List_Obj>);
   class Definition : public Has_Block {
   public:
     enum Type { MIXIN, FUNCTION };
-    ADD_PROPERTY(std::string, name)
+    ADD_CONSTREF(std::string, name)
     ADD_PROPERTY(Parameters_Obj, parameters)
     ADD_PROPERTY(Env*, environment)
     ADD_PROPERTY(Type, type)
@@ -1004,7 +1015,7 @@ namespace Sass {
   // Mixin calls (i.e., `@include ...`).
   //////////////////////////////////////
   class Mixin_Call : public Has_Block {
-    ADD_PROPERTY(std::string, name)
+    ADD_CONSTREF(std::string, name)
     ADD_PROPERTY(Arguments_Obj, arguments)
   public:
     Mixin_Call(ParserState pstate, std::string n, Arguments_Obj args, Block_Obj b = 0)
@@ -1023,7 +1034,7 @@ namespace Sass {
   // The @content directive for mixin content blocks.
   ///////////////////////////////////////////////////
   class Content : public Statement {
-    ADD_PROPERTY(Media_Block_Obj, media_block)
+    ADD_PROPERTY(Media_Block_Ptr, media_block)
   public:
     Content(ParserState pstate) : Statement(pstate)
     { statement_type(CONTENT); }
@@ -1162,9 +1173,9 @@ namespace Sass {
   //////////////////////////////////////////////////////////////////////////
   class Binary_Expression : public PreValue {
   private:
-    ADD_HASHED(Operand, op)
-    ADD_HASHED(Expression_Obj, left)
-    ADD_HASHED(Expression_Obj, right)
+    HASH_PROPERTY(Operand, op)
+    HASH_PROPERTY(Expression_Obj, left)
+    HASH_PROPERTY(Expression_Obj, right)
     size_t hash_;
   public:
     Binary_Expression(ParserState pstate,
@@ -1235,11 +1246,11 @@ namespace Sass {
     {
       try
       {
-        Binary_Expression_Ptr_Const m = dynamic_cast<Binary_Expression_Ptr_Const>(&rhs);
+        Binary_Expression_Ptr_Const m = Cast<Binary_Expression>(&rhs);
         if (m == 0) return false;
         return type() == m->type() &&
-               left() == m->left() &&
-               right() == m->right();
+               *left() == *m->left() &&
+               *right() == *m->right();
       }
       catch (std::bad_cast&)
       {
@@ -1268,8 +1279,8 @@ namespace Sass {
   public:
     enum Type { PLUS, MINUS, NOT };
   private:
-    ADD_HASHED(Type, type)
-    ADD_HASHED(Expression_Obj, operand)
+    HASH_PROPERTY(Type, type)
+    HASH_PROPERTY(Expression_Obj, operand)
     size_t hash_;
   public:
     Unary_Expression(ParserState pstate, Type t, Expression_Obj o)
@@ -1293,10 +1304,10 @@ namespace Sass {
     {
       try
       {
-        Unary_Expression_Ptr_Const m = dynamic_cast<Unary_Expression_Ptr_Const>(&rhs);
+        Unary_Expression_Ptr_Const m = Cast<Unary_Expression>(&rhs);
         if (m == 0) return false;
         return type() == m->type() &&
-               operand() == m->operand();
+               *operand() == *m->operand();
       }
       catch (std::bad_cast&)
       {
@@ -1320,8 +1331,8 @@ namespace Sass {
   // Individual argument objects for mixin and function calls.
   ////////////////////////////////////////////////////////////
   class Argument : public Expression {
-    ADD_HASHED(Expression_Obj, value)
-    ADD_HASHED(std::string, name)
+    HASH_PROPERTY(Expression_Obj, value)
+    HASH_CONSTREF(std::string, name)
     ADD_PROPERTY(bool, is_rest_argument)
     ADD_PROPERTY(bool, is_keyword_argument)
     size_t hash_;
@@ -1351,7 +1362,7 @@ namespace Sass {
     {
       try
       {
-        Argument_Ptr_Const m = dynamic_cast<Argument_Ptr_Const>(&rhs);
+        Argument_Ptr_Const m = Cast<Argument>(&rhs);
         if (!(m && name() == m->name())) return false;
         return *value() == *m->value();
       }
@@ -1415,8 +1426,8 @@ namespace Sass {
   // Function calls.
   //////////////////
   class Function_Call : public PreValue {
-    ADD_HASHED(std::string, name)
-    ADD_HASHED(Arguments_Obj, arguments)
+    HASH_CONSTREF(std::string, name)
+    HASH_PROPERTY(Arguments_Obj, arguments)
     ADD_PROPERTY(bool, via_call)
     ADD_PROPERTY(void*, cookie)
     size_t hash_;
@@ -1440,11 +1451,11 @@ namespace Sass {
     {
       try
       {
-        Function_Call_Ptr_Const m = dynamic_cast<Function_Call_Ptr_Const>(&rhs);
+        Function_Call_Ptr_Const m = Cast<Function_Call>(&rhs);
         if (!(m && name() == m->name())) return false;
         if (!(m && arguments()->length() == m->arguments()->length())) return false;
         for (size_t i =0, L = arguments()->length(); i < L; ++i)
-          if (!((*arguments())[i] == (*m->arguments())[i])) return false;
+          if (!(*(*arguments())[i] == *(*m->arguments())[i])) return false;
         return true;
       }
       catch (std::bad_cast&)
@@ -1490,7 +1501,7 @@ namespace Sass {
   // Variable references.
   ///////////////////////
   class Variable : public PreValue {
-    ADD_PROPERTY(std::string, name)
+    ADD_CONSTREF(std::string, name)
   public:
     Variable(ParserState pstate, std::string n)
     : PreValue(pstate), name_(n)
@@ -1503,7 +1514,7 @@ namespace Sass {
     {
       try
       {
-        Variable_Ptr_Const e = dynamic_cast<Variable_Ptr_Const>(&rhs);
+        Variable_Ptr_Const e = Cast<Variable>(&rhs);
         return e && name() == e->name();
       }
       catch (std::bad_cast&)
@@ -1530,8 +1541,8 @@ namespace Sass {
   public:
     enum Type { NUMBER, PERCENTAGE, DIMENSION, HEX };
   private:
-    ADD_HASHED(Type, type)
-    ADD_HASHED(std::string, value)
+    HASH_PROPERTY(Type, type)
+    HASH_CONSTREF(std::string, value)
     size_t hash_;
   public:
     Textual(ParserState pstate, Type t, std::string val)
@@ -1549,7 +1560,7 @@ namespace Sass {
     {
       try
       {
-        Textual_Ptr_Const e = dynamic_cast<Textual_Ptr_Const>(&rhs);
+        Textual_Ptr_Const e = Cast<Textual>(&rhs);
         return e && value() == e->value() && type() == e->type();
       }
       catch (std::bad_cast&)
@@ -1576,7 +1587,7 @@ namespace Sass {
   // Numbers, percentages, dimensions, and colors.
   ////////////////////////////////////////////////
   class Number : public Value {
-    ADD_HASHED(double, value)
+    HASH_PROPERTY(double, value)
     ADD_PROPERTY(bool, zero)
     std::vector<std::string> numerator_units_;
     std::vector<std::string> denominator_units_;
@@ -1623,7 +1634,6 @@ namespace Sass {
 
     virtual bool operator< (const Number& rhs) const;
     virtual bool operator== (const Expression& rhs) const;
-    virtual bool eq(const Expression& rhs) const;
     ATTACH_AST_OPERATIONS(Number)
     ATTACH_OPERATIONS()
   };
@@ -1632,11 +1642,11 @@ namespace Sass {
   // Colors.
   //////////
   class Color : public Value {
-    ADD_HASHED(double, r)
-    ADD_HASHED(double, g)
-    ADD_HASHED(double, b)
-    ADD_HASHED(double, a)
-    ADD_PROPERTY(std::string, disp)
+    HASH_PROPERTY(double, r)
+    HASH_PROPERTY(double, g)
+    HASH_PROPERTY(double, b)
+    HASH_PROPERTY(double, a)
+    ADD_CONSTREF(std::string, disp)
     size_t hash_;
   public:
     Color(ParserState pstate, double r, double g, double b, double a = 1, const std::string disp = "")
@@ -1676,7 +1686,7 @@ namespace Sass {
   // Errors from Sass_Values.
   //////////////////////////////
   class Custom_Error : public Value {
-    ADD_PROPERTY(std::string, message)
+    ADD_CONSTREF(std::string, message)
   public:
     Custom_Error(ParserState pstate, std::string msg)
     : Value(pstate), message_(msg)
@@ -1693,7 +1703,7 @@ namespace Sass {
   // Warnings from Sass_Values.
   //////////////////////////////
   class Custom_Warning : public Value {
-    ADD_PROPERTY(std::string, message)
+    ADD_CONSTREF(std::string, message)
   public:
     Custom_Warning(ParserState pstate, std::string msg)
     : Value(pstate), message_(msg)
@@ -1710,7 +1720,7 @@ namespace Sass {
   // Booleans.
   ////////////
   class Boolean : public Value {
-    ADD_HASHED(bool, value)
+    HASH_PROPERTY(bool, value)
     size_t hash_;
   public:
     Boolean(ParserState pstate, bool val)
@@ -1756,8 +1766,6 @@ namespace Sass {
     static std::string type_name() { return "string"; }
     virtual ~String() = 0;
     virtual void rtrim() = 0;
-    virtual void ltrim() = 0;
-    virtual void trim() = 0;
     virtual bool operator==(const Expression& rhs) const = 0;
     virtual bool operator<(const Expression& rhs) const {
       return this->to_string() < rhs.to_string();
@@ -1797,8 +1805,6 @@ namespace Sass {
       return false;
     }
     virtual void rtrim();
-    virtual void ltrim();
-    virtual void trim();
 
     virtual size_t hash()
     {
@@ -1824,7 +1830,7 @@ namespace Sass {
   class String_Constant : public String {
     ADD_PROPERTY(char, quote_mark)
     ADD_PROPERTY(bool, can_compress_whitespace)
-    ADD_HASHED(std::string, value)
+    HASH_CONSTREF(std::string, value)
   protected:
     size_t hash_;
   public:
@@ -1851,8 +1857,6 @@ namespace Sass {
     static std::string type_name() { return "string"; }
     virtual bool is_invisible() const;
     virtual void rtrim();
-    virtual void ltrim();
-    virtual void trim();
 
     virtual size_t hash()
     {
@@ -2102,7 +2106,7 @@ namespace Sass {
 
       if (s->statement_type() == Statement::DIRECTIVE)
       {
-        if (Directive_Obj dir = SASS_MEMORY_CAST(Directive, s))
+        if (Directive_Obj dir = Cast<Directive>(s))
         {
           std::string keyword(dir->keyword());
           if (keyword.length() > 0) keyword.erase(0, 1);
@@ -2121,7 +2125,7 @@ namespace Sass {
       {
         return expression()->exclude("supports");
       }
-      if (Directive_Obj dir = SASS_MEMORY_CAST(Directive, s))
+      if (Directive_Obj dir = Cast<Directive>(s))
       {
         if (dir->is_keyframes()) return expression()->exclude("keyframes");
       }
@@ -2171,7 +2175,7 @@ namespace Sass {
   // Individual parameter objects for mixins and functions.
   /////////////////////////////////////////////////////////
   class Parameter : public AST_Node {
-    ADD_PROPERTY(std::string, name)
+    ADD_CONSTREF(std::string, name)
     ADD_PROPERTY(Expression_Obj, default_value)
     ADD_PROPERTY(bool, is_rest_parameter)
   public:
@@ -2179,9 +2183,11 @@ namespace Sass {
               std::string n, Expression_Obj def = 0, bool rest = false)
     : AST_Node(pstate), name_(n), default_value_(def), is_rest_parameter_(rest)
     {
-      if (default_value_ && is_rest_parameter_) {
-        error("variable-length parameter may not have a default value", pstate_);
-      }
+      // tried to come up with a spec test for this, but it does no longer
+      // get  past the parser (it error out earlier). A spec test was added!
+      // if (default_value_ && is_rest_parameter_) {
+      //   error("variable-length parameter may not have a default value", pstate_);
+      // }
     }
     Parameter(const Parameter* ptr)
     : AST_Node(ptr),
@@ -2189,9 +2195,11 @@ namespace Sass {
       default_value_(ptr->default_value_),
       is_rest_parameter_(ptr->is_rest_parameter_)
     {
-      if (default_value_ && is_rest_parameter_) {
-        error("variable-length parameter may not have a default value", pstate_);
-      }
+      // tried to come up with a spec test for this, but it does no longer
+      // get  past the parser (it error out earlier). A spec test was added!
+      // if (default_value_ && is_rest_parameter_) {
+      //   error("variable-length parameter may not have a default value", pstate_);
+      // }
     }
     ATTACH_AST_OPERATIONS(Parameter)
     ATTACH_OPERATIONS()
@@ -2265,9 +2273,8 @@ namespace Sass {
   protected:
     size_t hash_;
   public:
-    Selector(ParserState pstate, bool r = false, bool h = false)
+    Selector(ParserState pstate)
     : Expression(pstate),
-      // has_reference_(r),
       has_line_feed_(false),
       has_line_break_(false),
       is_optional_(false),
@@ -2285,9 +2292,7 @@ namespace Sass {
     { concrete_type(SELECTOR); }
     virtual ~Selector() = 0;
     virtual size_t hash() = 0;
-    virtual unsigned long specificity() {
-      return 0;
-    }
+    virtual unsigned long specificity() const = 0;
     virtual void set_media_block(Media_Block_Ptr mb) {
       media_block(mb);
     }
@@ -2298,8 +2303,8 @@ namespace Sass {
       return false;
     }
     // dispatch to correct handlers
-    virtual bool operator<(const Selector& rhs) const;
-    virtual bool operator==(const Selector& rhs) const;
+    virtual bool operator<(const Selector& rhs) const = 0;
+    virtual bool operator==(const Selector& rhs) const = 0;
     ATTACH_VIRTUAL_AST_OPERATIONS(Selector);
   };
   inline Selector::~Selector() { }
@@ -2324,6 +2329,11 @@ namespace Sass {
     { }
     virtual bool has_parent_ref();
     virtual bool has_real_parent_ref();
+    virtual bool operator<(const Selector& rhs) const;
+    virtual bool operator==(const Selector& rhs) const;
+    // selector schema is not yet a final selector, so we do not
+    // have a specificity for it yet. We need to
+    virtual unsigned long specificity() const { return 0; }
     virtual size_t hash() {
       if (hash_ == 0) {
         hash_combine(hash_, contents_->hash());
@@ -2338,8 +2348,8 @@ namespace Sass {
   // Abstract base class for simple selectors.
   ////////////////////////////////////////////
   class Simple_Selector : public Selector {
-    ADD_PROPERTY(std::string, ns)
-    ADD_PROPERTY(std::string, name)
+    ADD_CONSTREF(std::string, ns)
+    ADD_CONSTREF(std::string, name)
     ADD_PROPERTY(Simple_Type, simple_type)
     ADD_PROPERTY(bool, has_ns)
   public:
@@ -2361,10 +2371,6 @@ namespace Sass {
       name_(ptr->name_),
       has_ns_(ptr->has_ns_)
     { simple_type(SIMPLE); }
-    virtual bool unique() const
-    {
-      return false;
-    }
     virtual std::string ns_name() const
     {
       std::string name("");
@@ -2381,6 +2387,8 @@ namespace Sass {
       }
       return hash_;
     }
+    // namespace compare functions
+    bool is_ns_eq(const Simple_Selector& r) const;
     // namespace query functions
     bool is_universal_ns() const
     {
@@ -2416,8 +2424,7 @@ namespace Sass {
     virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr, Context&);
     virtual bool has_parent_ref() { return false; };
     virtual bool has_real_parent_ref() { return false; };
-    virtual bool is_pseudo_element() { return false; }
-    virtual bool is_pseudo_class() { return false; }
+    virtual bool is_pseudo_element() const { return false; }
 
     virtual bool is_superselector_of(Compound_Selector_Obj sub) { return false; }
 
@@ -2452,7 +2459,7 @@ namespace Sass {
     bool is_real_parent_ref() { return real(); };
     virtual bool has_parent_ref() { return true; };
     virtual bool has_real_parent_ref() { return is_real_parent_ref(); };
-    virtual unsigned long specificity()
+    virtual unsigned long specificity() const
     {
       return 0;
     }
@@ -2473,7 +2480,7 @@ namespace Sass {
     Placeholder_Selector(const Placeholder_Selector* ptr)
     : Simple_Selector(ptr)
     { }
-    virtual unsigned long specificity()
+    virtual unsigned long specificity() const
     {
       return Constants::Specificity_Base;
     }
@@ -2496,7 +2503,7 @@ namespace Sass {
     Element_Selector(const Element_Selector* ptr)
     : Simple_Selector(ptr)
     { }
-    virtual unsigned long specificity()
+    virtual unsigned long specificity() const
     {
       if (name() == "*") return 0;
       else               return Constants::Specificity_Element;
@@ -2518,11 +2525,7 @@ namespace Sass {
     Class_Selector(const Class_Selector* ptr)
     : Simple_Selector(ptr)
     { }
-    virtual bool unique() const
-    {
-      return false;
-    }
-    virtual unsigned long specificity()
+    virtual unsigned long specificity() const
     {
       return Constants::Specificity_Class;
     }
@@ -2542,11 +2545,7 @@ namespace Sass {
     Id_Selector(const Id_Selector* ptr)
     : Simple_Selector(ptr)
     { }
-    virtual bool unique() const
-    {
-      return true;
-    }
-    virtual unsigned long specificity()
+    virtual unsigned long specificity() const
     {
       return Constants::Specificity_ID;
     }
@@ -2559,7 +2558,7 @@ namespace Sass {
   // Attribute selectors -- e.g., [src*=".jpg"], etc.
   ///////////////////////////////////////////////////
   class Attribute_Selector : public Simple_Selector {
-    ADD_PROPERTY(std::string, matcher)
+    ADD_CONSTREF(std::string, matcher)
     // this cannot be changed to obj atm!!!!!!????!!!!!!!
     ADD_PROPERTY(String_Obj, value) // might be interpolated
   public:
@@ -2580,7 +2579,7 @@ namespace Sass {
       }
       return hash_;
     }
-    virtual unsigned long specificity()
+    virtual unsigned long specificity() const
     {
       return Constants::Specificity_Attr;
     }
@@ -2618,14 +2617,6 @@ namespace Sass {
     : Simple_Selector(ptr), expression_(ptr->expression_)
     { simple_type(PSEUDO_SEL); }
 
-    // A pseudo-class always consists of a "colon" (:) followed by the name
-    // of the pseudo-class and optionally by a value between parentheses.
-    virtual bool is_pseudo_class()
-    {
-      return (name_[0] == ':' && name_[1] != ':')
-             && ! is_pseudo_class_element(name_);
-    }
-
     // A pseudo-element is made of two colons (::) followed by the name.
     // The `::` notation is introduced by the current document in order to
     // establish a discrimination between pseudo-classes and pseudo-elements.
@@ -2634,7 +2625,7 @@ namespace Sass {
     // in CSS levels 1 and 2 (namely, :first-line, :first-letter, :before and
     // :after). This compatibility is not allowed for the new pseudo-elements
     // introduced in this specification.
-    virtual bool is_pseudo_element()
+    virtual bool is_pseudo_element() const
     {
       return (name_[0] == ':' && name_[1] == ':')
              || is_pseudo_class_element(name_);
@@ -2647,7 +2638,7 @@ namespace Sass {
       }
       return hash_;
     }
-    virtual unsigned long specificity()
+    virtual unsigned long specificity() const
     {
       if (is_pseudo_element())
         return Constants::Specificity_Element;
@@ -2695,7 +2686,7 @@ namespace Sass {
       if (!selector()) return false;
       return selector()->has_real_parent_ref();
     }
-    virtual unsigned long specificity()
+    virtual unsigned long specificity() const
     {
       return selector_ ? selector_->specificity() : 0;
     }
@@ -2708,18 +2699,13 @@ namespace Sass {
     ATTACH_OPERATIONS()
   };
 
-  struct Complex_Selector_Pointer_Compare {
-    bool operator() (const Complex_Selector_Obj& pLeft, const Complex_Selector_Obj& pRight) const;
-  };
-
   ////////////////////////////////////////////////////////////////////////////
   // Simple selector sequences. Maintains flags indicating whether it contains
   // any parent references or placeholders, to simplify expansion.
   ////////////////////////////////////////////////////////////////////////////
-  typedef std::set<Complex_Selector_Obj, Complex_Selector_Pointer_Compare> SourcesSet;
   class Compound_Selector : public Selector, public Vectorized<Simple_Selector_Obj> {
   private:
-    SourcesSet sources_;
+    ComplexSelectorSet sources_;
     ADD_PROPERTY(bool, extended);
     ADD_PROPERTY(bool, has_parent_reference);
   protected:
@@ -2760,16 +2746,11 @@ namespace Sass {
     // virtual Placeholder_Selector_Ptr find_placeholder();
     virtual bool has_parent_ref();
     virtual bool has_real_parent_ref();
-    Simple_Selector_Ptr base()
-    {
-      // Implement non-const in terms of const. Safe to const_cast since this method is non-const
-      return const_cast<Simple_Selector_Ptr>(static_cast<Compound_Selector_Ptr_Const>(this)->base());
-    }
-    Simple_Selector_Ptr_Const base() const {
+    Simple_Selector_Ptr base() const {
       if (length() == 0) return 0;
       // ToDo: why is this needed?
-      if (SASS_MEMORY_CAST(Element_Selector, (*this)[0]))
-        return &(*this)[0];
+      if (Cast<Element_Selector>((*this)[0]))
+        return (*this)[0];
       return 0;
     }
     virtual bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapped = "");
@@ -2783,7 +2764,7 @@ namespace Sass {
       }
       return Selector::hash_;
     }
-    virtual unsigned long specificity()
+    virtual unsigned long specificity() const
     {
       int sum = 0;
       for (size_t i = 0, L = length(); i < L; ++i)
@@ -2803,17 +2784,18 @@ namespace Sass {
     bool is_empty_reference()
     {
       return length() == 1 &&
-             SASS_MEMORY_CAST(Parent_Selector, (*this)[0]);
+             Cast<Parent_Selector>((*this)[0]);
     }
-    std::vector<Subset_Map_Key> to_str_vec(); // sometimes need to convert to a flat "by-value" data structure
 
+    virtual bool operator<(const Selector& rhs) const;
+    virtual bool operator==(const Selector& rhs) const;
     virtual bool operator<(const Compound_Selector& rhs) const;
     virtual bool operator==(const Compound_Selector& rhs) const;
     inline bool operator!=(const Compound_Selector& rhs) const { return !(*this == rhs); }
 
-    SourcesSet& sources() { return sources_; }
+    ComplexSelectorSet& sources() { return sources_; }
     void clearSources() { sources_.clear(); }
-    void mergeSources(SourcesSet& sources, Context& ctx);
+    void mergeSources(ComplexSelectorSet& sources, Context& ctx);
 
     Compound_Selector_Ptr minus(Compound_Selector_Ptr rhs, Context& ctx);
     virtual void cloneChildren();
@@ -2830,10 +2812,10 @@ namespace Sass {
   public:
     enum Combinator { ANCESTOR_OF, PARENT_OF, PRECEDES, ADJACENT_TO, REFERENCE };
   private:
-    ADD_PROPERTY(Combinator, combinator)
-    ADD_PROPERTY(Compound_Selector_Obj, head)
-    ADD_PROPERTY(Complex_Selector_Obj, tail)
-    ADD_PROPERTY(String_Obj, reference);
+    HASH_CONSTREF(Combinator, combinator)
+    HASH_PROPERTY(Compound_Selector_Obj, head)
+    HASH_PROPERTY(Complex_Selector_Obj, tail)
+    HASH_PROPERTY(String_Obj, reference);
   public:
     bool contains_placeholder() {
       if (head() && head()->contains_placeholder()) return true;
@@ -2878,9 +2860,6 @@ namespace Sass {
       return (!head() || head()->length() == 0) &&
              combinator() == Combinator::ANCESTOR_OF;
     }
-
-    Complex_Selector_Obj context(Context&);
-
 
     Selector_List_Ptr tails(Context& ctx, Selector_List_Ptr tails);
 
@@ -2929,55 +2908,57 @@ namespace Sass {
       if (tail_ && tail_->has_placeholder()) return true;
       return false;
     }
+    virtual bool operator<(const Selector& rhs) const;
+    virtual bool operator==(const Selector& rhs) const;
     virtual bool operator<(const Complex_Selector& rhs) const;
     virtual bool operator==(const Complex_Selector& rhs) const;
     inline bool operator!=(const Complex_Selector& rhs) const { return !(*this == rhs); }
-    SourcesSet sources()
+    const ComplexSelectorSet sources()
     {
       //s = Set.new
       //seq.map {|sseq_or_op| s.merge sseq_or_op.sources if sseq_or_op.is_a?(SimpleSequence)}
       //s
 
-      SourcesSet srcs;
+      ComplexSelectorSet srcs;
 
       Compound_Selector_Obj pHead = head();
       Complex_Selector_Obj  pTail = tail();
 
       if (pHead) {
-        SourcesSet& headSources = pHead->sources();
+        const ComplexSelectorSet& headSources = pHead->sources();
         srcs.insert(headSources.begin(), headSources.end());
       }
 
       if (pTail) {
-        SourcesSet tailSources = pTail->sources();
+        const ComplexSelectorSet& tailSources = pTail->sources();
         srcs.insert(tailSources.begin(), tailSources.end());
       }
 
       return srcs;
     }
-    void addSources(SourcesSet& sources, Context& ctx) {
+    void addSources(ComplexSelectorSet& sources, Context& ctx) {
       // members.map! {|m| m.is_a?(SimpleSequence) ? m.with_more_sources(sources) : m}
       Complex_Selector_Ptr pIter = this;
       while (pIter) {
-        Compound_Selector_Ptr pHead = &pIter->head();
+        Compound_Selector_Ptr pHead = pIter->head();
 
         if (pHead) {
           pHead->mergeSources(sources, ctx);
         }
 
-        pIter = &pIter->tail();
+        pIter = pIter->tail();
       }
     }
     void clearSources() {
       Complex_Selector_Ptr pIter = this;
       while (pIter) {
-        Compound_Selector_Ptr pHead = &pIter->head();
+        Compound_Selector_Ptr pHead = pIter->head();
 
         if (pHead) {
           pHead->clearSources();
         }
 
-        pIter = &pIter->tail();
+        pIter = pIter->tail();
       }
     }
 
@@ -2986,13 +2967,11 @@ namespace Sass {
     ATTACH_OPERATIONS()
   };
 
-  typedef std::deque<Complex_Selector_Obj> ComplexSelectorDeque;
-
   ///////////////////////////////////
   // Comma-separated selector groups.
   ///////////////////////////////////
   class Selector_List : public Selector, public Vectorized<Complex_Selector_Obj> {
-    ADD_PROPERTY(std::vector<std::string>, wspace)
+    ADD_CONSTREF(std::vector<std::string>, wspace)
   protected:
     void adjust_after_pushing(Complex_Selector_Obj c);
   public:
@@ -3024,7 +3003,7 @@ namespace Sass {
       }
       return Selector::hash_;
     }
-    virtual unsigned long specificity()
+    virtual unsigned long specificity() const
     {
       unsigned long sum = 0;
       unsigned long specificity = 0;
@@ -3057,24 +3036,6 @@ namespace Sass {
     ATTACH_AST_OPERATIONS(Selector_List)
     ATTACH_OPERATIONS()
   };
-
-  template<typename SelectorType>
-  bool selectors_equal(const SelectorType& one, const SelectorType& two, bool simpleSelectorOrderDependent) {
-    // Test for equality among selectors while differentiating between checks that demand the underlying Simple_Selector
-    // ordering to be the same or not. This works because operator< (which doesn't make a whole lot of sense for selectors, but
-    // is required for proper stl collection ordering) is implemented using string comparision. This gives stable sorting
-    // behavior, and can be used to determine if the selectors would have exactly idential output. operator== matches the
-    // ruby sass implementations for eql, which sometimes perform order independent comparisions (like set comparisons of the
-    // members of a SimpleSequence (Compound_Selector)).
-    //
-    // Due to the reliance on operator== and operater< behavior, this templated method is currently only intended for
-    // use with Compound_Selector and Complex_Selector objects.
-    if (simpleSelectorOrderDependent) {
-      return !(one < two) && !(two < one);
-    } else {
-      return one == two;
-    }
-  }
 
   // compare function for sorting and probably other other uses
   struct cmp_complex_selector { inline bool operator() (const Complex_Selector_Obj l, const Complex_Selector_Obj r) { return (*l < *r); } };
