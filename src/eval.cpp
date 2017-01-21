@@ -475,8 +475,8 @@ namespace Sass {
                                 l->length() / 2);
       for (size_t i = 0, L = l->length(); i < L; i += 2)
       {
-        Expression_Ptr key = (*l)[i+0]->perform(this);
-        Expression_Ptr val = (*l)[i+1]->perform(this);
+        Expression_Obj key = (*l)[i+0]->perform(this);
+        Expression_Obj val = (*l)[i+1]->perform(this);
         // make sure the color key never displays its real name
         key->is_delayed(true); // verified
         *lm << std::make_pair(key, val);
