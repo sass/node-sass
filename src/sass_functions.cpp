@@ -26,6 +26,7 @@ extern "C" {
 
   void ADDCALL sass_delete_function(Sass_Function_Entry entry)
   {
+    free(entry->signature);
     free(entry);
   }
 
