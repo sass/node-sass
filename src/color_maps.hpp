@@ -1,3 +1,4 @@
+
 #ifndef SASS_COLOR_MAPS_H
 #define SASS_COLOR_MAPS_H
 
@@ -319,14 +320,11 @@ namespace Sass {
     extern const Color transparent;
   }
 
-  extern const std::map<const int, const char*> colors_to_names;
-  extern const std::map<const char*, Color_Ptr_Const, map_cmp_str> names_to_colors;
-
-  extern Color_Ptr_Const name_to_color(const char*);
-  extern Color_Ptr_Const name_to_color(const std::string&);
-  extern const char* color_to_name(const int);
-  extern const char* color_to_name(const Color&);
-  extern const char* color_to_name(const double);
+  Color_Ptr_Const name_to_color(const char*);
+  Color_Ptr_Const name_to_color(const std::string&);
+  const char* color_to_name(const int);
+  const char* color_to_name(const Color&);
+  const char* color_to_name(const double);
 
 }
 

@@ -121,8 +121,8 @@ if test "x$enable_cov" = "xyes"; then
 
     # Remove all optimization flags from C[XX]FLAGS
     changequote({,})
-    CFLAGS=`echo "$CFLAGS" | $SED -e 's/-O[0-9]*//g'`
-    CXXFLAGS=`echo "$CXXFLAGS" | $SED -e 's/-O[0-9]*//g'`
+    CFLAGS=`echo "$CFLAGS -O1 -fno-omit-frame-pointer" | $SED -e 's/-O[0-9]*//g'`
+    CXXFLAGS=`echo "$CXXFLAGS -O1 -fno-omit-frame-pointer" | $SED -e 's/-O[0-9]*//g'`
     changequote([,])
 
     AC_SUBST(GCOV)

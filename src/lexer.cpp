@@ -1,6 +1,5 @@
 #include "sass.hpp"
 #include <cctype>
-#include <cstddef>
 #include <iostream>
 #include <iomanip>
 #include "lexer.hpp"

@@ -18,9 +18,14 @@ if [ "x$TRAVIS_OS_NAME" == "x" ]; then export TRAVIS_OS_NAME=`uname -s | perl -n
 
 if [ "x$COVERAGE" == "xyes" ]; then
   COVERAGE_OPT="--enable-coverage"
-  export EXTRA_CFLAGS="--coverage"
-  export EXTRA_CXXFLAGS="--coverage"
-  export EXTRA_LDFLAGS="--coverage"
+  export EXTRA_CFLAGS="-fprofile-arcs -ftest-coverage"
+  export EXTRA_CXXFLAGS="-fprofile-arcs -ftest-coverage"
+  if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+    # osx doesn't seem to know gcov lib?
+    export EXTRA_LDFLAGS="--coverage"
+  else
+    export EXTRA_LDFLAGS="-lgcov --coverage"
+  fi
 else
   COVERAGE_OPT="--disable-coverage"
 fi
